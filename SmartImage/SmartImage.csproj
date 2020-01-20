@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>netcoreapp3.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="RestSharp" Version="106.10.1" />
+      <PackageReference Include="System.Json" Version="4.7.0" />
+    </ItemGroup>
+
+</Project>
