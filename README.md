@@ -6,12 +6,16 @@ Supported sites:
 
 - SauceNao
 - ImgOps
+- Google Images
 
 **[Latest standalone binary](https://github.com/Decimation/SmartImage/blob/master/SmartImage/bin/Release/netcoreapp3.0/win10-x64/publish/SmartImage.exe)**
 
-**[Context menu installation](https://github.com/Decimation/SmartImage/blob/master/SmartImage/AddToContextMenu.bat)**
+# Example
 
-![Context menu image](https://raw.githubusercontent.com/Decimation/SmartImage/master/Context%20menu%20integration.png)
+![Demo](https://github.com/Decimation/SmartImage/raw/master/Demo.gif)
+
+![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
+
 
 # Notes
 
