@@ -2,9 +2,9 @@ using SmartImage.Model;
 
 namespace SmartImage.Indexers
 {
-	public class Iqdb : QuickIndexer
+	public sealed class Iqdb : QuickSearchEngine
 	{
-		public Iqdb(string baseUrl) : base(baseUrl) { }
+		private Iqdb(string baseUrl) : base(baseUrl) { }
 
 		public static Iqdb Value { get; private set; } = new Iqdb("https://iqdb.org/?url=");
 		
@@ -14,6 +14,6 @@ namespace SmartImage.Indexers
 			return new SearchResult(rawUrl, "IQDB");
 		}
 
-		public override OpenOptions Options => OpenOptions.Iqdb;
+		public override SearchEngines Engine => SearchEngines.Iqdb;
 	}
 }

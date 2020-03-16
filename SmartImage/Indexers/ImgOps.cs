@@ -2,7 +2,7 @@ using SmartImage.Model;
 
 namespace SmartImage.Indexers
 {
-	public sealed class ImgOps : QuickIndexer
+	public sealed class ImgOps : QuickSearchEngine
 	{
 		private ImgOps(string baseUrl) : base(baseUrl) { }
 
@@ -14,6 +14,6 @@ namespace SmartImage.Indexers
 			return new SearchResult(rawUrl, "ImgOps");
 		}
 
-		public override OpenOptions Options => OpenOptions.ImgOps;
+		public override SearchEngines Engine => SearchEngines.ImgOps;
 	}
 }

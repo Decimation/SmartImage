@@ -2,7 +2,7 @@ using SmartImage.Model;
 
 namespace SmartImage.Indexers
 {
-	public sealed class GoogleImages : QuickIndexer
+	public sealed class GoogleImages : QuickSearchEngine
 	{
 		private GoogleImages(string baseUrl) : base(baseUrl) { }
 		
@@ -14,6 +14,6 @@ namespace SmartImage.Indexers
 			return new SearchResult(rawUrl, "Google Images");
 		}
 
-		public override OpenOptions Options => OpenOptions.GoogleImages;
+		public override SearchEngines Engine => SearchEngines.GoogleImages;
 	}
 }

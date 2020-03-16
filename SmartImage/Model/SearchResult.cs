@@ -1,6 +1,6 @@
 namespace SmartImage.Model
 {
-	public class SearchResult
+	public sealed class SearchResult
 	{
 		public string Url { get; }
 		

@@ -13,7 +13,7 @@ namespace SmartImage.Indexers.SauceNao
 	// https://github.com/RoxasShadow/SauceNao-Windows
 	// https://github.com/LazDisco/SharpNao
 
-	public sealed class SauceNao : IIndexer
+	public sealed class SauceNao : ISearchEngine
 	{
 		private const string ENDPOINT = "https://saucenao.com/search.php";
 
@@ -82,24 +82,25 @@ namespace SmartImage.Indexers.SauceNao
 			return null;
 		}
 
-		public OpenOptions Options => OpenOptions.SauceNao;
+		public SearchEngines Engine => SearchEngines.SauceNao;
 
-		private static SauceNaoResult GetBestResult(SauceNaoResult[] results)
+		private static SauceNaoResult GetBestSNResult(SauceNaoResult[] results)
 		{
 			var sauceNao = results.OrderByDescending(r => r.Similarity).First();
+			
 			return sauceNao;
 		}
 
 		public string GetRawResult(string url)
 		{
 			var res = GetSNResults(url);
-			return GetBestResult(res).Url[0];
+			return GetBestSNResult(res).Url[0];
 		}
 
 		public SearchResult GetResult(string url)
 		{
 			var sn   = GetSNResults(url);
-			var best = GetBestResult(sn);
+			var best = GetBestSNResult(sn);
 
 			var sr = new SearchResult(best.Url[0], "SauceNao")
 			{

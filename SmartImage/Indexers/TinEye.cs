@@ -2,7 +2,7 @@ using SmartImage.Model;
 
 namespace SmartImage.Indexers
 {
-	public sealed class TinEye : QuickIndexer
+	public sealed class TinEye : QuickSearchEngine
 	{
 		private TinEye(string baseUrl) : base(baseUrl) { }
 		
@@ -14,6 +14,6 @@ namespace SmartImage.Indexers
 			return new SearchResult(rawUrl, "TinEye");
 		}
 
-		public override OpenOptions Options => OpenOptions.TinEye;
+		public override SearchEngines Engine => SearchEngines.TinEye;
 	}
 }

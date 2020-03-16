@@ -27,18 +27,18 @@ namespace SmartImage
 			}
 		};
 
-		public static readonly CliCommand SetOpenOptions = new CliCommand
+		public static readonly CliCommand SetSearchEngines = new CliCommand
 		{
-			Parameter   = "--open-options",
+			Parameter   = "--search-engines",
 			Syntax      = "<options>",
-			Description = "Sets the behavior for opening results when a match is found; delimited by commas",
+			Description = "Sets the search engines to utilize when searching; delimited by commas",
 			Action = args =>
 			{
 				var newOptions = args[1];
 
-				Console.WriteLine("New options: {0}", newOptions);
+				Console.WriteLine("Engines: {0}", newOptions);
 
-				Config.OpenOptions = Enum.Parse<OpenOptions>(newOptions);
+				Config.SearchEngines = Enum.Parse<SearchEngines>(newOptions);
 			}
 		};
 
@@ -55,7 +55,7 @@ namespace SmartImage
 			}
 		};
 
-		public static readonly CliCommand[] AllCommands = new[] {Setup, SetOpenOptions, ContextMenu};
+		public static readonly CliCommand[] AllCommands = new[] {Setup, SetSearchEngines, ContextMenu};
 
 		public static void Help()
 		{

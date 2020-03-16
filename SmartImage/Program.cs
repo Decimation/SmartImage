@@ -18,7 +18,7 @@ namespace SmartImage
 		//var client_id     = "6c97880bf8754c5";
 		//var client_secret = "fe1bed3047828fed3ce67bf2ae923282f0a9a558";
 		// copy SmartImage.exe C:\Library /Y
-		
+
 		private static void Main(string[] args)
 		{
 			Cli.Init();
@@ -45,7 +45,14 @@ namespace SmartImage
 				Cli.Info("Using configured Imgur auth");
 			}
 
-			Cli.Info("Open options: {0}", Config.OpenOptions);
+			var oo = Config.SearchEngines;
+
+			if (oo == SearchEngines.None) {
+				Cli.Error("Please configure search engine preferences!");
+				return;
+			}
+
+			Cli.Info("Engines: {0}", oo);
 
 			var img = args[0];
 
@@ -54,42 +61,48 @@ namespace SmartImage
 				return;
 			}
 
-			Cli.Info("Source: {0}", img);
-
+			Cli.Info("Source image: {0}", img);
 
 			var imgUrl = Imgur.Value.Upload(img);
 
-			Cli.Info("Temporary image: {0}", imgUrl);
+			Cli.Info("Temporary image url: {0}", imgUrl);
 
 			Console.WriteLine();
 
-			var res = SauceNao.Value.GetSNResults(imgUrl);
-
-			Cli.Success("SauceNao results: {0}", res.Length);
-
-			
-			
-			var oo = Config.OpenOptions;
-
-			
-			HandleIndexer(SauceNao.Value, imgUrl, oo);
-			HandleIndexer(ImgOps.Value, imgUrl, oo);
-			HandleIndexer(GoogleImages.Value,imgUrl, oo);
-			HandleIndexer(TinEye.Value, imgUrl, oo);
-			HandleIndexer(Iqdb.Value, imgUrl, oo);
+			RunSearches(imgUrl, oo);
 
 			Console.WriteLine();
 
-			Cli.Success("Complete! Press any key to exit.");
-			Console.ReadLine();
+			Cli.Success("Complete! Press any ESC to exit.");
+
+			do {
+				while (!Console.KeyAvailable) {
+					// Do something
+				}
+
+				var cki = Console.ReadKey(true);
+
+				
+				
+			} while (Console.ReadKey(true).Key != ConsoleKey.Escape);
 		}
 
-		public static void HandleIndexer(IIndexer indexer, string imgUrl, OpenOptions oo)
+		private static readonly ISearchEngine[] AllEngines =
+			{SauceNao.Value, ImgOps.Value, GoogleImages.Value, TinEye.Value, Iqdb.Value,};
+
+		private static void RunSearches(string imgUrl, SearchEngines engines)
 		{
-			var imgOps = indexer.GetResult(imgUrl);
+			foreach (var idx in AllEngines) {
+				RunSearch(idx, imgUrl, engines);
+			}
+		}
+
+		private static void RunSearch(ISearchEngine engine, string imgUrl, SearchEngines oo)
+		{
+			var imgOps = engine.GetResult(imgUrl);
 			Cli.Result(imgOps);
 
-			if (oo.HasFlag(indexer.Options)) {
+			if (oo.HasFlag(engine.Engine)) {
 				Common.OpenUrl(imgOps.Url);
 			}
 		}

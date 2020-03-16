@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using Microsoft.Win32;
-using SmartImage.Utilities;
 
 namespace SmartImage
 {
@@ -12,20 +11,27 @@ namespace SmartImage
 
 		private const string CLIENT_ID_STR     = "client_id";
 		private const string CLIENT_SECRET_STR = "client_secret";
-		private const string OPEN_OPTIONS_STR  = "open_options";
+		private const string OPEN_OPTIONS_STR  = "search_engines";
 
-		internal static OpenOptions OpenOptions {
+		internal static SearchEngines SearchEngines {
 			get {
-				var key = GetKey();
+				var key = SubKey;
 
-				var id = Enum.Parse<OpenOptions>((string) key.GetValue(OPEN_OPTIONS_STR));
+				var str = (string) key.GetValue(OPEN_OPTIONS_STR);
+
+				if (str == null) {
+					Cli.Error("Search engines have not been configured!");
+					return SearchEngines.None;
+				}
+				
+				var id = Enum.Parse<SearchEngines>(str);
 
 				key.Close();
 
 				return id;
 			}
 			set {
-				var key = GetKey();
+				var key = SubKey;
 
 				key.SetValue(OPEN_OPTIONS_STR, value);
 
@@ -35,7 +41,7 @@ namespace SmartImage
 
 		internal static (string, string) ImgurAuth {
 			get {
-				var key = GetKey();
+				var key = SubKey;
 
 				var id     = (string) key.GetValue(CLIENT_ID_STR);
 				var secret = (string) key.GetValue(CLIENT_SECRET_STR);
@@ -45,7 +51,7 @@ namespace SmartImage
 				return (id, secret);
 			}
 			set {
-				var key = GetKey();
+				var key = SubKey;
 
 				var (id, secret) = value;
 
@@ -56,21 +62,10 @@ namespace SmartImage
 			}
 		}
 
+		// Probably not a good idea to have this hardcoded lol
 		internal static string SauceNaoAuth => "c1f946bb2003c92fa8a25ce7fa923e0f213a0db8";
 
-		private static RegistryKey GetKey()
-		{
-			return Registry.CurrentUser.CreateSubKey(SUBKEY);
-		}
-
-		internal static void AddToContextMenuOld()
-		{
-			// see bat file
-			//Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage\command
-
-			Console.WriteLine("Run the opened batch file as administrator");
-			Common.OpenUrl("https://github.com/Decimation/SmartImage/blob/master/SmartImage/AddToContextMenu.bat");
-		}
+		private static RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SUBKEY);
 
 		private static string CreateBatchFile()
 		{
@@ -87,7 +82,7 @@ namespace SmartImage
 			var file = Path.Combine(Directory.GetCurrentDirectory(), "add_to_menu.bat");
 
 			File.WriteAllLines(file, code);
-			
+
 			return file;
 		}
 
