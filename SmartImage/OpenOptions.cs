@@ -11,5 +11,6 @@ namespace SmartImage
 		ImgOps = 1 << 1,
 		GoogleImages = 1 << 2,
 		TinEye = 1 << 3,
+		Iqdb = 1 << 4,
 	}
 }

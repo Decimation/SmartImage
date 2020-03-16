@@ -76,6 +76,7 @@ namespace SmartImage
 			HandleIndexer(ImgOps.Value, imgUrl, oo);
 			HandleIndexer(GoogleImages.Value,imgUrl, oo);
 			HandleIndexer(TinEye.Value, imgUrl, oo);
+			HandleIndexer(Iqdb.Value, imgUrl, oo);
 
 			Console.WriteLine();
 
