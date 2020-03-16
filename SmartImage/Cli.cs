@@ -30,7 +30,7 @@ namespace SmartImage
 		public static readonly CliCommand SetSearchEngines = new CliCommand
 		{
 			Parameter   = "--search-engines",
-			Syntax      = "<options>",
+			Syntax      = "<search engines>",
 			Description = "Sets the search engines to utilize when searching; delimited by commas",
 			Action = args =>
 			{
@@ -39,6 +39,22 @@ namespace SmartImage
 				Console.WriteLine("Engines: {0}", newOptions);
 
 				Config.SearchEngines = Enum.Parse<SearchEngines>(newOptions);
+			}
+		};
+
+		public static readonly CliCommand SetPriorityEngines = new CliCommand
+		{
+			Parameter   = "--priority-engines",
+			Syntax      = "<search engines>",
+			Description = "Sets the search engines whose results to automatically " +
+			              "open in the browser when search is complete; delimited by commas",
+			Action = args =>
+			{
+				var newOptions = args[1];
+
+				Console.WriteLine("Priority engines: {0}", newOptions);
+
+				Config.PriorityEngines = Enum.Parse<SearchEngines>(newOptions);
 			}
 		};
 
@@ -55,9 +71,9 @@ namespace SmartImage
 			}
 		};
 
-		public static readonly CliCommand[] AllCommands = new[] {Setup, SetSearchEngines, ContextMenu};
+		public static readonly CliCommand[] AllCommands = new[] {Setup, SetSearchEngines, ContextMenu, SetPriorityEngines};
 
-		public static void Help()
+		public static void WriteHelp()
 		{
 			Console.WriteLine("Available commands:\n");
 
@@ -70,12 +86,6 @@ namespace SmartImage
 		public static CliCommand ReadCommand(string s)
 		{
 			var cmd = AllCommands.FirstOrDefault(cliCmd => cliCmd.Parameter == s);
-
-			if (cmd == null) {
-				//Console.WriteLine("Command not found: \"{0}\"", s);
-				//Help();
-				return null;
-			}
 
 			return cmd;
 		}
@@ -97,19 +107,9 @@ namespace SmartImage
 			Console.Clear();
 		}
 
-		public static void Result(SearchResult result)
-		{
-			bool success = result.Url != null;
-			if (success) {
-				Success("{0}: {1}", result.Name, result.Url);
-			}
-			else {
-				Error("{0}: {1}", result.Name, result.Url);
-			}
-		}
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
-		public static void Error(string msg, params object[] args)
+		public static void WriteError(string msg, params object[] args)
 		{
 			var oldColor = Console.ForegroundColor;
 
@@ -121,7 +121,7 @@ namespace SmartImage
 		}
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
-		public static void Info(string msg, params object[] args)
+		public static void WriteInfo(string msg, params object[] args)
 		{
 			var oldColor = Console.ForegroundColor;
 
@@ -133,7 +133,7 @@ namespace SmartImage
 		}
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
-		public static void Success(string msg, params object[] args)
+		public static void WriteSuccess(string msg, params object[] args)
 		{
 			var oldColor = Console.ForegroundColor;
 

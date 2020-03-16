@@ -11,19 +11,22 @@ namespace SmartImage
 
 		private const string CLIENT_ID_STR     = "client_id";
 		private const string CLIENT_SECRET_STR = "client_secret";
-		private const string OPEN_OPTIONS_STR  = "search_engines";
+
+		private const string SEARCH_ENGINES_STR = "search_engines";
+
+		private const string PRIORITY_ENGINES_STR = "priority_engines";
 
 		internal static SearchEngines SearchEngines {
 			get {
 				var key = SubKey;
 
-				var str = (string) key.GetValue(OPEN_OPTIONS_STR);
+				var str = (string) key.GetValue(SEARCH_ENGINES_STR);
 
 				if (str == null) {
-					Cli.Error("Search engines have not been configured!");
+					Cli.WriteError("Search engines have not been configured!");
 					return SearchEngines.None;
 				}
-				
+
 				var id = Enum.Parse<SearchEngines>(str);
 
 				key.Close();
@@ -33,7 +36,32 @@ namespace SmartImage
 			set {
 				var key = SubKey;
 
-				key.SetValue(OPEN_OPTIONS_STR, value);
+				key.SetValue(SEARCH_ENGINES_STR, value);
+
+				key.Close();
+			}
+		}
+
+		internal static SearchEngines PriorityEngines {
+			get {
+				var key = SubKey;
+
+				var str = (string) key.GetValue(PRIORITY_ENGINES_STR);
+
+				if (str == null) {
+					return SearchEngines.None;
+				}
+
+				var id = Enum.Parse<SearchEngines>(str);
+
+				key.Close();
+
+				return id;
+			}
+			set {
+				var key = SubKey;
+
+				key.SetValue(PRIORITY_ENGINES_STR, value);
 
 				key.Close();
 			}

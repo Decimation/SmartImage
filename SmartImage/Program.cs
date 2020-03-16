@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Microsoft.Win32;
 using SmartImage.Indexers;
 using SmartImage.Indexers.SauceNao;
@@ -24,8 +26,8 @@ namespace SmartImage
 			Cli.Init();
 
 			if (args == null || args.Length < 1) {
-				Cli.Error("Image or command not specified!");
-				Cli.Help();
+				Cli.WriteError("Image or command not specified!");
+				Cli.WriteHelp();
 				return;
 			}
 
@@ -42,69 +44,95 @@ namespace SmartImage
 			var (id, secret) = Config.ImgurAuth;
 
 			if (id != null && secret != null) {
-				Cli.Info("Using configured Imgur auth");
+				Cli.WriteInfo("Using configured Imgur auth");
 			}
 
-			var oo = Config.SearchEngines;
+			var engines = Config.SearchEngines;
+			var priority = Config.PriorityEngines;
 
-			if (oo == SearchEngines.None) {
-				Cli.Error("Please configure search engine preferences!");
+			if (engines == SearchEngines.None) {
+				Cli.WriteError("Please configure search engine preferences!");
 				return;
 			}
 
-			Cli.Info("Engines: {0}", oo);
-
+			Cli.WriteInfo("Engines: {0}", engines);
+			Cli.WriteInfo("Priority engines: {0}", priority);
+			
 			var img = args[0];
 
 			if (!File.Exists(img)) {
-				Cli.Error("File does not exist: {0}", img);
+				Cli.WriteError("File does not exist: {0}", img);
 				return;
 			}
 
-			Cli.Info("Source image: {0}", img);
+			Cli.WriteInfo("Source image: {0}", img);
 
 			var imgUrl = Imgur.Value.Upload(img);
 
-			Cli.Info("Temporary image url: {0}", imgUrl);
+			Cli.WriteInfo("Temporary image url: {0}", imgUrl);
 
 			Console.WriteLine();
 
-			RunSearches(imgUrl, oo);
+			var results = RunSearches(imgUrl, engines);
 
-			Console.WriteLine();
-
-			Cli.Success("Complete! Press any ESC to exit.");
+			ConsoleKeyInfo cki;
 
 			do {
-				while (!Console.KeyAvailable) {
-					// Do something
+				Console.Clear();
+
+				for (int i = 0; i < results.Length; i++) {
+					Console.WriteLine("[{0}] {1}", i + 1, results[i]);
 				}
 
-				var cki = Console.ReadKey(true);
+				Console.WriteLine();
 
-				
-				
-			} while (Console.ReadKey(true).Key != ConsoleKey.Escape);
+				Cli.WriteSuccess("Enter the result number to open or escape to quit.");
+
+				while (!Console.KeyAvailable) {
+					// Block until input is entered.
+				}
+
+				// Key was read
+
+				cki = Console.ReadKey(true);
+				var keyChar = cki.KeyChar;
+
+				if (Char.IsNumber(keyChar)) {
+					var idx = (int) Char.GetNumericValue(cki.KeyChar) - 1;
+
+					if (idx < results.Length) {
+						var res = results[idx];
+						Common.OpenUrl(res.Url);
+					}
+				}
+			} while (cki.Key != ConsoleKey.Escape);
 		}
 
 		private static readonly ISearchEngine[] AllEngines =
-			{SauceNao.Value, ImgOps.Value, GoogleImages.Value, TinEye.Value, Iqdb.Value,};
-
-		private static void RunSearches(string imgUrl, SearchEngines engines)
 		{
+			SauceNao.Value,
+			ImgOps.Value,
+			GoogleImages.Value,
+			TinEye.Value,
+			Iqdb.Value,
+		};
+
+		private static SearchResult[] RunSearches(string imgUrl, SearchEngines engines)
+		{
+			var list = new List<SearchResult>();
+
 			foreach (var idx in AllEngines) {
-				RunSearch(idx, imgUrl, engines);
-			}
-		}
+				if (engines.HasFlag(idx.Engine)) {
+					var result = idx.GetResult(imgUrl);
+					list.Add(result);
 
-		private static void RunSearch(ISearchEngine engine, string imgUrl, SearchEngines oo)
-		{
-			var imgOps = engine.GetResult(imgUrl);
-			Cli.Result(imgOps);
-
-			if (oo.HasFlag(engine.Engine)) {
-				Common.OpenUrl(imgOps.Url);
+					if (Config.PriorityEngines.HasFlag(idx.Engine)) {
+						Common.OpenUrl(result.Url);
+					}
+				}
 			}
+
+			return list.ToArray();
 		}
 	}
 }
