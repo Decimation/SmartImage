@@ -47,7 +47,9 @@ namespace SmartImage.Indexers
 
 		public override string ToString()
 		{
-			return string.Format("Url[0]: {0} | Sim: {1} | Idx: {2}", Url[0], Similarity,Index);
+			var firstUrl = Url != null ? Url[0] : "-";
+			
+			return string.Format("{0} ({1}, {2})", firstUrl, Similarity,Index);
 		}
 	}
 }

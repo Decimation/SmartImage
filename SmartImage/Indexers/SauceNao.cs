@@ -1,25 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using RestSharp;
-using RestSharp.Deserializers;
-using RestSharp.Serialization.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Runtime.Serialization;
-using System.Threading.Tasks;
 using System.Json;
-using System.Text;
-using System.Runtime.Serialization.Json;
-using System.Text.RegularExpressions;
-using System.Xml;
-using SmartImage.Model;
 using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Indexers
@@ -27,28 +10,33 @@ namespace SmartImage.Indexers
 	// https://github.com/RoxasShadow/SauceNao-Windows
 	// https://github.com/LazDisco/SharpNao
 
-	public class SauceNao : Indexer
+	public sealed class SauceNao
 	{
-		public SauceNao(string endpoint) : base(endpoint) { }
+		private const string ENDPOINT = "https://saucenao.com/search.php";
 
-		/// <summary>Convert a word that is formatted in pascal case to have splits (by space) at each upper case letter.</summary>
-		private static string SplitPascalCase(string convert)
+		private readonly RestClient m_client;
+
+		private readonly string m_apiKey;
+
+		private SauceNao(string apiKey)
 		{
-			return Regex.Replace(Regex.Replace(convert, @"(\P{Ll})(\P{Ll}\p{Ll})", "$1 $2"), @"(\p{Ll})(\P{Ll})",
-			                     "$1 $2");
+			m_client = new RestClient(ENDPOINT);
+			m_apiKey = apiKey;
 		}
+		
+		public static SauceNao Value { get; private set; } = new SauceNao(Config.SauceNaoAuth);
 
-		public override Result[] GetResults(string url, string apiKey)
+		public Result[] GetResults(string url)
 		{
 			var req = new RestRequest();
 			req.AddQueryParameter("db", "999");
 			req.AddQueryParameter("output_type", "2");
 			req.AddQueryParameter("numres", "16");
-			req.AddQueryParameter("api_key", apiKey);
+			req.AddQueryParameter("api_key", m_apiKey);
 			req.AddQueryParameter("url", url);
 
 
-			var res = Client.Execute(req);
+			var res = m_client.Execute(req);
 
 
 			//Console.WriteLine("{0} {1} {2}", res.IsSuccessful, res.ResponseStatus, res.StatusCode);
@@ -80,7 +68,7 @@ namespace SmartImage.Indexers
 						return null;
 
 					for (int i = 0; i < result.Results.Length; i++) {
-						result.Results[i].WebsiteTitle = SplitPascalCase(result.Results[i].Index.ToString());
+						result.Results[i].WebsiteTitle = Common.SplitPascalCase(result.Results[i].Index.ToString());
 					}
 
 					return result.Results;
