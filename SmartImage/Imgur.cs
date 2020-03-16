@@ -8,9 +8,11 @@ using RestSharp.Serialization.Json;
 
 namespace SmartImage
 {
+	// https://github.com/Auo/ImgurSharp
+	
 	public class Imgur
 	{
-		// https://github.com/Auo/ImgurSharp
+		
 		public class ResponseRootObject<T>
 		{
 			public T Data { get; set; }

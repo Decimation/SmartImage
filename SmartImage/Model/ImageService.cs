@@ -1,4 +1,4 @@
-namespace SmartImage
+namespace SmartImage.Model
 {
 	public abstract class ImageService
 	{

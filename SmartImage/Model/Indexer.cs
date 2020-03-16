@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using RestSharp;
+using SmartImage.Indexers;
 
-namespace SmartImage
+namespace SmartImage.Model
 {
 	public abstract class Indexer
 	{
