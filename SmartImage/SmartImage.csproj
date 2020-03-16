@@ -14,8 +14,4 @@
       <PackageReference Include="System.Json" Version="4.7.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Indexers\SauceNao" />
-    </ItemGroup>
-
 </Project>

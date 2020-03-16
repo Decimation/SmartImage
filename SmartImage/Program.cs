@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.Win32;
 using SmartImage.Indexers;
 using SmartImage.Utilities;
@@ -17,94 +18,80 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			Console.Title = "SmartImage";
-
-			string userprofile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-
-			Directory.SetCurrentDirectory(userprofile);
+			Cli.Init();
 
 			if (args == null || args.Length < 1) {
-				Console.WriteLine("Invalid arguments");
+				Cli.Error("Image or command not specified!");
+				Cli.Help();
 				return;
 			}
 
-			switch (args[0]) {
-				case "--setup":
-				{
-					var newId     = args[1];
-					var newSecret = args[2];
 
-					Console.WriteLine("New client ID and secret: ({0}, {1})", newId, newSecret);
+			// Run the command if one was parsed
+			var cmd = Cli.ReadCommand(args[0]);
 
-					Config.ImgurAuth = (newId, newSecret);
-
-					return;
-				}
-				case "--open-options":
-				{
-					var newOptions = args[1];
-
-					Console.WriteLine("New options: {0}", newOptions);
-
-					Config.OpenOptions = Enum.Parse<OpenOptions>(newOptions);
-
-					return;
-				}
-				case "--ctx-menu":
-					Config.AddToContextMenu();
-
-					Console.WriteLine("Added to context menu!");
-					
-					return;
+			if (cmd != null) {
+				cmd.Action(args);
+				return;
 			}
 
 
 			var (id, secret) = Config.ImgurAuth;
 
 			if (id != null && secret != null) {
-				Console.WriteLine(">> Using configured Imgur auth");
+				Cli.Info("Using configured Imgur auth");
 			}
 
-			Console.WriteLine(">> Open options: {0}", Config.OpenOptions);
+			Cli.Info("Open options: {0}", Config.OpenOptions);
 
 			var img = args[0];
-			Console.WriteLine(">> Source: {0}", img);
+
+			if (!File.Exists(img)) {
+				Cli.Error("File does not exist: {0}", img);
+				return;
+			}
+
+			Cli.Info("Source: {0}", img);
 
 
 			var imgUrl = Imgur.Value.Upload(img);
 
-			Console.WriteLine(">> Temporary image: {0}", imgUrl);
+			Cli.Info("Temporary image: {0}", imgUrl);
 
+			Console.WriteLine();
 
-			var res = SauceNao.Value.GetResults(imgUrl);
+			var res = SauceNao.Value.GetSNResults(imgUrl);
 
-			Console.WriteLine("SauceNao results: {0}", res.Length);
+			Cli.Success("SauceNao results: {0}", res.Length);
 
-			/*foreach (var re in res) {
-				Console.WriteLine("\t{0}", re);
-			}*/
-
+			
+			
 			var oo = Config.OpenOptions;
 
 			var sauceNao = res.OrderByDescending(r => r.Similarity).First().Url[0];
-			Console.WriteLine("SauceNao: {0}", sauceNao);
+			Cli.Success("SauceNao: {0}", sauceNao);
 
 			if (oo.HasFlag(OpenOptions.SauceNao)) {
 				Common.OpenUrl(sauceNao);
 			}
 
-			// You can also insert  http://imgops.com/  in front of any image URL.
-			var imgOps = "http://imgops.com/" + imgUrl;
-			Console.WriteLine("ImgOps: {0}", imgOps);
+
+			var imgOps = ImgOps.Value.GetResult(imgUrl);
+			Cli.Success("ImgOps: {0}", imgOps);
 
 			if (oo.HasFlag(OpenOptions.ImgOps)) {
 				Common.OpenUrl(imgOps);
 			}
 
+			var googleImages = GoogleImages.Value.GetResult(imgUrl);
+			Cli.Success("Google Images: {0}", googleImages);
 
-			Console.WriteLine("Complete! Press any key to exit.");
+			if (oo.HasFlag(OpenOptions.GoogleImages)) {
+				Common.OpenUrl(googleImages);
+			}
 
-			Console.ReadLine();
+
+			Cli.Success("\nComplete!");
 		}
 	}
 }
