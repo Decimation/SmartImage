@@ -40,7 +40,7 @@ namespace SmartImage.Utilities
 			//return dynObj.data.link;
 
 			var des = new JsonDeserializer();
-			return des.Deserialize<ResponseRootObject<Image>>(res).Data.Link;
+			return des.Deserialize<ImgurResponse<ImgurImage>>(res).Data.Link;
 		}
 	}
 }

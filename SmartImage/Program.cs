@@ -5,6 +5,8 @@ using System.Linq;
 using System.Text;
 using Microsoft.Win32;
 using SmartImage.Indexers;
+using SmartImage.Indexers.SauceNao;
+using SmartImage.Model;
 using SmartImage.Utilities;
 
 namespace SmartImage
@@ -15,7 +17,8 @@ namespace SmartImage
 		//dotnet publish -c Release -r win10-x64
 		//var client_id     = "6c97880bf8754c5";
 		//var client_secret = "fe1bed3047828fed3ce67bf2ae923282f0a9a558";
-
+		// copy SmartImage.exe C:\Library /Y
+		
 		private static void Main(string[] args)
 		{
 			Cli.Init();
@@ -68,30 +71,26 @@ namespace SmartImage
 			
 			var oo = Config.OpenOptions;
 
-			var sauceNao = res.OrderByDescending(r => r.Similarity).First().Url[0];
-			Cli.Success("SauceNao: {0}", sauceNao);
+			
+			HandleIndexer(SauceNao.Value, imgUrl, oo);
+			HandleIndexer(ImgOps.Value, imgUrl, oo);
+			HandleIndexer(GoogleImages.Value,imgUrl, oo);
+			HandleIndexer(TinEye.Value, imgUrl, oo);
 
-			if (oo.HasFlag(OpenOptions.SauceNao)) {
-				Common.OpenUrl(sauceNao);
+			Console.WriteLine();
+
+			Cli.Success("Complete! Press any key to exit.");
+			Console.ReadLine();
+		}
+
+		public static void HandleIndexer(IIndexer indexer, string imgUrl, OpenOptions oo)
+		{
+			var imgOps = indexer.GetResult(imgUrl);
+			Cli.Result(imgOps);
+
+			if (oo.HasFlag(indexer.Options)) {
+				Common.OpenUrl(imgOps.Url);
 			}
-
-
-			var imgOps = ImgOps.Value.GetResult(imgUrl);
-			Cli.Success("ImgOps: {0}", imgOps);
-
-			if (oo.HasFlag(OpenOptions.ImgOps)) {
-				Common.OpenUrl(imgOps);
-			}
-
-			var googleImages = GoogleImages.Value.GetResult(imgUrl);
-			Cli.Success("Google Images: {0}", googleImages);
-
-			if (oo.HasFlag(OpenOptions.GoogleImages)) {
-				Common.OpenUrl(googleImages);
-			}
-
-
-			Cli.Success("\nComplete!");
 		}
 	}
 }

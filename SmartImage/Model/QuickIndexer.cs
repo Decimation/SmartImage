@@ -1,6 +1,6 @@
 namespace SmartImage.Model
 {
-	public abstract class QuickIndexer
+	public abstract class QuickIndexer : IIndexer
 	{
 		protected readonly string BaseUrl;
 
@@ -9,9 +9,13 @@ namespace SmartImage.Model
 			BaseUrl = baseUrl;
 		}
 
-		public virtual string GetResult(string url)
+		public virtual string GetRawResult(string url)
 		{
 			return BaseUrl + url;
 		}
+
+		public abstract SearchResult GetResult(string url);
+
+		public abstract OpenOptions Options { get; }
 	}
 }

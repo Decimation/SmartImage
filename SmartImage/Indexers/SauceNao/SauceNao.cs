@@ -1,19 +1,19 @@
+using System.Json;
+using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
 using RestSharp;
-using System.Json;
-using System.Linq;
 using SmartImage.Model;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
 
-namespace SmartImage.Indexers
+namespace SmartImage.Indexers.SauceNao
 {
 	// https://github.com/RoxasShadow/SauceNao-Windows
 	// https://github.com/LazDisco/SharpNao
 
-	public sealed class SauceNao
+	public sealed class SauceNao : IIndexer
 	{
 		private const string ENDPOINT = "https://saucenao.com/search.php";
 
@@ -26,11 +26,11 @@ namespace SmartImage.Indexers
 			m_client = new RestClient(ENDPOINT);
 			m_apiKey = apiKey;
 		}
-		
+
 		public static SauceNao Value { get; private set; } = new SauceNao(Config.SauceNaoAuth);
 
 
-		public Result[] GetSNResults(string url)
+		public SauceNaoResult[] GetSNResults(string url)
 		{
 			var req = new RestRequest();
 			req.AddQueryParameter("db", "999");
@@ -48,7 +48,7 @@ namespace SmartImage.Indexers
 
 
 			var jsonString = JsonValue.Parse(res.Content);
-			
+
 			if (jsonString is JsonObject jsonObject) {
 				var jsonArray = jsonObject["results"];
 				for (int i = 0; i < jsonArray.Count; i++) {
@@ -65,8 +65,8 @@ namespace SmartImage.Indexers
 				using (var stream =
 					JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json),
 					                                         XmlDictionaryReaderQuotas.Max)) {
-					var serializer = new DataContractJsonSerializer(typeof(Response));
-					var result     = serializer.ReadObject(stream) as Response;
+					var serializer = new DataContractJsonSerializer(typeof(SauceNaoResponse));
+					var result     = serializer.ReadObject(stream) as SauceNaoResponse;
 					stream.Dispose();
 					if (result is null)
 						return null;
@@ -80,6 +80,34 @@ namespace SmartImage.Indexers
 			}
 
 			return null;
+		}
+
+		public OpenOptions Options => OpenOptions.SauceNao;
+
+		private static SauceNaoResult GetBestResult(SauceNaoResult[] results)
+		{
+			var sauceNao = results.OrderByDescending(r => r.Similarity).First();
+			return sauceNao;
+		}
+
+		public string GetRawResult(string url)
+		{
+			var res = GetSNResults(url);
+			return GetBestResult(res).Url[0];
+		}
+
+		public SearchResult GetResult(string url)
+		{
+			var sn   = GetSNResults(url);
+			var best = GetBestResult(sn);
+
+			var sr = new SearchResult(best.Url[0], "SauceNao")
+			{
+				Similarity = best.Similarity
+			};
+
+
+			return sr;
 		}
 	}
 }

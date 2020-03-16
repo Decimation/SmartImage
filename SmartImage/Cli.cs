@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
+using SmartImage.Model;
 
 namespace SmartImage
 {
@@ -94,6 +95,17 @@ namespace SmartImage
 			Console.Title          = "SmartImage";
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
+		}
+
+		public static void Result(SearchResult result)
+		{
+			bool success = result.Url != null;
+			if (success) {
+				Success("{0}: {1}", result.Name, result.Url);
+			}
+			else {
+				Error("{0}: {1}", result.Name, result.Url);
+			}
 		}
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
