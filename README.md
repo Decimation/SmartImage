@@ -7,9 +7,9 @@ Supported sites:
 - SauceNao
 - ImgOps
 
-[Latest standalone binary](https://github.com/Decimation/SmartImage/blob/master/SmartImage/bin/Release/netcoreapp3.0/win10-x64/publish/SmartImage.exe)
+**[Latest standalone binary](https://github.com/Decimation/SmartImage/blob/master/SmartImage/bin/Release/netcoreapp3.0/win10-x64/publish/SmartImage.exe)**
 
-[Context menu installation](https://github.com/Decimation/SmartImage/blob/master/SmartImage/AddToContextMenu.bat)
+**[Context menu installation](https://github.com/Decimation/SmartImage/blob/master/SmartImage/AddToContextMenu.bat)**
 
 # Inspiration
 
