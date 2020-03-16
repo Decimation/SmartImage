@@ -13,6 +13,10 @@ Supported sites:
 
 ![Context menu image](https://raw.githubusercontent.com/Decimation/SmartImage/master/Context%20menu%20integration.png)
 
+# Notes
+
+Ensure that the executable is placed in the system PATH (*%PATH%*), otherwise the context menu integration will not work.
+
 # Inspiration
 
 - [SauceNao-Windows](https://github.com/RoxasShadow/SauceNao-Windows)
