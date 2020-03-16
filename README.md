@@ -1,12 +1,16 @@
 # SmartImage
 
-Reverse image search tool for Windows with context menu integration.
+*Find the source image in one click!*
+
+SmartImage is a reverse image search tool for Windows with context menu integration. SmartImage will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
 
 Supported sites:
 
 - SauceNao
 - ImgOps
 - Google Images
+- TinEye
+- IQDB
 
 **[Latest standalone binary](https://github.com/Decimation/SmartImage/blob/master/SmartImage/bin/Release/netcoreapp3.0/win10-x64/publish/SmartImage.exe)**
 
