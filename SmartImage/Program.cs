@@ -34,9 +34,9 @@ namespace SmartImage
 					var newId     = args[1];
 					var newSecret = args[2];
 
-					Console.WriteLine("client_id: {0}\nclient_secret: {1}", newId, newSecret);
+					Console.WriteLine("New client ID and secret: ({0}, {1})", newId, newSecret);
 
-					Config.ImgurAuth=(newId, newSecret);
+					Config.ImgurAuth = (newId, newSecret);
 
 					return;
 				}
@@ -44,7 +44,7 @@ namespace SmartImage
 				{
 					var newOptions = args[1];
 
-					Console.WriteLine("options: {0}", newOptions);
+					Console.WriteLine("New options: {0}", newOptions);
 
 					Config.OpenOptions = Enum.Parse<OpenOptions>(newOptions);
 
@@ -53,13 +53,17 @@ namespace SmartImage
 				case "--ctx-menu":
 					Config.AddToContextMenu();
 
+					Console.WriteLine("Added to context menu!");
+					
 					return;
 			}
 
 
 			var (id, secret) = Config.ImgurAuth;
 
-			Console.WriteLine("client_id: {0}\nclient_secret: {1}", id, secret);
+			if (id != null && secret != null) {
+				Console.WriteLine(">> Using configured Imgur auth");
+			}
 
 			Console.WriteLine(">> Open options: {0}", Config.OpenOptions);
 
@@ -71,24 +75,24 @@ namespace SmartImage
 
 			Console.WriteLine(">> Temporary image: {0}", imgUrl);
 
-			
+
 			var res = SauceNao.Value.GetResults(imgUrl);
 
-			Console.WriteLine("Results: {0}", res.Length);
+			Console.WriteLine("SauceNao results: {0}", res.Length);
 
 			/*foreach (var re in res) {
 				Console.WriteLine("\t{0}", re);
 			}*/
 
 			var oo = Config.OpenOptions;
-			
+
 			var sauceNao = res.OrderByDescending(r => r.Similarity).First().Url[0];
 			Console.WriteLine("SauceNao: {0}", sauceNao);
-			
+
 			if (oo.HasFlag(OpenOptions.SauceNao)) {
 				Common.OpenUrl(sauceNao);
 			}
-			
+
 			// You can also insert  http://imgops.com/  in front of any image URL.
 			var imgOps = "http://imgops.com/" + imgUrl;
 			Console.WriteLine("ImgOps: {0}", imgOps);
@@ -97,7 +101,7 @@ namespace SmartImage
 				Common.OpenUrl(imgOps);
 			}
 
-			
+
 			Console.WriteLine("Complete! Press any key to exit.");
 
 			Console.ReadLine();

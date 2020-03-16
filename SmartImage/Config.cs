@@ -1,4 +1,6 @@
 using System;
+using System.Diagnostics;
+using System.IO;
 using Microsoft.Win32;
 
 namespace SmartImage
@@ -59,11 +61,56 @@ namespace SmartImage
 		{
 			return Registry.CurrentUser.CreateSubKey(SUBKEY);
 		}
-		
-		internal static void AddToContextMenu()
+
+		internal static void AddToContextMenuOld()
 		{
 			// see bat file
 			//Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage\command
+
+			Console.WriteLine("Run the opened batch file as administrator");
+			Common.OpenUrl("https://github.com/Decimation/SmartImage/blob/master/SmartImage/AddToContextMenu.bat");
+		}
+
+		private static string CreateBatchFile()
+		{
+			string[] code =
+			{
+				"@echo off",
+				"SET \"SMARTIMAGE=C:\\Library\\SmartImage.exe\"",
+				"SET COMMAND=%SMARTIMAGE% \"%%1\"",
+				"%SystemRoot%\\System32\\reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
+				//"pause"
+			};
+
+
+			var file = Path.Combine(Directory.GetCurrentDirectory(), "add_to_menu.bat");
+
+			File.WriteAllLines(file, code);
+			
+			return file;
+		}
+
+		internal static void AddToContextMenu()
+		{
+			string file = CreateBatchFile();
+			var process = new Process
+			{
+				StartInfo = new ProcessStartInfo
+				{
+					WindowStyle     = ProcessWindowStyle.Hidden,
+					FileName        = "cmd.exe",
+					Arguments       = "/C \"" + file + "\"",
+					Verb            = "runas",
+					UseShellExecute = true
+				}
+			};
+
+
+			process.Start();
+			process.WaitForExit();
+
+
+			File.Delete(file);
 		}
 	}
 }
