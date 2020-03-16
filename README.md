@@ -6,11 +6,11 @@ SmartImage is a reverse image search tool for Windows with context menu integrat
 
 Supported sites:
 
-- SauceNao
-- ImgOps
-- Google Images
-- TinEye
-- IQDB
+- SauceNao (`SauceNao`)
+- ImgOps (`SauceNao`)
+- Google Images (`GoogleImages`)
+- TinEye (`TinEye`)
+- IQDB (`Iqdb`)
 
 **[Latest standalone binary](https://github.com/Decimation/SmartImage/blob/master/SmartImage/bin/Release/netcoreapp3.0/win10-x64/publish/SmartImage.exe)**
 
@@ -20,10 +20,34 @@ Supported sites:
 
 ![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
 
+# Configuration
+
+SmartImage stores its configuration in registry. The rationale behind this is that SmartImage is designed to be used primarily through the context menu, so configuration persisting between uses is more logical.
+
+# Commands
+
+`--setup <consumer id> <consumer secret>`
+
+Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps).
+
+`--search-engines <engines>`
+
+Sets the search engines to use when searching, delimited by commas.
+
+`--priority-engines <engines>`
+
+Sets the priority search engines. Priority search engines are engines whose results will be automatically opened in your browser when searching is complete. *For example, if you designate SauceNao as a priority engine, then results returned by
+SauceNao will be automatically opened in your browser.*
+
+`--ctx-menu`
+
+Installs context menu integration.
 
 # Notes
 
-Ensure that the executable is placed in the system PATH (*%PATH%*), otherwise the context menu integration will not work.
+- Ensure that the executable is placed in the system PATH (*%PATH%*), otherwise the context menu integration will not work.
+- You must register an Imgur application client, as SmartImage (for now) uses Imgur API to upload images temporarily for
+searching.
 
 # Inspiration
 
