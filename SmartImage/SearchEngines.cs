@@ -12,5 +12,7 @@ namespace SmartImage
 		GoogleImages = 1 << 2,
 		TinEye = 1 << 3,
 		Iqdb = 1 << 4,
+		TraceMoe = 1 << 5,
+		KarmaDecay = 1 << 6,
 	}
 }

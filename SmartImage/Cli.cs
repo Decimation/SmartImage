@@ -10,10 +10,22 @@ namespace SmartImage
 	{
 		public delegate void RunCommand(string[] args);
 
+		private const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
-		public static readonly CliCommand Setup = new CliCommand
+		private const string STRING_FORMAT_ARG = "msg";
+
+		private const char HEAVY_BALLOT_X   = '\u2718';
+		private const char HEAVY_CHECK_MARK = '\u2714';
+
+		private const char MUL_SIGN = '\u00D7';
+		private const char RAD_SIGN = '\u221A';
+
+		private const char GT = '>';
+
+
+		public static readonly CliCommand SetImgurAuth = new CliCommand
 		{
-			Parameter   = "--setup",
+			Parameter   = "--set-imgur-auth",
 			Syntax      = "<consumer id> <consumer secret>",
 			Description = "Sets up Imgur API authentication",
 			Action = args =>
@@ -44,8 +56,8 @@ namespace SmartImage
 
 		public static readonly CliCommand SetPriorityEngines = new CliCommand
 		{
-			Parameter   = "--priority-engines",
-			Syntax      = "<search engines>",
+			Parameter = "--priority-engines",
+			Syntax    = "<search engines>",
 			Description = "Sets the search engines whose results to automatically " +
 			              "open in the browser when search is complete; delimited by commas",
 			Action = args =>
@@ -71,7 +83,10 @@ namespace SmartImage
 			}
 		};
 
-		public static readonly CliCommand[] AllCommands = new[] {Setup, SetSearchEngines, ContextMenu, SetPriorityEngines};
+		public static readonly CliCommand[] AllCommands =
+		{
+			SetImgurAuth, SetSearchEngines, ContextMenu, SetPriorityEngines
+		};
 
 		public static void WriteHelp()
 		{
@@ -81,6 +96,8 @@ namespace SmartImage
 				Console.WriteLine(command);
 				Console.WriteLine();
 			}
+
+			Console.WriteLine("See readme: {0}", Readme);
 		}
 
 		public static CliCommand ReadCommand(string s)
@@ -89,16 +106,6 @@ namespace SmartImage
 
 			return cmd;
 		}
-
-		private const string STRING_FORMAT_ARG = "msg";
-
-		private const char HEAVY_BALLOT_X   = '\u2718';
-		private const char HEAVY_CHECK_MARK = '\u2714';
-
-		private const char MUL_SIGN = '\u00D7';
-		private const char RAD_SIGN = '\u221A';
-
-		private const char GT = '>';
 
 		public static void Init()
 		{

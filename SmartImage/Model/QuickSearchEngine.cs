@@ -8,14 +8,20 @@ namespace SmartImage.Model
 		{
 			BaseUrl = baseUrl;
 		}
+		
+		public abstract SearchEngines Engine { get; }
+		
+		public abstract string Name { get; }
 
 		public virtual string GetRawResult(string url)
 		{
 			return BaseUrl + url;
 		}
-
-		public abstract SearchResult GetResult(string url);
-
-		public abstract SearchEngines Engine { get; }
+		
+		public virtual SearchResult GetResult(string url)
+		{
+			string rawUrl = GetRawResult(url);
+			return new SearchResult(rawUrl, Name);
+		}
 	}
 }

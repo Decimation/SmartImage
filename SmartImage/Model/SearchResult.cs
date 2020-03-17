@@ -1,3 +1,7 @@
+using System;
+using JetBrains.Annotations;
+using SmartImage.Utilities;
+
 namespace SmartImage.Model
 {
 	public sealed class SearchResult
@@ -16,10 +20,19 @@ namespace SmartImage.Model
 			Name = name;
 		}
 
+		[CanBeNull]
+		public string[] ExtendedInfo { get; internal set; }
+
+
 		public override string ToString()
 		{
 			// redundant
 			var cleanUrl = Success ? Url : null;
+
+			if (Similarity.HasValue) {
+				return string.Format("{0}: [{1}] {2}", Name, Similarity, cleanUrl);
+			}
+			
 			return string.Format("{0}: {1}", Name, cleanUrl);
 		}
 	}

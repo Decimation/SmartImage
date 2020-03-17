@@ -18,10 +18,12 @@ namespace SmartImage.Utilities
 			m_apiKey = apiKey;
 		}
 		
-		public static Imgur Value { get; private set; } = new Imgur(Config.ImgurAuth.Item1);
+		public Imgur() : this(Config.ImgurAuth.Item1) {}
 		
 		public string Upload(string path)
 		{
+			// todo: cleanup
+			
 			using var w = new WebClient();
 			w.Headers.Add("Authorization: Client-ID " + m_apiKey);
 			var values = new NameValueCollection
@@ -33,12 +35,10 @@ namespace SmartImage.Utilities
 				System.Text.Encoding.UTF8.GetString(w.UploadValues("https://api.imgur.com/3/upload", values));
 			//Console.WriteLine(response);
 
+			
 			var res = new RestResponse();
 			res.Content = response;
-
-			//dynamic dynObj = JsonConvert.DeserializeObject(response);
-			//return dynObj.data.link;
-
+			
 			var des = new JsonDeserializer();
 			return des.Deserialize<ImgurResponse<ImgurImage>>(res).Data.Link;
 		}
