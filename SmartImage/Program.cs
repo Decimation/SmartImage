@@ -103,7 +103,7 @@ namespace SmartImage
 
 					if (r.ExtendedInfo!=null) {
 						foreach (var info in r.ExtendedInfo) {
-							Console.WriteLine("\t[...] {0}", info);
+							Console.WriteLine("\t[-] {0}", info);
 						}
 					}
 				}
