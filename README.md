@@ -11,6 +11,7 @@ Supported sites:
 - Google Images (`GoogleImages`)
 - TinEye (`TinEye`)
 - IQDB (`Iqdb`)
+- trace.moe (`TraceMoe`)
 
 **[Latest standalone binary](https://github.com/Decimation/SmartImage/blob/master/SmartImage/bin/Release/netcoreapp3.0/win10-x64/publish/SmartImage.exe)**
 
@@ -26,9 +27,9 @@ SmartImage stores its configuration in registry. The rationale behind this is th
 
 # Commands
 
-`--setup <consumer id> <consumer secret>`
+`--set-imgur-auth <consumer id> <consumer secret>`
 
-Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps).
+Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
 
 `--search-engines <engines>`
 
@@ -46,8 +47,7 @@ Installs context menu integration.
 # Notes
 
 - Ensure that the executable is placed in the system PATH (*%PATH%*), otherwise the context menu integration will not work.
-- You must register an Imgur application client, as SmartImage (for now) uses Imgur API to upload images temporarily for
-searching.
+- SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
 
 # Inspiration
 
