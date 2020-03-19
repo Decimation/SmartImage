@@ -122,7 +122,9 @@ namespace SmartImage.Engines.SauceNao
 
 			var best = GetBestSNResult(sn);
 
-			var sr = new SearchResult(best.Url[0], NAME)
+			string bestUrl = best?.Url?[0];
+
+			var sr = new SearchResult(bestUrl, NAME)
 			{
 				ExtendedInfo = new[] {string.Format("Similarity: {0:P}", best.Similarity / 100)}
 			};

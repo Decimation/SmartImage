@@ -22,7 +22,12 @@ namespace SmartImage.Utilities
 			// https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
 
 			try {
-				Process.Start(url);
+				if (url != null) {
+					Process.Start(url);
+				}
+				else {
+					Cli.WriteError("URL is null!");
+				}
 			}
 			catch {
 				// hack because of this: https://github.com/dotnet/corefx/issues/10361

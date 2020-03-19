@@ -31,9 +31,11 @@ namespace SmartImage
 
 			foreach (var idx in AllEngines) {
 				if (engines.HasFlag(idx.Engine)) {
+					// Run search
 					var result = idx.GetResult(imgUrl);
 
 					if (result != null) {
+						Cli.WriteSuccess("{0}", result.Name);
 						list.Add(result);
 
 						if (Config.PriorityEngines.HasFlag(idx.Engine)) {

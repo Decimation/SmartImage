@@ -86,6 +86,7 @@ namespace SmartImage
 
 			Console.WriteLine();
 
+			// Where the actual searching occurs
 			var results = Search.RunSearches(imgUrl, engines);
 
 			ConsoleKeyInfo cki;
