@@ -21,11 +21,11 @@ namespace SmartImage
 		// var client_secret = "fe1bed3047828fed3ce67bf2ae923282f0a9a558";
 		// copy SmartImage.exe C:\Library /Y
 
+		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
+		// Computer\HKEY_CURRENT_USER\Software\SmartImage
 		private static void Main(string[] args)
 		{
 			//Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
-			
-			
 			
 			Cli.Init();
 
@@ -44,7 +44,7 @@ namespace SmartImage
 			}
 
 			var (id, secret) = Config.ImgurAuth;
-			bool useImgur = id != null && secret != null;
+			bool useImgur = !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(secret);
 
 			var engines  = Config.SearchEngines;
 			var priority = Config.PriorityEngines;

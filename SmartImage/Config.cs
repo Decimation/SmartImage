@@ -96,6 +96,20 @@ namespace SmartImage
 			}
 		}
 
+		private static void HandleKey(RegistryKey key, string id, object v)
+		{
+			var keyExists = key.GetValue(id) == null;
+
+			if (keyExists) {
+				if (v == null) {
+					key.DeleteValue(id);
+				}
+				else {
+					key.SetValue(id, v);
+				}
+			}
+		}
+
 		// Probably not a good idea to have this hardcoded lol
 		internal static string SauceNaoAuth => "c1f946bb2003c92fa8a25ce7fa923e0f213a0db8";
 
@@ -106,51 +120,31 @@ namespace SmartImage
 			// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 			const string DEL = @"reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage";
-			
-			
-			var process = new Process
-			{
-				StartInfo = new ProcessStartInfo
-				{
-					WindowStyle     = ProcessWindowStyle.Hidden,
-					FileName        = "cmd.exe",
-					Arguments       = "/C \"" + DEL + "\"",
-					Verb            = "runas",
-					UseShellExecute = true
-				}
-			};
 
-
-			process.Start();
-			process.WaitForExit();
-		}
-		
-		private static string CreateBatchFile()
-		{
-			var fullPath = GetExecutableLocation();
-			
-			
 			string[] code =
 			{
 				"@echo off",
-				//"SET \"SMARTIMAGE=SmartImage.exe\"",
-				string.Format("SET \"SMARTIMAGE={0}\"", fullPath),
-				"SET COMMAND=%SMARTIMAGE% \"%%1\"",
-				"%SystemRoot%\\System32\\reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
+				@"%SystemRoot%\System32\reg.exe delete HKEY_CLASSES_ROOT\*\shell\SmartImage\ /f >nul",
 				//"pause"
 			};
 
+			var bat = CreateBatchFile("rem_from_menu.bat", code);
 
-			var file = Path.Combine(Directory.GetCurrentDirectory(), "add_to_menu.bat");
+			RunBatchFile(bat);
+		}
+
+
+		private static string CreateBatchFile(string name, string[] code)
+		{
+			var file = Path.Combine(Directory.GetCurrentDirectory(), name);
 
 			File.WriteAllLines(file, code);
 
 			return file;
 		}
 
-		internal static void AddToContextMenu()
+		internal static void RunBatchFile(string file)
 		{
-			string file = CreateBatchFile();
 			var process = new Process
 			{
 				StartInfo = new ProcessStartInfo
@@ -165,21 +159,47 @@ namespace SmartImage
 
 
 			process.Start();
+			
+			Cli.WriteInfo("Waiting for proc exit");
 			process.WaitForExit();
 
-
 			File.Delete(file);
+		}
+
+		internal static void AddToContextMenu()
+		{
+			var fullPath = GetExecutableLocation();
+
+			string[] code =
+			{
+				"@echo off",
+				//"SET \"SMARTIMAGE=SmartImage.exe\"",
+				string.Format("SET \"SMARTIMAGE={0}\"", fullPath),
+				"SET COMMAND=%SMARTIMAGE% \"%%1\"",
+				"%SystemRoot%\\System32\\reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
+				//"pause"
+			};
+
+			var bat = CreateBatchFile("add_to_menu.bat", code);
+
+			RunBatchFile(bat);
 		}
 
 		internal static string GetExecutableLocation()
 		{
 			string exe = "SmartImage.exe";
-			
+
 			string result = Environment.GetEnvironmentVariable("PATH")
 			                          ?.Split(';')
 			                           .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
 
+			if (result == null) {
+				Cli.WriteError("Could not locate {0} in system path.", exe);
+				throw new InvalidOperationException();
+			}
+			
 			var fullPath = Path.Combine(result, exe);
+			
 			Console.WriteLine(fullPath);
 
 			return fullPath;
@@ -189,10 +209,10 @@ namespace SmartImage
 		{
 			SearchEngines   = SearchEngines.All;
 			PriorityEngines = SearchEngines.SauceNao;
-			ImgurAuth       = (null, null);
-			
+			ImgurAuth       = (String.Empty, String.Empty);
+
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
-			
+
 			RemoveFromContextMenu();
 		}
 	}

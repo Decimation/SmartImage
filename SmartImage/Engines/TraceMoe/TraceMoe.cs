@@ -48,7 +48,7 @@ namespace SmartImage.Engines.TraceMoe
 				r.ExtendedInfo = new[]
 				{
 					string.Format("Name: {0}", mostSimilarDoc.title_english),
-					string.Format("Similarity: {0:P}", mostSimilarDoc.similarity * 100)
+					string.Format("Similarity: {0:P}", mostSimilarDoc.similarity)
 				};
 			}
 

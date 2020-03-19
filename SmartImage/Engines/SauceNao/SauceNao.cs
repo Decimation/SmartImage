@@ -109,7 +109,7 @@ namespace SmartImage.Engines.SauceNao
 
 			var sr = new SearchResult(best.Url[0], "SauceNao")
 			{
-				ExtendedInfo = new[]{string.Format("Similarity: {0:P}", best.Similarity)}
+				ExtendedInfo = new[]{string.Format("Similarity: {0:P}", best.Similarity/100)}
 			};
 
 
