@@ -21,6 +21,8 @@ namespace SmartImage.Engines.SauceNao
 
 		private readonly string m_apiKey;
 
+		private const string NAME = "SauceNao";
+		
 		private SauceNao(string apiKey)
 		{
 			m_client = new RestClient(ENDPOINT);
@@ -105,9 +107,14 @@ namespace SmartImage.Engines.SauceNao
 		public SearchResult GetResult(string url)
 		{
 			var sn   = GetSNResults(url);
+
+			if (sn == null) {
+				return new SearchResult(null, NAME);
+			}
+			
 			var best = GetBestSNResult(sn);
 
-			var sr = new SearchResult(best.Url[0], "SauceNao")
+			var sr = new SearchResult(best.Url[0], NAME)
 			{
 				ExtendedInfo = new[]{string.Format("Similarity: {0:P}", best.Similarity/100)}
 			};

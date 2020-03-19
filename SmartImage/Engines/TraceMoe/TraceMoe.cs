@@ -31,7 +31,7 @@ namespace SmartImage.Engines.TraceMoe
 
 			var re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
-			// todo: null
+			// todo: null sometimes
 			return re.Data;
 		}
 

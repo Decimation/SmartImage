@@ -23,10 +23,12 @@ namespace SmartImage
 
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// Computer\HKEY_CURRENT_USER\Software\SmartImage
+
+		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
+		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+
 		private static void Main(string[] args)
 		{
-			//Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
-			
 			Cli.Init();
 
 			if (args == null || args.Length < 1) {
@@ -105,7 +107,7 @@ namespace SmartImage
 
 					Console.WriteLine("[{0}] {1}", i + 1, str);
 
-					if (r.ExtendedInfo!=null) {
+					if (r.ExtendedInfo != null) {
 						foreach (var info in r.ExtendedInfo) {
 							Console.WriteLine("\t[-] {0}", info);
 						}

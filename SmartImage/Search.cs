@@ -19,8 +19,7 @@ namespace SmartImage
 			new TraceMoe(),
 			new KarmaDecay(),
 		};
-		
-		
+
 
 		public static SearchResult[] RunSearches(string imgUrl, SearchEngines engines)
 		{
@@ -30,14 +29,18 @@ namespace SmartImage
 			};
 
 
-			foreach (var idx in Search.AllEngines) {
+			foreach (var idx in AllEngines) {
 				if (engines.HasFlag(idx.Engine)) {
 					var result = idx.GetResult(imgUrl);
-					list.Add(result);
 
-					if (Config.PriorityEngines.HasFlag(idx.Engine)) {
-						Common.OpenUrl(result.Url);
+					if (result != null) {
+						list.Add(result);
+
+						if (Config.PriorityEngines.HasFlag(idx.Engine)) {
+							Common.OpenUrl(result.Url);
+						}
 					}
+					else { }
 				}
 			}
 

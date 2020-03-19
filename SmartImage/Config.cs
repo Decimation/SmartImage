@@ -2,12 +2,18 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Permissions;
 using Microsoft.Win32;
+using SmartImage.Utilities;
 
 namespace SmartImage
 {
 	internal static class Config
 	{
+		internal const string NAME = "SmartImage";
+		
+		internal const string NAME_EXE = "SmartImage.exe";
+		
 		private const string SUBKEY = @"SOFTWARE\SmartImage";
 
 		private const string CLIENT_ID_STR     = "client_id";
@@ -96,20 +102,6 @@ namespace SmartImage
 			}
 		}
 
-		private static void HandleKey(RegistryKey key, string id, object v)
-		{
-			var keyExists = key.GetValue(id) == null;
-
-			if (keyExists) {
-				if (v == null) {
-					key.DeleteValue(id);
-				}
-				else {
-					key.SetValue(id, v);
-				}
-			}
-		}
-
 		// Probably not a good idea to have this hardcoded lol
 		internal static string SauceNaoAuth => "c1f946bb2003c92fa8a25ce7fa923e0f213a0db8";
 
@@ -128,47 +120,29 @@ namespace SmartImage
 				//"pause"
 			};
 
-			var bat = CreateBatchFile("rem_from_menu.bat", code);
+			var bat = Common.CreateBatchFile("rem_from_menu.bat", code);
 
-			RunBatchFile(bat);
+			Common.RunBatchFile(bat);
 		}
 
 
-		private static string CreateBatchFile(string name, string[] code)
-		{
-			var file = Path.Combine(Directory.GetCurrentDirectory(), name);
-
-			File.WriteAllLines(file, code);
-
-			return file;
-		}
-
-		internal static void RunBatchFile(string file)
-		{
-			var process = new Process
-			{
-				StartInfo = new ProcessStartInfo
-				{
-					WindowStyle     = ProcessWindowStyle.Hidden,
-					FileName        = "cmd.exe",
-					Arguments       = "/C \"" + file + "\"",
-					Verb            = "runas",
-					UseShellExecute = true
-				}
-			};
-
-
-			process.Start();
-			
-			Cli.WriteInfo("Waiting for proc exit");
-			process.WaitForExit();
-
-			File.Delete(file);
-		}
+		// Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
 
 		internal static void AddToContextMenu()
 		{
-			var fullPath = GetExecutableLocation();
+			var fullPath = Common.GetExecutableLocation(NAME_EXE);
+
+			if (fullPath == null) {
+				Cli.WriteInfo("Could not find exe in system path! Add the exe to a folder in %PATH%.");
+				
+				//AddToPath();
+				//fullPath = Common.GetExecutableLocation(NAME_EXE);
+
+				if (fullPath == null) {
+					throw new ApplicationException();
+				}
+			}
+
 
 			string[] code =
 			{
@@ -180,29 +154,9 @@ namespace SmartImage
 				//"pause"
 			};
 
-			var bat = CreateBatchFile("add_to_menu.bat", code);
+			var bat = Common.CreateBatchFile("add_to_menu.bat", code);
 
-			RunBatchFile(bat);
-		}
-
-		internal static string GetExecutableLocation()
-		{
-			string exe = "SmartImage.exe";
-
-			string result = Environment.GetEnvironmentVariable("PATH")
-			                          ?.Split(';')
-			                           .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
-
-			if (result == null) {
-				Cli.WriteError("Could not locate {0} in system path.", exe);
-				throw new InvalidOperationException();
-			}
-			
-			var fullPath = Path.Combine(result, exe);
-			
-			Console.WriteLine(fullPath);
-
-			return fullPath;
+			Common.RunBatchFile(bat);
 		}
 
 		internal static void Reset()

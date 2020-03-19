@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using JetBrains.Annotations;
 
 namespace SmartImage.Engines.TraceMoe
 {
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class TraceMoeDoc
 	{
 		public double from       { get; set; }
@@ -27,17 +29,18 @@ namespace SmartImage.Engines.TraceMoe
 		public bool         is_adult         { get; set; }
 	}
 
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class TraceMoeRootObject
 	{
-		public int       RawDocsCount      { get; set; }
-		public long      RawDocsSearchTime { get; set; }
-		public int       ReRankSearchTime  { get; set; }
-		public bool      CacheHit          { get; set; }
-		public int       trial             { get; set; }
-		public int       limit             { get; set; }
-		public int       limit_ttl         { get; set; }
-		public int       quota             { get; set; }
-		public int       quota_ttl         { get; set; }
+		public int               RawDocsCount      { get; set; }
+		public long              RawDocsSearchTime { get; set; }
+		public int               ReRankSearchTime  { get; set; }
+		public bool              CacheHit          { get; set; }
+		public int               trial             { get; set; }
+		public int               limit             { get; set; }
+		public int               limit_ttl         { get; set; }
+		public int               quota             { get; set; }
+		public int               quota_ttl         { get; set; }
 		public List<TraceMoeDoc> docs              { get; set; }
 	}
 }

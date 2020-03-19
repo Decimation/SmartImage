@@ -122,7 +122,7 @@ namespace SmartImage
 
 		public static void Init()
 		{
-			Console.Title          = "SmartImage";
+			Console.Title          = Config.NAME;
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
 		}
