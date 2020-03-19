@@ -23,6 +23,10 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
+			//Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
+			
+			
+			
 			Cli.Init();
 
 			if (args == null || args.Length < 1) {

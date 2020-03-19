@@ -83,9 +83,22 @@ namespace SmartImage
 			}
 		};
 
+		public static readonly CliCommand Reset = new CliCommand()
+		{
+			Parameter   = "--reset",
+			Syntax      = null,
+			Description = "Resets configuration to defaults",
+			Action = args =>
+			{
+				Config.Reset();
+
+				Console.WriteLine("Config reset");
+			}
+		};
+		
 		public static readonly CliCommand[] AllCommands =
 		{
-			SetImgurAuth, SetSearchEngines, ContextMenu, SetPriorityEngines
+			SetImgurAuth, SetSearchEngines, ContextMenu, SetPriorityEngines, Reset
 		};
 
 		public static void WriteHelp()

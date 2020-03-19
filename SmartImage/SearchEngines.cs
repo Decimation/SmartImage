@@ -14,5 +14,8 @@ namespace SmartImage
 		Iqdb = 1 << 4,
 		TraceMoe = 1 << 5,
 		KarmaDecay = 1 << 6,
+		
+		
+		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay
 	}
 }

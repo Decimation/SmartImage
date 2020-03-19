@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Microsoft.Win32;
 
 namespace SmartImage
@@ -22,9 +23,13 @@ namespace SmartImage
 
 				var str = (string) key.GetValue(SEARCH_ENGINES_STR);
 
+				// todo: config automatically, set defaults
 				if (str == null) {
 					Cli.WriteError("Search engines have not been configured!");
-					return SearchEngines.None;
+
+					SearchEngines = SearchEngines.All;
+
+					return SearchEngines;
 				}
 
 				var id = Enum.Parse<SearchEngines>(str);
@@ -83,6 +88,7 @@ namespace SmartImage
 
 				var (id, secret) = value;
 
+
 				key.SetValue(CLIENT_ID_STR, id);
 				key.SetValue(CLIENT_SECRET_STR, secret);
 
@@ -95,12 +101,40 @@ namespace SmartImage
 
 		private static RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SUBKEY);
 
+		private static void RemoveFromContextMenu()
+		{
+			// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
+
+			const string DEL = @"reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage";
+			
+			
+			var process = new Process
+			{
+				StartInfo = new ProcessStartInfo
+				{
+					WindowStyle     = ProcessWindowStyle.Hidden,
+					FileName        = "cmd.exe",
+					Arguments       = "/C \"" + DEL + "\"",
+					Verb            = "runas",
+					UseShellExecute = true
+				}
+			};
+
+
+			process.Start();
+			process.WaitForExit();
+		}
+		
 		private static string CreateBatchFile()
 		{
+			var fullPath = GetExecutableLocation();
+			
+			
 			string[] code =
 			{
 				"@echo off",
-				"SET \"SMARTIMAGE=C:\\Library\\SmartImage.exe\"",
+				//"SET \"SMARTIMAGE=SmartImage.exe\"",
+				string.Format("SET \"SMARTIMAGE={0}\"", fullPath),
 				"SET COMMAND=%SMARTIMAGE% \"%%1\"",
 				"%SystemRoot%\\System32\\reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
 				//"pause"
@@ -135,6 +169,31 @@ namespace SmartImage
 
 
 			File.Delete(file);
+		}
+
+		internal static string GetExecutableLocation()
+		{
+			string exe = "SmartImage.exe";
+			
+			string result = Environment.GetEnvironmentVariable("PATH")
+			                          ?.Split(';')
+			                           .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
+
+			var fullPath = Path.Combine(result, exe);
+			Console.WriteLine(fullPath);
+
+			return fullPath;
+		}
+
+		internal static void Reset()
+		{
+			SearchEngines   = SearchEngines.All;
+			PriorityEngines = SearchEngines.SauceNao;
+			ImgurAuth       = (null, null);
+			
+			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
+			
+			RemoveFromContextMenu();
 		}
 	}
 }
