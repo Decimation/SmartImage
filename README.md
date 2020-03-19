@@ -36,20 +36,24 @@ Configures Imgur API keys. Register an application [here](https://api.imgur.com/
 
 `--search-engines <engines>`
 
-Sets the search engines to use when searching, delimited by commas.
+Sets the search engines to use when searching, delimited by commas. *Default: All*
 
 `--priority-engines <engines>`
 
-Sets the priority search engines. Priority search engines are engines whose results will be automatically opened in your browser when searching is complete. *For example, if you designate SauceNao as a priority engine, then results returned by
-SauceNao will be automatically opened in your browser.*
+Sets the priority search engines. Priority search engines are engines whose results will be automatically opened in your browser when searching is complete. For example, if you designate `SauceNao` as a priority engine, then results returned by
+`SauceNao` will be automatically opened in your browser. *Default: `SauceNao`*
 
 `--ctx-menu`
 
 Installs context menu integration.
 
+`--reset`
+
+Resets the configuration.
+
 # Notes
 
-- Ensure that the executable is placed in the system PATH (*%PATH%*), otherwise the context menu integration will not work.
+- Ensure that the executable is placed in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10).
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
 
 # Inspiration
