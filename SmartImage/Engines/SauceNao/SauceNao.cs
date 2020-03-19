@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using System.Json;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -22,14 +24,14 @@ namespace SmartImage.Engines.SauceNao
 		private readonly string m_apiKey;
 
 		private const string NAME = "SauceNao";
-		
+
 		private SauceNao(string apiKey)
 		{
 			m_client = new RestClient(ENDPOINT);
 			m_apiKey = apiKey;
 		}
-		
-		public SauceNao() : this(Config.SauceNaoAuth) {}
+
+		public SauceNao() : this(Config.SauceNaoAuth) { }
 
 		public SauceNaoResult[] GetSNResults(string url)
 		{
@@ -50,11 +52,18 @@ namespace SmartImage.Engines.SauceNao
 
 			var c = res.Content;
 
+
 			if (string.IsNullOrWhiteSpace(c)) {
 				Cli.WriteError("No SN results!");
 			}
-			
+
+			return get(c);
+		}
+
+		private SauceNaoResult[] get(string c)
+		{
 			var jsonString = JsonValue.Parse(c);
+
 
 			if (jsonString is JsonObject jsonObject) {
 				var jsonArray = jsonObject["results"];
@@ -69,21 +78,20 @@ namespace SmartImage.Engines.SauceNao
 
 				string json = jsonArray.ToString();
 				json = json.Insert(json.Length - 1, "}").Insert(0, "{\"results\":");
-				using (var stream =
+				using var stream =
 					JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json),
-					                                         XmlDictionaryReaderQuotas.Max)) {
-					var serializer = new DataContractJsonSerializer(typeof(SauceNaoResponse));
-					var result     = serializer.ReadObject(stream) as SauceNaoResponse;
-					stream.Dispose();
-					if (result is null)
-						return null;
+					                                         XmlDictionaryReaderQuotas.Max);
+				var serializer = new DataContractJsonSerializer(typeof(SauceNaoResponse));
+				var result     = serializer.ReadObject(stream) as SauceNaoResponse;
+				stream.Dispose();
+				if (result is null)
+					return null;
 
-					for (int i = 0; i < result.Results.Length; i++) {
-						result.Results[i].WebsiteTitle = Common.SplitPascalCase(result.Results[i].Index.ToString());
-					}
-
-					return result.Results;
+				for (int i = 0; i < result.Results.Length; i++) {
+					result.Results[i].WebsiteTitle = Common.SplitPascalCase(result.Results[i].Index.ToString());
 				}
+
+				return result.Results;
 			}
 
 			return null;
@@ -94,7 +102,7 @@ namespace SmartImage.Engines.SauceNao
 		private static SauceNaoResult GetBestSNResult(SauceNaoResult[] results)
 		{
 			var sauceNao = results.OrderByDescending(r => r.Similarity).First();
-			
+
 			return sauceNao;
 		}
 
@@ -106,17 +114,17 @@ namespace SmartImage.Engines.SauceNao
 
 		public SearchResult GetResult(string url)
 		{
-			var sn   = GetSNResults(url);
+			var sn = GetSNResults(url);
 
 			if (sn == null) {
 				return new SearchResult(null, NAME);
 			}
-			
+
 			var best = GetBestSNResult(sn);
 
 			var sr = new SearchResult(best.Url[0], NAME)
 			{
-				ExtendedInfo = new[]{string.Format("Similarity: {0:P}", best.Similarity/100)}
+				ExtendedInfo = new[] {string.Format("Similarity: {0:P}", best.Similarity / 100)}
 			};
 
 

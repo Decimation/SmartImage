@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
+using RestSharp;
 
 namespace SmartImage.Utilities
 {
@@ -38,9 +39,9 @@ namespace SmartImage.Utilities
 		internal static string Truncate(this string value, int maxLength)
 		{
 			if (String.IsNullOrEmpty(value)) return value;
-			return value.Length <= maxLength ? value : value.Substring(0, maxLength); 
+			return value.Length <= maxLength ? value : value.Substring(0, maxLength);
 		}
-		
+
 		/// <summary>Convert a word that is formatted in pascal case to have splits (by space) at each upper case letter.</summary>
 		internal static string SplitPascalCase(string convert)
 		{
@@ -75,7 +76,7 @@ namespace SmartImage.Utilities
 			process.Start();
 
 			Cli.WriteInfo("Waiting for batch file to exit");
-			
+
 			process.WaitForExit();
 
 			File.Delete(file);
@@ -84,15 +85,14 @@ namespace SmartImage.Utilities
 		internal static string GetExecutableLocation(string exe)
 		{
 			string dir = Environment.GetEnvironmentVariable("PATH")
-			                          ?.Split(';')
-			                           .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
+			                       ?.Split(';')
+			                        .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
 
 			if (dir != null) {
 				return Path.Combine(dir, exe);
 			}
-			
+
 			return null;
 		}
-		
 	}
 }

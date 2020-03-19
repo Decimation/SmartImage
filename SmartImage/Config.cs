@@ -111,7 +111,7 @@ namespace SmartImage
 		{
 			// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
 
-			const string DEL = @"reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage";
+			// const string DEL = @"reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage";
 
 			string[] code =
 			{
@@ -149,7 +149,7 @@ namespace SmartImage
 				"@echo off",
 				//"SET \"SMARTIMAGE=SmartImage.exe\"",
 				string.Format("SET \"SMARTIMAGE={0}\"", fullPath),
-				"SET COMMAND=%SMARTIMAGE% \"%%1\"",
+				"SET COMMAND=%SMARTIMAGE% \"\"%%1\"\"",
 				"%SystemRoot%\\System32\\reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
 				//"pause"
 			};
