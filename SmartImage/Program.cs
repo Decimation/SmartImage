@@ -27,6 +27,81 @@ namespace SmartImage
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
+		private static readonly string[] Extensions =
+		{
+			".jpg", ".jpeg", ".png", ".gif", ".tga"
+		};
+
+		private static bool IsFileValid(string img)
+		{
+			if (!File.Exists(img)) {
+				Cli.WriteError("File does not exist: {0}", img);
+				return false;
+			}
+
+			bool extOkay = false;
+
+			foreach (string ext in Extensions) {
+				if (img.EndsWith(ext)) {
+					extOkay = true;
+					break;
+				}
+			}
+
+			if (!extOkay) {
+				Cli.WriteInfo("File extension is not recognized as a common image format. Continue?");
+				Console.WriteLine();
+
+				var key = char.ToLower(Console.ReadKey().KeyChar);
+
+				if (key == 'n') {
+					return false;
+				}
+				else if (key == 'y') {
+					Console.Clear();
+					return true;
+				}
+			}
+
+
+			return true;
+		}
+
+		private static string Upload(string img, bool useImgur)
+		{
+			string imgUrl;
+
+			if (useImgur) {
+				Cli.WriteInfo("Using Imgur for image upload");
+				var imgur = new Imgur();
+				imgUrl = imgur.Upload(img);
+			}
+			else {
+				Cli.WriteInfo("Using ImgOps for image upload (2 hour cache)");
+				var imgOps = new ImgOps();
+				imgUrl = imgOps.UploadTempImage(img, out _);
+			}
+
+
+			return imgUrl;
+		}
+
+		private static string Format(SearchResult result)
+		{
+			var str = result.ToString();
+
+			int lim = Console.BufferWidth - (3 + 10);
+
+			if (str.Length > lim) {
+				str = str.Truncate(lim);
+			}
+
+			str += "...";
+
+			return str;
+		}
+
+
 		private static void Main(string[] args)
 		{
 			Cli.Init();
@@ -37,6 +112,7 @@ namespace SmartImage
 				return;
 			}
 
+
 			// Run the command if one was parsed
 			var cmd = Cli.ReadCommand(args[0]);
 
@@ -46,7 +122,7 @@ namespace SmartImage
 			}
 
 			var (id, secret) = Config.ImgurAuth;
-			bool useImgur = !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(secret);
+			bool useImgur = !String.IsNullOrWhiteSpace(id) && !String.IsNullOrWhiteSpace(secret);
 
 			var engines  = Config.SearchEngines;
 			var priority = Config.PriorityEngines;
@@ -61,26 +137,13 @@ namespace SmartImage
 
 			var img = args[0];
 
-			if (!File.Exists(img)) {
-				Cli.WriteError("File does not exist: {0}", img);
+			if (!IsFileValid(img)) {
 				return;
 			}
 
 			Cli.WriteInfo("Source image: {0}", img);
 
-			string imgUrl;
-
-			if (useImgur) {
-				Cli.WriteInfo("Using Imgur for image upload");
-				var imgur = new Imgur();
-				imgUrl = imgur.Upload(img);
-			}
-			else {
-				Cli.WriteInfo("Using ImgOps for image upload (2 hour cache)");
-				var imgOps = new ImgOps();
-				imgUrl = imgOps.UploadTempImage(img, out _);
-			}
-
+			string imgUrl = Upload(img, useImgur);
 
 			Cli.WriteInfo("Temporary image url: {0}", imgUrl);
 
@@ -96,21 +159,13 @@ namespace SmartImage
 
 				for (int i = 0; i < results.Length; i++) {
 					var r   = results[i];
-					var str = r.ToString();
-
-					int lim = Console.BufferWidth - (3 + 10);
-
-					if (str.Length > lim) {
-						str = str.Truncate(lim);
-					}
-
-					str += "...";
+					var str = Format(r);
 
 					Console.WriteLine("[{0}] {1}", i + 1, str);
 
 					if (r.ExtendedInfo != null) {
-						foreach (var info in r.ExtendedInfo) {
-							Console.WriteLine("\t[-] {0}", info);
+						foreach (string info in r.ExtendedInfo) {
+							Console.WriteLine("\t{0}", info);
 						}
 					}
 				}

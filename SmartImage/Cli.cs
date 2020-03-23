@@ -95,7 +95,7 @@ namespace SmartImage
 				Console.WriteLine("Config reset");
 			}
 		};
-		
+
 		public static readonly CliCommand[] AllCommands =
 		{
 			SetImgurAuth, SetSearchEngines, ContextMenu, SetPriorityEngines, Reset
@@ -127,41 +127,42 @@ namespace SmartImage
 			Console.Clear();
 		}
 
+		public static void WithColor(ConsoleColor color, Action func)
+		{
+			var oldColor = Console.ForegroundColor;
+			Console.ForegroundColor = color;
+			func();
+			Console.ForegroundColor = oldColor;
+		}
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
 		public static void WriteError(string msg, params object[] args)
 		{
-			var oldColor = Console.ForegroundColor;
-
-			Console.ForegroundColor = ConsoleColor.Red;
-
-			Console.WriteLine("{0} {1}", MUL_SIGN, string.Format(msg, args));
-
-			Console.ForegroundColor = oldColor;
+			WithColor(ConsoleColor.Red, () =>
+			{
+				//
+				Console.WriteLine("{0} {1}", MUL_SIGN, string.Format(msg, args));
+			});
 		}
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
 		public static void WriteInfo(string msg, params object[] args)
 		{
-			var oldColor = Console.ForegroundColor;
-
-			Console.ForegroundColor = ConsoleColor.White;
-
-			Console.WriteLine("{0} {1}", GT, string.Format(msg, args));
-
-			Console.ForegroundColor = oldColor;
+			WithColor(ConsoleColor.White, () =>
+			{
+				//
+				Console.WriteLine("{0} {1}", GT, string.Format(msg, args));
+			});
 		}
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
 		public static void WriteSuccess(string msg, params object[] args)
 		{
-			var oldColor = Console.ForegroundColor;
-
-			Console.ForegroundColor = ConsoleColor.Green;
-
-			Console.WriteLine("{0} {1}", RAD_SIGN, string.Format(msg, args));
-
-			Console.ForegroundColor = oldColor;
+			WithColor(ConsoleColor.Green, () =>
+			{
+				//
+				Console.WriteLine("{0} {1}", RAD_SIGN, string.Format(msg, args));
+			});
 		}
 	}
 }

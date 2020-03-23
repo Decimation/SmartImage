@@ -35,10 +35,9 @@ namespace SmartImage.Utilities
 				System.Text.Encoding.UTF8.GetString(w.UploadValues("https://api.imgur.com/3/upload", values));
 			//Console.WriteLine(response);
 
-			
-			var res = new RestResponse();
-			res.Content = response;
-			
+
+			var res = new RestResponse {Content = response};
+
 			var des = new JsonDeserializer();
 			return des.Deserialize<ImgurResponse<ImgurImage>>(res).Data.Link;
 		}

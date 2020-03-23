@@ -13,7 +13,7 @@ namespace SmartImage
 		internal const string NAME = "SmartImage";
 		
 		internal const string NAME_EXE = "SmartImage.exe";
-		
+
 		private const string SUBKEY = @"SOFTWARE\SmartImage";
 
 		private const string CLIENT_ID_STR     = "client_id";

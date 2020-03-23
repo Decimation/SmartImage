@@ -9,6 +9,8 @@ using RestSharp;
 using SmartImage.Model;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
+// ReSharper disable InconsistentNaming
+// ReSharper disable ParameterTypeCanBeEnumerable.Local
 
 namespace SmartImage.Engines.SauceNao
 {
@@ -44,6 +46,8 @@ namespace SmartImage.Engines.SauceNao
 
 
 			var res = m_client.Execute(req);
+			
+			Common.AssertResponse(res);
 
 
 			//Console.WriteLine("{0} {1} {2}", res.IsSuccessful, res.ResponseStatus, res.StatusCode);
@@ -57,14 +61,15 @@ namespace SmartImage.Engines.SauceNao
 				Cli.WriteError("No SN results!");
 			}
 
-			return get(c);
+			return ReadResults(c);
 		}
 
-		private SauceNaoResult[] get(string c)
+		private SauceNaoResult[] ReadResults(string c)
 		{
+			// From https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
+			
 			var jsonString = JsonValue.Parse(c);
-
-
+			
 			if (jsonString is JsonObject jsonObject) {
 				var jsonArray = jsonObject["results"];
 				for (int i = 0; i < jsonArray.Count; i++) {
@@ -87,8 +92,8 @@ namespace SmartImage.Engines.SauceNao
 				if (result is null)
 					return null;
 
-				for (int i = 0; i < result.Results.Length; i++) {
-					result.Results[i].WebsiteTitle = Common.SplitPascalCase(result.Results[i].Index.ToString());
+				foreach (var t in result.Results) {
+					t.WebsiteTitle = Common.SplitPascalCase(t.Index.ToString());
 				}
 
 				return result.Results;
@@ -126,7 +131,10 @@ namespace SmartImage.Engines.SauceNao
 
 			var sr = new SearchResult(bestUrl, NAME)
 			{
-				ExtendedInfo = new[] {string.Format("Similarity: {0:P}", best.Similarity / 100)}
+				ExtendedInfo = new[]
+				{
+					String.Format("Similarity: {0:P}", best?.Similarity / 100)
+				}
 			};
 
 

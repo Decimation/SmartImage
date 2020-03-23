@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SmartImage.Engines;
 using SmartImage.Engines.SauceNao;
@@ -31,20 +32,49 @@ namespace SmartImage
 
 			foreach (var idx in AllEngines) {
 				if (engines.HasFlag(idx.Engine)) {
+					string wait = string.Format("{0}: ...", idx.Engine);
+
+					Cli.WithColor(ConsoleColor.Blue, () =>
+					{
+						//
+						Console.Write(wait);
+					});
+
+
 					// Run search
 					var result = idx.GetResult(imgUrl);
 
 					if (result != null) {
-						Cli.WriteSuccess("{0}", result.Name);
-						list.Add(result);
+						string clear = new string('\b', wait.Length);
+						Console.Write(clear);
 
-						if (Config.PriorityEngines.HasFlag(idx.Engine)) {
-							Common.OpenUrl(result.Url);
+						var url = result.Url;
+
+						if (url != null) {
+							Cli.WithColor(ConsoleColor.Green, () =>
+							{
+								//
+								Console.Write("{0}: Done\n", result.Name);
+							});
+
+							if (Config.PriorityEngines.HasFlag(idx.Engine)) {
+								Common.OpenUrl(result.Url);
+							}
 						}
+						else {
+							Cli.WithColor(ConsoleColor.Yellow, () =>
+							{
+								//
+								Console.Write("{0}: Done (url is null!)\n", result.Name);
+							});
+						}
+
+						list.Add(result);
 					}
 					else { }
 				}
 			}
+
 
 			return list.ToArray();
 		}

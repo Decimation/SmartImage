@@ -4,7 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using RestSharp;
 
 namespace SmartImage.Utilities
@@ -17,6 +19,19 @@ namespace SmartImage.Utilities
 			return wc.DownloadString(url);
 		}
 
+		internal static void AssertResponse(IRestResponse response)
+		{
+			// todo
+
+			if (!response.IsSuccessful) {
+				var sb = new StringBuilder();
+				sb.AppendFormat("Uri: {0}\n", response.ResponseUri.ToString());
+				sb.AppendFormat("Code: {0}\n", response.StatusCode);
+
+				Console.WriteLine("\n\n{0}", sb);
+			}
+		}
+
 		internal static void OpenUrl(string url)
 		{
 			// https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
@@ -26,6 +41,7 @@ namespace SmartImage.Utilities
 					Process.Start(url);
 				}
 				else {
+					Console.WriteLine();
 					Cli.WriteError("URL is null!");
 				}
 			}
