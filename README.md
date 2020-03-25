@@ -7,7 +7,7 @@ SmartImage is a reverse image search tool for Windows with context menu integrat
 Supported sites:
 
 - SauceNao (`SauceNao`)
-- ImgOps (`SauceNao`)
+- ImgOps (`ImgOps`)
 - Google Images (`GoogleImages`)
 - TinEye (`TinEye`)
 - IQDB (`Iqdb`)
