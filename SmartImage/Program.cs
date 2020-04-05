@@ -27,9 +27,9 @@ namespace SmartImage
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
-		private static readonly string[] Extensions =
+		private static readonly string[] ImageExtensions =
 		{
-			".jpg", ".jpeg", ".png", ".gif", ".tga"
+			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif"
 		};
 
 		private static bool IsFileValid(string img)
@@ -39,17 +39,10 @@ namespace SmartImage
 				return false;
 			}
 
-			bool extOkay = false;
-
-			foreach (string ext in Extensions) {
-				if (img.EndsWith(ext)) {
-					extOkay = true;
-					break;
-				}
-			}
+			bool extOkay = ImageExtensions.Any(img.EndsWith);
 
 			if (!extOkay) {
-				Cli.WriteInfo("File extension is not recognized as a common image format. Continue?");
+				Cli.WriteInfo("File extension is not recognized as a common image format. Continue? (y/n)");
 				Console.WriteLine();
 
 				var key = char.ToLower(Console.ReadKey().KeyChar);
@@ -84,21 +77,6 @@ namespace SmartImage
 
 
 			return imgUrl;
-		}
-
-		private static string Format(SearchResult result)
-		{
-			var str = result.ToString();
-
-			int lim = Console.BufferWidth - (3 + 10);
-
-			if (str.Length > lim) {
-				str = str.Truncate(lim);
-			}
-
-			str += "...";
-
-			return str;
 		}
 
 
@@ -149,6 +127,10 @@ namespace SmartImage
 
 			Console.WriteLine();
 
+			//
+			// 
+			//
+			
 			// Where the actual searching occurs
 			var results = Search.RunSearches(imgUrl, engines);
 
@@ -159,7 +141,7 @@ namespace SmartImage
 
 				for (int i = 0; i < results.Length; i++) {
 					var r   = results[i];
-					var str = Format(r);
+					var str = SearchResult.Format(r);
 
 					Console.WriteLine("[{0}] {1}", i + 1, str);
 

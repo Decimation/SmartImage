@@ -45,6 +45,7 @@ namespace SmartImage
 					var result = idx.GetResult(imgUrl);
 
 					if (result != null) {
+						
 						string clear = new string('\b', wait.Length);
 						Console.Write(clear);
 

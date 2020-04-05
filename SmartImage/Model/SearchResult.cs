@@ -9,13 +9,16 @@ namespace SmartImage.Model
 		public string Url { get; }
 		
 		public string Name { get; }
+		
+		public float? Similarity { get; }
 
 		public bool Success => Url != null;
 
-		public SearchResult(string url, string name)
+		public SearchResult(string url, string name, float? similarity = null)
 		{
 			Url  = url;
 			Name = name;
+			Similarity = similarity;
 		}
 
 		[CanBeNull]
@@ -27,7 +30,22 @@ namespace SmartImage.Model
 			// redundant
 			var cleanUrl = Success ? Url : null;
 
-			return string.Format("{0}: {1}", Name, cleanUrl);
+			return String.Format("{0}: {1}", Name, cleanUrl);
+		}
+
+		public static string Format(SearchResult result)
+		{
+			var str = result.ToString();
+
+			int lim = Console.BufferWidth - (3 + 10);
+
+			if (str.Length > lim) {
+				str = str.Truncate(lim);
+			}
+
+			str += "...";
+
+			return str;
 		}
 	}
 }
