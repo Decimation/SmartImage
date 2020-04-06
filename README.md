@@ -16,7 +16,7 @@ Supported sites:
 
 # Download
 
-**[Latest standalone binary](https://github.com/Decimation/SmartImage/blob/master/SmartImage/bin/Release/netcoreapp3.0/win10-x64/publish/SmartImage.exe)**
+**[See the latest releases](https://github.com/Decimation/SmartImage/releases)**
 
 # Example
 
