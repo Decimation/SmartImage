@@ -30,6 +30,10 @@ SmartImage stores its configuration in registry. The rationale behind this is th
 
 # Commands
 
+`--set-saucenao-auth <api key>`
+
+Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api). If this is configured, SmartImage will be able to return more specific results. SmartImage will be able to function as seen in the demo (opening the direct source image in your browser).
+
 `--set-imgur-auth <consumer id> <consumer secret>`
 
 Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
@@ -55,6 +59,10 @@ Resets the configuration.
 
 - Ensure that the executable is placed in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10).
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
+
+# to-do
+
+- Automate SauceNao API registration and make its configuration more user-friendly
 
 # Inspiration
 
