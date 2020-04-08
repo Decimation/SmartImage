@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Text;
 using JetBrains.Annotations;
 using SmartImage.Utilities;
 
@@ -10,7 +12,7 @@ namespace SmartImage.Model
 		
 		public string Name { get; }
 		
-		public float? Similarity { get; }
+		public float? Similarity { get; internal set; }
 
 		public bool Success => Url != null;
 
@@ -19,33 +21,42 @@ namespace SmartImage.Model
 			Url  = url;
 			Name = name;
 			Similarity = similarity;
+			ExtendedInfo = new List<string>();
 		}
 
-		[CanBeNull]
-		public string[] ExtendedInfo { get; internal set; }
+		
+		public List<string> ExtendedInfo { get;  }
 
 
 		public override string ToString()
 		{
-			// redundant
-			var cleanUrl = Success ? Url : null;
-
-			return String.Format("{0}: {1}", Name, cleanUrl);
+			return String.Format("{0}: {1}", Name, Url);
 		}
 
-		public static string Format(SearchResult result)
+		public string Format(string tag)
 		{
-			var str = result.ToString();
+			var sb  = new StringBuilder();
+			sb.AppendFormat("[{0}] {1}: {2}\n",tag ,Name, Success ? Cli.RAD_SIGN : Cli.MUL_SIGN);
 
-			int lim = Console.BufferWidth - (3 + 10);
-
-			if (str.Length > lim) {
-				str = str.Truncate(lim);
+			if (Success) {
+				
+				const string ELLIPSES = "...";
+				int lim = Console.BufferWidth - (30 + ELLIPSES.Length);
+				var url = Url.Truncate(lim);
+				
+				
+				sb.AppendFormat("\tResult url: {0}\n", url);
+			}
+			
+			if (Similarity.HasValue) {
+				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity);
 			}
 
-			str += "...";
-
-			return str;
+			foreach (string s in ExtendedInfo) {
+				sb.AppendFormat("\t{0}\n", s);
+			}
+			
+			return sb.ToString();
 		}
 	}
 }

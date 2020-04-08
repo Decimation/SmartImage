@@ -18,7 +18,7 @@ namespace SmartImage.Engines.TraceMoe
 
 		public override SearchEngines Engine => SearchEngines.TraceMoe;
 
-		public TraceMoeRootObject Search(string url)
+		private TraceMoeRootObject GetApiResults(string url)
 		{
 			// https://soruly.github.io/trace.moe/#/
 
@@ -39,18 +39,20 @@ namespace SmartImage.Engines.TraceMoe
 		{
 			var r = base.GetResult(url);
 
-			var tm = Search(url);
+			var tm = GetApiResults(url);
 
 			if (tm?.docs != null) {
 				// Most similar to least similar
 				var mostSimilarDoc = tm.docs[0];
-
-				r.ExtendedInfo = new[]
-				{
-					string.Format("Name: {0}", mostSimilarDoc.title_english),
-					string.Format("Similarity: {0:P}", mostSimilarDoc.similarity)
-				};
+				
+				r.Similarity = (float?) mostSimilarDoc.similarity;
+				
+				r.ExtendedInfo.Add(string.Format("Name: {0}", mostSimilarDoc.title_english));
 			}
+			else {
+				r.ExtendedInfo.Add("API returned null (possible timeout)");
+			}
+			
 
 
 			return r;

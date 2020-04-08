@@ -17,8 +17,8 @@ namespace SmartImage
 		private const char HEAVY_BALLOT_X   = '\u2718';
 		private const char HEAVY_CHECK_MARK = '\u2714';
 
-		private const char MUL_SIGN = '\u00D7';
-		private const char RAD_SIGN = '\u221A';
+		public const char MUL_SIGN = '\u00D7';
+		public const char RAD_SIGN = '\u221A';
 
 		private const char GT = '>';
 

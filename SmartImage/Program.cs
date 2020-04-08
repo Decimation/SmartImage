@@ -113,14 +113,7 @@ namespace SmartImage
 				Cli.WriteError("Please configure search engine preferences!");
 				return;
 			}
-
-			var sauceNaoInUse = engines.HasFlag(SearchEngines.SauceNao) || priority.HasFlag(SearchEngines.SauceNao);
 			
-			if (sauceNaoInUse && Config.SauceNaoAuth == null) {
-				Cli.WriteInfo("SauceNao API authentication not setup; basic mode will be used");
-				
-			}
-
 			Cli.WriteInfo("Engines: {0}", engines);
 			Cli.WriteInfo("Priority engines: {0}", priority);
 
@@ -152,15 +145,9 @@ namespace SmartImage
 
 				for (int i = 0; i < results.Length; i++) {
 					var r   = results[i];
-					var str = SearchResult.Format(r);
+					var str = r.Format((i+1).ToString());
 
-					Console.WriteLine("[{0}] {1}", i + 1, str);
-
-					if (r.ExtendedInfo != null) {
-						foreach (string info in r.ExtendedInfo) {
-							Console.WriteLine("\t{0}", info);
-						}
-					}
+					Console.WriteLine(str);
 				}
 
 				Console.WriteLine();

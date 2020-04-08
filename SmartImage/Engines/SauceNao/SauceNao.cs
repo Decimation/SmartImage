@@ -20,22 +20,13 @@ namespace SmartImage.Engines.SauceNao
 	// https://github.com/RoxasShadow/SauceNao-Windows
 	// https://github.com/LazDisco/SharpNao
 
-	public sealed class SauceNao : ISearchEngine
+	public sealed class SauceNao : BaseSauceNao
 	{
-		private const string BASE_URL = "https://saucenao.com/";
-		
 		private const string ENDPOINT = BASE_URL + "search.php";
-		
-		
-		private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
-		
+
 		private readonly RestClient m_client;
 
 		private readonly string m_apiKey;
-
-		private const string NAME = "SauceNao";
-
-		public bool ApiConfigured => m_apiKey == null;
 
 		private SauceNao(string apiKey)
 		{
@@ -44,58 +35,8 @@ namespace SmartImage.Engines.SauceNao
 		}
 
 		public SauceNao() : this(Config.SauceNaoAuth) { }
-		
-		
-		public static void CreateAccount()
-		{
-			// todo
-			var rc   = new RestClient(BASE_URL);
-			var rsrc = "user.php?page=register";
-			var rq   = new RestRequest(rsrc);
 
-			/*var    tkrq  = new RestRequest("user.php?page=account-overview");
-			var    tkre  = rc.Execute(tkrq);
-			string token = ReadToken(tkre.Content);
-			Console.WriteLine(token);*/
-			
-			var username = Console.ReadLine();
-			var email    = Console.ReadLine();
-			var pwd      = Console.ReadLine();
-			var pwdCnf   = pwd;
-
-			
-			
-			
-			var formData = new Dictionary<string, string>
-			{
-				{"username", username},
-				{"email", email},
-				{"password", pwd},
-				{"password_conf", pwdCnf},
-				//{"token", token}
-			};
-
-			foreach (KeyValuePair<string, string> kv in formData) {
-				rq.AddParameter(kv.Key, kv.Value);
-			}
-
-			var re = rc.Execute(rq);
-
-			Common.WriteResponse(re);
-		}
-
-		
-
-		private static string ReadToken(string s)
-		{
-			var tk = s.Between("<input type=\"hidden\" name=\"token\" value=\"", "\"");
-			tk = tk.Split('\"')[0];
-
-			return tk;
-		}
-
-
-		private SauceNaoResult[] GetSNResults(string url)
+		private SauceNaoResult[] GetApiResults(string url)
 		{
 			if (m_apiKey == null) {
 				// todo
@@ -167,55 +108,34 @@ namespace SmartImage.Engines.SauceNao
 			return null;
 		}
 
-		public SearchEngines Engine => SearchEngines.SauceNao;
-
-		private static SauceNaoResult GetBestSNResult(SauceNaoResult[] results)
+		private static SauceNaoResult GetBestApiResult(SauceNaoResult[] results)
 		{
 			var sauceNao = results.OrderByDescending(r => r.Similarity).First();
 
 			return sauceNao;
 		}
 
-		public string GetRawResult(string url)
-		{
-			var res = GetSNResults(url);
-			return GetBestSNResult(res).Url[0];
-		}
 
-		public SearchResult GetResult(string url)
+		public override SearchResult GetResult(string url)
 		{
-			if (m_apiKey == null) {
-				var u= BASIC_RESULT + url;
-				var sr= new SearchResult(u, NAME);
-				sr.ExtendedInfo = new[] {"(API not configured)"};
-				return sr;
-			}
-			
-			var sn = GetSNResults(url);
+			var sn = GetApiResults(url);
 
 			if (sn == null) {
-				return new SearchResult(null, NAME);
+				return new SearchResult(null, Name);
 			}
 
-			var best = GetBestSNResult(sn);
+			var best = GetBestApiResult(sn);
 
 
 			if (best != null) {
 				string bestUrl = best?.Url?[0];
 
-				var sr = new SearchResult(bestUrl, NAME, best.Similarity)
-				{
-					ExtendedInfo = new[]
-					{
-						String.Format("Similarity: {0:P}", best.Similarity / 100)
-					}
-				};
-
-
+				var sr = new SearchResult(bestUrl, Name, best.Similarity/100);
+				sr.ExtendedInfo.Add("API configured");
 				return sr;
 			}
 
-			return new SearchResult(null, NAME);
+			return new SearchResult(null, Name);
 		}
 	}
 }
