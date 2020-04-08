@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Json;
 using System.Linq;
+using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
@@ -9,6 +11,7 @@ using RestSharp;
 using SmartImage.Model;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
+
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 
@@ -19,13 +22,20 @@ namespace SmartImage.Engines.SauceNao
 
 	public sealed class SauceNao : ISearchEngine
 	{
-		private const string ENDPOINT = "https://saucenao.com/search.php";
-
+		private const string BASE_URL = "https://saucenao.com/";
+		
+		private const string ENDPOINT = BASE_URL + "search.php";
+		
+		
+		private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
+		
 		private readonly RestClient m_client;
 
 		private readonly string m_apiKey;
 
 		private const string NAME = "SauceNao";
+
+		public bool ApiConfigured => m_apiKey == null;
 
 		private SauceNao(string apiKey)
 		{
@@ -34,14 +44,64 @@ namespace SmartImage.Engines.SauceNao
 		}
 
 		public SauceNao() : this(Config.SauceNaoAuth) { }
+		
+		
+		public static void CreateAccount()
+		{
+			// todo
+			var rc   = new RestClient(BASE_URL);
+			var rsrc = "user.php?page=register";
+			var rq   = new RestRequest(rsrc);
 
-		public SauceNaoResult[] GetSNResults(string url)
+			/*var    tkrq  = new RestRequest("user.php?page=account-overview");
+			var    tkre  = rc.Execute(tkrq);
+			string token = ReadToken(tkre.Content);
+			Console.WriteLine(token);*/
+			
+			var username = Console.ReadLine();
+			var email    = Console.ReadLine();
+			var pwd      = Console.ReadLine();
+			var pwdCnf   = pwd;
+
+			
+			
+			
+			var formData = new Dictionary<string, string>
+			{
+				{"username", username},
+				{"email", email},
+				{"password", pwd},
+				{"password_conf", pwdCnf},
+				//{"token", token}
+			};
+
+			foreach (KeyValuePair<string, string> kv in formData) {
+				rq.AddParameter(kv.Key, kv.Value);
+			}
+
+			var re = rc.Execute(rq);
+
+			Common.WriteResponse(re);
+		}
+
+		
+
+		private static string ReadToken(string s)
+		{
+			var tk = s.Between("<input type=\"hidden\" name=\"token\" value=\"", "\"");
+			tk = tk.Split('\"')[0];
+
+			return tk;
+		}
+
+
+		private SauceNaoResult[] GetSNResults(string url)
 		{
 			if (m_apiKey == null) {
 				// todo
 				return Array.Empty<SauceNaoResult>();
 			}
-			
+
 			var req = new RestRequest();
 			req.AddQueryParameter("db", "999");
 			req.AddQueryParameter("output_type", "2");
@@ -51,7 +111,7 @@ namespace SmartImage.Engines.SauceNao
 
 
 			var res = m_client.Execute(req);
-			
+
 			Common.AssertResponse(res);
 
 
@@ -69,12 +129,12 @@ namespace SmartImage.Engines.SauceNao
 			return ReadResults(c);
 		}
 
-		private SauceNaoResult[] ReadResults(string c)
+		private static SauceNaoResult[] ReadResults(string c)
 		{
 			// From https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
-			
+
 			var jsonString = JsonValue.Parse(c);
-			
+
 			if (jsonString is JsonObject jsonObject) {
 				var jsonArray = jsonObject["results"];
 				for (int i = 0; i < jsonArray.Count; i++) {
@@ -124,6 +184,13 @@ namespace SmartImage.Engines.SauceNao
 
 		public SearchResult GetResult(string url)
 		{
+			if (m_apiKey == null) {
+				var u= BASIC_RESULT + url;
+				var sr= new SearchResult(u, NAME);
+				sr.ExtendedInfo = new[] {"(API not configured)"};
+				return sr;
+			}
+			
 			var sn = GetSNResults(url);
 
 			if (sn == null) {
@@ -132,7 +199,7 @@ namespace SmartImage.Engines.SauceNao
 
 			var best = GetBestSNResult(sn);
 
-			
+
 			if (best != null) {
 				string bestUrl = best?.Url?[0];
 

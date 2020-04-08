@@ -31,6 +31,41 @@ namespace SmartImage.Utilities
 				Console.WriteLine("\n\n{0}", sb);
 			}
 		}
+		internal static void WriteResponse(IRestResponse response)
+		{
+			// todo
+
+			var sb = new StringBuilder();
+			sb.AppendFormat("Success: {0}\n", response.IsSuccessful);
+			sb.AppendFormat("Status code: {0}\n", response.StatusCode);
+			sb.AppendFormat("Error Message: {0}\n", response.ErrorMessage);
+			sb.AppendFormat("Content: {0}\n", response.Content);
+			sb.AppendFormat("Response status: {0}\n", response.ResponseStatus);
+			sb.AppendFormat("Response URI: {0}\n", response.ResponseUri);
+
+			Console.Clear();
+			
+			Console.WriteLine(sb);
+		}
+		public static string Between(this string value, string a, string b)
+		{
+			int posA = value.IndexOf(a, StringComparison.Ordinal);
+			int posB = value.LastIndexOf(b, StringComparison.Ordinal);
+			if (posA == -1)
+			{
+				return "";
+			}
+			if (posB == -1)
+			{
+				return "";
+			}
+			int adjustedPosA = posA + a.Length;
+			if (adjustedPosA >= posB)
+			{
+				return "";
+			}
+			return value.Substring(adjustedPosA, posB - adjustedPosA);
+		}
 
 		internal static void OpenUrl(string url)
 		{

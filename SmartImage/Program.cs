@@ -8,6 +8,7 @@ using System.Threading;
 using Microsoft.Win32;
 using RestSharp;
 using SmartImage.Engines;
+using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Utilities;
 
@@ -80,6 +81,8 @@ namespace SmartImage
 			return imgUrl;
 		}
 
+		
+
 
 		private static void Main(string[] args)
 		{
@@ -114,9 +117,8 @@ namespace SmartImage
 			var sauceNaoInUse = engines.HasFlag(SearchEngines.SauceNao) || priority.HasFlag(SearchEngines.SauceNao);
 			
 			if (sauceNaoInUse && Config.SauceNaoAuth == null) {
-				Cli.WriteError("SauceNao API authentication must be configured!");
+				Cli.WriteInfo("SauceNao API authentication not setup; basic mode will be used");
 				
-				return;
 			}
 
 			Cli.WriteInfo("Engines: {0}", engines);
