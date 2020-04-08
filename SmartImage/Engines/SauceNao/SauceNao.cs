@@ -37,6 +37,11 @@ namespace SmartImage.Engines.SauceNao
 
 		public SauceNaoResult[] GetSNResults(string url)
 		{
+			if (m_apiKey == null) {
+				// todo
+				return Array.Empty<SauceNaoResult>();
+			}
+			
 			var req = new RestRequest();
 			req.AddQueryParameter("db", "999");
 			req.AddQueryParameter("output_type", "2");

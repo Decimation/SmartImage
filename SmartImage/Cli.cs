@@ -23,7 +23,7 @@ namespace SmartImage
 		private const char GT = '>';
 
 
-		public static readonly CliCommand SetImgurAuth = new CliCommand
+		private static readonly CliCommand SetImgurAuth = new CliCommand
 		{
 			Parameter   = "--set-imgur-auth",
 			Syntax      = "<consumer id> <consumer secret>",
@@ -38,8 +38,23 @@ namespace SmartImage
 				Config.ImgurAuth = (newId, newSecret);
 			}
 		};
+		
+		private static readonly CliCommand SetSauceNaoAuth = new CliCommand
+		{
+			Parameter   = "--set-saucenao-auth",
+			Syntax      = "<api key>",
+			Description = "Sets up SauceNao API authentication",
+			Action = args =>
+			{
+				var newKey     = args[1];
 
-		public static readonly CliCommand SetSearchEngines = new CliCommand
+				Console.WriteLine("New API key: {0}", newKey);
+
+				Config.SauceNaoAuth = newKey;
+			}
+		};
+
+		private static readonly CliCommand SetSearchEngines = new CliCommand
 		{
 			Parameter   = "--search-engines",
 			Syntax      = "<search engines>",
@@ -54,7 +69,7 @@ namespace SmartImage
 			}
 		};
 
-		public static readonly CliCommand SetPriorityEngines = new CliCommand
+		private static readonly CliCommand SetPriorityEngines = new CliCommand
 		{
 			Parameter = "--priority-engines",
 			Syntax    = "<search engines>",
@@ -70,7 +85,7 @@ namespace SmartImage
 			}
 		};
 
-		public static readonly CliCommand ContextMenu = new CliCommand
+		private static readonly CliCommand ContextMenu = new CliCommand
 		{
 			Parameter   = "--ctx-menu",
 			Syntax      = null,
@@ -83,7 +98,7 @@ namespace SmartImage
 			}
 		};
 
-		public static readonly CliCommand Reset = new CliCommand()
+		private static readonly CliCommand Reset = new CliCommand()
 		{
 			Parameter   = "--reset",
 			Syntax      = null,
@@ -98,7 +113,7 @@ namespace SmartImage
 
 		public static readonly CliCommand[] AllCommands =
 		{
-			SetImgurAuth, SetSearchEngines, ContextMenu, SetPriorityEngines, Reset
+			SetImgurAuth, SetSauceNaoAuth, SetSearchEngines, ContextMenu, SetPriorityEngines, Reset
 		};
 
 		public static void WriteHelp()

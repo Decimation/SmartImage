@@ -11,13 +11,15 @@ namespace SmartImage
 	internal static class Config
 	{
 		internal const string NAME = "SmartImage";
-		
+
 		internal const string NAME_EXE = "SmartImage.exe";
 
 		private const string SUBKEY = @"SOFTWARE\SmartImage";
 
 		private const string CLIENT_ID_STR     = "client_id";
 		private const string CLIENT_SECRET_STR = "client_secret";
+
+		private const string SAUCENAO_APIKEY_STR = "saucenao_key";
 
 		private const string SEARCH_ENGINES_STR = "search_engines";
 
@@ -102,8 +104,26 @@ namespace SmartImage
 			}
 		}
 
-		// Probably not a good idea to have this hardcoded lol
-		internal static string SauceNaoAuth => "c1f946bb2003c92fa8a25ce7fa923e0f213a0db8";
+		internal static string SauceNaoAuth {
+			get {
+				var key = SubKey;
+
+				var id = (string) key.GetValue(SAUCENAO_APIKEY_STR);
+
+				key.Close();
+
+				return id;
+			}
+			set {
+				var key = SubKey;
+
+				var id = value;
+
+				key.SetValue(SAUCENAO_APIKEY_STR, id);
+
+				key.Close();
+			}
+		}
 
 		private static RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SUBKEY);
 
@@ -134,7 +154,7 @@ namespace SmartImage
 
 			if (fullPath == null) {
 				Cli.WriteInfo("Could not find exe in system path! Add the exe to a folder in %PATH%.");
-				
+
 				//AddToPath();
 				//fullPath = Common.GetExecutableLocation(NAME_EXE);
 

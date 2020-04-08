@@ -16,9 +16,10 @@ namespace SmartImage
 	public static class Program
 	{
 		// @"C:\Users\Deci\Desktop\test.jpg";
+		
+		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
 		// dotnet publish -c Release -r win10-x64
-		// var client_id     = "6c97880bf8754c5";
-		// var client_secret = "fe1bed3047828fed3ce67bf2ae923282f0a9a558";
+		
 		// copy SmartImage.exe C:\Library /Y
 
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
@@ -107,6 +108,14 @@ namespace SmartImage
 
 			if (engines == SearchEngines.None) {
 				Cli.WriteError("Please configure search engine preferences!");
+				return;
+			}
+
+			var sauceNaoInUse = engines.HasFlag(SearchEngines.SauceNao) || priority.HasFlag(SearchEngines.SauceNao);
+			
+			if (sauceNaoInUse && Config.SauceNaoAuth == null) {
+				Cli.WriteError("SauceNao API authentication must be configured!");
+				
 				return;
 			}
 
