@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
@@ -22,6 +23,8 @@ namespace SmartImage
 
 		private const char GT = '>';
 
+		private const string DEBUG_COND = "DEBUG";
+
 
 		private static readonly CliCommand SetImgurAuth = new CliCommand
 		{
@@ -35,10 +38,10 @@ namespace SmartImage
 
 				Console.WriteLine("New client ID and secret: ({0}, {1})", newId, newSecret);
 
-				Config.ImgurAuth = (newId, newSecret);
+				Config.ImgurAuth = new AuthInfo(newId, newSecret);
 			}
 		};
-		
+
 		private static readonly CliCommand SetSauceNaoAuth = new CliCommand
 		{
 			Parameter   = "--set-saucenao-auth",
@@ -46,11 +49,11 @@ namespace SmartImage
 			Description = "Sets up SauceNao API authentication",
 			Action = args =>
 			{
-				var newKey     = args[1];
+				var newKey = args[1];
 
 				Console.WriteLine("New API key: {0}", newKey);
 
-				Config.SauceNaoAuth = newKey;
+				Config.SauceNaoAuth = new AuthInfo(newKey, null);
 			}
 		};
 
@@ -98,11 +101,19 @@ namespace SmartImage
 			}
 		};
 
+		private static readonly CliCommand AddToPath = new CliCommand
+		{
+			Parameter   = "--add-to-path",
+			Syntax      = null,
+			Description = "Adds executable path to path environment variable",
+			Action      = args => { Config.AddToPath(); }
+		};
+
 		private static readonly CliCommand Reset = new CliCommand()
 		{
 			Parameter   = "--reset",
 			Syntax      = null,
-			Description = "Resets configuration to defaults",
+			Description = "Resets configuration to defaults. Does not remove executable from the path.",
 			Action = args =>
 			{
 				Config.Reset();
@@ -111,10 +122,43 @@ namespace SmartImage
 			}
 		};
 
+		private static readonly CliCommand Info = new CliCommand()
+		{
+			Parameter   = "--info",
+			Syntax      = null,
+			Description = "Information about the program",
+			Action      = args => { Config.Info(); }
+		};
+
 		public static readonly CliCommand[] AllCommands =
 		{
-			SetImgurAuth, SetSauceNaoAuth, SetSearchEngines, ContextMenu, SetPriorityEngines, Reset
+			SetImgurAuth, SetSauceNaoAuth, SetSearchEngines, SetPriorityEngines,
+			ContextMenu, Reset, AddToPath, Info
 		};
+
+		[StringFormatMethod(STRING_FORMAT_ARG)]
+		internal static void OnCurrentLine(ConsoleColor color, string s)
+		{
+			var clear = new string('\b', s.Length);
+			Console.Write(clear);
+
+			WithColor(color, () =>
+			{
+				//
+				Console.Write(s);
+			});
+		}
+
+		[Conditional(DEBUG_COND)]
+		[StringFormatMethod(STRING_FORMAT_ARG)]
+		public static void WriteDebug(string msg, params object[] args)
+		{
+			WithColor(ConsoleColor.Cyan, () =>
+			{
+				//
+				Console.WriteLine("{0} {1}", MUL_SIGN, string.Format(msg, args));
+			});
+		}
 
 		public static void WriteHelp()
 		{
@@ -127,6 +171,36 @@ namespace SmartImage
 
 			Console.WriteLine("See readme: {0}", Readme);
 		}
+
+		
+
+		[StringFormatMethod(STRING_FORMAT_ARG)]
+		public static bool Confirm(string msg, params object[] args)
+		{
+			Console.Clear();
+			Cli.WriteInfo("{0} (y/n)", string.Format(msg, args));
+
+			Console.WriteLine();
+
+			char key;
+
+
+			key = char.ToLower(Console.ReadKey().KeyChar);
+
+			Console.WriteLine();
+
+			if (key == 'n') {
+				return false;
+			}
+			else if (key == 'y') {
+				return true;
+			}
+			else {
+				return Confirm(msg, args);
+			}
+		}
+
+		public static char Indicator(bool b) => b ? RAD_SIGN : MUL_SIGN;
 
 		public static CliCommand ReadCommand(string s)
 		{

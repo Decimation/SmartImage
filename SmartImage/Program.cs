@@ -19,6 +19,8 @@ namespace SmartImage
 		// @"C:\Users\Deci\Desktop\test.jpg";
 		
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
+		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
+		// copy SmartImage.exe C:\Users\Deci\AppData\Local\SmartImage /Y
 		// dotnet publish -c Release -r win10-x64
 		
 		// copy SmartImage.exe C:\Library /Y
@@ -28,60 +30,6 @@ namespace SmartImage
 
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-
-		private static readonly string[] ImageExtensions =
-		{
-			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif"
-		};
-
-		private static bool IsFileValid(string img)
-		{
-			if (!File.Exists(img)) {
-				Cli.WriteError("File does not exist: {0}", img);
-				return false;
-			}
-
-			bool extOkay = ImageExtensions.Any(img.EndsWith);
-
-			if (!extOkay) {
-				Cli.WriteInfo("File extension is not recognized as a common image format. Continue? (y/n)");
-				Console.WriteLine();
-
-				var key = char.ToLower(Console.ReadKey().KeyChar);
-
-				if (key == 'n') {
-					return false;
-				}
-				else if (key == 'y') {
-					Console.Clear();
-					return true;
-				}
-			}
-
-
-			return true;
-		}
-
-		private static string Upload(string img, bool useImgur)
-		{
-			string imgUrl;
-
-			if (useImgur) {
-				Cli.WriteInfo("Using Imgur for image upload");
-				var imgur = new Imgur();
-				imgUrl = imgur.Upload(img);
-			}
-			else {
-				Cli.WriteInfo("Using ImgOps for image upload (2 hour cache)");
-				var imgOps = new ImgOps();
-				imgUrl = imgOps.UploadTempImage(img, out _);
-			}
-
-
-			return imgUrl;
-		}
-
-		
 
 
 		private static void Main(string[] args)
@@ -103,8 +51,8 @@ namespace SmartImage
 				return;
 			}
 
-			var (id, secret) = Config.ImgurAuth;
-			bool useImgur = !String.IsNullOrWhiteSpace(id) && !String.IsNullOrWhiteSpace(secret);
+			var auth = Config.ImgurAuth;
+			bool useImgur = !auth.IsNull;
 
 			var engines  = Config.SearchEngines;
 			var priority = Config.PriorityEngines;
@@ -119,13 +67,13 @@ namespace SmartImage
 
 			var img = args[0];
 
-			if (!IsFileValid(img)) {
+			if (!Images.IsFileValid(img)) {
 				return;
 			}
 
 			Cli.WriteInfo("Source image: {0}", img);
 
-			string imgUrl = Upload(img, useImgur);
+			string imgUrl = Images.Upload(img, useImgur);
 
 			Cli.WriteInfo("Temporary image url: {0}", imgUrl);
 

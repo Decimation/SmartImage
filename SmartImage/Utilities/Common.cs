@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,7 @@ namespace SmartImage.Utilities
 				Console.WriteLine("\n\n{0}", sb);
 			}
 		}
+
 		internal static void WriteResponse(IRestResponse response)
 		{
 			// todo
@@ -44,27 +46,8 @@ namespace SmartImage.Utilities
 			sb.AppendFormat("Response URI: {0}\n", response.ResponseUri);
 
 			Console.Clear();
-			
+
 			Console.WriteLine(sb);
-		}
-		public static string Between(this string value, string a, string b)
-		{
-			int posA = value.IndexOf(a, StringComparison.Ordinal);
-			int posB = value.LastIndexOf(b, StringComparison.Ordinal);
-			if (posA == -1)
-			{
-				return "";
-			}
-			if (posB == -1)
-			{
-				return "";
-			}
-			int adjustedPosA = posA + a.Length;
-			if (adjustedPosA >= posB)
-			{
-				return "";
-			}
-			return value.Substring(adjustedPosA, posB - adjustedPosA);
 		}
 
 		internal static void OpenUrl(string url)
@@ -114,6 +97,74 @@ namespace SmartImage.Utilities
 			return file;
 		}
 
+		/// <summary>
+		/// Creates a <see cref="Process"/> to execute <paramref name="cmd"/>
+		/// </summary>
+		/// <param name="cmd">Command to run</param>
+		/// <param name="autoStart">Whether to automatically start the <c>cmd.exe</c> process</param>
+		/// <returns><c>cmd.exe</c> process</returns>
+		public static Process Shell(string cmd, bool autoStart = false)
+		{
+			var startInfo = new ProcessStartInfo
+			{
+				FileName               = "cmd.exe",
+				Arguments              = String.Format("/C {0}", cmd),
+				RedirectStandardOutput = true,
+				RedirectStandardError  = true,
+				UseShellExecute        = false,
+				CreateNoWindow         = true
+			};
+
+			var process = new Process
+			{
+				StartInfo           = startInfo,
+				EnableRaisingEvents = true
+			};
+
+			if (autoStart)
+				process.Start();
+
+			return process;
+		}
+		
+		public enum StandardStream
+		{
+			StdOut,
+			StdError
+		}
+		public static string[] ShellOutput(string cmd,StandardStream ss = StandardStream.StdOut, bool waitForExit = true)
+		{
+			var proc = Shell(cmd, true);
+			
+			var stream = ss switch
+			{
+				StandardStream.StdOut => proc.StandardOutput,
+				StandardStream.StdError => proc.StandardError,
+				_ => throw new ArgumentOutOfRangeException(nameof(ss), ss, null)
+			};
+
+			var list = ReadAllLines(stream);
+
+			if (waitForExit) {
+				proc.WaitForExit();
+			}
+
+			return list;
+		}
+		internal static string[] ReadAllLines(StreamReader stream)
+		{
+			var list = new List<string>();
+
+			while (!stream.EndOfStream) {
+				string line = stream.ReadLine();
+
+				if (line != null) {
+					list.Add(line);
+				}
+			}
+
+			return list.ToArray();
+		}
 		internal static void RunBatchFile(string file)
 		{
 			var process = new Process
@@ -144,7 +195,8 @@ namespace SmartImage.Utilities
 			                       ?.Split(';')
 			                        .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
 
-			if (dir != null) {
+
+			if (!string.IsNullOrWhiteSpace(dir)) {
 				return Path.Combine(dir, exe);
 			}
 

@@ -18,7 +18,7 @@ namespace SmartImage.Utilities
 			m_apiKey = apiKey;
 		}
 		
-		public Imgur() : this(Config.ImgurAuth.Item1) {}
+		public Imgur() : this(Config.ImgurAuth.Id) {}
 		
 		public string Upload(string path)
 		{

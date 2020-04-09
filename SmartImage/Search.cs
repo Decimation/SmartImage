@@ -22,7 +22,7 @@ namespace SmartImage
 				new KarmaDecay(),
 			};
 
-			var sauceNaoConfigured = Config.SauceNaoAuth != null;
+			var sauceNaoConfigured = !Config.SauceNaoAuth.IsNull;
 
 			if (sauceNaoConfigured) {
 				engines.Add(new SauceNao());
