@@ -11,6 +11,7 @@ using SmartImage.Engines;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Utilities;
+using Http = SmartImage.Utilities.Http;
 
 namespace SmartImage
 {
@@ -21,6 +22,7 @@ namespace SmartImage
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
 		// copy SmartImage.exe C:\Users\Deci\AppData\Local\SmartImage /Y
+		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
 		// dotnet publish -c Release -r win10-x64
 		
 		// copy SmartImage.exe C:\Library /Y
@@ -34,17 +36,18 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			Cli.Init();
+			CliOutput.Init();
+			Config.Check();
 
 			if (args == null || args.Length < 1) {
-				Cli.WriteError("Image or command not specified!");
-				Cli.WriteHelp();
+				CliOutput.WriteError("Image or command not specified!");
+				CliOutput.WriteHelp();
 				return;
 			}
 
 
 			// Run the command if one was parsed
-			var cmd = Cli.ReadCommand(args[0]);
+			var cmd = CliOutput.ReadCommand(args[0]);
 
 			if (cmd != null) {
 				cmd.Action(args);
@@ -58,12 +61,12 @@ namespace SmartImage
 			var priority = Config.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
-				Cli.WriteError("Please configure search engine preferences!");
+				CliOutput.WriteError("Please configure search engine preferences!");
 				return;
 			}
 			
-			Cli.WriteInfo("Engines: {0}", engines);
-			Cli.WriteInfo("Priority engines: {0}", priority);
+			CliOutput.WriteInfo("Engines: {0}", engines);
+			CliOutput.WriteInfo("Priority engines: {0}", priority);
 
 			var img = args[0];
 
@@ -71,11 +74,11 @@ namespace SmartImage
 				return;
 			}
 
-			Cli.WriteInfo("Source image: {0}", img);
+			CliOutput.WriteInfo("Source image: {0}", img);
 
 			string imgUrl = Images.Upload(img, useImgur);
 
-			Cli.WriteInfo("Temporary image url: {0}", imgUrl);
+			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
 
 			Console.WriteLine();
 
@@ -100,7 +103,7 @@ namespace SmartImage
 
 				Console.WriteLine();
 
-				Cli.WriteSuccess("Enter the result number to open or escape to quit.");
+				CliOutput.WriteSuccess("Enter the result number to open or escape to quit.");
 
 				while (!Console.KeyAvailable) {
 					// Block until input is entered.
@@ -116,7 +119,7 @@ namespace SmartImage
 
 					if (idx < results.Length) {
 						var res = results[idx];
-						Common.OpenUrl(res.Url);
+						Http.OpenUrl(res.Url);
 					}
 				}
 			} while (cki.Key != ConsoleKey.Escape);

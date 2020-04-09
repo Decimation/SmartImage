@@ -10,11 +10,11 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
-	internal static class Config
+	public static class Config
 	{
-		internal const string NAME = "SmartImage";
+		public const string NAME = "SmartImage";
 
-		internal const string NAME_EXE = "SmartImage.exe";
+		public const string NAME_EXE = "SmartImage.exe";
 
 		private const string SUBKEY = @"SOFTWARE\SmartImage";
 
@@ -28,6 +28,8 @@ namespace SmartImage
 
 		private const string PRIORITY_ENGINES_STR = "priority_engines";
 
+		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
+
 		internal static SearchEngines SearchEngines {
 			get {
 				var key = SubKey;
@@ -36,7 +38,7 @@ namespace SmartImage
 
 				// todo: config automatically, set defaults
 				if (str == null) {
-					Cli.WriteError("Search engines have not been configured!");
+					CliOutput.WriteError("Search engines have not been configured!");
 
 					SearchEngines = SearchEngines.All;
 
@@ -130,25 +132,55 @@ namespace SmartImage
 
 		private static RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SUBKEY);
 
-		internal static DirectoryInfo AppFolder {
+		internal static string AppFolder {
 			get {
 				var app    = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
 				var folder = Path.Combine(app, NAME);
-				var di     = new DirectoryInfo(folder);
 
-				if (!di.Exists) {
+				//var di     = new DirectoryInfo(folder);
+
+				/*if (!di.Exists) {
 					di.Create();
+				}*/
+
+				if (!Directory.Exists(folder)) {
+					Directory.CreateDirectory(folder);
 				}
 
-				return di;
+				return folder;
 			}
 		}
 
+		//internal static bool IsExeInPath => GetPath(NAME_EXE) != null;
+
+		internal static bool IsExeInPath => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
 		/// <summary>
 		/// Null if executable is not in path.
 		/// </summary>
-		internal static string Location => Common.GetExecutableLocation(NAME_EXE);
+		internal static string Location => FindExecutableLocation(NAME_EXE);
+
+		internal static bool IsContextMenuAdded {
+			get {
+				var cmdStr = @"reg query HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
+				var cmd    = Cli.Shell(cmdStr, true);
+
+				var stdOut = Cli.ReadAllLines(cmd.StandardOutput);
+
+				if (stdOut != null && stdOut.Any(s => s.Contains(NAME))) {
+					return true;
+				}
+
+				var stdErr = Cli.ReadAllLines(cmd.StandardError);
+
+				if (stdErr != null && stdErr.Any(s => s.Contains("ERROR"))) {
+					return false;
+				}
+
+
+				throw new InvalidOperationException();
+			}
+		}
 
 		private static void RemoveFromContextMenu()
 		{
@@ -159,121 +191,88 @@ namespace SmartImage
 			string[] code =
 			{
 				"@echo off",
-				@"%SystemRoot%\System32\reg.exe delete HKEY_CLASSES_ROOT\*\shell\SmartImage\ /f >nul",
-				//"pause"
+				@"reg.exe delete HKEY_CLASSES_ROOT\*\shell\SmartImage\ /f >nul",
 			};
 
-			var bat = Common.CreateBatchFile("rem_from_menu.bat", code);
+			var bat = Cli.CreateBatchFile("rem_from_menu.bat", code);
 
-			Common.RunBatchFile(bat);
+			Cli.RunBatchFile(bat);
 		}
 
 		internal static void AddToPath()
 		{
-			if (Location != null) {
-				Cli.WriteInfo("Executable is already in path: {0}", Location);
-				return;
-			}
-
 			var name     = "PATH";
 			var scope    = EnvironmentVariableTarget.User;
 			var oldValue = Environment.GetEnvironmentVariable(name, scope);
 
+			var appFolder = AppFolder;
 
-			//var cd = Directory.GetCurrentDirectory();
-			//var cd = Assembly.GetExecutingAssembly().Location;
-			//var cd = Assembly.GetExecutingAssembly().CodeBase;
-			//var cd = AppDomain.CurrentDomain.BaseDirectory;
-			//var cd = Assembly.GetEntryAssembly().CodeBase;
+			if (IsExeInPath) {
+				CliOutput.WriteInfo("Executable is already in path: {0}", Location);
+				return;
+			}
+
+			bool appFolderInPath = oldValue.Split(';').Any(p => p == appFolder);
 
 
 			var cd  = Environment.CurrentDirectory;
 			var exe = Path.Combine(cd, NAME_EXE);
 
-			var appFolder = AppFolder;
 
-			bool b = Cli.Confirm("Add {0} to environment path?", appFolder.FullName);
-
-			if (b) {
-				var newValue = oldValue + @";" + appFolder.FullName;
-				Environment.SetEnvironmentVariable(name, newValue, scope);
-
-				var dest = Path.Combine(appFolder.FullName, NAME_EXE);
-
-				Cli.WriteInfo("Moving executable from {0} to {1}", exe, dest);
-				File.Move(exe, dest);
-
-
-				Cli.WriteSuccess("Success. Relaunch the program for changes to take effect.");
-
-				// Can't reload environment variables immediately
-				Environment.Exit(0);
+			if (appFolderInPath) {
+				CliOutput.WriteInfo("App folder already in path: {0}", appFolder);
 			}
 			else {
-				Cli.WriteError("Cancelled");
+				var newValue = oldValue + @";" + appFolder;
+				Environment.SetEnvironmentVariable(name, newValue, scope);
+				CliOutput.WriteInfo("Added {0} to path", appFolder);
 			}
+
+
+			var dest = Path.Combine(appFolder, NAME_EXE);
+
+
+			FileUtil.TryMove(exe, dest);
+			// Can't reload environment variables immediately
+			Environment.Exit(0);
 		}
 
 		internal static void Info()
 		{
 			Console.Clear();
 
-			Cli.WriteInfo("Search engines: {0}", SearchEngines);
-			Cli.WriteInfo("Priority engines: {0}", PriorityEngines);
+			CliOutput.WriteInfo("Search engines: {0}", SearchEngines);
+			CliOutput.WriteInfo("Priority engines: {0}", PriorityEngines);
 
 			var sn = SauceNaoAuth;
-			
-			Cli.WriteInfo("SauceNao authentication: {0} ({1})", sn.IsNull ? Cli.MUL_SIGN.ToString() : sn.Id,
-			              sn.IsNull ? "Basic" : "Advanced");
+
+			CliOutput.WriteInfo("SauceNao authentication: {0} ({1})", sn.IsNull ? CliOutput.MUL_SIGN.ToString() : sn.Id,
+			                    sn.IsNull ? "Basic" : "Advanced");
 
 			var imgur = ImgurAuth;
-			Cli.WriteInfo("Imgur authentication: {0}", imgur.IsNull ? Cli.MUL_SIGN.ToString() : imgur.Id);
+			CliOutput.WriteInfo("Imgur authentication: {0}", imgur.IsNull ? CliOutput.MUL_SIGN.ToString() : imgur.Id);
 
-			Cli.WriteInfo("Image upload service: {0}", imgur.IsNull ? "ImgOps" : "Imgur");
+			CliOutput.WriteInfo("Image upload service: {0}", imgur.IsNull ? "ImgOps" : "Imgur");
 
-			Cli.WriteInfo("Application folder: {0}", AppFolder);
-			Cli.WriteInfo("Executable location: {0}", Location);
-			Cli.WriteInfo("Context menu integrated: {0}", ContextMenuAdded);
+			CliOutput.WriteInfo("Application folder: {0}", AppFolder);
+			CliOutput.WriteInfo("Executable location: {0}", Location);
+			CliOutput.WriteInfo("Context menu integrated: {0}", IsContextMenuAdded);
+
+
+			CliOutput.WriteInfo("Readme: {0}", Readme);
 		}
-
-		internal static bool ContextMenuAdded {
-			get {
-				var cmdStr = @"reg query HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
-				var cmd    = Common.Shell(cmdStr, true);
-
-				var stdOut = Common.ReadAllLines(cmd.StandardOutput);
-
-				if (stdOut != null && stdOut.Any(s => s.Contains(NAME))) {
-					return true;
-				}
-
-				var stdErr = Common.ReadAllLines(cmd.StandardError);
-
-				if (stdErr != null && stdErr.Any(s => s.Contains("ERROR"))) {
-					return false;
-				}
-				
-				
-				throw new InvalidOperationException();
-			}
-		}
-
-		// Computer\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
 
 		internal static void AddToContextMenu()
 		{
 			var fullPath = Location;
 
-			if (fullPath == null) {
-				var v = Cli.Confirm("Could not find exe in system path. Add now?");
+			if (!IsExeInPath) {
+				var v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
 
 				if (v) {
 					AddToPath();
 					return;
 				}
-
-				//AddToPath();
-				//fullPath = Common.GetExecutableLocation(NAME_EXE);
 
 				if (fullPath == null) {
 					throw new ApplicationException();
@@ -284,19 +283,32 @@ namespace SmartImage
 			string[] code =
 			{
 				"@echo off",
-				//"SET \"SMARTIMAGE=SmartImage.exe\"",
-				string.Format("SET \"SMARTIMAGE={0}\"", fullPath),
+				String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
 				"SET COMMAND=%SMARTIMAGE% \"\"%%1\"\"",
-				"%SystemRoot%\\System32\\reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
-				//"pause"
+				"reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
 			};
 
-			var bat = Common.CreateBatchFile("add_to_menu.bat", code);
+			var bat = Cli.CreateBatchFile("add_to_menu.bat", code);
 
-			Common.RunBatchFile(bat);
+			Cli.RunBatchFile(bat);
 		}
 
-		internal static void Reset()
+		internal static void RemoveFromPath()
+		{
+			var name     = "PATH";
+			var scope    = EnvironmentVariableTarget.User;
+			var oldValue = Environment.GetEnvironmentVariable(name, scope);
+
+			Console.WriteLine(oldValue);
+			Console.WriteLine();
+			var newValue = oldValue.Replace(";" + AppFolder, string.Empty);
+			Console.WriteLine(newValue);
+
+			Console.ReadLine();
+			Environment.SetEnvironmentVariable(name, newValue, scope);
+		}
+
+		internal static void Reset(bool all = false)
 		{
 			SearchEngines   = SearchEngines.All;
 			PriorityEngines = SearchEngines.SauceNao;
@@ -306,8 +318,74 @@ namespace SmartImage
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 			RemoveFromContextMenu();
-			
+
+			if (all) {
+				if (Directory.Exists(AppFolder)) {
+					if (IsExeInPath) {
+						var dest = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), NAME_EXE);
+						FileUtil.TryMove(Location, dest);
+						Console.WriteLine("Moved to desktop");
+					}
+					Directory.Delete(AppFolder, true);
+					Console.WriteLine("Deleted folder");
+				}
+				
+				RemoveFromPath();
+				Console.WriteLine("Removed from path");
+
+				Environment.Exit(0);
+			}
+
 			Info();
+		}
+
+		internal static void Check()
+		{
+			//var files = AppFolder.GetFiles("*.exe").Any(f => f.Name == NAME_EXE);
+
+			//CliOutput.WriteInfo("{0}", files);
+
+			//var l = new FileInfo(Location);
+			//bool exeInAppFolder = l.DirectoryName == AppFolder.Name;
+		}
+
+		private static string GetPath(string exe)
+		{
+			string dir = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)
+			                       ?.Split(';')
+			                        .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
+
+			if (!String.IsNullOrWhiteSpace(dir)) {
+				return Path.Combine(dir, exe);
+			}
+
+			return null;
+		}
+
+		internal static string FindExecutableLocation(string exe)
+		{
+			var path = GetPath(exe);
+
+			if (path == null) {
+				var cd    = Environment.CurrentDirectory;
+				var cdExe = Path.Combine(cd, exe);
+				var inCd  = File.Exists(cdExe);
+
+				if (inCd) {
+					return cdExe;
+				}
+
+				else {
+					var appFolderExe = Path.Combine(AppFolder, exe);
+					var inAppFolder  = File.Exists(appFolderExe);
+					if (inAppFolder) {
+						return appFolderExe;
+					}
+				}
+			}
+
+
+			return path;
 		}
 	}
 }

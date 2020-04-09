@@ -7,11 +7,9 @@ using SmartImage.Model;
 
 namespace SmartImage
 {
-	public static class Cli
+	public static class CliOutput
 	{
 		public delegate void RunCommand(string[] args);
-
-		private const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
 		private const string STRING_FORMAT_ARG = "msg";
 
@@ -112,11 +110,17 @@ namespace SmartImage
 		private static readonly CliCommand Reset = new CliCommand()
 		{
 			Parameter   = "--reset",
-			Syntax      = null,
-			Description = "Resets configuration to defaults. Does not remove executable from the path.",
+			Syntax      = "[all]",
+			Description = "Resets configuration to defaults. Specify <all> to fully reset.",
 			Action = args =>
 			{
-				Config.Reset();
+				bool all = false;
+				
+				if (args.Length >= 2) {
+					all = args[1] == "all";
+				}
+
+				Config.Reset(all);
 
 				Console.WriteLine("Config reset");
 			}
@@ -169,23 +173,21 @@ namespace SmartImage
 				Console.WriteLine();
 			}
 
-			Console.WriteLine("See readme: {0}", Readme);
+			Console.WriteLine("See readme: {0}", Config.Readme);
 		}
 
 		
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
-		public static bool Confirm(string msg, params object[] args)
+		public static bool ReadConfirm(string msg, params object[] args)
 		{
 			Console.Clear();
-			Cli.WriteInfo("{0} (y/n)", string.Format(msg, args));
+			CliOutput.WriteInfo("{0} (y/n)", string.Format(msg, args));
 
 			Console.WriteLine();
 
-			char key;
 
-
-			key = char.ToLower(Console.ReadKey().KeyChar);
+			char key = char.ToLower(Console.ReadKey().KeyChar);
 
 			Console.WriteLine();
 
@@ -196,12 +198,10 @@ namespace SmartImage
 				return true;
 			}
 			else {
-				return Confirm(msg, args);
+				return ReadConfirm(msg, args);
 			}
 		}
-
-		public static char Indicator(bool b) => b ? RAD_SIGN : MUL_SIGN;
-
+		
 		public static CliCommand ReadCommand(string s)
 		{
 			var cmd = AllCommands.FirstOrDefault(cliCmd => cliCmd.Parameter == s);

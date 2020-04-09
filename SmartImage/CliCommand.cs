@@ -8,7 +8,7 @@ namespace SmartImage
 		
 		public string Description { get; internal set; }
 		
-		public Cli.RunCommand Action { get; internal set; }
+		public CliOutput.RunCommand Action { get; internal set; }
 
 		public override string ToString()
 		{

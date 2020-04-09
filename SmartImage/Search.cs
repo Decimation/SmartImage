@@ -49,7 +49,7 @@ namespace SmartImage
 				if (engines.HasFlag(idx.Engine)) {
 					string wait = string.Format("{0}: ...", idx.Engine);
 
-					Cli.WithColor(ConsoleColor.Blue, () =>
+					CliOutput.WithColor(ConsoleColor.Blue, () =>
 					{
 						//
 						Console.Write(wait);
@@ -67,18 +67,18 @@ namespace SmartImage
 						var url = result.Url;
 
 						if (url != null) {
-							Cli.WithColor(ConsoleColor.Green, () =>
+							CliOutput.WithColor(ConsoleColor.Green, () =>
 							{
 								//
 								Console.Write("{0}: Done\n", result.Name);
 							});
 
 							if (Config.PriorityEngines.HasFlag(idx.Engine)) {
-								Common.OpenUrl(result.Url);
+								Http.OpenUrl(result.Url);
 							}
 						}
 						else {
-							Cli.WithColor(ConsoleColor.Yellow, () =>
+							CliOutput.WithColor(ConsoleColor.Yellow, () =>
 							{
 								//
 								Console.Write("{0}: Done (url is null!)\n", result.Name);

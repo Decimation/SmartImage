@@ -10,6 +10,7 @@ using System.Xml;
 using RestSharp;
 using SmartImage.Model;
 using SmartImage.Utilities;
+using Http = SmartImage.Utilities.Http;
 using JsonObject = System.Json.JsonObject;
 
 // ReSharper disable InconsistentNaming
@@ -53,7 +54,7 @@ namespace SmartImage.Engines.SauceNao
 
 			var res = m_client.Execute(req);
 
-			Common.AssertResponse(res);
+			Http.AssertResponse(res);
 
 
 			//Console.WriteLine("{0} {1} {2}", res.IsSuccessful, res.ResponseStatus, res.StatusCode);
@@ -64,7 +65,7 @@ namespace SmartImage.Engines.SauceNao
 
 
 			if (string.IsNullOrWhiteSpace(c)) {
-				Cli.WriteError("No SN results!");
+				CliOutput.WriteError("No SN results!");
 			}
 
 			return ReadResults(c);

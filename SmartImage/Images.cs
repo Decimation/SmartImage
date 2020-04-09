@@ -15,14 +15,14 @@ namespace SmartImage
 		public static bool IsFileValid(string img)
 		{
 			if (!File.Exists(img)) {
-				Cli.WriteError("File does not exist: {0}", img);
+				CliOutput.WriteError("File does not exist: {0}", img);
 				return false;
 			}
 
 			bool extOkay = ImageExtensions.Any(img.EndsWith);
 
 			if (!extOkay) {
-				return Cli.Confirm("File extension is not recognized as a common image format. Continue?");
+				return CliOutput.ReadConfirm("File extension is not recognized as a common image format. Continue?");
 			}
 
 
@@ -34,12 +34,12 @@ namespace SmartImage
 			string imgUrl;
 
 			if (useImgur) {
-				Cli.WriteInfo("Using Imgur for image upload");
+				CliOutput.WriteInfo("Using Imgur for image upload");
 				var imgur = new Imgur();
 				imgUrl = imgur.Upload(img);
 			}
 			else {
-				Cli.WriteInfo("Using ImgOps for image upload (2 hour cache)");
+				CliOutput.WriteInfo("Using ImgOps for image upload (2 hour cache)");
 				var imgOps = new ImgOps();
 				imgUrl = imgOps.UploadTempImage(img, out _);
 			}

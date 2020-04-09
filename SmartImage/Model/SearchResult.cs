@@ -36,7 +36,7 @@ namespace SmartImage.Model
 		public string Format(string tag)
 		{
 			var sb  = new StringBuilder();
-			sb.AppendFormat("[{0}] {1}: {2}\n",tag ,Name, Success ? Cli.RAD_SIGN : Cli.MUL_SIGN);
+			sb.AppendFormat("[{0}] {1}: {2}\n",tag ,Name, Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN);
 
 			if (Success) {
 				
