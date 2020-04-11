@@ -62,7 +62,7 @@ Resets the configuration.
 
 # to-do
 
-- Automate %PATH% integration
+- Add an icon
 - Automate SauceNao API registration and make its configuration more user-friendly
 
 # Inspiration
