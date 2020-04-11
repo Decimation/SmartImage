@@ -1,4 +1,4 @@
-namespace SmartImage
+namespace SmartImage.Engines
 {
 	public readonly struct AuthInfo
 	{

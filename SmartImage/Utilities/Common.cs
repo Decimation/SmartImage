@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -22,21 +21,6 @@ namespace SmartImage.Utilities
 		{
 			return Regex.Replace(Regex.Replace(convert, @"(\P{Ll})(\P{Ll}\p{Ll})", "$1 $2"),
 			                     @"(\p{Ll})(\P{Ll})", "$1 $2");
-		}
-
-		public static void KillProc(Process p)
-		{
-			p.WaitForExit();
-			p.Dispose();
-
-			try {
-				if (!p.HasExited) {
-					p.Kill();
-				}
-			}
-			catch (InvalidOperationException e) {
-				// todo
-			}
 		}
 	}
 }

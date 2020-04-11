@@ -1,10 +1,11 @@
 using System;
 using Neocmd;
+using SmartImage.Engines;
 using SmartImage.Searching;
 
 namespace SmartImage
 {
-	public class Commands
+	public static class Commands
 	{
 		private static readonly CliCommand SetImgurAuth = new CliCommand
 		{
@@ -117,11 +118,17 @@ namespace SmartImage
 		};
 
 		
-
 		public static readonly CliCommand[] AllCommands =
 		{
 			SetImgurAuth, SetSauceNaoAuth, SetSearchEngines, SetPriorityEngines,
 			ContextMenu, Reset, AddToPath, Info
 		};
+
+		public static void Setup()
+		{
+			CliOutput.Commands.AddRange(AllCommands);
+			CliOutput.Init(Config.NAME);
+			Config.Check();
+		}
 	}
 }

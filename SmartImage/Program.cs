@@ -38,8 +38,7 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			CliOutput.Init(Config.NAME);
-			Config.Check();
+			Commands.Setup();
 
 			if (args == null || args.Length < 1) {
 				CliOutput.WriteError("Image or command not specified!");
@@ -52,7 +51,6 @@ namespace SmartImage
 
 			if (cmd != null) {
 				cmd.Action(args);
-
 				return;
 			}
 

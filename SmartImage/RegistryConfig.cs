@@ -3,13 +3,13 @@ using Microsoft.Win32;
 
 namespace SmartImage
 {
-	public class RegConfig
+	public sealed class RegistryConfig
 	{
 		public string SubkeyName { get; }
 
 		private RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SubkeyName);
 
-		public RegConfig(string subkeyName)
+		public RegistryConfig(string subkeyName)
 		{
 			SubkeyName = subkeyName;
 		}
@@ -18,16 +18,22 @@ namespace SmartImage
 		{
 			var rawValue = this[name];
 
-			if (setDefaultIfNull && string.IsNullOrWhiteSpace((string)rawValue)) {
+			if (setDefaultIfNull && string.IsNullOrWhiteSpace((string) rawValue)) {
 				this[name] = defaultValue;
+				rawValue   = this[name];
 			}
 
 			if (typeof(T).IsEnum) {
-				Enum.TryParse(typeof(T),name, out var e);
+				Enum.TryParse(typeof(T), (string) rawValue, out var e);
 				return (T) e;
 			}
 
 			return (T) rawValue;
+		}
+
+		public void Write<T>(string name, T value)
+		{
+			this[name] = value;
 		}
 
 		public object this[string name] {

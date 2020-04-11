@@ -8,7 +8,6 @@ using Microsoft.Win32;
 using Neocmd;
 using SmartImage.Engines;
 using SmartImage.Searching;
-using SmartImage.Utilities;
 
 namespace SmartImage
 {
@@ -18,122 +17,7 @@ namespace SmartImage
 
 		public const string NAME_EXE = "SmartImage.exe";
 
-		private const string SUBKEY = @"SOFTWARE\SmartImage";
-
-		private const string CLIENT_ID_STR = "client_id";
-
-		private const string CLIENT_SECRET_STR = "client_secret";
-
-		private const string SAUCENAO_APIKEY_STR = "saucenao_key";
-
-		private const string SEARCH_ENGINES_STR = "search_engines";
-
-		private const string PRIORITY_ENGINES_STR = "priority_engines";
-
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
-
-		internal static SearchEngines SearchEngines {
-			get {
-				var key = SubKey;
-
-				var str = (string) key.GetValue(SEARCH_ENGINES_STR);
-
-				// todo: config automatically, set defaults
-				if (str == null) {
-					CliOutput.WriteError("Search engines have not been configured!");
-
-					SearchEngines = SearchEngines.All;
-
-					return SearchEngines;
-				}
-
-				var id = Enum.Parse<SearchEngines>(str);
-
-				key.Close();
-
-				return id;
-			}
-			set {
-				var key = SubKey;
-
-				key.SetValue(SEARCH_ENGINES_STR, value);
-
-				key.Close();
-			}
-		}
-
-		internal static SearchEngines PriorityEngines {
-			get {
-				var key = SubKey;
-
-				var str = (string) key.GetValue(PRIORITY_ENGINES_STR);
-
-				if (str == null) {
-					return SearchEngines.None;
-				}
-
-				var id = Enum.Parse<SearchEngines>(str);
-
-				key.Close();
-
-				return id;
-			}
-			set {
-				var key = SubKey;
-
-				key.SetValue(PRIORITY_ENGINES_STR, value);
-
-				key.Close();
-			}
-		}
-
-
-		internal static AuthInfo ImgurAuth {
-			get {
-				var key = SubKey;
-
-				var id     = (string) key.GetValue(CLIENT_ID_STR);
-				var secret = (string) key.GetValue(CLIENT_SECRET_STR);
-
-				key.Close();
-
-				return new AuthInfo(id, secret);
-			}
-			set {
-				var key = SubKey;
-
-				var ai = value;
-
-				key.SetValue(CLIENT_ID_STR, ai.Id);
-				key.SetValue(CLIENT_SECRET_STR, ai.Secret);
-
-				key.Close();
-			}
-		}
-
-		internal static AuthInfo SauceNaoAuth {
-			get {
-				var key = SubKey;
-
-
-				var id = (string) key.GetValue(SAUCENAO_APIKEY_STR);
-
-				key.Close();
-
-				return new AuthInfo(id, null);
-			}
-			set {
-				var key = SubKey;
-
-				var id = value;
-
-				key.SetValue(SAUCENAO_APIKEY_STR, id.Id);
-
-				key.Close();
-			}
-		}
-
-		private static RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SUBKEY);
 
 		internal static string AppFolder {
 			get {
@@ -161,19 +45,14 @@ namespace SmartImage
 
 				// todo
 				if (stdOut != null && stdOut.Any(s => s.Contains(NAME))) {
-					Common.KillProc(cmd);
 					return true;
 				}
 
 				var stdErr = Cli.ReadAllLines(cmd.StandardError);
 
 				if (stdErr != null && stdErr.Any(s => s.Contains("ERROR"))) {
-					Common.KillProc(cmd);
 					return false;
 				}
-
-
-				Common.KillProc(cmd);
 
 
 				throw new InvalidOperationException();
@@ -312,7 +191,7 @@ namespace SmartImage
 			var oldValue = Environment.GetEnvironmentVariable(name, scope);
 
 
-			var newValue = oldValue.Replace(";" + AppFolder, string.Empty);
+			var newValue = oldValue.Replace(";" + AppFolder, String.Empty);
 
 
 			Environment.SetEnvironmentVariable(name, newValue, scope);
@@ -385,6 +264,47 @@ namespace SmartImage
 
 
 			return path;
+		}
+
+		private const string REG_SUBKEY = @"SOFTWARE\SmartImage";
+
+		private const string REG_IMGUR_CLIENT_ID  = "client_id";
+		private const string REG_CLIENT_SECRET    = "client_secret";
+		private const string REG_SAUCENAO_APIKEY  = "saucenao_key";
+		private const string REG_SEARCH_ENGINES   = "search_engines";
+		private const string REG_PRIORITY_ENGINES = "priority_engines";
+
+		private static RegistryConfig RegConfig { get; } = new RegistryConfig(REG_SUBKEY);
+
+		internal static SearchEngines SearchEngines {
+			get => RegConfig.Read(REG_SEARCH_ENGINES, true, SearchEngines.All);
+			set => RegConfig.Write(REG_SEARCH_ENGINES, value);
+		}
+
+		internal static SearchEngines PriorityEngines {
+			get => RegConfig.Read(REG_PRIORITY_ENGINES, true, SearchEngines.None);
+			set => RegConfig.Write(REG_PRIORITY_ENGINES, value);
+		}
+
+		internal static AuthInfo ImgurAuth {
+			get {
+				string id     = RegConfig.Read<string>(REG_IMGUR_CLIENT_ID);
+				string secret = RegConfig.Read<string>(REG_CLIENT_SECRET);
+
+				return new AuthInfo(id, secret);
+			}
+			set {
+				RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id);
+				RegConfig.Write(REG_CLIENT_SECRET, value.Secret);
+			}
+		}
+
+		internal static AuthInfo SauceNaoAuth {
+			get {
+				string id = RegConfig.Read<string>(REG_SAUCENAO_APIKEY);
+				return new AuthInfo(id, null);
+			}
+			set => RegConfig.Write(REG_SAUCENAO_APIKEY, value.Id);
 		}
 	}
 }
