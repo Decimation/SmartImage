@@ -113,6 +113,7 @@ namespace SmartImage
 			get {
 				var key = SubKey;
 
+
 				var id = (string) key.GetValue(SAUCENAO_APIKEY_STR);
 
 				key.Close();
@@ -134,18 +135,7 @@ namespace SmartImage
 
 		internal static string AppFolder {
 			get {
-				var app    = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-				var folder = Path.Combine(app, NAME);
-
-				//var di     = new DirectoryInfo(folder);
-
-				/*if (!di.Exists) {
-					di.Create();
-				}*/
-
-				if (!Directory.Exists(folder)) {
-					Directory.CreateDirectory(folder);
-				}
+				var folder = Path.GetDirectoryName(Location);
 
 				return folder;
 			}
@@ -153,7 +143,7 @@ namespace SmartImage
 
 		//internal static bool IsExeInPath => GetPath(NAME_EXE) != null;
 
-		internal static bool IsExeInPath => File.Exists(Path.Combine(AppFolder, NAME_EXE));
+		internal static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
 		/// <summary>
 		/// Null if executable is not in path.
@@ -167,15 +157,21 @@ namespace SmartImage
 
 				var stdOut = Cli.ReadAllLines(cmd.StandardOutput);
 
+				// todo
 				if (stdOut != null && stdOut.Any(s => s.Contains(NAME))) {
+					Common.KillProc(cmd);
 					return true;
 				}
 
 				var stdErr = Cli.ReadAllLines(cmd.StandardError);
 
 				if (stdErr != null && stdErr.Any(s => s.Contains("ERROR"))) {
+					Common.KillProc(cmd);
 					return false;
 				}
+
+
+				Common.KillProc(cmd);
 
 
 				throw new InvalidOperationException();
@@ -207,7 +203,7 @@ namespace SmartImage
 
 			var appFolder = AppFolder;
 
-			if (IsExeInPath) {
+			if (IsAppFolderInPath) {
 				CliOutput.WriteInfo("Executable is already in path: {0}", Location);
 				return;
 			}
@@ -223,18 +219,22 @@ namespace SmartImage
 				CliOutput.WriteInfo("App folder already in path: {0}", appFolder);
 			}
 			else {
-				var newValue = oldValue + @";" + appFolder;
+				var newValue = oldValue + @";" + cd;
 				Environment.SetEnvironmentVariable(name, newValue, scope);
-				CliOutput.WriteInfo("Added {0} to path", appFolder);
+				CliOutput.WriteInfo("Added {0} to path", cd);
 			}
 
 
 			var dest = Path.Combine(appFolder, NAME_EXE);
 
 
-			FileUtil.TryMove(exe, dest);
+			// todo: fix
+			//Common.TryMove(exe, dest);
 			// Can't reload environment variables immediately
-			Environment.Exit(0);
+			//Console.WriteLine("Global alloc: {0}", Alloc.Count);
+			//Environment.Exit(0);
+
+			return;
 		}
 
 		internal static void Info()
@@ -257,7 +257,7 @@ namespace SmartImage
 			CliOutput.WriteInfo("Application folder: {0}", AppFolder);
 			CliOutput.WriteInfo("Executable location: {0}", Location);
 			CliOutput.WriteInfo("Context menu integrated: {0}", IsContextMenuAdded);
-
+			CliOutput.WriteInfo("In path: {0}", IsAppFolderInPath);
 
 			CliOutput.WriteInfo("Readme: {0}", Readme);
 		}
@@ -266,7 +266,7 @@ namespace SmartImage
 		{
 			var fullPath = Location;
 
-			if (!IsExeInPath) {
+			if (!IsExeInAppFolder) {
 				var v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
 
 				if (v) {
@@ -299,12 +299,10 @@ namespace SmartImage
 			var scope    = EnvironmentVariableTarget.User;
 			var oldValue = Environment.GetEnvironmentVariable(name, scope);
 
-			Console.WriteLine(oldValue);
-			Console.WriteLine();
-			var newValue = oldValue.Replace(";" + AppFolder, string.Empty);
-			Console.WriteLine(newValue);
 
-			Console.ReadLine();
+			var newValue = oldValue.Replace(";" + AppFolder, string.Empty);
+
+
 			Environment.SetEnvironmentVariable(name, newValue, scope);
 		}
 
@@ -320,20 +318,9 @@ namespace SmartImage
 			RemoveFromContextMenu();
 
 			if (all) {
-				if (Directory.Exists(AppFolder)) {
-					if (IsExeInPath) {
-						var dest = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), NAME_EXE);
-						FileUtil.TryMove(Location, dest);
-						Console.WriteLine("Moved to desktop");
-					}
-					Directory.Delete(AppFolder, true);
-					Console.WriteLine("Deleted folder");
-				}
-				
 				RemoveFromPath();
 				Console.WriteLine("Removed from path");
-
-				Environment.Exit(0);
+				return;
 			}
 
 			Info();
@@ -360,6 +347,16 @@ namespace SmartImage
 			}
 
 			return null;
+		}
+
+		internal static bool IsAppFolderInPath {
+			get {
+				string dir = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)
+				                       ?.Split(';')
+				                        .FirstOrDefault(s => s == AppFolder);
+
+				return !String.IsNullOrWhiteSpace(dir);
+			}
 		}
 
 		internal static string FindExecutableLocation(string exe)

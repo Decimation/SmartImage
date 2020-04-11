@@ -26,5 +26,45 @@ namespace SmartImage.Utilities
 			return Regex.Replace(Regex.Replace(convert, @"(\P{Ll})(\P{Ll}\p{Ll})", "$1 $2"),
 			                     @"(\p{Ll})(\P{Ll})", "$1 $2");
 		}
+
+		public static void KillProc(Process p)
+		{
+			p.WaitForExit();
+			p.Dispose();
+
+			try {
+				if (!p.HasExited) {
+					p.Kill();
+				}
+			}
+			catch (InvalidOperationException e) {
+				// todo
+			}
+		}
+
+		public static void TryMove(string exe, string dest)
+		{
+			for (int i = 0; i < 3; i++) {
+				try {
+					CliOutput.WriteInfo("Moving executable from {0} to {1}", exe, dest);
+					File.Move(exe, dest);
+					CliOutput.WriteSuccess("Success. Relaunch the program for changes to take effect.");
+					return;
+				}
+				catch (IOException exception) {
+					CliOutput.WriteError("Could not move file: {0}", exception.Message);
+					Console.ReadLine();
+				}
+			}
+		}
+
+		public static List<Process> GetProcessesAssociatedToFile(string file)
+		{
+			return Process.GetProcesses()
+			              .Where(x => !x.HasExited
+			                          && x.Modules.Cast<ProcessModule>().ToList()
+			                              .Exists(y => y.FileName.ToLowerInvariant() == file.ToLowerInvariant())
+			               ).ToList();
+		}
 	}
 }

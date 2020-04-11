@@ -45,12 +45,13 @@ namespace SmartImage
 				return;
 			}
 
-
 			// Run the command if one was parsed
 			var cmd = CliOutput.ReadCommand(args[0]);
 
 			if (cmd != null) {
+				
 				cmd.Action(args);
+				
 				return;
 			}
 

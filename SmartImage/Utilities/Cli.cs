@@ -12,6 +12,7 @@ namespace SmartImage.Utilities
 			var file = Path.Combine(Directory.GetCurrentDirectory(), name);
 
 			File.WriteAllLines(file, code);
+			
 
 			return file;
 		}
@@ -43,6 +44,9 @@ namespace SmartImage.Utilities
 			if (autoStart)
 				process.Start();
 
+
+			
+
 			return process;
 		}
 
@@ -67,8 +71,9 @@ namespace SmartImage.Utilities
 			var list = ReadAllLines(stream);
 
 			if (waitForExit) {
-				proc.WaitForExit();
+				Common.KillProc(proc);
 			}
+			
 
 			return list;
 		}
@@ -107,7 +112,7 @@ namespace SmartImage.Utilities
 
 			CliOutput.WriteInfo("Waiting for batch file to exit");
 
-			process.WaitForExit();
+			Common.KillProc(process);
 
 			File.Delete(file);
 		}

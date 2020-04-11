@@ -115,7 +115,7 @@ namespace SmartImage
 			Action = args =>
 			{
 				bool all = false;
-				
+
 				if (args.Length >= 2) {
 					all = args[1] == "all";
 				}
@@ -134,11 +134,14 @@ namespace SmartImage
 			Action      = args => { Config.Info(); }
 		};
 
+		
+
 		public static readonly CliCommand[] AllCommands =
 		{
 			SetImgurAuth, SetSauceNaoAuth, SetSearchEngines, SetPriorityEngines,
 			ContextMenu, Reset, AddToPath, Info
 		};
+
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
 		internal static void OnCurrentLine(ConsoleColor color, string s)
@@ -176,7 +179,6 @@ namespace SmartImage
 			Console.WriteLine("See readme: {0}", Config.Readme);
 		}
 
-		
 
 		[StringFormatMethod(STRING_FORMAT_ARG)]
 		public static bool ReadConfirm(string msg, params object[] args)
@@ -201,7 +203,7 @@ namespace SmartImage
 				return ReadConfirm(msg, args);
 			}
 		}
-		
+
 		public static CliCommand ReadCommand(string s)
 		{
 			var cmd = AllCommands.FirstOrDefault(cliCmd => cliCmd.Parameter == s);
@@ -215,6 +217,8 @@ namespace SmartImage
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
 		}
+
+		public static char Bool(bool b) => b ? RAD_SIGN : MUL_SIGN;
 
 		public static void WithColor(ConsoleColor color, Action func)
 		{
