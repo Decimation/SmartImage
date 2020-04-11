@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using Neocmd;
 using SmartImage.Engines;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Model;
 using SmartImage.Utilities;
 
-namespace SmartImage
+namespace SmartImage.Searching
 {
 	public static class Search
 	{

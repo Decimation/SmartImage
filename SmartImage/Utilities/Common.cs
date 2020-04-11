@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -40,31 +37,6 @@ namespace SmartImage.Utilities
 			catch (InvalidOperationException e) {
 				// todo
 			}
-		}
-
-		public static void TryMove(string exe, string dest)
-		{
-			for (int i = 0; i < 3; i++) {
-				try {
-					CliOutput.WriteInfo("Moving executable from {0} to {1}", exe, dest);
-					File.Move(exe, dest);
-					CliOutput.WriteSuccess("Success. Relaunch the program for changes to take effect.");
-					return;
-				}
-				catch (IOException exception) {
-					CliOutput.WriteError("Could not move file: {0}", exception.Message);
-					Console.ReadLine();
-				}
-			}
-		}
-
-		public static List<Process> GetProcessesAssociatedToFile(string file)
-		{
-			return Process.GetProcesses()
-			              .Where(x => !x.HasExited
-			                          && x.Modules.Cast<ProcessModule>().ToList()
-			                              .Exists(y => y.FileName.ToLowerInvariant() == file.ToLowerInvariant())
-			               ).ToList();
 		}
 	}
 }

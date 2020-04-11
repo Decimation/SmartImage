@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using Neocmd;
 using RestSharp;
 
 namespace SmartImage.Utilities

@@ -1,6 +1,6 @@
 using System;
 
-namespace SmartImage
+namespace SmartImage.Searching
 {
 	
 	[Flags]

@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using RestSharp;
 using RestSharp.Serialization.Json;
 using SmartImage.Model;
+using SmartImage.Searching;
 using SmartImage.Utilities;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 

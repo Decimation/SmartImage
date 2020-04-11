@@ -1,4 +1,5 @@
 using SmartImage.Model;
+using SmartImage.Searching;
 
 namespace SmartImage.Engines
 {

@@ -7,6 +7,7 @@ using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
+using Neocmd;
 using RestSharp;
 using SmartImage.Model;
 using SmartImage.Utilities;

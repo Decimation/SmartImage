@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using JetBrains.Annotations;
+using Neocmd;
 using SmartImage.Utilities;
 
 namespace SmartImage.Model

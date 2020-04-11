@@ -1,3 +1,5 @@
+using SmartImage.Searching;
+
 namespace SmartImage.Model
 {
 	public abstract class QuickSearchEngine : ISearchEngine

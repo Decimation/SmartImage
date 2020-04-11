@@ -1,4 +1,4 @@
-namespace SmartImage
+namespace SmartImage.Searching
 {
 	public enum ImageService
 	{

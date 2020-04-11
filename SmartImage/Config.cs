@@ -5,7 +5,9 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Permissions;
 using Microsoft.Win32;
+using Neocmd;
 using SmartImage.Engines;
+using SmartImage.Searching;
 using SmartImage.Utilities;
 
 namespace SmartImage
@@ -178,6 +180,16 @@ namespace SmartImage
 			}
 		}
 
+		internal static bool IsAppFolderInPath {
+			get {
+				string dir = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)
+				                       ?.Split(';')
+				                        .FirstOrDefault(s => s == AppFolder);
+
+				return !String.IsNullOrWhiteSpace(dir);
+			}
+		}
+
 		private static void RemoveFromContextMenu()
 		{
 			// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
@@ -347,16 +359,6 @@ namespace SmartImage
 			}
 
 			return null;
-		}
-
-		internal static bool IsAppFolderInPath {
-			get {
-				string dir = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)
-				                       ?.Split(';')
-				                        .FirstOrDefault(s => s == AppFolder);
-
-				return !String.IsNullOrWhiteSpace(dir);
-			}
 		}
 
 		internal static string FindExecutableLocation(string exe)

@@ -1,9 +1,10 @@
 using System.IO;
 using System.Linq;
+using Neocmd;
 using SmartImage.Engines;
 using SmartImage.Utilities;
 
-namespace SmartImage
+namespace SmartImage.Searching
 {
 	internal static class Images
 	{

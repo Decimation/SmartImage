@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using RestSharp;
 using SmartImage.Model;
+using SmartImage.Searching;
 using SmartImage.Utilities;
 using Http = SmartImage.Utilities.Http;
 
