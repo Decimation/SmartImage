@@ -57,7 +57,7 @@ Adds executable path to path environment variable.
 
 `--reset [all]`
 
-Resets configuration to defaults. Specify <all> to fully reset.
+Resets configuration to defaults. Specify `<all>` to fully reset.
 
 `--info`
 
