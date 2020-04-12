@@ -51,9 +51,17 @@ Sets the priority search engines. Priority search engines are engines whose resu
 
 Installs context menu integration.
 
-`--reset`
+`--add-to-path`
 
-Resets the configuration.
+Adds executable path to path environment variable.
+
+`--reset [all]`
+
+Resets configuration to defaults. Specify `<all>` to fully reset.
+
+`--info`
+
+Information about the program and its configuration.
 
 # Notes
 
@@ -62,7 +70,7 @@ Resets the configuration.
 
 # to-do
 
-- Automate %PATH% integration
+- Add an icon
 - Automate SauceNao API registration and make its configuration more user-friendly
 
 # Inspiration
