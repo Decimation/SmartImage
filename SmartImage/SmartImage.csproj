@@ -10,7 +10,7 @@
 
         <PublishTrimmed>true</PublishTrimmed>
 
-        <ApplicationIcon>image_link.ico</ApplicationIcon>
+        <ApplicationIcon>Icon.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
