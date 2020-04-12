@@ -8,6 +8,7 @@ using Microsoft.Win32;
 using Neocmd;
 using SmartImage.Engines;
 using SmartImage.Searching;
+using SmartImage.Utilities;
 
 namespace SmartImage
 {
@@ -171,6 +172,7 @@ namespace SmartImage
 			}
 
 
+			// Add command
 			string[] code =
 			{
 				"@echo off",
@@ -182,6 +184,20 @@ namespace SmartImage
 			var bat = Cli.CreateBatchFile("add_to_menu.bat", code);
 
 			Cli.RunBatchFile(bat);
+
+
+			// Add icon
+			string[] iconReg =
+			{
+				"@echo off",
+				String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
+				"SET ICO=%SMARTIMAGE%",
+				"reg.exe add HKEY_CLASSES_ROOT\\*\\shell\\SmartImage /v Icon /d \"%ICO%\" /f >nul",
+			};
+
+			var iconBat = Cli.CreateBatchFile("add_icon_to_menu.bat", iconReg);
+
+			Cli.RunBatchFile(iconBat);
 		}
 
 		internal static void RemoveFromPath()
@@ -210,7 +226,7 @@ namespace SmartImage
 
 			if (all) {
 				RemoveFromPath();
-				Console.WriteLine("Removed from path");
+				CliOutput.WriteSuccess("Removed from path");
 				return;
 			}
 
@@ -268,11 +284,11 @@ namespace SmartImage
 
 		private const string REG_SUBKEY = @"SOFTWARE\SmartImage";
 
-		private const string REG_IMGUR_CLIENT_ID  = "client_id";
-		private const string REG_CLIENT_SECRET    = "client_secret";
-		private const string REG_SAUCENAO_APIKEY  = "saucenao_key";
-		private const string REG_SEARCH_ENGINES   = "search_engines";
-		private const string REG_PRIORITY_ENGINES = "priority_engines";
+		private const string REG_IMGUR_CLIENT_ID     = "imgur_client_id";
+		private const string REG_IMGUR_CLIENT_SECRET = "imgur_client_secret";
+		private const string REG_SAUCENAO_APIKEY     = "saucenao_key";
+		private const string REG_SEARCH_ENGINES      = "search_engines";
+		private const string REG_PRIORITY_ENGINES    = "priority_engines";
 
 		private static RegistryConfig RegConfig { get; } = new RegistryConfig(REG_SUBKEY);
 
@@ -289,13 +305,13 @@ namespace SmartImage
 		internal static AuthInfo ImgurAuth {
 			get {
 				string id     = RegConfig.Read<string>(REG_IMGUR_CLIENT_ID);
-				string secret = RegConfig.Read<string>(REG_CLIENT_SECRET);
+				string secret = RegConfig.Read<string>(REG_IMGUR_CLIENT_SECRET);
 
 				return new AuthInfo(id, secret);
 			}
 			set {
 				RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id);
-				RegConfig.Write(REG_CLIENT_SECRET, value.Secret);
+				RegConfig.Write(REG_IMGUR_CLIENT_SECRET, value.Secret);
 			}
 		}
 

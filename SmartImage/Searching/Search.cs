@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using Neocmd;
 using SmartImage.Engines;
 using SmartImage.Engines.SauceNao;
@@ -7,21 +9,20 @@ using SmartImage.Engines.TraceMoe;
 using SmartImage.Model;
 using SmartImage.Utilities;
 
+// ReSharper disable ReturnTypeCanBeEnumerable.Global
+
 namespace SmartImage.Searching
 {
 	public static class Search
 	{
+		private static readonly string[] ImageExtensions =
+		{
+			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif"
+		};
+
 		public static ISearchEngine[] GetAvailableEngines()
 		{
-			var engines = new List<ISearchEngine>()
-			{
-				new ImgOps(),
-				new GoogleImages(),
-				new TinEye(),
-				new Iqdb(),
-				new TraceMoe(),
-				new KarmaDecay(),
-			};
+			var engines = new List<ISearchEngine>();
 
 			var sauceNaoConfigured = !Config.SauceNaoAuth.IsNull;
 
@@ -31,6 +32,20 @@ namespace SmartImage.Searching
 			else {
 				engines.Add(new BasicSauceNao());
 			}
+
+			var others = new ISearchEngine[]
+			{
+				new ImgOps(),
+				new GoogleImages(),
+				new TinEye(),
+				new Iqdb(),
+				new TraceMoe(),
+				new KarmaDecay(),
+				new Yandex(),
+				new Bing()
+			};
+
+			engines.AddRange(others);
 
 			return engines.ToArray();
 		}
@@ -45,10 +60,10 @@ namespace SmartImage.Searching
 
 
 			var available = GetAvailableEngines();
-			
+
 			foreach (var idx in available) {
 				if (engines.HasFlag(idx.Engine)) {
-					string wait = string.Format("{0}: ...", idx.Engine);
+					string wait = String.Format("{0}: ...", idx.Engine);
 
 					CliOutput.WithColor(ConsoleColor.Blue, () =>
 					{
@@ -61,7 +76,6 @@ namespace SmartImage.Searching
 					var result = idx.GetResult(imgUrl);
 
 					if (result != null) {
-						
 						string clear = new string('\b', wait.Length);
 						Console.Write(clear);
 
@@ -94,6 +108,42 @@ namespace SmartImage.Searching
 
 
 			return list.ToArray();
+		}
+
+		public static bool IsFileValid(string img)
+		{
+			if (!File.Exists(img)) {
+				CliOutput.WriteError("File does not exist: {0}", img);
+				return false;
+			}
+
+			bool extOkay = ImageExtensions.Any(img.EndsWith);
+
+			if (!extOkay) {
+				return CliOutput.ReadConfirm("File extension is not recognized as a common image format. Continue?");
+			}
+
+
+			return true;
+		}
+
+		public static string Upload(string img, bool useImgur)
+		{
+			string imgUrl;
+
+			if (useImgur) {
+				CliOutput.WriteInfo("Using Imgur for image upload");
+				var imgur = new Imgur();
+				imgUrl = imgur.Upload(img);
+			}
+			else {
+				CliOutput.WriteInfo("Using ImgOps for image upload (2 hour cache)");
+				var imgOps = new ImgOps();
+				imgUrl = imgOps.UploadTempImage(img, out _);
+			}
+
+
+			return imgUrl;
 		}
 	}
 }

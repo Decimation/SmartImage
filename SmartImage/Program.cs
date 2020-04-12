@@ -70,13 +70,13 @@ namespace SmartImage
 
 			var img = args[0];
 
-			if (!Images.IsFileValid(img)) {
+			if (!Search.IsFileValid(img)) {
 				return;
 			}
 
 			CliOutput.WriteInfo("Source image: {0}", img);
 
-			string imgUrl = Images.Upload(img, useImgur);
+			string imgUrl = Search.Upload(img, useImgur);
 
 			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
 
@@ -98,7 +98,7 @@ namespace SmartImage
 					var r   = results[i];
 					var str = r.Format((i + 1).ToString());
 
-					Console.WriteLine(str);
+					Console.Write(str);
 				}
 
 				Console.WriteLine();

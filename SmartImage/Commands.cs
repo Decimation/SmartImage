@@ -2,6 +2,7 @@ using System;
 using Neocmd;
 using SmartImage.Engines;
 using SmartImage.Searching;
+using SmartImage.Utilities;
 
 namespace SmartImage
 {

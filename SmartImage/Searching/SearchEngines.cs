@@ -14,8 +14,9 @@ namespace SmartImage.Searching
 		Iqdb = 1 << 4,
 		TraceMoe = 1 << 5,
 		KarmaDecay = 1 << 6,
+		Yandex = 1 << 7,
+		Bing = 1 << 8,
 		
-		
-		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay
+		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing
 	}
 }

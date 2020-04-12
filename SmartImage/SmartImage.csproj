@@ -9,6 +9,8 @@
         <PublishSingleFile>true</PublishSingleFile>
 
         <PublishTrimmed>true</PublishTrimmed>
+
+        <ApplicationIcon>image_link.ico</ApplicationIcon>
     </PropertyGroup>
 
     <ItemGroup>
