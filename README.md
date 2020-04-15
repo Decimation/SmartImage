@@ -36,7 +36,7 @@ SmartImage stores its configuration in registry. The rationale behind this is th
 
 Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api). If this is configured, SmartImage will be able to return more specific results. SmartImage will be able to function as seen in the demo (opening the direct source image in your browser).
 
-`--set-imgur-auth <consumer id> <consumer secret>`
+`--set-imgur-auth <consumer id>`
 
 Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
 
@@ -64,6 +64,10 @@ Resets configuration to defaults. Specify `all` to fully reset.
 `--info`
 
 Information about the program and its configuration.
+
+`--help`
+
+Display available commands.
 
 # Notes
 
