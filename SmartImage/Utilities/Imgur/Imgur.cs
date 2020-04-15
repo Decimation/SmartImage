@@ -1,9 +1,14 @@
+#region
+
 using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Text;
 using RestSharp;
 using RestSharp.Serialization.Json;
+
+#endregion
 
 namespace SmartImage.Utilities.Imgur
 {
@@ -28,11 +33,11 @@ namespace SmartImage.Utilities.Imgur
 			w.Headers.Add("Authorization: Client-ID " + m_apiKey);
 			var values = new NameValueCollection
 			{
-				{"image", Convert.ToBase64String(File.ReadAllBytes(@path))}
+				{"image", Convert.ToBase64String(File.ReadAllBytes(path))}
 			};
 
 			string response =
-				System.Text.Encoding.UTF8.GetString(w.UploadValues("https://api.imgur.com/3/upload", values));
+				Encoding.UTF8.GetString(w.UploadValues("https://api.imgur.com/3/upload", values));
 			//Console.WriteLine(response);
 
 

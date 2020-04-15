@@ -1,13 +1,11 @@
+#region
+
 using System;
-using System.Net;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using RestSharp;
-using RestSharp.Serialization.Json;
 using SmartImage.Model;
 using SmartImage.Searching;
-using SmartImage.Utilities;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+
+#endregion
 
 namespace SmartImage.Engines.TraceMoe
 {
@@ -30,7 +28,7 @@ namespace SmartImage.Engines.TraceMoe
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 			rq.RequestFormat           = DataFormat.Json;
 
-			var re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
+			IRestResponse<TraceMoeRootObject> re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
 			// todo: null sometimes
 			return re.Data;
@@ -45,15 +43,14 @@ namespace SmartImage.Engines.TraceMoe
 			if (tm?.docs != null) {
 				// Most similar to least similar
 				var mostSimilarDoc = tm.docs[0];
-				
+
 				r.Similarity = (float?) mostSimilarDoc.similarity;
-				
-				r.ExtendedInfo.Add(string.Format("Name: {0}", mostSimilarDoc.title_english));
+
+				r.ExtendedInfo.Add(String.Format("Name: {0}", mostSimilarDoc.title_english));
 			}
 			else {
 				r.ExtendedInfo.Add("API returned null (possible timeout)");
 			}
-			
 
 
 			return r;

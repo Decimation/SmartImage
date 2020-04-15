@@ -1,7 +1,7 @@
 namespace SmartImage.Engines.SauceNao
 {
 	// https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
-	
+
 	public enum SiteIndex
 	{
 		DoujinshiMangaLexicon = 3,

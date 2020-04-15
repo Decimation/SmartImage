@@ -1,3 +1,5 @@
+#region
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +11,8 @@ using SmartImage.Engines.TraceMoe;
 using SmartImage.Model;
 using SmartImage.Utilities;
 using SmartImage.Utilities.Imgur;
+
+#endregion
 
 // ReSharper disable ReturnTypeCanBeEnumerable.Global
 
@@ -25,7 +29,7 @@ namespace SmartImage.Searching
 		{
 			var engines = new List<ISearchEngine>();
 
-			var sauceNaoConfigured = !Config.SauceNaoAuth.IsNull;
+			bool sauceNaoConfigured = !Config.SauceNaoAuth.IsNull;
 
 			if (sauceNaoConfigured) {
 				engines.Add(new SauceNao());
@@ -60,7 +64,7 @@ namespace SmartImage.Searching
 			};
 
 
-			var available = GetAvailableEngines();
+			ISearchEngine[] available = GetAvailableEngines();
 
 			foreach (var idx in available) {
 				if (engines.HasFlag(idx.Engine)) {
@@ -77,14 +81,14 @@ namespace SmartImage.Searching
 					var result = idx.GetResult(imgUrl);
 
 					if (result != null) {
-						var url = result.Url;
+						string url = result.Url;
 
 
 						if (url != null) {
 							CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
 
 							if (Config.PriorityEngines.HasFlag(idx.Engine)) {
-								Http.OpenUrl(result.Url);
+								Common.OpenUrl(result.Url);
 							}
 						}
 						else {
@@ -93,7 +97,6 @@ namespace SmartImage.Searching
 
 						list.Add(result);
 					}
-					else { }
 				}
 			}
 

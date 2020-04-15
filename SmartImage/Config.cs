@@ -1,15 +1,13 @@
+#region
+
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Security.Permissions;
-using Microsoft.Win32;
 using Neocmd;
-using SmartImage.Engines;
 using SmartImage.Searching;
 using SmartImage.Utilities;
+
+#endregion
 
 namespace SmartImage
 {
@@ -37,7 +35,7 @@ namespace SmartImage
 
 		internal static string AppFolder {
 			get {
-				var folder = Path.GetDirectoryName(Location);
+				string? folder = Path.GetDirectoryName(Location);
 
 
 				return folder;
@@ -48,23 +46,23 @@ namespace SmartImage
 		internal static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
 		/// <summary>
-		/// Null if executable is not in path.
+		///     Null if executable is not in path.
 		/// </summary>
 		internal static string Location => FindExecutableLocation(NAME_EXE);
 
 		internal static bool IsContextMenuAdded {
 			get {
-				var cmdStr = string.Format(@"reg query {0}", REG_SHELL_CMD);
-				var cmd    = Cli.Shell(cmdStr, true);
+				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
+				var    cmd    = Cli.Shell(cmdStr, true);
 
-				var stdOut = Cli.ReadAllLines(cmd.StandardOutput);
+				string[] stdOut = Cli.ReadAllLines(cmd.StandardOutput);
 
 				// todo
 				if (stdOut.Any(s => s.Contains(NAME))) {
 					return true;
 				}
 
-				var stdErr = Cli.ReadAllLines(cmd.StandardError);
+				string[] stdErr = Cli.ReadAllLines(cmd.StandardError);
 
 				if (stdErr.Any(s => s.Contains("ERROR"))) {
 					return false;
@@ -75,13 +73,7 @@ namespace SmartImage
 			}
 		}
 
-		internal static bool IsAppFolderInPath {
-			get {
-				string dir = Win32.GetEnvironmentPath()?.Split(';').FirstOrDefault(s => s == AppFolder);
-
-				return !String.IsNullOrWhiteSpace(dir);
-			}
-		}
+		internal static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
 
 		private static RegistryConfig RegConfig { get; } = new RegistryConfig(REG_SUBKEY);
 
@@ -101,7 +93,7 @@ namespace SmartImage
 
 				return new AuthInfo(id);
 			}
-			set { RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id); }
+			set => RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id);
 		}
 
 		internal static AuthInfo SauceNaoAuth {
@@ -121,7 +113,7 @@ namespace SmartImage
 			string[] code =
 			{
 				"@echo off",
-				string.Format(@"reg.exe delete {0} /f >nul", REG_SHELL)
+				String.Format(@"reg.exe delete {0} /f >nul", REG_SHELL)
 			};
 
 			Cli.CreateRunBatchFile("rem_from_menu.bat", code);
@@ -129,9 +121,9 @@ namespace SmartImage
 
 		internal static void AddToPath()
 		{
-			var oldValue = Win32.GetEnvironmentPath();
+			string oldValue = ExplorerSystem.EnvironmentPath;
 
-			var appFolder = AppFolder;
+			string appFolder = AppFolder;
 
 			if (IsAppFolderInPath) {
 				CliOutput.WriteInfo("Executable is already in path: {0}", Location);
@@ -139,33 +131,21 @@ namespace SmartImage
 			}
 
 
-			bool appFolderInPath = oldValue.Split(';').Any(p => p == appFolder);
+			bool appFolderInPath = oldValue.Split(ExplorerSystem.PATH_DELIM).Any(p => p == appFolder);
 
 
-			var cd  = Environment.CurrentDirectory;
-			var exe = Path.Combine(cd, NAME_EXE);
+			string cd  = Environment.CurrentDirectory;
+			string exe = Path.Combine(cd, NAME_EXE);
 
 
 			if (appFolderInPath) {
 				CliOutput.WriteInfo("App folder already in path: {0}", appFolder);
 			}
 			else {
-				var newValue = oldValue + @";" + cd;
-				Win32.SetEnvironmentPath(newValue);
+				string newValue = oldValue + ExplorerSystem.PATH_DELIM + cd;
+				ExplorerSystem.EnvironmentPath = newValue;
 				CliOutput.WriteInfo("Added {0} to path", cd);
 			}
-
-
-			var dest = Path.Combine(appFolder, NAME_EXE);
-
-
-			// todo: fix
-			//Common.TryMove(exe, dest);
-			// Can't reload environment variables immediately
-			//Console.WriteLine("Global alloc: {0}", Alloc.Count);
-			//Environment.Exit(0);
-
-			return;
 		}
 
 		internal static void Info()
@@ -196,10 +176,10 @@ namespace SmartImage
 
 		internal static void AddToContextMenu()
 		{
-			var fullPath = Location;
+			string fullPath = Location;
 
 			if (!IsExeInAppFolder) {
-				var v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
+				bool v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
 
 				if (v) {
 					AddToPath();
@@ -216,9 +196,7 @@ namespace SmartImage
 			string[] commandCode =
 			{
 				"@echo off",
-				//String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
-				//"SET COMMAND=%SMARTIMAGE% \"\"%%1\"\"",
-				string.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul", REG_SHELL_CMD, fullPath)
+				String.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul", REG_SHELL_CMD, fullPath)
 			};
 
 			Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
@@ -228,24 +206,13 @@ namespace SmartImage
 			string[] iconCode =
 			{
 				"@echo off",
-				//String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
-				//"SET ICO=%SMARTIMAGE%",
 				String.Format("reg.exe add {0} /v Icon /d \"{1}\" /f >nul", REG_SHELL, fullPath),
 			};
 
 			Cli.CreateRunBatchFile("add_icon_to_menu.bat", iconCode);
 		}
 
-		internal static void RemoveFromPath()
-		{
-			var oldValue = Win32.GetEnvironmentPath();
-
-
-			var newValue = oldValue.Replace(";" + AppFolder, String.Empty);
-
-
-			Win32.SetEnvironmentPath(newValue);
-		}
+		internal static void RemoveFromPath() => ExplorerSystem.RemoveFromPath(AppFolder);
 
 		internal static void Reset(bool all = false)
 		{
@@ -267,47 +234,23 @@ namespace SmartImage
 			Info();
 		}
 
-		internal static void Check()
+		private static string FindExecutableLocation(string exe)
 		{
-			//var files = AppFolder.GetFiles("*.exe").Any(f => f.Name == NAME_EXE);
-
-			//CliOutput.WriteInfo("{0}", files);
-
-			//var l = new FileInfo(Location);
-			//bool exeInAppFolder = l.DirectoryName == AppFolder.Name;
-		}
-
-		private static string GetPath(string exe)
-		{
-			string dir = Win32.GetEnvironmentPath().Split(';')
-			                  .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
-
-			if (!String.IsNullOrWhiteSpace(dir)) {
-				return Path.Combine(dir, exe);
-			}
-
-			return null;
-		}
-
-		internal static string FindExecutableLocation(string exe)
-		{
-			var path = GetPath(exe);
+			string path = ExplorerSystem.FindExectableInPath(exe);
 
 			if (path == null) {
-				var cd    = Environment.CurrentDirectory;
-				var cdExe = Path.Combine(cd, exe);
-				var inCd  = File.Exists(cdExe);
+				string cd    = Environment.CurrentDirectory;
+				string cdExe = Path.Combine(cd, exe);
+				bool   inCd  = File.Exists(cdExe);
 
 				if (inCd) {
 					return cdExe;
 				}
 
-				else {
-					var appFolderExe = Path.Combine(AppFolder, exe);
-					var inAppFolder  = File.Exists(appFolderExe);
-					if (inAppFolder) {
-						return appFolderExe;
-					}
+				string appFolderExe = Path.Combine(AppFolder, exe);
+				bool   inAppFolder  = File.Exists(appFolderExe);
+				if (inAppFolder) {
+					return appFolderExe;
 				}
 			}
 

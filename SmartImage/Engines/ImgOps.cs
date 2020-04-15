@@ -1,9 +1,12 @@
+#region
+
 using System.Text.RegularExpressions;
 using RestSharp;
 using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
-using Http = SmartImage.Utilities.Http;
+
+#endregion
 
 namespace SmartImage.Engines
 {
@@ -20,7 +23,7 @@ namespace SmartImage.Engines
 			string imgOpsUrl = UploadImage(path);
 			imgOpsPageUrl = imgOpsUrl;
 
-			string html = Http.GetString(imgOpsUrl);
+			string html = Common.GetString(imgOpsUrl);
 
 			const string HREF_REGEX = "href=\"(.*)\"";
 

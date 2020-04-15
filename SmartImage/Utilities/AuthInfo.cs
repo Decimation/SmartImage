@@ -1,14 +1,13 @@
+#region
+
 using System;
-using JetBrains.Annotations;
+
+#endregion
 
 namespace SmartImage.Utilities
 {
 	public readonly struct AuthInfo
 	{
-		public string Id { get; }
-		
-		public bool IsNull { get; }
-		
 		public static readonly AuthInfo Null = new AuthInfo(String.Empty);
 
 		public AuthInfo(string id) : this()
@@ -16,5 +15,9 @@ namespace SmartImage.Utilities
 			Id     = id;
 			IsNull = String.IsNullOrWhiteSpace(id);
 		}
+
+		public string Id { get; }
+
+		public bool IsNull { get; }
 	}
 }

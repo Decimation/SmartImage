@@ -1,4 +1,9 @@
+#region
+
+using System;
 using System.Runtime.Serialization;
+
+#endregion
 
 namespace SmartImage.Engines.SauceNao
 {
@@ -14,7 +19,7 @@ namespace SmartImage.Engines.SauceNao
 
 		public override string ToString()
 		{
-			return string.Format("Results: {0}", Results.Length);
+			return String.Format("Results: {0}", Results.Length);
 		}
 	}
 }

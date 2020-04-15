@@ -1,5 +1,9 @@
+#region
+
 using SmartImage.Model;
 using SmartImage.Searching;
+
+#endregion
 
 namespace SmartImage.Engines
 {
@@ -7,6 +11,6 @@ namespace SmartImage.Engines
 	{
 		public Bing() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 		public override SearchEngines Engine => SearchEngines.Bing;
-		public override string Name => "Bing";
+		public override string        Name   => "Bing";
 	}
 }

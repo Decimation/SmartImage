@@ -1,8 +1,11 @@
+#region
+
 using System;
 using Neocmd;
-using SmartImage.Engines;
 using SmartImage.Searching;
 using SmartImage.Utilities;
+
+#endregion
 
 namespace SmartImage
 {
@@ -15,7 +18,7 @@ namespace SmartImage
 			Description = "Sets up Imgur API authentication",
 			Action = args =>
 			{
-				var newId = args[1];
+				string newId = args[1];
 
 				CliOutput.WriteInfo("New client ID and secret: {0}", newId);
 
@@ -30,7 +33,7 @@ namespace SmartImage
 			Description = "Sets up SauceNao API authentication",
 			Action = args =>
 			{
-				var newKey = args[1];
+				string newKey = args[1];
 
 				CliOutput.WriteInfo("New API key: {0}", newKey);
 
@@ -45,7 +48,7 @@ namespace SmartImage
 			Description = "Sets the search engines to utilize when searching; delimited by commas",
 			Action = args =>
 			{
-				var newOptions = args[1];
+				string newOptions = args[1];
 
 				CliOutput.WriteInfo("Engines: {0}", newOptions);
 
@@ -61,7 +64,7 @@ namespace SmartImage
 			              "open in the browser when search is complete; delimited by commas",
 			Action = args =>
 			{
-				var newOptions = args[1];
+				string newOptions = args[1];
 
 				CliOutput.WriteInfo("Priority engines: {0}", newOptions);
 
@@ -90,7 +93,7 @@ namespace SmartImage
 			Action      = args => { Config.AddToPath(); }
 		};
 
-		private static readonly CliCommand Reset = new CliCommand()
+		private static readonly CliCommand Reset = new CliCommand
 		{
 			Parameter   = "--reset",
 			Syntax      = "[all]",
@@ -109,7 +112,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly CliCommand Info = new CliCommand()
+		private static readonly CliCommand Info = new CliCommand
 		{
 			Parameter   = "--info",
 			Syntax      = null,
@@ -117,14 +120,14 @@ namespace SmartImage
 			Action      = args => { Config.Info(); }
 		};
 
-		private static readonly CliCommand Help = new CliCommand()
+		private static readonly CliCommand Help = new CliCommand
 		{
 			Parameter   = "--help",
 			Syntax      = null,
 			Description = "Display available commands",
 			Action = args =>
 			{
-				CliOutput.WriteHelp();
+				CliOutput.WriteCommands();
 				CliOutput.WriteInfo("Readme: {0}", Config.Readme);
 			}
 		};
@@ -139,7 +142,6 @@ namespace SmartImage
 		{
 			CliOutput.Commands.AddRange(AllCommands);
 			CliOutput.Init(Config.NAME);
-			Config.Check();
 		}
 	}
 }

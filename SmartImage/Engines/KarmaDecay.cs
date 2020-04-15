@@ -1,11 +1,15 @@
+#region
+
 using SmartImage.Model;
 using SmartImage.Searching;
+
+#endregion
 
 namespace SmartImage.Engines
 {
 	public sealed class KarmaDecay : QuickSearchEngine
 	{
-		public KarmaDecay() : base("http://karmadecay.com/search/?q=") {}
+		public KarmaDecay() : base("http://karmadecay.com/search/?q=") { }
 
 		public override string Name => "KarmaDecay";
 

@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using Microsoft.Win32;
+﻿#region
+
+using System;
 using Neocmd;
-using RestSharp;
-using SmartImage.Engines;
-using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
-using Http = SmartImage.Utilities.Http;
+
+#endregion
 
 namespace SmartImage
 {
@@ -43,7 +36,7 @@ namespace SmartImage
 
 			if (args == null || args.Length < 1) {
 				CliOutput.WriteError("Image or command not specified!");
-				CliOutput.WriteHelp();
+				CliOutput.WriteCommands();
 				return;
 			}
 
@@ -69,7 +62,7 @@ namespace SmartImage
 			CliOutput.WriteInfo("Engines: {0}", engines);
 			CliOutput.WriteInfo("Priority engines: {0}", priority);
 
-			var img = args[0];
+			string img = args[0];
 
 			if (!Search.IsFileValid(img)) {
 				return;
@@ -88,7 +81,7 @@ namespace SmartImage
 			//
 
 			// Where the actual searching occurs
-			var results = Search.RunSearches(imgUrl, engines);
+			SearchResult[] results = Search.RunSearches(imgUrl, engines);
 
 			ConsoleKeyInfo cki;
 
@@ -96,8 +89,8 @@ namespace SmartImage
 				Console.Clear();
 
 				for (int i = 0; i < results.Length; i++) {
-					var r   = results[i];
-					var str = r.Format((i + 1).ToString());
+					var    r   = results[i];
+					string str = r.Format((i + 1).ToString());
 
 					Console.Write(str);
 				}
@@ -113,14 +106,14 @@ namespace SmartImage
 				// Key was read
 
 				cki = Console.ReadKey(true);
-				var keyChar = cki.KeyChar;
+				char keyChar = cki.KeyChar;
 
 				if (Char.IsNumber(keyChar)) {
-					var idx = (int) Char.GetNumericValue(cki.KeyChar) - 1;
+					int idx = (int) Char.GetNumericValue(cki.KeyChar) - 1;
 
 					if (idx < results.Length) {
 						var res = results[idx];
-						Http.OpenUrl(res.Url);
+						Common.OpenUrl(res.Url);
 					}
 				}
 			} while (cki.Key != ConsoleKey.Escape);

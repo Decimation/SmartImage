@@ -1,5 +1,9 @@
+#region
+
 using System.Collections.Generic;
 using JetBrains.Annotations;
+
+#endregion
 
 namespace SmartImage.Engines.TraceMoe
 {

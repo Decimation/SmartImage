@@ -1,40 +1,22 @@
+#region
+
 using System;
 using Microsoft.Win32;
+
+#endregion
 
 namespace SmartImage.Utilities
 {
 	public sealed class RegistryConfig
 	{
-		public string SubkeyName { get; }
-
-		private RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SubkeyName);
-
 		public RegistryConfig(string subkeyName)
 		{
 			SubkeyName = subkeyName;
 		}
 
-		public T Read<T>(string name, bool setDefaultIfNull = false, T defaultValue = default)
-		{
-			var rawValue = this[name];
+		public string SubkeyName { get; }
 
-			if (setDefaultIfNull && string.IsNullOrWhiteSpace((string) rawValue)) {
-				this[name] = defaultValue;
-				rawValue   = this[name];
-			}
-
-			if (typeof(T).IsEnum) {
-				Enum.TryParse(typeof(T), (string) rawValue, out var e);
-				return (T) e;
-			}
-
-			return (T) rawValue;
-		}
-
-		public void Write<T>(string name, T value)
-		{
-			this[name] = value;
-		}
+		private RegistryKey SubKey => Registry.CurrentUser.CreateSubKey(SubkeyName);
 
 		public object this[string name] {
 			get {
@@ -54,6 +36,28 @@ namespace SmartImage.Utilities
 
 				key.Close();
 			}
+		}
+
+		public T Read<T>(string name, bool setDefaultIfNull = false, T defaultValue = default)
+		{
+			var rawValue = this[name];
+
+			if (setDefaultIfNull && String.IsNullOrWhiteSpace((string) rawValue)) {
+				this[name] = defaultValue;
+				rawValue   = this[name];
+			}
+
+			if (typeof(T).IsEnum) {
+				Enum.TryParse(typeof(T), (string) rawValue, out var e);
+				return (T) e;
+			}
+
+			return (T) rawValue;
+		}
+
+		public void Write<T>(string name, T value)
+		{
+			this[name] = value;
 		}
 	}
 }

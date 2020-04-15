@@ -1,4 +1,8 @@
+#region
+
 using JetBrains.Annotations;
+
+#endregion
 
 namespace SmartImage.Utilities.Imgur
 {

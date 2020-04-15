@@ -1,9 +1,8 @@
+#region
+
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Json;
 using System.Linq;
-using System.Net;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
@@ -11,8 +10,9 @@ using Neocmd;
 using RestSharp;
 using SmartImage.Model;
 using SmartImage.Utilities;
-using Http = SmartImage.Utilities.Http;
 using JsonObject = System.Json.JsonObject;
+
+#endregion
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
@@ -26,9 +26,9 @@ namespace SmartImage.Engines.SauceNao
 	{
 		private const string ENDPOINT = BASE_URL + "search.php";
 
-		private readonly RestClient m_client;
-
 		private readonly string m_apiKey;
+
+		private readonly RestClient m_client;
 
 		private SauceNao(string apiKey)
 		{
@@ -55,17 +55,17 @@ namespace SmartImage.Engines.SauceNao
 
 			var res = m_client.Execute(req);
 
-			Http.AssertResponse(res);
+			Common.AssertResponse(res);
 
 
 			//Console.WriteLine("{0} {1} {2}", res.IsSuccessful, res.ResponseStatus, res.StatusCode);
 			//Console.WriteLine(res.Content);
 
 
-			var c = res.Content;
+			string c = res.Content;
 
 
-			if (string.IsNullOrWhiteSpace(c)) {
+			if (String.IsNullOrWhiteSpace(c)) {
 				CliOutput.WriteError("No SN results!");
 			}
 
@@ -120,7 +120,7 @@ namespace SmartImage.Engines.SauceNao
 
 		public override SearchResult GetResult(string url)
 		{
-			var sn = GetApiResults(url);
+			SauceNaoResult[] sn = GetApiResults(url);
 
 			if (sn == null) {
 				return new SearchResult(null, Name);
@@ -132,7 +132,7 @@ namespace SmartImage.Engines.SauceNao
 			if (best != null) {
 				string bestUrl = best?.Url?[0];
 
-				var sr = new SearchResult(bestUrl, Name, best.Similarity/100);
+				var sr = new SearchResult(bestUrl, Name, best.Similarity / 100);
 				sr.ExtendedInfo.Add("API configured");
 				return sr;
 			}
