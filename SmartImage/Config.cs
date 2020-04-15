@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,15 +21,29 @@ namespace SmartImage
 
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
+		private const string REG_SUBKEY = @"SOFTWARE\SmartImage";
+
+		private const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
+
+		private const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
+
+		private const string REG_IMGUR_CLIENT_ID = "imgur_client_id";
+
+		private const string REG_SAUCENAO_APIKEY = "saucenao_key";
+
+		private const string REG_SEARCH_ENGINES = "search_engines";
+
+		private const string REG_PRIORITY_ENGINES = "priority_engines";
+
 		internal static string AppFolder {
 			get {
 				var folder = Path.GetDirectoryName(Location);
+
 
 				return folder;
 			}
 		}
 
-		//internal static bool IsExeInPath => GetPath(NAME_EXE) != null;
 
 		internal static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
@@ -39,19 +54,19 @@ namespace SmartImage
 
 		internal static bool IsContextMenuAdded {
 			get {
-				var cmdStr = @"reg query HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
+				var cmdStr = string.Format(@"reg query {0}", REG_SHELL_CMD);
 				var cmd    = Cli.Shell(cmdStr, true);
 
 				var stdOut = Cli.ReadAllLines(cmd.StandardOutput);
 
 				// todo
-				if (stdOut != null && stdOut.Any(s => s.Contains(NAME))) {
+				if (stdOut.Any(s => s.Contains(NAME))) {
 					return true;
 				}
 
 				var stdErr = Cli.ReadAllLines(cmd.StandardError);
 
-				if (stdErr != null && stdErr.Any(s => s.Contains("ERROR"))) {
+				if (stdErr.Any(s => s.Contains("ERROR"))) {
 					return false;
 				}
 
@@ -62,12 +77,39 @@ namespace SmartImage
 
 		internal static bool IsAppFolderInPath {
 			get {
-				string dir = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)
-				                       ?.Split(';')
-				                        .FirstOrDefault(s => s == AppFolder);
+				string dir = Win32.GetEnvironmentPath()?.Split(';').FirstOrDefault(s => s == AppFolder);
 
 				return !String.IsNullOrWhiteSpace(dir);
 			}
+		}
+
+		private static RegistryConfig RegConfig { get; } = new RegistryConfig(REG_SUBKEY);
+
+		internal static SearchEngines SearchEngines {
+			get => RegConfig.Read(REG_SEARCH_ENGINES, true, SearchEngines.All);
+			set => RegConfig.Write(REG_SEARCH_ENGINES, value);
+		}
+
+		internal static SearchEngines PriorityEngines {
+			get => RegConfig.Read(REG_PRIORITY_ENGINES, true, SearchEngines.None);
+			set => RegConfig.Write(REG_PRIORITY_ENGINES, value);
+		}
+
+		internal static AuthInfo ImgurAuth {
+			get {
+				string id = RegConfig.Read<string>(REG_IMGUR_CLIENT_ID);
+
+				return new AuthInfo(id);
+			}
+			set { RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id); }
+		}
+
+		internal static AuthInfo SauceNaoAuth {
+			get {
+				string id = RegConfig.Read<string>(REG_SAUCENAO_APIKEY);
+				return new AuthInfo(id);
+			}
+			set => RegConfig.Write(REG_SAUCENAO_APIKEY, value.Id);
 		}
 
 		private static void RemoveFromContextMenu()
@@ -79,19 +121,15 @@ namespace SmartImage
 			string[] code =
 			{
 				"@echo off",
-				@"reg.exe delete HKEY_CLASSES_ROOT\*\shell\SmartImage\ /f >nul",
+				string.Format(@"reg.exe delete {0} /f >nul", REG_SHELL)
 			};
 
-			var bat = Cli.CreateBatchFile("rem_from_menu.bat", code);
-
-			Cli.RunBatchFile(bat);
+			Cli.CreateRunBatchFile("rem_from_menu.bat", code);
 		}
 
 		internal static void AddToPath()
 		{
-			var name     = "PATH";
-			var scope    = EnvironmentVariableTarget.User;
-			var oldValue = Environment.GetEnvironmentVariable(name, scope);
+			var oldValue = Win32.GetEnvironmentPath();
 
 			var appFolder = AppFolder;
 
@@ -99,6 +137,7 @@ namespace SmartImage
 				CliOutput.WriteInfo("Executable is already in path: {0}", Location);
 				return;
 			}
+
 
 			bool appFolderInPath = oldValue.Split(';').Any(p => p == appFolder);
 
@@ -112,7 +151,7 @@ namespace SmartImage
 			}
 			else {
 				var newValue = oldValue + @";" + cd;
-				Environment.SetEnvironmentVariable(name, newValue, scope);
+				Win32.SetEnvironmentPath(newValue);
 				CliOutput.WriteInfo("Added {0} to path", cd);
 			}
 
@@ -152,6 +191,7 @@ namespace SmartImage
 			CliOutput.WriteInfo("In path: {0}", IsAppFolderInPath);
 
 			CliOutput.WriteInfo("Readme: {0}", Readme);
+			CliOutput.WriteInfo("Supported search engines: {0}", SearchEngines.All);
 		}
 
 		internal static void AddToContextMenu()
@@ -173,44 +213,38 @@ namespace SmartImage
 
 
 			// Add command
-			string[] code =
+			string[] commandCode =
 			{
 				"@echo off",
-				String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
-				"SET COMMAND=%SMARTIMAGE% \"\"%%1\"\"",
-				"reg.exe ADD HKEY_CLASSES_ROOT\\*\\shell\\SmartImage\\command /ve /d \"%COMMAND%\" /f >nul",
+				//String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
+				//"SET COMMAND=%SMARTIMAGE% \"\"%%1\"\"",
+				string.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul", REG_SHELL_CMD, fullPath)
 			};
 
-			var bat = Cli.CreateBatchFile("add_to_menu.bat", code);
-
-			Cli.RunBatchFile(bat);
+			Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
 
 
 			// Add icon
-			string[] iconReg =
+			string[] iconCode =
 			{
 				"@echo off",
-				String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
-				"SET ICO=%SMARTIMAGE%",
-				"reg.exe add HKEY_CLASSES_ROOT\\*\\shell\\SmartImage /v Icon /d \"%ICO%\" /f >nul",
+				//String.Format("SET \"SMARTIMAGE={0}\"", fullPath),
+				//"SET ICO=%SMARTIMAGE%",
+				String.Format("reg.exe add {0} /v Icon /d \"{1}\" /f >nul", REG_SHELL, fullPath),
 			};
 
-			var iconBat = Cli.CreateBatchFile("add_icon_to_menu.bat", iconReg);
-
-			Cli.RunBatchFile(iconBat);
+			Cli.CreateRunBatchFile("add_icon_to_menu.bat", iconCode);
 		}
 
 		internal static void RemoveFromPath()
 		{
-			var name     = "PATH";
-			var scope    = EnvironmentVariableTarget.User;
-			var oldValue = Environment.GetEnvironmentVariable(name, scope);
+			var oldValue = Win32.GetEnvironmentPath();
 
 
 			var newValue = oldValue.Replace(";" + AppFolder, String.Empty);
 
 
-			Environment.SetEnvironmentVariable(name, newValue, scope);
+			Win32.SetEnvironmentPath(newValue);
 		}
 
 		internal static void Reset(bool all = false)
@@ -245,9 +279,8 @@ namespace SmartImage
 
 		private static string GetPath(string exe)
 		{
-			string dir = Environment.GetEnvironmentVariable("PATH", EnvironmentVariableTarget.User)
-			                       ?.Split(';')
-			                        .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
+			string dir = Win32.GetEnvironmentPath().Split(';')
+			                  .FirstOrDefault(s => File.Exists(Path.Combine(s, exe)));
 
 			if (!String.IsNullOrWhiteSpace(dir)) {
 				return Path.Combine(dir, exe);
@@ -280,47 +313,6 @@ namespace SmartImage
 
 
 			return path;
-		}
-
-		private const string REG_SUBKEY = @"SOFTWARE\SmartImage";
-
-		private const string REG_IMGUR_CLIENT_ID     = "imgur_client_id";
-		private const string REG_IMGUR_CLIENT_SECRET = "imgur_client_secret";
-		private const string REG_SAUCENAO_APIKEY     = "saucenao_key";
-		private const string REG_SEARCH_ENGINES      = "search_engines";
-		private const string REG_PRIORITY_ENGINES    = "priority_engines";
-
-		private static RegistryConfig RegConfig { get; } = new RegistryConfig(REG_SUBKEY);
-
-		internal static SearchEngines SearchEngines {
-			get => RegConfig.Read(REG_SEARCH_ENGINES, true, SearchEngines.All);
-			set => RegConfig.Write(REG_SEARCH_ENGINES, value);
-		}
-
-		internal static SearchEngines PriorityEngines {
-			get => RegConfig.Read(REG_PRIORITY_ENGINES, true, SearchEngines.None);
-			set => RegConfig.Write(REG_PRIORITY_ENGINES, value);
-		}
-
-		internal static AuthInfo ImgurAuth {
-			get {
-				string id     = RegConfig.Read<string>(REG_IMGUR_CLIENT_ID);
-				string secret = RegConfig.Read<string>(REG_IMGUR_CLIENT_SECRET);
-
-				return new AuthInfo(id, secret);
-			}
-			set {
-				RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id);
-				RegConfig.Write(REG_IMGUR_CLIENT_SECRET, value.Secret);
-			}
-		}
-
-		internal static AuthInfo SauceNaoAuth {
-			get {
-				string id = RegConfig.Read<string>(REG_SAUCENAO_APIKEY);
-				return new AuthInfo(id, null);
-			}
-			set => RegConfig.Write(REG_SAUCENAO_APIKEY, value.Id);
 		}
 	}
 }

@@ -35,6 +35,7 @@ namespace SmartImage
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
+		// C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
 
 		private static void Main(string[] args)
 		{

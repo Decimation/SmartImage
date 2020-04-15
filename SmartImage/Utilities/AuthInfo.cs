@@ -1,21 +1,20 @@
+using System;
+using JetBrains.Annotations;
+
 namespace SmartImage.Utilities
 {
 	public readonly struct AuthInfo
 	{
 		public string Id { get; }
-
-		// todo
-		public string Secret { get; }
-
+		
 		public bool IsNull { get; }
 		
-		public static readonly AuthInfo Null = new AuthInfo(string.Empty, string.Empty);
+		public static readonly AuthInfo Null = new AuthInfo(String.Empty);
 
-		public AuthInfo(string id, string secret) : this()
+		public AuthInfo(string id) : this()
 		{
 			Id     = id;
-			Secret = secret;
-			IsNull = string.IsNullOrWhiteSpace(id);
+			IsNull = String.IsNullOrWhiteSpace(id);
 		}
 	}
 }

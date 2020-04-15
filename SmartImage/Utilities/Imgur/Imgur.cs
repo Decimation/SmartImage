@@ -5,7 +5,7 @@ using System.Net;
 using RestSharp;
 using RestSharp.Serialization.Json;
 
-namespace SmartImage.Utilities
+namespace SmartImage.Utilities.Imgur
 {
 	// https://github.com/Auo/ImgurSharp
 
@@ -17,13 +17,13 @@ namespace SmartImage.Utilities
 		{
 			m_apiKey = apiKey;
 		}
-		
-		public Imgur() : this(Config.ImgurAuth.Id) {}
-		
+
+		public Imgur() : this(Config.ImgurAuth.Id) { }
+
 		public string Upload(string path)
 		{
 			// todo: cleanup
-			
+
 			using var w = new WebClient();
 			w.Headers.Add("Authorization: Client-ID " + m_apiKey);
 			var values = new NameValueCollection

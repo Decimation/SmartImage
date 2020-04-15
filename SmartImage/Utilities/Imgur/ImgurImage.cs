@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace SmartImage.Utilities
+namespace SmartImage.Utilities.Imgur
 {
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal sealed class ImgurImage

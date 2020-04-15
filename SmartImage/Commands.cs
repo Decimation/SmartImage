@@ -11,16 +11,15 @@ namespace SmartImage
 		private static readonly CliCommand SetImgurAuth = new CliCommand
 		{
 			Parameter   = "--set-imgur-auth",
-			Syntax      = "<consumer id> <consumer secret>",
+			Syntax      = "<consumer id>",
 			Description = "Sets up Imgur API authentication",
 			Action = args =>
 			{
-				var newId     = args[1];
-				var newSecret = args[2];
+				var newId = args[1];
 
-				Console.WriteLine("New client ID and secret: ({0}, {1})", newId, newSecret);
+				CliOutput.WriteInfo("New client ID and secret: {0}", newId);
 
-				Config.ImgurAuth = new AuthInfo(newId, newSecret);
+				Config.ImgurAuth = new AuthInfo(newId);
 			}
 		};
 
@@ -33,9 +32,9 @@ namespace SmartImage
 			{
 				var newKey = args[1];
 
-				Console.WriteLine("New API key: {0}", newKey);
+				CliOutput.WriteInfo("New API key: {0}", newKey);
 
-				Config.SauceNaoAuth = new AuthInfo(newKey, null);
+				Config.SauceNaoAuth = new AuthInfo(newKey);
 			}
 		};
 
@@ -48,7 +47,7 @@ namespace SmartImage
 			{
 				var newOptions = args[1];
 
-				Console.WriteLine("Engines: {0}", newOptions);
+				CliOutput.WriteInfo("Engines: {0}", newOptions);
 
 				Config.SearchEngines = Enum.Parse<SearchEngines>(newOptions);
 			}
@@ -64,7 +63,7 @@ namespace SmartImage
 			{
 				var newOptions = args[1];
 
-				Console.WriteLine("Priority engines: {0}", newOptions);
+				CliOutput.WriteInfo("Priority engines: {0}", newOptions);
 
 				Config.PriorityEngines = Enum.Parse<SearchEngines>(newOptions);
 			}
@@ -79,7 +78,7 @@ namespace SmartImage
 			{
 				Config.AddToContextMenu();
 
-				Console.WriteLine("Added to context menu!");
+				CliOutput.WriteInfo("Added to context menu!");
 			}
 		};
 
@@ -106,7 +105,7 @@ namespace SmartImage
 
 				Config.Reset(all);
 
-				Console.WriteLine("Config reset");
+				CliOutput.WriteInfo("Config reset");
 			}
 		};
 
@@ -118,11 +117,22 @@ namespace SmartImage
 			Action      = args => { Config.Info(); }
 		};
 
-		
+		private static readonly CliCommand Help = new CliCommand()
+		{
+			Parameter   = "--help",
+			Syntax      = null,
+			Description = "Display available commands",
+			Action = args =>
+			{
+				CliOutput.WriteHelp();
+				CliOutput.WriteInfo("Readme: {0}", Config.Readme);
+			}
+		};
+
 		public static readonly CliCommand[] AllCommands =
 		{
 			SetImgurAuth, SetSauceNaoAuth, SetSearchEngines, SetPriorityEngines,
-			ContextMenu, Reset, AddToPath, Info
+			ContextMenu, Reset, AddToPath, Info, Help
 		};
 
 		public static void Setup()

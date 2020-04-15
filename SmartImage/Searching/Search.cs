@@ -8,6 +8,7 @@ using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Model;
 using SmartImage.Utilities;
+using SmartImage.Utilities.Imgur;
 
 // ReSharper disable ReturnTypeCanBeEnumerable.Global
 
@@ -76,28 +77,18 @@ namespace SmartImage.Searching
 					var result = idx.GetResult(imgUrl);
 
 					if (result != null) {
-						string clear = new string('\b', wait.Length);
-						Console.Write(clear);
-
 						var url = result.Url;
 
+
 						if (url != null) {
-							CliOutput.WithColor(ConsoleColor.Green, () =>
-							{
-								//
-								Console.Write("{0}: Done\n", result.Name);
-							});
+							CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
 
 							if (Config.PriorityEngines.HasFlag(idx.Engine)) {
 								Http.OpenUrl(result.Url);
 							}
 						}
 						else {
-							CliOutput.WithColor(ConsoleColor.Yellow, () =>
-							{
-								//
-								Console.Write("{0}: Done (url is null!)\n", result.Name);
-							});
+							CliOutput.OnCurrentLine(ConsoleColor.Yellow, "{0}: Done (url is null!)\n", result.Name);
 						}
 
 						list.Add(result);
