@@ -13,6 +13,8 @@ Supported sites:
 - IQDB (`Iqdb`)
 - trace.moe (`TraceMoe`)
 - KarmaDecay (`KarmaDecay`)
+- Yandex (`Yandex`)
+- Bing (`Bing`)
 
 # Download
 
@@ -57,7 +59,7 @@ Adds executable path to path environment variable.
 
 `--reset [all]`
 
-Resets configuration to defaults. Specify `<all>` to fully reset.
+Resets configuration to defaults. Specify `all` to fully reset.
 
 `--info`
 
@@ -65,7 +67,8 @@ Information about the program and its configuration.
 
 # Notes
 
-- Ensure that the executable is placed in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10).
+- Ensure that the executable is placed in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10). You can also use the `--add-to-path` command to add the current directory to the path.
+
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
 
 # to-do
