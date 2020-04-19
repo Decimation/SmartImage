@@ -207,7 +207,7 @@ namespace SmartImage
 			CliOutput.WriteInfo("Current version: {0}", currentVersion);
 
 			var release = LatestRelease();
-			CliOutput.WriteInfo("Latest version: {0} ({1})", release.Version, release.PublishedAt);
+			CliOutput.WriteInfo("Latest version: {0} (tag {1}) ({2})", release.Version, release.TagName, release.PublishedAt);
 
 			int vcmp = currentVersion.CompareTo(release.Version);
 
@@ -317,8 +317,9 @@ namespace SmartImage
 
 				// hacky
 				const string buildRevision = ".0.0";
-
-				var parse = System.Version.Parse(tagName + buildRevision);
+				var versionStr = tagName.Replace("v", string.Empty) + buildRevision;
+				
+				var parse = System.Version.Parse(versionStr);
 
 
 				Version = parse;
