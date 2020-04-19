@@ -3,11 +3,15 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Neocmd;
+using Newtonsoft.Json.Linq;
+using RestSharp;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
 #endregion
+
 
 namespace SmartImage
 {
@@ -104,6 +108,26 @@ namespace SmartImage
 			set => RegConfig.Write(REG_SAUCENAO_APIKEY, value.Id);
 		}
 
+
+		internal static ReleaseInfo LatestRelease()
+		{
+			// todo
+			var rc = new RestClient("https://api.github.com/");
+			var re = new RestRequest("repos/Decimation/SmartImage/releases");
+			var rs = rc.Execute(re);
+			var ja = JArray.Parse(rs.Content);
+
+			var first = ja[0];
+
+
+			var tagName = first["tag_name"];
+			var url     = first["html_url"];
+			var publish = first["published_at"];
+
+			var r = new ReleaseInfo(tagName.ToString(), url.ToString(), publish.ToString());
+			return r;
+		}
+
 		private static void RemoveFromContextMenu()
 		{
 			// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
@@ -168,10 +192,34 @@ namespace SmartImage
 			CliOutput.WriteInfo("Application folder: {0}", AppFolder);
 			CliOutput.WriteInfo("Executable location: {0}", Location);
 			CliOutput.WriteInfo("Context menu integrated: {0}", IsContextMenuAdded);
-			CliOutput.WriteInfo("In path: {0}", IsAppFolderInPath);
+			CliOutput.WriteInfo("In path: {0}\n", IsAppFolderInPath);
+
+			//
+
+			CliOutput.WriteInfo("Supported search engines: {0}\n", SearchEngines.All);
+
+			//
 
 			CliOutput.WriteInfo("Readme: {0}", Readme);
-			CliOutput.WriteInfo("Supported search engines: {0}", SearchEngines.All);
+
+			var asm = typeof(Config).Assembly.GetName();
+			var currentVersion  = asm.Version;
+			CliOutput.WriteInfo("Current version: {0}", currentVersion);
+
+			var release = LatestRelease();
+			CliOutput.WriteInfo("Latest version: {0} ({1})", release.Version, release.PublishedAt);
+
+			int vcmp = currentVersion.CompareTo(release.Version);
+
+			if (vcmp < 0) {
+				CliOutput.WriteInfo("Update available");
+			}
+			else if (vcmp == 0) {
+				CliOutput.WriteInfo("Up to date");
+			}
+			else if (vcmp > 0) {
+				CliOutput.WriteInfo("(preview)");
+			}
 		}
 
 		internal static void AddToContextMenu()
@@ -256,6 +304,30 @@ namespace SmartImage
 
 
 			return path;
+		}
+
+		public struct ReleaseInfo
+		{
+			public ReleaseInfo(string tagName, string htmlUrl, string publishedAt)
+			{
+				TagName     = tagName;
+				HtmlUrl     = htmlUrl;
+				PublishedAt = DateTime.Parse(publishedAt);
+
+
+				// hacky
+				const string buildRevision = ".0.0";
+
+				var parse = System.Version.Parse(tagName + buildRevision);
+
+
+				Version = parse;
+			}
+
+			public string   TagName     { get; }
+			public string   HtmlUrl     { get; }
+			public DateTime PublishedAt { get; }
+			public Version  Version     { get; }
 		}
 	}
 }
