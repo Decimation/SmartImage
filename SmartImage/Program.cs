@@ -1,6 +1,7 @@
 ﻿#region
 
 using System;
+using System.Collections.Generic;
 using Neocmd;
 using SmartImage.Model;
 using SmartImage.Searching;
@@ -21,7 +22,8 @@ namespace SmartImage
 		// dotnet publish -c Release -r win10-x64
 
 		// copy SmartImage.exe C:\Library /Y
-
+		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
+		
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// Computer\HKEY_CURRENT_USER\Software\SmartImage
 
@@ -33,6 +35,7 @@ namespace SmartImage
 		private static void Main(string[] args)
 		{
 			Commands.Setup();
+			Config.Setup();
 
 			if (args == null || args.Length < 1) {
 				CliOutput.WriteError("Image or command not specified!");
@@ -40,8 +43,19 @@ namespace SmartImage
 				return;
 			}
 
+			var arg = args[0];
+
+			if (arg == "test") {
+				var cf = new ConfigFile(@"C:\Users\Deci\Desktop\cfg.cfg");
+				Console.WriteLine(cf.Read<SearchEngines>("engines"));
+				cf.Write("foo", "bar");
+				cf.Write("engines", SearchEngines.Bing | SearchEngines.GoogleImages);
+				cf.Store();
+				return;
+			}
+
 			// Run the command if one was parsed
-			var cmd = CliOutput.ReadCommand(args[0]);
+			var cmd = CliOutput.ReadCommand(arg);
 
 			if (cmd != null) {
 				cmd.Action(args);

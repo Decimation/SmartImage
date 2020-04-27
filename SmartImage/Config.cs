@@ -46,6 +46,19 @@ namespace SmartImage
 			}
 		}
 
+		internal static void Setup()
+		{
+			if (!File.Exists(ConfigFile)) {
+				var f = File.Create(ConfigFile);
+				f.Close();
+				Reset();
+			}
+		}
+
+		internal static string ConfigFile {
+			get { return Path.Combine(AppFolder, "smartimage.cfg"); }
+		}
+
 
 		internal static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
@@ -79,7 +92,7 @@ namespace SmartImage
 
 		internal static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
 
-		private static RegistryConfig RegConfig { get; } = new RegistryConfig(REG_SUBKEY);
+		private static ConfigFile RegConfig { get; } = new ConfigFile(ConfigFile);
 
 		internal static SearchEngines SearchEngines {
 			get => RegConfig.Read(REG_SEARCH_ENGINES, true, SearchEngines.All);
@@ -202,12 +215,13 @@ namespace SmartImage
 
 			CliOutput.WriteInfo("Readme: {0}", Readme);
 
-			var asm = typeof(Config).Assembly.GetName();
-			var currentVersion  = asm.Version;
+			var asm            = typeof(Config).Assembly.GetName();
+			var currentVersion = asm.Version;
 			CliOutput.WriteInfo("Current version: {0}", currentVersion);
 
 			var release = LatestRelease();
-			CliOutput.WriteInfo("Latest version: {0} (tag {1}) ({2})", release.Version, release.TagName, release.PublishedAt);
+			CliOutput.WriteInfo("Latest version: {0} (tag {1}) ({2})", release.Version, release.TagName,
+			                    release.PublishedAt);
 
 			int vcmp = currentVersion.CompareTo(release.Version);
 
@@ -278,8 +292,6 @@ namespace SmartImage
 				CliOutput.WriteSuccess("Removed from path");
 				return;
 			}
-
-			Info();
 		}
 
 		private static string FindExecutableLocation(string exe)
@@ -304,31 +316,6 @@ namespace SmartImage
 
 
 			return path;
-		}
-
-		public struct ReleaseInfo
-		{
-			public ReleaseInfo(string tagName, string htmlUrl, string publishedAt)
-			{
-				TagName     = tagName;
-				HtmlUrl     = htmlUrl;
-				PublishedAt = DateTime.Parse(publishedAt);
-
-
-				// hacky
-				const string buildRevision = ".0.0";
-				var versionStr = tagName.Replace("v", string.Empty) + buildRevision;
-				
-				var parse = System.Version.Parse(versionStr);
-
-
-				Version = parse;
-			}
-
-			public string   TagName     { get; }
-			public string   HtmlUrl     { get; }
-			public DateTime PublishedAt { get; }
-			public Version  Version     { get; }
 		}
 	}
 }

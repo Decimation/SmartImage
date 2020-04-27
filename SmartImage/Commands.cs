@@ -107,6 +107,7 @@ namespace SmartImage
 				}
 
 				Config.Reset(all);
+				
 
 				CliOutput.WriteInfo("Config reset");
 			}
