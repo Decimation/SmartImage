@@ -6,7 +6,7 @@ SmartImage is a reverse image search tool for Windows with context menu integrat
 
 Supported sites:
 
-- SauceNao (`SauceNao`)
+- [SauceNao](https://saucenao.com/) (`SauceNao`)
 - ImgOps (`ImgOps`)
 - Google Images (`GoogleImages`)
 - TinEye (`TinEye`)
@@ -15,6 +15,20 @@ Supported sites:
 - KarmaDecay (`KarmaDecay`)
 - Yandex (`Yandex`)
 - Bing (`Bing`)
+
+Search engine names and configuration:
+
+- `SauceNao`
+- `ImgOps`
+- `GoogleImages`
+- `TinEye`
+- `Iqdb`
+- `TraceMoe`
+- `KarmaDecay`
+- `Yandex`
+- `Bing`
+- `All`
+- `None`
 
 # Download
 
@@ -42,11 +56,12 @@ Configures Imgur API keys. Register an application [here](https://api.imgur.com/
 
 `--search-engines <engines>`
 
-Sets the search engines to use when searching, delimited by commas. *Default: All*
+Sets the search engines to use when searching, delimited by commas. See the above list for possible arguments. 
+*Default: `All`*
 
 `--priority-engines <engines>`
 
-Sets the priority search engines. Priority search engines are engines whose results will be automatically opened in your browser when searching is complete. For example, if you designate `SauceNao` as a priority engine, then results returned by
+Sets the priority search engines, delimited by commands. See the above list for possible arguments. Priority search engines are engines whose results will be automatically opened in your browser when searching is complete. For example, if you designate `SauceNao` as a priority engine, then results returned by
 `SauceNao` will be automatically opened in your browser. *Default: `SauceNao`*
 
 `--ctx-menu`
@@ -78,7 +93,6 @@ Display available commands.
 # to-do
 
 - Add an icon
-- Move to a text-based configuration file instead of using Windows registry
 - Automate SauceNao API registration and make its configuration more user-friendly
 
 # Inspiration
