@@ -78,6 +78,7 @@ Display available commands.
 # to-do
 
 - Add an icon
+- Move to a text-based configuration file instead of using Windows registry
 - Automate SauceNao API registration and make its configuration more user-friendly
 
 # Inspiration
