@@ -6,7 +6,7 @@ using System.Xml.Linq;
 
 namespace SmartImage.Utilities
 {
-	public class ConfigFile
+	public sealed class ConfigFile
 	{
 		public string FileName { get; }
 
@@ -15,7 +15,7 @@ namespace SmartImage.Utilities
 		public ConfigFile(string fileName)
 		{
 			FileName = fileName;
-			Config   = ReadMap(fileName);
+			Config   = Common.ReadMap(fileName);
 		}
 
 		public void Write<T>(string name, T value)
@@ -28,7 +28,7 @@ namespace SmartImage.Utilities
 				Config[name] = valStr;
 			}
 
-			Store();
+			Update();
 		}
 
 
@@ -36,7 +36,7 @@ namespace SmartImage.Utilities
 		{
 			if (!Config.ContainsKey(name)) {
 				Config.Add(name, string.Empty);
-				Store();
+				Update();
 			}
 
 			var rawValue = Config[name];
@@ -54,20 +54,6 @@ namespace SmartImage.Utilities
 			return (T) (object) rawValue;
 		}
 
-		public void Store() => WriteMap(Config, FileName);
-
-		public static void WriteMap(IDictionary<string, string> d, string filename)
-		{
-			string[] lines = d.Select(kvp => kvp.Key + "=" + kvp.Value).ToArray();
-			File.WriteAllLines(filename, lines);
-		}
-
-		public static IDictionary<string, string> ReadMap(string filename)
-		{
-			string[] lines = File.ReadAllLines(filename);
-			var      dict  = lines.Select(l => l.Split('=')).ToDictionary(a => a[0], a => a[1]);
-
-			return dict;
-		}
+		private void Update() => Common.WriteMap(Config, FileName);
 	}
 }

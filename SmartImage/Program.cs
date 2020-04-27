@@ -46,11 +46,7 @@ namespace SmartImage
 			var arg = args[0];
 
 			if (arg == "test") {
-				var cf = new ConfigFile(@"C:\Users\Deci\Desktop\cfg.cfg");
-				Console.WriteLine(cf.Read<SearchEngines>("engines"));
-				cf.Write("foo", "bar");
-				cf.Write("engines", SearchEngines.Bing | SearchEngines.GoogleImages);
-				cf.Store();
+				// ...
 				return;
 			}
 

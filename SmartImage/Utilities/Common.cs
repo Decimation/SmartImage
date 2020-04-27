@@ -1,7 +1,10 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -87,6 +90,20 @@ namespace SmartImage.Utilities
 		{
 			using var wc = new WebClient();
 			return wc.DownloadString(url);
+		}
+
+		public static void WriteMap(IDictionary<string, string> d, string filename)
+		{
+			string[] lines = d.Select(kvp => kvp.Key + "=" + kvp.Value).ToArray();
+			File.WriteAllLines(filename, lines);
+		}
+
+		public static IDictionary<string, string> ReadMap(string filename)
+		{
+			string[] lines = File.ReadAllLines(filename);
+			var      dict  = lines.Select(l => l.Split('=')).ToDictionary(a => a[0], a => a[1]);
+
+			return dict;
 		}
 	}
 }

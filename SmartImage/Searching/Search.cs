@@ -104,7 +104,7 @@ namespace SmartImage.Searching
 			return list.ToArray();
 		}
 
-		public static bool IsFileValid(string img)
+		internal static bool IsFileValid(string img)
 		{
 			if (!File.Exists(img)) {
 				CliOutput.WriteError("File does not exist: {0}", img);

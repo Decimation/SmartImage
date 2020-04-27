@@ -1,5 +1,6 @@
 #region
 
+#nullable enable
 using System;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using SmartImage.Searching;
 using SmartImage.Utilities;
+// ReSharper disable MemberCanBePrivate.Global
 
 #endregion
 
@@ -37,37 +39,35 @@ namespace SmartImage
 
 		private const string REG_PRIORITY_ENGINES = "priority_engines";
 
-		internal static string AppFolder {
+		public static string AppFolder {
 			get {
-				string? folder = Path.GetDirectoryName(Location);
-
-
+				string? folder = Path.GetDirectoryName(ExeLocation);
 				return folder;
 			}
 		}
 
 		internal static void Setup()
 		{
-			if (!File.Exists(ConfigFile)) {
-				var f = File.Create(ConfigFile);
+			if (!File.Exists(ConfigLocation)) {
+				var f = File.Create(ConfigLocation);
 				f.Close();
 				Reset();
 			}
 		}
 
-		internal static string ConfigFile {
+		public static string ConfigLocation {
 			get { return Path.Combine(AppFolder, "smartimage.cfg"); }
 		}
 
 
-		internal static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
+		public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
 		/// <summary>
 		///     Null if executable is not in path.
 		/// </summary>
-		internal static string Location => FindExecutableLocation(NAME_EXE);
+		public static string ExeLocation => FindExecutableLocation(NAME_EXE);
 
-		internal static bool IsContextMenuAdded {
+		public static bool IsContextMenuAdded {
 			get {
 				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
 				var    cmd    = Cli.Shell(cmdStr, true);
@@ -90,21 +90,21 @@ namespace SmartImage
 			}
 		}
 
-		internal static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
+		public static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
 
-		private static ConfigFile RegConfig { get; } = new ConfigFile(ConfigFile);
+		public static ConfigFile RegConfig { get; } = new ConfigFile(ConfigLocation);
 
-		internal static SearchEngines SearchEngines {
+		public static SearchEngines SearchEngines {
 			get => RegConfig.Read(REG_SEARCH_ENGINES, true, SearchEngines.All);
 			set => RegConfig.Write(REG_SEARCH_ENGINES, value);
 		}
 
-		internal static SearchEngines PriorityEngines {
+		public static SearchEngines PriorityEngines {
 			get => RegConfig.Read(REG_PRIORITY_ENGINES, true, SearchEngines.None);
 			set => RegConfig.Write(REG_PRIORITY_ENGINES, value);
 		}
 
-		internal static AuthInfo ImgurAuth {
+		public static AuthInfo ImgurAuth {
 			get {
 				string id = RegConfig.Read<string>(REG_IMGUR_CLIENT_ID);
 
@@ -113,7 +113,7 @@ namespace SmartImage
 			set => RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id);
 		}
 
-		internal static AuthInfo SauceNaoAuth {
+		public static AuthInfo SauceNaoAuth {
 			get {
 				string id = RegConfig.Read<string>(REG_SAUCENAO_APIKEY);
 				return new AuthInfo(id);
@@ -122,7 +122,7 @@ namespace SmartImage
 		}
 
 
-		internal static ReleaseInfo LatestRelease()
+		public static ReleaseInfo LatestRelease()
 		{
 			// todo
 			var rc = new RestClient("https://api.github.com/");
@@ -141,7 +141,7 @@ namespace SmartImage
 			return r;
 		}
 
-		private static void RemoveFromContextMenu()
+		public static void RemoveFromContextMenu()
 		{
 			// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
 
@@ -156,14 +156,14 @@ namespace SmartImage
 			Cli.CreateRunBatchFile("rem_from_menu.bat", code);
 		}
 
-		internal static void AddToPath()
+		public static void AddToPath()
 		{
 			string oldValue = ExplorerSystem.EnvironmentPath;
 
 			string appFolder = AppFolder;
 
 			if (IsAppFolderInPath) {
-				CliOutput.WriteInfo("Executable is already in path: {0}", Location);
+				CliOutput.WriteInfo("Executable is already in path: {0}", ExeLocation);
 				return;
 			}
 
@@ -203,13 +203,14 @@ namespace SmartImage
 			CliOutput.WriteInfo("Image upload service: {0}", imgur.IsNull ? "ImgOps" : "Imgur");
 
 			CliOutput.WriteInfo("Application folder: {0}", AppFolder);
-			CliOutput.WriteInfo("Executable location: {0}", Location);
+			CliOutput.WriteInfo("Executable location: {0}", ExeLocation);
+			CliOutput.WriteInfo("Config location: {0}", ConfigLocation);
 			CliOutput.WriteInfo("Context menu integrated: {0}", IsContextMenuAdded);
 			CliOutput.WriteInfo("In path: {0}\n", IsAppFolderInPath);
 
 			//
 
-			CliOutput.WriteInfo("Supported search engines: {0}\n", SearchEngines.All);
+			// CliOutput.WriteInfo("Supported search engines: {0}\n", SearchEngines.All);
 
 			//
 
@@ -236,9 +237,9 @@ namespace SmartImage
 			}
 		}
 
-		internal static void AddToContextMenu()
+		public static void AddToContextMenu()
 		{
-			string fullPath = Location;
+			string fullPath = ExeLocation;
 
 			if (!IsExeInAppFolder) {
 				bool v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
@@ -274,9 +275,9 @@ namespace SmartImage
 			Cli.CreateRunBatchFile("add_icon_to_menu.bat", iconCode);
 		}
 
-		internal static void RemoveFromPath() => ExplorerSystem.RemoveFromPath(AppFolder);
+		public static void RemoveFromPath() => ExplorerSystem.RemoveFromPath(AppFolder);
 
-		internal static void Reset(bool all = false)
+		public static void Reset(bool all = false)
 		{
 			SearchEngines   = SearchEngines.All;
 			PriorityEngines = SearchEngines.SauceNao;
@@ -294,6 +295,7 @@ namespace SmartImage
 			}
 		}
 
+		
 		private static string FindExecutableLocation(string exe)
 		{
 			string path = ExplorerSystem.FindExectableInPath(exe);
@@ -314,8 +316,38 @@ namespace SmartImage
 				}
 			}
 
+			return path;
+		}
+
+		// todo
+		private static string FindExecutableLocationOld(string exe, params string[] searchDirs)
+		{
+			string path = ExplorerSystem.FindExectableInPath(exe);
+
+			if (path == null) {
+				foreach (string dir in searchDirs) {
+					if (SearchFolder(exe, dir, out var s)) {
+						return s;
+					}
+				}
+			}
 
 			return path;
+		}
+		
+		// todo
+		private static bool SearchFolder(string exe, string folder, out string path)
+		{
+			path = Path.Combine(folder, exe);
+
+			bool inFolder = File.Exists(path);
+
+			if (inFolder) {
+				return true;
+			}
+			else {
+				return false;
+			}
 		}
 	}
 }
