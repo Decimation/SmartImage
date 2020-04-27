@@ -13,4 +13,4 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyInformationalVersion("1.0.0")]
 [assembly: System.Reflection.AssemblyProduct("SmartImage")]
 [assembly: System.Reflection.AssemblyTitle("SmartImage")]
-[assembly: System.Reflection.AssemblyVersion("1.3.0.0")]
+[assembly: System.Reflection.AssemblyVersion("1.4.0.0")]
