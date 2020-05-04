@@ -40,10 +40,6 @@ Search engine names and configuration:
 
 ![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
 
-# Configuration
-
-SmartImage stores its configuration in registry. The rationale behind this is that SmartImage is designed to be used primarily through the context menu, so configuration persisting between uses is more logical.
-
 # Commands
 
 `--set-saucenao-auth <api key>`
