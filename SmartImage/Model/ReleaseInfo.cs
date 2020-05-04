@@ -1,6 +1,6 @@
 using System;
 
-namespace SmartImage.Utilities
+namespace SmartImage.Model
 {
 	public readonly struct ReleaseInfo
 	{

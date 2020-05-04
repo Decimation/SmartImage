@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml.Linq;
+using Neocmd;
+using SmartImage.Utilities;
 
-namespace SmartImage.Utilities
+namespace SmartImage.Model
 {
 	public sealed class ConfigFile
 	{
@@ -15,7 +14,7 @@ namespace SmartImage.Utilities
 		public ConfigFile(string fileName)
 		{
 			FileName = fileName;
-			Config   = Common.ReadMap(fileName);
+			Config   = ExplorerSystem.ReadMap(fileName);
 		}
 
 		public void Write<T>(string name, T value)
@@ -54,6 +53,6 @@ namespace SmartImage.Utilities
 			return (T) (object) rawValue;
 		}
 
-		private void Update() => Common.WriteMap(Config, FileName);
+		private void Update() => ExplorerSystem.WriteMap(Config, FileName);
 	}
 }

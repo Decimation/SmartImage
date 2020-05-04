@@ -20,7 +20,7 @@
     <ItemGroup>
         <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
         <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-        <PackageReference Include="Neocmd" Version="1.0.6" />
+        <PackageReference Include="Neocmd" Version="1.0.8" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
         <PackageReference Include="RapidSelenium" Version="1.0.2" />
         <PackageReference Include="RestSharp" Version="106.10.1" />

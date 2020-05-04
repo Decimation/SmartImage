@@ -2,6 +2,8 @@
 
 using System;
 using Neocmd;
+using SmartImage.Engines.SauceNao;
+using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
@@ -107,7 +109,7 @@ namespace SmartImage
 				}
 
 				Config.Reset(all);
-				
+
 
 				CliOutput.WriteInfo("Config reset");
 			}
@@ -118,7 +120,33 @@ namespace SmartImage
 			Parameter   = "--info",
 			Syntax      = null,
 			Description = "Information about the program",
-			Action      = args => { Config.Info(); }
+			Action = args =>
+			{
+				//
+				Config.Info();
+			}
+		};
+
+		private static readonly CliCommand CreateSauceNaoAcc = new CliCommand
+		{
+			Parameter   = "--create-saucenao",
+			Syntax      = "[auto]",
+			Description = "Create SauceNao account (for API keys)",
+			Action = args =>
+			{
+				bool auto = false;
+
+				if (args.Length >= 2) {
+					auto = args[1] == "auto";
+				}
+				
+				// todo
+				var acc = SauceNao.CreateAccount(auto);
+
+				if (!acc.IsNull) {
+					Config.SauceNaoAuth = new AuthInfo(acc.ApiKey);
+				}
+			}
 		};
 
 		private static readonly CliCommand Help = new CliCommand
@@ -136,13 +164,13 @@ namespace SmartImage
 		public static readonly CliCommand[] AllCommands =
 		{
 			SetImgurAuth, SetSauceNaoAuth, SetSearchEngines, SetPriorityEngines,
-			ContextMenu, Reset, AddToPath, Info, Help
+			ContextMenu, Reset, AddToPath, Info, Help, CreateSauceNaoAcc
 		};
 
 		public static void Setup()
 		{
 			CliOutput.Commands.AddRange(AllCommands);
-			CliOutput.Init(Config.NAME);
+			CliOutput.Init(Config.NAME, false);
 		}
 	}
 }

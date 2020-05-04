@@ -50,27 +50,6 @@ namespace SmartImage
 
 			if (arg == "test") {
 				// ...
-
-				Console.WriteLine("running test");
-				var rwd = RapidWebDriver.CreateQuick(false);
-				
-				Console.WriteLine(rwd.Location);
-
-				Console.WriteLine("Username?");
-				var u = Console.ReadLine();
-				
-				Console.WriteLine("Password?");
-				var p = Console.ReadLine();
-				
-				Console.WriteLine("Email?");
-				var e = Console.ReadLine();
-
-				var acc=SauceNao.GenerateAccount(rwd,u,e,p);
-
-				Console.ReadLine();
-				rwd.Dispose();
-				
-				Console.WriteLine(acc);
 				
 				return;
 			}
@@ -148,7 +127,7 @@ namespace SmartImage
 
 					if (idx < results.Length) {
 						var res = results[idx];
-						Common.OpenUrl(res.Url);
+						WebAgent.OpenUrl(res.Url);
 					}
 				}
 			} while (cki.Key != ConsoleKey.Escape);

@@ -88,7 +88,7 @@ namespace SmartImage.Searching
 							CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
 
 							if (Config.PriorityEngines.HasFlag(idx.Engine)) {
-								Common.OpenUrl(result.Url);
+								WebAgent.OpenUrl(result.Url);
 							}
 						}
 						else {

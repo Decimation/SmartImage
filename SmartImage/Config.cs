@@ -8,8 +8,10 @@ using System.Reflection;
 using Neocmd;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 #endregion
@@ -23,6 +25,8 @@ namespace SmartImage
 
 		public const string NAME_EXE = "SmartImage.exe";
 
+		public const string NAME_CFG = "smartimage.cfg";
+
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
 		private const string REG_SUBKEY = @"SOFTWARE\SmartImage";
@@ -31,13 +35,13 @@ namespace SmartImage
 
 		private const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
 
-		private const string REG_IMGUR_CLIENT_ID = "imgur_client_id";
+		private const string CFG_IMGUR_CLIENT_ID = "imgur_client_id";
 
-		private const string REG_SAUCENAO_APIKEY = "saucenao_key";
+		private const string CFG_SAUCENAO_APIKEY = "saucenao_key";
 
-		private const string REG_SEARCH_ENGINES = "search_engines";
+		private const string CFG_SEARCH_ENGINES = "search_engines";
 
-		private const string REG_PRIORITY_ENGINES = "priority_engines";
+		private const string CFG_PRIORITY_ENGINES = "priority_engines";
 
 		public static string AppFolder {
 			get {
@@ -56,7 +60,7 @@ namespace SmartImage
 		}
 
 		public static string ConfigLocation {
-			get { return Path.Combine(AppFolder, "smartimage.cfg"); }
+			get { return Path.Combine(AppFolder, NAME_CFG); }
 		}
 
 
@@ -95,30 +99,30 @@ namespace SmartImage
 		public static ConfigFile RegConfig { get; } = new ConfigFile(ConfigLocation);
 
 		public static SearchEngines SearchEngines {
-			get => RegConfig.Read(REG_SEARCH_ENGINES, true, SearchEngines.All);
-			set => RegConfig.Write(REG_SEARCH_ENGINES, value);
+			get => RegConfig.Read(CFG_SEARCH_ENGINES, true, SearchEngines.All);
+			set => RegConfig.Write(CFG_SEARCH_ENGINES, value);
 		}
 
 		public static SearchEngines PriorityEngines {
-			get => RegConfig.Read(REG_PRIORITY_ENGINES, true, SearchEngines.None);
-			set => RegConfig.Write(REG_PRIORITY_ENGINES, value);
+			get => RegConfig.Read(CFG_PRIORITY_ENGINES, true, SearchEngines.None);
+			set => RegConfig.Write(CFG_PRIORITY_ENGINES, value);
 		}
 
 		public static AuthInfo ImgurAuth {
 			get {
-				string id = RegConfig.Read<string>(REG_IMGUR_CLIENT_ID);
+				string id = RegConfig.Read<string>(CFG_IMGUR_CLIENT_ID);
 
 				return new AuthInfo(id);
 			}
-			set => RegConfig.Write(REG_IMGUR_CLIENT_ID, value.Id);
+			set => RegConfig.Write(CFG_IMGUR_CLIENT_ID, value.Id);
 		}
 
 		public static AuthInfo SauceNaoAuth {
 			get {
-				string id = RegConfig.Read<string>(REG_SAUCENAO_APIKEY);
+				string id = RegConfig.Read<string>(CFG_SAUCENAO_APIKEY);
 				return new AuthInfo(id);
 			}
-			set => RegConfig.Write(REG_SAUCENAO_APIKEY, value.Id);
+			set => RegConfig.Write(CFG_SAUCENAO_APIKEY, value.Id);
 		}
 
 
@@ -295,25 +299,35 @@ namespace SmartImage
 			}
 		}
 
-		
+
 		private static string FindExecutableLocation(string exe)
 		{
 			string path = ExplorerSystem.FindExectableInPath(exe);
 
 			if (path == null) {
-				string cd    = Environment.CurrentDirectory;
-				string cdExe = Path.Combine(cd, exe);
-				bool   inCd  = File.Exists(cdExe);
+				string cd = Environment.CurrentDirectory;
 
-				if (inCd) {
-					return cdExe;
+				if (Try(cd, exe, out path)) {
+					return path;
 				}
 
-				string appFolderExe = Path.Combine(AppFolder, exe);
-				bool   inAppFolder  = File.Exists(appFolderExe);
-				if (inAppFolder) {
-					return appFolderExe;
-				}
+
+				// SPECIAL CASE: app folder is not in path, continuing past here causes a stack overflow
+				// todo
+				
+
+				/*if (Try(AppFolder, exe, out path)) {
+					return path;
+				}*/
+			}
+
+			static bool Try(string folder, string exeStr, out string folderExe)
+			{
+				string folderExeFull = Path.Combine(folder, exeStr);
+				bool   inFolder      = File.Exists(folderExeFull);
+
+				folderExe = folderExeFull;
+				return inFolder;
 			}
 
 			return path;
@@ -334,7 +348,7 @@ namespace SmartImage
 
 			return path;
 		}
-		
+
 		// todo
 		private static bool SearchFolder(string exe, string folder, out string path)
 		{
