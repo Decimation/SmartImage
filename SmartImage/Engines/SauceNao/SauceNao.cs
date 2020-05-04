@@ -208,6 +208,7 @@ namespace SmartImage.Engines.SauceNao
 				CliOutput.WriteInfo("Registering account...");
 				var acc = SauceNao.CreateAccountInternal(rwd, uname, email, pwd);
 
+				CliOutput.WriteInfo("Account information:");
 				Console.WriteLine(acc);
 
 				CliOutput.WriteInfo("Cleaning up...");
