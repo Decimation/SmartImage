@@ -5,8 +5,11 @@ using System.Json;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading;
 using System.Xml;
 using Neocmd;
+using OpenQA.Selenium;
+using RapidSelenium;
 using RestSharp;
 using SmartImage.Model;
 using SmartImage.Utilities;
@@ -25,6 +28,9 @@ namespace SmartImage.Engines.SauceNao
 	public sealed class SauceNao : BaseSauceNao
 	{
 		private const string ENDPOINT = BASE_URL + "search.php";
+
+		private const string ACC_OV_URL = BASE_URL + "user.php?page=account-overview";
+		private const string ACC_API_URL = BASE_URL + "user.php?page=search-api";
 
 		private readonly string m_apiKey;
 
@@ -138,6 +144,80 @@ namespace SmartImage.Engines.SauceNao
 			}
 
 			return new SearchResult(null, Name);
+		}
+
+		// todo: rename all
+		
+		private static readonly By uby = By.CssSelector("body > form:nth-child(7) > input[type=text]:nth-child(1)");
+
+		private static readonly By emailby = By.CssSelector("body > form:nth-child(7) > input[type=text]:nth-child(3)");
+
+		private static readonly By pwdBy =
+			By.CssSelector("body > form:nth-child(7) > input[type=password]:nth-child(5)");
+
+		private static readonly By pwd2By =
+			By.CssSelector("body > form:nth-child(7) > input[type=password]:nth-child(7)");
+
+		private static readonly By regBtn =
+			By.CssSelector("body > form:nth-child(7) > input[type=submit]:nth-child(10)");
+
+		private static readonly By bodyBy = By.CssSelector("body");
+
+		private static readonly By apiBy = By.CssSelector("#middle > form");
+
+		public static GenericAccount GenerateAccount(RapidWebDriver rwd,
+		                                             string         username = null,
+		                                             string         email    = null,
+		                                             string         password = null)
+		{
+			var cd = rwd.Value;
+			var acc = new GenericAccount();
+			
+			
+			cd.Url = BASE_URL + "user.php";
+			
+
+			var usernameElement = cd.FindElement(uby);
+			usernameElement.SendKeys(username);
+
+
+			var emailEle = cd.FindElement(emailby);
+			emailEle.SendKeys(email);
+
+
+			var pwdEle = cd.FindElement(pwdBy);
+			pwdEle.SendKeys(password);
+
+
+			var pwd2Ele = cd.FindElement(pwd2By);
+			pwd2Ele.SendKeys(password);
+
+
+			var regEle = cd.FindElement(regBtn);
+			regEle.Click();
+
+			Thread.Sleep(TimeSpan.FromSeconds(5));
+
+			var body = cd.FindElement(bodyBy);
+			Console.WriteLine(body.Text);
+
+			if (cd.Url != ACC_OV_URL) {
+				CliOutput.WriteError("Error registering: {0}", cd.Url);
+				return acc;
+			}
+
+			CliOutput.WriteSuccess("Success!");
+
+			// https://saucenao.com/user.php?page=search-api
+
+			cd.Url = ACC_API_URL;
+
+			var apiEle  = cd.FindElement(apiBy);
+			var apiText = apiEle.Text.Split(' ')[2];
+
+			acc = new GenericAccount(username, password, email, apiText);
+
+			return acc;
 		}
 	}
 }

@@ -2,7 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO.Compression;
 using Neocmd;
+using RapidSelenium;
+using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
@@ -47,6 +50,28 @@ namespace SmartImage
 
 			if (arg == "test") {
 				// ...
+
+				Console.WriteLine("running test");
+				var rwd = RapidWebDriver.CreateQuick(false);
+				
+				Console.WriteLine(rwd.Location);
+
+				Console.WriteLine("Username?");
+				var u = Console.ReadLine();
+				
+				Console.WriteLine("Password?");
+				var p = Console.ReadLine();
+				
+				Console.WriteLine("Email?");
+				var e = Console.ReadLine();
+
+				var acc=SauceNao.GenerateAccount(rwd,u,e,p);
+
+				Console.ReadLine();
+				rwd.Dispose();
+				
+				Console.WriteLine(acc);
+				
 				return;
 			}
 

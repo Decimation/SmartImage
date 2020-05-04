@@ -10,6 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using Neocmd;
+using OpenQA.Selenium;
 using RestSharp;
 
 #endregion
@@ -105,5 +106,7 @@ namespace SmartImage.Utilities
 
 			return dict;
 		}
+		
+		
 	}
 }
