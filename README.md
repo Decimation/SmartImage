@@ -72,6 +72,10 @@ Adds executable path to path environment variable.
 
 Resets configuration to defaults. Specify `all` to fully reset.
 
+`--create-saucenao [auto]`
+
+Register a SauceNao account (for API keys). Specify `auto` to autofill registration fields.
+
 `--info`
 
 Information about the program and its configuration.
@@ -89,7 +93,6 @@ Display available commands.
 # to-do
 
 - Add an icon
-- Automate SauceNao API registration and make its configuration more user-friendly
 
 # Inspiration
 
