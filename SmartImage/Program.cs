@@ -56,6 +56,8 @@ namespace SmartImage
 				return;
 			}
 			else if (arg == "--qr") {
+				// Display commands with autocompletion
+				
 				Console.Clear();
 
 				var commands = Commands.AllCommands.Select(c => c.Parameter).ToArray();

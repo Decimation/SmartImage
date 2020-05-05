@@ -1,6 +1,7 @@
 #region
 
 using System;
+using System.IO;
 using System.Json;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -209,7 +210,14 @@ namespace SmartImage.Engines.SauceNao
 				var acc = SauceNao.CreateAccountInternal(rwd, uname, email, pwd);
 
 				CliOutput.WriteInfo("Account information:");
-				Console.WriteLine(acc);
+
+				var accStr = acc.ToString();
+				var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) 
+				             + "\\saucenao_account.txt";
+				
+				File.WriteAllText(output, accStr);
+
+				Console.WriteLine(accStr);
 
 				CliOutput.WriteInfo("Cleaning up...");
 				rwd.Dispose();
