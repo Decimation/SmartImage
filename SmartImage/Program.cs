@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO.Compression;
+using System.Linq;
 using Neocmd;
 using RapidSelenium;
 using SmartImage.Engines.SauceNao;
@@ -26,7 +27,7 @@ namespace SmartImage
 
 		// copy SmartImage.exe C:\Library /Y
 		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
-		
+
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// Computer\HKEY_CURRENT_USER\Software\SmartImage
 
@@ -39,7 +40,7 @@ namespace SmartImage
 		{
 			Commands.Setup();
 			Config.Setup();
-			
+
 
 			if (args == null || args.Length < 1) {
 				CliOutput.WriteError("Image or command not specified!");
@@ -49,10 +50,29 @@ namespace SmartImage
 
 			var arg = args[0];
 
-			if (arg == "test") {
+			if (arg == "--test") {
 				// ...
-				
+
 				return;
+			}
+			else if (arg == "--qr") {
+				Console.Clear();
+
+				var commands = Commands.AllCommands.Select(c => c.Parameter).ToArray();
+
+				Console.WriteLine("Available commands:\n");
+
+				foreach (var c in commands)
+					Console.WriteLine(c);
+				
+				Console.WriteLine("\nEnter a command:");
+
+				var input = Commands.ReadHintedLine(commands, c => c);
+				
+				Console.WriteLine($"\n>> {input}");
+
+				args = input.Split(' ');
+				arg = args[0];
 			}
 
 			// Run the command if one was parsed
