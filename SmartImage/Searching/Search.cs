@@ -29,6 +29,7 @@ namespace SmartImage.Searching
 		{
 			var engines = new List<ISearchEngine>();
 
+			
 			bool sauceNaoConfigured = !Config.SauceNaoAuth.IsNull;
 
 			if (sauceNaoConfigured) {

@@ -92,7 +92,11 @@ namespace SmartImage
 			Parameter   = "--add-to-path",
 			Syntax      = null,
 			Description = "Adds executable path to path environment variable",
-			Action      = args => { Config.AddToPath(); }
+			Action      = args =>
+			{
+				// done automatically for now
+				Config.AddToPath();
+			}
 		};
 
 		private static readonly CliCommand Reset = new CliCommand
@@ -131,7 +135,7 @@ namespace SmartImage
 		{
 			Parameter   = "--create-saucenao",
 			Syntax      = "[auto]",
-			Description = "Create SauceNao account (for API keys)",
+			Description = "Register a SauceNao account (for API keys). Specify <auto> to autofill registration fields.",
 			Action = args =>
 			{
 				bool auto = false;

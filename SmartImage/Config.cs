@@ -57,6 +57,12 @@ namespace SmartImage
 				f.Close();
 				Reset();
 			}
+
+			
+			// todo
+			if (!IsAppFolderInPath) {
+				AddToPath();
+			}
 		}
 
 		public static string ConfigLocation {
@@ -167,25 +173,23 @@ namespace SmartImage
 			string appFolder = AppFolder;
 
 			if (IsAppFolderInPath) {
-				CliOutput.WriteInfo("Executable is already in path: {0}", ExeLocation);
+//				CliOutput.WriteInfo("Executable is already in path: {0}", ExeLocation);
 				return;
 			}
 
 
 			bool appFolderInPath = oldValue.Split(ExplorerSystem.PATH_DELIM).Any(p => p == appFolder);
-
-
+			
 			string cd  = Environment.CurrentDirectory;
 			string exe = Path.Combine(cd, NAME_EXE);
-
-
+			
 			if (appFolderInPath) {
-				CliOutput.WriteInfo("App folder already in path: {0}", appFolder);
+//				CliOutput.WriteInfo("App folder already in path: {0}", appFolder);
 			}
 			else {
 				string newValue = oldValue + ExplorerSystem.PATH_DELIM + cd;
 				ExplorerSystem.EnvironmentPath = newValue;
-				CliOutput.WriteInfo("Added {0} to path", cd);
+//				CliOutput.WriteInfo("Added {0} to path", cd);
 			}
 		}
 

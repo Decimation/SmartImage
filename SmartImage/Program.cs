@@ -39,6 +39,7 @@ namespace SmartImage
 		{
 			Commands.Setup();
 			Config.Setup();
+			
 
 			if (args == null || args.Length < 1) {
 				CliOutput.WriteError("Image or command not specified!");
