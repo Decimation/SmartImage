@@ -50,7 +50,12 @@ namespace SmartImage
 			//Commands.Setup();
 			Core.Setup(args);
 
+			if (Core.Config.Image == null) {
+				return;
+			}
 
+			//Console.WriteLine(Core.Config);
+			
 			/*
 			 * Run 
 			 */

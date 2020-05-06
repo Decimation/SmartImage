@@ -238,7 +238,7 @@ namespace SmartImage
 			 */
 
 			var result = Parser.Default.ParseArguments<ContextMenu, Path,
-				CreateSauceNao, Reset, Info>(args);
+				CreateSauceNao, Reset, Info, Img>(args);
 
 			result.WithParsed<ContextMenu>(c1 =>
 			{
@@ -263,7 +263,11 @@ namespace SmartImage
 			result.WithParsed<CreateSauceNao>(c => { SauceNao.CreateAccount(c.Auto); });
 			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
 			result.WithParsed<Info>(c => { Info.ShowInfo(c.Full); });
-
+			result.WithParsed<Img>(c =>
+			{
+				Console.WriteLine("img: {0}",c.Location);
+			});
+			
 			//ReadFuncs(args);
 		}
 

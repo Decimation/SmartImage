@@ -59,6 +59,8 @@ namespace SmartImage
 				CliParse.Path.Add();
 			}
 
+			
+			
 			var verbs = CliParse.LoadVerbs()
 			                    .Select(t => t.GetCustomAttribute<VerbAttribute>())
 			                    .Select(v => v.Name);
