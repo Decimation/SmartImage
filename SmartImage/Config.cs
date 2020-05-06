@@ -19,11 +19,11 @@ namespace SmartImage
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class Config
 	{
-		[Option("search-engines")]
-		public string EnginesR { get; set; }
+		[Option("engines")]
+		public string EnginesStr { get; set; }
 
 		[Option("priority-engines")]
-		public string PriorityEnginesR { get; set; }
+		public string PriorityEnginesStr { get; set; }
 
 		[Option("imgur-auth")]
 		public string ImgurAuth { get; set; }
@@ -35,16 +35,16 @@ namespace SmartImage
 		public string Image { get; set; }
 
 		public SearchEngines Engines {
-			get => ParseQ<SearchEngines>(EnginesR);
-			set => EnginesR = value.ToString();
+			get => ParseQ<SearchEngines>(EnginesStr);
+			set => EnginesStr = value.ToString();
 		}
-		
+
 		public SearchEngines PriorityEngines {
-			get => ParseQ<SearchEngines>(PriorityEnginesR);
-			set => PriorityEnginesR = value.ToString();
+			get => ParseQ<SearchEngines>(PriorityEnginesStr);
+			set => PriorityEnginesStr = value.ToString();
 		}
-		
-		public bool __simple {
+
+		public bool IsEmpty {
 			get {
 				bool hasEngines         = Engines != default;
 				bool hasPriorityEngines = PriorityEngines != default;
@@ -56,33 +56,32 @@ namespace SmartImage
 			}
 		}
 
-		public bool CfgFallback { get; private set; }
+		public bool IsFromFile { get; private set; }
 
 		private static T ParseQ<T>(string s)
 		{
 			if (string.IsNullOrWhiteSpace(s)) {
 				return default;
 			}
-			
+
 			Enum.TryParse(typeof(T), s, out var e);
 			return (T) e;
 		}
 
-		public static Config ReadFromFile(Config arg,string location)
+		public static Config ReadFromFile(Config arg, string location)
 		{
-			
 			var map = ExplorerSystem.ReadMap(location);
 
 
-			arg.EnginesR = (map[CFG_SEARCH_ENGINES]);
+			arg.EnginesStr = (map[CFG_SEARCH_ENGINES]);
 
-			arg.PriorityEnginesR = map[CFG_PRIORITY_ENGINES];
+			arg.PriorityEnginesStr = map[CFG_PRIORITY_ENGINES];
 
 
 			arg.ImgurAuth    = map[CFG_IMGUR_CLIENT_ID];
 			arg.SauceNaoAuth = map[CFG_SAUCENAO_APIKEY];
 
-			arg.CfgFallback = true;
+			arg.IsFromFile = true;
 
 
 			return arg;
@@ -134,7 +133,7 @@ namespace SmartImage
 			sb.AppendFormat("Imgur auth: {0}\n", ImgurAuth);
 			sb.AppendFormat("SauceNao auth: {0}\n", SauceNaoAuth);
 			sb.AppendFormat("Image: {0}\n", Image);
-			sb.AppendFormat("Config fallback: {0}\n", CfgFallback);
+			sb.AppendFormat("Config fallback: {0}\n", IsFromFile);
 
 			return sb.ToString();
 		}
@@ -143,5 +142,7 @@ namespace SmartImage
 		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
 		private const string CFG_SEARCH_ENGINES   = "search_engines";
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
+		
+		
 	}
 }

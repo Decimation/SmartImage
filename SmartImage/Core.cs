@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using CommandLine;
 using Neocmd;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -30,50 +31,53 @@ namespace SmartImage
 
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
-		public const string REG_SUBKEY = @"SOFTWARE\SmartImage";
-
-		public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
-
+		public const string REG_SUBKEY    = @"SOFTWARE\SmartImage";
+		public const string REG_SHELL     = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
 		public const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
 
 		public static string AppFolder {
 			get {
 				string folder = Path.GetDirectoryName(ExeLocation);
-				Debug.Assert(folder!=null);
+				Debug.Assert(folder != null);
 				return folder;
 			}
 		}
 
 		internal static void Setup(string[] args)
 		{
-			CoreCfg = CliUtilities.ReadConfig(args);
-			Console.WriteLine("read verbs");
-			CliUtilities.ReadFuncs(args);
-			
-			/*if (!File.Exists(ConfigLocation)) {
+			Config = CliParse.ReadConfig(args);
+
+			if (!File.Exists(ConfigLocation)) {
 				var f = File.Create(ConfigLocation);
 				f.Close();
-				CmdFunctions.Reset.RunReset();
+				CliParse.Reset.RunReset();
 			}
 
-			
+
 			// todo
 			if (!IsAppFolderInPath) {
-				CmdFunctions.Path.AddToPath();
-			}*/
+				CliParse.Path.Add();
+			}
 
-			
+			var verbs = CliParse.LoadVerbs()
+			                    .Select(t => t.GetCustomAttribute<VerbAttribute>())
+			                    .Select(v => v.Name);
+
+			// todo: tmp
+			if (verbs.Any(v => v == args[0])) {
+				CliParse.ReadFuncs(args);
+				Config.Image = null;
+			}
 		}
 
 		/// <summary>
 		/// User config & arguments
 		/// </summary>
-		public static Config CoreCfg { get; internal set; }
-		
+		public static Config Config { get; internal set; }
+
 		public static string ConfigLocation {
 			get { return Path.Combine(AppFolder, NAME_CFG); }
 		}
-
 
 		public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
@@ -108,26 +112,6 @@ namespace SmartImage
 		public static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
 
 
-		public static ReleaseInfo LatestRelease()
-		{
-			// todo
-			var rc = new RestClient("https://api.github.com/");
-			var re = new RestRequest("repos/Decimation/SmartImage/releases");
-			var rs = rc.Execute(re);
-			var ja = JArray.Parse(rs.Content);
-
-			var first = ja[0];
-
-
-			var tagName = first["tag_name"];
-			var url     = first["html_url"];
-			var publish = first["published_at"];
-
-			var r = new ReleaseInfo(tagName.ToString(), url.ToString(), publish.ToString());
-			return r;
-		}
-
-
 		private static string FindExecutableLocation(string exe)
 		{
 			string path = ExplorerSystem.FindExectableInPath(exe);
@@ -142,7 +126,7 @@ namespace SmartImage
 
 				// SPECIAL CASE: app folder is not in path, continuing past here causes a stack overflow
 				// todo
-				
+
 
 				/*if (Try(AppFolder, exe, out path)) {
 					return path;

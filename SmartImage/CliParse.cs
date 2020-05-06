@@ -8,11 +8,12 @@ using CommandLine;
 using JetBrains.Annotations;
 using Neocmd;
 using SmartImage.Engines.SauceNao;
+using SmartImage.Model;
 using SmartImage.Searching;
 
 namespace SmartImage
 {
-	public static class CmdFunctions
+	public static class CliParse
 	{
 		public static List<Type> LoadVerbs()
 		{
@@ -21,38 +22,21 @@ namespace SmartImage
 		}
 
 		[Verb("image", true)]
-		public class Img
+		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+		public sealed class Img
 		{
-			[Value(0)]
-			public string Path { get; set; }
-
-			public override string ToString()
-			{
-				var sb = new StringBuilder();
-				sb.AppendFormat("path: {0}\n", Path);
-				return sb.ToString();
-			}
+			[Value(0, Required = true)]
+			public string Location { get; set; }
 		}
 
 		[Verb("ctx-menu")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class ContextMenu
+		public sealed class ContextMenu : IIntegrated
 		{
-			[Option]
-			public bool Add { get; set; }
+			[Value(0, Required = true)]
+			public string AddOrRem { get; set; }
 
-			[Option]
-			public bool Remove { get; set; }
-
-			public override string ToString()
-			{
-				var sb = new StringBuilder();
-				sb.AppendFormat("Add: {0}\n", Add);
-				sb.AppendFormat("Remove: {0}\n", Remove);
-				return sb.ToString();
-			}
-
-			public static void RemoveFromContextMenu()
+			public static void Remove()
 			{
 				// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
 
@@ -67,7 +51,7 @@ namespace SmartImage
 				Cli.CreateRunBatchFile("rem_from_menu.bat", code);
 			}
 
-			public static void AddToContextMenu()
+			public static void Add()
 			{
 				string fullPath = Core.ExeLocation;
 
@@ -75,7 +59,7 @@ namespace SmartImage
 					bool v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
 
 					if (v) {
-						Path.AddToPath();
+						Path.Add();
 						return;
 					}
 
@@ -109,19 +93,12 @@ namespace SmartImage
 
 		[Verb("path")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class Path
+		public sealed class Path : IIntegrated
 		{
-			[Option]
-			public bool Add { get; set; }
-
-			public override string ToString()
-			{
-				var sb = new StringBuilder();
-				sb.AppendFormat("Add: {0}\n", Add);
-				return sb.ToString();
-			}
-
-			public static void AddToPath()
+			[Value(0, Required = true)]
+			public string AddOrRem { get; set; }
+			
+			public static void Add()
 			{
 				string oldValue = ExplorerSystem.EnvironmentPath;
 
@@ -148,7 +125,7 @@ namespace SmartImage
 				}
 			}
 
-			public static void RemoveFromPath() => ExplorerSystem.RemoveFromPath(Core.AppFolder);
+			public static void Remove() => ExplorerSystem.RemoveFromPath(Core.AppFolder);
 		}
 
 		[Verb("create-saucenao")]
@@ -157,13 +134,6 @@ namespace SmartImage
 		{
 			[Option]
 			public bool Auto { get; set; }
-
-			public override string ToString()
-			{
-				var sb = new StringBuilder();
-				sb.AppendFormat("Auto: {0}\n", Auto);
-				return sb.ToString();
-			}
 		}
 
 		[Verb("reset")]
@@ -173,26 +143,19 @@ namespace SmartImage
 			[Option]
 			public bool All { get; set; }
 
-			public override string ToString()
-			{
-				var sb = new StringBuilder();
-				sb.AppendFormat("All: {0}\n", All);
-				return sb.ToString();
-			}
-
 			public static void RunReset(bool all = false)
 			{
-				Core.CoreCfg.Engines         = SearchEngines.All;
-				Core.CoreCfg.PriorityEngines = SearchEngines.SauceNao;
-				Core.CoreCfg.ImgurAuth       = String.Empty;
-				Core.CoreCfg.SauceNaoAuth    = String.Empty;
+				Core.Config.Engines         = SearchEngines.All;
+				Core.Config.PriorityEngines = SearchEngines.SauceNao;
+				Core.Config.ImgurAuth       = String.Empty;
+				Core.Config.SauceNaoAuth    = String.Empty;
 
 				// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
-				ContextMenu.RemoveFromContextMenu();
+				ContextMenu.Remove();
 
 				if (all) {
-					Path.RemoveFromPath();
+					Path.Remove();
 					CliOutput.WriteSuccess("Removed from path");
 					return;
 				}
@@ -217,16 +180,16 @@ namespace SmartImage
 			{
 				Console.Clear();
 
-				CliOutput.WriteInfo("Search engines: {0}", Core.CoreCfg.Engines);
-				CliOutput.WriteInfo("Priority engines: {0}", Core.CoreCfg.PriorityEngines);
+				CliOutput.WriteInfo("Search engines: {0}", Core.Config.Engines);
+				CliOutput.WriteInfo("Priority engines: {0}", Core.Config.PriorityEngines);
 
-				var sn     = Core.CoreCfg.SauceNaoAuth;
+				var sn     = Core.Config.SauceNaoAuth;
 				var snNull = String.IsNullOrWhiteSpace(sn);
 
 				CliOutput.WriteInfo("SauceNao authentication: {0} ({1})", snNull ? CliOutput.MUL_SIGN.ToString() : sn,
 				                    snNull ? "Basic" : "Advanced");
 
-				var  imgur     = Core.CoreCfg.ImgurAuth;
+				var  imgur     = Core.Config.ImgurAuth;
 				bool imgurNull = String.IsNullOrWhiteSpace(imgur);
 				CliOutput.WriteInfo("Imgur authentication: {0}", imgurNull ? CliOutput.MUL_SIGN.ToString() : imgur);
 
@@ -250,7 +213,7 @@ namespace SmartImage
 				var currentVersion = asm.Version;
 				CliOutput.WriteInfo("Current version: {0}", currentVersion);
 
-				var release = Core.LatestRelease();
+				var release = ReleaseInfo.LatestRelease();
 				CliOutput.WriteInfo("Latest version: {0} (tag {1}) ({2})", release.Version, release.TagName,
 				                    release.PublishedAt);
 
@@ -266,6 +229,67 @@ namespace SmartImage
 					CliOutput.WriteInfo("(preview)");
 				}
 			}
+		}
+
+		public static void ReadFuncs(string[] args)
+		{
+			/*
+			 * Verbs 
+			 */
+
+			var result = Parser.Default.ParseArguments<ContextMenu, Path,
+				CreateSauceNao, Reset, Info>(args);
+
+			result.WithParsed<ContextMenu>(c1 =>
+			{
+				var c = (IIntegrated) c1;
+				if (c.Add) {
+					ContextMenu.Add();
+				}
+				else {
+					ContextMenu.Remove();
+				}
+			});
+			result.WithParsed<Path>(c1 =>
+			{
+				var c = (IIntegrated) c1;
+				if (c.Add) {
+					Path.Add();
+				}
+				else {
+					Path.Remove();
+				}
+			});
+			result.WithParsed<CreateSauceNao>(c => { SauceNao.CreateAccount(c.Auto); });
+			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
+			result.WithParsed<Info>(c => { Info.ShowInfo(c.Full); });
+
+			//ReadFuncs(args);
+		}
+
+		public static Config ReadConfig(string[] args)
+		{
+			/*
+			 * Options 
+			 */
+
+			//
+			var cfg = new Config();
+			
+			var result = Parser.Default.ParseArguments<Config>(args);
+
+			result.WithParsed<Config>(p =>
+			{
+				//
+				cfg = p;
+			});
+			
+			if (cfg.IsEmpty) {
+				Config.ReadFromFile(cfg, Core.ConfigLocation);
+			}
+
+
+			return cfg;
 		}
 	}
 }

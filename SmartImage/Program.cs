@@ -25,7 +25,7 @@ namespace SmartImage
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64
-		// copy SmartImage.exe C:\Users\Deci\AppData\Local\SmartImage /Y
+
 		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
 		// dotnet publish -c Release -r win10-x64
 
@@ -43,41 +43,37 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
+			if (args == null || args.Length == 0) {
+				return;
+			}
+
 			//Commands.Setup();
 			Core.Setup(args);
 
 
-
-			Console.WriteLine("cfg:");
-			Console.WriteLine(Core.CoreCfg);
-			
-			return;
-			
 			/*
 			 * Run 
 			 */
-			
-			var  auth     = Core.CoreCfg.ImgurAuth;
+
+			var  auth     = Core.Config.ImgurAuth;
 			bool useImgur = !string.IsNullOrWhiteSpace(auth);
 
-			var engines  = Core.CoreCfg.Engines;
-			var priority = Core.CoreCfg.PriorityEngines;
+			var engines  = Core.Config.Engines;
+			var priority = Core.Config.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
 				CliOutput.WriteError("Please configure search engine preferences!");
 				return;
 			}
 
-			CliOutput.WriteInfo("Engines: {0}", engines);
-			CliOutput.WriteInfo("Priority engines: {0}", priority);
 
-			string img = args[0];
+			string img = Core.Config.Image;
 
 			if (!Search.IsFileValid(img)) {
 				return;
 			}
 
-			CliOutput.WriteInfo("Source image: {0}", img);
+			Console.WriteLine(Core.Config);
 
 			string imgUrl = Search.Upload(img, useImgur);
 
