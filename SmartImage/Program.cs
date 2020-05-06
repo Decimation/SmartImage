@@ -6,13 +6,13 @@ using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using Neocmd;
 using RapidSelenium;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 using CommandLine;
+using Neocmd;
 
 #endregion
 
@@ -24,6 +24,7 @@ namespace SmartImage
 
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
+		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64
 		// copy SmartImage.exe C:\Users\Deci\AppData\Local\SmartImage /Y
 		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
 		// dotnet publish -c Release -r win10-x64
@@ -38,85 +39,29 @@ namespace SmartImage
 		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
 		// C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
-		
+
 
 		private static void Main(string[] args)
 		{
 			//Commands.Setup();
-			Config.Setup();
+			AltConfig.Setup(args);
 
 
-			var result = Parser.Default.ParseArguments<CliUtilities.Arguments>(args);
 
-			var resultOptions = result.WithParsed(cmds =>
-			{
-				/*
-				 * Parse 
-				 */
-				Console.WriteLine(cmds);
-			});
-
-			var types = CliUtilities.LoadVerbs();
-
-			Parser.Default.ParseArguments(args, types)
-			      .WithParsed(CliUtilities.Run)
-			      .WithNotParsed(CliUtilities.HandleErrors);
+			Console.WriteLine("cfg:");
+			Console.WriteLine(AltConfig.CoreCfg);
 			
-			/*var verbOptions = result.WithParsed<CtxMenuOptions>(ctxMenu =>
-			{
-				Console.WriteLine(ctxMenu);
-			});*/
-
 			return;
+			
+			/*
+			 * Run 
+			 */
+			
+			var  auth     = AltConfig.CoreCfg.ImgurAuth;
+			bool useImgur = !string.IsNullOrWhiteSpace(auth);
 
-			if (args == null || args.Length < 1) {
-				CliOutput.WriteError("Image or command not specified!");
-				CliOutput.WriteCommands();
-				return;
-			}
-
-			var arg = args[0];
-
-			if (arg == "--test") {
-				// ...
-
-				return;
-			}
-			else if (arg == "--qr") {
-				// Display commands with autocompletion
-
-				Console.Clear();
-
-				var commands = Commands.AllCommands.Select(c => c.Parameter).ToArray();
-
-				Console.WriteLine("Available commands:\n");
-
-				foreach (var c in commands)
-					Console.WriteLine(c);
-
-				Console.WriteLine("\nEnter a command:");
-
-				var input = Commands.ReadHintedLine(commands, c => c);
-
-				Console.WriteLine($"\n>> {input}");
-
-				args = input.Split(' ');
-				arg  = args[0];
-			}
-
-			// Run the command if one was parsed
-			var cmd = CliOutput.ReadCommand(arg);
-
-			if (cmd != null) {
-				cmd.Action(args);
-				return;
-			}
-
-			var  auth     = Config.ImgurAuth;
-			bool useImgur = !auth.IsNull;
-
-			var engines  = Config.SearchEngines;
-			var priority = Config.PriorityEngines;
+			var engines  = AltConfig.CoreCfg.Engines;
+			var priority = AltConfig.CoreCfg.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
 				CliOutput.WriteError("Please configure search engine preferences!");

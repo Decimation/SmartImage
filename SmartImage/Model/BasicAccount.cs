@@ -3,11 +3,11 @@ using System.Text;
 
 namespace SmartImage.Model
 {
-	public readonly struct GenericAccount
+	public readonly struct BasicAccount
 	{
-		public static readonly GenericAccount Null = new GenericAccount();
+		public static readonly BasicAccount Null = new BasicAccount();
 
-		public GenericAccount(string username, string password, string email, string apiKey)
+		public BasicAccount(string username, string password, string email, string apiKey)
 		{
 			Username = username;
 			Password = password;
@@ -22,7 +22,7 @@ namespace SmartImage.Model
 
 		public bool IsNull => this == Null;
 
-		public bool Equals(GenericAccount other)
+		public bool Equals(BasicAccount other)
 		{
 			return Username == other.Username && Password == other.Password && Email == other.Email &&
 			       ApiKey == other.ApiKey;
@@ -30,7 +30,7 @@ namespace SmartImage.Model
 
 		public override bool Equals(object obj)
 		{
-			return obj is GenericAccount other && Equals(other);
+			return obj is BasicAccount other && Equals(other);
 		}
 
 		public override int GetHashCode()
@@ -38,12 +38,12 @@ namespace SmartImage.Model
 			return HashCode.Combine(Username, Password, Email, ApiKey);
 		}
 
-		public static bool operator ==(GenericAccount left, GenericAccount right)
+		public static bool operator ==(BasicAccount left, BasicAccount right)
 		{
 			return left.Equals(right);
 		}
 
-		public static bool operator !=(GenericAccount left, GenericAccount right)
+		public static bool operator !=(BasicAccount left, BasicAccount right)
 		{
 			return !left.Equals(right);
 		}

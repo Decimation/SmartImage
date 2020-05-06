@@ -63,7 +63,7 @@ namespace SmartImage.Engines.SauceNao
 			m_apiKey = apiKey;
 		}
 
-		public SauceNao() : this(Config.SauceNaoAuth.Id) { }
+		public SauceNao() : this(AltConfig.CoreCfg.SauceNaoAuth) { }
 
 		private SauceNaoResult[] GetApiResults(string url)
 		{
@@ -167,7 +167,7 @@ namespace SmartImage.Engines.SauceNao
 			return new SearchResult(null, Name);
 		}
 
-		public static GenericAccount CreateAccount(bool auto)
+		public static BasicAccount CreateAccount(bool auto)
 		{
 			RapidWebDriver rwd;
 
@@ -181,7 +181,7 @@ namespace SmartImage.Engines.SauceNao
 				//throw;
 				CliOutput.WriteError("Error creating webdriver");
 
-				return GenericAccount.Null;
+				return BasicAccount.Null;
 			}
 
 			string uname, pwd, email;
@@ -229,11 +229,11 @@ namespace SmartImage.Engines.SauceNao
 				//throw;
 				CliOutput.WriteError("Error creating account");
 
-				return GenericAccount.Null;
+				return BasicAccount.Null;
 			}
 		}
 
-		private static GenericAccount CreateAccountInternal(RapidWebDriver rwd,
+		private static BasicAccount CreateAccountInternal(RapidWebDriver rwd,
 		                                                    string         username = null,
 		                                                    string         email    = null,
 		                                                    string         password = null)
@@ -267,7 +267,7 @@ namespace SmartImage.Engines.SauceNao
 
 			if (cd.Url != ACC_OV_URL || !response.Contains("welcome")) {
 				CliOutput.WriteError("Error registering: {0} (body: {1})", cd.Url, response);
-				return GenericAccount.Null;
+				return BasicAccount.Null;
 			}
 
 			CliOutput.WriteSuccess("Success!");
@@ -279,7 +279,7 @@ namespace SmartImage.Engines.SauceNao
 			var apiEle  = cd.FindElement(ByApiKey);
 			var apiText = apiEle.Text.Split(' ')[2];
 
-			return new GenericAccount(username, password, email, apiText);
+			return new BasicAccount(username, password, email, apiText);
 		}
 	}
 }
