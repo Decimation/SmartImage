@@ -44,12 +44,12 @@ namespace SmartImage
 		private static void Main(string[] args)
 		{
 			//Commands.Setup();
-			AltConfig.Setup(args);
+			Core.Setup(args);
 
 
 
 			Console.WriteLine("cfg:");
-			Console.WriteLine(AltConfig.CoreCfg);
+			Console.WriteLine(Core.CoreCfg);
 			
 			return;
 			
@@ -57,11 +57,11 @@ namespace SmartImage
 			 * Run 
 			 */
 			
-			var  auth     = AltConfig.CoreCfg.ImgurAuth;
+			var  auth     = Core.CoreCfg.ImgurAuth;
 			bool useImgur = !string.IsNullOrWhiteSpace(auth);
 
-			var engines  = AltConfig.CoreCfg.Engines;
-			var priority = AltConfig.CoreCfg.PriorityEngines;
+			var engines  = Core.CoreCfg.Engines;
+			var priority = Core.CoreCfg.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
 				CliOutput.WriteError("Please configure search engine preferences!");

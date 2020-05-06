@@ -11,78 +11,14 @@ namespace SmartImage
 {
 	public static class CliUtilities
 	{
-		public static void HandleErrors(object obj)
-		{
-			Console.WriteLine("error: {0}", obj);
-		}
-
-		private static void ReadFuncs(string[] args)
+		public static void ReadFuncs(string[] args)
 		{
 			/*
 			 * Verbs 
 			 */
 
-			var types = LoadVerbs();
-			types.Add(typeof(ArgConfig));
-
-
-			Parser.Default.ParseArguments(args, types.ToArray())
-			      .WithParsed(o =>
-			       {
-				       Console.WriteLine("parse: {0}", o);
-				       var obj = Run(o, args);
-			       })
-			      .WithNotParsed(CliUtilities.HandleErrors);
-		}
-
-		public static ArgConfig ReadConfig(string[] args)
-		{
-			/*
-			 * Options 
-			 */
-
-			//
-			ArgConfig cfg = new ArgConfig();
-
-
-			/*var r1 = Parser.Default.ParseArguments<ArgConfig>(args);
-			r1.WithParsed(p => { cfg = p; });
-			if (cfg != null) {
-				if (cfg.__simple) {
-					Console.WriteLine("using cfg file fallback");
-
-					bool imgOnly = args.Length == 1;
-					if (!imgOnly) {
-						Console.WriteLine("????");
-					}
-
-					ArgConfig.ReadFromFile(cfg, AltConfig.ConfigLocation);
-				}
-			}*/
-			var r1 = Parser.Default.ParseArguments<ArgConfig, ContextMenu, Path,
+			var r1 = Parser.Default.ParseArguments<ContextMenu, Path,
 				CreateSauceNao, Reset, Info>(args);
-
-			r1.WithParsed<ArgConfig>(p =>
-			{
-				cfg = p;
-
-				
-			});
-			
-			
-			
-			if (cfg != null) {
-				if (cfg.__simple) {
-					Console.WriteLine("using cfg file fallback");
-
-					bool imgOnly = args.Length == 1;
-					if (!imgOnly) {
-						Console.WriteLine("????");
-					}
-
-					ArgConfig.ReadFromFile(cfg, AltConfig.ConfigLocation);
-				}
-			}
 
 			r1.WithParsed<ContextMenu>(c =>
 			{
@@ -107,6 +43,32 @@ namespace SmartImage
 			r1.WithParsed<Info>(c => { Info.ShowInfo(c.Full); });
 
 			//ReadFuncs(args);
+		}
+
+		public static Config ReadConfig(string[] args)
+		{
+			/*
+			 * Options 
+			 */
+
+			//
+			Config cfg = new Config();
+
+
+			var r1 = Parser.Default.ParseArguments<Config, Img>(args);
+
+			r1.WithParsed<Config>(p => { cfg = p; });
+
+
+			if (cfg != null) {
+				if (cfg.__simple) {
+					Console.WriteLine("using cfg file fallback");
+
+
+					Config.ReadFromFile(cfg, Core.ConfigLocation);
+				}
+			}
+
 
 			return cfg;
 		}

@@ -23,7 +23,7 @@ namespace SmartImage.Utilities.Imgur
 			m_apiKey = apiKey;
 		}
 
-		public Imgur() : this(AltConfig.CoreCfg.ImgurAuth) { }
+		public Imgur() : this(Core.CoreCfg.ImgurAuth) { }
 
 		public string Upload(string path)
 		{

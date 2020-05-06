@@ -17,7 +17,7 @@ namespace SmartImage
 	// todo
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public class ArgConfig
+	public class Config
 	{
 		[Option("search-engines")]
 		public string EnginesR { get; set; }
@@ -68,7 +68,7 @@ namespace SmartImage
 			return (T) e;
 		}
 
-		public static ArgConfig ReadFromFile(ArgConfig arg,string location)
+		public static Config ReadFromFile(Config arg,string location)
 		{
 			
 			var map = ExplorerSystem.ReadMap(location);

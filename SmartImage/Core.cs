@@ -20,7 +20,7 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
-	public static class AltConfig
+	public static class Core
 	{
 		public const string NAME = "SmartImage";
 
@@ -47,7 +47,8 @@ namespace SmartImage
 		internal static void Setup(string[] args)
 		{
 			CoreCfg = CliUtilities.ReadConfig(args);
-			
+			Console.WriteLine("read verbs");
+			CliUtilities.ReadFuncs(args);
 			
 			/*if (!File.Exists(ConfigLocation)) {
 				var f = File.Create(ConfigLocation);
@@ -67,7 +68,7 @@ namespace SmartImage
 		/// <summary>
 		/// User config & arguments
 		/// </summary>
-		public static ArgConfig CoreCfg { get; internal set; }
+		public static Config CoreCfg { get; internal set; }
 		
 		public static string ConfigLocation {
 			get { return Path.Combine(AppFolder, NAME_CFG); }
