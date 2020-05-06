@@ -18,6 +18,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
         <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
         <PackageReference Include="Neocmd" Version="1.0.8" />

@@ -4,12 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.IO.Compression;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using Neocmd;
 using RapidSelenium;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
+using CommandLine;
 
 #endregion
 
@@ -36,11 +39,90 @@ namespace SmartImage
 
 		// C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
 
+		public class MyClass
+		{
+			[Option("search-engines", Separator = ',')]
+			public SearchEngines Engines { get; set; }
+
+			[Option("priority-engines", Separator = ',')]
+			public SearchEngines PriorityEngines { get; set; }
+
+			[Option("imgur-auth")]
+			public string ImgurAuth { get; set; }
+
+			[Option("saucenao-auth")]
+			public string SauceNaoAuth { get; set; }
+
+
+			public override string ToString()
+			{
+				var sb = new StringBuilder();
+
+				sb.AppendFormat("Search engines: {0}\n", Engines);
+				sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
+				sb.AppendFormat("Imgur auth: {0}\n", ImgurAuth);
+				sb.AppendFormat("SauceNao auth: {0}\n", SauceNaoAuth);
+
+				return sb.ToString();
+			}
+		}
+
+		[Verb("ctx-menu")]
+		public class CtxMenuOptions
+		{
+			public bool Add { get; set; }
+
+			public override string ToString()
+			{
+				var sb = new StringBuilder();
+				sb.AppendFormat("Add: {0}\n", Add);
+				return sb.ToString();
+			}
+		}
+
+		//load all types using Reflection
+		private static Type[] LoadVerbs()
+		{
+			return Assembly.GetExecutingAssembly().GetTypes()
+			               .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToArray();
+		}
+
+		private static void Run(object obj)
+		{
+			switch (obj) {
+				case CtxMenuOptions c:
+					//process CloneOptions
+					Console.WriteLine(c);
+					break;
+			}
+		}
+
+		private static void HandleErrors(object obj)
+		{
+			Console.WriteLine("error");
+		}
+
 		private static void Main(string[] args)
 		{
-			Commands.Setup();
+			//Commands.Setup();
 			Config.Setup();
 
+
+			var result = Parser.Default.ParseArguments<MyClass>(args);
+
+			var resultOptions = result.WithParsed(cmds => { Console.WriteLine(cmds); });
+
+			var types = LoadVerbs();
+
+			Parser.Default.ParseArguments(args, types)
+			      .WithParsed(Run)
+			      .WithNotParsed(HandleErrors);
+			/*var verbOptions = result.WithParsed<CtxMenuOptions>(ctxMenu =>
+			{
+				Console.WriteLine(ctxMenu);
+			});*/
+
+			return;
 
 			if (args == null || args.Length < 1) {
 				CliOutput.WriteError("Image or command not specified!");
@@ -57,7 +139,7 @@ namespace SmartImage
 			}
 			else if (arg == "--qr") {
 				// Display commands with autocompletion
-				
+
 				Console.Clear();
 
 				var commands = Commands.AllCommands.Select(c => c.Parameter).ToArray();
@@ -66,15 +148,15 @@ namespace SmartImage
 
 				foreach (var c in commands)
 					Console.WriteLine(c);
-				
+
 				Console.WriteLine("\nEnter a command:");
 
 				var input = Commands.ReadHintedLine(commands, c => c);
-				
+
 				Console.WriteLine($"\n>> {input}");
 
 				args = input.Split(' ');
-				arg = args[0];
+				arg  = args[0];
 			}
 
 			// Run the command if one was parsed
