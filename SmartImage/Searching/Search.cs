@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Neocmd;
+using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;

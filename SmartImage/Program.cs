@@ -12,7 +12,8 @@ using SmartImage.Model;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 using CommandLine;
-using Neocmd;
+using SimpleCore;
+using SimpleCore.Utilities;
 
 #endregion
 
@@ -22,9 +23,11 @@ namespace SmartImage
 	{
 		// @"C:\Users\Deci\Desktop\test.jpg";
 
-		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
-		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64
+		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
+
+		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
+
 
 		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
 		// dotnet publish -c Release -r win10-x64
@@ -47,7 +50,10 @@ namespace SmartImage
 				return;
 			}
 
-			//Commands.Setup();
+#if DEBUG
+			Console.WriteLine("args: {0}", string.Join(',', args));
+#endif
+			
 			Core.Setup(args);
 
 			if (Core.Config.Image == null) {
@@ -55,7 +61,7 @@ namespace SmartImage
 			}
 
 			//Console.WriteLine(Core.Config);
-			
+
 			/*
 			 * Run 
 			 */
@@ -65,6 +71,7 @@ namespace SmartImage
 
 			var engines  = Core.Config.Engines;
 			var priority = Core.Config.PriorityEngines;
+
 
 			if (engines == SearchEngines.None) {
 				CliOutput.WriteError("Please configure search engine preferences!");
@@ -85,6 +92,8 @@ namespace SmartImage
 			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
 
 			Console.WriteLine();
+
+			Console.ReadLine();
 
 			//
 			// 

@@ -6,7 +6,8 @@ using System.Reflection;
 using System.Text;
 using CommandLine;
 using JetBrains.Annotations;
-using Neocmd;
+using SimpleCore;
+using SimpleCore.Utilities;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
@@ -21,9 +22,79 @@ namespace SmartImage
 			               .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToList();
 		}
 
+		public static void ReadFuncs(string[] args)
+		{
+			/*
+			 * Verbs 
+			 */
+
+			var result = Parser.Default.ParseArguments<ContextMenu, Path,
+				CreateSauceNao, Reset, Info, Image>(args);
+
+			// todo
+
+			result.WithParsed<ContextMenu>(c1 =>
+			{
+				var c = (IIntegrated) c1;
+				if (c.Add) {
+					ContextMenu.Add();
+				}
+				else if (c.Remove) {
+					ContextMenu.Remove();
+				}
+				else {
+					CliOutput.WriteError("Option unknown: {0}", c.Option);
+				}
+			});
+			result.WithParsed<Path>(c1 =>
+			{
+				var c = (IIntegrated) c1;
+				if (c.Add) {
+					Path.Add();
+				}
+				else if (c.Remove) {
+					Path.Remove();
+				}
+				else {
+					CliOutput.WriteError("Option unknown: {0}", c.Option);
+				}
+			});
+			result.WithParsed<CreateSauceNao>(c => { SauceNao.CreateAccount(c.Auto); });
+			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
+			result.WithParsed<Info>(c => { Info.Show(); });
+			result.WithParsed<Image>(c => { Console.WriteLine("img: {0}", c.Location); });
+
+			//ReadFuncs(args);
+		}
+
+		public static Config ReadConfig(string[] args)
+		{
+			/*
+			 * Options 
+			 */
+
+			//
+			var cfg = new Config();
+
+			var result = Parser.Default.ParseArguments<Config>(args);
+
+			result.WithParsed<Config>(p =>
+			{
+				//
+				cfg = p;
+			});
+
+			if (cfg.IsEmpty) {
+				Config.ReadFromFile(cfg, Core.ConfigLocation);
+			}
+
+
+			return cfg;
+		}
+
 		[Verb("image", true)]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class Img
+		public sealed class Image
 		{
 			[Value(0, Required = true)]
 			public string Location { get; set; }
@@ -34,7 +105,7 @@ namespace SmartImage
 		public sealed class ContextMenu : IIntegrated
 		{
 			[Value(0, Required = true)]
-			public string AddOrRem { get; set; }
+			public string Option { get; set; }
 
 			public static void Remove()
 			{
@@ -96,10 +167,12 @@ namespace SmartImage
 		public sealed class Path : IIntegrated
 		{
 			[Value(0, Required = true)]
-			public string AddOrRem { get; set; }
-			
+			public string Option { get; set; }
+
 			public static void Add()
 			{
+				CliOutput.WriteInfo("Adding to path");
+				
 				string oldValue = ExplorerSystem.EnvironmentPath;
 
 				string appFolder = Core.AppFolder;
@@ -132,7 +205,7 @@ namespace SmartImage
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class CreateSauceNao
 		{
-			[Option]
+			[Value(0)]
 			public bool Auto { get; set; }
 		}
 
@@ -140,15 +213,12 @@ namespace SmartImage
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class Reset
 		{
-			[Option]
+			[Value(0)]
 			public bool All { get; set; }
 
 			public static void RunReset(bool all = false)
 			{
-				Core.Config.Engines         = SearchEngines.All;
-				Core.Config.PriorityEngines = SearchEngines.SauceNao;
-				Core.Config.ImgurAuth       = String.Empty;
-				Core.Config.SauceNaoAuth    = String.Empty;
+				Core.Config.Reset();
 
 				// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
@@ -166,17 +236,7 @@ namespace SmartImage
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class Info
 		{
-			[Option]
-			public bool Full { get; set; }
-
-			public override string ToString()
-			{
-				var sb = new StringBuilder();
-				sb.AppendFormat("Full: {0}\n", Full);
-				return sb.ToString();
-			}
-
-			internal static void ShowInfo(bool full)
+			internal static void Show()
 			{
 				Console.Clear();
 
@@ -229,71 +289,6 @@ namespace SmartImage
 					CliOutput.WriteInfo("(preview)");
 				}
 			}
-		}
-
-		public static void ReadFuncs(string[] args)
-		{
-			/*
-			 * Verbs 
-			 */
-
-			var result = Parser.Default.ParseArguments<ContextMenu, Path,
-				CreateSauceNao, Reset, Info, Img>(args);
-
-			result.WithParsed<ContextMenu>(c1 =>
-			{
-				var c = (IIntegrated) c1;
-				if (c.Add) {
-					ContextMenu.Add();
-				}
-				else {
-					ContextMenu.Remove();
-				}
-			});
-			result.WithParsed<Path>(c1 =>
-			{
-				var c = (IIntegrated) c1;
-				if (c.Add) {
-					Path.Add();
-				}
-				else {
-					Path.Remove();
-				}
-			});
-			result.WithParsed<CreateSauceNao>(c => { SauceNao.CreateAccount(c.Auto); });
-			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
-			result.WithParsed<Info>(c => { Info.ShowInfo(c.Full); });
-			result.WithParsed<Img>(c =>
-			{
-				Console.WriteLine("img: {0}",c.Location);
-			});
-			
-			//ReadFuncs(args);
-		}
-
-		public static Config ReadConfig(string[] args)
-		{
-			/*
-			 * Options 
-			 */
-
-			//
-			var cfg = new Config();
-			
-			var result = Parser.Default.ParseArguments<Config>(args);
-
-			result.WithParsed<Config>(p =>
-			{
-				//
-				cfg = p;
-			});
-			
-			if (cfg.IsEmpty) {
-				Config.ReadFromFile(cfg, Core.ConfigLocation);
-			}
-
-
-			return cfg;
 		}
 	}
 }

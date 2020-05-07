@@ -14,17 +14,21 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
         <!--<Nullable>enable</Nullable>-->
-        <DefineConstants>JETBRAINS_ANNOTATIONS</DefineConstants>
+        <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     </PropertyGroup>
 
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DefineConstants>DEBUG</DefineConstants>
+    </PropertyGroup>
+    
     <ItemGroup>
         <PackageReference Include="CommandLineParser" Version="2.8.0" />
         <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
         <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-        <PackageReference Include="Neocmd" Version="1.0.9" />
         <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
         <PackageReference Include="RapidSelenium" Version="1.0.2" />
         <PackageReference Include="RestSharp" Version="106.10.1" />
+        <PackageReference Include="SimpleCore" Version="1.0.5" />
         <PackageReference Include="System.Json" Version="4.7.0" />
         
         

@@ -13,6 +13,7 @@ namespace SmartImage.Model
 			PublishedAt = DateTime.Parse(publishedAt); //todo: wrong time
 
 
+			// todo
 			// hacky
 			const string buildRevision = ".0.0";
 			var          versionStr    = tagName.Replace("v", String.Empty) + buildRevision;

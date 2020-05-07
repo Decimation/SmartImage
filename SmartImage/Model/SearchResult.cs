@@ -3,7 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Neocmd;
+using SimpleCore;
+using SimpleCore.Utilities;
 using SmartImage.Utilities;
 
 #endregion

@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Text;
 using CommandLine;
 using JetBrains.Annotations;
-using Neocmd;
+using SimpleCore.Utilities;
 using SmartImage.Searching;
 
 namespace SmartImage
@@ -19,6 +20,11 @@ namespace SmartImage
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class Config
 	{
+		private const string CFG_IMGUR_CLIENT_ID  = "imgur_client_id";
+		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
+		private const string CFG_SEARCH_ENGINES   = "search_engines";
+		private const string CFG_PRIORITY_ENGINES = "priority_engines";
+
 		[Option("engines")]
 		public string EnginesStr { get; set; }
 
@@ -33,8 +39,7 @@ namespace SmartImage
 
 		[Value(0, Required = true)]
 		public string Image { get; set; }
-		
-		
+
 
 		public SearchEngines Engines {
 			get => ParseQ<SearchEngines>(EnginesStr);
@@ -60,6 +65,27 @@ namespace SmartImage
 
 		public bool IsFromFile { get; private set; }
 
+		public IDictionary<string, string> ToMap()
+		{
+			var m = new Dictionary<string, string>
+			{
+				{CFG_SEARCH_ENGINES, Engines.ToString()},
+				{CFG_PRIORITY_ENGINES, PriorityEngines.ToString()},
+				{CFG_IMGUR_CLIENT_ID, ImgurAuth},
+				{CFG_SAUCENAO_APIKEY, SauceNaoAuth}
+			};
+
+			return m;
+		}
+
+		public void Reset()
+		{
+			Engines         = SearchEngines.All;
+			PriorityEngines = SearchEngines.SauceNao;
+			ImgurAuth       = String.Empty;
+			SauceNaoAuth    = String.Empty;
+		}
+
 		private static T ParseQ<T>(string s)
 		{
 			if (string.IsNullOrWhiteSpace(s)) {
@@ -72,16 +98,19 @@ namespace SmartImage
 
 		public static Config ReadFromFile(Config arg, string location)
 		{
+			if (!File.Exists(Core.ConfigLocation)) {
+				var f = File.Create(Core.ConfigLocation);
+				f.Close();
+				arg.Reset();
+				ExplorerSystem.WriteMap(arg.ToMap(), Core.ConfigLocation);
+			}
+
 			var map = ExplorerSystem.ReadMap(location);
 
-
-			arg.EnginesStr = (map[CFG_SEARCH_ENGINES]);
-
-			arg.PriorityEnginesStr = map[CFG_PRIORITY_ENGINES];
-
-
-			arg.ImgurAuth    = map[CFG_IMGUR_CLIENT_ID];
-			arg.SauceNaoAuth = map[CFG_SAUCENAO_APIKEY];
+			arg.EnginesStr         = Read<string>(CFG_SEARCH_ENGINES, map);
+			arg.PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, map);
+			arg.ImgurAuth          = Read<string>(CFG_IMGUR_CLIENT_ID, map);
+			arg.SauceNaoAuth       = Read<string>(CFG_SAUCENAO_APIKEY, map);
 
 			arg.IsFromFile = true;
 
@@ -89,7 +118,7 @@ namespace SmartImage
 			return arg;
 		}
 
-		public void Write<T>(string name, T value, IDictionary<string, string> cfg)
+		public static void Write<T>(string name, T value, IDictionary<string, string> cfg)
 		{
 			var valStr = value.ToString();
 			if (!cfg.ContainsKey(name)) {
@@ -103,8 +132,10 @@ namespace SmartImage
 		}
 
 
-		public T Read<T>(string name, IDictionary<string, string> cfg, bool setDefaultIfNull = false,
-		                 T      defaultValue = default)
+		public static T Read<T>(string                      name,
+		                        IDictionary<string, string> cfg,
+		                        bool                        setDefaultIfNull = false,
+		                        T                           defaultValue     = default)
 		{
 			if (!cfg.ContainsKey(name)) {
 				cfg.Add(name, String.Empty);
@@ -139,12 +170,5 @@ namespace SmartImage
 
 			return sb.ToString();
 		}
-
-		private const string CFG_IMGUR_CLIENT_ID  = "imgur_client_id";
-		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
-		private const string CFG_SEARCH_ENGINES   = "search_engines";
-		private const string CFG_PRIORITY_ENGINES = "priority_engines";
-		
-		
 	}
 }
