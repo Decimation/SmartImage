@@ -50,7 +50,7 @@ Configures the SauceNao API key. Register an application [here](https://saucenao
 
 Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
 
-`--search-engines <engines>`
+`-engines <engines>`
 
 Sets the search engines to use when searching, delimited by commas. See the above list for possible arguments. 
 *Default: `All`*
