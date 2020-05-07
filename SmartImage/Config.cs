@@ -168,6 +168,7 @@ namespace SmartImage
 			sb.AppendFormat("SauceNao auth: {0}\n", SauceNaoAuth);
 			sb.AppendFormat("Image: {0}\n", Image);
 			sb.AppendFormat("Config fallback: {0}\n", IsFromFile);
+			sb.AppendFormat("Empty: {0}\n", IsEmpty);
 
 			return sb.ToString();
 		}

@@ -16,20 +16,12 @@ namespace SmartImage
 {
 	public static class CliParse
 	{
-		public static List<Type> LoadVerbs()
-		{
-			return Assembly.GetExecutingAssembly().GetTypes()
-			               .Where(t => t.GetCustomAttribute<VerbAttribute>() != null).ToList();
-		}
-
-		public static void ReadFuncs(string[] args)
+		public static void ReadArguments(string[] args)
 		{
 			/*
 			 * Verbs 
 			 */
 
-			CliOutput.WriteDebug("parsing verbs");
-			
 			var cfg = new Config();
 			
 			var result = Parser.Default.ParseArguments<Config,ContextMenu, Path,
@@ -39,9 +31,9 @@ namespace SmartImage
 
 			result.WithParsed<Config>(c =>
 			{
-				Console.WriteLine("cfg parsed func");
+				//Console.WriteLine("cfg parsed func");
 				cfg = c;
-				Console.WriteLine(c);
+				//Console.WriteLine(c);
 			});
 			
 			if (cfg.IsEmpty) {
@@ -79,35 +71,6 @@ namespace SmartImage
 			result.WithParsed<CreateSauceNao>(c => { SauceNao.CreateAccount(c.Auto); });
 			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
 			result.WithParsed<Info>(c => { Info.Show(); });
-
-			
-
-			//ReadFuncs(args);
-		}
-
-		public static Config ReadConfig(string[] args)
-		{
-			/*
-			 * Options 
-			 */
-
-			//
-			var cfg = new Config();
-
-			var result = Parser.Default.ParseArguments<Config>(args);
-
-			result.WithParsed<Config>(p =>
-			{
-				//
-				cfg = p;
-			});
-
-			if (cfg.IsEmpty) {
-				Config.ReadFromFile(cfg, Core.ConfigLocation);
-			}
-
-
-			return cfg;
 		}
 
 		[Verb("ctx-menu")]

@@ -29,7 +29,7 @@ namespace SmartImage
 		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
 
 
-		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
+		
 		// dotnet publish -c Release -r win10-x64
 
 		// copy SmartImage.exe C:\Library /Y
@@ -41,117 +41,94 @@ namespace SmartImage
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
-		// C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
-
-
 		private static void Main(string[] args)
 		{
 			if (args == null || args.Length == 0) {
 				return;
 			}
-			
 
-#if DEBUG
-			Console.WriteLine("args: {0}", string.Join(',', args));
-#endif
-			
-			//Core.Config = CliParse.ReadConfig(args);
-
-			var verbs = CliParse.LoadVerbs()
-			                    .Select(t => t.GetCustomAttribute<VerbAttribute>())
-			                    .Select(v => v.Name);
-			
-			CliParse.ReadFuncs(args);
-			
-			// todo: tmp
-			// todo: ??????????
-			if (verbs.Any(v => v == args[0])) {
-				
-				Core.Config.Image = null;
-			}
-			
 			Core.Setup();
 
-			if (Core.Config.Image == null) {
-				return;
-			}
+			CliParse.ReadArguments(args);
 
-			//Console.WriteLine(Core.Config);
+			bool run = Core.Config.Image != null;
 
-			/*
-			 * Run 
-			 */
+			if (run) {
+				/*
+                 * Run 
+                 */
 
-			var  auth     = Core.Config.ImgurAuth;
-			bool useImgur = !string.IsNullOrWhiteSpace(auth);
+				var  auth     = Core.Config.ImgurAuth;
+				bool useImgur = !string.IsNullOrWhiteSpace(auth);
 
-			var engines  = Core.Config.Engines;
-			var priority = Core.Config.PriorityEngines;
+				var engines  = Core.Config.Engines;
+				var priority = Core.Config.PriorityEngines;
 
-
-			if (engines == SearchEngines.None) {
-				CliOutput.WriteError("Please configure search engine preferences!");
-				return;
-			}
-
-
-			string img = Core.Config.Image;
-
-			if (!Search.IsFileValid(img)) {
-				return;
-			}
-
-			Console.WriteLine(Core.Config);
-
-			string imgUrl = Search.Upload(img, useImgur);
-
-			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
-
-			Console.WriteLine();
-
-			Console.ReadLine();
-
-			//
-			// 
-			//
-
-			// Where the actual searching occurs
-			SearchResult[] results = Search.RunSearches(imgUrl, engines);
-
-			ConsoleKeyInfo cki;
-
-			do {
-				Console.Clear();
-
-				for (int i = 0; i < results.Length; i++) {
-					var    r   = results[i];
-					string str = r.Format((i + 1).ToString());
-
-					Console.Write(str);
+				if (engines == SearchEngines.None) {
+					CliOutput.WriteError("Please configure search engine preferences!");
+					return;
 				}
+
+
+				string img = Core.Config.Image;
+
+				if (!Search.IsFileValid(img)) {
+					return;
+				}
+
+				Console.WriteLine(Core.Config);
+
+				string imgUrl = Search.Upload(img, useImgur);
+
+				CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
 
 				Console.WriteLine();
 
-				CliOutput.WriteSuccess("Enter the result number to open or escape to quit.");
+				//
+				// 
+				//
 
-				while (!Console.KeyAvailable) {
-					// Block until input is entered.
-				}
+				// Where the actual searching occurs
+				SearchResult[] results = Search.RunSearches(imgUrl, engines);
 
-				// Key was read
+				ConsoleKeyInfo cki;
 
-				cki = Console.ReadKey(true);
-				char keyChar = cki.KeyChar;
+				do {
+					Console.Clear();
 
-				if (Char.IsNumber(keyChar)) {
-					int idx = (int) Char.GetNumericValue(cki.KeyChar) - 1;
+					for (int i = 0; i < results.Length; i++) {
+						var    r   = results[i];
+						string str = r.Format((i + 1).ToString());
 
-					if (idx < results.Length) {
-						var res = results[idx];
-						WebAgent.OpenUrl(res.Url);
+						Console.Write(str);
 					}
-				}
-			} while (cki.Key != ConsoleKey.Escape);
+
+					Console.WriteLine();
+
+					CliOutput.WriteSuccess("Enter the result number to open or escape to quit.");
+
+					while (!Console.KeyAvailable) {
+						// Block until input is entered.
+					}
+
+					// Key was read
+
+					cki = Console.ReadKey(true);
+					char keyChar = cki.KeyChar;
+
+					if (Char.IsNumber(keyChar)) {
+						int idx = (int) Char.GetNumericValue(cki.KeyChar) - 1;
+
+						if (idx < results.Length) {
+							var res = results[idx];
+							WebAgent.OpenUrl(res.Url);
+						}
+					}
+				} while (cki.Key != ConsoleKey.Escape);
+			}
+			else {
+				CliOutput.WriteInfo("Not running search");
+			}
 		}
 	}
 }
