@@ -40,17 +40,10 @@ Search engine names and configuration:
 
 ![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
 
-# Commands
 
-`--set-saucenao-auth <api key>`
+# Options
 
-Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api). If this is configured, SmartImage will be able to return more specific results. SmartImage will be able to function as seen in the demo (opening the direct source image in your browser).
-
-`--set-imgur-auth <consumer id>`
-
-Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
-
-`-engines <engines>`
+`--engines <engines>`
 
 Sets the search engines to use when searching, delimited by commas. See the above list for possible arguments. 
 *Default: `All`*
@@ -60,29 +53,62 @@ Sets the search engines to use when searching, delimited by commas. See the abov
 Sets the priority search engines, delimited by commands. See the above list for possible arguments. Priority search engines are engines whose results will be automatically opened in your browser when searching is complete. For example, if you designate `SauceNao` as a priority engine, then results returned by
 `SauceNao` will be automatically opened in your browser. *Default: `SauceNao`*
 
-`--ctx-menu`
+`--saucenao-auth <api key>`
 
-Installs context menu integration.
+Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api). If this is configured, SmartImage will be able to return more specific results. SmartImage will be able to function as seen in the demo (opening the direct source image in your browser). You can also use the
+`create-sn [auto]` verb to create an account automatically. 
 
-`--add-to-path`
+`--imgur-auth <consumer id>`
 
-Adds executable path to path environment variable.
+Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
 
-`--reset [all]`
+`--auto-exit`
 
-Resets configuration to defaults. Specify `all` to fully reset.
+Automatically exits the program once searching is complete.
 
-`--create-saucenao [auto]`
+`--update-cfg`
+
+Updates the configuration file with the supplied command line arguments.
+
+# Behavior
+
+Any options not specified via the command line are automatically read from the configuration file. 
+
+# Verbs
+
+`image <image path>`
+
+(Default verb, explicitly specifying this verb is not needed).
+
+`ctx-menu <add/remove>`
+
+Adds or removes context menu integration.
+
+`path <add/remove>`
+
+Adds or removes executable path to path environment variable.
+
+`reset [all]`
+
+Removes integrations. Specify `all` to additionally reset configuration.
+
+`create-sn [auto]`
 
 Register a SauceNao account (for API keys). Specify `auto` to autofill registration fields.
 
-`--info`
+`info`
 
 Information about the program and its configuration.
 
-`--help`
+`help`
 
 Display available commands.
+
+`version`
+
+Display program version.
+
+
 
 # Notes
 
