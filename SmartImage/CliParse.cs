@@ -18,6 +18,71 @@ namespace SmartImage
 {
 	public static class CliParse
 	{
+		private static void RunIntegrated(IIntegrated c, Action add, Action remove)
+		{
+			if (c.Add) {
+				add();
+			}
+			else if (c.Remove) {
+				remove();
+			}
+			else {
+				CliOutput.WriteError("Option unknown: {0}", c.Option);
+			}
+		}
+		
+		private static void RunCommands(object obj)
+		{
+			// todo: copied code
+
+			switch (obj) {
+				case ContextMenuCommand c1:
+				{
+					var c = (IIntegrated) c1;
+					RunIntegrated(c, ContextMenuCommand.Add, ContextMenuCommand.Remove);
+
+					break;
+				}
+
+				case PathCommand c1:
+				{
+					var c = (IIntegrated) c1;
+					RunIntegrated(c, PathCommand.Add, PathCommand.Remove);
+
+					break;
+				}
+				case CreateSauceNaoCommand c:
+				{
+					var acc = SauceNao.CreateAccount(c.Auto);
+
+					CliOutput.WriteInfo("Account information:");
+
+					var accStr = acc.ToString();
+					var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
+					             + "\\saucenao_account.txt";
+
+					File.WriteAllText(output, accStr);
+
+					Console.WriteLine(accStr);
+
+					CliOutput.WriteInfo("Adding key to cfg file");
+					RuntimeInfo.Config.SauceNaoAuth = acc.ApiKey;
+					RuntimeInfo.Config.WriteToFile();
+					break;
+				}
+				case ResetCommand c:
+				{
+					ResetCommand.RunReset(c.All);
+					break;
+				}
+				case InfoCommand c:
+				{
+					InfoCommand.Show();
+					break;
+				}
+			}
+		}
+
 		public static void ReadArguments(string[] args)
 		{
 			/*
@@ -55,66 +120,7 @@ namespace SmartImage
 
 			RuntimeInfo.Config = cfgCli;
 
-			// todo: copied code
-
-			result.WithParsed<ContextMenuCommand>(c1 =>
-			{
-				var c = (IIntegrated) c1;
-				if (c.Add) {
-					ContextMenuCommand.Add();
-					CliOutput.WriteInfo("Added to context menu");
-				}
-				else if (c.Remove) {
-					ContextMenuCommand.Remove();
-					CliOutput.WriteInfo("Removed from context menu");
-				}
-				else {
-					CliOutput.WriteError("Option unknown: {0}", c.Option);
-				}
-			});
-			result.WithParsed<PathCommand>(c1 =>
-			{
-				var c = (IIntegrated) c1;
-				if (c.Add) {
-					PathCommand.Add();
-					CliOutput.WriteInfo("Added to path");
-				}
-				else if (c.Remove) {
-					PathCommand.Remove();
-					CliOutput.WriteInfo("Removed from path");
-				}
-				else {
-					CliOutput.WriteError("Option unknown: {0}", c.Option);
-				}
-			});
-			result.WithParsed<CreateSauceNaoCommand>(c =>
-			{
-				var acc = SauceNao.CreateAccount(c.Auto);
-
-				CliOutput.WriteInfo("Account information:");
-
-				var accStr = acc.ToString();
-				var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
-				             + "\\saucenao_account.txt";
-
-				File.WriteAllText(output, accStr);
-
-				Console.WriteLine(accStr);
-
-				CliOutput.WriteInfo("Adding key to cfg file");
-				RuntimeInfo.Config.SauceNaoAuth = acc.ApiKey;
-				RuntimeInfo.Config.WriteToFile();
-			});
-			result.WithParsed<ResetCommand>(c =>
-			{
-				//
-				ResetCommand.RunReset(c.All);
-			});
-			result.WithParsed<InfoCommand>(c =>
-			{
-				//
-				InfoCommand.Show();
-			});
+			result.WithParsed(RunCommands);
 		}
 
 		[Verb("ctx-menu", HelpText = "Adds or removes context menu integration.")]
@@ -183,7 +189,7 @@ namespace SmartImage
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class PathCommand : IIntegrated
 		{
-			[Value(0, Required = true, HelpText= "<add/remove>")]
+			[Value(0, Required = true, HelpText = "<add/remove>")]
 			public string Option { get; set; }
 
 			public static void Add()
@@ -220,8 +226,8 @@ namespace SmartImage
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class CreateSauceNaoCommand
 		{
-			[Value(0, Default = true, 
-			       HelpText = "Specify true to automatically autofill account registration fields.")]
+			[Value(0, Default = true,
+			       HelpText   = "Specify true to automatically autofill account registration fields.")]
 			public bool Auto { get; set; }
 		}
 
