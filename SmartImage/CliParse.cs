@@ -37,10 +37,12 @@ namespace SmartImage
 				cfg = c;
 				//Console.WriteLine(c);
 			});
-			
+
 			if (cfg.IsEmpty) {
 				UserConfig.ReadFromFile(cfg, RuntimeInfo.ConfigLocation);
 			}
+			
+			// UserConfig.ReadFromFile(cfg, RuntimeInfo.ConfigLocation);
 
 			RuntimeInfo.Config = cfg;
 			
@@ -227,10 +229,15 @@ namespace SmartImage
 				// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 				ContextMenu.Remove();
-
+				
+				// will be added automatically if run again
+				//Path.Remove();
+				
 				if (all) {
-					Path.Remove();
-					CliOutput.WriteSuccess("Removed from path");
+					RuntimeInfo.Config.Reset();
+					RuntimeInfo.Config.UpdateFile();
+					
+					CliOutput.WriteSuccess("Reset cfg");
 					return;
 				}
 			}

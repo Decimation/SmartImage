@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text;
 using CommandLine;
@@ -21,7 +22,7 @@ namespace SmartImage
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public sealed class UserConfig
 	{
-		private const string CFG_IMGUR_APIKEY  = "imgur_client_id";
+		private const string CFG_IMGUR_APIKEY     = "imgur_client_id";
 		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
 		private const string CFG_SEARCH_ENGINES   = "search_engines";
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
@@ -41,9 +42,9 @@ namespace SmartImage
 
 		[Option("auto-exit", Default = false)]
 		public bool AutoExit { get; set; }
-		
+
 		[Option("update", Default = false)]
-		public bool Update { get; set;}
+		public bool Update { get; set; }
 
 		[Value(0, Required = true)]
 		public string Image { get; set; }
@@ -91,13 +92,36 @@ namespace SmartImage
 		{
 			Engines         = SearchEngines.All;
 			PriorityEngines = SearchEngines.SauceNao;
-			ImgurAuth       = String.Empty;
-			SauceNaoAuth    = String.Empty;
-			AutoExit = false;
+			ImgurAuth       = null;
+			SauceNaoAuth    = null;
+			AutoExit        = false;
+		}
+
+		private static IDictionary<string, string> Override(IDictionary<string, string> cli,
+		                                                    IDictionary<string, string> file)
+		{
+			var cliNonNull =
+				new Dictionary<string, string>(cli.ToList().Where(kv => !string.IsNullOrWhiteSpace(kv.Value)));
+			var fileNonNull =
+				new Dictionary<string, string>(file.ToList().Where(kv => !string.IsNullOrWhiteSpace(kv.Value)));
+
+
+			var cliOverrideFile = new Dictionary<string, string>();
+
+			foreach (KeyValuePair<string, string> kv1 in fileNonNull) {
+				var key = kv1.Key;
+				var valToUse = cliNonNull.ContainsKey(key) ? cliNonNull[key] : kv1.Value;
+				
+				cliOverrideFile.Add(key, valToUse);
+			}
+
+
+			return cliOverrideFile;
 		}
 
 		public static UserConfig ReadFromFile(UserConfig arg, string location)
 		{
+			// create cfg with default options if it doesn't exist
 			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
 				var f = File.Create(RuntimeInfo.ConfigLocation);
 				f.Close();
@@ -105,13 +129,16 @@ namespace SmartImage
 				arg.UpdateFile();
 			}
 
-			var map = ExplorerSystem.ReadMap(location);
+			//var argMap  = arg.ToMap();
+			var fileMap = ExplorerSystem.ReadMap(location);
+			//var cliOverrideFileCfgMap = Override(argMap, fileMap);
 
-			arg.EnginesStr         = Read<string>(CFG_SEARCH_ENGINES, map);
-			arg.PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, map);
-			arg.ImgurAuth          = Read<string>(CFG_IMGUR_APIKEY, map);
-			arg.SauceNaoAuth       = Read<string>(CFG_SAUCENAO_APIKEY, map);
-			arg.AutoExit           = Read<bool>(CFG_AUTOEXIT, map);
+
+			arg.EnginesStr         = Read<string>(CFG_SEARCH_ENGINES, fileMap);
+			arg.PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, fileMap);
+			arg.ImgurAuth          = Read<string>(CFG_IMGUR_APIKEY, fileMap);
+			arg.SauceNaoAuth       = Read<string>(CFG_SAUCENAO_APIKEY, fileMap);
+			arg.AutoExit           = Read<bool>(CFG_AUTOEXIT, fileMap);
 
 			arg.IsFromFile = true;
 
@@ -124,7 +151,7 @@ namespace SmartImage
 		internal void UpdateFile()
 		{
 			ExplorerSystem.WriteMap(ToMap(), RuntimeInfo.ConfigLocation);
-			CliOutput.WriteInfo("wrote to {0}",RuntimeInfo.ConfigLocation);
+			CliOutput.WriteInfo("wrote to {0}", RuntimeInfo.ConfigLocation);
 		}
 
 		public static void Write<T>(string name, T value, IDictionary<string, string> cfg)
