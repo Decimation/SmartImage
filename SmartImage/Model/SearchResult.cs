@@ -28,11 +28,9 @@ namespace SmartImage.Model
 		public float? Similarity { get; internal set; }
 
 		public bool Success => Url != null;
-
-
+		
 		public List<string> ExtendedInfo { get; }
-
-
+		
 		public override string ToString()
 		{
 			return String.Format("{0}: {1}", Name, Url);

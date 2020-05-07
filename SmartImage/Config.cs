@@ -17,6 +17,7 @@ namespace SmartImage
 
 	// todo
 
+	[Verb("image",true)]
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class Config
 	{

@@ -32,9 +32,9 @@ namespace SmartImage
 
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
-		public const string REG_SUBKEY    = @"SOFTWARE\SmartImage";
+		public const string REG_SUBKEY = @"SOFTWARE\SmartImage";
 
-		public const string REG_SHELL     = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
+		public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
 
 		public const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
 
@@ -87,24 +87,11 @@ namespace SmartImage
 
 		public static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
 
-		internal static void Setup(string[] args)
+		internal static void Setup()
 		{
-			Config = CliParse.ReadConfig(args);
-
 			// todo
 			if (!IsAppFolderInPath) {
 				CliParse.Path.Add();
-			}
-			
-			var verbs = CliParse.LoadVerbs()
-			                    .Select(t => t.GetCustomAttribute<VerbAttribute>())
-			                    .Select(v => v.Name);
-
-			
-			// todo: tmp
-			if (verbs.Any(v => v == args[0])) {
-				CliParse.ReadFuncs(args);
-				Config.Image = null;
 			}
 		}
 

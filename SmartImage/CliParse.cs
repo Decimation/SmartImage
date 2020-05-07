@@ -28,11 +28,28 @@ namespace SmartImage
 			 * Verbs 
 			 */
 
-			var result = Parser.Default.ParseArguments<ContextMenu, Path,
-				CreateSauceNao, Reset, Info, Image>(args);
+			CliOutput.WriteDebug("parsing verbs");
+			
+			var cfg = new Config();
+			
+			var result = Parser.Default.ParseArguments<Config,ContextMenu, Path,
+				CreateSauceNao, Reset, Info>(args);
 
 			// todo
 
+			result.WithParsed<Config>(c =>
+			{
+				Console.WriteLine("cfg parsed func");
+				cfg = c;
+				Console.WriteLine(c);
+			});
+			
+			if (cfg.IsEmpty) {
+				Config.ReadFromFile(cfg, Core.ConfigLocation);
+			}
+
+			Core.Config = cfg;
+			
 			result.WithParsed<ContextMenu>(c1 =>
 			{
 				var c = (IIntegrated) c1;
@@ -62,7 +79,8 @@ namespace SmartImage
 			result.WithParsed<CreateSauceNao>(c => { SauceNao.CreateAccount(c.Auto); });
 			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
 			result.WithParsed<Info>(c => { Info.Show(); });
-			result.WithParsed<Image>(c => { Console.WriteLine("img: {0}", c.Location); });
+
+			
 
 			//ReadFuncs(args);
 		}
@@ -90,14 +108,6 @@ namespace SmartImage
 
 
 			return cfg;
-		}
-
-		[Verb("image", true)]
-		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class Image
-		{
-			[Value(0, Required = true)]
-			public string Location { get; set; }
 		}
 
 		[Verb("ctx-menu")]

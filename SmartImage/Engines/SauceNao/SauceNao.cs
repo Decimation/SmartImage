@@ -43,7 +43,7 @@ namespace SmartImage.Engines.SauceNao
 		private static readonly By ByPassword =
 			By.CssSelector("body > form:nth-child(7) > input[type=password]:nth-child(5)");
 
-		private static readonly By ByPassword2 =
+		private static readonly By ByPasswordConfirmation =
 			By.CssSelector("body > form:nth-child(7) > input[type=password]:nth-child(7)");
 
 		private static readonly By ByRegister =
@@ -254,7 +254,7 @@ namespace SmartImage.Engines.SauceNao
 			pwdEle.SendKeys(password);
 
 
-			var pwd2Ele = cd.FindElement(ByPassword2);
+			var pwd2Ele = cd.FindElement(ByPasswordConfirmation);
 			pwd2Ele.SendKeys(password);
 
 			var regEle = cd.FindElement(ByRegister);

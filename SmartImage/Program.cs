@@ -49,12 +49,28 @@ namespace SmartImage
 			if (args == null || args.Length == 0) {
 				return;
 			}
+			
 
 #if DEBUG
 			Console.WriteLine("args: {0}", string.Join(',', args));
 #endif
 			
-			Core.Setup(args);
+			//Core.Config = CliParse.ReadConfig(args);
+
+			var verbs = CliParse.LoadVerbs()
+			                    .Select(t => t.GetCustomAttribute<VerbAttribute>())
+			                    .Select(v => v.Name);
+			
+			CliParse.ReadFuncs(args);
+			
+			// todo: tmp
+			// todo: ??????????
+			if (verbs.Any(v => v == args[0])) {
+				
+				Core.Config.Image = null;
+			}
+			
+			Core.Setup();
 
 			if (Core.Config.Image == null) {
 				return;
