@@ -8,10 +8,10 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using Neocmd;
 using OpenQA.Selenium;
 using RapidSelenium;
 using RestSharp;
+using SimpleCore.Utilities;
 using SmartImage.Model;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
@@ -189,7 +189,7 @@ namespace SmartImage.Engines.SauceNao
 			if (auto) {
 				uname = Strings.RandomString(10);
 				pwd   = Strings.RandomString(10);
-				email = Agent.EMail.GetEmail();
+				email = WebAgent.EMail.GetEmail();
 			}
 			else {
 				Console.Write("Username: ");
