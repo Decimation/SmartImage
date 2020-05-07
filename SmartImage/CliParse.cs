@@ -11,6 +11,7 @@ using SimpleCore.Utilities;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
+
 // ReSharper disable ParameterTypeCanBeEnumerable.Global
 
 namespace SmartImage
@@ -24,10 +25,10 @@ namespace SmartImage
 			 */
 
 			var cfg = new UserConfig();
-			
-			var result = Parser.Default.ParseArguments<UserConfig,ContextMenu, Path,
+
+			var result = Parser.Default.ParseArguments<UserConfig, ContextMenu, Path,
 				CreateSauceNao, Reset, Info>(args);
-			
+
 
 			// todo
 
@@ -41,13 +42,13 @@ namespace SmartImage
 			if (cfg.IsEmpty) {
 				UserConfig.ReadFromFile(cfg, RuntimeInfo.ConfigLocation);
 			}
-			
+
 			// UserConfig.ReadFromFile(cfg, RuntimeInfo.ConfigLocation);
 
 			RuntimeInfo.Config = cfg;
-			
+
 			// todo: copied code
-			
+
 			result.WithParsed<ContextMenu>(c1 =>
 			{
 				var c = (IIntegrated) c1;
@@ -80,18 +81,18 @@ namespace SmartImage
 			});
 			result.WithParsed<CreateSauceNao>(c =>
 			{
-				var acc=SauceNao.CreateAccount(c.Auto);
-				
+				var acc = SauceNao.CreateAccount(c.Auto);
+
 				CliOutput.WriteInfo("Account information:");
 
 				var accStr = acc.ToString();
-				var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) 
+				var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
 				             + "\\saucenao_account.txt";
-				
+
 				File.WriteAllText(output, accStr);
 
 				Console.WriteLine(accStr);
-				
+
 				CliOutput.WriteInfo("Adding key to cfg file");
 				RuntimeInfo.Config.SauceNaoAuth = acc.ApiKey;
 				RuntimeInfo.Config.UpdateFile();
@@ -108,7 +109,7 @@ namespace SmartImage
 			});
 		}
 
-		[Verb("ctx-menu")]
+		[Verb("ctx-menu", HelpText = "add/remove context menu integration.")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class ContextMenu : IIntegrated
 		{
@@ -170,7 +171,7 @@ namespace SmartImage
 			}
 		}
 
-		[Verb("path")]
+		[Verb("path", HelpText = "add/remove program path to Windows environment path.")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class Path : IIntegrated
 		{
@@ -207,20 +208,23 @@ namespace SmartImage
 			public static void Remove() => ExplorerSystem.RemoveFromPath(RuntimeInfo.AppFolder);
 		}
 
-		[Verb("create-sn")]
+		[Verb("create-sn", HelpText = "Create a SauceNao account (for API keys).")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class CreateSauceNao
 		{
-			[Value(0)]
+			[Value(0, Default = true, 
+			       HelpText = "Specify true to automatically autofill account registration fields.")]
 			public bool Auto { get; set; }
 		}
 
-		[Verb("reset")]
+		[Verb("reset", HelpText = "Resets configuration to default and removes integrations")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class Reset
 		{
-			[Value(0)]
-			public bool All { get; set; }
+			[Value(0, HelpText = "Specify [all] to reset configuration in addition to removing integrations")]
+			public string Option { get; set; }
+
+			public bool All => Option == "all";
 
 			public static void RunReset(bool all = false)
 			{
@@ -229,21 +233,21 @@ namespace SmartImage
 				// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 				ContextMenu.Remove();
-				
+
 				// will be added automatically if run again
 				//Path.Remove();
-				
+
 				if (all) {
 					RuntimeInfo.Config.Reset();
 					RuntimeInfo.Config.UpdateFile();
-					
+
 					CliOutput.WriteSuccess("Reset cfg");
 					return;
 				}
 			}
 		}
 
-		[Verb("info")]
+		[Verb("info", HelpText = "Display configuration and information about the program.")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class Info
 		{
@@ -278,8 +282,6 @@ namespace SmartImage
 
 				//
 
-				CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
-
 				var asm            = typeof(RuntimeInfo).Assembly.GetName();
 				var currentVersion = asm.Version;
 				CliOutput.WriteInfo("Current version: {0}", currentVersion);
@@ -299,6 +301,9 @@ namespace SmartImage
 				else if (vcmp > 0) {
 					CliOutput.WriteInfo("(preview)");
 				}
+
+				CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
+				CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);
 			}
 		}
 	}
