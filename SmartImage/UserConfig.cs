@@ -19,7 +19,7 @@ namespace SmartImage
 
 	[Verb("image", true)]
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public sealed class Config
+	public sealed class UserConfig
 	{
 		private const string CFG_IMGUR_APIKEY  = "imgur_client_id";
 		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
@@ -42,7 +42,7 @@ namespace SmartImage
 		[Option("auto-exit", Default = false)]
 		public bool AutoExit { get; set; }
 		
-		[Option("update", Default = true)]
+		[Option("update", Default = false)]
 		public bool Update { get; set;}
 
 		[Value(0, Required = true)]
@@ -96,10 +96,10 @@ namespace SmartImage
 			AutoExit = false;
 		}
 
-		public static Config ReadFromFile(Config arg, string location)
+		public static UserConfig ReadFromFile(UserConfig arg, string location)
 		{
-			if (!File.Exists(Core.ConfigLocation)) {
-				var f = File.Create(Core.ConfigLocation);
+			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
+				var f = File.Create(RuntimeInfo.ConfigLocation);
 				f.Close();
 				arg.Reset();
 				arg.UpdateFile();
@@ -123,8 +123,8 @@ namespace SmartImage
 
 		internal void UpdateFile()
 		{
-			ExplorerSystem.WriteMap(ToMap(), Core.ConfigLocation);
-			CliOutput.WriteInfo("wrote to {0}",Core.ConfigLocation);
+			ExplorerSystem.WriteMap(ToMap(), RuntimeInfo.ConfigLocation);
+			CliOutput.WriteInfo("wrote to {0}",RuntimeInfo.ConfigLocation);
 		}
 
 		public static void Write<T>(string name, T value, IDictionary<string, string> cfg)

@@ -42,9 +42,9 @@ namespace SmartImage
 
 		public static void Cleanup()
 		{
-			if (Core.Config.Update) {
+			if (RuntimeInfo.Config.Update) {
 				CliOutput.WriteInfo("Updating cfg");
-				Core.Config.UpdateFile();
+				RuntimeInfo.Config.UpdateFile();
 			}
 		}
 		
@@ -54,22 +54,22 @@ namespace SmartImage
 				return;
 			}
 
-			Core.Setup();
+			RuntimeInfo.Setup();
 
 			CliParse.ReadArguments(args);
 
-			bool run = Core.Config.Image != null;
+			bool run = RuntimeInfo.Config.Image != null;
 
 			if (run) {
 				/*
                  * Run 
                  */
 
-				var  auth     = Core.Config.ImgurAuth;
+				var  auth     = RuntimeInfo.Config.ImgurAuth;
 				bool useImgur = !string.IsNullOrWhiteSpace(auth);
 
-				var engines  = Core.Config.Engines;
-				var priority = Core.Config.PriorityEngines;
+				var engines  = RuntimeInfo.Config.Engines;
+				var priority = RuntimeInfo.Config.PriorityEngines;
 
 				if (engines == SearchEngines.None) {
 					CliOutput.WriteError("Please configure search engine preferences!");
@@ -77,7 +77,7 @@ namespace SmartImage
 				}
 
 
-				string img = Core.Config.Image;
+				string img = RuntimeInfo.Config.Image;
 
 				// Exit
 				if (!Search.IsFileValid(img)) {
@@ -85,7 +85,7 @@ namespace SmartImage
 					return;
 				}
 
-				Console.WriteLine(Core.Config);
+				Console.WriteLine(RuntimeInfo.Config);
 
 				string imgUrl = Search.Upload(img, useImgur);
 
@@ -117,7 +117,7 @@ namespace SmartImage
 					Console.WriteLine();
 
 					// Exit
-					if (Core.Config.AutoExit) {
+					if (RuntimeInfo.Config.AutoExit) {
 						Cleanup();
 						return;
 					}
@@ -146,7 +146,7 @@ namespace SmartImage
 				// Exit
 			}
 			else {
-				CliOutput.WriteInfo("Not running search");
+				//CliOutput.WriteInfo("Exited");
 			}
 		}
 	}

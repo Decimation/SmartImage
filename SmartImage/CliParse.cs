@@ -23,14 +23,15 @@ namespace SmartImage
 			 * Verbs 
 			 */
 
-			var cfg = new Config();
+			var cfg = new UserConfig();
 			
-			var result = Parser.Default.ParseArguments<Config,ContextMenu, Path,
+			var result = Parser.Default.ParseArguments<UserConfig,ContextMenu, Path,
 				CreateSauceNao, Reset, Info>(args);
+			
 
 			// todo
 
-			result.WithParsed<Config>(c =>
+			result.WithParsed<UserConfig>(c =>
 			{
 				//Console.WriteLine("cfg parsed func");
 				cfg = c;
@@ -38,19 +39,23 @@ namespace SmartImage
 			});
 			
 			if (cfg.IsEmpty) {
-				Config.ReadFromFile(cfg, Core.ConfigLocation);
+				UserConfig.ReadFromFile(cfg, RuntimeInfo.ConfigLocation);
 			}
 
-			Core.Config = cfg;
+			RuntimeInfo.Config = cfg;
+			
+			// todo: copied code
 			
 			result.WithParsed<ContextMenu>(c1 =>
 			{
 				var c = (IIntegrated) c1;
 				if (c.Add) {
 					ContextMenu.Add();
+					CliOutput.WriteInfo("Added to context menu");
 				}
 				else if (c.Remove) {
 					ContextMenu.Remove();
+					CliOutput.WriteInfo("Removed from context menu");
 				}
 				else {
 					CliOutput.WriteError("Option unknown: {0}", c.Option);
@@ -61,9 +66,11 @@ namespace SmartImage
 				var c = (IIntegrated) c1;
 				if (c.Add) {
 					Path.Add();
+					CliOutput.WriteInfo("Added to path");
 				}
 				else if (c.Remove) {
 					Path.Remove();
+					CliOutput.WriteInfo("Removed from path");
 				}
 				else {
 					CliOutput.WriteError("Option unknown: {0}", c.Option);
@@ -84,11 +91,19 @@ namespace SmartImage
 				Console.WriteLine(accStr);
 				
 				CliOutput.WriteInfo("Adding key to cfg file");
-				Core.Config.SauceNaoAuth = acc.ApiKey;
-				Core.Config.UpdateFile();
+				RuntimeInfo.Config.SauceNaoAuth = acc.ApiKey;
+				RuntimeInfo.Config.UpdateFile();
 			});
-			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
-			result.WithParsed<Info>(c => { Info.Show(); });
+			result.WithParsed<Reset>(c =>
+			{
+				//
+				Reset.RunReset(c.All);
+			});
+			result.WithParsed<Info>(c =>
+			{
+				//
+				Info.Show();
+			});
 		}
 
 		[Verb("ctx-menu")]
@@ -107,7 +122,7 @@ namespace SmartImage
 				string[] code =
 				{
 					"@echo off",
-					String.Format(@"reg.exe delete {0} /f >nul", Core.REG_SHELL)
+					String.Format(@"reg.exe delete {0} /f >nul", RuntimeInfo.REG_SHELL)
 				};
 
 				Cli.CreateRunBatchFile("rem_from_menu.bat", code);
@@ -115,9 +130,9 @@ namespace SmartImage
 
 			public static void Add()
 			{
-				string fullPath = Core.ExeLocation;
+				string fullPath = RuntimeInfo.ExeLocation;
 
-				if (!Core.IsExeInAppFolder) {
+				if (!RuntimeInfo.IsExeInAppFolder) {
 					bool v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
 
 					if (v) {
@@ -135,7 +150,7 @@ namespace SmartImage
 				string[] commandCode =
 				{
 					"@echo off",
-					String.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul", Core.REG_SHELL_CMD,
+					String.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul", RuntimeInfo.REG_SHELL_CMD,
 					              fullPath)
 				};
 
@@ -146,7 +161,7 @@ namespace SmartImage
 				string[] iconCode =
 				{
 					"@echo off",
-					String.Format("reg.exe add {0} /v Icon /d \"{1}\" /f >nul", Core.REG_SHELL, fullPath),
+					String.Format("reg.exe add {0} /v Icon /d \"{1}\" /f >nul", RuntimeInfo.REG_SHELL, fullPath),
 				};
 
 				Cli.CreateRunBatchFile("add_icon_to_menu.bat", iconCode);
@@ -162,13 +177,11 @@ namespace SmartImage
 
 			public static void Add()
 			{
-				CliOutput.WriteInfo("Adding to path");
-				
 				string oldValue = ExplorerSystem.EnvironmentPath;
 
-				string appFolder = Core.AppFolder;
+				string appFolder = RuntimeInfo.AppFolder;
 
-				if (Core.IsAppFolderInPath) {
+				if (RuntimeInfo.IsAppFolderInPath) {
 //				CliOutput.WriteInfo("Executable is already in path: {0}", ExeLocation);
 					return;
 				}
@@ -177,7 +190,7 @@ namespace SmartImage
 				bool appFolderInPath = oldValue.Split(ExplorerSystem.PATH_DELIM).Any(p => p == appFolder);
 
 				string cd  = Environment.CurrentDirectory;
-				string exe = System.IO.Path.Combine(cd, Core.NAME_EXE);
+				string exe = System.IO.Path.Combine(cd, RuntimeInfo.NAME_EXE);
 
 				if (appFolderInPath) {
 //				CliOutput.WriteInfo("App folder already in path: {0}", appFolder);
@@ -189,7 +202,7 @@ namespace SmartImage
 				}
 			}
 
-			public static void Remove() => ExplorerSystem.RemoveFromPath(Core.AppFolder);
+			public static void Remove() => ExplorerSystem.RemoveFromPath(RuntimeInfo.AppFolder);
 		}
 
 		[Verb("create-sn")]
@@ -209,7 +222,7 @@ namespace SmartImage
 
 			public static void RunReset(bool all = false)
 			{
-				Core.Config.Reset();
+				RuntimeInfo.Config.Reset();
 
 				// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
@@ -231,26 +244,26 @@ namespace SmartImage
 			{
 				Console.Clear();
 
-				CliOutput.WriteInfo("Search engines: {0}", Core.Config.Engines);
-				CliOutput.WriteInfo("Priority engines: {0}", Core.Config.PriorityEngines);
+				CliOutput.WriteInfo("Search engines: {0}", RuntimeInfo.Config.Engines);
+				CliOutput.WriteInfo("Priority engines: {0}", RuntimeInfo.Config.PriorityEngines);
 
-				var sn     = Core.Config.SauceNaoAuth;
+				var sn     = RuntimeInfo.Config.SauceNaoAuth;
 				var snNull = String.IsNullOrWhiteSpace(sn);
 
 				CliOutput.WriteInfo("SauceNao authentication: {0} ({1})", snNull ? CliOutput.MUL_SIGN.ToString() : sn,
 				                    snNull ? "Basic" : "Advanced");
 
-				var  imgur     = Core.Config.ImgurAuth;
+				var  imgur     = RuntimeInfo.Config.ImgurAuth;
 				bool imgurNull = String.IsNullOrWhiteSpace(imgur);
 				CliOutput.WriteInfo("Imgur authentication: {0}", imgurNull ? CliOutput.MUL_SIGN.ToString() : imgur);
 
 				CliOutput.WriteInfo("Image upload service: {0}", imgurNull ? "ImgOps" : "Imgur");
 
-				CliOutput.WriteInfo("Application folder: {0}", Core.AppFolder);
-				CliOutput.WriteInfo("Executable location: {0}", Core.ExeLocation);
-				CliOutput.WriteInfo("Config location: {0}", Core.ConfigLocation);
-				CliOutput.WriteInfo("Context menu integrated: {0}", Core.IsContextMenuAdded);
-				CliOutput.WriteInfo("In path: {0}\n", Core.IsAppFolderInPath);
+				CliOutput.WriteInfo("Application folder: {0}", RuntimeInfo.AppFolder);
+				CliOutput.WriteInfo("Executable location: {0}", RuntimeInfo.ExeLocation);
+				CliOutput.WriteInfo("Config location: {0}", RuntimeInfo.ConfigLocation);
+				CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
+				CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
 
 				//
 
@@ -258,9 +271,9 @@ namespace SmartImage
 
 				//
 
-				CliOutput.WriteInfo("Readme: {0}", Core.Readme);
+				CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
 
-				var asm            = typeof(Core).Assembly.GetName();
+				var asm            = typeof(RuntimeInfo).Assembly.GetName();
 				var currentVersion = asm.Version;
 				CliOutput.WriteInfo("Current version: {0}", currentVersion);
 

@@ -62,7 +62,7 @@ namespace SmartImage.Engines.SauceNao
 			m_apiKey = apiKey;
 		}
 
-		public SauceNao() : this(Core.Config.SauceNaoAuth) { }
+		public SauceNao() : this(RuntimeInfo.Config.SauceNaoAuth) { }
 
 		private SauceNaoResult[] GetApiResults(string url)
 		{

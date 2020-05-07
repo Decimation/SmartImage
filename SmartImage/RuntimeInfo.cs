@@ -21,13 +21,15 @@ using SmartImage.Searching;
 
 namespace SmartImage
 {
-	public static class Core
+	public static class RuntimeInfo
 	{
 		public const string NAME = "SmartImage";
 
 		public const string NAME_EXE = "SmartImage.exe";
 
 		public const string NAME_CFG = "smartimage.cfg";
+
+		public const string Author = "Read Stanton";
 
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
@@ -48,7 +50,7 @@ namespace SmartImage
 		/// <summary>
 		/// User config & arguments
 		/// </summary>
-		public static Config Config { get; internal set; }
+		public static UserConfig Config { get; internal set; }
 
 		public static string ConfigLocation {
 			get { return Path.Combine(AppFolder, NAME_CFG); }

@@ -29,7 +29,7 @@ namespace SmartImage.Searching
 			var engines = new List<ISearchEngine>();
 
 
-			bool sauceNaoConfigured = !string.IsNullOrWhiteSpace(Core.Config.SauceNaoAuth);
+			bool sauceNaoConfigured = !string.IsNullOrWhiteSpace(RuntimeInfo.Config.SauceNaoAuth);
 
 			if (sauceNaoConfigured) {
 				engines.Add(new SauceNao());
@@ -87,7 +87,7 @@ namespace SmartImage.Searching
 						if (url != null) {
 							CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
 
-							if (Core.Config.PriorityEngines.HasFlag(idx.Engine)) {
+							if (RuntimeInfo.Config.PriorityEngines.HasFlag(idx.Engine)) {
 								WebAgent.OpenUrl(result.Url);
 							}
 						}
