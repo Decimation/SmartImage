@@ -1,22 +1,18 @@
 #region
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json.Linq;
-using OpenQA.Selenium;
 using RestSharp;
 using SimpleCore.Utilities;
 
 #endregion
 
-namespace SmartImage.Utilities
+namespace SmartImage.Searching
 {
 	internal static class WebAgent
 	{

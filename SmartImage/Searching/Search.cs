@@ -6,11 +6,10 @@ using System.IO;
 using System.Linq;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
+using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Model;
-using SmartImage.Utilities;
-using SmartImage.Utilities.Imgur;
 
 #endregion
 

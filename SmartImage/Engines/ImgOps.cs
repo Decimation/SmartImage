@@ -4,7 +4,6 @@ using System.Text.RegularExpressions;
 using RestSharp;
 using SmartImage.Model;
 using SmartImage.Searching;
-using SmartImage.Utilities;
 
 #endregion
 

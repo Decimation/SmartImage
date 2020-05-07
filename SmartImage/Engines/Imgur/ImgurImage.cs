@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 #endregion
 
-namespace SmartImage.Utilities.Imgur
+namespace SmartImage.Engines.Imgur
 {
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal sealed class ImgurImage

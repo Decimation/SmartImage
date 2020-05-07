@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Text;
 using SimpleCore;
 using SimpleCore.Utilities;
-using SmartImage.Utilities;
 
 #endregion
 

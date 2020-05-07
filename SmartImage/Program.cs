@@ -10,7 +10,6 @@ using RapidSelenium;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
-using SmartImage.Utilities;
 using CommandLine;
 using SimpleCore;
 using SimpleCore.Utilities;
@@ -41,6 +40,14 @@ namespace SmartImage
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
 
+		public static void Cleanup()
+		{
+			if (Core.Config.Update) {
+				CliOutput.WriteInfo("Updating cfg");
+				Core.Config.UpdateFile();
+			}
+		}
+		
 		private static void Main(string[] args)
 		{
 			if (args == null || args.Length == 0) {
@@ -72,7 +79,9 @@ namespace SmartImage
 
 				string img = Core.Config.Image;
 
+				// Exit
 				if (!Search.IsFileValid(img)) {
+					Cleanup();
 					return;
 				}
 
@@ -83,6 +92,8 @@ namespace SmartImage
 				CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
 
 				Console.WriteLine();
+
+				Console.ReadLine();
 
 				//
 				// 
@@ -105,6 +116,12 @@ namespace SmartImage
 
 					Console.WriteLine();
 
+					// Exit
+					if (Core.Config.AutoExit) {
+						Cleanup();
+						return;
+					}
+
 					CliOutput.WriteSuccess("Enter the result number to open or escape to quit.");
 
 					while (!Console.KeyAvailable) {
@@ -125,6 +142,8 @@ namespace SmartImage
 						}
 					}
 				} while (cki.Key != ConsoleKey.Escape);
+
+				// Exit
 			}
 			else {
 				CliOutput.WriteInfo("Not running search");

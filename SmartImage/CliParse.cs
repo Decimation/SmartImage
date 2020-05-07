@@ -11,6 +11,7 @@ using SimpleCore.Utilities;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
+// ReSharper disable ParameterTypeCanBeEnumerable.Global
 
 namespace SmartImage
 {
@@ -68,7 +69,24 @@ namespace SmartImage
 					CliOutput.WriteError("Option unknown: {0}", c.Option);
 				}
 			});
-			result.WithParsed<CreateSauceNao>(c => { SauceNao.CreateAccount(c.Auto); });
+			result.WithParsed<CreateSauceNao>(c =>
+			{
+				var acc=SauceNao.CreateAccount(c.Auto);
+				
+				CliOutput.WriteInfo("Account information:");
+
+				var accStr = acc.ToString();
+				var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) 
+				             + "\\saucenao_account.txt";
+				
+				File.WriteAllText(output, accStr);
+
+				Console.WriteLine(accStr);
+				
+				CliOutput.WriteInfo("Adding key to cfg file");
+				Core.Config.SauceNaoAuth = acc.ApiKey;
+				Core.Config.UpdateFile();
+			});
 			result.WithParsed<Reset>(c => { Reset.RunReset(c.All); });
 			result.WithParsed<Info>(c => { Info.Show(); });
 		}
@@ -174,7 +192,7 @@ namespace SmartImage
 			public static void Remove() => ExplorerSystem.RemoveFromPath(Core.AppFolder);
 		}
 
-		[Verb("create-saucenao")]
+		[Verb("create-sn")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		public sealed class CreateSauceNao
 		{

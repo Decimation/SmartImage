@@ -1,7 +1,6 @@
 #region
 
 using System;
-using System.IO;
 using System.Json;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -13,7 +12,7 @@ using RapidSelenium;
 using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Model;
-using SmartImage.Utilities;
+using SmartImage.Searching;
 using JsonObject = System.Json.JsonObject;
 
 #endregion
@@ -187,8 +186,8 @@ namespace SmartImage.Engines.SauceNao
 			string uname, pwd, email;
 
 			if (auto) {
-				uname = Strings.RandomString(10);
-				pwd   = Strings.RandomString(10);
+				uname = Strings.CreateRandom(10);
+				pwd   = Strings.CreateRandom(10);
 				email = WebAgent.EMail.GetEmail();
 			}
 			else {
@@ -207,17 +206,8 @@ namespace SmartImage.Engines.SauceNao
 
 			try {
 				CliOutput.WriteInfo("Registering account...");
-				var acc = SauceNao.CreateAccountInternal(rwd, uname, email, pwd);
+				var acc = CreateAccountInternal(rwd, uname, email, pwd);
 
-				CliOutput.WriteInfo("Account information:");
-
-				var accStr = acc.ToString();
-				var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop) 
-				             + "\\saucenao_account.txt";
-				
-				File.WriteAllText(output, accStr);
-
-				Console.WriteLine(accStr);
 
 				CliOutput.WriteInfo("Cleaning up...");
 				rwd.Dispose();
@@ -234,9 +224,9 @@ namespace SmartImage.Engines.SauceNao
 		}
 
 		private static BasicAccount CreateAccountInternal(RapidWebDriver rwd,
-		                                                    string         username = null,
-		                                                    string         email    = null,
-		                                                    string         password = null)
+		                                                  string         username = null,
+		                                                  string         email    = null,
+		                                                  string         password = null)
 		{
 			var cd = rwd.Value;
 

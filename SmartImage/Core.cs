@@ -13,7 +13,6 @@ using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Model;
 using SmartImage.Searching;
-using SmartImage.Utilities;
 
 // ReSharper disable MemberCanBePrivate.Global
 
