@@ -42,9 +42,9 @@ namespace SmartImage
 
 		public static void Cleanup()
 		{
-			if (RuntimeInfo.Config.Update) {
+			if (RuntimeInfo.Config.UpdateConfig) {
 				CliOutput.WriteInfo("Updating cfg");
-				RuntimeInfo.Config.UpdateFile();
+				RuntimeInfo.Config.WriteToFile();
 			}
 		}
 		
@@ -85,7 +85,7 @@ namespace SmartImage
 					return;
 				}
 
-				Console.WriteLine(RuntimeInfo.Config);
+				CliOutput.WriteInfo(RuntimeInfo.Config);
 
 				string imgUrl = Search.Upload(img, useImgur);
 
@@ -144,6 +144,7 @@ namespace SmartImage
 				} while (cki.Key != ConsoleKey.Escape);
 
 				// Exit
+				Cleanup();
 			}
 			else {
 				//CliOutput.WriteInfo("Exited");

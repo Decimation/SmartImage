@@ -24,62 +24,70 @@ namespace SmartImage
 			 * Verbs 
 			 */
 
-			var cfg = new UserConfig();
+			var cfgCli = new SearchConfig();
 
-			var result = Parser.Default.ParseArguments<UserConfig, ContextMenu, Path,
-				CreateSauceNao, Reset, Info>(args);
+			var result = Parser.Default.ParseArguments<SearchConfig, ContextMenuCommand, PathCommand,
+				CreateSauceNaoCommand, ResetCommand, InfoCommand>(args);
 
 
 			// todo
 
-			result.WithParsed<UserConfig>(c =>
+			result.WithParsed<SearchConfig>(c =>
 			{
 				//Console.WriteLine("cfg parsed func");
-				cfg = c;
+				cfgCli = c;
 				//Console.WriteLine(c);
 			});
 
-			if (cfg.IsEmpty) {
-				UserConfig.ReadFromFile(cfg, RuntimeInfo.ConfigLocation);
-			}
+			// Overrides cfg with cfg from cli
+			/*if (cfg.IsEmpty) {
+				UserConfig.Update(cfg, RuntimeInfo.ConfigLocation);
+			}*/
+			var cfgFile = SearchConfig.ReadFromFile(RuntimeInfo.ConfigLocation);
+			SearchConfig.Update(cfgCli, cfgFile);
+
+			/*Console.WriteLine(cfgCli);
+			Console.WriteLine();
+			Console.WriteLine(cfgFile);
+			Console.ReadLine();*/
 
 			// UserConfig.ReadFromFile(cfg, RuntimeInfo.ConfigLocation);
 
-			RuntimeInfo.Config = cfg;
+			RuntimeInfo.Config = cfgCli;
 
 			// todo: copied code
 
-			result.WithParsed<ContextMenu>(c1 =>
+			result.WithParsed<ContextMenuCommand>(c1 =>
 			{
 				var c = (IIntegrated) c1;
 				if (c.Add) {
-					ContextMenu.Add();
+					ContextMenuCommand.Add();
 					CliOutput.WriteInfo("Added to context menu");
 				}
 				else if (c.Remove) {
-					ContextMenu.Remove();
+					ContextMenuCommand.Remove();
 					CliOutput.WriteInfo("Removed from context menu");
 				}
 				else {
 					CliOutput.WriteError("Option unknown: {0}", c.Option);
 				}
 			});
-			result.WithParsed<Path>(c1 =>
+			result.WithParsed<PathCommand>(c1 =>
 			{
 				var c = (IIntegrated) c1;
 				if (c.Add) {
-					Path.Add();
+					PathCommand.Add();
 					CliOutput.WriteInfo("Added to path");
 				}
 				else if (c.Remove) {
-					Path.Remove();
+					PathCommand.Remove();
 					CliOutput.WriteInfo("Removed from path");
 				}
 				else {
 					CliOutput.WriteError("Option unknown: {0}", c.Option);
 				}
 			});
-			result.WithParsed<CreateSauceNao>(c =>
+			result.WithParsed<CreateSauceNaoCommand>(c =>
 			{
 				var acc = SauceNao.CreateAccount(c.Auto);
 
@@ -95,25 +103,25 @@ namespace SmartImage
 
 				CliOutput.WriteInfo("Adding key to cfg file");
 				RuntimeInfo.Config.SauceNaoAuth = acc.ApiKey;
-				RuntimeInfo.Config.UpdateFile();
+				RuntimeInfo.Config.WriteToFile();
 			});
-			result.WithParsed<Reset>(c =>
+			result.WithParsed<ResetCommand>(c =>
 			{
 				//
-				Reset.RunReset(c.All);
+				ResetCommand.RunReset(c.All);
 			});
-			result.WithParsed<Info>(c =>
+			result.WithParsed<InfoCommand>(c =>
 			{
 				//
-				Info.Show();
+				InfoCommand.Show();
 			});
 		}
 
-		[Verb("ctx-menu", HelpText = "add/remove context menu integration.")]
+		[Verb("ctx-menu", HelpText = "Adds or removes context menu integration.")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class ContextMenu : IIntegrated
+		public sealed class ContextMenuCommand : IIntegrated
 		{
-			[Value(0, Required = true)]
+			[Value(0, Required = true, HelpText = "<add/remove>")]
 			public string Option { get; set; }
 
 			public static void Remove()
@@ -139,7 +147,7 @@ namespace SmartImage
 					bool v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
 
 					if (v) {
-						Path.Add();
+						PathCommand.Add();
 						return;
 					}
 
@@ -171,11 +179,11 @@ namespace SmartImage
 			}
 		}
 
-		[Verb("path", HelpText = "add/remove program path to Windows environment path.")]
+		[Verb("path", HelpText = "Adds or removes executable path to path environment variable.")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class Path : IIntegrated
+		public sealed class PathCommand : IIntegrated
 		{
-			[Value(0, Required = true)]
+			[Value(0, Required = true, HelpText= "<add/remove>")]
 			public string Option { get; set; }
 
 			public static void Add()
@@ -208,18 +216,18 @@ namespace SmartImage
 			public static void Remove() => ExplorerSystem.RemoveFromPath(RuntimeInfo.AppFolder);
 		}
 
-		[Verb("create-sn", HelpText = "Create a SauceNao account (for API keys).")]
+		[Verb("create-sn", HelpText = "Creates a SauceNao account (for API keys).")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class CreateSauceNao
+		public sealed class CreateSauceNaoCommand
 		{
 			[Value(0, Default = true, 
 			       HelpText = "Specify true to automatically autofill account registration fields.")]
 			public bool Auto { get; set; }
 		}
 
-		[Verb("reset", HelpText = "Resets configuration to default and removes integrations")]
+		[Verb("reset", HelpText = "Removes integrations")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class Reset
+		public sealed class ResetCommand
 		{
 			[Value(0, HelpText = "Specify [all] to reset configuration in addition to removing integrations")]
 			public string Option { get; set; }
@@ -232,14 +240,14 @@ namespace SmartImage
 
 				// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
-				ContextMenu.Remove();
+				ContextMenuCommand.Remove();
 
 				// will be added automatically if run again
 				//Path.Remove();
 
 				if (all) {
 					RuntimeInfo.Config.Reset();
-					RuntimeInfo.Config.UpdateFile();
+					RuntimeInfo.Config.WriteToFile();
 
 					CliOutput.WriteSuccess("Reset cfg");
 					return;
@@ -247,9 +255,9 @@ namespace SmartImage
 			}
 		}
 
-		[Verb("info", HelpText = "Display configuration and information about the program.")]
+		[Verb("info", HelpText = "Displays information about the program and its configuration.")]
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class Info
+		public sealed class InfoCommand
 		{
 			internal static void Show()
 			{

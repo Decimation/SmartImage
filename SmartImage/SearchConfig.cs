@@ -7,6 +7,7 @@ using System.Text;
 using CommandLine;
 using JetBrains.Annotations;
 using SimpleCore.Utilities;
+using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
 
 namespace SmartImage
@@ -18,9 +19,9 @@ namespace SmartImage
 
 	// todo
 
-	[Verb("image", true)]
+	[Verb("search", true)]
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public sealed class UserConfig
+	public sealed class SearchConfig
 	{
 		private const string CFG_IMGUR_APIKEY     = "imgur_client_id";
 		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
@@ -43,8 +44,8 @@ namespace SmartImage
 		[Option("auto-exit", Default = false)]
 		public bool AutoExit { get; set; }
 
-		[Option("update", Default = false)]
-		public bool Update { get; set; }
+		[Option("update-cfg")]
+		public bool UpdateConfig { get; set; }
 
 		[Value(0, Required = true)]
 		public string Image { get; set; }
@@ -88,6 +89,13 @@ namespace SmartImage
 			return m;
 		}
 
+		public static SearchConfig GetDefault()
+		{
+			var uc = new SearchConfig();
+			uc.Reset();
+			return uc;
+		}
+
 		public void Reset()
 		{
 			Engines         = SearchEngines.All;
@@ -97,58 +105,65 @@ namespace SmartImage
 			AutoExit        = false;
 		}
 
-		private static IDictionary<string, string> Override(IDictionary<string, string> cli,
-		                                                    IDictionary<string, string> file)
+		public static SearchConfig ReadFromFile(string location)
 		{
-			var cliNonNull =
-				new Dictionary<string, string>(cli.ToList().Where(kv => !string.IsNullOrWhiteSpace(kv.Value)));
-			var fileNonNull =
-				new Dictionary<string, string>(file.ToList().Where(kv => !string.IsNullOrWhiteSpace(kv.Value)));
+			//var argMap  = arg.ToMap();
+			var cfgFromFileMap = ExplorerSystem.ReadMap(location);
+			//var cliOverrideFileCfgMap = Override(argMap, fileMap);
 
+			var cfgFromFile = new SearchConfig
+			{
+				EnginesStr         = Read<string>(CFG_SEARCH_ENGINES, cfgFromFileMap),
+				PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, cfgFromFileMap),
+				ImgurAuth          = Read<string>(CFG_IMGUR_APIKEY, cfgFromFileMap),
+				SauceNaoAuth       = Read<string>(CFG_SAUCENAO_APIKEY, cfgFromFileMap),
+				AutoExit           = Read<bool>(CFG_AUTOEXIT, cfgFromFileMap),
+				IsFromFile         = true
+			};
 
-			var cliOverrideFile = new Dictionary<string, string>();
-
-			foreach (KeyValuePair<string, string> kv1 in fileNonNull) {
-				var key = kv1.Key;
-				var valToUse = cliNonNull.ContainsKey(key) ? cliNonNull[key] : kv1.Value;
-				
-				cliOverrideFile.Add(key, valToUse);
-			}
-
-
-			return cliOverrideFile;
+			return cfgFromFile;
 		}
 
-		public static UserConfig ReadFromFile(UserConfig arg, string location)
+
+		public static SearchConfig Update(SearchConfig cfgFromCli, SearchConfig cfgFromFile)
 		{
 			// create cfg with default options if it doesn't exist
 			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
 				var f = File.Create(RuntimeInfo.ConfigLocation);
 				f.Close();
-				arg.Reset();
-				arg.UpdateFile();
+				cfgFromCli.Reset();
+				cfgFromCli.WriteToFile();
 			}
 
-			//var argMap  = arg.ToMap();
-			var fileMap = ExplorerSystem.ReadMap(location);
-			//var cliOverrideFileCfgMap = Override(argMap, fileMap);
+			// todo: find a more sustainable way of doing this
+			// todo: use reflection
 
+			if (cfgFromCli.Engines == default) {
+				cfgFromCli.Engines = cfgFromFile.Engines;
+			}
 
-			arg.EnginesStr         = Read<string>(CFG_SEARCH_ENGINES, fileMap);
-			arg.PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, fileMap);
-			arg.ImgurAuth          = Read<string>(CFG_IMGUR_APIKEY, fileMap);
-			arg.SauceNaoAuth       = Read<string>(CFG_SAUCENAO_APIKEY, fileMap);
-			arg.AutoExit           = Read<bool>(CFG_AUTOEXIT, fileMap);
+			if (cfgFromCli.PriorityEngines == default) {
+				cfgFromCli.PriorityEngines = cfgFromFile.PriorityEngines;
+			}
 
-			arg.IsFromFile = true;
+			if (String.IsNullOrWhiteSpace(cfgFromCli.ImgurAuth)) {
+				cfgFromCli.ImgurAuth = cfgFromFile.ImgurAuth;
+			}
 
+			if (String.IsNullOrWhiteSpace(cfgFromCli.SauceNaoAuth)) {
+				cfgFromCli.SauceNaoAuth = cfgFromFile.SauceNaoAuth;
+			}
 
-			return arg;
+			if (cfgFromCli.AutoExit == default) {
+				cfgFromCli.AutoExit = cfgFromFile.AutoExit;
+			}
+
+			return cfgFromCli;
 		}
 
 		// todo: update cfg file
 
-		internal void UpdateFile()
+		internal void WriteToFile()
 		{
 			ExplorerSystem.WriteMap(ToMap(), RuntimeInfo.ConfigLocation);
 			CliOutput.WriteInfo("wrote to {0}", RuntimeInfo.ConfigLocation);
@@ -191,7 +206,7 @@ namespace SmartImage
 			}
 
 			if (typeof(T) == typeof(bool)) {
-				bool.TryParse(rawValue, out var b);
+				Boolean.TryParse(rawValue, out var b);
 				return (T) (object) b;
 			}
 
@@ -209,7 +224,7 @@ namespace SmartImage
 			sb.AppendFormat("Auto exit: {0}\n", AutoExit);
 			sb.AppendFormat("Image: {0}\n", Image);
 			sb.AppendFormat("Config fallback: {0}\n", IsFromFile);
-			sb.AppendFormat("Empty: {0}\n", IsEmpty);
+			sb.AppendFormat("Empty: {0}", IsEmpty);
 
 			return sb.ToString();
 		}
