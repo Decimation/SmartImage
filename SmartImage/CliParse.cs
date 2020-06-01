@@ -30,7 +30,7 @@ namespace SmartImage
 				CliOutput.WriteError("Option unknown: {0}", c.Option);
 			}
 		}
-		
+
 		private static void RunCommands(object obj)
 		{
 			// todo: copied code
@@ -108,7 +108,18 @@ namespace SmartImage
 			/*if (cfg.IsEmpty) {
 				UserConfig.Update(cfg, RuntimeInfo.ConfigLocation);
 			}*/
-			var cfgFile = SearchConfig.ReadFromFile(RuntimeInfo.ConfigLocation);
+
+			bool isNew = false;
+			
+			// create cfg with default options if it doesn't exist
+			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
+				var f = File.Create(RuntimeInfo.ConfigLocation);
+				f.Close();
+
+				isNew = true;
+			}
+			
+			var cfgFile = SearchConfig.ReadFromFile(RuntimeInfo.ConfigLocation, isNew);
 			SearchConfig.Update(cfgCli, cfgFile);
 
 			/*Console.WriteLine(cfgCli);
@@ -289,6 +300,7 @@ namespace SmartImage
 				CliOutput.WriteInfo("Config location: {0}", RuntimeInfo.ConfigLocation);
 				CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
 				CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
+				
 
 				//
 

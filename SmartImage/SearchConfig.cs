@@ -105,11 +105,9 @@ namespace SmartImage
 			AutoExit        = false;
 		}
 
-		public static SearchConfig ReadFromFile(string location)
+		public static SearchConfig ReadFromFile(string location, bool isNew)
 		{
-			//var argMap  = arg.ToMap();
 			var cfgFromFileMap = ExplorerSystem.ReadMap(location);
-			//var cliOverrideFileCfgMap = Override(argMap, fileMap);
 
 			var cfgFromFile = new SearchConfig
 			{
@@ -121,20 +119,17 @@ namespace SmartImage
 				IsFromFile         = true
 			};
 
+			if (isNew) {
+				cfgFromFile.Reset();
+				cfgFromFile.WriteToFile();
+			}
+
 			return cfgFromFile;
 		}
 
 
 		public static SearchConfig Update(SearchConfig cfgFromCli, SearchConfig cfgFromFile)
 		{
-			// create cfg with default options if it doesn't exist
-			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
-				var f = File.Create(RuntimeInfo.ConfigLocation);
-				f.Close();
-				cfgFromCli.Reset();
-				cfgFromCli.WriteToFile();
-			}
-
 			// todo: find a more sustainable way of doing this
 			// todo: use reflection
 
@@ -227,6 +222,16 @@ namespace SmartImage
 			sb.AppendFormat("Empty: {0}", IsEmpty);
 
 			return sb.ToString();
+		}
+
+		
+
+		public static void Cleanup()
+		{
+			if (RuntimeInfo.Config.UpdateConfig) {
+				CliOutput.WriteInfo("Updating cfg");
+				RuntimeInfo.Config.WriteToFile();
+			}
 		}
 	}
 }

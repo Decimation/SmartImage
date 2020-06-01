@@ -18,36 +18,38 @@ using SimpleCore.Utilities;
 
 namespace SmartImage
 {
+	/**
+	 * Single file executable build dir
+	 * 
+	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64
+	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
+	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
+	 *
+	 * Single file publish command
+	 *
+	 * dotnet publish -c Release -r win10-x64
+	 *
+	 * Legacy registry keys
+	 *
+	 * Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
+	 * Computer\HKEY_CURRENT_USER\Software\SmartImage
+	 * "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
+	 *
+	 * Copy build
+	 *
+	 * copy SmartImage.exe C:\Library /Y
+	 * copy SmartImage.exe C:\Users\Deci\Desktop /Y
+	 *
+	 * Bundle extract dir
+	 * 
+	 * C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
+	 * DOTNET_BUNDLE_EXTRACT_BASE_DIR 
+	 */
 	public static class Program
 	{
-		// @"C:\Users\Deci\Desktop\test.jpg";
-
-		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64
-		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
-
-		// C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
-
-
-		
-		// dotnet publish -c Release -r win10-x64
-
-		// copy SmartImage.exe C:\Library /Y
-		// copy SmartImage.exe C:\Users\Deci\Desktop /Y
-
-		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
-		// Computer\HKEY_CURRENT_USER\Software\SmartImage
-
-		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
-		// "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-
-		public static void Cleanup()
-		{
-			if (RuntimeInfo.Config.UpdateConfig) {
-				CliOutput.WriteInfo("Updating cfg");
-				RuntimeInfo.Config.WriteToFile();
-			}
-		}
-		
+		/**
+		 * Entry point
+		 */
 		private static void Main(string[] args)
 		{
 			if (args == null || args.Length == 0) {
@@ -81,7 +83,7 @@ namespace SmartImage
 
 				// Exit
 				if (!Search.IsFileValid(img)) {
-					Cleanup();
+					SearchConfig.Cleanup();
 					return;
 				}
 
@@ -118,7 +120,7 @@ namespace SmartImage
 
 					// Exit
 					if (RuntimeInfo.Config.AutoExit) {
-						Cleanup();
+						SearchConfig.Cleanup();
 						return;
 					}
 
@@ -144,7 +146,7 @@ namespace SmartImage
 				} while (cki.Key != ConsoleKey.Escape);
 
 				// Exit
-				Cleanup();
+				SearchConfig.Cleanup();
 			}
 			else {
 				//CliOutput.WriteInfo("Exited");

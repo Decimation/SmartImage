@@ -88,6 +88,8 @@ namespace SmartImage
 
 		public static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
 
+		
+
 		internal static void Setup()
 		{
 			// todo
