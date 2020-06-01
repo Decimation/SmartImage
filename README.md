@@ -150,9 +150,16 @@ Fully resets configuration and removes all integrations.
 
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
 
+- SmartImage is a single-file, trimmed .NET executable. This means that dynamic libraries must be extracted to a temporary directory
+(usually `%temp%\.net\SmartImage`).
+
+- Some functions use hacky solutions (like dynamically creating a registry key file to install context menu integration). This is temporary until I can find better approaches, but it should work in the meantime.
+
 # to-do
 
 - Add an icon
+
+- Rewrite & refactor codebase; find better, less hacky approaches to various functions
 
 # Inspiration
 
