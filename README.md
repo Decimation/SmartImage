@@ -41,6 +41,20 @@ Search engine names and configuration:
 ![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
 
 
+# Usage
+
+Command line syntax:
+
+`smartimage <command> [options...]`
+
+- Angle brackets (`<>`) specify required arguments.
+
+- Square brackets (`[]`) specify optional arguments. 
+
+- Ellipses (`...`) specify one or more arguments.
+
+**Behavior note**: *Any options not specified via the command line are automatically read from the configuration file.*
+
 # Options
 
 `--engines <engines>`
@@ -70,15 +84,13 @@ Automatically exits the program once searching is complete.
 
 Updates the configuration file with the supplied command line arguments.
 
-# Behavior
 
-Any options not specified via the command line are automatically read from the configuration file. 
 
-# Verbs
+# Commands
 
-`image <image path>`
+`search <image path> [options...]`
 
-(Default verb, explicitly specifying this verb is not needed).
+This is the default functionality. Explicitly specifying this is not needed.
 
 `ctx-menu <add/remove>`
 
@@ -92,13 +104,13 @@ Adds or removes executable path to path environment variable.
 
 Removes integrations. Specify `all` to additionally reset configuration.
 
-`create-sn [auto]`
+`create-sn [true/false]`
 
-Register a SauceNao account (for API keys). Specify `auto` to autofill registration fields.
+Register a SauceNao account (for API keys). Specify `true` to autofill registration fields.
 
 `info`
 
-Information about the program and its configuration.
+Displays information about the program and its configuration.
 
 `help`
 
@@ -108,7 +120,29 @@ Display available commands.
 
 Display program version.
 
+# Usage examples
 
+`smartimage --engines All --priority-engines None "image.jpg"`
+
+Runs the program using all search engines and no results will be in the browser.
+
+`smartimage --engines SauceNao,ImgOps,GoogleImages --priority-engines SauceNao "image.jpg"`
+
+Runs the program using SauceNao, ImgOps, and Google Images. The best result from SauceNao will be opened in the browser.
+
+`smartimage --engines SauceNao,ImgOps,KarmaDecay --priority-engines SauceNao --update-cfg "image.jpg"`
+
+Runs the program using SauceNao, ImgOps, and Karma Decay. The best result from SauceNao will be opened in the browser.
+The specified options will be saved to the configuration file.
+
+`smartimage create-sn true`
+
+Automatically creates a SauceNao account for usage. Account information is stored in a text file in the current directory and the
+API key is saved to the configuration file.
+
+`smartimage reset all`
+
+Fully resets configuration and removes all integrations.
 
 # Notes
 
@@ -116,9 +150,16 @@ Display program version.
 
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
 
+- SmartImage is a single-file, trimmed .NET executable. This means that dynamic libraries must be extracted to a temporary directory
+(usually `%temp%\.net\SmartImage`).
+
+- Some functions use hacky solutions (like dynamically creating a registry key file to install context menu integration). This is temporary until I can find better approaches, but it should work in the meantime.
+
 # to-do
 
 - Add an icon
+
+- Rewrite & refactor codebase; find better, less hacky approaches to various functions
 
 # Inspiration
 
