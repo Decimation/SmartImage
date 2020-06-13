@@ -28,6 +28,7 @@ namespace SmartImage
 	 * Single file publish command
 	 *
 	 * dotnet publish -c Release -r win10-x64
+	 * dotnet publish -c Release -r win10-x64 --self-contained
 	 *
 	 * Legacy registry keys
 	 *
@@ -40,7 +41,7 @@ namespace SmartImage
 	 * copy SmartImage.exe C:\Library /Y
 	 * copy SmartImage.exe C:\Users\Deci\Desktop /Y
 	 *
-	 * Bundle extract dir
+	 * Bundle extract folder
 	 * 
 	 * C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
 	 * DOTNET_BUNDLE_EXTRACT_BASE_DIR 

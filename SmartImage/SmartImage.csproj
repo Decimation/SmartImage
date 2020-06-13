@@ -9,6 +9,7 @@
         <PublishSingleFile>true</PublishSingleFile>
 
         <PublishTrimmed>true</PublishTrimmed>
+        <!--<PublishReadyToRun>true</PublishReadyToRun>-->
 
         <ApplicationIcon>Icon.ico</ApplicationIcon>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

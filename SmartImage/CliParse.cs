@@ -300,6 +300,7 @@ namespace SmartImage
 				CliOutput.WriteInfo("Config location: {0}", RuntimeInfo.ConfigLocation);
 				CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
 				CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
+				CliOutput.WriteInfo(".NET bundle extract folder: {0}",RuntimeInfo.BundleExtractFolder);
 				
 
 				//
@@ -324,7 +325,7 @@ namespace SmartImage
 				else if (vcmp == 0) {
 					CliOutput.WriteInfo("Up to date");
 				}
-				else if (vcmp > 0) {
+				else {
 					CliOutput.WriteInfo("(preview)");
 				}
 

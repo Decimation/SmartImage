@@ -48,9 +48,9 @@ namespace SmartImage
 		}
 
 		/// <summary>
-		/// User config & arguments
+		/// User config and arguments
 		/// </summary>
-		public static SearchConfig Config { get; internal set; }
+		public static SearchConfig Config { get; internal set; } = null!;
 
 		public static string ConfigLocation {
 			get { return Path.Combine(AppFolder, NAME_CFG); }
@@ -88,7 +88,8 @@ namespace SmartImage
 
 		public static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
 
-		
+		public static string BundleExtractFolder =>
+			Environment.GetEnvironmentVariable("DOTNET_BUNDLE_EXTRACT_BASE_DIR", EnvironmentVariableTarget.User)!;
 
 		internal static void Setup()
 		{
