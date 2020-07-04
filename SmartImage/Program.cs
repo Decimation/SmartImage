@@ -2,10 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using RapidSelenium;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
@@ -40,11 +43,20 @@ namespace SmartImage
 	 *
 	 * copy SmartImage.exe C:\Library /Y
 	 * copy SmartImage.exe C:\Users\Deci\Desktop /Y
-	 *
+	 * copy C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish\SmartImage.exe C:\Users\Deci\Desktop /Y
+	 * 
 	 * Bundle extract folder
 	 * 
 	 * C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
-	 * DOTNET_BUNDLE_EXTRACT_BASE_DIR 
+	 * DOTNET_BUNDLE_EXTRACT_BASE_DIR
+	 *
+	 *
+	 * nuget pack -Prop Configuration=Release
+	 *
+	 * C:\Library\Nuget
+	 * dotnet pack -c Release -o %cd%
+	 * dotnet nuget push "*.nupkg"
+	 * del *.nupkg & dotnet pack -c Release -o %cd%
 	 */
 	public static class Program
 	{
@@ -61,60 +73,34 @@ namespace SmartImage
 
 			CliParse.ReadArguments(args);
 
-			bool run = RuntimeInfo.Config.Image != null;
+			var img = RuntimeInfo.Config.Image;
+
+			bool run = img != null;
 
 			if (run) {
-				/*
-                 * Run 
-                 */
-
-				var  auth     = RuntimeInfo.Config.ImgurAuth;
-				bool useImgur = !string.IsNullOrWhiteSpace(auth);
-
-				var engines  = RuntimeInfo.Config.Engines;
-				var priority = RuntimeInfo.Config.PriorityEngines;
-
-				if (engines == SearchEngines.None) {
-					CliOutput.WriteError("Please configure search engine preferences!");
-					return;
-				}
-
-
-				string img = RuntimeInfo.Config.Image;
-
-				// Exit
-				if (!Search.IsFileValid(img)) {
-					SearchConfig.Cleanup();
-					return;
-				}
-
-				CliOutput.WriteInfo(RuntimeInfo.Config);
-
-				string imgUrl = Search.Upload(img, useImgur);
-
-				CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
-
-				Console.WriteLine();
-
-				//Console.ReadLine();
-
-				//
-				// 
-				//
-
-				// Where the actual searching occurs
-				SearchResult[] results = Search.RunSearches(imgUrl, engines);
+				var sr      = new SearchResults();
+				var ok      = Search.RunSearch(img, ref sr);
+				var results = sr.Results;
+				
+				// Console.WriteLine("Elapsed: {0:F} sec", result.Duration.TotalSeconds);
 
 				ConsoleKeyInfo cki;
 
 				do {
 					Console.Clear();
 
-					for (int i = 0; i < results.Length; i++) {
-						var    r   = results[i];
-						string str = r.Format((i + 1).ToString());
+					for (int i = 0; i < sr.Results.Length; i++) {
+						var r = sr.Results[i];
 
-						Console.Write(str);
+						var tag = (i + 1).ToString();
+						if (r != null) {
+							string str = r.Format(tag);
+
+							Console.Write(str);
+						}
+						else {
+							Console.WriteLine("{0} - ...", tag);
+						}
 					}
 
 					Console.WriteLine();
@@ -127,9 +113,11 @@ namespace SmartImage
 
 					CliOutput.WriteSuccess("Enter the result number to open or escape to quit.");
 
+
 					while (!Console.KeyAvailable) {
 						// Block until input is entered.
 					}
+
 
 					// Key was read
 
@@ -139,7 +127,7 @@ namespace SmartImage
 					if (Char.IsNumber(keyChar)) {
 						int idx = (int) Char.GetNumericValue(cki.KeyChar) - 1;
 
-						if (idx < results.Length) {
+						if (idx < results.Length && idx >= 0) {
 							var res = results[idx];
 							WebAgent.OpenUrl(res.Url);
 						}

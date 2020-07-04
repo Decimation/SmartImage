@@ -2,8 +2,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
@@ -24,7 +26,8 @@ namespace SmartImage.Searching
 			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif"
 		};
 
-		public static ISearchEngine[] GetAvailableEngines()
+
+		private static ISearchEngine[] GetAvailableEngines()
 		{
 			var engines = new List<ISearchEngine>();
 
@@ -42,12 +45,16 @@ namespace SmartImage.Searching
 			{
 				new ImgOps(),
 				new GoogleImages(),
+				
 				new TinEye(),
 				new Iqdb(),
-				new TraceMoe(),
-				new KarmaDecay(),
+				
+				new Bing(),
 				new Yandex(),
-				new Bing()
+				
+				
+				new KarmaDecay(),
+				new TraceMoe(),
 			};
 
 			engines.AddRange(others);
@@ -55,56 +62,109 @@ namespace SmartImage.Searching
 			return engines.ToArray();
 		}
 
-
-		public static SearchResult[] RunSearches(string imgUrl, SearchEngines engines)
+		public static bool RunSearch(string img, ref SearchResults res)
 		{
-			var list = new List<SearchResult>
-			{
-				new SearchResult(imgUrl, "(Original image)")
-			};
+			/*
+			 * Run 
+             */
 
+			var  auth     = RuntimeInfo.Config.ImgurAuth;
+			bool useImgur = !string.IsNullOrWhiteSpace(auth);
 
-			ISearchEngine[] available = GetAvailableEngines();
+			var engines  = RuntimeInfo.Config.Engines;
+			var priority = RuntimeInfo.Config.PriorityEngines;
 
-			foreach (var idx in available) {
-				if (engines.HasFlag(idx.Engine)) {
-					string wait = String.Format("{0}: ...", idx.Engine);
-
-					CliOutput.WithColor(ConsoleColor.Blue, () =>
-					{
-						//
-						Console.Write(wait);
-					});
-
-
-					// Run search
-					var result = idx.GetResult(imgUrl);
-
-					if (result != null) {
-						string url = result.Url;
-
-
-						if (url != null) {
-							CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
-
-							if (RuntimeInfo.Config.PriorityEngines.HasFlag(idx.Engine)) {
-								WebAgent.OpenUrl(result.Url);
-							}
-						}
-						else {
-							CliOutput.OnCurrentLine(ConsoleColor.Yellow, "{0}: Done (url is null!)\n", result.Name);
-						}
-
-						list.Add(result);
-					}
-				}
+			if (engines == SearchEngines.None) {
+				//todo
+				//CliOutput.WriteError("Please configure search engine preferences!");
+				engines = SearchEngines.All;
 			}
 
 
-			return list.ToArray();
+			// Exit
+			if (!Search.IsFileValid(img)) {
+				SearchConfig.Cleanup();
+
+				return false;
+			}
+
+			CliOutput.WriteInfo(RuntimeInfo.Config);
+
+			string imgUrl = Search.Upload(img, useImgur);
+
+			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
+
+			Console.WriteLine();
+
+			//Console.ReadLine();
+
+			//
+			// Search
+			//
+
+
+			// Where the actual searching occurs
+
+			Search.StartSearches(imgUrl, engines, res);
+
+
+			return true;
 		}
 
-		internal static bool IsFileValid(string img)
+
+		private static bool StartSearches(string imgUrl, SearchEngines engines, SearchResults res)
+		{
+			ISearchEngine[] available = GetAvailableEngines()
+			                           .Where(e => engines.HasFlag(e.Engine))
+			                           .ToArray();
+
+			int i = 0;
+			res.Results    = new SearchResult[available.Length + 1];
+			res.Results[i] = new SearchResult(imgUrl, "(Original image)");
+
+			i++;
+
+			foreach (var idx in available) {
+				string wait = String.Format("{0}: ...", idx.Engine);
+
+				CliOutput.WithColor(ConsoleColor.Blue, () =>
+				{
+					//
+					Console.Write(wait);
+				});
+
+
+				// Run search
+				var result = idx.GetResult(imgUrl);
+
+				if (result != null) {
+					string url = result.Url;
+
+
+					if (url != null) {
+						CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
+
+						if (RuntimeInfo.Config.PriorityEngines.HasFlag(idx.Engine)) {
+							WebAgent.OpenUrl(result.Url);
+						}
+					}
+					else {
+						CliOutput.OnCurrentLine(ConsoleColor.Yellow, "{0}: Done (url is null!)\n", result.Name);
+					}
+
+					res.Results[i] = result;
+				}
+
+				// todo
+
+				i++;
+			}
+
+
+			return true;
+		}
+
+		private static bool IsFileValid(string img)
 		{
 			if (!File.Exists(img)) {
 				CliOutput.WriteError("File does not exist: {0}", img);
@@ -121,7 +181,7 @@ namespace SmartImage.Searching
 			return true;
 		}
 
-		public static string Upload(string img, bool useImgur)
+		private static string Upload(string img, bool useImgur)
 		{
 			string imgUrl;
 

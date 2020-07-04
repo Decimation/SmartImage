@@ -1,6 +1,7 @@
 #region
 
 using System;
+using System.Net;
 using RestSharp;
 using SmartImage.Model;
 using SmartImage.Searching;
@@ -17,7 +18,7 @@ namespace SmartImage.Engines.TraceMoe
 
 		public override SearchEngines Engine => SearchEngines.TraceMoe;
 
-		private TraceMoeRootObject GetApiResults(string url)
+		private TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code)
 		{
 			// https://soruly.github.io/trace.moe/#/
 
@@ -30,6 +31,9 @@ namespace SmartImage.Engines.TraceMoe
 
 			IRestResponse<TraceMoeRootObject> re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
+			code = re.StatusCode;
+			
+
 			// todo: null sometimes
 			return re.Data;
 		}
@@ -38,8 +42,10 @@ namespace SmartImage.Engines.TraceMoe
 		{
 			var r = base.GetResult(url);
 
-			var tm = GetApiResults(url);
+			var tm = GetApiResults(url, out var code);
 
+			r.ExtendedInfo.Add(string.Format("Code: {0}",code));
+			
 			if (tm?.docs != null) {
 				// Most similar to least similar
 				var mostSimilarDoc = tm.docs[0];
@@ -47,6 +53,7 @@ namespace SmartImage.Engines.TraceMoe
 				r.Similarity = (float?) mostSimilarDoc.similarity;
 
 				r.ExtendedInfo.Add(String.Format("Name: {0}", mostSimilarDoc.title_english));
+				
 			}
 			else {
 				r.ExtendedInfo.Add("API returned null (possible timeout)");

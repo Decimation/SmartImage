@@ -50,7 +50,7 @@ namespace SmartImage
 		/// <summary>
 		/// User config and arguments
 		/// </summary>
-		public static SearchConfig Config { get; internal set; } = null!;
+		public static SearchConfig Config { get;  set; } = null!;
 
 		public static string ConfigLocation {
 			get { return Path.Combine(AppFolder, NAME_CFG); }

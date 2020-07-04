@@ -47,4 +47,6 @@ namespace SmartImage.Engines.TraceMoe
 		public int               quota_ttl         { get; set; }
 		public List<TraceMoeDoc> docs              { get; set; }
 	}
+	
+	
 }

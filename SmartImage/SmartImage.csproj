@@ -38,4 +38,22 @@
         <TrimmerRootAssembly Include="System.IO.FileSystem" />
     </ItemGroup>
 
+  <PropertyGroup>
+    <PackageId>SmartImage</PackageId>
+    <Version>1.0.2</Version>
+    <Authors>Read Stanton (Decimation)</Authors>
+    <PackageTags>Image reverse search identification source sauce</PackageTags>
+    <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
+    <PackageIcon>icon64.png</PackageIcon>
+    <Description>Reverse image search identification library. Features Windows context menu integration and a command line interface.</Description>
+    <Copyright>Copyright 2020</Copyright>
+    <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\icon64.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 </Project>
