@@ -69,8 +69,7 @@ Sets the priority search engines, delimited by commands. See the above list for 
 
 `--saucenao-auth <api key>`
 
-Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api). If this is configured, SmartImage will be able to return more specific results. SmartImage will be able to function as seen in the demo (opening the direct source image in your browser). You can also use the
-`create-sn [auto]` verb to create an account automatically. 
+Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api).
 
 `--imgur-auth <consumer id>`
 
@@ -83,7 +82,6 @@ Automatically exits the program once searching is complete.
 `--update-cfg`
 
 Updates the configuration file with the supplied command line arguments.
-
 
 
 # Commands
