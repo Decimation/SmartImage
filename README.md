@@ -69,8 +69,8 @@ Sets the priority search engines, delimited by commands. See the above list for 
 
 `--saucenao-auth <api key>`
 
-Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api). If this is configured, SmartImage will be able to return more specific results. SmartImage will be able to function as seen in the demo (opening the direct source image in your browser). You can also use the
-`create-sn [auto]` verb to create an account automatically. 
+Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api).
+If this is configured, SmartImage will use the SauceNao API instead of parsing the HTML response.
 
 `--imgur-auth <consumer id>`
 
@@ -83,7 +83,6 @@ Automatically exits the program once searching is complete.
 `--update-cfg`
 
 Updates the configuration file with the supplied command line arguments.
-
 
 
 # Commands
@@ -103,10 +102,6 @@ Adds or removes executable path to path environment variable.
 `reset [all]`
 
 Removes integrations. Specify `all` to additionally reset configuration.
-
-`create-sn [true/false]`
-
-Register a SauceNao account (for API keys). Specify `true` to autofill registration fields.
 
 `info`
 
@@ -135,23 +130,15 @@ Runs the program using SauceNao, ImgOps, and Google Images. The best result from
 Runs the program using SauceNao, ImgOps, and Karma Decay. The best result from SauceNao will be opened in the browser.
 The specified options will be saved to the configuration file.
 
-`smartimage create-sn true`
-
-Automatically creates a SauceNao account for usage. Account information is stored in a text file in the current directory and the
-API key is saved to the configuration file.
-
 `smartimage reset all`
 
 Fully resets configuration and removes all integrations.
 
 # Notes
 
-- Ensure that the executable is placed in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10). You can also use the `--add-to-path` command to add the current directory to the path.
+- The SmartImage executable location must in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10). You can also use the `path add` command to add the current directory to the path.
 
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
-
-- SmartImage is a single-file, trimmed .NET executable. This means that dynamic libraries must be extracted to a temporary directory
-(usually `%temp%\.net\SmartImage`).
 
 - Some functions use hacky solutions (like dynamically creating a registry key file to install context menu integration). This is temporary until I can find better approaches, but it should work in the meantime.
 
