@@ -104,10 +104,6 @@ Adds or removes executable path to path environment variable.
 
 Removes integrations. Specify `all` to additionally reset configuration.
 
-`create-sn [true/false]`
-
-Register a SauceNao account (for API keys). Specify `true` to autofill registration fields.
-
 `info`
 
 Displays information about the program and its configuration.
@@ -134,11 +130,6 @@ Runs the program using SauceNao, ImgOps, and Google Images. The best result from
 
 Runs the program using SauceNao, ImgOps, and Karma Decay. The best result from SauceNao will be opened in the browser.
 The specified options will be saved to the configuration file.
-
-`smartimage create-sn true`
-
-Automatically creates a SauceNao account for usage. Account information is stored in a text file in the current directory and the
-API key is saved to the configuration file.
 
 `smartimage reset all`
 
