@@ -91,12 +91,7 @@ namespace SmartImage
 		public static string BundleExtractFolder =>
 			Environment.GetEnvironmentVariable("DOTNET_BUNDLE_EXTRACT_BASE_DIR", EnvironmentVariableTarget.User)!;
 
-		internal static void Setup()
-		{
-
-		}
-
-		internal static void Init()
+		internal static void EnsurePathIntegration()
 		{
 			// todo
 			if (!IsAppFolderInPath) {

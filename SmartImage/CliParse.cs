@@ -16,6 +16,9 @@ using SmartImage.Searching;
 
 namespace SmartImage
 {
+	// TODO: REMOVE/REFACTOR
+
+
 	public static class CliParse
 	{
 		private static void RunIntegrated(IIntegrated c, Action add, Action remove)
