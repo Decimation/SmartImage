@@ -93,6 +93,11 @@ namespace SmartImage
 
 		internal static void Setup()
 		{
+
+		}
+
+		internal static void Init()
+		{
 			// todo
 			if (!IsAppFolderInPath) {
 				CliParse.PathCommand.Add();

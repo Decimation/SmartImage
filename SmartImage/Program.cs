@@ -58,28 +58,133 @@ namespace SmartImage
 	 */
 	public static class Program
 	{
+		private readonly struct Option
+		{
+			/// <summary>
+			/// If this function returns <c>null</c>, <see cref="Program.AlternateMenu"/> will not return
+			/// </summary>
+			public Func<object> Function { get; }
+
+			/// <summary>
+			/// Name
+			/// </summary>
+			public string Name { get; }
+
+			public Option(string name, Func<object> func)
+			{
+				this.Name = name;
+				this.Function = func;
+			}
+		}
+
+
+		/// <summary>
+		/// Runs when no arguments are given (and when the executable is double-clicked)
+		/// </summary>
+		/// <returns></returns>
+		private static object AlternateMenu()
+		{
+			ConsoleKeyInfo cki;
+
+			var options = new[]
+			{
+				new Option("Run setup", () =>
+				{
+					RuntimeInfo.Setup();
+					CliOutput.WriteSuccess("Setup success");
+					Thread.Sleep(TimeSpan.FromSeconds(1));
+					return null;
+				}),
+
+				new Option("Select image", () =>
+				{
+					Console.WriteLine("Drag and drop the image here.");
+					Console.Write("Image: ");
+					var img = Console.ReadLine();
+					return img;
+				}),
+			};
+
+			do {
+				Console.Clear();
+
+				for (int i = 0; i < options.Length; i++) {
+					var opt = options[i];
+					Console.WriteLine("{0}: {1}", i + 1, opt.Name);
+				}
+
+				Console.WriteLine();
+
+				CliOutput.WriteSuccess("Enter the option number or escape to quit.");
+
+				while (!Console.KeyAvailable) {
+					// Block until input is entered.
+				}
+
+
+				// Key was read
+
+				cki = Console.ReadKey(true);
+				char keyChar = cki.KeyChar;
+
+				if (Char.IsNumber(keyChar)) {
+					int idx = (int) Char.GetNumericValue(cki.KeyChar) - 1;
+
+					if (idx < options.Length && idx >= 0) {
+						var option = options[idx];
+						var fn = option.Function();
+
+						if (fn != null) {
+							return fn;
+						}
+					}
+				}
+			} while (cki.Key != ConsoleKey.Escape);
+
+
+			return null;
+		}
+
+
 		/**
 		 * Entry point
 		 */
 		private static void Main(string[] args)
 		{
 			if (args == null || args.Length == 0) {
-				return;
+				var obj = AlternateMenu();
+				Console.Clear();
+
+				if (obj == null) {
+					Console.WriteLine("Exiting");
+					return;
+				}
+
+				// Image
+				args = new[] {(string) obj};
 			}
 
-			RuntimeInfo.Setup();
+			RuntimeInfo.Init();
 
 			CliParse.ReadArguments(args);
 
 			var img = RuntimeInfo.Config.Image;
+			
+			CliOutput.WriteInfo("Image: {0}", img);
 
 			bool run = img != null;
 
 			if (run) {
-				var sr      = new SearchResults();
-				var ok      = Search.RunSearch(img, ref sr);
+				var sr = new SearchResults();
+				var ok = Search.RunSearch(img, ref sr);
+
+				if (!ok) {
+					CliOutput.WriteError("Search failed");
+					return;
+				}
+
 				var results = sr.Results;
-				
+
 				// Console.WriteLine("Elapsed: {0:F} sec", result.Duration.TotalSeconds);
 
 				ConsoleKeyInfo cki;
@@ -91,6 +196,7 @@ namespace SmartImage
 						var r = sr.Results[i];
 
 						var tag = (i + 1).ToString();
+
 						if (r != null) {
 							string str = r.Format(tag);
 
