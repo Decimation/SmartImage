@@ -70,6 +70,7 @@ Sets the priority search engines, delimited by commands. See the above list for 
 `--saucenao-auth <api key>`
 
 Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api).
+If this is configured, SmartImage will use the SauceNao API instead of parsing the HTML response.
 
 `--imgur-auth <consumer id>`
 
