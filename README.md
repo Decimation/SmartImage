@@ -1,5 +1,14 @@
 # SmartImage
 
+```
+  ____                       _   ___
+ / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
+ \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \
+  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
+ |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
+                                                     |___/
+```
+
 *Find the source image in one click!*
 
 SmartImage is a reverse image search tool for Windows with context menu integration. SmartImage will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
@@ -42,6 +51,12 @@ Search engine names and configuration:
 
 
 # Usage
+
+SmartImage can be used in multiple ways:
+
+- Open the program normally (double click) and you can use the program in a user-friendly way. You can drag and drop your image into the command prompt and run a search.
+- Open the program by right-clicking on an image (once the context menu integration is set up) to immediately perform a search.
+- Open the program through the command line which allows for more specific searching.
 
 Command line syntax:
 
