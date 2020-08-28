@@ -51,25 +51,6 @@ namespace SmartImage
 
 					break;
 				}
-				case CreateSauceNaoCommand c:
-				{
-					var acc = SauceNao.CreateAccount(c.Auto);
-
-					CliOutput.WriteInfo("Account information:");
-
-					var accStr = acc.ToString();
-					var output = Environment.GetFolderPath(Environment.SpecialFolder.Desktop)
-					             + "\\saucenao_account.txt";
-
-					File.WriteAllText(output, accStr);
-
-					Console.WriteLine(accStr);
-
-					CliOutput.WriteInfo("Adding key to cfg file");
-					RuntimeInfo.Config.SauceNaoAuth = acc.ApiKey;
-					RuntimeInfo.Config.WriteToFile();
-					break;
-				}
 				case ResetCommand c:
 				{
 					ResetCommand.RunReset(c.All);
@@ -92,7 +73,7 @@ namespace SmartImage
 			var cfgCli = new SearchConfig();
 
 			var result = Parser.Default.ParseArguments<SearchConfig, ContextMenuCommand, PathCommand,
-				CreateSauceNaoCommand, ResetCommand, InfoCommand>(args);
+				 ResetCommand, InfoCommand>(args);
 
 
 			// todo
@@ -231,15 +212,6 @@ namespace SmartImage
 			}
 
 			public static void Remove() => ExplorerSystem.RemoveFromPath(RuntimeInfo.AppFolder);
-		}
-
-		[Verb("create-sn", HelpText = "Creates a SauceNao account (for API keys).")]
-		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		public sealed class CreateSauceNaoCommand
-		{
-			[Value(0, Default = true,
-			       HelpText   = "Specify true to automatically autofill account registration fields.")]
-			public bool Auto { get; set; }
 		}
 
 		[Verb("reset", HelpText = "Removes integrations")]

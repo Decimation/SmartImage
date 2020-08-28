@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ContentModelStore">
+    <e p="C:\Users\Deci\AppData\local\JetBrains\Rider2020.1\extResources" t="IncludeRecursive" />
+    <e p="C:\Users\Deci\AppData\local\JetBrains\Rider2020.1\resharper-host\local\Transient\ReSharperHost\v201\SolutionCaches\_SmartImage.-654409172.00" t="ExcludeRecursive" />
+    <e p="C:\Users\Deci\RiderProjects\SmartImage" t="IncludeFlat">
+      <e p="icon64.png" t="Include" />
+      <e p="packages" t="ExcludeRecursive" />
+      <e p="SmartImage" t="IncludeRecursive">
+        <e p="bin" t="ExcludeRecursive" />
+        <e p="CliParse.cs" t="Include" />
+        <e p="Engines" t="Include">
+          <e p="Bing.cs" t="Include" />
+          <e p="GoogleImages.cs" t="Include" />
+          <e p="ImgOps.cs" t="Include" />
+          <e p="Imgur" t="Include">
+            <e p="Imgur.cs" t="Include" />
+            <e p="ImgurImage.cs" t="Include" />
+            <e p="ImgurResponse.cs" t="Include" />
+          </e>
+          <e p="Iqdb.cs" t="Include" />
+          <e p="KarmaDecay.cs" t="Include" />
+          <e p="SauceNao" t="Include">
+            <e p="BaseSauceNao.cs" t="Include" />
+            <e p="BasicSauceNao.cs" t="Include" />
+            <e p="SauceNao.cs" t="Include" />
+            <e p="SauceNaoResponse.cs" t="Include" />
+            <e p="SauceNaoResult.cs" t="Include" />
+            <e p="SiteIndex.cs" t="Include" />
+          </e>
+          <e p="TinEye.cs" t="Include" />
+          <e p="TraceMoe" t="Include">
+            <e p="TraceMoe.cs" t="Include" />
+            <e p="TraceMoeResult.cs" t="Include" />
+          </e>
+          <e p="Yandex.cs" t="Include" />
+        </e>
+        <e p="Icon.ico" t="Include" />
+        <e p="Icon.png" t="Include" />
+        <e p="Model" t="Include">
+          <e p="BasicAccount.cs" t="Include" />
+          <e p="IIntegrated.cs" t="Include" />
+          <e p="ISearchEngine.cs" t="Include" />
+          <e p="QuickSearchEngine.cs" t="Include" />
+          <e p="ReleaseInfo.cs" t="Include" />
+          <e p="SearchResult.cs" t="Include" />
+        </e>
+        <e p="obj" t="ExcludeRecursive">
+          <e p="Release" t="Include">
+            <e p="netcoreapp3.0" t="Include">
+              <e p="win10-x64" t="Include">
+                <e p="SmartImage.AssemblyInfo.cs" t="Include" />
+              </e>
+            </e>
+          </e>
+        </e>
+        <e p="Program.cs" t="Include" />
+        <e p="RuntimeInfo.cs" t="Include" />
+        <e p="SearchConfig.cs" t="Include" />
+        <e p="Searching" t="Include">
+          <e p="Search.cs" t="Include" />
+          <e p="SearchEngines.cs" t="Include" />
+          <e p="SearchResults.cs" t="Include" />
+          <e p="WebAgent.cs" t="Include" />
+        </e>
+        <e p="SmartImage.1.0.2.nupkg" t="Include" />
+        <e p="SmartImage.csproj" t="IncludeRecursive" />
+        <e p="System.IO.FileSystem" t="Include" />
+        <e p="System.Net" t="Include" />
+      </e>
+      <e p="SmartImage.sln" t="IncludeFlat" />
+    </e>
+  </component>
+</project>

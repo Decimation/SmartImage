@@ -7,8 +7,6 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
 using System.Xml;
-using OpenQA.Selenium;
-using RapidSelenium;
 using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Model;
@@ -32,25 +30,7 @@ namespace SmartImage.Engines.SauceNao
 		private const string ACC_OV_URL  = BASE_URL + "user.php?page=account-overview";
 		private const string ACC_API_URL = BASE_URL + "user.php?page=search-api";
 
-		// todo: rename all
-
-		private static readonly By ByUsername =
-			By.CssSelector("body > form:nth-child(7) > input[type=text]:nth-child(1)");
-
-		private static readonly By ByEmail = By.CssSelector("body > form:nth-child(7) > input[type=text]:nth-child(3)");
-
-		private static readonly By ByPassword =
-			By.CssSelector("body > form:nth-child(7) > input[type=password]:nth-child(5)");
-
-		private static readonly By ByPasswordConfirmation =
-			By.CssSelector("body > form:nth-child(7) > input[type=password]:nth-child(7)");
-
-		private static readonly By ByRegister =
-			By.CssSelector("body > form:nth-child(7) > input[type=submit]:nth-child(10)");
-
-		private static readonly By ByBody = By.CssSelector("body");
-
-		private static readonly By ByApiKey = By.CssSelector("#middle > form");
+		
 
 		private readonly string m_apiKey;
 
@@ -154,7 +134,6 @@ namespace SmartImage.Engines.SauceNao
 
 			var best = GetBestApiResult(sn);
 
-
 			if (best != null) {
 				string bestUrl = best?.Url?[0];
 
@@ -164,112 +143,6 @@ namespace SmartImage.Engines.SauceNao
 			}
 
 			return new SearchResult(null, Name);
-		}
-
-		public static BasicAccount CreateAccount(bool auto)
-		{
-			RapidWebDriver rwd;
-
-
-			try {
-				CliOutput.WriteInfo("Please wait...");
-				rwd = RapidWebDriver.CreateQuick(true);
-			}
-			catch (Exception exception) {
-				CliOutput.WriteError("Exception: {0}", exception.Message);
-				//throw;
-				CliOutput.WriteError("Error creating webdriver");
-
-				return BasicAccount.Null;
-			}
-
-			string uname, pwd, email;
-
-			if (auto) {
-				uname = Strings.CreateRandom(10);
-				pwd   = Strings.CreateRandom(10);
-				email = WebAgent.EMail.GetEmail();
-			}
-			else {
-				Console.Write("Username: ");
-				uname = Console.ReadLine();
-
-				Console.Write("Password: ");
-				pwd = Console.ReadLine();
-
-				Console.Write("Email: ");
-				email = Console.ReadLine();
-			}
-
-			Console.WriteLine("\nUsername: {0}\nPassword: {1}\nEmail: {2}\n", uname, pwd, email);
-
-
-			try {
-				CliOutput.WriteInfo("Registering account...");
-				var acc = CreateAccountInternal(rwd, uname, email, pwd);
-
-
-				CliOutput.WriteInfo("Cleaning up...");
-				rwd.Dispose();
-
-				return acc;
-			}
-			catch (Exception exception) {
-				CliOutput.WriteError("Exception: {0}", exception.Message);
-				//throw;
-				CliOutput.WriteError("Error creating account");
-
-				return BasicAccount.Null;
-			}
-		}
-
-		private static BasicAccount CreateAccountInternal(RapidWebDriver rwd,
-		                                                  string         username = null,
-		                                                  string         email    = null,
-		                                                  string         password = null)
-		{
-			var cd = rwd.Value;
-
-			cd.Url = BASE_URL + "user.php";
-
-			var usernameEle = cd.FindElement(ByUsername);
-			usernameEle.SendKeys(username);
-
-
-			var emailEle = cd.FindElement(ByEmail);
-			emailEle.SendKeys(email);
-
-
-			var pwdEle = cd.FindElement(ByPassword);
-			pwdEle.SendKeys(password);
-
-
-			var pwd2Ele = cd.FindElement(ByPasswordConfirmation);
-			pwd2Ele.SendKeys(password);
-
-			var regEle = cd.FindElement(ByRegister);
-			regEle.Click();
-
-			var body     = cd.FindElement(ByBody);
-			var response = body.Text;
-
-			Thread.Sleep(TimeSpan.FromSeconds(5));
-
-			if (cd.Url != ACC_OV_URL || !response.Contains("welcome")) {
-				CliOutput.WriteError("Error registering: {0} (body: {1})", cd.Url, response);
-				return BasicAccount.Null;
-			}
-
-			CliOutput.WriteSuccess("Success!");
-
-			// https://saucenao.com/user.php?page=search-api
-
-			cd.Url = ACC_API_URL;
-
-			var apiEle  = cd.FindElement(ByApiKey);
-			var apiText = apiEle.Text.Split(' ')[2];
-
-			return new BasicAccount(username, password, email, apiText);
 		}
 	}
 }

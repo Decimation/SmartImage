@@ -1,46 +1,48 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>netcoreapp3.0</TargetFramework>
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
 
-        <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
 
-        <PublishSingleFile>true</PublishSingleFile>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
 
-        <PublishTrimmed>true</PublishTrimmed>
-        <!--<PublishReadyToRun>true</PublishReadyToRun>-->
+    <PublishSingleFile>true</PublishSingleFile>
 
-        <ApplicationIcon>Icon.ico</ApplicationIcon>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <LangVersion>latest</LangVersion>
-        <!--<Nullable>enable</Nullable>-->
-        <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    </PropertyGroup>
+    <PublishTrimmed>true</PublishTrimmed>
+    <!--<PublishReadyToRun>true</PublishReadyToRun>-->
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <DefineConstants>DEBUG</DefineConstants>
-    </PropertyGroup>
-    
-    <ItemGroup>
-        <PackageReference Include="CommandLineParser" Version="2.8.0" />
-        <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
-        <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
-        <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-        <PackageReference Include="RapidSelenium" Version="1.0.2" />
-        <PackageReference Include="RestSharp" Version="106.10.1" />
-        <PackageReference Include="SimpleCore" Version="1.0.9" />
-        <PackageReference Include="System.Json" Version="4.7.0" />
-        
-        
-        <!-- Trimmer dependencies -->
-        <TrimmerRootAssembly Include="System.Net" />
-        <TrimmerRootAssembly Include="System.IO.FileSystem" />
-    </ItemGroup>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    <!--<Nullable>enable</Nullable>-->
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
+    <Configurations>Debug;Release;Release + publish</Configurations>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommandLineParser" Version="2.8.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
+    <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="RestSharp" Version="106.11.4" />
+    <PackageReference Include="SimpleCore" Version="1.0.9" />
+    <PackageReference Include="System.Json" Version="4.7.1" />
+
+
+    <!-- Trimmer dependencies -->
+    <TrimmerRootAssembly Include="System.Net" />
+    <TrimmerRootAssembly Include="System.IO.FileSystem" />
+  </ItemGroup>
 
   <PropertyGroup>
     <PackageId>SmartImage</PackageId>
-    <Version>1.0.2</Version>
+    <Version>1.0.3</Version>
     <Authors>Read Stanton (Decimation)</Authors>
     <PackageTags>Image reverse search identification source sauce</PackageTags>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>

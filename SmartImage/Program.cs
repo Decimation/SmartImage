@@ -9,7 +9,6 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using RapidSelenium;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
@@ -24,9 +23,8 @@ namespace SmartImage
 	/**
 	 * Single file executable build dir
 	 * 
-	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64
-	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish
-	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Debug\netcoreapp3.0\win10-x64
+	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.1\win10-x64
+	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.1\win10-x64\publish
 	 *
 	 * Single file publish command
 	 *
@@ -43,7 +41,7 @@ namespace SmartImage
 	 *
 	 * copy SmartImage.exe C:\Library /Y
 	 * copy SmartImage.exe C:\Users\Deci\Desktop /Y
-	 * copy C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.0\win10-x64\publish\SmartImage.exe C:\Users\Deci\Desktop /Y
+	 * copy C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.1\win10-x64\publish\SmartImage.exe C:\Users\Deci\Desktop /Y
 	 * 
 	 * Bundle extract folder
 	 * 
