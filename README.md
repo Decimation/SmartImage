@@ -54,9 +54,10 @@ Search engine names and configuration:
 
 SmartImage can be used in multiple ways:
 
-- Open the program normally (double click) and you can use the program in a user-friendly way. You can drag and drop your image into the command prompt and run a search.
-- Open the program by right-clicking on an image (once the context menu integration is set up) to immediately perform a search.
-- Open the program through the command line which allows for more specific searching.
+- Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
+- Right-click on an image (once the context menu integration is set up) and select the SmartImage option to immediately perform a search.
+- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
+- Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
 Command line syntax:
 
