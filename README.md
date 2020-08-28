@@ -136,12 +136,9 @@ Fully resets configuration and removes all integrations.
 
 # Notes
 
-- Ensure that the executable is placed in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10). You can also use the `--add-to-path` command to add the current directory to the path.
+- The SmartImage executable location must in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10). You can also use the `path add` command to add the current directory to the path.
 
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
-
-- SmartImage is a single-file, trimmed .NET executable. This means that dynamic libraries must be extracted to a temporary directory
-(usually `%temp%\.net\SmartImage`).
 
 - Some functions use hacky solutions (like dynamically creating a registry key file to install context menu integration). This is temporary until I can find better approaches, but it should work in the meantime.
 
