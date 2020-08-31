@@ -13,6 +13,13 @@
 
 SmartImage is a reverse image search tool for Windows with context menu integration. SmartImage will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
 
+SmartImage can be used in multiple ways:
+
+- Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
+- Right-click on an image (once the context menu integration is set up) and select the SmartImage option to immediately perform a search.
+- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
+- Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
+
 Supported sites:
 
 - [SauceNao](https://saucenao.com/) (`SauceNao`)
@@ -49,14 +56,9 @@ Search engine names and configuration:
 
 ![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
 
+# Command Line
 
-# Usage
-
-SmartImage can be used in multiple ways:
-
-- Open the program normally (double click) and you can use the program in a user-friendly way. You can drag and drop your image into the command prompt and run a search.
-- Open the program by right-clicking on an image (once the context menu integration is set up) to immediately perform a search.
-- Open the program through the command line which allows for more specific searching.
+## Usage
 
 Command line syntax:
 
@@ -70,7 +72,7 @@ Command line syntax:
 
 **Behavior note**: *Any options not specified via the command line are automatically read from the configuration file.*
 
-# Options
+## Options
 
 `--engines <engines>`
 
@@ -100,7 +102,7 @@ Automatically exits the program once searching is complete.
 Updates the configuration file with the supplied command line arguments.
 
 
-# Commands
+## Commands
 
 `search <image path> [options...]`
 
@@ -130,7 +132,7 @@ Display available commands.
 
 Display program version.
 
-# Usage examples
+## Usage examples
 
 `smartimage --engines All --priority-engines None "image.jpg"`
 
