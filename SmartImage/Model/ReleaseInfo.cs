@@ -15,9 +15,11 @@ namespace SmartImage.Model
 
 			// todo
 			// hacky
-			const string buildRevision = ".0.0";
-			var          versionStr    = tagName.Replace("v", String.Empty) + buildRevision;
 
+			const string buildRevision = ".0.0";
+
+			//const string buildRevision = ".0";
+			var          versionStr    = tagName.Replace("v", String.Empty) + buildRevision;
 			var parse = Version.Parse(versionStr);
 
 
@@ -42,13 +44,17 @@ namespace SmartImage.Model
 
 			var first = ja[0];
 
-
 			var tagName = first["tag_name"];
 			var url     = first["html_url"];
 			var publish = first["published_at"];
 
 			var r = new ReleaseInfo(tagName.ToString(), url.ToString(), publish.ToString());
 			return r;
+		}
+
+		public override string ToString()
+		{
+			return String.Format("{0} {1} {2}", TagName, Version, PublishedAt);
 		}
 	}
 }

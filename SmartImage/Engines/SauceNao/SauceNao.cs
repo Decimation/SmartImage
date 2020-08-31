@@ -27,11 +27,6 @@ namespace SmartImage.Engines.SauceNao
 	{
 		private const string ENDPOINT = BASE_URL + "search.php";
 
-		private const string ACC_OV_URL  = BASE_URL + "user.php?page=account-overview";
-		private const string ACC_API_URL = BASE_URL + "user.php?page=search-api";
-
-		
-
 		private readonly string m_apiKey;
 
 		private readonly RestClient m_client;

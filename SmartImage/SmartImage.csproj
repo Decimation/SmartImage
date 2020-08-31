@@ -18,6 +18,7 @@
     <!--<Nullable>enable</Nullable>-->
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <Configurations>Debug;Release;Release + publish</Configurations>
+    
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -40,9 +41,10 @@
     <TrimmerRootAssembly Include="System.IO.FileSystem" />
   </ItemGroup>
 
+
   <PropertyGroup>
     <PackageId>SmartImage</PackageId>
-    <Version>1.8.0</Version>
+    <Version>1.9.1</Version>
     <Authors>Read Stanton (Decimation)</Authors>
     <PackageTags>Image reverse search identification source sauce</PackageTags>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
@@ -51,6 +53,7 @@
     <Copyright>Copyright 2020</Copyright>
     <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
   </PropertyGroup>
+  
 
   <ItemGroup>
     <None Include="..\icon64.png">

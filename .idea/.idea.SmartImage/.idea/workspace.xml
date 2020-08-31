@@ -20,8 +20,40 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ab00f182-0af2-4ee1-aefe-9da70539aa0b" name="Default Changelist" comment="stuff">
+      <change beforePath="$PROJECT_DIR$/.vs/SmartImage/v16/.suo" beforeDir="false" afterPath="$PROJECT_DIR$/.vs/SmartImage/v16/.suo" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.vs/slnx.sqlite" beforeDir="false" afterPath="$PROJECT_DIR$/.vs/slnx.sqlite" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/CliParse.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/CliParse.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/Engines/SauceNao/SauceNao.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/Engines/SauceNao/SauceNao.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/Program.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/Program.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/RuntimeInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/RuntimeInfo.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/SmartImage/SmartImage.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/SmartImage.csproj" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/global.json" beforeDir="false" afterPath="$PROJECT_DIR$/global.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.deps.json" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.deps.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Debug/netcoreapp3.1/win10-x64/SmartImage.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.deps.json" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.deps.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/SmartImage.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/publish/SmartImage.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/publish/SmartImage.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/publish/SmartImage.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/bin/Release/netcoreapp3.1/win10-x64/publish/SmartImage.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfoInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.csprojAssemblyReference.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Debug/netcoreapp3.1/win10-x64/SmartImage.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfo.cs" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfo.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfoInputs.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.AssemblyInfoInputs.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.csprojAssemblyReference.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.csprojAssemblyReference.cache" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.deps.json" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.deps.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.exe" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.exe" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.pdb" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/SmartImage.pdb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/linked/SmartImage.dll" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.1/win10-x64/linked/SmartImage.dll" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/SmartImage.csproj.nuget.dgspec.json" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/SmartImage.csproj.nuget.dgspec.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/project.assets.json" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/project.assets.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SmartImage/obj/project.nuget.cache" beforeDir="false" afterPath="$PROJECT_DIR$/SmartImage/obj/project.nuget.cache" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -41,7 +73,6 @@
     <setting file="file://$PROJECT_DIR$/SmartImage/Engines/Imgur/Imgur.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/SmartImage/Model/QuickSearchEngine.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/1E3C5336-A628-4A51-9C8B-85A55B93030B/1f/cc430ceb/CliOutput.cs" root0="SKIP_HIGHLIGHTING" />
-    <setting file="file://$PROJECT_DIR$/SmartImage/obj/Release/netcoreapp3.0/win10-x64/SmartImage.AssemblyInfo.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/2C5A6D4E-A116-4558-BD4B-F709E60F31A1/1F/File.cs" root0="SKIP_HIGHLIGHTING" />
     <setting file="file://$PROJECT_DIR$/SmartImage/Engines/ImgOps.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/085D4509-7C57-4DAA-90FE-533ED1986BD5/4/Console.cs" root0="SKIP_HIGHLIGHTING" />
@@ -275,6 +306,7 @@
       <workItem from="1593869590982" duration="8169000" />
       <workItem from="1595963600341" duration="134000" />
       <workItem from="1598601717019" duration="240000" />
+      <workItem from="1598841580850" duration="26000" />
     </task>
     <task id="LOCAL-00014" summary="Fix crashing when files have spaces">
       <created>1584594820454</created>
@@ -640,7 +672,6 @@
     <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
-    <option name="LOCAL_CHANGES_DETAILS_PREVIEW_SHOWN" value="false" />
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="Config file" />
     <MESSAGE value="v1.4.0.0" />

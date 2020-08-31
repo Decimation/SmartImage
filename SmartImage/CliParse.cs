@@ -75,8 +75,7 @@ namespace SmartImage
 
 			var cfgCli = new SearchConfig();
 
-			var result = Parser.Default.ParseArguments<SearchConfig, ContextMenuCommand, PathCommand,
-				 ResetCommand, InfoCommand>(args);
+			var result = Parser.Default.ParseArguments<SearchConfig, ContextMenuCommand, PathCommand, ResetCommand, InfoCommand>(args);
 
 
 			// todo
@@ -275,7 +274,6 @@ namespace SmartImage
 				CliOutput.WriteInfo("Config location: {0}", RuntimeInfo.ConfigLocation);
 				CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
 				CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
-				CliOutput.WriteInfo(".NET bundle extract folder: {0}",RuntimeInfo.BundleExtractFolder);
 				
 
 				//
@@ -288,7 +286,7 @@ namespace SmartImage
 				var currentVersion = asm.Version;
 				CliOutput.WriteInfo("Current version: {0}", currentVersion);
 
-				var release = ReleaseInfo.LatestRelease();
+				/*var release = ReleaseInfo.LatestRelease();
 				CliOutput.WriteInfo("Latest version: {0} (tag {1}) ({2})", release.Version, release.TagName,
 				                    release.PublishedAt);
 
@@ -302,7 +300,7 @@ namespace SmartImage
 				}
 				else {
 					CliOutput.WriteInfo("(preview)");
-				}
+				}*/
 
 				CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
 				CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);

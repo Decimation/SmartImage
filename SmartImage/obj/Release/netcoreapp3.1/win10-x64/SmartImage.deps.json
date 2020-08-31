@@ -7,7 +7,7 @@
   "targets": {
     ".NETCoreApp,Version=v3.1": {},
     ".NETCoreApp,Version=v3.1/win10-x64": {
-      "SmartImage/1.8.0": {
+      "SmartImage/1.9.1": {
         "dependencies": {
           "CommandLineParser": "2.8.0",
           "HtmlAgilityPack": "1.11.24",
@@ -510,7 +510,7 @@
     }
   },
   "libraries": {
-    "SmartImage/1.8.0": {
+    "SmartImage/1.9.1": {
       "type": "project",
       "serviceable": false,
       "sha512": ""
