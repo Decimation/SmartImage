@@ -14,7 +14,7 @@
 SmartImage is a reverse image search tool for Windows with context menu integration. SmartImage will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
 
 
-### [See the latest releases](https://github.com/Decimation/SmartImage/releases)
+### [Download](https://github.com/Decimation/SmartImage/releases)
 
 
 # Supported sites
@@ -78,7 +78,7 @@ Command line syntax:
 
 **Behavior note**: *Any options not specified via the command line are automatically read from the configuration file.*
 
-## Options
+### Options
 
 `--engines <engines>`
 
@@ -104,7 +104,7 @@ Configures Imgur API keys. Register an application [here](https://api.imgur.com/
 Updates the configuration file with the supplied command line arguments.
 
 
-## Usage examples
+### Usage examples
 
 `smartimage --engines All --priority-engines None "image.jpg"`
 
@@ -137,6 +137,8 @@ The specified options will be saved to the configuration file.
 - Further rewrite & refactor codebase
 
 - Find better, less hacky approaches to various functions
+
+- Update examples
 
 # Inspiration
 
