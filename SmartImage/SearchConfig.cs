@@ -222,7 +222,6 @@ namespace SmartImage
 					// 	SearchConfig.Config.AutoExit = true;
 					// 	break;
 					case "--update-cfg":
-						qe.MoveNext();
 						Config.UpdateConfig = true;
 						break;
 

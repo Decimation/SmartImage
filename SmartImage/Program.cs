@@ -92,10 +92,10 @@ namespace SmartImage
 
 			var img = SearchConfig.Config.Image;
 
-			bool run = img != null;
+			bool run = !string.IsNullOrWhiteSpace(img);
 
 			if (!run) {
-				CliOutput.WriteError("Image error");
+				//CliOutput.WriteError("Image error");
 				return;
 			}
 
