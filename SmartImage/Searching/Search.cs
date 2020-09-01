@@ -32,7 +32,7 @@ namespace SmartImage.Searching
 			var engines = new List<ISearchEngine>();
 
 
-			bool sauceNaoConfigured = !string.IsNullOrWhiteSpace(RuntimeInfo.Config.SauceNaoAuth);
+			bool sauceNaoConfigured = !String.IsNullOrWhiteSpace(SearchConfig.Config.SauceNaoAuth);
 
 			if (sauceNaoConfigured) {
 				engines.Add(new SauceNao());
@@ -45,14 +45,14 @@ namespace SmartImage.Searching
 			{
 				new ImgOps(),
 				new GoogleImages(),
-				
+
 				new TinEye(),
 				new Iqdb(),
-				
+
 				new Bing(),
 				new Yandex(),
-				
-				
+
+
 				new KarmaDecay(),
 				new TraceMoe(),
 			};
@@ -62,17 +62,17 @@ namespace SmartImage.Searching
 			return engines.ToArray();
 		}
 
-		public static bool RunSearch(string img, ref SearchResults res)
+		public static bool RunSearch(string img, ref SearchResult[] res)
 		{
 			/*
 			 * Run 
              */
 
-			var  auth     = RuntimeInfo.Config.ImgurAuth;
-			bool useImgur = !string.IsNullOrWhiteSpace(auth);
+			var auth = SearchConfig.Config.ImgurAuth;
+			bool useImgur = !String.IsNullOrWhiteSpace(auth);
 
-			var engines  = RuntimeInfo.Config.Engines;
-			var priority = RuntimeInfo.Config.PriorityEngines;
+			var engines = SearchConfig.Config.Engines;
+			var priority = SearchConfig.Config.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
 				//todo
@@ -82,15 +82,16 @@ namespace SmartImage.Searching
 
 
 			// Exit
-			if (!Search.IsFileValid(img)) {
+			if (!IsFileValid(img)) {
 				SearchConfig.Cleanup();
 
 				return false;
 			}
 
-			CliOutput.WriteInfo(RuntimeInfo.Config);
+			// Display config
+			CliOutput.WriteInfo(SearchConfig.Config);
 
-			string imgUrl = Search.Upload(img, useImgur);
+			string imgUrl = Upload(img, useImgur);
 
 			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
 
@@ -105,27 +106,30 @@ namespace SmartImage.Searching
 
 			// Where the actual searching occurs
 
-			Search.StartSearches(imgUrl, engines, res);
+			StartSearches(imgUrl, engines, ref res);
 
 
 			return true;
 		}
 
 
-		private static bool StartSearches(string imgUrl, SearchEngines engines, SearchResults res)
+		private static bool StartSearches(string imgUrl, SearchEngines engines, ref SearchResult[] res)
 		{
-			ISearchEngine[] available = GetAvailableEngines()
-			                           .Where(e => engines.HasFlag(e.Engine))
-			                           .ToArray();
+			// todo: improve
+
+			var availableEngines = GetAvailableEngines()
+				.Where(e => engines.HasFlag(e.Engine))
+				.ToArray();
 
 			int i = 0;
-			res.Results    = new SearchResult[available.Length + 1];
-			res.Results[i] = new SearchResult(imgUrl, "(Original image)");
+
+			res = new SearchResult[availableEngines.Length + 1];
+			res[i] = new SearchResult(imgUrl, "(Original image)");
 
 			i++;
 
-			foreach (var idx in available) {
-				string wait = String.Format("{0}: ...", idx.Engine);
+			foreach (var currentEngine in availableEngines) {
+				string wait = String.Format("{0}: ...", currentEngine.Engine);
 
 				CliOutput.WithColor(ConsoleColor.Blue, () =>
 				{
@@ -135,7 +139,7 @@ namespace SmartImage.Searching
 
 
 				// Run search
-				var result = idx.GetResult(imgUrl);
+				var result = currentEngine.GetResult(imgUrl);
 
 				if (result != null) {
 					string url = result.Url;
@@ -144,7 +148,7 @@ namespace SmartImage.Searching
 					if (url != null) {
 						CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
 
-						if (RuntimeInfo.Config.PriorityEngines.HasFlag(idx.Engine)) {
+						if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
 							WebAgent.OpenUrl(result.Url);
 						}
 					}
@@ -152,7 +156,7 @@ namespace SmartImage.Searching
 						CliOutput.OnCurrentLine(ConsoleColor.Yellow, "{0}: Done (url is null!)\n", result.Name);
 					}
 
-					res.Results[i] = result;
+					res[i] = result;
 				}
 
 				// todo
@@ -166,6 +170,8 @@ namespace SmartImage.Searching
 
 		private static bool IsFileValid(string img)
 		{
+
+
 			if (!File.Exists(img)) {
 				CliOutput.WriteError("File does not exist: {0}", img);
 				return false;

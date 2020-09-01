@@ -17,7 +17,7 @@
     <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <Configurations>Debug;Release;Release + publish</Configurations>
+    <Configurations>Debug;Release</Configurations>
     
   </PropertyGroup>
 
@@ -26,7 +26,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CommandLineParser" Version="2.8.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.24" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />

@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Model;
 using SmartImage.Searching;
-using CommandLine;
 using SimpleCore;
 using SimpleCore.Utilities;
 
@@ -65,109 +64,13 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
+		// todo: make console key reading interaction support >1 digit numbers
 
 		// todo: make the console interaction and key reading a function instead of copy-pasting
 
-		private readonly struct Option
-		{
-			/// <summary>
-			/// If this function returns <c>null</c>, <see cref="Program.AlternateMenu"/> will not return
-			/// </summary>
-			public Func<object> Function { get; }
+		// todo: further improve UI
 
-			/// <summary>
-			/// Name
-			/// </summary>
-			public string Name { get; }
-
-			public Option(string name, Func<object> func)
-			{
-				this.Name = name;
-				this.Function = func;
-			}
-		}
-
-
-		/// <summary>
-		/// Runs when no arguments are given (and when the executable is double-clicked)
-		/// </summary>
-		/// <returns></returns>
-		private static object AlternateMenu()
-		{
-
-			ConsoleKeyInfo cki;
-
-			var options = new[]
-			{
-				new Option("* Select image", () =>
-				{
-					Console.WriteLine("Drag and drop the image here.");
-					Console.Write("Image: ");
-
-					var img = Console.ReadLine();
-					img = RuntimeInfo.CleanString(img);
-
-					return img;
-				}),
-				
-				new Option("Add/remove context menu integration", () =>
-				{
-					bool ctx = RuntimeInfo.IsContextMenuAdded;
-
-					if (!ctx) {
-						CliParse.ContextMenuCommand.Add();
-						CliOutput.WriteSuccess("Added to context menu");
-					}
-					else {
-						CliParse.ContextMenuCommand.Remove();
-						CliOutput.WriteSuccess("Removed from context menu");
-					}
-
-					Thread.Sleep(TimeSpan.FromSeconds(1));
-					return null;
-				}),
-			};
-
-			do {
-				Console.Clear();
-				Console.WriteLine(RuntimeInfo.NAME_BANNER);
-
-				for (int i = 0; i < options.Length; i++) {
-					var opt = options[i];
-					Console.WriteLine("{0}: {1}", i, opt.Name);
-				}
-
-				Console.WriteLine();
-
-				CliOutput.WriteSuccess("Enter the option number or escape to quit.");
-
-				while (!Console.KeyAvailable) {
-					// Block until input is entered.
-				}
-
-
-				// Key was read
-
-				cki = Console.ReadKey(true);
-				char keyChar = cki.KeyChar;
-
-				if (Char.IsNumber(keyChar)) {
-					int idx = (int) Char.GetNumericValue(cki.KeyChar);
-
-					if (idx < options.Length && idx >= 0) {
-						var option = options[idx];
-						var fn = option.Function();
-
-						if (fn != null) {
-							return fn;
-						}
-					}
-				}
-			} while (cki.Key != ConsoleKey.Escape);
-
-
-			return null;
-		}
+		// todo: remove SmartImage nuget package stuff
 
 
 		/**
@@ -176,102 +79,39 @@ namespace SmartImage
 		private static void Main(string[] args)
 		{
 			Console.Title = RuntimeInfo.NAME;
+			Console.SetWindowSize(Console.WindowWidth, Console.WindowHeight + 5);
 
-			if (args == null || args.Length == 0) {
-				var obj = AlternateMenu();
+			RuntimeInfo.Setup();
+			SearchConfig.ReadSearchConfigArgs(args);
+
+			if (SearchConfig.Config.NoArguments) {
+				Commands.RunCommandMenu();
 				Console.Clear();
-
-				if (obj == null) {
-					Console.WriteLine("Exiting");
-					return;
-				}
-
-				// Image
-				args = new[] {(string) obj};
 			}
 
-			Console.WriteLine(RuntimeInfo.NAME_BANNER);
-
-			RuntimeInfo.EnsurePathIntegration();
-
-			CliParse.ReadArguments(args);
-
-			var img = RuntimeInfo.Config.Image;
-
-			//CliOutput.WriteInfo("Image: {0}", img);
+			var img = SearchConfig.Config.Image;
 
 			bool run = img != null;
 
-			if (run) {
-				var sr = new SearchResults();
-				var ok = Search.RunSearch(img, ref sr);
-
-				if (!ok) {
-					CliOutput.WriteError("Search failed");
-					return;
-				}
-
-				var results = sr.Results;
-
-				// Console.WriteLine("Elapsed: {0:F} sec", result.Duration.TotalSeconds);
-
-				ConsoleKeyInfo cki;
-
-				do {
-					Console.Clear();
-
-					for (int i = 0; i < sr.Results.Length; i++) {
-						var r = sr.Results[i];
-
-						var tag = (i).ToString();
-
-						if (r != null) {
-							string str = r.Format(tag);
-
-							Console.Write(str);
-						}
-						else {
-							Console.WriteLine("{0} - ...", tag);
-						}
-					}
-
-					Console.WriteLine();
-
-					// Exit
-					if (RuntimeInfo.Config.AutoExit) {
-						SearchConfig.Cleanup();
-						return;
-					}
-
-					CliOutput.WriteSuccess("Enter the result number to open or escape to quit.");
-
-
-					while (!Console.KeyAvailable) {
-						// Block until input is entered.
-					}
-
-
-					// Key was read
-
-					cki = Console.ReadKey(true);
-					char keyChar = cki.KeyChar;
-
-					if (Char.IsNumber(keyChar)) {
-						int idx = (int) Char.GetNumericValue(cki.KeyChar);
-
-						if (idx < results.Length && idx >= 0) {
-							var res = results[idx];
-							WebAgent.OpenUrl(res.Url);
-						}
-					}
-				} while (cki.Key != ConsoleKey.Escape);
-
-				// Exit
-				SearchConfig.Cleanup();
+			if (!run) {
+				CliOutput.WriteError("Image error");
+				return;
 			}
-			else {
-				//CliOutput.WriteInfo("Exited");
+
+			var results = new SearchResult[(int) SearchEngines.All];
+			var ok = Search.RunSearch(img, ref results);
+
+			if (!ok) {
+				CliOutput.WriteError("Search failed");
+				return;
 			}
+
+			// Console.WriteLine("Elapsed: {0:F} sec", result.Duration.TotalSeconds);
+
+			Commands.HandleConsoleOptions(results);
+
+			// Exit
+			SearchConfig.Cleanup();
 		}
 	}
 }

@@ -1,79 +1,69 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
-using CommandLine;
 using JetBrains.Annotations;
 using SimpleCore.Utilities;
-using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
+
+// ReSharper disable IdentifierTypo
 
 namespace SmartImage
 {
-	// Arguments contains user config
-	// created from arguments if specified
-	// read from config file otherwise
-
-
-	// todo
-
-	[Verb("search", true)]
-	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+	/// <summary>
+	/// Search config
+	/// 
+	/// </summary>
+	/// <remarks>
+	/// Config is read from config file (<see cref="RuntimeInfo.ConfigLocation"/>) or from specified arguments
+	/// </remarks>
 	public sealed class SearchConfig
 	{
-		private const string CFG_IMGUR_APIKEY     = "imgur_client_id";
-		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
-		private const string CFG_SEARCH_ENGINES   = "search_engines";
+		private const string CFG_IMGUR_APIKEY = "imgur_client_id";
+		private const string CFG_SAUCENAO_APIKEY = "saucenao_key";
+		private const string CFG_SEARCH_ENGINES = "search_engines";
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
-		private const string CFG_AUTOEXIT         = "auto_exit";
 
-		[Option("engines")]
-		public string EnginesStr { get; set; }
+		private SearchConfig()
+		{
+			// create cfg with default options if it doesn't exist
+			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
+				var f = File.Create(RuntimeInfo.ConfigLocation);
+				f.Close();
+			}
 
-		[Option("priority-engines")]
-		public string PriorityEnginesStr { get; set; }
+			var cfgFromFileMap = ExplorerSystem.ReadMap(RuntimeInfo.ConfigLocation);
 
-		[Option("imgur-auth")]
+			// EnginesStr = Read<string>(CFG_SEARCH_ENGINES, cfgFromFileMap);
+			// PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, cfgFromFileMap);
+			Engines = ReadMapKeyValue<SearchEngines>(CFG_SEARCH_ENGINES, cfgFromFileMap);
+			PriorityEngines = ReadMapKeyValue<SearchEngines>(CFG_PRIORITY_ENGINES, cfgFromFileMap);
+			ImgurAuth = ReadMapKeyValue<string>(CFG_IMGUR_APIKEY, cfgFromFileMap);
+			SauceNaoAuth = ReadMapKeyValue<string>(CFG_SAUCENAO_APIKEY, cfgFromFileMap);
+		}
+
+
+		/// <summary>
+		///     User config and arguments
+		/// </summary>
+		public static SearchConfig Config { get; private set; } = new SearchConfig();
+
+		public bool NoArguments { get; set; }
+
+		public SearchEngines Engines { get; set; }
+
+		public SearchEngines PriorityEngines { get; set; }
+
 		public string ImgurAuth { get; set; }
 
-		[Option("saucenao-auth")]
+
 		public string SauceNaoAuth { get; set; }
 
-		[Option("auto-exit", Default = false)]
-		public bool AutoExit { get; set; }
 
-		[Option("update-cfg")]
 		public bool UpdateConfig { get; set; }
 
-		[Value(0, Required = true)]
 		public string Image { get; set; }
 
-
-		public SearchEngines Engines {
-			get => Enums.SafeParse<SearchEngines>(EnginesStr);
-			set => EnginesStr = value.ToString();
-		}
-
-		public SearchEngines PriorityEngines {
-			get => Enums.SafeParse<SearchEngines>(PriorityEnginesStr);
-			set => PriorityEnginesStr = value.ToString();
-		}
-
-		public bool IsEmpty {
-			get {
-				bool hasEngines         = Engines != default;
-				bool hasPriorityEngines = PriorityEngines != default;
-				bool hasImgurAuth       = !String.IsNullOrWhiteSpace(ImgurAuth);
-				bool hasSauceNaoAuth    = !String.IsNullOrWhiteSpace(SauceNaoAuth);
-
-
-				return !hasEngines && !hasPriorityEngines && !hasImgurAuth && !hasSauceNaoAuth;
-			}
-		}
-
-		public bool IsFromFile { get; private set; }
 
 		public IDictionary<string, string> ToMap()
 		{
@@ -82,49 +72,18 @@ namespace SmartImage
 				{CFG_SEARCH_ENGINES, Engines.ToString()},
 				{CFG_PRIORITY_ENGINES, PriorityEngines.ToString()},
 				{CFG_IMGUR_APIKEY, ImgurAuth},
-				{CFG_SAUCENAO_APIKEY, SauceNaoAuth},
-				{CFG_AUTOEXIT, AutoExit.ToString()},
+				{CFG_SAUCENAO_APIKEY, SauceNaoAuth}
 			};
 
 			return m;
 		}
 
-		public static SearchConfig GetDefault()
-		{
-			var uc = new SearchConfig();
-			uc.Reset();
-			return uc;
-		}
-
 		public void Reset()
 		{
-			Engines         = SearchEngines.All;
+			Engines = SearchEngines.All;
 			PriorityEngines = SearchEngines.SauceNao;
-			ImgurAuth       = null;
-			SauceNaoAuth    = null;
-			AutoExit        = false;
-		}
-
-		public static SearchConfig ReadFromFile(string location, bool isNew)
-		{
-			var cfgFromFileMap = ExplorerSystem.ReadMap(location);
-
-			var cfgFromFile = new SearchConfig
-			{
-				EnginesStr         = Read<string>(CFG_SEARCH_ENGINES, cfgFromFileMap),
-				PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, cfgFromFileMap),
-				ImgurAuth          = Read<string>(CFG_IMGUR_APIKEY, cfgFromFileMap),
-				SauceNaoAuth       = Read<string>(CFG_SAUCENAO_APIKEY, cfgFromFileMap),
-				AutoExit           = Read<bool>(CFG_AUTOEXIT, cfgFromFileMap),
-				IsFromFile         = true
-			};
-
-			if (isNew) {
-				cfgFromFile.Reset();
-				cfgFromFile.WriteToFile();
-			}
-
-			return cfgFromFile;
+			ImgurAuth = null;
+			SauceNaoAuth = null;
 		}
 
 
@@ -149,10 +108,6 @@ namespace SmartImage
 				cfgFromCli.SauceNaoAuth = cfgFromFile.SauceNaoAuth;
 			}
 
-			if (cfgFromCli.AutoExit == default) {
-				cfgFromCli.AutoExit = cfgFromFile.AutoExit;
-			}
-
 			return cfgFromCli;
 		}
 
@@ -164,9 +119,10 @@ namespace SmartImage
 			CliOutput.WriteInfo("wrote to {0}", RuntimeInfo.ConfigLocation);
 		}
 
-		public static void Write<T>(string name, T value, IDictionary<string, string> cfg)
+		private static void WriteMapKeyValue<T>(string name, T value, IDictionary<string, string> cfg)
 		{
-			var valStr = value.ToString();
+			string? valStr = value.ToString();
+
 			if (!cfg.ContainsKey(name)) {
 				cfg.Add(name, valStr);
 			}
@@ -178,34 +134,23 @@ namespace SmartImage
 		}
 
 
-		public static T Read<T>(string                      name,
-		                        IDictionary<string, string> cfg,
-		                        bool                        setDefaultIfNull = false,
-		                        T                           defaultValue     = default)
+		private static T ReadMapKeyValue<T>(string name,
+			IDictionary<string, string> cfg,
+			bool setDefaultIfNull = false,
+			T defaultValue = default)
 		{
-			if (!cfg.ContainsKey(name)) {
-				cfg.Add(name, String.Empty);
-				//Update();
+			if (!cfg.ContainsKey(name)) cfg.Add(name, String.Empty);
+			//Update();
+
+			string rawValue = cfg[name];
+
+			if (setDefaultIfNull && String.IsNullOrWhiteSpace(rawValue)) {
+				WriteMapKeyValue(name, defaultValue.ToString(), cfg);
+				rawValue = ReadMapKeyValue<string>(name, cfg);
 			}
 
-			var rawValue = cfg[name];
-
-			if (setDefaultIfNull && String.IsNullOrWhiteSpace((string) rawValue)) {
-				Write(name, defaultValue.ToString(), cfg);
-				rawValue = Read<string>(name, cfg);
-			}
-
-			if (typeof(T).IsEnum) {
-				Enum.TryParse(typeof(T), (string) rawValue, out var e);
-				return (T) e;
-			}
-
-			if (typeof(T) == typeof(bool)) {
-				Boolean.TryParse(rawValue, out var b);
-				return (T) (object) b;
-			}
-
-			return (T) (object) rawValue;
+			var parse = Utilities.Read<T>(rawValue);
+			return parse;
 		}
 
 		public override string ToString()
@@ -216,21 +161,76 @@ namespace SmartImage
 			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
 			sb.AppendFormat("Imgur auth: {0}\n", ImgurAuth);
 			sb.AppendFormat("SauceNao auth: {0}\n", SauceNaoAuth);
-			sb.AppendFormat("Auto exit: {0}\n", AutoExit);
 			sb.AppendFormat("Image: {0}\n", Image);
-			sb.AppendFormat("Config fallback: {0}\n", IsFromFile);
-			sb.AppendFormat("Empty: {0}", IsEmpty);
 
 			return sb.ToString();
 		}
 
-		
 
 		public static void Cleanup()
 		{
-			if (RuntimeInfo.Config.UpdateConfig) {
+			if (Config.UpdateConfig) {
 				CliOutput.WriteInfo("Updating cfg");
-				RuntimeInfo.Config.WriteToFile();
+				Config.WriteToFile();
+			}
+		}
+
+		/// <summary>
+		/// Parse config arguments and options
+		/// </summary>
+		/// <param name="args">Command line arguments</param>
+		public static void ReadSearchConfigArgs(string[] args)
+		{
+			bool noArgs = args == null || args.Length == 0;
+
+			if (noArgs) {
+				Config.NoArguments = true;
+				return;
+			}
+
+			var queue = new Queue<string>(args);
+			using var qe = queue.GetEnumerator();
+
+			while (qe.MoveNext()) {
+				string e = qe.Current;
+
+				// todo: structure
+
+				switch (e) {
+					case "--search-engines":
+						qe.MoveNext();
+						string sestr = qe.Current;
+						Config.Engines = Utilities.Read<SearchEngines>(sestr);
+						break;
+					case "--priority-engines":
+						qe.MoveNext();
+						string pestr = qe.Current;
+						Config.PriorityEngines = Utilities.Read<SearchEngines>(pestr);
+						break;
+					case "--saucenao-auth":
+						qe.MoveNext();
+						string snastr = qe.Current;
+						Config.SauceNaoAuth = snastr;
+						break;
+					case "--imgur-auth":
+						qe.MoveNext();
+						string imastr = qe.Current;
+						Config.ImgurAuth = imastr;
+						break;
+					// case "--auto-exit":
+					// 	qe.MoveNext();
+					// 	SearchConfig.Config.AutoExit = true;
+					// 	break;
+					case "--update-cfg":
+						qe.MoveNext();
+						Config.UpdateConfig = true;
+						break;
+
+
+					default:
+						Config.Image = e;
+						break;
+				}
 			}
 		}
 	}
