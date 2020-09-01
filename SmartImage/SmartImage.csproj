@@ -31,7 +31,7 @@
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="RestSharp" Version="106.11.4" />
-    <PackageReference Include="SimpleCore" Version="1.0.9" />
+    <PackageReference Include="SimpleCore" Version="1.1.2" />
     <PackageReference Include="System.Json" Version="4.7.1" />
 
 
@@ -43,7 +43,7 @@
 
   <PropertyGroup>
     <PackageId>SmartImage</PackageId>
-    <Version>1.9.1</Version>
+    <Version>1.9.2</Version>
     <Authors>Read Stanton (Decimation)</Authors>
     <PackageTags>Image reverse search identification source sauce</PackageTags>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>

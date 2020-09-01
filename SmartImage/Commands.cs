@@ -181,12 +181,16 @@ namespace SmartImage
 			CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);
 		}
 
+		private const char CLI_CHAR = '*';
+
 		/// <summary>
 		/// Handles user input 
 		/// </summary>
 		/// <param name="rg"><see cref="ConsoleOption"/></param>
 		public static void HandleConsoleOptions(ConsoleOption[] rg)
 		{
+			
+
 			ConsoleKeyInfo cki;
 
 			do {
@@ -207,7 +211,10 @@ namespace SmartImage
 						sb.AppendLine();
 					}
 
-					Console.Write(sb);
+					var s = CliOutput.Prepare(CLI_CHAR,sb.ToString());
+					Console.Write(s);
+
+					//CliOutput.WriteInfo(sb);
 				}
 
 				Console.WriteLine();

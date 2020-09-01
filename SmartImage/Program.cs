@@ -80,6 +80,7 @@ namespace SmartImage
 		{
 			Console.Title = RuntimeInfo.NAME;
 			Console.SetWindowSize(Console.WindowWidth, Console.WindowHeight + 5);
+			Console.Clear();
 
 			RuntimeInfo.Setup();
 			SearchConfig.ReadSearchConfigArgs(args);

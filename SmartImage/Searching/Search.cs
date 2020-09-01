@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Text;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
@@ -54,7 +54,7 @@ namespace SmartImage.Searching
 
 
 				new KarmaDecay(),
-				new TraceMoe(),
+				new TraceMoe()
 			};
 
 			engines.AddRange(others);
@@ -68,7 +68,7 @@ namespace SmartImage.Searching
 			 * Run 
              */
 
-			var auth = SearchConfig.Config.ImgurAuth;
+			string auth = SearchConfig.Config.ImgurAuth;
 			bool useImgur = !String.IsNullOrWhiteSpace(auth);
 
 			var engines = SearchConfig.Config.Engines;
@@ -137,23 +137,38 @@ namespace SmartImage.Searching
 					Console.Write(wait);
 				});
 
+				var sw = Stopwatch.StartNew();
 
 				// Run search
 				var result = currentEngine.GetResult(imgUrl);
 
+				sw.Stop();
+
 				if (result != null) {
 					string url = result.Url;
 
+					var sb = new StringBuilder();
+					double t = sw.Elapsed.TotalSeconds;
+					double t2 = Math.Round(t, 3);
+					sb.AppendFormat("{0}: Done ({1:F3} sec)\n", result.Name, t2);
 
-					if (url != null) {
-						CliOutput.OnCurrentLine(ConsoleColor.Green, "{0}: Done\n", result.Name);
+
+					//todo
+
+					bool ok = url != null;
+
+					string sz = sb.ToString();
+
+
+					if (ok) {
+						CliOutput.OnCurrentLine(ConsoleColor.Green, sz);
 
 						if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
 							WebAgent.OpenUrl(result.Url);
 						}
 					}
 					else {
-						CliOutput.OnCurrentLine(ConsoleColor.Yellow, "{0}: Done (url is null!)\n", result.Name);
+						CliOutput.OnCurrentLine(ConsoleColor.Yellow, sz);
 					}
 
 					res[i] = result;
