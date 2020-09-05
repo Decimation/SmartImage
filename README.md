@@ -13,12 +13,11 @@
 
 SmartImage is a reverse image search tool for Windows with context menu integration. SmartImage will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
 
-SmartImage can be used in multiple ways:
 
-- Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
-- Right-click on an image (once the context menu integration is set up) and select the SmartImage option to immediately perform a search.
-- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
-- Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
+### [Download](https://github.com/Decimation/SmartImage/releases)
+
+
+# Supported sites
 
 Supported sites:
 
@@ -56,9 +55,16 @@ Search engine names and configuration:
 
 ![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
 
-# Command Line
+# Usage
 
-## Usage
+SmartImage can be used in multiple ways:
+
+- Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
+- Right-click on an image (once the context menu integration is set up) and select the SmartImage option to immediately perform a search.
+- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
+- Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
+
+## Command Line
 
 Command line syntax:
 
@@ -72,7 +78,7 @@ Command line syntax:
 
 **Behavior note**: *Any options not specified via the command line are automatically read from the configuration file.*
 
-## Options
+### Options
 
 `--engines <engines>`
 
@@ -93,46 +99,12 @@ If this is configured, SmartImage will use the SauceNao API instead of parsing t
 
 Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
 
-`--auto-exit`
-
-Automatically exits the program once searching is complete.
-
 `--update-cfg`
 
 Updates the configuration file with the supplied command line arguments.
 
 
-## Commands
-
-`search <image path> [options...]`
-
-This is the default functionality. Explicitly specifying this is not needed.
-
-`ctx-menu <add/remove>`
-
-Adds or removes context menu integration.
-
-`path <add/remove>`
-
-Adds or removes executable path to path environment variable.
-
-`reset [all]`
-
-Removes integrations. Specify `all` to additionally reset configuration.
-
-`info`
-
-Displays information about the program and its configuration.
-
-`help`
-
-Display available commands.
-
-`version`
-
-Display program version.
-
-## Usage examples
+### Usage examples
 
 `smartimage --engines All --priority-engines None "image.jpg"`
 
@@ -147,13 +119,12 @@ Runs the program using SauceNao, ImgOps, and Google Images. The best result from
 Runs the program using SauceNao, ImgOps, and Karma Decay. The best result from SauceNao will be opened in the browser.
 The specified options will be saved to the configuration file.
 
-`smartimage reset all`
-
-Fully resets configuration and removes all integrations.
 
 # Notes
 
-- The SmartImage executable location must in the system PATH (*`%PATH%`*) environment variable, otherwise the context menu integration will not work. You can read about how to do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10). You can also use the `path add` command to add the current directory to the path.
+- SmartImage may trigger an antivirus warning when first running. This is because SmartImage dynamically creates and runs batch files to add its context menu entry. Unfortunately this seems to be the only way to add context menu entries (for now).
+
+- SmartImage must be added to the system PATH (*`%PATH%`*) environment variable, otherwise context menu integration will not work. SmartImage will automatically do this for you. Otherwise, you can read about how to manually do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10).
 
 - SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
 
@@ -161,9 +132,13 @@ Fully resets configuration and removes all integrations.
 
 # to-do
 
-- Add an icon
+- Add a better icon
 
-- Rewrite & refactor codebase; find better, less hacky approaches to various functions
+- Further rewrite & refactor codebase
+
+- Find better, less hacky approaches to various functions
+
+- Update examples
 
 # Inspiration
 
