@@ -1,12 +1,8 @@
-#region
-
 using System;
 using System.Linq;
 using HtmlAgilityPack;
-using SmartImage.Model;
 using SmartImage.Searching;
-
-#endregion
+using SmartImage.Utilities;
 
 namespace SmartImage.Engines.SauceNao
 {

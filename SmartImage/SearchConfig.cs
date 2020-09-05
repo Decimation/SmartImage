@@ -5,6 +5,7 @@ using System.Text;
 using JetBrains.Annotations;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
+using SmartImage.Utilities;
 
 // ReSharper disable IdentifierTypo
 
@@ -84,39 +85,17 @@ namespace SmartImage
 			PriorityEngines = SearchEngines.SauceNao;
 			ImgurAuth = null;
 			SauceNaoAuth = null;
+
 		}
 
 
-		public static SearchConfig Update(SearchConfig cfgFromCli, SearchConfig cfgFromFile)
-		{
-			// todo: find a more sustainable way of doing this
-			// todo: use reflection
-
-			if (cfgFromCli.Engines == default) {
-				cfgFromCli.Engines = cfgFromFile.Engines;
-			}
-
-			if (cfgFromCli.PriorityEngines == default) {
-				cfgFromCli.PriorityEngines = cfgFromFile.PriorityEngines;
-			}
-
-			if (String.IsNullOrWhiteSpace(cfgFromCli.ImgurAuth)) {
-				cfgFromCli.ImgurAuth = cfgFromFile.ImgurAuth;
-			}
-
-			if (String.IsNullOrWhiteSpace(cfgFromCli.SauceNaoAuth)) {
-				cfgFromCli.SauceNaoAuth = cfgFromFile.SauceNaoAuth;
-			}
-
-			return cfgFromCli;
-		}
-
-		// todo: update cfg file
 
 		internal void WriteToFile()
 		{
+
+			CliOutput.WriteInfo("Updating config");
 			ExplorerSystem.WriteMap(ToMap(), RuntimeInfo.ConfigLocation);
-			CliOutput.WriteInfo("wrote to {0}", RuntimeInfo.ConfigLocation);
+			CliOutput.WriteInfo("Wrote to {0}", RuntimeInfo.ConfigLocation);
 		}
 
 		private static void WriteMapKeyValue<T>(string name, T value, IDictionary<string, string> cfg)
@@ -149,7 +128,7 @@ namespace SmartImage
 				rawValue = ReadMapKeyValue<string>(name, cfg);
 			}
 
-			var parse = Utilities.Read<T>(rawValue);
+			var parse = Common.Read<T>(rawValue);
 			return parse;
 		}
 
@@ -170,7 +149,6 @@ namespace SmartImage
 		public static void Cleanup()
 		{
 			if (Config.UpdateConfig) {
-				CliOutput.WriteInfo("Updating cfg");
 				Config.WriteToFile();
 			}
 		}
@@ -179,7 +157,7 @@ namespace SmartImage
 		/// Parse config arguments and options
 		/// </summary>
 		/// <param name="args">Command line arguments</param>
-		public static void ReadSearchConfigArgs(string[] args)
+		public static void ReadSearchConfigArguments(string[] args)
 		{
 			bool noArgs = args == null || args.Length == 0;
 
@@ -200,12 +178,12 @@ namespace SmartImage
 					case "--search-engines":
 						qe.MoveNext();
 						string sestr = qe.Current;
-						Config.Engines = Utilities.Read<SearchEngines>(sestr);
+						Config.Engines = Common.Read<SearchEngines>(sestr);
 						break;
 					case "--priority-engines":
 						qe.MoveNext();
 						string pestr = qe.Current;
-						Config.PriorityEngines = Utilities.Read<SearchEngines>(pestr);
+						Config.PriorityEngines = Common.Read<SearchEngines>(pestr);
 						break;
 					case "--saucenao-auth":
 						qe.MoveNext();

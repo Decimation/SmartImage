@@ -2,7 +2,7 @@ using System;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 
-namespace SmartImage.Model
+namespace SmartImage.Utilities
 {
 	public readonly struct ReleaseInfo
 	{

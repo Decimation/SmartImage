@@ -6,12 +6,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
-using SmartImage.Model;
+using SmartImage.Utilities;
+
+// ReSharper disable ReturnTypeCanBeEnumerable.Local
 
 #endregion
 
@@ -62,6 +66,7 @@ namespace SmartImage.Searching
 			return engines.ToArray();
 		}
 
+
 		public static bool RunSearch(string img, ref SearchResult[] res)
 		{
 			/*
@@ -106,16 +111,16 @@ namespace SmartImage.Searching
 
 			// Where the actual searching occurs
 
-			StartSearches(imgUrl, engines, ref res);
+			var t = StartSearches(imgUrl, engines, ref res);
 
 
 			return true;
 		}
 
-
 		private static bool StartSearches(string imgUrl, SearchEngines engines, ref SearchResult[] res)
 		{
 			// todo: improve
+			// todo: use tasks
 
 			var availableEngines = GetAvailableEngines()
 				.Where(e => engines.HasFlag(e.Engine))
@@ -127,6 +132,7 @@ namespace SmartImage.Searching
 			res[i] = new SearchResult(imgUrl, "(Original image)");
 
 			i++;
+
 
 			foreach (var currentEngine in availableEngines) {
 				string wait = String.Format("{0}: ...", currentEngine.Engine);

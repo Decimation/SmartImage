@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SmartImage.Engines.SauceNao;
-using SmartImage.Model;
 using SmartImage.Searching;
 using SimpleCore;
 using SimpleCore.Utilities;
@@ -64,13 +63,11 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
-		// todo: make console key reading interaction support >1 digit numbers
-
-		// todo: make the console interaction and key reading a function instead of copy-pasting
-
 		// todo: further improve UI
 
 		// todo: remove SmartImage nuget package stuff
+
+		// todo: fix access modifiers
 
 
 		/**
@@ -79,11 +76,11 @@ namespace SmartImage
 		private static void Main(string[] args)
 		{
 			Console.Title = RuntimeInfo.NAME;
-			Console.SetWindowSize(Console.WindowWidth, Console.WindowHeight + 5);
+			Console.SetWindowSize(120,35);
 			Console.Clear();
 
 			RuntimeInfo.Setup();
-			SearchConfig.ReadSearchConfigArgs(args);
+			SearchConfig.ReadSearchConfigArguments(args);
 
 			if (SearchConfig.Config.NoArguments) {
 				Commands.RunCommandMenu();
@@ -92,10 +89,9 @@ namespace SmartImage
 
 			var img = SearchConfig.Config.Image;
 
-			bool run = !string.IsNullOrWhiteSpace(img);
+			bool run = !String.IsNullOrWhiteSpace(img);
 
 			if (!run) {
-				//CliOutput.WriteError("Image error");
 				return;
 			}
 
@@ -106,8 +102,6 @@ namespace SmartImage
 				CliOutput.WriteError("Search failed");
 				return;
 			}
-
-			// Console.WriteLine("Elapsed: {0:F} sec", result.Duration.TotalSeconds);
 
 			Commands.HandleConsoleOptions(results);
 

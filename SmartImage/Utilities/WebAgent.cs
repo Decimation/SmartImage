@@ -12,7 +12,7 @@ using SimpleCore.Utilities;
 
 #endregion
 
-namespace SmartImage.Searching
+namespace SmartImage.Utilities
 {
 	internal static class WebAgent
 	{

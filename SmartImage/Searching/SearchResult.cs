@@ -1,12 +1,9 @@
-#region
-
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Text;
 using SimpleCore.Utilities;
-using SmartImage.Model;
-
-#endregion
+using SmartImage.Utilities;
 
 namespace SmartImage.Searching
 {
@@ -18,17 +15,15 @@ namespace SmartImage.Searching
 			Name = name;
 			Similarity = similarity;
 			ExtendedInfo = new List<string>();
+
+
 		}
+
+		public override ConsoleColor Color => ConsoleColor.Cyan;
 
 		public string Url { get; }
 
-		public override string? ExtendedName
-		{
-			get
-			{
-				return Format();
-			}
-		}
+		public override string? ExtendedName => Format();
 
 		public override string Name { get; }
 
@@ -60,10 +55,10 @@ namespace SmartImage.Searching
 		public string Format()
 		{
 			var sb = new StringBuilder();
-			sb.AppendFormat("{0}\n",Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN);
+			sb.AppendFormat("{0}\n", Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN);
 
 			if (Success) {
-				
+
 				sb.AppendFormat("\tResult url: {0}\n", Url);
 			}
 

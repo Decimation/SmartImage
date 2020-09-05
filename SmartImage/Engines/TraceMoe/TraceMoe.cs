@@ -3,7 +3,6 @@
 using System;
 using System.Net;
 using RestSharp;
-using SmartImage.Model;
 using SmartImage.Searching;
 
 #endregion

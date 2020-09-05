@@ -1,9 +1,5 @@
-#region
-
 using System;
 using System.Runtime.Serialization;
-
-#endregion
 
 namespace SmartImage.Engines.SauceNao
 {

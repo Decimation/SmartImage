@@ -1,6 +1,6 @@
 @echo off
 
-dotnet publish -c Release -r win10-x64 --self-contained
+dotnet publish -c Release -r win10-x64 --self-contained true
 
 CHOICE /N /C:YN /M "Copy to Desktop (Y/N)"%1
 IF ERRORLEVEL ==2 GOTO NCOPY

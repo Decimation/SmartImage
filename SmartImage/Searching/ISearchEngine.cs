@@ -1,11 +1,8 @@
 #region
 
-using System.Threading.Tasks;
-using SmartImage.Searching;
-
 #endregion
 
-namespace SmartImage.Model
+namespace SmartImage.Searching
 {
 	public interface ISearchEngine
 	{

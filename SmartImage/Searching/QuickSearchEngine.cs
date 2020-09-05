@@ -1,10 +1,8 @@
 #region
 
-using SmartImage.Searching;
-
 #endregion
 
-namespace SmartImage.Model
+namespace SmartImage.Searching
 {
 	public abstract class QuickSearchEngine : ISearchEngine
 	{

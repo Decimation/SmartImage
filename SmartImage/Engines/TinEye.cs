@@ -1,6 +1,5 @@
 #region
 
-using SmartImage.Model;
 using SmartImage.Searching;
 
 #endregion

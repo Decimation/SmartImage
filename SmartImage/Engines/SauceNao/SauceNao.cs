@@ -1,5 +1,3 @@
-#region
-
 using System;
 using System.Json;
 using System.Linq;
@@ -9,11 +7,9 @@ using System.Threading;
 using System.Xml;
 using RestSharp;
 using SimpleCore.Utilities;
-using SmartImage.Model;
 using SmartImage.Searching;
+using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
-
-#endregion
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local

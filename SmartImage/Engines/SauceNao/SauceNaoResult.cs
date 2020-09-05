@@ -1,9 +1,5 @@
-#region
-
 using System;
 using System.Runtime.Serialization;
-
-#endregion
 
 namespace SmartImage.Engines.SauceNao
 {
@@ -20,7 +16,7 @@ namespace SmartImage.Engines.SauceNao
 		///     The search index of the image
 		/// </summary>
 		[DataMember(Name = "index_id")]
-		public SiteIndex Index { get; internal set; }
+		public SauceNaoSiteIndex Index { get; internal set; }
 
 		/// <summary>
 		///     How similar is the image to the one provided (Percentage)?

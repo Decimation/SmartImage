@@ -10,7 +10,6 @@ using SimpleCore;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using SimpleCore.Utilities;
-using SmartImage.Model;
 using SmartImage.Searching;
 
 // ReSharper disable UseStringInterpolation
