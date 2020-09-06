@@ -128,6 +128,9 @@ namespace SmartImage
 		{
 			Console.Clear();
 
+
+			// Config
+
 			CliOutput.WriteInfo("Search engines: {0}", SearchConfig.Config.Engines);
 			CliOutput.WriteInfo("Priority engines: {0}", SearchConfig.Config.PriorityEngines);
 
@@ -153,31 +156,17 @@ namespace SmartImage
 			CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
 
 
-			//
+			// Version
 
-			// CliOutput.WriteInfo("Supported search engines: {0}\n", SearchEngines.All);
+			var versionsInfo = VersionsInfo.Create();
 
-			//
+			CliOutput.WriteInfo("Current version: {0}", versionsInfo.Current);
+			CliOutput.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
+			CliOutput.WriteInfo("{0}", versionsInfo.Status);
 
-			var asm = typeof(RuntimeInfo).Assembly.GetName();
-			var currentVersion = asm.Version;
-			CliOutput.WriteInfo("Current version: {0}", currentVersion);
+			Console.WriteLine();
 
-			/*var release = ReleaseInfo.LatestRelease();
-			CliOutput.WriteInfo("Latest version: {0} (tag {1}) ({2})", release.Version, release.TagName,
-								release.PublishedAt);
-
-			int vcmp = currentVersion.CompareTo(release.Version);
-
-			if (vcmp < 0) {
-				CliOutput.WriteInfo("Update available");
-			}
-			else if (vcmp == 0) {
-				CliOutput.WriteInfo("Up to date");
-			}
-			else {
-				CliOutput.WriteInfo("(preview)");
-			}*/
+			// Author
 
 			CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
 			CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);
@@ -191,7 +180,7 @@ namespace SmartImage
 		/// <param name="multiple">Whether to return selected options as a <see cref="HashSet{T}"/></param>
 		public static HashSet<object> HandleConsoleOptions(ConsoleOption[] options, bool multiple = false)
 		{
-			
+
 			var selectedOptions = new HashSet<object>();
 
 			const int MAX_OPTION_N = 10;
@@ -236,7 +225,7 @@ namespace SmartImage
 					Console.WriteLine(RuntimeInfo.NAME_BANNER);
 				});
 
-				
+
 				for (int i = 0; i < options.Length; i++) {
 					var r = options[i];
 					var sb = new StringBuilder();
@@ -259,7 +248,7 @@ namespace SmartImage
 						Console.Write(s);
 					});
 
-					
+
 				}
 
 				Console.WriteLine();
@@ -267,7 +256,7 @@ namespace SmartImage
 				// Show options
 				if (multiple) {
 					string optionsStr = Common.Join(selectedOptions);
-					
+
 
 					CliOutput.WithColor(ConsoleColor.Blue, () =>
 					{
@@ -337,7 +326,7 @@ namespace SmartImage
 			var options = new[]
 			{
 				// Main option
-				new ConsoleOption(">>> Select image <<<", ConsoleColor.Yellow,() =>
+				new ConsoleOption(">>> Select image <<<", ConsoleColor.Yellow, () =>
 				{
 					Console.WriteLine("Drag and drop the image here.");
 					Console.Write("Image: ");
@@ -386,7 +375,7 @@ namespace SmartImage
 					var values = HandleConsoleOptions(rgEnum, true);
 
 					var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
-					
+
 					CliOutput.WriteInfo(newValues);
 
 					SearchConfig.Config.Engines = newValues;
@@ -417,7 +406,6 @@ namespace SmartImage
 					string sauceNaoAuth = Console.ReadLine();
 
 
-
 					SearchConfig.Config.SauceNaoAuth = sauceNaoAuth;
 
 					Wait();
@@ -437,6 +425,19 @@ namespace SmartImage
 				new ConsoleOption("Update config file", () =>
 				{
 					SearchConfig.Config.WriteToFile();
+
+					Wait();
+					return null;
+				}),
+				new ConsoleOption("Check for updates", () =>
+				{
+					// TODO: WIP
+
+					var v = VersionsInfo.Create();
+
+					if ((v.Status == VersionStatus.Available)) {
+						WebAgent.OpenUrl(v.Latest.AssetUrl);
+					}
 
 					Wait();
 					return null;

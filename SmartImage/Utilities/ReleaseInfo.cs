@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 
@@ -6,24 +7,41 @@ namespace SmartImage.Utilities
 {
 	public readonly struct ReleaseInfo
 	{
-		public ReleaseInfo(string tagName, string htmlUrl, string publishedAt)
+		public ReleaseInfo(string tagName, string htmlUrl, string publishedAt, string asset)
 		{
-			TagName     = tagName;
-			HtmlUrl     = htmlUrl;
-			PublishedAt = DateTime.Parse(publishedAt); //todo: wrong time
+			TagName = tagName;
+			HtmlUrl = htmlUrl;
 
 
-			// todo
-			// hacky
+			var utc = DateTime.Parse(publishedAt, null, DateTimeStyles.AdjustToUniversal);
 
-			const string buildRevision = ".0.0";
-
-			//const string buildRevision = ".0";
-			var          versionStr    = tagName.Replace("v", String.Empty) + buildRevision;
-			var parse = Version.Parse(versionStr);
+			PublishedAt = TimeZoneInfo.ConvertTimeFromUtc(utc, TimeZoneInfo.Local);
 
 
-			Version = parse;
+			// Parse version
+
+			var versionStrSplit = tagName
+				.Replace("v", String.Empty)
+				.Split(".");
+
+
+			int major = 0, minor = 0, build = 0, rev = 0;
+
+			major = int.Parse(versionStrSplit[0]);
+			minor = int.Parse(versionStrSplit[1]);
+
+			if (versionStrSplit.Length >= 3) {
+				build = int.Parse(versionStrSplit[2]);
+			}
+
+			if (versionStrSplit.Length >= 4) {
+				rev = int.Parse(versionStrSplit[3]);
+			}
+
+
+			Version = new Version(major, minor, build, rev);
+
+			AssetUrl = asset;
 		}
 
 		public string TagName { get; }
@@ -33,6 +51,8 @@ namespace SmartImage.Utilities
 		public DateTime PublishedAt { get; }
 
 		public Version Version { get; }
+
+		public string AssetUrl { get; }
 
 		public static ReleaseInfo LatestRelease()
 		{
@@ -45,10 +65,16 @@ namespace SmartImage.Utilities
 			var first = ja[0];
 
 			var tagName = first["tag_name"];
-			var url     = first["html_url"];
+			var url = first["html_url"];
 			var publish = first["published_at"];
 
-			var r = new ReleaseInfo(tagName.ToString(), url.ToString(), publish.ToString());
+
+			var assets = first["assets"];
+			var dlurl = assets[0]["browser_download_url"];
+
+			var r = new ReleaseInfo(tagName.ToString(), url.ToString(), publish.ToString(), dlurl.ToString());
+
+
 			return r;
 		}
 
