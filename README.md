@@ -9,6 +9,10 @@
                                                      |___/
 ```
 
+[![GitHub release](https://img.shields.io/github/release/Decimation/SmartImage.svg)](https://GitHub.com/Decimation/SmartImage/releases/) 
+
+[![Github all releases](https://img.shields.io/github/downloads/Decimation/SmartImage/total.svg)](https://GitHub.com/Decimation/SmartImage/releases/)
+
 *Find the source image in one click!*
 
 SmartImage is a reverse image search tool for Windows with context menu integration. SmartImage will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
@@ -22,28 +26,31 @@ SmartImage is a reverse image search tool for Windows with context menu integrat
 Supported sites:
 
 - [SauceNao](https://saucenao.com/) (`SauceNao`)
-- ImgOps (`ImgOps`)
-- Google Images (`GoogleImages`)
-- TinEye (`TinEye`)
-- IQDB (`Iqdb`)
-- trace.moe (`TraceMoe`)
-- KarmaDecay (`KarmaDecay`)
-- Yandex (`Yandex`)
-- Bing (`Bing`)
+- ImgOps
+- Google Images
+- TinEye
+- IQDB
+- trace.moe
+- Karma Decay
+- Yandex
+- Bing
 
 Search engine names and configuration:
 
-- `SauceNao`
-- `ImgOps`
-- `GoogleImages`
-- `TinEye`
-- `Iqdb`
-- `TraceMoe`
-- `KarmaDecay`
-- `Yandex`
-- `Bing`
-- `All`
-- `None`
+| Option Name     | Real Name       | Notes           |
+| --------------- | --------------- | --------------- |
+| `All`           | (All)           |                 |
+| `None`          | (None)          |                 |
+| `SauceNao`      | SauceNao        |                 |
+| `ImgOps`        | ImgOps          |                 |
+| `GoogleImages`  | Google Images   |                 |
+| `TinEye`        | TinEye          |                 |
+| `Iqdb`          | IQDB            |                 |
+| `TraceMoe`      | trace.moe       | Slow            |
+| `KarmaDecay`    | Karma Decay     |                 |
+| `Yandex`        | Yandex          |                 |
+| `Bing`          | Bing            |                 |
+
 
 # Download
 
