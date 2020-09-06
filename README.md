@@ -146,8 +146,6 @@ The specified options will be saved to the configuration file.
 
 # to-do
 
-- Add a better icon
-
 - Further rewrite & refactor codebase
 
 - Find better, less hacky approaches to various functions
