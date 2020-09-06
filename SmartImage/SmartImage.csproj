@@ -46,7 +46,7 @@
     <Authors>Read Stanton (Decimation)</Authors>
     <PackageTags>Image reverse search identification source sauce</PackageTags>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
-    <PackageIcon>icon64.png</PackageIcon>
+    <PackageIcon>Icon.png</PackageIcon>
     <Description>Reverse image search identification library. Features Windows context menu integration and a command line interface.</Description>
     <Copyright>Copyright 2020</Copyright>
     <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
@@ -54,7 +54,11 @@
   
 
   <ItemGroup>
-    <None Include="..\icon64.png">
+    <None Include="..\Icon.png">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+    <None Include="Icon.png">
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
