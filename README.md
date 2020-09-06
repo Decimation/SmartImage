@@ -1,5 +1,16 @@
 # SmartImage
 
+<p align="center">
+    <img src="SmartImage/Icon.png" width="180" height="180">
+</p>
+
+<p align="center">
+    <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Releases">
+        <img src="https://img.shields.io/github/release/Decimation/SmartImage.svg" /></a>
+  <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Total Downloads">
+        <img src="https://img.shields.io/github/downloads/Decimation/SmartImage/total.svg" /></a>
+</p>
+
 ```
   ____                       _   ___
  / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
@@ -8,10 +19,6 @@
  |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
                                                      |___/
 ```
-
-[![GitHub release](https://img.shields.io/github/release/Decimation/SmartImage.svg)](https://GitHub.com/Decimation/SmartImage/releases/) 
-
-[![Github all releases](https://img.shields.io/github/downloads/Decimation/SmartImage/total.svg)](https://GitHub.com/Decimation/SmartImage/releases/)
 
 *Find the source image in one click!*
 
