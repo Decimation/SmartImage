@@ -11,14 +11,6 @@
         <img src="https://img.shields.io/github/downloads/Decimation/SmartImage/total.svg" /></a>
 </p>
 
-```
-  ____                       _   ___
- / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
- \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \
-  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
- |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
-                                                     |___/
-```
 
 *Find the source image in one click!*
 
@@ -42,10 +34,6 @@ Supported sites:
 - Yandex
 - Bing
 
-# Download
-
-**[See the latest releases](https://github.com/Decimation/SmartImage/releases)**
-
 # Example
 
 ![Demo](https://github.com/Decimation/SmartImage/raw/master/Demo.gif)
@@ -61,17 +49,7 @@ SmartImage can be used in multiple ways:
 - Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
-See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation on command line usage and options.
-
-# Notes
-
-- SmartImage may trigger an antivirus warning when first running. This is because SmartImage dynamically creates and runs batch files to add its context menu entry. Unfortunately this seems to be the only way to add context menu entries (for now).
-
-- SmartImage must be added to the system PATH (*`%PATH%`*) environment variable, otherwise context menu integration will not work. SmartImage will automatically do this for you. Otherwise, you can read about how to manually do this [here](https://superuser.com/questions/949560/how-do-i-set-system-environment-variables-in-windows-10).
-
-- SmartImage uploads temporary images using ImgOps (the uploaded images are automatically deleted after 2 hours). Imgur can also be used, but you must register an Imgur application client.
-
-- Some functions use hacky solutions (like dynamically creating a registry key file to install context menu integration). This is temporary until I can find better approaches, but it should work in the meantime.
+See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation.
 
 # to-do
 
