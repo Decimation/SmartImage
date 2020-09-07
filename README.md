@@ -32,7 +32,7 @@ SmartImage is a reverse image search tool for Windows with context menu integrat
 
 Supported sites:
 
-- [SauceNao](https://saucenao.com/) (`SauceNao`)
+- [SauceNao](https://saucenao.com/)
 - ImgOps
 - Google Images
 - TinEye
@@ -41,23 +41,6 @@ Supported sites:
 - Karma Decay
 - Yandex
 - Bing
-
-Search engine names and configuration:
-
-| Option Name     | Real Name       | Notes           |
-| --------------- | --------------- | --------------- |
-| `All`           | (All)           |                 |
-| `None`          | (None)          |                 |
-| `SauceNao`      | SauceNao        |                 |
-| `ImgOps`        | ImgOps          |                 |
-| `GoogleImages`  | Google Images   |                 |
-| `TinEye`        | TinEye          |                 |
-| `Iqdb`          | IQDB            |                 |
-| `TraceMoe`      | trace.moe       | Slow            |
-| `KarmaDecay`    | Karma Decay     |                 |
-| `Yandex`        | Yandex          |                 |
-| `Bing`          | Bing            |                 |
-
 
 # Download
 
@@ -78,61 +61,9 @@ SmartImage can be used in multiple ways:
 - Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
-## Command Line
+# Reference
 
-Command line syntax:
-
-`smartimage <command> [options...]`
-
-- Angle brackets (`<>`) specify required arguments.
-
-- Square brackets (`[]`) specify optional arguments. 
-
-- Ellipses (`...`) specify one or more arguments.
-
-**Behavior note**: *Any options not specified via the command line are automatically read from the configuration file.*
-
-### Options
-
-`--engines <engines>`
-
-Sets the search engines to use when searching, delimited by commas. See the above list for possible arguments. 
-*Default: `All`*
-
-`--priority-engines <engines>`
-
-Sets the priority search engines, delimited by commands. See the above list for possible arguments. Priority search engines are engines whose results will be automatically opened in your browser when searching is complete. For example, if you designate `SauceNao` as a priority engine, then results returned by
-`SauceNao` will be automatically opened in your browser. *Default: `SauceNao`*
-
-`--saucenao-auth <api key>`
-
-Configures the SauceNao API key. Register an application [here](https://saucenao.com/user.php), then get your key [here](https://saucenao.com/user.php?page=search-api).
-If this is configured, SmartImage will use the SauceNao API instead of parsing the HTML response.
-
-`--imgur-auth <consumer id>`
-
-Configures Imgur API keys. Register an application [here](https://api.imgur.com/oauth2/addclient), then get your ID [here](https://imgur.com/account/settings/apps). If this is configured, SmartImage will use Imgur to upload temporary images instead of ImgOps.
-
-`--update-cfg`
-
-Updates the configuration file with the supplied command line arguments.
-
-
-### Usage examples
-
-`smartimage --engines All --priority-engines None "image.jpg"`
-
-Runs the program using all search engines and no results will be in the browser.
-
-`smartimage --engines SauceNao,ImgOps,GoogleImages --priority-engines SauceNao "image.jpg"`
-
-Runs the program using SauceNao, ImgOps, and Google Images. The best result from SauceNao will be opened in the browser.
-
-`smartimage --engines SauceNao,ImgOps,KarmaDecay --priority-engines SauceNao --update-cfg "image.jpg"`
-
-Runs the program using SauceNao, ImgOps, and Karma Decay. The best result from SauceNao will be opened in the browser.
-The specified options will be saved to the configuration file.
-
+See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation on command line usage and options.
 
 # Notes
 
