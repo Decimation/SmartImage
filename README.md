@@ -50,16 +50,3 @@ SmartImage can be used in multiple ways:
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
 See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation.
-
-# to-do
-
-- Further rewrite & refactor codebase
-
-- Find better, less hacky approaches to various functions
-
-- Update examples
-
-# Inspiration
-
-- [SauceNao-Windows](https://github.com/RoxasShadow/SauceNao-Windows)
-- [SharpNao](https://github.com/Lazrius/SharpNao)
