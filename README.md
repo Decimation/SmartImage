@@ -61,8 +61,6 @@ SmartImage can be used in multiple ways:
 - Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
-# Reference
-
 See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation on command line usage and options.
 
 # Notes
