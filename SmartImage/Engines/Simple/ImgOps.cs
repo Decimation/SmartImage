@@ -7,9 +7,9 @@ using SmartImage.Utilities;
 
 #endregion
 
-namespace SmartImage.Engines
+namespace SmartImage.Engines.Simple
 {
-	public sealed class ImgOps : QuickSearchEngine
+	public sealed class ImgOps : SimpleSearchEngine
 	{
 		public ImgOps() : base("http://imgops.com/") { }
 

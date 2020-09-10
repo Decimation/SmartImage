@@ -42,7 +42,7 @@
 
   <PropertyGroup>
     <PackageId>SmartImage</PackageId>
-    <Version>1.9.3</Version>
+    <Version>1.9.4</Version>
     <Authors>Read Stanton (Decimation)</Authors>
     <PackageTags>Image reverse search identification source sauce</PackageTags>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
@@ -62,10 +62,5 @@
       <Pack>True</Pack>
       <PackagePath></PackagePath>
     </None>
-  </ItemGroup>
-  
-
-  <ItemGroup>
-    <Folder Include="Cli\" />
   </ItemGroup>
 </Project>

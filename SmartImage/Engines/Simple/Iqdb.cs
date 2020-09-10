@@ -4,9 +4,9 @@ using SmartImage.Searching;
 
 #endregion
 
-namespace SmartImage.Engines
+namespace SmartImage.Engines.Simple
 {
-	public sealed class Iqdb : QuickSearchEngine
+	public sealed class Iqdb : SimpleSearchEngine
 	{
 		public Iqdb() : base("https://iqdb.org/?url=") { }
 

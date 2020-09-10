@@ -4,9 +4,9 @@ using SmartImage.Searching;
 
 #endregion
 
-namespace SmartImage.Engines
+namespace SmartImage.Engines.Simple
 {
-	public sealed class Yandex : QuickSearchEngine
+	public sealed class Yandex : SimpleSearchEngine
 	{
 		public Yandex() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 

@@ -4,9 +4,9 @@ using SmartImage.Searching;
 
 #endregion
 
-namespace SmartImage.Engines
+namespace SmartImage.Engines.Simple
 {
-	public sealed class KarmaDecay : QuickSearchEngine
+	public sealed class KarmaDecay : SimpleSearchEngine
 	{
 		public KarmaDecay() : base("http://karmadecay.com/search/?q=") { }
 

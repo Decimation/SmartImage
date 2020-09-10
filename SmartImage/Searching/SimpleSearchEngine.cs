@@ -4,11 +4,11 @@
 
 namespace SmartImage.Searching
 {
-	public abstract class QuickSearchEngine : ISearchEngine
+	public abstract class SimpleSearchEngine : ISearchEngine
 	{
 		protected readonly string BaseUrl;
 
-		protected QuickSearchEngine(string baseUrl)
+		protected SimpleSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
 		}

@@ -25,23 +25,32 @@ namespace SmartImage
 		private const string CFG_SEARCH_ENGINES = "search_engines";
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
 
+
 		private SearchConfig()
 		{
+			bool newCfg = false;
+
 			// create cfg with default options if it doesn't exist
 			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
 				var f = File.Create(RuntimeInfo.ConfigLocation);
 				f.Close();
+				newCfg = true;
 			}
 
 			var cfgFromFileMap = ExplorerSystem.ReadMap(RuntimeInfo.ConfigLocation);
 
-			// EnginesStr = Read<string>(CFG_SEARCH_ENGINES, cfgFromFileMap);
-			// PriorityEnginesStr = Read<string>(CFG_PRIORITY_ENGINES, cfgFromFileMap);
-			Engines = ReadMapKeyValue<SearchEngines>(CFG_SEARCH_ENGINES, cfgFromFileMap);
-			PriorityEngines = ReadMapKeyValue<SearchEngines>(CFG_PRIORITY_ENGINES, cfgFromFileMap);
-			ImgurAuth = ReadMapKeyValue<string>(CFG_IMGUR_APIKEY, cfgFromFileMap);
-			SauceNaoAuth = ReadMapKeyValue<string>(CFG_SAUCENAO_APIKEY, cfgFromFileMap);
+			SearchEngines = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
+			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
+			ImgurAuth = ReadMapKeyValue(CFG_IMGUR_APIKEY, cfgFromFileMap, true, String.Empty);
+			SauceNaoAuth = ReadMapKeyValue(CFG_SAUCENAO_APIKEY, cfgFromFileMap, true, String.Empty);
+
+			if (newCfg) {
+				WriteToFile();
+			}
 		}
+
+		private const SearchEngines ENGINES_DEFAULT = SearchEngines.All;
+		private const SearchEngines PRIORITY_ENGINES_DEFAULT = SearchEngines.SauceNao;
 
 
 		/// <summary>
@@ -51,7 +60,7 @@ namespace SmartImage
 
 		public bool NoArguments { get; set; }
 
-		public SearchEngines Engines { get; set; }
+		public SearchEngines SearchEngines { get; set; }
 
 		public SearchEngines PriorityEngines { get; set; }
 
@@ -70,7 +79,7 @@ namespace SmartImage
 		{
 			var m = new Dictionary<string, string>
 			{
-				{CFG_SEARCH_ENGINES, Engines.ToString()},
+				{CFG_SEARCH_ENGINES, SearchEngines.ToString()},
 				{CFG_PRIORITY_ENGINES, PriorityEngines.ToString()},
 				{CFG_IMGUR_APIKEY, ImgurAuth},
 				{CFG_SAUCENAO_APIKEY, SauceNaoAuth}
@@ -81,13 +90,12 @@ namespace SmartImage
 
 		public void Reset()
 		{
-			Engines = SearchEngines.All;
+			SearchEngines = SearchEngines.All;
 			PriorityEngines = SearchEngines.SauceNao;
 			ImgurAuth = null;
 			SauceNaoAuth = null;
 
 		}
-
 
 
 		internal void WriteToFile()
@@ -136,7 +144,7 @@ namespace SmartImage
 		{
 			var sb = new StringBuilder();
 
-			sb.AppendFormat("Search engines: {0}\n", Engines);
+			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
 			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
 			sb.AppendFormat("Imgur auth: {0}\n", ImgurAuth);
 			sb.AppendFormat("SauceNao auth: {0}\n", SauceNaoAuth);
@@ -166,46 +174,42 @@ namespace SmartImage
 				return;
 			}
 
-			var queue = new Queue<string>(args);
-			using var qe = queue.GetEnumerator();
+			var argQueue = new Queue<string>(args);
+			using var argEnumerator = argQueue.GetEnumerator();
 
-			while (qe.MoveNext()) {
-				string e = qe.Current;
+			while (argEnumerator.MoveNext()) {
+				string argValue = argEnumerator.Current;
 
 				// todo: structure
 
-				switch (e) {
+				switch (argValue) {
 					case "--search-engines":
-						qe.MoveNext();
-						string sestr = qe.Current;
-						Config.Engines = Common.Read<SearchEngines>(sestr);
+						argEnumerator.MoveNext();
+						string sestr = argEnumerator.Current;
+						Config.SearchEngines = Common.Read<SearchEngines>(sestr);
 						break;
 					case "--priority-engines":
-						qe.MoveNext();
-						string pestr = qe.Current;
+						argEnumerator.MoveNext();
+						string pestr = argEnumerator.Current;
 						Config.PriorityEngines = Common.Read<SearchEngines>(pestr);
 						break;
 					case "--saucenao-auth":
-						qe.MoveNext();
-						string snastr = qe.Current;
+						argEnumerator.MoveNext();
+						string snastr = argEnumerator.Current;
 						Config.SauceNaoAuth = snastr;
 						break;
 					case "--imgur-auth":
-						qe.MoveNext();
-						string imastr = qe.Current;
+						argEnumerator.MoveNext();
+						string imastr = argEnumerator.Current;
 						Config.ImgurAuth = imastr;
 						break;
-					// case "--auto-exit":
-					// 	qe.MoveNext();
-					// 	SearchConfig.Config.AutoExit = true;
-					// 	break;
 					case "--update-cfg":
 						Config.UpdateConfig = true;
 						break;
 
 
 					default:
-						Config.Image = e;
+						Config.Image = argValue;
 						break;
 				}
 			}

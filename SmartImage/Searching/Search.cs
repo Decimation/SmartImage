@@ -12,6 +12,7 @@ using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
+using SmartImage.Engines.Simple;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Utilities;
 
@@ -76,7 +77,7 @@ namespace SmartImage.Searching
 			string auth = SearchConfig.Config.ImgurAuth;
 			bool useImgur = !String.IsNullOrWhiteSpace(auth);
 
-			var engines = SearchConfig.Config.Engines;
+			var engines = SearchConfig.Config.SearchEngines;
 			var priority = SearchConfig.Config.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
@@ -111,7 +112,7 @@ namespace SmartImage.Searching
 
 			// Where the actual searching occurs
 
-			var t = StartSearches(imgUrl, engines, ref res);
+			StartSearches(imgUrl, engines, ref res);
 
 
 			return true;
@@ -155,8 +156,7 @@ namespace SmartImage.Searching
 
 					var sb = new StringBuilder();
 					double t = sw.Elapsed.TotalSeconds;
-					double t2 = Math.Round(t, 3);
-					sb.AppendFormat("{0}: Done ({1:F3} sec)\n", result.Name, t2);
+					sb.AppendFormat("{0}: Done ({1:F3} sec)\n", result.Name, t);
 
 
 					//todo
@@ -191,8 +191,6 @@ namespace SmartImage.Searching
 
 		private static bool IsFileValid(string img)
 		{
-
-
 			if (!File.Exists(img)) {
 				CliOutput.WriteError("File does not exist: {0}", img);
 				return false;

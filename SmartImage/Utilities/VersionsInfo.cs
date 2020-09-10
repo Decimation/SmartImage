@@ -1,7 +1,6 @@
 using System;
-using SmartImage.Utilities;
 
-namespace SmartImage
+namespace SmartImage.Utilities
 {
 	public readonly struct VersionsInfo
 	{
@@ -27,12 +26,12 @@ namespace SmartImage
 
 			VersionStatus status;
 
-			int vcmp = currentVersion.CompareTo(release.Version);
+			int cmp = currentVersion.CompareTo(release.Version);
 
-			if (vcmp < 0) {
+			if (cmp < 0) {
 				status = VersionStatus.Available;
 			}
-			else if (vcmp == 0) {
+			else if (cmp == 0) {
 				status = VersionStatus.UpToDate;
 			}
 			else {

@@ -2,6 +2,7 @@
 
 #nullable enable
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -67,6 +68,8 @@ namespace SmartImage
 		/// </summary>
 		public static string ExeLocation => FindExecutableLocation(NAME_EXE);
 
+		
+
 		public static bool IsContextMenuAdded
 		{
 			get
@@ -104,24 +107,31 @@ namespace SmartImage
 
 		private static string FindExecutableLocation(string exe)
 		{
-			string path = ExplorerSystem.FindExectableInPath(exe);
 
-			if (path == null) {
-				string cd = Environment.CurrentDirectory;
+			// https://stackoverflow.com/questions/6041332/best-way-to-get-application-folder-path
+			// var exeLocation1 = Assembly.GetEntryAssembly().Location;
+			// var exeLocation2 = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
+			// var exeLocation3 = System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase;
+			// var exeLocation = AppDomain.CurrentDomain.BaseDirectory;
 
-				if (Try(cd, exe, out path)) {
-					return path;
+			//
+
+			var rg = new List<string>()
+			{
+				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase.Replace("file:///", string.Empty).Replace("/", "\\")),
+				Environment.CurrentDirectory
+			};
+
+			rg.AddRange(ExplorerSystem.PathDirectories);
+
+			//
+
+			foreach (string loc in rg) {
+				if (Try(loc, exe, out var folder)) {
+					return folder;
 				}
-
-
-				// SPECIAL CASE: app folder is not in path, continuing past here causes a stack overflow
-				// todo
-
-
-				/*if (Try(AppFolder, exe, out path)) {
-					return path;
-				}*/
 			}
+
 
 			static bool Try(string folder, string exeStr, out string folderExe)
 			{
@@ -132,7 +142,7 @@ namespace SmartImage
 				return inFolder;
 			}
 
-			return path;
+			throw new ApplicationException();
 		}
 	}
 }

@@ -4,9 +4,9 @@ using SmartImage.Searching;
 
 #endregion
 
-namespace SmartImage.Engines
+namespace SmartImage.Engines.Simple
 {
-	public sealed class GoogleImages : QuickSearchEngine
+	public sealed class GoogleImages : SimpleSearchEngine
 	{
 		public GoogleImages() : base("http://images.google.com/searchbyimage?image_url=") { }
 

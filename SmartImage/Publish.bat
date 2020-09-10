@@ -17,4 +17,4 @@ copy bin\Release\netcoreapp3.1\win10-x64\publish\SmartImage.exe %userprofile%\De
 GOTO END
 
 :END
-pause
+ping localhost >nul

@@ -63,12 +63,11 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
-		// todo: further improve UI
+		// todo: further improve UI; use Terminal.Gui possibly
 
 		// todo: remove SmartImage nuget package stuff
 
 		// todo: fix access modifiers
-
 
 		/**
 		 * Entry point
@@ -76,13 +75,14 @@ namespace SmartImage
 		private static void Main(string[] args)
 		{
 			Console.Title = RuntimeInfo.NAME;
-			Console.SetWindowSize(120,35);
+			Console.SetWindowSize(120, 35);
 			Console.Clear();
 
 			RuntimeInfo.Setup();
 			SearchConfig.ReadSearchConfigArguments(args);
 
-			if (SearchConfig.Config.NoArguments) {
+			if (SearchConfig.Config.NoArguments)
+			{
 				Commands.RunCommandMenu();
 				Console.Clear();
 			}
@@ -91,14 +91,16 @@ namespace SmartImage
 
 			bool run = !String.IsNullOrWhiteSpace(img);
 
-			if (!run) {
+			if (!run)
+			{
 				return;
 			}
 
-			var results = new SearchResult[(int) SearchEngines.All];
+			var results = new SearchResult[(int)SearchEngines.All];
 			var ok = Search.RunSearch(img, ref results);
 
-			if (!ok) {
+			if (!ok)
+			{
 				CliOutput.WriteError("Search failed");
 				return;
 			}

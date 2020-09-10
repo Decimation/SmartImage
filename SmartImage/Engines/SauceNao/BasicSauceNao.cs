@@ -8,7 +8,7 @@ namespace SmartImage.Engines.SauceNao
 {
 	public sealed class BasicSauceNao : BaseSauceNao
 	{
-		// QuickSearchEngine
+		// SimpleSearchEngine
 
 		private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
 

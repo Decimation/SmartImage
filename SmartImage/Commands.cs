@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
+using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Utilities;
@@ -14,15 +17,15 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
-	public static class Commands
+	internal static class Commands
 	{
-		public const string OPT_ADD = "add";
-		public const string OPT_REM = "remove";
-		public const string OPT_ALL = "all";
+		internal const string OPT_ADD = "add";
+		internal const string OPT_REM = "remove";
+		internal const string OPT_ALL = "all";
 
 		private const char CLI_CHAR = '*';
 
-		public static void RunContextMenuIntegration(string option)
+		internal static void RunContextMenuIntegration(string option)
 		{
 			switch (option) {
 				case OPT_ADD:
@@ -73,7 +76,7 @@ namespace SmartImage
 			}
 		}
 
-		public static void RunPathIntegration(string option)
+		internal static void RunPathIntegration(string option)
 		{
 			switch (option) {
 				case OPT_ADD:
@@ -103,7 +106,7 @@ namespace SmartImage
 			}
 		}
 
-		public static void RunReset(string option)
+		internal static void RunReset(string option)
 		{
 			bool all = option == OPT_ALL;
 
@@ -124,14 +127,14 @@ namespace SmartImage
 			}
 		}
 
-		public static void ShowInfo()
+		internal static void ShowInfo()
 		{
 			Console.Clear();
 
 
 			// Config
 
-			CliOutput.WriteInfo("Search engines: {0}", SearchConfig.Config.Engines);
+			CliOutput.WriteInfo("Search engines: {0}", SearchConfig.Config.SearchEngines);
 			CliOutput.WriteInfo("Priority engines: {0}", SearchConfig.Config.PriorityEngines);
 
 			string sn = SearchConfig.Config.SauceNaoAuth;
@@ -151,6 +154,7 @@ namespace SmartImage
 
 			CliOutput.WriteInfo("Application folder: {0}", RuntimeInfo.AppFolder);
 			CliOutput.WriteInfo("Executable location: {0}", RuntimeInfo.ExeLocation);
+			
 			CliOutput.WriteInfo("Config location: {0}", RuntimeInfo.ConfigLocation);
 			CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
 			CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
@@ -178,7 +182,7 @@ namespace SmartImage
 		/// </summary>
 		/// <param name="options">Array of <see cref="ConsoleOption" /></param>
 		/// <param name="multiple">Whether to return selected options as a <see cref="HashSet{T}"/></param>
-		public static HashSet<object> HandleConsoleOptions(ConsoleOption[] options, bool multiple = false)
+		internal static HashSet<object> HandleConsoleOptions(ConsoleOption[] options, bool multiple = false)
 		{
 
 			var selectedOptions = new HashSet<object>();
@@ -193,7 +197,8 @@ namespace SmartImage
 					return Char.Parse(i.ToString());
 				}
 
-				int d = OPTION_LETTER_START + (MAX_OPTION_N - i);
+				int d = OPTION_LETTER_START + (i-MAX_OPTION_N);
+				
 				return (char) d;
 			}
 
@@ -206,7 +211,8 @@ namespace SmartImage
 
 				if (Char.IsLetter(c)) {
 					c = Char.ToUpper(c);
-					int d = MAX_OPTION_N - (c - OPTION_LETTER_START);
+					int d = MAX_OPTION_N + (c - OPTION_LETTER_START);
+					
 					return d;
 				}
 
@@ -303,6 +309,25 @@ namespace SmartImage
 			return selectedOptions;
 		}
 
+		internal static void SelfDestruct()
+		{
+			string batchCommands = string.Empty;
+			string exeFileName = RuntimeInfo.ExeLocation;
+			string batname = "SmartImage_Delete.bat";
+
+			batchCommands += "@ECHO OFF\n";                         // Do not show any output
+			batchCommands += "ping 127.0.0.1 > nul\n";              // Wait approximately 4 seconds (so that the process is already terminated)
+			batchCommands += "echo y | del /F ";                    // Delete the executeable
+			batchCommands += exeFileName + "\n";
+			batchCommands += "echo y | del " + batname;    // Delete this bat file
+
+			var dir = Path.Combine(Path.GetTempPath(), batname);
+
+			File.WriteAllText(dir, batchCommands);
+
+			Process.Start(dir);
+		}
+
 		internal static void Pause()
 		{
 			Console.WriteLine();
@@ -321,7 +346,7 @@ namespace SmartImage
 		/// <remarks>
 		///     More user-friendly menu
 		/// </remarks>
-		public static void RunCommandMenu()
+		internal static void RunCommandMenu()
 		{
 			var options = new[]
 			{
@@ -378,7 +403,7 @@ namespace SmartImage
 
 					CliOutput.WriteInfo(newValues);
 
-					SearchConfig.Config.Engines = newValues;
+					SearchConfig.Config.SearchEngines = newValues;
 
 					Pause();
 
@@ -440,6 +465,43 @@ namespace SmartImage
 					}
 
 					Wait();
+					return null;
+				}),
+				new ConsoleOption("Uninstall", () =>
+				{
+					RunReset(OPT_ALL);
+					RunContextMenuIntegration(OPT_REM);
+					RunPathIntegration(OPT_REM);
+
+					File.Delete(RuntimeInfo.ConfigLocation);
+					SelfDestruct();
+
+					// No return
+
+					Environment.Exit(0);
+
+					return null;
+				}),
+				new ConsoleOption("Test", () =>
+				{
+					var rc = new RestClient("http://www.tineye.com/");
+					
+					rc.FollowRedirects = false;
+					var re = new RestRequest("search", Method.POST);
+					re.AddParameter("url","https://i.pximg.net/img-original/img/2019/10/23/08/48/13/77437257_p0.png", ParameterType.QueryString);
+					
+					var fu = rc.BuildUri(re);
+					Console.WriteLine(fu.AbsoluteUri);
+					var resp = rc.Execute(re);
+					
+					WebAgent.WriteResponse(resp);
+					Console.WriteLine(resp.ResponseUri.AbsoluteUri);
+
+					foreach (var respHeader in resp.Headers) {
+						Console.WriteLine("{0} {1}",respHeader.Name, respHeader.Value);
+					}
+					Pause();
+
 					return null;
 				}),
 			};

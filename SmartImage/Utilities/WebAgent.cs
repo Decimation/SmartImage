@@ -37,9 +37,10 @@ namespace SmartImage.Utilities
 			sb.AppendFormat("Success: {0}\n", response.IsSuccessful);
 			sb.AppendFormat("Status code: {0}\n", response.StatusCode);
 			sb.AppendFormat("Error Message: {0}\n", response.ErrorMessage);
-			sb.AppendFormat("Content: {0}\n", response.Content);
 			sb.AppendFormat("Response status: {0}\n", response.ResponseStatus);
 			sb.AppendFormat("Response URI: {0}\n", response.ResponseUri);
+
+			sb.AppendFormat("Content: {0}\n", response.Content);
 
 			Console.Clear();
 
