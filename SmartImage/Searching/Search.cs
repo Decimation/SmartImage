@@ -196,7 +196,7 @@ namespace SmartImage.Searching
 				return false;
 			}
 
-			bool extOkay = ImageExtensions.Any(img.EndsWith);
+			bool extOkay = ImageExtensions.Any(img.ToLower().EndsWith);
 
 			if (!extOkay) {
 				return CliOutput.ReadConfirm("File extension is not recognized as a common image format. Continue?");
