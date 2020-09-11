@@ -40,25 +40,17 @@ namespace SmartImage
 						}
 					}
 
-					// Add command
+					// Add command and icon to command
 					string[] commandCode =
 					{
 						"@echo off",
-						String.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul",
-							RuntimeInfo.REG_SHELL_CMD, fullPath)
+						String.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul", RuntimeInfo.REG_SHELL_CMD,
+							fullPath),
+						String.Format("reg.exe add {0} /v Icon /d \"{1}\" /f >nul", RuntimeInfo.REG_SHELL, fullPath)
 					};
 
 					Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
 
-
-					// Add icon
-					string[] iconCode =
-					{
-						"@echo off",
-						String.Format("reg.exe add {0} /v Icon /d \"{1}\" /f >nul", RuntimeInfo.REG_SHELL, fullPath)
-					};
-
-					Cli.CreateRunBatchFile("add_icon_to_menu.bat", iconCode);
 					break;
 				case OPT_REM:
 					// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
@@ -154,7 +146,7 @@ namespace SmartImage
 
 			CliOutput.WriteInfo("Application folder: {0}", RuntimeInfo.AppFolder);
 			CliOutput.WriteInfo("Executable location: {0}", RuntimeInfo.ExeLocation);
-			
+
 			CliOutput.WriteInfo("Config location: {0}", RuntimeInfo.ConfigLocation);
 			CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
 			CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
@@ -197,8 +189,8 @@ namespace SmartImage
 					return Char.Parse(i.ToString());
 				}
 
-				int d = OPTION_LETTER_START + (i-MAX_OPTION_N);
-				
+				int d = OPTION_LETTER_START + (i - MAX_OPTION_N);
+
 				return (char) d;
 			}
 
@@ -212,7 +204,7 @@ namespace SmartImage
 				if (Char.IsLetter(c)) {
 					c = Char.ToUpper(c);
 					int d = MAX_OPTION_N + (c - OPTION_LETTER_START);
-					
+
 					return d;
 				}
 
@@ -315,11 +307,13 @@ namespace SmartImage
 			string exeFileName = RuntimeInfo.ExeLocation;
 			string batname = "SmartImage_Delete.bat";
 
-			batchCommands += "@ECHO OFF\n";                         // Do not show any output
-			batchCommands += "ping 127.0.0.1 > nul\n";              // Wait approximately 4 seconds (so that the process is already terminated)
-			batchCommands += "echo y | del /F ";                    // Delete the executeable
+			batchCommands += "@ECHO OFF\n"; // Do not show any output
+
+			batchCommands +=
+				"ping 127.0.0.1 > nul\n"; // Wait approximately 4 seconds (so that the process is already terminated)
+			batchCommands += "echo y | del /F "; // Delete the executable
 			batchCommands += exeFileName + "\n";
-			batchCommands += "echo y | del " + batname;    // Delete this bat file
+			batchCommands += "echo y | del " + batname; // Delete this bat file
 
 			var dir = Path.Combine(Path.GetTempPath(), batname);
 
@@ -479,28 +473,6 @@ namespace SmartImage
 					// No return
 
 					Environment.Exit(0);
-
-					return null;
-				}),
-				new ConsoleOption("Test", () =>
-				{
-					var rc = new RestClient("http://www.tineye.com/");
-					
-					rc.FollowRedirects = false;
-					var re = new RestRequest("search", Method.POST);
-					re.AddParameter("url","https://i.pximg.net/img-original/img/2019/10/23/08/48/13/77437257_p0.png", ParameterType.QueryString);
-					
-					var fu = rc.BuildUri(re);
-					Console.WriteLine(fu.AbsoluteUri);
-					var resp = rc.Execute(re);
-					
-					WebAgent.WriteResponse(resp);
-					Console.WriteLine(resp.ResponseUri.AbsoluteUri);
-
-					foreach (var respHeader in resp.Headers) {
-						Console.WriteLine("{0} {1}",respHeader.Name, respHeader.Value);
-					}
-					Pause();
 
 					return null;
 				}),

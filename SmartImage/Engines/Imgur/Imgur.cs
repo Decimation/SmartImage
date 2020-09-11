@@ -31,6 +31,7 @@ namespace SmartImage.Engines.Imgur
 
 			using var w = new WebClient();
 			w.Headers.Add("Authorization: Client-ID " + m_apiKey);
+
 			var values = new NameValueCollection
 			{
 				{"image", Convert.ToBase64String(File.ReadAllBytes(path))}

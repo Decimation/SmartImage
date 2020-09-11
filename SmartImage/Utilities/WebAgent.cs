@@ -111,12 +111,13 @@ namespace SmartImage.Utilities
 			{
 				/*Initialize the inbox*/
 				JObject obj;
+
 				if (email == null) {
 					obj = JObject.Parse(Contact("f=get_email_address"));
 				}
 				else {
 					obj = JObject.Parse(Contact("f=set_email_user",
-					                            String.Format("email_user={0}&lang=en&site={1}", email, GetDomain(0))));
+						String.Format("email_user={0}&lang=en&site={1}", email, GetDomain(0))));
 				}
 
 
@@ -142,6 +143,7 @@ namespace SmartImage.Utilities
 					(HttpWebRequest) WebRequest.Create("http://api.guerrillamail.com/ajax.php?" + parameters);
 				//request.CookieContainer = mCookies;
 				request.Method = "GET";
+
 				request.UserAgent =
 					"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36";
 				request.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8";
@@ -149,8 +151,8 @@ namespace SmartImage.Utilities
 				if (!String.IsNullOrEmpty(body)) {
 					byte[] buffer = Encoding.UTF8.GetBytes(body);
 
-					request.Method        = "POST";
-					request.ContentType   = "application/x-www-form-urlencoded; charset=UTF-8";
+					request.Method = "POST";
+					request.ContentType = "application/x-www-form-urlencoded; charset=UTF-8";
 					request.ContentLength = buffer.Length;
 
 					using var steam = request.GetRequestStream();
@@ -162,7 +164,7 @@ namespace SmartImage.Utilities
 				using (var response = (HttpWebResponse) request.GetResponse()) {
 					if (response.StatusCode == HttpStatusCode.OK) {
 						using var stream = response.GetResponseStream();
-						var       reader = new StreamReader(stream, Encoding.UTF8);
+						var reader = new StreamReader(stream, Encoding.UTF8);
 						return reader.ReadToEnd();
 					}
 				}

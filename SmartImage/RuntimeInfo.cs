@@ -53,7 +53,7 @@ namespace SmartImage
 		{
 			get
 			{
-				string folder = Path.GetDirectoryName(ExeLocation);
+				string? folder = Path.GetDirectoryName(ExeLocation);
 				Debug.Assert(folder != null);
 				return folder;
 			}
@@ -68,7 +68,6 @@ namespace SmartImage
 		/// </summary>
 		public static string ExeLocation => FindExecutableLocation(NAME_EXE);
 
-		
 
 		public static bool IsContextMenuAdded
 		{
@@ -118,7 +117,8 @@ namespace SmartImage
 
 			var rg = new List<string>()
 			{
-				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase.Replace("file:///", string.Empty).Replace("/", "\\")),
+				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase.Replace("file:///", string.Empty)
+					.Replace("/", "\\")),
 				Environment.CurrentDirectory
 			};
 

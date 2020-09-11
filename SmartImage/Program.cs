@@ -81,26 +81,23 @@ namespace SmartImage
 			RuntimeInfo.Setup();
 			SearchConfig.ReadSearchConfigArguments(args);
 
-			if (SearchConfig.Config.NoArguments)
-			{
+			if (SearchConfig.Config.NoArguments) {
 				Commands.RunCommandMenu();
 				Console.Clear();
 			}
 
-			var img = SearchConfig.Config.Image;
+			string img = SearchConfig.Config.Image;
 
 			bool run = !String.IsNullOrWhiteSpace(img);
 
-			if (!run)
-			{
+			if (!run) {
 				return;
 			}
 
-			var results = new SearchResult[(int)SearchEngines.All];
+			var results = new SearchResult[(int) SearchEngines.All];
 			var ok = Search.RunSearch(img, ref results);
 
-			if (!ok)
-			{
+			if (!ok) {
 				CliOutput.WriteError("Search failed");
 				return;
 			}

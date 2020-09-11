@@ -36,18 +36,10 @@ namespace SmartImage.Searching
 		{
 			var engines = new List<ISearchEngine>();
 
-
-			bool sauceNaoConfigured = !String.IsNullOrWhiteSpace(SearchConfig.Config.SauceNaoAuth);
-
-			if (sauceNaoConfigured) {
-				engines.Add(new SauceNao());
-			}
-			else {
-				engines.Add(new BasicSauceNao());
-			}
-
 			var others = new ISearchEngine[]
 			{
+				new SauceNao(),
+
 				new ImgOps(),
 				new GoogleImages(),
 

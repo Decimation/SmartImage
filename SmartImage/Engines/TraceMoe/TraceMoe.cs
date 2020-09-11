@@ -17,7 +17,7 @@ namespace SmartImage.Engines.TraceMoe
 
 		public override SearchEngines Engine => SearchEngines.TraceMoe;
 
-		private TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code)
+		private static TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code)
 		{
 			// https://soruly.github.io/trace.moe/#/
 
@@ -26,12 +26,12 @@ namespace SmartImage.Engines.TraceMoe
 			var rq = new RestRequest("search");
 			rq.AddQueryParameter("url", url);
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
-			rq.RequestFormat           = DataFormat.Json;
+			rq.RequestFormat = DataFormat.Json;
 
 			IRestResponse<TraceMoeRootObject> re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
 			code = re.StatusCode;
-			
+
 
 			// todo: null sometimes
 			return re.Data;
@@ -43,8 +43,8 @@ namespace SmartImage.Engines.TraceMoe
 
 			var tm = GetApiResults(url, out var code);
 
-			r.ExtendedInfo.Add(string.Format("Code: {0}",code));
-			
+			r.ExtendedInfo.Add(string.Format("Code: {0}", code));
+
 			if (tm?.docs != null) {
 				// Most similar to least similar
 				var mostSimilarDoc = tm.docs[0];
@@ -52,7 +52,7 @@ namespace SmartImage.Engines.TraceMoe
 				r.Similarity = (float?) mostSimilarDoc.similarity;
 
 				r.ExtendedInfo.Add(String.Format("Name: {0}", mostSimilarDoc.title_english));
-				
+
 			}
 			else {
 				r.ExtendedInfo.Add("API returned null (possible timeout)");
