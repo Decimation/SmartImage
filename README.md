@@ -36,6 +36,8 @@ Supported sites:
 - [Yandex](https://yandex.com/images/)
 - [Bing](https://www.bing.com/images/)
 
+See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
+
 # Example
 
 ![Demo](https://github.com/Decimation/SmartImage/raw/master/Demo.gif)
