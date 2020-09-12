@@ -22,9 +22,9 @@
 ### [Download](https://github.com/Decimation/SmartImage/releases)
 
 
-# Supported sites
+# Supported engines
 
-Supported sites:
+Supported search engines:
 
 - [SauceNao](https://saucenao.com/)
 - [ImgOps](http://imgops.com/)
