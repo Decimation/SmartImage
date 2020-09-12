@@ -27,14 +27,14 @@
 Supported sites:
 
 - [SauceNao](https://saucenao.com/)
-- ImgOps
-- Google Images
-- TinEye
-- IQDB
-- trace.moe
-- Karma Decay
-- Yandex
-- Bing
+- [ImgOps](http://imgops.com/)
+- [Google Images](https://images.google.com/)
+- [TinEye](https://tineye.com/)
+- [IQDB](https://iqdb.org/)
+- [trace.moe](https://trace.moe/)
+- [Karma Decay](http://karmadecay.com/)
+- [Yandex](https://yandex.com/images/)
+- [Bing](https://www.bing.com/images/)
 
 # Example
 
