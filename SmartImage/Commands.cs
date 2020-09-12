@@ -17,18 +17,23 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
+	internal enum IntegrationOption
+	{
+		Add,
+		Remove
+	}
+
+	/// <summary>
+	/// Program functionality and integration
+	/// </summary>
 	internal static class Commands
 	{
-		internal const string OPT_ADD = "add";
-		internal const string OPT_REM = "remove";
-		internal const string OPT_ALL = "all";
-
 		private const char CLI_CHAR = '*';
 
-		internal static void RunContextMenuIntegration(string option)
+		internal static void RunContextMenuIntegration(IntegrationOption option)
 		{
 			switch (option) {
-				case OPT_ADD:
+				case IntegrationOption.Add:
 					string fullPath = RuntimeInfo.ExeLocation;
 
 					if (!RuntimeInfo.IsExeInAppFolder) {
@@ -44,15 +49,14 @@ namespace SmartImage
 					string[] commandCode =
 					{
 						"@echo off",
-						String.Format("reg.exe add {0} /ve /d \"{1} \"\"%%1\"\"\" /f >nul", RuntimeInfo.REG_SHELL_CMD,
-							fullPath),
-						String.Format("reg.exe add {0} /v Icon /d \"{1}\" /f >nul", RuntimeInfo.REG_SHELL, fullPath)
+						$"reg.exe add {RuntimeInfo.REG_SHELL_CMD} /ve /d \"{fullPath} \"\"%%1\"\"\" /f >nul",
+						$"reg.exe add {RuntimeInfo.REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
 					};
 
 					Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
 
 					break;
-				case OPT_REM:
+				case IntegrationOption.Remove:
 					// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 					// const string DEL = @"reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage";
@@ -60,7 +64,7 @@ namespace SmartImage
 					string[] code =
 					{
 						"@echo off",
-						String.Format(@"reg.exe delete {0} /f >nul", RuntimeInfo.REG_SHELL)
+						$@"reg.exe delete {RuntimeInfo.REG_SHELL} /f >nul"
 					};
 
 					Cli.CreateRunBatchFile("rem_from_menu.bat", code);
@@ -68,10 +72,10 @@ namespace SmartImage
 			}
 		}
 
-		internal static void RunPathIntegration(string option)
+		internal static void RunPathIntegration(IntegrationOption option)
 		{
 			switch (option) {
-				case OPT_ADD:
+				case IntegrationOption.Add:
 				{
 					string oldValue = ExplorerSystem.EnvironmentPath;
 
@@ -92,31 +96,26 @@ namespace SmartImage
 
 					break;
 				}
-				case OPT_REM:
+				case IntegrationOption.Remove:
 					ExplorerSystem.RemoveFromPath(RuntimeInfo.AppFolder);
 					break;
 			}
 		}
 
-		internal static void RunReset(string option)
+		internal static void RunReset()
 		{
-			bool all = option == OPT_ALL;
 
 			SearchConfig.Config.Reset();
+			SearchConfig.Config.WriteToFile();
 
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
-			RunContextMenuIntegration(OPT_REM);
+			RunContextMenuIntegration(IntegrationOption.Remove);
 
 			// will be added automatically if run again
 			//Path.Remove();
 
-			if (all) {
-				SearchConfig.Config.Reset();
-				SearchConfig.Config.WriteToFile();
-
-				CliOutput.WriteSuccess("Reset cfg");
-			}
+			CliOutput.WriteSuccess("Reset cfg");
 		}
 
 		internal static void ShowInfo()
@@ -124,10 +123,16 @@ namespace SmartImage
 			Console.Clear();
 
 
-			// Config
+			/*
+			 * Search settings
+			 */
 
 			CliOutput.WriteInfo("Search engines: {0}", SearchConfig.Config.SearchEngines);
 			CliOutput.WriteInfo("Priority engines: {0}", SearchConfig.Config.PriorityEngines);
+
+			/*
+			 * API settings
+			 */
 
 			string sn = SearchConfig.Config.SauceNaoAuth;
 			bool snNull = String.IsNullOrWhiteSpace(sn);
@@ -144,25 +149,34 @@ namespace SmartImage
 			CliOutput.WriteInfo("Image upload service: {0}",
 				imgurNull ? "ImgOps" : "Imgur");
 
+
+			/*
+			 * Runtime info
+			 */
+
+
 			CliOutput.WriteInfo("Application folder: {0}", RuntimeInfo.AppFolder);
 			CliOutput.WriteInfo("Executable location: {0}", RuntimeInfo.ExeLocation);
-
-			CliOutput.WriteInfo("Config location: {0}", RuntimeInfo.ConfigLocation);
+			CliOutput.WriteInfo("Config location: {0}", SearchConfig.ConfigLocation);
 			CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
 			CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
 
 
-			// Version
+			/*
+			 * Version info
+			 */
 
-			var versionsInfo = VersionsInfo.Create();
+			var versionsInfo = UpdateInfo.CheckForUpdates();
 
 			CliOutput.WriteInfo("Current version: {0}", versionsInfo.Current);
 			CliOutput.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
-			CliOutput.WriteInfo("{0}", versionsInfo.Status);
+			CliOutput.WriteInfo("> {0}", versionsInfo.Status);
 
 			Console.WriteLine();
 
-			// Author
+			/*
+			 * Author info
+			 */
 
 			CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
 			CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);
@@ -253,7 +267,7 @@ namespace SmartImage
 
 				// Show options
 				if (multiple) {
-					string optionsStr = Common.Join(selectedOptions);
+					string optionsStr = CommonUtilities.Join(selectedOptions);
 
 
 					CliOutput.WithColor(ConsoleColor.Blue, () =>
@@ -301,19 +315,28 @@ namespace SmartImage
 			return selectedOptions;
 		}
 
-		internal static void SelfDestruct()
+		private static void SelfDestruct()
 		{
+
+			// todo: optimize this
+
 			string batchCommands = string.Empty;
 			string exeFileName = RuntimeInfo.ExeLocation;
 			string batname = "SmartImage_Delete.bat";
 
-			batchCommands += "@ECHO OFF\n"; // Do not show any output
 
-			batchCommands +=
-				"ping 127.0.0.1 > nul\n"; // Wait approximately 4 seconds (so that the process is already terminated)
-			batchCommands += "echo y | del /F "; // Delete the executable
+			batchCommands += "@echo off\n";
+
+			/* Wait approximately 4 seconds (so that the process is already terminated) */
+			batchCommands += "ping 127.0.0.1 > nul\n";
+
+			/* Delete executable */
+			batchCommands += "echo y | del /F ";
+
 			batchCommands += exeFileName + "\n";
-			batchCommands += "echo y | del " + batname; // Delete this bat file
+
+			/* Delete this bat file */
+			batchCommands += "echo y | del " + batname;
 
 			var dir = Path.Combine(Path.GetTempPath(), batname);
 
@@ -351,7 +374,7 @@ namespace SmartImage
 					Console.Write("Image: ");
 
 					string img = Console.ReadLine();
-					img = Common.CleanString(img);
+					img = CommonUtilities.CleanString(img);
 
 					SearchConfig.Config.Image = img;
 
@@ -367,7 +390,7 @@ namespace SmartImage
 				}),
 				new ConsoleOption("Reset all configuration", () =>
 				{
-					RunReset(OPT_ALL);
+					RunReset();
 
 					Wait();
 					return null;
@@ -377,11 +400,11 @@ namespace SmartImage
 					bool ctx = RuntimeInfo.IsContextMenuAdded;
 
 					if (!ctx) {
-						RunContextMenuIntegration(OPT_ADD);
+						RunContextMenuIntegration(IntegrationOption.Add);
 						CliOutput.WriteSuccess("Added to context menu");
 					}
 					else {
-						RunContextMenuIntegration(OPT_REM);
+						RunContextMenuIntegration(IntegrationOption.Remove);
 						CliOutput.WriteSuccess("Removed from context menu");
 					}
 
@@ -393,7 +416,7 @@ namespace SmartImage
 					var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
 					var values = HandleConsoleOptions(rgEnum, true);
 
-					var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
+					var newValues = CommonUtilities.ReadEnumFromSet<SearchEngines>(values);
 
 					CliOutput.WriteInfo(newValues);
 
@@ -408,7 +431,7 @@ namespace SmartImage
 					var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
 					var values = HandleConsoleOptions(rgEnum, true);
 
-					var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
+					var newValues = CommonUtilities.ReadEnumFromSet<SearchEngines>(values);
 
 					CliOutput.WriteInfo(newValues);
 
@@ -452,10 +475,10 @@ namespace SmartImage
 				{
 					// TODO: WIP
 
-					var v = VersionsInfo.Create();
+					var v = UpdateInfo.CheckForUpdates();
 
 					if ((v.Status == VersionStatus.Available)) {
-						WebAgent.OpenUrl(v.Latest.AssetUrl);
+						NetworkUtilities.OpenUrl(v.Latest.AssetUrl);
 					}
 
 					Wait();
@@ -463,11 +486,11 @@ namespace SmartImage
 				}),
 				new ConsoleOption("Uninstall", () =>
 				{
-					RunReset(OPT_ALL);
-					RunContextMenuIntegration(OPT_REM);
-					RunPathIntegration(OPT_REM);
+					RunReset();
+					RunContextMenuIntegration(IntegrationOption.Remove);
+					RunPathIntegration(IntegrationOption.Remove);
 
-					File.Delete(RuntimeInfo.ConfigLocation);
+					File.Delete(SearchConfig.ConfigLocation);
 					SelfDestruct();
 
 					// No return
@@ -476,6 +499,7 @@ namespace SmartImage
 
 					return null;
 				}),
+
 			};
 
 			HandleConsoleOptions(options);

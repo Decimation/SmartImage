@@ -54,7 +54,7 @@ namespace SmartImage.Utilities
 
 		public string AssetUrl { get; }
 
-		public static ReleaseInfo LatestRelease()
+		public static ReleaseInfo GetLatestRelease()
 		{
 			// todo
 			var rc = new RestClient("https://api.github.com/");

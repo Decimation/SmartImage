@@ -4,7 +4,7 @@ using System.Reflection;
 
 namespace SmartImage.Utilities
 {
-	internal static class Common
+	internal static class CommonUtilities
 	{
 		internal static T Read<T>(string rawValue)
 		{
@@ -21,7 +21,7 @@ namespace SmartImage.Utilities
 			return (T) (object) rawValue;
 		}
 
-		internal static string CleanString(String s)
+		internal static string CleanString(string s)
 		{
 			s = s.Replace("\"", String.Empty);
 

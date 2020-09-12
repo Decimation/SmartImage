@@ -1,5 +1,6 @@
 #region
 
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -24,6 +25,10 @@ using SmartImage.Utilities;
 
 namespace SmartImage.Searching
 {
+
+	/// <summary>
+	/// Runs image searches
+	/// </summary>
 	public static class Search
 	{
 		private static readonly string[] ImageExtensions =
@@ -70,12 +75,12 @@ namespace SmartImage.Searching
 			bool useImgur = !String.IsNullOrWhiteSpace(auth);
 
 			var engines = SearchConfig.Config.SearchEngines;
-			var priority = SearchConfig.Config.PriorityEngines;
+			//var priority = SearchConfig.Config.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
 				//todo
 				//CliOutput.WriteError("Please configure search engine preferences!");
-				engines = SearchEngines.All;
+				engines = SearchConfig.ENGINES_DEFAULT;
 			}
 
 
@@ -110,7 +115,7 @@ namespace SmartImage.Searching
 			return true;
 		}
 
-		private static bool StartSearches(string imgUrl, SearchEngines engines, ref SearchResult[] res)
+		private static void StartSearches(string imgUrl, SearchEngines engines, ref SearchResult[] res)
 		{
 			// todo: improve
 			// todo: use tasks
@@ -144,7 +149,7 @@ namespace SmartImage.Searching
 				sw.Stop();
 
 				if (result != null) {
-					string url = result.Url;
+					string? url = result.Url;
 
 					var sb = new StringBuilder();
 					double t = sw.Elapsed.TotalSeconds;
@@ -162,7 +167,7 @@ namespace SmartImage.Searching
 						CliOutput.OnCurrentLine(ConsoleColor.Green, sz);
 
 						if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-							WebAgent.OpenUrl(result.Url);
+							NetworkUtilities.OpenUrl(result.Url);
 						}
 					}
 					else {
@@ -178,7 +183,6 @@ namespace SmartImage.Searching
 			}
 
 
-			return true;
 		}
 
 		private static bool IsFileValid(string img)

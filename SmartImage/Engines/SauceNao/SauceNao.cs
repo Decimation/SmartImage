@@ -69,7 +69,7 @@ namespace SmartImage.Engines.SauceNao
 
 			var res = m_client.Execute(req);
 
-			WebAgent.AssertResponse(res);
+			NetworkUtilities.AssertResponse(res);
 
 
 			//Console.WriteLine("{0} {1} {2}", res.IsSuccessful, res.ResponseStatus, res.StatusCode);
@@ -158,7 +158,7 @@ namespace SmartImage.Engines.SauceNao
 
 			SearchResult? sr = null;
 
-			var sz = WebAgent.GetString(BASIC_RESULT + url);
+			var sz = NetworkUtilities.GetString(BASIC_RESULT + url);
 			var doc = new HtmlDocument();
 			doc.LoadHtml(sz);
 

@@ -22,7 +22,7 @@ namespace SmartImage.Engines.Simple
 			string imgOpsUrl = UploadImage(path);
 			imgOpsPageUrl = imgOpsUrl;
 
-			string html = WebAgent.GetString(imgOpsUrl);
+			string html = NetworkUtilities.GetString(imgOpsUrl);
 
 			const string HREF_REGEX = "href=\"(.*)\"";
 

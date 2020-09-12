@@ -40,7 +40,7 @@ namespace SmartImage.Searching
 			{
 				return () =>
 				{
-					WebAgent.OpenUrl(Url);
+					NetworkUtilities.OpenUrl(Url);
 					return null;
 				};
 			}
@@ -52,7 +52,7 @@ namespace SmartImage.Searching
 			return String.Format("{0}: {1}", Name, Url);
 		}
 
-		public string Format()
+		private string Format()
 		{
 			var sb = new StringBuilder();
 			sb.AppendFormat("{0}\n", Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN);

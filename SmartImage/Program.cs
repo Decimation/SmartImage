@@ -18,42 +18,7 @@ using SimpleCore.Utilities;
 
 namespace SmartImage
 {
-	/**
-	 * Single file executable build dir
-	 * 
-	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.1\win10-x64
-	 * C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.1\win10-x64\publish
-	 *
-	 * Single file publish command
-	 *
-	 * dotnet publish -c Release -r win10-x64
-	 * dotnet publish -c Release -r win10-x64 --self-contained
-	 *
-	 * Legacy registry keys
-	 *
-	 * Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
-	 * Computer\HKEY_CURRENT_USER\Software\SmartImage
-	 * "HKLM\SYSTEM\CurrentControlSet\Control\Session Manager\Environment"
-	 *
-	 * Copy build
-	 *
-	 * copy SmartImage.exe C:\Library /Y
-	 * copy SmartImage.exe C:\Users\Deci\Desktop /Y
-	 * copy C:\Users\Deci\RiderProjects\SmartImage\SmartImage\bin\Release\netcoreapp3.1\win10-x64\publish\SmartImage.exe C:\Users\Deci\Desktop /Y
-	 * 
-	 * Bundle extract folder
-	 * 
-	 * C:\Users\Deci\AppData\Local\Temp\.net\SmartImage
-	 * DOTNET_BUNDLE_EXTRACT_BASE_DIR
-	 *
-	 *
-	 * nuget pack -Prop Configuration=Release
-	 *
-	 * C:\Library\Nuget
-	 * dotnet pack -c Release -o %cd%
-	 * dotnet nuget push "*.nupkg"
-	 * del *.nupkg & dotnet pack -c Release -o %cd%
-	 */
+	
 	public static class Program
 	{
 		//  ____                       _   ___

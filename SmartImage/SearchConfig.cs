@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using JetBrains.Annotations;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Utilities;
@@ -12,18 +11,28 @@ using SmartImage.Utilities;
 namespace SmartImage
 {
 	/// <summary>
-	/// Search config
-	/// 
+	///     Search config
 	/// </summary>
 	/// <remarks>
-	/// Config is read from config file (<see cref="RuntimeInfo.ConfigLocation"/>) or from specified arguments
+	///     Config is read from config file (<see cref="ConfigLocation" />) or from specified arguments
 	/// </remarks>
 	public sealed class SearchConfig
 	{
+		// todo: create config field type
+		// todo: refactor
+
 		private const string CFG_IMGUR_APIKEY = "imgur_client_id";
 		private const string CFG_SAUCENAO_APIKEY = "saucenao_key";
 		private const string CFG_SEARCH_ENGINES = "search_engines";
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
+
+		public const SearchEngines ENGINES_DEFAULT = SearchEngines.All;
+
+		public const SearchEngines PRIORITY_ENGINES_DEFAULT = SearchEngines.SauceNao;
+
+		public static readonly string IMGUR_APIKEY_DEFAULT = String.Empty;
+
+		public static readonly string SAUCENAO_APIKEY_DEFAULT = String.Empty;
 
 
 		private SearchConfig()
@@ -31,32 +40,29 @@ namespace SmartImage
 			bool newCfg = false;
 
 			// create cfg with default options if it doesn't exist
-			if (!File.Exists(RuntimeInfo.ConfigLocation)) {
-				var f = File.Create(RuntimeInfo.ConfigLocation);
+			if (!File.Exists(ConfigLocation)) {
+				var f = File.Create(ConfigLocation);
 				f.Close();
 				newCfg = true;
 			}
 
-			var cfgFromFileMap = ExplorerSystem.ReadMap(RuntimeInfo.ConfigLocation);
+			var cfgFromFileMap = ExplorerSystem.ReadMap(ConfigLocation);
 
 			SearchEngines = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
 			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
-			ImgurAuth = ReadMapKeyValue(CFG_IMGUR_APIKEY, cfgFromFileMap, true, String.Empty);
-			SauceNaoAuth = ReadMapKeyValue(CFG_SAUCENAO_APIKEY, cfgFromFileMap, true, String.Empty);
+			ImgurAuth = ReadMapKeyValue(CFG_IMGUR_APIKEY, cfgFromFileMap, true, IMGUR_APIKEY_DEFAULT);
+			SauceNaoAuth = ReadMapKeyValue(CFG_SAUCENAO_APIKEY, cfgFromFileMap, true, SAUCENAO_APIKEY_DEFAULT);
 
 			if (newCfg) {
 				WriteToFile();
 			}
 		}
 
-		private const SearchEngines ENGINES_DEFAULT = SearchEngines.All;
-		private const SearchEngines PRIORITY_ENGINES_DEFAULT = SearchEngines.SauceNao;
-
 
 		/// <summary>
 		///     User config and arguments
 		/// </summary>
-		public static SearchConfig Config { get; private set; } = new SearchConfig();
+		public static SearchConfig Config { get; } = new SearchConfig();
 
 		public bool NoArguments { get; set; }
 
@@ -74,6 +80,11 @@ namespace SmartImage
 
 		public string Image { get; set; }
 
+		/// <summary>
+		///     Location of config file
+		/// </summary>
+		public static string ConfigLocation => Path.Combine(RuntimeInfo.AppFolder, RuntimeInfo.NAME_CFG);
+
 
 		public IDictionary<string, string> ToMap()
 		{
@@ -90,20 +101,19 @@ namespace SmartImage
 
 		public void Reset()
 		{
-			SearchEngines = SearchEngines.All;
-			PriorityEngines = SearchEngines.SauceNao;
-			ImgurAuth = null;
-			SauceNaoAuth = null;
+			SearchEngines = ENGINES_DEFAULT;
+			PriorityEngines = PRIORITY_ENGINES_DEFAULT;
+			ImgurAuth = IMGUR_APIKEY_DEFAULT;
+			SauceNaoAuth = SAUCENAO_APIKEY_DEFAULT;
 
 		}
 
 
 		internal void WriteToFile()
 		{
-
 			CliOutput.WriteInfo("Updating config");
-			ExplorerSystem.WriteMap(ToMap(), RuntimeInfo.ConfigLocation);
-			CliOutput.WriteInfo("Wrote to {0}", RuntimeInfo.ConfigLocation);
+			ExplorerSystem.WriteMap(ToMap(), ConfigLocation);
+			CliOutput.WriteInfo("Wrote to {0}", ConfigLocation);
 		}
 
 		private static void WriteMapKeyValue<T>(string name, T value, IDictionary<string, string> cfg)
@@ -136,7 +146,7 @@ namespace SmartImage
 				rawValue = ReadMapKeyValue<string>(name, cfg);
 			}
 
-			var parse = Common.Read<T>(rawValue);
+			var parse = CommonUtilities.Read<T>(rawValue);
 			return parse;
 		}
 
@@ -162,7 +172,7 @@ namespace SmartImage
 		}
 
 		/// <summary>
-		/// Parse config arguments and options
+		///     Parse config arguments and options
 		/// </summary>
 		/// <param name="args">Command line arguments</param>
 		public static void ReadSearchConfigArguments(string[] args)
@@ -186,12 +196,12 @@ namespace SmartImage
 					case "--search-engines":
 						argEnumerator.MoveNext();
 						string sestr = argEnumerator.Current;
-						Config.SearchEngines = Common.Read<SearchEngines>(sestr);
+						Config.SearchEngines = CommonUtilities.Read<SearchEngines>(sestr);
 						break;
 					case "--priority-engines":
 						argEnumerator.MoveNext();
 						string pestr = argEnumerator.Current;
-						Config.PriorityEngines = Common.Read<SearchEngines>(pestr);
+						Config.PriorityEngines = CommonUtilities.Read<SearchEngines>(pestr);
 						break;
 					case "--saucenao-auth":
 						argEnumerator.MoveNext();

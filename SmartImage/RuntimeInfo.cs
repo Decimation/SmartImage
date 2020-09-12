@@ -22,6 +22,9 @@ using SmartImage.Searching;
 
 namespace SmartImage
 {
+	/// <summary>
+	/// Program runtime information and config
+	/// </summary>
 	public static class RuntimeInfo
 	{
 		/// <summary>
@@ -59,8 +62,6 @@ namespace SmartImage
 			}
 		}
 
-		public static string ConfigLocation => Path.Combine(AppFolder, NAME_CFG);
-
 		public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
 		/// <summary>
@@ -97,7 +98,7 @@ namespace SmartImage
 		public static void Setup()
 		{
 			if (!IsAppFolderInPath) {
-				Commands.RunPathIntegration(Commands.OPT_ADD);
+				Commands.RunPathIntegration(IntegrationOption.Add);
 			}
 		}
 
@@ -117,8 +118,9 @@ namespace SmartImage
 
 			var rg = new List<string>()
 			{
-				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase.Replace("file:///", string.Empty)
-					.Replace("/", "\\")),
+				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase
+					.Replace("file:///", string.Empty)
+					.Replace("/", "\\"))!,
 				Environment.CurrentDirectory
 			};
 
@@ -127,13 +129,13 @@ namespace SmartImage
 			//
 
 			foreach (string loc in rg) {
-				if (Try(loc, exe, out var folder)) {
+				if (ExistsInFolder(loc, exe, out var folder)) {
 					return folder;
 				}
 			}
 
 
-			static bool Try(string folder, string exeStr, out string folderExe)
+			static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
 			{
 				string folderExeFull = Path.Combine(folder, exeStr);
 				bool inFolder = File.Exists(folderExeFull);

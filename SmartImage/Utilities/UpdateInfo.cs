@@ -2,27 +2,27 @@ using System;
 
 namespace SmartImage.Utilities
 {
-	public readonly struct VersionsInfo
+	public readonly struct UpdateInfo
 	{
 		public Version Current { get; }
 		public ReleaseInfo Latest { get; }
 
 		public VersionStatus Status { get; }
 
-		private VersionsInfo(Version current, ReleaseInfo info, VersionStatus status)
+		private UpdateInfo(Version current, ReleaseInfo info, VersionStatus status)
 		{
 			Current = current;
 			Latest = info;
 			Status = status;
 		}
 
-		public static VersionsInfo Create()
+		public static UpdateInfo CheckForUpdates()
 		{
 			var asm = typeof(RuntimeInfo).Assembly.GetName();
 			var currentVersion = asm.Version;
 
 
-			var release = ReleaseInfo.LatestRelease();
+			var release = ReleaseInfo.GetLatestRelease();
 
 			VersionStatus status;
 
@@ -38,7 +38,7 @@ namespace SmartImage.Utilities
 				status = VersionStatus.Preview;
 			}
 
-			return new VersionsInfo(currentVersion, release, status);
+			return new UpdateInfo(currentVersion, release, status);
 		}
 	}
 
