@@ -14,8 +14,6 @@
 </p>
 
 
-
-
 *Find the source image in one click!*
 
 **SmartImage** is a reverse image search tool for Windows with context menu integration. **SmartImage** will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
@@ -49,8 +47,8 @@ Supported sites:
 **SmartImage** can be used in multiple ways:
 
 - Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
-- Right-click on an image (once the context menu integration is set up) and select the SmartImage option to immediately perform a search.
-- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the SmartImage option).
+- Right-click on an image (once the context menu integration is set up) and select the **SmartImage** option to immediately perform a search.
+- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the **SmartImage** option).
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
 See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation.
