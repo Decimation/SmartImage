@@ -7,9 +7,13 @@
 <p align="center">
     <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Releases">
         <img src="https://img.shields.io/github/release/Decimation/SmartImage.svg" /></a>
+    
   <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Total Downloads">
         <img src="https://img.shields.io/github/downloads/Decimation/SmartImage/total.svg" /></a>
+    
 </p>
+
+
 
 
 *Find the source image in one click!*
@@ -50,3 +54,9 @@ SmartImage can be used in multiple ways:
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
 See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation.
+
+# Donation
+
+If you would like to support this project, you can buy me a cup of coffee! :)
+
+[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/decimation001?locale.x=en_US)
