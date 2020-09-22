@@ -37,6 +37,8 @@
   
   <p align="center"><i><b>SmartImage</b></i> is a reverse image search tool for Windows with context menu integration. <i><b>SmartImage</b></i> will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.</p>
   
+  <img src="https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png" alt="Logo" width="400" height="294">
+  
 </p>
 
 <!-- ... -->
@@ -45,15 +47,15 @@
 
 Supported search engines:
 
-- <img src="http://imgops.com/favicon.ico"/> [SauceNao](https://saucenao.com/)
-- [ImgOps](http://imgops.com/)
-- [Google Images](https://images.google.com/)
-- [TinEye](https://tineye.com/)
-- [IQDB](https://iqdb.org/)
-- [trace.moe](https://trace.moe/)
-- [Karma Decay](http://karmadecay.com/)
-- [Yandex](https://yandex.com/images/)
-- [Bing](https://www.bing.com/images/)
+- <img src="https://saucenao.com/favicon.ico" width="16" height="16"/> [SauceNao](https://saucenao.com/)
+- <img src="http://imgops.com/favicon.ico" width="16" height="16"/> [ImgOps](http://imgops.com/)
+- <img src="https://images.google.com/favicon.ico" width="16" height="16"/> [Google Images](https://images.google.com/)
+- <img src="https://tineye.com/favicon.ico" width="16" height="16"/> [TinEye](https://tineye.com/)
+- <img src="https://iqdb.org/favicon.ico" width="16" height="16"/> [IQDB](https://iqdb.org/)
+- <img src="https://trace.moe/favicon128.png" width="16" height="16"/> [trace.moe](https://trace.moe/)
+- <img src="http://karmadecay.com/favicon.ico" width="16" height="16"/> [Karma Decay](http://karmadecay.com/)
+- <img src="https://yandex.com/favicon.ico" width="16" height="16"/> [Yandex](https://yandex.com/images/)
+- <img src="https://www.bing.com/favicon.ico" width="16" height="16"/> [Bing](https://www.bing.com/images/)
 
 See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
 
