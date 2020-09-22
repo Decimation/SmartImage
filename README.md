@@ -24,7 +24,7 @@
     <br />
     <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki</strong></a>
     ·
-  <a href="https://github.com/Decimation/SmartImage/issues"><strong>Report Bug</strong></a>
+  <a href="https://github.com/Decimation/SmartImage/issues"><strong>Issues</strong></a>
     
   </p>
 </p>
@@ -33,12 +33,12 @@
 
 <p align="center">
   
-  <img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" alt="Logo" width="640" height="360">
+  <img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" width="640" height="360">
   
   <p align="center"><i><b>SmartImage</b></i> is a powerful reverse image search tool for Windows. <i><b>SmartImage</b></i> will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.</p>
   
   <p align="center">
-  <img src="https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png" alt="Logo" width="400" height="294">
+  <img src="https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png" width="400" height="294">
   <p align="center"><i><b>SmartImage</b></i> features context menu integration, which allows you to right click on an image to immediately run a search!</p>
   </p>
   
@@ -60,7 +60,7 @@ Supported search engines:
 - <img src="https://yandex.com/favicon.ico" width="16" height="16"/> [Yandex](https://yandex.com/images/)
 - <img src="https://www.bing.com/favicon.ico" width="16" height="16"/> [Bing](https://www.bing.com/images/)
 
-See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
+See [Engine »](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
 
 <!-- ... -->
 
@@ -73,7 +73,7 @@ See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentatio
 - Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the <i><b>SmartImage</b></i> option).
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
-See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation.
+See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.
 
 <!-- ... -->
 
