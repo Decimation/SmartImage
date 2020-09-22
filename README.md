@@ -1,10 +1,13 @@
-# SmartImage
-
+<!-- PROJECT LOGO -->
+<br />
 <p align="center">
-    <img src="SmartImage/Icon.png" width="180" height="180">
-</p>
+  <a href="https://github.com/Decimation/SmartImage">
+    <img src="SmartImage/Icon.png" alt="Logo" width="80" height="80">
+  </a>
 
-<p align="center">
+  <h1 align="center">SmartImage</h1>
+  
+  <p align="center">
     <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Releases">
         <img src="https://img.shields.io/github/release/Decimation/SmartImage.svg" /></a>
     
@@ -13,14 +16,26 @@
     
 </p>
 
+  <p align="center">
+    Find the source image in one click!
+    <br />
+    <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Explore the docs »</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/Decimation/SmartImage/releases">Releases</a>
+    ·
+    <a href="https://github.com/Decimation/SmartImage/issues">Report Bug</a>
+    
+  </p>
+</p>
 
-*Find the source image in one click!*
+<!-- g -->
+
 
 **SmartImage** is a reverse image search tool for Windows with context menu integration. **SmartImage** will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
 
 
 ### [Download](https://github.com/Decimation/SmartImage/releases)
-
 
 # Supported engines
 
