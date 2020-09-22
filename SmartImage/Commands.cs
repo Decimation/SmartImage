@@ -69,6 +69,8 @@ namespace SmartImage
 
 					Cli.CreateRunBatchFile("rem_from_menu.bat", code);
 					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(option), option, null);
 			}
 		}
 
@@ -99,6 +101,8 @@ namespace SmartImage
 				case IntegrationOption.Remove:
 					ExplorerSystem.RemoveFromPath(RuntimeInfo.AppFolder);
 					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(option), option, null);
 			}
 		}
 
@@ -120,34 +124,15 @@ namespace SmartImage
 
 		internal static void ShowInfo()
 		{
+			// todo
+
 			Console.Clear();
 
-
 			/*
-			 * Search settings
+			 * Config
 			 */
 
-			CliOutput.WriteInfo("Search engines: {0}", SearchConfig.Config.SearchEngines);
-			CliOutput.WriteInfo("Priority engines: {0}", SearchConfig.Config.PriorityEngines);
-
-			/*
-			 * API settings
-			 */
-
-			string sn = SearchConfig.Config.SauceNaoAuth;
-			bool snNull = String.IsNullOrWhiteSpace(sn);
-
-			CliOutput.WriteInfo("SauceNao authentication: {0} ({1})",
-				snNull ? CliOutput.MUL_SIGN.ToString() : sn, snNull ? "Basic" : "Advanced");
-
-			string imgur = SearchConfig.Config.ImgurAuth;
-			bool imgurNull = String.IsNullOrWhiteSpace(imgur);
-
-			CliOutput.WriteInfo("Imgur authentication: {0}",
-				imgurNull ? CliOutput.MUL_SIGN.ToString() : imgur);
-
-			CliOutput.WriteInfo("Image upload service: {0}",
-				imgurNull ? "ImgOps" : "Imgur");
+			CliOutput.WriteInfo(SearchConfig.Config.Dump());
 
 
 			/*
@@ -157,7 +142,6 @@ namespace SmartImage
 
 			CliOutput.WriteInfo("Application folder: {0}", RuntimeInfo.AppFolder);
 			CliOutput.WriteInfo("Executable location: {0}", RuntimeInfo.ExeLocation);
-			CliOutput.WriteInfo("Config location: {0}", SearchConfig.ConfigLocation);
 			CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
 			CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
 
@@ -178,6 +162,7 @@ namespace SmartImage
 			 * Author info
 			 */
 
+			CliOutput.WriteInfo("Repo: {0}", RuntimeInfo.Repo);
 			CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
 			CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);
 		}
@@ -320,9 +305,10 @@ namespace SmartImage
 
 			// todo: optimize this
 
-			string batchCommands = string.Empty;
+			string batchCommands = String.Empty;
 			string exeFileName = RuntimeInfo.ExeLocation;
-			string batname = "SmartImage_Delete.bat";
+			const string DEL_BAT_NAME = "SmartImage_Delete.bat";
+
 
 
 			batchCommands += "@echo off\n";
@@ -336,9 +322,9 @@ namespace SmartImage
 			batchCommands += exeFileName + "\n";
 
 			/* Delete this bat file */
-			batchCommands += "echo y | del " + batname;
+			batchCommands += "echo y | del " + DEL_BAT_NAME;
 
-			var dir = Path.Combine(Path.GetTempPath(), batname);
+			var dir = Path.Combine(Path.GetTempPath(), DEL_BAT_NAME);
 
 			File.WriteAllText(dir, batchCommands);
 

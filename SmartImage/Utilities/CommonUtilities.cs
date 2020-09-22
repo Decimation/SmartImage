@@ -4,8 +4,11 @@ using System.Reflection;
 
 namespace SmartImage.Utilities
 {
+	// todo
 	internal static class CommonUtilities
 	{
+		// todo
+
 		internal static T Read<T>(string rawValue)
 		{
 			if (typeof(T).IsEnum) {
@@ -19,6 +22,13 @@ namespace SmartImage.Utilities
 			}
 
 			return (T) (object) rawValue;
+		}
+
+		internal static string CreateSeparator(string s)
+		{
+			var sx= new string('-', 10);
+			return sx + s + sx;
+
 		}
 
 		internal static string CleanString(string s)

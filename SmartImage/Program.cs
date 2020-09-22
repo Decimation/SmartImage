@@ -13,12 +13,12 @@ using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
 using SimpleCore;
 using SimpleCore.Utilities;
+using SmartImage.Utilities;
 
 #endregion
 
 namespace SmartImage
 {
-	
 	public static class Program
 	{
 		//  ____                       _   ___
@@ -39,38 +39,66 @@ namespace SmartImage
 		 */
 		private static void Main(string[] args)
 		{
+
 			Console.Title = RuntimeInfo.NAME;
 			Console.SetWindowSize(120, 35);
 			Console.Clear();
 
-			RuntimeInfo.Setup();
-			SearchConfig.ReadSearchConfigArguments(args);
 
-			if (SearchConfig.Config.NoArguments) {
-				Commands.RunCommandMenu();
-				Console.Clear();
+			try {
+
+				RuntimeInfo.Setup();
+				SearchConfig.ReadSearchConfigArguments(args);
+
+				if (SearchConfig.Config.NoArguments) {
+					Commands.RunCommandMenu();
+					Console.Clear();
+				}
+
+				string img = SearchConfig.Config.Image;
+
+
+				var results = new SearchResult[(int) SearchEngines.All];
+				var ok = Search.RunSearch(img, ref results);
+
+				if (!ok) {
+					CliOutput.WriteError("Search failed or aborted");
+					return;
+				}
+
+				Commands.HandleConsoleOptions(results);
+
+
+			}
+			catch (Exception e) {
+
+
+				var cr = new CrashReport(e);
+
+				Console.ForegroundColor = ConsoleColor.DarkRed;
+				Console.BackgroundColor = ConsoleColor.White;
+
+
+				Console.WriteLine(cr);
+
+
+				var src = cr.WriteToFile();
+
+				Console.WriteLine("Crash log written to {0}", src);
+
+				Console.WriteLine("Please file an issue and attach the crash log.");
+
+				NetworkUtilities.OpenUrl(RuntimeInfo.Issue);
+
+				Commands.Pause();
+				
+			}
+			finally {
+				// Exit
+				SearchConfig.Cleanup();
 			}
 
-			string img = SearchConfig.Config.Image;
 
-			bool run = !String.IsNullOrWhiteSpace(img);
-
-			if (!run) {
-				return;
-			}
-
-			var results = new SearchResult[(int) SearchEngines.All];
-			var ok = Search.RunSearch(img, ref results);
-
-			if (!ok) {
-				CliOutput.WriteError("Search failed");
-				return;
-			}
-
-			Commands.HandleConsoleOptions(results);
-
-			// Exit
-			SearchConfig.Cleanup();
 		}
 	}
 }

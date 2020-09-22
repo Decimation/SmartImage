@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -5,6 +6,8 @@ using System.Text;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Utilities;
+
+// ReSharper disable InconsistentNaming
 
 // ReSharper disable IdentifierTypo
 
@@ -19,6 +22,7 @@ namespace SmartImage
 	public sealed class SearchConfig
 	{
 		// todo: create config field type
+		// todo: create config field attribute
 		// todo: refactor
 
 		private const string CFG_IMGUR_APIKEY = "imgur_client_id";
@@ -78,6 +82,10 @@ namespace SmartImage
 
 		public bool UpdateConfig { get; set; }
 
+
+		/// <summary>
+		/// Image to search
+		/// </summary>
 		public string Image { get; set; }
 
 		/// <summary>
@@ -86,7 +94,7 @@ namespace SmartImage
 		public static string ConfigLocation => Path.Combine(RuntimeInfo.AppFolder, RuntimeInfo.NAME_CFG);
 
 
-		public IDictionary<string, string> ToMap()
+		internal IDictionary<string, string> ToMap()
 		{
 			var m = new Dictionary<string, string>
 			{
@@ -114,7 +122,40 @@ namespace SmartImage
 			CliOutput.WriteInfo("Updating config");
 			ExplorerSystem.WriteMap(ToMap(), ConfigLocation);
 			CliOutput.WriteInfo("Wrote to {0}", ConfigLocation);
+
 		}
+
+
+		internal string Dump()
+		{
+			var sb = new StringBuilder();
+
+
+			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
+			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
+
+
+			string sn = SearchConfig.Config.SauceNaoAuth;
+			bool snNull = String.IsNullOrWhiteSpace(sn);
+
+			sb.AppendFormat("SauceNao authentication: {0} ({1})\n",
+				snNull ? CliOutput.MUL_SIGN.ToString() : sn, snNull ? "Basic" : "Advanced");
+
+			string imgur = SearchConfig.Config.ImgurAuth;
+			bool imgurNull = String.IsNullOrWhiteSpace(imgur);
+
+			sb.AppendFormat("Imgur authentication: {0}\n",
+				imgurNull ? CliOutput.MUL_SIGN.ToString() : imgur);
+
+			sb.AppendFormat("Image upload service: {0}\n",
+				imgurNull ? "ImgOps" : "Imgur");
+
+
+			sb.AppendFormat("Config location: {0}\n", SearchConfig.ConfigLocation);
+
+			return sb.ToString();
+		}
+
 
 		private static void WriteMapKeyValue<T>(string name, T value, IDictionary<string, string> cfg)
 		{
@@ -131,12 +172,12 @@ namespace SmartImage
 		}
 
 
-		private static T ReadMapKeyValue<T>(string name,
-			IDictionary<string, string> cfg,
-			bool setDefaultIfNull = false,
-			T defaultValue = default)
+		private static T ReadMapKeyValue<T>(string name, IDictionary<string, string> cfg,
+			bool setDefaultIfNull = false, T defaultValue = default)
 		{
-			if (!cfg.ContainsKey(name)) cfg.Add(name, String.Empty);
+			if (!cfg.ContainsKey(name)) {
+				cfg.Add(name, String.Empty);
+			}
 			//Update();
 
 			string rawValue = cfg[name];

@@ -71,6 +71,14 @@ namespace SmartImage.Searching
 			 * Run 
              */
 
+			// Run checks
+			if (!IsFileValid(img))
+			{
+				SearchConfig.Cleanup();
+
+				return false;
+			}
+
 			string auth = SearchConfig.Config.ImgurAuth;
 			bool useImgur = !String.IsNullOrWhiteSpace(auth);
 
@@ -84,12 +92,7 @@ namespace SmartImage.Searching
 			}
 
 
-			// Exit
-			if (!IsFileValid(img)) {
-				SearchConfig.Cleanup();
-
-				return false;
-			}
+			
 
 			// Display config
 			CliOutput.WriteInfo(SearchConfig.Config);
@@ -187,6 +190,10 @@ namespace SmartImage.Searching
 
 		private static bool IsFileValid(string img)
 		{
+			if (string.IsNullOrWhiteSpace(img)) {
+				return false;
+			}
+
 			if (!File.Exists(img)) {
 				CliOutput.WriteError("File does not exist: {0}", img);
 				return false;

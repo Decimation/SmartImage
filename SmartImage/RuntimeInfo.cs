@@ -12,6 +12,7 @@ using Newtonsoft.Json.Linq;
 using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
+using SmartImage.Utilities;
 
 // ReSharper disable UseStringInterpolation
 
@@ -46,7 +47,11 @@ namespace SmartImage
 
 		public const string Author = "Read Stanton";
 
+		public const string Repo = "https://github.com/Decimation/SmartImage";
+
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
+
+		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
 
 		public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
 
@@ -91,7 +96,8 @@ namespace SmartImage
 				}
 
 
-				throw new InvalidOperationException();
+
+				throw new SmartImageException();
 			}
 		}
 
@@ -118,9 +124,12 @@ namespace SmartImage
 
 			var rg = new List<string>()
 			{
-				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase
+				/* Executing directory */
+				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
 					.Replace("file:///", string.Empty)
 					.Replace("/", "\\"))!,
+
+				/* Current directory */
 				Environment.CurrentDirectory
 			};
 
@@ -144,7 +153,7 @@ namespace SmartImage
 				return inFolder;
 			}
 
-			throw new ApplicationException();
+			throw new SmartImageException();
 		}
 	}
 }

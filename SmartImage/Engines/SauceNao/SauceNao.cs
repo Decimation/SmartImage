@@ -149,6 +149,7 @@ namespace SmartImage.Engines.SauceNao
 			return new SearchResult(null, Name);
 		}
 
+		
 		private SearchResult GetBestResultWithoutApi(string url)
 		{
 			/*string u  = BASIC_RESULT + url;
@@ -161,6 +162,7 @@ namespace SmartImage.Engines.SauceNao
 			var sz = NetworkUtilities.GetString(BASIC_RESULT + url);
 			var doc = new HtmlDocument();
 			doc.LoadHtml(sz);
+
 
 			// todo: for now, just return the first link found, as SN already sorts by similarity and the first link is the best result
 			var links = doc.DocumentNode.SelectNodes("//*[@class='resultcontentcolumn']/a/@href");
@@ -244,6 +246,30 @@ namespace SmartImage.Engines.SauceNao
 			//var sr = new SearchResult(BASIC_RESULT+url,Name);
 
 			//return sr;
+
+
+			/*var x = doc.DocumentNode.SelectNodes("//*[@class='resulttable']");
+
+			foreach (var node in x)
+			{
+				var tbody = node.FirstChild;
+				var resulttableimage = tbody.ChildNodes[0];
+				var resulttablecontent = tbody.ChildNodes[1];
+				var resultmatchinfo = resulttablecontent.FirstChild;
+				var resultsimilarityinfo = resultmatchinfo.FirstChild;
+
+
+
+				var resultcontent = resulttablecontent.ChildNodes[1];
+				var resulttitle = resultcontent.FirstChild;
+				var resultcontentcolumn = resultcontent.ChildNodes[1];
+				var link = resultcontentcolumn.ChildNodes.First(n => n.GetAttributeValue("href", null) != null);
+				var lk = link.GetAttributeValue("href", null);
+				Console.WriteLine(">> {0} {1}", resultsimilarityinfo.InnerText, lk);
+			}
+
+			return null;*/
+
 		}
 	}
 }
