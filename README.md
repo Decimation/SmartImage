@@ -35,10 +35,17 @@
 ### [Download](https://github.com/Decimation/SmartImage/releases)
 
   
-<img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" alt="Logo" width="640" height="360" align="left">
+<img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" alt="Logo" width="640" height="360" align="center">
 
 
 **SmartImage** is a reverse image search tool for Windows with context menu integration. **SmartImage** will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
+
+<br />
+<br />
+<br />
+<br />
+<br />
+<br />
 
 
 
