@@ -19,7 +19,7 @@
   <p align="center">
   <i>Find the source image in one click!</i>
     <br />
-    <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki »</strong></a>
     <br />
     <br />
     <a href="https://github.com/Decimation/SmartImage/releases">Releases</a>
@@ -31,23 +31,13 @@
 
 <!-- g -->
 
-
-### [Download](https://github.com/Decimation/SmartImage/releases)
-
+<p align="center">
   
-<img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" alt="Logo" width="640" height="360" align="center">
-
-
-**SmartImage** is a reverse image search tool for Windows with context menu integration. **SmartImage** will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
-
-<br />
-<br />
-<br />
-<br />
-<br />
-<br />
-
-
+  <img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" alt="Logo" width="640" height="360">
+  
+  <p align="center"><i><b>SmartImage</b></i> is a reverse image search tool for Windows with context menu integration. <i><b>SmartImage</b></i> will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.</p>
+  
+</p>
 
 ## Supported engines
 
@@ -64,10 +54,6 @@ Supported search engines:
 - [Bing](https://www.bing.com/images/)
 
 See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
-
-## Example
-
-
 
 ## Usage
 
