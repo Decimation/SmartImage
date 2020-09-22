@@ -19,17 +19,17 @@
   <p align="center">
   <i>Find the source image in one click!</i>
     <br />
-    <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki »</strong></a>
+    <a href="https://github.com/Decimation/SmartImage/releases"><strong>Releases »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/Decimation/SmartImage/releases">Releases</a>
+    <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki</strong></a>
     ·
-    <a href="https://github.com/Decimation/SmartImage/issues">Report Bug</a>
+  <a href="https://github.com/Decimation/SmartImage/issues"><strong>Report Bug</strong></a>
     
   </p>
 </p>
 
-<!-- g -->
+<!-- ... -->
 
 <p align="center">
   
@@ -39,11 +39,13 @@
   
 </p>
 
+<!-- ... -->
+
 ## Supported engines
 
 Supported search engines:
 
-- [SauceNao](https://saucenao.com/)
+- <img src="http://imgops.com/favicon.ico"/> [SauceNao](https://saucenao.com/)
 - [ImgOps](http://imgops.com/)
 - [Google Images](https://images.google.com/)
 - [TinEye](https://tineye.com/)
@@ -55,16 +57,20 @@ Supported search engines:
 
 See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
 
+<!-- ... -->
+
 ## Usage
 
-**SmartImage** can be used in multiple ways:
+<i><b>SmartImage</b></i> can be used in multiple ways:
 
 - Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
-- Right-click on an image (once the context menu integration is set up) and select the **SmartImage** option to immediately perform a search.
-- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the **SmartImage** option).
+- Right-click on an image (once the context menu integration is set up) and select the <i><b>SmartImage</b></i> option to immediately perform a search.
+- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the <i><b>SmartImage</b></i> option).
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
 See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation.
+
+<!-- ... -->
 
 ## Donation
 
