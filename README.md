@@ -17,7 +17,7 @@
 </p>
 
   <p align="center">
-    Find the source image in one click!
+  <i>Find the source image in one click!</i>
     <br />
     <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Explore the docs »</strong></a>
     <br />
@@ -32,12 +32,19 @@
 <!-- g -->
 
 
-**SmartImage** is a reverse image search tool for Windows with context menu integration. **SmartImage** will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
-
-
 ### [Download](https://github.com/Decimation/SmartImage/releases)
 
-# Supported engines
+<img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" alt="Logo" width="640" height="360" align="left">
+
+**SmartImage** is a reverse image search tool for Windows with context menu integration. **SmartImage** will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.
+
+<img src="https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png" alt="Logo" width="400" height="294" align="left">
+
+hello
+
+< /br>
+
+## Supported engines
 
 Supported search engines:
 
@@ -53,13 +60,11 @@ Supported search engines:
 
 See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
 
-# Example
+## Example
 
-![Demo](https://github.com/Decimation/SmartImage/raw/master/Demo.gif)
 
-![Context menu image](https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png)
 
-# Usage
+## Usage
 
 **SmartImage** can be used in multiple ways:
 
@@ -70,7 +75,7 @@ See [Engine](https://github.com/Decimation/SmartImage/wiki/Engines) documentatio
 
 See the [Wiki](https://github.com/Decimation/SmartImage/wiki) for documentation.
 
-# Donation
+## Donation
 
 If you would like to support this project, you can buy me a cup of coffee! :)
 
