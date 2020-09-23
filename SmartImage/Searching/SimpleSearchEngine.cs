@@ -19,11 +19,11 @@ namespace SmartImage.Searching
 
 		public virtual SearchResult GetResult(string url)
 		{
-			string rawUrl = GetRawResult(url);
+			string rawUrl = GetRawResultUrl(url);
 			return new SearchResult(rawUrl, Name);
 		}
 
-		public virtual string GetRawResult(string url)
+		public virtual string GetRawResultUrl(string url)
 		{
 			return BaseUrl + url;
 		}

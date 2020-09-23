@@ -6,6 +6,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
+using HtmlAgilityPack;
+using Microsoft.Win32;
 using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
@@ -32,6 +34,8 @@ namespace SmartImage
 
 		internal static void RunContextMenuIntegration(IntegrationOption option)
 		{
+			// TODO: use default Registry library
+
 			switch (option) {
 				case IntegrationOption.Add:
 					string fullPath = RuntimeInfo.ExeLocation;
@@ -45,29 +49,35 @@ namespace SmartImage
 						}
 					}
 
-					// Add command and icon to command
-					string[] commandCode =
-					{
-						"@echo off",
-						$"reg.exe add {RuntimeInfo.REG_SHELL_CMD} /ve /d \"{fullPath} \"\"%%1\"\"\" /f >nul",
-						$"reg.exe add {RuntimeInfo.REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
-					};
+					// // Add command and icon to command
+					// string[] commandCode =
+					// {
+					// 	"@echo off",
+					// 	$"reg.exe add {RuntimeInfo.REG_SHELL_CMD} /ve /d \"{fullPath} \"\"%%1\"\"\" /f >nul",
+					// 	$"reg.exe add {RuntimeInfo.REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
+					// };
+					//
+					// Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
 
-					Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
+					var cmd = RuntimeInfo.Subkey.CreateSubKey("command");
+					cmd.SetValue(null, string.Format("\"{0}\" \"%1\"", fullPath));
 
 					break;
 				case IntegrationOption.Remove:
-					// reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
+					// // reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage
+					//
+					// // const string DEL = @"reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage";
+					//
+					// string[] code =
+					// {
+					// 	"@echo off",
+					// 	$@"reg.exe delete {RuntimeInfo.REG_SHELL} /f >nul"
+					// };
+					//
+					// Cli.CreateRunBatchFile("rem_from_menu.bat", code);
 
-					// const string DEL = @"reg delete HKEY_CLASSES_ROOT\*\shell\SmartImage";
+					Registry.CurrentUser.DeleteSubKeyTree(RuntimeInfo.shell3);
 
-					string[] code =
-					{
-						"@echo off",
-						$@"reg.exe delete {RuntimeInfo.REG_SHELL} /f >nul"
-					};
-
-					Cli.CreateRunBatchFile("rem_from_menu.bat", code);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(option), option, null);
@@ -154,7 +164,7 @@ namespace SmartImage
 
 			CliOutput.WriteInfo("Current version: {0}", versionsInfo.Current);
 			CliOutput.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
-			CliOutput.WriteInfo("> {0}", versionsInfo.Status);
+			CliOutput.WriteInfo("Version status: {0}", versionsInfo.Status);
 
 			Console.WriteLine();
 
@@ -300,15 +310,17 @@ namespace SmartImage
 			return selectedOptions;
 		}
 
-		private static void SelfDestruct()
+		private static void Uninstall()
 		{
+			// autonomous uninstall routine
+
+			// self destruct
 
 			// todo: optimize this
 
 			string batchCommands = String.Empty;
 			string exeFileName = RuntimeInfo.ExeLocation;
 			const string DEL_BAT_NAME = "SmartImage_Delete.bat";
-
 
 
 			batchCommands += "@echo off\n";
@@ -331,14 +343,14 @@ namespace SmartImage
 			Process.Start(dir);
 		}
 
-		internal static void Pause()
+		internal static void WaitForInput()
 		{
 			Console.WriteLine();
 			Console.WriteLine("Press any key to continue...");
 			Console.ReadLine();
 		}
 
-		internal static void Wait()
+		internal static void WaitForTime()
 		{
 			Thread.Sleep(TimeSpan.FromSeconds(1));
 		}
@@ -371,14 +383,14 @@ namespace SmartImage
 				{
 					ShowInfo();
 
-					Pause();
+					WaitForInput();
 					return null;
 				}),
 				new ConsoleOption("Reset all configuration", () =>
 				{
 					RunReset();
 
-					Wait();
+					WaitForTime();
 					return null;
 				}),
 				new ConsoleOption("Add/remove context menu integration", () =>
@@ -394,7 +406,7 @@ namespace SmartImage
 						CliOutput.WriteSuccess("Removed from context menu");
 					}
 
-					Wait();
+					WaitForTime();
 					return null;
 				}),
 				new ConsoleOption("Configure search engines", () =>
@@ -408,7 +420,7 @@ namespace SmartImage
 
 					SearchConfig.Config.SearchEngines = newValues;
 
-					Pause();
+					WaitForInput();
 
 					return null;
 				}),
@@ -423,7 +435,7 @@ namespace SmartImage
 
 					SearchConfig.Config.PriorityEngines = newValues;
 
-					Wait();
+					WaitForTime();
 
 					return null;
 				}),
@@ -436,7 +448,7 @@ namespace SmartImage
 
 					SearchConfig.Config.SauceNaoAuth = sauceNaoAuth;
 
-					Wait();
+					WaitForTime();
 					return null;
 				}),
 				new ConsoleOption("Configure Imgur API key", () =>
@@ -447,14 +459,14 @@ namespace SmartImage
 
 					SearchConfig.Config.ImgurAuth = imgurAuth;
 
-					Wait();
+					WaitForTime();
 					return null;
 				}),
 				new ConsoleOption("Update config file", () =>
 				{
 					SearchConfig.Config.WriteToFile();
 
-					Wait();
+					WaitForTime();
 					return null;
 				}),
 				new ConsoleOption("Check for updates", () =>
@@ -467,7 +479,7 @@ namespace SmartImage
 						NetworkUtilities.OpenUrl(v.Latest.AssetUrl);
 					}
 
-					Wait();
+					WaitForTime();
 					return null;
 				}),
 				new ConsoleOption("Uninstall", () =>
@@ -477,7 +489,7 @@ namespace SmartImage
 					RunPathIntegration(IntegrationOption.Remove);
 
 					File.Delete(SearchConfig.ConfigLocation);
-					SelfDestruct();
+					Uninstall();
 
 					// No return
 
@@ -485,6 +497,28 @@ namespace SmartImage
 
 					return null;
 				}),
+
+#if DEBUG
+
+
+				new ConsoleOption("Run test", () =>
+				{
+					var cd = new DirectoryInfo(Environment.CurrentDirectory);
+					var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
+
+					var testImages = new[]
+					{
+						// "Test1.jpg", 
+						"Test2.jpg"
+					};
+					var testImg = CommonUtilities.GetRandomElement(testImages);
+					var img = Path.Combine(cd2,testImg );
+
+					SearchConfig.Config.Image = img;
+					SearchConfig.Config.PriorityEngines = SearchEngines.None;
+					return true;
+				}),
+#endif
 
 			};
 

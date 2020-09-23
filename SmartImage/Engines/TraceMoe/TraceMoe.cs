@@ -43,19 +43,17 @@ namespace SmartImage.Engines.TraceMoe
 
 			var tm = GetApiResults(url, out var code);
 
-			r.ExtendedInfo.Add(string.Format("Code: {0}", code));
-
 			if (tm?.docs != null) {
 				// Most similar to least similar
 				var mostSimilarDoc = tm.docs[0];
 
 				r.Similarity = (float?) mostSimilarDoc.similarity;
 
-				r.ExtendedInfo.Add(String.Format("Name: {0}", mostSimilarDoc.title_english));
+				r.ExtendedInfo.Add(String.Format("Anime: {0}", mostSimilarDoc.title_english));
 
 			}
 			else {
-				r.ExtendedInfo.Add("API returned null (possible timeout)");
+				r.ExtendedInfo.Add("API: Returned null (possible timeout)");
 			}
 
 

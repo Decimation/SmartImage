@@ -15,7 +15,7 @@ namespace SmartImage.Searching
 			Name = name;
 			Similarity = similarity;
 			ExtendedInfo = new List<string>();
-
+			ExtraResults  = new List<string>();
 
 		}
 
@@ -33,6 +33,8 @@ namespace SmartImage.Searching
 		public bool Success => Url != null;
 
 		public List<string> ExtendedInfo { get; }
+
+		public List<string> ExtraResults { get; }
 
 		public override Func<object> Function
 		{
@@ -68,6 +70,10 @@ namespace SmartImage.Searching
 
 			foreach (string s in ExtendedInfo) {
 				sb.AppendFormat("\t{0}\n", s);
+			}
+
+			foreach (string extraResult in ExtraResults) {
+				sb.AppendFormat("\t*{0}\n", extraResult);
 			}
 
 			return sb.ToString();

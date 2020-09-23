@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SimpleCore.Utilities;
+using SmartImage.Engines.Imgur;
+using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
@@ -29,6 +31,8 @@ namespace SmartImage
 		private const string CFG_SAUCENAO_APIKEY = "saucenao_key";
 		private const string CFG_SEARCH_ENGINES = "search_engines";
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
+
+
 
 		public const SearchEngines ENGINES_DEFAULT = SearchEngines.All;
 
@@ -60,6 +64,9 @@ namespace SmartImage
 			if (newCfg) {
 				WriteToFile();
 			}
+
+			// Should be initialized eventually
+			Image = string.Empty;
 		}
 
 
@@ -68,23 +75,39 @@ namespace SmartImage
 		/// </summary>
 		public static SearchConfig Config { get; } = new SearchConfig();
 
+		/// <summary>
+		/// Whether no arguments were passed in via CLI
+		/// </summary>
 		public bool NoArguments { get; set; }
 
+		/// <summary>
+		/// Engines to use for searching
+		/// </summary>
 		public SearchEngines SearchEngines { get; set; }
 
+		/// <summary>
+		/// Engines whose results should be opened in the browser
+		/// </summary>
 		public SearchEngines PriorityEngines { get; set; }
 
+		/// <summary>
+		/// <see cref="Imgur"/> API key
+		/// </summary>
 		public string ImgurAuth { get; set; }
 
-
+		/// <summary>
+		/// <see cref="SauceNao"/> API key
+		/// </summary>
 		public string SauceNaoAuth { get; set; }
 
-
+		/// <summary>
+		/// Whether to save passed in arguments (via CLI) to the config file upon exit
+		/// </summary>
 		public bool UpdateConfig { get; set; }
 
 
 		/// <summary>
-		/// Image to search
+		/// The image we are searching for
 		/// </summary>
 		public string Image { get; set; }
 

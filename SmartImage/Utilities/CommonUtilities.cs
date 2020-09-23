@@ -9,6 +9,14 @@ namespace SmartImage.Utilities
 	{
 		// todo
 
+		private static readonly Random Random = new Random();
+
+		internal static T GetRandomElement<T>(T[] rg)
+		{
+			var i = Random.Next(0, rg.Length);
+			return rg[i];
+		}
+
 		internal static T Read<T>(string rawValue)
 		{
 			if (typeof(T).IsEnum) {

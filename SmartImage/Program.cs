@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Win32;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
 using SimpleCore;
@@ -42,8 +43,8 @@ namespace SmartImage
 
 			Console.Title = RuntimeInfo.NAME;
 			Console.SetWindowSize(120, 35);
+			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
-
 
 			try {
 
@@ -70,13 +71,13 @@ namespace SmartImage
 
 
 			}
-			catch (Exception e) {
+			catch (Exception exception) {
 
 
-				var cr = new CrashReport(e);
+				var cr = new CrashReport(exception);
 
-				Console.ForegroundColor = ConsoleColor.DarkRed;
-				Console.BackgroundColor = ConsoleColor.White;
+				// Console.ForegroundColor = ConsoleColor.DarkRed;
+				// Console.BackgroundColor = ConsoleColor.White;
 
 
 				Console.WriteLine(cr);
@@ -90,7 +91,7 @@ namespace SmartImage
 
 				NetworkUtilities.OpenUrl(RuntimeInfo.Issue);
 
-				Commands.Pause();
+				Commands.WaitForInput();
 				
 			}
 			finally {

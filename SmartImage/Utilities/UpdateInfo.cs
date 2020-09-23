@@ -16,6 +16,13 @@ namespace SmartImage.Utilities
 			Status = status;
 		}
 
+		public static void Update()
+		{
+			// todo
+
+			throw new NotImplementedException();
+		}
+
 		public static UpdateInfo CheckForUpdates()
 		{
 			var asm = typeof(RuntimeInfo).Assembly.GetName();

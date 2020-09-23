@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -103,6 +104,8 @@ namespace SmartImage.Searching
 
 			Console.WriteLine();
 
+			
+
 			//Console.ReadLine();
 
 			//
@@ -144,6 +147,7 @@ namespace SmartImage.Searching
 					Console.Write(wait);
 				});
 
+				// Process time stopwatch
 				var sw = Stopwatch.StartNew();
 
 				// Run search

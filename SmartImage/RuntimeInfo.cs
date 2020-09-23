@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Win32;
 using SimpleCore;
 using Newtonsoft.Json.Linq;
 using RestSharp;
@@ -53,12 +54,31 @@ namespace SmartImage
 
 		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
 
-		public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
+		// public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
+		//
+		// public const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
 
-		public const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
+		//public const string REG_SHELL = @"HKEY_CURRENT_USER\Software\Classes\*\shell\SmartImage\";
+
+		//public const string REG_SHELL_CMD = @"HKEY_CURRENT_USER\Software\Classes\*\shell\SmartImage\command";
+		
+		internal const string shell3 = @"Software\Classes\*\shell\SmartImage\";
+
+		/*
+		 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
+		 *		HKEY_CURRENT_USER\Software\Classes
+		 *		HKEY_LOCAL_MACHINE\Software\Classes
+		 */
+
+		/*
+		 * todo: !!! switch from using batch files to interact with registry to the Registry library !!!
+		 */
 
 		public static string AppFolder
 		{
+
+			// todo: use ProgramData
+
 			get
 			{
 				string? folder = Path.GetDirectoryName(ExeLocation);
@@ -75,11 +95,21 @@ namespace SmartImage
 		public static string ExeLocation => FindExecutableLocation(NAME_EXE);
 
 
+		// todo
+		internal static RegistryKey Subkey => Registry.CurrentUser.CreateSubKey(shell3);
+
 		public static bool IsContextMenuAdded
 		{
 			get
 			{
-				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
+				// TODO: use default Registry library
+
+				var shell=Registry.CurrentUser.OpenSubKey(@"Software\Classes\*\shell\");
+				return shell.GetSubKeyNames().Contains("SmartImage");
+
+				//return Subkey.GetSubKeyNames().Contains("command");
+
+				/*string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
 				var cmd = Cli.Shell(cmdStr, true);
 
 				string[] stdOut = Cli.ReadAllLines(cmd.StandardOutput);
@@ -96,8 +126,10 @@ namespace SmartImage
 				}
 
 
+				//
 
-				throw new SmartImageException();
+
+				throw new SmartImageException();*/
 			}
 		}
 
