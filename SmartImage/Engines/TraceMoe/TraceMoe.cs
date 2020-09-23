@@ -59,5 +59,7 @@ namespace SmartImage.Engines.TraceMoe
 
 			return r;
 		}
+
+		public override ConsoleColor Color => ConsoleColor.Blue;
 	}
 }

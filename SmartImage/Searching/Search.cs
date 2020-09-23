@@ -133,7 +133,7 @@ namespace SmartImage.Searching
 			int i = 0;
 
 			res = new SearchResult[availableEngines.Length + 1];
-			res[i] = new SearchResult(imgUrl, "(Original image)");
+			res[i] = new SearchResult(ConsoleColor.White, "(Original image)", imgUrl, null);
 
 			i++;
 

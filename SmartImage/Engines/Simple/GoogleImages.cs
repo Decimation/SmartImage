@@ -1,5 +1,6 @@
 #region
 
+using System;
 using SmartImage.Searching;
 
 #endregion
@@ -13,5 +14,7 @@ namespace SmartImage.Engines.Simple
 		public override string Name => "Google Images";
 
 		public override SearchEngines Engine => SearchEngines.GoogleImages;
+
+		public override ConsoleColor Color => ConsoleColor.White;
 	}
 }

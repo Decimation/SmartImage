@@ -33,7 +33,6 @@ namespace SmartImage
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
 
 
-
 		public const SearchEngines ENGINES_DEFAULT = SearchEngines.All;
 
 		public const SearchEngines PRIORITY_ENGINES_DEFAULT = SearchEngines.SauceNao;
@@ -158,17 +157,21 @@ namespace SmartImage
 			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
 
 
-			string sn = SearchConfig.Config.SauceNaoAuth;
-			bool snNull = String.IsNullOrWhiteSpace(sn);
+			string snAuth = SearchConfig.Config.SauceNaoAuth;
+			bool snNull = String.IsNullOrWhiteSpace(snAuth);
 
-			sb.AppendFormat("SauceNao authentication: {0} ({1})\n",
-				snNull ? CliOutput.MUL_SIGN.ToString() : sn, snNull ? "Basic" : "Advanced");
+			if (!snNull) {
+				sb.AppendFormat("SauceNao authentication: {0}\n", snAuth);
+			}
 
-			string imgur = SearchConfig.Config.ImgurAuth;
-			bool imgurNull = String.IsNullOrWhiteSpace(imgur);
 
-			sb.AppendFormat("Imgur authentication: {0}\n",
-				imgurNull ? CliOutput.MUL_SIGN.ToString() : imgur);
+			string imgurAuth = SearchConfig.Config.ImgurAuth;
+			bool imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
+
+			if (!imgurNull) {
+				sb.AppendFormat("Imgur authentication: {0}\n", imgurAuth);
+			}
+
 
 			sb.AppendFormat("Image upload service: {0}\n",
 				imgurNull ? "ImgOps" : "Imgur");
@@ -216,15 +219,9 @@ namespace SmartImage
 
 		public override string ToString()
 		{
-			var sb = new StringBuilder();
+			
 
-			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
-			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
-			sb.AppendFormat("Imgur auth: {0}\n", ImgurAuth);
-			sb.AppendFormat("SauceNao auth: {0}\n", SauceNaoAuth);
-			sb.AppendFormat("Image: {0}\n", Image);
-
-			return sb.ToString();
+			return Dump();
 		}
 
 

@@ -9,17 +9,22 @@ namespace SmartImage.Searching
 {
 	public sealed class SearchResult : ConsoleOption
 	{
-		public SearchResult(string url, string name, float? similarity = null)
+		public SearchResult(ISearchEngine engine, string url, float? similarity = null) : this(engine.Color,
+			engine.Name, url, similarity) { }
+
+		public SearchResult(ConsoleColor color, string name, string url, float? similarity = null)
 		{
 			Url = url;
 			Name = name;
+			Color = color;
+
 			Similarity = similarity;
 			ExtendedInfo = new List<string>();
-			ExtraResults  = new List<string>();
+			FilteredMatchResults = new List<string>();
 
 		}
 
-		public override ConsoleColor Color => ConsoleColor.Cyan;
+		public override ConsoleColor Color { get; }
 
 		public string Url { get; }
 
@@ -34,7 +39,10 @@ namespace SmartImage.Searching
 
 		public List<string> ExtendedInfo { get; }
 
-		public List<string> ExtraResults { get; }
+		/// <summary>
+		/// Direct source matches
+		/// </summary>
+		public List<string> FilteredMatchResults { get; }
 
 		public override Func<object> Function
 		{
@@ -48,16 +56,24 @@ namespace SmartImage.Searching
 			}
 		}
 
+		public override Func<object>? AltFunction { get; internal set; }
+
 
 		public override string ToString()
 		{
 			return String.Format("{0}: {1}", Name, Url);
 		}
 
+		internal const string ALT_DENOTE = "[Alt]";
+
 		private string Format()
 		{
 			var sb = new StringBuilder();
-			sb.AppendFormat("{0}\n", Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN);
+
+			char success = Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN;
+			string hasAlt = AltFunction != null ? ALT_DENOTE : string.Empty;
+
+			sb.AppendFormat("{0} {1}\n", success, hasAlt);
 
 			if (Success) {
 
@@ -72,8 +88,9 @@ namespace SmartImage.Searching
 				sb.AppendFormat("\t{0}\n", s);
 			}
 
-			foreach (string extraResult in ExtraResults) {
-				sb.AppendFormat("\t*{0}\n", extraResult);
+			for (int i = 0; i < FilteredMatchResults.Count; i++) {
+				string extraResult = FilteredMatchResults[i];
+				sb.AppendFormat("\tMatch result #{0}: {1}\n",i, extraResult);
 			}
 
 			return sb.ToString();

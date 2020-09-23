@@ -53,6 +53,8 @@ namespace SmartImage.Engines.SauceNao
 			return m_useApi ? GetBestResultWithApi(url) : GetBestResultWithoutApi(url);
 		}
 
+		public ConsoleColor Color => ConsoleColor.Gray;
+
 
 		private SauceNaoResult[] GetApiResults(string url)
 		{
@@ -133,7 +135,7 @@ namespace SmartImage.Engines.SauceNao
 			SauceNaoResult[] sn = GetApiResults(url);
 
 			if (sn == null) {
-				return new SearchResult(null, Name);
+				return new SearchResult(this, null);
 			}
 
 			var best = sn.OrderByDescending(r => r.Similarity).First();
@@ -141,15 +143,15 @@ namespace SmartImage.Engines.SauceNao
 			if (best != null) {
 				string? bestUrl = best?.Url?[0];
 
-				var sr = new SearchResult(bestUrl, Name, best.Similarity / 100);
+				var sr = new SearchResult(this, bestUrl, best.Similarity / 100);
 				sr.ExtendedInfo.Add("API configured");
 				return sr;
 			}
 
-			return new SearchResult(null, Name);
+			return new SearchResult(this, null);
 		}
 
-		
+
 		private SearchResult GetBestResultWithoutApi(string url)
 		{
 			/*string u  = BASIC_RESULT + url;
@@ -171,14 +173,14 @@ namespace SmartImage.Engines.SauceNao
 				var lk = link.GetAttributeValue("href", null);
 
 				if (lk != null) {
-					sr = new SearchResult(lk, Name);
+					sr = new SearchResult(this, lk);
 					break;
 				}
 			}
 
 			if (sr == null) {
 				string u = BASIC_RESULT + url;
-				sr = new SearchResult(u, Name);
+				sr = new SearchResult(this, u);
 			}
 
 			return sr;

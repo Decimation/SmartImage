@@ -42,7 +42,7 @@ namespace SmartImage
 		{
 
 			Console.Title = RuntimeInfo.NAME;
-			Console.SetWindowSize(120, 35);
+			Console.SetWindowSize(120, 40);
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
 

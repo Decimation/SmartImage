@@ -30,7 +30,10 @@ namespace SmartImage
 	/// </summary>
 	internal static class Commands
 	{
+		// todo: add ANSI sequence features like bold?
+
 		private const char CLI_CHAR = '*';
+
 
 		internal static void RunContextMenuIntegration(IntegrationOption option)
 		{
@@ -182,9 +185,10 @@ namespace SmartImage
 		///     Handles user input and options
 		/// </summary>
 		/// <param name="options">Array of <see cref="ConsoleOption" /></param>
-		/// <param name="multiple">Whether to return selected options as a <see cref="HashSet{T}"/></param>
-		internal static HashSet<object> HandleConsoleOptions(ConsoleOption[] options, bool multiple = false)
+		/// <param name="selectMultiple">Whether to return selected options as a <see cref="HashSet{T}"/></param>
+		internal static HashSet<object> HandleConsoleOptions(ConsoleOption[] options, bool selectMultiple = false)
 		{
+			// TODO: create a way to handle nested options
 
 			var selectedOptions = new HashSet<object>();
 
@@ -220,7 +224,16 @@ namespace SmartImage
 				return INVALID;
 			}
 
+
+			/*
+			 * Handle input
+			 */
+
+			// Escape -> quit
 			const ConsoleKey ESC_EXIT = ConsoleKey.Escape;
+
+			// Alt modifier -> View extra info
+			const ConsoleModifiers ALT_EXTRA = ConsoleModifiers.Alt;
 
 			ConsoleKeyInfo cki;
 
@@ -261,8 +274,8 @@ namespace SmartImage
 				Console.WriteLine();
 
 				// Show options
-				if (multiple) {
-					string optionsStr = CommonUtilities.Join(selectedOptions);
+				if (selectMultiple) {
+					string optionsStr = selectedOptions.QuickJoin();
 
 
 					CliOutput.WithColor(ConsoleColor.Blue, () =>
@@ -273,7 +286,15 @@ namespace SmartImage
 
 				// Handle key reading
 
-				CliOutput.WriteSuccess("Enter the result number to open or {0} to exit.", ESC_EXIT);
+// @formatter:off — disable formatter after this line
+
+				string prompt = string.Format("Enter the result number to open or {0} to exit.\n", ESC_EXIT) +
+				                string.Format("Hold down {0} while entering the result number to open expanded information.\n", ALT_EXTRA) +
+				                string.Format("Results with expanded information are denoted with {0}.", SearchResult.ALT_DENOTE);
+
+				CliOutput.WriteSuccess(prompt);
+
+// @formatter:on — enable formatter after this line
 
 
 				while (!Console.KeyAvailable) {
@@ -285,23 +306,37 @@ namespace SmartImage
 
 				cki = Console.ReadKey(true);
 				char keyChar = cki.KeyChar;
+				var modifiers = cki.Modifiers;
+				bool altModifier = (modifiers & ConsoleModifiers.Alt) != 0;
 
 				int idx = FromDisplay(keyChar);
 
 				if (idx < options.Length && idx >= 0) {
 					var option = options[idx];
-					var funcResult = option.Function()!;
+					bool useAltFunc = altModifier && option.AltFunction != null;
 
-					if (funcResult != null) {
+					if (useAltFunc) {
+
+						var altFunc = option.AltFunction()!;
+
 						//
-						if (multiple) {
+					}
+					else {
+						var funcResult = option.Function()!;
 
-							selectedOptions.Add(funcResult);
-						}
-						else {
-							return new HashSet<object> {funcResult};
+						if (funcResult != null) {
+							//
+							if (selectMultiple) {
+
+								selectedOptions.Add(funcResult);
+							}
+							else {
+								return new HashSet<object> {funcResult};
+							}
 						}
 					}
+
+
 				}
 
 
@@ -342,6 +377,7 @@ namespace SmartImage
 
 			Process.Start(dir);
 		}
+
 
 		internal static void WaitForInput()
 		{
@@ -512,10 +548,11 @@ namespace SmartImage
 						"Test2.jpg"
 					};
 					var testImg = CommonUtilities.GetRandomElement(testImages);
-					var img = Path.Combine(cd2,testImg );
+					var img = Path.Combine(cd2, testImg);
 
 					SearchConfig.Config.Image = img;
 					SearchConfig.Config.PriorityEngines = SearchEngines.None;
+					SearchConfig.Config.SearchEngines &= ~ SearchEngines.TraceMoe;
 					return true;
 				}),
 #endif

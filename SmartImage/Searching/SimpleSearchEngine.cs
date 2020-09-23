@@ -2,6 +2,8 @@
 
 #endregion
 
+using System;
+
 namespace SmartImage.Searching
 {
 	public abstract class SimpleSearchEngine : ISearchEngine
@@ -13,14 +15,19 @@ namespace SmartImage.Searching
 			BaseUrl = baseUrl;
 		}
 
+		
+
 		public abstract SearchEngines Engine { get; }
 
 		public abstract string Name { get; }
 
+		public abstract ConsoleColor Color { get; }
+
 		public virtual SearchResult GetResult(string url)
 		{
 			string rawUrl = GetRawResultUrl(url);
-			return new SearchResult(rawUrl, Name);
+			
+			return new SearchResult(this, rawUrl);
 		}
 
 		public virtual string GetRawResultUrl(string url)

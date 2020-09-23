@@ -2,6 +2,8 @@
 
 #endregion
 
+using System;
+
 namespace SmartImage.Searching
 {
 	public interface ISearchEngine
@@ -11,5 +13,8 @@ namespace SmartImage.Searching
 		public SearchEngines Engine { get; }
 
 		public SearchResult GetResult(string url);
+
+		public ConsoleColor Color { get; }
+
 	}
 }

@@ -70,6 +70,17 @@ namespace SmartImage.Utilities
 			}
 		}
 
+		private static readonly  RestClient Client = new RestClient();
+
+		internal static IRestResponse GetSimpleResponse(string link)
+		{
+			
+			var restReq = new RestRequest(link);
+			var restRes = Client.Execute(restReq);
+
+			return restRes;
+		}
+
 		internal static string GetString(string url)
 		{
 			using var wc = new WebClient();

@@ -1,5 +1,6 @@
 #region
 
+using System;
 using System.Text.RegularExpressions;
 using RestSharp;
 using SmartImage.Searching;
@@ -14,6 +15,7 @@ namespace SmartImage.Engines.Simple
 		public ImgOps() : base("http://imgops.com/") { }
 
 		public override string Name => "ImgOps";
+		public override ConsoleColor Color => ConsoleColor.Magenta;
 
 		public override SearchEngines Engine => SearchEngines.ImgOps;
 

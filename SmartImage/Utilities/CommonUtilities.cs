@@ -7,7 +7,7 @@ namespace SmartImage.Utilities
 	// todo
 	internal static class CommonUtilities
 	{
-		// todo
+		
 
 		private static readonly Random Random = new Random();
 
@@ -46,7 +46,7 @@ namespace SmartImage.Utilities
 			return s;
 		}
 
-		internal static string Join<T>(IEnumerable<T> enumerable) => String.Join(", ", enumerable);
+		internal static string QuickJoin<T>(this IEnumerable<T> enumerable) => String.Join(", ", enumerable);
 
 		internal static TEnum ReadEnumFromSet<TEnum>(ISet<object> set) where TEnum : Enum
 		{
@@ -54,7 +54,7 @@ namespace SmartImage.Utilities
 
 			if (t.GetCustomAttribute<FlagsAttribute>() != null) {
 
-				var sz = Join(set);
+				var sz = QuickJoin(set);
 				Enum.TryParse(typeof(TEnum), (string) sz, out var e);
 				return (TEnum) e;
 			}

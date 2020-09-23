@@ -1,5 +1,6 @@
 #region
 
+using System;
 using SmartImage.Searching;
 
 #endregion
@@ -11,6 +12,7 @@ namespace SmartImage.Engines.Simple
 		public TinEye() : base("https://www.tineye.com/search?url=") { }
 
 		public override string Name => "TinEye";
+		public override ConsoleColor Color => ConsoleColor.DarkCyan;
 
 		public override SearchEngines Engine => SearchEngines.TinEye;
 

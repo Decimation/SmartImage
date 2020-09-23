@@ -13,14 +13,15 @@ namespace SmartImage.Utilities
 		}
 
 		public ConsoleOption(string displayName, ConsoleColor color, Func<object> func)
-			: this(displayName, func, null, color) { }
+			: this(displayName, func, null, null, color) { }
 
 		public ConsoleOption(string displayName, Func<object> func) : this(displayName, DefaultOptionColor, func) { }
 
-		public ConsoleOption(string displayName, Func<object> func, string? extendedName, ConsoleColor color)
+		public ConsoleOption(string displayName, Func<object> func, Func<object>? altFunc, string? extendedName, ConsoleColor color)
 		{
 			Name = displayName;
 			Function = func;
+			AltFunction = altFunc;
 			ExtendedName = extendedName;
 			Color = color;
 		}
@@ -28,6 +29,8 @@ namespace SmartImage.Utilities
 		public virtual string Name { get; }
 
 		public virtual Func<object> Function { get; }
+
+		public virtual Func<object>? AltFunction { get; internal set; }
 
 		public virtual string? ExtendedName { get; }
 
