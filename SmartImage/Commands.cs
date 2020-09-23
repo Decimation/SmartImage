@@ -34,7 +34,7 @@ namespace SmartImage
 
 		private const char CLI_CHAR = '*';
 
-
+		internal const string ALT_DENOTE = "[Alt]";
 		internal static void RunContextMenuIntegration(IntegrationOption option)
 		{
 			// TODO: use default Registry library
@@ -290,7 +290,7 @@ namespace SmartImage
 
 				string prompt = string.Format("Enter the result number to open or {0} to exit.\n", ESC_EXIT) +
 				                string.Format("Hold down {0} while entering the result number to open expanded information.\n", ALT_EXTRA) +
-				                string.Format("Results with expanded information are denoted with {0}.", SearchResult.ALT_DENOTE);
+				                string.Format("Results with expanded information are denoted with {0}.", Commands.ALT_DENOTE);
 
 				CliOutput.WriteSuccess(prompt);
 

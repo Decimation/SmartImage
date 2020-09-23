@@ -25,21 +25,21 @@ namespace SmartImage.Engines.Simple
 		{
 			internal int Width { get; }
 			internal int Height { get; }
-			internal string Link { get; }
+			internal string Url { get; }
 
 			internal int FullResolution { get; }
 
-			internal YandexImage(int width, int height, string link)
+			internal YandexImage(int width, int height, string url)
 			{
 				Width = width;
 				Height = height;
 				FullResolution = width * height;
-				Link = link;
+				Url = url;
 			}
 
 			public override string ToString()
 			{
-				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Link, FullResolution);
+				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Url, FullResolution);
 			}
 		}
 
@@ -143,34 +143,25 @@ namespace SmartImage.Engines.Simple
 				var images = GetYandexImages(doc);
 
 				var bestImages = FilterAndSelectBestImages(images);
-				var bestImagesLinks = bestImages.Select(i => i.Link);
+				var bestImagesLinks = bestImages.Select(i => i.Url);
 
 				//
 
-				sr.FilteredMatchResults.AddRange(bestImagesLinks);
+				sr.ExpandedMatchResults.AddRange(bestImagesLinks);
 
 				sr.AltFunction = () =>
 				{
-					//var rg = new ConsoleOption[bestImages.Length];
 					var rg = new SearchResult[bestImages.Length];
+
 					for (int i = 0; i < rg.Length; i++) {
 						var currentBestImg = bestImages[i];
-						var link = currentBestImg.Link;
+						var link = currentBestImg.Url;
 
 						var name = string.Format("Match result #{0}", i);
 
-						// rg[i] = new ConsoleOption(name, () =>
-						// {
-						// 	NetworkUtilities.OpenUrl(link);
-						// 	return null;
-						// },null,currentBestImg.Link, Color);
-
 						rg[i] = new SearchResult(Color, name, link);
-						
-						
 
 						rg[i].ExtendedInfo.Add(string.Format("Resolution: {0}x{1}", currentBestImg.Width, currentBestImg.Height));
-
 					}
 
 

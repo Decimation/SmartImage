@@ -20,7 +20,7 @@ namespace SmartImage.Searching
 
 			Similarity = similarity;
 			ExtendedInfo = new List<string>();
-			FilteredMatchResults = new List<string>();
+			ExpandedMatchResults = new List<string>();
 
 		}
 
@@ -42,7 +42,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Direct source matches
 		/// </summary>
-		public List<string> FilteredMatchResults { get; }
+		public List<string> ExpandedMatchResults { get; }
 
 		public override Func<object> Function
 		{
@@ -64,16 +64,15 @@ namespace SmartImage.Searching
 			return String.Format("{0}: {1}", Name, Url);
 		}
 
-		internal const string ALT_DENOTE = "[Alt]";
 
 		private string Format()
 		{
 			var sb = new StringBuilder();
 
 			char success = Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN;
-			string hasAlt = AltFunction != null ? ALT_DENOTE : string.Empty;
+			string altStr = AltFunction != null ? Commands.ALT_DENOTE : string.Empty;
 
-			sb.AppendFormat("{0} {1}\n", success, hasAlt);
+			sb.AppendFormat("{0} {1}\n", success, altStr);
 
 			if (Success) {
 
@@ -88,9 +87,9 @@ namespace SmartImage.Searching
 				sb.AppendFormat("\t{0}\n", s);
 			}
 
-			for (int i = 0; i < FilteredMatchResults.Count; i++) {
-				string extraResult = FilteredMatchResults[i];
-				sb.AppendFormat("\tMatch result #{0}: {1}\n",i, extraResult);
+			for (int i = 0; i < ExpandedMatchResults.Count; i++) {
+				string extraResult = ExpandedMatchResults[i];
+				sb.AppendFormat("\tMatch result #{0}: {1}\n", i, extraResult);
 			}
 
 			return sb.ToString();
