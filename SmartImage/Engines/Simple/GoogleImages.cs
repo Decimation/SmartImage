@@ -15,6 +15,6 @@ namespace SmartImage.Engines.Simple
 
 		public override SearchEngines Engine => SearchEngines.GoogleImages;
 
-		public override ConsoleColor Color => ConsoleColor.White;
+		public override ConsoleColor Color => ConsoleColor.DarkBlue;
 	}
 }

@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using RestSharp;
 using SimpleCore.Utilities;
+using SimpleCore.Win32.Cli;
 
 #endregion
 

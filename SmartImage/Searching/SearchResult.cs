@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using SimpleCore.Utilities;
+using SimpleCore.Win32.Cli;
+using SmartImage.Shell;
 using SmartImage.Utilities;
 
 namespace SmartImage.Searching
@@ -26,9 +28,12 @@ namespace SmartImage.Searching
 
 		public override ConsoleColor Color { get; }
 
+		/// <summary>
+		/// Best match
+		/// </summary>
 		public string Url { get; }
 
-		public override string? ExtendedName => Format();
+		public override string? Data => Format();
 
 		public override string Name { get; }
 
@@ -40,7 +45,7 @@ namespace SmartImage.Searching
 		public List<string> ExtendedInfo { get; }
 
 		/// <summary>
-		/// Direct source matches
+		/// Direct source matches, other extended results
 		/// </summary>
 		public List<string> ExpandedMatchResults { get; }
 
@@ -76,12 +81,14 @@ namespace SmartImage.Searching
 
 			if (Success) {
 
-				sb.AppendFormat("\tResult url: {0}\n", Url);
+				sb.AppendFormat("\tResult: {0}\n", Url);
 			}
 
 			if (Similarity.HasValue) {
-				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity);
+				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity/100);
 			}
+
+			
 
 			foreach (string s in ExtendedInfo) {
 				sb.AppendFormat("\t{0}\n", s);

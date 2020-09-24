@@ -1,7 +1,7 @@
 ﻿using System;
 
 #nullable enable
-namespace SmartImage.Utilities
+namespace SmartImage.Shell
 {
 	public class ConsoleOption
 	{
@@ -12,17 +12,17 @@ namespace SmartImage.Utilities
 			Color = DefaultOptionColor;
 		}
 
-		public ConsoleOption(string displayName, ConsoleColor color, Func<object> func)
-			: this(displayName, func, null, null, color) { }
+		public ConsoleOption(string name, ConsoleColor color, Func<object> func)
+			: this(name, func, null, null, color) { }
 
-		public ConsoleOption(string displayName, Func<object> func) : this(displayName, DefaultOptionColor, func) { }
+		public ConsoleOption(string name, Func<object> func) : this(name, DefaultOptionColor, func) { }
 
-		public ConsoleOption(string displayName, Func<object> func, Func<object>? altFunc, string? extendedName, ConsoleColor color)
+		public ConsoleOption(string name, Func<object> func, Func<object>? altFunc, string? data, ConsoleColor color)
 		{
-			Name = displayName;
+			Name = name;
 			Function = func;
 			AltFunction = altFunc;
-			ExtendedName = extendedName;
+			Data = data;
 			Color = color;
 		}
 
@@ -32,7 +32,7 @@ namespace SmartImage.Utilities
 
 		public virtual Func<object>? AltFunction { get; internal set; }
 
-		public virtual string? ExtendedName { get; }
+		public virtual string? Data { get; }
 
 		public virtual ConsoleColor Color { get; }
 

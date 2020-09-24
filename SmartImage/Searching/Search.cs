@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SimpleCore.Utilities;
+using SimpleCore.Win32.Cli;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
@@ -32,37 +33,31 @@ namespace SmartImage.Searching
 	/// </summary>
 	public static class Search
 	{
+		/// <summary>
+		/// Common image extensions
+		/// </summary>
 		private static readonly string[] ImageExtensions =
 		{
-			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif"
+			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif", ".bmp"
 		};
 
 
-		private static ISearchEngine[] GetAvailableEngines()
+		private static ISearchEngine[] GetAllEngines()
 		{
-			var engines = new List<ISearchEngine>();
-
-			var others = new ISearchEngine[]
+			var engines = new ISearchEngine[]
 			{
 				new SauceNao(),
-
 				new ImgOps(),
 				new GoogleImages(),
-
 				new TinEye(),
 				new Iqdb(),
-
 				new Bing(),
 				new Yandex(),
-
-
 				new KarmaDecay(),
 				new TraceMoe()
 			};
 
-			engines.AddRange(others);
-
-			return engines.ToArray();
+			return engines;
 		}
 
 
@@ -75,7 +70,7 @@ namespace SmartImage.Searching
 			// Run checks
 			if (!IsFileValid(img))
 			{
-				SearchConfig.Cleanup();
+				SearchConfig.UpdateFile();
 
 				return false;
 			}
@@ -93,8 +88,6 @@ namespace SmartImage.Searching
 			}
 
 
-			
-
 			// Display config
 			CliOutput.WriteInfo(SearchConfig.Config);
 
@@ -103,14 +96,6 @@ namespace SmartImage.Searching
 			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
 
 			Console.WriteLine();
-
-			
-
-			//Console.ReadLine();
-
-			//
-			// Search
-			//
 
 
 			// Where the actual searching occurs
@@ -126,7 +111,7 @@ namespace SmartImage.Searching
 			// todo: improve
 			// todo: use tasks
 
-			var availableEngines = GetAvailableEngines()
+			var availableEngines = GetAllEngines()
 				.Where(e => engines.HasFlag(e.Engine))
 				.ToArray();
 
@@ -173,6 +158,7 @@ namespace SmartImage.Searching
 					if (ok) {
 						CliOutput.OnCurrentLine(ConsoleColor.Green, sz);
 
+						// If the engine is priority, open its result in the browser
 						if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
 							NetworkUtilities.OpenUrl(result.Url);
 						}

@@ -7,6 +7,7 @@ using System.Net;
 using HtmlAgilityPack;
 using RestSharp;
 using SmartImage.Searching;
+using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #endregion
@@ -148,6 +149,8 @@ namespace SmartImage.Engines.Simple
 				//
 
 				sr.ExpandedMatchResults.AddRange(bestImagesLinks);
+
+				//
 
 				sr.AltFunction = () =>
 				{

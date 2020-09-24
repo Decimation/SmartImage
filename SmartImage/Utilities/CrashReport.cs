@@ -49,12 +49,13 @@ namespace SmartImage.Utilities
 			return Dump();
 		}
 
+		internal const string FILENAME = "crash.log";
 
 		internal string WriteToFile()
 		{
 			var s = Dump();
 			var p = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-			var n = "crash.log";
+			var n = FILENAME;
 
 			var n2 = Path.Combine(p, n);
 			File.WriteAllText(n2, s);

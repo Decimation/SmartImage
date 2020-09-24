@@ -14,6 +14,8 @@ using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
 using SimpleCore;
 using SimpleCore.Utilities;
+using SimpleCore.Win32.Cli;
+using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #endregion
@@ -40,11 +42,19 @@ namespace SmartImage
 		 */
 		private static void Main(string[] args)
 		{
+			/*
+			 * Set up console
+			 */
 
 			Console.Title = RuntimeInfo.NAME;
 			Console.SetWindowSize(120, 40);
 			Console.OutputEncoding = Encoding.Unicode;
+			CliOutput.EnableVirtualTerminalProcessing();
 			Console.Clear();
+			
+			/*
+			 * Run search
+			 */
 
 			try {
 
@@ -52,7 +62,7 @@ namespace SmartImage
 				SearchConfig.ReadSearchConfigArguments(args);
 
 				if (SearchConfig.Config.NoArguments) {
-					Commands.RunCommandMenu();
+					Commands.RunMainCommandMenu();
 					Console.Clear();
 				}
 
@@ -73,15 +83,9 @@ namespace SmartImage
 			}
 			catch (Exception exception) {
 
-
 				var cr = new CrashReport(exception);
 
-				// Console.ForegroundColor = ConsoleColor.DarkRed;
-				// Console.BackgroundColor = ConsoleColor.White;
-
-
 				Console.WriteLine(cr);
-
 
 				var src = cr.WriteToFile();
 
@@ -96,7 +100,7 @@ namespace SmartImage
 			}
 			finally {
 				// Exit
-				SearchConfig.Cleanup();
+				SearchConfig.UpdateFile();
 			}
 
 

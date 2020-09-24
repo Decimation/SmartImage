@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SimpleCore.Utilities;
+using SimpleCore.Win32;
+using SimpleCore.Win32.Cli;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
@@ -53,7 +55,7 @@ namespace SmartImage
 				newCfg = true;
 			}
 
-			var cfgFromFileMap = ExplorerSystem.ReadMap(ConfigLocation);
+			var cfgFromFileMap =CommonUtilities.ReadMap(ConfigLocation);
 
 			SearchEngines = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
 			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
@@ -142,7 +144,7 @@ namespace SmartImage
 		internal void WriteToFile()
 		{
 			CliOutput.WriteInfo("Updating config");
-			ExplorerSystem.WriteMap(ToMap(), ConfigLocation);
+			CommonUtilities.WriteMap(ToMap(), ConfigLocation);
 			CliOutput.WriteInfo("Wrote to {0}", ConfigLocation);
 
 		}
@@ -152,6 +154,7 @@ namespace SmartImage
 		{
 			var sb = new StringBuilder();
 
+			sb.AppendFormat("Image: {0}\n\n", Image);
 
 			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
 			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
@@ -225,7 +228,7 @@ namespace SmartImage
 		}
 
 
-		public static void Cleanup()
+		public static void UpdateFile()
 		{
 			if (Config.UpdateConfig) {
 				Config.WriteToFile();

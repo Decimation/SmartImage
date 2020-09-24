@@ -12,7 +12,10 @@ using SimpleCore;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using SimpleCore.Utilities;
+using SimpleCore.Win32;
+using SimpleCore.Win32.Cli;
 using SmartImage.Searching;
+using SmartImage.Shell;
 using SmartImage.Utilities;
 
 // ReSharper disable UseStringInterpolation
@@ -54,14 +57,16 @@ namespace SmartImage
 
 		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
 
-		// public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
-		//
-		// public const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
+		public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
+		
+		public const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
 
 		//public const string REG_SHELL = @"HKEY_CURRENT_USER\Software\Classes\*\shell\SmartImage\";
 
 		//public const string REG_SHELL_CMD = @"HKEY_CURRENT_USER\Software\Classes\*\shell\SmartImage\command";
 		
+		// todo
+
 		internal const string shell3 = @"Software\Classes\*\shell\SmartImage\";
 
 		/*
@@ -105,7 +110,7 @@ namespace SmartImage
 				// TODO: use default Registry library
 
 				var shell=Registry.CurrentUser.OpenSubKey(@"Software\Classes\*\shell\");
-				return shell.GetSubKeyNames().Contains("SmartImage");
+				return shell.GetSubKeyNames().Contains(NAME);
 
 				//return Subkey.GetSubKeyNames().Contains("command");
 
@@ -136,11 +141,11 @@ namespace SmartImage
 		public static void Setup()
 		{
 			if (!IsAppFolderInPath) {
-				Commands.RunPathIntegration(IntegrationOption.Add);
+				Integration.HandlePath(IntegrationOption.Add);
 			}
 		}
 
-		public static bool IsAppFolderInPath => ExplorerSystem.IsFolderInPath(AppFolder);
+		public static bool IsAppFolderInPath => Native.IsFolderInPath(AppFolder);
 
 
 		private static string FindExecutableLocation(string exe)
@@ -158,14 +163,14 @@ namespace SmartImage
 			{
 				/* Executing directory */
 				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
-					.Replace("file:///", string.Empty)
+					.Replace("file:///", String.Empty)
 					.Replace("/", "\\"))!,
 
 				/* Current directory */
 				Environment.CurrentDirectory
 			};
 
-			rg.AddRange(ExplorerSystem.PathDirectories);
+			rg.AddRange(Native.PathDirectories);
 
 			//
 
@@ -186,6 +191,51 @@ namespace SmartImage
 			}
 
 			throw new SmartImageException();
+		}
+
+		internal static void ShowInfo()
+		{
+			// todo
+
+			Console.Clear();
+
+			/*
+			 * Config
+			 */
+
+			CliOutput.WriteInfo(SearchConfig.Config.Dump());
+
+
+			/*
+			 * Runtime info
+			 */
+
+
+			CliOutput.WriteInfo("Application folder: {0}", RuntimeInfo.AppFolder);
+			CliOutput.WriteInfo("Executable location: {0}", RuntimeInfo.ExeLocation);
+			CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
+			CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
+
+
+			/*
+			 * Version info
+			 */
+
+			var versionsInfo = UpdateInfo.CheckForUpdates();
+
+			CliOutput.WriteInfo("Current version: {0}", versionsInfo.Current);
+			CliOutput.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
+			CliOutput.WriteInfo("Version status: {0}", versionsInfo.Status);
+
+			Console.WriteLine();
+
+			/*
+			 * Author info
+			 */
+
+			CliOutput.WriteInfo("Repo: {0}", RuntimeInfo.Repo);
+			CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
+			CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);
 		}
 	}
 }

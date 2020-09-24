@@ -47,7 +47,7 @@ namespace SmartImage.Engines.TraceMoe
 				// Most similar to least similar
 				var mostSimilarDoc = tm.docs[0];
 
-				r.Similarity = (float?) mostSimilarDoc.similarity;
+				r.Similarity = (float?) mostSimilarDoc.similarity * 100;
 
 				r.ExtendedInfo.Add(String.Format("Anime: {0}", mostSimilarDoc.title_english));
 

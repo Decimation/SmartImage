@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Json;
 using System.Linq;
@@ -8,6 +9,7 @@ using System.Xml;
 using HtmlAgilityPack;
 using RestSharp;
 using SimpleCore.Utilities;
+using SimpleCore.Win32.Cli;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
@@ -53,7 +55,7 @@ namespace SmartImage.Engines.SauceNao
 			return m_useApi ? GetBestResultWithApi(url) : GetBestResultWithoutApi(url);
 		}
 
-		public ConsoleColor Color => ConsoleColor.Gray;
+		public ConsoleColor Color => ConsoleColor.DarkGray;
 
 
 		private SauceNaoResult[] GetApiResults(string url)
@@ -143,7 +145,7 @@ namespace SmartImage.Engines.SauceNao
 			if (best != null) {
 				string? bestUrl = best?.Url?[0];
 
-				var sr = new SearchResult(this, bestUrl, best.Similarity / 100);
+				var sr = new SearchResult(this, bestUrl, best.Similarity);
 				sr.ExtendedInfo.Add("API configured");
 				return sr;
 			}
@@ -151,37 +153,89 @@ namespace SmartImage.Engines.SauceNao
 			return new SearchResult(this, null);
 		}
 
+		private readonly struct SauceNaoSimpleResult
+		{
+			public string Title { get; }
+			public string Url { get; }
+			public float Similarity { get; }
+
+			public SauceNaoSimpleResult(string title, string url, float similarity)
+			{
+				Title = title;
+				Url = url;
+				Similarity = similarity;
+			}
+
+			public override string ToString()
+			{
+				return string.Format("{0} {1} {2}", Title, Url, Similarity);
+			}
+		}
+
+		private static List<SauceNaoSimpleResult> ParseResults(HtmlDocument doc)
+		{
+			var results = doc.DocumentNode.SelectNodes("//div[@class='result']");
+
+			var images = new List<SauceNaoSimpleResult>();
+
+			foreach (var result in results)
+			{
+				if (result.GetAttributeValue("id", string.Empty) == "result-hidden-notification")
+				{
+					continue;
+				}
+
+				var n = result.FirstChild.FirstChild;
+
+				//var resulttableimage = n.ChildNodes[0];
+				var resulttablecontent = n.ChildNodes[1];
+
+				var resultmatchinfo = resulttablecontent.FirstChild;
+				var resultsimilarityinfo = resultmatchinfo.FirstChild;
+
+				var resultcontent = resulttablecontent.ChildNodes[1];
+				var resulttitle = resultcontent.ChildNodes[0];
+				var resultcontentcolumn = resultcontent.ChildNodes[1];
+
+
+				var links = resultcontentcolumn.SelectNodes("a/@href");
+
+				var title = resulttitle.InnerText;
+				var similarity = float.Parse(resultsimilarityinfo.InnerText.Replace("%", String.Empty));
+				var link = links[0].Attributes["href"].Value;
+
+				var i = new SauceNaoSimpleResult(title, link, similarity);
+				images.Add(i);
+			}
+
+			return images;
+		}
 
 		private SearchResult GetBestResultWithoutApi(string url)
 		{
-			/*string u  = BASIC_RESULT + url;
-			var    sr = new SearchResult(u, Name);
-			sr.ExtendedInfo.Add("API not configured");
-			return sr;*/
+			
 
 			SearchResult? sr = null;
 
-			var sz = NetworkUtilities.GetString(BASIC_RESULT + url);
+			var resUrl = BASIC_RESULT + url;
+
+
+			var sz = NetworkUtilities.GetString(resUrl);
 			var doc = new HtmlDocument();
 			doc.LoadHtml(sz);
 
+			try {
+				
+				var img = ParseResults(doc);
 
-			// todo: for now, just return the first link found, as SN already sorts by similarity and the first link is the best result
-			var links = doc.DocumentNode.SelectNodes("//*[@class='resultcontentcolumn']/a/@href");
+				var best = img.OrderByDescending(i => i.Similarity).First();
 
-			foreach (var link in links) {
-				var lk = link.GetAttributeValue("href", null);
-
-				if (lk != null) {
-					sr = new SearchResult(this, lk);
-					break;
-				}
+				sr = new SearchResult(this, best.Url, best.Similarity);
+			}
+			catch (Exception e) {
+				sr = new SearchResult(this, resUrl);
 			}
 
-			if (sr == null) {
-				string u = BASIC_RESULT + url;
-				sr = new SearchResult(this, u);
-			}
 
 			return sr;
 
