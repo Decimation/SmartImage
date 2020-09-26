@@ -13,7 +13,7 @@ using SimpleCore.Win32.Cli;
 
 namespace SmartImage.Utilities
 {
-	internal static class NetworkUtilities
+	internal static class Network
 	{
 		internal static void AssertResponse(IRestResponse response)
 		{
@@ -71,11 +71,11 @@ namespace SmartImage.Utilities
 			}
 		}
 
-		private static readonly  RestClient Client = new RestClient();
+		private static readonly RestClient Client = new RestClient();
 
 		internal static IRestResponse GetSimpleResponse(string link)
 		{
-			
+
 			var restReq = new RestRequest(link);
 			var restRes = Client.Execute(restReq);
 

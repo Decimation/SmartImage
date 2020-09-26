@@ -5,14 +5,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using HtmlAgilityPack;
-using RestSharp;
-using SmartImage.Searching;
+using SmartImage.Searching.Model;
 using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #endregion
 
-namespace SmartImage.Engines.Simple
+namespace SmartImage.Searching.Engines.Simple
 {
 	public sealed class Yandex : SimpleSearchEngine
 	{
@@ -95,7 +94,7 @@ namespace SmartImage.Engines.Simple
 				var totalRes = w * h;
 
 				if (totalRes >= TOTAL_RES_MIN) {
-					var restRes = NetworkUtilities.GetSimpleResponse(link);
+					var restRes = Network.GetSimpleResponse(link);
 
 					if (restRes.StatusCode != HttpStatusCode.NotFound) {
 						var yi = new YandexImage(w, h, link);
@@ -124,7 +123,7 @@ namespace SmartImage.Engines.Simple
 				// Get more info from Yandex
 
 
-				var html = NetworkUtilities.GetString(raw);
+				var html = Network.GetString(raw);
 				var doc = new HtmlDocument();
 				doc.LoadHtml(html);
 
@@ -148,7 +147,8 @@ namespace SmartImage.Engines.Simple
 
 				//
 
-				sr.ExpandedMatchResults.AddRange(bestImagesLinks);
+				sr.ExtendedResults.AddRange(bestImagesLinks);
+
 
 				//
 

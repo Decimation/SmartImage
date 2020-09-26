@@ -1,11 +1,11 @@
 #region
 
 using System;
-using SmartImage.Searching;
+using SmartImage.Searching.Model;
 
 #endregion
 
-namespace SmartImage.Engines.Simple
+namespace SmartImage.Searching.Engines.Simple
 {
 	public sealed class GoogleImages : SimpleSearchEngine
 	{

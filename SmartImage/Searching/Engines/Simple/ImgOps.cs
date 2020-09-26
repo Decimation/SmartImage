@@ -3,12 +3,12 @@
 using System;
 using System.Text.RegularExpressions;
 using RestSharp;
-using SmartImage.Searching;
+using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
 #endregion
 
-namespace SmartImage.Engines.Simple
+namespace SmartImage.Searching.Engines.Simple
 {
 	public sealed class ImgOps : SimpleSearchEngine
 	{
@@ -24,7 +24,7 @@ namespace SmartImage.Engines.Simple
 			string imgOpsUrl = UploadImage(path);
 			imgOpsPageUrl = imgOpsUrl;
 
-			string html = NetworkUtilities.GetString(imgOpsUrl);
+			string html = Network.GetString(imgOpsUrl);
 
 			const string HREF_REGEX = "href=\"(.*)\"";
 

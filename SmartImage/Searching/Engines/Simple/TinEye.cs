@@ -1,11 +1,11 @@
 #region
 
 using System;
-using SmartImage.Searching;
+using SmartImage.Searching.Model;
 
 #endregion
 
-namespace SmartImage.Engines.Simple
+namespace SmartImage.Searching.Engines.Simple
 {
 	public sealed class TinEye : SimpleSearchEngine
 	{
@@ -23,5 +23,7 @@ namespace SmartImage.Engines.Simple
 		 * https://stackoverflow.com/questions/704956/getting-the-redirected-url-from-the-original-url
 		 * https://github.com/search?p=3&q=TinEye&type=Repositories
 		 */
+
+		
 	}
 }

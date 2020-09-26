@@ -10,7 +10,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
 using SimpleCore;
 using SimpleCore.Utilities;
@@ -47,7 +46,7 @@ namespace SmartImage
 			 */
 
 			Console.Title = RuntimeInfo.NAME;
-			Console.SetWindowSize(120, 40);
+			Console.SetWindowSize(120, 45);
 			Console.OutputEncoding = Encoding.Unicode;
 			CliOutput.EnableVirtualTerminalProcessing();
 			Console.Clear();
@@ -58,7 +57,7 @@ namespace SmartImage
 
 			try {
 
-				RuntimeInfo.Setup();
+				Integration.Setup();
 				SearchConfig.ReadSearchConfigArguments(args);
 
 				if (SearchConfig.Config.NoArguments) {
@@ -78,8 +77,6 @@ namespace SmartImage
 				}
 
 				Commands.HandleConsoleOptions(results);
-
-
 			}
 			catch (Exception exception) {
 
@@ -93,10 +90,9 @@ namespace SmartImage
 
 				Console.WriteLine("Please file an issue and attach the crash log.");
 
-				NetworkUtilities.OpenUrl(RuntimeInfo.Issue);
+				Network.OpenUrl(RuntimeInfo.Issue);
 
 				Commands.WaitForInput();
-				
 			}
 			finally {
 				// Exit

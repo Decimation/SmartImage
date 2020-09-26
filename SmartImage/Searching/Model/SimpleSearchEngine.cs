@@ -4,7 +4,7 @@
 
 using System;
 
-namespace SmartImage.Searching
+namespace SmartImage.Searching.Model
 {
 	public abstract class SimpleSearchEngine : ISearchEngine
 	{

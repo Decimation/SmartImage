@@ -7,7 +7,7 @@ using System.Reflection;
 namespace SmartImage.Utilities
 {
 	// todo
-	internal static class CommonUtilities
+	internal static class Common
 	{
 		
 
@@ -48,7 +48,7 @@ namespace SmartImage.Utilities
 			return s;
 		}
 
-		internal static string QuickJoin<T>(this IEnumerable<T> enumerable) => String.Join(", ", enumerable);
+		internal static string QuickJoin<T>(this IEnumerable<T> enumerable, string delim = ", ") => String.Join(delim, enumerable);
 
 		internal static TEnum ReadEnumFromSet<TEnum>(ISet<object> set) where TEnum : Enum
 		{

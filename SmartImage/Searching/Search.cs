@@ -12,11 +12,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using SimpleCore.Utilities;
 using SimpleCore.Win32.Cli;
-using SmartImage.Engines;
-using SmartImage.Engines.Imgur;
-using SmartImage.Engines.SauceNao;
-using SmartImage.Engines.Simple;
-using SmartImage.Engines.TraceMoe;
+using SmartImage.Searching.Engines.Imgur;
+using SmartImage.Searching.Engines.SauceNao;
+using SmartImage.Searching.Engines.Simple;
+using SmartImage.Searching.Engines.TraceMoe;
+using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
 // ReSharper disable ReturnTypeCanBeEnumerable.Local
@@ -118,7 +118,7 @@ namespace SmartImage.Searching
 			int i = 0;
 
 			res = new SearchResult[availableEngines.Length + 1];
-			res[i] = new SearchResult(ConsoleColor.White, "(Original image)", imgUrl, null);
+			res[i] = new SearchResult(ConsoleColor.Gray, "(Original image)", imgUrl, null);
 
 			i++;
 
@@ -160,7 +160,7 @@ namespace SmartImage.Searching
 
 						// If the engine is priority, open its result in the browser
 						if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-							NetworkUtilities.OpenUrl(result.Url);
+							Network.OpenUrl(result.Url);
 						}
 					}
 					else {

@@ -10,7 +10,7 @@ using RestSharp.Serialization.Json;
 
 #endregion
 
-namespace SmartImage.Engines.Imgur
+namespace SmartImage.Searching.Engines.Imgur
 {
 	// https://github.com/Auo/ImgurSharp
 

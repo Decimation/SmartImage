@@ -6,9 +6,9 @@ using System.Text;
 using SimpleCore.Utilities;
 using SimpleCore.Win32;
 using SimpleCore.Win32.Cli;
-using SmartImage.Engines.Imgur;
-using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
+using SmartImage.Searching.Engines.Imgur;
+using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Utilities;
 
 // ReSharper disable InconsistentNaming
@@ -55,7 +55,7 @@ namespace SmartImage
 				newCfg = true;
 			}
 
-			var cfgFromFileMap =CommonUtilities.ReadMap(ConfigLocation);
+			var cfgFromFileMap =Common.ReadMap(ConfigLocation);
 
 			SearchEngines = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
 			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
@@ -144,7 +144,7 @@ namespace SmartImage
 		internal void WriteToFile()
 		{
 			CliOutput.WriteInfo("Updating config");
-			CommonUtilities.WriteMap(ToMap(), ConfigLocation);
+			Common.WriteMap(ToMap(), ConfigLocation);
 			CliOutput.WriteInfo("Wrote to {0}", ConfigLocation);
 
 		}
@@ -216,7 +216,7 @@ namespace SmartImage
 				rawValue = ReadMapKeyValue<string>(name, cfg);
 			}
 
-			var parse = CommonUtilities.Read<T>(rawValue);
+			var parse = Common.Read<T>(rawValue);
 			return parse;
 		}
 
@@ -260,12 +260,12 @@ namespace SmartImage
 					case "--search-engines":
 						argEnumerator.MoveNext();
 						string sestr = argEnumerator.Current;
-						Config.SearchEngines = CommonUtilities.Read<SearchEngines>(sestr);
+						Config.SearchEngines = Common.Read<SearchEngines>(sestr);
 						break;
 					case "--priority-engines":
 						argEnumerator.MoveNext();
 						string pestr = argEnumerator.Current;
-						Config.PriorityEngines = CommonUtilities.Read<SearchEngines>(pestr);
+						Config.PriorityEngines = Common.Read<SearchEngines>(pestr);
 						break;
 					case "--saucenao-auth":
 						argEnumerator.MoveNext();

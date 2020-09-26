@@ -18,7 +18,7 @@ namespace SmartImage.Utilities
 		{
 			var sb =new StringBuilder();
 
-			sb.AppendLine(CommonUtilities.CreateSeparator("Exception"));
+			sb.AppendLine(Common.CreateSeparator("Exception"));
 
 			sb.AppendFormat("Exception message: {0}\n", m_exception.Message);
 			sb.AppendFormat("Exception stack trace: {0}\n", m_exception.StackTrace);
@@ -27,7 +27,7 @@ namespace SmartImage.Utilities
 			sb.AppendFormat("Site: {0}\n", m_exception.TargetSite);
 
 			sb.AppendLine();
-			sb.AppendLine(CommonUtilities.CreateSeparator("Config"));
+			sb.AppendLine(Common.CreateSeparator("Config"));
 
 			try {
 				sb.AppendLine(SearchConfig.Config.Dump());
@@ -37,7 +37,7 @@ namespace SmartImage.Utilities
 				
 			}
 
-			sb.AppendLine(CommonUtilities.CreateSeparator("Program Info"));
+			sb.AppendLine(Common.CreateSeparator("Program Info"));
 			var versionsInfo = UpdateInfo.CheckForUpdates();
 			sb.AppendFormat("Version: {0}", versionsInfo.Current);
 

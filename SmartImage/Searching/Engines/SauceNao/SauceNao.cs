@@ -10,7 +10,7 @@ using HtmlAgilityPack;
 using RestSharp;
 using SimpleCore.Utilities;
 using SimpleCore.Win32.Cli;
-using SmartImage.Searching;
+using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
 
@@ -18,7 +18,7 @@ using JsonObject = System.Json.JsonObject;
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 
-namespace SmartImage.Engines.SauceNao
+namespace SmartImage.Searching.Engines.SauceNao
 {
 	// https://github.com/RoxasShadow/SauceNao-Windows
 	// https://github.com/LazDisco/SharpNao
@@ -55,7 +55,7 @@ namespace SmartImage.Engines.SauceNao
 			return m_useApi ? GetBestResultWithApi(url) : GetBestResultWithoutApi(url);
 		}
 
-		public ConsoleColor Color => ConsoleColor.DarkGray;
+		public ConsoleColor Color => ConsoleColor.White;
 
 
 		private SauceNaoResult[] GetApiResults(string url)
@@ -73,7 +73,7 @@ namespace SmartImage.Engines.SauceNao
 
 			var res = m_client.Execute(req);
 
-			NetworkUtilities.AssertResponse(res);
+			Network.AssertResponse(res);
 
 
 			//Console.WriteLine("{0} {1} {2}", res.IsSuccessful, res.ResponseStatus, res.StatusCode);
@@ -172,6 +172,24 @@ namespace SmartImage.Engines.SauceNao
 			}
 		}
 
+		private static string FindCreator(HtmlNode resultcontent)
+		{
+			var resulttitle = resultcontent.ChildNodes[0];
+			var rti = resulttitle?.InnerText;
+
+
+			var resultcontentcolumn = resultcontent.ChildNodes[1];
+			var rcci = resultcontentcolumn?.InnerText;
+
+			var i = rti ?? rcci;
+
+			return i;
+
+		}
+		
+		// TODO: organize like Yandex
+
+
 		private static List<SauceNaoSimpleResult> ParseResults(HtmlDocument doc)
 		{
 			var results = doc.DocumentNode.SelectNodes("//div[@class='result']");
@@ -193,16 +211,28 @@ namespace SmartImage.Engines.SauceNao
 				var resultmatchinfo = resulttablecontent.FirstChild;
 				var resultsimilarityinfo = resultmatchinfo.FirstChild;
 
+				// Contains links
+				var resultmiscinfo = resultmatchinfo.ChildNodes[1];
+
+				var links1 = resultmiscinfo.SelectNodes("a/@href");
+				var link1 = links1?[0].GetAttributeValue("href", null);
+
+
 				var resultcontent = resulttablecontent.ChildNodes[1];
-				var resulttitle = resultcontent.ChildNodes[0];
+
+				//var resulttitle = resultcontent.ChildNodes[0];
+
 				var resultcontentcolumn = resultcontent.ChildNodes[1];
 
+				// Other way of getting links
+				var links2 = resultcontentcolumn.SelectNodes("a/@href");
+				var link2 = links2?[0].GetAttributeValue("href", null);
 
-				var links = resultcontentcolumn.SelectNodes("a/@href");
+				var link = link1 ?? link2;
 
-				var title = resulttitle.InnerText;
+				var title = FindCreator(resultcontent);
 				var similarity = float.Parse(resultsimilarityinfo.InnerText.Replace("%", String.Empty));
-				var link = links[0].Attributes["href"].Value;
+				
 
 				var i = new SauceNaoSimpleResult(title, link, similarity);
 				images.Add(i);
@@ -220,7 +250,7 @@ namespace SmartImage.Engines.SauceNao
 			var resUrl = BASIC_RESULT + url;
 
 
-			var sz = NetworkUtilities.GetString(resUrl);
+			var sz = Network.GetString(resUrl);
 			var doc = new HtmlDocument();
 			doc.LoadHtml(sz);
 
@@ -228,103 +258,19 @@ namespace SmartImage.Engines.SauceNao
 				
 				var img = ParseResults(doc);
 
-				var best = img.OrderByDescending(i => i.Similarity).First();
+				var best = img.OrderByDescending(i=>i.Similarity).First(i => i.Url!=null);
 
 				sr = new SearchResult(this, best.Url, best.Similarity);
+				sr.ExtendedInfo.Add(best.Title);
 			}
 			catch (Exception e) {
 				sr = new SearchResult(this, resUrl);
+				sr.ExtendedInfo.Add("Error parsing");
 			}
 
 
 			return sr;
 
-
-			// TODO: finish for more refined and complete results
-
-			/*var classToGet = "result";
-
-			var results = doc.DocumentNode.SelectNodes("//*[@class='" + classToGet + "']");
-
-			Console.WriteLine("nresults: "+results.Count);
-
-			foreach (HtmlNode node in results)
-			{
-				//string value = node.InnerText;
-				// etc...
-
-				//var n2 = node.SelectSingleNode("//*[@id=\"middle\"]/div[3]/table/tbody/tr/td[2]/div[1]/div[1]");
-
-				//Console.WriteLine(n2.InnerText);
-
-				// //*[@id="middle"]/div[2]/table/tbody/tr/td[2]/div[1]
-				// //*[@id="middle"]/div[3]/table/tbody/tr/td[2]/div[1] 
-				// //*[@id="middle"]/div[3]/table/tbody/tr/td[2]/div[1]
-
-				var table = node.FirstChild;
-				var tbody = table.FirstChild;
-				var resulttablecontent = tbody.ChildNodes[1];
-				var resultmatchinfo = resulttablecontent.FirstChild;
-				
-				var resultsimilarityinfo = resultmatchinfo.FirstChild;
-
-				var resultcontent = resulttablecontent.ChildNodes[1];
-				var resulttitle = resultcontent.FirstChild;
-
-				// resultcontentcolumn comes after resulttitle
-
-				// //*[@class='resultcontentcolumn']/a
-
-				/*var links = resultcontent.SelectNodes("//*[@class='resultcontentcolumn']/a/@href");
-				var links2 = links.Where(l => l.Name != "span").ToArray();
-				
-				foreach (var link in links2) {
-					string hrefValue = link.GetAttributeValue("href", string.Empty);
-					Console.WriteLine(">>> "+hrefValue);
-				}#1#
-
-				foreach (var resultcontentChildNode in resultcontent.ChildNodes) {
-					if (resultcontentChildNode.GetAttributeValue("class", String.Empty)=="resultcontentcolumn") {
-						foreach (var rcccnChildNode in resultcontentChildNode.ChildNodes) {
-							var href = rcccnChildNode.GetAttributeValue("href", String.Empty);
-
-							if (!string.IsNullOrWhiteSpace(href)) {
-								Console.WriteLine("!>>>>"+href);
-							}
-						}
-					}
-				}
-
-				Console.WriteLine(resultsimilarityinfo.InnerText);
-			}*/
-
-			//Console.ReadLine();
-			//var sr = new SearchResult(BASIC_RESULT+url,Name);
-
-			//return sr;
-
-
-			/*var x = doc.DocumentNode.SelectNodes("//*[@class='resulttable']");
-
-			foreach (var node in x)
-			{
-				var tbody = node.FirstChild;
-				var resulttableimage = tbody.ChildNodes[0];
-				var resulttablecontent = tbody.ChildNodes[1];
-				var resultmatchinfo = resulttablecontent.FirstChild;
-				var resultsimilarityinfo = resultmatchinfo.FirstChild;
-
-
-
-				var resultcontent = resulttablecontent.ChildNodes[1];
-				var resulttitle = resultcontent.FirstChild;
-				var resultcontentcolumn = resultcontent.ChildNodes[1];
-				var link = resultcontentcolumn.ChildNodes.First(n => n.GetAttributeValue("href", null) != null);
-				var lk = link.GetAttributeValue("href", null);
-				Console.WriteLine(">> {0} {1}", resultsimilarityinfo.InnerText, lk);
-			}
-
-			return null;*/
 
 		}
 	}

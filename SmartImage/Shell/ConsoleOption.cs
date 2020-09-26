@@ -3,38 +3,29 @@
 #nullable enable
 namespace SmartImage.Shell
 {
+	/// <summary>
+	/// Represents an interactive console/shell option
+	/// </summary>
 	public class ConsoleOption
 	{
 		public static readonly ConsoleColor DefaultOptionColor = Console.ForegroundColor;
 
 		public ConsoleOption()
 		{
-			Color = DefaultOptionColor;
+
 		}
 
-		public ConsoleOption(string name, ConsoleColor color, Func<object> func)
-			: this(name, func, null, null, color) { }
+		
 
-		public ConsoleOption(string name, Func<object> func) : this(name, DefaultOptionColor, func) { }
+		public virtual string Name { get; internal set; }
 
-		public ConsoleOption(string name, Func<object> func, Func<object>? altFunc, string? data, ConsoleColor color)
-		{
-			Name = name;
-			Function = func;
-			AltFunction = altFunc;
-			Data = data;
-			Color = color;
-		}
-
-		public virtual string Name { get; }
-
-		public virtual Func<object> Function { get; }
+		public virtual Func<object?> Function { get; internal set; }
 
 		public virtual Func<object>? AltFunction { get; internal set; }
 
-		public virtual string? Data { get; }
+		public virtual string? Data { get; internal set; }
 
-		public virtual ConsoleColor Color { get; }
+		public virtual ConsoleColor Color { get; internal set; } = DefaultOptionColor;
 
 		public static ConsoleOption[] CreateOptionsFromEnum<TEnum>() where TEnum : Enum
 		{
@@ -45,7 +36,12 @@ namespace SmartImage.Shell
 				var option = options[i];
 				string? name = Enum.GetName(typeof(TEnum), option);
 
-				rg[i] = new ConsoleOption(name, () => { return option; });
+				rg[i] = new ConsoleOption()
+				{
+					Name = name,
+					Function = () => { return option; }
+
+				};
 			}
 
 

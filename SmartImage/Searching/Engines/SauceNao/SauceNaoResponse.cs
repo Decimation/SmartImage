@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.Serialization;
 
-namespace SmartImage.Engines.SauceNao
+namespace SmartImage.Searching.Engines.SauceNao
 {
 	[DataContract]
 	public class SauceNaoResponse

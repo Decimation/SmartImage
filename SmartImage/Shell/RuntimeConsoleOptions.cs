@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using HtmlAgilityPack;
 using JetBrains.Annotations;
 using SimpleCore.Win32.Cli;
 using SmartImage.Searching;
@@ -22,7 +23,9 @@ namespace SmartImage.Shell
 			get
 			{
 				var fields = typeof(RuntimeConsoleOptions).GetFields(
-					BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default);
+						BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default)
+					.Where(f => f.FieldType == typeof(ConsoleOption))
+					.ToArray();
 
 
 				var options = new ConsoleOption[fields.Length];
@@ -35,29 +38,34 @@ namespace SmartImage.Shell
 			}
 		}
 
-		internal static readonly ConsoleOption RunSelectImage = new ConsoleOption(">>> Select image <<<",
-			ConsoleColor.Yellow,
-			() =>
+		internal static readonly ConsoleOption RunSelectImage = new ConsoleOption()
+		{
+			Name = ">>> Select image <<<",
+			Color = ConsoleColor.Yellow,
+			Function = () =>
 			{
 				Console.WriteLine("Drag and drop the image here.");
 				Console.Write("Image: ");
 
 				string img = Console.ReadLine();
-				img = CommonUtilities.CleanString(img);
+				img = Common.CleanString(img);
 
 				SearchConfig.Config.Image = img;
 
 				return true;
-			});
+			}
+		};
 
 
-		internal static readonly ConsoleOption ConfigSearchEnginesOption = new ConsoleOption("Configure search engines",
-			() =>
+		internal static readonly ConsoleOption ConfigSearchEnginesOption = new ConsoleOption()
+		{
+			Name = "Configure search engines",
+			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
 				var values = Commands.HandleConsoleOptions(rgEnum, true);
 
-				var newValues = CommonUtilities.ReadEnumFromSet<SearchEngines>(values);
+				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
 				CliOutput.WriteInfo(newValues);
 
@@ -66,15 +74,19 @@ namespace SmartImage.Shell
 				Commands.WaitForInput();
 
 				return null;
-			});
+			},
+		};
 
-		internal static readonly ConsoleOption ConfigPriorityEnginesOption = new ConsoleOption(
-			"Configure priority engines", () =>
+
+		internal static readonly ConsoleOption ConfigPriorityEnginesOption = new ConsoleOption()
+		{
+			Name = "Configure priority engines",
+			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
 				var values = Commands.HandleConsoleOptions(rgEnum, true);
 
-				var newValues = CommonUtilities.ReadEnumFromSet<SearchEngines>(values);
+				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
 				CliOutput.WriteInfo(newValues);
 
@@ -83,147 +95,182 @@ namespace SmartImage.Shell
 				Commands.WaitForSecond();
 
 				return null;
-			});
+			}
+		};
 
 
-		internal static readonly ConsoleOption ConfigSauceNaoAuthOption = new ConsoleOption(
-			"Configure SauceNao API key", () =>
-			{
-				Console.Write("API key: ");
-
-				string sauceNaoAuth = Console.ReadLine();
-
-
-				SearchConfig.Config.SauceNaoAuth = sauceNaoAuth;
-
-				Commands.WaitForSecond();
-				return null;
-			});
-
-		internal static readonly ConsoleOption ConfigImgurAuthOption = new ConsoleOption("Configure Imgur API key",
-			() =>
-			{
-				Console.Write("API key: ");
-
-				string imgurAuth = Console.ReadLine();
-
-				SearchConfig.Config.ImgurAuth = imgurAuth;
-
-				Commands.WaitForSecond();
-				return null;
-			});
-
-		internal static readonly ConsoleOption ConfigUpdateOption = new ConsoleOption("Update config file", () =>
+		internal static readonly ConsoleOption ConfigSauceNaoAuthOption = new ConsoleOption()
 		{
-			SearchConfig.Config.WriteToFile();
-
-			Commands.WaitForSecond();
-			return null;
-		});
-
-		internal static readonly ConsoleOption ContextMenuOption = new ConsoleOption(
-			"Add/remove context menu integration", () =>
+			Name = "Configure SauceNao API authentication",
+			Function = () =>
 			{
-				bool ctx = RuntimeInfo.IsContextMenuAdded;
+				SearchConfig.Config.SauceNaoAuth = Commands.GetInput("API key");
 
-				if (!ctx)
-				{
+				Commands.WaitForSecond();
+				return null;
+			}
+		};
+
+		internal static readonly ConsoleOption ConfigImgurAuthOption = new ConsoleOption()
+		{
+			Name = "Configure Imgur API authentication",
+			Function = () =>
+			{
+
+				SearchConfig.Config.ImgurAuth = Commands.GetInput("API key");
+
+				Commands.WaitForSecond();
+				return null;
+			}
+		};
+
+		internal static readonly ConsoleOption ConfigUpdateOption = new ConsoleOption()
+		{
+			Name = "Update configuration file",
+			Function = () =>
+			{
+				SearchConfig.Config.WriteToFile();
+
+				Commands.WaitForSecond();
+				return null;
+			}
+		};
+
+		internal static readonly ConsoleOption ContextMenuOption = new ConsoleOption()
+		{
+			Name = "Add/remove context menu integration",
+			Function = () =>
+			{
+				bool ctx = Integration.IsContextMenuAdded;
+
+				if (!ctx) {
 					Integration.HandleContextMenu(IntegrationOption.Add);
 					CliOutput.WriteSuccess("Added to context menu");
 				}
-				else
-				{
+				else {
 					Integration.HandleContextMenu(IntegrationOption.Remove);
 					CliOutput.WriteSuccess("Removed from context menu");
 				}
 
 				Commands.WaitForSecond();
 				return null;
-			});
-
-		internal static readonly ConsoleOption ShowInfoOption = new ConsoleOption("Show info", () =>
-		{
-			RuntimeInfo.ShowInfo();
-
-			Commands.WaitForInput();
-			return null;
-		});
-
-		internal static readonly ConsoleOption CheckForUpdateOption = new ConsoleOption("Check for updates", () =>
-		{
-			// TODO: WIP
-
-			var v = UpdateInfo.CheckForUpdates();
-
-			if ((v.Status == VersionStatus.Available))
-			{
-				NetworkUtilities.OpenUrl(v.Latest.AssetUrl);
 			}
+		};
 
-			Commands.WaitForSecond();
-			return null;
-		});
-
-		internal static readonly ConsoleOption ResetOption = new ConsoleOption("Reset all configuration", () =>
+		internal static readonly ConsoleOption ShowInfoOption = new ConsoleOption()
 		{
-			Integration.ResetIntegrations();
+			Name = "Show info",
+			Function = () =>
+			{
+				RuntimeInfo.ShowInfo();
 
-			Commands.WaitForSecond();
-			return null;
-		});
+				Commands.WaitForInput();
+				return null;
+			}
+		};
 
-		
-		internal static readonly ConsoleOption LegacyCleanupOption = new ConsoleOption("Legacy cleanup", () =>
+		internal static readonly ConsoleOption CheckForUpdateOption = new ConsoleOption()
 		{
-			Integration.RemoveOldRegistry();
+			Name = "Check for updates",
+			Function = () =>
+			{
+				// TODO: WIP
 
-			Commands.WaitForInput();
+				var v = UpdateInfo.CheckForUpdates();
 
-			return null;
-		});
+				if ((v.Status == VersionStatus.Available)) {
 
-		internal static readonly ConsoleOption UninstallOption = new ConsoleOption("Uninstall", () =>
+					UpdateInfo.Update();
+
+					// No return
+					Environment.Exit(0);
+
+				}
+				else {
+					CliOutput.WriteSuccess("{0}", v.Status);
+				}
+
+				Commands.WaitForSecond();
+				return null;
+			}
+		};
+
+		internal static readonly ConsoleOption ResetOption = new ConsoleOption()
 		{
-			Integration.ResetIntegrations();
-			Integration.HandlePath(IntegrationOption.Remove);
+			Name = "Reset all configuration and integrations",
+			Function = () =>
+			{
+				Integration.ResetIntegrations();
 
-			File.Delete(SearchConfig.ConfigLocation);
-			
-			Integration.Uninstall();
+				Commands.WaitForSecond();
+				return null;
+			}
+		};
 
-			// No return
 
-			Environment.Exit(0);
+		internal static readonly ConsoleOption LegacyCleanupOption = new ConsoleOption()
+		{
+			Name = "Legacy cleanup",
+			Function = () =>
+			{
+				Integration.RemoveOldRegistry();
 
-			return null;
-		});
+				Commands.WaitForInput();
 
-		
+				return null;
+			}
+		};
+
+		internal static readonly ConsoleOption UninstallOption = new ConsoleOption()
+		{
+			Name = "Uninstall",
+			Function = () =>
+			{
+				Integration.ResetIntegrations();
+				Integration.HandlePath(IntegrationOption.Remove);
+
+				File.Delete(SearchConfig.ConfigLocation);
+
+				Integration.Uninstall();
+
+				// No return
+
+				Environment.Exit(0);
+
+				return null;
+			}
+		};
 
 
 #if DEBUG
 
-
-		internal static readonly ConsoleOption DebugTestOption = new ConsoleOption("Debug: Run test", () =>
+		private static readonly string[] TestImages =
 		{
-			var cd = new DirectoryInfo(Environment.CurrentDirectory);
-			var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
+			// "Test1.jpg", 
+			//"Test2.jpg",
+			"Test3.png"
+		};
 
-			var testImages = new[]
+		internal static readonly ConsoleOption DebugTestOption = new ConsoleOption()
+		{
+			Name = "[DEBUG] Run test",
+			Function = () =>
 			{
-				// "Test1.jpg", 
-				"Test2.jpg"
-			};
+				var cd = new DirectoryInfo(Environment.CurrentDirectory);
+				var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
 
 
-			var testImg = CommonUtilities.GetRandomElement(testImages);
-			var img = Path.Combine(cd2, testImg);
+				var testImg = Common.GetRandomElement(TestImages);
+				var img = Path.Combine(cd2, testImg);
 
-			SearchConfig.Config.Image = img;
-			SearchConfig.Config.PriorityEngines = SearchEngines.None;
-			SearchConfig.Config.SearchEngines &= ~SearchEngines.TraceMoe;
-			return true;
-		});
+				SearchConfig.Config.Image = img;
+				SearchConfig.Config.PriorityEngines = SearchEngines.None;
+				//SearchConfig.Config.SearchEngines &= ~SearchEngines.TraceMoe;
+
+
+				return true;
+			}
+		};
 #endif
 	}
 }

@@ -19,7 +19,7 @@ namespace SmartImage.Shell
 	
 
 	/// <summary>
-	/// Program functionality, IO, console functionality
+	/// Program functionality, IO, console interaction
 	/// </summary>
 	internal static class Commands
 	{
@@ -29,6 +29,15 @@ namespace SmartImage.Shell
 
 		internal const string ALT_DENOTE = "[Alt]";
 
+		internal static string GetInput(string prompt)
+		{
+			Console.Write("{0}: ",prompt);
+			var i = Console.ReadLine();
+
+			return string.IsNullOrWhiteSpace(i) ? null : i;
+
+		}
+
 
 		/// <summary>
 		///     Handles user input and options
@@ -37,8 +46,6 @@ namespace SmartImage.Shell
 		/// <param name="selectMultiple">Whether to return selected options as a <see cref="HashSet{T}"/></param>
 		internal static HashSet<object> HandleConsoleOptions(ConsoleOption[] options, bool selectMultiple = false)
 		{
-			// TODO: create a way to handle nested options
-
 			var selectedOptions = new HashSet<object>();
 
 			const int MAX_OPTION_N = 10;
@@ -140,9 +147,9 @@ namespace SmartImage.Shell
 
 // @formatter:off — disable formatter after this line
 
-				string prompt = string.Format("Enter the result number to open or {0} to exit.\n", ESC_EXIT) +
-				                string.Format("Hold down {0} while entering the result number to show more info.\n", ALT_EXTRA) +
-				                string.Format("Results with expanded information are denoted with {0}.", Commands.ALT_DENOTE);
+				string prompt = String.Format("Enter the option number to open or {0} to exit.\n", ESC_EXIT) +
+				                String.Format("Hold down {0} while entering the option number to show more info.\n", ALT_EXTRA) +
+				                String.Format("Options with expanded information are denoted with {0}.", Commands.ALT_DENOTE);
 
 				CliOutput.WriteSuccess(prompt);
 

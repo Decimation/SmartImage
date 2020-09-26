@@ -5,7 +5,7 @@ using JetBrains.Annotations;
 
 #endregion
 
-namespace SmartImage.Engines.TraceMoe
+namespace SmartImage.Searching.Engines.TraceMoe
 {
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class TraceMoeDoc

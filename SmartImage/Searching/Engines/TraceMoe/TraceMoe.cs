@@ -3,11 +3,11 @@
 using System;
 using System.Net;
 using RestSharp;
-using SmartImage.Searching;
+using SmartImage.Searching.Model;
 
 #endregion
 
-namespace SmartImage.Engines.TraceMoe
+namespace SmartImage.Searching.Engines.TraceMoe
 {
 	public sealed class TraceMoe : SimpleSearchEngine
 	{
@@ -17,7 +17,7 @@ namespace SmartImage.Engines.TraceMoe
 
 		public override SearchEngines Engine => SearchEngines.TraceMoe;
 
-		private static TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code)
+		private static TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code, out ResponseStatus status, out string msg)
 		{
 			// https://soruly.github.io/trace.moe/#/
 
@@ -31,7 +31,8 @@ namespace SmartImage.Engines.TraceMoe
 			IRestResponse<TraceMoeRootObject> re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
 			code = re.StatusCode;
-
+			status = re.ResponseStatus;
+			msg = re.ErrorMessage;
 
 			// todo: null sometimes
 			return re.Data;
@@ -41,8 +42,8 @@ namespace SmartImage.Engines.TraceMoe
 		{
 			var r = base.GetResult(url);
 
-			var tm = GetApiResults(url, out var code);
-
+			var tm = GetApiResults(url, out var code, out var res, out var msg);
+			
 			if (tm?.docs != null) {
 				// Most similar to least similar
 				var mostSimilarDoc = tm.docs[0];
@@ -53,7 +54,7 @@ namespace SmartImage.Engines.TraceMoe
 
 			}
 			else {
-				r.ExtendedInfo.Add("API: Returned null (possible timeout)");
+				r.ExtendedInfo.Add(string.Format("API: Returned null (possible timeout) [{0} {1} {2}]", code,res,msg));
 			}
 
 

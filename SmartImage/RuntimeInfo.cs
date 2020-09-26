@@ -5,17 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using Microsoft.Win32;
-using SimpleCore;
-using Newtonsoft.Json.Linq;
-using RestSharp;
-using SimpleCore.Utilities;
 using SimpleCore.Win32;
 using SimpleCore.Win32.Cli;
-using SmartImage.Searching;
-using SmartImage.Shell;
 using SmartImage.Utilities;
 
 // ReSharper disable UseStringInterpolation
@@ -57,31 +49,15 @@ namespace SmartImage
 
 		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
 
-		public const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
-		
-		public const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
-
-		//public const string REG_SHELL = @"HKEY_CURRENT_USER\Software\Classes\*\shell\SmartImage\";
-
-		//public const string REG_SHELL_CMD = @"HKEY_CURRENT_USER\Software\Classes\*\shell\SmartImage\command";
-		
-		// todo
-
-		internal const string shell3 = @"Software\Classes\*\shell\SmartImage\";
-
 		/*
 		 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
 		 *		HKEY_CURRENT_USER\Software\Classes
 		 *		HKEY_LOCAL_MACHINE\Software\Classes
 		 */
 
-		/*
-		 * todo: !!! switch from using batch files to interact with registry to the Registry library !!!
-		 */
 
 		public static string AppFolder
 		{
-
 			// todo: use ProgramData
 
 			get
@@ -100,51 +76,6 @@ namespace SmartImage
 		public static string ExeLocation => FindExecutableLocation(NAME_EXE);
 
 
-		// todo
-		internal static RegistryKey Subkey => Registry.CurrentUser.CreateSubKey(shell3);
-
-		public static bool IsContextMenuAdded
-		{
-			get
-			{
-				// TODO: use default Registry library
-
-				var shell=Registry.CurrentUser.OpenSubKey(@"Software\Classes\*\shell\");
-				return shell.GetSubKeyNames().Contains(NAME);
-
-				//return Subkey.GetSubKeyNames().Contains("command");
-
-				/*string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
-				var cmd = Cli.Shell(cmdStr, true);
-
-				string[] stdOut = Cli.ReadAllLines(cmd.StandardOutput);
-
-				// todo
-				if (stdOut.Any(s => s.Contains(NAME))) {
-					return true;
-				}
-
-				string[] stdErr = Cli.ReadAllLines(cmd.StandardError);
-
-				if (stdErr.Any(s => s.Contains("ERROR"))) {
-					return false;
-				}
-
-
-				//
-
-
-				throw new SmartImageException();*/
-			}
-		}
-
-		public static void Setup()
-		{
-			if (!IsAppFolderInPath) {
-				Integration.HandlePath(IntegrationOption.Add);
-			}
-		}
-
 		public static bool IsAppFolderInPath => Native.IsFolderInPath(AppFolder);
 
 
@@ -159,7 +90,7 @@ namespace SmartImage
 
 			//
 
-			var rg = new List<string>()
+			var rg = new List<string>
 			{
 				/* Executing directory */
 				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
@@ -180,7 +111,6 @@ namespace SmartImage
 				}
 			}
 
-
 			static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
 			{
 				string folderExeFull = Path.Combine(folder, exeStr);
@@ -195,7 +125,6 @@ namespace SmartImage
 
 		internal static void ShowInfo()
 		{
-			// todo
 
 			Console.Clear();
 
@@ -211,10 +140,10 @@ namespace SmartImage
 			 */
 
 
-			CliOutput.WriteInfo("Application folder: {0}", RuntimeInfo.AppFolder);
-			CliOutput.WriteInfo("Executable location: {0}", RuntimeInfo.ExeLocation);
-			CliOutput.WriteInfo("Context menu integrated: {0}", RuntimeInfo.IsContextMenuAdded);
-			CliOutput.WriteInfo("In path: {0}\n", RuntimeInfo.IsAppFolderInPath);
+			CliOutput.WriteInfo("Application folder: {0}", AppFolder);
+			CliOutput.WriteInfo("Executable location: {0}", ExeLocation);
+			CliOutput.WriteInfo("Context menu integrated: {0}", Integration.IsContextMenuAdded);
+			CliOutput.WriteInfo("In path: {0}\n", IsAppFolderInPath);
 
 
 			/*
@@ -233,9 +162,9 @@ namespace SmartImage
 			 * Author info
 			 */
 
-			CliOutput.WriteInfo("Repo: {0}", RuntimeInfo.Repo);
-			CliOutput.WriteInfo("Readme: {0}", RuntimeInfo.Readme);
-			CliOutput.WriteInfo("Author: {0}", RuntimeInfo.Author);
+			CliOutput.WriteInfo("Repo: {0}", Repo);
+			CliOutput.WriteInfo("Readme: {0}", Readme);
+			CliOutput.WriteInfo("Author: {0}", Author);
 		}
 	}
 }
