@@ -197,7 +197,7 @@ namespace SmartImage
 		{
 			get
 			{
-				var shell = Registry.CurrentUser.OpenSubKey(REG_HKCU_SHELL_ROOT);
+				var shell = Registry.CurrentUser.OpenSubKey(REG_HKCU_SHELL_ROOT)!;
 				return shell.GetSubKeyNames().Contains(RuntimeInfo.NAME);
 			}
 		}

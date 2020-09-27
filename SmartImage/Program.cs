@@ -67,8 +67,9 @@ namespace SmartImage
 
 				string img = SearchConfig.Config.Image;
 
+				var n = Enum.GetValues(typeof(SearchEngines)).Length;
 
-				var results = new SearchResult[(int) SearchEngines.All];
+				var results = new SearchResult[n];
 				var ok = Search.RunSearch(img, ref results);
 
 				if (!ok) {
