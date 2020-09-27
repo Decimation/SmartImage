@@ -1,14 +1,8 @@
-#region
-
-#nullable enable
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using SimpleCore.Utilities;
 using SimpleCore.Win32.Cli;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.SauceNao;
@@ -18,27 +12,128 @@ using SmartImage.Searching.Model;
 using SmartImage.Shell;
 using SmartImage.Utilities;
 
-// ReSharper disable ReturnTypeCanBeEnumerable.Local
-
-#endregion
-
-// ReSharper disable ReturnTypeCanBeEnumerable.Global
-
 namespace SmartImage.Searching
 {
-	/// <summary>
-	/// Runs image searches
-	/// </summary>
-	public static class Search
+	public class SearchClient : IDisposable
 	{
 		/// <summary>
-		/// Common image extensions
+		///     Common image extensions
 		/// </summary>
 		private static readonly string[] ImageExtensions =
 		{
 			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif", ".bmp"
 		};
 
+		private readonly SearchEngines m_engines;
+
+		private readonly string m_img;
+
+		private readonly string m_imgUrl;
+
+		private ConsoleOption[] m_results;
+
+		private readonly Thread[] m_threads;
+
+		public SearchClient(string img)
+		{
+			
+
+			string auth = SearchConfig.Config.ImgurAuth;
+			bool useImgur = !String.IsNullOrWhiteSpace(auth);
+
+			var engines = SearchConfig.Config.SearchEngines;
+			//var priority = SearchConfig.Config.PriorityEngines;
+
+			if (engines == SearchEngines.None) {
+				//todo
+				//CliOutput.WriteError("Please configure search engine preferences!");
+				engines = SearchConfig.ENGINES_DEFAULT;
+			}
+
+			m_engines = engines;
+
+
+			m_imgUrl = Upload(img, useImgur);
+
+			
+			m_threads = CreateSearchThreads();
+		}
+
+		public ref ConsoleOption[] Results => ref m_results;
+
+		public void Dispose()
+		{
+			foreach (var thread in m_threads) {
+				thread.Join();
+			}
+		}
+
+		public void Start()
+		{
+			// Display config
+			CliOutput.WriteInfo(SearchConfig.Config);
+
+			CliOutput.WriteInfo("Temporary image url: {0}", m_imgUrl);
+
+			Console.WriteLine();
+
+			foreach (var thread in m_threads) {
+				thread.Start();
+			}
+		}
+
+
+		private Thread[] CreateSearchThreads()
+		{
+			// todo: improve
+			
+
+			var availableEngines = GetAllEngines()
+				.Where(e => m_engines.HasFlag(e.Engine))
+				.ToArray();
+
+			int i = 0;
+
+			m_results = new ConsoleOption[availableEngines.Length + 1];
+			m_results[i] = new SearchResult(ConsoleColor.Gray, "(Original image)", m_imgUrl);
+
+			i++;
+
+
+			var threads = new List<Thread>();
+
+			foreach (var currentEngine in availableEngines) {
+
+				var resultsCopy = m_results;
+				int iCopy = i;
+
+				ThreadStart threadFunction = () =>
+				{
+					var result = currentEngine.GetResult(m_imgUrl);
+					resultsCopy[iCopy] = result;
+
+					// If the engine is priority, open its result in the browser
+					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
+						Network.OpenUrl(result.Url);
+					}
+
+					ConsoleIO.Status = ConsoleIO.STATUS_REFRESH;
+				};
+
+				var t = new Thread(threadFunction)
+				{
+					Priority = ThreadPriority.Highest
+				};
+
+				threads.Add(t);
+
+				i++;
+			}
+
+			return threads.ToArray();
+
+
+		}
 
 		private static ISearchEngine[] GetAllEngines()
 		{
@@ -58,115 +153,9 @@ namespace SmartImage.Searching
 			return engines;
 		}
 
-
-		public static bool RunSearch(string img, ref ConsoleOption[] res)
+		internal static bool IsFileValid(string img)
 		{
-			/*
-			 * Run
-             */
-
-			// Run checks
-			if (!IsFileValid(img)) {
-				SearchConfig.UpdateFile();
-
-				return false;
-			}
-
-			string auth = SearchConfig.Config.ImgurAuth;
-			bool useImgur = !String.IsNullOrWhiteSpace(auth);
-
-			var engines = SearchConfig.Config.SearchEngines;
-			//var priority = SearchConfig.Config.PriorityEngines;
-
-			if (engines == SearchEngines.None) {
-				//todo
-				//CliOutput.WriteError("Please configure search engine preferences!");
-				engines = SearchConfig.ENGINES_DEFAULT;
-			}
-
-
-			// Display config
-			CliOutput.WriteInfo(SearchConfig.Config);
-
-
-			string imgUrl = Upload(img, useImgur);
-
-			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
-
-			Console.WriteLine();
-
-
-			// Where the actual searching occurs
-
-			//StartSearches(imgUrl, engines, ref res);
-			var threads = StartSearchesMultithread(imgUrl, engines, ref res);
-
-			foreach (var thread in threads) {
-				thread.Start();
-			}
-
-			return true;
-		}
-
-		
-
-		private static Thread[] StartSearchesMultithread(string imgUrl, SearchEngines engines, ref ConsoleOption[] res)
-		{
-			// todo: improve
-			// todo: use tasks
-
-			var availableEngines = GetAllEngines()
-				.Where(e => engines.HasFlag(e.Engine))
-				.ToArray();
-
-			int i = 0;
-
-			res = new SearchResult[availableEngines.Length + 1];
-			res[i] = new SearchResult(ConsoleColor.Gray, "(Original image)", imgUrl, null);
-
-			i++;
-
-
-			var threads = new List<Thread>();
-
-			foreach (var currentEngine in availableEngines)
-			{
-				var options = res;
-
-				int i1 = i;
-
-				ThreadStart ts = () =>
-				{
-					var result = currentEngine.GetResult(imgUrl);
-					options[i1] = result;
-
-
-					// If the engine is priority, open its result in the browser
-					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine))
-					{
-						Network.OpenUrl(result.Url);
-					}
-
-					ConsoleIO.Status = ConsoleIO.STATUS_REFRESH;
-
-					
-				};
-				var t = new Thread(ts);
-				t.Priority = ThreadPriority.Highest;
-				t.Name = string.Format("thread - {0}", currentEngine.Name);
-				threads.Add(t);
-
-				i++;
-			}
-
-			return threads.ToArray();
-
-
-		}
-
-		private static bool IsFileValid(string img)
-		{
-			if (string.IsNullOrWhiteSpace(img)) {
+			if (String.IsNullOrWhiteSpace(img)) {
 				return false;
 			}
 

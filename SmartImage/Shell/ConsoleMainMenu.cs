@@ -10,19 +10,22 @@ using SimpleCore.Win32.Cli;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
+#pragma warning disable IDE0052
+
+
 namespace SmartImage.Shell
 {
 	/// <summary>
-	/// Contains <see cref="ConsoleOption"/> for the main menu
+	/// Contains <see cref="ConsoleInterface"/> and <see cref="ConsoleOption"/> for the main menu
 	/// </summary>
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	internal static class RuntimeConsoleOptions
+	internal static class ConsoleMainMenu
 	{
-		internal static ConsoleOption[] AllOptions
+		private static ConsoleOption[] AllOptions
 		{
 			get
 			{
-				var fields = typeof(RuntimeConsoleOptions).GetFields(
+				var fields = typeof(ConsoleMainMenu).GetFields(
 						BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default)
 					.Where(f => f.FieldType == typeof(ConsoleOption))
 					.ToArray();
@@ -38,7 +41,20 @@ namespace SmartImage.Shell
 			}
 		}
 
-		internal static readonly ConsoleOption RunSelectImage = new ConsoleOption()
+		/// <summary>
+		/// Main menu console interface
+		/// </summary>
+		internal static ConsoleInterface MainInterface => new ConsoleInterface(AllOptions, RuntimeInfo.NAME_BANNER, false);
+
+		/// <summary>
+		///     Runs when no arguments are given (and when the executable is double-clicked)
+		/// </summary>
+		/// <remarks>
+		///     More user-friendly menu
+		/// </remarks>
+		internal static void RunMainMenu() => ConsoleIO.HandleOptions(ConsoleMainMenu.MainInterface);
+
+		private static readonly ConsoleOption RunSelectImage = new ConsoleOption()
 		{
 			Name = ">>> Select image <<<",
 			Color = ConsoleColor.Yellow,
@@ -57,13 +73,13 @@ namespace SmartImage.Shell
 		};
 
 
-		internal static readonly ConsoleOption ConfigSearchEnginesOption = new ConsoleOption()
+		private static readonly ConsoleOption ConfigSearchEnginesOption = new ConsoleOption()
 		{
 			Name = "Configure search engines",
 			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
-				var values = ConsoleIO.HandleConsoleOptions(rgEnum, true);
+				var values = ConsoleIO.HandleOptions(rgEnum, true);
 
 				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
@@ -78,13 +94,13 @@ namespace SmartImage.Shell
 		};
 
 
-		internal static readonly ConsoleOption ConfigPriorityEnginesOption = new ConsoleOption()
+		private static readonly ConsoleOption ConfigPriorityEnginesOption = new ConsoleOption()
 		{
 			Name = "Configure priority engines",
 			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
-				var values = ConsoleIO.HandleConsoleOptions(rgEnum, true);
+				var values = ConsoleIO.HandleOptions(rgEnum, true);
 
 				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
@@ -99,7 +115,7 @@ namespace SmartImage.Shell
 		};
 
 
-		internal static readonly ConsoleOption ConfigSauceNaoAuthOption = new ConsoleOption()
+		private static readonly ConsoleOption ConfigSauceNaoAuthOption = new ConsoleOption()
 		{
 			Name = "Configure SauceNao API authentication",
 			Function = () =>
@@ -111,7 +127,7 @@ namespace SmartImage.Shell
 			}
 		};
 
-		internal static readonly ConsoleOption ConfigImgurAuthOption = new ConsoleOption()
+		private static readonly ConsoleOption ConfigImgurAuthOption = new ConsoleOption()
 		{
 			Name = "Configure Imgur API authentication",
 			Function = () =>
@@ -124,7 +140,7 @@ namespace SmartImage.Shell
 			}
 		};
 
-		internal static readonly ConsoleOption ConfigUpdateOption = new ConsoleOption()
+		private static readonly ConsoleOption ConfigUpdateOption = new ConsoleOption()
 		{
 			Name = "Update configuration file",
 			Function = () =>
@@ -136,7 +152,7 @@ namespace SmartImage.Shell
 			}
 		};
 
-		internal static readonly ConsoleOption ContextMenuOption = new ConsoleOption()
+		private static readonly ConsoleOption ContextMenuOption = new ConsoleOption()
 		{
 			Name = "Add/remove context menu integration",
 			Function = () =>
@@ -157,7 +173,7 @@ namespace SmartImage.Shell
 			}
 		};
 
-		internal static readonly ConsoleOption ShowInfoOption = new ConsoleOption()
+		private static readonly ConsoleOption ShowInfoOption = new ConsoleOption()
 		{
 			Name = "Show info",
 			Function = () =>
@@ -169,7 +185,7 @@ namespace SmartImage.Shell
 			}
 		};
 
-		internal static readonly ConsoleOption CheckForUpdateOption = new ConsoleOption()
+		private static readonly ConsoleOption CheckForUpdateOption = new ConsoleOption()
 		{
 			Name = "Check for updates",
 			Function = () =>
@@ -195,7 +211,7 @@ namespace SmartImage.Shell
 			}
 		};
 
-		internal static readonly ConsoleOption ResetOption = new ConsoleOption()
+		private static readonly ConsoleOption ResetOption = new ConsoleOption()
 		{
 			Name = "Reset all configuration and integrations",
 			Function = () =>
@@ -208,7 +224,7 @@ namespace SmartImage.Shell
 		};
 
 
-		internal static readonly ConsoleOption LegacyCleanupOption = new ConsoleOption()
+		private static readonly ConsoleOption LegacyCleanupOption = new ConsoleOption()
 		{
 			Name = "Legacy cleanup",
 			Function = () =>
@@ -221,7 +237,7 @@ namespace SmartImage.Shell
 			}
 		};
 
-		internal static readonly ConsoleOption UninstallOption = new ConsoleOption()
+		private static readonly ConsoleOption UninstallOption = new ConsoleOption()
 		{
 			Name = "Uninstall",
 			Function = () =>
@@ -251,7 +267,7 @@ namespace SmartImage.Shell
 			"Test3.png"
 		};
 
-		internal static readonly ConsoleOption DebugTestOption = new ConsoleOption()
+		private static readonly ConsoleOption DebugTestOption = new ConsoleOption()
 		{
 			Name = "[DEBUG] Run test",
 			Function = () =>
@@ -273,5 +289,6 @@ namespace SmartImage.Shell
 			}
 		};
 #endif
+		
 	}
 }

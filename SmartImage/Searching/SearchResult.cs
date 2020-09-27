@@ -1,9 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
-using SimpleCore.Utilities;
 using SimpleCore.Win32.Cli;
 using SmartImage.Searching.Model;
 using SmartImage.Shell;
@@ -12,7 +10,7 @@ using SmartImage.Utilities;
 namespace SmartImage.Searching
 {
 	/// <summary>
-	/// Contains search result and information
+	///     Contains search result and information
 	/// </summary>
 	public sealed class SearchResult : ConsoleOption, IExtendedSearchResult
 	{
@@ -32,33 +30,18 @@ namespace SmartImage.Searching
 
 		public override ConsoleColor Color { get; internal set; }
 
-
-		/// <summary>
-		/// Best match
-		/// </summary>
-		public string Url { get; }
-
 		// todo: create a specific url field with the original url
 
 		public override string? Data => Format();
 
 		public override string Name { get; internal set; }
 
-		/// <summary>
-		/// Image similarity
-		/// </summary>
-		public float? Similarity { get; set; }
-
-		public int? Width { get; set; }
-		public int? Height { get; set; }
-		public string? Caption { get; set; }
-
 		public bool Success => Url != null;
 
 		public List<string> ExtendedInfo { get; }
 
 		/// <summary>
-		/// Direct source matches, other extended results
+		///     Direct source matches, other extended results
 		/// </summary>
 		public List<IExtendedSearchResult> ExtendedResults { get; }
 
@@ -75,6 +58,21 @@ namespace SmartImage.Searching
 		}
 
 		public override Func<object?>? AltFunction { get; internal set; }
+
+
+		/// <summary>
+		///     Best match
+		/// </summary>
+		public string Url { get; }
+
+		/// <summary>
+		///     Image similarity
+		/// </summary>
+		public float? Similarity { get; set; }
+
+		public int? Width { get; set; }
+		public int? Height { get; set; }
+		public string? Caption { get; set; }
 
 
 		private SearchResult[] FromExtendedResult(IReadOnlyList<IExtendedSearchResult> results)
@@ -113,7 +111,7 @@ namespace SmartImage.Searching
 				var rg = FromExtendedResult(bestImages);
 
 
-				ConsoleIO.HandleConsoleOptions(rg);
+				ConsoleIO.HandleOptions(rg);
 
 				return null;
 
@@ -131,7 +129,7 @@ namespace SmartImage.Searching
 			var sb = new StringBuilder();
 
 			char success = Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN;
-			string altStr = AltFunction != null ? ConsoleIO.ALT_DENOTE : string.Empty;
+			string altStr = AltFunction != null ? ConsoleIO.ALT_DENOTE : String.Empty;
 
 			sb.AppendFormat("{0} {1}\n", success, altStr);
 

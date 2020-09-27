@@ -15,7 +15,7 @@ namespace SmartImage.Searching.Engines.Simple
 		public ImgOpsClient() : base("http://imgops.com/") { }
 
 		public override string Name => "ImgOps";
-		public override ConsoleColor Color => ConsoleColor.Magenta;
+		public override ConsoleColor Color => ConsoleColor.DarkMagenta;
 
 		public override SearchEngines Engine => SearchEngines.ImgOps;
 

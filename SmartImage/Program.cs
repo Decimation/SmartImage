@@ -3,8 +3,10 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO.Compression;
 using System.Linq;
+using System.Media;
 using System.Reflection;
 using System.Text;
 using System.Threading;
@@ -61,23 +63,31 @@ namespace SmartImage
 				SearchConfig.ReadSearchConfigArguments(args);
 
 				if (SearchConfig.Config.NoArguments) {
-					ConsoleIO.RunMainCommandMenu();
+					ConsoleMainMenu.RunMainMenu();
 					Console.Clear();
 				}
 
 				string img = SearchConfig.Config.Image;
 
-				var n = Enum.GetValues(typeof(SearchEngines)).Length;
-
-				ConsoleOption[] results = new SearchResult[n];
-				var ok = Search.RunSearch(img, ref results);
-
-				if (!ok) {
-					CliOutput.WriteError("Search failed or aborted");
+				// Run checks
+				if (!SearchClient.IsFileValid(img))
+				{
 					return;
 				}
 
-				ConsoleIO.HandleConsoleOptions(results);
+				// var n = Enum.GetValues(typeof(SearchEngines)).Length;
+				// ConsoleOption[] results = new SearchResult[n];
+				// var ok = Search.RunSearch(img, ref results);
+				//
+				// if (!ok) {
+				// 	CliOutput.WriteError("Search failed or aborted");
+				// 	return;
+				// }
+
+				using var s = new SearchClient(img);
+				s.Start();
+				
+				ConsoleIO.HandleOptions(s.Results);
 			}
 			catch (Exception exception) {
 

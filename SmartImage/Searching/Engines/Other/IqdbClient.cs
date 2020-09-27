@@ -19,7 +19,7 @@ namespace SmartImage.Searching.Engines.Simple
 		public IqdbClient() : base("https://iqdb.org/?url=") { }
 
 		public override string Name => "IQDB";
-		public override ConsoleColor Color => ConsoleColor.Magenta;
+		public override ConsoleColor Color => ConsoleColor.DarkGreen;
 
 		public override SearchEngines Engine => SearchEngines.Iqdb;
 

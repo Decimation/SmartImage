@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Threading;
 using Microsoft.Win32;
@@ -51,14 +52,6 @@ namespace SmartImage.Shell
 			Thread.Sleep(TimeSpan.FromSeconds(1));
 		}
 
-		/// <summary>
-		///     Runs when no arguments are given (and when the executable is double-clicked)
-		/// </summary>
-		/// <remarks>
-		///     More user-friendly menu
-		/// </remarks>
-		internal static void RunMainCommandMenu() => HandleConsoleOptions(RuntimeConsoleOptions.AllOptions);
-
 		private static char ToDisplayOption(int i)
 		{
 			if (i < MAX_OPTION_N) {
@@ -87,21 +80,20 @@ namespace SmartImage.Shell
 			return INVALID;
 		}
 
-		private static string CreateStr(ConsoleOption option, int i)
+		private static string FormatOption(ConsoleOption option, int i)
 		{
 			var sb = new StringBuilder();
 			char c = ToDisplayOption(i);
 
 			//todo
 
-			var name = option?.Name ?? "Wait";
+			var name = option.Name;
 			sb.AppendFormat("[{0}]: {1} ", c, name);
 
 
-			if (option?.Data != null) {
+			if (option.Data != null) {
 				sb.Append(option.Data);
 			}
-
 
 			if (!sb.ToString().EndsWith("\n")) {
 				sb.AppendLine();
@@ -118,10 +110,10 @@ namespace SmartImage.Shell
 
 
 		// Escape -> quit
-		const ConsoleKey ESC_EXIT = ConsoleKey.Escape;
+		private const ConsoleKey ESC_EXIT = ConsoleKey.Escape;
 
 		// Alt modifier -> View extra info
-		const ConsoleModifiers ALT_EXTRA = ConsoleModifiers.Alt;
+		private const ConsoleModifiers ALT_EXTRA = ConsoleModifiers.Alt;
 
 
 		// todo
@@ -137,42 +129,49 @@ namespace SmartImage.Shell
 		/// </summary>
 		/// <param name="options">Array of <see cref="ConsoleOption" /></param>
 		/// <param name="selectMultiple">Whether to return selected options as a <see cref="HashSet{T}"/></param>
-		internal static HashSet<object> HandleConsoleOptions(ConsoleOption[] options, bool selectMultiple = false)
+		internal static HashSet<object> HandleOptions(ConsoleOption[] options, bool selectMultiple = false)
+		{
+			var i = new ConsoleInterface(options, null, selectMultiple);
+
+			return HandleOptions(i);
+		}
+
+		/// <summary>
+		///     Handles user input and options
+		/// </summary>
+		/// <param name="io"><see cref="ConsoleInterface"/></param>
+		internal static HashSet<object> HandleOptions(ConsoleInterface io)
 		{
 			// todo: very hacky
 
 			var selectedOptions = new HashSet<object>();
 
-
-			void Write()
+			void DisplayOptions()
 			{
 				CliOutput.WithColor(ConsoleColor.DarkRed, () =>
 				{
+					//Console.WriteLine(inter?.Name);
 					Console.WriteLine(RuntimeInfo.NAME_BANNER);
 				});
 
 
-				for (int i = 0; i < options.Length; i++) {
-					var option = options[i];
+				for (int i = 0; i < io.Options.Length; i++) {
+					var option = io[i];
 
-					var s = CreateStr(option, i);
+					var s = FormatOption(option, i);
 
-					var color = option?.Color ?? ConsoleColor.Yellow;
-
-					CliOutput.WithColor(color, () =>
+					CliOutput.WithColor(option.Color, () =>
 					{
 						Console.Write(s);
 					});
-
 
 				}
 
 				Console.WriteLine();
 
 				// Show options
-				if (selectMultiple) {
+				if (io.SelectMultiple) {
 					string optionsStr = selectedOptions.QuickJoin();
-
 
 					CliOutput.WithColor(ConsoleColor.Blue, () =>
 					{
@@ -205,14 +204,15 @@ namespace SmartImage.Shell
 				Console.Clear();
 
 
-				Write();
+				DisplayOptions();
 
 				while (!Console.KeyAvailable) {
 					// Block until input is entered.
 
+					//
 					if (Interlocked.Exchange(ref Status, STATUS_OK) == STATUS_REFRESH) {
 						Console.Clear();
-						Write();
+						DisplayOptions();
 					}
 				}
 
@@ -226,31 +226,28 @@ namespace SmartImage.Shell
 
 				int idx = FromDisplayOption(keyChar);
 
-				if (idx < options.Length && idx >= 0) {
+				if (idx < io.Options.Length && idx >= 0) {
 
-					var option = options[idx];
+					var option = io[idx];
 
-					if (option != null) {
-						bool useAltFunc = altModifier && option.AltFunction != null;
+					bool useAltFunc = altModifier && option.AltFunction != null;
 
-						if (useAltFunc) {
+					if (useAltFunc) {
 
-							var altFunc = option.AltFunction()!;
+						var altFunc = option.AltFunction()!;
 
+						//
+					}
+					else {
+						var funcResult = option.Function()!;
+
+						if (funcResult != null) {
 							//
-						}
-						else {
-							var funcResult = option.Function()!;
-
-							if (funcResult != null) {
-								//
-								if (selectMultiple) {
-
-									selectedOptions.Add(funcResult);
-								}
-								else {
-									return new HashSet<object> {funcResult};
-								}
+							if (io.SelectMultiple) {
+								selectedOptions.Add(funcResult);
+							}
+							else {
+								return new HashSet<object> {funcResult};
 							}
 						}
 					}
