@@ -5,47 +5,55 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using HtmlAgilityPack;
+using JetBrains.Annotations;
 using SmartImage.Searching.Model;
 using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #endregion
 
+#nullable enable
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class Yandex : SimpleSearchEngine
+	public sealed class YandexClient : SimpleSearchEngine
 	{
-		public Yandex() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
+		public YandexClient() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
 		public override SearchEngines Engine => SearchEngines.Yandex;
 
 		public override string Name => "Yandex";
 
-		private readonly struct YandexImage
+		private struct YandexResult : IExtendedSearchResult
 		{
-			internal int Width { get; }
-			internal int Height { get; }
-			internal string Url { get; }
+			public float? Similarity { get; set; }
 
-			internal int FullResolution { get; }
+			public int? Width { get; set; }
+			public int? Height { get; set; }
 
-			internal YandexImage(int width, int height, string url)
+			public string? Caption { get; set; }
+
+			public string Url { get; }
+
+
+			internal YandexResult(int width, int height, string url)
 			{
 				Width = width;
 				Height = height;
-				FullResolution = width * height;
 				Url = url;
+				Caption = null;
+				Similarity = null;
 			}
 
 			public override string ToString()
 			{
-				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Url, FullResolution);
+				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Url,
+					((IExtendedSearchResult) this).FullResolution);
 			}
 		}
 
 		private const int TOTAL_RES_MIN = 500_000;
 
-		private static YandexImage[] FilterAndSelectBestImages(List<YandexImage> rg)
+		private static IExtendedSearchResult[] FilterAndSelectBestImages(List<IExtendedSearchResult> rg)
 		{
 			const int TAKE_N = 5;
 
@@ -74,7 +82,7 @@ namespace SmartImage.Searching.Engines.Simple
 			return looksLike;
 		}
 
-		private static List<YandexImage> GetYandexImages(HtmlDocument doc)
+		private static List<IExtendedSearchResult> GetYandexImages(HtmlDocument doc)
 		{
 			var tagsItem = doc.DocumentNode.SelectNodes("//a[contains(@class, 'Tags-Item')]");
 
@@ -82,7 +90,7 @@ namespace SmartImage.Searching.Engines.Simple
 				!sx.ParentNode.ParentNode.Attributes["class"].Value.Contains("CbirItem"));
 
 
-			var images = new List<YandexImage>();
+			var images = new List<IExtendedSearchResult>();
 
 			foreach (var siz in sizeTags) {
 				var link = siz.Attributes["href"].Value;
@@ -97,7 +105,7 @@ namespace SmartImage.Searching.Engines.Simple
 					var restRes = Network.GetSimpleResponse(link);
 
 					if (restRes.StatusCode != HttpStatusCode.NotFound) {
-						var yi = new YandexImage(w, h, link);
+						var yi = new YandexResult(w, h, link);
 
 						images.Add(yi);
 					}
@@ -140,43 +148,17 @@ namespace SmartImage.Searching.Engines.Simple
 
 				var images = GetYandexImages(doc);
 
-				var bestImages = FilterAndSelectBestImages(images);
-				var bestImagesLinks = bestImages.Select(i => i.Url);
+				IExtendedSearchResult[] bestImages = FilterAndSelectBestImages(images);
 
 				//
 
-				sr.ExtendedResults.AddRange(bestImagesLinks);
-
-
-				//
-
-				sr.AltFunction = () =>
-				{
-					var rg = new SearchResult[bestImages.Length];
-
-					for (int i = 0; i < rg.Length; i++) {
-						var currentBestImg = bestImages[i];
-						var link = currentBestImg.Url;
-
-						var name = string.Format("Match result #{0}", i);
-
-						rg[i] = new SearchResult(Color, name, link);
-
-						rg[i].ExtendedInfo.Add(string.Format("Resolution: {0}x{1}", currentBestImg.Width, currentBestImg.Height));
-					}
-
-
-					Commands.HandleConsoleOptions(rg);
-
-					return null;
-
-				};
+				sr.AddExtendedInfo(bestImages);
 
 			}
 			catch (Exception) {
 				// ...
 
-				
+
 			}
 
 

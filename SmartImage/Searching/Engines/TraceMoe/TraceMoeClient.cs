@@ -9,9 +9,9 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.TraceMoe
 {
-	public sealed class TraceMoe : SimpleSearchEngine
+	public sealed class TraceMoeClient : SimpleSearchEngine
 	{
-		public TraceMoe() : base("https://trace.moe/?url=") { }
+		public TraceMoeClient() : base("https://trace.moe/?url=") { }
 
 		public override string Name => "trace.moe";
 

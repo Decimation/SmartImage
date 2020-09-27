@@ -46,15 +46,15 @@ namespace SmartImage.Searching
 		{
 			var engines = new ISearchEngine[]
 			{
-				new SauceNao(),
-				new ImgOps(),
-				new GoogleImages(),
-				new TinEye(),
-				new Iqdb(),
-				new Bing(),
-				new Yandex(),
-				new KarmaDecay(),
-				new TraceMoe()
+				new SauceNaoClient(),
+				new ImgOpsClient(),
+				new GoogleImagesClient(),
+				new TinEyeClient(),
+				new IqdbClient(),
+				new BingClient(),
+				new YandexClient(),
+				new KarmaDecayClient(),
+				new TraceMoeClient()
 			};
 
 			return engines;
@@ -205,12 +205,12 @@ namespace SmartImage.Searching
 
 			if (useImgur) {
 				CliOutput.WriteInfo("Using Imgur for image upload");
-				var imgur = new Imgur();
+				var imgur = new ImgurClient();
 				imgUrl = imgur.Upload(img);
 			}
 			else {
 				CliOutput.WriteInfo("Using ImgOps for image upload (2 hour cache)");
-				var imgOps = new ImgOps();
+				var imgOps = new ImgOpsClient();
 				imgUrl = imgOps.UploadTempImage(img, out _);
 			}
 

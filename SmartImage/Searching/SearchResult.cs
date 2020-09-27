@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using SimpleCore.Utilities;
 using SimpleCore.Win32.Cli;
@@ -13,7 +14,7 @@ namespace SmartImage.Searching
 	/// <summary>
 	/// Contains search result and information
 	/// </summary>
-	public sealed class SearchResult : ConsoleOption
+	public sealed class SearchResult : ConsoleOption, IExtendedSearchResult
 	{
 		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
@@ -26,7 +27,7 @@ namespace SmartImage.Searching
 
 			Similarity = similarity;
 			ExtendedInfo = new List<string>();
-			ExtendedResults = new List<string>();
+			ExtendedResults = new List<IExtendedSearchResult>();
 		}
 
 		public override ConsoleColor Color { get; internal set; }
@@ -46,7 +47,11 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Image similarity
 		/// </summary>
-		public float? Similarity { get; internal set; }
+		public float? Similarity { get;  set; }
+
+		public int? Width { get; set; }
+		public int? Height { get; set; }
+		public string? Caption { get; set; }
 
 		public bool Success => Url != null;
 
@@ -55,7 +60,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Direct source matches, other extended results
 		/// </summary>
-		public List<string> ExtendedResults { get; }
+		public List<IExtendedSearchResult> ExtendedResults { get; }
 
 		public override Func<object?> Function
 		{
@@ -71,6 +76,50 @@ namespace SmartImage.Searching
 
 		public override Func<object?>? AltFunction { get; internal set; }
 
+
+
+		private SearchResult[] FromExtendedResult(IExtendedSearchResult[] results)
+		{
+			
+			var rg = new SearchResult[results.Length];
+
+			for (int i = 0; i < rg.Length; i++) {
+				var result = results[i];
+				var sr = new SearchResult(Color, "Extended result", result.Url, result.Similarity)
+				{
+					Width = result.Width,
+					Height = result.Height,
+					Caption = result.Caption
+				};
+				rg[i] = sr;
+
+			}
+
+
+
+			return rg;
+		}
+
+		public void AddExtendedInfo(IExtendedSearchResult[] bestImages)
+		{
+			// todo?
+
+			//
+
+			ExtendedResults.AddRange(bestImages);
+			
+
+			AltFunction = () =>
+			{
+				var rg = FromExtendedResult(bestImages);
+
+
+				Commands.HandleConsoleOptions(rg);
+
+				return null;
+
+			};
+		}
 
 		public override string ToString()
 		{
@@ -96,6 +145,10 @@ namespace SmartImage.Searching
 				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity / 100);
 			}
 
+			if (Width.HasValue && Height.HasValue)
+			{
+				sb.AppendFormat("\tResolution: {0}x{1}\n", Width,Height);
+			}
 
 			foreach (string s in ExtendedInfo) {
 				sb.AppendFormat("\t{0}\n", s);

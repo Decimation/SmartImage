@@ -23,7 +23,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 	// https://github.com/RoxasShadow/SauceNao-Windows
 	// https://github.com/LazDisco/SharpNao
 
-	public sealed class SauceNao : ISearchEngine
+	public sealed class SauceNaoClient : ISearchEngine
 	{
 		private const string ENDPOINT = BASE_URL + "search.php";
 
@@ -37,14 +37,14 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		private readonly bool m_useApi;
 
-		private SauceNao(string? apiKey)
+		private SauceNaoClient(string? apiKey)
 		{
 			m_client = new RestClient(ENDPOINT);
 			m_apiKey = apiKey;
 			m_useApi = !String.IsNullOrWhiteSpace(m_apiKey);
 		}
 
-		public SauceNao() : this(SearchConfig.Config.SauceNaoAuth) { }
+		public SauceNaoClient() : this(SearchConfig.Config.SauceNaoAuth) { }
 
 		public string Name => "SauceNao";
 

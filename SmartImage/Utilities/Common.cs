@@ -9,7 +9,22 @@ namespace SmartImage.Utilities
 	// todo
 	internal static class Common
 	{
-		
+		// todo
+
+
+		internal static string SelectOnlyDigits(this string s)
+		{
+			string r = string.Empty;
+
+			for (int i = 0; i < s.Length; i++) {
+				if (char.IsDigit(s[i])) {
+					r += s[i];
+				}
+			}
+
+			return r;
+
+		}
 
 		private static readonly Random Random = new Random();
 

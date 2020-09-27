@@ -7,9 +7,9 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class Bing : SimpleSearchEngine
+	public sealed class BingClient : SimpleSearchEngine
 	{
-		public Bing() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
+		public BingClient() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 		public override SearchEngines Engine => SearchEngines.Bing;
 		public override string Name => "Bing";
 		public override ConsoleColor Color => ConsoleColor.Cyan;

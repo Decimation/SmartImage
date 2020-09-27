@@ -14,16 +14,16 @@ namespace SmartImage.Searching.Engines.Imgur
 {
 	// https://github.com/Auo/ImgurSharp
 
-	public sealed class Imgur
+	public sealed class ImgurClient
 	{
 		private readonly string m_apiKey;
 
-		private Imgur(string apiKey)
+		private ImgurClient(string apiKey)
 		{
 			m_apiKey = apiKey;
 		}
 
-		public Imgur() : this(SearchConfig.Config.ImgurAuth) { }
+		public ImgurClient() : this(SearchConfig.Config.ImgurAuth) { }
 
 		public string Upload(string path)
 		{

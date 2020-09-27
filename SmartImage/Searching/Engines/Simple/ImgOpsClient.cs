@@ -10,9 +10,9 @@ using SmartImage.Utilities;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class ImgOps : SimpleSearchEngine
+	public sealed class ImgOpsClient : SimpleSearchEngine
 	{
-		public ImgOps() : base("http://imgops.com/") { }
+		public ImgOpsClient() : base("http://imgops.com/") { }
 
 		public override string Name => "ImgOps";
 		public override ConsoleColor Color => ConsoleColor.Magenta;

@@ -7,9 +7,9 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class GoogleImages : SimpleSearchEngine
+	public sealed class GoogleImagesClient : SimpleSearchEngine
 	{
-		public GoogleImages() : base("http://images.google.com/searchbyimage?image_url=") { }
+		public GoogleImagesClient() : base("http://images.google.com/searchbyimage?image_url=") { }
 
 		public override string Name => "Google Images";
 

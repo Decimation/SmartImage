@@ -92,12 +92,12 @@ namespace SmartImage
 		public SearchEngines PriorityEngines { get; set; }
 
 		/// <summary>
-		/// <see cref="Imgur"/> API key
+		/// <see cref="ImgurClient"/> API key
 		/// </summary>
 		public string ImgurAuth { get; set; }
 
 		/// <summary>
-		/// <see cref="SauceNao"/> API key
+		/// <see cref="SauceNaoClient"/> API key
 		/// </summary>
 		public string SauceNaoAuth { get; set; }
 
@@ -154,7 +154,15 @@ namespace SmartImage
 		{
 			var sb = new StringBuilder();
 
-			sb.AppendFormat("Image: {0}\n\n", Image);
+			
+			if (!string.IsNullOrWhiteSpace(Image)) {
+				// Image may be null if not specified (error) or viewed in other UIs
+				// if so, omit it
+
+				sb.AppendFormat("Image: {0}\n\n", Image);
+			}
+
+			
 
 			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
 			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);

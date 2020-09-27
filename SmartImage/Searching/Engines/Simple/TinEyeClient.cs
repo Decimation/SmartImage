@@ -7,9 +7,9 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class TinEye : SimpleSearchEngine
+	public sealed class TinEyeClient : SimpleSearchEngine
 	{
-		public TinEye() : base("https://www.tineye.com/search?url=") { }
+		public TinEyeClient() : base("https://www.tineye.com/search?url=") { }
 
 		public override string Name => "TinEye";
 		public override ConsoleColor Color => ConsoleColor.DarkCyan;
