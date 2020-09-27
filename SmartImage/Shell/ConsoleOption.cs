@@ -10,12 +10,8 @@ namespace SmartImage.Shell
 	{
 		public static readonly ConsoleColor DefaultOptionColor = Console.ForegroundColor;
 
-		public ConsoleOption()
-		{
+		public ConsoleOption() { }
 
-		}
-
-		
 
 		public virtual string Name { get; internal set; }
 

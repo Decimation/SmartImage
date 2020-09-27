@@ -28,6 +28,17 @@ namespace SmartImage.Searching.Engines.Imgur
 		public string Upload(string path)
 		{
 			// todo: cleanup
+			// var rc = new RestClient("https://api.imgur.com/3/upload");
+			// var re = new RestRequest(Method.POST);
+			// re.AddHeader("Authorization","Client-ID "+ m_apiKey);
+			//
+			// re.AddParameter("image", Convert.ToBase64String(File.ReadAllBytes(path)), ParameterType.RequestBody);
+			//
+			// var res = rc.Execute(re);
+			//
+			// Console.WriteLine(res.ErrorMessage);
+			// Console.WriteLine(res.StatusCode);
+			// Console.WriteLine(res.IsSuccessful);
 
 			using var w = new WebClient();
 			w.Headers.Add("Authorization: Client-ID " + m_apiKey);
@@ -44,8 +55,9 @@ namespace SmartImage.Searching.Engines.Imgur
 
 			var res = new RestResponse {Content = response};
 
-			var des = new JsonDeserializer();
-			return des.Deserialize<ImgurResponse<ImgurImage>>(res).Data.Link;
+			 var des = new JsonDeserializer();
+			 return des.Deserialize<ImgurResponse<ImgurImage>>(res).Data.Link;
+
 		}
 	}
 }

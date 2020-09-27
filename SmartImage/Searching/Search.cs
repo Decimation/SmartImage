@@ -3,11 +3,9 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using SimpleCore.Utilities;
@@ -17,6 +15,7 @@ using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Searching.Engines.Simple;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
+using SmartImage.Shell;
 using SmartImage.Utilities;
 
 // ReSharper disable ReturnTypeCanBeEnumerable.Local
@@ -27,7 +26,6 @@ using SmartImage.Utilities;
 
 namespace SmartImage.Searching
 {
-
 	/// <summary>
 	/// Runs image searches
 	/// </summary>
@@ -61,15 +59,14 @@ namespace SmartImage.Searching
 		}
 
 
-		public static bool RunSearch(string img, ref SearchResult[] res)
+		public static bool RunSearch(string img, ref ConsoleOption[] res)
 		{
 			/*
-			 * Run 
+			 * Run
              */
 
 			// Run checks
-			if (!IsFileValid(img))
-			{
+			if (!IsFileValid(img)) {
 				SearchConfig.UpdateFile();
 
 				return false;
@@ -91,6 +88,7 @@ namespace SmartImage.Searching
 			// Display config
 			CliOutput.WriteInfo(SearchConfig.Config);
 
+
 			string imgUrl = Upload(img, useImgur);
 
 			CliOutput.WriteInfo("Temporary image url: {0}", imgUrl);
@@ -100,13 +98,19 @@ namespace SmartImage.Searching
 
 			// Where the actual searching occurs
 
-			StartSearches(imgUrl, engines, ref res);
+			//StartSearches(imgUrl, engines, ref res);
+			var threads = StartSearchesMultithread(imgUrl, engines, ref res);
 
+			foreach (var thread in threads) {
+				thread.Start();
+			}
 
 			return true;
 		}
 
-		private static void StartSearches(string imgUrl, SearchEngines engines, ref SearchResult[] res)
+		
+
+		private static Thread[] StartSearchesMultithread(string imgUrl, SearchEngines engines, ref ConsoleOption[] res)
 		{
 			// todo: improve
 			// todo: use tasks
@@ -123,57 +127,39 @@ namespace SmartImage.Searching
 			i++;
 
 
-			foreach (var currentEngine in availableEngines) {
-				string wait = String.Format("{0}: ...", currentEngine.Engine);
+			var threads = new List<Thread>();
 
-				CliOutput.WithColor(ConsoleColor.Blue, () =>
+			foreach (var currentEngine in availableEngines)
+			{
+				var options = res;
+
+				int i1 = i;
+
+				ThreadStart ts = () =>
 				{
-					//
-					Console.Write(wait);
-				});
-
-				// Process time stopwatch
-				var sw = Stopwatch.StartNew();
-
-				// Run search
-				var result = currentEngine.GetResult(imgUrl);
-
-				sw.Stop();
-
-				if (result != null) {
-					string? url = result.Url;
-
-					var sb = new StringBuilder();
-					double t = sw.Elapsed.TotalSeconds;
-					sb.AppendFormat("{0}: Done ({1:F3} sec)\n", result.Name, t);
+					var result = currentEngine.GetResult(imgUrl);
+					options[i1] = result;
 
 
-					//todo
-
-					bool ok = url != null;
-
-					string sz = sb.ToString();
-
-
-					if (ok) {
-						CliOutput.OnCurrentLine(ConsoleColor.Green, sz);
-
-						// If the engine is priority, open its result in the browser
-						if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-							Network.OpenUrl(result.Url);
-						}
-					}
-					else {
-						CliOutput.OnCurrentLine(ConsoleColor.Yellow, sz);
+					// If the engine is priority, open its result in the browser
+					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine))
+					{
+						Network.OpenUrl(result.Url);
 					}
 
-					res[i] = result;
-				}
+					ConsoleIO.Status = ConsoleIO.STATUS_REFRESH;
 
-				// todo
+					
+				};
+				var t = new Thread(ts);
+				t.Priority = ThreadPriority.Highest;
+				t.Name = string.Format("thread - {0}", currentEngine.Name);
+				threads.Add(t);
 
 				i++;
 			}
+
+			return threads.ToArray();
 
 
 		}

@@ -50,7 +50,7 @@ namespace SmartImage
 			Console.OutputEncoding = Encoding.Unicode;
 			CliOutput.EnableVirtualTerminalProcessing();
 			Console.Clear();
-			
+
 			/*
 			 * Run search
 			 */
@@ -61,7 +61,7 @@ namespace SmartImage
 				SearchConfig.ReadSearchConfigArguments(args);
 
 				if (SearchConfig.Config.NoArguments) {
-					Commands.RunMainCommandMenu();
+					ConsoleIO.RunMainCommandMenu();
 					Console.Clear();
 				}
 
@@ -69,7 +69,7 @@ namespace SmartImage
 
 				var n = Enum.GetValues(typeof(SearchEngines)).Length;
 
-				var results = new SearchResult[n];
+				ConsoleOption[] results = new SearchResult[n];
 				var ok = Search.RunSearch(img, ref results);
 
 				if (!ok) {
@@ -77,10 +77,11 @@ namespace SmartImage
 					return;
 				}
 
-				Commands.HandleConsoleOptions(results);
+				ConsoleIO.HandleConsoleOptions(results);
 			}
 			catch (Exception exception) {
 
+#if !DEBUG
 				var cr = new CrashReport(exception);
 
 				Console.WriteLine(cr);
@@ -93,7 +94,9 @@ namespace SmartImage
 
 				Network.OpenUrl(RuntimeInfo.Issue);
 
-				Commands.WaitForInput();
+				ConsoleIO.WaitForInput();
+#endif
+
 			}
 			finally {
 				// Exit

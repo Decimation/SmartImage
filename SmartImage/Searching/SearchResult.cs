@@ -47,7 +47,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Image similarity
 		/// </summary>
-		public float? Similarity { get;  set; }
+		public float? Similarity { get; set; }
 
 		public int? Width { get; set; }
 		public int? Height { get; set; }
@@ -77,14 +77,14 @@ namespace SmartImage.Searching
 		public override Func<object?>? AltFunction { get; internal set; }
 
 
-
-		private SearchResult[] FromExtendedResult(IExtendedSearchResult[] results)
+		private SearchResult[] FromExtendedResult(IReadOnlyList<IExtendedSearchResult> results)
 		{
-			
-			var rg = new SearchResult[results.Length];
+
+			var rg = new SearchResult[results.Count];
 
 			for (int i = 0; i < rg.Length; i++) {
 				var result = results[i];
+
 				var sr = new SearchResult(Color, "Extended result", result.Url, result.Similarity)
 				{
 					Width = result.Width,
@@ -94,7 +94,6 @@ namespace SmartImage.Searching
 				rg[i] = sr;
 
 			}
-
 
 
 			return rg;
@@ -107,14 +106,14 @@ namespace SmartImage.Searching
 			//
 
 			ExtendedResults.AddRange(bestImages);
-			
+
 
 			AltFunction = () =>
 			{
 				var rg = FromExtendedResult(bestImages);
 
 
-				Commands.HandleConsoleOptions(rg);
+				ConsoleIO.HandleConsoleOptions(rg);
 
 				return null;
 
@@ -132,7 +131,7 @@ namespace SmartImage.Searching
 			var sb = new StringBuilder();
 
 			char success = Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN;
-			string altStr = AltFunction != null ? Commands.ALT_DENOTE : string.Empty;
+			string altStr = AltFunction != null ? ConsoleIO.ALT_DENOTE : string.Empty;
 
 			sb.AppendFormat("{0} {1}\n", success, altStr);
 
@@ -145,9 +144,8 @@ namespace SmartImage.Searching
 				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity / 100);
 			}
 
-			if (Width.HasValue && Height.HasValue)
-			{
-				sb.AppendFormat("\tResolution: {0}x{1}\n", Width,Height);
+			if (Width.HasValue && Height.HasValue) {
+				sb.AppendFormat("\tResolution: {0}x{1}\n", Width, Height);
 			}
 
 			foreach (string s in ExtendedInfo) {

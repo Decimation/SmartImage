@@ -63,7 +63,7 @@ namespace SmartImage.Shell
 			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
-				var values = Commands.HandleConsoleOptions(rgEnum, true);
+				var values = ConsoleIO.HandleConsoleOptions(rgEnum, true);
 
 				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
@@ -71,7 +71,7 @@ namespace SmartImage.Shell
 
 				SearchConfig.Config.SearchEngines = newValues;
 
-				Commands.WaitForInput();
+				ConsoleIO.WaitForInput();
 
 				return null;
 			},
@@ -84,7 +84,7 @@ namespace SmartImage.Shell
 			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
-				var values = Commands.HandleConsoleOptions(rgEnum, true);
+				var values = ConsoleIO.HandleConsoleOptions(rgEnum, true);
 
 				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
@@ -92,7 +92,7 @@ namespace SmartImage.Shell
 
 				SearchConfig.Config.PriorityEngines = newValues;
 
-				Commands.WaitForSecond();
+				ConsoleIO.WaitForSecond();
 
 				return null;
 			}
@@ -104,9 +104,9 @@ namespace SmartImage.Shell
 			Name = "Configure SauceNao API authentication",
 			Function = () =>
 			{
-				SearchConfig.Config.SauceNaoAuth = Commands.GetInput("API key");
+				SearchConfig.Config.SauceNaoAuth = ConsoleIO.GetInput("API key");
 
-				Commands.WaitForSecond();
+				ConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -117,9 +117,9 @@ namespace SmartImage.Shell
 			Function = () =>
 			{
 
-				SearchConfig.Config.ImgurAuth = Commands.GetInput("API key");
+				SearchConfig.Config.ImgurAuth = ConsoleIO.GetInput("API key");
 
-				Commands.WaitForSecond();
+				ConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -131,7 +131,7 @@ namespace SmartImage.Shell
 			{
 				SearchConfig.Config.WriteToFile();
 
-				Commands.WaitForSecond();
+				ConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -152,7 +152,7 @@ namespace SmartImage.Shell
 					CliOutput.WriteSuccess("Removed from context menu");
 				}
 
-				Commands.WaitForSecond();
+				ConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -164,7 +164,7 @@ namespace SmartImage.Shell
 			{
 				RuntimeInfo.ShowInfo();
 
-				Commands.WaitForInput();
+				ConsoleIO.WaitForInput();
 				return null;
 			}
 		};
@@ -190,7 +190,7 @@ namespace SmartImage.Shell
 					CliOutput.WriteSuccess("{0}", v.Status);
 				}
 
-				Commands.WaitForSecond();
+				ConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -202,7 +202,7 @@ namespace SmartImage.Shell
 			{
 				Integration.ResetIntegrations();
 
-				Commands.WaitForSecond();
+				ConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -215,7 +215,7 @@ namespace SmartImage.Shell
 			{
 				Integration.RemoveOldRegistry();
 
-				Commands.WaitForInput();
+				ConsoleIO.WaitForInput();
 
 				return null;
 			}
@@ -265,6 +265,7 @@ namespace SmartImage.Shell
 
 				SearchConfig.Config.Image = img;
 				SearchConfig.Config.PriorityEngines = SearchEngines.None;
+				//SearchConfig.Config.ImgurAuth = "6c97880bf8754c5";
 				//SearchConfig.Config.SearchEngines &= ~SearchEngines.TraceMoe;
 
 

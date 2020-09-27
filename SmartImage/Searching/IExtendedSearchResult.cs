@@ -22,13 +22,7 @@ namespace SmartImage.Searching
 		public int? Height { get;  set; }
 
 
-		public int? FullResolution
-		{
-			get
-			{
-				return Width * Height;
-			}
-		}
+		public int? FullResolution => Width * Height;
 
 		public string? Caption { get;  set; }
 	}
