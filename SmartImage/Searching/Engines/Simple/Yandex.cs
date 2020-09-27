@@ -122,16 +122,13 @@ namespace SmartImage.Searching.Engines.Simple
 
 				// Get more info from Yandex
 
-
 				var html = Network.GetString(raw);
-				
 				var doc = new HtmlDocument();
 				doc.LoadHtml(html);
 
 				/*
 				 * Parse what the image looks like
 				 */
-
 
 				var looksLike = GetYandexAnalysis(doc);
 				sr.ExtendedInfo.Add(looksLike);
