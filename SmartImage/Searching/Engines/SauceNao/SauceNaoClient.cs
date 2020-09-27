@@ -153,6 +153,8 @@ namespace SmartImage.Searching.Engines.SauceNao
 			return new SearchResult(this, null);
 		}
 
+		// todo: IExtendedSearchResult
+
 		private readonly struct SauceNaoSimpleResult
 		{
 			public string Title { get; }
@@ -186,7 +188,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 			return i;
 
 		}
-		
+
 		// TODO: organize like Yandex
 
 
@@ -196,10 +198,8 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 			var images = new List<SauceNaoSimpleResult>();
 
-			foreach (var result in results)
-			{
-				if (result.GetAttributeValue("id", string.Empty) == "result-hidden-notification")
-				{
+			foreach (var result in results) {
+				if (result.GetAttributeValue("id", string.Empty) == "result-hidden-notification") {
 					continue;
 				}
 
@@ -232,7 +232,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 				var title = FindCreator(resultcontent);
 				var similarity = float.Parse(resultsimilarityinfo.InnerText.Replace("%", String.Empty));
-				
+
 
 				var i = new SauceNaoSimpleResult(title, link, similarity);
 				images.Add(i);
@@ -243,22 +243,21 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		private SearchResult GetBestResultWithoutApi(string url)
 		{
-			
+
 
 			SearchResult? sr = null;
 
 			var resUrl = BASIC_RESULT + url;
 
 
-			var sz = Network.GetString(resUrl);
-			var doc = new HtmlDocument();
-			doc.LoadHtml(sz);
-
 			try {
-				
+				var sz = Network.GetString(resUrl);
+				var doc = new HtmlDocument();
+				doc.LoadHtml(sz);
+
 				var img = ParseResults(doc);
 
-				var best = img.OrderByDescending(i=>i.Similarity).First(i => i.Url!=null);
+				var best = img.OrderByDescending(i => i.Similarity).First(i => i.Url != null);
 
 				sr = new SearchResult(this, best.Url, best.Similarity);
 				sr.ExtendedInfo.Add(best.Title);

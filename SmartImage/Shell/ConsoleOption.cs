@@ -21,7 +21,7 @@ namespace SmartImage.Shell
 		/// </summary>
 		public static readonly ConsoleOption Wait = new ConsoleOption()
 		{
-			Name = "Wait",
+			Name =  "Wait",
 
 			Color = ConsoleColor.Yellow,
 

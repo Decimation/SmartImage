@@ -14,6 +14,9 @@ using SmartImage.Utilities;
 
 namespace SmartImage.Searching
 {
+	/// <summary>
+	/// Searching client
+	/// </summary>
 	public class SearchClient : IDisposable
 	{
 		/// <summary>
@@ -36,7 +39,7 @@ namespace SmartImage.Searching
 
 		public SearchClient(string img)
 		{
-			
+
 
 			string auth = SearchConfig.Config.ImgurAuth;
 			bool useImgur = !String.IsNullOrWhiteSpace(auth);
@@ -55,7 +58,7 @@ namespace SmartImage.Searching
 
 			m_imgUrl = Upload(img, useImgur);
 
-			
+
 			m_threads = CreateSearchThreads();
 		}
 
@@ -86,7 +89,7 @@ namespace SmartImage.Searching
 		private Thread[] CreateSearchThreads()
 		{
 			// todo: improve
-			
+
 
 			var availableEngines = GetAllEngines()
 				.Where(e => m_engines.HasFlag(e.Engine))

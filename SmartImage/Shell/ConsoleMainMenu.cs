@@ -223,20 +223,6 @@ namespace SmartImage.Shell
 			}
 		};
 
-
-		private static readonly ConsoleOption LegacyCleanupOption = new ConsoleOption()
-		{
-			Name = "Legacy cleanup",
-			Function = () =>
-			{
-				Integration.RemoveOldRegistry();
-
-				ConsoleIO.WaitForInput();
-
-				return null;
-			}
-		};
-
 		private static readonly ConsoleOption UninstallOption = new ConsoleOption()
 		{
 			Name = "Uninstall",

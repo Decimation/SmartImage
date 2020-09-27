@@ -30,25 +30,26 @@ namespace SmartImage
 				case IntegrationOption.Add:
 					string fullPath = RuntimeInfo.ExeLocation;
 
-					if (!RuntimeInfo.IsExeInAppFolder) {
-						bool v = CliOutput.ReadConfirm("Could not find exe in system path. Add now?");
+					// Add command and icon to command
+					string[] commandCode =
+					{
+						"@echo off",
+						$"reg.exe add {REG_SHELL_CMD} /ve /d \"{fullPath} \"\"%%1\"\"\" /f >nul",
+						$"reg.exe add {REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
+					};
 
-						if (v) {
-							Setup();
-							return;
-						}
-					}
-
-
-					RegistrySubKey.SetValue("Icon", fullPath);
-
-					var cmd = RegistrySubKey.CreateSubKey("command");
-					cmd.SetValue(null, String.Format("\"{0}\" \"%1\"", fullPath));
+					Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
 
 					break;
 				case IntegrationOption.Remove:
 
-					Registry.CurrentUser.DeleteSubKeyTree(REG_HKCU_SHELL_SMARTIMAGE);
+					string[] code =
+					{
+						"@echo off",
+						$@"reg.exe delete {REG_SHELL} /f >nul"
+					};
+
+					Cli.CreateRunBatchFile("rem_from_menu.bat", code);
 
 					break;
 				default:
@@ -88,53 +89,6 @@ namespace SmartImage
 			}
 		}
 
-		/// <summary>
-		/// Remove old legacy registry integrations
-		/// </summary>
-		internal static void RemoveOldRegistry()
-		{
-			const string REG_SHELL_LEGACY = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
-
-			const string REG_SHELL_CMD_LEGACY = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
-
-			bool added = IsAdded();
-
-			if (added) {
-				Remove();
-			}
-			else {
-				return;
-			}
-
-			bool success = !IsAdded();
-
-
-			static void Remove()
-			{
-				string[] code =
-				{
-					"@echo off",
-					$@"reg.exe delete {REG_SHELL_LEGACY} /f >nul"
-				};
-
-				Cli.CreateRunBatchFile("rem_from_menu.bat", code);
-			}
-
-			static bool IsAdded()
-			{
-				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD_LEGACY);
-				var cmd = Cli.Shell(cmdStr, true);
-
-				string[] stdOut = Cli.ReadAllLines(cmd.StandardOutput);
-
-				bool b = stdOut.Any(s => s.Contains(RuntimeInfo.NAME));
-				return b;
-			}
-
-			if (!success) {
-				throw new SmartImageException();
-			}
-		}
 
 		internal static void ResetIntegrations()
 		{
@@ -182,23 +136,27 @@ namespace SmartImage
 
 			File.WriteAllText(dir, commands.QuickJoin("\n"));
 
-			
+
 			// Runs in background
 			Process.Start(dir);
 		}
 
-		private const string REG_HKCU_SHELL_ROOT = @"Software\Classes\*\shell\";
+		private const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
 
-		private const string REG_HKCU_SHELL_SMARTIMAGE = REG_HKCU_SHELL_ROOT + @"SmartImage\";
+		private const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
 
-		internal static RegistryKey RegistrySubKey => Registry.CurrentUser.CreateSubKey(REG_HKCU_SHELL_SMARTIMAGE);
 
 		internal static bool IsContextMenuAdded
 		{
 			get
 			{
-				var shell = Registry.CurrentUser.OpenSubKey(REG_HKCU_SHELL_ROOT)!;
-				return shell.GetSubKeyNames().Contains(RuntimeInfo.NAME);
+				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
+				var cmd = Cli.Shell(cmdStr, true);
+
+				string[] stdOut = Cli.ReadAllLines(cmd.StandardOutput);
+
+				bool b = stdOut.Any(s => s.Contains(RuntimeInfo.NAME));
+				return b;
 			}
 		}
 

@@ -84,10 +84,10 @@ namespace SmartImage
 				// 	return;
 				// }
 
-				using var s = new SearchClient(img);
-				s.Start();
+				using var searchClient = new SearchClient(img);
+				searchClient.Start();
 				
-				ConsoleIO.HandleOptions(s.Results);
+				ConsoleIO.HandleOptions(searchClient.Results);
 			}
 			catch (Exception exception) {
 
