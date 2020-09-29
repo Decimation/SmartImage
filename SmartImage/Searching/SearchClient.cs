@@ -29,48 +29,63 @@ namespace SmartImage.Searching
 
 		private readonly SearchEngines m_engines;
 
-		private readonly string m_img;
-
 		private readonly string m_imgUrl;
 
-		private ConsoleOption[] m_results;
+		private SearchResult[] m_results;
 
 		private readonly Thread[] m_threads;
 
 		public SearchClient(string img)
 		{
-
-
 			string auth = SearchConfig.Config.ImgurAuth;
 			bool useImgur = !String.IsNullOrWhiteSpace(auth);
 
 			var engines = SearchConfig.Config.SearchEngines;
-			//var priority = SearchConfig.Config.PriorityEngines;
 
 			if (engines == SearchEngines.None) {
-				//todo
-				//CliOutput.WriteError("Please configure search engine preferences!");
 				engines = SearchConfig.ENGINES_DEFAULT;
 			}
 
 			m_engines = engines;
-
-
 			m_imgUrl = Upload(img, useImgur);
-
-
 			m_threads = CreateSearchThreads();
 		}
 
-		public ref ConsoleOption[] Results => ref m_results;
+		private static BaseSauceNaoClient GetSauceNaoClient()
+		{
+			// SauceNao API works without API key
+
+			// bool apiConfigured = !string.IsNullOrWhiteSpace(SearchConfig.Config.SauceNaoAuth);
+			//
+			// if (apiConfigured) {
+			// 	return new FullSauceNaoClient();
+			// }
+			// else {
+			// 	return new AltSauceNaoClient();
+			// }
+
+			return new FullSauceNaoClient();
+
+		}
+
+		/// <summary>
+		/// Search results
+		/// </summary>
+		public ref SearchResult[] Results => ref m_results;
 
 		public void Dispose()
 		{
-			foreach (var thread in m_threads) {
-				thread.Join();
-			}
+			// Joining each thread isn't necessary as this object is disposed upon program exit
+			// Background threads won't prevent program termination
+
+			// foreach (var thread in m_threads) {
+			// 	thread.Join();
+			// }
 		}
 
+		/// <summary>
+		/// Starts search
+		/// </summary>
 		public void Start()
 		{
 			// Display config
@@ -97,7 +112,7 @@ namespace SmartImage.Searching
 
 			int i = 0;
 
-			m_results = new ConsoleOption[availableEngines.Length + 1];
+			m_results = new SearchResult[availableEngines.Length + 1];
 			m_results[i] = new SearchResult(ConsoleColor.Gray, "(Original image)", m_imgUrl);
 
 			i++;
@@ -110,7 +125,7 @@ namespace SmartImage.Searching
 				var resultsCopy = m_results;
 				int iCopy = i;
 
-				ThreadStart threadFunction = () =>
+				void RunSearchThread()
 				{
 					var result = currentEngine.GetResult(m_imgUrl);
 					resultsCopy[iCopy] = result;
@@ -121,11 +136,12 @@ namespace SmartImage.Searching
 					}
 
 					ConsoleIO.Status = ConsoleIO.STATUS_REFRESH;
-				};
+				}
 
-				var t = new Thread(threadFunction)
+				var t = new Thread((ThreadStart) RunSearchThread)
 				{
-					Priority = ThreadPriority.Highest
+					Priority = ThreadPriority.Highest,
+					IsBackground = true
 				};
 
 				threads.Add(t);
@@ -138,19 +154,22 @@ namespace SmartImage.Searching
 
 		}
 
-		private static ISearchEngine[] GetAllEngines()
+		private static IEnumerable<ISearchEngine> GetAllEngines()
 		{
 			var engines = new ISearchEngine[]
 			{
-				new SauceNaoClient(),
+				//
+				GetSauceNaoClient(),
+				new IqdbClient(),
+				new YandexClient(),
+				new TraceMoeClient(),
+
+				//
 				new ImgOpsClient(),
 				new GoogleImagesClient(),
 				new TinEyeClient(),
-				new IqdbClient(),
 				new BingClient(),
-				new YandexClient(),
 				new KarmaDecayClient(),
-				new TraceMoeClient()
 			};
 
 			return engines;

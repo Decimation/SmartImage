@@ -32,12 +32,6 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
-		// todo: further improve UI; use Terminal.Gui possibly
-
-		// todo: remove SmartImage nuget package stuff
-
-		// todo: fix access modifiers
-
 		/**
 		 * Entry point
 		 */
@@ -70,23 +64,17 @@ namespace SmartImage
 				string img = SearchConfig.Config.Image;
 
 				// Run checks
-				if (!SearchClient.IsFileValid(img))
-				{
+				if (!SearchClient.IsFileValid(img)) {
 					return;
 				}
 
-				// var n = Enum.GetValues(typeof(SearchEngines)).Length;
-				// ConsoleOption[] results = new SearchResult[n];
-				// var ok = Search.RunSearch(img, ref results);
-				//
-				// if (!ok) {
-				// 	CliOutput.WriteError("Search failed or aborted");
-				// 	return;
-				// }
+				// Run search
 
 				using var searchClient = new SearchClient(img);
 				searchClient.Start();
-				
+
+				// Show results
+
 				ConsoleIO.HandleOptions(searchClient.Results);
 			}
 			catch (Exception exception) {

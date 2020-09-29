@@ -9,7 +9,7 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.TraceMoe
 {
-	public sealed class TraceMoeClient : SimpleSearchEngine
+	public sealed class TraceMoeClient : BasicSearchEngine
 	{
 		public TraceMoeClient() : base("https://trace.moe/?url=") { }
 
@@ -61,6 +61,6 @@ namespace SmartImage.Searching.Engines.TraceMoe
 			return r;
 		}
 
-		public override ConsoleColor Color => ConsoleColor.Blue;
+		public override ConsoleColor Color => ConsoleColor.Cyan;
 	}
 }

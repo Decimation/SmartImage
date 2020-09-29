@@ -7,7 +7,7 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class GoogleImagesClient : SimpleSearchEngine
+	public sealed class GoogleImagesClient : BasicSearchEngine
 	{
 		public GoogleImagesClient() : base("http://images.google.com/searchbyimage?image_url=") { }
 
@@ -15,6 +15,6 @@ namespace SmartImage.Searching.Engines.Simple
 
 		public override SearchEngines Engine => SearchEngines.GoogleImages;
 
-		public override ConsoleColor Color => ConsoleColor.DarkBlue;
+		public override ConsoleColor Color => ConsoleColor.DarkGray;
 	}
 }

@@ -7,7 +7,7 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class KarmaDecayClient : SimpleSearchEngine
+	public sealed class KarmaDecayClient : BasicSearchEngine
 	{
 		public KarmaDecayClient() : base("http://karmadecay.com/search/?q=") { }
 

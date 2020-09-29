@@ -20,7 +20,7 @@ using SmartImage.Utilities;
 namespace SmartImage.Shell
 {
 	/// <summary>
-	/// Program functionality, IO, console interaction
+	/// Program functionality, IO, console interaction, console UI
 	/// </summary>
 	internal static class ConsoleIO
 	{
@@ -52,7 +52,7 @@ namespace SmartImage.Shell
 			Thread.Sleep(TimeSpan.FromSeconds(1));
 		}
 
-		private static char ToDisplayOption(int i)
+		private static char GetDisplayOptionFromIndex(int i)
 		{
 			if (i < MAX_OPTION_N) {
 				return Char.Parse(i.ToString());
@@ -63,7 +63,7 @@ namespace SmartImage.Shell
 			return (char) d;
 		}
 
-		private static int FromDisplayOption(char c)
+		private static int GetIndexFromDisplayOption(char c)
 		{
 			if (Char.IsNumber(c)) {
 				int idx = (int) Char.GetNumericValue(c);
@@ -83,7 +83,7 @@ namespace SmartImage.Shell
 		private static string FormatOption(ConsoleOption option, int i)
 		{
 			var sb = new StringBuilder();
-			char c = ToDisplayOption(i);
+			char c = GetDisplayOptionFromIndex(i);
 
 			//todo
 
@@ -109,19 +109,32 @@ namespace SmartImage.Shell
 		private const int INVALID = -1;
 
 
-		// Escape -> quit
+		/// <summary>
+		/// Escape -> quit
+		/// </summary>
 		private const ConsoleKey ESC_EXIT = ConsoleKey.Escape;
 
-		// Alt modifier -> View extra info
+		/// <summary>
+		/// Alt modifier -> View extra info
+		/// </summary>
 		private const ConsoleModifiers ALT_EXTRA = ConsoleModifiers.Alt;
 
 
 		// todo
 
+		/// <summary>
+		/// Signals to continue displaying current interface
+		/// </summary>
 		internal const int STATUS_OK = 0;
 
+		/// <summary>
+		/// Signals to reload interface
+		/// </summary>
 		internal const int STATUS_REFRESH = 1;
 
+		/// <summary>
+		/// Interface status
+		/// </summary>
 		internal static int Status;
 
 		/// <summary>
@@ -129,7 +142,7 @@ namespace SmartImage.Shell
 		/// </summary>
 		/// <param name="options">Array of <see cref="ConsoleOption" /></param>
 		/// <param name="selectMultiple">Whether to return selected options as a <see cref="HashSet{T}"/></param>
-		internal static HashSet<object> HandleOptions(ConsoleOption[] options, bool selectMultiple = false)
+		internal static HashSet<object> HandleOptions(IEnumerable<ConsoleOption> options, bool selectMultiple = false)
 		{
 			var i = new ConsoleInterface(options, null, selectMultiple);
 
@@ -146,7 +159,7 @@ namespace SmartImage.Shell
 
 			var selectedOptions = new HashSet<object>();
 
-			void DisplayOptions()
+			void DisplayInterface()
 			{
 				CliOutput.WithColor(ConsoleColor.DarkRed, () =>
 				{
@@ -154,8 +167,8 @@ namespace SmartImage.Shell
 					Console.WriteLine(RuntimeInfo.NAME_BANNER);
 				});
 
-
-				for (int i = 0; i < io.Options.Length; i++) {
+				
+				for (int i = 0; i < io.Length; i++) {
 					var option = io[i];
 
 					var s = FormatOption(option, i);
@@ -204,7 +217,7 @@ namespace SmartImage.Shell
 				Console.Clear();
 
 
-				DisplayOptions();
+				DisplayInterface();
 
 				while (!Console.KeyAvailable) {
 					// Block until input is entered.
@@ -212,21 +225,23 @@ namespace SmartImage.Shell
 					//
 					if (Interlocked.Exchange(ref Status, STATUS_OK) == STATUS_REFRESH) {
 						Console.Clear();
-						DisplayOptions();
+						DisplayInterface();
 					}
 				}
 
 
 				// Key was read
-
+				
 				cki = Console.ReadKey(true);
 				char keyChar = cki.KeyChar;
 				var modifiers = cki.Modifiers;
-				bool altModifier = (modifiers & ConsoleModifiers.Alt) != 0;
+				bool altModifier = (modifiers & ALT_EXTRA) != 0;
 
-				int idx = FromDisplayOption(keyChar);
+				// Handle option
 
-				if (idx < io.Options.Length && idx >= 0) {
+				int idx = GetIndexFromDisplayOption(keyChar);
+
+				if (idx < io.Length && idx >= 0) {
 
 					var option = io[idx];
 

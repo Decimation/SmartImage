@@ -6,11 +6,11 @@ using System;
 
 namespace SmartImage.Searching.Model
 {
-	public abstract class SimpleSearchEngine : ISearchEngine
+	public abstract class BasicSearchEngine : ISearchEngine
 	{
 		protected readonly string BaseUrl;
 
-		protected SimpleSearchEngine(string baseUrl)
+		protected BasicSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
 		}

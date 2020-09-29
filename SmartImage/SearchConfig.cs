@@ -97,7 +97,7 @@ namespace SmartImage
 		public string ImgurAuth { get; set; }
 
 		/// <summary>
-		/// <see cref="SauceNaoClient"/> API key
+		/// <see cref="FullSauceNaoClient"/> API key
 		/// </summary>
 		public string SauceNaoAuth { get; set; }
 

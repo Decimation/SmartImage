@@ -7,7 +7,7 @@ using SmartImage.Searching.Model;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class TinEyeClient : SimpleSearchEngine
+	public sealed class TinEyeClient : BasicSearchEngine
 	{
 		public TinEyeClient() : base("https://www.tineye.com/search?url=") { }
 

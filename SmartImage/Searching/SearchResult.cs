@@ -12,7 +12,7 @@ namespace SmartImage.Searching
 	/// <summary>
 	///     Contains search result and information
 	/// </summary>
-	public sealed class SearchResult : ConsoleOption, IExtendedSearchResult
+	public sealed class SearchResult : ConsoleOption, ISearchResult
 	{
 		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
@@ -25,7 +25,7 @@ namespace SmartImage.Searching
 
 			Similarity = similarity;
 			ExtendedInfo = new List<string>();
-			ExtendedResults = new List<IExtendedSearchResult>();
+			ExtendedResults = new List<ISearchResult>();
 		}
 
 		public override ConsoleColor Color { get; internal set; }
@@ -34,17 +34,26 @@ namespace SmartImage.Searching
 
 		public override string? Data => Format();
 
+		/// <summary>
+		/// Result name
+		/// </summary>
 		public override string Name { get; internal set; }
 
 		public bool Success => Url != null;
 
+		/// <summary>
+		/// Extended information about results
+		/// </summary>
 		public List<string> ExtendedInfo { get; }
 
 		/// <summary>
 		///     Direct source matches, other extended results
 		/// </summary>
-		public List<IExtendedSearchResult> ExtendedResults { get; }
+		public List<ISearchResult> ExtendedResults { get; }
 
+		/// <summary>
+		/// Opens result in browser
+		/// </summary>
 		public override Func<object?> Function
 		{
 			get
@@ -71,19 +80,21 @@ namespace SmartImage.Searching
 		public float? Similarity { get; set; }
 
 		public int? Width { get; set; }
+
 		public int? Height { get; set; }
+
 		public string? Caption { get; set; }
 
 
-		private SearchResult[] FromExtendedResult(IReadOnlyList<IExtendedSearchResult> results)
+		private IEnumerable<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
-
 			var rg = new SearchResult[results.Count];
 
 			for (int i = 0; i < rg.Length; i++) {
 				var result = results[i];
+				var name = String.Format("Extended result #{0}", i);
 
-				var sr = new SearchResult(Color, "Extended result", result.Url, result.Similarity)
+				var sr = new SearchResult(Color, name, result.Url, result.Similarity)
 				{
 					Width = result.Width,
 					Height = result.Height,
@@ -97,14 +108,11 @@ namespace SmartImage.Searching
 			return rg;
 		}
 
-		public void AddExtendedInfo(IExtendedSearchResult[] bestImages)
+		public void AddExtendedInfo(ISearchResult[] bestImages)
 		{
 			// todo?
 
-			//
-
 			ExtendedResults.AddRange(bestImages);
-
 
 			AltFunction = () =>
 			{
@@ -129,12 +137,11 @@ namespace SmartImage.Searching
 			var sb = new StringBuilder();
 
 			char success = Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN;
-			string altStr = AltFunction != null ? ConsoleIO.ALT_DENOTE : String.Empty;
+			string altStr = ExtendedResults.Count > 0 ? ConsoleIO.ALT_DENOTE : string.Empty;
 
 			sb.AppendFormat("{0} {1}\n", success, altStr);
 
 			if (Success) {
-
 				sb.AppendFormat("\tResult: {0}\n", Url);
 			}
 

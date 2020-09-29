@@ -10,7 +10,7 @@ using SmartImage.Utilities;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class ImgOpsClient : SimpleSearchEngine
+	public sealed class ImgOpsClient : BasicSearchEngine
 	{
 		public ImgOpsClient() : base("http://imgops.com/") { }
 

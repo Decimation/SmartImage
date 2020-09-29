@@ -15,7 +15,7 @@ using SmartImage.Utilities;
 #nullable enable
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class YandexClient : SimpleSearchEngine
+	public sealed class YandexClient : BasicSearchEngine
 	{
 		public YandexClient() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
@@ -23,7 +23,7 @@ namespace SmartImage.Searching.Engines.Simple
 
 		public override string Name => "Yandex";
 
-		private struct YandexResult : IExtendedSearchResult
+		private struct YandexResult : ISearchResult
 		{
 			public float? Similarity { get; set; }
 
@@ -47,13 +47,13 @@ namespace SmartImage.Searching.Engines.Simple
 			public override string ToString()
 			{
 				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Url,
-					((IExtendedSearchResult) this).FullResolution);
+					((ISearchResult) this).FullResolution);
 			}
 		}
 
 		private const int TOTAL_RES_MIN = 500_000;
 
-		private static IExtendedSearchResult[] FilterAndSelectBestImages(List<IExtendedSearchResult> rg)
+		private static ISearchResult[] FilterAndSelectBestImages(List<ISearchResult> rg)
 		{
 			const int TAKE_N = 5;
 
@@ -82,7 +82,7 @@ namespace SmartImage.Searching.Engines.Simple
 			return looksLike;
 		}
 
-		private static List<IExtendedSearchResult> GetYandexImages(HtmlDocument doc)
+		private static List<ISearchResult> GetYandexImages(HtmlDocument doc)
 		{
 			var tagsItem = doc.DocumentNode.SelectNodes("//a[contains(@class, 'Tags-Item')]");
 
@@ -90,7 +90,7 @@ namespace SmartImage.Searching.Engines.Simple
 				!sx.ParentNode.ParentNode.Attributes["class"].Value.Contains("CbirItem"));
 
 
-			var images = new List<IExtendedSearchResult>();
+			var images = new List<ISearchResult>();
 
 			foreach (var siz in sizeTags) {
 				var link = siz.Attributes["href"].Value;
@@ -148,7 +148,7 @@ namespace SmartImage.Searching.Engines.Simple
 
 				var images = GetYandexImages(doc);
 
-				IExtendedSearchResult[] bestImages = FilterAndSelectBestImages(images);
+				ISearchResult[] bestImages = FilterAndSelectBestImages(images);
 
 				//
 

@@ -14,7 +14,7 @@ using SmartImage.Utilities;
 
 namespace SmartImage.Searching.Engines.Simple
 {
-	public sealed class IqdbClient : SimpleSearchEngine
+	public sealed class IqdbClient : BasicSearchEngine
 	{
 		public IqdbClient() : base("https://iqdb.org/?url=") { }
 
@@ -23,7 +23,7 @@ namespace SmartImage.Searching.Engines.Simple
 
 		public override SearchEngines Engine => SearchEngines.Iqdb;
 
-		private struct IqdbResult : IExtendedSearchResult
+		private struct IqdbResult : ISearchResult
 		{
 			[CanBeNull]
 			public string Caption { get; set; }
@@ -122,7 +122,7 @@ namespace SmartImage.Searching.Engines.Simple
 				var pages = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
 				var tables = pages.SelectNodes("div/table");
 
-				var images = new List<IExtendedSearchResult>();
+				var images = new List<ISearchResult>();
 
 				foreach (var table in tables) {
 
@@ -144,6 +144,8 @@ namespace SmartImage.Searching.Engines.Simple
 			}
 			catch (Exception) {
 				// ...
+
+				sr.ExtendedInfo.Add("Error parsing");
 			}
 
 			return sr;
