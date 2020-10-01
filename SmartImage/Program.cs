@@ -16,8 +16,6 @@ using SmartImage.Searching;
 using SimpleCore;
 using SimpleCore.CommandLine;
 using SimpleCore.Utilities;
-
-using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #endregion
@@ -47,6 +45,8 @@ namespace SmartImage
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
 
+			ConsoleInterface.DefaultName = RuntimeInfo.NAME_BANNER;
+
 			/*
 			 * Run search
 			 */
@@ -57,7 +57,7 @@ namespace SmartImage
 				SearchConfig.ReadSearchConfigArguments(args);
 
 				if (SearchConfig.Config.NoArguments) {
-					ConsoleMainMenu.RunMainMenu();
+					ConsoleMainMenu.Run();
 					Console.Clear();
 				}
 
@@ -75,7 +75,7 @@ namespace SmartImage
 
 				// Show results
 
-				ConsoleIO.HandleOptions(searchClient.Results);
+				NConsole.IO.HandleOptions(searchClient.Results);
 			}
 			catch (Exception exception) {
 
@@ -92,7 +92,7 @@ namespace SmartImage
 
 				Network.OpenUrl(RuntimeInfo.Issue);
 
-				ConsoleIO.WaitForInput();
+				NConsole.IO.WaitForInput();
 #else
 				Console.WriteLine(exception);
 #endif

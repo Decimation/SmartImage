@@ -9,75 +9,7 @@ namespace SmartImage.Utilities
 	// todo
 	internal static class Common
 	{
-		// todo
-
-
-		internal static string SelectOnlyDigits(this string s)
-		{
-			string r = string.Empty;
-
-			for (int i = 0; i < s.Length; i++) {
-				if (char.IsDigit(s[i])) {
-					r += s[i];
-				}
-			}
-
-			return r;
-
-		}
-
-		private static readonly Random Random = new Random();
-
-		internal static T GetRandomElement<T>(T[] rg)
-		{
-			var i = Random.Next(0, rg.Length);
-			return rg[i];
-		}
-
-		internal static T Read<T>(string rawValue)
-		{
-			if (typeof(T).IsEnum) {
-				Enum.TryParse(typeof(T), (string) rawValue, out var e);
-				return (T) e;
-			}
-
-			if (typeof(T) == typeof(bool)) {
-				Boolean.TryParse(rawValue, out var b);
-				return (T) (object) b;
-			}
-
-			return (T) (object) rawValue;
-		}
-
-		internal static string CreateSeparator(string s)
-		{
-			var sx= new string('-', 10);
-			return sx + s + sx;
-
-		}
-
-		internal static string CleanString(string s)
-		{
-			s = s.Replace("\"", String.Empty);
-
-			return s;
-		}
-
-		internal static string QuickJoin<T>(this IEnumerable<T> enumerable, string delim = ", ") => String.Join(delim, enumerable);
-
-		internal static TEnum ReadEnumFromSet<TEnum>(ISet<object> set) where TEnum : Enum
-		{
-			var t = typeof(TEnum);
-
-			if (t.GetCustomAttribute<FlagsAttribute>() != null) {
-
-				var sz = QuickJoin(set);
-				Enum.TryParse(typeof(TEnum), (string) sz, out var e);
-				return (TEnum) e;
-			}
-
-			return default;
-		}
+		
 
 		public static void WriteMap(IDictionary<string, string> d, string filename)
 		{

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SimpleCore.Utilities;
 
 namespace SmartImage.Utilities
 {
@@ -18,7 +19,7 @@ namespace SmartImage.Utilities
 		{
 			var sb =new StringBuilder();
 
-			sb.AppendLine(Common.CreateSeparator("Exception"));
+			sb.AppendLine(Strings.CreateSeparator("Exception"));
 
 			sb.AppendFormat("Exception message: {0}\n", m_exception.Message);
 			sb.AppendFormat("Exception stack trace: {0}\n", m_exception.StackTrace);
@@ -27,7 +28,7 @@ namespace SmartImage.Utilities
 			sb.AppendFormat("Site: {0}\n", m_exception.TargetSite);
 
 			sb.AppendLine();
-			sb.AppendLine(Common.CreateSeparator("Config"));
+			sb.AppendLine(Strings.CreateSeparator("Config"));
 
 			try {
 				sb.AppendLine(SearchConfig.Config.Dump());
@@ -37,7 +38,7 @@ namespace SmartImage.Utilities
 				
 			}
 
-			sb.AppendLine(Common.CreateSeparator("Program Info"));
+			sb.AppendLine(Strings.CreateSeparator("Program Info"));
 			var versionsInfo = UpdateInfo.CheckForUpdates();
 			sb.AppendFormat("Version: {0}", versionsInfo.Current);
 

@@ -225,7 +225,7 @@ namespace SmartImage
 				rawValue = ReadMapKeyValue<string>(name, cfg);
 			}
 
-			var parse = Common.Read<T>(rawValue);
+			var parse = Enums.Read<T>(rawValue);
 			return parse;
 		}
 
@@ -269,12 +269,12 @@ namespace SmartImage
 					case "--search-engines":
 						argEnumerator.MoveNext();
 						string sestr = argEnumerator.Current;
-						Config.SearchEngines = Common.Read<SearchEngines>(sestr);
+						Config.SearchEngines = Enums.Read<SearchEngines>(sestr);
 						break;
 					case "--priority-engines":
 						argEnumerator.MoveNext();
 						string pestr = argEnumerator.Current;
-						Config.PriorityEngines = Common.Read<SearchEngines>(pestr);
+						Config.PriorityEngines = Enums.Read<SearchEngines>(pestr);
 						break;
 					case "--saucenao-auth":
 						argEnumerator.MoveNext();

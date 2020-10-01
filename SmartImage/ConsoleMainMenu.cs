@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using HtmlAgilityPack;
 using JetBrains.Annotations;
 using SimpleCore.CommandLine;
-
+using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
 #pragma warning disable IDE0052
 
 
-namespace SmartImage.Shell
+namespace SmartImage
 {
 	/// <summary>
 	/// Contains <see cref="ConsoleInterface"/> and <see cref="ConsoleOption"/> for the main menu
@@ -46,7 +43,7 @@ namespace SmartImage.Shell
 		/// <summary>
 		/// Main menu console interface
 		/// </summary>
-		internal static ConsoleInterface MainInterface => new ConsoleInterface(AllOptions, RuntimeInfo.NAME_BANNER, false);
+		internal static ConsoleInterface Interface => new ConsoleInterface(AllOptions, RuntimeInfo.NAME_BANNER, false);
 
 		/// <summary>
 		///     Runs when no arguments are given (and when the executable is double-clicked)
@@ -54,7 +51,7 @@ namespace SmartImage.Shell
 		/// <remarks>
 		///     More user-friendly menu
 		/// </remarks>
-		internal static void RunMainMenu() => ConsoleIO.HandleOptions(ConsoleMainMenu.MainInterface);
+		internal static void Run() => NConsole.IO.HandleOptions(ConsoleMainMenu.Interface);
 
 		private static readonly ConsoleOption RunSelectImage = new ConsoleOption()
 		{
@@ -66,7 +63,7 @@ namespace SmartImage.Shell
 				Console.Write("Image: ");
 
 				string img = Console.ReadLine();
-				img = Common.CleanString(img);
+				img = Strings.CleanString(img);
 
 				SearchConfig.Config.Image = img;
 
@@ -81,15 +78,15 @@ namespace SmartImage.Shell
 			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
-				var values = ConsoleIO.HandleOptions(rgEnum, true);
+				var values = NConsole.IO.HandleOptions(rgEnum, true);
 
-				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
+				var newValues = Enums.ReadEnumFromSet<SearchEngines>(values);
 
 				NConsole.WriteInfo(newValues);
 
 				SearchConfig.Config.SearchEngines = newValues;
 
-				ConsoleIO.WaitForInput();
+				NConsole.IO.WaitForInput();
 
 				return null;
 			},
@@ -102,15 +99,15 @@ namespace SmartImage.Shell
 			Function = () =>
 			{
 				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
-				var values = ConsoleIO.HandleOptions(rgEnum, true);
+				var values = NConsole.IO.HandleOptions(rgEnum, true);
 
-				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
+				var newValues = Enums.ReadEnumFromSet<SearchEngines>(values);
 
 				NConsole.WriteInfo(newValues);
 
 				SearchConfig.Config.PriorityEngines = newValues;
 
-				ConsoleIO.WaitForSecond();
+				NConsole.IO.WaitForSecond();
 
 				return null;
 			}
@@ -122,9 +119,9 @@ namespace SmartImage.Shell
 			Name = "Configure SauceNao API authentication",
 			Function = () =>
 			{
-				SearchConfig.Config.SauceNaoAuth = ConsoleIO.GetInput("API key");
+				SearchConfig.Config.SauceNaoAuth = NConsole.IO.GetInput("API key");
 
-				ConsoleIO.WaitForSecond();
+				NConsole.IO.WaitForSecond();
 				return null;
 			}
 		};
@@ -135,9 +132,9 @@ namespace SmartImage.Shell
 			Function = () =>
 			{
 
-				SearchConfig.Config.ImgurAuth = ConsoleIO.GetInput("API key");
+				SearchConfig.Config.ImgurAuth = NConsole.IO.GetInput("API key");
 
-				ConsoleIO.WaitForSecond();
+				NConsole.IO.WaitForSecond();
 				return null;
 			}
 		};
@@ -149,7 +146,7 @@ namespace SmartImage.Shell
 			{
 				SearchConfig.Config.WriteToFile();
 
-				ConsoleIO.WaitForSecond();
+				NConsole.IO.WaitForSecond();
 				return null;
 			}
 		};
@@ -170,7 +167,7 @@ namespace SmartImage.Shell
 					NConsole.WriteSuccess("Removed from context menu");
 				}
 
-				ConsoleIO.WaitForSecond();
+				NConsole.IO.WaitForSecond();
 				return null;
 			}
 		};
@@ -182,7 +179,7 @@ namespace SmartImage.Shell
 			{
 				RuntimeInfo.ShowInfo();
 
-				ConsoleIO.WaitForInput();
+				NConsole.IO.WaitForInput();
 				return null;
 			}
 		};
@@ -208,7 +205,7 @@ namespace SmartImage.Shell
 					NConsole.WriteSuccess("{0}", v.Status);
 				}
 
-				ConsoleIO.WaitForSecond();
+				NConsole.IO.WaitForSecond();
 				return null;
 			}
 		};
@@ -220,7 +217,7 @@ namespace SmartImage.Shell
 			{
 				Integration.ResetIntegrations();
 
-				ConsoleIO.WaitForSecond();
+				NConsole.IO.WaitForSecond();
 				return null;
 			}
 		};
@@ -264,7 +261,7 @@ namespace SmartImage.Shell
 				var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
 
 
-				var testImg = Common.GetRandomElement(TestImages);
+				var testImg = Collections.GetRandomElement(TestImages);
 				var img = Path.Combine(cd2, testImg);
 
 				SearchConfig.Config.Image = img;

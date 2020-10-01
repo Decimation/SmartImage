@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using HtmlAgilityPack;
 using JetBrains.Annotations;
+using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 

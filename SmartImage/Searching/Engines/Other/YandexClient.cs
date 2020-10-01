@@ -6,6 +6,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net;
 using HtmlAgilityPack;
+using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 

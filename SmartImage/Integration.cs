@@ -8,8 +8,6 @@ using System.Text;
 using Microsoft.Win32;
 using SimpleCore.CommandLine;
 using SimpleCore.Win32;
-
-using SmartImage.Shell;
 using SmartImage.Utilities;
 
 namespace SmartImage

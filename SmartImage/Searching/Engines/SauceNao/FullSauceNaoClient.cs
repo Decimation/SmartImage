@@ -10,7 +10,6 @@ using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using SimpleCore.Utilities;
-
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
@@ -49,23 +48,21 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		public override SearchResult GetResult(string url)
 		{
-			SauceNaoResult[]? sn = GetResults(url);
+			var sn = GetResults(url);
 
-			if (sn == null)
-			{
+			if (sn == null) {
 				return new SearchResult(this, null);
 			}
 
-			var best = sn.OrderByDescending(r => r.Similarity).First()!;
+			var best = sn.OrderByDescending(r => r.Similarity)
+				.First(r => r.Url != null)!;
 
-			if (best != null)
-			{
+			if (best != null) {
 				string? bestUrl = best.Url?[0];
 
 				var sr = new SearchResult(this, bestUrl, best.Similarity);
 
-				if (best.WebsiteTitle != null)
-				{
+				if (best.WebsiteTitle != null) {
 					sr.ExtendedInfo.Add(string.Format("Source: {0}", best.WebsiteTitle));
 				}
 
@@ -101,7 +98,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		private static SauceNaoResult[] ReadResults(string js)
 		{
-			
+
 			// todo: rewrite this using Newtonsoft
 
 			// From https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
@@ -142,8 +139,5 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 			return null;
 		}
-
-
-
 	}
 }

@@ -11,7 +11,6 @@ using SmartImage.Searching.Engines.Other;
 using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
-using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #pragma warning disable HAA0502, HAA0302
@@ -54,7 +53,7 @@ namespace SmartImage.Searching
 			m_imgUrl = Upload(img, useImgur);
 			m_threads = CreateSearchThreads();
 
-			
+
 		}
 
 		private static BaseSauceNaoClient GetSauceNaoClient()
@@ -79,7 +78,6 @@ namespace SmartImage.Searching
 		/// </summary>
 		public ref SearchResult[] Results => ref m_results;
 
-		
 
 		public void Dispose()
 		{
@@ -102,7 +100,7 @@ namespace SmartImage.Searching
 			NConsole.WriteInfo("Temporary image url: {0}", m_imgUrl);
 
 			Console.WriteLine();
-			
+
 			foreach (var thread in m_threads) {
 				thread.Start();
 			}
@@ -143,7 +141,7 @@ namespace SmartImage.Searching
 						Network.OpenUrl(result.Url);
 					}
 
-					ConsoleIO.Refresh();
+					NConsole.IO.Refresh();
 				}
 
 				var t = new Thread(RunSearchThread)
@@ -161,6 +159,7 @@ namespace SmartImage.Searching
 
 
 		}
+
 		private static IEnumerable<ISearchEngine> GetAllEngines()
 		{
 			var engines = new ISearchEngine[]
@@ -196,7 +195,7 @@ namespace SmartImage.Searching
 			bool extOkay = ImageExtensions.Any(img.ToLower().EndsWith);
 
 			if (!extOkay) {
-				return NConsole.ReadConfirm("File extension is not recognized as a common image format. Continue?");
+				return NConsole.IO.ReadConfirm("File extension is not recognized as a common image format. Continue?");
 			}
 
 

@@ -5,7 +5,6 @@ using System.Drawing;
 using System.Text;
 using SimpleCore.CommandLine;
 using SmartImage.Searching.Model;
-using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301
@@ -31,7 +30,7 @@ namespace SmartImage.Searching
 			ExtendedResults = new List<ISearchResult>();
 		}
 
-		public override Color Color { get; internal set; }
+		public override Color Color { get; set; }
 
 		// todo: create a specific url field with the original url
 
@@ -40,7 +39,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Result name
 		/// </summary>
-		public override string Name { get; internal set; }
+		public override string Name { get; set; }
 
 		public bool Success => Url != null;
 
@@ -69,7 +68,7 @@ namespace SmartImage.Searching
 			}
 		}
 
-		public override Func<object?>? AltFunction { get; internal set; }
+		public override Func<object?>? AltFunction { get; set; }
 
 
 		/// <summary>
@@ -122,7 +121,7 @@ namespace SmartImage.Searching
 				var rg = FromExtendedResult(bestImages);
 
 
-				ConsoleIO.HandleOptions(rg);
+				NConsole.IO.HandleOptions(rg);
 
 				return null;
 
@@ -140,7 +139,7 @@ namespace SmartImage.Searching
 			var sb = new StringBuilder();
 
 			char success = Success ? NConsole.RAD_SIGN : NConsole.MUL_SIGN;
-			string altStr = ExtendedResults.Count > 0 ? ConsoleIO.ALT_DENOTE : string.Empty;
+			string altStr = ExtendedResults.Count > 0 ? NConsole.IO.ALT_DENOTE : string.Empty;
 
 			sb.AppendFormat("{0} {1}\n", success, altStr);
 
