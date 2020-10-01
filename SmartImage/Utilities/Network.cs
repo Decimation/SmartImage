@@ -6,8 +6,9 @@ using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
 using RestSharp;
+using SimpleCore.CommandLine;
 using SimpleCore.Utilities;
-using SimpleCore.Win32.Cli;
+
 
 #endregion
 
@@ -56,7 +57,7 @@ namespace SmartImage.Utilities
 				}
 				else {
 					Console.WriteLine();
-					CliOutput.WriteError("URL is null!");
+					NConsole.WriteError("URL is null!");
 				}
 			}
 			catch {

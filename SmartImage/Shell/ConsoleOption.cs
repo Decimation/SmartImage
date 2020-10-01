@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.Media;
 
 #nullable enable
@@ -12,7 +13,7 @@ namespace SmartImage.Shell
 		/// <summary>
 		/// Default <see cref="Color"/>
 		/// </summary>
-		public static readonly ConsoleColor DefaultOptionColor = Console.ForegroundColor;
+		public static readonly Color DefaultOptionColor = System.Drawing.Color.White;
 
 
 		public ConsoleOption() { }
@@ -24,7 +25,7 @@ namespace SmartImage.Shell
 		{
 			Name = "Wait",
 
-			Color = ConsoleColor.Yellow,
+			Color = Color.Yellow,
 
 			Function = () =>
 			{
@@ -34,7 +35,6 @@ namespace SmartImage.Shell
 			},
 			AltFunction = () => null
 		};
-
 
 
 		/// <summary>
@@ -60,7 +60,7 @@ namespace SmartImage.Shell
 		/// <summary>
 		/// Display color
 		/// </summary>
-		public virtual ConsoleColor Color { get; internal set; } = DefaultOptionColor;
+		public virtual Color Color { get; internal set; } = DefaultOptionColor;
 
 
 		public static void EnsureOption(ref ConsoleOption option)

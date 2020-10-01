@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
 using System.Text;
 using System.Threading;
 using Microsoft.Win32;
+using Pastel;
+using SimpleCore.CommandLine;
 using SimpleCore.Win32;
-using SimpleCore.Win32.Cli;
+#pragma warning disable HAA0502
 using SmartImage.Utilities;
 
 // ReSharper disable InconsistentNaming
@@ -24,7 +27,7 @@ namespace SmartImage.Shell
 	/// </summary>
 	internal static class ConsoleIO
 	{
-		// todo: add ANSI sequence features like bold?
+		// todo: move to SimpleCore
 
 		internal const char CLI_CHAR = '*';
 
@@ -99,7 +102,7 @@ namespace SmartImage.Shell
 				sb.AppendLine();
 			}
 
-			string s = CliOutput.FormatString(ConsoleIO.CLI_CHAR, sb.ToString());
+			string s = NConsole.FormatString(ConsoleIO.CLI_CHAR, sb.ToString());
 
 			return s;
 		}
@@ -125,17 +128,22 @@ namespace SmartImage.Shell
 		/// <summary>
 		/// Signals to continue displaying current interface
 		/// </summary>
-		internal const int STATUS_OK = 0;
+		private const int STATUS_OK = 0;
 
 		/// <summary>
 		/// Signals to reload interface
 		/// </summary>
-		internal const int STATUS_REFRESH = 1;
+		private const int STATUS_REFRESH = 1;
 
 		/// <summary>
 		/// Interface status
 		/// </summary>
-		internal static int Status;
+		private static int Status;
+
+		internal static void Refresh()
+		{
+			Interlocked.Exchange(ref Status, STATUS_REFRESH);
+		}
 
 		/// <summary>
 		///     Handles user input and options
@@ -161,22 +169,16 @@ namespace SmartImage.Shell
 
 			void DisplayInterface()
 			{
-				CliOutput.WithColor(ConsoleColor.DarkRed, () =>
-				{
-					//Console.WriteLine(inter?.Name);
-					Console.WriteLine(RuntimeInfo.NAME_BANNER);
-				});
+				//NConsole.Extended.WriteColor(Color.Red, true, RuntimeInfo.NAME_BANNER);
+				NConsole.Extended.WriteColor(Color.Red, true, io.Name);
 
-				
 				for (int i = 0; i < io.Length; i++) {
 					var option = io[i];
 
 					var s = FormatOption(option, i);
 
-					CliOutput.WithColor(option.Color, () =>
-					{
-						Console.Write(s);
-					});
+
+					NConsole.Extended.WriteColor(option.Color, false, s);
 
 				}
 
@@ -186,10 +188,7 @@ namespace SmartImage.Shell
 				if (io.SelectMultiple) {
 					string optionsStr = selectedOptions.QuickJoin();
 
-					CliOutput.WithColor(ConsoleColor.Blue, () =>
-					{
-						Console.WriteLine(optionsStr);
-					});
+					NConsole.Extended.WriteColor(Color.LightBlue, true, optionsStr);
 				}
 
 				// Handle key reading
@@ -200,7 +199,7 @@ namespace SmartImage.Shell
 								String.Format("Hold down {0} while entering the option number to show more info.\n", ALT_EXTRA) +
 								String.Format("Options with expanded information are denoted with {0}.", ConsoleIO.ALT_DENOTE);
 
-				CliOutput.WriteSuccess(prompt);
+				NConsole.WriteSuccess(prompt);
 
 				// @formatter:on — enable formatter after this line
 			}
@@ -231,7 +230,7 @@ namespace SmartImage.Shell
 
 
 				// Key was read
-				
+
 				cki = Console.ReadKey(true);
 				char keyChar = cki.KeyChar;
 				var modifiers = cki.Modifiers;

@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using HtmlAgilityPack;
 using JetBrains.Annotations;
-using SimpleCore.Win32.Cli;
+using SimpleCore.CommandLine;
+
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
@@ -57,7 +59,7 @@ namespace SmartImage.Shell
 		private static readonly ConsoleOption RunSelectImage = new ConsoleOption()
 		{
 			Name = ">>> Select image <<<",
-			Color = ConsoleColor.Yellow,
+			Color = Color.Yellow,
 			Function = () =>
 			{
 				Console.WriteLine("Drag and drop the image here.");
@@ -83,7 +85,7 @@ namespace SmartImage.Shell
 
 				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
-				CliOutput.WriteInfo(newValues);
+				NConsole.WriteInfo(newValues);
 
 				SearchConfig.Config.SearchEngines = newValues;
 
@@ -104,7 +106,7 @@ namespace SmartImage.Shell
 
 				var newValues = Common.ReadEnumFromSet<SearchEngines>(values);
 
-				CliOutput.WriteInfo(newValues);
+				NConsole.WriteInfo(newValues);
 
 				SearchConfig.Config.PriorityEngines = newValues;
 
@@ -161,11 +163,11 @@ namespace SmartImage.Shell
 
 				if (!ctx) {
 					Integration.HandleContextMenu(IntegrationOption.Add);
-					CliOutput.WriteSuccess("Added to context menu");
+					NConsole.WriteSuccess("Added to context menu");
 				}
 				else {
 					Integration.HandleContextMenu(IntegrationOption.Remove);
-					CliOutput.WriteSuccess("Removed from context menu");
+					NConsole.WriteSuccess("Removed from context menu");
 				}
 
 				ConsoleIO.WaitForSecond();
@@ -203,7 +205,7 @@ namespace SmartImage.Shell
 
 				}
 				else {
-					CliOutput.WriteSuccess("{0}", v.Status);
+					NConsole.WriteSuccess("{0}", v.Status);
 				}
 
 				ConsoleIO.WaitForSecond();

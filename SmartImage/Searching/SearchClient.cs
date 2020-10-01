@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using SimpleCore.Win32.Cli;
+using System.Threading.Tasks;
+using SimpleCore.CommandLine;
 using SmartImage.Searching.Engines.Imgur;
+using SmartImage.Searching.Engines.Other;
 using SmartImage.Searching.Engines.SauceNao;
-using SmartImage.Searching.Engines.Simple;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Shell;
 using SmartImage.Utilities;
+
+#pragma warning disable HAA0502, HAA0302
 
 namespace SmartImage.Searching
 {
@@ -49,6 +53,8 @@ namespace SmartImage.Searching
 			m_engines = engines;
 			m_imgUrl = Upload(img, useImgur);
 			m_threads = CreateSearchThreads();
+
+			
 		}
 
 		private static BaseSauceNaoClient GetSauceNaoClient()
@@ -73,6 +79,8 @@ namespace SmartImage.Searching
 		/// </summary>
 		public ref SearchResult[] Results => ref m_results;
 
+		
+
 		public void Dispose()
 		{
 			// Joining each thread isn't necessary as this object is disposed upon program exit
@@ -89,12 +97,12 @@ namespace SmartImage.Searching
 		public void Start()
 		{
 			// Display config
-			CliOutput.WriteInfo(SearchConfig.Config);
+			NConsole.WriteInfo(SearchConfig.Config);
 
-			CliOutput.WriteInfo("Temporary image url: {0}", m_imgUrl);
+			NConsole.WriteInfo("Temporary image url: {0}", m_imgUrl);
 
 			Console.WriteLine();
-
+			
 			foreach (var thread in m_threads) {
 				thread.Start();
 			}
@@ -113,7 +121,7 @@ namespace SmartImage.Searching
 			int i = 0;
 
 			m_results = new SearchResult[availableEngines.Length + 1];
-			m_results[i] = new SearchResult(ConsoleColor.Gray, "(Original image)", m_imgUrl);
+			m_results[i] = new SearchResult(Color.White, "(Original image)", m_imgUrl);
 
 			i++;
 
@@ -135,10 +143,10 @@ namespace SmartImage.Searching
 						Network.OpenUrl(result.Url);
 					}
 
-					ConsoleIO.Status = ConsoleIO.STATUS_REFRESH;
+					ConsoleIO.Refresh();
 				}
 
-				var t = new Thread((ThreadStart) RunSearchThread)
+				var t = new Thread(RunSearchThread)
 				{
 					Priority = ThreadPriority.Highest,
 					IsBackground = true
@@ -153,7 +161,6 @@ namespace SmartImage.Searching
 
 
 		}
-
 		private static IEnumerable<ISearchEngine> GetAllEngines()
 		{
 			var engines = new ISearchEngine[]
@@ -182,14 +189,14 @@ namespace SmartImage.Searching
 			}
 
 			if (!File.Exists(img)) {
-				CliOutput.WriteError("File does not exist: {0}", img);
+				NConsole.WriteError("File does not exist: {0}", img);
 				return false;
 			}
 
 			bool extOkay = ImageExtensions.Any(img.ToLower().EndsWith);
 
 			if (!extOkay) {
-				return CliOutput.ReadConfirm("File extension is not recognized as a common image format. Continue?");
+				return NConsole.ReadConfirm("File extension is not recognized as a common image format. Continue?");
 			}
 
 
@@ -201,12 +208,12 @@ namespace SmartImage.Searching
 			string imgUrl;
 
 			if (useImgur) {
-				CliOutput.WriteInfo("Using Imgur for image upload");
+				NConsole.WriteInfo("Using Imgur for image upload");
 				var imgur = new ImgurClient();
 				imgUrl = imgur.Upload(img);
 			}
 			else {
-				CliOutput.WriteInfo("Using ImgOps for image upload (2 hour cache)");
+				NConsole.WriteInfo("Using ImgOps for image upload (2 hour cache)");
 				var imgOps = new ImgOpsClient();
 				imgUrl = imgOps.UploadTempImage(img, out _);
 			}

@@ -3,6 +3,7 @@
 #endregion
 
 using System;
+using System.Drawing;
 
 namespace SmartImage.Searching.Model
 {
@@ -21,7 +22,7 @@ namespace SmartImage.Searching.Model
 
 		public abstract string Name { get; }
 
-		public abstract ConsoleColor Color { get; }
+		public abstract Color Color { get; }
 
 		public virtual SearchResult GetResult(string url)
 		{

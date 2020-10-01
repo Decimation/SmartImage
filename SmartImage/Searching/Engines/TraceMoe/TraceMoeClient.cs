@@ -1,6 +1,7 @@
 #region
 
 using System;
+using System.Drawing;
 using System.Net;
 using RestSharp;
 using SmartImage.Searching.Model;
@@ -61,6 +62,6 @@ namespace SmartImage.Searching.Engines.TraceMoe
 			return r;
 		}
 
-		public override ConsoleColor Color => ConsoleColor.Cyan;
+		public override Color Color => Color.Cyan;
 	}
 }

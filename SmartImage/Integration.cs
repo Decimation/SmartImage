@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.Win32;
+using SimpleCore.CommandLine;
 using SimpleCore.Win32;
-using SimpleCore.Win32.Cli;
+
 using SmartImage.Shell;
 using SmartImage.Utilities;
 
@@ -31,25 +33,27 @@ namespace SmartImage
 					string fullPath = RuntimeInfo.ExeLocation;
 
 					// Add command and icon to command
-					string[] commandCode =
+					string[] addCode =
 					{
 						"@echo off",
 						$"reg.exe add {REG_SHELL_CMD} /ve /d \"{fullPath} \"\"%%1\"\"\" /f >nul",
 						$"reg.exe add {REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
 					};
 
-					Cli.CreateRunBatchFile("add_to_menu.bat", commandCode);
+					
+					BatchFileCommand.CreateAndRun(addCode,true);
 
 					break;
 				case IntegrationOption.Remove:
 
-					string[] code =
+					string[] removeCode =
 					{
 						"@echo off",
 						$@"reg.exe delete {REG_SHELL} /f >nul"
 					};
 
-					Cli.CreateRunBatchFile("rem_from_menu.bat", code);
+					
+					BatchFileCommand.CreateAndRun(removeCode,true);
 
 					break;
 				default:
@@ -106,9 +110,10 @@ namespace SmartImage
 			// will be added automatically if run again
 			//Path.Remove();
 
-			CliOutput.WriteSuccess("Reset config");
+			NConsole.WriteSuccess("Reset config");
 		}
 
+		[DoesNotReturn]
 		internal static void Uninstall()
 		{
 			// autonomous uninstall routine
@@ -132,13 +137,15 @@ namespace SmartImage
 				"echo y | del " + DEL_BAT_NAME
 			};
 
-			var dir = Path.Combine(Path.GetTempPath(), DEL_BAT_NAME);
-
-			File.WriteAllText(dir, commands.QuickJoin("\n"));
-
+			
+			var bf = new BatchFileCommand(commands, DEL_BAT_NAME);
 
 			// Runs in background
-			Process.Start(dir);
+			bf.Start();
+
+
+			
+			
 		}
 
 		private const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
@@ -151,9 +158,11 @@ namespace SmartImage
 			get
 			{
 				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
-				var cmd = Cli.Shell(cmdStr, true);
+				
+				var cmd = ConsoleCommand.Shell(cmdStr);
+				cmd.Start();
 
-				string[] stdOut = Cli.ReadAllLines(cmd.StandardOutput);
+				string[] stdOut = ConsoleCommand.ReadAllLines(cmd.StandardOutput);
 
 				bool b = stdOut.Any(s => s.Contains(RuntimeInfo.NAME));
 				return b;

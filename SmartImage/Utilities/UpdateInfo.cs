@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net;
+using SimpleCore.CommandLine;
 
 namespace SmartImage.Utilities
 {
@@ -26,6 +27,7 @@ namespace SmartImage.Utilities
 
 			if (ui.Status == VersionStatus.Available) {
 				var dest = Path.Combine(RuntimeInfo.AppFolder, "SmartImage-new.exe");
+
 				var wc = new WebClient();
 				wc.DownloadFile(ui.Latest.AssetUrl, dest);
 
@@ -49,12 +51,10 @@ namespace SmartImage.Utilities
 					"echo y | del " + UPDATE_BAT
 				};
 
-				var dir = Path.Combine(Path.GetTempPath(), UPDATE_BAT);
-
-				File.WriteAllText(dir, commands.QuickJoin("\n"));
+				var bf = new BatchFileCommand(commands, UPDATE_BAT);
 
 				// Runs in background
-				Process.Start(dir);
+				bf.Start();
 			}
 
 

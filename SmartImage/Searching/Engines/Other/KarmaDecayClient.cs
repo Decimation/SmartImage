@@ -1,18 +1,18 @@
 #region
 
-using System;
+using System.Drawing;
 using SmartImage.Searching.Model;
 
 #endregion
 
-namespace SmartImage.Searching.Engines.Simple
+namespace SmartImage.Searching.Engines.Other
 {
 	public sealed class KarmaDecayClient : BasicSearchEngine
 	{
 		public KarmaDecayClient() : base("http://karmadecay.com/search/?q=") { }
 
 		public override string Name => "KarmaDecay";
-		public override ConsoleColor Color => ConsoleColor.Yellow;
+		public override Color Color => Color.Orange;
 
 		public override SearchEngines Engine => SearchEngines.KarmaDecay;
 	}

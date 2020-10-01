@@ -2,18 +2,17 @@
 
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using HtmlAgilityPack;
-using JetBrains.Annotations;
 using SmartImage.Searching.Model;
-using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #endregion
 
 #nullable enable
-namespace SmartImage.Searching.Engines.Simple
+namespace SmartImage.Searching.Engines.Other
 {
 	public sealed class YandexClient : BasicSearchEngine
 	{
@@ -165,6 +164,6 @@ namespace SmartImage.Searching.Engines.Simple
 			return sr;
 		}
 
-		public override ConsoleColor Color => ConsoleColor.DarkYellow;
+		public override Color Color => Color.Khaki;
 	}
 }

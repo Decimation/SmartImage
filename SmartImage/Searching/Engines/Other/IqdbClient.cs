@@ -2,24 +2,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
+using System.Drawing;
 using HtmlAgilityPack;
 using JetBrains.Annotations;
 using SmartImage.Searching.Model;
-using SmartImage.Shell;
 using SmartImage.Utilities;
 
 #endregion
 
-namespace SmartImage.Searching.Engines.Simple
+namespace SmartImage.Searching.Engines.Other
 {
 	public sealed class IqdbClient : BasicSearchEngine
 	{
 		public IqdbClient() : base("https://iqdb.org/?url=") { }
 
 		public override string Name => "IQDB";
-		public override ConsoleColor Color => ConsoleColor.DarkGreen;
+		public override Color Color => Color.Pink;
 
 		public override SearchEngines Engine => SearchEngines.Iqdb;
 

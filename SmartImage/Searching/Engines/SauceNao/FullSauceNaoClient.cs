@@ -10,7 +10,7 @@ using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using SimpleCore.Utilities;
-using SimpleCore.Win32.Cli;
+
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;

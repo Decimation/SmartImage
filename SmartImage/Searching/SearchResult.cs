@@ -1,11 +1,14 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
-using SimpleCore.Win32.Cli;
+using SimpleCore.CommandLine;
 using SmartImage.Searching.Model;
 using SmartImage.Shell;
 using SmartImage.Utilities;
+
+#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301
 
 namespace SmartImage.Searching
 {
@@ -17,7 +20,7 @@ namespace SmartImage.Searching
 		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
 
-		public SearchResult(ConsoleColor color, string name, string url, float? similarity = null)
+		public SearchResult(Color color, string name, string url, float? similarity = null)
 		{
 			Url = url;
 			Name = name;
@@ -28,7 +31,7 @@ namespace SmartImage.Searching
 			ExtendedResults = new List<ISearchResult>();
 		}
 
-		public override ConsoleColor Color { get; internal set; }
+		public override Color Color { get; internal set; }
 
 		// todo: create a specific url field with the original url
 
@@ -136,7 +139,7 @@ namespace SmartImage.Searching
 		{
 			var sb = new StringBuilder();
 
-			char success = Success ? CliOutput.RAD_SIGN : CliOutput.MUL_SIGN;
+			char success = Success ? NConsole.RAD_SIGN : NConsole.MUL_SIGN;
 			string altStr = ExtendedResults.Count > 0 ? ConsoleIO.ALT_DENOTE : string.Empty;
 
 			sb.AppendFormat("{0} {1}\n", success, altStr);
@@ -160,7 +163,6 @@ namespace SmartImage.Searching
 			if (ExtendedResults.Count > 0) {
 				sb.AppendFormat("\tExtended results: {0}\n", ExtendedResults.Count);
 			}
-
 
 			return sb.ToString();
 		}

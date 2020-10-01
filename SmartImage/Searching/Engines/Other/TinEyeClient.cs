@@ -1,18 +1,18 @@
 #region
 
-using System;
+using System.Drawing;
 using SmartImage.Searching.Model;
 
 #endregion
 
-namespace SmartImage.Searching.Engines.Simple
+namespace SmartImage.Searching.Engines.Other
 {
 	public sealed class TinEyeClient : BasicSearchEngine
 	{
 		public TinEyeClient() : base("https://www.tineye.com/search?url=") { }
 
 		public override string Name => "TinEye";
-		public override ConsoleColor Color => ConsoleColor.DarkCyan;
+		public override Color Color => Color.DarkCyan;
 
 		public override SearchEngines Engine => SearchEngines.TinEye;
 

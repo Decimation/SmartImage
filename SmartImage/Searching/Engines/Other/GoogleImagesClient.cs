@@ -1,11 +1,11 @@
 #region
 
-using System;
+using System.Drawing;
 using SmartImage.Searching.Model;
 
 #endregion
 
-namespace SmartImage.Searching.Engines.Simple
+namespace SmartImage.Searching.Engines.Other
 {
 	public sealed class GoogleImagesClient : BasicSearchEngine
 	{
@@ -15,6 +15,6 @@ namespace SmartImage.Searching.Engines.Simple
 
 		public override SearchEngines Engine => SearchEngines.GoogleImages;
 
-		public override ConsoleColor Color => ConsoleColor.DarkGray;
+		public override Color Color => Color.CornflowerBlue;
 	}
 }

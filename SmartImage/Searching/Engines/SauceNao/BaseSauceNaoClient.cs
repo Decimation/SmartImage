@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Text;
 using SmartImage.Searching.Model;
 
@@ -16,7 +17,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		public abstract SearchResult GetResult(string url);
 
-		public ConsoleColor Color => ConsoleColor.White;
+		public Color Color => Color.OrangeRed;
 
 
 	}

@@ -14,8 +14,9 @@ using System.Threading.Tasks;
 using Microsoft.Win32;
 using SmartImage.Searching;
 using SimpleCore;
+using SimpleCore.CommandLine;
 using SimpleCore.Utilities;
-using SimpleCore.Win32.Cli;
+
 using SmartImage.Shell;
 using SmartImage.Utilities;
 
@@ -44,7 +45,6 @@ namespace SmartImage
 			Console.Title = RuntimeInfo.NAME;
 			Console.SetWindowSize(120, 45);
 			Console.OutputEncoding = Encoding.Unicode;
-			CliOutput.EnableVirtualTerminalProcessing();
 			Console.Clear();
 
 			/*
@@ -93,6 +93,8 @@ namespace SmartImage
 				Network.OpenUrl(RuntimeInfo.Issue);
 
 				ConsoleIO.WaitForInput();
+#else
+				Console.WriteLine(exception);
 #endif
 
 			}

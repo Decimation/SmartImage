@@ -6,8 +6,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using SimpleCore.CommandLine;
 using SimpleCore.Win32;
-using SimpleCore.Win32.Cli;
+
 using SmartImage.Utilities;
 
 // ReSharper disable UseStringInterpolation
@@ -132,7 +133,7 @@ namespace SmartImage
 			 * Config
 			 */
 
-			CliOutput.WriteInfo(SearchConfig.Config.Dump());
+			NConsole.WriteInfo(SearchConfig.Config.Dump());
 
 
 			/*
@@ -140,10 +141,10 @@ namespace SmartImage
 			 */
 
 
-			CliOutput.WriteInfo("Application folder: {0}", AppFolder);
-			CliOutput.WriteInfo("Executable location: {0}", ExeLocation);
-			CliOutput.WriteInfo("Context menu integrated: {0}", Integration.IsContextMenuAdded);
-			CliOutput.WriteInfo("In path: {0}\n", IsAppFolderInPath);
+			NConsole.WriteInfo("Application folder: {0}", AppFolder);
+			NConsole.WriteInfo("Executable location: {0}", ExeLocation);
+			NConsole.WriteInfo("Context menu integrated: {0}", Integration.IsContextMenuAdded);
+			NConsole.WriteInfo("In path: {0}\n", IsAppFolderInPath);
 
 
 			/*
@@ -152,9 +153,9 @@ namespace SmartImage
 
 			var versionsInfo = UpdateInfo.CheckForUpdates();
 
-			CliOutput.WriteInfo("Current version: {0}", versionsInfo.Current);
-			CliOutput.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
-			CliOutput.WriteInfo("Version status: {0}", versionsInfo.Status);
+			NConsole.WriteInfo("Current version: {0}", versionsInfo.Current);
+			NConsole.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
+			NConsole.WriteInfo("Version status: {0}", versionsInfo.Status);
 
 			Console.WriteLine();
 
@@ -162,9 +163,9 @@ namespace SmartImage
 			 * Author info
 			 */
 
-			CliOutput.WriteInfo("Repo: {0}", Repo);
-			CliOutput.WriteInfo("Readme: {0}", Readme);
-			CliOutput.WriteInfo("Author: {0}", Author);
+			NConsole.WriteInfo("Repo: {0}", Repo);
+			NConsole.WriteInfo("Readme: {0}", Readme);
+			NConsole.WriteInfo("Author: {0}", Author);
 		}
 	}
 }

@@ -3,9 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using SimpleCore.CommandLine;
 using SimpleCore.Utilities;
 using SimpleCore.Win32;
-using SimpleCore.Win32.Cli;
+
 using SmartImage.Searching;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.SauceNao;
@@ -143,9 +144,9 @@ namespace SmartImage
 
 		internal void WriteToFile()
 		{
-			CliOutput.WriteInfo("Updating config");
+			NConsole.WriteInfo("Updating config");
 			Common.WriteMap(ToMap(), ConfigLocation);
-			CliOutput.WriteInfo("Wrote to {0}", ConfigLocation);
+			NConsole.WriteInfo("Wrote to {0}", ConfigLocation);
 
 		}
 
