@@ -14,7 +14,7 @@ namespace SmartImage.Searching
 	/// <summary>
 	///     Contains search result and information
 	/// </summary>
-	public sealed class SearchResult : ConsoleOption, ISearchResult
+	public sealed class SearchResult : NConsoleOption, ISearchResult
 	{
 		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }

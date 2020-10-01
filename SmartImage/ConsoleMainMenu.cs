@@ -15,25 +15,25 @@ using SmartImage.Utilities;
 namespace SmartImage
 {
 	/// <summary>
-	/// Contains <see cref="ConsoleInterface"/> and <see cref="ConsoleOption"/> for the main menu
+	/// Contains <see cref="NConsoleUI"/> and <see cref="NConsoleOption"/> for the main menu
 	/// </summary>
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal static class ConsoleMainMenu
 	{
-		private static ConsoleOption[] AllOptions
+		private static NConsoleOption[] AllOptions
 		{
 			get
 			{
 				var fields = typeof(ConsoleMainMenu).GetFields(
 						BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default)
-					.Where(f => f.FieldType == typeof(ConsoleOption))
+					.Where(f => f.FieldType == typeof(NConsoleOption))
 					.ToArray();
 
 
-				var options = new ConsoleOption[fields.Length];
+				var options = new NConsoleOption[fields.Length];
 
 				for (int i = 0; i < fields.Length; i++) {
-					options[i] = (ConsoleOption) fields[i].GetValue(null);
+					options[i] = (NConsoleOption) fields[i].GetValue(null);
 				}
 
 				return options;
@@ -43,7 +43,7 @@ namespace SmartImage
 		/// <summary>
 		/// Main menu console interface
 		/// </summary>
-		internal static ConsoleInterface Interface => new ConsoleInterface(AllOptions, RuntimeInfo.NAME_BANNER, false);
+		internal static NConsoleUI Interface => new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER, false);
 
 		/// <summary>
 		///     Runs when no arguments are given (and when the executable is double-clicked)
@@ -53,7 +53,7 @@ namespace SmartImage
 		/// </remarks>
 		internal static void Run() => NConsole.IO.HandleOptions(ConsoleMainMenu.Interface);
 
-		private static readonly ConsoleOption RunSelectImage = new ConsoleOption()
+		private static readonly NConsoleOption RunSelectImage = new NConsoleOption()
 		{
 			Name = ">>> Select image <<<",
 			Color = Color.Yellow,
@@ -72,12 +72,12 @@ namespace SmartImage
 		};
 
 
-		private static readonly ConsoleOption ConfigSearchEnginesOption = new ConsoleOption()
+		private static readonly NConsoleOption ConfigSearchEnginesOption = new NConsoleOption()
 		{
 			Name = "Configure search engines",
 			Function = () =>
 			{
-				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
+				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngines>();
 				var values = NConsole.IO.HandleOptions(rgEnum, true);
 
 				var newValues = Enums.ReadEnumFromSet<SearchEngines>(values);
@@ -93,12 +93,12 @@ namespace SmartImage
 		};
 
 
-		private static readonly ConsoleOption ConfigPriorityEnginesOption = new ConsoleOption()
+		private static readonly NConsoleOption ConfigPriorityEnginesOption = new NConsoleOption()
 		{
 			Name = "Configure priority engines",
 			Function = () =>
 			{
-				var rgEnum = ConsoleOption.CreateOptionsFromEnum<SearchEngines>();
+				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngines>();
 				var values = NConsole.IO.HandleOptions(rgEnum, true);
 
 				var newValues = Enums.ReadEnumFromSet<SearchEngines>(values);
@@ -114,7 +114,7 @@ namespace SmartImage
 		};
 
 
-		private static readonly ConsoleOption ConfigSauceNaoAuthOption = new ConsoleOption()
+		private static readonly NConsoleOption ConfigSauceNaoAuthOption = new NConsoleOption()
 		{
 			Name = "Configure SauceNao API authentication",
 			Function = () =>
@@ -126,7 +126,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly ConsoleOption ConfigImgurAuthOption = new ConsoleOption()
+		private static readonly NConsoleOption ConfigImgurAuthOption = new NConsoleOption()
 		{
 			Name = "Configure Imgur API authentication",
 			Function = () =>
@@ -139,7 +139,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly ConsoleOption ConfigUpdateOption = new ConsoleOption()
+		private static readonly NConsoleOption ConfigUpdateOption = new NConsoleOption()
 		{
 			Name = "Update configuration file",
 			Function = () =>
@@ -151,7 +151,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly ConsoleOption ContextMenuOption = new ConsoleOption()
+		private static readonly NConsoleOption ContextMenuOption = new NConsoleOption()
 		{
 			Name = "Add/remove context menu integration",
 			Function = () =>
@@ -172,7 +172,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly ConsoleOption ShowInfoOption = new ConsoleOption()
+		private static readonly NConsoleOption ShowInfoOption = new NConsoleOption()
 		{
 			Name = "Show info",
 			Function = () =>
@@ -184,7 +184,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly ConsoleOption CheckForUpdateOption = new ConsoleOption()
+		private static readonly NConsoleOption CheckForUpdateOption = new NConsoleOption()
 		{
 			Name = "Check for updates",
 			Function = () =>
@@ -210,7 +210,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly ConsoleOption ResetOption = new ConsoleOption()
+		private static readonly NConsoleOption ResetOption = new NConsoleOption()
 		{
 			Name = "Reset all configuration and integrations",
 			Function = () =>
@@ -222,7 +222,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly ConsoleOption UninstallOption = new ConsoleOption()
+		private static readonly NConsoleOption UninstallOption = new NConsoleOption()
 		{
 			Name = "Uninstall",
 			Function = () =>
@@ -252,7 +252,7 @@ namespace SmartImage
 			"Test3.png"
 		};
 
-		private static readonly ConsoleOption DebugTestOption = new ConsoleOption()
+		private static readonly NConsoleOption DebugTestOption = new NConsoleOption()
 		{
 			Name = "[DEBUG] Run test",
 			Function = () =>

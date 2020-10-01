@@ -45,7 +45,7 @@ namespace SmartImage
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
 
-			ConsoleInterface.DefaultName = RuntimeInfo.NAME_BANNER;
+			NConsoleUI.DefaultName = RuntimeInfo.NAME_BANNER;
 
 			/*
 			 * Run search

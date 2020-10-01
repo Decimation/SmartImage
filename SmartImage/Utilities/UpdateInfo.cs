@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net;
 using SimpleCore.CommandLine;
+using SimpleCore.CommandLine.Shell;
 
 namespace SmartImage.Utilities
 {

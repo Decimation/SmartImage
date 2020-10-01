@@ -9,8 +9,6 @@ namespace SmartImage.Utilities
 	// todo
 	internal static class Common
 	{
-		
-
 		public static void WriteMap(IDictionary<string, string> d, string filename)
 		{
 			string[] lines = d.Select(kvp => kvp.Key + "=" + kvp.Value).ToArray();

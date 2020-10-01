@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.Win32;
 using SimpleCore.CommandLine;
+using SimpleCore.CommandLine.Shell;
 using SimpleCore.Win32;
 using SmartImage.Utilities;
 
