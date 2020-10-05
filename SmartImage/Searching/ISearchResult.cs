@@ -10,7 +10,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Best match
 		/// </summary>
-		public string Url { get; }
+		public string Url { get; set; }
 
 		/// <summary>
 		/// Image similarity

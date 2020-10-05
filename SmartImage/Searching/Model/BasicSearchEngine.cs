@@ -28,7 +28,10 @@ namespace SmartImage.Searching.Model
 		{
 			string rawUrl = GetRawResultUrl(url);
 			
-			return new SearchResult(this, rawUrl);
+			var sr= new SearchResult(this, rawUrl);
+			sr.RawUrl = rawUrl;
+
+			return sr;
 		}
 
 		public virtual string GetRawResultUrl(string url)

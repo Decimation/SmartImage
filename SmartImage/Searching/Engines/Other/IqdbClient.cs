@@ -33,7 +33,7 @@ namespace SmartImage.Searching.Engines.Other
 
 			public int? Height { get; set; }
 
-			public string Url { get; }
+			public string Url { get; set; }
 
 			public float? Similarity { get; set; }
 
@@ -102,11 +102,10 @@ namespace SmartImage.Searching.Engines.Other
 
 		public override SearchResult GetResult(string url)
 		{
-			var raw = GetRawResultUrl(url);
-			var sr = new SearchResult(this, raw);
+			var sr = base.GetResult(url);
 
 			try {
-				var html = Network.GetSimpleResponse(raw);
+				var html = Network.GetSimpleResponse(sr.RawUrl);
 
 				//Network.WriteResponse(html);
 
@@ -137,8 +136,12 @@ namespace SmartImage.Searching.Engines.Other
 				// First is original image
 				images.RemoveAt(0);
 
+				var best = images[0];
+				sr.Url = best.Url;
+				sr.Similarity = best.Similarity;
 
 				sr.AddExtendedInfo(images.ToArray());
+
 
 			}
 			catch (Exception) {

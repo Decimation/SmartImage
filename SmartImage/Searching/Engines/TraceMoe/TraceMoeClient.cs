@@ -39,22 +39,55 @@ namespace SmartImage.Searching.Engines.TraceMoe
 			return re.Data;
 		}
 
+		private ISearchResult[] ConvertResults(TraceMoeRootObject obj)
+		{
+			var docs = obj.docs;
+			var results = new ISearchResult[docs.Count];
+
+			for (int i = 0; i < results.Length; i++) {
+				var doc = docs[i];
+				var sim = (float?) doc.similarity * 100;
+
+				var malurl = MAL_URL + doc.mal_id;
+
+				results[i] = new SearchResult(this,malurl,sim );
+				results[i].Caption = doc.title_english;
+			}
+
+			return results;
+		}
+
+		//https://anilist.co/anime/{id}/
+		private const string ANILIST_URL = "https://anilist.co/anime/";
+
+		//https://myanimelist.net/anime/{id}/
+		private const string MAL_URL = "https://myanimelist.net/anime/";
+
+		
+
+
 		public override SearchResult GetResult(string url)
 		{
-			var r = base.GetResult(url);
+			SearchResult r;
+			//var r = base.GetResult(url);
 
 			var tm = GetApiResults(url, out var code, out var res, out var msg);
 			
 			if (tm?.docs != null) {
 				// Most similar to least similar
-				var mostSimilarDoc = tm.docs[0];
+				var results = ConvertResults(tm);
+				var best = results[0];
 
-				r.Similarity = (float?) mostSimilarDoc.similarity * 100;
+				r = new SearchResult(this,best.Url, best.Similarity);
+				r.Caption = best.Caption;
 
-				r.ExtendedInfo.Add(String.Format("Anime: {0}", mostSimilarDoc.title_english));
+				r.AddExtendedInfo(results);
+
+
 
 			}
 			else {
+				r = base.GetResult(url);
 				r.ExtendedInfo.Add(string.Format("API: Returned null (possible timeout) [{0} {1} {2}]", code,res,msg));
 			}
 

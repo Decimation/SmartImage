@@ -32,7 +32,7 @@ namespace SmartImage.Searching.Engines.Other
 
 			public string? Caption { get; set; }
 
-			public string Url { get; }
+			public string Url { get; set; }
 
 
 			internal YandexResult(int width, int height, string url)
@@ -122,15 +122,14 @@ namespace SmartImage.Searching.Engines.Other
 		{
 			// todo: slow
 
-			var raw = GetRawResultUrl(url);
-			var sr = new SearchResult(this, raw);
+			var sr = base.GetResult(url);
 
 
 			try {
 
 				// Get more info from Yandex
 
-				var html = Network.GetString(raw);
+				var html = Network.GetString(sr.RawUrl);
 				var doc = new HtmlDocument();
 				doc.LoadHtml(html);
 
@@ -139,7 +138,7 @@ namespace SmartImage.Searching.Engines.Other
 				 */
 
 				var looksLike = GetYandexAnalysis(doc);
-				sr.ExtendedInfo.Add(looksLike);
+				sr.Caption = looksLike;
 
 
 				/*
@@ -151,7 +150,10 @@ namespace SmartImage.Searching.Engines.Other
 				ISearchResult[] bestImages = FilterAndSelectBestImages(images);
 
 				//
+				var best = images[0];
 
+				sr.Url = best.Url;
+				sr.Caption = best.Caption;
 				sr.AddExtendedInfo(bestImages);
 
 			}

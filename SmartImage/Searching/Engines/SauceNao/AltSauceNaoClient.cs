@@ -12,32 +12,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 	/// </summary>
 	public sealed class AltSauceNaoClient : BaseSauceNaoClient
 	{
-		private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
-
-
-		private struct SauceNaoSimpleResult : ISearchResult
-		{
-			public string? Caption { get; set; }
-			public string Url { get; }
-			public float? Similarity { get; set; }
-			public int? Width { get; set; }
-			public int? Height { get; set; }
-
-			public SauceNaoSimpleResult(string? title, string url, float? similarity)
-			{
-				Caption = title;
-				Url = url;
-				Similarity = similarity;
-				Width = null;
-				Height = null;
-			}
-
-			public override string ToString()
-			{
-				return string.Format("{0} {1} {2}", Caption, Url, Similarity);
-			}
-		}
-
+		
 		private static string FindCreator(HtmlNode resultcontent)
 		{
 			var resulttitle = resultcontent.ChildNodes[0];
@@ -107,7 +82,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		public override SearchResult GetResult(string url)
 		{
-			SearchResult sr = null;
+			SearchResult sr = base.GetResult(url);
 
 			var resUrl = BASIC_RESULT + url;
 
@@ -128,7 +103,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 					sr.ExtendedInfo.Add(best.Caption);
 				}
 
-				
+
 			}
 			catch (Exception) {
 				sr = new SearchResult(this, resUrl);

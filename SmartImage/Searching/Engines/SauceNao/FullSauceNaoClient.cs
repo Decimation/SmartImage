@@ -45,32 +45,46 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		public FullSauceNaoClient() : this(SearchConfig.Config.SauceNaoAuth) { }
 
+		private static ISearchResult[] ConvertResults(SauceNaoResult[] results)
+		{
+			var rg = new ISearchResult[results.Length];
+
+			for (int i = 0; i < rg.Length; i++) {
+				var sn = results[i];
+
+				rg[i] = new SauceNaoSimpleResult(sn.WebsiteTitle, sn.Url?.FirstOrDefault(u => u != null),
+					sn.Similarity);
+			}
+
+			return rg;
+		}
 
 		public override SearchResult GetResult(string url)
 		{
-			var sn = GetResults(url);
+			SearchResult result=base.GetResult(url);
 
-			if (sn == null) {
-				return new SearchResult(this, null);
+			try {
+				var sn = GetResults(url)
+					.OrderByDescending(r => r.Similarity)
+					.ToArray();
+
+				var extended = ConvertResults(sn);
+				var best = extended[0];
+
+				result.Url = best.Url;
+				result.Similarity = best.Similarity;
+				result.Caption = best.Caption;
+
+
+				result.AddExtendedInfo(extended);
+			}
+			catch (Exception e) {
+				
+				result.ExtendedInfo.Add(e.StackTrace);
 			}
 
-			var best = sn.OrderByDescending(r => r.Similarity)
-				.First(r => r.Url != null)!;
 
-			if (best != null) {
-				string? bestUrl = best.Url?[0];
-
-				var sr = new SearchResult(this, bestUrl, best.Similarity);
-
-				if (best.WebsiteTitle != null) {
-					sr.ExtendedInfo.Add(string.Format("Source: {0}", best.WebsiteTitle));
-				}
-
-				sr.ExtendedInfo.Add("Using API");
-				return sr;
-			}
-
-			return new SearchResult(this, null);
+			return result;
 		}
 
 
@@ -91,12 +105,12 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 			string c = res.Content;
 
-			return c == null ? null : ReadResults(c);
+			return ReadResults(c);
 
 		}
 
 
-		private static SauceNaoResult[] ReadResults(string js)
+		private static SauceNaoResult[]? ReadResults(string js)
 		{
 
 			// todo: rewrite this using Newtonsoft

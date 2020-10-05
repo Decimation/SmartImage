@@ -41,6 +41,9 @@ namespace SmartImage.Searching
 		/// </summary>
 		public override string Name { get; set; }
 
+
+		public string? RawUrl { get; set; }
+
 		public bool Success => Url != null;
 
 		/// <summary>
@@ -74,7 +77,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Best match
 		/// </summary>
-		public string Url { get; }
+		public string Url { get; set; }
 
 		/// <summary>
 		///     Image similarity
@@ -86,7 +89,6 @@ namespace SmartImage.Searching
 		public int? Height { get; set; }
 
 		public string? Caption { get; set; }
-
 
 		private IEnumerable<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
@@ -143,8 +145,16 @@ namespace SmartImage.Searching
 
 			sb.AppendFormat("{0} {1}\n", success, altStr);
 
-			if (Success) {
+
+			if (Success && RawUrl != Url) {
 				sb.AppendFormat("\tResult: {0}\n", Url);
+			}
+			else if (RawUrl != null) {
+				sb.AppendFormat("\tRaw: {0}\n", RawUrl);
+			}
+
+			if (Caption != null) {
+				sb.AppendFormat("\tCaption: {0}\n", Caption);
 			}
 
 			if (Similarity.HasValue) {
