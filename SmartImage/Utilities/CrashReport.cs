@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SimpleCore.Utilities;
+// ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Utilities
 {
@@ -15,9 +16,9 @@ namespace SmartImage.Utilities
 			m_exception = exception;
 		}
 
-		internal string Dump()
+		public override string ToString()
 		{
-			var sb =new StringBuilder();
+			var sb = new StringBuilder();
 
 			sb.AppendLine(Strings.CreateSeparator("Exception"));
 
@@ -30,12 +31,14 @@ namespace SmartImage.Utilities
 			sb.AppendLine();
 			sb.AppendLine(Strings.CreateSeparator("Config"));
 
-			try {
-				sb.AppendLine(SearchConfig.Config.Dump());
+			try
+			{
+				sb.AppendLine(SearchConfig.Config.ToString());
 			}
-			catch (Exception) {
+			catch (Exception)
+			{
 				sb.AppendLine("Error adding config");
-				
+
 			}
 
 			sb.AppendLine(Strings.CreateSeparator("Program Info"));
@@ -45,16 +48,11 @@ namespace SmartImage.Utilities
 			return sb.ToString();
 		}
 
-		public override string ToString()
-		{
-			return Dump();
-		}
-
 		internal const string FILENAME = "crash.log";
 
 		internal string WriteToFile()
 		{
-			var s = Dump();
+			var s = ToString();
 			var p = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 			var n = FILENAME;
 

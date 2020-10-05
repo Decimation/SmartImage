@@ -8,7 +8,6 @@ using System.IO;
 using System.Reflection;
 using SimpleCore.CommandLine;
 using SimpleCore.Win32;
-
 using SmartImage.Utilities;
 
 // ReSharper disable UseStringInterpolation
@@ -17,6 +16,7 @@ using SmartImage.Utilities;
 
 #endregion
 
+#pragma warning disable HAA0101, HAA0502, HAA0601
 
 namespace SmartImage
 {
@@ -93,13 +93,16 @@ namespace SmartImage
 
 			var rg = new List<string>
 			{
+				/* Current directory */
+				Environment.CurrentDirectory,
+
+
 				/* Executing directory */
 				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
 					.Replace("file:///", String.Empty)
 					.Replace("/", "\\"))!,
 
-				/* Current directory */
-				Environment.CurrentDirectory
+				
 			};
 
 			rg.AddRange(Native.PathDirectories);
@@ -112,6 +115,7 @@ namespace SmartImage
 				}
 			}
 
+			
 			static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
 			{
 				string folderExeFull = Path.Combine(folder, exeStr);
@@ -133,7 +137,7 @@ namespace SmartImage
 			 * Config
 			 */
 
-			NConsole.WriteInfo(SearchConfig.Config.Dump());
+			NConsole.WriteInfo(SearchConfig.Config);
 
 
 			/*

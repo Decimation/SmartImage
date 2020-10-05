@@ -4,22 +4,21 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using SimpleCore.CommandLine;
-using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
-#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301
+#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501
 
-namespace SmartImage.Searching
+namespace SmartImage.Searching.Model
 {
 	/// <summary>
 	///     Contains search result and information
 	/// </summary>
 	public sealed class SearchResult : NConsoleOption, ISearchResult
 	{
-		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
+		public SearchResult(ISearchEngine engine, string? url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
 
-		public SearchResult(Color color, string name, string url, float? similarity = null)
+		public SearchResult(Color color, string name, string? url, float? similarity = null)
 		{
 			Url = url;
 			Name = name;
@@ -32,9 +31,7 @@ namespace SmartImage.Searching
 
 		public override Color Color { get; set; }
 
-		// todo: create a specific url field with the original url
-
-		public override string? Data => Format();
+		public override string? Data => ToString();
 
 		/// <summary>
 		/// Result name
@@ -42,6 +39,9 @@ namespace SmartImage.Searching
 		public override string Name { get; set; }
 
 
+		/// <summary>
+		/// Raw search url
+		/// </summary>
 		public string? RawUrl { get; set; }
 
 		public bool Success => Url != null;
@@ -77,17 +77,15 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Best match
 		/// </summary>
-		public string Url { get; set; }
+		public string? Url { get; set; }
 
-		/// <summary>
-		///     Image similarity
-		/// </summary>
 		public float? Similarity { get; set; }
 
 		public int? Width { get; set; }
 
 		public int? Height { get; set; }
 
+		
 		public string? Caption { get; set; }
 
 		private IEnumerable<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
@@ -132,12 +130,6 @@ namespace SmartImage.Searching
 
 		public override string ToString()
 		{
-			return String.Format("{0}: {1}", Name, Url);
-		}
-
-
-		private string Format()
-		{
 			var sb = new StringBuilder();
 
 			char success = Success ? NConsole.RAD_SIGN : NConsole.MUL_SIGN;
@@ -146,30 +138,37 @@ namespace SmartImage.Searching
 			sb.AppendFormat("{0} {1}\n", success, altStr);
 
 
-			if (Success && RawUrl != Url) {
+			if (Success && RawUrl != Url)
+			{
 				sb.AppendFormat("\tResult: {0}\n", Url);
 			}
-			else if (RawUrl != null) {
+			else if (RawUrl != null)
+			{
 				sb.AppendFormat("\tRaw: {0}\n", RawUrl);
 			}
 
-			if (Caption != null) {
+			if (Caption != null)
+			{
 				sb.AppendFormat("\tCaption: {0}\n", Caption);
 			}
 
-			if (Similarity.HasValue) {
+			if (Similarity.HasValue)
+			{
 				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity / 100);
 			}
 
-			if (Width.HasValue && Height.HasValue) {
+			if (Width.HasValue && Height.HasValue)
+			{
 				sb.AppendFormat("\tResolution: {0}x{1}\n", Width, Height);
 			}
 
-			foreach (string s in ExtendedInfo) {
+			foreach (string s in ExtendedInfo)
+			{
 				sb.AppendFormat("\t{0}\n", s);
 			}
 
-			if (ExtendedResults.Count > 0) {
+			if (ExtendedResults.Count > 0)
+			{
 				sb.AppendFormat("\tExtended results: {0}\n", ExtendedResults.Count);
 			}
 

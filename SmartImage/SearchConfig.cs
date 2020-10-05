@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using SimpleCore.CommandLine;
 using SimpleCore.Utilities;
@@ -11,6 +12,8 @@ using SmartImage.Searching;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Utilities;
+
+#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102
 
 // ReSharper disable InconsistentNaming
 
@@ -36,9 +39,9 @@ namespace SmartImage
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
 
 
-		public const SearchEngines ENGINES_DEFAULT = SearchEngines.All;
+		public const SearchEngineOptions ENGINES_DEFAULT = SearchEngineOptions.All;
 
-		public const SearchEngines PRIORITY_ENGINES_DEFAULT = SearchEngines.SauceNao;
+		public const SearchEngineOptions PRIORITY_ENGINES_DEFAULT = SearchEngineOptions.SauceNao;
 
 		public static readonly string IMGUR_APIKEY_DEFAULT = String.Empty;
 
@@ -56,7 +59,7 @@ namespace SmartImage
 				newCfg = true;
 			}
 
-			var cfgFromFileMap =Common.ReadMap(ConfigLocation);
+			var cfgFromFileMap =ReadMap(ConfigLocation);
 
 			SearchEngines = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
 			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
@@ -85,12 +88,12 @@ namespace SmartImage
 		/// <summary>
 		/// Engines to use for searching
 		/// </summary>
-		public SearchEngines SearchEngines { get; set; }
+		public SearchEngineOptions SearchEngines { get; set; }
 
 		/// <summary>
 		/// Engines whose results should be opened in the browser
 		/// </summary>
-		public SearchEngines PriorityEngines { get; set; }
+		public SearchEngineOptions PriorityEngines { get; set; }
 
 		/// <summary>
 		/// <see cref="ImgurClient"/> API key
@@ -145,53 +148,9 @@ namespace SmartImage
 		internal void WriteToFile()
 		{
 			NConsole.WriteInfo("Updating config");
-			Common.WriteMap(ToMap(), ConfigLocation);
+			WriteMap(ToMap(), ConfigLocation);
 			NConsole.WriteInfo("Wrote to {0}", ConfigLocation);
 
-		}
-
-
-		internal string Dump()
-		{
-			var sb = new StringBuilder();
-
-			
-			if (!string.IsNullOrWhiteSpace(Image)) {
-				// Image may be null if not specified (error) or viewed in other UIs
-				// if so, omit it
-
-				sb.AppendFormat("Image: {0}\n\n", Image);
-			}
-
-			
-
-			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
-			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
-
-
-			string snAuth = SearchConfig.Config.SauceNaoAuth;
-			bool snNull = String.IsNullOrWhiteSpace(snAuth);
-
-			if (!snNull) {
-				sb.AppendFormat("SauceNao authentication: {0}\n", snAuth);
-			}
-
-
-			string imgurAuth = SearchConfig.Config.ImgurAuth;
-			bool imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
-
-			if (!imgurNull) {
-				sb.AppendFormat("Imgur authentication: {0}\n", imgurAuth);
-			}
-
-
-			sb.AppendFormat("Image upload service: {0}\n",
-				imgurNull ? "ImgOps" : "Imgur");
-
-
-			sb.AppendFormat("Config location: {0}\n", SearchConfig.ConfigLocation);
-
-			return sb.ToString();
 		}
 
 
@@ -225,15 +184,54 @@ namespace SmartImage
 				rawValue = ReadMapKeyValue<string>(name, cfg);
 			}
 
-			var parse = Enums.Read<T>(rawValue);
+			var parse = Read<T>(rawValue);
 			return parse;
 		}
 
 		public override string ToString()
 		{
-			
+			var sb = new StringBuilder();
 
-			return Dump();
+
+			if (!string.IsNullOrWhiteSpace(Image))
+			{
+				// Image may be null if not specified (error) or viewed in other UIs
+				// if so, omit it
+
+				sb.AppendFormat("Image: {0}\n\n", Image);
+			}
+
+
+
+			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
+			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
+
+
+			string snAuth = SearchConfig.Config.SauceNaoAuth;
+			bool snNull = String.IsNullOrWhiteSpace(snAuth);
+
+			if (!snNull)
+			{
+				sb.AppendFormat("SauceNao authentication: {0}\n", snAuth);
+			}
+
+
+			string imgurAuth = SearchConfig.Config.ImgurAuth;
+			bool imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
+
+			if (!imgurNull)
+			{
+				sb.AppendFormat("Imgur authentication: {0}\n", imgurAuth);
+			}
+
+
+			sb.AppendFormat("Image upload service: {0}\n",
+				imgurNull ? "ImgOps" : "Imgur");
+
+
+			sb.AppendFormat("Config location: {0}\n", SearchConfig.ConfigLocation);
+
+			return sb.ToString();
 		}
 
 
@@ -269,12 +267,12 @@ namespace SmartImage
 					case "--search-engines":
 						argEnumerator.MoveNext();
 						string sestr = argEnumerator.Current;
-						Config.SearchEngines = Enums.Read<SearchEngines>(sestr);
+						Config.SearchEngines = Read<SearchEngineOptions>(sestr);
 						break;
 					case "--priority-engines":
 						argEnumerator.MoveNext();
 						string pestr = argEnumerator.Current;
-						Config.PriorityEngines = Enums.Read<SearchEngines>(pestr);
+						Config.PriorityEngines = Read<SearchEngineOptions>(pestr);
 						break;
 					case "--saucenao-auth":
 						argEnumerator.MoveNext();
@@ -296,6 +294,35 @@ namespace SmartImage
 						break;
 				}
 			}
+		}
+
+		private static void WriteMap(IDictionary<string, string> d, string filename)
+		{
+			string[] lines = d.Select(kvp => kvp.Key + "=" + kvp.Value).ToArray();
+			File.WriteAllLines(filename, lines);
+		}
+
+		private static T Read<T>(string rawValue)
+		{
+			if (typeof(T).IsEnum) {
+				Enum.TryParse(typeof(T), (string) rawValue, out var e);
+				return (T) e;
+			}
+
+			if (typeof(T) == typeof(bool)) {
+				Boolean.TryParse(rawValue, out var b);
+				return (T) (object) b;
+			}
+
+			return (T) (object) rawValue;
+		}
+
+		private static IDictionary<string, string> ReadMap(string filename)
+		{
+			string[] lines = File.ReadAllLines(filename);
+			var dict = lines.Select(l => l.Split('=')).ToDictionary(a => a[0], a => a[1]);
+
+			return dict;
 		}
 	}
 }

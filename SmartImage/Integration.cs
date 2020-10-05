@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
-using Microsoft.Win32;
 using SimpleCore.CommandLine;
 using SimpleCore.CommandLine.Shell;
 using SimpleCore.Win32;
-using SmartImage.Utilities;
 
 namespace SmartImage
 {
@@ -39,8 +34,8 @@ namespace SmartImage
 						$"reg.exe add {REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
 					};
 
-					
-					BatchFileCommand.CreateAndRun(addCode,true);
+
+					BatchFileCommand.CreateAndRun(addCode, true);
 
 					break;
 				case IntegrationOption.Remove:
@@ -51,8 +46,8 @@ namespace SmartImage
 						$@"reg.exe delete {REG_SHELL} /f >nul"
 					};
 
-					
-					BatchFileCommand.CreateAndRun(removeCode,true);
+
+					BatchFileCommand.CreateAndRun(removeCode, true);
 
 					break;
 				default:
@@ -69,10 +64,14 @@ namespace SmartImage
 
 					string appFolder = RuntimeInfo.AppFolder;
 
-					if (RuntimeInfo.IsAppFolderInPath) return;
+					if (RuntimeInfo.IsAppFolderInPath) {
+						return;
+					}
 
 
-					bool appFolderInPath = oldValue.Split(Native.PATH_DELIM).Any(p => p == appFolder);
+					bool appFolderInPath = oldValue
+						.Split(Native.PATH_DELIM)
+						.Any(p => p == appFolder);
 
 					string cd = Environment.CurrentDirectory;
 					string exe = Path.Combine(cd, RuntimeInfo.NAME_EXE);
@@ -136,15 +135,12 @@ namespace SmartImage
 				"echo y | del " + DEL_BAT_NAME
 			};
 
-			
+
 			var bf = new BatchFileCommand(commands, DEL_BAT_NAME);
 
 			// Runs in background
 			bf.Start();
 
-
-			
-			
 		}
 
 		private const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
@@ -157,11 +153,11 @@ namespace SmartImage
 			get
 			{
 				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
-				
-				var cmd = ConsoleCommand.Shell(cmdStr);
+
+				var cmd = Command.Shell(cmdStr);
 				cmd.Start();
 
-				string[] stdOut = ConsoleCommand.ReadAllLines(cmd.StandardOutput);
+				string[] stdOut = Command.ReadAllLines(cmd.StandardOutput);
 
 				bool b = stdOut.Any(s => s.Contains(RuntimeInfo.NAME));
 				return b;
@@ -171,7 +167,7 @@ namespace SmartImage
 		internal static void Setup()
 		{
 			if (!RuntimeInfo.IsAppFolderInPath) {
-				Integration.HandlePath(IntegrationOption.Add);
+				HandlePath(IntegrationOption.Add);
 			}
 		}
 	}

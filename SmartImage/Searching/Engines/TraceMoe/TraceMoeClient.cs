@@ -16,7 +16,7 @@ namespace SmartImage.Searching.Engines.TraceMoe
 
 		public override string Name => "trace.moe";
 
-		public override SearchEngines Engine => SearchEngines.TraceMoe;
+		public override SearchEngineOptions Engine => SearchEngineOptions.TraceMoe;
 
 		private static TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code, out ResponseStatus status, out string msg)
 		{

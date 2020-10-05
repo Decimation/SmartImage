@@ -9,7 +9,7 @@ using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
-#pragma warning disable IDE0052
+#pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101
 
 
 namespace SmartImage
@@ -43,7 +43,7 @@ namespace SmartImage
 		/// <summary>
 		/// Main menu console interface
 		/// </summary>
-		internal static NConsoleUI Interface => new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER, false);
+		internal static NConsoleUI Interface => new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER);
 
 		/// <summary>
 		///     Runs when no arguments are given (and when the executable is double-clicked)
@@ -51,18 +51,17 @@ namespace SmartImage
 		/// <remarks>
 		///     More user-friendly menu
 		/// </remarks>
-		internal static void Run() => NConsole.IO.HandleOptions(ConsoleMainMenu.Interface);
+		internal static void Run() => NConsole.IO.HandleOptions(Interface);
 
-		private static readonly NConsoleOption RunSelectImage = new NConsoleOption()
+		private static readonly NConsoleOption RunSelectImage = new NConsoleOption
 		{
 			Name = ">>> Select image <<<",
 			Color = Color.Yellow,
 			Function = () =>
 			{
 				Console.WriteLine("Drag and drop the image here.");
-				Console.Write("Image: ");
-
-				string img = Console.ReadLine();
+				
+				string img = NConsole.IO.GetInput("Image");
 				img = Strings.CleanString(img);
 
 				SearchConfig.Config.Image = img;
@@ -72,15 +71,15 @@ namespace SmartImage
 		};
 
 
-		private static readonly NConsoleOption ConfigSearchEnginesOption = new NConsoleOption()
+		private static readonly NConsoleOption ConfigSearchEnginesOption = new NConsoleOption
 		{
 			Name = "Configure search engines",
 			Function = () =>
 			{
-				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngines>();
+				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngineOptions>();
 				var values = NConsole.IO.HandleOptions(rgEnum, true);
 
-				var newValues = Enums.ReadEnumFromSet<SearchEngines>(values);
+				var newValues = Enums.ReadEnumFromSet<SearchEngineOptions>(values);
 
 				NConsole.WriteInfo(newValues);
 
@@ -93,15 +92,15 @@ namespace SmartImage
 		};
 
 
-		private static readonly NConsoleOption ConfigPriorityEnginesOption = new NConsoleOption()
+		private static readonly NConsoleOption ConfigPriorityEnginesOption = new NConsoleOption
 		{
 			Name = "Configure priority engines",
 			Function = () =>
 			{
-				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngines>();
+				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngineOptions>();
 				var values = NConsole.IO.HandleOptions(rgEnum, true);
 
-				var newValues = Enums.ReadEnumFromSet<SearchEngines>(values);
+				var newValues = Enums.ReadEnumFromSet<SearchEngineOptions>(values);
 
 				NConsole.WriteInfo(newValues);
 
@@ -114,7 +113,7 @@ namespace SmartImage
 		};
 
 
-		private static readonly NConsoleOption ConfigSauceNaoAuthOption = new NConsoleOption()
+		private static readonly NConsoleOption ConfigSauceNaoAuthOption = new NConsoleOption
 		{
 			Name = "Configure SauceNao API authentication",
 			Function = () =>
@@ -126,7 +125,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly NConsoleOption ConfigImgurAuthOption = new NConsoleOption()
+		private static readonly NConsoleOption ConfigImgurAuthOption = new NConsoleOption
 		{
 			Name = "Configure Imgur API authentication",
 			Function = () =>
@@ -139,7 +138,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly NConsoleOption ConfigUpdateOption = new NConsoleOption()
+		private static readonly NConsoleOption ConfigUpdateOption = new NConsoleOption
 		{
 			Name = "Update configuration file",
 			Function = () =>
@@ -151,7 +150,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly NConsoleOption ContextMenuOption = new NConsoleOption()
+		private static readonly NConsoleOption ContextMenuOption = new NConsoleOption
 		{
 			Name = "Add/remove context menu integration",
 			Function = () =>
@@ -172,7 +171,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly NConsoleOption ShowInfoOption = new NConsoleOption()
+		private static readonly NConsoleOption ShowInfoOption = new NConsoleOption
 		{
 			Name = "Show info",
 			Function = () =>
@@ -184,25 +183,24 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly NConsoleOption CheckForUpdateOption = new NConsoleOption()
+
+		private static readonly NConsoleOption CheckForUpdateOption = new NConsoleOption
 		{
 			Name = "Check for updates",
 			Function = () =>
 			{
-				// TODO: WIP
-
 				var v = UpdateInfo.CheckForUpdates();
 
 				if ((v.Status == VersionStatus.Available)) {
 
 					UpdateInfo.Update();
-
+					
 					// No return
 					Environment.Exit(0);
 
 				}
 				else {
-					NConsole.WriteSuccess("{0}", v.Status);
+					NConsole.WriteInfo("{0}", v.Status);
 				}
 
 				NConsole.IO.WaitForSecond();
@@ -210,7 +208,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly NConsoleOption ResetOption = new NConsoleOption()
+		private static readonly NConsoleOption ResetOption = new NConsoleOption
 		{
 			Name = "Reset all configuration and integrations",
 			Function = () =>
@@ -222,7 +220,7 @@ namespace SmartImage
 			}
 		};
 
-		private static readonly NConsoleOption UninstallOption = new NConsoleOption()
+		private static readonly NConsoleOption UninstallOption = new NConsoleOption
 		{
 			Name = "Uninstall",
 			Function = () =>
@@ -252,7 +250,7 @@ namespace SmartImage
 			"Test3.png"
 		};
 
-		private static readonly NConsoleOption DebugTestOption = new NConsoleOption()
+		private static readonly NConsoleOption DebugTestOption = new NConsoleOption
 		{
 			Name = "[DEBUG] Run test",
 			Function = () =>
@@ -261,13 +259,11 @@ namespace SmartImage
 				var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
 
 
-				var testImg = Collections.GetRandomElement(TestImages);
+				var testImg = TestImages.GetRandomElement();
 				var img = Path.Combine(cd2, testImg);
 
 				SearchConfig.Config.Image = img;
-				SearchConfig.Config.PriorityEngines = SearchEngines.None;
-				//SearchConfig.Config.ImgurAuth = "6c97880bf8754c5";
-				//SearchConfig.Config.SearchEngines &= ~SearchEngines.TraceMoe;
+				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 
 				return true;

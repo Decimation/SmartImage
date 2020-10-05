@@ -19,7 +19,7 @@ namespace SmartImage.Searching.Engines.Other
 	{
 		public YandexClient() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
-		public override SearchEngines Engine => SearchEngines.Yandex;
+		public override SearchEngineOptions Engine => SearchEngineOptions.Yandex;
 
 		public override string Name => "Yandex";
 
@@ -32,7 +32,7 @@ namespace SmartImage.Searching.Engines.Other
 
 			public string? Caption { get; set; }
 
-			public string Url { get; set; }
+			public string? Url { get; set; }
 
 
 			internal YandexResult(int width, int height, string url)

@@ -13,7 +13,7 @@ namespace SmartImage.Searching.Engines.Other
 
 		public override string Name => "Google Images";
 
-		public override SearchEngines Engine => SearchEngines.GoogleImages;
+		public override SearchEngineOptions Engine => SearchEngineOptions.GoogleImages;
 
 		public override Color Color => Color.CornflowerBlue;
 	}

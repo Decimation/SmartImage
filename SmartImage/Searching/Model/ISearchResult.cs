@@ -1,16 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using JetBrains.Annotations;
-#nullable enable
-namespace SmartImage.Searching
+﻿#nullable enable
+namespace SmartImage.Searching.Model
 {
+	/// <summary>
+	/// Represents a search result
+	/// </summary>
 	public interface ISearchResult
 	{
 		/// <summary>
 		/// Best match
 		/// </summary>
-		public string Url { get; set; }
+		public string? Url { get; set; }
 
 		/// <summary>
 		/// Image similarity

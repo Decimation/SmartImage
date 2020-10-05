@@ -14,7 +14,7 @@ namespace SmartImage.Searching.Engines.Other
 		public override string Name => "TinEye";
 		public override Color Color => Color.DarkCyan;
 
-		public override SearchEngines Engine => SearchEngines.TinEye;
+		public override SearchEngineOptions Engine => SearchEngineOptions.TinEye;
 
 
 		/*

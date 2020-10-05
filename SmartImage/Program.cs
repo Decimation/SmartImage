@@ -31,7 +31,11 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
-		/**
+		/*
+		 * todo: refactor access modifiers
+		 */
+
+		/*
 		 * Entry point
 		 */
 		private static void Main(string[] args)
@@ -47,6 +51,7 @@ namespace SmartImage
 
 			NConsoleUI.DefaultName = RuntimeInfo.NAME_BANNER;
 
+			
 			/*
 			 * Run search
 			 */

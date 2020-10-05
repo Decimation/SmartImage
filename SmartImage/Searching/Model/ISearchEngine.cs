@@ -11,7 +11,7 @@ namespace SmartImage.Searching.Model
 	{
 		public string Name { get; }
 
-		public SearchEngines Engine { get; }
+		public SearchEngineOptions Engine { get; }
 
 		public SearchResult GetResult(string url);
 

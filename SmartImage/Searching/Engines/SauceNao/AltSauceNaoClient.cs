@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HtmlAgilityPack;
+using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
 namespace SmartImage.Searching.Engines.SauceNao

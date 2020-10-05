@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Text;
 using SmartImage.Searching.Model;
 
+#nullable enable
 namespace SmartImage.Searching.Engines.SauceNao
 {
 	public abstract class BaseSauceNaoClient : BasicSearchEngine
@@ -15,16 +16,15 @@ namespace SmartImage.Searching.Engines.SauceNao
 		public override string Name => "SauceNao";
 
 
-		public override SearchEngines Engine => SearchEngines.SauceNao;
+		public override SearchEngineOptions Engine => SearchEngineOptions.SauceNao;
 
-		
 
 		public override Color Color => Color.OrangeRed;
 
 		protected struct SauceNaoSimpleResult : ISearchResult
 		{
 			public string? Caption { get; set; }
-			public string Url { get; set; }
+			public string? Url { get; set; }
 			public float? Similarity { get; set; }
 			public int? Width { get; set; }
 			public int? Height { get; set; }

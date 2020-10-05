@@ -47,16 +47,22 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		private static ISearchResult[] ConvertResults(SauceNaoResult[] results)
 		{
-			var rg = new ISearchResult[results.Length];
+			var rg = new List<ISearchResult>();
 
-			for (int i = 0; i < rg.Length; i++) {
+			for (int i = 0; i < results.Length; i++) {
 				var sn = results[i];
 
-				rg[i] = new SauceNaoSimpleResult(sn.WebsiteTitle, sn.Url?.FirstOrDefault(u => u != null),
-					sn.Similarity);
+				if (sn.Url!=null) {
+					var url = sn.Url.FirstOrDefault(u => u != null);
+
+
+					rg.Add(new SauceNaoSimpleResult(sn.WebsiteTitle, url, sn.Similarity));
+				}
+
+				
 			}
 
-			return rg;
+			return rg.ToArray();
 		}
 
 		public override SearchResult GetResult(string url)
@@ -69,7 +75,10 @@ namespace SmartImage.Searching.Engines.SauceNao
 					.ToArray();
 
 				var extended = ConvertResults(sn);
-				var best = extended[0];
+				var best = extended
+					.Where(e=>e.Url!=null)
+					.OrderByDescending(e=>e.Similarity)
+					.First();
 
 				result.Url = best.Url;
 				result.Similarity = best.Similarity;

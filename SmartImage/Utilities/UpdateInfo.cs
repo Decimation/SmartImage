@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using SimpleCore.CommandLine;
@@ -22,9 +23,11 @@ namespace SmartImage.Utilities
 			Status = status;
 		}
 
+		
 		public static void Update()
 		{
 			var ui = CheckForUpdates();
+
 
 			if (ui.Status == VersionStatus.Available) {
 				var dest = Path.Combine(RuntimeInfo.AppFolder, "SmartImage-new.exe");

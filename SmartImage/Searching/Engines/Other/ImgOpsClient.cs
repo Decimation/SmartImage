@@ -17,7 +17,7 @@ namespace SmartImage.Searching.Engines.Other
 		public override string Name => "ImgOps";
 		public override Color Color => Color.DarkMagenta;
 
-		public override SearchEngines Engine => SearchEngines.ImgOps;
+		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 
 		public string UploadTempImage(string path, out string imgOpsPageUrl)
 		{

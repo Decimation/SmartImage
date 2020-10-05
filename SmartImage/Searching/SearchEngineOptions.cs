@@ -3,7 +3,7 @@ using System;
 namespace SmartImage.Searching
 {
 	[Flags]
-	public enum SearchEngines
+	public enum SearchEngineOptions
 	{
 		None = 0,
 

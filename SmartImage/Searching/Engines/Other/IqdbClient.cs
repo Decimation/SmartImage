@@ -10,7 +10,7 @@ using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
 #endregion
-
+#nullable enable
 namespace SmartImage.Searching.Engines.Other
 {
 	public sealed class IqdbClient : BasicSearchEngine
@@ -20,12 +20,11 @@ namespace SmartImage.Searching.Engines.Other
 		public override string Name => "IQDB";
 		public override Color Color => Color.Pink;
 
-		public override SearchEngines Engine => SearchEngines.Iqdb;
+		public override SearchEngineOptions Engine => SearchEngineOptions.Iqdb;
 
 		private struct IqdbResult : ISearchResult
 		{
-			[CanBeNull]
-			public string Caption { get; set; }
+			public string? Caption { get; set; }
 
 			public string Source { get; }
 
@@ -33,7 +32,7 @@ namespace SmartImage.Searching.Engines.Other
 
 			public int? Height { get; set; }
 
-			public string Url { get; set; }
+			public string? Url { get; set; }
 
 			public float? Similarity { get; set; }
 

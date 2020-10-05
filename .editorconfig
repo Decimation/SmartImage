@@ -1,0 +1,4 @@
+﻿[*.cs]
+
+# HAA0501: Explicit new array type allocation
+dotnet_diagnostic.HAA0501.severity = silent

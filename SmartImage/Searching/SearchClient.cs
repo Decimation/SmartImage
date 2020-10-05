@@ -30,7 +30,7 @@ namespace SmartImage.Searching
 			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif", ".bmp"
 		};
 
-		private readonly SearchEngines m_engines;
+		private readonly SearchEngineOptions m_engines;
 
 		private readonly string m_imgUrl;
 
@@ -45,7 +45,7 @@ namespace SmartImage.Searching
 
 			var engines = SearchConfig.Config.SearchEngines;
 
-			if (engines == SearchEngines.None) {
+			if (engines == SearchEngineOptions.None) {
 				engines = SearchConfig.ENGINES_DEFAULT;
 			}
 

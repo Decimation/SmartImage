@@ -16,9 +16,8 @@ namespace SmartImage.Searching.Model
 			BaseUrl = baseUrl;
 		}
 
-		
 
-		public abstract SearchEngines Engine { get; }
+		public abstract SearchEngineOptions Engine { get; }
 
 		public abstract string Name { get; }
 
@@ -27,8 +26,8 @@ namespace SmartImage.Searching.Model
 		public virtual SearchResult GetResult(string url)
 		{
 			string rawUrl = GetRawResultUrl(url);
-			
-			var sr= new SearchResult(this, rawUrl);
+
+			var sr = new SearchResult(this, rawUrl);
 			sr.RawUrl = rawUrl;
 
 			return sr;
