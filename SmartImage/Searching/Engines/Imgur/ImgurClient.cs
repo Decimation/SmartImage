@@ -1,12 +1,17 @@
 #region
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using RestSharp;
 using RestSharp.Serialization.Json;
+// ReSharper disable UnusedMember.Local
 
 #endregion
 
@@ -18,6 +23,8 @@ namespace SmartImage.Searching.Engines.Imgur
 	{
 		private readonly string m_apiKey;
 
+		private const string BaseUrl = "https://api.imgur.com/3/";
+
 		private ImgurClient(string apiKey)
 		{
 			m_apiKey = apiKey;
@@ -25,39 +32,34 @@ namespace SmartImage.Searching.Engines.Imgur
 
 		public ImgurClient() : this(SearchConfig.Config.ImgurAuth) { }
 
+		
+		private static string PhotoStreamToBase64(Stream stream)
+		{
+			using var ms = new MemoryStream();
+
+			stream.CopyTo(ms);
+
+			var result = ms.ToArray();
+			return Convert.ToBase64String(result);
+		}
+
 		public string Upload(string path)
 		{
-			// todo: cleanup
-			// var rc = new RestClient("https://api.imgur.com/3/upload");
-			// var re = new RestRequest(Method.POST);
-			// re.AddHeader("Authorization","Client-ID "+ m_apiKey);
-			//
-			// re.AddParameter("image", Convert.ToBase64String(File.ReadAllBytes(path)), ParameterType.RequestBody);
-			//
-			// var res = rc.Execute(re);
-			//
-			// Console.WriteLine(res.ErrorMessage);
-			// Console.WriteLine(res.StatusCode);
-			// Console.WriteLine(res.IsSuccessful);
 
-			using var w = new WebClient();
-			w.Headers.Add("Authorization: Client-ID " + m_apiKey);
-
-			var values = new NameValueCollection
+			var client = new RestClient(BaseUrl)
 			{
-				{"image", Convert.ToBase64String(File.ReadAllBytes(path))}
+				Timeout = -1
 			};
 
-			string response =
-				Encoding.UTF8.GetString(w.UploadValues("https://api.imgur.com/3/upload", values));
-			//Console.WriteLine(response);
+			var request = new RestRequest("image", Method.POST);
+			request.AddHeader("Authorization", "Client-ID " + m_apiKey);
+			request.AlwaysMultipartFormData = true;
+			request.AddParameter("image", Convert.ToBase64String(File.ReadAllBytes(path)));
 
+			var response = client.Execute(request);
 
-			var res = new RestResponse {Content = response};
-
-			 var des = new JsonDeserializer();
-			 return des.Deserialize<ImgurResponse<ImgurImage>>(res).Data.Link;
-
+			var des = new JsonDeserializer();
+			return des.Deserialize<ImgurResponse<ImgurImage>>(response).Data.Link;
 		}
 	}
 }

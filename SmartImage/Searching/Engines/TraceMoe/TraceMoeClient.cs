@@ -81,7 +81,7 @@ namespace SmartImage.Searching.Engines.TraceMoe
 				r = new SearchResult(this,best.Url, best.Similarity);
 				r.Caption = best.Caption;
 
-				r.AddExtendedInfo(results);
+				r.AddExtendedResults(results);
 
 
 

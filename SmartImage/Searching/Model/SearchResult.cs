@@ -47,13 +47,14 @@ namespace SmartImage.Searching.Model
 		public bool Success => Url != null;
 
 		/// <summary>
-		/// Extended information about results
+		/// Extended information about the image, results, and other related metadata
 		/// </summary>
 		public List<string> ExtendedInfo { get; }
 
 		/// <summary>
-		///     Direct source matches, other extended results
+		///     Direct source matches and other extended results
 		/// </summary>
+		/// <remarks>This list is used if there are multiple results</remarks>
 		public List<ISearchResult> ExtendedResults { get; }
 
 		/// <summary>
@@ -74,9 +75,7 @@ namespace SmartImage.Searching.Model
 		public override Func<object?>? AltFunction { get; set; }
 
 
-		/// <summary>
-		///     Best match
-		/// </summary>
+		
 		public string? Url { get; set; }
 
 		public float? Similarity { get; set; }
@@ -110,7 +109,7 @@ namespace SmartImage.Searching.Model
 			return rg;
 		}
 
-		public void AddExtendedInfo(ISearchResult[] bestImages)
+		public void AddExtendedResults(ISearchResult[] bestImages)
 		{
 			// todo?
 

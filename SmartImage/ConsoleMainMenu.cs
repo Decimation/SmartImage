@@ -246,8 +246,8 @@ namespace SmartImage
 		private static readonly string[] TestImages =
 		{
 			// "Test1.jpg", 
-			//"Test2.jpg",
-			"Test3.png"
+			"Test2.jpg",
+			//"Test3.png"
 		};
 
 		private static readonly NConsoleOption DebugTestOption = new NConsoleOption

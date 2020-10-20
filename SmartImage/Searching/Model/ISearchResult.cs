@@ -7,30 +7,32 @@ namespace SmartImage.Searching.Model
 	public interface ISearchResult
 	{
 		/// <summary>
-		/// Best match
+		/// Url of the best match found.
 		/// </summary>
 		public string? Url { get; set; }
 
 		/// <summary>
-		/// Image similarity
+		/// Image similarity (delta).
 		/// </summary>
 		public float? Similarity { get;  set; }
 
 		/// <summary>
-		/// Image width
+		/// Image width dimension.
 		/// </summary>
 		public int? Width { get;  set; }
 
 		/// <summary>
-		/// Image height
+		/// Image height dimension.
 		/// </summary>
 		public int? Height { get;  set; }
 
-
+		/// <summary>
+		/// Full image resolution.
+		/// </summary>
 		public int? FullResolution => Width * Height;
 
 		/// <summary>
-		/// Image caption/name/title
+		/// Image caption/name/title.
 		/// </summary>
 		public string? Caption { get;  set; }
 	}

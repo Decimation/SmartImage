@@ -154,7 +154,7 @@ namespace SmartImage.Searching.Engines.Other
 
 				sr.Url = best.Url;
 				sr.Caption = best.Caption;
-				sr.AddExtendedInfo(bestImages);
+				sr.AddExtendedResults(bestImages);
 
 			}
 			catch (Exception) {

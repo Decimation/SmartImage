@@ -9,6 +9,7 @@ using System.Reflection;
 using SimpleCore.CommandLine;
 using SimpleCore.Win32;
 using SmartImage.Utilities;
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable UseStringInterpolation
 

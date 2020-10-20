@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SimpleCore.CommandLine;
+using SimpleCore.Win32;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.Other;
 using SmartImage.Searching.Engines.SauceNao;
@@ -13,7 +14,7 @@ using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
-#pragma warning disable HAA0502, HAA0302
+#pragma warning disable HAA0502, HAA0302, HAA0601, HAA0101
 
 namespace SmartImage.Searching
 {
@@ -34,6 +35,8 @@ namespace SmartImage.Searching
 
 		private readonly string m_imgUrl;
 
+		private readonly FileInfo m_img;
+
 		private SearchResult[] m_results;
 
 		private readonly Thread[] m_threads;
@@ -50,6 +53,7 @@ namespace SmartImage.Searching
 			}
 
 			m_engines = engines;
+			m_img = new FileInfo(img);
 			m_imgUrl = Upload(img, useImgur);
 			m_threads = CreateSearchThreads();
 
@@ -99,13 +103,42 @@ namespace SmartImage.Searching
 
 			NConsole.WriteInfo("Temporary image url: {0}", m_imgUrl);
 
-			Console.WriteLine();
-
 			foreach (var thread in m_threads) {
 				thread.Start();
 			}
 		}
 
+
+		private static (int Width, int Height) GetImageDimensions(string img)
+		{
+			var bmp = new Bitmap(img);
+
+			return (bmp.Width, bmp.Height);
+		}
+
+		private SearchResult GetOriginalImageResult()
+		{
+			var result = new SearchResult(Color.White, "(Original image)", m_imgUrl);
+
+			result.ExtendedInfo.Add(string.Format("Location: {0}", m_img));
+
+			var fileFormat = FileOperations.ResolveFileType(m_img.FullName);
+
+			const float magnitude = 1024f;
+			var fileSizeMegabytes = Math.Round(FileOperations.GetFileSize(m_img.FullName) / magnitude / magnitude, 2);
+
+			var dim = GetImageDimensions(m_img.FullName);
+
+			result.Width = dim.Width;
+			result.Height = dim.Height;
+
+			var infoStr = string.Format("Info: {0} ({1} MB) ({2})", 
+				m_img.Name, fileSizeMegabytes, fileFormat);
+
+			result.ExtendedInfo.Add(infoStr);
+
+			return result;
+		}
 
 		private Thread[] CreateSearchThreads()
 		{
@@ -119,7 +152,7 @@ namespace SmartImage.Searching
 			int i = 0;
 
 			m_results = new SearchResult[availableEngines.Length + 1];
-			m_results[i] = new SearchResult(Color.White, "(Original image)", m_imgUrl);
+			m_results[i] = GetOriginalImageResult();
 
 			i++;
 
@@ -207,11 +240,29 @@ namespace SmartImage.Searching
 			string imgUrl;
 
 			if (useImgur) {
+				try {
+					UploadImgur();
+				}
+				catch (Exception e) {
+					NConsole.WriteError("Error uploading with Imgur: {0}", e.Message);
+					NConsole.WriteInfo("Using ImgOps instead");
+					UploadImgOps();
+				}
+			}
+			else {
+				UploadImgOps();
+			}
+
+
+			void UploadImgur()
+			{
 				NConsole.WriteInfo("Using Imgur for image upload");
 				var imgur = new ImgurClient();
 				imgUrl = imgur.Upload(img);
 			}
-			else {
+
+			void UploadImgOps()
+			{
 				NConsole.WriteInfo("Using ImgOps for image upload (2 hour cache)");
 				var imgOps = new ImgOpsClient();
 				imgUrl = imgOps.UploadTempImage(img, out _);

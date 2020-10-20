@@ -85,7 +85,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 				result.Caption = best.Caption;
 
 
-				result.AddExtendedInfo(extended);
+				result.AddExtendedResults(extended);
 			}
 			catch (Exception e) {
 				

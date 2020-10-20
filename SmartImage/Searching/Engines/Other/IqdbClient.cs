@@ -139,7 +139,7 @@ namespace SmartImage.Searching.Engines.Other
 				sr.Url = best.Url;
 				sr.Similarity = best.Similarity;
 
-				sr.AddExtendedInfo(images.ToArray());
+				sr.AddExtendedResults(images.ToArray());
 
 
 			}
