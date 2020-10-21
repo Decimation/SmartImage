@@ -28,6 +28,7 @@ namespace SmartImage.Searching.Engines.Other
 			public float? Similarity { get; set; }
 
 			public int? Width { get; set; }
+
 			public int? Height { get; set; }
 
 			public string? Caption { get; set; }
@@ -46,8 +47,7 @@ namespace SmartImage.Searching.Engines.Other
 
 			public override string ToString()
 			{
-				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Url,
-					((ISearchResult) this).FullResolution);
+				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Url, ((ISearchResult) this).FullResolution);
 			}
 		}
 
@@ -151,16 +151,18 @@ namespace SmartImage.Searching.Engines.Other
 
 				//
 				var best = images[0];
-
+				sr.Width = best.Width;
+				sr.Height = best.Height;
 				sr.Url = best.Url;
 				sr.Caption = best.Caption;
+				
 				sr.AddExtendedResults(bestImages);
 
 			}
 			catch (Exception) {
 				// ...
 
-
+				sr.ExtendedInfo.Add("Error parsing");
 			}
 
 

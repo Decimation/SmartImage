@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using HtmlAgilityPack;
 using JetBrains.Annotations;
 using SimpleCore.Utilities;
@@ -10,6 +11,7 @@ using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
 #endregion
+
 #nullable enable
 namespace SmartImage.Searching.Engines.Other
 {
@@ -18,6 +20,7 @@ namespace SmartImage.Searching.Engines.Other
 		public IqdbClient() : base("https://iqdb.org/?url=") { }
 
 		public override string Name => "IQDB";
+
 		public override Color Color => Color.Pink;
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Iqdb;
@@ -59,7 +62,7 @@ namespace SmartImage.Searching.Engines.Other
 			var img = tr[1];
 			var src = tr[2];
 
-			string url = null;
+			string url = null!;
 
 			var urlNode = img.FirstChild.FirstChild;
 
@@ -73,21 +76,21 @@ namespace SmartImage.Searching.Engines.Other
 				var res = tr[3];
 				var wh = res.InnerText.Split("×");
 
-				var wstr = wh[0].SelectOnlyDigits();
-				w = int.Parse(wstr);
+				var wStr = wh[0].SelectOnlyDigits();
+				w = int.Parse(wStr);
 
 				// May have NSFW caption, so remove it
 
-				var hstr = wh[1].SelectOnlyDigits();
-				h = int.Parse(hstr);
+				var hStr = wh[1].SelectOnlyDigits();
+				h = int.Parse(hStr);
 			}
 
 			float? sim;
 
 			if (tr.Count >= 5) {
-				var simnode = tr[4];
-				var simstr = simnode.InnerText.Split('%')[0];
-				sim = float.Parse(simstr);
+				var simNode = tr[4];
+				var simStr = simNode.InnerText.Split('%')[0];
+				sim = float.Parse(simStr);
 			}
 			else {
 				sim = null;
@@ -119,13 +122,19 @@ namespace SmartImage.Searching.Engines.Other
 				var pages = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
 				var tables = pages.SelectNodes("div/table");
 
+				// No relevant results?
+				bool noMatch = pages.ChildNodes.Any(n => n.GetAttributeValue("class", null) == "nomatch");
+
+				if (noMatch) {
+					sr.ExtendedInfo.Add("No relevant results");
+					return sr;
+				}
+
 				var images = new List<ISearchResult>();
 
 				foreach (var table in tables) {
 
-
 					var tr = table.SelectNodes("tr");
-
 
 					var i = ParseResult(tr);
 

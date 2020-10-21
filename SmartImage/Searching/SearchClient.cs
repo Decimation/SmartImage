@@ -14,10 +14,15 @@ using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
-#pragma warning disable HAA0502, HAA0302, HAA0601, HAA0101
+// ReSharper disable ConvertIfStatementToReturnStatement
+
+#pragma warning disable HAA0502, HAA0302, HAA0601, HAA0101, HAA0301, HAA0603
 
 namespace SmartImage.Searching
 {
+	// todo: replace threads with tasks and async
+
+
 	/// <summary>
 	/// Searching client
 	/// </summary>
@@ -39,7 +44,9 @@ namespace SmartImage.Searching
 
 		private SearchResult[] m_results;
 
-		private readonly Thread[] m_threads;
+		private readonly Task[] m_tasks;
+
+		private readonly Thread m_monitor;
 
 		public SearchClient(string img)
 		{
@@ -55,9 +62,45 @@ namespace SmartImage.Searching
 			m_engines = engines;
 			m_img = new FileInfo(img);
 			m_imgUrl = Upload(img, useImgur);
-			m_threads = CreateSearchThreads();
+			m_tasks = CreateSearchTasks();
 
+			m_monitor = new Thread(Monitor)
+			{
+				Priority = ThreadPriority.Highest,
+				IsBackground = true
+			};
+		}
 
+		private void Monitor()
+		{
+			Task.WaitAll(m_tasks);
+
+			Console.Beep(1000, 100);
+
+			//Array.Sort(m_results, Comparison);
+
+			NConsole.IO.Refresh();
+		}
+
+		private static int CompareResults(SearchResult x, SearchResult y)
+		{
+			// Keep original image at first index
+			if (x?.Name == ORIGINAL_IMAGE_NAME || y?.Name == ORIGINAL_IMAGE_NAME) {
+				return 1;
+			}
+
+			var xSim = x?.Similarity ?? 0;
+			var ySim = y?.Similarity ?? 0;
+
+			if (xSim > ySim) {
+				return -1;
+			}
+
+			if (xSim < ySim) {
+				return 1;
+			}
+
+			return 0;
 		}
 
 		private static BaseSauceNaoClient GetSauceNaoClient()
@@ -74,7 +117,6 @@ namespace SmartImage.Searching
 			// }
 
 			return new FullSauceNaoClient();
-
 		}
 
 		/// <summary>
@@ -91,6 +133,9 @@ namespace SmartImage.Searching
 			// foreach (var thread in m_threads) {
 			// 	thread.Join();
 			// }
+
+			// m_monitor.Join();
+
 		}
 
 		/// <summary>
@@ -103,11 +148,12 @@ namespace SmartImage.Searching
 
 			NConsole.WriteInfo("Temporary image url: {0}", m_imgUrl);
 
-			foreach (var thread in m_threads) {
+			m_monitor.Start();
+
+			foreach (var thread in m_tasks) {
 				thread.Start();
 			}
 		}
-
 
 		private static (int Width, int Height) GetImageDimensions(string img)
 		{
@@ -116,9 +162,11 @@ namespace SmartImage.Searching
 			return (bmp.Width, bmp.Height);
 		}
 
+		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
+
 		private SearchResult GetOriginalImageResult()
 		{
-			var result = new SearchResult(Color.White, "(Original image)", m_imgUrl);
+			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl);
 
 			result.ExtendedInfo.Add(string.Format("Location: {0}", m_img));
 
@@ -132,7 +180,7 @@ namespace SmartImage.Searching
 			result.Width = dim.Width;
 			result.Height = dim.Height;
 
-			var infoStr = string.Format("Info: {0} ({1} MB) ({2})", 
+			var infoStr = string.Format("Info: {0} ({1} MB) ({2})",
 				m_img.Name, fileSizeMegabytes, fileFormat);
 
 			result.ExtendedInfo.Add(infoStr);
@@ -140,10 +188,10 @@ namespace SmartImage.Searching
 			return result;
 		}
 
-		private Thread[] CreateSearchThreads()
+		private Task[] CreateSearchTasks()
 		{
 			// todo: improve
-
+			// todo: hacky :(
 
 			var availableEngines = GetAllEngines()
 				.Where(e => m_engines.HasFlag(e.Engine))
@@ -157,7 +205,7 @@ namespace SmartImage.Searching
 			i++;
 
 
-			var threads = new List<Thread>();
+			var threads = new List<Task>();
 
 			foreach (var currentEngine in availableEngines) {
 
@@ -174,23 +222,19 @@ namespace SmartImage.Searching
 						Network.OpenUrl(result.Url);
 					}
 
+					// Sort results
+					Array.Sort(resultsCopy, CompareResults);
+
+					// Reload console UI
 					NConsole.IO.Refresh();
 				}
 
-				var t = new Thread(RunSearchThread)
-				{
-					Priority = ThreadPriority.Highest,
-					IsBackground = true
-				};
-
-				threads.Add(t);
+				threads.Add(new Task(RunSearchThread));
 
 				i++;
 			}
 
 			return threads.ToArray();
-
-
 		}
 
 		private static IEnumerable<ISearchEngine> GetAllEngines()
