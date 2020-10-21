@@ -74,8 +74,8 @@ namespace SmartImage.Searching.Model
 
 		public override Func<object?>? AltFunction { get; set; }
 
+		public override Func<object?>? CtrlFunction { get; set; }
 
-		
 		public string? Url { get; set; }
 
 		public float? Similarity { get; set; }

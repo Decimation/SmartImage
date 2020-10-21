@@ -79,6 +79,9 @@ namespace SmartImage.Searching
 
 			//Array.Sort(m_results, Comparison);
 
+			// todo: wtf
+
+			NConsole.IO.Refresh();
 			NConsole.IO.Refresh();
 		}
 
@@ -188,6 +191,7 @@ namespace SmartImage.Searching
 			return result;
 		}
 
+
 		private Task[] CreateSearchTasks()
 		{
 			// todo: improve
@@ -212,15 +216,28 @@ namespace SmartImage.Searching
 				var resultsCopy = m_results;
 				int iCopy = i;
 
+
+				var task = new Task(RunSearchThread);
+				
 				void RunSearchThread()
 				{
 					var result = currentEngine.GetResult(m_imgUrl);
+
+					result.CtrlFunction = () =>
+					{
+						// todo
+						return null;
+					};
+
 					resultsCopy[iCopy] = result;
 
 					// If the engine is priority, open its result in the browser
 					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
 						Network.OpenUrl(result.Url);
 					}
+
+
+					// todo: UI won't update after sorting sometimes, wtf
 
 					// Sort results
 					Array.Sort(resultsCopy, CompareResults);
@@ -229,7 +246,8 @@ namespace SmartImage.Searching
 					NConsole.IO.Refresh();
 				}
 
-				threads.Add(new Task(RunSearchThread));
+				
+				threads.Add(task);
 
 				i++;
 			}
