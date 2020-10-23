@@ -6,7 +6,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
+using RestSharp;
 using SimpleCore.CommandLine;
+using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SimpleCore.Win32;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.Other;
@@ -76,21 +80,20 @@ namespace SmartImage.Searching
 				Priority = ThreadPriority.Highest,
 				IsBackground = true
 			};
-			
+
 			Complete = false;
 		}
-
+		
 		/// <summary>
 		/// Searching client
 		/// </summary>
 		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
-
+		
 		/// <summary>
 		/// Inspect a <see cref="SearchResult"/> to determine its MIME type, whether it's a direct image link and downloadable, etc.
 		/// </summary>
 		public static void RunInspectionTask(SearchResult result)
 		{
-			// todo: extract direct links for common sites like Pixiv, boorus, etc.
 			// todo: move image functions into separate class or something
 
 			var task = new Task(InspectTask);
@@ -98,21 +101,49 @@ namespace SmartImage.Searching
 
 			void InspectTask()
 			{
-				if (!result.IsProcessed)
-				{
+				if (!result.IsProcessed) {
 					var type = Network.IdentifyType(result.Url);
 					var isImage = Network.IsImage(type);
 
 					result.IsImage = isImage;
+
+					if (!isImage) {
+						var root = ResolveRoot(result.Url);
+
+						if (root!=null) {
+							result.RootUrl = root;
+						}
+					}
+
 					result.IsProcessed = true;
 
-					//Debug.WriteLine("Inspect " + result.Name + " " + result.IsImage);
 				}
 			}
 
 			//NConsole.IO.Refresh();
 		}
 
+		public static string ResolveRoot(string url)
+		{
+			string root = null;
+
+			if (url.Contains("danbooru")) {
+				var html = Network.GetString(url);
+
+				var doc = new HtmlDocument();
+				doc.LoadHtml(html);
+
+				var n = doc.DocumentNode;
+
+				var nx = n.SelectSingleNode("//*[@id='post-option-download']/a[@href]");
+				
+				root = nx.GetAttributeValue("href", null);
+
+			}
+			
+			return root;
+		}
+		
 		private void Monitor()
 		{
 			Task.WaitAll(m_tasks);

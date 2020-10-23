@@ -1,12 +1,11 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.IO;
-using System.Linq;
 using System.Text;
 using SimpleCore.CommandLine;
+using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SimpleCore.Win32;
 using SmartImage.Utilities;
 
@@ -19,38 +18,31 @@ namespace SmartImage.Searching.Model
 	/// </summary>
 	public sealed class SearchResult : NConsoleOption, ISearchResult
 	{
-		public SearchResult(ISearchEngine engine, string? url, float? similarity = null)
-			: this(engine.Color, engine.Name, url, similarity) { }
+		public const char ATTR_SUCCESS = NConsole.CHECK_MARK;
 
-		public SearchResult(Color color, string name, string? url, float? similarity = null)
-		{
-			Url = url;
-			Name = name;
-			Color = color;
+		public const char ATTR_EXTENDED_RESULTS = NConsole.ARROW_UP_DOWN;
 
-			Similarity = similarity;
-			ExtendedInfo = new List<string>();
-			ExtendedResults = new List<SearchResult>();
-		}
+		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
 
 		public override Color Color { get; set; }
 
 		public override string Data => ToString();
 
 		/// <summary>
-		/// Result name
+		///     Result name
 		/// </summary>
 		public override string Name { get; set; }
 
 
 		/// <summary>
-		/// Raw search url
+		///     Raw search url
 		/// </summary>
 		public string? RawUrl { get; set; }
 
+		public string? RootUrl { get; set; }
 
 		/// <summary>
-		/// Extended information about the image, results, and other related metadata
+		///     Extended information about the image, results, and other related metadata
 		/// </summary>
 		public List<string> ExtendedInfo { get; }
 
@@ -61,7 +53,7 @@ namespace SmartImage.Searching.Model
 		public List<SearchResult> ExtendedResults { get; }
 
 		/// <summary>
-		/// Opens result in browser
+		///     Opens result in browser
 		/// </summary>
 		public override Func<object?> Function
 		{
@@ -83,18 +75,19 @@ namespace SmartImage.Searching.Model
 			{
 				return () =>
 				{
-					var type = Network.IdentifyType(Url);
-					var notImage = type == null || type.Split("/")[0] != "image";
+					string? type = Network.IdentifyType(Url);
+					bool notImage = type == null || type.Split("/")[0] != "image";
 
 					if (notImage) {
-						var ok = NConsole.IO.ReadConfirm($"Link may not be an image [{type ?? "?"}]. Download anyway?");
+						bool ok = NConsole.IO.ReadConfirm(
+							$"Link may not be an image [{type ?? "?"}]. Download anyway?");
 
 						if (!ok) {
 							return null;
 						}
 					}
 
-					var path = Network.DownloadUrl(Url);
+					string? path = Network.DownloadUrl(Url);
 
 					NConsole.WriteSuccess("Downloaded to {0}", path);
 
@@ -109,6 +102,24 @@ namespace SmartImage.Searching.Model
 			}
 		}
 
+		public bool IsProcessed { get; set; }
+
+		public bool IsImage { get; set; }
+
+		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
+			: this(engine.Color, engine.Name, url, similarity) { }
+
+		public SearchResult(Color color, string name, string url, float? similarity = null)
+		{
+			Url = url;
+			Name = name;
+			Color = color;
+
+			Similarity = similarity;
+			ExtendedInfo = new List<string>();
+			ExtendedResults = new List<SearchResult>();
+		}
+
 
 		public string Url { get; set; }
 
@@ -121,14 +132,13 @@ namespace SmartImage.Searching.Model
 
 		public string? Caption { get; set; }
 
-
 		private IList<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
 			var rg = new SearchResult[results.Count];
 
 			for (int i = 0; i < rg.Length; i++) {
 				var result = results[i];
-				var name = String.Format("Extended result #{0}", i);
+				string name = String.Format("Extended result #{0}", i);
 
 				var sr = new SearchResult(Color, name, result.Url, result.Similarity)
 				{
@@ -169,23 +179,13 @@ namespace SmartImage.Searching.Model
 			};
 		}
 
-		public const char ATTR_SUCCESS = NConsole.RAD_SIGN;
-
-		public const char ATTR_EXTENDED_RESULTS = NConsole.ARROW_UP_DOWN;
-
-		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
-
-		public bool IsProcessed { get; set; }
-
-		public bool IsImage { get; set; }
-
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
 
 			string attrSuccess = ATTR_SUCCESS.ToString();
 
-			string attrExtendedResults = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : string.Empty;
+			string attrExtendedResults = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : String.Empty;
 
 			string attrDownload;
 
@@ -193,7 +193,7 @@ namespace SmartImage.Searching.Model
 				attrDownload = "-";
 			}
 			else {
-				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.MUL_SIGN.ToString() + ATTR_DOWNLOAD.ToString();
+				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.BALLOT_X + ATTR_DOWNLOAD.ToString();
 			}
 			//todo
 

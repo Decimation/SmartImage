@@ -111,7 +111,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 			var res = m_client.Execute(req);
 
-			Network.AssertResponse(res);
+			//Network.AssertResponse(res);
 
 			string c = res.Content;
 

@@ -22,6 +22,7 @@ using SmartImage.Utilities;
 
 #endregion
 
+#pragma warning disable HAA0601
 namespace SmartImage
 {
 	public static class Program
@@ -45,7 +46,7 @@ namespace SmartImage
 			/*
 			 * Set up console
 			 */
-			
+
 
 			Console.Title = RuntimeInfo.NAME;
 			Console.SetWindowSize(120, 50);
@@ -78,11 +79,9 @@ namespace SmartImage
 
 
 				string prompt =
-					String.Format("Enter the option number to open or {0} to exit.\n", NConsole.IO.ESC_EXIT) +
-					String.Format("Hold down {0} while entering the option number to show more info ({1}).\n",
-						NConsole.IO.ALT_FUNC_MODIFIER, SearchResult.ATTR_EXTENDED_RESULTS) +
-					String.Format("Hold down {0} while entering the option number to download ({1}).\n",
-						NConsole.IO.CTRL_FUNC_MODIFIER, SearchResult.ATTR_DOWNLOAD);
+					$"Enter the option number to open or {NConsole.IO.ESC_EXIT} to exit.\n" +
+					$"Hold down {NConsole.IO.ALT_FUNC_MODIFIER} while entering the option number to show more info ({SearchResult.ATTR_EXTENDED_RESULTS}).\n" +
+					$"Hold down {NConsole.IO.CTRL_FUNC_MODIFIER} while entering the option number to download ({SearchResult.ATTR_DOWNLOAD}).\n";
 
 
 				var ui = new NConsoleUI(SearchClient.Client.Results, null, prompt, false);

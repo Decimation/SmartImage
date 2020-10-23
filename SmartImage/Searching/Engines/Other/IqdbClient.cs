@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net;
 using HtmlAgilityPack;
 using JetBrains.Annotations;
+using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
@@ -104,13 +107,14 @@ namespace SmartImage.Searching.Engines.Other
 			var sr = base.GetResult(url);
 
 			try {
+				
 				var html = Network.GetSimpleResponse(sr.RawUrl);
 
 				//Network.WriteResponse(html);
 
 				var doc = new HtmlDocument();
 				doc.LoadHtml(html.Content);
-
+				
 
 				//var tables = doc.DocumentNode.SelectNodes("//table");
 

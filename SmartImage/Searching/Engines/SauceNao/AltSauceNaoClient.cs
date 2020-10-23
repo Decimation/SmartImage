@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using HtmlAgilityPack;
+using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 

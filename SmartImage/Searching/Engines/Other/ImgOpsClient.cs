@@ -3,6 +3,8 @@
 using System.Drawing;
 using System.Text.RegularExpressions;
 using RestSharp;
+using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 

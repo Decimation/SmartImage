@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Linq;
 using System.Net;
 using HtmlAgilityPack;
+using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
