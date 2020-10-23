@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using SimpleCore.CommandLine;
+using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.SauceNao;
@@ -111,7 +112,7 @@ namespace SmartImage
 				newCfg = true;
 			}
 
-			var cfgFromFileMap = ReadMap(ConfigLocation);
+			var cfgFromFileMap = Collections.ReadDictionary(ConfigLocation);
 
 			SearchEngines = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
 			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
@@ -146,16 +147,14 @@ namespace SmartImage
 			PriorityEngines = PRIORITY_ENGINES_DEFAULT;
 			ImgurAuth = IMGUR_APIKEY_DEFAULT;
 			SauceNaoAuth = SAUCENAO_APIKEY_DEFAULT;
-
 		}
 
 
-		internal void WriteToFile()
+		public void WriteToFile()
 		{
 			NConsole.WriteInfo("Updating config");
-			WriteMap(ToMap(), ConfigLocation);
+			Collections.WriteDictionary(ToMap(), ConfigLocation);
 			NConsole.WriteInfo("Wrote to {0}", ConfigLocation);
-
 		}
 
 
@@ -189,7 +188,7 @@ namespace SmartImage
 				rawValue = ReadMapKeyValue<string>(name, cfg);
 			}
 
-			var parse = Read<T>(rawValue);
+			var parse = ReadConfigValue<T>(rawValue);
 			return parse;
 		}
 
@@ -270,12 +269,12 @@ namespace SmartImage
 					case "--search-engines":
 						argEnumerator.MoveNext();
 						string sestr = argEnumerator.Current;
-						SearchEngines = Read<SearchEngineOptions>(sestr);
+						SearchEngines = ReadConfigValue<SearchEngineOptions>(sestr);
 						break;
 					case "--priority-engines":
 						argEnumerator.MoveNext();
 						string pestr = argEnumerator.Current;
-						PriorityEngines = Read<SearchEngineOptions>(pestr);
+						PriorityEngines = ReadConfigValue<SearchEngineOptions>(pestr);
 						break;
 					case "--saucenao-auth":
 						argEnumerator.MoveNext();
@@ -299,13 +298,8 @@ namespace SmartImage
 			}
 		}
 
-		private static void WriteMap(IDictionary<string, string> d, string filename)
-		{
-			string[] lines = d.Select(kvp => kvp.Key + "=" + kvp.Value).ToArray();
-			File.WriteAllLines(filename, lines);
-		}
-
-		private static T Read<T>(string rawValue)
+		
+		private static T ReadConfigValue<T>(string rawValue)
 		{
 			if (typeof(T).IsEnum) {
 				Enum.TryParse(typeof(T), rawValue, out var e);
@@ -320,14 +314,5 @@ namespace SmartImage
 			return (T) (object) rawValue;
 		}
 
-		private static IDictionary<string, string> ReadMap(string filename)
-		{
-			string[] lines = File.ReadAllLines(filename);
-
-			var dict = lines.Select(l => l.Split('='))
-				.ToDictionary(a => a[0], a => a[1]);
-
-			return dict;
-		}
 	}
 }
