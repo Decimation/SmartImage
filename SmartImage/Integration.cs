@@ -157,7 +157,7 @@ namespace SmartImage
 				var cmd = Command.Shell(cmdStr);
 				cmd.Start();
 
-				string[] stdOut = Command.ReadAllLines(cmd.StandardOutput);
+				var stdOut = Command.ReadAllLines(cmd.StandardOutput);
 
 				bool b = stdOut.Any(s => s.Contains(RuntimeInfo.NAME));
 				return b;

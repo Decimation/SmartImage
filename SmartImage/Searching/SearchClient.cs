@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -42,14 +43,18 @@ namespace SmartImage.Searching
 
 		private readonly FileInfo m_img;
 
-		private SearchResult[] m_results;
+		private List<SearchResult> m_results;
 
 		private readonly Task[] m_tasks;
 
 		private readonly Thread m_monitor;
 
-		public SearchClient(string img)
+		private SearchClient(string img)
 		{
+			if (!IsFileValid(img)) {
+				throw new SmartImageException("Invalid image");
+			}
+
 			string auth = SearchConfig.Config.ImgurAuth;
 			bool useImgur = !String.IsNullOrWhiteSpace(auth);
 
@@ -71,26 +76,23 @@ namespace SmartImage.Searching
 			};
 		}
 
+		/// <summary>
+		/// Searching client
+		/// </summary>
+		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
+
 		private void Monitor()
 		{
 			Task.WaitAll(m_tasks);
 
-			Console.Beep(1000, 100);
+			Console.Beep(2000, 100);
 
-			//Array.Sort(m_results, Comparison);
-
-			// todo: wtf
-
-			NConsole.IO.Refresh();
 			NConsole.IO.Refresh();
 		}
 
 		private static int CompareResults(SearchResult x, SearchResult y)
 		{
-			// Keep original image at first index
-			if (x?.Name == ORIGINAL_IMAGE_NAME || y?.Name == ORIGINAL_IMAGE_NAME) {
-				return 1;
-			}
+			
 
 			var xSim = x?.Similarity ?? 0;
 			var ySim = y?.Similarity ?? 0;
@@ -101,6 +103,10 @@ namespace SmartImage.Searching
 
 			if (xSim < ySim) {
 				return 1;
+			}
+
+			if (x?.ExtendedResults.Count > 0) {
+				return -1;
 			}
 
 			return 0;
@@ -125,7 +131,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Search results
 		/// </summary>
-		public ref SearchResult[] Results => ref m_results;
+		public ref List<SearchResult> Results => ref m_results;
 
 
 		public void Dispose()
@@ -170,6 +176,7 @@ namespace SmartImage.Searching
 		private SearchResult GetOriginalImageResult()
 		{
 			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl);
+			result.Similarity = 100.0f;
 
 			result.ExtendedInfo.Add(string.Format("Location: {0}", m_img));
 
@@ -194,42 +201,31 @@ namespace SmartImage.Searching
 
 		private Task[] CreateSearchTasks()
 		{
-			// todo: improve
-			// todo: hacky :(
+			// todo: improve, hacky :(
 
 			var availableEngines = GetAllEngines()
 				.Where(e => m_engines.HasFlag(e.Engine))
 				.ToArray();
 
-			int i = 0;
-
-			m_results = new SearchResult[availableEngines.Length + 1];
-			m_results[i] = GetOriginalImageResult();
-
-			i++;
-
+			m_results = new List<SearchResult>(availableEngines.Length+1)
+			{
+				GetOriginalImageResult()
+			};
+			
 
 			var threads = new List<Task>();
-
+			
 			foreach (var currentEngine in availableEngines) {
 
-				var resultsCopy = m_results;
-				int iCopy = i;
-
-
-				var task = new Task(RunSearchThread);
 				
-				void RunSearchThread()
+				var task = new Task(RunSearchTask);
+				
+				void RunSearchTask()
 				{
 					var result = currentEngine.GetResult(m_imgUrl);
 
-					result.CtrlFunction = () =>
-					{
-						// todo
-						return null;
-					};
-
-					resultsCopy[iCopy] = result;
+					//resultsCopy[iCopy] = result;
+					m_results.Add(result);
 
 					// If the engine is priority, open its result in the browser
 					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
@@ -237,19 +233,15 @@ namespace SmartImage.Searching
 					}
 
 
-					// todo: UI won't update after sorting sometimes, wtf
-
 					// Sort results
-					Array.Sort(resultsCopy, CompareResults);
-
+					m_results.Sort(CompareResults);
+					
 					// Reload console UI
 					NConsole.IO.Refresh();
 				}
 
-				
 				threads.Add(task);
 
-				i++;
 			}
 
 			return threads.ToArray();
@@ -276,7 +268,7 @@ namespace SmartImage.Searching
 			return engines;
 		}
 
-		internal static bool IsFileValid(string img)
+		private static bool IsFileValid(string img)
 		{
 			if (String.IsNullOrWhiteSpace(img)) {
 				return false;

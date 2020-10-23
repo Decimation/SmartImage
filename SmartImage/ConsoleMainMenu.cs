@@ -10,7 +10,7 @@ using SmartImage.Searching;
 using SmartImage.Utilities;
 
 #pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101
-
+#nullable enable
 
 namespace SmartImage
 {
@@ -61,7 +61,14 @@ namespace SmartImage
 			{
 				Console.WriteLine("Drag and drop the image here.");
 				
-				string img = NConsole.IO.GetInput("Image");
+				string? img = NConsole.IO.GetInput("Image");
+
+				if (string.IsNullOrWhiteSpace(img)) {
+					NConsole.WriteError("Invalid image");
+					NConsole.IO.WaitForInput();
+					return null;
+				}
+
 				img = Strings.CleanString(img);
 
 				SearchConfig.Config.Image = img;

@@ -57,30 +57,24 @@ namespace SmartImage
 			 */
 
 			try {
+				
 
 				Integration.Setup();
-				SearchConfig.ReadSearchConfigArguments(args);
-
+			
+				// Run UI
 				if (SearchConfig.Config.NoArguments) {
 					ConsoleMainMenu.Run();
 					Console.Clear();
 				}
 
-				string img = SearchConfig.Config.Image;
-
-				// Run checks
-				if (!SearchClient.IsFileValid(img)) {
-					return;
-				}
 
 				// Run search
 
-				using var searchClient = new SearchClient(img);
-				searchClient.Start();
+				SearchClient.Client.Start();
 
 				// Show results
 
-				NConsole.IO.HandleOptions(searchClient.Results);
+				NConsole.IO.HandleOptions(SearchClient.Client.Results);
 			}
 			catch (Exception exception) {
 

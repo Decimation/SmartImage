@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using SimpleCore.CommandLine;
 using SmartImage.Utilities;
@@ -87,7 +88,7 @@ namespace SmartImage.Searching.Model
 		
 		public string? Caption { get; set; }
 
-		private IEnumerable<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
+		private IList<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
 			var rg = new SearchResult[results.Count];
 
@@ -102,7 +103,6 @@ namespace SmartImage.Searching.Model
 					Caption = result.Caption
 				};
 				rg[i] = sr;
-
 			}
 
 
