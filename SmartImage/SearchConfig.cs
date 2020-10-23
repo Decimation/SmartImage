@@ -1,4 +1,3 @@
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,6 +8,7 @@ using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.SauceNao;
+
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102
 
@@ -157,6 +157,11 @@ namespace SmartImage
 			NConsole.WriteInfo("Wrote to {0}", ConfigLocation);
 		}
 
+		public void Setup()
+		{
+			// Checks
+		}
+
 
 		private static void WriteMapKeyValue<T>(string name, T value, IDictionary<string, string> cfg)
 		{
@@ -235,10 +240,10 @@ namespace SmartImage
 		}
 
 
-		public static void UpdateFile()
+		public void UpdateFile()
 		{
-			if (Config.UpdateConfig) {
-				Config.WriteToFile();
+			if (UpdateConfig) {
+				WriteToFile();
 			}
 		}
 
@@ -298,7 +303,7 @@ namespace SmartImage
 			}
 		}
 
-		
+
 		private static T ReadConfigValue<T>(string rawValue)
 		{
 			if (typeof(T).IsEnum) {
@@ -313,6 +318,5 @@ namespace SmartImage
 
 			return (T) (object) rawValue;
 		}
-
 	}
 }

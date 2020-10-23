@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using SmartImage.Searching.Model;
-
+#pragma warning disable HAA0502, HAA0601
 #nullable enable
 namespace SmartImage.Searching.Engines.SauceNao
 {
@@ -24,7 +24,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 		protected struct SauceNaoSimpleResult : ISearchResult
 		{
 			public string? Caption { get; set; }
-			public string? Url { get; set; }
+			public string Url { get; set; }
 			public float? Similarity { get; set; }
 			public int? Width { get; set; }
 			public int? Height { get; set; }

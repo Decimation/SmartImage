@@ -1,13 +1,16 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using SimpleCore.CommandLine;
+using SimpleCore.Win32;
 using SmartImage.Utilities;
 
-#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501
+#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101
 
 namespace SmartImage.Searching.Model
 {
@@ -32,7 +35,7 @@ namespace SmartImage.Searching.Model
 
 		public override Color Color { get; set; }
 
-		public override string? Data => ToString();
+		public override string Data => ToString();
 
 		/// <summary>
 		/// Result name
@@ -45,7 +48,6 @@ namespace SmartImage.Searching.Model
 		/// </summary>
 		public string? RawUrl { get; set; }
 
-		public bool Success => Url != null;
 
 		/// <summary>
 		/// Extended information about the image, results, and other related metadata
@@ -75,9 +77,38 @@ namespace SmartImage.Searching.Model
 
 		public override Func<object?>? AltFunction { get; set; }
 
-		public override Func<object?>? CtrlFunction { get; set; }
+		public override Func<object?>? CtrlFunction {
+			get
+			{
+				return () =>
+				{
+					var type = Network.IdentifyType(Url);
+					var notImage = type == null || type.Split("/")[0] != "image";
 
-		public string? Url { get; set; }
+					if (notImage) {
+						var ok = NConsole.IO.ReadConfirm($"Link may not be an image [{type ?? "?"}]. Download anyway?");
+
+						if (!ok) {
+							return null;
+						}
+					}
+
+					var path=Network.DownloadUrl(Url);
+
+					NConsole.WriteSuccess("Downloaded to {0}", path);
+
+					// Open folder with downloaded file selected
+					FileOperations.ExploreFile(path);
+
+
+					NConsole.IO.WaitForSecond();
+
+					return null;
+				};
+			}
+		}
+
+		public string Url { get; set; }
 
 		public float? Similarity { get; set; }
 
@@ -85,8 +116,39 @@ namespace SmartImage.Searching.Model
 
 		public int? Height { get; set; }
 
-		
+
 		public string? Caption { get; set; }
+
+
+		public SearchResult Copy()
+		{
+			//todo
+
+			var result = new SearchResult(Color, Name, Url, Similarity)
+			{
+				Color = this.Color, 
+				Data = this.Data,
+				Name = Name,
+				RawUrl = RawUrl,
+				//ExtendedInfo = {}
+				//ExtendedResults = new List<ISearchResult>()
+				Function = Function,
+				AltFunction = AltFunction,
+				CtrlFunction = CtrlFunction,
+				Url = Url,
+				Similarity = Similarity,
+				Width = Width,
+				Height = Height,
+				Caption = Caption,
+			};
+
+			result.ExtendedInfo.AddRange(this.ExtendedInfo);
+			result.ExtendedResults.AddRange(this.ExtendedResults);
+
+			return result;
+		}
+		
+
 
 		private IList<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
@@ -127,47 +189,49 @@ namespace SmartImage.Searching.Model
 			};
 		}
 
+		public const char ATTR_SUCCESS = NConsole.RAD_SIGN;
+
+		public const char ATTR_EXTENDED_RESULTS = NConsole.ARROW_UP_DOWN;
+
+		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
+
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
 
-			char success = Success ? NConsole.RAD_SIGN : NConsole.MUL_SIGN;
-			string altStr = ExtendedResults.Count > 0 ? NConsole.IO.ALT_DENOTE : string.Empty;
+			string successStr = ATTR_SUCCESS.ToString();
 
-			sb.AppendFormat("{0} {1}\n", success, altStr);
+			string altStr = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : string.Empty;
+
+			string ctrlStr = ATTR_DOWNLOAD.ToString();//todo
+
+			sb.AppendFormat("{0} {1} {2}\n", successStr, altStr, ctrlStr);
 
 
-			if (Success && RawUrl != Url)
-			{
+			if (RawUrl != Url) {
 				sb.AppendFormat("\tResult: {0}\n", Url);
 			}
-			else if (RawUrl != null)
-			{
+			else if (RawUrl != null) {
 				sb.AppendFormat("\tRaw: {0}\n", RawUrl);
 			}
 
-			if (Caption != null)
-			{
+			if (Caption != null) {
 				sb.AppendFormat("\tCaption: {0}\n", Caption);
 			}
 
-			if (Similarity.HasValue)
-			{
+			if (Similarity.HasValue) {
 				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity / 100);
 			}
 
-			if (Width.HasValue && Height.HasValue)
-			{
+			if (Width.HasValue && Height.HasValue) {
 				sb.AppendFormat("\tResolution: {0}x{1}\n", Width, Height);
 			}
 
-			foreach (string s in ExtendedInfo)
-			{
+			foreach (string s in ExtendedInfo) {
 				sb.AppendFormat("\t{0}\n", s);
 			}
 
-			if (ExtendedResults.Count > 0)
-			{
+			if (ExtendedResults.Count > 0) {
 				sb.AppendFormat("\tExtended results: {0}\n", ExtendedResults.Count);
 			}
 

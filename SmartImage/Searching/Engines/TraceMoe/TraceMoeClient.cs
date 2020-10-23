@@ -8,6 +8,7 @@ using SmartImage.Searching.Model;
 
 #endregion
 
+#pragma warning disable HAA0502, HAA0601, HAA0202
 namespace SmartImage.Searching.Engines.TraceMoe
 {
 	public sealed class TraceMoeClient : BasicSearchEngine
@@ -18,7 +19,8 @@ namespace SmartImage.Searching.Engines.TraceMoe
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.TraceMoe;
 
-		private static TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code, out ResponseStatus status, out string msg)
+		private static TraceMoeRootObject GetApiResults(string url, out HttpStatusCode code, out ResponseStatus status,
+			out string msg)
 		{
 			// https://soruly.github.io/trace.moe/#/
 
@@ -48,10 +50,12 @@ namespace SmartImage.Searching.Engines.TraceMoe
 				var doc = docs[i];
 				var sim = (float?) doc.similarity * 100;
 
-				var malurl = MAL_URL + doc.mal_id;
+				var malUrl = MAL_URL + doc.mal_id;
 
-				results[i] = new SearchResult(this,malurl,sim );
-				results[i].Caption = doc.title_english;
+				results[i] = new SearchResult(this, malUrl, sim)
+				{
+					Caption = doc.title_english
+				};
 			}
 
 			return results;
@@ -63,8 +67,6 @@ namespace SmartImage.Searching.Engines.TraceMoe
 		//https://myanimelist.net/anime/{id}/
 		private const string MAL_URL = "https://myanimelist.net/anime/";
 
-		
-
 
 		public override SearchResult GetResult(string url)
 		{
@@ -72,23 +74,24 @@ namespace SmartImage.Searching.Engines.TraceMoe
 			//var r = base.GetResult(url);
 
 			var tm = GetApiResults(url, out var code, out var res, out var msg);
-			
+
 			if (tm?.docs != null) {
 				// Most similar to least similar
 				var results = ConvertResults(tm);
 				var best = results[0];
 
-				r = new SearchResult(this,best.Url, best.Similarity);
+				r = new SearchResult(this, best.Url, best.Similarity);
 				r.Caption = best.Caption;
 
 				r.AddExtendedResults(results);
 
 
-
 			}
 			else {
 				r = base.GetResult(url);
-				r.ExtendedInfo.Add(string.Format("API: Returned null (possible timeout) [{0} {1} {2}]", code,res,msg));
+
+				r.ExtendedInfo.Add(string.Format("API: Returned null (possible timeout) [{0} {1} {2}]", code, res,
+					msg));
 			}
 
 

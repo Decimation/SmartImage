@@ -6,6 +6,7 @@ using SimpleCore.CommandLine;
 using SimpleCore.CommandLine.Shell;
 using SimpleCore.Win32;
 
+#pragma warning disable HAA0502, HAA0301, HAA0601
 namespace SmartImage
 {
 	internal enum IntegrationOption

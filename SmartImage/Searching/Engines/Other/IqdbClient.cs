@@ -1,5 +1,3 @@
-#region
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,8 +8,7 @@ using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
-#endregion
-
+#pragma warning disable HAA0502, HAA0601, HAA0401
 #nullable enable
 namespace SmartImage.Searching.Engines.Other
 {
@@ -35,7 +32,7 @@ namespace SmartImage.Searching.Engines.Other
 
 			public int? Height { get; set; }
 
-			public string? Url { get; set; }
+			public string Url { get; set; }
 
 			public float? Similarity { get; set; }
 

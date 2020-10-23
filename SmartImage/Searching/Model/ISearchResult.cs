@@ -9,22 +9,22 @@ namespace SmartImage.Searching.Model
 		/// <summary>
 		/// Url of the best match found.
 		/// </summary>
-		public string? Url { get; set; }
+		public string Url { get; set; }
 
 		/// <summary>
 		/// Image similarity (delta).
 		/// </summary>
-		public float? Similarity { get;  set; }
+		public float? Similarity { get; set; }
 
 		/// <summary>
 		/// Image width dimension.
 		/// </summary>
-		public int? Width { get;  set; }
+		public int? Width { get; set; }
 
 		/// <summary>
 		/// Image height dimension.
 		/// </summary>
-		public int? Height { get;  set; }
+		public int? Height { get; set; }
 
 		/// <summary>
 		/// Full image resolution.
@@ -34,6 +34,6 @@ namespace SmartImage.Searching.Model
 		/// <summary>
 		/// Image caption/name/title.
 		/// </summary>
-		public string? Caption { get;  set; }
+		public string? Caption { get; set; }
 	}
 }

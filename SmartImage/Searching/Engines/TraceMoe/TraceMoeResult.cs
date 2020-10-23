@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 
 #endregion
 
+#pragma warning disable IDE1006, HAA0502, HAA0601
 namespace SmartImage.Searching.Engines.TraceMoe
 {
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]

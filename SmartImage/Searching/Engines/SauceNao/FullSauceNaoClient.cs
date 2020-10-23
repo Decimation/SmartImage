@@ -17,7 +17,7 @@ using JsonObject = System.Json.JsonObject;
 #nullable enable
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
-
+#pragma warning disable HAA0502, HAA0601, HAA0102, HAA0401
 namespace SmartImage.Searching.Engines.SauceNao
 {
 	// https://github.com/RoxasShadow/SauceNao-Windows
@@ -75,6 +75,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 					.ToArray();
 
 				var extended = ConvertResults(sn);
+
 				var best = extended
 					.Where(e=>e.Url!=null)
 					.OrderByDescending(e=>e.Similarity)

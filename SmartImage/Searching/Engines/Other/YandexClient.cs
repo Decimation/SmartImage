@@ -1,5 +1,3 @@
-#region
-
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -10,9 +8,9 @@ using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
 
-#endregion
-
+#pragma warning disable HAA0101, HAA0601, HAA0502, HAA0401
 #nullable enable
+
 namespace SmartImage.Searching.Engines.Other
 {
 	public sealed class YandexClient : BasicSearchEngine
@@ -33,7 +31,7 @@ namespace SmartImage.Searching.Engines.Other
 
 			public string? Caption { get; set; }
 
-			public string? Url { get; set; }
+			public string Url { get; set; }
 
 
 			internal YandexResult(int width, int height, string url)
@@ -124,7 +122,6 @@ namespace SmartImage.Searching.Engines.Other
 
 			var sr = base.GetResult(url);
 
-
 			try {
 
 				// Get more info from Yandex
@@ -154,10 +151,9 @@ namespace SmartImage.Searching.Engines.Other
 				sr.Width = best.Width;
 				sr.Height = best.Height;
 				sr.Url = best.Url;
-				sr.Caption = best.Caption;
-				
-				sr.AddExtendedResults(bestImages);
 
+
+				sr.AddExtendedResults(bestImages);
 			}
 			catch (Exception) {
 				// ...

@@ -92,7 +92,7 @@ namespace SmartImage.Searching
 
 		private static int CompareResults(SearchResult x, SearchResult y)
 		{
-			
+
 
 			var xSim = x?.Similarity ?? 0;
 			var ySim = y?.Similarity ?? 0;
@@ -105,7 +105,11 @@ namespace SmartImage.Searching
 				return 1;
 			}
 
-			if (x?.ExtendedResults.Count > 0) {
+			if (x?.ExtendedResults.Count > y?.ExtendedResults.Count) {
+				return -1;
+			}
+
+			if (x?.ExtendedInfo.Count > y?.ExtendedInfo.Count) {
 				return -1;
 			}
 
@@ -175,8 +179,10 @@ namespace SmartImage.Searching
 
 		private SearchResult GetOriginalImageResult()
 		{
-			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl);
-			result.Similarity = 100.0f;
+			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
+			{
+				Similarity = 100.0f
+			};
 
 			result.ExtendedInfo.Add(string.Format("Location: {0}", m_img));
 
@@ -207,19 +213,19 @@ namespace SmartImage.Searching
 				.Where(e => m_engines.HasFlag(e.Engine))
 				.ToArray();
 
-			m_results = new List<SearchResult>(availableEngines.Length+1)
+			m_results = new List<SearchResult>(availableEngines.Length + 1)
 			{
 				GetOriginalImageResult()
 			};
-			
+
 
 			var threads = new List<Task>();
-			
+
 			foreach (var currentEngine in availableEngines) {
 
-				
+
 				var task = new Task(RunSearchTask);
-				
+
 				void RunSearchTask()
 				{
 					var result = currentEngine.GetResult(m_imgUrl);
@@ -235,7 +241,7 @@ namespace SmartImage.Searching
 
 					// Sort results
 					m_results.Sort(CompareResults);
-					
+
 					// Reload console UI
 					NConsole.IO.Refresh();
 				}

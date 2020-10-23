@@ -2,16 +2,18 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using JetBrains.Annotations;
 using RestSharp;
 using SimpleCore.CommandLine;
 using SimpleCore.Utilities;
 
-
+#nullable enable
 #endregion
-
+#pragma warning disable HAA0101, HAA0601, HAA0502
 namespace SmartImage.Utilities
 {
 	internal static class Network
@@ -45,6 +47,43 @@ namespace SmartImage.Utilities
 			Console.Clear();
 
 			Console.WriteLine(sb);
+		}
+		
+		
+		internal static string? IdentifyType(string url)
+		{
+			//var u =new Uri(url);
+
+			var req = new RestRequest(url, Method.HEAD);
+			RestClient client = new RestClient();
+
+			var res = client.Execute(req);
+
+			
+			foreach (var h in res.Headers) {
+				if (h.Name == "Content-Type") {
+					var t = h.Value;
+
+					return (string)t;
+				}
+			}
+
+
+			return null;
+		}
+
+
+		internal static string DownloadUrl(string url)
+		{
+			string fileName = System.IO.Path.GetFileName(url);
+			WebClient client = new WebClient();
+			client.Headers.Add("User-Agent: Other");
+			
+			var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop",fileName);
+
+			client.DownloadFile(url, dir);
+
+			return dir;
 		}
 
 		internal static void OpenUrl(string url)
