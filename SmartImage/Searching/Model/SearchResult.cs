@@ -75,12 +75,9 @@ namespace SmartImage.Searching.Model
 			{
 				return () =>
 				{
-					string? type = Network.IdentifyType(Url);
-					bool notImage = type == null || type.Split("/")[0] != "image";
-
-					if (notImage) {
+					if (!IsImage) {
 						bool ok = NConsole.IO.ReadConfirm(
-							$"Link may not be an image [{type ?? "?"}]. Download anyway?");
+							$"Link may not be an image [{MimeType ?? "?"}]. Download anyway?");
 
 						if (!ok) {
 							return null;
@@ -102,10 +99,12 @@ namespace SmartImage.Searching.Model
 			}
 		}
 
+		
 		public bool IsProcessed { get; set; }
 
 		public bool IsImage { get; set; }
 
+		public string? MimeType { get; set; }
 		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
 

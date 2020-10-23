@@ -105,6 +105,7 @@ namespace SmartImage.Searching
 					var type = Network.IdentifyType(result.Url);
 					var isImage = Network.IsImage(type);
 
+					result.MimeType = type;
 					result.IsImage = isImage;
 
 					if (!isImage) {
