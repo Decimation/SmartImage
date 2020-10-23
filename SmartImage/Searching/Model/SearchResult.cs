@@ -30,7 +30,7 @@ namespace SmartImage.Searching.Model
 
 			Similarity = similarity;
 			ExtendedInfo = new List<string>();
-			ExtendedResults = new List<ISearchResult>();
+			ExtendedResults = new List<SearchResult>();
 		}
 
 		public override Color Color { get; set; }
@@ -58,7 +58,7 @@ namespace SmartImage.Searching.Model
 		///     Direct source matches and other extended results
 		/// </summary>
 		/// <remarks>This list is used if there are multiple results</remarks>
-		public List<ISearchResult> ExtendedResults { get; }
+		public List<SearchResult> ExtendedResults { get; }
 
 		/// <summary>
 		/// Opens result in browser
@@ -77,7 +77,8 @@ namespace SmartImage.Searching.Model
 
 		public override Func<object?>? AltFunction { get; set; }
 
-		public override Func<object?>? CtrlFunction {
+		public override Func<object?>? CtrlFunction
+		{
 			get
 			{
 				return () =>
@@ -93,7 +94,7 @@ namespace SmartImage.Searching.Model
 						}
 					}
 
-					var path=Network.DownloadUrl(Url);
+					var path = Network.DownloadUrl(Url);
 
 					NConsole.WriteSuccess("Downloaded to {0}", path);
 
@@ -108,6 +109,7 @@ namespace SmartImage.Searching.Model
 			}
 		}
 
+
 		public string Url { get; set; }
 
 		public float? Similarity { get; set; }
@@ -118,36 +120,6 @@ namespace SmartImage.Searching.Model
 
 
 		public string? Caption { get; set; }
-
-
-		public SearchResult Copy()
-		{
-			//todo
-
-			var result = new SearchResult(Color, Name, Url, Similarity)
-			{
-				Color = this.Color, 
-				Data = this.Data,
-				Name = Name,
-				RawUrl = RawUrl,
-				//ExtendedInfo = {}
-				//ExtendedResults = new List<ISearchResult>()
-				Function = Function,
-				AltFunction = AltFunction,
-				CtrlFunction = CtrlFunction,
-				Url = Url,
-				Similarity = Similarity,
-				Width = Width,
-				Height = Height,
-				Caption = Caption,
-			};
-
-			result.ExtendedInfo.AddRange(this.ExtendedInfo);
-			result.ExtendedResults.AddRange(this.ExtendedResults);
-
-			return result;
-		}
-		
 
 
 		private IList<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
@@ -164,6 +136,7 @@ namespace SmartImage.Searching.Model
 					Height = result.Height,
 					Caption = result.Caption
 				};
+
 				rg[i] = sr;
 			}
 
@@ -175,14 +148,21 @@ namespace SmartImage.Searching.Model
 		{
 			// todo?
 
-			ExtendedResults.AddRange(bestImages);
+			var rg = FromExtendedResult(bestImages);
+
+			//ExtendedResults.AddRange(bestImages);
+
+			ExtendedResults.AddRange(rg);
+
+			foreach (var result in rg) {
+				SearchClient.RunInspection(result);
+			}
 
 			AltFunction = () =>
 			{
-				var rg = FromExtendedResult(bestImages);
+				//var rg = FromExtendedResult(bestImages);
 
-
-				NConsole.IO.HandleOptions(rg);
+				NConsole.IO.HandleOptions(ExtendedResults);
 
 				return null;
 
@@ -195,6 +175,10 @@ namespace SmartImage.Searching.Model
 
 		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
 
+		public bool Processed { get; set; }
+
+		public bool IsImage { get; set; }
+
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
@@ -203,7 +187,16 @@ namespace SmartImage.Searching.Model
 
 			string altStr = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : string.Empty;
 
-			string ctrlStr = ATTR_DOWNLOAD.ToString();//todo
+			string ctrlStr;
+
+			if (!Processed) {
+				ctrlStr = "-";
+			}
+			else {
+				ctrlStr = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.MUL_SIGN.ToString() + ATTR_DOWNLOAD.ToString();
+			}
+			//todo
+
 
 			sb.AppendFormat("{0} {1} {2}\n", successStr, altStr, ctrlStr);
 

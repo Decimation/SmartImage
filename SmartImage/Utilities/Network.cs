@@ -75,7 +75,7 @@ namespace SmartImage.Utilities
 
 		internal static string DownloadUrl(string url)
 		{
-			string fileName = System.IO.Path.GetFileName(url);
+			string fileName = Path.GetFileName(url);
 			WebClient client = new WebClient();
 			client.Headers.Add("User-Agent: Other");
 			
@@ -126,6 +126,14 @@ namespace SmartImage.Utilities
 		{
 			using var wc = new WebClient();
 			return wc.DownloadString(url);
+		}
+
+		public static bool IsImage(string? type)
+		{
+			
+			var notImage = type == null || type.Split("/")[0] != "image";
+
+			return !notImage;
 		}
 	}
 }

@@ -49,6 +49,8 @@ namespace SmartImage.Searching
 
 		private readonly Thread m_monitor;
 
+		public bool Complete { get; private set; }
+
 		private SearchClient(string img)
 		{
 			if (!IsFileValid(img)) {
@@ -74,6 +76,8 @@ namespace SmartImage.Searching
 				Priority = ThreadPriority.Highest,
 				IsBackground = true
 			};
+			
+			Complete = false;
 		}
 
 		/// <summary>
@@ -81,13 +85,38 @@ namespace SmartImage.Searching
 		/// </summary>
 		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
 
+		public static void RunInspection(SearchResult result)
+		{
+			var task = new Task(InspectTask);
+			task.Start();
+
+			void InspectTask()
+			{
+				if (!result.Processed)
+				{
+					var type = Network.IdentifyType(result.Url);
+					var isImage = Network.IsImage(type);
+
+					result.IsImage = isImage;
+					result.Processed = true;
+
+					//Debug.WriteLine("Inspect " + result.Name + " " + result.IsImage);
+				}
+			}
+
+			//NConsole.IO.Refresh();
+		}
+
 		private void Monitor()
 		{
 			Task.WaitAll(m_tasks);
 
 			Console.Beep(2000, 100);
 
+			Complete = true;
+
 			NConsole.IO.Refresh();
+
 		}
 
 		private static int CompareResults(SearchResult x, SearchResult y)
@@ -232,6 +261,8 @@ namespace SmartImage.Searching
 
 					//resultsCopy[iCopy] = result;
 					m_results.Add(result);
+
+					RunInspection(result);
 
 					// If the engine is priority, open its result in the browser
 					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {

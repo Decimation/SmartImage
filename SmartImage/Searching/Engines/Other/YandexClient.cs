@@ -121,7 +121,7 @@ namespace SmartImage.Searching.Engines.Other
 			// todo: slow
 
 			var sr = base.GetResult(url);
-
+			
 			try {
 
 				// Get more info from Yandex
