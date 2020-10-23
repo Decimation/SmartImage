@@ -85,20 +85,26 @@ namespace SmartImage.Searching
 		/// </summary>
 		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
 
-		public static void RunInspection(SearchResult result)
+		/// <summary>
+		/// Inspect a <see cref="SearchResult"/> to determine its MIME type, whether it's a direct image link and downloadable, etc.
+		/// </summary>
+		public static void RunInspectionTask(SearchResult result)
 		{
+			// todo: extract direct links for common sites like Pixiv, boorus, etc.
+			// todo: move image functions into separate class or something
+
 			var task = new Task(InspectTask);
 			task.Start();
 
 			void InspectTask()
 			{
-				if (!result.Processed)
+				if (!result.IsProcessed)
 				{
 					var type = Network.IdentifyType(result.Url);
 					var isImage = Network.IsImage(type);
 
 					result.IsImage = isImage;
-					result.Processed = true;
+					result.IsProcessed = true;
 
 					//Debug.WriteLine("Inspect " + result.Name + " " + result.IsImage);
 				}
@@ -210,7 +216,9 @@ namespace SmartImage.Searching
 		{
 			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
 			{
-				Similarity = 100.0f
+				Similarity = 100.0f,
+				IsProcessed = true,
+				IsImage = true,
 			};
 
 			result.ExtendedInfo.Add(string.Format("Location: {0}", m_img));
@@ -262,7 +270,7 @@ namespace SmartImage.Searching
 					//resultsCopy[iCopy] = result;
 					m_results.Add(result);
 
-					RunInspection(result);
+					RunInspectionTask(result);
 
 					// If the engine is priority, open its result in the browser
 					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {

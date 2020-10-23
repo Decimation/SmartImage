@@ -155,7 +155,7 @@ namespace SmartImage.Searching.Model
 			ExtendedResults.AddRange(rg);
 
 			foreach (var result in rg) {
-				SearchClient.RunInspection(result);
+				SearchClient.RunInspectionTask(result);
 			}
 
 			AltFunction = () =>
@@ -175,7 +175,7 @@ namespace SmartImage.Searching.Model
 
 		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
 
-		public bool Processed { get; set; }
+		public bool IsProcessed { get; set; }
 
 		public bool IsImage { get; set; }
 
@@ -183,22 +183,22 @@ namespace SmartImage.Searching.Model
 		{
 			var sb = new StringBuilder();
 
-			string successStr = ATTR_SUCCESS.ToString();
+			string attrSuccess = ATTR_SUCCESS.ToString();
 
-			string altStr = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : string.Empty;
+			string attrExtendedResults = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : string.Empty;
 
-			string ctrlStr;
+			string attrDownload;
 
-			if (!Processed) {
-				ctrlStr = "-";
+			if (!IsProcessed) {
+				attrDownload = "-";
 			}
 			else {
-				ctrlStr = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.MUL_SIGN.ToString() + ATTR_DOWNLOAD.ToString();
+				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.MUL_SIGN.ToString() + ATTR_DOWNLOAD.ToString();
 			}
 			//todo
 
 
-			sb.AppendFormat("{0} {1} {2}\n", successStr, altStr, ctrlStr);
+			sb.AppendFormat("{0} {1} {2}\n", attrSuccess, attrExtendedResults, attrDownload);
 
 
 			if (RawUrl != Url) {

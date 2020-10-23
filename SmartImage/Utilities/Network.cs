@@ -12,12 +12,16 @@ using SimpleCore.CommandLine;
 using SimpleCore.Utilities;
 
 #nullable enable
+
 #endregion
+
 #pragma warning disable HAA0101, HAA0601, HAA0502
 namespace SmartImage.Utilities
 {
 	internal static class Network
 	{
+		// todo: move some functions into SimpleCore
+
 		internal static void AssertResponse(IRestResponse response)
 		{
 			// todo
@@ -31,25 +35,10 @@ namespace SmartImage.Utilities
 			}
 		}
 
-		internal static void WriteResponse(IRestResponse response)
-		{
-			// todo
 
-			var sb = new StringBuilder();
-			sb.AppendFormat("Success: {0}\n", response.IsSuccessful);
-			sb.AppendFormat("Status code: {0}\n", response.StatusCode);
-			sb.AppendFormat("Error Message: {0}\n", response.ErrorMessage);
-			sb.AppendFormat("Response status: {0}\n", response.ResponseStatus);
-			sb.AppendFormat("Response URI: {0}\n", response.ResponseUri);
-
-			sb.AppendFormat("Content: {0}\n", response.Content);
-
-			Console.Clear();
-
-			Console.WriteLine(sb);
-		}
-		
-		
+		/// <summary>
+		/// Identifies the MIME type of <paramref name="url"/>
+		/// </summary>
 		internal static string? IdentifyType(string url)
 		{
 			//var u =new Uri(url);
@@ -59,12 +48,12 @@ namespace SmartImage.Utilities
 
 			var res = client.Execute(req);
 
-			
+
 			foreach (var h in res.Headers) {
 				if (h.Name == "Content-Type") {
 					var t = h.Value;
 
-					return (string)t;
+					return (string) t;
 				}
 			}
 
@@ -72,14 +61,14 @@ namespace SmartImage.Utilities
 			return null;
 		}
 
-
 		internal static string DownloadUrl(string url)
 		{
 			string fileName = Path.GetFileName(url);
-			WebClient client = new WebClient();
+			using WebClient client = new WebClient();
 			client.Headers.Add("User-Agent: Other");
-			
-			var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "Desktop",fileName);
+
+			var dir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), 
+				"Desktop", fileName);
 
 			client.DownloadFile(url, dir);
 
@@ -91,13 +80,7 @@ namespace SmartImage.Utilities
 			// https://stackoverflow.com/questions/4580263/how-to-open-in-default-browser-in-c-sharp
 
 			try {
-				if (url != null) {
-					Process.Start(url);
-				}
-				else {
-					Console.WriteLine();
-					NConsole.WriteError("URL is null!");
-				}
+				Process.Start(url);
 			}
 			catch {
 				// hack because of this: https://github.com/dotnet/corefx/issues/10361
@@ -115,7 +98,6 @@ namespace SmartImage.Utilities
 
 		internal static IRestResponse GetSimpleResponse(string link)
 		{
-
 			var restReq = new RestRequest(link);
 			var restRes = Client.Execute(restReq);
 
@@ -128,9 +110,11 @@ namespace SmartImage.Utilities
 			return wc.DownloadString(url);
 		}
 
-		public static bool IsImage(string? type)
+		/// <summary>
+		/// Whether the MIME type <paramref name="type"/> is an image type.
+		/// </summary>
+		internal static bool IsImage(string? type)
 		{
-			
 			var notImage = type == null || type.Split("/")[0] != "image";
 
 			return !notImage;
