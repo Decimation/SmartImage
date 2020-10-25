@@ -43,7 +43,7 @@ namespace SmartImage
 		/// <summary>
 		/// Main menu console interface
 		/// </summary>
-		internal static NConsoleUI Interface => new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER);
+		internal static NConsoleUI Interface => new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER, null, false, null);
 
 		/// <summary>
 		///     Runs when no arguments are given (and when the executable is double-clicked)

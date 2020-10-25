@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
@@ -33,14 +34,6 @@ namespace SmartImage.Searching
 	/// </summary>
 	public class SearchClient : IDisposable
 	{
-		/// <summary>
-		///     Common image extensions
-		/// </summary>
-		private static readonly string[] ImageExtensions =
-		{
-			".jpg", ".jpeg", ".png", ".gif", ".tga", ".jfif", ".bmp"
-		};
-
 		private readonly SearchEngineOptions m_engines;
 
 		private readonly string m_imgUrl;
@@ -82,19 +75,38 @@ namespace SmartImage.Searching
 			};
 
 			Complete = false;
+
+			Interface = new NConsoleUI(Results)
+			{
+				SelectMultiple = false,
+				Prompt = prompt
+			};
 		}
-		
+
+
+		private string prompt =
+			$"Enter the option number to open or {NConsole.IO.ESC_EXIT} to exit.\n" +
+			$"Hold down {NConsole.IO.ALT_FUNC_MODIFIER} while entering the option number to show more info ({SearchResult.ATTR_EXTENDED_RESULTS}).\n" +
+			$"Hold down {NConsole.IO.CTRL_FUNC_MODIFIER} while entering the option number to download ({SearchResult.ATTR_DOWNLOAD}).\n";
+
+
 		/// <summary>
 		/// Searching client
 		/// </summary>
 		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
-		
+
 		/// <summary>
-		/// Inspect a <see cref="SearchResult"/> to determine its MIME type, whether it's a direct image link and downloadable, etc.
+		/// Process a <see cref="SearchResult"/> to determine its MIME type, its proper URLs, and other aspects.
+		/// 
 		/// </summary>
-		public static void RunInspectionTask(SearchResult result)
+		/// <remarks>
+		///
+		/// Organizes <see cref="SearchResult.Url"/>, <see cref="SearchResult.RawUrl"/>, <see cref="SearchResult.RootUrl"/>
+		/// </remarks>
+		public static void RunProcessingTask(SearchResult result)
 		{
 			// todo: move image functions into separate class or something
+			// todo
 
 			var task = new Task(InspectTask);
 			task.Start();
@@ -108,23 +120,16 @@ namespace SmartImage.Searching
 					result.MimeType = type;
 					result.IsImage = isImage;
 
-					if (!isImage) {
-						var root = ResolveRoot(result.Url);
-
-						if (root!=null) {
-							result.RootUrl = root;
-						}
-					}
-
 					result.IsProcessed = true;
 
+					Debug.WriteLine("Process {0}", (object[]) new object[] {result.Name});
 				}
 			}
 
 			//NConsole.IO.Refresh();
 		}
 
-		public static string ResolveRoot(string url)
+		/*public static string ResolveRoot(string url)
 		{
 			string root = null;
 
@@ -137,30 +142,27 @@ namespace SmartImage.Searching
 				var n = doc.DocumentNode;
 
 				var nx = n.SelectSingleNode("//*[@id='post-option-download']/a[@href]");
-				
+
 				root = nx.GetAttributeValue("href", null);
 
 			}
-			
+
 			return root;
-		}
-		
+		}*/
+
 		private void Monitor()
 		{
 			Task.WaitAll(m_tasks);
 
-			Console.Beep(2000, 100);
+			SystemSounds.Exclamation.Play();
 
 			Complete = true;
 
 			NConsole.IO.Refresh();
-
 		}
 
 		private static int CompareResults(SearchResult x, SearchResult y)
 		{
-
-
 			var xSim = x?.Similarity ?? 0;
 			var ySim = y?.Similarity ?? 0;
 
@@ -235,12 +237,6 @@ namespace SmartImage.Searching
 			}
 		}
 
-		private static (int Width, int Height) GetImageDimensions(string img)
-		{
-			var bmp = new Bitmap(img);
-
-			return (bmp.Width, bmp.Height);
-		}
 
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
@@ -260,13 +256,13 @@ namespace SmartImage.Searching
 			const float magnitude = 1024f;
 			var fileSizeMegabytes = Math.Round(FileOperations.GetFileSize(m_img.FullName) / magnitude / magnitude, 2);
 
-			var dim = GetImageDimensions(m_img.FullName);
+			var dim = Images.GetImageDimensions(m_img.FullName);
 
 			result.Width = dim.Width;
 			result.Height = dim.Height;
 
 			var infoStr = string.Format("Info: {0} ({1} MB) ({2})",
-				m_img.Name, fileSizeMegabytes, fileFormat);
+				m_img.Name, fileSizeMegabytes, fileFormat.Name);
 
 			result.ExtendedInfo.Add(infoStr);
 
@@ -293,16 +289,16 @@ namespace SmartImage.Searching
 			foreach (var currentEngine in availableEngines) {
 
 
-				var task = new Task(RunSearchTask);
+				var task = new Task(() => RunSearchTask(currentEngine));
 
-				void RunSearchTask()
+				/*void RunSearchTask()
 				{
 					var result = currentEngine.GetResult(m_imgUrl);
 
 					//resultsCopy[iCopy] = result;
 					m_results.Add(result);
 
-					RunInspectionTask(result);
+					RunProcessingTask(result);
 
 					// If the engine is priority, open its result in the browser
 					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
@@ -315,7 +311,7 @@ namespace SmartImage.Searching
 
 					// Reload console UI
 					NConsole.IO.Refresh();
-				}
+				}*/
 
 				threads.Add(task);
 
@@ -323,6 +319,32 @@ namespace SmartImage.Searching
 
 			return threads.ToArray();
 		}
+
+		public NConsoleUI Interface { get; }
+
+		private void RunSearchTask(ISearchEngine currentEngine)
+		{
+			var result = currentEngine.GetResult(m_imgUrl);
+
+			//resultsCopy[iCopy] = result;
+			m_results.Add(result);
+
+			RunProcessingTask(result);
+
+			// If the engine is priority, open its result in the browser
+			if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
+				Network.OpenUrl(result.Url);
+			}
+
+			//Update();
+
+			// Sort results
+			m_results.Sort(CompareResults);
+
+			// Reload console UI
+			NConsole.IO.Refresh();
+		}
+
 
 		private static IEnumerable<ISearchEngine> GetAllEngines()
 		{
@@ -356,10 +378,10 @@ namespace SmartImage.Searching
 				return false;
 			}
 
-			bool extOkay = ImageExtensions.Any(img.ToLower().EndsWith);
+			bool isImageType = FileOperations.ResolveFileType(img).Type == FileType.Image;
 
-			if (!extOkay) {
-				return NConsole.IO.ReadConfirm("File extension is not recognized as a common image format. Continue?");
+			if (!isImageType) {
+				return NConsole.IO.ReadConfirm("File format is not recognized as a common image format. Continue?");
 			}
 
 

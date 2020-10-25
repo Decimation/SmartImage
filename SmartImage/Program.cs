@@ -77,16 +77,7 @@ namespace SmartImage
 
 				// Show results
 
-
-				string prompt =
-					$"Enter the option number to open or {NConsole.IO.ESC_EXIT} to exit.\n" +
-					$"Hold down {NConsole.IO.ALT_FUNC_MODIFIER} while entering the option number to show more info ({SearchResult.ATTR_EXTENDED_RESULTS}).\n" +
-					$"Hold down {NConsole.IO.CTRL_FUNC_MODIFIER} while entering the option number to download ({SearchResult.ATTR_DOWNLOAD}).\n";
-
-
-				var ui = new NConsoleUI(SearchClient.Client.Results, null, prompt, false);
-
-				NConsole.IO.HandleOptions(ui);
+				NConsole.IO.HandleOptions(SearchClient.Client.Interface);
 			}
 			catch (Exception exception) {
 

@@ -18,6 +18,9 @@ namespace SmartImage.Searching.Model
 	/// </summary>
 	public sealed class SearchResult : NConsoleOption, ISearchResult
 	{
+		
+
+
 		public const char ATTR_SUCCESS = NConsole.CHECK_MARK;
 
 		public const char ATTR_EXTENDED_RESULTS = NConsole.ARROW_UP_DOWN;
@@ -35,11 +38,11 @@ namespace SmartImage.Searching.Model
 
 
 		/// <summary>
-		///     Raw search url
+		///     Raw, undifferentiated search url
 		/// </summary>
 		public string? RawUrl { get; set; }
 
-		public string? RootUrl { get; set; }
+		
 
 		/// <summary>
 		///     Extended information about the image, results, and other related metadata
@@ -67,8 +70,14 @@ namespace SmartImage.Searching.Model
 			}
 		}
 
+		/// <summary>
+		/// Displays <see cref="ExtendedResults"/> if any
+		/// </summary>
 		public override Func<object?>? AltFunction { get; set; }
 
+		/// <summary>
+		/// Downloads image, if possible, and opens it in Explorer highlighted
+		/// </summary>
 		public override Func<object?>? CtrlFunction
 		{
 			get
@@ -99,12 +108,13 @@ namespace SmartImage.Searching.Model
 			}
 		}
 
-		
+
 		public bool IsProcessed { get; set; }
 
 		public bool IsImage { get; set; }
 
 		public string? MimeType { get; set; }
+
 		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
 
@@ -164,7 +174,7 @@ namespace SmartImage.Searching.Model
 			ExtendedResults.AddRange(rg);
 
 			foreach (var result in rg) {
-				SearchClient.RunInspectionTask(result);
+				SearchClient.RunProcessingTask(result);
 			}
 
 			AltFunction = () =>
@@ -194,7 +204,6 @@ namespace SmartImage.Searching.Model
 			else {
 				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.BALLOT_X + ATTR_DOWNLOAD.ToString();
 			}
-			//todo
 
 
 			sb.AppendFormat("{0} {1} {2}\n", attrSuccess, attrExtendedResults, attrDownload);
