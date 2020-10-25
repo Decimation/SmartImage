@@ -9,6 +9,7 @@ using System.Reflection;
 using SimpleCore.CommandLine;
 using SimpleCore.Win32;
 using SmartImage.Utilities;
+
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable UseStringInterpolation
@@ -36,6 +37,7 @@ namespace SmartImage
 			"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
 			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
 			"                                                     |___/\n";
+
 
 		public const string NAME = "SmartImage";
 
@@ -103,7 +105,7 @@ namespace SmartImage
 					.Replace("file:///", String.Empty)
 					.Replace("/", "\\"))!,
 
-				
+
 			};
 
 			rg.AddRange(Native.PathDirectories);
@@ -116,7 +118,7 @@ namespace SmartImage
 				}
 			}
 
-			
+
 			static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
 			{
 				string folderExeFull = Path.Combine(folder, exeStr);
@@ -127,6 +129,23 @@ namespace SmartImage
 			}
 
 			throw new SmartImageException();
+		}
+
+		internal static Stream? GetResource(string resource)
+		{
+			Assembly a = Assembly.GetExecutingAssembly();
+
+			var n = a.GetName().Name;
+
+			//"SmartImage.hint.wav"
+
+			// [Assembly].[asset]
+
+			resource = n + "." + resource;
+
+			Stream? s = a.GetManifestResourceStream(resource);
+
+			return s;
 		}
 
 		internal static void ShowInfo()
@@ -171,6 +190,11 @@ namespace SmartImage
 			NConsole.WriteInfo("Repo: {0}", Repo);
 			NConsole.WriteInfo("Readme: {0}", Readme);
 			NConsole.WriteInfo("Author: {0}", Author);
+		}
+
+		internal static class RuntimeResources
+		{
+			internal static readonly Stream SND_HINT = GetResource("hint.wav")!;
 		}
 	}
 }

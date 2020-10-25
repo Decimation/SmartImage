@@ -25,6 +25,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="hint.wav" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="hint.wav" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="HtmlAgilityPack" Version="1.11.25" />
     <PackageReference Include="JetBrains.Annotations" Version="2020.1.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="4.7.0" />

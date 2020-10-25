@@ -58,7 +58,7 @@ namespace SmartImage.Searching.Model
 		/// <summary>
 		///     Opens result in browser
 		/// </summary>
-		public override Func<object?> Function
+		public override NConsoleFunction Function
 		{
 			get
 			{
@@ -73,12 +73,12 @@ namespace SmartImage.Searching.Model
 		/// <summary>
 		/// Displays <see cref="ExtendedResults"/> if any
 		/// </summary>
-		public override Func<object?>? AltFunction { get; set; }
+		public override NConsoleFunction? AltFunction { get; set; }
 
 		/// <summary>
 		/// Downloads image, if possible, and opens it in Explorer highlighted
 		/// </summary>
-		public override Func<object?>? CtrlFunction
+		public override NConsoleFunction? CtrlFunction
 		{
 			get
 			{

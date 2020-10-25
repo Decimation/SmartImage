@@ -7,8 +7,6 @@ using System.Linq;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
-using RestSharp;
 using SimpleCore.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -30,23 +28,44 @@ namespace SmartImage.Searching
 
 
 	/// <summary>
-	/// Searching client
+	///     Searching client
 	/// </summary>
-	public class SearchClient : IDisposable
+	public class SearchClient
 	{
-		private readonly SearchEngineOptions m_engines;
+		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
-		private readonly string m_imgUrl;
+
+		private static readonly string InterfacePrompt =
+			$"Enter the option number to open or {NConsole.IO.NC_GLOBAL_EXIT_KEY} to exit.\n" +
+			$"Hold down {NConsoleOption.NC_ALT_FUNC_MODIFIER} to show more info ({SearchResult.ATTR_EXTENDED_RESULTS}).\n" +
+			$"Hold down {NConsoleOption.NC_CTRL_FUNC_MODIFIER} to download ({SearchResult.ATTR_DOWNLOAD}).\n";
+
+		private readonly SearchEngineOptions m_engines;
 
 		private readonly FileInfo m_img;
 
-		private List<SearchResult> m_results;
-
-		private readonly Task[] m_tasks;
+		private readonly string m_imgUrl;
 
 		private readonly Thread m_monitor;
 
+		private readonly Task[] m_tasks;
+
+		private List<SearchResult> m_results;
+
 		public bool Complete { get; private set; }
+
+
+		/// <summary>
+		///     Searching client
+		/// </summary>
+		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
+
+		/// <summary>
+		///     Search results
+		/// </summary>
+		public ref List<SearchResult> Results => ref m_results;
+
+		public NConsoleUI Interface { get; }
 
 		private SearchClient(string img)
 		{
@@ -68,7 +87,10 @@ namespace SmartImage.Searching
 			m_imgUrl = Upload(img, useImgur);
 			m_tasks = CreateSearchTasks();
 
-			m_monitor = new Thread(Monitor)
+			// Joining each thread isn't necessary as this object is disposed upon program exit
+			// Background threads won't prevent program termination
+
+			m_monitor = new Thread(SearchMonitor)
 			{
 				Priority = ThreadPriority.Highest,
 				IsBackground = true
@@ -79,29 +101,15 @@ namespace SmartImage.Searching
 			Interface = new NConsoleUI(Results)
 			{
 				SelectMultiple = false,
-				Prompt = prompt
+				Prompt = InterfacePrompt
 			};
 		}
 
-
-		private string prompt =
-			$"Enter the option number to open or {NConsole.IO.ESC_EXIT} to exit.\n" +
-			$"Hold down {NConsole.IO.ALT_FUNC_MODIFIER} while entering the option number to show more info ({SearchResult.ATTR_EXTENDED_RESULTS}).\n" +
-			$"Hold down {NConsole.IO.CTRL_FUNC_MODIFIER} while entering the option number to download ({SearchResult.ATTR_DOWNLOAD}).\n";
-
-
 		/// <summary>
-		/// Searching client
-		/// </summary>
-		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
-
-		/// <summary>
-		/// Process a <see cref="SearchResult"/> to determine its MIME type, its proper URLs, and other aspects.
-		/// 
+		///     Process a <see cref="SearchResult" /> to determine its MIME type, its proper URLs, and other aspects.
 		/// </summary>
 		/// <remarks>
-		///
-		/// Organizes <see cref="SearchResult.Url"/>, <see cref="SearchResult.RawUrl"/>, <see cref="SearchResult.RootUrl"/>
+		///     Organizes <see cref="SearchResult.Url" />, <see cref="SearchResult.RawUrl" />, <see cref="SearchResult.RootUrl" />
 		/// </remarks>
 		public static void RunProcessingTask(SearchResult result)
 		{
@@ -114,47 +122,29 @@ namespace SmartImage.Searching
 			void InspectTask()
 			{
 				if (!result.IsProcessed) {
-					var type = Network.IdentifyType(result.Url);
-					var isImage = Network.IsImage(type);
+					string? type = Network.IdentifyType(result.Url);
+					bool isImage = Network.IsImage(type);
 
 					result.MimeType = type;
 					result.IsImage = isImage;
 
 					result.IsProcessed = true;
 
-					Debug.WriteLine("Process {0}", (object[]) new object[] {result.Name});
+					Debug.WriteLine("Process {0}", new object[] {result.Name});
 				}
 			}
 
 			//NConsole.IO.Refresh();
 		}
 
-		/*public static string ResolveRoot(string url)
-		{
-			string root = null;
-
-			if (url.Contains("danbooru")) {
-				var html = Network.GetString(url);
-
-				var doc = new HtmlDocument();
-				doc.LoadHtml(html);
-
-				var n = doc.DocumentNode;
-
-				var nx = n.SelectSingleNode("//*[@id='post-option-download']/a[@href]");
-
-				root = nx.GetAttributeValue("href", null);
-
-			}
-
-			return root;
-		}*/
-
-		private void Monitor()
+		private void SearchMonitor()
 		{
 			Task.WaitAll(m_tasks);
 
-			SystemSounds.Exclamation.Play();
+			//SystemSounds.Exclamation.Play();
+
+			var p = new SoundPlayer(RuntimeInfo.RuntimeResources.SND_HINT);
+			p.Play();
 
 			Complete = true;
 
@@ -163,8 +153,8 @@ namespace SmartImage.Searching
 
 		private static int CompareResults(SearchResult x, SearchResult y)
 		{
-			var xSim = x?.Similarity ?? 0;
-			var ySim = y?.Similarity ?? 0;
+			float xSim = x?.Similarity ?? 0;
+			float ySim = y?.Similarity ?? 0;
 
 			if (xSim > ySim) {
 				return -1;
@@ -202,26 +192,7 @@ namespace SmartImage.Searching
 		}
 
 		/// <summary>
-		/// Search results
-		/// </summary>
-		public ref List<SearchResult> Results => ref m_results;
-
-
-		public void Dispose()
-		{
-			// Joining each thread isn't necessary as this object is disposed upon program exit
-			// Background threads won't prevent program termination
-
-			// foreach (var thread in m_threads) {
-			// 	thread.Join();
-			// }
-
-			// m_monitor.Join();
-
-		}
-
-		/// <summary>
-		/// Starts search
+		///     Starts search
 		/// </summary>
 		public void Start()
 		{
@@ -237,31 +208,30 @@ namespace SmartImage.Searching
 			}
 		}
 
-
-		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
-
 		private SearchResult GetOriginalImageResult()
 		{
 			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
 			{
 				Similarity = 100.0f,
 				IsProcessed = true,
-				IsImage = true,
+				IsImage = true
 			};
 
-			result.ExtendedInfo.Add(string.Format("Location: {0}", m_img));
+			result.ExtendedInfo.Add(String.Format("Location: {0}", m_img));
 
 			var fileFormat = FileOperations.ResolveFileType(m_img.FullName);
 
 			const float magnitude = 1024f;
-			var fileSizeMegabytes = Math.Round(FileOperations.GetFileSize(m_img.FullName) / magnitude / magnitude, 2);
+
+			double fileSizeMegabytes =
+				Math.Round(FileOperations.GetFileSize(m_img.FullName) / magnitude / magnitude, 2);
 
 			var dim = Images.GetImageDimensions(m_img.FullName);
 
 			result.Width = dim.Width;
 			result.Height = dim.Height;
 
-			var infoStr = string.Format("Info: {0} ({1} MB) ({2})",
+			string infoStr = String.Format("Info: {0} ({1} MB) ({2})",
 				m_img.Name, fileSizeMegabytes, fileFormat.Name);
 
 			result.ExtendedInfo.Add(infoStr);
@@ -288,39 +258,13 @@ namespace SmartImage.Searching
 
 			foreach (var currentEngine in availableEngines) {
 
-
 				var task = new Task(() => RunSearchTask(currentEngine));
 
-				/*void RunSearchTask()
-				{
-					var result = currentEngine.GetResult(m_imgUrl);
-
-					//resultsCopy[iCopy] = result;
-					m_results.Add(result);
-
-					RunProcessingTask(result);
-
-					// If the engine is priority, open its result in the browser
-					if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-						Network.OpenUrl(result.Url);
-					}
-
-
-					// Sort results
-					m_results.Sort(CompareResults);
-
-					// Reload console UI
-					NConsole.IO.Refresh();
-				}*/
-
 				threads.Add(task);
-
 			}
 
 			return threads.ToArray();
 		}
-
-		public NConsoleUI Interface { get; }
 
 		private void RunSearchTask(ISearchEngine currentEngine)
 		{
@@ -361,7 +305,7 @@ namespace SmartImage.Searching
 				new GoogleImagesClient(),
 				new TinEyeClient(),
 				new BingClient(),
-				new KarmaDecayClient(),
+				new KarmaDecayClient()
 			};
 
 			return engines;
