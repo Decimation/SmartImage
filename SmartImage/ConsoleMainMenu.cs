@@ -51,7 +51,7 @@ namespace SmartImage
 		/// <remarks>
 		///     More user-friendly menu
 		/// </remarks>
-		internal static void Run() => NConsole.IO.HandleOptions(Interface);
+		internal static void Run() => NConsoleIO.HandleOptions(Interface);
 
 		private static readonly NConsoleOption RunSelectImage = new NConsoleOption
 		{
@@ -61,11 +61,11 @@ namespace SmartImage
 			{
 				Console.WriteLine("Drag and drop the image here.");
 				
-				string? img = NConsole.IO.GetInput("Image");
+				string? img = NConsoleIO.GetInput("Image");
 
 				if (string.IsNullOrWhiteSpace(img)) {
 					NConsole.WriteError("Invalid image");
-					NConsole.IO.WaitForInput();
+					NConsoleIO.WaitForInput();
 					return null;
 				}
 
@@ -84,7 +84,7 @@ namespace SmartImage
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngineOptions>();
-				var values = NConsole.IO.HandleOptions(rgEnum, true);
+				var values = NConsoleIO.HandleOptions(rgEnum, true);
 
 				var newValues = Enums.ReadEnumFromSet<SearchEngineOptions>(values);
 
@@ -92,7 +92,7 @@ namespace SmartImage
 
 				SearchConfig.Config.SearchEngines = newValues;
 
-				NConsole.IO.WaitForInput();
+				NConsoleIO.WaitForInput();
 
 				return null;
 			},
@@ -105,7 +105,7 @@ namespace SmartImage
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngineOptions>();
-				var values = NConsole.IO.HandleOptions(rgEnum, true);
+				var values = NConsoleIO.HandleOptions(rgEnum, true);
 
 				var newValues = Enums.ReadEnumFromSet<SearchEngineOptions>(values);
 
@@ -113,7 +113,7 @@ namespace SmartImage
 
 				SearchConfig.Config.PriorityEngines = newValues;
 
-				NConsole.IO.WaitForSecond();
+				NConsoleIO.WaitForSecond();
 
 				return null;
 			}
@@ -125,9 +125,9 @@ namespace SmartImage
 			Name = "Configure SauceNao API authentication",
 			Function = () =>
 			{
-				SearchConfig.Config.SauceNaoAuth = NConsole.IO.GetInput("API key");
+				SearchConfig.Config.SauceNaoAuth = NConsoleIO.GetInput("API key");
 
-				NConsole.IO.WaitForSecond();
+				NConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -138,9 +138,9 @@ namespace SmartImage
 			Function = () =>
 			{
 
-				SearchConfig.Config.ImgurAuth = NConsole.IO.GetInput("API key");
+				SearchConfig.Config.ImgurAuth = NConsoleIO.GetInput("API key");
 
-				NConsole.IO.WaitForSecond();
+				NConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -152,7 +152,7 @@ namespace SmartImage
 			{
 				SearchConfig.Config.WriteToFile();
 
-				NConsole.IO.WaitForSecond();
+				NConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -173,7 +173,7 @@ namespace SmartImage
 					NConsole.WriteSuccess("Removed from context menu");
 				}
 
-				NConsole.IO.WaitForSecond();
+				NConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -185,7 +185,7 @@ namespace SmartImage
 			{
 				RuntimeInfo.ShowInfo();
 
-				NConsole.IO.WaitForInput();
+				NConsoleIO.WaitForInput();
 				return null;
 			}
 		};
@@ -210,7 +210,7 @@ namespace SmartImage
 					NConsole.WriteInfo("{0}", v.Status);
 				}
 
-				NConsole.IO.WaitForSecond();
+				NConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
@@ -222,7 +222,7 @@ namespace SmartImage
 			{
 				Integration.ResetIntegrations();
 
-				NConsole.IO.WaitForSecond();
+				NConsoleIO.WaitForSecond();
 				return null;
 			}
 		};

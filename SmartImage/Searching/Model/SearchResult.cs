@@ -85,7 +85,7 @@ namespace SmartImage.Searching.Model
 				return () =>
 				{
 					if (!IsImage) {
-						bool ok = NConsole.IO.ReadConfirm(
+						bool ok = NConsoleIO.ReadConfirm(
 							$"Link may not be an image [{MimeType ?? "?"}]. Download anyway?");
 
 						if (!ok) {
@@ -101,7 +101,7 @@ namespace SmartImage.Searching.Model
 					FileOperations.ExploreFile(path);
 
 
-					NConsole.IO.WaitForSecond();
+					NConsoleIO.WaitForSecond();
 
 					return null;
 				};
@@ -181,7 +181,7 @@ namespace SmartImage.Searching.Model
 			{
 				//var rg = FromExtendedResult(bestImages);
 
-				NConsole.IO.HandleOptions(ExtendedResults);
+				NConsoleIO.HandleOptions(ExtendedResults);
 
 				return null;
 

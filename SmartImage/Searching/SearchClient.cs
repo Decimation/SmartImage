@@ -36,7 +36,7 @@ namespace SmartImage.Searching
 
 
 		private static readonly string InterfacePrompt =
-			$"Enter the option number to open or {NConsole.IO.NC_GLOBAL_EXIT_KEY} to exit.\n" +
+			$"Enter the option number to open or {NConsoleIO.NC_GLOBAL_EXIT_KEY} to exit.\n" +
 			$"Hold down {NConsoleOption.NC_ALT_FUNC_MODIFIER} to show more info ({SearchResult.ATTR_EXTENDED_RESULTS}).\n" +
 			$"Hold down {NConsoleOption.NC_CTRL_FUNC_MODIFIER} to download ({SearchResult.ATTR_DOWNLOAD}).\n";
 
@@ -134,7 +134,7 @@ namespace SmartImage.Searching
 				}
 			}
 
-			//NConsole.IO.Refresh();
+			NConsoleIO.Refresh();
 		}
 
 		private void SearchMonitor()
@@ -148,7 +148,7 @@ namespace SmartImage.Searching
 
 			Complete = true;
 
-			NConsole.IO.Refresh();
+			NConsoleIO.Refresh();
 		}
 
 		private static int CompareResults(SearchResult x, SearchResult y)
@@ -286,7 +286,7 @@ namespace SmartImage.Searching
 			m_results.Sort(CompareResults);
 
 			// Reload console UI
-			NConsole.IO.Refresh();
+			//NConsoleIO.Refresh();
 		}
 
 
@@ -325,7 +325,7 @@ namespace SmartImage.Searching
 			bool isImageType = FileOperations.ResolveFileType(img).Type == FileType.Image;
 
 			if (!isImageType) {
-				return NConsole.IO.ReadConfirm("File format is not recognized as a common image format. Continue?");
+				return NConsoleIO.ReadConfirm("File format is not recognized as a common image format. Continue?");
 			}
 
 
