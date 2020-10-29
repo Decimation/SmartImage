@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -9,7 +10,9 @@ using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Utilities;
 
-#pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101
+// ReSharper disable ArrangeAccessorOwnerBody
+
+#pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101, RCS1213, RCS1036
 #nullable enable
 
 namespace SmartImage
@@ -18,13 +21,13 @@ namespace SmartImage
 	/// Contains <see cref="NConsoleUI"/> and <see cref="NConsoleOption"/> for the main menu
 	/// </summary>
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	internal static class ConsoleMainMenu
+	internal static class MainMenu
 	{
 		private static NConsoleOption[] AllOptions
 		{
 			get
 			{
-				var fields = typeof(ConsoleMainMenu).GetFields(
+				var fields = typeof(MainMenu).GetFields(
 						BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default)
 					.Where(f => f.FieldType == typeof(NConsoleOption))
 					.ToArray();
@@ -33,7 +36,7 @@ namespace SmartImage
 				var options = new NConsoleOption[fields.Length];
 
 				for (int i = 0; i < fields.Length; i++) {
-					options[i] = (NConsoleOption) fields[i].GetValue(null);
+					options[i] = (NConsoleOption) fields[i].GetValue(null)!;
 				}
 
 				return options;
@@ -43,7 +46,14 @@ namespace SmartImage
 		/// <summary>
 		/// Main menu console interface
 		/// </summary>
-		internal static NConsoleUI Interface => new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER, null, false, null);
+		internal static NConsoleUI Interface
+		{
+			get
+			{
+				//
+				return new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER, null, false, null);
+			}
+		}
 
 		/// <summary>
 		///     Runs when no arguments are given (and when the executable is double-clicked)
@@ -51,16 +61,20 @@ namespace SmartImage
 		/// <remarks>
 		///     More user-friendly menu
 		/// </remarks>
-		internal static void Run() => NConsoleIO.HandleOptions(Interface);
+		internal static void Run()
+		{
+			//
+			NConsoleIO.HandleOptions(Interface);
+		}
 
 		private static readonly NConsoleOption RunSelectImage = new NConsoleOption
 		{
-			Name = ">>> Select image <<<",
+			Name  = ">>> Select image <<<",
 			Color = Color.Yellow,
 			Function = () =>
 			{
 				Console.WriteLine("Drag and drop the image here.");
-				
+
 				string? img = NConsoleIO.GetInput("Image");
 
 				if (string.IsNullOrWhiteSpace(img)) {
@@ -194,14 +208,22 @@ namespace SmartImage
 		private static readonly NConsoleOption CheckForUpdateOption = new NConsoleOption
 		{
 			Name = "Check for updates",
+
 			Function = () =>
 			{
 				var v = UpdateInfo.CheckForUpdates();
 
 				if ((v.Status == VersionStatus.Available)) {
+					Console.WriteLine($"Updating to {v.Latest}...");
 
-					UpdateInfo.Update();
-					
+					try {
+						UpdateInfo.Update();
+					}
+					catch (Exception e) {
+						Console.WriteLine(e);
+
+					}
+
 					// No return
 					Environment.Exit(0);
 
@@ -252,9 +274,9 @@ namespace SmartImage
 
 		private static readonly string[] TestImages =
 		{
-			// "Test1.jpg", 
+			"Test1.jpg", 
 			"Test2.jpg",
-			//"Test3.png"
+			"Test3.png"
 		};
 
 		private static readonly NConsoleOption DebugTestOption = new NConsoleOption
@@ -262,21 +284,21 @@ namespace SmartImage
 			Name = "[DEBUG] Run test",
 			Function = () =>
 			{
-				var cd = new DirectoryInfo(Environment.CurrentDirectory);
+				var cd  = new DirectoryInfo(Environment.CurrentDirectory);
 				var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
 
+				var rgOption = NConsoleOption.CreateOptions(TestImages, s => s);
 
-				var testImg = TestImages.GetRandomElement();
-				var img = Path.Combine(cd2, testImg);
+				var testImg =(string) NConsoleIO.HandleOptions(rgOption).First();
 
-				SearchConfig.Config.Image = img;
+				var img     = Path.Combine(cd2, testImg);
+
+				SearchConfig.Config.Image           = img;
 				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
-
 
 				return true;
 			}
 		};
 #endif
-		
 	}
 }

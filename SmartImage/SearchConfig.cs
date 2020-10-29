@@ -10,7 +10,7 @@ using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.SauceNao;
 
 
-#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102
+#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
 
 // ReSharper disable InconsistentNaming
 
@@ -26,8 +26,7 @@ namespace SmartImage
 	/// </remarks>
 	public sealed class SearchConfig
 	{
-		// todo: create config field type
-		// todo: create config field attribute
+		// todo: create config field type; create config field attribute
 		// todo: refactor
 
 		private const string CFG_IMGUR_APIKEY = "imgur_client_id";

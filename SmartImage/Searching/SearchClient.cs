@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -17,10 +18,11 @@ using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
+using static SimpleCore.Win32.Native;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
-#pragma warning disable HAA0502, HAA0302, HAA0601, HAA0101, HAA0301, HAA0603
+#pragma warning disable HAA0502, HAA0302, HAA0601, HAA0101, HAA0301, HAA0603, RCS1036
 
 namespace SmartImage.Searching
 {
@@ -30,7 +32,7 @@ namespace SmartImage.Searching
 	/// <summary>
 	///     Searching client
 	/// </summary>
-	public class SearchClient
+	public sealed class SearchClient
 	{
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
@@ -43,7 +45,7 @@ namespace SmartImage.Searching
 		private readonly SearchEngineOptions m_engines;
 
 		private readonly FileInfo m_img;
-
+		private readonly Bitmap m_bmp;
 		private readonly string m_imgUrl;
 
 		private readonly Thread m_monitor;
@@ -82,10 +84,12 @@ namespace SmartImage.Searching
 				engines = SearchConfig.ENGINES_DEFAULT;
 			}
 
+			m_results = null!;
 			m_engines = engines;
-			m_img = new FileInfo(img);
-			m_imgUrl = Upload(img, useImgur);
-			m_tasks = CreateSearchTasks();
+			m_img     = new FileInfo(img);
+			m_bmp     = new Bitmap(img);
+			m_imgUrl  = Upload(img, useImgur);
+			m_tasks   = CreateSearchTasks();
 
 			// Joining each thread isn't necessary as this object is disposed upon program exit
 			// Background threads won't prevent program termination
@@ -111,9 +115,8 @@ namespace SmartImage.Searching
 		/// <remarks>
 		///     Organizes <see cref="SearchResult.Url" />, <see cref="SearchResult.RawUrl" />, <see cref="SearchResult.RootUrl" />
 		/// </remarks>
-		public static void RunProcessingTask(SearchResult result)
+		public /*static*/ void RunProcessingTask(SearchResult result)
 		{
-			// todo: move image functions into separate class or something
 			// todo
 
 			var task = new Task(InspectTask);
@@ -125,14 +128,14 @@ namespace SmartImage.Searching
 					string? type = Network.IdentifyType(result.Url);
 					bool isImage = Network.IsImage(type);
 
-					result.MimeType = type;
-					result.IsImage = isImage;
-
+					result.MimeType    = type;
+					result.IsImage     = isImage;
 					result.IsProcessed = true;
 
 					Debug.WriteLine("Process {0}", new object[] {result.Name});
 				}
 			}
+
 
 			NConsoleIO.Refresh();
 		}
@@ -141,13 +144,11 @@ namespace SmartImage.Searching
 		{
 			Task.WaitAll(m_tasks);
 
-			//SystemSounds.Exclamation.Play();
-
 			var p = new SoundPlayer(RuntimeInfo.RuntimeResources.SND_HINT);
 			p.Play();
 
 			Complete = true;
-
+			Interface.Status = "OK";
 			NConsoleIO.Refresh();
 		}
 
@@ -175,22 +176,6 @@ namespace SmartImage.Searching
 			return 0;
 		}
 
-		private static BaseSauceNaoClient GetSauceNaoClient()
-		{
-			// SauceNao API works without API key
-
-			// bool apiConfigured = !string.IsNullOrWhiteSpace(SearchConfig.Config.SauceNaoAuth);
-			//
-			// if (apiConfigured) {
-			// 	return new FullSauceNaoClient();
-			// }
-			// else {
-			// 	return new AltSauceNaoClient();
-			// }
-
-			return new FullSauceNaoClient();
-		}
-
 		/// <summary>
 		///     Starts search
 		/// </summary>
@@ -208,6 +193,7 @@ namespace SmartImage.Searching
 			}
 		}
 
+
 		private SearchResult GetOriginalImageResult()
 		{
 			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
@@ -217,22 +203,21 @@ namespace SmartImage.Searching
 				IsImage = true
 			};
 
-			result.ExtendedInfo.Add(String.Format("Location: {0}", m_img));
+			result.ExtendedInfo.Add($"Location: {m_img}");
 
 			var fileFormat = FileOperations.ResolveFileType(m_img.FullName);
 
-			const float magnitude = 1024f;
-
 			double fileSizeMegabytes =
-				Math.Round(FileOperations.GetFileSize(m_img.FullName) / magnitude / magnitude, 2);
+				FileOperations.GetFileSize(m_img.FullName) / MAGNITUDE / MAGNITUDE;
 
-			var dim = Images.GetImageDimensions(m_img.FullName);
+			(int width, int height) = (m_bmp.Width, m_bmp.Height);
 
-			result.Width = dim.Width;
-			result.Height = dim.Height;
+			result.Width = width;
+			result.Height = height;
 
-			string infoStr = String.Format("Info: {0} ({1} MB) ({2})",
-				m_img.Name, fileSizeMegabytes, fileFormat.Name);
+			var mpx = (width * height) / MAGNITUDE / MAGNITUDE;
+
+			string infoStr = $"Info: {m_img.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
 
 			result.ExtendedInfo.Add(infoStr);
 
@@ -253,24 +238,13 @@ namespace SmartImage.Searching
 				GetOriginalImageResult()
 			};
 
-
-			var threads = new List<Task>();
-
-			foreach (var currentEngine in availableEngines) {
-
-				var task = new Task(() => RunSearchTask(currentEngine));
-
-				threads.Add(task);
-			}
-
-			return threads.ToArray();
+			return availableEngines.Select(currentEngine => new Task(() => RunSearchTask(currentEngine))).ToArray();
 		}
 
 		private void RunSearchTask(ISearchEngine currentEngine)
 		{
 			var result = currentEngine.GetResult(m_imgUrl);
 
-			//resultsCopy[iCopy] = result;
 			m_results.Add(result);
 
 			RunProcessingTask(result);
@@ -286,13 +260,13 @@ namespace SmartImage.Searching
 			m_results.Sort(CompareResults);
 
 			// Reload console UI
-			//NConsoleIO.Refresh();
+			NConsoleIO.Refresh();
 		}
 
 
 		private static IEnumerable<ISearchEngine> GetAllEngines()
 		{
-			var engines = new ISearchEngine[]
+			return new ISearchEngine[]
 			{
 				//
 				GetSauceNaoClient(),
@@ -307,8 +281,6 @@ namespace SmartImage.Searching
 				new BingClient(),
 				new KarmaDecayClient()
 			};
-
-			return engines;
 		}
 
 		private static bool IsFileValid(string img)
@@ -318,7 +290,7 @@ namespace SmartImage.Searching
 			}
 
 			if (!File.Exists(img)) {
-				NConsole.WriteError("File does not exist: {0}", img);
+				NConsole.WriteError($"File does not exist: {img}");
 				return false;
 			}
 
@@ -327,7 +299,6 @@ namespace SmartImage.Searching
 			if (!isImageType) {
 				return NConsoleIO.ReadConfirm("File format is not recognized as a common image format. Continue?");
 			}
-
 
 			return true;
 		}
@@ -367,6 +338,22 @@ namespace SmartImage.Searching
 
 
 			return imgUrl;
+		}
+
+		private static BaseSauceNaoClient GetSauceNaoClient()
+		{
+			// SauceNao API works without API key
+
+			// bool apiConfigured = !string.IsNullOrWhiteSpace(SearchConfig.Config.SauceNaoAuth);
+			//
+			// if (apiConfigured) {
+			// 	return new FullSauceNaoClient();
+			// }
+			// else {
+			// 	return new AltSauceNaoClient();
+			// }
+
+			return new FullSauceNaoClient();
 		}
 	}
 }

@@ -18,7 +18,7 @@ using SmartImage.Utilities;
 
 #endregion
 
-#pragma warning disable HAA0101, HAA0502, HAA0601
+#pragma warning disable HAA0101, HAA0502, HAA0601, RCS1036
 
 namespace SmartImage
 {
@@ -77,59 +77,12 @@ namespace SmartImage
 		/// <summary>
 		///     Null if executable is not in path.
 		/// </summary>
-		public static string ExeLocation => FindExecutableLocation(NAME_EXE);
+		public static string ExeLocation => FileOperations.FindExecutableLocation(NAME_EXE)!;
 
 
-		public static bool IsAppFolderInPath => Native.IsFolderInPath(AppFolder);
+		public static bool IsAppFolderInPath => Native.OS.IsFolderInPath(AppFolder);
 
 
-		private static string FindExecutableLocation(string exe)
-		{
-
-			// https://stackoverflow.com/questions/6041332/best-way-to-get-application-folder-path
-			// var exeLocation1 = Assembly.GetEntryAssembly().Location;
-			// var exeLocation2 = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().CodeBase);
-			// var exeLocation3 = System.Reflection.Assembly.GetExecutingAssembly().GetName().CodeBase;
-			// var exeLocation = AppDomain.CurrentDomain.BaseDirectory;
-
-			//
-
-			var rg = new List<string>
-			{
-				/* Current directory */
-				Environment.CurrentDirectory,
-
-
-				/* Executing directory */
-				Path.GetDirectoryName(Assembly.GetExecutingAssembly().CodeBase!
-					.Replace("file:///", String.Empty)
-					.Replace("/", "\\"))!,
-
-
-			};
-
-			rg.AddRange(Native.PathDirectories);
-
-			//
-
-			foreach (string loc in rg) {
-				if (ExistsInFolder(loc, exe, out var folder)) {
-					return folder;
-				}
-			}
-
-
-			static bool ExistsInFolder(string folder, string exeStr, out string folderExe)
-			{
-				string folderExeFull = Path.Combine(folder, exeStr);
-				bool inFolder = File.Exists(folderExeFull);
-
-				folderExe = folderExeFull;
-				return inFolder;
-			}
-
-			throw new SmartImageException();
-		}
 
 		internal static Stream? GetResource(string resource)
 		{
@@ -143,9 +96,7 @@ namespace SmartImage
 
 			resource = n + "." + resource;
 
-			Stream? s = a.GetManifestResourceStream(resource);
-
-			return s;
+			return a.GetManifestResourceStream(resource);
 		}
 
 		internal static void ShowInfo()

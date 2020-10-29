@@ -1,16 +1,31 @@
 #nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 using SimpleCore.CommandLine;
 using SimpleCore.Net;
-using SimpleCore.Utilities;
 using SimpleCore.Win32;
-using SmartImage.Utilities;
 
-#pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101
 
+#pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
+#pragma warning disable HAA0602 // Delegate on struct instance caused a boxing allocation
+#pragma warning disable HAA0603 // Delegate allocation from a method group
+#pragma warning disable HAA0604 // Delegate allocation from a method group
+
+#pragma warning disable HAA0501 // Explicit new array type allocation
+#pragma warning disable HAA0502 // Explicit new reference type allocation
+#pragma warning disable HAA0503 // Explicit new reference type allocation
+#pragma warning disable HAA0504 // Implicit new array creation allocation
+#pragma warning disable HAA0505 // Initializer reference type allocation
+#pragma warning disable HAA0506 // Let clause induced allocation
+
+#pragma warning disable HAA0301 // Closure Allocation Source
+#pragma warning disable HAA0302 // Display class allocation to capture closure
+#pragma warning disable HAA0303 // Lambda or anonymous method in a generic method allocates a delegate instance
+
+#pragma warning disable HAA0401
 namespace SmartImage.Searching.Model
 {
 	/// <summary>
@@ -18,65 +33,35 @@ namespace SmartImage.Searching.Model
 	/// </summary>
 	public sealed class SearchResult : NConsoleOption, ISearchResult
 	{
-		
-
-
-		public const char ATTR_SUCCESS = NConsole.CHECK_MARK;
+		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
 
 		public const char ATTR_EXTENDED_RESULTS = NConsole.ARROW_UP_DOWN;
 
-		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
+		public const char ATTR_SUCCESS = NConsole.CHECK_MARK;
 
-		public override Color Color { get; set; }
+		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
+			: this(engine.Color, engine.Name, url, similarity) { }
 
-		public override string Data => ToString();
-
-		/// <summary>
-		///     Result name
-		/// </summary>
-		public override string Name { get; set; }
-
-
-		/// <summary>
-		///     Raw, undifferentiated search url
-		/// </summary>
-		public string? RawUrl { get; set; }
-
-		
-
-		/// <summary>
-		///     Extended information about the image, results, and other related metadata
-		/// </summary>
-		public List<string> ExtendedInfo { get; }
-
-		/// <summary>
-		///     Direct source matches and other extended results
-		/// </summary>
-		/// <remarks>This list is used if there are multiple results</remarks>
-		public List<SearchResult> ExtendedResults { get; }
-
-		/// <summary>
-		///     Opens result in browser
-		/// </summary>
-		public override NConsoleFunction Function
+		public SearchResult(Color color, string name, string url, float? similarity = null)
 		{
-			get
-			{
-				return () =>
-				{
-					Network.OpenUrl(Url);
-					return null;
-				};
-			}
+			Url   = url;
+			Name  = name;
+			Color = color;
+
+			Similarity      = similarity;
+			ExtendedInfo    = new List<string>();
+			ExtendedResults = new List<SearchResult>();
 		}
 
 		/// <summary>
-		/// Displays <see cref="ExtendedResults"/> if any
+		///     Displays <see cref="ExtendedResults" /> if any
 		/// </summary>
 		public override NConsoleFunction? AltFunction { get; set; }
 
+		public override Color Color { get; set; }
+
 		/// <summary>
-		/// Downloads image, if possible, and opens it in Explorer highlighted
+		///     Downloads image, if possible, and opens it in Explorer highlighted
 		/// </summary>
 		public override NConsoleFunction? CtrlFunction
 		{
@@ -108,60 +93,60 @@ namespace SmartImage.Searching.Model
 			}
 		}
 
+		public override string Data => ToString();
 
-		public bool IsProcessed { get; set; }
+		/// <summary>
+		///     Extended information about the image, results, and other related metadata
+		/// </summary>
+		public List<string> ExtendedInfo { get; }
+
+		/// <summary>
+		///     Direct source matches and other extended results
+		/// </summary>
+		/// <remarks>This list is used if there are multiple results</remarks>
+		public List<SearchResult> ExtendedResults { get; }
+
+		/// <summary>
+		///     Opens result in browser
+		/// </summary>
+		public override NConsoleFunction Function
+		{
+			get
+			{
+				return () =>
+				{
+					Network.OpenUrl(Url);
+					return null;
+				};
+			}
+		}
 
 		public bool IsImage { get; set; }
 
+		public bool IsProcessed { get; set; }
+
 		public string? MimeType { get; set; }
 
-		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
-			: this(engine.Color, engine.Name, url, similarity) { }
-
-		public SearchResult(Color color, string name, string url, float? similarity = null)
-		{
-			Url = url;
-			Name = name;
-			Color = color;
-
-			Similarity = similarity;
-			ExtendedInfo = new List<string>();
-			ExtendedResults = new List<SearchResult>();
-		}
+		/// <summary>
+		///     Result name
+		/// </summary>
+		public override string Name { get; set; }
 
 
-		public string Url { get; set; }
-
-		public float? Similarity { get; set; }
-
-		public int? Width { get; set; }
-
-		public int? Height { get; set; }
-
+		/// <summary>
+		///     Raw, undifferentiated search url
+		/// </summary>
+		public string? RawUrl { get; set; }
 
 		public string? Caption { get; set; }
 
-		private IList<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
-		{
-			var rg = new SearchResult[results.Count];
+		public int? Height { get; set; }
 
-			for (int i = 0; i < rg.Length; i++) {
-				var result = results[i];
-				string name = String.Format("Extended result #{0}", i);
+		public float? Similarity { get; set; }
 
-				var sr = new SearchResult(Color, name, result.Url, result.Similarity)
-				{
-					Width = result.Width,
-					Height = result.Height,
-					Caption = result.Caption
-				};
+		public string Url { get; set; }
 
-				rg[i] = sr;
-			}
-
-
-			return rg;
-		}
+		public int? Width { get; set; }
 
 		public void AddExtendedResults(ISearchResult[] bestImages)
 		{
@@ -174,7 +159,7 @@ namespace SmartImage.Searching.Model
 			ExtendedResults.AddRange(rg);
 
 			foreach (var result in rg) {
-				SearchClient.RunProcessingTask(result);
+				SearchClient.Client.RunProcessingTask(result);
 			}
 
 			AltFunction = () =>
@@ -199,7 +184,7 @@ namespace SmartImage.Searching.Model
 			string attrDownload;
 
 			if (!IsProcessed) {
-				attrDownload = "-";
+				attrDownload = NConsole.SUN.ToString();
 			}
 			else {
 				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.BALLOT_X + ATTR_DOWNLOAD.ToString();
@@ -237,6 +222,28 @@ namespace SmartImage.Searching.Model
 			}
 
 			return sb.ToString();
+		}
+
+		private IList<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
+		{
+			var rg = new SearchResult[results.Count];
+
+			for (int i = 0; i < rg.Length; i++) {
+				var    result = results[i];
+				string name   = String.Format("Extended result #{0}", i);
+
+				var sr = new SearchResult(Color, name, result.Url, result.Similarity)
+				{
+					Width   = result.Width,
+					Height  = result.Height,
+					Caption = result.Caption
+				};
+
+				rg[i] = sr;
+			}
+
+
+			return rg;
 		}
 	}
 }

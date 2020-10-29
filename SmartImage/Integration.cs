@@ -61,7 +61,7 @@ namespace SmartImage
 			switch (option) {
 				case IntegrationOption.Add:
 				{
-					string oldValue = Native.EnvironmentPath;
+					string oldValue = Native.OS.EnvironmentPath;
 
 					string appFolder = RuntimeInfo.AppFolder;
 
@@ -71,21 +71,21 @@ namespace SmartImage
 
 
 					bool appFolderInPath = oldValue
-						.Split(Native.PATH_DELIM)
+						.Split(Native.OS.PATH_DELIM)
 						.Any(p => p == appFolder);
 
 					string cd = Environment.CurrentDirectory;
 					string exe = Path.Combine(cd, RuntimeInfo.NAME_EXE);
 
 					if (!appFolderInPath) {
-						string newValue = oldValue + Native.PATH_DELIM + cd;
-						Native.EnvironmentPath = newValue;
+						string newValue = oldValue + Native.OS.PATH_DELIM + cd;
+						Native.OS.EnvironmentPath = newValue;
 					}
 
 					break;
 				}
 				case IntegrationOption.Remove:
-					Native.RemoveFromPath(RuntimeInfo.AppFolder);
+					Native.OS.RemoveFromPath(RuntimeInfo.AppFolder);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(option), option, null);

@@ -1,29 +1,16 @@
-﻿#region
+﻿// ReSharper disable RedundantUsingDirective
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Media;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.Win32;
-using SmartImage.Searching;
-using SimpleCore;
+#pragma warning disable HAA0601,
+
 using SimpleCore.CommandLine;
-using SimpleCore.Utilities;
-using SmartImage.Searching.Model;
+using SmartImage.Searching;
+using System;
+using System.Text;
+using SimpleCore.Net;
 using SmartImage.Utilities;
+// ReSharper disable UnusedParameter.Local
 
-#endregion
 
-#pragma warning disable HAA0601
 namespace SmartImage
 {
 	public static class Program
@@ -37,26 +24,26 @@ namespace SmartImage
 
 		/*
 		 * todo: refactor access modifiers
+		 * todo: maybe create a separate unit testing project
 		 */
 
 		/*
 		 * Entry point
 		 */
+
 		private static void Main(string[] args)
 		{
 			/*
 			 * Set up console
 			 */
 
-
 			Console.Title = RuntimeInfo.NAME;
 			Console.SetWindowSize(120, 50);
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
+			NConsole.Init();
 
 			NConsoleUI.DefaultName = RuntimeInfo.NAME_BANNER;
-
-			
 
 			/*
 			 * Run search
@@ -70,20 +57,26 @@ namespace SmartImage
 
 				// Run UI if not using command line arguments
 				if (SearchConfig.Config.NoArguments) {
-					ConsoleMainMenu.Run();
+					MainMenu.Run();
 					Console.Clear();
 				}
 
-				// Run search
+				// Image is automatically read from command line arguments,
+				// or it is input through the main menu
 
+
+				// Exit if no image is given
+				if (String.IsNullOrWhiteSpace(SearchConfig.Config.Image)) {
+					return;
+				}
+
+				// Run search
 				SearchClient.Client.Start();
 
 				// Show results
-				
 				NConsoleIO.HandleOptions(SearchClient.Client.Interface);
 			}
 			catch (Exception exception) {
-
 #if !DEBUG
 				var cr = new CrashReport(exception);
 
@@ -101,14 +94,11 @@ namespace SmartImage
 #else
 				Console.WriteLine(exception);
 #endif
-
 			}
 			finally {
 				// Exit
 				SearchConfig.Config.UpdateFile();
 			}
-
-
 		}
 	}
 }

@@ -16,6 +16,5 @@ namespace SmartImage.Searching.Model
 		public SearchResult GetResult(string url);
 
 		public Color Color { get; }
-
 	}
 }
