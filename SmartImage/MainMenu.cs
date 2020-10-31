@@ -75,7 +75,7 @@ namespace SmartImage
 			{
 				Console.WriteLine("Drag and drop the image here.");
 
-				string? img = NConsoleIO.GetInput("Image");
+				string? img = NConsoleIO.ReadInput("Image");
 
 				if (string.IsNullOrWhiteSpace(img)) {
 					NConsole.WriteError("Invalid image");
@@ -97,10 +97,10 @@ namespace SmartImage
 			Name = "Configure search engines",
 			Function = () =>
 			{
-				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngineOptions>();
+				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
 				var values = NConsoleIO.HandleOptions(rgEnum, true);
 
-				var newValues = Enums.ReadEnumFromSet<SearchEngineOptions>(values);
+				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
 				NConsole.WriteInfo(newValues);
 
@@ -118,10 +118,10 @@ namespace SmartImage
 			Name = "Configure priority engines",
 			Function = () =>
 			{
-				var rgEnum = NConsoleOption.CreateOptionsFromEnum<SearchEngineOptions>();
+				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
 				var values = NConsoleIO.HandleOptions(rgEnum, true);
 
-				var newValues = Enums.ReadEnumFromSet<SearchEngineOptions>(values);
+				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
 				NConsole.WriteInfo(newValues);
 
@@ -139,7 +139,7 @@ namespace SmartImage
 			Name = "Configure SauceNao API authentication",
 			Function = () =>
 			{
-				SearchConfig.Config.SauceNaoAuth = NConsoleIO.GetInput("API key");
+				SearchConfig.Config.SauceNaoAuth = NConsoleIO.ReadInput("API key");
 
 				NConsoleIO.WaitForSecond();
 				return null;
@@ -152,7 +152,7 @@ namespace SmartImage
 			Function = () =>
 			{
 
-				SearchConfig.Config.ImgurAuth = NConsoleIO.GetInput("API key");
+				SearchConfig.Config.ImgurAuth = NConsoleIO.ReadInput("API key");
 
 				NConsoleIO.WaitForSecond();
 				return null;
@@ -287,7 +287,7 @@ namespace SmartImage
 				var cd  = new DirectoryInfo(Environment.CurrentDirectory);
 				var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
 
-				var rgOption = NConsoleOption.CreateOptions(TestImages, s => s);
+				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
 
 				var testImg =(string) NConsoleIO.HandleOptions(rgOption).First();
 

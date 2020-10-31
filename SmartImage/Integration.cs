@@ -2,9 +2,9 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using NeoMemory.Win32;
+using NeoMemory.Win32.Shell;
 using SimpleCore.CommandLine;
-using SimpleCore.CommandLine.Shell;
-using SimpleCore.Win32;
 
 #pragma warning disable HAA0502, HAA0301, HAA0601
 namespace SmartImage
@@ -61,7 +61,7 @@ namespace SmartImage
 			switch (option) {
 				case IntegrationOption.Add:
 				{
-					string oldValue = Native.OS.EnvironmentPath;
+					string oldValue = OS.EnvironmentPath;
 
 					string appFolder = RuntimeInfo.AppFolder;
 
@@ -71,21 +71,21 @@ namespace SmartImage
 
 
 					bool appFolderInPath = oldValue
-						.Split(Native.OS.PATH_DELIM)
+						.Split(OS.PATH_DELIM)
 						.Any(p => p == appFolder);
 
 					string cd = Environment.CurrentDirectory;
 					string exe = Path.Combine(cd, RuntimeInfo.NAME_EXE);
 
 					if (!appFolderInPath) {
-						string newValue = oldValue + Native.OS.PATH_DELIM + cd;
-						Native.OS.EnvironmentPath = newValue;
+						string newValue = oldValue + OS.PATH_DELIM + cd;
+						OS.EnvironmentPath = newValue;
 					}
 
 					break;
 				}
 				case IntegrationOption.Remove:
-					Native.OS.RemoveFromPath(RuntimeInfo.AppFolder);
+					OS.RemoveFromPath(RuntimeInfo.AppFolder);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(option), option, null);

@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using NeoMemory.Win32;
 using SimpleCore.CommandLine;
-using SimpleCore.Win32;
 using SmartImage.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -80,7 +80,7 @@ namespace SmartImage
 		public static string ExeLocation => FileOperations.FindExecutableLocation(NAME_EXE)!;
 
 
-		public static bool IsAppFolderInPath => Native.OS.IsFolderInPath(AppFolder);
+		public static bool IsAppFolderInPath => OS.IsFolderInPath(AppFolder);
 
 
 

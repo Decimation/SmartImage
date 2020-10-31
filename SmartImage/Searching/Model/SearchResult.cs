@@ -4,9 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using NeoMemory.Win32;
 using SimpleCore.CommandLine;
 using SimpleCore.Net;
-using SimpleCore.Win32;
+using SimpleCore.Utilities;
 
 
 #pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
@@ -26,6 +27,8 @@ using SimpleCore.Win32;
 #pragma warning disable HAA0303 // Lambda or anonymous method in a generic method allocates a delegate instance
 
 #pragma warning disable HAA0401
+#pragma warning disable HAA0101
+
 namespace SmartImage.Searching.Model
 {
 	/// <summary>
@@ -33,11 +36,11 @@ namespace SmartImage.Searching.Model
 	/// </summary>
 	public sealed class SearchResult : NConsoleOption, ISearchResult
 	{
-		public const char ATTR_DOWNLOAD = NConsole.ARROW_DOWN;
+		public const char ATTR_DOWNLOAD = Formatting.ARROW_DOWN;
 
-		public const char ATTR_EXTENDED_RESULTS = NConsole.ARROW_UP_DOWN;
+		public const char ATTR_EXTENDED_RESULTS = Formatting.ARROW_UP_DOWN;
 
-		public const char ATTR_SUCCESS = NConsole.CHECK_MARK;
+		public const char ATTR_SUCCESS = Formatting.CHECK_MARK;
 
 		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
@@ -70,7 +73,7 @@ namespace SmartImage.Searching.Model
 				return () =>
 				{
 					if (!IsImage) {
-						bool ok = NConsoleIO.ReadConfirm(
+						bool ok = NConsoleIO.ReadConfirmation(
 							$"Link may not be an image [{MimeType ?? "?"}]. Download anyway?");
 
 						if (!ok) {
@@ -154,8 +157,6 @@ namespace SmartImage.Searching.Model
 
 			var rg = FromExtendedResult(bestImages);
 
-			//ExtendedResults.AddRange(bestImages);
-
 			ExtendedResults.AddRange(rg);
 
 			foreach (var result in rg) {
@@ -164,12 +165,9 @@ namespace SmartImage.Searching.Model
 
 			AltFunction = () =>
 			{
-				//var rg = FromExtendedResult(bestImages);
-
 				NConsoleIO.HandleOptions(ExtendedResults);
 
 				return null;
-
 			};
 		}
 
@@ -184,10 +182,10 @@ namespace SmartImage.Searching.Model
 			string attrDownload;
 
 			if (!IsProcessed) {
-				attrDownload = NConsole.SUN.ToString();
+				attrDownload = Formatting.SUN.ToString();
 			}
 			else {
-				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : NConsole.BALLOT_X + ATTR_DOWNLOAD.ToString();
+				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : Formatting.BALLOT_X + ATTR_DOWNLOAD.ToString();
 			}
 
 

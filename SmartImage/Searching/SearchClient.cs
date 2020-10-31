@@ -8,17 +8,17 @@ using System.Linq;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
+using NeoMemory.Win32;
 using SimpleCore.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
-using SimpleCore.Win32;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.Other;
 using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
-using static SimpleCore.Win32.Native;
+using static NeoMemory.Win32.BinaryOperations;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
@@ -113,7 +113,7 @@ namespace SmartImage.Searching
 		///     Process a <see cref="SearchResult" /> to determine its MIME type, its proper URLs, and other aspects.
 		/// </summary>
 		/// <remarks>
-		///     Organizes <see cref="SearchResult.Url" />, <see cref="SearchResult.RawUrl" />, <see cref="SearchResult.RootUrl" />
+		///     Organizes <see cref="SearchResult.Url" />, <see cref="SearchResult.RawUrl" />
 		/// </remarks>
 		public /*static*/ void RunProcessingTask(SearchResult result)
 		{
@@ -297,7 +297,7 @@ namespace SmartImage.Searching
 			bool isImageType = FileOperations.ResolveFileType(img).Type == FileType.Image;
 
 			if (!isImageType) {
-				return NConsoleIO.ReadConfirm("File format is not recognized as a common image format. Continue?");
+				return NConsoleIO.ReadConfirmation("File format is not recognized as a common image format. Continue?");
 			}
 
 			return true;
