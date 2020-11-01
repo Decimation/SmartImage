@@ -269,7 +269,7 @@ namespace SmartImage.Searching
 			return new ISearchEngine[]
 			{
 				//
-				GetSauceNaoEngine(),
+				new SauceNaoEngine(), 
 				new IqdbEngine(),
 				new YandexEngine(),
 				new TraceMoeEngine(),
@@ -338,22 +338,6 @@ namespace SmartImage.Searching
 
 
 			return imgUrl;
-		}
-
-		private static BaseSauceNaoEngine GetSauceNaoEngine()
-		{
-			// SauceNao API works without API key
-
-			// bool apiConfigured = !string.IsNullOrWhiteSpace(SearchConfig.Config.SauceNaoAuth);
-			//
-			// if (apiConfigured) {
-			// 	return new FullSauceNaoClient();
-			// }
-			// else {
-			// 	return new AltSauceNaoClient();
-			// }
-
-			return new FullSauceNaoEngine();
 		}
 	}
 }

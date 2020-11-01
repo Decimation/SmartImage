@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Json;
 using System.Linq;
 using System.Runtime.Serialization.Json;
@@ -25,8 +26,42 @@ namespace SmartImage.Searching.Engines.SauceNao
 	/// <summary>
 	/// SauceNao API client
 	/// </summary>
-	public sealed class FullSauceNaoEngine : BaseSauceNaoEngine
+	public sealed class SauceNaoEngine : BasicSearchEngine
 	{
+		private const string BASE_URL = "https://saucenao.com/";
+
+		private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
+
+		public override string Name => "SauceNao";
+
+		public override SearchEngineOptions Engine => SearchEngineOptions.SauceNao;
+
+		public override Color Color => Color.OrangeRed;
+
+		private struct SauceNaoSimpleResult : ISearchResult
+		{
+			public string? Caption    { get; set; }
+			public string  Url        { get; set; }
+			public float?  Similarity { get; set; }
+			public int?    Width      { get; set; }
+			public int?    Height     { get; set; }
+
+			public SauceNaoSimpleResult(string? title, string url, float? similarity)
+			{
+				Caption    = title;
+				Url        = url;
+				Similarity = similarity;
+				Width      = null;
+				Height     = null;
+			}
+
+			public override string ToString()
+			{
+				return string.Format("{0} {1} {2}", Caption, Url, Similarity);
+			}
+		}
+
+
 		private const string ENDPOINT = BASE_URL + "search.php";
 
 
@@ -34,29 +69,24 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		private readonly RestClient m_client;
 
-		private FullSauceNaoEngine(string apiKey)
+		private SauceNaoEngine(string apiKey) : base(BASIC_RESULT)
 		{
 			m_client = new RestClient(ENDPOINT);
 			m_apiKey = apiKey;
 		}
 
-		public FullSauceNaoEngine() : this(SearchConfig.Config.SauceNaoAuth) { }
+		public SauceNaoEngine() : this(SearchConfig.Config.SauceNaoAuth) { }
 
 		private static ISearchResult[] ConvertResults(SauceNaoResult[] results)
 		{
 			var rg = new List<ISearchResult>();
 
-			for (int i = 0; i < results.Length; i++) {
-				var sn = results[i];
-
-				if (sn.Url!=null) {
+			foreach (var sn in results) {
+				if (sn.Url !=null) {
 					var url = sn.Url.FirstOrDefault(u => u != null);
-
 
 					rg.Add(new SauceNaoSimpleResult(sn.WebsiteTitle, url, sn.Similarity));
 				}
-
-				
 			}
 
 			return rg.ToArray();
@@ -84,6 +114,11 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 
 				result.AddExtendedResults(extended);
+
+				if (!string.IsNullOrWhiteSpace(m_apiKey)) {
+					result.ExtendedInfo.Add("Using API");
+				}
+				
 			}
 			catch (Exception e) {
 				
@@ -95,9 +130,8 @@ namespace SmartImage.Searching.Engines.SauceNao
 		}
 
 
-		private SauceNaoResult[]? GetResults(string url)
+		private IEnumerable<SauceNaoResult>? GetResults(string url)
 		{
-
 			var req = new RestRequest();
 			req.AddQueryParameter("db", "999");
 			req.AddQueryParameter("output_type", "2");
@@ -105,21 +139,16 @@ namespace SmartImage.Searching.Engines.SauceNao
 			req.AddQueryParameter("api_key", m_apiKey);
 			req.AddQueryParameter("url", url);
 
-
 			var res = m_client.Execute(req);
-
-			//Network.AssertResponse(res);
 
 			string c = res.Content;
 
 			return ReadResults(c);
-
 		}
 
 
-		private static SauceNaoResult[]? ReadResults(string js)
+		private static IEnumerable<SauceNaoResult>? ReadResults(string js)
 		{
-
 			// todo: rewrite this using Newtonsoft
 
 			// From https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
@@ -69,7 +70,7 @@ namespace SmartImage.Core
 		public string ImgurAuth { get; set; }
 
 		/// <summary>
-		///     <see cref="FullSauceNaoEngine" /> API key
+		///     <see cref="SauceNaoEngine" /> API key
 		/// </summary>
 		public string SauceNaoAuth { get; set; }
 
