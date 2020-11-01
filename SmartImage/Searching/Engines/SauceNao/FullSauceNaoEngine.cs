@@ -1,17 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Json;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Xml;
-using HtmlAgilityPack;
-using Newtonsoft.Json.Linq;
 using RestSharp;
 using SimpleCore.Utilities;
+using SmartImage.Core;
 using SmartImage.Searching.Model;
-using SmartImage.Utilities;
 using JsonObject = System.Json.JsonObject;
 
 #nullable enable
@@ -28,7 +25,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 	/// <summary>
 	/// SauceNao API client
 	/// </summary>
-	public sealed class FullSauceNaoClient : BaseSauceNaoClient
+	public sealed class FullSauceNaoEngine : BaseSauceNaoEngine
 	{
 		private const string ENDPOINT = BASE_URL + "search.php";
 
@@ -37,13 +34,13 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 		private readonly RestClient m_client;
 
-		private FullSauceNaoClient(string apiKey)
+		private FullSauceNaoEngine(string apiKey)
 		{
 			m_client = new RestClient(ENDPOINT);
 			m_apiKey = apiKey;
 		}
 
-		public FullSauceNaoClient() : this(SearchConfig.Config.SauceNaoAuth) { }
+		public FullSauceNaoEngine() : this(SearchConfig.Config.SauceNaoAuth) { }
 
 		private static ISearchResult[] ConvertResults(SauceNaoResult[] results)
 		{

@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using NeoMemory.Win32;
 using NeoMemory.Win32.Shell;
-using SimpleCore.CommandLine;
+using SimpleCore.Console.CommandLine;
 
 #pragma warning disable HAA0502, HAA0301, HAA0601
-namespace SmartImage
+namespace SmartImage.Core
 {
 	internal enum IntegrationOption
 	{

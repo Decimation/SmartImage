@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
+﻿using System.Drawing;
 using SmartImage.Searching.Model;
 #pragma warning disable HAA0502, HAA0601
 #nullable enable
 namespace SmartImage.Searching.Engines.SauceNao
 {
-	public abstract class BaseSauceNaoClient : BasicSearchEngine
+	public abstract class BaseSauceNaoEngine : BasicSearchEngine
 	{
 		protected const string BASE_URL = "https://saucenao.com/";
 
@@ -44,6 +41,6 @@ namespace SmartImage.Searching.Engines.SauceNao
 			}
 		}
 
-		protected BaseSauceNaoClient() : base(BASIC_RESULT) { }
+		protected BaseSauceNaoEngine() : base(BASIC_RESULT) { }
 	}
 }

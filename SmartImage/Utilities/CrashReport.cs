@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using SimpleCore.Utilities;
+using SmartImage.Core;
+
 // ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Utilities

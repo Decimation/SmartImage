@@ -3,12 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SimpleCore.CommandLine;
+using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.SauceNao;
-
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
 
@@ -16,7 +15,7 @@ using SmartImage.Searching.Engines.SauceNao;
 
 // ReSharper disable IdentifierTypo
 
-namespace SmartImage
+namespace SmartImage.Core
 {
 	/// <summary>
 	///     Search config
@@ -70,7 +69,7 @@ namespace SmartImage
 		public string ImgurAuth { get; set; }
 
 		/// <summary>
-		///     <see cref="FullSauceNaoClient" /> API key
+		///     <see cref="FullSauceNaoEngine" /> API key
 		/// </summary>
 		public string SauceNaoAuth { get; set; }
 

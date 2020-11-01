@@ -1,20 +1,14 @@
-#region
-
 using System.Drawing;
 using System.Text.RegularExpressions;
 using RestSharp;
 using SimpleCore.Net;
-using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
-using SmartImage.Utilities;
-
-#endregion
 
 namespace SmartImage.Searching.Engines.Other
 {
-	public sealed class ImgOpsClient : BasicSearchEngine
+	public sealed class ImgOpsEngine : BasicSearchEngine
 	{
-		public ImgOpsClient() : base("http://imgops.com/") { }
+		public ImgOpsEngine() : base("http://imgops.com/") { }
 
 		public override string Name => "ImgOps";
 		public override Color Color => Color.DarkMagenta;

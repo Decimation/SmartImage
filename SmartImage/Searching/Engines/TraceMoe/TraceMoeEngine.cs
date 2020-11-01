@@ -1,19 +1,15 @@
-#region
-
 using System;
 using System.Drawing;
 using System.Net;
 using RestSharp;
 using SmartImage.Searching.Model;
 
-#endregion
-
 #pragma warning disable HAA0502, HAA0601, HAA0202
 namespace SmartImage.Searching.Engines.TraceMoe
 {
-	public sealed class TraceMoeClient : BasicSearchEngine
+	public sealed class TraceMoeEngine : BasicSearchEngine
 	{
-		public TraceMoeClient() : base("https://trace.moe/?url=") { }
+		public TraceMoeEngine() : base("https://trace.moe/?url=") { }
 
 		public override string Name => "trace.moe";
 
@@ -77,13 +73,22 @@ namespace SmartImage.Searching.Engines.TraceMoe
 
 			if (tm?.docs != null) {
 				// Most similar to least similar
-				var results = ConvertResults(tm);
-				var best = results[0];
 
-				r = new SearchResult(this, best.Url, best.Similarity);
-				r.Caption = best.Caption;
+				try {
+					var results = ConvertResults(tm);
+					var best    = results[0];
 
-				r.AddExtendedResults(results);
+					r         = new SearchResult(this, best.Url, best.Similarity);
+					r.Caption = best.Caption;
+
+					r.AddExtendedResults(results);
+				}
+				catch (Exception e) {
+					r = base.GetResult(url);
+					r.ExtendedInfo.Add(e.Message);
+					return r;
+				}
+				
 
 
 			}

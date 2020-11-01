@@ -7,16 +7,15 @@ using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
-using SmartImage.Utilities;
 
 #pragma warning disable HAA0101, HAA0601, HAA0502, HAA0401
 #nullable enable
 
 namespace SmartImage.Searching.Engines.Other
 {
-	public sealed class YandexClient : BasicSearchEngine
+	public sealed class YandexEngine : BasicSearchEngine
 	{
-		public YandexClient() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
+		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Yandex;
 

@@ -1,15 +1,11 @@
-#region
-
 using System.Drawing;
 using SmartImage.Searching.Model;
 
-#endregion
-
 namespace SmartImage.Searching.Engines.Other
 {
-	public sealed class GoogleImagesClient : BasicSearchEngine
+	public sealed class GoogleImagesEngine : BasicSearchEngine
 	{
-		public GoogleImagesClient() : base("http://images.google.com/searchbyimage?image_url=") { }
+		public GoogleImagesEngine() : base("http://images.google.com/searchbyimage?image_url=") { }
 
 		public override string Name => "Google Images";
 

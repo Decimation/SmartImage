@@ -1,13 +1,10 @@
-#region
-
 #nullable enable
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using NeoMemory.Win32;
-using SimpleCore.CommandLine;
+using SimpleCore.Console.CommandLine;
 using SmartImage.Utilities;
 
 // ReSharper disable UnusedMember.Global
@@ -16,14 +13,12 @@ using SmartImage.Utilities;
 
 // ReSharper disable MemberCanBePrivate.Global
 
-#endregion
-
 #pragma warning disable HAA0101, HAA0502, HAA0601, RCS1036
 
-namespace SmartImage
+namespace SmartImage.Core
 {
 	/// <summary>
-	/// Program runtime information and config
+	/// Program runtime information
 	/// </summary>
 	public static class RuntimeInfo
 	{

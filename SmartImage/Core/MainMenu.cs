@@ -1,11 +1,10 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using SimpleCore.CommandLine;
+using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
 using SmartImage.Searching;
 using SmartImage.Utilities;
@@ -15,7 +14,7 @@ using SmartImage.Utilities;
 #pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101, RCS1213, RCS1036
 #nullable enable
 
-namespace SmartImage
+namespace SmartImage.Core
 {
 	/// <summary>
 	/// Contains <see cref="NConsoleUI"/> and <see cref="NConsoleOption"/> for the main menu

@@ -9,9 +9,9 @@ using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
 using NeoMemory.Win32;
-using SimpleCore.CommandLine;
+using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
-using SimpleCore.Utilities;
+using SmartImage.Core;
 using SmartImage.Searching.Engines.Imgur;
 using SmartImage.Searching.Engines.Other;
 using SmartImage.Searching.Engines.SauceNao;
@@ -269,17 +269,17 @@ namespace SmartImage.Searching
 			return new ISearchEngine[]
 			{
 				//
-				GetSauceNaoClient(),
-				new IqdbClient(),
-				new YandexClient(),
-				new TraceMoeClient(),
+				GetSauceNaoEngine(),
+				new IqdbEngine(),
+				new YandexEngine(),
+				new TraceMoeEngine(),
 
 				//
-				new ImgOpsClient(),
-				new GoogleImagesClient(),
-				new TinEyeClient(),
-				new BingClient(),
-				new KarmaDecayClient()
+				new ImgOpsEngine(),
+				new GoogleImagesEngine(),
+				new TinEyeEngine(),
+				new BingEngine(),
+				new KarmaDecayEngine()
 			};
 		}
 
@@ -332,7 +332,7 @@ namespace SmartImage.Searching
 			void UploadImgOps()
 			{
 				NConsole.WriteInfo("Using ImgOps for image upload (2 hour cache)");
-				var imgOps = new ImgOpsClient();
+				var imgOps = new ImgOpsEngine();
 				imgUrl = imgOps.UploadTempImage(img, out _);
 			}
 
@@ -340,7 +340,7 @@ namespace SmartImage.Searching
 			return imgUrl;
 		}
 
-		private static BaseSauceNaoClient GetSauceNaoClient()
+		private static BaseSauceNaoEngine GetSauceNaoEngine()
 		{
 			// SauceNao API works without API key
 
@@ -353,7 +353,7 @@ namespace SmartImage.Searching
 			// 	return new AltSauceNaoClient();
 			// }
 
-			return new FullSauceNaoClient();
+			return new FullSauceNaoEngine();
 		}
 	}
 }

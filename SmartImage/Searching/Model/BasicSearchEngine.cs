@@ -1,8 +1,3 @@
-#region
-
-#endregion
-
-using System;
 using System.Drawing;
 
 namespace SmartImage.Searching.Model

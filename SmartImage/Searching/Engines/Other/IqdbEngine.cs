@@ -1,23 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Net;
 using HtmlAgilityPack;
-using JetBrains.Annotations;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
-using SmartImage.Utilities;
 
 #pragma warning disable HAA0502, HAA0601, HAA0401
 #nullable enable
 namespace SmartImage.Searching.Engines.Other
 {
-	public sealed class IqdbClient : BasicSearchEngine
+	public sealed class IqdbEngine : BasicSearchEngine
 	{
-		public IqdbClient() : base("https://iqdb.org/?url=") { }
+		public IqdbEngine() : base("https://iqdb.org/?url=") { }
 
 		public override string Name => "IQDB";
 

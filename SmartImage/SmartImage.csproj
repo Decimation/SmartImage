@@ -82,6 +82,9 @@
     <Reference Include="SimpleCore">
       <HintPath>..\..\SimpleCore\SimpleCore\bin\Release\netcoreapp3.1\SimpleCore.dll</HintPath>
     </Reference>
+    <Reference Include="SimpleCore.Console">
+      <HintPath>..\..\SimpleCore\SimpleCore.Console\bin\Release\netcoreapp3.1\SimpleCore.Console.dll</HintPath>
+    </Reference>
     <Reference Include="SimpleCore.Net">
       <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\netcoreapp3.1\SimpleCore.Net.dll</HintPath>
     </Reference>

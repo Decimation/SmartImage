@@ -2,11 +2,12 @@
 
 #pragma warning disable HAA0601,
 
-using SimpleCore.CommandLine;
 using SmartImage.Searching;
 using System;
 using System.Text;
+using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
+using SmartImage.Core;
 using SmartImage.Utilities;
 // ReSharper disable UnusedParameter.Local
 

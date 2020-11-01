@@ -1,10 +1,8 @@
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
 using NeoMemory.Win32.Shell;
-using SimpleCore.CommandLine;
+using SmartImage.Core;
 
 namespace SmartImage.Utilities
 {

@@ -1,19 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using HtmlAgilityPack;
 using SimpleCore.Net;
-using SimpleCore.Utilities;
 using SmartImage.Searching.Model;
-using SmartImage.Utilities;
 
 namespace SmartImage.Searching.Engines.SauceNao
 {
 	/// <summary>
 	/// SauceNao non-API client
 	/// </summary>
-	public sealed class AltSauceNaoClient : BaseSauceNaoClient
+	public sealed class AltSauceNaoEngine : BaseSauceNaoEngine
 	{
 		
 		private static string FindCreator(HtmlNode resultcontent)
