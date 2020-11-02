@@ -8,7 +8,7 @@ using System.Linq;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
-using NeoMemory.Win32;
+using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SmartImage.Core;
@@ -18,7 +18,7 @@ using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
-using static NeoMemory.Win32.BinaryOperations;
+using static Novus.Mem;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 

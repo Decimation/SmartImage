@@ -76,8 +76,11 @@
   
 
   <ItemGroup>
-    <Reference Include="NeoMemory">
-      <HintPath>..\..\..\VSProjects\NeoMemory\NeoMemory\bin\Release\netcoreapp3.1\NeoMemory.dll</HintPath>
+    <Reference Include="Novus">
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\netcoreapp3.1\Novus.dll</HintPath>
+    </Reference>
+    <Reference Include="Novus">
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\netcoreapp3.1\Novus.dll</HintPath>
     </Reference>
     <Reference Include="SimpleCore">
       <HintPath>..\..\SimpleCore\SimpleCore\bin\Release\netcoreapp3.1\SimpleCore.dll</HintPath>

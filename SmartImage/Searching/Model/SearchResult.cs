@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
-using NeoMemory.Win32;
+using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;

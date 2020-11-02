@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
-using NeoMemory.Win32.Shell;
+using Novus.Win32.Shell;
 using SmartImage.Core;
 
 namespace SmartImage.Utilities

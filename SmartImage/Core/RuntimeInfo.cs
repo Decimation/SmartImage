@@ -3,7 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
-using NeoMemory.Win32;
+using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SmartImage.Utilities;
 

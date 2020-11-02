@@ -2,8 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using NeoMemory.Win32;
-using NeoMemory.Win32.Shell;
+using Novus.Win32;
+using Novus.Win32.Shell;
 using SimpleCore.Console.CommandLine;
 
 #pragma warning disable HAA0502, HAA0301, HAA0601
