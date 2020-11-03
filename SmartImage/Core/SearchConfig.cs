@@ -254,7 +254,7 @@ namespace SmartImage.Core
 			var args = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
 
-			bool noArgs = args == null || args.Length == 0;
+			bool noArgs = args.Length == 0;
 
 			if (noArgs) {
 				NoArguments = true;

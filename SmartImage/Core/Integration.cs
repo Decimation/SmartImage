@@ -120,6 +120,7 @@ namespace SmartImage.Core
 			// self destruct
 
 			string exeFileName = RuntimeInfo.ExeLocation;
+
 			const string DEL_BAT_NAME = "SmartImage_Delete.bat";
 
 			string[] commands =
@@ -130,10 +131,10 @@ namespace SmartImage.Core
 				"ping 127.0.0.1 > nul",
 
 				/* Delete executable */
-				"echo y | del /F " + exeFileName,
+				$"echo y | del /F {exeFileName}",
 
 				/* Delete this bat file */
-				"echo y | del " + DEL_BAT_NAME
+				$"echo y | del {DEL_BAT_NAME}"
 			};
 
 
@@ -153,9 +154,7 @@ namespace SmartImage.Core
 		{
 			get
 			{
-				string cmdStr = String.Format(@"reg query {0}", REG_SHELL_CMD);
-
-				var cmd = Command.Shell(cmdStr);
+				var cmd = Command.Shell(@$"reg query {REG_SHELL_CMD}");
 				cmd.Start();
 
 				var stdOut = Command.ReadAllLines(cmd.StandardOutput);

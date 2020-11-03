@@ -8,6 +8,7 @@ using System.Linq;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
+using Novus;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
@@ -18,7 +19,7 @@ using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
-using static Novus.Mem;
+using RuntimeInfo = SmartImage.Core.RuntimeInfo;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
@@ -144,7 +145,7 @@ namespace SmartImage.Searching
 		{
 			Task.WaitAll(m_tasks);
 
-			var p = new SoundPlayer(RuntimeInfo.RuntimeResources.SND_HINT);
+			var p = new SoundPlayer(RuntimeInfo.RuntimeResources.SndHint);
 			p.Play();
 
 			Complete = true;
@@ -208,14 +209,15 @@ namespace SmartImage.Searching
 			var fileFormat = FileOperations.ResolveFileType(m_img.FullName);
 
 			double fileSizeMegabytes =
-				FileOperations.GetFileSize(m_img.FullName) / MAGNITUDE / MAGNITUDE;
+				Mem.ConvertToUnit(FileOperations.GetFileSize(m_img.FullName), MetricUnit.Mega);
 
 			(int width, int height) = (m_bmp.Width, m_bmp.Height);
 
 			result.Width = width;
 			result.Height = height;
 
-			var mpx = (width * height) / MAGNITUDE / MAGNITUDE;
+
+			var mpx = Mem.ConvertToUnit(width * height, MetricUnit.Mega);
 
 			string infoStr = $"Info: {m_img.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
 

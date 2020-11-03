@@ -140,7 +140,7 @@ namespace SmartImage.Core
 
 		internal static class RuntimeResources
 		{
-			internal static readonly Stream SND_HINT = GetResource("hint.wav")!;
+			internal static readonly Stream SndHint = GetResource("hint.wav")!;
 		}
 	}
 }
