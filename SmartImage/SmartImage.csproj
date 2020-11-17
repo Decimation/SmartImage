@@ -3,8 +3,9 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
 
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-
+    <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
@@ -77,17 +78,16 @@
 
   <ItemGroup>
     <Reference Include="Novus">
-      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\netcoreapp3.1\Novus.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>
     </Reference>
-    
     <Reference Include="SimpleCore">
-      <HintPath>..\..\SimpleCore\SimpleCore\bin\Release\netcoreapp3.1\SimpleCore.dll</HintPath>
+      <HintPath>..\..\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
     </Reference>
     <Reference Include="SimpleCore.Console">
-      <HintPath>..\..\SimpleCore\SimpleCore.Console\bin\Release\netcoreapp3.1\SimpleCore.Console.dll</HintPath>
+      <HintPath>..\..\SimpleCore\SimpleCore.Console\bin\Release\net5.0\SimpleCore.Console.dll</HintPath>
     </Reference>
     <Reference Include="SimpleCore.Net">
-      <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\netcoreapp3.1\SimpleCore.Net.dll</HintPath>
+      <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
