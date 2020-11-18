@@ -13,7 +13,7 @@ GOTO END
 
 :YCOPY
 ECHO Copying to %userprofile%\Desktop\
-copy bin\Release\netcoreapp3.1\win10-x64\publish\SmartImage.exe %userprofile%\Desktop\ /Y
+copy bin\Release\net5.0\win10-x64\publish\SmartImage.exe %userprofile%\Desktop\ /Y
 GOTO END
 
 :END

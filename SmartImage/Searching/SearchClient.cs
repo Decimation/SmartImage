@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Novus;
 using Novus.Memory;
+using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;

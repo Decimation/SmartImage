@@ -8,13 +8,12 @@
     
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
+
     <PublishTrimmed>true</PublishTrimmed>
-    
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->
 
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <LangVersion>latest</LangVersion>
     <!--<Nullable>enable</Nullable>-->
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <Configurations>Debug;Release</Configurations>
@@ -77,6 +76,9 @@
   
 
   <ItemGroup>
+    <Reference Include="Functions">
+      <HintPath>..\..\..\VSProjects\Novus\Novus\Native\Functions.dll</HintPath>
+    </Reference>
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>
     </Reference>
@@ -89,5 +91,10 @@
     <Reference Include="SimpleCore.Net">
       <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>
     </Reference>
+
+    <TrimmerRootAssembly Include="Novus" />
+    <TrimmerRootAssembly Include="SimpleCore" />
+    <TrimmerRootAssembly Include="SimpleCore.Console" />
+    <TrimmerRootAssembly Include="SimpleCore.Net" />
   </ItemGroup>
 </Project>

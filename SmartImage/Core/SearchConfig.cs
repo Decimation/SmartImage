@@ -106,6 +106,7 @@ namespace SmartImage.Core
 
 			// create cfg with default options if it doesn't exist
 			if (!File.Exists(ConfigLocation)) {
+				
 				var f = File.Create(ConfigLocation);
 				f.Close();
 				newCfg = true;

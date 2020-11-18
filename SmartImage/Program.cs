@@ -83,12 +83,13 @@ namespace SmartImage
 
 				Console.WriteLine(cr);
 
+
 				var src = cr.WriteToFile();
-
+				
 				Console.WriteLine("Crash log written to {0}", src);
-
+				
 				Console.WriteLine("Please file an issue and attach the crash log.");
-
+				
 				Network.OpenUrl(RuntimeInfo.Issue);
 
 				NConsoleIO.WaitForInput();
