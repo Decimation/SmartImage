@@ -10,8 +10,9 @@
     <PublishSingleFile>true</PublishSingleFile>
 
     <PublishTrimmed>true</PublishTrimmed>
+    
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->
-
+    <IncludeNativeLibrariesForSelfExtract >true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--<Nullable>enable</Nullable>-->
@@ -76,9 +77,7 @@
   
 
   <ItemGroup>
-    <Reference Include="Functions">
-      <HintPath>..\..\..\VSProjects\Novus\Novus\Native\Functions.dll</HintPath>
-    </Reference>
+    
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>
     </Reference>
@@ -92,9 +91,6 @@
       <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>
     </Reference>
 
-    <TrimmerRootAssembly Include="Novus" />
-    <TrimmerRootAssembly Include="SimpleCore" />
-    <TrimmerRootAssembly Include="SimpleCore.Console" />
-    <TrimmerRootAssembly Include="SimpleCore.Net" />
+    
   </ItemGroup>
 </Project>
