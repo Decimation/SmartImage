@@ -8,6 +8,7 @@ using System.Linq;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Novus;
 using Novus.Memory;
 using Novus.Utilities;
@@ -21,7 +22,6 @@ using SmartImage.Searching.Engines.SauceNao;
 using SmartImage.Searching.Engines.TraceMoe;
 using SmartImage.Searching.Model;
 using SmartImage.Utilities;
-using RuntimeInfo = SmartImage.Core.RuntimeInfo;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
@@ -42,20 +42,20 @@ namespace SmartImage.Searching
 
 		private static readonly string InterfacePrompt =
 			$"Enter the option number to open or {NConsoleIO.NC_GLOBAL_EXIT_KEY} to exit.\n" +
-			$"Hold down {NConsoleOption.NC_ALT_FUNC_MODIFIER} to show more info ({SearchResult.ATTR_EXTENDED_RESULTS}).\n" +
-			$"Hold down {NConsoleOption.NC_CTRL_FUNC_MODIFIER} to download ({SearchResult.ATTR_DOWNLOAD}).\n";
+			$"Hold down {NConsoleOption.NC_ALT_FUNC_MODIFIER} to show more info ({FullSearchResult.ATTR_EXTENDED_RESULTS}).\n" +
+			$"Hold down {NConsoleOption.NC_CTRL_FUNC_MODIFIER} to download ({FullSearchResult.ATTR_DOWNLOAD}).\n";
 
 		private readonly SearchEngineOptions m_engines;
 
 		private readonly FileInfo m_img;
-		private readonly Bitmap m_bmp;
-		private readonly string m_imgUrl;
+		private readonly Bitmap   m_bmp;
+		private readonly string   m_imgUrl;
 
 		private readonly Thread m_monitor;
 
 		private readonly Task[] m_tasks;
 
-		private List<SearchResult> m_results;
+		private List<FullSearchResult> m_results;
 
 		public bool Complete { get; private set; }
 
@@ -63,12 +63,12 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Searching client
 		/// </summary>
-		public static SearchClient Client { get; } = new SearchClient(SearchConfig.Config.Image);
+		public static SearchClient Client { get; } = new(SearchConfig.Config.Image);
 
 		/// <summary>
 		///     Search results
 		/// </summary>
-		public ref List<SearchResult> Results => ref m_results;
+		public ref List<FullSearchResult> Results => ref m_results;
 
 		public NConsoleUI Interface { get; }
 
@@ -78,8 +78,8 @@ namespace SmartImage.Searching
 				throw new SmartImageException("Invalid image");
 			}
 
-			string auth = SearchConfig.Config.ImgurAuth;
-			bool useImgur = !String.IsNullOrWhiteSpace(auth);
+			string auth     = SearchConfig.Config.ImgurAuth;
+			bool   useImgur = !String.IsNullOrWhiteSpace(auth);
 
 			var engines = SearchConfig.Config.SearchEngines;
 
@@ -91,15 +91,24 @@ namespace SmartImage.Searching
 			m_engines = engines;
 			m_img     = new FileInfo(img);
 			m_bmp     = new Bitmap(img);
-			m_imgUrl  = Upload(img, useImgur);
+
+			//
+
+			string? imgUrl = Upload(img, useImgur);
+
+			m_imgUrl = imgUrl ?? throw new SmartImageException("Image upload failed");
+
+
+			//
+
 			m_tasks   = CreateSearchTasks();
 
 			// Joining each thread isn't necessary as this object is disposed upon program exit
 			// Background threads won't prevent program termination
 
-			m_monitor = new Thread(SearchMonitor)
+			m_monitor = new Thread(RunSearchMonitor)
 			{
-				Priority = ThreadPriority.Highest,
+				Priority     = ThreadPriority.Highest,
 				IsBackground = true
 			};
 
@@ -108,17 +117,17 @@ namespace SmartImage.Searching
 			Interface = new NConsoleUI(Results)
 			{
 				SelectMultiple = false,
-				Prompt = InterfacePrompt
+				Prompt         = InterfacePrompt
 			};
 		}
 
 		/// <summary>
-		///     Process a <see cref="SearchResult" /> to determine its MIME type, its proper URLs, and other aspects.
+		///     Process a <see cref="FullSearchResult" /> to determine its MIME type, its proper URLs, and other aspects.
 		/// </summary>
 		/// <remarks>
-		///     Organizes <see cref="SearchResult.Url" />, <see cref="SearchResult.RawUrl" />
+		///     Organizes <see cref="FullSearchResult.Url" />, <see cref="FullSearchResult.RawUrl" />
 		/// </remarks>
-		public /*static*/ void RunProcessingTask(SearchResult result)
+		public /*static*/ void RunProcessingTask(FullSearchResult result)
 		{
 			// todo
 
@@ -128,8 +137,8 @@ namespace SmartImage.Searching
 			void InspectTask()
 			{
 				if (!result.IsProcessed) {
-					string? type = Network.IdentifyType(result.Url);
-					bool isImage = Network.IsImage(type);
+					string? type    = Network.IdentifyType(result.Url);
+					bool    isImage = Network.IsImage(type);
 
 					result.MimeType    = type;
 					result.IsImage     = isImage;
@@ -143,19 +152,26 @@ namespace SmartImage.Searching
 			NConsoleIO.Refresh();
 		}
 
-		private void SearchMonitor()
+		private void RunSearchMonitor()
 		{
-			Task.WaitAll(m_tasks);
+			while (m_tasks.Any(t => !t.IsCompleted)) {
+				var inProgress = m_tasks.Count(t => t.IsCompleted);
+				var len = m_tasks.Length;
 
-			var p = new SoundPlayer(RuntimeInfo.RuntimeResources.SndHint);
+				Interface.Status = $"Searching: {inProgress}/{len}";
+			}
+
+			//Task.WaitAll(m_tasks);
+
+			var p = new SoundPlayer(Info.Resources.SndHint);
 			p.Play();
 
-			Complete = true;
-			Interface.Status = "OK";
+			Complete         = true;
+			Interface.Status = "Search complete";
 			NConsoleIO.Refresh();
 		}
 
-		private static int CompareResults(SearchResult x, SearchResult y)
+		private static int CompareResults(FullSearchResult x, FullSearchResult y)
 		{
 			float xSim = x?.Similarity ?? 0;
 			float ySim = y?.Similarity ?? 0;
@@ -197,29 +213,29 @@ namespace SmartImage.Searching
 		}
 
 
-		private SearchResult GetOriginalImageResult()
+		private FullSearchResult GetOriginalImageResult()
 		{
-			var result = new SearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
+			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
 			{
-				Similarity = 100.0f,
+				Similarity  = 100.0f,
 				IsProcessed = true,
-				IsImage = true
+				IsImage     = true
 			};
 
 			result.ExtendedInfo.Add($"Location: {m_img}");
 
-			var fileFormat = FileOperations.ResolveFileType(m_img.FullName);
+			var fileFormat = Files.ResolveFileType(m_img.FullName);
 
 			double fileSizeMegabytes =
-				Mem.ConvertToUnit(FileOperations.GetFileSize(m_img.FullName), MetricUnit.Mega);
+				MathHelper.ConvertToUnit(Files.GetFileSize(m_img.FullName), MetricUnit.Mega);
 
 			(int width, int height) = (m_bmp.Width, m_bmp.Height);
 
-			result.Width = width;
+			result.Width  = width;
 			result.Height = height;
 
 
-			var mpx = Mem.ConvertToUnit(width * height, MetricUnit.Mega);
+			var mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
 			string infoStr = $"Info: {m_img.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
 
@@ -237,7 +253,7 @@ namespace SmartImage.Searching
 				.Where(e => m_engines.HasFlag(e.Engine))
 				.ToArray();
 
-			m_results = new List<SearchResult>(availableEngines.Length + 1)
+			m_results = new List<FullSearchResult>(availableEngines.Length + 1)
 			{
 				GetOriginalImageResult()
 			};
@@ -273,7 +289,7 @@ namespace SmartImage.Searching
 			return new ISearchEngine[]
 			{
 				//
-				new SauceNaoEngine(), 
+				new SauceNaoEngine(),
 				new IqdbEngine(),
 				new YandexEngine(),
 				new TraceMoeEngine(),
@@ -298,7 +314,7 @@ namespace SmartImage.Searching
 				return false;
 			}
 
-			bool isImageType = FileOperations.ResolveFileType(img).Type == FileType.Image;
+			bool isImageType = Files.ResolveFileType(img).Type == FileType.Image;
 
 			if (!isImageType) {
 				return NConsoleIO.ReadConfirmation("File format is not recognized as a common image format. Continue?");
@@ -307,13 +323,17 @@ namespace SmartImage.Searching
 			return true;
 		}
 
-		private static string Upload(string img, bool useImgur)
+		private static string? Upload(string img, bool useImgur)
 		{
+			IUploadEngine uploadEngine;
+
 			string imgUrl;
 
 			if (useImgur) {
 				try {
-					UploadImgur();
+					NConsole.WriteInfo("Using Imgur for image upload");
+					uploadEngine = new ImgurClient();
+					imgUrl       = uploadEngine.Upload(img);
 				}
 				catch (Exception e) {
 					NConsole.WriteError("Error uploading with Imgur: {0}", e.Message);
@@ -325,19 +345,11 @@ namespace SmartImage.Searching
 				UploadImgOps();
 			}
 
-
-			void UploadImgur()
-			{
-				NConsole.WriteInfo("Using Imgur for image upload");
-				var imgur = new ImgurClient();
-				imgUrl = imgur.Upload(img);
-			}
-
 			void UploadImgOps()
 			{
 				NConsole.WriteInfo("Using ImgOps for image upload (2 hour cache)");
-				var imgOps = new ImgOpsEngine();
-				imgUrl = imgOps.UploadTempImage(img, out _);
+				uploadEngine = new ImgOpsEngine();
+				imgUrl       = uploadEngine.Upload(img);
 			}
 
 

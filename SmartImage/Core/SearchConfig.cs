@@ -88,7 +88,7 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Location of config file
 		/// </summary>
-		public static string ConfigLocation => Path.Combine(RuntimeInfo.AppFolder, RuntimeInfo.NAME_CFG);
+		public static string ConfigLocation => Path.Combine(Info.AppFolder, Info.NAME_CFG);
 
 
 		private SearchConfig()

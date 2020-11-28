@@ -18,11 +18,11 @@ namespace SmartImage.Searching.Model
 
 		public abstract Color Color { get; }
 
-		public virtual SearchResult GetResult(string url)
+		public virtual FullSearchResult GetResult(string url)
 		{
 			string rawUrl = GetRawResultUrl(url);
 
-			var sr = new SearchResult(this, rawUrl);
+			var sr = new FullSearchResult(this, rawUrl);
 			sr.RawUrl = rawUrl;
 
 			return sr;

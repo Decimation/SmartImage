@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Novus.Win32;
-using Novus.Win32.Shell;
 using SimpleCore.Console.CommandLine;
 
 #pragma warning disable HAA0502, HAA0301, HAA0601
@@ -27,7 +26,7 @@ namespace SmartImage.Core
 
 			switch (option) {
 				case IntegrationOption.Add:
-					string fullPath = RuntimeInfo.ExeLocation;
+					string fullPath = Info.ExeLocation;
 
 					// Add command and icon to command
 					string[] addCode =
@@ -37,8 +36,7 @@ namespace SmartImage.Core
 						$"reg.exe add {REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
 					};
 
-
-					BatchFileCommand.CreateAndRun(addCode, true);
+					Command.RunBatch(addCode, true);
 
 					break;
 				case IntegrationOption.Remove:
@@ -49,8 +47,7 @@ namespace SmartImage.Core
 						$@"reg.exe delete {REG_SHELL} /f >nul"
 					};
 
-
-					BatchFileCommand.CreateAndRun(removeCode, true);
+					Command.RunBatch(removeCode, true);
 
 					break;
 				default:
@@ -65,9 +62,9 @@ namespace SmartImage.Core
 				{
 					string oldValue = OS.EnvironmentPath;
 
-					string appFolder = RuntimeInfo.AppFolder;
+					string appFolder = Info.AppFolder;
 
-					if (RuntimeInfo.IsAppFolderInPath) {
+					if (Info.IsAppFolderInPath) {
 						return;
 					}
 
@@ -77,7 +74,7 @@ namespace SmartImage.Core
 						.Any(p => p == appFolder);
 
 					string cd = Environment.CurrentDirectory;
-					string exe = Path.Combine(cd, RuntimeInfo.NAME_EXE);
+					string exe = Path.Combine(cd, Info.NAME_EXE);
 
 					if (!appFolderInPath) {
 						string newValue = oldValue + OS.PATH_DELIM + cd;
@@ -87,7 +84,7 @@ namespace SmartImage.Core
 					break;
 				}
 				case IntegrationOption.Remove:
-					OS.RemoveFromPath(RuntimeInfo.AppFolder);
+					OS.RemoveFromPath(Info.AppFolder);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(option), option, null);
@@ -121,7 +118,7 @@ namespace SmartImage.Core
 
 			// self destruct
 
-			string exeFileName = RuntimeInfo.ExeLocation;
+			string exeFileName = Info.ExeLocation;
 
 			const string DEL_BAT_NAME = "SmartImage_Delete.bat";
 
@@ -139,11 +136,10 @@ namespace SmartImage.Core
 				$"echo y | del {DEL_BAT_NAME}"
 			};
 
-
-			var bf = new BatchFileCommand(commands, DEL_BAT_NAME);
-
 			// Runs in background
-			bf.Start();
+			Command.RunBatch(commands, false, DEL_BAT_NAME);
+
+			
 
 		}
 
@@ -161,14 +157,14 @@ namespace SmartImage.Core
 
 				var stdOut = Command.ReadAllLines(cmd.StandardOutput);
 
-				bool b = stdOut.Any(s => s.Contains(RuntimeInfo.NAME));
+				bool b = stdOut.Any(s => s.Contains(Info.NAME));
 				return b;
 			}
 		}
 
 		internal static void Setup()
 		{
-			if (!RuntimeInfo.IsAppFolderInPath) {
+			if (!Info.IsAppFolderInPath) {
 				HandlePath(IntegrationOption.Add);
 			}
 		}

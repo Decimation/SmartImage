@@ -34,7 +34,7 @@ namespace SmartImage.Searching.Model
 	/// <summary>
 	///     Contains search result and information
 	/// </summary>
-	public sealed class SearchResult : NConsoleOption, ISearchResult
+	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
 		public const char ATTR_DOWNLOAD = Formatting.ARROW_DOWN;
 
@@ -42,10 +42,10 @@ namespace SmartImage.Searching.Model
 
 		public const char ATTR_SUCCESS = Formatting.CHECK_MARK;
 
-		public SearchResult(ISearchEngine engine, string url, float? similarity = null)
+		public FullSearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
 
-		public SearchResult(Color color, string name, string url, float? similarity = null)
+		public FullSearchResult(Color color, string name, string url, float? similarity = null)
 		{
 			Url   = url;
 			Name  = name;
@@ -53,7 +53,7 @@ namespace SmartImage.Searching.Model
 
 			Similarity      = similarity;
 			ExtendedInfo    = new List<string>();
-			ExtendedResults = new List<SearchResult>();
+			ExtendedResults = new List<FullSearchResult>();
 		}
 
 		/// <summary>
@@ -86,7 +86,7 @@ namespace SmartImage.Searching.Model
 					NConsole.WriteSuccess("Downloaded to {0}", path);
 
 					// Open folder with downloaded file selected
-					FileOperations.ExploreFile(path);
+					Files.ExploreFile(path);
 
 
 					NConsoleIO.WaitForSecond();
@@ -107,7 +107,7 @@ namespace SmartImage.Searching.Model
 		///     Direct source matches and other extended results
 		/// </summary>
 		/// <remarks>This list is used if there are multiple results</remarks>
-		public List<SearchResult> ExtendedResults { get; }
+		public List<FullSearchResult> ExtendedResults { get; }
 
 		/// <summary>
 		///     Opens result in browser
@@ -222,15 +222,15 @@ namespace SmartImage.Searching.Model
 			return sb.ToString();
 		}
 
-		private IList<SearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
+		private IList<FullSearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
-			var rg = new SearchResult[results.Count];
+			var rg = new FullSearchResult[results.Count];
 
 			for (int i = 0; i < rg.Length; i++) {
 				var    result = results[i];
 				string name   = String.Format("Extended result #{0}", i);
 
-				var sr = new SearchResult(Color, name, result.Url, result.Similarity)
+				var sr = new FullSearchResult(Color, name, result.Url, result.Similarity)
 				{
 					Width   = result.Width,
 					Height  = result.Height,

@@ -48,7 +48,7 @@ namespace SmartImage.Searching.Engines.TraceMoe
 
 				var malUrl = MAL_URL + doc.mal_id;
 
-				results[i] = new SearchResult(this, malUrl, sim)
+				results[i] = new FullSearchResult(this, malUrl, sim)
 				{
 					Caption = doc.title_english
 				};
@@ -64,9 +64,9 @@ namespace SmartImage.Searching.Engines.TraceMoe
 		private const string MAL_URL = "https://myanimelist.net/anime/";
 
 
-		public override SearchResult GetResult(string url)
+		public override FullSearchResult GetResult(string url)
 		{
-			SearchResult r;
+			FullSearchResult r;
 			//var r = base.GetResult(url);
 
 			var tm = GetApiResults(url, out var code, out var res, out var msg);
@@ -78,7 +78,7 @@ namespace SmartImage.Searching.Engines.TraceMoe
 					var results = ConvertResults(tm);
 					var best    = results[0];
 
-					r         = new SearchResult(this, best.Url, best.Similarity);
+					r         = new FullSearchResult(this, best.Url, best.Similarity);
 					r.Caption = best.Caption;
 
 					r.AddExtendedResults(results);

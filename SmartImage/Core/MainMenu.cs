@@ -50,7 +50,7 @@ namespace SmartImage.Core
 			get
 			{
 				//
-				return new NConsoleUI(AllOptions, RuntimeInfo.NAME_BANNER, null, false, null);
+				return new NConsoleUI(AllOptions, Info.NAME_BANNER, null, false, null);
 			}
 		}
 
@@ -196,7 +196,7 @@ namespace SmartImage.Core
 			Name = "Show info",
 			Function = () =>
 			{
-				RuntimeInfo.ShowInfo();
+				Info.ShowInfo();
 
 				NConsoleIO.WaitForInput();
 				return null;

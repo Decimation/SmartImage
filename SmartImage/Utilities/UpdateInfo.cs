@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 using System.Net;
-using Novus.Win32.Shell;
+using Novus.Win32;
 using SmartImage.Core;
 
 namespace SmartImage.Utilities
@@ -28,12 +28,12 @@ namespace SmartImage.Utilities
 
 
 			if (ui.Status == VersionStatus.Available) {
-				var dest = Path.Combine(RuntimeInfo.AppFolder, "SmartImage-new.exe");
+				var dest = Path.Combine(Info.AppFolder, "SmartImage-new.exe");
 
 				var wc = new WebClient();
 				wc.DownloadFile(ui.Latest.AssetUrl, dest);
 
-				string exeFileName = RuntimeInfo.ExeLocation;
+				string exeFileName = Info.ExeLocation;
 				const string UPDATE_BAT = "SmartImage_Updater.bat";
 
 				string[] commands =
@@ -52,11 +52,11 @@ namespace SmartImage.Utilities
 					/* Delete this bat file */
 					"echo y | del " + UPDATE_BAT
 				};
-
-				var bf = new BatchFileCommand(commands, UPDATE_BAT);
+				
 
 				// Runs in background
-				bf.Start();
+				
+				Command.RunBatch(commands,false, UPDATE_BAT);
 			}
 
 
@@ -64,7 +64,7 @@ namespace SmartImage.Utilities
 
 		public static UpdateInfo CheckForUpdates()
 		{
-			var asm = typeof(RuntimeInfo).Assembly.GetName();
+			var asm = typeof(Info).Assembly.GetName();
 			var currentVersion = asm.Version;
 
 

@@ -12,7 +12,7 @@
     <PublishTrimmed>true</PublishTrimmed>
     
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->
-    <IncludeNativeLibrariesForSelfExtract >true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--<Nullable>enable</Nullable>-->

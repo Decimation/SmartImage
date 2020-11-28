@@ -116,7 +116,7 @@ namespace SmartImage.Searching.Engines.Other
 			return images;
 		}
 
-		public override SearchResult GetResult(string url)
+		public override FullSearchResult GetResult(string url)
 		{
 			// todo: slow
 

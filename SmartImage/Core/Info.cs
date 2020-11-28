@@ -20,7 +20,7 @@ namespace SmartImage.Core
 	/// <summary>
 	/// Program runtime information
 	/// </summary>
-	public static class RuntimeInfo
+	public static class Info
 	{
 		/// <summary>
 		/// Name in ASCII art
@@ -72,12 +72,18 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Null if executable is not in path.
 		/// </summary>
-		public static string ExeLocation => FileOperations.FindExecutableLocation(NAME_EXE)!;
+		public static string ExeLocation => Files.FindExecutableLocation(NAME_EXE)!;
 
 
 		public static bool IsAppFolderInPath => OS.IsFolderInPath(AppFolder);
 
 
+		public static void Setup()
+		{
+			if (!OperatingSystem.IsWindows()) {
+				throw new NotSupportedException();
+			}
+		}
 
 		internal static Stream? GetResource(string resource)
 		{
@@ -138,7 +144,7 @@ namespace SmartImage.Core
 			NConsole.WriteInfo("Author: {0}", Author);
 		}
 
-		internal static class RuntimeResources
+		internal static class Resources
 		{
 			internal static readonly Stream SndHint = GetResource("hint.wav")!;
 		}

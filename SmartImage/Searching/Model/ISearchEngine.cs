@@ -8,7 +8,7 @@ namespace SmartImage.Searching.Model
 
 		public SearchEngineOptions Engine { get; }
 
-		public SearchResult GetResult(string url);
+		public FullSearchResult GetResult(string url);
 
 		public Color Color { get; }
 	}

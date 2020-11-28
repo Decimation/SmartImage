@@ -10,7 +10,7 @@ using SimpleCore.Net;
 using SmartImage.Core;
 using SmartImage.Utilities;
 // ReSharper disable UnusedParameter.Local
-
+#pragma warning disable CA1416
 
 namespace SmartImage
 {
@@ -35,16 +35,23 @@ namespace SmartImage
 		private static void Main(string[] args)
 		{
 			/*
+			 * Setup
+			 * Check compatibility
+			 */
+			Info.Setup();
+			
+
+			/*
 			 * Set up console
 			 */
 
-			Console.Title = RuntimeInfo.NAME;
+			Console.Title = Info.NAME;
 			Console.SetWindowSize(120, 50);
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
 			NConsole.Init();
 
-			NConsoleUI.DefaultName = RuntimeInfo.NAME_BANNER;
+			NConsoleUI.DefaultName = Info.NAME_BANNER;
 
 			/*
 			 * Run search
@@ -85,12 +92,13 @@ namespace SmartImage
 
 
 				var src = cr.WriteToFile();
-				
+				Console.WriteLine(exception.InnerException?.StackTrace);
+				Console.WriteLine(exception.InnerException?.Message);
 				Console.WriteLine("Crash log written to {0}", src);
 				
 				Console.WriteLine("Please file an issue and attach the crash log.");
 				
-				Network.OpenUrl(RuntimeInfo.Issue);
+				//Network.OpenUrl(Info.Issue);
 
 				NConsoleIO.WaitForInput();
 #else

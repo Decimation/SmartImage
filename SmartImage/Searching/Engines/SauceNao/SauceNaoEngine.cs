@@ -57,7 +57,7 @@ namespace SmartImage.Searching.Engines.SauceNao
 
 			public override string ToString()
 			{
-				return string.Format("{0} {1} {2}", Caption, Url, Similarity);
+				return $"{Caption} {Url} {Similarity}";
 			}
 		}
 
@@ -92,9 +92,9 @@ namespace SmartImage.Searching.Engines.SauceNao
 			return rg.ToArray();
 		}
 
-		public override SearchResult GetResult(string url)
+		public override FullSearchResult GetResult(string url)
 		{
-			SearchResult result=base.GetResult(url);
+			FullSearchResult result=base.GetResult(url);
 
 			try {
 				var sn = GetResults(url)

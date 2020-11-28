@@ -3,6 +3,7 @@ using System.IO;
 using RestSharp;
 using RestSharp.Serialization.Json;
 using SmartImage.Core;
+using SmartImage.Searching.Model;
 
 // ReSharper disable UnusedMember.Local
 
@@ -10,7 +11,7 @@ namespace SmartImage.Searching.Engines.Imgur
 {
 	// https://github.com/Auo/ImgurSharp
 
-	public sealed class ImgurClient
+	public sealed class ImgurClient : IUploadEngine
 	{
 		private readonly string m_apiKey;
 

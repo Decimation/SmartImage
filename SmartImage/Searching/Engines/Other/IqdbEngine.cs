@@ -98,7 +98,7 @@ namespace SmartImage.Searching.Engines.Other
 			return i;
 		}
 
-		public override SearchResult GetResult(string url)
+		public override FullSearchResult GetResult(string url)
 		{
 			var sr = base.GetResult(url);
 
