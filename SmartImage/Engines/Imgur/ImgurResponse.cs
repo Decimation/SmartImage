@@ -1,6 +1,6 @@
 using JetBrains.Annotations;
 
-namespace SmartImage.Searching.Engines.Imgur
+namespace SmartImage.Engines.Imgur
 {
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal sealed class ImgurResponse<T>

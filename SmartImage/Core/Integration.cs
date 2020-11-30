@@ -5,7 +5,6 @@ using System.Linq;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 
-#pragma warning disable HAA0502, HAA0301, HAA0601
 namespace SmartImage.Core
 {
 	// todo: move context menu integration to Novus for use in other projects

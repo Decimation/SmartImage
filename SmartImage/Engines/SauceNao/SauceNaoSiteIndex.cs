@@ -2,7 +2,7 @@
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.Searching.Engines.SauceNao
+namespace SmartImage.Engines.SauceNao
 {
 	// https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
 

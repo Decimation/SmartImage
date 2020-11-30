@@ -8,28 +8,9 @@ using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+using SmartImage.Engines;
 
-
-#pragma warning disable HAA0601 // Value type to reference type conversion causing boxing allocation
-#pragma warning disable HAA0602 // Delegate on struct instance caused a boxing allocation
-#pragma warning disable HAA0603 // Delegate allocation from a method group
-#pragma warning disable HAA0604 // Delegate allocation from a method group
-
-#pragma warning disable HAA0501 // Explicit new array type allocation
-#pragma warning disable HAA0502 // Explicit new reference type allocation
-#pragma warning disable HAA0503 // Explicit new reference type allocation
-#pragma warning disable HAA0504 // Implicit new array creation allocation
-#pragma warning disable HAA0505 // Initializer reference type allocation
-#pragma warning disable HAA0506 // Let clause induced allocation
-
-#pragma warning disable HAA0301 // Closure Allocation Source
-#pragma warning disable HAA0302 // Display class allocation to capture closure
-#pragma warning disable HAA0303 // Lambda or anonymous method in a generic method allocates a delegate instance
-
-#pragma warning disable HAA0401
-#pragma warning disable HAA0101
-
-namespace SmartImage.Searching.Model
+namespace SmartImage.Searching
 {
 	/// <summary>
 	///     Contains search result and information
@@ -72,15 +53,6 @@ namespace SmartImage.Searching.Model
 			{
 				return () =>
 				{
-					if (!IsImage) {
-						bool ok = NConsoleIO.ReadConfirmation(
-							$"Link may not be an image [{MimeType ?? "?"}]. Download anyway?");
-
-						if (!ok) {
-							return null;
-						}
-					}
-
 					string? path = Network.DownloadUrl(Url);
 
 					NConsole.WriteSuccess("Downloaded to {0}", path);
@@ -124,11 +96,6 @@ namespace SmartImage.Searching.Model
 			}
 		}
 
-		public bool IsImage { get; set; }
-
-		public bool IsProcessed { get; set; }
-
-		public string? MimeType { get; set; }
 
 		/// <summary>
 		///     Result name
@@ -159,10 +126,6 @@ namespace SmartImage.Searching.Model
 
 			ExtendedResults.AddRange(rg);
 
-			foreach (var result in rg) {
-				SearchClient.Client.RunProcessingTask(result);
-			}
-
 			AltFunction = () =>
 			{
 				NConsoleIO.HandleOptions(ExtendedResults);
@@ -181,12 +144,8 @@ namespace SmartImage.Searching.Model
 
 			string attrDownload;
 
-			if (!IsProcessed) {
-				attrDownload = Formatting.SUN.ToString();
-			}
-			else {
-				attrDownload = IsImage ? ATTR_DOWNLOAD.ToString() : Formatting.BALLOT_X + ATTR_DOWNLOAD.ToString();
-			}
+
+			attrDownload = ATTR_DOWNLOAD.ToString();
 
 
 			sb.AppendFormat("{0} {1} {2}\n", attrSuccess, attrExtendedResults, attrDownload);

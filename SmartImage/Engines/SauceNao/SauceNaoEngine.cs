@@ -9,14 +9,14 @@ using System.Xml;
 using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Core;
-using SmartImage.Searching.Model;
+using SmartImage.Searching;
 using JsonObject = System.Json.JsonObject;
 
 #nullable enable
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 #pragma warning disable HAA0502, HAA0601, HAA0102, HAA0401
-namespace SmartImage.Searching.Engines.SauceNao
+namespace SmartImage.Engines.SauceNao
 {
 	// https://github.com/RoxasShadow/SauceNao-Windows
 	// https://github.com/LazDisco/SharpNao

@@ -1,4 +1,4 @@
-﻿namespace SmartImage.Searching.Model
+﻿namespace SmartImage.Engines
 {
 	public interface IUploadEngine
 	{

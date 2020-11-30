@@ -1,18 +1,12 @@
-using System;
-using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text.RegularExpressions;
-using JetBrains.Annotations;
 using Novus.Utilities;
 using Novus.Win32;
 using RestSharp;
 using SimpleCore.Console.CommandLine;
-using SimpleCore.Net;
 using SimpleCore.Utilities;
-using SmartImage.Searching.Model;
+
 #nullable enable
-namespace SmartImage.Searching.Engines.Other
+namespace SmartImage.Engines.Other
 {
 	public sealed class ImgOpsEngine : BasicSearchEngine, IUploadEngine
 	{

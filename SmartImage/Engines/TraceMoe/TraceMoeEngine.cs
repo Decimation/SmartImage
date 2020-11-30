@@ -2,10 +2,9 @@ using System;
 using System.Drawing;
 using System.Net;
 using RestSharp;
-using SmartImage.Searching.Model;
+using SmartImage.Searching;
 
-#pragma warning disable HAA0502, HAA0601, HAA0202
-namespace SmartImage.Searching.Engines.TraceMoe
+namespace SmartImage.Engines.TraceMoe
 {
 	public sealed class TraceMoeEngine : BasicSearchEngine
 	{
@@ -63,6 +62,7 @@ namespace SmartImage.Searching.Engines.TraceMoe
 		//https://myanimelist.net/anime/{id}/
 		private const string MAL_URL = "https://myanimelist.net/anime/";
 
+		public const double THRESHOLD = 87.00D;
 
 		public override FullSearchResult GetResult(string url)
 		{
@@ -80,6 +80,11 @@ namespace SmartImage.Searching.Engines.TraceMoe
 
 					r         = new FullSearchResult(this, best.Url, best.Similarity);
 					r.Caption = best.Caption;
+
+					if (r.Similarity < THRESHOLD) {
+						r.ExtendedInfo.Add($"Similarity below threshold ({THRESHOLD}%)");
+					}
+
 
 					r.AddExtendedResults(results);
 				}

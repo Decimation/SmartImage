@@ -1,5 +1,5 @@
 ﻿#nullable enable
-namespace SmartImage.Searching.Model
+namespace SmartImage.Searching
 {
 	/// <summary>
 	///     Represents a search result

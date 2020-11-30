@@ -1,6 +1,7 @@
 using System.Drawing;
+using SmartImage.Searching;
 
-namespace SmartImage.Searching.Model
+namespace SmartImage.Engines
 {
 	public abstract class BasicSearchEngine : ISearchEngine
 	{

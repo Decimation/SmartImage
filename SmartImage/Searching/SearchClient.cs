@@ -16,16 +16,15 @@ using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SmartImage.Core;
-using SmartImage.Searching.Engines.Imgur;
-using SmartImage.Searching.Engines.Other;
-using SmartImage.Searching.Engines.SauceNao;
-using SmartImage.Searching.Engines.TraceMoe;
-using SmartImage.Searching.Model;
+using SmartImage.Engines;
+using SmartImage.Engines.Imgur;
+using SmartImage.Engines.Other;
+using SmartImage.Engines.SauceNao;
+using SmartImage.Engines.TraceMoe;
 using SmartImage.Utilities;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
-#pragma warning disable HAA0502, HAA0302, HAA0601, HAA0101, HAA0301, HAA0603, RCS1036
 
 namespace SmartImage.Searching
 {
@@ -121,36 +120,7 @@ namespace SmartImage.Searching
 			};
 		}
 
-		/// <summary>
-		///     Process a <see cref="FullSearchResult" /> to determine its MIME type, its proper URLs, and other aspects.
-		/// </summary>
-		/// <remarks>
-		///     Organizes <see cref="FullSearchResult.Url" />, <see cref="FullSearchResult.RawUrl" />
-		/// </remarks>
-		public /*static*/ void RunProcessingTask(FullSearchResult result)
-		{
-			// todo
-
-			var task = new Task(InspectTask);
-			task.Start();
-
-			void InspectTask()
-			{
-				if (!result.IsProcessed) {
-					string? type    = Network.IdentifyType(result.Url);
-					bool    isImage = Network.IsImage(type);
-
-					result.MimeType    = type;
-					result.IsImage     = isImage;
-					result.IsProcessed = true;
-
-					Debug.WriteLine("Process {0}", new object[] {result.Name});
-				}
-			}
-
-
-			NConsoleIO.Refresh();
-		}
+		
 
 		private void RunSearchMonitor()
 		{
@@ -218,8 +188,6 @@ namespace SmartImage.Searching
 			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
 			{
 				Similarity  = 100.0f,
-				IsProcessed = true,
-				IsImage     = true
 			};
 
 			result.ExtendedInfo.Add($"Location: {m_img}");
@@ -267,7 +235,6 @@ namespace SmartImage.Searching
 
 			m_results.Add(result);
 
-			RunProcessingTask(result);
 
 			// If the engine is priority, open its result in the browser
 			if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {

@@ -1,6 +1,6 @@
 using System;
 
-namespace SmartImage.Searching
+namespace SmartImage.Engines
 {
 	[Flags]
 	public enum SearchEngineOptions

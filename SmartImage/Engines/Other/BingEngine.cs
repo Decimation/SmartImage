@@ -1,7 +1,6 @@
 ﻿using System.Drawing;
-using SmartImage.Searching.Model;
 
-namespace SmartImage.Searching.Engines.Other
+namespace SmartImage.Engines.Other
 {
 	public sealed class BingEngine : BasicSearchEngine
 	{

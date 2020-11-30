@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using JetBrains.Annotations;
 
-#pragma warning disable IDE1006, HAA0502, HAA0601
-namespace SmartImage.Searching.Engines.TraceMoe
+namespace SmartImage.Engines.TraceMoe
 {
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class TraceMoeDoc

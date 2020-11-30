@@ -6,12 +6,12 @@ using System.Net;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
-using SmartImage.Searching.Model;
+using SmartImage.Searching;
 
 #pragma warning disable HAA0101, HAA0601, HAA0502, HAA0401
 #nullable enable
 
-namespace SmartImage.Searching.Engines.Other
+namespace SmartImage.Engines.Other
 {
 	public sealed class YandexEngine : BasicSearchEngine
 	{
@@ -64,20 +64,13 @@ namespace SmartImage.Searching.Engines.Other
 
 		private static string GetYandexAnalysis(HtmlDocument doc)
 		{
-			var cbirItemNode = doc.DocumentNode.SelectNodes("//div[contains(@class, 'CbirItem')]")
-				.First(nd =>
-					nd.ChildNodes.Any(g => g.InnerText.Contains("looks like a picture")));
+			var nodes = doc.DocumentNode.SelectNodes("//div[contains(@class, 'Tags_type_simple')]/*");
 
 
-			var looksLikeTagsNode = cbirItemNode.ChildNodes[1].ChildNodes;
-
-			var looksLikeInnerText = looksLikeTagsNode.Select(p => p.InnerText);
+			var appearsToContain = nodes.Select(n=>n.InnerText).QuickJoin();
 
 
-			var looksLike = String.Format("Looks like: {0}", looksLikeInnerText.QuickJoin());
-
-
-			return looksLike;
+			return appearsToContain;
 		}
 
 		private static List<ISearchResult> GetYandexImages(HtmlDocument doc)
@@ -155,10 +148,10 @@ namespace SmartImage.Searching.Engines.Other
 
 				sr.AddExtendedResults(bestImages);
 			}
-			catch (Exception) {
+			catch (Exception e) {
 				// ...
 
-				sr.ExtendedInfo.Add("Error parsing");
+				sr.ExtendedInfo.Add($"Error parsing: {e.Message}");
 			}
 
 
