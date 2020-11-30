@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Novus.Win32;
+using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
 using SmartImage.Utilities;
 

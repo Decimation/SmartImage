@@ -95,7 +95,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigSearchEnginesOption = new()
 		{
 			Name = "Configure search engines",
-			Color = Color.Aquamarine,
+			Color = Color.CadetBlue,
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
@@ -117,7 +117,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigPriorityEnginesOption = new()
 		{
 			Name  = "Configure priority engines",
-			Color = Color.Aquamarine,
+			Color = Color.CadetBlue,
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
@@ -139,7 +139,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigSauceNaoAuthOption = new()
 		{
 			Name  = "Configure SauceNao API authentication",
-			Color = Color.Aquamarine,
+			Color = Color.CadetBlue,
 			Function = () =>
 			{
 				SearchConfig.Config.SauceNaoAuth = NConsoleIO.ReadInput("API key");
@@ -152,7 +152,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigImgurAuthOption = new()
 		{
 			Name  = "Configure Imgur API authentication",
-			Color = Color.Aquamarine,
+			Color = Color.CadetBlue,
 			Function = () =>
 			{
 
@@ -166,7 +166,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigUpdateOption = new()
 		{
 			Name  = "Update configuration file",
-			Color = Color.Aquamarine,
+			Color = Color.CadetBlue,
 			Function = () =>
 			{
 				SearchConfig.Config.WriteToFile();
@@ -192,7 +192,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ContextMenuOption = new()
 		{
 			Name  = "Add/remove context menu integration",
-			Color = Color.HotPink,
+			Color = Color.DarkOrange,
 			Function = () =>
 			{
 				bool ctx = Integration.IsContextMenuAdded;
@@ -217,7 +217,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption CheckForUpdateOption = new()
 		{
 			Name  = "Check for updates",
-			Color = Color.HotPink,
+			Color = Color.DarkOrange,
 			Function = () =>
 			{
 				var v = UpdateInfo.CheckForUpdates();
@@ -249,7 +249,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ResetOption = new()
 		{
 			Name  = "Reset all configuration and integrations",
-			Color = Color.HotPink,
+			Color = Color.DarkOrange,
 			Function = () =>
 			{
 				Integration.ResetIntegrations();
@@ -262,7 +262,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption UninstallOption = new()
 		{
 			Name  = "Uninstall",
-			Color = Color.HotPink,
+			Color = Color.DarkOrange,
 			Function = () =>
 			{
 				Integration.ResetIntegrations();

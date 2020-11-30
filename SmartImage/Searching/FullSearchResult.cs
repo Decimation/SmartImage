@@ -2,9 +2,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
+using JetBrains.Annotations;
 using Novus.Win32;
+using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -35,6 +41,8 @@ namespace SmartImage.Searching
 			Similarity      = similarity;
 			ExtendedInfo    = new List<string>();
 			ExtendedResults = new List<FullSearchResult>();
+
+
 		}
 
 		/// <summary>
@@ -53,6 +61,15 @@ namespace SmartImage.Searching
 			{
 				return () =>
 				{
+					// if (!IsImage.HasValue || !IsImage.Value) {
+					// 	bool ok = NConsoleIO.ReadConfirmation(
+					// 		$"Link may not be an image. Download anyway?");
+					// 	
+					// 	if (!ok) {
+					// 		return null;
+					// 	}
+					// }
+
 					string? path = Network.DownloadUrl(Url);
 
 					NConsole.WriteSuccess("Downloaded to {0}", path);
@@ -67,6 +84,15 @@ namespace SmartImage.Searching
 				};
 			}
 		}
+
+		// public bool? IsImage
+		// {
+		// 	get;
+		// 	internal set;
+		// }
+
+		
+
 
 		public override string Data => ToString();
 
@@ -142,11 +168,12 @@ namespace SmartImage.Searching
 
 			string attrExtendedResults = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : String.Empty;
 
-			string attrDownload;
 
+			// string attrDownload = IsImage.HasValue
+			// 	? (IsImage.Value ? ATTR_DOWNLOAD.ToString() : Formatting.BALLOT_X.ToString())
+			// 	: Formatting.SUN.ToString();
 
-			attrDownload = ATTR_DOWNLOAD.ToString();
-
+			string attrDownload = ATTR_DOWNLOAD.ToString();
 
 			sb.AppendFormat("{0} {1} {2}\n", attrSuccess, attrExtendedResults, attrDownload);
 
@@ -187,7 +214,7 @@ namespace SmartImage.Searching
 
 			for (int i = 0; i < rg.Length; i++) {
 				var    result = results[i];
-				string name   = String.Format("Extended result #{0}", i);
+				string name   = $"Extended result #{i}";
 
 				var sr = new FullSearchResult(Color, name, result.Url, result.Similarity)
 				{
@@ -202,5 +229,7 @@ namespace SmartImage.Searching
 
 			return rg;
 		}
+
+		
 	}
 }

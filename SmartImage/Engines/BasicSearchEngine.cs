@@ -1,4 +1,5 @@
 using System.Drawing;
+using SimpleCore.Net;
 using SmartImage.Searching;
 
 namespace SmartImage.Engines
@@ -26,8 +27,12 @@ namespace SmartImage.Engines
 			var sr = new FullSearchResult(this, rawUrl);
 			sr.RawUrl = rawUrl;
 
+			
+
 			return sr;
 		}
+
+
 
 		public virtual string GetRawResultUrl(string url)
 		{

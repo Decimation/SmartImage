@@ -13,6 +13,7 @@ using Novus;
 using Novus.Memory;
 using Novus.Utilities;
 using Novus.Win32;
+using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SmartImage.Core;
