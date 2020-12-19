@@ -66,6 +66,24 @@ See [Engine »](https://github.com/Decimation/SmartImage/wiki/Engines) documenta
 
 ## Usage
 
+### Interface
+
+<!--<img src="https://github.com/Decimation/SmartImage/raw/master/Example search results.png" width="492" height="421">-->
+
+Once the search is complete, the UI shows extensive information about the search results.
+
+- `Result`: Most accurate result URL.
+- `Raw`: Undifferentiated result URL.
+- `Similarity`: Image similarity (delta).
+- `Caption`: Image caption, description, etc.
+
+- Press the result number to open the `Result` URL in your browser.
+  - Hold down `Ctrl` to download the result. Ensure `Result` is a direct image link, otherwise you will download raw page data.
+  - Hold down `Alt` to show more info and results. Engines like *SauceNao* and *IQDB* will return multiple results; those can be viewed using this option.
+  - Hold down `Ctrl` and `Alt` to open the `Raw` URL in your browser. This is useful if you want to view the original search page yourself.
+
+### Performing a search
+
 <i><b>SmartImage</b></i> can be used in multiple ways:
 
 - Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
