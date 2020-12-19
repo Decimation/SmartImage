@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using Novus;
 using Novus.Win32;
 using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
@@ -134,7 +135,7 @@ namespace SmartImage.Core
 			NConsole.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
 			NConsole.WriteInfo("Version status: {0}", versionsInfo.Status);
 
-			Console.WriteLine();
+			NConsole.NewLine();
 
 			/*
 			 * Author info
@@ -143,6 +144,21 @@ namespace SmartImage.Core
 			NConsole.WriteInfo("Repo: {0}", Repo);
 			NConsole.WriteInfo("Readme: {0}", Readme);
 			NConsole.WriteInfo("Author: {0}", Author);
+
+			NConsole.NewLine();
+			
+			
+			/*
+			 * Dependencies
+			 */
+			
+			NConsole.WriteInfo("Dependencies:");
+			
+			var dependencies = Global.DumpDependencies();
+
+			foreach (var name in dependencies) {
+				NConsole.WriteInfo("{0} ({1})", name.Name, name.Version);
+			}
 		}
 
 		internal static class Resources

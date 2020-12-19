@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using HtmlAgilityPack;
@@ -63,7 +64,17 @@ namespace SmartImage.Engines.Other
 			var urlNode = img.FirstChild.FirstChild;
 
 			if (urlNode.Name != "img") {
-				url = "http:" + urlNode.Attributes["href"].Value;
+				var origUrl= urlNode.Attributes["href"].Value;
+
+				Debug.WriteLine(origUrl);
+				
+				// Links must begin with http:// in order to work with "start"
+				if (origUrl.StartsWith("//")) {
+					origUrl = "http:" + origUrl;
+				}
+				
+
+				url = origUrl;
 			}
 
 			int w = 0, h = 0;
