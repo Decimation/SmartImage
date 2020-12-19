@@ -16,6 +16,7 @@ using Novus.Win32;
 using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SmartImage.Core;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
@@ -43,9 +44,9 @@ namespace SmartImage.Searching
 
 		private static readonly string InterfacePrompt =
 			$"Enter the option number to open or {NConsoleIO.NC_GLOBAL_EXIT_KEY} to exit.\n" +
-			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info ({FullSearchResult.ATTR_EXTENDED_RESULTS}).\n" +
-			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download ({FullSearchResult.ATTR_DOWNLOAD}).\n" +
-			$"Hold down {NC_ALT_FUNC_MODIFIER} and {NC_CTRL_FUNC_MODIFIER} to open raw result.\n";
+			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                         +
+			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                              +
+			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
 
 		private readonly SearchEngineOptions m_engines;
 
@@ -103,7 +104,7 @@ namespace SmartImage.Searching
 
 			//
 
-			m_tasks   = CreateSearchTasks();
+			m_tasks = CreateSearchTasks();
 
 			// Joining each thread isn't necessary as this object is disposed upon program exit
 			// Background threads won't prevent program termination
@@ -123,13 +124,12 @@ namespace SmartImage.Searching
 			};
 		}
 
-		
 
 		private void RunSearchMonitor()
 		{
 			while (m_tasks.Any(t => !t.IsCompleted)) {
 				var inProgress = m_tasks.Count(t => t.IsCompleted);
-				var len = m_tasks.Length;
+				var len        = m_tasks.Length;
 
 				Interface.Status = $"Searching: {inProgress}/{len}";
 			}
@@ -190,7 +190,7 @@ namespace SmartImage.Searching
 		{
 			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
 			{
-				Similarity  = 100.0f,
+				Similarity = 100.0f,
 			};
 
 			result.ExtendedInfo.Add($"Location: {m_img}");

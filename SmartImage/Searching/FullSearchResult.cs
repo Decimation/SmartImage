@@ -23,9 +23,7 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
-		public const char ATTR_DOWNLOAD = Formatting.ARROW_DOWN;
-
-		public const char ATTR_EXTENDED_RESULTS = Formatting.ARROW_UP_DOWN;
+		
 
 		public const char ATTR_SUCCESS = Formatting.CHECK_MARK;
 
@@ -180,16 +178,11 @@ namespace SmartImage.Searching
 
 			string attrSuccess = ATTR_SUCCESS.ToString();
 
-			string attrExtendedResults = ExtendedResults.Count > 0 ? ATTR_EXTENDED_RESULTS.ToString() : String.Empty;
-
-
-			// string attrDownload = IsImage.HasValue
-			// 	? (IsImage.Value ? ATTR_DOWNLOAD.ToString() : Formatting.BALLOT_X.ToString())
-			// 	: Formatting.SUN.ToString();
-
-			string attrDownload = ATTR_DOWNLOAD.ToString();
-
-			sb.AppendFormat("{0} {1} {2}\n", attrSuccess, attrExtendedResults, attrDownload);
+			
+			var ex = ExtendedResults.Count > 0
+				? string.Format($"({ExtendedResults.Count})") : string.Empty;
+			
+			sb.AppendFormat("{0} {1}\n", attrSuccess, ex);
 
 
 			if (RawUrl != Url) {
@@ -215,9 +208,9 @@ namespace SmartImage.Searching
 				sb.AppendFormat("\t{0}\n", s);
 			}
 
-			if (ExtendedResults.Count > 0) {
-				sb.AppendFormat("\tExtended results: {0}\n", ExtendedResults.Count);
-			}
+			// if (ExtendedResults.Count > 0) {
+			// 	sb.AppendFormat("\tExtended results: {0}\n", ExtendedResults.Count);
+			// }
 
 			return sb.ToString();
 		}
