@@ -122,6 +122,20 @@ namespace SmartImage.Searching
 			}
 		}
 
+		public override NConsoleFunction ComboFunction
+		{
+			get
+			{
+				return () =>
+				{
+					var u = RawUrl ?? Url;
+					
+					Network.OpenUrl(u);
+					return null;
+				};
+			}
+		}
+
 
 		/// <summary>
 		///     Result name

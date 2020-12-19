@@ -23,6 +23,7 @@ using SmartImage.Engines.Other;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Utilities;
+using static SimpleCore.Console.CommandLine.NConsoleOption;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
@@ -42,8 +43,9 @@ namespace SmartImage.Searching
 
 		private static readonly string InterfacePrompt =
 			$"Enter the option number to open or {NConsoleIO.NC_GLOBAL_EXIT_KEY} to exit.\n" +
-			$"Hold down {NConsoleOption.NC_ALT_FUNC_MODIFIER} to show more info ({FullSearchResult.ATTR_EXTENDED_RESULTS}).\n" +
-			$"Hold down {NConsoleOption.NC_CTRL_FUNC_MODIFIER} to download ({FullSearchResult.ATTR_DOWNLOAD}).\n";
+			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info ({FullSearchResult.ATTR_EXTENDED_RESULTS}).\n" +
+			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download ({FullSearchResult.ATTR_DOWNLOAD}).\n" +
+			$"Hold down {NC_ALT_FUNC_MODIFIER} and {NC_CTRL_FUNC_MODIFIER} to open raw result.\n";
 
 		private readonly SearchEngineOptions m_engines;
 
