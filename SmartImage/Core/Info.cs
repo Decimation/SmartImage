@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Novus;
+using Novus.Runtime;
 using Novus.Win32;
-using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
 using SmartImage.Utilities;
 
@@ -34,6 +34,22 @@ namespace SmartImage.Core
 			"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
 			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
 			"                                                     |___/\n";
+
+		// @formatter:off — disable formatter after this line
+
+		public const string NAME_BANNER2 = "#############################\n" +
+		                                   "############**###############\n" +
+		                                   "#######*           ,#########" 	 + "  ____                       _   ___\n"+
+		                                   "######   ########   ,.#######" 	 + " / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
+		                                   "#####.  ,,#####.,,   ,,.,####" 	 + @" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
+		                                   "##,.,,   ,,.,,,.,   ,,,.,,,##" 	 + "  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
+		                                   "(((((((*            (((((((((" 	 + @" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
+		                                   "((((((((((((**((((    *(((((("   + "                                                     |___/\n" +
+										   "((((((((((((((((((((,    ((((\n" +
+		                                   "(((((((((((((((((((((((((((((\n" +
+		                                   "(((((((((((((((((((((((((((((\n";
+
+		// @formatter:on — enable formatter after this line
 
 
 		public const string NAME = "SmartImage";
@@ -74,7 +90,7 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Null if executable is not in path.
 		/// </summary>
-		public static string ExeLocation => Files.FindExecutableLocation(NAME_EXE)!;
+		public static string ExeLocation => FileSystem.FindExecutableLocation(NAME_EXE)!;
 
 
 		public static bool IsAppFolderInPath => OS.IsFolderInPath(AppFolder);
@@ -146,15 +162,15 @@ namespace SmartImage.Core
 			NConsole.WriteInfo("Author: {0}", Author);
 
 			NConsole.NewLine();
-			
-			
+
+
 			/*
 			 * Dependencies
 			 */
-			
+
 			NConsole.WriteInfo("Dependencies:");
-			
-			var dependencies = Global.DumpDependencies();
+
+			var dependencies = RuntimeInfo.DumpDependencies();
 
 			foreach (var name in dependencies) {
 				NConsole.WriteInfo("{0} ({1})", name.Name, name.Version);

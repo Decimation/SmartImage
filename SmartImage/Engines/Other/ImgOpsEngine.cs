@@ -14,7 +14,7 @@ namespace SmartImage.Engines.Other
 		public ImgOpsEngine() : base("http://imgops.com/") { }
 
 		public override string Name  => "ImgOps";
-		public override Color  Color => Color.DarkMagenta;
+		public override Color  Color => Color.Pink;
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 

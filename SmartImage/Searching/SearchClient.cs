@@ -13,7 +13,6 @@ using Novus;
 using Novus.Memory;
 using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -117,6 +116,8 @@ namespace SmartImage.Searching
 
 			Complete = false;
 
+			
+			
 			Interface = new NConsoleUI(Results)
 			{
 				SelectMultiple = false,
@@ -176,7 +177,7 @@ namespace SmartImage.Searching
 			// Display config
 			NConsole.WriteInfo(SearchConfig.Config);
 
-			NConsole.WriteInfo("Temporary image url: {0}", m_imgUrl);
+			NConsole.WriteInfo($"Temporary image url: {m_imgUrl}");
 
 			m_monitor.Start();
 
@@ -195,10 +196,10 @@ namespace SmartImage.Searching
 
 			result.ExtendedInfo.Add($"Location: {m_img}");
 
-			var fileFormat = Files.ResolveFileType(m_img.FullName);
+			var fileFormat = FileSystem.ResolveFileType(m_img.FullName);
 
 			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(Files.GetFileSize(m_img.FullName), MetricUnit.Mega);
+				MathHelper.ConvertToUnit(FileSystem.GetFileSize(m_img.FullName), MetricUnit.Mega);
 
 			(int width, int height) = (m_bmp.Width, m_bmp.Height);
 
@@ -284,7 +285,7 @@ namespace SmartImage.Searching
 				return false;
 			}
 
-			bool isImageType = Files.ResolveFileType(img).Type == FileType.Image;
+			bool isImageType = FileSystem.ResolveFileType(img).Type == FileType.Image;
 
 			if (!isImageType) {
 				return NConsoleIO.ReadConfirmation("File format is not recognized as a common image format. Continue?");

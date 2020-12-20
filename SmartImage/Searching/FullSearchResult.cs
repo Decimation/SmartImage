@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using JetBrains.Annotations;
 using Novus.Win32;
-using Novus.Win32.FileSystem;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -73,7 +72,7 @@ namespace SmartImage.Searching
 					NConsole.WriteSuccess("Downloaded to {0}", path);
 
 					// Open folder with downloaded file selected
-					Files.ExploreFile(path);
+					FileSystem.ExploreFile(path);
 
 
 					NConsoleIO.WaitForSecond();
@@ -182,30 +181,30 @@ namespace SmartImage.Searching
 			var ex = ExtendedResults.Count > 0
 				? string.Format($"({ExtendedResults.Count})") : string.Empty;
 			
-			sb.AppendFormat("{0} {1}\n", attrSuccess, ex);
+			sb.Append($"{attrSuccess} {ex}\n");
 
 
 			if (RawUrl != Url) {
-				sb.AppendFormat("\tResult: {0}\n", Url);
+				sb.Append($"\tResult: {Url}\n");
 			}
 			else if (RawUrl != null) {
-				sb.AppendFormat("\tRaw: {0}\n", RawUrl);
+				sb.Append($"\tRaw: {RawUrl}\n");
 			}
 
 			if (Caption != null) {
-				sb.AppendFormat("\tCaption: {0}\n", Caption);
+				sb.Append($"\tCaption: {Caption}\n");
 			}
 
 			if (Similarity.HasValue) {
-				sb.AppendFormat("\tSimilarity: {0:P}\n", Similarity / 100);
+				sb.Append($"\tSimilarity: {Similarity / 100:P}\n");
 			}
 
 			if (Width.HasValue && Height.HasValue) {
-				sb.AppendFormat("\tResolution: {0}x{1}\n", Width, Height);
+				sb.Append($"\tResolution: {Width}x{Height}\n");
 			}
 
 			foreach (string s in ExtendedInfo) {
-				sb.AppendFormat("\t{0}\n", s);
+				sb.Append($"\t{s}\n");
 			}
 
 			// if (ExtendedResults.Count > 0) {

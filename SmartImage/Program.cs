@@ -49,8 +49,12 @@ namespace SmartImage
 			Console.SetWindowSize(120, 50);
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
+			
+			/*
+			 * Set up NConsole
+			 */
+			
 			NConsole.Init();
-
 			NConsoleUI.DefaultName = Info.NAME_BANNER;
 
 			/*

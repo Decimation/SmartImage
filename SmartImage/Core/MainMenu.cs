@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
+using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
@@ -23,6 +24,8 @@ namespace SmartImage.Core
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal static class MainMenu
 	{
+		// TODO: refactor, optimize
+
 		private static NConsoleOption[] AllOptions
 		{
 			get
@@ -94,7 +97,7 @@ namespace SmartImage.Core
 
 		private static readonly NConsoleOption ConfigSearchEnginesOption = new()
 		{
-			Name = "Configure search engines",
+			Name  = "Configure search engines",
 			Color = Color.CadetBlue,
 			Function = () =>
 			{
@@ -107,8 +110,7 @@ namespace SmartImage.Core
 
 				SearchConfig.Config.SearchEngines = newValues;
 
-				NConsoleIO.WaitForInput();
-
+				NConsoleIO.WaitForSecond();
 				return null;
 			},
 		};
@@ -130,7 +132,6 @@ namespace SmartImage.Core
 				SearchConfig.Config.PriorityEngines = newValues;
 
 				NConsoleIO.WaitForSecond();
-
 				return null;
 			}
 		};
@@ -211,8 +212,6 @@ namespace SmartImage.Core
 			}
 		};
 
-		
-
 
 		private static readonly NConsoleOption CheckForUpdateOption = new()
 		{
@@ -285,7 +284,7 @@ namespace SmartImage.Core
 
 		private static readonly string[] TestImages =
 		{
-			"Test1.jpg", 
+			"Test1.jpg",
 			"Test2.jpg",
 			"Test3.png"
 		};
@@ -295,14 +294,18 @@ namespace SmartImage.Core
 			Name = "[DEBUG] Run test",
 			Function = () =>
 			{
-				var cd  = new DirectoryInfo(Environment.CurrentDirectory);
-				var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
+
+				//var cd  = new DirectoryInfo(Environment.CurrentDirectory);
+				//var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
+				//var cd2 = cd.GetParentLevel(4).ToString();
+
+				var cd2 = FileSystem.GetParentLevel(Environment.CurrentDirectory, 4);
 
 				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
 
-				var testImg =(string) NConsoleIO.HandleOptions(rgOption).First();
+				var testImg = (string) NConsoleIO.HandleOptions(rgOption).First();
 
-				var img     = Path.Combine(cd2, testImg);
+				var img = Path.Combine(cd2, testImg);
 
 				SearchConfig.Config.Image           = img;
 				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;

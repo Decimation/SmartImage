@@ -18,7 +18,7 @@ namespace SmartImage.Engines.Other
 
 		public override string Name => "IQDB";
 
-		public override Color Color => Color.Pink;
+		public override Color Color => Color.Magenta;
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Iqdb;
 
