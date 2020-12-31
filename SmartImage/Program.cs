@@ -55,7 +55,7 @@ namespace SmartImage
 			 */
 			
 			NConsole.Init();
-			NConsoleUI.DefaultName = Info.NAME_BANNER;
+			NConsoleInterface.DefaultName = Info.NAME_BANNER;
 
 			/*
 			 * Run search
@@ -86,7 +86,7 @@ namespace SmartImage
 				SearchClient.Client.Start();
 
 				// Show results
-				NConsoleIO.HandleOptions(SearchClient.Client.Interface);
+				NConsoleIO.ReadOptions(SearchClient.Client.Interface);
 			}
 			catch (Exception exception) {
 #if !DEBUG

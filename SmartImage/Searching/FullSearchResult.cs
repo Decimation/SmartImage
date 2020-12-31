@@ -165,7 +165,7 @@ namespace SmartImage.Searching
 
 			AltFunction = () =>
 			{
-				NConsoleIO.HandleOptions(ExtendedResults);
+				NConsoleIO.ReadOptions(ExtendedResults);
 
 				return null;
 			};

@@ -1,7 +1,6 @@
 using System.Drawing;
 using Novus.Utilities;
 using Novus.Win32;
-using Novus.Win32.FileSystem;
 using RestSharp;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
@@ -43,7 +42,7 @@ namespace SmartImage.Engines.Other
 		public string? Upload(string img)
 		{
 			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(Files.GetFileSize(img), MetricUnit.Mega);
+				MathHelper.ConvertToUnit(FileSystem.GetFileSize(img), MetricUnit.Mega);
 
 			if (fileSizeMegabytes >= MAX_FILE_SIZE_MB) {
 				NConsole.WriteError("File size too large");

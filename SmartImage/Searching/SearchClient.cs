@@ -72,7 +72,7 @@ namespace SmartImage.Searching
 		/// </summary>
 		public ref List<FullSearchResult> Results => ref m_results;
 
-		public NConsoleUI Interface { get; }
+		public NConsoleInterface Interface { get; }
 
 		private SearchClient(string img)
 		{
@@ -118,7 +118,7 @@ namespace SmartImage.Searching
 
 			
 			
-			Interface = new NConsoleUI(Results)
+			Interface = new NConsoleInterface(Results)
 			{
 				SelectMultiple = false,
 				Prompt         = InterfacePrompt
@@ -318,7 +318,7 @@ namespace SmartImage.Searching
 
 			void UploadImgOps()
 			{
-				NConsole.WriteInfo("Using ImgOps for image upload (2 hour cache)");
+				NConsole.WriteInfo("Using ImgOps for image upload (1 hour cache)");
 				uploadEngine = new ImgOpsEngine();
 				imgUrl       = uploadEngine.Upload(img);
 			}

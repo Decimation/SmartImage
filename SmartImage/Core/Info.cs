@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using JetBrains.Annotations;
 using Novus;
 using Novus.Runtime;
 using Novus.Win32;
@@ -90,6 +91,7 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Null if executable is not in path.
 		/// </summary>
+		[CanBeNull]
 		public static string ExeLocation => FileSystem.FindExecutableLocation(NAME_EXE)!;
 
 

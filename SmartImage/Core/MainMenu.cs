@@ -19,7 +19,7 @@ using SmartImage.Utilities;
 namespace SmartImage.Core
 {
 	/// <summary>
-	/// Contains <see cref="NConsoleUI"/> and <see cref="NConsoleOption"/> for the main menu
+	/// Contains <see cref="NConsoleInterface"/> and <see cref="NConsoleOption"/> for the main menu
 	/// </summary>
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal static class MainMenu
@@ -49,7 +49,7 @@ namespace SmartImage.Core
 		/// <summary>
 		/// Main menu console interface
 		/// </summary>
-		internal static NConsoleUI Interface
+		internal static NConsoleInterface Interface
 		{
 			get
 			{
@@ -67,7 +67,7 @@ namespace SmartImage.Core
 		internal static void Run()
 		{
 			//
-			NConsoleIO.HandleOptions(Interface);
+			NConsoleIO.ReadOptions(Interface);
 		}
 
 		private static readonly NConsoleOption RunSelectImage = new()
@@ -102,7 +102,7 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
-				var values = NConsoleIO.HandleOptions(rgEnum, true);
+				var values = NConsoleIO.ReadOptions(rgEnum, true);
 
 				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
@@ -123,7 +123,7 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
-				var values = NConsoleIO.HandleOptions(rgEnum, true);
+				var values = NConsoleIO.ReadOptions(rgEnum, true);
 
 				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
@@ -303,7 +303,7 @@ namespace SmartImage.Core
 
 				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
 
-				var testImg = (string) NConsoleIO.HandleOptions(rgOption).First();
+				var testImg = (string) NConsoleIO.ReadOptions(rgOption).First();
 
 				var img = Path.Combine(cd2, testImg);
 
