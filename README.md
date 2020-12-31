@@ -35,11 +35,11 @@
   
   <img src="https://github.com/Decimation/SmartImage/raw/master/Demo.gif" width="640" height="360">
   
-  <p align="center"><i><b>SmartImage</b></i> is a powerful reverse image search tool for Windows. <i><b>SmartImage</b></i> will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.</p>
+  <p align="center"><b>SmartImage</b> is a powerful reverse image search tool for Windows.<b>SmartImage</b> will open the best match found returned from various image search engines (see the supported sites) right in your web browser. This behavior can be configured to the user's preferences.</p>
   
   <p align="center">
   <img src="https://github.com/Decimation/SmartImage/blob/master/Context%20menu%20integration.png" width="435" height="367">
-  <p align="center"><i><b>SmartImage</b></i> features context menu integration, which allows you to right click on an image to immediately run a search!</p>
+  <p align="center"><b>SmartImage</b> features context menu integration, which allows you to right click on an image to immediately run a search!</p>
   </p>
   
 </p>
@@ -84,11 +84,11 @@ Once the search is complete, the UI shows extensive information about the search
 
 ### Performing a search
 
-<i><b>SmartImage</b></i> can be used in multiple ways:
+<b>SmartImage</b> can be used in multiple ways:
 
 - Open the program normally (double click) and you can use the program in a user-friendly way. You can then drag and drop your image into the command prompt and run a search.
-- Right-click on an image (once the context menu integration is set up) and select the <i><b>SmartImage</b></i> option to immediately perform a search.
-- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the <i><b>SmartImage</b></i> option).
+- Right-click on an image (once the context menu integration is set up) and select the <b>SmartImage</b> option to immediately perform a search.
+- Drag and drop an image over the executable to immediately perform a search (functionally the same as right-clicking on an image and using the <b>SmartImage</b> option).
 - Use the command line which allows for more specific and advanced searching by using the listed arguments and options.
 
 See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.
