@@ -9,6 +9,7 @@ using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SmartImage.Core;
 using SmartImage.Utilities;
+
 // ReSharper disable UnusedParameter.Local
 #pragma warning disable CA1416
 
@@ -39,21 +40,25 @@ namespace SmartImage
 			 * Check compatibility
 			 */
 			Info.Setup();
-			
+
 
 			/*
 			 * Set up console
 			 */
 
 			Console.Title = Info.NAME;
-			Console.SetWindowSize(120, 50);
+
+			if (Console.LargestWindowWidth >= 120 && Console.LargestWindowHeight >= 50) {
+				Console.SetWindowSize(120, 50);
+			}
+
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
-			
+
 			/*
 			 * Set up NConsole
 			 */
-			
+
 			NConsole.Init();
 			NConsoleInterface.DefaultName = Info.NAME_BANNER;
 
