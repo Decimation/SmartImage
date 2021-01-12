@@ -35,6 +35,7 @@ namespace SmartImage
 
 		/*
 		 * --search-engines Iqdb,SauceNao --priority-engines Auto --update-cfg C:\Users\Deci\Desktop\fucking_epic.jpg
+		 * --search-engines All --priority-engines Auto C:\Users\Deci\Desktop\fucking_epic.jpg
 		 */
 
 		private static void Main(string[] args)

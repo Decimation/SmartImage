@@ -98,7 +98,8 @@ namespace SmartImage.Core
 		}
 
 
-		internal static void WriteComponentsToFile(object obj, string dest) => Collections.WriteDictionary(ConvertComponentsToMap(obj), dest);
+		internal static void WriteComponentsToFile(object obj, string dest) =>
+			Collections.WriteDictionary(ConvertComponentsToMap(obj), dest);
 
 
 		internal static T ReadComponentMapValue<T>(object obj, IDictionary<string, string> cfg, string mname)
@@ -194,28 +195,30 @@ namespace SmartImage.Core
 			var parse = ParseComponentValue<T>(rawValue);
 			return parse;
 		}
-		
-		
-		internal static void ReadComponentFromArgument(object obj,IEnumerator<string> argEnumerator)
-		{
-			var argName               = argEnumerator.Current;
-			
-			var x                      = GetMembers(obj);
-			
-			var correspondingComponent = x.FirstOrDefault(y => y.Attribute.ArgumentName == argName);
 
-			if (correspondingComponent == default) {
+
+		internal static void ReadComponentFromArgument(object obj, IEnumerator<string> argEnumerator)
+		{
+			var parameterName = argEnumerator.Current;
+
+			var members = GetMembers(obj);
+
+			// Corresponding component
+			var component = members.FirstOrDefault(y => y.Attribute.ParameterName == parameterName);
+
+			if (component == default) {
 				return;
 			}
-			
+
 			argEnumerator.MoveNext();
-			
-			string argValue2 = argEnumerator.Current;
-			var    bf        = correspondingComponent.Member.GetBackingField();
-			
-			var    value     = ConfigComponents.ParseComponentValue(argValue2, bf.FieldType);
-			
-			bf.SetValue(obj, value);
+
+			string argValueRaw = argEnumerator.Current;
+
+			var field = component.Member.GetBackingField();
+
+			var value = ParseComponentValue(argValueRaw, field.FieldType);
+
+			field.SetValue(obj, value);
 		}
 	}
 }

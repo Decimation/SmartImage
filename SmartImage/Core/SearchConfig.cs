@@ -60,27 +60,28 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Engines to use for searching
 		/// </summary>
-		[field: ConfigComponent("search_engines", SearchEngineOptions.All, "--search-engines")]
+		[field: ConfigComponent("search_engines", "--search-engines", SearchEngineOptions.All)]
 		public SearchEngineOptions SearchEngines { get; set; }
 
 		/// <summary>
 		///     Engines whose results should be opened in the browser
 		/// </summary>
-		[field: ConfigComponent("priority_engines", SearchEngineOptions.Auto)]
+		[field: ConfigComponent("priority_engines", "--priority-engines", SearchEngineOptions.Auto)]
 		public SearchEngineOptions PriorityEngines { get; set; }
 
 		/// <summary>
 		///     <see cref="ImgurClient" /> API key
 		/// </summary>
-		[field: ConfigComponent("imgur_client_id", Strings.Empty)]
+		[field: ConfigComponent("imgur_client_id", "--saucenao-auth", Strings.Empty)]
 		public string ImgurAuth { get; set; }
 
 		/// <summary>
 		///     <see cref="SauceNaoEngine" /> API key
 		/// </summary>
-		[field: ConfigComponent("saucenao_key", Strings.Empty)]
+		[field: ConfigComponent("saucenao_key", "--imgur-auth", Strings.Empty)]
 		public string SauceNaoAuth { get; set; }
 
+		
 		/// <summary>
 		///     Whether to save passed in arguments (via CLI) to the config file upon exit
 		/// </summary>
@@ -123,10 +124,7 @@ namespace SmartImage.Core
 		}
 
 
-		public void Reset()
-		{
-			ConfigComponents.ResetComponents(this);
-		}
+		public void Reset() => ConfigComponents.ResetComponents(this);
 
 
 		public void SaveFile()
@@ -225,44 +223,24 @@ namespace SmartImage.Core
 				return;
 			}
 
-			var       argQueue      = new Queue<string>(args);
+			var argQueue = new Queue<string>(args);
+
 			using var argEnumerator = argQueue.GetEnumerator();
 
 			while (argEnumerator.MoveNext()) {
-				string argValue = argEnumerator.Current;
+				string parameterName = argEnumerator.Current;
 
-				// todo: add to ConfigComponentAttribute
 				ConfigComponents.ReadComponentFromArgument(this, argEnumerator);
-				
-				
-				switch (argValue) {
-					/*case "--search-engines":
-						argEnumerator.MoveNext();
-						string sestr = argEnumerator.Current;
-						SearchEngines = ConfigComponents.ParseComponentValue<SearchEngineOptions>(sestr);
-						break;
-					case "--priority-engines":
-						argEnumerator.MoveNext();
-						string pestr = argEnumerator.Current;
-						PriorityEngines = ConfigComponents.ParseComponentValue<SearchEngineOptions>(pestr);
-						break;
-					case "--saucenao-auth":
-						argEnumerator.MoveNext();
-						string snastr = argEnumerator.Current;
-						SauceNaoAuth = snastr;
-						break;
-					case "--imgur-auth":
-						argEnumerator.MoveNext();
-						string imastr = argEnumerator.Current;
-						ImgurAuth = imastr;
-						break;*/
+
+				// Special cases
+				switch (parameterName) {
+
 					case "--update-cfg":
 						UpdateConfig = true;
 						break;
 
-
 					default:
-						Image = argValue;
+						Image = parameterName;
 						break;
 				}
 			}

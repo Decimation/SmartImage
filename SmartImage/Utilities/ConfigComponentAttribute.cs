@@ -17,26 +17,34 @@ namespace SmartImage.Utilities
 	{
 		internal object DefaultValue { get; set; }
 
+		/// <summary>
+		/// Component name
+		/// </summary>
 		internal string Id { get; set; }
+
 
 		internal bool SetDefaultIfNull { get; set; }
 
+
+		/// <summary>
+		/// Parameter name
+		/// </summary>
 		[CanBeNull]
-		internal string ArgumentName { get; set; }
+		internal string ParameterName { get; set; }
 
 
-		internal ConfigComponentAttribute(string id, object defaultValue, bool setDefaultIfNull, string argumentName)
+		internal ConfigComponentAttribute(string id, string parameterName, object defaultValue, bool setDefaultIfNull)
 		{
 			Id               = id;
 			DefaultValue     = defaultValue;
 			SetDefaultIfNull = setDefaultIfNull;
-			ArgumentName     = argumentName;
+			ParameterName    = parameterName;
 		}
 
-		internal ConfigComponentAttribute(string id, object defaultValue, [CanBeNull] string argumentName) : this(id,
-			defaultValue, false, argumentName) { }
+		internal ConfigComponentAttribute(string id, [CanBeNull] string parameterName, object defaultValue) : this(id,
+			parameterName, defaultValue, false) { }
 
 
-		internal ConfigComponentAttribute(string id, object defaultValue) : this(id, defaultValue, null) { }
+		internal ConfigComponentAttribute(string id, object defaultValue) : this(id, null, defaultValue) { }
 	}
 }
