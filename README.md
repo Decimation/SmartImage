@@ -21,10 +21,10 @@
     <br />
     <a href="https://github.com/Decimation/SmartImage/releases"><strong>Releases »</strong></a>
     <br />
-    <br />
     <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki</strong></a>
-    ·
-  <a href="https://github.com/Decimation/SmartImage/issues"><strong>Issues</strong></a>
+    <br />
+    <br />
+    <a href="https://github.com/Decimation/SmartImage/issues"><strong>Issues</strong></a>
     
   </p>
 </p>
@@ -46,7 +46,7 @@
 
 <!-- ... -->
 
-## Supported engines
+## Supported Engines
 
 Supported search engines:
 
@@ -60,19 +60,17 @@ Supported search engines:
 - <img src="https://yandex.com/favicon.ico" width="16" height="16"/> [Yandex](https://yandex.com/images/)
 - <img src="https://www.bing.com/favicon.ico" width="16" height="16"/> [Bing](https://www.bing.com/images/)
 
-See [Engine »](https://github.com/Decimation/SmartImage/wiki/Engines) documentation.
-
 <!-- ... -->
 
 
-## Wiki
-
-**See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
+## Getting Started
 
 Wiki pages useful for getting started:
 - User interface and options: [Interface »](https://github.com/Decimation/SmartImage/wiki/Interface)
 - Performing a search and usage: [Usage »](https://github.com/Decimation/SmartImage/wiki/Usage)
 - Search engines and config: [Engines »](https://github.com/Decimation/SmartImage/wiki/Engines)
+
+**See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
 
 <!-- ... -->
 
