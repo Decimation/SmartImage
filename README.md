@@ -21,9 +21,9 @@
     <br />
     <a href="https://github.com/Decimation/SmartImage/releases"><strong>Releases »</strong></a>
     <br />
-    <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki</strong></a>
+    <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki »</strong></a>
     <br />
-    <a href="https://github.com/Decimation/SmartImage/issues"><strong>Issues</strong></a>
+    <a href="https://github.com/Decimation/SmartImage/issues"><strong>Issues »</strong></a>
     
   </p>
 </p>
