@@ -159,7 +159,7 @@ namespace SmartImage.Core
 
 			NConsole.OverrideForegroundColor = Interface.ColorVersion;
 
-			var versionsInfo = UpdateInfo.CheckForUpdates();
+			var versionsInfo = UpdateInfo.GetUpdateInfo();
 
 			NConsole.WriteInfo("Current version: {0}", versionsInfo.Current);
 			NConsole.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);

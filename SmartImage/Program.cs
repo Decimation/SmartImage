@@ -35,27 +35,32 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			
+
 			/*
 			 * Setup
 			 * Check compatibility
 			 */
 			Info.Setup();
 
-			
+
 			/*
 			 * Set up console
 			 */
 
 			Console.Title = Info.NAME;
 
-			
-			if (Console.LargestWindowWidth >= Interface.ConsoleWindowWidth && Console.LargestWindowHeight >= Interface.ConsoleWindowHeight) {
+
+			if (Console.LargestWindowWidth  >= Interface.ConsoleWindowWidth &&
+			    Console.LargestWindowHeight >= Interface.ConsoleWindowHeight) {
 				Console.SetWindowSize(Interface.ConsoleWindowWidth, Interface.ConsoleWindowHeight);
 			}
 
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
+
+			Console.WriteLine(Info.NAME_BANNER);
+			NConsole.WriteInfo("Setting up...");
+
 
 			/*
 			 * Set up NConsole
@@ -68,13 +73,19 @@ namespace SmartImage
 			/*
 			 * Check for any legacy integrations that need to be migrated
 			 */
-			bool ok = LegacyIntegration.LegacyCleanup();
+			bool cleanupOk = LegacyIntegration.LegacyCleanup();
 
-			if (!ok)
-			{
+			if (!cleanupOk) {
 				NConsole.WriteError("Could not migrate legacy features");
 			}
 
+			/*
+			 * Check for updates
+			 */
+
+
+			UpdateInfo.AutoUpdate();
+			
 			/*
 			 * Run search
 			 */

@@ -80,7 +80,7 @@ namespace SmartImage.Utilities
 
 		public override string ToString()
 		{
-			return String.Format("{0} {1} {2}", TagName, Version, PublishedAt);
+			return $"{TagName} ({Version}) @ {PublishedAt}";
 		}
 	}
 }

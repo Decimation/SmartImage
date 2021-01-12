@@ -43,7 +43,7 @@ namespace SmartImage.Utilities
 			}
 
 			sb.AppendLine(Strings.CreateSeparator("Program Info"));
-			var versionsInfo = UpdateInfo.CheckForUpdates();
+			var versionsInfo = UpdateInfo.GetUpdateInfo();
 			sb.AppendFormat("Version: {0}", versionsInfo.Current);
 
 			return sb.ToString();
