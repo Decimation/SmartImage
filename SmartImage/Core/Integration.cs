@@ -39,7 +39,8 @@ namespace SmartImage.Core
 					try {
 						regMenu = Registry.CurrentUser.CreateSubKey(REG_SHELL);
 						regMenu?.SetValue(String.Empty, Info.NAME);
-
+						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
+						
 						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
 						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
 					}
