@@ -33,6 +33,9 @@ namespace SmartImage
 		 * Entry point
 		 */
 
+		/*
+		 * --search-engines Iqdb,SauceNao --priority-engines Auto --update-cfg C:\Users\Deci\Desktop\fucking_epic.jpg
+		 */
 
 		private static void Main(string[] args)
 		{
@@ -130,7 +133,10 @@ namespace SmartImage
 			}
 			finally {
 				// Exit
-				SearchConfig.Config.UpdateFile();
+
+				if (SearchConfig.Config.UpdateConfig) {
+					SearchConfig.Config.SaveFile();
+				}
 			}
 		}
 	}

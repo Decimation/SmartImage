@@ -129,7 +129,7 @@ namespace SmartImage.Core
 		{
 
 			SearchConfig.Config.Reset();
-			SearchConfig.Config.WriteToFile();
+			SearchConfig.Config.SaveFile();
 
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 

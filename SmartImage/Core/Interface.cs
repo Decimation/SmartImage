@@ -202,7 +202,7 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				SearchConfig.Config.WriteToFile();
+				SearchConfig.Config.SaveFile();
 
 				NConsoleIO.WaitForSecond();
 				return null;
