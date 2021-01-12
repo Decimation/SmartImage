@@ -68,11 +68,11 @@ See [Engine »](https://github.com/Decimation/SmartImage/wiki/Engines) documenta
 
 ## Wiki
 
-See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.
+**See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
 
-[Interface »](https://github.com/Decimation/SmartImage/wiki/Interface)
-
-[Usage »](https://github.com/Decimation/SmartImage/wiki/Usage)
+- [Interface »](https://github.com/Decimation/SmartImage/wiki/Interface)
+- [Usage »](https://github.com/Decimation/SmartImage/wiki/Usage)
+- [Engines »](https://github.com/Decimation/SmartImage/wiki/Engines)
 
 <!-- ... -->
 
