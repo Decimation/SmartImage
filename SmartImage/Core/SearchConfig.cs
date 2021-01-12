@@ -30,9 +30,9 @@ namespace SmartImage.Core
 		// todo: create config field type; create config field attribute
 		// todo: refactor
 
-		private const string CFG_IMGUR_APIKEY = "imgur_client_id";
-		private const string CFG_SAUCENAO_APIKEY = "saucenao_key";
-		private const string CFG_SEARCH_ENGINES = "search_engines";
+		private const string CFG_IMGUR_APIKEY     = "imgur_client_id";
+		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
+		private const string CFG_SEARCH_ENGINES   = "search_engines";
 		private const string CFG_PRIORITY_ENGINES = "priority_engines";
 
 
@@ -99,6 +99,10 @@ namespace SmartImage.Core
 
 			// Read config from command line arguments
 			ReadFromArguments();
+
+
+			// Setup
+			EnsureConfig();
 		}
 
 		private void ReadFromFile()
@@ -107,7 +111,7 @@ namespace SmartImage.Core
 
 			// create cfg with default options if it doesn't exist
 			if (!File.Exists(ConfigLocation)) {
-				
+
 				var f = File.Create(ConfigLocation);
 				f.Close();
 				newCfg = true;
@@ -115,10 +119,10 @@ namespace SmartImage.Core
 
 			var cfgFromFileMap = Collections.ReadDictionary(ConfigLocation);
 
-			SearchEngines = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
+			SearchEngines   = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
 			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
-			ImgurAuth = ReadMapKeyValue(CFG_IMGUR_APIKEY, cfgFromFileMap, true, IMGUR_APIKEY_DEFAULT);
-			SauceNaoAuth = ReadMapKeyValue(CFG_SAUCENAO_APIKEY, cfgFromFileMap, true, SAUCENAO_APIKEY_DEFAULT);
+			ImgurAuth       = ReadMapKeyValue(CFG_IMGUR_APIKEY, cfgFromFileMap, true, IMGUR_APIKEY_DEFAULT);
+			SauceNaoAuth    = ReadMapKeyValue(CFG_SAUCENAO_APIKEY, cfgFromFileMap, true, SAUCENAO_APIKEY_DEFAULT);
 
 			if (newCfg) {
 				WriteToFile();
@@ -144,10 +148,10 @@ namespace SmartImage.Core
 
 		public void Reset()
 		{
-			SearchEngines = ENGINES_DEFAULT;
+			SearchEngines   = ENGINES_DEFAULT;
 			PriorityEngines = PRIORITY_ENGINES_DEFAULT;
-			ImgurAuth = IMGUR_APIKEY_DEFAULT;
-			SauceNaoAuth = SAUCENAO_APIKEY_DEFAULT;
+			ImgurAuth       = IMGUR_APIKEY_DEFAULT;
+			SauceNaoAuth    = SAUCENAO_APIKEY_DEFAULT;
 		}
 
 
@@ -158,9 +162,40 @@ namespace SmartImage.Core
 			NConsole.WriteInfo("Wrote to {0}", ConfigLocation);
 		}
 
-		public void Setup()
+
+		/// <summary>
+		/// Illegal <see cref="SearchEngineOptions"/> values for <see cref="SearchEngines"/>
+		/// </summary>
+		private const SearchEngineOptions IllegalSearchEngineOptions = SearchEngineOptions.None | SearchEngineOptions.Auto;
+
+		
+		/// <summary>
+		/// Ensures validity of config options
+		/// </summary>
+		public void EnsureConfig()
 		{
-			// Checks
+			/*
+			 * Check search engine options
+			 */
+
+			var illegalOptions = SearchEngines & IllegalSearchEngineOptions;
+
+			if (illegalOptions != 0) {
+				NConsole.WriteError($"Search engine option {illegalOptions} cannot be used for search engine options");
+
+				NConsoleIO.WaitForSecond();
+
+				// Clear illegal options
+				SearchEngines &= ~illegalOptions;
+			}
+
+			// Special case
+			if (SearchEngines == SearchEngineOptions.None) {
+				NConsole.WriteInfo("Reverting search engine options to default");
+				NConsoleIO.WaitForSecond();
+				SearchEngines = ENGINES_DEFAULT;
+			}
+
 		}
 
 
@@ -216,7 +251,7 @@ namespace SmartImage.Core
 
 
 			string snAuth = Config.SauceNaoAuth;
-			bool snNull = String.IsNullOrWhiteSpace(snAuth);
+			bool   snNull = String.IsNullOrWhiteSpace(snAuth);
 
 			if (!snNull) {
 				sb.AppendFormat("SauceNao authentication: {0}\n", snAuth);
@@ -224,7 +259,7 @@ namespace SmartImage.Core
 
 
 			string imgurAuth = Config.ImgurAuth;
-			bool imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
+			bool   imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
 
 			if (!imgurNull) {
 				sb.AppendFormat("Imgur authentication: {0}\n", imgurAuth);
@@ -263,7 +298,7 @@ namespace SmartImage.Core
 				return;
 			}
 
-			var argQueue = new Queue<string>(args);
+			var       argQueue      = new Queue<string>(args);
 			using var argEnumerator = argQueue.GetEnumerator();
 
 			while (argEnumerator.MoveNext()) {

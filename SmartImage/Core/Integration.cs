@@ -2,12 +2,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Microsoft.Win32;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 
 namespace SmartImage.Core
 {
-	// todo: move context menu integration to Novus for use in other projects
+	// todo: move context menu integration to Novus for use in other projects?
 
 	internal enum IntegrationOption
 	{
@@ -20,38 +21,70 @@ namespace SmartImage.Core
 	/// </summary>
 	internal static class Integration
 	{
-		internal static void HandleContextMenu(IntegrationOption option)
+		/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
+		internal static bool HandleContextMenu(IntegrationOption option)
 		{
+			/*
+			 * New context menu
+			 */
 
 			switch (option) {
 				case IntegrationOption.Add:
-					string fullPath = Info.ExeLocation;
 
-					// Add command and icon to command
-					string[] addCode =
-					{
-						"@echo off",
-						$"reg.exe add {REG_SHELL_CMD} /ve /d \"{fullPath} \"\"%%1\"\"\" /f >nul",
-						$"reg.exe add {REG_SHELL} /v Icon /d \"{fullPath}\" /f >nul"
-					};
+					RegistryKey regMenu  = null;
+					RegistryKey regCmd   = null;
+					
+					string      fullPath = Info.ExeLocation;
 
-					Command.RunBatch(addCode, true);
+					try {
+						regMenu = Registry.CurrentUser.CreateSubKey(REG_SHELL);
+						regMenu?.SetValue(String.Empty, Info.NAME);
+
+						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
+						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
+					}
+					catch (Exception ex) {
+						NConsole.WriteError("{0}", ex.Message);
+						NConsoleIO.WaitForInput();
+						return false;
+					}
+					finally {
+						regMenu?.Close();
+						regCmd?.Close();
+					}
 
 					break;
 				case IntegrationOption.Remove:
 
-					string[] removeCode =
-					{
-						"@echo off",
-						$@"reg.exe delete {REG_SHELL} /f >nul"
-					};
+					try {
+						var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
 
-					Command.RunBatch(removeCode, true);
+						if (reg != null) {
+							reg.Close();
+							Registry.CurrentUser.DeleteSubKey(REG_SHELL_CMD);
+						}
+
+						reg = Registry.CurrentUser.OpenSubKey(REG_SHELL);
+
+						if (reg != null) {
+							reg.Close();
+							Registry.CurrentUser.DeleteSubKey(REG_SHELL);
+						}
+					}
+					catch (Exception ex) {
+						NConsole.WriteError("{0}", ex.Message);
+						NConsoleIO.WaitForInput();
+						return false;
+					}
 
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(option), option, null);
 			}
+
+
+			return true;
+
 		}
 
 		internal static void HandlePath(IntegrationOption option)
@@ -72,7 +105,7 @@ namespace SmartImage.Core
 						.Split(OS.PATH_DELIM)
 						.Any(p => p == appFolder);
 
-					string cd = Environment.CurrentDirectory;
+					string cd  = Environment.CurrentDirectory;
 					string exe = Path.Combine(cd, Info.NAME_EXE);
 
 					if (!appFolderInPath) {
@@ -138,26 +171,21 @@ namespace SmartImage.Core
 			// Runs in background
 			Command.RunBatch(commands, false, DEL_BAT_NAME);
 
-			
 
 		}
 
-		private const string REG_SHELL = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\";
 
-		private const string REG_SHELL_CMD = @"HKEY_CLASSES_ROOT\*\shell\SmartImage\command";
+		private const string REG_SHELL = "SOFTWARE\\Classes\\*\\shell\\SmartImage";
 
+		private const string REG_SHELL_CMD = "SOFTWARE\\Classes\\*\\shell\\SmartImage\\command";
 
 		internal static bool IsContextMenuAdded
 		{
 			get
 			{
-				var cmd = Command.Shell(@$"reg query {REG_SHELL_CMD}");
-				cmd.Start();
+				var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
 
-				var stdOut = Command.ReadAllLines(cmd.StandardOutput);
-
-				bool b = stdOut.Any(s => s.Contains(Info.NAME));
-				return b;
+				return reg != null;
 			}
 		}
 

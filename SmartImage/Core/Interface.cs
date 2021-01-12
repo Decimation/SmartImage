@@ -13,16 +13,16 @@ using SmartImage.Utilities;
 
 // ReSharper disable ArrangeAccessorOwnerBody
 
-#pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101, RCS1213, RCS1036
+#pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101, RCS1213, RCS1036, CS8602
 #nullable enable
 
 namespace SmartImage.Core
 {
 	/// <summary>
-	/// Contains <see cref="NConsoleInterface"/> and <see cref="NConsoleOption"/> for the main menu
+	/// User interface; contains <see cref="NConsoleInterface"/> and <see cref="NConsoleOption"/> for the main menu
 	/// </summary>
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	internal static class MainMenu
+	internal static class Interface
 	{
 		// TODO: refactor, optimize
 
@@ -30,7 +30,7 @@ namespace SmartImage.Core
 		{
 			get
 			{
-				var fields = typeof(MainMenu).GetFields(
+				var fields = typeof(Interface).GetFields(
 						BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Default)
 					.Where(f => f.FieldType == typeof(NConsoleOption))
 					.ToArray();
@@ -49,7 +49,7 @@ namespace SmartImage.Core
 		/// <summary>
 		/// Main menu console interface
 		/// </summary>
-		internal static NConsoleInterface Interface
+		internal static NConsoleInterface MainMenuInterface
 		{
 			get
 			{
@@ -67,13 +67,24 @@ namespace SmartImage.Core
 		internal static void Run()
 		{
 			//
-			NConsoleIO.ReadOptions(Interface);
+			NConsoleIO.ReadOptions(MainMenuInterface);
 		}
+
+		internal static readonly Color ColorMain   = Color.Yellow;
+		
+		internal static readonly Color ColorConfig = Color.DeepSkyBlue;
+
+		internal static readonly Color ColorUtility = Color.DarkOrange;
+
+		internal static readonly Color ColorMisc = Color.MediumPurple;
+
+		internal static readonly Color ColorVersion = Color.LightGreen;
+		
 
 		private static readonly NConsoleOption RunSelectImage = new()
 		{
 			Name  = ">>> Select image <<<",
-			Color = Color.Yellow,
+			Color = ColorMain,
 			Function = () =>
 			{
 				Console.WriteLine("Drag and drop the image here.");
@@ -98,7 +109,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigSearchEnginesOption = new()
 		{
 			Name  = "Configure search engines",
-			Color = Color.CadetBlue,
+			Color = ColorConfig,
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
@@ -106,7 +117,7 @@ namespace SmartImage.Core
 
 				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
-				NConsole.WriteInfo(newValues);
+				NConsole.WriteSuccess(newValues);
 
 				SearchConfig.Config.SearchEngines = newValues;
 
@@ -119,7 +130,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigPriorityEnginesOption = new()
 		{
 			Name  = "Configure priority engines",
-			Color = Color.CadetBlue,
+			Color = ColorConfig,
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
@@ -127,7 +138,7 @@ namespace SmartImage.Core
 
 				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
-				NConsole.WriteInfo(newValues);
+				NConsole.WriteSuccess(newValues);
 
 				SearchConfig.Config.PriorityEngines = newValues;
 
@@ -140,7 +151,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigSauceNaoAuthOption = new()
 		{
 			Name  = "Configure SauceNao API authentication",
-			Color = Color.CadetBlue,
+			Color = ColorConfig,
 			Function = () =>
 			{
 				SearchConfig.Config.SauceNaoAuth = NConsoleIO.ReadInput("API key");
@@ -153,7 +164,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigImgurAuthOption = new()
 		{
 			Name  = "Configure Imgur API authentication",
-			Color = Color.CadetBlue,
+			Color = ColorConfig,
 			Function = () =>
 			{
 
@@ -167,7 +178,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ConfigUpdateOption = new()
 		{
 			Name  = "Update configuration file",
-			Color = Color.CadetBlue,
+			Color = ColorConfig,
 			Function = () =>
 			{
 				SearchConfig.Config.WriteToFile();
@@ -180,7 +191,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ShowInfoOption = new()
 		{
 			Name  = "Show info",
-			Color = Color.MediumPurple,
+			Color = ColorMisc,
 			Function = () =>
 			{
 				Info.ShowInfo();
@@ -190,33 +201,42 @@ namespace SmartImage.Core
 			}
 		};
 
+
 		private static readonly NConsoleOption ContextMenuOption = new()
 		{
-			Name  = "Add/remove context menu integration",
-			Color = Color.DarkOrange,
+			Name  = GetContextMenuString(Integration.IsContextMenuAdded),
+			Color = ColorUtility,
 			Function = () =>
 			{
 				bool ctx = Integration.IsContextMenuAdded;
+				bool added;
 
 				if (!ctx) {
 					Integration.HandleContextMenu(IntegrationOption.Add);
 					NConsole.WriteSuccess("Added to context menu");
+					added = true;
 				}
 				else {
 					Integration.HandleContextMenu(IntegrationOption.Remove);
 					NConsole.WriteSuccess("Removed from context menu");
+					added = false;
 				}
+
+				ContextMenuOption.Name = GetContextMenuString(added);
 
 				NConsoleIO.WaitForSecond();
 				return null;
 			}
 		};
 
+		private static string GetContextMenuString(bool added) =>
+			(!added ? "Add" : "Remove") + " context menu integration";
+
 
 		private static readonly NConsoleOption CheckForUpdateOption = new()
 		{
 			Name  = "Check for updates",
-			Color = Color.DarkOrange,
+			Color = ColorUtility,
 			Function = () =>
 			{
 				var v = UpdateInfo.CheckForUpdates();
@@ -248,7 +268,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ResetOption = new()
 		{
 			Name  = "Reset all configuration and integrations",
-			Color = Color.DarkOrange,
+			Color = ColorUtility,
 			Function = () =>
 			{
 				Integration.ResetIntegrations();
@@ -258,10 +278,27 @@ namespace SmartImage.Core
 			}
 		};
 
+
+		private static readonly NConsoleOption CleanupLegacy = new()
+		{
+			Name  = "Legacy cleanup",
+			Color = ColorUtility,
+
+			Function = () =>
+			{
+				bool ok = LegacyIntegration.LegacyCleanup();
+
+				NConsole.WriteInfo($"Legacy cleanup: {ok}");
+				NConsoleIO.WaitForInput();
+
+				return null;
+			}
+		};
+
 		private static readonly NConsoleOption UninstallOption = new()
 		{
 			Name  = "Uninstall",
-			Color = Color.DarkOrange,
+			Color = ColorUtility,
 			Function = () =>
 			{
 				Integration.ResetIntegrations();
@@ -308,7 +345,7 @@ namespace SmartImage.Core
 				var img = Path.Combine(cd2, testImg);
 
 				SearchConfig.Config.Image           = img;
-				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
+				//SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 				return true;
 			}

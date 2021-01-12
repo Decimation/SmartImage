@@ -1,21 +1,15 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
 using System.Threading;
 using System.Threading.Tasks;
-using JetBrains.Annotations;
-using Novus;
-using Novus.Memory;
 using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
 using SmartImage.Core;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
@@ -83,11 +77,11 @@ namespace SmartImage.Searching
 			string auth     = SearchConfig.Config.ImgurAuth;
 			bool   useImgur = !String.IsNullOrWhiteSpace(auth);
 
+			SearchConfig.Config.EnsureConfig();
+			
 			var engines = SearchConfig.Config.SearchEngines;
 
-			if (engines == SearchEngineOptions.None) {
-				engines = SearchConfig.ENGINES_DEFAULT;
-			}
+			
 
 			m_results = null!;
 			m_engines = engines;
@@ -143,6 +137,15 @@ namespace SmartImage.Searching
 			Complete         = true;
 			Interface.Status = "Search complete";
 			NConsoleIO.Refresh();
+			
+			
+			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
+				
+				// Results will already be sorted
+				// Open best result
+				var best = m_results[1];
+				best.Function();
+			}
 		}
 
 		private static int CompareResults(FullSearchResult x, FullSearchResult y)
@@ -242,7 +245,8 @@ namespace SmartImage.Searching
 
 			// If the engine is priority, open its result in the browser
 			if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-				Network.OpenUrl(result.Url);
+				// Open result
+				result.Function();
 			}
 
 			//Update();

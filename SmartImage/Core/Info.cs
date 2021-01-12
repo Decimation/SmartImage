@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using JetBrains.Annotations;
@@ -125,27 +126,38 @@ namespace SmartImage.Core
 
 			Console.Clear();
 
+			Console.WriteLine(Info.NAME_BANNER);
+			
+			/*
+			 * Author info
+			 */
+
+			NConsole.OverrideForegroundColor = Interface.ColorMain;
+
+			NConsole.WriteInfo("Author: {0}", Author);
+			NConsole.WriteInfo("Repo: {0}", Repo);
+			NConsole.WriteInfo("Readme: {0}", Readme);
+
+			NConsole.NewLine();
+
+			NConsole.ResetOverrideColors();
+
 			/*
 			 * Config
 			 */
 
+			NConsole.OverrideForegroundColor = Interface.ColorConfig;
+
 			NConsole.WriteInfo(SearchConfig.Config);
 
-
-			/*
-			 * Runtime info
-			 */
-
-
-			NConsole.WriteInfo("Application folder: {0}", AppFolder);
-			NConsole.WriteInfo("Executable location: {0}", ExeLocation);
-			NConsole.WriteInfo("Context menu integrated: {0}", Integration.IsContextMenuAdded);
-			NConsole.WriteInfo("In path: {0}\n", IsAppFolderInPath);
+			NConsole.ResetOverrideColors();
 
 
 			/*
 			 * Version info
 			 */
+
+			NConsole.OverrideForegroundColor = Interface.ColorVersion;
 
 			var versionsInfo = UpdateInfo.CheckForUpdates();
 
@@ -155,16 +167,22 @@ namespace SmartImage.Core
 
 			NConsole.NewLine();
 
+			NConsole.ResetOverrideColors();
+
 			/*
-			 * Author info
+			 * Runtime info
 			 */
 
-			NConsole.WriteInfo("Repo: {0}", Repo);
-			NConsole.WriteInfo("Readme: {0}", Readme);
-			NConsole.WriteInfo("Author: {0}", Author);
+			NConsole.OverrideForegroundColor = Interface.ColorUtility;
+			
+			NConsole.WriteInfo("Application folder: {0}", AppFolder);
+			NConsole.WriteInfo("Executable location: {0}", ExeLocation);
+			NConsole.WriteInfo("Context menu integrated: {0}", Integration.IsContextMenuAdded);
+			NConsole.WriteInfo("In path: {0}\n", IsAppFolderInPath);
 
-			NConsole.NewLine();
+			NConsole.ResetOverrideColors();
 
+			
 
 			/*
 			 * Dependencies
