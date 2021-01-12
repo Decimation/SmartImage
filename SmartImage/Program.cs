@@ -32,14 +32,8 @@ namespace SmartImage
 		/*
 		 * Entry point
 		 */
-		
-		
-		private const int CWW = 120;
-		
-		private const int CWH = 50;
 
 
-		
 		private static void Main(string[] args)
 		{
 			
@@ -57,8 +51,8 @@ namespace SmartImage
 			Console.Title = Info.NAME;
 
 			
-			if (Console.LargestWindowWidth >= CWW && Console.LargestWindowHeight >= CWH) {
-				Console.SetWindowSize(CWW, CWH);
+			if (Console.LargestWindowWidth >= Interface.ConsoleWindowWidth && Console.LargestWindowHeight >= Interface.ConsoleWindowHeight) {
+				Console.SetWindowSize(Interface.ConsoleWindowWidth, Interface.ConsoleWindowHeight);
 			}
 
 			Console.OutputEncoding = Encoding.Unicode;

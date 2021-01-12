@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using JetBrains.Annotations;
+using Novus.Utilities;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
+using SmartImage.Utilities;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
 
@@ -29,11 +33,6 @@ namespace SmartImage.Core
 	{
 		// todo: create config field type; create config field attribute
 		// todo: refactor
-
-		private const string CFG_IMGUR_APIKEY     = "imgur_client_id";
-		private const string CFG_SAUCENAO_APIKEY  = "saucenao_key";
-		private const string CFG_SEARCH_ENGINES   = "search_engines";
-		private const string CFG_PRIORITY_ENGINES = "priority_engines";
 
 
 		public const SearchEngineOptions ENGINES_DEFAULT = SearchEngineOptions.All;
@@ -58,21 +57,25 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Engines to use for searching
 		/// </summary>
+		[field: ConfigField("search_engines", SearchEngineOptions.All)]
 		public SearchEngineOptions SearchEngines { get; set; }
 
 		/// <summary>
 		///     Engines whose results should be opened in the browser
 		/// </summary>
+		[field: ConfigField("priority_engines", SearchEngineOptions.Auto)]
 		public SearchEngineOptions PriorityEngines { get; set; }
 
 		/// <summary>
 		///     <see cref="ImgurClient" /> API key
 		/// </summary>
+		[field: ConfigField("imgur_client_id", "")]
 		public string ImgurAuth { get; set; }
 
 		/// <summary>
 		///     <see cref="SauceNaoEngine" /> API key
 		/// </summary>
+		[field: ConfigField("saucenao_key", "")]
 		public string SauceNaoAuth { get; set; }
 
 		/// <summary>
@@ -119,11 +122,17 @@ namespace SmartImage.Core
 
 			var cfgFromFileMap = Collections.ReadDictionary(ConfigLocation);
 
-			SearchEngines   = ReadMapKeyValue(CFG_SEARCH_ENGINES, cfgFromFileMap, true, ENGINES_DEFAULT);
-			PriorityEngines = ReadMapKeyValue(CFG_PRIORITY_ENGINES, cfgFromFileMap, true, PRIORITY_ENGINES_DEFAULT);
-			ImgurAuth       = ReadMapKeyValue(CFG_IMGUR_APIKEY, cfgFromFileMap, true, IMGUR_APIKEY_DEFAULT);
-			SauceNaoAuth    = ReadMapKeyValue(CFG_SAUCENAO_APIKEY, cfgFromFileMap, true, SAUCENAO_APIKEY_DEFAULT);
 
+			//UpdateConfigFields(this, cfgFromFileMap);
+
+			//SearchEngines   = ReadMapKeyValue<SearchEngineOptions>(nameof(SearchEngines), cfgFromFileMap);
+			//PriorityEngines = ReadMapKeyValue<SearchEngineOptions>(nameof(PriorityEngines), cfgFromFileMap);
+			//ImgurAuth       = ReadMapKeyValue<string>(nameof(ImgurAuth), cfgFromFileMap);
+			//SauceNaoAuth    = ReadMapKeyValue<string>(nameof(SauceNaoAuth), cfgFromFileMap);
+
+			UpdateCfgFields(cfgFromFileMap);
+			
+			
 			if (newCfg) {
 				WriteToFile();
 			}
@@ -132,22 +141,55 @@ namespace SmartImage.Core
 			Image = String.Empty;
 		}
 
+		
+		private void UpdateCfgFields(IDictionary<string, string> cfg)
+		{
+			var f = this.GetType().GetAnnotated<ConfigFieldAttribute>();
+
+			foreach (var t in f) {
+				var s   = t.Member.Name;
+				
+				var val  = ReadMapKeyValue<object>(s, cfg).ToString();
+				
+
+				var fi   = t.Member.GetBackingField();
+				var val2 = ReadConfigValue(val, fi.FieldType );
+				fi.SetValue(this, val2);
+			}
+		}
 
 		private IDictionary<string, string> ToMap()
 		{
-			var m = new Dictionary<string, string>
-			{
-				{CFG_SEARCH_ENGINES, SearchEngines.ToString()},
-				{CFG_PRIORITY_ENGINES, PriorityEngines.ToString()},
-				{CFG_IMGUR_APIKEY, ImgurAuth},
-				{CFG_SAUCENAO_APIKEY, SauceNaoAuth}
-			};
+			var a = this.GetType().GetAnnotated<ConfigFieldAttribute>()
+				.Select(delegate((ConfigFieldAttribute Attribute, MemberInfo Member) f)
+				{
+					var fv = f.Member.GetBackingField();
+					return new KeyValuePair<string, string>(f.Attribute.Id, fv.GetValue(this).ToString());
+				});
 
+
+			var m = new Dictionary<string, string>(a);
+			
+			//var m = new Dictionary<string, string>
+			//{
+			//	{"search_engines", SearchEngines.ToString()},
+			//	{"priority_engines", PriorityEngines.ToString()},
+			//	{"imgur_client_id", ImgurAuth},
+			//	{"saucenao_key", SauceNaoAuth}
+			//};
+
+
+			foreach (var kv in m) {
+				Debug.WriteLine(kv);
+			}
+			
 			return m;
 		}
 
 		public void Reset()
 		{
+			
+			
 			SearchEngines   = ENGINES_DEFAULT;
 			PriorityEngines = PRIORITY_ENGINES_DEFAULT;
 			ImgurAuth       = IMGUR_APIKEY_DEFAULT;
@@ -166,9 +208,10 @@ namespace SmartImage.Core
 		/// <summary>
 		/// Illegal <see cref="SearchEngineOptions"/> values for <see cref="SearchEngines"/>
 		/// </summary>
-		private const SearchEngineOptions IllegalSearchEngineOptions = SearchEngineOptions.None | SearchEngineOptions.Auto;
+		private const SearchEngineOptions IllegalSearchEngineOptions =
+			SearchEngineOptions.None | SearchEngineOptions.Auto;
 
-		
+
 		/// <summary>
 		/// Ensures validity of config options
 		/// </summary>
@@ -213,8 +256,26 @@ namespace SmartImage.Core
 			//Update();
 		}
 
+	
 
-		private static T ReadMapKeyValue<T>(string name, IDictionary<string, string> cfg,
+		private  T ReadMapKeyValue<T>(string fname, IDictionary<string, string> cfg)
+		{
+			var t     = this.GetType();
+			var field = t.GetFieldAuto(fname);
+
+			var attr = field.GetCustomAttribute<ConfigFieldAttribute>();
+
+			var defaultValue     = (T) attr.DefaultValue;
+			var setDefaultIfNull = attr.SetDefaultIfNull;
+			var name             = attr.Id;
+
+
+			var v = ReadMapKeyValueOld<T>(name, cfg, setDefaultIfNull, defaultValue);
+			Debug.WriteLine($"{v} -> {name} {field.Name}");
+			return v;
+		}
+
+		private static T ReadMapKeyValueOld<T>(string name, IDictionary<string, string> cfg,
 			bool setDefaultIfNull = false, T defaultValue = default)
 		{
 			if (!cfg.ContainsKey(name)) {
@@ -226,10 +287,11 @@ namespace SmartImage.Core
 
 			if (setDefaultIfNull && String.IsNullOrWhiteSpace(rawValue)) {
 				WriteMapKeyValue(name, defaultValue.ToString(), cfg);
-				rawValue = ReadMapKeyValue<string>(name, cfg);
+				rawValue = ReadMapKeyValueOld<string>(name, cfg);
 			}
 
 			var parse = ReadConfigValue<T>(rawValue);
+			Debug.WriteLine($"{parse} -> {name}");
 			return parse;
 		}
 
@@ -339,6 +401,22 @@ namespace SmartImage.Core
 			}
 		}
 
+		private static object ReadConfigValue(string rawValue, Type t)
+		{
+			if (t.IsEnum)
+			{
+				Enum.TryParse(t, rawValue, out var e);
+				return e;
+			}
+
+			if (t == typeof(bool))
+			{
+				Boolean.TryParse(rawValue, out bool b);
+				return (object)b;
+			}
+
+			return (object)rawValue;
+		}
 
 		private static T ReadConfigValue<T>(string rawValue)
 		{

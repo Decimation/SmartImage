@@ -4,13 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
-using SmartImage.Searching;
 using SmartImage.Utilities;
-
+using Novus.Win32;
 // ReSharper disable ArrangeAccessorOwnerBody
 
 #pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101, RCS1213, RCS1036, CS8602
@@ -19,7 +17,7 @@ using SmartImage.Utilities;
 namespace SmartImage.Core
 {
 	/// <summary>
-	/// User interface; contains <see cref="NConsoleInterface"/> and <see cref="NConsoleOption"/> for the main menu
+	///     User interface; contains <see cref="NConsoleInterface" /> and <see cref="NConsoleOption" /> for the main menu
 	/// </summary>
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal static class Interface
@@ -47,9 +45,9 @@ namespace SmartImage.Core
 		}
 
 		/// <summary>
-		/// Main menu console interface
+		///     Main menu console interface
 		/// </summary>
-		internal static NConsoleInterface MainMenuInterface
+		internal static NConsoleInterface MainMenu
 		{
 			get
 			{
@@ -62,24 +60,47 @@ namespace SmartImage.Core
 		///     Runs when no arguments are given (and when the executable is double-clicked)
 		/// </summary>
 		/// <remarks>
-		///     More user-friendly menu
+		///     User-friendly menu
 		/// </remarks>
-		internal static void Run()
-		{
-			//
-			NConsoleIO.ReadOptions(MainMenuInterface);
-		}
+		internal static void Run() => NConsoleIO.ReadOptions(MainMenu);
 
-		internal static readonly Color ColorMain   = Color.Yellow;
-		
+
+		/// <summary>
+		/// Primary color
+		/// </summary>
+		internal static readonly Color ColorMain = Color.Yellow;
+
+		/// <summary>
+		/// Config color
+		/// </summary>
 		internal static readonly Color ColorConfig = Color.DeepSkyBlue;
 
+		/// <summary>
+		/// Utility color
+		/// </summary>
 		internal static readonly Color ColorUtility = Color.DarkOrange;
 
+		/// <summary>
+		/// Misc color
+		/// </summary>
 		internal static readonly Color ColorMisc = Color.MediumPurple;
 
+		/// <summary>
+		/// Version color
+		/// </summary>
 		internal static readonly Color ColorVersion = Color.LightGreen;
+
 		
+		/// <summary>
+		/// Console window width
+		/// </summary>
+		internal const int ConsoleWindowWidth = 120;
+
+		
+		/// <summary>
+		/// Console window height
+		/// </summary>
+		internal const int ConsoleWindowHeight = 50;
 
 		private static readonly NConsoleOption RunSelectImage = new()
 		{
@@ -91,7 +112,7 @@ namespace SmartImage.Core
 
 				string? img = NConsoleIO.ReadInput("Image");
 
-				if (string.IsNullOrWhiteSpace(img)) {
+				if (String.IsNullOrWhiteSpace(img)) {
 					NConsole.WriteError("Invalid image");
 					NConsoleIO.WaitForInput();
 					return null;
@@ -123,7 +144,7 @@ namespace SmartImage.Core
 
 				NConsoleIO.WaitForSecond();
 				return null;
-			},
+			}
 		};
 
 
@@ -229,8 +250,10 @@ namespace SmartImage.Core
 			}
 		};
 
-		private static string GetContextMenuString(bool added) =>
-			(!added ? "Add" : "Remove") + " context menu integration";
+		private static string GetContextMenuString(bool added)
+		{
+			return (!added ? "Add" : "Remove") + " context menu integration";
+		}
 
 
 		private static readonly NConsoleOption CheckForUpdateOption = new()
@@ -241,7 +264,7 @@ namespace SmartImage.Core
 			{
 				var v = UpdateInfo.CheckForUpdates();
 
-				if ((v.Status == VersionStatus.Available)) {
+				if (v.Status == VersionStatus.Available) {
 					Console.WriteLine($"Updating to {v.Latest}...");
 
 					try {
@@ -318,7 +341,6 @@ namespace SmartImage.Core
 
 
 #if DEBUG
-
 		private static readonly string[] TestImages =
 		{
 			"Test1.jpg",
@@ -344,12 +366,13 @@ namespace SmartImage.Core
 
 				var img = Path.Combine(cd2, testImg);
 
-				SearchConfig.Config.Image           = img;
+				SearchConfig.Config.Image = img;
 				//SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 				return true;
 			}
 		};
 #endif
+		
 	}
 }
