@@ -23,7 +23,6 @@
     <br />
     <a href="https://github.com/Decimation/SmartImage/wiki"><strong>Wiki</strong></a>
     <br />
-    <br />
     <a href="https://github.com/Decimation/SmartImage/issues"><strong>Issues</strong></a>
     
   </p>
