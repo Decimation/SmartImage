@@ -90,7 +90,7 @@ namespace SmartImage.Core
 		public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
 		/// <summary>
-		///     Null if executable is not in path.
+		///     <c>Null</c> if executable is not in path.
 		/// </summary>
 		[CanBeNull]
 		public static string ExeLocation => FileSystem.FindExecutableLocation(NAME_EXE)!;

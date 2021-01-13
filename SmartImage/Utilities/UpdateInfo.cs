@@ -83,7 +83,13 @@ namespace SmartImage.Utilities
 				NConsole.WriteSuccess($"Update found: {ui.Latest} ");
 
 				if (NConsoleIO.ReadConfirmation("Update?")) {
-					Update(ui);
+					try {
+						Update(ui);
+					}
+					catch (Exception e) {
+						Console.WriteLine(e);
+						return;
+					}
 					Environment.Exit(0);
 				}
 			}

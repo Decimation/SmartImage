@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -22,8 +23,6 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
-		
-
 		public const char ATTR_SUCCESS = Formatting.CHECK_MARK;
 
 		public FullSearchResult(ISearchEngine engine, string url, float? similarity = null)
@@ -67,6 +66,8 @@ namespace SmartImage.Searching
 					// 	}
 					// }
 
+					Debug.WriteLine("Downloading");
+
 					string? path = Network.DownloadUrl(Url);
 
 					NConsole.WriteSuccess("Downloaded to {0}", path);
@@ -81,15 +82,7 @@ namespace SmartImage.Searching
 				};
 			}
 		}
-
-		// public bool? IsImage
-		// {
-		// 	get;
-		// 	internal set;
-		// }
-
 		
-
 
 		public override string Data => ToString();
 
@@ -125,9 +118,13 @@ namespace SmartImage.Searching
 			{
 				return () =>
 				{
-					var u = RawUrl ?? Url;
-					
-					Network.OpenUrl(u);
+					if (RawUrl != null) {
+						Network.OpenUrl(RawUrl);
+						return null;
+					}
+
+					NConsole.WriteError("Raw result unavailable");
+					NConsoleIO.WaitForSecond();
 					return null;
 				};
 			}
@@ -177,17 +174,18 @@ namespace SmartImage.Searching
 
 			string attrSuccess = ATTR_SUCCESS.ToString();
 
-			
+
 			var ex = ExtendedResults.Count > 0
-				? string.Format($"({ExtendedResults.Count})") : string.Empty;
-			
+				? String.Format($"({ExtendedResults.Count})")
+				: String.Empty;
+
 			sb.Append($"{attrSuccess} {ex}\n");
 
 
 			if (RawUrl != Url) {
 				sb.Append($"\tResult: {Url}\n");
 			}
-			else if (RawUrl != null) {
+			if (RawUrl != null) {
 				sb.Append($"\tRaw: {RawUrl}\n");
 			}
 
@@ -235,7 +233,5 @@ namespace SmartImage.Searching
 
 			return rg;
 		}
-
-		
 	}
 }

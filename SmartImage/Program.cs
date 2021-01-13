@@ -80,13 +80,6 @@ namespace SmartImage
 			}
 
 			/*
-			 * Check for updates
-			 */
-
-
-			UpdateInfo.AutoUpdate();
-			
-			/*
 			 * Run search
 			 */
 

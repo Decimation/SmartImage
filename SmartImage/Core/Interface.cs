@@ -250,10 +250,7 @@ namespace SmartImage.Core
 			}
 		};
 
-		private static string GetContextMenuString(bool added)
-		{
-			return (!added ? "Add" : "Remove") + " context menu integration";
-		}
+		private static string GetContextMenuString(bool added) => (!added ? "Add" : "Remove") + " context menu integration";
 
 
 		private static readonly NConsoleOption CheckForUpdateOption = new()
@@ -262,26 +259,7 @@ namespace SmartImage.Core
 			Color = ColorUtility,
 			Function = () =>
 			{
-				var v = UpdateInfo.GetUpdateInfo();
-
-				if (v.Status == VersionStatus.Available) {
-					Console.WriteLine($"Updating to {v.Latest}...");
-
-					try {
-						UpdateInfo.AutoUpdate();
-					}
-					catch (Exception e) {
-						Console.WriteLine(e);
-
-					}
-
-					// No return
-					Environment.Exit(0);
-
-				}
-				else {
-					NConsole.WriteInfo("{0}", v.Status);
-				}
+				UpdateInfo.AutoUpdate();
 
 				NConsoleIO.WaitForSecond();
 				return null;
