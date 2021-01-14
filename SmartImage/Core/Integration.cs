@@ -93,14 +93,12 @@ namespace SmartImage.Core
 			switch (option) {
 				case IntegrationOption.Add:
 				{
-					string oldValue = OS.EnvironmentPath;
-
+					string oldValue  = OS.EnvironmentPath;
 					string appFolder = Info.AppFolder;
 
 					if (Info.IsAppFolderInPath) {
 						return;
 					}
-
 
 					bool appFolderInPath = oldValue
 						.Split(OS.PATH_DELIM)

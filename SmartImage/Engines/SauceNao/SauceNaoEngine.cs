@@ -101,11 +101,6 @@ namespace SmartImage.Engines.SauceNao
 			try {
 				var orig = GetResults(url);
 
-				if (orig == null) {
-					result.ExtendedInfo.Add($"Timed out after {Timeout}");
-					return result;
-				}
-				
 				var sn = orig
 					.OrderByDescending(r => r.Similarity)
 					.ToArray();
@@ -137,33 +132,23 @@ namespace SmartImage.Engines.SauceNao
 
 			return result;
 		}
-
-		/// <summary>
-		/// Timeout duration
-		/// </summary>
-		public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
+		
 		
 		private IEnumerable<SauceNaoResult>? GetResults(string url)
 		{
 
-			var task = Task.Run(() =>
-			{
-				var req = new RestRequest();
-				req.AddQueryParameter("db", "999");
-				req.AddQueryParameter("output_type", "2");
-				req.AddQueryParameter("numres", "16");
-				req.AddQueryParameter("api_key", m_apiKey);
-				req.AddQueryParameter("url", url);
+			var req = new RestRequest();
+			req.AddQueryParameter("db", "999");
+			req.AddQueryParameter("output_type", "2");
+			req.AddQueryParameter("numres", "16");
+			req.AddQueryParameter("api_key", m_apiKey);
+			req.AddQueryParameter("url", url);
 
-				var res = m_client.Execute(req);
+			var res = m_client.Execute(req);
 
-				string c = res.Content;
+			string c = res.Content;
 
-				return ReadResults(c);
-			});
-
-			// Handle possible timeouts
-			return task.Wait(Timeout) ? task.Result : null;
+			return ReadResults(c);
 		}
 
 

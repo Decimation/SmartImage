@@ -37,27 +37,20 @@ namespace SmartImage.Core
 			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
 			"                                                     |___/\n";
 
-		// @formatter:off — disable formatter after this line
-
-		public const string NAME_BANNER2 = "#############################\n" +
-		                                   "############**###############\n" +
-		                                   "#######*           ,#########" 	 + "  ____                       _   ___\n"+
-		                                   "######   ########   ,.#######" 	 + " / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
-		                                   "#####.  ,,#####.,,   ,,.,####" 	 + @" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
-		                                   "##,.,,   ,,.,,,.,   ,,,.,,,##" 	 + "  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
-		                                   "(((((((*            (((((((((" 	 + @" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
-		                                   "((((((((((((**((((    *(((((("   + "                                                     |___/\n" +
-										   "((((((((((((((((((((,    ((((\n" +
-		                                   "(((((((((((((((((((((((((((((\n" +
-		                                   "(((((((((((((((((((((((((((((\n";
-
-		// @formatter:on — enable formatter after this line
-
-
+		
+		/// <summary>
+		/// Name
+		/// </summary>
 		public const string NAME = "SmartImage";
 
+		/// <summary>
+		/// Executable file name
+		/// </summary>
 		public const string NAME_EXE = "SmartImage.exe";
 
+		/// <summary>
+		/// Config file name (<see cref="SearchConfig"/>)
+		/// </summary>
 		public const string NAME_CFG = "SmartImage.cfg";
 
 		public const string Author = "Read Stanton";
@@ -77,7 +70,7 @@ namespace SmartImage.Core
 
 		public static string AppFolder
 		{
-			// todo: use ProgramData
+			// todo: use ProgramData?
 
 			get
 			{
@@ -104,21 +97,6 @@ namespace SmartImage.Core
 			if (!OperatingSystem.IsWindows()) {
 				throw new NotSupportedException();
 			}
-		}
-
-		internal static Stream? GetResource(string resource)
-		{
-			Assembly a = Assembly.GetExecutingAssembly();
-
-			var n = a.GetName().Name;
-
-			//"SmartImage.hint.wav"
-
-			// [Assembly].[asset]
-
-			resource = n + "." + resource;
-
-			return a.GetManifestResourceStream(resource);
 		}
 
 		internal static void ShowInfo()
@@ -195,11 +173,6 @@ namespace SmartImage.Core
 			foreach (var name in dependencies) {
 				NConsole.WriteInfo("{0} ({1})", name.Name, name.Version);
 			}
-		}
-
-		internal static class Resources
-		{
-			internal static readonly Stream SndHint = GetResource("hint.wav")!;
 		}
 	}
 }

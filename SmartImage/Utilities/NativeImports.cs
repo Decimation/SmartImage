@@ -93,6 +93,6 @@ namespace SmartImage.Utilities
 
 		internal static void FlashConsoleWindow() => FlashWindow(GetConsoleWindowHandle());
 
-		internal static void BringToFront() => SetForegroundWindow(GetConsoleWindowHandle());
+		internal static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindowHandle());
 	}
 }

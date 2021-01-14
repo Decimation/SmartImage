@@ -26,8 +26,8 @@ namespace SmartImage
 		//                                                     |___/
 
 		/*
-		 * todo: refactor access modifiers
-		 * todo: maybe create a separate unit testing project
+		 * todo: use async/tasks
+		 * todo: timeout handling
 		 */
 
 		/*

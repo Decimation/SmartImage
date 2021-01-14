@@ -37,8 +37,6 @@ namespace SmartImage.Searching
 			Similarity      = similarity;
 			ExtendedInfo    = new List<string>();
 			ExtendedResults = new List<FullSearchResult>();
-
-
 		}
 
 		/// <summary>
@@ -57,15 +55,6 @@ namespace SmartImage.Searching
 			{
 				return () =>
 				{
-					// if (!IsImage.HasValue || !IsImage.Value) {
-					// 	bool ok = NConsoleIO.ReadConfirmation(
-					// 		$"Link may not be an image. Download anyway?");
-					// 	
-					// 	if (!ok) {
-					// 		return null;
-					// 	}
-					// }
-
 					Debug.WriteLine("Downloading");
 
 					string? path = Network.DownloadUrl(Url);
@@ -75,14 +64,13 @@ namespace SmartImage.Searching
 					// Open folder with downloaded file selected
 					FileSystem.ExploreFile(path);
 
-
 					NConsoleIO.WaitForSecond();
 
 					return null;
 				};
 			}
 		}
-		
+
 
 		public override string Data => ToString();
 
@@ -106,6 +94,7 @@ namespace SmartImage.Searching
 			{
 				return () =>
 				{
+					// Open in browser
 					Network.OpenUrl(Url);
 					return null;
 				};
@@ -185,6 +174,7 @@ namespace SmartImage.Searching
 			if (RawUrl != Url) {
 				sb.Append($"\tResult: {Url}\n");
 			}
+
 			if (RawUrl != null) {
 				sb.Append($"\tRaw: {RawUrl}\n");
 			}
@@ -232,6 +222,30 @@ namespace SmartImage.Searching
 
 
 			return rg;
+		}
+
+		public static int CompareResults(FullSearchResult x, FullSearchResult y)
+		{
+			float xSim = x?.Similarity ?? 0;
+			float ySim = y?.Similarity ?? 0;
+
+			if (xSim > ySim) {
+				return -1;
+			}
+
+			if (xSim < ySim) {
+				return 1;
+			}
+
+			if (x?.ExtendedResults.Count > y?.ExtendedResults.Count) {
+				return -1;
+			}
+
+			if (x?.ExtendedInfo.Count > y?.ExtendedInfo.Count) {
+				return -1;
+			}
+
+			return 0;
 		}
 	}
 }

@@ -42,18 +42,32 @@ namespace SmartImage.Searching
 			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                              +
 			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
 
-		private readonly SearchEngineOptions m_engines;
+		private SearchEngineOptions Engines { get; }
 
-		private readonly FileInfo m_img;
-		private readonly Bitmap   m_bmp;
-		private readonly string   m_imgUrl;
+		private FileInfo ImageFile { get; }
+		
 
-		private readonly Thread m_monitor;
+		private string ImageUrl { get; }
 
-		private readonly Task[] m_tasks;
+		/// <summary>
+		/// Thread that monitors the search (<see cref="RunSearchMonitor"/>)
+		/// </summary>
+		private Thread SearchMonitor { get; }
 
+		/// <summary>
+		/// Search tasks (<seealso cref="CreateSearchTasks"/>)
+		/// </summary>
+		private Task[] SearchTasks { get; }
+
+		
+		/// <summary>
+		/// Search results
+		/// </summary>
 		private List<FullSearchResult> m_results;
 
+		/// <summary>
+		/// Whether the search is complete
+		/// </summary>
 		public bool Complete { get; private set; }
 
 
@@ -67,11 +81,14 @@ namespace SmartImage.Searching
 		/// </summary>
 		public ref List<FullSearchResult> Results => ref m_results;
 
+		/// <summary>
+		/// Search client interface
+		/// </summary>
 		public NConsoleInterface Interface { get; }
 
 		private SearchClient(string img)
 		{
-			if (!IsFileValid(img)) {
+			if (!Images.IsFileValid(img)) {
 				throw new SmartImageException("Invalid image");
 			}
 
@@ -82,25 +99,24 @@ namespace SmartImage.Searching
 
 			var engines = SearchConfig.Config.SearchEngines;
 
-			m_results = null!;
-			m_engines = engines;
-			m_img     = new FileInfo(img);
-			m_bmp     = new Bitmap(img);
+			m_results   = null!;
+			Engines     = engines;
+			ImageFile   = new FileInfo(img);
 
 			//
 
 			string? imgUrl = Upload(img, useImgur);
 
-			m_imgUrl = imgUrl ?? throw new SmartImageException("Image upload failed");
+			ImageUrl = imgUrl ?? throw new SmartImageException("Image upload failed");
 
 			//
 
-			m_tasks = CreateSearchTasks();
+			SearchTasks = CreateSearchTasks();
 
 			// Joining each thread isn't necessary as this object is disposed upon program exit
 			// Background threads won't prevent program termination
 
-			m_monitor = new Thread(RunSearchMonitor)
+			SearchMonitor = new Thread(RunSearchMonitor)
 			{
 				Priority     = ThreadPriority.Highest,
 				IsBackground = true
@@ -120,9 +136,9 @@ namespace SmartImage.Searching
 		/// </summary>
 		private void RunSearchMonitor()
 		{
-			while (m_tasks.Any(t => !t.IsCompleted)) {
-				int inProgress = m_tasks.Count(t => t.IsCompleted);
-				int len        = m_tasks.Length;
+			while (SearchTasks.Any(t => !t.IsCompleted)) {
+				int inProgress = SearchTasks.Count(t => t.IsCompleted);
+				int len        = SearchTasks.Length;
 
 				Interface.Status = $"Searching: {inProgress}/{len}";
 			}
@@ -135,23 +151,18 @@ namespace SmartImage.Searching
 			Interface.Status = "Search complete";
 			NConsoleIO.Refresh();
 
-			Debug.WriteLine("Search complete");
-			
 			/*
 			 * Alert user
 			 */
-			
+
 			// Play sound
-
-			//var p = new SoundPlayer(Info.Resources.SndHint);
-			//p.Play();
-
 			SystemSounds.Exclamation.Play();
 
 			// Flash taskbar icon
 			NativeImports.FlashConsoleWindow();
-			
-			NativeImports.BringToFront();
+
+			// Bring to front
+			//NativeImports.BringConsoleToFront();
 
 			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
 
@@ -162,30 +173,6 @@ namespace SmartImage.Searching
 			}
 		}
 
-		private static int CompareResults(FullSearchResult x, FullSearchResult y)
-		{
-			float xSim = x?.Similarity ?? 0;
-			float ySim = y?.Similarity ?? 0;
-
-			if (xSim > ySim) {
-				return -1;
-			}
-
-			if (xSim < ySim) {
-				return 1;
-			}
-
-			if (x?.ExtendedResults.Count > y?.ExtendedResults.Count) {
-				return -1;
-			}
-
-			if (x?.ExtendedInfo.Count > y?.ExtendedInfo.Count) {
-				return -1;
-			}
-
-			return 0;
-		}
-
 		/// <summary>
 		///     Starts search
 		/// </summary>
@@ -194,38 +181,40 @@ namespace SmartImage.Searching
 			// Display config
 			NConsole.WriteInfo(SearchConfig.Config);
 
-			NConsole.WriteInfo($"Temporary image url: {m_imgUrl}");
+			NConsole.WriteInfo($"Temporary image url: {ImageUrl}");
 
-			m_monitor.Start();
+			SearchMonitor.Start();
 
-			foreach (var thread in m_tasks) {
+			foreach (var thread in SearchTasks) {
 				thread.Start();
 			}
 		}
 
-
+		/// <summary>
+		/// Creates a <see cref="FullSearchResult"/> for the original image
+		/// </summary>
 		private FullSearchResult GetOriginalImageResult()
 		{
-			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, m_imgUrl)
+			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, ImageUrl)
 			{
 				Similarity = 100.0f,
 			};
 
-			result.ExtendedInfo.Add($"Location: {m_img}");
+			result.ExtendedInfo.Add($"Location: {ImageFile}");
 
-			var fileFormat = FileSystem.ResolveFileType(m_img.FullName);
+			var fileFormat = FileSystem.ResolveFileType(ImageFile.FullName);
 
 			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(FileSystem.GetFileSize(m_img.FullName), MetricUnit.Mega);
+				MathHelper.ConvertToUnit(FileSystem.GetFileSize(ImageFile.FullName), MetricUnit.Mega);
 
-			(int width, int height) = (m_bmp.Width, m_bmp.Height);
+			(int width, int height) = Images.GetDimensions(ImageFile.FullName);
 
 			result.Width  = width;
 			result.Height = height;
 
 			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
-			string infoStr = $"Info: {m_img.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
+			string infoStr = $"Info: {ImageFile.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
 
 			result.ExtendedInfo.Add(infoStr);
 
@@ -238,7 +227,7 @@ namespace SmartImage.Searching
 			// todo: improve, hacky :(
 
 			var availableEngines = GetAllEngines()
-				.Where(e => m_engines.HasFlag(e.Engine))
+				.Where(e => Engines.HasFlag(e.Engine))
 				.ToArray();
 
 			m_results = new List<FullSearchResult>(availableEngines.Length + 1)
@@ -251,7 +240,7 @@ namespace SmartImage.Searching
 
 		private void RunSearchTask(ISearchEngine currentEngine)
 		{
-			var result = currentEngine.GetResult(m_imgUrl);
+			var result = currentEngine.GetResult(ImageUrl);
 
 			m_results.Add(result);
 
@@ -263,7 +252,7 @@ namespace SmartImage.Searching
 			}
 
 			// Sort results
-			m_results.Sort(CompareResults);
+			m_results.Sort(FullSearchResult.CompareResults);
 
 			// Reload console UI
 			NConsoleIO.Refresh();
@@ -287,26 +276,6 @@ namespace SmartImage.Searching
 				new BingEngine(),
 				new KarmaDecayEngine()
 			};
-		}
-
-		private static bool IsFileValid(string img)
-		{
-			if (String.IsNullOrWhiteSpace(img)) {
-				return false;
-			}
-
-			if (!File.Exists(img)) {
-				NConsole.WriteError($"File does not exist: {img}");
-				return false;
-			}
-
-			bool isImageType = FileSystem.ResolveFileType(img).Type == FileType.Image;
-
-			if (!isImageType) {
-				return NConsoleIO.ReadConfirmation("File format is not recognized as a common image format. Continue?");
-			}
-
-			return true;
 		}
 
 		private static string? Upload(string img, bool useImgur)
