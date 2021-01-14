@@ -31,8 +31,7 @@ namespace SmartImage.Engines.TraceMoe
 			code = re.StatusCode;
 			status = re.ResponseStatus;
 			msg = re.ErrorMessage;
-
-			// todo: null sometimes
+			
 			return re.Data;
 		}
 
@@ -62,7 +61,9 @@ namespace SmartImage.Engines.TraceMoe
 		//https://myanimelist.net/anime/{id}/
 		private const string MAL_URL = "https://myanimelist.net/anime/";
 
-		public const double THRESHOLD = 87.00D;
+		
+
+		public override float? FilterThreshold => 87.00F;
 
 		public override FullSearchResult GetResult(string url)
 		{
@@ -80,12 +81,8 @@ namespace SmartImage.Engines.TraceMoe
 
 					r         = new FullSearchResult(this, best.Url, best.Similarity);
 					r.Caption = best.Caption;
-
-					if (r.Similarity < THRESHOLD) {
-						r.ExtendedInfo.Add($"Similarity below threshold ({THRESHOLD}%)");
-						r.Filter = true;
-					}
-
+					r.Filter  = r.Similarity < FilterThreshold;
+					
 
 					r.AddExtendedResults(results);
 				}

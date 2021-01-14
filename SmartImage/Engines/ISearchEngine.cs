@@ -12,5 +12,7 @@ namespace SmartImage.Engines
 		public FullSearchResult GetResult(string url);
 
 		public Color Color { get; }
+		
+		public float? FilterThreshold { get; }
 	}
 }

@@ -140,7 +140,7 @@ namespace SmartImage.Searching
 		public int? Width { get; set; }
 		
 
-		public bool? Filter { get; set; }
+		public bool Filter { get; set; }
 		
 		
 
@@ -171,7 +171,7 @@ namespace SmartImage.Searching
 				? String.Format($"({ExtendedResults.Count})")
 				: String.Empty;
 
-			var fstr = Filter.HasValue && Filter.Value ? $"{Formatting.BALLOT_X}" : "";
+			var fstr = Filter ? $"{Formatting.BALLOT_X}" : "";
 			
 			sb.Append($"{attrSuccess} {ex} {fstr}\n");
 

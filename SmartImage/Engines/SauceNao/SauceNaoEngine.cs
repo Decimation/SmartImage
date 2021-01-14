@@ -39,11 +39,13 @@ namespace SmartImage.Engines.SauceNao
 		public override SearchEngineOptions Engine => SearchEngineOptions.SauceNao;
 
 		public override Color Color => Color.OrangeRed;
+		
+		public override float? FilterThreshold => 70.00F;
 
 		private struct SauceNaoSimpleResult : ISearchResult
 		{
 			public string? Caption    { get; set; }
-			public bool?   Filter     { get; set; }
+			public bool   Filter     { get; set; }
 			public string  Url        { get; set; }
 			public float?  Similarity { get; set; }
 			public int?    Width      { get; set; }
@@ -56,7 +58,7 @@ namespace SmartImage.Engines.SauceNao
 				Similarity = similarity;
 				Width      = null;
 				Height     = null;
-				Filter     = null;
+				Filter     = false;//set later
 			}
 
 			public override string ToString()
@@ -81,15 +83,16 @@ namespace SmartImage.Engines.SauceNao
 
 		public SauceNaoEngine() : this(SearchConfig.Config.SauceNaoAuth) { }
 
-		private static ISearchResult[] ConvertResults(SauceNaoResult[] results)
+		private ISearchResult[] ConvertResults(SauceNaoDataResult[] results)
 		{
 			var rg = new List<ISearchResult>();
 
 			foreach (var sn in results) {
 				if (sn.Url != null) {
 					var url = sn.Url.FirstOrDefault(u => u != null);
-
-					rg.Add(new SauceNaoSimpleResult(sn.WebsiteTitle, url, sn.Similarity));
+					var x   = new SauceNaoSimpleResult(sn.WebsiteTitle, url, sn.Similarity);
+					x.Filter = x.Similarity < FilterThreshold;
+					rg.Add(x);
 				}
 			}
 
@@ -113,11 +116,12 @@ namespace SmartImage.Engines.SauceNao
 					.Where(e => e.Url != null)
 					.OrderByDescending(e => e.Similarity)
 					.First();
-
+				
+				// Copy
 				result.Url        = best.Url;
 				result.Similarity = best.Similarity;
 				result.Caption    = best.Caption;
-
+				result.Filter     = best.Filter;
 
 				result.AddExtendedResults(extended);
 
@@ -136,7 +140,7 @@ namespace SmartImage.Engines.SauceNao
 		}
 		
 		
-		private IEnumerable<SauceNaoResult>? GetResults(string url)
+		private IEnumerable<SauceNaoDataResult>? GetResults(string url)
 		{
 
 			var req = new RestRequest();
@@ -154,7 +158,7 @@ namespace SmartImage.Engines.SauceNao
 		}
 
 
-		private static IEnumerable<SauceNaoResult>? ReadResults(string js)
+		private static IEnumerable<SauceNaoDataResult>? ReadResults(string js)
 		{
 			// todo: rewrite this using Newtonsoft
 
@@ -180,8 +184,8 @@ namespace SmartImage.Engines.SauceNao
 				using var stream =
 					JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json),
 						XmlDictionaryReaderQuotas.Max);
-				var serializer = new DataContractJsonSerializer(typeof(SauceNaoResponse));
-				var result     = serializer.ReadObject(stream) as SauceNaoResponse;
+				var serializer = new DataContractJsonSerializer(typeof(SauceNaoDataResponse));
+				var result     = serializer.ReadObject(stream) as SauceNaoDataResponse;
 				stream.Dispose();
 
 				if (result is null)

@@ -50,7 +50,7 @@ namespace SmartImage.Engines.Imgur
 			var response = client.Execute(request);
 
 			var des = new JsonDeserializer();
-			return des.Deserialize<ImgurResponse<ImgurImage>>(response).Data.Link;
+			return des.Deserialize<ImgurDataResponse<ImgurImage>>(response).Data.Link;
 		}
 	}
 }

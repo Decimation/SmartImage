@@ -1,4 +1,6 @@
-﻿#nullable enable
+﻿using SmartImage.Core;
+
+#nullable enable
 namespace SmartImage.Searching
 {
 	/// <summary>
@@ -36,7 +38,13 @@ namespace SmartImage.Searching
 		/// </summary>
 		public string? Caption { get; set; }
 		
-		public bool? Filter { get; set; }
+		
+		/// <summary>
+		/// Filter this result if <see cref="SearchConfig.FilterResults"/> is used
+		/// </summary>
+		public bool Filter { get; set; }
+		
+		
 
 		
 	}

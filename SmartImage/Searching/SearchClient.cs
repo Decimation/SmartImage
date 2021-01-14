@@ -260,9 +260,7 @@ namespace SmartImage.Searching
 			 * Determine if it passes the threshold
 			 */
 
-			bool openResult = result.Filter.HasValue && !result.Filter.Value;
-
-			if (openResult) {
+			if (!result.Filter) {
 				// Open result
 				result.Function();
 			}

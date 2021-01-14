@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace SmartImage.Engines.SauceNao
 {
 	[DataContract]
-	public class SauceNaoResult
+	public class SauceNaoDataResult
 	{
 		/// <summary>
 		///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places

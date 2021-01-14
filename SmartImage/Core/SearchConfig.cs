@@ -8,6 +8,7 @@ using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
+using SmartImage.Searching;
 using SmartImage.Utilities;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
@@ -82,6 +83,7 @@ namespace SmartImage.Core
 
 		/// <summary>
 		///     Does not open results from priority engines if the result similarity (if available) is below a certain threshold.
+		/// <see cref="ISearchResult.Filter"/> is <c>true</c> if <see cref="ISearchEngine.FilterThreshold"/> is less than <see cref="ISearchResult.Similarity"/>
 		/// </summary>
 		[field: ConfigComponent("filter_results", "--filter-results", true, true)]
 		public bool FilterResults { get; set; }

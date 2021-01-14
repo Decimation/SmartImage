@@ -22,9 +22,12 @@ namespace SmartImage.Engines.Other
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Iqdb;
 
+		public override float? FilterThreshold => 70.00F;
+
 		private struct IqdbResult : ISearchResult
 		{
-			public bool?   Filter  { get; set; }
+			public bool    Filter  { get; set; }
+			
 			public string? Caption { get; set; }
 
 			public string Source { get; }
@@ -45,36 +48,38 @@ namespace SmartImage.Engines.Other
 				Width      = width;
 				Height     = height;
 				Similarity = similarity;
-				Filter     = null;
+				Filter     = false; // set later
 			}
 
 			public override string ToString()
 			{
 				return
-					$"{nameof(Caption)}: {Caption}, {nameof(Source)}: {Source}, {nameof(Width)}: {Width}, {nameof(Height)}: {Height}, {nameof(Url)}: {Url}, {nameof(Similarity)}: {Similarity}";
+					$"{nameof(Caption)}: {Caption}, {nameof(Source)}: "       +
+					$"{Source}, {nameof(Width)}: {Width}, {nameof(Height)}: " +
+					$"{Height}, {nameof(Url)}: {Url}, {nameof(Similarity)}: {Similarity}";
 			}
 		}
 
-		private static IqdbResult ParseResult(HtmlNodeCollection tr)
+		private IqdbResult ParseResult(HtmlNodeCollection tr)
 		{
 			var caption = tr[0];
-			var img = tr[1];
-			var src = tr[2];
+			var img     = tr[1];
+			var src     = tr[2];
 
 			string url = null!;
 
 			var urlNode = img.FirstChild.FirstChild;
 
 			if (urlNode.Name != "img") {
-				var origUrl= urlNode.Attributes["href"].Value;
+				var origUrl = urlNode.Attributes["href"].Value;
 
 				Debug.WriteLine(origUrl);
-				
+
 				// Links must begin with http:// in order to work with "start"
 				if (origUrl.StartsWith("//")) {
 					origUrl = "http:" + origUrl;
 				}
-				
+
 
 				url = origUrl;
 			}
@@ -83,7 +88,7 @@ namespace SmartImage.Engines.Other
 
 			if (tr.Count >= 4) {
 				var res = tr[3];
-				var wh = res.InnerText.Split("×");
+				var wh  = res.InnerText.Split("×");
 
 				var wStr = wh[0].SelectOnlyDigits();
 				w = int.Parse(wStr);
@@ -98,7 +103,7 @@ namespace SmartImage.Engines.Other
 
 			if (tr.Count >= 5) {
 				var simNode = tr[4];
-				var simStr = simNode.InnerText.Split('%')[0];
+				var simStr  = simNode.InnerText.Split('%')[0];
 				sim = float.Parse(simStr);
 			}
 			else {
@@ -107,7 +112,7 @@ namespace SmartImage.Engines.Other
 
 
 			var i = new IqdbResult(caption.InnerText, src.InnerText, url, w, h, sim);
-
+			i.Filter = i.Similarity < FilterThreshold;
 			return i;
 		}
 
@@ -116,20 +121,20 @@ namespace SmartImage.Engines.Other
 			var sr = base.GetResult(url);
 
 			try {
-				
+
 				var html = Network.GetSimpleResponse(sr.RawUrl);
 
 				//Network.WriteResponse(html);
 
 				var doc = new HtmlDocument();
 				doc.LoadHtml(html.Content);
-				
+
 
 				//var tables = doc.DocumentNode.SelectNodes("//table");
 
 				// Don't select other results
 
-				var pages = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
+				var pages  = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
 				var tables = pages.SelectNodes("div/table");
 
 				// No relevant results?
@@ -155,8 +160,9 @@ namespace SmartImage.Engines.Other
 				images.RemoveAt(0);
 
 				var best = images[0];
-				sr.Url = best.Url;
+				sr.Url        = best.Url;
 				sr.Similarity = best.Similarity;
+				sr.Filter     = best.Filter;
 
 				sr.AddExtendedResults(images.ToArray());
 

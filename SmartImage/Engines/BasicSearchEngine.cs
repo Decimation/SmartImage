@@ -20,6 +20,9 @@ namespace SmartImage.Engines
 
 		public abstract Color Color { get; }
 
+		
+		public virtual float? FilterThreshold => null;
+
 		public virtual FullSearchResult GetResult(string url)
 		{
 			string rawUrl = GetRawResultUrl(url);
