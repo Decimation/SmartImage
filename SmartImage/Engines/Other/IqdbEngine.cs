@@ -26,8 +26,8 @@ namespace SmartImage.Engines.Other
 
 		private struct IqdbResult : ISearchResult
 		{
-			public bool    Filter  { get; set; }
-			
+			public bool Filter { get; set; }
+
 			public string? Caption { get; set; }
 
 			public string Source { get; }
@@ -141,7 +141,9 @@ namespace SmartImage.Engines.Other
 				bool noMatch = pages.ChildNodes.Any(n => n.GetAttributeValue("class", null) == "nomatch");
 
 				if (noMatch) {
-					sr.ExtendedInfo.Add("No relevant results");
+					//sr.ExtendedInfo.Add("No relevant results");
+					// No relevant results
+					sr.Filter = true;
 					return sr;
 				}
 

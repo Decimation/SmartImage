@@ -50,8 +50,9 @@ namespace SmartImage
 			Console.Title = Info.NAME;
 
 			NConsole.Resize(Interface.ConsoleWindowWidth, Interface.ConsoleWindowHeight);
-
-			Console.OutputEncoding = Encoding.Unicode;
+			
+			
+			
 			Console.Clear();
 
 			Console.WriteLine(Info.NAME_BANNER);

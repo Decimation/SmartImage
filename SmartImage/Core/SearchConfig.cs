@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -28,13 +29,6 @@ namespace SmartImage.Core
 	/// <seealso cref="ConfigComponents" />
 	public sealed class SearchConfig
 	{
-		/// <summary>
-		///     Illegal <see cref="SearchEngineOptions" /> values for <see cref="SearchEngines" />
-		/// </summary>
-		private const SearchEngineOptions IllegalSearchEngineOptions =
-			SearchEngineOptions.None | SearchEngineOptions.Auto;
-
-
 		private SearchConfig()
 		{
 			// Read config from config file
@@ -60,13 +54,13 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Engines to use for searching
 		/// </summary>
-		[field: ConfigComponent("search_engines", "--search-engines", SearchEngineOptions.All)]
+		[field: ConfigComponent("search_engines", "--search-engines", SearchEngineOptions.All, true)]
 		public SearchEngineOptions SearchEngines { get; set; }
 
 		/// <summary>
 		///     Engines whose results should be opened in the browser
 		/// </summary>
-		[field: ConfigComponent("priority_engines", "--priority-engines", SearchEngineOptions.Auto)]
+		[field: ConfigComponent("priority_engines", "--priority-engines", SearchEngineOptions.Auto, true)]
 		public SearchEngineOptions PriorityEngines { get; set; }
 
 		/// <summary>
@@ -82,7 +76,8 @@ namespace SmartImage.Core
 		public string SauceNaoAuth { get; set; }
 
 		/// <summary>
-		///     Does not open results from priority engines if the result similarity (if available) is below a certain threshold.
+		///     Does not open results from priority engines if the result similarity (if available) is below a certain threshold,
+		/// or there are no relevant results.
 		/// <see cref="ISearchResult.Filter"/> is <c>true</c> if <see cref="ISearchEngine.FilterThreshold"/> is less than <see cref="ISearchResult.Similarity"/>
 		/// </summary>
 		[field: ConfigComponent("filter_results", "--filter-results", true, true)]
@@ -155,24 +150,16 @@ namespace SmartImage.Core
 			 * Check search engine options
 			 */
 
-			var illegalOptions = SearchEngines & IllegalSearchEngineOptions;
+			const SearchEngineOptions Illegal = SearchEngineOptions.Auto;
 
-			if (illegalOptions != 0) {
-				NConsole.WriteError($"Search engine option {illegalOptions} cannot be used for search engine options");
-
-				NConsole.WaitForSecond();
-
-				// Clear illegal options
-				SearchEngines &= ~illegalOptions;
+			if (SearchEngines.HasFlag(Illegal)) {
+				SearchEngines &= ~Illegal;
+				Debug.WriteLine($"Removed illegal flag -> {SearchEngines}");
 			}
 
-			// Special case
 			if (SearchEngines == SearchEngineOptions.None) {
-				NConsole.WriteInfo("Reverting search engine options to default");
-				NConsole.WaitForSecond();
 				ConfigComponents.ResetComponent(this, nameof(SearchEngines));
 			}
-
 		}
 
 

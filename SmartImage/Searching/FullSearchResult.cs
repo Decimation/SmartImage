@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
@@ -138,11 +139,10 @@ namespace SmartImage.Searching
 		public string Url { get; set; }
 
 		public int? Width { get; set; }
-		
+
 
 		public bool Filter { get; set; }
-		
-		
+
 
 		public void AddExtendedResults(ISearchResult[] bestImages)
 		{
@@ -164,17 +164,23 @@ namespace SmartImage.Searching
 		{
 			var sb = new StringBuilder();
 
-			string attrSuccess = Formatting.CHECK_MARK.ToString();
+			/*
+			 * Result symbols
+			 */
 
+			if (ExtendedResults.Any()) {
+				sb.Append($"({ExtendedResults.Count})").Append(Formatting.SPACE);
+			}
 
-			string? ex = ExtendedResults.Count > 0
-				? String.Format($"({ExtendedResults.Count})")
-				: String.Empty;
+			if (Filter) {
+				sb.Append("-").Append(Formatting.SPACE);
+			}
 
-			var fstr = Filter ? $"{Formatting.BALLOT_X}" : "";
-			
-			sb.Append($"{attrSuccess} {ex} {fstr}\n");
+			sb.AppendLine();
 
+			/*
+			 * Result details
+			 */
 
 			if (RawUrl != Url) {
 				sb.Append($"\tResult: {Url}\n");
@@ -199,10 +205,6 @@ namespace SmartImage.Searching
 			foreach (string s in ExtendedInfo) {
 				sb.Append($"\t{s}\n");
 			}
-
-			// if (ExtendedResults.Count > 0) {
-			// 	sb.AppendFormat("\tExtended results: {0}\n", ExtendedResults.Count);
-			// }
 
 			return sb.ToString();
 		}

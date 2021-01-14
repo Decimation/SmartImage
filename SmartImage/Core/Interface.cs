@@ -130,15 +130,9 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
-				var values = NConsole.ReadOptions(rgEnum, true);
-
-				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
-
-				NConsole.WriteSuccess(newValues);
-
-				SearchConfig.Config.SearchEngines = newValues;
-
+				SearchConfig.Config.SearchEngines = ReadSearchEngineOptions();
+				SearchConfig.Config.EnsureConfig();
+				NConsole.WriteSuccess(SearchConfig.Config.SearchEngines);
 				NConsole.WaitForSecond();
 				return null;
 			}
@@ -151,19 +145,24 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
-				var values = NConsole.ReadOptions(rgEnum, true);
-
-				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
-
-				NConsole.WriteSuccess(newValues);
-
-				SearchConfig.Config.PriorityEngines = newValues;
-
+				SearchConfig.Config.PriorityEngines = ReadSearchEngineOptions();
+				SearchConfig.Config.EnsureConfig();
+				NConsole.WriteSuccess(SearchConfig.Config.PriorityEngines);
 				NConsole.WaitForSecond();
 				return null;
 			}
 		};
+
+
+		private static SearchEngineOptions ReadSearchEngineOptions()
+		{
+			var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
+			var values = NConsole.ReadOptions(rgEnum, true);
+
+			var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
+
+			return newValues;
+		}
 
 
 		private static readonly NConsoleOption ConfigSauceNaoAuthOption = new()
@@ -201,17 +200,13 @@ namespace SmartImage.Core
 			{
 
 				SearchConfig.Config.FilterResults = !SearchConfig.Config.FilterResults;
-				ConfigAutoFilter.Name= GetAutoFilterString();
+				ConfigAutoFilter.Name             = GetAutoFilterString();
 				return null;
 			}
 		};
-		
+
 		private static string GetAutoFilterString()
 		{
-			//var x = SearchConfig.Config.FilterResults
-			//	? Formatting.CHECK_MARK.ToString()
-			//	: Formatting.BALLOT_X.ToString();
-			
 			var x = SearchConfig.Config.FilterResults;
 			return $"Filter results: {x}";
 		}
@@ -252,10 +247,10 @@ namespace SmartImage.Core
 				bool ctx = Integration.IsContextMenuAdded;
 
 				var io = !ctx ? IntegrationOption.Add : IntegrationOption.Remove;
-				
+
 				Integration.HandleContextMenu(io);
 				bool added = io == IntegrationOption.Add;
-				
+
 				NConsole.WriteInfo($"Context menu integrated: {added}");
 
 				ContextMenuOption.Name = GetContextMenuString(added);
