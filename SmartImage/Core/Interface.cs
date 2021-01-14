@@ -9,6 +9,7 @@ using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Utilities;
 using Novus.Win32;
+
 // ReSharper disable ArrangeAccessorOwnerBody
 
 #pragma warning disable IDE0052, HAA0502, HAA0505, HAA0601, HAA0502, HAA0101, RCS1213, RCS1036, CS8602
@@ -47,14 +48,7 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Main menu console interface
 		/// </summary>
-		internal static NConsoleInterface MainMenu
-		{
-			get
-			{
-				//
-				return new(AllOptions, Info.NAME_BANNER, null, false, null);
-			}
-		}
+		internal static NConsoleInterface MainMenu => new(AllOptions, Info.NAME_BANNER, null, false, null);
 
 		/// <summary>
 		///     Runs when no arguments are given (and when the executable is double-clicked)
@@ -90,13 +84,13 @@ namespace SmartImage.Core
 		/// </summary>
 		internal static readonly Color ColorVersion = Color.LightGreen;
 
-		
+
 		/// <summary>
 		/// Console window width
 		/// </summary>
 		internal const int ConsoleWindowWidth = 120;
 
-		
+
 		/// <summary>
 		/// Console window height
 		/// </summary>
@@ -250,7 +244,8 @@ namespace SmartImage.Core
 			}
 		};
 
-		private static string GetContextMenuString(bool added) => (!added ? "Add" : "Remove") + " context menu integration";
+		private static string GetContextMenuString(bool added) =>
+			(!added ? "Add" : "Remove") + " context menu integration";
 
 
 		private static readonly NConsoleOption CheckForUpdateOption = new()
@@ -351,6 +346,5 @@ namespace SmartImage.Core
 			}
 		};
 #endif
-		
 	}
 }

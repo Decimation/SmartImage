@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Json;
 using System.Linq;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using RestSharp;
 using SimpleCore.Utilities;
@@ -82,7 +84,7 @@ namespace SmartImage.Engines.SauceNao
 			var rg = new List<ISearchResult>();
 
 			foreach (var sn in results) {
-				if (sn.Url !=null) {
+				if (sn.Url != null) {
 					var url = sn.Url.FirstOrDefault(u => u != null);
 
 					rg.Add(new SauceNaoSimpleResult(sn.WebsiteTitle, url, sn.Similarity));
@@ -94,23 +96,30 @@ namespace SmartImage.Engines.SauceNao
 
 		public override FullSearchResult GetResult(string url)
 		{
-			FullSearchResult result=base.GetResult(url);
+			FullSearchResult result = base.GetResult(url);
 
 			try {
-				var sn = GetResults(url)
+				var orig = GetResults(url);
+
+				if (orig == null) {
+					result.ExtendedInfo.Add($"Timed out after {Timeout}");
+					return result;
+				}
+				
+				var sn = orig
 					.OrderByDescending(r => r.Similarity)
 					.ToArray();
 
 				var extended = ConvertResults(sn);
 
 				var best = extended
-					.Where(e=>e.Url!=null)
-					.OrderByDescending(e=>e.Similarity)
+					.Where(e => e.Url != null)
+					.OrderByDescending(e => e.Similarity)
 					.First();
 
-				result.Url = best.Url;
+				result.Url        = best.Url;
 				result.Similarity = best.Similarity;
-				result.Caption = best.Caption;
+				result.Caption    = best.Caption;
 
 
 				result.AddExtendedResults(extended);
@@ -118,10 +127,10 @@ namespace SmartImage.Engines.SauceNao
 				if (!string.IsNullOrWhiteSpace(m_apiKey)) {
 					result.ExtendedInfo.Add("Using API");
 				}
-				
+
 			}
 			catch (Exception e) {
-				
+
 				result.ExtendedInfo.Add(e.StackTrace);
 			}
 
@@ -129,21 +138,32 @@ namespace SmartImage.Engines.SauceNao
 			return result;
 		}
 
-
+		/// <summary>
+		/// Timeout duration
+		/// </summary>
+		public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(15);
+		
 		private IEnumerable<SauceNaoResult>? GetResults(string url)
 		{
-			var req = new RestRequest();
-			req.AddQueryParameter("db", "999");
-			req.AddQueryParameter("output_type", "2");
-			req.AddQueryParameter("numres", "16");
-			req.AddQueryParameter("api_key", m_apiKey);
-			req.AddQueryParameter("url", url);
 
-			var res = m_client.Execute(req);
+			var task = Task.Run(() =>
+			{
+				var req = new RestRequest();
+				req.AddQueryParameter("db", "999");
+				req.AddQueryParameter("output_type", "2");
+				req.AddQueryParameter("numres", "16");
+				req.AddQueryParameter("api_key", m_apiKey);
+				req.AddQueryParameter("url", url);
 
-			string c = res.Content;
+				var res = m_client.Execute(req);
 
-			return ReadResults(c);
+				string c = res.Content;
+
+				return ReadResults(c);
+			});
+
+			// Handle possible timeouts
+			return task.Wait(Timeout) ? task.Result : null;
 		}
 
 
@@ -159,12 +179,12 @@ namespace SmartImage.Engines.SauceNao
 				var jsonArray = jsonObject["results"];
 
 				for (int i = 0; i < jsonArray.Count; i++) {
-					var header = jsonArray[i]["header"];
-					var data = jsonArray[i]["data"];
-					string obj = header.ToString();
-					obj = obj.Remove(obj.Length - 1);
-					obj += data.ToString().Remove(0, 1).Insert(0, ",");
-					jsonArray[i] = JsonValue.Parse(obj);
+					var    header = jsonArray[i]["header"];
+					var    data   = jsonArray[i]["data"];
+					string obj    = header.ToString();
+					obj          =  obj.Remove(obj.Length - 1);
+					obj          += data.ToString().Remove(0, 1).Insert(0, ",");
+					jsonArray[i] =  JsonValue.Parse(obj);
 				}
 
 				string json = jsonArray.ToString();
@@ -174,7 +194,7 @@ namespace SmartImage.Engines.SauceNao
 					JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json),
 						XmlDictionaryReaderQuotas.Max);
 				var serializer = new DataContractJsonSerializer(typeof(SauceNaoResponse));
-				var result = serializer.ReadObject(stream) as SauceNaoResponse;
+				var result     = serializer.ReadObject(stream) as SauceNaoResponse;
 				stream.Dispose();
 
 				if (result is null)

@@ -5,6 +5,7 @@
 using SmartImage.Searching;
 using System;
 using System.Text;
+using System.Threading;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SmartImage.Core;
@@ -35,7 +36,6 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-
 			/*
 			 * Setup
 			 * Check compatibility

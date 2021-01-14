@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -78,10 +79,8 @@ namespace SmartImage.Searching
 			bool   useImgur = !String.IsNullOrWhiteSpace(auth);
 
 			SearchConfig.Config.EnsureConfig();
-			
-			var engines = SearchConfig.Config.SearchEngines;
 
-			
+			var engines = SearchConfig.Config.SearchEngines;
 
 			m_results = null!;
 			m_engines = engines;
@@ -93,7 +92,6 @@ namespace SmartImage.Searching
 			string? imgUrl = Upload(img, useImgur);
 
 			m_imgUrl = imgUrl ?? throw new SmartImageException("Image upload failed");
-
 
 			//
 
@@ -110,8 +108,6 @@ namespace SmartImage.Searching
 
 			Complete = false;
 
-			
-			
 			Interface = new NConsoleInterface(Results)
 			{
 				SelectMultiple = false,
@@ -119,28 +115,46 @@ namespace SmartImage.Searching
 			};
 		}
 
-
+		/// <summary>
+		/// Monitors the search process
+		/// </summary>
 		private void RunSearchMonitor()
 		{
 			while (m_tasks.Any(t => !t.IsCompleted)) {
-				var inProgress = m_tasks.Count(t => t.IsCompleted);
-				var len        = m_tasks.Length;
+				int inProgress = m_tasks.Count(t => t.IsCompleted);
+				int len        = m_tasks.Length;
 
 				Interface.Status = $"Searching: {inProgress}/{len}";
 			}
 
-			//Task.WaitAll(m_tasks);
-
-			var p = new SoundPlayer(Info.Resources.SndHint);
-			p.Play();
+			/*
+			 * Search is complete
+			 */
 
 			Complete         = true;
 			Interface.Status = "Search complete";
 			NConsoleIO.Refresh();
+
+			Debug.WriteLine("Search complete");
 			
+			/*
+			 * Alert user
+			 */
 			
+			// Play sound
+
+			//var p = new SoundPlayer(Info.Resources.SndHint);
+			//p.Play();
+
+			SystemSounds.Exclamation.Play();
+
+			// Flash taskbar icon
+			NativeImports.FlashConsoleWindow();
+			
+			NativeImports.BringToFront();
+
 			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
-				
+
 				// Results will already be sorted
 				// Open best result
 				var best = m_results[1];
@@ -209,8 +223,7 @@ namespace SmartImage.Searching
 			result.Width  = width;
 			result.Height = height;
 
-
-			var mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
+			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
 			string infoStr = $"Info: {m_img.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
 
@@ -248,8 +261,6 @@ namespace SmartImage.Searching
 				// Open result
 				result.Function();
 			}
-
-			//Update();
 
 			// Sort results
 			m_results.Sort(CompareResults);

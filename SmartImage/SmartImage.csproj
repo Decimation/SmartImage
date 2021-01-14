@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <OutputType>Exe</OutputType>
 
@@ -8,9 +7,7 @@
     
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
-
     <PublishTrimmed>true</PublishTrimmed>
-    
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
