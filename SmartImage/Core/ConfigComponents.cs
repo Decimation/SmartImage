@@ -19,7 +19,11 @@ namespace SmartImage.Core
 		/*
 		 * Handles config components (properties or fields).
 		 *
-		 * A config component is a setting (i.e. field, parameter, etc) within the config.
+		 *
+		 * A config component is a setting/option (i.e. field, parameter, etc).
+		 * - Its value can be stored and later retrieved from a config file.
+		 * - Its value can also be specified through the command line.
+		 *
 		 *
 		 * mname - Member name
 		 * id - Map name (Id)

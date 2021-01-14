@@ -1,13 +1,5 @@
 ﻿#nullable enable
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
@@ -18,16 +10,21 @@ using SmartImage.Engines.Other;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Linq;
+using System.Media;
+using System.Threading;
+using System.Threading.Tasks;
 using static SimpleCore.Console.CommandLine.NConsoleOption;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
-
 namespace SmartImage.Searching
 {
-	// todo: replace threads with tasks and async
-
-
 	/// <summary>
 	///     Searching client
 	/// </summary>
@@ -35,18 +32,25 @@ namespace SmartImage.Searching
 	{
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
-
 		private static readonly string InterfacePrompt =
-			$"Enter the option number to open or {NConsoleIO.NC_GLOBAL_EXIT_KEY} to exit.\n" +
-			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                         +
-			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                              +
+			$"Enter the option number to open or {NConsole.NC_GLOBAL_EXIT_KEY} to exit.\n" +
+			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                       +
+			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                            +
 			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
 
+		/// <summary>
+		/// <see cref="SearchConfig.SearchEngines"/>
+		/// </summary>
 		private SearchEngineOptions Engines { get; }
 
+		/// <summary>
+		/// Image
+		/// </summary>
 		private FileInfo ImageFile { get; }
-		
 
+		/// <summary>
+		/// Url of <seealso cref="ImageFile"/>
+		/// </summary>
 		private string ImageUrl { get; }
 
 		/// <summary>
@@ -59,7 +63,6 @@ namespace SmartImage.Searching
 		/// </summary>
 		private Task[] SearchTasks { get; }
 
-		
 		/// <summary>
 		/// Search results
 		/// </summary>
@@ -69,7 +72,6 @@ namespace SmartImage.Searching
 		/// Whether the search is complete
 		/// </summary>
 		public bool Complete { get; private set; }
-
 
 		/// <summary>
 		///     Searching client
@@ -97,11 +99,10 @@ namespace SmartImage.Searching
 
 			SearchConfig.Config.EnsureConfig();
 
-			var engines = SearchConfig.Config.SearchEngines;
 
-			m_results   = null!;
-			Engines     = engines;
-			ImageFile   = new FileInfo(img);
+			m_results = null!;
+			Engines   = SearchConfig.Config.SearchEngines;
+			ImageFile = new FileInfo(img);
 
 			//
 
@@ -149,7 +150,7 @@ namespace SmartImage.Searching
 
 			Complete         = true;
 			Interface.Status = "Search complete";
-			NConsoleIO.Refresh();
+			NConsole.Refresh();
 
 			/*
 			 * Alert user
@@ -165,11 +166,13 @@ namespace SmartImage.Searching
 			//NativeImports.BringConsoleToFront();
 
 			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
-
 				// Results will already be sorted
 				// Open best result
+
 				var best = m_results[1];
-				best.Function();
+
+				HandleResultOpen(best);
+
 			}
 		}
 
@@ -221,7 +224,6 @@ namespace SmartImage.Searching
 			return result;
 		}
 
-
 		private Task[] CreateSearchTasks()
 		{
 			// todo: improve, hacky :(
@@ -238,27 +240,65 @@ namespace SmartImage.Searching
 			return availableEngines.Select(currentEngine => new Task(() => RunSearchTask(currentEngine))).ToArray();
 		}
 
+		/// <summary>
+		/// Handles result opening from priority engines and filtering
+		/// </summary>
+		private static void HandleResultOpen(FullSearchResult result)
+		{
+			/*
+			 * Filtering is disabled
+			 * Open it anyway
+			 */
+
+			if (!SearchConfig.Config.FilterResults) {
+				result.Function();
+				return;
+			}
+
+			/*
+			 * Filtering is enabled
+			 * Determine if it passes the threshold
+			 */
+
+			bool openResult = result.Filter.HasValue && !result.Filter.Value;
+
+			if (openResult) {
+				// Open result
+				result.Function();
+			}
+			else {
+				Debug.WriteLine($"Filtering result {result.Name}");
+			}
+
+
+		}
+
+		/// <summary>
+		/// Individual task search operation
+		/// </summary>
 		private void RunSearchTask(ISearchEngine currentEngine)
 		{
 			var result = currentEngine.GetResult(ImageUrl);
 
 			m_results.Add(result);
 
-
 			// If the engine is priority, open its result in the browser
 			if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-				// Open result
-				result.Function();
+
+				HandleResultOpen(result);
 			}
 
 			// Sort results
 			m_results.Sort(FullSearchResult.CompareResults);
 
 			// Reload console UI
-			NConsoleIO.Refresh();
+			NConsole.Refresh();
 		}
 
-
+		
+		/// <summary>
+		/// Returns all of the supported search engines
+		/// </summary>
 		private static IEnumerable<ISearchEngine> GetAllEngines()
 		{
 			return new ISearchEngine[]
@@ -278,6 +318,10 @@ namespace SmartImage.Searching
 			};
 		}
 
+		
+		/// <summary>
+		/// Uploads the image
+		/// </summary>
 		private static string? Upload(string img, bool useImgur)
 		{
 			IUploadEngine uploadEngine;
@@ -306,7 +350,6 @@ namespace SmartImage.Searching
 				uploadEngine = new ImgOpsEngine();
 				imgUrl       = uploadEngine.Upload(img);
 			}
-
 
 			return imgUrl;
 		}

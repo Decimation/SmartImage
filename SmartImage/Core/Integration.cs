@@ -46,7 +46,7 @@ namespace SmartImage.Core
 					}
 					catch (Exception ex) {
 						NConsole.WriteError("{0}", ex.Message);
-						NConsoleIO.WaitForInput();
+						NConsole.WaitForInput();
 						return false;
 					}
 					finally {
@@ -74,7 +74,7 @@ namespace SmartImage.Core
 					}
 					catch (Exception ex) {
 						NConsole.WriteError("{0}", ex.Message);
-						NConsoleIO.WaitForInput();
+						NConsole.WaitForInput();
 						return false;
 					}
 

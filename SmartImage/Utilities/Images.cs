@@ -36,7 +36,7 @@ namespace SmartImage.Utilities
 			bool isImageType = FileSystem.ResolveFileType(img).Type == FileType.Image;
 
 			if (!isImageType) {
-				return NConsoleIO.ReadConfirmation("File format is not recognized as a common image format. Continue?");
+				return NConsole.ReadConfirmation("File format is not recognized as a common image format. Continue?");
 			}
 
 			return true;

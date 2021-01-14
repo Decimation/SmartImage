@@ -90,7 +90,7 @@ namespace SmartImage.Core
 			}
 			catch (Exception e) {
 				NConsole.WriteError("Context menu error: {0}", e.Message);
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return false;
 			}
 		}
@@ -122,7 +122,7 @@ namespace SmartImage.Core
 				Integration.HandleContextMenu(IntegrationOption.Add);
 
 				NConsole.WriteSuccess("Added new context menu");
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 			}
 
 			return true;

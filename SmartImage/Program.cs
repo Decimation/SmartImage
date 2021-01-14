@@ -49,11 +49,7 @@ namespace SmartImage
 
 			Console.Title = Info.NAME;
 
-
-			if (Console.LargestWindowWidth  >= Interface.ConsoleWindowWidth &&
-			    Console.LargestWindowHeight >= Interface.ConsoleWindowHeight) {
-				Console.SetWindowSize(Interface.ConsoleWindowWidth, Interface.ConsoleWindowHeight);
-			}
+			NConsole.Resize(Interface.ConsoleWindowWidth, Interface.ConsoleWindowHeight);
 
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.Clear();
@@ -108,7 +104,7 @@ namespace SmartImage
 				SearchClient.Client.Start();
 
 				// Show results
-				NConsoleIO.ReadOptions(SearchClient.Client.Interface);
+				NConsole.ReadOptions(SearchClient.Client.Interface);
 			}
 			catch (Exception exception) {
 #if !DEBUG
@@ -126,7 +122,7 @@ namespace SmartImage
 				
 				//Network.OpenUrl(Info.Issue);
 
-				NConsoleIO.WaitForInput();
+				NConsole.WaitForInput();
 #else
 				Console.WriteLine(exception);
 #endif

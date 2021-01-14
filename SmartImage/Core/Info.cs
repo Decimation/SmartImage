@@ -91,7 +91,9 @@ namespace SmartImage.Core
 
 		public static bool IsAppFolderInPath => OS.IsFolderInPath(AppFolder);
 
-
+		/// <summary>
+		/// Setup
+		/// </summary>
 		public static void Setup()
 		{
 			if (!OperatingSystem.IsWindows()) {

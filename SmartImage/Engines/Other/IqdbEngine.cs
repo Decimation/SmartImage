@@ -24,6 +24,7 @@ namespace SmartImage.Engines.Other
 
 		private struct IqdbResult : ISearchResult
 		{
+			public bool?   Filter  { get; set; }
 			public string? Caption { get; set; }
 
 			public string Source { get; }
@@ -38,12 +39,13 @@ namespace SmartImage.Engines.Other
 
 			public IqdbResult(string caption, string source, string url, int width, int height, float? similarity)
 			{
-				Caption = caption;
-				Url = url;
-				Source = source;
-				Width = width;
-				Height = height;
+				Caption    = caption;
+				Url        = url;
+				Source     = source;
+				Width      = width;
+				Height     = height;
 				Similarity = similarity;
+				Filter     = null;
 			}
 
 			public override string ToString()

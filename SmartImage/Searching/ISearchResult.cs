@@ -35,5 +35,9 @@ namespace SmartImage.Searching
 		///     Image caption/name/title.
 		/// </summary>
 		public string? Caption { get; set; }
+		
+		public bool? Filter { get; set; }
+
+		
 	}
 }

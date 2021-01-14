@@ -56,7 +56,7 @@ namespace SmartImage.Core
 		/// <remarks>
 		///     User-friendly menu
 		/// </remarks>
-		internal static void Run() => NConsoleIO.ReadOptions(MainMenu);
+		internal static void Run() => NConsole.ReadOptions(MainMenu);
 
 
 		/// <summary>
@@ -96,6 +96,9 @@ namespace SmartImage.Core
 		/// </summary>
 		internal const int ConsoleWindowHeight = 50;
 
+		/// <summary>
+		/// Main option
+		/// </summary>
 		private static readonly NConsoleOption RunSelectImage = new()
 		{
 			Name  = ">>> Select image <<<",
@@ -104,11 +107,11 @@ namespace SmartImage.Core
 			{
 				Console.WriteLine("Drag and drop the image here.");
 
-				string? img = NConsoleIO.ReadInput("Image");
+				string? img = NConsole.ReadInput("Image");
 
 				if (String.IsNullOrWhiteSpace(img)) {
 					NConsole.WriteError("Invalid image");
-					NConsoleIO.WaitForInput();
+					NConsole.WaitForInput();
 					return null;
 				}
 
@@ -128,7 +131,7 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
-				var values = NConsoleIO.ReadOptions(rgEnum, true);
+				var values = NConsole.ReadOptions(rgEnum, true);
 
 				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
@@ -136,7 +139,7 @@ namespace SmartImage.Core
 
 				SearchConfig.Config.SearchEngines = newValues;
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
@@ -149,7 +152,7 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 				var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
-				var values = NConsoleIO.ReadOptions(rgEnum, true);
+				var values = NConsole.ReadOptions(rgEnum, true);
 
 				var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
 
@@ -157,7 +160,7 @@ namespace SmartImage.Core
 
 				SearchConfig.Config.PriorityEngines = newValues;
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
@@ -169,9 +172,9 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				SearchConfig.Config.SauceNaoAuth = NConsoleIO.ReadInput("API key");
+				SearchConfig.Config.SauceNaoAuth = NConsole.ReadInput("API key");
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
@@ -183,12 +186,35 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 
-				SearchConfig.Config.ImgurAuth = NConsoleIO.ReadInput("API key");
+				SearchConfig.Config.ImgurAuth = NConsole.ReadInput("API key");
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
+
+		private static readonly NConsoleOption ConfigAutoFilter = new()
+		{
+			Name  = GetAutoFilterString(),
+			Color = ColorConfig,
+			Function = () =>
+			{
+
+				SearchConfig.Config.FilterResults = !SearchConfig.Config.FilterResults;
+				ConfigAutoFilter.Name= GetAutoFilterString();
+				return null;
+			}
+		};
+		
+		private static string GetAutoFilterString()
+		{
+			//var x = SearchConfig.Config.FilterResults
+			//	? Formatting.CHECK_MARK.ToString()
+			//	: Formatting.BALLOT_X.ToString();
+			
+			var x = SearchConfig.Config.FilterResults;
+			return $"Filter results: {x}";
+		}
 
 		private static readonly NConsoleOption ConfigUpdateOption = new()
 		{
@@ -198,20 +224,20 @@ namespace SmartImage.Core
 			{
 				SearchConfig.Config.SaveFile();
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
 
 		private static readonly NConsoleOption ShowInfoOption = new()
 		{
-			Name  = "Show info",
+			Name  = "Show info and config",
 			Color = ColorMisc,
 			Function = () =>
 			{
 				Info.ShowInfo();
 
-				NConsoleIO.WaitForInput();
+				NConsole.WaitForInput();
 				return null;
 			}
 		};
@@ -224,22 +250,17 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 				bool ctx = Integration.IsContextMenuAdded;
-				bool added;
 
-				if (!ctx) {
-					Integration.HandleContextMenu(IntegrationOption.Add);
-					NConsole.WriteSuccess("Added to context menu");
-					added = true;
-				}
-				else {
-					Integration.HandleContextMenu(IntegrationOption.Remove);
-					NConsole.WriteSuccess("Removed from context menu");
-					added = false;
-				}
+				var io = !ctx ? IntegrationOption.Add : IntegrationOption.Remove;
+				
+				Integration.HandleContextMenu(io);
+				bool added = io == IntegrationOption.Add;
+				
+				NConsole.WriteInfo($"Context menu integrated: {added}");
 
 				ContextMenuOption.Name = GetContextMenuString(added);
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
@@ -256,7 +277,7 @@ namespace SmartImage.Core
 			{
 				UpdateInfo.AutoUpdate();
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
@@ -269,7 +290,7 @@ namespace SmartImage.Core
 			{
 				Integration.ResetIntegrations();
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				return null;
 			}
 		};
@@ -285,7 +306,7 @@ namespace SmartImage.Core
 				bool ok = LegacyIntegration.LegacyCleanup();
 
 				NConsole.WriteInfo($"Legacy cleanup: {ok}");
-				NConsoleIO.WaitForInput();
+				NConsole.WaitForInput();
 
 				return null;
 			}
@@ -335,7 +356,7 @@ namespace SmartImage.Core
 
 				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
 
-				var testImg = (string) NConsoleIO.ReadOptions(rgOption).First();
+				var testImg = (string) NConsole.ReadOptions(rgOption).First();
 
 				var img = Path.Combine(cd2, testImg);
 

@@ -2,14 +2,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Text;
-using JetBrains.Annotations;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
@@ -23,8 +18,6 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
-		public const char ATTR_SUCCESS = Formatting.CHECK_MARK;
-
 		public FullSearchResult(ISearchEngine engine, string url, float? similarity = null)
 			: this(engine.Color, engine.Name, url, similarity) { }
 
@@ -40,16 +33,18 @@ namespace SmartImage.Searching
 		}
 
 		/// <summary>
-		///     Displays <see cref="ExtendedResults" /> if any
+		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
 		/// </summary>
 		public override NConsoleFunction? AltFunction { get; set; }
 
 		public override Color Color { get; set; }
 
 		/// <summary>
-		///     Downloads image, if possible, and opens it in Explorer highlighted
+		///     Downloads result (<see cref="Url"/>) and opens it in Explorer with the file highlighted.
+		/// 
 		/// </summary>
-		public override NConsoleFunction? CtrlFunction
+		/// <remarks>(Ideally, <see cref="Url"/> is a direct image link)</remarks>
+		public override NConsoleFunction CtrlFunction
 		{
 			get
 			{
@@ -64,7 +59,7 @@ namespace SmartImage.Searching
 					// Open folder with downloaded file selected
 					FileSystem.ExploreFile(path);
 
-					NConsoleIO.WaitForSecond();
+					NConsole.WaitForSecond();
 
 					return null;
 				};
@@ -86,7 +81,7 @@ namespace SmartImage.Searching
 		public List<FullSearchResult> ExtendedResults { get; }
 
 		/// <summary>
-		///     Opens result in browser
+		///     Opens <see cref="Url"/> in browser
 		/// </summary>
 		public override NConsoleFunction Function
 		{
@@ -101,6 +96,9 @@ namespace SmartImage.Searching
 			}
 		}
 
+		/// <summary>
+		/// Opens <see cref="RawUrl"/> in browser, if available
+		/// </summary>
 		public override NConsoleFunction ComboFunction
 		{
 			get
@@ -113,7 +111,7 @@ namespace SmartImage.Searching
 					}
 
 					NConsole.WriteError("Raw result unavailable");
-					NConsoleIO.WaitForSecond();
+					NConsole.WaitForSecond();
 					return null;
 				};
 			}
@@ -140,6 +138,11 @@ namespace SmartImage.Searching
 		public string Url { get; set; }
 
 		public int? Width { get; set; }
+		
+
+		public bool? Filter { get; set; }
+		
+		
 
 		public void AddExtendedResults(ISearchResult[] bestImages)
 		{
@@ -151,7 +154,7 @@ namespace SmartImage.Searching
 
 			AltFunction = () =>
 			{
-				NConsoleIO.ReadOptions(ExtendedResults);
+				NConsole.ReadOptions(ExtendedResults);
 
 				return null;
 			};
@@ -161,14 +164,16 @@ namespace SmartImage.Searching
 		{
 			var sb = new StringBuilder();
 
-			string attrSuccess = ATTR_SUCCESS.ToString();
+			string attrSuccess = Formatting.CHECK_MARK.ToString();
 
 
-			var ex = ExtendedResults.Count > 0
+			string? ex = ExtendedResults.Count > 0
 				? String.Format($"({ExtendedResults.Count})")
 				: String.Empty;
 
-			sb.Append($"{attrSuccess} {ex}\n");
+			var fstr = Filter.HasValue && Filter.Value ? $"{Formatting.BALLOT_X}" : "";
+			
+			sb.Append($"{attrSuccess} {ex} {fstr}\n");
 
 
 			if (RawUrl != Url) {

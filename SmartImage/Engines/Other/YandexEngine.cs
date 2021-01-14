@@ -23,6 +23,7 @@ namespace SmartImage.Engines.Other
 
 		private struct YandexResult : ISearchResult
 		{
+			public bool?  Filter     { get; set; }
 			public float? Similarity { get; set; }
 
 			public int? Width { get; set; }
@@ -36,11 +37,12 @@ namespace SmartImage.Engines.Other
 
 			internal YandexResult(int width, int height, string url)
 			{
-				Width = width;
-				Height = height;
-				Url = url;
-				Caption = null;
+				Width      = width;
+				Height     = height;
+				Url        = url;
+				Caption    = null;
 				Similarity = null;
+				Filter     = null;
 			}
 
 			public override string ToString()

@@ -33,10 +33,9 @@ namespace SmartImage.Utilities
 			var wc      = new WebClient();
 
 			NConsole.WriteInfo("Downloading...");
-			
+
 			wc.DownloadFile(ui.Latest.AssetUrl, destNew);
-			
-			
+
 
 			string exeFileName = Info.ExeLocation;
 
@@ -82,7 +81,7 @@ namespace SmartImage.Utilities
 			if (ui.Status == VersionStatus.Available) {
 				NConsole.WriteSuccess($"Update found: {ui.Latest} ");
 
-				if (NConsoleIO.ReadConfirmation("Update?")) {
+				if (NConsole.ReadConfirmation("Update?")) {
 					try {
 						Update(ui);
 					}
@@ -90,32 +89,31 @@ namespace SmartImage.Utilities
 						Console.WriteLine(e);
 						return;
 					}
+
 					Environment.Exit(0);
 				}
 			}
+
+			NConsole.WriteInfo($"Up to date: {ui.Current} [{ui.Latest}]");
+			NConsole.WaitForSecond();
 		}
 
 		public static UpdateInfo GetUpdateInfo()
 		{
 			var asm            = typeof(Info).Assembly.GetName();
 			var currentVersion = asm.Version;
-
-
-			var release = ReleaseInfo.GetLatestRelease();
+			var release        = ReleaseInfo.GetLatestRelease();
 
 			VersionStatus status;
 
 			int cmp = currentVersion.CompareTo(release.Version);
 
-			if (cmp < 0) {
-				status = VersionStatus.Available;
-			}
-			else if (cmp == 0) {
-				status = VersionStatus.UpToDate;
-			}
-			else {
-				status = VersionStatus.Preview;
-			}
+			status = cmp switch
+			{
+				< 0 => VersionStatus.Available,
+				0   => VersionStatus.UpToDate,
+				_   => VersionStatus.Preview
+			};
 
 			return new UpdateInfo(currentVersion, release, status);
 		}

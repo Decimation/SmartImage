@@ -43,6 +43,7 @@ namespace SmartImage.Engines.SauceNao
 		private struct SauceNaoSimpleResult : ISearchResult
 		{
 			public string? Caption    { get; set; }
+			public bool?   Filter     { get; set; }
 			public string  Url        { get; set; }
 			public float?  Similarity { get; set; }
 			public int?    Width      { get; set; }
@@ -55,6 +56,7 @@ namespace SmartImage.Engines.SauceNao
 				Similarity = similarity;
 				Width      = null;
 				Height     = null;
+				Filter     = null;
 			}
 
 			public override string ToString()

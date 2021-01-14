@@ -83,6 +83,7 @@ namespace SmartImage.Engines.TraceMoe
 
 					if (r.Similarity < THRESHOLD) {
 						r.ExtendedInfo.Add($"Similarity below threshold ({THRESHOLD}%)");
+						r.Filter = true;
 					}
 
 

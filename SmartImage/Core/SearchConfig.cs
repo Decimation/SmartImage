@@ -19,10 +19,10 @@ using SmartImage.Utilities;
 namespace SmartImage.Core
 {
 	/// <summary>
-	///     Search config
+	///     Search configuration and options
 	/// </summary>
 	/// <remarks>
-	///     Config is read from config file (<see cref="ConfigLocation" />) or from specified arguments.
+	///     Config is read from config file (<see cref="ConfigLocation" />) first, then from specified command line arguments.
 	/// </remarks>
 	/// <seealso cref="ConfigComponents" />
 	public sealed class SearchConfig
@@ -41,7 +41,6 @@ namespace SmartImage.Core
 
 			// Read config from command line arguments
 			ReadFromArguments();
-
 
 			// Setup
 			EnsureConfig();
@@ -81,7 +80,12 @@ namespace SmartImage.Core
 		[field: ConfigComponent("saucenao_key", "--imgur-auth", Strings.Empty)]
 		public string SauceNaoAuth { get; set; }
 
-		
+		/// <summary>
+		///     Does not open results from priority engines if the result similarity (if available) is below a certain threshold.
+		/// </summary>
+		[field: ConfigComponent("filter_results", "--filter-results", true, true)]
+		public bool FilterResults { get; set; }
+
 		/// <summary>
 		///     Whether to save passed in arguments (via CLI) to the config file upon exit
 		/// </summary>
@@ -89,7 +93,7 @@ namespace SmartImage.Core
 
 
 		/// <summary>
-		///     The image we are searching for
+		///     Image
 		/// </summary>
 		public string Image { get; set; }
 
@@ -98,6 +102,9 @@ namespace SmartImage.Core
 		/// </summary>
 		public static string ConfigLocation => Path.Combine(Info.AppFolder, Info.NAME_CFG);
 
+		/// <summary>
+		/// Read configuration from file (<see cref="ConfigLocation"/>)
+		/// </summary>
 		private void ReadFromFile()
 		{
 			bool newCfg = false;
@@ -123,7 +130,9 @@ namespace SmartImage.Core
 			Image = String.Empty;
 		}
 
-
+		/// <summary>
+		/// Reset configuration to defaults
+		/// </summary>
 		public void Reset() => ConfigComponents.ResetComponents(this);
 
 
@@ -149,7 +158,7 @@ namespace SmartImage.Core
 			if (illegalOptions != 0) {
 				NConsole.WriteError($"Search engine option {illegalOptions} cannot be used for search engine options");
 
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 
 				// Clear illegal options
 				SearchEngines &= ~illegalOptions;
@@ -158,7 +167,7 @@ namespace SmartImage.Core
 			// Special case
 			if (SearchEngines == SearchEngineOptions.None) {
 				NConsole.WriteInfo("Reverting search engine options to default");
-				NConsoleIO.WaitForSecond();
+				NConsole.WaitForSecond();
 				ConfigComponents.ResetComponent(this, nameof(SearchEngines));
 			}
 
@@ -197,6 +206,7 @@ namespace SmartImage.Core
 				sb.AppendFormat("Imgur authentication: {0}\n", imgurAuth);
 			}
 
+			sb.Append($"Auto filtering: {FilterResults}\n");
 
 			sb.AppendFormat("Image upload service: {0}\n",
 				imgurNull ? "ImgOps" : "Imgur");
@@ -209,16 +219,13 @@ namespace SmartImage.Core
 
 
 		/// <summary>
-		///     Parse config arguments and options
+		///     Read config from command line arguments
 		/// </summary>
 		private void ReadFromArguments()
 		{
 			string[] args = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
-
-			bool noArgs = args.Length == 0;
-
-			if (noArgs) {
+			if (!args.Any()) {
 				NoArguments = true;
 				return;
 			}
