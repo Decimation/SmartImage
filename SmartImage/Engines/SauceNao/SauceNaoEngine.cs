@@ -12,6 +12,7 @@ using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Core;
 using SmartImage.Searching;
+using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
 #nullable enable
@@ -39,17 +40,18 @@ namespace SmartImage.Engines.SauceNao
 		public override SearchEngineOptions Engine => SearchEngineOptions.SauceNao;
 
 		public override Color Color => Color.OrangeRed;
-		
+
 		public override float? FilterThreshold => 70.00F;
 
 		private struct SauceNaoSimpleResult : ISearchResult
 		{
 			public string? Caption    { get; set; }
-			public bool   Filter     { get; set; }
+			public bool    Filter     { get; set; }
 			public string  Url        { get; set; }
 			public float?  Similarity { get; set; }
 			public int?    Width      { get; set; }
 			public int?    Height     { get; set; }
+
 
 			public SauceNaoSimpleResult(string? title, string url, float? similarity)
 			{
@@ -58,7 +60,8 @@ namespace SmartImage.Engines.SauceNao
 				Similarity = similarity;
 				Width      = null;
 				Height     = null;
-				Filter     = false;//set later
+				Filter     = false; //set later
+
 			}
 
 			public override string ToString()
@@ -92,12 +95,41 @@ namespace SmartImage.Engines.SauceNao
 					var url = sn.Url.FirstOrDefault(u => u != null);
 					var x   = new SauceNaoSimpleResult(sn.WebsiteTitle, url, sn.Similarity);
 					x.Filter = x.Similarity < FilterThreshold;
+
+
+
+					x.Caption = AddCaption(sn);
 					rg.Add(x);
 				}
 			}
 
 			return rg.ToArray();
 		}
+
+		private static string? AddCaption(SauceNaoDataResult x)
+		{
+			var sb = new StringBuilder();
+
+			if (x.Character != null)
+			{
+				sb.Append($"Characters: {x.Character}");
+			}
+			if (x.Creator != null)
+			{
+				sb.Append($" Creator: {x.Creator}");
+			}
+			if (x.Material != null)
+			{
+				sb.Append($" Material: {x.Material}");
+			}
+
+			if (sb.Length == 0) {
+				return null;
+			}
+
+			return sb.ToString();
+		}
+		
 
 		public override FullSearchResult GetResult(string url)
 		{
@@ -106,26 +138,39 @@ namespace SmartImage.Engines.SauceNao
 			try {
 				var orig = GetResults(url);
 
-				var sn = orig
-					.OrderByDescending(r => r.Similarity)
-					.ToArray();
-
-				var extended = ConvertResults(sn);
-
-				var best = extended
-					.Where(e => e.Url != null)
-					.OrderByDescending(e => e.Similarity)
-					.First();
+				// todo - aggregate all info for primary result
 				
+				var character = orig.FirstOrDefault(o => o.Character != null)?.Character;
+				var creator = orig.FirstOrDefault(o => o.Creator   != null)?.Creator;
+				var material = orig.FirstOrDefault(o => o.Material != null)?.Material;
+
+				// todo - bad practice
+				var dummy = new SauceNaoDataResult() {Character = character, Creator = creator, Material = material};
+
+				result.Caption = AddCaption(dummy);
+
+
+				var extended = ConvertResults(orig);
+
+				var ordered = extended
+					.Where(e => e.Url != null)
+					.OrderByDescending(e => e.Similarity);
+
+				var best = ordered
+					.First();
+
 				// Copy
 				result.Url        = best.Url;
 				result.Similarity = best.Similarity;
-				result.Caption    = best.Caption;
+				
 				result.Filter     = best.Filter;
+
 
 				result.AddExtendedResults(extended);
 
+
 				if (!string.IsNullOrWhiteSpace(m_apiKey)) {
+
 					result.ExtendedInfo.Add("Using API");
 				}
 
@@ -138,9 +183,9 @@ namespace SmartImage.Engines.SauceNao
 
 			return result;
 		}
-		
-		
-		private IEnumerable<SauceNaoDataResult>? GetResults(string url)
+
+
+		private SauceNaoDataResult[] GetResults(string url)
 		{
 
 			var req = new RestRequest();
@@ -158,7 +203,7 @@ namespace SmartImage.Engines.SauceNao
 		}
 
 
-		private static IEnumerable<SauceNaoDataResult>? ReadResults(string js)
+		private static SauceNaoDataResult[] ReadResults(string js)
 		{
 			// todo: rewrite this using Newtonsoft
 
@@ -178,21 +223,39 @@ namespace SmartImage.Engines.SauceNao
 					jsonArray[i] =  JsonValue.Parse(obj);
 				}
 
-				string json = jsonArray.ToString();
+				string json    = jsonArray.ToString();
+				var    jsoncpy = json;
+
 				json = json.Insert(json.Length - 1, "}").Insert(0, "{\"results\":");
 
 				using var stream =
 					JsonReaderWriterFactory.CreateJsonReader(Encoding.UTF8.GetBytes(json),
 						XmlDictionaryReaderQuotas.Max);
+
+
 				var serializer = new DataContractJsonSerializer(typeof(SauceNaoDataResponse));
 				var result     = serializer.ReadObject(stream) as SauceNaoDataResponse;
+
+				// todo - crappy solution
+				
+				var res2 = JsonArray.Parse(jsoncpy);
+				Debug.WriteLine(res2.Count);
+
+
 				stream.Dispose();
 
 				if (result is null)
 					return null;
 
-				foreach (var t in result.Results) {
+				for (int index = 0; index < result.Results.Length; index++) {
+					var t  = result.Results[index];
+					var t2 = res2[index];
 					t.WebsiteTitle = Strings.SplitPascalCase(t.Index.ToString());
+
+					//
+					t.Creator   = t2.ContainsKey("creator") ? t2["creator"].ToString() : null;
+					t.Character = t2.ContainsKey("characters") ? t2["characters"].ToString() : null;
+					t.Material  = t2.ContainsKey("material") ? t2["material"].ToString() : null;
 				}
 
 				return result.Results;

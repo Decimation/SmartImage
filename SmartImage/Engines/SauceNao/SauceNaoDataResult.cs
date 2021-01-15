@@ -1,5 +1,7 @@
 using System;
+using System.ComponentModel;
 using System.Runtime.Serialization;
+using JetBrains.Annotations;
 
 namespace SmartImage.Engines.SauceNao
 {
@@ -42,9 +44,20 @@ namespace SmartImage.Engines.SauceNao
 		[IgnoreDataMember]
 		public float Rating { get; internal set; }
 
-
 		[IgnoreDataMember]
 		public string WebsiteTitle { get; set; }
+
+		[IgnoreDataMember]
+		public string Character { get; internal set; }
+
+		[IgnoreDataMember]
+
+		public string Material { get; internal set; }
+
+		[IgnoreDataMember]
+
+		public string Creator { get; internal set; }
+
 
 		public override string ToString()
 		{

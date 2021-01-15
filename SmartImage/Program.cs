@@ -50,9 +50,8 @@ namespace SmartImage
 			Console.Title = Info.NAME;
 
 			NConsole.Resize(Interface.ConsoleWindowWidth, Interface.ConsoleWindowHeight);
-			
-			
-			
+
+
 			Console.Clear();
 
 			Console.WriteLine(Info.NAME_BANNER);
@@ -118,9 +117,9 @@ namespace SmartImage
 				Console.WriteLine(exception.InnerException?.StackTrace);
 				Console.WriteLine(exception.InnerException?.Message);
 				Console.WriteLine("Crash log written to {0}", src);
-				
+
 				Console.WriteLine("Please file an issue and attach the crash log.");
-				
+
 				//Network.OpenUrl(Info.Issue);
 
 				NConsole.WaitForInput();

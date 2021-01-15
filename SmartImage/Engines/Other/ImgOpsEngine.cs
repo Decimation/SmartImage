@@ -13,6 +13,7 @@ namespace SmartImage.Engines.Other
 		public ImgOpsEngine() : base("http://imgops.com/") { }
 
 		public override string Name  => "ImgOps";
+		
 		public override Color  Color => Color.Pink;
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
@@ -51,36 +52,8 @@ namespace SmartImage.Engines.Other
 
 			string imgOpsUrl = UploadImage(img);
 
-			// var imgOpsPageUrl = imgOpsUrl;
-
-			// string html = Network.GetString(imgOpsUrl);
-			//
-			// const string HREF_REGEX = "href=\"(.*)\"";
-			//
-			// var    match = Regex.Matches(html, HREF_REGEX);
-			/*string link = null;
-			
-			
-			foreach (Match match1 in match) {
-				foreach (Group @group in match1.Groups) {
-					var v = group.Value;
-
-					if (v.StartsWith("http://imgops.com/") && v.Contains("userUploadTempCache")) {
-						link = v;
-						break;
-					}
-				}
-			}*/
-
-			// May change in the future
-			// const int HREF_N = 7;
-			//
-			// string link = match[HREF_N].Groups[1].Value;
-
-			var link = imgOpsUrl;
+			string? link = imgOpsUrl;
 			link = "http://" + link.SubstringAfter(BaseUrl);
-
-			//Debug.WriteLine("> " + link);
 
 			return link;
 		}

@@ -23,7 +23,7 @@ namespace SmartImage.Engines.Other
 
 		private struct YandexResult : ISearchResult
 		{
-			public bool  Filter     { get; set; }
+			public bool   Filter     { get; set; }
 			public float? Similarity { get; set; }
 
 			public int? Width { get; set; }
@@ -47,7 +47,7 @@ namespace SmartImage.Engines.Other
 
 			public override string ToString()
 			{
-				return String.Format("{0}x{1} {2} [{3:N}]", Width, Height, Url, ((ISearchResult) this).FullResolution);
+				return $"{Width}x{Height} {Url} [{((ISearchResult) this).FullResolution:N}]";
 			}
 		}
 
@@ -66,33 +66,42 @@ namespace SmartImage.Engines.Other
 
 		private static string GetYandexAnalysis(HtmlDocument doc)
 		{
-			var nodes = doc.DocumentNode.SelectNodes("//div[contains(@class, 'Tags_type_simple')]/*");
+			const string TAGS_XP = "//div[contains(@class, 'Tags_type_simple')]/*";
 
+			var nodes = doc.DocumentNode.SelectNodes(TAGS_XP);
 
-			var appearsToContain = nodes.Select(n=>n.InnerText).QuickJoin();
-
+			string? appearsToContain = nodes.Select(n => n.InnerText).QuickJoin();
 
 			return appearsToContain;
 		}
 
+
 		private static List<ISearchResult> GetYandexImages(HtmlDocument doc)
 		{
-			var tagsItem = doc.DocumentNode.SelectNodes("//a[contains(@class, 'Tags-Item')]");
+			const string TAGS_ITEM_XP = "//a[contains(@class, 'Tags-Item')]";
+
+			const string CBIR_ITEM = "CbirItem";
+
+
+			var tagsItem = doc.DocumentNode.SelectNodes(TAGS_ITEM_XP);
 
 			var sizeTags = tagsItem.Where(sx =>
-				!sx.ParentNode.ParentNode.Attributes["class"].Value.Contains("CbirItem"));
+				!sx.ParentNode.ParentNode.Attributes["class"].Value.Contains(CBIR_ITEM));
 
+			
 
 			var images = new List<ISearchResult>();
 
 			foreach (var siz in sizeTags) {
-				var link = siz.Attributes["href"].Value;
+				string? link = siz.Attributes["href"].Value;
 
-				var resText = siz.FirstChild.InnerText;
-				var resFull = resText.Split('×');
-				var w = Int32.Parse(resFull[0]);
-				var h = Int32.Parse(resFull[1]);
-				var totalRes = w * h;
+				string? resText = siz.FirstChild.InnerText;
+
+				string[]? resFull  = resText.Split(Formatting.MUL_SIGN);
+				
+				int       w        = Int32.Parse(resFull[0]);
+				int       h        = Int32.Parse(resFull[1]);
+				int       totalRes = w * h;
 
 				if (totalRes >= TOTAL_RES_MIN) {
 					var restRes = Network.GetSimpleResponse(link);
@@ -103,9 +112,6 @@ namespace SmartImage.Engines.Other
 						images.Add(yi);
 					}
 				}
-
-
-				// todo
 			}
 
 			return images;
@@ -116,20 +122,20 @@ namespace SmartImage.Engines.Other
 			// todo: slow
 
 			var sr = base.GetResult(url);
-			
+
 			try {
 
 				// Get more info from Yandex
 
-				var html = Network.GetString(sr.RawUrl);
-				var doc = new HtmlDocument();
+				string? html = Network.GetString(sr.RawUrl);
+				var     doc  = new HtmlDocument();
 				doc.LoadHtml(html);
 
 				/*
 				 * Parse what the image looks like
 				 */
 
-				var looksLike = GetYandexAnalysis(doc);
+				string? looksLike = GetYandexAnalysis(doc);
 				sr.Caption = looksLike;
 
 
@@ -143,9 +149,9 @@ namespace SmartImage.Engines.Other
 
 				//
 				var best = images[0];
-				sr.Width = best.Width;
+				sr.Width  = best.Width;
 				sr.Height = best.Height;
-				sr.Url = best.Url;
+				sr.Url    = best.Url;
 
 
 				sr.AddExtendedResults(bestImages);

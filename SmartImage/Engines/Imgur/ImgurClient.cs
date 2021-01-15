@@ -23,17 +23,6 @@ namespace SmartImage.Engines.Imgur
 
 		public ImgurClient() : this(SearchConfig.Config.ImgurAuth) { }
 
-		
-		private static string PhotoStreamToBase64(Stream stream)
-		{
-			using var ms = new MemoryStream();
-
-			stream.CopyTo(ms);
-
-			var result = ms.ToArray();
-			return Convert.ToBase64String(result);
-		}
-
 		public string Upload(string path)
 		{
 

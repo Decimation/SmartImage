@@ -181,11 +181,6 @@ namespace SmartImage.Searching
 		/// </summary>
 		public void Start()
 		{
-			// Display config
-			NConsole.WriteInfo(SearchConfig.Config);
-
-			NConsole.WriteInfo($"Temporary image url: {ImageUrl}");
-
 			SearchMonitor.Start();
 
 			foreach (var thread in SearchTasks) {
@@ -202,8 +197,6 @@ namespace SmartImage.Searching
 			{
 				Similarity = 100.0f,
 			};
-
-			result.ExtendedInfo.Add($"Location: {ImageFile}");
 
 			var fileFormat = FileSystem.ResolveFileType(ImageFile.FullName);
 
@@ -322,10 +315,28 @@ namespace SmartImage.Searching
 		/// </summary>
 		private static string? Upload(string img, bool useImgur)
 		{
+			
 			IUploadEngine uploadEngine;
 
 			string imgUrl;
+			
+			/*
+			 * Show settings 
+			 */
+			
+			Console.WriteLine(Info.NAME_BANNER);
 
+			NConsole.OverrideForegroundColor = Core.Interface.ColorConfig;
+			NConsole.WriteInfo(SearchConfig.Config);
+			NConsole.ResetOverrideColors();
+			
+			/*
+			 * Upload
+			 */
+			
+			NConsole.WriteInfo("Uploading image");
+			
+			
 			if (useImgur) {
 				try {
 					NConsole.WriteInfo("Using Imgur for image upload");
@@ -341,6 +352,8 @@ namespace SmartImage.Searching
 			else {
 				UploadImgOps();
 			}
+			
+			
 
 			void UploadImgOps()
 			{
@@ -348,6 +361,8 @@ namespace SmartImage.Searching
 				uploadEngine = new ImgOpsEngine();
 				imgUrl       = uploadEngine.Upload(img);
 			}
+
+			NConsole.WriteInfo($"Temporary image url: {imgUrl}");
 
 			return imgUrl;
 		}

@@ -50,14 +50,6 @@ namespace SmartImage.Engines.Other
 				Similarity = similarity;
 				Filter     = false; // set later
 			}
-
-			public override string ToString()
-			{
-				return
-					$"{nameof(Caption)}: {Caption}, {nameof(Source)}: "       +
-					$"{Source}, {nameof(Width)}: {Width}, {nameof(Height)}: " +
-					$"{Height}, {nameof(Url)}: {Url}, {nameof(Similarity)}: {Similarity}";
-			}
 		}
 
 		private IqdbResult ParseResult(HtmlNodeCollection tr)
@@ -84,11 +76,13 @@ namespace SmartImage.Engines.Other
 				url = origUrl;
 			}
 
+
 			int w = 0, h = 0;
 
 			if (tr.Count >= 4) {
 				var res = tr[3];
-				var wh  = res.InnerText.Split("×");
+
+				var wh = res.InnerText.Split(Formatting.MUL_SIGN);
 
 				var wStr = wh[0].SelectOnlyDigits();
 				w = int.Parse(wStr);
@@ -147,16 +141,10 @@ namespace SmartImage.Engines.Other
 					return sr;
 				}
 
-				var images = new List<ISearchResult>();
-
-				foreach (var table in tables) {
-
-					var tr = table.SelectNodes("tr");
-
-					var i = ParseResult(tr);
-
-					images.Add(i);
-				}
+				var images = tables.Select(table => table.SelectNodes("tr"))
+					.Select(ParseResult)
+					.Cast<ISearchResult>()
+					.ToList();
 
 				// First is original image
 				images.RemoveAt(0);
