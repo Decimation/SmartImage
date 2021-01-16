@@ -48,7 +48,7 @@ namespace SmartImage.Engines.TraceMoe
 
 				results[i] = new FullSearchResult(this, malUrl, sim)
 				{
-					Caption = doc.title_english
+					Source = doc.title_english
 				};
 			}
 
@@ -80,7 +80,7 @@ namespace SmartImage.Engines.TraceMoe
 					var best    = results[0];
 
 					r         = new FullSearchResult(this, best.Url, best.Similarity);
-					r.Caption = best.Caption;
+					r.Source = best.Source;
 					r.Filter  = r.Similarity < FilterThreshold;
 					
 

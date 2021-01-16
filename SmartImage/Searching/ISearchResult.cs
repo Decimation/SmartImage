@@ -39,10 +39,20 @@ namespace SmartImage.Searching
 		public string? Caption { get; set; }
 		
 		
+		
+		public string? Artist { get; set; }
+		
+		public string? Source { get; set; }
+		
+		public string? Characters { get; set; }
+		
+		public string? SiteName { get; set; }
+		
 		/// <summary>
 		/// Filter this result if <see cref="SearchConfig.FilterResults"/> is used
 		/// </summary>
 		public bool Filter { get; set; }
+		
 		
 		
 

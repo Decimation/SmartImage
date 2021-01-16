@@ -143,6 +143,10 @@ namespace SmartImage.Searching
 
 		public bool Filter { get; set; }
 
+		public string? Artist     { get; set; }
+		public string? Source     { get; set; }
+		public string? Characters { get; set; }
+		public string? SiteName   { get; set; }
 
 		public void AddExtendedResults(ISearchResult[] bestImages)
 		{
@@ -186,17 +190,24 @@ namespace SmartImage.Searching
 				sb.Append($"\tResult: {Url}\n");
 			}
 
-			if (RawUrl != null) {
-				sb.Append($"\tRaw: {RawUrl}\n");
-			}
+			
+			
+			AddKVSB(sb, RawUrl, "Raw");
 
-			if (Caption != null) {
-				sb.Append($"\tCaption: {Caption}\n");
-			}
-
-			if (Similarity.HasValue) {
+			if (Similarity.HasValue)
+			{
 				sb.Append($"\tSimilarity: {Similarity / 100:P}\n");
 			}
+
+			AddKVSB(sb,Artist,nameof(Artist));
+			AddKVSB(sb, Characters, nameof(Characters));
+			AddKVSB(sb, Source, nameof(Source));
+			AddKVSB(sb, Caption, nameof(Caption));
+			AddKVSB(sb, SiteName, "Site");
+			//todo
+			
+
+			
 
 			if (Width.HasValue && Height.HasValue) {
 				sb.Append($"\tResolution: {Width}x{Height}\n");
@@ -207,6 +218,16 @@ namespace SmartImage.Searching
 			}
 
 			return sb.ToString();
+		}
+
+		private static void AddKVSB(StringBuilder sb, string? a, string n)
+		{
+			//todo: util
+			
+			if (a != null)
+			{
+				sb.Append($"\t{n}: {a}\n");
+			}
 		}
 
 		private IList<FullSearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
@@ -221,7 +242,11 @@ namespace SmartImage.Searching
 				{
 					Width   = result.Width,
 					Height  = result.Height,
-					Caption = result.Caption
+					Caption = result.Caption,
+					Artist = result.Artist,
+					Source = result.Source,
+					Characters = result.Characters,
+					SiteName = result.SiteName,
 				};
 
 				rg[i] = sr;

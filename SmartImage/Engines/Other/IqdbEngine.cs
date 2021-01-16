@@ -30,7 +30,7 @@ namespace SmartImage.Engines.Other
 
 			public string? Caption { get; set; }
 
-			public string Source { get; }
+			public string? Source { get; set; }
 
 			public int? Width { get; set; }
 
@@ -38,17 +38,23 @@ namespace SmartImage.Engines.Other
 
 			public string Url { get; set; }
 
-			public float? Similarity { get; set; }
+			public float?  Similarity { get; set; }
+			public string? Artist     { get; set; }
+			public string? Characters { get; set; }
+			public string? SiteName   { get; set; }
 
-			public IqdbResult(string caption, string source, string url, int width, int height, float? similarity)
+			public IqdbResult(string siteName, string source, string url, int width, int height, float? similarity)
 			{
-				Caption    = caption;
+				 SiteName  = siteName;
 				Url        = url;
 				Source     = source;
 				Width      = width;
 				Height     = height;
 				Similarity = similarity;
 				Filter     = false; // set later
+				Artist     = null;
+				Characters = null;
+				Caption    = null;
 			}
 		}
 
@@ -105,7 +111,7 @@ namespace SmartImage.Engines.Other
 			}
 
 
-			var i = new IqdbResult(caption.InnerText, src.InnerText, url, w, h, sim);
+			var i = new IqdbResult(src.InnerText, null, url, w, h, sim);
 			i.Filter = i.Similarity < FilterThreshold;
 			return i;
 		}
@@ -153,7 +159,8 @@ namespace SmartImage.Engines.Other
 				sr.Url        = best.Url;
 				sr.Similarity = best.Similarity;
 				sr.Filter     = best.Filter;
-
+				sr.Source     = best.Source;
+				sr.SiteName   = best.SiteName;
 				sr.AddExtendedResults(images.ToArray());
 
 

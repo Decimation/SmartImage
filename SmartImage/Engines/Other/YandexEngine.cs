@@ -34,6 +34,10 @@ namespace SmartImage.Engines.Other
 
 			public string Url { get; set; }
 
+			public string? Artist     { get; set; }
+			public string? Source     { get; set; }
+			public string? Characters { get; set; }
+			public string? SiteName   { get; set; }
 
 			internal YandexResult(int width, int height, string url)
 			{
@@ -43,6 +47,10 @@ namespace SmartImage.Engines.Other
 				Caption    = null;
 				Similarity = null;
 				Filter     = false;
+				Artist     = null;
+				Source     = null;
+				Characters = null;
+				SiteName=null;
 			}
 
 			public override string ToString()
