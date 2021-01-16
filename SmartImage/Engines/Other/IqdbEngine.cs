@@ -38,14 +38,18 @@ namespace SmartImage.Engines.Other
 
 			public string Url { get; set; }
 
-			public float?  Similarity { get; set; }
-			public string? Artist     { get; set; }
-			public string? Characters { get; set; }
-			public string? SiteName   { get; set; }
+			public float? Similarity { get; set; }
 
-			public IqdbResult(string siteName, string source, string url, int width, int height, float? similarity)
+			public string? Artist { get; set; }
+
+			public string? Characters { get; set; }
+
+			public string? SiteName { get; set; }
+
+			public IqdbResult(string siteName, string source, string url, int width, int height, float? similarity,
+				string? caption)
 			{
-				 SiteName  = siteName;
+				SiteName   = siteName;
 				Url        = url;
 				Source     = source;
 				Width      = width;
@@ -54,7 +58,7 @@ namespace SmartImage.Engines.Other
 				Filter     = false; // set later
 				Artist     = null;
 				Characters = null;
-				Caption    = null;
+				Caption    = caption;
 			}
 		}
 
@@ -91,12 +95,12 @@ namespace SmartImage.Engines.Other
 				var wh = res.InnerText.Split(Formatting.MUL_SIGN);
 
 				var wStr = wh[0].SelectOnlyDigits();
-				w = int.Parse(wStr);
+				w = Int32.Parse(wStr);
 
 				// May have NSFW caption, so remove it
 
 				var hStr = wh[1].SelectOnlyDigits();
-				h = int.Parse(hStr);
+				h = Int32.Parse(hStr);
 			}
 
 			float? sim;
@@ -104,14 +108,14 @@ namespace SmartImage.Engines.Other
 			if (tr.Count >= 5) {
 				var simNode = tr[4];
 				var simStr  = simNode.InnerText.Split('%')[0];
-				sim = float.Parse(simStr);
+				sim = Single.Parse(simStr);
 			}
 			else {
 				sim = null;
 			}
 
 
-			var i = new IqdbResult(src.InnerText, null, url, w, h, sim);
+			var i = new IqdbResult(src.InnerText, null, url, w, h, sim, caption.InnerText);
 			i.Filter = i.Similarity < FilterThreshold;
 			return i;
 		}
@@ -122,7 +126,7 @@ namespace SmartImage.Engines.Other
 
 			try {
 
-				var html = Network.GetSimpleResponse(sr.RawUrl);
+				var html = Network.GetSimpleResponse(sr.RawUrl!);
 
 				//Network.WriteResponse(html);
 

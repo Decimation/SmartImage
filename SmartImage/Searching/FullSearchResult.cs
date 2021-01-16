@@ -140,13 +140,15 @@ namespace SmartImage.Searching
 
 		public int? Width { get; set; }
 
-
 		public bool Filter { get; set; }
 
-		public string? Artist     { get; set; }
-		public string? Source     { get; set; }
+		public string? Artist { get; set; }
+
+		public string? Source { get; set; }
+
 		public string? Characters { get; set; }
-		public string? SiteName   { get; set; }
+
+		public string? SiteName { get; set; }
 
 		public void AddExtendedResults(ISearchResult[] bestImages)
 		{
@@ -190,24 +192,17 @@ namespace SmartImage.Searching
 				sb.Append($"\tResult: {Url}\n");
 			}
 
-			
-			
-			AddKVSB(sb, RawUrl, "Raw");
+			AddInfoSafe(sb, RawUrl, "Raw");
 
-			if (Similarity.HasValue)
-			{
+			if (Similarity.HasValue) {
 				sb.Append($"\tSimilarity: {Similarity / 100:P}\n");
 			}
 
-			AddKVSB(sb,Artist,nameof(Artist));
-			AddKVSB(sb, Characters, nameof(Characters));
-			AddKVSB(sb, Source, nameof(Source));
-			AddKVSB(sb, Caption, nameof(Caption));
-			AddKVSB(sb, SiteName, "Site");
-			//todo
-			
-
-			
+			AddInfoSafe(sb, Artist, nameof(Artist));
+			AddInfoSafe(sb, Characters, nameof(Characters));
+			AddInfoSafe(sb, Source, nameof(Source));
+			AddInfoSafe(sb, Caption, nameof(Caption));
+			AddInfoSafe(sb, SiteName, "Site");
 
 			if (Width.HasValue && Height.HasValue) {
 				sb.Append($"\tResolution: {Width}x{Height}\n");
@@ -220,17 +215,16 @@ namespace SmartImage.Searching
 			return sb.ToString();
 		}
 
-		private static void AddKVSB(StringBuilder sb, string? a, string n)
+		private static void AddInfoSafe(StringBuilder sb, string? a, string n)
 		{
 			//todo: util
-			
-			if (a != null)
-			{
+
+			if (!string.IsNullOrWhiteSpace(a)) {
 				sb.Append($"\t{n}: {a}\n");
 			}
 		}
 
-		private IList<FullSearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
+		private IEnumerable<FullSearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
 			var rg = new FullSearchResult[results.Count];
 
@@ -238,15 +232,17 @@ namespace SmartImage.Searching
 				var    result = results[i];
 				string name   = $"Extended result #{i}";
 
+				// Copy
+				
 				var sr = new FullSearchResult(Color, name, result.Url, result.Similarity)
 				{
-					Width   = result.Width,
-					Height  = result.Height,
-					Caption = result.Caption,
-					Artist = result.Artist,
-					Source = result.Source,
+					Width      = result.Width,
+					Height     = result.Height,
+					Caption    = result.Caption,
+					Artist     = result.Artist,
+					Source     = result.Source,
 					Characters = result.Characters,
-					SiteName = result.SiteName,
+					SiteName   = result.SiteName,
 				};
 
 				rg[i] = sr;

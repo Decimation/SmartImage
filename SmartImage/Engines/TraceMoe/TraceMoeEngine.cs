@@ -24,20 +24,20 @@ namespace SmartImage.Engines.TraceMoe
 			var rq = new RestRequest("search");
 			rq.AddQueryParameter("url", url);
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
-			rq.RequestFormat = DataFormat.Json;
+			rq.RequestFormat           = DataFormat.Json;
 
 			IRestResponse<TraceMoeRootObject> re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
-			code = re.StatusCode;
+			code   = re.StatusCode;
 			status = re.ResponseStatus;
-			msg = re.ErrorMessage;
-			
+			msg    = re.ErrorMessage;
+
 			return re.Data;
 		}
 
 		private ISearchResult[] ConvertResults(TraceMoeRootObject obj)
 		{
-			var docs = obj.docs;
+			var docs    = obj.docs;
 			var results = new ISearchResult[docs.Count];
 
 			for (int i = 0; i < results.Length; i++) {
@@ -48,7 +48,8 @@ namespace SmartImage.Engines.TraceMoe
 
 				results[i] = new FullSearchResult(this, malUrl, sim)
 				{
-					Source = doc.title_english
+					Source  = doc.title_english,
+					Caption = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.at)}"
 				};
 			}
 
@@ -61,7 +62,6 @@ namespace SmartImage.Engines.TraceMoe
 		//https://myanimelist.net/anime/{id}/
 		private const string MAL_URL = "https://myanimelist.net/anime/";
 
-		
 
 		public override float? FilterThreshold => 87.00F;
 
@@ -79,10 +79,12 @@ namespace SmartImage.Engines.TraceMoe
 					var results = ConvertResults(tm);
 					var best    = results[0];
 
-					r         = new FullSearchResult(this, best.Url, best.Similarity);
-					r.Source = best.Source;
-					r.Filter  = r.Similarity < FilterThreshold;
-					
+					r = new FullSearchResult(this, best.Url, best.Similarity)
+					{
+						Source  = best.Source,
+						Caption = best.Caption,
+					};
+					r.Filter = r.Similarity < FilterThreshold;
 
 					r.AddExtendedResults(results);
 				}
@@ -91,7 +93,6 @@ namespace SmartImage.Engines.TraceMoe
 					r.ExtendedInfo.Add(e.Message);
 					return r;
 				}
-				
 
 
 			}

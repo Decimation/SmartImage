@@ -286,7 +286,7 @@ namespace SmartImage.Searching
 			NConsole.Refresh();
 		}
 
-		
+
 		/// <summary>
 		/// Returns all of the supported search engines
 		/// </summary>
@@ -309,34 +309,34 @@ namespace SmartImage.Searching
 			};
 		}
 
-		
+
 		/// <summary>
 		/// Uploads the image
 		/// </summary>
 		private static string? Upload(string img, bool useImgur)
 		{
-			
+
 			IUploadEngine uploadEngine;
 
 			string imgUrl;
-			
+
 			/*
 			 * Show settings 
 			 */
-			
+
 			Console.WriteLine(Info.NAME_BANNER);
 
 			NConsole.OverrideForegroundColor = Core.Interface.ColorConfig;
 			NConsole.WriteInfo(SearchConfig.Config);
 			NConsole.ResetOverrideColors();
-			
+
 			/*
 			 * Upload
 			 */
-			
+
 			NConsole.WriteInfo("Uploading image");
-			
-			
+
+
 			if (useImgur) {
 				try {
 					NConsole.WriteInfo("Using Imgur for image upload");
@@ -352,8 +352,7 @@ namespace SmartImage.Searching
 			else {
 				UploadImgOps();
 			}
-			
-			
+
 
 			void UploadImgOps()
 			{

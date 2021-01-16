@@ -37,25 +37,30 @@ namespace SmartImage.Searching
 		///     Image caption/name/title.
 		/// </summary>
 		public string? Caption { get; set; }
-		
-		
-		
+
+		/// <summary>
+		/// Image artist
+		/// </summary>
 		public string? Artist { get; set; }
-		
+
+		/// <summary>
+		/// Image source
+		/// </summary>
 		public string? Source { get; set; }
-		
+
+		/// <summary>
+		/// Characters in the image
+		/// </summary>
 		public string? Characters { get; set; }
-		
+
+		/// <summary>
+		/// Site name of <see cref="Url"/>
+		/// </summary>
 		public string? SiteName { get; set; }
-		
+
 		/// <summary>
 		/// Filter this result if <see cref="SearchConfig.FilterResults"/> is used
 		/// </summary>
 		public bool Filter { get; set; }
-		
-		
-		
-
-		
 	}
 }
