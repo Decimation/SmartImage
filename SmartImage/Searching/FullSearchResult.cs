@@ -36,6 +36,7 @@ namespace SmartImage.Searching
 			Similarity      = similarity;
 			ExtendedInfo    = new List<string>();
 			ExtendedResults = new List<FullSearchResult>();
+			
 		}
 
 		/// <summary>
@@ -47,6 +48,8 @@ namespace SmartImage.Searching
 		/// Whether this result is a result from a priority engine
 		/// </summary>
 		public bool IsPriority => SearchConfig.Config.PriorityEngines.HasFlag(Engine);
+
+		public bool IsAnalyzed { get; set; }
 
 		/// <summary>
 		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
@@ -346,6 +349,7 @@ namespace SmartImage.Searching
 			var result = new FullSearchResult(SearchEngineOptions.None, Color.White, ORIGINAL_IMAGE_NAME, imageUrl)
 			{
 				Similarity = 100.0f,
+				IsAnalyzed = true,
 			};
 
 			var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);

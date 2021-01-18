@@ -17,8 +17,10 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using SimpleCore.Net;
 using static SimpleCore.Console.CommandLine.NConsoleOption;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -78,6 +80,7 @@ namespace SmartImage.Searching
 		/// </summary>
 		public NConsoleInterface Interface { get; }
 
+
 		private SearchClient(string img)
 		{
 			if (!Images.IsFileValid(img)) {
@@ -114,6 +117,30 @@ namespace SmartImage.Searching
 		}
 
 
+		private static async void RunAnalysis(FullSearchResult best)
+		{
+
+			var task = Task.Run(() =>
+			{
+				if (!best.IsAnalyzed) {
+					var d = Images.Similarity(best.Url, SearchConfig.Config.Image);
+
+					if (d.HasValue)
+					{
+						best.Similarity = ((float)d);
+					}
+				}
+
+				best.IsAnalyzed = true;
+
+
+
+			});
+
+			await task;
+		}
+
+
 		/// <summary>
 		///     Starts search and handles results
 		/// </summary>
@@ -128,7 +155,7 @@ namespace SmartImage.Searching
 				var result = finished.Result;
 
 				Results.Add(result);
-				Results.Sort(FullSearchResult.CompareResults);
+
 
 				// If the engine is priority, open its result in the browser
 				if (result.IsPriority) {
@@ -139,8 +166,23 @@ namespace SmartImage.Searching
 
 				Interface.Status = $"Searching: {inProgress}/{len}";
 
+				Results.Sort(FullSearchResult.CompareResults);
+
 				// Reload console UI
 				NConsole.Refresh();
+
+
+				/*
+				 *
+				 */
+
+				RunAnalysis(result);
+
+				if (result.ExtendedResults.Any()) {
+					foreach (var resultExtendedResult in result.ExtendedResults) {
+						RunAnalysis(resultExtendedResult);
+					}
+				}
 			}
 
 			/*
@@ -173,6 +215,23 @@ namespace SmartImage.Searching
 				HandleResultOpen(best);
 
 			}
+
+			/*
+			 *
+			 */
+			
+			Debug.WriteLine($"Analyzing");
+
+
+			while (!Results.All(r=>r.IsAnalyzed)) {
+				
+			}
+
+			Debug.WriteLine($"Analysis complete");
+
+			Results.Sort(FullSearchResult.CompareResults);
+			NConsole.Refresh();
+
 		}
 
 

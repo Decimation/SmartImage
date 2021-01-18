@@ -116,7 +116,7 @@ namespace SmartImage.Core
 
 
 			var v = ReadComponentMapValue(cfg, name, setDefaultIfNull, defaultValue);
-			Debug.WriteLine($"{v} -> {name} {field.Name}");
+			//Debug.WriteLine($"{v} -> {name} {field.Name}");
 			return v;
 		}
 
@@ -163,7 +163,7 @@ namespace SmartImage.Core
 				var dv = attr.DefaultValue;
 				field.SetValue(obj, dv);
 
-				Debug.WriteLine($"Reset {dv} -> {field.Name}");
+				//Debug.WriteLine($"Reset {dv} -> {field.Name}");
 			}
 		}
 

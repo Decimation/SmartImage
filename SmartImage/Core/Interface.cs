@@ -94,7 +94,7 @@ namespace SmartImage.Core
 		/// <summary>
 		/// Console window height
 		/// </summary>
-		internal const int ConsoleWindowHeight = 50;
+		internal const int ConsoleWindowHeight = 56;
 
 		/// <summary>
 		/// Main option

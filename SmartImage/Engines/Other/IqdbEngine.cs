@@ -38,9 +38,7 @@ namespace SmartImage.Engines.Other
 
 			if (urlNode.Name != "img") {
 				var origUrl = urlNode.Attributes["href"].Value;
-
-				Debug.WriteLine(origUrl);
-
+				
 				// Links must begin with http:// in order to work with "start"
 				if (origUrl.StartsWith("//")) {
 					origUrl = "http:" + origUrl;

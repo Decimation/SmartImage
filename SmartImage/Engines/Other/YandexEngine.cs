@@ -1,11 +1,14 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+using SmartImage.Core;
 using SmartImage.Searching;
 
 #pragma warning disable HAA0101, HAA0601, HAA0502, HAA0401
@@ -126,6 +129,7 @@ namespace SmartImage.Engines.Other
 				sr.Description = looksLike;
 
 				sr.AddExtendedResults(bestImages);
+				
 			}
 			catch (Exception e) {
 				// ...

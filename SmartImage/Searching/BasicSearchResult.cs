@@ -40,7 +40,7 @@ namespace SmartImage.Searching
 		public int? FullResolution => Width * Height;
 
 		public BasicSearchResult(string url, int? width, int? height)
-			: this(url, null, width, height, url, null, null) { }
+			: this(url, null, width, height, null, null, null) { }
 
 		public BasicSearchResult(string url, float? similarity, int? width, int? height,
 			string? siteName, string? source, string? description)
