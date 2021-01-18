@@ -25,12 +25,13 @@ namespace SmartImage.Engines.Other
 
 		private const int TOTAL_RES_MIN = 500_000;
 
-		private static BasicSearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg)
+		private static ISearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg)
 		{
 			const int TAKE_N = 5;
 
 			var best = rg.OrderByDescending(i => i.FullResolution)
 				.Take(TAKE_N)
+				.Cast<ISearchResult>()
 				.ToArray();
 
 			return best;
@@ -98,7 +99,7 @@ namespace SmartImage.Engines.Other
 
 				// Get more info from Yandex
 
-				string? html = Network.GetString(sr.RawUrl);
+				string? html = Network.GetString(sr.RawUrl!);
 				var     doc  = new HtmlDocument();
 				doc.LoadHtml(html);
 
@@ -115,7 +116,7 @@ namespace SmartImage.Engines.Other
 
 				var images = GetYandexImages(doc);
 
-				BasicSearchResult[] bestImages = FilterAndSelectBestImages(images);
+				ISearchResult[] bestImages = FilterAndSelectBestImages(images);
 
 				//
 				var best = images[0];

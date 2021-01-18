@@ -30,13 +30,6 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class SearchClient
 	{
-		/*
-		 * todo: use async/tasks
-		 * todo: timeout handling
-		 */
-
-		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
-
 		private static readonly string InterfacePrompt =
 			$"Enter the option number to open or {NConsole.NC_GLOBAL_EXIT_KEY} to exit.\n" +
 			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                       +
@@ -58,17 +51,13 @@ namespace SmartImage.Searching
 		/// </summary>
 		private string ImageUrl { get; }
 
-		/// <summary>
-		/// Thread that monitors the search (<see cref="RunSearchMonitor"/>)
-		/// </summary>
-		private Thread SearchMonitor { get; }
 
 		/// <summary>
 		/// Search tasks (<seealso cref="CreateSearchTasks"/>)
 		/// </summary>
-		private Task[] SearchTasks { get; }
+		private List<Task<FullSearchResult>> SearchTasks { get; }
 
-		
+
 		/// <summary>
 		/// Whether the search is complete
 		/// </summary>
@@ -115,15 +104,6 @@ namespace SmartImage.Searching
 
 			SearchTasks = CreateSearchTasks();
 
-			// Joining each thread isn't necessary as this object is disposed upon program exit
-			// Background threads won't prevent program termination
-
-			SearchMonitor = new Thread(RunSearchMonitor)
-			{
-				Priority     = ThreadPriority.Highest,
-				IsBackground = true
-			};
-
 			Complete = false;
 
 			Interface = new NConsoleInterface(Results)
@@ -133,16 +113,34 @@ namespace SmartImage.Searching
 			};
 		}
 
+
 		/// <summary>
-		/// Monitors the search process
+		///     Starts search and handles results
 		/// </summary>
-		private void RunSearchMonitor()
+		public async void Start()
 		{
-			while (SearchTasks.Any(t => !t.IsCompleted)) {
-				int inProgress = SearchTasks.Count(t => t.IsCompleted);
-				int len        = SearchTasks.Length;
+			int len = SearchTasks.Count;
+
+			while (SearchTasks.Any()) {
+				Task<FullSearchResult> finished = await Task.WhenAny(SearchTasks);
+				SearchTasks.Remove(finished);
+
+				var result = finished.Result;
+
+				Results.Add(result);
+				Results.Sort(FullSearchResult.CompareResults);
+
+				// If the engine is priority, open its result in the browser
+				if (result.IsPriority) {
+					HandleResultOpen(result);
+				}
+
+				int inProgress = len - SearchTasks.Count;
 
 				Interface.Status = $"Searching: {inProgress}/{len}";
+
+				// Reload console UI
+				NConsole.Refresh();
 			}
 
 			/*
@@ -177,76 +175,17 @@ namespace SmartImage.Searching
 			}
 		}
 
-		/// <summary>
-		///     Starts search
-		/// </summary>
-		public void Start()
+
+		private List<Task<FullSearchResult>> CreateSearchTasks()
 		{
-			SearchMonitor.Start();
-
-			foreach (var task in SearchTasks) {
-				task.Start();
-			}
-		}
-
-		/// <summary>
-		/// Creates a <see cref="FullSearchResult"/> for the original image
-		/// </summary>
-		private FullSearchResult GetOriginalImageResult()
-		{
-			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, ImageUrl)
-			{
-				Similarity = 100.0f,
-			};
-
-			var fileFormat = FileSystem.ResolveFileType(ImageFile.FullName);
-
-			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(FileSystem.GetFileSize(ImageFile.FullName), MetricUnit.Mega);
-
-			(int width, int height) = Images.GetDimensions(ImageFile.FullName);
-
-			result.Width  = width;
-			result.Height = height;
-
-			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
-
-			string infoStr = $"Info: {ImageFile.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
-
-			result.ExtendedInfo.Add(infoStr);
-
-			return result;
-		}
-
-		private Task[] CreateSearchTasks()
-		{
-			// todo: improve, hacky :(
-
 			var availableEngines = GetAllEngines()
 				.Where(e => Engines.HasFlag(e.Engine))
 				.ToArray();
 
-			
-			Results.Add(GetOriginalImageResult());
+			// Add original image to results
+			Results.Add(FullSearchResult.GetOriginalImageResult(ImageUrl, ImageFile));
 
-
-			return availableEngines.Select(currentEngine => new Task(() =>
-			{
-				var result = currentEngine.GetResult(ImageUrl);
-
-				Results.Add(result);
-
-				// If the engine is priority, open its result in the browser
-				if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-					HandleResultOpen(result);
-				}
-
-				// Sort results
-				Results.Sort(FullSearchResult.CompareResults);
-
-				// Reload console UI
-				NConsole.Refresh();
-			})).ToArray();
+			return availableEngines.Select(currentEngine => Task.Run(() => currentEngine.GetResult(ImageUrl))).ToList();
 		}
 
 		/// <summary>
@@ -276,8 +215,6 @@ namespace SmartImage.Searching
 			else {
 				Debug.WriteLine($"Filtering result {result.Name}");
 			}
-
-
 		}
 
 

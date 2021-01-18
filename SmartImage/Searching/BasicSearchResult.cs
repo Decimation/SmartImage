@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 #nullable enable
 namespace SmartImage.Searching
 {
-	public class BasicSearchResult : ISearchResult
+	public struct BasicSearchResult : ISearchResult
 	{
 		public string Url { get; set; }
 

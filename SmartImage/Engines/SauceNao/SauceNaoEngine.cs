@@ -55,9 +55,9 @@ namespace SmartImage.Engines.SauceNao
 
 		public override float? FilterThreshold => 70.00F;
 
-		private BasicSearchResult[] ConvertResults(SauceNaoDataResult[] results)
+		private ISearchResult[] ConvertResults(SauceNaoDataResult[] results)
 		{
-			var rg = new List<BasicSearchResult>();
+			var rg = new List<ISearchResult>();
 
 			foreach (var sn in results) {
 				if (sn.Urls != null) {

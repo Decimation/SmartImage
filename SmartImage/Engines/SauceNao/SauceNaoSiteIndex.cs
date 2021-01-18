@@ -37,7 +37,7 @@ namespace SmartImage.Engines.SauceNao
 		MangaUpdates          = 36,
 
 		//
-
+		ArtStation  = 39,
 		FurAffinity = 40,
 		Twitter     = 41,
 	}

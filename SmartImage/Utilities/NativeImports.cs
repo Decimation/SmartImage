@@ -17,12 +17,10 @@ namespace SmartImage.Utilities
 		private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
 
 
-		[DllImport(USER32_DLL, EntryPoint = "FindWindow", SetLastError = true, CharSet = CharSet.Unicode)]
-		private static extern IntPtr FindWindowByCaption(IntPtr zeroOnly, string lpWindowName);
+		
 
 
-		[DllImport(KERNEL32_DLL, ExactSpelling = true)]
-		private static extern IntPtr GetConsoleWindow();
+		
 
 		[DllImport(USER32_DLL)]
 		[return: MarshalAs(UnmanagedType.Bool)]
@@ -86,10 +84,7 @@ namespace SmartImage.Utilities
 		}
 
 
-		/// <summary>
-		/// Gets console application's window handle. <see cref="Process.MainWindowHandle"/> does not work in some cases.
-		/// </summary>
-		internal static IntPtr GetConsoleWindowHandle() => FindWindowByCaption(IntPtr.Zero, Console.Title);
+		
 
 		internal static void FlashConsoleWindow() => FlashWindow(GetConsoleWindowHandle());
 

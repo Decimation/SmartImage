@@ -4,34 +4,49 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
+using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+using SmartImage.Core;
 using SmartImage.Engines;
+using SmartImage.Utilities;
 
 namespace SmartImage.Searching
 {
 	/// <summary>
-	///     Contains search result and information
+	///     Represents a complete search result
 	/// </summary>
 	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
 		public FullSearchResult(ISearchEngine engine, string url, float? similarity = null)
-			: this(engine.Color, engine.Name, url, similarity) { }
+			: this(engine.Engine, engine.Color, engine.Name, url, similarity) { }
 
-		public FullSearchResult(Color color, string name, string url, float? similarity = null)
+		public FullSearchResult(SearchEngineOptions src, Color color, string name, string url, float? similarity = null)
 		{
-			Url   = url;
-			Name  = name;
-			Color = color;
+			Engine = src;
+			Url    = url;
+			Name   = name;
+			Color  = color;
 
 			Similarity      = similarity;
 			ExtendedInfo    = new List<string>();
 			ExtendedResults = new List<FullSearchResult>();
 		}
+
+		/// <summary>
+		/// Engine
+		/// </summary>
+		public SearchEngineOptions Engine { get; }
+
+		/// <summary>
+		/// Whether this result is a result from a priority engine
+		/// </summary>
+		public bool IsPriority => SearchConfig.Config.PriorityEngines.HasFlag(Engine);
 
 		/// <summary>
 		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
@@ -200,6 +215,10 @@ namespace SmartImage.Searching
 				sb.Append("-").Append(Formatting.SPACE);
 			}
 
+			if (IsPriority) {
+				sb.Append("*").Append(Formatting.SPACE);
+			}
+
 			sb.AppendLine();
 
 			/*
@@ -259,7 +278,7 @@ namespace SmartImage.Searching
 
 		private FullSearchResult CreateExtendedResult(ISearchResult result)
 		{
-			var sr = new FullSearchResult(Color, Name, result.Url, result.Similarity)
+			var sr = new FullSearchResult(Engine, Color, Name, result.Url, result.Similarity)
 			{
 				Width       = result.Width,
 				Height      = result.Height,
@@ -315,6 +334,37 @@ namespace SmartImage.Searching
 			}
 
 			return 0;
+		}
+
+		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
+
+		/// <summary>
+		/// Creates a <see cref="FullSearchResult"/> for the original image
+		/// </summary>
+		public static FullSearchResult GetOriginalImageResult(string imageUrl, FileInfo imageFile)
+		{
+			var result = new FullSearchResult(SearchEngineOptions.None, Color.White, ORIGINAL_IMAGE_NAME, imageUrl)
+			{
+				Similarity = 100.0f,
+			};
+
+			var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
+
+			double fileSizeMegabytes =
+				MathHelper.ConvertToUnit(FileSystem.GetFileSize(imageFile.FullName), MetricUnit.Mega);
+
+			(int width, int height) = Images.GetDimensions(imageFile.FullName);
+
+			result.Width  = width;
+			result.Height = height;
+
+			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
+
+			string infoStr = $"Info: {imageFile.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
+
+			result.ExtendedInfo.Add(infoStr);
+
+			return result;
 		}
 	}
 }

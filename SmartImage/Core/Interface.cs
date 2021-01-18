@@ -356,7 +356,7 @@ namespace SmartImage.Core
 				string? img = Path.Combine(cd2, testImg);
 
 				SearchConfig.Config.Image = img;
-				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
+				//SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 				return true;
 			}
