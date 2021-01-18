@@ -36,7 +36,22 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
 		/// </summary>
-		public override NConsoleFunction? AltFunction { get; set; }
+		public override NConsoleFunction? AltFunction
+		{
+			get
+			{
+				return () =>
+				{
+					if (!ExtendedResults.Any()) {
+						return null;
+					}
+
+					NConsole.ReadOptions(ExtendedResults);
+
+					return null;
+				};
+			}
+		}
 
 		public override Color Color { get; set; }
 
@@ -53,14 +68,23 @@ namespace SmartImage.Searching
 				{
 					Debug.WriteLine("Downloading");
 
-					string? path = Network.DownloadUrl(Url);
+					try {
+						string? path = Network.DownloadUrl(Url);
 
-					NConsole.WriteSuccess("Downloaded to {0}", path);
+						NConsole.WriteSuccess("Downloaded to {0}", path);
 
-					// Open folder with downloaded file selected
-					FileSystem.ExploreFile(path);
+						// Open folder with downloaded file selected
+						FileSystem.ExploreFile(path);
 
-					NConsole.WaitForSecond();
+
+					}
+					catch (Exception e) {
+						NConsole.WriteError($"Error downloading: {e.Message}");
+					}
+					finally {
+						NConsole.WaitForSecond();
+					}
+
 
 					return null;
 				};
@@ -130,7 +154,7 @@ namespace SmartImage.Searching
 		/// </summary>
 		public string? RawUrl { get; set; }
 
-		public string? Caption { get; set; }
+		public string? Description { get; set; }
 
 		public int? Height { get; set; }
 
@@ -158,12 +182,6 @@ namespace SmartImage.Searching
 
 			ExtendedResults.AddRange(rg);
 
-			AltFunction = () =>
-			{
-				NConsole.ReadOptions(ExtendedResults);
-
-				return null;
-			};
 		}
 
 		public override string ToString()
@@ -201,7 +219,7 @@ namespace SmartImage.Searching
 			AddInfoSafe(sb, Artist, nameof(Artist));
 			AddInfoSafe(sb, Characters, nameof(Characters));
 			AddInfoSafe(sb, Source, nameof(Source));
-			AddInfoSafe(sb, Caption, nameof(Caption));
+			AddInfoSafe(sb, Description, nameof(Description));
 			AddInfoSafe(sb, SiteName, "Site");
 
 			if (Width.HasValue && Height.HasValue) {
@@ -224,6 +242,36 @@ namespace SmartImage.Searching
 			}
 		}
 
+
+		public void UpdateFrom(ISearchResult result)
+		{
+			Url         = result.Url;
+			Similarity  = result.Similarity;
+			Width       = result.Width;
+			Height      = result.Height;
+			Filter      = result.Filter;
+			Source      = result.Source;
+			Characters  = result.Characters;
+			Artist      = result.Artist;
+			SiteName    = result.SiteName;
+			Description = result.Description;
+		}
+
+		private FullSearchResult CreateExtendedResult(ISearchResult result)
+		{
+			var sr = new FullSearchResult(Color, Name, result.Url, result.Similarity)
+			{
+				Width       = result.Width,
+				Height      = result.Height,
+				Description = result.Description,
+				Artist      = result.Artist,
+				Source      = result.Source,
+				Characters  = result.Characters,
+				SiteName    = result.SiteName,
+			};
+			return sr;
+		}
+
 		private IEnumerable<FullSearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
 		{
 			var rg = new FullSearchResult[results.Count];
@@ -233,17 +281,10 @@ namespace SmartImage.Searching
 				string name   = $"Extended result #{i}";
 
 				// Copy
-				
-				var sr = new FullSearchResult(Color, name, result.Url, result.Similarity)
-				{
-					Width      = result.Width,
-					Height     = result.Height,
-					Caption    = result.Caption,
-					Artist     = result.Artist,
-					Source     = result.Source,
-					Characters = result.Characters,
-					SiteName   = result.SiteName,
-				};
+
+
+				var sr = CreateExtendedResult(result);
+				sr.Name = name;
 
 				rg[i] = sr;
 			}

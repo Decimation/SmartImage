@@ -55,17 +55,17 @@ namespace SmartImage.Engines.SauceNao
 
 		public override float? FilterThreshold => 70.00F;
 
-		private ISearchResult[] ConvertResults(SauceNaoDataResult[] results)
+		private BasicSearchResult[] ConvertResults(SauceNaoDataResult[] results)
 		{
-			var rg = new List<ISearchResult>();
+			var rg = new List<BasicSearchResult>();
 
 			foreach (var sn in results) {
 				if (sn.Urls != null) {
 					string? url  = sn.Urls.FirstOrDefault(u => u != null)!;
 					string? name = sn.Index.ToString();
 
-					var x = new SauceNaoSimpleResult(sn.WebsiteTitle, url,
-						sn.Similarity, sn.Creator, sn.Material, sn.Character, name);
+					var x = new BasicSearchResult(url, sn.Similarity, 
+						sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, name);
 
 					x.Filter = x.Similarity < FilterThreshold;
 
@@ -95,9 +95,6 @@ namespace SmartImage.Engines.SauceNao
 				string? creator   = orig.FirstOrDefault(o => o.Creator   != null)?.Creator;
 				string? material  = orig.FirstOrDefault(o => o.Material  != null)?.Material;
 
-				result.Characters = character;
-				result.Artist     = creator;
-				result.Source     = material;
 
 				var extended = ConvertResults(orig);
 
@@ -108,15 +105,15 @@ namespace SmartImage.Engines.SauceNao
 				var best = ordered.First();
 
 				// Copy
-				result.Url        = best.Url;
-				result.Similarity = best.Similarity;
-				result.Filter     = best.Filter;
-				result.SiteName   = best.SiteName;
+				result.UpdateFrom(best);
+
+				result.Characters = character;
+				result.Artist     = creator;
+				result.Source     = material;
 
 				result.AddExtendedResults(extended);
 
 				if (!String.IsNullOrWhiteSpace(m_apiKey)) {
-
 					result.ExtendedInfo.Add("Using API");
 				}
 
@@ -125,7 +122,6 @@ namespace SmartImage.Engines.SauceNao
 				Debug.WriteLine($"SauceNao error: {e.StackTrace}");
 				result.ExtendedInfo.Add("Error parsing");
 			}
-
 
 			return result;
 		}
@@ -247,40 +243,6 @@ namespace SmartImage.Engines.SauceNao
 				string firstUrl = Urls != null ? Urls[0] : "-";
 
 				return $"{firstUrl} ({Similarity}, {Index})";
-			}
-		}
-
-		private struct SauceNaoSimpleResult : ISearchResult
-		{
-			public string? Caption    { get; set; }
-			public bool    Filter     { get; set; }
-			public string  Url        { get; set; }
-			public float?  Similarity { get; set; }
-			public int?    Width      { get; set; }
-			public int?    Height     { get; set; }
-			public string? Artist     { get; set; }
-			public string? Source     { get; set; }
-			public string? Characters { get; set; }
-			public string? SiteName   { get; set; }
-
-			public SauceNaoSimpleResult(string? title, string url, float? similarity, string? artist, string? source,
-				string? characters, string? siteName)
-			{
-				Caption    = title;
-				Url        = url;
-				Similarity = similarity;
-				Width      = null;
-				Height     = null;
-				Filter     = false; //set later
-				Artist     = artist;
-				Source     = source;
-				Characters = characters;
-				SiteName   = siteName;
-			}
-
-			public override string ToString()
-			{
-				return $"{Url} {Similarity}";
 			}
 		}
 	}

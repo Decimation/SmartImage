@@ -28,15 +28,12 @@ namespace SmartImage.Searching
 		/// </summary>
 		public int? Height { get; set; }
 
-		/// <summary>
-		///     Full image resolution.
-		/// </summary>
-		public int? FullResolution => Width * Height;
+
 
 		/// <summary>
-		///     Image caption/name/title.
+		///     Image description/caption/name/title.
 		/// </summary>
-		public string? Caption { get; set; }
+		public string? Description { get; set; }
 
 		/// <summary>
 		/// Image artist
@@ -62,5 +59,6 @@ namespace SmartImage.Searching
 		/// Filter this result if <see cref="SearchConfig.FilterResults"/> is used
 		/// </summary>
 		public bool Filter { get; set; }
+
 	}
 }

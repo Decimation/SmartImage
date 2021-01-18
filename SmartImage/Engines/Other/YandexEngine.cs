@@ -21,47 +21,11 @@ namespace SmartImage.Engines.Other
 
 		public override string Name => "Yandex";
 
-		private struct YandexResult : ISearchResult
-		{
-			public bool   Filter     { get; set; }
-			public float? Similarity { get; set; }
-
-			public int? Width { get; set; }
-
-			public int? Height { get; set; }
-
-			public string? Caption { get; set; }
-
-			public string Url { get; set; }
-
-			public string? Artist     { get; set; }
-			public string? Source     { get; set; }
-			public string? Characters { get; set; }
-			public string? SiteName   { get; set; }
-
-			internal YandexResult(int width, int height, string url)
-			{
-				Width      = width;
-				Height     = height;
-				Url        = url;
-				Caption    = null;
-				Similarity = null;
-				Filter     = false;
-				Artist     = null;
-				Source     = null;
-				Characters = null;
-				SiteName=null;
-			}
-
-			public override string ToString()
-			{
-				return $"{Width}x{Height} {Url} [{((ISearchResult) this).FullResolution:N}]";
-			}
-		}
+		
 
 		private const int TOTAL_RES_MIN = 500_000;
 
-		private static ISearchResult[] FilterAndSelectBestImages(List<ISearchResult> rg)
+		private static BasicSearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg)
 		{
 			const int TAKE_N = 5;
 
@@ -84,7 +48,7 @@ namespace SmartImage.Engines.Other
 		}
 
 
-		private static List<ISearchResult> GetYandexImages(HtmlDocument doc)
+		private static List<BasicSearchResult> GetYandexImages(HtmlDocument doc)
 		{
 			const string TAGS_ITEM_XP = "//a[contains(@class, 'Tags-Item')]";
 
@@ -96,26 +60,25 @@ namespace SmartImage.Engines.Other
 			var sizeTags = tagsItem.Where(sx =>
 				!sx.ParentNode.ParentNode.Attributes["class"].Value.Contains(CBIR_ITEM));
 
-			
 
-			var images = new List<ISearchResult>();
+			var images = new List<BasicSearchResult>();
 
 			foreach (var siz in sizeTags) {
 				string? link = siz.Attributes["href"].Value;
 
 				string? resText = siz.FirstChild.InnerText;
 
-				string[]? resFull  = resText.Split(Formatting.MUL_SIGN);
-				
-				int       w        = Int32.Parse(resFull[0]);
-				int       h        = Int32.Parse(resFull[1]);
-				int       totalRes = w * h;
+				string[]? resFull = resText.Split(Formatting.MUL_SIGN);
+
+				int w        = Int32.Parse(resFull[0]);
+				int h        = Int32.Parse(resFull[1]);
+				int totalRes = w * h;
 
 				if (totalRes >= TOTAL_RES_MIN) {
 					var restRes = Network.GetSimpleResponse(link);
 
 					if (restRes.StatusCode != HttpStatusCode.NotFound) {
-						var yi = new YandexResult(w, h, link);
+						var yi = new BasicSearchResult(link, w, h);
 
 						images.Add(yi);
 					}
@@ -144,7 +107,6 @@ namespace SmartImage.Engines.Other
 				 */
 
 				string? looksLike = GetYandexAnalysis(doc);
-				sr.Caption = looksLike;
 
 
 				/*
@@ -153,14 +115,14 @@ namespace SmartImage.Engines.Other
 
 				var images = GetYandexImages(doc);
 
-				ISearchResult[] bestImages = FilterAndSelectBestImages(images);
+				BasicSearchResult[] bestImages = FilterAndSelectBestImages(images);
 
 				//
 				var best = images[0];
-				sr.Width  = best.Width;
-				sr.Height = best.Height;
-				sr.Url    = best.Url;
+				sr.UpdateFrom(best);
 
+
+				sr.Description = looksLike;
 
 				sr.AddExtendedResults(bestImages);
 			}

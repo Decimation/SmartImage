@@ -30,6 +30,11 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class SearchClient
 	{
+		/*
+		 * todo: use async/tasks
+		 * todo: timeout handling
+		 */
+
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
 		private static readonly string InterfacePrompt =
@@ -63,11 +68,7 @@ namespace SmartImage.Searching
 		/// </summary>
 		private Task[] SearchTasks { get; }
 
-		/// <summary>
-		/// Search results
-		/// </summary>
-		private List<FullSearchResult> m_results;
-
+		
 		/// <summary>
 		/// Whether the search is complete
 		/// </summary>
@@ -81,7 +82,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Search results
 		/// </summary>
-		public ref List<FullSearchResult> Results => ref m_results;
+		public List<FullSearchResult> Results { get; }
 
 		/// <summary>
 		/// Search client interface
@@ -100,7 +101,7 @@ namespace SmartImage.Searching
 			SearchConfig.Config.EnsureConfig();
 
 
-			m_results = null!;
+			Results   = new List<FullSearchResult>();
 			Engines   = SearchConfig.Config.SearchEngines;
 			ImageFile = new FileInfo(img);
 
@@ -169,7 +170,7 @@ namespace SmartImage.Searching
 				// Results will already be sorted
 				// Open best result
 
-				var best = m_results[1];
+				var best = Results[1];
 
 				HandleResultOpen(best);
 
@@ -183,8 +184,8 @@ namespace SmartImage.Searching
 		{
 			SearchMonitor.Start();
 
-			foreach (var thread in SearchTasks) {
-				thread.Start();
+			foreach (var task in SearchTasks) {
+				task.Start();
 			}
 		}
 
@@ -225,12 +226,27 @@ namespace SmartImage.Searching
 				.Where(e => Engines.HasFlag(e.Engine))
 				.ToArray();
 
-			m_results = new List<FullSearchResult>(availableEngines.Length + 1)
-			{
-				GetOriginalImageResult()
-			};
+			
+			Results.Add(GetOriginalImageResult());
 
-			return availableEngines.Select(currentEngine => new Task(() => RunSearchTask(currentEngine))).ToArray();
+
+			return availableEngines.Select(currentEngine => new Task(() =>
+			{
+				var result = currentEngine.GetResult(ImageUrl);
+
+				Results.Add(result);
+
+				// If the engine is priority, open its result in the browser
+				if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
+					HandleResultOpen(result);
+				}
+
+				// Sort results
+				Results.Sort(FullSearchResult.CompareResults);
+
+				// Reload console UI
+				NConsole.Refresh();
+			})).ToArray();
 		}
 
 		/// <summary>
@@ -262,28 +278,6 @@ namespace SmartImage.Searching
 			}
 
 
-		}
-
-		/// <summary>
-		/// Individual task search operation
-		/// </summary>
-		private void RunSearchTask(ISearchEngine currentEngine)
-		{
-			var result = currentEngine.GetResult(ImageUrl);
-
-			m_results.Add(result);
-
-			// If the engine is priority, open its result in the browser
-			if (SearchConfig.Config.PriorityEngines.HasFlag(currentEngine.Engine)) {
-
-				HandleResultOpen(result);
-			}
-
-			// Sort results
-			m_results.Sort(FullSearchResult.CompareResults);
-
-			// Reload console UI
-			NConsole.Refresh();
 		}
 
 

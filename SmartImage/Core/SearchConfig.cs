@@ -78,7 +78,7 @@ namespace SmartImage.Core
 		/// <summary>
 		///     Does not open results from priority engines if the result similarity (if available) is below a certain threshold,
 		/// or there are no relevant results.
-		/// <see cref="ISearchResult.Filter"/> is <c>true</c> if <see cref="ISearchEngine.FilterThreshold"/> is less than <see cref="ISearchResult.Similarity"/>
+		/// <see cref="BasicSearchResult.Filter"/> is <c>true</c> if <see cref="ISearchEngine.FilterThreshold"/> is less than <see cref="BasicSearchResult.Similarity"/>
 		/// </summary>
 		[field: ConfigComponent("filter_results", "--filter-results", true, true)]
 		public bool FilterResults { get; set; }

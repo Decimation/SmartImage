@@ -207,7 +207,7 @@ namespace SmartImage.Core
 
 		private static string GetAutoFilterString()
 		{
-			var x = SearchConfig.Config.FilterResults;
+			bool x = SearchConfig.Config.FilterResults;
 			return $"Filter results: {x}";
 		}
 
@@ -347,16 +347,16 @@ namespace SmartImage.Core
 				//var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
 				//var cd2 = cd.GetParentLevel(4).ToString();
 
-				var cd2 = FileSystem.GetParentLevel(Environment.CurrentDirectory, 4);
+				string? cd2 = FileSystem.GetParentLevel(Environment.CurrentDirectory, 4);
 
 				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
 
-				var testImg = (string) NConsole.ReadOptions(rgOption).First();
+				string? testImg = (string) NConsole.ReadOptions(rgOption).First();
 
-				var img = Path.Combine(cd2, testImg);
+				string? img = Path.Combine(cd2, testImg);
 
 				SearchConfig.Config.Image = img;
-				//SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
+				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 				return true;
 			}

@@ -173,7 +173,7 @@ namespace SmartImage.Core
 			var dependencies = RuntimeInfo.DumpDependencies();
 
 			foreach (var name in dependencies) {
-				NConsole.WriteInfo("{0} ({1})", name.Name, name.Version);
+				NConsole.WriteInfo("{0} ({1})", name.Name!, name.Version!);
 			}
 		}
 	}

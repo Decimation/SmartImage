@@ -26,9 +26,9 @@ namespace SmartImage
 		//                                                     |___/
 
 		/*
-		 * todo: use async/tasks
-		 * todo: timeout handling
+		 * todo: reorganize, restructure, refactor, etc.
 		 */
+		
 
 		/*
 		 * Entry point
@@ -104,7 +104,7 @@ namespace SmartImage
 				SearchClient.Client.Start();
 
 				// Show results
-				NConsole.ReadOptions(SearchClient.Client.Interface);
+				SearchClient.Client.Interface.Run();
 			}
 			catch (Exception exception) {
 #if !DEBUG

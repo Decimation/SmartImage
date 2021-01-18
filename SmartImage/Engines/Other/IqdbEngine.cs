@@ -24,45 +24,9 @@ namespace SmartImage.Engines.Other
 
 		public override float? FilterThreshold => 70.00F;
 
-		private struct IqdbResult : ISearchResult
-		{
-			public bool Filter { get; set; }
+		
 
-			public string? Caption { get; set; }
-
-			public string? Source { get; set; }
-
-			public int? Width { get; set; }
-
-			public int? Height { get; set; }
-
-			public string Url { get; set; }
-
-			public float? Similarity { get; set; }
-
-			public string? Artist { get; set; }
-
-			public string? Characters { get; set; }
-
-			public string? SiteName { get; set; }
-
-			public IqdbResult(string siteName, string source, string url, int width, int height, float? similarity,
-				string? caption)
-			{
-				SiteName   = siteName;
-				Url        = url;
-				Source     = source;
-				Width      = width;
-				Height     = height;
-				Similarity = similarity;
-				Filter     = false; // set later
-				Artist     = null;
-				Characters = null;
-				Caption    = caption;
-			}
-		}
-
-		private IqdbResult ParseResult(HtmlNodeCollection tr)
+		private BasicSearchResult ParseResult(HtmlNodeCollection tr)
 		{
 			var caption = tr[0];
 			var img     = tr[1];
@@ -115,7 +79,7 @@ namespace SmartImage.Engines.Other
 			}
 
 
-			var i = new IqdbResult(src.InnerText, null, url, w, h, sim, caption.InnerText);
+			var i = new BasicSearchResult(url, sim, w, h, src.InnerText, null, caption.InnerText);
 			i.Filter = i.Similarity < FilterThreshold;
 			return i;
 		}
@@ -160,14 +124,8 @@ namespace SmartImage.Engines.Other
 				images.RemoveAt(0);
 
 				var best = images[0];
-				sr.Url        = best.Url;
-				sr.Similarity = best.Similarity;
-				sr.Filter     = best.Filter;
-				sr.Source     = best.Source;
-				sr.SiteName   = best.SiteName;
+				sr.UpdateFrom(best);
 				sr.AddExtendedResults(images.ToArray());
-
-
 			}
 			catch (Exception) {
 				// ...
