@@ -123,16 +123,10 @@ namespace SmartImage.Searching
 			var task = Task.Run(() =>
 			{
 				if (!best.IsAnalyzed) {
-					var d = Images.Similarity(best.Url, SearchConfig.Config.Image);
-
-					if (d.HasValue)
-					{
-						best.Similarity = ((float)d);
-					}
+					//todo
 				}
 
 				best.IsAnalyzed = true;
-
 
 
 			});
@@ -219,13 +213,11 @@ namespace SmartImage.Searching
 			/*
 			 *
 			 */
-			
+
 			Debug.WriteLine($"Analyzing");
 
 
-			while (!Results.All(r=>r.IsAnalyzed)) {
-				
-			}
+			while (!Results.All(r => r.IsAnalyzed)) { }
 
 			Debug.WriteLine($"Analysis complete");
 

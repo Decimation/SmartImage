@@ -11,6 +11,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Console.CommandLine;
 using SimpleCore.Net;
+using SimpleCore.Numeric;
 using SimpleCore.Utilities;
 using SmartImage.Core;
 using SmartImage.Engines;
@@ -36,7 +37,7 @@ namespace SmartImage.Searching
 			Similarity      = similarity;
 			ExtendedInfo    = new List<string>();
 			ExtendedResults = new List<FullSearchResult>();
-			
+
 		}
 
 		/// <summary>
@@ -45,7 +46,7 @@ namespace SmartImage.Searching
 		public SearchEngineOptions Engine { get; }
 
 		/// <summary>
-		/// Whether this result is a result from a priority engine
+		/// Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines"/>)
 		/// </summary>
 		public bool IsPriority => SearchConfig.Config.PriorityEngines.HasFlag(Engine);
 
@@ -87,7 +88,11 @@ namespace SmartImage.Searching
 					Debug.WriteLine("Downloading");
 
 					try {
-						string? path = Network.DownloadUrl(Url);
+						NConsole.WriteSuccess("Downloading...");
+
+
+
+						string? path  = Network.DownloadUrl(Url);
 
 						NConsole.WriteSuccess("Downloaded to {0}", path);
 
@@ -364,7 +369,10 @@ namespace SmartImage.Searching
 
 			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
-			string infoStr = $"Info: {imageFile.Name} ({fileSizeMegabytes:F} MB) ({mpx:F} MP) ({fileFormat.Name})";
+			var aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
+
+			string infoStr =
+				$"Info: {imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
 
 			result.ExtendedInfo.Add(infoStr);
 

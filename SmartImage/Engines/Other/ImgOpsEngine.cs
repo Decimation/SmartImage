@@ -3,6 +3,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using RestSharp;
 using SimpleCore.Console.CommandLine;
+using SimpleCore.Numeric;
 using SimpleCore.Utilities;
 
 #nullable enable
