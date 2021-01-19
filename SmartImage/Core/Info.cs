@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 using Novus;
 using Novus.Runtime;
 using Novus.Win32;
-using SimpleCore.Console.CommandLine;
+using SimpleCore.Cli;
 using SmartImage.Utilities;
 
 // ReSharper disable UnusedMember.Global

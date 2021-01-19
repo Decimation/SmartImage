@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using Novus.Utilities;
 using Novus.Win32;
-using SimpleCore.Console.CommandLine;
+using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Numeric;
 using SimpleCore.Utilities;

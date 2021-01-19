@@ -4,11 +4,11 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using JetBrains.Annotations;
-using SimpleCore.Console.CommandLine;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Utilities;
 using Novus.Win32;
+using SimpleCore.Cli;
 
 // ReSharper disable ArrangeAccessorOwnerBody
 

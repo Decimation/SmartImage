@@ -2,7 +2,7 @@
 
 using Novus.Utilities;
 using Novus.Win32;
-using SimpleCore.Console.CommandLine;
+using SimpleCore.Cli;
 using SmartImage.Core;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
@@ -20,8 +20,9 @@ using System.Media;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using SimpleCore.Cli;
 using SimpleCore.Net;
-using static SimpleCore.Console.CommandLine.NConsoleOption;
+using static SimpleCore.Cli.NConsoleOption;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 

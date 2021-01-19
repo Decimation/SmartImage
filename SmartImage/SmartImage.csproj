@@ -73,8 +73,8 @@
     <Reference Include="SimpleCore">
       <HintPath>..\..\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
     </Reference>
-    <Reference Include="SimpleCore.Console">
-      <HintPath>..\..\SimpleCore\SimpleCore.Console\bin\Release\net5.0\SimpleCore.Console.dll</HintPath>
+    <Reference Include="SimpleCore.Cli">
+      <HintPath>..\..\SimpleCore\SimpleCore.Cli\bin\Release\net5.0\SimpleCore.Cli.dll</HintPath>
     </Reference>
     <Reference Include="SimpleCore.Net">
       <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>

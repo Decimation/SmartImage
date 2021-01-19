@@ -9,7 +9,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Novus.Win32;
-using SimpleCore.Console.CommandLine;
+using SimpleCore.Cli;
 using SimpleCore.Net;
 using SmartImage.Core;
 

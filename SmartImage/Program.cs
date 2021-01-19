@@ -6,7 +6,7 @@ using SmartImage.Searching;
 using System;
 using System.Text;
 using System.Threading;
-using SimpleCore.Console.CommandLine;
+using SimpleCore.Cli;
 using SimpleCore.Net;
 using SmartImage.Core;
 using SmartImage.Utilities;

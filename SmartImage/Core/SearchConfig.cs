@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SimpleCore.Console.CommandLine;
+using SimpleCore.Cli;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;

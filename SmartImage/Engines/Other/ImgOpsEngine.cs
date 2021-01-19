@@ -2,7 +2,7 @@ using System.Drawing;
 using Novus.Utilities;
 using Novus.Win32;
 using RestSharp;
-using SimpleCore.Console.CommandLine;
+using SimpleCore.Cli;
 using SimpleCore.Numeric;
 using SimpleCore.Utilities;
 
