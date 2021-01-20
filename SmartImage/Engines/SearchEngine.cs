@@ -4,11 +4,14 @@ using SmartImage.Searching;
 
 namespace SmartImage.Engines
 {
-	public abstract class BasicSearchEngine : ISearchEngine
+	/// <summary>
+	/// Represents a search engine
+	/// </summary>
+	public abstract class SearchEngine
 	{
 		public string BaseUrl { get; }
 
-		protected BasicSearchEngine(string baseUrl)
+		protected SearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
 		}
@@ -20,21 +23,21 @@ namespace SmartImage.Engines
 
 		public abstract Color Color { get; }
 
-		
+
 		public virtual float? FilterThreshold => null;
 
 		public virtual FullSearchResult GetResult(string url)
 		{
 			string rawUrl = GetRawResultUrl(url);
 
-			var sr = new FullSearchResult(this, rawUrl);
-			sr.RawUrl = rawUrl;
+			var sr = new FullSearchResult(this, rawUrl)
+			{
+				RawUrl = rawUrl
+			};
 
-			
 
 			return sr;
 		}
-
 
 
 		public virtual string GetRawResultUrl(string url)

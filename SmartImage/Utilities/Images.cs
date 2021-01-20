@@ -18,23 +18,22 @@ namespace SmartImage.Utilities
 	/// <summary>
 	/// Image utilities
 	/// </summary>
-	internal static class Images
+	public static class Images
 	{
-		/*
-		 * ImageHash - too high
-		 * Shipwreck phash - cross correlation
+		/* Image comparison algorithms:
+		 * - ImageHash: too high
+		 * - Shipwreck phash: cross correlation
 		 */
 
-		
 
-		internal static (int Width, int Height) GetDimensions(string img)
+		public static (int Width, int Height) GetDimensions(string img)
 		{
 			var bmp = new Bitmap(img);
 
 			return (bmp.Width, bmp.Height);
 		}
 
-		internal static bool IsFileValid(string img)
+		public static bool IsFileValid(string img)
 		{
 			if (String.IsNullOrWhiteSpace(img)) {
 				return false;

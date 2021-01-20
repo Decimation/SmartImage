@@ -12,7 +12,7 @@ using SmartImage.Searching;
 #nullable enable
 namespace SmartImage.Engines.Other
 {
-	public sealed class IqdbEngine : BasicSearchEngine
+	public sealed class IqdbEngine : SearchEngine
 	{
 		public IqdbEngine() : base("https://iqdb.org/?url=") { }
 
@@ -125,10 +125,9 @@ namespace SmartImage.Engines.Other
 				sr.UpdateFrom(best);
 				sr.AddExtendedResults(images.ToArray());
 			}
-			catch (Exception) {
+			catch (Exception e) {
 				// ...
-
-				sr.ExtendedInfo.Add("Error parsing");
+				sr.AddErrorMessage(e.Message);
 			}
 
 			return sr;

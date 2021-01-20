@@ -7,7 +7,7 @@ using SmartImage.Searching;
 
 namespace SmartImage.Engines.Other
 {
-	public sealed class GoogleImagesEngine : BasicSearchEngine
+	public sealed class GoogleImagesEngine : SearchEngine
 	{
 		public GoogleImagesEngine() : base("http://images.google.com/searchbyimage?image_url=") { }
 

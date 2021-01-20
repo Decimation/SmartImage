@@ -2,7 +2,7 @@
 
 namespace SmartImage.Engines.Other
 {
-	public sealed class BingEngine : BasicSearchEngine
+	public sealed class BingEngine : SearchEngine
 	{
 		public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 		public override SearchEngineOptions Engine => SearchEngineOptions.Bing;

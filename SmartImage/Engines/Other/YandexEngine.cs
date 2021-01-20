@@ -16,7 +16,7 @@ using SmartImage.Searching;
 
 namespace SmartImage.Engines.Other
 {
-	public sealed class YandexEngine : BasicSearchEngine
+	public sealed class YandexEngine : SearchEngine
 	{
 		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
@@ -133,8 +133,7 @@ namespace SmartImage.Engines.Other
 			}
 			catch (Exception e) {
 				// ...
-
-				sr.ExtendedInfo.Add($"Error parsing: {e.Message}");
+				sr.AddErrorMessage(e.Message);
 			}
 
 

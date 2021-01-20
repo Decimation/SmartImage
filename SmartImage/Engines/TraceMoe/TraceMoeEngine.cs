@@ -6,7 +6,7 @@ using SmartImage.Searching;
 
 namespace SmartImage.Engines.TraceMoe
 {
-	public sealed class TraceMoeEngine : BasicSearchEngine
+	public sealed class TraceMoeEngine : SearchEngine
 	{
 		public TraceMoeEngine() : base("https://trace.moe/?url=") { }
 
@@ -14,7 +14,7 @@ namespace SmartImage.Engines.TraceMoe
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.TraceMoe;
 
-		private static TraceMoeRootObject GetApiResults(string url, 
+		private static TraceMoeRootObject GetApiResults(string url,
 			out HttpStatusCode code, out ResponseStatus status, out string msg)
 		{
 			// https://soruly.github.io/trace.moe/#/
@@ -48,7 +48,7 @@ namespace SmartImage.Engines.TraceMoe
 
 				results[i] = new FullSearchResult(this, malUrl, sim)
 				{
-					Source  = doc.title_english,
+					Source      = doc.title_english,
 					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.at)}"
 				};
 			}
@@ -81,7 +81,7 @@ namespace SmartImage.Engines.TraceMoe
 
 					r = new FullSearchResult(this, best.Url, best.Similarity)
 					{
-						Source  = best.Source,
+						Source      = best.Source,
 						Description = best.Description,
 					};
 					r.Filter = r.Similarity < FilterThreshold;
@@ -90,7 +90,7 @@ namespace SmartImage.Engines.TraceMoe
 				}
 				catch (Exception e) {
 					r = base.GetResult(url);
-					r.ExtendedInfo.Add(e.Message);
+					r.AddErrorMessage(e.Message);
 					return r;
 				}
 
@@ -99,7 +99,7 @@ namespace SmartImage.Engines.TraceMoe
 			else {
 				r = base.GetResult(url);
 
-				r.ExtendedInfo.Add($"API: Returned null (possible timeout) [{code} {res} {msg}]");
+				r.Metadata.Add("API", $"Returned null (possible timeout) [{code} {res} {msg}]");
 			}
 
 

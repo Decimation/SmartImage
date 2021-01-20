@@ -3,13 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Novus.Utilities;
 using Novus.Win32;
+using Pastel;
 using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Numeric;
@@ -25,33 +24,41 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
-		public FullSearchResult(ISearchEngine engine, string url, float? similarity = null)
+		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
+
+		public FullSearchResult(SearchEngine engine, string url, float? similarity = null)
 			: this(engine, engine.Color, engine.Name, url, similarity) { }
 
-		public FullSearchResult(ISearchEngine src, Color color, string name, string url, float? similarity = null)
+		/// <summary>
+		/// Root constructor
+		/// </summary>
+		public FullSearchResult(SearchEngine src, Color color, string name, string url, float? similarity = null)
 		{
 			SearchEngine = src;
-			Url    = url;
-			Name   = name;
-			Color  = color;
+			Url          = url;
+			Name         = name;
+			Color        = color;
 
 			Similarity      = similarity;
-			ExtendedInfo    = new List<string>();
+			Metadata    = new Dictionary<string, object>();
 			ExtendedResults = new List<FullSearchResult>();
 		}
 
 
-		private FullSearchResult(Color color, string name, string url, float? similarity = null) 
-			: this(null, color, name, url, similarity) { }
-
-
 		/// <summary>
-		/// Engine
+		/// Special constructor for original image
 		/// </summary>
-		public ISearchEngine SearchEngine { get; }
+		private FullSearchResult(Color color, string name, string url, float? similarity = null)
+			: this(null!, color, name, url, similarity) { }
+
 
 		/// <summary>
-		/// Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines"/>)
+		///     Search engine
+		/// </summary>
+		public SearchEngine SearchEngine { get; }
+
+		/// <summary>
+		///     Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines" />)
 		/// </summary>
 		public bool IsPriority => !IsOriginal && SearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
 		                          SearchEngine.Engine != SearchEngineOptions.None;
@@ -82,10 +89,9 @@ namespace SmartImage.Searching
 		public override Color Color { get; set; }
 
 		/// <summary>
-		///     Downloads result (<see cref="Url"/>) and opens it in Explorer with the file highlighted.
-		/// 
+		///     Downloads result (<see cref="Url" />) and opens it in Explorer with the file highlighted.
 		/// </summary>
-		/// <remarks>(Ideally, <see cref="Url"/> is a direct image link)</remarks>
+		/// <remarks>(Ideally, <see cref="Url" /> is a direct image link)</remarks>
 		public override NConsoleFunction CtrlFunction
 		{
 			get
@@ -124,9 +130,9 @@ namespace SmartImage.Searching
 		public override string Data => ToString();
 
 		/// <summary>
-		///     Extended information about the image, results, and other related metadata
+		///     Additional information about the image, results, and other related metadata
 		/// </summary>
-		public List<string> ExtendedInfo { get; }
+		public Dictionary<string, object> Metadata { get; }
 
 		/// <summary>
 		///     Direct source matches and other extended results
@@ -135,7 +141,7 @@ namespace SmartImage.Searching
 		public List<FullSearchResult> ExtendedResults { get; }
 
 		/// <summary>
-		///     Opens <see cref="Url"/> in browser
+		///     Opens <see cref="Url" /> in browser
 		/// </summary>
 		public override NConsoleFunction Function
 		{
@@ -151,7 +157,7 @@ namespace SmartImage.Searching
 		}
 
 		/// <summary>
-		/// Opens <see cref="RawUrl"/> in browser, if available
+		///     Opens <see cref="RawUrl" /> in browser, if available
 		/// </summary>
 		public override NConsoleFunction ComboFunction
 		{
@@ -183,37 +189,53 @@ namespace SmartImage.Searching
 		/// </summary>
 		public string? RawUrl { get; set; }
 
+		/// <summary>
+		/// Whether this is the original image
+		/// </summary>
+		public bool IsOriginal { get; set; }
+
+
+		/// <inheritdoc cref="ISearchResult.Description" />
 		public string? Description { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Height" />
 		public int? Height { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Similarity" />
 		public float? Similarity { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Url" />
 		public string Url { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Width" />
 		public int? Width { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Filter" />
 		public bool Filter { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Artist" />
 		public string? Artist { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Source" />
 		public string? Source { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.Characters" />
 		public string? Characters { get; set; }
 
+		/// <inheritdoc cref="ISearchResult.SiteName" />
 		public string? SiteName { get; set; }
+		
+
+
+		public void AddErrorMessage(string msg)
+		{
+			Metadata.Add($"Error message", msg);
+		}
 
 		public void AddExtendedResults(ISearchResult[] bestImages)
 		{
-			// todo?
-
-			var rg = FromExtendedResult(bestImages);
-
-			ExtendedResults.AddRange(rg);
-
+			ExtendedResults.AddRange(CreateExtendedResults(bestImages));
 		}
-
-		public bool IsOriginal { get; set; }
 
 		public override string ToString()
 		{
@@ -228,11 +250,13 @@ namespace SmartImage.Searching
 			}
 
 			if (Filter) {
-				sb.Append("-").Append(Formatting.SPACE);
+				const string FILTER = "-";
+				sb.Append(FILTER).Append(Formatting.SPACE);
 			}
 
 			if (IsPriority) {
-				sb.Append("*").Append(Formatting.SPACE);
+				const string PRIORITY = "*";
+				sb.Append(PRIORITY).Append(Formatting.SPACE);
 			}
 
 			sb.AppendLine();
@@ -241,45 +265,38 @@ namespace SmartImage.Searching
 			 * Result details
 			 */
 
-			if (RawUrl != Url) {
-				sb.Append($"\tResult: {Url}\n");
-			}
+			AppendResultInfo(sb, "Result", Url, RawUrl != Url);
+			AppendResultInfo(sb, "Raw", RawUrl);
 
-			// var rurl = Engine is BasicSearchEngine bse ? bse.BaseUrl: RawUrl;
-			//
-			// if (rurl!=null) {
-			// 	sb.Append($"\tRaw: {rurl + Formatting.ELLIPSES}\n");
-			// }
+			AppendResultInfo(sb, nameof(Similarity), $"{Similarity / 100:P}", Similarity.HasValue && !IsOriginal);
 
-			AddInfoSafe(sb, RawUrl, "Raw");
+			AppendResultInfo(sb, nameof(Artist), Artist);
+			AppendResultInfo(sb, nameof(Characters), Characters);
+			AppendResultInfo(sb, nameof(Source), Source);
+			AppendResultInfo(sb, nameof(Description), Description);
+			AppendResultInfo(sb, "Site", SiteName);
 
-			if (Similarity.HasValue && !IsOriginal) {
-				sb.Append($"\tSimilarity: {Similarity / 100:P}\n");
-			}
+			AppendResultInfo(sb, "Resolution", $"{Width}x{Height}", Width.HasValue && Height.HasValue);
 
-			AddInfoSafe(sb, Artist, nameof(Artist));
-			AddInfoSafe(sb, Characters, nameof(Characters));
-			AddInfoSafe(sb, Source, nameof(Source));
-			AddInfoSafe(sb, Description, nameof(Description));
-			AddInfoSafe(sb, SiteName, "Site");
-
-			if (Width.HasValue && Height.HasValue) {
-				sb.Append($"\tResolution: {Width}x{Height}\n");
-			}
-
-			foreach (string s in ExtendedInfo) {
-				sb.Append($"\t{s}\n");
+			foreach (var (key, value) in Metadata) {
+				AppendResultInfo(sb, key, value.ToString());
 			}
 
 			return sb.ToString();
 		}
 
-		private static void AddInfoSafe(StringBuilder sb, string? a, string n)
-		{
-			//todo: util
 
-			if (!string.IsNullOrWhiteSpace(a)) {
-				sb.Append($"\t{n}: {a}\n");
+		private void AppendResultInfo(StringBuilder sb, string name, string? value, bool cond = true)
+		{
+			if (cond && !String.IsNullOrWhiteSpace(value)) {
+
+				const float CORRECTION_FACTOR = -.25f;
+
+				var newColor = ColorUtilities.ChangeColorBrightness(Color, CORRECTION_FACTOR);
+
+				string? valueStr = value.Pastel(newColor);
+
+				sb.Append($"\t{NConsole.ANSI_RESET}{name}: {valueStr}{NConsole.ANSI_RESET}\n");
 			}
 		}
 
@@ -300,7 +317,7 @@ namespace SmartImage.Searching
 
 		private FullSearchResult CreateExtendedResult(ISearchResult result)
 		{
-			var sr = new FullSearchResult(SearchEngine, Color, Name, result.Url, result.Similarity)
+			var extendedResult = new FullSearchResult(SearchEngine, Color, Name, result.Url, result.Similarity)
 			{
 				Width       = result.Width,
 				Height      = result.Height,
@@ -308,26 +325,26 @@ namespace SmartImage.Searching
 				Artist      = result.Artist,
 				Source      = result.Source,
 				Characters  = result.Characters,
-				SiteName    = result.SiteName,
+				SiteName    = result.SiteName
 			};
-			return sr;
+			return extendedResult;
 		}
 
-		private IEnumerable<FullSearchResult> FromExtendedResult(IReadOnlyList<ISearchResult> results)
+		private IEnumerable<FullSearchResult> CreateExtendedResults(IReadOnlyList<ISearchResult> results)
 		{
 			var rg = new FullSearchResult[results.Count];
 
 			for (int i = 0; i < rg.Length; i++) {
+
 				var    result = results[i];
 				string name   = $"Extended result #{i}";
 
 				// Copy
 
+				var extendedResult = CreateExtendedResult(result);
+				extendedResult.Name = name;
 
-				var sr = CreateExtendedResult(result);
-				sr.Name = name;
-
-				rg[i] = sr;
+				rg[i] = extendedResult;
 			}
 
 
@@ -351,17 +368,15 @@ namespace SmartImage.Searching
 				return -1;
 			}
 
-			if (x?.ExtendedInfo.Count > y?.ExtendedInfo.Count) {
+			if (x?.Metadata.Count > y?.Metadata.Count) {
 				return -1;
 			}
 
 			return 0;
 		}
 
-		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
-
 		/// <summary>
-		/// Creates a <see cref="FullSearchResult"/> for the original image
+		///     Creates a <see cref="FullSearchResult" /> for the original image
 		/// </summary>
 		public static FullSearchResult GetOriginalImageResult(string imageUrl, FileInfo imageFile)
 		{
@@ -369,7 +384,7 @@ namespace SmartImage.Searching
 			{
 				IsOriginal = true,
 				Similarity = 100.0f,
-				IsAnalyzed = true,
+				IsAnalyzed = true
 			};
 
 			var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
@@ -384,12 +399,12 @@ namespace SmartImage.Searching
 
 			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
-			var aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
+			string? aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
 
 			string infoStr =
-				$"Info: {imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
+				$"{imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
 
-			result.ExtendedInfo.Add(infoStr);
+			result.Metadata.Add("Info", infoStr);
 
 			return result;
 		}

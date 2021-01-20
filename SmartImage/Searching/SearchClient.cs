@@ -201,6 +201,7 @@ namespace SmartImage.Searching
 			// Bring to front
 			//NativeImports.BringConsoleToFront();
 
+
 			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
 				// Results will already be sorted
 				// Open best result
@@ -208,7 +209,6 @@ namespace SmartImage.Searching
 				var best = Results[1];
 
 				HandleResultOpen(best);
-
 			}
 
 			/*
@@ -273,9 +273,9 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Returns all of the supported search engines
 		/// </summary>
-		private static IEnumerable<ISearchEngine> GetAllEngines()
+		private static IEnumerable<SearchEngine> GetAllEngines()
 		{
-			return new ISearchEngine[]
+			return new SearchEngine[]
 			{
 				//
 				new SauceNaoEngine(),

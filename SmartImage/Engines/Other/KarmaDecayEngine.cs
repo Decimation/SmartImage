@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace SmartImage.Engines.Other
 {
-	public sealed class KarmaDecayEngine : BasicSearchEngine
+	public sealed class KarmaDecayEngine : SearchEngine
 	{
 		public KarmaDecayEngine() : base("http://karmadecay.com/search/?q=") { }
 

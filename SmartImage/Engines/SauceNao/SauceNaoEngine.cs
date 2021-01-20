@@ -26,7 +26,7 @@ namespace SmartImage.Engines.SauceNao
 	/// <summary>
 	///     SauceNao API client
 	/// </summary>
-	public sealed class SauceNaoEngine : BasicSearchEngine
+	public sealed class SauceNaoEngine : SearchEngine
 	{
 		private const string BASE_URL = "https://saucenao.com/";
 
@@ -114,13 +114,13 @@ namespace SmartImage.Engines.SauceNao
 				result.AddExtendedResults(extended);
 
 				if (!String.IsNullOrWhiteSpace(m_apiKey)) {
-					result.ExtendedInfo.Add("Using API");
+					result.Metadata.Add("API", m_apiKey);
 				}
 
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"SauceNao error: {e.StackTrace}");
-				result.ExtendedInfo.Add("Error parsing");
+				result.AddErrorMessage(e.Message);
 			}
 
 			return result;
