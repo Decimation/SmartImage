@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -25,11 +26,11 @@ namespace SmartImage.Searching
 	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
 		public FullSearchResult(ISearchEngine engine, string url, float? similarity = null)
-			: this(engine.Engine, engine.Color, engine.Name, url, similarity) { }
+			: this(engine, engine.Color, engine.Name, url, similarity) { }
 
-		public FullSearchResult(SearchEngineOptions src, Color color, string name, string url, float? similarity = null)
+		public FullSearchResult(ISearchEngine src, Color color, string name, string url, float? similarity = null)
 		{
-			Engine = src;
+			SearchEngine = src;
 			Url    = url;
 			Name   = name;
 			Color  = color;
@@ -37,18 +38,24 @@ namespace SmartImage.Searching
 			Similarity      = similarity;
 			ExtendedInfo    = new List<string>();
 			ExtendedResults = new List<FullSearchResult>();
-
 		}
+
+
+		private FullSearchResult(Color color, string name, string url, float? similarity = null) 
+			: this(null, color, name, url, similarity) { }
+
 
 		/// <summary>
 		/// Engine
 		/// </summary>
-		public SearchEngineOptions Engine { get; }
+		public ISearchEngine SearchEngine { get; }
 
 		/// <summary>
 		/// Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines"/>)
 		/// </summary>
-		public bool IsPriority => SearchConfig.Config.PriorityEngines.HasFlag(Engine);
+		public bool IsPriority => !IsOriginal && SearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
+		                          SearchEngine.Engine != SearchEngineOptions.None;
+
 
 		public bool IsAnalyzed { get; set; }
 
@@ -91,8 +98,7 @@ namespace SmartImage.Searching
 						NConsole.WriteSuccess("Downloading...");
 
 
-
-						string? path  = Network.DownloadUrl(Url);
+						string? path = Network.DownloadUrl(Url);
 
 						NConsole.WriteSuccess("Downloaded to {0}", path);
 
@@ -207,6 +213,8 @@ namespace SmartImage.Searching
 
 		}
 
+		public bool IsOriginal { get; set; }
+
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
@@ -237,9 +245,15 @@ namespace SmartImage.Searching
 				sb.Append($"\tResult: {Url}\n");
 			}
 
+			// var rurl = Engine is BasicSearchEngine bse ? bse.BaseUrl: RawUrl;
+			//
+			// if (rurl!=null) {
+			// 	sb.Append($"\tRaw: {rurl + Formatting.ELLIPSES}\n");
+			// }
+
 			AddInfoSafe(sb, RawUrl, "Raw");
 
-			if (Similarity.HasValue) {
+			if (Similarity.HasValue && !IsOriginal) {
 				sb.Append($"\tSimilarity: {Similarity / 100:P}\n");
 			}
 
@@ -286,7 +300,7 @@ namespace SmartImage.Searching
 
 		private FullSearchResult CreateExtendedResult(ISearchResult result)
 		{
-			var sr = new FullSearchResult(Engine, Color, Name, result.Url, result.Similarity)
+			var sr = new FullSearchResult(SearchEngine, Color, Name, result.Url, result.Similarity)
 			{
 				Width       = result.Width,
 				Height      = result.Height,
@@ -351,8 +365,9 @@ namespace SmartImage.Searching
 		/// </summary>
 		public static FullSearchResult GetOriginalImageResult(string imageUrl, FileInfo imageFile)
 		{
-			var result = new FullSearchResult(SearchEngineOptions.None, Color.White, ORIGINAL_IMAGE_NAME, imageUrl)
+			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, imageUrl)
 			{
+				IsOriginal = true,
 				Similarity = 100.0f,
 				IsAnalyzed = true,
 			};

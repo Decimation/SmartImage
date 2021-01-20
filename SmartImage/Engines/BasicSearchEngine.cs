@@ -6,7 +6,7 @@ namespace SmartImage.Engines
 {
 	public abstract class BasicSearchEngine : ISearchEngine
 	{
-		protected readonly string BaseUrl;
+		public string BaseUrl { get; }
 
 		protected BasicSearchEngine(string baseUrl)
 		{
