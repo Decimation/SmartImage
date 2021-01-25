@@ -61,10 +61,9 @@ namespace SmartImage
 			/*
 			 * Set up NConsole
 			 */
-
 			NConsole.Init();
 			NConsoleInterface.DefaultName = Info.NAME_BANNER;
-
+			
 
 			/*
 			 * Check for any legacy integrations that need to be migrated

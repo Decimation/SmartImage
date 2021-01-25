@@ -11,16 +11,10 @@ namespace SmartImage.Utilities
 {
 	internal static class NativeImports
 	{
-
 		[DllImport(USER32_DLL)]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool FlashWindowEx(ref FLASHWINFO pwfi);
 
-
-		
-
-
-		
 
 		[DllImport(USER32_DLL)]
 		[return: MarshalAs(UnmanagedType.Bool)]
@@ -83,8 +77,12 @@ namespace SmartImage.Utilities
 			FlashWindowEx(ref fInfo);
 		}
 
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		internal static extern bool SetConsoleOutputCP(uint wCodePageID);
 
-		
+		[DllImport(KERNEL32_DLL, SetLastError = true)]
+		internal static extern bool SetConsoleCP(uint wCodePageID);
+
 
 		internal static void FlashConsoleWindow() => FlashWindow(GetConsoleWindowHandle());
 
