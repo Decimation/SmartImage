@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Xml.XPath;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -16,7 +17,7 @@ using SmartImage.Searching;
 
 namespace SmartImage.Engines.Other
 {
-	public sealed class YandexEngine : SearchEngine
+	public sealed class YandexEngine : BaseSearchEngine
 	{
 		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
@@ -24,23 +25,10 @@ namespace SmartImage.Engines.Other
 
 		public override string Name => "Yandex";
 
-		
 
 		private const int TOTAL_RES_MIN = 500_000;
 
-		private static ISearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg)
-		{
-			const int TAKE_N = 5;
-
-			var best = rg.OrderByDescending(i => i.FullResolution)
-				.Take(TAKE_N)
-				.Cast<ISearchResult>()
-				.ToArray();
-
-			return best;
-		}
-
-		private static string GetYandexAnalysis(HtmlDocument doc)
+		private static string GetAnalysis(HtmlDocument doc)
 		{
 			const string TAGS_XP = "//div[contains(@class, 'Tags_type_simple')]/*";
 
@@ -52,7 +40,7 @@ namespace SmartImage.Engines.Other
 		}
 
 
-		private static List<BasicSearchResult> GetYandexImages(HtmlDocument doc)
+		private static List<BasicSearchResult> GetImages(HtmlDocument doc)
 		{
 			const string TAGS_ITEM_XP = "//a[contains(@class, 'Tags-Item')]";
 
@@ -92,6 +80,7 @@ namespace SmartImage.Engines.Other
 			return images;
 		}
 
+
 		public override FullSearchResult GetResult(string url)
 		{
 			// todo: slow
@@ -110,16 +99,16 @@ namespace SmartImage.Engines.Other
 				 * Parse what the image looks like
 				 */
 
-				string? looksLike = GetYandexAnalysis(doc);
+				string? looksLike = GetAnalysis(doc);
 
 
 				/*
 				 * Find and sort through high resolution image matches
 				 */
 
-				var images = GetYandexImages(doc);
+				var images = GetImages(doc);
 
-				ISearchResult[] bestImages = FilterAndSelectBestImages(images);
+				ISearchResult[] bestImages = FullSearchResult.FilterAndSelectBestImages(images);
 
 				//
 				var best = images[0];
@@ -129,7 +118,7 @@ namespace SmartImage.Engines.Other
 				sr.Description = looksLike;
 
 				sr.AddExtendedResults(bestImages);
-				
+
 			}
 			catch (Exception e) {
 				// ...

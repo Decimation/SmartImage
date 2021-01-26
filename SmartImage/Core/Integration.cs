@@ -5,7 +5,6 @@ using System.Linq;
 using Microsoft.Win32;
 using Novus.Win32;
 using SimpleCore.Cli;
-using SimpleCore.Cli;
 
 namespace SmartImage.Core
 {

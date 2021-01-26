@@ -22,17 +22,19 @@ namespace SmartImage.Searching
 	/// <summary>
 	///     Represents a complete search result
 	/// </summary>
+	/// <seealso cref="ISearchResult"/>
+	/// <seealso cref="BasicSearchResult"/>
 	public sealed class FullSearchResult : NConsoleOption, ISearchResult
 	{
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
-		public FullSearchResult(SearchEngine engine, string url, float? similarity = null)
+		public FullSearchResult(BaseSearchEngine engine, string url, float? similarity = null)
 			: this(engine, engine.Color, engine.Name, url, similarity) { }
 
 		/// <summary>
 		/// Root constructor
 		/// </summary>
-		public FullSearchResult(SearchEngine src, Color color, string name, string url, float? similarity = null)
+		public FullSearchResult(BaseSearchEngine src, Color color, string name, string url, float? similarity = null)
 		{
 			SearchEngine = src;
 			Url          = url;
@@ -40,7 +42,7 @@ namespace SmartImage.Searching
 			Color        = color;
 
 			Similarity      = similarity;
-			Metadata    = new Dictionary<string, object>();
+			Metadata        = new Dictionary<string, object>();
 			ExtendedResults = new List<FullSearchResult>();
 		}
 
@@ -55,7 +57,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Search engine
 		/// </summary>
-		public SearchEngine SearchEngine { get; }
+		public BaseSearchEngine SearchEngine { get; }
 
 		/// <summary>
 		///     Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines" />)
@@ -224,7 +226,6 @@ namespace SmartImage.Searching
 
 		/// <inheritdoc cref="ISearchResult.SiteName" />
 		public string? SiteName { get; set; }
-		
 
 
 		public void AddErrorMessage(string msg)
@@ -407,6 +408,18 @@ namespace SmartImage.Searching
 			result.Metadata.Add("Info", infoStr);
 
 			return result;
+		}
+
+		private const int TAKE_N = 5;
+
+		public static ISearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg, int take = TAKE_N)
+		{
+			var best = rg.OrderByDescending(i => i.FullResolution)
+				.Take(take)
+				.Cast<ISearchResult>()
+				.ToArray();
+
+			return best;
 		}
 	}
 }

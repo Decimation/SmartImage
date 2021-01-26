@@ -7,11 +7,11 @@ namespace SmartImage.Engines
 	/// <summary>
 	/// Represents a search engine
 	/// </summary>
-	public abstract class SearchEngine
+	public abstract class BaseSearchEngine
 	{
 		public string BaseUrl { get; }
 
-		protected SearchEngine(string baseUrl)
+		protected BaseSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
 		}

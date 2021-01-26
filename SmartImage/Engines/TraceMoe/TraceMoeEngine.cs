@@ -6,7 +6,7 @@ using SmartImage.Searching;
 
 namespace SmartImage.Engines.TraceMoe
 {
-	public sealed class TraceMoeEngine : SearchEngine
+	public sealed class TraceMoeEngine : BaseSearchEngine
 	{
 		public TraceMoeEngine() : base("https://trace.moe/?url=") { }
 

@@ -2,7 +2,7 @@ using System.Drawing;
 
 namespace SmartImage.Engines.Other
 {
-	public sealed class TinEyeEngine : SearchEngine
+	public sealed class TinEyeEngine : BaseSearchEngine
 	{
 		public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
 

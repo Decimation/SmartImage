@@ -1,7 +1,5 @@
 ﻿#nullable enable
 
-using Novus.Utilities;
-using Novus.Win32;
 using SimpleCore.Cli;
 using SmartImage.Core;
 using SmartImage.Engines;
@@ -13,15 +11,10 @@ using SmartImage.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
-using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
-using SimpleCore.Cli;
-using SimpleCore.Net;
 using static SimpleCore.Cli.NConsoleOption;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -273,9 +266,9 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Returns all of the supported search engines
 		/// </summary>
-		private static IEnumerable<SearchEngine> GetAllEngines()
+		private static IEnumerable<BaseSearchEngine> GetAllEngines()
 		{
-			return new SearchEngine[]
+			return new BaseSearchEngine[]
 			{
 				//
 				new SauceNaoEngine(),

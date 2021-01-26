@@ -9,13 +9,13 @@ using SimpleCore.Utilities;
 #nullable enable
 namespace SmartImage.Engines.Other
 {
-	public sealed class ImgOpsEngine : SearchEngine, IUploadEngine
+	public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 	{
 		public ImgOpsEngine() : base("http://imgops.com/") { }
 
-		public override string Name  => "ImgOps";
-		
-		public override Color  Color => Color.Pink;
+		public override string Name => "ImgOps";
+
+		public override Color Color => Color.Pink;
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 

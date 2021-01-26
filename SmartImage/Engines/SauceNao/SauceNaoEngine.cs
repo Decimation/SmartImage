@@ -28,9 +28,9 @@ namespace SmartImage.Engines.SauceNao
 
 
 	/// <summary>
-	///     SauceNao API client
+	///     SauceNao client
 	/// </summary>
-	public sealed class SauceNaoEngine : SearchEngine
+	public sealed class SauceNaoEngine : BaseSearchEngine
 	{
 		private const string BASE_URL = "https://saucenao.com/";
 
@@ -61,7 +61,10 @@ namespace SmartImage.Engines.SauceNao
 
 		#region HTML
 
-		private static (string? Creator, string? Material) FindCreator(HtmlNode resultcontent)
+		// todo
+		// https://github.com/Decimation/SmartImage/blob/49b373305d4b9c96df393feabecf3c451a7c6a7d/SmartImage/Searching/Engines/SauceNao/AltSauceNaoClient.cs
+
+		private static (string? Creator, string? Material) FindInfo(HtmlNode resultcontent)
 		{
 			var     resulttitle = resultcontent.ChildNodes[0];
 			string? rti         = resulttitle?.InnerText;
@@ -129,7 +132,7 @@ namespace SmartImage.Engines.SauceNao
 
 				string? link = link1 ?? link2;
 
-				var (creator, material) = FindCreator(resultcontent);
+				var (creator, material) = FindInfo(resultcontent);
 				float similarity = Single.Parse(resultsimilarityinfo.InnerText.Replace("%", String.Empty));
 
 
@@ -152,7 +155,7 @@ namespace SmartImage.Engines.SauceNao
 
 		#region API
 
-		private ISearchResult[] ConvertResults(SauceNaoDataResult[] results)
+		private ISearchResult[] ConvertDataResults(SauceNaoDataResult[] results)
 		{
 			var rg = new List<ISearchResult>();
 
@@ -175,7 +178,7 @@ namespace SmartImage.Engines.SauceNao
 			return rg.ToArray();
 		}
 
-		private static SauceNaoDataResult[]? ReadResults(string js)
+		private static SauceNaoDataResult[]? ReadDataResults(string js)
 		{
 			// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
 
@@ -243,7 +246,7 @@ namespace SmartImage.Engines.SauceNao
 			return null;
 		}
 
-		private SauceNaoDataResult[]? GetResults_API(string url)
+		private SauceNaoDataResult[]? GetDataResults(string url)
 		{
 			var req = new RestRequest();
 			req.AddQueryParameter("db", "999");
@@ -262,7 +265,7 @@ namespace SmartImage.Engines.SauceNao
 
 			string c = res.Content;
 
-			return ReadResults(c);
+			return ReadDataResults(c);
 		}
 
 		#endregion
@@ -273,7 +276,7 @@ namespace SmartImage.Engines.SauceNao
 			FullSearchResult result = base.GetResult(url);
 
 			try {
-				var orig = GetResults_API(url);
+				var orig = GetDataResults(url);
 
 				if (orig == null) {
 					//return result;
@@ -288,7 +291,7 @@ namespace SmartImage.Engines.SauceNao
 				string? material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
 
 
-				var extended = ConvertResults(orig);
+				var extended = ConvertDataResults(orig);
 
 				var ordered = extended
 					.Where(e => e.Url != null)
