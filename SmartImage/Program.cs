@@ -16,6 +16,8 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
+	
+
 	public static class Program
 	{
 		//  ____                       _   ___
