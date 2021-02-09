@@ -4,6 +4,7 @@
 
 using SmartImage.Searching;
 using System;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using SimpleCore.Cli;
@@ -64,8 +65,7 @@ namespace SmartImage
 			 */
 			NConsole.Init();
 			NConsoleInterface.DefaultName = Info.NAME_BANNER;
-
-
+			
 			/*
 			 * Check for any legacy integrations that need to be migrated
 			 */

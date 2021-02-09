@@ -28,11 +28,15 @@ namespace SmartImage.Engines.Other
 
 		private const int TOTAL_RES_MIN = 500_000;
 
-		private static string GetAnalysis(HtmlDocument doc)
+		private static string? GetAnalysis(HtmlDocument doc)
 		{
 			const string TAGS_XP = "//div[contains(@class, 'Tags_type_simple')]/*";
 
 			var nodes = doc.DocumentNode.SelectNodes(TAGS_XP);
+
+			if (nodes == null || !nodes.Any()) {
+				return null;
+			}
 
 			string? appearsToContain = nodes.Select(n => n.InnerText).QuickJoin();
 
@@ -102,6 +106,7 @@ namespace SmartImage.Engines.Other
 				string? looksLike = GetAnalysis(doc);
 
 
+
 				/*
 				 * Find and sort through high resolution image matches
 				 */
@@ -114,8 +119,10 @@ namespace SmartImage.Engines.Other
 				var best = images[0];
 				sr.UpdateFrom(best);
 
-
-				sr.Description = looksLike;
+				if (looksLike!=null) {
+					sr.Description = looksLike;
+				}
+				
 
 				sr.AddExtendedResults(bestImages);
 

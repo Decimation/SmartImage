@@ -117,6 +117,7 @@ namespace SmartImage.Searching
 		}
 
 
+
 		internal static bool IsInputImageValid(string? img, out bool isUri, out bool isFile)
 		{
 			if (String.IsNullOrWhiteSpace(img)) {
@@ -131,9 +132,13 @@ namespace SmartImage.Searching
 
 			if (isUri) {
 
-				var type = Network.IdentifyType(img);
+				var type = MediaTypes.IdentifyType(img);
 
-				var isUriFile = Network.IsImage(type);
+				if (type == null) {
+					return false;
+				}
+				
+				var isUriFile = MediaTypes.IsImage(type);
 
 				Debug.WriteLine($"MIME type: {type} | Is URI file: {isUriFile}");
 

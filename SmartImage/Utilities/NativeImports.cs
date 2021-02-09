@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Novus.Win32;
 using static Novus.Win32.Native;
 
 // ReSharper disable IdentifierTypo
