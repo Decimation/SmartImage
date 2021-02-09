@@ -398,26 +398,36 @@ namespace SmartImage.Searching
 				IsAnalyzed = true
 			};
 
-			if (imageFile != null) {
-				var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
+			bool isFile = imageFile != null;
 
-				double fileSizeMegabytes =
-					MathHelper.ConvertToUnit(FileSystem.GetFileSize(imageFile.FullName), MetricUnit.Mega);
+			string type = isFile ? "File" : "URI";
 
-				(int width, int height) = Images.GetDimensions(imageFile.FullName);
+			result.Metadata.Add($"Input type", type);
 
-				result.Width  = width;
-				result.Height = height;
-
-				double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
-
-				string? aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
-
-				string infoStr =
-					$"{imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
-
-				result.Metadata.Add("Info", infoStr);
+			if (!isFile) {
+				
+				return result;
 			}
+
+			
+			var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
+
+			double fileSizeMegabytes =
+				MathHelper.ConvertToUnit(FileSystem.GetFileSize(imageFile.FullName), MetricUnit.Mega);
+
+			(int width, int height) = Images.GetDimensions(imageFile.FullName);
+
+			result.Width  = width;
+			result.Height = height;
+
+			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
+
+			string? aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
+
+			string infoStr =
+				$"{imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
+
+			result.Metadata.Add("Info", infoStr);
 
 
 			return result;

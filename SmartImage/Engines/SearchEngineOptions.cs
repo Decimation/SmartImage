@@ -91,6 +91,9 @@ namespace SmartImage.Engines
 		Bing = 1 << 9,
 
 
+		/// <summary>
+		/// <seealso cref="Engines.Other.TidderEngine"/>
+		/// </summary>
 		Tidder = 1 << 10,
 
 		/// <summary>

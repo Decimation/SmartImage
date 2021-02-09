@@ -13,7 +13,7 @@ using SmartImage.Searching;
 #nullable enable
 namespace SmartImage.Engines.Other
 {
-	public class TidderEngine : BaseSearchEngine
+	public sealed class TidderEngine : BaseSearchEngine
 	{
 		public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 
@@ -69,17 +69,22 @@ namespace SmartImage.Engines.Other
 					string? author    = authorNode.InnerText;
 					string? subreddit = subredditNode.InnerText;
 
+
+					string link = titleNode.FirstChild.Attributes["href"].DeEntitizeValue;
+
 					var bsr = new BasicSearchResult
 					{
 						Artist      = author,
-						Description = title
+						Description = title,
+						Source      = subreddit,
+						Url = link,
 					};
 
 
 					list.Add(bsr);
 
 
-					Debug.WriteLine($"{i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit}");
+					Debug.WriteLine($"{i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit} --> {link}");
 				}
 
 				var best = list[0];

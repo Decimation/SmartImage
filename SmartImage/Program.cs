@@ -16,8 +16,6 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
-	
-
 	public static class Program
 	{
 		//  ____                       _   ___
@@ -30,7 +28,7 @@ namespace SmartImage
 		/*
 		 * todo: reorganize, restructure, refactor, etc.
 		 */
-		
+
 
 		/*
 		 * Entry point
@@ -38,6 +36,7 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
+			Start:
 			/*
 			 * Setup
 			 * Check compatibility
@@ -65,7 +64,7 @@ namespace SmartImage
 			 */
 			NConsole.Init();
 			NConsoleInterface.DefaultName = Info.NAME_BANNER;
-			
+
 
 			/*
 			 * Check for any legacy integrations that need to be migrated
@@ -107,6 +106,19 @@ namespace SmartImage
 				// Show results
 				SearchClient.Client.Interface.Run();
 			}
+			//catch (TypeInitializationException exception) {
+
+			//	if (exception.InnerException is SmartImageException siException) {
+			//		NConsole.WriteError($"Error: {siException.Message}");
+			//		NConsole.WaitForSecond();
+
+					
+					
+			//		Main(args);
+
+			//	}
+
+			//}
 			catch (Exception exception) {
 #if !DEBUG
 				var cr = new CrashReport(exception);

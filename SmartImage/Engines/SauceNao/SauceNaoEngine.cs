@@ -13,6 +13,7 @@ using SmartImage.Core;
 using SmartImage.Searching;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
+// ReSharper disable PossibleMultipleEnumeration
 
 #nullable enable
 
@@ -296,6 +297,14 @@ namespace SmartImage.Engines.SauceNao
 				var ordered = extended
 					.Where(e => e.Url != null)
 					.OrderByDescending(e => e.Similarity);
+
+
+				if (!ordered.Any()) {
+					// No good results
+					
+					result.Filter = true;
+					return result;
+				}
 
 				var best = ordered.First();
 

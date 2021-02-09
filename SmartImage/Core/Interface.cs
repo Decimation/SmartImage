@@ -9,6 +9,7 @@ using SmartImage.Engines;
 using SmartImage.Utilities;
 using Novus.Win32;
 using SimpleCore.Cli;
+using SmartImage.Searching;
 
 // ReSharper disable ArrangeAccessorOwnerBody
 
@@ -105,17 +106,22 @@ namespace SmartImage.Core
 			Color = ColorMain,
 			Function = () =>
 			{
-				Console.WriteLine("Drag and drop the image here.");
+
+				NConsole.WriteInfo("Drag and drop the image here");
+				NConsole.WriteInfo("Or paste a direct image link");
 
 				string? img = NConsole.ReadInput("Image");
 
-				if (String.IsNullOrWhiteSpace(img)) {
+				if (!SearchClient.IsInputImageValid(img, out _, out _)) {
+					
+
 					NConsole.WriteError("Invalid image");
 					NConsole.WaitForInput();
+
 					return null;
 				}
 
-				img = Strings.CleanString(img);
+				img = img.CleanString();
 
 				SearchConfig.Config.Image = img;
 

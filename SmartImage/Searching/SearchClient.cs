@@ -78,7 +78,7 @@ namespace SmartImage.Searching
 
 		private SearchClient(string img)
 		{
-			if (!Images.IsFileValid(img)) {
+			if (String.IsNullOrWhiteSpace(img)) {
 				throw new SmartImageException("Invalid image");
 			}
 
@@ -94,12 +94,9 @@ namespace SmartImage.Searching
 
 			//
 
+			string? imgUrl = HandleUrl(img, useImgur, out bool isFile);
 
-			string? imgUrl = HandleUrl(img, useImgur, out var isFile);
-
-
-			if (isFile)
-			{
+			if (isFile) {
 				ImageFile = new FileInfo(img);
 			}
 
@@ -119,18 +116,53 @@ namespace SmartImage.Searching
 			};
 		}
 
-		private  string HandleUrl(string img, bool useImgur, out bool isFile)
+
+		internal static bool IsInputImageValid(string? img, out bool isUri, out bool isFile)
 		{
-			bool isUri = Network.IsUri(img);
+			if (String.IsNullOrWhiteSpace(img)) {
+				isFile = false;
+				isUri  = false;
+				return false;
+			}
 
 			isFile = File.Exists(img);
 
-			Debug.WriteLine($"{isUri} {isFile}");
+			isUri = Network.IsUri(img, out _) && !isFile;
+
+			if (isUri) {
+
+				var type = Network.IdentifyType(img);
+
+				var isUriFile = Network.IsImage(type);
+
+				Debug.WriteLine($"MIME type: {type} | Is URI file: {isUriFile}");
+
+				if (!isUriFile) {
+
+					return false;
+				}
+			}
+
+			return isFile || isUri;
+		}
+
+		/// <summary>
+		/// Handles image input (either a URL or path) and returns the corresponding image URL
+		/// </summary>
+		private static string? HandleUrl(string img, bool useImgur, out bool isFile)
+		{
+
+			if (!IsInputImageValid(img, out var isUri, out isFile)) {
+				return null;
+			}
+
+
+			Debug.WriteLine($"Input is URI: {isUri} | Input is file: {isFile}");
 
 
 			string? imgUrl = !isUri ? Upload(img, useImgur) : img;
 
-			Debug.WriteLine($"--> {imgUrl}");
+			Debug.WriteLine($"URL --> {imgUrl}");
 
 			return imgUrl;
 		}

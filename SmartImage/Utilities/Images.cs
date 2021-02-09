@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 //using System.Drawing;
@@ -31,38 +30,6 @@ namespace SmartImage.Utilities
 			var bmp = new Bitmap(img);
 
 			return (bmp.Width, bmp.Height);
-		}
-
-		public static bool IsFileValid(string img)
-		{
-			if (String.IsNullOrWhiteSpace(img)) {
-				return false;
-			}
-			
-			/*bool isUri = Network.IsUri(img);
-
-			bool isFile = File.Exists(img);
-
-			Debug.WriteLine($"{isUri} {isFile}");
-
-			if (isFile) {
-				
-				bool isImageType = FileSystem.ResolveFileType(img).Type == FileType.Image;
-
-				if (!isImageType)
-				{
-					return NConsole.ReadConfirmation("File format is not recognized as a common image format. Continue?");
-				}
-				
-			}
-			else if (isUri) {
-
-			}*/
-			
-
-			
-
-			return true;
 		}
 	}
 }
