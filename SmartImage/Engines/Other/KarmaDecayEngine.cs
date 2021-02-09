@@ -8,7 +8,7 @@ namespace SmartImage.Engines.Other
 
 		public override string Name => "KarmaDecay";
 
-		public override Color Color => Color.Orange;
+		public override Color Color => Color.DarkOrange;
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.KarmaDecay;
 	}

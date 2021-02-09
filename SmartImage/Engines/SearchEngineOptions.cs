@@ -8,18 +8,16 @@ namespace SmartImage.Engines
 	[Flags]
 	public enum SearchEngineOptions
 	{
-		
 		/// <summary>
 		/// No engines
 		/// </summary>
 		None = 0,
-		
+
 		/// <summary>
 		/// Automatic (use best result)
 		/// </summary>
 		Auto = 1,
 
-		
 
 		/// <summary>
 		///     <list type="bullet">
@@ -92,11 +90,12 @@ namespace SmartImage.Engines
 		/// </summary>
 		Bing = 1 << 9,
 
-		
+
+		Tidder = 1 << 10,
 
 		/// <summary>
 		/// All engines
 		/// </summary>
-		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing
+		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing | Tidder
 	}
 }

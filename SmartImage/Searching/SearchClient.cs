@@ -281,7 +281,8 @@ namespace SmartImage.Searching
 				new GoogleImagesEngine(),
 				new TinEyeEngine(),
 				new BingEngine(),
-				new KarmaDecayEngine()
+				new KarmaDecayEngine(),
+				new TidderEngine()
 			};
 		}
 
