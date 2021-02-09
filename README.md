@@ -58,6 +58,7 @@ Supported search engines:
 - <img src="http://karmadecay.com/favicon.ico" width="16" height="16"/> [Karma Decay](http://karmadecay.com/)
 - <img src="https://yandex.com/favicon.ico" width="16" height="16"/> [Yandex](https://yandex.com/images/)
 - <img src="https://www.bing.com/favicon.ico" width="16" height="16"/> [Bing](https://www.bing.com/images/)
+- <img src="http://tidder.xyz/favicon.ico" width="16" height="16"/> [Tidder](http://tidder.xyz/)
 
 <!-- ... -->
 
