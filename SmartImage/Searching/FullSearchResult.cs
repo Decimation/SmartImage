@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
 using Novus.Win32;
 using Pastel;
 using SimpleCore.Cli;
@@ -17,6 +18,7 @@ using SmartImage.Core;
 using SmartImage.Engines;
 using SmartImage.Utilities;
 
+#nullable disable
 namespace SmartImage.Searching
 {
 	/// <summary>
@@ -151,8 +153,16 @@ namespace SmartImage.Searching
 			{
 				return () =>
 				{
-					// Open in browser
-					Network.OpenUrl(Url);
+					if (Url is null) {
+						NConsole.WriteError("Result does not contain a URL");
+						NConsole.WaitForSecond();
+					}
+					else {
+						// Open in browser
+						Network.OpenUrl(Url);
+					}
+
+
 					return null;
 				};
 			}
@@ -379,7 +389,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Creates a <see cref="FullSearchResult" /> for the original image
 		/// </summary>
-		public static FullSearchResult GetOriginalImageResult(string imageUrl, FileInfo imageFile)
+		public static FullSearchResult GetOriginalImageResult(string imageUrl, [CanBeNull] FileInfo imageFile)
 		{
 			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, imageUrl)
 			{
@@ -388,24 +398,27 @@ namespace SmartImage.Searching
 				IsAnalyzed = true
 			};
 
-			var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
+			if (imageFile != null) {
+				var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
 
-			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(FileSystem.GetFileSize(imageFile.FullName), MetricUnit.Mega);
+				double fileSizeMegabytes =
+					MathHelper.ConvertToUnit(FileSystem.GetFileSize(imageFile.FullName), MetricUnit.Mega);
 
-			(int width, int height) = Images.GetDimensions(imageFile.FullName);
+				(int width, int height) = Images.GetDimensions(imageFile.FullName);
 
-			result.Width  = width;
-			result.Height = height;
+				result.Width  = width;
+				result.Height = height;
 
-			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
+				double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
-			string? aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
+				string? aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
 
-			string infoStr =
-				$"{imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
+				string infoStr =
+					$"{imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
 
-			result.Metadata.Add("Info", infoStr);
+				result.Metadata.Add("Info", infoStr);
+			}
+
 
 			return result;
 		}

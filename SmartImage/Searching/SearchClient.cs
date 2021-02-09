@@ -15,6 +15,7 @@ using System.IO;
 using System.Linq;
 using System.Media;
 using System.Threading.Tasks;
+using SimpleCore.Net;
 using static SimpleCore.Cli.NConsoleOption;
 
 // ReSharper disable ConvertIfStatementToReturnStatement
@@ -40,7 +41,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Image
 		/// </summary>
-		private FileInfo ImageFile { get; }
+		private FileInfo? ImageFile { get; }
 
 		/// <summary>
 		/// Url of <seealso cref="ImageFile"/>
@@ -87,15 +88,23 @@ namespace SmartImage.Searching
 			SearchConfig.Config.EnsureConfig();
 
 
-			Results   = new List<FullSearchResult>();
-			Engines   = SearchConfig.Config.SearchEngines;
-			ImageFile = new FileInfo(img);
+			Results = new List<FullSearchResult>();
+			Engines = SearchConfig.Config.SearchEngines;
+
 
 			//
 
-			string? imgUrl = Upload(img, useImgur);
+
+			string? imgUrl = HandleUrl(img, useImgur, out var isFile);
+
+
+			if (isFile)
+			{
+				ImageFile = new FileInfo(img);
+			}
 
 			ImageUrl = imgUrl ?? throw new SmartImageException("Image upload failed");
+
 
 			//
 
@@ -108,6 +117,22 @@ namespace SmartImage.Searching
 				SelectMultiple = false,
 				Prompt         = InterfacePrompt
 			};
+		}
+
+		private  string HandleUrl(string img, bool useImgur, out bool isFile)
+		{
+			bool isUri = Network.IsUri(img);
+
+			isFile = File.Exists(img);
+
+			Debug.WriteLine($"{isUri} {isFile}");
+
+
+			string? imgUrl = !isUri ? Upload(img, useImgur) : img;
+
+			Debug.WriteLine($"--> {imgUrl}");
+
+			return imgUrl;
 		}
 
 

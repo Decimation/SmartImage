@@ -38,17 +38,29 @@ namespace SmartImage.Utilities
 			if (String.IsNullOrWhiteSpace(img)) {
 				return false;
 			}
+			
+			/*bool isUri = Network.IsUri(img);
 
-			if (!File.Exists(img)) {
-				NConsole.WriteError($"File does not exist: {img}");
-				return false;
+			bool isFile = File.Exists(img);
+
+			Debug.WriteLine($"{isUri} {isFile}");
+
+			if (isFile) {
+				
+				bool isImageType = FileSystem.ResolveFileType(img).Type == FileType.Image;
+
+				if (!isImageType)
+				{
+					return NConsole.ReadConfirmation("File format is not recognized as a common image format. Continue?");
+				}
+				
 			}
+			else if (isUri) {
 
-			bool isImageType = FileSystem.ResolveFileType(img).Type == FileType.Image;
+			}*/
+			
 
-			if (!isImageType) {
-				return NConsole.ReadConfirmation("File format is not recognized as a common image format. Continue?");
-			}
+			
 
 			return true;
 		}
