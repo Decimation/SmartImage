@@ -26,7 +26,6 @@ namespace SmartImage.Engines.Other
 		public override FullSearchResult GetResult(string url)
 		{
 			//http://tidder.xyz/?imagelink=
-			// todo: Imgur image links work; ImgOps image links don't work
 
 			//
 

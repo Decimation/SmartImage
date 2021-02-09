@@ -106,19 +106,6 @@ namespace SmartImage
 				// Show results
 				SearchClient.Client.Interface.Run();
 			}
-			//catch (TypeInitializationException exception) {
-
-			//	if (exception.InnerException is SmartImageException siException) {
-			//		NConsole.WriteError($"Error: {siException.Message}");
-			//		NConsole.WaitForSecond();
-
-					
-					
-			//		Main(args);
-
-			//	}
-
-			//}
 			catch (Exception exception) {
 #if !DEBUG
 				var cr = new CrashReport(exception);
