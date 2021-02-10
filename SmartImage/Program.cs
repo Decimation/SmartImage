@@ -37,7 +37,6 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			Start:
 			/*
 			 * Setup
 			 * Check compatibility

@@ -39,9 +39,14 @@ namespace SmartImage.Searching
 		private SearchEngineOptions Engines { get; }
 
 		/// <summary>
-		/// Image
+		/// Image file if an image file was given
 		/// </summary>
 		private FileInfo? ImageFile { get; }
+
+		/// <summary>
+		/// MIME type of URI if an image URI was given
+		/// </summary>
+		private string? ImageMimeType { get; }
 
 		/// <summary>
 		/// Url of <seealso cref="ImageFile"/>
@@ -78,8 +83,8 @@ namespace SmartImage.Searching
 
 		private SearchClient(string img)
 		{
-			if (String.IsNullOrWhiteSpace(img)) {
-				throw new SmartImageException("Invalid image");
+			if (!IsInputImageValid(img)) {
+				throw new SmartImageException("Invalid image!");
 			}
 
 			string auth     = SearchConfig.Config.ImgurAuth;
@@ -99,6 +104,9 @@ namespace SmartImage.Searching
 			if (isFile) {
 				ImageFile = new FileInfo(img);
 			}
+			else {
+				ImageMimeType = MediaTypes.Identify(img);
+			}
 
 			ImageUrl = imgUrl ?? throw new SmartImageException("Image upload failed");
 
@@ -116,9 +124,9 @@ namespace SmartImage.Searching
 			};
 		}
 
+		public static bool IsInputImageValid(string? img) => IsInputImageValid(img, out _, out _);
 
-
-		internal static bool IsInputImageValid(string? img, out bool isUri, out bool isFile)
+		public static bool IsInputImageValid(string? img, out bool isUri, out bool isFile)
 		{
 			if (String.IsNullOrWhiteSpace(img)) {
 				isFile = false;
@@ -132,15 +140,19 @@ namespace SmartImage.Searching
 
 			if (isUri) {
 
-				var type = MediaTypes.IdentifyType(img);
+				// var type = MediaTypes.IdentifyType(img);
+				//
+				// if (type == null) {
+				// 	return false;
+				// }
+				//
+				// var isUriFile = MediaTypes.IsImage(type);
+				//
+				// Debug.WriteLine($"MIME type: {type} | Is URI file: {isUriFile}");
 
-				if (type == null) {
-					return false;
-				}
+				var isUriFile = MediaTypes.IsDirect(img, MimeType.image);
 				
-				var isUriFile = MediaTypes.IsImage(type);
-
-				Debug.WriteLine($"MIME type: {type} | Is URI file: {isUriFile}");
+				Debug.WriteLine($"Is URI file: {isUriFile}");
 
 				if (!isUriFile) {
 
@@ -290,7 +302,7 @@ namespace SmartImage.Searching
 				.ToArray();
 
 			// Add original image to results
-			Results.Add(FullSearchResult.GetOriginalImageResult(ImageUrl, ImageFile));
+			Results.Add(FullSearchResult.GetOriginalImageResult(ImageUrl, ImageFile, ImageMimeType));
 
 			return availableEngines.Select(currentEngine => Task.Run(() => currentEngine.GetResult(ImageUrl))).ToList();
 		}

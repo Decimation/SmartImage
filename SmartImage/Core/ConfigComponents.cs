@@ -8,7 +8,7 @@ using Novus.Utilities;
 using SimpleCore.Utilities;
 using SmartImage.Engines;
 using SmartImage.Utilities;
-
+#pragma warning disable CS8632
 namespace SmartImage.Core
 {
 	/// <summary>

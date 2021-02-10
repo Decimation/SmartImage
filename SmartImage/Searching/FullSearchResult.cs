@@ -19,6 +19,8 @@ using SmartImage.Engines;
 using SmartImage.Utilities;
 
 #nullable disable
+#pragma warning disable CS8632
+
 namespace SmartImage.Searching
 {
 	/// <summary>
@@ -386,30 +388,9 @@ namespace SmartImage.Searching
 			return 0;
 		}
 
-		/// <summary>
-		///     Creates a <see cref="FullSearchResult" /> for the original image
-		/// </summary>
-		public static FullSearchResult GetOriginalImageResult(string imageUrl, [CanBeNull] FileInfo imageFile)
+		private void AddFileInfo(FileInfo imageFile)
 		{
-			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME, imageUrl)
-			{
-				IsOriginal = true,
-				Similarity = 100.0f,
-				IsAnalyzed = true
-			};
 
-			bool isFile = imageFile != null;
-
-			string type = isFile ? "File" : "URI";
-
-			result.Metadata.Add($"Input type", type);
-
-			if (!isFile) {
-				
-				return result;
-			}
-
-			
 			var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
 
 			double fileSizeMegabytes =
@@ -417,8 +398,8 @@ namespace SmartImage.Searching
 
 			(int width, int height) = Images.GetDimensions(imageFile.FullName);
 
-			result.Width  = width;
-			result.Height = height;
+			Width  = width;
+			Height = height;
 
 			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
@@ -427,8 +408,32 @@ namespace SmartImage.Searching
 			string infoStr =
 				$"{imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
 
-			result.Metadata.Add("Info", infoStr);
+			Metadata.Add("Info", infoStr);
+		}
 
+		/// <summary>
+		///     Creates a <see cref="FullSearchResult" /> for the original image
+		/// </summary>
+		public static FullSearchResult GetOriginalImageResult(string imageUrl, 
+			[CanBeNull] FileInfo imageFile, [CanBeNull] string mimeType)
+		{
+			bool   isFile = imageFile != null;
+			string type   = isFile ? "File" : "URI";
+
+			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME + $" ({type})", imageUrl)
+			{
+				IsOriginal = true,
+				Similarity = 100.0f,
+				IsAnalyzed = true
+			};
+
+
+			if (mimeType != null) {
+				result.Metadata.Add("Mime type", $"{mimeType}");
+			}
+			else if (isFile) {
+				result.AddFileInfo(imageFile);
+			}
 
 			return result;
 		}

@@ -46,6 +46,7 @@ namespace SmartImage.Engines.Other
 				if (findings == null || !findings.Any()) {
 					return sr;
 				}
+
 				Debug.WriteLine(findings.Count);
 
 				var list = new List<ISearchResult>();

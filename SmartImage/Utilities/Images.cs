@@ -20,7 +20,7 @@ namespace SmartImage.Utilities
 	public static class Images
 	{
 		/* Image comparison algorithms:
-		 * - ImageHash: too high
+		 * - ImageHash: too high?
 		 * - Shipwreck phash: cross correlation
 		 */
 

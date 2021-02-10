@@ -9,6 +9,7 @@ using SmartImage.Engines;
 using SmartImage.Utilities;
 using Novus.Win32;
 using SimpleCore.Cli;
+using SimpleCore.Net;
 using SmartImage.Searching;
 
 // ReSharper disable ArrangeAccessorOwnerBody
@@ -110,13 +111,14 @@ namespace SmartImage.Core
 				NConsole.WriteInfo("Drag and drop the image here");
 				NConsole.WriteInfo("Or paste a direct image link");
 
-				string? img = NConsole.ReadInput("Image");
 
-				if (!SearchClient.IsInputImageValid(img, out _, out _)) {
-					
+				string? img = NConsole.ReadInput("Image", ColorMain);
 
-					NConsole.WriteError("Invalid image");
-					NConsole.WaitForInput();
+				
+				if (!SearchClient.IsInputImageValid(img)) {
+
+					NConsole.WriteError($"Invalid image!");
+					NConsole.WaitForSecond();
 
 					return null;
 				}
@@ -129,6 +131,16 @@ namespace SmartImage.Core
 			}
 		};
 
+		static void WriteOnBottomLine(string text)
+		{
+			int x = Console.CursorLeft;
+			int y = Console.CursorTop;
+			Console.SetCursorPosition(0, (Console.CursorTop + 20));
+			Console.Write(text);
+			// Restore previous position
+			Console.SetCursorPosition(x, y);
+
+		}
 
 		private static readonly NConsoleOption ConfigSearchEnginesOption = new()
 		{
@@ -173,16 +185,18 @@ namespace SmartImage.Core
 
 		private static readonly NConsoleOption ConfigSauceNaoAuthOption = new()
 		{
-			Name  = "Configure SauceNao API authentication",
+			Name  = $"Configure SauceNao API authentication",
 			Color = ColorConfig,
 			Function = () =>
 			{
 				SearchConfig.Config.SauceNaoAuth = NConsole.ReadInput("API key");
 
 				NConsole.WaitForSecond();
+
 				return null;
 			}
 		};
+
 
 		private static readonly NConsoleOption ConfigImgurAuthOption = new()
 		{
@@ -213,7 +227,8 @@ namespace SmartImage.Core
 
 		private static string GetAutoFilterString()
 		{
-			bool x = SearchConfig.Config.FilterResults;
+			//var x = SearchConfig.Config.FilterResults ? NConsole.AddColor("#", Color.GreenYellow) : NConsole.AddColor("-",Color.Red);
+			var x = SearchConfig.Config.FilterResults;
 			return $"Filter results: {x}";
 		}
 
@@ -367,6 +382,35 @@ namespace SmartImage.Core
 				return true;
 			}
 		};
+
+		/*private static readonly NConsoleOption DebugTestOption2 = new()
+		{
+			Name = "[DEBUG] Run test",
+			Function = () =>
+			{
+
+				var hashAlgorithm = new AverageHash();
+				// or one of the other available algorithms:
+				// var hashAlgorithm = new DifferenceHash();
+				// var hashAlgorithm = new PerceptualHash();
+
+				string    filename = NConsole.ReadInput("img1");
+				using var stream   = File.OpenRead(filename);
+
+				ulong imageHash = hashAlgorithm.Hash(stream);
+
+
+				string    filename2 = NConsole.ReadInput("img2");
+				using var stream2   = Network.GetStreamFromUrl(filename2);
+
+				ulong  imageHash2                = hashAlgorithm.Hash(stream2);
+				
+				double percentageImageSimilarity = CompareHash.Similarity(imageHash, imageHash2);
+				NConsole.WriteInfo($"{percentageImageSimilarity}");
+				NConsole.WaitForSecond();
+				return null;
+			}
+		};*/
 #endif
 	}
 }
