@@ -9,7 +9,6 @@ using System.Linq;
 using System.Text;
 using JetBrains.Annotations;
 using Novus.Win32;
-using Pastel;
 using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Numeric;
@@ -316,7 +315,7 @@ namespace SmartImage.Searching
 					newColor = SimilarityColorGradient[(int) Similarity];
 				}
 
-				string? valueStr = value.Pastel(newColor);
+				string? valueStr = value.AddColor(newColor);
 				sb.Append($"\t{NConsole.ANSI_RESET}{name}: {valueStr}{NConsole.ANSI_RESET}\n");
 			}
 		}
