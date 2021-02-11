@@ -37,6 +37,7 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
+			Console.WriteLine("{0}",1);
 			/*
 			 * Setup
 			 * Check compatibility

@@ -11,6 +11,7 @@ using SmartImage.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
@@ -99,7 +100,7 @@ namespace SmartImage.Searching
 
 			//
 
-			string? imgUrl = HandleUrl(img, useImgur, out bool isFile);
+			string? imgUrl = ResolveUploadUrl(img, useImgur, out bool isFile);
 
 			if (isFile) {
 				ImageFile = new FileInfo(img);
@@ -150,7 +151,7 @@ namespace SmartImage.Searching
 				//
 				// Debug.WriteLine($"MIME type: {type} | Is URI file: {isUriFile}");
 
-				var isUriFile = MediaTypes.IsDirect(img, MimeType.image);
+				var isUriFile = MediaTypes.IsDirect(img, MimeType.Image);
 				
 				Debug.WriteLine($"Is URI file: {isUriFile}");
 
@@ -166,7 +167,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Handles image input (either a URL or path) and returns the corresponding image URL
 		/// </summary>
-		private static string? HandleUrl(string img, bool useImgur, out bool isFile)
+		private static string? ResolveUploadUrl(string img, bool useImgur, out bool isFile)
 		{
 
 			if (!IsInputImageValid(img, out var isUri, out isFile)) {
@@ -374,12 +375,10 @@ namespace SmartImage.Searching
 			/*
 			 * Show settings 
 			 */
-
-			Console.WriteLine(Info.NAME_BANNER);
-
-			NConsole.OverrideForegroundColor = Core.Interface.ColorConfig;
+			
+			NConsole.WriteColor(Color.Red, Info.NAME_BANNER);
 			NConsole.WriteInfo(SearchConfig.Config);
-			NConsole.ResetOverrideColors();
+			
 
 			/*
 			 * Upload

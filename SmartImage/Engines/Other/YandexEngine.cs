@@ -113,6 +113,7 @@ namespace SmartImage.Engines.Other
 
 				var images = GetImages(doc);
 
+				Debug.WriteLine($"{Name} has {images.Count} results");
 				ISearchResult[] bestImages = FullSearchResult.FilterAndSelectBestImages(images);
 
 				//

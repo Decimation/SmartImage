@@ -239,6 +239,7 @@ namespace SmartImage.Searching
 		/// <inheritdoc cref="ISearchResult.SiteName" />
 		public string? SiteName { get; set; }
 
+		public DateTime? Date { get; set; }
 
 		public void AddErrorMessage(string msg)
 		{
@@ -288,6 +289,7 @@ namespace SmartImage.Searching
 			AppendResultInfo(sb, nameof(Source), Source);
 			AppendResultInfo(sb, nameof(Description), Description);
 			AppendResultInfo(sb, "Site", SiteName);
+			AppendResultInfo(sb, nameof(Date), Date.ToString());
 
 			AppendResultInfo(sb, "Resolution", $"{Width}x{Height}", Width.HasValue && Height.HasValue);
 
@@ -299,16 +301,22 @@ namespace SmartImage.Searching
 		}
 
 
+		private static readonly List<Color> SimilarityColorGradient =
+			ColorUtilities.GetGradients(ColorUtilities.AbsoluteRed, ColorUtilities.AbsoluteGreen, (int) MAX_SIMILARITY)
+				.ToList();
+
+
 		private void AppendResultInfo(StringBuilder sb, string name, string? value, bool cond = true)
 		{
 			if (cond && !String.IsNullOrWhiteSpace(value)) {
 
-				const float CORRECTION_FACTOR = -.25f;
+				var newColor = Color.FromArgb(255, 180, 180, 180);
 
-				var newColor = ColorUtilities.ChangeColorBrightness(Color, CORRECTION_FACTOR);
+				if (name == nameof(Similarity) && Similarity.HasValue) {
+					newColor = SimilarityColorGradient[(int) Similarity];
+				}
 
 				string? valueStr = value.Pastel(newColor);
-
 				sb.Append($"\t{NConsole.ANSI_RESET}{name}: {valueStr}{NConsole.ANSI_RESET}\n");
 			}
 		}
@@ -326,6 +334,7 @@ namespace SmartImage.Searching
 			Artist      = result.Artist;
 			SiteName    = result.SiteName;
 			Description = result.Description;
+			Date        = result.Date;
 		}
 
 		private FullSearchResult CreateExtendedResult(ISearchResult result)
@@ -411,19 +420,22 @@ namespace SmartImage.Searching
 			Metadata.Add("Info", infoStr);
 		}
 
+		private const float MAX_SIMILARITY = 100.0f;
+
 		/// <summary>
 		///     Creates a <see cref="FullSearchResult" /> for the original image
 		/// </summary>
-		public static FullSearchResult GetOriginalImageResult(string imageUrl, 
+		public static FullSearchResult GetOriginalImageResult(string imageUrl,
 			[CanBeNull] FileInfo imageFile, [CanBeNull] string mimeType)
 		{
 			bool   isFile = imageFile != null;
 			string type   = isFile ? "File" : "URI";
 
+
 			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME + $" ({type})", imageUrl)
 			{
 				IsOriginal = true,
-				Similarity = 100.0f,
+				Similarity = MAX_SIMILARITY,
 				IsAnalyzed = true
 			};
 
@@ -438,7 +450,7 @@ namespace SmartImage.Searching
 			return result;
 		}
 
-		private const int TAKE_N = 5;
+		private const int TAKE_N = 10;
 
 		public static ISearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg, int take = TAKE_N)
 		{

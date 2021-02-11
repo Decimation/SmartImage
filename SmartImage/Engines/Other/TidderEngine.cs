@@ -80,14 +80,16 @@ namespace SmartImage.Engines.Other
 						Artist      = author,
 						Description = title,
 						Source      = subreddit,
-						Url = link,
+						Url         = link,
+						Date = DateTime.Parse(posted)
 					};
 
 
 					list.Add(bsr);
 
 
-					Debug.WriteLine($"{i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit} --> {link}");
+					Debug.WriteLine(
+						$"{i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit} --> {link}");
 				}
 
 				var best = list[0];

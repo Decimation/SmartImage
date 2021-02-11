@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -168,40 +169,44 @@ namespace SmartImage.Core
 			var sb = new StringBuilder();
 
 
+			var keyColor     = Color.Red;
+			var white     = Color.White;
+			var cadetBlue = Color.CadetBlue;
+
+
 			if (!String.IsNullOrWhiteSpace(Image)) {
 				// Image may be null if not specified (error) or viewed in other UIs
 				// if so, omit it
 
-				sb.AppendFormat("Image: {0}\n\n", Image);
+				Append(keyColor, "Image", white, Image);
 			}
 
 
-			sb.AppendFormat("Search engines: {0}\n", SearchEngines);
-			sb.AppendFormat("Priority engines: {0}\n", PriorityEngines);
+			Append(keyColor, "Search engines", cadetBlue, SearchEngines);
+			Append(keyColor, "Priority engines", cadetBlue, PriorityEngines);
 
 
 			string snAuth = Config.SauceNaoAuth;
 			bool   snNull = String.IsNullOrWhiteSpace(snAuth);
 
 			if (!snNull) {
-				sb.AppendFormat("SauceNao authentication: {0}\n", snAuth);
+				Append(keyColor, "SauceNao authentication", white, snAuth);
 			}
-
 
 			string imgurAuth = Config.ImgurAuth;
 			bool   imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
 
 			if (!imgurNull) {
-				sb.AppendFormat("Imgur authentication: {0}\n", imgurAuth);
+				Append(keyColor, "Imgur authentication", white, imgurAuth);
 			}
 
-			sb.Append($"Auto filtering: {FilterResults}\n");
+			Append(keyColor, "Auto filtering", white, FilterResults);
+			Append(keyColor, "Image upload service", white, imgurNull ? "ImgOps" : "Imgur");
+			Append(keyColor, "Config location", white, ConfigLocation);
 
-			sb.AppendFormat("Image upload service: {0}\n",
-				imgurNull ? "ImgOps" : "Imgur");
 
-
-			sb.AppendFormat("Config location: {0}\n", ConfigLocation);
+			void Append(Color ck, string s, Color cv, object o) =>
+				sb.AppendKeyValueWithColor(ck, s, cv, o).AppendLine();
 
 			return sb.ToString();
 		}

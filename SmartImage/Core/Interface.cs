@@ -88,15 +88,15 @@ namespace SmartImage.Core
 
 
 		/// <summary>
-		/// Console window width
+		/// Console window width (initial)
 		/// </summary>
-		internal const int ConsoleWindowWidth = 120;
+		internal const int ConsoleWindowWidth = 100;
 
 
 		/// <summary>
-		/// Console window height
+		/// Console window height (initial)
 		/// </summary>
-		internal const int ConsoleWindowHeight = 56;
+		internal const int ConsoleWindowHeight = 35;
 
 		/// <summary>
 		/// Main option
@@ -114,7 +114,8 @@ namespace SmartImage.Core
 
 				string? img = NConsole.ReadInput("Image", ColorMain);
 
-				
+				img = img.CleanString();
+
 				if (!SearchClient.IsInputImageValid(img)) {
 
 					NConsole.WriteError($"Invalid image!");
@@ -123,24 +124,12 @@ namespace SmartImage.Core
 					return null;
 				}
 
-				img = img.CleanString();
 
 				SearchConfig.Config.Image = img;
 
 				return true;
 			}
 		};
-
-		static void WriteOnBottomLine(string text)
-		{
-			int x = Console.CursorLeft;
-			int y = Console.CursorTop;
-			Console.SetCursorPosition(0, (Console.CursorTop + 20));
-			Console.Write(text);
-			// Restore previous position
-			Console.SetCursorPosition(x, y);
-
-		}
 
 		private static readonly NConsoleOption ConfigSearchEnginesOption = new()
 		{

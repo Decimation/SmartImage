@@ -1,4 +1,5 @@
-﻿using SmartImage.Core;
+﻿using System;
+using SmartImage.Core;
 
 #nullable enable
 namespace SmartImage.Searching
@@ -59,6 +60,8 @@ namespace SmartImage.Searching
 		/// Filter this result if <see cref="SearchConfig.FilterResults"/> is used
 		/// </summary>
 		public bool Filter { get; set; }
+
+		public DateTime? Date { get; set; }
 
 	}
 }

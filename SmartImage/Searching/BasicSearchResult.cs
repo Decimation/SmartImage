@@ -34,6 +34,8 @@ namespace SmartImage.Searching
 
 		public bool Filter { get; set; }
 
+		public DateTime? Date { get; set; }
+
 		/// <summary>
 		///     Full image resolution.
 		/// </summary>
@@ -63,6 +65,7 @@ namespace SmartImage.Searching
 			Characters  = characters;
 			SiteName    = siteName;
 			Filter      = filter;
+			Date        = null;//todo
 		}
 	}
 }
