@@ -4,12 +4,15 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Text;
 using JetBrains.Annotations;
 using Novus;
 using Novus.Runtime;
 using Novus.Win32;
 using SimpleCore.Cli;
+using SimpleCore.Utilities;
 using SmartImage.Utilities;
+using static SmartImage.Core.Interface;
 
 // ReSharper disable UnusedMember.Global
 
@@ -103,78 +106,78 @@ namespace SmartImage.Core
 
 		internal static void ShowInfo()
 		{
-
 			Console.Clear();
 
-			Console.WriteLine(Info.NAME_BANNER);
+			NConsole.Resize(ConsoleWindowWidth, 30);
+
+			var sb = new StringBuilder();
+			sb.AppendColor(ColorPrimary, NAME_BANNER);
+			sb.AppendLine();
 			
+
 			/*
 			 * Author info
 			 */
 
-			NConsole.OverrideForegroundColor = Interface.ColorMain;
 
-			NConsole.WriteInfo("Author: {0}", Author);
-			NConsole.WriteInfo("Repo: {0}", Repo);
-			NConsole.WriteInfo("Readme: {0}", Readme);
 
-			NConsole.NewLine();
+			sb.AppendLabelWithColor(ColorPrimary, "Author", ColorMisc2, Author).AppendLine();
+			sb.AppendLabelWithColor(ColorPrimary, "Repo", ColorMisc2, Repo).AppendLine();
+			sb.AppendLabelWithColor(ColorPrimary, "Readme", ColorMisc2, Readme).AppendLine();
 
-			NConsole.ResetOverrideColors();
+			sb.AppendLine();
 
 			/*
 			 * Config
 			 */
 
-			NConsole.OverrideForegroundColor = Interface.ColorConfig;
+			sb.Append(SearchConfig.Config);
 
-			NConsole.WriteInfo(SearchConfig.Config);
-
-			NConsole.ResetOverrideColors();
 
 
 			/*
 			 * Version info
 			 */
 
-			NConsole.OverrideForegroundColor = Interface.ColorVersion;
+			sb.AppendLine();
 
 			var versionsInfo = UpdateInfo.GetUpdateInfo();
 
-			NConsole.WriteInfo("Current version: {0}", versionsInfo.Current);
-			NConsole.WriteInfo("Latest version: {0}", versionsInfo.Latest.Version);
-			NConsole.WriteInfo("Version status: {0}", versionsInfo.Status);
-
-			NConsole.NewLine();
-
-			NConsole.ResetOverrideColors();
+			sb.AppendLabelWithColor(ColorVersion,"Current version", ColorMisc2, versionsInfo.Current).AppendLine();
+			sb.AppendLabelWithColor(ColorVersion,"Latest version", ColorMisc2, versionsInfo.Latest.Version).AppendLine();
+			sb.AppendLabelWithColor(ColorVersion,"Version status", ColorMisc2, versionsInfo.Status).AppendLine();
+			
 
 			/*
 			 * Runtime info
 			 */
 
-			NConsole.OverrideForegroundColor = Interface.ColorUtility;
+			sb.AppendLine();
+
+			string appFolderName    = new DirectoryInfo(AppFolder).Name;
+			var    exeFolderName = new DirectoryInfo(ExeLocation).Name;
+
+			sb.AppendLabelWithColor(ColorUtility,"Application folder", ColorMisc2, appFolderName).AppendLine();
+			sb.AppendLabelWithColor(ColorUtility,"Executable location", ColorMisc2, exeFolderName).AppendLine();
+			sb.AppendLabelWithColor(ColorUtility,"Context menu integrated", ColorMisc2, Integration.IsContextMenuAdded).AppendLine();
+			sb.AppendLabelWithColor(ColorUtility, "In path", ColorMisc2, IsAppFolderInPath).AppendLine();
+
 			
-			NConsole.WriteInfo("Application folder: {0}", AppFolder);
-			NConsole.WriteInfo("Executable location: {0}", ExeLocation);
-			NConsole.WriteInfo("Context menu integrated: {0}", Integration.IsContextMenuAdded);
-			NConsole.WriteInfo("In path: {0}\n", IsAppFolderInPath);
-
-			NConsole.ResetOverrideColors();
-
 			
 
 			/*
 			 * Dependencies
 			 */
 
-			NConsole.WriteInfo("Dependencies:");
+			// sb.AppendLine("Dependencies:");
+			//
+			// var dependencies = RuntimeInfo.DumpDependencies();
+			//
+			// foreach (var name in dependencies) {
+			// 	sb.AppendColor(ColorMisc,$"{name.Name!} ({name.Version!})").AppendLine();
+			// }
 
-			var dependencies = RuntimeInfo.DumpDependencies();
-
-			foreach (var name in dependencies) {
-				NConsole.WriteInfo("{0} ({1})", name.Name!, name.Version!);
-			}
+			NConsole.Write(sb);
 		}
 	}
 }

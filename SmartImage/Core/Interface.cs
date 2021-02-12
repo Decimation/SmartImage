@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -62,7 +63,17 @@ namespace SmartImage.Core
 
 
 		/// <summary>
+		/// Misc color
+		/// </summary>
+		internal static readonly Color ColorMisc2 = Color.White;
+
+		/// <summary>
 		/// Primary color
+		/// </summary>
+		internal static readonly Color ColorPrimary = Color.Red;
+
+		/// <summary>
+		/// Main color
 		/// </summary>
 		internal static readonly Color ColorMain = Color.Yellow;
 
@@ -137,8 +148,12 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				SearchConfig.Config.SearchEngines = ReadSearchEngineOptions();
-				SearchConfig.Config.EnsureConfig();
+				if (ReadSearchEngineOptions(out var newValues)) {
+					SearchConfig.Config.SearchEngines = newValues;
+					SearchConfig.Config.EnsureConfig();
+
+				}
+
 				NConsole.WriteSuccess(SearchConfig.Config.SearchEngines);
 				NConsole.WaitForSecond();
 				return null;
@@ -152,8 +167,12 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				SearchConfig.Config.PriorityEngines = ReadSearchEngineOptions();
-				SearchConfig.Config.EnsureConfig();
+				if (ReadSearchEngineOptions(out var newValues)) {
+					SearchConfig.Config.PriorityEngines = newValues;
+					SearchConfig.Config.EnsureConfig();
+
+				}
+
 				NConsole.WriteSuccess(SearchConfig.Config.PriorityEngines);
 				NConsole.WaitForSecond();
 				return null;
@@ -161,14 +180,21 @@ namespace SmartImage.Core
 		};
 
 
-		private static SearchEngineOptions ReadSearchEngineOptions()
+		private static bool ReadSearchEngineOptions(out SearchEngineOptions newValues)
 		{
 			var rgEnum = NConsoleOption.FromEnum<SearchEngineOptions>();
 			var values = NConsole.ReadOptions(rgEnum, true);
 
-			var newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
+			if (!values.Any()) {
+				newValues = default;
+				return false;
+			}
 
-			return newValues;
+			newValues = Enums.ReadFromSet<SearchEngineOptions>(values);
+
+			Debug.WriteLine($"{values.Count} -> {newValues}");
+
+			return true;
 		}
 
 
@@ -357,7 +383,7 @@ namespace SmartImage.Core
 				//var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
 				//var cd2 = cd.GetParentLevel(4).ToString();
 
-				string? cd2 = FileSystem.GetParentLevel(Environment.CurrentDirectory, 4);
+				string? cd2 = FileSystem.GetRelativeParent(Environment.CurrentDirectory, 4);
 
 				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
 

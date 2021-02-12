@@ -82,7 +82,7 @@ namespace SmartImage.Engines.Other
 			return i;
 		}
 
-		
+		[DebuggerHidden]
 		public override FullSearchResult GetResult(string url)
 		{
 			var sr = base.GetResult(url);

@@ -15,10 +15,13 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Text;
 using System.Threading.Tasks;
 using SimpleCore.Net;
+using SimpleCore.Utilities;
 using static SimpleCore.Cli.NConsoleOption;
-
+using static SmartImage.Core.Info;
+using static SmartImage.Core.Interface;
 // ReSharper disable ConvertIfStatementToReturnStatement
 
 namespace SmartImage.Searching
@@ -375,27 +378,27 @@ namespace SmartImage.Searching
 			/*
 			 * Show settings 
 			 */
-			
-			NConsole.WriteColor(Color.Red, Info.NAME_BANNER);
-			NConsole.WriteInfo(SearchConfig.Config);
-			
+			var sb = new StringBuilder();
+			sb.AppendColor(ColorPrimary, NAME_BANNER);
+			sb.Append(SearchConfig.Config);
+
+			sb.AppendLine();
 
 			/*
 			 * Upload
 			 */
-
-			NConsole.WriteInfo("Uploading image");
+			sb.AppendLine("Uploading image");
 
 
 			if (useImgur) {
 				try {
-					NConsole.WriteInfo("Using Imgur for image upload");
+					sb.AppendLine("Using Imgur for image upload");
 					uploadEngine = new ImgurClient();
 					imgUrl       = uploadEngine.Upload(img);
 				}
 				catch (Exception e) {
-					NConsole.WriteError("Error uploading with Imgur: {0}", e.Message);
-					NConsole.WriteInfo("Using ImgOps instead");
+					sb.AppendLine($"Error uploading with Imgur: {e.Message}");
+					sb.AppendLine("Using ImgOps instead");
 					UploadImgOps();
 				}
 			}
@@ -406,12 +409,15 @@ namespace SmartImage.Searching
 
 			void UploadImgOps()
 			{
-				NConsole.WriteInfo("Using ImgOps for image upload (1 hour cache)");
+				sb.AppendLine("Using ImgOps for image upload (1 hour cache)");
 				uploadEngine = new ImgOpsEngine();
 				imgUrl       = uploadEngine.Upload(img);
 			}
 
-			NConsole.WriteInfo($"Temporary image url: {imgUrl}");
+			sb.AppendLine($"Temporary image url: {imgUrl}");
+			
+			NConsole.Write(sb);
+
 
 			return imgUrl;
 		}

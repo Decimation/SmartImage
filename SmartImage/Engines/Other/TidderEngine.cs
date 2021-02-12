@@ -44,6 +44,7 @@ namespace SmartImage.Engines.Other
 				var findings = documentNode.SelectNodes("//*[contains(@class, 'findings-row')]");
 
 				if (findings == null || !findings.Any()) {
+					sr.Filter = true;
 					return sr;
 				}
 

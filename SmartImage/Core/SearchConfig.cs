@@ -12,6 +12,7 @@ using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
 using SmartImage.Utilities;
+using static SmartImage.Core.Interface;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
 
@@ -95,6 +96,8 @@ namespace SmartImage.Core
 		/// </summary>
 		public string Image { get; set; }
 
+		public bool HasImage => !string.IsNullOrWhiteSpace(Image);
+
 		/// <summary>
 		///     Location of config file
 		/// </summary>
@@ -169,44 +172,49 @@ namespace SmartImage.Core
 			var sb = new StringBuilder();
 
 
-			var keyColor     = Color.Red;
-			var white     = Color.White;
-			var cadetBlue = Color.CadetBlue;
-
-
-			if (!String.IsNullOrWhiteSpace(Image)) {
+			if (HasImage) {
 				// Image may be null if not specified (error) or viewed in other UIs
 				// if so, omit it
-
-				Append(keyColor, "Image", white, Image);
+				var fi = new FileInfo(Image).Name;
+				sb.AppendLabelWithColor(ColorPrimary, "Image", ColorMain, fi).AppendLine().AppendLine();
 			}
 
 
-			Append(keyColor, "Search engines", cadetBlue, SearchEngines);
-			Append(keyColor, "Priority engines", cadetBlue, PriorityEngines);
+			sb.AppendLabelWithColor(ColorConfig, "Search engines", ColorMisc2, SearchEngines)
+				.AppendLine();
+
+			sb.AppendLabelWithColor(ColorConfig, "Priority engines", ColorMisc2, PriorityEngines)
+				.AppendLine();
 
 
 			string snAuth = Config.SauceNaoAuth;
 			bool   snNull = String.IsNullOrWhiteSpace(snAuth);
 
 			if (!snNull) {
-				Append(keyColor, "SauceNao authentication", white, snAuth);
+				sb.AppendLabelWithColor(ColorConfig, "SauceNao authentication", ColorMisc2,
+					snAuth).AppendLine();
 			}
 
 			string imgurAuth = Config.ImgurAuth;
 			bool   imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
 
 			if (!imgurNull) {
-				Append(keyColor, "Imgur authentication", white, imgurAuth);
+				sb.AppendLabelWithColor(ColorConfig, "Imgur authentication", ColorMisc2,
+					imgurAuth).AppendLine();
 			}
 
-			Append(keyColor, "Auto filtering", white, FilterResults);
-			Append(keyColor, "Image upload service", white, imgurNull ? "ImgOps" : "Imgur");
-			Append(keyColor, "Config location", white, ConfigLocation);
+			sb.AppendLabelWithColor(ColorConfig, "Auto filtering", ColorMisc2, FilterResults)
+				.AppendLine();
+
+			sb.AppendLabelWithColor(ColorConfig, "Image upload service", ColorMisc2,
+				imgurNull ? "ImgOps" : "Imgur").AppendLine();
+
+			var cfgDirectoryName = new FileInfo(ConfigLocation).Directory.Name;
 
 
-			void Append(Color ck, string s, Color cv, object o) =>
-				sb.AppendKeyValueWithColor(ck, s, cv, o).AppendLine();
+			sb.AppendLabelWithColor(ColorConfig, "Config location", ColorMisc2, cfgDirectoryName)
+				.AppendLine();
+
 
 			return sb.ToString();
 		}

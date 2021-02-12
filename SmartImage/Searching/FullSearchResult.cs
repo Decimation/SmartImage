@@ -316,7 +316,8 @@ namespace SmartImage.Searching
 				}
 
 				string? valueStr = value.AddColor(newColor);
-				sb.Append($"\t{NConsole.ANSI_RESET}{name}: {valueStr}{NConsole.ANSI_RESET}\n");
+				sb.Append($"\t{Formatting.ANSI_RESET}{name}: {valueStr}{Formatting.ANSI_RESET}\n");
+				
 			}
 		}
 
