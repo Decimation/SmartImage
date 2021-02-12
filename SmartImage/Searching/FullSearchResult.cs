@@ -27,7 +27,7 @@ namespace SmartImage.Searching
 	/// </summary>
 	/// <seealso cref="ISearchResult"/>
 	/// <seealso cref="BasicSearchResult"/>
-	public sealed class FullSearchResult : NConsoleOption, ISearchResult
+	public sealed class FullSearchResult : NConsoleOption, ISearchResult, IComparable<FullSearchResult>
 	{
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
@@ -250,6 +250,30 @@ namespace SmartImage.Searching
 			ExtendedResults.AddRange(CreateExtendedResults(bestImages));
 		}
 
+		public int CompareTo(FullSearchResult? y)
+		{
+			float xSim = Similarity    ?? 0;
+			float ySim = y?.Similarity ?? 0;
+
+			if (xSim > ySim) {
+				return -1;
+			}
+
+			if (xSim < ySim) {
+				return 1;
+			}
+
+			if (ExtendedResults.Count > y?.ExtendedResults.Count) {
+				return -1;
+			}
+
+			if (Metadata.Count > y?.Metadata.Count) {
+				return -1;
+			}
+
+			return 0;
+		}
+
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
@@ -317,7 +341,7 @@ namespace SmartImage.Searching
 
 				string? valueStr = value.AddColor(newColor);
 				sb.Append($"\t{Formatting.ANSI_RESET}{name}: {valueStr}{Formatting.ANSI_RESET}\n");
-				
+
 			}
 		}
 
@@ -373,79 +397,85 @@ namespace SmartImage.Searching
 			return rg;
 		}
 
-		public static int CompareResults(FullSearchResult x, FullSearchResult y)
+
+		private const float MAX_SIMILARITY = 100.0f;
+
+		private void AddImageInfo(ImageInputInfo info)
 		{
-			float xSim = x?.Similarity ?? 0;
-			float ySim = y?.Similarity ?? 0;
+			//todo
 
-			if (xSim > ySim) {
-				return -1;
+			Bitmap         bmp;
+			string         name;
+			FileFormatType fileFormat;
+			double         bytes;
+
+			if (info.IsUrl) {
+				name = info.Value.ToString();
+
+				using var netStream = Network.GetStreamFromUrl(info.ImageUrl);
+				bmp = (Bitmap) Image.FromStream(netStream);
+
+				netStream.Position = 0;
+				using var ms = new MemoryStream();
+				netStream.CopyTo(ms);
+				var rg = ms.ToArray();
+				fileFormat = FileSystem.ResolveFileType(rg);
+				bytes      = rg.Length;
+			}
+			else if (info.IsFile) {
+				var imageFile = (FileInfo) info.Value;
+
+				fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
+
+				bmp   = new Bitmap(imageFile.FullName);
+				name  = imageFile.Name;
+				bytes = FileSystem.GetFileSize(imageFile.FullName);
+			}
+			else {
+				throw new SmartImageException();
 			}
 
-			if (xSim < ySim) {
-				return 1;
-			}
+			string fileSize = MathHelper.ConvertToUnit(bytes);
 
-			if (x?.ExtendedResults.Count > y?.ExtendedResults.Count) {
-				return -1;
-			}
-
-			if (x?.Metadata.Count > y?.Metadata.Count) {
-				return -1;
-			}
-
-			return 0;
-		}
-
-		private void AddFileInfo(FileInfo imageFile)
-		{
-
-			var fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
-
-			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(FileSystem.GetFileSize(imageFile.FullName), MetricUnit.Mega);
-
-			(int width, int height) = Images.GetDimensions(imageFile.FullName);
+			(int width, int height) = Images.GetDimensions(bmp);
 
 			Width  = width;
 			Height = height;
 
 			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
 
-			string? aspectRatio = new Fraction(width, height).ToString().Replace('/', ':');
 
-			string infoStr =
-				$"{imageFile.Name} ({aspectRatio}) ({mpx:F} MP) ({fileSizeMegabytes:F} MB) ({fileFormat.Name})";
+			var fraction    = new Fraction(width, height);
+			var fractionStr = fraction.ToString();
 
+			if (fractionStr == "1") {
+				fractionStr = "1:1";
+			}
+
+			string? aspectRatio = fractionStr.Replace('/', ':');
+
+			string fileInfoStr = $"{name} ({fileSize}) ({fileFormat.Name})";
+
+			string infoStr = $"({aspectRatio}) ({mpx:F} MP)";
+
+			Metadata.Add("File", fileInfoStr);
 			Metadata.Add("Info", infoStr);
 		}
-
-		private const float MAX_SIMILARITY = 100.0f;
 
 		/// <summary>
 		///     Creates a <see cref="FullSearchResult" /> for the original image
 		/// </summary>
-		public static FullSearchResult GetOriginalImageResult(string imageUrl,
-			[CanBeNull] FileInfo imageFile, [CanBeNull] string mimeType)
+		public static FullSearchResult GetOriginalImageResult(ImageInputInfo info)
 		{
-			bool   isFile = imageFile != null;
-			string type   = isFile ? "File" : "URI";
-
-
-			var result = new FullSearchResult(Color.White, ORIGINAL_IMAGE_NAME + $" ({type})", imageUrl)
+			var result = new FullSearchResult(Interface.ColorMisc2, ORIGINAL_IMAGE_NAME, info.ImageUrl)
 			{
 				IsOriginal = true,
 				Similarity = MAX_SIMILARITY,
 				IsAnalyzed = true
+
 			};
 
-
-			if (mimeType != null) {
-				result.Metadata.Add("Mime type", $"{mimeType}");
-			}
-			else if (isFile) {
-				result.AddFileInfo(imageFile);
-			}
+			result.AddImageInfo(info);
 
 			return result;
 		}
@@ -460,6 +490,35 @@ namespace SmartImage.Searching
 				.ToArray();
 
 			return best;
+		}
+
+		/// <summary>
+		/// Handles result opening from priority engines and filtering
+		/// </summary>
+		public void HandlePriorityResult()
+		{
+			/*
+			 * Filtering is disabled
+			 * Open it anyway
+			 */
+
+			if (!SearchConfig.Config.FilterResults) {
+				Function();
+				return;
+			}
+
+			/*
+			 * Filtering is enabled
+			 * Determine if it passes the threshold
+			 */
+
+			if (!Filter) {
+				// Open result
+				Function();
+			}
+			else {
+				Debug.WriteLine($"Filtering result {Name}");
+			}
 		}
 	}
 }

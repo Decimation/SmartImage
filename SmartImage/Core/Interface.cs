@@ -86,11 +86,7 @@ namespace SmartImage.Core
 		/// Utility color
 		/// </summary>
 		internal static readonly Color ColorUtility = Color.DarkOrange;
-
-		/// <summary>
-		/// Misc color
-		/// </summary>
-		internal static readonly Color ColorMisc = Color.MediumPurple;
+	
 
 		/// <summary>
 		/// Version color
@@ -125,9 +121,9 @@ namespace SmartImage.Core
 
 				string? img = NConsole.ReadInput("Image", ColorMain);
 
-				img = img.CleanString();
+				img = img?.CleanString();
 
-				if (!SearchClient.IsInputImageValid(img)) {
+				if (!Images.IsInputImageValid(img)) {
 
 					NConsole.WriteError($"Invalid image!");
 					NConsole.WaitForSecond();
@@ -136,7 +132,7 @@ namespace SmartImage.Core
 				}
 
 
-				SearchConfig.Config.Image = img;
+				SearchConfig.Config.ImageInput = img;
 
 				return true;
 			}
@@ -263,7 +259,7 @@ namespace SmartImage.Core
 		private static readonly NConsoleOption ShowInfoOption = new()
 		{
 			Name  = "Show info and config",
-			Color = ColorMisc,
+			Color = ColorConfig,
 			Function = () =>
 			{
 				Info.ShowInfo();
@@ -368,9 +364,10 @@ namespace SmartImage.Core
 #if DEBUG
 		private static readonly string[] TestImages =
 		{
-			"Test1.jpg",
-			"Test2.jpg",
-			"Test3.png"
+			@"..\..\..\..\Test1.jpg",
+			@"..\..\..\..\Test2.jpg",
+			@"..\..\..\..\Test3.png",
+			"https://kemono.party/files/224580/46935364/beidou_800.jpg"
 		};
 
 		private static readonly NConsoleOption DebugTestOption = new()
@@ -378,54 +375,17 @@ namespace SmartImage.Core
 			Name = "[DEBUG] Run test",
 			Function = () =>
 			{
+				
+				var     rgOption = NConsoleOption.FromArray(TestImages, s => s);
+				
+				string? testImg  = (string) NConsole.ReadOptions(rgOption).First();
 
-				//var cd  = new DirectoryInfo(Environment.CurrentDirectory);
-				//var cd2 = cd.Parent.Parent.Parent.Parent.ToString();
-				//var cd2 = cd.GetParentLevel(4).ToString();
-
-				string? cd2 = FileSystem.GetRelativeParent(Environment.CurrentDirectory, 4);
-
-				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
-
-				string? testImg = (string) NConsole.ReadOptions(rgOption).First();
-
-				string? img = Path.Combine(cd2, testImg);
-
-				SearchConfig.Config.Image = img;
+				SearchConfig.Config.ImageInput = testImg;
 				//SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 				return true;
 			}
 		};
-
-		/*private static readonly NConsoleOption DebugTestOption2 = new()
-		{
-			Name = "[DEBUG] Run test",
-			Function = () =>
-			{
-
-				var hashAlgorithm = new AverageHash();
-				// or one of the other available algorithms:
-				// var hashAlgorithm = new DifferenceHash();
-				// var hashAlgorithm = new PerceptualHash();
-
-				string    filename = NConsole.ReadInput("img1");
-				using var stream   = File.OpenRead(filename);
-
-				ulong imageHash = hashAlgorithm.Hash(stream);
-
-
-				string    filename2 = NConsole.ReadInput("img2");
-				using var stream2   = Network.GetStreamFromUrl(filename2);
-
-				ulong  imageHash2                = hashAlgorithm.Hash(stream2);
-				
-				double percentageImageSimilarity = CompareHash.Similarity(imageHash, imageHash2);
-				NConsole.WriteInfo($"{percentageImageSimilarity}");
-				NConsole.WaitForSecond();
-				return null;
-			}
-		};*/
 #endif
 	}
 }

@@ -92,11 +92,13 @@ namespace SmartImage.Core
 
 
 		/// <summary>
-		///     Image
+		///     Image input (image file or URL)
 		/// </summary>
-		public string Image { get; set; }
+		public string ImageInput { get; set; }
 
-		public bool HasImage => !string.IsNullOrWhiteSpace(Image);
+		public bool HasImageInput => !string.IsNullOrWhiteSpace(ImageInput);
+
+		public bool UseImgur => !string.IsNullOrWhiteSpace(ImgurAuth);
 
 		/// <summary>
 		///     Location of config file
@@ -128,7 +130,7 @@ namespace SmartImage.Core
 			}
 
 			// Should be initialized eventually
-			Image = String.Empty;
+			ImageInput = String.Empty;
 		}
 
 		/// <summary>
@@ -172,10 +174,10 @@ namespace SmartImage.Core
 			var sb = new StringBuilder();
 
 
-			if (HasImage) {
+			if (HasImageInput) {
 				// Image may be null if not specified (error) or viewed in other UIs
 				// if so, omit it
-				var fi = new FileInfo(Image).Name;
+				var fi = new FileInfo(ImageInput).Name;
 				sb.AppendLabelWithColor(ColorPrimary, "Image", ColorMain, fi).AppendLine().AppendLine();
 			}
 
@@ -249,7 +251,7 @@ namespace SmartImage.Core
 						break;
 
 					default:
-						Image = parameterName;
+						ImageInput = parameterName;
 						break;
 				}
 			}

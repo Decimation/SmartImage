@@ -96,7 +96,7 @@ namespace SmartImage
 
 
 				// Exit if no image is given
-				if (!SearchConfig.Config.HasImage) {
+				if (!SearchConfig.Config.HasImageInput) {
 					return;
 				}
 
