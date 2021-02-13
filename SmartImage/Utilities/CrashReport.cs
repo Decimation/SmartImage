@@ -2,6 +2,7 @@
 using System.IO;
 using System.Text;
 using SimpleCore.Utilities;
+using SmartImage.Configuration;
 using SmartImage.Core;
 
 // ReSharper disable UnusedMember.Global

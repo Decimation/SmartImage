@@ -1,4 +1,5 @@
 ﻿using System;
+using SmartImage.Configuration;
 using SmartImage.Core;
 
 #nullable enable

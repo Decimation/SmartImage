@@ -99,7 +99,7 @@ namespace SmartImage.Engines.TraceMoe
 			else {
 				r = base.GetResult(url);
 
-				r.Metadata.Add("API", $"Returned null (possible timeout) [{code} {res} {msg}]");
+				r.Metadata.Add("API", $"Error ({code})");
 			}
 
 

@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using RestSharp;
 using RestSharp.Serialization.Json;
+using SmartImage.Configuration;
 using SmartImage.Core;
 
 // ReSharper disable UnusedMember.Local

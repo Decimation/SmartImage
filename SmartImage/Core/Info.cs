@@ -11,6 +11,7 @@ using Novus.Runtime;
 using Novus.Win32;
 using SimpleCore.Cli;
 using SimpleCore.Utilities;
+using SmartImage.Configuration;
 using SmartImage.Utilities;
 using static SmartImage.Core.Interface;
 

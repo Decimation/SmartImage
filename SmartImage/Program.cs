@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading;
 using SimpleCore.Cli;
 using SimpleCore.Net;
+using SmartImage.Configuration;
 using SmartImage.Core;
 using SmartImage.Utilities;
 

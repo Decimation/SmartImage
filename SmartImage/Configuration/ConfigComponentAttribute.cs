@@ -1,12 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using JetBrains.Annotations;
-using SmartImage.Core;
 
-namespace SmartImage.Utilities
+namespace SmartImage.Configuration
 {
 	/// <summary>
 	/// <seealso cref="SearchConfig"/>

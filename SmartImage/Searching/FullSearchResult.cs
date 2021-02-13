@@ -13,6 +13,7 @@ using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Numeric;
 using SimpleCore.Utilities;
+using SmartImage.Configuration;
 using SmartImage.Core;
 using SmartImage.Engines;
 using SmartImage.Utilities;
@@ -68,8 +69,6 @@ namespace SmartImage.Searching
 		public bool IsPriority => !IsOriginal && SearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
 		                          SearchEngine.Engine != SearchEngineOptions.None;
 
-
-		public bool IsAnalyzed { get; set; }
 
 		/// <summary>
 		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
@@ -412,12 +411,12 @@ namespace SmartImage.Searching
 			if (info.IsUrl) {
 				name = info.Value.ToString();
 
-				using var netStream = Network.GetStreamFromUrl(info.ImageUrl);
-				bmp = (Bitmap) Image.FromStream(netStream);
+				//using var netStream = Network.GetStreamFromUrl(info.ImageUrl);
+				bmp = (Bitmap) Image.FromStream(info.Stream);
 
-				netStream.Position = 0;
+				info.Stream.Position = 0;
 				using var ms = new MemoryStream();
-				netStream.CopyTo(ms);
+				info.Stream.CopyTo(ms);
 				var rg = ms.ToArray();
 				fileFormat = FileSystem.ResolveFileType(rg);
 				bytes      = rg.Length;
@@ -435,9 +434,9 @@ namespace SmartImage.Searching
 				throw new SmartImageException();
 			}
 
-			string fileSize = MathHelper.ConvertToUnit(bytes);
+			string imgSize = MathHelper.ConvertToUnit(bytes);
 
-			(int width, int height) = Images.GetDimensions(bmp);
+			(int width, int height) = (bmp.Width, bmp.Height);
 
 			Width  = width;
 			Height = height;
@@ -454,12 +453,12 @@ namespace SmartImage.Searching
 
 			string? aspectRatio = fractionStr.Replace('/', ':');
 
-			string fileInfoStr = $"{name} ({fileSize}) ({fileFormat.Name})";
+			string imageInfoStr = $"{name} ({imgSize})";
 
-			string infoStr = $"({aspectRatio}) ({mpx:F} MP)";
+			string infoStr = $"({aspectRatio}) ({mpx:F} MP) ({fileFormat.Name})";
 
-			Metadata.Add("File", fileInfoStr);
-			Metadata.Add("Info", infoStr);
+			Metadata.Add("Info", imageInfoStr);
+			Metadata.Add("Image", infoStr);
 		}
 
 		/// <summary>
@@ -471,7 +470,6 @@ namespace SmartImage.Searching
 			{
 				IsOriginal = true,
 				Similarity = MAX_SIMILARITY,
-				IsAnalyzed = true
 
 			};
 

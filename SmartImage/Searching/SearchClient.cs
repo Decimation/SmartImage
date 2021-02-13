@@ -1,25 +1,21 @@
 ﻿#nullable enable
 
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Media;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using SimpleCore.Cli;
-using SmartImage.Core;
+using SimpleCore.Utilities;
+using SmartImage.Configuration;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.Other;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Media;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
 using static SimpleCore.Cli.NConsoleOption;
 using static SmartImage.Core.Info;
 using static SmartImage.Core.Interface;
@@ -39,53 +35,29 @@ namespace SmartImage.Searching
 			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                            +
 			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
 
-		/// <summary>
-		/// <see cref="SearchConfig.SearchEngines"/>
-		/// </summary>
-		private SearchEngineOptions Engines { get; }
-
-		private ImageInputInfo ImageInfo { get; }
-
-
-		/// <summary>
-		/// Search tasks (<seealso cref="CreateSearchTasks"/>)
-		/// </summary>
-		private List<Task<FullSearchResult>> SearchTasks { get; }
-
-
-		/// <summary>
-		/// Whether the search is complete
-		/// </summary>
-		public bool Complete { get; private set; }
-
-		/// <summary>
-		///     Searching client
-		/// </summary>
-		public static SearchClient Client { get; } = new(SearchConfig.Config.ImageInput);
-
-		/// <summary>
-		///     Search results
-		/// </summary>
-		public List<FullSearchResult> Results { get; }
-
-		/// <summary>
-		/// Search client interface
-		/// </summary>
-		public NConsoleInterface Interface { get; }
-
 
 		private SearchClient(string imgInput)
 		{
 			//
 
-			var imageInfo = Images.ResolveUploadUrl(imgInput);
+			UploadEngine = SearchConfig.Config.UseImgur ? new ImgurClient() : new ImgOpsEngine();
+
+			
+
+			var imageInfo = ResolveUploadUrl(imgInput);
 
 			ImageInfo = imageInfo ?? throw new SmartImageException("Image invalid or upload failed");
 			
+			Original  = FullSearchResult.GetOriginalImageResult(ImageInfo);
 
 			SearchConfig.Config.EnsureConfig();
 
-			Results = new List<FullSearchResult>();
+			Results = new List<FullSearchResult>
+			{
+				Original
+			};
+
+
 			Engines = SearchConfig.Config.SearchEngines;
 
 			//
@@ -101,23 +73,41 @@ namespace SmartImage.Searching
 			};
 		}
 
+		/// <summary>
+		///     <see cref="SearchConfig.SearchEngines" />
+		/// </summary>
+		private SearchEngineOptions Engines { get; }
 
-		private static async void RunAnalysis(FullSearchResult best)
-		{
-
-			var task = Task.Run(() =>
-			{
-				if (!best.IsAnalyzed) {
-					//todo
-				}
-
-				best.IsAnalyzed = true;
+		private ImageInputInfo ImageInfo { get; }
 
 
-			});
+		/// <summary>
+		///     Search tasks (<seealso cref="CreateSearchTasks" />)
+		/// </summary>
+		private List<Task<FullSearchResult>> SearchTasks { get; }
 
-			await task;
-		}
+
+		/// <summary>
+		///     Whether the search is complete
+		/// </summary>
+		public bool Complete { get; private set; }
+
+		/// <summary>
+		///     Searching client
+		/// </summary>
+		public static SearchClient Client { get; } = new(SearchConfig.Config.ImageInput);
+
+		/// <summary>
+		///     Search results
+		/// </summary>
+		public List<FullSearchResult> Results { get; }
+
+		/// <summary>
+		///     Search client interface
+		/// </summary>
+		public NConsoleInterface Interface { get; }
+
+		public IUploadEngine UploadEngine { get; }
 
 
 		/// <summary>
@@ -149,19 +139,6 @@ namespace SmartImage.Searching
 
 				// Reload console UI
 				NConsole.Refresh();
-
-
-				/*
-				 *
-				 */
-
-				RunAnalysis(result);
-
-				if (result.ExtendedResults.Any()) {
-					foreach (var resultExtendedResult in result.ExtendedResults) {
-						RunAnalysis(resultExtendedResult);
-					}
-				}
 			}
 
 			/*
@@ -199,18 +176,16 @@ namespace SmartImage.Searching
 			 *
 			 */
 
-			Debug.WriteLine($"Analyzing");
-
-
-			SpinWait.SpinUntil(() => !Results.All(r => r.IsAnalyzed));
-			
-			Debug.WriteLine($"Analysis complete");
 
 			Results.Sort();
 			NConsole.Refresh();
 
 		}
 
+		/// <summary>
+		/// Original image result
+		/// </summary>
+		public FullSearchResult Original { get; }
 
 		private List<Task<FullSearchResult>> CreateSearchTasks()
 		{
@@ -218,15 +193,13 @@ namespace SmartImage.Searching
 				.Where(e => Engines.HasFlag(e.Engine))
 				.ToArray();
 
-			// Add original image to results
-			Results.Add(FullSearchResult.GetOriginalImageResult(ImageInfo));
-
-			return availableEngines.Select(currentEngine => Task.Run(() => currentEngine.GetResult(ImageInfo.ImageUrl))).ToList();
+			return availableEngines.Select(currentEngine => Task.Run(() => currentEngine.GetResult(ImageInfo.ImageUrl)))
+				.ToList();
 		}
 
 
 		/// <summary>
-		/// Returns all of the supported search engines
+		///     Returns all of the supported search engines
 		/// </summary>
 		private static IEnumerable<BaseSearchEngine> GetAllEngines()
 		{
@@ -246,6 +219,59 @@ namespace SmartImage.Searching
 				new KarmaDecayEngine(),
 				new TidderEngine()
 			};
+		}
+
+		/// <summary>
+		///     Handles image input (either a URL or path) and returns the corresponding image URL
+		/// </summary>
+		public ImageInputInfo? ResolveUploadUrl(string imageInput)
+		{
+
+			if (!ImageInputInfo.TryCreate(imageInput, out var info)) {
+				return null;
+			}
+
+
+			Debug.WriteLine($"{info}");
+
+
+			string? imgUrl;
+
+			if (!info.IsUrl) {
+				/*
+				 * Show settings 
+				 */
+				var sb = new StringBuilder();
+				sb.AppendColor(ColorPrimary, NAME_BANNER);
+				sb.Append(SearchConfig.Config);
+
+				sb.AppendLine();
+
+				/*
+				 * Upload
+				 */
+				sb.AppendLine("Uploading image");
+
+				string imgUrl1 = UploadEngine.Upload(imageInput);
+
+
+				sb.AppendLine($"Temporary image url: {imgUrl1}");
+
+				NConsole.Write(sb);
+
+
+				imgUrl = imgUrl1;
+			}
+			else {
+				imgUrl = imageInput;
+			}
+
+
+			Debug.WriteLine($"URL --> {imgUrl}");
+
+			info.ImageUrl = imgUrl;
+
+			return info;
 		}
 	}
 }

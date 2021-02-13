@@ -1,17 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
 using SimpleCore.Cli;
 using SimpleCore.Utilities;
+using SmartImage.Core;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
-using SmartImage.Utilities;
 using static SmartImage.Core.Interface;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
@@ -20,7 +19,7 @@ using static SmartImage.Core.Interface;
 
 // ReSharper disable IdentifierTypo
 
-namespace SmartImage.Core
+namespace SmartImage.Configuration
 {
 	/// <summary>
 	///     Search configuration and options
@@ -211,7 +210,7 @@ namespace SmartImage.Core
 			sb.AppendLabelWithColor(ColorConfig, "Image upload service", ColorMisc2,
 				imgurNull ? "ImgOps" : "Imgur").AppendLine();
 
-			var cfgDirectoryName = new FileInfo(ConfigLocation).Directory.Name;
+			string cfgDirectoryName = new FileInfo(ConfigLocation).Directory.Name;
 
 
 			sb.AppendLabelWithColor(ColorConfig, "Config location", ColorMisc2, cfgDirectoryName)

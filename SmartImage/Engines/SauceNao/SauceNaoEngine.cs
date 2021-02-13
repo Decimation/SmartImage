@@ -9,6 +9,7 @@ using HtmlAgilityPack;
 using RestSharp;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+using SmartImage.Configuration;
 using SmartImage.Core;
 using SmartImage.Searching;
 using JsonArray = System.Json.JsonArray;

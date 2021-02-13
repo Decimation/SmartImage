@@ -11,6 +11,7 @@ using SmartImage.Utilities;
 using Novus.Win32;
 using SimpleCore.Cli;
 using SimpleCore.Net;
+using SmartImage.Configuration;
 using SmartImage.Searching;
 
 // ReSharper disable ArrangeAccessorOwnerBody
@@ -123,7 +124,7 @@ namespace SmartImage.Core
 
 				img = img?.CleanString();
 
-				if (!Images.IsInputImageValid(img)) {
+				if (!ImageInputInfo.TryCreate(img, out _)) {
 
 					NConsole.WriteError($"Invalid image!");
 					NConsole.WaitForSecond();
@@ -367,7 +368,8 @@ namespace SmartImage.Core
 			@"..\..\..\..\Test1.jpg",
 			@"..\..\..\..\Test2.jpg",
 			@"..\..\..\..\Test3.png",
-			"https://kemono.party/files/224580/46935364/beidou_800.jpg"
+			"https://kemono.party/files/224580/46935364/beidou_800.jpg",
+			"https://i.imgur.com/QtCausw.jpg"
 		};
 
 		private static readonly NConsoleOption DebugTestOption = new()

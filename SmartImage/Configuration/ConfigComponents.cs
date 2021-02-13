@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Novus.Utilities;
 using SimpleCore.Utilities;
-using SmartImage.Engines;
-using SmartImage.Utilities;
+
 #pragma warning disable CS8632
-namespace SmartImage.Core
+namespace SmartImage.Configuration
 {
 	/// <summary>
 	///     Utilities for <see cref="SearchConfig" />, <see cref="ConfigComponentAttribute" />
