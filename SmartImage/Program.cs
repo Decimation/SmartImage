@@ -38,7 +38,11 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			Console.WriteLine("{0}",1);
+			ulong hash  = SearchClient.hash(@"C:\Users\Deci\Desktop\d.jpg");
+			ulong hash1 = SearchClient.hash(@"C:\Users\Deci\Desktop\a.jpg");
+			Console.WriteLine($"{hash1} {hash} {hash^hash1}");
+			return;
+
 			/*
 			 * Setup
 			 * Check compatibility

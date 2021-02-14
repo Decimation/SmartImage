@@ -363,7 +363,7 @@ namespace SmartImage.Searching
 
 			AppendResultInfo(sb, nameof(Similarity), $"{Similarity / 100:P}", Similarity.HasValue && !IsOriginal);
 
-			AppendResultInfo(sb, "Resolution", 
+			AppendResultInfo(sb, "Resolution",
 				$"{Width}x{Height} ({AspectRatio}) ({PixelResolution:F} MP)", HasResolution);
 
 			AppendResultInfo(sb, nameof(Artist), Artist);
@@ -415,7 +415,7 @@ namespace SmartImage.Searching
 			Source      = result.Source;
 			Characters  = result.Characters;
 			Artist      = result.Artist;
-			Site    = result.Site;
+			Site        = result.Site;
 			Description = result.Description;
 			Date        = result.Date;
 		}
@@ -430,8 +430,11 @@ namespace SmartImage.Searching
 				Artist      = result.Artist,
 				Source      = result.Source,
 				Characters  = result.Characters,
-				Site    = result.Site
+				Site        = result.Site
 			};
+
+			
+
 			return extendedResult;
 		}
 
@@ -501,6 +504,8 @@ namespace SmartImage.Searching
 
 				name  = imageFile.Name;
 				bytes = FileSystem.GetFileSize(imageFile.FullName);
+
+				result.Metadata.Add("hash", SearchClient.hash(imageFile.FullName));
 			}
 			else {
 				throw new SmartImageException();

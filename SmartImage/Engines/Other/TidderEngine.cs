@@ -51,7 +51,7 @@ namespace SmartImage.Engines.Other
 				//Debug.WriteLine(findings.Count);
 
 				var list = new List<ISearchResult>();
-
+				long distl;
 				for (int i = 0; i < findings.Count; i++) {
 
 
@@ -73,6 +73,7 @@ namespace SmartImage.Engines.Other
 					string? author    = authorNode.InnerText;
 					string? subreddit = subredditNode.InnerText;
 
+					distl = long.Parse(dist);
 
 					string link = titleNode.FirstChild.Attributes["href"].DeEntitizeValue;
 
@@ -85,12 +86,13 @@ namespace SmartImage.Engines.Other
 						Date = DateTime.Parse(posted)
 					};
 
+					
 
 					list.Add(bsr);
 
 
-					//Debug.WriteLine(
-					//	$"{i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit} --> {link}");
+					Debug.WriteLine(
+						$"tidder {i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit} --> {link}");
 				}
 
 				var best = list[0];
