@@ -1,5 +1,6 @@
 ﻿#nullable enable
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,7 +8,12 @@ using System.Media;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
+using RestSharp;
+using RestSharp.Serialization.Json;
 using SimpleCore.Cli;
+using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Configuration;
 using SmartImage.Engines;
@@ -42,13 +48,12 @@ namespace SmartImage.Searching
 
 			UploadEngine = SearchConfig.Config.UseImgur ? new ImgurClient() : new ImgOpsEngine();
 
-			
 
 			var imageInfo = ResolveUploadUrl(imgInput);
 
 			ImageInfo = imageInfo ?? throw new SmartImageException("Image invalid or upload failed");
-			
-			Original  = FullSearchResult.GetOriginalImageResult(ImageInfo);
+
+			Original = FullSearchResult.GetOriginalImageResult(ImageInfo);
 
 			SearchConfig.Config.EnsureConfig();
 
@@ -125,7 +130,6 @@ namespace SmartImage.Searching
 
 				Results.Add(result);
 
-
 				// If the engine is priority, open its result in the browser
 				if (result.IsPriority) {
 					result.HandlePriorityResult();
@@ -186,6 +190,63 @@ namespace SmartImage.Searching
 		/// Original image result
 		/// </summary>
 		public FullSearchResult Original { get; }
+
+		public static string ResolveDirectLink(string s)
+		{
+			string d="";
+			
+			try {
+				var uri  = new Uri(s);
+				var host = uri.Host;
+
+				
+
+				var doc  = new HtmlDocument();
+				var html = Network.GetSimpleResponse(s);
+
+				if (host.Contains("danbooru"))
+				{
+					Debug.WriteLine("danbooru");
+					
+
+					var jobj=JObject.Parse(html.Content);
+
+					d = (string) jobj["file_url"];
+
+					
+					return d;
+				}
+
+				doc.LoadHtml(html.Content);
+
+				var sel = "//img";
+
+				var nodes = doc.DocumentNode.SelectNodes(sel);
+
+				if (nodes == null)
+				{
+					return null;
+				}
+				Debug.WriteLine($"{nodes.Count}");
+				Debug.WriteLine($"{nodes[0]}");
+
+
+				
+				
+
+				
+
+				
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"direct {e.Message}");
+				return d;
+			}
+			
+
+
+			return d;
+		}
 
 		private List<Task<FullSearchResult>> CreateSearchTasks()
 		{

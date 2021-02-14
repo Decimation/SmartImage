@@ -145,8 +145,6 @@ namespace SmartImage.Engines.SauceNao
 					Creator    = creator,
 				};
 
-				Debug.WriteLine($">>> {i}");
-
 				images.Add(i);
 			}
 

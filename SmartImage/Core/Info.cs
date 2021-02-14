@@ -93,7 +93,7 @@ namespace SmartImage.Core
 		public static string ExeLocation => FileSystem.FindExecutableLocation(NAME_EXE)!;
 
 
-		public static bool IsAppFolderInPath => OS.IsFolderInPath(AppFolder);
+		public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
 
 		/// <summary>
 		/// Setup

@@ -55,7 +55,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Site name of <see cref="Url"/>
 		/// </summary>
-		public string? SiteName { get; set; }
+		public string? Site { get; set; }
 
 		/// <summary>
 		/// Filter this result if <see cref="SearchConfig.FilterResults"/> is used

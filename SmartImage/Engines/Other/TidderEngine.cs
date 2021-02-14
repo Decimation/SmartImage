@@ -31,7 +31,7 @@ namespace SmartImage.Engines.Other
 
 			var sr = base.GetResult(url);
 
-			Debug.WriteLine(sr.RawUrl!);
+			
 
 			try {
 
@@ -48,7 +48,7 @@ namespace SmartImage.Engines.Other
 					return sr;
 				}
 
-				Debug.WriteLine(findings.Count);
+				//Debug.WriteLine(findings.Count);
 
 				var list = new List<ISearchResult>();
 
@@ -89,8 +89,8 @@ namespace SmartImage.Engines.Other
 					list.Add(bsr);
 
 
-					Debug.WriteLine(
-						$"{i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit} --> {link}");
+					//Debug.WriteLine(
+					//	$"{i}: {sub.Count} {dist} {score} {posted} {title} {author} {subreddit} --> {link}");
 				}
 
 				var best = list[0];
@@ -101,16 +101,11 @@ namespace SmartImage.Engines.Other
 
 			}
 			catch (Exception e) {
-				Debug.WriteLine(e.Message);
-
+				// ...
+				sr.AddErrorMessage(e.Message);
 			}
 
 			return sr;
-		}
-
-		public override string GetRawResultUrl(string url)
-		{
-			return base.GetRawResultUrl(url);
 		}
 	}
 }

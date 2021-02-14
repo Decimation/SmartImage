@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -57,6 +58,7 @@ namespace SmartImage.Searching
 		private FullSearchResult(Color color, string name, string url, float? similarity = null)
 			: this(null!, color, name, url, similarity) { }
 
+		#region Properties
 
 		/// <summary>
 		///     Search engine
@@ -79,11 +81,11 @@ namespace SmartImage.Searching
 			{
 				return () =>
 				{
-					if (!ExtendedResults.Any()) {
+					if (!Enumerable.Any<FullSearchResult>(ExtendedResults)) {
 						return null;
 					}
 
-					NConsole.ReadOptions(ExtendedResults);
+					NConsole.ReadOptions<FullSearchResult>(ExtendedResults);
 
 					return null;
 				};
@@ -206,6 +208,39 @@ namespace SmartImage.Searching
 		/// </summary>
 		public bool IsOriginal { get; set; }
 
+		[CanBeNull]
+
+		public string AspectRatio
+		{
+			get
+			{
+				if (HasResolution) {
+
+
+					// ReSharper disable PossibleInvalidOperationException
+
+					var fraction = new Fraction(Width.Value, Height.Value);
+
+
+					var fractionStr = fraction.ToString();
+
+					if (fractionStr == "1") {
+						fractionStr = "1:1";
+					}
+
+					string? aspectRatio = fractionStr.Replace('/', ':');
+
+
+					return aspectRatio;
+
+					// ReSharper restore PossibleInvalidOperationException
+
+				}
+
+				return null;
+			}
+		}
+
 
 		/// <inheritdoc cref="ISearchResult.Description" />
 		public string? Description { get; set; }
@@ -234,10 +269,32 @@ namespace SmartImage.Searching
 		/// <inheritdoc cref="ISearchResult.Characters" />
 		public string? Characters { get; set; }
 
-		/// <inheritdoc cref="ISearchResult.SiteName" />
-		public string? SiteName { get; set; }
+		/// <inheritdoc cref="ISearchResult.Site" />
+		public string? Site { get; set; }
 
-		public DateTime? Date { get; set; }
+		public DateTime? Date          { get; set; }
+		public bool      HasResolution => Width.HasValue && Height.HasValue;
+
+		public float? PixelResolution
+		{
+			get
+			{
+				if (HasResolution) {
+					// ReSharper disable PossibleInvalidOperationException
+
+					float mpx = (float) MathHelper.ConvertToUnit(Width.Value * Height.Value, MetricUnit.Mega);
+
+
+					return mpx;
+
+					// ReSharper restore PossibleInvalidOperationException
+				}
+
+				return null;
+			}
+		}
+
+		#endregion
 
 		public void AddErrorMessage(string msg)
 		{
@@ -306,18 +363,21 @@ namespace SmartImage.Searching
 
 			AppendResultInfo(sb, nameof(Similarity), $"{Similarity / 100:P}", Similarity.HasValue && !IsOriginal);
 
+			AppendResultInfo(sb, "Resolution", 
+				$"{Width}x{Height} ({AspectRatio}) ({PixelResolution:F} MP)", HasResolution);
+
 			AppendResultInfo(sb, nameof(Artist), Artist);
 			AppendResultInfo(sb, nameof(Characters), Characters);
 			AppendResultInfo(sb, nameof(Source), Source);
 			AppendResultInfo(sb, nameof(Description), Description);
-			AppendResultInfo(sb, "Site", SiteName);
+			AppendResultInfo(sb, nameof(Site), Site);
 			AppendResultInfo(sb, nameof(Date), Date.ToString());
 
-			AppendResultInfo(sb, "Resolution", $"{Width}x{Height}", Width.HasValue && Height.HasValue);
-
+			
 			foreach (var (key, value) in Metadata) {
 				AppendResultInfo(sb, key, value.ToString());
 			}
+
 
 			return sb.ToString();
 		}
@@ -355,7 +415,7 @@ namespace SmartImage.Searching
 			Source      = result.Source;
 			Characters  = result.Characters;
 			Artist      = result.Artist;
-			SiteName    = result.SiteName;
+			Site    = result.Site;
 			Description = result.Description;
 			Date        = result.Date;
 		}
@@ -370,7 +430,7 @@ namespace SmartImage.Searching
 				Artist      = result.Artist,
 				Source      = result.Source,
 				Characters  = result.Characters,
-				SiteName    = result.SiteName
+				Site    = result.Site
 			};
 			return extendedResult;
 		}
@@ -399,11 +459,26 @@ namespace SmartImage.Searching
 
 		private const float MAX_SIMILARITY = 100.0f;
 
-		private void AddImageInfo(ImageInputInfo info)
+		/// <summary>
+		///     Creates a <see cref="FullSearchResult" /> for the original image
+		/// </summary>
+		public static FullSearchResult GetOriginalImageResult(ImageInputInfo info)
 		{
-			//todo
+			using var bmp = (Bitmap) Image.FromStream(info.Stream);
 
-			Bitmap         bmp;
+			var result = new FullSearchResult(Interface.ColorMisc2, ORIGINAL_IMAGE_NAME, info.ImageUrl)
+			{
+				IsOriginal = true,
+				Similarity = MAX_SIMILARITY,
+				Width      = bmp.Width,
+				Height     = bmp.Height
+
+			};
+
+			/*
+			 *
+			 */
+
 			string         name;
 			FileFormatType fileFormat;
 			double         bytes;
@@ -411,8 +486,6 @@ namespace SmartImage.Searching
 			if (info.IsUrl) {
 				name = info.Value.ToString();
 
-				//using var netStream = Network.GetStreamFromUrl(info.ImageUrl);
-				bmp = (Bitmap) Image.FromStream(info.Stream);
 
 				info.Stream.Position = 0;
 				using var ms = new MemoryStream();
@@ -426,7 +499,6 @@ namespace SmartImage.Searching
 
 				fileFormat = FileSystem.ResolveFileType(imageFile.FullName);
 
-				bmp   = new Bitmap(imageFile.FullName);
 				name  = imageFile.Name;
 				bytes = FileSystem.GetFileSize(imageFile.FullName);
 			}
@@ -436,44 +508,13 @@ namespace SmartImage.Searching
 
 			string imgSize = MathHelper.ConvertToUnit(bytes);
 
-			(int width, int height) = (bmp.Width, bmp.Height);
-
-			Width  = width;
-			Height = height;
-
-			double mpx = MathHelper.ConvertToUnit(width * height, MetricUnit.Mega);
-
-
-			var fraction    = new Fraction(width, height);
-			var fractionStr = fraction.ToString();
-
-			if (fractionStr == "1") {
-				fractionStr = "1:1";
-			}
-
-			string? aspectRatio = fractionStr.Replace('/', ':');
 
 			string imageInfoStr = $"{name} ({imgSize})";
 
-			string infoStr = $"({aspectRatio}) ({mpx:F} MP) ({fileFormat.Name})";
+			string infoStr = $"({fileFormat.Name})";
 
-			Metadata.Add("Info", imageInfoStr);
-			Metadata.Add("Image", infoStr);
-		}
-
-		/// <summary>
-		///     Creates a <see cref="FullSearchResult" /> for the original image
-		/// </summary>
-		public static FullSearchResult GetOriginalImageResult(ImageInputInfo info)
-		{
-			var result = new FullSearchResult(Interface.ColorMisc2, ORIGINAL_IMAGE_NAME, info.ImageUrl)
-			{
-				IsOriginal = true,
-				Similarity = MAX_SIMILARITY,
-
-			};
-
-			result.AddImageInfo(info);
+			result.Metadata.Add("Info", imageInfoStr);
+			result.Metadata.Add("Image", infoStr);
 
 			return result;
 		}

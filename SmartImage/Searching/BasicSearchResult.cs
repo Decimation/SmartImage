@@ -29,7 +29,7 @@ namespace SmartImage.Searching
 		public string? Characters { get; set; }
 
 
-		public string? SiteName { get; set; }
+		public string? Site { get; set; }
 
 
 		public bool Filter { get; set; }
@@ -63,7 +63,7 @@ namespace SmartImage.Searching
 			Artist      = artist;
 			Source      = source;
 			Characters  = characters;
-			SiteName    = siteName;
+			Site    = siteName;
 			Filter      = filter;
 			Date        = null;//todo
 		}

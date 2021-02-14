@@ -118,7 +118,7 @@ namespace SmartImage.Engines.Other
 					return sr;
 				}
 
-				Debug.WriteLine($"{Name} has {images.Count} results");
+				
 				ISearchResult[] bestImages = FullSearchResult.FilterAndSelectBestImages(images);
 
 				//
