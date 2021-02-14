@@ -121,6 +121,9 @@ namespace SmartImage.Searching
 		/// </summary>
 		public async void Start()
 		{
+
+			NConsole.Resize(Core.Interface.ResultsWindowWidth, Core.Interface.ResultsWindowHeight);
+
 			int len = SearchTasks.Count;
 
 			while (SearchTasks.Any()) {
@@ -191,56 +194,6 @@ namespace SmartImage.Searching
 		/// Original image result
 		/// </summary>
 		public FullSearchResult Original { get; }
-
-
-		public static ulong hash(string s, int size = 256)
-		{
-			//widthAndLength := uint(math.Ceil(math.Sqrt(float64(hashLength)/2.0)) + 1)
-			var wl = (int) (Math.Ceiling(Math.Sqrt(((float) size) / 2.0)) + 1);
-
-			Debug.WriteLine($"{wl}");
-
-			Image im = Image.FromFile(s);
-			//new Bitmap(9, 8, PixelFormat.Format16bppGrayScale);
-
-			Bitmap c = new Bitmap(im, new Size(wl + 1, wl));
-
-
-			ulong h = 0;
-
-			// Loop through the images pixels to reset color.
-			for (int i = 0; i < c.Width; i++) {
-				for (int x = 0; x < c.Height; x++) {
-					Color oc        = c.GetPixel(i, x);
-					int   grayScale = (int) ((oc.R * 0.3) + (oc.G * 0.59) + (oc.B * 0.11));
-					Color nc        = Color.FromArgb(oc.A, grayScale, grayScale, grayScale);
-					c.SetPixel(i, x, nc);
-				}
-			}
-			//c = MakeGrayscale3(c);
-
-			// int x, y;
-			//
-			// for (x = 0; x < c.Width; x++)
-			// {
-			// 	for (y = 0; y < c.Height; y++)
-			// 	{
-			// 		Color pixelColor = c.GetPixel(x, y);
-			// 		Color newColor   = Color.FromArgb(pixelColor.R, 0, 0);
-			// 		c.SetPixel(x, y, newColor); // Now greyscale
-			// 	}
-			// }
-
-			for (int j = 0; j < wl; j++) {
-				for (int k = 0; k < wl; k++) {
-					var b   = (c.GetPixel(j, k).R > c.GetPixel(j + 1, k).R);
-					var bit = Convert.ToUInt64(b) << (j + k * 8);
-					h |= bit;
-				}
-			}
-
-			return h;
-		}
 
 		public static string ResolveDirectLink(string s)
 		{

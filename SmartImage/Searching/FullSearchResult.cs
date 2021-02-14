@@ -505,7 +505,7 @@ namespace SmartImage.Searching
 				name  = imageFile.Name;
 				bytes = FileSystem.GetFileSize(imageFile.FullName);
 
-				result.Metadata.Add("hash", SearchClient.hash(imageFile.FullName));
+				
 			}
 			else {
 				throw new SmartImageException();
@@ -524,12 +524,10 @@ namespace SmartImage.Searching
 			return result;
 		}
 
-		private const int TAKE_N = 10;
-
-		public static ISearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg, int take = TAKE_N)
+		
+		public static ISearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg)
 		{
 			var best = rg.OrderByDescending(i => i.FullResolution)
-				.Take(take)
 				.Cast<ISearchResult>()
 				.ToArray();
 

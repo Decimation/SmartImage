@@ -5,6 +5,7 @@
 using SmartImage.Searching;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using SimpleCore.Cli;
@@ -38,10 +39,7 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			ulong hash  = SearchClient.hash(@"C:\Users\Deci\Desktop\d.jpg");
-			ulong hash1 = SearchClient.hash(@"C:\Users\Deci\Desktop\a.jpg");
-			Console.WriteLine($"{hash1} {hash} {hash^hash1}");
-			return;
+			
 
 			/*
 			 * Setup
@@ -54,10 +52,11 @@ namespace SmartImage
 			 * Set up console
 			 */
 
-			Console.Title = Info.NAME;
+			Console.Title             = Info.NAME;
 
-			NConsole.Resize(Interface.ConsoleWindowWidth, Interface.ConsoleWindowHeight);
-
+			NConsole.AutoResizeHeight = false;
+			NConsole.Resize(Interface.MainWindowWidth, Interface.MainWindowHeight);
+			
 
 			Console.Clear();
 

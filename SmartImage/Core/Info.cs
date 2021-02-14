@@ -109,7 +109,7 @@ namespace SmartImage.Core
 		{
 			Console.Clear();
 
-			NConsole.Resize(ConsoleWindowWidth, 30);
+			NConsole.Resize(ResultsWindowWidth, 30);
 
 			var sb = new StringBuilder();
 			sb.AppendColor(ColorPrimary, NAME_BANNER);

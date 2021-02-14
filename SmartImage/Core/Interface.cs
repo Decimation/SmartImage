@@ -87,7 +87,7 @@ namespace SmartImage.Core
 		/// Utility color
 		/// </summary>
 		internal static readonly Color ColorUtility = Color.DarkOrange;
-	
+
 
 		/// <summary>
 		/// Version color
@@ -95,16 +95,14 @@ namespace SmartImage.Core
 		internal static readonly Color ColorVersion = Color.LightGreen;
 
 
-		/// <summary>
-		/// Console window width (initial)
-		/// </summary>
-		internal const int ConsoleWindowWidth = 100;
+		internal const int ResultsWindowWidth = 120;
 
+		internal const int ResultsWindowHeight = 60;
 
-		/// <summary>
-		/// Console window height (initial)
-		/// </summary>
-		internal const int ConsoleWindowHeight = 35;
+		internal const int MainWindowWidth = 110;
+
+		internal const int MainWindowHeight = 30;
+
 
 		/// <summary>
 		/// Main option
@@ -378,13 +376,13 @@ namespace SmartImage.Core
 			Name = "[DEBUG] Run test",
 			Function = () =>
 			{
-				
-				var     rgOption = NConsoleOption.FromArray(TestImages, s => s);
-				
-				string? testImg  = (string) NConsole.ReadOptions(rgOption).First();
+
+				var rgOption = NConsoleOption.FromArray(TestImages, s => s);
+
+				string? testImg = (string) NConsole.ReadOptions(rgOption).First();
 
 				SearchConfig.Config.ImageInput = testImg;
-				//SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
+				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 				return true;
 			}
