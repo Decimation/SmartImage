@@ -1,18 +1,14 @@
 #nullable enable
-using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using JetBrains.Annotations;
-using Novus;
-using Novus.Runtime;
 using Novus.Win32;
 using SimpleCore.Cli;
 using SimpleCore.Utilities;
 using SmartImage.Configuration;
 using SmartImage.Utilities;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Text;
 using static SmartImage.Core.Interface;
 
 // ReSharper disable UnusedMember.Global
@@ -41,7 +37,7 @@ namespace SmartImage.Core
 			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
 			"                                                     |___/\n";
 
-		
+
 		/// <summary>
 		/// Name
 		/// </summary>
@@ -100,7 +96,8 @@ namespace SmartImage.Core
 		/// </summary>
 		public static void Setup()
 		{
-			if (!OperatingSystem.IsWindows()) {
+			if (!OperatingSystem.IsWindows())
+			{
 				throw new NotSupportedException();
 			}
 		}
@@ -112,9 +109,9 @@ namespace SmartImage.Core
 			NConsole.Resize(ResultsWindowWidth, 30);
 
 			var sb = new StringBuilder();
-			sb.AppendColor(ColorPrimary, NAME_BANNER);
+			sb.AppendColor(ColorMain1, NAME_BANNER);
 			sb.AppendLine();
-			
+
 
 			/*
 			 * Author info
@@ -122,9 +119,9 @@ namespace SmartImage.Core
 
 
 
-			sb.AppendLabelWithColor(ColorPrimary, "Author", ColorMisc2, Author).AppendLine();
-			sb.AppendLabelWithColor(ColorPrimary, "Repo", ColorMisc2, Repo).AppendLine();
-			sb.AppendLabelWithColor(ColorPrimary, "Readme", ColorMisc2, Readme).AppendLine();
+			sb.AppendLabelWithColor(ColorMain1, "Author", ColorMain2, Author).AppendLine();
+			sb.AppendLabelWithColor(ColorMain1, "Repo", ColorMain2, Repo).AppendLine();
+			sb.AppendLabelWithColor(ColorMain1, "Readme", ColorMain2, Readme).AppendLine();
 
 			sb.AppendLine();
 
@@ -144,10 +141,10 @@ namespace SmartImage.Core
 
 			var versionsInfo = UpdateInfo.GetUpdateInfo();
 
-			sb.AppendLabelWithColor(ColorVersion,"Current version", ColorMisc2, versionsInfo.Current).AppendLine();
-			sb.AppendLabelWithColor(ColorVersion,"Latest version", ColorMisc2, versionsInfo.Latest.Version).AppendLine();
-			sb.AppendLabelWithColor(ColorVersion,"Version status", ColorMisc2, versionsInfo.Status).AppendLine();
-			
+			sb.AppendLabelWithColor(ColorVersion, "Current version", ColorMain2, versionsInfo.Current).AppendLine();
+			sb.AppendLabelWithColor(ColorVersion, "Latest version", ColorMain2, versionsInfo.Latest.Version).AppendLine();
+			sb.AppendLabelWithColor(ColorVersion, "Version status", ColorMain2, versionsInfo.Status).AppendLine();
+
 
 			/*
 			 * Runtime info
@@ -155,16 +152,16 @@ namespace SmartImage.Core
 
 			sb.AppendLine();
 
-			string appFolderName    = new DirectoryInfo(AppFolder).Name;
-			var    exeFolderName = new DirectoryInfo(ExeLocation).Name;
+			string appFolderName = new DirectoryInfo(AppFolder).Name;
+			var exeFolderName = new DirectoryInfo(ExeLocation).Name;
 
-			sb.AppendLabelWithColor(ColorUtility,"Application folder", ColorMisc2, appFolderName).AppendLine();
-			sb.AppendLabelWithColor(ColorUtility,"Executable location", ColorMisc2, exeFolderName).AppendLine();
-			sb.AppendLabelWithColor(ColorUtility,"Context menu integrated", ColorMisc2, Integration.IsContextMenuAdded).AppendLine();
-			sb.AppendLabelWithColor(ColorUtility, "In path", ColorMisc2, IsAppFolderInPath).AppendLine();
+			sb.AppendLabelWithColor(ColorUtility, "Application folder", ColorMain2, appFolderName).AppendLine();
+			sb.AppendLabelWithColor(ColorUtility, "Executable location", ColorMain2, exeFolderName).AppendLine();
+			sb.AppendLabelWithColor(ColorUtility, "Context menu integrated", ColorMain2, Integration.IsContextMenuAdded).AppendLine();
+			sb.AppendLabelWithColor(ColorUtility, "In path", ColorMain2, IsAppFolderInPath).AppendLine();
 
-			
-			
+
+
 
 			/*
 			 * Dependencies

@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Novus.Utilities;
+using SimpleCore.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using Novus.Utilities;
-using SimpleCore.Utilities;
 
 #pragma warning disable CS8632
 namespace SmartImage.Configuration
@@ -36,7 +36,8 @@ namespace SmartImage.Configuration
 		{
 			var tuples = obj.GetType().GetAnnotated<ConfigComponentAttribute>();
 
-			foreach (var (_, member) in tuples) {
+			foreach (var (_, member) in tuples)
+			{
 				string memberName = member.Name;
 
 				string? valStr = ReadComponentMapValue<object>(obj, cfg, memberName).ToString();
@@ -76,7 +77,7 @@ namespace SmartImage.Configuration
 		/// </summary>
 		internal static (ConfigComponentAttribute Attribute, FieldInfo Field) GetField(object obj, string mname)
 		{
-			var t     = obj.GetType();
+			var t = obj.GetType();
 			var field = t.GetFieldAuto(mname);
 
 			var attr = field.GetCustomAttribute<ConfigComponentAttribute>();
@@ -107,9 +108,9 @@ namespace SmartImage.Configuration
 		{
 			var (attr, field) = GetField(obj, mname);
 
-			var    defaultValue     = (T) attr.DefaultValue;
-			bool   setDefaultIfNull = attr.SetDefaultIfNull;
-			string name             = attr.Id;
+			var defaultValue = (T)attr.DefaultValue;
+			bool setDefaultIfNull = attr.SetDefaultIfNull;
+			string name = attr.Id;
 
 
 			var v = ReadComponentMapValue(cfg, name, setDefaultIfNull, defaultValue);
@@ -119,12 +120,14 @@ namespace SmartImage.Configuration
 
 		internal static object ParseComponentValue(string rawValue, Type t)
 		{
-			if (t.IsEnum) {
+			if (t.IsEnum)
+			{
 				Enum.TryParse(t, rawValue, out var e);
 				return e;
 			}
 
-			if (t == typeof(bool)) {
+			if (t == typeof(bool))
+			{
 				Boolean.TryParse(rawValue, out bool b);
 				return b;
 			}
@@ -133,17 +136,19 @@ namespace SmartImage.Configuration
 		}
 
 		internal static T ParseComponentValue<T>(string rawValue) =>
-			(T) ParseComponentValue(rawValue, typeof(T));
+			(T)ParseComponentValue(rawValue, typeof(T));
 
 
 		private static void AddToComponentMap<T>(IDictionary<string, string> cfg, string id, T value)
 		{
 			string? valStr = value.ToString();
 
-			if (!cfg.ContainsKey(id)) {
+			if (!cfg.ContainsKey(id))
+			{
 				cfg.Add(id, valStr);
 			}
-			else {
+			else
+			{
 				cfg[id] = valStr;
 			}
 		}
@@ -156,7 +161,8 @@ namespace SmartImage.Configuration
 		{
 			var tuples = GetFields(obj);
 
-			foreach (var (attr, field) in tuples) {
+			foreach (var (attr, field) in tuples)
+			{
 				var dv = attr.DefaultValue;
 				field.SetValue(obj, dv);
 
@@ -182,13 +188,15 @@ namespace SmartImage.Configuration
 			bool setDefaultIfNull = false, T defaultValue = default)
 		{
 
-			if (!cfg.ContainsKey(id)) {
+			if (!cfg.ContainsKey(id))
+			{
 				cfg.Add(id, String.Empty);
 			}
 
 			string rawValue = cfg[id];
 
-			if (setDefaultIfNull && String.IsNullOrWhiteSpace(rawValue)) {
+			if (setDefaultIfNull && String.IsNullOrWhiteSpace(rawValue))
+			{
 				AddToComponentMap(cfg, id, defaultValue.ToString());
 				rawValue = ReadComponentMapValue<string>(cfg, id);
 			}
@@ -207,7 +215,8 @@ namespace SmartImage.Configuration
 			// Corresponding component
 			var component = members.FirstOrDefault(y => y.Attribute.ParameterName == parameterName);
 
-			if (component == default) {
+			if (component == default)
+			{
 				return;
 			}
 

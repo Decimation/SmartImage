@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
 using SimpleCore.Cli;
 using SimpleCore.Utilities;
 using SmartImage.Core;
@@ -11,6 +5,12 @@ using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Searching;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
 using static SmartImage.Core.Interface;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
@@ -79,7 +79,7 @@ namespace SmartImage.Configuration
 		/// <summary>
 		///     Does not open results from priority engines if the result similarity (if available) is below a certain threshold,
 		/// or there are no relevant results.
-		/// <see cref="BasicSearchResult.Filter"/> is <c>true</c> if <see cref="BaseSearchEngine.FilterThreshold"/> is less than <see cref="BasicSearchResult.Similarity"/>
+		/// <see cref="BaseSearchResult.Filter"/> is <c>true</c> if <see cref="BaseSearchEngine.FilterThreshold"/> is less than <see cref="BaseSearchResult.Similarity"/>
 		/// </summary>
 		[field: ConfigComponent("filter_results", "--filter-results", true, true)]
 		public bool FilterResults { get; set; }
@@ -112,7 +112,8 @@ namespace SmartImage.Configuration
 			bool newCfg = false;
 
 			// create cfg with default options if it doesn't exist
-			if (!File.Exists(ConfigLocation)) {
+			if (!File.Exists(ConfigLocation))
+			{
 
 				var f = File.Create(ConfigLocation);
 				f.Close();
@@ -124,7 +125,8 @@ namespace SmartImage.Configuration
 			ConfigComponents.UpdateFields(this, cfgFromFileMap);
 
 
-			if (newCfg) {
+			if (newCfg)
+			{
 				SaveFile();
 			}
 
@@ -157,12 +159,14 @@ namespace SmartImage.Configuration
 
 			const SearchEngineOptions Illegal = SearchEngineOptions.Auto;
 
-			if (SearchEngines.HasFlag(Illegal)) {
+			if (SearchEngines.HasFlag(Illegal))
+			{
 				SearchEngines &= ~Illegal;
 				Debug.WriteLine($"Removed illegal flag -> {SearchEngines}");
 			}
 
-			if (SearchEngines == SearchEngineOptions.None) {
+			if (SearchEngines == SearchEngineOptions.None)
+			{
 				ConfigComponents.ResetComponent(this, nameof(SearchEngines));
 			}
 		}
@@ -173,47 +177,50 @@ namespace SmartImage.Configuration
 			var sb = new StringBuilder();
 
 
-			if (HasImageInput) {
+			if (HasImageInput)
+			{
 				// Image may be null if not specified (error) or viewed in other UIs
 				// if so, omit it
 				var fi = new FileInfo(ImageInput).Name;
-				sb.AppendLabelWithColor(ColorPrimary, "Image", ColorMain, fi).AppendLine().AppendLine();
+				sb.AppendLabelWithColor(ColorMain1, "Image", ColorMainFunction, fi).AppendLine().AppendLine();
 			}
 
 
-			sb.AppendLabelWithColor(ColorConfig, "Search engines", ColorMisc2, SearchEngines)
+			sb.AppendLabelWithColor(ColorConfig, "Search engines", ColorMain2, SearchEngines)
 				.AppendLine();
 
-			sb.AppendLabelWithColor(ColorConfig, "Priority engines", ColorMisc2, PriorityEngines)
+			sb.AppendLabelWithColor(ColorConfig, "Priority engines", ColorMain2, PriorityEngines)
 				.AppendLine();
 
 
 			string snAuth = Config.SauceNaoAuth;
-			bool   snNull = String.IsNullOrWhiteSpace(snAuth);
+			bool snNull = String.IsNullOrWhiteSpace(snAuth);
 
-			if (!snNull) {
-				sb.AppendLabelWithColor(ColorConfig, "SauceNao authentication", ColorMisc2,
+			if (!snNull)
+			{
+				sb.AppendLabelWithColor(ColorConfig, "SauceNao authentication", ColorMain2,
 					snAuth).AppendLine();
 			}
 
 			string imgurAuth = Config.ImgurAuth;
-			bool   imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
+			bool imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
 
-			if (!imgurNull) {
-				sb.AppendLabelWithColor(ColorConfig, "Imgur authentication", ColorMisc2,
+			if (!imgurNull)
+			{
+				sb.AppendLabelWithColor(ColorConfig, "Imgur authentication", ColorMain2,
 					imgurAuth).AppendLine();
 			}
 
-			sb.AppendLabelWithColor(ColorConfig, "Auto filtering", ColorMisc2, FilterResults)
+			sb.AppendLabelWithColor(ColorConfig, "Auto filtering", ColorMain2, FilterResults)
 				.AppendLine();
 
-			sb.AppendLabelWithColor(ColorConfig, "Image upload service", ColorMisc2,
+			sb.AppendLabelWithColor(ColorConfig, "Image upload service", ColorMain2,
 				imgurNull ? "ImgOps" : "Imgur").AppendLine();
 
 			string cfgDirectoryName = new FileInfo(ConfigLocation).Directory.Name;
 
 
-			sb.AppendLabelWithColor(ColorConfig, "Config location", ColorMisc2, cfgDirectoryName)
+			sb.AppendLabelWithColor(ColorConfig, "Config location", ColorMain2, cfgDirectoryName)
 				.AppendLine();
 
 
@@ -228,7 +235,8 @@ namespace SmartImage.Configuration
 		{
 			string[] args = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
-			if (!args.Any()) {
+			if (!args.Any())
+			{
 				NoArguments = true;
 				return;
 			}
@@ -237,13 +245,15 @@ namespace SmartImage.Configuration
 
 			using var argEnumerator = argQueue.GetEnumerator();
 
-			while (argEnumerator.MoveNext()) {
+			while (argEnumerator.MoveNext())
+			{
 				string parameterName = argEnumerator.Current;
 
 				ConfigComponents.ReadComponentFromArgument(this, argEnumerator);
 
 				// Special cases
-				switch (parameterName) {
+				switch (parameterName)
+				{
 
 					case "--update-cfg":
 						UpdateConfig = true;

@@ -1,10 +1,9 @@
-using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Net;
 using Novus.Win32;
 using SimpleCore.Cli;
 using SmartImage.Core;
+using System;
+using System.IO;
+using System.Net;
 
 namespace SmartImage.Utilities
 {
@@ -19,18 +18,18 @@ namespace SmartImage.Utilities
 		private UpdateInfo(Version current, ReleaseInfo info, VersionStatus status)
 		{
 			Current = current;
-			Latest  = info;
-			Status  = status;
+			Latest = info;
+			Status = status;
 		}
 
 		public static void Update(UpdateInfo ui)
 		{
-			const string NEW_EXE    = "SmartImage-new.exe";
+			const string NEW_EXE = "SmartImage-new.exe";
 			const string UPDATE_BAT = "SmartImage_Updater.bat";
 
 
 			var destNew = Path.Combine(Info.AppFolder, NEW_EXE);
-			var wc      = new WebClient();
+			var wc = new WebClient();
 
 			NConsole.WriteInfo("Downloading...");
 
@@ -78,14 +77,18 @@ namespace SmartImage.Utilities
 		{
 			var ui = GetUpdateInfo();
 
-			if (ui.Status == VersionStatus.Available) {
+			if (ui.Status == VersionStatus.Available)
+			{
 				NConsole.WriteSuccess($"Update found: {ui.Latest} ");
 
-				if (NConsole.ReadConfirmation("Update?")) {
-					try {
+				if (NConsole.ReadConfirmation("Update?"))
+				{
+					try
+					{
 						Update(ui);
 					}
-					catch (Exception e) {
+					catch (Exception e)
+					{
 						Console.WriteLine(e);
 						return;
 					}
@@ -100,9 +103,9 @@ namespace SmartImage.Utilities
 
 		public static UpdateInfo GetUpdateInfo()
 		{
-			var asm            = typeof(Info).Assembly.GetName();
+			var asm = typeof(Info).Assembly.GetName();
 			var currentVersion = asm.Version;
-			var release        = ReleaseInfo.GetLatestRelease();
+			var release = ReleaseInfo.GetLatestRelease();
 
 			VersionStatus status;
 
@@ -111,8 +114,8 @@ namespace SmartImage.Utilities
 			status = cmp switch
 			{
 				< 0 => VersionStatus.Available,
-				0   => VersionStatus.UpToDate,
-				_   => VersionStatus.Preview
+				0 => VersionStatus.UpToDate,
+				_ => VersionStatus.Preview
 			};
 
 			return new UpdateInfo(currentVersion, release, status);

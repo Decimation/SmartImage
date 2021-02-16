@@ -2,17 +2,11 @@
 
 #pragma warning disable HAA0601,
 
-using SmartImage.Searching;
-using System;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
 using SimpleCore.Cli;
-using SimpleCore.Net;
 using SmartImage.Configuration;
 using SmartImage.Core;
-using SmartImage.Utilities;
+using SmartImage.Searching;
+using System;
 
 // ReSharper disable UnusedParameter.Local
 #pragma warning disable CA1416
@@ -39,7 +33,7 @@ namespace SmartImage
 
 		private static void Main(string[] args)
 		{
-			
+
 
 			/*
 			 * Setup
@@ -52,11 +46,11 @@ namespace SmartImage
 			 * Set up console
 			 */
 
-			Console.Title             = Info.NAME;
+			Console.Title = Info.NAME;
 
 			NConsole.AutoResizeHeight = false;
 			NConsole.Resize(Interface.MainWindowWidth, Interface.MainWindowHeight);
-			
+
 
 			Console.Clear();
 
@@ -69,13 +63,14 @@ namespace SmartImage
 			 */
 			NConsole.Init();
 			NConsoleInterface.DefaultName = Info.NAME_BANNER;
-			
+
 			/*
 			 * Check for any legacy integrations that need to be migrated
 			 */
 			bool cleanupOk = LegacyIntegration.LegacyCleanup();
 
-			if (!cleanupOk) {
+			if (!cleanupOk)
+			{
 				NConsole.WriteError("Could not migrate legacy features");
 			}
 
@@ -83,14 +78,16 @@ namespace SmartImage
 			 * Run search
 			 */
 
-			try {
+			try
+			{
 
 				// Setup
 				SearchConfig.Config.EnsureConfig();
 				Integration.Setup();
 
 				// Run UI if not using command line arguments
-				if (SearchConfig.Config.NoArguments) {
+				if (SearchConfig.Config.NoArguments)
+				{
 					Interface.Run();
 					Console.Clear();
 				}
@@ -100,7 +97,8 @@ namespace SmartImage
 
 
 				// Exit if no image is given
-				if (!SearchConfig.Config.HasImageInput) {
+				if (!SearchConfig.Config.HasImageInput)
+				{
 					return;
 				}
 
@@ -110,7 +108,8 @@ namespace SmartImage
 				// Show results
 				SearchClient.Client.Interface.Run();
 			}
-			catch (Exception exception) {
+			catch (Exception exception)
+			{
 #if !DEBUG
 				var cr = new CrashReport(exception);
 
@@ -131,10 +130,12 @@ namespace SmartImage
 				Console.WriteLine(exception);
 #endif
 			}
-			finally {
+			finally
+			{
 				// Exit
 
-				if (SearchConfig.Config.UpdateConfig) {
+				if (SearchConfig.Config.UpdateConfig)
+				{
 					SearchConfig.Config.SaveFile();
 				}
 			}

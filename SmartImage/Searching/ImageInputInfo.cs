@@ -1,7 +1,7 @@
-﻿using System;
-using System.IO;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using SimpleCore.Net;
+using System;
+using System.IO;
 
 namespace SmartImage.Searching
 {
@@ -24,7 +24,7 @@ namespace SmartImage.Searching
 
 		public ImageInputInfo()
 		{
-			Value    = null;
+			Value = null;
 			ImageUrl = null; //todo
 		}
 
@@ -33,8 +33,8 @@ namespace SmartImage.Searching
 			return Value switch
 			{
 				FileInfo fi => fi.Name,
-				string s    => s,
-				_           => throw new ArgumentOutOfRangeException()
+				string s => s,
+				_ => throw new ArgumentOutOfRangeException()
 			};
 		}
 
@@ -47,22 +47,25 @@ namespace SmartImage.Searching
 		{
 			info = new ImageInputInfo();
 
-			if (String.IsNullOrWhiteSpace(imageInput)) {
+			if (String.IsNullOrWhiteSpace(imageInput))
+			{
 				return false;
 			}
 
 			info.IsFile = File.Exists(imageInput);
-			info.IsUrl  = Network.IsUri(imageInput, out _) && !info.IsFile;
+			info.IsUrl = Network.IsUri(imageInput, out _) && !info.IsFile;
 
-			if (info.IsUrl) {
+			if (info.IsUrl)
+			{
 				var isUriFile = MediaTypes.IsDirect(imageInput, MimeType.Image);
 
-				if (!isUriFile) {
+				if (!isUriFile)
+				{
 					return false;
 				}
 			}
 
-			info.Value  = info.IsFile ? new FileInfo(imageInput) : MediaTypes.Identify(imageInput)!;
+			info.Value = info.IsFile ? new FileInfo(imageInput) : MediaTypes.Identify(imageInput)!;
 			info.Stream = info.IsFile ? File.OpenRead(imageInput) : Network.GetStreamFromUrl(imageInput);
 
 			return info.IsValid;

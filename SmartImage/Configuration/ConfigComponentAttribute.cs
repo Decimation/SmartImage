@@ -1,5 +1,5 @@
-﻿using System;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
+using System;
 
 namespace SmartImage.Configuration
 {
@@ -30,14 +30,15 @@ namespace SmartImage.Configuration
 
 		internal ConfigComponentAttribute(string id, string parameterName, object defaultValue, bool setDefaultIfNull)
 		{
-			Id               = id;
-			DefaultValue     = defaultValue;
+			Id = id;
+			DefaultValue = defaultValue;
 			SetDefaultIfNull = setDefaultIfNull;
-			ParameterName    = parameterName;
+			ParameterName = parameterName;
 		}
 
 		internal ConfigComponentAttribute(string id, [CanBeNull] string parameterName, object defaultValue) : this(id,
-			parameterName, defaultValue, false) { }
+			parameterName, defaultValue, false)
+		{ }
 
 
 		internal ConfigComponentAttribute(string id, object defaultValue) : this(id, null, defaultValue) { }

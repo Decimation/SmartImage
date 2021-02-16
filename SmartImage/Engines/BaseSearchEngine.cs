@@ -1,6 +1,5 @@
-using System.Drawing;
-using SimpleCore.Net;
 using SmartImage.Searching;
+using System.Drawing;
 
 namespace SmartImage.Engines
 {

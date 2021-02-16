@@ -1,3 +1,9 @@
+using HtmlAgilityPack;
+using RestSharp;
+using SimpleCore.Net;
+using SimpleCore.Utilities;
+using SmartImage.Configuration;
+using SmartImage.Searching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -5,15 +11,9 @@ using System.Drawing;
 using System.Json;
 using System.Linq;
 using System.Net;
-using HtmlAgilityPack;
-using RestSharp;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
-using SmartImage.Configuration;
-using SmartImage.Core;
-using SmartImage.Searching;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
+
 // ReSharper disable PossibleMultipleEnumeration
 
 #nullable enable
@@ -68,11 +68,11 @@ namespace SmartImage.Engines.SauceNao
 
 		private static (string? Creator, string? Material) FindInfo(HtmlNode resultcontent)
 		{
-			var     resulttitle = resultcontent.ChildNodes[0];
-			string? rti         = resulttitle?.InnerText;
+			var resulttitle = resultcontent.ChildNodes[0];
+			string? rti = resulttitle?.InnerText;
 
-			var     resultcontentcolumn = resultcontent.ChildNodes[1];
-			string? rcci                = resultcontentcolumn?.InnerText;
+			var resultcontentcolumn = resultcontent.ChildNodes[1];
+			string? rcci = resultcontentcolumn?.InnerText;
 
 			var material = rcci?.SubstringAfter("Material: ");
 
@@ -102,8 +102,10 @@ namespace SmartImage.Engines.SauceNao
 
 			var images = new List<SauceNaoDataResult>();
 
-			foreach (var result in results) {
-				if (result.GetAttributeValue("id", String.Empty) == "result-hidden-notification") {
+			foreach (var result in results)
+			{
+				if (result.GetAttributeValue("id", String.Empty) == "result-hidden-notification")
+				{
 					continue;
 				}
 
@@ -112,14 +114,14 @@ namespace SmartImage.Engines.SauceNao
 				//var resulttableimage = n.ChildNodes[0];
 				var resulttablecontent = n.ChildNodes[1];
 
-				var resultmatchinfo      = resulttablecontent.FirstChild;
+				var resultmatchinfo = resulttablecontent.FirstChild;
 				var resultsimilarityinfo = resultmatchinfo.FirstChild;
 
 				// Contains links
 				var resultmiscinfo = resultmatchinfo.ChildNodes[1];
 
-				var     links1 = resultmiscinfo.SelectNodes("a/@href");
-				string? link1  = links1?[0].GetAttributeValue("href", null);
+				var links1 = resultmiscinfo.SelectNodes("a/@href");
+				string? link1 = links1?[0].GetAttributeValue("href", null);
 
 
 				var resultcontent = resulttablecontent.ChildNodes[1];
@@ -129,8 +131,8 @@ namespace SmartImage.Engines.SauceNao
 				var resultcontentcolumn = resultcontent.ChildNodes[1];
 
 				// Other way of getting links
-				var     links2 = resultcontentcolumn.SelectNodes("a/@href");
-				string? link2  = links2?[0].GetAttributeValue("href", null);
+				var links2 = resultcontentcolumn.SelectNodes("a/@href");
+				string? link2 = links2?[0].GetAttributeValue("href", null);
 
 				string? link = link1 ?? link2;
 
@@ -140,9 +142,9 @@ namespace SmartImage.Engines.SauceNao
 
 				var i = new SauceNaoDataResult
 				{
-					Urls       = new[] {link}!,
+					Urls = new[] { link }!,
 					Similarity = similarity,
-					Creator    = creator,
+					Creator = creator,
 				};
 
 				images.Add(i);
@@ -155,19 +157,30 @@ namespace SmartImage.Engines.SauceNao
 
 		#region API
 
-		private ISearchResult[] ConvertDataResults(SauceNaoDataResult[] results)
+		private BaseSearchResult[] ConvertDataResults(SauceNaoDataResult[] results)
 		{
-			var rg = new List<ISearchResult>();
+			var rg = new List<BaseSearchResult>();
 
-			foreach (var sn in results) {
-				if (sn.Urls != null) {
+			foreach (var sn in results)
+			{
+				if (sn.Urls != null)
+				{
 					string? url = sn.Urls.FirstOrDefault(u => u != null)!;
 
 					string? siteName = sn.Index != 0 ? sn.Index.ToString() : null;
 
-					var x = new BasicSearchResult(url, sn.Similarity,
-						sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
-
+					// var x = new BasicSearchResult(url, sn.Similarity,
+					// 	sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
+					var x = new BaseSearchResult()
+					{
+						Url = url,
+						Similarity = sn.Similarity,
+						Description = sn.WebsiteTitle,
+						Artist = sn.Creator,
+						Source = sn.Material,
+						Characters = sn.Character,
+						Site = siteName
+					};
 					x.Filter = x.Similarity < FilterThreshold;
 
 
@@ -183,56 +196,59 @@ namespace SmartImage.Engines.SauceNao
 			// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
 
 			const string KeySimilarity = "similarity";
-			const string KeyUrls       = "ext_urls";
-			const string KeyIndex      = "index_id";
-			const string KeyCreator    = "creator";
+			const string KeyUrls = "ext_urls";
+			const string KeyIndex = "index_id";
+			const string KeyCreator = "creator";
 			const string KeyCharacters = "characters";
-			const string KeyMaterial   = "material";
+			const string KeyMaterial = "material";
 
 			const string KeyResults = "results";
-			const string KeyHeader  = "header";
-			const string KeyData    = "data";
+			const string KeyHeader = "header";
+			const string KeyData = "data";
 
 			var jsonString = JsonValue.Parse(js);
 
-			if (jsonString is JsonObject jsonObject) {
+			if (jsonString is JsonObject jsonObject)
+			{
 
 				var jsonArray = jsonObject[KeyResults];
 
-				for (int i = 0; i < jsonArray.Count; i++) {
+				for (int i = 0; i < jsonArray.Count; i++)
+				{
 
-					var    header = jsonArray[i][KeyHeader];
-					var    data   = jsonArray[i][KeyData];
-					string obj    = header.ToString();
-					obj          =  obj.Remove(obj.Length - 1);
-					obj          += data.ToString().Remove(0, 1).Insert(0, ",");
-					jsonArray[i] =  JsonValue.Parse(obj);
+					var header = jsonArray[i][KeyHeader];
+					var data = jsonArray[i][KeyData];
+					string obj = header.ToString();
+					obj = obj.Remove(obj.Length - 1);
+					obj += data.ToString().Remove(0, 1).Insert(0, ",");
+					jsonArray[i] = JsonValue.Parse(obj);
 				}
 
 				string json = jsonArray.ToString();
 
-				var buffer      = new List<SauceNaoDataResult>();
+				var buffer = new List<SauceNaoDataResult>();
 				var resultArray = JsonValue.Parse(json);
 
-				for (int i = 0; i < resultArray.Count; i++) {
+				for (int i = 0; i < resultArray.Count; i++)
+				{
 
-					var   result     = resultArray[i];
+					var result = resultArray[i];
 					float similarity = Single.Parse(result[KeySimilarity]);
 
 					string[]? strings = result.ContainsKey(KeyUrls)
 						? (result[KeyUrls] as JsonArray)!.Select(j => j.ToString().CleanString()).ToArray()
 						: null;
 
-					var index = (SauceNaoSiteIndex) Int32.Parse(result[KeyIndex].ToString());
+					var index = (SauceNaoSiteIndex)Int32.Parse(result[KeyIndex].ToString());
 
 					var item = new SauceNaoDataResult
 					{
-						Urls       = strings,
+						Urls = strings,
 						Similarity = similarity,
-						Index      = index,
-						Creator    = result.TryGetKeyValue(KeyCreator)?.ToString().CleanString(),
-						Character  = result.TryGetKeyValue(KeyCharacters)?.ToString().CleanString(),
-						Material   = result.TryGetKeyValue(KeyMaterial)?.ToString().CleanString()
+						Index = index,
+						Creator = result.TryGetKeyValue(KeyCreator)?.ToString().CleanString(),
+						Character = result.TryGetKeyValue(KeyCharacters)?.ToString().CleanString(),
+						Material = result.TryGetKeyValue(KeyMaterial)?.ToString().CleanString()
 					};
 
 
@@ -259,7 +275,8 @@ namespace SmartImage.Engines.SauceNao
 
 			//Debug.WriteLine($"{res.StatusCode}");
 
-			if (res.StatusCode == HttpStatusCode.Forbidden) {
+			if (res.StatusCode == HttpStatusCode.Forbidden)
+			{
 				return null;
 			}
 
@@ -275,10 +292,12 @@ namespace SmartImage.Engines.SauceNao
 		{
 			FullSearchResult result = base.GetResult(url);
 
-			try {
+			try
+			{
 				var orig = GetDataResults(url);
 
-				if (orig == null) {
+				if (orig == null)
+				{
 					//return result;
 					Debug.WriteLine("Parsing HTML from SN!");
 					orig = ParseResults(url).ToArray();
@@ -287,8 +306,8 @@ namespace SmartImage.Engines.SauceNao
 				// aggregate all info for primary result
 
 				string? character = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Character))?.Character;
-				string? creator   = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
-				string? material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
+				string? creator = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
+				string? material = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
 
 
 				var extended = ConvertDataResults(orig);
@@ -298,9 +317,10 @@ namespace SmartImage.Engines.SauceNao
 					.OrderByDescending(e => e.Similarity);
 
 
-				if (!ordered.Any()) {
+				if (!ordered.Any())
+				{
 					// No good results
-					
+
 					result.Filter = true;
 					return result;
 				}
@@ -312,17 +332,19 @@ namespace SmartImage.Engines.SauceNao
 				result.UpdateFrom(best);
 
 				result.Characters = character;
-				result.Artist     = creator;
-				result.Source     = material;
+				result.Artist = creator;
+				result.Source = material;
 
 				result.AddExtendedResults(extended);
 
-				if (!String.IsNullOrWhiteSpace(m_apiKey)) {
+				if (!String.IsNullOrWhiteSpace(m_apiKey))
+				{
 					result.Metadata.Add("API", m_apiKey);
 				}
 
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				Debug.WriteLine($"SauceNao error: {e.StackTrace}");
 				result.AddErrorMessage(e.Message);
 			}

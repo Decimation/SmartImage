@@ -1,14 +1,11 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using SimpleCore.Net;
+using SmartImage.Searching;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using HtmlAgilityPack;
-using SimpleCore.Net;
-using SmartImage.Searching;
 
 #nullable enable
 namespace SmartImage.Engines.Other
@@ -31,62 +28,65 @@ namespace SmartImage.Engines.Other
 
 			var sr = base.GetResult(url);
 
-			
 
-			try {
+
+			try
+			{
 
 				string? html = Network.GetString(sr.RawUrl!);
-				var     doc  = new HtmlDocument();
+				var doc = new HtmlDocument();
 				doc.LoadHtml(html);
 
 				var documentNode = doc.DocumentNode;
 
 				var findings = documentNode.SelectNodes("//*[contains(@class, 'findings-row')]");
 
-				if (findings == null || !findings.Any()) {
+				if (findings == null || !findings.Any())
+				{
 					sr.Filter = true;
 					return sr;
 				}
 
 				//Debug.WriteLine(findings.Count);
 
-				var list = new List<ISearchResult>();
+				var list = new List<BaseSearchResult>();
 				long distl;
-				for (int i = 0; i < findings.Count; i++) {
+				for (int i = 0; i < findings.Count; i++)
+				{
 
 
 					var sub = findings[i].SelectNodes("td");
 
-					var imgNode       = sub[0];
-					var distNode      = sub[1];
-					var scoreNode     = sub[2];
-					var postedNode    = sub[3];
-					var titleNode     = sub[4];
-					var authorNode    = sub[5];
+					var imgNode = sub[0];
+					var distNode = sub[1];
+					var scoreNode = sub[2];
+					var postedNode = sub[3];
+					var titleNode = sub[4];
+					var authorNode = sub[5];
 					var subredditNode = sub[6];
 
 
-					string? dist      = distNode.InnerText;
-					string? score     = scoreNode.InnerText;
-					string? posted    = postedNode.InnerText;
-					string? title     = titleNode.InnerText;
-					string? author    = authorNode.InnerText;
+					string? dist = distNode.InnerText;
+					string? score = scoreNode.InnerText;
+					string? posted = postedNode.InnerText;
+					string? title = titleNode.InnerText;
+					string? author = authorNode.InnerText;
 					string? subreddit = subredditNode.InnerText;
 
 					distl = long.Parse(dist);
 
 					string link = titleNode.FirstChild.Attributes["href"].DeEntitizeValue;
 
-					var bsr = new BasicSearchResult
+					var bsr = new BaseSearchResult
 					{
-						Artist      = author,
+						Artist = author,
 						Description = title,
-						Source      = subreddit,
-						Url         = link,
+						Source = subreddit,
+						Url = link,
 						Date = DateTime.Parse(posted)
 					};
 
-					
+
 
 					list.Add(bsr);
 
@@ -102,7 +102,8 @@ namespace SmartImage.Engines.Other
 				sr.AddExtendedResults(list.ToArray());
 
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				// ...
 				sr.AddErrorMessage(e.Message);
 			}

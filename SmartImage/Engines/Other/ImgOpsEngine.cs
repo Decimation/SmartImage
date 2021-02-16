@@ -1,10 +1,9 @@
-using System.Drawing;
-using Novus.Utilities;
 using Novus.Win32;
 using RestSharp;
 using SimpleCore.Cli;
 using SimpleCore.Numeric;
 using SimpleCore.Utilities;
+using System.Drawing;
 
 #nullable enable
 namespace SmartImage.Engines.Other
@@ -46,7 +45,8 @@ namespace SmartImage.Engines.Other
 			double fileSizeMegabytes =
 				MathHelper.ConvertToUnit(FileSystem.GetFileSize(img), MetricUnit.Mega);
 
-			if (fileSizeMegabytes >= MAX_FILE_SIZE_MB) {
+			if (fileSizeMegabytes >= MAX_FILE_SIZE_MB)
+			{
 				NConsole.WriteError("File size too large");
 				return null;
 			}

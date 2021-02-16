@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
-using Novus.Win32;
+﻿using Novus.Win32;
 using SimpleCore.Cli;
+using System;
+using System.Linq;
 
 namespace SmartImage.Core
 {
@@ -31,7 +31,8 @@ namespace SmartImage.Core
 		{
 			get
 			{
-				try {
+				try
+				{
 					var cmd = Command.Shell(@$"reg query {REG_SHELL_CMD}");
 
 					cmd.Start();
@@ -42,7 +43,8 @@ namespace SmartImage.Core
 
 					return b;
 				}
-				catch (Exception) {
+				catch (Exception)
+				{
 					return null;
 				}
 			}
@@ -53,8 +55,10 @@ namespace SmartImage.Core
 		/// </summary>
 		internal static bool HandleContextMenu(IntegrationOption option)
 		{
-			try {
-				switch (option) {
+			try
+			{
+				switch (option)
+				{
 					case IntegrationOption.Add:
 
 						string fullPath = Info.ExeLocation;
@@ -88,7 +92,8 @@ namespace SmartImage.Core
 
 				return true;
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				NConsole.WriteError("Context menu error: {0}", e.Message);
 				NConsole.WaitForSecond();
 				return false;
@@ -105,17 +110,20 @@ namespace SmartImage.Core
 
 			bool? legacy = IsContextMenuAdded;
 
-			if (!legacy.HasValue) {
+			if (!legacy.HasValue)
+			{
 				NConsole.WriteError("Could not check for legacy features");
 				return false;
 			}
 
-			if (legacy.Value && !Integration.IsContextMenuAdded) {
+			if (legacy.Value && !Integration.IsContextMenuAdded)
+			{
 				NConsole.WriteInfo("Cleaning up legacy features...");
 
 				bool ok = HandleContextMenu(IntegrationOption.Remove);
 
-				if (ok) {
+				if (ok)
+				{
 					NConsole.WriteSuccess("Removed legacy context menu");
 				}
 

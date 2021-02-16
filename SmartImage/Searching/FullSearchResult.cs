@@ -27,9 +27,8 @@ namespace SmartImage.Searching
 	/// <summary>
 	///     Represents a complete search result
 	/// </summary>
-	/// <seealso cref="ISearchResult"/>
-	/// <seealso cref="BasicSearchResult"/>
-	public sealed class FullSearchResult : NConsoleOption, ISearchResult, IComparable<FullSearchResult>
+	/// <seealso cref="BaseSearchResult"/>
+	public sealed class FullSearchResult : BaseSearchResult, NConsoleOption, IComparable<FullSearchResult>
 	{
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
@@ -75,30 +74,31 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
 		/// </summary>
-		public override NConsoleFunction? AltFunction
+		public NConsoleFunction? AltFunction
 		{
 			get
 			{
 				return () =>
 				{
-					if (!Enumerable.Any<FullSearchResult>(ExtendedResults)) {
+					if (!ExtendedResults.Any()) {
 						return null;
 					}
 
-					NConsole.ReadOptions<FullSearchResult>(ExtendedResults);
+					NConsole.ReadOptions(ExtendedResults);
 
 					return null;
 				};
 			}
+			set { }
 		}
 
-		public override Color Color { get; set; }
+		public Color Color { get; set; }
 
 		/// <summary>
 		///     Downloads result (<see cref="Url" />) and opens it in Explorer with the file highlighted.
 		/// </summary>
 		/// <remarks>(Ideally, <see cref="Url" /> is a direct image link)</remarks>
-		public override NConsoleFunction CtrlFunction
+		public NConsoleFunction CtrlFunction
 		{
 			get
 			{
@@ -130,10 +130,15 @@ namespace SmartImage.Searching
 					return null;
 				};
 			}
+			set { }
 		}
 
 
-		public override string Data => ToString();
+		public string Data
+		{
+			get => ToString();
+			set { }
+		}
 
 		/// <summary>
 		///     Additional information about the image, results, and other related metadata
@@ -147,9 +152,9 @@ namespace SmartImage.Searching
 		public List<FullSearchResult> ExtendedResults { get; }
 
 		/// <summary>
-		///     Opens <see cref="Url" /> in browser
+		///     Opens <see cref="BaseSearchResult.Url" /> in browser
 		/// </summary>
-		public override NConsoleFunction Function
+		public NConsoleFunction Function
 		{
 			get
 			{
@@ -168,12 +173,13 @@ namespace SmartImage.Searching
 					return null;
 				};
 			}
+			set { }
 		}
 
 		/// <summary>
 		///     Opens <see cref="RawUrl" /> in browser, if available
 		/// </summary>
-		public override NConsoleFunction ComboFunction
+		public NConsoleFunction ComboFunction
 		{
 			get
 			{
@@ -189,13 +195,14 @@ namespace SmartImage.Searching
 					return null;
 				};
 			}
+			set { }
 		}
 
 
 		/// <summary>
 		///     Result name
 		/// </summary>
-		public override string Name { get; set; }
+		public string Name { get; set; }
 
 
 		/// <summary>
@@ -221,14 +228,17 @@ namespace SmartImage.Searching
 
 					var fraction = new Fraction(Width.Value, Height.Value);
 
+					const char FRAC  = '/';
+					const char COLON = ':';
 
 					var fractionStr = fraction.ToString();
 
-					if (fractionStr == "1") {
-						fractionStr = "1:1";
+
+					if (fractionStr.Length == 1) {
+						fractionStr = fractionStr + COLON + fractionStr;
 					}
 
-					string? aspectRatio = fractionStr.Replace('/', ':');
+					string? aspectRatio = fractionStr.Replace(FRAC, COLON);
 
 
 					return aspectRatio;
@@ -242,38 +252,7 @@ namespace SmartImage.Searching
 		}
 
 
-		/// <inheritdoc cref="ISearchResult.Description" />
-		public string? Description { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Height" />
-		public int? Height { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Similarity" />
-		public float? Similarity { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Url" />
-		public string Url { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Width" />
-		public int? Width { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Filter" />
-		public bool Filter { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Artist" />
-		public string? Artist { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Source" />
-		public string? Source { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Characters" />
-		public string? Characters { get; set; }
-
-		/// <inheritdoc cref="ISearchResult.Site" />
-		public string? Site { get; set; }
-
-		public DateTime? Date          { get; set; }
-		public bool      HasResolution => Width.HasValue && Height.HasValue;
+		public bool HasResolution => Width.HasValue && Height.HasValue;
 
 		public float? PixelResolution
 		{
@@ -301,7 +280,7 @@ namespace SmartImage.Searching
 			Metadata.Add($"Error message", msg);
 		}
 
-		public void AddExtendedResults(ISearchResult[] bestImages)
+		public void AddExtendedResults(BaseSearchResult[] bestImages)
 		{
 			ExtendedResults.AddRange(CreateExtendedResults(bestImages));
 		}
@@ -373,7 +352,7 @@ namespace SmartImage.Searching
 			AppendResultInfo(sb, nameof(Site), Site);
 			AppendResultInfo(sb, nameof(Date), Date.ToString());
 
-			
+
 			foreach (var (key, value) in Metadata) {
 				AppendResultInfo(sb, key, value.ToString());
 			}
@@ -392,7 +371,7 @@ namespace SmartImage.Searching
 		{
 			if (cond && !String.IsNullOrWhiteSpace(value)) {
 
-				var newColor = Color.FromArgb(255, 180, 180, 180);
+				var newColor = Interface.ColorMain3;
 
 				if (name == nameof(Similarity) && Similarity.HasValue) {
 					newColor = SimilarityColorGradient[(int) Similarity];
@@ -405,7 +384,7 @@ namespace SmartImage.Searching
 		}
 
 
-		public void UpdateFrom(ISearchResult result)
+		public void UpdateFrom(BaseSearchResult result)
 		{
 			Url         = result.Url;
 			Similarity  = result.Similarity;
@@ -420,25 +399,16 @@ namespace SmartImage.Searching
 			Date        = result.Date;
 		}
 
-		private FullSearchResult CreateExtendedResult(ISearchResult result)
+		private FullSearchResult CreateExtendedResult(BaseSearchResult result)
 		{
-			var extendedResult = new FullSearchResult(SearchEngine, Color, Name, result.Url, result.Similarity)
-			{
-				Width       = result.Width,
-				Height      = result.Height,
-				Description = result.Description,
-				Artist      = result.Artist,
-				Source      = result.Source,
-				Characters  = result.Characters,
-				Site        = result.Site
-			};
+			var extendedResult = new FullSearchResult(SearchEngine, Color, Name, result.Url, result.Similarity);
 
-			
+			extendedResult.UpdateFrom(result);
 
 			return extendedResult;
 		}
 
-		private IEnumerable<FullSearchResult> CreateExtendedResults(IReadOnlyList<ISearchResult> results)
+		private IEnumerable<FullSearchResult> CreateExtendedResults(IReadOnlyList<BaseSearchResult> results)
 		{
 			var rg = new FullSearchResult[results.Count];
 
@@ -469,7 +439,7 @@ namespace SmartImage.Searching
 		{
 			using var bmp = (Bitmap) Image.FromStream(info.Stream);
 
-			var result = new FullSearchResult(Interface.ColorMisc2, ORIGINAL_IMAGE_NAME, info.ImageUrl)
+			var result = new FullSearchResult(Interface.ColorMain2, ORIGINAL_IMAGE_NAME, info.ImageUrl)
 			{
 				IsOriginal = true,
 				Similarity = MAX_SIMILARITY,
@@ -505,7 +475,7 @@ namespace SmartImage.Searching
 				name  = imageFile.Name;
 				bytes = FileSystem.GetFileSize(imageFile.FullName);
 
-				
+
 			}
 			else {
 				throw new SmartImageException();
@@ -524,11 +494,11 @@ namespace SmartImage.Searching
 			return result;
 		}
 
-		
-		public static ISearchResult[] FilterAndSelectBestImages(List<BasicSearchResult> rg)
+
+		public static BaseSearchResult[] FilterAndSelectBestImages(List<BaseSearchResult> rg)
 		{
 			var best = rg.OrderByDescending(i => i.FullResolution)
-				.Cast<ISearchResult>()
+				.Cast<BaseSearchResult>()
 				.ToArray();
 
 			return best;

@@ -1,16 +1,5 @@
-﻿using System;
-using System.Diagnostics;
+﻿using SmartImage.Searching;
 using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using HtmlAgilityPack;
-using RestSharp;
-using SimpleCore.Net;
-using SmartImage.Searching;
 
 namespace SmartImage.Engines.Other
 {
@@ -18,8 +7,8 @@ namespace SmartImage.Engines.Other
 	{
 		public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 		public override SearchEngineOptions Engine => SearchEngineOptions.Bing;
-		public override string              Name   => "Bing";
-		public override Color               Color  => Color.DodgerBlue;
+		public override string Name => "Bing";
+		public override Color Color => Color.DodgerBlue;
 
 		// Parsing does not seem feasible ATM
 

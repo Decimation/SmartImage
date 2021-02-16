@@ -1,16 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Xml.XPath;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
-using SmartImage.Core;
 using SmartImage.Searching;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Net;
 
 #pragma warning disable HAA0101, HAA0601, HAA0502, HAA0401
 #nullable enable
@@ -34,7 +30,8 @@ namespace SmartImage.Engines.Other
 
 			var nodes = doc.DocumentNode.SelectNodes(TAGS_XP);
 
-			if (nodes == null || !nodes.Any()) {
+			if (nodes == null || !nodes.Any())
+			{
 				return null;
 			}
 
@@ -44,7 +41,7 @@ namespace SmartImage.Engines.Other
 		}
 
 
-		private static List<BasicSearchResult> GetImages(HtmlDocument doc)
+		private static List<BaseSearchResult> GetImages(HtmlDocument doc)
 		{
 			const string TAGS_ITEM_XP = "//a[contains(@class, 'Tags-Item')]";
 
@@ -57,24 +54,32 @@ namespace SmartImage.Engines.Other
 				!sx.ParentNode.ParentNode.Attributes["class"].Value.Contains(CBIR_ITEM));
 
 
-			var images = new List<BasicSearchResult>();
+			var images = new List<BaseSearchResult>();
 
-			foreach (var siz in sizeTags) {
+			foreach (var siz in sizeTags)
+			{
 				string? link = siz.Attributes["href"].Value;
 
 				string? resText = siz.FirstChild.InnerText;
 
 				string[]? resFull = resText.Split(Formatting.MUL_SIGN);
 
-				int w        = Int32.Parse(resFull[0]);
-				int h        = Int32.Parse(resFull[1]);
+				int w = Int32.Parse(resFull[0]);
+				int h = Int32.Parse(resFull[1]);
 				int totalRes = w * h;
 
-				if (totalRes >= TOTAL_RES_MIN) {
+				if (totalRes >= TOTAL_RES_MIN)
+				{
 					var restRes = Network.GetSimpleResponse(link);
 
-					if (restRes.StatusCode != HttpStatusCode.NotFound) {
-						var yi = new BasicSearchResult(link, w, h);
+					if (restRes.StatusCode != HttpStatusCode.NotFound)
+					{
+						var yi = new BaseSearchResult()
+						{
+							Url = link,
+							Width = w,
+							Height = h,
+						};
 
 						images.Add(yi);
 					}
@@ -91,12 +96,13 @@ namespace SmartImage.Engines.Other
 
 			var sr = base.GetResult(url);
 
-			try {
+			try
+			{
 
 				// Get more info from Yandex
 
 				string? html = Network.GetString(sr.RawUrl!);
-				var     doc  = new HtmlDocument();
+				var doc = new HtmlDocument();
 				doc.LoadHtml(html);
 
 				/*
@@ -113,27 +119,30 @@ namespace SmartImage.Engines.Other
 
 				var images = GetImages(doc);
 
-				if (!images.Any()) {
+				if (!images.Any())
+				{
 					sr.Filter = true;
 					return sr;
 				}
 
-				
-				ISearchResult[] bestImages = FullSearchResult.FilterAndSelectBestImages(images);
+
+				BaseSearchResult[] bestImages = FullSearchResult.FilterAndSelectBestImages(images);
 
 				//
 				var best = images[0];
 				sr.UpdateFrom(best);
 
-				if (looksLike!=null) {
+				if (looksLike != null)
+				{
 					sr.Description = looksLike;
 				}
-				
+
 
 				sr.AddExtendedResults(bestImages);
 
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				// ...
 				sr.AddErrorMessage(e.Message);
 			}

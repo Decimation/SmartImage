@@ -19,6 +19,6 @@ namespace SmartImage.Engines.Other
 		 * https://github.com/search?p=3&q=TinEye&type=Repositories
 		 */
 
-		
+
 	}
 }

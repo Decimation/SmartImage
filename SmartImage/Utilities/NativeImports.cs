@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using Novus.Win32;
 using static Novus.Win32.Native;
 
 // ReSharper disable IdentifierTypo
@@ -24,11 +22,11 @@ namespace SmartImage.Utilities
 		[StructLayout(LayoutKind.Sequential)]
 		private struct FLASHWINFO
 		{
-			public uint            cbSize;
-			public IntPtr          hwnd;
+			public uint cbSize;
+			public IntPtr hwnd;
 			public FlashWindowType dwFlags;
-			public uint            uCount;
-			public int             dwTimeout;
+			public uint uCount;
+			public int dwTimeout;
 		}
 
 		private enum FlashWindowType : uint
@@ -69,10 +67,10 @@ namespace SmartImage.Utilities
 		{
 			var fInfo = new FLASHWINFO();
 
-			fInfo.cbSize    = Convert.ToUInt32(Marshal.SizeOf(fInfo));
-			fInfo.hwnd      = hWnd;
-			fInfo.dwFlags   = FlashWindowType.FLASHW_ALL;
-			fInfo.uCount    = 8;
+			fInfo.cbSize = Convert.ToUInt32(Marshal.SizeOf(fInfo));
+			fInfo.hwnd = hWnd;
+			fInfo.dwFlags = FlashWindowType.FLASHW_ALL;
+			fInfo.uCount = 8;
 			fInfo.dwTimeout = 75;
 
 			FlashWindowEx(ref fInfo);

@@ -1,11 +1,11 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using Novus.Win32;
 using SimpleCore.Cli;
 using SmartImage.Configuration;
+using System;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
 
 namespace SmartImage.Core
 {
@@ -29,28 +29,32 @@ namespace SmartImage.Core
 			 * New context menu
 			 */
 
-			switch (option) {
+			switch (option)
+			{
 				case IntegrationOption.Add:
 
-					RegistryKey regMenu  = null;
-					RegistryKey regCmd   = null;
-					
-					string      fullPath = Info.ExeLocation;
+					RegistryKey regMenu = null;
+					RegistryKey regCmd = null;
 
-					try {
+					string fullPath = Info.ExeLocation;
+
+					try
+					{
 						regMenu = Registry.CurrentUser.CreateSubKey(REG_SHELL);
 						regMenu?.SetValue(String.Empty, Info.NAME);
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
-						
+
 						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
 						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
 					}
-					catch (Exception ex) {
+					catch (Exception ex)
+					{
 						NConsole.WriteError("{0}", ex.Message);
 						NConsole.WaitForInput();
 						return false;
 					}
-					finally {
+					finally
+					{
 						regMenu?.Close();
 						regCmd?.Close();
 					}
@@ -58,22 +62,26 @@ namespace SmartImage.Core
 					break;
 				case IntegrationOption.Remove:
 
-					try {
+					try
+					{
 						var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
 
-						if (reg != null) {
+						if (reg != null)
+						{
 							reg.Close();
 							Registry.CurrentUser.DeleteSubKey(REG_SHELL_CMD);
 						}
 
 						reg = Registry.CurrentUser.OpenSubKey(REG_SHELL);
 
-						if (reg != null) {
+						if (reg != null)
+						{
 							reg.Close();
 							Registry.CurrentUser.DeleteSubKey(REG_SHELL);
 						}
 					}
-					catch (Exception ex) {
+					catch (Exception ex)
+					{
 						NConsole.WriteError("{0}", ex.Message);
 						NConsole.WaitForInput();
 						return false;
@@ -91,30 +99,33 @@ namespace SmartImage.Core
 
 		internal static void HandlePath(IntegrationOption option)
 		{
-			switch (option) {
+			switch (option)
+			{
 				case IntegrationOption.Add:
-				{
-					string oldValue  = FileSystem.EnvironmentPath;
-					string appFolder = Info.AppFolder;
+					{
+						string oldValue = FileSystem.EnvironmentPath;
+						string appFolder = Info.AppFolder;
 
-					if (Info.IsAppFolderInPath) {
-						return;
+						if (Info.IsAppFolderInPath)
+						{
+							return;
+						}
+
+						bool appFolderInPath = oldValue
+							.Split(FileSystem.PATH_DELIM)
+							.Any(p => p == appFolder);
+
+						string cd = Environment.CurrentDirectory;
+						string exe = Path.Combine(cd, Info.NAME_EXE);
+
+						if (!appFolderInPath)
+						{
+							string newValue = oldValue + FileSystem.PATH_DELIM + cd;
+							FileSystem.EnvironmentPath = newValue;
+						}
+
+						break;
 					}
-
-					bool appFolderInPath = oldValue
-						.Split(FileSystem.PATH_DELIM)
-						.Any(p => p == appFolder);
-
-					string cd  = Environment.CurrentDirectory;
-					string exe = Path.Combine(cd, Info.NAME_EXE);
-
-					if (!appFolderInPath) {
-						string newValue = oldValue + FileSystem.PATH_DELIM + cd;
-						FileSystem.EnvironmentPath = newValue;
-					}
-
-					break;
-				}
 				case IntegrationOption.Remove:
 					FileSystem.RemoveFromPath(Info.AppFolder);
 					break;
@@ -132,7 +143,8 @@ namespace SmartImage.Core
 
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
-			if (IsContextMenuAdded) {
+			if (IsContextMenuAdded)
+			{
 				HandleContextMenu(IntegrationOption.Remove);
 			}
 
@@ -191,7 +203,8 @@ namespace SmartImage.Core
 
 		internal static void Setup()
 		{
-			if (!Info.IsAppFolderInPath) {
+			if (!Info.IsAppFolderInPath)
+			{
 				HandlePath(IntegrationOption.Add);
 			}
 		}

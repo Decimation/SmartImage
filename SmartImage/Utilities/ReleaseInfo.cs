@@ -1,7 +1,7 @@
-using System;
-using System.Globalization;
 using Newtonsoft.Json.Linq;
 using RestSharp;
+using System;
+using System.Globalization;
 
 namespace SmartImage.Utilities
 {
@@ -30,11 +30,13 @@ namespace SmartImage.Utilities
 			major = int.Parse(versionStrSplit[0]);
 			minor = int.Parse(versionStrSplit[1]);
 
-			if (versionStrSplit.Length >= 3) {
+			if (versionStrSplit.Length >= 3)
+			{
 				build = int.Parse(versionStrSplit[2]);
 			}
 
-			if (versionStrSplit.Length >= 4) {
+			if (versionStrSplit.Length >= 4)
+			{
 				rev = int.Parse(versionStrSplit[3]);
 			}
 

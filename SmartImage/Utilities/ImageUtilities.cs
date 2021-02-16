@@ -2,15 +2,26 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Utilities
 {
 	public static class ImageUtilities
 	{
 		//todo
+
+		/*
+		 * https://stackoverflow.com/questions/35151067/algorithm-to-compare-two-images-in-c-sharp
+		 * https://stackoverflow.com/questions/23931/algorithm-to-compare-two-images
+		 * https://github.com/aetilius/pHash
+		 * http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
+		 * https://github.com/ishanjain28/perceptualhash
+		 * https://github.com/Tom64b/dHash
+		 * https://github.com/Rayraegah/dhash
+		 * https://tineye.com/faq#how
+		 * https://github.com/CrackedP0t/Tidder/
+		 * https://github.com/taurenshaman/imagehash
+		 */
 
 		public static List<bool> GetHash(Bitmap bmpSource, int height)
 		{
@@ -19,8 +30,10 @@ namespace SmartImage.Utilities
 
 			Bitmap bmpMin = new Bitmap(bmpSource, new Size(height, height));
 
-			for (int j = 0; j < bmpMin.Height; j++) {
-				for (int i = 0; i < bmpMin.Width; i++) {
+			for (int j = 0; j < bmpMin.Height; j++)
+			{
+				for (int i = 0; i < bmpMin.Width; i++)
+				{
 					//reduce colors to true / false                
 					lResult.Add(bmpMin.GetPixel(i, j).GetBrightness() < 0.5f);
 				}
@@ -34,13 +47,15 @@ namespace SmartImage.Utilities
 
 		public static List<bool> GetHash(string bmpSource, int height)
 		{
-			return GetHash((Bitmap) Image.FromFile(bmpSource), height);
+			return GetHash((Bitmap)Image.FromFile(bmpSource), height);
 		}
 
 		public static ulong Hash_d(string s, int size = 256)
 		{
 			//widthAndLength := uint(math.Ceil(math.Sqrt(float64(hashLength)/2.0)) + 1)
-			var wl = (int) (Math.Ceiling(Math.Sqrt(((float) size) / 2.0)) + 1);
+			var wl = (int)(Math.Ceiling(Math.Sqrt(((float)size) / 2.0)) + 1);
+
+			//https://stackoverflow.com/questions/2265910/convert-an-image-to-grayscale
 
 			Debug.WriteLine($"{wl}");
 
@@ -53,11 +68,13 @@ namespace SmartImage.Utilities
 			ulong h = 0;
 
 			// Loop through the images pixels to reset color.
-			for (int i = 0; i < c.Width; i++) {
-				for (int x = 0; x < c.Height; x++) {
-					Color oc        = c.GetPixel(i, x);
-					int   grayScale = (int) ((oc.R * 0.3) + (oc.G * 0.59) + (oc.B * 0.11));
-					Color nc        = Color.FromArgb(oc.A, grayScale, grayScale, grayScale);
+			for (int i = 0; i < c.Width; i++)
+			{
+				for (int x = 0; x < c.Height; x++)
+				{
+					Color oc = c.GetPixel(i, x);
+					int grayScale = (int)((oc.R * 0.3) + (oc.G * 0.59) + (oc.B * 0.11));
+					Color nc = Color.FromArgb(oc.A, grayScale, grayScale, grayScale);
 					c.SetPixel(i, x, nc);
 				}
 			}
@@ -75,9 +92,11 @@ namespace SmartImage.Utilities
 			// 	}
 			// }
 
-			for (int j = 0; j < wl; j++) {
-				for (int k = 0; k < wl; k++) {
-					var b   = (c.GetPixel(j, k).R > c.GetPixel(j + 1, k).R);
+			for (int j = 0; j < wl; j++)
+			{
+				for (int k = 0; k < wl; k++)
+				{
+					var b = (c.GetPixel(j, k).R > c.GetPixel(j + 1, k).R);
 					var bit = Convert.ToUInt64(b) << (j + k * 8);
 					h |= bit;
 				}

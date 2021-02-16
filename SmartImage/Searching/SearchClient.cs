@@ -1,18 +1,7 @@
 ﻿#nullable enable
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Media;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
-using RestSharp;
-using RestSharp.Serialization.Json;
 using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -23,6 +12,13 @@ using SmartImage.Engines.Other;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Utilities;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Media;
+using System.Text;
+using System.Threading.Tasks;
 using static SimpleCore.Cli.NConsoleOption;
 using static SmartImage.Core.Info;
 using static SmartImage.Core.Interface;
@@ -38,8 +34,8 @@ namespace SmartImage.Searching
 	{
 		private static readonly string InterfacePrompt =
 			$"Enter the option number to open or {NConsole.NC_GLOBAL_EXIT_KEY} to exit.\n" +
-			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                       +
-			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                            +
+			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n" +
+			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n" +
 			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
 
 
@@ -75,7 +71,7 @@ namespace SmartImage.Searching
 			Interface = new NConsoleInterface(Results)
 			{
 				SelectMultiple = false,
-				Prompt         = InterfacePrompt
+				Prompt = InterfacePrompt
 			};
 		}
 
@@ -126,7 +122,8 @@ namespace SmartImage.Searching
 
 			int len = SearchTasks.Count;
 
-			while (SearchTasks.Any()) {
+			while (SearchTasks.Any())
+			{
 				Task<FullSearchResult> finished = await Task.WhenAny(SearchTasks);
 				SearchTasks.Remove(finished);
 
@@ -135,7 +132,8 @@ namespace SmartImage.Searching
 				Results.Add(result);
 
 				// If the engine is priority, open its result in the browser
-				if (result.IsPriority) {
+				if (result.IsPriority)
+				{
 					result.HandlePriorityResult();
 				}
 
@@ -153,7 +151,7 @@ namespace SmartImage.Searching
 			 * Search is complete
 			 */
 
-			Complete         = true;
+			Complete = true;
 			Interface.Status = "Search complete";
 			NConsole.Refresh();
 
@@ -171,7 +169,8 @@ namespace SmartImage.Searching
 			//NativeImports.BringConsoleToFront();
 
 
-			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
+			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto)
+			{
 				// Results will already be sorted
 				// Open best result
 
@@ -200,21 +199,23 @@ namespace SmartImage.Searching
 			//todo
 			string d = "";
 
-			try {
-				var uri  = new Uri(s);
+			try
+			{
+				var uri = new Uri(s);
 				var host = uri.Host;
 
 
-				var doc  = new HtmlDocument();
+				var doc = new HtmlDocument();
 				var html = Network.GetSimpleResponse(s);
 
-				if (host.Contains("danbooru")) {
+				if (host.Contains("danbooru"))
+				{
 					Debug.WriteLine("danbooru");
 
 
 					var jobj = JObject.Parse(html.Content);
 
-					d = (string) jobj["file_url"];
+					d = (string)jobj["file_url"];
 
 
 					return d;
@@ -226,7 +227,8 @@ namespace SmartImage.Searching
 
 				var nodes = doc.DocumentNode.SelectNodes(sel);
 
-				if (nodes == null) {
+				if (nodes == null)
+				{
 					return null;
 				}
 
@@ -235,7 +237,8 @@ namespace SmartImage.Searching
 
 
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				Debug.WriteLine($"direct {e.Message}");
 				return d;
 			}
@@ -284,7 +287,8 @@ namespace SmartImage.Searching
 		public ImageInputInfo? ResolveUploadUrl(string imageInput)
 		{
 
-			if (!ImageInputInfo.TryCreate(imageInput, out var info)) {
+			if (!ImageInputInfo.TryCreate(imageInput, out var info))
+			{
 				return null;
 			}
 
@@ -294,12 +298,13 @@ namespace SmartImage.Searching
 
 			string? imgUrl;
 
-			if (!info.IsUrl) {
+			if (!info.IsUrl)
+			{
 				/*
 				 * Show settings 
 				 */
 				var sb = new StringBuilder();
-				sb.AppendColor(ColorPrimary, NAME_BANNER);
+				sb.AppendColor(ColorMain1, NAME_BANNER);
 				sb.Append(SearchConfig.Config);
 
 				sb.AppendLine();
@@ -319,7 +324,8 @@ namespace SmartImage.Searching
 
 				imgUrl = imgUrl1;
 			}
-			else {
+			else
+			{
 				imgUrl = imageInput;
 			}
 
