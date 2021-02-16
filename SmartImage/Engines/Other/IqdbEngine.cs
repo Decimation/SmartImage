@@ -139,7 +139,7 @@ namespace SmartImage.Engines.Other
 
 				var best = images[0];
 				sr.UpdateFrom(best);
-				sr.AddExtendedResults(images.ToArray());
+				sr.AddExtendedResults(images);
 			}
 			catch (Exception e)
 			{

@@ -11,7 +11,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		/// Url
 		/// </summary>
-		public virtual string Url { get; set; } //todo
+		public virtual string? Url { get; set; }
 
 		/// <summary>
 		/// Similarity
@@ -67,6 +67,11 @@ namespace SmartImage.Searching
 		///     Full image resolution
 		/// </summary>
 		public virtual int? FullResolution => Width * Height;
+
+		/// <summary>
+		///     Result name
+		/// </summary>
+		public virtual string? Name { get; set; }
 
 		public BaseSearchResult()
 		{

@@ -310,11 +310,12 @@ namespace SmartImage.Engines.SauceNao
 				string? material = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
 
 
-				var extended = ConvertDataResults(orig);
+				var extended = ConvertDataResults(orig).ToList();
 
 				var ordered = extended
 					.Where(e => e.Url != null)
-					.OrderByDescending(e => e.Similarity);
+					.OrderByDescending(e => e.Similarity)
+					.ToList();
 
 
 				if (!ordered.Any())

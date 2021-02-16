@@ -1,5 +1,12 @@
 ﻿#nullable enable
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Media;
+using System.Text;
+using System.Threading.Tasks;
 using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using SimpleCore.Cli;
@@ -12,16 +19,11 @@ using SmartImage.Engines.Other;
 using SmartImage.Engines.SauceNao;
 using SmartImage.Engines.TraceMoe;
 using SmartImage.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Media;
-using System.Text;
-using System.Threading.Tasks;
 using static SimpleCore.Cli.NConsoleOption;
 using static SmartImage.Core.Info;
 using static SmartImage.Core.Interface;
+
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable ConvertIfStatementToReturnStatement
 
@@ -34,14 +36,21 @@ namespace SmartImage.Searching
 	{
 		private static readonly string InterfacePrompt =
 			$"Enter the option number to open or {NConsole.NC_GLOBAL_EXIT_KEY} to exit.\n" +
-			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n" +
-			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n" +
+			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                       +
+			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                            +
 			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
 
 
 		private SearchClient(string imgInput)
 		{
 			//
+
+			EngineOptions = SearchConfig.Config.SearchEngines;
+
+			SearchEngines = GetAllEngines()
+				.Where(e => EngineOptions.HasFlag(e.Engine))
+				.ToArray();
+
 
 			UploadEngine = SearchConfig.Config.UseImgur ? new ImgurClient() : new ImgOpsEngine();
 
@@ -50,36 +59,38 @@ namespace SmartImage.Searching
 
 			ImageInfo = imageInfo ?? throw new SmartImageException("Image invalid or upload failed");
 
-			Original = FullSearchResult.GetOriginalImageResult(ImageInfo);
+			OriginalImageResult = FullSearchResult.GetOriginalImageResult(ImageInfo);
 
 			SearchConfig.Config.EnsureConfig();
 
-			Results = new List<FullSearchResult>
-			{
-				Original
-			};
+			//
 
+			Results = CreateSearchResults();
 
-			Engines = SearchConfig.Config.SearchEngines;
 
 			//
 
 			SearchTasks = CreateSearchTasks();
 
-			Complete = false;
+			IsComplete = false;
 
+			//
 			Interface = new NConsoleInterface(Results)
 			{
 				SelectMultiple = false,
-				Prompt = InterfacePrompt
+				Prompt         = InterfacePrompt
 			};
 		}
+
 
 		/// <summary>
 		///     <see cref="SearchConfig.SearchEngines" />
 		/// </summary>
-		private SearchEngineOptions Engines { get; }
+		private SearchEngineOptions EngineOptions { get; }
 
+		/// <summary>
+		///     Image input
+		/// </summary>
 		private ImageInputInfo ImageInfo { get; }
 
 
@@ -92,7 +103,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Whether the search is complete
 		/// </summary>
-		public bool Complete { get; private set; }
+		public bool IsComplete { get; private set; }
 
 		/// <summary>
 		///     Searching client
@@ -109,7 +120,34 @@ namespace SmartImage.Searching
 		/// </summary>
 		public NConsoleInterface Interface { get; }
 
+		/// <summary>
+		///     Upload engine
+		/// </summary>
 		public IUploadEngine UploadEngine { get; }
+
+
+		/// <summary>
+		///     Original image result
+		/// </summary>
+		private FullSearchResult OriginalImageResult { get; }
+
+		/// <summary>
+		/// Search engines
+		/// </summary>
+		private IList<BaseSearchEngine> SearchEngines { get; }
+
+		private List<FullSearchResult> CreateSearchResults()
+		{
+			var results = new List<FullSearchResult>
+			{
+				OriginalImageResult
+			};
+
+			// hack: add stub results
+			results.AddRange(SearchEngines.Select(e => new FullSearchResult(e, null) {Name = e.Name}));
+
+			return results;
+		}
 
 
 		/// <summary>
@@ -117,25 +155,26 @@ namespace SmartImage.Searching
 		/// </summary>
 		public async void Start()
 		{
-
-			NConsole.Resize(Core.Interface.ResultsWindowWidth, Core.Interface.ResultsWindowHeight);
+			NConsole.AutoResizeHeight = true;
 
 			int len = SearchTasks.Count;
 
-			while (SearchTasks.Any())
-			{
+			while (SearchTasks.Any()) {
 				Task<FullSearchResult> finished = await Task.WhenAny(SearchTasks);
 				SearchTasks.Remove(finished);
 
 				var result = finished.Result;
 
-				Results.Add(result);
+				// hack: update stub with full result
+				Results.Replace(r => r.Name == result.Name, result);
+
 
 				// If the engine is priority, open its result in the browser
-				if (result.IsPriority)
-				{
-					result.HandlePriorityResult();
+				if (result.IsPriority) {
+					result.HandleResultOpen();
 				}
+
+				// Update
 
 				int inProgress = len - SearchTasks.Count;
 
@@ -151,7 +190,7 @@ namespace SmartImage.Searching
 			 * Search is complete
 			 */
 
-			Complete = true;
+			IsComplete       = true;
 			Interface.Status = "Search complete";
 			NConsole.Refresh();
 
@@ -169,53 +208,37 @@ namespace SmartImage.Searching
 			//NativeImports.BringConsoleToFront();
 
 
-			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto)
-			{
+			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
 				// Results will already be sorted
 				// Open best result
 
 				var best = Results[1];
 
-				best.HandlePriorityResult();
+				best.HandleResultOpen();
 			}
-
-			/*
-			 *
-			 */
-
-
-			Results.Sort();
-			NConsole.Refresh();
 
 		}
 
-		/// <summary>
-		/// Original image result
-		/// </summary>
-		public FullSearchResult Original { get; }
-
-		public static string ResolveDirectLink(string s)
+		public static string? ResolveDirectLink(string s)
 		{
 			//todo
 			string d = "";
 
-			try
-			{
-				var uri = new Uri(s);
-				var host = uri.Host;
+			try {
+				var     uri  = new Uri(s);
+				string? host = uri.Host;
 
 
-				var doc = new HtmlDocument();
+				var doc  = new HtmlDocument();
 				var html = Network.GetSimpleResponse(s);
 
-				if (host.Contains("danbooru"))
-				{
+				if (host.Contains("danbooru")) {
 					Debug.WriteLine("danbooru");
 
 
-					var jobj = JObject.Parse(html.Content);
+					var jObject = JObject.Parse(html.Content);
 
-					d = (string)jobj["file_url"];
+					d = (string) jObject["file_url"]!;
 
 
 					return d;
@@ -223,12 +246,11 @@ namespace SmartImage.Searching
 
 				doc.LoadHtml(html.Content);
 
-				var sel = "//img";
+				string? sel = "//img";
 
 				var nodes = doc.DocumentNode.SelectNodes(sel);
 
-				if (nodes == null)
-				{
+				if (nodes == null) {
 					return null;
 				}
 
@@ -237,8 +259,7 @@ namespace SmartImage.Searching
 
 
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Debug.WriteLine($"direct {e.Message}");
 				return d;
 			}
@@ -249,11 +270,7 @@ namespace SmartImage.Searching
 
 		private List<Task<FullSearchResult>> CreateSearchTasks()
 		{
-			var availableEngines = GetAllEngines()
-				.Where(e => Engines.HasFlag(e.Engine))
-				.ToArray();
-
-			return availableEngines.Select(currentEngine => Task.Run(() => currentEngine.GetResult(ImageInfo.ImageUrl)))
+			return SearchEngines.Select(currentEngine => Task.Run(() => currentEngine.GetResult(ImageInfo.ImageUrl)))
 				.ToList();
 		}
 
@@ -284,11 +301,10 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Handles image input (either a URL or path) and returns the corresponding image URL
 		/// </summary>
-		public ImageInputInfo? ResolveUploadUrl(string imageInput)
+		private ImageInputInfo? ResolveUploadUrl(string imageInput)
 		{
 
-			if (!ImageInputInfo.TryCreate(imageInput, out var info))
-			{
+			if (!ImageInputInfo.TryCreate(imageInput, out var info)) {
 				return null;
 			}
 
@@ -298,8 +314,7 @@ namespace SmartImage.Searching
 
 			string? imgUrl;
 
-			if (!info.IsUrl)
-			{
+			if (!info.IsUrl) {
 				/*
 				 * Show settings 
 				 */
@@ -324,8 +339,7 @@ namespace SmartImage.Searching
 
 				imgUrl = imgUrl1;
 			}
-			else
-			{
+			else {
 				imgUrl = imageInput;
 			}
 

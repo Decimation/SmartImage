@@ -30,8 +30,7 @@ namespace SmartImage.Engines.Other
 
 			var nodes = doc.DocumentNode.SelectNodes(TAGS_XP);
 
-			if (nodes == null || !nodes.Any())
-			{
+			if (nodes == null || !nodes.Any()) {
 				return null;
 			}
 
@@ -56,28 +55,25 @@ namespace SmartImage.Engines.Other
 
 			var images = new List<BaseSearchResult>();
 
-			foreach (var siz in sizeTags)
-			{
+			foreach (var siz in sizeTags) {
 				string? link = siz.Attributes["href"].Value;
 
 				string? resText = siz.FirstChild.InnerText;
 
 				string[]? resFull = resText.Split(Formatting.MUL_SIGN);
 
-				int w = Int32.Parse(resFull[0]);
-				int h = Int32.Parse(resFull[1]);
+				int w        = Int32.Parse(resFull[0]);
+				int h        = Int32.Parse(resFull[1]);
 				int totalRes = w * h;
 
-				if (totalRes >= TOTAL_RES_MIN)
-				{
+				if (totalRes >= TOTAL_RES_MIN) {
 					var restRes = Network.GetSimpleResponse(link);
 
-					if (restRes.StatusCode != HttpStatusCode.NotFound)
-					{
+					if (restRes.StatusCode != HttpStatusCode.NotFound) {
 						var yi = new BaseSearchResult()
 						{
-							Url = link,
-							Width = w,
+							Url    = link,
+							Width  = w,
 							Height = h,
 						};
 
@@ -96,13 +92,12 @@ namespace SmartImage.Engines.Other
 
 			var sr = base.GetResult(url);
 
-			try
-			{
+			try {
 
 				// Get more info from Yandex
 
 				string? html = Network.GetString(sr.RawUrl!);
-				var doc = new HtmlDocument();
+				var     doc  = new HtmlDocument();
 				doc.LoadHtml(html);
 
 				/*
@@ -112,28 +107,26 @@ namespace SmartImage.Engines.Other
 				string? looksLike = GetAnalysis(doc);
 
 
-
 				/*
 				 * Find and sort through high resolution image matches
 				 */
 
 				var images = GetImages(doc);
 
-				if (!images.Any())
-				{
+				if (!images.Any()) {
 					sr.Filter = true;
 					return sr;
 				}
 
 
-				BaseSearchResult[] bestImages = FullSearchResult.FilterAndSelectBestImages(images);
+				var best1      = images.OrderByDescending(i => i.FullResolution);
+				var bestImages = best1.ToList();
 
 				//
 				var best = images[0];
 				sr.UpdateFrom(best);
 
-				if (looksLike != null)
-				{
+				if (looksLike != null) {
 					sr.Description = looksLike;
 				}
 
@@ -141,8 +134,7 @@ namespace SmartImage.Engines.Other
 				sr.AddExtendedResults(bestImages);
 
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				// ...
 				sr.AddErrorMessage(e.Message);
 			}

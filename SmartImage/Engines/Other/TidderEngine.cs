@@ -99,7 +99,7 @@ namespace SmartImage.Engines.Other
 
 				sr.UpdateFrom(best);
 
-				sr.AddExtendedResults(list.ToArray());
+				sr.AddExtendedResults(list);
 
 			}
 			catch (Exception e)

@@ -2,6 +2,7 @@ using RestSharp;
 using SmartImage.Searching;
 using System;
 using System.Drawing;
+using System.Linq;
 using System.Net;
 
 namespace SmartImage.Engines.TraceMoe
@@ -79,7 +80,7 @@ namespace SmartImage.Engines.TraceMoe
 
 				try
 				{
-					var results = ConvertResults(tm);
+					var results = ConvertResults(tm).ToList();
 					var best = results[0];
 
 					r = new FullSearchResult(this, best.Url, best.Similarity)
