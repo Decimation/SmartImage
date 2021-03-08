@@ -92,13 +92,18 @@ namespace SmartImage.Engines
 
 
 		/// <summary>
-		/// <seealso cref="Engines.Other.TidderEngine"/>
+		/// <see cref="Engines.Other.TidderEngine"/>
 		/// </summary>
 		Tidder = 1 << 10,
 
 		/// <summary>
+		/// <see cref="Engines.Other.Ascii2DEngine"/>
+		/// </summary>
+		Ascii2D = 1 << 11,
+
+		/// <summary>
 		/// All engines
 		/// </summary>
-		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing | Tidder
+		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing | Tidder | Ascii2D
 	}
 }

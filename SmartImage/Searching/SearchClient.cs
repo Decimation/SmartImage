@@ -294,7 +294,8 @@ namespace SmartImage.Searching
 				new TinEyeEngine(),
 				new BingEngine(),
 				new KarmaDecayEngine(),
-				new TidderEngine()
+				new TidderEngine(),
+				new Ascii2DEngine()
 			};
 		}
 
