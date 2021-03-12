@@ -32,8 +32,13 @@ namespace SmartImage.Engines.Other
 
 			try
 			{
-
-				string? html = Network.GetString(sr.RawUrl!);
+				if (!Network.TryGetString(sr.RawUrl!, out  var html)) {
+					sr.RawUrl = null;
+					sr.Url    = null;
+					sr.AddErrorMessage("Unavailable");
+					return sr;
+				}
+				
 				var doc = new HtmlDocument();
 				doc.LoadHtml(html);
 

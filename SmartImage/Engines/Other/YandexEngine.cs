@@ -4,6 +4,7 @@ using SimpleCore.Utilities;
 using SmartImage.Searching;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net;
@@ -26,7 +27,7 @@ namespace SmartImage.Engines.Other
 
 		private static string? GetAnalysis(HtmlDocument doc)
 		{
-			const string TAGS_XP = "//div[contains(@class, 'Tags_type_simple')]/*";
+			const string TAGS_XP = "//a[contains(@class, 'Tags-Item') and ../../../../div[contains(@class,'CbirTags')]]/*";
 
 			var nodes = doc.DocumentNode.SelectNodes(TAGS_XP);
 
@@ -60,7 +61,18 @@ namespace SmartImage.Engines.Other
 
 				string? resText = siz.FirstChild.InnerText;
 
-				string[]? resFull = resText.Split(Formatting.MUL_SIGN);
+				Debug.WriteLine($"{resText}");
+
+				// todo
+
+				string[] resFull = resText.Split(Formatting.MUL_SIGN);
+
+				if (resFull.Length==1&&resFull[0]==resText) {
+					Debug.WriteLine($"Skipping {resText}");
+					continue;
+					
+				}
+
 
 				int w        = Int32.Parse(resFull[0]);
 				int h        = Int32.Parse(resFull[1]);
@@ -97,7 +109,19 @@ namespace SmartImage.Engines.Other
 				// Get more info from Yandex
 
 				string? html = Network.GetString(sr.RawUrl!);
-				var     doc  = new HtmlDocument();
+
+
+				// Automation detected
+				const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
+
+
+				if (html.Contains(AUTOMATION_ERROR_MSG)) {
+					sr.AddErrorMessage("Yandex requests exceeded; on cooldown");
+					return sr;
+				}
+
+				
+				var doc  = new HtmlDocument();
 				doc.LoadHtml(html);
 
 				/*

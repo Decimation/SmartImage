@@ -374,7 +374,6 @@ namespace SmartImage.Core
 			@"..\..\..\..\Test2.jpg",
 			@"..\..\..\..\Test3.png",
 			@"C:\Users\Deci\Pictures\fucking_epic.jpg",
-			"https://kemono.party/files/224580/46935364/beidou_800.jpg",
 			"https://i.imgur.com/QtCausw.jpg"
 		};
 

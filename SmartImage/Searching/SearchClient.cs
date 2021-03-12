@@ -54,12 +54,24 @@ namespace SmartImage.Searching
 
 			UploadEngine = SearchConfig.Config.UseImgur ? new ImgurClient() : new ImgOpsEngine();
 
+			/*
+			 *
+			 */
+
+			
 
 			var imageInfo = ResolveUploadUrl(imgInput);
+
+			
 
 			ImageInfo = imageInfo ?? throw new SmartImageException("Image invalid or upload failed");
 
 			OriginalImageResult = FullSearchResult.GetOriginalImageResult(ImageInfo);
+			
+
+			/*
+			 *
+			 */
 
 			SearchConfig.Config.EnsureConfig();
 
@@ -270,8 +282,18 @@ namespace SmartImage.Searching
 
 		private List<Task<FullSearchResult>> CreateSearchTasks()
 		{
-			return SearchEngines.Select(currentEngine => Task.Run(() => currentEngine.GetResult(ImageInfo.ImageUrl)))
-				.ToList();
+			return SearchEngines.Select(currentEngine => Task.Run(delegate
+			{
+				var sw = Stopwatch.StartNew();
+
+				var result = currentEngine.GetResult(ImageInfo.ImageUrl);
+
+				sw.Stop();
+
+				result.Elapsed = sw.Elapsed;
+
+				return result;
+			})).ToList();
 		}
 
 
@@ -282,13 +304,10 @@ namespace SmartImage.Searching
 		{
 			return new BaseSearchEngine[]
 			{
-				//
 				new SauceNaoEngine(),
 				new IqdbEngine(),
 				new YandexEngine(),
 				new TraceMoeEngine(),
-
-				//
 				new ImgOpsEngine(),
 				new GoogleImagesEngine(),
 				new TinEyeEngine(),
@@ -330,8 +349,13 @@ namespace SmartImage.Searching
 				 */
 				sb.AppendLine("Uploading image");
 
+				var    sw      = Stopwatch.StartNew();
+
 				string imgUrl1 = UploadEngine.Upload(imageInput);
 
+				sw.Stop();
+
+				info.UploadElapsed = sw.Elapsed;
 
 				sb.AppendLine($"Temporary image url: {imgUrl1}");
 

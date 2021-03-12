@@ -68,7 +68,6 @@ namespace SmartImage.Searching
 		public bool IsPriority => !IsOriginal && SearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
 		                          SearchEngine.Engine != SearchEngineOptions.None;
 
-
 		/// <summary>
 		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
 		/// </summary>
@@ -207,6 +206,10 @@ namespace SmartImage.Searching
 		/// </summary>
 		public bool IsOriginal { get; set; }
 
+		public bool IsUnavailable => RawUrl == null && Url == null;
+
+		public TimeSpan? Elapsed { get; set; }
+
 		[CanBeNull]
 
 		public string AspectRatio
@@ -307,7 +310,8 @@ namespace SmartImage.Searching
 			Date        = result.Date;
 		}
 
-		public void AddExtendedResults(List<BaseSearchResult> bestImages) => ExtendedResults.AddRange(CreateExtendedResults(bestImages));
+		public void AddExtendedResults(List<BaseSearchResult> bestImages) =>
+			ExtendedResults.AddRange(CreateExtendedResults(bestImages));
 
 		private FullSearchResult CreateExtendedResult(BaseSearchResult result)
 		{
@@ -342,7 +346,7 @@ namespace SmartImage.Searching
 
 		private const string ORIGINAL_IMAGE_NAME = "(Original image)";
 
-		private const float  MAX_SIMILARITY      = 100.0f;
+		private const float MAX_SIMILARITY = 100.0f;
 
 		/// <summary>
 		///     Creates a <see cref="FullSearchResult" /> for the original image
@@ -356,7 +360,8 @@ namespace SmartImage.Searching
 				IsOriginal = true,
 				Similarity = MAX_SIMILARITY,
 				Width      = bmp.Width,
-				Height     = bmp.Height
+				Height     = bmp.Height,
+				Elapsed    = info.UploadElapsed,
 
 			};
 
@@ -436,26 +441,27 @@ namespace SmartImage.Searching
 			}
 		}
 
-		public int CompareTo(FullSearchResult? y)
+		public int CompareTo(FullSearchResult? other)
 		{
-			float xSim = Similarity    ?? 0;
-			float ySim = y?.Similarity ?? 0;
+			float thisSim  = Similarity        ?? 0;
+			float otherSim = other?.Similarity ?? 0;
 
-			if (xSim > ySim) {
+			if (thisSim > otherSim) {
 				return -1;
 			}
 
-			if (xSim < ySim) {
+			if (thisSim < otherSim) {
 				return 1;
 			}
 
-			if (ExtendedResults.Count > y?.ExtendedResults.Count) {
+			if (ExtendedResults.Count > other?.ExtendedResults.Count) {
 				return -1;
 			}
 
-			if (Metadata.Count > y?.Metadata.Count) {
+			if (Metadata.Count > other?.Metadata.Count) {
 				return -1;
 			}
+
 
 			return 0;
 		}
@@ -465,8 +471,9 @@ namespace SmartImage.Searching
 			var sb = new StringBuilder();
 
 			/*
-			 * Result symbols
+			 * Result details (important)
 			 */
+
 
 			if (ExtendedResults.Any()) {
 				sb.Append($"({ExtendedResults.Count})").Append(Formatting.SPACE);
@@ -482,10 +489,29 @@ namespace SmartImage.Searching
 				sb.Append(PRIORITY).Append(Formatting.SPACE);
 			}
 
+			/*
+			 * Time elapsed
+			 *
+			 * Ignore instant results
+			 */
+
+			if (Elapsed.HasValue) {
+				var sec = Math.Round(Elapsed.Value.TotalSeconds, 3);
+
+				const double MIN_SEC = 0.1D;
+
+				if (sec > MIN_SEC && !IsUnavailable) {
+					sb.Append($"[~{sec} sec]").Append(Formatting.SPACE);
+				}
+			}
+
+
+			//
+
 			sb.AppendLine();
 
 			/*
-			 * Result details
+			 * Result details (metadata)
 			 */
 
 			AppendResultInfo(sb, "Result", Url, RawUrl != Url);

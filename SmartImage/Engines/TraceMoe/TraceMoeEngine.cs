@@ -4,6 +4,7 @@ using System;
 using System.Drawing;
 using System.Linq;
 using System.Net;
+using System.Text;
 
 namespace SmartImage.Engines.TraceMoe
 {
@@ -21,12 +22,13 @@ namespace SmartImage.Engines.TraceMoe
 			// https://soruly.github.io/trace.moe/#/
 
 			var rc = new RestClient("https://trace.moe/api/");
+			
 
 			var rq = new RestRequest("search");
 			rq.AddQueryParameter("url", url);
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 			rq.RequestFormat = DataFormat.Json;
-
+			
 			var re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
 			code = re.StatusCode;
@@ -105,7 +107,7 @@ namespace SmartImage.Engines.TraceMoe
 			{
 				r = base.GetResult(url);
 
-				r.Metadata.Add("API", $"Error ({code})");
+				r.AddErrorMessage(msg);
 			}
 
 
