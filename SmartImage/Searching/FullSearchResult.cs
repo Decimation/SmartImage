@@ -446,6 +446,7 @@ namespace SmartImage.Searching
 			float thisSim  = Similarity        ?? 0;
 			float otherSim = other?.Similarity ?? 0;
 
+
 			if (thisSim > otherSim) {
 				return -1;
 			}
@@ -461,6 +462,10 @@ namespace SmartImage.Searching
 			if (Metadata.Count > other?.Metadata.Count) {
 				return -1;
 			}
+
+			// if (!Filter&& other!=null&& other.Filter) {
+			// 	return -1;
+			// }
 
 
 			return 0;

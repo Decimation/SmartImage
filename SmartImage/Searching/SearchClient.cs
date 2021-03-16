@@ -58,16 +58,14 @@ namespace SmartImage.Searching
 			 *
 			 */
 
-			
 
 			var imageInfo = ResolveUploadUrl(imgInput);
 
-			
 
 			ImageInfo = imageInfo ?? throw new SmartImageException("Image invalid or upload failed");
 
 			OriginalImageResult = FullSearchResult.GetOriginalImageResult(ImageInfo);
-			
+
 
 			/*
 			 *
@@ -92,6 +90,7 @@ namespace SmartImage.Searching
 				SelectMultiple = false,
 				Prompt         = InterfacePrompt
 			};
+
 		}
 
 
@@ -120,7 +119,7 @@ namespace SmartImage.Searching
 		/// <summary>
 		///     Searching client
 		/// </summary>
-		public static SearchClient Client { get; } = new(SearchConfig.Config.ImageInput);
+		public static SearchClient Client { get; private set; } = new(SearchConfig.Config.ImageInput);
 
 		/// <summary>
 		///     Search results
@@ -161,6 +160,10 @@ namespace SmartImage.Searching
 			return results;
 		}
 
+		public static void Reset()
+		{
+			Client = new SearchClient(SearchConfig.Config.ImageInput);
+		}
 
 		/// <summary>
 		///     Starts search and handles results
@@ -191,6 +194,21 @@ namespace SmartImage.Searching
 				int inProgress = len - SearchTasks.Count;
 
 				Interface.Status = $"Searching: {inProgress}/{len}";
+
+				
+
+				//var cmp = Collections.ProjectionComparer<FullSearchResult>
+				//	.Create(g => g)
+					
+					
+					
+				//	 .ThenBy(r => r.Filter)
+				//	// .ThenBy(r => r.Similarity)
+				//	// .ThenBy(r => r.ExtendedResults.Count)
+				//	// .ThenBy(r => r.Metadata.Count)
+				//	;
+				
+				//Results.Sort(cmp);
 
 				Results.Sort();
 
@@ -349,7 +367,7 @@ namespace SmartImage.Searching
 				 */
 				sb.AppendLine("Uploading image");
 
-				var    sw      = Stopwatch.StartNew();
+				var sw = Stopwatch.StartNew();
 
 				string imgUrl1 = UploadEngine.Upload(imageInput);
 

@@ -7,6 +7,10 @@ using SmartImage.Configuration;
 using SmartImage.Core;
 using SmartImage.Searching;
 using System;
+using System.Diagnostics;
+using System.Linq;
+using SimpleCore.Net;
+using SmartImage.Utilities;
 
 // ReSharper disable UnusedParameter.Local
 #pragma warning disable CA1416
@@ -51,6 +55,7 @@ namespace SmartImage
 			NConsole.AutoResizeHeight = false;
 			NConsole.Resize(Interface.MainWindowWidth, Interface.MainWindowHeight);
 
+			Console.CancelKeyPress += (sender, eventArgs) => { };
 
 			Console.Clear();
 
@@ -69,8 +74,7 @@ namespace SmartImage
 			 */
 			bool cleanupOk = LegacyIntegration.LegacyCleanup();
 
-			if (!cleanupOk)
-			{
+			if (!cleanupOk) {
 				NConsole.WriteError("Could not migrate legacy features");
 			}
 
@@ -78,16 +82,15 @@ namespace SmartImage
 			 * Run search
 			 */
 
-			try
-			{
+			try {
+
 
 				// Setup
 				SearchConfig.Config.EnsureConfig();
 				Integration.Setup();
 
 				// Run UI if not using command line arguments
-				if (SearchConfig.Config.NoArguments)
-				{
+				if (SearchConfig.Config.NoArguments) {
 					Interface.Run();
 					Console.Clear();
 				}
@@ -97,19 +100,38 @@ namespace SmartImage
 
 
 				// Exit if no image is given
-				if (!SearchConfig.Config.HasImageInput)
-				{
+				if (!SearchConfig.Config.HasImageInput) {
 					return;
 				}
 
+				SEARCH:
 				// Run search
 				SearchClient.Client.Start();
 
 				// Show results
-				SearchClient.Client.Interface.Run();
+				var v = SearchClient.Client.Interface.Run();
+
+				//todo
+				// refine search
+				if (v.Any() && (bool) v.First()) {
+					Debug.WriteLine($"!!!");
+
+					var yandex = SearchClient.Client.Results.Find(r => r.Name == "Yandex");
+
+					var configImageInput = MediaTypes.IsDirect(yandex.Url, MimeType.Image)
+						? yandex.Url
+						: yandex.ExtendedResults.First(e => MediaTypes.IsDirect(e.Url, MimeType.Image))?.Url;
+
+					//var configImageInput = SearchClient.Client.Results.FirstOrDefault(r=>MediaTypes.IsDirect(r.Url))?.Url;
+
+					Debug.WriteLine($">>>> {configImageInput}");
+					Console.Clear();
+					SearchConfig.Config.ImageInput = configImageInput;
+					SearchClient.Reset();
+					goto SEARCH;
+				}
 			}
-			catch (Exception exception)
-			{
+			catch (Exception exception) {
 #if !DEBUG
 				var cr = new CrashReport(exception);
 
@@ -130,12 +152,10 @@ namespace SmartImage
 				Console.WriteLine(exception);
 #endif
 			}
-			finally
-			{
+			finally {
 				// Exit
 
-				if (SearchConfig.Config.UpdateConfig)
-				{
+				if (SearchConfig.Config.UpdateConfig) {
 					SearchConfig.Config.SaveFile();
 				}
 			}
