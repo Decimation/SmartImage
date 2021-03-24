@@ -112,8 +112,7 @@ namespace SmartImage.Configuration
 			bool newCfg = false;
 
 			// create cfg with default options if it doesn't exist
-			if (!File.Exists(ConfigLocation))
-			{
+			if (!File.Exists(ConfigLocation)) {
 
 				var f = File.Create(ConfigLocation);
 				f.Close();
@@ -125,8 +124,7 @@ namespace SmartImage.Configuration
 			ConfigComponents.UpdateFields(this, cfgFromFileMap);
 
 
-			if (newCfg)
-			{
+			if (newCfg) {
 				SaveFile();
 			}
 
@@ -159,14 +157,12 @@ namespace SmartImage.Configuration
 
 			const SearchEngineOptions Illegal = SearchEngineOptions.Auto;
 
-			if (SearchEngines.HasFlag(Illegal))
-			{
+			if (SearchEngines.HasFlag(Illegal)) {
 				SearchEngines &= ~Illegal;
 				Debug.WriteLine($"Removed illegal flag -> {SearchEngines}");
 			}
 
-			if (SearchEngines == SearchEngineOptions.None)
-			{
+			if (SearchEngines == SearchEngineOptions.None) {
 				ConfigComponents.ResetComponent(this, nameof(SearchEngines));
 			}
 		}
@@ -177,8 +173,7 @@ namespace SmartImage.Configuration
 			var sb = new StringBuilder();
 
 
-			if (HasImageInput)
-			{
+			if (HasImageInput) {
 				// Image may be null if not specified (error) or viewed in other UIs
 				// if so, omit it
 				var fi = new FileInfo(ImageInput).Name;
@@ -194,19 +189,17 @@ namespace SmartImage.Configuration
 
 
 			string snAuth = Config.SauceNaoAuth;
-			bool snNull = String.IsNullOrWhiteSpace(snAuth);
+			bool   snNull = String.IsNullOrWhiteSpace(snAuth);
 
-			if (!snNull)
-			{
+			if (!snNull) {
 				sb.AppendLabelWithColor(ColorConfig, "SauceNao authentication", ColorMain2,
 					snAuth).AppendLine();
 			}
 
 			string imgurAuth = Config.ImgurAuth;
-			bool imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
+			bool   imgurNull = String.IsNullOrWhiteSpace(imgurAuth);
 
-			if (!imgurNull)
-			{
+			if (!imgurNull) {
 				sb.AppendLabelWithColor(ColorConfig, "Imgur authentication", ColorMain2,
 					imgurAuth).AppendLine();
 			}
@@ -235,8 +228,7 @@ namespace SmartImage.Configuration
 		{
 			string[] args = Environment.GetCommandLineArgs().Skip(1).ToArray();
 
-			if (!args.Any())
-			{
+			if (!args.Any()) {
 				NoArguments = true;
 				return;
 			}
@@ -245,15 +237,13 @@ namespace SmartImage.Configuration
 
 			using var argEnumerator = argQueue.GetEnumerator();
 
-			while (argEnumerator.MoveNext())
-			{
+			while (argEnumerator.MoveNext()) {
 				string parameterName = argEnumerator.Current;
 
 				ConfigComponents.ReadComponentFromArgument(this, argEnumerator);
 
 				// Special cases
-				switch (parameterName)
-				{
+				switch (parameterName) {
 
 					case "--update-cfg":
 						UpdateConfig = true;

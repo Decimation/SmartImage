@@ -24,8 +24,6 @@ namespace SmartImage.Engines.Other
 		public override string Name => "Yandex";
 
 
-		private const int TOTAL_RES_MIN = 500_000;
-
 		private static string? GetAnalysis(HtmlDocument doc)
 		{
 			const string TAGS_XP =
@@ -81,7 +79,9 @@ namespace SmartImage.Engines.Other
 			//$x("//a[contains(@class, 'other-sites__preview-link')]")
 			//$x("//li[contains(@class, 'other-sites__item')]")
 
-			var tagsItem = doc.DocumentNode.SelectNodes("//li[@class='other-sites__item']");
+			const string item = "//li[@class='other-sites__item']";
+
+			var tagsItem = doc.DocumentNode.SelectNodes(item);
 
 			Debug.WriteLine($"$ {tagsItem.Count}");
 
@@ -92,10 +92,11 @@ namespace SmartImage.Engines.Other
 				string? link = siz.FirstChild.Attributes["href"].Value;
 
 
-				Debug.WriteLine($"{link}");
+				var resText = siz.FirstChild
+					.ChildNodes[1]
+					.FirstChild
+					.InnerText;
 
-				var resText = siz.FirstChild.ChildNodes[1].FirstChild.InnerText;
-				Debug.WriteLine($"{resText}");
 
 				//other-sites__snippet
 
@@ -104,7 +105,6 @@ namespace SmartImage.Engines.Other
 				var site    = snippet.ChildNodes[1];
 				var desc    = snippet.ChildNodes[2];
 
-				Debug.WriteLine($"{title.InnerText}{site.InnerText}{desc.InnerText}");
 
 				string[] resFull = resText.Split(Formatting.MUL_SIGN);
 
@@ -112,8 +112,6 @@ namespace SmartImage.Engines.Other
 
 				if (resFull.Length == 1 && resFull[0] == resText) {
 					Debug.WriteLine($"Skipping {resText}");
-
-
 				}
 
 				const string TIMES_DELIM = "&times;";
@@ -166,7 +164,6 @@ namespace SmartImage.Engines.Other
 
 				string? resText = siz.FirstChild.InnerText;
 
-				Debug.WriteLine($"{resText}");
 
 				// todo
 
@@ -179,24 +176,17 @@ namespace SmartImage.Engines.Other
 				}
 
 
-				int w        = Int32.Parse(resFull[0]);
-				int h        = Int32.Parse(resFull[1]);
-				int totalRes = w * h;
+				int w = Int32.Parse(resFull[0]);
+				int h = Int32.Parse(resFull[1]);
 
-				if (totalRes >= TOTAL_RES_MIN) {
-					var restRes = Network.GetSimpleResponse(link);
+				var yi = new BaseSearchResult()
+				{
+					Url    = link,
+					Width  = w,
+					Height = h,
+				};
 
-					if (restRes.StatusCode != HttpStatusCode.NotFound) {
-						var yi = new BaseSearchResult()
-						{
-							Url    = link,
-							Width  = w,
-							Height = h,
-						};
-
-						images.Add(yi);
-					}
-				}
+				images.Add(yi);
 			}
 
 			return images;
@@ -242,24 +232,33 @@ namespace SmartImage.Engines.Other
 
 				var images = GetImages(doc);
 
-				if (!images.Any()) {
+				/*if (!images.Any()) {
 					//sr.Filter = true;
 					//return sr;
 
 					//other-sites__preview-link
 
 					Debug.WriteLine($"yandex other");
+
 					images = GetOtherImages(doc);
 					images = images.Take(NConsole.MAX_DISPLAY_OPTIONS).ToList();
-				}
+				}*/
 
+				var otherImages = GetOtherImages(doc);
 
-				var best1      = images.OrderByDescending(i => i.FullResolution);
-				
+				Debug.WriteLine($"yandex: {images.Count} | yandex other: {otherImages.Count}");
+
+				images.AddRange(otherImages);
+				//images = images.Distinct().ToList();
+
+				Debug.WriteLine($"yandex total: {images.Count}");
+
+				var best1 = images.OrderByDescending(i => i.FullResolution);
+
 				var bestImages = best1.ToList();
 
 				//
-				var best = images[0];
+				var best = bestImages[0];
 				sr.UpdateFrom(best);
 
 

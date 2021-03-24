@@ -41,25 +41,25 @@ namespace SmartImage.Searching
 			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
 
 
-		private SearchClient(string imgInput)
+		public SearchClient(SearchConfig config)
 		{
 			//
 
-			EngineOptions = SearchConfig.Config.SearchEngines;
+			EngineOptions = config.SearchEngines;
 
 			SearchEngines = GetAllEngines()
 				.Where(e => EngineOptions.HasFlag(e.Engine))
 				.ToArray();
 
 
-			UploadEngine = SearchConfig.Config.UseImgur ? new ImgurClient() : new ImgOpsEngine();
+			UploadEngine = config.UseImgur ? new ImgurClient() : new ImgOpsEngine();
 
 			/*
 			 *
 			 */
 
 
-			var imageInfo = ResolveUploadUrl(imgInput);
+			var imageInfo = ResolveUploadUrl(config.ImageInput);
 
 
 			ImageInfo = imageInfo ?? throw new SmartImageException("Image invalid or upload failed");
@@ -71,7 +71,7 @@ namespace SmartImage.Searching
 			 *
 			 */
 
-			SearchConfig.Config.EnsureConfig();
+			config.EnsureConfig();
 
 			//
 
@@ -116,10 +116,6 @@ namespace SmartImage.Searching
 		/// </summary>
 		public bool IsComplete { get; private set; }
 
-		/// <summary>
-		///     Searching client
-		/// </summary>
-		public static SearchClient Client { get; private set; } = new(SearchConfig.Config.ImageInput);
 
 		/// <summary>
 		///     Search results
@@ -160,10 +156,7 @@ namespace SmartImage.Searching
 			return results;
 		}
 
-		public static void Reset()
-		{
-			Client = new SearchClient(SearchConfig.Config.ImageInput);
-		}
+		
 
 		/// <summary>
 		///     Starts search and handles results
@@ -195,19 +188,17 @@ namespace SmartImage.Searching
 
 				Interface.Status = $"Searching: {inProgress}/{len}";
 
-				
 
 				//var cmp = Collections.ProjectionComparer<FullSearchResult>
 				//	.Create(g => g)
-					
-					
-					
+
+
 				//	 .ThenBy(r => r.Filter)
 				//	// .ThenBy(r => r.Similarity)
 				//	// .ThenBy(r => r.ExtendedResults.Count)
 				//	// .ThenBy(r => r.Metadata.Count)
 				//	;
-				
+
 				//Results.Sort(cmp);
 
 				Results.Sort();

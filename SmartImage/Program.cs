@@ -105,18 +105,21 @@ namespace SmartImage
 				}
 
 				SEARCH:
+
 				// Run search
-				SearchClient.Client.Start();
+
+				var client = new SearchClient(SearchConfig.Config);
+				client.Start();
 
 				// Show results
-				var v = SearchClient.Client.Interface.Run();
+				var v = client.Interface.Run();
 
 				//todo
 				// refine search
 				if (v.Any() && (bool) v.First()) {
-					Debug.WriteLine($"!!!");
+					Debug.WriteLine($"Re-search");
 
-					var yandex = SearchClient.Client.Results.Find(r => r.Name == "Yandex");
+					var yandex = client.Results.Find(r => r.Name == "Yandex");
 
 					var configImageInput = MediaTypes.IsDirect(yandex.Url, MimeType.Image)
 						? yandex.Url
@@ -127,7 +130,8 @@ namespace SmartImage
 					Debug.WriteLine($">>>> {configImageInput}");
 					Console.Clear();
 					SearchConfig.Config.ImageInput = configImageInput;
-					SearchClient.Reset();
+
+
 					goto SEARCH;
 				}
 			}

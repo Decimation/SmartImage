@@ -24,24 +24,21 @@ namespace SmartImage.Engines.Other
 		public override float? FilterThreshold => 70.00F;
 
 
-
 		private BaseSearchResult ParseResult(HtmlNodeCollection tr)
 		{
 			var caption = tr[0];
-			var img = tr[1];
-			var src = tr[2];
+			var img     = tr[1];
+			var src     = tr[2];
 
 			string url = null!;
 
 			var urlNode = img.FirstChild.FirstChild;
 
-			if (urlNode.Name != "img")
-			{
+			if (urlNode.Name != "img") {
 				var origUrl = urlNode.Attributes["href"].Value;
 
 				// Links must begin with http:// in order to work with "start"
-				if (origUrl.StartsWith("//"))
-				{
+				if (origUrl.StartsWith("//")) {
 					origUrl = "http:" + origUrl;
 				}
 
@@ -52,8 +49,7 @@ namespace SmartImage.Engines.Other
 
 			int w = 0, h = 0;
 
-			if (tr.Count >= 4)
-			{
+			if (tr.Count >= 4) {
 				var res = tr[3];
 
 				var wh = res.InnerText.Split(Formatting.MUL_SIGN);
@@ -69,14 +65,12 @@ namespace SmartImage.Engines.Other
 
 			float? sim;
 
-			if (tr.Count >= 5)
-			{
+			if (tr.Count >= 5) {
 				var simNode = tr[4];
-				var simStr = simNode.InnerText.Split('%')[0];
+				var simStr  = simNode.InnerText.Split('%')[0];
 				sim = Single.Parse(simStr);
 			}
-			else
-			{
+			else {
 				sim = null;
 			}
 
@@ -84,11 +78,11 @@ namespace SmartImage.Engines.Other
 			//var i = new BasicSearchResult(url, sim, w, h, src.InnerText, null, caption.InnerText);
 			var i = new BaseSearchResult()
 			{
-				Url = url,
-				Similarity = sim,
-				Width = w,
-				Height = h,
-				Source = src.InnerText,
+				Url         = url,
+				Similarity  = sim,
+				Width       = w,
+				Height      = h,
+				Source      = src.InnerText,
 				Description = caption.InnerText,
 			};
 			i.Filter = i.Similarity < FilterThreshold;
@@ -100,8 +94,7 @@ namespace SmartImage.Engines.Other
 		{
 			var sr = base.GetResult(url);
 
-			try
-			{
+			try {
 
 				var html = Network.GetSimpleResponse(sr.RawUrl!);
 
@@ -115,14 +108,13 @@ namespace SmartImage.Engines.Other
 
 				// Don't select other results
 
-				var pages = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
+				var pages  = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
 				var tables = pages.SelectNodes("div/table");
 
 				// No relevant results?
 				bool noMatch = pages.ChildNodes.Any(n => n.GetAttributeValue("class", null) == "nomatch");
 
-				if (noMatch)
-				{
+				if (noMatch) {
 					//sr.ExtendedInfo.Add("No relevant results");
 					// No relevant results
 					sr.Filter = true;
@@ -141,8 +133,7 @@ namespace SmartImage.Engines.Other
 				sr.UpdateFrom(best);
 				sr.AddExtendedResults(images);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				// ...
 				sr.AddErrorMessage(e.Message);
 			}

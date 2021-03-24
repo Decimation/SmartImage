@@ -63,12 +63,6 @@ namespace SmartImage.Searching
 		public BaseSearchEngine SearchEngine { get; }
 
 		/// <summary>
-		///     Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines" />)
-		/// </summary>
-		public bool IsPriority => !IsOriginal && SearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
-		                          SearchEngine.Engine != SearchEngineOptions.None;
-
-		/// <summary>
 		///     Displays <see cref="ExtendedResults" />, if any, in a new menu
 		/// </summary>
 		public NConsoleFunction? AltFunction
@@ -92,9 +86,9 @@ namespace SmartImage.Searching
 		public Color Color { get; set; }
 
 		/// <summary>
-		///     Downloads result (<see cref="Url" />) and opens it in Explorer with the file highlighted.
+		///     Downloads result (<see cref="BaseSearchResult.Url" />) and opens it in Explorer with the file highlighted.
 		/// </summary>
-		/// <remarks>(Ideally, <see cref="Url" /> is a direct image link)</remarks>
+		/// <remarks>(Ideally, <see cref="BaseSearchResult.Url" /> is a direct image link)</remarks>
 		public NConsoleFunction CtrlFunction
 		{
 			get
@@ -200,6 +194,12 @@ namespace SmartImage.Searching
 		///     Raw, undifferentiated search url
 		/// </summary>
 		public string? RawUrl { get; set; }
+
+		/// <summary>
+		///     Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines" />)
+		/// </summary>
+		public bool IsPriority => !IsOriginal && SearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
+		                          SearchEngine.Engine != SearchEngineOptions.None;
 
 		/// <summary>
 		/// Whether this is the original image
