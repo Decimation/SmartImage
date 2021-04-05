@@ -40,35 +40,6 @@ namespace SmartImage.Engines.Other
 			return appearsToContain;
 		}
 
-		/*private static (int? w, int? h) GetRes(string resText)
-		{
-			string[] resFull = resText.Split(Formatting.MUL_SIGN);
-
-			int? w = null, h = null;
-
-			if (resFull.Length == 1 && resFull[0] == resText)
-			{
-				Debug.WriteLine($"Skipping {resText}");
-
-
-			}
-
-			const string TIMES_DELIM = "&times;";
-
-			if (resText.Contains(TIMES_DELIM))
-			{
-				resFull = resText.Split(TIMES_DELIM);
-			}
-
-			if (resFull.Length == 2)
-			{
-				w = Int32.Parse(resFull[0]);
-				h = Int32.Parse(resFull[1]);
-			}
-
-			return (w,h);
-		}*/
-
 
 		private static List<BaseSearchResult> GetOtherImages(HtmlDocument doc)
 		{
@@ -105,15 +76,29 @@ namespace SmartImage.Engines.Other
 				var site    = snippet.ChildNodes[1];
 				var desc    = snippet.ChildNodes[2];
 
+				var (w, h) = ParseResolution(resText);
 
-				string[] resFull = resText.Split(Formatting.MUL_SIGN);
+				images.Add(new BaseSearchResult()
+				{
+					Url         = link,
+					Site        = site.InnerText,
+					Description = title.InnerText,
+					Width       = w,
+					Height      = h,
+				});
 
-				int? w = null, h = null;
+			}
 
-				if (resFull.Length == 1 && resFull[0] == resText) {
-					Debug.WriteLine($"Skipping {resText}");
-				}
+			return images;
+		}
 
+		private static (int? w, int? h) ParseResolution(string resText)
+		{
+			string[] resFull = resText.Split(Formatting.MUL_SIGN);
+
+			int? w = null, h = null;
+
+			if (resFull.Length == 1 && resFull[0] == resText) {
 				const string TIMES_DELIM = "&times;";
 
 				if (resText.Contains(TIMES_DELIM)) {
@@ -124,21 +109,11 @@ namespace SmartImage.Engines.Other
 					w = Int32.Parse(resFull[0]);
 					h = Int32.Parse(resFull[1]);
 				}
-
-
-				images.Add(new BaseSearchResult()
-				{
-					Url         = link,
-					Site        = site.InnerText,
-					Description = title.InnerText,
-					Width       = w,
-					Height      = h,
-				});
-				// todo
-
 			}
+			
 
-			return images;
+
+			return (w, h);
 		}
 
 		private static List<BaseSearchResult> GetImages(HtmlDocument doc)
@@ -165,19 +140,11 @@ namespace SmartImage.Engines.Other
 				string? resText = siz.FirstChild.InnerText;
 
 
-				// todo
+				var (w, h) = ParseResolution(resText);
 
-				string[] resFull = resText.Split(Formatting.MUL_SIGN);
-
-				if (resFull.Length == 1 && resFull[0] == resText) {
-					Debug.WriteLine($"Skipping {resText}");
+				if (!w.HasValue || !h.HasValue) {
 					continue;
-
 				}
-
-
-				int w = Int32.Parse(resFull[0]);
-				int h = Int32.Parse(resFull[1]);
 
 				var yi = new BaseSearchResult()
 				{
@@ -252,13 +219,10 @@ namespace SmartImage.Engines.Other
 				//images = images.Distinct().ToList();
 
 				Debug.WriteLine($"yandex total: {images.Count}");
-
-				var best1 = images.OrderByDescending(i => i.FullResolution);
-
-				var bestImages = best1.ToList();
+				
 
 				//
-				var best = bestImages[0];
+				var best = images[0];
 				sr.UpdateFrom(best);
 
 
@@ -267,7 +231,7 @@ namespace SmartImage.Engines.Other
 				}
 
 
-				sr.AddExtendedResults(bestImages);
+				sr.AddExtendedResults(images);
 
 			}
 			catch (Exception e) {

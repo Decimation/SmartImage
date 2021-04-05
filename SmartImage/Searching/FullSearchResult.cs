@@ -536,7 +536,7 @@ namespace SmartImage.Searching
 
 
 			foreach (var (key, value) in Metadata) {
-				AppendResultInfo(sb, key, value.ToString());
+				AppendResultInfo(sb, key, value?.ToString());
 			}
 
 

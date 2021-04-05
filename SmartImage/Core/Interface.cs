@@ -373,8 +373,13 @@ namespace SmartImage.Core
 			@"..\..\..\..\Test1.jpg",
 			@"..\..\..\..\Test2.jpg",
 			@"..\..\..\..\Test3.png",
+			
 			@"C:\Users\Deci\Pictures\fucking_epic.jpg",
-			"https://i.imgur.com/QtCausw.jpg"
+
+			"https://i.imgur.com/QtCausw.jpg",
+
+			@"C:\Users\Deci\Pictures\Test Images\Small1.png",
+			@"C:\Users\Deci\Pictures\Test Images\Small2.png"
 		};
 
 		private static readonly NConsoleOptionBasic DebugTestOption = new()

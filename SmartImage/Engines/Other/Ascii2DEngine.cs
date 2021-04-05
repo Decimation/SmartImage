@@ -27,6 +27,24 @@ namespace SmartImage.Engines.Other
 			var sr = base.GetResult(url);
 
 
+			try {
+				string html = Network.GetString(sr.RawUrl!);
+
+				var doc = new HtmlDocument();
+				doc.LoadHtml(html);
+
+				var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'row item-box')]");
+
+				Debug.WriteLine($"ascii2d: {nodes.Count}");
+
+			}
+			catch (Exception e) {
+				sr.AddErrorMessage(e.Message);
+			}
+
+			return sr;
+
+
 			/*try {
 
 				var srRawUrl = sr.RawUrl!;

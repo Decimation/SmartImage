@@ -25,10 +25,10 @@ namespace SmartImage.Utilities
 
 		public static List<bool> GetHash(Bitmap bmpSource, int height)
 		{
-			List<bool> lResult = new List<bool>();
+			var lResult = new List<bool>();
 			//create new image with 16x16 pixel
 
-			Bitmap bmpMin = new Bitmap(bmpSource, new Size(height, height));
+			var bmpMin = new Bitmap(bmpSource, new Size(height, height));
 
 			for (int j = 0; j < bmpMin.Height; j++)
 			{

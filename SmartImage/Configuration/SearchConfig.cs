@@ -30,7 +30,7 @@ namespace SmartImage.Configuration
 	/// <seealso cref="ConfigComponents" />
 	public sealed class SearchConfig
 	{
-		private SearchConfig()
+		public SearchConfig()
 		{
 			// Read config from config file
 			ReadFromFile();

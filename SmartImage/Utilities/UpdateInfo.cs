@@ -107,15 +107,13 @@ namespace SmartImage.Utilities
 			var currentVersion = asm.Version;
 			var release = ReleaseInfo.GetLatestRelease();
 
-			VersionStatus status;
-
 			int cmp = currentVersion.CompareTo(release.Version);
 
-			status = cmp switch
+			var status = cmp switch
 			{
 				< 0 => VersionStatus.Available,
-				0 => VersionStatus.UpToDate,
-				_ => VersionStatus.Preview
+				0   => VersionStatus.UpToDate,
+				_   => VersionStatus.Preview
 			};
 
 			return new UpdateInfo(currentVersion, release, status);
