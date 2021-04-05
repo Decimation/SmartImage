@@ -33,9 +33,22 @@ namespace SmartImage.Engines.Other
 				var doc = new HtmlDocument();
 				doc.LoadHtml(html);
 
-				var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'row item-box')]");
+				// "//*[contains(@class, 'info-box')]"
+				// "//*[contains(@class, 'row item-box')]"
+
+
+				var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
 
 				Debug.WriteLine($"ascii2d: {nodes.Count}");
+
+				foreach (var node in nodes) {
+					Debug.WriteLine($">>{node.ChildNodes.Count}");
+
+					var info = node.ChildNodes[3];
+
+					Debug.WriteLine($">>{info.InnerText}");
+				}
+
 
 			}
 			catch (Exception e) {

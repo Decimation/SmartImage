@@ -38,7 +38,9 @@ namespace SmartImage.Searching
 			$"Enter the option number to open or {NConsole.NC_GLOBAL_EXIT_KEY} to exit.\n" +
 			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                       +
 			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                            +
-			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n";
+			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n" +
+			$"{NConsole.NC_GLOBAL_RETURN_KEY}: Refine\n"+
+			$"{NConsole.NC_GLOBAL_REFRESH_KEY}: Refresh";
 
 
 		public SearchClient(SearchConfig config)
