@@ -11,7 +11,7 @@ using System.Diagnostics;
 using System.Linq;
 using SimpleCore.Net;
 using SmartImage.Utilities;
-
+using static SimpleCore.Cli.NConsoleOption;
 // ReSharper disable UnusedParameter.Local
 #pragma warning disable CA1416
 
@@ -34,7 +34,13 @@ namespace SmartImage
 		/*
 		 * Entry point
 		 */
-
+		private static readonly string InterfacePrompt =
+			$"Enter the option number to open or {NConsole.NC_GLOBAL_EXIT_KEY} to exit.\n" +
+			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                       +
+			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                            +
+			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n"                    +
+			$"{NConsole.NC_GLOBAL_RETURN_KEY}: Refine\n"                                   +
+			$"{NConsole.NC_GLOBAL_REFRESH_KEY}: Refresh";
 		private static void Main(string[] args)
 		{
 
@@ -112,7 +118,13 @@ namespace SmartImage
 				client.Start();
 
 				// Show results
-				var v = client.Interface.Run();
+				var i =  new NConsoleInterface(client.Results)
+				{
+					SelectMultiple = false,
+					Prompt         = InterfacePrompt
+				};
+
+				var v = i.Run();
 
 				//todo
 				// refine search

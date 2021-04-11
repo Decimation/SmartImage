@@ -13,6 +13,7 @@ using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Configuration;
+using SmartImage.Core;
 using SmartImage.Engines;
 using SmartImage.Engines.Imgur;
 using SmartImage.Engines.Other;
@@ -34,15 +35,6 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class SearchClient
 	{
-		private static readonly string InterfacePrompt =
-			$"Enter the option number to open or {NConsole.NC_GLOBAL_EXIT_KEY} to exit.\n" +
-			$"Hold down {NC_ALT_FUNC_MODIFIER} to show more info.\n"                       +
-			$"Hold down {NC_CTRL_FUNC_MODIFIER} to download.\n"                            +
-			$"Hold down {NC_COMBO_FUNC_MODIFIER} to open raw result.\n" +
-			$"{NConsole.NC_GLOBAL_RETURN_KEY}: Refine\n"+
-			$"{NConsole.NC_GLOBAL_REFRESH_KEY}: Refresh";
-
-
 		public SearchClient(SearchConfig config)
 		{
 			//
@@ -87,11 +79,6 @@ namespace SmartImage.Searching
 			IsComplete = false;
 
 			//
-			Interface = new NConsoleInterface(Results)
-			{
-				SelectMultiple = false,
-				Prompt         = InterfacePrompt
-			};
 
 		}
 
@@ -124,10 +111,6 @@ namespace SmartImage.Searching
 		/// </summary>
 		public List<FullSearchResult> Results { get; }
 
-		/// <summary>
-		///     Search client interface
-		/// </summary>
-		public NConsoleInterface Interface { get; }
 
 		/// <summary>
 		///     Upload engine
@@ -158,7 +141,6 @@ namespace SmartImage.Searching
 			return results;
 		}
 
-		
 
 		/// <summary>
 		///     Starts search and handles results
@@ -188,21 +170,6 @@ namespace SmartImage.Searching
 
 				int inProgress = len - SearchTasks.Count;
 
-				Interface.Status = $"Searching: {inProgress}/{len}";
-
-
-				//var cmp = Collections.ProjectionComparer<FullSearchResult>
-				//	.Create(g => g)
-
-
-				//	 .ThenBy(r => r.Filter)
-				//	// .ThenBy(r => r.Similarity)
-				//	// .ThenBy(r => r.ExtendedResults.Count)
-				//	// .ThenBy(r => r.Metadata.Count)
-				//	;
-
-				//Results.Sort(cmp);
-
 				Results.Sort();
 
 				// Reload console UI
@@ -213,8 +180,8 @@ namespace SmartImage.Searching
 			 * Search is complete
 			 */
 
-			IsComplete       = true;
-			Interface.Status = "Search complete";
+			IsComplete = true;
+
 			NConsole.Refresh();
 
 			/*

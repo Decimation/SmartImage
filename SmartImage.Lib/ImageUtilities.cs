@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Utilities
+namespace SmartImage.Lib
 {
 	public static class ImageUtilities
 	{
