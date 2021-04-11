@@ -295,7 +295,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				if (!ordered.Any()) {
 					// No good results
-					Debug.WriteLine($"No good results");
+					//Debug.WriteLine($"No good results");
 					return sresult;
 				}
 
@@ -319,6 +319,7 @@ namespace SmartImage.Lib.Engines.Impl
 			catch (Exception e) {
 				Debug.WriteLine($"SauceNao error: {e.StackTrace}");
 				//todo
+				sresult.Status = ResultStatus.Failure;
 			}
 
 			sresult.PrimaryResult = result;

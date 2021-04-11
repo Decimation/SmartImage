@@ -16,10 +16,12 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Iqdb;
 
+		public override string Name => "IQDB";
+
 		//public static float? FilterThreshold => 70.00F;
 
 
-		private ImageResult ParseResult(HtmlNodeCollection tr)
+		private static ImageResult ParseResult(HtmlNodeCollection tr)
 		{
 			var caption = tr[0];
 			var img     = tr[1];
@@ -84,7 +86,7 @@ namespace SmartImage.Lib.Engines.Impl
 			return i;
 		}
 
-		//[DebuggerHidden]
+		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery url)
 		{
 			var sr = base.GetResult(url);
@@ -93,6 +95,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				var html = Network.GetSimpleResponse(sr.RawUri.ToString()!);
 
+				Debug.WriteLine($"{Name} :: {html.IsSuccessful} {html.StatusCode}");
 				//Network.WriteResponse(html);
 
 				var doc = new HtmlDocument();
@@ -132,6 +135,7 @@ namespace SmartImage.Lib.Engines.Impl
 				// ...
 				//sr.AddErrorMessage(e.Message);
 				Debug.WriteLine($"IQDB: {e.Message}");
+				sr.Status = ResultStatus.Failure;
 			}
 
 			return sr;

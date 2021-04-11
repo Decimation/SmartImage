@@ -1,14 +1,18 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using RestSharp;
 using SimpleCore.Utilities;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Searching;
 
 namespace Test
 {
 	public static class Program
 	{
-		public static void Main(string[] args)
+		public static async Task Main(string[] args)
 		{
 
 			var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
@@ -21,14 +25,20 @@ namespace Test
 
 			var cl = new SearchClient(cfg);
 
+			var r = cl.RunSearchAsync();
+			await r;
 
-			while (!cl.IsComplete) {
-				var value = cl.Next().Result;
-
-				Console.WriteLine(value);
+			foreach (var result in cl.Results) {
+				Console.WriteLine(result);
 			}
 
+			Console.WriteLine("--");
 
+			var i  = new IqdbEngine();
+			var i2 = i.GetResultAsync(q2);
+			var r2 = await i2;
+
+			Console.WriteLine(r2);
 		}
 	}
 }

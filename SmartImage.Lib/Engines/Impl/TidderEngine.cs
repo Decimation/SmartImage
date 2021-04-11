@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HtmlAgilityPack;
 using SimpleCore.Net;
@@ -13,8 +14,8 @@ namespace SmartImage.Lib.Engines.Impl
 		public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Tidder;
-		
-		
+
+
 		public override SearchResult GetResult(ImageQuery url)
 		{
 			//http://tidder.xyz/?imagelink=
@@ -26,10 +27,10 @@ namespace SmartImage.Lib.Engines.Impl
 
 			try {
 				if (!Network.TryGetString(sr.RawUri.ToString()!, out var html)) {
-					sr.RawUri = null;
-					sr.PrimaryResult.Url    = null;
+					sr.RawUri            = null;
+					sr.PrimaryResult.Url = null;
 					//sr.AddErrorMessage("Unavailable");
-					return sr;
+					throw new Exception();
 				}
 
 				var doc = new HtmlDocument();
@@ -46,7 +47,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				//Debug.WriteLine(findings.Count);
 
-				var  list = new List<ImageResult>();
+				var list = new List<ImageResult>();
 
 				foreach (var t in findings) {
 					var sub = t.SelectNodes("td");
@@ -92,6 +93,7 @@ namespace SmartImage.Lib.Engines.Impl
 			catch (Exception e) {
 				// ...
 				//sr.AddErrorMessage(e.Message);
+				sr.Status = ResultStatus.Failure;
 			}
 
 			return sr;

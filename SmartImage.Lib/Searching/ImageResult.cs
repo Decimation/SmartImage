@@ -78,7 +78,7 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString()
 		{
-			return $"{Url} {Name} ({Width}x{Height}) {Artist} {Site} {Source} {Similarity}";
+			return $"{Url} {Similarity?.ToString() ?? ""}";
 		}
 	}
 }

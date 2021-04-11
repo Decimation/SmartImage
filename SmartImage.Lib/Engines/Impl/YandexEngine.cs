@@ -18,7 +18,6 @@ namespace SmartImage.Lib.Engines.Impl
 		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Yandex;
-		
 
 
 		private static string? GetAnalysis(HtmlDocument doc)
@@ -51,7 +50,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var tagsItem = doc.DocumentNode.SelectNodes(item);
 
-			Debug.WriteLine($"$ {tagsItem.Count}");
+			//Debug.WriteLine($"$ {tagsItem.Count}");
 
 
 			var images = new List<ImageResult>();
@@ -107,7 +106,6 @@ namespace SmartImage.Lib.Engines.Impl
 					h = Int32.Parse(resFull[1]);
 				}
 			}
-			
 
 
 			return (w, h);
@@ -210,13 +208,13 @@ namespace SmartImage.Lib.Engines.Impl
 
 				var otherImages = GetOtherImages(doc);
 
-				Debug.WriteLine($"yandex: {images.Count} | yandex other: {otherImages.Count}");
+				//Debug.WriteLine($"yandex: {images.Count} | yandex other: {otherImages.Count}");
 
 				images.AddRange(otherImages);
 				//images = images.Distinct().ToList();
 
-				Debug.WriteLine($"yandex total: {images.Count}");
-				
+				//Debug.WriteLine($"yandex total: {images.Count}");
+
 
 				//
 				var best = images[0];
@@ -233,11 +231,12 @@ namespace SmartImage.Lib.Engines.Impl
 			catch (Exception e) {
 				// ...
 				//sr.AddErrorMessage(e.Message);
+				Debug.WriteLine($"Yandex: {e.Message}");
+				sr.Status = ResultStatus.Failure;
 			}
 
 
 			return sr;
 		}
-		
 	}
 }

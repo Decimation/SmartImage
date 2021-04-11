@@ -23,46 +23,41 @@ namespace SmartImage.Lib
 				throw new ArgumentException("No engines specified");
 			}
 
-			Tasks = new(Engines.Select(CreateTask));
+
+			Results = new();
 		}
 
 		public SearchConfig Config { get; init; }
 
-		public bool IsComplete => !Tasks.Any();
+		public bool IsComplete { get; private set; }
 
-		private List<Task<SearchResult>> Tasks { get; }
 
 		public SearchEngine[] Engines { get; }
 
-		private Task<SearchResult> CreateTask(SearchEngine engine)
-		{
-			return Task.Run(delegate
-			{
-				var sw  = Stopwatch.StartNew();
+		public List<SearchResult> Results { get; }
 
-				var res = engine.GetResult(Config.Query);
 
-				sw.Stop();
-				
-				res.Elapsed = sw.Elapsed;
-
-				return res;
-			});
-		}
-
-		public async Task<SearchResult> Next()
+		public async Task RunSearchAsync()
 		{
 			if (IsComplete) {
 				throw new Exception();
 			}
 
-			var finished = await Task.WhenAny(Tasks);
+			var tasks = new List<Task<SearchResult>>(Engines.Select(e => e.GetResultAsync(Config.Query)));
 
-			var value = await finished;
+			while (!IsComplete) {
+				var finished = await Task.WhenAny(tasks);
 
-			Tasks.Remove(finished);
+				var value = await finished;
 
-			return value;
+				tasks.Remove(finished);
+
+				Results.Add(value);
+
+				IsComplete = !tasks.Any();
+			}
+
+
 		}
 
 		public static SearchEngine[] GetAllEngines()

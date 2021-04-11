@@ -8,18 +8,12 @@ using SimpleCore.Utilities;
 #nullable enable
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class ImgOpsEngine : SearchEngine
+	public sealed class ImgOpsEngine : SearchEngine, IUploadEngine
 	{
 		public ImgOpsEngine() : base("http://imgops.com/") { }
-		
+
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 
-
-		public static Uri QuickUpload(string path)
-		{
-			//todo
-			return new ImgOpsEngine().Upload(path);
-		}
 
 		private string UploadImage(string path)
 		{
@@ -40,7 +34,8 @@ namespace SmartImage.Lib.Engines.Impl
 			return re.ResponseUri.ToString();
 		}
 
-		private const double MAX_FILE_SIZE_MB = 5;
+
+		public int MaxSize => 5;
 
 		public Uri? Upload(string img)
 		{
@@ -48,15 +43,12 @@ namespace SmartImage.Lib.Engines.Impl
 				throw new ArgumentNullException(nameof(img));
 			}
 
+			if (!((IUploadEngine) this).FileSizeValid(img)) {
+				throw new ArgumentException($"File {img} is too large (max {MaxSize} MB) for {Name}"); //todo
+			}
+
 			Debug.WriteLine($"Uploading {img}");
 
-
-			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(FileSystem.GetFileSize(img), MetricUnit.Mega);
-			
-			if (fileSizeMegabytes >= MAX_FILE_SIZE_MB) {
-				throw new ArgumentException($"File {img} is too large (max {MAX_FILE_SIZE_MB} MB)");
-			}
 
 			string imgOpsUrl = UploadImage(img);
 

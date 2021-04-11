@@ -30,21 +30,19 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 
 				var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
-
-				Debug.WriteLine($"ascii2d: {nodes.Count}");
+				
 
 				foreach (var node in nodes) {
-					Debug.WriteLine($">>{node.ChildNodes.Count}");
 
 					var info = node.ChildNodes[3];
-
-					Debug.WriteLine($">>{info.InnerText}");
+					
 				}
 
 
 			}
 			catch (Exception e) {
 				//sr.AddErrorMessage(e.Message);
+				sr.Status = ResultStatus.Failure;
 			}
 
 			return sr;

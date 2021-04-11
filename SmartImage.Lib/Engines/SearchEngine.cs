@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines
@@ -21,19 +23,37 @@ namespace SmartImage.Lib.Engines
 		{
 			var rawUrl = GetRawResultUrl(query);
 
+
 			var sr = new SearchResult(this)
 			{
 				RawUri = rawUrl,
+				Status = ResultStatus.Success
 			};
 
 
 			return sr;
 		}
 
+		public async Task<SearchResult> GetResultAsync(ImageQuery query)
+		{
+			return await Task.Run(delegate
+			{
+				Debug.WriteLine($"{Name}: getting result async");
+
+				var res = GetResult(query);
+
+				Debug.WriteLine($"{Name}: result done");
+
+				return res;
+			});
+		}
 
 		public virtual Uri GetRawResultUrl(ImageQuery query)
 		{
-			return new Uri(BaseUrl + query.Uri.ToString());
+			var uri = new Uri(BaseUrl + query.Uri.ToString());
+
+
+			return uri;
 		}
 	}
 }

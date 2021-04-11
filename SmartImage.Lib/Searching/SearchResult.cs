@@ -1,9 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib.Searching
 {
+	public enum ResultStatus
+	{
+		Success,
+		Failure
+	}
+
 	public class SearchResult
 	{
 		public ImageResult PrimaryResult { get; set; }
@@ -14,7 +21,8 @@ namespace SmartImage.Lib.Searching
 
 		public SearchEngine Engine { get; init; }
 
-		public TimeSpan Elapsed { get; set; }
+		public ResultStatus Status { get; set; }
+
 
 		public SearchResult(SearchEngine engine)
 		{
@@ -22,11 +30,18 @@ namespace SmartImage.Lib.Searching
 
 			PrimaryResult = new ImageResult();
 			OtherResults  = new List<ImageResult>();
+			
 		}
 
 		public override string ToString()
 		{
-			return $"{Engine.Name}: {PrimaryResult} ({OtherResults.Count}) [{Elapsed.TotalSeconds:F3}]";
+			var sb = new StringBuilder();
+			sb.AppendLine($"[{Engine.Name}] ({Status})");
+			sb.AppendFormat($"\t{PrimaryResult}\n");
+			sb.AppendFormat($"\t{RawUri}\n");
+			sb.AppendFormat($"\t{OtherResults.Count}\n");
+
+			return sb.ToString();
 		}
 	}
 }

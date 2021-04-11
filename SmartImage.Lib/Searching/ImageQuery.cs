@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
 using SimpleCore.Net;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Utilities;
 
@@ -18,7 +19,9 @@ namespace SmartImage.Lib.Searching
 
 		public Uri Uri { get; }
 
-		public ImageQuery([NotNull] string value)
+		public IUploadEngine UploadEngine { get; }
+
+		public ImageQuery([NotNull] string value, [CanBeNull] IUploadEngine engine = null)
 		{
 			if (String.IsNullOrWhiteSpace(value)) {
 				throw new ArgumentNullException(nameof(value));
@@ -37,7 +40,12 @@ namespace SmartImage.Lib.Searching
 			}
 
 
-			Uri = IsUrl ? new(Value) : ImgOpsEngine.QuickUpload(Value);
+			UploadEngine = engine ?? new CatBoxEngine(); //todo
+
+			Uri = IsUrl ? new(Value) : UploadEngine.Upload(Value);
+
+
+			Trace.WriteLine($"{Uri}");
 		}
 
 		public static implicit operator ImageQuery(string value) => new(value);
