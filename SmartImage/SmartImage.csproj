@@ -71,11 +71,6 @@
   
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
-  </ItemGroup>
-  
-
-  <ItemGroup>
     
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>

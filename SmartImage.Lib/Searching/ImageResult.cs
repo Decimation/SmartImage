@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 #nullable enable
-namespace SmartImage.Lib
+namespace SmartImage.Lib.Searching
 {
 	public class ImageResult
 	{
@@ -54,10 +50,6 @@ namespace SmartImage.Lib
 		/// </summary>
 		public string? Site { get; set; }
 
-		/// <summary>
-		/// Whether or not to filter this result
-		/// </summary>
-		public bool Filter { get; set; }
 
 		/// <summary>
 		/// Date of image
@@ -69,5 +61,24 @@ namespace SmartImage.Lib
 		///     Result name
 		/// </summary>
 		public string? Name { get; set; }
+
+		public void UpdateFrom(ImageResult result)
+		{
+			Url         = result.Url;
+			Similarity  = result.Similarity;
+			Width       = result.Width;
+			Height      = result.Height;
+			Source      = result.Source;
+			Characters  = result.Characters;
+			Artist      = result.Artist;
+			Site        = result.Site;
+			Description = result.Description;
+			Date        = result.Date;
+		}
+
+		public override string ToString()
+		{
+			return $"{Url} {Name} ({Width}x{Height}) {Artist} {Site} {Source} {Similarity}";
+		}
 	}
 }

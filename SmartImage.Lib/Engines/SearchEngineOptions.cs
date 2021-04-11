@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace SmartImage.Lib
+namespace SmartImage.Lib.Engines
 {
 	/// <summary>
 	/// Search engine options
@@ -26,7 +22,7 @@ namespace SmartImage.Lib
 
 		Iqdb = 1 << 2,
 
-		ImgOps=1<<3,
+		ImgOps = 1 << 3,
 
 		//todo
 

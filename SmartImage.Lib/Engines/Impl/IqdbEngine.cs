@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib
+namespace SmartImage.Lib.Engines.Impl
 {
 	public class IqdbEngine : SearchEngine
 	{

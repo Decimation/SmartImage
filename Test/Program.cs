@@ -1,6 +1,8 @@
 ﻿using System;
 using SimpleCore.Utilities;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 
 namespace Test
 {
@@ -8,22 +10,24 @@ namespace Test
 	{
 		public static void Main(string[] args)
 		{
-			Console.WriteLine("Hello World!");
+
+			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 
 
-			var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
-
-
-			var q2 = new ImageQuery(@"C:\Users\Deci\Pictures\fucking_epic.jpg");
+			var q = new ImageQuery(@"C:\Users\Deci\Pictures\fucking_epic.jpg");
 
 			var cfg = new SearchConfig() {Query = q, SearchEngines = SearchEngineOptions.All};
 
-			var cl  = new SearchClient(cfg);
+			var cl = new SearchClient(cfg);
 
 
 			while (!cl.IsComplete) {
-				Console.WriteLine(cl.Next().Result);
+				var value = cl.Next().Result;
+
+				Console.WriteLine(value);
 			}
+
+
 		}
 	}
 }

@@ -5,7 +5,7 @@ using System.Drawing;
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib
+namespace SmartImage.Lib.Utilities
 {
 	public static class ImageUtilities
 	{

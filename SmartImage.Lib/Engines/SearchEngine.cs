@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SimpleCore.Model;
+﻿using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib
+namespace SmartImage.Lib.Engines
 {
 	public abstract class SearchEngine
 	{

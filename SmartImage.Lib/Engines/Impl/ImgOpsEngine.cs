@@ -1,13 +1,12 @@
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using Novus.Win32;
 using RestSharp;
 using SimpleCore.Numeric;
 using SimpleCore.Utilities;
 
 #nullable enable
-namespace SmartImage.Lib
+namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class ImgOpsEngine : SearchEngine
 	{

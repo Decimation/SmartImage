@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib
 {

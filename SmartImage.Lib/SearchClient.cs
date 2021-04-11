@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Novus.Utilities;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib
 {
@@ -39,6 +41,11 @@ namespace SmartImage.Lib
 
 		public async Task<SearchResult> Next()
 		{
+			if (IsComplete) {
+				throw new Exception();
+			}
+
+
 			var finished = await Task.WhenAny(Tasks);
 
 			var v = await finished;

@@ -3,8 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
 using SimpleCore.Net;
+using SmartImage.Lib.Engines.Impl;
 
-namespace SmartImage.Lib
+namespace SmartImage.Lib.Searching
 {
 	public class ImageQuery
 	{
@@ -22,8 +23,7 @@ namespace SmartImage.Lib
 			}
 
 			Value = value;
-
-			// todo: direct image support
+			
 
 			IsFile = File.Exists(value);
 			IsUrl  = Network.IsUri(value, out _) && !IsFile;
