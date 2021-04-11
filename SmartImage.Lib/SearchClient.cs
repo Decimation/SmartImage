@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Novus.Utilities;
@@ -35,7 +36,18 @@ namespace SmartImage.Lib
 
 		private Task<SearchResult> CreateTask(SearchEngine engine)
 		{
-			return Task.Run(() => engine.GetResult(Config.Query));
+			return Task.Run(delegate
+			{
+				var sw  = Stopwatch.StartNew();
+
+				var res = engine.GetResult(Config.Query);
+
+				sw.Stop();
+				
+				res.Elapsed = sw.Elapsed;
+
+				return res;
+			});
 		}
 
 		public async Task<SearchResult> Next()

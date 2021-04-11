@@ -23,7 +23,7 @@ namespace SmartImage.Lib.Engines
 
 			var sr = new SearchResult(this)
 			{
-				RawUrl = rawUrl,
+				RawUri = rawUrl,
 			};
 
 

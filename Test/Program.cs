@@ -16,7 +16,6 @@ namespace Test
 
 			var q = new ImageQuery(@"C:\Users\Deci\Pictures\fucking_epic.jpg");
 
-			
 
 			var cfg = new SearchConfig() {Query = q, SearchEngines = SearchEngineOptions.All};
 

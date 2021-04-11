@@ -8,11 +8,13 @@ namespace SmartImage.Lib.Searching
 	{
 		public ImageResult PrimaryResult { get; set; }
 
-		public List<ImageResult> OtherResults { get; init; }
+		public List<ImageResult> OtherResults { get; set; }
 
-		public Uri RawUrl { get; init; }
+		public Uri RawUri { get; set; }
 
 		public SearchEngine Engine { get; init; }
+
+		public TimeSpan Elapsed { get; set; }
 
 		public SearchResult(SearchEngine engine)
 		{
@@ -24,7 +26,7 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString()
 		{
-			return $"{Engine.Name}: {PrimaryResult} ({OtherResults.Count})";
+			return $"{Engine.Name}: {PrimaryResult} ({OtherResults.Count}) [{Elapsed.TotalSeconds:F3}]";
 		}
 	}
 }
