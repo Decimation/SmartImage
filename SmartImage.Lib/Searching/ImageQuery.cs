@@ -4,6 +4,7 @@ using System.IO;
 using JetBrains.Annotations;
 using SimpleCore.Net;
 using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Searching
 {
@@ -15,40 +16,36 @@ namespace SmartImage.Lib.Searching
 
 		public bool IsUrl { get; }
 
-		public string Url { get; }
+		public Uri Uri { get; }
+
 		public ImageQuery([NotNull] string value)
 		{
-			if (string.IsNullOrWhiteSpace(value)) {
+			if (String.IsNullOrWhiteSpace(value)) {
 				throw new ArgumentNullException(nameof(value));
 			}
 
 			Value = value;
-			
 
 			IsFile = File.Exists(value);
-			IsUrl  = Network.IsUri(value, out _) && !IsFile;
 
-			if (IsUrl) {
-				var isUriFile = MediaTypes.IsDirect(value, MimeType.Image);
-
-				Debug.WriteLine($"{value}: {isUriFile} {MediaTypes.Identify(value)}");
-
-				if (!isUriFile) {
-					throw new ArgumentException();
-				}
+			if (!IsFile) {
+				IsUrl = ImageUtilities.IsDirectImage(value);
 			}
 
-			//info.Value = info.IsFile ? new FileInfo(imageInput) : MediaTypes.Identify(imageInput)!;
+			if (!IsUrl && !IsFile) {
+				throw new ArgumentException($"{value} is neither file nor direct image link");
+			}
 
-			Url = IsUrl ? Value : ImgOpsEngine.QuickUpload(Value);
+
+			Uri = IsUrl ? new(Value) : ImgOpsEngine.QuickUpload(Value);
 		}
 
-		public static implicit operator ImageQuery(string value) => new ImageQuery(value);
+		public static implicit operator ImageQuery(string value) => new(value);
 
 
 		public override string ToString()
 		{
-			return $"{Value} | {Url}";
+			return $"{Value} | {Uri}";
 		}
 	}
 }

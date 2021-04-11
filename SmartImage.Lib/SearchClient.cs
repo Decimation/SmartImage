@@ -23,7 +23,6 @@ namespace SmartImage.Lib
 			}
 
 			Tasks = new(Engines.Select(CreateTask));
-
 		}
 
 		public SearchConfig Config { get; init; }
@@ -45,19 +44,18 @@ namespace SmartImage.Lib
 				throw new Exception();
 			}
 
-
 			var finished = await Task.WhenAny(Tasks);
 
-			var v = await finished;
+			var value = await finished;
 
 			Tasks.Remove(finished);
 
-			return v;
+			return value;
 		}
 
 		public static SearchEngine[] GetAllEngines()
 		{
-			return ReflectionHelper.GetAllImplementationsOfType(typeof(SearchEngine))
+			return ReflectionHelper.GetAllImplementations<SearchEngine>()
 				.Select(Activator.CreateInstance)
 				.Cast<SearchEngine>()
 				.ToArray();

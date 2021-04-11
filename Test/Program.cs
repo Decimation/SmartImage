@@ -11,10 +11,12 @@ namespace Test
 		public static void Main(string[] args)
 		{
 
-			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
+			var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 
 
 			var q = new ImageQuery(@"C:\Users\Deci\Pictures\fucking_epic.jpg");
+
+			
 
 			var cfg = new SearchConfig() {Query = q, SearchEngines = SearchEngineOptions.All};
 

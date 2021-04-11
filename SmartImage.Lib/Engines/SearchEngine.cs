@@ -1,4 +1,5 @@
-﻿using SmartImage.Lib.Searching;
+﻿using System;
+using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines
 {
@@ -18,7 +19,7 @@ namespace SmartImage.Lib.Engines
 
 		public virtual SearchResult GetResult(ImageQuery query)
 		{
-			string rawUrl = GetRawResultUrl(query);
+			var rawUrl = GetRawResultUrl(query);
 
 			var sr = new SearchResult(this)
 			{
@@ -30,9 +31,9 @@ namespace SmartImage.Lib.Engines
 		}
 
 
-		public virtual string GetRawResultUrl(ImageQuery query)
+		public virtual Uri GetRawResultUrl(ImageQuery query)
 		{
-			return BaseUrl + query.Url;
+			return new Uri(BaseUrl + query.Uri.ToString());
 		}
 	}
 }

@@ -15,7 +15,7 @@ namespace SmartImage.Lib.Engines.Impl
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 
 
-		public static string QuickUpload(string path)
+		public static Uri QuickUpload(string path)
 		{
 			//todo
 			return new ImgOpsEngine().Upload(path);
@@ -42,7 +42,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private const double MAX_FILE_SIZE_MB = 5;
 
-		public string? Upload(string img)
+		public Uri? Upload(string img)
 		{
 			if (string.IsNullOrWhiteSpace(img)) {
 				throw new ArgumentNullException(nameof(img));
@@ -63,7 +63,7 @@ namespace SmartImage.Lib.Engines.Impl
 			string? link = imgOpsUrl;
 			link = "http://" + link.SubstringAfter(BaseUrl);
 
-			return link;
+			return new Uri(link);
 		}
 	}
 }

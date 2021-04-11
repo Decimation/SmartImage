@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using SimpleCore.Net;
 
 // ReSharper disable UnusedMember.Global
 
@@ -24,7 +25,22 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/taurenshaman/imagehash
 		 */
 
-		public static List<bool> GetHash(Bitmap bmpSource, int height)
+		public static bool IsDirectImage(string value)
+		{
+			var isUri = Network.IsUri(value, out _);
+
+			if (isUri)
+			{
+				var isUriFile = MediaTypes.IsDirect(value, MimeType.Image);
+
+				return isUriFile;
+
+			}
+
+			return false;
+		}
+
+		/*public static List<bool> GetHash(Bitmap bmpSource, int height)
 		{
 			var lResult = new List<bool>();
 			//create new image with 16x16 pixel
@@ -104,6 +120,6 @@ namespace SmartImage.Lib.Utilities
 			}
 
 			return h;
-		}
+		}*/
 	}
 }

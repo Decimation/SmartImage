@@ -153,7 +153,7 @@ namespace SmartImage.Lib.Engines.Impl
 					// 	sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
 					var x = new ImageResult()
 					{
-						Url         = url,
+						Url         = new Uri(url),
 						Similarity  = sn.Similarity,
 						Description = sn.WebsiteTitle,
 						Artist      = sn.Creator,
@@ -270,12 +270,12 @@ namespace SmartImage.Lib.Engines.Impl
 			var result = new ImageResult();
 
 			try {
-				var orig = GetDataResults(url.Url);
+				var orig = GetDataResults(url.Uri.ToString());
 
 				if (orig == null) {
 					//return result;
 					Debug.WriteLine("Parsing HTML from SN!");
-					orig = ParseResults(url.Url).ToArray();
+					orig = ParseResults(url.Uri.ToString()).ToArray();
 				}
 
 				// aggregate all info for primary result

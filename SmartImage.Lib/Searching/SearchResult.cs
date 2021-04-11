@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib.Searching
@@ -9,7 +10,7 @@ namespace SmartImage.Lib.Searching
 
 		public List<ImageResult> OtherResults { get; init; }
 
-		public string RawUrl { get; init; }
+		public Uri RawUrl { get; init; }
 
 		public SearchEngine Engine { get; init; }
 

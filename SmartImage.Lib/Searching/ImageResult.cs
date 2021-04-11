@@ -8,7 +8,7 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		/// Url
 		/// </summary>
-		public string? Url { get; set; }
+		public Uri? Url { get; set; }
 
 		/// <summary>
 		/// Similarity
