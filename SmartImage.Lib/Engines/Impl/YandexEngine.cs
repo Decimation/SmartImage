@@ -141,7 +141,7 @@ namespace SmartImage.Lib.Engines.Impl
 					continue;
 				}
 
-				var yi = new ImageResult()
+				var yi = new ImageResult
 				{
 					Url    = new Uri(link),
 					Width  = w,
@@ -223,6 +223,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				if (looksLike != null) {
 					//sr.Metadata.Add("Analysis", looksLike);
+					sr.PrimaryResult.Description = looksLike;
 				}
 
 				sr.OtherResults.AddRange(images);

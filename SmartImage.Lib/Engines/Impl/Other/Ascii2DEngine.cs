@@ -11,8 +11,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 		public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Ascii2D;
-		
-		
+
 
 		public override SearchResult GetResult(ImageQuery url)
 		{
@@ -30,12 +29,12 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 
 				var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
-				
+
 
 				foreach (var node in nodes) {
 
 					var info = node.ChildNodes[3];
-					
+
 				}
 
 
@@ -134,6 +133,5 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 			return sr;
 		}
-		
 	}
 }

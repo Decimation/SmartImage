@@ -8,7 +8,7 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib
 {
-	public class SearchConfig
+	public sealed class SearchConfig
 	{
 		public ImageQuery Query { get; init; }
 

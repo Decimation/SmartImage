@@ -50,7 +50,7 @@ namespace SmartImage.Lib.Engines
 
 		public virtual Uri GetRawResultUrl(ImageQuery query)
 		{
-			var uri = new Uri(BaseUrl + query.Uri.ToString());
+			var uri = new Uri(BaseUrl + query.Uri);
 
 
 			return uri;

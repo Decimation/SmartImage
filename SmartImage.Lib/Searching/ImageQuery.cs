@@ -9,14 +9,21 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Searching
 {
+	
 	public class ImageQuery
 	{
+		/// <summary>
+		/// Original input
+		/// </summary>
 		public string Value { get; init; }
 
 		public bool IsFile { get; }
 
 		public bool IsUrl { get; }
 
+		/// <summary>
+		/// Uploaded direct image
+		/// </summary>
 		public Uri Uri { get; }
 
 		public IUploadEngine UploadEngine { get; }

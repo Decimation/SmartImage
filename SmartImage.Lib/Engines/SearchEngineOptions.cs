@@ -5,35 +5,24 @@ using SmartImage.Lib.Engines.Impl.Other;
 namespace SmartImage.Lib.Engines
 {
 	/// <summary>
-	/// Search engine options
+	///     Search engine options
 	/// </summary>
 	[Flags]
 	public enum SearchEngineOptions
 	{
 		/// <summary>
-		/// No engines
+		///     No engines
 		/// </summary>
 		None = 0,
 
 		/// <summary>
-		/// Automatic (use best result)
+		///     Automatic (use best result)
 		/// </summary>
 		Auto = 1,
 
 
 		/// <summary>
-		///     <list type="bullet">
-		///         <item>
-		///             <description>
-		///                 <see cref="Engines.SauceNao" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="SauceNaoEngine" />
-		///             </description>
-		///         </item>
-		///     </list>
+		///     <see cref="SauceNaoEngine" />
 		/// </summary>
 		SauceNao = 1 << 1,
 
@@ -63,17 +52,17 @@ namespace SmartImage.Lib.Engines
 		///     <list type="bullet">
 		///         <item>
 		///             <description>
-		///                 <see cref="Engines.TraceMoe" />
+		///                 <see cref="Engines.Impl.TraceMoe" />
 		///             </description>
 		///         </item>
 		///         <item>
 		///             <description>
-		///                 <see cref="Engines.TraceMoe.TraceMoeEngine" />
+		///                 <see cref="Engines.Impl.TraceMoe.TraceMoeEngine" />
 		///             </description>
 		///         </item>
 		///     </list>
 		/// </summary>
-		TraceMoe = 1 << 6, //todo
+		TraceMoe = 1 << 6,
 
 		/// <summary>
 		///     <see cref="KarmaDecayEngine" />
@@ -94,18 +83,19 @@ namespace SmartImage.Lib.Engines
 
 
 		/// <summary>
-		/// <see cref="TidderEngine"/>
+		///     <see cref="TidderEngine" />
 		/// </summary>
 		Tidder = 1 << 10,
 
 		/// <summary>
-		/// <see cref="Ascii2DEngine"/>
+		///     <see cref="Ascii2DEngine" />
 		/// </summary>
 		Ascii2D = 1 << 11,
 
 		/// <summary>
-		/// All engines
+		///     All engines
 		/// </summary>
-		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing | Tidder | Ascii2D
+		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing | Tidder |
+		      Ascii2D
 	}
 }

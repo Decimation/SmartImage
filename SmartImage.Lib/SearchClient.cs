@@ -6,10 +6,11 @@ using System.Threading.Tasks;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib
 {
-	public class SearchClient
+	public sealed class SearchClient
 	{
 		public SearchClient(SearchConfig config)
 		{
@@ -20,7 +21,7 @@ namespace SmartImage.Lib
 				.ToArray();
 
 			if (!Engines.Any()) {
-				throw new ArgumentException("No engines specified");
+				throw new SmartImageException("No engines specified");
 			}
 
 
@@ -37,10 +38,16 @@ namespace SmartImage.Lib
 		public List<SearchResult> Results { get; }
 
 
+		public void Reset()
+		{
+			Results.Clear();
+			IsComplete = false;
+		}
+
 		public async Task RunSearchAsync()
 		{
 			if (IsComplete) {
-				throw new Exception();
+				throw new SmartImageException();
 			}
 
 			var tasks = new List<Task<SearchResult>>(Engines.Select(e => e.GetResultAsync(Config.Query)));
@@ -57,6 +64,7 @@ namespace SmartImage.Lib
 				IsComplete = !tasks.Any();
 			}
 
+			Trace.WriteLine($"{nameof(SearchClient)}: Search complete");
 
 		}
 

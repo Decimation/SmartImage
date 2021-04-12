@@ -15,7 +15,7 @@ namespace SmartImage.Lib.Engines.Impl
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 
 
-		private string UploadImage(string path)
+		private Uri UploadInternal(string path)
 		{
 			//https://github.com/dogancelik/imgops
 
@@ -31,7 +31,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var re = rc.Execute(rq);
 
 
-			return re.ResponseUri.ToString();
+			return re.ResponseUri;
 		}
 
 
@@ -50,9 +50,9 @@ namespace SmartImage.Lib.Engines.Impl
 			Debug.WriteLine($"Uploading {img}");
 
 
-			string imgOpsUrl = UploadImage(img);
+			var imgOpsUrl = UploadInternal(img);
 
-			string? link = imgOpsUrl;
+			string? link = imgOpsUrl.ToString();
 			link = "http://" + link.SubstringAfter(BaseUrl);
 
 			return new Uri(link);
