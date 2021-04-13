@@ -49,23 +49,9 @@ namespace SmartImage.Lib.Searching
 			sb.AppendLine($"[{Engine.Name}] ({Status})");
 
 			if (PrimaryResult.Url != null) {
-				sb.Append($"\t{PrimaryResult.Url}\n");
+				sb.Append($"\t{PrimaryResult}\n");
 
-				if (PrimaryResult.Similarity.HasValue) {
-					sb.Append($"\t{PrimaryResult.Similarity.Value / 100:P}\n");
-				}
-
-				if (PrimaryResult.Artist != null) {
-					sb.Append($"\t{PrimaryResult.Artist}\n");
-				}
-
-				if (PrimaryResult.Source != null) {
-					sb.Append($"\t{PrimaryResult.Source}\n");
-				}
-
-				if (PrimaryResult.Description != null) {
-					sb.Append($"\t{PrimaryResult.Description}\n");
-				}
+				
 
 			}
 

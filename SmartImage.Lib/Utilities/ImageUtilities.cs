@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
+using HtmlAgilityPack;
 using SimpleCore.Net;
 
 // ReSharper disable UnusedMember.Global
@@ -24,10 +26,29 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/CrackedP0t/Tidder/
 		 * https://github.com/taurenshaman/imagehash
 		 */
+		public static string Null(string s)
+		{
+			if (string.IsNullOrWhiteSpace(s)) {
+				return null;
+			}
+
+			return s;
+		}
+		/*public static HtmlNode Index(this HtmlNode node, params int[] i)
+		{
+			if (!i.Any()) {
+				return node;
+			}
+			if (i.First() < node.ChildNodes.Count) {
+				return node.ChildNodes[i.First()].Index(i.Skip(1).ToArray());
+			}
+
+			return node;
+		}*/
 
 		public static bool IsDirectImage(string value)
 		{
-			
+
 
 			return MediaTypes.IsDirect(value, MimeType.Image);
 		}

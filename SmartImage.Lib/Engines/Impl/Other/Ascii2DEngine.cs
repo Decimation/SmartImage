@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -17,6 +18,15 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 		public override string Name => Engine.ToString();
 
+		/*
+		 * todo:
+		 *
+		 * color https://ascii2d.net/search/color/<hash>
+		 *
+		 * detail https://ascii2d.net/search/bovw/<hash>
+		 *
+		 */
+
 		//[DebuggerHidden]
 		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
@@ -27,48 +37,67 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 			foreach (var node in nodes) {
 
-				var ir   = new ImageResult();
+				var ir = new ImageResult();
 
 				var info = node.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.InnerText)).ToArray();
 
 				for (int i = 0; i < info.Length; i++) {
 					var childNode = info[i];
 
-					
 
-					Debug.WriteLine(
-						$"[{i}] [{childNode.InnerText.Trim()}] {childNode.Attributes.Select(a => a.Value).QuickJoin()}");
+					// Debug.WriteLine(
+					// 	$"[{i}] [{childNode.InnerText.Trim()}] {childNode.Attributes.Select(a => a.Value).QuickJoin()}");
 				}
+
 				var hash = info.First().InnerText;
-				
+
+				ir.OtherMetadata.Add("Hash", hash);
+
 				var data = info[1].InnerText.Split(' ');
-				
-				var res  = data[0].Split('x');
+
+				var res = data[0].Split('x');
 				ir.Width  = int.Parse(res[0]);
 				ir.Height = int.Parse(res[1]);
 
 				var fmt = data[1];
 
 				var size = data[2];
+
 				if (info.Length >= 3) {
-					var desc = info.Last().FirstChild;
-					var ns   = desc.NextSibling;
+					var node2 = info[2];
+					var desc  = info.Last().FirstChild;
+					var ns    = desc.NextSibling;
+
+					if (node2.ChildNodes.Count >= 2 && node2.ChildNodes[1].ChildNodes.Count >= 2) {
+						var node2sub = node2.ChildNodes[1];
+
+						if (node2sub.ChildNodes.Count >= 8) {
+							ir.Description = node2sub.ChildNodes[3].InnerText.Trim();
+							ir.Artist      = node2sub.ChildNodes[5].InnerText.Trim();
+							ir.Site        = node2sub.ChildNodes[7].InnerText.Trim();
+
+						}
+					}
 
 					//var childNode = ns.ChildNodes[1].ChildNodes[0];
 					if (ns.ChildNodes.Count >= 4) {
 						var childNode = ns.ChildNodes[3];
 						//Debug.WriteLine($"{childNode.Attributes.Select(a=>a.Name + $" {a.Value}").QuickJoin()}");
 
-					
 
 						var l1 = childNode.GetAttributeValue("href", null);
+
 						if (l1 is not null) {
 							ir.Url = new Uri(l1);
 
 						}
 
+						//info[2].ChildNodes[1].ChildNodes[3]
+						//info[2].ChildNodes[1].ChildNodes[5]
+						//info[2].ChildNodes[1].ChildNodes[7]
 					}
 				}
+
 				rg.Add(ir);
 			}
 

@@ -30,7 +30,7 @@ namespace SmartImage.Lib.Engines
 				throw new SmartImageException();
 			}*/
 
-			string response     = Network.GetString(sr.RawUri.ToString()!);
+			string response = Network.GetString(sr.RawUri.ToString()!);
 
 			//var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
 
@@ -55,7 +55,7 @@ namespace SmartImage.Lib.Engines
 			}
 			catch (Exception e) {
 				sr.Status = ResultStatus.Failure;
-				Trace.WriteLine($"{Name}: {e.Message}");
+				Trace.WriteLine($"{Name}: {e.Message} {e.Source} {e.StackTrace}");
 
 			}
 

@@ -23,6 +23,9 @@ namespace Test
 		public static async Task Main(string[] args)
 		{
 			Console.OutputEncoding = Encoding.Unicode;
+			Console.InputEncoding = Encoding.Unicode;
+
+
 
 			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Small1.png");
 			var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");

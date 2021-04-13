@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text;
 
 #nullable enable
 namespace SmartImage.Lib.Searching
@@ -64,9 +65,9 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		///     Result name
 		/// </summary>
-		public string? Name { get;               set; }
+		public string? Name { get; set; }
 
-		public Dictionary<string,object> OtherMetadata { get; }
+		public Dictionary<string, object> OtherMetadata { get; }
 
 		public ImageResult()
 		{
@@ -89,7 +90,34 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString()
 		{
-			return $"{Url} {Similarity?.ToString() ?? string.Empty}";
+			var sb = new StringBuilder();
+			sb.Append($"{Url}\n");
+
+			if (Similarity.HasValue) {
+				sb.Append($"{Similarity.Value/100:P}\n");
+			}
+
+			if (Width.HasValue && Height.HasValue) {
+				sb.Append($"{Width}x{Height}\n");
+
+			}
+
+			if (Description != null) {
+				sb.Append($"{nameof(Description)}: {Description}\n");
+
+			}
+
+			if (Artist != null) {
+				sb.Append($"{Artist}\n");
+
+			}
+
+			if (Site != null) {
+				sb.Append($"{Site}\n");
+
+			}
+
+			return sb.ToString();
 		}
 	}
 }
