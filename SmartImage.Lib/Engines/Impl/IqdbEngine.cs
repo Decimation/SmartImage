@@ -10,7 +10,7 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public class IqdbEngine : SearchEngine
+	public sealed class IqdbEngine : InterpretedSearchEngine
 	{
 		public IqdbEngine() : base("https://iqdb.org/?url=") { }
 
@@ -86,59 +86,41 @@ namespace SmartImage.Lib.Engines.Impl
 			return i;
 		}
 
-		[DebuggerHidden]
-		public override SearchResult GetResult(ImageQuery url)
+		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
-			var sr = base.GetResult(url);
+			//var tables = doc.DocumentNode.SelectNodes("//table");
 
-			try {
+			// Don't select other results
 
-				var html = Network.GetSimpleResponse(sr.RawUri.ToString()!);
+			var pages  = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
+			var tables = pages.SelectNodes("div/table");
 
-				Debug.WriteLine($"{Name} :: {html.IsSuccessful} {html.StatusCode}");
-				//Network.WriteResponse(html);
+			// No relevant results?
+			bool noMatch = pages.ChildNodes.Any(n => n.GetAttributeValue("class", null) == "nomatch");
 
-				var doc = new HtmlDocument();
-				doc.LoadHtml(html.Content);
-
-
-				//var tables = doc.DocumentNode.SelectNodes("//table");
-
-				// Don't select other results
-
-				var pages  = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
-				var tables = pages.SelectNodes("div/table");
-
-				// No relevant results?
-				bool noMatch = pages.ChildNodes.Any(n => n.GetAttributeValue("class", null) == "nomatch");
-
-				if (noMatch) {
-					//sr.ExtendedInfo.Add("No relevant results");
-					// No relevant results
-					//sr.Filter = true;
-					return sr;
-				}
-
-				var images = tables.Select(table => table.SelectNodes("tr"))
-					.Select(ParseResult)
-					.Cast<ImageResult>()
-					.ToList();
-
-				// First is original image
-				images.RemoveAt(0);
-
-				var best = images[0];
-				sr.PrimaryResult.UpdateFrom(best);
-				sr.OtherResults.AddRange(images);
+			if (noMatch)
+			{
+				//sr.ExtendedInfo.Add("No relevant results");
+				// No relevant results
+				//sr.Filter = true;
+				return sr;
 			}
-			catch (Exception e) {
-				// ...
-				//sr.AddErrorMessage(e.Message);
-				Debug.WriteLine($"IQDB: {e.Message}");
-				sr.Status = ResultStatus.Failure;
-			}
+
+			var images = tables.Select(table => table.SelectNodes("tr"))
+				.Select(ParseResult)
+				.Cast<ImageResult>()
+				.ToList();
+
+			// First is original image
+			images.RemoveAt(0);
+
+			var best = images[0];
+			sr.PrimaryResult.UpdateFrom(best);
+			sr.OtherResults.AddRange(images);
 
 			return sr;
 		}
+
+		
 	}
 }

@@ -1,6 +1,6 @@
 namespace SmartImage.Lib.Engines.Impl.Other
 {
-	public sealed class TinEyeEngine : SearchEngine
+	public sealed class TinEyeEngine : BaseSearchEngine
 	{
 		public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
 		

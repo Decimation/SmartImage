@@ -370,10 +370,11 @@ namespace SmartImage.Core
 #if DEBUG
 		private static readonly string[] TestImages =
 		{
-			@"..\..\..\..\Test1.jpg",
-			@"..\..\..\..\Test2.jpg",
-			@"..\..\..\..\Test3.png",
-			
+			@"C:\Users\Deci\Pictures\Test Images\Test1.jpg",
+			@"C:\Users\Deci\Pictures\Test Images\Test2.jpg",
+			@"C:\Users\Deci\Pictures\Test Images\Test3.png",
+			@"C:\Users\Deci\Pictures\Test Images\Test4.png",
+
 			@"C:\Users\Deci\Pictures\fucking_epic.jpg",
 
 			"https://i.imgur.com/QtCausw.jpg",

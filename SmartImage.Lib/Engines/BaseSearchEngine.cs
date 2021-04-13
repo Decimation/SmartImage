@@ -5,11 +5,11 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines
 {
-	public abstract class SearchEngine
+	public abstract class BaseSearchEngine
 	{
 		public string BaseUrl { get; }
 
-		protected SearchEngine(string baseUrl)
+		protected BaseSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
 		}
@@ -33,16 +33,16 @@ namespace SmartImage.Lib.Engines
 
 			return sr;
 		}
-
+		
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
 			return await Task.Run(delegate
 			{
-				Debug.WriteLine($"{Name}: getting result async");
+				Debug.WriteLine($"[info] {Name}: getting result async");
 
 				var res = GetResult(query);
 
-				Debug.WriteLine($"{Name}: result done");
+				Debug.WriteLine($"[success] {Name}: result done");
 
 				return res;
 			});

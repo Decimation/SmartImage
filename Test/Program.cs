@@ -14,25 +14,28 @@ namespace Test
 {
 	public static class Program
 	{
+		public static void OnResult(object _, SearchClient.SearchResultEventArgs e)
+		{
+			Console.WriteLine(">>" + e.Result);
+		}
+
 		public static async Task Main(string[] args)
 		{
 			Console.OutputEncoding = Encoding.Unicode;
 
-			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\fucking_epic.jpg");
+			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg");
 			var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
-			var q3 = new ImageQuery(@"C:\Users\Deci\RiderProjects\SmartImage\SmartImage\Test4.png");
-
-
+			
 			var cfg = new SearchConfig() {Query = q, SearchEngines = SearchEngineOptions.All};
 
 			var cl = new SearchClient(cfg);
 
 			Console.WriteLine("Search 1");
-
+			cl.ResultCompleted += OnResult;
 			var r = cl.RunSearchAsync();
 			await r;
 
-			foreach (var result in cl.Results) {
+			/*foreach (var result in cl.Results) {
 				Console.WriteLine(result);
 			}
 
@@ -42,7 +45,7 @@ namespace Test
 			var i2 = i.GetResultAsync(q2);
 			var r2 = await i2;
 
-			Console.WriteLine(r2);
+			Console.WriteLine(">> {0}",r2);
 
 			cl.Reset();
 
@@ -53,7 +56,7 @@ namespace Test
 			foreach (var result in cl.Results)
 			{
 				Console.WriteLine(result);
-			}
+			}*/
 
 		}
 	}

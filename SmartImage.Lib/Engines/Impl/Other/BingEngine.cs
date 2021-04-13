@@ -1,6 +1,6 @@
 ﻿namespace SmartImage.Lib.Engines.Impl.Other
 {
-	public sealed class BingEngine : SearchEngine
+	public sealed class BingEngine : BaseSearchEngine
 	{
 		public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 

@@ -1,6 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text;
+using JetBrains.Annotations;
+using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib.Searching
@@ -19,12 +23,15 @@ namespace SmartImage.Lib.Searching
 
 		public Uri RawUri { get; set; }
 
-		public SearchEngine Engine { get; init; }
+		public BaseSearchEngine Engine { get; init; }
 
 		public ResultStatus Status { get; set; }
 
+		[CanBeNull]
+		public string ErrorMessage { get; set; }
 
-		public SearchResult(SearchEngine engine)
+
+		public SearchResult(BaseSearchEngine engine)
 		{
 			Engine = engine;
 
@@ -36,26 +43,43 @@ namespace SmartImage.Lib.Searching
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
+
 			sb.AppendLine($"[{Engine.Name}] ({Status})");
 
+			if (PrimaryResult.Url != null) {
+				sb.Append($"\t{PrimaryResult.Url}\n");
 
-			sb.Append($"\t{PrimaryResult.Url}\n");
+				if (PrimaryResult.Similarity.HasValue) {
+					sb.Append($"\t{PrimaryResult.Similarity.Value / 100:P}\n");
+				}
 
-			if (PrimaryResult.Similarity.HasValue) {
-				sb.Append($"\t{PrimaryResult.Similarity.Value / 100:P}\n ");
+				if (PrimaryResult.Artist != null) {
+					sb.Append($"\t{PrimaryResult.Artist}\n");
+				}
+
+				if (PrimaryResult.Source != null) {
+					sb.Append($"\t{PrimaryResult.Source}\n");
+				}
+
+				if (PrimaryResult.Description != null) {
+					sb.Append($"\t{PrimaryResult.Description}\n");
+				}
+
 			}
 
-			if (PrimaryResult.Source != null) {
-				sb.Append($"\t{PrimaryResult.Source}\n ");
+			if (RawUri != null) {
+				sb.AppendFormat($"\tRaw: {RawUri.ToString().Truncate()}\n");
+
 			}
 
-			if (PrimaryResult.Description != null) {
-				sb.Append($"\t{PrimaryResult.Description}\n ");
+			if (OtherResults.Any()) {
+				sb.AppendFormat($"\tOther: {OtherResults.Count}\n");
+
 			}
 
-
-			sb.AppendFormat($"\t{RawUri}\n");
-			sb.AppendFormat($"\t{OtherResults.Count}\n");
+			if (ErrorMessage != null) {
+				sb.Append($"\tError: {ErrorMessage}\n");
+			}
 
 			return sb.ToString();
 		}

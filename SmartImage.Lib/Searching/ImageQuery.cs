@@ -9,16 +9,24 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Searching
 {
-	
-	public class ImageQuery
+	/// <summary>
+	/// Search query
+	/// </summary>
+	public sealed class ImageQuery
 	{
 		/// <summary>
 		/// Original input
 		/// </summary>
 		public string Value { get; init; }
 
+		/// <summary>
+		/// Whether <see cref="Value"/> is a file
+		/// </summary>
 		public bool IsFile { get; }
 
+		/// <summary>
+		/// Whether <see cref="Value"/> is an image link
+		/// </summary>
 		public bool IsUrl { get; }
 
 		/// <summary>
@@ -26,8 +34,12 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public Uri Uri { get; }
 
+		/// <summary>
+		/// Upload engine used for uploading the input file; if applicable
+		/// </summary>
 		public IUploadEngine UploadEngine { get; }
 
+		
 		public ImageQuery([NotNull] string value, [CanBeNull] IUploadEngine engine = null)
 		{
 			if (String.IsNullOrWhiteSpace(value)) {
@@ -52,7 +64,7 @@ namespace SmartImage.Lib.Searching
 			Uri = IsUrl ? new(Value) : UploadEngine.Upload(Value);
 
 
-			Trace.WriteLine($"{Uri}");
+			Trace.WriteLine($"[success] {nameof(ImageQuery)}: {Uri}");
 		}
 
 		public static implicit operator ImageQuery(string value) => new(value);

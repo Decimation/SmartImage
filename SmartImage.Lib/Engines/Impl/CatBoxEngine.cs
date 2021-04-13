@@ -8,11 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.VisualBasic;
 using RestSharp;
 using SimpleCore.Numeric;
+using SmartImage.Lib.Utilities;
 using FileSystem = Novus.Win32.FileSystem;
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public class CatBoxEngine : IUploadEngine
+	public sealed class CatBoxEngine : IUploadEngine
 	{
 		public string Name => "CatBox";
 
@@ -45,7 +46,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var res = m_client.Execute(req);
 
 			if (!res.IsSuccessful) {
-				throw new Exception(); //todo
+				throw new SmartImageException(); //todo
 			}
 
 			return new Uri(res.Content);

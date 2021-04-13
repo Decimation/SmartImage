@@ -3,7 +3,10 @@
 #nullable enable
 namespace SmartImage.Lib.Searching
 {
-	public class ImageResult
+	/// <summary>
+	/// Describes an image search result
+	/// </summary>
+	public sealed class ImageResult
 	{
 		/// <summary>
 		/// Url

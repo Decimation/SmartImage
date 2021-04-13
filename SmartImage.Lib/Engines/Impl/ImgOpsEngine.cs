@@ -8,7 +8,7 @@ using SimpleCore.Utilities;
 #nullable enable
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class ImgOpsEngine : SearchEngine, IUploadEngine
+	public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 	{
 		public ImgOpsEngine() : base("http://imgops.com/") { }
 

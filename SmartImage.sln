@@ -5,9 +5,11 @@ VisualStudioVersion = 16.0.30330.147
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage", "SmartImage\SmartImage.csproj", "{51B1D8B9-E79F-416E-9FD6-55DFB8A5CAF0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.Lib", "SmartImage.Lib\SmartImage.Lib.csproj", "{AD7595AB-6759-4688-96D1-667D26114CAB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib", "SmartImage.Lib\SmartImage.Lib.csproj", "{AD7595AB-6759-4688-96D1-667D26114CAB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{244F57D9-F021-4F47-9844-45F26CA9378D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{244F57D9-F021-4F47-9844-45F26CA9378D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTest", "UnitTest\UnitTest.csproj", "{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -55,6 +57,18 @@ Global
 		{244F57D9-F021-4F47-9844-45F26CA9378D}.Release|x64.Build.0 = Release|Any CPU
 		{244F57D9-F021-4F47-9844-45F26CA9378D}.Release|x86.ActiveCfg = Release|Any CPU
 		{244F57D9-F021-4F47-9844-45F26CA9378D}.Release|x86.Build.0 = Release|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Debug|x64.Build.0 = Debug|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Debug|x86.Build.0 = Debug|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Release|x64.ActiveCfg = Release|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Release|x64.Build.0 = Release|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Release|x86.ActiveCfg = Release|Any CPU
+		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

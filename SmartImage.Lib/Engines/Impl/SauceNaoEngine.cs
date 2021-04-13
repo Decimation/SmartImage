@@ -24,7 +24,7 @@ using JsonObject = System.Json.JsonObject;
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 namespace SmartImage.Lib.Engines.Impl
 {
-	public class SauceNaoEngine : SearchEngine
+	public sealed class SauceNaoEngine : BaseSearchEngine
 	{
 		private const string BASE_URL = "https://saucenao.com/";
 
@@ -153,7 +153,7 @@ namespace SmartImage.Lib.Engines.Impl
 					// 	sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
 					var x = new ImageResult()
 					{
-						Url         = new Uri(url),
+						Url         = string.IsNullOrWhiteSpace(url) ? default : new Uri(url),
 						Similarity  = sn.Similarity,
 						Description = sn.WebsiteTitle,
 						Artist      = sn.Creator,

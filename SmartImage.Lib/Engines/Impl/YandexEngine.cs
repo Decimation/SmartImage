@@ -13,11 +13,13 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class YandexEngine : SearchEngine
+	public sealed class YandexEngine : InterpretedSearchEngine
 	{
 		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.Yandex;
+
+		public override string Name => Engine.ToString();
 
 
 		private static string? GetAnalysis(HtmlDocument doc)
@@ -155,89 +157,73 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 
-		public override SearchResult GetResult(ImageQuery url)
+		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
-			// todo: slow
-
-			var sr = base.GetResult(url);
-
-			try {
-
-				// Get more info from Yandex
-
-				string? html = Network.GetString(sr.RawUri.ToString()!);
+			// Automation detected
+			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
 
-				// Automation detected
-				const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
+			if (doc.Text.Contains(AUTOMATION_ERROR_MSG))
+			{
+				sr.ErrorMessage = "Yandex requests exceeded; on cooldown";
+				sr.Status       = ResultStatus.Failure;
 
-
-				if (html.Contains(AUTOMATION_ERROR_MSG)) {
-					//sr.AddErrorMessage("Yandex requests exceeded; on cooldown");
-					return sr;
-				}
-
-
-				var doc = new HtmlDocument();
-				doc.LoadHtml(html);
-
-				/*
-				 * Parse what the image looks like
-				 */
-
-				string? looksLike = GetAnalysis(doc);
-
-
-				/*
-				 * Find and sort through high resolution image matches
-				 */
-
-				var images = GetImages(doc);
-
-				/*if (!images.Any()) {
-					//sr.Filter = true;
-					//return sr;
-
-					//other-sites__preview-link
-
-					Debug.WriteLine($"yandex other");
-
-					images = GetOtherImages(doc);
-					images = images.Take(NConsole.MAX_DISPLAY_OPTIONS).ToList();
-				}*/
-
-				var otherImages = GetOtherImages(doc);
-
-				//Debug.WriteLine($"yandex: {images.Count} | yandex other: {otherImages.Count}");
-
-				images.AddRange(otherImages);
-				//images = images.Distinct().ToList();
-
-				//Debug.WriteLine($"yandex total: {images.Count}");
-
-
-				//
-				var best = images[0];
-				sr.PrimaryResult.UpdateFrom(best);
-
-
-				if (looksLike != null) {
-					//sr.Metadata.Add("Analysis", looksLike);
-					sr.PrimaryResult.Description = looksLike;
-				}
-
-				sr.OtherResults.AddRange(images);
-
-			}
-			catch (Exception e) {
-				// ...
-				//sr.AddErrorMessage(e.Message);
-				Debug.WriteLine($"Yandex: {e.Message}");
-				sr.Status = ResultStatus.Failure;
+				return sr;
 			}
 
+			
+
+			/*
+			 * Parse what the image looks like
+			 */
+
+			string? looksLike = GetAnalysis(doc);
+
+
+			/*
+			 * Find and sort through high resolution image matches
+			 */
+
+			var images = GetImages(doc);
+
+			/*if (!images.Any()) {
+				//sr.Filter = true;
+				//return sr;
+
+				//other-sites__preview-link
+
+				Debug.WriteLine($"yandex other");
+
+				images = GetOtherImages(doc);
+				images = images.Take(NConsole.MAX_DISPLAY_OPTIONS).ToList();
+			}*/
+
+			var otherImages = GetOtherImages(doc);
+
+			//Debug.WriteLine($"yandex: {images.Count} | yandex other: {otherImages.Count}");
+
+			images.AddRange(otherImages);
+			//images = images.Distinct().ToList();
+
+			//Debug.WriteLine($"yandex total: {images.Count}");
+
+
+			//
+			var best = images[0];
+			sr.PrimaryResult.UpdateFrom(best);
+
+
+			if (looksLike != null)
+			{
+				//sr.Metadata.Add("Analysis", looksLike);
+				sr.PrimaryResult.Description = looksLike;
+			}
+
+			sr.OtherResults.AddRange(images);
 
 			return sr;
 		}
+
+		
 	}
 }

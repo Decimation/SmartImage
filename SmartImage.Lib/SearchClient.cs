@@ -25,7 +25,7 @@ namespace SmartImage.Lib
 			}
 
 
-			Results = new();
+			Results = new List<SearchResult>();
 		}
 
 		public SearchConfig Config { get; init; }
@@ -33,7 +33,7 @@ namespace SmartImage.Lib
 		public bool IsComplete { get; private set; }
 
 
-		public SearchEngine[] Engines { get; }
+		public BaseSearchEngine[] Engines { get; }
 
 		public List<SearchResult> Results { get; }
 
@@ -44,10 +44,24 @@ namespace SmartImage.Lib
 			IsComplete = false;
 		}
 
+
+		public event EventHandler<SearchResultEventArgs> ResultCompleted;
+
+		public class SearchResultEventArgs : EventArgs
+		{
+			public SearchResult Result { get; }
+
+			public SearchResultEventArgs(SearchResult result)
+			{
+				Result = result;
+			}
+		}
+
+
 		public async Task RunSearchAsync()
 		{
 			if (IsComplete) {
-				throw new SmartImageException();
+				Reset();
 			}
 
 			var tasks = new List<Task<SearchResult>>(Engines.Select(e => e.GetResultAsync(Config.Query)));
@@ -61,18 +75,21 @@ namespace SmartImage.Lib
 
 				Results.Add(value);
 
+				// Call event
+				ResultCompleted?.Invoke(this, new SearchResultEventArgs(value));
+
 				IsComplete = !tasks.Any();
 			}
 
-			Trace.WriteLine($"{nameof(SearchClient)}: Search complete");
+			Trace.WriteLine($"[success] {nameof(SearchClient)}: Search complete");
 
 		}
 
-		public static SearchEngine[] GetAllEngines()
+		public static BaseSearchEngine[] GetAllEngines()
 		{
-			return ReflectionHelper.GetAllImplementations<SearchEngine>()
+			return ReflectionHelper.GetAllImplementations<BaseSearchEngine>()
 				.Select(Activator.CreateInstance)
-				.Cast<SearchEngine>()
+				.Cast<BaseSearchEngine>()
 				.ToArray();
 		}
 	}

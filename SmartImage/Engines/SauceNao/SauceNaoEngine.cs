@@ -340,7 +340,7 @@ namespace SmartImage.Engines.SauceNao
 
 				if (!String.IsNullOrWhiteSpace(m_apiKey))
 				{
-					result.Metadata.Add("API", m_apiKey);
+					result.Metadata.Add("API", "Enabled");
 				}
 
 			}
