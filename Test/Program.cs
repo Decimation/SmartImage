@@ -8,6 +8,7 @@ using SimpleCore.Utilities;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Engines.Impl.Other;
 using SmartImage.Lib.Searching;
 
 namespace Test
@@ -23,17 +24,25 @@ namespace Test
 		{
 			Console.OutputEncoding = Encoding.Unicode;
 
-			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg");
+			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Small1.png");
 			var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
-			
-			var cfg = new SearchConfig() {Query = q, SearchEngines = SearchEngineOptions.All};
+			var i  = new Ascii2DEngine();
+			var i2 = i.GetResultAsync(q2);
+			var r2 = await i2;
 
-			var cl = new SearchClient(cfg);
+			Console.WriteLine(">> {0}", r2);
 
-			Console.WriteLine("Search 1");
-			cl.ResultCompleted += OnResult;
-			var r = cl.RunSearchAsync();
-			await r;
+			foreach (var result in r2.OtherResults) {
+				Console.WriteLine($">{result}");
+			}
+			// var cfg = new SearchConfig() {Query = q, SearchEngines = SearchEngineOptions.All};
+			//
+			// var cl = new SearchClient(cfg);
+			//
+			// Console.WriteLine("Search 1");
+			// cl.ResultCompleted += OnResult;
+			// var r = cl.RunSearchAsync();
+			// await r;
 
 			/*foreach (var result in cl.Results) {
 				Console.WriteLine(result);

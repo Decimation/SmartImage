@@ -71,7 +71,7 @@ namespace SmartImage.Searching
 			}
 
 			info.Value  = info.IsFile ? new FileInfo(imageInput) : MediaTypes.Identify(imageInput)!;
-			info.Stream = info.IsFile ? File.OpenRead(imageInput) : Network.GetStreamFromUrl(imageInput);
+			info.Stream = info.IsFile ? File.OpenRead(imageInput) : Network.GetStream(imageInput);
 
 			return info.IsValid;
 		}

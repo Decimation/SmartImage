@@ -1,9 +1,12 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Xml.Xsl;
 using NUnit.Framework;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Engines.Impl.TraceMoe;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 
 namespace UnitTest
 {
@@ -26,6 +29,15 @@ namespace UnitTest
 			@"C:\Users\Deci\Pictures\Test Images\Small1.png",
 			@"C:\Users\Deci\Pictures\Test Images\Small2.png"
 		};
+
+		[Test]
+		public void TestImageQuery()
+		{
+			//Assert.That(() => new ImageQuery("https://imgur.com/QtCausw"), Throws.Exception);
+
+			Assert.Throws<ArgumentException>(() => new ImageQuery("https://imgur.com/QtCausw"));
+			Assert.DoesNotThrow(() => new ImageQuery("https://i.imgur.com/QtCausw.png"));
+		}
 
 		[Test]
 		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg", "sciamano240")]

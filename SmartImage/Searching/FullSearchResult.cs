@@ -101,7 +101,7 @@ namespace SmartImage.Searching
 						NConsole.WriteSuccess("Downloading...");
 
 
-						string? path = Network.DownloadUrl(Url);
+						string? path = Network.Download(Url);
 
 						NConsole.WriteSuccess("Downloaded to {0}", path);
 

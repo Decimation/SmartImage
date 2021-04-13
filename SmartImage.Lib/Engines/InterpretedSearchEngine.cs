@@ -30,12 +30,13 @@ namespace SmartImage.Lib.Engines
 				throw new SmartImageException();
 			}*/
 
-			//string html     = Network.GetString(sr.RawUri.ToString()!);
+			string response     = Network.GetString(sr.RawUri.ToString()!);
 
-			var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
+			//var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
 
 			var doc = new HtmlDocument();
-			doc.LoadHtml(response.Content);
+			//doc.LoadHtml(response.Content);
+			doc.LoadHtml(response);
 
 			return doc;
 		}

@@ -21,7 +21,9 @@ namespace SmartImage.Lib.Searching
 
 		public List<ImageResult> OtherResults { get; set; }
 
-		public Uri RawUri { get; set; }
+		
+
+		public Uri          RawUri        { get; set; }
 
 		public BaseSearchEngine Engine { get; init; }
 

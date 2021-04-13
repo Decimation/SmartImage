@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 #nullable enable
 namespace SmartImage.Lib.Searching
@@ -63,7 +64,14 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		///     Result name
 		/// </summary>
-		public string? Name { get; set; }
+		public string? Name { get;               set; }
+
+		public Dictionary<string,object> OtherMetadata { get; }
+
+		public ImageResult()
+		{
+			OtherMetadata = new();
+		}
 
 		public void UpdateFrom(ImageResult result)
 		{

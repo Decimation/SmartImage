@@ -27,17 +27,9 @@ namespace SmartImage.Lib.Utilities
 
 		public static bool IsDirectImage(string value)
 		{
-			var isUri = Network.IsUri(value, out _);
+			
 
-			if (isUri)
-			{
-				var isUriFile = MediaTypes.IsDirect(value, MimeType.Image);
-
-				return isUriFile;
-
-			}
-
-			return false;
+			return MediaTypes.IsDirect(value, MimeType.Image);
 		}
 
 		/*public static List<bool> GetHash(Bitmap bmpSource, int height)

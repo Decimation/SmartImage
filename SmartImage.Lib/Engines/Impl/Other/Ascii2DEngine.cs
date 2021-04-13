@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using HtmlAgilityPack;
 using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Impl.Other
@@ -14,17 +17,62 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 		public override string Name => Engine.ToString();
 
-		[DebuggerHidden]
+		//[DebuggerHidden]
 		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
+			//Debug.WriteLine($"{doc.Text.Contains("csrf-token")}");
 			var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
 
+			var rg = new List<ImageResult>();
 
 			foreach (var node in nodes) {
 
-				var info = node.ChildNodes[3];
+				var ir   = new ImageResult();
 
+				var info = node.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.InnerText)).ToArray();
+
+				for (int i = 0; i < info.Length; i++) {
+					var childNode = info[i];
+
+					
+
+					Debug.WriteLine(
+						$"[{i}] [{childNode.InnerText.Trim()}] {childNode.Attributes.Select(a => a.Value).QuickJoin()}");
+				}
+				var hash = info.First().InnerText;
+				
+				var data = info[1].InnerText.Split(' ');
+				
+				var res  = data[0].Split('x');
+				ir.Width  = int.Parse(res[0]);
+				ir.Height = int.Parse(res[1]);
+
+				var fmt = data[1];
+
+				var size = data[2];
+				if (info.Length >= 3) {
+					var desc = info.Last().FirstChild;
+					var ns   = desc.NextSibling;
+
+					//var childNode = ns.ChildNodes[1].ChildNodes[0];
+					if (ns.ChildNodes.Count >= 4) {
+						var childNode = ns.ChildNodes[3];
+						//Debug.WriteLine($"{childNode.Attributes.Select(a=>a.Name + $" {a.Value}").QuickJoin()}");
+
+					
+
+						var l1 = childNode.GetAttributeValue("href", null);
+						if (l1 is not null) {
+							ir.Url = new Uri(l1);
+
+						}
+
+					}
+				}
+				rg.Add(ir);
 			}
+
+			sr.OtherResults.AddRange(rg);
 			/*try {
 
 				var srRawUrl = sr.RawUrl!;
