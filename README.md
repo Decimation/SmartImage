@@ -2,7 +2,7 @@
 <br />
 <p align="center">
   <a href="https://github.com/Decimation/SmartImage">
-    <img src="SmartImage/Assets/Icon.png" alt="Logo" width="80" height="80">
+    <img src="/Assets/Icon.png" alt="Logo" width="80" height="80">
   </a>
 
   <h1 align="center">SmartImage</h1>
