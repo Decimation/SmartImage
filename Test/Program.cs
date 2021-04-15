@@ -23,29 +23,20 @@ namespace Test
 		public static async Task Main(string[] args)
 		{
 			Console.OutputEncoding = Encoding.Unicode;
-			Console.InputEncoding = Encoding.Unicode;
+			Console.InputEncoding  = Encoding.Unicode;
 
 
-
-			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Small1.png");
+			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
 			var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
-			var i  = new Ascii2DEngine();
-			var i2 = i.GetResultAsync(q2);
-			var r2 = await i2;
 
-			Console.WriteLine(">> {0}", r2);
+			
+			var cfg = new SearchConfig() { Query = q, SearchEngines = SearchEngineOptions.All };
 
-			foreach (var result in r2.OtherResults) {
-				Console.WriteLine($">{result}");
-			}
-			// var cfg = new SearchConfig() {Query = q, SearchEngines = SearchEngineOptions.All};
-			//
-			// var cl = new SearchClient(cfg);
-			//
-			// Console.WriteLine("Search 1");
-			// cl.ResultCompleted += OnResult;
-			// var r = cl.RunSearchAsync();
-			// await r;
+			var cl = new SearchClient(cfg);
+			
+			cl.ResultCompleted += OnResult;
+			var r = cl.RunSearchAsync();
+			await r;
 
 			/*foreach (var result in cl.Results) {
 				Console.WriteLine(result);

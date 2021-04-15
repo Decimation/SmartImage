@@ -142,7 +142,6 @@ namespace SmartImage.Engines.Other
 				sr.AddErrorMessage(e.Message);
 			}*/
 
-			return sr;
 		}
 
 		public override string GetRawResultUrl(string url)

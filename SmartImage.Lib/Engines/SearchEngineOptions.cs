@@ -49,18 +49,7 @@ namespace SmartImage.Lib.Engines
 		Iqdb = 1 << 5,
 
 		/// <summary>
-		///     <list type="bullet">
-		///         <item>
-		///             <description>
-		///                 <see cref="Engines.Impl.TraceMoe" />
-		///             </description>
-		///         </item>
-		///         <item>
-		///             <description>
-		///                 <see cref="Engines.Impl.TraceMoe.TraceMoeEngine" />
-		///             </description>
-		///         </item>
-		///     </list>
+		///     <see cref="TraceMoeEngine" />
 		/// </summary>
 		TraceMoe = 1 << 6,
 

@@ -35,7 +35,7 @@ namespace SmartImage.Searching
 	/// </summary>
 	public sealed class SearchClient
 	{
-		public SearchClient(SearchConfig config)
+		public SearchClient(UserSearchConfig config)
 		{
 			//
 
@@ -84,7 +84,7 @@ namespace SmartImage.Searching
 
 
 		/// <summary>
-		///     <see cref="SearchConfig.SearchEngines" />
+		///     <see cref="UserSearchConfig.SearchEngines" />
 		/// </summary>
 		private SearchEngineOptions EngineOptions { get; }
 
@@ -198,7 +198,7 @@ namespace SmartImage.Searching
 			//NativeImports.BringConsoleToFront();
 
 
-			if (SearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
+			if (UserSearchConfig.Config.PriorityEngines == SearchEngineOptions.Auto) {
 				// Results will already be sorted
 				// Open best result
 
@@ -318,7 +318,7 @@ namespace SmartImage.Searching
 				 */
 				var sb = new StringBuilder();
 				sb.AppendColor(ColorMain1, NAME_BANNER);
-				sb.Append(SearchConfig.Config);
+				sb.Append(UserSearchConfig.Config);
 
 				sb.AppendLine();
 

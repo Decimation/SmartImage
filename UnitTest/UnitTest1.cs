@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using System.Xml.Xsl;
 using NUnit.Framework;
 using SmartImage.Lib.Engines.Impl;
-using SmartImage.Lib.Engines.Impl.TraceMoe;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 

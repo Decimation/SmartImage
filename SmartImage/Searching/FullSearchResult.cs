@@ -196,9 +196,9 @@ namespace SmartImage.Searching
 		public string? RawUrl { get; set; }
 
 		/// <summary>
-		///     Whether this result is a result from a priority engine (<see cref="SearchConfig.PriorityEngines" />)
+		///     Whether this result is a result from a priority engine (<see cref="UserSearchConfig.PriorityEngines" />)
 		/// </summary>
-		public bool IsPriority => !IsOriginal && SearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
+		public bool IsPriority => !IsOriginal && UserSearchConfig.Config.PriorityEngines.HasFlag(SearchEngine.Engine) &&
 		                          SearchEngine.Engine != SearchEngineOptions.None;
 
 		/// <summary>
@@ -422,7 +422,7 @@ namespace SmartImage.Searching
 			 * Open it anyway
 			 */
 
-			if (!SearchConfig.Config.FilterResults) {
+			if (!UserSearchConfig.Config.FilterResults) {
 				Function();
 				return;
 			}

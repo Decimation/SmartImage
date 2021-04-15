@@ -207,6 +207,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			//Debug.WriteLine($"yandex total: {images.Count}");
 
+			images = images.OrderByDescending(r => r.Resolution).ToList();
 
 			//
 			var best = images[0];

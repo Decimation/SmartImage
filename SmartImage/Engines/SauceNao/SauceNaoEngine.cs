@@ -51,7 +51,7 @@ namespace SmartImage.Engines.SauceNao
 			m_apiKey = apiKey;
 		}
 
-		public SauceNaoEngine() : this(SearchConfig.Config.SauceNaoAuth) { }
+		public SauceNaoEngine() : this(UserSearchConfig.Config.SauceNaoAuth) { }
 
 		public override string Name => "SauceNao";
 

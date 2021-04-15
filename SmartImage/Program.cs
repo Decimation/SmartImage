@@ -10,7 +10,6 @@ using System.Diagnostics;
 using System.Linq;
 using SimpleCore.Net;
 using SmartImage.Configuration;
-using SmartImage.Lib;
 using SmartImage.Utilities;
 using static SimpleCore.Cli.NConsoleOption;
 
@@ -117,18 +116,8 @@ namespace SmartImage
 
 				// Run search
 
-				var cfg2 = new SearchConfig()
-				{
-					SearchEngines = UserSearchConfig.Config.SearchEngines,
-					PriorityEngines = UserSearchConfig.Config.PriorityEngines,
-					Query = UserSearchConfig.Config.ImageInput
-				};
-
-				var client = new SearchClient(cfg2);
-				client.RunSearchAsync();
-
-				var res = client.Results;
-
+				var client = new SearchClient(UserSearchConfig.Config);
+				client.Start();
 
 				// Show results
 				var i = new NConsoleInterface(client.Results)
@@ -139,6 +128,26 @@ namespace SmartImage
 
 				var v = i.Run();
 
+				//todo
+				// refine search
+				if (v.Any() && (bool) v.First()) {
+					Debug.WriteLine($"Re-search");
+
+					var yandex = client.Results.Find(r => r.Name == "Yandex");
+
+					var configImageInput = MediaTypes.IsDirect(yandex.Url, MimeType.Image)
+						? yandex.Url
+						: yandex.ExtendedResults.First(e => MediaTypes.IsDirect(e.Url, MimeType.Image))?.Url;
+
+					//var configImageInput = SearchClient.Client.Results.FirstOrDefault(r=>MediaTypes.IsDirect(r.Url))?.Url;
+
+					Debug.WriteLine($">>>> {configImageInput}");
+					Console.Clear();
+					UserSearchConfig.Config.ImageInput = configImageInput;
+
+
+					goto SEARCH;
+				}
 			}
 			catch (Exception exception) {
 #if !DEBUG

@@ -26,14 +26,7 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/CrackedP0t/Tidder/
 		 * https://github.com/taurenshaman/imagehash
 		 */
-		public static string Null(string s)
-		{
-			if (string.IsNullOrWhiteSpace(s)) {
-				return null;
-			}
-
-			return s;
-		}
+		
 		/*public static HtmlNode Index(this HtmlNode node, params int[] i)
 		{
 			if (!i.Any()) {
@@ -48,8 +41,6 @@ namespace SmartImage.Lib.Utilities
 
 		public static bool IsDirectImage(string value)
 		{
-
-
 			return MediaTypes.IsDirect(value, MimeType.Image);
 		}
 

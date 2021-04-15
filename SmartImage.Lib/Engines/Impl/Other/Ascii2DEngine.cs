@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
+using AngleSharp;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -30,8 +31,8 @@ namespace SmartImage.Lib.Engines.Impl.Other
 		//[DebuggerHidden]
 		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
-			//Debug.WriteLine($"{doc.Text.Contains("csrf-token")}");
-			var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
+			
+			var nodes    = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
 
 			var rg = new List<ImageResult>();
 
@@ -41,13 +42,6 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 				var info = node.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.InnerText)).ToArray();
 
-				for (int i = 0; i < info.Length; i++) {
-					var childNode = info[i];
-
-
-					// Debug.WriteLine(
-					// 	$"[{i}] [{childNode.InnerText.Trim()}] {childNode.Attributes.Select(a => a.Value).QuickJoin()}");
-				}
 
 				var hash = info.First().InnerText;
 
@@ -69,12 +63,12 @@ namespace SmartImage.Lib.Engines.Impl.Other
 					var ns    = desc.NextSibling;
 
 					if (node2.ChildNodes.Count >= 2 && node2.ChildNodes[1].ChildNodes.Count >= 2) {
-						var node2sub = node2.ChildNodes[1];
+						var node2Sub = node2.ChildNodes[1];
 
-						if (node2sub.ChildNodes.Count >= 8) {
-							ir.Description = node2sub.ChildNodes[3].InnerText.Trim();
-							ir.Artist      = node2sub.ChildNodes[5].InnerText.Trim();
-							ir.Site        = node2sub.ChildNodes[7].InnerText.Trim();
+						if (node2Sub.ChildNodes.Count >= 8) {
+							ir.Description = node2Sub.ChildNodes[3].InnerText.Trim();
+							ir.Artist      = node2Sub.ChildNodes[5].InnerText.Trim();
+							ir.Site        = node2Sub.ChildNodes[7].InnerText.Trim();
 
 						}
 					}
@@ -102,89 +96,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 			}
 
 			sr.OtherResults.AddRange(rg);
-			/*try {
-
-				var srRawUrl = sr.RawUrl!;
-
-				Debug.WriteLine($"{srRawUrl}");
-
-				// var req  = new RestRequest(srRawUrl);
-				// req.Method = Method.GET;
-				//
-				// var rc   = new RestClient();
-				//
-				// var html = rc.Execute(req);
-
-				var html = Network.GetString(srRawUrl);
-
-
-				//Network.WriteResponse(html);
-
-				var doc = new HtmlDocument();
-				doc.LoadHtml(html);
-
-
-				/* //div[contains(@class, 'atag')]
-				 * //div[contains(@class, 'atag') and contains(@class ,'btag')]
-				 *
-				 * //*[contains(@class, 'item-box')]
-				 * //*[contains(@class, 'row') and contains(@class ,'item-box')]
-				 * //*[@class='row item-box']
-				 #1#
-
-				var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'item-box')]");
-
-				Debug.WriteLine($"{Name}:: {nodes.Count}");
-
-				var images = new List<BaseSearchResult>();
-
-				foreach (var node in nodes) {
-					var hashNode   = node.ChildNodes[0];
-					var infoNode   = node.ChildNodes[1];
-					var linksNode  = node.ChildNodes[2];
-					var unusedNode = node.ChildNodes[3];
-
-					var result = new BaseSearchResult();
-
-					//var info=infoNode.SelectSingleNode("//*[contains(@class, 'text-muted')]");
-
-
-					try {
-
-
-						var detailsNode = infoNode.SelectSingleNode("//*[contains(@class, 'detail-box')]/h6")
-							.ChildNodes;
-
-						Debug.WriteLine(detailsNode.Count);
-
-
-						foreach (var detailNode in detailsNode) {
-							var attributeValue = detailNode.GetAttributeValue("href", null);
-
-							if (attributeValue != null) {
-
-								Debug.WriteLine($"href>> {attributeValue}");
-								result.Url = attributeValue;
-								break;
-							}
-
-						}
-					}
-					catch (Exception e) {
-						Debug.WriteLine(e);
-					}
-					images.Add(result);
-
-				}
-
-				var best = images[0];
-				sr.UpdateFrom(best);
-				sr.AddExtendedResults(images);
-			}
-			catch (Exception e) {
-				// ...
-				sr.AddErrorMessage(e.Message);
-			}*/
+			
 
 			return sr;
 		}

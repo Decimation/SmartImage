@@ -11,9 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using SmartImage.Lib;
-using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Impl;
+using SmartImage.Utilities;
 using static SmartImage.Core.Interface;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
@@ -66,8 +64,6 @@ namespace SmartImage.Configuration
 		/// </summary>
 		[field: ConfigComponent("priority_engines", "--priority-engines", SearchEngineOptions.Auto, true)]
 		public SearchEngineOptions PriorityEngines { get; set; }
-
-		
 
 		/// <summary>
 		///     <see cref="ImgurClient" /> API key

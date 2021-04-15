@@ -32,16 +32,17 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private const string ENDPOINT = BASE_URL + "search.php";
 
+		// todo
 
-		private SauceNaoEngine(string apiKey) : base(BASIC_RESULT)
+		public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
 		{
 			m_client = new RestClient(ENDPOINT);
-			m_apiKey = apiKey;
+			Authentication = authentication;
 		}
 
-		public SauceNaoEngine() : this(String.Empty) { } //todo
+		public SauceNaoEngine() : this(string.Empty) { } //todo
 
-		private readonly string m_apiKey;
+		public string Authentication { get; init; }
 
 		private readonly RestClient m_client;
 
@@ -76,7 +77,14 @@ namespace SmartImage.Lib.Engines.Impl
 		private static IEnumerable<SauceNaoDataResult> ParseResults(string url)
 		{
 			var doc  = new HtmlDocument();
-			var html = Network.GetString(BASIC_RESULT + url);
+
+			var rc   = new RestClient(BASE_URL);
+			var req  = new RestRequest("search.php");
+			req.AddQueryParameter("url", url);
+
+			var execute = rc.Execute(req);
+
+			var html         = execute.Content;
 
 
 			doc.LoadHtml(html);
@@ -88,6 +96,9 @@ namespace SmartImage.Lib.Engines.Impl
 			var images = new List<SauceNaoDataResult>();
 
 			foreach (var result in results) {
+				if (result==null) {
+					continue;
+				}
 				if (result.GetAttributeValue("id", String.Empty) == "result-hidden-notification") {
 					continue;
 				}
@@ -139,7 +150,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		#region API
 
-		private ImageResult[] ConvertDataResults(SauceNaoDataResult[] results)
+		private static ImageResult[] ConvertDataResults(SauceNaoDataResult[] results)
 		{
 			var rg = new List<ImageResult>();
 
@@ -244,7 +255,7 @@ namespace SmartImage.Lib.Engines.Impl
 			req.AddQueryParameter("db", "999");
 			req.AddQueryParameter("output_type", "2");
 			req.AddQueryParameter("numres", "16");
-			req.AddQueryParameter("api_key", m_apiKey);
+			req.AddQueryParameter("api_key", Authentication);
 			req.AddQueryParameter("url", url);
 
 			var res = m_client.Execute(req);
@@ -274,7 +285,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				if (orig == null) {
 					//return result;
-					Debug.WriteLine("Parsing HTML from SN!");
+					Debug.WriteLine("[info] Parsing HTML from SN!");
 					orig = ParseResults(url.Uri.ToString()).ToArray();
 				}
 
@@ -311,8 +322,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 				sresult.OtherResults.AddRange(extended);
 
-				if (!String.IsNullOrWhiteSpace(m_apiKey)) {
-					Debug.WriteLine($"SN API key: {m_apiKey}");
+				if (!String.IsNullOrWhiteSpace(Authentication)) {
+					Debug.WriteLine($"SN API key: {Authentication}");
 				}
 
 			}

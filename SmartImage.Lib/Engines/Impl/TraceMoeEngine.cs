@@ -1,12 +1,13 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Net;
+using JetBrains.Annotations;
 using RestSharp;
 using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib.Engines.Impl.TraceMoe
+namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class TraceMoeEngine : BaseSearchEngine
 	{
@@ -15,6 +16,47 @@ namespace SmartImage.Lib.Engines.Impl.TraceMoe
 		public override string Name => "trace.moe";
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.TraceMoe;
+
+		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+		internal class TraceMoeDoc
+		{
+			public double from       { get; set; }
+			public double to         { get; set; }
+			public long   anilist_id { get; set; }
+			public double at         { get; set; }
+			public string season     { get; set; }
+			public string anime      { get; set; }
+			public string filename   { get; set; }
+
+			public long? episode { get; set; }
+
+			public string       tokenthumb       { get; set; }
+			public double       similarity       { get; set; }
+			public string       title            { get; set; }
+			public string       title_native     { get; set; }
+			public string       title_chinese    { get; set; }
+			public string       title_english    { get; set; }
+			public string       title_romaji     { get; set; }
+			public long         mal_id           { get; set; }
+			public List<string> synonyms         { get; set; }
+			public List<object> synonyms_chinese { get; set; }
+			public bool         is_adult         { get; set; }
+		}
+
+		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+		internal class TraceMoeRootObject
+		{
+			public long              RawDocsCount      { get; set; }
+			public long              RawDocsSearchTime { get; set; }
+			public long              ReRankSearchTime  { get; set; }
+			public bool              CacheHit          { get; set; }
+			public long              trial             { get; set; }
+			public long              limit             { get; set; }
+			public long              limit_ttl         { get; set; }
+			public long              quota             { get; set; }
+			public long              quota_ttl         { get; set; }
+			public List<TraceMoeDoc> docs              { get; set; }
+		}
 
 		private static TraceMoeRootObject GetApiResults(string url,
 			out HttpStatusCode code, out ResponseStatus status, out string msg)
@@ -93,7 +135,7 @@ namespace SmartImage.Lib.Engines.Impl.TraceMoe
 				}
 				catch (Exception e) {
 					r = base.GetResult(url);
-					Debug.WriteLine($"{e.Message}");
+					Debug.WriteLine($"tracemoe: {e.Message}");
 					//r.AddErrorMessage(e.Message);
 					return r;
 				}
@@ -102,7 +144,7 @@ namespace SmartImage.Lib.Engines.Impl.TraceMoe
 			}
 			else {
 				r = base.GetResult(url);
-
+				Debug.WriteLine($"tracemoe: api null {code} {res} {msg}");
 				//r.AddErrorMessage(msg);
 			}
 

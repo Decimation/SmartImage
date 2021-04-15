@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using SimpleCore.Utilities;
 
 #nullable enable
 namespace SmartImage.Lib.Searching
@@ -67,6 +68,8 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public string? Name { get; set; }
 
+		public int? Resolution => Width.HasValue && Height.HasValue ? Width * Height : -1;
+
 		public Dictionary<string, object> OtherMetadata { get; }
 
 		public ImageResult()
@@ -91,14 +94,16 @@ namespace SmartImage.Lib.Searching
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
-			sb.Append($"{Url}\n");
+
+
+			sb.Append($"{nameof(Url)}: {Url}\n");
 
 			if (Similarity.HasValue) {
-				sb.Append($"{Similarity.Value/100:P}\n");
+				sb.Append($"{nameof(Similarity)}: {Similarity.Value/100:P}\n");
 			}
 
 			if (Width.HasValue && Height.HasValue) {
-				sb.Append($"{Width}x{Height}\n");
+				sb.Append($"Resolution: {Width}x{Height}\n");
 
 			}
 
@@ -108,16 +113,17 @@ namespace SmartImage.Lib.Searching
 			}
 
 			if (Artist != null) {
-				sb.Append($"{Artist}\n");
+				sb.Append($"{nameof(Artist)}: {Artist}\n");
 
 			}
 
 			if (Site != null) {
-				sb.Append($"{Site}\n");
-
+				sb.Append($"{nameof(Site)}: {Site}\n");
 			}
 
-			return sb.ToString();
+			
+			
+			return sb.ToString().RemoveLastOccurrence("\n");
 		}
 	}
 }

@@ -46,28 +46,27 @@ namespace SmartImage.Lib
 			Results.Clear();
 			IsComplete = false;
 		}
-		public static string? ResolveDirectLink(string s)
+
+		public static string ResolveDirectLink(string s)
 		{
 			//todo
 			string d = "";
 
-			try
-			{
+			try {
 				var     uri  = new Uri(s);
-				string? host = uri.Host;
+				string host = uri.Host;
 
 
 				var doc  = new HtmlDocument();
 				var html = Network.GetSimpleResponse(s);
 
-				if (host.Contains("danbooru"))
-				{
+				if (host.Contains("danbooru")) {
 					Debug.WriteLine("danbooru");
 
 
 					var jObject = JObject.Parse(html.Content);
 
-					d = (string)jObject["file_url"]!;
+					d = (string) jObject["file_url"]!;
 
 
 					return d;
@@ -75,12 +74,11 @@ namespace SmartImage.Lib
 
 				doc.LoadHtml(html.Content);
 
-				string? sel = "//img";
+				string sel = "//img";
 
 				var nodes = doc.DocumentNode.SelectNodes(sel);
 
-				if (nodes == null)
-				{
+				if (nodes == null) {
 					return null;
 				}
 
@@ -89,8 +87,7 @@ namespace SmartImage.Lib
 
 
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Debug.WriteLine($"direct {e.Message}");
 				return d;
 			}

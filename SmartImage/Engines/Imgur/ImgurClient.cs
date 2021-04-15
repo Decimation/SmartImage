@@ -21,7 +21,7 @@ namespace SmartImage.Engines.Imgur
 			m_apiKey = apiKey;
 		}
 
-		public ImgurClient() : this(SearchConfig.Config.ImgurAuth) { }
+		public ImgurClient() : this(UserSearchConfig.Config.ImgurAuth) { }
 
 		public string Upload(string path)
 		{
