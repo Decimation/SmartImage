@@ -96,13 +96,17 @@ namespace SmartImage.Lib.Engines.Impl
 			var tables = pages.SelectNodes("div/table");
 
 			// No relevant results?
+
 			bool noMatch = pages.ChildNodes.Any(n => n.GetAttributeValue("class", null) == "nomatch");
 
-			if (noMatch)
-			{
+			if (noMatch) {
 				//sr.ExtendedInfo.Add("No relevant results");
+				
 				// No relevant results
-				//sr.Filter = true;
+				
+
+				sr.Status = ResultStatus.NoResults;
+
 				return sr;
 			}
 
@@ -120,7 +124,5 @@ namespace SmartImage.Lib.Engines.Impl
 
 			return sr;
 		}
-
-		
 	}
 }

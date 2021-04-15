@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography;
-using AngleSharp;
 using HtmlAgilityPack;
 using SimpleCore.Net;
-using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib.Engines.Impl.Other
+namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class Ascii2DEngine : InterpretedSearchEngine
 	{
@@ -20,7 +16,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 		public override string Name => Engine.ToString();
 
 		/*
-		 * todo:
+		 * 
 		 *
 		 * color https://ascii2d.net/search/color/<hash>
 		 *
@@ -28,11 +24,33 @@ namespace SmartImage.Lib.Engines.Impl.Other
 		 *
 		 */
 
+		protected override HtmlDocument GetDocument(SearchResult sr)
+		{
+			var url = sr.RawUri.ToString();
+
+			var res = Network.GetSimpleResponse(url);
+
+			// Get redirect url (color url)
+			var newUrl = res.ResponseUri.ToString();
+
+			// https://ascii2d.net/search/color/<hash>
+
+			// Convert to detail url
+
+			var detailUrl = newUrl.Replace("/color/", "/bovw/");
+
+			//Debug.WriteLine($"{url} -> {newUrl} --> {detailUrl}");
+
+			sr.RawUri = new Uri(detailUrl);
+
+			return base.GetDocument(sr);
+		}
+
 		//[DebuggerHidden]
 		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
-			
-			var nodes    = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
+
+			var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
 
 			var rg = new List<ImageResult>();
 
@@ -95,8 +113,16 @@ namespace SmartImage.Lib.Engines.Impl.Other
 				rg.Add(ir);
 			}
 
+			// Skip original image
+
+			rg = rg.Skip(1).ToList();
+
+			sr.PrimaryResult = rg.First();
+
+			//sr.PrimaryResult.UpdateFrom(rg[0]);
+
 			sr.OtherResults.AddRange(rg);
-			
+
 
 			return sr;
 		}

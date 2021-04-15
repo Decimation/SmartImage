@@ -108,7 +108,6 @@ namespace SmartImage.Lib
 			}
 		}
 
-
 		public async Task RunSearchAsync()
 		{
 			if (IsComplete) {

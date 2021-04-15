@@ -13,6 +13,7 @@ namespace SmartImage.Lib.Searching
 	public enum ResultStatus
 	{
 		Success,
+		NoResults,
 		Failure
 	}
 
@@ -46,7 +47,7 @@ namespace SmartImage.Lib.Searching
 		{
 			var sb = new StringBuilder();
 
-			sb.AppendLine($"[{Engine.Name}] ({Status})".AddColor(Color.Aquamarine));
+			sb.AppendLine($"[{Engine.Name}] ({Status})".AddColor(Color.Crimson));
 
 			if (PrimaryResult.Url != null) {
 				sb.Append($"{PrimaryResult}\n");
