@@ -3,13 +3,14 @@
 #pragma warning disable HAA0601,
 
 using SimpleCore.Cli;
-using SmartImage.Configuration;
 using SmartImage.Core;
 using SmartImage.Searching;
 using System;
 using System.Diagnostics;
 using System.Linq;
 using SimpleCore.Net;
+using SmartImage.Configuration;
+using SmartImage.Lib;
 using SmartImage.Utilities;
 using static SimpleCore.Cli.NConsoleOption;
 
@@ -94,11 +95,11 @@ namespace SmartImage
 
 
 				// Setup
-				SearchConfig.Config.EnsureConfig();
+				UserSearchConfig.Config.EnsureConfig();
 				Integration.Setup();
 
 				// Run UI if not using command line arguments
-				if (SearchConfig.Config.NoArguments) {
+				if (UserSearchConfig.Config.NoArguments) {
 					Interface.Run();
 					Console.Clear();
 				}
@@ -108,7 +109,7 @@ namespace SmartImage
 
 
 				// Exit if no image is given
-				if (!SearchConfig.Config.HasImageInput) {
+				if (!UserSearchConfig.Config.HasImageInput) {
 					return;
 				}
 
@@ -116,8 +117,18 @@ namespace SmartImage
 
 				// Run search
 
-				var client = new SearchClient(SearchConfig.Config);
-				client.Start();
+				var cfg2 = new SearchConfig()
+				{
+					SearchEngines = UserSearchConfig.Config.SearchEngines,
+					PriorityEngines = UserSearchConfig.Config.PriorityEngines,
+					Query = UserSearchConfig.Config.ImageInput
+				};
+
+				var client = new SearchClient(cfg2);
+				client.RunSearchAsync();
+
+				var res = client.Results;
+
 
 				// Show results
 				var i = new NConsoleInterface(client.Results)
@@ -128,26 +139,6 @@ namespace SmartImage
 
 				var v = i.Run();
 
-				//todo
-				// refine search
-				if (v.Any() && (bool) v.First()) {
-					Debug.WriteLine($"Re-search");
-
-					var yandex = client.Results.Find(r => r.Name == "Yandex");
-
-					var configImageInput = MediaTypes.IsDirect(yandex.Url, MimeType.Image)
-						? yandex.Url
-						: yandex.ExtendedResults.First(e => MediaTypes.IsDirect(e.Url, MimeType.Image))?.Url;
-
-					//var configImageInput = SearchClient.Client.Results.FirstOrDefault(r=>MediaTypes.IsDirect(r.Url))?.Url;
-
-					Debug.WriteLine($">>>> {configImageInput}");
-					Console.Clear();
-					SearchConfig.Config.ImageInput = configImageInput;
-
-
-					goto SEARCH;
-				}
 			}
 			catch (Exception exception) {
 #if !DEBUG
@@ -173,8 +164,8 @@ namespace SmartImage
 			finally {
 				// Exit
 
-				if (SearchConfig.Config.UpdateConfig) {
-					SearchConfig.Config.SaveFile();
+				if (UserSearchConfig.Config.UpdateConfig) {
+					UserSearchConfig.Config.SaveFile();
 				}
 			}
 		}

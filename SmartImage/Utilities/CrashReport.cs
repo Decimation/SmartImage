@@ -34,7 +34,7 @@ namespace SmartImage.Utilities
 
 			try
 			{
-				sb.AppendLine(SearchConfig.Config.ToString());
+				sb.AppendLine(UserSearchConfig.Config.ToString());
 			}
 			catch (Exception)
 			{

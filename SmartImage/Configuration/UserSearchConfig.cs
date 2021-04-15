@@ -11,6 +11,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
+using SmartImage.Lib;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl;
 using static SmartImage.Core.Interface;
 
 #pragma warning disable HAA0502, HAA0302, HAA0505, HAA0601, HAA0301, HAA0501, HAA0101, HAA0102, RCS1036
@@ -28,9 +31,9 @@ namespace SmartImage.Configuration
 	///     Config is read from config file (<see cref="ConfigLocation" />) first, then from specified command line arguments.
 	/// </remarks>
 	/// <seealso cref="ConfigComponents" />
-	public sealed class SearchConfig
+	public sealed class UserSearchConfig
 	{
-		public SearchConfig()
+		public UserSearchConfig()
 		{
 			// Read config from config file
 			ReadFromFile();
@@ -45,7 +48,7 @@ namespace SmartImage.Configuration
 		/// <summary>
 		///     User config and arguments
 		/// </summary>
-		public static SearchConfig Config { get; } = new();
+		public static UserSearchConfig Config { get; } = new();
 
 		/// <summary>
 		///     Whether no arguments were passed in via CLI
@@ -63,6 +66,8 @@ namespace SmartImage.Configuration
 		/// </summary>
 		[field: ConfigComponent("priority_engines", "--priority-engines", SearchEngineOptions.Auto, true)]
 		public SearchEngineOptions PriorityEngines { get; set; }
+
+		
 
 		/// <summary>
 		///     <see cref="ImgurClient" /> API key
@@ -141,7 +146,7 @@ namespace SmartImage.Configuration
 		public void SaveFile()
 		{
 			NConsole.WriteInfo("Updating config");
-			ConfigComponents.WriteComponentsToFile(this, SearchConfig.ConfigLocation);
+			ConfigComponents.WriteComponentsToFile(this, UserSearchConfig.ConfigLocation);
 			NConsole.WriteInfo("Wrote to {0}", ConfigLocation);
 		}
 

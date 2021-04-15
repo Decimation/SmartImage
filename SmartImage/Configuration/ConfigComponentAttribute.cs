@@ -4,7 +4,7 @@ using System;
 namespace SmartImage.Configuration
 {
 	/// <summary>
-	/// <seealso cref="SearchConfig"/>
+	/// <seealso cref="UserSearchConfig"/>
 	/// <seealso cref="ConfigComponents"/>
 	/// </summary>
 	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]

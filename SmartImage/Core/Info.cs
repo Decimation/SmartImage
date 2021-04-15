@@ -49,7 +49,7 @@ namespace SmartImage.Core
 		public const string NAME_EXE = "SmartImage.exe";
 
 		/// <summary>
-		/// Config file name (<see cref="SearchConfig"/>)
+		/// Config file name (<see cref="UserSearchConfig"/>)
 		/// </summary>
 		public const string NAME_CFG = "SmartImage.cfg";
 
@@ -129,7 +129,7 @@ namespace SmartImage.Core
 			 * Config
 			 */
 
-			sb.Append(SearchConfig.Config);
+			sb.Append(UserSearchConfig.Config);
 
 
 

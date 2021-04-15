@@ -135,7 +135,7 @@ namespace SmartImage.Core
 				}
 
 
-				SearchConfig.Config.ImageInput = img;
+				UserSearchConfig.Config.ImageInput = img;
 
 				return true;
 			}
@@ -149,12 +149,12 @@ namespace SmartImage.Core
 			{
 				if (ReadSearchEngineOptions(out var newValues))
 				{
-					SearchConfig.Config.SearchEngines = newValues;
-					SearchConfig.Config.EnsureConfig();
+					UserSearchConfig.Config.SearchEngines = newValues;
+					UserSearchConfig.Config.EnsureConfig();
 
 				}
 
-				NConsole.WriteSuccess(SearchConfig.Config.SearchEngines);
+				NConsole.WriteSuccess(UserSearchConfig.Config.SearchEngines);
 				NConsole.WaitForSecond();
 				return null;
 			}
@@ -169,12 +169,12 @@ namespace SmartImage.Core
 			{
 				if (ReadSearchEngineOptions(out var newValues))
 				{
-					SearchConfig.Config.PriorityEngines = newValues;
-					SearchConfig.Config.EnsureConfig();
+					UserSearchConfig.Config.PriorityEngines = newValues;
+					UserSearchConfig.Config.EnsureConfig();
 
 				}
 
-				NConsole.WriteSuccess(SearchConfig.Config.PriorityEngines);
+				NConsole.WriteSuccess(UserSearchConfig.Config.PriorityEngines);
 				NConsole.WaitForSecond();
 				return null;
 			}
@@ -206,7 +206,7 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				SearchConfig.Config.SauceNaoAuth = NConsole.ReadInput("API key");
+				UserSearchConfig.Config.SauceNaoAuth = NConsole.ReadInput("API key");
 
 				NConsole.WaitForSecond();
 
@@ -222,7 +222,7 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 
-				SearchConfig.Config.ImgurAuth = NConsole.ReadInput("API key");
+				UserSearchConfig.Config.ImgurAuth = NConsole.ReadInput("API key");
 
 				NConsole.WaitForSecond();
 				return null;
@@ -236,7 +236,7 @@ namespace SmartImage.Core
 			Function = () =>
 			{
 
-				SearchConfig.Config.FilterResults = !SearchConfig.Config.FilterResults;
+				UserSearchConfig.Config.FilterResults = !UserSearchConfig.Config.FilterResults;
 				ConfigAutoFilter.Name = GetAutoFilterString();
 				return null;
 			}
@@ -245,7 +245,7 @@ namespace SmartImage.Core
 		private static string GetAutoFilterString()
 		{
 			//var x = SearchConfig.Config.FilterResults ? NConsole.AddColor("#", Color.GreenYellow) : NConsole.AddColor("-",Color.Red);
-			var x = SearchConfig.Config.FilterResults;
+			var x = UserSearchConfig.Config.FilterResults;
 			return $"Filter results: {x}";
 		}
 
@@ -255,7 +255,7 @@ namespace SmartImage.Core
 			Color = ColorConfig,
 			Function = () =>
 			{
-				SearchConfig.Config.SaveFile();
+				UserSearchConfig.Config.SaveFile();
 
 				NConsole.WaitForSecond();
 				return null;
@@ -354,7 +354,7 @@ namespace SmartImage.Core
 				Integration.ResetIntegrations();
 				Integration.HandlePath(IntegrationOption.Remove);
 
-				File.Delete(SearchConfig.ConfigLocation);
+				File.Delete(UserSearchConfig.ConfigLocation);
 
 				Integration.Uninstall();
 
@@ -393,8 +393,8 @@ namespace SmartImage.Core
 
 				string? testImg = (string)NConsole.ReadOptions(rgOption).First();
 
-				SearchConfig.Config.ImageInput = testImg;
-				SearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
+				UserSearchConfig.Config.ImageInput = testImg;
+				UserSearchConfig.Config.PriorityEngines = SearchEngineOptions.None;
 
 
 				return true;

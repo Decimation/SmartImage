@@ -9,7 +9,7 @@ using System.Reflection;
 namespace SmartImage.Configuration
 {
 	/// <summary>
-	///     Utilities for <see cref="SearchConfig" />, <see cref="ConfigComponentAttribute" />
+	///     Utilities for <see cref="UserSearchConfig" />, <see cref="ConfigComponentAttribute" />
 	/// </summary>
 	internal static class ConfigComponents
 	{

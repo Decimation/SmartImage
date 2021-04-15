@@ -138,8 +138,8 @@ namespace SmartImage.Core
 		internal static void ResetIntegrations()
 		{
 
-			SearchConfig.Config.Reset();
-			SearchConfig.Config.SaveFile();
+			UserSearchConfig.Config.Reset();
+			UserSearchConfig.Config.SaveFile();
 
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
