@@ -19,8 +19,14 @@ namespace SmartImage.Lib.Searching
 
 	public class SearchResult
 	{
+		/// <summary>
+		/// Primary image result
+		/// </summary>
 		public ImageResult PrimaryResult { get; set; }
 
+		/// <summary>
+		/// Other image results
+		/// </summary>
 		public List<ImageResult> OtherResults { get; set; }
 
 
@@ -33,6 +39,16 @@ namespace SmartImage.Lib.Searching
 		[CanBeNull]
 		public string ErrorMessage { get; set; }
 
+		public bool IsPrimitive
+		{
+			get
+			{
+				//todo: WIP
+				return PrimaryResult.Url == null;
+			}
+		}
+
+		
 
 		public SearchResult(BaseSearchEngine engine)
 		{
@@ -47,11 +63,16 @@ namespace SmartImage.Lib.Searching
 		{
 			var sb = new StringBuilder();
 
-			sb.AppendLine($"[{Engine.Name}] ({Status})".AddColor(Color.Crimson));
+			sb.AppendLine($"[{Engine.Name}] ({Status}; {(IsPrimitive ? "P" : "S")})");
 
 			if (PrimaryResult.Url != null) {
-				sb.Append($"{PrimaryResult}\n");
+				
+				string s = new('-',20);
+
+				sb.Append($"{PrimaryResult}\n{s}\n");
 			}
+
+			//========================================================================//
 
 			if (RawUri != null) {
 				sb.AppendFormat($"Raw: {RawUri.ToString().Truncate()}\n");
@@ -59,7 +80,7 @@ namespace SmartImage.Lib.Searching
 			}
 
 			if (OtherResults.Any()) {
-				sb.AppendFormat($"Other: {OtherResults.Count}\n");
+				sb.AppendFormat($"Other image results: {OtherResults.Count}\n");
 
 			}
 

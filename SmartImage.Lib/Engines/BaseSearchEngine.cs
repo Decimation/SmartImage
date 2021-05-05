@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net;
 using System.Threading.Tasks;
+using SimpleCore.Net;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines
@@ -23,17 +25,21 @@ namespace SmartImage.Lib.Engines
 		{
 			var rawUrl = GetRawResultUrl(query);
 
+			var sr = new SearchResult(this);
 
-			var sr = new SearchResult(this)
-			{
-				RawUri = rawUrl,
-				Status = ResultStatus.Success
-			};
+			if (rawUrl == null) {
+				sr.Status = ResultStatus.Failure;
+			}
+			else {
+
+				sr.RawUri = rawUrl;
+				sr.Status = ResultStatus.Success;
+			}
 
 
 			return sr;
 		}
-		
+
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
 			return await Task.Run(delegate
@@ -48,10 +54,17 @@ namespace SmartImage.Lib.Engines
 			});
 		}
 
-		public virtual Uri GetRawResultUrl(ImageQuery query)
+
+		public Uri GetRawResultUrl(ImageQuery query)
 		{
 			var uri = new Uri(BaseUrl + query.Uri);
 
+			bool ok = Network.IsUriAlive(uri);
+
+			if (!ok) {
+				Debug.WriteLine($"{uri} is unavailable");
+				return null;
+			}
 
 			return uri;
 		}

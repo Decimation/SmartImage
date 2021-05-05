@@ -11,6 +11,8 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 
+// ReSharper disable UnusedMember.Global
+
 namespace SmartImage.Lib
 {
 	public sealed class SearchClient
@@ -47,65 +49,20 @@ namespace SmartImage.Lib
 			IsComplete = false;
 		}
 
-		public static string ResolveDirectLink(string s)
+		
+
+		public async Task<List<SearchResult>> Maximize<T>(Func<SearchResult, T> property)
 		{
-			//todo
-			string d = "";
+			// TODO: WIP
 
-			try {
-				var     uri  = new Uri(s);
-				string host = uri.Host;
+			var t = RunSearchAsync();
+			await t;
 
+			var res = Results.OrderByDescending(property).ToList();
 
-				var doc  = new HtmlDocument();
-				var html = Network.GetSimpleResponse(s);
+			res.RemoveAll(r => r.IsPrimitive);
 
-				if (host.Contains("danbooru")) {
-					Debug.WriteLine("danbooru");
-
-
-					var jObject = JObject.Parse(html.Content);
-
-					d = (string) jObject["file_url"]!;
-
-
-					return d;
-				}
-
-				doc.LoadHtml(html.Content);
-
-				string sel = "//img";
-
-				var nodes = doc.DocumentNode.SelectNodes(sel);
-
-				if (nodes == null) {
-					return null;
-				}
-
-				Debug.WriteLine($"{nodes.Count}");
-				Debug.WriteLine($"{nodes[0]}");
-
-
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"direct {e.Message}");
-				return d;
-			}
-
-
-			return d;
-		}
-
-		public event EventHandler<SearchResultEventArgs> ResultCompleted;
-
-		public class SearchResultEventArgs : EventArgs
-		{
-			public SearchResult Result { get; }
-
-			public SearchResultEventArgs(SearchResult result)
-			{
-				Result = result;
-			}
+			return res;
 		}
 
 		public async Task RunSearchAsync()
@@ -142,5 +99,21 @@ namespace SmartImage.Lib
 				.Cast<BaseSearchEngine>()
 				.ToArray();
 		}
+
+		#region Event
+
+		public event EventHandler<SearchResultEventArgs> ResultCompleted;
+
+		public class SearchResultEventArgs : EventArgs
+		{
+			public SearchResult Result { get; }
+
+			public SearchResultEventArgs(SearchResult result)
+			{
+				Result = result;
+			}
+		}
+
+		#endregion
 	}
 }

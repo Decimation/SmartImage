@@ -39,6 +39,13 @@ namespace UnitTest
 		}
 
 		[Test]
+		public void TestResolutionType()
+		{
+			var (w, h) = ImageUtilities.GetResolution(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
+			Assert.AreEqual(ImageUtilities.GetResolutionType(w,h), "HD");
+		}
+
+		[Test]
 		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg", "sciamano240")]
 		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg", "koyoriin")]
 		public async Task TestSauceNao(string art, string name)

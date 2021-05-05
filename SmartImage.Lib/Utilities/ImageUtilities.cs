@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using HtmlAgilityPack;
+using Newtonsoft.Json.Linq;
 using SimpleCore.Net;
 
 // ReSharper disable UnusedMember.Global
@@ -26,7 +27,7 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/CrackedP0t/Tidder/
 		 * https://github.com/taurenshaman/imagehash
 		 */
-		
+
 		/*public static HtmlNode Index(this HtmlNode node, params int[] i)
 		{
 			if (!i.Any()) {
@@ -38,6 +39,33 @@ namespace SmartImage.Lib.Utilities
 
 			return node;
 		}*/
+
+		public static (int w, int h) GetResolution(string s)
+		{
+			using var bmp = Image.FromFile(s);
+
+			return (bmp.Width, bmp.Height);
+		}
+
+		public static string GetResolutionType(int w, int h)
+		{
+			/*
+			 *	Other			W < 1280	
+			 *	[HD, FHD)		[1280, 1920)	1280 <= W < 1920	W: >= 1280 < 1920
+			 *	[FHD, QHD)		[1920, 2560)	1920 <= W < 2560	W: >= 1920 < 2560
+			 *	[QHD, UHD)		[2560, 3840)	2560 <= W < 3840	W: >= 2560 < 3840
+			 *	[UHD, ∞)											W: >= 3840
+			 */
+
+			return w switch
+			{
+				< 1280             => "Other",
+				>= 1280 and < 1920 => "HD",
+				>= 1920 and < 2560 => "FHD",
+				>= 2560 and < 3840 => "QHD",
+				>= 3840            => "UHD",
+			};
+		}
 
 		public static bool IsDirectImage(string value)
 		{
@@ -125,5 +153,53 @@ namespace SmartImage.Lib.Utilities
 
 			return h;
 		}*/
+		public static string ResolveDirectLink(string s)
+		{
+			//todo: WIP
+			string d = "";
+
+			try {
+				var    uri  = new Uri(s);
+				string host = uri.Host;
+
+
+				var doc  = new HtmlDocument();
+				var html = Network.GetSimpleResponse(s);
+
+				if (host.Contains("danbooru")) {
+					Debug.WriteLine("danbooru");
+
+
+					var jObject = JObject.Parse(html.Content);
+
+					d = (string) jObject["file_url"]!;
+
+
+					return d;
+				}
+
+				doc.LoadHtml(html.Content);
+
+				string sel = "//img";
+
+				var nodes = doc.DocumentNode.SelectNodes(sel);
+
+				if (nodes == null) {
+					return null;
+				}
+
+				Debug.WriteLine($"{nodes.Count}");
+				Debug.WriteLine($"{nodes[0]}");
+
+
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"direct {e.Message}");
+				return d;
+			}
+
+
+			return d;
+		}
 	}
 }
