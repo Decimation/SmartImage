@@ -14,7 +14,7 @@ namespace SmartImage.Lib.Searching
 	/// <summary>
 	/// Describes an image search result
 	/// </summary>
-	public sealed class ImageResult
+	public sealed class ImageResult : IFieldView
 	{
 		/// <summary>
 		/// Url
@@ -71,16 +71,28 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public string? Name { get; set; }
 
-		public bool HasResolution => Width.HasValue && Height.HasValue;
+		/// <summary>
+		/// Whether <see cref="Width"/> and <see cref="Height"/> values are available
+		/// </summary>
+		public bool HasImageDimensions => Width.HasValue && Height.HasValue;
 
-		public int? Resolution => HasResolution ? Width * Height : -1;
+		/// <summary>
+		/// Pixel resolution
+		/// </summary>
+		public int? PixelResolution => HasImageDimensions ? Width * Height : null;
 
-		public float? Megapixels
+
+		/// <summary>
+		/// <see cref="PixelResolution"/> expressed in megapixels.
+		/// </summary>
+		public float? MegapixelResolution
 		{
 			get
 			{
-				if (HasResolution) {
-					var mpx = (float) MathHelper.ConvertToUnit(Width!.Value * Height!.Value, MetricUnit.Mega);
+				var px = PixelResolution;
+
+				if (px.HasValue) {
+					var mpx = (float) MathHelper.ConvertToUnit(px.Value, MetricUnit.Mega);
 
 					return mpx;
 				}
@@ -89,6 +101,9 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
+		/// <summary>
+		/// Other metadata about this image
+		/// </summary>
 		public Dictionary<string, object> OtherMetadata { get; }
 
 		public ImageResult()
@@ -96,11 +111,16 @@ namespace SmartImage.Lib.Searching
 			OtherMetadata = new();
 		}
 
+
 		public int DetailScore
 		{
 			get
 			{
 				//todo: WIP
+
+				/*
+				 * The number of non-null fields
+				 */
 
 				int s = 0;
 
@@ -120,12 +140,15 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
-		public ResolutionType ResolutionType
+		/// <summary>
+		/// The display resolution of this image
+		/// </summary>
+		public DisplayResolutionType DisplayResolution
 		{
 			get
 			{
-				if (HasResolution) {
-					var resolutionType = ImageUtilities.GetResolutionType(Width!.Value, Height!.Value);
+				if (HasImageDimensions) {
+					var resolutionType = ImageUtilities.GetDisplayResolution(Width!.Value, Height!.Value);
 
 					return resolutionType;
 				}
@@ -150,40 +173,48 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString()
 		{
-			var sb = new StringBuilder();
+			return new DefaultFieldViewHandler().GetString(this);
+		}
 
-			sb.AppendSafe(nameof(Url), Url);
+		public Dictionary<string, object> GetFields()
+		{
+			var sb = new Dictionary<string, object>();
+
+			sb.Add(nameof(Url), Url);
 
 			if (Similarity.HasValue) {
-				sb.Append($"{nameof(Similarity)}: {Similarity.Value / 100:P}\n");
+				sb.Add($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");
 			}
 
-			if (HasResolution) {
-				sb.Append($"Resolution: {Width}x{Height} ({Megapixels:F} MP)");
+			if (HasImageDimensions) {
+				string s = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
 
-				var resType = ResolutionType;
 
-				if (resType != ResolutionType.Unknown) {
-					sb.Append($" (~{resType})");
+				var resType = DisplayResolution;
+
+				if (resType != DisplayResolutionType.Unknown) {
+					s += ($" (~{resType})");
 				}
 
-				sb.Append("\n");
+				sb.Add($"Resolution", s);
+
+
 			}
 
-			sb.AppendSafe(nameof(Name), Name);
-			sb.AppendSafe(nameof(Description), Description);
-			sb.AppendSafe(nameof(Artist), Artist);
-			sb.AppendSafe(nameof(Site), Site);
-			sb.AppendSafe(nameof(Source), Source);
-			sb.AppendSafe(nameof(Characters), Characters);
+			sb.Add(nameof(Name), Name);
+			sb.Add(nameof(Description), Description);
+			sb.Add(nameof(Artist), Artist);
+			sb.Add(nameof(Site), Site);
+			sb.Add(nameof(Source), Source);
+			sb.Add(nameof(Characters), Characters);
 
 			foreach (var (key, value) in OtherMetadata) {
-				sb.AppendSafe(key, value);
+				sb.Add(key, value);
 			}
 
-			sb.Append($"Detail score: {DetailScore}\n");
+			sb.Add($"Detail score:", $"{DetailScore}");
 
-			return sb.ToString().RemoveLastOccurrence("\n");
+			return sb;
 		}
 	}
 }

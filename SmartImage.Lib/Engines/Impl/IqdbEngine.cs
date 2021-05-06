@@ -20,7 +20,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		//public static float? FilterThreshold => 70.00F;
 
-
+		// TODO: FIX USING IMAGE LINKS
 		private static ImageResult ParseResult(HtmlNodeCollection tr)
 		{
 			var caption = tr[0];

@@ -16,7 +16,7 @@ namespace SmartImage.Lib.Searching
 		Failure
 	}
 
-	public class SearchResult
+	public class SearchResult : IFieldView
 	{
 		/// <summary>
 		/// Primary image result
@@ -85,8 +85,6 @@ namespace SmartImage.Lib.Searching
 
 		private static readonly Color Blue = Color.DeepSkyBlue;
 
-		#endregion UI
-
 		private static string IndentFields(string s)
 		{
 			//return s.Replace("\n", "\n" + Indent);
@@ -98,28 +96,37 @@ namespace SmartImage.Lib.Searching
 			return Indent + j;
 		}
 
+		#endregion UI
+
 		public override string ToString()
 		{
-			var sb = new StringBuilder();
+			return new DefaultFieldViewHandler().GetString(this);
+		}
+
+		public Dictionary<string, object> GetFields()
+		{
+			var sb = new Dictionary<string, object>();
 
 			var name = $"[{Engine.Name}]".AddColor(Blue);
 
-			sb.AppendLine($"{name} :: ({Status}; {(IsPrimitive ? RANK_P : RANK_S)})");
+			sb.Add($"{name}", $"({Status}; {(IsPrimitive ? RANK_P : RANK_S)})");
 
 			if (PrimaryResult.Url != null) {
-				var resStr = IndentFields(PrimaryResult.ToString());
+				
+				foreach (var kv in PrimaryResult.GetFields()) {
+					sb.Add(kv.Key, kv.Value);
+				}
 
-				sb.Append($"{resStr}\n{Separator}\n");
 			}
 
 			//========================================================================//
 
-			var sb2 = new StringBuilder();
-			sb2.AppendSafe("Raw",RawUri);
-			sb2.AppendSafe("Other image results", OtherResults,  $"{OtherResults.Count}");
-			sb2.AppendSafe("Error",ErrorMessage);
 
-			return sb.Append(IndentFields(sb2.ToString())).ToString();
+			sb.Add("Raw", RawUri);
+			sb.Add("Other image results", $"{OtherResults.Count}");
+			sb.Add("Error", ErrorMessage);
+
+			return sb;
 		}
 	}
 }

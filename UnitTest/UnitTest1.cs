@@ -43,9 +43,9 @@ namespace UnitTest
 		public void TestResolutionType()
 		{
 			var (w, h) = ImageUtilities.GetResolution(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
-			Assert.AreEqual(ImageUtilities.GetResolutionType(w,h), ResolutionType.HD);
-			Assert.AreEqual(ImageUtilities.GetResolutionType(1920, 1080), ResolutionType.FHD);
-			Assert.AreEqual(ImageUtilities.GetResolutionType(640,360), ResolutionType.nHD);
+			Assert.AreEqual(ImageUtilities.GetDisplayResolution(w,h), DisplayResolutionType.HD);
+			Assert.AreEqual(ImageUtilities.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
+			Assert.AreEqual(ImageUtilities.GetDisplayResolution(640,360), DisplayResolutionType.nHD);
 		}
 
 		[Test]

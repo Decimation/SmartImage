@@ -46,6 +46,8 @@ namespace SmartImage.Lib.Searching
 				throw new ArgumentNullException(nameof(value));
 			}
 
+			value = value.Trim('\"');
+
 			Value = value;
 
 			IsFile = File.Exists(value);

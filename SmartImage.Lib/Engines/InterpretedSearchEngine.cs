@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using RestSharp;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
@@ -34,8 +35,14 @@ namespace SmartImage.Lib.Engines
 
 			string response = Network.GetString(sr.RawUri.ToString()!);
 
+
 			//var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
 
+			//var req = new RestRequest(BaseUrl);
+			//req.AddQueryParameter("url", sr.RawUri.ToString());
+			//var rc  = new RestClient();
+			//var res =rc.Execute(req);
+			//var response   = res.Content;
 
 			var doc = new HtmlDocument();
 			//doc.LoadHtml(response.Content);
