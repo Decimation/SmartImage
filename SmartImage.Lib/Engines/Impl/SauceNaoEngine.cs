@@ -77,7 +77,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		// TODO: FIX USING IMAGE LINKS
 
-		private static IEnumerable<SauceNaoDataResult> ParseResults(string url)
+		private static IEnumerable<SauceNaoDataResult>? ParseResults(string url)
 		{
 			var doc  = new HtmlDocument();
 
@@ -89,6 +89,15 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var html         = execute.Content;
 
+			/*
+			 * Daily Search Limit Exceeded.
+			 * 208.110.232.218, your IP has exceeded the unregistered user's daily limit of 100 searches.
+			 */
+
+			if (html.Contains("Search Limit Exceeded")) {
+				Trace.WriteLine($"SauceNao on cooldown!");
+				return null;
+			}
 
 			doc.LoadHtml(html);
 
@@ -289,7 +298,16 @@ namespace SmartImage.Lib.Engines.Impl
 				if (orig == null) {
 					//return result;
 					Debug.WriteLine("[info] Parsing HTML from SN!");
-					orig = ParseResults(url.Uri.ToString()).ToArray();
+					var sauceNaoDataResults = ParseResults(url.Uri.ToString());
+
+					if (sauceNaoDataResults == null) {
+						sresult.ErrorMessage = $"Daily search limit (100) exceeded";
+						sresult.Status       = ResultStatus.Unavailable;
+						return sresult;
+					}
+					orig = sauceNaoDataResults.ToArray();
+
+					
 				}
 
 				// aggregate all info for primary result

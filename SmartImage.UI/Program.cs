@@ -7,7 +7,7 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.UI
 {
-	class Program
+	public static class Program
 	{
 		public static void OnResult(object _, SearchClient.SearchResultEventArgs e)
 		{
@@ -16,7 +16,7 @@ namespace SmartImage.UI
 			if (e.Result.IsSuccessful) { }
 		}
 
-		static async Task Main(string[] args)
+		private static async Task Main(string[] args)
 		{
 
 
@@ -31,7 +31,7 @@ namespace SmartImage.UI
 
 
 			var cfg = new SearchConfig
-				{Query = q, SearchEngines = SearchEngineOptions.SauceNao | SearchEngineOptions.Iqdb};
+				{Query = q, SearchEngines = SearchEngineOptions.All};
 
 			var cl = new SearchClient(cfg);
 

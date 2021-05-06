@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Searching
 {
@@ -16,7 +17,7 @@ namespace SmartImage.Lib.Searching
 		Failure
 	}
 
-	public class SearchResult : IFieldView
+	public class SearchResult
 	{
 		/// <summary>
 		/// Primary image result
@@ -72,61 +73,32 @@ namespace SmartImage.Lib.Searching
 			PrimaryResult = new ImageResult();
 			OtherResults  = new List<ImageResult>();
 		}
-
-		#region UI
-
-		private static readonly string Indent = new string(' ', 3);
-
-		private static readonly string Separator = Indent + new string('-', 20);
-
-		private const string RANK_P = "P";
-
-		private const string RANK_S = "S";
-
-		private static readonly Color Blue = Color.DeepSkyBlue;
-
-		private static string IndentFields(string s)
-		{
-			//return s.Replace("\n", "\n" + Indent);
-
-			var split = s.Split('\n');
-
-			var j = string.Join($"\n{Indent}", split);
-
-			return Indent + j;
-		}
-
-		#endregion UI
+		
 
 		public override string ToString()
 		{
-			return new DefaultFieldViewHandler().GetString(this);
-		}
+			var sb = new ExtendedStringBuilder() {Primary = Interface.Blue2};
 
-		public Dictionary<string, object> GetFields()
-		{
-			var sb = new Dictionary<string, object>();
 
-			var name = $"[{Engine.Name}]".AddColor(Blue);
+			var name = $"[{Engine.Name}]".AddColor(Interface.Blue);
 
-			sb.Add($"{name}", $"({Status}; {(IsPrimitive ? RANK_P : RANK_S)})");
+			sb.AppendLine($"{name} :: ({Status}; {(IsPrimitive ? Interface.RANK_P : Interface.RANK_S)})");
 
 			if (PrimaryResult.Url != null) {
-				
-				foreach (var kv in PrimaryResult.GetFields()) {
-					sb.Add(kv.Key, kv.Value);
-				}
+				var    resStr    = sb.IndentFields(PrimaryResult.ToString());
+				string separator = sb.Indent + new string('-', 20);
 
+				sb.Append($"{resStr}\n{separator}\n");
 			}
 
 			//========================================================================//
 
+			var sb2 = new ExtendedStringBuilder() {Primary = Interface.Blue2};
+			sb2.Append("Raw", RawUri);
+			sb2.Append("Other image results", OtherResults, $"{OtherResults.Count}");
+			sb2.Append("Error", ErrorMessage);
 
-			sb.Add("Raw", RawUri);
-			sb.Add("Other image results", $"{OtherResults.Count}");
-			sb.Add("Error", ErrorMessage);
-
-			return sb;
+			return sb.Append(sb.IndentFields(sb2.ToString())).ToString();
 		}
 	}
 }

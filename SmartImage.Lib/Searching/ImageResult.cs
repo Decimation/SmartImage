@@ -3,6 +3,7 @@ using SimpleCore.Utilities;
 using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -14,7 +15,7 @@ namespace SmartImage.Lib.Searching
 	/// <summary>
 	/// Describes an image search result
 	/// </summary>
-	public sealed class ImageResult : IFieldView
+	public sealed class ImageResult
 	{
 		/// <summary>
 		/// Url
@@ -111,7 +112,7 @@ namespace SmartImage.Lib.Searching
 			OtherMetadata = new();
 		}
 
-
+		
 		public int DetailScore
 		{
 			get
@@ -173,48 +174,43 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString()
 		{
-			return new DefaultFieldViewHandler().GetString(this);
-		}
+			var sb = new ExtendedStringBuilder() { Primary = Interface.Blue2 };
 
-		public Dictionary<string, object> GetFields()
-		{
-			var sb = new Dictionary<string, object>();
-
-			sb.Add(nameof(Url), Url);
+			sb.Append(nameof(Url), Url);
 
 			if (Similarity.HasValue) {
-				sb.Add($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");
+				sb.Append($"{nameof(Similarity)}",$"{Similarity.Value / 100:P}");
 			}
 
 			if (HasImageDimensions) {
-				string s = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
+				string? val = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
 
 
 				var resType = DisplayResolution;
 
 				if (resType != DisplayResolutionType.Unknown) {
-					s += ($" (~{resType})");
+					val+=($" (~{resType})");
 				}
 
-				sb.Add($"Resolution", s);
-
-
+				sb.Append($"Resolution",val);
+				
 			}
 
-			sb.Add(nameof(Name), Name);
-			sb.Add(nameof(Description), Description);
-			sb.Add(nameof(Artist), Artist);
-			sb.Add(nameof(Site), Site);
-			sb.Add(nameof(Source), Source);
-			sb.Add(nameof(Characters), Characters);
+			sb.Append(nameof(Name), Name);
+			sb.Append(nameof(Description), Description);
+			sb.Append(nameof(Artist), Artist);
+			sb.Append(nameof(Site), Site);
+			sb.Append(nameof(Source), Source);
+			sb.Append(nameof(Characters), Characters);
 
 			foreach (var (key, value) in OtherMetadata) {
-				sb.Add(key, value);
+				sb.Append(key, value);
 			}
 
-			sb.Add($"Detail score:", $"{DetailScore}");
+			sb.Append($"Detail score", $"{DetailScore}");
 
-			return sb;
+			return sb.ToString().RemoveLastOccurrence("\n");
 		}
+		
 	}
 }
