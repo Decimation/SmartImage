@@ -7,6 +7,8 @@ using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using SimpleCore.Net;
 
+// ReSharper disable InconsistentNaming
+
 // ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Lib.Utilities
@@ -47,7 +49,7 @@ namespace SmartImage.Lib.Utilities
 			return (bmp.Width, bmp.Height);
 		}
 
-		public static string GetResolutionType(int w, int h)
+		public static ResolutionType GetResolutionType(int w, int h)
 		{
 			/*
 			 *	Other			W < 1280	
@@ -57,14 +59,29 @@ namespace SmartImage.Lib.Utilities
 			 *	[UHD, ∞)											W: >= 3840
 			 */
 
-			return w switch
+			return (w, h) switch
 			{
-				< 1280             => "Other",
-				>= 1280 and < 1920 => "HD",
-				>= 1920 and < 2560 => "FHD",
-				>= 2560 and < 3840 => "QHD",
-				>= 3840            => "UHD",
+				/*
+				 * Specific resolutions
+				 */
+
+				(640, 360) => ResolutionType.nHD,
+
+
+				/*
+				 * General resolutions
+				 */
+
+				_ => w switch
+				{
+					>= 1280 and < 1920 => ResolutionType.HD,
+					>= 1920 and < 2560 => ResolutionType.FHD,
+					>= 2560 and < 3840 => ResolutionType.QHD,
+					>= 3840            => ResolutionType.UHD,
+					_                  => ResolutionType.Unknown,
+				}
 			};
+
 		}
 
 		public static bool IsDirectImage(string value)
@@ -201,5 +218,16 @@ namespace SmartImage.Lib.Utilities
 
 			return d;
 		}
+	}
+
+	public enum ResolutionType
+	{
+		Unknown,
+
+		nHD,
+		HD,
+		FHD,
+		QHD,
+		UHD,
 	}
 }

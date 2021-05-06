@@ -1,4 +1,5 @@
 using System;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Xsl;
@@ -42,7 +43,9 @@ namespace UnitTest
 		public void TestResolutionType()
 		{
 			var (w, h) = ImageUtilities.GetResolution(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
-			Assert.AreEqual(ImageUtilities.GetResolutionType(w,h), "HD");
+			Assert.AreEqual(ImageUtilities.GetResolutionType(w,h), ResolutionType.HD);
+			Assert.AreEqual(ImageUtilities.GetResolutionType(1920, 1080), ResolutionType.FHD);
+			Assert.AreEqual(ImageUtilities.GetResolutionType(640,360), ResolutionType.nHD);
 		}
 
 		[Test]

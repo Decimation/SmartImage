@@ -163,15 +163,14 @@ namespace SmartImage.Lib.Engines.Impl
 			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
 
-			if (doc.Text.Contains(AUTOMATION_ERROR_MSG))
-			{
+			if (doc.Text.Contains(AUTOMATION_ERROR_MSG)) {
 				sr.ErrorMessage = "Yandex requests exceeded; on cooldown";
-				sr.Status       = ResultStatus.Failure;
+				sr.Status       = ResultStatus.Unavailable;
 
+				Debug.WriteLine($"{Name} is on cooldown!");
 				return sr;
 			}
 
-			
 
 			/*
 			 * Parse what the image looks like
@@ -214,8 +213,7 @@ namespace SmartImage.Lib.Engines.Impl
 			sr.PrimaryResult.UpdateFrom(best);
 
 
-			if (looksLike != null)
-			{
+			if (looksLike != null) {
 				//sr.Metadata.Add("Analysis", looksLike);
 				sr.PrimaryResult.Description = looksLike;
 			}
@@ -224,7 +222,5 @@ namespace SmartImage.Lib.Engines.Impl
 
 			return sr;
 		}
-
-		
 	}
 }

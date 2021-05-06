@@ -28,7 +28,9 @@ namespace Test
 	{
 		public static void OnResult(object _, SearchClient.SearchResultEventArgs e)
 		{
-			Console.WriteLine(">>" + e.Result);
+			Console.WriteLine(e.Result);
+
+			if (e.Result.IsSuccessful) { }
 		}
 
 		public static async Task Main(string[] args)
@@ -42,21 +44,17 @@ namespace Test
 
 
 			var cfg = new SearchConfig
-				{Query = q, SearchEngines = SearchEngineOptions.All & ~SearchEngineOptions.Tidder};
+				{Query = q, SearchEngines = SearchEngineOptions.All};
 
 			var cl = new SearchClient(cfg);
 
-			var r = cl.Maximize(r => r.PrimaryResult.Similarity);
+			//var r  = cl.Maximize(r => r.PrimaryResult.Similarity);
+			//var r2 = await r;
 
+			cl.ResultCompleted += OnResult;
 
-			var r2 = await r;
-
-			foreach (var z in r2) {
-				Console.WriteLine(z);
-			}
-
-			var b =await new BingEngine().GetResultAsync(q);
-			Console.WriteLine(b.PrimaryResult==null);
+			var r  =  cl.RunSearchAsync();
+			await r;
 
 
 			// var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All & ~SearchEngineOptions.Tidder};

@@ -1,13 +1,14 @@
-﻿using System;
+﻿using SimpleCore.Numeric;
+using SimpleCore.Utilities;
+using SmartImage.Lib.Utilities;
+using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using SimpleCore.Numeric;
-using SimpleCore.Utilities;
 
 #nullable enable
+
 namespace SmartImage.Lib.Searching
 {
 	/// <summary>
@@ -60,12 +61,10 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public string? Site { get; set; }
 
-
 		/// <summary>
 		/// Date of image
 		/// </summary>
 		public DateTime? Date { get; set; }
-
 
 		/// <summary>
 		///     Result name
@@ -81,12 +80,9 @@ namespace SmartImage.Lib.Searching
 			get
 			{
 				if (HasResolution) {
-
 					var mpx = (float) MathHelper.ConvertToUnit(Width!.Value * Height!.Value, MetricUnit.Mega);
 
-
 					return mpx;
-
 				}
 
 				return null;
@@ -115,13 +111,26 @@ namespace SmartImage.Lib.Searching
 
 					if (v != null) {
 						s++;
-						Debug.WriteLine($"{f.Name} {s} [{v}]");
 					}
 				}
 
 				s += OtherMetadata.Count - 1;
 
 				return s;
+			}
+		}
+
+		public ResolutionType ResolutionType
+		{
+			get
+			{
+				if (HasResolution) {
+					var resolutionType = ImageUtilities.GetResolutionType(Width!.Value, Height!.Value);
+
+					return resolutionType;
+				}
+
+				throw new SmartImageException($"Resolution unavailable");
 			}
 		}
 
@@ -143,39 +152,36 @@ namespace SmartImage.Lib.Searching
 		{
 			var sb = new StringBuilder();
 
-
-			sb.Append($"{nameof(Url)}: {Url}\n");
+			sb.AppendSafe(nameof(Url), Url);
 
 			if (Similarity.HasValue) {
 				sb.Append($"{nameof(Similarity)}: {Similarity.Value / 100:P}\n");
 			}
 
 			if (HasResolution) {
-				sb.Append($"Resolution: {Width}x{Height} ({Megapixels:F} MP)\n");
+				sb.Append($"Resolution: {Width}x{Height} ({Megapixels:F} MP)");
+
+				var resType = ResolutionType;
+
+				if (resType != ResolutionType.Unknown) {
+					sb.Append($" (~{resType})");
+				}
+
+				sb.Append("\n");
 			}
 
-
-			Append(Name, nameof(Name));
-			Append(Description, nameof(Description));
-			Append(Artist, nameof(Artist));
-			Append(Site, nameof(Site));
-			Append(Source, nameof(Source));
-			Append(Characters, nameof(Characters));
-
+			sb.AppendSafe(nameof(Name), Name);
+			sb.AppendSafe(nameof(Description), Description);
+			sb.AppendSafe(nameof(Artist), Artist);
+			sb.AppendSafe(nameof(Site), Site);
+			sb.AppendSafe(nameof(Source), Source);
+			sb.AppendSafe(nameof(Characters), Characters);
 
 			foreach (var (key, value) in OtherMetadata) {
-				Append(value, key);
+				sb.AppendSafe(key, value);
 			}
 
 			sb.Append($"Detail score: {DetailScore}\n");
-
-
-			void Append(object? o, string s)
-			{
-				if (o != null) {
-					sb.Append($"{s}: {o}\n");
-				}
-			}
 
 			return sb.ToString().RemoveLastOccurrence("\n");
 		}

@@ -28,7 +28,7 @@ namespace SmartImage.Lib.Engines
 			var sr = new SearchResult(this);
 
 			if (rawUrl == null) {
-				sr.Status = ResultStatus.Failure;
+				sr.Status = ResultStatus.Unavailable;
 			}
 			else {
 
