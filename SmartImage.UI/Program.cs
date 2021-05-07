@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI
 {
@@ -18,26 +19,25 @@ namespace SmartImage.UI
 				Console.WriteLine(e.Result);
 			}
 		}
-		
+
 		private static async Task Main(string[] args)
 		{
 			//var process = Process.GetCurrentProcess();
 			//process.PriorityBoostEnabled = true;
 			//process.PriorityClass        = ProcessPriorityClass.High;
 
-			string i;
+			
 
-			do {
-				i = Console.ReadLine();
 
-			} while (string.IsNullOrWhiteSpace(i));
+			var i = Console.ReadLine();
+
 
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.InputEncoding  = Encoding.Unicode;
 
-			var        sw = Stopwatch.StartNew();
+			var sw = Stopwatch.StartNew();
 
-			ImageQuery q  = (i);
+			ImageQuery q = (i);
 
 
 			var cfg = new SearchConfig
@@ -53,7 +53,7 @@ namespace SmartImage.UI
 			var r = cl.RunSearchAsync();
 			await r;
 
-			
+
 			var r2 = cl.RefineSearchAsync();
 			await r2;
 

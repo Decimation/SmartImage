@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.14.0" />
-    <PackageReference Include="AngleSharp.Io" Version="0.14.0" />
+    <PackageReference Include="AngleSharp" Version="0.15.0" />
+    <PackageReference Include="AngleSharp.Css" Version="0.15.0" />
+    <PackageReference Include="AngleSharp.Io" Version="0.15.0" />
     <PackageReference Include="AngleSharp.Js" Version="0.14.0" />
     <PackageReference Include="AngleSharp.XPath" Version="1.1.7" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.30" />
