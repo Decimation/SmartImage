@@ -57,23 +57,28 @@ namespace SmartImage.Lib
 			}
 
 			//todo: WIP
-			
+
+			Trace.WriteLine($"Finding best result");
+
 			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
-				.OrderByDescending(r => r.PrimaryResult.Similarity)
-				.ThenByDescending(r => r.PrimaryResult.DetailScore)
 				.SelectMany(delegate(SearchResult r)
 				{
 					var x = r.OtherResults;
 					x.Insert(0, r.PrimaryResult);
 					return x;
 				})
-				.Where(r => r.Url != null)
-				.First(r => ImageUtilities.IsDirectImage(r.Url.ToString()));
+				.Where(r => r.Url != null && ImageUtilities.IsDirectImage(r.Url.ToString()))
+				.OrderByDescending(r => r.Similarity)
+				.ThenByDescending(r => r.DetailScore)
+				.FirstOrDefault();
 
+			if (best == null) {
+				return;
+			}
 
 			var uri = best.Url;
 
-			Trace.WriteLine($"Refining {uri}");
+			Trace.WriteLine($"Refining by {uri}");
 
 			var img = uri;
 
