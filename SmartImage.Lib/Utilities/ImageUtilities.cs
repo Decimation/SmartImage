@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Dom;
@@ -95,7 +96,47 @@ namespace SmartImage.Lib.Utilities
 		{
 			return MediaTypes.IsDirect(value, MimeType.Image);
 		}
-		
+
+		public static string[] scan(string s)
+		{
+			//<img.*?src="(.*?)"
+			//href\s*=\s*"(.+?)"
+
+			var html = Network.GetString(s);
+
+			//var src  = "<img.*?src=\"(.*?)\"";
+			//var href = "href\\s*=\\s*\"(.+?)\"";
+			var href = "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"";
+			//var m  = Regex.Matches(html, src);
+			var m2 = Regex.Matches(html, href);
+
+			//Debug.WriteLine($"{s} {m.Count} {m2.Count}");
+
+
+			for (int index = 0; index < m2.Count; index++) {
+				Match match = m2[index];
+				var   v     = match.Groups;
+
+				for (int i = 0; i < v.Count; i++) {
+					Group @group = v[i];
+
+					foreach (Capture capture in @group.Captures) {
+						// this works but it's slow
+						if (Network.IsUri(capture.Value, out var u)) {
+							Debug.WriteLine($"[{index}, {i}] {u}");
+
+						}
+					}
+				}
+			}
+
+
+			var rg = new List<string>();
+
+			return rg.ToArray();
+		}
+
+
 		public static string ResolveDirectLink(string s)
 		{
 			//todo: WIP

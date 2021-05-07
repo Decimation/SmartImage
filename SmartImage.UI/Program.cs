@@ -17,6 +17,10 @@ namespace SmartImage.UI
 
 			if (e.Result.IsSuccessful) {
 				Console.WriteLine(e.Result);
+
+				if (e.Result.PrimaryResult.Url!=null) {
+					ImageUtilities.scan(e.Result.PrimaryResult.Url.ToString());
+				}
 			}
 		}
 
@@ -26,11 +30,7 @@ namespace SmartImage.UI
 			//process.PriorityBoostEnabled = true;
 			//process.PriorityClass        = ProcessPriorityClass.High;
 
-			
-
-
 			var i = Console.ReadLine();
-
 
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.InputEncoding  = Encoding.Unicode;
@@ -41,7 +41,7 @@ namespace SmartImage.UI
 
 
 			var cfg = new SearchConfig
-				{Query = q, SearchEngines = SearchEngineOptions.Artwork | SearchEngineOptions.Yandex};
+				{Query = q, SearchEngines = SearchEngineOptions.All};
 
 			var cl = new SearchClient(cfg);
 
