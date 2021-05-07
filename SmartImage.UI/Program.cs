@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SmartImage.Lib;
@@ -11,27 +12,30 @@ namespace SmartImage.UI
 	{
 		public static void OnResult(object _, SearchClient.SearchResultEventArgs e)
 		{
-			Console.WriteLine(e.Result);
 
-			if (e.Result.IsSuccessful) { }
+			if (e.Result.IsSuccessful) {
+				Console.WriteLine(e.Result);
+			}
 		}
-
+		
 		private static async Task Main(string[] args)
 		{
+			string i;
 
+			do {
+				i = Console.ReadLine();
 
-			var i = Console.ReadLine();
-
+			} while (string.IsNullOrWhiteSpace(i));
 
 			Console.OutputEncoding = Encoding.Unicode;
 			Console.InputEncoding  = Encoding.Unicode;
 
 
-			var q = new ImageQuery(i);
+			ImageQuery q = (i);
 
 
 			var cfg = new SearchConfig
-				{Query = q, SearchEngines = SearchEngineOptions.All};
+				{Query = q, SearchEngines = SearchEngineOptions.Artwork | SearchEngineOptions.Yandex};
 
 			var cl = new SearchClient(cfg);
 
@@ -42,6 +46,10 @@ namespace SmartImage.UI
 
 			var r = cl.RunSearchAsync();
 			await r;
+
+			Console.ReadLine();
+			var r2 = cl.RefineSearchAsync();
+			await r2;
 		}
 	}
 }

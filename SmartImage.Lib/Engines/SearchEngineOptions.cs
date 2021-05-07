@@ -85,6 +85,11 @@ namespace SmartImage.Lib.Engines
 		///     All engines
 		/// </summary>
 		All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing | Tidder |
-		      Ascii2D
+		      Ascii2D,
+
+
+		Artwork = SauceNao | Iqdb | Ascii2D,
+
+
 	}
 }

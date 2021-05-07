@@ -7,6 +7,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Novus.Utilities;
 
 #nullable enable
 
@@ -112,7 +113,18 @@ namespace SmartImage.Lib.Searching
 			OtherMetadata = new();
 		}
 
-		
+
+		private static List<FieldInfo> GetDetailFields()
+		{
+			var fields = typeof(ImageResult).GetRuntimeFields().Where(f => !f.IsStatic).ToList();
+
+			fields.RemoveAll(f => f.Name.Contains(nameof(OtherMetadata)));
+
+			return fields;
+		}
+
+		private static readonly List<FieldInfo> DetailFields = GetDetailFields();
+
 		public int DetailScore
 		{
 			get
@@ -125,9 +137,8 @@ namespace SmartImage.Lib.Searching
 
 				int s = 0;
 
-				var fields = GetType().GetRuntimeFields().Where(f => !f.IsStatic);
 
-				foreach (FieldInfo f in fields) {
+				foreach (FieldInfo f in DetailFields) {
 					var v = f.GetValue(this);
 
 					if (v != null) {
@@ -135,11 +146,15 @@ namespace SmartImage.Lib.Searching
 					}
 				}
 
-				s += OtherMetadata.Count - 1;
+
+				s += OtherMetadata.Count;
 
 				return s;
 			}
 		}
+
+		public bool IsDetailed => DetailScore >= (DetailFields.Count * .5);
+
 
 		/// <summary>
 		/// The display resolution of this image
@@ -171,15 +186,15 @@ namespace SmartImage.Lib.Searching
 			Description = result.Description;
 			Date        = result.Date;
 		}
-
+		
 		public override string ToString()
 		{
-			var sb = new ExtendedStringBuilder() { Primary = Interface.Blue2 };
+			var sb = new ExtendedStringBuilder() {Primary = Interface.Blue2};
 
 			sb.Append(nameof(Url), Url);
 
 			if (Similarity.HasValue) {
-				sb.Append($"{nameof(Similarity)}",$"{Similarity.Value / 100:P}");
+				sb.Append($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");
 			}
 
 			if (HasImageDimensions) {
@@ -189,11 +204,11 @@ namespace SmartImage.Lib.Searching
 				var resType = DisplayResolution;
 
 				if (resType != DisplayResolutionType.Unknown) {
-					val+=($" (~{resType})");
+					val += ($" (~{resType})");
 				}
 
-				sb.Append($"Resolution",val);
-				
+				sb.Append($"Resolution", val);
+
 			}
 
 			sb.Append(nameof(Name), Name);
@@ -207,10 +222,9 @@ namespace SmartImage.Lib.Searching
 				sb.Append(key, value);
 			}
 
-			sb.Append($"Detail score", $"{DetailScore}");
+			sb.Append($"Detail score", $"{DetailScore}/{DetailFields.Count} ({(IsDetailed ? "Y" : "N")})");
 
 			return sb.ToString().RemoveLastOccurrence("\n");
 		}
-		
 	}
 }

@@ -220,6 +220,14 @@ namespace SmartImage.Lib.Engines.Impl
 
 			sr.OtherResults.AddRange(images);
 
+			const string errorMessage = "No matching images found";
+
+			if (doc.Text.Contains(errorMessage)) {
+
+				sr.ErrorMessage = errorMessage;
+				sr.Status       = ResultStatus.Extraneous;
+			}
+
 			return sr;
 		}
 	}

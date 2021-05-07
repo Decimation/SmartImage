@@ -49,9 +49,40 @@ namespace SmartImage.Lib
 			IsComplete = false;
 		}
 
-		
 
-		public async Task<List<SearchResult>> Maximize<T>(Func<SearchResult, T> property)
+		public async Task RefineSearchAsync()
+		{
+			if (!IsComplete) {
+				throw new SmartImageException();
+			}
+
+			//todo: WIP
+			
+			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
+				.OrderByDescending(r => r.PrimaryResult.Similarity)
+				.ThenByDescending(r => r.PrimaryResult.DetailScore)
+				.SelectMany(delegate(SearchResult r)
+				{
+					var x = r.OtherResults;
+					x.Insert(0, r.PrimaryResult);
+					return x;
+				})
+				.Where(r => r.Url != null)
+				.First(r => ImageUtilities.IsDirectImage(r.Url.ToString()));
+
+
+			var uri = best.Url;
+
+			Trace.WriteLine($"Refining {uri}");
+
+			var img = uri;
+
+			Config.Query = img;
+
+			await RunSearchAsync();
+		}
+
+		public async Task<List<SearchResult>> MaximizeSearchAsync<T>(Func<SearchResult, T> property)
 		{
 			// TODO: WIP
 

@@ -10,10 +10,10 @@ namespace SmartImage.Lib
 {
 	public sealed class SearchConfig
 	{
-		public ImageQuery Query { get; init; }
+		public ImageQuery Query { get; set; }
 
-		public SearchEngineOptions SearchEngines { get; init; }
+		public SearchEngineOptions SearchEngines { get; set; }
 
-		public SearchEngineOptions PriorityEngines { get; init; }
+		public SearchEngineOptions PriorityEngines { get; set; }
 	}
 }

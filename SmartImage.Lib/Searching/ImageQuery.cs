@@ -68,7 +68,7 @@ namespace SmartImage.Lib.Searching
 
 			Trace.WriteLine($"[success] {nameof(ImageQuery)}: {Uri}");
 		}
-
+		public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 		public static implicit operator ImageQuery(string value) => new(value);
 
 

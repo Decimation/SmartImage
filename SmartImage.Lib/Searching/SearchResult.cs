@@ -14,7 +14,8 @@ namespace SmartImage.Lib.Searching
 		Success,
 		NoResults,
 		Unavailable,
-		Failure
+		Failure,
+		Extraneous
 	}
 
 	public class SearchResult
@@ -38,6 +39,8 @@ namespace SmartImage.Lib.Searching
 		[CanBeNull]
 		public string ErrorMessage { get; set; }
 
+		
+
 		public bool IsPrimitive
 		{
 			get
@@ -58,6 +61,7 @@ namespace SmartImage.Lib.Searching
 
 					case ResultStatus.Success:
 					case ResultStatus.NoResults:
+					case ResultStatus.Extraneous:
 						return true;
 
 					default:

@@ -28,9 +28,10 @@ namespace Test
 	{
 		public static void OnResult(object _, SearchClient.SearchResultEventArgs e)
 		{
-			Console.WriteLine(e.Result);
 
-			if (e.Result.IsSuccessful) { }
+			if (e.Result.IsSuccessful) {
+				Console.WriteLine(e.Result);
+			}
 		}
 
 		public static async Task Main(string[] args)
@@ -55,6 +56,7 @@ namespace Test
 
 			var r  =  cl.RunSearchAsync();
 			await r;
+			
 
 
 			// var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All & ~SearchEngineOptions.Tidder};
