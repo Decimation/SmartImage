@@ -13,8 +13,6 @@ namespace SmartImage.Lib.Utilities
 
 		internal const string RANK_S = "S";
 
-		internal static readonly Color Blue = Color.DeepSkyBlue;
-
-		internal static readonly Color Blue2 = Color.LightBlue;
+		
 	}
 }

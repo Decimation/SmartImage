@@ -1,27 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="Novus">
-      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>
-    </Reference>
-    <Reference Include="SimpleCore">
-      <HintPath>..\..\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
-    </Reference>
-    <Reference Include="SimpleCore.Cli">
-      <HintPath>..\..\SimpleCore\SimpleCore.Cli\bin\Release\net5.0\SimpleCore.Cli.dll</HintPath>
-    </Reference>
-    <Reference Include="SimpleCore.Net">
-      <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
 </Project>

@@ -81,10 +81,10 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString()
 		{
-			var sb = new ExtendedStringBuilder() {Primary = Interface.Blue2};
+			var sb = new ExtendedStringBuilder() {};
 
 
-			var name = $"[{Engine.Name}]".AddColor(Interface.Blue);
+			var name = $"[{Engine.Name}]";
 
 			sb.AppendLine($"{name} :: ({Status}; {(IsPrimitive ? Interface.RANK_P : Interface.RANK_S)})");
 
@@ -97,7 +97,7 @@ namespace SmartImage.Lib.Searching
 
 			//========================================================================//
 
-			var sb2 = new ExtendedStringBuilder() {Primary = Interface.Blue2};
+			var sb2 = new ExtendedStringBuilder() {};
 			sb2.Append("Raw", RawUri);
 			sb2.Append("Other image results", OtherResults, $"{OtherResults.Count}");
 			sb2.Append("Error", ErrorMessage);

@@ -137,6 +137,7 @@ namespace SmartImage.Lib.Engines.Impl
 					r = base.GetResult(url);
 					Debug.WriteLine($"tracemoe: {e.Message}");
 					//r.AddErrorMessage(e.Message);
+					r.Status = ResultStatus.Failure;
 					return r;
 				}
 

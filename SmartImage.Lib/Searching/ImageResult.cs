@@ -189,7 +189,7 @@ namespace SmartImage.Lib.Searching
 		
 		public override string ToString()
 		{
-			var sb = new ExtendedStringBuilder() {Primary = Interface.Blue2};
+			var sb = new ExtendedStringBuilder() {};
 
 			sb.Append(nameof(Url), Url);
 

@@ -38,6 +38,11 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/taurenshaman/imagehash
 		 */
 
+		/*
+		 * https://github.com/mikf/gallery-dl
+		 * https://github.com/regosen/gallery_get
+		 */
+
 		/*public static HtmlNode Index(this HtmlNode node, params int[] i)
 		{
 			if (!i.Any()) {
