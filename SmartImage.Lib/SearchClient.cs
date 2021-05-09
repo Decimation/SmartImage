@@ -21,13 +21,14 @@ namespace SmartImage.Lib
 		{
 			Config = config;
 
-			Engines = GetAllEngines()
-				.Where(e => Config.SearchEngines.HasFlag(e.Engine))
-				.ToArray();
 
-			if (!Engines.Any()) {
-				throw new SmartImageException("No engines specified");
-			}
+			//Engines = GetAllEngines()
+			//	.Where(e => Config.SearchEngines.HasFlag(e.Engine))
+			//	.ToArray();
+
+			//if (!Engines.Any()) {
+			//	throw new SmartImageException("No engines specified");
+			//}
 
 
 			Results = new List<SearchResult>();
@@ -38,7 +39,9 @@ namespace SmartImage.Lib
 		public bool IsComplete { get; private set; }
 
 
-		public BaseSearchEngine[] Engines { get; }
+		public BaseSearchEngine[] Engines => GetAllEngines()
+			.Where(e => Config.SearchEngines.HasFlag(e.Engine))
+			.ToArray();
 
 		public List<SearchResult> Results { get; }
 
@@ -73,6 +76,7 @@ namespace SmartImage.Lib
 				.FirstOrDefault();
 
 			if (best == null) {
+				Trace.WriteLine($"Could not find best result");
 				return;
 			}
 
@@ -130,6 +134,8 @@ namespace SmartImage.Lib
 
 		public static BaseSearchEngine[] GetAllEngines()
 		{
+
+
 			return ReflectionHelper.GetAllImplementations<BaseSearchEngine>()
 				.Select(Activator.CreateInstance)
 				.Cast<BaseSearchEngine>()
@@ -146,6 +152,7 @@ namespace SmartImage.Lib
 
 			public SearchResultEventArgs(SearchResult result)
 			{
+
 				Result = result;
 			}
 		}

@@ -12,8 +12,9 @@ namespace SmartImage.Lib
 	{
 		public ImageQuery Query { get; set; }
 
-		public SearchEngineOptions SearchEngines { get; set; }
+		public SearchEngineOptions SearchEngines { get; set; } = SearchEngineOptions.All;
 
 		public SearchEngineOptions PriorityEngines { get; set; }
+
 	}
 }
