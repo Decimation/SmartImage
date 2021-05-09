@@ -9,11 +9,14 @@
   
   <p align="center">
     <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Releases">
-        <img src="https://img.shields.io/github/release/Decimation/SmartImage.svg" /></a>
+        <img src="https://img.shields.io/github/v/release/decimation/smartimage?color=red&style=flat-square" /></a>
     
   <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Total Downloads">
-        <img src="https://img.shields.io/github/downloads/Decimation/SmartImage/total.svg" /></a>
-    
+        <img src="https://img.shields.io/github/downloads/Decimation/SmartImage/total?style=flat-square" /></a>
+        
+  <a href="https://GitHub.com/Decimation/SmartImage/releases/" alt="Total Downloads">
+      <img src="https://img.shields.io/github/stars/Decimation/SmartImage?style=flat-square" /></a>
+      
 </p>
 
   <p align="center">
