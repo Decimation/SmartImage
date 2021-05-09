@@ -66,6 +66,7 @@ namespace SmartImage.Lib.Engines.Impl
 				var simNode = tr[4];
 				var simStr  = simNode.InnerText.Split('%')[0];
 				sim = Single.Parse(simStr);
+				sim = MathF.Round(sim.Value, 2);
 			}
 			else {
 				sim = null;

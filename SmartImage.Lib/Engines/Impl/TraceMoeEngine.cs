@@ -87,7 +87,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			for (int i = 0; i < results.Length; i++) {
 				var doc = docs[i];
-				var sim = (float?) doc.similarity * 100;
+				var sim = MathF.Round( (float) (doc.similarity * 100.0f), 2);
 
 				var malUrl = MAL_URL + doc.mal_id;
 

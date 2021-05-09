@@ -177,7 +177,7 @@ namespace SmartImage.Lib.Engines.Impl
 					var x = new ImageResult()
 					{
 						Url         = string.IsNullOrWhiteSpace(url) ? default : new Uri(url),
-						Similarity  = sn.Similarity,
+						Similarity  = MathF.Round(sn.Similarity,2),
 						Description = sn.WebsiteTitle,
 						Artist      = sn.Creator,
 						Source      = sn.Material,
