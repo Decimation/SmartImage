@@ -39,7 +39,7 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public IUploadEngine UploadEngine { get; }
 
-		
+		public Stream Stream { get; }
 		public ImageQuery([NotNull] string value, [CanBeNull] IUploadEngine engine = null)
 		{
 			if (String.IsNullOrWhiteSpace(value)) {
@@ -65,6 +65,7 @@ namespace SmartImage.Lib.Searching
 
 			Uri = IsUrl ? new(Value) : UploadEngine.Upload(Value);
 
+			Stream = IsFile ? File.OpenRead(value) : Network.GetStream(value);
 
 			Trace.WriteLine($"[success] {nameof(ImageQuery)}: {Uri}");
 		}

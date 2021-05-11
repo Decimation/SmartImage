@@ -22,8 +22,7 @@ namespace SmartImage.Lib.Engines
 		public abstract SearchEngineOptions Engine { get; }
 
 		public virtual string Name => Engine.ToString();
-
-		static readonly CancellationTokenSource s_cts = new CancellationTokenSource();
+		
 
 		public virtual SearchResult GetResult(ImageQuery query)
 		{
@@ -48,8 +47,8 @@ namespace SmartImage.Lib.Engines
 		{
 			// todo: use cts?
 			
-			var span = TimeSpan.FromSeconds(10);
-			s_cts.CancelAfter(span);
+			//var span = TimeSpan.FromSeconds(10);
+			//s_cts.CancelAfter(span);
 
 			var task = Task.Run(delegate
 			{
@@ -61,7 +60,7 @@ namespace SmartImage.Lib.Engines
 				Debug.WriteLine($"[success] {Name}: result done");
 
 				return res;
-			}, s_cts.Token);
+			});
 
 			//if (!task.Wait(span)) s_cts.Cancel();
 

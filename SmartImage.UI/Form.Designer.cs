@@ -49,7 +49,8 @@ namespace SmartImage.UI
 			this.uploadTextBox = new System.Windows.Forms.TextBox();
 			this.tabControl1 = new System.Windows.Forms.TabControl();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
-			this.pictureBox1 = new System.Windows.Forms.PictureBox();
+			this.inputPictureBox = new System.Windows.Forms.PictureBox();
+			this.previewPictureBox = new System.Windows.Forms.PictureBox();
 			this.autoSearchCheckBox = new System.Windows.Forms.CheckBox();
 			this.filterCheckBox = new System.Windows.Forms.CheckBox();
 			this.resetButton = new System.Windows.Forms.Button();
@@ -75,7 +76,8 @@ namespace SmartImage.UI
 			this.tabPage4 = new System.Windows.Forms.TabPage();
 			this.tabControl1.SuspendLayout();
 			this.searchTabPage.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.inputPictureBox)).BeginInit();
+			((System.ComponentModel.ISupportInitialize)(this.previewPictureBox)).BeginInit();
 			this.configTabPage.SuspendLayout();
 			this.tabControl2.SuspendLayout();
 			this.tabPage3.SuspendLayout();
@@ -88,7 +90,7 @@ namespace SmartImage.UI
 			// 
 			// selectButton
 			// 
-			this.selectButton.Location = new System.Drawing.Point(3, 573);
+			this.selectButton.Location = new System.Drawing.Point(3, 592);
 			this.selectButton.Name = "selectButton";
 			this.selectButton.Size = new System.Drawing.Size(75, 23);
 			this.selectButton.TabIndex = 0;
@@ -115,7 +117,7 @@ namespace SmartImage.UI
 			this.resultsListView.HideSelection = false;
 			this.resultsListView.Location = new System.Drawing.Point(3, 3);
 			this.resultsListView.Name = "resultsListView";
-			this.resultsListView.Size = new System.Drawing.Size(1086, 477);
+			this.resultsListView.Size = new System.Drawing.Size(1086, 496);
 			this.resultsListView.TabIndex = 2;
 			this.resultsListView.UseCompatibleStateImageBehavior = false;
 			this.resultsListView.View = System.Windows.Forms.View.Details;
@@ -169,7 +171,7 @@ namespace SmartImage.UI
 			// 
 			// searchProgressBar
 			// 
-			this.searchProgressBar.Location = new System.Drawing.Point(3, 486);
+			this.searchProgressBar.Location = new System.Drawing.Point(3, 505);
 			this.searchProgressBar.Name = "searchProgressBar";
 			this.searchProgressBar.Size = new System.Drawing.Size(1086, 23);
 			this.searchProgressBar.TabIndex = 3;
@@ -177,7 +179,7 @@ namespace SmartImage.UI
 			// inputTextBox
 			// 
 			this.inputTextBox.BackColor = System.Drawing.SystemColors.Control;
-			this.inputTextBox.Location = new System.Drawing.Point(3, 515);
+			this.inputTextBox.Location = new System.Drawing.Point(3, 536);
 			this.inputTextBox.Name = "inputTextBox";
 			this.inputTextBox.Size = new System.Drawing.Size(517, 23);
 			this.inputTextBox.TabIndex = 4;
@@ -185,7 +187,7 @@ namespace SmartImage.UI
 			// 
 			// runButton
 			// 
-			this.runButton.Location = new System.Drawing.Point(1014, 514);
+			this.runButton.Location = new System.Drawing.Point(1014, 534);
 			this.runButton.Name = "runButton";
 			this.runButton.Size = new System.Drawing.Size(75, 53);
 			this.runButton.TabIndex = 5;
@@ -197,7 +199,7 @@ namespace SmartImage.UI
 			// 
 			this.inputLabel.AutoSize = true;
 			this.inputLabel.ForeColor = System.Drawing.SystemColors.Control;
-			this.inputLabel.Location = new System.Drawing.Point(526, 518);
+			this.inputLabel.Location = new System.Drawing.Point(526, 539);
 			this.inputLabel.Name = "inputLabel";
 			this.inputLabel.Size = new System.Drawing.Size(12, 15);
 			this.inputLabel.TabIndex = 6;
@@ -205,7 +207,7 @@ namespace SmartImage.UI
 			// 
 			// refineButton
 			// 
-			this.refineButton.Location = new System.Drawing.Point(1014, 573);
+			this.refineButton.Location = new System.Drawing.Point(1014, 593);
 			this.refineButton.Name = "refineButton";
 			this.refineButton.Size = new System.Drawing.Size(75, 23);
 			this.refineButton.TabIndex = 7;
@@ -215,7 +217,7 @@ namespace SmartImage.UI
 			// 
 			// uploadTextBox
 			// 
-			this.uploadTextBox.Location = new System.Drawing.Point(3, 544);
+			this.uploadTextBox.Location = new System.Drawing.Point(3, 563);
 			this.uploadTextBox.Name = "uploadTextBox";
 			this.uploadTextBox.ReadOnly = true;
 			this.uploadTextBox.Size = new System.Drawing.Size(517, 23);
@@ -231,13 +233,14 @@ namespace SmartImage.UI
 			this.tabControl1.Location = new System.Drawing.Point(12, 12);
 			this.tabControl1.Name = "tabControl1";
 			this.tabControl1.SelectedIndex = 0;
-			this.tabControl1.Size = new System.Drawing.Size(1100, 627);
+			this.tabControl1.Size = new System.Drawing.Size(1100, 675);
 			this.tabControl1.TabIndex = 9;
 			// 
 			// searchTabPage
 			// 
 			this.searchTabPage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-			this.searchTabPage.Controls.Add(this.pictureBox1);
+			this.searchTabPage.Controls.Add(this.inputPictureBox);
+			this.searchTabPage.Controls.Add(this.previewPictureBox);
 			this.searchTabPage.Controls.Add(this.autoSearchCheckBox);
 			this.searchTabPage.Controls.Add(this.filterCheckBox);
 			this.searchTabPage.Controls.Add(this.resetButton);
@@ -252,18 +255,29 @@ namespace SmartImage.UI
 			this.searchTabPage.Location = new System.Drawing.Point(4, 24);
 			this.searchTabPage.Name = "searchTabPage";
 			this.searchTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.searchTabPage.Size = new System.Drawing.Size(1092, 599);
+			this.searchTabPage.Size = new System.Drawing.Size(1092, 647);
 			this.searchTabPage.TabIndex = 0;
 			this.searchTabPage.Text = "Search";
 			// 
-			// pictureBox1
+			// inputPictureBox
 			// 
-			this.pictureBox1.Location = new System.Drawing.Point(689, 519);
-			this.pictureBox1.Name = "pictureBox1";
-			this.pictureBox1.Size = new System.Drawing.Size(91, 68);
-			this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-			this.pictureBox1.TabIndex = 12;
-			this.pictureBox1.TabStop = false;
+			this.inputPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.inputPictureBox.Location = new System.Drawing.Point(569, 534);
+			this.inputPictureBox.Name = "inputPictureBox";
+			this.inputPictureBox.Size = new System.Drawing.Size(90, 105);
+			this.inputPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+			this.inputPictureBox.TabIndex = 13;
+			this.inputPictureBox.TabStop = false;
+			// 
+			// previewPictureBox
+			// 
+			this.previewPictureBox.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+			this.previewPictureBox.Location = new System.Drawing.Point(665, 534);
+			this.previewPictureBox.Name = "previewPictureBox";
+			this.previewPictureBox.Size = new System.Drawing.Size(90, 105);
+			this.previewPictureBox.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+			this.previewPictureBox.TabIndex = 12;
+			this.previewPictureBox.TabStop = false;
 			// 
 			// autoSearchCheckBox
 			// 
@@ -271,7 +285,7 @@ namespace SmartImage.UI
 			this.autoSearchCheckBox.Checked = true;
 			this.autoSearchCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.autoSearchCheckBox.ForeColor = System.Drawing.SystemColors.Control;
-			this.autoSearchCheckBox.Location = new System.Drawing.Point(815, 544);
+			this.autoSearchCheckBox.Location = new System.Drawing.Point(917, 565);
 			this.autoSearchCheckBox.Name = "autoSearchCheckBox";
 			this.autoSearchCheckBox.Size = new System.Drawing.Size(91, 19);
 			this.autoSearchCheckBox.TabIndex = 11;
@@ -284,7 +298,7 @@ namespace SmartImage.UI
 			this.filterCheckBox.Checked = true;
 			this.filterCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.filterCheckBox.ForeColor = System.Drawing.SystemColors.Control;
-			this.filterCheckBox.Location = new System.Drawing.Point(815, 519);
+			this.filterCheckBox.Location = new System.Drawing.Point(956, 590);
 			this.filterCheckBox.Name = "filterCheckBox";
 			this.filterCheckBox.Size = new System.Drawing.Size(52, 19);
 			this.filterCheckBox.TabIndex = 10;
@@ -293,9 +307,9 @@ namespace SmartImage.UI
 			// 
 			// resetButton
 			// 
-			this.resetButton.Location = new System.Drawing.Point(933, 518);
+			this.resetButton.Location = new System.Drawing.Point(933, 534);
 			this.resetButton.Name = "resetButton";
-			this.resetButton.Size = new System.Drawing.Size(75, 23);
+			this.resetButton.Size = new System.Drawing.Size(75, 24);
 			this.resetButton.TabIndex = 9;
 			this.resetButton.Text = "Reset";
 			this.resetButton.UseVisualStyleBackColor = true;
@@ -308,7 +322,7 @@ namespace SmartImage.UI
 			this.configTabPage.Location = new System.Drawing.Point(4, 24);
 			this.configTabPage.Name = "configTabPage";
 			this.configTabPage.Padding = new System.Windows.Forms.Padding(3);
-			this.configTabPage.Size = new System.Drawing.Size(1092, 599);
+			this.configTabPage.Size = new System.Drawing.Size(1092, 647);
 			this.configTabPage.TabIndex = 1;
 			this.configTabPage.Text = "Config";
 			this.configTabPage.UseVisualStyleBackColor = true;
@@ -485,7 +499,7 @@ namespace SmartImage.UI
 			this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-			this.ClientSize = new System.Drawing.Size(1124, 651);
+			this.ClientSize = new System.Drawing.Size(1124, 699);
 			this.Controls.Add(this.tabControl1);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.Name = "SmartImageForm";
@@ -494,7 +508,8 @@ namespace SmartImage.UI
 			this.tabControl1.ResumeLayout(false);
 			this.searchTabPage.ResumeLayout(false);
 			this.searchTabPage.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.inputPictureBox)).EndInit();
+			((System.ComponentModel.ISupportInitialize)(this.previewPictureBox)).EndInit();
 			this.configTabPage.ResumeLayout(false);
 			this.tabControl2.ResumeLayout(false);
 			this.tabPage3.ResumeLayout(false);
@@ -548,7 +563,8 @@ namespace SmartImage.UI
 		private System.Windows.Forms.CheckBox filterCheckBox;
 		private System.Windows.Forms.ColumnHeader columnHeaderResolution;
 		private System.Windows.Forms.CheckBox autoSearchCheckBox;
-		private System.Windows.Forms.PictureBox pictureBox1;
+		private System.Windows.Forms.PictureBox previewPictureBox;
+		private System.Windows.Forms.PictureBox inputPictureBox;
 	}
 }
 

@@ -54,15 +54,18 @@ namespace SmartImage.Lib
 		}
 
 		[CanBeNull]
-		public  ImageResult FindBestResult()
+		public ImageResult FindBestResult()
 		{
+			//todo: WIP
+
 			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
-				.SelectMany(delegate (SearchResult r)
+				.SelectMany(r =>
 				{
 					var x = r.OtherResults;
 					x.Insert(0, r.PrimaryResult);
 					return x;
 				})
+				.AsParallel()
 				.Where(r => r.Url != null && ImageUtilities.IsDirectImage(r.Url.ToString()))
 				.OrderByDescending(r => r.Similarity)
 				.ThenByDescending(r => r.DetailScore)
@@ -70,13 +73,13 @@ namespace SmartImage.Lib
 
 			return best;
 		}
+
 		public async Task RefineSearchAsync()
 		{
 			if (!IsComplete) {
 				throw new SmartImageException();
 			}
 
-			//todo: WIP
 
 			Trace.WriteLine($"Finding best result");
 

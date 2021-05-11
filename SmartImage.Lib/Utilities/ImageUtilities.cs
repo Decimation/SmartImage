@@ -102,7 +102,7 @@ namespace SmartImage.Lib.Utilities
 			return MediaTypes.IsDirect(value, MimeType.Image);
 		}
 
-		public static string[] scan(string s)
+		public static string[] Scan(string s)
 		{
 			//<img.*?src="(.*?)"
 			//href\s*=\s*"(.+?)"

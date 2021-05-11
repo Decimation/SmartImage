@@ -14,6 +14,8 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using SmartImage.Lib.Utilities;
+using Exception = System.Exception;
 
 // ReSharper disable IdentifierTypo
 
@@ -31,7 +33,8 @@ namespace SmartImage.UI
 				Filter   = "Image Files(*.BMP;*.JPG;*.GIF;*.PNG)|*.BMP;*.JPG;*.GIF;*.PNG|All files (*.*)|*.*",
 				Title    = "Open text file"
 			};
-			init();
+
+			Init();
 			searchProgressBar.Step = GetStep();
 
 			var i = Enum.GetValues<SearchEngineOptions>()
@@ -39,7 +42,6 @@ namespace SmartImage.UI
 				.ToArray();
 
 			checkedListBox1.Items.AddRange(i);
-
 			checkedListBox2.Items.AddRange(i);
 
 			var allIdx  = checkedListBox1.Items.IndexOf((object) (SearchEngineOptions.All));
@@ -57,13 +59,14 @@ namespace SmartImage.UI
 
 
 		private int GetStep() => (int) Math.Ceiling(((double) 1 / m_cl.Engines.Length) * 100);
+
 		private void Form1_Load(object sender, EventArgs e) { }
 
 		private void openFileDialog1_FileOk(object sender, CancelEventArgs e) { }
 
 		private SearchClient m_cl;
 
-		void init()
+		private void Init()
 		{
 			m_cl                 =  new SearchClient(new SearchConfig());
 			m_cl.ResultCompleted += Display;
@@ -113,14 +116,14 @@ namespace SmartImage.UI
 			searchProgressBar.PerformStep();
 		}
 
-		void Form1_DragEnter(object sender, DragEventArgs e)
+		private void Form1_DragEnter(object sender, DragEventArgs e)
 		{
 			if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
 				e.Effect = DragDropEffects.Copy;
 			}
 		}
 
-		void Form1_DragDrop(object sender, DragEventArgs e)
+		private void Form1_DragDrop(object sender, DragEventArgs e)
 		{
 			string[] files = (string[]) e.Data.GetData(DataFormats.FileDrop);
 
@@ -135,7 +138,7 @@ namespace SmartImage.UI
 			}
 		}
 
-		public static Icon Extract(string file, int number, bool largeIcon)
+		/*public static Icon Extract(string file, int number, bool largeIcon)
 		{
 			IntPtr large;
 			IntPtr small;
@@ -153,11 +156,10 @@ namespace SmartImage.UI
 		[DllImport("Shell32.dll", EntryPoint = "ExtractIconExW", CharSet = CharSet.Unicode, ExactSpelling = true,
 			CallingConvention                = CallingConvention.StdCall)]
 		private static extern int ExtractIconEx(string sFile, int iIndex, out IntPtr piLargeVersion,
-			out IntPtr piSmallVersion, int amountIcons);
+			out IntPtr piSmallVersion, int amountIcons);*/
 
 		private void Add(SearchResult searchResult, ListViewGroup g)
 		{
-
 			var listViewItem = new ListViewItem($"Primary")
 			{
 				UseItemStyleForSubItems = false
@@ -184,6 +186,17 @@ namespace SmartImage.UI
 			else listViewItem.SubItems.Add(searchResult.Status.ToString());
 
 			listViewItem.Group = g;
+
+			resultsListView.SmallImageList = new ImageList();
+
+			var img = searchResult.OtherResults.FirstOrDefault(f => ImageUtilities.IsDirectImage(f?.Url?.ToString()));
+
+			if (img is not null) {
+				var s = Network.GetStream(img.Url.ToString());
+				resultsListView.SmallImageList.Images.Add(Image.FromStream(s));
+			}
+
+			listViewItem.ImageIndex = 0;
 			resultsListView.Items.Add(listViewItem);
 		}
 
@@ -191,7 +204,7 @@ namespace SmartImage.UI
 		{
 			if (imageResult.Similarity.HasValue) {
 				listViewItem.SubItems.Add($"{imageResult.Similarity / 100:P}",
-					ColorUtilities.GetGradients(Color.Red, Color.DarkGreen, 100).ToArray()[
+					ColorUtilities.GetGradients(Color.Red, Color.ForestGreen, 100).ToArray()[
 						(int) Math.Ceiling(imageResult.Similarity.Value)], Color.Empty, null);
 
 			}
@@ -210,9 +223,6 @@ namespace SmartImage.UI
 			else {
 				listViewItem.SubItems.Add(String.Empty);
 			}
-			// listViewItem.SubItems.Add(searchResult.OtherResults.Any()
-			// 	? searchResult.OtherResults.Count.ToString()
-			// 	: String.Empty);
 
 			listViewItem.SubItems.Add(imageResult.DetailScore > 0 ? imageResult.DetailScore.ToString() : String.Empty);
 		}
@@ -221,40 +231,43 @@ namespace SmartImage.UI
 
 		private void runButton_Click(object sender, EventArgs e)
 		{
-			//var r  = cl.Maximize(r => r.PrimaryResult.Similarity);
-			//var r2 = await r;
-
-			//listBox1.DisplayMember = "Engine";
-			//listBox1.ValueMember   = "PrimaryResult";
-
 			RunSearch();
-
 		}
 
 		private async void RunSearch()
 		{
 			if (m_cl.Config.Query == null) {
 				MessageBox.Show("Specify an image", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-				
+
 				return;
 			}
+
+			// if (m_cl.IsComplete) {
+			// 	clear_fields();
+			// 	reset1();
+			// }
 
 			var r = m_cl.RunSearchAsync();
 			await r;
 			Alert();
 			Debug.WriteLine($"Finding best");
-			var best = await Task.Run((() => m_cl.FindBestResult()));
-			if (best is not null) {
-				pictureBox1.Image = Image.FromStream(Network.GetStream(best.Url?.ToString()));
 
+			var sw   = Stopwatch.StartNew();
+			var best = await Task.Run((() => m_cl.FindBestResult()));
+			sw.Stop();
+			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
+
+			if (best is not null) {
+				previewPictureBox.Image = Image.FromStream(Network.GetStream(best.Url?.ToString()));
 			}
 		}
 
 		private void Update(ImageQuery query)
 		{
-			m_cl.Config.Query  = query;
-			inputTextBox.Text  = query.Value;
-			uploadTextBox.Text = m_cl.Config.Query.Uri.ToString();
+			m_cl.Config.Query     = query;
+			inputTextBox.Text     = query.Value;
+			uploadTextBox.Text    = m_cl.Config.Query.Uri.ToString();
+			inputPictureBox.Image = Image.FromStream(query.Stream);
 		}
 
 		private void selectButton_Click(object sender, EventArgs e)
@@ -278,23 +291,44 @@ namespace SmartImage.UI
 
 		private void inputTextBox_TextChanged(object sender, EventArgs e)
 		{
-
-
 			try {
 				Update(inputTextBox.Text);
 				inputLabel.Text      = "✓";
 				inputLabel.ForeColor = Color.LawnGreen;
 			}
-			catch {
+			catch (Exception ex) {
 				inputLabel.Text      = "X";
 				inputLabel.ForeColor = Color.Red;
+				Debug.WriteLine($"{ex.Message}");
 			}
 		}
 
-		private async void refineButton_Click(object sender, EventArgs e)
+		void reset1()
 		{
 			resultsListView.Items.Clear();
 			searchProgressBar.Value = 0;
+		}
+
+		void reset()
+		{
+			reset1();
+			//m_cl.Reset();
+			//Update(null);
+			Init();
+			
+			clear_fields();
+		}
+
+		void clear_fields()
+		{
+			uploadTextBox.Text      = null;
+			inputTextBox.Text       = null;
+			inputPictureBox.Image   = null;
+			previewPictureBox.Image = null;
+		}
+		private async void refineButton_Click(object sender, EventArgs e)
+		{
+			reset1();
 
 			var r = m_cl.RefineSearchAsync();
 			await r;
@@ -346,13 +380,7 @@ namespace SmartImage.UI
 
 		private void resetButton_Click(object sender, EventArgs e)
 		{
-			resultsListView.Items.Clear();
-			//m_cl.Reset();
-			searchProgressBar.Value = 0;
-			//Update(null);
-			init();
-			uploadTextBox.Text = null;
-			inputTextBox.Text  = null;
+			reset();
 		}
 
 		private void resultsListView_Click(object sender, EventArgs e)
@@ -412,16 +440,6 @@ namespace SmartImage.UI
 
 			searchProgressBar.Step = GetStep();
 		}
-		// IEnumerable<int> getchecksforenum(SearchEngineOptions options)
-		// {
-		// 	for (int i = 0; i < checkedListBox1.Items.Count; i++) {
-		// 		var v = checkedListBox1.Items[i];
-		//
-		// 		if (Enum.Parse<SearchEngineOptions>(v.ToString()) == options) {
-		// 			yield return i;
-		// 		}
-		// 	}
-		// }
 
 		private void checkedListBox1_Click(object sender, EventArgs e) { }
 	}
