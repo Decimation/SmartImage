@@ -38,8 +38,8 @@ namespace SmartImage.UI
 			this.columnHeaderArtist = new System.Windows.Forms.ColumnHeader();
 			this.columnHeaderSite = new System.Windows.Forms.ColumnHeader();
 			this.columnHeaderSource = new System.Windows.Forms.ColumnHeader();
-			this.columnHeaderDetailScore = new System.Windows.Forms.ColumnHeader();
 			this.columnHeaderResolution = new System.Windows.Forms.ColumnHeader();
+			this.columnHeaderDetailScore = new System.Windows.Forms.ColumnHeader();
 			this.columnHeaderStatus = new System.Windows.Forms.ColumnHeader();
 			this.searchProgressBar = new System.Windows.Forms.ProgressBar();
 			this.inputTextBox = new System.Windows.Forms.TextBox();
@@ -49,6 +49,8 @@ namespace SmartImage.UI
 			this.uploadTextBox = new System.Windows.Forms.TextBox();
 			this.tabControl1 = new System.Windows.Forms.TabControl();
 			this.searchTabPage = new System.Windows.Forms.TabPage();
+			this.pictureBox1 = new System.Windows.Forms.PictureBox();
+			this.autoSearchCheckBox = new System.Windows.Forms.CheckBox();
 			this.filterCheckBox = new System.Windows.Forms.CheckBox();
 			this.resetButton = new System.Windows.Forms.Button();
 			this.configTabPage = new System.Windows.Forms.TabPage();
@@ -73,6 +75,7 @@ namespace SmartImage.UI
 			this.tabPage4 = new System.Windows.Forms.TabPage();
 			this.tabControl1.SuspendLayout();
 			this.searchTabPage.SuspendLayout();
+			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
 			this.configTabPage.SuspendLayout();
 			this.tabControl2.SuspendLayout();
 			this.tabPage3.SuspendLayout();
@@ -149,15 +152,15 @@ namespace SmartImage.UI
 			this.columnHeaderSource.Text = "Source";
 			this.columnHeaderSource.Width = 80;
 			// 
-			// columnHeaderDetailScore
-			// 
-			this.columnHeaderDetailScore.Text = "Detail Score";
-			this.columnHeaderDetailScore.Width = 80;
-			// 
 			// columnHeaderResolution
 			// 
 			this.columnHeaderResolution.Text = "Resolution";
 			this.columnHeaderResolution.Width = 80;
+			// 
+			// columnHeaderDetailScore
+			// 
+			this.columnHeaderDetailScore.Text = "Detail Score";
+			this.columnHeaderDetailScore.Width = 80;
 			// 
 			// columnHeaderStatus
 			// 
@@ -234,6 +237,8 @@ namespace SmartImage.UI
 			// searchTabPage
 			// 
 			this.searchTabPage.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
+			this.searchTabPage.Controls.Add(this.pictureBox1);
+			this.searchTabPage.Controls.Add(this.autoSearchCheckBox);
 			this.searchTabPage.Controls.Add(this.filterCheckBox);
 			this.searchTabPage.Controls.Add(this.resetButton);
 			this.searchTabPage.Controls.Add(this.inputLabel);
@@ -251,11 +256,35 @@ namespace SmartImage.UI
 			this.searchTabPage.TabIndex = 0;
 			this.searchTabPage.Text = "Search";
 			// 
+			// pictureBox1
+			// 
+			this.pictureBox1.Location = new System.Drawing.Point(689, 519);
+			this.pictureBox1.Name = "pictureBox1";
+			this.pictureBox1.Size = new System.Drawing.Size(91, 68);
+			this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+			this.pictureBox1.TabIndex = 12;
+			this.pictureBox1.TabStop = false;
+			// 
+			// autoSearchCheckBox
+			// 
+			this.autoSearchCheckBox.AutoSize = true;
+			this.autoSearchCheckBox.Checked = true;
+			this.autoSearchCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+			this.autoSearchCheckBox.ForeColor = System.Drawing.SystemColors.Control;
+			this.autoSearchCheckBox.Location = new System.Drawing.Point(815, 544);
+			this.autoSearchCheckBox.Name = "autoSearchCheckBox";
+			this.autoSearchCheckBox.Size = new System.Drawing.Size(91, 19);
+			this.autoSearchCheckBox.TabIndex = 11;
+			this.autoSearchCheckBox.Text = "Auto-search";
+			this.autoSearchCheckBox.UseVisualStyleBackColor = true;
+			// 
 			// filterCheckBox
 			// 
 			this.filterCheckBox.AutoSize = true;
+			this.filterCheckBox.Checked = true;
+			this.filterCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
 			this.filterCheckBox.ForeColor = System.Drawing.SystemColors.Control;
-			this.filterCheckBox.Location = new System.Drawing.Point(956, 546);
+			this.filterCheckBox.Location = new System.Drawing.Point(815, 519);
 			this.filterCheckBox.Name = "filterCheckBox";
 			this.filterCheckBox.Size = new System.Drawing.Size(52, 19);
 			this.filterCheckBox.TabIndex = 10;
@@ -465,6 +494,7 @@ namespace SmartImage.UI
 			this.tabControl1.ResumeLayout(false);
 			this.searchTabPage.ResumeLayout(false);
 			this.searchTabPage.PerformLayout();
+			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
 			this.configTabPage.ResumeLayout(false);
 			this.tabControl2.ResumeLayout(false);
 			this.tabPage3.ResumeLayout(false);
@@ -517,6 +547,8 @@ namespace SmartImage.UI
 		private System.Windows.Forms.ColumnHeader columnHeaderSource;
 		private System.Windows.Forms.CheckBox filterCheckBox;
 		private System.Windows.Forms.ColumnHeader columnHeaderResolution;
+		private System.Windows.Forms.CheckBox autoSearchCheckBox;
+		private System.Windows.Forms.PictureBox pictureBox1;
 	}
 }
 

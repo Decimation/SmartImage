@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using JetBrains.Annotations;
 using Newtonsoft.Json.Linq;
 using Novus.Utilities;
 using SimpleCore.Net;
@@ -52,7 +53,23 @@ namespace SmartImage.Lib
 			IsComplete = false;
 		}
 
+		[CanBeNull]
+		public  ImageResult FindBestResult()
+		{
+			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
+				.SelectMany(delegate (SearchResult r)
+				{
+					var x = r.OtherResults;
+					x.Insert(0, r.PrimaryResult);
+					return x;
+				})
+				.Where(r => r.Url != null && ImageUtilities.IsDirectImage(r.Url.ToString()))
+				.OrderByDescending(r => r.Similarity)
+				.ThenByDescending(r => r.DetailScore)
+				.FirstOrDefault();
 
+			return best;
+		}
 		public async Task RefineSearchAsync()
 		{
 			if (!IsComplete) {
@@ -63,17 +80,7 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"Finding best result");
 
-			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
-				.SelectMany(delegate(SearchResult r)
-				{
-					var x = r.OtherResults;
-					x.Insert(0, r.PrimaryResult);
-					return x;
-				})
-				.Where(r => r.Url != null && ImageUtilities.IsDirectImage(r.Url.ToString()))
-				.OrderByDescending(r => r.Similarity)
-				.ThenByDescending(r => r.DetailScore)
-				.FirstOrDefault();
+			var best = FindBestResult();
 
 			if (best == null) {
 				Trace.WriteLine($"Could not find best result");

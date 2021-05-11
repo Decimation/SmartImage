@@ -66,6 +66,7 @@ namespace SmartImage.Lib.Engines
 			}
 
 			try {
+				
 				var doc = GetDocument(sr);
 				sr = Process(doc, sr);
 			}
