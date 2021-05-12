@@ -7,11 +7,13 @@ using JetBrains.Annotations;
 using RestSharp;
 using SmartImage.Lib.Searching;
 
+// ReSharper disable InconsistentNaming
+
 namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class TraceMoeEngine : BaseSearchEngine
 	{
-		public TraceMoeEngine() : base("https://trace.moe/?url=") { }
+		public TraceMoeEngine() : base("https://api.trace.moe") { }
 
 		public override string Name => "trace.moe";
 
@@ -20,83 +22,62 @@ namespace SmartImage.Lib.Engines.Impl
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		internal class TraceMoeDoc
 		{
-			public double from       { get; set; }
-			public double to         { get; set; }
-			public long   anilist_id { get; set; }
-			public double at         { get; set; }
-			public string season     { get; set; }
-			public string anime      { get; set; }
-			public string filename   { get; set; }
+			public double from     { get; set; }
+			public double to       { get; set; }
+			public long   anilist  { get; set; }
+			public string filename { get; set; }
 
-			public long? episode { get; set; }
+			public long episode { get; set; }
 
-			public string       tokenthumb       { get; set; }
-			public double       similarity       { get; set; }
-			public string       title            { get; set; }
-			public string       title_native     { get; set; }
-			public string       title_chinese    { get; set; }
-			public string       title_english    { get; set; }
-			public string       title_romaji     { get; set; }
-			public long         mal_id           { get; set; }
-			public List<string> synonyms         { get; set; }
-			public List<object> synonyms_chinese { get; set; }
-			public bool         is_adult         { get; set; }
+			public double similarity { get; set; }
+			public string video      { get; set; }
+			public string image      { get; set; }
 		}
 
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		internal class TraceMoeRootObject
 		{
-			public long              RawDocsCount      { get; set; }
-			public long              RawDocsSearchTime { get; set; }
-			public long              ReRankSearchTime  { get; set; }
-			public bool              CacheHit          { get; set; }
-			public long              trial             { get; set; }
-			public long              limit             { get; set; }
-			public long              limit_ttl         { get; set; }
-			public long              quota             { get; set; }
-			public long              quota_ttl         { get; set; }
-			public List<TraceMoeDoc> docs              { get; set; }
+			public long              frameCount { get; set; }
+			public string            error      { get; set; }
+			public List<TraceMoeDoc> result     { get; set; }
 		}
 
-		private static TraceMoeRootObject GetApiResults(string url,
-			out HttpStatusCode code, out ResponseStatus status, out string msg)
+		private TraceMoeRootObject GetApiResults(string url)
 		{
 			// https://soruly.github.io/trace.moe/#/
 
-			var rc = new RestClient("https://trace.moe/api/");
+			var rc = new RestClient(BaseUrl);
 
 
 			var rq = new RestRequest("search");
 			rq.AddQueryParameter("url", url);
+			//rq.AddQueryParameter("anilistInfo", "");
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 			rq.RequestFormat           = DataFormat.Json;
 
 			var re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
 
-			code   = re.StatusCode;
-			status = re.ResponseStatus;
-			msg    = re.ErrorMessage;
-
 			return re.Data;
 		}
 
-		private ImageResult[] ConvertResults(TraceMoeRootObject obj)
+		private static IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj)
 		{
-			var docs    = obj.docs;
+			var docs    = obj.result;
 			var results = new ImageResult[docs.Count];
 
 			for (int i = 0; i < results.Length; i++) {
 				var doc = docs[i];
-				var sim = MathF.Round( (float) (doc.similarity * 100.0f), 2);
+				var sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
-				var malUrl = MAL_URL + doc.mal_id;
 
-				results[i] = new ImageResult()
+				var anilistUrl = ANILIST_URL + doc.anilist;
+
+				results[i] = new ImageResult
 				{
-					Url         = new Uri(malUrl),
+					Url         = new Uri(anilistUrl),
 					Similarity  = sim,
-					Source      = doc.title_english,
-					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.at)}"
+					Source      = doc.filename,
+					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.from)}"
 				};
 			}
 
@@ -117,9 +98,9 @@ namespace SmartImage.Lib.Engines.Impl
 			SearchResult r;
 			//var r = base.GetResult(url);
 
-			var tm = GetApiResults(url.Uri.ToString(), out var code, out var res, out var msg);
+			var tm = GetApiResults(url.Uri.ToString());
 
-			if (tm?.docs != null) {
+			if (tm?.result != null) {
 				// Most similar to least similar
 
 				try {
@@ -145,7 +126,7 @@ namespace SmartImage.Lib.Engines.Impl
 			}
 			else {
 				r = base.GetResult(url);
-				Debug.WriteLine($"tracemoe: api null {code} {res} {msg}");
+				Debug.WriteLine($"[error] tracemoe: api error");
 				//r.AddErrorMessage(msg);
 			}
 

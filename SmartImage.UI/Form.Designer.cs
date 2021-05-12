@@ -74,6 +74,7 @@ namespace SmartImage.UI
 			this.button3 = new System.Windows.Forms.Button();
 			this.textBox2 = new System.Windows.Forms.TextBox();
 			this.tabPage4 = new System.Windows.Forms.TabPage();
+			this.columnHeaderDescription = new System.Windows.Forms.ColumnHeader();
 			this.tabControl1.SuspendLayout();
 			this.searchTabPage.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.inputPictureBox)).BeginInit();
@@ -111,6 +112,7 @@ namespace SmartImage.UI
             this.columnHeaderArtist,
             this.columnHeaderSite,
             this.columnHeaderSource,
+            this.columnHeaderDescription,
             this.columnHeaderResolution,
             this.columnHeaderDetailScore,
             this.columnHeaderStatus});
@@ -121,7 +123,6 @@ namespace SmartImage.UI
 			this.resultsListView.TabIndex = 2;
 			this.resultsListView.UseCompatibleStateImageBehavior = false;
 			this.resultsListView.View = System.Windows.Forms.View.Details;
-			this.resultsListView.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
 			this.resultsListView.Click += new System.EventHandler(this.resultsListView_Click);
 			// 
 			// columnHeaderResult
@@ -429,7 +430,6 @@ namespace SmartImage.UI
 			this.listView1.TabIndex = 2;
 			this.listView1.UseCompatibleStateImageBehavior = false;
 			this.listView1.View = System.Windows.Forms.View.Details;
-			this.listView1.SelectedIndexChanged += new System.EventHandler(this.listView1_SelectedIndexChanged);
 			// 
 			// columnHeader1
 			// 
@@ -493,6 +493,11 @@ namespace SmartImage.UI
 			this.tabPage4.TabIndex = 1;
 			this.tabPage4.Text = "tabPage2";
 			this.tabPage4.UseVisualStyleBackColor = true;
+			// 
+			// columnHeaderDescription
+			// 
+			this.columnHeaderDescription.Text = "Description";
+			this.columnHeaderDescription.Width = 100;
 			// 
 			// SmartImageForm
 			// 
@@ -565,6 +570,7 @@ namespace SmartImage.UI
 		private System.Windows.Forms.CheckBox autoSearchCheckBox;
 		private System.Windows.Forms.PictureBox previewPictureBox;
 		private System.Windows.Forms.PictureBox inputPictureBox;
+		private System.Windows.Forms.ColumnHeader columnHeaderDescription;
 	}
 }
 

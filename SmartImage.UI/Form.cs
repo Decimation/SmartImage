@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using SmartImage.Lib.Utilities;
 using Exception = System.Exception;
+// ReSharper disable LocalizableElement
 
 // ReSharper disable IdentifierTypo
 
@@ -49,30 +50,27 @@ namespace SmartImage.UI
 
 			checkedListBox1.SetItemCheckState(allIdx, CheckState.Checked);
 			checkedListBox1.SetItemCheckState(noneIdx, CheckState.Indeterminate);
-
-			//handleflags(SearchEngineOptions.All);
-
+			
 			AllowDrop =  true;
 			DragEnter += Form1_DragEnter;
 			DragDrop  += Form1_DragDrop;
 		}
 
 
-		private int GetStep() => (int) Math.Ceiling(((double) 1 / m_cl.Engines.Length) * 100);
-
-		private void Form1_Load(object sender, EventArgs e) { }
-
-		private void openFileDialog1_FileOk(object sender, CancelEventArgs e) { }
-
 		private SearchClient m_cl;
+
+		private static readonly Color[] SimilarityGradient =
+			ColorUtilities.GetGradients(Color.Red, Color.ForestGreen, 100).ToArray();
+
+		private int GetStep() => (int) Math.Ceiling(((double) 1 / m_cl.Engines.Length) * 100);
 
 		private void Init()
 		{
 			m_cl                 =  new SearchClient(new SearchConfig());
-			m_cl.ResultCompleted += Display;
+			m_cl.ResultCompleted += HandleResult;
 		}
 
-		private void Display(object o, SearchClient.SearchResultEventArgs args)
+		private void HandleResult(object o, SearchClient.SearchResultEventArgs args)
 		{
 			var searchResult = args.Result;
 
@@ -81,32 +79,33 @@ namespace SmartImage.UI
 				return;
 			}
 
-			ListViewGroup g = null;
+			ListViewGroup listViewGroup = null;
 
 			bool hasg = false;
 
 			for (int i = 0; i < resultsListView.Groups.Count; i++) {
 				if (resultsListView.Groups[i].Header == searchResult.Engine.Name) {
-					g    = resultsListView.Groups[i];
-					hasg = true;
+					listViewGroup = resultsListView.Groups[i];
+					hasg          = true;
 				}
 			}
 
 			if (!hasg) {
-				g = new ListViewGroup(searchResult.Engine.Name);
-				resultsListView.Groups.Add(g);
+				listViewGroup = new ListViewGroup(searchResult.Engine.Name);
+				resultsListView.Groups.Add(listViewGroup);
 			}
 
-			Add(searchResult, g);
+			AddSearchResult(searchResult, listViewGroup);
 
 			for (int i = 0; i < searchResult.OtherResults.Count; i++) {
 				var oItem = searchResult.OtherResults[i];
 
 				var listViewItem2 = new ListViewItem($"Other #{i + 1}")
 				{
-					UseItemStyleForSubItems = false
+					UseItemStyleForSubItems = false,
+					Group                   = listViewGroup
 				};
-				listViewItem2.Group = g;
+
 				listViewItem2.SubItems.Add(oItem.Url?.ToString());
 				AddImageResult(oItem, listViewItem2);
 				resultsListView.Items.Add(listViewItem2);
@@ -114,28 +113,6 @@ namespace SmartImage.UI
 
 
 			searchProgressBar.PerformStep();
-		}
-
-		private void Form1_DragEnter(object sender, DragEventArgs e)
-		{
-			if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
-				e.Effect = DragDropEffects.Copy;
-			}
-		}
-
-		private void Form1_DragDrop(object sender, DragEventArgs e)
-		{
-			string[] files = (string[]) e.Data.GetData(DataFormats.FileDrop);
-
-			foreach (string file in files) {
-				Debug.WriteLine(file);
-			}
-
-			Update(files.First());
-
-			if (autoSearchCheckBox.Checked) {
-				RunSearch();
-			}
 		}
 
 		/*public static Icon Extract(string file, int number, bool largeIcon)
@@ -158,7 +135,7 @@ namespace SmartImage.UI
 		private static extern int ExtractIconEx(string sFile, int iIndex, out IntPtr piLargeVersion,
 			out IntPtr piSmallVersion, int amountIcons);*/
 
-		private void Add(SearchResult searchResult, ListViewGroup g)
+		private void AddSearchResult(SearchResult searchResult, ListViewGroup listViewGroup)
 		{
 			var listViewItem = new ListViewItem($"Primary")
 			{
@@ -185,7 +162,7 @@ namespace SmartImage.UI
 			}
 			else listViewItem.SubItems.Add(searchResult.Status.ToString());
 
-			listViewItem.Group = g;
+			listViewItem.Group = listViewGroup;
 
 			resultsListView.SmallImageList = new ImageList();
 
@@ -203,36 +180,28 @@ namespace SmartImage.UI
 		private void AddImageResult(ImageResult imageResult, ListViewItem listViewItem)
 		{
 			if (imageResult.Similarity.HasValue) {
+
 				listViewItem.SubItems.Add($"{imageResult.Similarity / 100:P}",
-					ColorUtilities.GetGradients(Color.Red, Color.ForestGreen, 100).ToArray()[
-						(int) Math.Ceiling(imageResult.Similarity.Value)], Color.Empty, null);
+					SimilarityGradient[(int) Math.Ceiling(imageResult.Similarity.Value)], Color.Empty, null);
 
 			}
 			else {
 				listViewItem.SubItems.Add(String.Empty);
 			}
 
-			listViewItem.SubItems.Add(imageResult.Artist ?? String.Empty);
-			listViewItem.SubItems.Add(imageResult.Site   ?? String.Empty);
-			listViewItem.SubItems.Add(imageResult.Source ?? String.Empty);
+			listViewItem.SubItems.Add(imageResult.Artist      ?? String.Empty);
+			listViewItem.SubItems.Add(imageResult.Site        ?? String.Empty);
+			listViewItem.SubItems.Add(imageResult.Source      ?? String.Empty);
+			listViewItem.SubItems.Add(imageResult.Description ?? String.Empty);
 
-
-			if (imageResult.HasImageDimensions) {
-				listViewItem.SubItems.Add($"{imageResult.Height}x{imageResult.Width}" ?? String.Empty);
-			}
-			else {
-				listViewItem.SubItems.Add(String.Empty);
-			}
+			listViewItem.SubItems.Add(imageResult.HasImageDimensions
+				? $"{imageResult.Height}x{imageResult.Width}"
+				: String.Empty);
 
 			listViewItem.SubItems.Add(imageResult.DetailScore > 0 ? imageResult.DetailScore.ToString() : String.Empty);
 		}
 
 		private static void Alert() => SystemSounds.Asterisk.Play();
-
-		private void runButton_Click(object sender, EventArgs e)
-		{
-			RunSearch();
-		}
 
 		private async void RunSearch()
 		{
@@ -270,6 +239,64 @@ namespace SmartImage.UI
 			inputPictureBox.Image = Image.FromStream(query.Stream);
 		}
 
+
+		private void Reset()
+		{
+			ClearResults();
+			//m_cl.Reset();
+			//Update(null);
+			Init();
+
+			ClearFields();
+		}
+
+		private void ClearResults()
+		{
+			resultsListView.Items.Clear();
+			searchProgressBar.Value = 0;
+		}
+
+		private void ClearFields()
+		{
+			uploadTextBox.Text      = null;
+			inputTextBox.Text       = null;
+			inputPictureBox.Image   = null;
+			previewPictureBox.Image = null;
+		}
+
+		#region Controls
+
+		private void Form1_Load(object sender, EventArgs e) { }
+
+		private void openFileDialog1_FileOk(object sender, CancelEventArgs e) { }
+
+		private void Form1_DragEnter(object sender, DragEventArgs e)
+		{
+			if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+				e.Effect = DragDropEffects.Copy;
+			}
+		}
+
+		private void Form1_DragDrop(object sender, DragEventArgs e)
+		{
+			string[] files = (string[]) e.Data.GetData(DataFormats.FileDrop);
+
+			foreach (string file in files) {
+				Debug.WriteLine(file);
+			}
+
+			Update(files.First());
+
+			if (autoSearchCheckBox.Checked) {
+				RunSearch();
+			}
+		}
+
+		private void runButton_Click(object sender, EventArgs e)
+		{
+			RunSearch();
+		}
+
 		private void selectButton_Click(object sender, EventArgs e)
 		{
 			if (openFileDialog1.ShowDialog() == DialogResult.OK) {
@@ -287,8 +314,6 @@ namespace SmartImage.UI
 			}
 		}
 
-		private void listView1_SelectedIndexChanged(object sender, EventArgs e) { }
-
 		private void inputTextBox_TextChanged(object sender, EventArgs e)
 		{
 			try {
@@ -303,32 +328,9 @@ namespace SmartImage.UI
 			}
 		}
 
-		void reset1()
-		{
-			resultsListView.Items.Clear();
-			searchProgressBar.Value = 0;
-		}
-
-		void reset()
-		{
-			reset1();
-			//m_cl.Reset();
-			//Update(null);
-			Init();
-			
-			clear_fields();
-		}
-
-		void clear_fields()
-		{
-			uploadTextBox.Text      = null;
-			inputTextBox.Text       = null;
-			inputPictureBox.Image   = null;
-			previewPictureBox.Image = null;
-		}
 		private async void refineButton_Click(object sender, EventArgs e)
 		{
-			reset1();
+			ClearResults();
 
 			var r = m_cl.RefineSearchAsync();
 			await r;
@@ -380,7 +382,7 @@ namespace SmartImage.UI
 
 		private void resetButton_Click(object sender, EventArgs e)
 		{
-			reset();
+			Reset();
 		}
 
 		private void resultsListView_Click(object sender, EventArgs e)
@@ -442,5 +444,7 @@ namespace SmartImage.UI
 		}
 
 		private void checkedListBox1_Click(object sender, EventArgs e) { }
+
+		#endregion
 	}
 }
