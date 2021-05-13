@@ -39,7 +39,9 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public IUploadEngine UploadEngine { get; }
 
+
 		public Stream Stream { get; }
+
 		public ImageQuery([NotNull] string value, [CanBeNull] IUploadEngine engine = null)
 		{
 			if (String.IsNullOrWhiteSpace(value)) {
@@ -61,7 +63,7 @@ namespace SmartImage.Lib.Searching
 			}
 
 
-			UploadEngine = engine ?? new CatBoxEngine(); //todo
+			UploadEngine = engine ?? new LitterboxEngine(); //todo
 
 			Uri = IsUrl ? new(Value) : UploadEngine.Upload(Value);
 
@@ -72,6 +74,7 @@ namespace SmartImage.Lib.Searching
 
 
 		public static implicit operator ImageQuery(Uri value) => new(value.ToString());
+
 		public static implicit operator ImageQuery(string value) => new(value);
 
 

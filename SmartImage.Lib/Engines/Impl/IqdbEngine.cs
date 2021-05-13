@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -19,8 +20,7 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => "IQDB";
 
 		//public static float? FilterThreshold => 70.00F;
-
-		// TODO: FIX USING IMAGE LINKS
+		
 		private static ImageResult ParseResult(HtmlNodeCollection tr)
 		{
 			var caption = tr[0];
@@ -89,6 +89,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
+			
 			//var tables = doc.DocumentNode.SelectNodes("//table");
 
 			// Don't select other results

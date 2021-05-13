@@ -40,35 +40,34 @@ namespace Test
 			Console.InputEncoding  = Encoding.Unicode;
 
 
-			var q  = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
-			var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
+			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
+			//var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 
 
-			var cfg = new SearchConfig
-				{Query = q, SearchEngines = SearchEngineOptions.All};
+			//var cfg = new SearchConfig
+			//	{Query = q, SearchEngines = SearchEngineOptions.All};
+
+			//var cl = new SearchClient(cfg);
+
+			////var r  = cl.Maximize(r => r.PrimaryResult.Similarity);
+			////var r2 = await r;
+
+			//cl.ResultCompleted += OnResult;
+
+			//var r  =  cl.RunSearchAsync();
+			//await r;
+
+
+			var cfg = new SearchConfig {Query = q, SearchEngines = SearchEngineOptions.All};
 
 			var cl = new SearchClient(cfg);
 
-			//var r  = cl.Maximize(r => r.PrimaryResult.Similarity);
-			//var r2 = await r;
-
 			cl.ResultCompleted += OnResult;
-
-			var r  =  cl.RunSearchAsync();
+			var r = cl.RunSearchAsync();
 			await r;
-			
 
-
-			// var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All & ~SearchEngineOptions.Tidder};
-			//
-			// var cl = new SearchClient(cfg);
-			//
-			// cl.ResultCompleted += OnResult;
-			// var r = cl.RunSearchAsync();
-			// await r;
-
-			//var i  = new TinEyeEngine();
-			//var i2 = i.GetResultAsync(q2);
+			//var i = new IqdbEngine();
+			//var i2 = i.GetResultAsync(q);
 			//var r2 = await i2;
 
 			//Console.WriteLine(">> {0}", r2);

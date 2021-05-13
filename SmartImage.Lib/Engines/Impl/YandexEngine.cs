@@ -76,7 +76,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				var (w, h) = ParseResolution(resText);
 
-				images.Add(new ImageResult()
+				images.Add(new ImageResult
 				{
 					Url         = new Uri(link),
 					Site        = site.InnerText,

@@ -1,11 +1,9 @@
 ﻿using JetBrains.Annotations;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
-using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Searching
 {
@@ -38,8 +36,6 @@ namespace SmartImage.Lib.Searching
 
 		[CanBeNull]
 		public string ErrorMessage { get; set; }
-
-		
 
 		public bool IsPrimitive
 		{
@@ -77,12 +73,10 @@ namespace SmartImage.Lib.Searching
 			PrimaryResult = new ImageResult();
 			OtherResults  = new List<ImageResult>();
 		}
-		
 
 		public override string ToString()
 		{
-			var sb = new ExtendedStringBuilder() {};
-
+			var sb = new ExtendedStringBuilder() { };
 
 			var name = $"[{Engine.Name}]";
 
@@ -97,7 +91,7 @@ namespace SmartImage.Lib.Searching
 
 			//========================================================================//
 
-			var sb2 = new ExtendedStringBuilder() {};
+			var sb2 = new ExtendedStringBuilder() { };
 			sb2.Append("Raw", RawUri);
 			sb2.Append("Other image results", OtherResults, $"{OtherResults.Count}");
 			sb2.Append("Error", ErrorMessage);

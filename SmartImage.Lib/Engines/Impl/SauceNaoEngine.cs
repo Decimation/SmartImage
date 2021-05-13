@@ -74,8 +74,7 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 
-
-		// TODO: FIX USING IMAGE LINKS
+		
 
 		private static IEnumerable<SauceNaoDataResult>? ParseResults(string url)
 		{

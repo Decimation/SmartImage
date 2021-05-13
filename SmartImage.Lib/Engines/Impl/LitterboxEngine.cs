@@ -1,30 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.VisualBasic;
 using RestSharp;
-using SimpleCore.Numeric;
 using SmartImage.Lib.Utilities;
-using FileSystem = Novus.Win32.FileSystem;
+
 // ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class CatBoxEngine : IUploadEngine
+	public sealed class LitterboxEngine : IUploadEngine
 	{
-		public string Name => "CatBox";
+		public string Name => "Litterbox";
 
-		public int MaxSize => 200;
+		public int MaxSize => 1000;
 
 		private readonly RestClient m_client;
 
-		public CatBoxEngine()
+		public LitterboxEngine()
 		{
-			m_client = new RestClient("https://catbox.moe/user/api.php");
+			m_client = new RestClient("https://litterbox.catbox.moe/resources/internals/api.php");
 		}
 
 		public Uri Upload(string file)
@@ -40,6 +36,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var req = new RestRequest(Method.POST);
 
+			req.AddParameter("time", "1h");
 			req.AddParameter("reqtype", "fileupload");
 			req.AddFile("fileToUpload", file);
 			req.AddHeader("Content-Type", "multipart/form-data");
