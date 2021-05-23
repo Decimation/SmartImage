@@ -40,8 +40,8 @@ namespace Test
 			Console.InputEncoding  = Encoding.Unicode;
 
 
-			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
-			//var q2 = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
+			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test3.png");
+			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 
 
 			//var cfg = new SearchConfig
@@ -56,7 +56,7 @@ namespace Test
 
 			//var r  =  cl.RunSearchAsync();
 			//await r;
-
+			
 
 			var cfg = new SearchConfig {Query = q, SearchEngines = SearchEngineOptions.All};
 
@@ -65,8 +65,8 @@ namespace Test
 			cl.ResultCompleted += OnResult;
 			var r = cl.RunSearchAsync();
 			await r;
-
-			//var i = new IqdbEngine();
+			
+			//var i  = new YandexEngine();
 			//var i2 = i.GetResultAsync(q);
 			//var r2 = await i2;
 

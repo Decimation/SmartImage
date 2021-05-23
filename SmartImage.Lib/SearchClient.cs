@@ -40,9 +40,9 @@ namespace SmartImage.Lib
 		public bool IsComplete { get; private set; }
 
 
-		public BaseSearchEngine[] Engines => GetAllEngines()
-			.Where(e => Config.SearchEngines.HasFlag(e.Engine))
-			.ToArray();
+		public BaseSearchEngine[] Engines => GetAllSearchEngines()
+		                                     .Where(e => Config.SearchEngines.HasFlag(e.Engine))
+		                                     .ToArray();
 
 		public List<SearchResult> Results { get; }
 
@@ -59,17 +59,17 @@ namespace SmartImage.Lib
 			//todo: WIP
 
 			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
-				.SelectMany(r =>
-				{
-					var x = r.OtherResults;
-					x.Insert(0, r.PrimaryResult);
-					return x;
-				})
-				.AsParallel()
-				.Where(r => r.Url != null && ImageUtilities.IsDirectImage(r.Url.ToString()))
-				.OrderByDescending(r => r.Similarity)
-				.ThenByDescending(r => r.DetailScore)
-				.FirstOrDefault();
+			                  .SelectMany(r =>
+			                  {
+				                  var x = r.OtherResults;
+				                  x.Insert(0, r.PrimaryResult);
+				                  return x;
+			                  })
+			                  .AsParallel()
+			                  .Where(r => r.Url != null && ImageUtilities.IsDirectImage(r.Url.ToString()))
+			                  .OrderByDescending(r => r.Similarity)
+			                  .ThenByDescending(r => r.DetailScore)
+			                  .FirstOrDefault();
 
 			return best;
 		}
@@ -140,16 +140,24 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"[success] {nameof(SearchClient)}: Search complete");
 
+
 		}
 
-		public static BaseSearchEngine[] GetAllEngines()
+		public static IUploadEngine[] GetAllUploadEngines()
 		{
+			return typeof(IUploadEngine).GetAllImplementations()
+			                            .Select(Activator.CreateInstance)
+			                            .Cast<IUploadEngine>()
+			                            .ToArray();
+		}
 
 
-			return ReflectionHelper.GetAllImplementations<BaseSearchEngine>()
-				.Select(Activator.CreateInstance)
-				.Cast<BaseSearchEngine>()
-				.ToArray();
+		public static BaseSearchEngine[] GetAllSearchEngines()
+		{
+			return typeof(BaseSearchEngine).GetAllSubclasses()
+			                               .Select(Activator.CreateInstance)
+			                               .Cast<BaseSearchEngine>()
+			                               .ToArray();
 		}
 
 		#region Event

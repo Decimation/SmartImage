@@ -44,7 +44,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var res = m_client.Execute(req);
 
 			if (!res.IsSuccessful) {
-				throw new SmartImageException(); //todo
+				throw new SmartImageException($"{res.ErrorMessage} {res.StatusCode} {res.ResponseStatus}"); //todo
 			}
 
 			return new Uri(res.Content);

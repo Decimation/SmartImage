@@ -159,6 +159,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
 		{
+			
+
 			// Automation detected
 			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 

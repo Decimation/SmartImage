@@ -16,9 +16,10 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using SmartImage.Lib.Utilities;
 using Exception = System.Exception;
-// ReSharper disable LocalizableElement
 
+// ReSharper disable LocalizableElement
 // ReSharper disable IdentifierTypo
+#pragma warning disable IDE1006
 
 namespace SmartImage.UI
 {
@@ -50,7 +51,7 @@ namespace SmartImage.UI
 
 			checkedListBox1.SetItemCheckState(allIdx, CheckState.Checked);
 			checkedListBox1.SetItemCheckState(noneIdx, CheckState.Indeterminate);
-			
+
 			AllowDrop =  true;
 			DragEnter += Form1_DragEnter;
 			DragDrop  += Form1_DragDrop;

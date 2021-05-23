@@ -33,7 +33,9 @@ namespace SmartImage.Lib.Engines
 			}*/
 
 
-			string response = Network.GetString(sr.RawUri.ToString()!);
+			//string response = Network.GetString(sr.RawUri.ToString()!);
+
+			var doc = new HtmlWeb().Load(sr.RawUri);
 
 
 			//var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
@@ -44,13 +46,12 @@ namespace SmartImage.Lib.Engines
 			//var res =rc.Execute(req);
 			//var response   = res.Content;
 
-			var doc = new HtmlDocument();
+			//var doc = new HtmlDocument();
 			//doc.LoadHtml(response.Content);
-			doc.LoadHtml(response);
+			//doc.LoadHtml(response);
+			
 
 			return doc;
-
-
 		}
 
 		protected abstract SearchResult Process(HtmlDocument doc, SearchResult sr);
@@ -66,7 +67,7 @@ namespace SmartImage.Lib.Engines
 			}
 
 			try {
-				
+
 				var doc = GetDocument(sr);
 				sr = Process(doc, sr);
 			}

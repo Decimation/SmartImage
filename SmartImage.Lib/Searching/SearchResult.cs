@@ -80,7 +80,7 @@ namespace SmartImage.Lib.Searching
 
 			var name = $"[{Engine.Name}]";
 
-			sb.AppendLine($"{name} :: ({Status}; {(IsPrimitive ? Interface.RANK_P : Interface.RANK_S)})");
+			sb.AppendLine($"{name} :: ({Status}; {(IsPrimitive ? RANK_P : RANK_S)})");
 
 			if (PrimaryResult.Url != null) {
 				var    resStr    = sb.IndentFields(PrimaryResult.ToString());
@@ -98,5 +98,9 @@ namespace SmartImage.Lib.Searching
 
 			return sb.Append(sb.IndentFields(sb2.ToString())).ToString();
 		}
+
+		internal const string RANK_P = "P";
+
+		internal const string RANK_S = "S";
 	}
 }
