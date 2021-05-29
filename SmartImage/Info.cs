@@ -3,13 +3,11 @@ using JetBrains.Annotations;
 using Novus.Win32;
 using SimpleCore.Cli;
 using SimpleCore.Utilities;
-using SmartImage.Configuration;
 using SmartImage.Utilities;
 using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using static SmartImage.Core.Interface;
 
 // ReSharper disable UnusedMember.Global
 
@@ -102,80 +100,6 @@ namespace SmartImage.Core
 			}
 		}
 
-		internal static void ShowInfo()
-		{
-			Console.Clear();
-
-			NConsole.Resize(ResultsWindowWidth, 30);
-
-			var sb = new StringBuilder();
-			sb.AppendColor(ColorMain1, NAME_BANNER);
-			sb.AppendLine();
-
-
-			/*
-			 * Author info
-			 */
-
-
-
-			sb.AppendLabelWithColor(ColorMain1, "Author", ColorMain2, Author).AppendLine();
-			sb.AppendLabelWithColor(ColorMain1, "Repo", ColorMain2, Repo).AppendLine();
-			sb.AppendLabelWithColor(ColorMain1, "Readme", ColorMain2, Readme).AppendLine();
-
-			sb.AppendLine();
-
-			/*
-			 * Config
-			 */
-
-			sb.Append(UserSearchConfig.Config);
-
-
-
-			/*
-			 * Version info
-			 */
-
-			sb.AppendLine();
-
-			var versionsInfo = UpdateInfo.GetUpdateInfo();
-
-			sb.AppendLabelWithColor(ColorVersion, "Current version", ColorMain2, versionsInfo.Current).AppendLine();
-			sb.AppendLabelWithColor(ColorVersion, "Latest version", ColorMain2, versionsInfo.Latest.Version).AppendLine();
-			sb.AppendLabelWithColor(ColorVersion, "Version status", ColorMain2, versionsInfo.Status).AppendLine();
-
-
-			/*
-			 * Runtime info
-			 */
-
-			sb.AppendLine();
-
-			string appFolderName = new DirectoryInfo(AppFolder).Name;
-			var exeFolderName = new DirectoryInfo(ExeLocation).Name;
-
-			sb.AppendLabelWithColor(ColorUtility, "Application folder", ColorMain2, appFolderName).AppendLine();
-			sb.AppendLabelWithColor(ColorUtility, "Executable location", ColorMain2, exeFolderName).AppendLine();
-			sb.AppendLabelWithColor(ColorUtility, "Context menu integrated", ColorMain2, Integration.IsContextMenuAdded).AppendLine();
-			sb.AppendLabelWithColor(ColorUtility, "In path", ColorMain2, IsAppFolderInPath).AppendLine();
-
-
-
-
-			/*
-			 * Dependencies
-			 */
-
-			// sb.AppendLine("Dependencies:");
-			//
-			// var dependencies = RuntimeInfo.DumpDependencies();
-			//
-			// foreach (var name in dependencies) {
-			// 	sb.AppendColor(ColorMisc,$"{name.Name!} ({name.Version!})").AppendLine();
-			// }
-
-			NConsole.Write(sb);
-		}
+		
 	}
 }

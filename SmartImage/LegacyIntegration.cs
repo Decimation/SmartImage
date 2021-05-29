@@ -1,7 +1,10 @@
 ﻿using Novus.Win32;
 using SimpleCore.Cli;
 using System;
+using System.Diagnostics;
 using System.Linq;
+using Novus.Utilities;
+// ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Core
 {
@@ -37,7 +40,7 @@ namespace SmartImage.Core
 
 					cmd.Start();
 
-					string[] stdOut = Command.ReadAllLines(cmd.StandardOutput);
+					string[] stdOut = cmd.StandardOutput.ReadAllLines();
 
 					bool b = stdOut.Any(s => s.Contains(Info.NAME));
 
@@ -94,7 +97,7 @@ namespace SmartImage.Core
 			}
 			catch (Exception e)
 			{
-				NConsole.WriteError("Context menu error: {0}", e.Message);
+				Trace.WriteLine("Context menu error: {0}", e.Message);
 				NConsole.WaitForSecond();
 				return false;
 			}
@@ -112,24 +115,24 @@ namespace SmartImage.Core
 
 			if (!legacy.HasValue)
 			{
-				NConsole.WriteError("Could not check for legacy features");
+				Trace.WriteLine("Could not check for legacy features");
 				return false;
 			}
 
 			if (legacy.Value && !Integration.IsContextMenuAdded)
 			{
-				NConsole.WriteInfo("Cleaning up legacy features...");
+				Trace.WriteLine("Cleaning up legacy features...");
 
 				bool ok = HandleContextMenu(IntegrationOption.Remove);
 
 				if (ok)
 				{
-					NConsole.WriteSuccess("Removed legacy context menu");
+					Trace.WriteLine("Removed legacy context menu");
 				}
 
 				Integration.HandleContextMenu(IntegrationOption.Add);
 
-				NConsole.WriteSuccess("Added new context menu");
+				Trace.WriteLine("Added new context menu");
 				NConsole.WaitForSecond();
 			}
 
