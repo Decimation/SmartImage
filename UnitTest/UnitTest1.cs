@@ -74,7 +74,7 @@ namespace UnitTest
 			var rt = i.GetResultAsync(q);
 			var t  = await rt;
 
-			Assert.True(t.OtherResults.Any(r => r.Source.Contains(name)));
+			Assert.True(t.OtherResults.Any(r => r.Source.Contains(name, StringComparison.InvariantCultureIgnoreCase)));
 
 
 		}

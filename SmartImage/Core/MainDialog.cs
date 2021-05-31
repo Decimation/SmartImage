@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using SimpleCore.Cli;
 using SimpleCore.Utilities;
-using SmartImage.Core;
 using SmartImage.Lib.Engines;
 
-namespace SmartImage
+namespace SmartImage.Core
 {
-	public static class Dialog
+	public static class MainDialog
 	{
 		private static readonly NConsoleOption[] MainMenuOptions =
 		{

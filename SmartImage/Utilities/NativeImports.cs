@@ -89,14 +89,14 @@ namespace SmartImage.Utilities
 		internal static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindowHandle());
 
 		[DllImport(USER32_DLL)]
-		public static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
-			MessageBoxOptions options);
+		internal static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
+		                                                   MessageBoxOptions options);
 	}
 
 	/// <summary>
 	/// Represents possible values returned by the <see cref="MessageBox"/> function.
 	/// </summary>
-	public enum MessageBoxResult : uint
+	internal enum MessageBoxResult : uint
 	{
 		/// <summary>
 		/// The OK button was selected.
@@ -164,7 +164,7 @@ namespace SmartImage.Utilities
 	/// displayed by a call to the <see cref="MessageBox"/> function.
 	/// </summary>
 	[Flags]
-	public enum MessageBoxOptions : uint
+	internal enum MessageBoxOptions : uint
 	{
 		/// <summary>
 		/// The message box contains one push button: OK. This is the default.

@@ -65,7 +65,7 @@ namespace SmartImage
 			Console.CancelKeyPress += (sender, eventArgs) => { };
 
 
-			NConsole.ReadOptions(Dialog.MainMenuDialog);
+			NConsole.ReadOptions(MainDialog.MainMenuDialog);
 
 
 			/*

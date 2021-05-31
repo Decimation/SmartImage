@@ -15,6 +15,12 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public TraceMoeEngine() : base("https://api.trace.moe") { }
 
+
+		/// <summary>
+		/// Used to retrieve more information about results
+		/// </summary>
+		private readonly AnilistClient m_anilistClient = new();
+
 		public override string Name => "trace.moe";
 
 		public override SearchEngineOptions Engine => SearchEngineOptions.TraceMoe;
@@ -60,7 +66,8 @@ namespace SmartImage.Lib.Engines.Impl
 			return re.Data;
 		}
 
-		private static IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj)
+
+		private IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj)
 		{
 			var docs    = obj.result;
 			var results = new ImageResult[docs.Count];
@@ -72,11 +79,13 @@ namespace SmartImage.Lib.Engines.Impl
 
 				var anilistUrl = ANILIST_URL + doc.anilist;
 
+				var name = m_anilistClient.GetTitle((int) doc.anilist);
+
 				results[i] = new ImageResult
 				{
 					Url         = new Uri(anilistUrl),
 					Similarity  = sim,
-					Source      = doc.filename,
+					Source      = name,
 					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.from)}"
 				};
 			}
