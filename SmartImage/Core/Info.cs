@@ -28,11 +28,11 @@ namespace SmartImage.Core
 		/// Name in ASCII art
 		/// </summary>
 		public const string NAME_BANNER =
-			"  ____                       _   ___\n" +
-			" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
-			@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
+			"  ____                       _   ___\n"                             +
+			" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n"  +
+			@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \"  + "\n" +
 			"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
-			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
+			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|"  + "\n" +
 			"                                                     |___/\n";
 
 
@@ -47,7 +47,7 @@ namespace SmartImage.Core
 		public const string NAME_EXE = "SmartImage.exe";
 
 		/// <summary>
-		/// Config file name (<see cref="UserSearchConfig"/>)
+		/// Config file name
 		/// </summary>
 		public const string NAME_CFG = "SmartImage.cfg";
 
@@ -58,8 +58,6 @@ namespace SmartImage.Core
 		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
 		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
-
-		
 
 
 		public static string AppFolder
@@ -91,13 +89,11 @@ namespace SmartImage.Core
 		[ModuleInitializer]
 		public static void Setup()
 		{
-			if (!OperatingSystem.IsWindows())
-			{
+			if (!OperatingSystem.IsWindows()) {
 				throw new NotSupportedException();
 			}
+
 			Integration.Setup();
 		}
-
-		
 	}
 }

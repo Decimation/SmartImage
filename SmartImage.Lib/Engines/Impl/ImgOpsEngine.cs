@@ -10,10 +10,26 @@ namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
 	{
-		public ImgOpsEngine() : base("http://imgops.com/") { }
-
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 
+		public int MaxSize => 5;
+
+		public ImgOpsEngine() : base("http://imgops.com/") { }
+
+		public Uri Upload(string img)
+		{
+			IUploadEngine.Verify(this, img);
+
+			Debug.WriteLine($"Uploading {img}");
+
+
+			var imgOpsUrl = UploadInternal(img);
+
+			string? link = imgOpsUrl.ToString();
+			link = "http://" + link.SubstringAfter(BaseUrl);
+
+			return new Uri(link);
+		}
 
 		private Uri UploadInternal(string path)
 		{
@@ -32,30 +48,6 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 			return re.ResponseUri;
-		}
-
-
-		public int MaxSize => 5;
-
-		public Uri Upload(string img)
-		{
-			if (string.IsNullOrWhiteSpace(img)) {
-				throw new ArgumentNullException(nameof(img));
-			}
-
-			if (!((IUploadEngine) this).FileSizeValid(img)) {
-				throw new ArgumentException($"File {img} is too large (max {MaxSize} MB) for {Name}"); //todo
-			}
-
-			Debug.WriteLine($"Uploading {img}");
-
-
-			var imgOpsUrl = UploadInternal(img);
-
-			string? link = imgOpsUrl.ToString();
-			link = "http://" + link.SubstringAfter(BaseUrl);
-
-			return new Uri(link);
 		}
 	}
 }

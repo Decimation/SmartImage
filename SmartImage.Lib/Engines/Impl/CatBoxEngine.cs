@@ -29,13 +29,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public Uri Upload(string file)
 		{
-			if (String.IsNullOrWhiteSpace(file)) {
-				throw new ArgumentNullException(nameof(file));
-			}
-
-			if (!((IUploadEngine) this).FileSizeValid(file)) {
-				throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}"); //todo
-			}
+			IUploadEngine.Verify(this, file);
 
 
 			var req = new RestRequest(Method.POST);
@@ -47,7 +41,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var res = m_client.Execute(req);
 
 			if (!res.IsSuccessful) {
-				throw new SmartImageException(); //todo
+				throw new SmartImageException();
 			}
 
 			return new Uri(res.Content);

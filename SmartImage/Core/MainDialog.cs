@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Drawing;
 using SimpleCore.Cli;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 
 namespace SmartImage.Core
 {
@@ -14,6 +16,13 @@ namespace SmartImage.Core
 				Name = "run",
 				Function = () =>
 				{
+					ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
+					{
+						(bool url, bool file) = ImageQuery.IsUriOrFile(x);
+						return !(url || file);
+					});
+
+					Program.Config.Query = query;
 					return true;
 				}
 			},
@@ -27,7 +36,7 @@ namespace SmartImage.Core
 					Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
 
 					Console.WriteLine(Program.Config.SearchEngines);
-
+					NConsole.WaitForSecond();
 					return null;
 				}
 			},
@@ -41,12 +50,36 @@ namespace SmartImage.Core
 					Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
 
 					Console.WriteLine(Program.Config.PriorityEngines);
+					NConsole.WaitForSecond();
+					return null;
+				}
+			},
+			new()
+			{
+				Name = "ctx",
+				Function = () =>
+				{
+
+					var added = Integration.IsContextMenuAdded;
+
+					Integration.HandleContextMenu(added ? IntegrationOption.Remove : IntegrationOption.Add);
+
+					added = Integration.IsContextMenuAdded;
+					Console.WriteLine("Added: {0}", added);
+					NConsole.WaitForSecond();
+					//todo
+					MainMenuOptions[^1].Name = $"ctx {(added ? '*' : '-')}";
 
 					return null;
 				}
 			},
-
 		};
+
+		static void upd()
+		{
+			MainMenuOptions[3].Name = "g";
+
+		}
 
 		public static readonly NConsoleDialog MainMenuDialog = new()
 		{

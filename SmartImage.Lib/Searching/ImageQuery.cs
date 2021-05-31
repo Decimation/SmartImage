@@ -6,6 +6,7 @@ using SimpleCore.Net;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Utilities;
+using static SimpleCore.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Searching
 {
@@ -65,7 +66,7 @@ namespace SmartImage.Lib.Searching
 
 			Stream = IsFile ? File.OpenRead(value) : Network.GetStream(value);
 
-			Trace.WriteLine($"[success] {nameof(ImageQuery)}: {Uri}");
+			Trace.WriteLine($"{nameof(ImageQuery)}: {Uri}", C_SUCCESS);
 		}
 
 

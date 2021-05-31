@@ -55,32 +55,31 @@ namespace SmartImage
 			 * Check compatibility
 			 */
 
-
-			Console.Title = Info.NAME;
+			var asm = typeof(Info).Assembly.GetName();
+			Console.Title = $"{Info.NAME} ({asm.Version})";
 
 			NConsole.Init();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
 
-
-			NConsole.ReadOptions(MainDialog.MainMenuDialog);
-
-
 			/*
-			 * Run search
+			 *
 			 */
+			if (args.Length != 1) {
+				var options = NConsole.ReadOptions(MainDialog.MainMenuDialog);
+
+
+				if (!options.Any()) {
+					return;
+				}
+			}
+			else {
+				Config.Query = args[0];
+			}
 
 			try {
 
-
 				// Run search
-				ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
-				{
-					(bool url, bool file) = ImageQuery.IsUriOrFile(x);
-					return !(url || file);
-				});
-
-				Config.Query = query;
 
 				Client.ResultCompleted += ResultCompleted;
 				Client.SearchCompleted += SearchCompleted;
@@ -88,6 +87,7 @@ namespace SmartImage
 				// Show results
 
 				var searchTask = Client.RunSearchAsync();
+
 				NConsole.ReadOptions(ResultDialog);
 
 				await searchTask;
@@ -99,6 +99,7 @@ namespace SmartImage
 #endif
 			}
 		}
+
 
 		private static void SearchCompleted(object? sender, EventArgs eventArgs)
 		{
@@ -114,8 +115,12 @@ namespace SmartImage
 				{
 					var primaryResult = result.PrimaryResult;
 
-					if (primaryResult is { } && primaryResult.Url != null) {
-						Network.OpenUrl(primaryResult.Url.ToString());
+					if (primaryResult is { }) {
+						var url = primaryResult.Url;
+
+						if (url != null) {
+							Network.OpenUrl(url.ToString());
+						}
 					}
 
 					return null;

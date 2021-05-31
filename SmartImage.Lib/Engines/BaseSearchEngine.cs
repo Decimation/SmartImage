@@ -3,6 +3,7 @@ using SmartImage.Lib.Searching;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using static SimpleCore.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Engines
 {
@@ -42,14 +43,14 @@ namespace SmartImage.Lib.Engines
 
 			var task = Task.Run(delegate
 			{
-				Debug.WriteLine($"[info] {Name}: getting result async");
+				Debug.WriteLine($"{Name}: getting result async",C_INFO);
 				var sw  = Stopwatch.StartNew();
 
 				var res = GetResult(query);
 				
 				sw.Stop();
 				
-				Debug.WriteLine($"[success] {Name}: result done {sw.Elapsed.TotalSeconds}");
+				Debug.WriteLine($"{Name}: result done {sw.Elapsed.TotalSeconds}",C_SUCCESS);
 
 				return res;
 			});
@@ -70,7 +71,7 @@ namespace SmartImage.Lib.Engines
 			bool ok = Network.IsUriAlive(uri);
 
 			if (!ok) {
-				Debug.WriteLine($"[error] {uri.Host} is unavailable");
+				Debug.WriteLine($"{uri.Host} is unavailable",C_WARN);
 				return null;
 			}
 

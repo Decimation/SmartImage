@@ -12,6 +12,8 @@ using Novus.Utilities;
 
 namespace SmartImage.Core
 {
+	/*
+
 	/// <summary>
 	///     Legacy integration features
 	/// </summary>
@@ -101,7 +103,7 @@ namespace SmartImage.Core
 			}
 			catch (Exception e)
 			{
-				Trace.WriteLine("Context menu error: {0}", e.Message);
+				Trace.WriteLine($"Context menu error: {e.Message}");
 				NConsole.WaitForSecond();
 				return false;
 			}
@@ -142,7 +144,8 @@ namespace SmartImage.Core
 
 			return true;
 		}
-	}
+	}*/
+
 	// todo: move context menu integration to Novus for use in other projects?
 
 	internal enum IntegrationOption
@@ -156,13 +159,11 @@ namespace SmartImage.Core
 	/// </summary>
 	internal static class Integration
 	{
-
 		/*
 		 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
 		 *		HKEY_CURRENT_USER\Software\Classes
 		 *		HKEY_LOCAL_MACHINE\Software\Classes
 		 */
-
 
 
 		/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
@@ -189,7 +190,7 @@ namespace SmartImage.Core
 						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
 					}
 					catch (Exception ex) {
-						Trace.WriteLine("{0}", ex.Message);
+						Trace.WriteLine($"{ex.Message}");
 						NConsole.WaitForInput();
 						return false;
 					}
@@ -217,7 +218,7 @@ namespace SmartImage.Core
 						}
 					}
 					catch (Exception ex) {
-						Trace.WriteLine("{0}", ex.Message);
+						Trace.WriteLine($"{ex.Message}");
 						NConsole.WaitForInput();
 						return false;
 					}

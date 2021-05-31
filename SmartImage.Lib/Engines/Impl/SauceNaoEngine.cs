@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Json;
 using System.Linq;
 using System.Net;
+using static SimpleCore.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
@@ -104,7 +105,7 @@ namespace SmartImage.Lib.Engines.Impl
 			 */
 
 			if (html.Contains("Search Limit Exceeded")) {
-				Trace.WriteLine("SauceNao on cooldown!");
+				Trace.WriteLine("SauceNao on cooldown!",C_WARN);
 				return null;
 			}
 

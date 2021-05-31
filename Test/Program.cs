@@ -23,7 +23,7 @@ namespace Test
 	 *
 	 */
 
-
+	
 	public static class Program
 	{
 		public static void OnResult(object _, SearchResultEventArgs e)

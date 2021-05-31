@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RestSharp;
 using SmartImage.Lib.Utilities;
+// ReSharper disable StringLiteralTypo
 
 // ReSharper disable UnusedMember.Global
 
@@ -25,13 +26,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public Uri Upload(string file)
 		{
-			if (String.IsNullOrWhiteSpace(file)) {
-				throw new ArgumentNullException(nameof(file));
-			}
-
-			if (!((IUploadEngine) this).FileSizeValid(file)) {
-				throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}"); //todo
-			}
+			IUploadEngine.Verify(this,file);
 
 
 			var req = new RestRequest(Method.POST);

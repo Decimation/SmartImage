@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using SimpleCore.Net;
+using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable UnusedMember.Global
 
@@ -57,7 +58,7 @@ namespace SmartImage.Lib
 				                  return x;
 			                  });
 
-			Debug.WriteLine(best.Count());
+			//==================================================================//
 
 
 			best = best
@@ -137,7 +138,7 @@ namespace SmartImage.Lib
 				IsComplete = !tasks.Any();
 			}
 
-			Trace.WriteLine($"[success] {nameof(SearchClient)}: Search complete");
+			Trace.WriteLine($"{nameof(SearchClient)}: Search complete",C_SUCCESS);
 			SearchCompleted?.Invoke(null, null);
 
 			return;
