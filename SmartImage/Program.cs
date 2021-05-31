@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Media;
 using System.Threading.Tasks;
 using Novus.Win32;
 using SimpleCore.Net;
@@ -27,14 +28,22 @@ namespace SmartImage
 {
 	public static class Program
 	{
-		private static readonly List<NConsoleOption> ResultOptions = new();
-
 		//  ____                       _   ___
 		// / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
 		// \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \
 		//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
+
+
+		private static readonly NConsoleDialog ResultDialog = new()
+		{
+			Options = new List<NConsoleOption>()
+		};
+
+		public static readonly SearchConfig Config = new();
+
+		public static readonly SearchClient Client = new(Config);
 
 
 		/*
@@ -47,37 +56,17 @@ namespace SmartImage
 			 * Setup
 			 * Check compatibility
 			 */
-			Info.Setup();
+
 
 			Console.Title = Info.NAME;
 
 			NConsole.Init();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
-			Console.Clear();
-			Console.WriteLine(Info.NAME_BANNER);
 
-			var cfg = new SearchConfig();
 
-			var options = NConsoleOption.FromArray(new[] {"run", "exit", "engines"});
+			NConsole.ReadOptions(Dialog.MainMenuDialog);
 
-			var io = NConsole.ReadOptions(options).First().ToString();
-
-			switch (io) {
-				case "exit":
-					return;
-				case "engines":
-				{
-					var e   = NConsoleOption.FromEnum<SearchEngineOptions>();
-					var ex  = NConsole.ReadOptions(e, true);
-					var ex2 = Enums.ReadFromSet<SearchEngineOptions>(ex);
-
-					cfg.SearchEngines = ex2;
-
-					Console.WriteLine(cfg.SearchEngines);
-					break;
-				}
-			}
 
 			/*
 			 * Run search
@@ -85,26 +74,23 @@ namespace SmartImage
 
 			try {
 
-				// Setup
-				Integration.Setup();
 
 				// Run search
-				ImageQuery q = NConsole.ReadInput(null, x =>
+				ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
 				{
-					x = x.Trim('\"');
-					return !(ImageUtilities.IsDirectImage(x) || File.Exists(x));
+					(bool url, bool file) = ImageQuery.IsUriOrFile(x);
+					return !(url || file);
 				});
 
-				cfg.Query = q;
+				Config.Query = query;
 
-				var client = new SearchClient(cfg);
-
-				client.ResultCompleted += ResultCompleted;
+				Client.ResultCompleted += ResultCompleted;
+				Client.SearchCompleted += SearchCompleted;
 
 				// Show results
 
-				var searchTask = client.RunSearchAsync();
-				NConsole.ReadOptions(ResultOptions);
+				var searchTask = Client.RunSearchAsync();
+				NConsole.ReadOptions(ResultDialog);
 
 				await searchTask;
 			}
@@ -114,16 +100,17 @@ namespace SmartImage
 				Console.WriteLine(exception);
 #endif
 			}
-			finally {
-				// Exit
-			}
 		}
 
-		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)
+		private static void SearchCompleted(object? sender, EventArgs eventArgs)
 		{
-			var result = eventArgs.Result;
+			NativeImports.FlashConsoleWindow();
+			SystemSounds.Exclamation.Play();
+		}
 
-			ResultOptions.Add(new NConsoleOptionBasic
+		private static NConsoleOption Convert(SearchResult result)
+		{
+			var option = new NConsoleOption
 			{
 				Function = () =>
 				{
@@ -137,7 +124,22 @@ namespace SmartImage
 				},
 				//Name = result.Engine.Name,
 				Data = result.ToString()
-			});
+			};
+
+			return option;
+		}
+
+		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)
+		{
+			var result = eventArgs.Result;
+
+			var option = Convert(result);
+
+			ResultDialog.Options.Add(option);
+
+			if (Config.PriorityEngines.HasFlag(result.Engine.Engine)) {
+				option.Function();
+			}
 
 			NConsole.Refresh();
 		}

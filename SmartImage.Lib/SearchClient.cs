@@ -58,12 +58,31 @@ namespace SmartImage.Lib
 				                  return x;
 			                  })
 			                  .AsParallel()
-			                  .Where(r => r.Url != null && ImageUtilities.IsDirectImage(r.Url.ToString()))
+			                  .Where(r => r.Url != null && ImageHelper.IsDirect(r.Url.ToString()))
 			                  .OrderByDescending(r => r.Similarity)
 			                  .ThenByDescending(r => r.DetailScore)
 			                  .FirstOrDefault();
 
 			return best;
+		}
+
+		public List<SearchResult> MaximizeResults<T>(Func<SearchResult, T> property)
+		{
+			// TODO: WIP
+
+			//var t = RunSearchAsync();
+			//await t;
+
+			if (!IsComplete) {
+				throw new SmartImageException();
+			}
+
+
+			var res = Results.OrderByDescending(property).ToList();
+
+			res.RemoveAll(r => r.IsPrimitive);
+
+			return res;
 		}
 
 		public async Task RefineSearchAsync()
@@ -86,25 +105,9 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"Refining by {uri}");
 
-			var img = uri;
-
-			Config.Query = img;
+			Config.Query = uri;
 
 			await RunSearchAsync();
-		}
-
-		public async Task<List<SearchResult>> MaximizeSearchAsync<T>(Func<SearchResult, T> property)
-		{
-			// TODO: WIP
-
-			var t = RunSearchAsync();
-			await t;
-
-			var res = Results.OrderByDescending(property).ToList();
-
-			res.RemoveAll(r => r.IsPrimitive);
-
-			return res;
 		}
 
 		public async Task RunSearchAsync()
@@ -131,7 +134,7 @@ namespace SmartImage.Lib
 			}
 
 			Trace.WriteLine($"[success] {nameof(SearchClient)}: Search complete");
-
+			SearchCompleted?.Invoke(this, EventArgs.Empty);
 
 		}
 
@@ -153,15 +156,16 @@ namespace SmartImage.Lib
 		}
 
 		public event EventHandler<SearchResultEventArgs> ResultCompleted;
+
+		public event EventHandler SearchCompleted;
 	}
 
-	public class SearchResultEventArgs : EventArgs
+	public sealed class SearchResultEventArgs : EventArgs
 	{
 		public SearchResult Result { get; }
 
 		public SearchResultEventArgs(SearchResult result)
 		{
-
 			Result = result;
 		}
 	}

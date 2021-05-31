@@ -21,7 +21,7 @@ using MimeType = SimpleCore.Net.MimeType;
 
 namespace SmartImage.Lib.Utilities
 {
-	public static class ImageUtilities
+	public static class ImageHelper
 	{
 		//todo
 
@@ -97,10 +97,7 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
-		public static bool IsDirectImage(string value)
-		{
-			return MediaTypes.IsDirect(value, MimeType.Image);
-		}
+		public static bool IsDirect(string value) => MediaTypes.IsDirect(value, MimeType.Image);
 
 		public static string[] Scan(string s)
 		{

@@ -167,7 +167,7 @@ namespace SmartImage.UI
 
 			resultsListView.SmallImageList = new ImageList();
 
-			var img = searchResult.OtherResults.FirstOrDefault(f => ImageUtilities.IsDirectImage(f?.Url?.ToString()));
+			var img = searchResult.OtherResults.FirstOrDefault(f => ImageHelper.IsDirect(f?.Url?.ToString()));
 
 			if (img is not null) {
 				var s = Network.GetStream(img.Url.ToString());

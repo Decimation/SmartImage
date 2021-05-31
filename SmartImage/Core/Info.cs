@@ -7,6 +7,7 @@ using SmartImage.Utilities;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 // ReSharper disable UnusedMember.Global
@@ -59,11 +60,7 @@ namespace SmartImage.Core
 
 		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
 
-		/*
-		 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
-		 *		HKEY_CURRENT_USER\Software\Classes
-		 *		HKEY_LOCAL_MACHINE\Software\Classes
-		 */
+		
 
 
 		public static string AppFolder
@@ -92,12 +89,14 @@ namespace SmartImage.Core
 		/// <summary>
 		/// Setup
 		/// </summary>
+		[ModuleInitializer]
 		public static void Setup()
 		{
 			if (!OperatingSystem.IsWindows())
 			{
 				throw new NotSupportedException();
 			}
+			Integration.Setup();
 		}
 
 		

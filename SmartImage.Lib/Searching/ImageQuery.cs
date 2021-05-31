@@ -27,7 +27,7 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		/// Whether <see cref="Value"/> is an image link
 		/// </summary>
-		public bool IsUrl { get; }
+		public bool IsUri { get; }
 
 		/// <summary>
 		/// Uploaded direct image
@@ -52,20 +52,16 @@ namespace SmartImage.Lib.Searching
 
 			Value = value;
 
-			IsFile = File.Exists(value);
+			(IsUri, IsFile) = IsUriOrFile(value);
 
-			if (!IsFile) {
-				IsUrl = ImageUtilities.IsDirectImage(value);
-			}
-
-			if (!IsUrl && !IsFile) {
+			if (!IsUri && !IsFile) {
 				throw new ArgumentException($"{value} is neither file nor direct image link");
 			}
 
 
 			UploadEngine = engine ?? new LitterboxEngine(); //todo
 
-			Uri = IsUrl ? new(Value) : UploadEngine.Upload(Value);
+			Uri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 
 			Stream = IsFile ? File.OpenRead(value) : Network.GetStream(value);
 
@@ -76,6 +72,12 @@ namespace SmartImage.Lib.Searching
 		public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
 		public static implicit operator ImageQuery(string value) => new(value);
+
+		public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
+		{
+			x = x.Trim('\"');
+			return (ImageHelper.IsDirect(x), File.Exists(x));
+		}
 
 
 		public override string ToString()

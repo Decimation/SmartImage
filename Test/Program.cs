@@ -40,7 +40,7 @@ namespace Test
 			Console.InputEncoding  = Encoding.Unicode;
 
 
-			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test3.png");
+			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
 			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 
 
@@ -56,19 +56,21 @@ namespace Test
 
 			//var r  =  cl.RunSearchAsync();
 			//await r;
-			
 
-			var cfg = new SearchConfig {Query = q, SearchEngines = SearchEngineOptions.All};
 
-			var cl = new SearchClient(cfg);
+			//var cfg = new SearchConfig {Query = q, SearchEngines = SearchEngineOptions.All};
 
-			cl.ResultCompleted += OnResult;
-			var r = cl.RunSearchAsync();
-			await r;
-			
-			//var i  = new YandexEngine();
-			//var i2 = i.GetResultAsync(q);
-			//var r2 = await i2;
+			//var cl = new SearchClient(cfg);
+
+			//cl.ResultCompleted += OnResult;
+			//var r = cl.RunSearchAsync();
+			//await r;
+
+			var i  = new YandexEngine();
+			var i2 = i.GetResultAsync(q);
+			var r2 = await i2;
+
+			Console.WriteLine(r2);
 
 			//Console.WriteLine(">> {0}", r2);
 

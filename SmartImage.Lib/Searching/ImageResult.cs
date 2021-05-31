@@ -164,7 +164,7 @@ namespace SmartImage.Lib.Searching
 			get
 			{
 				if (HasImageDimensions) {
-					var resolutionType = ImageUtilities.GetDisplayResolution(Width!.Value, Height!.Value);
+					var resolutionType = ImageHelper.GetDisplayResolution(Width!.Value, Height!.Value);
 
 					return resolutionType;
 				}

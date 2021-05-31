@@ -42,10 +42,10 @@ namespace UnitTest
 		[Test]
 		public void TestResolutionType()
 		{
-			var (w, h) = ImageUtilities.GetResolution(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
-			Assert.AreEqual(ImageUtilities.GetDisplayResolution(w,h), DisplayResolutionType.HD);
-			Assert.AreEqual(ImageUtilities.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
-			Assert.AreEqual(ImageUtilities.GetDisplayResolution(640,360), DisplayResolutionType.nHD);
+			var (w, h) = ImageHelper.GetResolution(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
+			Assert.AreEqual(ImageHelper.GetDisplayResolution(w,h), DisplayResolutionType.HD);
+			Assert.AreEqual(ImageHelper.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
+			Assert.AreEqual(ImageHelper.GetDisplayResolution(640,360), DisplayResolutionType.nHD);
 		}
 
 		[Test]
