@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using SimpleCore.Net;
 
 // ReSharper disable UnusedMember.Global
 
@@ -54,15 +55,21 @@ namespace SmartImage.Lib
 				                  var x = r.OtherResults;
 				                  x.Insert(0, r.PrimaryResult);
 				                  return x;
-			                  })
-			                  .AsParallel()
-			                  .Where(r => r.Url != null && ImageHelper.IsDirect(r.Url.ToString()))
-			                  .OrderByDescending(r => r.Similarity)
-			                  .ThenByDescending(r => r.DetailScore)
-			                  .Take(n)
-			                  .ToArray();
+			                  });
 
-			return best;
+			Debug.WriteLine(best.Count());
+
+
+			best = best
+			       .AsParallel()
+			       .Where(r => r.Url != null && ImageHelper.IsDirect(r.Url.ToString()))
+			       .OrderByDescending(r => r.Similarity)
+			       .ThenByDescending(r => r.PixelResolution)
+			       .ThenByDescending(r => r.DetailScore)
+			       .Take(n);
+
+
+			return best.ToArray();
 		}
 
 		public List<SearchResult> MaximizeResults<T>(Func<SearchResult, T> property)
@@ -125,13 +132,13 @@ namespace SmartImage.Lib
 				Results.Add(value);
 
 				// Call event
-				ResultCompleted?.Invoke(this, new SearchResultEventArgs(value));
+				ResultCompleted?.Invoke(null, new SearchResultEventArgs(value));
 
 				IsComplete = !tasks.Any();
 			}
 
 			Trace.WriteLine($"[success] {nameof(SearchClient)}: Search complete");
-			//SearchCompleted?.Invoke(this, EventArgs.Empty);
+			SearchCompleted?.Invoke(null, null);
 
 			return;
 		}

@@ -45,16 +45,17 @@ namespace Test
 			var q = new ImageQuery("https://litter.catbox.moe/5yr86t.jpg");
 
 			var cfg = new SearchConfig
-			{ Query = q, SearchEngines = SearchEngineOptions.All };
+				{Query = q, SearchEngines = SearchEngineOptions.All};
 
 			var cl = new SearchClient(cfg);
-
+			cl.SearchCompleted += (sender, eventArgs) => { Console.WriteLine("g"); };
 			await cl.RunSearchAsync();
 			Console.WriteLine($"hi {cl.Results.Count}");
 			var sw = Stopwatch.StartNew();
 			var r2 = cl.FindBestResults(5);
 			sw.Stop();
 			Console.WriteLine(sw.Elapsed.TotalSeconds);
+
 			foreach (var imageResult in r2) {
 				Console.WriteLine(imageResult);
 			}
@@ -76,12 +77,14 @@ namespace Test
 			//var r = cl.RunSearchAsync();
 			//await r;
 
-			//var i  = new YandexEngine();
+			//var i = new YandexEngine();
 			//var i2 = i.GetResultAsync(q);
 			//var r2 = await i2;
 
-			//Console.WriteLine(r2);
 
+			//foreach (var x in r2.OtherResults) {
+			//	Console.WriteLine(x);
+			//}
 
 			//Console.WriteLine(">> {0}", r2);
 
