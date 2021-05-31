@@ -7,7 +7,8 @@ using NUnit.Framework;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
-
+// ReSharper disable UnusedMember.Local
+#pragma warning disable IDE0051, IDE0052
 namespace UnitTest
 {
 	public class Tests

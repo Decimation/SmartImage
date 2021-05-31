@@ -40,14 +40,24 @@ namespace Test
 			Console.InputEncoding  = Encoding.Unicode;
 
 
-			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
+			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
 			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
+			var q = new ImageQuery("https://litter.catbox.moe/5yr86t.jpg");
 
+			var cfg = new SearchConfig
+			{ Query = q, SearchEngines = SearchEngineOptions.All };
 
-			//var cfg = new SearchConfig
-			//	{Query = q, SearchEngines = SearchEngineOptions.All};
+			var cl = new SearchClient(cfg);
 
-			//var cl = new SearchClient(cfg);
+			await cl.RunSearchAsync();
+			Console.WriteLine($"hi {cl.Results.Count}");
+			var sw = Stopwatch.StartNew();
+			var r2 = cl.FindBestResults(5);
+			sw.Stop();
+			Console.WriteLine(sw.Elapsed.TotalSeconds);
+			foreach (var imageResult in r2) {
+				Console.WriteLine(imageResult);
+			}
 
 			////var r  = cl.Maximize(r => r.PrimaryResult.Similarity);
 			////var r2 = await r;
@@ -71,12 +81,8 @@ namespace Test
 			//var r2 = await i2;
 
 			//Console.WriteLine(r2);
-			
-			var i  = new TraceMoeEngine();
-			var rt = i.GetResultAsync(q);
-			var t  = await rt;
 
-			Console.WriteLine(t);
+
 			//Console.WriteLine(">> {0}", r2);
 
 

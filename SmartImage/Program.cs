@@ -1,6 +1,5 @@
 ﻿// ReSharper disable RedundantUsingDirective
 
-#pragma warning disable HAA0601,
 
 #nullable enable
 using SimpleCore.Cli;
@@ -22,7 +21,6 @@ using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 
 // ReSharper disable UnusedParameter.Local
-#pragma warning disable CA1416
 
 namespace SmartImage
 {

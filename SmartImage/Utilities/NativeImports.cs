@@ -5,7 +5,7 @@ using static Novus.Win32.Native;
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-#pragma warning disable CA1416
+#pragma warning disable CA1416, CA1069
 
 namespace SmartImage.Utilities
 {

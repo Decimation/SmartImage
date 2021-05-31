@@ -55,7 +55,7 @@ namespace SmartImage.Lib.Utilities
 			return node;
 		}*/
 
-		public static (int w, int h) GetResolution(string s)
+		public static (int Width, int Height) GetResolution(string s)
 		{
 			using var bmp = Image.FromFile(s);
 

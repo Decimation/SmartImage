@@ -39,17 +39,17 @@ namespace SmartImage.Lib.Engines.Impl
 			{
 				var sub = t.SelectNodes("td");
 
-				var imgNode       = sub[0];
-				var distNode      = sub[1];
-				var scoreNode     = sub[2];
+				//var imgNode       = sub[0];
+				//var distNode      = sub[1];
+				//var scoreNode     = sub[2];
 				var postedNode    = sub[3];
 				var titleNode     = sub[4];
 				var authorNode    = sub[5];
 				var subredditNode = sub[6];
 
 
-				string? dist      = distNode.InnerText;
-				string? score     = scoreNode.InnerText;
+				//string? dist      = distNode.InnerText;
+				//string? score     = scoreNode.InnerText;
 				string? posted    = postedNode.InnerText;
 				string? title     = titleNode.InnerText;
 				string? author    = authorNode.InnerText;

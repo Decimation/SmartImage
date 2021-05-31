@@ -8,7 +8,7 @@ using RestSharp;
 using SmartImage.Lib.Searching;
 
 // ReSharper disable InconsistentNaming
-
+#pragma warning disable IDE1006, IDE0051
 namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class TraceMoeEngine : BaseSearchEngine

@@ -16,7 +16,6 @@ using System.Text;
 
 // ReSharper disable MemberCanBePrivate.Global
 
-#pragma warning disable HAA0101, HAA0502, HAA0601, RCS1036
 
 namespace SmartImage.Core
 {

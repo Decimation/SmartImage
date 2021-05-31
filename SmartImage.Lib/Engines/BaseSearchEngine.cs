@@ -43,10 +43,13 @@ namespace SmartImage.Lib.Engines
 			var task = Task.Run(delegate
 			{
 				Debug.WriteLine($"[info] {Name}: getting result async");
+				var sw  = Stopwatch.StartNew();
 
 				var res = GetResult(query);
-
-				Debug.WriteLine($"[success] {Name}: result done");
+				
+				sw.Stop();
+				
+				Debug.WriteLine($"[success] {Name}: result done {sw.Elapsed.TotalSeconds}");
 
 				return res;
 			});

@@ -5,6 +5,8 @@ using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
 
+#pragma warning disable IDE0066
+
 namespace SmartImage.Lib.Searching
 {
 	public enum ResultStatus

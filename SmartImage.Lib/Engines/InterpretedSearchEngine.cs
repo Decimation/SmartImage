@@ -59,7 +59,6 @@ namespace SmartImage.Lib.Engines
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			var sw = Stopwatch.StartNew();
 
 			var sr = base.GetResult(query);
 
@@ -77,8 +76,7 @@ namespace SmartImage.Lib.Engines
 				Trace.WriteLine($"{Name}: {e.Message} {e.Source} {e.StackTrace}");
 
 			}
-			sw.Stop();
-			Debug.WriteLine($"{Name}: {sw.Elapsed.TotalSeconds}");
+
 			return sr;
 		}
 	}

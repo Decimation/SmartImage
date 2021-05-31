@@ -135,16 +135,7 @@ namespace SmartImage.Lib.Searching
 				 * The number of non-null fields
 				 */
 
-				int s = 0;
-
-
-				foreach (FieldInfo f in DetailFields) {
-					var v = f.GetValue(this);
-
-					if (v != null) {
-						s++;
-					}
-				}
+				int s = DetailFields.Select(f => f.GetValue(this)).Count(v => v != null);
 
 
 				s += OtherMetadata.Count;

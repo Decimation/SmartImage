@@ -37,7 +37,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public int MaxSize => 5;
 
-		public Uri? Upload(string img)
+		public Uri Upload(string img)
 		{
 			if (string.IsNullOrWhiteSpace(img)) {
 				throw new ArgumentNullException(nameof(img));

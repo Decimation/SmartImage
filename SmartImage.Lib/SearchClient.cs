@@ -1,16 +1,13 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using Novus.Utilities;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using HtmlAgilityPack;
-using JetBrains.Annotations;
-using Newtonsoft.Json.Linq;
-using Novus.Utilities;
-using SimpleCore.Net;
-using SmartImage.Lib.Engines;
-using SmartImage.Lib.Searching;
-using SmartImage.Lib.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
@@ -33,11 +30,9 @@ namespace SmartImage.Lib
 
 		public bool IsComplete { get; private set; }
 
-
 		public BaseSearchEngine[] Engines { get; init; }
 
 		public List<SearchResult> Results { get; }
-
 
 		public void Reset()
 		{
@@ -46,9 +41,12 @@ namespace SmartImage.Lib
 		}
 
 		[CanBeNull]
-		public ImageResult FindBestResult()
+		public ImageResult FindBestResult() => FindBestResults(1).FirstOrDefault();
+
+		public ImageResult[] FindBestResults(int n)
 		{
 			//todo: WIP
+			Debug.WriteLine($"Finding best results");
 
 			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
 			                  .SelectMany(r =>
@@ -61,7 +59,8 @@ namespace SmartImage.Lib
 			                  .Where(r => r.Url != null && ImageHelper.IsDirect(r.Url.ToString()))
 			                  .OrderByDescending(r => r.Similarity)
 			                  .ThenByDescending(r => r.DetailScore)
-			                  .FirstOrDefault();
+			                  .Take(n)
+			                  .ToArray();
 
 			return best;
 		}
@@ -77,7 +76,6 @@ namespace SmartImage.Lib
 				throw new SmartImageException();
 			}
 
-
 			var res = Results.OrderByDescending(property).ToList();
 
 			res.RemoveAll(r => r.IsPrimitive);
@@ -90,7 +88,6 @@ namespace SmartImage.Lib
 			if (!IsComplete) {
 				throw new SmartImageException();
 			}
-
 
 			Trace.WriteLine($"Finding best result");
 
@@ -134,8 +131,9 @@ namespace SmartImage.Lib
 			}
 
 			Trace.WriteLine($"[success] {nameof(SearchClient)}: Search complete");
-			SearchCompleted?.Invoke(this, EventArgs.Empty);
+			//SearchCompleted?.Invoke(this, EventArgs.Empty);
 
+			return;
 		}
 
 		public static IUploadEngine[] GetAllUploadEngines()
@@ -145,7 +143,6 @@ namespace SmartImage.Lib
 			                            .Cast<IUploadEngine>()
 			                            .ToArray();
 		}
-
 
 		public static BaseSearchEngine[] GetAllSearchEngines()
 		{
