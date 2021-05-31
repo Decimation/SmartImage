@@ -22,17 +22,11 @@ namespace SmartImage.Lib
 		{
 			Config = config;
 
-
-			//Engines = GetAllEngines()
-			//	.Where(e => Config.SearchEngines.HasFlag(e.Engine))
-			//	.ToArray();
-
-			//if (!Engines.Any()) {
-			//	throw new SmartImageException("No engines specified");
-			//}
-
-
 			Results = new List<SearchResult>();
+
+			Engines = GetAllSearchEngines()
+			          .Where(e => Config.SearchEngines.HasFlag(e.Engine))
+			          .ToArray();
 		}
 
 		public SearchConfig Config { get; init; }
@@ -40,9 +34,7 @@ namespace SmartImage.Lib
 		public bool IsComplete { get; private set; }
 
 
-		public BaseSearchEngine[] Engines => GetAllSearchEngines()
-		                                     .Where(e => Config.SearchEngines.HasFlag(e.Engine))
-		                                     .ToArray();
+		public BaseSearchEngine[] Engines { get; init; }
 
 		public List<SearchResult> Results { get; }
 
@@ -160,21 +152,17 @@ namespace SmartImage.Lib
 			                               .ToArray();
 		}
 
-		#region Event
-
 		public event EventHandler<SearchResultEventArgs> ResultCompleted;
+	}
 
-		public class SearchResultEventArgs : EventArgs
+	public class SearchResultEventArgs : EventArgs
+	{
+		public SearchResult Result { get; }
+
+		public SearchResultEventArgs(SearchResult result)
 		{
-			public SearchResult Result { get; }
 
-			public SearchResultEventArgs(SearchResult result)
-			{
-
-				Result = result;
-			}
+			Result = result;
 		}
-
-		#endregion
 	}
 }

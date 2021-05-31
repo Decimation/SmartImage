@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using static Novus.Win32.Native;
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming

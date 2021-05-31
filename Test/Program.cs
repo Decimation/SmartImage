@@ -26,7 +26,7 @@ namespace Test
 
 	public static class Program
 	{
-		public static void OnResult(object _, SearchClient.SearchResultEventArgs e)
+		public static void OnResult(object _, SearchResultEventArgs e)
 		{
 
 			if (e.Result.IsSuccessful) {
