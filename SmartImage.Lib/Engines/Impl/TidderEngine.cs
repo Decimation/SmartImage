@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.XPath;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;
@@ -19,9 +22,9 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => Engine.ToString();
 
 
-		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
+		protected override SearchResult Process(IDocument doc, SearchResult sr)
 		{
-			var documentNode = doc.DocumentNode;
+			var documentNode = doc.Body;
 
 			var findings = documentNode.SelectNodes("//*[contains(@class, 'findings-row')]");
 
@@ -37,7 +40,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			foreach (var t in findings)
 			{
-				var sub = t.SelectNodes("td");
+				var sub = ((IHtmlElement)t).SelectNodes("td");
 
 				//var imgNode       = sub[0];
 				//var distNode      = sub[1];
@@ -50,12 +53,13 @@ namespace SmartImage.Lib.Engines.Impl
 
 				//string? dist      = distNode.InnerText;
 				//string? score     = scoreNode.InnerText;
-				string? posted    = postedNode.InnerText;
-				string? title     = titleNode.InnerText;
-				string? author    = authorNode.InnerText;
-				string? subreddit = subredditNode.InnerText;
+				string? posted    = postedNode.TextContent;
+				string? title     = titleNode.TextContent;
+				string? author    = authorNode.TextContent;
+				string? subreddit = subredditNode.TextContent;
 
-				string link = titleNode.FirstChild.Attributes["href"].DeEntitizeValue;
+				//deentize!
+				string link = titleNode.FirstChild.GetAttr("href");
 
 				var bsr = new ImageResult()
 				{

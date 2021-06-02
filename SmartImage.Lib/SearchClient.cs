@@ -139,7 +139,7 @@ namespace SmartImage.Lib
 			}
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete",C_SUCCESS);
-			SearchCompleted?.Invoke(null, null);
+			SearchCompleted?.Invoke(null, EventArgs.Empty);
 
 			return;
 		}

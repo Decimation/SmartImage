@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.XPath;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 
 #pragma warning disable HAA0101, HAA0601, HAA0502, HAA0401
 #nullable enable
@@ -22,24 +26,24 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => Engine.ToString();
 
 
-		private static string? GetAnalysis(HtmlDocument doc)
+		private static string? GetAnalysis(IDocument doc)
 		{
 			const string TAGS_XP =
 				"//a[contains(@class, 'Tags-Item') and ../../../../div[contains(@class,'CbirTags')]]/*";
 
-			var nodes = doc.DocumentNode.SelectNodes(TAGS_XP);
+			var nodes = doc.Body.SelectNodes(TAGS_XP);
 
 			if (nodes == null || !nodes.Any()) {
 				return null;
 			}
 
-			string? appearsToContain = nodes.Select(n => n.InnerText).QuickJoin();
+			string? appearsToContain = nodes.Select(n => n.TextContent).QuickJoin();
 
 			return appearsToContain;
 		}
 
 
-		private static List<ImageResult>? GetOtherImages(HtmlDocument doc)
+		private static List<ImageResult>? GetOtherImages(IDocument doc)
 		{
 			//const string TAGS_ITEM_XP = "//a[contains(@class, 'other-sites__preview-link')]";
 			//const string TAGS_ITEM_XP = "//li[contains(@class, 'other-sites__item')]";
@@ -50,22 +54,20 @@ namespace SmartImage.Lib.Engines.Impl
 
 			const string item = "//li[@class='other-sites__item']";
 
-			var tagsItem = doc.DocumentNode.SelectNodes(item);
-
-			//Debug.WriteLine($"$ {tagsItem.Count}");
+			var tagsItem = doc.Body.SelectNodes(item);
+			
 			if (tagsItem == null) {
 				return null;
 			}
 
-			static ImageResult Parse(HtmlNode? siz)
+			static ImageResult Parse(INode siz)
 			{
-				string? link = siz.FirstChild.Attributes["href"].Value;
-
+				string? link = siz.FirstChild.GetAttr("href");
 
 				var resText = siz.FirstChild
 				                 .ChildNodes[1]
 				                 .FirstChild
-				                 .InnerText;
+				                 .TextContent;
 
 
 				//other-sites__snippet
@@ -80,8 +82,8 @@ namespace SmartImage.Lib.Engines.Impl
 				return new ImageResult
 				{
 					Url         = new Uri(link),
-					Site        = site.InnerText,
-					Description = title.InnerText,
+					Site        = site.TextContent,
+					Description = title.TextContent,
 					Width       = w,
 					Height      = h,
 				};
@@ -103,51 +105,58 @@ namespace SmartImage.Lib.Engines.Impl
 					resFull = resText.Split(TIMES_DELIM);
 				}
 
-				if (resFull.Length == 2) {
-					w = Int32.Parse(resFull[0]);
-					h = Int32.Parse(resFull[1]);
-				}
+
+			}
+
+			if (resFull.Length == 2) {
+				w = Int32.Parse(resFull[0]);
+				h = Int32.Parse(resFull[1]);
 			}
 
 
 			return (w, h);
 		}
 
-		private static List<ImageResult> GetImages(HtmlDocument doc)
+		private static List<ImageResult> GetImages(IDocument doc)
 		{
 			const string TAGS_ITEM_XP = "//a[contains(@class, 'Tags-Item')]";
 
 			const string CBIR_ITEM = "CbirItem";
 
 
-			var tagsItem = doc.DocumentNode.SelectNodes(TAGS_ITEM_XP);
+			var tagsItem = doc.Body.SelectNodes(TAGS_ITEM_XP);
 			var images   = new List<ImageResult>();
 
 			if (tagsItem.Count == 0) {
 				return images;
 			}
 
-			var sizeTags = tagsItem.Where(sx => !sx.ParentNode.ParentNode.Attributes["class"].Value
+			var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.GetAttr("class")
 			                                       .Contains(CBIR_ITEM));
 
-			static ImageResult Parse(HtmlNode? siz)
+			static ImageResult Parse(INode siz)
 			{
-				string? link = siz.Attributes["href"].Value;
+				string? link = siz.GetAttr("href");
 
-				string? resText = siz.FirstChild.InnerText;
+				string? resText = siz.FirstChild.GetExclusiveText();
 
 
 				var (w, h) = ParseResolution(resText);
 
 				if (!w.HasValue || !h.HasValue) {
-					w    = null;
-					h    = null;
-					link = null;
+					w = null;
+					h = null;
+					//link = null;
+				}
+
+				if (Network.IsUri(link, out var link2)) { }
+				else {
+					link2 = null;
 				}
 
 				var yi = new ImageResult
 				{
-					Url    = link == null ? null : new Uri(link),
+					Url    = link2,
 					Width  = w,
 					Height = h,
 				};
@@ -155,19 +164,20 @@ namespace SmartImage.Lib.Engines.Impl
 				return yi;
 			}
 
+			
 			images.AddRange(sizeTags.AsParallel().Select(Parse));
 
 			return images;
 		}
 
 
-		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
+		protected override SearchResult Process(IDocument doc, SearchResult sr)
 		{
 			// Automation detected
 			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
 
-			if (doc.Text.Contains(AUTOMATION_ERROR_MSG)) {
+			if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
 				sr.ErrorMessage = "Yandex requests exceeded; on cooldown";
 				sr.Status       = ResultStatus.Unavailable;
 
@@ -189,14 +199,13 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var images = GetImages(doc);
 
-			
 
 			var otherImages = GetOtherImages(doc);
 
 			if (otherImages != null) {
 				images.AddRange(otherImages);
 			}
-			
+
 
 			images = images.OrderByDescending(r => r.PixelResolution).ToList();
 
@@ -211,11 +220,11 @@ namespace SmartImage.Lib.Engines.Impl
 
 			sr.OtherResults.AddRange(images);
 
-			const string errorMessage = "No matching images found";
+			const string NO_MATCHING = "No matching images found";
 
-			if (doc.Text.Contains(errorMessage)) {
+			if (doc.Body.TextContent.Contains(NO_MATCHING)) {
 
-				sr.ErrorMessage = errorMessage;
+				sr.ErrorMessage = NO_MATCHING;
 				sr.Status       = ResultStatus.Extraneous;
 			}
 

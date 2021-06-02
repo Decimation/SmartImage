@@ -117,77 +117,77 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var images = results.AsParallel().Select(Parse);
 
-			static (string Creator, string Material) FindInfo(HtmlNode resultcontent)
-			{
-				var     resulttitle = resultcontent.ChildNodes[0];
-				string rti         = resulttitle?.InnerText;
-
-				var     resultcontentcolumn = resultcontent.ChildNodes[1];
-				string rcci                = resultcontentcolumn?.InnerText;
-
-				string material = rcci?.SubstringAfter("Material: ");
-
-				// var resultcontentcolumn2 = resultcontent.ChildNodes[2];
-				// var rcci2                = resultcontentcolumn2?.InnerText;
-
-				// Debug.WriteLine($"[{rti}] [{rcci}] {material}");
-
-				string creator = rti ?? rcci;
-				creator = creator?.SubstringAfter("Creator: ");
-
-				return (creator, material);
-			}
-
-			static SauceNaoDataResult Parse(HtmlNode result)
-			{
-				if (result == null) {
-					return null;
-				}
-
-				if (result.GetAttributeValue("id", String.Empty) == "result-hidden-notification") {
-					return null;
-				}
-
-				var n = result.FirstChild.FirstChild;
-
-				//var resulttableimage = n.ChildNodes[0];
-				var resulttablecontent = n.ChildNodes[1];
-
-				var resultmatchinfo      = resulttablecontent.FirstChild;
-				var resultsimilarityinfo = resultmatchinfo.FirstChild;
-
-				// Contains links
-				var resultmiscinfo = resultmatchinfo.ChildNodes[1];
-
-				var     links1 = resultmiscinfo.SelectNodes("a/@href");
-				string link1  = links1?[0].GetAttributeValue("href", null);
-
-				var resultcontent = resulttablecontent.ChildNodes[1];
-
-				//var resulttitle = resultcontent.ChildNodes[0];
-
-				var resultcontentcolumn = resultcontent.ChildNodes[1];
-
-				// Other way of getting links
-				var     links2 = resultcontentcolumn.SelectNodes("a/@href");
-				string link2  = links2?[0].GetAttributeValue("href", null);
-
-				string link = link1 ?? link2;
-
-				(string creator, string material) = FindInfo(resultcontent);
-				float similarity = Single.Parse(resultsimilarityinfo.InnerText.Replace("%", String.Empty));
-
-				var i = new SauceNaoDataResult
-				{
-					Urls       = new[] {link}!,
-					Similarity = similarity,
-					Creator    = creator
-				};
-
-				return i;
-			}
-
 			return images;
+		}
+
+		private static SauceNaoDataResult Parse(HtmlNode result)
+		{
+			if (result == null) {
+				return null;
+			}
+
+			if (result.GetAttributeValue("id", String.Empty) == "result-hidden-notification") {
+				return null;
+			}
+
+			var n = result.FirstChild.FirstChild;
+
+			//var resulttableimage = n.ChildNodes[0];
+			var resulttablecontent = n.ChildNodes[1];
+
+			var resultmatchinfo      = resulttablecontent.FirstChild;
+			var resultsimilarityinfo = resultmatchinfo.FirstChild;
+
+			// Contains links
+			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
+
+			var    links1 = resultmiscinfo.SelectNodes("a/@href");
+			string link1  = links1?[0].GetAttributeValue("href", null);
+
+			var resultcontent = resulttablecontent.ChildNodes[1];
+
+			//var resulttitle = resultcontent.ChildNodes[0];
+
+			var resultcontentcolumn = resultcontent.ChildNodes[1];
+
+			// Other way of getting links
+			var    links2 = resultcontentcolumn.SelectNodes("a/@href");
+			string link2  = links2?[0].GetAttributeValue("href", null);
+
+			string link = link1 ?? link2;
+
+			(string creator, string material) = FindInfo(resultcontent);
+			float similarity = Single.Parse(resultsimilarityinfo.InnerText.Replace("%", String.Empty));
+
+			var i = new SauceNaoDataResult {Urls = new[] {link}!, Similarity = similarity, Creator = creator};
+			
+			return i;
+		}
+
+		private static (string Creator, string Material) FindInfo(HtmlNode resultcontent)
+		{
+			
+
+			//	//div[contains(@class, 'resulttitle')]
+			//	//div/node()[self::strong]
+
+			var resulttitle = resultcontent.ChildNodes[0];
+			string rti         = resulttitle?.InnerText;
+
+			var    resultcontentcolumn = resultcontent.ChildNodes[1];
+			string rcci                = resultcontentcolumn?.InnerText;
+
+			string material = rcci?.SubstringAfter("Material: ");
+
+			// var resultcontentcolumn2 = resultcontent.ChildNodes[2];
+			// var rcci2                = resultcontentcolumn2?.InnerText;
+
+			// Debug.WriteLine($"[{rti}] [{rcci}] {material}");
+
+			string creator = rti ?? rcci;
+			creator = creator?.SubstringAfter("Creator: ");
+			Debug.WriteLine($"{rti} | {rcci}");
+			return (creator, material);
 		}
 
 		public override SearchResult GetResult(ImageQuery url)
@@ -212,18 +212,19 @@ namespace SmartImage.Lib.Engines.Impl
 						sresult.Status       = ResultStatus.Unavailable;
 						return sresult;
 					}
-
-					orig = sauceNaoDataResults.ToArray();
+					
+					orig = sauceNaoDataResults.Where(o=>o!=null).ToArray();
 				}
 
 				// aggregate all info for primary result
 
 				string character = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Character))?.Character;
-				string creator   = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
-				string material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
+				string creator = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
+				string material = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
 
 				var extended = orig.AsParallel().Select(ConvertToImageResult);
 
+				
 				var ordered = extended
 				                      .Where(e => e.Url != null)
 				                      .OrderByDescending(e => e.Similarity)
@@ -241,8 +242,8 @@ namespace SmartImage.Lib.Engines.Impl
 				result.UpdateFrom(best);
 
 				result.Characters = character;
-				result.Artist     = creator;
-				result.Source     = material;
+				result.Artist = creator;
+				result.Source = material;
 
 				sresult.OtherResults.AddRange(extended);
 

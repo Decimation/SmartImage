@@ -23,7 +23,7 @@ namespace Test
 	 *
 	 */
 
-	
+
 	public static class Program
 	{
 		public static void OnResult(object _, SearchResultEventArgs e)
@@ -42,23 +42,23 @@ namespace Test
 
 			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
 			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
-			var q = new ImageQuery("https://litter.catbox.moe/5yr86t.jpg");
+			//var q = new ImageQuery("https://litter.catbox.moe/5yr86t.jpg");
+			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg");
+			//var cfg = new SearchConfig
+			//	{Query = q, SearchEngines = SearchEngineOptions.All};
 
-			var cfg = new SearchConfig
-				{Query = q, SearchEngines = SearchEngineOptions.All};
+			//var cl = new SearchClient(cfg);
+			//cl.SearchCompleted += (sender, eventArgs) => { Console.WriteLine("g"); };
+			//await cl.RunSearchAsync();
+			//Console.WriteLine($"hi {cl.Results.Count}");
+			//var sw = Stopwatch.StartNew();
+			//var r2 = cl.FindBestResults(5);
+			//sw.Stop();
+			//Console.WriteLine(sw.Elapsed.TotalSeconds);
 
-			var cl = new SearchClient(cfg);
-			cl.SearchCompleted += (sender, eventArgs) => { Console.WriteLine("g"); };
-			await cl.RunSearchAsync();
-			Console.WriteLine($"hi {cl.Results.Count}");
-			var sw = Stopwatch.StartNew();
-			var r2 = cl.FindBestResults(5);
-			sw.Stop();
-			Console.WriteLine(sw.Elapsed.TotalSeconds);
-
-			foreach (var imageResult in r2) {
-				Console.WriteLine(imageResult);
-			}
+			//foreach (var imageResult in r2) {
+			//	Console.WriteLine(imageResult);
+			//}
 
 			////var r  = cl.Maximize(r => r.PrimaryResult.Similarity);
 			////var r2 = await r;
@@ -69,7 +69,7 @@ namespace Test
 			//await r;
 
 
-			//var cfg = new SearchConfig {Query = q, SearchEngines = SearchEngineOptions.All};
+			//var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All };
 
 			//var cl = new SearchClient(cfg);
 
@@ -77,18 +77,18 @@ namespace Test
 			//var r = cl.RunSearchAsync();
 			//await r;
 
-			//var i = new YandexEngine();
-			//var i2 = i.GetResultAsync(q);
-			//var r2 = await i2;
+			var sw = Stopwatch.StartNew();
+			var i  = new SauceNaoEngine();
+			var i2 = i.GetResultAsync(q);
+			var r2 = await i2;
+			sw.Stop();
+			
+			Console.WriteLine($">> {r2}");
+			Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
-
-			//foreach (var x in r2.OtherResults) {
-			//	Console.WriteLine(x);
-			//}
-
-			//Console.WriteLine(">> {0}", r2);
-
-
+			foreach (var x in r2.OtherResults) {
+				Console.WriteLine(x);
+			}
 			/*foreach (var result in cl.Results) {
 				Console.WriteLine(result);
 			}

@@ -1,9 +1,13 @@
 ﻿// ReSharper disable UnusedMember.Global
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.XPath;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -20,8 +24,8 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => "IQDB";
 
 		//public static float? FilterThreshold => 70.00F;
-		
-		private static ImageResult ParseResult(HtmlNodeCollection tr)
+
+		private static ImageResult ParseResult(IHtmlCollection<IElement> tr)
 		{
 			var caption = tr[0];
 			var img     = tr[1];
@@ -29,27 +33,40 @@ namespace SmartImage.Lib.Engines.Impl
 
 			string url = null!;
 
-			var urlNode = img.FirstChild.FirstChild;
+			//var urlNode = img.FirstChild.FirstChild;
 
-			if (urlNode.Name != "img") {
-				var origUrl = urlNode.Attributes["href"].Value;
+			// if (urlNode.NodeName != "img") {
+			// 	var origUrl = urlNode.GetAttr("href");
+			//
+			// 	// Links must begin with http:// in order to work with "start"
+			// 	if (origUrl.StartsWith("//")) {
+			// 		origUrl = "http:" + origUrl;
+			// 	}
+			//
+			//
+			// 	url = origUrl;
+			// }
+
+			//src.FirstChild.ChildNodes[2].ChildNodes[0].GetAttr("href")
+
+
+			try {
+				url = src.FirstChild.ChildNodes[2].ChildNodes[0].GetAttr("href");
 
 				// Links must begin with http:// in order to work with "start"
-				if (origUrl.StartsWith("//")) {
-					origUrl = "http:" + origUrl;
+				if (url.StartsWith("//")) {
+					url = "http:" + url;
 				}
-
-
-				url = origUrl;
 			}
+			catch { }
 
 
 			int w = 0, h = 0;
 
-			if (tr.Count >= 4) {
+			if (tr.Length >= 4) {
 				var res = tr[3];
 
-				var wh = res.InnerText.Split(Formatting.MUL_SIGN);
+				var wh = res.TextContent.Split(Formatting.MUL_SIGN);
 
 				var wStr = wh[0].SelectOnlyDigits();
 				w = Int32.Parse(wStr);
@@ -62,9 +79,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 			float? sim;
 
-			if (tr.Count >= 5) {
+			if (tr.Length >= 5) {
 				var simNode = tr[4];
-				var simStr  = simNode.InnerText.Split('%')[0];
+				var simStr  = simNode.TextContent.Split('%')[0];
 				sim = Single.Parse(simStr);
 				sim = MathF.Round(sim.Value, 2);
 			}
@@ -72,50 +89,70 @@ namespace SmartImage.Lib.Engines.Impl
 				sim = null;
 			}
 
+			Uri uri;
+
+			if (url != null) {
+				// var uriBuilder = new UriBuilder(url)
+				// {
+				// 	Scheme = Uri.UriSchemeHttps,
+				// 	Port   = -1 // default port for scheme
+				// };
+				// uri = uriBuilder.Uri;
+				uri = new Uri(url);
+			}
+			else {
+				uri = null;
+			}
 
 			//var i = new BasicSearchResult(url, sim, w, h, src.InnerText, null, caption.InnerText);
+
+
 			var i = new ImageResult()
 			{
-				Url         = url is null ? null : new Uri(url!),
+				Url         = uri,
 				Similarity  = sim,
 				Width       = w,
 				Height      = h,
-				Source      = src.InnerText,
-				Description = caption.InnerText,
+				Source      = src.TextContent,
+				Description = caption.TextContent,
 			};
 			//i.Filter = i.Similarity < FilterThreshold;
+
 			return i;
 		}
 
-		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
+		protected override SearchResult Process(IDocument doc, SearchResult sr)
 		{
-			
+
 			//var tables = doc.DocumentNode.SelectNodes("//table");
 
 			// Don't select other results
 
-			var pages  = doc.DocumentNode.SelectSingleNode("//div[@id='pages']");
-			var tables = pages.SelectNodes("div/table");
+			var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
+			var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
 			// No relevant results?
 
-			bool noMatch = pages.ChildNodes.Any(n => n.GetAttributeValue("class", null) == "nomatch");
+			//bool noMatch = pages.ChildNodes.Any(n => (n).GetAttr("class") == "nomatch");
+			var ns = doc.Body.QuerySelector("#pages > div.nomatch");
 
-			if (noMatch) {
+			if (ns != null) {
 				//sr.ExtendedInfo.Add("No relevant results");
-				
+
 				// No relevant results
-				
+
 
 				sr.Status = ResultStatus.NoResults;
 
 				return sr;
 			}
 
-			var images = tables.Select(table => table.SelectNodes("tr"))
-				.Select(ParseResult)
-				.Cast<ImageResult>()
-				.ToList();
+			var select =
+				tables.Select(table => ((IHtmlElement) table).QuerySelectorAll("table > tbody > tr:nth-child(n)"));
+
+
+			var images = select.Select(ParseResult).ToList();
+
 
 			// First is original image
 			images.RemoveAt(0);

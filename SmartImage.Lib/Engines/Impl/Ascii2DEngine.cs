@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using AngleSharp;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
+using AngleSharp.XPath;
 using HtmlAgilityPack;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;
@@ -24,7 +29,7 @@ namespace SmartImage.Lib.Engines.Impl
 		 *
 		 */
 
-		protected override HtmlDocument GetDocument(SearchResult sr)
+		protected override IDocument GetDocument(SearchResult sr)
 		{
 			var url = sr.RawUri.ToString();
 
@@ -47,10 +52,14 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 		//[DebuggerHidden]
-		protected override SearchResult Process(HtmlDocument doc, SearchResult sr)
+		protected override SearchResult Process(IDocument doc, SearchResult sr)
 		{
 
-			var nodes = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
+			
+			var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
+
+
+			//var nodes   = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
 
 			var rg = new List<ImageResult>();
 
@@ -58,14 +67,14 @@ namespace SmartImage.Lib.Engines.Impl
 
 				var ir = new ImageResult();
 
-				var info = node.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.InnerText)).ToArray();
+				var info = node.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.TextContent)).ToArray();
 
 
-				var hash = info.First().InnerText;
+				var hash = info.First().TextContent;
 
 				ir.OtherMetadata.Add("Hash", hash);
 
-				var data = info[1].InnerText.Split(' ');
+				var data = info[1].TextContent.Split(' ');
 
 				var res = data[0].Split('x');
 				ir.Width  = int.Parse(res[0]);
@@ -80,24 +89,24 @@ namespace SmartImage.Lib.Engines.Impl
 					var desc  = info.Last().FirstChild;
 					var ns    = desc.NextSibling;
 
-					if (node2.ChildNodes.Count >= 2 && node2.ChildNodes[1].ChildNodes.Count >= 2) {
+					if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2) {
 						var node2Sub = node2.ChildNodes[1];
 
-						if (node2Sub.ChildNodes.Count >= 8) {
-							ir.Description = node2Sub.ChildNodes[3].InnerText.Trim();
-							ir.Artist      = node2Sub.ChildNodes[5].InnerText.Trim();
-							ir.Site        = node2Sub.ChildNodes[7].InnerText.Trim();
+						if (node2Sub.ChildNodes.Length >= 8) {
+							ir.Description = node2Sub.ChildNodes[3].TextContent.Trim();
+							ir.Artist      = node2Sub.ChildNodes[5].TextContent.Trim();
+							ir.Site        = node2Sub.ChildNodes[7].TextContent.Trim();
 
 						}
 					}
 
 					//var childNode = ns.ChildNodes[1].ChildNodes[0];
-					if (ns.ChildNodes.Count >= 4) {
+					if (ns.ChildNodes.Length >= 4) {
 						var childNode = ns.ChildNodes[3];
 						//Debug.WriteLine($"{childNode.Attributes.Select(a=>a.Name + $" {a.Value}").QuickJoin()}");
 
 
-						var l1 = childNode.GetAttributeValue("href", null);
+						var l1 = ((IHtmlAnchorElement)childNode).GetAttribute("href");
 
 						if (l1 is not null) {
 							ir.Url = new Uri(l1);

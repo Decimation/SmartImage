@@ -1,6 +1,7 @@
 ﻿using System;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Engines.Impl.Other;
+
 // ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Lib.Engines
@@ -90,7 +91,5 @@ namespace SmartImage.Lib.Engines
 
 
 		Artwork = SauceNao | Iqdb | Ascii2D,
-
-
 	}
 }

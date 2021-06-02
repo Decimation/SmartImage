@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
+using AngleSharp.Html.Parser;
 using HtmlAgilityPack;
 using RestSharp;
 using SimpleCore.Net;
@@ -21,7 +23,7 @@ namespace SmartImage.Lib.Engines
 		protected InterpretedSearchEngine(string baseUrl) : base(baseUrl) { }
 
 
-		protected virtual HtmlDocument GetDocument(SearchResult sr)
+		protected virtual IDocument GetDocument(SearchResult sr)
 		{
 			/*if (!Network.TryGetString(sr.RawUri.ToString()!, out var html))
 			{
@@ -33,10 +35,11 @@ namespace SmartImage.Lib.Engines
 			}*/
 
 
-			//string response = Network.GetString(sr.RawUri.ToString()!);
+			string response = Network.GetString(sr.RawUri.ToString()!);
 
-			var doc = new HtmlWeb().Load(sr.RawUri);
-
+			//var doc = new HtmlWeb().Load(sr.RawUri);
+			var p=new HtmlParser();
+			return p.ParseDocument(response);
 
 			//var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
 
@@ -50,11 +53,10 @@ namespace SmartImage.Lib.Engines
 			//doc.LoadHtml(response.Content);
 			//doc.LoadHtml(response);
 			
-
-			return doc;
+			
 		}
 
-		protected abstract SearchResult Process(HtmlDocument doc, SearchResult sr);
+		protected abstract SearchResult Process(IDocument doc, SearchResult sr);
 
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)

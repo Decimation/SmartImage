@@ -1,9 +1,8 @@
-﻿using System;
-using System.Drawing;
-using SimpleCore.Cli;
+﻿using SimpleCore.Cli;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
+using System;
 
 namespace SmartImage.Core
 {
@@ -13,7 +12,7 @@ namespace SmartImage.Core
 		{
 			new()
 			{
-				Name = "run",
+				Name = ">>> Run <<<",
 				Function = () =>
 				{
 					ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
@@ -29,10 +28,9 @@ namespace SmartImage.Core
 
 			new()
 			{
-				Name = "engines",
+				Name = "Engines",
 				Function = () =>
 				{
-
 					Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
 
 					Console.WriteLine(Program.Config.SearchEngines);
@@ -43,10 +41,9 @@ namespace SmartImage.Core
 
 			new()
 			{
-				Name = "priority engines",
+				Name = "Priority engines",
 				Function = () =>
 				{
-
 					Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
 
 					Console.WriteLine(Program.Config.PriorityEngines);
@@ -56,10 +53,9 @@ namespace SmartImage.Core
 			},
 			new()
 			{
-				Name = "ctx",
+				Name = GetContextMenuName(Integration.IsContextMenuAdded),
 				Function = () =>
 				{
-
 					var added = Integration.IsContextMenuAdded;
 
 					Integration.HandleContextMenu(added ? IntegrationOption.Remove : IntegrationOption.Add);
@@ -67,19 +63,16 @@ namespace SmartImage.Core
 					added = Integration.IsContextMenuAdded;
 					Console.WriteLine("Added: {0}", added);
 					NConsole.WaitForSecond();
-					//todo
-					MainMenuOptions[^1].Name = $"ctx {(added ? '*' : '-')}";
+
+					//hack: hacky 
+					MainMenuOptions[^1].Name = GetContextMenuName(added);
 
 					return null;
 				}
 			},
 		};
 
-		static void upd()
-		{
-			MainMenuOptions[3].Name = "g";
-
-		}
+		private static string GetContextMenuName(bool added) => $"Context menu {(added ? '*' : '-')}";
 
 		public static readonly NConsoleDialog MainMenuDialog = new()
 		{

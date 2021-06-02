@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.Io;
 using AngleSharp.XPath;
@@ -54,6 +55,7 @@ namespace SmartImage.Lib.Utilities
 
 			return node;
 		}*/
+		
 
 		public static (int Width, int Height) GetResolution(string s)
 		{
