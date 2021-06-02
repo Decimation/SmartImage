@@ -11,7 +11,6 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.Io;
 using AngleSharp.XPath;
-using HtmlAgilityPack;
 using Newtonsoft.Json.Linq;
 using SimpleCore.Net;
 using MimeType = SimpleCore.Net.MimeType;
@@ -151,7 +150,8 @@ namespace SmartImage.Lib.Utilities
 				string host = uri.Host;
 
 
-				var doc  = new HtmlDocument();
+				var docp  = new HtmlParser();
+
 				var html = Network.GetSimpleResponse(s);
 
 				if (host.Contains("danbooru")) {
@@ -166,11 +166,11 @@ namespace SmartImage.Lib.Utilities
 					return d;
 				}
 
-				doc.LoadHtml(html.Content);
+				var doc=docp.ParseDocument(html.Content);
 
 				string sel = "//img";
 
-				var nodes = doc.DocumentNode.SelectNodes(sel);
+				var nodes = doc.Body.SelectNodes(sel);
 
 				if (nodes == null) {
 					return null;

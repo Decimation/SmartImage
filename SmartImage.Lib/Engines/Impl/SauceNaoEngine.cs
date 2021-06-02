@@ -1,6 +1,5 @@
 ﻿// ReSharper disable UnusedMember.Global
 
-using HtmlAgilityPack;
 using RestSharp;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -11,6 +10,10 @@ using System.Diagnostics;
 using System.Json;
 using System.Linq;
 using System.Net;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
+using AngleSharp.XPath;
 using static SimpleCore.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
@@ -89,7 +92,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private static IEnumerable<SauceNaoDataResult> ParseResults(string url)
 		{
-			var doc = new HtmlDocument();
+			var docp = new HtmlParser();
 
 			var rc  = new RestClient(BASE_URL);
 			var req = new RestRequest("search.php");
@@ -105,35 +108,35 @@ namespace SmartImage.Lib.Engines.Impl
 			 */
 
 			if (html.Contains("Search Limit Exceeded")) {
-				Trace.WriteLine("SauceNao on cooldown!",C_WARN);
+				Trace.WriteLine("SauceNao on cooldown!", C_WARN);
 				return null;
 			}
 
-			doc.LoadHtml(html);
+			var doc = docp.ParseDocument(html);
 
 			// todo: improve
 
-			var results = doc.DocumentNode.SelectNodes("//div[@class='result']");
+			var results = doc.Body.SelectNodes("//div[@class='result']");
 
-			var images = results.AsParallel().Select(Parse);
 
-			return images;
+			return results.Select(node => Parse(node)).ToList();
 		}
 
-		private static SauceNaoDataResult Parse(HtmlNode result)
+		private static SauceNaoDataResult Parse(INode result)
 		{
 			if (result == null) {
 				return null;
 			}
 
-			if (result.GetAttributeValue("id", String.Empty) == "result-hidden-notification") {
+			if (result.GetAttr("id") == "result-hidden-notification") {
 				return null;
 			}
 
-			var n = result.FirstChild.FirstChild;
+			//var n = result.FirstChild.FirstChild;
 
 			//var resulttableimage = n.ChildNodes[0];
-			var resulttablecontent = n.ChildNodes[1];
+			var resulttablecontent = result.FirstChild.FirstChild.FirstChild.ChildNodes[1];
+			//var resulttablecontent = n.ChildNodes[1];
 
 			var resultmatchinfo      = resulttablecontent.FirstChild;
 			var resultsimilarityinfo = resultmatchinfo.FirstChild;
@@ -141,8 +144,8 @@ namespace SmartImage.Lib.Engines.Impl
 			// Contains links
 			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
 
-			var    links1 = resultmiscinfo.SelectNodes("a/@href");
-			string link1  = links1?[0].GetAttributeValue("href", null);
+			// var    links1 = ((IHtmlElement)resultmiscinfo).SelectNodes("a/@href");
+			// string link1  = links1?[0].GetAttr("href");
 
 			var resultcontent = resulttablecontent.ChildNodes[1];
 
@@ -150,32 +153,47 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var resultcontentcolumn = resultcontent.ChildNodes[1];
 
-			// Other way of getting links
-			var    links2 = resultcontentcolumn.SelectNodes("a/@href");
-			string link2  = links2?[0].GetAttributeValue("href", null);
+			string link = null;
 
-			string link = link1 ?? link2;
+			var g = resultcontentcolumn.ChildNodes.GetElementsByTagName("a")
+			                           .FirstOrDefault(x => x.GetAttribute("href") != null);
+
+			if (g != null) {
+				link = g.GetAttribute("href");
+			}
+
+
+			// Other way of getting links
+			// var    links2 = ((IHtmlElement)resultcontentcolumn).SelectNodes("a/@href");
+			// string link2  = links2?[0].GetAttr("href");
+			//
+			// string link = link1 ?? link2;
 
 			(string creator, string material) = FindInfo(resultcontent);
-			float similarity = Single.Parse(resultsimilarityinfo.InnerText.Replace("%", String.Empty));
+			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
-			var i = new SauceNaoDataResult {Urls = new[] {link}!, Similarity = similarity, Creator = creator};
-			
+			var i = new SauceNaoDataResult
+			{
+				Urls       = new[] {link}!,
+				Similarity = similarity,
+				Creator    = creator
+			};
+
 			return i;
 		}
 
-		private static (string Creator, string Material) FindInfo(HtmlNode resultcontent)
+		private static (string Creator, string Material) FindInfo(INode resultcontent)
 		{
-			
+
 
 			//	//div[contains(@class, 'resulttitle')]
 			//	//div/node()[self::strong]
 
-			var resulttitle = resultcontent.ChildNodes[0];
-			string rti         = resulttitle?.InnerText;
+			var    resulttitle = resultcontent.ChildNodes[0];
+			string rti         = resulttitle?.TextContent;
 
 			var    resultcontentcolumn = resultcontent.ChildNodes[1];
-			string rcci                = resultcontentcolumn?.InnerText;
+			string rcci                = resultcontentcolumn?.TextContent;
 
 			string material = rcci?.SubstringAfter("Material: ");
 
@@ -212,23 +230,23 @@ namespace SmartImage.Lib.Engines.Impl
 						sresult.Status       = ResultStatus.Unavailable;
 						return sresult;
 					}
-					
-					orig = sauceNaoDataResults.Where(o=>o!=null).ToArray();
+
+					orig = sauceNaoDataResults.Where(o => o != null).ToArray();
 				}
 
 				// aggregate all info for primary result
 
 				string character = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Character))?.Character;
-				string creator = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
-				string material = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
+				string creator   = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
+				string material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
 
 				var extended = orig.AsParallel().Select(ConvertToImageResult);
 
-				
+
 				var ordered = extended
-				                      .Where(e => e.Url != null)
-				                      .OrderByDescending(e => e.Similarity)
-				                      .ToList();
+				              .Where(e => e.Url != null)
+				              .OrderByDescending(e => e.Similarity)
+				              .ToList();
 
 				if (!ordered.Any()) {
 					// No good results
@@ -242,8 +260,8 @@ namespace SmartImage.Lib.Engines.Impl
 				result.UpdateFrom(best);
 
 				result.Characters = character;
-				result.Artist = creator;
-				result.Source = material;
+				result.Artist     = creator;
+				result.Source     = material;
 
 				sresult.OtherResults.AddRange(extended);
 

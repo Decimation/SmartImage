@@ -5,7 +5,6 @@ using System.Linq;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
-using HtmlAgilityPack;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;

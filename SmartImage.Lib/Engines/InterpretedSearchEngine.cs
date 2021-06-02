@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
-using HtmlAgilityPack;
 using RestSharp;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;

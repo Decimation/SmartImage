@@ -8,7 +8,6 @@ using System.Threading;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
-using HtmlAgilityPack;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
