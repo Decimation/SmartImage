@@ -44,24 +44,15 @@ namespace SmartImage.Lib.Engines
 			var task = Task.Run(delegate
 			{
 				Debug.WriteLine($"{Name}: getting result async",C_INFO);
-				var sw  = Stopwatch.StartNew();
-
+				
 				var res = GetResult(query);
 				
-				sw.Stop();
-				
-				Debug.WriteLine($"{Name}: result done {sw.Elapsed.TotalSeconds}",C_SUCCESS);
+				Debug.WriteLine($"{Name}: result done",C_SUCCESS);
 
 				return res;
 			});
 
 			return await task;
-
-			//if (!task.Wait(span)) TokenSource.Cancel();
-
-			//await task.AwaitWithTimeout(10, () => { }, () => { Debug.WriteLine($"cancel {Name}"); });
-
-			//return task.Result;
 		}
 
 		public Uri GetRawResultUrl(ImageQuery query)

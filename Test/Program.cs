@@ -43,7 +43,7 @@ namespace Test
 			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
 			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 			//var q = new ImageQuery("https://litter.catbox.moe/5yr86t.jpg");
-			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg");
+			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
 			//var cfg = new SearchConfig
 			//	{Query = q, SearchEngines = SearchEngineOptions.All};
 
@@ -78,17 +78,18 @@ namespace Test
 			//await r;
 
 			var sw = Stopwatch.StartNew();
-			var i  = new SauceNaoEngine();
+			var i  = new IqdbEngine();
 			var i2 = i.GetResultAsync(q);
 			var r2 = await i2;
 			sw.Stop();
 			
 			Console.WriteLine($">> {r2}");
+			Console.WriteLine(r2.PrimaryResult);
 			Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
-			foreach (var x in r2.OtherResults) {
-				Console.WriteLine(x);
-			}
+			//foreach (var x in r2.OtherResults) {
+			//	Console.WriteLine(x);
+			//}
 			/*foreach (var result in cl.Results) {
 				Console.WriteLine(result);
 			}

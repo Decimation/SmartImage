@@ -75,7 +75,7 @@ namespace SmartImage.UI
 		{
 			var searchResult = args.Result;
 
-			if (searchResult.IsPrimitive && filterCheckBox.Checked) {
+			if (!searchResult.IsNonPrimitive && filterCheckBox.Checked) {
 				searchProgressBar.PerformStep();
 				return;
 			}
@@ -146,7 +146,7 @@ namespace SmartImage.UI
 			var imageResult = searchResult.PrimaryResult;
 
 			if (searchResult.IsSuccessful) {
-				listViewItem.SubItems.Add(searchResult.IsPrimitive
+				listViewItem.SubItems.Add(!searchResult.IsNonPrimitive
 					? searchResult.RawUri.ToString()
 					: imageResult.Url?.ToString());
 			}

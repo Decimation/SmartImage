@@ -10,9 +10,13 @@ using RestSharp;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+using static SimpleCore.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Engines
 {
+	/// <summary>
+	/// Represents a search engine whose results are parsed.
+	/// </summary>
 	public abstract class InterpretedSearchEngine : BaseSearchEngine
 	{
 		public abstract override SearchEngineOptions Engine { get; }
@@ -21,6 +25,28 @@ namespace SmartImage.Lib.Engines
 
 		protected InterpretedSearchEngine(string baseUrl) : base(baseUrl) { }
 
+
+		[DebuggerHidden]
+		public override SearchResult GetResult(ImageQuery query)
+		{
+			var sr = base.GetResult(query);
+
+			if (!sr.IsSuccessful) {
+				return sr;
+			}
+
+			try {
+				var doc = GetDocument(sr);
+
+				sr = Process(doc, sr);
+			}
+			catch (Exception e) {
+				sr.Status = ResultStatus.Failure;
+				Trace.WriteLine($"{Name}: {e.Message} {e.Source} {e.StackTrace}", C_ERROR);
+			}
+
+			return sr;
+		}
 
 		protected virtual IDocument GetDocument(SearchResult sr)
 		{
@@ -36,49 +62,10 @@ namespace SmartImage.Lib.Engines
 
 			string response = Network.GetString(sr.RawUri.ToString()!);
 
-			//var doc = new HtmlWeb().Load(sr.RawUri);
-			var p = new HtmlParser();
-			return p.ParseDocument(response);
-
-			//var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
-
-			//var req = new RestRequest(BaseUrl);
-			//req.AddQueryParameter("url", sr.RawUri.ToString());
-			//var rc  = new RestClient();
-			//var res =rc.Execute(req);
-			//var response   = res.Content;
-
-			//var doc = new HtmlDocument();
-			//doc.LoadHtml(response.Content);
-			//doc.LoadHtml(response);
-
-
+			var parser = new HtmlParser();
+			return parser.ParseDocument(response);
 		}
 
 		protected abstract SearchResult Process(IDocument doc, SearchResult sr);
-
-		[DebuggerHidden]
-		public override SearchResult GetResult(ImageQuery query)
-		{
-
-			var sr = base.GetResult(query);
-
-			if (!sr.IsSuccessful) {
-				return sr;
-			}
-
-			try {
-
-				var doc = GetDocument(sr);
-				sr = Process(doc, sr);
-			}
-			catch (Exception e) {
-				sr.Status = ResultStatus.Failure;
-				Trace.WriteLine($"{Name}: {e.Message} {e.Source} {e.StackTrace}");
-
-			}
-
-			return sr;
-		}
 	}
 }

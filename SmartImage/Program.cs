@@ -54,7 +54,7 @@ namespace SmartImage
 			 * Setup
 			 * Check compatibility
 			 */
-			
+
 			Console.Title = $"{Info.NAME} ({Info.Version})";
 
 			NConsole.Init();
@@ -106,36 +106,11 @@ namespace SmartImage
 			SystemSounds.Exclamation.Play();
 		}
 
-		private static NConsoleOption Convert(SearchResult result)
-		{
-			var option = new NConsoleOption
-			{
-				Function = () =>
-				{
-					var primaryResult = result.PrimaryResult;
-
-					if (primaryResult is { }) {
-						var url = primaryResult.Url;
-
-						if (url != null) {
-							Network.OpenUrl(url.ToString());
-						}
-					}
-
-					return null;
-				},
-				//Name = result.Engine.Name,
-				Data = result.ToString()
-			};
-
-			return option;
-		}
-
 		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)
 		{
 			var result = eventArgs.Result;
 
-			var option = Convert(result);
+			var option = InteractionLayer.Convert(result);
 
 			ResultDialog.Options.Add(option);
 

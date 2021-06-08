@@ -177,10 +177,11 @@ namespace SmartImage.Lib.Searching
 			Description = result.Description;
 			Date        = result.Date;
 		}
-		
-		public override string ToString()
+
+		public string ToString(bool indent)
 		{
-			var sb = new ExtendedStringBuilder() {};
+
+			var sb = new ExtendedStringBuilder() { };
 
 			sb.Append(nameof(Url), Url);
 
@@ -189,7 +190,7 @@ namespace SmartImage.Lib.Searching
 			}
 
 			if (HasImageDimensions) {
-				string? val = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
+				string val = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
 
 
 				var resType = DisplayResolution;
@@ -215,7 +216,11 @@ namespace SmartImage.Lib.Searching
 
 			sb.Append($"Detail score", $"{DetailScore}/{DetailFields.Count} ({(IsDetailed ? "Y" : "N")})");
 
-			return sb.ToString().RemoveLastOccurrence("\n");
+			var xs = sb.ToString().RemoveLastOccurrence("\n");
+
+			return indent ? Strings.IndentFields(xs) : xs;
 		}
+
+		public override string ToString() => ToString(false);
 	}
 }

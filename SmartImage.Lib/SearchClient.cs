@@ -51,7 +51,7 @@ namespace SmartImage.Lib
 			//todo: WIP
 			Debug.WriteLine($"Finding best results");
 
-			var best = Results.Where(r => r.Status != ResultStatus.Extraneous && !r.IsPrimitive)
+			var best = Results.Where(r => r.IsNonPrimitive)
 			                  .SelectMany(r =>
 			                  {
 				                  var x = r.OtherResults;
@@ -87,7 +87,7 @@ namespace SmartImage.Lib
 
 			var res = Results.OrderByDescending(property).ToList();
 
-			res.RemoveAll(r => r.IsPrimitive);
+			res.RemoveAll(r => !r.IsNonPrimitive);
 
 			return res;
 		}
@@ -130,12 +130,15 @@ namespace SmartImage.Lib
 				var value = await finished;
 
 				tasks.Remove(finished);
+				
+				if (!(Config.Filter && !value.IsNonPrimitive)) {
+					Results.Add(value);
+					
+					// Call event
+					ResultCompleted?.Invoke(null, new SearchResultEventArgs(value));
+				}
 
-				Results.Add(value);
-
-				// Call event
-				ResultCompleted?.Invoke(null, new SearchResultEventArgs(value));
-
+				
 				IsComplete = !tasks.Any();
 			}
 

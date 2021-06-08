@@ -31,14 +31,19 @@ namespace SmartImage.Lib.Engines.Impl
 
 			string url = null!;
 
+			//img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
 
-			try {
-				url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
+
+			try
+			{
+				//url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
+
+				url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href");
 
 				// Links must begin with http:// in order to work with "start"
-				if (url.StartsWith("//")) {
-					url = "http:" + url;
-				}
+				//if (url.StartsWith("//")) {
+				//	url = "http:" + url;
+				//}
 			}
 			catch {
 				// ignored

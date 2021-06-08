@@ -92,6 +92,9 @@ namespace SmartImage.Lib.Utilities
 
 		public static string[] Scan(string s)
 		{
+
+			// TODO: WIP
+
 			//<img.*?src="(.*?)"
 			//href\s*=\s*"(.+?)"
 
@@ -130,7 +133,7 @@ namespace SmartImage.Lib.Utilities
 		}
 
 
-		public static string ResolveDirectLink(string s)
+		/*public static string ResolveDirectLink(string s)
 		{
 			//todo: WIP
 			string d = "";
@@ -178,7 +181,7 @@ namespace SmartImage.Lib.Utilities
 
 
 			return d;
-		}
+		}*/
 	}
 
 	public enum DisplayResolutionType

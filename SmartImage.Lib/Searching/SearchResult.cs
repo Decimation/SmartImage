@@ -42,14 +42,8 @@ namespace SmartImage.Lib.Searching
 		[CanBeNull]
 		public string ErrorMessage { get; set; }
 
-		public bool IsPrimitive
-		{
-			get
-			{
-				//todo: WIP
-				return PrimaryResult.Url == null;
-			}
-		}
+		public bool IsNonPrimitive => Status != ResultStatus.Extraneous && (PrimaryResult.Url != null);
+
 
 		public bool IsSuccessful
 		{
@@ -85,11 +79,13 @@ namespace SmartImage.Lib.Searching
 
 			var name = $"[{Engine.Name}]";
 
-			sb.AppendLine($"{name} :: ({Status}; {(IsPrimitive ? RANK_P : RANK_S)})");
+			sb.AppendLine($"{name} :: ({Status}; {(!IsNonPrimitive ? RANK_P : RANK_S)})");
 
 			if (PrimaryResult.Url != null) {
-				var    resStr    = sb.IndentFields(PrimaryResult.ToString());
-				string separator = sb.Indent + new string('-', 20);
+				//var    resStr    = sb.IndentFields(PrimaryResult.ToString());
+
+				var    resStr    = PrimaryResult.ToString(true);
+				string separator = Strings.Indent + new string('-', 20);
 
 				sb.Append($"{resStr}\n{separator}\n");
 			}

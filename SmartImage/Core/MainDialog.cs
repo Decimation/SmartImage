@@ -71,6 +71,22 @@ namespace SmartImage.Core
 					return null;
 				}
 			},
+
+#if DEBUG
+			
+
+			new()
+			{
+				Name = "debug",
+				Function = () =>
+				{
+
+					Program.Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+					return true;
+				}
+			},
+#endif
+
 		};
 
 
