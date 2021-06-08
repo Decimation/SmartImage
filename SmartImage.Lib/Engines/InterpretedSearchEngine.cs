@@ -25,6 +25,7 @@ namespace SmartImage.Lib.Engines
 
 		protected InterpretedSearchEngine(string baseUrl) : base(baseUrl) { }
 
+		
 
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
@@ -60,7 +61,7 @@ namespace SmartImage.Lib.Engines
 			}*/
 
 
-			string response = Network.GetString(sr.RawUri.ToString()!);
+			string response = WebUtilities.GetString(sr.RawUri.ToString()!);
 
 			var parser = new HtmlParser();
 			return parser.ParseDocument(response);

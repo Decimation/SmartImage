@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Novus.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
+// ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedMember.Global
 
@@ -155,9 +156,9 @@ namespace SmartImage.Core
 	}
 
 	/// <summary>
-	/// Program system integrations
+	/// Program OS integrations
 	/// </summary>
-	internal static class Integration
+	internal static class OSIntegration
 	{
 		/*
 		 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:

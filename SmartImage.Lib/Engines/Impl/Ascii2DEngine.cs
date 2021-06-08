@@ -30,7 +30,7 @@ namespace SmartImage.Lib.Engines.Impl
 		{
 			var url = sr.RawUri.ToString();
 
-			var res = Network.GetSimpleResponse(url);
+			var res = Network.GetResponse(url);
 
 			// Get redirect url (color url)
 			var newUrl = res.ResponseUri.ToString();

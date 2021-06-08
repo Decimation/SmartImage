@@ -3,11 +3,14 @@ using SimpleCore.Utilities;
 using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Novus.Utilities;
+using static SimpleCore.Diagnostics.LogCategories;
 
 #nullable enable
 
@@ -19,9 +22,15 @@ namespace SmartImage.Lib.Searching
 	public sealed class ImageResult
 	{
 		/// <summary>
-		/// Url
+		/// Result url
 		/// </summary>
 		public Uri? Url { get; set; }
+
+		/// <summary>
+		/// Direct image link of <see cref="Url"/>
+		/// </summary>
+		public Uri? Direct { get; set; }
+
 
 		/// <summary>
 		/// Similarity
@@ -167,6 +176,7 @@ namespace SmartImage.Lib.Searching
 		public void UpdateFrom(ImageResult result)
 		{
 			Url         = result.Url;
+			Direct      = result.Direct;
 			Similarity  = result.Similarity;
 			Width       = result.Width;
 			Height      = result.Height;
@@ -178,12 +188,29 @@ namespace SmartImage.Lib.Searching
 			Date        = result.Date;
 		}
 
+		public void FindDirectImages()
+		{
+			
+				if (Url is not null) {
+					string? images = ImageHelper.FindDirectImages(Url?.ToString()).FirstOrDefault();
+
+					if (images is { }) {
+						var uri = new Uri(images);
+
+						Direct = uri;
+					}
+
+				}
+			
+		}
+
 		public string ToString(bool indent)
 		{
 
 			var sb = new ExtendedStringBuilder() { };
 
 			sb.Append(nameof(Url), Url);
+			sb.Append(nameof(Direct), Direct);
 
 			if (Similarity.HasValue) {
 				sb.Append($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");

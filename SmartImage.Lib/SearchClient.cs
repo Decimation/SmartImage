@@ -130,15 +130,19 @@ namespace SmartImage.Lib
 				var value = await finished;
 
 				tasks.Remove(finished);
-				
+
+				if (Config.DirectUri) {
+					value.PrimaryResult.FindDirectImages();
+				}
+
 				if (!(Config.Filter && !value.IsNonPrimitive)) {
 					Results.Add(value);
-					
+
 					// Call event
 					ResultCompleted?.Invoke(null, new SearchResultEventArgs(value));
 				}
 
-				
+
 				IsComplete = !tasks.Any();
 			}
 

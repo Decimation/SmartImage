@@ -13,6 +13,7 @@ using AngleSharp.Io;
 using AngleSharp.XPath;
 using Newtonsoft.Json.Linq;
 using SimpleCore.Net;
+using static SimpleCore.Diagnostics.LogCategories;
 using MimeType = SimpleCore.Net.MimeType;
 
 // ReSharper disable InconsistentNaming
@@ -43,8 +44,6 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/regosen/gallery_get
 		 */
 
-		
-		
 
 		public static (int Width, int Height) GetResolution(string s)
 		{
@@ -88,54 +87,76 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
-		public static bool IsDirect(string value) => MediaTypes.IsDirect(value, MimeType.Image);
+		/// <summary>
+		/// Determines whether <paramref name="url"/> is a direct image link
+		/// </summary>
+		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
+		public static bool IsDirect(string url) => MediaTypes.IsDirect(url, MimeType.Image);
 
-		public static string[] Scan(string s)
+		/// <summary>
+		/// Scans for direct image links in <paramref name="url"/>
+		/// </summary>
+		public static string[] FindDirectImages(string url)
 		{
-
-			// TODO: WIP
+			var rg = new List<string>();
 
 			//<img.*?src="(.*?)"
 			//href\s*=\s*"(.+?)"
-
-			var html = Network.GetString(s);
-
 			//var src  = "<img.*?src=\"(.*?)\"";
 			//var href = "href\\s*=\\s*\"(.+?)\"";
-			var href = "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"";
-			//var m  = Regex.Matches(html, src);
-			var m2 = Regex.Matches(html, href);
 
-			//Debug.WriteLine($"{s} {m.Count} {m2.Count}");
+			var html = WebUtilities.GetString(url);
+
+			const string HREF_PATTERN = "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"";
+
+			var m2 = Regex.Matches(html, HREF_PATTERN);
 
 
-			for (int index = 0; index < m2.Count; index++) {
-				Match match = m2[index];
-				var   v     = match.Groups;
+			for (int i = 0; i < m2.Count; i++) {
+				var match  = m2[i];
+				var groups = match.Groups;
 
-				for (int i = 0; i < v.Count; i++) {
-					Group @group = v[i];
+				for (int j = 0; j < groups.Count; j++) {
+					var group = groups[j];
 
-					foreach (Capture capture in @group.Captures) {
-						// this works but it's slow
-						if (Network.IsUri(capture.Value, out var u)) {
-							Debug.WriteLine($"[{index}, {i}] {u}");
+					foreach (Capture capture in group.Captures) {
 
-						}
+						rg.Add(capture.Value);
 					}
 				}
 			}
 
+			string[] results = null;
 
-			var rg = new List<string>();
 
-			return rg.ToArray();
+			var t = Task.Run(() =>
+			{
+				// todo: is running PLINQ within a task thread-safe?
+
+				results = rg.AsParallel()
+				            .Where(e => Network.IsUri(e, out _) && IsDirect(e))
+				            .ToArray();
+
+				Debug.WriteLine($"{nameof(FindDirectImages)}: {rg.Count} -> {results.Length}", C_DEBUG);
+			});
+
+
+			var timeout = TimeSpan.FromSeconds(3);
+
+			if (t.Wait(timeout)) {
+				//
+			}
+			else {
+				Debug.WriteLine($"{nameof(FindDirectImages)}: timeout!", C_WARN);
+			}
+
+
+			return results;
 		}
 
 
 		/*public static string ResolveDirectLink(string s)
 		{
-			//todo: WIP
 			string d = "";
 
 			try {

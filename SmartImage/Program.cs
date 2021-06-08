@@ -58,13 +58,16 @@ namespace SmartImage
 			Console.Title = $"{Info.NAME} ({Info.Version})";
 
 			NConsole.Init();
+			Console.Clear();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
 
 			/*
 			 *
 			 */
-			if (args.Length != 1) {
+
+
+			if (!args.Any()) {
 				var options = NConsole.ReadOptions(MainDialog.MainMenuDialog);
 
 
@@ -73,7 +76,32 @@ namespace SmartImage
 				}
 			}
 			else {
-				Config.Query = args[0];
+
+				var enumerator = args.GetEnumerator();
+
+				while (enumerator.MoveNext()) {
+					object? arg = enumerator.Current;
+
+					switch (arg) {
+						case "links":
+							enumerator.MoveNext();
+							arg = enumerator.Current!;
+
+							var directImages = ImageHelper.FindDirectImages((string) arg);
+
+							Console.WriteLine("Links:");
+							foreach (string s in directImages) {
+								Console.WriteLine(s);
+							}
+
+							Console.ReadKey();
+							return;
+
+						default:
+							Config.Query = args[0];
+							break;
+					}
+				}
 			}
 
 			try {
@@ -110,7 +138,7 @@ namespace SmartImage
 		{
 			var result = eventArgs.Result;
 
-			var option = InteractionLayer.Convert(result);
+			var option = DialogUtilities.Convert(result);
 
 			ResultDialog.Options.Add(option);
 

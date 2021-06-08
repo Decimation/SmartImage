@@ -11,6 +11,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Engines.Impl.Other;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 
 namespace Test
 {
@@ -69,24 +70,43 @@ namespace Test
 			//await r;
 
 
-			//var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All };
+			var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All };
 
-			//var cl = new SearchClient(cfg);
+			var cl = new SearchClient(cfg);
 
 			//cl.ResultCompleted += OnResult;
-			//var r = cl.RunSearchAsync();
-			//await r;
+			var r = cl.RunSearchAsync();
+			await r;
 
-			var sw = Stopwatch.StartNew();
-			var i  = new IqdbEngine();
-			var i2 = i.GetResultAsync(q);
-			var r2 = await i2;
-			sw.Stop();
-			
-			Console.WriteLine($">> {r2}");
-			Console.WriteLine(r2.PrimaryResult);
-			Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
+			foreach (var result in cl.Results) {
+				Console.WriteLine(result);
+			}
 
+			//var sw = Stopwatch.StartNew();
+			//var i = new IqdbEngine();
+			//var i2 = i.GetResultAsync(q);
+			//var r2 = await i2;
+			//sw.Stop();
+
+			//Console.WriteLine($">> {r2}");
+			//Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
+
+			//var sw = Stopwatch.StartNew();
+
+			//var v = ImageHelper.FindDirectImages("https://iqdb.org/?url=https://litter.catbox.moe/151mk9.jpg");
+
+			//foreach (string s in v) {
+			//	Console.WriteLine(s);
+			//}
+			////
+			//sw.Stop();
+			//Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
+
+
+
+			//foreach (string s in v) {
+			//	Console.WriteLine(s);
+			//}
 			//foreach (var x in r2.OtherResults) {
 			//	Console.WriteLine(x);
 			//}

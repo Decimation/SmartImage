@@ -170,7 +170,7 @@ namespace SmartImage.UI
 			var img = searchResult.OtherResults.FirstOrDefault(f => ImageHelper.IsDirect(f?.Url?.ToString()));
 
 			if (img is not null) {
-				var s = Network.GetStream(img.Url.ToString());
+				var s = WebUtilities.GetStream(img.Url.ToString());
 				resultsListView.SmallImageList.Images.Add(Image.FromStream(s));
 			}
 
@@ -228,7 +228,7 @@ namespace SmartImage.UI
 			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
 			if (best is not null) {
-				previewPictureBox.Image = Image.FromStream(Network.GetStream(best.Url?.ToString()));
+				previewPictureBox.Image = Image.FromStream(WebUtilities.GetStream(best.Url?.ToString()));
 			}
 		}
 
@@ -398,7 +398,7 @@ namespace SmartImage.UI
 					if (!string.IsNullOrWhiteSpace(text)) {
 						var url = text;
 
-						Network.OpenUrl(url);
+						WebUtilities.OpenUrl(url);
 					}
 				}
 			}

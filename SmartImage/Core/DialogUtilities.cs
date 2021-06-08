@@ -10,7 +10,7 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Core
 {
-	internal static class InteractionLayer
+	internal static class DialogUtilities
 	{
 		internal static NConsoleOption Convert(SearchResult result)
 		{
@@ -47,7 +47,7 @@ namespace SmartImage.Core
 					var url = primaryResult.Url;
 
 					if (url != null) {
-						Network.OpenUrl(url.ToString());
+						WebUtilities.OpenUrl(url.ToString());
 					}
 				}
 

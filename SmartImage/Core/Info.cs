@@ -95,7 +95,7 @@ namespace SmartImage.Core
 				throw new NotSupportedException();
 			}
 
-			Integration.Setup();
+			OSIntegration.Setup();
 		}
 	}
 }

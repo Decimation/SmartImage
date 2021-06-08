@@ -65,7 +65,7 @@ namespace SmartImage.Lib.Searching
 
 			Uri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 
-			Stream = IsFile ? File.OpenRead(value) : Network.GetStream(value);
+			Stream = IsFile ? File.OpenRead(value) : WebUtilities.GetStream(value);
 
 			Trace.WriteLine($"{nameof(ImageQuery)}: {Uri}", C_SUCCESS);
 		}

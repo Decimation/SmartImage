@@ -54,14 +54,14 @@ namespace SmartImage.Core
 			},
 			new()
 			{
-				Name = GetContextMenuName(Integration.IsContextMenuAdded),
+				Name = GetContextMenuName(OSIntegration.IsContextMenuAdded),
 				Function = () =>
 				{
-					var added = Integration.IsContextMenuAdded;
+					var added = OSIntegration.IsContextMenuAdded;
 
-					Integration.HandleContextMenu(added ? IntegrationOption.Remove : IntegrationOption.Add);
+					OSIntegration.HandleContextMenu(added ? IntegrationOption.Remove : IntegrationOption.Add);
 
-					added = Integration.IsContextMenuAdded;
+					added = OSIntegration.IsContextMenuAdded;
 					Console.WriteLine("Added: {0}", added);
 					NConsole.WaitForSecond();
 
@@ -77,7 +77,7 @@ namespace SmartImage.Core
 
 			new()
 			{
-				Name = "debug",
+				Name = "Debug",
 				Function = () =>
 				{
 
