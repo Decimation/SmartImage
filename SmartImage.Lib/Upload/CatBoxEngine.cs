@@ -1,24 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.VisualBasic;
 using RestSharp;
-using SimpleCore.Numeric;
 using SmartImage.Lib.Utilities;
-using FileSystem = Novus.Win32.FileSystem;
+
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Engines.Impl
+namespace SmartImage.Lib.Upload
 {
-	public sealed class CatBoxEngine : IUploadEngine
+	public sealed class CatBoxEngine : BaseUploadEngine
 	{
-		public string Name => "CatBox";
+		public override string Name => "CatBox";
 
-		public int MaxSize => 200;
+		public override int MaxSize => 200;
 
 		private readonly RestClient m_client;
 
@@ -27,9 +19,9 @@ namespace SmartImage.Lib.Engines.Impl
 			m_client = new RestClient("https://catbox.moe/user/api.php");
 		}
 
-		public Uri Upload(string file)
+		public override Uri Upload(string file)
 		{
-			IUploadEngine.Verify(this, file);
+			Verify(file);
 
 
 			var req = new RestRequest(Method.POST);

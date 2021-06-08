@@ -3,6 +3,7 @@ using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using System;
+using System.Drawing;
 
 namespace SmartImage.Core
 {
@@ -12,7 +13,7 @@ namespace SmartImage.Core
 		{
 			new()
 			{
-				Name = ">>> Run <<<",
+				Name = ">>> Run <<<".AddColor(Color.Yellow),
 				Function = () =>
 				{
 					ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
@@ -72,6 +73,8 @@ namespace SmartImage.Core
 			},
 		};
 
+
+
 		private static string GetContextMenuName(bool added) => $"Context menu {(added ? '*' : '-')}";
 
 		public static readonly NConsoleDialog MainMenuDialog = new()
@@ -82,11 +85,15 @@ namespace SmartImage.Core
 
 		private static TEnum ReadEnum<TEnum>() where TEnum : Enum
 		{
-			var e   = NConsoleOption.FromEnum<TEnum>();
-			var ex  = NConsole.ReadOptions(new NConsoleDialog() {Options = e, SelectMultiple = true});
-			var ex2 = Enums.ReadFromSet<TEnum>(ex);
+			var enumOptions   = NConsoleOption.FromEnum<TEnum>();
+			var selected  = NConsole.ReadOptions(new NConsoleDialog
+			{
+				Options = enumOptions, SelectMultiple = true
+			});
 
-			return ex2;
+			var enumValue = Enums.ReadFromSet<TEnum>(selected);
+
+			return enumValue;
 		}
 	}
 }

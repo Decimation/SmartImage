@@ -72,6 +72,8 @@ namespace SmartImage.Core
 			}
 		}
 
+		public static Version Version => typeof(Info).Assembly.GetName().Version!;
+
 		public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
 		/// <summary>

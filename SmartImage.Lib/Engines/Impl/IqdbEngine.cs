@@ -21,8 +21,7 @@ namespace SmartImage.Lib.Engines.Impl
 		public override SearchEngineOptions Engine => SearchEngineOptions.Iqdb;
 
 		public override string Name => "IQDB";
-
-		//public static float? FilterThreshold => 70.00F;
+		
 
 		private static ImageResult ParseResult(IHtmlCollection<IElement> tr)
 		{
@@ -32,32 +31,18 @@ namespace SmartImage.Lib.Engines.Impl
 
 			string url = null!;
 
-			//var urlNode = img.FirstChild.FirstChild;
-
-			// if (urlNode.NodeName != "img") {
-			// 	var origUrl = urlNode.GetAttr("href");
-			//
-			// 	// Links must begin with http:// in order to work with "start"
-			// 	if (origUrl.StartsWith("//")) {
-			// 		origUrl = "http:" + origUrl;
-			// 	}
-			//
-			//
-			// 	url = origUrl;
-			// }
-
-			//src.FirstChild.ChildNodes[2].ChildNodes[0].GetAttr("href")
-
 
 			try {
-				url = src.FirstChild.ChildNodes[2].ChildNodes[0].GetAttr("href");
+				url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
 
 				// Links must begin with http:// in order to work with "start"
 				if (url.StartsWith("//")) {
 					url = "http:" + url;
 				}
 			}
-			catch { }
+			catch {
+				// ignored
+			}
 
 
 			int w = 0, h = 0;
@@ -88,25 +73,10 @@ namespace SmartImage.Lib.Engines.Impl
 				sim = null;
 			}
 
-			Uri uri;
+			var uri = url != null ? new Uri(url) : null;
+			
 
-			if (url != null) {
-				// var uriBuilder = new UriBuilder(url)
-				// {
-				// 	Scheme = Uri.UriSchemeHttps,
-				// 	Port   = -1 // default port for scheme
-				// };
-				// uri = uriBuilder.Uri;
-				uri = new Uri(url);
-			}
-			else {
-				uri = null;
-			}
-
-			//var i = new BasicSearchResult(url, sim, w, h, src.InnerText, null, caption.InnerText);
-
-
-			var i = new ImageResult()
+			var result = new ImageResult
 			{
 				Url         = uri,
 				Similarity  = sim,
@@ -115,16 +85,12 @@ namespace SmartImage.Lib.Engines.Impl
 				Source      = src.TextContent,
 				Description = caption.TextContent,
 			};
-			//i.Filter = i.Similarity < FilterThreshold;
 
-			return i;
+			return result;
 		}
 
 		protected override SearchResult Process(IDocument doc, SearchResult sr)
 		{
-
-			//var tables = doc.DocumentNode.SelectNodes("//table");
-
 			// Don't select other results
 
 			var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
@@ -132,14 +98,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 			// No relevant results?
 
-			//bool noMatch = pages.ChildNodes.Any(n => (n).GetAttr("class") == "nomatch");
 			var ns = doc.Body.QuerySelector("#pages > div.nomatch");
 
 			if (ns != null) {
-				//sr.ExtendedInfo.Add("No relevant results");
-
-				// No relevant results
-
 
 				sr.Status = ResultStatus.NoResults;
 

@@ -1,22 +1,15 @@
-using System;
-using System.Diagnostics;
-using Novus.Win32;
-using RestSharp;
-using SimpleCore.Numeric;
-using SimpleCore.Utilities;
-
 #nullable enable
-namespace SmartImage.Lib.Engines.Impl
+namespace SmartImage.Lib.Engines.Impl.Other
 {
-	public sealed class ImgOpsEngine : BaseSearchEngine, IUploadEngine
+	public sealed class ImgOpsEngine : BaseSearchEngine
 	{
 		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
 
-		public int MaxSize => 5;
+		//public int MaxSize => 5;
 
 		public ImgOpsEngine() : base("http://imgops.com/") { }
 
-		public Uri Upload(string img)
+		/*public Uri Upload(string img)
 		{
 			IUploadEngine.Verify(this, img);
 
@@ -48,6 +41,6 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 			return re.ResponseUri;
-		}
+		}*/
 	}
 }

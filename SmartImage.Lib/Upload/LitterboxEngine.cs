@@ -1,21 +1,18 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using RestSharp;
 using SmartImage.Lib.Utilities;
+
 // ReSharper disable StringLiteralTypo
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Engines.Impl
+namespace SmartImage.Lib.Upload
 {
-	public sealed class LitterboxEngine : IUploadEngine
+	public sealed class LitterboxEngine : BaseUploadEngine
 	{
-		public string Name => "Litterbox";
+		public override string Name => "Litterbox";
 
-		public int MaxSize => 1000;
+		public override int MaxSize => 1000;
 
 		private readonly RestClient m_client;
 
@@ -24,9 +21,9 @@ namespace SmartImage.Lib.Engines.Impl
 			m_client = new RestClient("https://litterbox.catbox.moe/resources/internals/api.php");
 		}
 
-		public Uri Upload(string file)
+		public override Uri Upload(string file)
 		{
-			IUploadEngine.Verify(this,file);
+			Verify(file);
 
 
 			var req = new RestRequest(Method.POST);

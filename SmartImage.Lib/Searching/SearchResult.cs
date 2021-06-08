@@ -30,6 +30,9 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public List<ImageResult> OtherResults { get; set; }
 
+		/// <summary>
+		/// Undifferentiated URI
+		/// </summary>
 		public Uri RawUri { get; set; }
 
 		public BaseSearchEngine Engine { get; init; }

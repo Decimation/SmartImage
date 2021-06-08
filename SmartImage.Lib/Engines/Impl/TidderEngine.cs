@@ -27,8 +27,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var findings = documentNode.SelectNodes("//*[contains(@class, 'findings-row')]");
 
-			if (findings == null || !findings.Any())
-			{
+			if (findings == null || !findings.Any()) {
 				//sr.Filter = true;
 				return sr;
 			}
@@ -37,9 +36,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var list = new List<ImageResult>();
 
-			foreach (var t in findings)
-			{
-				var sub = ((IHtmlElement)t).SelectNodes("td");
+			foreach (var t in findings) {
+				var sub = ((IHtmlElement) t).SelectNodes("td");
 
 				//var imgNode       = sub[0];
 				//var distNode      = sub[1];
@@ -58,7 +56,7 @@ namespace SmartImage.Lib.Engines.Impl
 				string? subreddit = subredditNode.TextContent;
 
 				//deentize!
-				string link = titleNode.FirstChild.GetAttr("href");
+				string link = titleNode.FirstChild.TryGetAttribute("href");
 
 				var bsr = new ImageResult()
 				{
@@ -81,7 +79,5 @@ namespace SmartImage.Lib.Engines.Impl
 
 			return sr;
 		}
-
-		
 	}
 }

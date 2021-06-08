@@ -61,7 +61,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			static ImageResult Parse(INode siz)
 			{
-				string? link = siz.FirstChild.GetAttr("href");
+				string? link = siz.FirstChild.TryGetAttribute("href");
 
 				var resText = siz.FirstChild
 				                 .ChildNodes[1]
@@ -130,17 +130,17 @@ namespace SmartImage.Lib.Engines.Impl
 				return images;
 			}
 
-			var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.GetAttr("class")
+			var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
 			                                       .Contains(CBIR_ITEM));
 
 			static ImageResult Parse(INode siz)
 			{
-				string? link = siz.GetAttr("href");
+				string? link = siz.TryGetAttribute("href");
 
 				string? resText = siz.FirstChild.GetExclusiveText();
 
 
-				var (w, h) = ParseResolution(resText);
+				var (w, h) = ParseResolution(resText!);
 
 				if (!w.HasValue || !h.HasValue) {
 					w = null;

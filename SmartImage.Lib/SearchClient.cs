@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using SimpleCore.Net;
+using SmartImage.Lib.Upload;
 using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable UnusedMember.Global
@@ -138,18 +139,18 @@ namespace SmartImage.Lib
 				IsComplete = !tasks.Any();
 			}
 
-			Trace.WriteLine($"{nameof(SearchClient)}: Search complete",C_SUCCESS);
+			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 			SearchCompleted?.Invoke(null, EventArgs.Empty);
 
 			return;
 		}
 
-		public static IUploadEngine[] GetAllUploadEngines()
+		public static BaseUploadEngine[] GetAllUploadEngines()
 		{
-			return typeof(IUploadEngine).GetAllImplementations()
-			                            .Select(Activator.CreateInstance)
-			                            .Cast<IUploadEngine>()
-			                            .ToArray();
+			return typeof(BaseUploadEngine).GetAllSubclasses()
+			                               .Select(Activator.CreateInstance)
+			                               .Cast<BaseUploadEngine>()
+			                               .ToArray();
 		}
 
 		public static BaseSearchEngine[] GetAllSearchEngines()

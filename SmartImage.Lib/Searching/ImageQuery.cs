@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using SimpleCore.Net;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Upload;
 using SmartImage.Lib.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
 
@@ -38,12 +39,12 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		/// Upload engine used for uploading the input file; if applicable
 		/// </summary>
-		public IUploadEngine UploadEngine { get; }
+		public BaseUploadEngine UploadEngine { get; }
 
 
 		public Stream Stream { get; }
 
-		public ImageQuery([NotNull] string value, [CanBeNull] IUploadEngine engine = null)
+		public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 		{
 			if (String.IsNullOrWhiteSpace(value)) {
 				throw new ArgumentNullException(nameof(value));

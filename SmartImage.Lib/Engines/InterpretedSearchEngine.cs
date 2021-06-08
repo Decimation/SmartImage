@@ -37,7 +37,7 @@ namespace SmartImage.Lib.Engines
 			string response = Network.GetString(sr.RawUri.ToString()!);
 
 			//var doc = new HtmlWeb().Load(sr.RawUri);
-			var p=new HtmlParser();
+			var p = new HtmlParser();
 			return p.ParseDocument(response);
 
 			//var response = Network.GetSimpleResponse(sr.RawUri.ToString()!);
@@ -51,8 +51,8 @@ namespace SmartImage.Lib.Engines
 			//var doc = new HtmlDocument();
 			//doc.LoadHtml(response.Content);
 			//doc.LoadHtml(response);
-			
-			
+
+
 		}
 
 		protected abstract SearchResult Process(IDocument doc, SearchResult sr);

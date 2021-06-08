@@ -43,17 +43,7 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/regosen/gallery_get
 		 */
 
-		/*public static HtmlNode Index(this HtmlNode node, params int[] i)
-		{
-			if (!i.Any()) {
-				return node;
-			}
-			if (i.First() < node.ChildNodes.Count) {
-				return node.ChildNodes[i.First()].Index(i.Skip(1).ToArray());
-			}
-
-			return node;
-		}*/
+		
 		
 
 		public static (int Width, int Height) GetResolution(string s)
@@ -150,7 +140,7 @@ namespace SmartImage.Lib.Utilities
 				string host = uri.Host;
 
 
-				var docp  = new HtmlParser();
+				var parser  = new HtmlParser();
 
 				var html = Network.GetSimpleResponse(s);
 
@@ -166,7 +156,7 @@ namespace SmartImage.Lib.Utilities
 					return d;
 				}
 
-				var doc=docp.ParseDocument(html.Content);
+				var doc=parser.ParseDocument(html.Content);
 
 				string sel = "//img";
 

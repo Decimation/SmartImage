@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Novus.Utilities;
+using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable UnusedMember.Global
 
@@ -145,8 +146,7 @@ namespace SmartImage.Core
 			return true;
 		}
 	}*/
-
-	// todo: move context menu integration to Novus for use in other projects?
+	
 
 	internal enum IntegrationOption
 	{
@@ -218,8 +218,8 @@ namespace SmartImage.Core
 						}
 					}
 					catch (Exception ex) {
-						Trace.WriteLine($"{ex.Message}");
-						NConsole.WaitForInput();
+						Trace.WriteLine($"{ex.Message}", C_ERROR);
+						
 						return false;
 					}
 

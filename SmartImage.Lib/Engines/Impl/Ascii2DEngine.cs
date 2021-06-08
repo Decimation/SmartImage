@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using AngleSharp;
-using AngleSharp.Dom;
+﻿using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace SmartImage.Lib.Engines.Impl
 {
@@ -20,7 +18,7 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => Engine.ToString();
 
 		/*
-		 * 
+		 *
 		 *
 		 * color https://ascii2d.net/search/color/<hash>
 		 *
@@ -42,32 +40,22 @@ namespace SmartImage.Lib.Engines.Impl
 			// Convert to detail url
 
 			var detailUrl = newUrl.Replace("/color/", "/bovw/");
-
-			//Debug.WriteLine($"{url} -> {newUrl} --> {detailUrl}");
-
+			
 			sr.RawUri = new Uri(detailUrl);
 
 			return base.GetDocument(sr);
 		}
-
-		//[DebuggerHidden]
+		
 		protected override SearchResult Process(IDocument doc, SearchResult sr)
 		{
-
-			
 			var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
-
-
-			//var nodes   = doc.DocumentNode.SelectNodes("//*[contains(@class, 'info-box')]");
 
 			var rg = new List<ImageResult>();
 
 			foreach (var node in nodes) {
-
 				var ir = new ImageResult();
 
-				var info = node.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.TextContent)).ToArray();
-
+				var info = node.ChildNodes.Where(n => !String.IsNullOrWhiteSpace(n.TextContent)).ToArray();
 
 				var hash = info.First().TextContent;
 
@@ -76,8 +64,8 @@ namespace SmartImage.Lib.Engines.Impl
 				var data = info[1].TextContent.Split(' ');
 
 				var res = data[0].Split('x');
-				ir.Width  = int.Parse(res[0]);
-				ir.Height = int.Parse(res[1]);
+				ir.Width  = Int32.Parse(res[0]);
+				ir.Height = Int32.Parse(res[1]);
 
 				var fmt = data[1];
 
@@ -95,26 +83,17 @@ namespace SmartImage.Lib.Engines.Impl
 							ir.Description = node2Sub.ChildNodes[3].TextContent.Trim();
 							ir.Artist      = node2Sub.ChildNodes[5].TextContent.Trim();
 							ir.Site        = node2Sub.ChildNodes[7].TextContent.Trim();
-
 						}
 					}
 
-					//var childNode = ns.ChildNodes[1].ChildNodes[0];
 					if (ns.ChildNodes.Length >= 4) {
 						var childNode = ns.ChildNodes[3];
-						//Debug.WriteLine($"{childNode.Attributes.Select(a=>a.Name + $" {a.Value}").QuickJoin()}");
 
-
-						var l1 = ((IHtmlAnchorElement)childNode).GetAttribute("href");
+						var l1 = ((IHtmlAnchorElement) childNode).GetAttribute("href");
 
 						if (l1 is not null) {
 							ir.Url = new Uri(l1);
-
 						}
-
-						//info[2].ChildNodes[1].ChildNodes[3]
-						//info[2].ChildNodes[1].ChildNodes[5]
-						//info[2].ChildNodes[1].ChildNodes[7]
 					}
 				}
 
@@ -130,7 +109,6 @@ namespace SmartImage.Lib.Engines.Impl
 			//sr.PrimaryResult.UpdateFrom(rg[0]);
 
 			sr.OtherResults.AddRange(rg);
-
 
 			return sr;
 		}

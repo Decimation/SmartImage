@@ -15,9 +15,6 @@ namespace SmartImage.Lib
 
 		public SearchEngineOptions SearchEngines { get; set; } = SearchEngineOptions.All;
 
-		public SearchEngineOptions PriorityEngines { get; set; }//todo
-
-		
-
+		public SearchEngineOptions PriorityEngines { get; set; } //todo
 	}
 }

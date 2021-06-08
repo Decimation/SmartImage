@@ -54,9 +54,8 @@ namespace SmartImage
 			 * Setup
 			 * Check compatibility
 			 */
-
-			var asm = typeof(Info).Assembly.GetName();
-			Console.Title = $"{Info.NAME} ({asm.Version})";
+			
+			Console.Title = $"{Info.NAME} ({Info.Version})";
 
 			NConsole.Init();
 

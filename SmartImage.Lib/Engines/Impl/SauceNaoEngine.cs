@@ -1,9 +1,5 @@
 ﻿// ReSharper disable UnusedMember.Global
 
-using RestSharp;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
-using SmartImage.Lib.Searching;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,15 +7,17 @@ using System.Json;
 using System.Linq;
 using System.Net;
 using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
+using RestSharp;
+using SimpleCore.Net;
+using SimpleCore.Utilities;
+using SmartImage.Lib.Searching;
 using static SimpleCore.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
 // ReSharper disable PossibleMultipleEnumeration
-
 
 // ReSharper disable CommentTypo
 // ReSharper disable IdentifierTypo
@@ -30,43 +28,6 @@ namespace SmartImage.Lib.Engines.Impl
 	public sealed class SauceNaoEngine : BaseSearchEngine
 	{
 		// Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
-
-		public enum SauceNaoSiteIndex
-		{
-			DoujinshiMangaLexicon = 3,
-			Pixiv                 = 5,
-			PixivArchive          = 6,
-			NicoNicoSeiga         = 8,
-			Danbooru              = 9,
-			Drawr                 = 10,
-			Nijie                 = 11,
-			Yandere               = 12,
-			OpeningsMoe           = 13,
-			FAKKU                 = 16,
-			nHentai               = 18,
-			TwoDMarket            = 19,
-			MediBang              = 20,
-			AniDb                 = 21,
-			IMDB                  = 23,
-			Gelbooru              = 25,
-			Konachan              = 26,
-			SankakuChannel        = 27,
-			AnimePictures         = 28,
-			e621                  = 29,
-			IdolComplex           = 30,
-			BcyNetIllust          = 31,
-			BcyNetCosplay         = 32,
-			PortalGraphics        = 33,
-			DeviantArt            = 34,
-			Pawoo                 = 35,
-			MangaUpdates          = 36,
-
-			//
-			ArtStation = 39,
-
-			FurAffinity = 40,
-			Twitter     = 41
-		}
 
 		private const string BASE_URL = "https://saucenao.com/";
 
@@ -118,8 +79,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var results = doc.Body.SelectNodes("//div[@class='result']");
 
-
-			return results.Select(node => Parse(node)).ToList();
+			return results.Select(Parse).ToList();
 		}
 
 		private static SauceNaoDataResult Parse(INode result)
@@ -128,29 +88,20 @@ namespace SmartImage.Lib.Engines.Impl
 				return null;
 			}
 
-			if (result.GetAttr("id") == "result-hidden-notification") {
+			if (result.TryGetAttribute("id") == "result-hidden-notification") {
 				return null;
 			}
-
-			//var n = result.FirstChild.FirstChild;
-
-			//var resulttableimage = n.ChildNodes[0];
+			
 			var resulttablecontent = result.FirstChild.FirstChild.FirstChild.ChildNodes[1];
-			//var resulttablecontent = n.ChildNodes[1];
-
+			
 			var resultmatchinfo      = resulttablecontent.FirstChild;
 			var resultsimilarityinfo = resultmatchinfo.FirstChild;
 
 			// Contains links
 			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
-
-			// var    links1 = ((IHtmlElement)resultmiscinfo).SelectNodes("a/@href");
-			// string link1  = links1?[0].GetAttr("href");
-
+			
 			var resultcontent = resulttablecontent.ChildNodes[1];
-
-			//var resulttitle = resultcontent.ChildNodes[0];
-
+			
 			var resultcontentcolumn = resultcontent.ChildNodes[1];
 
 			string link = null;
@@ -162,55 +113,37 @@ namespace SmartImage.Lib.Engines.Impl
 				link = g.GetAttribute("href");
 			}
 
-
-			// Other way of getting links
-			// var    links2 = ((IHtmlElement)resultcontentcolumn).SelectNodes("a/@href");
-			// string link2  = links2?[0].GetAttr("href");
-			//
-			// string link = link1 ?? link2;
-
-			(string creator, string material) = FindInfo(resultcontent);
-			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
-
-			var i = new SauceNaoDataResult
-			{
-				Urls       = new[] {link}!,
-				Similarity = similarity,
-				Creator    = creator
-			};
-
-			return i;
-		}
-
-		private static (string Creator, string Material) FindInfo(INode resultcontent)
-		{
-
-
 			//	//div[contains(@class, 'resulttitle')]
 			//	//div/node()[self::strong]
 
 			var    resulttitle = resultcontent.ChildNodes[0];
 			string rti         = resulttitle?.TextContent;
 
-			var    resultcontentcolumn = resultcontent.ChildNodes[1];
-			string rcci                = resultcontentcolumn?.TextContent;
+			var    resultcontentcolumn1 = resultcontent.ChildNodes[1];
+			string rcci                 = resultcontentcolumn1?.TextContent;
 
-			string material = rcci?.SubstringAfter("Material: ");
+			string material1 = rcci?.SubstringAfter("Material: ");
+			
+			string creator1 = rti ?? rcci;
+			creator1 = creator1?.SubstringAfter("Creator: ");
+			
 
-			// var resultcontentcolumn2 = resultcontent.ChildNodes[2];
-			// var rcci2                = resultcontentcolumn2?.InnerText;
 
-			// Debug.WriteLine($"[{rti}] [{rcci}] {material}");
+			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
-			string creator = rti ?? rcci;
-			creator = creator?.SubstringAfter("Creator: ");
-			Debug.WriteLine($"{rti} | {rcci}");
-			return (creator, material);
+			var i = new SauceNaoDataResult
+			{
+				Urls       = new[] {link}!,
+				Similarity = similarity,
+				Creator    = creator1
+			};
+
+			return i;
 		}
 
 		public override SearchResult GetResult(ImageQuery url)
 		{
-			SearchResult sresult = base.GetResult(url);
+			var sresult = base.GetResult(url);
 
 			var result = new ImageResult();
 
@@ -241,7 +174,6 @@ namespace SmartImage.Lib.Engines.Impl
 				string material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
 
 				var extended = orig.AsParallel().Select(ConvertToImageResult);
-
 
 				var ordered = extended
 				              .Where(e => e.Url != null)
@@ -422,5 +354,42 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 		#endregion API
+	}
+
+	public enum SauceNaoSiteIndex
+	{
+		DoujinshiMangaLexicon = 3,
+		Pixiv                 = 5,
+		PixivArchive          = 6,
+		NicoNicoSeiga         = 8,
+		Danbooru              = 9,
+		Drawr                 = 10,
+		Nijie                 = 11,
+		Yandere               = 12,
+		OpeningsMoe           = 13,
+		FAKKU                 = 16,
+		nHentai               = 18,
+		TwoDMarket            = 19,
+		MediBang              = 20,
+		AniDb                 = 21,
+		IMDB                  = 23,
+		Gelbooru              = 25,
+		Konachan              = 26,
+		SankakuChannel        = 27,
+		AnimePictures         = 28,
+		e621                  = 29,
+		IdolComplex           = 30,
+		BcyNetIllust          = 31,
+		BcyNetCosplay         = 32,
+		PortalGraphics        = 33,
+		DeviantArt            = 34,
+		Pawoo                 = 35,
+		MangaUpdates          = 36,
+
+		//
+		ArtStation = 39,
+
+		FurAffinity = 40,
+		Twitter     = 41
 	}
 }
