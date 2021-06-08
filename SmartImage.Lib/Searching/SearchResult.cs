@@ -4,6 +4,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 
 #pragma warning disable IDE0066
 
@@ -85,7 +86,7 @@ namespace SmartImage.Lib.Searching
 				//var    resStr    = sb.IndentFields(PrimaryResult.ToString());
 
 				var    resStr    = PrimaryResult.ToString(true);
-				string separator = Strings.Indent + new string('-', 20);
+				string separator = Strings.Indent + Strings.Separator;
 
 				sb.Append($"{resStr}\n{separator}\n");
 			}

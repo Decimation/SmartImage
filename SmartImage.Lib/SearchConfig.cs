@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 
@@ -38,7 +39,19 @@ namespace SmartImage.Lib
 		/// <summary>
 		/// Scan for direct image links; <see cref="ImageResult.FindDirectImages"/>
 		/// </summary>
-		public bool DirectUri { get; set; } = true;
+		public bool DirectUri { get; set; } = false;
 
+
+		public override string ToString()
+		{
+			var sb = new ExtendedStringBuilder();
+			sb.AppendLine("Config");
+			sb.Append(nameof(SearchEngines), SearchEngines);
+			sb.Append(nameof(PriorityEngines), PriorityEngines);
+			sb.Append(nameof(Filter), Filter);
+			sb.Append(nameof(DirectUri), DirectUri);
+
+			return sb.ToString();
+		}
 	}
 }

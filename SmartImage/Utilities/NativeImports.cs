@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
+using Novus.Win32;
 using static Novus.Win32.Native;
+
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable IdentifierTypo
@@ -75,6 +78,26 @@ namespace SmartImage.Utilities
 			fInfo.dwTimeout = 75;
 
 			FlashWindowEx(ref fInfo);
+		}
+
+		/// <summary>Returns true if the current application has focus, false otherwise</summary>
+		internal static bool ApplicationIsActivated()
+		{
+			//https://stackoverflow.com/questions/7162834/determine-if-current-application-is-activated-has-focus
+			var activatedHandle = Native.GetForegroundWindow();
+
+			if (activatedHandle == IntPtr.Zero) {
+				return false; // No window is currently activated
+			}
+
+			var p1     = Process.GetCurrentProcess();
+			var procId = p1.Id;
+			int activeProcId;
+			Native.GetWindowThreadProcessId(activatedHandle, out activeProcId);
+			var p2 = Process.GetProcessById(activeProcId);
+
+
+			return activeProcId == procId;
 		}
 
 		[DllImport(KERNEL32_DLL, SetLastError = true)]

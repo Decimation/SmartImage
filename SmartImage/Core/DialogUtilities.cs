@@ -1,12 +1,15 @@
 ﻿#nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SimpleCore.Cli;
 using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Core
 {
@@ -32,6 +35,35 @@ namespace SmartImage.Core
 
 					return null;
 				},
+				/*CtrlFunction = () =>
+				{
+					var flatten = new List<ImageResult>()
+					{
+						result.PrimaryResult,
+					};
+					flatten.AddRange(result.OtherResults);
+
+					flatten = flatten.Where(f => f.Url != null).ToList();
+
+					//var direct = flatten.AsParallel().SelectMany(x => ImageHelper.FindDirectImages(x?.Url?.ToString()));
+
+
+
+					Parallel.ForEach(flatten, f =>
+					{
+						f.FindDirectImages();
+					});
+
+
+
+					foreach (var s in flatten) {
+						Debug.WriteLine($"{s.Direct}");
+					}
+
+					
+
+					return null;
+				},*/
 				//Name = result.Engine.Name,
 				Data = result.ToString()
 			};

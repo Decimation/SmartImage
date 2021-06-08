@@ -105,8 +105,15 @@ namespace SmartImage.Lib.Utilities
 			//var src  = "<img.*?src=\"(.*?)\"";
 			//var href = "href\\s*=\\s*\"(.+?)\"";
 
-			var html = WebUtilities.GetString(url);
+			string html;
 
+			try {
+				html = WebUtilities.GetString(url);
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}", C_ERROR);
+				return null;
+			}
 			const string HREF_PATTERN = "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"";
 
 			var m2 = Regex.Matches(html, HREF_PATTERN);
@@ -134,7 +141,7 @@ namespace SmartImage.Lib.Utilities
 				// todo: is running PLINQ within a task thread-safe?
 
 				results = rg.AsParallel()
-				            .Where(e => Network.IsUri(e, out _) && IsDirect(e))
+				            .Where(e => Network.IsUri(e, out var u) && Network.IsUriAlive(new Uri(e)) && IsDirect(e))
 				            .ToArray();
 
 				Debug.WriteLine($"{nameof(FindDirectImages)}: {rg.Count} -> {results.Length}", C_DEBUG);

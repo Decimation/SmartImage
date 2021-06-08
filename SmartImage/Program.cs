@@ -58,6 +58,7 @@ namespace SmartImage
 			Console.Title = $"{Info.NAME} ({Info.Version})";
 
 			NConsole.Init();
+			Native.SetConsoleOutputCP(Native.Win32UnicodeCP);
 			Console.Clear();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
