@@ -114,6 +114,7 @@ namespace SmartImage.Lib.Utilities
 				Debug.WriteLine($"{e.Message}", C_ERROR);
 				return null;
 			}
+
 			const string HREF_PATTERN = "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"";
 
 			var m2 = Regex.Matches(html, HREF_PATTERN);
@@ -141,20 +142,20 @@ namespace SmartImage.Lib.Utilities
 				// todo: is running PLINQ within a task thread-safe?
 
 				results = rg.AsParallel()
-				            .Where(e => Network.IsUri(e, out var u) && Network.IsUriAlive(new Uri(e)) && IsDirect(e))
+				            .Where(e => Network.IsUri(e, out var u) && IsDirect(u == null ? e : u.ToString()))
 				            .ToArray();
 
-				Debug.WriteLine($"{nameof(FindDirectImages)}: {rg.Count} -> {results.Length}", C_DEBUG);
+				//Debug.WriteLine($"{nameof(FindDirectImages)}: {rg.Count} -> {results.Length}", C_DEBUG);
 			});
 
 
-			var timeout = TimeSpan.FromSeconds(3);
+			var timeout = TimeSpan.FromSeconds(5);
 
 			if (t.Wait(timeout)) {
 				//
 			}
 			else {
-				Debug.WriteLine($"{nameof(FindDirectImages)}: timeout!", C_WARN);
+				//Debug.WriteLine($"{nameof(FindDirectImages)}: timeout!", C_WARN);
 			}
 
 

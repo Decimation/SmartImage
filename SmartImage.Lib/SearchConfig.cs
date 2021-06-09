@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
@@ -24,7 +25,7 @@ namespace SmartImage.Lib
 		/// <summary>
 		/// Search engines to use
 		/// </summary>
-		public SearchEngineOptions SearchEngines { get; set; } = SearchEngineOptions.All;
+		public SearchEngineOptions SearchEngines { get; set; }
 
 		/// <summary>
 		/// Priority engines

@@ -3,8 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Novus.Win32;
 using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -35,37 +37,33 @@ namespace SmartImage.Core
 
 					return null;
 				},
-				/*CtrlFunction = () =>
+
+				ComboFunction = () =>
 				{
-					var flatten = new List<ImageResult>()
-					{
-						result.PrimaryResult,
-					};
-					flatten.AddRange(result.OtherResults);
+					var direct = result.PrimaryResult.Direct;
 
-					flatten = flatten.Where(f => f.Url != null).ToList();
+					var ok = direct != null;
 
-					//var direct = flatten.AsParallel().SelectMany(x => ImageHelper.FindDirectImages(x?.Url?.ToString()));
-
-
-
-					Parallel.ForEach(flatten, f =>
-					{
-						f.FindDirectImages();
-					});
-
-
-
-					foreach (var s in flatten) {
-						Debug.WriteLine($"{s.Direct}");
+					if (ok) {
+						var p = WebUtilities.Download(direct!.ToString());
+						FileSystem.ExploreFile(p);
 					}
 
-					
-
 					return null;
-				},*/
+				},
 				//Name = result.Engine.Name,
 				Data = result.ToString()
+			};
+
+			option.CtrlFunction = () =>
+			{
+				result.OtherResults.AsParallel().ForAll(x => x.FindDirectImages());
+
+				result.PrimaryResult.UpdateFrom(result.OtherResults.First());
+
+				option.Data = result.ToString();
+
+				return null;
 			};
 
 			return option;

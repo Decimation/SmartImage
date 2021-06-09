@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Threading;
 using System.Threading.Tasks;
 using Novus.Win32;
 using SimpleCore.Net;
@@ -91,6 +92,7 @@ namespace SmartImage
 							var directImages = ImageHelper.FindDirectImages((string) arg);
 
 							Console.WriteLine("Links:");
+
 							foreach (string s in directImages) {
 								Console.WriteLine(s);
 							}
@@ -112,9 +114,12 @@ namespace SmartImage
 				Client.ResultCompleted += ResultCompleted;
 				Client.SearchCompleted += SearchCompleted;
 
-				// Show results
 
+				StartProgressBar();
+
+				// Show results
 				var searchTask = Client.RunSearchAsync();
+
 
 				NConsole.ReadOptions(ResultDialog);
 
@@ -129,10 +134,21 @@ namespace SmartImage
 		}
 
 
+		private static void StartProgressBar()
+		{
+			// Pass the token to the cancelable operation.
+			ThreadPool.QueueUserWorkItem(NConsoleProgress.Show, ProgressCancellationToken.Token);
+		}
+
+		
+		private static readonly CancellationTokenSource ProgressCancellationToken = new();
+
 		private static void SearchCompleted(object? sender, EventArgs eventArgs)
 		{
 			NativeImports.FlashConsoleWindow();
 			SystemSounds.Exclamation.Play();
+			
+			ProgressCancellationToken.Cancel();
 		}
 
 		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)

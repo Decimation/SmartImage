@@ -42,9 +42,7 @@ namespace SmartImage.Lib.Engines.Impl
 				url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href");
 
 				// Links must begin with http:// in order to work with "start"
-				//if (url.StartsWith("//")) {
-				//	url = "http:" + url;
-				//}
+
 			}
 			catch {
 				// ignored
@@ -79,7 +77,18 @@ namespace SmartImage.Lib.Engines.Impl
 				sim = null;
 			}
 
-			var uri = url != null ? new Uri(url) : null;
+			Uri uri;
+
+			if (url != null) {
+				if (url.StartsWith("//")) {
+					url = "http:" + url;
+				}
+
+				uri = new Uri(url);
+			}
+			else {
+				uri = null;
+			}
 
 
 			var result = new ImageResult
@@ -91,9 +100,6 @@ namespace SmartImage.Lib.Engines.Impl
 				Source      = src.TextContent,
 				Description = caption.TextContent,
 			};
-
-
-			
 
 
 			return result;

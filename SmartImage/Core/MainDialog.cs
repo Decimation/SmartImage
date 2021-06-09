@@ -61,6 +61,7 @@ namespace SmartImage.Core
 
 					Console.WriteLine(Program.Config.SearchEngines);
 					NConsole.WaitForSecond();
+					Program.Client.Update();
 					return null;
 				}
 			},
@@ -74,6 +75,7 @@ namespace SmartImage.Core
 
 					Console.WriteLine(Program.Config.PriorityEngines);
 					NConsole.WaitForSecond();
+					Program.Client.Update();
 					return null;
 				}
 			},
@@ -86,7 +88,7 @@ namespace SmartImage.Core
 
 					//hack: hacky 
 					MainMenuOptions[3].Name = GetFilterName(Program.Config.Filter);
-					
+					Program.Client.Update();
 					return null;
 				}
 			},
@@ -99,7 +101,7 @@ namespace SmartImage.Core
 
 					//hack: hacky 
 					MainMenuOptions[4].Name = GetDirectName(Program.Config.DirectUri);
-
+					Program.Client.Update();
 					return null;
 				}
 			},

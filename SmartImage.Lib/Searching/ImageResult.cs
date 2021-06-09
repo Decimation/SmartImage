@@ -190,18 +190,24 @@ namespace SmartImage.Lib.Searching
 
 		public void FindDirectImages()
 		{
-			
-				if (Url is not null) {
-					string? images = ImageHelper.FindDirectImages(Url?.ToString()).FirstOrDefault();
+
+			if (Url is not null) {
+				var directImages = ImageHelper.FindDirectImages(Url?.ToString());
+
+				if (directImages is { }) {
+					string? images = directImages.FirstOrDefault();
 
 					if (images is { }) {
+
 						var uri = new Uri(images);
-
 						Direct = uri;
+						Debug.WriteLine($"{Url} -> {Direct}");
 					}
-
 				}
-			
+
+
+			}
+
 		}
 
 		public string ToString(bool indent)

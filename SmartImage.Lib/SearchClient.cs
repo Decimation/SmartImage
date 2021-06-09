@@ -5,10 +5,13 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SmartImage.Lib.Upload;
 using static SimpleCore.Diagnostics.LogCategories;
 
@@ -24,16 +27,28 @@ namespace SmartImage.Lib
 
 			Results = new List<SearchResult>();
 
+			Update();
+		}
+
+		public void Update()
+		{
+			if (Config.SearchEngines == SearchEngineOptions.None) {
+				Config.SearchEngines = SearchEngineOptions.All;
+			}
+
 			Engines = GetAllSearchEngines()
 			          .Where(e => Config.SearchEngines.HasFlag(e.Engine))
 			          .ToArray();
+
+			Trace.WriteLine($"Engines: {Config.SearchEngines} | {Engines.QuickJoin()}");
 		}
+
 
 		public SearchConfig Config { get; init; }
 
 		public bool IsComplete { get; private set; }
 
-		public BaseSearchEngine[] Engines { get; init; }
+		public BaseSearchEngine[] Engines { get; private set; }
 
 		public List<SearchResult> Results { get; }
 
@@ -170,7 +185,8 @@ namespace SmartImage.Lib
 
 		public event EventHandler<SearchResultEventArgs> ResultCompleted;
 
-		public event EventHandler SearchCompleted;
+		public event EventHandler                SearchCompleted;
+		public event PropertyChangedEventHandler PropertyChanged;
 	}
 
 	public sealed class SearchResultEventArgs : EventArgs
