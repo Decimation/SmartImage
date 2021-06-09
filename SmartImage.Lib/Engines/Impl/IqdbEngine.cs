@@ -20,7 +20,7 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public IqdbEngine() : base("https://iqdb.org/?url=") { }
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.Iqdb;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
 		public override string Name => "IQDB";
 

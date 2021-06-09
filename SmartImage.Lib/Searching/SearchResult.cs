@@ -74,13 +74,19 @@ namespace SmartImage.Lib.Searching
 			OtherResults  = new List<ImageResult>();
 		}
 
-		public override string ToString()
+
+		public string ToString(bool name)
 		{
 			var sb = new ExtendedStringBuilder() { };
 
-			var name = $"[{Engine.Name}]";
+			if (name) {
+				sb.AppendLine($"[{Engine.Name}] :: ({Status}; {(!IsNonPrimitive ? RANK_P : RANK_S)})");
 
-			sb.AppendLine($"{name} :: ({Status}; {(!IsNonPrimitive ? RANK_P : RANK_S)})");
+			}
+			else {
+				sb.Append("\n");
+
+			}
 
 			if (PrimaryResult.Url != null) {
 				//var    resStr    = sb.IndentFields(PrimaryResult.ToString());
@@ -99,6 +105,11 @@ namespace SmartImage.Lib.Searching
 			sb2.Append("Error", ErrorMessage);
 
 			return sb.Append(sb.IndentFields(sb2.ToString())).ToString();
+		}
+
+		public override string ToString()
+		{
+			return ToString(true);
 		}
 
 		internal const string RANK_P = "P";

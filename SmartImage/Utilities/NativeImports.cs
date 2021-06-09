@@ -4,6 +4,8 @@ using System.Runtime.InteropServices;
 using Novus.Win32;
 using static Novus.Win32.Native;
 
+// ReSharper disable UnusedMember.Local
+
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable IdentifierTypo
@@ -80,6 +82,7 @@ namespace SmartImage.Utilities
 			FlashWindowEx(ref fInfo);
 		}
 
+		/*
 		/// <summary>Returns true if the current application has focus, false otherwise</summary>
 		internal static bool ApplicationIsActivated()
 		{
@@ -98,13 +101,7 @@ namespace SmartImage.Utilities
 
 
 			return activeProcId == procId;
-		}
-
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		internal static extern bool SetConsoleOutputCP(uint wCodePageID);
-
-		[DllImport(KERNEL32_DLL, SetLastError = true)]
-		internal static extern bool SetConsoleCP(uint wCodePageID);
+		}*/
 
 
 		internal static void FlashConsoleWindow() => FlashWindow(GetConsoleWindowHandle());
@@ -117,7 +114,7 @@ namespace SmartImage.Utilities
 	}
 
 	/// <summary>
-	/// Represents possible values returned by the <see cref="MessageBox"/> function.
+	/// Represents possible values returned by the <see cref="NativeImports.MessageBox"/> function.
 	/// </summary>
 	internal enum MessageBoxResult : uint
 	{

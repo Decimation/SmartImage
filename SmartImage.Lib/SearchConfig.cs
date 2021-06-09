@@ -36,11 +36,7 @@ namespace SmartImage.Lib
 		/// Filters any non-primitive results; <see cref="SearchResult.IsNonPrimitive"/>
 		/// </summary>
 		public bool Filter { get; set; } = true;
-
-		/// <summary>
-		/// Scan for direct image links; <see cref="ImageResult.FindDirectImages"/>
-		/// </summary>
-		public bool DirectUri { get; set; } = false;
+		
 
 
 		public override string ToString()
@@ -50,7 +46,6 @@ namespace SmartImage.Lib
 			sb.Append(nameof(SearchEngines), SearchEngines);
 			sb.Append(nameof(PriorityEngines), PriorityEngines);
 			sb.Append(nameof(Filter), Filter);
-			sb.Append(nameof(DirectUri), DirectUri);
 
 			return sb.ToString();
 		}

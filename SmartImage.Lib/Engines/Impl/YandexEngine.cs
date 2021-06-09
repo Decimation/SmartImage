@@ -20,9 +20,9 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.Yandex;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
-		public override string Name => Engine.ToString();
+		public override string Name => EngineOption.ToString();
 
 
 		private static string? GetAnalysis(IDocument doc)

@@ -6,7 +6,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 		public override string Name => "Google Images";
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.GoogleImages;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleImages;
 
 		
 

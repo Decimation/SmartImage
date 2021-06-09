@@ -16,9 +16,9 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.Tidder;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.Tidder;
 
-		public override string Name => Engine.ToString();
+		public override string Name => EngineOption.ToString();
 
 
 		protected override SearchResult Process(IDocument doc, SearchResult sr)

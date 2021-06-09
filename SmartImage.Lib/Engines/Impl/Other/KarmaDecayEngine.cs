@@ -4,6 +4,6 @@ namespace SmartImage.Lib.Engines.Impl.Other
 	{
 		public KarmaDecayEngine() : base("http://karmadecay.com/search/?q=") { }
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.KarmaDecay;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.KarmaDecay;
 	}
 }

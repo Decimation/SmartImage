@@ -3,7 +3,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 {
 	public sealed class ImgOpsEngine : BaseSearchEngine
 	{
-		public override SearchEngineOptions Engine => SearchEngineOptions.ImgOps;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.ImgOps;
 
 		//public int MaxSize => 5;
 

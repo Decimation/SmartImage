@@ -13,9 +13,9 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.Ascii2D;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
-		public override string Name => Engine.ToString();
+		public override string Name => EngineOption.ToString();
 
 		/*
 		 *

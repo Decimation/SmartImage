@@ -4,7 +4,7 @@
 	{
 		public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.Bing;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.Bing;
 		
 
 		// Parsing does not seem feasible ATM

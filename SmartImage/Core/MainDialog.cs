@@ -6,6 +6,7 @@ using System;
 using System.Drawing;
 using System.Linq;
 using Novus.Utilities;
+using SmartImage.Lib;
 
 namespace SmartImage.Core
 {
@@ -22,14 +23,14 @@ namespace SmartImage.Core
 
 		#region Elements
 
-		private static readonly string Yes = "Y".AddColor(ColorYes);
+		private static readonly string Enabled = Formatting.CHECK_MARK.ToString().AddColor(ColorYes);
 
-		private static readonly string No = "N".AddColor(ColorNo);
-		private static          string GetDirectName(bool added) => $"Direct URI ({(added ? Yes : No)})";
+		private static readonly string Disabled = Formatting.MUL_SIGN.ToString().AddColor(ColorNo);
 
-		private static string GetFilterName(bool added) => $"Filter ({(added ? Yes : No)})";
 
-		private static string GetContextMenuName(bool added) => $"Context menu ({(added ? Yes : No)})";
+		private static string GetFilterName(bool added) => $"Filter ({(added ? Enabled : Disabled)})";
+
+		private static string GetContextMenuName(bool added) => $"Context menu ({(added ? Enabled : Disabled)})";
 
 		#endregion
 
@@ -47,7 +48,7 @@ namespace SmartImage.Core
 						return !(url || file);
 					});
 
-					Program.Config.Query = query;
+					SearchCli.Config.Query = query;
 					return true;
 				}
 			},
@@ -57,11 +58,11 @@ namespace SmartImage.Core
 				Name = "Engines".AddColor(ColorOther),
 				Function = () =>
 				{
-					Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
+					SearchCli.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
 
-					Console.WriteLine(Program.Config.SearchEngines);
+					Console.WriteLine(SearchCli.Config.SearchEngines);
 					NConsole.WaitForSecond();
-					Program.Client.Update();
+					SearchCli.Client.Update();
 					return null;
 				}
 			},
@@ -71,37 +72,24 @@ namespace SmartImage.Core
 				Name = "Priority engines".AddColor(ColorOther),
 				Function = () =>
 				{
-					Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
+					SearchCli.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
 
-					Console.WriteLine(Program.Config.PriorityEngines);
+					Console.WriteLine(SearchCli.Config.PriorityEngines);
 					NConsole.WaitForSecond();
-					Program.Client.Update();
+					SearchCli.Client.Update();
 					return null;
 				}
 			},
 			new()
 			{
-				Name = GetFilterName(Program.Config.Filter),
+				Name = GetFilterName(SearchCli.Config.Filter),
 				Function = () =>
 				{
-					Program.Config.Filter = !Program.Config.Filter;
+					SearchCli.Config.Filter = !SearchCli.Config.Filter;
 
 					//hack: hacky 
-					MainMenuOptions[3].Name = GetFilterName(Program.Config.Filter);
-					Program.Client.Update();
-					return null;
-				}
-			},
-			new()
-			{
-				Name = GetDirectName(Program.Config.DirectUri),
-				Function = () =>
-				{
-					Program.Config.DirectUri = !Program.Config.DirectUri;
-
-					//hack: hacky 
-					MainMenuOptions[4].Name = GetDirectName(Program.Config.DirectUri);
-					Program.Client.Update();
+					MainMenuOptions[3].Name = GetFilterName(SearchCli.Config.Filter);
+					SearchCli.Client.Update();
 					return null;
 				}
 			},
@@ -118,7 +106,7 @@ namespace SmartImage.Core
 
 
 					//hack: hacky 
-					MainMenuOptions[5].Name = GetContextMenuName(added);
+					MainMenuOptions[4].Name = GetContextMenuName(added);
 
 					return null;
 				}
@@ -130,8 +118,7 @@ namespace SmartImage.Core
 				{
 					Console.Clear();
 
-					Console.WriteLine(Program.Config);
-
+					Console.WriteLine(SearchCli.Config);
 					NConsole.WaitForInput();
 
 					return null;
@@ -144,8 +131,14 @@ namespace SmartImage.Core
 				{
 					Console.Clear();
 
+					Console.WriteLine($"Author: {Info.Author}");
 					Console.WriteLine($"Version: {Info.Version}");
+
 					Console.WriteLine($"Executable location: {Info.ExeLocation}");
+					Console.WriteLine($"In path: {Info.IsAppFolderInPath}");
+
+
+					Console.WriteLine(Strings.Separator);
 
 					var dependencies = ReflectionHelper.DumpDependencies();
 
@@ -167,14 +160,13 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 
-					Program.Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+					SearchCli.Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
 					return true;
 				}
 			},
 #endif
 
 		};
-
 
 		public static readonly NConsoleDialog MainMenuDialog = new()
 		{
@@ -188,7 +180,8 @@ namespace SmartImage.Core
 
 			var selected = NConsole.ReadOptions(new NConsoleDialog
 			{
-				Options = enumOptions, SelectMultiple = true
+				Options        = enumOptions,
+				SelectMultiple = true
 			});
 
 			var enumValue = Enums.ReadFromSet<TEnum>(selected);

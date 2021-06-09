@@ -37,8 +37,8 @@ namespace Test
 
 		public static async Task Main(string[] args)
 		{
-			Console.OutputEncoding = Encoding.Unicode;
-			Console.InputEncoding  = Encoding.Unicode;
+			//Console.OutputEncoding = Encoding.Unicode;
+			//Console.InputEncoding  = Encoding.Unicode;
 
 
 			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
@@ -70,26 +70,26 @@ namespace Test
 			//await r;
 
 
-			var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All };
+			//var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All };
 
-			var cl = new SearchClient(cfg);
+			//var cl = new SearchClient(cfg);
 
-			//cl.ResultCompleted += OnResult;
-			var r = cl.RunSearchAsync();
-			await r;
+			////cl.ResultCompleted += OnResult;
+			//var r = cl.RunSearchAsync();
+			//await r;
 
-			foreach (var result in cl.Results) {
-				Console.WriteLine(result);
-			}
+			//foreach (var result in cl.Results) {
+			//	Console.WriteLine(result);
+			//}
 
-			//var sw = Stopwatch.StartNew();
-			//var i = new IqdbEngine();
-			//var i2 = i.GetResultAsync(q);
-			//var r2 = await i2;
-			//sw.Stop();
+			var sw = Stopwatch.StartNew();
+			var i = new SauceNaoEngine();
+			var i2 = i.GetResultAsync(q);
+			var r2 = await i2;
+			sw.Stop();
 
-			//Console.WriteLine($">> {r2}");
-			//Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
+			Console.WriteLine($">> {r2}");
+			Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
 			//var sw = Stopwatch.StartNew();
 

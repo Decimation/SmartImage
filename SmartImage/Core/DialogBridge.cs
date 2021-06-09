@@ -2,22 +2,25 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Novus.Win32;
 using SimpleCore.Cli;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Core
 {
-	internal static class DialogUtilities
+	internal static class DialogBridge
 	{
-		internal static NConsoleOption Convert(SearchResult result)
+		internal static NConsoleOption CreateOption(SearchResult result)
 		{
 			var option = new NConsoleOption
 			{
@@ -27,7 +30,7 @@ namespace SmartImage.Core
 					if (result.OtherResults.Any()) {
 						//var x=NConsoleOption.FromArray(result.OtherResults.ToArray());
 
-						var options = result.OtherResults.Select(Convert).ToArray();
+						var options = result.OtherResults.Select(CreateOption).ToArray();
 
 						NConsole.ReadOptions(new NConsoleDialog
 						{
@@ -51,19 +54,38 @@ namespace SmartImage.Core
 
 					return null;
 				},
-				//Name = result.Engine.Name,
-				Data = result.ToString()
+				Name = result.Engine.Name.AddColor(EngineNameColorMap[result.Engine.EngineOption]),
+				Data = result.ToString(false)
 			};
 
 			option.CtrlFunction = () =>
 			{
+				var cts = new CancellationTokenSource();
+
+				NConsoleProgress.Queue(cts);
+
 				result.OtherResults.AsParallel().ForAll(x => x.FindDirectImages());
 
 				result.PrimaryResult.UpdateFrom(result.OtherResults.First());
 
+				cts.Cancel();
+
 				option.Data = result.ToString();
 
 				return null;
+			};
+
+			return option;
+		}
+
+		private static NConsoleOption CreateOption(ImageResult r)
+		{
+			var option = new NConsoleOption
+			{
+				Function = CreateFunction(r),
+				Name     = $"Other result\n\b",
+				//Data     = r.ToString().Replace("\n", "\n\t"),
+				Data = r.ToString(true)
 			};
 
 			return option;
@@ -85,17 +107,19 @@ namespace SmartImage.Core
 			};
 		}
 
-		private static NConsoleOption Convert(ImageResult r)
+		private static readonly Dictionary<SearchEngineOptions, Color> EngineNameColorMap = new()
 		{
-			var option = new NConsoleOption
-			{
-				Function = CreateFunction(r),
-				Name     = $"Other result\n\b",
-				//Data     = r.ToString().Replace("\n", "\n\t"),
-				Data = r.ToString(true)
-			};
-
-			return option;
-		}
+			{SearchEngineOptions.Iqdb, Color.SandyBrown},
+			{SearchEngineOptions.SauceNao, Color.SpringGreen},
+			{SearchEngineOptions.Ascii2D, Color.NavajoWhite},
+			{SearchEngineOptions.Bing, Color.DeepSkyBlue},
+			{SearchEngineOptions.GoogleImages, Color.Violet},
+			{SearchEngineOptions.ImgOps, Color.Gray},
+			{SearchEngineOptions.KarmaDecay, Color.Orange},
+			{SearchEngineOptions.Tidder, Color.OrangeRed},
+			{SearchEngineOptions.TraceMoe, Color.MediumSlateBlue},
+			{SearchEngineOptions.Yandex, Color.IndianRed},
+			{SearchEngineOptions.TinEye, Color.CornflowerBlue},
+		};
 	}
 }

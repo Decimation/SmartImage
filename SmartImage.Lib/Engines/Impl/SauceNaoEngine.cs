@@ -49,7 +49,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public string Authentication { get; init; }
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.SauceNao;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
+		
 
 		private static IEnumerable<SauceNaoDataResult> ParseResults(string url)
 		{
@@ -70,6 +71,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			if (html.Contains("Search Limit Exceeded")) {
 				Trace.WriteLine("SauceNao on cooldown!", C_WARN);
+				
 				return null;
 			}
 

@@ -19,7 +19,7 @@ namespace SmartImage.Lib.Engines
 	/// </summary>
 	public abstract class InterpretedSearchEngine : BaseSearchEngine
 	{
-		public abstract override SearchEngineOptions Engine { get; }
+		public abstract override SearchEngineOptions EngineOption { get; }
 
 		public abstract override string Name { get; }
 

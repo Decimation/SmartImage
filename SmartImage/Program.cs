@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Novus.Win32;
@@ -25,6 +26,18 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
+	public static class SearchCli
+	{
+		public static readonly NConsoleDialog ResultDialog = new()
+		{
+			Options = new List<NConsoleOption>()
+		};
+
+		public static readonly SearchConfig Config = new();
+
+		public static readonly SearchClient Client = new(Config);
+	}
+
 	public static class Program
 	{
 		//  ____                       _   ___
@@ -35,20 +48,12 @@ namespace SmartImage
 		//                                                     |___/
 
 
-		private static readonly NConsoleDialog ResultDialog = new()
-		{
-			Options = new List<NConsoleOption>()
-		};
-
-		public static readonly SearchConfig Config = new();
-
-		public static readonly SearchClient Client = new(Config);
+		private static readonly CancellationTokenSource ProgressTokenSource = new();
 
 
-		/*
-		 * Entry point
-		 */
-
+		/// <summary>
+		/// Entry point
+		/// </summary>
 		private static async Task Main(string[] args)
 		{
 			/*
@@ -56,10 +61,11 @@ namespace SmartImage
 			 * Check compatibility
 			 */
 
+			Native.SetConsoleOutputCP(Native.Win32UnitedStatesCP);
+
 			Console.Title = $"{Info.NAME} ({Info.Version})";
 
 			NConsole.Init();
-			Native.SetConsoleOutputCP(Native.Win32UnicodeCP);
 			Console.Clear();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
@@ -101,7 +107,7 @@ namespace SmartImage
 							return;
 
 						default:
-							Config.Query = args[0];
+							SearchCli.Config.Query = args[0];
 							break;
 					}
 				}
@@ -111,17 +117,16 @@ namespace SmartImage
 
 				// Run search
 
-				Client.ResultCompleted += ResultCompleted;
-				Client.SearchCompleted += SearchCompleted;
+				SearchCli.Client.ResultCompleted += ResultCompleted;
+				SearchCli.Client.SearchCompleted += SearchCompleted;
 
-
-				StartProgressBar();
+				NConsoleProgress.Queue(ProgressTokenSource);
 
 				// Show results
-				var searchTask = Client.RunSearchAsync();
+				var searchTask = SearchCli.Client.RunSearchAsync();
 
 
-				NConsole.ReadOptions(ResultDialog);
+				NConsole.ReadOptions(SearchCli.ResultDialog);
 
 				await searchTask;
 			}
@@ -134,32 +139,23 @@ namespace SmartImage
 		}
 
 
-		private static void StartProgressBar()
-		{
-			// Pass the token to the cancelable operation.
-			ThreadPool.QueueUserWorkItem(NConsoleProgress.Show, ProgressCancellationToken.Token);
-		}
-
-		
-		private static readonly CancellationTokenSource ProgressCancellationToken = new();
-
 		private static void SearchCompleted(object? sender, EventArgs eventArgs)
 		{
 			NativeImports.FlashConsoleWindow();
 			SystemSounds.Exclamation.Play();
-			
-			ProgressCancellationToken.Cancel();
+
+			ProgressTokenSource.Cancel();
 		}
 
 		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)
 		{
 			var result = eventArgs.Result;
 
-			var option = DialogUtilities.Convert(result);
+			var option = DialogBridge.CreateOption(result);
 
-			ResultDialog.Options.Add(option);
+			SearchCli.ResultDialog.Options.Add(option);
 
-			if (Config.PriorityEngines.HasFlag(result.Engine.Engine)) {
+			if (SearchCli.Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 				option.Function();
 			}
 

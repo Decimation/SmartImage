@@ -23,7 +23,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => "trace.moe";
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.TraceMoe;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		internal class TraceMoeDoc

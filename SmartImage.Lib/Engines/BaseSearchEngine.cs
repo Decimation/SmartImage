@@ -18,9 +18,9 @@ namespace SmartImage.Lib.Engines
 			BaseUrl = baseUrl;
 		}
 
-		public abstract SearchEngineOptions Engine { get; }
+		public abstract SearchEngineOptions EngineOption { get; }
 
-		public virtual string Name => Engine.ToString();
+		public virtual string Name => EngineOption.ToString();
 
 
 		public virtual SearchResult GetResult(ImageQuery query)

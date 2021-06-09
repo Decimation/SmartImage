@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Novus.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
+
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedMember.Global
@@ -147,7 +148,7 @@ namespace SmartImage.Core
 			return true;
 		}
 	}*/
-	
+
 
 	internal enum IntegrationOption
 	{
@@ -220,7 +221,7 @@ namespace SmartImage.Core
 					}
 					catch (Exception ex) {
 						Trace.WriteLine($"{ex.Message}", C_ERROR);
-						
+
 						return false;
 					}
 

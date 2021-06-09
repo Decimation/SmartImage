@@ -5,7 +5,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 		public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
 		
 
-		public override SearchEngineOptions Engine => SearchEngineOptions.TinEye;
+		public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
 
 
 		/*

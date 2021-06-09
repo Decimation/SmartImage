@@ -5,7 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+   <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->

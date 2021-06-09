@@ -37,7 +37,7 @@ namespace SmartImage.Lib
 			}
 
 			Engines = GetAllSearchEngines()
-			          .Where(e => Config.SearchEngines.HasFlag(e.Engine))
+			          .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
 			          .ToArray();
 
 			Trace.WriteLine($"Engines: {Config.SearchEngines} | {Engines.QuickJoin()}");
@@ -63,9 +63,6 @@ namespace SmartImage.Lib
 
 		public ImageResult[] FindBestResults(int n)
 		{
-			//todo: WIP
-			Debug.WriteLine($"Finding best results");
-
 			var best = Results.Where(r => r.IsNonPrimitive)
 			                  .SelectMany(r =>
 			                  {
@@ -146,9 +143,6 @@ namespace SmartImage.Lib
 
 				tasks.Remove(finished);
 
-				if (Config.DirectUri) {
-					value.PrimaryResult.FindDirectImages();
-				}
 
 				if (!(Config.Filter && !value.IsNonPrimitive)) {
 					Results.Add(value);
