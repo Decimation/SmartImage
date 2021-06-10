@@ -180,7 +180,7 @@ namespace SmartImage.Lib
 		public event EventHandler<SearchResultEventArgs> ResultCompleted;
 
 		public event EventHandler                SearchCompleted;
-		public event PropertyChangedEventHandler PropertyChanged;
+		
 	}
 
 	public sealed class SearchResultEventArgs : EventArgs
