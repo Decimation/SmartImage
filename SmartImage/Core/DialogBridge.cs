@@ -27,7 +27,7 @@ namespace SmartImage.Core
 		{
 			var option = new NConsoleOption
 			{
-				Function = CreateFunction(result.PrimaryResult),
+				Function = CreateMainFunction(result.PrimaryResult),
 				AltFunction = () =>
 				{
 					if (result.OtherResults.Any()) {
@@ -43,20 +43,8 @@ namespace SmartImage.Core
 
 					return null;
 				},
+				ComboFunction = CreateComboFunction(result.PrimaryResult),
 
-				ComboFunction = () =>
-				{
-					var direct = result.PrimaryResult.Direct;
-
-					var ok = direct != null;
-
-					if (ok) {
-						var p = WebUtilities.Download(direct!.ToString());
-						FileSystem.ExploreFile(p);
-					}
-
-					return null;
-				},
 				Name = result.Engine.Name.AddColor(EngineNameColorMap[result.Engine.EngineOption]),
 				Data = result.ToString(false)
 			};
@@ -67,8 +55,8 @@ namespace SmartImage.Core
 
 				NConsoleProgress.Queue(cts);
 
-
 				result.OtherResults.AsParallel().ForAll(x => x.FindDirectImages());
+
 
 				result.PrimaryResult.UpdateFrom(result.OtherResults.First());
 
@@ -87,8 +75,9 @@ namespace SmartImage.Core
 		{
 			var option = new NConsoleOption
 			{
-				Function = CreateFunction(r),
-				Name     = $"Other result\n\b",
+				Function      = CreateMainFunction(r),
+				ComboFunction = CreateComboFunction(r),
+				Name          = $"Other result\n\b",
 				//Data     = r.ToString().Replace("\n", "\n\t"),
 				Data = r.ToString(true)
 			};
@@ -96,7 +85,7 @@ namespace SmartImage.Core
 			return option;
 		}
 
-		private static NConsoleFunction CreateFunction(ImageResult? primaryResult)
+		private static NConsoleFunction CreateMainFunction(ImageResult? primaryResult)
 		{
 			return () =>
 			{
@@ -106,6 +95,23 @@ namespace SmartImage.Core
 					if (url != null) {
 						WebUtilities.OpenUrl(url.ToString());
 					}
+				}
+
+				return null;
+			};
+		}
+
+		private static NConsoleFunction CreateComboFunction(ImageResult result)
+		{
+			return () =>
+			{
+				var direct = result.Direct;
+
+				var ok = direct != null;
+
+				if (ok) {
+					var p = WebUtilities.Download(direct!.ToString());
+					FileSystem.ExploreFile(p);
 				}
 
 				return null;

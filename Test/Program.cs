@@ -91,19 +91,22 @@ namespace Test
 			//Console.WriteLine($">> {r2}");
 			//Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
-			
 
 
-			//var sw = Stopwatch.StartNew();
 
-			//var v = ImageHelper.FindDirectImages("https://iqdb.org/?url=https://litter.catbox.moe/151mk9.jpg");
+			var sw = Stopwatch.StartNew();
 
-			//foreach (string s in v) {
-			//	Console.WriteLine(s);
-			//}
-			////
-			//sw.Stop();
-			//Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
+			var v = ImageHelper.FindDirectImages("https://iqdb.org/?url=https://litter.catbox.moe/hm0muq.jpg");
+
+			foreach (string s in v)
+			{
+				Console.WriteLine(s);
+			}
+
+
+			//
+			sw.Stop();
+			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
 
 

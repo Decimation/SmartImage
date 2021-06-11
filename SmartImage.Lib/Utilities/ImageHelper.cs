@@ -91,7 +91,26 @@ namespace SmartImage.Lib.Utilities
 		/// Determines whether <paramref name="url"/> is a direct image link
 		/// </summary>
 		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
-		public static bool IsDirect(string url) => MediaTypes.IsDirect(url, MimeType.Image);
+		public static bool IsDirect(string url)
+		{
+			return MediaTypes.IsDirect(url, MimeType.Image);
+		}
+		
+
+		public static bool IsDirect2(string url)
+		{
+			// todo
+
+
+			/*
+			 * https://github.com/PactInteractive/image-downloader
+			 */
+
+			return Regex.IsMatch(
+				url,
+				@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
+				RegexOptions.IgnoreCase);
+		}
 
 		/// <summary>
 		/// Scans for direct image links in <paramref name="url"/>
@@ -142,7 +161,7 @@ namespace SmartImage.Lib.Utilities
 				// todo: is running PLINQ within a task thread-safe?
 
 				results = rg.AsParallel()
-				            .Where(e => Network.IsUri(e, out var u) && IsDirect(u == null ? e : u.ToString()))
+				            .Where(e => Network.IsUri(e, out var u) && IsDirect2(u == null ? e : u.ToString()))
 				            .ToArray();
 
 				//Debug.WriteLine($"{nameof(FindDirectImages)}: {rg.Count} -> {results.Length}", C_DEBUG);
