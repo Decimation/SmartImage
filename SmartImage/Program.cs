@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,6 +37,60 @@ namespace SmartImage
 		public static readonly SearchConfig Config = new();
 
 		public static readonly SearchClient Client = new(Config);
+
+
+		public static string ConfigFile
+		{
+			get
+			{
+				var file = Path.Combine(Info.AppFolder, Info.NAME_CFG);
+
+				if (!File.Exists(file)) {
+					var f = File.Create(file);
+					f.Close();
+				}
+
+				return file;
+			}
+		}
+
+		private const string K_ENGINES          = "engines";
+		private const string K_PRIORITY_ENGINES = "priority-engines";
+		private const string K_FILTER           = "filter";
+
+		public static void ReadConfigFile()
+		{
+			var map = Collections.ReadDictionary(ConfigFile);
+
+			if (map.Count == 0) {
+				SaveConfigFile();
+				map = Collections.ReadDictionary(ConfigFile);
+			}
+
+
+			Config.SearchEngines   = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
+			Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
+			Config.Filter          = Boolean.Parse(map[K_FILTER]);
+
+			Client.Update();
+
+			Debug.WriteLine($"Updated config from {ConfigFile}");
+		}
+
+
+		public static void SaveConfigFile()
+		{
+			var map = new Dictionary<string, string>()
+			{
+				{K_ENGINES, Config.SearchEngines.ToString()},
+				{K_PRIORITY_ENGINES, Config.PriorityEngines.ToString()},
+				{K_FILTER, Config.Filter.ToString()}
+			};
+
+			Collections.WriteDictionary(map, ConfigFile);
+
+			Debug.WriteLine($"Saved to {ConfigFile}");
+		}
 	}
 
 	public static class Program
@@ -48,7 +103,7 @@ namespace SmartImage
 		//                                                     |___/
 
 
-		private static readonly CancellationTokenSource ProgressTokenSource = new();
+		
 
 
 		/// <summary>
@@ -61,9 +116,9 @@ namespace SmartImage
 			 * Check compatibility
 			 */
 
-			Native.SetConsoleOutputCP(Native.Win32UnitedStatesCP);
+			Native.SetConsoleOutputCP(Native.CP_WIN32_UNITED_STATES);
 
-			Console.Title = $"{Info.NAME} ({Info.Version})";
+			Console.Title = $"{Info.NAME}";
 
 			NConsole.Init();
 			Console.Clear();
@@ -71,9 +126,12 @@ namespace SmartImage
 			Console.CancelKeyPress += (sender, eventArgs) => { };
 
 			/*
-			 *
+			 * Start
 			 */
 
+			// Update
+
+			SearchCli.ReadConfigFile();
 
 			if (!args.Any()) {
 				var options = NConsole.ReadOptions(MainDialog.MainMenuDialog);
@@ -85,26 +143,15 @@ namespace SmartImage
 			}
 			else {
 
+				// TODO: WIP
+
 				var enumerator = args.GetEnumerator();
 
 				while (enumerator.MoveNext()) {
 					object? arg = enumerator.Current;
 
 					switch (arg) {
-						case "links":
-							enumerator.MoveNext();
-							arg = enumerator.Current!;
-
-							var directImages = ImageHelper.FindDirectImages((string) arg);
-
-							Console.WriteLine("Links:");
-
-							foreach (string s in directImages) {
-								Console.WriteLine(s);
-							}
-
-							Console.ReadKey();
-							return;
+						
 
 						default:
 							SearchCli.Config.Query = args[0];
@@ -115,12 +162,22 @@ namespace SmartImage
 
 			try {
 
+				CancellationTokenSource cts = new();
+
+
 				// Run search
 
 				SearchCli.Client.ResultCompleted += ResultCompleted;
-				SearchCli.Client.SearchCompleted += SearchCompleted;
+				SearchCli.Client.SearchCompleted += (sender, eventArgs) =>
+				{
+					NativeUI.FlashConsoleWindow();
+					SystemSounds.Exclamation.Play();
 
-				NConsoleProgress.Queue(ProgressTokenSource);
+					cts.Cancel();
+					cts.Dispose();
+				};
+
+				NConsoleProgress.Queue(cts);
 
 				// Show results
 				var searchTask = SearchCli.Client.RunSearchAsync();
@@ -139,13 +196,7 @@ namespace SmartImage
 		}
 
 
-		private static void SearchCompleted(object? sender, EventArgs eventArgs)
-		{
-			NativeImports.FlashConsoleWindow();
-			SystemSounds.Exclamation.Play();
-
-			ProgressTokenSource.Cancel();
-		}
+		
 
 		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)
 		{

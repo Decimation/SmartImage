@@ -12,13 +12,37 @@ namespace SmartImage.Lib.Searching
 {
 	public enum ResultStatus
 	{
+		/// <summary>
+		/// Succeeded in parsing/retrieving result
+		/// </summary>
 		Success,
+
+
+		/// <summary>
+		/// No results found
+		/// </summary>
 		NoResults,
+
+		/// <summary>
+		/// Server unavailable
+		/// </summary>
 		Unavailable,
+
+		/// <summary>
+		/// Failed to parse/retrieve results
+		/// </summary>
 		Failure,
+
+		/// <summary>
+		/// Result is extraneous
+		/// </summary>
 		Extraneous
 	}
 
+
+	/// <summary>
+	/// Describes a search result
+	/// </summary>
 	public class SearchResult
 	{
 		/// <summary>
@@ -36,13 +60,27 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public Uri RawUri { get; set; }
 
+
+		/// <summary>
+		/// The <see cref="BaseSearchEngine"/> that returned this result
+		/// </summary>
 		public BaseSearchEngine Engine { get; init; }
 
+		/// <summary>
+		/// Result status
+		/// </summary>
 		public ResultStatus Status { get; set; }
 
+		/// <summary>
+		/// Error message; if applicable
+		/// </summary>
 		[CanBeNull]
 		public string ErrorMessage { get; set; }
 
+		/// <summary>
+		/// Indicates whether this result is non-primitive
+		/// </summary>
+		/// <remarks>Primitive results are non-detailed results (results with little information)</remarks>
 		public bool IsNonPrimitive => Status != ResultStatus.Extraneous && (PrimaryResult.Url != null);
 
 
@@ -77,7 +115,7 @@ namespace SmartImage.Lib.Searching
 
 		public string ToString(bool name)
 		{
-			var sb = new ExtendedStringBuilder() { };
+			var sb = new ExtendedStringBuilder();
 
 			if (name) {
 				sb.AppendLine($"[{Engine.Name}] :: ({Status}; {(!IsNonPrimitive ? RANK_P : RANK_S)})");
@@ -92,14 +130,14 @@ namespace SmartImage.Lib.Searching
 				//var    resStr    = sb.IndentFields(PrimaryResult.ToString());
 
 				var    resStr    = PrimaryResult.ToString(true);
-				string separator = Strings.Indent + Strings.Separator;
+				string separator = Strings.Indentation + Strings.Separator;
 
 				sb.Append($"{resStr}\n{separator}\n");
 			}
 
 			//========================================================================//
 
-			var sb2 = new ExtendedStringBuilder() { };
+			var sb2 = new ExtendedStringBuilder();
 			sb2.Append("Raw", RawUri);
 			sb2.Append("Other image results", OtherResults, $"{OtherResults.Count}");
 			sb2.Append("Error", ErrorMessage);
@@ -107,10 +145,7 @@ namespace SmartImage.Lib.Searching
 			return sb.Append(sb.IndentFields(sb2.ToString())).ToString();
 		}
 
-		public override string ToString()
-		{
-			return ToString(true);
-		}
+		public override string ToString() => ToString(true);
 
 		internal const string RANK_P = "P";
 

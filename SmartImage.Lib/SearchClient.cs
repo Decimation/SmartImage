@@ -94,7 +94,7 @@ namespace SmartImage.Lib
 			//await t;
 
 			if (!IsComplete) {
-				throw new SmartImageException();
+				throw new SmartImageException($"Search must be completed");
 			}
 
 			var res = Results.OrderByDescending(property).ToList();
@@ -107,10 +107,10 @@ namespace SmartImage.Lib
 		public async Task RefineSearchAsync()
 		{
 			if (!IsComplete) {
-				throw new SmartImageException();
+				throw new SmartImageException($"Search must be completed");
 			}
 
-			Trace.WriteLine($"Finding best result");
+			Trace.WriteLine("Finding best result");
 
 			var best = FindBestResult();
 
@@ -156,9 +156,9 @@ namespace SmartImage.Lib
 			}
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
+
 			SearchCompleted?.Invoke(null, EventArgs.Empty);
 
-			return;
 		}
 
 		public static BaseUploadEngine[] GetAllUploadEngines()
@@ -168,6 +168,7 @@ namespace SmartImage.Lib
 			                               .Cast<BaseUploadEngine>()
 			                               .ToArray();
 		}
+
 
 		public static BaseSearchEngine[] GetAllSearchEngines()
 		{
@@ -179,8 +180,7 @@ namespace SmartImage.Lib
 
 		public event EventHandler<SearchResultEventArgs> ResultCompleted;
 
-		public event EventHandler                SearchCompleted;
-		
+		public event EventHandler SearchCompleted;
 	}
 
 	public sealed class SearchResultEventArgs : EventArgs

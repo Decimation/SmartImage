@@ -1,17 +1,18 @@
 ﻿using Newtonsoft.Json.Linq;
 using SimpleCore.Net;
+// ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Engines.Impl
+namespace SmartImage.Lib.Clients
 {
 	public sealed class AnilistClient
 	{
-		private readonly SimpleGraphQLClient m_client;
+		private readonly GraphQLClient m_client;
 
 		public AnilistClient()
 		{
-			m_client = new SimpleGraphQLClient("https://graphql.anilist.co");
+			m_client = new GraphQLClient("https://graphql.anilist.co");
 		}
 
 		public string GetTitle(int anilistId)

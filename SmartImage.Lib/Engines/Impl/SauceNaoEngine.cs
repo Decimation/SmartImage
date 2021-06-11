@@ -10,12 +10,14 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using RestSharp;
+using SimpleCore.Diagnostics;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
 using static SimpleCore.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
+// ReSharper disable PropertyCanBeMadeInitOnly.Local
 
 // ReSharper disable PossibleMultipleEnumeration
 
@@ -50,7 +52,7 @@ namespace SmartImage.Lib.Engines.Impl
 		public string Authentication { get; init; }
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
-		
+
 
 		private static IEnumerable<SauceNaoDataResult> ParseResults(string url)
 		{
@@ -69,17 +71,19 @@ namespace SmartImage.Lib.Engines.Impl
 			 * 208.110.232.218, your IP has exceeded the unregistered user's daily limit of 100 searches.
 			 */
 
-			if (html.Contains("Search Limit Exceeded")) {
+			const string COOLDOWN = "Search Limit Exceeded";
+
+			if (html.Contains(COOLDOWN)) {
 				Trace.WriteLine("SauceNao on cooldown!", C_WARN);
-				
+
 				return null;
 			}
 
 			var doc = docp.ParseDocument(html);
 
-			// todo: improve
+			const string RESULT_NODE = "//div[@class='result']";
 
-			var results = doc.Body.SelectNodes("//div[@class='result']");
+			var results = doc.Body.SelectNodes(RESULT_NODE);
 
 			return results.Select(Parse).ToList();
 		}
@@ -90,20 +94,22 @@ namespace SmartImage.Lib.Engines.Impl
 				return null;
 			}
 
-			if (result.TryGetAttribute("id") == "result-hidden-notification") {
+			const string HIDDEN_ID_VAL = "result-hidden-notification";
+
+			if (result.TryGetAttribute("id") == HIDDEN_ID_VAL) {
 				return null;
 			}
-			
+
 			var resulttablecontent = result.FirstChild.FirstChild.FirstChild.ChildNodes[1];
-			
+
 			var resultmatchinfo      = resulttablecontent.FirstChild;
 			var resultsimilarityinfo = resultmatchinfo.FirstChild;
 
 			// Contains links
 			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
-			
+
 			var resultcontent = resulttablecontent.ChildNodes[1];
-			
+
 			var resultcontentcolumn = resultcontent.ChildNodes[1];
 
 			string link = null;
@@ -125,22 +131,21 @@ namespace SmartImage.Lib.Engines.Impl
 			string rcci                 = resultcontentcolumn1?.TextContent;
 
 			string material1 = rcci?.SubstringAfter("Material: ");
-			
+
 			string creator1 = rti ?? rcci;
 			creator1 = creator1?.SubstringAfter("Creator: ");
-			
 
 
 			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
-			var i = new SauceNaoDataResult
+			var dataResult = new SauceNaoDataResult
 			{
 				Urls       = new[] {link}!,
 				Similarity = similarity,
 				Creator    = creator1
 			};
 
-			return i;
+			return dataResult;
 		}
 
 		public override SearchResult GetResult(ImageQuery url)
@@ -154,7 +159,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				if (orig == null) {
 					//return result;
-					Debug.WriteLine("[info] Parsing HTML from SN!");
+					Debug.WriteLine($"[{Name}] Parsing HTML", LogCategories.C_INFO);
 
 					string urlStr = url.Uri.ToString();
 
@@ -200,12 +205,11 @@ namespace SmartImage.Lib.Engines.Impl
 				sresult.OtherResults.AddRange(extended);
 
 				if (!String.IsNullOrWhiteSpace(Authentication)) {
-					Debug.WriteLine($"SN API key: {Authentication}");
+					Debug.WriteLine($"{Name} API key: {Authentication}");
 				}
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"SauceNao error: {e.StackTrace}");
-				//todo
+				Debug.WriteLine($"{Name} error: {e.StackTrace}", C_ERROR);
 				sresult.Status = ResultStatus.Failure;
 			}
 
@@ -258,7 +262,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				// var x = new BasicSearchResult(url, sn.Similarity,
 				// 	sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
-				var x = new ImageResult
+				var imageResult = new ImageResult
 				{
 					Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
 					Similarity  = MathF.Round(sn.Similarity, 2),
@@ -269,7 +273,7 @@ namespace SmartImage.Lib.Engines.Impl
 					Site        = siteName
 				};
 
-				return x;
+				return imageResult;
 			}
 
 			return null;

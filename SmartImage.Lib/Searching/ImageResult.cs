@@ -4,13 +4,8 @@ using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Novus.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
 
 #nullable enable
 
@@ -30,7 +25,6 @@ namespace SmartImage.Lib.Searching
 		/// Direct image link of <see cref="Url"/>
 		/// </summary>
 		public Uri? Direct { get; set; }
-
 
 		/// <summary>
 		/// Similarity
@@ -92,7 +86,6 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public int? PixelResolution => HasImageDimensions ? Width * Height : null;
 
-
 		/// <summary>
 		/// <see cref="PixelResolution"/> expressed in megapixels.
 		/// </summary>
@@ -122,7 +115,6 @@ namespace SmartImage.Lib.Searching
 			OtherMetadata = new();
 		}
 
-
 		private static List<FieldInfo> GetDetailFields()
 		{
 			var fields = typeof(ImageResult).GetRuntimeFields().Where(f => !f.IsStatic).ToList();
@@ -146,7 +138,6 @@ namespace SmartImage.Lib.Searching
 
 				int s = DetailFields.Select(f => f.GetValue(this)).Count(v => v != null);
 
-
 				s += OtherMetadata.Count;
 
 				return s;
@@ -154,7 +145,6 @@ namespace SmartImage.Lib.Searching
 		}
 
 		public bool IsDetailed => DetailScore >= (DetailFields.Count * .5);
-
 
 		/// <summary>
 		/// The display resolution of this image
@@ -190,7 +180,6 @@ namespace SmartImage.Lib.Searching
 
 		public void FindDirectImages()
 		{
-
 			if (Url is not null) {
 				var directImages = ImageHelper.FindDirectImages(Url?.ToString());
 
@@ -198,21 +187,16 @@ namespace SmartImage.Lib.Searching
 					string? images = directImages.FirstOrDefault();
 
 					if (images is { }) {
-
 						var uri = new Uri(images);
 						Direct = uri;
 						Debug.WriteLine($"{Url} -> {Direct}");
 					}
 				}
-
-
 			}
-
 		}
 
 		public string ToString(bool indent)
 		{
-
 			var sb = new ExtendedStringBuilder() { };
 
 			sb.Append(nameof(Url), Url);
@@ -225,7 +209,6 @@ namespace SmartImage.Lib.Searching
 			if (HasImageDimensions) {
 				string val = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
 
-
 				var resType = DisplayResolution;
 
 				if (resType != DisplayResolutionType.Unknown) {
@@ -233,7 +216,6 @@ namespace SmartImage.Lib.Searching
 				}
 
 				sb.Append($"Resolution", val);
-
 			}
 
 			sb.Append(nameof(Name), Name);
@@ -251,7 +233,7 @@ namespace SmartImage.Lib.Searching
 
 			var xs = sb.ToString().RemoveLastOccurrence("\n");
 
-			return indent ? Strings.IndentFields(xs) : xs;
+			return indent ? Strings.Indent(xs) : xs;
 		}
 
 		public override string ToString() => ToString(false);

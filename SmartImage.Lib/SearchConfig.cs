@@ -38,11 +38,9 @@ namespace SmartImage.Lib
 		public bool Filter { get; set; } = true;
 		
 
-
 		public override string ToString()
 		{
 			var sb = new ExtendedStringBuilder();
-			sb.AppendLine("Config");
 			sb.Append(nameof(SearchEngines), SearchEngines);
 			sb.Append(nameof(PriorityEngines), PriorityEngines);
 			sb.Append(nameof(Filter), Filter);

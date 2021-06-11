@@ -14,7 +14,7 @@ using static Novus.Win32.Native;
 
 namespace SmartImage.Utilities
 {
-	internal static class NativeImports
+	internal static class NativeUI
 	{
 		[DllImport(USER32_DLL)]
 		[return: MarshalAs(UnmanagedType.Bool)]
@@ -25,59 +25,19 @@ namespace SmartImage.Utilities
 		[return: MarshalAs(UnmanagedType.Bool)]
 		private static extern bool SetForegroundWindow(IntPtr hWnd);
 
-		[StructLayout(LayoutKind.Sequential)]
-		private struct FLASHWINFO
-		{
-			public uint            cbSize;
-			public IntPtr          hwnd;
-			public FlashWindowType dwFlags;
-			public uint            uCount;
-			public int             dwTimeout;
-		}
-
-		private enum FlashWindowType : uint
-		{
-			/// <summary>
-			/// Stop flashing. The system restores the window to its original state.
-			/// </summary>    
-			FLASHW_STOP = 0,
-
-			/// <summary>
-			/// Flash the window caption
-			/// </summary>
-			FLASHW_CAPTION = 1,
-
-			/// <summary>
-			/// Flash the taskbar button.
-			/// </summary>
-			FLASHW_TRAY = 2,
-
-			/// <summary>
-			/// Flash both the window caption and taskbar button.
-			/// This is equivalent to setting the <see cref="FLASHW_CAPTION"/> | <see cref="FLASHW_TRAY"/> flags.
-			/// </summary>
-			FLASHW_ALL = 3,
-
-			/// <summary>
-			/// Flash continuously, until the <seealso cref="FLASHW_STOP"/> flag is set.
-			/// </summary>
-			FLASHW_TIMER = 4,
-
-			/// <summary>
-			/// Flash continuously until the window comes to the foreground.
-			/// </summary>
-			FLASHW_TIMERNOFG = 12
-		}
 
 		internal static void FlashWindow(IntPtr hWnd)
 		{
-			var fInfo = new FLASHWINFO();
+			var fInfo = new FLASHWINFO
+			{
+				cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+				hwnd      = hWnd,
+				dwFlags   = FlashWindowType.FLASHW_ALL,
+				uCount    = 8,
+				dwTimeout = 75,
 
-			fInfo.cbSize    = Convert.ToUInt32(Marshal.SizeOf(fInfo));
-			fInfo.hwnd      = hWnd;
-			fInfo.dwFlags   = FlashWindowType.FLASHW_ALL;
-			fInfo.uCount    = 8;
-			fInfo.dwTimeout = 75;
+			};
+
 
 			FlashWindowEx(ref fInfo);
 		}
@@ -104,17 +64,61 @@ namespace SmartImage.Utilities
 		}*/
 
 
-		internal static void FlashConsoleWindow() => FlashWindow(GetConsoleWindowHandle());
+		internal static void FlashConsoleWindow() => FlashWindow(GetConsoleWindow());
 
-		internal static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindowHandle());
+		internal static void BringConsoleToFront() => SetForegroundWindow(GetConsoleWindow());
 
 		[DllImport(USER32_DLL)]
 		internal static extern MessageBoxResult MessageBox(IntPtr hWnd, string text, string caption,
 		                                                   MessageBoxOptions options);
 	}
 
+	[StructLayout(LayoutKind.Sequential)]
+	internal struct FLASHWINFO
+	{
+		public uint            cbSize;
+		public IntPtr          hwnd;
+		public FlashWindowType dwFlags;
+		public uint            uCount;
+		public int             dwTimeout;
+	}
+
+	internal enum FlashWindowType : uint
+	{
+		/// <summary>
+		/// Stop flashing. The system restores the window to its original state.
+		/// </summary>    
+		FLASHW_STOP = 0,
+
+		/// <summary>
+		/// Flash the window caption
+		/// </summary>
+		FLASHW_CAPTION = 1,
+
+		/// <summary>
+		/// Flash the taskbar button.
+		/// </summary>
+		FLASHW_TRAY = 2,
+
+		/// <summary>
+		/// Flash both the window caption and taskbar button.
+		/// This is equivalent to setting the <see cref="FLASHW_CAPTION"/> | <see cref="FLASHW_TRAY"/> flags.
+		/// </summary>
+		FLASHW_ALL = 3,
+
+		/// <summary>
+		/// Flash continuously, until the <seealso cref="FLASHW_STOP"/> flag is set.
+		/// </summary>
+		FLASHW_TIMER = 4,
+
+		/// <summary>
+		/// Flash continuously until the window comes to the foreground.
+		/// </summary>
+		FLASHW_TIMERNOFG = 12
+	}
+
 	/// <summary>
-	/// Represents possible values returned by the <see cref="NativeImports.MessageBox"/> function.
+	/// Represents possible values returned by the <see cref="NativeUI.MessageBox"/> function.
 	/// </summary>
 	internal enum MessageBoxResult : uint
 	{

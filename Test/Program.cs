@@ -82,14 +82,17 @@ namespace Test
 			//	Console.WriteLine(result);
 			//}
 
-			var sw = Stopwatch.StartNew();
-			var i = new SauceNaoEngine();
-			var i2 = i.GetResultAsync(q);
-			var r2 = await i2;
-			sw.Stop();
+			//var sw = Stopwatch.StartNew();
+			//var i = new SauceNaoEngine();
+			//var i2 = i.GetResultAsync(q);
+			//var r2 = await i2;
+			//sw.Stop();
 
-			Console.WriteLine($">> {r2}");
-			Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
+			//Console.WriteLine($">> {r2}");
+			//Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
+
+			
+
 
 			//var sw = Stopwatch.StartNew();
 

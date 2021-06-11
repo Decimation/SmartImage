@@ -55,7 +55,7 @@ namespace SmartImage.Lib.Engines.Impl
 				string? author    = authorNode.TextContent;
 				string? subreddit = subredditNode.TextContent;
 
-				//deentize!
+				//DeEntize!
 				string link = titleNode.FirstChild.TryGetAttribute("href");
 
 				var bsr = new ImageResult()

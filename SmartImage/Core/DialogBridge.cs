@@ -18,6 +18,9 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Core
 {
+	/// <summary>
+	/// Bridges library objects to interactive interface objects
+	/// </summary>
 	internal static class DialogBridge
 	{
 		internal static NConsoleOption CreateOption(SearchResult result)
@@ -64,11 +67,13 @@ namespace SmartImage.Core
 
 				NConsoleProgress.Queue(cts);
 
+
 				result.OtherResults.AsParallel().ForAll(x => x.FindDirectImages());
 
 				result.PrimaryResult.UpdateFrom(result.OtherResults.First());
 
 				cts.Cancel();
+				cts.Dispose();
 
 				option.Data = result.ToString();
 

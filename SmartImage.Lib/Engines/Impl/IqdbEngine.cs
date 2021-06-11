@@ -54,7 +54,7 @@ namespace SmartImage.Lib.Engines.Impl
 			if (tr.Length >= 4) {
 				var res = tr[3];
 
-				var wh = res.TextContent.Split(Formatting.MUL_SIGN);
+				var wh = res.TextContent.Split(StringConstants.MUL_SIGN);
 
 				var wStr = wh[0].SelectOnlyDigits();
 				w = Int32.Parse(wStr);

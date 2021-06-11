@@ -5,7 +5,9 @@ using System.Linq;
 using System.Net;
 using JetBrains.Annotations;
 using RestSharp;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Searching;
+using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
@@ -125,7 +127,7 @@ namespace SmartImage.Lib.Engines.Impl
 				}
 				catch (Exception e) {
 					r = base.GetResult(url);
-					Debug.WriteLine($"tracemoe: {e.Message}");
+					Debug.WriteLine($"[{Name}] Error: {e.Message}");
 					//r.AddErrorMessage(e.Message);
 					r.Status = ResultStatus.Failure;
 					return r;
@@ -135,7 +137,7 @@ namespace SmartImage.Lib.Engines.Impl
 			}
 			else {
 				r = base.GetResult(url);
-				Debug.WriteLine($"[error] tracemoe: api error");
+				Debug.WriteLine($"[{Name}] API error", C_ERROR);
 				//r.AddErrorMessage(msg);
 			}
 

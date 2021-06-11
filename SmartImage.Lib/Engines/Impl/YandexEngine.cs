@@ -54,7 +54,7 @@ namespace SmartImage.Lib.Engines.Impl
 			const string item = "//li[@class='other-sites__item']";
 
 			var tagsItem = doc.Body.SelectNodes(item);
-			
+
 			if (tagsItem == null) {
 				return null;
 			}
@@ -93,7 +93,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private static (int? w, int? h) ParseResolution(string resText)
 		{
-			string[] resFull = resText.Split(Formatting.MUL_SIGN);
+			string[] resFull = resText.Split(StringConstants.MUL_SIGN);
 
 			int? w = null, h = null;
 
@@ -163,7 +163,7 @@ namespace SmartImage.Lib.Engines.Impl
 				return yi;
 			}
 
-			
+
 			images.AddRange(sizeTags.AsParallel().Select(Parse));
 
 			return images;

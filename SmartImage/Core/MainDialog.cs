@@ -10,6 +10,9 @@ using SmartImage.Lib;
 
 namespace SmartImage.Core
 {
+	/// <summary>
+	/// Handles the main menu interface
+	/// </summary>
 	public static class MainDialog
 	{
 		#region Colors
@@ -23,9 +26,9 @@ namespace SmartImage.Core
 
 		#region Elements
 
-		private static readonly string Enabled = Formatting.CHECK_MARK.ToString().AddColor(ColorYes);
+		private static readonly string Enabled = StringConstants.CHECK_MARK.ToString().AddColor(ColorYes);
 
-		private static readonly string Disabled = Formatting.MUL_SIGN.ToString().AddColor(ColorNo);
+		private static readonly string Disabled = StringConstants.MUL_SIGN.ToString().AddColor(ColorNo);
 
 
 		private static string GetFilterName(bool added) => $"Filter ({(added ? Enabled : Disabled)})";
@@ -62,7 +65,7 @@ namespace SmartImage.Core
 
 					Console.WriteLine(SearchCli.Config.SearchEngines);
 					NConsole.WaitForSecond();
-					SearchCli.Client.Update();
+					SaveUpdateConfig();
 					return null;
 				}
 			},
@@ -76,7 +79,7 @@ namespace SmartImage.Core
 
 					Console.WriteLine(SearchCli.Config.PriorityEngines);
 					NConsole.WaitForSecond();
-					SearchCli.Client.Update();
+					SaveUpdateConfig();
 					return null;
 				}
 			},
@@ -89,7 +92,7 @@ namespace SmartImage.Core
 
 					//hack: hacky 
 					MainMenuOptions[3].Name = GetFilterName(SearchCli.Config.Filter);
-					SearchCli.Client.Update();
+					SaveUpdateConfig();
 					return null;
 				}
 			},
@@ -119,8 +122,8 @@ namespace SmartImage.Core
 					Console.Clear();
 
 					Console.WriteLine(SearchCli.Config);
-					NConsole.WaitForInput();
 
+					NConsole.WaitForInput();
 					return null;
 				}
 			},
@@ -136,7 +139,7 @@ namespace SmartImage.Core
 
 					Console.WriteLine($"Executable location: {Info.ExeLocation}");
 					Console.WriteLine($"In path: {Info.IsAppFolderInPath}");
-
+					Console.WriteLine($"Context menu added: {OSIntegration.IsContextMenuAdded}");
 
 					Console.WriteLine(Strings.Separator);
 
@@ -147,7 +150,6 @@ namespace SmartImage.Core
 					}
 
 					NConsole.WaitForInput();
-
 					return null;
 				}
 			},
@@ -173,6 +175,14 @@ namespace SmartImage.Core
 			Options = MainMenuOptions,
 			Header  = Info.NAME_BANNER
 		};
+
+
+
+		private static void SaveUpdateConfig()
+		{
+			SearchCli.Client.Update();
+			SearchCli.SaveConfigFile();
+		}
 
 		private static TEnum ReadEnum<TEnum>() where TEnum : Enum
 		{

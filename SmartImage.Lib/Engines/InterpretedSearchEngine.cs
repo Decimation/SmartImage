@@ -43,7 +43,7 @@ namespace SmartImage.Lib.Engines
 			}
 			catch (Exception e) {
 				sr.Status = ResultStatus.Failure;
-				Trace.WriteLine($"{Name}: {e.Message} {e.Source} {e.StackTrace}", C_ERROR);
+				Trace.WriteLine($"{Name}: {e.Message}", C_ERROR);
 			}
 
 			return sr;
