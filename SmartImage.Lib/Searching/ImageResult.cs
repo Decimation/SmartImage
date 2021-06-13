@@ -5,9 +5,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Reflection;
 using Novus.Win32;
+using SimpleCore.Model;
 using SimpleCore.Net;
 
 #nullable enable
@@ -180,34 +183,68 @@ namespace SmartImage.Lib.Searching
 			Description = result.Description;
 			Date        = result.Date;
 
-			if (result.Direct is { }) {
-				var stream = WebUtilities.GetStream(result.Direct.ToString());
-				var image  = Image.FromStream(stream);
 
-
-				Width  = image.Width;
-				Height = image.Height;
-
-				OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(stream));
-			}
-
+			ReadDirectImageData();
 
 		}
 
 		public async void FindDirectImagesAsync()
 		{
 			if (Url is not null) {
-				var directImages = await ImageHelper.FindDirectImagesAsync(Url?.ToString());
 
-				if (directImages is { }) {
-					string? images = directImages.FirstOrDefault();
+				if (ImageHelper.IsDirect(Url.ToString())) {
+					Direct = Url;
 
-					if (images is { }) {
-						var uri = new Uri(images);
-						Direct = uri;
-						Debug.WriteLine($"{Url} -> {Direct}");
+				}
+				else {
+					try {
+
+						var directImages = await ImageHelper.FindDirectImagesAsync(Url.ToString());
+
+						if (directImages is { }) {
+							string? images = directImages.FirstOrDefault();
+
+							if (images is { }) {
+								var uri = new Uri(images);
+								Direct = uri;
+								Debug.WriteLine($"{Url} -> {Direct}");
+							}
+						}
+					}
+					catch (Exception e) {
+						Debug.WriteLine(e);
+
 					}
 				}
+
+
+				try {
+					ReadDirectImageData();
+				}
+				catch (Exception) {
+					// ignored
+				}
+
+			}
+		}
+
+		private void ReadDirectImageData()
+		{
+			if (Direct is { }) {
+				var stream = WebUtilities.GetStream(Direct.ToString());
+				var image  = Image.FromStream(stream);
+
+
+				Width  = image.Width;
+				Height = image.Height;
+
+				stream.Position = 0;
+				using var ms = new MemoryStream();
+				stream.CopyTo(ms);
+				var rg = ms.ToArray();
+
+				OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
+				OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(stream));
 			}
 		}
 

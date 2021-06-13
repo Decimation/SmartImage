@@ -61,7 +61,7 @@ namespace SmartImage.UI
 		private SearchClient m_cl;
 
 		private static readonly Color[] SimilarityGradient =
-			ColorUtilities.GetGradients(Color.Red, Color.ForestGreen, 100).ToArray();
+			ColorHelper.GetGradients(Color.Red, Color.ForestGreen, 100).ToArray();
 
 		private int GetStep() => (int) Math.Ceiling(((double) 1 / m_cl.Engines.Length) * 100);
 

@@ -108,7 +108,7 @@ namespace SmartImage
 					cts.Cancel();
 					cts.Dispose();
 				};
-
+				
 				NConsoleProgress.Queue(cts);
 
 				// Show results

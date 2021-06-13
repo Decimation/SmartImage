@@ -8,6 +8,7 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using Novus.Utilities;
+using SimpleCore.Model;
 
 #pragma warning disable IDE0066
 
@@ -129,7 +130,7 @@ namespace SmartImage.Lib.Searching
 			var sb = new ExtendedStringBuilder();
 
 			if (name) {
-				sb.AppendLine($"[{Engine.Name}] :: ({Status}; {(!IsNonPrimitive ? RANK_P : RANK_S)})");
+				sb.AppendLine($"[{Engine.Name}] :: ({Status}; {(!IsNonPrimitive ? "NP" : "P")})");
 
 			}
 			else {
@@ -158,9 +159,5 @@ namespace SmartImage.Lib.Searching
 
 
 		public override string ToString() => ToString(true);
-
-		internal const string RANK_P = "P";
-
-		internal const string RANK_S = "S";
 	}
 }

@@ -43,7 +43,8 @@ namespace SmartImage.Core
 		{
 			new()
 			{
-				Name = ">>> Run <<<".AddColor(ColorMain),
+				Name = ">>> Run <<<",
+				Color = ColorMain,
 				Function = () =>
 				{
 					ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
@@ -59,7 +60,8 @@ namespace SmartImage.Core
 
 			new()
 			{
-				Name = "Engines".AddColor(ColorOther),
+				Name = "Engines",
+				Color = ColorOther,
 				Function = () =>
 				{
 					Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
@@ -73,7 +75,8 @@ namespace SmartImage.Core
 
 			new()
 			{
-				Name = "Priority engines".AddColor(ColorOther),
+				Name  = "Priority engines",
+				Color = ColorOther,
 				Function = () =>
 				{
 					Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
@@ -90,7 +93,7 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 					Program.Config.Filtering = !Program.Config.Filtering;
-					
+
 					MainMenuOptions[3].Name = GetFilterName(Program.Config.Filtering);
 					SaveUpdateConfig();
 					return null;
@@ -107,7 +110,7 @@ namespace SmartImage.Core
 
 					added = OSIntegration.IsContextMenuAdded;
 
-					
+
 					MainMenuOptions[4].Name = GetContextMenuName(added);
 
 					return null;
@@ -176,7 +179,6 @@ namespace SmartImage.Core
 			Options = MainMenuOptions,
 			Header  = Info.NAME_BANNER
 		};
-
 
 
 		private static void SaveUpdateConfig()

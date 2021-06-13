@@ -42,10 +42,13 @@ namespace SmartImage.Core
 
 					return null;
 				},
+				
 				ComboFunction = CreateComboFunction(result.PrimaryResult),
+				
+				Color         = EngineNameColorMap[result.Engine.EngineOption],
 
-				Name = result.Engine.Name.AddColor(EngineNameColorMap[result.Engine.EngineOption]),
-				Data = result.ToString(false)
+				Name          = result.Engine.Name,
+				Data          = result.ToString(false)
 			};
 
 			option.CtrlFunction = () =>
@@ -56,12 +59,7 @@ namespace SmartImage.Core
 
 				result.OtherResults.AsParallel().ForAll(x =>
 				{
-					try {
-						x.FindDirectImagesAsync();
-					}
-					catch (Exception) {
-						// ignored
-					}
+					x.FindDirectImagesAsync();
 				});
 
 				result.PrimaryResult.UpdateFrom(result.OtherResults.First());
@@ -83,9 +81,8 @@ namespace SmartImage.Core
 			{
 				Function      = CreateMainFunction(r),
 				ComboFunction = CreateComboFunction(r),
-				Name          = $"Other result\n\b",
-				//Data     = r.ToString().Replace("\n", "\n\t"),
-				Data = r.ToString(true)
+				Name          = "Other result\n\b",
+				Data          = r.ToString(true)
 			};
 
 			return option;

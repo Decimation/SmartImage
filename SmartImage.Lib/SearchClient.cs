@@ -74,6 +74,7 @@ namespace SmartImage.Lib
 			          .ToArray();
 
 			Trace.WriteLine($"Engines: {Config.SearchEngines} | {Engines.QuickJoin()}");
+			
 		}
 
 		/// <summary>
@@ -113,7 +114,7 @@ namespace SmartImage.Lib
 				//                         /         \
 				//						true         false
 				//                     /               \
-				//	           IsNonPrimitive          [Filtered]
+				//	           IsNonPrimitive          [FilteredResults]
 				//				/          \
 				//		      true         false
 				//			 /               \

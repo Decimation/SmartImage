@@ -20,6 +20,7 @@ namespace SmartImage.Lib.Engines
 
 		public abstract SearchEngineOptions EngineOption { get; }
 
+
 		public virtual string Name => EngineOption.ToString();
 
 
@@ -62,7 +63,7 @@ namespace SmartImage.Lib.Engines
 		{
 			var uri = new Uri(BaseUrl + query.Uri);
 
-			bool ok = Network.IsUriAlive(uri);
+			bool ok = Network.IsUriAlive(uri, TimeSpan.FromSeconds(5));
 
 			if (!ok) {
 				Debug.WriteLine($"{uri.Host} is unavailable", C_WARN);
