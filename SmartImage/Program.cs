@@ -27,72 +27,6 @@ using SmartImage.Utilities;
 
 namespace SmartImage
 {
-	public static class SearchCli
-	{
-		public static readonly NConsoleDialog ResultDialog = new()
-		{
-			Options = new List<NConsoleOption>()
-		};
-
-		public static readonly SearchConfig Config = new();
-
-		public static readonly SearchClient Client = new(Config);
-
-
-		public static string ConfigFile
-		{
-			get
-			{
-				var file = Path.Combine(Info.AppFolder, Info.NAME_CFG);
-
-				if (!File.Exists(file)) {
-					var f = File.Create(file);
-					f.Close();
-				}
-
-				return file;
-			}
-		}
-
-		private const string K_ENGINES          = "engines";
-		private const string K_PRIORITY_ENGINES = "priority-engines";
-		private const string K_FILTER           = "filter";
-
-		public static void ReadConfigFile()
-		{
-			var map = Collections.ReadDictionary(ConfigFile);
-
-			if (map.Count == 0) {
-				SaveConfigFile();
-				map = Collections.ReadDictionary(ConfigFile);
-			}
-
-
-			Config.SearchEngines   = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
-			Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
-			Config.Filter          = Boolean.Parse(map[K_FILTER]);
-
-			Client.Update();
-
-			Debug.WriteLine($"Updated config from {ConfigFile}");
-		}
-
-
-		public static void SaveConfigFile()
-		{
-			var map = new Dictionary<string, string>()
-			{
-				{K_ENGINES, Config.SearchEngines.ToString()},
-				{K_PRIORITY_ENGINES, Config.PriorityEngines.ToString()},
-				{K_FILTER, Config.Filter.ToString()}
-			};
-
-			Collections.WriteDictionary(map, ConfigFile);
-
-			Debug.WriteLine($"Saved to {ConfigFile}");
-		}
-	}
-
 	public static class Program
 	{
 		//  ____                       _   ___
@@ -101,9 +35,6 @@ namespace SmartImage
 		//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
-
-
-		
 
 
 		/// <summary>
@@ -131,7 +62,7 @@ namespace SmartImage
 
 			// Update
 
-			SearchCli.ReadConfigFile();
+			ReadConfigFile();
 
 			if (!args.Any()) {
 				var options = NConsole.ReadOptions(MainDialog.MainMenuDialog);
@@ -151,10 +82,10 @@ namespace SmartImage
 					object? arg = enumerator.Current;
 
 					switch (arg) {
-						
+
 
 						default:
-							SearchCli.Config.Query = args[0];
+							Config.Query = args[0];
 							break;
 					}
 				}
@@ -167,8 +98,9 @@ namespace SmartImage
 
 				// Run search
 
-				SearchCli.Client.ResultCompleted += ResultCompleted;
-				SearchCli.Client.SearchCompleted += (sender, eventArgs) =>
+				Client.ResultCompleted += ResultCompleted;
+
+				Client.SearchCompleted += (sender, eventArgs) =>
 				{
 					NativeUI.FlashConsoleWindow();
 					SystemSounds.Exclamation.Play();
@@ -180,10 +112,10 @@ namespace SmartImage
 				NConsoleProgress.Queue(cts);
 
 				// Show results
-				var searchTask = SearchCli.Client.RunSearchAsync();
+				var searchTask = Client.RunSearchAsync();
 
 
-				NConsole.ReadOptions(SearchCli.ResultDialog);
+				NConsole.ReadOptions(ResultDialog);
 
 				await searchTask;
 			}
@@ -196,21 +128,88 @@ namespace SmartImage
 		}
 
 
-		
-
 		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)
 		{
 			var result = eventArgs.Result;
 
 			var option = DialogBridge.CreateOption(result);
 
-			SearchCli.ResultDialog.Options.Add(option);
+			bool? isFiltered = eventArgs.IsFiltered;
 
-			if (SearchCli.Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+			if (isFiltered.HasValue && !isFiltered.Value || !isFiltered.HasValue) {
+				ResultDialog.Options.Add(option);
+			}
+
+			if (eventArgs.IsPriority) {
 				option.Function();
 			}
 
+			ResultDialog.Status = $"Results: {Client.Results.Count} "            +
+			                      $"| Filtered: {Client.FilteredResults.Count} " +
+			                      $"| Filtering: {Config.Filtering.ToToggleString()}";
+
 			NConsole.Refresh();
+		}
+
+		public static readonly NConsoleDialog ResultDialog = new()
+		{
+			Options = new List<NConsoleOption>()
+		};
+
+		public static readonly SearchConfig Config = new();
+
+		public static readonly SearchClient Client = new(Config);
+
+		public static string ConfigFile
+		{
+			get
+			{
+				string file = Path.Combine(Info.AppFolder, Info.NAME_CFG);
+
+				if (!File.Exists(file)) {
+					var f = File.Create(file);
+					f.Close();
+				}
+
+				return file;
+			}
+		}
+
+		private const string K_ENGINES          = "engines";
+		private const string K_PRIORITY_ENGINES = "priority-engines";
+		private const string K_FILTER           = "filter";
+
+		public static void ReadConfigFile()
+		{
+			var map = Collections.ReadDictionary(ConfigFile);
+
+			if (map.Count == 0) {
+				SaveConfigFile();
+				map = Collections.ReadDictionary(ConfigFile);
+			}
+
+
+			Config.SearchEngines   = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
+			Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
+			Config.Filtering       = Boolean.Parse(map[K_FILTER]);
+
+			Client.Reload();
+
+			Debug.WriteLine($"Updated config from {ConfigFile}");
+		}
+
+		public static void SaveConfigFile()
+		{
+			var map = new Dictionary<string, string>()
+			{
+				{K_ENGINES, Config.SearchEngines.ToString()},
+				{K_PRIORITY_ENGINES, Config.PriorityEngines.ToString()},
+				{K_FILTER, Config.Filtering.ToString()}
+			};
+
+			Collections.WriteDictionary(map, ConfigFile);
+
+			Debug.WriteLine($"Saved to {ConfigFile}");
 		}
 	}
 }

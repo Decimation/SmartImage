@@ -33,9 +33,10 @@ namespace SmartImage.Lib
 		public SearchEngineOptions PriorityEngines { get; set; }
 
 		/// <summary>
-		/// Filters any non-primitive results; <see cref="SearchResult.IsNonPrimitive"/>
+		/// Filters any non-primitive results.
+		/// Filtered results are determined by <see cref="SearchResult.IsNonPrimitive"/>.
 		/// </summary>
-		public bool Filter { get; set; } = true;
+		public bool Filtering { get; set; } = true;
 		
 
 		public override string ToString()
@@ -43,7 +44,7 @@ namespace SmartImage.Lib
 			var sb = new ExtendedStringBuilder();
 			sb.Append(nameof(SearchEngines), SearchEngines);
 			sb.Append(nameof(PriorityEngines), PriorityEngines);
-			sb.Append(nameof(Filter), Filter);
+			sb.Append(nameof(Filtering), Filtering);
 
 			return sb.ToString();
 		}

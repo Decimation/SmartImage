@@ -18,6 +18,8 @@ using static SimpleCore.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 // ReSharper disable PropertyCanBeMadeInitOnly.Local
+// ReSharper disable StringLiteralTypo
+// ReSharper disable UnusedAutoPropertyAccessor.Local
 
 // ReSharper disable PossibleMultipleEnumeration
 
@@ -38,8 +40,7 @@ namespace SmartImage.Lib.Engines.Impl
 		private const string ENDPOINT = BASE_URL + "search.php";
 
 		private readonly RestClient m_client;
-
-		// todo
+		
 
 		public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
 		{
@@ -47,7 +48,7 @@ namespace SmartImage.Lib.Engines.Impl
 			Authentication = authentication;
 		}
 
-		public SauceNaoEngine() : this(String.Empty) { } //todo
+		public SauceNaoEngine() : this(String.Empty) { }
 
 		public string Authentication { get; init; }
 
@@ -176,9 +177,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 				// aggregate all info for primary result
 
-				string character = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Character))?.Character;
-				string creator   = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
-				string material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
+				//string character = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Character))?.Character;
+				//string creator   = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
+				//string material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
 
 				var extended = orig.AsParallel().Select(ConvertToImageResult);
 
@@ -193,16 +194,15 @@ namespace SmartImage.Lib.Engines.Impl
 					return sresult;
 				}
 
-				var best = ordered.First();
-
 				// Copy
-				result.UpdateFrom(best);
+				result.UpdateFrom(ordered.First());
+				
+				//result.Characters = character;
+				//result.Artist     = creator;
+				//result.Source     = material;
 
-				result.Characters = character;
-				result.Artist     = creator;
-				result.Source     = material;
-
-				sresult.OtherResults.AddRange(extended);
+				sresult.OtherResults.AddRange(ordered);
+				
 
 				if (!String.IsNullOrWhiteSpace(Authentication)) {
 					Debug.WriteLine($"{Name} API key: {Authentication}");
@@ -214,6 +214,7 @@ namespace SmartImage.Lib.Engines.Impl
 			}
 
 			sresult.PrimaryResult = result;
+			sresult.Consolidate();
 
 			return sresult;
 		}
@@ -266,11 +267,11 @@ namespace SmartImage.Lib.Engines.Impl
 				{
 					Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
 					Similarity  = MathF.Round(sn.Similarity, 2),
-					Description = sn.WebsiteTitle,
-					Artist      = sn.Creator,
-					Source      = sn.Material,
-					Characters  = sn.Character,
-					Site        = siteName
+					Description = Strings.NullIfNullOrWhiteSpace(sn.WebsiteTitle),
+					Artist      = Strings.NullIfNullOrWhiteSpace(sn.Creator),
+					Source      = Strings.NullIfNullOrWhiteSpace(sn.Material),
+					Characters  = Strings.NullIfNullOrWhiteSpace(sn.Character),
+					Site        = Strings.NullIfNullOrWhiteSpace(siteName)
 				};
 
 				return imageResult;
@@ -289,9 +290,7 @@ namespace SmartImage.Lib.Engines.Impl
 			req.AddQueryParameter("url", url);
 
 			var res = m_client.Execute(req);
-
-			//Debug.WriteLine($"{res.StatusCode}");
-
+			
 			if (res.StatusCode == HttpStatusCode.Forbidden) {
 				return null;
 			}

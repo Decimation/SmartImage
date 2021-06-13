@@ -5,6 +5,9 @@ using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Reflection;
+using Novus.Utilities;
 
 #pragma warning disable IDE0066
 
@@ -78,10 +81,12 @@ namespace SmartImage.Lib.Searching
 		public string ErrorMessage { get; set; }
 
 		/// <summary>
-		/// Indicates whether this result is non-primitive
+		/// Indicates whether this result is detailed.
+		/// <para></para>
+		/// If filtering is enabled (i.e., <see cref="SearchConfig.Filtering"/> is <c>true</c>), this determines whether the
+		/// result is filtered.
 		/// </summary>
-		/// <remarks>Primitive results are non-detailed results (results with little information)</remarks>
-		public bool IsNonPrimitive => Status != ResultStatus.Extraneous && (PrimaryResult.Url != null);
+		public bool IsNonPrimitive => Status != ResultStatus.Extraneous && PrimaryResult.Url != null;
 
 
 		public bool IsSuccessful
@@ -113,6 +118,12 @@ namespace SmartImage.Lib.Searching
 		}
 
 
+		public void Consolidate()
+		{
+			PrimaryResult = ReflectionHelper.Consolidate(PrimaryResult, OtherResults);
+		}
+
+
 		public string ToString(bool name)
 		{
 			var sb = new ExtendedStringBuilder();
@@ -129,7 +140,7 @@ namespace SmartImage.Lib.Searching
 			if (PrimaryResult.Url != null) {
 				//var    resStr    = sb.IndentFields(PrimaryResult.ToString());
 
-				var    resStr    = PrimaryResult.ToString(true);
+				string resStr    = PrimaryResult.ToString(true);
 				string separator = Strings.Indentation + Strings.Separator;
 
 				sb.Append($"{resStr}\n{separator}\n");
@@ -144,6 +155,7 @@ namespace SmartImage.Lib.Searching
 
 			return sb.Append(sb.IndentFields(sb2.ToString())).ToString();
 		}
+
 
 		public override string ToString() => ToString(true);
 

@@ -31,7 +31,6 @@ namespace SmartImage.Core
 				AltFunction = () =>
 				{
 					if (result.OtherResults.Any()) {
-						//var x=NConsoleOption.FromArray(result.OtherResults.ToArray());
 
 						var options = result.OtherResults.Select(CreateOption).ToArray();
 
@@ -55,15 +54,22 @@ namespace SmartImage.Core
 
 				NConsoleProgress.Queue(cts);
 
-				result.OtherResults.AsParallel().ForAll(x => x.FindDirectImages());
-
+				result.OtherResults.AsParallel().ForAll(x =>
+				{
+					try {
+						x.FindDirectImagesAsync();
+					}
+					catch (Exception) {
+						// ignored
+					}
+				});
 
 				result.PrimaryResult.UpdateFrom(result.OtherResults.First());
 
 				cts.Cancel();
 				cts.Dispose();
 
-				option.Data = result.ToString();
+				option.Data = result.ToString(false);
 
 				return null;
 			};
@@ -107,11 +113,9 @@ namespace SmartImage.Core
 			{
 				var direct = result.Direct;
 
-				var ok = direct != null;
-
-				if (ok) {
-					var p = WebUtilities.Download(direct!.ToString());
-					FileSystem.ExploreFile(p);
+				if (direct != null) {
+					var download = WebUtilities.Download(direct!.ToString());
+					FileSystem.ExploreFile(download);
 				}
 
 				return null;

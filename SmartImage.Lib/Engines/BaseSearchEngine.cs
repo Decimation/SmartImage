@@ -43,7 +43,6 @@ namespace SmartImage.Lib.Engines
 
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
-			// todo: use cts?
 
 			var task = Task.Run(delegate
 			{

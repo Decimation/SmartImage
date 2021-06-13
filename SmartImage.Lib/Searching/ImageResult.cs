@@ -4,8 +4,11 @@ using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using Novus.Win32;
+using SimpleCore.Net;
 
 #nullable enable
 
@@ -93,10 +96,10 @@ namespace SmartImage.Lib.Searching
 		{
 			get
 			{
-				var px = PixelResolution;
+				int? px = PixelResolution;
 
 				if (px.HasValue) {
-					var mpx = (float) MathHelper.ConvertToUnit(px.Value, MetricUnit.Mega);
+					float mpx = (float) MathHelper.ConvertToUnit(px.Value, MetricUnit.Mega);
 
 					return mpx;
 				}
@@ -112,7 +115,7 @@ namespace SmartImage.Lib.Searching
 
 		public ImageResult()
 		{
-			OtherMetadata = new();
+			OtherMetadata = new Dictionary<string, object>();
 		}
 
 		private static List<FieldInfo> GetDetailFields()
@@ -176,12 +179,25 @@ namespace SmartImage.Lib.Searching
 			Site        = result.Site;
 			Description = result.Description;
 			Date        = result.Date;
+
+			if (result.Direct is { }) {
+				var stream = WebUtilities.GetStream(result.Direct.ToString());
+				var image  = Image.FromStream(stream);
+
+
+				Width  = image.Width;
+				Height = image.Height;
+
+				OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(stream));
+			}
+
+
 		}
 
-		public void FindDirectImages()
+		public async void FindDirectImagesAsync()
 		{
 			if (Url is not null) {
-				var directImages = ImageHelper.FindDirectImages(Url?.ToString());
+				var directImages = await ImageHelper.FindDirectImagesAsync(Url?.ToString());
 
 				if (directImages is { }) {
 					string? images = directImages.FirstOrDefault();

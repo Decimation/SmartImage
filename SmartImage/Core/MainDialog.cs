@@ -30,10 +30,11 @@ namespace SmartImage.Core
 
 		private static readonly string Disabled = StringConstants.MUL_SIGN.ToString().AddColor(ColorNo);
 
+		internal static string ToToggleString(this bool b) => b ? Enabled : Disabled;
 
-		private static string GetFilterName(bool added) => $"Filter ({(added ? Enabled : Disabled)})";
+		private static string GetFilterName(bool added) => $"Filter ({(added.ToToggleString())})";
 
-		private static string GetContextMenuName(bool added) => $"Context menu ({(added ? Enabled : Disabled)})";
+		private static string GetContextMenuName(bool added) => $"Context menu ({(added.ToToggleString())})";
 
 		#endregion
 
@@ -51,7 +52,7 @@ namespace SmartImage.Core
 						return !(url || file);
 					});
 
-					SearchCli.Config.Query = query;
+					Program.Config.Query = query;
 					return true;
 				}
 			},
@@ -61,9 +62,9 @@ namespace SmartImage.Core
 				Name = "Engines".AddColor(ColorOther),
 				Function = () =>
 				{
-					SearchCli.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
+					Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
 
-					Console.WriteLine(SearchCli.Config.SearchEngines);
+					Console.WriteLine(Program.Config.SearchEngines);
 					NConsole.WaitForSecond();
 					SaveUpdateConfig();
 					return null;
@@ -75,9 +76,9 @@ namespace SmartImage.Core
 				Name = "Priority engines".AddColor(ColorOther),
 				Function = () =>
 				{
-					SearchCli.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
+					Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
 
-					Console.WriteLine(SearchCli.Config.PriorityEngines);
+					Console.WriteLine(Program.Config.PriorityEngines);
 					NConsole.WaitForSecond();
 					SaveUpdateConfig();
 					return null;
@@ -85,13 +86,12 @@ namespace SmartImage.Core
 			},
 			new()
 			{
-				Name = GetFilterName(SearchCli.Config.Filter),
+				Name = GetFilterName(Program.Config.Filtering),
 				Function = () =>
 				{
-					SearchCli.Config.Filter = !SearchCli.Config.Filter;
-
-					//hack: hacky 
-					MainMenuOptions[3].Name = GetFilterName(SearchCli.Config.Filter);
+					Program.Config.Filtering = !Program.Config.Filtering;
+					
+					MainMenuOptions[3].Name = GetFilterName(Program.Config.Filtering);
 					SaveUpdateConfig();
 					return null;
 				}
@@ -107,8 +107,7 @@ namespace SmartImage.Core
 
 					added = OSIntegration.IsContextMenuAdded;
 
-
-					//hack: hacky 
+					
 					MainMenuOptions[4].Name = GetContextMenuName(added);
 
 					return null;
@@ -119,11 +118,12 @@ namespace SmartImage.Core
 				Name = "Config",
 				Function = () =>
 				{
-					Console.Clear();
+					//Console.Clear();
 
-					Console.WriteLine(SearchCli.Config);
+					Console.WriteLine(Program.Config);
 
 					NConsole.WaitForInput();
+
 					return null;
 				}
 			},
@@ -132,7 +132,7 @@ namespace SmartImage.Core
 				Name = "Info",
 				Function = () =>
 				{
-					Console.Clear();
+					//Console.Clear();
 
 					Console.WriteLine($"Author: {Info.Author}");
 					Console.WriteLine($"Version: {Info.Version}");
@@ -162,13 +162,14 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 
-					SearchCli.Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+					Program.Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
 					return true;
 				}
 			},
 #endif
 
 		};
+
 
 		public static readonly NConsoleDialog MainMenuDialog = new()
 		{
@@ -180,8 +181,8 @@ namespace SmartImage.Core
 
 		private static void SaveUpdateConfig()
 		{
-			SearchCli.Client.Update();
-			SearchCli.SaveConfigFile();
+			Program.Client.Reload();
+			Program.SaveConfigFile();
 		}
 
 		private static TEnum ReadEnum<TEnum>() where TEnum : Enum

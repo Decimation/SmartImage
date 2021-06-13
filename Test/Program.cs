@@ -82,32 +82,30 @@ namespace Test
 			//	Console.WriteLine(result);
 			//}
 
-			//var sw = Stopwatch.StartNew();
-			//var i = new SauceNaoEngine();
-			//var i2 = i.GetResultAsync(q);
-			//var r2 = await i2;
-			//sw.Stop();
-
-			//Console.WriteLine($">> {r2}");
-			//Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
-
-
-
-
 			var sw = Stopwatch.StartNew();
+			var i = new SauceNaoEngine();
+			var i2 = i.GetResultAsync(q);
+			var r2 = await i2;
+			sw.Stop();
 
-			var v = ImageHelper.FindDirectImages("https://iqdb.org/?url=https://litter.catbox.moe/hm0muq.jpg");
+			Console.WriteLine($">> {r2}");
+			Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
-			foreach (string s in v)
-			{
+			r2.Consolidate();
+			Console.WriteLine(r2);
+
+			/*var sw = Stopwatch.StartNew();
+			var t  = ImageHelper.FindDirectImagesAsync("https://www.zerochan.net/2750747");
+			Console.WriteLine("awaiting");
+			await t;
+			var v = t.Result;
+
+			foreach (string s in v) {
 				Console.WriteLine(s);
 			}
 
-
-			//
 			sw.Stop();
-			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
-
+			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");*/
 
 
 			//foreach (string s in v) {

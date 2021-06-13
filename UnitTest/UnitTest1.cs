@@ -43,7 +43,8 @@ namespace UnitTest
 		[Test]
 		public void TestResolutionType()
 		{
-			var (w, h) = ImageHelper.GetResolution(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
+			var i = Image.FromFile(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
+			var (w, h) = (i.Width, i.Height);
 			Assert.AreEqual(ImageHelper.GetDisplayResolution(w,h), DisplayResolutionType.HD);
 			Assert.AreEqual(ImageHelper.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
 			Assert.AreEqual(ImageHelper.GetDisplayResolution(640,360), DisplayResolutionType.nHD);

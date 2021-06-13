@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,8 +23,6 @@ namespace SmartImage.Lib.Utilities
 {
 	public static class ImageHelper
 	{
-		//todo
-
 		/*
 		 * https://stackoverflow.com/questions/35151067/algorithm-to-compare-two-images-in-c-sharp
 		 * https://stackoverflow.com/questions/23931/algorithm-to-compare-two-images
@@ -44,13 +41,6 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/regosen/gallery_get
 		 */
 
-
-		public static (int Width, int Height) GetResolution(string s)
-		{
-			using var bmp = Image.FromFile(s);
-
-			return (bmp.Width, bmp.Height);
-		}
 
 		public static DisplayResolutionType GetDisplayResolution(int w, int h)
 		{
@@ -91,11 +81,8 @@ namespace SmartImage.Lib.Utilities
 		/// Determines whether <paramref name="url"/> is a direct image link
 		/// </summary>
 		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
-		public static bool IsDirect(string url)
-		{
-			return MediaTypes.IsDirect(url, MimeType.Image);
-		}
-		
+		public static bool IsDirect(string url) => MediaTypes.IsDirect(url, MimeType.Image);
+
 
 		public static bool IsDirect2(string url)
 		{
@@ -115,7 +102,7 @@ namespace SmartImage.Lib.Utilities
 		/// <summary>
 		/// Scans for direct image links in <paramref name="url"/>
 		/// </summary>
-		public static string[] FindDirectImages(string url)
+		public static async Task<string[]> FindDirectImagesAsync(string url)
 		{
 			var rg = new List<string>();
 
@@ -134,13 +121,11 @@ namespace SmartImage.Lib.Utilities
 				return null;
 			}
 
-			const string HREF_PATTERN = "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"";
-
-			var m2 = Regex.Matches(html, HREF_PATTERN);
+			var matches = Regex.Matches(html, "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"");
 
 
-			for (int i = 0; i < m2.Count; i++) {
-				var match  = m2[i];
+			for (int i = 0; i < matches.Count; i++) {
+				var match  = matches[i];
 				var groups = match.Groups;
 
 				for (int j = 0; j < groups.Count; j++) {
@@ -153,32 +138,20 @@ namespace SmartImage.Lib.Utilities
 				}
 			}
 
-			string[] results = null;
 
-
-			var t = Task.Run(() =>
+			var task = Task.Run(() =>
 			{
-				// todo: is running PLINQ within a task thread-safe?
 
-				results = rg.AsParallel()
-				            .Where(e => Network.IsUri(e, out var u) && IsDirect2(u == null ? e : u.ToString()))
-				            .ToArray();
+				string[] results = rg.AsParallel()
+				                     .Where(e => Network.IsUri(e, out var u) && IsDirect2(u == null ? e : u.ToString()))
+				                     .ToArray();
 
-				//Debug.WriteLine($"{nameof(FindDirectImages)}: {rg.Count} -> {results.Length}", C_DEBUG);
+
+				return results;
 			});
 
 
-			var timeout = TimeSpan.FromSeconds(5);
-
-			if (t.Wait(timeout)) {
-				//
-			}
-			else {
-				//Debug.WriteLine($"{nameof(FindDirectImages)}: timeout!", C_WARN);
-			}
-
-
-			return results;
+			return await task;
 		}
 	}
 
