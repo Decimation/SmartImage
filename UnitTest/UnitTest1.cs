@@ -7,6 +7,7 @@ using NUnit.Framework;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051, IDE0052
 namespace UnitTest
@@ -45,9 +46,9 @@ namespace UnitTest
 		{
 			var i = Image.FromFile(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
 			var (w, h) = (i.Width, i.Height);
-			Assert.AreEqual(ImageHelper.GetDisplayResolution(w,h), DisplayResolutionType.HD);
+			Assert.AreEqual(ImageHelper.GetDisplayResolution(w, h), DisplayResolutionType.HD);
 			Assert.AreEqual(ImageHelper.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
-			Assert.AreEqual(ImageHelper.GetDisplayResolution(640,360), DisplayResolutionType.nHD);
+			Assert.AreEqual(ImageHelper.GetDisplayResolution(640, 360), DisplayResolutionType.nHD);
 		}
 
 		[Test]
@@ -64,8 +65,25 @@ namespace UnitTest
 				Assert.Inconclusive();
 			}
 
+			t.Consolidate();
 
-			Assert.True(t.OtherResults.Any(r => r.Artist.Contains(name)));
+
+			var a = t.PrimaryResult.Artist.Contains(name);
+
+
+			var b = t.OtherResults.Any(r =>
+			{
+				if (r.Artist != null) {
+					return r.Artist.Contains(name);
+
+				}
+				else {
+					return false;
+				}
+			});
+			Assert.True(a || b);
+
+
 
 
 		}

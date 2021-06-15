@@ -6,6 +6,7 @@ using SimpleCore.Utilities;
 using SmartImage.Utilities;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -79,7 +80,7 @@ namespace SmartImage.Core
 		/// <summary>
 		///     <c>Null</c> if executable is not in path.
 		/// </summary>
-		[CanBeNull]
+		[MaybeNull]
 		public static string ExeLocation => FileSystem.FindExecutableLocation(NAME_EXE)!;
 
 

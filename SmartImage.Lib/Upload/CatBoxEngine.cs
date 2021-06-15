@@ -33,7 +33,7 @@ namespace SmartImage.Lib.Upload
 			var res = m_client.Execute(req);
 
 			if (!res.IsSuccessful) {
-				throw new SmartImageException();
+				return null;
 			}
 
 			return new Uri(res.Content);

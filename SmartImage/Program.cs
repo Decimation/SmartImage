@@ -22,6 +22,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
+
 // ReSharper disable ConvertSwitchStatementToSwitchExpression
 
 // ReSharper disable UnusedParameter.Local
@@ -109,7 +110,7 @@ namespace SmartImage
 					cts.Cancel();
 					cts.Dispose();
 				};
-				
+
 				NConsoleProgress.Queue(cts);
 
 				// Show results

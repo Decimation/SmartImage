@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using JetBrains.Annotations;
 using SimpleCore.Net;
+using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Upload;
@@ -41,8 +42,9 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public BaseUploadEngine UploadEngine { get; }
 
-
 		public Stream Stream { get; }
+
+
 
 		public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 		{
@@ -50,14 +52,14 @@ namespace SmartImage.Lib.Searching
 				throw new ArgumentNullException(nameof(value));
 			}
 
-			value = value.Trim('\"');
+			value = value.CleanString();
 
 			Value = value;
 
 			(IsUri, IsFile) = IsUriOrFile(value);
 
 			if (!IsUri && !IsFile) {
-				throw new ArgumentException($"{value} is neither file nor direct image link");
+				throw new ArgumentException("Input was neither file nor direct image link", nameof(value));
 			}
 
 
@@ -77,7 +79,7 @@ namespace SmartImage.Lib.Searching
 
 		public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 		{
-			x = x.Trim('\"');
+			x = x.CleanString();
 			return (ImageHelper.IsDirect(x), File.Exists(x));
 		}
 

@@ -4,9 +4,12 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using System;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using Novus.Utilities;
 using SmartImage.Lib;
+using SmartImage.Utilities;
+// ReSharper disable PossibleNullReferenceException
 
 namespace SmartImage.Core
 {
@@ -51,7 +54,7 @@ namespace SmartImage.Core
 					{
 						(bool url, bool file) = ImageQuery.IsUriOrFile(x);
 						return !(url || file);
-					});
+					},"Input must be file or direct image link");
 
 					Program.Config.Query = query;
 					return true;
@@ -138,12 +141,21 @@ namespace SmartImage.Core
 					//Console.Clear();
 
 					Console.WriteLine($"Author: {Info.Author}");
-					Console.WriteLine($"Version: {Info.Version}");
 
-					Console.WriteLine($"Executable location: {Info.ExeLocation}");
+					Console.WriteLine($"Current version: {Info.Version} ({UpdateInfo.GetUpdateInfo().Status})");
+					Console.WriteLine($"Latest version: {ReleaseInfo.GetLatestRelease()}");
+
+					Console.WriteLine();
+
+					var di = new DirectoryInfo(Info.ExeLocation);
+
+					Console.WriteLine($"Executable location: {di.Parent.Name}");
+
 					Console.WriteLine($"In path: {Info.IsAppFolderInPath}");
 					Console.WriteLine($"Context menu added: {OSIntegration.IsContextMenuAdded}");
 
+
+					Console.WriteLine();
 					Console.WriteLine(Strings.Separator);
 
 					var dependencies = ReflectionHelper.DumpDependencies();
@@ -151,6 +163,17 @@ namespace SmartImage.Core
 					foreach (var name in dependencies) {
 						Console.WriteLine($"{name.Name} ({name.Version})");
 					}
+
+					NConsole.WaitForInput();
+					return null;
+				}
+			},
+			new()
+			{
+				Name = "Update",
+				Function = () =>
+				{
+					UpdateInfo.AutoUpdate();
 
 					NConsole.WaitForInput();
 					return null;

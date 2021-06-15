@@ -25,7 +25,6 @@ namespace SmartImage.Lib.Upload
 		{
 			Verify(file);
 
-
 			var req = new RestRequest(Method.POST);
 
 			req.AddParameter("time", "1h");
@@ -36,7 +35,7 @@ namespace SmartImage.Lib.Upload
 			var res = m_client.Execute(req);
 
 			if (!res.IsSuccessful) {
-				throw new SmartImageException($"{res.ErrorMessage} {res.StatusCode} {res.ResponseStatus}");
+				return null;
 			}
 
 			return new Uri(res.Content);
