@@ -3,10 +3,14 @@ using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Novus.Utilities;
+using Novus.Win32;
+using SimpleCore.Net;
 using SmartImage.Lib;
 using SmartImage.Utilities;
 // ReSharper disable PossibleNullReferenceException
@@ -150,7 +154,7 @@ namespace SmartImage.Core
 					var di = new DirectoryInfo(Info.ExeLocation);
 
 					Console.WriteLine($"Executable location: {di.Parent.Name}");
-
+					
 					Console.WriteLine($"In path: {Info.IsAppFolderInPath}");
 					Console.WriteLine($"Context menu added: {OSIntegration.IsContextMenuAdded}");
 
@@ -175,7 +179,19 @@ namespace SmartImage.Core
 				{
 					UpdateInfo.AutoUpdate();
 
-					NConsole.WaitForInput();
+					Environment.Exit(0);
+					//NConsole.WaitForInput();
+					return null;
+				}
+			},
+			new()
+			{
+				Name = "Help",
+				Function = () =>
+				{
+					WebUtilities.OpenUrl(Info.Wiki);
+
+					
 					return null;
 				}
 			},

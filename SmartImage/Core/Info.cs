@@ -8,8 +8,10 @@ using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
 
@@ -17,7 +19,7 @@ using System.Text;
 
 // ReSharper disable MemberCanBePrivate.Global
 
-
+#nullable disable
 namespace SmartImage.Core
 {
 	/// <summary>
@@ -60,18 +62,9 @@ namespace SmartImage.Core
 
 		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
 
+		public const string Wiki = "https://github.com/Decimation/SmartImage/wiki";
 
-		public static string AppFolder
-		{
-			// todo: use ProgramData?
-
-			get
-			{
-				string? folder = Path.GetDirectoryName(ExeLocation);
-				Debug.Assert(folder != null);
-				return folder;
-			}
-		}
+		public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
 		public static Version Version => typeof(Info).Assembly.GetName().Version!;
 
@@ -80,8 +73,23 @@ namespace SmartImage.Core
 		/// <summary>
 		///     <c>Null</c> if executable is not in path.
 		/// </summary>
-		[MaybeNull]
-		public static string ExeLocation => FileSystem.FindExecutableLocation(NAME_EXE)!;
+		public static string ExeLocation
+		{
+			get
+			{
+				var module = Process.GetCurrentProcess().MainModule;
+				Guard.AssertNotNull(module);
+
+				return module.FileName;
+
+				//return FileSystem.FindExecutableLocation(NAME_EXE)!;
+
+				//string file = typeof(Info).GetType().Assembly.Location; 
+				// string file = Assembly.GetCallingAssembly().Location;
+				// string app  = System.IO.Path.GetFileNameWithoutExtension(file);
+
+			}
+		}
 
 
 		public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);

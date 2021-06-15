@@ -66,7 +66,7 @@ namespace SmartImage.Utilities
 
 				/* Wait */
 				WAIT_4_SEC,
-				WAIT_4_SEC,
+				//WAIT_4_SEC,
 
 				/* Open the new SmartImage version */
 				$"start /d \"{Info.AppFolder}\" {Info.NAME_EXE}",
