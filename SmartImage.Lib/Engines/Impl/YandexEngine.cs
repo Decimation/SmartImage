@@ -63,10 +63,10 @@ namespace SmartImage.Lib.Engines.Impl
 			{
 				string? link = siz.FirstChild.TryGetAttribute("href");
 
-				var resText = siz.FirstChild
-				                 .ChildNodes[1]
-				                 .FirstChild
-				                 .TextContent;
+				string? resText = siz.FirstChild
+				                     .ChildNodes[1]
+				                     .FirstChild
+				                     .TextContent;
 
 
 				//other-sites__snippet

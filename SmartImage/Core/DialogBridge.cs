@@ -42,13 +42,13 @@ namespace SmartImage.Core
 
 					return null;
 				},
-				
-				ComboFunction = CreateComboFunction(result.PrimaryResult),
-				
-				Color         = EngineNameColorMap[result.Engine.EngineOption],
 
-				Name          = result.Engine.Name,
-				Data          = result.ToString(false)
+				ComboFunction = CreateComboFunction(result.PrimaryResult),
+
+				Color = EngineColorMap[result.Engine.EngineOption],
+
+				Name = result.Engine.Name,
+				Data = result,
 			};
 
 			option.CtrlFunction = () =>
@@ -67,7 +67,7 @@ namespace SmartImage.Core
 				cts.Cancel();
 				cts.Dispose();
 
-				option.Data = result.ToString(false);
+				option.Data = result;
 
 				return null;
 			};
@@ -75,14 +75,16 @@ namespace SmartImage.Core
 			return option;
 		}
 
-		private static NConsoleOption CreateOption(ImageResult r)
+		private static NConsoleOption CreateOption(ImageResult result)
 		{
+
 			var option = new NConsoleOption
 			{
-				Function      = CreateMainFunction(r),
-				ComboFunction = CreateComboFunction(r),
-				Name          = "Other result\n\b",
-				Data          = r.ToString(true)
+				Function      = CreateMainFunction(result),
+				ComboFunction = CreateComboFunction(result),
+				Color         = OtherResultColor,
+				Name          = "Other result",
+				Data          = result
 			};
 
 			return option;
@@ -119,7 +121,7 @@ namespace SmartImage.Core
 			};
 		}
 
-		private static readonly Dictionary<SearchEngineOptions, Color> EngineNameColorMap = new()
+		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
 		{
 			{SearchEngineOptions.Iqdb, Color.SandyBrown},
 			{SearchEngineOptions.SauceNao, Color.SpringGreen},
@@ -133,5 +135,7 @@ namespace SmartImage.Core
 			{SearchEngineOptions.Yandex, Color.IndianRed},
 			{SearchEngineOptions.TinEye, Color.CornflowerBlue},
 		};
+
+		private static readonly Color OtherResultColor = Color.MediumTurquoise;
 	}
 }

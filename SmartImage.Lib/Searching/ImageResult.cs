@@ -20,7 +20,7 @@ namespace SmartImage.Lib.Searching
 	/// <summary>
 	/// Describes an image search result
 	/// </summary>
-	public sealed class ImageResult
+	public sealed class ImageResult : IViewable
 	{
 		/// <summary>
 		/// Result url
@@ -142,7 +142,8 @@ namespace SmartImage.Lib.Searching
 				 * The number of non-null fields
 				 */
 
-				int s = DetailFields.Select(f => f.GetValue(this)).Count(v => v != null);
+				int s = DetailFields.Select(f => f.GetValue(this))
+				                    .Count(v => v != null);
 
 				s += OtherMetadata.Count;
 
@@ -150,7 +151,7 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
-		public bool IsDetailed => DetailScore >= (DetailFields.Count * .5);
+		public bool IsDetailed => DetailScore >= DetailFields.Count * .5;
 
 		/// <summary>
 		/// The display resolution of this image
@@ -199,7 +200,7 @@ namespace SmartImage.Lib.Searching
 				else {
 					try {
 
-						var directImages = await ImageHelper.FindDirectImagesAsync(Url.ToString());
+						string[]? directImages = await ImageHelper.FindDirectImagesAsync(Url.ToString());
 
 						if (directImages is { }) {
 							string? images = directImages.FirstOrDefault();
@@ -238,57 +239,61 @@ namespace SmartImage.Lib.Searching
 				Width  = image.Width;
 				Height = image.Height;
 
-				stream.Position = 0;
-				using var ms = new MemoryStream();
-				stream.CopyTo(ms);
-				var rg = ms.ToArray();
+				byte[] rg = stream.ToByteArray();
 
 				OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
 				OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(stream));
 			}
 		}
 
-		public string ToString(bool indent)
+
+		public override string ToString() => Strings.ViewString(this);
+
+		public Dictionary<string, object> View
 		{
-			var sb = new ExtendedStringBuilder() { };
+			get
+			{
+#pragma warning disable CS8604
+				var map = new Dictionary<string, object>
+				{
+					{nameof(Url), Url},
+					{nameof(Direct), Direct}
+				};
 
-			sb.Append(nameof(Url), Url);
-			sb.Append(nameof(Direct), Direct);
 
-			if (Similarity.HasValue) {
-				sb.Append($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");
-			}
-
-			if (HasImageDimensions) {
-				string val = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
-
-				var resType = DisplayResolution;
-
-				if (resType != DisplayResolutionType.Unknown) {
-					val += ($" (~{resType})");
+				if (Similarity.HasValue) {
+					map.Add($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");
 				}
 
-				sb.Append($"Resolution", val);
+				if (HasImageDimensions) {
+					string val = $"{Width}x{Height} ({MegapixelResolution:F} MP)";
+
+					var resType = DisplayResolution;
+
+					if (resType != DisplayResolutionType.Unknown) {
+						val += ($" (~{resType})");
+					}
+
+					map.Add("Resolution", val);
+				}
+
+				map.Add(nameof(Name), Name);
+				map.Add(nameof(Description), Description);
+				map.Add(nameof(Artist), Artist);
+				map.Add(nameof(Site), Site);
+				map.Add(nameof(Source), Source);
+				map.Add(nameof(Characters), Characters);
+
+				foreach (var (key, value) in OtherMetadata) {
+					map.Add(key, value);
+				}
+
+				map.Add("Detail score", $"{DetailScore}/{DetailFields.Count} ({(IsDetailed ? "Y" : "N")})");
+
+#pragma warning restore CS8604
+
+				return map;
 			}
-
-			sb.Append(nameof(Name), Name);
-			sb.Append(nameof(Description), Description);
-			sb.Append(nameof(Artist), Artist);
-			sb.Append(nameof(Site), Site);
-			sb.Append(nameof(Source), Source);
-			sb.Append(nameof(Characters), Characters);
-
-			foreach (var (key, value) in OtherMetadata) {
-				sb.Append(key, value);
-			}
-
-			sb.Append($"Detail score", $"{DetailScore}/{DetailFields.Count} ({(IsDetailed ? "Y" : "N")})");
-
-			var xs = sb.ToString().RemoveLastOccurrence("\n");
-
-			return indent ? Strings.Indent(xs) : xs;
 		}
-
-		public override string ToString() => ToString(false);
 	}
 }

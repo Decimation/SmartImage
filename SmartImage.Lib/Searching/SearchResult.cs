@@ -47,7 +47,7 @@ namespace SmartImage.Lib.Searching
 	/// <summary>
 	/// Describes a search result
 	/// </summary>
-	public class SearchResult
+	public class SearchResult : IViewable
 	{
 		/// <summary>
 		/// Primary image result
@@ -125,39 +125,25 @@ namespace SmartImage.Lib.Searching
 		}
 
 
-		public string ToString(bool name)
+		public override string ToString() => Strings.ViewString(this);
+
+		public Dictionary<string, object> View
 		{
-			var sb = new ExtendedStringBuilder();
+			get
+			{
+				var map = new Dictionary<string, object>();
 
-			if (name) {
-				sb.AppendLine($"[{Engine.Name}] :: ({Status}; {(!IsNonPrimitive ? "NP" : "P")})");
+				if (PrimaryResult.Url != null) {
+					map.Add(nameof(PrimaryResult), PrimaryResult);
+				}
 
+				
+				map.Add("Raw", RawUri);
+				map.Add("Other image results", OtherResults.Count);
+				map.Add("Error", ErrorMessage);
+
+				return map;
 			}
-			else {
-				sb.Append("\n");
-
-			}
-
-			if (PrimaryResult.Url != null) {
-				//var    resStr    = sb.IndentFields(PrimaryResult.ToString());
-
-				string resStr    = PrimaryResult.ToString(true);
-				string separator = Strings.Indentation + Strings.Separator;
-
-				sb.Append($"{resStr}\n{separator}\n");
-			}
-
-			//========================================================================//
-
-			var sb2 = new ExtendedStringBuilder();
-			sb2.Append("Raw", RawUri);
-			sb2.Append("Other image results", OtherResults, $"{OtherResults.Count}");
-			sb2.Append("Error", ErrorMessage);
-
-			return sb.Append(sb.IndentFields(sb2.ToString())).ToString();
 		}
-
-
-		public override string ToString() => ToString(true);
 	}
 }

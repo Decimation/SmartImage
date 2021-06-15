@@ -87,12 +87,13 @@ namespace Test
 			var i2 = i.GetResultAsync(q);
 			var r2 = await i2;
 			sw.Stop();
+			
+			
+			//Console.WriteLine(r2);
 
-			Console.WriteLine($">> {r2}");
-			Console.WriteLine($"{sw.Elapsed.TotalSeconds}");
+			Console.WriteLine(Strings.ViewString(r2));
 
-			r2.Consolidate();
-			Console.WriteLine(r2);
+
 
 			/*var sw = Stopwatch.StartNew();
 			var t  = ImageHelper.FindDirectImagesAsync("https://www.zerochan.net/2750747");

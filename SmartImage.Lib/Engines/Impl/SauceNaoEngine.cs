@@ -17,16 +17,16 @@ using SmartImage.Lib.Searching;
 using static SimpleCore.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
+
 // ReSharper disable PropertyCanBeMadeInitOnly.Local
 // ReSharper disable StringLiteralTypo
 // ReSharper disable UnusedAutoPropertyAccessor.Local
-
 // ReSharper disable PossibleMultipleEnumeration
-
 // ReSharper disable CommentTypo
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
+
 namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class SauceNaoEngine : BaseSearchEngine
@@ -40,7 +40,7 @@ namespace SmartImage.Lib.Engines.Impl
 		private const string ENDPOINT = BASE_URL + "search.php";
 
 		private readonly RestClient m_client;
-		
+
 
 		public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
 		{
@@ -101,7 +101,10 @@ namespace SmartImage.Lib.Engines.Impl
 				return null;
 			}
 
-			var resulttablecontent = result.FirstChild.FirstChild.FirstChild.ChildNodes[1];
+			var resulttablecontent = result.FirstChild
+			                               .FirstChild
+			                               .FirstChild
+			                               .ChildNodes[1];
 
 			var resultmatchinfo      = resulttablecontent.FirstChild;
 			var resultsimilarityinfo = resultmatchinfo.FirstChild;
@@ -196,13 +199,13 @@ namespace SmartImage.Lib.Engines.Impl
 
 				// Copy
 				result.UpdateFrom(ordered.First());
-				
+
 				//result.Characters = character;
 				//result.Artist     = creator;
 				//result.Source     = material;
 
 				sresult.OtherResults.AddRange(ordered);
-				
+
 
 				if (!String.IsNullOrWhiteSpace(Authentication)) {
 					Debug.WriteLine($"{Name} API key: {Authentication}");
@@ -290,7 +293,7 @@ namespace SmartImage.Lib.Engines.Impl
 			req.AddQueryParameter("url", url);
 
 			var res = m_client.Execute(req);
-			
+
 			if (res.StatusCode == HttpStatusCode.Forbidden) {
 				return null;
 			}
