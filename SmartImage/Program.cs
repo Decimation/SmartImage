@@ -279,6 +279,7 @@ namespace SmartImage
 			var bestResult = Client.FindBestResult();
 
 			if (Config.NotificationImage) {
+				Debug.WriteLine("Finding direct");
 				var direct = Client.FindDirectResult();
 				Debug.WriteLine(direct);
 

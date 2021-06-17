@@ -14,6 +14,7 @@ using Novus.Win32;
 using SimpleCore.Net;
 using SmartImage.Lib;
 using SmartImage.Utilities;
+
 // ReSharper disable PossibleNullReferenceException
 
 namespace SmartImage.Core
@@ -40,9 +41,13 @@ namespace SmartImage.Core
 
 		internal static string ToToggleString(this bool b) => b ? Enabled : Disabled;
 
-		private static string GetFilterName(bool added)      => $"Filter ({(added.ToToggleString())})";
-		private static string GetName(string s,bool added)      => $"{s} ({(added.ToToggleString())})";
-		private static string GetContextMenuName(bool added) => $"Context menu ({(added.ToToggleString())})";
+		private static string GetFilterName(bool added)     => GetName("Filter", added);
+		private static string GetNotificationName(bool added)      => GetName("Notification", added);
+		private static string GetNotificationImageName(bool added)   => GetName("Notification image", added);
+		private static string GetName(string s, bool added) => $"{s} ({(added.ToToggleString())})";
+		
+
+		private static string GetContextMenuName(bool added) => GetName("Context menu", added);
 
 		#endregion
 
@@ -51,7 +56,7 @@ namespace SmartImage.Core
 		{
 			new()
 			{
-				Name = ">>> Run <<<",
+				Name  = ">>> Run <<<",
 				Color = ColorMain,
 				Function = () =>
 				{
@@ -59,7 +64,7 @@ namespace SmartImage.Core
 					{
 						(bool url, bool file) = ImageQuery.IsUriOrFile(x);
 						return !(url || file);
-					},"Input must be file or direct image link");
+					}, "Input must be file or direct image link");
 
 					Program.Config.Query = query;
 					return true;
@@ -68,7 +73,7 @@ namespace SmartImage.Core
 
 			new()
 			{
-				Name = "Engines",
+				Name  = "Engines",
 				Color = ColorOther,
 				Function = () =>
 				{
@@ -109,24 +114,24 @@ namespace SmartImage.Core
 			},
 			new()
 			{
-				Name = GetName("Notification",Program.Config.Notification),
+				Name = GetNotificationName(Program.Config.Notification),
 				Function = () =>
 				{
 					Program.Config.Notification = !Program.Config.Notification;
 
-					MainMenuOptions[4].Name = GetName("Notification",Program.Config.Notification);
+					MainMenuOptions[4].Name = GetNotificationName(Program.Config.Notification);
 					SaveAndUpdateConfig();
 					return null;
 				}
 			},
 			new()
 			{
-				Name = GetName("Notification",Program.Config.NotificationImage),
+				Name = GetNotificationImageName(Program.Config.NotificationImage),
 				Function = () =>
 				{
 					Program.Config.NotificationImage = !Program.Config.NotificationImage;
 
-					MainMenuOptions[5].Name = GetName("Notification",Program.Config.NotificationImage);
+					MainMenuOptions[5].Name = GetNotificationImageName(Program.Config.NotificationImage);
 					SaveAndUpdateConfig();
 					return null;
 				}
@@ -179,7 +184,7 @@ namespace SmartImage.Core
 					var di = new DirectoryInfo(Info.ExeLocation);
 
 					Console.WriteLine($"Executable location: {di.Parent.Name}");
-					
+
 					Console.WriteLine($"In path: {Info.IsAppFolderInPath}");
 					Console.WriteLine($"Context menu added: {OSIntegration.IsContextMenuAdded}");
 
@@ -216,7 +221,7 @@ namespace SmartImage.Core
 				{
 					WebUtilities.OpenUrl(Info.Wiki);
 
-					
+
 					return null;
 				}
 			},

@@ -192,11 +192,11 @@ namespace SmartImage.Lib.Searching
 
 		public async Task FindDirectImagesAsync()
 		{
-			if (Url is not null) {
+			if (Url is not null && Direct == null) {
 
 				if (ImageHelper.IsDirect(Url.ToString())) {
 					Direct = Url;
-
+					
 				}
 				else {
 					try {

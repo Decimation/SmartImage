@@ -67,12 +67,16 @@ namespace SmartImage.Core
 
 				NConsoleProgress.Queue(cts);
 
-				result.OtherResults.AsParallel().ForAll(x =>
+				Task.WaitAll(result.OtherResults.Select(async delegate (ImageResult f)
 				{
-					x.FindDirectImagesAsync();
-				});
+					await f.FindDirectImagesAsync();
 
-				result.PrimaryResult.UpdateFrom(result.OtherResults.First());
+				}).ToArray());
+
+
+				result.PrimaryResult = result.OtherResults.First();
+
+				//result.PrimaryResult.UpdateFrom(result.OtherResults.First());
 
 				cts.Cancel();
 				cts.Dispose();
