@@ -35,7 +35,7 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		/// Uploaded direct image
 		/// </summary>
-		public Uri Uri { get; }
+		public Uri Image { get; }
 
 		/// <summary>
 		/// Upload engine used for uploading the input file; if applicable
@@ -65,11 +65,11 @@ namespace SmartImage.Lib.Searching
 
 			UploadEngine = engine ?? new LitterboxEngine(); //todo
 
-			Uri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
+			Image = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 
 			Stream = IsFile ? File.OpenRead(value) : WebUtilities.GetStream(value);
 
-			Trace.WriteLine($"{nameof(ImageQuery)}: {Uri}", C_SUCCESS);
+			Trace.WriteLine($"{nameof(ImageQuery)}: {Image}", C_SUCCESS);
 		}
 
 
@@ -86,7 +86,7 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString()
 		{
-			return $"{Value} | {Uri}";
+			return $"{Value} | {Image}";
 		}
 	}
 }

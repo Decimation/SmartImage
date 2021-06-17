@@ -28,18 +28,18 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override IDocument GetDocument(SearchResult sr)
 		{
-			var url = sr.RawUri.ToString();
+			string url = sr.RawUri.ToString();
 
 			var res = Network.GetResponse(url);
 
 			// Get redirect url (color url)
-			var newUrl = res.ResponseUri.ToString();
+			string newUrl = res.ResponseUri.ToString();
 
 			// https://ascii2d.net/search/color/<hash>
 
 			// Convert to detail url
 
-			var detailUrl = newUrl.Replace("/color/", "/bovw/");
+			string detailUrl = newUrl.Replace("/color/", "/bovw/");
 			
 			sr.RawUri = new Uri(detailUrl);
 
@@ -57,19 +57,19 @@ namespace SmartImage.Lib.Engines.Impl
 
 				var info = node.ChildNodes.Where(n => !String.IsNullOrWhiteSpace(n.TextContent)).ToArray();
 
-				var hash = info.First().TextContent;
+				string hash = info.First().TextContent;
 
 				ir.OtherMetadata.Add("Hash", hash);
 
-				var data = info[1].TextContent.Split(' ');
+				string[] data = info[1].TextContent.Split(' ');
 
-				var res = data[0].Split('x');
+				string[] res = data[0].Split('x');
 				ir.Width  = Int32.Parse(res[0]);
 				ir.Height = Int32.Parse(res[1]);
 
-				var fmt = data[1];
+				string fmt = data[1];
 
-				var size = data[2];
+				string size = data[2];
 
 				if (info.Length >= 3) {
 					var node2 = info[2];
@@ -89,7 +89,7 @@ namespace SmartImage.Lib.Engines.Impl
 					if (ns.ChildNodes.Length >= 4) {
 						var childNode = ns.ChildNodes[3];
 
-						var l1 = ((IHtmlAnchorElement) childNode).GetAttribute("href");
+						string l1 = ((IHtmlAnchorElement) childNode).GetAttribute("href");
 
 						if (l1 is not null) {
 							ir.Url = new Uri(l1);

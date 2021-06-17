@@ -1,6 +1,6 @@
 ﻿// ReSharper disable RedundantUsingDirective
 
-
+#pragma warning disable CS0168
 #nullable enable
 using SimpleCore.Cli;
 using SmartImage.Core;
@@ -44,6 +44,13 @@ namespace SmartImage
 		/// </summary>
 		private static async Task Main(string[] args)
 		{
+
+#if DEBUG
+			if (!args.Any()) {
+				//args = new[] {""};
+			}
+#endif
+
 			/*
 			 * Setup
 			 * Check compatibility
@@ -57,6 +64,11 @@ namespace SmartImage
 			Console.Clear();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
+
+
+			var process = Process.GetCurrentProcess();
+			process.PriorityClass = ProcessPriorityClass.AboveNormal;
+
 
 			/*
 			 * Start
@@ -134,7 +146,7 @@ namespace SmartImage
 		{
 			var result = eventArgs.Result;
 
-			var option = DialogBridge.CreateOption(result);
+			var option = NConsoleFactory.Create(result);
 
 			bool? isFiltered = eventArgs.IsFiltered;
 

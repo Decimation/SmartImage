@@ -75,7 +75,7 @@ namespace SmartImage.Core
 
 					Console.WriteLine(Program.Config.SearchEngines);
 					NConsole.WaitForSecond();
-					SaveUpdateConfig();
+					SaveAndUpdateConfig();
 					return null;
 				}
 			},
@@ -90,7 +90,7 @@ namespace SmartImage.Core
 
 					Console.WriteLine(Program.Config.PriorityEngines);
 					NConsole.WaitForSecond();
-					SaveUpdateConfig();
+					SaveAndUpdateConfig();
 					return null;
 				}
 			},
@@ -102,7 +102,7 @@ namespace SmartImage.Core
 					Program.Config.Filtering = !Program.Config.Filtering;
 
 					MainMenuOptions[3].Name = GetFilterName(Program.Config.Filtering);
-					SaveUpdateConfig();
+					SaveAndUpdateConfig();
 					return null;
 				}
 			},
@@ -220,7 +220,7 @@ namespace SmartImage.Core
 		};
 
 
-		private static void SaveUpdateConfig()
+		private static void SaveAndUpdateConfig()
 		{
 			Program.Client.Reload();
 			Program.SaveConfigFile();

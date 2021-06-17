@@ -77,7 +77,9 @@ namespace SmartImage.Utilities
 
 
 			// Runs in background
-			Command.RunBatch(commands, false, UPDATE_BAT);
+			var proc = Command.Batch(commands, UPDATE_BAT);
+
+			proc.Start();
 		}
 
 

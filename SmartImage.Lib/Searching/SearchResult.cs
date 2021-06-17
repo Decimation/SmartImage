@@ -137,10 +137,20 @@ namespace SmartImage.Lib.Searching
 					map.Add(nameof(PrimaryResult), PrimaryResult);
 				}
 
-				
+
 				map.Add("Raw", RawUri);
-				map.Add("Other image results", OtherResults.Count);
-				map.Add("Error", ErrorMessage);
+
+				if (OtherResults.Count != 0) {
+					map.Add("Other image results", OtherResults.Count);
+				}
+
+				if (ErrorMessage != null) {
+					map.Add("Error", ErrorMessage);
+				}
+
+				if (!IsSuccessful) {
+					map.Add("Status", Status);
+				}
 
 				return map;
 			}

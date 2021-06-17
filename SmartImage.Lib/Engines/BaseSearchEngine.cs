@@ -9,6 +9,9 @@ using static SimpleCore.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Engines
 {
+	/// <summary>
+	/// Base search engine.
+	/// </summary>
 	public abstract class BaseSearchEngine
 	{
 		public string BaseUrl { get; }
@@ -61,12 +64,14 @@ namespace SmartImage.Lib.Engines
 
 		public Uri GetRawResultUrl(ImageQuery query)
 		{
-			var uri = new Uri(BaseUrl + query.Uri);
+			var uri = new Uri(BaseUrl + query.Image);
 
-			bool ok = Network.IsUriAlive(uri, TimeSpan.FromSeconds(5));
+			var  hostUri = Network.GetHostUri(new Uri(BaseUrl));
+
+			bool ok      = Network.IsUriAlive(hostUri, TimeSpan.FromSeconds(5));
 
 			if (!ok) {
-				Debug.WriteLine($"{uri.Host} is unavailable", C_WARN);
+				Debug.WriteLine($"{hostUri} is unavailable", C_WARN);
 				return null;
 			}
 

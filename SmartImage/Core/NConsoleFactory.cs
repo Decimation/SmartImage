@@ -19,20 +19,29 @@ using SmartImage.Lib.Utilities;
 namespace SmartImage.Core
 {
 	/// <summary>
-	/// Bridges library objects to interactive interface objects
+	/// Creates <see cref="NConsoleOption"/> for objects
 	/// </summary>
-	internal static class DialogBridge
+	public static class NConsoleFactory
 	{
-		internal static NConsoleOption CreateOption(SearchResult result)
+		public static NConsoleOption Create(SearchResult result)
 		{
+			var color = EngineColorMap[result.Engine.EngineOption];
+
 			var option = new NConsoleOption
 			{
-				Function = CreateMainFunction(result.PrimaryResult),
+				Function = CreateOpenFunction(result.PrimaryResult is {Url: { }}
+					? result.PrimaryResult.Url
+					: result.RawUri),
+
 				AltFunction = () =>
 				{
 					if (result.OtherResults.Any()) {
 
-						var options = result.OtherResults.Select(CreateOption).ToArray();
+						int i = 0;
+
+						var options = result.OtherResults
+						                    .Select(r => Create(r, i++, color)).ToArray();
+
 
 						NConsole.ReadOptions(new NConsoleDialog
 						{
@@ -44,8 +53,9 @@ namespace SmartImage.Core
 				},
 
 				ComboFunction = CreateComboFunction(result.PrimaryResult),
+				ShiftFunction = CreateOpenFunction(result.RawUri),
 
-				Color = EngineColorMap[result.Engine.EngineOption],
+				Color = color,
 
 				Name = result.Engine.Name,
 				Data = result,
@@ -72,39 +82,39 @@ namespace SmartImage.Core
 				return null;
 			};
 
+
 			return option;
 		}
 
-		private static NConsoleOption CreateOption(ImageResult result)
+		private static NConsoleOption Create(ImageResult result, int i, Color c)
 		{
+
+			const float correctionFactor = -.3f;
 
 			var option = new NConsoleOption
 			{
-				Function      = CreateMainFunction(result),
+				Function      = CreateOpenFunction(result.Url),
 				ComboFunction = CreateComboFunction(result),
-				Color         = OtherResultColor,
-				Name          = "Other result",
+				Color         = ColorHelper.ChangeColorBrightness(c, correctionFactor),
+				Name          = $"Other result #{i}",
 				Data          = result
 			};
 
 			return option;
 		}
 
-		private static NConsoleFunction CreateMainFunction(ImageResult? primaryResult)
+		private static NConsoleFunction CreateOpenFunction(Uri? url)
 		{
 			return () =>
 			{
-				if (primaryResult is { }) {
-					var url = primaryResult.Url;
-
-					if (url != null) {
-						WebUtilities.OpenUrl(url.ToString());
-					}
+				if (url != null) {
+					WebUtilities.OpenUrl(url.ToString());
 				}
 
 				return null;
 			};
 		}
+
 
 		private static NConsoleFunction CreateComboFunction(ImageResult result)
 		{
@@ -113,7 +123,7 @@ namespace SmartImage.Core
 				var direct = result.Direct;
 
 				if (direct != null) {
-					var download = WebUtilities.Download(direct!.ToString());
+					string download = WebUtilities.Download(direct.ToString());
 					FileSystem.ExploreFile(download);
 				}
 
@@ -123,19 +133,17 @@ namespace SmartImage.Core
 
 		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
 		{
-			{SearchEngineOptions.Iqdb, Color.SandyBrown},
+			{SearchEngineOptions.Iqdb, Color.Pink},
 			{SearchEngineOptions.SauceNao, Color.SpringGreen},
 			{SearchEngineOptions.Ascii2D, Color.NavajoWhite},
 			{SearchEngineOptions.Bing, Color.DeepSkyBlue},
-			{SearchEngineOptions.GoogleImages, Color.Violet},
+			{SearchEngineOptions.GoogleImages, Color.FloralWhite},
 			{SearchEngineOptions.ImgOps, Color.Gray},
-			{SearchEngineOptions.KarmaDecay, Color.Orange},
-			{SearchEngineOptions.Tidder, Color.OrangeRed},
+			{SearchEngineOptions.KarmaDecay, Color.IndianRed},
+			{SearchEngineOptions.Tidder, Color.Orange},
 			{SearchEngineOptions.TraceMoe, Color.MediumSlateBlue},
-			{SearchEngineOptions.Yandex, Color.IndianRed},
+			{SearchEngineOptions.Yandex, Color.OrangeRed},
 			{SearchEngineOptions.TinEye, Color.CornflowerBlue},
 		};
-
-		private static readonly Color OtherResultColor = Color.MediumTurquoise;
 	}
 }

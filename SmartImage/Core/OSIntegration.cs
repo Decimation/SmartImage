@@ -181,8 +181,8 @@ namespace SmartImage.Core
 			};
 
 			// Runs in background
-			Command.RunBatch(commands, false, DEL_BAT_NAME);
-
+			var proc=Command.Batch(commands, DEL_BAT_NAME);
+			proc.Start();
 
 		}
 

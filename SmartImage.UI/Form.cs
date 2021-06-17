@@ -236,7 +236,7 @@ namespace SmartImage.UI
 		{
 			m_cl.Config.Query     = query;
 			inputTextBox.Text     = query.Value;
-			uploadTextBox.Text    = m_cl.Config.Query.Uri.ToString();
+			uploadTextBox.Text    = m_cl.Config.Query.Image.ToString();
 			inputPictureBox.Image = Image.FromStream(query.Stream);
 		}
 

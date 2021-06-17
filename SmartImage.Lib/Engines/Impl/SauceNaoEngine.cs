@@ -159,13 +159,13 @@ namespace SmartImage.Lib.Engines.Impl
 			var result = new ImageResult();
 
 			try {
-				var orig = GetDataResults(url.Uri.ToString());
+				var orig = GetDataResults(url.Image.ToString());
 
 				if (orig == null) {
 					//return result;
 					Debug.WriteLine($"[{Name}] Parsing HTML", LogCategories.C_INFO);
 
-					string urlStr = url.Uri.ToString();
+					string urlStr = url.Image.ToString();
 
 					var sauceNaoDataResults = ParseResults(urlStr);
 

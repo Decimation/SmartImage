@@ -13,9 +13,9 @@ using static SimpleCore.Diagnostics.LogCategories;
 #pragma warning disable IDE1006, IDE0051
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class TraceMoeEngine : BaseSearchEngine
+	public sealed class TraceMoeEngine : ClientSearchEngine
 	{
-		public TraceMoeEngine() : base("https://api.trace.moe") { }
+		public TraceMoeEngine() : base("https://trace.moe/?url=", "https://api.trace.moe") { }
 
 
 		/// <summary>
@@ -27,45 +27,56 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 
-		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		internal class TraceMoeDoc
+		protected override SearchResult Process(ImageQuery query)
 		{
-			public double from     { get; set; }
-			public double to       { get; set; }
-			public long   anilist  { get; set; }
-			public string filename { get; set; }
+			SearchResult r;
+			//var r = base.GetResult(url);
 
-			public long episode { get; set; }
-
-			public double similarity { get; set; }
-			public string video      { get; set; }
-			public string image      { get; set; }
-		}
-
-		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		internal class TraceMoeRootObject
-		{
-			public long              frameCount { get; set; }
-			public string            error      { get; set; }
-			public List<TraceMoeDoc> result     { get; set; }
-		}
-
-		private TraceMoeRootObject GetApiResults(string url)
-		{
 			// https://soruly.github.io/trace.moe/#/
-
-			var rc = new RestClient(BaseUrl);
 
 
 			var rq = new RestRequest("search");
-			rq.AddQueryParameter("url", url);
+			rq.AddQueryParameter("url", query.Image.ToString());
 			//rq.AddQueryParameter("anilistInfo", "");
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 			rq.RequestFormat           = DataFormat.Json;
 
-			var re = rc.Execute<TraceMoeRootObject>(rq, Method.GET);
+			var re = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
+			var tm = re.Data;
 
-			return re.Data;
+			if (tm?.result != null) {
+				// Most similar to least similar
+
+				try {
+					var results = ConvertResults(tm).ToList();
+					var best    = results[0];
+
+					r = new SearchResult(this)
+					{
+						PrimaryResult = best,
+						RawUri        = new Uri(BaseUrl + query.Image),
+						
+					};
+
+					r.OtherResults.AddRange(results);
+				}
+				catch (Exception e) {
+					r = base.GetResult(query);
+					Debug.WriteLine($"[{Name}] Error: {e.Message}");
+					//r.AddErrorMessage(e.Message);
+					r.Status = ResultStatus.Failure;
+					return r;
+				}
+
+
+			}
+			else {
+				r = base.GetResult(query);
+				Debug.WriteLine($"[{Name}] API error", C_ERROR);
+				//r.AddErrorMessage(msg);
+			}
+
+			return r;
 		}
 
 
@@ -96,53 +107,35 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 		//https://anilist.co/anime/{id}/
+		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+		internal class TraceMoeDoc
+		{
+			public double from     { get; set; }
+			public double to       { get; set; }
+			public long   anilist  { get; set; }
+			public string filename { get; set; }
+
+			public long episode { get; set; }
+
+			public double similarity { get; set; }
+			public string video      { get; set; }
+			public string image      { get; set; }
+		}
+
+		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+		internal class TraceMoeRootObject
+		{
+			public long              frameCount { get; set; }
+			public string            error      { get; set; }
+			public List<TraceMoeDoc> result     { get; set; }
+		}
+
 		private const string ANILIST_URL = "https://anilist.co/anime/";
 
 		//https://myanimelist.net/anime/{id}/
 		private const string MAL_URL = "https://myanimelist.net/anime/";
 
 
-		public const float FilterThreshold = 87.00F;
-
-		public override SearchResult GetResult(ImageQuery url)
-		{
-			SearchResult r;
-			//var r = base.GetResult(url);
-
-			var tm = GetApiResults(url.Uri.ToString());
-
-			if (tm?.result != null) {
-				// Most similar to least similar
-
-				try {
-					var results = ConvertResults(tm).ToList();
-					var best    = results[0];
-
-					r = new SearchResult(this)
-					{
-						PrimaryResult = best
-					};
-
-					r.OtherResults.AddRange(results);
-				}
-				catch (Exception e) {
-					r = base.GetResult(url);
-					Debug.WriteLine($"[{Name}] Error: {e.Message}");
-					//r.AddErrorMessage(e.Message);
-					r.Status = ResultStatus.Failure;
-					return r;
-				}
-
-
-			}
-			else {
-				r = base.GetResult(url);
-				Debug.WriteLine($"[{Name}] API error", C_ERROR);
-				//r.AddErrorMessage(msg);
-			}
-
-
-			return r;
-		}
+		private const float FilterThreshold = 87.00F;
 	}
 }
