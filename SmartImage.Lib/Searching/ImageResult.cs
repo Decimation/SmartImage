@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Mime;
 using System.Reflection;
+using System.Threading.Tasks;
 using Novus.Win32;
 using SimpleCore.Model;
 using SimpleCore.Net;
@@ -189,7 +190,7 @@ namespace SmartImage.Lib.Searching
 
 		}
 
-		public async void FindDirectImagesAsync()
+		public async Task FindDirectImagesAsync()
 		{
 			if (Url is not null) {
 

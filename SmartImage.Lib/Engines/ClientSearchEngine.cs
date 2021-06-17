@@ -41,7 +41,7 @@ namespace SmartImage.Lib.Engines
 
 			try {
 
-				sr = Process(query);
+				sr = Process(query, sr);
 			}
 			catch (Exception e) {
 				sr.Status = ResultStatus.Failure;
@@ -51,6 +51,6 @@ namespace SmartImage.Lib.Engines
 			return sr;
 		}
 
-		protected abstract SearchResult Process(ImageQuery query);
+		protected abstract SearchResult Process(ImageQuery query, SearchResult r);
 	}
 }

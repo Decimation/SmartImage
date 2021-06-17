@@ -38,7 +38,11 @@ namespace SmartImage.Lib
 		/// Filtered results are determined by <see cref="SearchResult.IsNonPrimitive"/>.
 		/// </summary>
 		public bool Filtering { get; set; } = true;
-		
+
+		public bool Notification { get; set; } = true;
+
+
+		public bool NotificationImage { get; set; } = false;
 
 		public override string ToString()
 		{
@@ -46,6 +50,8 @@ namespace SmartImage.Lib
 			sb.Append(nameof(SearchEngines), SearchEngines);
 			sb.Append(nameof(PriorityEngines), PriorityEngines);
 			sb.Append(nameof(Filtering), Filtering);
+			sb.Append(nameof(Notification), Notification);
+			sb.Append(nameof(NotificationImage), NotificationImage);
 
 			return sb.ToString();
 		}

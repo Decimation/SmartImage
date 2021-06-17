@@ -19,6 +19,7 @@ namespace SmartImage.Lib.Engines
 		protected BaseSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
+			Timeout = TimeSpan.FromSeconds(5);
 		}
 
 		public abstract SearchEngineOptions EngineOption { get; }
@@ -62,16 +63,18 @@ namespace SmartImage.Lib.Engines
 			return await task;
 		}
 
+		public TimeSpan Timeout { get; set; }
+
 		public Uri GetRawResultUrl(ImageQuery query)
 		{
 			var uri = new Uri(BaseUrl + query.Image);
 
-			var  hostUri = Network.GetHostUri(new Uri(BaseUrl));
+			//var  hostUri = Network.GetHostUri(new Uri(BaseUrl));
 
-			bool ok      = Network.IsUriAlive(hostUri, TimeSpan.FromSeconds(5));
+			bool ok      = Network.IsUriAlive(uri, Timeout);
 
 			if (!ok) {
-				Debug.WriteLine($"{hostUri} is unavailable", C_WARN);
+				Debug.WriteLine($"{uri} is unavailable", C_WARN);
 				return null;
 			}
 

@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Net;
@@ -39,8 +40,8 @@ namespace SmartImage.Core
 
 		internal static string ToToggleString(this bool b) => b ? Enabled : Disabled;
 
-		private static string GetFilterName(bool added) => $"Filter ({(added.ToToggleString())})";
-
+		private static string GetFilterName(bool added)      => $"Filter ({(added.ToToggleString())})";
+		private static string GetName(string s,bool added)      => $"{s} ({(added.ToToggleString())})";
 		private static string GetContextMenuName(bool added) => $"Context menu ({(added.ToToggleString())})";
 
 		#endregion
@@ -108,6 +109,30 @@ namespace SmartImage.Core
 			},
 			new()
 			{
+				Name = GetName("Notification",Program.Config.Notification),
+				Function = () =>
+				{
+					Program.Config.Notification = !Program.Config.Notification;
+
+					MainMenuOptions[4].Name = GetName("Notification",Program.Config.Notification);
+					SaveAndUpdateConfig();
+					return null;
+				}
+			},
+			new()
+			{
+				Name = GetName("Notification",Program.Config.NotificationImage),
+				Function = () =>
+				{
+					Program.Config.NotificationImage = !Program.Config.NotificationImage;
+
+					MainMenuOptions[5].Name = GetName("Notification",Program.Config.NotificationImage);
+					SaveAndUpdateConfig();
+					return null;
+				}
+			},
+			new()
+			{
 				Name = GetContextMenuName(OSIntegration.IsContextMenuAdded),
 				Function = () =>
 				{
@@ -118,7 +143,7 @@ namespace SmartImage.Core
 					added = OSIntegration.IsContextMenuAdded;
 
 
-					MainMenuOptions[4].Name = GetContextMenuName(added);
+					MainMenuOptions[6].Name = GetContextMenuName(added);
 
 					return null;
 				}

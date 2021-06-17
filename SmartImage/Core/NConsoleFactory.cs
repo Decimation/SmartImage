@@ -95,7 +95,7 @@ namespace SmartImage.Core
 			{
 				Function      = CreateOpenFunction(result.Url),
 				ComboFunction = CreateComboFunction(result),
-				Color         = ColorHelper.ChangeColorBrightness(c, correctionFactor),
+				Color         = c.ChangeBrightness(correctionFactor),
 				Name          = $"Other result #{i}",
 				Data          = result
 			};

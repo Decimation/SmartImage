@@ -27,9 +27,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 
-		protected override SearchResult Process(ImageQuery query)
+		protected override SearchResult Process(ImageQuery query, SearchResult r)
 		{
-			SearchResult r;
+			
 			//var r = base.GetResult(url);
 
 			// https://soruly.github.io/trace.moe/#/
@@ -39,6 +39,7 @@ namespace SmartImage.Lib.Engines.Impl
 			rq.AddQueryParameter("url", query.Image.ToString());
 			//rq.AddQueryParameter("anilistInfo", "");
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
+			rq.Timeout                 = Timeout.Milliseconds;
 			rq.RequestFormat           = DataFormat.Json;
 
 			var re = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
@@ -71,7 +72,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			}
 			else {
-				r = base.GetResult(query);
+				//r = base.GetResult(query);
 				Debug.WriteLine($"[{Name}] API error", C_ERROR);
 				//r.AddErrorMessage(msg);
 			}

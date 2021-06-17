@@ -74,7 +74,7 @@ namespace SmartImage.Lib
 			          .ToArray();
 
 			Trace.WriteLine($"Engines: {Config.SearchEngines} | {Engines.QuickJoin()}");
-			
+
 		}
 
 		/// <summary>
@@ -162,7 +162,7 @@ namespace SmartImage.Lib
 		#region Secondary operations
 
 		/// <summary>
-		/// Refines search results by searching with the most-detailed result (<see cref="FindBestResult"/>).
+		/// Refines search results by searching with the most-detailed result (<see cref="FindDirectResult"/>).
 		/// </summary>
 		public async Task RefineSearchAsync()
 		{
@@ -172,7 +172,7 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine("Finding best result");
 
-			var best = FindBestResult();
+			var best = FindDirectResult();
 
 			if (best == null) {
 				throw new SmartImageException(ERR_NO_BEST_RESULT);
@@ -204,7 +204,37 @@ namespace SmartImage.Lib
 			return res;
 		}
 
-		/// <returns>The most detailed <see cref="ImageResult"/> found</returns>
+
+		[CanBeNull]
+		public ImageResult FindDirectResult() => FindDirectResults(1).FirstOrDefault();
+
+
+		public ImageResult[] FindDirectResults(int n)
+		{
+			var best = FindBestResults(n);
+
+
+			Task.WaitAll(best.Select(async delegate(ImageResult f)
+			{
+				await f.FindDirectImagesAsync();
+
+			}).ToArray());
+
+			best = best.Take(n).ToArray();
+
+			//best = best
+			//       .AsParallel()
+			//       .Where(r => ImageHelper.IsDirect(r.Url.ToString()))
+			//       .Take(n).ToArray();
+
+
+			return best;
+		}
+
+		/// <summary>
+		/// Selects the <paramref name="n"/> most detailed results.
+		/// </summary>
+		/// <returns>The <see cref="ImageResult"/>s of the <paramref name="n"/> best <see cref="Results"/></returns>
 		[CanBeNull]
 		public ImageResult FindBestResult() => FindBestResults(1).FirstOrDefault();
 
@@ -227,7 +257,7 @@ namespace SmartImage.Lib
 
 			best = best
 			       .AsParallel()
-			       .Where(r => r.Url != null && ImageHelper.IsDirect(r.Url.ToString()))
+			       .Where(r => r.Url != null)
 			       .OrderByDescending(r => r.Similarity)
 			       .ThenByDescending(r => r.PixelResolution)
 			       .ThenByDescending(r => r.DetailScore)

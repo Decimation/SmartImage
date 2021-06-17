@@ -223,7 +223,7 @@ namespace SmartImage.UI
 			Debug.WriteLine($"Finding best");
 
 			var sw   = Stopwatch.StartNew();
-			var best = await Task.Run((() => m_cl.FindBestResult()));
+			var best = await Task.Run((() => m_cl.FindDirectResult()));
 			sw.Stop();
 			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
 

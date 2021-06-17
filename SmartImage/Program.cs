@@ -7,13 +7,17 @@ using SmartImage.Core;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Media;
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.UI.Notifications;
+using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -44,7 +48,6 @@ namespace SmartImage
 		/// </summary>
 		private static async Task Main(string[] args)
 		{
-
 #if DEBUG
 			if (!args.Any()) {
 				//args = new[] {""};
@@ -117,10 +120,14 @@ namespace SmartImage
 				Client.SearchCompleted += (sender, eventArgs) =>
 				{
 					NativeUI.FlashConsoleWindow();
-					SystemSounds.Exclamation.Play();
+					//SystemSounds.Exclamation.Play();
 
 					cts.Cancel();
 					cts.Dispose();
+
+					if (Config.Notification) {
+						ShowToast();
+					}
 				};
 
 				NConsoleProgress.Queue(cts);
@@ -189,41 +196,135 @@ namespace SmartImage
 			}
 		}
 
-		private const string K_ENGINES          = "engines";
-		private const string K_PRIORITY_ENGINES = "priority-engines";
-		private const string K_FILTER           = "filter";
+		private const string K_ENGINES            = "engines";
+		private const string K_PRIORITY_ENGINES   = "priority-engines";
+		private const string K_FILTER             = "filter";
+		private const string K_NOTIFICATION       = "notification";
+		private const string K_NOTIFICATION_IMAGE = "notification-image";
 
 		public static void ReadConfigFile()
 		{
 			var map = Collections.ReadDictionary(ConfigFile);
 
-			if (map.Count == 0) {
-				SaveConfigFile();
-				map = Collections.ReadDictionary(ConfigFile);
+
+			foreach (var (key, value) in ConfigMap) {
+				if (!map.ContainsKey(key)) {
+					map.Add(key, value);
+				}
 			}
 
+			SaveConfigFile();
 
-			Config.SearchEngines   = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
-			Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
-			Config.Filtering       = Boolean.Parse(map[K_FILTER]);
+			//if (map.Count == 0) {
+			//	SaveConfigFile();
+			//	map = Collections.ReadDictionary(ConfigFile);
+			//}
+
+
+			Config.SearchEngines     = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
+			Config.PriorityEngines   = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
+			Config.Filtering         = Boolean.Parse(map[K_FILTER]);
+			Config.Notification      = Boolean.Parse(map[K_NOTIFICATION]);
+			Config.NotificationImage = Boolean.Parse(map[K_NOTIFICATION_IMAGE]);
 
 			Client.Reload();
 
 			Debug.WriteLine($"Updated config from {ConfigFile}");
 		}
 
+		public static Dictionary<string, string> ConfigMap
+		{
+			get
+			{
+				var map = new Dictionary<string, string>()
+				{
+					{K_ENGINES, Config.SearchEngines.ToString()},
+					{K_PRIORITY_ENGINES, Config.PriorityEngines.ToString()},
+					{K_FILTER, Config.Filtering.ToString()},
+					{K_NOTIFICATION, Config.Notification.ToString()},
+					{K_NOTIFICATION_IMAGE, Config.NotificationImage.ToString()},
+				};
+				return map;
+			}
+		}
+
 		public static void SaveConfigFile()
 		{
-			var map = new Dictionary<string, string>()
-			{
-				{K_ENGINES, Config.SearchEngines.ToString()},
-				{K_PRIORITY_ENGINES, Config.PriorityEngines.ToString()},
-				{K_FILTER, Config.Filtering.ToString()}
-			};
+			var map = ConfigMap;
 
 			Collections.WriteDictionary(map, ConfigFile);
 
 			Debug.WriteLine($"Saved to {ConfigFile}");
+		}
+
+		public static void ShowToast()
+		{
+			var button = new ToastButton();
+
+			button.SetContent("Open")
+			      .AddArgument("action", "open");
+
+			var button2 = new ToastButton();
+
+			button2.SetContent("Dismiss")
+			       .AddArgument("action", "dismiss");
+
+			var builder = new ToastContentBuilder();
+
+			builder.AddButton(button)
+			       .AddButton(button2)
+			       .AddText("Search complete")
+			       .AddText($"Results: {Client.Results.Count}");
+
+			var bestResult = Client.FindBestResult();
+
+			if (Config.NotificationImage) {
+				var direct = Client.FindDirectResult();
+				Debug.WriteLine(direct);
+
+				//if (direct is { PrimaryResult: { Direct: { } } })
+				//{
+				//	builder.AddInlineImage(direct.PrimaryResult.Direct);
+				//	Debug.WriteLine(direct.PrimaryResult.Direct);
+				//}
+
+
+				if (direct is {Direct: { }}) {
+					string file = WebUtilities.Download(direct.Direct.ToString(), Path.GetTempPath());
+					Debug.WriteLine($"{file}");
+					builder.AddHeroImage(new Uri(file));
+					//File.Delete(s);
+
+					AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+					{
+						File.Delete(file);
+					};
+				}
+			}
+
+
+			ToastNotificationManagerCompat.OnActivated += compat =>
+			{
+				// Obtain the arguments from the notification
+				ToastArguments args = ToastArguments.Parse(compat.Argument);
+
+				foreach (var argument in args) {
+					Debug.WriteLine($">>> {argument}");
+
+					if (argument.Key == "action" && argument.Value == "open") {
+						//Client.Results.Sort();
+
+
+						if (bestResult is {Url: { }}) {
+							WebUtilities.OpenUrl(bestResult.Url.ToString());
+						}
+					}
+				}
+			};
+
+			builder.Show();
+
+			//ToastNotificationManager.CreateToastNotifier();
 		}
 	}
 }
