@@ -190,7 +190,7 @@ namespace SmartImage.Lib.Searching
 
 		}
 
-		public async Task FindDirectImagesAsync()
+		public async void FindDirectImagesAsync()
 		{
 			if (Url is not null && Direct == null) {
 
@@ -255,6 +255,7 @@ namespace SmartImage.Lib.Searching
 			get
 			{
 #pragma warning disable CS8604
+
 				var map = new Dictionary<string, object>
 				{
 					{nameof(Url), Url},

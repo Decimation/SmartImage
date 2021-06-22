@@ -41,11 +41,11 @@ namespace SmartImage.Core
 
 		internal static string ToToggleString(this bool b) => b ? Enabled : Disabled;
 
-		private static string GetFilterName(bool added)     => GetName("Filter", added);
+		private static string GetFilterName(bool added)            => GetName("Filter", added);
 		private static string GetNotificationName(bool added)      => GetName("Notification", added);
-		private static string GetNotificationImageName(bool added)   => GetName("Notification image", added);
-		private static string GetName(string s, bool added) => $"{s} ({(added.ToToggleString())})";
-		
+		private static string GetNotificationImageName(bool added) => GetName("Notification image", added);
+		private static string GetName(string s, bool added)        => $"{s} ({(added.ToToggleString())})";
+
 
 		private static string GetContextMenuName(bool added) => GetName("Context menu", added);
 
@@ -208,9 +208,8 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 					UpdateInfo.AutoUpdate();
+					
 
-					Environment.Exit(0);
-					//NConsole.WaitForInput();
 					return null;
 				}
 			},

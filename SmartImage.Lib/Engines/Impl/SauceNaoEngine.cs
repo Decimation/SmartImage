@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Json;
 using System.Linq;
 using System.Net;
@@ -14,6 +15,7 @@ using SimpleCore.Diagnostics;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
@@ -55,14 +57,23 @@ namespace SmartImage.Lib.Engines.Impl
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
 
-		private static IEnumerable<SauceNaoDataResult> ParseResults(string url)
+		private static IEnumerable<SauceNaoDataResult> ParseResults(ImageQuery query)
 		{
 			var docp = new HtmlParser();
 
 			var rc  = new RestClient(BASE_URL);
-			var req = new RestRequest("search.php");
-			req.AddQueryParameter("url", url);
+			var req = new RestRequest("search.php", Method.POST);
 
+			if (query.IsFile) {
+				req.AddFile("file", File.ReadAllBytes(query.Value), "image.png");
+			}
+			else if (query.IsUri) {
+				req.AddParameter("url", query, ParameterType.GetOrPost);
+			}
+			else {
+				throw new SmartImageException();
+			}
+			
 			var execute = rc.Execute(req);
 
 			string html = execute.Content;
@@ -118,11 +129,11 @@ namespace SmartImage.Lib.Engines.Impl
 
 			string link = null;
 
-			var g = resultcontentcolumn.ChildNodes.GetElementsByTagName("a")
+			var element = resultcontentcolumn.ChildNodes.GetElementsByTagName("a")
 			                           .FirstOrDefault(x => x.GetAttribute("href") != null);
 
-			if (g != null) {
-				link = g.GetAttribute("href");
+			if (element != null) {
+				link = element.GetAttribute("href");
 			}
 
 			//	//div[contains(@class, 'resulttitle')]
@@ -152,22 +163,20 @@ namespace SmartImage.Lib.Engines.Impl
 			return dataResult;
 		}
 
-		public override SearchResult GetResult(ImageQuery url)
+		public override SearchResult GetResult(ImageQuery query)
 		{
-			var sresult = base.GetResult(url);
+			var sresult = base.GetResult(query);
 
 			var result = new ImageResult();
 
 			try {
-				var orig = GetDataResults(url.Image.ToString());
+				var orig = GetDataResults(query.Image.ToString());
 
 				if (orig == null) {
-					//return result;
+
 					Debug.WriteLine($"[{Name}] Parsing HTML", LogCategories.C_INFO);
-
-					string urlStr = url.Image.ToString();
-
-					var sauceNaoDataResults = ParseResults(urlStr);
+					
+					var sauceNaoDataResults = ParseResults(query);
 
 					if (sauceNaoDataResults == null) {
 						sresult.ErrorMessage = "Daily search limit (100) exceeded";

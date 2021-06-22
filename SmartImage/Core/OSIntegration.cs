@@ -4,9 +4,12 @@ using SimpleCore.Cli;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Novus.Utilities;
+using SimpleCore.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable InconsistentNaming
@@ -15,9 +18,6 @@ using static SimpleCore.Diagnostics.LogCategories;
 
 namespace SmartImage.Core
 {
-	
-
-
 	internal enum IntegrationOption
 	{
 		Add,
@@ -181,7 +181,7 @@ namespace SmartImage.Core
 			};
 
 			// Runs in background
-			var proc=Command.Batch(commands, DEL_BAT_NAME);
+			var proc = Command.Batch(commands, DEL_BAT_NAME);
 			proc.Start();
 
 		}
@@ -206,6 +206,12 @@ namespace SmartImage.Core
 			if (!Info.IsAppFolderInPath) {
 				HandlePath(IntegrationOption.Add);
 			}
+
+			//Windows.System.UserProfile.GlobalizationPreferences.Languages
+			//Thread.CurrentThread.CurrentUICulture
+			//CultureInfo.CurrentCulture
+
+
 		}
 	}
 }

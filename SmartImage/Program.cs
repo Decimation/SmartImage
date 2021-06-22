@@ -8,17 +8,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Media;
 using System.Resources;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.UI.Notifications;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
+using Novus.Win32.Structures;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib;
@@ -42,7 +45,21 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
-
+		[DllImport("user32.dll")] static extern IntPtr GetKeyboardLayout(uint thread);
+		public static CultureInfo GetCurrentKeyboardLayout()
+		{
+			try
+			{
+				IntPtr foregroundWindow  = Native.GetForegroundWindow();
+				int    foregroundProcess = Native.GetWindowThreadProcessId(foregroundWindow, out _);
+				int    keyboardLayout    = GetKeyboardLayout((uint) foregroundProcess).ToInt32() & 0xFFFF;
+				return new CultureInfo(keyboardLayout);
+			}
+			catch (Exception _)
+			{
+				return new CultureInfo(1033); // Assume English if something went wrong.
+			}
+		}
 		/// <summary>
 		/// Entry point
 		/// </summary>
@@ -60,6 +77,8 @@ namespace SmartImage
 			 */
 
 			Native.SetConsoleOutputCP(Native.CP_WIN32_UNITED_STATES);
+
+
 
 			Console.Title = $"{Info.NAME}";
 
@@ -213,19 +232,13 @@ namespace SmartImage
 				}
 			}
 
-			SaveConfigFile();
-
-			//if (map.Count == 0) {
-			//	SaveConfigFile();
-			//	map = Collections.ReadDictionary(ConfigFile);
-			//}
-
-
 			Config.SearchEngines     = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
 			Config.PriorityEngines   = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
 			Config.Filtering         = Boolean.Parse(map[K_FILTER]);
 			Config.Notification      = Boolean.Parse(map[K_NOTIFICATION]);
 			Config.NotificationImage = Boolean.Parse(map[K_NOTIFICATION_IMAGE]);
+
+			SaveConfigFile();
 
 			Client.Reload();
 
@@ -291,6 +304,7 @@ namespace SmartImage
 
 
 				if (direct is {Direct: { }}) {
+					Debug.WriteLine($"Downloading {direct}");
 					string file = WebUtilities.Download(direct.Direct.ToString(), Path.GetTempPath());
 					Debug.WriteLine($"{file}");
 					builder.AddHeroImage(new Uri(file));

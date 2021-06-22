@@ -110,15 +110,15 @@ namespace SmartImage.Lib
 				bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
 
 				//
-				//							Filtering
+				//                          Filtering
 				//                         /         \
-				//						true         false
+				//                      true         false
 				//                     /               \
-				//	           IsNonPrimitive          [FilteredResults]
-				//				/          \
-				//		      true         false
-				//			 /               \
-				//	    [Results]        [FilteredResults]
+				//               IsNonPrimitive          [FilteredResults]
+				//                /          \
+				//              true         false
+				//             /               \
+				//        [Results]        [FilteredResults]
 				//
 
 				if (Config.Filtering) {
@@ -206,21 +206,25 @@ namespace SmartImage.Lib
 
 
 		[CanBeNull]
-		public ImageResult FindDirectResult() => FindDirectResults(1).FirstOrDefault();
+		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
 
 
-		public ImageResult[] FindDirectResults(int n)
+		public ImageResult[] FindDirectResults()
 		{
-			var best = FindBestResults(n);
+			var best = FindBestResults();
 
-
-			Task.WaitAll(best.Select(async delegate(ImageResult f)
+			
+			best.AsParallel().ForAll(delegate(ImageResult f)
 			{
-				await f.FindDirectImagesAsync();
+				f.FindDirectImagesAsync();
+			});
 
-			}).ToArray());
+			//foreach (var result in best) {
+			//	result.FindDirectImagesAsync();
+			//}
 
-			best = best.Take(n).ToArray();
+
+			best = best.Where(f=>f.Direct!=null).ToArray();
 
 			//best = best
 			//       .AsParallel()
@@ -230,19 +234,15 @@ namespace SmartImage.Lib
 
 			return best;
 		}
-
-		/// <summary>
-		/// Selects the <paramref name="n"/> most detailed results.
-		/// </summary>
-		/// <returns>The <see cref="ImageResult"/>s of the <paramref name="n"/> best <see cref="Results"/></returns>
+		
 		[CanBeNull]
-		public ImageResult FindBestResult() => FindBestResults(1).FirstOrDefault();
+		public ImageResult FindBestResult() => FindBestResults().FirstOrDefault();
 
 		/// <summary>
 		/// Selects the <paramref name="n"/> most detailed results.
 		/// </summary>
 		/// <returns>The <see cref="ImageResult"/>s of the <paramref name="n"/> best <see cref="Results"/></returns>
-		public ImageResult[] FindBestResults(int n)
+		public ImageResult[] FindBestResults()
 		{
 			var best = Results.Where(r => r.IsNonPrimitive)
 			                  .SelectMany(r =>
@@ -257,11 +257,9 @@ namespace SmartImage.Lib
 
 			best = best
 			       .AsParallel()
-			       .Where(r => r.Url != null)
 			       .OrderByDescending(r => r.Similarity)
 			       .ThenByDescending(r => r.PixelResolution)
-			       .ThenByDescending(r => r.DetailScore)
-			       .Take(n);
+			       .ThenByDescending(r => r.DetailScore);
 
 
 			return best.ToArray();

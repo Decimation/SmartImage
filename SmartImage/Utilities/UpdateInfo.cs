@@ -80,6 +80,7 @@ namespace SmartImage.Utilities
 			var proc = Command.Batch(commands, UPDATE_BAT);
 
 			proc.Start();
+			Environment.Exit(0);
 		}
 
 
@@ -94,16 +95,18 @@ namespace SmartImage.Utilities
 				if (NConsole.ReadConfirmation("Update?")) {
 					try {
 						Update(ui);
+						
 					}
 					catch (Exception e) {
 						Console.WriteLine(e);
-						return;
+						
 					}
 				}
 			}
 
 			Console.WriteLine($"Up to date: {ui.Current} [{ui.Latest}]");
 			NConsole.WaitForSecond();
+			
 		}
 
 		public static UpdateInfo GetUpdateInfo()
