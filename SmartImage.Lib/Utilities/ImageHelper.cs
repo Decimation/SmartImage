@@ -182,7 +182,7 @@ namespace SmartImage.Lib.Utilities
 			var img = d.QuerySelectorAll("img");
 			var a   = d.QuerySelectorAll("a");
 
-			Debug.WriteLine($"{img.Length} | {a.Length}");
+			//Debug.WriteLine($"{img.Length} | {a.Length}");
 
 			//rg.AddRange(img.Select(s=>s.GetAttribute("src")));
 			rg.AddRange(a.Select(s => s.GetAttribute("href")));

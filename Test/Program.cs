@@ -83,7 +83,7 @@ namespace Test
 			//}
 
 			var sw = Stopwatch.StartNew();
-			var i = new TraceMoeEngine();
+			var i  = new SauceNaoEngine() {};
 			var i2 = i.GetResultAsync(q);
 			var r2 = await i2;
 			sw.Stop();

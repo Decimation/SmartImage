@@ -45,21 +45,7 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
-		[DllImport("user32.dll")] static extern IntPtr GetKeyboardLayout(uint thread);
-		public static CultureInfo GetCurrentKeyboardLayout()
-		{
-			try
-			{
-				IntPtr foregroundWindow  = Native.GetForegroundWindow();
-				int    foregroundProcess = Native.GetWindowThreadProcessId(foregroundWindow, out _);
-				int    keyboardLayout    = GetKeyboardLayout((uint) foregroundProcess).ToInt32() & 0xFFFF;
-				return new CultureInfo(keyboardLayout);
-			}
-			catch (Exception _)
-			{
-				return new CultureInfo(1033); // Assume English if something went wrong.
-			}
-		}
+		
 		/// <summary>
 		/// Entry point
 		/// </summary>
@@ -69,6 +55,8 @@ namespace SmartImage
 			if (!args.Any()) {
 				//args = new[] {""};
 			}
+
+			
 #endif
 
 			/*

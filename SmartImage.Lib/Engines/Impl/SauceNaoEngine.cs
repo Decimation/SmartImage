@@ -33,36 +33,94 @@ namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class SauceNaoEngine : BaseSearchEngine
 	{
-		// Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
-
 		private const string BASE_URL = "https://saucenao.com/";
 
 		private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
 
-		private const string ENDPOINT = BASE_URL + "search.php";
+		private const string SEARCH = "search.php";
 
 		private readonly RestClient m_client;
 
 
+		/*
+		 * Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
+		 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
+		 */
+
+
 		public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
 		{
-			m_client       = new RestClient(ENDPOINT);
+			m_client       = new RestClient(BASE_URL);
 			Authentication = authentication;
 		}
 
-		public SauceNaoEngine() : this(String.Empty) { }
+		public SauceNaoEngine() : this(null) { }
 
 		public string Authentication { get; init; }
 
+		public bool UsingAPI => !String.IsNullOrWhiteSpace(Authentication);
+
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
+		private delegate IEnumerable<SauceNaoDataResult> ParseResultFunction(ImageQuery q);
 
-		private static IEnumerable<SauceNaoDataResult> ParseResults(ImageQuery query)
+		public override SearchResult GetResult(ImageQuery query)
 		{
+			var sresult = base.GetResult(query);
+
+			var primaryResult = new ImageResult();
+
+			try {
+				ParseResultFunction f = !UsingAPI ? GetHTMLResults : GetAPIResults;
+
+				var sauceNaoDataResults = f(query);
+
+				if (sauceNaoDataResults == null) {
+					sresult.ErrorMessage = "Daily search limit (100) exceeded";
+					sresult.Status       = ResultStatus.Unavailable;
+					return sresult;
+				}
+
+				var imageResults = sauceNaoDataResults.Where(o => o != null)
+				                                      .AsParallel()
+				                                      .Select(ConvertToImageResult)
+				                                      .Where(o => o     != null)
+				                                      .Where(e => e.Url != null)
+				                                      .OrderByDescending(e => e.Similarity)
+				                                      .ToList();
+
+				if (!imageResults.Any()) {
+					// No good results
+					return sresult;
+				}
+
+				primaryResult.UpdateFrom(imageResults.First());
+
+				sresult.OtherResults.AddRange(imageResults);
+
+				if (UsingAPI) {
+					Debug.WriteLine($"{Name} API key: {Authentication}");
+				}
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{Name} error: {e.StackTrace}", C_ERROR);
+				sresult.Status = ResultStatus.Failure;
+			}
+
+			sresult.PrimaryResult = primaryResult;
+			sresult.Consolidate();
+
+			return sresult;
+		}
+
+		private IEnumerable<SauceNaoDataResult> GetHTMLResults(ImageQuery query)
+		{
+			Trace.WriteLine($"{Name} | Parsing HTML");
+
 			var docp = new HtmlParser();
 
-			var rc  = new RestClient(BASE_URL);
-			var req = new RestRequest("search.php", Method.POST);
+
+			var req = new RestRequest(SEARCH, Method.POST);
 
 			if (query.IsFile) {
 				req.AddFile("file", File.ReadAllBytes(query.Value), "image.png");
@@ -73,8 +131,8 @@ namespace SmartImage.Lib.Engines.Impl
 			else {
 				throw new SmartImageException();
 			}
-			
-			var execute = rc.Execute(req);
+
+			var execute = m_client.Execute(req);
 
 			string html = execute.Content;
 
@@ -97,209 +155,75 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var results = doc.Body.SelectNodes(RESULT_NODE);
 
+			
+			static SauceNaoDataResult Parse(INode result)
+			{
+				if (result == null) {
+					return null;
+				}
+
+				const string HIDDEN_ID_VAL = "result-hidden-notification";
+
+				if (result.TryGetAttribute("id") == HIDDEN_ID_VAL) {
+					return null;
+				}
+
+				var resulttablecontent = result.FirstChild.FirstChild.FirstChild.ChildNodes[1];
+
+				var resultmatchinfo      = resulttablecontent.FirstChild;
+				var resultsimilarityinfo = resultmatchinfo.FirstChild;
+
+				// Contains links
+				var resultmiscinfo = resultmatchinfo.ChildNodes[1];
+
+				var resultcontent = resulttablecontent.ChildNodes[1];
+
+				var resultcontentcolumn = resultcontent.ChildNodes[1];
+
+				string link = null;
+
+				var element = resultcontentcolumn.ChildNodes.GetElementsByTagName("a")
+				                                 .FirstOrDefault(x => x.GetAttribute("href") != null);
+
+				if (element != null) {
+					link = element.GetAttribute("href");
+				}
+
+				//	//div[contains(@class, 'resulttitle')]
+				//	//div/node()[self::strong]
+
+				var    resulttitle = resultcontent.ChildNodes[0];
+				string rti         = resulttitle?.TextContent;
+
+				var    resultcontentcolumn1 = resultcontent.ChildNodes[1];
+				string rcci                 = resultcontentcolumn1?.TextContent;
+
+				string material1 = rcci?.SubstringAfter("Material: ");
+
+				string creator1 = rti ?? rcci;
+				creator1 = creator1?.SubstringAfter("Creator: ");
+
+
+				float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
+
+				var dataResult = new SauceNaoDataResult {Urls = new[] {link}!, Similarity = similarity, Creator = creator1};
+
+				return dataResult;
+			}
+
 			return results.Select(Parse).ToList();
 		}
 
-		private static SauceNaoDataResult Parse(INode result)
+		private IEnumerable<SauceNaoDataResult> GetAPIResults(ImageQuery url)
 		{
-			if (result == null) {
-				return null;
-			}
+			Trace.WriteLine($"{Name} | API");
 
-			const string HIDDEN_ID_VAL = "result-hidden-notification";
-
-			if (result.TryGetAttribute("id") == HIDDEN_ID_VAL) {
-				return null;
-			}
-
-			var resulttablecontent = result.FirstChild
-			                               .FirstChild
-			                               .FirstChild
-			                               .ChildNodes[1];
-
-			var resultmatchinfo      = resulttablecontent.FirstChild;
-			var resultsimilarityinfo = resultmatchinfo.FirstChild;
-
-			// Contains links
-			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
-
-			var resultcontent = resulttablecontent.ChildNodes[1];
-
-			var resultcontentcolumn = resultcontent.ChildNodes[1];
-
-			string link = null;
-
-			var element = resultcontentcolumn.ChildNodes.GetElementsByTagName("a")
-			                           .FirstOrDefault(x => x.GetAttribute("href") != null);
-
-			if (element != null) {
-				link = element.GetAttribute("href");
-			}
-
-			//	//div[contains(@class, 'resulttitle')]
-			//	//div/node()[self::strong]
-
-			var    resulttitle = resultcontent.ChildNodes[0];
-			string rti         = resulttitle?.TextContent;
-
-			var    resultcontentcolumn1 = resultcontent.ChildNodes[1];
-			string rcci                 = resultcontentcolumn1?.TextContent;
-
-			string material1 = rcci?.SubstringAfter("Material: ");
-
-			string creator1 = rti ?? rcci;
-			creator1 = creator1?.SubstringAfter("Creator: ");
-
-
-			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
-
-			var dataResult = new SauceNaoDataResult
-			{
-				Urls       = new[] {link}!,
-				Similarity = similarity,
-				Creator    = creator1
-			};
-
-			return dataResult;
-		}
-
-		public override SearchResult GetResult(ImageQuery query)
-		{
-			var sresult = base.GetResult(query);
-
-			var result = new ImageResult();
-
-			try {
-				var orig = GetDataResults(query.Image.ToString());
-
-				if (orig == null) {
-
-					Debug.WriteLine($"[{Name}] Parsing HTML", LogCategories.C_INFO);
-					
-					var sauceNaoDataResults = ParseResults(query);
-
-					if (sauceNaoDataResults == null) {
-						sresult.ErrorMessage = "Daily search limit (100) exceeded";
-						sresult.Status       = ResultStatus.Unavailable;
-						return sresult;
-					}
-
-					orig = sauceNaoDataResults.Where(o => o != null).ToArray();
-				}
-
-				// aggregate all info for primary result
-
-				//string character = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Character))?.Character;
-				//string creator   = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Creator))?.Creator;
-				//string material  = orig.FirstOrDefault(o => !String.IsNullOrWhiteSpace(o.Material))?.Material;
-
-				var extended = orig.AsParallel().Select(ConvertToImageResult);
-
-				var ordered = extended
-				              .Where(e => e.Url != null)
-				              .OrderByDescending(e => e.Similarity)
-				              .ToList();
-
-				if (!ordered.Any()) {
-					// No good results
-					//Debug.WriteLine($"No good results");
-					return sresult;
-				}
-
-				// Copy
-				result.UpdateFrom(ordered.First());
-
-				//result.Characters = character;
-				//result.Artist     = creator;
-				//result.Source     = material;
-
-				sresult.OtherResults.AddRange(ordered);
-
-
-				if (!String.IsNullOrWhiteSpace(Authentication)) {
-					Debug.WriteLine($"{Name} API key: {Authentication}");
-				}
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{Name} error: {e.StackTrace}", C_ERROR);
-				sresult.Status = ResultStatus.Failure;
-			}
-
-			sresult.PrimaryResult = result;
-			sresult.Consolidate();
-
-			return sresult;
-		}
-
-		private class SauceNaoDataResult
-		{
-			/// <summary>
-			///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
-			/// </summary>
-			public string[] Urls { get; internal set; }
-
-			/// <summary>
-			///     The search index of the image
-			/// </summary>
-			public SauceNaoSiteIndex Index { get; internal set; }
-
-			/// <summary>
-			///     How similar is the image to the one provided (Percentage)?
-			/// </summary>
-			public float Similarity { get; internal set; }
-
-			public string WebsiteTitle { get; internal set; }
-
-			public string Character { get; internal set; }
-
-			public string Material { get; internal set; }
-
-			public string Creator { get; internal set; }
-
-			public override string ToString()
-			{
-				string firstUrl = Urls != null ? Urls[0] : "-";
-
-				return $"{firstUrl} ({Similarity}, {Index}) {Creator}";
-			}
-		}
-
-		#region API
-
-		private static ImageResult ConvertToImageResult(SauceNaoDataResult sn)
-		{
-			if (sn.Urls != null) {
-				string url = sn.Urls.FirstOrDefault(u => u != null)!;
-
-				string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
-
-				// var x = new BasicSearchResult(url, sn.Similarity,
-				// 	sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
-				var imageResult = new ImageResult
-				{
-					Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
-					Similarity  = MathF.Round(sn.Similarity, 2),
-					Description = Strings.NullIfNullOrWhiteSpace(sn.WebsiteTitle),
-					Artist      = Strings.NullIfNullOrWhiteSpace(sn.Creator),
-					Source      = Strings.NullIfNullOrWhiteSpace(sn.Material),
-					Characters  = Strings.NullIfNullOrWhiteSpace(sn.Character),
-					Site        = Strings.NullIfNullOrWhiteSpace(siteName)
-				};
-
-				return imageResult;
-			}
-
-			return null;
-		}
-
-		private SauceNaoDataResult[] GetDataResults(string url)
-		{
-			var req = new RestRequest();
+			var req = new RestRequest(SEARCH);
 			req.AddQueryParameter("db", "999");
 			req.AddQueryParameter("output_type", "2");
 			req.AddQueryParameter("numres", "16");
 			req.AddQueryParameter("api_key", Authentication);
-			req.AddQueryParameter("url", url);
+			req.AddQueryParameter("url", url.Image.ToString());
 
 			var res = m_client.Execute(req);
 
@@ -370,7 +294,57 @@ namespace SmartImage.Lib.Engines.Impl
 			return null;
 		}
 
-		#endregion API
+		private static ImageResult ConvertToImageResult(SauceNaoDataResult sn)
+		{
+			if (sn.Urls != null) {
+				string url = sn.Urls.FirstOrDefault(u => u != null)!;
+
+				string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
+
+				// var x = new BasicSearchResult(url, sn.Similarity,
+				// 	sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
+				var imageResult = new ImageResult
+				{
+					Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
+					Similarity  = MathF.Round(sn.Similarity, 2),
+					Description = Strings.NullIfNullOrWhiteSpace(sn.WebsiteTitle),
+					Artist      = Strings.NullIfNullOrWhiteSpace(sn.Creator),
+					Source      = Strings.NullIfNullOrWhiteSpace(sn.Material),
+					Characters  = Strings.NullIfNullOrWhiteSpace(sn.Character),
+					Site        = Strings.NullIfNullOrWhiteSpace(siteName)
+				};
+
+				return imageResult;
+			}
+
+			return null;
+		}
+
+		private class SauceNaoDataResult
+		{
+			/// <summary>
+			///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
+			/// </summary>
+			public string[] Urls { get; internal set; }
+
+			/// <summary>
+			///     The search index of the image
+			/// </summary>
+			public SauceNaoSiteIndex Index { get; internal set; }
+
+			/// <summary>
+			///     How similar is the image to the one provided (Percentage)?
+			/// </summary>
+			public float Similarity { get; internal set; }
+
+			public string WebsiteTitle { get; internal set; }
+
+			public string Character { get; internal set; }
+
+			public string Material { get; internal set; }
+
+			public string Creator { get; internal set; }
+		}
 	}
 
 	public enum SauceNaoSiteIndex

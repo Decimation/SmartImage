@@ -4,8 +4,8 @@
 
     <TargetFramework>net5.0-windows10.0.17763.0</TargetFramework>
     <LangVersion>latest</LangVersion>
-    
-   <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->
@@ -57,10 +57,10 @@
     <Copyright>Copyright 2021</Copyright>
     <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
   </PropertyGroup>
-  
+
 
   <ItemGroup>
-    
+
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>
     </Reference>
@@ -74,6 +74,6 @@
       <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>
     </Reference>
 
-    
+
   </ItemGroup>
 </Project>
