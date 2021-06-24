@@ -11,7 +11,6 @@ using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 
-#pragma warning disable HAA0101, HAA0601, HAA0502, HAA0401
 #nullable enable
 
 namespace SmartImage.Lib.Engines.Impl

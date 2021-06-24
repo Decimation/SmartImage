@@ -47,11 +47,11 @@ namespace SmartImage.Lib
 		public override string ToString()
 		{
 			var sb = new ExtendedStringBuilder();
-			sb.Append(nameof(SearchEngines), SearchEngines);
-			sb.Append(nameof(PriorityEngines), PriorityEngines);
-			sb.Append(nameof(Filtering), Filtering);
-			sb.Append(nameof(Notification), Notification);
-			sb.Append(nameof(NotificationImage), NotificationImage);
+			sb.Append("Search engines", SearchEngines);
+			sb.Append("Priority engines", PriorityEngines);
+			sb.Append("Filtering", Filtering);
+			sb.Append("Notification", Notification);
+			sb.Append("Notification image", NotificationImage);
 
 			return sb.ToString();
 		}

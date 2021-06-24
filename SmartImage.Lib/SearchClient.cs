@@ -213,7 +213,7 @@ namespace SmartImage.Lib
 		{
 			var best = FindBestResults();
 
-			
+
 			best.AsParallel().ForAll(delegate(ImageResult f)
 			{
 				f.FindDirectImagesAsync();
@@ -224,7 +224,7 @@ namespace SmartImage.Lib
 			//}
 
 
-			best = best.Where(f=>f.Direct!=null).ToArray();
+			best = best.Where(f => f.Direct != null).ToArray();
 
 			//best = best
 			//       .AsParallel()
@@ -234,14 +234,14 @@ namespace SmartImage.Lib
 
 			return best;
 		}
-		
+
 		[CanBeNull]
 		public ImageResult FindBestResult() => FindBestResults().FirstOrDefault();
 
 		/// <summary>
-		/// Selects the <paramref name="n"/> most detailed results.
+		/// Selects the most detailed results.
 		/// </summary>
-		/// <returns>The <see cref="ImageResult"/>s of the <paramref name="n"/> best <see cref="Results"/></returns>
+		/// <returns>The <see cref="ImageResult"/>s of the best <see cref="Results"/></returns>
 		public ImageResult[] FindBestResults()
 		{
 			var best = Results.Where(r => r.IsNonPrimitive)

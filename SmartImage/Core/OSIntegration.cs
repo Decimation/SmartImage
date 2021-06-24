@@ -201,17 +201,6 @@ namespace SmartImage.Core
 			}
 		}
 
-		internal static void Setup()
-		{
-			if (!Info.IsAppFolderInPath) {
-				HandlePath(IntegrationOption.Add);
-			}
-
-			//Windows.System.UserProfile.GlobalizationPreferences.Languages
-			//Thread.CurrentThread.CurrentUICulture
-			//CultureInfo.CurrentCulture
-
-
-		}
+		
 	}
 }

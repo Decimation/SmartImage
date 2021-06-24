@@ -71,7 +71,7 @@ namespace SmartImage.Lib.Engines
 
 			//var  hostUri = Network.GetHostUri(new Uri(BaseUrl));
 
-			bool ok      = Network.IsUriAlive(uri, Timeout);
+			bool ok = Network.IsUriAlive(uri, Timeout);
 
 			if (!ok) {
 				Debug.WriteLine($"{uri} is unavailable", C_WARN);

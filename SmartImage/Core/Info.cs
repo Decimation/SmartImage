@@ -7,10 +7,13 @@ using SmartImage.Utilities;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using SimpleCore.Diagnostics;
 
 // ReSharper disable UnusedMember.Global
@@ -81,13 +84,6 @@ namespace SmartImage.Core
 				Guard.AssertNotNull(module);
 
 				return module.FileName;
-
-				//return FileSystem.FindExecutableLocation(NAME_EXE)!;
-
-				//string file = typeof(Info).GetType().Assembly.Location; 
-				// string file = Assembly.GetCallingAssembly().Location;
-				// string app  = System.IO.Path.GetFileNameWithoutExtension(file);
-
 			}
 		}
 
@@ -104,7 +100,27 @@ namespace SmartImage.Core
 				throw new NotSupportedException();
 			}
 
-			OSIntegration.Setup();
+			if (!Info.IsAppFolderInPath) {
+				OSIntegration.HandlePath(IntegrationOption.Add);
+			}
+
+			var languages = Windows.System.UserProfile.GlobalizationPreferences.Languages;
+
+			bool zh = languages.Any(l => l.Contains("zh"));
+
+			bool ja = languages.Contains("ja");
+
+			if (ja || zh) {
+
+				Console.WriteLine("Non-Romance language detected!");
+				Console.WriteLine("If English is not the main IME, things may not work properly!");
+
+				NConsole.WaitForInput();
+			}
+
+			//Windows.System.UserProfile.GlobalizationPreferences.Languages
+			//Thread.CurrentThread.CurrentUICulture
+			//CultureInfo.CurrentCulture
 		}
 	}
 }

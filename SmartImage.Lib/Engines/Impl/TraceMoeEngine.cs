@@ -88,12 +88,12 @@ namespace SmartImage.Lib.Engines.Impl
 
 			for (int i = 0; i < results.Length; i++) {
 				var doc = docs[i];
-				var sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
+				float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
 
-				var anilistUrl = ANILIST_URL + doc.anilist;
+				string anilistUrl = ANILIST_URL + doc.anilist;
 
-				var name = m_anilistClient.GetTitle((int) doc.anilist);
+				string name = m_anilistClient.GetTitle((int) doc.anilist);
 
 				results[i] = new ImageResult
 				{

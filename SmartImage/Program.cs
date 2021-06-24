@@ -45,7 +45,7 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
-		
+
 		/// <summary>
 		/// Entry point
 		/// </summary>
@@ -56,7 +56,7 @@ namespace SmartImage
 				//args = new[] {""};
 			}
 
-			
+
 #endif
 
 			/*
@@ -65,7 +65,6 @@ namespace SmartImage
 			 */
 
 			Native.SetConsoleOutputCP(Native.CP_WIN32_UNITED_STATES);
-
 
 
 			Console.Title = $"{Info.NAME}";
@@ -107,7 +106,6 @@ namespace SmartImage
 
 					switch (arg) {
 
-
 						default:
 							Config.Query = args[0];
 							break;
@@ -122,7 +120,7 @@ namespace SmartImage
 
 				// Run search
 
-				Client.ResultCompleted += ResultCompleted;
+				Client.ResultCompleted += OnResultCompleted;
 
 				Client.SearchCompleted += (sender, eventArgs) =>
 				{
@@ -156,7 +154,7 @@ namespace SmartImage
 		}
 
 
-		private static void ResultCompleted(object? sender, SearchResultEventArgs eventArgs)
+		private static void OnResultCompleted(object? sender, SearchResultEventArgs eventArgs)
 		{
 			var result = eventArgs.Result;
 
@@ -181,7 +179,9 @@ namespace SmartImage
 
 		public static readonly NConsoleDialog ResultDialog = new()
 		{
-			Options = new List<NConsoleOption>()
+			Options = new List<NConsoleOption>(),
+			Description = "Press the result number to open in browser\n" +
+			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download"
 		};
 
 		public static readonly SearchConfig Config = new();
@@ -272,23 +272,18 @@ namespace SmartImage
 
 			var builder = new ToastContentBuilder();
 
+			var bestResult = Client.FindBestResult();
+
 			builder.AddButton(button)
 			       .AddButton(button2)
 			       .AddText("Search complete")
+			       .AddText($"{bestResult}")
 			       .AddText($"Results: {Client.Results.Count}");
-
-			var bestResult = Client.FindBestResult();
 
 			if (Config.NotificationImage) {
 				Debug.WriteLine("Finding direct");
 				var direct = Client.FindDirectResult();
 				Debug.WriteLine(direct);
-
-				//if (direct is { PrimaryResult: { Direct: { } } })
-				//{
-				//	builder.AddInlineImage(direct.PrimaryResult.Direct);
-				//	Debug.WriteLine(direct.PrimaryResult.Direct);
-				//}
 
 
 				if (direct is {Direct: { }}) {

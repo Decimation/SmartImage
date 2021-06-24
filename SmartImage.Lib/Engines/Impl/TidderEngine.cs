@@ -8,6 +8,7 @@ using AngleSharp.XPath;
 using SimpleCore.Net;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+// ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 
 #nullable enable
 namespace SmartImage.Lib.Engines.Impl
@@ -58,7 +59,7 @@ namespace SmartImage.Lib.Engines.Impl
 				//DeEntize!
 				string link = titleNode.FirstChild.TryGetAttribute("href");
 
-				var bsr = new ImageResult()
+				var bsr = new ImageResult
 				{
 					Artist      = author,
 					Description = title,

@@ -22,7 +22,7 @@ namespace SmartImage.Core
 	/// <summary>
 	/// Handles the main menu interface
 	/// </summary>
-	public static class MainDialog
+	internal static class MainDialog
 	{
 		#region Colors
 
@@ -41,10 +41,13 @@ namespace SmartImage.Core
 
 		internal static string ToToggleString(this bool b) => b ? Enabled : Disabled;
 
-		private static string GetFilterName(bool added)            => GetName("Filter", added);
-		private static string GetNotificationName(bool added)      => GetName("Notification", added);
+		private static string GetFilterName(bool added) => GetName("Filter", added);
+
+		private static string GetNotificationName(bool added) => GetName("Notification", added);
+
 		private static string GetNotificationImageName(bool added) => GetName("Notification image", added);
-		private static string GetName(string s, bool added)        => $"{s} ({(added.ToToggleString())})";
+
+		private static string GetName(string s, bool added) => $"{s} ({(added.ToToggleString())})";
 
 
 		private static string GetContextMenuName(bool added) => GetName("Context menu", added);
@@ -141,7 +144,7 @@ namespace SmartImage.Core
 				Name = GetContextMenuName(OSIntegration.IsContextMenuAdded),
 				Function = () =>
 				{
-					var added = OSIntegration.IsContextMenuAdded;
+					bool added = OSIntegration.IsContextMenuAdded;
 
 					OSIntegration.HandleContextMenu(added ? IntegrationOption.Remove : IntegrationOption.Add);
 
@@ -184,10 +187,7 @@ namespace SmartImage.Core
 					var di = new DirectoryInfo(Info.ExeLocation);
 
 					Console.WriteLine($"Executable location: {di.Parent.Name}");
-
 					Console.WriteLine($"In path: {Info.IsAppFolderInPath}");
-					Console.WriteLine($"Context menu added: {OSIntegration.IsContextMenuAdded}");
-
 
 					Console.WriteLine();
 					Console.WriteLine(Strings.Separator);
@@ -208,7 +208,7 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 					UpdateInfo.AutoUpdate();
-					
+
 
 					return null;
 				}

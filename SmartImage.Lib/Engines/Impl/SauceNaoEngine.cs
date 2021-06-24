@@ -296,28 +296,23 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private static ImageResult ConvertToImageResult(SauceNaoDataResult sn)
 		{
-			if (sn.Urls != null) {
-				string url = sn.Urls.FirstOrDefault(u => u != null)!;
+			string url = sn.Urls?.FirstOrDefault(u => u != null);
 
-				string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
+			string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
+			
+			var imageResult = new ImageResult
+			{
+				Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
+				Similarity  = MathF.Round(sn.Similarity, 2),
+				Description = Strings.NullIfNullOrWhiteSpace(sn.WebsiteTitle),
+				Artist      = Strings.NullIfNullOrWhiteSpace(sn.Creator),
+				Source      = Strings.NullIfNullOrWhiteSpace(sn.Material),
+				Characters  = Strings.NullIfNullOrWhiteSpace(sn.Character),
+				Site        = Strings.NullIfNullOrWhiteSpace(siteName)
+			};
 
-				// var x = new BasicSearchResult(url, sn.Similarity,
-				// 	sn.WebsiteTitle, sn.Creator, sn.Material, sn.Character, siteName);
-				var imageResult = new ImageResult
-				{
-					Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
-					Similarity  = MathF.Round(sn.Similarity, 2),
-					Description = Strings.NullIfNullOrWhiteSpace(sn.WebsiteTitle),
-					Artist      = Strings.NullIfNullOrWhiteSpace(sn.Creator),
-					Source      = Strings.NullIfNullOrWhiteSpace(sn.Material),
-					Characters  = Strings.NullIfNullOrWhiteSpace(sn.Character),
-					Site        = Strings.NullIfNullOrWhiteSpace(siteName)
-				};
+			return imageResult;
 
-				return imageResult;
-			}
-
-			return null;
 		}
 
 		private class SauceNaoDataResult
