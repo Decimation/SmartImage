@@ -25,7 +25,6 @@ namespace SmartImage.Lib.Engines
 
 		protected InterpretedSearchEngine(string baseUrl) : base(baseUrl) { }
 
-		
 
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
@@ -51,16 +50,6 @@ namespace SmartImage.Lib.Engines
 
 		protected virtual IDocument GetDocument(SearchResult sr)
 		{
-			/*if (!Network.TryGetString(sr.RawUri.ToString()!, out var html))
-			{
-				sr.RawUri            = null;
-				sr.PrimaryResult.Url = null;
-
-				//sr.AddErrorMessage("Unavailable");
-				throw new SmartImageException();
-			}*/
-
-
 			string response = WebUtilities.GetString(sr.RawUri.ToString()!);
 
 			var parser = new HtmlParser();

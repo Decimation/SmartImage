@@ -19,6 +19,8 @@ using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 
+// ReSharper disable StringLiteralTypo
+
 namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class IqdbEngine : ClientSearchEngine
@@ -113,60 +115,32 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private IDocument GetDocument(ImageQuery query)
 		{
-			//return base.GetDocument(sr);
-
-			/*MultipartFormDataContent form = new MultipartFormDataContent();
-
-			form.Add(new StringContent("8388608"), "MAX_FILE_SIZE");
-
-			for (int i = 1; i <= 13; i++)
-			{
-				if (new[] { 7, 8, 9, 12 }.Contains(i))
-				{
-					continue;
-				}
-
-				form.Add(new StringContent(i.ToString()), "service[]");
-			}
-
-			form.Add(new StreamContent(query.Stream), "file", "image.jpg");
-			form.Add(new StringContent(string.Empty), "url");
-
-
-			var h  = new HttpClient();
-			h.BaseAddress = new Uri(EndpointUrl);
-			var r=h.PostAsync("/", form);
-			r.Wait();*/
-
 			var rq = new RestRequest(Method.POST);
-			rq.AddParameter("MAX_FILE_SIZE", 8388608, ParameterType.GetOrPost);
+
+			const int MAX_FILE_SIZE = 8388608;
+
+			rq.AddParameter("MAX_FILE_SIZE", MAX_FILE_SIZE, ParameterType.GetOrPost);
 			rq.AddHeader("Content-Type", "multipart/form-data");
 
-			byte[] rg = Array.Empty<byte>();
-			object u  = query.Value;
+			byte[] fileBytes = Array.Empty<byte>();
+			object uri       = string.Empty;
 
 			if (query.IsFile) {
-				rg = File.ReadAllBytes(query.Value);
-
-
+				fileBytes = File.ReadAllBytes(query.Value);
 			}
-			else if (query.IsUri) { }
+			else if (query.IsUri) {
+				uri = query.Value;
+			}
 			else {
 				throw new SmartImageException();
 			}
 
-			rq.AddFile("file", rg, "image.jpg");
-			rq.AddParameter("url", u, ParameterType.GetOrPost);
+			rq.AddFile("file", fileBytes, "image.jpg");
+			rq.AddParameter("url", uri, ParameterType.GetOrPost);
 
 			//rq.AddParameter("service[]", new[] {1, 2, 3, 4, 5, 6, 11, 13}, ParameterType.GetOrPost);
 
 			var response = Client.Execute(rq);
-			Network.DumpResponse(response);
-			Debug.Assert(response.IsSuccessful);
-
-			// var html2   = r.Result.Content.ReadAsStringAsync();
-			// html2.Wait();
-			// var html   = html2.Result;
 
 			var parser = new HtmlParser();
 			return parser.ParseDocument(response.Content);
@@ -178,7 +152,6 @@ namespace SmartImage.Lib.Engines.Impl
 		{
 			//var sr = base.GetResult(query);
 			var sr = new SearchResult(this);
-
 
 			try {
 
@@ -194,15 +167,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override SearchResult Process(ImageQuery query, SearchResult sr)
 		{
-
-			// var re = new RestRequest(Method.POST);
-			// re.AddFile("file", File.ReadAllBytes(q.Value), "image.jpg");
-
 			// Don't select other results
 
-
 			var doc = GetDocument(query);
-
 
 			var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
 			var tables = ((IHtmlElement) pages).SelectNodes("div/table");

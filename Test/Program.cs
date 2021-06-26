@@ -140,11 +140,18 @@ namespace Test
 				Console.WriteLine(result);
 			}*/
 			
+
 			var i  = new IqdbEngine();
 			var i2 = i.GetResultAsync(q);
 			var r2 = await i2;
 
 			Console.WriteLine(">> {0}", r2);
+
+			var ix = new SauceNaoEngine() { };
+			var i2x = ix.GetResultAsync(q);
+			var r2x = await i2x;
+
+			Console.WriteLine(">> {0}", r2x);
 		}
 	}
 }

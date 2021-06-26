@@ -98,8 +98,7 @@ namespace SmartImage.Lib.Utilities
 				@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
 				RegexOptions.IgnoreCase);
 		}
-		
-		
+
 
 		/// <summary>
 		/// Scans for direct image links in <paramref name="url"/>
@@ -135,7 +134,6 @@ namespace SmartImage.Lib.Utilities
 			rg.AddRange(a.Select(s => s.GetAttribute("href")));
 
 
-
 			/*var matches = Regex.Matches(html, "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"");
 
 
@@ -157,7 +155,8 @@ namespace SmartImage.Lib.Utilities
 			{
 
 				string[] results = rg.AsParallel()
-				                     .Where(e => Network.IsUri(e, out var u) && IsDirect2(u == null ? e : u.ToString()))
+				                     .Where(e => Network.IsUri(e, out var u)
+				                                 && IsDirect2(u == null ? e : u.ToString()))
 				                     .ToArray();
 
 
