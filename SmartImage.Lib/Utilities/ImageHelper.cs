@@ -98,61 +98,8 @@ namespace SmartImage.Lib.Utilities
 				@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
 				RegexOptions.IgnoreCase);
 		}
-
-		/// <summary>
-		/// Scans for direct image links in <paramref name="url"/>
-		/// </summary>
-		public static async Task<string[]> FindDirectImagesAsync2(string url)
-		{
-			var rg = new List<string>();
-
-			//<img.*?src="(.*?)"
-			//href\s*=\s*"(.+?)"
-			//var src  = "<img.*?src=\"(.*?)\"";
-			//var href = "href\\s*=\\s*\"(.+?)\"";
-
-			string html;
-
-			try {
-				html = WebUtilities.GetString(url);
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", C_ERROR);
-				return null;
-			}
-
-			var matches = Regex.Matches(html, "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"");
-
-
-			for (int i = 0; i < matches.Count; i++) {
-				var match  = matches[i];
-				var groups = match.Groups;
-
-				for (int j = 0; j < groups.Count; j++) {
-					var group = groups[j];
-
-					foreach (Capture capture in group.Captures) {
-
-						rg.Add(capture.Value);
-					}
-				}
-			}
-
-
-			var task = Task.Run(() =>
-			{
-
-				string[] results = rg.AsParallel()
-				                     .Where(e => Network.IsUri(e, out var u) && IsDirect2(u == null ? e : u.ToString()))
-				                     .ToArray();
-
-
-				return results;
-			});
-
-
-			return await task;
-		}
+		
+		
 
 		/// <summary>
 		/// Scans for direct image links in <paramref name="url"/>
@@ -187,6 +134,24 @@ namespace SmartImage.Lib.Utilities
 			//rg.AddRange(img.Select(s=>s.GetAttribute("src")));
 			rg.AddRange(a.Select(s => s.GetAttribute("href")));
 
+
+
+			/*var matches = Regex.Matches(html, "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"");
+
+
+			for (int i = 0; i < matches.Count; i++) {
+				var match  = matches[i];
+				var groups = match.Groups;
+
+				for (int j = 0; j < groups.Count; j++) {
+					var group = groups[j];
+
+					foreach (Capture capture in group.Captures) {
+
+						rg.Add(capture.Value);
+					}
+				}
+			}*/
 
 			var task = Task.Run(() =>
 			{

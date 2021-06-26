@@ -126,7 +126,7 @@ namespace SmartImage.Lib.Engines.Impl
 				req.AddFile("file", File.ReadAllBytes(query.Value), "image.png");
 			}
 			else if (query.IsUri) {
-				req.AddParameter("url", query, ParameterType.GetOrPost);
+				req.AddParameter("url", query.Value, ParameterType.GetOrPost);
 			}
 			else {
 				throw new SmartImageException();

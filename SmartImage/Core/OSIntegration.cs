@@ -140,17 +140,11 @@ namespace SmartImage.Core
 
 		internal static void ResetIntegrations()
 		{
-
-
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 			if (IsContextMenuAdded) {
 				HandleContextMenu(IntegrationOption.Remove);
 			}
-
-
-			// will be added automatically if run again
-			//Path.Remove();
 
 			Trace.WriteLine("Reset config");
 		}
@@ -200,7 +194,5 @@ namespace SmartImage.Core
 				return reg != null;
 			}
 		}
-
-		
 	}
 }

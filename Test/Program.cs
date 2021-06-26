@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text;
@@ -42,9 +43,10 @@ namespace Test
 
 
 			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
-			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
+			var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 			//var q = new ImageQuery("https://litter.catbox.moe/5yr86t.jpg");
-			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
+			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
+
 			//var cfg = new SearchConfig
 			//	{Query = q, SearchEngines = SearchEngineOptions.All};
 
@@ -82,16 +84,16 @@ namespace Test
 			//	Console.WriteLine(result);
 			//}
 
-			var sw = Stopwatch.StartNew();
-			var i  = new SauceNaoEngine() {};
-			var i2 = i.GetResultAsync(q);
-			var r2 = await i2;
-			sw.Stop();
-			
-			
+			//var sw = Stopwatch.StartNew();
+			//var i  = new SauceNaoEngine() {};
+			//var i2 = i.GetResultAsync(q);
+			//var r2 = await i2;
+			//sw.Stop();
+
+
 			//Console.WriteLine(r2);
 
-			Console.WriteLine(Strings.ViewString(r2));
+			//Console.WriteLine(Strings.ViewString(r2));
 
 
 
@@ -137,7 +139,12 @@ namespace Test
 			{
 				Console.WriteLine(result);
 			}*/
+			
+			var i  = new IqdbEngine();
+			var i2 = i.GetResultAsync(q);
+			var r2 = await i2;
 
+			Console.WriteLine(">> {0}", r2);
 		}
 	}
 }

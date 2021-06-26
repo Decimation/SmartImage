@@ -3,12 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
+using RestSharp;
+using SimpleCore.Diagnostics;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
@@ -16,9 +21,9 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class IqdbEngine : InterpretedSearchEngine
+	public sealed class IqdbEngine : ClientSearchEngine
 	{
-		public IqdbEngine() : base("https://iqdb.org/?url=") { }
+		public IqdbEngine() : base("https://iqdb.org/?url=", "https://iqdb.org/") { }
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
@@ -105,9 +110,99 @@ namespace SmartImage.Lib.Engines.Impl
 			return result;
 		}
 
-		protected override SearchResult Process(IDocument doc, SearchResult sr)
+
+		private IDocument GetDocument(ImageQuery query)
 		{
+			//return base.GetDocument(sr);
+
+			/*MultipartFormDataContent form = new MultipartFormDataContent();
+
+			form.Add(new StringContent("8388608"), "MAX_FILE_SIZE");
+
+			for (int i = 1; i <= 13; i++)
+			{
+				if (new[] { 7, 8, 9, 12 }.Contains(i))
+				{
+					continue;
+				}
+
+				form.Add(new StringContent(i.ToString()), "service[]");
+			}
+
+			form.Add(new StreamContent(query.Stream), "file", "image.jpg");
+			form.Add(new StringContent(string.Empty), "url");
+
+
+			var h  = new HttpClient();
+			h.BaseAddress = new Uri(EndpointUrl);
+			var r=h.PostAsync("/", form);
+			r.Wait();*/
+
+			var rq = new RestRequest(Method.POST);
+			rq.AddParameter("MAX_FILE_SIZE", 8388608, ParameterType.GetOrPost);
+			rq.AddHeader("Content-Type", "multipart/form-data");
+
+			byte[] rg = Array.Empty<byte>();
+			object u  = query.Value;
+
+			if (query.IsFile) {
+				rg = File.ReadAllBytes(query.Value);
+
+
+			}
+			else if (query.IsUri) { }
+			else {
+				throw new SmartImageException();
+			}
+
+			rq.AddFile("file", rg, "image.jpg");
+			rq.AddParameter("url", u, ParameterType.GetOrPost);
+
+			//rq.AddParameter("service[]", new[] {1, 2, 3, 4, 5, 6, 11, 13}, ParameterType.GetOrPost);
+
+			var response = Client.Execute(rq);
+			Network.DumpResponse(response);
+			Debug.Assert(response.IsSuccessful);
+
+			// var html2   = r.Result.Content.ReadAsStringAsync();
+			// html2.Wait();
+			// var html   = html2.Result;
+
+			var parser = new HtmlParser();
+			return parser.ParseDocument(response.Content);
+		}
+
+
+		[DebuggerHidden]
+		public override SearchResult GetResult(ImageQuery query)
+		{
+			//var sr = base.GetResult(query);
+			var sr = new SearchResult(this);
+
+
+			try {
+
+				sr = Process(query, sr);
+			}
+			catch (Exception e) {
+				sr.Status = ResultStatus.Failure;
+				Trace.WriteLine($"{Name}: {e.Message}", LogCategories.C_ERROR);
+			}
+
+			return sr;
+		}
+
+		protected override SearchResult Process(ImageQuery query, SearchResult sr)
+		{
+
+			// var re = new RestRequest(Method.POST);
+			// re.AddFile("file", File.ReadAllBytes(q.Value), "image.jpg");
+
 			// Don't select other results
+
+
+			var doc = GetDocument(query);
+
 
 			var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
 			var tables = ((IHtmlElement) pages).SelectNodes("div/table");

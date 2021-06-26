@@ -112,9 +112,9 @@ namespace SmartImage.Lib
 				//
 				//                          Filtering
 				//                         /         \
-				//                      true         false
-				//                     /               \
-				//               IsNonPrimitive          [FilteredResults]
+				//                     true           false
+				//                     /                 \
+				//               IsNonPrimitive         [FilteredResults]
 				//                /          \
 				//              true         false
 				//             /               \

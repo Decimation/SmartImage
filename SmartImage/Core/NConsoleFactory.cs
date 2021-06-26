@@ -69,14 +69,8 @@ namespace SmartImage.Core
 
 				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImagesAsync());
 
-
-				//foreach (var otherResult in result.OtherResults) {
-				//	otherResult.FindDirectImagesAsync();
-				//}
-
 				result.PrimaryResult = result.OtherResults.First();
-
-				//result.PrimaryResult.UpdateFrom(result.OtherResults.First());
+				
 
 				cts.Cancel();
 				cts.Dispose();

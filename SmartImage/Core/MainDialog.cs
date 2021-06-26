@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Utilities;
@@ -121,6 +122,7 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 					Program.Config.Notification = !Program.Config.Notification;
+					
 
 					MainMenuOptions[4].Name = GetNotificationName(Program.Config.Notification);
 					SaveAndUpdateConfig();

@@ -14,19 +14,21 @@ namespace SmartImage.Lib.Engines
 	/// </summary>
 	public abstract class BaseSearchEngine
 	{
-		public string BaseUrl { get; }
-
 		protected BaseSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
 			Timeout = TimeSpan.FromSeconds(5);
 		}
 
+		public string BaseUrl { get; }
+
 		public abstract SearchEngineOptions EngineOption { get; }
 
 
 		public virtual string Name => EngineOption.ToString();
 
+
+		public TimeSpan Timeout { get; set; }
 
 		public virtual SearchResult GetResult(ImageQuery query)
 		{
@@ -62,8 +64,6 @@ namespace SmartImage.Lib.Engines
 
 			return await task;
 		}
-
-		public TimeSpan Timeout { get; set; }
 
 		public Uri GetRawResultUrl(ImageQuery query)
 		{
