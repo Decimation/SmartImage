@@ -84,6 +84,34 @@ namespace UnitTest
 			Assert.True(a || b);
 
 
+		}
+
+		[Test]
+		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
+		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg")]
+		public async Task TestIqdb(string art)
+		{
+			var q  = new ImageQuery(art);
+			var i  = new IqdbEngine();
+			var rt = i.GetResultAsync(q);
+			var t  = await rt;
+
+			if (t.Status == ResultStatus.Unavailable) {
+				Assert.Inconclusive();
+			}
+
+			//t.Consolidate();
+
+
+			var a = t.IsNonPrimitive;
+
+
+			var b = t.OtherResults.Any(r =>
+			{
+				return r.DetailScore >= 3 && r.Site!=null;
+			});
+
+			Assert.True(a || b);
 
 
 		}

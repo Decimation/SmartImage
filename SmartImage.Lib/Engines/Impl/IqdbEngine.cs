@@ -123,7 +123,7 @@ namespace SmartImage.Lib.Engines.Impl
 			rq.AddHeader("Content-Type", "multipart/form-data");
 
 			byte[] fileBytes = Array.Empty<byte>();
-			object uri       = string.Empty;
+			object uri       = String.Empty;
 
 			if (query.IsFile) {
 				fileBytes = File.ReadAllBytes(query.Value);

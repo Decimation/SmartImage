@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Dom;
@@ -12,6 +13,7 @@ using AngleSharp.Io;
 using AngleSharp.XPath;
 using Newtonsoft.Json.Linq;
 using SimpleCore.Net;
+using SimpleCore.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
 using MimeType = SimpleCore.Net.MimeType;
 
@@ -97,6 +99,100 @@ namespace SmartImage.Lib.Utilities
 				url,
 				@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
 				RegexOptions.IgnoreCase);
+		}
+
+		/// <summary>
+		/// Break a list of items into chunks of a specific size
+		/// </summary>
+		public static IEnumerable<IEnumerable<T>> Chunk<T>(this IEnumerable<T> source, int chunksize)
+		{
+			while (source.Any()) {
+				yield return source.Take(chunksize);
+				source = source.Skip(chunksize);
+			}
+		}
+
+		public static List<string> FindDirectImagesEx(string url)
+		{
+
+			var rg = new List<string>();
+
+			//<img.*?src="(.*?)"
+			//href\s*=\s*"(.+?)"
+			//var src  = "<img.*?src=\"(.*?)\"";
+			//var href = "href\\s*=\\s*\"(.+?)\"";
+
+			string html;
+
+			try {
+				html = WebUtilities.GetString(url);
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}", C_ERROR);
+				return null;
+			}
+
+			var p = new HtmlParser();
+			var d = p.ParseDocument(html);
+
+			var img = d.QuerySelectorAll("img");
+			var a   = d.QuerySelectorAll("a");
+
+			//Debug.WriteLine($"{img.Length} | {a.Length}");
+
+			//rg.AddRange(img.Select(s=>s.GetAttribute("src")));
+			CancellationTokenSource cts = new CancellationTokenSource();
+
+			var flat = new List<string>();
+
+			flat.AddRange(a.Select(s => s.GetAttribute("href")).ToList());
+			flat.AddRange(img.Select(s => s.GetAttribute("src")));
+			
+			var seg = flat.Chunk(10).ToArray();
+			var trg = new List<Task>();
+			
+
+			for (int i = 0; i < seg.Length; i++) {
+				//ThreadPool.QueueUserWorkItem(GetWorker(v.ToList()), cts.Token);
+				//var t=new Thread(() =>GetWorker(v.ToList()));
+				//t.Priority = ThreadPriority.AboveNormal;
+				//trg.Add(t);
+				//t.Start();
+
+				int i1 = i;
+
+				trg.Add(Task.Factory.StartNew(() =>
+				{
+					Debug.WriteLine("Init");
+
+					foreach (string s in seg[i1]) {
+
+						if (Network.IsUri(s, out var u2) && Network.IsUriAlive(u2, TimeSpan.FromSeconds(1))) {
+
+							var vb = IsDirect2(s);
+
+							if (vb) {
+								rg.Add(s);
+								Debug.WriteLine($">>>{s}");
+							}
+
+
+						}
+					}
+				}));
+
+			}
+
+
+			//var c=ThreadPool.PendingWorkItemCount;
+
+			Task.WaitAll(trg.ToArray());
+			//while (trg.Any(t => !t.IsCompleted)) { } //spin wait
+			//SpinWait.SpinUntil(() => ThreadPool.PendingWorkItemCount == 0);
+			//SpinWait.SpinUntil(() => trg.All(x=>!x.IsAlive));
+
+			return rg;
+
 		}
 
 
