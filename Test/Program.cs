@@ -96,7 +96,6 @@ namespace Test
 			//Console.WriteLine(Strings.ViewString(r2));
 
 
-
 			/*var sw = Stopwatch.StartNew();
 			var t  = ImageHelper.FindDirectImagesAsync("https://www.zerochan.net/2750747");
 			Console.WriteLine("awaiting");
@@ -139,7 +138,7 @@ namespace Test
 			{
 				Console.WriteLine(result);
 			}*/
-			
+
 
 			//var i  = new IqdbEngine();
 			//var i2 = i.GetResultAsync(q);
@@ -153,10 +152,14 @@ namespace Test
 
 			//Console.WriteLine(">> {0}", r2x);
 
-			var t = ImageHelper.FindDirectImagesEx("https://www.zerochan.net/2750747");
+			var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747", out var i);
 
 			foreach (var s in t) {
 				Console.WriteLine(s);
+			}
+
+			foreach (var image in i) {
+				Console.WriteLine(image);
 			}
 		}
 	}

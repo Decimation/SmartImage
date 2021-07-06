@@ -1,21 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using AngleSharp;
-using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
-using AngleSharp.Io;
-using AngleSharp.XPath;
-using Newtonsoft.Json.Linq;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
-using MimeType = SimpleCore.Net.MimeType;
+// ReSharper disable UnusedParameter.Local
+
+// ReSharper disable PossibleMultipleEnumeration
+// ReSharper disable AssignNullToNotNullAttribute
+
+// ReSharper disable LoopCanBeConvertedToQuery
 
 // ReSharper disable InconsistentNaming
 
@@ -79,189 +80,172 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
+
 		/// <summary>
 		/// Determines whether <paramref name="url"/> is a direct image link
 		/// </summary>
 		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
-		public static bool IsDirect(string url) => MediaTypes.IsDirect(url, MimeType.Image);
-
-
-		public static bool IsDirect2(string url)
+		public static bool IsDirect(string url, DirectType directType = DirectType.Regex)
 		{
-			// todo
+			return directType switch
+			{
+				DirectType.Binary => MediaTypes.IsDirect(url, MimeType.Image),
+				DirectType.Regex =>
+					// todo
+					/*
+					 * https://github.com/PactInteractive/image-downloader
+					 */
+					Regex.IsMatch(
+						url,
+						@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
+						RegexOptions.IgnoreCase),
+				_ => throw new ArgumentOutOfRangeException(nameof(directType), directType, null)
+			};
 
-
-			/*
-			 * https://github.com/PactInteractive/image-downloader
-			 */
-
-			return Regex.IsMatch(
-				url,
-				@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
-				RegexOptions.IgnoreCase);
 		}
+
+		public static List<string> FindDirectImages(string url) => FindDirectImages(url, out _);
+
+		public static List<string> FindDirectImages(string url, out List<Image> images) =>
+			FindDirectImages(url, out images, DirectType.Regex, 5, 10, 1, true, null);
 
 		/// <summary>
-		/// Break a list of items into chunks of a specific size
+		/// Scans for direct images within a webpage.
 		/// </summary>
-		public static IEnumerable<IEnumerable<T>> Chunk<T>(this IEnumerable<T> source, int chunksize)
+		/// <param name="url">Url to search</param>
+		/// <param name="images">List of images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
+		/// <param name="directType">Which criterion to use to determine whether a URI is a direct image </param>
+		/// <param name="count">Number of direct images to return</param>
+		/// <param name="fragmentSize">Size of the fragments which a respective task operates on</param>
+		/// <param name="pingTimeSec"></param>
+		/// <param name="readImage">Whether to read image metadata</param>
+		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
+		public static List<string> FindDirectImages(string url, out List<Image> images, DirectType directType,
+		                                            int count, int fragmentSize, double pingTimeSec,
+		                                            bool readImage, Predicate<Image> imageFilter)
 		{
-			while (source.Any()) {
-				yield return source.Take(chunksize);
-				source = source.Skip(chunksize);
-			}
-		}
+			imageFilter ??= (x) => true;
 
-		public static List<string> FindDirectImagesEx(string url)
-		{
+			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
 
-			var rg = new List<string>();
+			images = new List<Image>();
+
+			var directImages = new List<string>();
+
+			// Trace.WriteLine($"{url} | {directType} | {pingTime} | " +
+			//                 $"{fragmentSize} | {readImage} | "      +
+			//                 $"{imageFilter} | {count}");
+
 
 			//<img.*?src="(.*?)"
 			//href\s*=\s*"(.+?)"
 			//var src  = "<img.*?src=\"(.*?)\"";
 			//var href = "href\\s*=\\s*\"(.+?)\"";
 
-			string html;
+
+			IHtmlDocument document;
 
 			try {
-				html = WebUtilities.GetString(url);
+				string html   = WebUtilities.GetString(url);
+				var    parser = new HtmlParser();
+
+				document = parser.ParseDocument(html);
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", C_ERROR);
+				Debug.WriteLine($"{e.Message}");
+
 				return null;
 			}
 
-			var p = new HtmlParser();
-			var d = p.ParseDocument(html);
 
-			var img = d.QuerySelectorAll("img");
-			var a   = d.QuerySelectorAll("a");
-
-			//Debug.WriteLine($"{img.Length} | {a.Length}");
-
-			//rg.AddRange(img.Select(s=>s.GetAttribute("src")));
-			CancellationTokenSource cts = new CancellationTokenSource();
+			var cts = new CancellationTokenSource();
 
 			var flat = new List<string>();
 
-			flat.AddRange(a.Select(s => s.GetAttribute("href")).ToList());
-			flat.AddRange(img.Select(s => s.GetAttribute("src")));
-			
-			var seg = flat.Chunk(10).ToArray();
-			var trg = new List<Task>();
-			
+			flat.AddRange(document.QuerySelectorAttributes("a", "href"));
+			flat.AddRange(document.QuerySelectorAttributes("img", "src"));
 
-			for (int i = 0; i < seg.Length; i++) {
-				//ThreadPool.QueueUserWorkItem(GetWorker(v.ToList()), cts.Token);
-				//var t=new Thread(() =>GetWorker(v.ToList()));
-				//t.Priority = ThreadPriority.AboveNormal;
-				//trg.Add(t);
-				//t.Start();
+			var fragments = flat.Chunk(fragmentSize).ToArray();
 
-				int i1 = i;
+			var tasks = new List<Task>();
 
-				trg.Add(Task.Factory.StartNew(() =>
+			count = Math.Clamp(count, count, flat.Count);
+
+			for (int i = 0; i < fragments.Length; i++) {
+
+				int iCopy = i;
+
+				var imagesCopy = images;
+
+				tasks.Add(Task.Factory.StartNew(() =>
 				{
-					Debug.WriteLine("Init");
 
-					foreach (string s in seg[i1]) {
+					foreach (string currentUrl in fragments[iCopy]) {
+						if (directImages.Count >= count) {
+							return;
+						}
 
-						if (Network.IsUri(s, out var u2) && Network.IsUriAlive(u2, TimeSpan.FromSeconds(1))) {
+						if (Network.IsUri(currentUrl, out var uri)) {
+							if (Network.IsUriAlive(uri, pingTime)) {
 
-							var vb = IsDirect2(s);
+								bool direct = IsDirect(currentUrl, directType);
 
-							if (vb) {
-								rg.Add(s);
-								Debug.WriteLine($">>>{s}");
+								if (direct) {
+									bool isValid = !readImage;
+
+									if (readImage) {
+										var stream = WebUtilities.GetStream(currentUrl);
+
+										if (stream.CanRead) {
+
+											try {
+												var img = Image.FromStream(stream);
+												//isValid = true;
+
+												//Debug.WriteLine($"{img.Width} {img.Height}");
+												isValid = imageFilter(img);
+
+												if (isValid) {
+													imagesCopy.Add(img);
+												}
+											}
+											catch (Exception) {
+												isValid = false;
+											}
+										}
+									}
+
+									if (directImages.Count >= count) {
+										return;
+									}
+
+									if (isValid) {
+										directImages.Add(currentUrl);
+										Debug.WriteLine($">>> {currentUrl}");
+
+									}
+								}
+
+
 							}
-
 
 						}
 					}
-				}));
+				}, cts.Token));
 
 			}
 
+			Task.WaitAll(tasks.ToArray());
 
-			//var c=ThreadPool.PendingWorkItemCount;
-
-			Task.WaitAll(trg.ToArray());
-			//while (trg.Any(t => !t.IsCompleted)) { } //spin wait
-			//SpinWait.SpinUntil(() => ThreadPool.PendingWorkItemCount == 0);
-			//SpinWait.SpinUntil(() => trg.All(x=>!x.IsAlive));
-
-			return rg;
+			return directImages;
 
 		}
+	}
 
-
-		/// <summary>
-		/// Scans for direct image links in <paramref name="url"/>
-		/// </summary>
-		public static async Task<string[]> FindDirectImagesAsync(string url)
-		{
-			var rg = new List<string>();
-
-			//<img.*?src="(.*?)"
-			//href\s*=\s*"(.+?)"
-			//var src  = "<img.*?src=\"(.*?)\"";
-			//var href = "href\\s*=\\s*\"(.+?)\"";
-
-			string html;
-
-			try {
-				html = WebUtilities.GetString(url);
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", C_ERROR);
-				return null;
-			}
-
-			var p = new HtmlParser();
-			var d = p.ParseDocument(html);
-
-			var img = d.QuerySelectorAll("img");
-			var a   = d.QuerySelectorAll("a");
-
-			//Debug.WriteLine($"{img.Length} | {a.Length}");
-
-			//rg.AddRange(img.Select(s=>s.GetAttribute("src")));
-			rg.AddRange(a.Select(s => s.GetAttribute("href")));
-
-
-			/*var matches = Regex.Matches(html, "<a\\s+(?:[^>]*?\\s+)?href=\"([^\"]*)\"");
-
-
-			for (int i = 0; i < matches.Count; i++) {
-				var match  = matches[i];
-				var groups = match.Groups;
-
-				for (int j = 0; j < groups.Count; j++) {
-					var group = groups[j];
-
-					foreach (Capture capture in group.Captures) {
-
-						rg.Add(capture.Value);
-					}
-				}
-			}*/
-
-			var task = Task.Run(() =>
-			{
-
-				string[] results = rg.AsParallel()
-				                     .Where(e => Network.IsUri(e, out var u)
-				                                 && IsDirect2(u == null ? e : u.ToString()))
-				                     .ToArray();
-
-
-				return results;
-			});
-
-
-			return await task;
-		}
+	public enum DirectType
+	{
+		Binary,
+		Regex
 	}
 
 	public enum DisplayResolutionType

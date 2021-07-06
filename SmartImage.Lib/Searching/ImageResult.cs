@@ -186,31 +186,33 @@ namespace SmartImage.Lib.Searching
 			Date        = result.Date;
 
 
-			ReadDirectImageData();
+			UpdateImageData();
 
 		}
 
-		public async void FindDirectImagesAsync()
+		public Image? Image { get; set; }
+
+		public void FindDirectImages()
 		{
 			if (Url is not null && Direct == null) {
 
 				if (ImageHelper.IsDirect(Url.ToString())) {
 					Direct = Url;
-					
+
 				}
 				else {
 					try {
 
-						string[]? directImages = await ImageHelper.FindDirectImagesAsync(Url.ToString());
+						//string[]? directImages = await ImageHelper.FindDirectImagesAsync(Url.ToString());
+						var directImages = ImageHelper.FindDirectImages(Url.ToString(), out var im);
 
-						if (directImages is { }) {
-							string? images = directImages.FirstOrDefault();
+						Image = im.First();
+						string? images = directImages?.FirstOrDefault();
 
-							if (images is { }) {
-								var uri = new Uri(images);
-								Direct = uri;
-								Debug.WriteLine($"{Url} -> {Direct}");
-							}
+						if (images != null) {
+							var uri = new Uri(images);
+							Direct = uri;
+							Debug.WriteLine($"{Url} -> {Direct}");
 						}
 					}
 					catch (Exception e) {
@@ -221,7 +223,7 @@ namespace SmartImage.Lib.Searching
 
 
 				try {
-					ReadDirectImageData();
+					UpdateImageData();
 				}
 				catch (Exception) {
 					// ignored
@@ -230,20 +232,16 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
-		private void ReadDirectImageData()
+		private void UpdateImageData()
 		{
-			if (Direct is { }) {
-				var stream = WebUtilities.GetStream(Direct.ToString());
-				var image  = Image.FromStream(stream);
+			if (Image is { }) {
 
 
-				Width  = image.Width;
-				Height = image.Height;
-
-				byte[] rg = stream.ToByteArray();
-
-				OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
-				OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(stream));
+				Width  = Image.Width;
+				Height = Image.Height;
+				//
+				// OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
+				// OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(rg));
 			}
 		}
 

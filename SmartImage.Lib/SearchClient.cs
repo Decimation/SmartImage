@@ -216,7 +216,7 @@ namespace SmartImage.Lib
 
 			best.AsParallel().ForAll(delegate(ImageResult f)
 			{
-				f.FindDirectImagesAsync();
+				f.FindDirectImages();
 			});
 
 			//foreach (var result in best) {

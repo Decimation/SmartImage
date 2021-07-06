@@ -67,8 +67,13 @@ namespace SmartImage.Core
 
 				NConsoleProgress.Queue(cts);
 
-				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImagesAsync());
+				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
+				//var many = result.OtherResults.Select(x => x.Url).Where(x=>x!=null).ToList();
+
+
+
+				//result.OtherResults.First().FindDirectImages();
 				result.PrimaryResult = result.OtherResults.First();
 				
 
