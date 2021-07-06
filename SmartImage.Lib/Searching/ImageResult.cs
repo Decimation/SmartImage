@@ -232,7 +232,7 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
-		private void UpdateImageData()
+		public void UpdateImageData()
 		{
 			if (Image is { }) {
 

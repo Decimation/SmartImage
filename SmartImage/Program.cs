@@ -30,6 +30,8 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 
+// ReSharper disable AssignNullToNotNullAttribute
+
 // ReSharper disable ConvertSwitchStatementToSwitchExpression
 
 // ReSharper disable UnusedParameter.Local
@@ -53,7 +55,7 @@ namespace SmartImage
 		{
 #if DEBUG
 			if (!args.Any()) {
-				//args = new[] {""};
+				args = new[] {"find-direct", "https://danbooru.donmai.us/posts/3987008"};
 			}
 
 
@@ -105,7 +107,42 @@ namespace SmartImage
 					object? arg = enumerator.Current;
 
 					switch (arg) {
+						case "find-direct":
+							enumerator.MoveNext();
+							var argValue = (string) enumerator.Current;
 
+							var directImages   = ImageHelper.FindDirectImages(argValue, out var im);
+							var imageResults = new List<ImageResult>();
+
+							for (int i = 0; i < directImages.Count; i++) {
+								string directUrl = directImages[i];
+
+								var ir = new ImageResult
+								{
+									Image  = im[i],
+									Url    = new Uri(directUrl),
+									Direct = new Uri(directUrl)
+								};
+
+								ir.UpdateImageData();
+
+								imageResults.Add(ir);
+							}
+
+							int i2 = 0;
+
+							var options = imageResults
+							              .Select(r => NConsoleFactory.Create(r, i2++, MainDialog.ColorOther))
+							              .ToArray();
+
+
+							NConsole.ReadOptions(new NConsoleDialog
+							{
+								Options = options,
+								Description  = MainDialog.Description
+							});
+
+							return;
 						default:
 							Config.Query = args[0];
 							break;
@@ -179,9 +216,8 @@ namespace SmartImage
 
 		public static readonly NConsoleDialog ResultDialog = new()
 		{
-			Options = new List<NConsoleOption>(),
-			Description = "Press the result number to open in browser\n" +
-			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download"
+			Options     = new List<NConsoleOption>(),
+			Description = MainDialog.Description
 		};
 
 		public static readonly SearchConfig Config = new();

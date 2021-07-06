@@ -89,7 +89,7 @@ namespace SmartImage.Core
 			return option;
 		}
 
-		private static NConsoleOption Create(ImageResult result, int i, Color c)
+		public static NConsoleOption Create(ImageResult result, int i, Color c)
 		{
 
 			const float correctionFactor = -.3f;

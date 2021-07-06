@@ -11,6 +11,7 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+
 // ReSharper disable UnusedParameter.Local
 
 // ReSharper disable PossibleMultipleEnumeration
@@ -91,7 +92,6 @@ namespace SmartImage.Lib.Utilities
 			{
 				DirectType.Binary => MediaTypes.IsDirect(url, MimeType.Image),
 				DirectType.Regex =>
-					// todo
 					/*
 					 * https://github.com/PactInteractive/image-downloader
 					 */
@@ -136,13 +136,6 @@ namespace SmartImage.Lib.Utilities
 			//                 $"{fragmentSize} | {readImage} | "      +
 			//                 $"{imageFilter} | {count}");
 
-
-			//<img.*?src="(.*?)"
-			//href\s*=\s*"(.+?)"
-			//var src  = "<img.*?src=\"(.*?)\"";
-			//var href = "href\\s*=\\s*\"(.+?)\"";
-
-
 			IHtmlDocument document;
 
 			try {
@@ -164,6 +157,8 @@ namespace SmartImage.Lib.Utilities
 
 			flat.AddRange(document.QuerySelectorAttributes("a", "href"));
 			flat.AddRange(document.QuerySelectorAttributes("img", "src"));
+
+			flat = flat.Distinct().ToList();
 
 			var fragments = flat.Chunk(fragmentSize).ToArray();
 

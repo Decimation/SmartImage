@@ -27,14 +27,17 @@ namespace SmartImage.Core
 	{
 		#region Colors
 
-		private static readonly Color ColorMain  = Color.Yellow;
-		private static readonly Color ColorOther = Color.Aquamarine;
-		private static readonly Color ColorYes   = Color.GreenYellow;
-		private static readonly Color ColorNo    = Color.Red;
+		internal static readonly Color ColorMain  = Color.Yellow;
+		internal static readonly Color ColorOther = Color.Aquamarine;
+		internal static readonly Color ColorYes   = Color.GreenYellow;
+		internal static readonly Color ColorNo    = Color.Red;
 
 		#endregion
 
 		#region Elements
+
+		public const string Description = "Press the result number to open in browser\n" +
+		                                     "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download";
 
 		private static readonly string Enabled = StringConstants.CHECK_MARK.ToString().AddColor(ColorYes);
 
