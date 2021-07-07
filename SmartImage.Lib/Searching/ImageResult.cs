@@ -202,7 +202,7 @@ namespace SmartImage.Lib.Searching
 				}
 				else {
 					try {
-						
+
 						var directImages = ImageHelper.FindDirectImages(Url.ToString(), out var images);
 
 						string? direct = directImages?.FirstOrDefault();
@@ -214,8 +214,8 @@ namespace SmartImage.Lib.Searching
 
 						}
 					}
-					catch (Exception e) {
-						Debug.WriteLine(e);
+					catch {
+						//
 					}
 				}
 

@@ -18,7 +18,7 @@ using static SimpleCore.Diagnostics.LogCategories;
 
 namespace SmartImage.Core
 {
-	internal enum IntegrationOption
+	public enum IntegrationOption
 	{
 		Add,
 		Remove
@@ -27,7 +27,7 @@ namespace SmartImage.Core
 	/// <summary>
 	/// Program OS integrations
 	/// </summary>
-	internal static class AppIntegration
+	public static class AppIntegration
 	{
 		/*
 		 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
@@ -37,7 +37,7 @@ namespace SmartImage.Core
 
 
 		/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
-		internal static bool HandleContextMenu(IntegrationOption option)
+		public static bool HandleContextMenu(IntegrationOption option)
 		{
 			/*
 			 * New context menu
@@ -103,7 +103,7 @@ namespace SmartImage.Core
 
 		}
 
-		internal static void HandlePath(IntegrationOption option)
+		public static void HandlePath(IntegrationOption option)
 		{
 			switch (option) {
 				case IntegrationOption.Add:
@@ -138,7 +138,7 @@ namespace SmartImage.Core
 		}
 
 
-		internal static void ResetIntegrations()
+		public static void ResetIntegrations()
 		{
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
@@ -150,7 +150,7 @@ namespace SmartImage.Core
 		}
 
 		[DoesNotReturn]
-		internal static void Uninstall()
+		public static void Uninstall()
 		{
 			// autonomous uninstall routine
 
@@ -185,7 +185,7 @@ namespace SmartImage.Core
 
 		private const string REG_SHELL_CMD = "SOFTWARE\\Classes\\*\\shell\\SmartImage\\command";
 
-		internal static bool IsContextMenuAdded
+		public static bool IsContextMenuAdded
 		{
 			get
 			{

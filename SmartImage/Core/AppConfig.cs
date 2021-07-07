@@ -10,7 +10,7 @@ using SmartImage.Lib.Engines;
 
 namespace SmartImage.Core
 {
-	public static class LocalConfig
+	public static class AppConfig
 	{
 		public static string ConfigFile
 		{

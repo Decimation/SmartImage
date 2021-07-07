@@ -82,6 +82,11 @@ namespace SmartImage.Lib.Utilities
 		}
 
 
+		/*
+		 * Direct images are URIs that point to a binary image file
+		 */
+
+
 		/// <summary>
 		/// Determines whether <paramref name="url"/> is a direct image link
 		/// </summary>
@@ -133,10 +138,7 @@ namespace SmartImage.Lib.Utilities
 			images = new List<Image>();
 
 			var directImages = new List<string>();
-
-			// Trace.WriteLine($"{url} | {directType} | {pingTime} | " +
-			//                 $"{fragmentSize} | {readImage} | "      +
-			//                 $"{imageFilter} | {count}");
+			
 
 			IHtmlDocument document;
 

@@ -263,7 +263,7 @@ namespace SmartImage.Core
 		private static void UpdateConfig()
 		{
 			Program.Client.Reload();
-			LocalConfig.SaveConfigFile();
+			AppConfig.SaveConfigFile();
 		}
 
 		private static TEnum ReadEnum<TEnum>() where TEnum : Enum

@@ -98,7 +98,7 @@ namespace SmartImage
 
 			// Update
 
-			LocalConfig.ReadConfigFile();
+			AppConfig.ReadConfigFile();
 
 			if (!args.Any()) {
 				var options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
