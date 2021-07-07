@@ -43,10 +43,10 @@ namespace Test
 
 
 			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
-			var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
+			//var q = new ImageQuery("https://i.imgur.com/QtCausw.jpg");
 			//var q = new ImageQuery("https://litter.catbox.moe/5yr86t.jpg");
 			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
-
+			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Small3.jpg");
 			//var cfg = new SearchConfig
 			//	{Query = q, SearchEngines = SearchEngineOptions.All};
 
@@ -72,17 +72,26 @@ namespace Test
 			//await r;
 
 
-			//var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All };
+			var cfg = new SearchConfig { Query = q, SearchEngines = SearchEngineOptions.All };
 
-			//var cl = new SearchClient(cfg);
+			var cl = new SearchClient(cfg);
 
-			////cl.ResultCompleted += OnResult;
-			//var r = cl.RunSearchAsync();
-			//await r;
+			//cl.ResultCompleted += OnResult;
+			var r = cl.RunSearchAsync();
+			await r;
 
-			//foreach (var result in cl.Results) {
-			//	Console.WriteLine(result);
-			//}
+			foreach (var result in cl.Results)
+			{
+				Console.WriteLine(result);
+			}
+
+			var r2=cl.RefineSearchAsync();
+			await r2;
+			Console.WriteLine();
+			foreach (var result in cl.Results)
+			{
+				Console.WriteLine(result);
+			}
 
 			//var sw = Stopwatch.StartNew();
 			//var i  = new SauceNaoEngine() {};
@@ -152,15 +161,17 @@ namespace Test
 
 			//Console.WriteLine(">> {0}", r2x);
 
-			var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747", out var i);
+			// var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747", out var i);
+			//
+			// foreach (var s in t) {
+			// 	Console.WriteLine(s);
+			// }
+			//
+			// foreach (var image in i) {
+			// 	Console.WriteLine(image);
+			// }
 
-			foreach (var s in t) {
-				Console.WriteLine(s);
-			}
 
-			foreach (var image in i) {
-				Console.WriteLine(image);
-			}
 		}
 	}
 }

@@ -86,12 +86,12 @@ namespace SmartImage.Lib.Utilities
 		/// Determines whether <paramref name="url"/> is a direct image link
 		/// </summary>
 		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
-		public static bool IsDirect(string url, DirectType directType = DirectType.Regex)
+		public static bool IsDirect(string url, DirectImageType directType = DirectImageType.Regex)
 		{
 			return directType switch
 			{
-				DirectType.Binary => MediaTypes.IsDirect(url, MimeType.Image),
-				DirectType.Regex =>
+				DirectImageType.Binary => MediaTypes.IsDirect(url, MimeType.Image),
+				DirectImageType.Regex =>
 					/*
 					 * https://github.com/PactInteractive/image-downloader
 					 */
@@ -107,7 +107,7 @@ namespace SmartImage.Lib.Utilities
 		public static List<string> FindDirectImages(string url) => FindDirectImages(url, out _);
 
 		public static List<string> FindDirectImages(string url, out List<Image> images) =>
-			FindDirectImages(url, out images, DirectType.Regex, 5, 10, 1, true, null);
+			FindDirectImages(url, out images, DirectImageType.Regex, 5, 10, 1, true, null);
 
 		/// <summary>
 		/// Scans for direct images within a webpage.
@@ -120,10 +120,12 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="pingTimeSec"></param>
 		/// <param name="readImage">Whether to read image metadata</param>
 		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
-		public static List<string> FindDirectImages(string url, out List<Image> images, DirectType directType,
+		public static List<string> FindDirectImages(string url, out List<Image> images, DirectImageType directType,
 		                                            int count, int fragmentSize, double pingTimeSec,
 		                                            bool readImage, Predicate<Image> imageFilter)
 		{
+			
+
 			imageFilter ??= (x) => true;
 
 			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
@@ -164,7 +166,7 @@ namespace SmartImage.Lib.Utilities
 
 			var tasks = new List<Task>();
 
-			count = Math.Clamp(count, count, flat.Count);
+			//count = Math.Clamp(count, count, flat.Count);
 
 			for (int i = 0; i < fragments.Length; i++) {
 
@@ -216,7 +218,7 @@ namespace SmartImage.Lib.Utilities
 
 									if (isValid) {
 										directImages.Add(currentUrl);
-										Debug.WriteLine($">>> {currentUrl}");
+										//Debug.WriteLine($">>> {currentUrl}");
 
 									}
 								}
@@ -237,7 +239,7 @@ namespace SmartImage.Lib.Utilities
 		}
 	}
 
-	public enum DirectType
+	public enum DirectImageType
 	{
 		Binary,
 		Regex

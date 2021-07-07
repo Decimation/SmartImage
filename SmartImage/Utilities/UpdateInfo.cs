@@ -37,7 +37,7 @@ namespace SmartImage.Utilities
 			const string UPDATE_BAT = "SmartImage_Updater.bat";
 
 
-			var destNew = Path.Combine(Info.AppFolder, NEW_EXE);
+			var destNew = Path.Combine(AppInfo.AppFolder, NEW_EXE);
 			var wc      = new WebClient();
 
 			Console.WriteLine("Downloading...");
@@ -45,7 +45,7 @@ namespace SmartImage.Utilities
 			wc.DownloadFile(ui.Latest.AssetUrl, destNew);
 
 
-			string exeFileName = Info.ExeLocation;
+			string exeFileName = AppInfo.ExeLocation;
 
 			//const string WAIT_4_SEC = "ping 127.0.0.1 > nul";
 
@@ -69,7 +69,7 @@ namespace SmartImage.Utilities
 				//WAIT_4_SEC,
 
 				/* Open the new SmartImage version */
-				$"start /d \"{Info.AppFolder}\" {Info.NAME_EXE}",
+				$"start /d \"{AppInfo.AppFolder}\" {AppInfo.NAME_EXE}",
 
 				/* Delete this batch file */
 				"echo y | del " + UPDATE_BAT,
@@ -111,7 +111,7 @@ namespace SmartImage.Utilities
 
 		public static UpdateInfo GetUpdateInfo()
 		{
-			var currentVersion = Info.Version;
+			var currentVersion = AppInfo.Version;
 
 			var release = ReleaseInfo.GetLatestRelease();
 

@@ -29,6 +29,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
+// ReSharper disable SuggestVarOrType_BuiltInTypes
 
 // ReSharper disable AssignNullToNotNullAttribute
 
@@ -48,6 +49,16 @@ namespace SmartImage
 		//                                                     |___/
 
 
+		public static readonly SearchConfig Config = new();
+
+		public static readonly SearchClient Client = new(Config);
+
+		public static readonly NConsoleDialog ResultDialog = new()
+		{
+			Options     = new List<NConsoleOption>(),
+			Description = AppInterface.Description
+		};
+
 		/// <summary>
 		/// Entry point
 		/// </summary>
@@ -55,7 +66,7 @@ namespace SmartImage
 		{
 #if DEBUG
 			if (!args.Any()) {
-				args = new[] {"find-direct", "https://danbooru.donmai.us/posts/3987008"};
+				//args = new[] {"find-direct", "https://danbooru.donmai.us/posts/3987008"};
 			}
 
 
@@ -69,7 +80,7 @@ namespace SmartImage
 			Native.SetConsoleOutputCP(Native.CP_WIN32_UNITED_STATES);
 
 
-			Console.Title = $"{Info.NAME}";
+			Console.Title = $"{AppInfo.NAME}";
 
 			NConsole.Init();
 			Console.Clear();
@@ -87,10 +98,10 @@ namespace SmartImage
 
 			// Update
 
-			ReadConfigFile();
+			LocalConfig.ReadConfigFile();
 
 			if (!args.Any()) {
-				var options = NConsole.ReadOptions(MainDialog.MainMenuDialog);
+				var options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
 
 
 				if (!options.Any()) {
@@ -111,7 +122,7 @@ namespace SmartImage
 							enumerator.MoveNext();
 							var argValue = (string) enumerator.Current;
 
-							var directImages   = ImageHelper.FindDirectImages(argValue, out var im);
+							var directImages = ImageHelper.FindDirectImages(argValue, out var images);
 							var imageResults = new List<ImageResult>();
 
 							for (int i = 0; i < directImages.Count; i++) {
@@ -119,7 +130,7 @@ namespace SmartImage
 
 								var ir = new ImageResult
 								{
-									Image  = im[i],
+									Image  = images[i],
 									Url    = new Uri(directUrl),
 									Direct = new Uri(directUrl)
 								};
@@ -129,17 +140,16 @@ namespace SmartImage
 								imageResults.Add(ir);
 							}
 
-							int i2 = 0;
 
 							var options = imageResults
-							              .Select(r => NConsoleFactory.Create(r, i2++, MainDialog.ColorOther))
+							              .Select(r => AppInterface.CreateOption(r, $"Image", AppInterface.ColorOther))
 							              .ToArray();
 
 
 							NConsole.ReadOptions(new NConsoleDialog
 							{
-								Options = options,
-								Description  = MainDialog.Description
+								Options     = options,
+								Description = AppInterface.Description
 							});
 
 							return;
@@ -161,14 +171,14 @@ namespace SmartImage
 
 				Client.SearchCompleted += (sender, eventArgs) =>
 				{
-					NativeUI.FlashConsoleWindow();
+					AppInterface.FlashConsoleWindow();
 					//SystemSounds.Exclamation.Play();
 
 					cts.Cancel();
 					cts.Dispose();
 
 					if (Config.Notification) {
-						ShowToast();
+						AppInterface.ShowToast();
 					}
 				};
 
@@ -195,7 +205,7 @@ namespace SmartImage
 		{
 			var result = eventArgs.Result;
 
-			var option = NConsoleFactory.Create(result);
+			var option = AppInterface.CreateOption(result);
 
 			bool? isFiltered = eventArgs.IsFiltered;
 
@@ -212,153 +222,6 @@ namespace SmartImage
 			                      $"| Filtering: {Config.Filtering.ToToggleString()}";
 
 			NConsole.Refresh();
-		}
-
-		public static readonly NConsoleDialog ResultDialog = new()
-		{
-			Options     = new List<NConsoleOption>(),
-			Description = MainDialog.Description
-		};
-
-		public static readonly SearchConfig Config = new();
-
-		public static readonly SearchClient Client = new(Config);
-
-		public static string ConfigFile
-		{
-			get
-			{
-				string file = Path.Combine(Info.AppFolder, Info.NAME_CFG);
-
-				if (!File.Exists(file)) {
-					var f = File.Create(file);
-					f.Close();
-				}
-
-				return file;
-			}
-		}
-
-		private const string K_ENGINES            = "engines";
-		private const string K_PRIORITY_ENGINES   = "priority-engines";
-		private const string K_FILTER             = "filter";
-		private const string K_NOTIFICATION       = "notification";
-		private const string K_NOTIFICATION_IMAGE = "notification-image";
-
-		public static void ReadConfigFile()
-		{
-			var map = Collections.ReadDictionary(ConfigFile);
-
-
-			foreach (var (key, value) in ConfigMap) {
-				if (!map.ContainsKey(key)) {
-					map.Add(key, value);
-				}
-			}
-
-			Config.SearchEngines     = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
-			Config.PriorityEngines   = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
-			Config.Filtering         = Boolean.Parse(map[K_FILTER]);
-			Config.Notification      = Boolean.Parse(map[K_NOTIFICATION]);
-			Config.NotificationImage = Boolean.Parse(map[K_NOTIFICATION_IMAGE]);
-
-			SaveConfigFile();
-
-			Client.Reload();
-
-			Debug.WriteLine($"Updated config from {ConfigFile}");
-		}
-
-		public static Dictionary<string, string> ConfigMap
-		{
-			get
-			{
-				var map = new Dictionary<string, string>()
-				{
-					{K_ENGINES, Config.SearchEngines.ToString()},
-					{K_PRIORITY_ENGINES, Config.PriorityEngines.ToString()},
-					{K_FILTER, Config.Filtering.ToString()},
-					{K_NOTIFICATION, Config.Notification.ToString()},
-					{K_NOTIFICATION_IMAGE, Config.NotificationImage.ToString()},
-				};
-				return map;
-			}
-		}
-
-		public static void SaveConfigFile()
-		{
-			var map = ConfigMap;
-
-			Collections.WriteDictionary(map, ConfigFile);
-
-			Debug.WriteLine($"Saved to {ConfigFile}");
-		}
-
-		public static void ShowToast()
-		{
-			var button = new ToastButton();
-
-			button.SetContent("Open")
-			      .AddArgument("action", "open");
-
-			var button2 = new ToastButton();
-
-			button2.SetContent("Dismiss")
-			       .AddArgument("action", "dismiss");
-
-			var builder = new ToastContentBuilder();
-
-			var bestResult = Client.FindBestResult();
-
-			builder.AddButton(button)
-			       .AddButton(button2)
-			       .AddText("Search complete")
-			       .AddText($"{bestResult}")
-			       .AddText($"Results: {Client.Results.Count}");
-
-			if (Config.NotificationImage) {
-				Debug.WriteLine("Finding direct");
-				var direct = Client.FindDirectResult();
-				Debug.WriteLine(direct);
-
-
-				if (direct is {Direct: { }}) {
-					Debug.WriteLine($"Downloading {direct}");
-					string file = WebUtilities.Download(direct.Direct.ToString(), Path.GetTempPath());
-					Debug.WriteLine($"{file}");
-					builder.AddHeroImage(new Uri(file));
-					//File.Delete(s);
-
-					AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
-					{
-						File.Delete(file);
-					};
-				}
-			}
-
-
-			ToastNotificationManagerCompat.OnActivated += compat =>
-			{
-				// Obtain the arguments from the notification
-				ToastArguments args = ToastArguments.Parse(compat.Argument);
-
-				foreach (var argument in args) {
-					Debug.WriteLine($">>> {argument}");
-
-					if (argument.Key == "action" && argument.Value == "open") {
-						//Client.Results.Sort();
-
-
-						if (bestResult is {Url: { }}) {
-							WebUtilities.OpenUrl(bestResult.Url.ToString());
-						}
-					}
-				}
-			};
-
-			builder.Show();
-
-			//ToastNotificationManager.CreateToastNotifier();
 		}
 	}
 }

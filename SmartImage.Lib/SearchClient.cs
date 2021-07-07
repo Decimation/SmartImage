@@ -15,6 +15,8 @@ using SimpleCore.Utilities;
 using SmartImage.Lib.Upload;
 using static SimpleCore.Diagnostics.LogCategories;
 
+// ReSharper disable LoopCanBeConvertedToQuery
+
 // ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Lib
@@ -114,7 +116,7 @@ namespace SmartImage.Lib
 				//                         /         \
 				//                     true           false
 				//                     /                 \
-				//               IsNonPrimitive         [FilteredResults]
+				//               IsNonPrimitive         [Results]
 				//                /          \
 				//              true         false
 				//             /               \
@@ -143,8 +145,6 @@ namespace SmartImage.Lib
 					IsFiltered = isFiltered,
 					IsPriority = isPriority
 				});
-
-				//!(Config.Filter && !value.IsNonPrimitive)
 
 
 				IsComplete = !tasks.Any();
@@ -178,7 +178,7 @@ namespace SmartImage.Lib
 				throw new SmartImageException(ERR_NO_BEST_RESULT);
 			}
 
-			var uri = best.Url;
+			var uri = best.Direct;
 
 			Debug.WriteLine($"Refining by {uri}");
 
@@ -211,26 +211,33 @@ namespace SmartImage.Lib
 
 		public ImageResult[] FindDirectResults()
 		{
+
 			var best = FindBestResults();
 
+			const int FRAG_SIZE = 10;
 
-			best.AsParallel().ForAll(delegate(ImageResult f)
-			{
-				f.FindDirectImages();
-			});
+			var frag = best.Chunk(FRAG_SIZE).ToList();
 
-			//foreach (var result in best) {
-			//	result.FindDirectImagesAsync();
-			//}
+			var tasks = new List<Task>();
+
+			for (int i = 0; i < frag.Count; i++) {
+				int iCopy = i;
+
+				tasks.Add(Task.Factory.StartNew(() =>
+				{
+					foreach (var result in frag[iCopy]) {
+						result.FindDirectImages();
+					}
+				}));
+			}
 
 
-			best = best.Where(f => f.Direct != null).ToArray();
+			Task.WaitAll(tasks.ToArray());
 
-			//best = best
-			//       .AsParallel()
-			//       .Where(r => ImageHelper.IsDirect(r.Url.ToString()))
-			//       .Take(n).ToArray();
-
+			best = best.Where(x => x.Direct != null)
+			           .OrderByDescending(r => r.Similarity)
+			           .ThenByDescending(i => i.PixelResolution)
+			           .ToArray();
 
 			return best;
 		}

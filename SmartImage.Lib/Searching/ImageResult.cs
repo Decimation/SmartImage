@@ -117,6 +117,8 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public Dictionary<string, object> OtherMetadata { get; }
 
+		public Image? Image { get; set; }
+
 		public ImageResult()
 		{
 			OtherMetadata = new Dictionary<string, object>();
@@ -190,8 +192,6 @@ namespace SmartImage.Lib.Searching
 
 		}
 
-		public Image? Image { get; set; }
-
 		public void FindDirectImages()
 		{
 			if (Url is not null && Direct == null) {
@@ -202,32 +202,25 @@ namespace SmartImage.Lib.Searching
 				}
 				else {
 					try {
+						
+						var directImages = ImageHelper.FindDirectImages(Url.ToString(), out var images);
 
-						//string[]? directImages = await ImageHelper.FindDirectImagesAsync(Url.ToString());
-						var directImages = ImageHelper.FindDirectImages(Url.ToString(), out var im);
+						string? direct = directImages?.FirstOrDefault();
 
-						Image = im.First();
-						string? images = directImages?.FirstOrDefault();
+						if (direct != null) {
+							Direct = new Uri(direct);
+							Image  = images.First();
+							//Debug.WriteLine($"{Url} -> {Direct}");
 
-						if (images != null) {
-							var uri = new Uri(images);
-							Direct = uri;
-							Debug.WriteLine($"{Url} -> {Direct}");
 						}
 					}
 					catch (Exception e) {
 						Debug.WriteLine(e);
-
 					}
 				}
 
 
-				try {
-					UpdateImageData();
-				}
-				catch (Exception) {
-					// ignored
-				}
+				UpdateImageData();
 
 			}
 		}
@@ -239,6 +232,7 @@ namespace SmartImage.Lib.Searching
 
 				Width  = Image.Width;
 				Height = Image.Height;
+
 				//
 				// OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
 				// OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(rg));

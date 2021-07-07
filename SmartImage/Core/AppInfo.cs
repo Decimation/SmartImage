@@ -28,7 +28,7 @@ namespace SmartImage.Core
 	/// <summary>
 	/// Program runtime information
 	/// </summary>
-	public static class Info
+	public static class AppInfo
 	{
 		/// <summary>
 		/// Name in ASCII art
@@ -69,7 +69,7 @@ namespace SmartImage.Core
 
 		public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
-		public static Version Version => typeof(Info).Assembly.GetName().Version!;
+		public static Version Version => typeof(AppInfo).Assembly.GetName().Version!;
 
 		public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
@@ -100,8 +100,8 @@ namespace SmartImage.Core
 				throw new NotSupportedException();
 			}
 
-			if (!Info.IsAppFolderInPath) {
-				OSIntegration.HandlePath(IntegrationOption.Add);
+			if (!AppInfo.IsAppFolderInPath) {
+				AppIntegration.HandlePath(IntegrationOption.Add);
 			}
 
 			var languages = Windows.System.UserProfile.GlobalizationPreferences.Languages;

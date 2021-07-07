@@ -27,7 +27,7 @@ namespace SmartImage.Core
 	/// <summary>
 	/// Program OS integrations
 	/// </summary>
-	internal static class OSIntegration
+	internal static class AppIntegration
 	{
 		/*
 		 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
@@ -49,11 +49,11 @@ namespace SmartImage.Core
 					RegistryKey regMenu = null;
 					RegistryKey regCmd  = null;
 
-					string fullPath = Info.ExeLocation;
+					string fullPath = AppInfo.ExeLocation;
 
 					try {
 						regMenu = Registry.CurrentUser.CreateSubKey(REG_SHELL);
-						regMenu?.SetValue(String.Empty, Info.NAME);
+						regMenu?.SetValue(String.Empty, AppInfo.NAME);
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
 						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
@@ -109,9 +109,9 @@ namespace SmartImage.Core
 				case IntegrationOption.Add:
 				{
 					string oldValue  = FileSystem.EnvironmentPath;
-					string appFolder = Info.AppFolder;
+					string appFolder = AppInfo.AppFolder;
 
-					if (Info.IsAppFolderInPath) {
+					if (AppInfo.IsAppFolderInPath) {
 						return;
 					}
 
@@ -120,7 +120,7 @@ namespace SmartImage.Core
 					                       .Any(p => p == appFolder);
 
 					string cd  = Environment.CurrentDirectory;
-					string exe = Path.Combine(cd, Info.NAME_EXE);
+					string exe = Path.Combine(cd, AppInfo.NAME_EXE);
 
 					if (!appFolderInPath) {
 						string newValue = oldValue + FileSystem.PATH_DELIM + cd;
@@ -130,7 +130,7 @@ namespace SmartImage.Core
 					break;
 				}
 				case IntegrationOption.Remove:
-					FileSystem.RemoveFromPath(Info.AppFolder);
+					FileSystem.RemoveFromPath(AppInfo.AppFolder);
 					break;
 				default:
 					throw new ArgumentOutOfRangeException(nameof(option), option, null);
@@ -156,7 +156,7 @@ namespace SmartImage.Core
 
 			// self destruct
 
-			string exeFileName = Info.ExeLocation;
+			string exeFileName = AppInfo.ExeLocation;
 
 			const string DEL_BAT_NAME = "SmartImage_Delete.bat";
 
