@@ -29,6 +29,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
+
 // ReSharper disable SuggestVarOrType_BuiltInTypes
 
 // ReSharper disable AssignNullToNotNullAttribute
@@ -48,7 +49,9 @@ namespace SmartImage
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
 
+		#region Core fields
 
+		
 		public static readonly SearchConfig Config = new();
 
 		public static readonly SearchClient Client = new(Config);
@@ -59,6 +62,8 @@ namespace SmartImage
 			Description = AppInterface.Description
 		};
 
+		#endregion
+
 		/// <summary>
 		/// Entry point
 		/// </summary>
@@ -66,11 +71,13 @@ namespace SmartImage
 		{
 #if DEBUG
 			if (!args.Any()) {
-				//args = new[] {"find-direct", "https://danbooru.donmai.us/posts/3987008"};
+				args = new string[] { };
+
 			}
 
 
 #endif
+
 
 			/*
 			 * Setup
@@ -118,7 +125,7 @@ namespace SmartImage
 					object? arg = enumerator.Current;
 
 					switch (arg) {
-						case "find-direct":
+						case CMD_FIND_DIRECT:
 							enumerator.MoveNext();
 							var argValue = (string) enumerator.Current;
 
@@ -153,9 +160,11 @@ namespace SmartImage
 							});
 
 							return;
-						default:
+						case CMD_SEARCH:
 							Config.Query = args[0];
 							break;
+						default:
+							goto case CMD_SEARCH;
 					}
 				}
 			}
@@ -223,5 +232,13 @@ namespace SmartImage
 
 			NConsole.Refresh();
 		}
+
+		#region Commands
+
+		private const string CMD_FIND_DIRECT = "find-direct";
+
+		private const string CMD_SEARCH = "search";
+
+		#endregion
 	}
 }
