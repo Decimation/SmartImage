@@ -115,7 +115,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private IEnumerable<SauceNaoDataResult> GetHTMLResults(ImageQuery query)
 		{
-			Trace.WriteLine($"{Name} | Parsing HTML");
+			Trace.WriteLine($"{Name}: | Parsing HTML", LogCategories.C_INFO);
 
 			var docp = new HtmlParser();
 

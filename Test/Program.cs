@@ -13,6 +13,9 @@ using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Engines.Impl.Other;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+#pragma warning disable IDE0079
+#pragma warning disable CS0168
+#pragma warning disable IDE0060
 
 namespace Test
 {

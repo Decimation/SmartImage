@@ -4,6 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
+    <Configurations>Debug;Release;TestDebug</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,5 +32,8 @@
       <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
-
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
+    <NoWarn>CA1416</NoWarn>
+  </PropertyGroup>
 </Project>

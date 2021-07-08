@@ -12,18 +12,22 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using JetBrains.Annotations;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Net;
 using SmartImage.Lib;
 using SmartImage.Utilities;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable PossibleNullReferenceException
 #pragma warning disable CA1069
+#pragma warning disable CA2101
+
 namespace SmartImage.Core
 {
 	/// <summary>
@@ -43,7 +47,7 @@ namespace SmartImage.Core
 		#region Elements
 
 		public const string Description = "Press the result number to open in browser\n" +
-		                                     "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download";
+		                                  "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download";
 
 		private static readonly string Enabled = StringConstants.CHECK_MARK.ToString().AddColor(ColorYes);
 
@@ -131,7 +135,7 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 					Program.Config.Notification = !Program.Config.Notification;
-					
+
 
 					MainMenuOptions[4].Name = GetNotificationName(Program.Config.Notification);
 					UpdateConfig();
@@ -304,9 +308,9 @@ namespace SmartImage.Core
 			       .AddText($"Results: {Program.Client.Results.Count}");
 
 			if (Program.Config.NotificationImage) {
-				
+
 				var direct = Program.Client.FindDirectResult();
-				
+
 				Debug.WriteLine(direct);
 
 
@@ -315,7 +319,7 @@ namespace SmartImage.Core
 					string file = WebUtilities.Download(direct.Direct.ToString(), Path.GetTempPath());
 					Debug.WriteLine($"Downloaded {file} tmp");
 					builder.AddHeroImage(new Uri(file));
-					
+
 
 					AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 					{
@@ -363,10 +367,8 @@ namespace SmartImage.Core
 				{
 					if (result.OtherResults.Any()) {
 
-						int i = 0;
 
-						var options = result.OtherResults
-						                    .Select(r => CreateOption(r, $"Other result #{i++}", color)).ToArray();
+						var options = CreateOptions(result.OtherResults, $"Other result");
 
 
 						NConsole.ReadOptions(new NConsoleDialog
@@ -394,9 +396,9 @@ namespace SmartImage.Core
 				NConsoleProgress.Queue(cts);
 
 				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
-				
+
 				result.PrimaryResult = result.OtherResults.First();
-				
+
 
 				cts.Cancel();
 				cts.Dispose();
@@ -410,7 +412,18 @@ namespace SmartImage.Core
 			return option;
 		}
 
-		public static NConsoleOption CreateOption(ImageResult result, string n, Color c)
+		[StringFormatMethod("n")]
+		public static NConsoleOption[] CreateOptions(IEnumerable<ImageResult> result, string n, Color c = default)
+		{
+			if (c == default) {
+				c = ColorOther;
+			}
+
+			int i = 0;
+			return result.Select(r => CreateOption(r, $"{n} #{i++}", c)).ToArray();
+		}
+
+		private static NConsoleOption CreateOption(ImageResult result, string n, Color c)
 		{
 
 			const float CORRECTION_FACTOR = -.3f;
@@ -454,6 +467,8 @@ namespace SmartImage.Core
 			};
 		}
 
+		
+
 		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
 		{
 			{SearchEngineOptions.Iqdb, Color.Pink},
@@ -470,7 +485,6 @@ namespace SmartImage.Core
 		};
 
 		#region Native
-
 
 		/*
 		/// <summary>Returns true if the current application has focus, false otherwise</summary>
@@ -531,11 +545,11 @@ namespace SmartImage.Core
 	[StructLayout(LayoutKind.Sequential)]
 	internal struct FLASHWINFO
 	{
-		public uint cbSize;
-		public IntPtr hwnd;
+		public uint            cbSize;
+		public IntPtr          hwnd;
 		public FlashWindowType dwFlags;
-		public uint uCount;
-		public int dwTimeout;
+		public uint            uCount;
+		public int             dwTimeout;
 	}
 
 	internal enum FlashWindowType : uint

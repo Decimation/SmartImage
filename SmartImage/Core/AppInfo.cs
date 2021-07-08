@@ -100,7 +100,7 @@ namespace SmartImage.Core
 				throw new NotSupportedException();
 			}
 
-			if (!AppInfo.IsAppFolderInPath) {
+			if (!IsAppFolderInPath) {
 				AppIntegration.HandlePath(IntegrationOption.Add);
 			}
 

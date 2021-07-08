@@ -109,36 +109,33 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
-		public static List<string> FindDirectImages(string url) => FindDirectImages(url, out _);
 
-		public static List<string> FindDirectImages(string url, out List<Image> images) =>
-			FindDirectImages(url, out images, DirectImageType.Regex, 5, 10, 1, true, null);
+		public static List<DirectImage> FindDirectImages(string url) =>
+			FindDirectImages(url, DirectImageType.Regex, 5, 10, 1, true, null);
 
 		/// <summary>
 		/// Scans for direct images within a webpage.
 		/// </summary>
 		/// <param name="url">Url to search</param>
-		/// <param name="images">List of images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
 		/// <param name="directType">Which criterion to use to determine whether a URI is a direct image </param>
 		/// <param name="count">Number of direct images to return</param>
 		/// <param name="fragmentSize">Size of the fragments which a respective task operates on</param>
 		/// <param name="pingTimeSec"></param>
 		/// <param name="readImage">Whether to read image metadata</param>
 		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
-		public static List<string> FindDirectImages(string url, out List<Image> images, DirectImageType directType,
-		                                            int count, int fragmentSize, double pingTimeSec,
-		                                            bool readImage, Predicate<Image> imageFilter)
+		public static List<DirectImage> FindDirectImages(string url, DirectImageType directType,
+		                                                 int count, int fragmentSize, double pingTimeSec,
+		                                                 bool readImage, Predicate<Image> imageFilter)
 		{
-			
+
 
 			imageFilter ??= (x) => true;
 
 			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
 
-			images = new List<Image>();
 
-			var directImages = new List<string>();
-			
+			var directImages = new List<DirectImage>();
+
 
 			IHtmlDocument document;
 
@@ -174,59 +171,63 @@ namespace SmartImage.Lib.Utilities
 
 				int iCopy = i;
 
-				var imagesCopy = images;
+				var imagesCopy = directImages;
 
 				tasks.Add(Task.Factory.StartNew(() =>
 				{
 
 					foreach (string currentUrl in fragments[iCopy]) {
+
 						if (directImages.Count >= count) {
 							return;
 						}
 
-						if (Network.IsUri(currentUrl, out var uri)) {
-							if (Network.IsUriAlive(uri, pingTime)) {
+						if (!Network.IsUri(currentUrl, out var uri)) 
+							continue;
 
-								bool direct = IsDirect(currentUrl, directType);
+						if (!Network.IsUriAlive(uri, pingTime)) 
+							continue;
 
-								if (direct) {
-									bool isValid = !readImage;
+						if (!IsDirect(currentUrl, directType)) 
+							continue;
 
-									if (readImage) {
-										var stream = WebUtilities.GetStream(currentUrl);
+						var di = new DirectImage
+						{
+							Direct = new Uri(currentUrl)
+						};
 
-										if (stream.CanRead) {
 
-											try {
-												var img = Image.FromStream(stream);
-												//isValid = true;
+						bool isValid = !readImage;
 
-												//Debug.WriteLine($"{img.Width} {img.Height}");
-												isValid = imageFilter(img);
+						if (readImage) {
+							var stream = WebUtilities.GetStream(currentUrl);
 
-												if (isValid) {
-													imagesCopy.Add(img);
-												}
-											}
-											catch (Exception) {
-												isValid = false;
-											}
-										}
-									}
+							if (stream.CanRead) {
 
-									if (directImages.Count >= count) {
-										return;
-									}
+								try {
+									var img = Image.FromStream(stream);
+									//isValid = true;
+
+									//Debug.WriteLine($"{img.Width} {img.Height}");
+									isValid = imageFilter(img);
 
 									if (isValid) {
-										directImages.Add(currentUrl);
-										//Debug.WriteLine($">>> {currentUrl}");
-
+										di.Image = img;
 									}
 								}
-
-
+								catch (Exception) {
+									isValid = false;
+								}
 							}
+						}
+
+						if (directImages.Count >= count) {
+							return;
+						}
+
+						if (isValid) {
+							imagesCopy.Add(di);
+							//Debug.WriteLine($">>> {currentUrl}");
 
 						}
 					}
@@ -239,6 +240,23 @@ namespace SmartImage.Lib.Utilities
 			return directImages;
 
 		}
+
+		internal static string AsPercent(this float n)
+		{
+			/*
+			 * Some engines may return the similarity value as 0f < n < 1f
+			 * Therefore, similarity is normalized (100f * n) and stored as 0f < n < 100f
+			 */
+
+			return $"{n / 100:P}";
+		}
+	}
+
+	public struct DirectImage
+	{
+		public Uri Direct { get; internal set; }
+
+		public Image Image { get; internal set; }
 	}
 
 	public enum DirectImageType

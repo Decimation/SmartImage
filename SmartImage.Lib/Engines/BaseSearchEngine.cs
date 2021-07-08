@@ -17,7 +17,7 @@ namespace SmartImage.Lib.Engines
 		protected BaseSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
-			Timeout = TimeSpan.FromSeconds(5);
+			Timeout = TimeSpan.FromSeconds(3);
 		}
 
 		public string BaseUrl { get; }
@@ -72,7 +72,7 @@ namespace SmartImage.Lib.Engines
 			bool ok = Network.IsUriAlive(uri, Timeout);
 
 			if (!ok) {
-				Debug.WriteLine($"{uri} is unavailable", C_WARN);
+				Debug.WriteLine($"{uri} is unavailable or timed out after {Timeout:g}", C_WARN);
 				return null;
 			}
 

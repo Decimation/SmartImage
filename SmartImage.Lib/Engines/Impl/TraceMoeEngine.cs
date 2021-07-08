@@ -7,12 +7,17 @@ using JetBrains.Annotations;
 using RestSharp;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
 namespace SmartImage.Lib.Engines.Impl
 {
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
 	public sealed class TraceMoeEngine : ClientSearchEngine
 	{
 		public TraceMoeEngine() : base("https://trace.moe/?url=", "https://api.trace.moe") { }
@@ -29,7 +34,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override SearchResult Process(ImageQuery query, SearchResult r)
 		{
-			
+
 			//var r = base.GetResult(url);
 
 			// https://soruly.github.io/trace.moe/#/
@@ -56,15 +61,15 @@ namespace SmartImage.Lib.Engines.Impl
 					{
 						PrimaryResult = best,
 						RawUri        = new Uri(BaseUrl + query.Image),
-						
+
 					};
 
 					r.OtherResults.AddRange(results);
 				}
 				catch (Exception e) {
-					r = base.GetResult(query);
-					Debug.WriteLine($"[{Name}] Error: {e.Message}");
-					//r.AddErrorMessage(e.Message);
+					r = GetResult(query);
+					Debug.WriteLine($"{Name}: Error: {e.Message}");
+
 					r.Status = ResultStatus.Failure;
 					return r;
 				}
@@ -72,9 +77,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 			}
 			else {
-				//r = base.GetResult(query);
-				Debug.WriteLine($"[{Name}] API error", C_ERROR);
-				//r.AddErrorMessage(msg);
+				Debug.WriteLine($"{Name}: API error", C_ERROR);
+
 			}
 
 			return r;
@@ -87,7 +91,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var results = new ImageResult[docs.Count];
 
 			for (int i = 0; i < results.Length; i++) {
-				var doc = docs[i];
+				var   doc = docs[i];
 				float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
 
@@ -95,21 +99,40 @@ namespace SmartImage.Lib.Engines.Impl
 
 				string name = m_anilistClient.GetTitle((int) doc.anilist);
 
-				results[i] = new ImageResult
+				var result = new ImageResult
 				{
 					Url         = new Uri(anilistUrl),
 					Similarity  = sim,
 					Source      = name,
-					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.from)}"
+					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.@from)}"
 				};
+
+				if (result.Similarity < FILTER_THRESHOLD) {
+					result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
+					                                 $"({result.Similarity.Value.AsPercent()} < {FILTER_THRESHOLD.AsPercent()})");
+				}
+
+				results[i] = result;
 			}
 
 			return results;
 		}
 
-		//https://anilist.co/anime/{id}/
+		/// <summary>
+		/// https://anilist.co/anime/{id}/
+		/// </summary>
+		private const string ANILIST_URL = "https://anilist.co/anime/";
+
+		/// <summary>
+		/// Threshold at which results become inaccurate
+		/// </summary>
+		private const float FILTER_THRESHOLD = 87.00F;
+
+
+		#region API Objects
+
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		internal class TraceMoeDoc
+		private class TraceMoeDoc
 		{
 			public double from     { get; set; }
 			public double to       { get; set; }
@@ -124,19 +147,13 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-		internal class TraceMoeRootObject
+		private class TraceMoeRootObject
 		{
 			public long              frameCount { get; set; }
 			public string            error      { get; set; }
 			public List<TraceMoeDoc> result     { get; set; }
 		}
 
-		private const string ANILIST_URL = "https://anilist.co/anime/";
-
-		//https://myanimelist.net/anime/{id}/
-		private const string MAL_URL = "https://myanimelist.net/anime/";
-
-
-		private const float FilterThreshold = 87.00F;
+		#endregion
 	}
 }

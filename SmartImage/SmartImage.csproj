@@ -14,12 +14,17 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--<Nullable>enable</Nullable>-->
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <Configurations>Debug;Release</Configurations>
+    <Configurations>Debug;Release;TestDebug</Configurations>
 
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <NoWarn>CA1416</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
     <NoWarn>CA1416</NoWarn>
   </PropertyGroup>
 
@@ -48,7 +53,7 @@
 
   <PropertyGroup>
     <PackageId>SmartImage</PackageId>
-    <Version>2.1.4</Version>
+    <Version>2.1.5</Version>
     <Authors>Read Stanton (Decimation)</Authors>
     <PackageTags>Image reverse search identification source sauce</PackageTags>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>

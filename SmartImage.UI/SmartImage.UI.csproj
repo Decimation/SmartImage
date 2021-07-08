@@ -8,12 +8,16 @@
     <PublishSingleFile>true</PublishSingleFile>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
     <StartupObject>SmartImage.UI.Program</StartupObject>
+    <Configurations>Debug;Release;TestDebug</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
   </ItemGroup>
-
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
+    <NoWarn>CA1416</NoWarn>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>

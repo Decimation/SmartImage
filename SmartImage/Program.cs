@@ -1,7 +1,15 @@
-﻿// ReSharper disable RedundantUsingDirective
+﻿// ReSharper disable SuggestVarOrType_BuiltInTypes
+// ReSharper disable AssignNullToNotNullAttribute
+// ReSharper disable ConvertSwitchStatementToSwitchExpression
+// ReSharper disable UnusedParameter.Local
+// ReSharper disable RedundantUsingDirective
 
+#pragma warning disable IDE0079
 #pragma warning disable CS0168
+#pragma warning disable IDE0060
+#pragma warning disable CA1825
 #nullable enable
+
 using SimpleCore.Cli;
 using SmartImage.Core;
 using System;
@@ -30,14 +38,6 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 
-// ReSharper disable SuggestVarOrType_BuiltInTypes
-
-// ReSharper disable AssignNullToNotNullAttribute
-
-// ReSharper disable ConvertSwitchStatementToSwitchExpression
-
-// ReSharper disable UnusedParameter.Local
-
 namespace SmartImage
 {
 	public static class Program
@@ -51,7 +51,7 @@ namespace SmartImage
 
 		#region Core fields
 
-		
+#line 54 "Initialization"
 		public static readonly SearchConfig Config = new();
 
 		public static readonly SearchClient Client = new(Config);
@@ -61,6 +61,7 @@ namespace SmartImage
 			Options     = new List<NConsoleOption>(),
 			Description = AppInterface.Description
 		};
+#line default
 
 		#endregion
 
@@ -69,9 +70,9 @@ namespace SmartImage
 		/// </summary>
 		private static async Task Main(string[] args)
 		{
-#if DEBUG
+#if TEST_DEBUG
 			if (!args.Any()) {
-				args = new string[] { };
+				//args = new string[] {CMD_SEARCH, "https://i.imgur.com/QtCausw.png"};
 
 			}
 
@@ -83,6 +84,7 @@ namespace SmartImage
 			 * Setup
 			 * Check compatibility
 			 */
+
 
 			Native.SetConsoleOutputCP(Native.CP_WIN32_UNITED_STATES);
 
@@ -103,13 +105,11 @@ namespace SmartImage
 			 * Start
 			 */
 
-			// Update
 
 			AppConfig.ReadConfigFile();
 
 			if (!args.Any()) {
 				var options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
-
 
 				if (!options.Any()) {
 					return;
@@ -117,7 +117,9 @@ namespace SmartImage
 			}
 			else {
 
-				// TODO: WIP
+				/*
+				 * Handle CLI args
+				 */
 
 				var enumerator = args.GetEnumerator();
 
@@ -127,30 +129,13 @@ namespace SmartImage
 					switch (arg) {
 						case CMD_FIND_DIRECT:
 							enumerator.MoveNext();
-							var argValue = (string) enumerator.Current;
 
-							var directImages = ImageHelper.FindDirectImages(argValue, out var images);
-							var imageResults = new List<ImageResult>();
+							var directImages = ImageHelper.FindDirectImages((string) enumerator.Current);
 
-							for (int i = 0; i < directImages.Count; i++) {
-								string directUrl = directImages[i];
-
-								var ir = new ImageResult
-								{
-									Image  = images[i],
-									Url    = new Uri(directUrl),
-									Direct = new Uri(directUrl)
-								};
-
-								ir.UpdateImageData();
-
-								imageResults.Add(ir);
-							}
+							var imageResults = directImages.Select(ImageResult.FromDirectImage);
 
 
-							var options = imageResults
-							              .Select(r => AppInterface.CreateOption(r, $"Image", AppInterface.ColorOther))
-							              .ToArray();
+							var options = AppInterface.CreateOptions(imageResults, "Image");
 
 
 							NConsole.ReadOptions(new NConsoleDialog
@@ -161,10 +146,12 @@ namespace SmartImage
 
 							return;
 						case CMD_SEARCH:
-							Config.Query = args[0];
+							enumerator.MoveNext();
+							Config.Query = (string) enumerator.Current;
 							break;
 						default:
-							goto case CMD_SEARCH;
+							Config.Query = args.First();
+							break;
 					}
 				}
 			}
@@ -178,17 +165,9 @@ namespace SmartImage
 
 				Client.ResultCompleted += OnResultCompleted;
 
-				Client.SearchCompleted += (sender, eventArgs) =>
+				Client.SearchCompleted += (_, eventArgs) =>
 				{
-					AppInterface.FlashConsoleWindow();
-					//SystemSounds.Exclamation.Play();
-
-					cts.Cancel();
-					cts.Dispose();
-
-					if (Config.Notification) {
-						AppInterface.ShowToast();
-					}
+					OnSearchCompleted(_, eventArgs, cts);
 				};
 
 				NConsoleProgress.Queue(cts);
@@ -203,9 +182,25 @@ namespace SmartImage
 			}
 			catch (Exception exception) {
 #if !DEBUG
+				// ...
 #else
 				Console.WriteLine(exception);
 #endif
+			}
+		}
+
+		private static void OnSearchCompleted(object? sender, EventArgs eventArgs, CancellationTokenSource cts)
+		{
+			AppInterface.FlashConsoleWindow();
+
+			cts.Cancel();
+			cts.Dispose();
+
+			if (Config.Notification) {
+				AppInterface.ShowToast();
+			}
+			else {
+				SystemSounds.Exclamation.Play();
 			}
 		}
 

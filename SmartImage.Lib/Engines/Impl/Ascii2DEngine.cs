@@ -7,6 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+// ReSharper disable IdentifierTypo
+// ReSharper disable StringLiteralTypo
+
 namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class Ascii2DEngine : InterpretedSearchEngine
@@ -17,35 +20,39 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
-		/*
-		 *
-		 *
-		 * color https://ascii2d.net/search/color/<hash>
-		 *
-		 * detail https://ascii2d.net/search/bovw/<hash>
-		 *
-		 */
 
-		protected override IDocument GetDocument(SearchResult sr)
+		private static Uri ConvertToDetailUri(Uri url)
 		{
-			string url = sr.RawUri.ToString();
+			/*
+			 * URL parameters
+			 *
+			 * color	https://ascii2d.net/search/color/<hash>
+			 * detail	https://ascii2d.net/search/bovw/<hash>
+			 *
+			 */
 
-			var res = Network.GetResponse(url);
+			var res = Network.GetResponse(url.ToString());
 
 			// Get redirect url (color url)
+
 			string newUrl = res.ResponseUri.ToString();
-
-			// https://ascii2d.net/search/color/<hash>
-
+			
 			// Convert to detail url
 
 			string detailUrl = newUrl.Replace("/color/", "/bovw/");
-			
-			sr.RawUri = new Uri(detailUrl);
+
+			return new Uri(detailUrl);
+		}
+
+		protected override IDocument GetDocument(SearchResult sr)
+		{
+			var url = sr.RawUri;
+
+			sr.RawUri = ConvertToDetailUri(url);
 
 			return base.GetDocument(sr);
 		}
-		
+
 		protected override SearchResult Process(IDocument doc, SearchResult sr)
 		{
 			var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
@@ -89,7 +96,7 @@ namespace SmartImage.Lib.Engines.Impl
 					if (ns.ChildNodes.Length >= 4) {
 						var childNode = ns.ChildNodes[3];
 
-						string l1 = ((IHtmlAnchorElement) childNode).GetAttribute("href");
+						string l1 = ((IHtmlElement) childNode).GetAttribute("href");
 
 						if (l1 is not null) {
 							ir.Url = new Uri(l1);

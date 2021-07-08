@@ -119,6 +119,20 @@ namespace SmartImage.Lib.Searching
 
 		public Image? Image { get; set; }
 
+		public static ImageResult FromDirectImage(DirectImage di)
+		{
+			var ir = new ImageResult
+			{
+				Image  = di.Image,
+				Url    = (di.Direct),
+				Direct = (di.Direct)
+			};
+
+			ir.UpdateImageData();
+
+			return ir;
+		}
+
 		public ImageResult()
 		{
 			OtherMetadata = new Dictionary<string, object>();
@@ -203,13 +217,13 @@ namespace SmartImage.Lib.Searching
 				else {
 					try {
 
-						var directImages = ImageHelper.FindDirectImages(Url.ToString(), out var images);
+						var directImages = ImageHelper.FindDirectImages(Url.ToString());
 
-						string? direct = directImages?.FirstOrDefault();
+						var direct = directImages?.FirstOrDefault();
 
 						if (direct != null) {
-							Direct = new Uri(direct);
-							Image  = images.First();
+							Direct = (direct.Value.Direct);
+							Image  = direct.Value.Image;
 							//Debug.WriteLine($"{Url} -> {Direct}");
 
 						}
@@ -256,7 +270,7 @@ namespace SmartImage.Lib.Searching
 
 
 				if (Similarity.HasValue) {
-					map.Add($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");
+					map.Add($"{nameof(Similarity)}", $"{Similarity.Value.AsPercent()}");
 				}
 
 				if (HasImageDimensions) {
