@@ -46,6 +46,21 @@ namespace SmartImage.Core
 		internal static readonly Color ColorYes   = Color.GreenYellow;
 		internal static readonly Color ColorNo    = Color.Red;
 
+		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
+		{
+			{SearchEngineOptions.Iqdb, Color.Pink},
+			{SearchEngineOptions.SauceNao, Color.SpringGreen},
+			{SearchEngineOptions.Ascii2D, Color.NavajoWhite},
+			{SearchEngineOptions.Bing, Color.DeepSkyBlue},
+			{SearchEngineOptions.GoogleImages, Color.FloralWhite},
+			{SearchEngineOptions.ImgOps, Color.Gray},
+			{SearchEngineOptions.KarmaDecay, Color.IndianRed},
+			{SearchEngineOptions.Tidder, Color.Orange},
+			{SearchEngineOptions.TraceMoe, Color.MediumSlateBlue},
+			{SearchEngineOptions.Yandex, Color.OrangeRed},
+			{SearchEngineOptions.TinEye, Color.CornflowerBlue},
+		};
+
 		#endregion
 
 
@@ -63,9 +78,6 @@ namespace SmartImage.Core
 		internal static string ToToggleString(this bool b) => b ? Enabled : Disabled;
 
 		private static string GetName(string s, bool added) => $"{s} ({(added.ToToggleString())})";
-
-
-		private static string GetContextMenuName(bool added) => GetName("Context menu", added);
 
 		#endregion
 
@@ -91,14 +103,14 @@ namespace SmartImage.Core
 			},
 
 
-			CreateConfigOption(memberof(() => Config.SearchEngines), "Engines", ColorOther),
-			CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines", ColorOther),
+			CreateConfigOption(memberof(() => Config.SearchEngines), "Engines"),
+			CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines"),
 
-			CreateConfigOption(memberof(() => Config.Filtering), "Filter", 3),
-			CreateConfigOption(memberof(() => Config.Notification), "Notification", 4),
-			CreateConfigOption(memberof(() => Config.NotificationImage), "Notification image", 5),
-			
-			CreateConfigOption(memberof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
+			CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3),
+			CreateConfigOption(propertyof(() => Config.Notification), "Notification", 4),
+			CreateConfigOption(propertyof(() => Config.NotificationImage), "Notification image", 5),
+
+			CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
 			                   (added) => AppIntegration.HandleContextMenu(
 				                   added ? IntegrationOption.Remove : IntegrationOption.Add)),
 
@@ -190,12 +202,14 @@ namespace SmartImage.Core
 			Header  = AppInfo.NAME_BANNER
 		};
 
-		private static NConsoleOption CreateConfigOption(MemberInfo m, string name, Color c)
+		#region Config option
+
+		private static NConsoleOption CreateConfigOption(MemberInfo m, string name)
 		{
 			return new()
 			{
 				Name  = name,
-				Color = c,
+				Color = ColorOther,
 				Function = () =>
 				{
 					var enumOptions = NConsoleOption.FromEnum<SearchEngineOptions>();
@@ -211,6 +225,7 @@ namespace SmartImage.Core
 					field.SetValue(Config, enumValue);
 
 					Console.WriteLine(enumValue);
+
 					NConsole.WaitForSecond();
 
 					Debug.Assert((SearchEngineOptions) field.GetValue(Config) == enumValue);
@@ -222,47 +237,44 @@ namespace SmartImage.Core
 			};
 		}
 
-		private static NConsoleOption CreateConfigOption(MemberInfo member, string name, int i, Action<bool> a)
+		private static NConsoleOption CreateConfigOption(PropertyInfo member, string name, int i, Action<bool> fn)
 		{
-			bool initVal = (bool) ((PropertyInfo) member).GetValue(Config);
+			bool initVal = (bool) member.GetValue(Config);
 
 			return new NConsoleOption()
 			{
 				Name = GetName(name, initVal),
 				Function = () =>
 				{
-					var fi = member.DeclaringType.GetProperty(member.Name);
+					var pi = member.DeclaringType.GetProperty(member.Name);
 
-					var curVal = (bool) fi.GetValue(null);
-					a(curVal);
-					bool newVal = (bool) fi.GetValue(null);
+					bool curVal = (bool) pi.GetValue(null);
 
-					//member.DeclaringType.InvokeMember(member.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty, Type.DefaultBinder, null,
-					//                                  new Object[] {newVal});
+					fn(curVal);
+
+					bool newVal = (bool) pi.GetValue(null);
 
 					MainMenuOptions[i].Name = GetName(name, newVal);
 
-					Debug.Assert((bool) fi.GetValue(null) == newVal);
-
-					//UpdateConfig();
+					Debug.Assert((bool) pi.GetValue(null) == newVal);
 
 					return null;
 				}
 			};
 		}
 
-		private static NConsoleOption CreateConfigOption(MemberInfo member, string name, int i)
+		private static NConsoleOption CreateConfigOption(PropertyInfo member, string name, int i)
 		{
-			bool initVal = (bool) ((PropertyInfo) member).GetValue(Config);
+			bool initVal = (bool) member.GetValue(Config);
 
 			return new NConsoleOption()
 			{
 				Name = GetName(name, initVal),
 				Function = () =>
 				{
-					var  fi     = Config.GetType().ResolveField(member.Name);
-					var  curVal = fi.GetValue(Config);
-					bool newVal = !((bool) curVal);
+					var    fi     = Config.GetType().ResolveField(member.Name);
+					object curVal = fi.GetValue(Config);
+					bool   newVal = !(bool) curVal;
 					fi.SetValue(Config, newVal);
 
 					MainMenuOptions[i].Name = GetName(name, newVal);
@@ -275,6 +287,10 @@ namespace SmartImage.Core
 				}
 			};
 		}
+
+		#endregion
+
+		#region Result option
 
 		public static NConsoleOption CreateResultOption(SearchResult result)
 		{
@@ -388,6 +404,8 @@ namespace SmartImage.Core
 			};
 		}
 
+		#endregion
+
 		private static void UpdateConfig()
 		{
 			Client.Reload();
@@ -461,21 +479,6 @@ namespace SmartImage.Core
 
 			//ToastNotificationManager.CreateToastNotifier();
 		}
-
-		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
-		{
-			{SearchEngineOptions.Iqdb, Color.Pink},
-			{SearchEngineOptions.SauceNao, Color.SpringGreen},
-			{SearchEngineOptions.Ascii2D, Color.NavajoWhite},
-			{SearchEngineOptions.Bing, Color.DeepSkyBlue},
-			{SearchEngineOptions.GoogleImages, Color.FloralWhite},
-			{SearchEngineOptions.ImgOps, Color.Gray},
-			{SearchEngineOptions.KarmaDecay, Color.IndianRed},
-			{SearchEngineOptions.Tidder, Color.Orange},
-			{SearchEngineOptions.TraceMoe, Color.MediumSlateBlue},
-			{SearchEngineOptions.Yandex, Color.OrangeRed},
-			{SearchEngineOptions.TinEye, Color.CornflowerBlue},
-		};
 
 		#region Native
 
