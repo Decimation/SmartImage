@@ -135,7 +135,7 @@ namespace SmartImage
 							var imageResults = directImages.Select(ImageResult.FromDirectImage);
 
 
-							var options = AppInterface.CreateOptions(imageResults, "Image");
+							var options = AppInterface.CreateResultOptions(imageResults, "Image");
 
 
 							NConsole.ReadOptions(new NConsoleDialog
@@ -209,7 +209,7 @@ namespace SmartImage
 		{
 			var result = eventArgs.Result;
 
-			var option = AppInterface.CreateOption(result);
+			var option = AppInterface.CreateResultOption(result);
 
 			bool? isFiltered = eventArgs.IsFiltered;
 

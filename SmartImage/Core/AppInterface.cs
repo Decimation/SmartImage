@@ -62,12 +62,6 @@ namespace SmartImage.Core
 
 		internal static string ToToggleString(this bool b) => b ? Enabled : Disabled;
 
-		private static string GetFilterName(bool added) => GetName("Filter", added);
-
-		private static string GetNotificationName(bool added) => GetName("Notification", added);
-
-		private static string GetNotificationImageName(bool added) => GetName("Notification image", added);
-
 		private static string GetName(string s, bool added) => $"{s} ({(added.ToToggleString())})";
 
 
@@ -96,57 +90,18 @@ namespace SmartImage.Core
 				}
 			},
 
-			new()
-			{
-				Name  = "Engines",
-				Color = ColorOther,
-				Function = () =>
-				{
-					//Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
 
-					//Console.WriteLine(Program.Config.SearchEngines);
-					//NConsole.WaitForSecond();
-					//UpdateConfig();
-					setfield(nameof(Config.SearchEngines), ReadEnum<SearchEngineOptions>());
+			CreateConfigOption(memberof(() => Config.SearchEngines), "Engines", ColorOther),
+			CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines", ColorOther),
 
-					return null;
-				}
-			},
-
-			new()
-			{
-				Name  = "Priority engines",
-				Color = ColorOther,
-				Function = () =>
-				{
-					setfield(nameof(Config.PriorityEngines), ReadEnum<SearchEngineOptions>());
-					return null;
-				}
-			},
-
-			synth("Filter", memberof(()=>Config.Filtering), 3, GetFilterName),
-
-			synth("Notification", memberof(()=>Config.Notification), 4, GetNotificationName),
+			CreateConfigOption(memberof(() => Config.Filtering), "Filter", 3),
+			CreateConfigOption(memberof(() => Config.Notification), "Notification", 4),
+			CreateConfigOption(memberof(() => Config.NotificationImage), "Notification image", 5),
 			
-			synth("Notification image", memberof(()=>Config.NotificationImage), 5, GetNotificationImageName),
+			CreateConfigOption(memberof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
+			                   (added) => AppIntegration.HandleContextMenu(
+				                   added ? IntegrationOption.Remove : IntegrationOption.Add)),
 
-			new()
-			{
-				Name = GetContextMenuName(AppIntegration.IsContextMenuAdded),
-				Function = () =>
-				{
-					bool added = AppIntegration.IsContextMenuAdded;
-
-					AppIntegration.HandleContextMenu(added ? IntegrationOption.Remove : IntegrationOption.Add);
-
-					added = AppIntegration.IsContextMenuAdded;
-
-
-					MainMenuOptions[6].Name = GetContextMenuName(added);
-
-					return null;
-				}
-			},
 			new()
 			{
 				Name = "Config",
@@ -235,42 +190,201 @@ namespace SmartImage.Core
 			Header  = AppInfo.NAME_BANNER
 		};
 
-		private static void setfield<T>(string name, T value)
+		private static NConsoleOption CreateConfigOption(MemberInfo m, string name, Color c)
 		{
-			//var fx = a.GetType().ResolveField(i);
-			//var p = Mem.AddressOfField<T>(a, i);
-			//p.Value = o;
-			//Console.WriteLine(p.Value);
-			Config.GetType().ResolveField(name).SetValue(Config, value);
-			NConsole.WaitForSecond();
-			UpdateConfig();
-
-		}
-
-		private static NConsoleOption synth(string s, MemberInfo f, int i, Func<bool, string> fx)
-		{
-			
-			var b = (bool)((PropertyInfo)f).GetValue(Config);
-			return new NConsoleOption()
+			return new()
 			{
-				Name = GetName(s, b),
+				Name  = name,
+				Color = c,
 				Function = () =>
 				{
-					//var p = Mem.AddressOfField<bool>(a, s);
+					var enumOptions = NConsoleOption.FromEnum<SearchEngineOptions>();
 
-					//Debug.WriteLine($"{p.Value}");
-					//p.Value                  = !p.Value;
+					var selected = NConsole.ReadOptions(new NConsoleDialog
+					{
+						Options        = enumOptions,
+						SelectMultiple = true
+					});
 
+					var enumValue = Enums.ReadFromSet<SearchEngineOptions>(selected);
+					var field     = Config.GetType().ResolveField((m).Name);
+					field.SetValue(Config, enumValue);
 
-					var xx = Config.GetType().ResolveField(f.Name);
-					var v  = xx.GetValue(Config);
-					xx.SetValue(Config, !((bool) v));
-					MainMenuOptions[i].Name = fx((bool) xx.GetValue(Config));
-					//MainMenuOptions[d].Name = fx(i);
+					Console.WriteLine(enumValue);
+					NConsole.WaitForSecond();
+
+					Debug.Assert((SearchEngineOptions) field.GetValue(Config) == enumValue);
 
 					UpdateConfig();
+
 					return null;
 				}
+			};
+		}
+
+		private static NConsoleOption CreateConfigOption(MemberInfo member, string name, int i, Action<bool> a)
+		{
+			bool initVal = (bool) ((PropertyInfo) member).GetValue(Config);
+
+			return new NConsoleOption()
+			{
+				Name = GetName(name, initVal),
+				Function = () =>
+				{
+					var fi = member.DeclaringType.GetProperty(member.Name);
+
+					var curVal = (bool) fi.GetValue(null);
+					a(curVal);
+					bool newVal = (bool) fi.GetValue(null);
+
+					//member.DeclaringType.InvokeMember(member.Name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.SetProperty, Type.DefaultBinder, null,
+					//                                  new Object[] {newVal});
+
+					MainMenuOptions[i].Name = GetName(name, newVal);
+
+					Debug.Assert((bool) fi.GetValue(null) == newVal);
+
+					//UpdateConfig();
+
+					return null;
+				}
+			};
+		}
+
+		private static NConsoleOption CreateConfigOption(MemberInfo member, string name, int i)
+		{
+			bool initVal = (bool) ((PropertyInfo) member).GetValue(Config);
+
+			return new NConsoleOption()
+			{
+				Name = GetName(name, initVal),
+				Function = () =>
+				{
+					var  fi     = Config.GetType().ResolveField(member.Name);
+					var  curVal = fi.GetValue(Config);
+					bool newVal = !((bool) curVal);
+					fi.SetValue(Config, newVal);
+
+					MainMenuOptions[i].Name = GetName(name, newVal);
+
+					Debug.Assert((bool) fi.GetValue(Config) == newVal);
+
+					UpdateConfig();
+
+					return null;
+				}
+			};
+		}
+
+		public static NConsoleOption CreateResultOption(SearchResult result)
+		{
+			var color = EngineColorMap[result.Engine.EngineOption];
+
+			var option = new NConsoleOption
+			{
+				Function = CreateOpenFunction(result.PrimaryResult is {Url: { }}
+					? result.PrimaryResult.Url
+					: result.RawUri),
+
+				AltFunction = () =>
+				{
+					if (result.OtherResults.Any()) {
+
+						var options = CreateResultOptions(result.OtherResults, $"Other result");
+
+						NConsole.ReadOptions(new NConsoleDialog
+						{
+							Options = options
+						});
+					}
+
+					return null;
+				},
+
+				ComboFunction = CreateDownloadFunction(result.PrimaryResult),
+				ShiftFunction = CreateOpenFunction(result.RawUri),
+
+				Color = color,
+
+				Name = result.Engine.Name,
+				Data = result,
+			};
+
+			option.CtrlFunction = () =>
+			{
+				var cts = new CancellationTokenSource();
+
+				NConsoleProgress.Queue(cts);
+
+				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
+
+				result.PrimaryResult = result.OtherResults.First();
+
+
+				cts.Cancel();
+				cts.Dispose();
+
+				option.Data = result;
+
+				return null;
+			};
+
+
+			return option;
+		}
+
+		[StringFormatMethod("n")]
+		public static NConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n, Color c = default)
+		{
+			if (c == default) {
+				c = ColorOther;
+			}
+
+			int i = 0;
+			return result.Select(r => CreateResultOption(r, $"{n} #{i++}", c)).ToArray();
+		}
+
+		private static NConsoleOption CreateResultOption(ImageResult result, string n, Color c)
+		{
+
+			const float CORRECTION_FACTOR = -.3f;
+
+			var option = new NConsoleOption
+			{
+				Function      = CreateOpenFunction(result.Url),
+				ComboFunction = CreateDownloadFunction(result),
+				Color         = c.ChangeBrightness(CORRECTION_FACTOR),
+				Name          = n,
+				Data          = result
+			};
+
+			return option;
+		}
+
+		private static NConsoleFunction CreateOpenFunction(Uri url)
+		{
+			return () =>
+			{
+				if (url != null) {
+					WebUtilities.OpenUrl(url.ToString());
+				}
+
+				return null;
+			};
+		}
+
+		private static NConsoleFunction CreateDownloadFunction(ImageResult result)
+		{
+			return () =>
+			{
+				var direct = result.Direct;
+
+				if (direct != null) {
+					string download = WebUtilities.Download(direct.ToString());
+					FileSystem.ExploreFile(download);
+				}
+
+				return null;
 			};
 		}
 
@@ -278,21 +392,6 @@ namespace SmartImage.Core
 		{
 			Client.Reload();
 			AppConfig.SaveConfigFile();
-		}
-
-		private static TEnum ReadEnum<TEnum>() where TEnum : Enum
-		{
-			var enumOptions = NConsoleOption.FromEnum<TEnum>();
-
-			var selected = NConsole.ReadOptions(new NConsoleDialog
-			{
-				Options        = enumOptions,
-				SelectMultiple = true
-			});
-
-			var enumValue = Enums.ReadFromSet<TEnum>(selected);
-
-			return enumValue;
 		}
 
 		public static void ShowToast()
@@ -361,120 +460,6 @@ namespace SmartImage.Core
 			builder.Show();
 
 			//ToastNotificationManager.CreateToastNotifier();
-		}
-
-		public static NConsoleOption CreateOption(SearchResult result)
-		{
-			var color = EngineColorMap[result.Engine.EngineOption];
-
-			var option = new NConsoleOption
-			{
-				Function = CreateOpenFunction(result.PrimaryResult is {Url: { }}
-					? result.PrimaryResult.Url
-					: result.RawUri),
-
-				AltFunction = () =>
-				{
-					if (result.OtherResults.Any()) {
-
-
-						var options = CreateOptions(result.OtherResults, $"Other result");
-
-
-						NConsole.ReadOptions(new NConsoleDialog
-						{
-							Options = options
-						});
-					}
-
-					return null;
-				},
-
-				ComboFunction = CreateDownloadFunction(result.PrimaryResult),
-				ShiftFunction = CreateOpenFunction(result.RawUri),
-
-				Color = color,
-
-				Name = result.Engine.Name,
-				Data = result,
-			};
-
-			option.CtrlFunction = () =>
-			{
-				var cts = new CancellationTokenSource();
-
-				NConsoleProgress.Queue(cts);
-
-				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
-
-				result.PrimaryResult = result.OtherResults.First();
-
-
-				cts.Cancel();
-				cts.Dispose();
-
-				option.Data = result;
-
-				return null;
-			};
-
-
-			return option;
-		}
-
-		[StringFormatMethod("n")]
-		public static NConsoleOption[] CreateOptions(IEnumerable<ImageResult> result, string n, Color c = default)
-		{
-			if (c == default) {
-				c = ColorOther;
-			}
-
-			int i = 0;
-			return result.Select(r => CreateOption(r, $"{n} #{i++}", c)).ToArray();
-		}
-
-		private static NConsoleOption CreateOption(ImageResult result, string n, Color c)
-		{
-
-			const float CORRECTION_FACTOR = -.3f;
-
-			var option = new NConsoleOption
-			{
-				Function      = CreateOpenFunction(result.Url),
-				ComboFunction = CreateDownloadFunction(result),
-				Color         = c.ChangeBrightness(CORRECTION_FACTOR),
-				Name          = n,
-				Data          = result
-			};
-
-			return option;
-		}
-
-		private static NConsoleFunction CreateOpenFunction(Uri url)
-		{
-			return () =>
-			{
-				if (url != null) {
-					WebUtilities.OpenUrl(url.ToString());
-				}
-
-				return null;
-			};
-		}
-
-		private static NConsoleFunction CreateDownloadFunction(ImageResult result)
-		{
-			return () =>
-			{
-				var direct = result.Direct;
-
-				if (direct != null) {
-					string download = WebUtilities.Download(direct.ToString());
-					FileSystem.ExploreFile(download);
-				}
-
-				return null;
-			};
 		}
 
 		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
