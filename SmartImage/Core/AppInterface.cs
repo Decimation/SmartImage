@@ -21,6 +21,7 @@ using Novus.Win32;
 using SimpleCore.Net;
 using SmartImage.Lib;
 using SmartImage.Utilities;
+using static Novus.Utilities.ReflectionOperatorHelpers;
 using static SmartImage.Program;
 
 // ReSharper disable UnusedMember.Global
@@ -108,7 +109,6 @@ namespace SmartImage.Core
 					//UpdateConfig();
 					setfield(nameof(Config.SearchEngines), ReadEnum<SearchEngineOptions>());
 
-
 					return null;
 				}
 			},
@@ -119,54 +119,17 @@ namespace SmartImage.Core
 				Color = ColorOther,
 				Function = () =>
 				{
-					//Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
-
-					//Console.WriteLine(Program.Config.PriorityEngines);
-					//NConsole.WaitForSecond();
-					//UpdateConfig();
 					setfield(nameof(Config.PriorityEngines), ReadEnum<SearchEngineOptions>());
 					return null;
 				}
 			},
-			new()
-			{
-				Name = GetFilterName(Config.Filtering),
-				Function = () =>
-				{
-					//Program.Config.Filtering = !Program.Config.Filtering;
-					//MainMenuOptions[3].Name  = GetFilterName(Program.Config.Filtering);
-					//UpdateConfig();
 
-					setfield2(nameof(Config.Filtering), "Filter", 3);
-					return null;
-				}
-			},
-			new()
-			{
-				Name = GetNotificationName(Config.Notification),
-				Function = () =>
-				{
-					//Program.Config.Notification = !Program.Config.Notification;
-					//MainMenuOptions[4].Name = GetNotificationName(Program.Config.Notification);
-					//UpdateConfig();
+			synth("Filter", memberof(()=>Config.Filtering), 3, GetFilterName),
 
-					setfield2(nameof(Config.Notification), "Notification", 4);
-					return null;
-				}
-			},
-			new()
-			{
-				Name = GetNotificationImageName(Config.NotificationImage),
-				Function = () =>
-				{
-					//Program.Config.NotificationImage = !Program.Config.NotificationImage;
+			synth("Notification", memberof(()=>Config.Notification), 4, GetNotificationName),
+			
+			synth("Notification image", memberof(()=>Config.NotificationImage), 5, GetNotificationImageName),
 
-					//MainMenuOptions[5].Name = GetNotificationImageName(Program.Config.NotificationImage);
-					//UpdateConfig();
-					setfield2(nameof(Config.NotificationImage), "Notification image", 5);
-					return null;
-				}
-			},
 			new()
 			{
 				Name = GetContextMenuName(AppIntegration.IsContextMenuAdded),
@@ -272,36 +235,43 @@ namespace SmartImage.Core
 			Header  = AppInfo.NAME_BANNER
 		};
 
-		static void setfield2(string i, string st, int d)
-		{
-			var a = Config;
-
-			//var p = Mem.AddressOfField<bool>(a, s);
-
-			//Debug.WriteLine($"{p.Value}");
-			//p.Value                  = !p.Value;
-
-
-			var xx = a.GetType().ResolveField(i);
-			var v  = xx.GetValue(a);
-			xx.SetValue(a, !((bool) v));
-			MainMenuOptions[d].Name = GetName(st, (bool) xx.GetValue(a));
-			//MainMenuOptions[d].Name = fx(i);
-
-			UpdateConfig();
-		}
-
-		static void setfield<T>(string i, T o)
+		private static void setfield<T>(string name, T value)
 		{
 			//var fx = a.GetType().ResolveField(i);
-			var a = Config;
 			//var p = Mem.AddressOfField<T>(a, i);
 			//p.Value = o;
 			//Console.WriteLine(p.Value);
-			a.GetType().ResolveField(i).SetValue(Config, o);
+			Config.GetType().ResolveField(name).SetValue(Config, value);
 			NConsole.WaitForSecond();
 			UpdateConfig();
 
+		}
+
+		private static NConsoleOption synth(string s, MemberInfo f, int i, Func<bool, string> fx)
+		{
+			
+			var b = (bool)((PropertyInfo)f).GetValue(Config);
+			return new NConsoleOption()
+			{
+				Name = GetName(s, b),
+				Function = () =>
+				{
+					//var p = Mem.AddressOfField<bool>(a, s);
+
+					//Debug.WriteLine($"{p.Value}");
+					//p.Value                  = !p.Value;
+
+
+					var xx = Config.GetType().ResolveField(f.Name);
+					var v  = xx.GetValue(Config);
+					xx.SetValue(Config, !((bool) v));
+					MainMenuOptions[i].Name = fx((bool) xx.GetValue(Config));
+					//MainMenuOptions[d].Name = fx(i);
+
+					UpdateConfig();
+					return null;
+				}
+			};
 		}
 
 		private static void UpdateConfig()
@@ -506,7 +476,6 @@ namespace SmartImage.Core
 				return null;
 			};
 		}
-
 
 		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
 		{
