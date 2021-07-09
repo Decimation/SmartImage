@@ -16,10 +16,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using SmartImage.Lib.Utilities;
 using Exception = System.Exception;
+// ReSharper disable MemberCanBeMadeStatic.Local
 
 // ReSharper disable LocalizableElement
 // ReSharper disable IdentifierTypo
 #pragma warning disable IDE1006
+#pragma warning disable CA1822
 
 namespace SmartImage.UI
 {
@@ -182,7 +184,7 @@ namespace SmartImage.UI
 		{
 			if (imageResult.Similarity.HasValue) {
 
-				listViewItem.SubItems.Add($"{imageResult.Similarity / 100:P}",
+				listViewItem.SubItems.Add($"{imageResult.Similarity}",
 					SimilarityGradient[(int) Math.Ceiling(imageResult.Similarity.Value)], Color.Empty, null);
 
 			}

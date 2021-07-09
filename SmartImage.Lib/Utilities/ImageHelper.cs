@@ -110,9 +110,7 @@ namespace SmartImage.Lib.Utilities
 		}
 
 
-		public static List<DirectImage> FindDirectImages(string url) =>
-			FindDirectImages(url, DirectImageType.Regex, 5, 10, 1, true, null);
-
+		
 		/// <summary>
 		/// Scans for direct images within a webpage.
 		/// </summary>
@@ -123,9 +121,9 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="pingTimeSec"></param>
 		/// <param name="readImage">Whether to read image metadata</param>
 		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
-		public static List<DirectImage> FindDirectImages(string url, DirectImageType directType,
-		                                                 int count, int fragmentSize, double pingTimeSec,
-		                                                 bool readImage, Predicate<Image> imageFilter)
+		public static List<DirectImage> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
+		                                                 int count=5, int fragmentSize=10, double pingTimeSec=1,
+		                                                 bool readImage=true, Predicate<Image> imageFilter=null)
 		{
 
 

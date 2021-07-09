@@ -10,15 +10,18 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using JetBrains.Annotations;
 using Microsoft.Toolkit.Uwp.Notifications;
+using Novus.Memory;
 using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Net;
 using SmartImage.Lib;
 using SmartImage.Utilities;
+using static SmartImage.Program;
 
 // ReSharper disable UnusedMember.Global
 // ReSharper disable IdentifierTypo
@@ -44,7 +47,10 @@ namespace SmartImage.Core
 
 		#endregion
 
+
 		#region Elements
+
+		// NOTE: Do not reorder
 
 		public const string Description = "Press the result number to open in browser\n" +
 		                                  "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download";
@@ -68,7 +74,6 @@ namespace SmartImage.Core
 
 		#endregion
 
-
 		private static readonly NConsoleOption[] MainMenuOptions =
 		{
 			new()
@@ -79,11 +84,13 @@ namespace SmartImage.Core
 				{
 					ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
 					{
+						x = x.CleanString();
+
 						(bool url, bool file) = ImageQuery.IsUriOrFile(x);
 						return !(url || file);
 					}, "Input must be file or direct image link");
 
-					Program.Config.Query = query;
+					Config.Query = query;
 					return true;
 				}
 			},
@@ -94,11 +101,14 @@ namespace SmartImage.Core
 				Color = ColorOther,
 				Function = () =>
 				{
-					Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
+					//Program.Config.SearchEngines = ReadEnum<SearchEngineOptions>();
 
-					Console.WriteLine(Program.Config.SearchEngines);
-					NConsole.WaitForSecond();
-					UpdateConfig();
+					//Console.WriteLine(Program.Config.SearchEngines);
+					//NConsole.WaitForSecond();
+					//UpdateConfig();
+					setfield(nameof(Config.SearchEngines), ReadEnum<SearchEngineOptions>());
+
+
 					return null;
 				}
 			},
@@ -109,48 +119,51 @@ namespace SmartImage.Core
 				Color = ColorOther,
 				Function = () =>
 				{
-					Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
+					//Program.Config.PriorityEngines = ReadEnum<SearchEngineOptions>();
 
-					Console.WriteLine(Program.Config.PriorityEngines);
-					NConsole.WaitForSecond();
-					UpdateConfig();
+					//Console.WriteLine(Program.Config.PriorityEngines);
+					//NConsole.WaitForSecond();
+					//UpdateConfig();
+					setfield(nameof(Config.PriorityEngines), ReadEnum<SearchEngineOptions>());
 					return null;
 				}
 			},
 			new()
 			{
-				Name = GetFilterName(Program.Config.Filtering),
+				Name = GetFilterName(Config.Filtering),
 				Function = () =>
 				{
-					Program.Config.Filtering = !Program.Config.Filtering;
+					//Program.Config.Filtering = !Program.Config.Filtering;
+					//MainMenuOptions[3].Name  = GetFilterName(Program.Config.Filtering);
+					//UpdateConfig();
 
-					MainMenuOptions[3].Name = GetFilterName(Program.Config.Filtering);
-					UpdateConfig();
+					setfield2(nameof(Config.Filtering), "Filter", 3);
 					return null;
 				}
 			},
 			new()
 			{
-				Name = GetNotificationName(Program.Config.Notification),
+				Name = GetNotificationName(Config.Notification),
 				Function = () =>
 				{
-					Program.Config.Notification = !Program.Config.Notification;
+					//Program.Config.Notification = !Program.Config.Notification;
+					//MainMenuOptions[4].Name = GetNotificationName(Program.Config.Notification);
+					//UpdateConfig();
 
-
-					MainMenuOptions[4].Name = GetNotificationName(Program.Config.Notification);
-					UpdateConfig();
+					setfield2(nameof(Config.Notification), "Notification", 4);
 					return null;
 				}
 			},
 			new()
 			{
-				Name = GetNotificationImageName(Program.Config.NotificationImage),
+				Name = GetNotificationImageName(Config.NotificationImage),
 				Function = () =>
 				{
-					Program.Config.NotificationImage = !Program.Config.NotificationImage;
+					//Program.Config.NotificationImage = !Program.Config.NotificationImage;
 
-					MainMenuOptions[5].Name = GetNotificationImageName(Program.Config.NotificationImage);
-					UpdateConfig();
+					//MainMenuOptions[5].Name = GetNotificationImageName(Program.Config.NotificationImage);
+					//UpdateConfig();
+					setfield2(nameof(Config.NotificationImage), "Notification image", 5);
 					return null;
 				}
 			},
@@ -178,8 +191,7 @@ namespace SmartImage.Core
 				{
 					//Console.Clear();
 
-					Console.WriteLine(Program.Config);
-
+					Console.WriteLine(Config);
 					NConsole.WaitForInput();
 
 					return null;
@@ -224,7 +236,6 @@ namespace SmartImage.Core
 				{
 					UpdateInfo.AutoUpdate();
 
-
 					return null;
 				}
 			},
@@ -234,7 +245,6 @@ namespace SmartImage.Core
 				Function = () =>
 				{
 					WebUtilities.OpenUrl(AppInfo.Wiki);
-
 
 					return null;
 				}
@@ -247,8 +257,7 @@ namespace SmartImage.Core
 				Name = "Debug",
 				Function = () =>
 				{
-
-					Program.Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+					Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
 					return true;
 				}
 			},
@@ -263,10 +272,41 @@ namespace SmartImage.Core
 			Header  = AppInfo.NAME_BANNER
 		};
 
+		static void setfield2(string i, string st, int d)
+		{
+			var a = Config;
+
+			//var p = Mem.AddressOfField<bool>(a, s);
+
+			//Debug.WriteLine($"{p.Value}");
+			//p.Value                  = !p.Value;
+
+
+			var xx = a.GetType().ResolveField(i);
+			var v  = xx.GetValue(a);
+			xx.SetValue(a, !((bool) v));
+			MainMenuOptions[d].Name = GetName(st, (bool) xx.GetValue(a));
+			//MainMenuOptions[d].Name = fx(i);
+
+			UpdateConfig();
+		}
+
+		static void setfield<T>(string i, T o)
+		{
+			//var fx = a.GetType().ResolveField(i);
+			var a = Config;
+			//var p = Mem.AddressOfField<T>(a, i);
+			//p.Value = o;
+			//Console.WriteLine(p.Value);
+			a.GetType().ResolveField(i).SetValue(Config, o);
+			NConsole.WaitForSecond();
+			UpdateConfig();
+
+		}
 
 		private static void UpdateConfig()
 		{
-			Program.Client.Reload();
+			Client.Reload();
 			AppConfig.SaveConfigFile();
 		}
 
@@ -299,17 +339,17 @@ namespace SmartImage.Core
 
 			var builder = new ToastContentBuilder();
 
-			var bestResult = Program.Client.FindBestResult();
+			var bestResult = Client.FindBestResult();
 
 			builder.AddButton(button)
 			       .AddButton(button2)
 			       .AddText("Search complete")
 			       .AddText($"{bestResult}")
-			       .AddText($"Results: {Program.Client.Results.Count}");
+			       .AddText($"Results: {Client.Results.Count}");
 
-			if (Program.Config.NotificationImage) {
+			if (Config.NotificationImage) {
 
-				var direct = Program.Client.FindDirectResult();
+				var direct = Client.FindDirectResult();
 
 				Debug.WriteLine(direct);
 
@@ -467,7 +507,6 @@ namespace SmartImage.Core
 			};
 		}
 
-		
 
 		private static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
 		{

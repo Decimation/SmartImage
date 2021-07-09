@@ -14,12 +14,16 @@ namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class Ascii2DEngine : InterpretedSearchEngine
 	{
-		public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
+		public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
+		{
+			Timeout = TimeSpan.FromSeconds(5);
+		}
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
 		public override string Name => EngineOption.ToString();
 
+		
 
 		private static Uri ConvertToDetailUri(Uri url)
 		{

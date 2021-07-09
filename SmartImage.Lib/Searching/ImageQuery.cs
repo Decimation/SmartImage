@@ -45,22 +45,23 @@ namespace SmartImage.Lib.Searching
 		public Stream Stream { get; }
 
 
-
+		
 		public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 		{
 			if (String.IsNullOrWhiteSpace(value)) {
 				throw new ArgumentNullException(nameof(value));
 			}
 
-			value = value.CleanString();
 
-			Value = value;
+			value           = value.CleanString();
 
 			(IsUri, IsFile) = IsUriOrFile(value);
 
 			if (!IsUri && !IsFile) {
 				throw new ArgumentException("Input was neither file nor direct image link", nameof(value));
 			}
+
+			Value = value;
 
 
 			UploadEngine = engine ?? new LitterboxEngine(); //todo
@@ -76,10 +77,10 @@ namespace SmartImage.Lib.Searching
 		public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
 		public static implicit operator ImageQuery(string value) => new(value);
+		
 
 		public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 		{
-			x = x.CleanString();
 			return (ImageHelper.IsDirect(x, DirectImageType.Binary), File.Exists(x));
 		}
 

@@ -17,7 +17,7 @@ namespace SmartImage.Lib.Engines
 		protected BaseSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
-			Timeout = TimeSpan.FromSeconds(3);
+			
 		}
 
 		public string BaseUrl { get; }
@@ -28,7 +28,7 @@ namespace SmartImage.Lib.Engines
 		public virtual string Name => EngineOption.ToString();
 
 
-		public TimeSpan Timeout { get; set; }
+		public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
 		public virtual SearchResult GetResult(ImageQuery query)
 		{

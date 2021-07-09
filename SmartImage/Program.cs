@@ -48,7 +48,7 @@ namespace SmartImage
 		//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
-
+		
 		#region Core fields
 
 #line 54 "Initialization"
@@ -235,5 +235,6 @@ namespace SmartImage
 		private const string CMD_SEARCH = "search";
 
 		#endregion
+		
 	}
 }
