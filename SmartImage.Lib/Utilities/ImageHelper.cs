@@ -4,13 +4,18 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using Novus.Win32;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+
+// ReSharper disable CognitiveComplexity
+// ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable UnusedParameter.Local
 
@@ -109,6 +114,36 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
+		public static Dictionary<string,string> InstalledUtilities
+		{
+			get
+			{
+				var utils = new List<string>
+				{
+					FFMPEG_EXE, FFPROBE_EXE, MAGICK_EXE, YOUTUBE_DL_EXE, GALLERY_DL_EXE
+				};
+
+				var rg = new Dictionary<string, string>();
+
+				foreach (string s in utils) {
+					var x = FileSystem.SearchInPath(s);
+
+
+					rg.Add(s,x);
+				}
+
+				return rg;
+
+			}
+		}
+
+
+		private const string MAGICK_EXE     = "magick.exe";
+		private const string GALLERY_DL_EXE = "gallery-dl.exe";
+		private const string YOUTUBE_DL_EXE = "youtube-dl.exe";
+		private const string FFPROBE_EXE    = "ffprobe.exe";
+		private const string FFMPEG_EXE     = "ffmpeg.exe";
+
 
 		/// <summary>
 		/// Scans for direct images within a webpage.
@@ -124,14 +159,45 @@ namespace SmartImage.Lib.Utilities
 		                                                 int count = 5, int fragmentSize = 10, double pingTimeSec = 1,
 		                                                 bool readImage = true, Predicate<Image> imageFilter = null)
 		{
+			var directImages = new List<DirectImage>();
 
+			string gallerydl = InstalledUtilities[GALLERY_DL_EXE];
+
+			if (gallerydl != null) {
+
+				Trace.WriteLine($"Using gallery-dl!");
+
+				var output = new Process
+				{
+					StartInfo = new ProcessStartInfo
+					{
+						FileName               = gallerydl,
+						Arguments              = $"-G {url}",
+						RedirectStandardOutput = true,
+						CreateNoWindow         = true
+					}
+				};
+
+				output.Start();
+
+				var standardOutput = output.StandardOutput;
+
+				while (!standardOutput.EndOfStream) {
+					string str = standardOutput.ReadLine().Trim().Trim('|');
+
+					directImages.Add(new DirectImage
+					{
+						Direct = new Uri(str),
+						Image  = Image.FromStream(WebUtilities.GetStream(str))
+					});
+				}
+
+				return directImages;
+			}
 
 			imageFilter ??= (x) => true;
 
 			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
-
-
-			var directImages = new List<DirectImage>();
 
 
 			IHtmlDocument document;
@@ -174,7 +240,7 @@ namespace SmartImage.Lib.Utilities
 				{
 
 					foreach (string currentUrl in fragments[iCopy]) {
-						
+
 						if (directImages.Count >= count) {
 							return;
 						}

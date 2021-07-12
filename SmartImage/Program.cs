@@ -73,21 +73,17 @@ namespace SmartImage
 #if TEST_DEBUG
 			if (!args.Any()) {
 				//args = new string[] {CMD_SEARCH, "https://i.imgur.com/QtCausw.png"};
-
+				args = new[] {CMD_FIND_DIRECT, "https://twitter.com/sciamano240/status/1186775807655587841"};
 			}
 
 
 #endif
-
-
 			/*
 			 * Setup
 			 * Check compatibility
 			 */
 
-
 			Native.SetConsoleOutputCP(Native.CP_WIN32_UNITED_STATES);
-
 
 			Console.Title = $"{AppInfo.NAME}";
 
@@ -95,7 +91,6 @@ namespace SmartImage
 			Console.Clear();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
-
 
 			var process = Process.GetCurrentProcess();
 			process.PriorityClass = ProcessPriorityClass.AboveNormal;
@@ -134,13 +129,12 @@ namespace SmartImage
 
 							var imageResults = directImages.Select(ImageResult.FromDirectImage);
 
-
-							var options = AppInterface.CreateResultOptions(imageResults, "Image");
+							var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
 
 
 							NConsole.ReadOptions(new NConsoleDialog
 							{
-								Options     = options,
+								Options     = directOptions,
 								Description = AppInterface.Description
 							});
 

@@ -92,35 +92,7 @@ namespace SmartImage.Core
 			}
 		}
 
-		public static List<string> InstalledUtilities
-		{
-			get
-			{
-				var utils = new List<string>
-				{
-					"ffmpeg.exe", "ffprobe.exe", "magick.exe", "youtube-dl.exe"
-				};
-
-				var rg = new List<string>();
-
-				foreach (string s in utils) {
-					string[] path = Environment.GetEnvironmentVariable("PATH").Split(';');
-
-					foreach (string directory in path) {
-						if (Directory.Exists(directory)) {
-							foreach (string file in Directory.EnumerateFiles(directory)) {
-								if (Path.GetFileName(file) == s) {
-									rg.Add(file);
-								}
-							}
-						}
-					}
-				}
-
-				return rg;
-
-			}
-		}
+		
 
 
 		public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
