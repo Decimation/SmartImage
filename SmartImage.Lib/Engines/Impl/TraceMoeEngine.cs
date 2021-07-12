@@ -41,7 +41,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 			var rq = new RestRequest("search");
-			rq.AddQueryParameter("url", query.Image.ToString());
+			rq.AddQueryParameter("url", query.UploadUri.ToString());
 			//rq.AddQueryParameter("anilistInfo", "");
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 			rq.Timeout                 = Timeout.Milliseconds;
@@ -60,7 +60,7 @@ namespace SmartImage.Lib.Engines.Impl
 					r = new SearchResult(this)
 					{
 						PrimaryResult = best,
-						RawUri        = new Uri(BaseUrl + query.Image),
+						RawUri        = new Uri(BaseUrl + query.UploadUri),
 
 					};
 

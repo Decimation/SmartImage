@@ -43,6 +43,7 @@ namespace SmartImage.Lib.Searching
 		Extraneous
 	}
 
+	
 
 	/// <summary>
 	/// Describes a search result

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using JetBrains.Annotations;
 using SimpleCore.Net;
@@ -35,7 +36,7 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		/// Uploaded direct image
 		/// </summary>
-		public Uri Image { get; }
+		public Uri UploadUri { get; }
 
 		/// <summary>
 		/// Upload engine used for uploading the input file; if applicable
@@ -45,7 +46,6 @@ namespace SmartImage.Lib.Searching
 		public Stream Stream { get; }
 
 
-		
 		public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 		{
 			if (String.IsNullOrWhiteSpace(value)) {
@@ -53,7 +53,7 @@ namespace SmartImage.Lib.Searching
 			}
 
 
-			value           = value.CleanString();
+			value = value.CleanString();
 
 			(IsUri, IsFile) = IsUriOrFile(value);
 
@@ -66,28 +66,49 @@ namespace SmartImage.Lib.Searching
 
 			UploadEngine = engine ?? new LitterboxEngine(); //todo
 
-			Image = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
+			UploadUri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 
 			Stream = IsFile ? File.OpenRead(value) : WebUtilities.GetStream(value);
 
-			Trace.WriteLine($"{nameof(ImageQuery)}: {Image}", C_SUCCESS);
+			Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
 		}
 
 
 		public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
 		public static implicit operator ImageQuery(string value) => new(value);
-		
+
 
 		public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 		{
 			return (ImageHelper.IsDirect(x, DirectImageType.Binary), File.Exists(x));
 		}
 
+		public ImageResult GetImageResult()
+		{
+
+			var result = new ImageResult()
+			{
+				Url    = UploadUri,
+				Direct = UploadUri,
+				Image  = Image.FromStream(Stream)
+			};
+
+			result.OtherMetadata.Add("Upload engine", UploadEngine.Name);
+			result.OtherMetadata.Add("Input type", IsUri ? "URI" : "File");
+			result.OtherMetadata.Add("Input value", Value);
+
+			result.UpdateImageData();
+
+			return result;
+
+
+		}
+
 
 		public override string ToString()
 		{
-			return $"{Value} | {Image}";
+			return $"{Value} | {UploadUri}";
 		}
 	}
 }

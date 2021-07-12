@@ -223,7 +223,7 @@ namespace SmartImage.Lib.Engines.Impl
 			req.AddQueryParameter("output_type", "2");
 			req.AddQueryParameter("numres", "16");
 			req.AddQueryParameter("api_key", Authentication);
-			req.AddQueryParameter("url", url.Image.ToString());
+			req.AddQueryParameter("url", url.UploadUri.ToString());
 
 			var res = m_client.Execute(req);
 

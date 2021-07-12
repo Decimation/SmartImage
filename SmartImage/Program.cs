@@ -50,8 +50,7 @@ namespace SmartImage
 		//                                                     |___/
 		
 		#region Core fields
-
-#line 54 "Initialization"
+		
 		public static readonly SearchConfig Config = new();
 
 		public static readonly SearchClient Client = new(Config);
@@ -61,7 +60,7 @@ namespace SmartImage
 			Options     = new List<NConsoleOption>(),
 			Description = AppInterface.Description
 		};
-#line default
+
 
 		#endregion
 
@@ -121,16 +120,16 @@ namespace SmartImage
 				 * Handle CLI args
 				 */
 
-				var enumerator = args.GetEnumerator();
+				var argEnumerator = args.GetEnumerator();
 
-				while (enumerator.MoveNext()) {
-					object? arg = enumerator.Current;
+				while (argEnumerator.MoveNext()) {
+					object? arg = argEnumerator.Current;
 
 					switch (arg) {
 						case CMD_FIND_DIRECT:
-							enumerator.MoveNext();
+							argEnumerator.MoveNext();
 
-							var directImages = ImageHelper.FindDirectImages((string) enumerator.Current);
+							var directImages = ImageHelper.FindDirectImages((string) argEnumerator.Current);
 
 							var imageResults = directImages.Select(ImageResult.FromDirectImage);
 
@@ -146,8 +145,8 @@ namespace SmartImage
 
 							return;
 						case CMD_SEARCH:
-							enumerator.MoveNext();
-							Config.Query = (string) enumerator.Current;
+							argEnumerator.MoveNext();
+							Config.Query = (string) argEnumerator.Current;
 							break;
 						default:
 							Config.Query = args.First();
@@ -165,9 +164,9 @@ namespace SmartImage
 
 				Client.ResultCompleted += OnResultCompleted;
 
-				Client.SearchCompleted += (_, eventArgs) =>
+				Client.SearchCompleted += (obj, eventArgs) =>
 				{
-					OnSearchCompleted(_, eventArgs, cts);
+					OnSearchCompleted(obj, eventArgs, cts);
 				};
 
 				NConsoleProgress.Queue(cts);
@@ -175,8 +174,14 @@ namespace SmartImage
 				// Show results
 				var searchTask = Client.RunSearchAsync();
 
+				// Add original image
+				ResultDialog.Options.Add(AppInterface.CreateResultOption(
+					                         Config.Query.GetImageResult(), "(Original image)", 
+					                         AppInterface.ColorMain, -0.1f));
+
 
 				NConsole.ReadOptions(ResultDialog);
+
 
 				await searchTask;
 			}

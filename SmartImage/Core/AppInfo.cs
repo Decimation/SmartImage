@@ -5,16 +5,21 @@ using SimpleCore.Cli;
 using SimpleCore.Utilities;
 using SmartImage.Utilities;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using SimpleCore.Diagnostics;
+// ReSharper disable CognitiveComplexity
+
+// ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable UnusedMember.Global
 
@@ -84,6 +89,36 @@ namespace SmartImage.Core
 				Guard.AssertNotNull(module);
 
 				return module.FileName;
+			}
+		}
+
+		public static List<string> InstalledUtilities
+		{
+			get
+			{
+				var utils = new List<string>
+				{
+					"ffmpeg.exe", "ffprobe.exe", "magick.exe", "youtube-dl.exe"
+				};
+
+				var rg = new List<string>();
+
+				foreach (string s in utils) {
+					string[] path = Environment.GetEnvironmentVariable("PATH").Split(';');
+
+					foreach (string directory in path) {
+						if (Directory.Exists(directory)) {
+							foreach (string file in Directory.EnumerateFiles(directory)) {
+								if (Path.GetFileName(file) == s) {
+									rg.Add(file);
+								}
+							}
+						}
+					}
+				}
+
+				return rg;
+
 			}
 		}
 

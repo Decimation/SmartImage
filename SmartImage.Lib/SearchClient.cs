@@ -31,6 +31,7 @@ namespace SmartImage.Lib
 			Config = config;
 
 			Results         = new List<SearchResult>();
+
 			FilteredResults = new List<SearchResult>();
 
 			Reload();
@@ -76,6 +77,7 @@ namespace SmartImage.Lib
 			          .ToArray();
 
 			Trace.WriteLine($"Engines: {Config.SearchEngines} | {Engines.QuickJoin()}");
+			
 
 		}
 

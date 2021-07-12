@@ -67,7 +67,7 @@ namespace SmartImage.Lib.Engines
 
 		public Uri GetRawResultUrl(ImageQuery query)
 		{
-			var uri = new Uri(BaseUrl + query.Image);
+			var uri = new Uri(BaseUrl + query.UploadUri);
 			
 			bool ok = Network.IsUriAlive(uri, Timeout);
 

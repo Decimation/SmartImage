@@ -149,6 +149,12 @@ namespace SmartImage.Core
 					Console.WriteLine();
 					Console.WriteLine(Strings.Separator);
 
+					foreach (string utility in AppInfo.InstalledUtilities) {
+						Console.WriteLine(utility);
+					}
+
+					Console.WriteLine();
+
 					var dependencies = ReflectionHelper.DumpDependencies();
 
 					foreach (var name in dependencies) {
@@ -156,6 +162,8 @@ namespace SmartImage.Core
 					}
 
 					NConsole.WaitForInput();
+
+
 					return null;
 				}
 			},
@@ -221,7 +229,7 @@ namespace SmartImage.Core
 					});
 
 					var enumValue = Enums.ReadFromSet<SearchEngineOptions>(selected);
-					var field     = Config.GetType().ResolveField((m).Name);
+					var field     = Config.GetType().GetResolvedField((m).Name);
 					field.SetValue(Config, enumValue);
 
 					Console.WriteLine(enumValue);
@@ -272,7 +280,7 @@ namespace SmartImage.Core
 				Name = GetName(name, initVal),
 				Function = () =>
 				{
-					var    fi     = Config.GetType().ResolveField(member.Name);
+					var    fi     = Config.GetType().GetResolvedField(member.Name);
 					object curVal = fi.GetValue(Config);
 					bool   newVal = !(bool) curVal;
 					fi.SetValue(Config, newVal);
@@ -360,16 +368,13 @@ namespace SmartImage.Core
 			return result.Select(r => CreateResultOption(r, $"{n} #{i++}", c)).ToArray();
 		}
 
-		private static NConsoleOption CreateResultOption(ImageResult result, string n, Color c)
+		internal static NConsoleOption CreateResultOption(ImageResult result, string n, Color c, float correction=-.3f)
 		{
-
-			const float CORRECTION_FACTOR = -.3f;
-
 			var option = new NConsoleOption
 			{
 				Function      = CreateOpenFunction(result.Url),
 				ComboFunction = CreateDownloadFunction(result),
-				Color         = c.ChangeBrightness(CORRECTION_FACTOR),
+				Color         = c.ChangeBrightness(correction),
 				Name          = n,
 				Data          = result
 			};
@@ -377,7 +382,7 @@ namespace SmartImage.Core
 			return option;
 		}
 
-		private static NConsoleFunction CreateOpenFunction(Uri url)
+		internal static NConsoleFunction CreateOpenFunction(Uri url)
 		{
 			return () =>
 			{
@@ -389,7 +394,7 @@ namespace SmartImage.Core
 			};
 		}
 
-		private static NConsoleFunction CreateDownloadFunction(ImageResult result)
+		internal static NConsoleFunction CreateDownloadFunction(ImageResult result)
 		{
 			return () =>
 			{
