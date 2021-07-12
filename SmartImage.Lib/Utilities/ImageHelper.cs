@@ -13,6 +13,7 @@ using AngleSharp.Html.Parser;
 using Novus.Win32;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
+using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
 // ReSharper disable PossibleNullReferenceException
@@ -114,22 +115,26 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
-		public static Dictionary<string,string> InstalledUtilities
+
+		#region Cli
+
+		private const string MAGICK_EXE     = "magick.exe";
+		private const string GALLERY_DL_EXE = "gallery-dl.exe";
+		private const string YOUTUBE_DL_EXE = "youtube-dl.exe";
+		private const string FFPROBE_EXE    = "ffprobe.exe";
+		private const string FFMPEG_EXE     = "ffmpeg.exe";
+
+		public static Dictionary<string, string> UtilitiesMap
 		{
 			get
 			{
-				var utils = new List<string>
-				{
-					FFMPEG_EXE, FFPROBE_EXE, MAGICK_EXE, YOUTUBE_DL_EXE, GALLERY_DL_EXE
-				};
-
 				var rg = new Dictionary<string, string>();
 
-				foreach (string s in utils) {
-					var x = FileSystem.SearchInPath(s);
+				foreach (string exe in Utilities) {
+					var path = FileSystem.SearchInPath(exe);
 
 
-					rg.Add(s,x);
+					rg.Add(exe, path);
 				}
 
 				return rg;
@@ -137,12 +142,12 @@ namespace SmartImage.Lib.Utilities
 			}
 		}
 
+		public static readonly List<string> Utilities = new()
+		{
+			FFMPEG_EXE, FFPROBE_EXE, MAGICK_EXE, YOUTUBE_DL_EXE, GALLERY_DL_EXE
+		};
 
-		private const string MAGICK_EXE     = "magick.exe";
-		private const string GALLERY_DL_EXE = "gallery-dl.exe";
-		private const string YOUTUBE_DL_EXE = "youtube-dl.exe";
-		private const string FFPROBE_EXE    = "ffprobe.exe";
-		private const string FFMPEG_EXE     = "ffmpeg.exe";
+		#endregion
 
 
 		/// <summary>
@@ -161,11 +166,11 @@ namespace SmartImage.Lib.Utilities
 		{
 			var directImages = new List<DirectImage>();
 
-			string gallerydl = InstalledUtilities[GALLERY_DL_EXE];
+			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
 
 			if (gallerydl != null) {
 
-				Trace.WriteLine($"Using gallery-dl!");
+				//Trace.WriteLine($"Using gallery-dl!");
 
 				var output = new Process
 				{
@@ -174,6 +179,7 @@ namespace SmartImage.Lib.Utilities
 						FileName               = gallerydl,
 						Arguments              = $"-G {url}",
 						RedirectStandardOutput = true,
+						RedirectStandardError  = true,
 						CreateNoWindow         = true
 					}
 				};
@@ -190,9 +196,17 @@ namespace SmartImage.Lib.Utilities
 						Direct = new Uri(str),
 						Image  = Image.FromStream(WebUtilities.GetStream(str))
 					});
+					//Debug.WriteLine($">>{d}");
 				}
 
-				return directImages;
+				var standardError = output.StandardError;
+
+				while (!standardError.EndOfStream) {
+					var line = standardError.ReadLine();
+					Debug.WriteLine($"{GALLERY_DL_EXE}: {line}", C_ERROR);
+				}
+
+				return directImages.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
 			}
 
 			imageFilter ??= (x) => true;
@@ -248,7 +262,7 @@ namespace SmartImage.Lib.Utilities
 						if (!Network.IsUri(currentUrl, out var uri))
 							continue;
 
-						if (!Network.IsUriAlive(uri, pingTime))
+						if (!Network.IsAlive(uri, (long)pingTime.TotalMilliseconds))
 							continue;
 
 						if (!IsDirect(currentUrl, directType))
@@ -301,7 +315,7 @@ namespace SmartImage.Lib.Utilities
 			Task.WaitAll(tasks.ToArray());
 
 
-			return directImages;
+			return directImages.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
 
 		}
 

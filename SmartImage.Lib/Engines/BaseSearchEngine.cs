@@ -3,6 +3,7 @@ using SmartImage.Lib.Searching;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using SmartImage.Lib.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
@@ -71,13 +72,18 @@ namespace SmartImage.Lib.Engines
 		{
 			var uri = new Uri(BaseUrl + query.UploadUri);
 
-			bool ok = Network.IsUriAlive(uri, Timeout);
+			var reply = Network.Ping(uri, (long)Timeout.TotalMilliseconds);
 
-			if (!ok) {
-				Debug.WriteLine($"{uri} is unavailable or timed out after {Timeout:g}", C_WARN);
+			//var b = Network.IsAlive(uri, (long) Timeout.TotalMilliseconds);
+
+			//var b1 = ok.Status != IPStatus.Success || ok.Status == IPStatus.TimedOut;
+
+			
+			
+			if (reply.Status != IPStatus.Success) {
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} ({reply.Status})", C_WARN);
 				return null;
 			}
-
 			return uri;
 		}
 	}

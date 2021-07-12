@@ -22,6 +22,7 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public TraceMoeEngine() : base("https://trace.moe/?url=", "https://api.trace.moe") { }
 
+		//public override TimeSpan Timeout => TimeSpan.FromSeconds(4);
 
 		/// <summary>
 		/// Used to retrieve more information about results

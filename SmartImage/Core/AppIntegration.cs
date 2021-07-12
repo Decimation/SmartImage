@@ -12,6 +12,8 @@ using Novus.Utilities;
 using SimpleCore.Utilities;
 using static SimpleCore.Diagnostics.LogCategories;
 
+// ReSharper disable CognitiveComplexity
+
 // ReSharper disable InconsistentNaming
 
 // ReSharper disable UnusedMember.Global

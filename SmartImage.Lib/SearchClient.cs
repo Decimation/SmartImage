@@ -76,9 +76,8 @@ namespace SmartImage.Lib
 			          .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
 			          .ToArray();
 
-			Trace.WriteLine($"Engines: {Config.SearchEngines} | {Engines.QuickJoin()}");
 
-
+			Trace.WriteLine($"Engines: {Config.SearchEngines}");
 		}
 
 		/// <summary>

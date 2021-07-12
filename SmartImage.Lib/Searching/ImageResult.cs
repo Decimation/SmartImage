@@ -120,6 +120,11 @@ namespace SmartImage.Lib.Searching
 
 		public Image? Image { get; set; }
 
+		public ImageResult()
+		{
+			OtherMetadata = new Dictionary<string, object>();
+		}
+
 		public static ImageResult FromDirectImage(DirectImage di)
 		{
 			var ir = new ImageResult
@@ -132,11 +137,6 @@ namespace SmartImage.Lib.Searching
 			ir.UpdateImageData();
 
 			return ir;
-		}
-
-		public ImageResult()
-		{
-			OtherMetadata = new Dictionary<string, object>();
 		}
 
 		private static List<FieldInfo> GetDetailFields()
@@ -209,35 +209,34 @@ namespace SmartImage.Lib.Searching
 
 		public void FindDirectImages()
 		{
-			if (Url is not null && Direct == null) {
 
-				if (ImageHelper.IsDirect(Url.ToString())) {
-					Direct = Url;
+			if (Url == null || Direct != null) 
+				return;
 
-				}
-				else {
-					try {
-
-						var directImages = ImageHelper.FindDirectImages(Url.ToString());
-
-						var direct = directImages?.FirstOrDefault();
-
-						if (direct != null) {
-							Direct = (direct.Value.Direct);
-							Image  = direct.Value.Image;
-							//Debug.WriteLine($"{Url} -> {Direct}");
-
-						}
-					}
-					catch {
-						//
-					}
-				}
-
-
-				UpdateImageData();
-
+			if (ImageHelper.IsDirect(Url.ToString())) {
+				Direct = Url;
 			}
+			else {
+				try {
+
+					var directImages = ImageHelper.FindDirectImages(Url.ToString());
+
+					var direct = directImages?.FirstOrDefault();
+
+					if (direct != null) {
+						Direct = (direct.Value.Direct);
+						Image  = direct.Value.Image;
+						//Debug.WriteLine($"{Url} -> {Direct}");
+
+					}
+				}
+				catch {
+					//
+				}
+			}
+
+
+			UpdateImageData();
 		}
 
 		public void UpdateImageData()

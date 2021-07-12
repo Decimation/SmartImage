@@ -20,6 +20,7 @@ using Novus.Utilities;
 using Novus.Win32;
 using SimpleCore.Net;
 using SmartImage.Lib;
+using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using static SmartImage.Program;
@@ -149,11 +150,12 @@ namespace SmartImage.Core
 					Console.WriteLine();
 					Console.WriteLine(Strings.Separator);
 
-					foreach (string utility in AppInfo.InstalledUtilities) {
+					foreach (var utility in ImageHelper.UtilitiesMap) {
 						Console.WriteLine(utility);
 					}
 
 					Console.WriteLine();
+					Console.WriteLine(Strings.Separator);
 
 					var dependencies = ReflectionHelper.DumpDependencies();
 

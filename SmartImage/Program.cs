@@ -37,6 +37,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
+
 // ReSharper disable CognitiveComplexity
 
 namespace SmartImage
@@ -49,9 +50,9 @@ namespace SmartImage
 		//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
 		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 		//                                                     |___/
-		
+
 		#region Core fields
-		
+
 		public static readonly SearchConfig Config = new();
 
 		public static readonly SearchClient Client = new(Config);
@@ -61,7 +62,6 @@ namespace SmartImage
 			Options     = new List<NConsoleOption>(),
 			Description = AppInterface.Description
 		};
-
 
 		#endregion
 
@@ -78,6 +78,8 @@ namespace SmartImage
 
 
 #endif
+			
+
 			/*
 			 * Setup
 			 * Check compatibility
@@ -125,10 +127,8 @@ namespace SmartImage
 						case CMD_FIND_DIRECT:
 							argEnumerator.MoveNext();
 
-							var directImages = ImageHelper.FindDirectImages((string) argEnumerator.Current);
-
-							var imageResults = directImages.Select(ImageResult.FromDirectImage);
-
+							var directImages  = ImageHelper.FindDirectImages((string) argEnumerator.Current);
+							var imageResults  = directImages.Select(ImageResult.FromDirectImage);
 							var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
 
 
@@ -171,7 +171,7 @@ namespace SmartImage
 
 				// Add original image
 				ResultDialog.Options.Add(AppInterface.CreateResultOption(
-					                         Config.Query.GetImageResult(), "(Original image)", 
+					                         Config.Query.GetImageResult(), "(Original image)",
 					                         AppInterface.ColorMain, -0.1f));
 
 
@@ -235,6 +235,5 @@ namespace SmartImage
 		private const string CMD_SEARCH = "search";
 
 		#endregion
-		
 	}
 }
