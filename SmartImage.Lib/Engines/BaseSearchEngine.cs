@@ -17,7 +17,7 @@ namespace SmartImage.Lib.Engines
 		protected BaseSearchEngine(string baseUrl)
 		{
 			BaseUrl = baseUrl;
-			
+
 		}
 
 		public string BaseUrl { get; }
@@ -32,7 +32,7 @@ namespace SmartImage.Lib.Engines
 
 		public virtual SearchResult GetResult(ImageQuery query)
 		{
-			var rawUrl = GetRawResultUrl(query);
+			var rawUrl = GetRawResultUri(query);
 
 			var sr = new SearchResult(this);
 
@@ -47,6 +47,8 @@ namespace SmartImage.Lib.Engines
 
 			return sr;
 		}
+
+		
 
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
@@ -65,10 +67,10 @@ namespace SmartImage.Lib.Engines
 			return await task;
 		}
 
-		public Uri GetRawResultUrl(ImageQuery query)
+		public Uri GetRawResultUri(ImageQuery query)
 		{
 			var uri = new Uri(BaseUrl + query.UploadUri);
-			
+
 			bool ok = Network.IsUriAlive(uri, Timeout);
 
 			if (!ok) {

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Novus.Win32;
 using SimpleCore.Model;
 using SimpleCore.Net;
+// ReSharper disable CognitiveComplexity
 
 #nullable enable
 

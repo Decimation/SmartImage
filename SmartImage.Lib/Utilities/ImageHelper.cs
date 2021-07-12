@@ -110,7 +110,6 @@ namespace SmartImage.Lib.Utilities
 		}
 
 
-		
 		/// <summary>
 		/// Scans for direct images within a webpage.
 		/// </summary>
@@ -122,8 +121,8 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="readImage">Whether to read image metadata</param>
 		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
 		public static List<DirectImage> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
-		                                                 int count=5, int fragmentSize=10, double pingTimeSec=1,
-		                                                 bool readImage=true, Predicate<Image> imageFilter=null)
+		                                                 int count = 5, int fragmentSize = 10, double pingTimeSec = 1,
+		                                                 bool readImage = true, Predicate<Image> imageFilter = null)
 		{
 
 
@@ -175,18 +174,18 @@ namespace SmartImage.Lib.Utilities
 				{
 
 					foreach (string currentUrl in fragments[iCopy]) {
-
+						
 						if (directImages.Count >= count) {
 							return;
 						}
 
-						if (!Network.IsUri(currentUrl, out var uri)) 
+						if (!Network.IsUri(currentUrl, out var uri))
 							continue;
 
-						if (!Network.IsUriAlive(uri, pingTime)) 
+						if (!Network.IsUriAlive(uri, pingTime))
 							continue;
 
-						if (!IsDirect(currentUrl, directType)) 
+						if (!IsDirect(currentUrl, directType))
 							continue;
 
 						var di = new DirectImage
@@ -234,6 +233,7 @@ namespace SmartImage.Lib.Utilities
 			}
 
 			Task.WaitAll(tasks.ToArray());
+
 
 			return directImages;
 

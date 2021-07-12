@@ -37,6 +37,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
+// ReSharper disable CognitiveComplexity
 
 namespace SmartImage
 {

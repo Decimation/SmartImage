@@ -46,6 +46,7 @@ namespace SmartImage.Lib.Engines
 			}
 
 			return sr;
+
 		}
 
 		protected virtual IDocument GetDocument(SearchResult sr)
