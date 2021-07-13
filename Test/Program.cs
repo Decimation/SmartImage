@@ -46,7 +46,7 @@ namespace Test
 			//Console.InputEncoding  = Encoding.Unicode;
 
 
-			var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test3.png");
+			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test3.png");
 			//var q = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
 
 
@@ -100,11 +100,11 @@ namespace Test
 			//	Console.WriteLine(result);
 			//}
 
-			var i = new TraceMoeEngine() { };
-			var i2 = i.GetResultAsync(q);
+			//var i = new TraceMoeEngine() { };
+			//var i2 = i.GetResultAsync(q);
 
-			await i2;
-			Console.WriteLine(i2.Result);
+			//await i2;
+			//Console.WriteLine(i2.Result);
 
 			//Console.WriteLine(r2);
 
@@ -167,15 +167,14 @@ namespace Test
 
 			//Console.WriteLine(">> {0}", r2x);
 
-			// var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747", out var i);
-			//
-			// foreach (var s in t) {
-			// 	Console.WriteLine(s);
-			// }
-			//
-			// foreach (var image in i) {
-			// 	Console.WriteLine(image);
-			// }
+			var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747");
+
+			foreach (var s in t)
+			{
+				Console.WriteLine(s);
+			}
+
+			
 
 
 		}

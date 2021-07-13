@@ -156,17 +156,16 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="url">Url to search</param>
 		/// <param name="directType">Which criterion to use to determine whether a URI is a direct image </param>
 		/// <param name="count">Number of direct images to return</param>
-		/// <param name="fragmentSize">Size of the fragments which a respective task operates on</param>
 		/// <param name="pingTimeSec"></param>
 		/// <param name="readImage">Whether to read image metadata</param>
 		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
 		public static List<DirectImage> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
-		                                                 int count = 5, int fragmentSize = 10, double pingTimeSec = 1,
+		                                                 int count = 5, double pingTimeSec = 1,
 		                                                 bool readImage = true, Predicate<Image> imageFilter = null)
 		{
 			var directImages = new List<DirectImage>();
 
-			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
+			/*string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
 
 			if (gallerydl != null) {
 
@@ -204,10 +203,20 @@ namespace SmartImage.Lib.Utilities
 				while (!standardError.EndOfStream) {
 					var line = standardError.ReadLine();
 					Debug.WriteLine($"{GALLERY_DL_EXE}: {line}", C_ERROR);
+
+					if (line!=null) {
+						goto manual;
+					}
 				}
+
+
 
 				return directImages.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
 			}
+
+			manual:*/
+
+			var sw = Stopwatch.StartNew();
 
 			imageFilter ??= (x) => true;
 
@@ -238,81 +247,117 @@ namespace SmartImage.Lib.Utilities
 
 			flat = flat.Distinct().ToList();
 
-			var fragments = flat.Chunk(fragmentSize).ToArray();
+			//var fragments = flat.Chunk(fragmentSize).ToArray();
 
-			var tasks = new List<Task>();
+			//var tasks = new List<Task>();
 
 			//count = Math.Clamp(count, count, flat.Count);
+			var act = new List<Action>();
 
-			for (int i = 0; i < fragments.Length; i++) {
+			for (int i = 0; i < flat.Count; i++) {
 
 				int iCopy = i;
 
 				var imagesCopy = directImages;
 
-				tasks.Add(Task.Factory.StartNew(() =>
+				void Function()
 				{
+					string currentUrl = flat[iCopy];
 
-					foreach (string currentUrl in fragments[iCopy]) {
+					if (directImages.Count >= count) {
+						return;
+					}
 
-						if (directImages.Count >= count) {
-							return;
-						}
+					if (!Network.IsUri(currentUrl, out var uri)) 
+						return;
 
-						if (!Network.IsUri(currentUrl, out var uri))
-							continue;
+					if (!Network.IsAlive(uri, (long) pingTime.TotalMilliseconds)) 
+						return;
 
-						if (!Network.IsAlive(uri, (long)pingTime.TotalMilliseconds))
-							continue;
+					if (!IsDirect(currentUrl, directType)) 
+						return;
 
-						if (!IsDirect(currentUrl, directType))
-							continue;
-
-						var di = new DirectImage
-						{
-							Direct = new Uri(currentUrl)
-						};
+					var di = new DirectImage {Direct = new Uri(currentUrl)};
 
 
-						bool isValid = !readImage;
+					bool isValid = !readImage;
 
-						if (readImage) {
-							var stream = WebUtilities.GetStream(currentUrl);
+					if (readImage) {
+						var stream = WebUtilities.GetStream(currentUrl);
 
-							if (stream.CanRead) {
+						if (stream.CanRead) {
 
-								try {
-									var img = Image.FromStream(stream);
-									//isValid = true;
+							try {
+								var img = Image.FromStream(stream);
+								//isValid = true;
 
-									//Debug.WriteLine($"{img.Width} {img.Height}");
-									isValid = imageFilter(img);
+								//Debug.WriteLine($"{img.Width} {img.Height}");
+								isValid = imageFilter(img);
 
-									if (isValid) {
-										di.Image = img;
-									}
-								}
-								catch (Exception) {
-									isValid = false;
+								if (isValid) {
+									di.Image = img;
 								}
 							}
-						}
-
-						if (directImages.Count >= count) {
-							return;
-						}
-
-						if (isValid) {
-							imagesCopy.Add(di);
-							//Debug.WriteLine($">>> {currentUrl}");
-
+							catch (Exception) {
+								isValid = false;
+							}
 						}
 					}
-				}, cts.Token));
 
+					if (directImages.Count >= count) {
+						return;
+					}
+
+					if (isValid) {
+						imagesCopy.Add(di);
+						//Debug.WriteLine($">>> {currentUrl}");
+
+					}
+				}
+
+				//tasks.Add(Task.Factory.StartNew(function, cts.Token));
+				act.Add(Function);
 			}
 
-			Task.WaitAll(tasks.ToArray());
+
+			/*
+			 * Tasks
+			 * 1		5.19
+			 * 2		4.68
+			 * 3		4.54
+			 * 4		4.42
+			 *
+			 * Parallel
+			 * 1		4.59
+			 * 2		4.37
+			 * 3		4.28
+			 * 4		4.34
+			 * 5		4.38
+			 * 6		4.55
+			 * 7		4.36
+			 * 8		4.45
+			 *
+			 * 9		3.84
+			 * 10		3.56
+			 * 11		3.45
+			 * 12		3.52
+			 * 13		3.63
+			 * 14		3.52
+			 */
+
+			//Task.WaitAll(tasks.ToArray());
+
+
+			Parallel.Invoke(new ParallelOptions()
+			{
+				MaxDegreeOfParallelism = Int32.MaxValue,
+				TaskScheduler          = TaskScheduler.Default,
+				CancellationToken      = cts.Token
+			}, act.ToArray());
+
+			sw.Stop();
+
+			Trace.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
 
 			return directImages.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
@@ -335,6 +380,11 @@ namespace SmartImage.Lib.Utilities
 		public Uri Direct { get; internal set; }
 
 		public Image Image { get; internal set; }
+
+		public override string ToString()
+		{
+			return $"{Direct} {Image.Width}x{Image.Height}";
+		}
 	}
 
 	public enum DirectImageType
