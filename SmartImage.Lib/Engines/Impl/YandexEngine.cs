@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Text;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
@@ -213,7 +214,10 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 			if (looksLike != null) {
-				sr.PrimaryResult.Description = looksLike;
+				//todo
+				
+				sr.PrimaryResult.Description = Encoding.Unicode.GetString(
+					Encoding.Convert(Encoding.UTF8, Encoding.Unicode, Encoding.UTF8.GetBytes(looksLike)));
 			}
 
 			sr.OtherResults.AddRange(images);

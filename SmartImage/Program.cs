@@ -85,8 +85,9 @@ namespace SmartImage
 			 * Check compatibility
 			 */
 
-			Native.SetConsoleOutputCP(Native.CP_WIN32_UNITED_STATES);
-
+			Native.SetConsoleOutputCP((uint) Encoding.Unicode.CodePage);
+			Native.SetConsoleCP((uint) Encoding.Unicode.CodePage);
+			
 			Console.Title = $"{AppInfo.NAME}";
 
 			NConsole.Init();

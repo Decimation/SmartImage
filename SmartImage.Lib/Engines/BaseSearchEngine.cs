@@ -49,7 +49,6 @@ namespace SmartImage.Lib.Engines
 			return sr;
 		}
 
-		
 
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
@@ -72,18 +71,18 @@ namespace SmartImage.Lib.Engines
 		{
 			var uri = new Uri(BaseUrl + query.UploadUri);
 
-			var reply = Network.Ping(uri, (long)Timeout.TotalMilliseconds);
+			var reply = Network.Ping(uri, (long) Timeout.TotalMilliseconds);
 
 			//var b = Network.IsAlive(uri, (long) Timeout.TotalMilliseconds);
 
 			//var b1 = ok.Status != IPStatus.Success || ok.Status == IPStatus.TimedOut;
 
-			
-			
+
 			if (reply.Status != IPStatus.Success) {
 				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} ({reply.Status})", C_WARN);
 				return null;
 			}
+
 			return uri;
 		}
 	}
