@@ -215,30 +215,49 @@ namespace SmartImage.Lib
 
 			var best = FindBestResults();
 
-			const int FRAG_SIZE = 10;
+			//const int FRAG_SIZE = 10;
 
-			var frag = best.Chunk(FRAG_SIZE).ToList();
+			//var frag = best.Chunk(FRAG_SIZE).ToList();
 
-			var tasks = new List<Task>();
+			//var tasks = new List<Task>();
 
-			for (int i = 0; i < frag.Count; i++) {
-				int iCopy = i;
+			//for (int i = 0; i < frag.Count; i++) {
+			//	int iCopy = i;
 
-				tasks.Add(Task.Factory.StartNew(() =>
-				{
-					foreach (var result in frag[iCopy]) {
-						result.FindDirectImages();
-					}
-				}));
-			}
+			//	tasks.Add(Task.Factory.StartNew(() =>
+			//	{
+			//		foreach (var result in frag[iCopy]) {
+			//			result.FindDirectImages();
+			//		}
+			//	}));
+			//}
 
 
-			Task.WaitAll(tasks.ToArray());
+			//Task.WaitAll(tasks.ToArray());
+
+			var best1 = best;
+
+			var options = new ParallelOptions()
+			{
+				MaxDegreeOfParallelism = Int32.MaxValue,
+				TaskScheduler          = TaskScheduler.Default,
+			};
+
+			Parallel.For(0, best.Length, options, (i) =>
+			{
+				best1[i].FindDirectImages();
+
+			});
+
+			best = best1;
 
 			best = best.Where(x => x.Direct != null)
 			           .OrderByDescending(r => r.Similarity)
-			           .ThenByDescending(i => i.PixelResolution)
 			           .ToArray();
+
+
+			best = best.OrderByDescending(b => b.PixelResolution).ToArray();
+			Debug.WriteLine($"Found {best.Length} direct results");
 
 			return best;
 		}

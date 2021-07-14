@@ -9,6 +9,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -446,11 +447,16 @@ namespace SmartImage.Core
 				var direct = Client.FindDirectResult();
 
 				Debug.WriteLine(direct);
+				//Debug.WriteLine($"{Network.IsAlive(direct.Direct)} {ImageHelper.IsDirect(direct.Direct.ToString(), DirectImageType.Binary)}");
 
 
-				if (direct is {Direct: { }}) {
+
+				if (direct is { Direct: { } })
+				{
+
 
 					string file = WebUtilities.Download(direct.Direct.ToString(), Path.GetTempPath());
+
 					Debug.WriteLine($"Downloaded {file} tmp");
 					builder.AddHeroImage(new Uri(file));
 

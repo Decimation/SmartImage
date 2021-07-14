@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using JetBrains.Annotations;
 using Novus.Win32;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -150,6 +151,24 @@ namespace SmartImage.Lib.Utilities
 		#endregion
 
 
+		public static Image GetImage(string s)
+		{
+			// TODO: Using Image objects creates a memory leak; disposing them doesn't fix anything either (?)
+
+			using var wc = new WebClient();
+
+			byte[] buf = wc.DownloadData(s);
+
+			var stream = new MemoryStream(buf);
+
+			Debug.WriteLine($"Alloc {buf.Length}");
+
+			var image = Image.FromStream(stream);
+
+			return image;
+		}
+
+
 		/// <summary>
 		/// Scans for direct images within a webpage.
 		/// </summary>
@@ -160,12 +179,12 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="readImage">Whether to read image metadata</param>
 		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
 		public static List<DirectImage> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
-		                                                 int count = 5, double pingTimeSec = 1,
-		                                                 bool readImage = true, Predicate<Image> imageFilter = null)
+		                                                 int count = 5, double pingTimeSec = 1, bool readImage = true,
+		                                                 Predicate<Image> imageFilter = null)
 		{
-			var directImages = new List<DirectImage>();
+			var images = new List<DirectImage>();
 
-			/*string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
+			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
 
 			if (gallerydl != null) {
 
@@ -188,40 +207,41 @@ namespace SmartImage.Lib.Utilities
 				var standardOutput = output.StandardOutput;
 
 				while (!standardOutput.EndOfStream) {
-					string str = standardOutput.ReadLine().Trim().Trim('|');
+					string str = standardOutput.ReadLine()
+					                           .Split('|')
+					                           .First();
 
-					directImages.Add(new DirectImage
+					var di = new DirectImage
 					{
 						Direct = new Uri(str),
-						Image  = Image.FromStream(WebUtilities.GetStream(str))
-					});
-					//Debug.WriteLine($">>{d}");
+					};
+
+					if (readImage) {
+						di.Image = GetImage(str);
+					}
+
+					images.Add(di);
 				}
 
 				var standardError = output.StandardError;
 
 				while (!standardError.EndOfStream) {
-					var line = standardError.ReadLine();
-					Debug.WriteLine($"{GALLERY_DL_EXE}: {line}", C_ERROR);
+					string line = standardError.ReadLine();
 
-					if (line!=null) {
+					if (line != null) {
 						goto manual;
 					}
 				}
 
 
-
-				return directImages.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
+				goto ret;
 			}
 
-			manual:*/
-
-			var sw = Stopwatch.StartNew();
+			manual:
 
 			imageFilter ??= (x) => true;
 
 			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
-
 
 			IHtmlDocument document;
 
@@ -230,13 +250,13 @@ namespace SmartImage.Lib.Utilities
 				var    parser = new HtmlParser();
 
 				document = parser.ParseDocument(html);
+
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
 
 				return null;
 			}
-
 
 			var cts = new CancellationTokenSource();
 
@@ -247,77 +267,69 @@ namespace SmartImage.Lib.Utilities
 
 			flat = flat.Distinct().ToList();
 
-			//var fragments = flat.Chunk(fragmentSize).ToArray();
+			var options = new ParallelOptions
+			{
+				MaxDegreeOfParallelism = Int32.MaxValue,
+				TaskScheduler          = TaskScheduler.Default,
+				CancellationToken      = cts.Token
+			};
 
-			//var tasks = new List<Task>();
+			var imagesCopy = images;
 
-			//count = Math.Clamp(count, count, flat.Count);
-			var act = new List<Action>();
+			Parallel.For(0, flat.Count, options, i =>
+			{
+				string currentUrl = flat[i];
 
-			for (int i = 0; i < flat.Count; i++) {
+				if (imagesCopy.Count >= count) {
+					return;
+				}
 
-				int iCopy = i;
+				if (!Network.IsUri(currentUrl, out var uri))
+					return;
 
-				var imagesCopy = directImages;
+				if (!Network.IsAlive(uri, (long) pingTime.TotalMilliseconds)) {
+					Debug.WriteLine($"{uri} isn't alive");
+					return;
+				}
 
-				void Function()
+				if (!IsDirect(currentUrl, directType))
+					return;
+
+				var di = new DirectImage
 				{
-					string currentUrl = flat[iCopy];
-
-					if (directImages.Count >= count) {
-						return;
-					}
-
-					if (!Network.IsUri(currentUrl, out var uri)) 
-						return;
-
-					if (!Network.IsAlive(uri, (long) pingTime.TotalMilliseconds)) 
-						return;
-
-					if (!IsDirect(currentUrl, directType)) 
-						return;
-
-					var di = new DirectImage {Direct = new Uri(currentUrl)};
+					Direct = new Uri(currentUrl)
+				};
 
 
-					bool isValid = !readImage;
+				bool isValid = !readImage;
 
-					if (readImage) {
-						var stream = WebUtilities.GetStream(currentUrl);
+				if (readImage) {
+					try {
+						var img = GetImage(currentUrl);
 
-						if (stream.CanRead) {
+						isValid = imageFilter(img);
 
-							try {
-								var img = Image.FromStream(stream);
-								//isValid = true;
+						if (isValid) {
+							di.Image = img;
 
-								//Debug.WriteLine($"{img.Width} {img.Height}");
-								isValid = imageFilter(img);
-
-								if (isValid) {
-									di.Image = img;
-								}
-							}
-							catch (Exception) {
-								isValid = false;
-							}
+						}
+						else {
+							img.Dispose();
 						}
 					}
-
-					if (directImages.Count >= count) {
-						return;
-					}
-
-					if (isValid) {
-						imagesCopy.Add(di);
-						//Debug.WriteLine($">>> {currentUrl}");
-
+					catch (Exception) {
+						isValid = false;
 					}
 				}
 
-				//tasks.Add(Task.Factory.StartNew(function, cts.Token));
-				act.Add(Function);
-			}
+				if (imagesCopy.Count >= count) {
+					return;
+				}
+
+				if (isValid) {
+					imagesCopy.Add(di);
+				}
+			});
 
 
 			/*
@@ -343,24 +355,28 @@ namespace SmartImage.Lib.Utilities
 			 * 12		3.52
 			 * 13		3.63
 			 * 14		3.52
+			 *
+			 * 15		3.39
+			 * 16		3.52
+			 * 17		3.58
+			 * 18		3.47
+			 * 19		3.33
+			 *
+			 * 20		3.13
+			 * 21		2.89
+			 * 22		2.87
+			 * 23		2.89
 			 */
 
-			//Task.WaitAll(tasks.ToArray());
+			images = imagesCopy;
 
+			ret:
 
-			Parallel.Invoke(new ParallelOptions()
-			{
-				MaxDegreeOfParallelism = Int32.MaxValue,
-				TaskScheduler          = TaskScheduler.Default,
-				CancellationToken      = cts.Token
-			}, act.ToArray());
+			if (readImage) {
+				images = images.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
+			}
 
-			sw.Stop();
-
-			Trace.WriteLine($"{sw.Elapsed.TotalSeconds}");
-
-
-			return directImages.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
+			return images;
 
 		}
 
@@ -375,15 +391,21 @@ namespace SmartImage.Lib.Utilities
 		}
 	}
 
-	public struct DirectImage
+	public struct DirectImage : IDisposable
 	{
 		public Uri Direct { get; internal set; }
 
+		[CanBeNull]
 		public Image Image { get; internal set; }
 
 		public override string ToString()
 		{
-			return $"{Direct} {Image.Width}x{Image.Height}";
+			return $"{Direct} {Image?.Width}x{Image?.Height}";
+		}
+
+		public void Dispose()
+		{
+			Image?.Dispose();
 		}
 	}
 

@@ -172,8 +172,8 @@ namespace SmartImage.UI
 			var img = searchResult.OtherResults.FirstOrDefault(f => ImageHelper.IsDirect(f?.Url?.ToString()));
 
 			if (img is not null) {
-				var s = WebUtilities.GetStream(img.Url.ToString());
-				resultsListView.SmallImageList.Images.Add(Image.FromStream(s));
+				var s = ImageHelper.GetImage(img.Url.ToString());
+				resultsListView.SmallImageList.Images.Add(s);
 			}
 
 			listViewItem.ImageIndex = 0;
@@ -230,7 +230,7 @@ namespace SmartImage.UI
 			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
 			if (best is not null) {
-				previewPictureBox.Image = Image.FromStream(WebUtilities.GetStream(best.Url?.ToString()));
+				previewPictureBox.Image =  ImageHelper.GetImage(best.Url?.ToString());
 			}
 		}
 

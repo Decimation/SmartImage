@@ -167,8 +167,8 @@ namespace Test
 
 			//Console.WriteLine(">> {0}", r2x);
 
-			var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747");
-
+			//var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747");
+			var t = ImageHelper.FindDirectImages("https://deviantart.com/view/817835288");
 			foreach (var s in t)
 			{
 				Console.WriteLine(s);

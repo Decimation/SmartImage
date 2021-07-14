@@ -128,6 +128,8 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString() => Strings.ViewString(this);
 
+		
+
 		public Dictionary<string, object> View
 		{
 			get
