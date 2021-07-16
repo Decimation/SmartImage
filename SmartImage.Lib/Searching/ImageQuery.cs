@@ -87,7 +87,7 @@ namespace SmartImage.Lib.Searching
 		public ImageResult GetImageResult()
 		{
 
-			var result = new ImageResult()
+			var result = new ImageResult
 			{
 				Url    = UploadUri,
 				Direct = UploadUri,

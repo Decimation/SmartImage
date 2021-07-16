@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Novus.Win32;
 using SimpleCore.Model;
 using SimpleCore.Net;
+
 // ReSharper disable CognitiveComplexity
 
 #nullable enable
@@ -210,7 +211,7 @@ namespace SmartImage.Lib.Searching
 		public void FindDirectImages()
 		{
 
-			if (Url == null || Direct != null) 
+			if (Url == null || Direct != null)
 				return;
 
 			if (ImageHelper.IsDirect(Url.ToString(), DirectImageType.Binary)) {
@@ -221,10 +222,16 @@ namespace SmartImage.Lib.Searching
 
 					var directImages = ImageHelper.FindDirectImages(Url.ToString());
 
+					/*directImages = directImages.AsParallel().Where(x => ImageHelper.IsDirect(x, DirectImageType.Binary))
+					                           .ToList();*/
+
+					//var direct = directImages?.FirstOrDefault(x=>ImageHelper.IsDirect(x, DirectImageType.Binary));
+					
 					var direct = directImages?.FirstOrDefault();
 
 					if (direct != null) {
 						Direct = new Uri((direct));
+						//Image  = ImageHelper.GetImage(direct);
 						//Debug.WriteLine($"{Url} -> {Direct}");
 
 					}

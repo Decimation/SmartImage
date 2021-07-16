@@ -171,7 +171,7 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="count">Number of direct images to return</param>
 		/// <param name="pingTimeSec"></param>
 		public static List<string> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
-		                                            int count = 5, double pingTimeSec = 1)
+		                                            int count = 10, double pingTimeSec = 1)
 		{
 
 			var images = new List<string>();
@@ -261,11 +261,12 @@ namespace SmartImage.Lib.Utilities
 
 			var imagesCopy = images;
 
-			Parallel.For(0, flat.Count, options, i =>
+			Parallel.For(0, flat.Count, options, (i,s) =>
 			{
 				string currentUrl = flat[i];
 
 				if (imagesCopy.Count >= count) {
+					s.Stop();
 					return;
 				}
 
@@ -282,6 +283,7 @@ namespace SmartImage.Lib.Utilities
 
 
 				if (imagesCopy.Count >= count) {
+					s.Stop();
 					return;
 				}
 

@@ -1,30 +1,22 @@
-﻿using SimpleCore.Cli;
-using SimpleCore.Utilities;
-using SmartImage.Lib.Engines;
-using SmartImage.Lib.Searching;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Windows.ApplicationModel.Background;
-using Windows.Foundation;
-using Windows.UI.Notifications;
 using JetBrains.Annotations;
-using Microsoft.Toolkit.Uwp.Notifications;
-using Novus.Memory;
 using Novus.Utilities;
 using Novus.Win32;
+using SimpleCore.Cli;
 using SimpleCore.Net;
-using SmartImage.Lib;
+using SimpleCore.Utilities;
+using SmartImage.Core;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
@@ -38,13 +30,18 @@ using static SmartImage.Program;
 #pragma warning disable CA1069
 #pragma warning disable CA2101
 
-namespace SmartImage.Core
+namespace SmartImage.UX
 {
 	/// <summary>
 	/// Handles the main menu interface
 	/// </summary>
 	internal static class AppInterface
 	{
+		/*
+		 * TODO
+		 *
+		 */
+
 		#region Colors
 
 		internal static readonly Color ColorMain  = Color.Yellow;
@@ -408,9 +405,22 @@ namespace SmartImage.Core
 			{
 				var direct = result.Direct;
 
+
 				if (direct != null) {
-					string download = WebUtilities.Download(direct.ToString());
-					FileSystem.ExploreFile(download);
+
+					string filename = Path.GetFileName(direct.AbsolutePath);
+
+					var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+					string combine = Path.Combine(path, filename);
+
+					using var wc = new WebClient();
+
+					wc.DownloadFile(direct, combine);
+
+					FileSystem.ExploreFile(combine);
+
+					Debug.WriteLine($"Download: {combine}");
 				}
 
 				return null;

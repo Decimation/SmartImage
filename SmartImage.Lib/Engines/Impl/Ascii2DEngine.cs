@@ -6,6 +6,7 @@ using SmartImage.Lib.Searching;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+// ReSharper disable CognitiveComplexity
 
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo

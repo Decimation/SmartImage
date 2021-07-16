@@ -16,6 +16,7 @@ using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Upload;
 using static SimpleCore.Diagnostics.LogCategories;
+// ReSharper disable CognitiveComplexity
 
 // ReSharper disable LoopCanBeConvertedToQuery
 
@@ -211,36 +212,31 @@ namespace SmartImage.Lib
 		[CanBeNull]
 		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
 
-
-		public ImageResult[] FindDirectResults()
+		public ImageResult[] FindDirectResults(int count = 5)
 		{
-			int lim = 15;
-
 			var best = FindBestResults().ToList();
-
-
-			var cts = new CancellationTokenSource();
-
+			
 			var options = new ParallelOptions()
 			{
 				MaxDegreeOfParallelism = Int32.MaxValue,
 				TaskScheduler          = TaskScheduler.Default,
-				CancellationToken      = cts.Token
 			};
 
-			Debug.WriteLine($"{best.Count}");
-
+			Debug.WriteLine($"Found {best.Count} best results");
 
 			var images = new ConcurrentBag<ImageResult>();
 
-
-			Parallel.For(0, best.Count, options, i =>
+			Parallel.For(0, best.Count, options, (i, s) =>
 			{
-				if (options.CancellationToken.IsCancellationRequested || images.Count >= lim) {
+				if (images.Count >= count) {
+					s.Stop();
 					return;
 				}
 
-				
+				if (s.IsStopped) {
+					return;
+				}
+
 				var item = best[i];
 
 				item.FindDirectImages();
@@ -250,26 +246,25 @@ namespace SmartImage.Lib
 				}
 
 				if (ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary)) {
-					Debug.WriteLine($"Adding {item.Direct}");
+					if (images.Count >= count) {
+						s.Stop();
+						return;
+					}
+
+					//Debug.WriteLine($"Adding {item.Direct}");
+
 					images.Add(item);
+
+					//Interlocked.Increment(ref c);
+					//Volatile.Write(ref c,1);
 				}
 
 			});
 			
-
-			Task.Factory.StartNew(() =>
-			{
-				//SpinWait.SpinUntil(() => rx.Count >= lim);
-				while (!(images.Count >= lim)) { }
-				
-				cts.Cancel();
-			});
-
-
 			Debug.WriteLine($"Found {images.Count} direct results");
 
 			return images.OrderByDescending(r => r.Similarity)
-			         .ToArray();
+			             .ToArray();
 		}
 
 		[CanBeNull]

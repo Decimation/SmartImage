@@ -51,10 +51,10 @@ namespace SmartImage.Lib.Engines.Impl
 
 				//string? dist      = distNode.InnerText;
 				//string? score     = scoreNode.InnerText;
-				string? posted    = postedNode.TextContent;
-				string? title     = titleNode.TextContent;
-				string? author    = authorNode.TextContent;
-				string? subreddit = subredditNode.TextContent;
+				string posted    = postedNode.TextContent;
+				string title     = titleNode.TextContent;
+				string author    = authorNode.TextContent;
+				string subreddit = subredditNode.TextContent;
 
 				//DeEntize!
 				string link = titleNode.FirstChild.TryGetAttribute("href");

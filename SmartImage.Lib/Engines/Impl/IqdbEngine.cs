@@ -61,14 +61,14 @@ namespace SmartImage.Lib.Engines.Impl
 			if (tr.Length >= 4) {
 				var res = tr[3];
 
-				var wh = res.TextContent.Split(StringConstants.MUL_SIGN);
+				string[] wh = res.TextContent.Split(StringConstants.MUL_SIGN);
 
-				var wStr = wh[0].SelectOnlyDigits();
+				string wStr = wh[0].SelectOnlyDigits();
 				w = Int32.Parse(wStr);
 
 				// May have NSFW caption, so remove it
 
-				var hStr = wh[1].SelectOnlyDigits();
+				string hStr = wh[1].SelectOnlyDigits();
 				h = Int32.Parse(hStr);
 			}
 
@@ -76,7 +76,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			if (tr.Length >= 5) {
 				var simNode = tr[4];
-				var simStr  = simNode.TextContent.Split('%')[0];
+				string simStr  = simNode.TextContent.Split('%')[0];
 				sim = Single.Parse(simStr);
 				sim = MathF.Round(sim.Value, 2);
 			}

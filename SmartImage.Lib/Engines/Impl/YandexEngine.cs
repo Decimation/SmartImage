@@ -12,6 +12,7 @@ using SimpleCore.Net;
 using SimpleCore.Utilities;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+#pragma warning disable 8602
 
 #nullable enable
 
@@ -62,12 +63,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 			static ImageResult Parse(INode siz)
 			{
-				string? link = siz.FirstChild.TryGetAttribute("href");
+				string link = siz.FirstChild.TryGetAttribute("href");
 
-				string? resText = siz.FirstChild
-				                     .ChildNodes[1]
-				                     .FirstChild
-				                     .TextContent;
+				string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
 
 
 				//other-sites__snippet
@@ -141,7 +139,7 @@ namespace SmartImage.Lib.Engines.Impl
 				string? resText = siz.FirstChild.GetExclusiveText();
 
 
-				var (w, h) = ParseResolution(resText!);
+				(int? w, int? h) = ParseResolution(resText!);
 
 				if (!w.HasValue || !h.HasValue) {
 					w = null;
@@ -216,7 +214,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			if (looksLike != null) {
 				//todo
-				
+
 				// sr.PrimaryResult.Description = Encoding.UTF8.GetString(
 				// 	Encoding.Convert(Encoding.Unicode, Encoding.UTF8, Encoding.Unicode.GetBytes(looksLike)));
 				sr.PrimaryResult.Description = looksLike;
@@ -234,7 +232,5 @@ namespace SmartImage.Lib.Engines.Impl
 
 			return sr;
 		}
-
-		
 	}
 }
