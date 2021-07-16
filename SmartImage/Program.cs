@@ -82,16 +82,16 @@ namespace SmartImage
 
 
 #endif
-
+			
 			/*
 			 * Setup
 			 * Check compatibility
+			 * Register events
 			 */
 			
 			ToastNotificationManagerCompat.OnActivated += AppToast.OnActivated;
 
 			Native.SetConsoleOutputCP(Native.CP_IBM437);
-
 
 			Console.Title = $"{AppInfo.NAME}";
 

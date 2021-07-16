@@ -231,6 +231,8 @@ namespace SmartImage.Lib.Searching
 
 					if (direct != null) {
 						Direct = new Uri((direct));
+
+						// todo
 						//Image  = ImageHelper.GetImage(direct);
 						//Debug.WriteLine($"{Url} -> {Direct}");
 

@@ -9,6 +9,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SimpleCore.Net;
+using SmartImage.Lib.Utilities;
+using static SimpleCore.Diagnostics.LogCategories;
 
 namespace SmartImage.UX
 {
@@ -26,7 +28,6 @@ namespace SmartImage.UX
 			var builder = new ToastContentBuilder();
 
 			var button = new ToastButton();
-
 
 			var button2 = new ToastButton();
 
@@ -53,16 +54,9 @@ namespace SmartImage.UX
 
 				Debug.WriteLine(direct.Direct.ToString());
 
+				var file = ImageHelper.Download(direct.Direct);
 
-				string filename = Path.GetFileName(direct.Direct.AbsolutePath);
-
-				var file = Path.Combine(Path.GetTempPath(), filename);
-
-				using var wc = new WebClient();
-
-				wc.DownloadFile(direct.Direct, file);
-
-				Debug.WriteLine($"Downloaded {file}");
+				Debug.WriteLine($"Downloaded {file}", C_INFO);
 
 				builder.AddHeroImage(new Uri(file));
 
@@ -83,15 +77,17 @@ namespace SmartImage.UX
 		}
 
 		
-		[DoesNotReturn]
+		
 		public static void OnActivated(ToastNotificationActivatedEventArgsCompat compat)
 		{
+			// NOTE: Does not return if invoked from background
+
 			// Obtain the arguments from the notification
 
 			var arguments = ToastArguments.Parse(compat.Argument);
 
 			foreach (var argument in arguments) {
-				Debug.WriteLine($">>> {argument}");
+				Debug.WriteLine($"Toast argument: {argument}", C_DEBUG);
 
 				if (argument.Key == ARG_KEY_ACTION) {
 

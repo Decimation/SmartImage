@@ -8,6 +8,7 @@ using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Web;
 using JetBrains.Annotations;
 using Novus.Utilities;
 using Novus.Win32;
@@ -20,6 +21,7 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
+using static SimpleCore.Diagnostics.LogCategories;
 using static SmartImage.Program;
 
 // ReSharper disable UnusedMember.Global
@@ -408,19 +410,11 @@ namespace SmartImage.UX
 
 				if (direct != null) {
 
-					string filename = Path.GetFileName(direct.AbsolutePath);
+					var file = ImageHelper.Download(direct);
 
-					var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+					FileSystem.ExploreFile(file);
 
-					string combine = Path.Combine(path, filename);
-
-					using var wc = new WebClient();
-
-					wc.DownloadFile(direct, combine);
-
-					FileSystem.ExploreFile(combine);
-
-					Debug.WriteLine($"Download: {combine}");
+					Debug.WriteLine($"Download: {file}", C_INFO);
 				}
 
 				return null;

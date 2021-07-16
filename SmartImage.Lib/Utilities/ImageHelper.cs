@@ -8,6 +8,7 @@ using System.Net;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
@@ -145,6 +146,33 @@ namespace SmartImage.Lib.Utilities
 
 		#endregion
 
+		public static string Download(Uri direct)
+		{
+			string filename = Path.GetFileName(direct.AbsolutePath);
+
+			if (!Path.HasExtension(filename)) {
+				// For Pixiv (?)
+				var kv = HttpUtility.ParseQueryString(direct.Query);
+				var t  = kv["format"];
+
+				if (t != null) {
+					filename += $".{t}";
+				}
+
+				Debug.WriteLine("Fixed file");
+			}
+
+			var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+			string combine = Path.Combine(path, filename);
+
+			using var wc = new WebClient();
+
+			wc.DownloadFile(direct, combine);
+
+			return combine;
+		}
+
 		public static Image GetImage(string s)
 		{
 			using var wc = new WebClient();
@@ -204,7 +232,7 @@ namespace SmartImage.Lib.Utilities
 					                           .Split('|')
 					                           .First();
 
-					if (!string.IsNullOrWhiteSpace(str)) {
+					if (!string.IsNullOrWhiteSpace(str) && Network.IsAlive(new Uri(str))) {
 						images.Add(str);
 
 					}
@@ -238,7 +266,7 @@ namespace SmartImage.Lib.Utilities
 
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
+				Debug.WriteLine($"{e.Message}", C_ERROR);
 
 				return null;
 			}
@@ -261,7 +289,7 @@ namespace SmartImage.Lib.Utilities
 
 			var imagesCopy = images;
 
-			Parallel.For(0, flat.Count, options, (i,s) =>
+			Parallel.For(0, flat.Count, options, (i, s) =>
 			{
 				string currentUrl = flat[i];
 
@@ -274,7 +302,7 @@ namespace SmartImage.Lib.Utilities
 					return;
 
 				if (!Network.IsAlive(uri, (long) pingTime.TotalMilliseconds)) {
-					Debug.WriteLine($"{uri} isn't alive");
+					//Debug.WriteLine($"{uri} isn't alive");
 					return;
 				}
 
@@ -347,7 +375,6 @@ namespace SmartImage.Lib.Utilities
 		}
 	}
 
-	
 
 	public enum DirectImageType
 	{
