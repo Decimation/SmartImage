@@ -15,6 +15,9 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Windows.ApplicationModel.Background;
+using Windows.Foundation;
+using Windows.UI.Notifications;
 using JetBrains.Annotations;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Memory;
@@ -422,84 +425,6 @@ namespace SmartImage.Core
 			AppConfig.SaveConfigFile();
 		}
 
-		public static void ShowToast()
-		{
-			var button = new ToastButton();
-
-			button.SetContent("Open")
-			      .AddArgument("action", "open");
-
-			var button2 = new ToastButton();
-
-			button2.SetContent("Dismiss")
-			       .AddArgument("action", "dismiss");
-
-			var builder = new ToastContentBuilder();
-
-			var bestResult = Client.FindBestResult();
-
-			builder.AddButton(button)
-			       .AddButton(button2)
-			       .AddText("Search complete")
-			       .AddText($"{bestResult}")
-			       .AddText($"Results: {Client.Results.Count}");
-
-			if (Config.NotificationImage) {
-
-				var direct = Client.FindDirectResult();
-
-				Debug.WriteLine(direct);
-				Debug.WriteLine(direct.Direct.ToString());
-
-
-				if (direct is {Direct: { }}) {
-
-
-					var tmp = Path.GetTempPath();
-
-					string filename = Path.GetFileName(direct.Direct.AbsolutePath);
-
-					var file = Path.Combine(tmp, filename);
-
-					new WebClient().DownloadFile(direct.Direct, file);
-
-					//string file     = WebUtilities.Download(abs.ToString(), s);
-
-					Debug.WriteLine($"Downloaded {file}");
-
-					builder.AddHeroImage(new Uri(file));
-
-					AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
-					{
-						File.Delete(file);
-					};
-				}
-			}
-
-
-			ToastNotificationManagerCompat.OnActivated += compat =>
-			{
-				// Obtain the arguments from the notification
-				var args = ToastArguments.Parse(compat.Argument);
-
-				foreach (var argument in args) {
-					Debug.WriteLine($">>> {argument}");
-
-					if (argument.Key == "action" && argument.Value == "open") {
-						//Client.Results.Sort();
-
-
-						if (bestResult is {Url: { }}) {
-							WebUtilities.OpenUrl(bestResult.Url.ToString());
-						}
-					}
-				}
-			};
-
-			builder.Show();
-
-			//ToastNotificationManager.CreateToastNotifier();
-		}
 
 		#region Native
 

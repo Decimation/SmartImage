@@ -212,30 +212,12 @@ namespace SmartImage.Lib
 		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
 
 
-		public ImageResult[] FindDirectResults(int lim = 5)
+		public ImageResult[] FindDirectResults()
 		{
+			int lim = 15;
 
 			var best = FindBestResults().ToList();
 
-			//const int FRAG_SIZE = 10;
-
-			//var frag = best.Chunk(FRAG_SIZE).ToList();
-
-			//var tasks = new List<Task>();
-
-			//for (int i = 0; i < frag.Count; i++) {
-			//	int iCopy = i;
-
-			//	tasks.Add(Task.Factory.StartNew(() =>
-			//	{
-			//		foreach (var result in frag[iCopy]) {
-			//			result.FindDirectImages();
-			//		}
-			//	}));
-			//}
-
-
-			//Task.WaitAll(tasks.ToArray());
 
 			var cts = new CancellationTokenSource();
 
@@ -246,19 +228,19 @@ namespace SmartImage.Lib
 				CancellationToken      = cts.Token
 			};
 
+			Debug.WriteLine($"{best.Count}");
 
-			var rx = new ConcurrentBag<ImageResult>();
+
+			var images = new ConcurrentBag<ImageResult>();
 
 
 			Parallel.For(0, best.Count, options, i =>
 			{
-				
-				if (options.CancellationToken.IsCancellationRequested || rx.Count >= lim) {
-					Debug.WriteLine("stop");
-					
+				if (options.CancellationToken.IsCancellationRequested || images.Count >= lim) {
 					return;
 				}
 
+				
 				var item = best[i];
 
 				item.FindDirectImages();
@@ -269,7 +251,7 @@ namespace SmartImage.Lib
 
 				if (ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary)) {
 					Debug.WriteLine($"Adding {item.Direct}");
-					rx.Add(item);
+					images.Add(item);
 				}
 
 			});
@@ -278,16 +260,15 @@ namespace SmartImage.Lib
 			Task.Factory.StartNew(() =>
 			{
 				//SpinWait.SpinUntil(() => rx.Count >= lim);
-				while (!(rx.Count >= lim)) { }
-
-				Debug.WriteLine($"Cancel");
+				while (!(images.Count >= lim)) { }
+				
 				cts.Cancel();
 			});
 
 
-			Debug.WriteLine($"Found {rx.Count} direct results");
+			Debug.WriteLine($"Found {images.Count} direct results");
 
-			return rx.OrderByDescending(r => r.Similarity)
+			return images.OrderByDescending(r => r.Similarity)
 			         .ToArray();
 		}
 

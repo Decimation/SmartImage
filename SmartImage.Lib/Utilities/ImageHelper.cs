@@ -173,12 +173,6 @@ namespace SmartImage.Lib.Utilities
 		public static List<string> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
 		                                            int count = 5, double pingTimeSec = 1)
 		{
-			/*
-			 * TODO
-			 *
-			 * This function creates an insane memory leak.
-			 * Disposing neither the images nor the streams does anything (?)
-			 */
 
 			var images = new List<string>();
 
@@ -209,6 +203,7 @@ namespace SmartImage.Lib.Utilities
 					string str = standardOutput.ReadLine()
 					                           .Split('|')
 					                           .First();
+
 					if (!string.IsNullOrWhiteSpace(str)) {
 						images.Add(str);
 
@@ -334,7 +329,6 @@ namespace SmartImage.Lib.Utilities
 			images = imagesCopy;
 
 			ret:
-
 
 			return images;
 

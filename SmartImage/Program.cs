@@ -28,6 +28,7 @@ using System.Text;
 using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.Background;
 using Windows.UI.Notifications;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
@@ -39,6 +40,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
+using SmartImage.UX;
 
 // ReSharper disable CognitiveComplexity
 
@@ -65,7 +67,6 @@ namespace SmartImage
 			Description = AppInterface.Description
 		};
 
-		
 		#endregion
 
 		/// <summary>
@@ -80,20 +81,18 @@ namespace SmartImage
 			}
 
 
-
-
 #endif
 
 			/*
 			 * Setup
 			 * Check compatibility
 			 */
-
 			
+			ToastNotificationManagerCompat.OnActivated += AppToast.OnActivated;
 
 			Native.SetConsoleOutputCP(Native.CP_IBM437);
-			
-			
+
+
 			Console.Title = $"{AppInfo.NAME}";
 
 			NConsole.Init();
@@ -125,36 +124,43 @@ namespace SmartImage
 				 * Handle CLI args
 				 */
 
-				var argEnumerator = args.GetEnumerator();
+				try {
 
-				while (argEnumerator.MoveNext()) {
-					object? arg = argEnumerator.Current;
+					var argEnumerator = args.GetEnumerator();
 
-					switch (arg) {
-						case CMD_FIND_DIRECT:
-							argEnumerator.MoveNext();
+					while (argEnumerator.MoveNext()) {
+						object? arg = argEnumerator.Current;
 
-							var directImages  = ImageHelper.FindDirectImages((string) argEnumerator.Current);
-							
-							var imageResults  = directImages.Select(ImageResult.FromDirectImage);
-							var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
+						switch (arg) {
+							case CMD_FIND_DIRECT:
+								argEnumerator.MoveNext();
+
+								var directImages = ImageHelper.FindDirectImages((string) argEnumerator.Current);
+
+								var imageResults  = directImages.Select(ImageResult.FromDirectImage);
+								var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
 
 
-							NConsole.ReadOptions(new NConsoleDialog
-							{
-								Options     = directOptions,
-								Description = AppInterface.Description
-							});
+								NConsole.ReadOptions(new NConsoleDialog
+								{
+									Options     = directOptions,
+									Description = AppInterface.Description
+								});
 
-							return;
-						case CMD_SEARCH:
-							argEnumerator.MoveNext();
-							Config.Query = (string) argEnumerator.Current;
-							break;
-						default:
-							Config.Query = args.First();
-							break;
+								return;
+							case CMD_SEARCH:
+								argEnumerator.MoveNext();
+								Config.Query = (string) argEnumerator.Current;
+								break;
+							default:
+								Config.Query = args.First();
+								break;
+						}
 					}
+				}
+				catch (Exception e) {
+					Console.WriteLine(e);
+					Console.ReadLine();
 				}
 			}
 
@@ -197,6 +203,7 @@ namespace SmartImage
 			}
 		}
 
+
 		private static void OnSearchCompleted(object? sender, EventArgs eventArgs, CancellationTokenSource cts)
 		{
 			AppInterface.FlashConsoleWindow();
@@ -205,7 +212,7 @@ namespace SmartImage
 			cts.Dispose();
 
 			if (Config.Notification) {
-				AppInterface.ShowToast();
+				AppToast.Show();
 			}
 			else {
 				SystemSounds.Exclamation.Play();
