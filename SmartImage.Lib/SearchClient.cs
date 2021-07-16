@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using SimpleCore.Net;
 using SimpleCore.Utilities;
@@ -211,7 +212,7 @@ namespace SmartImage.Lib
 		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
 
 
-		public ImageResult[] FindDirectResults()
+		public ImageResult[] FindDirectResults(int lim = 5)
 		{
 
 			var best = FindBestResults().ToList();
@@ -236,51 +237,58 @@ namespace SmartImage.Lib
 
 			//Task.WaitAll(tasks.ToArray());
 
-			var bestCopy = best;
+			var cts = new CancellationTokenSource();
 
 			var options = new ParallelOptions()
 			{
 				MaxDegreeOfParallelism = Int32.MaxValue,
 				TaskScheduler          = TaskScheduler.Default,
+				CancellationToken      = cts.Token
 			};
-
-			Parallel.For(0, best.Count, options, (i) =>
-			{
-				bestCopy[i].FindDirectImages();
-
-			});
-
-
-			best = bestCopy;
-
-
-			bestCopy = best;
 
 
 			var rx = new ConcurrentBag<ImageResult>();
 
-			Parallel.For(0, best.Count, options,(i) =>
+
+			Parallel.For(0, best.Count, options, i =>
 			{
-				if (ImageHelper.IsDirect(bestCopy[i].Direct?.ToString(), DirectImageType.Binary))
-				{
-					Debug.WriteLine($"Adding {bestCopy[i].Direct}");
-					rx.Add(bestCopy[i]);
+				
+				if (options.CancellationToken.IsCancellationRequested || rx.Count >= lim) {
+					Debug.WriteLine("stop");
+					
+					return;
 				}
+
+				var item = best[i];
+
+				item.FindDirectImages();
+
+				if (item.Direct == null) {
+					return;
+				}
+
+				if (ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary)) {
+					Debug.WriteLine($"Adding {item.Direct}");
+					rx.Add(item);
+				}
+
+			});
+			
+
+			Task.Factory.StartNew(() =>
+			{
+				//SpinWait.SpinUntil(() => rx.Count >= lim);
+				while (!(rx.Count >= lim)) { }
+
+				Debug.WriteLine($"Cancel");
+				cts.Cancel();
 			});
 
 
-			best = rx.ToList();
+			Debug.WriteLine($"Found {rx.Count} direct results");
 
-			best = best.Where(x => x.Direct != null)
-			           .OrderByDescending(r => r.Similarity)
-			           .ToList();
-
-			//best = best.OrderByDescending(b => b.PixelResolution).ToList();
-
-
-			Debug.WriteLine($"Found {best.Count} direct results");
-
-			return best.ToArray();
+			return rx.OrderByDescending(r => r.Similarity)
+			         .ToArray();
 		}
 
 		[CanBeNull]
