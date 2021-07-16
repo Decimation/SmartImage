@@ -125,13 +125,13 @@ namespace SmartImage.Lib.Searching
 			OtherMetadata = new Dictionary<string, object>();
 		}
 
-		public static ImageResult FromDirectImage(DirectImage di)
+		public static ImageResult FromDirectImage(string di)
 		{
 			var ir = new ImageResult
 			{
-				Image  = di.Image,
-				Url    = (di.Direct),
-				Direct = (di.Direct)
+				Image  = ImageHelper.GetImage(di),
+				Url    = new Uri((di)),
+				Direct = new Uri((di))
 			};
 
 			ir.UpdateImageData();
@@ -224,8 +224,7 @@ namespace SmartImage.Lib.Searching
 					var direct = directImages?.FirstOrDefault();
 
 					if (direct != null) {
-						Direct = (direct.Value.Direct);
-						Image  = direct.Value.Image;
+						Direct = new Uri((direct));
 						//Debug.WriteLine($"{Url} -> {Direct}");
 
 					}

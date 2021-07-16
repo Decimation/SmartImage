@@ -25,6 +25,7 @@ using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.UI.Notifications;
@@ -64,6 +65,7 @@ namespace SmartImage
 			Description = AppInterface.Description
 		};
 
+		
 		#endregion
 
 		/// <summary>
@@ -78,6 +80,8 @@ namespace SmartImage
 			}
 
 
+
+
 #endif
 
 			/*
@@ -85,8 +89,10 @@ namespace SmartImage
 			 * Check compatibility
 			 */
 
-			Native.SetConsoleOutputCP((uint) Encoding.Unicode.CodePage);
-			Native.SetConsoleCP((uint) Encoding.Unicode.CodePage);
+			
+
+			Native.SetConsoleOutputCP(Native.CP_IBM437);
+			
 			
 			Console.Title = $"{AppInfo.NAME}";
 
@@ -129,6 +135,7 @@ namespace SmartImage
 							argEnumerator.MoveNext();
 
 							var directImages  = ImageHelper.FindDirectImages((string) argEnumerator.Current);
+							
 							var imageResults  = directImages.Select(ImageResult.FromDirectImage);
 							var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
 

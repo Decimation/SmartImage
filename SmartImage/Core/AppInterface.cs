@@ -9,6 +9,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -371,7 +372,8 @@ namespace SmartImage.Core
 			return result.Select(r => CreateResultOption(r, $"{n} #{i++}", c)).ToArray();
 		}
 
-		internal static NConsoleOption CreateResultOption(ImageResult result, string n, Color c, float correction=-.3f)
+		internal static NConsoleOption CreateResultOption(ImageResult result, string n, Color c,
+		                                                  float correction = -.3f)
 		{
 			var option = new NConsoleOption
 			{
@@ -447,19 +449,25 @@ namespace SmartImage.Core
 				var direct = Client.FindDirectResult();
 
 				Debug.WriteLine(direct);
-				//Debug.WriteLine($"{Network.IsAlive(direct.Direct)} {ImageHelper.IsDirect(direct.Direct.ToString(), DirectImageType.Binary)}");
+				Debug.WriteLine(direct.Direct.ToString());
 
 
-
-				if (direct is { Direct: { } })
-				{
+				if (direct is {Direct: { }}) {
 
 
-					string file = WebUtilities.Download(direct.Direct.ToString(), Path.GetTempPath());
+					var tmp = Path.GetTempPath();
 
-					Debug.WriteLine($"Downloaded {file} tmp");
+					string filename = Path.GetFileName(direct.Direct.AbsolutePath);
+
+					var file = Path.Combine(tmp, filename);
+
+					new WebClient().DownloadFile(direct.Direct, file);
+
+					//string file     = WebUtilities.Download(abs.ToString(), s);
+
+					Debug.WriteLine($"Downloaded {file}");
+
 					builder.AddHeroImage(new Uri(file));
-
 
 					AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 					{

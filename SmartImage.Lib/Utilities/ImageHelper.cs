@@ -18,16 +18,11 @@ using static SimpleCore.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
 // ReSharper disable PossibleNullReferenceException
-
 // ReSharper disable UnusedParameter.Local
-
 // ReSharper disable PossibleMultipleEnumeration
 // ReSharper disable AssignNullToNotNullAttribute
-
 // ReSharper disable LoopCanBeConvertedToQuery
-
 // ReSharper disable InconsistentNaming
-
 // ReSharper disable UnusedMember.Global
 
 namespace SmartImage.Lib.Utilities
@@ -150,22 +145,21 @@ namespace SmartImage.Lib.Utilities
 
 		#endregion
 
-
 		public static Image GetImage(string s)
 		{
-			// TODO: Using Image objects creates a memory leak; disposing them doesn't fix anything either (?)
-
 			using var wc = new WebClient();
 
-			byte[] buf = wc.DownloadData(s);
+			//byte[] buf = wc.DownloadData(s);
 
-			var stream = new MemoryStream(buf);
+			//using var stream = new MemoryStream(buf);
+			//Debug.WriteLine($"Alloc {buf.Length}");
 
-			Debug.WriteLine($"Alloc {buf.Length}");
+			using var stream = wc.OpenRead(s);
 
 			var image = Image.FromStream(stream);
 
 			return image;
+
 		}
 
 
@@ -176,13 +170,17 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="directType">Which criterion to use to determine whether a URI is a direct image </param>
 		/// <param name="count">Number of direct images to return</param>
 		/// <param name="pingTimeSec"></param>
-		/// <param name="readImage">Whether to read image metadata</param>
-		/// <param name="imageFilter">Filter criteria for images (applicable iff <paramref name="readImage"/> is <c>true</c>)</param>
-		public static List<DirectImage> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
-		                                                 int count = 5, double pingTimeSec = 1, bool readImage = true,
-		                                                 Predicate<Image> imageFilter = null)
+		public static List<string> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
+		                                            int count = 5, double pingTimeSec = 1)
 		{
-			var images = new List<DirectImage>();
+			/*
+			 * TODO
+			 *
+			 * This function creates an insane memory leak.
+			 * Disposing neither the images nor the streams does anything (?)
+			 */
+
+			var images = new List<string>();
 
 			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
 
@@ -206,21 +204,15 @@ namespace SmartImage.Lib.Utilities
 
 				var standardOutput = output.StandardOutput;
 
+
 				while (!standardOutput.EndOfStream) {
 					string str = standardOutput.ReadLine()
 					                           .Split('|')
 					                           .First();
+					if (!string.IsNullOrWhiteSpace(str)) {
+						images.Add(str);
 
-					var di = new DirectImage
-					{
-						Direct = new Uri(str),
-					};
-
-					if (readImage) {
-						di.Image = GetImage(str);
 					}
-
-					images.Add(di);
 				}
 
 				var standardError = output.StandardError;
@@ -238,8 +230,6 @@ namespace SmartImage.Lib.Utilities
 			}
 
 			manual:
-
-			imageFilter ??= (x) => true;
 
 			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
 
@@ -295,40 +285,13 @@ namespace SmartImage.Lib.Utilities
 				if (!IsDirect(currentUrl, directType))
 					return;
 
-				var di = new DirectImage
-				{
-					Direct = new Uri(currentUrl)
-				};
-
-
-				bool isValid = !readImage;
-
-				if (readImage) {
-					try {
-						var img = GetImage(currentUrl);
-
-						isValid = imageFilter(img);
-
-						if (isValid) {
-							di.Image = img;
-
-						}
-						else {
-							img.Dispose();
-						}
-					}
-					catch (Exception) {
-						isValid = false;
-					}
-				}
 
 				if (imagesCopy.Count >= count) {
 					return;
 				}
 
-				if (isValid) {
-					imagesCopy.Add(di);
-				}
+				imagesCopy.Add(currentUrl);
+
 			});
 
 
@@ -372,9 +335,6 @@ namespace SmartImage.Lib.Utilities
 
 			ret:
 
-			if (readImage) {
-				images = images.OrderByDescending(x => x.Image.Width * x.Image.Height).ToList();
-			}
 
 			return images;
 
@@ -391,23 +351,7 @@ namespace SmartImage.Lib.Utilities
 		}
 	}
 
-	public struct DirectImage : IDisposable
-	{
-		public Uri Direct { get; internal set; }
-
-		[CanBeNull]
-		public Image Image { get; internal set; }
-
-		public override string ToString()
-		{
-			return $"{Direct} {Image?.Width}x{Image?.Height}";
-		}
-
-		public void Dispose()
-		{
-			Image?.Dispose();
-		}
-	}
+	
 
 	public enum DirectImageType
 	{

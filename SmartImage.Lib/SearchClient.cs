@@ -4,6 +4,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -213,7 +214,7 @@ namespace SmartImage.Lib
 		public ImageResult[] FindDirectResults()
 		{
 
-			var best = FindBestResults();
+			var best = FindBestResults().ToList();
 
 			//const int FRAG_SIZE = 10;
 
@@ -235,7 +236,7 @@ namespace SmartImage.Lib
 
 			//Task.WaitAll(tasks.ToArray());
 
-			var best1 = best;
+			var bestCopy = best;
 
 			var options = new ParallelOptions()
 			{
@@ -243,23 +244,43 @@ namespace SmartImage.Lib
 				TaskScheduler          = TaskScheduler.Default,
 			};
 
-			Parallel.For(0, best.Length, options, (i) =>
+			Parallel.For(0, best.Count, options, (i) =>
 			{
-				best1[i].FindDirectImages();
+				bestCopy[i].FindDirectImages();
 
 			});
 
-			best = best1;
+
+			best = bestCopy;
+
+
+			bestCopy = best;
+
+
+			var rx = new ConcurrentBag<ImageResult>();
+
+			Parallel.For(0, best.Count, options,(i) =>
+			{
+				if (ImageHelper.IsDirect(bestCopy[i].Direct?.ToString(), DirectImageType.Binary))
+				{
+					Debug.WriteLine($"Adding {bestCopy[i].Direct}");
+					rx.Add(bestCopy[i]);
+				}
+			});
+
+
+			best = rx.ToList();
 
 			best = best.Where(x => x.Direct != null)
 			           .OrderByDescending(r => r.Similarity)
-			           .ToArray();
+			           .ToList();
+
+			//best = best.OrderByDescending(b => b.PixelResolution).ToList();
 
 
-			best = best.OrderByDescending(b => b.PixelResolution).ToArray();
-			Debug.WriteLine($"Found {best.Length} direct results");
+			Debug.WriteLine($"Found {best.Count} direct results");
 
-			return best;
+			return best.ToArray();
 		}
 
 		[CanBeNull]

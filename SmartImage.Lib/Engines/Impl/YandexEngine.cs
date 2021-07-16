@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Unicode;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
@@ -216,8 +217,9 @@ namespace SmartImage.Lib.Engines.Impl
 			if (looksLike != null) {
 				//todo
 				
-				sr.PrimaryResult.Description = Encoding.Unicode.GetString(
-					Encoding.Convert(Encoding.UTF8, Encoding.Unicode, Encoding.UTF8.GetBytes(looksLike)));
+				// sr.PrimaryResult.Description = Encoding.UTF8.GetString(
+				// 	Encoding.Convert(Encoding.Unicode, Encoding.UTF8, Encoding.Unicode.GetBytes(looksLike)));
+				sr.PrimaryResult.Description = looksLike;
 			}
 
 			sr.OtherResults.AddRange(images);
@@ -232,5 +234,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			return sr;
 		}
+
+		
 	}
 }
