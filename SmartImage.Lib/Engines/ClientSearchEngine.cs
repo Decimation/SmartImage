@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using RestSharp;
 using SmartImage.Lib.Searching;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Engines
 {

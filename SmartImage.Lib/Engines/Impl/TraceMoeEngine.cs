@@ -8,7 +8,7 @@ using RestSharp;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051

@@ -1,7 +1,7 @@
 ﻿using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
-using SimpleCore.Net;
+using Kantan.Net;
 using SmartImage.Lib.Searching;
 using System;
 using System.Collections.Generic;

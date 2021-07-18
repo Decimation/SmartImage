@@ -1,5 +1,5 @@
-﻿using SimpleCore.Net;
-using SimpleCore.Utilities;
+﻿using Kantan.Net;
+using Kantan.Utilities;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;

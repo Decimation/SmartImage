@@ -2,8 +2,8 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
+using Kantan.Cli;
 using Novus.Win32;
-using SimpleCore.Cli;
 using SmartImage.Core;
 
 namespace SmartImage.Utilities

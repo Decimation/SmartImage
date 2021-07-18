@@ -12,10 +12,10 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
+using Kantan.Net;
+using Kantan.Utilities;
 using SmartImage.Lib.Upload;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 // ReSharper disable CognitiveComplexity
 
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -251,13 +251,14 @@ namespace SmartImage.Lib
 						return;
 					}
 
-					//Debug.WriteLine($"Adding {item.Direct}");
+					Debug.WriteLine($"Adding {item.Direct}");
 
 					images.Add(item);
 
 					//Interlocked.Increment(ref c);
 					//Volatile.Write(ref c,1);
 				}
+				
 
 			});
 			

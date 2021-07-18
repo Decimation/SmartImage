@@ -1,6 +1,5 @@
 ﻿using Microsoft.Win32;
 using Novus.Win32;
-using SimpleCore.Cli;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -8,9 +7,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Kantan.Cli;
 using Novus.Utilities;
-using SimpleCore.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
 

@@ -1,4 +1,4 @@
-﻿using SimpleCore.Net;
+﻿using Kantan.Net;
 using SmartImage.Lib.Searching;
 using System;
 using System.Diagnostics;
@@ -6,7 +6,7 @@ using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using SmartImage.Lib.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Engines
 {

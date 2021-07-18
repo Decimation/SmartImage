@@ -1,5 +1,4 @@
 ﻿using JetBrains.Annotations;
-using SimpleCore.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
 using System;
@@ -7,8 +6,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using Kantan.Model;
+using Kantan.Utilities;
 using Novus.Utilities;
-using SimpleCore.Model;
 
 #pragma warning disable IDE0066
 

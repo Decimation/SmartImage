@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
-using SimpleCore.Net;
+﻿using Kantan.Net;
+using Newtonsoft.Json.Linq;
 // ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable UnusedMember.Global

@@ -19,14 +19,14 @@
     <NoWarn>CA1416</NoWarn>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Kantan">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net5.0\Kantan.dll</HintPath>
+    </Reference>
+    <Reference Include="Kantan.Net">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net5.0\Kantan.Net.dll</HintPath>
+    </Reference>
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>
-    </Reference>
-    <Reference Include="SimpleCore">
-      <HintPath>..\..\SimpleCore\SimpleCore\bin\Release\net5.0\SimpleCore.dll</HintPath>
-    </Reference>
-    <Reference Include="SimpleCore.Net">
-      <HintPath>..\..\SimpleCore\SimpleCore.Net\bin\Release\net5.0\SimpleCore.Net.dll</HintPath>
     </Reference>
   </ItemGroup>
 

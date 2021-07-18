@@ -7,10 +7,11 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Kantan.Diagnostics;
+using Kantan.Net;
 using Microsoft.Toolkit.Uwp.Notifications;
-using SimpleCore.Net;
 using SmartImage.Lib.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.UX
 {
@@ -56,7 +57,7 @@ namespace SmartImage.UX
 
 				var file = ImageHelper.Download(direct.Direct);
 
-				Debug.WriteLine($"Downloaded {file}", C_INFO);
+				Debug.WriteLine($"Downloaded {file}", LogCategories.C_INFO);
 
 				builder.AddHeroImage(new Uri(file));
 

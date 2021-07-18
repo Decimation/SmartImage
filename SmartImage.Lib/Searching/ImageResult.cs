@@ -1,6 +1,4 @@
-﻿using SimpleCore.Numeric;
-using SimpleCore.Utilities;
-using SmartImage.Lib.Utilities;
+﻿using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -10,9 +8,10 @@ using System.Linq;
 using System.Net.Mime;
 using System.Reflection;
 using System.Threading.Tasks;
+using Kantan.Model;
+using Kantan.Numeric;
+using Kantan.Utilities;
 using Novus.Win32;
-using SimpleCore.Model;
-using SimpleCore.Net;
 
 // ReSharper disable CognitiveComplexity
 

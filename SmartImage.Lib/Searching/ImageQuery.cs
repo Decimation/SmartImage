@@ -3,13 +3,13 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using JetBrains.Annotations;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
+using Kantan.Net;
+using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Upload;
 using SmartImage.Lib.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Searching
 {

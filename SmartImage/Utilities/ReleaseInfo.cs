@@ -2,7 +2,7 @@
 using System.Globalization;
 using Newtonsoft.Json.Linq;
 using RestSharp;
-using SimpleCore.Diagnostics;
+using Kantan.Diagnostics;
 
 // ReSharper disable PossibleNullReferenceException
 

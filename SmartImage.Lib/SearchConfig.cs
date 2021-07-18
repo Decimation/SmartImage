@@ -5,8 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
-using SimpleCore.Model;
-using SimpleCore.Utilities;
+using Kantan.Model;
+using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 

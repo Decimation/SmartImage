@@ -1,6 +1,6 @@
 ﻿using System;
 using Novus.Win32;
-using SimpleCore.Numeric;
+using Kantan.Numeric;
 
 namespace SmartImage.Lib.Upload
 {

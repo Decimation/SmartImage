@@ -13,9 +13,9 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using RestSharp;
-using SimpleCore.Diagnostics;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
+using Kantan.Diagnostics;
+using Kantan.Net;
+using Kantan.Utilities;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 

@@ -11,12 +11,12 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using RestSharp;
-using SimpleCore.Diagnostics;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
+using Kantan.Diagnostics;
+using Kantan.Net;
+using Kantan.Utilities;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 

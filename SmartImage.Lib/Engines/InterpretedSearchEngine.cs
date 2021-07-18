@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using RestSharp;
-using SimpleCore.Net;
+using Kantan.Net;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Engines
 {

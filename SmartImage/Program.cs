@@ -10,7 +10,6 @@
 #pragma warning disable CA1825
 #nullable enable
 
-using SimpleCore.Cli;
 using SmartImage.Core;
 using System;
 using System.Collections.Generic;
@@ -30,11 +29,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
 using Windows.UI.Notifications;
+using Kantan.Cli;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
 using Novus.Win32.Structures;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;

@@ -13,9 +13,9 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
 using Novus.Win32;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
-using static SimpleCore.Diagnostics.LogCategories;
+using Kantan.Net;
+using Kantan.Utilities;
+using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
 // ReSharper disable PossibleNullReferenceException
@@ -204,7 +204,10 @@ namespace SmartImage.Lib.Utilities
 
 			var images = new List<string>();
 
+			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
+
 			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
+
 
 			if (gallerydl != null) {
 
@@ -232,7 +235,8 @@ namespace SmartImage.Lib.Utilities
 					                           .Split('|')
 					                           .First();
 
-					if (!string.IsNullOrWhiteSpace(str) && Network.IsAlive(new Uri(str))) {
+					if (!string.IsNullOrWhiteSpace(str) &&
+					    Network.IsAlive(new Uri(str), (long) pingTime.TotalMilliseconds)) {
 						images.Add(str);
 
 					}
@@ -254,7 +258,6 @@ namespace SmartImage.Lib.Utilities
 
 			manual:
 
-			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
 
 			IHtmlDocument document;
 
@@ -308,7 +311,6 @@ namespace SmartImage.Lib.Utilities
 
 				if (!IsDirect(currentUrl, directType))
 					return;
-
 
 				if (imagesCopy.Count >= count) {
 					s.Stop();

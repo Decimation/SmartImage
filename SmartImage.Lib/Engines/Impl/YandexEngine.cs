@@ -8,8 +8,8 @@ using System.Text.Unicode;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
+using Kantan.Net;
+using Kantan.Utilities;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 #pragma warning disable 8602

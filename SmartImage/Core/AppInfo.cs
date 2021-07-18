@@ -1,8 +1,6 @@
 #nullable enable
 using JetBrains.Annotations;
 using Novus.Win32;
-using SimpleCore.Cli;
-using SimpleCore.Utilities;
 using SmartImage.Utilities;
 using System;
 using System.Collections.Generic;
@@ -16,7 +14,8 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using SimpleCore.Diagnostics;
+using Kantan.Cli;
+using Kantan.Diagnostics;
 // ReSharper disable CognitiveComplexity
 
 // ReSharper disable PossibleNullReferenceException

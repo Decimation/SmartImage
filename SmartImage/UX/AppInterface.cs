@@ -10,18 +10,18 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Web;
 using JetBrains.Annotations;
+using Kantan.Cli;
+using Kantan.Net;
+using Kantan.Utilities;
 using Novus.Utilities;
 using Novus.Win32;
-using SimpleCore.Cli;
-using SimpleCore.Net;
-using SimpleCore.Utilities;
 using SmartImage.Core;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
-using static SimpleCore.Diagnostics.LogCategories;
+using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.Program;
 
 // ReSharper disable UnusedMember.Global
