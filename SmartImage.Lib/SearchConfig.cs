@@ -39,9 +39,14 @@ namespace SmartImage.Lib
 		/// </summary>
 		public bool Filtering { get; set; } = true;
 
+		/// <summary>
+		/// <see cref="SearchClient.ExtraResultsCompleted"/>
+		/// </summary>
 		public bool Notification { get; set; } = true;
 
-
+		/// <summary>
+		/// <see cref="SearchClient.ExtraResultsCompleted"/>
+		/// </summary>
 		public bool NotificationImage { get; set; } = false;
 
 		public override string ToString()

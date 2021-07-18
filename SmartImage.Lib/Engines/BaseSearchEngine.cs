@@ -71,15 +71,18 @@ namespace SmartImage.Lib.Engines
 		{
 			var uri = new Uri(BaseUrl + query.UploadUri);
 
-			var reply = Network.Ping(uri, (long) Timeout.TotalMilliseconds);
+			//var reply = Network.Ping(uri, (long) Timeout.TotalMilliseconds);
 
-			//var b = Network.IsAlive(uri, (long) Timeout.TotalMilliseconds);
+			////var b = Network.IsAlive(uri, (long) Timeout.TotalMilliseconds);
+			////var b1 = ok.Status != IPStatus.Success || ok.Status == IPStatus.TimedOut;
 
-			//var b1 = ok.Status != IPStatus.Success || ok.Status == IPStatus.TimedOut;
+			//if (reply.Status != IPStatus.Success) {
+			//	Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} ({reply.Status})", C_WARN);
+			//	return null;
+			//}
 
-
-			if (reply.Status != IPStatus.Success) {
-				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} ({reply.Status})", C_WARN);
+			if (!Network.IsAlive(uri, (long) Timeout.TotalMilliseconds)) {
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g})", C_WARN);
 				return null;
 			}
 

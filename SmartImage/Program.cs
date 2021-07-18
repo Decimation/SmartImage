@@ -136,6 +136,7 @@ namespace SmartImage
 								var directImages = ImageHelper.FindDirectImages((string) argEnumerator.Current);
 
 								var imageResults  = directImages.Select(ImageResult.FromDirectImage);
+
 								var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
 
 
@@ -171,10 +172,9 @@ namespace SmartImage
 
 				Client.ResultCompleted += OnResultCompleted;
 
-				Client.SearchCompleted += (obj, eventArgs) =>
-				{
-					OnSearchCompleted(obj, eventArgs, cts);
-				};
+				Client.SearchCompleted += (obj, eventArgs) => OnSearchCompleted(obj, eventArgs, cts);
+
+				Client.ExtraResultsCompleted += AppToast.Show;
 
 				NConsoleProgress.Queue(cts);
 
@@ -202,19 +202,16 @@ namespace SmartImage
 		}
 
 
-		private static void OnSearchCompleted(object? sender, EventArgs eventArgs, CancellationTokenSource cts)
+		private static void OnSearchCompleted(object? sender, List<SearchResult> eventArgs, CancellationTokenSource cts)
 		{
 			AppInterface.FlashConsoleWindow();
 
 			cts.Cancel();
 			cts.Dispose();
 
-			if (Config.Notification) {
-				AppToast.Show();
-			}
-			else {
-				SystemSounds.Exclamation.Play();
-			}
+			
+			SystemSounds.Exclamation.Play();
+			
 		}
 
 

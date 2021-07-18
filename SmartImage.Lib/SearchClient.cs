@@ -16,6 +16,7 @@ using Kantan.Net;
 using Kantan.Utilities;
 using SmartImage.Lib.Upload;
 using static Kantan.Diagnostics.LogCategories;
+
 // ReSharper disable CognitiveComplexity
 
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -156,7 +157,41 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
-			SearchCompleted?.Invoke(null, EventArgs.Empty);
+			SearchCompleted?.Invoke(null, Results);
+
+			if (Config.Notification) {
+
+
+				var args = new ExtraResultEventArgs()
+				{
+					Results = this.Results,
+					Best    = FindBestResult(),
+				};
+
+				if (Config.NotificationImage) {
+
+					Debug.WriteLine($"Finding direct result");
+
+					var direct = FindDirectResult();
+
+					Debug.WriteLine(direct);
+
+					Debug.WriteLine(direct.Direct.ToString());
+
+					args.Direct = direct;
+				}
+
+				ExtraResultsCompleted?.Invoke(null, args);
+
+
+				/*
+				 * var direct = Program.Client.FindDirectResult();
+
+				Debug.WriteLine(direct);
+
+				Debug.WriteLine(direct.Direct.ToString());
+				 */
+			}
 
 		}
 
@@ -215,7 +250,7 @@ namespace SmartImage.Lib
 		public ImageResult[] FindDirectResults(int count = 5)
 		{
 			var best = FindBestResults().ToList();
-			
+
 			var options = new ParallelOptions()
 			{
 				MaxDegreeOfParallelism = Int32.MaxValue,
@@ -228,14 +263,14 @@ namespace SmartImage.Lib
 
 			Parallel.For(0, best.Count, options, (i, s) =>
 			{
-				if (images.Count >= count) {
-					s.Stop();
-					return;
-				}
+				//if (images.Count >= count) {
+				//	s.Stop();
+				//	return;
+				//}
 
-				if (s.IsStopped) {
-					return;
-				}
+				//if (s.IsStopped) {
+				//	return;
+				//}
 
 				var item = best[i];
 
@@ -246,22 +281,18 @@ namespace SmartImage.Lib
 				}
 
 				if (ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary)) {
-					if (images.Count >= count) {
-						s.Stop();
-						return;
-					}
+					//if (images.Count >= count) {
+					//	s.Stop();
+					//	return;
+					//}
 
 					Debug.WriteLine($"Adding {item.Direct}");
 
 					images.Add(item);
-
-					//Interlocked.Increment(ref c);
-					//Volatile.Write(ref c,1);
+					
 				}
-				
-
 			});
-			
+
 			Debug.WriteLine($"Found {images.Count} direct results");
 
 			return images.OrderByDescending(r => r.Similarity)
@@ -325,12 +356,25 @@ namespace SmartImage.Lib
 		/// <summary>
 		/// An event that fires when a search is complete (<see cref="RunSearchAsync"/>).
 		/// </summary>
-		public event EventHandler SearchCompleted;
+		public event EventHandler<List<SearchResult>> SearchCompleted;
+
+
+		public event EventHandler<ExtraResultEventArgs> ExtraResultsCompleted;
 
 
 		private const string ERR_SEARCH_NOT_COMPLETE = "Search must be completed";
 
 		private const string ERR_NO_BEST_RESULT = "Could not find best result";
+	}
+
+	public sealed class ExtraResultEventArgs : EventArgs
+	{
+		public List<SearchResult> Results { get; init; }
+
+		[CanBeNull]
+		public ImageResult Direct { get; internal set; }
+
+		public ImageResult Best { get; internal set; }
 	}
 
 	public sealed class SearchResultEventArgs : EventArgs

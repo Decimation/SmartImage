@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Microsoft.Toolkit.Uwp.Notifications;
+using SmartImage.Lib;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -21,9 +22,9 @@ namespace SmartImage.UX
 
 		private const string ARG_VALUE_DISMISS = "dismiss";
 
-		public static void Show()
+		public static void Show(object sender, ExtraResultEventArgs args)
 		{
-			var bestResult = Program.Client.FindBestResult();
+			var bestResult = args.Best;
 
 
 			var builder = new ToastContentBuilder();
@@ -47,15 +48,12 @@ namespace SmartImage.UX
 			       .AddText($"{bestResult}")
 			       .AddText($"Results: {Program.Client.Results.Count}");
 
+
+
 			if (Program.Config.NotificationImage) {
 
-				var direct = Program.Client.FindDirectResult();
-
-				Debug.WriteLine(direct);
-
-				Debug.WriteLine(direct.Direct.ToString());
-
-				var file = ImageHelper.Download(direct.Direct);
+				
+				var file = ImageHelper.Download(args.Direct.Direct);
 
 				Debug.WriteLine($"Downloaded {file}", LogCategories.C_INFO);
 
