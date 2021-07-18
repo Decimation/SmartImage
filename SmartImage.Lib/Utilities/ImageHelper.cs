@@ -99,7 +99,7 @@ namespace SmartImage.Lib.Utilities
 		{
 			return directType switch
 			{
-				DirectImageType.Binary => MediaTypes.IsDirect(url, MimeType.Image),
+				DirectImageType.Binary => IsImage(url, 1),
 				DirectImageType.Regex =>
 					/*
 					 * https://github.com/PactInteractive/image-downloader
@@ -179,7 +179,23 @@ namespace SmartImage.Lib.Utilities
 			return combine;
 		}
 
-		public static bool IsImage(string s, double d) => Network.IsType(s, "image",(long) TimeSpan.FromSeconds(d).TotalMilliseconds);
+		public static bool IsImage(string s, double d)
+		{
+			if (!Network.IsUri(s, out var u)) {
+				return false;
+			}
+
+			var m = Network.GetMetaResponse(u.ToString(), (long) TimeSpan.FromSeconds(d).TotalMilliseconds);
+
+			if (m == null) {
+				return false;
+			}
+
+			var a = m.ContentType.StartsWith("image") && m.ContentType != "image/svg+xml";
+			var b = m.ContentLength >= 2500;
+
+			return a && b;
+		}
 
 		public static Image GetImage(string s)
 		{
@@ -214,7 +230,7 @@ namespace SmartImage.Lib.Utilities
 			 */
 
 			var images = new List<string>();
-			
+
 
 			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
 
@@ -304,7 +320,13 @@ namespace SmartImage.Lib.Utilities
 			Parallel.For(0, flat.Count, options, (i, s) =>
 			{
 				string currentUrl = flat[i];
+
 				
+
+				if (s.IsStopped) {
+					return;
+				}
+
 				if (!IsImage(currentUrl, pingTimeSec)) {
 					return;
 				}
@@ -312,6 +334,14 @@ namespace SmartImage.Lib.Utilities
 				Debug.WriteLine($"{nameof(FindDirectImages)}: Adding {currentUrl}");
 
 				imagesCopy.Add(currentUrl);
+
+				if (imagesCopy.Count >= count)
+				{
+					s.Stop();
+					return;
+				}
+
+				
 			});
 
 
