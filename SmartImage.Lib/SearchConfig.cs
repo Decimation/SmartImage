@@ -40,12 +40,12 @@ namespace SmartImage.Lib
 		public bool Filtering { get; set; } = true;
 
 		/// <summary>
-		/// <see cref="SearchClient.ExtraResultsCompleted"/>
+		/// <see cref="SearchClient.ExtraResults"/>
 		/// </summary>
 		public bool Notification { get; set; } = true;
 
 		/// <summary>
-		/// <see cref="SearchClient.ExtraResultsCompleted"/>
+		/// <see cref="SearchClient.ExtraResults"/>
 		/// </summary>
 		public bool NotificationImage { get; set; } = false;
 

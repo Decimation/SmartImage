@@ -80,13 +80,13 @@ namespace SmartImage
 
 
 #endif
-			
+
 			/*
 			 * Setup
 			 * Check compatibility
 			 * Register events
 			 */
-			
+
 			ToastNotificationManagerCompat.OnActivated += AppToast.OnActivated;
 
 			Native.SetConsoleOutputCP(Native.CP_IBM437);
@@ -109,59 +109,8 @@ namespace SmartImage
 
 			AppConfig.ReadConfigFile();
 
-			if (!args.Any()) {
-				var options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
-
-				if (!options.Any()) {
-					return;
-				}
-			}
-			else {
-
-				/*
-				 * Handle CLI args
-				 */
-
-				try {
-
-					var argEnumerator = args.GetEnumerator();
-
-					while (argEnumerator.MoveNext()) {
-						object? arg = argEnumerator.Current;
-
-						switch (arg) {
-							case CMD_FIND_DIRECT:
-								argEnumerator.MoveNext();
-
-								var directImages = ImageHelper.FindDirectImages((string) argEnumerator.Current);
-
-								var imageResults  = directImages.Select(ImageResult.FromDirectImage);
-
-								var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
-
-
-								NConsole.ReadOptions(new NConsoleDialog
-								{
-									Options     = directOptions,
-									Description = AppInterface.Description
-								});
-
-								return;
-							case CMD_SEARCH:
-								argEnumerator.MoveNext();
-								Config.Query = (string) argEnumerator.Current;
-								break;
-							default:
-								Config.Query = args.First();
-								break;
-						}
-					}
-				}
-				catch (Exception e) {
-					Console.WriteLine(e);
-					Console.ReadLine();
-				}
-			}
+			if (HandleArguments(args))
+				return;
 
 			try {
 
@@ -174,7 +123,7 @@ namespace SmartImage
 
 				Client.SearchCompleted += (obj, eventArgs) => OnSearchCompleted(obj, eventArgs, cts);
 
-				Client.ExtraResultsCompleted += AppToast.Show;
+				Client.ExtraResults += AppToast.Show;
 
 				NConsoleProgress.Queue(cts);
 
@@ -201,6 +150,65 @@ namespace SmartImage
 			}
 		}
 
+		private static bool HandleArguments(string[] args)
+		{
+			if (!args.Any()) {
+				var options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
+
+				if (!options.Any()) {
+					return true;
+				}
+			}
+			else {
+
+				/*
+				 * Handle CLI args
+				 */
+
+				try {
+
+					var argEnumerator = args.GetEnumerator();
+
+					while (argEnumerator.MoveNext()) {
+						object? arg = argEnumerator.Current;
+
+						switch (arg) {
+							case CMD_FIND_DIRECT:
+								argEnumerator.MoveNext();
+
+								var directImages = ImageHelper.FindDirectImages((string) argEnumerator.Current);
+
+								var imageResults = directImages.Select(ImageResult.FromDirectImage);
+
+								var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
+
+
+								NConsole.ReadOptions(new NConsoleDialog
+								{
+									Options     = directOptions,
+									Description = AppInterface.Description
+								});
+
+								return true;
+							case CMD_SEARCH:
+								argEnumerator.MoveNext();
+								Config.Query = (string) argEnumerator.Current;
+								break;
+							default:
+								Config.Query = args.First();
+								break;
+						}
+					}
+				}
+				catch (Exception e) {
+					Console.WriteLine(e);
+					Console.ReadLine();
+				}
+			}
+
+			return false;
+		}
+
 
 		private static void OnSearchCompleted(object? sender, List<SearchResult> eventArgs, CancellationTokenSource cts)
 		{
@@ -209,9 +217,9 @@ namespace SmartImage
 			cts.Cancel();
 			cts.Dispose();
 
-			
+
 			SystemSounds.Exclamation.Play();
-			
+
 		}
 
 

@@ -181,16 +181,8 @@ namespace SmartImage.Lib
 					args.Direct = direct;
 				}
 
-				ExtraResultsCompleted?.Invoke(null, args);
-
-
-				/*
-				 * var direct = Program.Client.FindDirectResult();
-
-				Debug.WriteLine(direct);
-
-				Debug.WriteLine(direct.Direct.ToString());
-				 */
+				ExtraResults?.Invoke(null, args);
+				
 			}
 
 		}
@@ -289,7 +281,7 @@ namespace SmartImage.Lib
 					Debug.WriteLine($"Adding {item.Direct}");
 
 					images.Add(item);
-					
+
 				}
 			});
 
@@ -310,7 +302,7 @@ namespace SmartImage.Lib
 		{
 			var best = Results.Where(r => r.IsNonPrimitive)
 			                  .SelectMany(r =>
-			                  {
+			                  { 
 				                  var x = r.OtherResults;
 				                  x.Insert(0, r.PrimaryResult);
 				                  return x;
@@ -358,8 +350,11 @@ namespace SmartImage.Lib
 		/// </summary>
 		public event EventHandler<List<SearchResult>> SearchCompleted;
 
-
-		public event EventHandler<ExtraResultEventArgs> ExtraResultsCompleted;
+		/// <summary>
+		/// An event that fires when a search is complete, with extra information
+		/// (<see cref="SearchConfig.Notification"/>; <see cref="SearchConfig.NotificationImage"/>)
+		/// </summary>
+		public event EventHandler<ExtraResultEventArgs> ExtraResults;
 
 
 		private const string ERR_SEARCH_NOT_COMPLETE = "Search must be completed";

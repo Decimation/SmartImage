@@ -49,17 +49,17 @@ namespace SmartImage.UX
 			       .AddText($"Results: {Program.Client.Results.Count}");
 
 
+			var direct = args.Direct?.Direct;
 
-			if (Program.Config.NotificationImage) {
+			if (direct != null) {
 
-				
-				var file = ImageHelper.Download(args.Direct.Direct);
+				var file = ImageHelper.Download(direct);
 
 				Debug.WriteLine($"Downloaded {file}", LogCategories.C_INFO);
 
 				builder.AddHeroImage(new Uri(file));
 
-				AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+				AppDomain.CurrentDomain.ProcessExit += (sender2, args2) =>
 				{
 					File.Delete(file);
 				};
@@ -75,8 +75,7 @@ namespace SmartImage.UX
 			//ToastNotificationManager.CreateToastNotifier();
 		}
 
-		
-		
+
 		public static void OnActivated(ToastNotificationActivatedEventArgsCompat compat)
 		{
 			// NOTE: Does not return if invoked from background
@@ -93,7 +92,7 @@ namespace SmartImage.UX
 					if (argument.Value == ARG_VALUE_DISMISS) {
 						break;
 					}
-					
+
 
 					WebUtilities.OpenUrl(argument.Value);
 				}
