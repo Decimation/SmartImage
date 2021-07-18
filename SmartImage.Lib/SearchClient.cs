@@ -182,7 +182,7 @@ namespace SmartImage.Lib
 				}
 
 				ExtraResults?.Invoke(null, args);
-				
+
 			}
 
 		}
@@ -253,7 +253,38 @@ namespace SmartImage.Lib
 
 			var images = new ConcurrentBag<ImageResult>();
 
-			Parallel.For(0, best.Count, options, (i, s) =>
+			//Parallel.For(0, best.Count, options, (i, s) =>
+			//{
+			//	//if (images.Count >= count) {
+			//	//	s.Stop();
+			//	//	return;
+			//	//}
+
+			//	//if (s.IsStopped) {
+			//	//	return;
+			//	//}
+
+			//	var item = best[i];
+
+			//	item.FindDirectImages();
+
+			//	if (item.Direct == null) {
+			//		return;
+			//	}
+
+			//	if (ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary)) {
+			//		//if (images.Count >= count) {
+			//		//	s.Stop();
+			//		//	return;
+			//		//}
+
+			//		Debug.WriteLine($"Adding {item.Direct}");
+
+			//		images.Add(item);
+
+			//	}
+			//});
+			Parallel.For(0, count, options, (i, s) =>
 			{
 				//if (images.Count >= count) {
 				//	s.Stop();
@@ -284,6 +315,25 @@ namespace SmartImage.Lib
 
 				}
 			});
+			//int i = 0;
+			//do {
+			//	var item = best[i++];
+			//	item.FindDirectImages();
+
+			//	var c = item.Direct != null;
+
+			//	if (c) {
+			//		var c2 = ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary);
+
+			//		if (c2) {
+			//			images.Add(item);
+			//			Debug.WriteLine($"{item.Direct} | {images.Count}");
+
+			//		}
+			//	}
+
+			//} while (images.Count < count);
+
 
 			Debug.WriteLine($"Found {images.Count} direct results");
 
@@ -302,7 +352,7 @@ namespace SmartImage.Lib
 		{
 			var best = Results.Where(r => r.IsNonPrimitive)
 			                  .SelectMany(r =>
-			                  { 
+			                  {
 				                  var x = r.OtherResults;
 				                  x.Insert(0, r.PrimaryResult);
 				                  return x;

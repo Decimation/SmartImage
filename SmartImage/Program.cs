@@ -72,10 +72,10 @@ namespace SmartImage
 		/// </summary>
 		private static async Task Main(string[] args)
 		{
-#if TEST_DEBUG
+#if DEBUG
 			if (!args.Any()) {
 				//args = new string[] {CMD_SEARCH, "https://i.imgur.com/QtCausw.png"};
-				args = new[] {CMD_FIND_DIRECT, "https://twitter.com/sciamano240/status/1186775807655587841"};
+				//args = new[] {CMD_FIND_DIRECT, "https://twitter.com/sciamano240/status/1186775807655587841"};
 			}
 
 
@@ -109,10 +109,13 @@ namespace SmartImage
 
 			AppConfig.ReadConfigFile();
 
+
 			if (HandleArguments(args))
 				return;
 
-			try {
+
+			try
+			{
 
 				CancellationTokenSource cts = new();
 
