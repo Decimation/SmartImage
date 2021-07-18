@@ -16,6 +16,9 @@ using System.Text;
 using System.Threading;
 using Kantan.Cli;
 using Kantan.Diagnostics;
+using Kantan.Utilities;
+using SmartImage.Lib.Utilities;
+using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
 
@@ -108,6 +111,8 @@ namespace SmartImage.Core
 			if (!IsAppFolderInPath) {
 				AppIntegration.HandlePath(IntegrationOption.Add);
 			}
+
+			Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
 
 			var languages = Windows.System.UserProfile.GlobalizationPreferences.Languages;
 

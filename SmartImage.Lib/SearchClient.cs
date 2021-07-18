@@ -174,11 +174,12 @@ namespace SmartImage.Lib
 
 					var direct = FindDirectResult();
 
-					Debug.WriteLine(direct);
+					if (direct?.Direct != null) {
+						Debug.WriteLine(direct);
+						Debug.WriteLine(direct.Direct.ToString());
+						args.Direct = direct;
 
-					Debug.WriteLine(direct.Direct.ToString());
-
-					args.Direct = direct;
+					}
 				}
 
 				ExtraResults?.Invoke(null, args);
@@ -241,98 +242,32 @@ namespace SmartImage.Lib
 
 		public ImageResult[] FindDirectResults(int count = 5)
 		{
-			var best = FindBestResults().ToList();
 
-			var options = new ParallelOptions()
-			{
-				MaxDegreeOfParallelism = Int32.MaxValue,
-				TaskScheduler          = TaskScheduler.Default,
-			};
+			var best = FindBestResults().ToList();
 
 			Debug.WriteLine($"Found {best.Count} best results");
 
 			var images = new ConcurrentBag<ImageResult>();
 
-			//Parallel.For(0, best.Count, options, (i, s) =>
-			//{
-			//	//if (images.Count >= count) {
-			//	//	s.Stop();
-			//	//	return;
-			//	//}
+			// todo: this is just a stopgap
 
-			//	//if (s.IsStopped) {
-			//	//	return;
-			//	//}
+			int i = 0;
 
-			//	var item = best[i];
-
-			//	item.FindDirectImages();
-
-			//	if (item.Direct == null) {
-			//		return;
-			//	}
-
-			//	if (ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary)) {
-			//		//if (images.Count >= count) {
-			//		//	s.Stop();
-			//		//	return;
-			//		//}
-
-			//		Debug.WriteLine($"Adding {item.Direct}");
-
-			//		images.Add(item);
-
-			//	}
-			//});
-			Parallel.For(0, count, options, (i, s) =>
-			{
-				//if (images.Count >= count) {
-				//	s.Stop();
-				//	return;
-				//}
-
-				//if (s.IsStopped) {
-				//	return;
-				//}
-
+			do {
 				var item = best[i];
 
 				item.FindDirectImages();
 
 				if (item.Direct == null) {
-					return;
+					continue;
 				}
 
-				if (ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary)) {
-					//if (images.Count >= count) {
-					//	s.Stop();
-					//	return;
-					//}
+				Debug.WriteLine($"{nameof(FindDirectResult)}: Adding {item.Direct}");
 
-					Debug.WriteLine($"Adding {item.Direct}");
+				images.Add(item);
 
-					images.Add(item);
-
-				}
-			});
-			//int i = 0;
-			//do {
-			//	var item = best[i++];
-			//	item.FindDirectImages();
-
-			//	var c = item.Direct != null;
-
-			//	if (c) {
-			//		var c2 = ImageHelper.IsDirect(item.Direct.ToString(), DirectImageType.Binary);
-
-			//		if (c2) {
-			//			images.Add(item);
-			//			Debug.WriteLine($"{item.Direct} | {images.Count}");
-
-			//		}
-			//	}
-
-			//} while (images.Count < count);
+				
+			} while (++i != best.Count && i < count /*!images.Any(x=>x.Direct!=null)*/);
 
 
 			Debug.WriteLine($"Found {images.Count} direct results");

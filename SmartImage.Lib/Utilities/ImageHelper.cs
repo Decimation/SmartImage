@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -145,7 +146,7 @@ namespace SmartImage.Lib.Utilities
 
 		#endregion
 
-		public static string Download(Uri direct)
+		public static string Download(Uri direct, string path)
 		{
 			string filename = Path.GetFileName(direct.AbsolutePath);
 
@@ -168,7 +169,6 @@ namespace SmartImage.Lib.Utilities
 				Debug.WriteLine("Fixed file");
 			}
 
-			var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
 			string combine = Path.Combine(path, filename);
 
@@ -178,6 +178,8 @@ namespace SmartImage.Lib.Utilities
 
 			return combine;
 		}
+
+		public static bool IsImage(string s, double d) => Network.IsType(s, "image",(long) TimeSpan.FromSeconds(d).TotalMilliseconds);
 
 		public static Image GetImage(string s)
 		{
@@ -201,16 +203,18 @@ namespace SmartImage.Lib.Utilities
 		/// Scans for direct images within a webpage.
 		/// </summary>
 		/// <param name="url">Url to search</param>
-		/// <param name="directType">Which criterion to use to determine whether a URI is a direct image </param>
 		/// <param name="count">Number of direct images to return</param>
 		/// <param name="pingTimeSec"></param>
-		public static List<string> FindDirectImages(string url, DirectImageType directType = DirectImageType.Regex,
-		                                            int count = 10, double pingTimeSec = 1)
+		public static List<string> FindDirectImages(string url, int count = 10, double pingTimeSec = 1)
 		{
 
-			var images = new List<string>();
 
-			var pingTime = TimeSpan.FromSeconds(pingTimeSec);
+			/*
+			 * TODO: WIP
+			 */
+
+			var images = new List<string>();
+			
 
 			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
 
@@ -241,8 +245,7 @@ namespace SmartImage.Lib.Utilities
 					                           .Split('|')
 					                           .First();
 
-					if (!string.IsNullOrWhiteSpace(str) &&
-					    Network.IsAlive(new Uri(str), (long) pingTime.TotalMilliseconds)) {
+					if (!string.IsNullOrWhiteSpace(str) && IsImage(str, pingTimeSec)) {
 						images.Add(str);
 
 					}
@@ -301,30 +304,14 @@ namespace SmartImage.Lib.Utilities
 			Parallel.For(0, flat.Count, options, (i, s) =>
 			{
 				string currentUrl = flat[i];
-
-				if (imagesCopy.Count >= count) {
-					s.Stop();
+				
+				if (!IsImage(currentUrl, pingTimeSec)) {
 					return;
 				}
 
-				if (!Network.IsUri(currentUrl, out var uri))
-					return;
-
-				if (!Network.IsAlive(uri, (long) pingTime.TotalMilliseconds)) {
-					//Debug.WriteLine($"{uri} isn't alive");
-					return;
-				}
-
-				if (!IsDirect(currentUrl, directType))
-					return;
-
-				if (imagesCopy.Count >= count) {
-					s.Stop();
-					return;
-				}
+				Debug.WriteLine($"{nameof(FindDirectImages)}: Adding {currentUrl}");
 
 				imagesCopy.Add(currentUrl);
-
 			});
 
 

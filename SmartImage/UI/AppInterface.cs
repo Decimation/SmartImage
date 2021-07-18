@@ -1,25 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Net;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Web;
-using JetBrains.Annotations;
 using Kantan.Cli;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Utilities;
-using Novus.Win32;
 using SmartImage.Core;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
@@ -34,7 +23,7 @@ using static SmartImage.Program;
 // ReSharper disable PossibleNullReferenceException
 
 
-namespace SmartImage.UX
+namespace SmartImage.UI
 {
 	/// <summary>
 	/// Handles the main menu interface
@@ -46,12 +35,12 @@ namespace SmartImage.UX
 		 *
 		 */
 
-		private static readonly NConsoleOption[] MainMenuOptions =
+		internal static readonly NConsoleOption[] MainMenuOptions =
 		{
 			new()
 			{
 				Name  = ">>> Run <<<",
-				Color = InterfaceElements.ColorMain,
+				Color = Elements.ColorMain,
 				Function = () =>
 				{
 					ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
@@ -66,18 +55,9 @@ namespace SmartImage.UX
 					return true;
 				}
 			},
-
-
-			CreateConfigOption(memberof(() => Config.SearchEngines), "Engines"),
-			CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines"),
-
-			CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3),
-			CreateConfigOption(propertyof(() => Config.Notification), "Notification", 4),
-			CreateConfigOption(propertyof(() => Config.NotificationImage), "Notification image", 5),
-
-			CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
-			                   (added) => AppIntegration.HandleContextMenu(
-				                   added ? IntegrationOption.Remove : IntegrationOption.Add)),
+			NConsoleFactory.CreateConfigOption(memberof(() => Config.SearchEngines), "Engines"), NConsoleFactory.CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines"), NConsoleFactory.CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3), NConsoleFactory.CreateConfigOption(propertyof(() => Config.Notification), "Notification", 4), NConsoleFactory.CreateConfigOption(propertyof(() => Config.NotificationImage), "Notification image", 5), NConsoleFactory.CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
+			                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    (added) => AppIntegration.HandleContextMenu(
+				                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    added ? IntegrationOption.Remove : IntegrationOption.Add)),
 
 			new()
 			{
@@ -176,95 +156,6 @@ namespace SmartImage.UX
 		};
 
 
-		#region Config option
-
-		private static NConsoleOption CreateConfigOption(MemberInfo m, string name)
-		{
-			return new()
-			{
-				Name  = name,
-				Color = InterfaceElements.ColorOther,
-				Function = () =>
-				{
-					var enumOptions = NConsoleOption.FromEnum<SearchEngineOptions>();
-
-					var selected = NConsole.ReadOptions(new NConsoleDialog
-					{
-						Options        = enumOptions,
-						SelectMultiple = true
-					});
-
-					var enumValue = Enums.ReadFromSet<SearchEngineOptions>(selected);
-					var field     = Config.GetType().GetResolvedField((m).Name);
-					field.SetValue(Config, enumValue);
-
-					Console.WriteLine(enumValue);
-
-					NConsole.WaitForSecond();
-
-					Debug.Assert((SearchEngineOptions) field.GetValue(Config) == enumValue);
-
-					AppConfig.UpdateConfig();
-
-					return null;
-				}
-			};
-		}
-
-		private static NConsoleOption CreateConfigOption(PropertyInfo member, string name, int i, Action<bool> fn)
-		{
-			bool initVal = (bool) member.GetValue(Config);
-
-			return new NConsoleOption()
-			{
-				Name = InterfaceElements.GetName(name, initVal),
-				Function = () =>
-				{
-					var pi = member.DeclaringType.GetProperty(member.Name);
-
-					bool curVal = (bool) pi.GetValue(null);
-
-					fn(curVal);
-
-					bool newVal = (bool) pi.GetValue(null);
-
-					MainMenuOptions[i].Name = InterfaceElements.GetName(name, newVal);
-
-					Debug.Assert((bool) pi.GetValue(null) == newVal);
-
-					return null;
-				}
-			};
-		}
-
-		private static NConsoleOption CreateConfigOption(PropertyInfo member, string name, int i)
-		{
-			bool initVal = (bool) member.GetValue(Config);
-
-			return new NConsoleOption()
-			{
-				Name = InterfaceElements.GetName(name, initVal),
-				Function = () =>
-				{
-					var    fi     = Config.GetType().GetResolvedField(member.Name);
-					object curVal = fi.GetValue(Config);
-					bool   newVal = !(bool) curVal;
-					fi.SetValue(Config, newVal);
-
-					MainMenuOptions[i].Name = InterfaceElements.GetName(name, newVal);
-
-					Debug.Assert((bool) fi.GetValue(Config) == newVal);
-
-					AppConfig.UpdateConfig();
-
-					return null;
-				}
-			};
-		}
-
-		#endregion
-
-
 		/*
 		/// <summary>Returns true if the current application has focus, false otherwise</summary>
 		internal static bool ApplicationIsActivated()
@@ -321,8 +212,8 @@ namespace SmartImage.UX
 			var direct = args.Direct?.Direct;
 
 			if (direct != null) {
-
-				var file = ImageHelper.Download(direct);
+				var path = Path.GetTempPath();
+				var file = ImageHelper.Download(direct, path);
 
 				Debug.WriteLine($"Downloaded {file}", LogCategories.C_INFO);
 

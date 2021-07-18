@@ -13,6 +13,7 @@ using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Engines.Impl.Other;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+
 #pragma warning disable IDE0079
 #pragma warning disable CS0168, CS1998
 #pragma warning disable IDE0060
@@ -166,14 +167,17 @@ namespace Test
 
 			//Console.WriteLine(">> {0}", r2x);
 
-			//var t = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747");
-			var t = ImageHelper.FindDirectImages("https://deviantart.com/view/817835288");
-			foreach (var s in t)
-			{
+			//var t  = ImageHelper.FindDirectImages("https://deviantart.com/view/817835288");
+
+
+			var sw = Stopwatch.StartNew();
+			var t  = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747");
+			sw.Stop();
+			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
+
+			foreach (var s in t) {
 				Console.WriteLine(s);
 			}
-
-			
 
 
 		}

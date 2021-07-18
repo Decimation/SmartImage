@@ -37,8 +37,8 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+using SmartImage.UI;
 using SmartImage.Utilities;
-using SmartImage.UX;
 
 // ReSharper disable CognitiveComplexity
 
@@ -62,7 +62,7 @@ namespace SmartImage
 		public static readonly NConsoleDialog ResultDialog = new()
 		{
 			Options     = new List<NConsoleOption>(),
-			Description = InterfaceElements.Description
+			Description = Elements.Description
 		};
 
 		#endregion
@@ -131,11 +131,11 @@ namespace SmartImage
 
 				// Show results
 				var searchTask = Client.RunSearchAsync();
-
+				
 				// Add original image
-				ResultDialog.Options.Add(InterfaceElements.CreateResultOption(
+				ResultDialog.Options.Add(NConsoleFactory.CreateResultOption(
 					                         Config.Query.GetImageResult(), "(Original image)",
-					                         InterfaceElements.ColorMain, -0.1f));
+					                         Elements.ColorMain, -0.1f));
 
 
 				NConsole.ReadOptions(ResultDialog);
@@ -181,13 +181,13 @@ namespace SmartImage
 
 								var imageResults = directImages.Select(ImageResult.FromDirectImage);
 
-								var directOptions = InterfaceElements.CreateResultOptions(imageResults, "Image");
+								var directOptions = NConsoleFactory.CreateResultOptions(imageResults, "Image");
 
 
 								NConsole.ReadOptions(new NConsoleDialog
 								{
 									Options     = directOptions,
-									Description = InterfaceElements.Description
+									Description = Elements.Description
 								});
 
 								return true;
@@ -227,7 +227,7 @@ namespace SmartImage
 		{
 			var result = eventArgs.Result;
 
-			var option = InterfaceElements.CreateResultOption(result);
+			var option = NConsoleFactory.CreateResultOption(result);
 
 			bool? isFiltered = eventArgs.IsFiltered;
 

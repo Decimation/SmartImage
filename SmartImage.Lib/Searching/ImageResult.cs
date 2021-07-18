@@ -213,36 +213,41 @@ namespace SmartImage.Lib.Searching
 			if (Url == null || Direct != null)
 				return;
 
-			if (ImageHelper.IsDirect(Url.ToString(), DirectImageType.Binary)) {
-				Direct = Url;
-			}
+			// if (ImageHelper.IsDirect(Url.ToString(), DirectImageType.Binary)) {
+			// 	Direct = Url;
+			// }
+			// else {
+			// 	
+			// }
 
-			else {
-				try {
+			try {
 
-					var directImages = ImageHelper.FindDirectImages(Url.ToString());
+				var directImages = ImageHelper.FindDirectImages(Url.ToString());
 
-					/*directImages = directImages.AsParallel().Where(x => ImageHelper.IsDirect(x, DirectImageType.Binary))
-					                           .ToList();*/
+				//Debug.WriteLine($"{Url}: {directImages?.QuickJoin()}");
 
-					//var direct = directImages?.FirstOrDefault(x=>ImageHelper.IsDirect(x, DirectImageType.Binary));
-					
-					var direct = directImages?.FirstOrDefault();
 
-					if (direct != null) {
-						Direct = new Uri((direct));
+				/*directImages = directImages.AsParallel().Where(x => ImageHelper.IsDirect(x, DirectImageType.Binary))
+										   .ToList();*/
 
-						// todo
-						//Image  = ImageHelper.GetImage(direct);
-						//Debug.WriteLine($"{Url} -> {Direct}");
+				//var direct = directImages?.FirstOrDefault(x=>ImageHelper.IsDirect(x, DirectImageType.Binary));
 
-					}
+				var direct = directImages?.FirstOrDefault();
+
+				//var direct = directImages?.AsParallel().FirstOrDefault(f => ImageHelper.IsDirect(f, DirectImageType.Binary));
+
+				if (direct != null) {
+					Direct = new Uri((direct));
+
+					// todo
+					//Image  = ImageHelper.GetImage(direct);
+					//Debug.WriteLine($"{Url} -> {Direct}");
+
 				}
-				catch {
-					//
-				}
 			}
-
+			catch {
+				//
+			}
 
 			UpdateImageData();
 		}
