@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using Kantan.Cli;
 using Kantan.Diagnostics;
+
 // ReSharper disable CognitiveComplexity
 
 // ReSharper disable PossibleNullReferenceException
@@ -61,15 +62,15 @@ namespace SmartImage.Core
 		/// </summary>
 		public const string NAME_CFG = "SmartImage.cfg";
 
-		public const string Author = "Read Stanton";
+		public const string AUTHOR = "Read Stanton";
 
-		public const string Repo = "https://github.com/Decimation/SmartImage";
+		public const string URL_REPO = "https://github.com/Decimation/SmartImage";
 
-		public const string Readme = "https://github.com/Decimation/SmartImage/blob/master/README.md";
+		public const string URL_README = "https://github.com/Decimation/SmartImage/blob/master/README.md";
 
-		public const string Issue = "https://github.com/Decimation/SmartImage/issues/new";
+		public const string URL_ISSUE = "https://github.com/Decimation/SmartImage/issues/new";
 
-		public const string Wiki = "https://github.com/Decimation/SmartImage/wiki";
+		public const string URL_WIKI = "https://github.com/Decimation/SmartImage/wiki";
 
 		public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
@@ -90,8 +91,6 @@ namespace SmartImage.Core
 				return module.FileName;
 			}
 		}
-
-		
 
 
 		public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);

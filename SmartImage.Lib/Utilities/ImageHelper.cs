@@ -128,8 +128,7 @@ namespace SmartImage.Lib.Utilities
 				var rg = new Dictionary<string, string>();
 
 				foreach (string exe in Utilities) {
-					var path = FileSystem.SearchInPath(exe);
-
+					string path = FileSystem.SearchInPath(exe);
 
 					rg.Add(exe, path);
 				}
@@ -151,13 +150,20 @@ namespace SmartImage.Lib.Utilities
 			string filename = Path.GetFileName(direct.AbsolutePath);
 
 			if (!Path.HasExtension(filename)) {
+
+				// If no format is specified/found, just append a jpg extension
+				string ext = ".jpg";
+
 				// For Pixiv (?)
 				var kv = HttpUtility.ParseQueryString(direct.Query);
-				var t  = kv["format"];
+
+				var t = kv["format"];
 
 				if (t != null) {
-					filename += $".{t}";
+					ext = $".{t}";
 				}
+
+				filename += ext;
 
 				Debug.WriteLine("Fixed file");
 			}
@@ -323,39 +329,25 @@ namespace SmartImage.Lib.Utilities
 
 
 			/*
-			 * Tasks
-			 * 1		5.19
-			 * 2		4.68
-			 * 3		4.54
-			 * 4		4.42
+			 * Tasks				Parallel			Parallel 2				
+			 * 1		5.19		1		4.59		9		3.84		
+			 * 2		4.68		2		4.37		10		3.56		
+			 * 3		4.54		3		4.28		11		3.45		
+			 * 4		4.42		4		4.34		12		3.52		
+			 * 						5		4.38		13		3.63		
+			 * 						6		4.55		14		3.52
+			 * 						7		4.36
+			 * 						8		4.45
 			 *
-			 * Parallel
-			 * 1		4.59
-			 * 2		4.37
-			 * 3		4.28
-			 * 4		4.34
-			 * 5		4.38
-			 * 6		4.55
-			 * 7		4.36
-			 * 8		4.45
 			 *
-			 * 9		3.84
-			 * 10		3.56
-			 * 11		3.45
-			 * 12		3.52
-			 * 13		3.63
-			 * 14		3.52
-			 *
-			 * 15		3.39
-			 * 16		3.52
-			 * 17		3.58
-			 * 18		3.47
+			 * Parallel 3			Parallel 4
+			 * 15		3.39		20		3.13
+			 * 16		3.52		21		2.89
+			 * 17		3.58		22		2.87
+			 * 18		3.47		23		2.89
 			 * 19		3.33
-			 *
-			 * 20		3.13
-			 * 21		2.89
-			 * 22		2.87
-			 * 23		2.89
+			 * 
+			 * 
 			 */
 
 			images = imagesCopy;

@@ -44,15 +44,15 @@ using SmartImage.UX;
 
 namespace SmartImage
 {
+	//  ____                       _   ___
+	// / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
+	// \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \
+	//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
+	// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
+	//                                                     |___/
+
 	public static class Program
 	{
-		//  ____                       _   ___
-		// / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
-		// \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \
-		//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
-		// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
-		//                                                     |___/
-
 		#region Core fields
 
 		public static readonly SearchConfig Config = new();
@@ -62,7 +62,7 @@ namespace SmartImage
 		public static readonly NConsoleDialog ResultDialog = new()
 		{
 			Options     = new List<NConsoleOption>(),
-			Description = AppInterface.Description
+			Description = InterfaceElements.Description
 		};
 
 		#endregion
@@ -87,7 +87,7 @@ namespace SmartImage
 			 * Register events
 			 */
 
-			ToastNotificationManagerCompat.OnActivated += AppToast.OnActivated;
+			ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
 
 			Native.SetConsoleOutputCP(Native.CP_IBM437);
 
@@ -114,8 +114,7 @@ namespace SmartImage
 				return;
 
 
-			try
-			{
+			try {
 
 				CancellationTokenSource cts = new();
 
@@ -126,7 +125,7 @@ namespace SmartImage
 
 				Client.SearchCompleted += (obj, eventArgs) => OnSearchCompleted(obj, eventArgs, cts);
 
-				Client.ExtraResults += AppToast.Show;
+				Client.ExtraResults += AppInterface.ShowToast;
 
 				NConsoleProgress.Queue(cts);
 
@@ -134,13 +133,12 @@ namespace SmartImage
 				var searchTask = Client.RunSearchAsync();
 
 				// Add original image
-				ResultDialog.Options.Add(AppInterface.CreateResultOption(
+				ResultDialog.Options.Add(InterfaceElements.CreateResultOption(
 					                         Config.Query.GetImageResult(), "(Original image)",
-					                         AppInterface.ColorMain, -0.1f));
+					                         InterfaceElements.ColorMain, -0.1f));
 
 
 				NConsole.ReadOptions(ResultDialog);
-
 
 				await searchTask;
 			}
@@ -156,7 +154,7 @@ namespace SmartImage
 		private static bool HandleArguments(string[] args)
 		{
 			if (!args.Any()) {
-				var options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
+				HashSet<object> options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
 
 				if (!options.Any()) {
 					return true;
@@ -183,13 +181,13 @@ namespace SmartImage
 
 								var imageResults = directImages.Select(ImageResult.FromDirectImage);
 
-								var directOptions = AppInterface.CreateResultOptions(imageResults, "Image");
+								var directOptions = InterfaceElements.CreateResultOptions(imageResults, "Image");
 
 
 								NConsole.ReadOptions(new NConsoleDialog
 								{
 									Options     = directOptions,
-									Description = AppInterface.Description
+									Description = InterfaceElements.Description
 								});
 
 								return true;
@@ -215,11 +213,10 @@ namespace SmartImage
 
 		private static void OnSearchCompleted(object? sender, List<SearchResult> eventArgs, CancellationTokenSource cts)
 		{
-			AppInterface.FlashConsoleWindow();
+			Native.FlashConsoleWindow();
 
 			cts.Cancel();
 			cts.Dispose();
-
 
 			SystemSounds.Exclamation.Play();
 
@@ -230,7 +227,7 @@ namespace SmartImage
 		{
 			var result = eventArgs.Result;
 
-			var option = AppInterface.CreateResultOption(result);
+			var option = InterfaceElements.CreateResultOption(result);
 
 			bool? isFiltered = eventArgs.IsFiltered;
 

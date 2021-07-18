@@ -82,7 +82,7 @@ namespace SmartImage.Lib.Engines
 			//}
 
 			if (!Network.IsAlive(uri, (long) Timeout.TotalMilliseconds)) {
-				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g})", C_WARN);
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g}", C_WARN);
 				return null;
 			}
 

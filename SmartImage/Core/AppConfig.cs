@@ -64,7 +64,7 @@ namespace SmartImage.Core
 			Debug.WriteLine($"Updated config from {ConfigFile}");
 		}
 
-		public static void SaveConfigFile()
+		private static void SaveConfigFile()
 		{
 			var map = ConfigMap;
 
@@ -78,5 +78,11 @@ namespace SmartImage.Core
 		private const string K_FILTER             = "filter";
 		private const string K_NOTIFICATION       = "notification";
 		private const string K_NOTIFICATION_IMAGE = "notification-image";
+
+		public static void UpdateConfig()
+		{
+			Program.Client.Reload();
+			AppConfig.SaveConfigFile();
+		}
 	}
 }

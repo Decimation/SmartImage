@@ -216,6 +216,7 @@ namespace SmartImage.Lib.Searching
 			if (ImageHelper.IsDirect(Url.ToString(), DirectImageType.Binary)) {
 				Direct = Url;
 			}
+
 			else {
 				try {
 
