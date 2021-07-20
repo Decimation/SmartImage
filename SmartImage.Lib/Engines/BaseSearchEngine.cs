@@ -3,9 +3,11 @@ using SmartImage.Lib.Searching;
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using Kantan.Diagnostics;
+using RestSharp;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -31,14 +33,18 @@ namespace SmartImage.Lib.Engines
 
 		public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
+		protected virtual bool Redirect { get; set; } = true;
+
 		public virtual SearchResult GetResult(ImageQuery query)
 		{
-			var rawUrl = GetRawResultUri(query);
+			var rawUrl = GetRawResultUri(query, out var r);
 
 			var sr = new SearchResult(this);
 
 			if (rawUrl == null) {
-				sr.Status = ResultStatus.Unavailable;
+				sr.Status       = ResultStatus.Unavailable;
+				sr.ErrorMessage = $"{r.ErrorMessage} | {r.StatusCode}";
+
 			}
 			else {
 				sr.RawUri = rawUrl;
@@ -67,29 +73,26 @@ namespace SmartImage.Lib.Engines
 			return await task;
 		}
 
-		public Uri GetRawResultUri(ImageQuery query)
+		public Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
 		{
 			var uri = new Uri(BaseUrl + query.UploadUri);
 
-			//var reply = Network.Ping(uri, (long) Timeout.TotalMilliseconds);
-
-			////var b = Network.IsAlive(uri, (long) Timeout.TotalMilliseconds);
-			////var b1 = ok.Status != IPStatus.Success || ok.Status == IPStatus.TimedOut;
-
-			//if (reply.Status != IPStatus.Success) {
-			//	Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} ({reply.Status})", C_WARN);
-			//	return null;
-			//}
-
-			if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
+			/*if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
 				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri}", C_WARN);
+				return null;
+			}*/
+
+			res = Network.GetResponse(uri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, Redirect);
+
+			if (!res.IsSuccessful && res.StatusCode!= HttpStatusCode.Redirect) {
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri} {res.StatusCode}", C_WARN);
 				return null;
 			}
 
 			return uri;
 		}
 
-		protected static SearchResult TryRun(SearchResult sr, Func<SearchResult, SearchResult> process)
+		protected static SearchResult TryProcess(SearchResult sr, Func<SearchResult, SearchResult> process)
 		{
 			if (!sr.IsSuccessful) {
 				return sr;
@@ -100,7 +103,8 @@ namespace SmartImage.Lib.Engines
 				sr = process(sr);
 			}
 			catch (Exception e) {
-				sr.Status = ResultStatus.Failure;
+				sr.Status       = ResultStatus.Failure;
+				sr.ErrorMessage = e.Message;
 				Trace.WriteLine($"{sr.Engine.Name}: {e.Message}", LogCategories.C_ERROR);
 			}
 

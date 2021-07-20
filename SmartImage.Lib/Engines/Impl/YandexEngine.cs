@@ -26,6 +26,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
+		public override TimeSpan Timeout => TimeSpan.FromSeconds(6.5);
 
 		private static string? GetAnalysis(IDocument doc)
 		{

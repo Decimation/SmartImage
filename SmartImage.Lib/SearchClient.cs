@@ -12,6 +12,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
 using SmartImage.Lib.Upload;
@@ -81,7 +82,7 @@ namespace SmartImage.Lib
 			          .ToArray();
 
 
-			Trace.WriteLine($"Engines: {Config.SearchEngines}");
+			Trace.WriteLine($"Engines: {Config.SearchEngines}", C_INFO);
 		}
 
 		/// <summary>
@@ -236,8 +237,7 @@ namespace SmartImage.Lib
 			return res;
 		}
 
-
-		[CanBeNull]
+		
 		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
 
 		public ImageResult[] FindDirectResults(int count = 5)

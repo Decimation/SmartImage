@@ -7,6 +7,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
+using Kantan.Diagnostics;
+using RestSharp;
+
 // ReSharper disable CognitiveComplexity
 
 // ReSharper disable IdentifierTypo
@@ -18,16 +22,18 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 		{
-			Timeout = TimeSpan.FromSeconds(5);
+			
 		}
+
+		public override TimeSpan Timeout => TimeSpan.FromSeconds(5);
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
 		public override string Name => EngineOption.ToString();
 
-		
+		protected override bool Redirect => false;
 
-		private static Uri ConvertToDetailUri(Uri url)
+		private  Uri ConvertToDetailUri(Uri url)
 		{
 			/*
 			 * URL parameters
@@ -38,7 +44,7 @@ namespace SmartImage.Lib.Engines.Impl
 			 */
 
 
-			var res = Network.GetResponse(url.ToString());
+			var res = Network.GetResponse(url.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, false);
 
 			// Get redirect url (color url)
 

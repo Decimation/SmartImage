@@ -30,10 +30,12 @@ namespace SmartImage.Lib.Engines
 
 		protected RestClient Client { get; }
 
+		protected override bool Redirect { get; set; }
+
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			return TryRun(base.GetResult(query), sr => Process(query, sr));
+			return TryProcess(base.GetResult(query), sr => Process(query, sr));
 		}
 
 		protected abstract SearchResult Process(ImageQuery query, SearchResult r);

@@ -42,6 +42,15 @@ namespace UnitTest
 		}
 
 		[Test]
+		[TestCase("https://i.imgur.com/QtCausw.png", true)]
+		[TestCase("https://twitter.com/sciamano240/status/1186775807655587841", false)]
+		public void TestImageHelper(string s, bool b)
+		{
+			Assert.AreEqual(ImageHelper.IsImage(s),b);
+
+		}
+
+		[Test]
 		public void TestResolutionType()
 		{
 			var i = Image.FromFile(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");

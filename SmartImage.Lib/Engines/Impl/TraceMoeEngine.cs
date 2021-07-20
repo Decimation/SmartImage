@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using JetBrains.Annotations;
+using Newtonsoft.Json;
 using RestSharp;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Searching;
@@ -42,7 +43,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 			var rq = new RestRequest("search");
-			rq.AddQueryParameter("url", query.UploadUri.ToString());
+			rq.AddQueryParameter("url", query.UploadUri.ToString(), true);
 			//rq.AddQueryParameter("anilistInfo", "");
 			rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 			rq.Timeout                 = Timeout.Milliseconds;
@@ -50,6 +51,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var re = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
 			var tm = re.Data;
+			//var tm=JsonConvert.DeserializeObject<TraceMoeRootObject>(re.Content);
 
 			if (tm?.result != null) {
 				// Most similar to least similar
@@ -69,9 +71,8 @@ namespace SmartImage.Lib.Engines.Impl
 				}
 				catch (Exception e) {
 					r = GetResult(query);
-					Debug.WriteLine($"{Name}: Error: {e.Message}");
-
-					r.Status = ResultStatus.Failure;
+					r.ErrorMessage = e.Message;
+					r.Status       = ResultStatus.Failure;
 					return r;
 				}
 
@@ -79,7 +80,7 @@ namespace SmartImage.Lib.Engines.Impl
 			}
 			else {
 				Debug.WriteLine($"{Name}: API error", C_ERROR);
-
+				r.ErrorMessage = $"{re.ErrorMessage} {re.StatusCode}";
 			}
 
 			return r;
@@ -105,7 +106,7 @@ namespace SmartImage.Lib.Engines.Impl
 					Url         = new Uri(anilistUrl),
 					Similarity  = sim,
 					Source      = name,
-					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.@from)}"
+					Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.from)}"
 				};
 
 				if (result.Similarity < FILTER_THRESHOLD) {
@@ -135,16 +136,23 @@ namespace SmartImage.Lib.Engines.Impl
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 		private class TraceMoeDoc
 		{
-			public double from     { get; set; }
-			public double to       { get; set; }
-			public long   anilist  { get; set; }
+			public double from { get; set; }
+
+			public double to { get; set; }
+
+			public long anilist { get; set; }
+
 			public string filename { get; set; }
 
-			public long episode { get; set; }
+
+			/// <remarks>Episode field may contain multiple possible results delimited by <c>|</c></remarks>
+			public string episode { get; set; }
 
 			public double similarity { get; set; }
-			public string video      { get; set; }
-			public string image      { get; set; }
+
+			public string video { get; set; }
+
+			public string image { get; set; }
 		}
 
 		[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]

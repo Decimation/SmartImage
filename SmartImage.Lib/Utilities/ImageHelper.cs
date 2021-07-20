@@ -195,7 +195,8 @@ namespace SmartImage.Lib.Utilities
 			}
 
 			var a = m.ContentType.StartsWith("image") && m.ContentType != "image/svg+xml";
-			var b = m.ContentLength >= 2500;
+			//var b = m.ContentLength >= 2500;
+			var b = m.ContentLength >= 50_000;
 
 			return a && b;
 		}

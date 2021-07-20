@@ -43,7 +43,6 @@ namespace SmartImage.Lib.Searching
 		Extraneous
 	}
 
-	
 
 	/// <summary>
 	/// Describes a search result
@@ -88,7 +87,15 @@ namespace SmartImage.Lib.Searching
 		/// If filtering is enabled (i.e., <see cref="SearchConfig.Filtering"/> is <c>true</c>), this determines whether the
 		/// result is filtered.
 		/// </summary>
-		public bool IsNonPrimitive => Status != ResultStatus.Extraneous && PrimaryResult.Url != null;
+		public bool IsNonPrimitive
+		{
+			get
+			{
+				//return (Status != ResultStatus.Extraneous && PrimaryResult.Url != null) || ErrorMessage!=null;
+				return (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
+
+			}
+		}
 
 
 		public bool IsSuccessful
@@ -128,7 +135,6 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString() => Strings.ViewString(this);
 
-		
 
 		public Dictionary<string, object> View
 		{
