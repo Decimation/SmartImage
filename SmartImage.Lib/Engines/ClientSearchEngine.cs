@@ -30,7 +30,7 @@ namespace SmartImage.Lib.Engines
 
 		protected RestClient Client { get; }
 
-		protected override bool Redirect { get; set; }
+
 
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)

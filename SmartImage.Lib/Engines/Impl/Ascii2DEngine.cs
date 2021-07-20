@@ -31,7 +31,27 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
-		protected override bool Redirect => false;
+		public override Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
+		{
+			// todo
+
+			var uri = new Uri(BaseUrl + query.UploadUri);
+
+			/*if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri}", C_WARN);
+				return null;
+			}*/
+
+			res = Network.GetResponse(uri.ToString(), (int)Timeout.TotalMilliseconds, Method.GET, false);
+
+			if (!res.IsSuccessful && res.StatusCode != HttpStatusCode.Redirect)
+			{
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri} {res.StatusCode}", LogCategories.C_WARN);
+				return null;
+			}
+
+			return uri;
+		}
 
 		private  Uri ConvertToDetailUri(Uri url)
 		{

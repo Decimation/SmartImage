@@ -33,8 +33,6 @@ namespace SmartImage.Lib.Engines
 
 		public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
-		protected virtual bool Redirect { get; set; } = true;
-
 		public virtual SearchResult GetResult(ImageQuery query)
 		{
 			var rawUrl = GetRawResultUri(query, out var r);
@@ -73,7 +71,9 @@ namespace SmartImage.Lib.Engines
 			return await task;
 		}
 
-		public Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
+
+
+		public virtual Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
 		{
 			var uri = new Uri(BaseUrl + query.UploadUri);
 
@@ -82,7 +82,7 @@ namespace SmartImage.Lib.Engines
 				return null;
 			}*/
 
-			res = Network.GetResponse(uri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, Redirect);
+			res = Network.GetResponse(uri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, true);
 
 			if (!res.IsSuccessful && res.StatusCode!= HttpStatusCode.Redirect) {
 				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri} {res.StatusCode}", C_WARN);

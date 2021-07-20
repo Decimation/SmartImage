@@ -18,7 +18,6 @@ namespace SmartImage.Lib.Engines
 		public abstract override string Name { get; }
 
 
-		protected override bool Redirect { get; set; }
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
