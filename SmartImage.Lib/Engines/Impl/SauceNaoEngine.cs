@@ -115,6 +115,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private IEnumerable<SauceNaoDataResult> GetHTMLResults(ImageQuery query)
 		{
+
 			Trace.WriteLine($"{Name}: | Parsing HTML", LogCategories.C_INFO);
 
 			var docp = new HtmlParser();
@@ -135,6 +136,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var execute = m_client.Execute(req);
 
 			string html = execute.Content;
+			
 
 			/*
 			 * Daily Search Limit Exceeded.

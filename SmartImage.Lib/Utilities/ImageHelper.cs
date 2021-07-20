@@ -16,6 +16,7 @@ using JetBrains.Annotations;
 using Novus.Win32;
 using Kantan.Net;
 using Kantan.Utilities;
+using RestSharp;
 using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
@@ -99,7 +100,7 @@ namespace SmartImage.Lib.Utilities
 		{
 			return directType switch
 			{
-				DirectImageType.Binary => IsImage(url, 1),
+				DirectImageType.Binary => IsImage(url),
 				DirectImageType.Regex =>
 					/*
 					 * https://github.com/PactInteractive/image-downloader
@@ -146,6 +147,8 @@ namespace SmartImage.Lib.Utilities
 
 		#endregion
 
+		private const int TimeoutMS = 1000;
+
 		public static string Download(Uri direct, string path)
 		{
 			string filename = Path.GetFileName(direct.AbsolutePath);
@@ -166,7 +169,7 @@ namespace SmartImage.Lib.Utilities
 
 				filename += ext;
 
-				Debug.WriteLine("Fixed file");
+				Debug.WriteLine("Fixed file", C_DEBUG);
 			}
 
 
@@ -179,15 +182,15 @@ namespace SmartImage.Lib.Utilities
 			return combine;
 		}
 
-		public static bool IsImage(string s, double d)
+		public static bool IsImage(string s, int d = TimeoutMS)
 		{
 			if (!Network.IsUri(s, out var u)) {
 				return false;
 			}
 
-			var m = Network.GetMetaResponse(u.ToString(), (long) TimeSpan.FromSeconds(d).TotalMilliseconds);
+			var m = Network.GetResponse(u.ToString(), d, Method.HEAD);
 
-			if (m == null) {
+			if (!m.IsSuccessful) {
 				return false;
 			}
 
@@ -214,26 +217,22 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
-
+		
 		/// <summary>
 		/// Scans for direct images within a webpage.
 		/// </summary>
 		/// <param name="url">Url to search</param>
 		/// <param name="count">Number of direct images to return</param>
-		/// <param name="pingTimeSec"></param>
-		public static List<string> FindDirectImages(string url, int count = 10, double pingTimeSec = 1)
+		/// <param name="pingTimeMS"></param>
+		public static List<string> FindDirectImages(string url, int count = 10, long pingTimeMS = TimeoutMS)
 		{
-
-
 			/*
 			 * TODO: WIP
 			 */
 
 			var images = new List<string>();
 
-
 			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
-
 
 			if (gallerydl != null) {
 
@@ -261,7 +260,7 @@ namespace SmartImage.Lib.Utilities
 					                           .Split('|')
 					                           .First();
 
-					if (!string.IsNullOrWhiteSpace(str) && IsImage(str, pingTimeSec)) {
+					if (!String.IsNullOrWhiteSpace(str) && IsImage(str, (int) pingTimeMS)) {
 						images.Add(str);
 
 					}
@@ -286,6 +285,8 @@ namespace SmartImage.Lib.Utilities
 
 			IHtmlDocument document;
 
+			var t1 = Stopwatch.GetTimestamp();
+
 			try {
 				string html   = WebUtilities.GetString(url);
 				var    parser = new HtmlParser();
@@ -299,8 +300,12 @@ namespace SmartImage.Lib.Utilities
 				return null;
 			}
 
-			var cts = new CancellationTokenSource();
+			var d = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
 
+			Debug.WriteLine($"HTML: {d.TotalSeconds:F}", C_DEBUG);
+
+			var t2   = Stopwatch.GetTimestamp();
+			var cts  = new CancellationTokenSource();
 			var flat = new List<string>();
 
 			flat.AddRange(document.QuerySelectorAttributes("a", "href"));
@@ -321,29 +326,28 @@ namespace SmartImage.Lib.Utilities
 			{
 				string currentUrl = flat[i];
 
-				
-
 				if (s.IsStopped) {
 					return;
 				}
 
-				if (!IsImage(currentUrl, pingTimeSec)) {
+				if (!IsImage(currentUrl, (int) pingTimeMS)) {
 					return;
 				}
 
-				Debug.WriteLine($"{nameof(FindDirectImages)}: Adding {currentUrl}");
+				//Debug.WriteLine($"{nameof(FindDirectImages)}: Adding {currentUrl}");
 
 				imagesCopy.Add(currentUrl);
 
-				if (imagesCopy.Count >= count)
-				{
+				if (imagesCopy.Count >= count) {
 					s.Stop();
 					return;
 				}
 
-				
+
 			});
 
+			var d2 = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t2);
+			Debug.WriteLine($"Parsing: {d2.TotalSeconds:F}", C_DEBUG);
 
 			/*
 			 * Tasks				Parallel			Parallel 2				

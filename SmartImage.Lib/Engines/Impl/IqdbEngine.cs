@@ -171,6 +171,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var doc = GetDocument(query);
 
+
 			var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
 			var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
@@ -198,6 +199,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var best = images[0];
 			sr.PrimaryResult.UpdateFrom(best);
 			sr.OtherResults.AddRange(images);
+
 
 			return sr;
 		}

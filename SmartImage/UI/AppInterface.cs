@@ -30,10 +30,7 @@ namespace SmartImage.UI
 	/// </summary>
 	internal static class AppInterface
 	{
-		/*
-		 * TODO
-		 *
-		 */
+		
 
 		internal static readonly NConsoleOption[] MainMenuOptions =
 		{

@@ -245,7 +245,7 @@ namespace SmartImage.Lib
 
 			var best = FindBestResults().ToList();
 
-			Debug.WriteLine($"Found {best.Count} best results");
+			Debug.WriteLine($"{nameof(SearchClient)}: Found {best.Count} best results", C_DEBUG);
 
 			var images = new ConcurrentBag<ImageResult>();
 
@@ -262,15 +262,15 @@ namespace SmartImage.Lib
 					continue;
 				}
 
-				Debug.WriteLine($"{nameof(FindDirectResult)}: Adding {item.Direct}");
+				//Debug.WriteLine($"{nameof(FindDirectResult)}: Adding {item.Direct}");
 
 				images.Add(item);
 
-				
+
 			} while (++i != best.Count && i < count /*!images.Any(x=>x.Direct!=null)*/);
 
 
-			Debug.WriteLine($"Found {images.Count} direct results");
+			Debug.WriteLine($"{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 
 			return images.OrderByDescending(r => r.Similarity)
 			             .ToArray();
@@ -291,16 +291,11 @@ namespace SmartImage.Lib
 				                  var x = r.OtherResults;
 				                  x.Insert(0, r.PrimaryResult);
 				                  return x;
-			                  });
-
-			//==================================================================//
-
-
-			best = best
-			       .AsParallel()
-			       .OrderByDescending(r => r.Similarity)
-			       .ThenByDescending(r => r.PixelResolution)
-			       .ThenByDescending(r => r.DetailScore);
+			                  })
+			                  .AsParallel()
+			                  .OrderByDescending(r => r.Similarity)
+			                  .ThenByDescending(r => r.PixelResolution)
+			                  .ThenByDescending(r => r.DetailScore);
 
 
 			return best.ToArray();

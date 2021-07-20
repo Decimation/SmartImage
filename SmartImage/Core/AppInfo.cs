@@ -122,10 +122,12 @@ namespace SmartImage.Core
 
 			if (ja || zh) {
 
-				Console.WriteLine("Non-Romance language detected!");
+				/*Console.WriteLine("Non-Romance language detected!");
 				Console.WriteLine("If English is not the main IME, things may not work properly!");
 
-				NConsole.WaitForInput();
+				NConsole.WaitForInput();*/
+
+				Trace.WriteLine($"Languages: {languages.QuickJoin()}");
 			}
 
 			//Windows.System.UserProfile.GlobalizationPreferences.Languages

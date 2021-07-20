@@ -29,7 +29,7 @@ namespace SmartImage.Lib.Engines
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			var sr = base.GetResult(query);
+			/*var sr = base.GetResult(query);
 
 			if (!sr.IsSuccessful) {
 				return sr;
@@ -38,6 +38,7 @@ namespace SmartImage.Lib.Engines
 			try {
 				var doc = GetDocument(sr);
 
+
 				sr = Process(doc, sr);
 			}
 			catch (Exception e) {
@@ -45,8 +46,15 @@ namespace SmartImage.Lib.Engines
 				Trace.WriteLine($"{Name}: {e.Message}", C_ERROR);
 			}
 
-			return sr;
-
+			return sr;*/
+			
+			var sr1 = base.GetResult(query);
+			return EngineHelper.TryGet(sr1, query, sr =>
+			{
+				var doc = this.GetDocument(sr);
+				sr = Process(doc, sr);
+				return sr;
+			});
 		}
 
 		protected virtual IDocument GetDocument(SearchResult sr)

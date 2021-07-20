@@ -115,9 +115,7 @@ namespace UnitTest
 
 
 		}
-
-		[Test]
-		public void NAME() { }
+		
 
 		[Test]
 		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test4.png", "Serial Experiments")]

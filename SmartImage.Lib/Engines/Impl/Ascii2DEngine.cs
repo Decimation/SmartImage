@@ -5,6 +5,7 @@ using Kantan.Net;
 using SmartImage.Lib.Searching;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 // ReSharper disable CognitiveComplexity
 
@@ -36,6 +37,7 @@ namespace SmartImage.Lib.Engines.Impl
 			 *
 			 */
 
+
 			var res = Network.GetResponse(url.ToString());
 
 			// Get redirect url (color url)
@@ -46,6 +48,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			string detailUrl = newUrl.Replace("/color/", "/bovw/");
 
+			
 			return new Uri(detailUrl);
 		}
 
@@ -53,7 +56,11 @@ namespace SmartImage.Lib.Engines.Impl
 		{
 			var url = sr.RawUri;
 
+		
+
 			sr.RawUri = ConvertToDetailUri(url);
+
+			
 
 			return base.GetDocument(sr);
 		}

@@ -28,7 +28,6 @@ namespace SmartImage.Lib.Engines
 
 		public virtual string Name => EngineOption.ToString();
 
-
 		public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
 		public virtual SearchResult GetResult(ImageQuery query)
@@ -81,7 +80,7 @@ namespace SmartImage.Lib.Engines
 			//	return null;
 			//}
 
-			if (!Network.IsAlive(uri, (long) Timeout.TotalMilliseconds)) {
+			if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
 				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri}", C_WARN);
 				return null;
 			}

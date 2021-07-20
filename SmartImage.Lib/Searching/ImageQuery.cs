@@ -64,7 +64,7 @@ namespace SmartImage.Lib.Searching
 			Value = value;
 
 
-			UploadEngine = engine ?? new LitterboxEngine(); //todo
+			UploadEngine = engine ?? new LitterboxEngine(); //note: default upload engine
 
 			UploadUri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 

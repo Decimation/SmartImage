@@ -82,7 +82,7 @@ namespace SmartImage.Core
 		public static void UpdateConfig()
 		{
 			Program.Client.Reload();
-			AppConfig.SaveConfigFile();
+			SaveConfigFile();
 		}
 	}
 }
