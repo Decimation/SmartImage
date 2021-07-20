@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net.NetworkInformation;
 using System.Threading.Tasks;
+using Kantan.Diagnostics;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -86,6 +87,24 @@ namespace SmartImage.Lib.Engines
 			}
 
 			return uri;
+		}
+
+		protected static SearchResult TryRun(SearchResult sr, Func<SearchResult, SearchResult> process)
+		{
+			if (!sr.IsSuccessful) {
+				return sr;
+			}
+
+			try {
+
+				sr = process(sr);
+			}
+			catch (Exception e) {
+				sr.Status = ResultStatus.Failure;
+				Trace.WriteLine($"{sr.Engine.Name}: {e.Message}", LogCategories.C_ERROR);
+			}
+
+			return sr;
 		}
 	}
 }

@@ -29,29 +29,9 @@ namespace SmartImage.Lib.Engines
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			/*var sr = base.GetResult(query);
-
-			if (!sr.IsSuccessful) {
-				return sr;
-			}
-
-			try {
-				var doc = GetDocument(sr);
-
-
-				sr = Process(doc, sr);
-			}
-			catch (Exception e) {
-				sr.Status = ResultStatus.Failure;
-				Trace.WriteLine($"{Name}: {e.Message}", C_ERROR);
-			}
-
-			return sr;*/
-			
-			var sr1 = base.GetResult(query);
-			return EngineHelper.TryGet(sr1, query, sr =>
+			return TryRun(base.GetResult(query), sr =>
 			{
-				var doc = this.GetDocument(sr);
+				var doc = GetDocument(sr);
 				sr = Process(doc, sr);
 				return sr;
 			});

@@ -30,28 +30,10 @@ namespace SmartImage.Lib.Engines
 
 		protected RestClient Client { get; }
 
-		//[DebuggerHidden]
+		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			/*var sr = base.GetResult(query);
-
-			if (!sr.IsSuccessful) {
-				return sr;
-			}
-
-			try {
-
-				sr = Process(query, sr);
-			}
-			catch (Exception e) {
-				sr.Status = ResultStatus.Failure;
-				Trace.WriteLine($"{Name}: {e.Message}", C_ERROR);
-			}
-
-			return sr;*/
-
-			var sr1 = base.GetResult(query);
-			return EngineHelper.TryGet(sr1, query, (sr) => Process(query, sr));
+			return TryRun(base.GetResult(query), sr => Process(query, sr));
 		}
 
 		protected abstract SearchResult Process(ImageQuery query, SearchResult r);
