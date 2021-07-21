@@ -101,6 +101,8 @@ namespace SmartImage.Lib
 		/// </summary>
 		public async Task RunSearchAsync()
 		{
+			var t1 = Stopwatch.GetTimestamp();
+
 			if (IsComplete) {
 				Reset();
 			}
@@ -157,6 +159,9 @@ namespace SmartImage.Lib
 			}
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
+
+			var d = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
+			Trace.WriteLine($"{nameof(SearchClient)}: {d.TotalSeconds}");
 
 			SearchCompleted?.Invoke(null, Results);
 

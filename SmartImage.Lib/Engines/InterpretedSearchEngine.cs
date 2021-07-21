@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
-using Kantan.Net;
+using RestSharp;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines
@@ -17,24 +17,25 @@ namespace SmartImage.Lib.Engines
 
 		public abstract override string Name { get; }
 
+		
 
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			return TryProcess(base.GetResult(query), sr =>
+			return TryProcess(base.GetPreliminaryResult(query, out var response), sr =>
 			{
-				IDocument doc = GetDocument(sr);
+				//IDocument doc = GetDocument(sr);
+				var doc = GetDocument(response);
 				sr = Process(doc, sr);
 				return sr;
 			});
 		}
 
-		protected virtual IDocument GetDocument(SearchResult sr)
+		protected virtual IDocument GetDocument(IRestResponse response)
 		{
-			string response = WebUtilities.GetString(sr.RawUri.ToString()!);
-
+			
 			var parser = new HtmlParser();
-			return parser.ParseDocument(response);
+			return parser.ParseDocument(response.Content);
 		}
 
 		protected abstract SearchResult Process(IDocument doc, SearchResult sr);

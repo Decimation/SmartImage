@@ -20,10 +20,7 @@ namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class Ascii2DEngine : InterpretedSearchEngine
 	{
-		public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
-		{
-			
-		}
+		public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
 
 		public override TimeSpan Timeout => TimeSpan.FromSeconds(5);
 
@@ -31,7 +28,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
-		public override Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
+
+		protected override Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
 		{
 			// todo
 
@@ -42,18 +40,18 @@ namespace SmartImage.Lib.Engines.Impl
 				return null;
 			}*/
 
-			res = Network.GetResponse(uri.ToString(), (int)Timeout.TotalMilliseconds, Method.GET, false);
+			res = Network.GetResponse(uri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, false);
 
-			if (!res.IsSuccessful && res.StatusCode != HttpStatusCode.Redirect)
-			{
-				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri} {res.StatusCode}", LogCategories.C_WARN);
+			if (!res.IsSuccessful && res.StatusCode != HttpStatusCode.Redirect) {
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri} {res.StatusCode}",
+				                LogCategories.C_WARN);
 				return null;
 			}
 
 			return uri;
 		}
 
-		private  Uri ConvertToDetailUri(Uri url)
+		private Uri ConvertToDetailUri(Uri url)
 		{
 			/*
 			 * URL parameters
@@ -69,26 +67,25 @@ namespace SmartImage.Lib.Engines.Impl
 			// Get redirect url (color url)
 
 			string newUrl = res.ResponseUri.ToString();
-			
+
 			// Convert to detail url
 
 			string detailUrl = newUrl.Replace("/color/", "/bovw/");
 
-			
+
 			return new Uri(detailUrl);
 		}
 
-		protected override IDocument GetDocument(SearchResult sr)
+		protected override IDocument GetDocument(IRestResponse response)
 		{
-			var url = sr.RawUri;
+			var url = response.ResponseUri;
 
-		
+			response.ResponseUri = ConvertToDetailUri(url);
 
-			sr.RawUri = ConvertToDetailUri(url);
+			response.Content = WebUtilities.GetString(response.ResponseUri.ToString());
 
-			
+			return base.GetDocument(response);
 
-			return base.GetDocument(sr);
 		}
 
 		protected override SearchResult Process(IDocument doc, SearchResult sr)

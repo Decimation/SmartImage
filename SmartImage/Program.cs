@@ -50,6 +50,7 @@ namespace SmartImage
 	//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
 	// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 	//                                                     |___/
+	
 
 	public static class Program
 	{
@@ -128,6 +129,7 @@ namespace SmartImage
 				Client.ExtraResults += AppInterface.ShowToast;
 
 				NConsoleProgress.Queue(cts);
+				
 
 				// Show results
 				var searchTask = Client.RunSearchAsync();
