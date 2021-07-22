@@ -23,6 +23,11 @@ namespace SmartImage.UI
 {
 	internal static class NConsoleFactory
 	{
+
+		/*
+		 * todo: this is all glue code :(
+		 */
+
 		internal static NConsoleOption CreateConfigOption(MemberInfo m, string name)
 		{
 			return new()

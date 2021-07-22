@@ -14,6 +14,7 @@ using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
+using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
@@ -40,7 +41,7 @@ namespace SmartImage.Lib.Engines.Impl
 		private const string SEARCH = "search.php";
 
 		private readonly RestClient m_client;
-
+		
 
 		/*
 		 * Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
@@ -62,23 +63,36 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
+		
+
 		private delegate IEnumerable<SauceNaoDataResult> ParseResultFunction(ImageQuery q);
+
+
+		private ParseResultFunction Get() => !UsingAPI ? GetHTMLResults : GetAPIResults;
 
 		public override SearchResult GetResult(ImageQuery query)
 		{
+			
+
+			var t1 = Stopwatch.GetTimestamp();
+
 			var sresult = base.GetResult(query);
 
 			var primaryResult = new ImageResult();
 
-			try {
-				ParseResultFunction f = !UsingAPI ? GetHTMLResults : GetAPIResults;
+			try
+			{
+
+				ParseResultFunction f = Get();
 
 				var sauceNaoDataResults = f(query);
 
-				if (sauceNaoDataResults == null) {
+				if (sauceNaoDataResults == null)
+				{
 					sresult.ErrorMessage = "Daily search limit (100) exceeded";
-					sresult.Status       = ResultStatus.Unavailable;
-					return sresult;
+					sresult.Status       = ResultStatus.Cooldown;
+					//return sresult;
+					goto ret;
 				}
 
 				var imageResults = sauceNaoDataResults.Where(o => o != null)
@@ -89,20 +103,24 @@ namespace SmartImage.Lib.Engines.Impl
 				                                      .OrderByDescending(e => e.Similarity)
 				                                      .ToList();
 
-				if (!imageResults.Any()) {
+				if (!imageResults.Any())
+				{
 					// No good results
-					return sresult;
+					//return sresult;
+					goto ret;
 				}
 
 				primaryResult.UpdateFrom(imageResults.First());
 
 				sresult.OtherResults.AddRange(imageResults);
 
-				if (UsingAPI) {
+				if (UsingAPI)
+				{
 					Debug.WriteLine($"{Name} API key: {Authentication}");
 				}
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				Debug.WriteLine($"{Name} error: {e.StackTrace}", C_ERROR);
 				sresult.Status = ResultStatus.Failure;
 			}
@@ -110,6 +128,9 @@ namespace SmartImage.Lib.Engines.Impl
 			sresult.PrimaryResult = primaryResult;
 			sresult.Consolidate();
 
+
+			ret:
+			sresult.ProcessingTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
 			return sresult;
 		}
 
@@ -136,7 +157,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var execute = m_client.Execute(req);
 
 			string html = execute.Content;
-			
+
 
 			/*
 			 * Daily Search Limit Exceeded.
@@ -157,7 +178,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var results = doc.Body.SelectNodes(RESULT_NODE);
 
-			
+
 			static SauceNaoDataResult Parse(INode result)
 			{
 				if (result == null) {
@@ -208,7 +229,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 				float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
-				var dataResult = new SauceNaoDataResult {Urls = new[] {link}!, Similarity = similarity, Creator = creator1};
+				var dataResult = new SauceNaoDataResult
+					{Urls = new[] {link}!, Similarity = similarity, Creator = creator1};
 
 				return dataResult;
 			}
@@ -301,7 +323,7 @@ namespace SmartImage.Lib.Engines.Impl
 			string url = sn.Urls?.FirstOrDefault(u => u != null);
 
 			string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
-			
+
 			var imageResult = new ImageResult
 			{
 				Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),

@@ -50,7 +50,7 @@ namespace SmartImage
 	//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
 	// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 	//                                                     |___/
-	
+
 
 	public static class Program
 	{
@@ -123,17 +123,15 @@ namespace SmartImage
 				// Run search
 
 				Client.ResultCompleted += OnResultCompleted;
-
 				Client.SearchCompleted += (obj, eventArgs) => OnSearchCompleted(obj, eventArgs, cts);
-
-				Client.ExtraResults += AppInterface.ShowToast;
+				Client.ExtraResults    += AppInterface.ShowToast;
 
 				NConsoleProgress.Queue(cts);
-				
+
 
 				// Show results
 				var searchTask = Client.RunSearchAsync();
-				
+
 				// Add original image
 				ResultDialog.Options.Add(NConsoleFactory.CreateResultOption(
 					                         Config.Query.GetImageResult(), "(Original image)",
@@ -179,10 +177,8 @@ namespace SmartImage
 							case CMD_FIND_DIRECT:
 								argEnumerator.MoveNext();
 
-								var directImages = ImageHelper.FindDirectImages((string) argEnumerator.Current);
-
-								var imageResults = directImages.Select(ImageResult.FromDirectImage);
-
+								var directImages  = ImageHelper.FindDirectImages((string) argEnumerator.Current);
+								var imageResults  = directImages.Select(ImageResult.FromDirectImage);
 								var directOptions = NConsoleFactory.CreateResultOptions(imageResults, "Image");
 
 

@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using AngleSharp.Dom;
 using RestSharp;
 using SmartImage.Lib.Searching;
-using static Kantan.Diagnostics.LogCategories;
 
-namespace SmartImage.Lib.Engines
+namespace SmartImage.Lib.Engines.Model
 {
 	/// <summary>
 	/// Represents a search engine whose results are returned from an API.
@@ -31,11 +25,21 @@ namespace SmartImage.Lib.Engines
 		protected RestClient Client { get; }
 
 
-
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			return TryProcess(base.GetResult(query), sr => Process(query, sr));
+			return TryProcess(base.GetResult(query), sr =>
+			{
+				var t1 = Stopwatch.GetTimestamp();
+
+				var process = Process(query, sr);
+
+				var d = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
+
+				sr.ProcessingTime = d;
+
+				return process;
+			});
 		}
 
 		protected abstract SearchResult Process(ImageQuery query, SearchResult r);

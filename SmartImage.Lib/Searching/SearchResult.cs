@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Kantan.Model;
 using Kantan.Utilities;
 using Novus.Utilities;
+using SmartImage.Lib.Engines.Model;
 
 #pragma warning disable IDE0066
 
@@ -40,7 +42,9 @@ namespace SmartImage.Lib.Searching
 		/// <summary>
 		/// Result is extraneous
 		/// </summary>
-		Extraneous
+		Extraneous,
+
+		Cooldown
 	}
 
 
@@ -87,16 +91,17 @@ namespace SmartImage.Lib.Searching
 		/// If filtering is enabled (i.e., <see cref="SearchConfig.Filtering"/> is <c>true</c>), this determines whether the
 		/// result is filtered.
 		/// </summary>
-		public bool IsNonPrimitive
-		{
-			get
-			{
-				//return (Status != ResultStatus.Extraneous && PrimaryResult.Url != null) || ErrorMessage!=null;
-				return (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
+		public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
 
-			}
-		}
+		/// <summary>
+		/// The time spent processing this result.
+		/// </summary>
+		public TimeSpan? ProcessingTime { get; set; }
 
+		/// <summary>
+		/// The time spent retrieving raw data from the engine (<see cref="Engine"/>), if applicable.
+		/// </summary>
+		public TimeSpan? RetrievalTime { get; set; }
 
 		public bool IsSuccessful
 		{
@@ -146,7 +151,6 @@ namespace SmartImage.Lib.Searching
 					map.Add(nameof(PrimaryResult), PrimaryResult);
 				}
 
-
 				map.Add("Raw", RawUri);
 
 				if (OtherResults.Count != 0) {
@@ -160,6 +164,27 @@ namespace SmartImage.Lib.Searching
 				if (!IsSuccessful) {
 					map.Add("Status", Status);
 				}
+
+				//
+
+				var time  = new StringBuilder();
+				var total = TimeSpan.Zero;
+
+				if (RetrievalTime.HasValue) {
+					var poll = RetrievalTime.Value.TotalSeconds;
+					total += RetrievalTime.Value;
+					time.Append($"({poll:F3} retrieval)").Append(' ');
+				}
+
+				if (ProcessingTime.HasValue) {
+					var process = ProcessingTime.Value.TotalSeconds;
+					total += ProcessingTime.Value;
+					time.Append($"({process:F3} processing)").Append(' ');
+				}
+
+				time.Append($"({total.TotalSeconds:F3} total)");
+
+				map.Add("Time", time);
 
 				return map;
 			}

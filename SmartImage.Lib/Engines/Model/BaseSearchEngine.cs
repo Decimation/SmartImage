@@ -1,18 +1,13 @@
-﻿using Kantan.Net;
-using SmartImage.Lib.Searching;
-using System;
+﻿using System;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Net;
-using System.Net.NetworkInformation;
 using System.Threading.Tasks;
 using Kantan.Diagnostics;
+using Kantan.Net;
 using RestSharp;
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 
-namespace SmartImage.Lib.Engines
+namespace SmartImage.Lib.Engines.Model
 {
 	/// <summary>
 	/// Base search engine.
@@ -41,14 +36,11 @@ namespace SmartImage.Lib.Engines
 
 			var sr = new SearchResult(this);
 
-			if (rawUrl == null)
-			{
+			if (rawUrl == null) {
 				sr.Status       = ResultStatus.Unavailable;
 				sr.ErrorMessage = $"{response.ErrorMessage} | {response.StatusCode}";
-
 			}
-			else
-			{
+			else {
 				sr.RawUri = rawUrl;
 				sr.Status = ResultStatus.Success;
 			}
@@ -91,13 +83,14 @@ namespace SmartImage.Lib.Engines
 			}*/
 
 			res = Network.GetResponse(uri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, true);
-			
-			if (!res.IsSuccessful/* && res.StatusCode!= HttpStatusCode.Redirect*/) {
-				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri} {res.StatusCode}", C_WARN);
+
+			if (!res.IsSuccessful /* && res.StatusCode!= HttpStatusCode.Redirect*/) {
+				Debug.WriteLine($"{Name} is unavailable or timed out after " +
+				                $"{Timeout:g} | {uri} {res.StatusCode}", C_WARN);
 				return null;
 			}
 
-			return uri; 
+			return uri;
 		}
 
 		protected static SearchResult TryProcess(SearchResult sr, Func<SearchResult, SearchResult> process)

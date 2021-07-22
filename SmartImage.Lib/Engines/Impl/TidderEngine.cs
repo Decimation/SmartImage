@@ -6,14 +6,16 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Kantan.Net;
+using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+
 // ReSharper disable ForeachCanBeConvertedToQueryUsingAnotherGetEnumerator
 
 #nullable enable
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class TidderEngine : InterpretedSearchEngine
+	public sealed class TidderEngine : WebSearchEngine
 	{
 		public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 
@@ -22,8 +24,10 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => EngineOption.ToString();
 
 
-		protected override SearchResult Process(IDocument doc, SearchResult sr)
+		protected override SearchResult Process(object content, SearchResult sr)
 		{
+			var doc = (IDocument) content;
+
 			var documentNode = doc.Body;
 
 			var findings = documentNode.SelectNodes("//*[contains(@class, 'findings-row')]");

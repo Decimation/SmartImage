@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Newtonsoft.Json;
 using RestSharp;
 using SmartImage.Lib.Clients;
+using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
@@ -36,6 +37,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override SearchResult Process(ImageQuery query, SearchResult r)
 		{
+
+			var t1 = Stopwatch.GetTimestamp();
 
 			//var r = base.GetResult(url);
 
@@ -73,7 +76,8 @@ namespace SmartImage.Lib.Engines.Impl
 					r = GetResult(query);
 					r.ErrorMessage = e.Message;
 					r.Status       = ResultStatus.Failure;
-					return r;
+					//return r;
+					goto ret;
 				}
 
 
@@ -83,6 +87,8 @@ namespace SmartImage.Lib.Engines.Impl
 				r.ErrorMessage = $"{re.ErrorMessage} {re.StatusCode}";
 			}
 
+			ret:
+			r.ProcessingTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
 			return r;
 		}
 

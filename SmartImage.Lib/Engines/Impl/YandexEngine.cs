@@ -10,6 +10,7 @@ using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Kantan.Net;
 using Kantan.Utilities;
+using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 #pragma warning disable 8602
@@ -18,7 +19,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class YandexEngine : InterpretedSearchEngine
+	public sealed class YandexEngine : WebSearchEngine
 	{
 		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
@@ -169,21 +170,19 @@ namespace SmartImage.Lib.Engines.Impl
 			return images;
 		}
 
+		
 
-		protected override SearchResult Process(IDocument doc, SearchResult sr)
+		protected override SearchResult Process(object content, SearchResult sr)
 		{
+			var doc = (IDocument) content;
+
 			// Automation detected
 			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
-
-			if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
-				sr.ErrorMessage = "Yandex requests exceeded; on cooldown";
-				sr.Status       = ResultStatus.Unavailable;
-
-				Debug.WriteLine($"{Name} is on cooldown!");
+			if (((IDocument)doc).Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
+				sr.Status = ResultStatus.Cooldown;
 				return sr;
 			}
-
 
 			/*
 			 * Parse what the image looks like

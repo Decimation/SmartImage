@@ -16,6 +16,7 @@ using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
+using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 
@@ -147,23 +148,7 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 
-		[DebuggerHidden]
-		public override SearchResult GetResult(ImageQuery query)
-		{
-			//var sr = base.GetResult(query);
-			var sr = new SearchResult(this);
-
-			try {
-
-				sr = Process(query, sr);
-			}
-			catch (Exception e) {
-				sr.Status = ResultStatus.Failure;
-				Trace.WriteLine($"{Name}: {e.Message}", LogCategories.C_ERROR);
-			}
-
-			return sr;
-		}
+		
 
 		protected override SearchResult Process(ImageQuery query, SearchResult sr)
 		{

@@ -1,3 +1,5 @@
+using SmartImage.Lib.Engines.Model;
+
 #nullable enable
 namespace SmartImage.Lib.Engines.Impl.Other
 {

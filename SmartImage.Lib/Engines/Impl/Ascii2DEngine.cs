@@ -10,6 +10,7 @@ using System.Linq;
 using System.Net;
 using Kantan.Diagnostics;
 using RestSharp;
+using SmartImage.Lib.Engines.Model;
 
 // ReSharper disable CognitiveComplexity
 
@@ -18,7 +19,7 @@ using RestSharp;
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class Ascii2DEngine : InterpretedSearchEngine
+	public sealed class Ascii2DEngine : WebSearchEngine
 	{
 		public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
 
@@ -31,14 +32,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
 		{
-			// todo
-
 			var uri = new Uri(BaseUrl + query.UploadUri);
-
-			/*if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
-				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri}", C_WARN);
-				return null;
-			}*/
 
 			res = Network.GetResponse(uri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, false);
 
@@ -76,7 +70,7 @@ namespace SmartImage.Lib.Engines.Impl
 			return new Uri(detailUrl);
 		}
 
-		protected override IDocument GetDocument(IRestResponse response)
+		protected override object GetContent(IRestResponse response)
 		{
 			var url = response.ResponseUri;
 
@@ -84,12 +78,14 @@ namespace SmartImage.Lib.Engines.Impl
 
 			response.Content = WebUtilities.GetString(response.ResponseUri.ToString());
 
-			return base.GetDocument(response);
+			return base.GetContent(response);
 
 		}
+		
 
-		protected override SearchResult Process(IDocument doc, SearchResult sr)
+		protected override SearchResult Process(object content, SearchResult sr)
 		{
+			var doc   = (IDocument) content;
 			var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
 
 			var rg = new List<ImageResult>();

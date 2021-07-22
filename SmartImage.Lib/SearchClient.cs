@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
+using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Upload;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -161,6 +162,7 @@ namespace SmartImage.Lib
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
 			var d = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
+
 			Trace.WriteLine($"{nameof(SearchClient)}: {d.TotalSeconds}");
 
 			SearchCompleted?.Invoke(null, Results);
