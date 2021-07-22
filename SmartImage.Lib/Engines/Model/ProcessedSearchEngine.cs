@@ -14,21 +14,15 @@ namespace SmartImage.Lib.Engines.Model
 		public abstract override string Name { get; }
 
 		protected abstract SearchResult Process(object content, SearchResult sr);
-
-		protected abstract object GetContent(IRestResponse response);
-
+		
+		
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			return TryProcess(GetPreliminaryResult(query, out var response), sr =>
+			return TryProcess(GetResult(query, out var response), sr =>
 			{
-				var t1  = Stopwatch.GetTimestamp();
-				var doc = GetContent(response);
-				sr.RetrievalTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
-
-
 				var t2 = Stopwatch.GetTimestamp();
-				sr                = Process(doc, sr);
+				sr                = Process(response, sr);
 				sr.ProcessingTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t2);
 
 				return sr;

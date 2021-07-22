@@ -10,6 +10,7 @@ using System.Text;
 using Kantan.Model;
 using Kantan.Utilities;
 using Novus.Utilities;
+using RestSharp;
 using SmartImage.Lib.Engines.Model;
 
 #pragma warning disable IDE0066
@@ -139,8 +140,7 @@ namespace SmartImage.Lib.Searching
 
 
 		public override string ToString() => Strings.ViewString(this);
-
-
+		
 		public Dictionary<string, object> View
 		{
 			get

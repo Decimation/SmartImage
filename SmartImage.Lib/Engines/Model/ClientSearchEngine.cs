@@ -25,6 +25,8 @@ namespace SmartImage.Lib.Engines.Model
 		protected RestClient Client { get; }
 
 
+		// todo: refactor this to inherit from ProcessedSearchEngine
+
 		[DebuggerHidden]
 		public override SearchResult GetResult(ImageQuery query)
 		{

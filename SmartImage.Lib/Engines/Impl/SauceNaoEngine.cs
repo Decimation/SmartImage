@@ -41,7 +41,7 @@ namespace SmartImage.Lib.Engines.Impl
 		private const string SEARCH = "search.php";
 
 		private readonly RestClient m_client;
-		
+
 
 		/*
 		 * Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
@@ -63,7 +63,6 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
-		
 
 		private delegate IEnumerable<SauceNaoDataResult> ParseResultFunction(ImageQuery q);
 
@@ -72,7 +71,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			
+
 
 			var t1 = Stopwatch.GetTimestamp();
 
@@ -80,15 +79,13 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var primaryResult = new ImageResult();
 
-			try
-			{
+			try {
 
 				ParseResultFunction f = Get();
 
 				var sauceNaoDataResults = f(query);
 
-				if (sauceNaoDataResults == null)
-				{
+				if (sauceNaoDataResults == null) {
 					sresult.ErrorMessage = "Daily search limit (100) exceeded";
 					sresult.Status       = ResultStatus.Cooldown;
 					//return sresult;
@@ -103,8 +100,7 @@ namespace SmartImage.Lib.Engines.Impl
 				                                      .OrderByDescending(e => e.Similarity)
 				                                      .ToList();
 
-				if (!imageResults.Any())
-				{
+				if (!imageResults.Any()) {
 					// No good results
 					//return sresult;
 					goto ret;
@@ -114,13 +110,11 @@ namespace SmartImage.Lib.Engines.Impl
 
 				sresult.OtherResults.AddRange(imageResults);
 
-				if (UsingAPI)
-				{
+				if (UsingAPI) {
 					Debug.WriteLine($"{Name} API key: {Authentication}");
 				}
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Debug.WriteLine($"{Name} error: {e.StackTrace}", C_ERROR);
 				sresult.Status = ResultStatus.Failure;
 			}

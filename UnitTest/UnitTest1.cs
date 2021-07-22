@@ -46,7 +46,7 @@ namespace UnitTest
 		[TestCase("https://twitter.com/sciamano240/status/1186775807655587841", false)]
 		public void TestImageHelper(string s, bool b)
 		{
-			Assert.AreEqual(ImageHelper.IsImage(s),b);
+			Assert.AreEqual(ImageHelper.IsImage(s), b);
 
 		}
 
@@ -70,7 +70,7 @@ namespace UnitTest
 			var rt = i.GetResultAsync(q);
 			var t  = await rt;
 
-			if (t.Status == ResultStatus.Unavailable) {
+			if (t.Status == ResultStatus.Cooldown) {
 				Assert.Inconclusive();
 			}
 
@@ -117,19 +117,42 @@ namespace UnitTest
 
 			var b = t.OtherResults.Any(r =>
 			{
-				return r.DetailScore >= 3 && r.Site!=null;
+				return r.DetailScore >= 3 && r.Site != null;
 			});
 
 			Assert.True(a || b);
 
 
 		}
-		
+
+		[Test]
+		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
+		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg")]
+		public async Task TestAscii2D(string art)
+		{
+			var q  = new ImageQuery(art);
+			var i  = new Ascii2DEngine();
+			var rt = i.GetResultAsync(q);
+			var t  = await rt;
+
+
+			var a = t.IsNonPrimitive;
+
+
+			var b = t.OtherResults.Any(r =>
+			{
+				return r.DetailScore >= 3 && r.Site != null;
+			});
+
+			Assert.True(a || b);
+
+
+		}
 
 		[Test]
 		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test4.png", "Serial Experiments")]
 		[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test3.png", "Neon Genesis")]
-		public async Task TestAnime(string screenshot, string name)
+		public async Task TestTraceMoe(string screenshot, string name)
 		{
 			var q  = new ImageQuery(screenshot);
 			var i  = new TraceMoeEngine();

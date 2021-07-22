@@ -21,7 +21,11 @@ namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class Ascii2DEngine : WebSearchEngine
 	{
-		public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
+		public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
+		{
+			FollowRedirects = true;
+
+		}
 
 		public override TimeSpan Timeout => TimeSpan.FromSeconds(5);
 
@@ -30,20 +34,20 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => EngineOption.ToString();
 
 
-		protected override Uri GetRawResultUri(ImageQuery query, out IRestResponse res)
+		/*protected override bool GetRawResultUri(ImageQuery query, out Uri uri, out IRestResponse res)
 		{
-			var uri = new Uri(BaseUrl + query.UploadUri);
+			uri = new Uri(BaseUrl + query.UploadUri);
 
 			res = Network.GetResponse(uri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, false);
 
 			if (!res.IsSuccessful && res.StatusCode != HttpStatusCode.Redirect) {
 				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri} {res.StatusCode}",
 				                LogCategories.C_WARN);
-				return null;
+				return false;
 			}
 
-			return uri;
-		}
+			return true;
+		}*/
 
 		private Uri ConvertToDetailUri(Uri url)
 		{
@@ -70,7 +74,14 @@ namespace SmartImage.Lib.Engines.Impl
 			return new Uri(detailUrl);
 		}
 
-		protected override object GetContent(IRestResponse response)
+		protected override Uri GetRaw(ImageQuery query)
+		{
+			var a = base.GetRaw(query);
+			return WebRequest.Create(a).GetResponse().ResponseUri;
+
+		}
+
+		protected override IDocument GetContent(IRestResponse response)
 		{
 			var url = response.ResponseUri;
 
@@ -81,7 +92,41 @@ namespace SmartImage.Lib.Engines.Impl
 			return base.GetContent(response);
 
 		}
-		
+
+		protected override bool GetInitialResult(ImageQuery query, out Uri rawUri, out IRestResponse res)
+		{
+			rawUri = GetRaw(query);
+
+			/*if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
+				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri}", C_WARN);
+				return null;
+			}*/
+
+
+			// NOTE: wtf?
+
+			res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);
+
+			//res         = new RestClient(rawUri).Execute(new RestRequest());
+
+			res.Content = WebUtilities.GetString(rawUri.ToString());
+
+
+			/*if (!res.IsSuccessful)
+			{
+				if ((FollowRedirects && res.StatusCode == HttpStatusCode.Redirect))
+				{
+					return true;
+				}
+
+				Debug.WriteLine($"{Name} is unavailable or timed out after " +
+				                $"{Timeout:g} | {rawUri} {res.StatusCode}", LogCategories.C_WARN);
+				return false;
+			}*/
+
+			return true;
+
+		}
 
 		protected override SearchResult Process(object content, SearchResult sr)
 		{
