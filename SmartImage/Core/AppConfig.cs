@@ -4,12 +4,13 @@ using System.Diagnostics;
 using System.IO;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
+using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Core
 {
 	public static class AppConfig
 	{
-		public static string ConfigFile
+		public static FileInfo ConfigFile
 		{
 			get
 			{
@@ -20,7 +21,7 @@ namespace SmartImage.Core
 					f.Close();
 				}
 
-				return file;
+				return new FileInfo(file);
 			}
 		}
 
@@ -42,7 +43,7 @@ namespace SmartImage.Core
 
 		public static void ReadConfigFile()
 		{
-			var map = Collections.ReadDictionary(ConfigFile);
+			var map = Collections.ReadDictionary(ConfigFile.ToString());
 
 
 			foreach (var (key, value) in ConfigMap) {
@@ -61,16 +62,16 @@ namespace SmartImage.Core
 
 			Program.Client.Reload();
 
-			Debug.WriteLine($"Updated config from {ConfigFile}");
+			Debug.WriteLine($"Updated config from {ConfigFile.Name}", C_INFO);
 		}
 
 		private static void SaveConfigFile()
 		{
 			var map = ConfigMap;
 
-			Collections.WriteDictionary(map, ConfigFile);
+			Collections.WriteDictionary(map, ConfigFile.ToString());
 
-			Debug.WriteLine($"Saved to {ConfigFile}");
+			Debug.WriteLine($"Saved to {ConfigFile.Name}", C_INFO);
 		}
 
 		private const string K_ENGINES            = "engines";

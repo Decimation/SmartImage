@@ -58,7 +58,9 @@ namespace SmartImage.Lib
 			sb.Append("Notification", Notification);
 			sb.Append("Notification image", NotificationImage);
 
-			return sb.ToString();
+			// todo: temporary
+
+			return sb.ToString().Split('\n').QuickJoin("\n");
 		}
 		
 	}

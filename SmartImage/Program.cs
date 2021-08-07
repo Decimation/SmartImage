@@ -28,8 +28,10 @@ using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
 using Windows.ApplicationModel.Background;
+using Windows.Networking.Connectivity;
 using Windows.UI.Notifications;
 using Kantan.Cli;
+using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
 using Novus.Win32.Structures;
@@ -73,15 +75,6 @@ namespace SmartImage
 		/// </summary>
 		private static async Task Main(string[] args)
 		{
-#if DEBUG
-			if (!args.Any()) {
-				//args = new string[] {CMD_SEARCH, "https://i.imgur.com/QtCausw.png"};
-				//args = new[] {CMD_FIND_DIRECT, "https://twitter.com/sciamano240/status/1186775807655587841"};
-			}
-
-
-#endif
-
 			/*
 			 * Setup
 			 * Check compatibility
@@ -93,6 +86,9 @@ namespace SmartImage
 			Native.SetConsoleOutputCP(Native.CP_IBM437);
 
 			Console.Title = $"{AppInfo.NAME}";
+
+			//120,30
+			//Console.WindowHeight = 60;
 
 			NConsole.Init();
 			Console.Clear();
@@ -107,13 +103,14 @@ namespace SmartImage
 			 * Start
 			 */
 
-
 			AppConfig.ReadConfigFile();
 
-
-			if (HandleArguments(args))
+			if (!HandleArguments())
 				return;
 
+			ResultDialog.Subtitle = $"SE: {Config.SearchEngines} "     +
+			                        $"| PE: {Config.PriorityEngines} " +
+			                        $"| Filtering: {Config.Filtering.ToToggleString()}";
 
 			try {
 
@@ -151,13 +148,15 @@ namespace SmartImage
 			}
 		}
 
-		private static bool HandleArguments(string[] args)
+		private static bool HandleArguments()
 		{
+			var args = Environment.GetCommandLineArgs();
+
 			if (!args.Any()) {
 				HashSet<object> options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
 
 				if (!options.Any()) {
-					return true;
+					return false;
 				}
 			}
 			else {
@@ -166,38 +165,39 @@ namespace SmartImage
 				 * Handle CLI args
 				 */
 
+				//-pe SauceNao,Iqdb -se All -f "C:\Users\Deci\Pictures\Test Images\Test6.jpg"
+
 				try {
+					// todo: WIP
 
 					var argEnumerator = args.GetEnumerator();
 
 					while (argEnumerator.MoveNext()) {
-						object? arg = argEnumerator.Current;
+						object? paramName = argEnumerator.Current;
 
-						switch (arg) {
-							case CMD_FIND_DIRECT:
+						switch (paramName) {
+
+							case P_SE:
 								argEnumerator.MoveNext();
 
-								var directImages  = ImageHelper.FindDirectImages((string) argEnumerator.Current);
-								var imageResults  = directImages.Select(ImageResult.FromDirectImage);
-								var directOptions = NConsoleFactory.CreateResultOptions(imageResults, "Image");
-
-
-								NConsole.ReadOptions(new NConsoleDialog
-								{
-									Options     = directOptions,
-									Description = Elements.Description
-								});
-
-								return true;
-							case CMD_SEARCH:
+								Config.SearchEngines = Enum.Parse<SearchEngineOptions>((string) argEnumerator.Current);
+								break;
+							case P_PE:
 								argEnumerator.MoveNext();
-								Config.Query = (string) argEnumerator.Current;
+
+								Config.PriorityEngines =
+									Enum.Parse<SearchEngineOptions>((string) argEnumerator.Current);
+								break;
+							case P_F:
+								Config.Filtering = true;
 								break;
 							default:
-								Config.Query = args.First();
+								Config.Query = (string) argEnumerator.Current;
 								break;
 						}
 					}
+
+					Client.Reload();
 				}
 				catch (Exception e) {
 					Console.WriteLine(e);
@@ -205,9 +205,11 @@ namespace SmartImage
 				}
 			}
 
-			return false;
+			return true;
 		}
 
+
+		#region Event handlers
 
 		private static void OnSearchCompleted(object? sender, List<SearchResult> eventArgs, CancellationTokenSource cts)
 		{
@@ -219,7 +221,6 @@ namespace SmartImage
 			SystemSounds.Exclamation.Play();
 
 		}
-
 
 		private static void OnResultCompleted(object? sender, SearchResultEventArgs eventArgs)
 		{
@@ -237,18 +238,40 @@ namespace SmartImage
 				option.Function();
 			}
 
-			ResultDialog.Status = $"Results: {Client.Results.Count} "            +
-			                      $"| Filtered: {Client.FilteredResults.Count} " +
-			                      $"| Filtering: {Config.Filtering.ToToggleString()}";
+			var s = $"Results: {Client.Results.Count}";
+
+			if (Config.Filtering) {
+				s += $" | Filtered: {Client.FilteredResults.Count}";
+			}
+
+			s += $" | Pending: {Client.Pending}";
+
+			ResultDialog.Status = s;
 
 			NConsole.Refresh();
 		}
 
-		#region Commands
+		#endregion
 
-		private const string CMD_FIND_DIRECT = "find-direct";
+		#region Parameters
 
-		private const string CMD_SEARCH = "search";
+		/// <summary>
+		/// <see cref="SearchConfig.SearchEngines"/>
+		/// </summary>
+		/// <remarks>Parameter</remarks>
+		private const string P_SE = "-se";
+
+		/// <summary>
+		/// <see cref="SearchConfig.PriorityEngines"/>
+		/// </summary>
+		/// <remarks>Parameter</remarks>
+		private const string P_PE = "-pe";
+
+		/// <summary>
+		/// <see cref="SearchConfig.Filtering"/>
+		/// </summary>
+		/// <remarks>Switch</remarks>
+		private const string P_F = "-f";
 
 		#endregion
 	}

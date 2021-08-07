@@ -154,8 +154,6 @@ namespace SmartImage.Lib.Searching
 		{
 			get
 			{
-
-
 				/*
 				 * The number of non-null fields
 				 */

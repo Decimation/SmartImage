@@ -8,6 +8,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -69,6 +70,8 @@ namespace SmartImage.Lib
 		/// </summary>
 		public List<SearchResult> FilteredResults { get; }
 
+		public int Pending { get; private set; }
+
 		/// <summary>
 		/// Reloads <see cref="Config"/> and <see cref="Engines"/> accordingly.
 		/// </summary>
@@ -83,7 +86,7 @@ namespace SmartImage.Lib
 			          .ToArray();
 
 
-			Trace.WriteLine($"Engines: {Config.SearchEngines}", C_INFO);
+			Trace.WriteLine($"Config:\n{Config}", C_DEBUG);
 		}
 
 		/// <summary>
@@ -110,12 +113,16 @@ namespace SmartImage.Lib
 
 			var tasks = new List<Task<SearchResult>>(Engines.Select(e => e.GetResultAsync(Config.Query)));
 
+			Pending = tasks.Count;
+
 			while (!IsComplete) {
 				var finished = await Task.WhenAny(tasks);
 
 				var value = await finished;
 
 				tasks.Remove(finished);
+				Pending = tasks.Count;
+
 
 				bool? isFiltered;
 				bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
@@ -152,7 +159,7 @@ namespace SmartImage.Lib
 				ResultCompleted?.Invoke(null, new SearchResultEventArgs(value)
 				{
 					IsFiltered = isFiltered,
-					IsPriority = isPriority
+					IsPriority = isPriority,
 				});
 
 
@@ -244,7 +251,7 @@ namespace SmartImage.Lib
 			return res;
 		}
 
-		
+
 		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
 
 		public ImageResult[] FindDirectResults(int count = 5)
@@ -380,6 +387,7 @@ namespace SmartImage.Lib
 		/// one of the specified <see cref="SearchConfig.PriorityEngines"/>
 		/// </summary>
 		public bool IsPriority { get; init; }
+
 
 		public SearchResultEventArgs(SearchResult result)
 		{

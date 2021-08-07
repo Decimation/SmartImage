@@ -20,8 +20,6 @@ namespace SmartImage.Lib.Engines.Model
 
 		protected abstract override SearchResult Process(object content, SearchResult sr);
 
-		
-
 		protected virtual IDocument GetContent(IRestResponse response)
 		{
 			var parser = new HtmlParser();
