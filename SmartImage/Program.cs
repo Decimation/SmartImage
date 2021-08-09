@@ -103,6 +103,16 @@ namespace SmartImage
 			 * Start
 			 */
 
+
+			/*
+			 * Configuration precedence
+			 *
+			 * 1. Config file
+			 * 2. Cli arguments
+			 *
+			 * Cli arguments override config file
+			 */
+
 			AppConfig.ReadConfigFile();
 
 			if (!HandleArguments())
@@ -135,7 +145,7 @@ namespace SmartImage
 					                         Elements.ColorMain, -0.1f));
 
 
-				NConsole.ReadOptions(ResultDialog);
+				ResultDialog.Read();
 
 				await searchTask;
 			}
@@ -153,7 +163,7 @@ namespace SmartImage
 			var args = Environment.GetCommandLineArgs();
 
 			if (!args.Any()) {
-				HashSet<object> options = NConsole.ReadOptions(AppInterface.MainMenuDialog);
+				HashSet<object> options = AppInterface.MainMenuDialog.Read();
 
 				if (!options.Any()) {
 					return false;
@@ -170,7 +180,60 @@ namespace SmartImage
 				try {
 					// todo: WIP
 
-					var argEnumerator = args.GetEnumerator();
+					var c = new CliHandler();
+
+					c.Parameters.Add(new CliParameter()
+					{
+						ArgumentCount = 1,
+						ParameterId   = P_SE,
+						Function = strings =>
+						{
+							Debug.WriteLine($"SE {strings[0]}");
+							Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+							return null;
+						}
+					});
+
+					c.Parameters.Add(new CliParameter()
+					{
+						ArgumentCount = 1,
+						ParameterId   = P_PE,
+						Function = strings =>
+						{
+							Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+							return null;
+						}
+					});
+
+					c.Parameters.Add(new CliParameter()
+					{
+						ArgumentCount = 0,
+						ParameterId   = P_F,
+						Function = strings =>
+						{
+							Config.Filtering = true;
+							return null;
+						}
+					});
+
+					c.Default = new CliParameter()
+					{
+						ArgumentCount = 1,
+						ParameterId = null,
+						Function = strings =>
+						{
+							Config.Query = strings[0];
+							return null;
+						}
+					};
+
+#if DEBUG
+					args = args.Skip(1).ToArray();
+#endif
+					Debug.WriteLine($"{args.QuickJoin(" ")}");
+					c.Run(args);
+
+					/*var argEnumerator = args.GetEnumerator().Cast<string>();
 
 					while (argEnumerator.MoveNext()) {
 						object? paramName = argEnumerator.Current;
@@ -180,22 +243,22 @@ namespace SmartImage
 							case P_SE:
 								argEnumerator.MoveNext();
 
-								Config.SearchEngines = Enum.Parse<SearchEngineOptions>((string) argEnumerator.Current);
+								Config.SearchEngines = Enum.Parse<SearchEngineOptions>(argEnumerator.Current);
 								break;
 							case P_PE:
 								argEnumerator.MoveNext();
 
 								Config.PriorityEngines =
-									Enum.Parse<SearchEngineOptions>((string) argEnumerator.Current);
+									Enum.Parse<SearchEngineOptions>(argEnumerator.Current);
 								break;
 							case P_F:
 								Config.Filtering = true;
 								break;
 							default:
-								Config.Query = (string) argEnumerator.Current;
+								Config.Query = argEnumerator.Current;
 								break;
 						}
-					}
+					}*/
 
 					Client.Reload();
 				}

@@ -2,7 +2,7 @@
   "profiles": {
     "SmartImage": {
       "commandName": "Project",
-      "commandLineArgs": "-pe SauceNao,Iqdb -se All -f \"C:\\Users\\Deci\\Pictures\\Test Images\\Test6.jpg\""
+      "commandLineArgs": "-se All -pe SauceNao \"C:\\Users\\Deci\\Pictures\\Test Images\\Test6.jpg\""
     }
   }
 }
