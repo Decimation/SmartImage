@@ -93,7 +93,9 @@ namespace SmartImage.Lib
 		public void Reset()
 		{
 			Results.Clear();
+			FilteredResults.Clear();
 			IsComplete = false;
+			Reload();
 		}
 
 		#region Primary operations

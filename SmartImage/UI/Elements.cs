@@ -27,9 +27,6 @@ namespace SmartImage.UI
 			{SearchEngineOptions.TinEye, Color.CornflowerBlue},
 		};
 
-		internal const string Description = "Press the result number to open in browser\n" +
-		                                    "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download";
-
 		private static readonly string Enabled = StringConstants.CHECK_MARK.ToString().AddColor(ColorYes);
 
 		private static readonly string Disabled = StringConstants.MUL_SIGN.ToString().AddColor(ColorNo);

@@ -208,19 +208,24 @@ namespace SmartImage.Lib.Engines.Impl
 			images = images.OrderByDescending(r => r.PixelResolution).ToList();
 
 			//
-			var best = images[0];
-			sr.PrimaryResult.UpdateFrom(best);
+			
+			if (images.Count > 0) {
+				var best = images[0];
+				sr.PrimaryResult.UpdateFrom(best);
 
 
-			if (looksLike != null) {
-				//todo
+				if (looksLike != null)
+				{
+					//todo
 
-				// sr.PrimaryResult.Description = Encoding.UTF8.GetString(
-				// 	Encoding.Convert(Encoding.Unicode, Encoding.UTF8, Encoding.Unicode.GetBytes(looksLike)));
-				sr.PrimaryResult.Description = looksLike;
+					// sr.PrimaryResult.Description = Encoding.UTF8.GetString(
+					// 	Encoding.Convert(Encoding.Unicode, Encoding.UTF8, Encoding.Unicode.GetBytes(looksLike)));
+					sr.PrimaryResult.Description = looksLike;
+				}
+
+				sr.OtherResults.AddRange(images);
 			}
-
-			sr.OtherResults.AddRange(images);
+			
 
 			const string NO_MATCHING = "No matching images found";
 

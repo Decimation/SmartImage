@@ -105,9 +105,12 @@ namespace SmartImage.Lib.Searching
 
 					case ResultStatus.Success:
 					case ResultStatus.NoResults:
+					case ResultStatus.Cooldown:
 					case ResultStatus.Extraneous:
 						return true;
 
+					
+						
 					default:
 						throw new ArgumentOutOfRangeException();
 				}

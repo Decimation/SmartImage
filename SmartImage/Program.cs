@@ -73,8 +73,41 @@ namespace SmartImage
 		public static readonly NConsoleDialog ResultDialog = new()
 		{
 			Options     = new List<NConsoleOption>(),
-			Description = Elements.Description
+
+			Description = "Press the result number to open in browser\n"                                 +
+			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
+			              "F1: Show filtered results | F5: Refresh",
+
+			Functions = new Action[]
+			{
+				() =>
+				{
+					// F1 : Show filtered
+
+
+					ResultDialog!.Options.Clear();
+
+					var buffer = new List<SearchResult>();
+
+					buffer.AddRange(Client.Results);
+
+					if (!_isFilteredShown) {
+						buffer.AddRange(Client.FilteredResults);
+					}
+
+					foreach (NConsoleOption? option in buffer.Select(NConsoleFactory.CreateResultOption)) {
+						Program.ResultDialog.Options.Add(option);
+					}
+
+					_isFilteredShown = !_isFilteredShown;
+
+					NConsole.Refresh();
+				},
+				
+			}
 		};
+
+		private static bool _isFilteredShown = false;
 
 		#endregion
 
@@ -129,6 +162,12 @@ namespace SmartImage
 			                        $"| PE: {Config.PriorityEngines} " +
 			                        $"| Filtering: {Config.Filtering.ToToggleString()}";
 
+			await Run();
+		}
+
+		private static async Task Run()
+		{
+
 			CancellationTokenSource cts = new();
 
 			// Run search
@@ -139,7 +178,8 @@ namespace SmartImage
 			{
 				OnSearchCompleted(obj, eventArgs, cts);
 
-				if (Config.Notification) {
+				if (Config.Notification)
+				{
 					AppInterface.ShowToast(obj, eventArgs);
 				}
 			};
@@ -157,7 +197,6 @@ namespace SmartImage
 			ResultDialog.Read();
 
 			await searchTask;
-
 		}
 
 		private static bool HandleArguments()
