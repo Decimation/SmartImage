@@ -122,6 +122,10 @@ namespace SmartImage.Lib.Searching
 			OtherResults  = new List<ImageResult>();
 		}
 
+		/// <summary>
+		/// The time taken to retrieve results from the engine
+		/// </summary>
+		public TimeSpan? RetrievalTime { get; set; }
 
 		public void Consolidate()
 		{
@@ -154,7 +158,10 @@ namespace SmartImage.Lib.Searching
 				if (!IsSuccessful) {
 					map.Add("Status", Status);
 				}
-				
+
+				if (RetrievalTime.HasValue) {
+					map.Add("Time", $"(retrieval: {RetrievalTime.Value.TotalSeconds:F3})");
+				}
 
 				return map;
 			}

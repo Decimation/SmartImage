@@ -172,9 +172,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 		
 
-		protected override SearchResult Process(object content, SearchResult sr)
+		protected override SearchResult Process(object obj, SearchResult sr)
 		{
-			var doc = (IDocument) content;
+			var doc = (IDocument) obj;
 
 			// Automation detected
 			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";

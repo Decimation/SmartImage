@@ -57,11 +57,9 @@ namespace SmartImage.Lib
 			sb.Append("Filtering", Filtering);
 			sb.Append("Notification", Notification);
 			sb.Append("Notification image", NotificationImage);
-
-			// todo: temporary
+			
 
 			return sb.ToString();
-			//return sb.ToString().Split('\n').QuickJoin("\n");
 		}
 		
 	}

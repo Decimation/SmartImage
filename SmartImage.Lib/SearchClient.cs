@@ -44,7 +44,6 @@ namespace SmartImage.Lib
 			Reload();
 		}
 
-
 		/// <summary>
 		/// The configuration to use when searching
 		/// </summary>
@@ -85,7 +84,6 @@ namespace SmartImage.Lib
 			          .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
 			          .ToArray();
 
-
 			Trace.WriteLine($"Config:\n{Config}", C_DEBUG);
 		}
 
@@ -122,7 +120,6 @@ namespace SmartImage.Lib
 
 				tasks.Remove(finished);
 				Pending = tasks.Count;
-
 
 				bool? isFiltered;
 				bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
@@ -162,7 +159,6 @@ namespace SmartImage.Lib
 					IsPriority = isPriority,
 				});
 
-
 				IsComplete = !tasks.Any();
 			}
 
@@ -199,7 +195,6 @@ namespace SmartImage.Lib
 		}
 
 		#endregion
-
 
 		#region Secondary operations
 
@@ -246,7 +241,6 @@ namespace SmartImage.Lib
 			return res;
 		}
 
-
 		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
 
 		public ImageResult[] FindDirectResults(int count = 5)
@@ -275,9 +269,7 @@ namespace SmartImage.Lib
 
 				images.Add(item);
 
-
 			} while (++i != best.Count && i < count /*!images.Any(x=>x.Direct!=null)*/);
-
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 
@@ -306,7 +298,6 @@ namespace SmartImage.Lib
 			                  .ThenByDescending(r => r.PixelResolution)
 			                  .ThenByDescending(r => r.DetailScore);
 
-
 			return best.ToArray();
 		}
 
@@ -319,7 +310,6 @@ namespace SmartImage.Lib
 			                               .Cast<BaseUploadEngine>()
 			                               .ToArray();
 		}
-
 
 		public static BaseSearchEngine[] GetAllSearchEngines()
 		{
@@ -339,12 +329,10 @@ namespace SmartImage.Lib
 		/// </summary>
 		public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
-
 		private const string ERR_SEARCH_NOT_COMPLETE = "Search must be completed";
 
 		private const string ERR_NO_BEST_RESULT = "Could not find best result";
 	}
-
 
 	public sealed class SearchCompletedEventArgs : EventArgs
 	{
@@ -352,7 +340,6 @@ namespace SmartImage.Lib
 
 		[CanBeNull]
 		public Lazy<ImageResult> Direct { get; internal set; }
-
 
 		[CanBeNull]
 		public Lazy<ImageResult> Best { get; internal set; }
@@ -379,7 +366,6 @@ namespace SmartImage.Lib
 		/// one of the specified <see cref="SearchConfig.PriorityEngines"/>
 		/// </summary>
 		public bool IsPriority { get; init; }
-
 
 		public ResultCompletedEventArgs(SearchResult result)
 		{

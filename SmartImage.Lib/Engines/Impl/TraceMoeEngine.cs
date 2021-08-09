@@ -35,11 +35,11 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 
-		protected override SearchResult Process(ImageQuery query, SearchResult r)
+		protected override SearchResult Process(object obj, SearchResult r)
 		{
 
 			//var r = base.GetResult(url);
-
+			var query = (ImageQuery) obj;
 			// https://soruly.github.io/trace.moe/#/
 
 			var rq = new RestRequest("search");
@@ -49,8 +49,11 @@ namespace SmartImage.Lib.Engines.Impl
 			rq.Timeout                 = Timeout.Milliseconds;
 			rq.RequestFormat           = DataFormat.Json;
 
+			var now  = Stopwatch.GetTimestamp();
 			var re = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
 			var tm = re.Data;
+			var diff  = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+			r.RetrievalTime = diff;
 
 			//var tm=JsonConvert.DeserializeObject<TraceMoeRootObject>(re.Content);
 

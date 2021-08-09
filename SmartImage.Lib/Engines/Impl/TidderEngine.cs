@@ -24,9 +24,9 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => EngineOption.ToString();
 
 
-		protected override SearchResult Process(object content, SearchResult sr)
+		protected override SearchResult Process(object obj, SearchResult sr)
 		{
-			var doc = (IDocument) content;
+			var doc = (IDocument) obj;
 
 			var documentNode = doc.Body;
 

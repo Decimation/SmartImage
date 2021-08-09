@@ -66,21 +66,22 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private delegate IEnumerable<SauceNaoDataResult> ParseResultFunction(ImageQuery q);
 
-		private ParseResultFunction Get() => !UsingAPI ? GetHTMLResults : GetAPIResults;
+		private ParseResultFunction GetParseFunction() => !UsingAPI ? GetHTMLResults : GetAPIResults;
 
 		public override SearchResult GetResult(ImageQuery query)
 		{
-			var sresult       = base.GetResult(query);
+			var result       = base.GetResult(query);
 			var primaryResult = new ImageResult();
 
-			var f = Get();
+			var f = GetParseFunction();
 
+			var now           = Stopwatch.GetTimestamp();
 			var dataResults = f(query);
-
+			result.RetrievalTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 			if (dataResults == null) {
-				sresult.ErrorMessage = "Daily search limit (100) exceeded";
-				sresult.Status       = ResultStatus.Cooldown;
+				result.ErrorMessage = "Daily search limit (100) exceeded";
+				result.Status       = ResultStatus.Cooldown;
 				//return sresult;
 				goto ret;
 			}
@@ -102,18 +103,18 @@ namespace SmartImage.Lib.Engines.Impl
 
 			primaryResult.UpdateFrom(imageResults.First());
 
-			sresult.OtherResults.AddRange(imageResults);
+			result.OtherResults.AddRange(imageResults);
 
 
 			if (UsingAPI) {
 				Debug.WriteLine($"{Name} API key: {Authentication}");
 			}
 
-			sresult.PrimaryResult = primaryResult;
-			sresult.Consolidate();
+			result.PrimaryResult = primaryResult;
+			result.Consolidate();
 
 			ret:
-			return sresult;
+			return result;
 		}
 
 		private IEnumerable<SauceNaoDataResult> GetHTMLResults(ImageQuery query)

@@ -148,11 +148,14 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 
-		protected override SearchResult Process(ImageQuery query, SearchResult sr)
+		protected override SearchResult Process(object obj, SearchResult sr)
 		{
 			// Don't select other results
-
-			var doc = GetDocument(query);
+			var query = (ImageQuery) obj;
+			var now   = Stopwatch.GetTimestamp();
+			var doc   = GetDocument(query);
+			var diff  = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+			sr.RetrievalTime = diff;
 
 			var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
 			var tables = ((IHtmlElement) pages).SelectNodes("div/table");
