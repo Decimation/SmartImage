@@ -178,48 +178,50 @@ namespace SmartImage
 				//-pe SauceNao,Iqdb -se All -f "C:\Users\Deci\Pictures\Test Images\Test6.jpg"
 
 				try {
-					// todo: WIP
 
-					var c = new CliHandler();
+					var handler = new CliHandler();
 
-					c.Parameters.Add(new CliParameter()
+					var parameters = new CliParameter[]
+					{
+						new()
+						{
+							ArgumentCount = 1,
+							ParameterId   = "-se",
+							Function = strings =>
+							{
+								Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+								return null;
+							}
+						},
+						new()
+						{
+							ArgumentCount = 1,
+							ParameterId   = "-pe",
+							Function = strings =>
+							{
+								Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+								return null;
+							}
+						},
+						new()
+						{
+							ArgumentCount = 0,
+							ParameterId   = "-f",
+							Function = strings =>
+							{
+								Config.Filtering = true;
+								return null;
+							}
+						}
+
+					};
+
+					handler.Parameters.AddRange(parameters);
+
+					handler.Default = new CliParameter
 					{
 						ArgumentCount = 1,
-						ParameterId   = P_SE,
-						Function = strings =>
-						{
-							Debug.WriteLine($"SE {strings[0]}");
-							Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-							return null;
-						}
-					});
-
-					c.Parameters.Add(new CliParameter()
-					{
-						ArgumentCount = 1,
-						ParameterId   = P_PE,
-						Function = strings =>
-						{
-							Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-							return null;
-						}
-					});
-
-					c.Parameters.Add(new CliParameter()
-					{
-						ArgumentCount = 0,
-						ParameterId   = P_F,
-						Function = strings =>
-						{
-							Config.Filtering = true;
-							return null;
-						}
-					});
-
-					c.Default = new CliParameter()
-					{
-						ArgumentCount = 1,
-						ParameterId = null,
+						ParameterId   = null,
 						Function = strings =>
 						{
 							Config.Query = strings[0];
@@ -227,38 +229,10 @@ namespace SmartImage
 						}
 					};
 
-#if DEBUG
+					// first element is executing assembly
 					args = args.Skip(1).ToArray();
-#endif
-					Debug.WriteLine($"{args.QuickJoin(" ")}");
-					c.Run(args);
 
-					/*var argEnumerator = args.GetEnumerator().Cast<string>();
-
-					while (argEnumerator.MoveNext()) {
-						object? paramName = argEnumerator.Current;
-
-						switch (paramName) {
-
-							case P_SE:
-								argEnumerator.MoveNext();
-
-								Config.SearchEngines = Enum.Parse<SearchEngineOptions>(argEnumerator.Current);
-								break;
-							case P_PE:
-								argEnumerator.MoveNext();
-
-								Config.PriorityEngines =
-									Enum.Parse<SearchEngineOptions>(argEnumerator.Current);
-								break;
-							case P_F:
-								Config.Filtering = true;
-								break;
-							default:
-								Config.Query = argEnumerator.Current;
-								break;
-						}
-					}*/
+					handler.Run(args);
 
 					Client.Reload();
 				}
@@ -313,28 +287,6 @@ namespace SmartImage
 
 			NConsole.Refresh();
 		}
-
-		#endregion
-
-		#region Parameters
-
-		/// <summary>
-		/// <see cref="SearchConfig.SearchEngines"/>
-		/// </summary>
-		/// <remarks>Parameter</remarks>
-		private const string P_SE = "-se";
-
-		/// <summary>
-		/// <see cref="SearchConfig.PriorityEngines"/>
-		/// </summary>
-		/// <remarks>Parameter</remarks>
-		private const string P_PE = "-pe";
-
-		/// <summary>
-		/// <see cref="SearchConfig.Filtering"/>
-		/// </summary>
-		/// <remarks>Switch</remarks>
-		private const string P_F = "-f";
 
 		#endregion
 	}

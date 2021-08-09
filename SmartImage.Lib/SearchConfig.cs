@@ -60,7 +60,8 @@ namespace SmartImage.Lib
 
 			// todo: temporary
 
-			return sb.ToString().Split('\n').QuickJoin("\n");
+			return sb.ToString();
+			//return sb.ToString().Split('\n').QuickJoin("\n");
 		}
 		
 	}
