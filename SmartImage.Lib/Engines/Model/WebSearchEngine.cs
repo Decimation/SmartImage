@@ -31,13 +31,8 @@ namespace SmartImage.Lib.Engines.Model
 		{
 			return TryProcess(GetResult(query, out var response), sr =>
 			{
-				var t1  = Stopwatch.GetTimestamp();
 				var doc = GetContent(response);
-				sr.RetrievalTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
-
-				var t2 = Stopwatch.GetTimestamp();
-				sr                = Process(doc, sr);
-				sr.ProcessingTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t2);
+				sr = Process(doc, sr);
 
 				return sr;
 			});

@@ -66,65 +66,53 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private delegate IEnumerable<SauceNaoDataResult> ParseResultFunction(ImageQuery q);
 
-
 		private ParseResultFunction Get() => !UsingAPI ? GetHTMLResults : GetAPIResults;
 
 		public override SearchResult GetResult(ImageQuery query)
 		{
-
-
-			var t1 = Stopwatch.GetTimestamp();
-
-			var sresult = base.GetResult(query);
-
+			var sresult       = base.GetResult(query);
 			var primaryResult = new ImageResult();
 
-			try {
+			var f = Get();
 
-				ParseResultFunction f = Get();
+			var dataResults = f(query);
 
-				var sauceNaoDataResults = f(query);
 
-				if (sauceNaoDataResults == null) {
-					sresult.ErrorMessage = "Daily search limit (100) exceeded";
-					sresult.Status       = ResultStatus.Cooldown;
-					//return sresult;
-					goto ret;
-				}
-
-				var imageResults = sauceNaoDataResults.Where(o => o != null)
-				                                      .AsParallel()
-				                                      .Select(ConvertToImageResult)
-				                                      .Where(o => o     != null)
-				                                      .Where(e => e.Url != null)
-				                                      .OrderByDescending(e => e.Similarity)
-				                                      .ToList();
-
-				if (!imageResults.Any()) {
-					// No good results
-					//return sresult;
-					goto ret;
-				}
-
-				primaryResult.UpdateFrom(imageResults.First());
-
-				sresult.OtherResults.AddRange(imageResults);
-
-				if (UsingAPI) {
-					Debug.WriteLine($"{Name} API key: {Authentication}");
-				}
+			if (dataResults == null) {
+				sresult.ErrorMessage = "Daily search limit (100) exceeded";
+				sresult.Status       = ResultStatus.Cooldown;
+				//return sresult;
+				goto ret;
 			}
-			catch (Exception e) {
-				Debug.WriteLine($"{Name} error: {e.StackTrace}", C_ERROR);
-				sresult.Status = ResultStatus.Failure;
+
+			var imageResults = dataResults.Where(o => o != null)
+			                              .AsParallel()
+			                              .Select(ConvertToImageResult)
+			                              .Where(o => o     != null)
+			                              .Where(e => e.Url != null)
+			                              .OrderByDescending(e => e.Similarity)
+			                              .ToList();
+
+
+			if (!imageResults.Any()) {
+				// No good results
+				//return sresult;
+				goto ret;
+			}
+
+			primaryResult.UpdateFrom(imageResults.First());
+
+			sresult.OtherResults.AddRange(imageResults);
+
+
+			if (UsingAPI) {
+				Debug.WriteLine($"{Name} API key: {Authentication}");
 			}
 
 			sresult.PrimaryResult = primaryResult;
 			sresult.Consolidate();
 
-
 			ret:
-			sresult.ProcessingTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
 			return sresult;
 		}
 

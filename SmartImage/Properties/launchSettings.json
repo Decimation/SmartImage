@@ -1,8 +1,7 @@
 {
   "profiles": {
     "SmartImage": {
-      "commandName": "Project",
-      "commandLineArgs": "-se All -pe SauceNao \"C:\\Users\\Deci\\Pictures\\Test Images\\Test6.jpg\""
+      "commandName": "Project"
     }
   }
 }

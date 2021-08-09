@@ -32,13 +32,7 @@ namespace SmartImage.Lib.Engines.Model
 		{
 			return TryProcess(base.GetResult(query), sr =>
 			{
-				var t1 = Stopwatch.GetTimestamp();
-
 				var process = Process(query, sr);
-
-				var d = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
-
-				sr.ProcessingTime = d;
 
 				return process;
 			});

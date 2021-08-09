@@ -94,16 +94,6 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
 
-		/// <summary>
-		/// The time spent processing this result.
-		/// </summary>
-		public TimeSpan? ProcessingTime { get; set; }
-
-		/// <summary>
-		/// The time spent retrieving raw data from the engine (<see cref="Engine"/>), if applicable.
-		/// </summary>
-		public TimeSpan? RetrievalTime { get; set; }
-
 		public bool IsSuccessful
 		{
 			get
@@ -164,27 +154,7 @@ namespace SmartImage.Lib.Searching
 				if (!IsSuccessful) {
 					map.Add("Status", Status);
 				}
-
-				//
-
-				var time  = new StringBuilder();
-				var total = TimeSpan.Zero;
-
-				if (RetrievalTime.HasValue) {
-					var poll = RetrievalTime.Value.TotalSeconds;
-					total += RetrievalTime.Value;
-					time.Append($"({poll:F3} retrieval)").Append(' ');
-				}
-
-				if (ProcessingTime.HasValue) {
-					var process = ProcessingTime.Value.TotalSeconds;
-					total += ProcessingTime.Value;
-					time.Append($"({process:F3} processing)").Append(' ');
-				}
-
-				time.Append($"({total.TotalSeconds:F3} total)");
-
-				map.Add("Time", time);
+				
 
 				return map;
 			}

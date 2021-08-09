@@ -162,6 +162,9 @@ namespace SmartImage
 		{
 			var args = Environment.GetCommandLineArgs();
 
+			// first element is executing assembly
+			args = args.Skip(1).ToArray();
+
 			if (!args.Any()) {
 				HashSet<object> options = AppInterface.MainMenuDialog.Read();
 
@@ -229,8 +232,6 @@ namespace SmartImage
 						}
 					};
 
-					// first element is executing assembly
-					args = args.Skip(1).ToArray();
 
 					handler.Run(args);
 

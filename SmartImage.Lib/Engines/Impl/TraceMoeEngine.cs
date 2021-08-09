@@ -38,12 +38,9 @@ namespace SmartImage.Lib.Engines.Impl
 		protected override SearchResult Process(ImageQuery query, SearchResult r)
 		{
 
-			var t1 = Stopwatch.GetTimestamp();
-
 			//var r = base.GetResult(url);
 
 			// https://soruly.github.io/trace.moe/#/
-
 
 			var rq = new RestRequest("search");
 			rq.AddQueryParameter("url", query.UploadUri.ToString(), true);
@@ -54,6 +51,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			var re = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
 			var tm = re.Data;
+
 			//var tm=JsonConvert.DeserializeObject<TraceMoeRootObject>(re.Content);
 
 			if (tm?.result != null) {
@@ -63,23 +61,23 @@ namespace SmartImage.Lib.Engines.Impl
 					var results = ConvertResults(tm).ToList();
 					var best    = results[0];
 
-					r = new SearchResult(this)
+					/*r = new SearchResult(this)
 					{
 						PrimaryResult = best,
 						RawUri        = new Uri(BaseUrl + query.UploadUri),
 
-					};
-
+					};*/
+					r.PrimaryResult = best;
+					r.RawUri        = new Uri(BaseUrl + query.UploadUri);
 					r.OtherResults.AddRange(results);
 				}
 				catch (Exception e) {
-					r = GetResult(query);
+					r              = GetResult(query);
 					r.ErrorMessage = e.Message;
 					r.Status       = ResultStatus.Failure;
 					//return r;
 					goto ret;
 				}
-
 
 			}
 			else {
@@ -87,8 +85,8 @@ namespace SmartImage.Lib.Engines.Impl
 				r.ErrorMessage = $"{re.ErrorMessage} {re.StatusCode}";
 			}
 
+
 			ret:
-			r.ProcessingTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
 			return r;
 		}
 

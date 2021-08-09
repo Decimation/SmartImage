@@ -76,7 +76,7 @@ namespace SmartImage.Lib.Engines.Impl
 			float? sim;
 
 			if (tr.Length >= 5) {
-				var simNode = tr[4];
+				var    simNode = tr[4];
 				string simStr  = simNode.TextContent.Split('%')[0];
 				sim = Single.Parse(simStr);
 				sim = MathF.Round(sim.Value, 2);
@@ -148,21 +148,18 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 
-		
-
 		protected override SearchResult Process(ImageQuery query, SearchResult sr)
 		{
 			// Don't select other results
 
 			var doc = GetDocument(query);
 
-
 			var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
 			var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
 			// No relevant results?
 
-			var ns = doc.Body.QuerySelector("#pages > div.nomatch");
+			var ns = doc.Body?.QuerySelector("#pages > div.nomatch");
 
 			if (ns != null) {
 
@@ -171,9 +168,8 @@ namespace SmartImage.Lib.Engines.Impl
 				return sr;
 			}
 
-			var select =
-				tables.Select(table => ((IHtmlElement) table).QuerySelectorAll("table > tbody > tr:nth-child(n)"));
-
+			var select = tables.Select(table => ((IHtmlElement) table)
+				                           .QuerySelectorAll("table > tbody > tr:nth-child(n)"));
 
 			var images = select.Select(ParseResult).ToList();
 
@@ -184,7 +180,6 @@ namespace SmartImage.Lib.Engines.Impl
 			var best = images[0];
 			sr.PrimaryResult.UpdateFrom(best);
 			sr.OtherResults.AddRange(images);
-
 
 			return sr;
 		}

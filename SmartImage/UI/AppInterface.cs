@@ -30,8 +30,6 @@ namespace SmartImage.UI
 	/// </summary>
 	internal static class AppInterface
 	{
-		
-
 		internal static readonly NConsoleOption[] MainMenuOptions =
 		{
 			new()
@@ -52,9 +50,14 @@ namespace SmartImage.UI
 					return true;
 				}
 			},
-			NConsoleFactory.CreateConfigOption(memberof(() => Config.SearchEngines), "Engines"), NConsoleFactory.CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines"), NConsoleFactory.CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3), NConsoleFactory.CreateConfigOption(propertyof(() => Config.Notification), "Notification", 4), NConsoleFactory.CreateConfigOption(propertyof(() => Config.NotificationImage), "Notification image", 5), NConsoleFactory.CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
-			                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    (added) => AppIntegration.HandleContextMenu(
-				                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    added ? IntegrationOption.Remove : IntegrationOption.Add)),
+			NConsoleFactory.CreateConfigOption(memberof(() => Config.SearchEngines), "Engines"),
+			NConsoleFactory.CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines"),
+			NConsoleFactory.CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3),
+			NConsoleFactory.CreateConfigOption(propertyof(() => Config.Notification), "Notification", 4),
+			NConsoleFactory.CreateConfigOption(propertyof(() => Config.NotificationImage), "Notification image", 5),
+			NConsoleFactory.CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
+			                                   (added) => AppIntegration.HandleContextMenu(
+				                                   added ? IntegrationOption.Remove : IntegrationOption.Add)),
 
 			new()
 			{
@@ -262,6 +265,4 @@ namespace SmartImage.UI
 
 		#endregion
 	}
-
-	
 }
