@@ -182,7 +182,7 @@ namespace SmartImage.UI
 		private const string ARG_KEY_ACTION    = "action";
 		private const string ARG_VALUE_DISMISS = "dismiss";
 
-		public static void ShowToast(object sender, ExtraResultEventArgs args)
+		public static void ShowToast(object sender, SearchCompletedEventArgs args)
 		{
 			var bestResult = args.Best;
 
@@ -199,7 +199,7 @@ namespace SmartImage.UI
 
 
 			button.SetContent("Open")
-			      .AddArgument(ARG_KEY_ACTION, $"{bestResult.Url}");
+			      .AddArgument(ARG_KEY_ACTION, $"{bestResult.Value.Url}");
 
 
 			builder.AddButton(button)
@@ -209,7 +209,7 @@ namespace SmartImage.UI
 			       .AddText($"Results: {Program.Client.Results.Count}");
 
 
-			var direct = args.Direct?.Direct;
+			var direct = args.Direct?.Value.Direct;
 
 			if (direct != null) {
 				var path = Path.GetTempPath();

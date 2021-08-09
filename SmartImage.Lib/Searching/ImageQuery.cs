@@ -43,8 +43,9 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public BaseUploadEngine UploadEngine { get; }
 
-		public Stream Stream { get; }
+		public Stream   Stream     { get; }
 
+		public TimeSpan UploadTime { get; }
 
 
 		public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
@@ -69,15 +70,14 @@ namespace SmartImage.Lib.Searching
 
 
 			UploadEngine = engine ?? new LitterboxEngine(); //note: default upload engine
-			
-			
+
 
 			UploadUri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 
 
-			Stream   = IsFile ? File.OpenRead(value) : WebUtilities.GetStream(value);
+			Stream = IsFile ? File.OpenRead(value) : WebUtilities.GetStream(value);
 
-			m_upload = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+			UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 			Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
 		}
@@ -86,8 +86,6 @@ namespace SmartImage.Lib.Searching
 		public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
 		public static implicit operator ImageQuery(string value) => new(value);
-
-		private TimeSpan  m_upload;
 
 		public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 		{
@@ -107,14 +105,12 @@ namespace SmartImage.Lib.Searching
 			result.OtherMetadata.Add("Upload engine", UploadEngine.Name);
 			result.OtherMetadata.Add("Input type", IsUri ? "URI" : "File");
 			result.OtherMetadata.Add("Input value", Value);
-			result.OtherMetadata.Add("Time", $"{m_upload.TotalSeconds:F3} uploading");
+			result.OtherMetadata.Add("Time", $"{UploadTime.TotalSeconds:F3} uploading");
 
 
 			result.UpdateImageData();
 
 			return result;
-
-
 		}
 
 

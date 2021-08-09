@@ -156,7 +156,7 @@ namespace SmartImage.Lib
 				}
 
 				// Call event
-				ResultCompleted?.Invoke(null, new SearchResultEventArgs(value)
+				ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
 				{
 					IsFiltered = isFiltered,
 					IsPriority = isPriority,
@@ -172,35 +172,30 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"{nameof(SearchClient)}: {d.TotalSeconds}");
 
-			SearchCompleted?.Invoke(null, Results);
-
-			if (Config.Notification) {
-
-
-				var args = new ExtraResultEventArgs()
+			var args2 = new SearchCompletedEventArgs()
+			{
+				Results = Results,
+				Best    = new Lazy<ImageResult>(FindBestResult),
+				Direct = new Lazy<ImageResult>(() =>
 				{
-					Results = this.Results,
-					Best    = FindBestResult(),
-				};
+					if (Config.Notification && Config.NotificationImage) {
 
-				if (Config.NotificationImage) {
+						Debug.WriteLine($"Finding direct result");
+						var direct = FindDirectResult();
 
-					Debug.WriteLine($"Finding direct result");
+						if (direct?.Direct != null) {
+							Debug.WriteLine(direct);
+							Debug.WriteLine(direct.Direct.ToString());
+						}
 
-					var direct = FindDirectResult();
-
-					if (direct?.Direct != null) {
-						Debug.WriteLine(direct);
-						Debug.WriteLine(direct.Direct.ToString());
-						args.Direct = direct;
-
+						return direct;
 					}
-				}
 
-				ExtraResults?.Invoke(null, args);
+					return null;
+				})
+			};
 
-			}
-
+			SearchCompleted?.Invoke(null, args2);
 		}
 
 		#endregion
@@ -337,18 +332,12 @@ namespace SmartImage.Lib
 		/// <summary>
 		/// An event that fires whenever a result is returned (<see cref="RunSearchAsync"/>).
 		/// </summary>
-		public event EventHandler<SearchResultEventArgs> ResultCompleted;
+		public event EventHandler<ResultCompletedEventArgs> ResultCompleted;
 
 		/// <summary>
 		/// An event that fires when a search is complete (<see cref="RunSearchAsync"/>).
 		/// </summary>
-		public event EventHandler<List<SearchResult>> SearchCompleted;
-
-		/// <summary>
-		/// An event that fires when a search is complete, with extra information
-		/// (<see cref="SearchConfig.Notification"/>; <see cref="SearchConfig.NotificationImage"/>)
-		/// </summary>
-		public event EventHandler<ExtraResultEventArgs> ExtraResults;
+		public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
 
 		private const string ERR_SEARCH_NOT_COMPLETE = "Search must be completed";
@@ -356,17 +345,20 @@ namespace SmartImage.Lib
 		private const string ERR_NO_BEST_RESULT = "Could not find best result";
 	}
 
-	public sealed class ExtraResultEventArgs : EventArgs
+
+	public sealed class SearchCompletedEventArgs : EventArgs
 	{
 		public List<SearchResult> Results { get; init; }
 
 		[CanBeNull]
-		public ImageResult Direct { get; internal set; }
+		public Lazy<ImageResult> Direct { get; internal set; }
 
-		public ImageResult Best { get; internal set; }
+
+		[CanBeNull]
+		public Lazy<ImageResult> Best { get; internal set; }
 	}
 
-	public sealed class SearchResultEventArgs : EventArgs
+	public sealed class ResultCompletedEventArgs : EventArgs
 	{
 		/// <summary>
 		/// Search result
@@ -389,7 +381,7 @@ namespace SmartImage.Lib
 		public bool IsPriority { get; init; }
 
 
-		public SearchResultEventArgs(SearchResult result)
+		public ResultCompletedEventArgs(SearchResult result)
 		{
 			Result = result;
 		}

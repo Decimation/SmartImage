@@ -73,7 +73,7 @@ namespace SmartImage.UI
 			m_cl.ResultCompleted += HandleResult;
 		}
 
-		private void HandleResult(object o, SearchResultEventArgs args)
+		private void HandleResult(object o, ResultCompletedEventArgs args)
 		{
 			var searchResult = args.Result;
 

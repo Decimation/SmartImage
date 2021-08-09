@@ -57,7 +57,7 @@ namespace SmartImage.Lib.Engines.Model
 
 			var task = Task.Run(delegate
 			{
-				Debug.WriteLine($"{Name}: getting result async", C_INFO);
+				Debug.WriteLine($"{Name}: getting result async", C_VERBOSE);
 
 				var res = GetResult(query);
 
@@ -72,7 +72,7 @@ namespace SmartImage.Lib.Engines.Model
 		protected virtual Uri GetRaw(ImageQuery query)
 		{
 			//
-			return new Uri(BaseUrl + query.UploadUri);
+			return new(BaseUrl + query.UploadUri);
 
 		}
 

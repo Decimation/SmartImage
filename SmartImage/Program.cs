@@ -58,10 +58,19 @@ namespace SmartImage
 	{
 		#region Core fields
 
+		/// <summary>
+		/// User search config
+		/// </summary>
 		public static readonly SearchConfig Config = new();
 
+		/// <summary>
+		/// Search client
+		/// </summary>
 		public static readonly SearchClient Client = new(Config);
 
+		/// <summary>
+		/// Console UI for search results
+		/// </summary>
 		public static readonly NConsoleDialog ResultDialog = new()
 		{
 			Options     = new List<NConsoleOption>(),
@@ -83,6 +92,7 @@ namespace SmartImage
 
 			ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
 
+			//...
 			Native.SetConsoleOutputCP(Native.CP_IBM437);
 
 			Console.Title = $"{AppInfo.NAME}";
@@ -126,12 +136,17 @@ namespace SmartImage
 
 				CancellationTokenSource cts = new();
 
-
 				// Run search
 
 				Client.ResultCompleted += OnResultCompleted;
-				Client.SearchCompleted += (obj, eventArgs) => OnSearchCompleted(obj, eventArgs, cts);
-				Client.ExtraResults    += AppInterface.ShowToast;
+				Client.SearchCompleted += (obj, eventArgs) =>
+				{
+					OnSearchCompleted(obj, eventArgs, cts);
+
+					if (Config.Notification) {
+						AppInterface.ShowToast(obj, eventArgs);
+					}
+				};
 
 				NConsoleProgress.Queue(cts);
 
@@ -232,7 +247,6 @@ namespace SmartImage
 						}
 					};
 
-
 					handler.Run(args);
 
 					Client.Reload();
@@ -249,7 +263,7 @@ namespace SmartImage
 
 		#region Event handlers
 
-		private static void OnSearchCompleted(object? sender, List<SearchResult> eventArgs, CancellationTokenSource cts)
+		private static void OnSearchCompleted(object? sender, SearchCompletedEventArgs eventArgs, CancellationTokenSource cts)
 		{
 			Native.FlashConsoleWindow();
 
@@ -260,7 +274,7 @@ namespace SmartImage
 
 		}
 
-		private static void OnResultCompleted(object? sender, SearchResultEventArgs eventArgs)
+		private static void OnResultCompleted(object? sender, ResultCompletedEventArgs eventArgs)
 		{
 			var result = eventArgs.Result;
 

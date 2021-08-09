@@ -32,7 +32,7 @@ namespace Test
 
 	public static class Program
 	{
-		public static void OnResult(object _, SearchResultEventArgs e)
+		public static void OnResult(object _, ResultCompletedEventArgs e)
 		{
 
 			if (e.Result.IsSuccessful) {

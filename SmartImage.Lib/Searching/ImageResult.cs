@@ -150,14 +150,14 @@ namespace SmartImage.Lib.Searching
 
 		private static readonly List<FieldInfo> DetailFields = GetDetailFields();
 
+		/// <summary>
+		/// Score representing the number of fields that are populated (i.e., non-<c>null</c> or <c>default</c>);
+		/// used as a heuristic for determining image result quality
+		/// </summary>
 		public int DetailScore
 		{
 			get
 			{
-				/*
-				 * The number of non-null fields
-				 */
-
 				int s = DetailFields.Select(f => f.GetValue(this))
 				                    .Count(v => v != null);
 
