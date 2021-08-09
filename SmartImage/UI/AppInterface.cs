@@ -209,7 +209,7 @@ namespace SmartImage.UI
 			       .AddText($"Results: {Program.Client.Results.Count}");
 
 
-			var direct = args.Direct?.Value.Direct;
+			var direct = args.Direct?.Value?.Direct;
 
 			if (direct != null) {
 				var path = Path.GetTempPath();

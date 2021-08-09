@@ -53,7 +53,6 @@ namespace SmartImage
 	// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 	//                                                     |___/
 
-
 	public static class Program
 	{
 		#region Core fields
@@ -108,11 +107,9 @@ namespace SmartImage
 			var process = Process.GetCurrentProcess();
 			process.PriorityClass = ProcessPriorityClass.AboveNormal;
 
-
 			/*
 			 * Start
 			 */
-
 
 			/*
 			 * Configuration precedence
@@ -132,45 +129,35 @@ namespace SmartImage
 			                        $"| PE: {Config.PriorityEngines} " +
 			                        $"| Filtering: {Config.Filtering.ToToggleString()}";
 
-			try {
+			CancellationTokenSource cts = new();
 
-				CancellationTokenSource cts = new();
+			// Run search
 
-				// Run search
+			Client.ResultCompleted += OnResultCompleted;
 
-				Client.ResultCompleted += OnResultCompleted;
-				Client.SearchCompleted += (obj, eventArgs) =>
-				{
-					OnSearchCompleted(obj, eventArgs, cts);
+			Client.SearchCompleted += (obj, eventArgs) =>
+			{
+				OnSearchCompleted(obj, eventArgs, cts);
 
-					if (Config.Notification) {
-						AppInterface.ShowToast(obj, eventArgs);
-					}
-				};
+				if (Config.Notification) {
+					AppInterface.ShowToast(obj, eventArgs);
+				}
+			};
 
-				NConsoleProgress.Queue(cts);
+			NConsoleProgress.Queue(cts);
 
+			// Show results
+			var searchTask = Client.RunSearchAsync();
 
-				// Show results
-				var searchTask = Client.RunSearchAsync();
+			// Add original image
+			ResultDialog.Options.Add(NConsoleFactory.CreateResultOption(
+				                         Config.Query.GetImageResult(), "(Original image)",
+				                         Elements.ColorMain, -0.1f));
 
-				// Add original image
-				ResultDialog.Options.Add(NConsoleFactory.CreateResultOption(
-					                         Config.Query.GetImageResult(), "(Original image)",
-					                         Elements.ColorMain, -0.1f));
+			ResultDialog.Read();
 
+			await searchTask;
 
-				ResultDialog.Read();
-
-				await searchTask;
-			}
-			catch (Exception exception) {
-#if !DEBUG
-				// ...
-#else
-				Console.WriteLine(exception);
-#endif
-			}
 		}
 
 		private static bool HandleArguments()
@@ -252,18 +239,18 @@ namespace SmartImage
 					Client.Reload();
 				}
 				catch (Exception e) {
-					Console.WriteLine(e);
-					Console.ReadLine();
+					Console.WriteLine($"Error: {e.Message}");
+					return false;
 				}
 			}
 
 			return true;
 		}
 
-
 		#region Event handlers
 
-		private static void OnSearchCompleted(object? sender, SearchCompletedEventArgs eventArgs, CancellationTokenSource cts)
+		private static void OnSearchCompleted(object? sender, SearchCompletedEventArgs eventArgs,
+		                                      CancellationTokenSource cts)
 		{
 			Native.FlashConsoleWindow();
 

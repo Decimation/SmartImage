@@ -54,7 +54,7 @@ namespace SmartImage.Lib.Searching
 			var now = Stopwatch.GetTimestamp();
 
 			if (String.IsNullOrWhiteSpace(value)) {
-				throw new ArgumentNullException(nameof(value));
+				throw new ArgumentNullException(nameof(value), "No input specified");
 			}
 
 
@@ -105,8 +105,8 @@ namespace SmartImage.Lib.Searching
 			result.OtherMetadata.Add("Upload engine", UploadEngine.Name);
 			result.OtherMetadata.Add("Input type", IsUri ? "URI" : "File");
 			result.OtherMetadata.Add("Input value", Value);
-			result.OtherMetadata.Add("Time", $"{UploadTime.TotalSeconds:F3} uploading");
-
+			result.OtherMetadata.Add("Time", $"(upload: {UploadTime.TotalSeconds:F3})");
+			
 
 			result.UpdateImageData();
 
