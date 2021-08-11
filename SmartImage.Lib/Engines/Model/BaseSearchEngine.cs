@@ -25,7 +25,6 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract SearchEngineOptions EngineOption { get; }
 
-
 		public virtual string Name => EngineOption.ToString();
 
 		public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
@@ -45,12 +44,10 @@ namespace SmartImage.Lib.Engines.Model
 				sr.Status = ResultStatus.Success;
 			}
 
-
 			return sr;
 		}
 
 		public virtual SearchResult GetResult(ImageQuery query) => GetResult(query, out _);
-
 
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
@@ -87,7 +84,6 @@ namespace SmartImage.Lib.Engines.Model
 			}*/
 
 			res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);
-			
 
 			if (!res.IsSuccessful) {
 				if ((FollowRedirects && res.StatusCode == HttpStatusCode.Redirect)) {
@@ -100,25 +96,6 @@ namespace SmartImage.Lib.Engines.Model
 			}
 
 			return true;
-		}
-
-		protected static SearchResult TryProcess(SearchResult sr, Func<SearchResult, SearchResult> process)
-		{
-			if (!sr.IsSuccessful) {
-				return sr;
-			}
-
-			try {
-
-				sr = process(sr);
-			}
-			catch (Exception e) {
-				sr.Status       = ResultStatus.Failure;
-				sr.ErrorMessage = e.Message;
-				Trace.WriteLine($"{sr.Engine.Name}: {e.Message}", LogCategories.C_ERROR);
-			}
-
-			return sr;
 		}
 	}
 }

@@ -96,7 +96,7 @@ namespace SmartImage
 					}
 
 					foreach (NConsoleOption? option in buffer.Select(NConsoleFactory.CreateResultOption)) {
-						Program.ResultDialog.Options.Add(option);
+						ResultDialog.Options.Add(option);
 					}
 
 					_isFilteredShown = !_isFilteredShown;
@@ -161,13 +161,7 @@ namespace SmartImage
 			ResultDialog.Subtitle = $"SE: {Config.SearchEngines} "     +
 			                        $"| PE: {Config.PriorityEngines} " +
 			                        $"| Filtering: {Config.Filtering.ToToggleString()}";
-
-			await Run();
-		}
-
-		private static async Task Run()
-		{
-
+			
 			CancellationTokenSource cts = new();
 
 			// Run search

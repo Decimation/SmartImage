@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using AngleSharp.Dom;
+using Kantan.Diagnostics;
 using RestSharp;
 using SmartImage.Lib.Searching;
 
@@ -28,30 +29,33 @@ namespace SmartImage.Lib.Engines.Model
 		{
 			// HACK: this is questionable, but it resolves the edge case with polymorphism
 
-			SearchResult result;
-
 			ClientSearchEngine c;
 			WebSearchEngine    w;
 
-			IRestResponse response = null;
+			var sr = GetResult(query, out IRestResponse response);
 
 			switch (this) {
 				case ClientSearchEngine:
-					result = base.GetResult(query);
+					//sr = base.GetResult(query);
 					c      = this as ClientSearchEngine;
 					w      = null;
 					break;
 				case WebSearchEngine:
-					result = GetResult(query, out response);
+					//sr = GetResult(query, out response);
 					w      = this as WebSearchEngine;
 					c      = null;
 					break;
 				default:
 					throw new InvalidOperationException();
 			}
+			
 
-			return TryProcess(result, sr =>
-			{
+			if (!sr.IsSuccessful) {
+				return sr;
+			}
+
+			try {
+
 				object o;
 
 				if (c != null) {
@@ -64,10 +68,20 @@ namespace SmartImage.Lib.Engines.Model
 					throw new InvalidOperationException();
 				}
 
-
 				sr = Process(o, sr);
+
 				return sr;
-			});
+			}
+			catch (Exception e) {
+
+				sr.Status       = ResultStatus.Failure;
+				sr.ErrorMessage = e.Message;
+
+				Trace.WriteLine($"{sr.Engine.Name}: {e.Message}", LogCategories.C_ERROR);
+			}
+
+			return sr;
+
 		}
 	}
 }

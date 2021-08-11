@@ -21,7 +21,6 @@ namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class Ascii2DEngine : WebSearchEngine
 	{
-		
 		public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 		{
 			FollowRedirects = true;
@@ -34,8 +33,14 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
-		private Uri ConvertToDetailUri(Uri url)
+		protected override Uri GetRaw(ImageQuery query)
 		{
+			var a = base.GetRaw(query);
+
+			var request = WebRequest.Create(a);
+
+			using var response = request.GetResponse();
+
 			/*
 			 * URL parameters
 			 *
@@ -50,46 +55,21 @@ namespace SmartImage.Lib.Engines.Impl
 			 *
 			 */
 
-			var res = Network.GetResponse(url.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, false);
-
-			// Get redirect url (color url)
-
-			string newUrl = res.ResponseUri.ToString();
-
 			// Convert to detail url
 
-			string detailUrl = newUrl.Replace("/color/", "/bovw/");
+			string detailUrl = response.ResponseUri.ToString().Replace("/color/", "/bovw/");
 
 			return new Uri(detailUrl);
-		}
-
-		protected override Uri GetRaw(ImageQuery query)
-		{
-			var a = base.GetRaw(query);
-			return WebRequest.Create(a).GetResponse().ResponseUri;
 
 		}
 
-		protected internal override IDocument GetContent(IRestResponse response)
-		{
-			var url = response.ResponseUri;
-
-			response.ResponseUri = ConvertToDetailUri(url);
-
-			response.Content = WebUtilities.GetString(response.ResponseUri.ToString());
-
-			return base.GetContent(response);
-
-		}
 
 		protected override bool GetInitialResult(ImageQuery query, out Uri rawUri, out IRestResponse res)
 		{
 			rawUri = GetRaw(query);
 			
-			// NOTE: wtf?
+			res = new RestResponse();
 
-			res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);
-			
 			res.Content = WebUtilities.GetString(rawUri.ToString());
 
 			return true;
