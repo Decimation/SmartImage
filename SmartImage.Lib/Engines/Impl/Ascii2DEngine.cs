@@ -23,7 +23,6 @@ namespace SmartImage.Lib.Engines.Impl
 	{
 		public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 		{
-			FollowRedirects = true;
 
 		}
 
@@ -33,11 +32,11 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
-		protected override Uri GetRaw(ImageQuery query)
+		protected override Uri GetRawUri(ImageQuery query)
 		{
-			var a = base.GetRaw(query);
+			var uri = base.GetRawUri(query);
 
-			var request = WebRequest.Create(a);
+			var request = WebRequest.Create(uri);
 
 			using var response = request.GetResponse();
 
@@ -54,9 +53,7 @@ namespace SmartImage.Lib.Engines.Impl
 			 * as the color results are returned by default
 			 *
 			 */
-
-			// Convert to detail url
-
+			
 			string detailUrl = response.ResponseUri.ToString().Replace("/color/", "/bovw/");
 
 			return new Uri(detailUrl);
@@ -66,11 +63,13 @@ namespace SmartImage.Lib.Engines.Impl
 
 		protected override bool GetInitialResult(ImageQuery query, out Uri rawUri, out IRestResponse res)
 		{
-			rawUri = GetRaw(query);
-			
-			res = new RestResponse();
+			rawUri = GetRawUri(query);
 
-			res.Content = WebUtilities.GetString(rawUri.ToString());
+			res = new RestResponse
+			{
+				Content = WebUtilities.GetString(rawUri.ToString())
+			};
+
 
 			return true;
 		}
@@ -78,6 +77,7 @@ namespace SmartImage.Lib.Engines.Impl
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
 			var doc   = (IDocument) obj;
+
 			var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
 
 			var rg = new List<ImageResult>();

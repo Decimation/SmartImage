@@ -160,24 +160,25 @@ namespace Test
 			//var r2 = await i2;
 
 			//Console.WriteLine(">> {0}", r2);
+			var q   = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test6.jpg");
+			var ix  = new SauceNaoEngine() { };
+			ix.Authentication = "362e7e82bc8cf7f6025431fbf3006510057298c3";
+			var i2x = ix.GetResultAsync(q);
+			var r2x = await i2x;
 
-			//var ix = new SauceNaoEngine() { };
-			//var i2x = ix.GetResultAsync(q);
-			//var r2x = await i2x;
-
-			//Console.WriteLine(">> {0}", r2x);
+			Console.WriteLine(">> {0}", r2x);
 
 			//var t  = ImageHelper.FindDirectImages("https://deviantart.com/view/817835288");
 
 
-			var sw = Stopwatch.StartNew();
+			/*var sw = Stopwatch.StartNew();
 			var t  = ImageHelper.FindDirectImages("https://www.zerochan.net/2750747");
 			sw.Stop();
 			Debug.WriteLine($"{sw.Elapsed.TotalSeconds}");
 
 			foreach (var s in t) {
 				Console.WriteLine(s);
-			}
+			}*/
 
 
 		}

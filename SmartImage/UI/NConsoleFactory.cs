@@ -10,6 +10,7 @@ using Kantan.Cli;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
+using Kantan.Utilities.Configuration;
 using Novus.Utilities;
 using Novus.Win32;
 using SmartImage.Core;

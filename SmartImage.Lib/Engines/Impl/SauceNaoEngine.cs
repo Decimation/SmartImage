@@ -32,16 +32,13 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Impl
 {
-	public sealed class SauceNaoEngine : BaseSearchEngine
+	public sealed class SauceNaoEngine : ClientSearchEngine
 	{
 		private const string BASE_URL = "https://saucenao.com/";
 
 		private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
 
-		private const string SEARCH = "search.php";
-
-		private readonly RestClient m_client;
-
+		public override string Name => EngineOption.ToString();
 
 		/*
 		 * Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
@@ -49,34 +46,33 @@ namespace SmartImage.Lib.Engines.Impl
 		 */
 
 
-		public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
+		public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_URL)
 		{
-			m_client       = new RestClient(BASE_URL);
 			Authentication = authentication;
 		}
 
 		public SauceNaoEngine() : this(null) { }
 
-		public string Authentication { get; init; }
+		public string Authentication { get; set; }
 
 		public bool UsingAPI => !String.IsNullOrWhiteSpace(Authentication);
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
 
-		private delegate IEnumerable<SauceNaoDataResult> ParseResultFunction(ImageQuery q);
-
-		private ParseResultFunction GetParseFunction() => !UsingAPI ? GetHTMLResults : GetAPIResults;
-
-		public override SearchResult GetResult(ImageQuery query)
+		protected override SearchResult Process(object obj, SearchResult result)
 		{
-			var result       = base.GetResult(query);
+			var query = (ImageQuery) obj;
+
 			var primaryResult = new ImageResult();
 
-			var f = GetParseFunction();
+			var parseFunc = (Func<ImageQuery, IEnumerable<SauceNaoDataResult>>)
+				(!UsingAPI ? GetHTMLResults : GetAPIResults);
 
-			var now           = Stopwatch.GetTimestamp();
-			var dataResults = f(query);
+			var now = Stopwatch.GetTimestamp();
+
+			var dataResults = parseFunc(query);
+
 			result.RetrievalTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 			if (dataResults == null) {
@@ -89,8 +85,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var imageResults = dataResults.Where(o => o != null)
 			                              .AsParallel()
 			                              .Select(ConvertToImageResult)
-			                              .Where(o => o     != null)
-			                              .Where(e => e.Url != null)
+			                              .Where(o => o != null)
 			                              .OrderByDescending(e => e.Similarity)
 			                              .ToList();
 
@@ -117,6 +112,7 @@ namespace SmartImage.Lib.Engines.Impl
 			return result;
 		}
 
+
 		private IEnumerable<SauceNaoDataResult> GetHTMLResults(ImageQuery query)
 		{
 
@@ -125,7 +121,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var docp = new HtmlParser();
 
 
-			var req = new RestRequest(SEARCH, Method.POST);
+			var req = new RestRequest("search.php", Method.POST);
 
 			if (query.IsFile) {
 				req.AddFile("file", File.ReadAllBytes(query.Value), "image.png");
@@ -137,7 +133,7 @@ namespace SmartImage.Lib.Engines.Impl
 				throw new SmartImageException();
 			}
 
-			var execute = m_client.Execute(req);
+			var execute = Client.Execute(req);
 
 			string html = execute.Content;
 
@@ -225,14 +221,14 @@ namespace SmartImage.Lib.Engines.Impl
 		{
 			Trace.WriteLine($"{Name} | API");
 
-			var req = new RestRequest(SEARCH);
+			var req = new RestRequest("search.php");
 			req.AddQueryParameter("db", "999");
 			req.AddQueryParameter("output_type", "2");
 			req.AddQueryParameter("numres", "16");
 			req.AddQueryParameter("api_key", Authentication);
 			req.AddQueryParameter("url", url.UploadUri.ToString());
 
-			var res = m_client.Execute(req);
+			var res = Client.Execute(req);
 
 			if (res.StatusCode == HttpStatusCode.Forbidden) {
 				return null;

@@ -66,7 +66,7 @@ namespace SmartImage.Lib.Engines.Model
 			return await task;
 		}
 
-		protected virtual Uri GetRaw(ImageQuery query)
+		protected virtual Uri GetRawUri(ImageQuery query)
 		{
 			//
 			return new(BaseUrl + query.UploadUri);
@@ -76,7 +76,7 @@ namespace SmartImage.Lib.Engines.Model
 		protected virtual bool GetInitialResult(ImageQuery query, out Uri rawUri, out IRestResponse res)
 		{
 
-			rawUri = GetRaw(query);
+			rawUri = GetRawUri(query);
 
 			/*if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
 				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri}", C_WARN);

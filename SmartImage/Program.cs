@@ -72,7 +72,7 @@ namespace SmartImage
 		/// </summary>
 		public static readonly NConsoleDialog ResultDialog = new()
 		{
-			Options     = new List<NConsoleOption>(),
+			Options = new List<NConsoleOption>(),
 
 			Description = "Press the result number to open in browser\n"                                 +
 			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
@@ -103,7 +103,7 @@ namespace SmartImage
 
 					NConsole.Refresh();
 				},
-				
+
 			}
 		};
 
@@ -161,7 +161,7 @@ namespace SmartImage
 			ResultDialog.Subtitle = $"SE: {Config.SearchEngines} "     +
 			                        $"| PE: {Config.PriorityEngines} " +
 			                        $"| Filtering: {Config.Filtering.ToToggleString()}";
-			
+
 			CancellationTokenSource cts = new();
 
 			// Run search
@@ -172,8 +172,7 @@ namespace SmartImage
 			{
 				OnSearchCompleted(obj, eventArgs, cts);
 
-				if (Config.Notification)
-				{
+				if (Config.Notification) {
 					AppInterface.ShowToast(obj, eventArgs);
 				}
 			};
