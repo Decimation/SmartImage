@@ -88,16 +88,18 @@ namespace SmartImage
 					ResultDialog!.Options.Clear();
 
 					var buffer = new List<SearchResult>();
-
+					
 					buffer.AddRange(Client.Results);
 
 					if (!_isFilteredShown) {
 						buffer.AddRange(Client.FilteredResults);
 					}
 
+					ResultDialog.Options.Add(orig);
 					foreach (NConsoleOption? option in buffer.Select(NConsoleFactory.CreateResultOption)) {
 						ResultDialog.Options.Add(option);
 					}
+
 
 					_isFilteredShown = !_isFilteredShown;
 
@@ -182,15 +184,19 @@ namespace SmartImage
 			// Show results
 			var searchTask = Client.RunSearchAsync();
 
+			orig = NConsoleFactory.CreateResultOption(
+				Config.Query.GetImageResult(), "(Original image)",
+				Elements.ColorMain, -0.1f);
+
 			// Add original image
-			ResultDialog.Options.Add(NConsoleFactory.CreateResultOption(
-				                         Config.Query.GetImageResult(), "(Original image)",
-				                         Elements.ColorMain, -0.1f));
+			ResultDialog.Options.Add(orig);
 
 			ResultDialog.Read();
 
 			await searchTask;
 		}
+
+		private static NConsoleOption orig;
 
 		private static bool HandleArguments()
 		{

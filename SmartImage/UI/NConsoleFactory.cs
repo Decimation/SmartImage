@@ -10,7 +10,6 @@ using Kantan.Cli;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
-using Kantan.Utilities.Configuration;
 using Novus.Utilities;
 using Novus.Win32;
 using SmartImage.Core;
@@ -46,7 +45,7 @@ namespace SmartImage.UI
 					});
 
 					var enumValue = Enums.ReadFromSet<SearchEngineOptions>(selected);
-					var field     = Program.Config.GetType().GetResolvedField((m).Name);
+					var field     = Program.Config.GetType().GetAnyResolvedField((m).Name);
 					field.SetValue(Program.Config, enumValue);
 
 					Console.WriteLine(enumValue);
@@ -97,7 +96,7 @@ namespace SmartImage.UI
 				Name = Elements.GetName(name, initVal),
 				Function = () =>
 				{
-					var    fi     = Program.Config.GetType().GetResolvedField(member.Name);
+					var    fi     = Program.Config.GetType().GetAnyResolvedField(member.Name);
 					object curVal = fi.GetValue(Program.Config);
 					bool   newVal = !(bool) curVal;
 					fi.SetValue(Program.Config, newVal);

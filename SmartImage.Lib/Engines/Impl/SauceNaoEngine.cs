@@ -67,7 +67,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var primaryResult = new ImageResult();
 
 			var parseFunc = (Func<ImageQuery, IEnumerable<SauceNaoDataResult>>)
-				(!UsingAPI ? GetHTMLResults : GetAPIResults);
+				(!UsingAPI ? GetWebResults : GetAPIResults);
 
 			var now = Stopwatch.GetTimestamp();
 
@@ -113,7 +113,7 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 
-		private IEnumerable<SauceNaoDataResult> GetHTMLResults(ImageQuery query)
+		private IEnumerable<SauceNaoDataResult> GetWebResults(ImageQuery query)
 		{
 
 			Trace.WriteLine($"{Name}: | Parsing HTML", LogCategories.C_INFO);
@@ -318,6 +318,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 		}
 
+		/// <summary>
+		/// Stub result
+		/// </summary>
 		private class SauceNaoDataResult
 		{
 			/// <summary>
