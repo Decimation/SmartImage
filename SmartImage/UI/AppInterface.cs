@@ -22,7 +22,6 @@ using static SmartImage.Program;
 
 // ReSharper disable PossibleNullReferenceException
 
-
 namespace SmartImage.UI
 {
 	/// <summary>
@@ -50,6 +49,7 @@ namespace SmartImage.UI
 					return true;
 				}
 			},
+
 			NConsoleFactory.CreateConfigOption(memberof(() => Config.SearchEngines), "Engines"),
 			NConsoleFactory.CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines"),
 			NConsoleFactory.CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3),
@@ -109,7 +109,6 @@ namespace SmartImage.UI
 
 					NConsole.WaitForInput();
 
-
 					return null;
 				}
 			},
@@ -135,7 +134,6 @@ namespace SmartImage.UI
 			},
 #if DEBUG
 
-
 			new()
 			{
 				Name = "Debug",
@@ -151,10 +149,10 @@ namespace SmartImage.UI
 
 		internal static readonly NConsoleDialog MainMenuDialog = new()
 		{
-			Options = MainMenuOptions,
-			Header  = AppInfo.NAME_BANNER
+			Options   = MainMenuOptions,
+			Header    = AppInfo.NAME_BANNER,
+			Functions = Array.Empty<Action>()
 		};
-
 
 		/*
 		/// <summary>Returns true if the current application has focus, false otherwise</summary>
@@ -173,7 +171,6 @@ namespace SmartImage.UI
 			Native.GetWindowThreadProcessId(activatedHandle, out activeProcId);
 			var p2 = Process.GetProcessById(activeProcId);
 
-
 			return activeProcId == procId;
 		}*/
 
@@ -186,28 +183,21 @@ namespace SmartImage.UI
 		{
 			var bestResult = args.Best;
 
-
 			var builder = new ToastContentBuilder();
-
-			var button = new ToastButton();
-
+			var button  = new ToastButton();
 			var button2 = new ToastButton();
-
 
 			button2.SetContent("Dismiss")
 			       .AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
 
-
 			button.SetContent("Open")
 			      .AddArgument(ARG_KEY_ACTION, $"{bestResult.Value.Url}");
-
 
 			builder.AddButton(button)
 			       .AddButton(button2)
 			       .AddText("Search complete")
 			       .AddText($"{bestResult}")
 			       .AddText($"Results: {Program.Client.Results.Count}");
-
 
 			var direct = args.Direct?.Value?.Direct;
 
@@ -228,7 +218,6 @@ namespace SmartImage.UI
 			builder.SetBackgroundActivation();
 
 			//...
-
 
 			builder.Show();
 
@@ -251,7 +240,6 @@ namespace SmartImage.UI
 					if (argument.Value == ARG_VALUE_DISMISS) {
 						break;
 					}
-
 
 					WebUtilities.OpenUrl(argument.Value);
 				}

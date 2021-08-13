@@ -125,20 +125,6 @@ namespace SmartImage.Lib.Searching
 			OtherMetadata = new Dictionary<string, object>();
 		}
 
-		public static ImageResult FromDirectImage(string di)
-		{
-			var ir = new ImageResult
-			{
-				Image  = ImageHelper.GetImage(di),
-				Url    = new Uri((di)),
-				Direct = new Uri((di))
-			};
-
-			ir.UpdateImageData();
-
-			return ir;
-		}
-
 		private static List<FieldInfo> GetDetailFields()
 		{
 			var fields = typeof(ImageResult).GetRuntimeFields().Where(f => !f.IsStatic).ToList();
@@ -200,7 +186,6 @@ namespace SmartImage.Lib.Searching
 			Description = result.Description;
 			Date        = result.Date;
 
-
 			UpdateImageData();
 
 		}
@@ -223,7 +208,6 @@ namespace SmartImage.Lib.Searching
 				var directImages = ImageHelper.FindDirectImages(Url.ToString());
 
 				//Debug.WriteLine($"{Url}: {directImages?.QuickJoin()}");
-
 
 				/*directImages = directImages.AsParallel().Where(x => ImageHelper.IsDirect(x, DirectImageType.Binary))
 										   .ToList();*/
@@ -254,7 +238,6 @@ namespace SmartImage.Lib.Searching
 		{
 			if (Image is { }) {
 
-
 				Width  = Image.Width;
 				Height = Image.Height;
 
@@ -263,7 +246,6 @@ namespace SmartImage.Lib.Searching
 				// OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(rg));
 			}
 		}
-
 
 		public override string ToString() => Strings.ViewString(this);
 
@@ -278,7 +260,6 @@ namespace SmartImage.Lib.Searching
 					{nameof(Url), Url},
 					{nameof(Direct), Direct}
 				};
-
 
 				if (Similarity.HasValue) {
 					map.Add($"{nameof(Similarity)}", $"{Similarity.Value.AsPercent()}");

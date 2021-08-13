@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Kantan.Diagnostics;
 using Kantan.Net;
@@ -31,13 +32,14 @@ namespace SmartImage.Lib.Engines.Model
 
 		protected bool FollowRedirects { get; set; } = true;
 
+
 		protected SearchResult GetResult(ImageQuery query, out IRestResponse response)
 		{
 			var sr = new SearchResult(this);
 
-			if (!GetInitialResult(query, out var rawUrl, out response)) {
+			if (!GetRawContent(query, out var rawUrl, out response)) {
 				sr.Status       = ResultStatus.Unavailable;
-				sr.ErrorMessage = $"{response.ErrorMessage} | {response.StatusCode}";
+				sr.ErrorMessage = $"{response?.ErrorMessage} | {response?.StatusCode}";
 			}
 			else {
 				sr.RawUri = rawUrl;
@@ -73,20 +75,14 @@ namespace SmartImage.Lib.Engines.Model
 
 		}
 
-		protected virtual bool GetInitialResult(ImageQuery query, out Uri rawUri, out IRestResponse res)
+		protected virtual bool GetRawContent(ImageQuery query, out Uri rawUri, out IRestResponse res)
 		{
-
 			rawUri = GetRawUri(query);
-
-			/*if (!Network.IsAlive(uri, (int) Timeout.TotalMilliseconds)) {
-				Debug.WriteLine($"{Name} is unavailable or timed out after {Timeout:g} | {uri}", C_WARN);
-				return null;
-			}*/
 
 			res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);
 
 			if (!res.IsSuccessful) {
-				if ((FollowRedirects && res.StatusCode == HttpStatusCode.Redirect)) {
+				if (res.StatusCode == HttpStatusCode.Redirect) {
 					return true;
 				}
 
@@ -98,4 +94,6 @@ namespace SmartImage.Lib.Engines.Model
 			return true;
 		}
 	}
+
+	
 }

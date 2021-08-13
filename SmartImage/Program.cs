@@ -8,7 +8,7 @@
 #pragma warning disable CS0168
 #pragma warning disable IDE0060
 #pragma warning disable CA1825
-#nullable enable
+#nullable disable
 
 using SmartImage.Core;
 using System;
@@ -42,6 +42,10 @@ using SmartImage.Lib.Utilities;
 using SmartImage.UI;
 using SmartImage.Utilities;
 
+// ReSharper disable ConditionIsAlwaysTrueOrFalse
+
+// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
+
 // ReSharper disable CognitiveComplexity
 
 namespace SmartImage
@@ -60,21 +64,71 @@ namespace SmartImage
 		/// <summary>
 		/// User search config
 		/// </summary>
-		public static readonly SearchConfig Config = new();
+		internal static readonly SearchConfig Config = new();
 
 		/// <summary>
 		/// Search client
 		/// </summary>
-		public static readonly SearchClient Client = new(Config);
+		internal static readonly SearchClient Client = new(Config);
+
+		/// <summary>
+		/// Command line argument handler
+		/// </summary>
+		private static readonly CliHandler CliHandler = new()
+		{
+			Parameters =
+			{
+				new()
+				{
+					ArgumentCount = 1,
+					ParameterId   = "-se",
+					Function = strings =>
+					{
+						Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+						return null;
+					}
+				},
+				new()
+				{
+					ArgumentCount = 1,
+					ParameterId   = "-pe",
+					Function = strings =>
+					{
+						Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+						return null;
+					}
+				},
+				new()
+				{
+					ArgumentCount = 0,
+					ParameterId   = "-f",
+					Function = strings =>
+					{
+						Config.Filtering = true;
+						return null;
+					}
+				}
+			},
+			Default = new CliParameter
+			{
+				ArgumentCount = 1,
+				ParameterId   = null,
+				Function = strings =>
+				{
+					Config.Query = strings[0];
+					return null;
+				}
+			}
+		};
 
 		/// <summary>
 		/// Console UI for search results
 		/// </summary>
-		public static readonly NConsoleDialog ResultDialog = new()
+		private static readonly NConsoleDialog ResultDialog = new()
 		{
 			Options = new List<NConsoleOption>(),
 
-			Description = "Press the result number to open in browser\n"                                 +
+			Description = "Press the result number to open in browser\n" +
 			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
 			              "F1: Show filtered results | F5: Refresh",
 
@@ -84,22 +138,23 @@ namespace SmartImage
 				{
 					// F1 : Show filtered
 
+					Debug.Assert(ResultDialog != null);
 
-					ResultDialog!.Options.Clear();
+					ResultDialog.Options.Clear();
 
 					var buffer = new List<SearchResult>();
-					
+
 					buffer.AddRange(Client.Results);
 
 					if (!_isFilteredShown) {
 						buffer.AddRange(Client.FilteredResults);
 					}
 
-					ResultDialog.Options.Add(orig);
-					foreach (NConsoleOption? option in buffer.Select(NConsoleFactory.CreateResultOption)) {
+					ResultDialog.Options.Add(_orig);
+
+					foreach (NConsoleOption option in buffer.Select(NConsoleFactory.CreateResultOption)) {
 						ResultDialog.Options.Add(option);
 					}
-
 
 					_isFilteredShown = !_isFilteredShown;
 
@@ -108,8 +163,6 @@ namespace SmartImage
 
 			}
 		};
-
-		private static bool _isFilteredShown = false;
 
 		#endregion
 
@@ -157,10 +210,10 @@ namespace SmartImage
 
 			AppConfig.ReadConfigFile();
 
-			if (!HandleArguments())
+			if (!(await HandleArguments()))
 				return;
 
-			ResultDialog.Subtitle = $"SE: {Config.SearchEngines} "     +
+			ResultDialog.Subtitle = $"SE: {Config.SearchEngines} " +
 			                        $"| PE: {Config.PriorityEngines} " +
 			                        $"| Filtering: {Config.Filtering.ToToggleString()}";
 
@@ -184,21 +237,22 @@ namespace SmartImage
 			// Show results
 			var searchTask = Client.RunSearchAsync();
 
-			orig = NConsoleFactory.CreateResultOption(
+			_orig = NConsoleFactory.CreateResultOption(
 				Config.Query.GetImageResult(), "(Original image)",
 				Elements.ColorMain, -0.1f);
 
-			// Add original image
-			ResultDialog.Options.Add(orig);
 
-			ResultDialog.Read();
+			// Add original image
+			ResultDialog.Options.Add(_orig);
+
+			/*ResultDialog.Read();*/
+
+			await ResultDialog.ReadAsync();
 
 			await searchTask;
 		}
 
-		private static NConsoleOption orig;
-
-		private static bool HandleArguments()
+		private static async Task<bool> HandleArguments()
 		{
 			var args = Environment.GetCommandLineArgs();
 
@@ -206,7 +260,7 @@ namespace SmartImage
 			args = args.Skip(1).ToArray();
 
 			if (!args.Any()) {
-				HashSet<object> options = AppInterface.MainMenuDialog.Read();
+				var options = await AppInterface.MainMenuDialog.ReadAsync();
 
 				if (!options.Any()) {
 					return false;
@@ -222,57 +276,7 @@ namespace SmartImage
 
 				try {
 
-					var handler = new CliHandler();
-
-					var parameters = new CliParameter[]
-					{
-						new()
-						{
-							ArgumentCount = 1,
-							ParameterId   = "-se",
-							Function = strings =>
-							{
-								Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-								return null;
-							}
-						},
-						new()
-						{
-							ArgumentCount = 1,
-							ParameterId   = "-pe",
-							Function = strings =>
-							{
-								Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-								return null;
-							}
-						},
-						new()
-						{
-							ArgumentCount = 0,
-							ParameterId   = "-f",
-							Function = strings =>
-							{
-								Config.Filtering = true;
-								return null;
-							}
-						}
-
-					};
-
-					handler.Parameters.AddRange(parameters);
-
-					handler.Default = new CliParameter
-					{
-						ArgumentCount = 1,
-						ParameterId   = null,
-						Function = strings =>
-						{
-							Config.Query = strings[0];
-							return null;
-						}
-					};
-
-					handler.Run(args);
+					CliHandler.Run(args);
 
 					Client.Reload();
 				}
@@ -285,9 +289,13 @@ namespace SmartImage
 			return true;
 		}
 
+		private static bool _isFilteredShown;
+
+		private static NConsoleOption _orig;
+
 		#region Event handlers
 
-		private static void OnSearchCompleted(object? sender, SearchCompletedEventArgs eventArgs,
+		private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
 		                                      CancellationTokenSource cts)
 		{
 			Native.FlashConsoleWindow();
@@ -299,7 +307,7 @@ namespace SmartImage
 
 		}
 
-		private static void OnResultCompleted(object? sender, ResultCompletedEventArgs eventArgs)
+		private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
 		{
 			var result = eventArgs.Result;
 

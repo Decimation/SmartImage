@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using Kantan.Diagnostics;
 using RestSharp;
 using SmartImage.Lib.Engines.Model;
@@ -21,10 +22,7 @@ namespace SmartImage.Lib.Engines.Impl
 {
 	public sealed class Ascii2DEngine : WebSearchEngine
 	{
-		public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
-		{
-
-		}
+		public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
 
 		public override TimeSpan Timeout => TimeSpan.FromSeconds(5);
 
@@ -53,15 +51,14 @@ namespace SmartImage.Lib.Engines.Impl
 			 * as the color results are returned by default
 			 *
 			 */
-			
+
 			string detailUrl = response.ResponseUri.ToString().Replace("/color/", "/bovw/");
 
 			return new Uri(detailUrl);
 
 		}
 
-
-		protected override bool GetInitialResult(ImageQuery query, out Uri rawUri, out IRestResponse res)
+		protected override bool GetRawContent(ImageQuery query, out Uri rawUri, out IRestResponse res)
 		{
 			rawUri = GetRawUri(query);
 
@@ -69,14 +66,14 @@ namespace SmartImage.Lib.Engines.Impl
 			{
 				Content = WebUtilities.GetString(rawUri.ToString())
 			};
-
+			//res = Network.GetHttpResponse(rawUri.ToString(),HttpMethod.Get, (int)Timeout.TotalMilliseconds, false);
 
 			return true;
 		}
 
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
-			var doc   = (IDocument) obj;
+			var doc = (IDocument) obj;
 
 			var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
 

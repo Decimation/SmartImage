@@ -13,6 +13,7 @@ using Kantan.Utilities;
 using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+
 #pragma warning disable 8602
 
 #nullable enable
@@ -31,12 +32,15 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private static string? GetAnalysis(IDocument doc)
 		{
-			const string TAGS_XP =
-				"//a[contains(@class, 'Tags-Item') and ../../../../div[contains(@class,'CbirTags')]]/*";
+			var nodes = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item') and " +
+			                                 "../../../../div[contains(@class,'CbirTags')]]/*");
 
-			var nodes = doc.Body.SelectNodes(TAGS_XP);
+			var nodes2 = doc.Body.QuerySelectorAll(".CbirTags > .Tags > " +
+			                                       ".Tags-Wrapper > .Tags-Item");
 
-			if (nodes == null || !nodes.Any()) {
+			nodes.AddRange(nodes2);
+
+			if (!nodes.Any()) {
 				return null;
 			}
 
@@ -48,16 +52,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private static List<ImageResult>? GetOtherImages(IDocument doc)
 		{
-			//const string TAGS_ITEM_XP = "//a[contains(@class, 'other-sites__preview-link')]";
-			//const string TAGS_ITEM_XP = "//li[contains(@class, 'other-sites__item')]";
-
-
-			//$x("//a[contains(@class, 'other-sites__preview-link')]")
-			//$x("//li[contains(@class, 'other-sites__item')]")
-
-			const string item = "//li[@class='other-sites__item']";
-
-			var tagsItem = doc.Body.SelectNodes(item);
+			var tagsItem = doc.Body.SelectNodes("//li[@class='other-sites__item']");
 
 			if (tagsItem == null) {
 				return null;
@@ -119,12 +114,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private static List<ImageResult> GetImages(IDocument doc)
 		{
-			const string TAGS_ITEM_XP = "//a[contains(@class, 'Tags-Item')]";
-
-			const string CBIR_ITEM = "CbirItem";
 
 
-			var tagsItem = doc.Body.SelectNodes(TAGS_ITEM_XP);
+			var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
 			var images   = new List<ImageResult>();
 
 			if (tagsItem.Count == 0) {
@@ -132,7 +124,7 @@ namespace SmartImage.Lib.Engines.Impl
 			}
 
 			var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
-			                                       .Contains(CBIR_ITEM));
+			                                       .Contains("CbirItem"));
 
 			static ImageResult Parse(INode siz)
 			{
@@ -170,7 +162,6 @@ namespace SmartImage.Lib.Engines.Impl
 			return images;
 		}
 
-		
 
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
@@ -179,7 +170,7 @@ namespace SmartImage.Lib.Engines.Impl
 			// Automation detected
 			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
-			if (((IDocument)doc).Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
+			if (((IDocument) doc).Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
 				sr.Status = ResultStatus.Cooldown;
 				return sr;
 			}
@@ -208,14 +199,13 @@ namespace SmartImage.Lib.Engines.Impl
 			images = images.OrderByDescending(r => r.PixelResolution).ToList();
 
 			//
-			
+
 			if (images.Count > 0) {
 				var best = images[0];
 				sr.PrimaryResult.UpdateFrom(best);
 
 
-				if (looksLike != null)
-				{
+				if (looksLike != null) {
 					//todo
 
 					// sr.PrimaryResult.Description = Encoding.UTF8.GetString(
@@ -225,7 +215,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 				sr.OtherResults.AddRange(images);
 			}
-			
+
 
 			const string NO_MATCHING = "No matching images found";
 

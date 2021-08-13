@@ -32,6 +32,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => "IQDB";
 
+		public override TimeSpan Timeout => TimeSpan.FromSeconds(4.5);
 
 		private static ImageResult ParseResult(IHtmlCollection<IElement> tr)
 		{
@@ -138,8 +139,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 			rq.AddFile("file", fileBytes, "image.jpg");
 			rq.AddParameter("url", uri, ParameterType.GetOrPost);
-
-			//rq.AddParameter("service[]", new[] {1, 2, 3, 4, 5, 6, 11, 13}, ParameterType.GetOrPost);
+			
 
 			var response = Client.Execute(rq);
 

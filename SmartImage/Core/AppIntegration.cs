@@ -109,7 +109,7 @@ namespace SmartImage.Core
 			switch (option) {
 				case IntegrationOption.Add:
 				{
-					string oldValue  = FileSystem.EnvironmentPath;
+					string oldValue  = FileSystem.GetEnvironmentPath();
 					string appFolder = AppInfo.AppFolder;
 
 					if (AppInfo.IsAppFolderInPath) {
@@ -125,7 +125,7 @@ namespace SmartImage.Core
 
 					if (!appFolderInPath) {
 						string newValue = oldValue + FileSystem.PATH_DELIM + cd;
-						FileSystem.EnvironmentPath = newValue;
+						FileSystem.SetEnvironmentPath(newValue);
 					}
 
 					break;

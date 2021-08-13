@@ -47,7 +47,6 @@ namespace SmartImage.Lib.Searching
 
 		public TimeSpan UploadTime { get; }
 
-
 		public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 		{
 
@@ -56,7 +55,6 @@ namespace SmartImage.Lib.Searching
 			if (String.IsNullOrWhiteSpace(value)) {
 				throw new ArgumentNullException(nameof(value), "No input specified");
 			}
-
 
 			value = value.CleanString();
 
@@ -68,12 +66,9 @@ namespace SmartImage.Lib.Searching
 
 			Value = value;
 
-
 			UploadEngine = engine ?? new LitterboxEngine(); //note: default upload engine
 
-
 			UploadUri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
-
 
 			Stream = IsFile ? File.OpenRead(value) : WebUtilities.GetStream(value);
 
@@ -81,7 +76,6 @@ namespace SmartImage.Lib.Searching
 
 			Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
 		}
-
 
 		public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
@@ -107,12 +101,10 @@ namespace SmartImage.Lib.Searching
 			result.OtherMetadata.Add("Input value", Value);
 			result.OtherMetadata.Add("Time", $"(upload: {UploadTime.TotalSeconds:F3})");
 			
-
 			result.UpdateImageData();
 
 			return result;
 		}
-
 
 		public override string ToString()
 		{
