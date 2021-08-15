@@ -71,6 +71,27 @@ namespace SmartImage.Lib
 
 		public int Pending { get; private set; }
 
+		/*public bool ShouldRefine
+		{
+			get
+			{
+				//todo:WIP
+				if (IsComplete) {
+					// int i = Results.Count(c => c.IsNonPrimitive) - FilteredResults.Count;
+
+					int i = Results.Count(c => !c.PrimaryResult.IsDetailed);
+					int d = Results.Count;
+
+					if (!Config.Filtering) {
+						d -= Results.Count(c => !c.IsNonPrimitive);
+					}
+					return i >= d*.5;
+				}
+
+				return false;
+			}
+		}*/
+
 		/// <summary>
 		/// Reloads <see cref="Config"/> and <see cref="Engines"/> accordingly.
 		/// </summary>
@@ -223,6 +244,8 @@ namespace SmartImage.Lib
 
 			Config.Query = uri;
 
+			Reset();
+
 			await RunSearchAsync();
 		}
 
@@ -252,7 +275,7 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {best.Count} best results", C_DEBUG);
 
-			var images = new ConcurrentBag<ImageResult>();
+			/*var images = new ConcurrentBag<ImageResult>();
 
 			// todo: this is just a stopgap
 
@@ -271,7 +294,9 @@ namespace SmartImage.Lib
 
 				images.Add(item);
 
-			} while (++i != best.Count && i < count /*!images.Any(x=>x.Direct!=null)*/);
+			} while (++i != best.Count && i < count /*!images.Any(x=>x.Direct!=null)#1#);*/
+
+			var images = best.Where(x => x.CheckDirect()).Take(count).ToList();
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 

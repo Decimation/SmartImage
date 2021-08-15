@@ -148,12 +148,15 @@ namespace SmartImage.Lib.Searching
 				                    .Count(v => v != null);
 
 				s += OtherMetadata.Count;
-
+				/*if (Similarity.HasValue) {
+					s +=(int) Math.Ceiling(((Similarity.Value/100) * 13f) * .66f);
+				}*/
+				
 				return s;
 			}
 		}
 
-		public bool IsDetailed => DetailScore >= DetailFields.Count * .5;
+		public bool IsDetailed => DetailScore >= DetailFields.Count * .4;
 
 		/// <summary>
 		/// The display resolution of this image
@@ -245,6 +248,17 @@ namespace SmartImage.Lib.Searching
 				// OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
 				// OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(rg));
 			}
+		}
+
+		public bool CheckDirect()
+		{
+			var b = ImageHelper.IsDirect(Url?.ToString());
+
+			if (b) {
+				Direct = Url;
+			}
+
+			return b;
 		}
 
 		public override string ToString() => Strings.OutlineString(this);
