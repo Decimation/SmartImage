@@ -77,6 +77,8 @@ namespace SmartImage.Lib.Engines.Model
 
 		protected virtual bool GetRawContent(ImageQuery query, out Uri rawUri, out IRestResponse res)
 		{
+			// TODO: Refactor to use HttpClient
+
 			rawUri = GetRawUri(query);
 
 			res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);

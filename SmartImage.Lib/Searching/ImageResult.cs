@@ -22,7 +22,7 @@ namespace SmartImage.Lib.Searching
 	/// <summary>
 	/// Describes an image search result
 	/// </summary>
-	public sealed class ImageResult : IViewable
+	public sealed class ImageResult : IOutline
 	{
 		/// <summary>
 		/// Result url
@@ -247,9 +247,9 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
-		public override string ToString() => Strings.ViewString(this);
+		public override string ToString() => Strings.OutlineString(this);
 
-		public Dictionary<string, object> View
+		public Dictionary<string, object> Outline
 		{
 			get
 			{

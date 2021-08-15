@@ -52,7 +52,7 @@ namespace SmartImage.Lib.Searching
 	/// <summary>
 	/// Describes a search result
 	/// </summary>
-	public class SearchResult : IViewable
+	public class SearchResult : IOutline
 	{
 		/// <summary>
 		/// Primary image result
@@ -136,9 +136,9 @@ namespace SmartImage.Lib.Searching
 		}
 
 
-		public override string ToString() => Strings.ViewString(this);
+		public override string ToString() => Strings.OutlineString(this);
 		
-		public Dictionary<string, object> View
+		public Dictionary<string, object> Outline
 		{
 			get
 			{

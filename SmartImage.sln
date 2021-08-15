@@ -11,8 +11,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTest", "UnitTest\UnitTest.csproj", "{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.UI", "SmartImage.UI\SmartImage.UI.csproj", "{E5D386AD-EC99-4ACD-A376-A4BE0640B265}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -98,24 +96,6 @@ Global
 		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.TestDebug|x64.Build.0 = TestDebug|Any CPU
 		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.TestDebug|x86.ActiveCfg = TestDebug|Any CPU
 		{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}.TestDebug|x86.Build.0 = TestDebug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Debug|x64.Build.0 = Debug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Debug|x86.Build.0 = Debug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Release|x64.ActiveCfg = Release|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Release|x64.Build.0 = Release|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Release|x86.ActiveCfg = Release|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.Release|x86.Build.0 = Release|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.TestDebug|Any CPU.ActiveCfg = TestDebug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.TestDebug|Any CPU.Build.0 = TestDebug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.TestDebug|x64.ActiveCfg = TestDebug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.TestDebug|x64.Build.0 = TestDebug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.TestDebug|x86.ActiveCfg = TestDebug|Any CPU
-		{E5D386AD-EC99-4ACD-A376-A4BE0640B265}.TestDebug|x86.Build.0 = TestDebug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

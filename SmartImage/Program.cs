@@ -31,6 +31,7 @@ using Windows.ApplicationModel.Background;
 using Windows.Networking.Connectivity;
 using Windows.UI.Notifications;
 using Kantan.Cli;
+using Kantan.Diagnostics;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
@@ -137,8 +138,7 @@ namespace SmartImage
 				() =>
 				{
 					// F1 : Show filtered
-
-					Debug.Assert(ResultDialog != null);
+					
 
 					ResultDialog.Options.Clear();
 
@@ -332,8 +332,7 @@ namespace SmartImage
 			s += $" | Pending: {Client.Pending}";
 
 			ResultDialog.Status = s;
-
-			NConsole.Refresh();
+			
 		}
 
 		#endregion
