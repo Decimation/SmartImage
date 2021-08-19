@@ -42,6 +42,7 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI;
 using SmartImage.Utilities;
+
 // ReSharper disable AsyncVoidLambda
 
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
@@ -89,7 +90,7 @@ namespace SmartImage
 				() =>
 				{
 					// F1 : Show filtered
-					
+
 					ResultDialog.Options.Clear();
 
 					var buffer = new List<SearchResult>();
@@ -115,6 +116,7 @@ namespace SmartImage
 
 					_cancellationToken = new();
 					ResultDialog.Options.Clear();
+					ResultDialog.Options.Add(_orig);
 					await Client.RefineSearchAsync();
 
 					NConsole.Refresh();
@@ -173,7 +175,7 @@ namespace SmartImage
 
 			ResultDialog.Subtitle = $"SE: {Config.SearchEngines} " +
 			                        $"| PE: {Config.PriorityEngines} " +
-			                        $"| Filtering: {Config.Filtering.ToToggleString()}";
+			                        $"| Filtering: {AppInterface.Elements.ToToggleString(Config.Filtering)}";
 
 			_cancellationToken = new();
 
@@ -195,14 +197,12 @@ namespace SmartImage
 			// Show results
 			var searchTask = Client.RunSearchAsync();
 
-			_orig = NConsoleFactory.CreateResultOption(
-				Config.Query.GetImageResult(), "(Original image)",
-				Elements.ColorMain, -0.1f);
+			_orig = NConsoleFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
+			                                           AppInterface.Elements.ColorMain, -0.1f);
 
 			// Add original image
 			ResultDialog.Options.Add(_orig);
 
-			/*ResultDialog.Read();*/
 
 			await ResultDialog.ReadAsync();
 
@@ -294,7 +294,7 @@ namespace SmartImage
 			s += $" | Pending: {Client.Pending}";
 
 			ResultDialog.Status = s;
-			
+
 		}
 
 		#endregion

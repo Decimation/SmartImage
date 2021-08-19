@@ -96,6 +96,4 @@ namespace SmartImage.Lib.Engines.Model
 			return true;
 		}
 	}
-
-	
 }

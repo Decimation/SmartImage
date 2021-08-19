@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
+using JetBrains.Annotations;
 using Kantan.Cli;
 using Novus.Win32;
 using SmartImage.Core;
@@ -31,6 +32,7 @@ namespace SmartImage.Utilities
 		}
 
 		[DoesNotReturn]
+		[ContractAnnotation("=> stop")]
 		public static void Update(UpdateInfo ui)
 		{
 			const string NEW_EXE    = "SmartImage-new.exe";
@@ -38,9 +40,12 @@ namespace SmartImage.Utilities
 
 
 			var destNew = Path.Combine(AppInfo.AppFolder, NEW_EXE);
-			var wc      = new WebClient();
+
+			using var wc = new WebClient();
+
 
 			Console.WriteLine("Downloading...");
+			Console.WriteLine("Program will reopen automatically after update!");
 
 			wc.DownloadFile(ui.Latest.AssetUrl, destNew);
 
@@ -49,14 +54,15 @@ namespace SmartImage.Utilities
 
 			//const string WAIT_4_SEC = "ping 127.0.0.1 > nul";
 
-			const string WAIT_4_SEC = "timeout /t 4 /nobreak >nul";
+			const string WAIT_2_SEC = "timeout /t 2 /nobreak >nul";
+			const string WAIT_1_SEC = "timeout /t 1 /nobreak >nul";
 
 			string[] commands =
 			{
 				"@echo off",
 
-				/* Wait approximately 4 seconds (so that the process is already terminated) */
-				WAIT_4_SEC,
+				/* Wait approximately 2 seconds (so that the process is already terminated) */
+				WAIT_2_SEC,
 
 				/* Delete executable */
 				"echo y | del /F " + exeFileName,
@@ -65,8 +71,7 @@ namespace SmartImage.Utilities
 				$"move /Y \"{destNew}\" \"{exeFileName}\" > NUL",
 
 				/* Wait */
-				WAIT_4_SEC,
-				//WAIT_4_SEC,
+				WAIT_1_SEC,
 
 				/* Open the new SmartImage version */
 				$"start /d \"{AppInfo.AppFolder}\" {AppInfo.NAME_EXE}",
@@ -83,31 +88,6 @@ namespace SmartImage.Utilities
 			Environment.Exit(0);
 		}
 
-
-		// NOTE: Does not return if a new update is found and the user updates
-		public static void AutoUpdate()
-		{
-			var ui = GetUpdateInfo();
-
-			if (ui.Status == VersionStatus.Available) {
-				Console.WriteLine($"Update found: {ui.Latest} ");
-
-				if (NConsole.ReadConfirmation("Update?")) {
-					try {
-						Update(ui);
-						
-					}
-					catch (Exception e) {
-						Console.WriteLine(e);
-						
-					}
-				}
-			}
-
-			Console.WriteLine($"Up to date: {ui.Current} [{ui.Latest}]");
-			NConsole.WaitForSecond();
-			
-		}
 
 		public static UpdateInfo GetUpdateInfo()
 		{

@@ -33,7 +33,7 @@ namespace SmartImage.UI
 			return new()
 			{
 				Name  = name,
-				Color = Elements.ColorOther,
+				Color = AppInterface.Elements.ColorOther,
 				Function = () =>
 				{
 					var enumOptions = NConsoleOption.FromEnum<SearchEngineOptions>();
@@ -67,7 +67,7 @@ namespace SmartImage.UI
 
 			return new NConsoleOption()
 			{
-				Name = Elements.GetName(name, initVal),
+				Name = AppInterface.Elements.GetName(name, initVal),
 				Function = () =>
 				{
 					var pi = member.DeclaringType.GetProperty(member.Name);
@@ -78,7 +78,7 @@ namespace SmartImage.UI
 
 					bool newVal = (bool) pi.GetValue(null);
 
-					AppInterface.MainMenuOptions[i].Name = Elements.GetName(name, newVal);
+					AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
 
 					Debug.Assert((bool) pi.GetValue(null) == newVal);
 
@@ -93,7 +93,7 @@ namespace SmartImage.UI
 
 			return new NConsoleOption()
 			{
-				Name = Elements.GetName(name, initVal),
+				Name = AppInterface.Elements.GetName(name, initVal),
 				Function = () =>
 				{
 					var    fi     = Program.Config.GetType().GetAnyResolvedField(member.Name);
@@ -101,7 +101,7 @@ namespace SmartImage.UI
 					bool   newVal = !(bool) curVal;
 					fi.SetValue(Program.Config, newVal);
 
-					AppInterface.MainMenuOptions[i].Name = Elements.GetName(name, newVal);
+					AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
 
 					Debug.Assert((bool) fi.GetValue(Program.Config) == newVal);
 
@@ -114,7 +114,7 @@ namespace SmartImage.UI
 
 		internal static NConsoleOption CreateResultOption(SearchResult result)
 		{
-			var color = Elements.EngineColorMap[result.Engine.EngineOption];
+			var color = AppInterface.Elements.EngineColorMap[result.Engine.EngineOption];
 
 			var option = new NConsoleOption
 			{
@@ -173,7 +173,7 @@ namespace SmartImage.UI
 		internal static NConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n, Color c = default)
 		{
 			if (c == default) {
-				c = Elements.ColorOther;
+				c = AppInterface.Elements.ColorOther;
 			}
 
 			int i = 0;

@@ -43,7 +43,7 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public BaseUploadEngine UploadEngine { get; }
 
-		public Stream   Stream     { get; }
+		public Stream Stream { get; }
 
 		public TimeSpan UploadTime { get; }
 
@@ -100,7 +100,7 @@ namespace SmartImage.Lib.Searching
 			result.OtherMetadata.Add("Input type", IsUri ? "URI" : "File");
 			result.OtherMetadata.Add("Input value", Value);
 			result.OtherMetadata.Add("Time", $"(upload: {UploadTime.TotalSeconds:F3})");
-			
+
 			result.UpdateImageData();
 
 			return result;

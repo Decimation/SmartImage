@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
+using System.Linq;
 using Kantan.Cli;
-using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
@@ -16,6 +17,8 @@ using static Novus.Utilities.ReflectionOperatorHelpers;
 using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.Program;
 
+// ReSharper disable AssignNullToNotNullAttribute
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
@@ -27,7 +30,7 @@ namespace SmartImage.UI
 	/// <summary>
 	/// Handles the main menu interface
 	/// </summary>
-	internal static class AppInterface
+	internal static partial class AppInterface
 	{
 		internal static readonly NConsoleOption[] MainMenuOptions =
 		{
@@ -55,9 +58,11 @@ namespace SmartImage.UI
 			NConsoleFactory.CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3),
 			NConsoleFactory.CreateConfigOption(propertyof(() => Config.Notification), "Notification", 4),
 			NConsoleFactory.CreateConfigOption(propertyof(() => Config.NotificationImage), "Notification image", 5),
-			NConsoleFactory.CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
-			                                   (added) => AppIntegration.HandleContextMenu(
-				                                   added ? IntegrationOption.Remove : IntegrationOption.Add)),
+
+			NConsoleFactory.CreateConfigOption(
+				propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
+				added => AppIntegration.HandleContextMenu(
+					added ? IntegrationOption.Remove : IntegrationOption.Add)),
 
 			new()
 			{
@@ -117,7 +122,6 @@ namespace SmartImage.UI
 				Name = "Update",
 				Function = () =>
 				{
-					UpdateInfo.AutoUpdate();
 
 					return null;
 				}
@@ -154,30 +158,34 @@ namespace SmartImage.UI
 			Functions = Array.Empty<Action>()
 		};
 
-		/*
-		/// <summary>Returns true if the current application has focus, false otherwise</summary>
-		internal static bool ApplicationIsActivated()
+		static AppInterface()
 		{
-			//https://stackoverflow.com/questions/7162834/determine-if-current-application-is-activated-has-focus
-			var activatedHandle = Native.GetForegroundWindow();
+			// NOTE: Static initializer must be AFTER MainMenuDialog
 
-			if (activatedHandle == IntPtr.Zero) {
-				return false; // No window is currently activated
+			var current = UpdateInfo.GetUpdateInfo();
+
+			if (current.Status == VersionStatus.Available) {
+
+				var option = MainMenuOptions.First(f => f.Name == "Update");
+
+				option.Name = option.Name.AddColor(Elements.ColorHighlight);
+
+				var updateStr = $"* Update available (latest: {Elements.ToVersionString(current.Latest.Version)};" +
+				                $" current: {Elements.ToVersionString(current.Current)})";
+
+				updateStr = updateStr.AddColor(Elements.ColorHighlight);
+
+				MainMenuDialog.Description = updateStr;
+
+				option.Function = () =>
+				{
+					UpdateInfo.Update(current);
+					return null;
+				};
 			}
-
-			var p1     = Process.GetCurrentProcess();
-			var procId = p1.Id;
-			int activeProcId;
-			Native.GetWindowThreadProcessId(activatedHandle, out activeProcId);
-			var p2 = Process.GetProcessById(activeProcId);
-
-			return activeProcId == procId;
-		}*/
+		}
 
 		#region Toast
-
-		private const string ARG_KEY_ACTION    = "action";
-		private const string ARG_VALUE_DISMISS = "dismiss";
 
 		public static void ShowToast(object sender, SearchCompletedEventArgs args)
 		{
@@ -188,16 +196,16 @@ namespace SmartImage.UI
 			var button2 = new ToastButton();
 
 			button2.SetContent("Dismiss")
-			       .AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
+			       .AddArgument(Elements.ARG_KEY_ACTION, Elements.ARG_VALUE_DISMISS);
 
 			button.SetContent("Open")
-			      .AddArgument(ARG_KEY_ACTION, $"{bestResult.Value.Url}");
+			      .AddArgument(Elements.ARG_KEY_ACTION, $"{bestResult.Value.Url}");
 
 			builder.AddButton(button)
 			       .AddButton(button2)
 			       .AddText("Search complete")
 			       .AddText($"{bestResult}")
-			       .AddText($"Results: {Program.Client.Results.Count}");
+			       .AddText($"Results: {Client.Results.Count}");
 
 			var direct = args.Direct?.Value?.Direct;
 
@@ -205,7 +213,7 @@ namespace SmartImage.UI
 				var path = Path.GetTempPath();
 				var file = ImageHelper.Download(direct, path);
 
-				Debug.WriteLine($"Downloaded {file}", LogCategories.C_INFO);
+				Debug.WriteLine($"Downloaded {file}", C_INFO);
 
 				builder.AddHeroImage(new Uri(file));
 
@@ -235,9 +243,9 @@ namespace SmartImage.UI
 			foreach (var argument in arguments) {
 				Debug.WriteLine($"Toast argument: {argument}", C_DEBUG);
 
-				if (argument.Key == ARG_KEY_ACTION) {
+				if (argument.Key == Elements.ARG_KEY_ACTION) {
 
-					if (argument.Value == ARG_VALUE_DISMISS) {
+					if (argument.Value == Elements.ARG_VALUE_DISMISS) {
 						break;
 					}
 
