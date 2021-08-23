@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -155,7 +156,7 @@ namespace SmartImage.UI
 		{
 			Options   = MainMenuOptions,
 			Header    = AppInfo.NAME_BANNER,
-			Functions = Array.Empty<Action>()
+			Functions = new()
 		};
 
 		static AppInterface()

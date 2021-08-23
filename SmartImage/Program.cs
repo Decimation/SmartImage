@@ -86,9 +86,9 @@ namespace SmartImage
 			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
 			              "F1: Show filtered results | F2: Refine | F5: Refresh",
 
-			Functions = new Action[]
+			Functions = new()
 			{
-				() =>
+				[ConsoleKey.F1]=() =>
 				{
 					// F1 : Show filtered
 
@@ -111,7 +111,7 @@ namespace SmartImage
 
 					NConsole.Refresh();
 				},
-				async () =>
+				[ConsoleKey.F2] = async () =>
 				{
 					// F2 : Refine
 

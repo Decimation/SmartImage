@@ -16,6 +16,7 @@ using SmartImage.Core;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+using static Kantan.Cli.NConsoleOption;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -23,7 +24,6 @@ namespace SmartImage.UI
 {
 	internal static class NConsoleFactory
 	{
-
 		/*
 		 * todo: this is all glue code :(
 		 */
@@ -36,7 +36,7 @@ namespace SmartImage.UI
 				Color = AppInterface.Elements.ColorOther,
 				Function = () =>
 				{
-					var enumOptions = NConsoleOption.FromEnum<SearchEngineOptions>();
+					var enumOptions = FromEnum<SearchEngineOptions>();
 
 					var selected = NConsole.ReadOptions(new NConsoleDialog
 					{
@@ -118,27 +118,33 @@ namespace SmartImage.UI
 
 			var option = new NConsoleOption
 			{
-				Function = CreateOpenFunction(result.PrimaryResult is {Url: { }}
-					? result.PrimaryResult.Url
-					: result.RawUri),
 
-				AltFunction = () =>
+
+				Functions = new Dictionary<ConsoleModifiers, NConsoleFunction>()
 				{
-					if (result.OtherResults.Any()) {
+					[NC_FN_MAIN] = CreateOpenFunction(result.PrimaryResult is { Url: { } }
+						                                  ? result.PrimaryResult.Url
+						                                  : result.RawUri),
 
-						var options = CreateResultOptions(result.OtherResults, $"Other result");
+					[ConsoleModifiers.Shift] = CreateOpenFunction(result.RawUri),
+					[ConsoleModifiers.Alt] = () =>
+					{
+						if (result.OtherResults.Any()) {
 
-						NConsole.ReadOptions(new NConsoleDialog
-						{
-							Options = options
-						});
-					}
+							var options = CreateResultOptions(result.OtherResults, $"Other result");
 
-					return null;
+							NConsole.ReadOptions(new NConsoleDialog
+							{
+								Options = options
+							});
+						}
+
+						return null;
+					},
+
+
 				},
 
-				ComboFunction = CreateDownloadFunction(result.PrimaryResult),
-				ShiftFunction = CreateOpenFunction(result.RawUri),
 
 				Color = color,
 
@@ -146,7 +152,10 @@ namespace SmartImage.UI
 				Data = result,
 			};
 
-			option.CtrlFunction = () =>
+			option.Functions[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
+				CreateDownloadFunction(() => result.PrimaryResult.Direct);
+
+			option.Functions[ConsoleModifiers.Control] = () =>
 			{
 				var cts = new CancellationTokenSource();
 
@@ -165,12 +174,12 @@ namespace SmartImage.UI
 				return null;
 			};
 
-
 			return option;
 		}
 
 		[StringFormatMethod("n")]
-		internal static NConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n, Color c = default)
+		internal static NConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n,
+		                                                     Color c = default)
 		{
 			if (c == default) {
 				c = AppInterface.Elements.ColorOther;
@@ -185,14 +194,42 @@ namespace SmartImage.UI
 		{
 			var option = new NConsoleOption
 			{
-				Function      = CreateOpenFunction(result.Url),
-				ComboFunction = CreateDownloadFunction(result),
-				Color         = c.ChangeBrightness(correction),
-				Name          = n,
-				Data          = result
+				Color = c.ChangeBrightness(correction),
+				Name  = n,
+				Data  = result,
+				Functions =
+				{
+					[NC_FN_MAIN] = CreateOpenFunction(result.Url),
+
+					[ConsoleModifiers.Control | ConsoleModifiers.Alt] = CreateDownloadFunction(() => result.Direct)
+				}
 			};
 
 			return option;
+		}
+
+		internal static NConsoleFunction CreateDownloadFunction(Func<Uri> d)
+		{
+			// Because of value type and pointer semantics, a func needs to be used here to ensure the
+			// Direct field of ImageResult is updated.
+			// ImageResult is a struct so updates cannot be seen by these functions
+
+			return () =>
+			{
+				var direct = d();
+
+				if (direct != null) {
+					var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+					var file = ImageHelper.Download(direct, path);
+
+					FileSystem.ExploreFile(file);
+
+					Debug.WriteLine($"Download: {file}", LogCategories.C_INFO);
+				}
+
+				return null;
+			};
 		}
 
 		internal static NConsoleFunction CreateOpenFunction(Uri url)
@@ -211,12 +248,13 @@ namespace SmartImage.UI
 		{
 			return () =>
 			{
+				Trace.WriteLine($"Downloading");
 				var direct = result.Direct;
 
 
 				if (direct != null) {
 					var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-					
+
 					var file = ImageHelper.Download(direct, path);
 
 					FileSystem.ExploreFile(file);
