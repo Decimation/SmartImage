@@ -109,6 +109,14 @@ namespace SmartImage.Lib.Engines.Impl
 			result.Consolidate();
 
 			ret:
+
+			result.PrimaryResult.Quality = result.PrimaryResult.Similarity switch
+			{
+				null  => ResultQuality.Indeterminate,
+				>= 75 => ResultQuality.High,
+				_     => ResultQuality.Low,
+			};
+
 			return result;
 		}
 
@@ -209,7 +217,7 @@ namespace SmartImage.Lib.Engines.Impl
 				float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
 				var dataResult = new SauceNaoDataResult
-					{Urls = new[] {link}!, Similarity = similarity, Creator = creator1};
+					{ Urls = new[] { link }!, Similarity = similarity, Creator = creator1 };
 
 				return dataResult;
 			}
@@ -273,8 +281,9 @@ namespace SmartImage.Lib.Engines.Impl
 					float similarity = Single.Parse(result[KeySimilarity]);
 
 					string[] strings = result.ContainsKey(KeyUrls)
-						? (result[KeyUrls] as JsonArray)!.Select(j => j.ToString().CleanString()).ToArray()
-						: null;
+						                   ? (result[KeyUrls] as JsonArray)!.Select(j => j.ToString().CleanString())
+						                                                    .ToArray()
+						                   : null;
 
 					var index = (SauceNaoSiteIndex) Int32.Parse(result[KeyIndex].ToString());
 

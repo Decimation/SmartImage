@@ -184,6 +184,13 @@ namespace SmartImage.Lib.Engines.Impl
 			sr.PrimaryResult.UpdateFrom(best);
 			sr.OtherResults.AddRange(images);
 
+			sr.PrimaryResult.Quality = sr.PrimaryResult.Similarity switch
+			{
+				null  => ResultQuality.Indeterminate,
+				>= 75 => ResultQuality.High,
+				_     => ResultQuality.Low,
+			};
+
 			return sr;
 		}
 	}

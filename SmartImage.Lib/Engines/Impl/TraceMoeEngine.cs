@@ -90,6 +90,12 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 			ret:
+			r.PrimaryResult.Quality = r.PrimaryResult.Similarity switch
+			{
+				null  => ResultQuality.Indeterminate,
+				>= FILTER_THRESHOLD => ResultQuality.High,
+				_     => ResultQuality.Low,
+			};
 			return r;
 		}
 

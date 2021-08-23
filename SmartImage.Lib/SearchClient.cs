@@ -200,7 +200,7 @@ namespace SmartImage.Lib
 					if (Config.Notification && Config.NotificationImage) {
 
 						Debug.WriteLine($"Finding direct result");
-						var direct = FindDirectResult();
+						var direct = FindDirectResults().FirstOrDefault();
 
 						if (direct?.Direct != null) {
 							Debug.WriteLine(direct);
@@ -232,7 +232,7 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine("Finding best result");
 
-			var best = FindDirectResult();
+			var best = FindDirectResults().FirstOrDefault(f => ImageHelper.IsDirect(f.Direct.ToString(), DirectImageType.Binary));
 
 			if (best == null) {
 				throw new SmartImageException(ERR_NO_BEST_RESULT);
@@ -265,8 +265,7 @@ namespace SmartImage.Lib
 
 			return res;
 		}
-
-		public ImageResult FindDirectResult() => FindDirectResults().FirstOrDefault();
+		
 
 		public ImageResult[] FindDirectResults(int count = 5)
 		{

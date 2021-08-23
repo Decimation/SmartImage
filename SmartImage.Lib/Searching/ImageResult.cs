@@ -19,6 +19,14 @@ using Novus.Win32;
 
 namespace SmartImage.Lib.Searching
 {
+	public enum ResultQuality
+	{
+		NA,
+		Low,
+		High,
+		Indeterminate,
+	}
+
 	/// <summary>
 	/// Describes an image search result
 	/// </summary>
@@ -151,7 +159,7 @@ namespace SmartImage.Lib.Searching
 				/*if (Similarity.HasValue) {
 					s +=(int) Math.Ceiling(((Similarity.Value/100) * 13f) * .66f);
 				}*/
-				
+
 				return s;
 			}
 		}
@@ -174,6 +182,8 @@ namespace SmartImage.Lib.Searching
 				throw new SmartImageException($"Resolution unavailable");
 			}
 		}
+
+		public ResultQuality Quality { get; set; }
 
 		public void UpdateFrom(ImageResult result)
 		{
@@ -252,7 +262,13 @@ namespace SmartImage.Lib.Searching
 
 		public bool CheckDirect()
 		{
-			var b = ImageHelper.IsDirect(Url?.ToString());
+			var s = Url?.ToString();
+
+			if (s is not { }) {
+				return false;
+			}
+
+			var b = ImageHelper.IsDirect(s);
 
 			if (b) {
 				Direct = Url;
@@ -263,6 +279,7 @@ namespace SmartImage.Lib.Searching
 
 		public override string ToString() => Strings.OutlineString(this);
 
+
 		public Dictionary<string, object> Outline
 		{
 			get
@@ -271,8 +288,8 @@ namespace SmartImage.Lib.Searching
 
 				var map = new Dictionary<string, object>
 				{
-					{nameof(Url), Url},
-					{nameof(Direct), Direct}
+					{ nameof(Url), Url },
+					{ nameof(Direct), Direct }
 				};
 
 				if (Similarity.HasValue) {
@@ -291,7 +308,14 @@ namespace SmartImage.Lib.Searching
 					map.Add("Resolution", val);
 				}
 
+
 				map.Add(nameof(Name), Name);
+
+				if (Quality is not ResultQuality.NA) {
+					map.Add(nameof(Quality), Quality);
+
+				}
+
 				map.Add(nameof(Description), Description);
 				map.Add(nameof(Artist), Artist);
 				map.Add(nameof(Site), Site);

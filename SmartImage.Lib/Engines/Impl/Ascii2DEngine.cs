@@ -137,6 +137,12 @@ namespace SmartImage.Lib.Engines.Impl
 
 			sr.OtherResults.AddRange(rg);
 
+			sr.PrimaryResult.Quality = sr.PrimaryResult.MegapixelResolution switch
+			{
+				null => ResultQuality.Indeterminate,
+				>= 1 => ResultQuality.High,
+				_    => ResultQuality.Low,
+			};
 			return sr;
 		}
 	}

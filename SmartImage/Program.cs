@@ -32,6 +32,7 @@ using Windows.Networking.Connectivity;
 using Windows.UI.Notifications;
 using Kantan.Cli;
 using Kantan.Diagnostics;
+using Kantan.Net;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
@@ -265,6 +266,11 @@ namespace SmartImage
 			SystemSounds.Exclamation.Play();
 			NConsole.Refresh();
 
+			if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+				var m=Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
+
+				WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
+			}
 			//ResultDialog.Status += $" | {Client.ShouldRefine}";
 
 		}

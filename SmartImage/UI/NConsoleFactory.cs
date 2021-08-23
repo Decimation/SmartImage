@@ -28,7 +28,7 @@ namespace SmartImage.UI
 		 * todo: this is all glue code :(
 		 */
 
-		internal static NConsoleOption CreateConfigOption(MemberInfo m, string name)
+		internal static NConsoleOption CreateConfigOption(string f, string name)
 		{
 			return new()
 			{
@@ -45,7 +45,7 @@ namespace SmartImage.UI
 					});
 
 					var enumValue = Enums.ReadFromSet<SearchEngineOptions>(selected);
-					var field     = Program.Config.GetType().GetAnyResolvedField((m).Name);
+					var field     = Program.Config.GetType().GetAnyResolvedField(f);
 					field.SetValue(Program.Config, enumValue);
 
 					Console.WriteLine(enumValue);
@@ -87,16 +87,16 @@ namespace SmartImage.UI
 			};
 		}
 
-		internal static NConsoleOption CreateConfigOption(PropertyInfo member, string name, int i)
+		internal static NConsoleOption CreateConfigOption(string m, string name, int i)
 		{
-			bool initVal = (bool) member.GetValue(Program.Config);
+			bool initVal = (bool) (Program.Config).GetType().GetAnyResolvedField(m).GetValue(Program.Config);
 
 			return new NConsoleOption()
 			{
 				Name = AppInterface.Elements.GetName(name, initVal),
 				Function = () =>
 				{
-					var    fi     = Program.Config.GetType().GetAnyResolvedField(member.Name);
+					var    fi     = Program.Config.GetType().GetAnyResolvedField(m);
 					object curVal = fi.GetValue(Program.Config);
 					bool   newVal = !(bool) curVal;
 					fi.SetValue(Program.Config, newVal);

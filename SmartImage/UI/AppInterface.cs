@@ -16,6 +16,7 @@ using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.Program;
+using static SmartImage.UI.NConsoleFactory;
 
 // ReSharper disable AssignNullToNotNullAttribute
 
@@ -53,16 +54,15 @@ namespace SmartImage.UI
 				}
 			},
 
-			NConsoleFactory.CreateConfigOption(memberof(() => Config.SearchEngines), "Engines"),
-			NConsoleFactory.CreateConfigOption(memberof(() => Config.PriorityEngines), "Priority engines"),
-			NConsoleFactory.CreateConfigOption(propertyof(() => Config.Filtering), "Filter", 3),
-			NConsoleFactory.CreateConfigOption(propertyof(() => Config.Notification), "Notification", 4),
-			NConsoleFactory.CreateConfigOption(propertyof(() => Config.NotificationImage), "Notification image", 5),
+			CreateConfigOption(nameof(Config.SearchEngines), "Engines"),
+			CreateConfigOption(nameof(Config.PriorityEngines), "Priority engines"),
+			CreateConfigOption(nameof(Config.Filtering), "Filter", 3),
+			CreateConfigOption(nameof(Config.Notification), "Notification", 4),
+			CreateConfigOption(nameof(Config.NotificationImage), "Notification image", 5),
 
-			NConsoleFactory.CreateConfigOption(
-				propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
-				added => AppIntegration.HandleContextMenu(
-					added ? IntegrationOption.Remove : IntegrationOption.Add)),
+			CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
+			                   added => AppIntegration.HandleContextMenu(
+				                   added ? IntegrationOption.Remove : IntegrationOption.Add)),
 
 			new()
 			{

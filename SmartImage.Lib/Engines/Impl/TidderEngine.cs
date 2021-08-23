@@ -81,6 +81,7 @@ namespace SmartImage.Lib.Engines.Impl
 			sr.PrimaryResult.UpdateFrom(best);
 
 			sr.OtherResults.AddRange(list);
+			
 
 			return sr;
 		}

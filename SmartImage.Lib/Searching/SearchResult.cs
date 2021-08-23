@@ -94,6 +94,7 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
 
+
 		public bool IsSuccessful
 		{
 			get
@@ -153,6 +154,7 @@ namespace SmartImage.Lib.Searching
 				if (OtherResults.Count != 0) {
 					map.Add("Other image results", OtherResults.Count);
 				}
+				
 
 				if (ErrorMessage != null) {
 					map.Add("Error", ErrorMessage);
