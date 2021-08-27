@@ -223,6 +223,11 @@ namespace SmartImage
 				if (!options.Any()) {
 					return false;
 				}
+
+				if (options.First() is string file) {
+					Debug.WriteLine($"Drag and drop: {file}");
+					Config.Query = file;
+				}
 			}
 			else {
 

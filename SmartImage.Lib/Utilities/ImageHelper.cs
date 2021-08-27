@@ -13,14 +13,14 @@ using System.Web;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
+using Kantan.Collections;
 using Novus.Win32;
 using Kantan.Net;
 using Kantan.Utilities;
 using RestSharp;
-using StringTask= System.Threading.Tasks.Task<string>;
 using static Kantan.Diagnostics.LogCategories;
-// ReSharper disable ConvertIfStatementToReturnStatement
 
+// ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable CognitiveComplexity
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable UnusedParameter.Local
@@ -51,7 +51,6 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/mikf/gallery-dl
 		 * https://github.com/regosen/gallery_get
 		 */
-
 
 		#region Cli
 
@@ -110,7 +109,6 @@ namespace SmartImage.Lib.Utilities
 				Debug.WriteLine("Fixed file", C_DEBUG);
 			}
 
-
 			string combine = Path.Combine(path, filename);
 
 			using var wc = new WebClient();
@@ -120,25 +118,6 @@ namespace SmartImage.Lib.Utilities
 			return combine;
 		}
 
-
-		public static Image GetImage(string s)
-		{
-			using var wc = new WebClient();
-
-			//byte[] buf = wc.DownloadData(s);
-
-			//using var stream = new MemoryStream(buf);
-			//Debug.WriteLine($"Alloc {buf.Length}");
-
-			using var stream = wc.OpenRead(s);
-
-			var image = Image.FromStream(stream);
-
-			return image;
-
-		}
-
-
 		/// <summary>
 		/// Scans for direct images within a webpage.
 		/// </summary>
@@ -147,21 +126,13 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="timeoutMS"></param>
 		public static async Task<List<string>> FindDirectImages(string url, int count = 10, long timeoutMS = TimeoutMS)
 		{
-			/*
-			 * TODO: WIP
-			 */
-
+			
 			var images = new List<string>();
 
 			IHtmlDocument document;
 
-			var t1 = Stopwatch.GetTimestamp();
-
 			try {
-				string html   = WebUtilities.GetString(url);
-				var    parser = new HtmlParser();
-
-				document = parser.ParseDocument(html);
+				document = WebUtilities.GetHtmlDocument(url);
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", C_ERROR);
@@ -169,11 +140,6 @@ namespace SmartImage.Lib.Utilities
 				return null;
 			}
 
-			var d = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
-
-			Debug.WriteLine($"HTML: {d.TotalSeconds:F}", C_DEBUG);
-
-			var t2   = Stopwatch.GetTimestamp();
 			var cts  = new CancellationTokenSource();
 			var flat = new List<string>();
 
@@ -181,7 +147,6 @@ namespace SmartImage.Lib.Utilities
 			flat.AddRange(document.QuerySelectorAttributes("img", "src"));
 
 			flat = flat.Distinct().ToList();
-
 
 			var tasks = new List<Task<string>>();
 
@@ -201,20 +166,23 @@ namespace SmartImage.Lib.Utilities
 				}, cts.Token));
 			}
 
-			while (tasks.Any() && count !=0) {
-				var r = await Task.WhenAny(tasks);
-				tasks.Remove(r);
+			while (tasks.Any() && count != 0) {
+				var task = await Task.WhenAny(tasks);
+				tasks.Remove(task);
 
-				if (r.Result is { } && count > 0) {
-					images.Add(r.Result);
+				if (task.Result is { } && count > 0) {
+					images.Add(task.Result);
 					count--;
 				}
 			}
 
-
-			var d2 = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t2);
-
-			Debug.WriteLine($"Parsing: {d2.TotalSeconds:F}", C_DEBUG);
+			/*for (int i = 0; i < images.Count; i++) {
+				for (int j = i + 1; j < images.Count; j++) {
+					if (UrlUtilities.UrlEqual(images[i], images[j])) {
+						Debug.WriteLine($"{images[i]} = {images[j]}");
+					}
+				}
+			}*/
 
 			return images;
 		}
@@ -265,7 +233,6 @@ namespace SmartImage.Lib.Utilities
 
 				(640, 360) => DisplayResolutionType.nHD,
 
-
 				/*
 				 * General resolutions
 				 */
@@ -282,11 +249,9 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
-
 		/*
 		 * Direct images are URIs that point to a binary image file
 		 */
-
 
 		/// <summary>
 		/// Determines whether <paramref name="url"/> is a direct image link
@@ -310,7 +275,6 @@ namespace SmartImage.Lib.Utilities
 
 		}
 	}
-
 
 	public enum DirectImageType
 	{

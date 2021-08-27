@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using OpenCvSharp;
 using SmartImage.Lib;
+using SmartImage.Lib.Utilities;
 using Range = System.Range;
 
 #pragma warning disable IDE0079
@@ -52,8 +53,8 @@ namespace Test
 			var result2 = await task2;
 			Console.WriteLine(">> {0}", result2);*/
 
-			const double C1 = 6.5025, C2 = 58.5225;
-			/***************************** INITS **********************************/
+			/*const double C1 = 6.5025, C2 = 58.5225;
+			/***************************** INITS *********************************#1#
 			MatType d = MatType.CV_32F;
 
 			Mat i1 = new(@"C:\Users\Deci\Pictures\b.jpg"), i2 = new(@"C:\Users\Deci\Pictures\c.jpg");
@@ -80,7 +81,7 @@ namespace Test
 			Mat i12  = i1.Mul(i1); // I1^2
 			Mat i1I2 = i1.Mul(i2); // I1 * I2
 
-			/***********************PRELIMINARY COMPUTING ******************************/
+			/***********************PRELIMINARY COMPUTING *****************************#1#
 
 			Mat mu1 = new(), mu2 = new(); //
 			Cv2.GaussianBlur(i1, mu1, new Size(11, 11), 1.5);
@@ -120,7 +121,14 @@ namespace Test
 			SSIMResult result = new SSIMResult();
 			result.diff  = ssimMap;
 			result.mssim = mssim;
-			Console.WriteLine(result.score);
+			Console.WriteLine(result.score);*/
+
+
+			foreach (var v in await ImageHelper.FindDirectImages("https://danbooru.donmai.us/posts/3567935")) {
+				Console.WriteLine(v);
+			}
+
+			
 		}
 
 		public class SSIMResult
