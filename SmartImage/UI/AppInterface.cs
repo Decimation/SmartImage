@@ -156,8 +156,8 @@ namespace SmartImage.UI
 		{
 			Options   = MainMenuOptions,
 			Header    = AppInfo.NAME_BANNER,
-			Functions = new(),
-			Status = "You can also drag and drop a file to run a search."
+			Functions = new Dictionary<ConsoleKey, Action>(),
+			Status    = "You can also drag and drop a file to run a search."
 		};
 
 		static AppInterface()

@@ -118,7 +118,14 @@ namespace SmartImage
 					_cancellationToken = new();
 					ResultDialog.Options.Clear();
 					ResultDialog.Options.Add(_orig);
-					await Client.RefineSearchAsync();
+
+					try {
+						await Client.RefineSearchAsync();
+					}
+					catch (Exception e) {
+						Console.WriteLine("Error: {0}",e.Message);
+						NConsole.WaitForSecond();
+					}
 
 					NConsole.Refresh();
 				},
@@ -226,6 +233,7 @@ namespace SmartImage
 
 				if (options.First() is string file) {
 					Debug.WriteLine($"Drag and drop: {file}");
+					Console.WriteLine($">> {file}".AddColor(AppInterface.Elements.ColorMain));
 					Config.Query = file;
 				}
 			}

@@ -163,11 +163,8 @@ namespace SmartImage.UI
 
 				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
-				var @default = result.OtherResults.FirstOrDefault(x=>x.Direct is {});
-
-
-				result.PrimaryResult = @default ?? result.PrimaryResult;
-				
+				var other = result.OtherResults.FirstOrDefault(x => x.Direct is { });
+				result.PrimaryResult = other ?? result.PrimaryResult;
 
 				cts.Cancel();
 				cts.Dispose();
