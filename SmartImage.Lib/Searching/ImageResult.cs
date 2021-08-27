@@ -203,7 +203,7 @@ namespace SmartImage.Lib.Searching
 
 		}
 
-		public void FindDirectImages()
+		public async void FindDirectImages()
 		{
 
 			if (Url == null || Direct != null)
@@ -218,7 +218,7 @@ namespace SmartImage.Lib.Searching
 
 			try {
 
-				var directImages = ImageHelper.FindDirectImages(Url.ToString());
+				var directImages = await ImageHelper.FindDirectImages(Url.ToString());
 
 				//Debug.WriteLine($"{Url}: {directImages?.QuickJoin()}");
 
@@ -227,7 +227,7 @@ namespace SmartImage.Lib.Searching
 
 				//var direct = directImages?.FirstOrDefault(x=>ImageHelper.IsDirect(x, DirectImageType.Binary));
 
-				var direct = directImages?.FirstOrDefault();
+				var direct = directImages.FirstOrDefault();
 
 				//var direct = directImages?.AsParallel().FirstOrDefault(f => ImageHelper.IsDirect(f, DirectImageType.Binary));
 

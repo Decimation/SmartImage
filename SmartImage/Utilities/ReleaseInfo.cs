@@ -16,6 +16,8 @@ namespace SmartImage.Utilities
 
 		public ReleaseInfo(string tagName, string htmlUrl, string publishedAt, string asset)
 		{
+			// TODO: fails if tag contains non-numeric values!
+
 			TagName = tagName;
 
 			HtmlUrl = htmlUrl;

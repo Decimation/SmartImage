@@ -17,7 +17,9 @@ using Novus.Win32;
 using Kantan.Net;
 using Kantan.Utilities;
 using RestSharp;
+using StringTask= System.Threading.Tasks.Task<string>;
 using static Kantan.Diagnostics.LogCategories;
+// ReSharper disable ConvertIfStatementToReturnStatement
 
 // ReSharper disable CognitiveComplexity
 // ReSharper disable PossibleNullReferenceException
@@ -49,70 +51,6 @@ namespace SmartImage.Lib.Utilities
 		 * https://github.com/mikf/gallery-dl
 		 * https://github.com/regosen/gallery_get
 		 */
-
-
-		public static DisplayResolutionType GetDisplayResolution(int w, int h)
-		{
-			/*
-			 *	Other			W < 1280	
-			 *	[HD, FHD)		[1280, 1920)	1280 <= W < 1920	W: >= 1280 < 1920
-			 *	[FHD, QHD)		[1920, 2560)	1920 <= W < 2560	W: >= 1920 < 2560
-			 *	[QHD, UHD)		[2560, 3840)	2560 <= W < 3840	W: >= 2560 < 3840
-			 *	[UHD, ∞)											W: >= 3840
-			 */
-
-			return (w, h) switch
-			{
-				/*
-				 * Specific resolutions
-				 */
-
-				(640, 360) => DisplayResolutionType.nHD,
-
-
-				/*
-				 * General resolutions
-				 */
-
-				_ => w switch
-				{
-					>= 1280 and < 1920 => DisplayResolutionType.HD,
-					>= 1920 and < 2560 => DisplayResolutionType.FHD,
-					>= 2560 and < 3840 => DisplayResolutionType.QHD,
-					>= 3840            => DisplayResolutionType.UHD,
-					_                  => DisplayResolutionType.Unknown,
-				}
-			};
-
-		}
-
-
-		/*
-		 * Direct images are URIs that point to a binary image file
-		 */
-
-
-		/// <summary>
-		/// Determines whether <paramref name="url"/> is a direct image link
-		/// </summary>
-		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
-		public static bool IsDirect(string url, DirectImageType directType = DirectImageType.Regex)
-		{
-			return directType switch
-			{
-				DirectImageType.Binary => IsImage(url),
-				DirectImageType.Regex =>
-					/*
-					 * https://github.com/PactInteractive/image-downloader
-					 */
-					Regex.IsMatch(
-						url,
-						@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
-						RegexOptions.IgnoreCase),
-				_ => throw new ArgumentOutOfRangeException(nameof(directType), directType, null)
-			};
-
-		}
 
 
 		#region Cli
@@ -182,24 +120,6 @@ namespace SmartImage.Lib.Utilities
 			return combine;
 		}
 
-		public static bool IsImage(string s, int d = TimeoutMS)
-		{
-			if (!Network.IsUri(s, out var u)) {
-				return false;
-			}
-
-			var m = Network.GetResponse(u.ToString(), d, Method.HEAD);
-
-			if (!m.IsSuccessful) {
-				return false;
-			}
-
-			var a = m.ContentType.StartsWith("image") && m.ContentType != "image/svg+xml";
-			//var b = m.ContentLength >= 2500;
-			var b = m.ContentLength >= 50_000;
-
-			return a && b;
-		}
 
 		public static Image GetImage(string s)
 		{
@@ -218,71 +138,20 @@ namespace SmartImage.Lib.Utilities
 
 		}
 
-		
+
 		/// <summary>
 		/// Scans for direct images within a webpage.
 		/// </summary>
 		/// <param name="url">Url to search</param>
 		/// <param name="count">Number of direct images to return</param>
-		/// <param name="pingTimeMS"></param>
-		public static List<string> FindDirectImages(string url, int count = 10, long pingTimeMS = TimeoutMS)
+		/// <param name="timeoutMS"></param>
+		public static async Task<List<string>> FindDirectImages(string url, int count = 10, long timeoutMS = TimeoutMS)
 		{
 			/*
 			 * TODO: WIP
 			 */
 
 			var images = new List<string>();
-
-			string gallerydl = UtilitiesMap[GALLERY_DL_EXE];
-
-			if (gallerydl != null) {
-
-				//Trace.WriteLine($"Using gallery-dl!");
-
-				var output = new Process
-				{
-					StartInfo = new ProcessStartInfo
-					{
-						FileName               = gallerydl,
-						Arguments              = $"-G {url}",
-						RedirectStandardOutput = true,
-						RedirectStandardError  = true,
-						CreateNoWindow         = true
-					}
-				};
-
-				output.Start();
-
-				var standardOutput = output.StandardOutput;
-
-
-				while (!standardOutput.EndOfStream) {
-					string str = standardOutput.ReadLine()
-					                           .Split('|')
-					                           .First();
-
-					if (!String.IsNullOrWhiteSpace(str) && IsImage(str, (int) pingTimeMS)) {
-						images.Add(str);
-
-					}
-				}
-
-				var standardError = output.StandardError;
-
-				while (!standardError.EndOfStream) {
-					string line = standardError.ReadLine();
-
-					if (line != null) {
-						goto manual;
-					}
-				}
-
-
-				goto ret;
-			}
-
-			manual:
-
 
 			IHtmlDocument document;
 
@@ -293,7 +162,6 @@ namespace SmartImage.Lib.Utilities
 				var    parser = new HtmlParser();
 
 				document = parser.ParseDocument(html);
-
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", C_ERROR);
@@ -314,70 +182,59 @@ namespace SmartImage.Lib.Utilities
 
 			flat = flat.Distinct().ToList();
 
-			var options = new ParallelOptions
-			{
-				MaxDegreeOfParallelism = Int32.MaxValue,
-				TaskScheduler          = TaskScheduler.Default,
-				CancellationToken      = cts.Token
-			};
 
-			var imagesCopy = images;
+			var tasks = new List<Task<string>>();
 
-			Parallel.For(0, flat.Count, options, (i, s) =>
-			{
-				string currentUrl = flat[i];
+			for (int i = 0; i < flat.Count; i++) {
+				int iCopy = i;
 
-				if (s.IsStopped) {
-					return;
+				tasks.Add(Task<string>.Factory.StartNew(() =>
+				{
+					string s = flat[iCopy];
+
+					if (IsImage(s, (int) timeoutMS)) {
+						return s;
+					}
+
+					return null;
+
+				}, cts.Token));
+			}
+
+			while (tasks.Any() && count !=0) {
+				var r = await Task.WhenAny(tasks);
+				tasks.Remove(r);
+
+				if (r.Result is { } && count > 0) {
+					images.Add(r.Result);
+					count--;
 				}
+			}
 
-				if (!IsImage(currentUrl, (int) pingTimeMS)) {
-					return;
-				}
-
-				//Debug.WriteLine($"{nameof(FindDirectImages)}: Adding {currentUrl}");
-
-				imagesCopy.Add(currentUrl);
-
-				if (imagesCopy.Count >= count) {
-					s.Stop();
-					return;
-				}
-
-
-			});
 
 			var d2 = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t2);
+
 			Debug.WriteLine($"Parsing: {d2.TotalSeconds:F}", C_DEBUG);
 
-			/*
-			 * Tasks				Parallel			Parallel 2				
-			 * 1		5.19		1		4.59		9		3.84		
-			 * 2		4.68		2		4.37		10		3.56		
-			 * 3		4.54		3		4.28		11		3.45		
-			 * 4		4.42		4		4.34		12		3.52		
-			 * 						5		4.38		13		3.63		
-			 * 						6		4.55		14		3.52
-			 * 						7		4.36
-			 * 						8		4.45
-			 *
-			 *
-			 * Parallel 3			Parallel 4
-			 * 15		3.39		20		3.13
-			 * 16		3.52		21		2.89
-			 * 17		3.58		22		2.87
-			 * 18		3.47		23		2.89
-			 * 19		3.33
-			 * 
-			 * 
-			 */
-
-			images = imagesCopy;
-
-			ret:
-
 			return images;
+		}
 
+		public static bool IsImage(string url, long timeout = TimeoutMS)
+		{
+			if (!Network.IsUri(url, out var u)) {
+				return false;
+			}
+
+			var response = Network.GetResponse(u.ToString(), (int) timeout, Method.HEAD);
+
+			if (!response.IsSuccessful) {
+				return false;
+			}
+
+			var a = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";
+			var b = response.ContentLength >= 50_000;
+
+			return a && b;
 		}
 
 		internal static string AsPercent(this float n)
@@ -388,6 +245,69 @@ namespace SmartImage.Lib.Utilities
 			 */
 
 			return $"{n / 100:P}";
+		}
+
+		public static DisplayResolutionType GetDisplayResolution(int w, int h)
+		{
+			/*
+			 *	Other			W < 1280
+			 *	[HD, FHD)		[1280, 1920)	1280 <= W < 1920	W: >= 1280 < 1920
+			 *	[FHD, QHD)		[1920, 2560)	1920 <= W < 2560	W: >= 1920 < 2560
+			 *	[QHD, UHD)		[2560, 3840)	2560 <= W < 3840	W: >= 2560 < 3840
+			 *	[UHD, ∞)											W: >= 3840
+			 */
+
+			return (w, h) switch
+			{
+				/*
+				 * Specific resolutions
+				 */
+
+				(640, 360) => DisplayResolutionType.nHD,
+
+
+				/*
+				 * General resolutions
+				 */
+
+				_ => w switch
+				{
+					>= 1280 and < 1920 => DisplayResolutionType.HD,
+					>= 1920 and < 2560 => DisplayResolutionType.FHD,
+					>= 2560 and < 3840 => DisplayResolutionType.QHD,
+					>= 3840            => DisplayResolutionType.UHD,
+					_                  => DisplayResolutionType.Unknown,
+				}
+			};
+
+		}
+
+
+		/*
+		 * Direct images are URIs that point to a binary image file
+		 */
+
+
+		/// <summary>
+		/// Determines whether <paramref name="url"/> is a direct image link
+		/// </summary>
+		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
+		public static bool IsDirect(string url, DirectImageType directType = DirectImageType.Regex)
+		{
+			return directType switch
+			{
+				DirectImageType.Binary => IsImage(url),
+				DirectImageType.Regex =>
+					/*
+					 * https://github.com/PactInteractive/image-downloader
+					 */
+					Regex.IsMatch(
+						url,
+						@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
+						RegexOptions.IgnoreCase),
+				_ => throw new ArgumentOutOfRangeException(nameof(directType), directType, null)
+			};
+
 		}
 	}
 

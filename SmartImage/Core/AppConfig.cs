@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using Kantan.Collections;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using static Kantan.Diagnostics.LogCategories;
@@ -43,7 +44,7 @@ namespace SmartImage.Core
 
 		public static void ReadConfigFile()
 		{
-			var map = Collections.ReadDictionary(ConfigFile.ToString());
+			var map = EnumerableHelper.ReadDictionary(ConfigFile.ToString());
 
 
 			foreach (var (key, value) in ConfigMap) {
@@ -69,7 +70,7 @@ namespace SmartImage.Core
 		{
 			var map = ConfigMap;
 
-			Collections.WriteDictionary(map, ConfigFile.ToString());
+			EnumerableHelper.WriteDictionary(map, ConfigFile.ToString());
 
 			Debug.WriteLine($"Saved to {ConfigFile.Name}", C_INFO);
 		}

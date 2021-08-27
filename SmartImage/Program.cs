@@ -88,7 +88,7 @@ namespace SmartImage
 
 			Functions = new()
 			{
-				[ConsoleKey.F1]=() =>
+				[ConsoleKey.F1] = () =>
 				{
 					// F1 : Show filtered
 
@@ -267,7 +267,7 @@ namespace SmartImage
 			NConsole.Refresh();
 
 			if (Config.PriorityEngines == SearchEngineOptions.Auto) {
-				var m=Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
+				var m = Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
 
 				WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
 			}

@@ -44,7 +44,7 @@ namespace SmartImage.UI
 						SelectMultiple = true
 					});
 
-					var enumValue = Enums.ReadFromSet<SearchEngineOptions>(selected);
+					var enumValue = EnumHelper.ReadFromSet<SearchEngineOptions>(selected);
 					var field     = Program.Config.GetType().GetAnyResolvedField(f);
 					field.SetValue(Program.Config, enumValue);
 
@@ -163,8 +163,11 @@ namespace SmartImage.UI
 
 				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
-				result.PrimaryResult = result.OtherResults.First();
+				var @default = result.OtherResults.FirstOrDefault(x=>x.Direct is {});
 
+
+				result.PrimaryResult = @default ?? result.PrimaryResult;
+				
 
 				cts.Cancel();
 				cts.Dispose();
