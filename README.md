@@ -77,9 +77,3 @@ Wiki pages useful for getting started:
 **See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
 
 <!-- ... -->
-
-## Donation
-
-If you would like to support this project, you can buy me a cup of coffee! :)
-
-[![Donate](https://img.shields.io/badge/Donate-PayPal-blue.svg)](https://paypal.me/decimation001?locale.x=en_US)
