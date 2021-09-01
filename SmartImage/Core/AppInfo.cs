@@ -16,6 +16,7 @@ using System.Text;
 using System.Threading;
 using Kantan.Cli;
 using Kantan.Diagnostics;
+using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;

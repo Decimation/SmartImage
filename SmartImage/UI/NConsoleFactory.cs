@@ -38,7 +38,7 @@ namespace SmartImage.UI
 				{
 					var enumOptions = FromEnum<SearchEngineOptions>();
 
-					var selected = NConsole.ReadOptions(new NConsoleDialog
+					var selected = NConsole.ReadInput(new NConsoleDialog
 					{
 						Options        = enumOptions,
 						SelectMultiple = true
@@ -133,7 +133,7 @@ namespace SmartImage.UI
 
 							var options = CreateResultOptions(result.OtherResults, $"Other result");
 
-							NConsole.ReadOptions(new NConsoleDialog
+							NConsole.ReadInput(new NConsoleDialog
 							{
 								Options = options
 							});

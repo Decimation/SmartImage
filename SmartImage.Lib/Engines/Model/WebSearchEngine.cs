@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Kantan.Utilities;
 using RestSharp;
@@ -21,10 +22,12 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract override string Name { get; }
 
+		public abstract override EngineResultType ResultType { get; }
+
 		protected internal virtual IDocument GetContent(IRestResponse response)
 		{
 			var parser = new HtmlParser();
-			
+
 
 			/*var s=AsyncHelpers.RunSync<string>(async () =>
 			{
@@ -34,9 +37,10 @@ namespace SmartImage.Lib.Engines.Model
 			});*/
 
 			var s = response.Content;
-			
-			return parser.ParseDocument(s);
-		}
 
+			var document = parser.ParseDocument(s);
+
+			return document;
+		}
 	}
 }

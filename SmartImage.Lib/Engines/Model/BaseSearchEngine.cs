@@ -33,6 +33,8 @@ namespace SmartImage.Lib.Engines.Model
 		protected bool FollowRedirects { get; set; } = true;
 
 
+		public abstract EngineResultType ResultType { get; }
+
 		protected SearchResult GetResult(ImageQuery query, out IRestResponse response)
 		{
 			var sr = new SearchResult(this);
@@ -95,5 +97,30 @@ namespace SmartImage.Lib.Engines.Model
 
 			return true;
 		}
+	}
+
+	/// <summary>
+	/// Indicates the search criteria and result type of an engine.
+	/// </summary>
+	[Flags]
+	public enum EngineResultType
+	{
+		/// <summary>
+		/// The engine returns image results
+		/// </summary>
+		Image,
+
+		/// <summary>
+		/// The engine returns metadata
+		/// </summary>
+		Metadata,
+
+		/// <summary>
+		/// The engine returns external information
+		/// </summary>
+		External,
+
+
+		Other
 	}
 }

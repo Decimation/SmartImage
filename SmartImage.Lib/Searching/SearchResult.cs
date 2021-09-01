@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Kantan.Model;
+using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
 using RestSharp;

@@ -10,7 +10,8 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleImages;
 
-		
+		public override EngineResultType ResultType => EngineResultType.Image;
+
 
 
 		// https://html-agility-pack.net/knowledge-base/2113924/how-can-i-use-html-agility-pack-to-retrieve-all-the-images-from-a-website-

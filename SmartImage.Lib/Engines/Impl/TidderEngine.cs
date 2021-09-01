@@ -23,6 +23,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
+		public override EngineResultType ResultType => EngineResultType.External | EngineResultType.Metadata;
 
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
@@ -81,7 +82,7 @@ namespace SmartImage.Lib.Engines.Impl
 			sr.PrimaryResult.UpdateFrom(best);
 
 			sr.OtherResults.AddRange(list);
-			
+
 
 			return sr;
 		}

@@ -20,9 +20,10 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract override string Name { get; }
 
+		public abstract override EngineResultType ResultType { get; }
+
 		protected string EndpointUrl { get; }
 
 		protected RestClient Client { get; }
-		
 	}
 }

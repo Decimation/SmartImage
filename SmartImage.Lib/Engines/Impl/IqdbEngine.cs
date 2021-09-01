@@ -15,6 +15,7 @@ using AngleSharp.XPath;
 using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
+using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
@@ -32,7 +33,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => "IQDB";
 
-		public override TimeSpan Timeout => TimeSpan.FromSeconds(4.5);
+		public override TimeSpan           Timeout      => TimeSpan.FromSeconds(4.5);
+		public override EngineResultType ResultType => EngineResultType.Image | EngineResultType.Metadata;
 
 		private static ImageResult ParseResult(IHtmlCollection<IElement> tr)
 		{

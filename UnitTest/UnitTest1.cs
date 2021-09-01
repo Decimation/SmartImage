@@ -24,7 +24,7 @@ namespace UnitTest
 			@"C:\Users\Deci\Pictures\Test Images\Test3.png",
 			@"C:\Users\Deci\Pictures\Test Images\Test4.png",
 
-			@"C:\Users\Deci\Pictures\fucking_epic.jpg",
+			@"C:\Users\Deci\Pictures\Art\fucking_epic.jpg",
 
 			"https://i.imgur.com/QtCausw.jpg",
 

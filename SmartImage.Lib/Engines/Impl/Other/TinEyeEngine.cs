@@ -9,6 +9,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
 
+		public override EngineResultType ResultType => EngineResultType.Image;
 
 		/*
 		 * https://github.com/Jabeyjabes/TinEye-API/blob/master/TinEye_API

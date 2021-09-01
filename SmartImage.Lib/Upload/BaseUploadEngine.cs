@@ -20,7 +20,7 @@ namespace SmartImage.Lib.Upload
 		protected bool IsFileSizeValid(string file)
 		{
 			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(FileSystem.GetFileSize(file), MetricUnit.Mega);
+				MathHelper.ConvertToUnit(FileSystem.GetFileSize(file), MetricPrefix.Mega);
 
 			var b = fileSizeMegabytes >= MaxSize;
 

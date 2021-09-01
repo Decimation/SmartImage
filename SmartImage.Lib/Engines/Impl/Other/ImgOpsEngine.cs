@@ -8,6 +8,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.ImgOps;
 
 		//public int MaxSize => 5;
+		public override EngineResultType ResultType => EngineResultType.Other;
 
 		public ImgOpsEngine() : base("http://imgops.com/") { }
 

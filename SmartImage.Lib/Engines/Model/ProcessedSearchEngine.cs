@@ -15,7 +15,9 @@ namespace SmartImage.Lib.Engines.Model
 		public abstract override SearchEngineOptions EngineOption { get; }
 
 		public abstract override string Name { get; }
-		
+
+		public abstract override EngineResultType ResultType { get; }
+
 
 		/// <summary>
 		/// Processes engine results
@@ -74,7 +76,5 @@ namespace SmartImage.Lib.Engines.Model
 			return sr;
 
 		}
-
-
 	}
 }

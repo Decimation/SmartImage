@@ -189,7 +189,7 @@ namespace SmartImage.Lib.Utilities
 
 		public static bool IsImage(string url, long timeout = TimeoutMS)
 		{
-			if (!Network.IsUri(url, out var u)) {
+			if (!UriUtilities.IsUri(url, out var u)) {
 				return false;
 			}
 

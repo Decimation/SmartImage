@@ -9,6 +9,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Kantan.Net;
+using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
@@ -29,6 +30,8 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => EngineOption.ToString();
 
 		public override TimeSpan Timeout => TimeSpan.FromSeconds(6.5);
+
+		public override EngineResultType ResultType => EngineResultType.Image;
 
 		private static string? GetAnalysis(IDocument doc)
 		{
@@ -141,7 +144,7 @@ namespace SmartImage.Lib.Engines.Impl
 					//link = null;
 				}
 
-				if (Network.IsUri(link, out var link2)) { }
+				if (UriUtilities.IsUri(link, out var link2)) { }
 				else {
 					link2 = null;
 				}
@@ -224,11 +227,12 @@ namespace SmartImage.Lib.Engines.Impl
 				sr.ErrorMessage = NO_MATCHING;
 				sr.Status       = ResultStatus.Extraneous;
 			}
+
 			sr.PrimaryResult.Quality = sr.PrimaryResult.MegapixelResolution switch
 			{
-				null  => ResultQuality.Indeterminate,
+				null => ResultQuality.Indeterminate,
 				>= 1 => ResultQuality.High,
-				_     => ResultQuality.Low,
+				_    => ResultQuality.Low,
 			};
 			return sr;
 		}

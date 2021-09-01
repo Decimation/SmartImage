@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using JetBrains.Annotations;
 using Kantan.Net;
+using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl;

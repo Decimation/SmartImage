@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Kantan.Model;
 using Kantan.Numeric;
+using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Win32;
 
@@ -112,7 +113,7 @@ namespace SmartImage.Lib.Searching
 				int? px = PixelResolution;
 
 				if (px.HasValue) {
-					float mpx = (float) MathHelper.ConvertToUnit(px.Value, MetricUnit.Mega);
+					float mpx = (float) MathHelper.ConvertToUnit(px.Value, MetricPrefix.Mega);
 
 					return mpx;
 				}

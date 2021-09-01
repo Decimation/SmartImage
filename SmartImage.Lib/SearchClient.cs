@@ -71,27 +71,6 @@ namespace SmartImage.Lib
 
 		public int Pending { get; private set; }
 
-		/*public bool ShouldRefine
-		{
-			get
-			{
-				//todo:WIP
-				if (IsComplete) {
-					// int i = Results.Count(c => c.IsNonPrimitive) - FilteredResults.Count;
-
-					int i = Results.Count(c => !c.PrimaryResult.IsDetailed);
-					int d = Results.Count;
-
-					if (!Config.Filtering) {
-						d -= Results.Count(c => !c.IsNonPrimitive);
-					}
-					return i >= d*.5;
-				}
-
-				return false;
-			}
-		}*/
-
 		/// <summary>
 		/// Reloads <see cref="Config"/> and <see cref="Engines"/> accordingly.
 		/// </summary>
@@ -126,7 +105,6 @@ namespace SmartImage.Lib
 		/// </summary>
 		public async Task RunSearchAsync()
 		{
-			var t1 = Stopwatch.GetTimestamp();
 
 			if (IsComplete) {
 				Reset();
@@ -187,20 +165,17 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
-			var d = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - t1);
-
-			Trace.WriteLine($"{nameof(SearchClient)}: {d.TotalSeconds}");
 
 			var args2 = new SearchCompletedEventArgs()
 			{
 				Results = Results,
-				Best    = new Lazy<ImageResult>(FindBestResult),
+				Best    = new Lazy<ImageResult>(() => GetDetailedResults().FirstOrDefault()),
 				Direct = new Lazy<ImageResult>(() =>
 				{
 					if (Config.Notification && Config.NotificationImage) {
 
 						Debug.WriteLine($"Finding direct result");
-						var direct = FindDirectResults().FirstOrDefault();
+						var direct = GetDirectResults().FirstOrDefault();
 
 						if (direct?.Direct != null) {
 							Debug.WriteLine(direct);
@@ -232,7 +207,8 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine("Finding best result");
 
-			var best = FindDirectResults().FirstOrDefault(f => ImageHelper.IsDirect(f.Direct.ToString(), DirectImageType.Binary));
+			var best = GetDirectResults()
+				.FirstOrDefault(f => ImageHelper.IsDirect(f.Direct.ToString(), DirectImageType.Binary));
 
 			if (best == null) {
 				throw new SmartImageException(ERR_NO_BEST_RESULT);
@@ -265,35 +241,29 @@ namespace SmartImage.Lib
 
 			return res;
 		}
-		
 
-		public ImageResult[] FindDirectResults(int count = 5)
+		public ImageResult[] GetDirectResults(int count = 5)
 		{
 
-			var best = FindBestResults().ToList();
+			// var best = FindBestResults().ToList();
+			/*var best = Results.Where(r => r.IsNonPrimitive)
+			                  .Where(r => r.Engine.SearchType.HasFlag(EngineSearchType.Image))
+			                  .AsParallel()
+			                  .OrderByDescending(r => r.PrimaryResult.Similarity)
+			                  .ThenByDescending(r => r.PrimaryResult.PixelResolution)
+			                  .ThenByDescending(r => r.PrimaryResult.DetailScore)
+			                  .SelectMany(r =>
+			                  {
+				                  var x = r.OtherResults;
+				                  x.Insert(0, r.PrimaryResult);
+				                  return x;
+			                  })
+			                  .ToList();*/
+
+			var best = RefineFilter(r => r.IsNonPrimitive
+			                             && r.Engine.ResultType.HasFlag(EngineResultType.Image)).ToList();
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {best.Count} best results", C_DEBUG);
-
-			/*var images = new ConcurrentBag<ImageResult>();
-
-			// todo: this is just a stopgap
-
-			int i = 0;
-
-			do {
-				var item = best[i];
-
-				item.FindDirectImages();
-
-				if (item.Direct == null) {
-					continue;
-				}
-
-				//Debug.WriteLine($"{nameof(FindDirectResult)}: Adding {item.Direct}");
-
-				images.Add(item);
-
-			} while (++i != best.Count && i < count /*!images.Any(x=>x.Direct!=null)#1#);*/
 
 			var images = best.Where(x => x.CheckDirect()).Take(count).ToList();
 
@@ -303,28 +273,27 @@ namespace SmartImage.Lib
 			             .ToArray();
 		}
 
-		[CanBeNull]
-		public ImageResult FindBestResult() => FindBestResults().FirstOrDefault();
-
 		/// <summary>
 		/// Selects the most detailed results.
 		/// </summary>
 		/// <returns>The <see cref="ImageResult"/>s of the best <see cref="Results"/></returns>
-		public ImageResult[] FindBestResults()
-		{
-			var best = Results.Where(r => r.IsNonPrimitive)
-			                  .SelectMany(r =>
-			                  {
-				                  var x = r.OtherResults;
-				                  x.Insert(0, r.PrimaryResult);
-				                  return x;
-			                  })
-			                  .AsParallel()
-			                  .OrderByDescending(r => r.Similarity)
-			                  .ThenByDescending(r => r.PixelResolution)
-			                  .ThenByDescending(r => r.DetailScore);
+		public ImageResult[] GetDetailedResults() => RefineFilter(r => r.IsNonPrimitive).ToArray();
 
-			return best.ToArray();
+		private OrderedParallelQuery<ImageResult> RefineFilter(Predicate<SearchResult> predicate)
+		{
+			var query = Results.Where(r => predicate(r))
+			                   .SelectMany(r =>
+			                   {
+				                   var x = r.OtherResults;
+				                   x.Insert(0, r.PrimaryResult);
+				                   return x;
+			                   })
+			                   .AsParallel()
+			                   .OrderByDescending(r => r.Similarity)
+			                   .ThenByDescending(r => r.PixelResolution)
+			                   .ThenByDescending(r => r.DetailScore);
+
+			return query;
 		}
 
 		#endregion

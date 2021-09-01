@@ -13,6 +13,7 @@ using AngleSharp.XPath;
 using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
+using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
@@ -45,6 +46,7 @@ namespace SmartImage.Lib.Engines.Impl
 		 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
 		 */
 
+		public override EngineResultType ResultType => EngineResultType.Image | EngineResultType.Metadata;
 
 		public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_URL)
 		{

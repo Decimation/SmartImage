@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using Kantan.Cli;
 using Kantan.Net;
+using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Utilities;
@@ -42,7 +43,7 @@ namespace SmartImage.UI
 				Color = Elements.ColorMain,
 				Function = () =>
 				{
-					ImageQuery query = NConsole.ReadInput("Image file or direct URL", x =>
+					ImageQuery query = NConsole.ReadLine("Image file or direct URL", x =>
 					{
 						x = x.CleanString();
 

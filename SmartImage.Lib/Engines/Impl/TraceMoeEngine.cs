@@ -33,6 +33,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => "trace.moe";
 
+		public override EngineResultType ResultType => EngineResultType.External | EngineResultType.Metadata;
+
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 
 		protected override SearchResult Process(object obj, SearchResult r)
@@ -50,9 +52,9 @@ namespace SmartImage.Lib.Engines.Impl
 			rq.RequestFormat           = DataFormat.Json;
 
 			var now  = Stopwatch.GetTimestamp();
-			var re = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
-			var tm = re.Data;
-			var diff  = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+			var re   = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
+			var tm   = re.Data;
+			var diff = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 			r.RetrievalTime = diff;
 
 			//var tm=JsonConvert.DeserializeObject<TraceMoeRootObject>(re.Content);
@@ -90,11 +92,12 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 			ret:
+
 			r.PrimaryResult.Quality = r.PrimaryResult.Similarity switch
 			{
-				null  => ResultQuality.Indeterminate,
+				null                => ResultQuality.Indeterminate,
 				>= FILTER_THRESHOLD => ResultQuality.High,
-				_     => ResultQuality.Low,
+				_                   => ResultQuality.Low,
 			};
 			return r;
 		}

@@ -71,6 +71,9 @@ namespace SmartImage.Lib.Engines.Impl
 			return true;
 		}
 
+		/// <inheritdoc />
+		public override EngineResultType ResultType => EngineResultType.Image | EngineResultType.Metadata;
+
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
 			var doc = (IDocument) obj;
@@ -143,6 +146,9 @@ namespace SmartImage.Lib.Engines.Impl
 				>= 1 => ResultQuality.High,
 				_    => ResultQuality.Low,
 			};
+
+			doc.Dispose();
+
 			return sr;
 		}
 	}

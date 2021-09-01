@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using JetBrains.Annotations;
+using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 

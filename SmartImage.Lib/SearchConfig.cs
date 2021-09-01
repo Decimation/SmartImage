@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Model;
+using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
@@ -51,7 +52,7 @@ namespace SmartImage.Lib
 
 		public override string ToString()
 		{
-			var sb = new ExtendedStringBuilder();
+			var sb = new StringBuilder();
 			sb.Append("Search engines", SearchEngines);
 			sb.Append("Priority engines", PriorityEngines);
 			sb.Append("Filtering", Filtering);
