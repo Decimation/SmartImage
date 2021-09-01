@@ -170,17 +170,12 @@ namespace SmartImage.Lib
 			{
 				Results = Results,
 				Best    = new Lazy<ImageResult>(() => GetDetailedResults().FirstOrDefault()),
-				Direct = new Lazy<ImageResult>(() =>
+				Direct = new Lazy<ImageResult[]>(() =>
 				{
 					if (Config.Notification && Config.NotificationImage) {
 
-						Debug.WriteLine($"Finding direct result");
-						var direct = GetDirectResults().FirstOrDefault();
-
-						if (direct?.Direct != null) {
-							Debug.WriteLine(direct);
-							Debug.WriteLine(direct.Direct.ToString());
-						}
+						Debug.WriteLine($"Finding direct results");
+						var direct = GetDirectResults();
 
 						return direct;
 					}
@@ -208,7 +203,7 @@ namespace SmartImage.Lib
 			Debug.WriteLine("Finding best result");
 
 			var best = GetDirectResults()
-				.FirstOrDefault(f => ImageHelper.IsDirect(f.Direct.ToString(), DirectImageType.Binary));
+				.FirstOrDefault(f => ImageHelper.IsDirect(f.Direct.ToString(), DirectImageCriterion.Binary));
 
 			if (best == null) {
 				throw new SmartImageException(ERR_NO_BEST_RESULT);
@@ -265,7 +260,9 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {best.Count} best results", C_DEBUG);
 
-			var images = best.Where(x => x.CheckDirect()).Take(count).ToList();
+			var images1 = best.Where(x => x.CheckDirect(DirectImageCriterion.Regex)).Take(count*2);
+			
+			var images = images1.Where(x => x.CheckDirect(DirectImageCriterion.Binary)).Take(count).ToList();
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 
@@ -334,7 +331,7 @@ namespace SmartImage.Lib
 		public List<SearchResult> Results { get; init; }
 
 		[CanBeNull]
-		public Lazy<ImageResult> Direct { get; internal set; }
+		public Lazy<ImageResult[]> Direct { get; internal set; }
 
 		[CanBeNull]
 		public Lazy<ImageResult> Best { get; internal set; }

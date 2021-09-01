@@ -210,11 +210,19 @@ namespace SmartImage.UI
 			       .AddText($"{bestResult}")
 			       .AddText($"Results: {Client.Results.Count}");
 
-			var direct = args.Direct?.Value?.Direct;
+			var direct = args.Direct?.Value;
 
 			if (direct != null) {
 				var path = Path.GetTempPath();
-				var file = ImageHelper.Download(direct, path);
+
+				string file;
+
+				int i = 0;
+
+				do {
+					file = ImageHelper.Download(direct[i++].Direct, path);
+
+				} while (string.IsNullOrWhiteSpace(file) && i < direct.Length);
 
 				Debug.WriteLine($"Downloaded {file}", C_INFO);
 

@@ -129,44 +129,6 @@ namespace SmartImage.Lib.Searching
 
 		public Image? Image { get; set; }
 
-		public ImageResult()
-		{
-			OtherMetadata = new Dictionary<string, object>();
-		}
-
-		private static List<FieldInfo> GetDetailFields()
-		{
-			var fields = typeof(ImageResult).GetRuntimeFields().Where(f => !f.IsStatic).ToList();
-
-			fields.RemoveAll(f => f.Name.Contains(nameof(OtherMetadata)));
-
-			return fields;
-		}
-
-		private static readonly List<FieldInfo> DetailFields = GetDetailFields();
-
-		/// <summary>
-		/// Score representing the number of fields that are populated (i.e., non-<c>null</c> or <c>default</c>);
-		/// used as a heuristic for determining image result quality
-		/// </summary>
-		public int DetailScore
-		{
-			get
-			{
-				int s = DetailFields.Select(f => f.GetValue(this))
-				                    .Count(v => v != null);
-
-				s += OtherMetadata.Count;
-				/*if (Similarity.HasValue) {
-					s +=(int) Math.Ceiling(((Similarity.Value/100) * 13f) * .66f);
-				}*/
-
-				return s;
-			}
-		}
-
-		public bool IsDetailed => DetailScore >= DetailFields.Count * .4;
-
 		/// <summary>
 		/// The display resolution of this image
 		/// </summary>
@@ -185,6 +147,44 @@ namespace SmartImage.Lib.Searching
 		}
 
 		public ResultQuality Quality { get; set; }
+
+		private static readonly List<FieldInfo> DetailFields = GetDetailFields();
+
+		/// <summary>
+		/// Score representing the number of fields that are populated (i.e., non-<c>null</c> or <c>default</c>);
+		/// used as a heuristic for determining image result quality
+		/// </summary>
+		public int DetailScore
+		{
+			get
+			{
+				int s = Enumerable.Select<FieldInfo, object?>(DetailFields, f => f.GetValue(this))
+				                  .Count(v => v != null);
+
+				s += OtherMetadata.Count;
+				/*if (Similarity.HasValue) {
+					s +=(int) Math.Ceiling(((Similarity.Value/100) * 13f) * .66f);
+				}*/
+
+				return s;
+			}
+		}
+
+		public bool IsDetailed => DetailScore >= DetailFields.Count * .4;
+
+		public ImageResult()
+		{
+			OtherMetadata = new Dictionary<string, object>();
+		}
+
+		private static List<FieldInfo> GetDetailFields()
+		{
+			var fields = typeof(ImageResult).GetRuntimeFields().Where(f => !f.IsStatic).ToList();
+
+			fields.RemoveAll(f => f.Name.Contains(nameof(OtherMetadata)));
+
+			return fields;
+		}
 
 		public void UpdateFrom(ImageResult result)
 		{
@@ -206,39 +206,17 @@ namespace SmartImage.Lib.Searching
 
 		public async void FindDirectImages()
 		{
-
 			if (Url == null || Direct != null)
 				return;
-
-			// if (ImageHelper.IsDirect(Url.ToString(), DirectImageType.Binary)) {
-			// 	Direct = Url;
-			// }
-			// else {
-			// 	
-			// }
 
 			try {
 
 				var directImages = await ImageHelper.FindDirectImages(Url.ToString());
 
-				//Debug.WriteLine($"{Url}: {directImages?.QuickJoin()}");
-
-				/*directImages = directImages.AsParallel().Where(x => ImageHelper.IsDirect(x, DirectImageType.Binary))
-										   .ToList();*/
-
-				//var direct = directImages?.FirstOrDefault(x=>ImageHelper.IsDirect(x, DirectImageType.Binary));
-
 				var direct = directImages.FirstOrDefault();
-
-				//var direct = directImages?.AsParallel().FirstOrDefault(f => ImageHelper.IsDirect(f, DirectImageType.Binary));
 
 				if (direct != null) {
 					Direct = new Uri((direct));
-
-					// todo
-					//Image  = ImageHelper.GetImage(direct);
-					//Debug.WriteLine($"{Url} -> {Direct}");
-
 				}
 			}
 			catch {
@@ -261,7 +239,7 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
-		public bool CheckDirect()
+		public bool CheckDirect(DirectImageCriterion d = DirectImageCriterion.Regex)
 		{
 			var s = Url?.ToString();
 
@@ -269,7 +247,7 @@ namespace SmartImage.Lib.Searching
 				return false;
 			}
 
-			var b = ImageHelper.IsDirect(s);
+			var b = ImageHelper.IsDirect(s, d);
 
 			if (b) {
 				Direct = Url;
@@ -279,7 +257,6 @@ namespace SmartImage.Lib.Searching
 		}
 
 		public override string ToString() => Strings.OutlineString(this);
-
 
 		public Dictionary<string, object> Outline
 		{
@@ -308,7 +285,6 @@ namespace SmartImage.Lib.Searching
 
 					map.Add("Resolution", val);
 				}
-
 
 				map.Add(nameof(Name), Name);
 

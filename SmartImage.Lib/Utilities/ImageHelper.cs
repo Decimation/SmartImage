@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
 using Kantan.Collections;
+using Kantan.Diagnostics;
 using Novus.Win32;
 using Kantan.Net;
 using Kantan.Utilities;
@@ -86,9 +88,29 @@ namespace SmartImage.Lib.Utilities
 
 		private const int TimeoutMS = 1000;
 
-		public static string Download(Uri direct, string path)
+		public static string Download(Uri src, string path)
 		{
-			string filename = Path.GetFileName(direct.AbsolutePath);
+			var filename = NormalizeFilename(src);
+			
+			string combine = Path.Combine(path, filename);
+
+			using var wc = new WebClient();
+
+			Debug.WriteLine($"Downloading {src} to {combine} ...");
+
+			try {
+				wc.DownloadFile(src.ToString(), combine);
+				return combine;
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}", LogCategories.C_ERROR);
+				return null;
+			}
+		}
+
+		private static string NormalizeFilename(Uri src)
+		{
+			string filename = Path.GetFileName(src.AbsolutePath);
 
 			if (!Path.HasExtension(filename)) {
 
@@ -96,7 +118,7 @@ namespace SmartImage.Lib.Utilities
 				string ext = ".jpg";
 
 				// For Pixiv (?)
-				var kv = HttpUtility.ParseQueryString(direct.Query);
+				var kv = HttpUtility.ParseQueryString(src.Query);
 
 				var t = kv["format"];
 
@@ -109,13 +131,15 @@ namespace SmartImage.Lib.Utilities
 				Debug.WriteLine("Fixed file", C_DEBUG);
 			}
 
-			string combine = Path.Combine(path, filename);
+			// Stupid URI parameter Twitter appends to filenames
 
-			using var wc = new WebClient();
+			var i = filename.IndexOf(":large", StringComparison.Ordinal);
 
-			wc.DownloadFile(direct, combine);
+			if (i != -1) {
+				filename = filename[..i];
+			}
 
-			return combine;
+			return filename;
 		}
 
 		/// <summary>
@@ -126,7 +150,7 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="timeoutMS"></param>
 		public static async Task<List<string>> FindDirectImages(string url, int count = 10, long timeoutMS = TimeoutMS)
 		{
-			
+
 			var images = new List<string>();
 
 			IHtmlDocument document;
@@ -205,6 +229,32 @@ namespace SmartImage.Lib.Utilities
 			return a && b;
 		}
 
+		/*
+		 * Direct images are URIs that point to a binary image file
+		 */
+
+		/// <summary>
+		/// Determines whether <paramref name="url"/> is a direct image link
+		/// </summary>
+		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
+		public static bool IsDirect(string url, DirectImageCriterion directCriterion = DirectImageCriterion.Regex)
+		{
+			return directCriterion switch
+			{
+				DirectImageCriterion.Binary => IsImage(url),
+				DirectImageCriterion.Regex =>
+					/*
+					 * https://github.com/PactInteractive/image-downloader
+					 */
+					Regex.IsMatch(
+						url,
+						@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
+						RegexOptions.IgnoreCase),
+				_ => throw new ArgumentOutOfRangeException(nameof(directCriterion), directCriterion, null)
+			};
+
+		}
+
 		internal static string AsPercent(this float n)
 		{
 			/*
@@ -248,35 +298,9 @@ namespace SmartImage.Lib.Utilities
 			};
 
 		}
-
-		/*
-		 * Direct images are URIs that point to a binary image file
-		 */
-
-		/// <summary>
-		/// Determines whether <paramref name="url"/> is a direct image link
-		/// </summary>
-		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
-		public static bool IsDirect(string url, DirectImageType directType = DirectImageType.Regex)
-		{
-			return directType switch
-			{
-				DirectImageType.Binary => IsImage(url),
-				DirectImageType.Regex =>
-					/*
-					 * https://github.com/PactInteractive/image-downloader
-					 */
-					Regex.IsMatch(
-						url,
-						@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
-						RegexOptions.IgnoreCase),
-				_ => throw new ArgumentOutOfRangeException(nameof(directType), directType, null)
-			};
-
-		}
 	}
 
-	public enum DirectImageType
+	public enum DirectImageCriterion
 	{
 		Binary,
 		Regex
