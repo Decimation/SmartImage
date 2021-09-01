@@ -34,7 +34,7 @@ namespace SmartImage.Lib.Engines.Impl
 		public override string Name => "IQDB";
 
 		public override TimeSpan           Timeout      => TimeSpan.FromSeconds(4.5);
-		public override EngineResultType ResultType => EngineResultType.Image | EngineResultType.Metadata;
+		public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
 		private static ImageResult ParseResult(IHtmlCollection<IElement> tr)
 		{

@@ -30,6 +30,9 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
+		/// <inheritdoc />
+		public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
+
 		protected override Uri GetRawUri(ImageQuery query)
 		{
 			var uri = base.GetRawUri(query);
@@ -70,9 +73,6 @@ namespace SmartImage.Lib.Engines.Impl
 
 			return true;
 		}
-
-		/// <inheritdoc />
-		public override EngineResultType ResultType => EngineResultType.Image | EngineResultType.Metadata;
 
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
@@ -146,8 +146,7 @@ namespace SmartImage.Lib.Engines.Impl
 				>= 1 => ResultQuality.High,
 				_    => ResultQuality.Low,
 			};
-
-			doc.Dispose();
+			
 
 			return sr;
 		}

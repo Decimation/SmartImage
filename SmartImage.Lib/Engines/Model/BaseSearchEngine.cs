@@ -32,8 +32,7 @@ namespace SmartImage.Lib.Engines.Model
 
 		protected bool FollowRedirects { get; set; } = true;
 
-
-		public abstract EngineResultType ResultType { get; }
+		public abstract EngineSearchType SearchType { get; }
 
 		protected SearchResult GetResult(ImageQuery query, out IRestResponse response)
 		{
@@ -98,12 +97,11 @@ namespace SmartImage.Lib.Engines.Model
 			return true;
 		}
 	}
-
 	/// <summary>
 	/// Indicates the search criteria and result type of an engine.
 	/// </summary>
 	[Flags]
-	public enum EngineResultType
+	public enum EngineSearchType
 	{
 		/// <summary>
 		/// The engine returns image results

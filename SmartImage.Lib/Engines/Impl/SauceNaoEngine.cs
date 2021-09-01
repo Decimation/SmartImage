@@ -46,7 +46,7 @@ namespace SmartImage.Lib.Engines.Impl
 		 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
 		 */
 
-		public override EngineResultType ResultType => EngineResultType.Image | EngineResultType.Metadata;
+		public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
 		public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_URL)
 		{

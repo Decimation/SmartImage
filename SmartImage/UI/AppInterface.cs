@@ -211,7 +211,6 @@ namespace SmartImage.UI
 			       .AddText($"Results: {Client.Results.Count}");
 
 			if (Config.Notification && Config.NotificationImage) {
-				
 
 				var imageResult = args.FirstDirect.Value;
 
@@ -228,18 +227,21 @@ namespace SmartImage.UI
 						do {
 							file = ImageHelper.Download(imageResults[i++].Direct, path);
 
-						} while (string.IsNullOrWhiteSpace(file) && i < imageResults.Length);
+						} while (String.IsNullOrWhiteSpace(file) && i < imageResults.Length);
 
 					}
 
-					Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
+					if (file != null) {
+						Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
 
-					builder.AddHeroImage(new Uri(file));
+						builder.AddHeroImage(new Uri(file));
 
-					AppDomain.CurrentDomain.ProcessExit += (sender2, args2) =>
-					{
-						File.Delete(file);
-					};
+						AppDomain.CurrentDomain.ProcessExit += (sender2, args2) =>
+						{
+							File.Delete(file);
+						};
+					}
+
 				}
 
 

@@ -23,7 +23,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => EngineOption.ToString();
 
-		public override EngineResultType ResultType => EngineResultType.External | EngineResultType.Metadata;
+		public override EngineSearchType SearchType => EngineSearchType.External | EngineSearchType.Metadata;
 
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{

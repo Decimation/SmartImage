@@ -56,12 +56,6 @@ namespace SmartImage.Lib.Utilities
 
 		#region Cli
 
-		private const string MAGICK_EXE     = "magick.exe";
-		private const string GALLERY_DL_EXE = "gallery-dl.exe";
-		private const string YOUTUBE_DL_EXE = "youtube-dl.exe";
-		private const string FFPROBE_EXE    = "ffprobe.exe";
-		private const string FFMPEG_EXE     = "ffmpeg.exe";
-
 		public static Dictionary<string, string> UtilitiesMap
 		{
 			get
@@ -81,7 +75,7 @@ namespace SmartImage.Lib.Utilities
 
 		public static readonly List<string> Utilities = new()
 		{
-			FFMPEG_EXE, FFPROBE_EXE, MAGICK_EXE, YOUTUBE_DL_EXE, GALLERY_DL_EXE
+			"ffmpeg.exe", "ffprobe.exe", "magick.exe", "youtube-dl.exe", "gallery-dl.exe"
 		};
 
 		#endregion
@@ -92,19 +86,19 @@ namespace SmartImage.Lib.Utilities
 		public static string Download(Uri src, string path)
 		{
 			var filename = NormalizeFilename(src);
-			
+
 			string combine = Path.Combine(path, filename);
 
 			using var wc = new WebClient();
 
-			Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...");
+			Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...", C_DEBUG);
 
 			try {
 				wc.DownloadFile(src.ToString(), combine);
 				return combine;
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", LogCategories.C_ERROR);
+				Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", C_ERROR);
 				return null;
 			}
 		}
@@ -128,7 +122,7 @@ namespace SmartImage.Lib.Utilities
 				}
 
 				filename += ext;
-				
+
 			}
 
 			// Stupid URI parameter Twitter appends to filenames
@@ -181,7 +175,7 @@ namespace SmartImage.Lib.Utilities
 				{
 					string s = flat[iCopy];
 
-					if (IsImage(s, (int) timeoutMS)) {
+					if (IsImage(s, (int) timeoutMS, DirectImageCriterion.Binary)) {
 						return s;
 					}
 
@@ -211,49 +205,42 @@ namespace SmartImage.Lib.Utilities
 			return images;
 		}
 
-		public static bool IsImage(string url, long timeout = TimeoutMS)
+		public static bool IsImage(string url, DirectImageCriterion directCriterion = DirectImageCriterion.Binary) =>
+			IsImage(url, TimeoutMS, directCriterion);
+
+		public static bool IsImage(string url, long timeout, DirectImageCriterion directCriterion)
 		{
-			if (!UriUtilities.IsUri(url, out var u)) {
-				return false;
+			switch (directCriterion) {
+				case DirectImageCriterion.Regex:
+					return Regex.IsMatch(
+						url,
+						@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
+						RegexOptions.IgnoreCase);
+				case DirectImageCriterion.Binary:
+					if (!UriUtilities.IsUri(url, out var u)) {
+						return false;
+					}
+
+					var response = Network.GetResponse(u.ToString(), (int) timeout, Method.HEAD);
+
+					if (!response.IsSuccessful) {
+						return false;
+					}
+
+					var a = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";
+					var b = response.ContentLength >= 50_000;
+
+					return a && b;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(directCriterion), directCriterion, null);
 			}
 
-			var response = Network.GetResponse(u.ToString(), (int) timeout, Method.HEAD);
-
-			if (!response.IsSuccessful) {
-				return false;
-			}
-
-			var a = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";
-			var b = response.ContentLength >= 50_000;
-
-			return a && b;
 		}
 
 		/*
 		 * Direct images are URIs that point to a binary image file
 		 */
 
-		/// <summary>
-		/// Determines whether <paramref name="url"/> is a direct image link
-		/// </summary>
-		/// <remarks>A direct image link is a link which points to a binary image file</remarks>
-		public static bool IsDirect(string url, DirectImageCriterion directCriterion = DirectImageCriterion.Regex)
-		{
-			return directCriterion switch
-			{
-				DirectImageCriterion.Binary => IsImage(url),
-				DirectImageCriterion.Regex =>
-					/*
-					 * https://github.com/PactInteractive/image-downloader
-					 */
-					Regex.IsMatch(
-						url,
-						@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
-						RegexOptions.IgnoreCase),
-				_ => throw new ArgumentOutOfRangeException(nameof(directCriterion), directCriterion, null)
-			};
-
-		}
 
 		internal static string AsPercent(this float n)
 		{

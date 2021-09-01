@@ -84,7 +84,7 @@ namespace SmartImage.Lib.Searching
 
 		public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 		{
-			return (ImageHelper.IsDirect(x, DirectImageCriterion.Binary), File.Exists(x));
+			return (ImageHelper.IsImage(x), File.Exists(x));
 		}
 
 		public ImageResult GetImageResult()

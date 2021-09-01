@@ -22,23 +22,13 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract override string Name { get; }
 
-		public abstract override EngineResultType ResultType { get; }
+		public abstract override EngineSearchType SearchType { get; }
 
 		protected internal virtual IDocument GetContent(IRestResponse response)
 		{
 			var parser = new HtmlParser();
 
-
-			/*var s=AsyncHelpers.RunSync<string>(async () =>
-			{
-				var r = response.Content.ReadAsStringAsync();
-				await r;
-				return r.Result;
-			});*/
-
-			var s = response.Content;
-
-			var document = parser.ParseDocument(s);
+			var document = parser.ParseDocument(response.Content);
 
 			return document;
 		}

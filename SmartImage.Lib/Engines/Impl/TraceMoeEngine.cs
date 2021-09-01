@@ -33,7 +33,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override string Name => "trace.moe";
 
-		public override EngineResultType ResultType => EngineResultType.External | EngineResultType.Metadata;
+		public override EngineSearchType SearchType => EngineSearchType.External | EngineSearchType.Metadata;
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 

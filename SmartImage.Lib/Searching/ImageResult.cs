@@ -1,21 +1,16 @@
-﻿using SmartImage.Lib.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Reflection;
-using System.Threading.Tasks;
 using Kantan.Model;
 using Kantan.Numeric;
 using Kantan.Text;
-using Kantan.Utilities;
-using Novus.Win32;
+using SmartImage.Lib.Utilities;
 
 // ReSharper disable CognitiveComplexity
-
+#pragma warning disable 8629
 #nullable enable
 
 namespace SmartImage.Lib.Searching
@@ -134,19 +129,25 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public DisplayResolutionType DisplayResolution
 		{
+
 			get
 			{
 				if (HasImageDimensions) {
-					var resolutionType = ImageHelper.GetDisplayResolution(Width!.Value, Height!.Value);
+
+					var resolutionType = ImageHelper.GetDisplayResolution(Width.Value, Height.Value);
+
 
 					return resolutionType;
 				}
 
-				throw new SmartImageException($"Resolution unavailable");
+				throw new SmartImageException("Resolution unavailable");
 			}
+
 		}
 
 		public ResultQuality Quality { get; set; }
+
+		// TODO: Refactor detail score
 
 		private static readonly List<FieldInfo> DetailFields = GetDetailFields();
 
@@ -158,8 +159,8 @@ namespace SmartImage.Lib.Searching
 		{
 			get
 			{
-				int s = Enumerable.Select<FieldInfo, object?>(DetailFields, f => f.GetValue(this))
-				                  .Count(v => v != null);
+				int s = DetailFields.Select(f => f.GetValue(this))
+				                    .Count(v => v != null);
 
 				s += OtherMetadata.Count;
 				/*if (Similarity.HasValue) {
@@ -226,6 +227,23 @@ namespace SmartImage.Lib.Searching
 			UpdateImageData();
 		}
 
+		public bool CheckDirect(DirectImageCriterion d)
+		{
+			if (Url is not { }) {
+				return false;
+			}
+
+			var s = Url.ToString();
+
+			var b = ImageHelper.IsImage(s, d);
+
+			if (b) {
+				Direct = Url;
+			}
+
+			return b;
+		}
+
 		public void UpdateImageData()
 		{
 			if (Image is { }) {
@@ -237,23 +255,6 @@ namespace SmartImage.Lib.Searching
 				// OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
 				// OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(rg));
 			}
-		}
-
-		public bool CheckDirect(DirectImageCriterion d)
-		{
-			if (Url is not {}) {
-				return false;
-			}
-
-			var s = Url.ToString();
-
-			var b = ImageHelper.IsDirect(s, d);
-
-			if (b) {
-				Direct = Url;
-			}
-
-			return b;
 		}
 
 		public override string ToString() => Strings.OutlineString(this);

@@ -10,7 +10,7 @@ namespace SmartImage.Lib.Engines.Impl.Other
 
 		public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleImages;
 
-		public override EngineResultType ResultType => EngineResultType.Image;
+		public override EngineSearchType SearchType => EngineSearchType.Image;
 
 
 

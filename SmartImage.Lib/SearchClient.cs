@@ -21,7 +21,7 @@ using static Kantan.Diagnostics.LogCategories;
 namespace SmartImage.Lib
 {
 	/// <summary>
-	/// Handles searches
+	///     Handles searches
 	/// </summary>
 	public sealed class SearchClient
 	{
@@ -37,34 +37,34 @@ namespace SmartImage.Lib
 		}
 
 		/// <summary>
-		/// The configuration to use when searching
+		///     The configuration to use when searching
 		/// </summary>
 		public SearchConfig Config { get; init; }
 
 		/// <summary>
-		/// Whether the search process is complete
+		///     Whether the search process is complete
 		/// </summary>
 		public bool IsComplete { get; private set; }
 
 		/// <summary>
-		/// Search engines to use
+		///     Search engines to use
 		/// </summary>
 		public BaseSearchEngine[] Engines { get; private set; }
 
 		/// <summary>
-		/// Contains search results
+		///     Contains search results
 		/// </summary>
 		public List<SearchResult> Results { get; }
 
 		/// <summary>
-		/// Contains filtered search results
+		///     Contains filtered search results
 		/// </summary>
 		public List<SearchResult> FilteredResults { get; }
 
 		public int Pending { get; private set; }
 
 		/// <summary>
-		/// Reloads <see cref="Config"/> and <see cref="Engines"/> accordingly.
+		///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
 		/// </summary>
 		public void Reload()
 		{
@@ -76,11 +76,11 @@ namespace SmartImage.Lib
 			          .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
 			          .ToArray();
 
-			Trace.WriteLine($"Config:\n{Config}", C_DEBUG);
+			Trace.WriteLine($"{nameof(SearchClient)}: Config:\n{Config}", C_DEBUG);
 		}
 
 		/// <summary>
-		/// Resets this instance in order to perform a new search.
+		///     Resets this instance in order to perform a new search.
 		/// </summary>
 		public void Reset()
 		{
@@ -93,7 +93,7 @@ namespace SmartImage.Lib
 		#region Primary operations
 
 		/// <summary>
-		/// Performs an image search asynchronously.
+		///     Performs an image search asynchronously.
 		/// </summary>
 		public async Task RunSearchAsync()
 		{
@@ -149,7 +149,7 @@ namespace SmartImage.Lib
 				ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
 				{
 					IsFiltered = isFiltered,
-					IsPriority = isPriority,
+					IsPriority = isPriority
 				});
 
 				IsComplete = !tasks.Any();
@@ -157,15 +157,14 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
-
 			var args = new SearchCompletedEventArgs
 			{
 				Results  = Results,
 				Detailed = new Lazy<ImageResult>(() => GetDetailedResults().FirstOrDefault()),
 				Direct = new Lazy<ImageResult[]>(() =>
 				{
-					Debug.WriteLine("Finding direct results");
-					var direct = GetDirectResults();
+					Debug.WriteLine($"{nameof(SearchClient)}: Finding direct results", C_DEBUG);
+					ImageResult[] direct = GetDirectResults();
 
 					return direct;
 				}),
@@ -180,25 +179,25 @@ namespace SmartImage.Lib
 		#region Secondary operations
 
 		/// <summary>
-		/// Refines search results by searching with the most-detailed result (<see cref="FindDirectResult"/>).
+		///     Refines search results by searching with the most-detailed result (<see cref="GetDirectResult" />).
 		/// </summary>
 		public async Task RefineSearchAsync()
 		{
 			if (!IsComplete) {
-				throw new SmartImageException(ERR_SEARCH_NOT_COMPLETE);
+				throw SearchException;
 			}
 
-			Debug.WriteLine("Finding best result");
+			Debug.WriteLine($"{nameof(SearchClient)}: Finding best result", C_DEBUG);
 
-			var best = GetDirectResult();
+			var directResult = GetDirectResult();
 
-			if (best == null) {
-				throw new SmartImageException(ERR_NO_BEST_RESULT);
+			if (directResult == null) {
+				throw new SmartImageException("Could not find best result");
 			}
 
-			var uri = best.Direct;
+			var uri = directResult.Direct;
 
-			Debug.WriteLine($"Refining by {uri}");
+			Debug.WriteLine($"{nameof(SearchClient)}: Refining by {uri}", C_DEBUG);
 
 			Config.Query = uri;
 
@@ -208,52 +207,24 @@ namespace SmartImage.Lib
 		}
 
 		/// <summary>
-		/// Maximizes search results by using the specified property selector.
+		///     Maximizes search results by using the specified property selector.
 		/// </summary>
-		/// <returns><see cref="Results"/> ordered by <paramref name="property"/></returns>
+		/// <returns><see cref="Results" /> ordered by <paramref name="property" /></returns>
 		public List<SearchResult> MaximizeResults<T>(Func<SearchResult, T> property)
 		{
 			if (!IsComplete) {
-				throw new SmartImageException(ERR_SEARCH_NOT_COMPLETE);
+				throw SearchException;
 			}
 
 			var res = Results.OrderByDescending(property).ToList();
 
-			res.RemoveAll(r => !r.IsNonPrimitive);
+			res.RemoveAll(r => !DetailPredicate(r));
 
 			return res;
 		}
 
 		[CanBeNull]
-		public ImageResult GetDirectResult()
-		{
-
-			// var best = FindBestResults().ToList();
-			/*var best = Results.Where(r => r.IsNonPrimitive)
-			                  .Where(r => r.Engine.SearchType.HasFlag(EngineSearchType.Image))
-			                  .AsParallel()
-			                  .OrderByDescending(r => r.PrimaryResult.Similarity)
-			                  .ThenByDescending(r => r.PrimaryResult.PixelResolution)
-			                  .ThenByDescending(r => r.PrimaryResult.DetailScore)
-			                  .SelectMany(r =>
-			                  {
-				                  var x = r.OtherResults;
-				                  x.Insert(0, r.PrimaryResult);
-				                  return x;
-			                  })
-			                  .ToList();*/
-
-			var best = RefineFilter(r => r.IsNonPrimitive
-			                             && r.Engine.ResultType.HasFlag(EngineResultType.Image)).ToList();
-
-			var images = best.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
-			                 .Take(10)
-			                 .AsParallel()
-			                 .FirstOrDefault(x => x.CheckDirect(DirectImageCriterion.Binary));
-
-
-			return images;
-		}
+		public ImageResult GetDirectResult() => GetDirectResults(1)?.FirstOrDefault();
 
 		public ImageResult[] GetDirectResults(int count = 5)
 		{
@@ -273,38 +244,50 @@ namespace SmartImage.Lib
 			                  })
 			                  .ToList();*/
 
-			var best = RefineFilter(r => r.IsNonPrimitive
-			                             && r.Engine.ResultType.HasFlag(EngineResultType.Image)).ToList();
+			var results = RefineFilter(r => DetailPredicate(r)
+			                                && r.Engine.SearchType.HasFlag(EngineSearchType.Image)).ToList();
 
-			Debug.WriteLine($"{nameof(SearchClient)}: Found {best.Count} best results", C_DEBUG);
+			Debug.WriteLine($"{nameof(SearchClient)}: Found {results.Count} best results", C_DEBUG);
 
-			var images = best.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
-			                 .Take(count * 2)
-			                 .AsParallel()
-			                 .Where(x => x.CheckDirect(DirectImageCriterion.Binary))
-			                 .Take(count)
-			                 .ToList();
+			const int i = 10;
+
+			var query = results.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
+			                   .Take(i)
+			                   .AsParallel();
+
+			List<ImageResult> images;
+
+			if (count == 1) {
+				images = new List<ImageResult>
+					{ query.FirstOrDefault(x => x.CheckDirect(DirectImageCriterion.Binary)) };
+
+			}
+			else {
+				images = query.Where(x => x.CheckDirect(DirectImageCriterion.Binary))
+				              .Take(count)
+				              // .OrderByDescending(r => r.Similarity)
+				              .ToList();
+			}
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 
-			return images.OrderByDescending(r => r.Similarity)
-			             .ToArray();
+			return images.ToArray();
 		}
 
 		/// <summary>
-		/// Selects the most detailed results.
+		///     Selects the most detailed results.
 		/// </summary>
-		/// <returns>The <see cref="ImageResult"/>s of the best <see cref="Results"/></returns>
-		public ImageResult[] GetDetailedResults() => RefineFilter(r => r.IsNonPrimitive).ToArray();
+		/// <returns>The <see cref="ImageResult" />s of the best <see cref="Results" /></returns>
+		public ImageResult[] GetDetailedResults() => RefineFilter(DetailPredicate).ToArray();
 
-		private OrderedParallelQuery<ImageResult> RefineFilter(Predicate<SearchResult> predicate)
+		public IEnumerable<ImageResult> RefineFilter(Predicate<SearchResult> predicate)
 		{
 			var query = Results.Where(r => predicate(r))
 			                   .SelectMany(r =>
 			                   {
-				                   var x = r.OtherResults;
-				                   x.Insert(0, r.PrimaryResult);
-				                   return x;
+				                   List<ImageResult> otherResults = r.OtherResults;
+				                   otherResults.Insert(0, r.PrimaryResult);
+				                   return otherResults;
 			                   })
 			                   .AsParallel()
 			                   .OrderByDescending(r => r.Similarity)
@@ -333,18 +316,18 @@ namespace SmartImage.Lib
 		}
 
 		/// <summary>
-		/// An event that fires whenever a result is returned (<see cref="RunSearchAsync"/>).
+		///     An event that fires whenever a result is returned (<see cref="RunSearchAsync" />).
 		/// </summary>
 		public event EventHandler<ResultCompletedEventArgs> ResultCompleted;
 
 		/// <summary>
-		/// An event that fires when a search is complete (<see cref="RunSearchAsync"/>).
+		///     An event that fires when a search is complete (<see cref="RunSearchAsync" />).
 		/// </summary>
 		public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
-		private const string ERR_SEARCH_NOT_COMPLETE = "Search must be completed";
+		private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
 
-		private const string ERR_NO_BEST_RESULT = "Could not find best result";
+		private static readonly SmartImageException SearchException = new("Search must be completed");
 	}
 
 	public sealed class SearchCompletedEventArgs : EventArgs
@@ -357,9 +340,6 @@ namespace SmartImage.Lib
 		[CanBeNull]
 		public Lazy<ImageResult> FirstDirect { get; internal set; }
 
-		[CanBeNull]
-		public List<Lazy<ImageResult>> xDirect { get; internal set; }
-
 
 		[CanBeNull]
 		public Lazy<ImageResult> Detailed { get; internal set; }
@@ -369,29 +349,29 @@ namespace SmartImage.Lib
 
 	public sealed class ResultCompletedEventArgs : EventArgs
 	{
-		/// <summary>
-		/// Search result
-		/// </summary>
-		public SearchResult Result { get; }
-
-		/// <summary>
-		/// When <see cref="SearchConfig.Filtering"/> is <c>true</c>:
-		/// <c>true</c> if the result was filtered; <c>false</c> otherwise
-		/// <para></para>
-		/// When <see cref="SearchConfig.Filtering"/> is <c>false</c>:
-		/// <c>null</c>
-		/// </summary>
-		public bool? IsFiltered { get; init; }
-
-		/// <summary>
-		/// Whether this result was returned by an engine that is
-		/// one of the specified <see cref="SearchConfig.PriorityEngines"/>
-		/// </summary>
-		public bool IsPriority { get; init; }
-
 		public ResultCompletedEventArgs(SearchResult result)
 		{
 			Result = result;
 		}
+
+		/// <summary>
+		///     Search result
+		/// </summary>
+		public SearchResult Result { get; }
+
+		/// <summary>
+		///     When <see cref="SearchConfig.Filtering" /> is <c>true</c>:
+		///     <c>true</c> if the result was filtered; <c>false</c> otherwise
+		///     <para></para>
+		///     When <see cref="SearchConfig.Filtering" /> is <c>false</c>:
+		///     <c>null</c>
+		/// </summary>
+		public bool? IsFiltered { get; init; }
+
+		/// <summary>
+		///     Whether this result was returned by an engine that is
+		///     one of the specified <see cref="SearchConfig.PriorityEngines" />
+		/// </summary>
+		public bool IsPriority { get; init; }
 	}
 }

@@ -25,7 +25,6 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		Success,
 
-
 		/// <summary>
 		/// No results found
 		/// </summary>
@@ -49,7 +48,6 @@ namespace SmartImage.Lib.Searching
 		Cooldown
 	}
 
-
 	/// <summary>
 	/// Describes a search result
 	/// </summary>
@@ -69,7 +67,6 @@ namespace SmartImage.Lib.Searching
 		/// Undifferentiated URI
 		/// </summary>
 		public Uri RawUri { get; set; }
-
 
 		/// <summary>
 		/// The <see cref="BaseSearchEngine"/> that returned this result
@@ -95,7 +92,6 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
 
-
 		public bool IsSuccessful
 		{
 			get
@@ -111,8 +107,6 @@ namespace SmartImage.Lib.Searching
 					case ResultStatus.Extraneous:
 						return true;
 
-					
-						
 					default:
 						throw new ArgumentOutOfRangeException();
 				}
@@ -137,9 +131,8 @@ namespace SmartImage.Lib.Searching
 			PrimaryResult = ReflectionHelper.Consolidate(PrimaryResult, OtherResults);
 		}
 
-
 		public override string ToString() => Strings.OutlineString(this);
-		
+
 		public Dictionary<string, object> Outline
 		{
 			get
@@ -155,7 +148,6 @@ namespace SmartImage.Lib.Searching
 				if (OtherResults.Count != 0) {
 					map.Add("Other image results", OtherResults.Count);
 				}
-				
 
 				if (ErrorMessage != null) {
 					map.Add("Error", ErrorMessage);

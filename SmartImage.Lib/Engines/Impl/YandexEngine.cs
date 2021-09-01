@@ -31,7 +31,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		public override TimeSpan Timeout => TimeSpan.FromSeconds(6.5);
 
-		public override EngineResultType ResultType => EngineResultType.Image;
+		public override EngineSearchType SearchType => EngineSearchType.Image;
 
 		private static string? GetAnalysis(IDocument doc)
 		{

@@ -16,7 +16,7 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract override string Name { get; }
 
-		public abstract override EngineResultType ResultType { get; }
+		public abstract override EngineSearchType SearchType { get; }
 
 
 		/// <summary>
@@ -62,6 +62,10 @@ namespace SmartImage.Lib.Engines.Model
 				}
 
 				sr = Process(o, sr);
+
+				if (o is IDisposable d) {
+					d.Dispose();
+				}
 
 				return sr;
 			}
