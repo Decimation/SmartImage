@@ -192,7 +192,7 @@ namespace SmartImage.UI
 
 		public static void ShowToast(object sender, SearchCompletedEventArgs args)
 		{
-			var bestResult = args.Best;
+			var bestResult = args.Detailed;
 
 			var builder = new ToastContentBuilder();
 			var button  = new ToastButton();
@@ -210,28 +210,39 @@ namespace SmartImage.UI
 			       .AddText($"{bestResult}")
 			       .AddText($"Results: {Client.Results.Count}");
 
-			var direct = args.Direct?.Value;
+			if (Config.Notification && Config.NotificationImage) {
+				
 
-			if (direct != null) {
-				var path = Path.GetTempPath();
+				var imageResult = args.FirstDirect.Value;
 
-				string file;
+				if (imageResult != null) {
+					var path = Path.GetTempPath();
 
-				int i = 0;
+					string file = ImageHelper.Download(imageResult.Direct, path);
 
-				do {
-					file = ImageHelper.Download(direct[i++].Direct, path);
+					if (file == null) {
+						int i = 0;
 
-				} while (string.IsNullOrWhiteSpace(file) && i < direct.Length);
+						var imageResults = args.Direct.Value;
 
-				Debug.WriteLine($"Downloaded {file}", C_INFO);
+						do {
+							file = ImageHelper.Download(imageResults[i++].Direct, path);
 
-				builder.AddHeroImage(new Uri(file));
+						} while (string.IsNullOrWhiteSpace(file) && i < imageResults.Length);
 
-				AppDomain.CurrentDomain.ProcessExit += (sender2, args2) =>
-				{
-					File.Delete(file);
-				};
+					}
+
+					Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
+
+					builder.AddHeroImage(new Uri(file));
+
+					AppDomain.CurrentDomain.ProcessExit += (sender2, args2) =>
+					{
+						File.Delete(file);
+					};
+				}
+
+
 			}
 
 			builder.SetBackgroundActivation();

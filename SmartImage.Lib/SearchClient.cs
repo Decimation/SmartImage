@@ -1,23 +1,15 @@
-﻿using JetBrains.Annotations;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Searching;
-using SmartImage.Lib.Utilities;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading;
-using System.Threading.Tasks;
-using Kantan.Diagnostics;
-using Kantan.Net;
-using Kantan.Utilities;
 using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Searching;
 using SmartImage.Lib.Upload;
+using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
@@ -166,25 +158,21 @@ namespace SmartImage.Lib
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
 
-			var args2 = new SearchCompletedEventArgs()
+			var args = new SearchCompletedEventArgs
 			{
-				Results = Results,
-				Best    = new Lazy<ImageResult>(() => GetDetailedResults().FirstOrDefault()),
+				Results  = Results,
+				Detailed = new Lazy<ImageResult>(() => GetDetailedResults().FirstOrDefault()),
 				Direct = new Lazy<ImageResult[]>(() =>
 				{
-					if (Config.Notification && Config.NotificationImage) {
+					Debug.WriteLine("Finding direct results");
+					var direct = GetDirectResults();
 
-						Debug.WriteLine($"Finding direct results");
-						var direct = GetDirectResults();
-
-						return direct;
-					}
-
-					return null;
-				})
+					return direct;
+				}),
+				FirstDirect = new Lazy<ImageResult>(GetDirectResult)
 			};
 
-			SearchCompleted?.Invoke(null, args2);
+			SearchCompleted?.Invoke(null, args);
 		}
 
 		#endregion
@@ -202,8 +190,7 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine("Finding best result");
 
-			var best = GetDirectResults()
-				.FirstOrDefault(f => ImageHelper.IsDirect(f.Direct.ToString(), DirectImageCriterion.Binary));
+			var best = GetDirectResult();
 
 			if (best == null) {
 				throw new SmartImageException(ERR_NO_BEST_RESULT);
@@ -237,6 +224,37 @@ namespace SmartImage.Lib
 			return res;
 		}
 
+		[CanBeNull]
+		public ImageResult GetDirectResult()
+		{
+
+			// var best = FindBestResults().ToList();
+			/*var best = Results.Where(r => r.IsNonPrimitive)
+			                  .Where(r => r.Engine.SearchType.HasFlag(EngineSearchType.Image))
+			                  .AsParallel()
+			                  .OrderByDescending(r => r.PrimaryResult.Similarity)
+			                  .ThenByDescending(r => r.PrimaryResult.PixelResolution)
+			                  .ThenByDescending(r => r.PrimaryResult.DetailScore)
+			                  .SelectMany(r =>
+			                  {
+				                  var x = r.OtherResults;
+				                  x.Insert(0, r.PrimaryResult);
+				                  return x;
+			                  })
+			                  .ToList();*/
+
+			var best = RefineFilter(r => r.IsNonPrimitive
+			                             && r.Engine.ResultType.HasFlag(EngineResultType.Image)).ToList();
+
+			var images = best.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
+			                 .Take(10)
+			                 .AsParallel()
+			                 .FirstOrDefault(x => x.CheckDirect(DirectImageCriterion.Binary));
+
+
+			return images;
+		}
+
 		public ImageResult[] GetDirectResults(int count = 5)
 		{
 
@@ -260,9 +278,12 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {best.Count} best results", C_DEBUG);
 
-			var images1 = best.Where(x => x.CheckDirect(DirectImageCriterion.Regex)).Take(count*2);
-			
-			var images = images1.Where(x => x.CheckDirect(DirectImageCriterion.Binary)).Take(count).ToList();
+			var images = best.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
+			                 .Take(count * 2)
+			                 .AsParallel()
+			                 .Where(x => x.CheckDirect(DirectImageCriterion.Binary))
+			                 .Take(count)
+			                 .ToList();
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 
@@ -334,7 +355,16 @@ namespace SmartImage.Lib
 		public Lazy<ImageResult[]> Direct { get; internal set; }
 
 		[CanBeNull]
-		public Lazy<ImageResult> Best { get; internal set; }
+		public Lazy<ImageResult> FirstDirect { get; internal set; }
+
+		[CanBeNull]
+		public List<Lazy<ImageResult>> xDirect { get; internal set; }
+
+
+		[CanBeNull]
+		public Lazy<ImageResult> Detailed { get; internal set; }
+
+		// todo: maybe lazy list? i.e., each item is a lazy load
 	}
 
 	public sealed class ResultCompletedEventArgs : EventArgs

@@ -239,13 +239,13 @@ namespace SmartImage.Lib.Searching
 			}
 		}
 
-		public bool CheckDirect(DirectImageCriterion d = DirectImageCriterion.Regex)
+		public bool CheckDirect(DirectImageCriterion d)
 		{
-			var s = Url?.ToString();
-
-			if (s is not { }) {
+			if (Url is not {}) {
 				return false;
 			}
+
+			var s = Url.ToString();
 
 			var b = ImageHelper.IsDirect(s, d);
 

@@ -88,6 +88,7 @@ namespace SmartImage.Lib.Utilities
 
 		private const int TimeoutMS = 1000;
 
+		[CanBeNull]
 		public static string Download(Uri src, string path)
 		{
 			var filename = NormalizeFilename(src);
@@ -96,14 +97,14 @@ namespace SmartImage.Lib.Utilities
 
 			using var wc = new WebClient();
 
-			Debug.WriteLine($"Downloading {src} to {combine} ...");
+			Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...");
 
 			try {
 				wc.DownloadFile(src.ToString(), combine);
 				return combine;
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", LogCategories.C_ERROR);
+				Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", LogCategories.C_ERROR);
 				return null;
 			}
 		}
@@ -127,8 +128,7 @@ namespace SmartImage.Lib.Utilities
 				}
 
 				filename += ext;
-
-				Debug.WriteLine("Fixed file", C_DEBUG);
+				
 			}
 
 			// Stupid URI parameter Twitter appends to filenames
@@ -159,7 +159,7 @@ namespace SmartImage.Lib.Utilities
 				document = WebUtilities.GetHtmlDocument(url);
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", C_ERROR);
+				Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", C_ERROR);
 
 				return null;
 			}
