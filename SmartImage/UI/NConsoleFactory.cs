@@ -65,7 +65,7 @@ namespace SmartImage.UI
 		{
 			bool initVal = (bool) member.GetValue(Program.Config);
 
-			return new NConsoleOption()
+			return new NConsoleOption
 			{
 				Name = AppInterface.Elements.GetName(name, initVal),
 				Function = () =>
@@ -91,7 +91,7 @@ namespace SmartImage.UI
 		{
 			bool initVal = (bool) (Program.Config).GetType().GetAnyResolvedField(m).GetValue(Program.Config);
 
-			return new NConsoleOption()
+			return new NConsoleOption
 			{
 				Name = AppInterface.Elements.GetName(name, initVal),
 				Function = () =>
@@ -118,9 +118,7 @@ namespace SmartImage.UI
 
 			var option = new NConsoleOption
 			{
-
-
-				Functions = new Dictionary<ConsoleModifiers, NConsoleFunction>()
+				Functions = new Dictionary<ConsoleModifiers, NConsoleFunction>
 				{
 					[NC_FN_MAIN] = CreateOpenFunction(result.PrimaryResult is { Url: { } }
 						                                  ? result.PrimaryResult.Url
@@ -238,28 +236,6 @@ namespace SmartImage.UI
 			{
 				if (url != null) {
 					WebUtilities.OpenUrl(url.ToString());
-				}
-
-				return null;
-			};
-		}
-
-		internal static NConsoleFunction CreateDownloadFunction(ImageResult result)
-		{
-			return () =>
-			{
-				Trace.WriteLine($"Downloading");
-				var direct = result.Direct;
-
-
-				if (direct != null) {
-					var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
-					var file = ImageHelper.Download(direct, path);
-
-					FileSystem.ExploreFile(file);
-
-					Debug.WriteLine($"Download: {file}", LogCategories.C_INFO);
 				}
 
 				return null;

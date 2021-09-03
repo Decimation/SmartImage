@@ -259,7 +259,9 @@ namespace SmartImage.Lib
 
 			if (count == 1) {
 				images = new List<ImageResult>
-					{ query.FirstOrDefault(x => x.CheckDirect(DirectImageCriterion.Binary)) };
+				{
+					query.FirstOrDefault(x => x.CheckDirect(DirectImageCriterion.Binary))
+				};
 
 			}
 			else {

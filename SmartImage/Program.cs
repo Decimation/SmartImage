@@ -271,6 +271,7 @@ namespace SmartImage
 		private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
 		                                      CancellationTokenSource cts)
 		{
+
 			Native.FlashConsoleWindow();
 
 			cts.Cancel();

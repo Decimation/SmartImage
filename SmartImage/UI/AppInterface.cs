@@ -64,7 +64,7 @@ namespace SmartImage.UI
 
 			CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
 			                   added => AppIntegration.HandleContextMenu(
-				                   added ? IntegrationOption.Remove : IntegrationOption.Add)),
+				                   added ? false : true)),
 
 			new()
 			{
@@ -99,14 +99,14 @@ namespace SmartImage.UI
 					Console.WriteLine($"In path: {AppInfo.IsAppFolderInPath}");
 
 					Console.WriteLine();
-					Console.WriteLine(Strings.Separator);
+					Console.WriteLine(StringConstants.Separator);
 
 					foreach (var utility in ImageHelper.UtilitiesMap) {
 						Console.WriteLine(utility);
 					}
 
 					Console.WriteLine();
-					Console.WriteLine(Strings.Separator);
+					Console.WriteLine(StringConstants.Separator);
 
 					var dependencies = ReflectionHelper.DumpDependencies();
 

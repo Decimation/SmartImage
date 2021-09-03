@@ -19,11 +19,7 @@ using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Core
 {
-	public enum IntegrationOption
-	{
-		Add,
-		Remove
-	}
+	
 
 	/// <summary>
 	/// Program OS integrations
@@ -38,14 +34,14 @@ namespace SmartImage.Core
 
 
 		/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
-		public static bool HandleContextMenu(IntegrationOption option)
+		public static bool HandleContextMenu(bool option)
 		{
 			/*
 			 * New context menu
 			 */
 
 			switch (option) {
-				case IntegrationOption.Add:
+				case true:
 
 					RegistryKey regMenu = null;
 					RegistryKey regCmd  = null;
@@ -71,7 +67,7 @@ namespace SmartImage.Core
 					}
 
 					break;
-				case IntegrationOption.Remove:
+				case false:
 
 					try {
 						var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
@@ -104,10 +100,10 @@ namespace SmartImage.Core
 
 		}
 
-		public static void HandlePath(IntegrationOption option)
+		public static void HandlePath(bool option)
 		{
 			switch (option) {
-				case IntegrationOption.Add:
+				case true:
 				{
 					string oldValue  = FileSystem.GetEnvironmentPath();
 					string appFolder = AppInfo.AppFolder;
@@ -130,7 +126,7 @@ namespace SmartImage.Core
 
 					break;
 				}
-				case IntegrationOption.Remove:
+				case false:
 					FileSystem.RemoveFromPath(AppInfo.AppFolder);
 					break;
 				default:
@@ -144,7 +140,7 @@ namespace SmartImage.Core
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 			if (IsContextMenuAdded) {
-				HandleContextMenu(IntegrationOption.Remove);
+				HandleContextMenu(false);
 			}
 
 			Trace.WriteLine("Reset config");

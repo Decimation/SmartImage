@@ -110,7 +110,7 @@ namespace SmartImage.Core
 			}
 
 			if (!IsAppFolderInPath) {
-				AppIntegration.HandlePath(IntegrationOption.Add);
+				AppIntegration.HandlePath(true);
 			}
 
 			Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
