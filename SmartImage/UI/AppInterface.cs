@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using Kantan.Cli;
+using Kantan.Cli.Controls;
 using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
@@ -35,7 +36,7 @@ namespace SmartImage.UI
 	/// </summary>
 	internal static partial class AppInterface
 	{
-		internal static readonly NConsoleOption[] MainMenuOptions =
+		internal static readonly ConsoleOption[] MainMenuOptions =
 		{
 			new()
 			{
@@ -43,7 +44,7 @@ namespace SmartImage.UI
 				Color = Elements.ColorMain,
 				Function = () =>
 				{
-					ImageQuery query = NConsole.ReadLine("Image file or direct URL", x =>
+					ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
 					{
 						x = x.CleanString();
 
@@ -63,8 +64,7 @@ namespace SmartImage.UI
 			CreateConfigOption(nameof(Config.NotificationImage), "Notification image", 5),
 
 			CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
-			                   added => AppIntegration.HandleContextMenu(
-				                   added ? false : true)),
+			                   added => AppIntegration.HandleContextMenu(!added)),
 
 			new()
 			{
@@ -74,7 +74,7 @@ namespace SmartImage.UI
 					//Console.Clear();
 
 					Console.WriteLine(Config);
-					NConsole.WaitForInput();
+					ConsoleManager.WaitForInput();
 
 					return null;
 				}
@@ -99,14 +99,14 @@ namespace SmartImage.UI
 					Console.WriteLine($"In path: {AppInfo.IsAppFolderInPath}");
 
 					Console.WriteLine();
-					Console.WriteLine(StringConstants.Separator);
+					Console.WriteLine(Strings.Constants.Separator);
 
 					foreach (var utility in ImageHelper.UtilitiesMap) {
 						Console.WriteLine(utility);
 					}
 
 					Console.WriteLine();
-					Console.WriteLine(StringConstants.Separator);
+					Console.WriteLine(Strings.Constants.Separator);
 
 					var dependencies = ReflectionHelper.DumpDependencies();
 
@@ -114,7 +114,7 @@ namespace SmartImage.UI
 						Console.WriteLine($"{name.Name} ({name.Version})");
 					}
 
-					NConsole.WaitForInput();
+					ConsoleManager.WaitForInput();
 
 					return null;
 				}
@@ -153,7 +153,7 @@ namespace SmartImage.UI
 
 		};
 
-		internal static readonly NConsoleDialog MainMenuDialog = new()
+		internal static readonly ConsoleDialog MainMenuDialog = new()
 		{
 			Options   = MainMenuOptions,
 			Header    = AppInfo.NAME_BANNER,

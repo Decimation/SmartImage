@@ -58,7 +58,7 @@ namespace SmartImage.Core
 					}
 					catch (Exception ex) {
 						Trace.WriteLine($"{ex.Message}");
-						NConsole.WaitForInput();
+						ConsoleManager.WaitForInput();
 						return false;
 					}
 					finally {

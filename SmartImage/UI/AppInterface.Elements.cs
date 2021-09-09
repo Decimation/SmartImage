@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Text;
 using JetBrains.Annotations;
 using Kantan.Text;
 using Kantan.Utilities;
+using Novus.Win32;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.UI
@@ -33,16 +35,26 @@ namespace SmartImage.UI
 				{ SearchEngineOptions.TinEye, Color.CornflowerBlue },
 			};
 
-			private static readonly string Enabled = StringConstants.CHECK_MARK.ToString().AddColor(ColorYes);
+			/*
+			 * Note: Weird encoding nuance
+			 */
 
-			private static readonly string Disabled = StringConstants.MUL_SIGN.ToString().AddColor(ColorNo);
+
+			private static readonly Encoding CodePage437 = CodePagesEncodingProvider.Instance.GetEncoding(Native.CP_IBM437);
+
+			internal static readonly string CheckMark =
+				Strings.EncodingConvert(Encoding.Unicode, CodePage437, Strings.Constants.CHECK_MARK.ToString());
+
+			private static readonly string Enabled = CheckMark.AddColor(ColorYes);
+
+			private static readonly string Disabled = Strings.Constants.MUL_SIGN.ToString().AddColor(ColorNo);
 
 			[UsedImplicitly]
 			internal static string GetName(string s, bool added) => $"{s} ({(ToToggleString(added))})";
 
-			public const string ARG_KEY_ACTION = "action";
+			internal const string ARG_KEY_ACTION = "action";
 
-			public const string ARG_VALUE_DISMISS = "dismiss";
+			internal const string ARG_VALUE_DISMISS = "dismiss";
 
 			internal static string ToToggleString(bool b) => b ? Enabled : Disabled;
 

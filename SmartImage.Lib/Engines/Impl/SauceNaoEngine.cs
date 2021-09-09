@@ -318,11 +318,11 @@ namespace SmartImage.Lib.Engines.Impl
 			{
 				Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
 				Similarity  = MathF.Round(sn.Similarity, 2),
-				Description = Strings.NullIfNullOrWhiteSpace(sn.WebsiteTitle),
-				Artist      = Strings.NullIfNullOrWhiteSpace(sn.Creator),
-				Source      = Strings.NullIfNullOrWhiteSpace(sn.Material),
-				Characters  = Strings.NullIfNullOrWhiteSpace(sn.Character),
-				Site        = Strings.NullIfNullOrWhiteSpace(siteName)
+				Description = Strings.NormalizeNull(sn.WebsiteTitle),
+				Artist      = Strings.NormalizeNull(sn.Creator),
+				Source      = Strings.NormalizeNull(sn.Material),
+				Characters  = Strings.NormalizeNull(sn.Character),
+				Site        = Strings.NormalizeNull(siteName)
 			};
 
 			return imageResult;

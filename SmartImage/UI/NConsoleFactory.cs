@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using JetBrains.Annotations;
 using Kantan.Cli;
+using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
@@ -16,7 +17,7 @@ using SmartImage.Core;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
-using static Kantan.Cli.NConsoleOption;
+using static Kantan.Cli.Controls.ConsoleOption;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -28,7 +29,7 @@ namespace SmartImage.UI
 		 * todo: this is all glue code :(
 		 */
 
-		internal static NConsoleOption CreateConfigOption(string f, string name)
+		internal static ConsoleOption CreateConfigOption(string f, string name)
 		{
 			return new()
 			{
@@ -38,19 +39,19 @@ namespace SmartImage.UI
 				{
 					var enumOptions = FromEnum<SearchEngineOptions>();
 
-					var selected = NConsole.ReadInput(new NConsoleDialog
+					var selected = ConsoleManager.ReadInput(new ConsoleDialog
 					{
 						Options        = enumOptions,
 						SelectMultiple = true
 					});
 
-					var enumValue = EnumHelper.ReadFromSet<SearchEngineOptions>(selected);
+					var enumValue = EnumHelper.ReadFromSet<SearchEngineOptions>(selected.Output);
 					var field     = Program.Config.GetType().GetAnyResolvedField(f);
 					field.SetValue(Program.Config, enumValue);
 
 					Console.WriteLine(enumValue);
 
-					NConsole.WaitForSecond();
+					ConsoleManager.WaitForSecond();
 
 					Debug.Assert((SearchEngineOptions) field.GetValue(Program.Config) == enumValue);
 
@@ -61,11 +62,11 @@ namespace SmartImage.UI
 			};
 		}
 
-		internal static NConsoleOption CreateConfigOption(PropertyInfo member, string name, int i, Action<bool> fn)
+		internal static ConsoleOption CreateConfigOption(PropertyInfo member, string name, int i, Action<bool> fn)
 		{
 			bool initVal = (bool) member.GetValue(Program.Config);
 
-			return new NConsoleOption
+			return new ConsoleOption
 			{
 				Name = AppInterface.Elements.GetName(name, initVal),
 				Function = () =>
@@ -87,11 +88,11 @@ namespace SmartImage.UI
 			};
 		}
 
-		internal static NConsoleOption CreateConfigOption(string m, string name, int i)
+		internal static ConsoleOption CreateConfigOption(string m, string name, int i)
 		{
 			bool initVal = (bool) (Program.Config).GetType().GetAnyResolvedField(m).GetValue(Program.Config);
 
-			return new NConsoleOption
+			return new ConsoleOption
 			{
 				Name = AppInterface.Elements.GetName(name, initVal),
 				Function = () =>
@@ -112,13 +113,13 @@ namespace SmartImage.UI
 			};
 		}
 
-		internal static NConsoleOption CreateResultOption(SearchResult result)
+		internal static ConsoleOption CreateResultOption(SearchResult result)
 		{
 			var color = AppInterface.Elements.EngineColorMap[result.Engine.EngineOption];
 
-			var option = new NConsoleOption
+			var option = new ConsoleOption
 			{
-				Functions = new Dictionary<ConsoleModifiers, NConsoleFunction>
+				Functions = new Dictionary<ConsoleModifiers, ConsoleOptionFunction>
 				{
 					[NC_FN_MAIN] = CreateOpenFunction(result.PrimaryResult is { Url: { } }
 						                                  ? result.PrimaryResult.Url
@@ -131,7 +132,7 @@ namespace SmartImage.UI
 
 							var options = CreateResultOptions(result.OtherResults, $"Other result");
 
-							NConsole.ReadInput(new NConsoleDialog
+							ConsoleManager.ReadInput(new ConsoleDialog
 							{
 								Options = options
 							});
@@ -157,7 +158,7 @@ namespace SmartImage.UI
 			{
 				var cts = new CancellationTokenSource();
 
-				NConsoleProgress.Queue(cts);
+				ConsoleProgressIndicator.Queue(cts);
 
 				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
@@ -176,7 +177,7 @@ namespace SmartImage.UI
 		}
 
 		[StringFormatMethod("n")]
-		internal static NConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n,
+		internal static ConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n,
 		                                                     Color c = default)
 		{
 			if (c == default) {
@@ -187,10 +188,10 @@ namespace SmartImage.UI
 			return result.Select(r => CreateResultOption(r, $"{n} #{i++}", c)).ToArray();
 		}
 
-		internal static NConsoleOption CreateResultOption(ImageResult result, string n, Color c,
+		internal static ConsoleOption CreateResultOption(ImageResult result, string n, Color c,
 		                                                  float correction = -.3f)
 		{
-			var option = new NConsoleOption
+			var option = new ConsoleOption
 			{
 				Color = c.ChangeBrightness(correction),
 				Name  = n,
@@ -206,7 +207,7 @@ namespace SmartImage.UI
 			return option;
 		}
 
-		internal static NConsoleFunction CreateDownloadFunction(Func<Uri> d)
+		internal static ConsoleOptionFunction CreateDownloadFunction(Func<Uri> d)
 		{
 			// Because of value type and pointer semantics, a func needs to be used here to ensure the
 			// Direct field of ImageResult is updated.
@@ -230,7 +231,7 @@ namespace SmartImage.UI
 			};
 		}
 
-		internal static NConsoleFunction CreateOpenFunction(Uri url)
+		internal static ConsoleOptionFunction CreateOpenFunction(Uri url)
 		{
 			return () =>
 			{

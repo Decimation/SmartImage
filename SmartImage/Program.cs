@@ -31,8 +31,10 @@ using Windows.ApplicationModel.Background;
 using Windows.Networking.Connectivity;
 using Windows.UI.Notifications;
 using Kantan.Cli;
+using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
 using Kantan.Net;
+using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus.Win32;
@@ -78,9 +80,9 @@ namespace SmartImage
 		/// <summary>
 		/// Console UI for search results
 		/// </summary>
-		private static readonly NConsoleDialog ResultDialog = new()
+		private static readonly ConsoleDialog ResultDialog = new()
 		{
-			Options = new List<NConsoleOption>(),
+			Options = new List<ConsoleOption>(),
 
 			Description = "Press the result number to open in browser\n" +
 			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
@@ -103,13 +105,13 @@ namespace SmartImage
 
 					ResultDialog.Options.Add(_orig);
 
-					foreach (NConsoleOption option in buffer.Select(NConsoleFactory.CreateResultOption)) {
+					foreach (ConsoleOption option in buffer.Select(NConsoleFactory.CreateResultOption)) {
 						ResultDialog.Options.Add(option);
 					}
 
 					_isFilteredShown = !_isFilteredShown;
 
-					NConsole.Refresh();
+					ConsoleManager.Refresh();
 				},
 				[ConsoleKey.F2] = async () =>
 				{
@@ -123,11 +125,11 @@ namespace SmartImage
 						await Client.RefineSearchAsync();
 					}
 					catch (Exception e) {
-						Console.WriteLine("Error: {0}",e.Message);
-						NConsole.WaitForSecond();
+						Console.WriteLine("Error: {0}", e.Message);
+						ConsoleManager.WaitForSecond();
 					}
 
-					NConsole.Refresh();
+					ConsoleManager.Refresh();
 				},
 			}
 		};
@@ -147,15 +149,14 @@ namespace SmartImage
 
 			ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
 
-			//...
-			Native.SetConsoleOutputCP(Native.CP_IBM437);
-
+			Console.OutputEncoding = Encoding.Unicode;
+			
 			Console.Title = $"{AppInfo.NAME}";
 
 			//120,30
 			//Console.WindowHeight = 60;
 
-			NConsole.Init();
+			ConsoleManager.Init();
 			Console.Clear();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
@@ -200,7 +201,7 @@ namespace SmartImage
 				}
 			};
 
-			NConsoleProgress.Queue(_cancellationToken);
+			ConsoleProgressIndicator.Queue(_cancellationToken);
 
 			// Show results
 			var searchTask = Client.RunSearchAsync();
@@ -210,7 +211,6 @@ namespace SmartImage
 
 			// Add original image
 			ResultDialog.Options.Add(_orig);
-
 
 			await ResultDialog.ReadAsync();
 
@@ -227,14 +227,17 @@ namespace SmartImage
 			if (!args.Any()) {
 				var options = await AppInterface.MainMenuDialog.ReadAsync();
 
-				if (!options.Any()) {
-					return false;
-				}
+				var file = options.DragAndDrop;
 
-				if (options.First() is string file) {
+				if (file != null) {
 					Debug.WriteLine($"Drag and drop: {file}");
 					Console.WriteLine($">> {file}".AddColor(AppInterface.Elements.ColorMain));
 					Config.Query = file;
+					return true;
+				}
+
+				if (!options.Output.Any()) {
+					return false;
 				}
 			}
 			else {
@@ -264,7 +267,7 @@ namespace SmartImage
 
 		private static bool _isFilteredShown;
 
-		private static NConsoleOption _orig;
+		private static ConsoleOption _orig;
 
 		#region Event handlers
 
@@ -278,7 +281,7 @@ namespace SmartImage
 			cts.Dispose();
 
 			SystemSounds.Exclamation.Play();
-			NConsole.Refresh();
+			ConsoleManager.Refresh();
 
 			if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 				var m = Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);

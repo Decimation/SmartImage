@@ -92,7 +92,7 @@ namespace SmartImage.Lib.Engines.Impl
 
 		private static (int? w, int? h) ParseResolution(string resText)
 		{
-			string[] resFull = resText.Split(StringConstants.MUL_SIGN);
+			string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
 
 			int? w = null, h = null;
 

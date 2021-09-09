@@ -126,7 +126,7 @@ namespace SmartImage.Core
 				/*Console.WriteLine("Non-Romance language detected!");
 				Console.WriteLine("If English is not the main IME, things may not work properly!");
 
-				NConsole.WaitForInput();*/
+				ConsoleManager.WaitForInput();*/
 
 				Trace.WriteLine($"Languages: {languages.QuickJoin()}");
 			}
