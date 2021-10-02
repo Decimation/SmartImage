@@ -105,13 +105,13 @@ namespace SmartImage
 
 					ResultDialog.Options.Add(_orig);
 
-					foreach (ConsoleOption option in buffer.Select(NConsoleFactory.CreateResultOption)) {
+					foreach (ConsoleOption option in buffer.Select(ConsoleUIFactory.CreateResultOption)) {
 						ResultDialog.Options.Add(option);
 					}
 
 					_isFilteredShown = !_isFilteredShown;
 
-					ConsoleManager.Refresh();
+					ConsoleDialog.Refresh();
 				},
 				[ConsoleKey.F2] = async () =>
 				{
@@ -129,7 +129,7 @@ namespace SmartImage
 						ConsoleManager.WaitForSecond();
 					}
 
-					ConsoleManager.Refresh();
+					ConsoleDialog.Refresh();
 				},
 			}
 		};
@@ -201,18 +201,18 @@ namespace SmartImage
 				}
 			};
 
-			ConsoleProgressIndicator.Queue(_cancellationToken);
+			ConsoleProgressIndicator.Start(_cancellationToken);
 
 			// Show results
 			var searchTask = Client.RunSearchAsync();
 
-			_orig = NConsoleFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
+			_orig = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
 			                                           AppInterface.Elements.ColorMain, -0.1f);
 
 			// Add original image
 			ResultDialog.Options.Add(_orig);
 
-			await ResultDialog.ReadAsync();
+			await ResultDialog.ReadInputAsync();
 
 			await searchTask;
 		}
@@ -225,7 +225,7 @@ namespace SmartImage
 			args = args.Skip(1).ToArray();
 
 			if (!args.Any()) {
-				var options = await AppInterface.MainMenuDialog.ReadAsync();
+				var options = await AppInterface.MainMenuDialog.ReadInputAsync();
 
 				var file = options.DragAndDrop;
 
@@ -281,7 +281,7 @@ namespace SmartImage
 			cts.Dispose();
 
 			SystemSounds.Exclamation.Play();
-			ConsoleManager.Refresh();
+			ConsoleDialog.Refresh();
 
 			if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 				var m = Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
@@ -296,7 +296,7 @@ namespace SmartImage
 		{
 			var result = eventArgs.Result;
 
-			var option = NConsoleFactory.CreateResultOption(result);
+			var option = ConsoleUIFactory.CreateResultOption(result);
 
 			bool? isFiltered = eventArgs.IsFiltered;
 

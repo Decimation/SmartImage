@@ -19,7 +19,7 @@ using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.Program;
-using static SmartImage.UI.NConsoleFactory;
+using static SmartImage.UI.ConsoleUIFactory;
 
 // ReSharper disable AssignNullToNotNullAttribute
 

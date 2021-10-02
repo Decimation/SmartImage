@@ -19,11 +19,13 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using static Kantan.Cli.Controls.ConsoleOption;
 
+// ReSharper disable InconsistentNaming
+
 // ReSharper disable PossibleNullReferenceException
 
 namespace SmartImage.UI
 {
-	internal static class NConsoleFactory
+	internal static class ConsoleUIFactory
 	{
 		/*
 		 * todo: this is all glue code :(
@@ -39,11 +41,11 @@ namespace SmartImage.UI
 				{
 					var enumOptions = FromEnum<SearchEngineOptions>();
 
-					var selected = ConsoleManager.ReadInput(new ConsoleDialog
+					var selected = (new ConsoleDialog
 					{
 						Options        = enumOptions,
 						SelectMultiple = true
-					});
+					}).ReadInput();
 
 					var enumValue = EnumHelper.ReadFromSet<SearchEngineOptions>(selected.Output);
 					var field     = Program.Config.GetType().GetAnyResolvedField(f);
@@ -132,10 +134,10 @@ namespace SmartImage.UI
 
 							var options = CreateResultOptions(result.OtherResults, $"Other result");
 
-							ConsoleManager.ReadInput(new ConsoleDialog
+							(new ConsoleDialog
 							{
 								Options = options
-							});
+							}).ReadInput();
 						}
 
 						return null;
@@ -158,7 +160,7 @@ namespace SmartImage.UI
 			{
 				var cts = new CancellationTokenSource();
 
-				ConsoleProgressIndicator.Queue(cts);
+				ConsoleProgressIndicator.Start(cts);
 
 				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
@@ -178,7 +180,7 @@ namespace SmartImage.UI
 
 		[StringFormatMethod("n")]
 		internal static ConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n,
-		                                                     Color c = default)
+		                                                    Color c = default)
 		{
 			if (c == default) {
 				c = AppInterface.Elements.ColorOther;
@@ -189,7 +191,7 @@ namespace SmartImage.UI
 		}
 
 		internal static ConsoleOption CreateResultOption(ImageResult result, string n, Color c,
-		                                                  float correction = -.3f)
+		                                                 float correction = -.3f)
 		{
 			var option = new ConsoleOption
 			{

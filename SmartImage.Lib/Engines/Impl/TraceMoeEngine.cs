@@ -90,7 +90,6 @@ namespace SmartImage.Lib.Engines.Impl
 				r.ErrorMessage = $"{re.ErrorMessage} {re.StatusCode}";
 			}
 
-
 			ret:
 
 			r.PrimaryResult.Quality = r.PrimaryResult.Similarity switch
@@ -101,7 +100,6 @@ namespace SmartImage.Lib.Engines.Impl
 			};
 			return r;
 		}
-
 
 		private IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj)
 		{

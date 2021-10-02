@@ -63,10 +63,8 @@ namespace SmartImage.Lib.Engines.Impl
 
 			static ImageResult Parse(INode siz)
 			{
-				string link = siz.FirstChild.TryGetAttribute("href");
-
+				string link    = siz.FirstChild.TryGetAttribute("href");
 				string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
-
 
 				//other-sites__snippet
 
@@ -102,8 +100,6 @@ namespace SmartImage.Lib.Engines.Impl
 				if (resText.Contains(TIMES_DELIM)) {
 					resFull = resText.Split(TIMES_DELIM);
 				}
-
-
 			}
 
 			if (resFull.Length == 2) {
@@ -111,14 +107,11 @@ namespace SmartImage.Lib.Engines.Impl
 				h = Int32.Parse(resFull[1]);
 			}
 
-
 			return (w, h);
 		}
 
 		private static List<ImageResult> GetImages(IDocument doc)
 		{
-
-
 			var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
 			var images   = new List<ImageResult>();
 
@@ -173,7 +166,7 @@ namespace SmartImage.Lib.Engines.Impl
 			// Automation detected
 			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
-			if (((IDocument) doc).Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
+			if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
 				sr.Status = ResultStatus.Cooldown;
 				return sr;
 			}
@@ -209,10 +202,6 @@ namespace SmartImage.Lib.Engines.Impl
 
 
 				if (looksLike != null) {
-					//todo
-
-					// sr.PrimaryResult.Description = Encoding.UTF8.GetString(
-					// 	Encoding.Convert(Encoding.Unicode, Encoding.UTF8, Encoding.Unicode.GetBytes(looksLike)));
 					sr.PrimaryResult.Description = looksLike;
 				}
 

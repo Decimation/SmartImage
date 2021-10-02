@@ -53,7 +53,6 @@ namespace SmartImage.Lib.Engines.Impl
 				var authorNode    = sub[5];
 				var subredditNode = sub[6];
 
-
 				//string? dist      = distNode.InnerText;
 				//string? score     = scoreNode.InnerText;
 				string posted    = postedNode.TextContent;
@@ -73,16 +72,13 @@ namespace SmartImage.Lib.Engines.Impl
 					Date        = DateTime.Parse(posted)
 				};
 
-
 				list.Add(bsr);
 			}
 
 			var best = list[0];
 
 			sr.PrimaryResult.UpdateFrom(best);
-
 			sr.OtherResults.AddRange(list);
-
 
 			return sr;
 		}

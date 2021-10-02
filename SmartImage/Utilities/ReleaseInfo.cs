@@ -19,21 +19,16 @@ namespace SmartImage.Utilities
 			// TODO: fails if tag contains non-numeric values!
 
 			TagName = tagName;
-
 			HtmlUrl = htmlUrl;
-
 
 			var utc = DateTime.Parse(publishedAt, null, DateTimeStyles.AdjustToUniversal);
 
 			PublishedAt = TimeZoneInfo.ConvertTimeFromUtc(utc, TimeZoneInfo.Local);
 
-
 			// Parse version
 
-			string[] versionStrSplit = tagName
-			                           .Replace("v", String.Empty)
-			                           .Split(".");
-
+			string[] versionStrSplit = tagName.Replace("v", String.Empty)
+			                                  .Split(".");
 
 			int major = Int32.Parse(versionStrSplit[0]);
 			int minor = Int32.Parse(versionStrSplit[1]);
@@ -47,7 +42,6 @@ namespace SmartImage.Utilities
 			if (versionStrSplit.Length >= 4) {
 				rev = Int32.Parse(versionStrSplit[3]);
 			}
-
 
 			Version = new Version(major, minor, build, rev);
 
@@ -76,7 +70,6 @@ namespace SmartImage.Utilities
 			var tagName = first["tag_name"];
 			var url     = first["html_url"];
 			var publish = first["published_at"];
-
 
 			var assets = first["assets"];
 			var dlUrl  = assets[0]["browser_download_url"];
