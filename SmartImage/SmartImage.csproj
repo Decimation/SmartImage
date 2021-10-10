@@ -2,12 +2,13 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
 
-    <TargetFramework>net5.0-windows10.0.17763.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <TargetFramework>net5.0</TargetFramework>
+    <!-- <TargetFramework>net5.0-windows10.0.17763.0</TargetFramework> -->
+    <!-- <RuntimeIdentifier>win10-x64</RuntimeIdentifier> -->
+    <!-- <PublishSingleFile>true</PublishSingleFile> -->
+    <!-- <PublishTrimmed>true</PublishTrimmed> -->
 
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <PublishSingleFile>true</PublishSingleFile>
-    <PublishTrimmed>true</PublishTrimmed>
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>..\Assets\Icon.ico</ApplicationIcon>
@@ -15,23 +16,49 @@
     <!--<Nullable>enable</Nullable>-->
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <Configurations>Debug;Release;TestDebug</Configurations>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RunAnalyzersDuringBuild>true</RunAnalyzersDuringBuild>
+    <NoWarn>
+      HAA0601
+      HAA0601,
+      HAA0602,
+      HAA0603,
+      HAA0604,
+      HAA0501,
+      HAA0502,
+      HAA0503,
+      HAA0504,
+      HAA0505,
+      HAA0506,
+      HAA0301,
+      HAA0302,
+      HAA0303,
+      HAA0101,
+      CS1591,
+      CA1069,
+    </NoWarn>
 
-    
   </PropertyGroup>
+  <ItemGroup>
 
+    <!-- <SupportedPlatform Include="win10-x64" /> -->
+
+  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
-    <NoWarn>CA1416</NoWarn>
+    <!-- <NoWarn>CA1416</NoWarn> -->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
-    <NoWarn>CA1416</NoWarn>
+    <!-- <NoWarn>CA1416</NoWarn> -->
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
-    <NoWarn>CA1416</NoWarn>
+    <!-- <NoWarn>CA1416</NoWarn> -->
   </PropertyGroup>
 
   <ItemGroup>

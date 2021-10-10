@@ -8,6 +8,8 @@
 #pragma warning disable CS0168
 #pragma warning disable IDE0060
 #pragma warning disable CA1825
+#pragma warning disable IDE0008
+#pragma warning restore CA1416
 #nullable disable
 
 using SmartImage.Core;
@@ -23,13 +25,14 @@ using System.Net.NetworkInformation;
 using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
-using Windows.ApplicationModel.Background;
-using Windows.Networking.Connectivity;
-using Windows.UI.Notifications;
+// using Windows.ApplicationModel.Background;
+// using Windows.Networking.Connectivity;
+// using Windows.UI.Notifications;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
@@ -45,6 +48,10 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI;
 using SmartImage.Utilities;
+
+// ReSharper disable SuggestVarOrType_Elsewhere
+
+// ReSharper disable PossibleNullReferenceException
 
 // ReSharper disable AsyncVoidLambda
 
@@ -80,16 +87,12 @@ namespace SmartImage
 		/// <summary>
 		/// Console UI for search results
 		/// </summary>
-		private static readonly ConsoleDialog ResultDialog = new()
-		{
+		private static readonly ConsoleDialog ResultDialog = new() {
 			Options = new List<ConsoleOption>(),
-
 			Description = "Press the result number to open in browser\n" +
 			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
 			              "F1: Show filtered results | F2: Refine | F5: Refresh",
-
-			Functions = new()
-			{
+			Functions = new() {
 				[ConsoleKey.F1] = () =>
 				{
 					// F1 : Show filtered
@@ -111,7 +114,7 @@ namespace SmartImage
 
 					_isFilteredShown = !_isFilteredShown;
 
-					ConsoleDialog.Refresh();
+					ResultDialog.Refresh();
 				},
 				[ConsoleKey.F2] = async () =>
 				{
@@ -129,7 +132,7 @@ namespace SmartImage
 						ConsoleManager.WaitForSecond();
 					}
 
-					ConsoleDialog.Refresh();
+					ResultDialog.Refresh();
 				},
 			}
 		};
@@ -147,10 +150,10 @@ namespace SmartImage
 			 * Register events
 			 */
 
-			ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
+			//ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
 
 			Console.OutputEncoding = Encoding.Unicode;
-			
+
 			Console.Title = $"{AppInfo.NAME}";
 
 			//120,30
@@ -197,24 +200,31 @@ namespace SmartImage
 				OnSearchCompleted(obj, eventArgs, _cancellationToken);
 
 				if (Config.Notification) {
-					AppInterface.ShowToast(obj, eventArgs);
+					// AppInterface.ShowToast(obj, eventArgs);
 				}
 			};
+			if (OperatingSystem.IsWindows()) {
+				ConsoleProgressIndicator.Start(_cancellationToken);
 
-			ConsoleProgressIndicator.Start(_cancellationToken);
-
+			}
 			// Show results
 			var searchTask = Client.RunSearchAsync();
 
 			_orig = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
-			                                           AppInterface.Elements.ColorMain, -0.1f);
+			                                            AppInterface.Elements.ColorMain, -0.1f);
 
 			// Add original image
 			ResultDialog.Options.Add(_orig);
 
-			await ResultDialog.ReadInputAsync();
+			if (!Config.OutputOnly) {
+				await ResultDialog.ReadInputAsync();
+			}
 
 			await searchTask;
+
+			if (Config.OutputOnly) {
+				ResultDialog.Display(false);
+			}
 		}
 
 		private static async Task<bool> HandleArguments()
@@ -246,7 +256,6 @@ namespace SmartImage
 				 * Handle CLI args
 				 */
 
-				//-pe SauceNao,Iqdb -se All -f "C:\Users\Deci\Pictures\Test Images\Test6.jpg"
 
 				try {
 
@@ -269,8 +278,9 @@ namespace SmartImage
 
 		private static ConsoleOption _orig;
 
-		#region Event handlers
 
+		#region Event handlers
+	
 		private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
 		                                      CancellationTokenSource cts)
 		{
@@ -280,23 +290,25 @@ namespace SmartImage
 			cts.Cancel();
 			cts.Dispose();
 
-			SystemSounds.Exclamation.Play();
-			ConsoleDialog.Refresh();
+			if (OperatingSystem.IsWindows()) {
+				SystemSounds.Exclamation.Play();
+			}
+
+			ResultDialog.Refresh();
 
 			if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 				var m = Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
 
 				WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
 			}
-			//ResultDialog.Status += $" | {Client.ShouldRefine}";
 
 		}
 
 		private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
 		{
-			var result = eventArgs.Result;
+			SearchResult result = eventArgs.Result;
 
-			var option = ConsoleUIFactory.CreateResultOption(result);
+			ConsoleOption option = ConsoleUIFactory.CreateResultOption(result);
 
 			bool? isFiltered = eventArgs.IsFiltered;
 
@@ -325,12 +337,9 @@ namespace SmartImage
 		/// <summary>
 		/// Command line argument handler
 		/// </summary>
-		private static readonly CliHandler CliHandler = new()
-		{
-			Parameters =
-			{
-				new()
-				{
+		private static readonly CliHandler CliHandler = new() {
+			Parameters = {
+				new() {
 					ArgumentCount = 1,
 					ParameterId   = "-se",
 					Function = strings =>
@@ -339,8 +348,7 @@ namespace SmartImage
 						return null;
 					}
 				},
-				new()
-				{
+				new() {
 					ArgumentCount = 1,
 					ParameterId   = "-pe",
 					Function = strings =>
@@ -349,19 +357,26 @@ namespace SmartImage
 						return null;
 					}
 				},
-				new()
-				{
+				new() {
 					ArgumentCount = 0,
 					ParameterId   = "-f",
-					Function = strings =>
+					Function = delegate
 					{
 						Config.Filtering = true;
 						return null;
 					}
+				},
+				new() {
+					ArgumentCount = 0,
+					ParameterId   = "-output_only",
+					Function = delegate
+					{
+						Config.OutputOnly = true;
+						return null;
+					}
 				}
 			},
-			Default = new CliParameter
-			{
+			Default = new CliParameter {
 				ArgumentCount = 1,
 				ParameterId   = null,
 				Function = strings =>

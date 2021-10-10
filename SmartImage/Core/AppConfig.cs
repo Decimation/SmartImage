@@ -32,11 +32,13 @@ namespace SmartImage.Core
 			{
 				var map = new Dictionary<string, string>()
 				{
-					{K_ENGINES, Program.Config.SearchEngines.ToString()},
-					{K_PRIORITY_ENGINES, Program.Config.PriorityEngines.ToString()},
-					{K_FILTER, Program.Config.Filtering.ToString()},
-					{K_NOTIFICATION, Program.Config.Notification.ToString()},
-					{K_NOTIFICATION_IMAGE, Program.Config.NotificationImage.ToString()},
+					{ K_ENGINES, Program.Config.SearchEngines.ToString() },
+					{ K_PRIORITY_ENGINES, Program.Config.PriorityEngines.ToString() },
+					{ K_FILTER, Program.Config.Filtering.ToString() },
+					{ K_NOTIFICATION, Program.Config.Notification.ToString() },
+					{ K_NOTIFICATION_IMAGE, Program.Config.NotificationImage.ToString() },
+					{ K_OUTPUT_ONLY, Program.Config.OutputOnly.ToString() },
+
 				};
 				return map;
 			}
@@ -58,6 +60,7 @@ namespace SmartImage.Core
 			Program.Config.Filtering         = Boolean.Parse(map[K_FILTER]);
 			Program.Config.Notification      = Boolean.Parse(map[K_NOTIFICATION]);
 			Program.Config.NotificationImage = Boolean.Parse(map[K_NOTIFICATION_IMAGE]);
+			Program.Config.OutputOnly        = Boolean.Parse(map[K_OUTPUT_ONLY]);
 
 			SaveConfigFile();
 
@@ -80,6 +83,8 @@ namespace SmartImage.Core
 		private const string K_FILTER             = "filter";
 		private const string K_NOTIFICATION       = "notification";
 		private const string K_NOTIFICATION_IMAGE = "notification-image";
+		private const string K_OUTPUT_ONLY        = "output-only";
+
 
 		public static void UpdateConfig()
 		{

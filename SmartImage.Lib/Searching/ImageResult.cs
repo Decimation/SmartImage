@@ -133,11 +133,7 @@ namespace SmartImage.Lib.Searching
 			get
 			{
 				if (HasImageDimensions) {
-
-					var resolutionType = ImageHelper.GetDisplayResolution(Width.Value, Height.Value);
-
-
-					return resolutionType;
+					return ImageHelper.GetDisplayResolution(Width.Value, Height.Value);
 				}
 
 				throw new SmartImageException("Resolution unavailable");

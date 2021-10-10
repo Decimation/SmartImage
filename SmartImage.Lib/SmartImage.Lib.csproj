@@ -34,6 +34,6 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
-    <NoWarn>CA1416</NoWarn>
+    <!-- <NoWarn>CA1416</NoWarn> -->
   </PropertyGroup>
 </Project>

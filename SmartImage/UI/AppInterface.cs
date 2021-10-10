@@ -190,7 +190,7 @@ namespace SmartImage.UI
 
 		#region Toast
 
-		public static void ShowToast(object sender, SearchCompletedEventArgs args)
+		/*public static void ShowToast(object sender, SearchCompletedEventArgs args)
 		{
 			var bestResult = args.Detailed;
 
@@ -254,9 +254,9 @@ namespace SmartImage.UI
 			builder.Show();
 
 			//ToastNotificationManager.CreateToastNotifier();
-		}
+		}*/
 
-		public static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)
+		/*public static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)
 		{
 			// NOTE: Does not return if invoked from background
 
@@ -281,7 +281,7 @@ namespace SmartImage.UI
 				//
 				Environment.Exit(0);
 			}
-		}
+		}*/
 
 		#endregion
 	}

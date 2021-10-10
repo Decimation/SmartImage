@@ -131,7 +131,7 @@ namespace Test
 			
 		}
 
-		public class SSIMResult
+		/*public class SSIMResult
 		{
 			public double score
 			{
@@ -140,6 +140,6 @@ namespace Test
 
 			public Scalar mssim;
 			public Mat    diff;
-		}
+		}*/
 	}
 }

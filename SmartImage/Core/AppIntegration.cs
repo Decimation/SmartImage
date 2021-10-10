@@ -6,6 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using Kantan.Cli;
 using Novus.Utilities;
@@ -19,8 +20,6 @@ using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Core
 {
-	
-
 	/// <summary>
 	/// Program OS integrations
 	/// </summary>
@@ -39,64 +38,66 @@ namespace SmartImage.Core
 			/*
 			 * New context menu
 			 */
+			if (OperatingSystem.IsWindows()) {
+				switch (option) {
+					case true:
 
-			switch (option) {
-				case true:
+						RegistryKey regMenu = null;
+						RegistryKey regCmd  = null;
 
-					RegistryKey regMenu = null;
-					RegistryKey regCmd  = null;
+						string fullPath = AppInfo.ExeLocation;
 
-					string fullPath = AppInfo.ExeLocation;
+						try {
+							regMenu = Registry.CurrentUser.CreateSubKey(REG_SHELL);
+							regMenu?.SetValue(String.Empty, AppInfo.NAME);
+							regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
-					try {
-						regMenu = Registry.CurrentUser.CreateSubKey(REG_SHELL);
-						regMenu?.SetValue(String.Empty, AppInfo.NAME);
-						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
-
-						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
-						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
-					}
-					catch (Exception ex) {
-						Trace.WriteLine($"{ex.Message}");
-						ConsoleManager.WaitForInput();
-						return false;
-					}
-					finally {
-						regMenu?.Close();
-						regCmd?.Close();
-					}
-
-					break;
-				case false:
-
-					try {
-						var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
-
-						if (reg != null) {
-							reg.Close();
-							Registry.CurrentUser.DeleteSubKey(REG_SHELL_CMD);
+							regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
+							regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
+						}
+						catch (Exception ex) {
+							Trace.WriteLine($"{ex.Message}");
+							ConsoleManager.WaitForInput();
+							return false;
+						}
+						finally {
+							regMenu?.Close();
+							regCmd?.Close();
 						}
 
-						reg = Registry.CurrentUser.OpenSubKey(REG_SHELL);
+						break;
+					case false:
 
-						if (reg != null) {
-							reg.Close();
-							Registry.CurrentUser.DeleteSubKey(REG_SHELL);
+						try {
+							var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
+
+							if (reg != null) {
+								reg.Close();
+								Registry.CurrentUser.DeleteSubKey(REG_SHELL_CMD);
+							}
+
+							reg = Registry.CurrentUser.OpenSubKey(REG_SHELL);
+
+							if (reg != null) {
+								reg.Close();
+								Registry.CurrentUser.DeleteSubKey(REG_SHELL);
+							}
 						}
-					}
-					catch (Exception ex) {
-						Trace.WriteLine($"{ex.Message}", C_ERROR);
+						catch (Exception ex) {
+							Trace.WriteLine($"{ex.Message}", C_ERROR);
 
-						return false;
-					}
+							return false;
+						}
 
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(option), option, null);
+						break;
+				
+				}
+
+				
+
 			}
 
-
-			return true;
+			return false;
 
 		}
 
@@ -140,12 +141,16 @@ namespace SmartImage.Core
 			// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
 			if (IsContextMenuAdded) {
-				HandleContextMenu(false);
+				if (OperatingSystem.IsWindows()) {
+					HandleContextMenu(false);
+
+				}
 			}
 
 			Trace.WriteLine("Reset config");
 		}
 
+		[SupportedOSPlatform("windows")]
 		[DoesNotReturn]
 		public static void Uninstall()
 		{
@@ -186,9 +191,14 @@ namespace SmartImage.Core
 		{
 			get
 			{
-				var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
 
-				return reg != null;
+				if (OperatingSystem.IsWindows()) {
+					var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
+					return reg != null;
+
+				}
+
+				return false;
 			}
 		}
 	}

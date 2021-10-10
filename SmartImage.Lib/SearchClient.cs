@@ -28,10 +28,9 @@ namespace SmartImage.Lib
 	{
 		public SearchClient(SearchConfig config)
 		{
-			Config = config;
+			Config          = config;
 
-			Results = new List<SearchResult>();
-
+			Results         = new List<SearchResult>();
 			FilteredResults = new List<SearchResult>();
 
 			Reload();
@@ -104,7 +103,7 @@ namespace SmartImage.Lib
 			}
 
 			var tasks = new List<Task<SearchResult>>(Engines.Select(e => e.GetResultAsync(Config.Query)));
-			
+
 			Pending = tasks.Count;
 
 			while (!IsComplete) {

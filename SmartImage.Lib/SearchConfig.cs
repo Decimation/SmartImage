@@ -50,6 +50,8 @@ namespace SmartImage.Lib
 		/// </summary>
 		public bool NotificationImage { get; set; } = false;
 
+		public bool OutputOnly { get; set; } = false;
+
 		public override string ToString()
 		{
 			var sb = new StringBuilder();
@@ -58,7 +60,8 @@ namespace SmartImage.Lib
 			sb.Append("Filtering", Filtering);
 			sb.Append("Notification", Notification);
 			sb.Append("Notification image", NotificationImage);
-			
+			sb.Append("Output only", OutputOnly);
+
 
 			return sb.ToString();
 		}

@@ -105,9 +105,9 @@ namespace SmartImage.Core
 		[ModuleInitializer]
 		public static void Setup()
 		{
-			if (!OperatingSystem.IsWindows()) {
+			/*if (!OperatingSystem.IsWindows()) {
 				throw new NotSupportedException();
-			}
+			}*/
 
 			if (!IsAppFolderInPath) {
 				AppIntegration.HandlePath(true);
@@ -115,7 +115,7 @@ namespace SmartImage.Core
 
 			Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
 
-			var languages = Windows.System.UserProfile.GlobalizationPreferences.Languages;
+			/*var languages = Windows.System.UserProfile.GlobalizationPreferences.Languages;
 
 			bool zh = languages.Any(l => l.Contains("zh"));
 
@@ -126,10 +126,10 @@ namespace SmartImage.Core
 				/*Console.WriteLine("Non-Romance language detected!");
 				Console.WriteLine("If English is not the main IME, things may not work properly!");
 
-				ConsoleManager.WaitForInput();*/
+				ConsoleManager.WaitForInput();#1#
 
 				Trace.WriteLine($"Languages: {languages.QuickJoin()}");
-			}
+			}*/
 
 			//Windows.System.UserProfile.GlobalizationPreferences.Languages
 			//Thread.CurrentThread.CurrentUICulture

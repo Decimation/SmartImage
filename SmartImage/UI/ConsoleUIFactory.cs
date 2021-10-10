@@ -18,6 +18,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using static Kantan.Cli.Controls.ConsoleOption;
+// ReSharper disable SuggestVarOrType_SimpleTypes
 
 // ReSharper disable InconsistentNaming
 
@@ -159,9 +160,10 @@ namespace SmartImage.UI
 			option.Functions[ConsoleModifiers.Control] = () =>
 			{
 				var cts = new CancellationTokenSource();
+				if (OperatingSystem.IsWindows()) {
+					ConsoleProgressIndicator.Start(cts);
 
-				ConsoleProgressIndicator.Start(cts);
-
+				}
 				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
 				var other = result.OtherResults.FirstOrDefault(x => x.Direct is { });
