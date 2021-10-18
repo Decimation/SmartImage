@@ -30,9 +30,9 @@ using System.Text;
 using System.Text.Unicode;
 using System.Threading;
 using System.Threading.Tasks;
-// using Windows.ApplicationModel.Background;
-// using Windows.Networking.Connectivity;
-// using Windows.UI.Notifications;
+using Windows.ApplicationModel.Background;
+using Windows.Networking.Connectivity;
+using Windows.UI.Notifications;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
@@ -87,12 +87,14 @@ namespace SmartImage
 		/// <summary>
 		/// Console UI for search results
 		/// </summary>
-		private static readonly ConsoleDialog ResultDialog = new() {
+		private static readonly ConsoleDialog ResultDialog = new()
+		{
 			Options = new List<ConsoleOption>(),
 			Description = "Press the result number to open in browser\n" +
 			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
 			              "F1: Show filtered results | F2: Refine | F5: Refresh",
-			Functions = new() {
+			Functions = new()
+			{
 				[ConsoleKey.F1] = () =>
 				{
 					// F1 : Show filtered
@@ -150,7 +152,7 @@ namespace SmartImage
 			 * Register events
 			 */
 
-			//ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
+			ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
 
 			Console.OutputEncoding = Encoding.Unicode;
 
@@ -164,8 +166,11 @@ namespace SmartImage
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
 
-			var process = Process.GetCurrentProcess();
-			process.PriorityClass = ProcessPriorityClass.AboveNormal;
+			if (OperatingSystem.IsWindows()) {
+				var process = Process.GetCurrentProcess();
+				process.PriorityClass = ProcessPriorityClass.AboveNormal;
+
+			}
 
 			/*
 			 * Start
@@ -200,13 +205,15 @@ namespace SmartImage
 				OnSearchCompleted(obj, eventArgs, _cancellationToken);
 
 				if (Config.Notification) {
-					// AppInterface.ShowToast(obj, eventArgs);
+					AppInterface.ShowToast(obj, eventArgs);
 				}
 			};
+
 			if (OperatingSystem.IsWindows()) {
 				ConsoleProgressIndicator.Start(_cancellationToken);
 
 			}
+
 			// Show results
 			var searchTask = Client.RunSearchAsync();
 
@@ -280,7 +287,7 @@ namespace SmartImage
 
 
 		#region Event handlers
-	
+
 		private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
 		                                      CancellationTokenSource cts)
 		{
@@ -337,9 +344,12 @@ namespace SmartImage
 		/// <summary>
 		/// Command line argument handler
 		/// </summary>
-		private static readonly CliHandler CliHandler = new() {
-			Parameters = {
-				new() {
+		private static readonly CliHandler CliHandler = new()
+		{
+			Parameters =
+			{
+				new()
+				{
 					ArgumentCount = 1,
 					ParameterId   = "-se",
 					Function = strings =>
@@ -348,7 +358,8 @@ namespace SmartImage
 						return null;
 					}
 				},
-				new() {
+				new()
+				{
 					ArgumentCount = 1,
 					ParameterId   = "-pe",
 					Function = strings =>
@@ -357,7 +368,8 @@ namespace SmartImage
 						return null;
 					}
 				},
-				new() {
+				new()
+				{
 					ArgumentCount = 0,
 					ParameterId   = "-f",
 					Function = delegate
@@ -366,7 +378,8 @@ namespace SmartImage
 						return null;
 					}
 				},
-				new() {
+				new()
+				{
 					ArgumentCount = 0,
 					ParameterId   = "-output_only",
 					Function = delegate
@@ -376,7 +389,8 @@ namespace SmartImage
 					}
 				}
 			},
-			Default = new CliParameter {
+			Default = new CliParameter
+			{
 				ArgumentCount = 1,
 				ParameterId   = null,
 				Function = strings =>

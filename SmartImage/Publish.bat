@@ -1,5 +1,8 @@
 @echo off
 
+
+dotnet build -c Release
+
 dotnet publish -c Release -r win10-x64 --self-contained true
 
 CHOICE /N /C:YN /M "Copy to Desktop (Y/N)"%1

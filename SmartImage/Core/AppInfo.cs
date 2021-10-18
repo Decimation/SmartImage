@@ -18,6 +18,7 @@ using Kantan.Cli;
 using Kantan.Diagnostics;
 using Kantan.Text;
 using Kantan.Utilities;
+using Novus;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -43,11 +44,11 @@ namespace SmartImage.Core
 		/// Name in ASCII art
 		/// </summary>
 		public const string NAME_BANNER =
-			"  ____                       _   ___\n"                             +
-			" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n"  +
-			@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \"  + "\n" +
+			"  ____                       _   ___\n" +
+			" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
+			@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
 			"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
-			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|"  + "\n" +
+			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
 			"                                                     |___/\n";
 
 
@@ -97,7 +98,18 @@ namespace SmartImage.Core
 		}
 
 
-		public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
+		public static bool IsAppFolderInPath
+		{
+			get
+			{
+				if (OperatingSystem.IsLinux()) {
+					var p = Environment.GetEnvironmentVariable("PATH");
+					return p.Contains(AppFolder);
+				}
+
+				return FileSystem.IsFolderInPath(AppFolder);
+			}
+		}
 
 		/// <summary>
 		/// Setup
