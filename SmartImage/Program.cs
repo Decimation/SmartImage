@@ -159,18 +159,14 @@ namespace SmartImage
 			Console.Title = $"{AppInfo.NAME}";
 
 			//120,30
-			//Console.WindowHeight = 60;
 
 			ConsoleManager.Init();
 			Console.Clear();
 
 			Console.CancelKeyPress += (sender, eventArgs) => { };
 
-			if (OperatingSystem.IsWindows()) {
-				var process = Process.GetCurrentProcess();
-				process.PriorityClass = ProcessPriorityClass.AboveNormal;
-
-			}
+			var process = Process.GetCurrentProcess();
+			process.PriorityClass = ProcessPriorityClass.AboveNormal;
 
 			/*
 			 * Start
@@ -194,6 +190,7 @@ namespace SmartImage
 			                        $"| PE: {Config.PriorityEngines} " +
 			                        $"| Filtering: {AppInterface.Elements.ToToggleString(Config.Filtering)}";
 
+
 			_cancellationToken = new();
 
 			// Run search
@@ -209,10 +206,8 @@ namespace SmartImage
 				}
 			};
 
-			if (OperatingSystem.IsWindows()) {
-				ConsoleProgressIndicator.Start(_cancellationToken);
+			ConsoleProgressIndicator.Start(_cancellationToken);
 
-			}
 
 			// Show results
 			var searchTask = Client.RunSearchAsync();
@@ -297,9 +292,7 @@ namespace SmartImage
 			cts.Cancel();
 			cts.Dispose();
 
-			if (OperatingSystem.IsWindows()) {
-				SystemSounds.Exclamation.Play();
-			}
+			SystemSounds.Exclamation.Play();
 
 			ResultDialog.Refresh();
 
@@ -327,15 +320,15 @@ namespace SmartImage
 				option.Function();
 			}
 
-			var s = $"Results: {Client.Results.Count}";
+			var status = $"Results: {Client.Results.Count}";
 
 			if (Config.Filtering) {
-				s += $" | Filtered: {Client.FilteredResults.Count}";
+				status += $" | Filtered: {Client.FilteredResults.Count}";
 			}
 
-			s += $" | Pending: {Client.Pending}";
+			status += $" | Pending: {Client.Pending}";
 
-			ResultDialog.Status = s;
+			ResultDialog.Status = status;
 
 		}
 

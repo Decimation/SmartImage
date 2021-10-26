@@ -35,7 +35,7 @@ namespace SmartImage.Lib.Engines.Model
 			ClientSearchEngine c = null;
 			WebSearchEngine    w = null;
 
-			var sr = GetResult(query, out IRestResponse response);
+			var sr = GetResultInternal(query, out SearchResultStub response);
 
 			switch (this) {
 				case ClientSearchEngine:
@@ -52,18 +52,18 @@ namespace SmartImage.Lib.Engines.Model
 
 			try {
 
-				object o = null;
+				object obj = null;
 
 				if (c != null) {
-					o = query;
+					obj = query;
 				}
 				else if (w != null) {
-					o = w.GetContent(response);
+					obj = response.GetDocument();
 				}
 
-				sr = Process(o, sr);
+				sr = Process(obj, sr);
 
-				if (o is IDisposable d) {
+				if (obj is IDisposable d) {
 					d.Dispose();
 				}
 

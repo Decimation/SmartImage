@@ -97,12 +97,16 @@ namespace SmartImage.Lib
 		/// </summary>
 		public async Task RunSearchAsync()
 		{
-
 			if (IsComplete) {
 				Reset();
 			}
 
-			var tasks = new List<Task<SearchResult>>(Engines.Select(e => e.GetResultAsync(Config.Query)));
+			var tasks = new List<Task<SearchResult>>(Engines.Select(e =>
+			{
+				var task = e.GetResultAsync(Config.Query);
+				
+				return task;
+			}));
 
 			Pending = tasks.Count;
 

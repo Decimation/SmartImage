@@ -50,7 +50,6 @@ namespace SmartImage.Lib.Searching
 
 		public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 		{
-
 			var now = Stopwatch.GetTimestamp();
 
 			if (String.IsNullOrWhiteSpace(value)) {
@@ -67,7 +66,8 @@ namespace SmartImage.Lib.Searching
 
 			Value = value;
 
-			UploadEngine = engine ?? new LitterboxEngine(); //note: default upload engine
+			//note: default upload engine
+			UploadEngine = engine ?? new LitterboxEngine();
 
 			UploadUri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 

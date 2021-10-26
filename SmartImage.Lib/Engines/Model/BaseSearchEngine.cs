@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Kantan.Diagnostics;
 using Kantan.Net;
@@ -34,23 +35,27 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract EngineSearchType SearchType { get; }
 
-		protected SearchResult GetResult(ImageQuery query, out IRestResponse response)
+		protected SearchResult GetResultInternal(ImageQuery query, out SearchResultStub response)
 		{
 			var sr = new SearchResult(this);
 
-			if (!GetRawContent(query, out var rawUrl, out response)) {
+			var stub = GetResultStub(query);
+
+			if (!stub.InitialSuccess) {
 				sr.Status       = ResultStatus.Unavailable;
-				sr.ErrorMessage = $"{response?.ErrorMessage} | {response?.StatusCode}";
+				sr.ErrorMessage = $"{stub.InitialResponse.ErrorMessage} | {stub.InitialResponse.StatusCode}";
 			}
 			else {
-				sr.RawUri = rawUrl;
+				sr.RawUri = stub.RawUri;
 				sr.Status = ResultStatus.Success;
 			}
+
+			response = stub;
 
 			return sr;
 		}
 
-		public virtual SearchResult GetResult(ImageQuery query) => GetResult(query, out _);
+		public virtual SearchResult GetResult(ImageQuery query) => GetResultInternal(query, out _);
 
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
@@ -73,30 +78,51 @@ namespace SmartImage.Lib.Engines.Model
 		{
 			//
 			return new(BaseUrl + query.UploadUri);
-
 		}
 
-		protected virtual bool GetRawContent(ImageQuery query, out Uri rawUri, out IRestResponse res)
+		protected virtual SearchResultStub GetResultStub(ImageQuery query)
 		{
 			// TODO: Refactor to use HttpClient
 
-			rawUri = GetRawUri(query);
+			var rawUri = GetRawUri(query);
 
-			res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);
+			var now = Stopwatch.GetTimestamp();
+
+			var res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET,
+			                              FollowRedirects);
+
+			var diff = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+
+			bool b;
 
 			if (!res.IsSuccessful) {
 				if (res.StatusCode == HttpStatusCode.Redirect) {
-					return true;
+					b = true;
+				}
+				else {
+					Debug.WriteLine($"{Name} is unavailable or timed out after " +
+					                $"{Timeout:g} | {rawUri} {res.StatusCode}", C_WARN);
+					b = false;
 				}
 
-				Debug.WriteLine($"{Name} is unavailable or timed out after " +
-				                $"{Timeout:g} | {rawUri} {res.StatusCode}", C_WARN);
-				return false;
+			}
+			else {
+				b = true;
 			}
 
-			return true;
+			var stub = new SearchResultStub()
+			{
+				InitialResponse = res, 
+				Retrieval = diff, 
+				InitialSuccess = b, 
+				RawUri = rawUri
+			};
+
+			return stub;
+
 		}
 	}
+
 	/// <summary>
 	/// Indicates the search criteria and result type of an engine.
 	/// </summary>
@@ -117,7 +143,6 @@ namespace SmartImage.Lib.Engines.Model
 		/// The engine returns external information
 		/// </summary>
 		External,
-
 
 		Other
 	}

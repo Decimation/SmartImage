@@ -61,18 +61,29 @@ namespace SmartImage.Lib.Engines.Impl
 
 		}
 
-		protected override bool GetRawContent(ImageQuery query, out Uri rawUri, out IRestResponse res)
+		protected override SearchResultStub GetResultStub(ImageQuery query)
 		{
-			rawUri = GetRawUri(query);
+			var rawUri = GetRawUri(query);
 
-			res = new RestResponse
+			var now       = Stopwatch.GetTimestamp();
+			var content = WebUtilities.GetString(rawUri.ToString());
+			var diff       = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+
+			var stub = new SearchResultStub()
 			{
-				Content = WebUtilities.GetString(rawUri.ToString())
+				InitialResponse = new RestResponse
+				{
+					Content = content
+				},
+				Retrieval = diff, 
+				InitialSuccess = true, 
+				RawUri = rawUri
 			};
-			//res = Network.GetHttpResponse(rawUri.ToString(),HttpMethod.Get, (int)Timeout.TotalMilliseconds, false);
 
-			return true;
+
+			return stub;
 		}
+
 
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
@@ -146,7 +157,7 @@ namespace SmartImage.Lib.Engines.Impl
 				>= 1 => ResultQuality.High,
 				_    => ResultQuality.Low,
 			};
-			
+
 
 			return sr;
 		}

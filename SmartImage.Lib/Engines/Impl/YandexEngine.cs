@@ -14,6 +14,7 @@ using Kantan.Utilities;
 using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+// ReSharper disable SuggestVarOrType_SimpleTypes
 
 #pragma warning disable 8602
 
@@ -51,7 +52,6 @@ namespace SmartImage.Lib.Engines.Impl
 
 			return appearsToContain;
 		}
-
 
 		private static List<ImageResult>? GetOtherImages(IDocument doc)
 		{
@@ -128,7 +128,6 @@ namespace SmartImage.Lib.Engines.Impl
 
 				string? resText = siz.FirstChild.GetExclusiveText();
 
-
 				(int? w, int? h) = ParseResolution(resText!);
 
 				if (!w.HasValue || !h.HasValue) {
@@ -152,12 +151,10 @@ namespace SmartImage.Lib.Engines.Impl
 				return yi;
 			}
 
-
 			images.AddRange(sizeTags.AsParallel().Select(Parse));
 
 			return images;
 		}
-
 
 		protected override SearchResult Process(object obj, SearchResult sr)
 		{
@@ -177,20 +174,17 @@ namespace SmartImage.Lib.Engines.Impl
 
 			string? looksLike = GetAnalysis(doc);
 
-
 			/*
 			 * Find and sort through high resolution image matches
 			 */
 
 			var images = GetImages(doc);
 
-
 			var otherImages = GetOtherImages(doc);
 
 			if (otherImages != null) {
 				images.AddRange(otherImages);
 			}
-
 
 			images = images.OrderByDescending(r => r.PixelResolution).ToList();
 
@@ -200,14 +194,12 @@ namespace SmartImage.Lib.Engines.Impl
 				var best = images[0];
 				sr.PrimaryResult.UpdateFrom(best);
 
-
 				if (looksLike != null) {
 					sr.PrimaryResult.Description = looksLike;
 				}
 
 				sr.OtherResults.AddRange(images);
 			}
-
 
 			const string NO_MATCHING = "No matching images found";
 
