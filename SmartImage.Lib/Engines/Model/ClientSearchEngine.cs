@@ -25,5 +25,10 @@ namespace SmartImage.Lib.Engines.Model
 		protected string EndpointUrl { get; }
 
 		protected RestClient Client { get; }
+
+		protected override object ParseContent(SearchResultOrigin s)
+		{
+			return s.Query;
+		}
 	}
 }

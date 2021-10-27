@@ -35,31 +35,30 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract EngineSearchType SearchType { get; }
 
-		protected SearchResult GetResultInternal(ImageQuery query, out SearchResultStub response)
+
+		public virtual SearchResult GetResult(ImageQuery query)
 		{
-			var sr = new SearchResult(this);
+			var sr = new SearchResult(this)
+			{
+				Origin = GetResultOrigin(query)
+			};
+			
 
-			var stub = GetResultStub(query);
-
-			if (!stub.InitialSuccess) {
+			if (!sr.Origin.InitialSuccess) {
 				sr.Status       = ResultStatus.Unavailable;
-				sr.ErrorMessage = $"{stub.InitialResponse.ErrorMessage} | {stub.InitialResponse.StatusCode}";
+				sr.ErrorMessage = $"{sr.Origin.InitialResponse.ErrorMessage} | {sr.Origin.InitialResponse.StatusCode}";
 			}
 			else {
-				sr.RawUri = stub.RawUri;
+				sr.RawUri = sr.Origin.RawUri;
 				sr.Status = ResultStatus.Success;
 			}
 
-			response = stub;
 
 			return sr;
 		}
 
-		public virtual SearchResult GetResult(ImageQuery query) => GetResultInternal(query, out _);
-
 		public async Task<SearchResult> GetResultAsync(ImageQuery query)
 		{
-
 			var task = Task.Run(delegate
 			{
 				Debug.WriteLine($"{Name}: getting result async", C_VERBOSE);
@@ -80,45 +79,42 @@ namespace SmartImage.Lib.Engines.Model
 			return new(BaseUrl + query.UploadUri);
 		}
 
-		protected virtual SearchResultStub GetResultStub(ImageQuery query)
+		protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query)
 		{
 			// TODO: Refactor to use HttpClient
 
-			var rawUri = GetRawUri(query);
+			Uri rawUri = GetRawUri(query);
 
-			var now = Stopwatch.GetTimestamp();
 
-			var res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds, Method.GET,
-			                              FollowRedirects);
+			var res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds,
+			                              Method.GET, FollowRedirects);
 
-			var diff = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
-			bool b;
+			bool success;
 
 			if (!res.IsSuccessful) {
 				if (res.StatusCode == HttpStatusCode.Redirect) {
-					b = true;
+					success = true;
 				}
 				else {
 					Debug.WriteLine($"{Name} is unavailable or timed out after " +
 					                $"{Timeout:g} | {rawUri} {res.StatusCode}", C_WARN);
-					b = false;
+					success = false;
 				}
-
 			}
 			else {
-				b = true;
+				success = true;
 			}
 
-			var stub = new SearchResultStub()
+			var origin = new SearchResultOrigin
 			{
-				InitialResponse = res, 
-				Retrieval = diff, 
-				InitialSuccess = b, 
-				RawUri = rawUri
+				InitialResponse = res,
+				InitialSuccess  = success,
+				RawUri          = rawUri,
+				Query           = query
 			};
 
-			return stub;
+			return origin;
 
 		}
 	}

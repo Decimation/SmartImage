@@ -92,6 +92,8 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
 
+		public SearchResultOrigin Origin { get; set; }
+
 		public bool IsSuccessful
 		{
 			get

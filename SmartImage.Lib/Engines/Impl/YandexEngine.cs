@@ -167,7 +167,7 @@ namespace SmartImage.Lib.Engines.Impl
 				sr.Status = ResultStatus.Cooldown;
 				return sr;
 			}
-
+			
 			/*
 			 * Parse what the image looks like
 			 */

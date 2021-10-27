@@ -18,33 +18,22 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract override EngineSearchType SearchType { get; }
 
-
 		/// <summary>
 		/// Processes engine results
 		/// </summary>
-		/// <param name="obj">Content upon which to operate</param>
+		/// <param name="obj">Content upon which to operate, returned by <see cref="ParseContent"/></param>
 		/// <param name="sr"><see cref="SearchResult"/> to build</param>
 		/// <returns>Final <see cref="SearchResult"/></returns>
 		protected abstract SearchResult Process(object obj, SearchResult sr);
 
+		protected abstract object ParseContent(SearchResultOrigin s);
+
 		[DebuggerHidden]
 		public sealed override SearchResult GetResult(ImageQuery query)
 		{
-			// HACK: this is questionable, but it resolves the edge case with polymorphism
+			var sr = base.GetResult(query);
 
-			ClientSearchEngine c = null;
-			WebSearchEngine    w = null;
 
-			var sr = GetResultInternal(query, out SearchResultStub response);
-
-			switch (this) {
-				case ClientSearchEngine:
-					c = this as ClientSearchEngine;
-					break;
-				case WebSearchEngine:
-					w = this as WebSearchEngine;
-					break;
-			}
 
 			if (!sr.IsSuccessful) {
 				return sr;
@@ -52,20 +41,16 @@ namespace SmartImage.Lib.Engines.Model
 
 			try {
 
-				object obj = null;
-
-				if (c != null) {
-					obj = query;
-				}
-				else if (w != null) {
-					obj = response.GetDocument();
-				}
+				object obj = ParseContent(sr.Origin);
 
 				sr = Process(obj, sr);
 
 				if (obj is IDisposable d) {
 					d.Dispose();
 				}
+				
+				// Debug.WriteLine($"[{sr.RetrievalTime}] [{sr.Origin.Retrieval}] | {Name}");
+				// sr.RetrievalTime += sr.Origin.Retrieval;
 
 				return sr;
 			}
@@ -78,7 +63,6 @@ namespace SmartImage.Lib.Engines.Model
 			}
 
 			return sr;
-
 		}
 	}
 }

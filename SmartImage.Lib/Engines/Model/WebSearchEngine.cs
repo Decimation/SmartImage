@@ -24,6 +24,13 @@ namespace SmartImage.Lib.Engines.Model
 
 		public abstract override EngineSearchType SearchType { get; }
 
-		
+		protected override object ParseContent(SearchResultOrigin s)
+		{
+			var parser = new HtmlParser();
+
+			var document = parser.ParseDocument(s.InitialResponse.Content);
+
+			return document;
+		}
 	}
 }

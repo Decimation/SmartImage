@@ -5,8 +5,13 @@ using RestSharp;
 
 namespace SmartImage.Lib.Searching
 {
-	public class SearchResultStub
+	/// <summary>
+	/// Contains originating information of a <see cref="SearchResult"/>
+	/// </summary>
+	public class SearchResultOrigin
 	{
+		public ImageQuery Query { get; init; }
+
 		public IRestResponse InitialResponse { get; init; }
 
 		public TimeSpan Retrieval { get; init; }
@@ -14,14 +19,5 @@ namespace SmartImage.Lib.Searching
 		public bool InitialSuccess { get; init; }
 
 		public Uri RawUri { get; init; }
-
-		public IDocument GetDocument()
-		{
-			var parser = new HtmlParser();
-
-			var document = parser.ParseDocument(InitialResponse.Content);
-
-			return document;
-		}
 	}
 }

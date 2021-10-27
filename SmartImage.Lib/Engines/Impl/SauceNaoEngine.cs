@@ -330,7 +330,7 @@ namespace SmartImage.Lib.Engines.Impl
 		}
 
 		/// <summary>
-		/// Stub result
+		/// Origin result
 		/// </summary>
 		private class SauceNaoDataResult
 		{

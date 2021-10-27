@@ -61,15 +61,16 @@ namespace SmartImage.Lib.Engines.Impl
 
 		}
 
-		protected override SearchResultStub GetResultStub(ImageQuery query)
+		protected override SearchResultOrigin GetResultOrigin(ImageQuery query)
 		{
+			var now = Stopwatch.GetTimestamp();
+
 			var rawUri = GetRawUri(query);
 
-			var now       = Stopwatch.GetTimestamp();
 			var content = WebUtilities.GetString(rawUri.ToString());
 			var diff       = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
-			var stub = new SearchResultStub()
+			var stub = new SearchResultOrigin()
 			{
 				InitialResponse = new RestResponse
 				{
