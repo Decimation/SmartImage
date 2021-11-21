@@ -1,12 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
-using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Numeric;
 using Kantan.Text;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
 using SmartImage.Lib.Utilities;
+using static Kantan.Diagnostics.LogCategories;
+using static SmartImage.UI.AppInterface;
 
 namespace SmartImage.UI;
 
@@ -14,19 +15,19 @@ internal static class AppToast
 {
 	internal static void ShowToast(object sender, SearchCompletedEventArgs args)
 	{
-		Debug.WriteLine($"Building toast", LogCategories.C_DEBUG);
+		Debug.WriteLine($"Building toast", C_DEBUG);
 		
-		var bestResult = args.Detailed;
+		var bestResult = args.FirstDetailed;
 
 		var builder = new ToastContentBuilder();
 		var button  = new ToastButton();
 		var button2 = new ToastButton();
 
 		button2.SetContent("Dismiss")
-		       .AddArgument(AppInterface.Elements.ARG_KEY_ACTION, AppInterface.Elements.ARG_VALUE_DISMISS);
+		       .AddArgument(Elements.ARG_KEY_ACTION, Elements.ARG_VALUE_DISMISS);
 
 		button.SetContent("Open")
-		      .AddArgument(AppInterface.Elements.ARG_KEY_ACTION, $"{bestResult.Value.Url}");
+		      .AddArgument(Elements.ARG_KEY_ACTION, $"{bestResult.Url}");
 
 		builder.AddButton(button)
 		       .AddButton(button2)
@@ -38,7 +39,7 @@ internal static class AppToast
 
 			Debug.Assert(args.FirstDirect != null);
 
-			var imageResult = args.FirstDirect.Value;
+			var imageResult = args.FirstDirect;
 
 			if (imageResult != null) {
 				var path = Path.GetTempPath();
@@ -50,12 +51,12 @@ internal static class AppToast
 
 					Debug.Assert(args.Direct != null);
 
-					var imageResults = args.Direct.Value;
+					var imageResults = args.Direct;
 
 					do {
 						file = ImageHelper.Download(imageResults[i++].Direct, path);
 
-					} while (String.IsNullOrWhiteSpace(file) && i < imageResults.Length);
+					} while (String.IsNullOrWhiteSpace(file) && i < imageResults.Count);
 
 				}
 
@@ -63,7 +64,7 @@ internal static class AppToast
 					// NOTE: The file size limit doesn't seem to actually matter ...
 					//file = GetHeroImage(path, file);
 
-					Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", LogCategories.C_INFO);
+					Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
 
 					builder.AddHeroImage(new Uri(file));
 
@@ -127,11 +128,11 @@ internal static class AppToast
 		var arguments = ToastArguments.Parse(compat.Argument);
 
 		foreach (var argument in arguments) {
-			Debug.WriteLine($"Toast argument: {argument}", LogCategories.C_DEBUG);
+			Debug.WriteLine($"Toast argument: {argument}", C_DEBUG);
 
-			if (argument.Key == AppInterface.Elements.ARG_KEY_ACTION) {
+			if (argument.Key == Elements.ARG_KEY_ACTION) {
 
-				if (argument.Value == AppInterface.Elements.ARG_VALUE_DISMISS) {
+				if (argument.Value == Elements.ARG_VALUE_DISMISS) {
 					break;
 				}
 

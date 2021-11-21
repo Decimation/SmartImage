@@ -130,7 +130,6 @@ namespace SmartImage.Lib.Searching
 		/// </summary>
 		public DisplayResolutionType DisplayResolution
 		{
-
 			get
 			{
 				if (HasImageDimensions) {
@@ -139,7 +138,6 @@ namespace SmartImage.Lib.Searching
 
 				throw new SmartImageException("Resolution unavailable");
 			}
-
 		}
 
 		public ResultQuality Quality { get; set; }
@@ -204,8 +202,9 @@ namespace SmartImage.Lib.Searching
 
 		public async void FindDirectImages()
 		{
-			if (Url == null || Direct != null)
+			if (Url == null || Direct != null) {
 				return;
+			}
 
 			try {
 
@@ -215,8 +214,6 @@ namespace SmartImage.Lib.Searching
 
 				if (direct != null) {
 					Direct = new Uri((direct));
-
-					Debug.WriteLine($"Found direct images");
 				}
 			}
 			catch {

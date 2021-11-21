@@ -209,6 +209,11 @@ namespace SmartImage
 				}
 			};
 
+			Client.DirectFound += (sender, eventArgs) =>
+			{
+
+			};
+
 			ConsoleProgressIndicator.Start(_cancellationToken);
 
 

@@ -28,11 +28,11 @@ namespace SmartImage.Lib
 	{
 		public SearchClient(SearchConfig config)
 		{
-			Config          = config;
+			Config = config;
 
 			Results         = new List<SearchResult>();
 			FilteredResults = new List<SearchResult>();
-
+			DirectResults   = new List<ImageResult>();
 			Reload();
 		}
 
@@ -55,8 +55,8 @@ namespace SmartImage.Lib
 		///     Contains search results
 		/// </summary>
 		public List<SearchResult> Results { get; }
-		
 
+		public List<ImageResult> DirectResults { get; }
 
 		/// <summary>
 		///     Contains filtered search results
@@ -87,12 +87,20 @@ namespace SmartImage.Lib
 		public void Reset()
 		{
 			Results.Clear();
+			DirectResults.Clear();
 			FilteredResults.Clear();
 			IsComplete = false;
 			Reload();
 		}
 
-		#region Primary operations
+		/*
+		 * TODO
+		 *
+		 * Queue a thread to run in the background upon each result completion
+		 * in which the thread scans for direct images, instead of doing the scanning post hoc
+		 */
+
+		#region
 
 		/// <summary>
 		///     Performs an image search asynchronously.
@@ -106,7 +114,7 @@ namespace SmartImage.Lib
 			var tasks = new List<Task<SearchResult>>(Engines.Select(e =>
 			{
 				var task = e.GetResultAsync(Config.Query);
-				
+
 				return task;
 			}));
 
@@ -151,6 +159,8 @@ namespace SmartImage.Lib
 					isFiltered = null;
 				}
 
+				ThreadPool.QueueUserWorkItem((c) => FindDirectResults(c, value));
+
 				// Call event
 				ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
 				{
@@ -163,34 +173,78 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
+
 			var args = new SearchCompletedEventArgs
 			{
-				Results  = Results,
-				Detailed = new Lazy<ImageResult>(() => GetDetailedImageResults().FirstOrDefault()),
-				Direct = new Lazy<ImageResult[]>(() =>
+				Results       = Results,
+				FirstDetailed = RefineFilter(DetailPredicate).FirstOrDefault(),
+				/*Direct = new Lazy<ImageResult[]>(() =>
 				{
 					Debug.WriteLine($"{nameof(SearchClient)}: Finding direct results", C_DEBUG);
 					ImageResult[] direct = GetDirectImageResults();
 
 					return direct;
 				}),
-				FirstDirect = new Lazy<ImageResult>(GetDirectImageResult)
+				FirstDirect = new Lazy<ImageResult>(GetDirectImageResult)*/
+				Direct      = DirectResults,
+				FirstDirect = DirectResults.FirstOrDefault()
 			};
 
 			SearchCompleted?.Invoke(null, args);
+			
+
+		}
+
+		private void FindDirectResults(object state, SearchResult value, int count = 5, int i = 10)
+		{
+			var u  = value.OtherResults.Union(new[] { value.PrimaryResult }).ToList();
+			var u2 = RefineFilter(u, DirectFilterPredicate).ToList();
+
+			Debug.WriteLine($"*{nameof(SearchClient)}: Found {u2.Count} best results", C_DEBUG);
+
+			var query = u2.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
+			              .Take(i)
+			              .AsParallel();
+
+			List<ImageResult> images = query.Where(x => x.CheckDirect(DirectImageCriterion.Binary))
+			                                .Take(count)
+			                                .ToList();
+
+			if (images.Any()) {
+				Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
+				DirectResults.AddRange(images);
+
+				DirectFound?.Invoke(null, new DirectFoundEventArgs()
+				{
+					Direct = images,
+				});
+			}
 		}
 
 
-		/*
-		 * TODO
-		 *
-		 * Queue a thread to run in the background upon each result completion
-		 * in which the thread scans for direct images, instead of doing the scanning post hoc
-		 */
+		public static IEnumerable<ImageResult> RefineFilter(List<ImageResult> results,
+		                                                    Predicate<SearchResult> predicate)
+		{
+			var query = results.AsParallel()
+			                   .OrderByDescending(r => r.Similarity)
+			                   .ThenByDescending(r => r.PixelResolution)
+			                   .ThenByDescending(r => r.DetailScore);
 
-		#endregion
+			return query;
+		}
 
-		#region Secondary operations
+		public IEnumerable<ImageResult> RefineFilter(Predicate<SearchResult> predicate)
+		{
+			var query = Results.Where(r => predicate(r))
+			                   .SelectMany(r =>
+			                   {
+				                   List<ImageResult> otherResults = r.OtherResults;
+				                   otherResults.Insert(0, r.PrimaryResult);
+				                   return otherResults;
+			                   }).ToList();
+
+			return RefineFilter(query, predicate);
+		}
 
 		/// <summary>
 		///     Refines search results by searching with the most-detailed result (<see cref="GetDirectImageResult" />).
@@ -203,7 +257,7 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Finding best result", C_DEBUG);
 
-			var directResult = GetDirectImageResult();
+			var directResult = DirectResults.FirstOrDefault();
 
 			if (directResult == null) {
 				throw new SmartImageException("Could not find best result");
@@ -237,67 +291,6 @@ namespace SmartImage.Lib
 			return res;
 		}
 
-		[CanBeNull]
-		public ImageResult GetDirectImageResult() => GetDirectImageResults(1)?.FirstOrDefault();
-
-		public ImageResult[] GetDirectImageResults(int count = 5)
-		{
-			var imageResults = RefineFilter(DirectFilterPredicate).ToList();
-
-			Debug.WriteLine($"{nameof(SearchClient)}: Found {imageResults.Count} best results", C_DEBUG);
-
-			const int i = 10;
-
-			var query = imageResults.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
-			                   .Take(i)
-			                   .AsParallel();
-
-			List<ImageResult> images;
-
-			if (count == 1)
-			{
-				images = new List<ImageResult>
-				{
-					query.FirstOrDefault(x => x.CheckDirect(DirectImageCriterion.Binary))
-				};
-
-			}
-			else
-			{
-				images = query.Where(x => x.CheckDirect(DirectImageCriterion.Binary))
-				              .Take(count)
-				              // .OrderByDescending(r => r.Similarity)
-				              .ToList();
-			}
-
-			Debug.WriteLine($"{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
-
-			return images.ToArray();
-		}
-
-		/// <summary>
-		///     Selects the most detailed results.
-		/// </summary>
-		/// <returns>The <see cref="ImageResult" />s of the best <see cref="Results" /></returns>
-		public ImageResult[] GetDetailedImageResults() => RefineFilter(DetailPredicate).ToArray();
-
-		public IEnumerable<ImageResult> RefineFilter(Predicate<SearchResult> predicate)
-		{
-			var query = Results.Where(r => predicate(r))
-			                   .SelectMany(r =>
-			                   {
-				                   List<ImageResult> otherResults = r.OtherResults;
-				                   otherResults.Insert(0, r.PrimaryResult);
-				                   return otherResults;
-			                   })
-			                   .AsParallel()
-			                   .OrderByDescending(r => r.Similarity)
-			                   .ThenByDescending(r => r.PixelResolution)
-			                   .ThenByDescending(r => r.DetailScore);
-
-			return query;
-		}
-
 		#endregion
 
 		public static BaseUploadEngine[] GetAllUploadEngines()
@@ -326,12 +319,19 @@ namespace SmartImage.Lib
 		/// </summary>
 		public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
+		public event EventHandler<DirectFoundEventArgs> DirectFound;
+
 		private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
 
 		private static readonly SmartImageException SearchException = new("Search must be completed");
 
 		private static readonly Predicate<SearchResult> DirectFilterPredicate = r => DetailPredicate(r)
-		                                                                    && r.Engine.SearchType.HasFlag(EngineSearchType.Image);
+			&& r.Engine.SearchType.HasFlag(EngineSearchType.Image);
+	}
+
+	public sealed class DirectFoundEventArgs : EventArgs
+	{
+		public List<ImageResult> Direct { get; init; }
 	}
 
 	public sealed class SearchCompletedEventArgs : EventArgs
@@ -339,16 +339,15 @@ namespace SmartImage.Lib
 		public List<SearchResult> Results { get; init; }
 
 		[CanBeNull]
-		public Lazy<ImageResult[]> Direct { get; internal set; }
+		public List<ImageResult> Direct { get; internal set; }
 
 		[CanBeNull]
-		public Lazy<ImageResult> FirstDirect { get; internal set; }
+		public ImageResult FirstDirect { get; internal set; }
 
 
 		[CanBeNull]
-		public Lazy<ImageResult> Detailed { get; internal set; }
-
-		// todo: maybe lazy list? i.e., each item is a lazy load
+		public ImageResult FirstDetailed { get; internal set; }
+		
 	}
 
 	public sealed class ResultCompletedEventArgs : EventArgs
