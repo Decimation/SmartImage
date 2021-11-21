@@ -55,6 +55,8 @@ namespace SmartImage.Lib
 		///     Contains search results
 		/// </summary>
 		public List<SearchResult> Results { get; }
+		
+
 
 		/// <summary>
 		///     Contains filtered search results
@@ -164,26 +166,34 @@ namespace SmartImage.Lib
 			var args = new SearchCompletedEventArgs
 			{
 				Results  = Results,
-				Detailed = new Lazy<ImageResult>(() => GetDetailedResults().FirstOrDefault()),
+				Detailed = new Lazy<ImageResult>(() => GetDetailedImageResults().FirstOrDefault()),
 				Direct = new Lazy<ImageResult[]>(() =>
 				{
 					Debug.WriteLine($"{nameof(SearchClient)}: Finding direct results", C_DEBUG);
-					ImageResult[] direct = GetDirectResults();
+					ImageResult[] direct = GetDirectImageResults();
 
 					return direct;
 				}),
-				FirstDirect = new Lazy<ImageResult>(GetDirectResult)
+				FirstDirect = new Lazy<ImageResult>(GetDirectImageResult)
 			};
 
 			SearchCompleted?.Invoke(null, args);
 		}
+
+
+		/*
+		 * TODO
+		 *
+		 * Queue a thread to run in the background upon each result completion
+		 * in which the thread scans for direct images, instead of doing the scanning post hoc
+		 */
 
 		#endregion
 
 		#region Secondary operations
 
 		/// <summary>
-		///     Refines search results by searching with the most-detailed result (<see cref="GetDirectResult" />).
+		///     Refines search results by searching with the most-detailed result (<see cref="GetDirectImageResult" />).
 		/// </summary>
 		public async Task RefineSearchAsync()
 		{
@@ -193,7 +203,7 @@ namespace SmartImage.Lib
 
 			Debug.WriteLine($"{nameof(SearchClient)}: Finding best result", C_DEBUG);
 
-			var directResult = GetDirectResult();
+			var directResult = GetDirectImageResult();
 
 			if (directResult == null) {
 				throw new SmartImageException("Could not find best result");
@@ -228,47 +238,32 @@ namespace SmartImage.Lib
 		}
 
 		[CanBeNull]
-		public ImageResult GetDirectResult() => GetDirectResults(1)?.FirstOrDefault();
+		public ImageResult GetDirectImageResult() => GetDirectImageResults(1)?.FirstOrDefault();
 
-		public ImageResult[] GetDirectResults(int count = 5)
+		public ImageResult[] GetDirectImageResults(int count = 5)
 		{
+			var imageResults = RefineFilter(DirectFilterPredicate).ToList();
 
-			// var best = FindBestResults().ToList();
-			/*var best = Results.Where(r => r.IsNonPrimitive)
-			                  .Where(r => r.Engine.SearchType.HasFlag(EngineSearchType.Image))
-			                  .AsParallel()
-			                  .OrderByDescending(r => r.PrimaryResult.Similarity)
-			                  .ThenByDescending(r => r.PrimaryResult.PixelResolution)
-			                  .ThenByDescending(r => r.PrimaryResult.DetailScore)
-			                  .SelectMany(r =>
-			                  {
-				                  var x = r.OtherResults;
-				                  x.Insert(0, r.PrimaryResult);
-				                  return x;
-			                  })
-			                  .ToList();*/
-
-			var results = RefineFilter(r => DetailPredicate(r)
-			                                && r.Engine.SearchType.HasFlag(EngineSearchType.Image)).ToList();
-
-			Debug.WriteLine($"{nameof(SearchClient)}: Found {results.Count} best results", C_DEBUG);
+			Debug.WriteLine($"{nameof(SearchClient)}: Found {imageResults.Count} best results", C_DEBUG);
 
 			const int i = 10;
 
-			var query = results.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
+			var query = imageResults.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
 			                   .Take(i)
 			                   .AsParallel();
 
 			List<ImageResult> images;
 
-			if (count == 1) {
+			if (count == 1)
+			{
 				images = new List<ImageResult>
 				{
 					query.FirstOrDefault(x => x.CheckDirect(DirectImageCriterion.Binary))
 				};
 
 			}
-			else {
+			else
+			{
 				images = query.Where(x => x.CheckDirect(DirectImageCriterion.Binary))
 				              .Take(count)
 				              // .OrderByDescending(r => r.Similarity)
@@ -284,7 +279,7 @@ namespace SmartImage.Lib
 		///     Selects the most detailed results.
 		/// </summary>
 		/// <returns>The <see cref="ImageResult" />s of the best <see cref="Results" /></returns>
-		public ImageResult[] GetDetailedResults() => RefineFilter(DetailPredicate).ToArray();
+		public ImageResult[] GetDetailedImageResults() => RefineFilter(DetailPredicate).ToArray();
 
 		public IEnumerable<ImageResult> RefineFilter(Predicate<SearchResult> predicate)
 		{
@@ -334,6 +329,9 @@ namespace SmartImage.Lib
 		private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
 
 		private static readonly SmartImageException SearchException = new("Search must be completed");
+
+		private static readonly Predicate<SearchResult> DirectFilterPredicate = r => DetailPredicate(r)
+		                                                                    && r.Engine.SearchType.HasFlag(EngineSearchType.Image);
 	}
 
 	public sealed class SearchCompletedEventArgs : EventArgs

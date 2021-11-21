@@ -142,7 +142,7 @@ namespace SmartImage
 
 		#endregion
 
-		
+
 		/// <summary>
 		/// Entry point
 		/// </summary>
@@ -153,13 +153,14 @@ namespace SmartImage
 			 * Check compatibility
 			 * Register events
 			 */
+			
 
 			ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 			Console.OutputEncoding = Encoding.Unicode;
 
 			Console.Title = $"{AppInfo.NAME}";
-			
+
 			//120,30
 
 			ConsoleManager.Init();

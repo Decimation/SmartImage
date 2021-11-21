@@ -89,6 +89,15 @@ namespace SmartImage.Core
 				throw new NotSupportedException();
 			}*/
 			
+			// Remove old path directories
+			var pathDirectories = FileSystem.GetEnvironmentPathDirectories();
+			var oldFolders      = pathDirectories.Where(x=>x.Contains(NAME) && x!= AppFolder);
+
+			foreach (string s in oldFolders) {
+				FileSystem.RemoveFromPath(s);
+			}
+			
+
 			if (!IsAppFolderInPath) {
 				AppIntegration.HandlePath(true);
 			}

@@ -3,23 +3,17 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AngleSharp.Html.Dom;
-using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
-using Kantan.Collections;
-using Kantan.Diagnostics;
-using Novus.Win32;
 using Kantan.Net;
-using Kantan.Utilities;
+using Novus.Win32;
 using RestSharp;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -149,7 +143,7 @@ namespace SmartImage.Lib.Utilities
 		/// <param name="url">Url to search</param>
 		/// <param name="count">Number of direct images to return</param>
 		/// <param name="timeoutMS"></param>
-		public static async Task<List<string>> FindDirectImages(string url, int count = 10, long timeoutMS = TimeoutMS)
+		public static async Task<List<string>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS)
 		{
 
 			var images = new List<string>();
@@ -315,16 +309,16 @@ namespace SmartImage.Lib.Utilities
 			myThumbWidth  = Math.Ceiling(mg.Width / ratio);
 
 			//Size thumbSize = new Size((int)myThumbWidth, (int)myThumbHeight);
-			Size thumbSize = new Size((int) newSize.Width, (int) newSize.Height);
+			var thumbSize = new Size(newSize.Width, newSize.Height);
 			bp = new Bitmap(newSize.Width, newSize.Height);
 			x  = (newSize.Width - thumbSize.Width) / 2;
 			y  = (newSize.Height - thumbSize.Height);
 			// Had to add System.Drawing class in front of Graphics ---
-			System.Drawing.Graphics g = Graphics.FromImage(bp);
+			Graphics g = Graphics.FromImage(bp);
 			g.SmoothingMode     = SmoothingMode.HighQuality;
 			g.InterpolationMode = InterpolationMode.HighQualityBicubic;
 			g.PixelOffsetMode   = PixelOffsetMode.HighQuality;
-			Rectangle rect = new Rectangle(x, y, thumbSize.Width, thumbSize.Height);
+			var rect = new Rectangle(x, y, thumbSize.Width, thumbSize.Height);
 			g.DrawImage(mg, rect, 0, 0, mg.Width, mg.Height, GraphicsUnit.Pixel);
 
 			return bp;

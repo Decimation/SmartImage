@@ -124,7 +124,7 @@ namespace Test
 			Console.WriteLine(result.score);*/
 
 
-			foreach (var v in await ImageHelper.FindDirectImages("https://danbooru.donmai.us/posts/3567935")) {
+			foreach (var v in await ImageHelper.ScanForImages("https://danbooru.donmai.us/posts/3567935")) {
 				Console.WriteLine(v);
 			}
 

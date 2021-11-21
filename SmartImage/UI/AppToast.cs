@@ -3,6 +3,7 @@ using System.Drawing;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Numeric;
+using Kantan.Text;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
 using SmartImage.Lib.Utilities;
@@ -14,6 +15,7 @@ internal static class AppToast
 	internal static void ShowToast(object sender, SearchCompletedEventArgs args)
 	{
 		Debug.WriteLine($"Building toast", LogCategories.C_DEBUG);
+		
 		var bestResult = args.Detailed;
 
 		var builder = new ToastContentBuilder();
@@ -34,6 +36,8 @@ internal static class AppToast
 
 		if (Program.Config.Notification && Program.Config.NotificationImage) {
 
+			Debug.Assert(args.FirstDirect != null);
+
 			var imageResult = args.FirstDirect.Value;
 
 			if (imageResult != null) {
@@ -43,6 +47,8 @@ internal static class AppToast
 
 				if (file == null) {
 					int i = 0;
+
+					Debug.Assert(args.Direct != null);
 
 					var imageResults = args.Direct.Value;
 
@@ -54,14 +60,14 @@ internal static class AppToast
 				}
 
 				if (file != null) {
-
-					file = GetHeroImage(path, file);
+					// NOTE: The file size limit doesn't seem to actually matter ...
+					//file = GetHeroImage(path, file);
 
 					Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", LogCategories.C_INFO);
 
 					builder.AddHeroImage(new Uri(file));
 
-					AppDomain.CurrentDomain.ProcessExit += (sender2, args2) =>
+					AppDomain.CurrentDomain.ProcessExit += (_, _) =>
 					{
 						File.Delete(file);
 					};
@@ -73,38 +79,43 @@ internal static class AppToast
 		}
 
 		builder.SetBackgroundActivation();
-
-		//...
-
 		builder.Show();
-
-		// ToastNotificationManager.CreateToastNotifier();
 	}
 
-	private static string GetHeroImage(string path, string file)
+	private static string GetHeroImage(string folder, string filePath)
 	{
-		var  bytes     = File.ReadAllBytes(file).Length;
-		var  kiloBytes = MathHelper.ConvertToUnit(bytes, MetricPrefix.Kilo);
+		// NOTE: The file size limit doesn't seem to actually matter ...
+
+		/*var bytes     = File.ReadAllBytes(filePath).Length;
+		var kiloBytes = MathHelper.ConvertToUnit(bytes, MetricPrefix.Kilo);
+
+
 		bool tooBig    = kiloBytes >= MAX_IMG_SIZE_KB;
 
 		if (tooBig) {
-			var    bitmap  = new Bitmap(file);
-			var    newSize = new Size(Convert.ToInt32(bitmap.Width / 2), Convert.ToInt32(bitmap.Height / 2));
-			Bitmap bitmap2 = ImageHelper.ResizeImage(bitmap, newSize);
+			var    bitmap    = new Bitmap(filePath);
+			var    newSize   = new Size(Convert.ToInt32(bitmap.Width / 2), Convert.ToInt32(bitmap.Height / 2));
+			Bitmap newBitmap = ImageHelper.ResizeImage(bitmap, newSize);
 
-			if (bitmap2 != null) {
-				string s = Path.Combine(path, Path.GetTempFileName());
-				bitmap2.Save(s, System.Drawing.Imaging.ImageFormat.Jpeg);
-				bytes     = File.ReadAllBytes(file).Length;
+			if (newBitmap != null) {
+				var fileWithoutExt = Path.GetFileNameWithoutExtension(filePath);
+				var ext            = Path.GetExtension(filePath);
+
+				string newFile = Path.Combine(folder, fileWithoutExt + "-1" + ext);
+
+				newBitmap.Save(newFile, System.Drawing.Imaging.ImageFormat.Jpeg);
+
+				bytes     = File.ReadAllBytes(filePath).Length;
 				kiloBytes = MathHelper.ConvertToUnit(bytes, MetricPrefix.Kilo);
 
-				Debug.WriteLine($"-> {bytes} {kiloBytes} | {s}");
-				file = s;
-			}
-				
-		}
+				Debug.WriteLine($"Compressed {filePath} -> {newFile} ({kiloBytes})");
 
-		return file;
+				filePath = newFile;
+			}
+
+		}*/
+
+		return filePath;
 	}
 
 	internal static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)

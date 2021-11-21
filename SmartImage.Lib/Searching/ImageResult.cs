@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
@@ -208,12 +209,14 @@ namespace SmartImage.Lib.Searching
 
 			try {
 
-				var directImages = await ImageHelper.FindDirectImages(Url.ToString());
+				var directImages = await ImageHelper.ScanForImages(Url.ToString());
 
 				var direct = directImages.FirstOrDefault();
 
 				if (direct != null) {
 					Direct = new Uri((direct));
+
+					Debug.WriteLine($"Found direct images");
 				}
 			}
 			catch {
