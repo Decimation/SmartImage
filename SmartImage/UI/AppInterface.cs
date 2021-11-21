@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Linq;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Net;
+using Kantan.Numeric;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
@@ -15,11 +17,14 @@ using SmartImage.Core;
 using SmartImage.Lib;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+using SmartImage.Properties;
 using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.Program;
 using static SmartImage.UI.ConsoleUIFactory;
+
+// ReSharper disable LocalizableElement
 
 // ReSharper disable AssignNullToNotNullAttribute
 
@@ -86,7 +91,7 @@ namespace SmartImage.UI
 				{
 					//Console.Clear();
 
-					Console.WriteLine($"Author: {AppInfo.AUTHOR}");
+					Console.WriteLine($"Author: {Resources.Author}");
 
 					Console.WriteLine($"Current version: {AppInfo.Version} ({UpdateInfo.GetUpdateInfo().Status})");
 					Console.WriteLine($"Latest version: {ReleaseInfo.GetLatestRelease()}");
@@ -133,7 +138,7 @@ namespace SmartImage.UI
 				Name = "Help",
 				Function = () =>
 				{
-					WebUtilities.OpenUrl(AppInfo.URL_WIKI);
+					WebUtilities.OpenUrl(Resources.UrlWiki);
 
 					return null;
 				}
@@ -156,7 +161,7 @@ namespace SmartImage.UI
 		internal static readonly ConsoleDialog MainMenuDialog = new()
 		{
 			Options   = MainMenuOptions,
-			Header    = AppInfo.NAME_BANNER,
+			Header    = NAME_BANNER,
 			Functions = new Dictionary<ConsoleKey, Action>(),
 			Status    = "You can also drag and drop a file to run a search."
 		};
@@ -192,6 +197,7 @@ namespace SmartImage.UI
 
 		public static void ShowToast(object sender, SearchCompletedEventArgs args)
 		{
+			Debug.WriteLine($"Building toast", C_DEBUG);
 			var bestResult = args.Detailed;
 
 			var builder = new ToastContentBuilder();
@@ -232,6 +238,9 @@ namespace SmartImage.UI
 					}
 
 					if (file != null) {
+
+						file = GetHeroImage(path, file);
+
 						Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
 
 						builder.AddHeroImage(new Uri(file));
@@ -255,6 +264,33 @@ namespace SmartImage.UI
 
 			// ToastNotificationManager.CreateToastNotifier();
 		}
+
+		private static string GetHeroImage(string path, string file)
+		{
+			var  bytes     = File.ReadAllBytes(file).Length;
+			var  kiloBytes = MathHelper.ConvertToUnit(bytes, MetricPrefix.Kilo);
+			bool tooBig    = kiloBytes >= MAX_IMG_SIZE_KB;
+
+			if (tooBig) {
+				var    bitmap  = new Bitmap(file);
+				var    newSize = new Size(Convert.ToInt32(bitmap.Width / 2), Convert.ToInt32(bitmap.Height / 2));
+				Bitmap bitmap2 = ImageHelper.ResizeImage(bitmap, newSize);
+
+				if (bitmap2 != null) {
+					string s = Path.Combine(path, Path.GetTempFileName());
+					bitmap2.Save(s, System.Drawing.Imaging.ImageFormat.Jpeg);
+					bytes     = File.ReadAllBytes(file).Length;
+					kiloBytes = MathHelper.ConvertToUnit(bytes, MetricPrefix.Kilo);
+
+					Debug.WriteLine($"-> {bytes} {kiloBytes} | {s}");
+					file = s;
+				}
+				
+			}
+
+			return file;
+		}
+
 
 		public static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)
 		{
@@ -284,5 +320,18 @@ namespace SmartImage.UI
 		}
 
 		#endregion
+
+		/// <summary>
+		/// Name in ASCII art
+		/// </summary>
+		public const string NAME_BANNER =
+			"  ____                       _   ___\n" +
+			" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
+			@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
+			"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
+			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
+			"                                                     |___/\n";
+
+		private const int MAX_IMG_SIZE_KB = 200;
 	}
 }

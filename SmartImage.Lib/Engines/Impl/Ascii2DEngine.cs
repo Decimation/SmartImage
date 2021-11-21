@@ -13,6 +13,7 @@ using Kantan.Diagnostics;
 using RestSharp;
 using SmartImage.Lib.Engines.Model;
 
+#nullable disable
 // ReSharper disable CognitiveComplexity
 
 // ReSharper disable IdentifierTypo
@@ -37,9 +38,16 @@ namespace SmartImage.Lib.Engines.Impl
 		{
 			var uri = base.GetRawUri(query);
 
-			var request = WebRequest.Create(uri);
+			// var       request  = WebRequest.Create(uri);
+			// using var response = request.GetResponse();
 
-			using var response = request.GetResponse();
+			var request = new HttpRequestMessage()
+			{
+				RequestUri = uri
+			};
+
+			var response = new HttpClient().Send(request);
+
 
 			/*
 			 * URL parameters
@@ -55,7 +63,13 @@ namespace SmartImage.Lib.Engines.Impl
 			 *
 			 */
 
-			string detailUrl = response.ResponseUri.ToString().Replace("/color/", "/bovw/");
+			// var    responseUri = response.ResponseUri;
+
+			Debug.Assert(response.RequestMessage?.RequestUri != null);
+
+			var responseUri = response.RequestMessage.RequestUri;
+			
+			string detailUrl = responseUri.ToString().Replace("/color/", "/bovw/");
 
 			return new Uri(detailUrl);
 
@@ -68,7 +82,7 @@ namespace SmartImage.Lib.Engines.Impl
 			var rawUri = GetRawUri(query);
 
 			var content = WebUtilities.GetString(rawUri.ToString());
-			var diff       = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+			var diff    = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 			var stub = new SearchResultOrigin()
 			{
@@ -76,9 +90,9 @@ namespace SmartImage.Lib.Engines.Impl
 				{
 					Content = content
 				},
-				Retrieval = diff, 
-				InitialSuccess = true, 
-				RawUri = rawUri
+				Retrieval      = diff,
+				InitialSuccess = true,
+				RawUri         = rawUri
 			};
 
 

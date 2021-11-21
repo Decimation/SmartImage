@@ -10,10 +10,8 @@
 
     <!-- <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework> -->
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    
-    
-    
-    <!-- <PublishSingleFile>true</PublishSingleFile> -->
+
+
     
     <PublishTrimmed>true</PublishTrimmed>
 
@@ -36,13 +34,16 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
-    <!-- <NoWarn>CA1416</NoWarn> -->
+    <NoWarn>1701;1702</NoWarn>
+    <NoWarn>CA1416</NoWarn>
 
   </PropertyGroup>
 
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <PublishSingleFile>true</PublishSingleFile>
+    <NoWarn>1701;1702;1416</NoWarn>
 
     <!-- <NoWarn>CA1416</NoWarn> -->
   </PropertyGroup>
@@ -71,6 +72,21 @@
     <!-- Trimmer dependencies -->
     <TrimmerRootAssembly Include="System.Net" />
     <TrimmerRootAssembly Include="System.IO.FileSystem" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 

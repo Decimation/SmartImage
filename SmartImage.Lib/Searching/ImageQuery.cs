@@ -11,7 +11,7 @@ using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Upload;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
-
+#pragma warning disable CA1416
 namespace SmartImage.Lib.Searching
 {
 	/// <summary>

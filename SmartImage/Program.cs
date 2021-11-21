@@ -148,7 +148,6 @@ namespace SmartImage
 		/// </summary>
 		private static async Task Main(string[] args)
 		{
-			Debug.WriteLine($"{Process.GetCurrentProcess().MainModule}");
 			/*
 			 * Setup
 			 * Check compatibility

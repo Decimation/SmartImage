@@ -49,6 +49,7 @@ namespace SmartImage.Utilities
 
 			wc.DownloadFile(ui.Latest.AssetUrl, destNew);
 
+			
 
 			string exeFileName = AppInfo.ExeLocation;
 

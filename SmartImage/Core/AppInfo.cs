@@ -41,18 +41,6 @@ namespace SmartImage.Core
 	public static class AppInfo
 	{
 		/// <summary>
-		/// Name in ASCII art
-		/// </summary>
-		public const string NAME_BANNER =
-			"  ____                       _   ___\n" +
-			" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
-			@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
-			"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
-			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
-			"                                                     |___/\n";
-
-
-		/// <summary>
 		/// Name
 		/// </summary>
 		public const string NAME = "SmartImage";
@@ -66,17 +54,7 @@ namespace SmartImage.Core
 		/// Config file name
 		/// </summary>
 		public const string NAME_CFG = "SmartImage.cfg";
-
-		public const string AUTHOR = "Read Stanton";
-
-		public const string URL_REPO = "https://github.com/Decimation/SmartImage";
-
-		public const string URL_README = "https://github.com/Decimation/SmartImage/blob/master/README.md";
-
-		public const string URL_ISSUE = "https://github.com/Decimation/SmartImage/issues/new";
-
-		public const string URL_WIKI = "https://github.com/Decimation/SmartImage/wiki";
-
+		
 		public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
 		public static Version Version => typeof(AppInfo).Assembly.GetName().Version!;
@@ -91,6 +69,7 @@ namespace SmartImage.Core
 			get
 			{
 				var module = Process.GetCurrentProcess().MainModule;
+
 				Guard.AssertNotNull(module);
 
 				return module.FileName;
@@ -98,15 +77,7 @@ namespace SmartImage.Core
 		}
 
 
-		public static bool IsAppFolderInPath
-		{
-			get
-			{
-				
-
-				return FileSystem.IsFolderInPath(AppFolder);
-			}
-		}
+		public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
 
 		/// <summary>
 		/// Setup
@@ -118,32 +89,13 @@ namespace SmartImage.Core
 				throw new NotSupportedException();
 			}*/
 			
-
 			if (!IsAppFolderInPath) {
 				AppIntegration.HandlePath(true);
 			}
 
 			Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
 
-			/*var languages = Windows.System.UserProfile.GlobalizationPreferences.Languages;
-
-			bool zh = languages.Any(l => l.Contains("zh"));
-
-			bool ja = languages.Contains("ja");
-
-			if (ja || zh) {
-
-				/*Console.WriteLine("Non-Romance language detected!");
-				Console.WriteLine("If English is not the main IME, things may not work properly!");
-
-				ConsoleManager.WaitForInput();#1#
-
-				Trace.WriteLine($"Languages: {languages.QuickJoin()}");
-			}*/
-
-			//Windows.System.UserProfile.GlobalizationPreferences.Languages
-			//Thread.CurrentThread.CurrentUICulture
-			//CultureInfo.CurrentCulture
+			
 		}
 	}
 }

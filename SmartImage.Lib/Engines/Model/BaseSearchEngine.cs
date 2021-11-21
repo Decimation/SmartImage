@@ -81,13 +81,12 @@ namespace SmartImage.Lib.Engines.Model
 
 		protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query)
 		{
-			// TODO: Refactor to use HttpClient
 
 			Uri rawUri = GetRawUri(query);
 
 
-			var res = Network.GetResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds,
-			                              Method.GET, FollowRedirects);
+			var res = HttpUtilities.GetResponse(rawUri.ToString(), 
+			                                    (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);
 
 
 			bool success;

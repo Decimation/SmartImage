@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,7 @@ using Kantan.Utilities;
 using RestSharp;
 using static Kantan.Diagnostics.LogCategories;
 
+#pragma warning disable	CA1416
 // ReSharper disable ConvertIfStatementToReturnStatement
 // ReSharper disable CognitiveComplexity
 // ReSharper disable PossibleNullReferenceException
@@ -95,6 +97,11 @@ namespace SmartImage.Lib.Utilities
 
 			try {
 				wc.DownloadFile(src.ToString(), combine);
+				// WebUtilities.GetFile(src.ToString(), combine);
+				// using var h = new HttpClient();
+				// h.DownloadFile(src.ToString(), combine);
+
+
 				return combine;
 			}
 			catch (Exception e) {
@@ -205,8 +212,8 @@ namespace SmartImage.Lib.Utilities
 			return images;
 		}
 
-		public static bool IsImage(string url, DirectImageCriterion directCriterion = DirectImageCriterion.Binary) =>
-			IsImage(url, TimeoutMS, directCriterion);
+		public static bool IsImage(string url, DirectImageCriterion directCriterion = DirectImageCriterion.Binary)
+			=> IsImage(url, TimeoutMS, directCriterion);
 
 		public static bool IsImage(string url, long timeout, DirectImageCriterion directCriterion)
 		{
@@ -221,7 +228,7 @@ namespace SmartImage.Lib.Utilities
 						return false;
 					}
 
-					var response = Network.GetResponse(u.ToString(), (int) timeout, Method.HEAD);
+					var response = HttpUtilities.GetResponse(u.ToString(), (int) timeout, Method.HEAD);
 
 					if (!response.IsSuccessful) {
 						return false;
@@ -283,6 +290,44 @@ namespace SmartImage.Lib.Utilities
 					_                  => DisplayResolutionType.Unknown,
 				}
 			};
+
+		}
+
+		public static Bitmap ResizeImage(Bitmap mg, Size newSize)
+		{
+			// todo
+			double ratio         = 0d;
+			double myThumbWidth  = 0d;
+			double myThumbHeight = 0d;
+			int    x             = 0;
+			int    y             = 0;
+
+			Bitmap bp;
+
+			if ((mg.Width / Convert.ToDouble(newSize.Width)) > (mg.Height / Convert.ToDouble(newSize.Height))) {
+				ratio = Convert.ToDouble(mg.Width) / Convert.ToDouble(newSize.Width);
+			}
+			else {
+				ratio = Convert.ToDouble(mg.Height) / Convert.ToDouble(newSize.Height);
+			}
+
+			myThumbHeight = Math.Ceiling(mg.Height / ratio);
+			myThumbWidth  = Math.Ceiling(mg.Width / ratio);
+
+			//Size thumbSize = new Size((int)myThumbWidth, (int)myThumbHeight);
+			Size thumbSize = new Size((int) newSize.Width, (int) newSize.Height);
+			bp = new Bitmap(newSize.Width, newSize.Height);
+			x  = (newSize.Width - thumbSize.Width) / 2;
+			y  = (newSize.Height - thumbSize.Height);
+			// Had to add System.Drawing class in front of Graphics ---
+			System.Drawing.Graphics g = Graphics.FromImage(bp);
+			g.SmoothingMode     = SmoothingMode.HighQuality;
+			g.InterpolationMode = InterpolationMode.HighQualityBicubic;
+			g.PixelOffsetMode   = PixelOffsetMode.HighQuality;
+			Rectangle rect = new Rectangle(x, y, thumbSize.Width, thumbSize.Height);
+			g.DrawImage(mg, rect, 0, 0, mg.Width, mg.Height, GraphicsUnit.Pixel);
+
+			return bp;
 
 		}
 	}

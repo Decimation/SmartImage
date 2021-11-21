@@ -10,7 +10,7 @@ using Kantan.Text;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable CognitiveComplexity
-#pragma warning disable 8629
+#pragma warning disable 8629,CA1416
 #nullable enable
 
 namespace SmartImage.Lib.Searching
