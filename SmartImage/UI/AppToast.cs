@@ -1,10 +1,13 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
+using System.Text;
+using Windows.UI.Notifications;
 using Kantan.Net;
 using Kantan.Numeric;
 using Kantan.Text;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
+using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.UI.AppInterface;
@@ -13,11 +16,10 @@ namespace SmartImage.UI;
 
 internal static class AppToast
 {
-	internal static void ShowToast(object sender, SearchCompletedEventArgs args)
+	internal static async void ShowToast(object sender, SearchCompletedEventArgs args)
 	{
 		Debug.WriteLine($"Building toast", C_DEBUG);
-		
-		var bestResult = args.FirstDetailed;
+
 
 		var builder = new ToastContentBuilder();
 		var button  = new ToastButton();
@@ -26,59 +28,68 @@ internal static class AppToast
 		button2.SetContent("Dismiss")
 		       .AddArgument(Elements.ARG_KEY_ACTION, Elements.ARG_VALUE_DISMISS);
 
+
+		var    sb  = new StringBuilder();
+		string url = null;
+
+
+		if (args.Results.Any()) {
+			var b = args.Results.First();
+			url = b.PrimaryResult.Url.ToString();
+		}
+
 		button.SetContent("Open")
-		      .AddArgument(Elements.ARG_KEY_ACTION, $"{bestResult.Url}");
+		      .AddArgument(Elements.ARG_KEY_ACTION, $"{url}");
 
 		builder.AddButton(button)
 		       .AddButton(button2)
 		       .AddText("Search complete")
-		       .AddText($"{bestResult}")
+		       .AddText($"{sb}")
 		       .AddText($"Results: {Program.Client.Results.Count}");
 
 		if (Program.Config.Notification && Program.Config.NotificationImage) {
 
-			Debug.Assert(args.FirstDirect != null);
+			var directResults = await Program.Client.WaitForDirect();
 
-			var imageResult = args.FirstDirect;
+			if (!directResults.Any()) {
+				goto ShowToast;
+			}
 
-			if (imageResult != null) {
-				var path = Path.GetTempPath();
+			var directImage = directResults.First();
+			var path        = Path.GetTempPath();
 
-				string file = ImageHelper.Download(imageResult.Direct, path);
+			string file = ImageHelper.Download(directImage.Direct, path);
 
-				if (file == null) {
-					int i = 0;
+			if (file == null) {
+				int i = 0;
 
-					Debug.Assert(args.Direct != null);
+				do {
+					file = ImageHelper.Download(directResults[i++].Direct, path);
 
-					var imageResults = args.Direct;
+				} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
+			}
 
-					do {
-						file = ImageHelper.Download(imageResults[i++].Direct, path);
 
-					} while (String.IsNullOrWhiteSpace(file) && i < imageResults.Count);
+			/**/
 
-				}
+			if (file != null) {
+				// NOTE: The file size limit doesn't seem to actually matter ...
+				//file = GetHeroImage(path, file);
 
-				if (file != null) {
-					// NOTE: The file size limit doesn't seem to actually matter ...
-					//file = GetHeroImage(path, file);
+				Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
 
-					Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
+				builder.AddHeroImage(new Uri(file));
 
-					builder.AddHeroImage(new Uri(file));
-
-					AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-					{
-						File.Delete(file);
-					};
-				}
-
+				AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+				{
+					File.Delete(file);
+				};
 			}
 
 
 		}
 
+		ShowToast:
 		builder.SetBackgroundActivation();
 		builder.Show();
 	}

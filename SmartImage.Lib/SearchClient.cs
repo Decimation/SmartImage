@@ -33,6 +33,8 @@ namespace SmartImage.Lib
 			Results         = new List<SearchResult>();
 			FilteredResults = new List<SearchResult>();
 			DirectResults   = new List<ImageResult>();
+			DetailedResults = new List<ImageResult>();
+
 			Reload();
 		}
 
@@ -58,10 +60,15 @@ namespace SmartImage.Lib
 
 		public List<ImageResult> DirectResults { get; }
 
+		public List<ImageResult> DetailedResults { get; }
+
+
 		/// <summary>
 		///     Contains filtered search results
 		/// </summary>
 		public List<SearchResult> FilteredResults { get; }
+
+
 
 		public int Pending { get; private set; }
 
@@ -89,6 +96,7 @@ namespace SmartImage.Lib
 			Results.Clear();
 			DirectResults.Clear();
 			FilteredResults.Clear();
+			DetailedResults.Clear();
 			IsComplete = false;
 			Reload();
 		}
@@ -159,8 +167,13 @@ namespace SmartImage.Lib
 					isFiltered = null;
 				}
 
-				ThreadPool.QueueUserWorkItem((c) => FindDirectResults(c, value));
 
+				if (DetailPredicate(value)) {
+					DetailedResults.Add(value.PrimaryResult);
+				}
+
+				ThreadPool.QueueUserWorkItem((c) => FindDirectResults(c, value));
+				
 				// Call event
 				ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
 				{
@@ -173,34 +186,38 @@ namespace SmartImage.Lib
 
 			Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
-
 			var args = new SearchCompletedEventArgs
 			{
-				Results       = Results,
-				FirstDetailed = RefineFilter(DetailPredicate).FirstOrDefault(),
-				/*Direct = new Lazy<ImageResult[]>(() =>
-				{
-					Debug.WriteLine($"{nameof(SearchClient)}: Finding direct results", C_DEBUG);
-					ImageResult[] direct = GetDirectImageResults();
-
-					return direct;
-				}),
-				FirstDirect = new Lazy<ImageResult>(GetDirectImageResult)*/
-				Direct      = DirectResults,
-				FirstDirect = DirectResults.FirstOrDefault()
+				Results  = Results,
+				Detailed = PredicateFilter(Results, DetailPredicate),
+				Direct   = DirectResults,
+				Filtered = FilteredResults
 			};
 
 			SearchCompleted?.Invoke(null, args);
-			
+		}
 
+		public Task<List<ImageResult>> WaitForDirect()
+		{
+			return Task.Run(() =>
+			{
+				while (Results.Any() && !DirectResults.Any()) {
+					
+				}
+
+				return DirectResults;
+			});
 		}
 
 		private void FindDirectResults(object state, SearchResult value, int count = 5, int i = 10)
 		{
-			var u  = value.OtherResults.Union(new[] { value.PrimaryResult }).ToList();
-			var u2 = RefineFilter(u, DirectFilterPredicate).ToList();
+			// var u  = value.OtherResults.Union(new[] { value.PrimaryResult }).ToList();
+			// var u2 = RefineFilter(u, DetailPredicate).ToList();
 
-			Debug.WriteLine($"*{nameof(SearchClient)}: Found {u2.Count} best results", C_DEBUG);
+			var u2  = value.OtherResults.Union(new[] { value.PrimaryResult }).ToList();
+
+
+			Debug.WriteLine($"*{nameof(SearchClient)}: Found {u2.Count} detailed results", C_DEBUG);
 
 			var query = u2.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
 			              .Take(i)
@@ -214,36 +231,26 @@ namespace SmartImage.Lib
 				Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 				DirectResults.AddRange(images);
 
-				DirectFound?.Invoke(null, new DirectFoundEventArgs()
+				DirectFound?.Invoke(null, new DirectResultsFoundEventArgs()
 				{
-					Direct = images,
+					DirectResultsSubset = images,
 				});
 			}
 		}
 
 
-		public static IEnumerable<ImageResult> RefineFilter(List<ImageResult> results,
-		                                                    Predicate<SearchResult> predicate)
+		public List<ImageResult> PredicateFilter(List<SearchResult> results, Predicate<SearchResult> predicate)
 		{
-			var query = results.AsParallel()
-			                   .OrderByDescending(r => r.Similarity)
-			                   .ThenByDescending(r => r.PixelResolution)
-			                   .ThenByDescending(r => r.DetailScore);
+			var vb = results.Where((r) => predicate(r)).SelectMany(r =>
+			{
+				return r.OtherResults.Union(new[] { r.PrimaryResult });
+			});
+
+			var query = vb.OrderByDescending(r => r.Similarity)
+			              .ThenByDescending(r => r.PixelResolution)
+			              .ThenByDescending(r => r.DetailScore).ToList();
 
 			return query;
-		}
-
-		public IEnumerable<ImageResult> RefineFilter(Predicate<SearchResult> predicate)
-		{
-			var query = Results.Where(r => predicate(r))
-			                   .SelectMany(r =>
-			                   {
-				                   List<ImageResult> otherResults = r.OtherResults;
-				                   otherResults.Insert(0, r.PrimaryResult);
-				                   return otherResults;
-			                   }).ToList();
-
-			return RefineFilter(query, predicate);
 		}
 
 		/// <summary>
@@ -255,12 +262,12 @@ namespace SmartImage.Lib
 				throw SearchException;
 			}
 
-			Debug.WriteLine($"{nameof(SearchClient)}: Finding best result", C_DEBUG);
+			Debug.WriteLine($"{nameof(SearchClient)}: Finding direct result", C_DEBUG);
 
 			var directResult = DirectResults.FirstOrDefault();
 
 			if (directResult == null) {
-				throw new SmartImageException("Could not find best result");
+				throw new SmartImageException("Could not find direct result");
 			}
 
 			var uri = directResult.Direct;
@@ -319,35 +326,36 @@ namespace SmartImage.Lib
 		/// </summary>
 		public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
-		public event EventHandler<DirectFoundEventArgs> DirectFound;
+		public event EventHandler<DirectResultsFoundEventArgs> DirectFound;
 
 		private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
 
 		private static readonly SmartImageException SearchException = new("Search must be completed");
-
-		private static readonly Predicate<SearchResult> DirectFilterPredicate = r => DetailPredicate(r)
-			&& r.Engine.SearchType.HasFlag(EngineSearchType.Image);
 	}
 
-	public sealed class DirectFoundEventArgs : EventArgs
+
+	public sealed class DirectResultsFoundEventArgs : EventArgs
 	{
-		public List<ImageResult> Direct { get; init; }
+		/// <remarks>
+		/// This field will always be a subset of <see cref="SearchClient.DirectResults"/>
+		/// <para/>
+		/// <see cref="DirectResultsSubset"/> &#x2282; <see cref="SearchClient.DirectResults"/>
+		/// </remarks>
+		public List<ImageResult> DirectResultsSubset { get; init; }
 	}
 
 	public sealed class SearchCompletedEventArgs : EventArgs
 	{
 		public List<SearchResult> Results { get; init; }
-
-		[CanBeNull]
-		public List<ImageResult> Direct { get; internal set; }
-
-		[CanBeNull]
-		public ImageResult FirstDirect { get; internal set; }
-
-
-		[CanBeNull]
-		public ImageResult FirstDetailed { get; internal set; }
 		
+		public List<ImageResult> Direct { get; internal set; }
+		
+		public List<ImageResult> Detailed { get; internal set; }
+		
+		public List<SearchResult> Filtered { get; internal set; }
+
+
+
 	}
 
 	public sealed class ResultCompletedEventArgs : EventArgs
