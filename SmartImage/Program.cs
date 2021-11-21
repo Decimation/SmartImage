@@ -154,7 +154,7 @@ namespace SmartImage
 			 * Register events
 			 */
 
-			ToastNotificationManagerCompat.OnActivated += AppInterface.OnToastActivated;
+			ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 			Console.OutputEncoding = Encoding.Unicode;
 
@@ -204,7 +204,7 @@ namespace SmartImage
 				OnSearchCompleted(obj, eventArgs, _cancellationToken);
 
 				if (Config.Notification) {
-					AppInterface.ShowToast(obj, eventArgs);
+					AppToast.ShowToast(obj, eventArgs);
 				}
 			};
 
