@@ -36,6 +36,7 @@ using Windows.UI.Notifications;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
+using Kantan.Model;
 using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
@@ -141,11 +142,13 @@ namespace SmartImage
 
 		#endregion
 
+		
 		/// <summary>
 		/// Entry point
 		/// </summary>
 		private static async Task Main(string[] args)
 		{
+			Debug.WriteLine($"{Process.GetCurrentProcess().MainModule}");
 			/*
 			 * Setup
 			 * Check compatibility
@@ -157,7 +160,7 @@ namespace SmartImage
 			Console.OutputEncoding = Encoding.Unicode;
 
 			Console.Title = $"{AppInfo.NAME}";
-
+			
 			//120,30
 
 			ConsoleManager.Init();

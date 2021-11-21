@@ -102,10 +102,7 @@ namespace SmartImage.Core
 		{
 			get
 			{
-				if (OperatingSystem.IsLinux()) {
-					var p = Environment.GetEnvironmentVariable("PATH");
-					return p.Contains(AppFolder);
-				}
+				
 
 				return FileSystem.IsFolderInPath(AppFolder);
 			}
@@ -120,6 +117,7 @@ namespace SmartImage.Core
 			/*if (!OperatingSystem.IsWindows()) {
 				throw new NotSupportedException();
 			}*/
+			
 
 			if (!IsAppFolderInPath) {
 				AppIntegration.HandlePath(true);

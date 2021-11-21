@@ -5,12 +5,19 @@
     <LangVersion>latest</LangVersion>
     <!-- <TargetFramework>net5.0</TargetFramework> -->
     <!-- <TargetFramework>net5.0-windows</TargetFramework> -->
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
 
-    <TargetFramework>net5.0-windows10.0.17763.0</TargetFramework>
 
+    <!-- <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework> -->
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <PublishSingleFile>true</PublishSingleFile>
+    
+    
+    
+    <!-- <PublishSingleFile>true</PublishSingleFile> -->
+    
     <PublishTrimmed>true</PublishTrimmed>
+
+
     <!-- <RuntimeIdentifiers>win10-x64;ubuntu.16.04-x64</RuntimeIdentifiers> -->
 
     <!--<PublishReadyToRun>true</PublishReadyToRun>-->
@@ -27,11 +34,6 @@
     
 
   </PropertyGroup>
-  <ItemGroup>
-
-    <!-- <SupportedPlatform Include="win10-x64" /> -->
-
-  </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
     <!-- <NoWarn>CA1416</NoWarn> -->
@@ -46,15 +48,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="JetBrains.Annotations" Version="2021.1.0" />
-    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.2" />
+    <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.2" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="RestSharp" Version="106.12.0" />
-    <PackageReference Include="System.Drawing.Common" Version="5.0.2" />
+    <PackageReference Include="RestSharp" Version="106.13.0" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
-    <PackageReference Include="System.Windows.Extensions" Version="5.0.0" />
+    <PackageReference Include="System.Windows.Extensions" Version="6.0.0" />
     <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
+    <Reference Include="Kantan">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
+    </Reference>
+    <Reference Include="Kantan.Net">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net6.0\Kantan.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Novus">
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net6.0\Novus.dll</HintPath>
+    </Reference>
 
 
     <!-- Trimmer dependencies -->
@@ -72,24 +83,7 @@
     <PackageIcon>Icon.png</PackageIcon>
     <Description>Reverse image search identification library. Features Windows context menu integration and a command line interface.</Description>
     <Copyright>Copyright 2021</Copyright>
+    <ImplicitUsings>enable</ImplicitUsings>
     <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
   </PropertyGroup>
-
-
-  <ItemGroup>
-
-    <Reference Include="Kantan">
-      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net5.0\Kantan.dll</HintPath>
-    </Reference>
-
-    <Reference Include="Kantan.Net">
-      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net5.0\Kantan.Net.dll</HintPath>
-    </Reference>
-
-    <Reference Include="Novus">
-      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net5.0\Novus.dll</HintPath>
-    </Reference>
-
-
-  </ItemGroup>
 </Project>
