@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Kantan.Net;
 using Kantan.Threading;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
@@ -176,7 +177,10 @@ public sealed class SearchClient
 				DetailedResults.Add(value.PrimaryResult);
 			}
 
-			ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
+			/* 1st pass */
+			if (value.IsSuccessful && value.IsNonPrimitive) {
+				ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
+			}
 
 			// Call event
 			ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
@@ -190,6 +194,10 @@ public sealed class SearchClient
 
 		Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
+
+		/* 2nd pass */
+
+
 		var args = new SearchCompletedEventArgs
 		{
 			Results  = Results,
@@ -198,7 +206,63 @@ public sealed class SearchClient
 			Filtered = FilteredResults
 		};
 
+
 		SearchCompleted?.Invoke(null, args);
+	}
+
+	public async void FindDirectResults(SearchResult result)
+	{
+		Debug.WriteLine($"searching within {result.Engine.Name}");
+
+		for (int i = 0; i < result.AllResults.Count; i++) {
+			var ir = result.AllResults[i];
+
+			var b = await ir.FindDirectImages();
+
+			if (b && !DirectResults.Contains(ir)) {
+				ir.Direct = new Uri(UriUtilities.NormalizeUrl(ir.Direct));
+
+				Debug.WriteLine($"{ir.Direct}");
+
+				DirectResults.Add(ir);
+
+				result.PrimaryResult.Direct ??= ir.Direct;
+
+				DirectFound?.Invoke(null, new DirectResultsFoundEventArgs
+				{
+					DirectResultsSubset = new() { ir },
+				});
+				ResultUpdated?.Invoke(null, EventArgs.Empty);
+			}
+		}
+	}
+
+
+	private void FindDirectResults(object state, SearchResult value, int take1 = 10, int take2 = 5)
+	{
+
+		var imageResults = value.AllResults;
+
+		var images = imageResults.AsParallel()
+		                         .Where(x => x.CheckDirect(DirectImageCriterion.Regex))
+		                         .Take(take1)
+		                         .Where(x => x.CheckDirect(DirectImageCriterion.Binary))
+		                         .Take(take2)
+		                         .ToList();
+
+		if (images.Any()) {
+			Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
+			DirectResults.AddRange(images);
+
+			DirectFound?.Invoke(null, new DirectResultsFoundEventArgs
+			{
+				DirectResultsSubset = images,
+			});
+		}
+		else {
+			var t = Task.Factory.StartNew(() => FindDirectResults(value));
+
+		}
 	}
 
 	/// <summary>
@@ -211,8 +275,10 @@ public sealed class SearchClient
 		{
 			while (Results.Any() && !DirectResults.Any()) {
 				if (IsComplete) {
-					List<ImageResult> rescan = RescanImageResults(Results);
-					DirectResults.AddRange(rescan);
+					var b = Results.SelectMany(x => x.AllResults.Where(x2 => x2.Direct != null))
+					               .OrderByDescending(x => x.PixelResolution)
+					               .ToList();
+					DirectResults.AddRange(b);
 
 					break;
 				}
@@ -222,13 +288,7 @@ public sealed class SearchClient
 		});
 	}
 
-	private static List<ImageResult> RescanImageResults(List<SearchResult> results)
-	{
-		var b = results.SelectMany(x => x.AllResults.Where(x2 => x2.Direct != null))
-		               .OrderByDescending(x => x.PixelResolution)
-		               .ToList();
-		return b;
-	}
+	#endregion
 
 	/// <summary>
 	///     Refines search results by searching with the most-detailed result (<see cref="FindDirectResults" />).
@@ -258,29 +318,6 @@ public sealed class SearchClient
 		await RunSearchAsync();
 	}
 
-	private void FindDirectResults(object state, SearchResult value, int take1 = 10, int take2 = 5)
-	{
-		var imageResults = value.AllResults;
-
-		var images = imageResults.AsParallel()
-		                         .Where(x => x.CheckDirect(DirectImageCriterion.Regex))
-		                         .Take(take1)
-		                         .Where(x => x.CheckDirect(DirectImageCriterion.Binary))
-		                         .Take(take2)
-		                         .ToList();
-
-		if (images.Any()) {
-			Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
-			DirectResults.AddRange(images);
-
-			DirectFound?.Invoke(null, new DirectResultsFoundEventArgs
-			{
-				DirectResultsSubset = images,
-			});
-		}
-	}
-
-
 	public static List<ImageResult> ApplyPredicateFilter(List<SearchResult> results, Predicate<SearchResult> predicate)
 	{
 		var query = results.Where(r => predicate(r))
@@ -309,8 +346,6 @@ public sealed class SearchClient
 		return res;
 	}
 
-	#endregion
-
 	public static BaseUploadEngine[] GetAllUploadEngines()
 	{
 		return typeof(BaseUploadEngine).GetAllSubclasses()
@@ -326,6 +361,11 @@ public sealed class SearchClient
 		                               .Cast<BaseSearchEngine>()
 		                               .ToArray();
 	}
+
+	/// <summary>
+	/// Fires when a result has been updated with new information
+	/// </summary>
+	public event EventHandler ResultUpdated;
 
 	/// <summary>
 	///     Fires when a result is returned (<see cref="RunSearchAsync" />).

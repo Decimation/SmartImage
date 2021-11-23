@@ -128,12 +128,17 @@ public static class Program
 					await Client.RefineSearchAsync();
 				}
 				catch (Exception e) {
-					Console.WriteLine("\nError: {0}", e.Message);
-					ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(3));
+					Console.WriteLine(
+						$"\n{Strings.Constants.CHEVRON} Error: {e.Message.AddColor(Elements.ColorError)}");
+
+					ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(2));
 					ResultDialog.Options.Clear();
 					// ResultDialog.Options.Add(_originalResult);
 
-					(ResultDialog.Options as List<ConsoleOption>).AddRange(buf);
+					foreach (ConsoleOption t in buf) {
+						ResultDialog.Options.Add(t);
+					}
+
 				}
 
 				ResultDialog.Refresh();
@@ -157,7 +162,8 @@ public static class Program
 
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
-		Console.OutputEncoding                     =  Encoding.Unicode;
+
+		Console.OutputEncoding = Encoding.Unicode;
 
 		Console.Title = $"{AppInfo.NAME}";
 
@@ -212,6 +218,19 @@ public static class Program
 			// ...
 		};
 
+		Client.ResultUpdated += (sender, result) =>
+		{
+			/*var option = ResultDialog.Options.First(x => x.Name == result.Engine.Name);
+			var i = ResultDialog.Options.IndexOf(option);
+			ResultDialog.Options[i] = ConsoleUIFactory.CreateResultOption(result);
+			ResultDialog.Refresh();
+
+			Debug.WriteLine($"{i} update");*/
+			ResultDialog.Refresh();
+
+		};
+
+
 		ConsoleProgressIndicator.Start(_cancellationToken);
 
 
@@ -219,7 +238,7 @@ public static class Program
 		var searchTask = Client.RunSearchAsync();
 
 		_originalResult = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
-		                                            Elements.ColorMain, -0.1f);
+		                                                      Elements.ColorMain, -0.1f);
 
 		// Add original image
 		ResultDialog.Options.Add(_originalResult);
@@ -361,7 +380,7 @@ public static class Program
 		cts.Cancel();
 		cts.Dispose();
 
-		SystemSounds.Exclamation.Play();
+		// SystemSounds.Exclamation.Play();
 
 		ResultDialog.Refresh();
 
@@ -370,6 +389,7 @@ public static class Program
 
 			WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
 		}
+
 
 	}
 

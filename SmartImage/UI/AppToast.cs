@@ -21,13 +21,11 @@ internal static class AppToast
 	{
 		Debug.WriteLine($"Building toast", C_DEBUG);
 
-
 		var builder = new ToastContentBuilder();
 		var button  = new ToastButton();
 		var button2 = new ToastButton();
 
-		button2.SetContent("Dismiss")
-		       .AddArgument(Elements.ARG_KEY_ACTION, Elements.ARG_VALUE_DISMISS);
+		button2.SetContent("Dismiss").AddArgument((string) ARG_KEY_ACTION, (string) ARG_VALUE_DISMISS);
 
 		
 		var sb = new StringBuilder();
@@ -48,7 +46,7 @@ internal static class AppToast
 
 
 		button.SetContent("Open")
-		      .AddArgument(Elements.ARG_KEY_ACTION, $"{url}");
+		      .AddArgument(ARG_KEY_ACTION, $"{url}");
 
 		builder.AddButton(button)
 		       .AddButton(button2)
@@ -113,9 +111,9 @@ internal static class AppToast
 		foreach (var argument in arguments) {
 			Debug.WriteLine($"Toast argument: {argument}", C_DEBUG);
 
-			if (argument.Key == Elements.ARG_KEY_ACTION) {
+			if (argument.Key == ARG_KEY_ACTION) {
 
-				if (argument.Value == Elements.ARG_VALUE_DISMISS) {
+				if (argument.Value == ARG_VALUE_DISMISS) {
 					break;
 				}
 
@@ -161,4 +159,6 @@ internal static class AppToast
 	}
 
 
+	private const string ARG_KEY_ACTION = "action";
+	private const string ARG_VALUE_DISMISS = "dismiss";
 }

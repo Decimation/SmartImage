@@ -17,6 +17,7 @@ using Kantan.Utilities;
 using Novus.Win32;
 using RestSharp;
 using static Kantan.Diagnostics.LogCategories;
+
 #pragma warning disable CS0618
 #pragma warning disable SYSLIB0014
 #pragma warning disable CA1416
@@ -106,7 +107,6 @@ public static class ImageHelper
 		}
 	}
 
-	
 
 	/// <summary>
 	/// Scans for direct images within a webpage.
@@ -130,7 +130,7 @@ public static class ImageHelper
 		}
 
 		using var cts  = new CancellationTokenSource();
-		var flat = new List<string>();
+		var       flat = new List<string>();
 
 		flat.AddRange(document.QuerySelectorAttributes("a", "href"));
 		flat.AddRange(document.QuerySelectorAttributes("img", "src"));
@@ -164,7 +164,7 @@ public static class ImageHelper
 				count--;
 			}
 		}
-		
+
 
 		return images;
 	}
@@ -172,6 +172,7 @@ public static class ImageHelper
 	public static bool IsImage(string url, DirectImageCriterion directCriterion = DirectImageCriterion.Binary)
 		=> IsImage(url, TimeoutMS, directCriterion);
 
+	
 	public static bool IsImage(string url, long timeout, DirectImageCriterion directCriterion)
 	{
 		switch (directCriterion) {
@@ -195,20 +196,26 @@ public static class ImageHelper
 
 				// The content-type returned from the response may not be the actual content-type, so
 				// we'll resolve it using binary data instead to be sure
+				bool a, b;
 
-				var stream  = WebUtilities.GetStream(url);
-				var buffer = new byte[256];
-				stream.Read(buffer, 0, buffer.Length);
-				// var rg = response.RawBytes;
-				var m  = MediaTypes.ResolveFromData(buffer);
+				try {
+					var stream = WebUtilities.GetStream(url);
+					var buffer = new byte[256];
+					stream.Read(buffer, 0, buffer.Length);
+					// var rg = response.RawBytes;
+					var m = MediaTypes.ResolveFromData(buffer);
+					a = m.StartsWith("image") && m != "image/svg+xml";
+					b = response.ContentLength is -1 or >= 50_000;
+				}
+				catch {
+					a = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";
+					b = response.ContentLength >= 50_000;
+				}
 
-				// var a  = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";
-				// var b = response.ContentLength >= 50_000;
 
-				var a = m.StartsWith("image") && m != "image/svg+xml";
 				// var b = stream.Length >= 50_000;
 
-				return a;
+				return a && b;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(directCriterion), directCriterion, null);
 		}

@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Model;
 using Kantan.Numeric;
@@ -210,10 +211,10 @@ public sealed class ImageResult : IOutline
 
 	}
 
-	public async void FindDirectImages()
+	public async Task<bool> FindDirectImages()
 	{
 		if (Url == null || Direct != null) {
-			return;
+			return true;
 		}
 
 		try {
@@ -224,13 +225,15 @@ public sealed class ImageResult : IOutline
 
 			if (direct != null) {
 				Direct = new Uri((direct));
+				UpdateImageData();
+				return true;
 			}
 		}
 		catch {
 			//
 		}
 
-		UpdateImageData();
+		return false;
 	}
 
 	public bool CheckDirect(DirectImageCriterion d)

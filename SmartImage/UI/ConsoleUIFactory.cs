@@ -14,10 +14,12 @@ using Kantan.Utilities;
 using Novus.Utilities;
 using Novus.Win32;
 using SmartImage.Core;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using static Kantan.Cli.Controls.ConsoleOption;
+
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
 // ReSharper disable InconsistentNaming
@@ -160,14 +162,12 @@ internal static class ConsoleUIFactory
 		option.Functions[ConsoleModifiers.Control] = () =>
 		{
 			var cts = new CancellationTokenSource();
+
 			if (OperatingSystem.IsWindows()) {
 				ConsoleProgressIndicator.Start(cts);
-
 			}
-			result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
-			var other = result.OtherResults.FirstOrDefault(x => x.Direct is { });
-			result.PrimaryResult = other ?? result.PrimaryResult;
+			Program.Client.FindDirectResults(result);
 
 			cts.Cancel();
 			cts.Dispose();
@@ -179,6 +179,7 @@ internal static class ConsoleUIFactory
 
 		return option;
 	}
+
 
 	[StringFormatMethod("n")]
 	internal static ConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n,

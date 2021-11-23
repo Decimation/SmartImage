@@ -184,7 +184,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 		var best = images[0];
 		sr.PrimaryResult.UpdateFrom(best);
-		sr.OtherResults.AddRange(images);
+		sr.OtherResults.AddRange(images.Skip(1));
 
 		sr.PrimaryResult.Quality = sr.PrimaryResult.Similarity switch
 		{
