@@ -5,11 +5,10 @@ using System.Text;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 #nullable enable
-namespace SmartImage.Lib.Utilities
+namespace SmartImage.Lib.Utilities;
+
+public class SmartImageException : Exception
 {
-	public class SmartImageException : Exception
-	{
-		public SmartImageException() { }
-		public SmartImageException([CanBeNull] string? message) : base(message) { }
-	}
+	public SmartImageException() { }
+	public SmartImageException([CanBeNull] string? message) : base(message) { }
 }

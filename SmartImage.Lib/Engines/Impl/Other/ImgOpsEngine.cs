@@ -1,49 +1,48 @@
 using SmartImage.Lib.Engines.Model;
 
 #nullable enable
-namespace SmartImage.Lib.Engines.Impl.Other
+namespace SmartImage.Lib.Engines.Impl.Other;
+
+public sealed class ImgOpsEngine : BaseSearchEngine
 {
-	public sealed class ImgOpsEngine : BaseSearchEngine
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.ImgOps;
+
+	//public int MaxSize => 5;
+	public override EngineSearchType SearchType => EngineSearchType.Other;
+
+	public ImgOpsEngine() : base("http://imgops.com/") { }
+
+	/*public Uri Upload(string img)
 	{
-		public override SearchEngineOptions EngineOption => SearchEngineOptions.ImgOps;
+		IUploadEngine.Verify(this, img);
 
-		//public int MaxSize => 5;
-		public override EngineSearchType SearchType => EngineSearchType.Other;
-
-		public ImgOpsEngine() : base("http://imgops.com/") { }
-
-		/*public Uri Upload(string img)
-		{
-			IUploadEngine.Verify(this, img);
-
-			Debug.WriteLine($"Uploading {img}");
+		Debug.WriteLine($"Uploading {img}");
 
 
-			var imgOpsUrl = UploadInternal(img);
+		var imgOpsUrl = UploadInternal(img);
 
-			string? link = imgOpsUrl.ToString();
-			link = "http://" + link.SubstringAfter(BaseUrl);
+		string? link = imgOpsUrl.ToString();
+		link = "http://" + link.SubstringAfter(BaseUrl);
 
-			return new Uri(link);
-		}
-
-		private Uri UploadInternal(string path)
-		{
-			//https://github.com/dogancelik/imgops
-
-			var rc = new RestClient(BaseUrl)
-			{
-				FollowRedirects = true
-			};
-
-			var rq = new RestRequest("store", Method.POST);
-			rq.AddHeader("Content-Type", "multipart/form-data");
-			rq.AddFile("photo", path);
-
-			var re = rc.Execute(rq);
-
-
-			return re.ResponseUri;
-		}*/
+		return new Uri(link);
 	}
+
+	private Uri UploadInternal(string path)
+	{
+		//https://github.com/dogancelik/imgops
+
+		var rc = new RestClient(BaseUrl)
+		{
+			FollowRedirects = true
+		};
+
+		var rq = new RestRequest("store", Method.POST);
+		rq.AddHeader("Content-Type", "multipart/form-data");
+		rq.AddFile("photo", path);
+
+		var re = rc.Execute(rq);
+
+
+		return re.ResponseUri;
+	}*/
 }

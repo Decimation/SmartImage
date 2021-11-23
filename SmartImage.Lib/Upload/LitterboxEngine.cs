@@ -6,39 +6,38 @@ using SmartImage.Lib.Utilities;
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Upload
+namespace SmartImage.Lib.Upload;
+
+public sealed class LitterboxEngine : BaseUploadEngine
 {
-	public sealed class LitterboxEngine : BaseUploadEngine
+	public override string Name => "Litterbox";
+
+	public override int MaxSize => 1000;
+
+	private readonly RestClient m_client;
+
+	public LitterboxEngine()
 	{
-		public override string Name => "Litterbox";
+		m_client = new RestClient("https://litterbox.catbox.moe/resources/internals/api.php");
+	}
 
-		public override int MaxSize => 1000;
+	public override Uri Upload(string file)
+	{
+		Verify(file);
 
-		private readonly RestClient m_client;
+		var req = new RestRequest(Method.POST);
 
-		public LitterboxEngine()
-		{
-			m_client = new RestClient("https://litterbox.catbox.moe/resources/internals/api.php");
+		req.AddParameter("time", "1h");
+		req.AddParameter("reqtype", "fileupload");
+		req.AddFile("fileToUpload", file);
+		req.AddHeader("Content-Type", "multipart/form-data");
+
+		var res = m_client.Execute(req);
+
+		if (!res.IsSuccessful) {
+			return null;
 		}
 
-		public override Uri Upload(string file)
-		{
-			Verify(file);
-
-			var req = new RestRequest(Method.POST);
-
-			req.AddParameter("time", "1h");
-			req.AddParameter("reqtype", "fileupload");
-			req.AddFile("fileToUpload", file);
-			req.AddHeader("Content-Type", "multipart/form-data");
-
-			var res = m_client.Execute(req);
-
-			if (!res.IsSuccessful) {
-				return null;
-			}
-
-			return new Uri(res.Content);
-		}
+		return new Uri(res.Content);
 	}
 }

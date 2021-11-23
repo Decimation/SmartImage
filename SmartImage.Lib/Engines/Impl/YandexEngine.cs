@@ -20,202 +20,201 @@ using SmartImage.Lib.Utilities;
 
 #nullable enable
 
-namespace SmartImage.Lib.Engines.Impl
+namespace SmartImage.Lib.Engines.Impl;
+
+public sealed class YandexEngine : WebSearchEngine
 {
-	public sealed class YandexEngine : WebSearchEngine
+	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
+
+	public override string Name => EngineOption.ToString();
+
+	public override TimeSpan Timeout => TimeSpan.FromSeconds(6.5);
+
+	public override EngineSearchType SearchType => EngineSearchType.Image;
+
+	private static string? GetAnalysis(IDocument doc)
 	{
-		public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
+		var nodes = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item') and " +
+		                                 "../../../../div[contains(@class,'CbirTags')]]/*");
 
-		public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
+		var nodes2 = doc.Body.QuerySelectorAll(".CbirTags > .Tags > " +
+		                                       ".Tags-Wrapper > .Tags-Item");
 
-		public override string Name => EngineOption.ToString();
+		nodes.AddRange(nodes2);
 
-		public override TimeSpan Timeout => TimeSpan.FromSeconds(6.5);
-
-		public override EngineSearchType SearchType => EngineSearchType.Image;
-
-		private static string? GetAnalysis(IDocument doc)
-		{
-			var nodes = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item') and " +
-			                                 "../../../../div[contains(@class,'CbirTags')]]/*");
-
-			var nodes2 = doc.Body.QuerySelectorAll(".CbirTags > .Tags > " +
-			                                       ".Tags-Wrapper > .Tags-Item");
-
-			nodes.AddRange(nodes2);
-
-			if (!nodes.Any()) {
-				return null;
-			}
-
-			string? appearsToContain = nodes.Select(n => n.TextContent).QuickJoin();
-
-			return appearsToContain;
+		if (!nodes.Any()) {
+			return null;
 		}
 
-		private static List<ImageResult>? GetOtherImages(IDocument doc)
+		string? appearsToContain = nodes.Select(n => n.TextContent).QuickJoin();
+
+		return appearsToContain;
+	}
+
+	private static List<ImageResult>? GetOtherImages(IDocument doc)
+	{
+		var tagsItem = doc.Body.SelectNodes("//li[@class='other-sites__item']");
+
+		if (tagsItem == null) {
+			return null;
+		}
+
+		static ImageResult Parse(INode siz)
 		{
-			var tagsItem = doc.Body.SelectNodes("//li[@class='other-sites__item']");
+			string link    = siz.FirstChild.TryGetAttribute("href");
+			string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
 
-			if (tagsItem == null) {
-				return null;
-			}
+			//other-sites__snippet
 
-			static ImageResult Parse(INode siz)
+			var snippet = siz.ChildNodes[1];
+			var title   = snippet.FirstChild;
+			var site    = snippet.ChildNodes[1];
+			var desc    = snippet.ChildNodes[2];
+
+			var (w, h) = ParseResolution(resText);
+
+			return new ImageResult
 			{
-				string link    = siz.FirstChild.TryGetAttribute("href");
-				string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
-
-				//other-sites__snippet
-
-				var snippet = siz.ChildNodes[1];
-				var title   = snippet.FirstChild;
-				var site    = snippet.ChildNodes[1];
-				var desc    = snippet.ChildNodes[2];
-
-				var (w, h) = ParseResolution(resText);
-
-				return new ImageResult
-				{
-					Url         = new Uri(link),
-					Site        = site.TextContent,
-					Description = title.TextContent,
-					Width       = w,
-					Height      = h,
-				};
-			}
-
-			return tagsItem.AsParallel().Select(Parse).ToList();
+				Url         = new Uri(link),
+				Site        = site.TextContent,
+				Description = title.TextContent,
+				Width       = w,
+				Height      = h,
+			};
 		}
 
-		private static (int? w, int? h) ParseResolution(string resText)
-		{
-			string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
+		return tagsItem.AsParallel().Select(Parse).ToList();
+	}
 
-			int? w = null, h = null;
+	private static (int? w, int? h) ParseResolution(string resText)
+	{
+		string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
 
-			if (resFull.Length == 1 && resFull[0] == resText) {
-				const string TIMES_DELIM = "&times;";
+		int? w = null, h = null;
 
-				if (resText.Contains(TIMES_DELIM)) {
-					resFull = resText.Split(TIMES_DELIM);
-				}
+		if (resFull.Length == 1 && resFull[0] == resText) {
+			const string TIMES_DELIM = "&times;";
+
+			if (resText.Contains(TIMES_DELIM)) {
+				resFull = resText.Split(TIMES_DELIM);
 			}
-
-			if (resFull.Length == 2) {
-				w = Int32.Parse(resFull[0]);
-				h = Int32.Parse(resFull[1]);
-			}
-
-			return (w, h);
 		}
 
-		private static List<ImageResult> GetImages(IDocument doc)
-		{
-			var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
-			var images   = new List<ImageResult>();
+		if (resFull.Length == 2) {
+			w = Int32.Parse(resFull[0]);
+			h = Int32.Parse(resFull[1]);
+		}
 
-			if (tagsItem.Count == 0) {
-				return images;
-			}
+		return (w, h);
+	}
 
-			var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
-			                                       .Contains("CbirItem"));
+	private static List<ImageResult> GetImages(IDocument doc)
+	{
+		var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
+		var images   = new List<ImageResult>();
 
-			static ImageResult Parse(INode siz)
-			{
-				string? link = siz.TryGetAttribute("href");
-
-				string? resText = siz.FirstChild.GetExclusiveText();
-
-				(int? w, int? h) = ParseResolution(resText!);
-
-				if (!w.HasValue || !h.HasValue) {
-					w = null;
-					h = null;
-					//link = null;
-				}
-
-				if (UriUtilities.IsUri(link, out var link2)) { }
-				else {
-					link2 = null;
-				}
-
-				var yi = new ImageResult
-				{
-					Url    = link2,
-					Width  = w,
-					Height = h,
-				};
-
-				return yi;
-			}
-
-			images.AddRange(sizeTags.AsParallel().Select(Parse));
-
+		if (tagsItem.Count == 0) {
 			return images;
 		}
 
-		protected override SearchResult Process(object obj, SearchResult sr)
+		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
+		                                       .Contains("CbirItem"));
+
+		static ImageResult Parse(INode siz)
 		{
-			var doc = (IDocument) obj;
+			string? link = siz.TryGetAttribute("href");
 
-			// Automation detected
-			const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
+			string? resText = siz.FirstChild.GetExclusiveText();
 
-			if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
-				sr.Status = ResultStatus.Cooldown;
-				return sr;
-			}
-			
-			/*
-			 * Parse what the image looks like
-			 */
+			(int? w, int? h) = ParseResolution(resText!);
 
-			string? looksLike = GetAnalysis(doc);
-
-			/*
-			 * Find and sort through high resolution image matches
-			 */
-
-			var images = GetImages(doc);
-
-			var otherImages = GetOtherImages(doc);
-
-			if (otherImages != null) {
-				images.AddRange(otherImages);
+			if (!w.HasValue || !h.HasValue) {
+				w = null;
+				h = null;
+				//link = null;
 			}
 
-			images = images.OrderByDescending(r => r.PixelResolution).ToList();
-
-			//
-
-			if (images.Count > 0) {
-				var best = images[0];
-				sr.PrimaryResult.UpdateFrom(best);
-
-				if (looksLike != null) {
-					sr.PrimaryResult.Description = looksLike;
-				}
-
-				sr.OtherResults.AddRange(images);
+			if (UriUtilities.IsUri(link, out var link2)) { }
+			else {
+				link2 = null;
 			}
 
-			const string NO_MATCHING = "No matching images found";
-
-			if (doc.Body.TextContent.Contains(NO_MATCHING)) {
-
-				sr.ErrorMessage = NO_MATCHING;
-				sr.Status       = ResultStatus.Extraneous;
-			}
-
-			sr.PrimaryResult.Quality = sr.PrimaryResult.MegapixelResolution switch
+			var yi = new ImageResult
 			{
-				null => ResultQuality.Indeterminate,
-				>= 1 => ResultQuality.High,
-				_    => ResultQuality.Low,
+				Url    = link2,
+				Width  = w,
+				Height = h,
 			};
+
+			return yi;
+		}
+
+		images.AddRange(sizeTags.AsParallel().Select(Parse));
+
+		return images;
+	}
+
+	protected override SearchResult Process(object obj, SearchResult sr)
+	{
+		var doc = (IDocument) obj;
+
+		// Automation detected
+		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
+
+		if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
+			sr.Status = ResultStatus.Cooldown;
 			return sr;
 		}
+			
+		/*
+		 * Parse what the image looks like
+		 */
+
+		string? looksLike = GetAnalysis(doc);
+
+		/*
+		 * Find and sort through high resolution image matches
+		 */
+
+		var images = GetImages(doc);
+
+		var otherImages = GetOtherImages(doc);
+
+		if (otherImages != null) {
+			images.AddRange(otherImages);
+		}
+
+		images = images.OrderByDescending(r => r.PixelResolution).ToList();
+
+		//
+
+		if (images.Count > 0) {
+			var best = images[0];
+			sr.PrimaryResult.UpdateFrom(best);
+
+			if (looksLike != null) {
+				sr.PrimaryResult.Description = looksLike;
+			}
+
+			sr.OtherResults.AddRange(images);
+		}
+
+		const string NO_MATCHING = "No matching images found";
+
+		if (doc.Body.TextContent.Contains(NO_MATCHING)) {
+
+			sr.ErrorMessage = NO_MATCHING;
+			sr.Status       = ResultStatus.Extraneous;
+		}
+
+		sr.PrimaryResult.Quality = sr.PrimaryResult.MegapixelResolution switch
+		{
+			null => ResultQuality.Indeterminate,
+			>= 1 => ResultQuality.High,
+			_    => ResultQuality.Low,
+		};
+		return sr;
 	}
 }

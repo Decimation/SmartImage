@@ -9,28 +9,27 @@ using Kantan.Utilities;
 using RestSharp;
 using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib.Engines.Model
+namespace SmartImage.Lib.Engines.Model;
+
+/// <summary>
+///     Represents a search engine whose results are from HTML.
+/// </summary>
+public abstract class WebSearchEngine : ProcessedSearchEngine
 {
-	/// <summary>
-	///     Represents a search engine whose results are from HTML.
-	/// </summary>
-	public abstract class WebSearchEngine : ProcessedSearchEngine
+	protected WebSearchEngine(string baseUrl) : base(baseUrl) { }
+
+	public abstract override SearchEngineOptions EngineOption { get; }
+
+	public abstract override string Name { get; }
+
+	public abstract override EngineSearchType SearchType { get; }
+
+	protected override object ParseContent(SearchResultOrigin s)
 	{
-		protected WebSearchEngine(string baseUrl) : base(baseUrl) { }
+		var parser = new HtmlParser();
 
-		public abstract override SearchEngineOptions EngineOption { get; }
+		var document = parser.ParseDocument(s.InitialResponse.Content);
 
-		public abstract override string Name { get; }
-
-		public abstract override EngineSearchType SearchType { get; }
-
-		protected override object ParseContent(SearchResultOrigin s)
-		{
-			var parser = new HtmlParser();
-
-			var document = parser.ParseDocument(s.InitialResponse.Content);
-
-			return document;
-		}
+		return document;
 	}
 }

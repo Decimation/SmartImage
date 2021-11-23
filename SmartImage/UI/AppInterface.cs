@@ -25,183 +25,175 @@ using static SmartImage.Program;
 using static SmartImage.UI.ConsoleUIFactory;
 
 // ReSharper disable LocalizableElement
-
 // ReSharper disable AssignNullToNotNullAttribute
-
 // ReSharper disable UnusedMember.Global
 // ReSharper disable IdentifierTypo
 // ReSharper disable InconsistentNaming
-
 // ReSharper disable PossibleNullReferenceException
 
-namespace SmartImage.UI
+namespace SmartImage.UI;
+
+/// <summary>
+/// Handles the main menu interface
+/// </summary>
+internal static partial class AppInterface
 {
-	/// <summary>
-	/// Handles the main menu interface
-	/// </summary>
-	internal static partial class AppInterface
+	internal static readonly ConsoleOption[] MainMenuOptions =
 	{
-		internal static readonly ConsoleOption[] MainMenuOptions =
+		new()
 		{
-			new()
+			Name  = ">>> Run <<<",
+			Color = Elements.ColorMain,
+			Function = () =>
 			{
-				Name  = ">>> Run <<<",
-				Color = Elements.ColorMain,
-				Function = () =>
+				ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
 				{
-					ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
-					{
-						x = x.CleanString();
+					x = x.CleanString();
 
-						(bool url, bool file) = ImageQuery.IsUriOrFile(x);
-						return !(url || file);
-					}, "Input must be file or direct image link");
+					(bool url, bool file) = ImageQuery.IsUriOrFile(x);
+					return !(url || file);
+				}, "Input must be file or direct image link");
 
-					Config.Query = query;
-					return true;
-				}
-			},
+				Config.Query = query;
+				return true;
+			}
+		},
 
-			CreateConfigOption(nameof(Config.SearchEngines), "Engines"),
-			CreateConfigOption(nameof(Config.PriorityEngines), "Priority engines"),
-			CreateConfigOption(nameof(Config.Filtering), "Filter", 3),
-			CreateConfigOption(nameof(Config.Notification), "Notification", 4),
-			CreateConfigOption(nameof(Config.NotificationImage), "Notification image", 5),
+		CreateConfigOption(nameof(Config.SearchEngines), "Engines"),
+		CreateConfigOption(nameof(Config.PriorityEngines), "Priority engines"),
+		CreateConfigOption(nameof(Config.Filtering), "Filter", 3),
+		CreateConfigOption(nameof(Config.Notification), "Notification", 4),
+		CreateConfigOption(nameof(Config.NotificationImage), "Notification image", 5),
 
-			CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
-			                   added => AppIntegration.HandleContextMenu(!added)),
+		CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
+		                   added => AppIntegration.HandleContextMenu(!added)),
 
-			new()
+		new()
+		{
+			Name = "Config",
+			Function = () =>
 			{
-				Name = "Config",
-				Function = () =>
-				{
-					//Console.Clear();
+				//Console.Clear();
 
-					Console.WriteLine(Config);
-					ConsoleManager.WaitForInput();
+				Console.WriteLine(Config);
+				ConsoleManager.WaitForInput();
 
-					return null;
-				}
-			},
-			new()
+				return null;
+			}
+		},
+		new()
+		{
+			Name = "Info",
+			Function = () =>
 			{
-				Name = "Info",
-				Function = () =>
-				{
-					//Console.Clear();
+				//Console.Clear();
 
-					Console.WriteLine($"Author: {Resources.Author}");
+				Console.WriteLine($"Author: {Resources.Author}");
 
-					Console.WriteLine($"Current version: {AppInfo.Version} ({UpdateInfo.GetUpdateInfo().Status})");
-					Console.WriteLine($"Latest version: {ReleaseInfo.GetLatestRelease()}");
+				Console.WriteLine($"Current version: {AppInfo.Version} ({UpdateInfo.GetUpdateInfo().Status})");
+				Console.WriteLine($"Latest version: {ReleaseInfo.GetLatestRelease()}");
 
-					Console.WriteLine();
+				Console.WriteLine();
 
-					var di = new DirectoryInfo(AppInfo.ExeLocation);
+				var di = new DirectoryInfo(AppInfo.ExeLocation);
 
-					Console.WriteLine($"Executable location: {di.Parent.Name}");
-					Console.WriteLine($"In path: {AppInfo.IsAppFolderInPath}");
+				Console.WriteLine($"Executable location: {di.Parent.Name}");
+				Console.WriteLine($"In path: {AppInfo.IsAppFolderInPath}");
 
-					Console.WriteLine();
-					Console.WriteLine(Strings.Constants.Separator);
+				Console.WriteLine();
+				Console.WriteLine(Strings.Constants.Separator);
 
-					foreach (var utility in ImageHelper.UtilitiesMap) {
-						Console.WriteLine(utility);
-					}
-
-					Console.WriteLine();
-					Console.WriteLine(Strings.Constants.Separator);
-
-					var dependencies = ReflectionHelper.DumpDependencies();
-
-					foreach (var name in dependencies) {
-						Console.WriteLine($"{name.Name} ({name.Version})");
-					}
-
-					ConsoleManager.WaitForInput();
-
-					return null;
+				foreach (var utility in ImageHelper.UtilitiesMap) {
+					Console.WriteLine(utility);
 				}
-			},
-			new()
+
+				Console.WriteLine();
+				Console.WriteLine(Strings.Constants.Separator);
+
+				var dependencies = ReflectionHelper.DumpDependencies();
+
+				foreach (var name in dependencies) {
+					Console.WriteLine($"{name.Name} ({name.Version})");
+				}
+
+				ConsoleManager.WaitForInput();
+
+				return null;
+			}
+		},
+		new()
+		{
+			Name = "Update",
+			Function = null
+		},
+		new()
+		{
+			Name = "Help",
+			Function = () =>
 			{
-				Name = "Update",
-				Function = () =>
-				{
+				WebUtilities.OpenUrl(Resources.UrlWiki);
 
-					return null;
-				}
-			},
-			new()
-			{
-				Name = "Help",
-				Function = () =>
-				{
-					WebUtilities.OpenUrl(Resources.UrlWiki);
-
-					return null;
-				}
-			},
+				return null;
+			}
+		},
 #if DEBUG
 
-			new()
+		new()
+		{
+			Name = "Debug",
+			Function = () =>
 			{
-				Name = "Debug",
-				Function = () =>
-				{
-					Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
-					return true;
-				}
-			},
+				Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+				return true;
+			}
+		},
 #endif
 
-		};
+	};
 
-		internal static readonly ConsoleDialog MainMenuDialog = new()
-		{
-			Options   = MainMenuOptions,
-			Header    = NAME_BANNER,
-			Functions = new Dictionary<ConsoleKey, Action>(),
-			Status    = "You can also drag and drop a file to run a search."
-		};
+	internal static readonly ConsoleDialog MainMenuDialog = new()
+	{
+		Options   = MainMenuOptions,
+		Header    = NAME_BANNER,
+		Functions = new Dictionary<ConsoleKey, Action>(),
+		Status    = "You can also drag and drop a file to run a search."
+	};
 
-		/// <summary>
-		/// Name in ASCII art
-		/// </summary>
-		internal const string NAME_BANNER =
-			"  ____                       _   ___\n" +
-			" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
-			@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
-			"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
-			@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
-			"                                                     |___/\n";
+	/// <summary>
+	/// Name in ASCII art
+	/// </summary>
+	internal const string NAME_BANNER =
+		"  ____                       _   ___\n" +
+		" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
+		@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
+		"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
+		@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
+		"                                                     |___/\n";
 
-		static AppInterface()
-		{
-			// NOTE: Static initializer must be AFTER MainMenuDialog
+	static AppInterface()
+	{
+		// NOTE: Static initializer must be AFTER MainMenuDialog
 
-			var current = UpdateInfo.GetUpdateInfo();
+		var current = UpdateInfo.GetUpdateInfo();
 
-			if (current.Status == VersionStatus.Available) {
+		if (current.Status == VersionStatus.Available) {
 
-				var option = MainMenuOptions.First(f => f.Name == "Update");
+			var option = MainMenuOptions.First(f => f.Name == "Update");
 
-				option.Name = option.Name.AddColor(Elements.ColorHighlight);
+			option.Name = option.Name.AddColor(Elements.ColorHighlight);
 
-				var updateStr = $"* Update available (latest: {Elements.ToVersionString(current.Latest.Version)};" +
-				                $" current: {Elements.ToVersionString(current.Current)})";
+			var updateStr = $"* Update available (latest: {Elements.ToVersionString(current.Latest.Version)};" +
+			                $" current: {Elements.ToVersionString(current.Current)})";
 
-				updateStr = updateStr.AddColor(Elements.ColorHighlight);
+			updateStr = updateStr.AddColor(Elements.ColorHighlight);
 
-				MainMenuDialog.Description = updateStr;
+			MainMenuDialog.Description = updateStr;
 
-				option.Function = () =>
-				{
-					UpdateInfo.Update(current);
-					return null;
-				};
-			}
+			option.Function = () =>
+			{
+				UpdateInfo.Update(current);
+				return null;
+			};
 		}
 	}
 }

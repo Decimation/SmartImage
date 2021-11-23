@@ -7,6 +7,8 @@
     <!-- <TargetFramework>net5.0-windows</TargetFramework> -->
     <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
 
+    <NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
 
     <!-- <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework> -->
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
@@ -34,7 +36,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
     <NoWarn>1701;1702</NoWarn>
-    <NoWarn>CA1416</NoWarn>
+    <NoWarn>CA1416;</NoWarn>
 
   </PropertyGroup>
 

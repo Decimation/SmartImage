@@ -24,227 +24,226 @@ using static Kantan.Cli.Controls.ConsoleOption;
 
 // ReSharper disable PossibleNullReferenceException
 
-namespace SmartImage.UI
+namespace SmartImage.UI;
+
+internal static class ConsoleUIFactory
 {
-	internal static class ConsoleUIFactory
+	/*
+	 * todo: this is all glue code :(
+	 */
+
+	internal static ConsoleOption CreateConfigOption(string f, string name)
 	{
-		/*
-		 * todo: this is all glue code :(
-		 */
-
-		internal static ConsoleOption CreateConfigOption(string f, string name)
+		return new()
 		{
-			return new()
+			Name  = name,
+			Color = AppInterface.Elements.ColorOther,
+			Function = () =>
 			{
-				Name  = name,
-				Color = AppInterface.Elements.ColorOther,
-				Function = () =>
+				var enumOptions = FromEnum<SearchEngineOptions>();
+
+				var selected = (new ConsoleDialog
+					               {
+						               Options        = enumOptions,
+						               SelectMultiple = true
+					               }).ReadInput();
+
+				var enumValue = EnumHelper.ReadFromSet<SearchEngineOptions>(selected.Output);
+				var field     = Program.Config.GetType().GetAnyResolvedField(f);
+				field.SetValue(Program.Config, enumValue);
+
+				Console.WriteLine(enumValue);
+
+				ConsoleManager.WaitForSecond();
+
+				Debug.Assert((SearchEngineOptions) field.GetValue(Program.Config) == enumValue);
+
+				AppConfig.UpdateConfig();
+
+				return null;
+			}
+		};
+	}
+
+	internal static ConsoleOption CreateConfigOption(PropertyInfo member, string name, int i, Action<bool> fn)
+	{
+		bool initVal = (bool) member.GetValue(Program.Config);
+
+		return new ConsoleOption
+		{
+			Name = AppInterface.Elements.GetName(name, initVal),
+			Function = () =>
+			{
+				var pi = member.DeclaringType.GetProperty(member.Name);
+
+				bool curVal = (bool) pi.GetValue(null);
+
+				fn(curVal);
+
+				bool newVal = (bool) pi.GetValue(null);
+
+				AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
+
+				Debug.Assert((bool) pi.GetValue(null) == newVal);
+
+				return null;
+			}
+		};
+	}
+
+	internal static ConsoleOption CreateConfigOption(string m, string name, int i)
+	{
+		bool initVal = (bool) (Program.Config).GetType().GetAnyResolvedField(m).GetValue(Program.Config);
+
+		return new ConsoleOption
+		{
+			Name = AppInterface.Elements.GetName(name, initVal),
+			Function = () =>
+			{
+				var    fi     = Program.Config.GetType().GetAnyResolvedField(m);
+				object curVal = fi.GetValue(Program.Config);
+				bool   newVal = !(bool) curVal;
+				fi.SetValue(Program.Config, newVal);
+
+				AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
+
+				Debug.Assert((bool) fi.GetValue(Program.Config) == newVal);
+
+				AppConfig.UpdateConfig();
+
+				return null;
+			}
+		};
+	}
+
+	internal static ConsoleOption CreateResultOption(SearchResult result)
+	{
+		var color = AppInterface.Elements.EngineColorMap[result.Engine.EngineOption];
+
+		var option = new ConsoleOption
+		{
+			Functions = new Dictionary<ConsoleModifiers, ConsoleOptionFunction>
+			{
+				[NC_FN_MAIN] = CreateOpenFunction(result.PrimaryResult is { Url: { } }
+					                                  ? result.PrimaryResult.Url
+					                                  : result.RawUri),
+
+				[ConsoleModifiers.Shift] = CreateOpenFunction(result.RawUri),
+				[ConsoleModifiers.Alt] = () =>
 				{
-					var enumOptions = FromEnum<SearchEngineOptions>();
+					if (result.OtherResults.Any()) {
 
-					var selected = (new ConsoleDialog
-					{
-						Options        = enumOptions,
-						SelectMultiple = true
-					}).ReadInput();
+						var options = CreateResultOptions(result.OtherResults, $"Other result");
 
-					var enumValue = EnumHelper.ReadFromSet<SearchEngineOptions>(selected.Output);
-					var field     = Program.Config.GetType().GetAnyResolvedField(f);
-					field.SetValue(Program.Config, enumValue);
-
-					Console.WriteLine(enumValue);
-
-					ConsoleManager.WaitForSecond();
-
-					Debug.Assert((SearchEngineOptions) field.GetValue(Program.Config) == enumValue);
-
-					AppConfig.UpdateConfig();
+						(new ConsoleDialog
+								{
+									Options = options
+								}).ReadInput();
+					}
 
 					return null;
-				}
-			};
-		}
-
-		internal static ConsoleOption CreateConfigOption(PropertyInfo member, string name, int i, Action<bool> fn)
-		{
-			bool initVal = (bool) member.GetValue(Program.Config);
-
-			return new ConsoleOption
-			{
-				Name = AppInterface.Elements.GetName(name, initVal),
-				Function = () =>
-				{
-					var pi = member.DeclaringType.GetProperty(member.Name);
-
-					bool curVal = (bool) pi.GetValue(null);
-
-					fn(curVal);
-
-					bool newVal = (bool) pi.GetValue(null);
-
-					AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
-
-					Debug.Assert((bool) pi.GetValue(null) == newVal);
-
-					return null;
-				}
-			};
-		}
-
-		internal static ConsoleOption CreateConfigOption(string m, string name, int i)
-		{
-			bool initVal = (bool) (Program.Config).GetType().GetAnyResolvedField(m).GetValue(Program.Config);
-
-			return new ConsoleOption
-			{
-				Name = AppInterface.Elements.GetName(name, initVal),
-				Function = () =>
-				{
-					var    fi     = Program.Config.GetType().GetAnyResolvedField(m);
-					object curVal = fi.GetValue(Program.Config);
-					bool   newVal = !(bool) curVal;
-					fi.SetValue(Program.Config, newVal);
-
-					AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
-
-					Debug.Assert((bool) fi.GetValue(Program.Config) == newVal);
-
-					AppConfig.UpdateConfig();
-
-					return null;
-				}
-			};
-		}
-
-		internal static ConsoleOption CreateResultOption(SearchResult result)
-		{
-			var color = AppInterface.Elements.EngineColorMap[result.Engine.EngineOption];
-
-			var option = new ConsoleOption
-			{
-				Functions = new Dictionary<ConsoleModifiers, ConsoleOptionFunction>
-				{
-					[NC_FN_MAIN] = CreateOpenFunction(result.PrimaryResult is { Url: { } }
-						                                  ? result.PrimaryResult.Url
-						                                  : result.RawUri),
-
-					[ConsoleModifiers.Shift] = CreateOpenFunction(result.RawUri),
-					[ConsoleModifiers.Alt] = () =>
-					{
-						if (result.OtherResults.Any()) {
-
-							var options = CreateResultOptions(result.OtherResults, $"Other result");
-
-							(new ConsoleDialog
-							{
-								Options = options
-							}).ReadInput();
-						}
-
-						return null;
-					},
-
-
 				},
 
 
-				Color = color,
+			},
 
-				Name = result.Engine.Name,
-				Data = result,
-			};
 
-			option.Functions[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
-				CreateDownloadFunction(() => result.PrimaryResult.Direct);
+			Color = color,
 
-			option.Functions[ConsoleModifiers.Control] = () =>
-			{
-				var cts = new CancellationTokenSource();
-				if (OperatingSystem.IsWindows()) {
-					ConsoleProgressIndicator.Start(cts);
+			Name = result.Engine.Name,
+			Data = result,
+		};
 
-				}
-				result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
+		option.Functions[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
+			CreateDownloadFunction(() => result.PrimaryResult.Direct);
 
-				var other = result.OtherResults.FirstOrDefault(x => x.Direct is { });
-				result.PrimaryResult = other ?? result.PrimaryResult;
+		option.Functions[ConsoleModifiers.Control] = () =>
+		{
+			var cts = new CancellationTokenSource();
+			if (OperatingSystem.IsWindows()) {
+				ConsoleProgressIndicator.Start(cts);
 
-				cts.Cancel();
-				cts.Dispose();
+			}
+			result.OtherResults.AsParallel().ForAll(f => f.FindDirectImages());
 
-				option.Data = result;
+			var other = result.OtherResults.FirstOrDefault(x => x.Direct is { });
+			result.PrimaryResult = other ?? result.PrimaryResult;
 
-				return null;
-			};
+			cts.Cancel();
+			cts.Dispose();
 
-			return option;
+			option.Data = result;
+
+			return null;
+		};
+
+		return option;
+	}
+
+	[StringFormatMethod("n")]
+	internal static ConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n,
+	                                                    Color c = default)
+	{
+		if (c == default) {
+			c = AppInterface.Elements.ColorOther;
 		}
 
-		[StringFormatMethod("n")]
-		internal static ConsoleOption[] CreateResultOptions(IEnumerable<ImageResult> result, string n,
-		                                                    Color c = default)
+		int i = 0;
+		return result.Select(r => CreateResultOption(r, $"{n} #{i++}", c)).ToArray();
+	}
+
+	internal static ConsoleOption CreateResultOption(ImageResult result, string n, Color c,
+	                                                 float correction = -.3f)
+	{
+		var option = new ConsoleOption
 		{
-			if (c == default) {
-				c = AppInterface.Elements.ColorOther;
+			Color = c.ChangeBrightness(correction),
+			Name  = n,
+			Data  = result,
+			Functions =
+			{
+				[NC_FN_MAIN] = CreateOpenFunction(result.Url),
+
+				[ConsoleModifiers.Control | ConsoleModifiers.Alt] = CreateDownloadFunction(() => result.Direct)
+			}
+		};
+
+		return option;
+	}
+
+	internal static ConsoleOptionFunction CreateDownloadFunction(Func<Uri> d)
+	{
+		// Because of value type and pointer semantics, a func needs to be used here to ensure the
+		// Direct field of ImageResult is updated.
+		// ImageResult is a struct so updates cannot be seen by these functions
+
+		return () =>
+		{
+			var direct = d();
+
+			if (direct != null) {
+				var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+
+				var file = ImageHelper.Download(direct, path);
+
+				FileSystem.ExploreFile(file);
+
+				Debug.WriteLine($"Download: {file}", LogCategories.C_INFO);
 			}
 
-			int i = 0;
-			return result.Select(r => CreateResultOption(r, $"{n} #{i++}", c)).ToArray();
-		}
+			return null;
+		};
+	}
 
-		internal static ConsoleOption CreateResultOption(ImageResult result, string n, Color c,
-		                                                 float correction = -.3f)
+	internal static ConsoleOptionFunction CreateOpenFunction(Uri url)
+	{
+		return () =>
 		{
-			var option = new ConsoleOption
-			{
-				Color = c.ChangeBrightness(correction),
-				Name  = n,
-				Data  = result,
-				Functions =
-				{
-					[NC_FN_MAIN] = CreateOpenFunction(result.Url),
+			if (url != null) {
+				WebUtilities.OpenUrl(url.ToString());
+			}
 
-					[ConsoleModifiers.Control | ConsoleModifiers.Alt] = CreateDownloadFunction(() => result.Direct)
-				}
-			};
-
-			return option;
-		}
-
-		internal static ConsoleOptionFunction CreateDownloadFunction(Func<Uri> d)
-		{
-			// Because of value type and pointer semantics, a func needs to be used here to ensure the
-			// Direct field of ImageResult is updated.
-			// ImageResult is a struct so updates cannot be seen by these functions
-
-			return () =>
-			{
-				var direct = d();
-
-				if (direct != null) {
-					var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
-					var file = ImageHelper.Download(direct, path);
-
-					FileSystem.ExploreFile(file);
-
-					Debug.WriteLine($"Download: {file}", LogCategories.C_INFO);
-				}
-
-				return null;
-			};
-		}
-
-		internal static ConsoleOptionFunction CreateOpenFunction(Uri url)
-		{
-			return () =>
-			{
-				if (url != null) {
-					WebUtilities.OpenUrl(url.ToString());
-				}
-
-				return null;
-			};
-		}
+			return null;
+		};
 	}
 }

@@ -2,40 +2,39 @@
 using Novus.Win32;
 using Kantan.Numeric;
 
-namespace SmartImage.Lib.Upload
+namespace SmartImage.Lib.Upload;
+
+public abstract class BaseUploadEngine
 {
-	public abstract class BaseUploadEngine
+	/// <summary>
+	/// Max file size, in MB
+	/// </summary>
+	public abstract int MaxSize { get; }
+
+	public abstract string Name { get; }
+
+
+	public abstract Uri Upload(string file);
+
+
+	protected bool IsFileSizeValid(string file)
 	{
-		/// <summary>
-		/// Max file size, in MB
-		/// </summary>
-		public abstract int MaxSize { get; }
+		double fileSizeMegabytes =
+			MathHelper.ConvertToUnit(FileSystem.GetFileSize(file), MetricPrefix.Mega);
 
-		public abstract string Name { get; }
+		var b = fileSizeMegabytes >= MaxSize;
 
+		return !b;
+	}
 
-		public abstract Uri Upload(string file);
-
-
-		protected bool IsFileSizeValid(string file)
-		{
-			double fileSizeMegabytes =
-				MathHelper.ConvertToUnit(FileSystem.GetFileSize(file), MetricPrefix.Mega);
-
-			var b = fileSizeMegabytes >= MaxSize;
-
-			return !b;
+	protected void Verify(string file)
+	{
+		if (String.IsNullOrWhiteSpace(file)) {
+			throw new ArgumentNullException(nameof(file));
 		}
 
-		protected void Verify(string file)
-		{
-			if (String.IsNullOrWhiteSpace(file)) {
-				throw new ArgumentNullException(nameof(file));
-			}
-
-			if (!IsFileSizeValid(file)) {
-				throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}");
-			}
+		if (!IsFileSizeValid(file)) {
+			throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}");
 		}
 	}
 }

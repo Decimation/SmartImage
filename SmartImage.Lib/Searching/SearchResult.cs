@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using Kantan.Model;
 using Kantan.Text;
@@ -16,155 +17,157 @@ using SmartImage.Lib.Engines.Model;
 
 #pragma warning disable IDE0066
 
-namespace SmartImage.Lib.Searching
+namespace SmartImage.Lib.Searching;
+
+public enum ResultStatus
 {
-	public enum ResultStatus
+	/// <summary>
+	/// Succeeded in parsing/retrieving result
+	/// </summary>
+	Success,
+
+	/// <summary>
+	/// No results found
+	/// </summary>
+	NoResults,
+
+	/// <summary>
+	/// Server unavailable
+	/// </summary>
+	Unavailable,
+
+	/// <summary>
+	/// Failed to parse/retrieve results
+	/// </summary>
+	Failure,
+
+	/// <summary>
+	/// Result is extraneous
+	/// </summary>
+	Extraneous,
+
+	Cooldown
+}
+
+/// <summary>
+/// Describes a search result
+/// </summary>
+public class SearchResult : IOutline
+{
+	/// <summary>
+	/// Primary image result
+	/// </summary>
+	public ImageResult PrimaryResult { get; internal set; }
+
+	/// <summary>
+	/// Other image results
+	/// </summary>
+	public List<ImageResult> OtherResults { get; internal set; }
+
+	/// <summary>
+	/// <see cref="OtherResults"/> &#x222A; <see cref="PrimaryResult"/>
+	/// </summary>
+	public List<ImageResult> AllResults => OtherResults.Union(new[] { PrimaryResult }).ToList();
+
+	/// <summary>
+	/// Undifferentiated URI
+	/// </summary>
+	public Uri RawUri { get; internal set; }
+
+	/// <summary>
+	/// The <see cref="BaseSearchEngine"/> that returned this result
+	/// </summary>
+	public BaseSearchEngine Engine { get; internal init; }
+
+	/// <summary>
+	/// Result status
+	/// </summary>
+	public ResultStatus Status { get; internal set; }
+
+	/// <summary>
+	/// Error message; if applicable
+	/// </summary>
+	[CanBeNull]
+	public string ErrorMessage { get; internal set; }
+
+	/// <summary>
+	/// Indicates whether this result is detailed.
+	/// <para></para>
+	/// If filtering is enabled (i.e., <see cref="SearchConfig.Filtering"/> is <c>true</c>), this determines whether the
+	/// result is filtered.
+	/// </summary>
+	public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
+
+	public SearchResultOrigin Origin { get; internal set; }
+
+	public bool IsSuccessful
 	{
-		/// <summary>
-		/// Succeeded in parsing/retrieving result
-		/// </summary>
-		Success,
+		get
+		{
+			switch (Status) {
+				case ResultStatus.Failure:
+				case ResultStatus.Unavailable:
+					return false;
 
-		/// <summary>
-		/// No results found
-		/// </summary>
-		NoResults,
+				case ResultStatus.Success:
+				case ResultStatus.NoResults:
+				case ResultStatus.Cooldown:
+				case ResultStatus.Extraneous:
+					return true;
 
-		/// <summary>
-		/// Server unavailable
-		/// </summary>
-		Unavailable,
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+		}
+	}
 
-		/// <summary>
-		/// Failed to parse/retrieve results
-		/// </summary>
-		Failure,
+	public SearchResult(BaseSearchEngine engine)
+	{
+		Engine = engine;
 
-		/// <summary>
-		/// Result is extraneous
-		/// </summary>
-		Extraneous,
-
-		Cooldown
+		PrimaryResult = new ImageResult();
+		OtherResults  = new List<ImageResult>();
 	}
 
 	/// <summary>
-	/// Describes a search result
+	/// The time taken to retrieve results from the engine
 	/// </summary>
-	public class SearchResult : IOutline
+	public TimeSpan? RetrievalTime { get; internal set; }
+
+	public void Consolidate()
 	{
-		/// <summary>
-		/// Primary image result
-		/// </summary>
-		public ImageResult PrimaryResult { get; set; }
+		PrimaryResult = ReflectionHelper.Consolidate(PrimaryResult, OtherResults);
+	}
 
-		/// <summary>
-		/// Other image results
-		/// </summary>
-		public List<ImageResult> OtherResults { get; set; }
+	public override string ToString() => Strings.OutlineString(this);
 
-		/// <summary>
-		/// Undifferentiated URI
-		/// </summary>
-		public Uri RawUri { get; set; }
-
-		/// <summary>
-		/// The <see cref="BaseSearchEngine"/> that returned this result
-		/// </summary>
-		public BaseSearchEngine Engine { get; init; }
-
-		/// <summary>
-		/// Result status
-		/// </summary>
-		public ResultStatus Status { get; set; }
-
-		/// <summary>
-		/// Error message; if applicable
-		/// </summary>
-		[CanBeNull]
-		public string ErrorMessage { get; set; }
-
-		/// <summary>
-		/// Indicates whether this result is detailed.
-		/// <para></para>
-		/// If filtering is enabled (i.e., <see cref="SearchConfig.Filtering"/> is <c>true</c>), this determines whether the
-		/// result is filtered.
-		/// </summary>
-		public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
-
-		public SearchResultOrigin Origin { get; set; }
-
-		public bool IsSuccessful
+	public Dictionary<string, object> Outline
+	{
+		get
 		{
-			get
-			{
-				switch (Status) {
-					case ResultStatus.Failure:
-					case ResultStatus.Unavailable:
-						return false;
+			var map = new Dictionary<string, object>();
 
-					case ResultStatus.Success:
-					case ResultStatus.NoResults:
-					case ResultStatus.Cooldown:
-					case ResultStatus.Extraneous:
-						return true;
+			map.Add(nameof(PrimaryResult), PrimaryResult);
 
-					default:
-						throw new ArgumentOutOfRangeException();
-				}
+			map.Add("Raw", RawUri);
+
+			if (OtherResults.Count != 0) {
+				map.Add("Other image results", OtherResults.Count);
 			}
-		}
 
-		public SearchResult(BaseSearchEngine engine)
-		{
-			Engine = engine;
-
-			PrimaryResult = new ImageResult();
-			OtherResults  = new List<ImageResult>();
-		}
-
-		/// <summary>
-		/// The time taken to retrieve results from the engine
-		/// </summary>
-		public TimeSpan? RetrievalTime { get; set; }
-
-		public void Consolidate()
-		{
-			PrimaryResult = ReflectionHelper.Consolidate(PrimaryResult, OtherResults);
-		}
-
-		public override string ToString() => Strings.OutlineString(this);
-
-		public Dictionary<string, object> Outline
-		{
-			get
-			{
-				var map = new Dictionary<string, object>();
-
-				if (PrimaryResult.Url != null) {
-					map.Add(nameof(PrimaryResult), PrimaryResult);
-				}
-
-				map.Add("Raw", RawUri);
-
-				if (OtherResults.Count != 0) {
-					map.Add("Other image results", OtherResults.Count);
-				}
-
-				if (ErrorMessage != null) {
-					map.Add("Error", ErrorMessage);
-				}
-
-				if (!IsSuccessful) {
-					map.Add("Status", Status);
-				}
-
-				if (RetrievalTime.HasValue) {
-					map.Add("Time", $"(retrieval: {RetrievalTime.Value.TotalSeconds:F3})");
-				}
-
-				return map;
+			if (ErrorMessage != null) {
+				map.Add("Error", ErrorMessage);
 			}
+
+			if (!IsSuccessful) {
+				map.Add("Status", Status);
+			}
+
+			if (RetrievalTime.HasValue) {
+				map.Add("Time", $"(retrieval: {RetrievalTime.Value.TotalSeconds:F3})");
+			}
+
+			return map;
 		}
 	}
 }

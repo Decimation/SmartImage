@@ -3,32 +3,31 @@ using System.Diagnostics;
 using RestSharp;
 using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib.Engines.Model
+namespace SmartImage.Lib.Engines.Model;
+
+/// <summary>
+/// Represents a search engine whose results are returned from an API.
+/// </summary>
+public abstract class ClientSearchEngine : ProcessedSearchEngine
 {
-	/// <summary>
-	/// Represents a search engine whose results are returned from an API.
-	/// </summary>
-	public abstract class ClientSearchEngine : ProcessedSearchEngine
+	protected ClientSearchEngine(string baseUrl, string endpointUrl) : base(baseUrl)
 	{
-		protected ClientSearchEngine(string baseUrl, string endpointUrl) : base(baseUrl)
-		{
-			Client      = new RestClient(endpointUrl);
-			EndpointUrl = endpointUrl;
-		}
+		Client      = new RestClient(endpointUrl);
+		EndpointUrl = endpointUrl;
+	}
 
-		public abstract override SearchEngineOptions EngineOption { get; }
+	public abstract override SearchEngineOptions EngineOption { get; }
 
-		public abstract override string Name { get; }
+	public abstract override string Name { get; }
 
-		public abstract override EngineSearchType SearchType { get; }
+	public abstract override EngineSearchType SearchType { get; }
 
-		protected string EndpointUrl { get; }
+	protected string EndpointUrl { get; }
 
-		protected RestClient Client { get; }
+	protected RestClient Client { get; }
 
-		protected override object ParseContent(SearchResultOrigin s)
-		{
-			return s.Query;
-		}
+	protected override object ParseContent(SearchResultOrigin s)
+	{
+		return s.Query;
 	}
 }

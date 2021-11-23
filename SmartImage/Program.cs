@@ -51,355 +51,348 @@ using SmartImage.UI;
 using SmartImage.Utilities;
 
 // ReSharper disable SuggestVarOrType_Elsewhere
-
 // ReSharper disable PossibleNullReferenceException
-
 // ReSharper disable AsyncVoidLambda
-
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
-
 // ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
-
 // ReSharper disable CognitiveComplexity
 
-namespace SmartImage
+namespace SmartImage;
+//  ____                       _   ___
+// / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
+// \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \
+//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
+// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
+//                                                     |___/
+
+public static class Program
 {
-	//  ____                       _   ___
-	// / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
-	// \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \
-	//  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
-	// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
-	//                                                     |___/
+	#region Core fields
 
-	public static class Program
+	/// <summary>
+	/// User search config
+	/// </summary>
+	internal static readonly SearchConfig Config = new();
+
+	/// <summary>
+	/// Search client
+	/// </summary>
+	internal static readonly SearchClient Client = new(Config);
+
+	/// <summary>
+	/// Console UI for search results
+	/// </summary>
+	private static readonly ConsoleDialog ResultDialog = new()
 	{
-		#region Core fields
-
-		/// <summary>
-		/// User search config
-		/// </summary>
-		internal static readonly SearchConfig Config = new();
-
-		/// <summary>
-		/// Search client
-		/// </summary>
-		internal static readonly SearchClient Client = new(Config);
-
-		/// <summary>
-		/// Console UI for search results
-		/// </summary>
-		private static readonly ConsoleDialog ResultDialog = new()
+		Options = new List<ConsoleOption>(),
+		Description = "Press the result number to open in browser\n" +
+		              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
+		              "F1: Show filtered results | F2: Refine | F5: Refresh",
+		Functions = new()
 		{
-			Options = new List<ConsoleOption>(),
-			Description = "Press the result number to open in browser\n" +
-			              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
-			              "F1: Show filtered results | F2: Refine | F5: Refresh",
-			Functions = new()
+			[ConsoleKey.F1] = () =>
 			{
-				[ConsoleKey.F1] = () =>
-				{
-					// F1 : Show filtered
+				// F1 : Show filtered
 
-					ResultDialog.Options.Clear();
+				ResultDialog.Options.Clear();
 
-					var buffer = new List<SearchResult>();
-					buffer.AddRange(Client.Results);
+				var buffer = new List<SearchResult>();
+				buffer.AddRange(Client.Results);
 
-					if (!_isFilteredShown) {
-						buffer.AddRange(Client.FilteredResults);
-					}
+				if (!_isFilteredShown) {
+					buffer.AddRange(Client.FilteredResults);
+				}
 
-					ResultDialog.Options.Add(_orig);
+				ResultDialog.Options.Add(_orig);
 
-					foreach (ConsoleOption option in buffer.Select(ConsoleUIFactory.CreateResultOption)) {
-						ResultDialog.Options.Add(option);
-					}
+				foreach (ConsoleOption option in buffer.Select(ConsoleUIFactory.CreateResultOption)) {
+					ResultDialog.Options.Add(option);
+				}
 
-					_isFilteredShown = !_isFilteredShown;
+				_isFilteredShown = !_isFilteredShown;
 
-					ResultDialog.Refresh();
-				},
-				[ConsoleKey.F2] = async () =>
-				{
-					// F2 : Refine
+				ResultDialog.Refresh();
+			},
+			[ConsoleKey.F2] = async () =>
+			{
+				// F2 : Refine
 
-					_cancellationToken = new();
-					ResultDialog.Options.Clear();
-					ResultDialog.Options.Add(_orig);
+				_cancellationToken = new();
+				ResultDialog.Options.Clear();
+				ResultDialog.Options.Add(_orig);
 
-					try {
-						await Client.RefineSearchAsync();
-					}
-					catch (Exception e) {
-						Console.WriteLine("Error: {0}", e.Message);
-						ConsoleManager.WaitForSecond();
-					}
+				try {
+					await Client.RefineSearchAsync();
+				}
+				catch (Exception e) {
+					Console.WriteLine("Error: {0}", e.Message);
+					ConsoleManager.WaitForSecond();
+				}
 
-					ResultDialog.Refresh();
-				},
+				ResultDialog.Refresh();
+			},
+		}
+	};
+
+	#endregion
+
+
+	/// <summary>
+	/// Entry point
+	/// </summary>
+	private static async Task Main(string[] args)
+	{
+		/*
+		 * Setup
+		 * Check compatibility
+		 * Register events
+		 */
+
+
+		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
+		Console.OutputEncoding                     =  Encoding.Unicode;
+
+		Console.Title = $"{AppInfo.NAME}";
+
+		ConsoleManager.Init();
+		Console.Clear();
+
+		Console.CancelKeyPress += (sender, eventArgs) => { };
+
+		var process = Process.GetCurrentProcess();
+		process.PriorityClass = ProcessPriorityClass.AboveNormal;
+
+		/*
+		 * Start
+		 */
+
+		/*
+		 * Configuration precedence
+		 *
+		 * 1. Config file
+		 * 2. Cli arguments
+		 *
+		 * Cli arguments override config file
+		 */
+
+		AppConfig.ReadConfigFile();
+
+		if (!await HandleArguments())
+			return;
+
+		ResultDialog.Subtitle = $"SE: {Config.SearchEngines} " +
+		                        $"| PE: {Config.PriorityEngines} " +
+		                        $"| Filtering: {AppInterface.Elements.ToToggleString(Config.Filtering)}";
+
+
+		_cancellationToken = new();
+
+		// Run search
+
+		Client.ResultCompleted += OnResultCompleted;
+
+		Client.SearchCompleted += (obj, eventArgs) =>
+		{
+			OnSearchCompleted(obj, eventArgs, _cancellationToken);
+
+			if (Config.Notification) {
+				AppToast.ShowToast(obj, eventArgs);
 			}
 		};
 
-		#endregion
-
-
-		/// <summary>
-		/// Entry point
-		/// </summary>
-		private static async Task Main(string[] args)
+		Client.DirectFound += (sender, eventArgs) =>
 		{
-			/*
-			 * Setup
-			 * Check compatibility
-			 * Register events
-			 */
-			
+			// ...
+		};
 
-			ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
-
-			Console.OutputEncoding = Encoding.Unicode;
-
-			Console.Title = $"{AppInfo.NAME}";
-
-			//120,30
-
-			ConsoleManager.Init();
-			Console.Clear();
-
-			Console.CancelKeyPress += (sender, eventArgs) => { };
-
-			var process = Process.GetCurrentProcess();
-			process.PriorityClass = ProcessPriorityClass.AboveNormal;
-
-			/*
-			 * Start
-			 */
-
-			/*
-			 * Configuration precedence
-			 *
-			 * 1. Config file
-			 * 2. Cli arguments
-			 *
-			 * Cli arguments override config file
-			 */
-
-			AppConfig.ReadConfigFile();
-
-			if (!await HandleArguments())
-				return;
-
-			ResultDialog.Subtitle = $"SE: {Config.SearchEngines} " +
-			                        $"| PE: {Config.PriorityEngines} " +
-			                        $"| Filtering: {AppInterface.Elements.ToToggleString(Config.Filtering)}";
+		ConsoleProgressIndicator.Start(_cancellationToken);
 
 
-			_cancellationToken = new();
+		// Show results
+		var searchTask = Client.RunSearchAsync();
 
-			// Run search
+		_orig = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
+		                                            AppInterface.Elements.ColorMain, -0.1f);
 
-			Client.ResultCompleted += OnResultCompleted;
+		// Add original image
+		ResultDialog.Options.Add(_orig);
 
-			Client.SearchCompleted += (obj, eventArgs) =>
-			{
-				OnSearchCompleted(obj, eventArgs, _cancellationToken);
-
-				if (Config.Notification) {
-					AppToast.ShowToast(obj, eventArgs);
-				}
-			};
-
-			Client.DirectFound += (sender, eventArgs) =>
-			{
-
-			};
-
-			ConsoleProgressIndicator.Start(_cancellationToken);
-
-
-			// Show results
-			var searchTask = Client.RunSearchAsync();
-
-			_orig = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
-			                                            AppInterface.Elements.ColorMain, -0.1f);
-
-			// Add original image
-			ResultDialog.Options.Add(_orig);
-
-			if (!Config.OutputOnly) {
-				await ResultDialog.ReadInputAsync();
-			}
-
-			await searchTask;
-
-			if (Config.OutputOnly) {
-				ResultDialog.Display(false);
-			}
+		if (!Config.OutputOnly) {
+			await ResultDialog.ReadInputAsync();
 		}
 
-		private static async Task<bool> HandleArguments()
-		{
-			var args = Environment.GetCommandLineArgs();
+		await searchTask;
 
-			// first element is executing assembly
-			args = args.Skip(1).ToArray();
-
-			if (!args.Any()) {
-				var options = await AppInterface.MainMenuDialog.ReadInputAsync();
-
-				var file = options.DragAndDrop;
-
-				if (file != null) {
-					Debug.WriteLine($"Drag and drop: {file}");
-					Console.WriteLine($">> {file}".AddColor(AppInterface.Elements.ColorMain));
-					Config.Query = file;
-					return true;
-				}
-
-				if (!options.Output.Any()) {
-					return false;
-				}
-			}
-			else {
-
-				/*
-				 * Handle CLI args
-				 */
-
-
-				try {
-
-					CliHandler.Run(args);
-
-					Client.Reload();
-				}
-				catch (Exception e) {
-					Console.WriteLine($"Error: {e.Message}");
-					return false;
-				}
-			}
-
-			return true;
+		if (Config.OutputOnly) {
+			ResultDialog.Display(false);
 		}
+	}
 
-		private static CancellationTokenSource _cancellationToken;
+	private static CancellationTokenSource _cancellationToken;
 
-		private static bool _isFilteredShown;
+	private static bool _isFilteredShown;
 
-		private static ConsoleOption _orig;
+	private static ConsoleOption _orig;
 
+	#region CLI
 
-		#region Event handlers
-
-		private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
-		                                      CancellationTokenSource cts)
+	/// <summary>
+	/// Command line argument handler
+	/// </summary>
+	private static readonly CliHandler CliHandler = new()
+	{
+		Parameters =
 		{
-
-			Native.FlashConsoleWindow();
-
-			cts.Cancel();
-			cts.Dispose();
-
-			SystemSounds.Exclamation.Play();
-
-			ResultDialog.Refresh();
-
-			if (Config.PriorityEngines == SearchEngineOptions.Auto) {
-				var m = Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
-
-				WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
-			}
-
-		}
-
-		private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
-		{
-			SearchResult result = eventArgs.Result;
-
-			ConsoleOption option = ConsoleUIFactory.CreateResultOption(result);
-
-			bool? isFiltered = eventArgs.IsFiltered;
-
-			if (isFiltered.HasValue && !isFiltered.Value || !isFiltered.HasValue) {
-				ResultDialog.Options.Add(option);
-			}
-
-			if (eventArgs.IsPriority) {
-				option.Function();
-			}
-
-			var status = $"Results: {Client.Results.Count}";
-
-			if (Config.Filtering) {
-				status += $" | Filtered: {Client.FilteredResults.Count}";
-			}
-
-			status += $" | Pending: {Client.Pending}";
-
-			ResultDialog.Status = status;
-
-		}
-
-		#endregion
-
-		/// <summary>
-		/// Command line argument handler
-		/// </summary>
-		private static readonly CliHandler CliHandler = new()
-		{
-			Parameters =
-			{
-				new()
-				{
-					ArgumentCount = 1,
-					ParameterId   = "-se",
-					Function = strings =>
-					{
-						Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-						return null;
-					}
-				},
-				new()
-				{
-					ArgumentCount = 1,
-					ParameterId   = "-pe",
-					Function = strings =>
-					{
-						Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-						return null;
-					}
-				},
-				new()
-				{
-					ArgumentCount = 0,
-					ParameterId   = "-f",
-					Function = delegate
-					{
-						Config.Filtering = true;
-						return null;
-					}
-				},
-				new()
-				{
-					ArgumentCount = 0,
-					ParameterId   = "-output_only",
-					Function = delegate
-					{
-						Config.OutputOnly = true;
-						return null;
-					}
-				}
-			},
-			Default = new CliParameter
+			new()
 			{
 				ArgumentCount = 1,
-				ParameterId   = null,
+				ParameterId   = "-se",
 				Function = strings =>
 				{
-					Config.Query = strings[0];
+					Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 1,
+				ParameterId   = "-pe",
+				Function = strings =>
+				{
+					Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-f",
+				Function = delegate
+				{
+					Config.Filtering = true;
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-output_only",
+				Function = delegate
+				{
+					Config.OutputOnly = true;
 					return null;
 				}
 			}
-		};
+		},
+		Default = new CliParameter
+		{
+			ArgumentCount = 1,
+			ParameterId   = null,
+			Function = strings =>
+			{
+				Config.Query = strings[0];
+				return null;
+			}
+		}
+	};
+
+	private static async Task<bool> HandleArguments()
+	{
+		var args = Environment.GetCommandLineArgs();
+
+		// first element is executing assembly
+		args = args.Skip(1).ToArray();
+
+		if (!args.Any()) {
+			var options = await AppInterface.MainMenuDialog.ReadInputAsync();
+
+			var file = options.DragAndDrop;
+
+			if (file != null) {
+				Debug.WriteLine($"Drag and drop: {file}");
+				Console.WriteLine($">> {file}".AddColor(AppInterface.Elements.ColorMain));
+				Config.Query = file;
+				return true;
+			}
+
+			if (!options.Output.Any()) {
+				return false;
+			}
+		}
+		else {
+
+			/*
+			 * Handle CLI args
+			 */
+
+			try {
+
+				CliHandler.Run(args);
+
+				Client.Reload();
+			}
+			catch (Exception e) {
+				Console.WriteLine($"Error: {e.Message}");
+				return false;
+			}
+		}
+
+		return true;
 	}
+
+	#endregion
+
+
+	#region Event handlers
+
+	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
+	                                      CancellationTokenSource cts)
+	{
+
+		Native.FlashConsoleWindow();
+
+		cts.Cancel();
+		cts.Dispose();
+
+		SystemSounds.Exclamation.Play();
+
+		ResultDialog.Refresh();
+
+		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+			var m = Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
+
+			WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
+		}
+
+	}
+
+	private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
+	{
+		SearchResult result = eventArgs.Result;
+
+		ConsoleOption option = ConsoleUIFactory.CreateResultOption(result);
+
+		bool? isFiltered = eventArgs.IsFiltered;
+
+		if (isFiltered.HasValue && !isFiltered.Value || !isFiltered.HasValue) {
+			ResultDialog.Options.Add(option);
+		}
+
+		if (eventArgs.IsPriority) {
+			option.Function();
+		}
+
+		var status = $"Results: {Client.Results.Count}";
+
+		if (Config.Filtering) {
+			status += $" | Filtered: {Client.FilteredResults.Count}";
+		}
+
+		status += $" | Pending: {Client.Pending}";
+
+		ResultDialog.Status = status;
+
+	}
+
+	#endregion
 }

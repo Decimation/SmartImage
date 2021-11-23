@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Drawing;
 using System.Text;
+using Windows.ApplicationModel.Background;
 using Windows.UI.Notifications;
 using Kantan.Net;
 using Kantan.Numeric;
@@ -28,15 +29,23 @@ internal static class AppToast
 		button2.SetContent("Dismiss")
 		       .AddArgument(Elements.ARG_KEY_ACTION, Elements.ARG_VALUE_DISMISS);
 
+		
+		var sb = new StringBuilder();
 
-		var    sb  = new StringBuilder();
 		string url = null;
 
 
-		if (args.Results.Any()) {
-			var b = args.Results.First();
-			url = b.PrimaryResult.Url.ToString();
+		if (args.Detailed.Any()) {
+			var detailed = args.Detailed.First();
+			url = detailed.Url.ToString();
+			sb.Append(detailed);
 		}
+		else if (args.Results.Any()) {
+			var result = args.Results.First();
+			url = result.PrimaryResult.Url.ToString();
+			sb.Append(result);
+		}
+
 
 		button.SetContent("Open")
 		      .AddArgument(Elements.ARG_KEY_ACTION, $"{url}");
@@ -49,7 +58,7 @@ internal static class AppToast
 
 		if (Program.Config.Notification && Program.Config.NotificationImage) {
 
-			var directResults = await Program.Client.WaitForDirect();
+			var directResults = await Program.Client.WaitForDirectResults();
 
 			if (!directResults.Any()) {
 				goto ShowToast;
@@ -69,12 +78,10 @@ internal static class AppToast
 				} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 			}
 
-
 			/**/
 
 			if (file != null) {
-				// NOTE: The file size limit doesn't seem to actually matter ...
-				//file = GetHeroImage(path, file);
+				// NOTE: The file size limit doesn't seem to actually matter...
 
 				Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
 
@@ -93,42 +100,7 @@ internal static class AppToast
 		builder.SetBackgroundActivation();
 		builder.Show();
 	}
-
-	private static string GetHeroImage(string folder, string filePath)
-	{
-		// NOTE: The file size limit doesn't seem to actually matter ...
-
-		/*var bytes     = File.ReadAllBytes(filePath).Length;
-		var kiloBytes = MathHelper.ConvertToUnit(bytes, MetricPrefix.Kilo);
-
-
-		bool tooBig    = kiloBytes >= MAX_IMG_SIZE_KB;
-
-		if (tooBig) {
-			var    bitmap    = new Bitmap(filePath);
-			var    newSize   = new Size(Convert.ToInt32(bitmap.Width / 2), Convert.ToInt32(bitmap.Height / 2));
-			Bitmap newBitmap = ImageHelper.ResizeImage(bitmap, newSize);
-
-			if (newBitmap != null) {
-				var fileWithoutExt = Path.GetFileNameWithoutExtension(filePath);
-				var ext            = Path.GetExtension(filePath);
-
-				string newFile = Path.Combine(folder, fileWithoutExt + "-1" + ext);
-
-				newBitmap.Save(newFile, System.Drawing.Imaging.ImageFormat.Jpeg);
-
-				bytes     = File.ReadAllBytes(filePath).Length;
-				kiloBytes = MathHelper.ConvertToUnit(bytes, MetricPrefix.Kilo);
-
-				Debug.WriteLine($"Compressed {filePath} -> {newFile} ({kiloBytes})");
-
-				filePath = newFile;
-			}
-
-		}*/
-
-		return filePath;
-	}
+	
 
 	internal static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)
 	{
@@ -152,10 +124,41 @@ internal static class AppToast
 		}
 
 		if (ToastNotificationManagerCompat.WasCurrentProcessToastActivated()) {
-			//
-			Environment.Exit(0);
+			
+			// ToastNotificationManagerCompat.History.Clear();
+			// Environment.Exit(0);
+
+			// Closes toast ...
+
+			return;
 		}
 	}
 
-	private const int MAX_IMG_SIZE_KB = 200;
+	private static async void RegisterBackground()
+	{
+		const string taskName = "ToastBackgroundTask";
+
+		// If background task is already registered, do nothing
+		if (BackgroundTaskRegistration.AllTasks.Any(i => i.Value.Name.Equals(taskName)))
+			return;
+
+		// Otherwise request access
+		BackgroundAccessStatus status = await BackgroundExecutionManager.RequestAccessAsync();
+
+		// Create the background task
+		BackgroundTaskBuilder builder = new BackgroundTaskBuilder()
+		{
+			Name = taskName
+		};
+
+		// Assign the toast action trigger
+		builder.SetTrigger(new ToastNotificationActionTrigger());
+
+		// And register the task
+		BackgroundTaskRegistration registration = builder.Register();
+
+		// todo
+	}
+
+
 }

@@ -33,78 +33,77 @@ using static Kantan.Diagnostics.LogCategories;
 // ReSharper disable MemberCanBePrivate.Global
 
 #nullable disable
-namespace SmartImage.Core
+namespace SmartImage.Core;
+
+/// <summary>
+/// Program runtime information
+/// </summary>
+public static class AppInfo
 {
 	/// <summary>
-	/// Program runtime information
+	/// Name
 	/// </summary>
-	public static class AppInfo
-	{
-		/// <summary>
-		/// Name
-		/// </summary>
-		public const string NAME = "SmartImage";
+	public const string NAME = "SmartImage";
 
-		/// <summary>
-		/// Executable file name
-		/// </summary>
-		public const string NAME_EXE = "SmartImage.exe";
+	/// <summary>
+	/// Executable file name
+	/// </summary>
+	public const string NAME_EXE = "SmartImage.exe";
 
-		/// <summary>
-		/// Config file name
-		/// </summary>
-		public const string NAME_CFG = "SmartImage.cfg";
+	/// <summary>
+	/// Config file name
+	/// </summary>
+	public const string NAME_CFG = "SmartImage.cfg";
 		
-		public static string AppFolder => Path.GetDirectoryName(ExeLocation);
+	public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
-		public static Version Version => typeof(AppInfo).Assembly.GetName().Version!;
+	public static Version Version => typeof(AppInfo).Assembly.GetName().Version!;
 
-		public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
+	public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 
-		/// <summary>
-		///     <c>Null</c> if executable is not in path.
-		/// </summary>
-		public static string ExeLocation
+	/// <summary>
+	///     <c>Null</c> if executable is not in path.
+	/// </summary>
+	public static string ExeLocation
+	{
+		get
 		{
-			get
-			{
-				var module = Process.GetCurrentProcess().MainModule;
+			var module = Process.GetCurrentProcess().MainModule;
 
-				Guard.AssertNotNull(module);
+			Guard.AssertNotNull(module);
 
-				return module.FileName;
-			}
+			return module.FileName;
+		}
+	}
+
+
+	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
+
+	/// <summary>
+	/// Setup
+	/// </summary>
+	[ModuleInitializer]
+	public static void Setup()
+	{
+		/*if (!OperatingSystem.IsWindows()) {
+			throw new NotSupportedException();
+		}*/
+			
+		// Remove old path directories
+		var pathDirectories = FileSystem.GetEnvironmentPathDirectories();
+		var oldFolders      = pathDirectories.Where(x=>x.Contains(NAME) && x!= AppFolder);
+
+		foreach (string s in oldFolders) {
+			FileSystem.RemoveFromPath(s);
+		}
+			
+
+		if (!IsAppFolderInPath) {
+			AppIntegration.HandlePath(true);
 		}
 
-
-		public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
-
-		/// <summary>
-		/// Setup
-		/// </summary>
-		[ModuleInitializer]
-		public static void Setup()
-		{
-			/*if (!OperatingSystem.IsWindows()) {
-				throw new NotSupportedException();
-			}*/
-			
-			// Remove old path directories
-			var pathDirectories = FileSystem.GetEnvironmentPathDirectories();
-			var oldFolders      = pathDirectories.Where(x=>x.Contains(NAME) && x!= AppFolder);
-
-			foreach (string s in oldFolders) {
-				FileSystem.RemoveFromPath(s);
-			}
-			
-
-			if (!IsAppFolderInPath) {
-				AppIntegration.HandlePath(true);
-			}
-
-			Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
+		Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
 
 			
-		}
 	}
 }
