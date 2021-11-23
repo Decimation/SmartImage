@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using SmartImage.Lib;
@@ -121,12 +125,24 @@ public static class Program
 		result.mssim = mssim;
 		Console.WriteLine(result.score);*/
 
+		Console.WriteLine(ImageHelper.IsImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png"));
 
-		foreach (var v in await ImageHelper.ScanForImages("https://danbooru.donmai.us/posts/3567935")) {
-			Console.WriteLine(v);
-		}
+		Debugger.Break();
+		var wc    = new WebClient();
+		var png   = "https://i.imgur.com/QtCausw.png";
+		var name  = Path.GetFileName(png);
+		var name2 = Path.GetFileNameWithoutExtension(png);
+		var ext   = Path.GetExtension(png);
+		var read  = wc.OpenRead(png);
+		var img   = Image.FromStream(read);
+		var img2  = ImageHelper.ResizeImage((Bitmap) img, img.Size / 2);
 
-			
+		var    path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+		string s    = Path.Combine(path, name2 + "-1" + ext);
+		Console.WriteLine(s);
+		img2.Save(s);
+
+
 	}
 
 	/*public class SSIMResult

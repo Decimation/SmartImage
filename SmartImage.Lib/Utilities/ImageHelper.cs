@@ -13,6 +13,7 @@ using System.Web;
 using AngleSharp.Html.Dom;
 using JetBrains.Annotations;
 using Kantan.Net;
+using Kantan.Utilities;
 using Novus.Win32;
 using RestSharp;
 using static Kantan.Diagnostics.LogCategories;
@@ -82,7 +83,7 @@ public static class ImageHelper
 	[CanBeNull]
 	public static string Download(Uri src, string path)
 	{
-		var filename = NormalizeFilename(src);
+		var filename = UriUtilities.NormalizeFilename(src);
 
 		string combine = Path.Combine(path, filename);
 
@@ -105,38 +106,7 @@ public static class ImageHelper
 		}
 	}
 
-	private static string NormalizeFilename(Uri src)
-	{
-		string filename = Path.GetFileName(src.AbsolutePath);
-
-		if (!Path.HasExtension(filename)) {
-
-			// If no format is specified/found, just append a jpg extension
-			string ext = ".jpg";
-
-			// For Pixiv (?)
-			var kv = HttpUtility.ParseQueryString(src.Query);
-
-			var t = kv["format"];
-
-			if (t != null) {
-				ext = $".{t}";
-			}
-
-			filename += ext;
-
-		}
-
-		// Stupid URI parameter Twitter appends to filenames
-
-		var i = filename.IndexOf(":large", StringComparison.Ordinal);
-
-		if (i != -1) {
-			filename = filename[..i];
-		}
-
-		return filename;
-	}
+	
 
 	/// <summary>
 	/// Scans for direct images within a webpage.
@@ -146,7 +116,6 @@ public static class ImageHelper
 	/// <param name="timeoutMS"></param>
 	public static async Task<List<string>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS)
 	{
-
 		var images = new List<string>();
 
 		IHtmlDocument document;
@@ -195,14 +164,7 @@ public static class ImageHelper
 				count--;
 			}
 		}
-
-		/*for (int i = 0; i < images.Count; i++) {
-			for (int j = i + 1; j < images.Count; j++) {
-				if (UrlUtilities.UrlEqual(images[i], images[j])) {
-					Debug.WriteLine($"{images[i]} = {images[j]}");
-				}
-			}
-		}*/
+		
 
 		return images;
 	}
@@ -229,10 +191,24 @@ public static class ImageHelper
 					return false;
 				}
 
-				var a = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";
-				var b = response.ContentLength >= 50_000;
+				/* Check content-type */
 
-				return a && b;
+				// The content-type returned from the response may not be the actual content-type, so
+				// we'll resolve it using binary data instead to be sure
+
+				var stream  = WebUtilities.GetStream(url);
+				var buffer = new byte[256];
+				stream.Read(buffer, 0, buffer.Length);
+				// var rg = response.RawBytes;
+				var m  = MediaTypes.ResolveFromData(buffer);
+
+				// var a  = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";
+				// var b = response.ContentLength >= 50_000;
+
+				var a = m.StartsWith("image") && m != "image/svg+xml";
+				// var b = stream.Length >= 50_000;
+
+				return a;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(directCriterion), directCriterion, null);
 		}
@@ -291,6 +267,9 @@ public static class ImageHelper
 	public static Bitmap ResizeImage(Bitmap mg, Size newSize)
 	{
 		// todo
+		/*
+		 * Adapted from https://stackoverflow.com/questions/5243203/how-to-compress-jpg-image
+		 */
 		double ratio         = 0d;
 		double myThumbWidth  = 0d;
 		double myThumbHeight = 0d;

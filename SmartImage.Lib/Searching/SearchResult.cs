@@ -46,6 +46,9 @@ public enum ResultStatus
 	/// </summary>
 	Extraneous,
 
+	/// <summary>
+	/// Engine which returned the result is on cooldown
+	/// </summary>
 	Cooldown
 }
 

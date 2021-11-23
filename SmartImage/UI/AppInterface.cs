@@ -65,8 +65,8 @@ internal static partial class AppInterface
 		CreateConfigOption(nameof(Config.Notification), "Notification", 4),
 		CreateConfigOption(nameof(Config.NotificationImage), "Notification image", 5),
 
-		CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 6,
-		                   added => AppIntegration.HandleContextMenu(!added)),
+		CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 
+		                   6, added => AppIntegration.HandleContextMenu(!added)),
 
 		new()
 		{

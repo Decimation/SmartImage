@@ -64,7 +64,7 @@ internal static class AppToast
 				goto ShowToast;
 			}
 
-			var directImage = directResults.First();
+			var directImage = directResults.OrderByDescending(x=>x.PixelResolution).First();
 			var path        = Path.GetTempPath();
 
 			string file = ImageHelper.Download(directImage.Direct, path);

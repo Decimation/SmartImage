@@ -21,6 +21,7 @@ using static Kantan.Diagnostics.LogCategories;
 // ReSharper disable UnusedMember.Global
 
 [assembly: InternalsVisibleTo("SmartImage")]
+
 namespace SmartImage.Lib;
 
 /// <summary>
@@ -77,7 +78,9 @@ public sealed class SearchClient
 	/// </summary>
 	public List<SearchResult> FilteredResults { get; }
 
-
+	/// <summary>
+	/// Number of pending results
+	/// </summary>
 	public int Pending { get; private set; }
 
 	/// <summary>
@@ -190,7 +193,7 @@ public sealed class SearchClient
 		var args = new SearchCompletedEventArgs
 		{
 			Results  = Results,
-			Detailed = PredicateFilter(Results, DetailPredicate),
+			Detailed = ApplyPredicateFilter(Results, DetailPredicate),
 			Direct   = DirectResults,
 			Filtered = FilteredResults
 		};
@@ -206,10 +209,25 @@ public sealed class SearchClient
 	{
 		return Task.Run(() =>
 		{
-			while (Results.Any() && !DirectResults.Any()) { }
+			while (Results.Any() && !DirectResults.Any()) {
+				if (IsComplete) {
+					List<ImageResult> rescan = RescanImageResults(Results);
+					DirectResults.AddRange(rescan);
+
+					break;
+				}
+			}
 
 			return DirectResults;
 		});
+	}
+
+	private static List<ImageResult> RescanImageResults(List<SearchResult> results)
+	{
+		var b = results.SelectMany(x => x.AllResults.Where(x2 => x2.Direct != null))
+		               .OrderByDescending(x => x.PixelResolution)
+		               .ToList();
+		return b;
 	}
 
 	/// <summary>
@@ -220,7 +238,6 @@ public sealed class SearchClient
 		if (!IsComplete) {
 			throw SearchException;
 		}
-
 
 		var directResult = DirectResults.FirstOrDefault();
 
@@ -264,7 +281,7 @@ public sealed class SearchClient
 	}
 
 
-	public static List<ImageResult> PredicateFilter(List<SearchResult> results, Predicate<SearchResult> predicate)
+	public static List<ImageResult> ApplyPredicateFilter(List<SearchResult> results, Predicate<SearchResult> predicate)
 	{
 		var query = results.Where(r => predicate(r))
 		                   .SelectMany(r => r.AllResults)
@@ -329,7 +346,6 @@ public sealed class SearchClient
 
 	private static readonly SmartImageException SearchException = new("Search must be completed");
 }
-
 
 public sealed class DirectResultsFoundEventArgs : EventArgs
 {

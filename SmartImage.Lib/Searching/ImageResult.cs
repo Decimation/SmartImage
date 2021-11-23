@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using JetBrains.Annotations;
 using Kantan.Model;
 using Kantan.Numeric;
 using Kantan.Text;
@@ -12,7 +13,7 @@ using SmartImage.Lib.Utilities;
 
 // ReSharper disable CognitiveComplexity
 #pragma warning disable 8629,CA1416
-#nullable enable
+#nullable disable
 
 namespace SmartImage.Lib.Searching;
 
@@ -38,7 +39,8 @@ public sealed class ImageResult : IOutline
 	/// <summary>
 	/// Direct image link of <see cref="Url"/>
 	/// </summary>
-	public Uri? Direct { get; set; }
+	[CanBeNull]
+	public Uri Direct { get; set; }
 
 	/// <summary>
 	/// Similarity
@@ -58,27 +60,32 @@ public sealed class ImageResult : IOutline
 	/// <summary>
 	/// Description, caption
 	/// </summary>
-	public string? Description { get; set; }
+	[CanBeNull]
+	public string Description { get; set; }
 
 	/// <summary>
 	/// Artist, author, creator
 	/// </summary>
-	public string? Artist { get; set; }
+	[CanBeNull]
+	public string Artist { get; set; }
 
 	/// <summary>
 	/// Source
 	/// </summary>
-	public string? Source { get; set; }
+	[CanBeNull]
+	public string Source { get; set; }
 
 	/// <summary>
 	/// Character(s) present in image
 	/// </summary>
-	public string? Characters { get; set; }
+	[CanBeNull]
+	public string Characters { get; set; }
 
 	/// <summary>
 	/// Site name
 	/// </summary>
-	public string? Site { get; set; }
+	[CanBeNull]
+	public string Site { get; set; }
 
 	/// <summary>
 	/// Date of image
@@ -88,7 +95,8 @@ public sealed class ImageResult : IOutline
 	/// <summary>
 	///     Result name
 	/// </summary>
-	public string? Name { get; set; }
+	[CanBeNull]
+	public string Name { get; set; }
 
 	/// <summary>
 	/// Whether <see cref="Width"/> and <see cref="Height"/> values are available
@@ -124,7 +132,8 @@ public sealed class ImageResult : IOutline
 	/// </summary>
 	public Dictionary<string, object> OtherMetadata { get; }
 
-	public Image? Image { get; set; }
+	[CanBeNull]
+	public Image Image { get; set; }
 
 	/// <summary>
 	/// The display resolution of this image
@@ -248,9 +257,6 @@ public sealed class ImageResult : IOutline
 			Width  = Image.Width;
 			Height = Image.Height;
 
-			//
-			// OtherMetadata.Add("Size", MathHelper.ConvertToUnit(rg.Length));
-			// OtherMetadata.Add("Mime", MediaTypes.ResolveFromData(rg));
 		}
 	}
 

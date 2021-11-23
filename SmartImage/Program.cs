@@ -49,6 +49,7 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI;
 using SmartImage.Utilities;
+using static SmartImage.UI.AppInterface;
 
 // ReSharper disable SuggestVarOrType_Elsewhere
 // ReSharper disable PossibleNullReferenceException
@@ -103,7 +104,7 @@ public static class Program
 					buffer.AddRange(Client.FilteredResults);
 				}
 
-				ResultDialog.Options.Add(_orig);
+				ResultDialog.Options.Add(_originalResult);
 
 				foreach (ConsoleOption option in buffer.Select(ConsoleUIFactory.CreateResultOption)) {
 					ResultDialog.Options.Add(option);
@@ -118,15 +119,21 @@ public static class Program
 				// F2 : Refine
 
 				_cancellationToken = new();
+				var buf = new List<ConsoleOption>(ResultDialog.Options);
+
 				ResultDialog.Options.Clear();
-				ResultDialog.Options.Add(_orig);
+				ResultDialog.Options.Add(_originalResult);
 
 				try {
 					await Client.RefineSearchAsync();
 				}
 				catch (Exception e) {
-					Console.WriteLine("Error: {0}", e.Message);
-					ConsoleManager.WaitForSecond();
+					Console.WriteLine("\nError: {0}", e.Message);
+					ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(3));
+					ResultDialog.Options.Clear();
+					// ResultDialog.Options.Add(_originalResult);
+
+					(ResultDialog.Options as List<ConsoleOption>).AddRange(buf);
 				}
 
 				ResultDialog.Refresh();
@@ -182,7 +189,7 @@ public static class Program
 
 		ResultDialog.Subtitle = $"SE: {Config.SearchEngines} " +
 		                        $"| PE: {Config.PriorityEngines} " +
-		                        $"| Filtering: {AppInterface.Elements.ToToggleString(Config.Filtering)}";
+		                        $"| Filtering: {Elements.ToToggleString(Config.Filtering)}";
 
 
 		_cancellationToken = new();
@@ -211,11 +218,11 @@ public static class Program
 		// Show results
 		var searchTask = Client.RunSearchAsync();
 
-		_orig = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
-		                                            AppInterface.Elements.ColorMain, -0.1f);
+		_originalResult = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
+		                                            Elements.ColorMain, -0.1f);
 
 		// Add original image
-		ResultDialog.Options.Add(_orig);
+		ResultDialog.Options.Add(_originalResult);
 
 		if (!Config.OutputOnly) {
 			await ResultDialog.ReadInputAsync();
@@ -232,7 +239,7 @@ public static class Program
 
 	private static bool _isFilteredShown;
 
-	private static ConsoleOption _orig;
+	private static ConsoleOption _originalResult;
 
 	#region CLI
 
@@ -304,13 +311,13 @@ public static class Program
 		args = args.Skip(1).ToArray();
 
 		if (!args.Any()) {
-			var options = await AppInterface.MainMenuDialog.ReadInputAsync();
+			var options = await MainMenuDialog.ReadInputAsync();
 
 			var file = options.DragAndDrop;
 
 			if (file != null) {
 				Debug.WriteLine($"Drag and drop: {file}");
-				Console.WriteLine($">> {file}".AddColor(AppInterface.Elements.ColorMain));
+				Console.WriteLine($">> {file}".AddColor(Elements.ColorMain));
 				Config.Query = file;
 				return true;
 			}

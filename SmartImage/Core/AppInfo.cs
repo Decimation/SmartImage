@@ -96,14 +96,11 @@ public static class AppInfo
 		foreach (string s in oldFolders) {
 			FileSystem.RemoveFromPath(s);
 		}
-			
-
+		
 		if (!IsAppFolderInPath) {
 			AppIntegration.HandlePath(true);
 		}
 
 		Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
-
-			
 	}
 }
