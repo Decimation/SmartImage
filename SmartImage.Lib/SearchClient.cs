@@ -218,32 +218,28 @@ public sealed class SearchClient
 			var b = await ir.TryScanForDirectImages();
 
 			if (b && !DirectResults.Contains(ir)) {
-				ir.Direct.Url = new Uri(UriUtilities.NormalizeUrl(ir.Direct.Url));
-
+				
 				Debug.WriteLine($"{nameof(SearchClient)}: Found direct result {ir.Direct.Url}");
-
 				DirectResults.Add(ir);
-
 				result.PrimaryResult.Direct.Url ??= ir.Direct.Url;
 
 				DirectFound?.Invoke(null, new DirectResultsFoundEventArgs
 				{
 					DirectResultsSubset = new() { ir },
 				});
+
 				ResultUpdated?.Invoke(null, EventArgs.Empty);
 			}
 		}
 	}
 
 
-	private void FindDirectResults(object state, SearchResult value, int take1 = 10, int take2 = 5)
+	private void FindDirectResults(object state, SearchResult value, int take2 = 5)
 	{
 		var imageResults = value.AllResults;
 
 		var images = imageResults.AsParallel()
-		                         /*.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
-		                         .Take(take1)*/
-		                         .Where(x => x.IsAlreadyDirect(DirectImageCriterion.Binary))
+		                         .Where(x => x.IsAlreadyDirect())
 		                         .Take(take2)
 		                         .ToList();
 

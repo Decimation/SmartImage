@@ -236,7 +236,7 @@ public sealed class ImageResult : IOutline
 	}
 
 
-	public bool IsAlreadyDirect(DirectImageCriterion d)
+	public bool IsAlreadyDirect()
 	{
 		if (Url is not { }) {
 			return false;
@@ -244,7 +244,7 @@ public sealed class ImageResult : IOutline
 
 		var s = Url.ToString();
 
-		var b = ImageHelper.IsImage(s, out var di, d);
+		var b = ImageHelper.IsImage(s, out var di);
 
 		if (b) {
 			Image = Image.FromStream(di.Stream);
