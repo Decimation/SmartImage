@@ -16,12 +16,14 @@ internal static partial class AppInterface
 	{
 		#region Colors
 
-		internal static readonly Color ColorMain         = Color.Yellow;
-		internal static readonly Color ColorOther        = Color.Aquamarine;
-		internal static readonly Color ColorYes          = Color.GreenYellow;
-		internal static readonly Color ColorNo           = Color.Red;
-		internal static readonly Color ColorHighlight    = Color.LawnGreen;
-		internal static readonly Color ColorError = Color.LightCoral;
+		internal static readonly Color ColorMain      = Color.Yellow;
+		internal static readonly Color ColorOther     = Color.Aquamarine;
+		internal static readonly Color ColorYes       = Color.GreenYellow;
+		internal static readonly Color ColorNo        = Color.Red;
+		internal static readonly Color ColorHighlight = Color.LawnGreen;
+		internal static readonly Color ColorError     = Color.LightCoral;
+		internal static readonly Color ColorKey       = Color.SandyBrown;
+		internal static readonly Color ColorOther2       = Color.MediumVioletRed;
 
 		internal static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
 		{

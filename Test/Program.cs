@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -125,7 +126,7 @@ public static class Program
 		result.mssim = mssim;
 		Console.WriteLine(result.score);*/
 
-		Console.WriteLine(ImageHelper.IsImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png"));
+		/*Console.WriteLine(ImageHelper.IsImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png", out var di));
 
 		Debugger.Break();
 		var wc    = new WebClient();
@@ -140,8 +141,13 @@ public static class Program
 		var    path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 		string s    = Path.Combine(path, name2 + "-1" + ext);
 		Console.WriteLine(s);
-		img2.Save(s);
+		img2.Save(s);*/
 
+		var task =  await ImageHelper.ScanForImages("https://www.deviantart.com/sciamano240/art/Y-shtola-Final-Fantasy-2v-898752157");
+
+		foreach (DirectImage v in task) {
+			Console.WriteLine(v);
+		}
 
 	}
 

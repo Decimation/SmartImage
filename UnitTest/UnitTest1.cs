@@ -46,7 +46,7 @@ public class Tests
 	[TestCase("https://twitter.com/sciamano240/status/1186775807655587841", false)]
 	public void TestImageHelper(string s, bool b)
 	{
-		Assert.AreEqual(ImageHelper.IsImage(s), b);
+		Assert.AreEqual(ImageHelper.IsImage(s, out _), b);
 
 	}
 

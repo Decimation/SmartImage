@@ -90,6 +90,7 @@ public static class AppInfo
 		}*/
 			
 		// Remove old path directories
+		
 		var pathDirectories = FileSystem.GetEnvironmentPathDirectories();
 		var oldFolders      = pathDirectories.Where(x=>x.Contains(NAME) && x!= AppFolder);
 

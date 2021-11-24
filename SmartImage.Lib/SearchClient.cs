@@ -214,19 +214,17 @@ public sealed class SearchClient
 	{
 		Debug.WriteLine($"searching within {result.Engine.Name}");
 
-		for (int i = 0; i < result.AllResults.Count; i++) {
-			var ir = result.AllResults[i];
-
-			var b = await ir.FindDirectImages();
+		foreach (ImageResult ir in result.AllResults) {
+			var b = await ir.TryScanForDirectImages();
 
 			if (b && !DirectResults.Contains(ir)) {
-				ir.Direct = new Uri(UriUtilities.NormalizeUrl(ir.Direct));
+				ir.Direct.Url = new Uri(UriUtilities.NormalizeUrl(ir.Direct.Url));
 
-				Debug.WriteLine($"{ir.Direct}");
+				Debug.WriteLine($"{nameof(SearchClient)}: Found direct result {ir.Direct.Url}");
 
 				DirectResults.Add(ir);
 
-				result.PrimaryResult.Direct ??= ir.Direct;
+				result.PrimaryResult.Direct.Url ??= ir.Direct.Url;
 
 				DirectFound?.Invoke(null, new DirectResultsFoundEventArgs
 				{
@@ -240,13 +238,12 @@ public sealed class SearchClient
 
 	private void FindDirectResults(object state, SearchResult value, int take1 = 10, int take2 = 5)
 	{
-
 		var imageResults = value.AllResults;
 
 		var images = imageResults.AsParallel()
-		                         .Where(x => x.CheckDirect(DirectImageCriterion.Regex))
-		                         .Take(take1)
-		                         .Where(x => x.CheckDirect(DirectImageCriterion.Binary))
+		                         /*.Where(x => x.CheckDirect(DirectImageCriterion.Regex))
+		                         .Take(take1)*/
+		                         .Where(x => x.IsAlreadyDirect(DirectImageCriterion.Binary))
 		                         .Take(take2)
 		                         .ToList();
 
@@ -269,22 +266,27 @@ public sealed class SearchClient
 	/// Waits until <see cref="DirectResults"/> contains any elements
 	/// </summary>
 	/// <returns><see cref="DirectResults"/></returns>
-	public Task<List<ImageResult>> WaitForDirectResults()
+	public Task<bool> WaitForDirectResults()
 	{
 		return Task.Run(() =>
 		{
 			while (Results.Any() && !DirectResults.Any()) {
 				if (IsComplete) {
-					var b = Results.SelectMany(x => x.AllResults.Where(x2 => x2.Direct != null))
+					
+					/*var imageResults = Results.SelectMany(x =>
+					               {
+						               return x.AllResults.Where(x2 => x2.Direct != null);
+					               })
 					               .OrderByDescending(x => x.PixelResolution)
 					               .ToList();
-					DirectResults.AddRange(b);
+
+					DirectResults.AddRange(imageResults);*/
 
 					break;
 				}
 			}
 
-			return DirectResults;
+			return true;
 		});
 	}
 
@@ -307,7 +309,7 @@ public sealed class SearchClient
 			// return;
 		}
 
-		var direct = directResult.Direct;
+		var direct = directResult.Direct.Url;
 
 		Debug.WriteLine($"{nameof(SearchClient)}: Refining by {direct}", C_DEBUG);
 

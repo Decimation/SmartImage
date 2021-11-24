@@ -1,4 +1,5 @@
-﻿using System;
+﻿global using CPI = Kantan.Cli.Controls.ConsoleProgressIndicator;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,7 +9,6 @@ using System.Threading;
 using JetBrains.Annotations;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
-using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Utilities;
 using Novus.Utilities;
@@ -19,6 +19,8 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using static Kantan.Cli.Controls.ConsoleOption;
+using static Kantan.Diagnostics.LogCategories;
+using static SmartImage.UI.AppInterface;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
@@ -39,7 +41,7 @@ internal static class ConsoleUIFactory
 		return new()
 		{
 			Name  = name,
-			Color = AppInterface.Elements.ColorOther,
+			Color = Elements.ColorOther,
 			Function = () =>
 			{
 				var enumOptions = FromEnum<SearchEngineOptions>();
@@ -73,7 +75,7 @@ internal static class ConsoleUIFactory
 
 		return new ConsoleOption
 		{
-			Name = AppInterface.Elements.GetName(name, initVal),
+			Name = Elements.GetName(name, initVal),
 			Function = () =>
 			{
 				var pi = member.DeclaringType.GetProperty(member.Name);
@@ -84,7 +86,7 @@ internal static class ConsoleUIFactory
 
 				bool newVal = (bool) pi.GetValue(null);
 
-				AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
+				MainMenuOptions[i].Name = Elements.GetName(name, newVal);
 
 				Debug.Assert((bool) pi.GetValue(null) == newVal);
 
@@ -99,7 +101,7 @@ internal static class ConsoleUIFactory
 
 		return new ConsoleOption
 		{
-			Name = AppInterface.Elements.GetName(name, initVal),
+			Name = Elements.GetName(name, initVal),
 			Function = () =>
 			{
 				var    fi     = Program.Config.GetType().GetAnyResolvedField(m);
@@ -107,7 +109,7 @@ internal static class ConsoleUIFactory
 				bool   newVal = !(bool) curVal;
 				fi.SetValue(Program.Config, newVal);
 
-				AppInterface.MainMenuOptions[i].Name = AppInterface.Elements.GetName(name, newVal);
+				MainMenuOptions[i].Name = Elements.GetName(name, newVal);
 
 				Debug.Assert((bool) fi.GetValue(Program.Config) == newVal);
 
@@ -120,7 +122,7 @@ internal static class ConsoleUIFactory
 
 	internal static ConsoleOption CreateResultOption(SearchResult result)
 	{
-		var color = AppInterface.Elements.EngineColorMap[result.Engine.EngineOption];
+		var color = Elements.EngineColorMap[result.Engine.EngineOption];
 
 		var option = new ConsoleOption
 		{
@@ -157,14 +159,14 @@ internal static class ConsoleUIFactory
 		};
 
 		option.Functions[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
-			CreateDownloadFunction(() => result.PrimaryResult.Direct);
+			CreateDownloadFunction(() => result.PrimaryResult.Direct.Url);
 
 		option.Functions[ConsoleModifiers.Control] = () =>
 		{
 			var cts = new CancellationTokenSource();
 
 			if (OperatingSystem.IsWindows()) {
-				ConsoleProgressIndicator.Start(cts);
+				CPI.Start(cts);
 			}
 
 			Program.Client.FindDirectResults(result);
@@ -186,7 +188,7 @@ internal static class ConsoleUIFactory
 	                                                    Color c = default)
 	{
 		if (c == default) {
-			c = AppInterface.Elements.ColorOther;
+			c = Elements.ColorOther;
 		}
 
 		int i = 0;
@@ -205,7 +207,7 @@ internal static class ConsoleUIFactory
 			{
 				[NC_FN_MAIN] = CreateOpenFunction(result.Url),
 
-				[ConsoleModifiers.Control | ConsoleModifiers.Alt] = CreateDownloadFunction(() => result.Direct)
+				[ConsoleModifiers.Control | ConsoleModifiers.Alt] = CreateDownloadFunction(() => result.Direct.Url)
 			}
 		};
 
@@ -222,15 +224,30 @@ internal static class ConsoleUIFactory
 		{
 			var direct = d();
 
-			if (direct != null) {
-				var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
-				var file = ImageHelper.Download(direct, path);
-
-				FileSystem.ExploreFile(file);
-
-				Debug.WriteLine($"Download: {file}", LogCategories.C_INFO);
+			if (direct == null) {
+				return null;
 			}
+
+			var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+			var cts  = new CancellationTokenSource();
+
+			CPI.Start(cts);
+
+			Console.WriteLine($"\nDownloading...".AddColor(Elements.ColorOther));
+
+			var file = ImageHelper.Download(direct, path);
+
+			Program.ResultDialog.Refresh();
+
+			cts.Cancel();
+			cts.Dispose();
+
+			if (file is null) {
+				return null;
+			}
+
+			FileSystem.ExploreFile(file);
+			Debug.WriteLine($"Download: {file}", C_INFO);
 
 			return null;
 		};

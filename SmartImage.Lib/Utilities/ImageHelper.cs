@@ -114,9 +114,9 @@ public static class ImageHelper
 	/// <param name="url">Url to search</param>
 	/// <param name="count">Number of direct images to return</param>
 	/// <param name="timeoutMS"></param>
-	public static async Task<List<string>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS)
+	public static async Task<List<DirectImage>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS)
 	{
-		var images = new List<string>();
+		var images = new List<DirectImage>();
 
 		IHtmlDocument document;
 
@@ -135,19 +135,31 @@ public static class ImageHelper
 		flat.AddRange(document.QuerySelectorAttributes("a", "href"));
 		flat.AddRange(document.QuerySelectorAttributes("img", "src"));
 
-		flat = flat.Distinct().ToList();
+		flat = flat.Where(x=>x!=null).Distinct().ToList();
 
-		var tasks = new List<Task<string>>();
+		var tasks = new List<Task<DirectImage>>();
+
+		var hostComponent = UriUtilities.GetHostComponent(new Uri(url));
+
+		switch (hostComponent) {
+			case "www.deviantart.com":
+				//https://images-wixmp-
+				flat = flat.Where(x => x.StartsWith("https://images-wixmp")).ToList();
+				break;
+			default:
+				break;
+		}
+		
 
 		for (int i = 0; i < flat.Count; i++) {
 			int iCopy = i;
 
-			tasks.Add(Task<string>.Factory.StartNew(() =>
+			tasks.Add(Task<DirectImage>.Factory.StartNew(() =>
 			{
 				string s = flat[iCopy];
 
-				if (IsImage(s, (int) timeoutMS, DirectImageCriterion.Binary)) {
-					return s;
+				if (IsImage(s, (int) timeoutMS, DirectImageCriterion.Binary, out var di)) {
+					return di;
 				}
 
 				return null;
@@ -159,8 +171,11 @@ public static class ImageHelper
 			var task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 
-			if (task.Result is { } && count > 0) {
-				images.Add(task.Result);
+			var result = task.Result;
+
+			if (result is { } && count > 0) {
+				result.Url = new Uri(UriUtilities.NormalizeUrl(result.Url));
+				images.Add(result);
 				count--;
 			}
 		}
@@ -169,18 +184,23 @@ public static class ImageHelper
 		return images;
 	}
 
-	public static bool IsImage(string url, DirectImageCriterion directCriterion = DirectImageCriterion.Binary)
-		=> IsImage(url, TimeoutMS, directCriterion);
+	public static bool IsImage(string url, out DirectImage di, DirectImageCriterion directCriterion = DirectImageCriterion.Binary)
+		=> IsImage(url, TimeoutMS, directCriterion, out di);
 
 	
-	public static bool IsImage(string url, long timeout, DirectImageCriterion directCriterion)
+	public static bool IsImage(string url, long timeout, DirectImageCriterion directCriterion, out DirectImage di)
 	{
+		di = new DirectImage(){};
+
 		switch (directCriterion) {
 			case DirectImageCriterion.Regex:
-				return Regex.IsMatch(
+				var image = Regex.IsMatch(
 					url,
 					@"(?:([^:\/?#]+):)?(?:\/\/([^\/?#]*))?([^?#]*\.(?:bmp|gif|ico|jfif|jpe?g|png|svg|tiff?|webp))(?:\?([^#]*))?(?:#(.*))?",
 					RegexOptions.IgnoreCase);
+				di.Url = new Uri(url);
+				
+				return image;
 			case DirectImageCriterion.Binary:
 				if (!UriUtilities.IsUri(url, out var u)) {
 					return false;
@@ -189,8 +209,13 @@ public static class ImageHelper
 				var response = HttpUtilities.GetResponse(u.ToString(), (int) timeout, Method.HEAD);
 
 				if (!response.IsSuccessful) {
+
 					return false;
 				}
+
+				di.Url = new Uri(url);
+
+				di.Response = response;
 
 				/* Check content-type */
 
@@ -204,8 +229,9 @@ public static class ImageHelper
 					stream.Read(buffer, 0, buffer.Length);
 					// var rg = response.RawBytes;
 					var m = MediaTypes.ResolveFromData(buffer);
-					a = m.StartsWith("image") && m != "image/svg+xml";
-					b = response.ContentLength is -1 or >= 50_000;
+					a         = m.StartsWith("image") && m != "image/svg+xml";
+					b         = response.ContentLength is -1 or >= 50_000;
+					di.Stream = stream;
 				}
 				catch {
 					a = response.ContentType.StartsWith("image") && response.ContentType != "image/svg+xml";

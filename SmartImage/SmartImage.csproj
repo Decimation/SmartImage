@@ -5,17 +5,13 @@
     <LangVersion>latest</LangVersion>
     <!-- <TargetFramework>net5.0</TargetFramework> -->
     <!-- <TargetFramework>net5.0-windows</TargetFramework> -->
-    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
 
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <NoWarn>$(NoWarn);CS0618</NoWarn>
 
-    <!-- <TargetFramework>net6.0-windows10.0.17763.0</TargetFramework> -->
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-
-
-    
 
 
     <!-- <RuntimeIdentifiers>win10-x64;ubuntu.16.04-x64</RuntimeIdentifiers> -->
@@ -44,10 +40,13 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
-    <PublishSingleFile>true</PublishSingleFile>
+    <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <NoWarn>1701;1702;1416</NoWarn>
-    <PublishTrimmed>true</PublishTrimmed>
-
+    <!-- <PublishTrimmed>true</PublishTrimmed> -->
+    <!-- <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract> -->
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
     <!-- <NoWarn>CA1416</NoWarn> -->
   </PropertyGroup>
@@ -61,6 +60,8 @@
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Windows.Extensions" Version="6.0.0" />
+    
+
     <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
     <Reference Include="Kantan">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
@@ -76,6 +77,11 @@
     <!-- Trimmer dependencies -->
     <TrimmerRootAssembly Include="System.Net" />
     <TrimmerRootAssembly Include="System.IO.FileSystem" />
+    <TrimmerRootAssembly Include="Novus" />
+    <TrimmerRootAssembly Include="SmartImage.Lib" />
+    <TrimmerRootAssembly Include="Kantan" />
+
+
   </ItemGroup>
 
   <ItemGroup>

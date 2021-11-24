@@ -11,6 +11,7 @@ using SmartImage.Lib.Engines.Impl;
 using SmartImage.Lib.Upload;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
+
 #pragma warning disable CA1416
 namespace SmartImage.Lib.Searching;
 
@@ -84,7 +85,9 @@ public sealed class ImageQuery
 
 	public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 	{
-		return (ImageHelper.IsImage(x), File.Exists(x));
+		var isUriOrFile = (ImageHelper.IsImage(x, out var di), File.Exists(x));
+
+		return isUriOrFile;
 	}
 
 	public ImageResult GetImageResult()
@@ -92,9 +95,13 @@ public sealed class ImageQuery
 
 		var result = new ImageResult
 		{
-			Url    = UploadUri,
-			Direct = UploadUri,
-			Image  = Image.FromStream(Stream)
+			Url = UploadUri,
+			Image = Image.FromStream(Stream),
+			Direct =
+			{
+				Stream = Stream,
+				Url = UploadUri
+			}
 		};
 
 		result.OtherMetadata.Add("Upload engine", UploadEngine.Name);
@@ -102,7 +109,7 @@ public sealed class ImageQuery
 		result.OtherMetadata.Add("Input value", Value);
 		result.OtherMetadata.Add("Time", $"(upload: {UploadTime.TotalSeconds:F3})");
 
-		result.UpdateImageData();
+		result.ReloadImageData();
 
 		return result;
 	}

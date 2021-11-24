@@ -17,7 +17,7 @@ GOTO END
 :YCOPY
 ECHO Copying to %userprofile%\Desktop\
 REM copy bin\Release\net5.0\win10-x64\publish\SmartImage.exe %userprofile%\Desktop\ /Y
-copy bin\Release\net5.0-windows10.0.17763.0\win10-x64\publish\SmartImage.exe %userprofile%\Desktop\ /Y
+copy bin\Release\net6.0-windows10.0.22000.0\win10-x64\publish\SmartImage.exe %userprofile%\Desktop\ /Y
 GOTO END
 
 :END

@@ -38,12 +38,6 @@ public sealed class ImageResult : IOutline
 	public Uri Url { get; set; }
 
 	/// <summary>
-	/// Direct image link of <see cref="Url"/>
-	/// </summary>
-	[CanBeNull]
-	public Uri Direct { get; set; }
-
-	/// <summary>
 	/// Similarity
 	/// </summary>
 	public float? Similarity { get; set; }
@@ -196,7 +190,7 @@ public sealed class ImageResult : IOutline
 	public void UpdateFrom(ImageResult result)
 	{
 		Url         = result.Url;
-		Direct      = result.Direct;
+		Direct.Url      = result.Direct.Url;
 		Similarity  = result.Similarity;
 		Width       = result.Width;
 		Height      = result.Height;
@@ -207,13 +201,15 @@ public sealed class ImageResult : IOutline
 		Description = result.Description;
 		Date        = result.Date;
 
-		UpdateImageData();
+		ReloadImageData();
 
 	}
 
-	public async Task<bool> FindDirectImages()
+	public DirectImage Direct { get; internal set; } = new();
+
+	public async Task<bool> TryScanForDirectImages()
 	{
-		if (Url == null || Direct != null) {
+		if (Url == null || Direct.Url != null) {
 			return true;
 		}
 
@@ -221,11 +217,14 @@ public sealed class ImageResult : IOutline
 
 			var directImages = await ImageHelper.ScanForImages(Url.ToString());
 
+			Debug.WriteLine($"{nameof(ImageResult)}: Found {directImages.Count} direct images");
+
 			var direct = directImages.FirstOrDefault();
 
 			if (direct != null) {
-				Direct = new Uri((direct));
-				UpdateImageData();
+				Direct    = direct;
+				Direct.Url =  ((Direct.Url));
+				ReloadImageData();
 				return true;
 			}
 		}
@@ -236,7 +235,8 @@ public sealed class ImageResult : IOutline
 		return false;
 	}
 
-	public bool CheckDirect(DirectImageCriterion d)
+
+	public bool IsAlreadyDirect(DirectImageCriterion d)
 	{
 		if (Url is not { }) {
 			return false;
@@ -244,22 +244,22 @@ public sealed class ImageResult : IOutline
 
 		var s = Url.ToString();
 
-		var b = ImageHelper.IsImage(s, d);
+		var b = ImageHelper.IsImage(s, out var di, d);
 
 		if (b) {
-			Direct = Url;
+			Image = Image.FromStream(di.Stream);
+
+			Direct.Url = Url;
 		}
 
 		return b;
 	}
 
-	public void UpdateImageData()
+	public void ReloadImageData()
 	{
 		if (Image is { }) {
-
 			Width  = Image.Width;
 			Height = Image.Height;
-
 		}
 	}
 
@@ -274,7 +274,7 @@ public sealed class ImageResult : IOutline
 			var map = new Dictionary<string, object>
 			{
 				{ nameof(Url), Url },
-				{ nameof(Direct), Direct }
+				{ "Direct Url",Direct.Url }
 			};
 
 			if (Similarity.HasValue) {

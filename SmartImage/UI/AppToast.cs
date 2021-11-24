@@ -56,7 +56,11 @@ internal static class AppToast
 
 		if (Program.Config.Notification && Program.Config.NotificationImage) {
 
-			var directResults = await Program.Client.WaitForDirectResults();
+			var b = await Program.Client.WaitForDirectResults();
+
+			var directResults  = args.Direct;
+
+			Debug.Assert(Object.ReferenceEquals(args.Direct, Program.Client.DirectResults));
 
 			if (!directResults.Any()) {
 				goto ShowToast;
@@ -65,13 +69,13 @@ internal static class AppToast
 			var directImage = directResults.OrderByDescending(x=>x.PixelResolution).First();
 			var path        = Path.GetTempPath();
 
-			string file = ImageHelper.Download(directImage.Direct, path);
+			string file = ImageHelper.Download(directImage.Direct.Url, path);
 
 			if (file == null) {
 				int i = 0;
 
 				do {
-					file = ImageHelper.Download(directResults[i++].Direct, path);
+					file = ImageHelper.Download(directResults[i++].Direct.Url, path);
 
 				} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 			}

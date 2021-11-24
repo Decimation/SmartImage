@@ -41,6 +41,7 @@ using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
+using Novus;
 using Novus.Win32;
 using Novus.Win32.Structures;
 using SmartImage.Lib;
@@ -80,15 +81,22 @@ public static class Program
 	/// </summary>
 	internal static readonly SearchClient Client = new(Config);
 
+
 	/// <summary>
 	/// Console UI for search results
 	/// </summary>
-	private static readonly ConsoleDialog ResultDialog = new()
+	internal static readonly ConsoleDialog ResultDialog = new()
 	{
 		Options = new List<ConsoleOption>(),
-		Description = "Press the result number to open in browser\n" +
-		              "Ctrl: Load direct | Alt: Show other | Shift: Open raw | Alt+Ctrl: Download\n" +
-		              "F1: Show filtered results | F2: Refine | F5: Refresh",
+		Description = "Press the result number to open in browser\n".AddColor(Elements.ColorOther) +
+		              $"{"Ctrl:".AddColor(Elements.ColorKey)} Load direct | " +
+		              $"{"Alt:".AddColor(Elements.ColorKey)} Show other | " +
+		              $"{"Shift:".AddColor(Elements.ColorKey)} Open raw | " +
+		              $"{"Alt+Ctrl:".AddColor(Elements.ColorKey)} Download\n" +
+		              $"{"F1:".AddColor(Elements.ColorKey)} Show filtered results | " +
+		              $"{"F2:".AddColor(Elements.ColorKey)} Refine | " +
+		              $"{"F5:".AddColor(Elements.ColorKey)} Refresh",
+
 		Functions = new()
 		{
 			[ConsoleKey.F1] = () =>
@@ -132,6 +140,7 @@ public static class Program
 						$"\n{Strings.Constants.CHEVRON} Error: {e.Message.AddColor(Elements.ColorError)}");
 
 					ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(2));
+
 					ResultDialog.Options.Clear();
 					// ResultDialog.Options.Add(_originalResult);
 
@@ -160,7 +169,7 @@ public static class Program
 		 * Register events
 		 */
 
-
+		
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 		Console.OutputEncoding = Encoding.Unicode;
