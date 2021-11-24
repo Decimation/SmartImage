@@ -34,9 +34,17 @@ namespace SmartImage.Lib
 			return HashCode.Combine(Stream, Response, Url);
 		}
 
-		public static bool operator ==(DirectImage left, DirectImage right) => left.Equals(right);
+		public static bool operator ==(DirectImage left, DirectImage right)
+		{
+			return !ReferenceEquals(left, null) && left.Equals(right);
 
-		public static bool operator !=(DirectImage left, DirectImage right) => !left.Equals(right);
+		}
+
+		public static bool operator !=(DirectImage left, DirectImage right)
+		{
+			return !ReferenceEquals(left, null) && !left.Equals(right);
+
+		}
 
 		public void Dispose()
 		{

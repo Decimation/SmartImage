@@ -3,11 +3,13 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading.Tasks;
 using Kantan.Model;
 using Kantan.Text;
 using Kantan.Utilities;
@@ -136,6 +138,34 @@ public class SearchResult : IOutline
 	/// The time taken to retrieve results from the engine
 	/// </summary>
 	public TimeSpan? RetrievalTime { get; internal set; }
+
+	
+	public bool Scanned { get; internal set; }
+
+	public async Task<List<ImageResult>> FindDirectResults()
+	{
+
+		Debug.WriteLine($"searching within {Engine.Name}");
+
+		var directResults = new List<ImageResult>();
+
+		foreach (ImageResult ir in AllResults) {
+			var b = await ir.TryScanForDirectImages();
+
+			if (b && !directResults.Contains(ir)) {
+
+				Debug.WriteLine($"{nameof(SearchClient)}: Found direct result {ir.Direct.Url}");
+				directResults.Add(ir);
+				PrimaryResult.Direct.Url ??= ir.Direct.Url;
+			}
+		}
+
+		Scanned = true;
+
+		return directResults;
+
+	}
+
 
 	public void Consolidate()
 	{

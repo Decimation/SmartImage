@@ -223,7 +223,6 @@ public sealed class ImageResult : IOutline
 
 			if (direct != null) {
 				Direct    = direct;
-				Direct.Url =  ((Direct.Url));
 				ReloadImageData();
 				return true;
 			}
@@ -247,7 +246,12 @@ public sealed class ImageResult : IOutline
 		var b = ImageHelper.IsImage(s, out var di);
 
 		if (b) {
-			Image = Image.FromStream(di.Stream);
+
+			try {
+				Image = Image.FromStream(di.Stream);
+			}
+			catch (Exception e) {
+			}
 
 			Direct.Url = Url;
 		}

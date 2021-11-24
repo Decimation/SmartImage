@@ -169,7 +169,9 @@ internal static class ConsoleUIFactory
 				CPI.Start(cts);
 			}
 
-			Program.Client.FindDirectResults(result);
+			// Program.Client.FindDirectResults(result);
+
+			result.FindDirectResults();
 
 			cts.Cancel();
 			cts.Dispose();

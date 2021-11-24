@@ -84,6 +84,8 @@ public sealed class SearchClient
 	/// </summary>
 	public int Pending { get; private set; }
 
+	public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
+
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
 	/// </summary>
@@ -190,6 +192,7 @@ public sealed class SearchClient
 			});
 
 			IsComplete = !tasks.Any();
+			
 		}
 
 		Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
@@ -210,28 +213,7 @@ public sealed class SearchClient
 		SearchCompleted?.Invoke(null, args);
 	}
 
-	public async void FindDirectResults(SearchResult result)
-	{
-		Debug.WriteLine($"searching within {result.Engine.Name}");
-
-		foreach (ImageResult ir in result.AllResults) {
-			var b = await ir.TryScanForDirectImages();
-
-			if (b && !DirectResults.Contains(ir)) {
-				
-				Debug.WriteLine($"{nameof(SearchClient)}: Found direct result {ir.Direct.Url}");
-				DirectResults.Add(ir);
-				result.PrimaryResult.Direct.Url ??= ir.Direct.Url;
-
-				DirectFound?.Invoke(null, new DirectResultsFoundEventArgs
-				{
-					DirectResultsSubset = new() { ir },
-				});
-
-				ResultUpdated?.Invoke(null, EventArgs.Empty);
-			}
-		}
-	}
+	
 
 
 	private void FindDirectResults(object state, SearchResult value, int take2 = 5)
@@ -247,14 +229,21 @@ public sealed class SearchClient
 			Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 			DirectResults.AddRange(images);
 
-			DirectFound?.Invoke(null, new DirectResultsFoundEventArgs
-			{
-				DirectResultsSubset = images,
-			});
 		}
 		else {
-			var t = Task.Factory.StartNew(() => FindDirectResults(value));
+			var t = Task.Factory.StartNew(async () =>
+			{
+				if (value.Scanned) {
+					return;
+				}
+				var d = await value.FindDirectResults();
+				Debug.WriteLine($"adding {d.Count} to {DirectResults.Count}");
+				DirectResults.AddRange(d);
+				value.Scanned = true;
 
+				ResultUpdated?.Invoke(null, EventArgs.Empty);
+			});
+			
 		}
 	}
 
@@ -374,11 +363,7 @@ public sealed class SearchClient
 	///     Fires when a search is complete (<see cref="RunSearchAsync" />).
 	/// </summary>
 	public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
-
-	/// <summary>
-	/// Fires when a direct image result is found (<see cref="FindDirectResults"/>)
-	/// </summary>
-	public event EventHandler<DirectResultsFoundEventArgs> DirectFound;
+	
 
 	private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
 

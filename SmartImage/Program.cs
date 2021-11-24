@@ -222,25 +222,15 @@ public static class Program
 			}
 		};
 
-		Client.DirectFound += (sender, eventArgs) =>
-		{
-			// ...
-		};
+		
 
 		Client.ResultUpdated += (sender, result) =>
 		{
-			/*var option = ResultDialog.Options.First(x => x.Name == result.Engine.Name);
-			var i = ResultDialog.Options.IndexOf(option);
-			ResultDialog.Options[i] = ConsoleUIFactory.CreateResultOption(result);
 			ResultDialog.Refresh();
-
-			Debug.WriteLine($"{i} update");*/
-			ResultDialog.Refresh();
-
 		};
 
 
-		ConsoleProgressIndicator.Start(_cancellationToken);
+		CPI.Start(_cancellationToken);
 
 
 		// Show results
