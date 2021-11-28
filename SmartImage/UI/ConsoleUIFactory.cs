@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using JetBrains.Annotations;
 using Kantan.Cli;
@@ -36,7 +37,7 @@ internal static class ConsoleUIFactory
 	 * todo: this is all glue code :(
 	 */
 
-	internal static ConsoleOption CreateConfigOption(string f, string name)
+	internal static ConsoleOption CreateEnumConfigOption(string f, string name)
 	{
 		return new()
 		{
@@ -69,55 +70,59 @@ internal static class ConsoleUIFactory
 		};
 	}
 
-	internal static ConsoleOption CreateConfigOption(PropertyInfo member, string name, int i, Action<bool> fn)
+	internal static ConsoleOption CreateConfigOption(PropertyInfo member, string name, Action<bool> fn)
 	{
 		bool initVal = (bool) member.GetValue(Program.Config);
 
-		return new ConsoleOption
+		var option = new ConsoleOption
 		{
-			Name = Elements.GetName(name, initVal),
-			Function = () =>
-			{
-				var pi = member.DeclaringType.GetProperty(member.Name);
-
-				bool curVal = (bool) pi.GetValue(null);
-
-				fn(curVal);
-
-				bool newVal = (bool) pi.GetValue(null);
-
-				MainMenuOptions[i].Name = Elements.GetName(name, newVal);
-
-				Debug.Assert((bool) pi.GetValue(null) == newVal);
-
-				return null;
-			}
+			Name = Elements.GetName(name, initVal)
 		};
+
+		option.Function = () =>
+		{
+			var  pi     = member.DeclaringType.GetProperty(member.Name);
+			bool curVal = (bool) pi.GetValue(null);
+			fn(curVal);
+			bool newVal = (bool) pi.GetValue(null);
+			option.Name = Elements.GetName(name, newVal);
+
+			Debug.Assert((bool) pi.GetValue(null) == newVal);
+
+			return null;
+		};
+
+		return option;
 	}
 
-	internal static ConsoleOption CreateConfigOption(string m, string name, int i)
+	internal static ConsoleOption CreateConfigOption(string field, string name, object t)
 	{
-		bool initVal = (bool) (Program.Config).GetType().GetAnyResolvedField(m).GetValue(Program.Config);
+		bool initVal = (bool) (t).GetType().GetAnyResolvedField(field).GetValue(t);
 
-		return new ConsoleOption
+		ConsoleOption option = new ConsoleOption
 		{
-			Name = Elements.GetName(name, initVal),
-			Function = () =>
-			{
-				var    fi     = Program.Config.GetType().GetAnyResolvedField(m);
-				object curVal = fi.GetValue(Program.Config);
-				bool   newVal = !(bool) curVal;
-				fi.SetValue(Program.Config, newVal);
-
-				MainMenuOptions[i].Name = Elements.GetName(name, newVal);
-
-				Debug.Assert((bool) fi.GetValue(Program.Config) == newVal);
-
-				AppConfig.UpdateConfig();
-
-				return null;
-			}
+			Name = Elements.GetName(name, initVal)
 		};
+
+		option.Function = () =>
+		{
+			var    fi     = t.GetType().GetAnyResolvedField(field);
+			object curVal = fi.GetValue(t);
+			bool   newVal = !(bool) curVal;
+			fi.SetValue(t, newVal);
+
+
+			option.Name = Elements.GetName(name, newVal);
+
+			Debug.Assert((bool) fi.GetValue(t) == newVal);
+
+			AppConfig.UpdateConfig();
+
+			return null;
+		};
+
+
+		return option;
 	}
 
 	internal static ConsoleOption CreateResultOption(SearchResult result)
@@ -139,10 +144,7 @@ internal static class ConsoleUIFactory
 
 						var options = CreateResultOptions(result.OtherResults, $"Other result");
 
-						(new ConsoleDialog
-								{
-									Options = options
-								}).ReadInput();
+						(new ConsoleDialog { Options = options }).ReadInput();
 					}
 
 					return null;
@@ -171,7 +173,7 @@ internal static class ConsoleUIFactory
 
 			// Program.Client.FindDirectResults(result);
 
-			result.FindDirectResults();
+			_ = result.FindDirectResults();
 
 			cts.Cancel();
 			cts.Dispose();
@@ -220,7 +222,6 @@ internal static class ConsoleUIFactory
 	{
 		// Because of value type and pointer semantics, a func needs to be used here to ensure the
 		// Direct field of ImageResult is updated.
-		// ImageResult is a struct so updates cannot be seen by these functions
 
 		return () =>
 		{

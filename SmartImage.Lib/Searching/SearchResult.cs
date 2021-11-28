@@ -57,7 +57,7 @@ public enum ResultStatus
 /// <summary>
 /// Describes a search result
 /// </summary>
-public class SearchResult : IOutline
+public class SearchResult : IOutline, IDisposable
 {
 	/// <summary>
 	/// Primary image result
@@ -202,5 +202,19 @@ public class SearchResult : IOutline
 
 			return map;
 		}
+
+		
+	}
+
+	public void Dispose()
+	{
+		for (int i = 0; i < AllResults.Count; i++)
+		{
+			var a = AllResults[i];
+			a.Direct.Dispose();
+
+		}
+		Origin.Dispose();
+		Origin = null;
 	}
 }

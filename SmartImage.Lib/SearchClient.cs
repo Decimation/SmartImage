@@ -28,7 +28,7 @@ namespace SmartImage.Lib;
 /// <summary>
 ///     Handles searches
 /// </summary>
-public sealed class SearchClient
+public sealed class SearchClient : IDisposable
 {
 	public SearchClient(SearchConfig config)
 	{
@@ -368,6 +368,17 @@ public sealed class SearchClient
 	private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
 
 	private static readonly SmartImageException SearchException = new("Search must be completed");
+
+	
+
+	public void Dispose()
+	{
+		for (int i = 0; i < AllResults.Count; i++) {
+			var a=AllResults[i];
+			a.Dispose();
+			
+		}
+	}
 }
 
 public sealed class DirectResultsFoundEventArgs : EventArgs

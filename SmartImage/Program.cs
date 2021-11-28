@@ -23,6 +23,7 @@ using System.Linq;
 using System.Media;
 using System.Net.NetworkInformation;
 using System.Resources;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -169,9 +170,9 @@ public static class Program
 		 * Register events
 		 */
 
-		
-		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
+		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 
+		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 		Console.OutputEncoding = Encoding.Unicode;
 
 		Console.Title = $"{AppInfo.NAME}";
@@ -232,7 +233,7 @@ public static class Program
 
 		CPI.Start(_cancellationToken);
 
-
+		
 		// Show results
 		var searchTask = Client.RunSearchAsync();
 
@@ -373,6 +374,9 @@ public static class Program
 	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
 	                                      CancellationTokenSource cts)
 	{
+		Client.Dispose();
+		Client.Reset();
+		GC.Collect();
 
 		Native.FlashConsoleWindow();
 

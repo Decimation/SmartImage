@@ -25,7 +25,7 @@ internal static class AppToast
 		var button  = new ToastButton();
 		var button2 = new ToastButton();
 
-		button2.SetContent("Dismiss").AddArgument((string) ARG_KEY_ACTION, (string) ARG_VALUE_DISMISS);
+		button2.SetContent("Dismiss").AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
 
 		
 		var sb = new StringBuilder();
@@ -148,7 +148,7 @@ internal static class AppToast
 		BackgroundAccessStatus status = await BackgroundExecutionManager.RequestAccessAsync();
 
 		// Create the background task
-		BackgroundTaskBuilder builder = new BackgroundTaskBuilder()
+		var builder = new BackgroundTaskBuilder()
 		{
 			Name = taskName
 		};

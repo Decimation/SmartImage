@@ -11,6 +11,7 @@ using Kantan.Model;
 using Kantan.Numeric;
 using Kantan.Text;
 using SmartImage.Lib.Utilities;
+// ReSharper disable SuggestVarOrType_DeconstructionDeclarations
 
 // ReSharper disable CognitiveComplexity
 #pragma warning disable 8629,CA1416
@@ -29,7 +30,7 @@ public enum ResultQuality
 /// <summary>
 /// Describes an image search result
 /// </summary>
-public sealed class ImageResult : IOutline
+public sealed class ImageResult : IOutline, IDisposable
 {
 	/// <summary>
 	/// Result url
@@ -273,8 +274,6 @@ public sealed class ImageResult : IOutline
 	{
 		get
 		{
-#pragma warning disable CS8604
-
 			var map = new Dictionary<string, object>
 			{
 				{ nameof(Url), Url },
@@ -315,10 +314,13 @@ public sealed class ImageResult : IOutline
 			}
 
 			map.Add("Detail score", $"{DetailScore}/{DetailFields.Count} ({(IsDetailed ? "Y" : "N")})");
-
-#pragma warning restore CS8604
-
 			return map;
 		}
+	}
+
+	public void Dispose()
+	{
+		Image?.Dispose();
+		Direct?.Dispose();
 	}
 }

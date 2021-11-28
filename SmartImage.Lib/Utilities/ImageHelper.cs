@@ -85,20 +85,14 @@ public static class ImageHelper
 	[CanBeNull]
 	public static string Download(Uri src, string path)
 	{
-		var filename = UriUtilities.NormalizeFilename(src);
-
-		string combine = Path.Combine(path, filename);
-
-		using var wc = new WebClient();
+		string       filename = UriUtilities.NormalizeFilename(src);
+		string    combine  = Path.Combine(path, filename);
+		using var wc       = new WebClient();
 
 		Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...", C_DEBUG);
 
 		try {
 			wc.DownloadFile(src.ToString(), combine);
-			// WebUtilities.GetFile(src.ToString(), combine);
-			// using var h = new HttpClient();
-			// h.DownloadFile(src.ToString(), combine);
-
 			return combine;
 		}
 		catch (Exception e) {
@@ -126,7 +120,7 @@ public static class ImageHelper
 		catch (Exception e) {
 			Debug.WriteLine($"{nameof(WebUtilities)}: {e.Message}", C_ERROR);
 
-			return null;
+			return images;
 		}
 
 		using var cts = new CancellationTokenSource();
@@ -146,7 +140,8 @@ public static class ImageHelper
 		}).Distinct().ToList();
 
 
-		var tasks         = new List<Task<DirectImage>>();
+		var tasks = new List<Task<DirectImage>>();
+
 		var hostComponent = UriUtilities.GetHostComponent(new Uri(url));
 
 		switch (hostComponent) {
@@ -188,6 +183,7 @@ public static class ImageHelper
 			}
 		}
 
+		document.Dispose();
 
 		return images;
 	}

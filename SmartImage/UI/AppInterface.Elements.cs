@@ -23,7 +23,7 @@ internal static partial class AppInterface
 		internal static readonly Color ColorHighlight = Color.LawnGreen;
 		internal static readonly Color ColorError     = Color.LightCoral;
 		internal static readonly Color ColorKey       = Color.SandyBrown;
-		internal static readonly Color ColorOther2       = Color.MediumVioletRed;
+		internal static readonly Color ColorOther2    = Color.MediumVioletRed;
 
 		internal static readonly Dictionary<SearchEngineOptions, Color> EngineColorMap = new()
 		{

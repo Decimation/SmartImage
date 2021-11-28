@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -9,6 +10,7 @@ using RestSharp;
 
 namespace SmartImage.Lib
 {
+	
 	public class DirectImage : IDisposable
 	{
 		public Uri Url { get; internal set; }
@@ -48,7 +50,14 @@ namespace SmartImage.Lib
 
 		public void Dispose()
 		{
-			// Stream?.Dispose();
+			Stream?.Dispose();
+			// Response          = null;
+
+			if (Response is {}) {
+				Response.RawBytes = null;
+				Response.Content  = null;
+
+			}
 		}
 
 		public override string ToString()

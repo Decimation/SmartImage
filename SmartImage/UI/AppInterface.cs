@@ -59,14 +59,14 @@ internal static partial class AppInterface
 			}
 		},
 
-		CreateConfigOption(nameof(Config.SearchEngines), "Engines"),
-		CreateConfigOption(nameof(Config.PriorityEngines), "Priority engines"),
-		CreateConfigOption(nameof(Config.Filtering), "Filter", 3),
-		CreateConfigOption(nameof(Config.Notification), "Notification", 4),
-		CreateConfigOption(nameof(Config.NotificationImage), "Notification image", 5),
+		CreateEnumConfigOption(nameof(Config.SearchEngines), "Engines"),
+		CreateEnumConfigOption(nameof(Config.PriorityEngines), "Priority engines"),
+		CreateConfigOption(nameof(Config.Filtering), "Filter", Program.Config),
+		CreateConfigOption(nameof(Config.Notification), "Notification", Program.Config),
+		CreateConfigOption(nameof(Config.NotificationImage), "Notification image", Program.Config),
 
-		CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu", 
-		                   6, added => AppIntegration.HandleContextMenu(!added)),
+		CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu",
+		                   added => AppIntegration.HandleContextMenu(!added)),
 
 		new()
 		{
@@ -123,7 +123,7 @@ internal static partial class AppInterface
 		},
 		new()
 		{
-			Name = "Update",
+			Name     = "Update",
 			Function = null
 		},
 		new()
@@ -176,24 +176,25 @@ internal static partial class AppInterface
 
 		var current = UpdateInfo.GetUpdateInfo();
 
-		if (current.Status == VersionStatus.Available) {
-
-			var option = MainMenuOptions.First(f => f.Name == "Update");
-
-			option.Name = option.Name.AddColor(Elements.ColorHighlight);
-
-			var updateStr = $"* Update available (latest: {Elements.ToVersionString(current.Latest.Version)};" +
-			                $" current: {Elements.ToVersionString(current.Current)})";
-
-			updateStr = updateStr.AddColor(Elements.ColorHighlight);
-
-			MainMenuDialog.Description = updateStr;
-
-			option.Function = () =>
-			{
-				UpdateInfo.Update(current);
-				return null;
-			};
+		if (current.Status != VersionStatus.Available) {
+			return;
 		}
+
+		var option = MainMenuOptions.First(f => f.Name == "Update");
+
+		option.Name = option.Name.AddColor(Elements.ColorHighlight);
+
+		var updateStr = $"* Update available (latest: {Elements.ToVersionString(current.Latest.Version)};" +
+		                $" current: {Elements.ToVersionString(current.Current)})";
+
+		updateStr = updateStr.AddColor(Elements.ColorHighlight);
+
+		MainMenuDialog.Description = updateStr;
+
+		option.Function = () =>
+		{
+			UpdateInfo.Update(current);
+			return null;
+		};
 	}
 }
