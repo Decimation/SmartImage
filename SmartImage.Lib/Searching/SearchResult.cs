@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+using JetBrains.Annotations;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
 using System;
@@ -139,18 +140,16 @@ public class SearchResult : IOutline, IDisposable
 	/// </summary>
 	public TimeSpan? RetrievalTime { get; internal set; }
 
-
 	public bool Scanned { get; internal set; }
 
-	public async Task<List<ImageResult>> FindDirectResults()
+	public async Task<List<ImageResult>> FindDirectResultsAsync()
 	{
-
 		Debug.WriteLine($"searching within {Engine.Name}");
 
 		var directResults = new List<ImageResult>();
 
 		foreach (ImageResult ir in AllResults) {
-			var b = await ir.TryScanForImagesAsync();
+			var b = await ir.ScanForImagesAsync();
 
 			if (b && !directResults.Contains(ir)) {
 
@@ -163,7 +162,6 @@ public class SearchResult : IOutline, IDisposable
 		Scanned = true;
 
 		return directResults;
-
 	}
 
 
@@ -181,7 +179,6 @@ public class SearchResult : IOutline, IDisposable
 			var map = new Dictionary<string, object>();
 
 			map.Add(nameof(PrimaryResult), PrimaryResult);
-
 			map.Add("Raw", RawUri);
 
 			if (OtherResults.Count != 0) {
@@ -211,6 +208,5 @@ public class SearchResult : IOutline, IDisposable
 		}
 
 		Origin.Dispose();
-		Origin = null;
 	}
 }

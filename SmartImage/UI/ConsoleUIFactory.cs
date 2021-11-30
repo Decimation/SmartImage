@@ -173,7 +173,7 @@ internal static class ConsoleUIFactory
 
 			// Program.Client.FindDirectResults(result);
 
-			_ = result.FindDirectResults();
+			_ = result.FindDirectResultsAsync();
 
 			cts.Cancel();
 			cts.Dispose();

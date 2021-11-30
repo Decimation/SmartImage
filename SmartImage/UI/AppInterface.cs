@@ -1,4 +1,6 @@
-﻿using System;
+﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;

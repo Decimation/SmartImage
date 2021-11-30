@@ -72,7 +72,7 @@ public sealed class ImageQuery : IDisposable
 
 		UploadUri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
 
-		Stream = IsFile ? File.OpenRead(value) : WebUtilities.GetStream(value);
+		Stream = IsFile ? File.OpenRead(value) : HttpUtilities.GetStream(value);
 
 		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
@@ -86,7 +86,7 @@ public sealed class ImageQuery : IDisposable
 	public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 	{
 		var isUriOrFile = (ImageHelper.IsImage(x, out var di), File.Exists(x));
-		di?.Dispose();
+		// di?.Dispose();
 		return isUriOrFile;
 	}
 

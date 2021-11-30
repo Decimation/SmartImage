@@ -223,18 +223,7 @@ public static class Program
 			}
 		};
 
-		ThreadPool.QueueUserWorkItem(_ =>
-		{
-			//todo: this is stupid
-			while (!(Client.Pending2 <= 0&&Client.IsComplete)) { }
-
-			Client.Dispose();
-			Client.Reset();
-
-			GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-			GC.Collect(2, GCCollectionMode.Forced);
-			Debug.WriteLine("done");
-		});
+		
 
 		Client.ResultUpdated += (sender, result) =>
 		{
@@ -248,6 +237,8 @@ public static class Program
 		// Show results
 		var searchTask = Client.RunSearchAsync();
 
+		var t2 = Client.RunSecondary();
+
 		_originalResult = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
 		                                                      Elements.ColorMain, -0.1f);
 
@@ -256,10 +247,17 @@ public static class Program
 
 		if (!Config.OutputOnly) {
 			await ResultDialog.ReadInputAsync();
+			
 		}
 
 		await searchTask;
+		await t2;
+		Client.Dispose();
+		Client.Reset();
 
+		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+		GC.Collect(2, GCCollectionMode.Forced);
+		Debug.WriteLine("done");
 		if (Config.OutputOnly) {
 			ResultDialog.Display(false);
 		}
@@ -381,8 +379,6 @@ public static class Program
 
 
 	#region Event handlers
-	
-
 
 	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
 	                                      CancellationTokenSource cts)
