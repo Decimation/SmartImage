@@ -16,6 +16,8 @@ using SmartImage.Lib.Upload;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
+// ReSharper disable InconsistentNaming
+
 // ReSharper disable SuggestVarOrType_Elsewhere
 // ReSharper disable CognitiveComplexity
 // ReSharper disable LoopCanBeConvertedToQuery
@@ -83,6 +85,7 @@ public sealed class SearchClient : IDisposable
 	/// Number of pending results
 	/// </summary>
 	public int Pending { get; private set; }
+
 	public int Pending2 { get; private set; }
 
 	public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
@@ -130,6 +133,8 @@ public sealed class SearchClient : IDisposable
 		var tasks = new List<Task<SearchResult>>(Engines.Select(e =>
 		{
 			var task = e.GetResultAsync(Config.Query);
+
+			task.ContinueWith(GetResultContinueCallback, null);
 
 			return task;
 		}));
@@ -180,43 +185,7 @@ public sealed class SearchClient : IDisposable
 				DetailedResults.Add(value.PrimaryResult);
 			}
 
-			/* 1st pass */
-			if (value.IsSuccessful && value.IsNonPrimitive) {
-				// ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
-				Pending2++;
-				ThreadPool.QueueUserWorkItem(_ =>
-				{
-					var imageResults = value.AllResults;
-					var take2        = 5;
-
-					var images = imageResults.AsParallel()
-					                         .Where(x => x.IsAlreadyDirect())
-					                         .Take(take2)
-					                         .ToList();
-
-					if (images.Any()) {
-						Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
-						DirectResults.AddRange(images);
-						value.Scanned = true;
-					}
-
-					if (value.Scanned) {
-						Pending2--;
-						return;
-					}
-
-					var task = value.FindDirectResults();
-					task.Wait();
-					var result = task.Result;
-					Debug.WriteLine($"adding {result.Count} to {DirectResults.Count}");
-					DirectResults.AddRange(result);
-					value.Scanned = true;
-
-					ResultUpdated?.Invoke(null, EventArgs.Empty);
-					Pending2--;
-				});
-
-			}
+			//
 
 			// Call event
 			ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
@@ -247,7 +216,51 @@ public sealed class SearchClient : IDisposable
 		SearchCompleted?.Invoke(null, args);
 	}
 
-	
+	private void GetResultContinueCallback(Task<SearchResult> task, object state)
+	{
+		Pending2++;
+
+		var value = task.Result;
+
+		if (value.IsSuccessful && value.IsNonPrimitive) {
+			// ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
+			// ThreadPool.QueueUserWorkItem(_ => Back(_, value));
+
+			var imageResults = value.AllResults;
+
+			var take2 = 5;
+
+			var images = imageResults.AsParallel()
+			                         .Where(x => x.IsAlreadyDirect())
+			                         .Take(take2)
+			                         .ToList();
+
+			if (images.Any()) {
+				Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
+				DirectResults.AddRange(images);
+				value.Scanned = true;
+			}
+
+			if (value.Scanned) { }
+			else {
+				var task2 = value.FindDirectResults();
+				task2.Wait();
+				var result = task2.Result;
+				Debug.WriteLine($"adding {result.Count} to {DirectResults.Count}");
+				DirectResults.AddRange(result);
+				value.Scanned = true;
+
+				ResultUpdated?.Invoke(null, EventArgs.Empty);
+
+			}
+
+		}
+
+		Pending2--;
+
+		return;
+	}
+
 
 	/// <summary>
 	/// Waits until <see cref="DirectResults"/> contains any elements
@@ -376,10 +389,8 @@ public sealed class SearchClient : IDisposable
 
 	public void Dispose()
 	{
-		for (int i = 0; i < AllResults.Count; i++) {
-			var a = AllResults[i];
-			a.Dispose();
-
+		foreach (SearchResult result in AllResults) {
+			result.Dispose();
 		}
 	}
 }

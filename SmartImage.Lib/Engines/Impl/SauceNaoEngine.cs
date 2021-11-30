@@ -242,9 +242,9 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		req.AddQueryParameter("api_key", Authentication);
 		req.AddQueryParameter("url", url.UploadUri.ToString());
 
-		/*var h   = new HttpClient();
-		var r   = new HttpRequestMessage(HttpMethod.Post, BASE_URL + "search.php");
-		var res = h.Send(r);
+		using var h   = new HttpClient();
+		using var r   = new HttpRequestMessage(HttpMethod.Post, BASE_URL + "search.php");
+		using var res = h.Send(r);
 
 		if (res.StatusCode == HttpStatusCode.Forbidden) {
 			return null;
@@ -253,16 +253,16 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		var task = res.Content.ReadAsStringAsync();
 		task.Wait();
 
-		string c = task.Result;*/
+		string c = task.Result;
 
 
-		var res = Client.Execute(req);
+		/*var res = Client.Execute(req);
 
 		if (res.StatusCode == HttpStatusCode.Forbidden) {
 			return null;
 		}
 
-		string c = res.Content;
+		string c = res.Content;*/
 
 		// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
 
@@ -321,13 +321,9 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				buffer.Add(item);
 			}
 
-			h.Dispose();
-			r.Dispose();
 			return buffer.ToArray();
 		}
 
-		h.Dispose();
-		r.Dispose();
 		return null;
 	}
 

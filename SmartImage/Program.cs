@@ -225,7 +225,8 @@ public static class Program
 
 		ThreadPool.QueueUserWorkItem(_ =>
 		{
-			while (Client.Pending2 > 0) { }
+			//todo: this is stupid
+			while (!(Client.Pending2 <= 0&&Client.IsComplete)) { }
 
 			Client.Dispose();
 			Client.Reset();
@@ -380,15 +381,7 @@ public static class Program
 
 
 	#region Event handlers
-
-	private static void SecondaryPass()
-	{
-		Client.Dispose();
-		Client.Reset();
-
-		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-		GC.Collect(2, GCCollectionMode.Forced);
-	}
+	
 
 
 	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,

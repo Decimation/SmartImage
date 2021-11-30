@@ -87,7 +87,7 @@ public static class ImageHelper
 	[CanBeNull]
 	public static string Download(Uri src, string path)
 	{
-		string       filename = UriUtilities.NormalizeFilename(src);
+		string    filename = UriUtilities.NormalizeFilename(src);
 		string    combine  = Path.Combine(path, filename);
 		using var wc       = new WebClient();
 
@@ -117,15 +117,14 @@ public static class ImageHelper
 		IHtmlDocument document = null;
 
 		try {
-			var h = new HttpClient();
-			var t=h.GetStringAsync(url);
-			t.Wait();
-			var s = t.Result;
+			var client = new HttpClient();
+			var task = client.GetStringAsync(url);
+			task.Wait();
+			var result = task.Result;
 
-			var doc1 = new HtmlParser();
-			document=doc1.ParseDocument(s);
-			h.Dispose();
-			
+			var parser = new HtmlParser();
+			document = parser.ParseDocument(result);
+			client.Dispose();
 
 			// document = WebUtilities.GetHtmlDocument(url);
 		}
@@ -176,6 +175,9 @@ public static class ImageHelper
 				if (IsImage(s, (int) timeoutMS, out var di)) {
 					return di;
 				}
+				else {
+					di?.Dispose();
+				}
 
 				return null;
 
@@ -193,9 +195,13 @@ public static class ImageHelper
 				images.Add(result);
 				count--;
 			}
+			else {
+				result?.Dispose();
+			}
 		}
 
-		document.Dispose();
+		ret:
+		document?.Dispose();
 
 		return images;
 	}
@@ -210,26 +216,27 @@ public static class ImageHelper
 	{
 		di = new DirectImage() { };
 
-		if (!UriUtilities.IsUri(url ,out Uri u)) {
+		if (!UriUtilities.IsUri(url, out Uri u)) {
 			return false;
 		}
-		
+
 
 		// var response = HttpUtilities.GetResponse(url, (int) timeout, Method.HEAD);
-		var  response = HttpUtilities.GetHttpResponse(url, (int)timeout, HttpMethod.Head);
-		
+		var response = HttpUtilities.GetHttpResponse(url, (int) timeout, HttpMethod.Head);
 
-		if (response is not {}) {
+
+		if (response is not { }) {
 			return false;
 		}
+
 		if (!response.IsSuccessStatusCode) {
 			response?.Dispose();
 			return false;
 		}
 
-		
 
 		di.Url      = new Uri(url);
+
 		di.Response = response;
 
 		/* Check content-type */
@@ -245,8 +252,7 @@ public static class ImageHelper
 		long? length = response.Content.Headers.ContentLength;
 		di.Response = response;
 
-		try
-		{
+		try {
 			using var client = new HttpClient();
 			var       task   = client.GetStreamAsync(url);
 			task.Wait((int) timeout);
@@ -256,8 +262,8 @@ public static class ImageHelper
 			var buffer = new byte[256];
 			stream.Read(buffer, 0, buffer.Length);
 			var m = MediaTypes.ResolveFromData(buffer);
-			type      = m.StartsWith(image) && m != svg_xml;
-			size      = length is -1 or >= min_size_b;
+			type = m.StartsWith(image) && m != svg_xml;
+			size = length is -1 or >= min_size_b;
 			// di.Stream = stream;
 			stream.Dispose();
 		}
