@@ -33,12 +33,9 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 	{
 		var sr = base.GetResult(query);
 
-
-
 		if (!sr.IsSuccessful) {
 			return sr;
 		}
-
 		try {
 
 			object obj = ParseContent(sr.Origin);
@@ -48,9 +45,6 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 			if (obj is IDisposable d) {
 				d.Dispose();
 			}
-				
-			// Debug.WriteLine($"[{sr.RetrievalTime}] [{sr.Origin.Retrieval}] | {Name}");
-			// sr.RetrievalTime += sr.Origin.Retrieval;
 
 			return sr;
 		}

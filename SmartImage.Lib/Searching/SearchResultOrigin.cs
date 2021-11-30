@@ -10,7 +10,6 @@ namespace SmartImage.Lib.Searching;
 /// <summary>
 /// Contains originating information of a <see cref="SearchResult"/>
 /// </summary>
-[DebuggerDisplay("{InitialResponse.ContentLength}")]
 public class SearchResultOrigin : IDisposable
 {
 	public ImageQuery Query { get; init; }
@@ -27,9 +26,7 @@ public class SearchResultOrigin : IDisposable
 
 	public void Dispose()
 	{
-		if (InitialResponse is {}) {
-			// InitialResponse.Dispose();
-		}
-		
+		InitialResponse?.Dispose();
+
 	}
 }

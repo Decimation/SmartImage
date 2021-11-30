@@ -28,9 +28,7 @@ public abstract class WebSearchEngine : ProcessedSearchEngine
 	{
 		var parser = new HtmlParser();
 
-		
-
-		var    document          = parser.ParseDocument(s.Content);
+		var document = parser.ParseDocument(s.Content);
 
 		return document;
 	}

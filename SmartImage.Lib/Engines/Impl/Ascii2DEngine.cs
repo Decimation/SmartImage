@@ -69,7 +69,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		Debug.Assert(response.RequestMessage?.RequestUri != null);
 
 		var responseUri = response.RequestMessage.RequestUri;
-			
+
 		string detailUrl = responseUri.ToString().Replace("/color/", "/bovw/");
 
 		return new Uri(detailUrl);
@@ -82,22 +82,24 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		var rawUri = GetRawUri(query);
 
-		HttpClient c       = new HttpClient();
-		var v=c.Send(new HttpRequestMessage(HttpMethod.Get, rawUri));
+		using var client = new HttpClient();
 
-		var task = v.Content.ReadAsStringAsync();
+		var response = client.Send(new HttpRequestMessage(HttpMethod.Get, rawUri));
+
+		var task = response.Content.ReadAsStringAsync();
 		task.Wait(Timeout);
 
-		var    content           = task.Result;
-		var    diff              = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+		var content = task.Result;
+
+		var diff    = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		var stub = new SearchResultOrigin()
 		{
-			InitialResponse = v,
-			Content = content,
-			Retrieval      = diff,
-			InitialSuccess = true,
-			RawUri         = rawUri
+			InitialResponse = response,
+			Content         = content,
+			Retrieval       = diff,
+			InitialSuccess  = true,
+			RawUri          = rawUri
 		};
 
 

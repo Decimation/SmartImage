@@ -42,7 +42,7 @@ public abstract class BaseSearchEngine
 		{
 			Origin = GetResultOrigin(query)
 		};
-			
+
 
 		if (!sr.Origin.InitialSuccess) {
 			sr.Status       = ResultStatus.Unavailable;
@@ -81,15 +81,11 @@ public abstract class BaseSearchEngine
 
 	protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query)
 	{
-
 		Uri rawUri = GetRawUri(query);
 
-
-		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(), 
-		                                    (int) Timeout.TotalMilliseconds, 
-		                                    HttpMethod.Get, FollowRedirects);
-
-
+		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(),
+		                                        (int) Timeout.TotalMilliseconds,
+		                                        HttpMethod.Get, FollowRedirects);
 		bool success;
 
 		if (res is { IsSuccessStatusCode: false }) {
@@ -100,23 +96,25 @@ public abstract class BaseSearchEngine
 				Debug.WriteLine($"{Name} is unavailable or timed out after " +
 				                $"{Timeout:g} | {rawUri} {res.StatusCode}", C_WARN);
 				success = false;
+				// res.Dispose();
 			}
 		}
 		else {
 			success = true;
 		}
 
-		Task<string> task = null;
+		string content = null;
 
-		if (success) {
-			task = res?.Content.ReadAsStringAsync();
-			task?.Wait(Timeout);
+		if (success && res is { }) {
+			var task = res.Content.ReadAsStringAsync();
+			task.Wait(Timeout);
+			content = task.Result;
 		}
 
 		var origin = new SearchResultOrigin
 		{
 			InitialResponse = res,
-			Content = task?.Result,
+			Content         = content,
 			InitialSuccess  = success,
 			RawUri          = rawUri,
 			Query           = query
