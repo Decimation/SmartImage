@@ -96,10 +96,10 @@ public sealed class ImageQuery
 		var result = new ImageResult
 		{
 			Url = UploadUri,
-			Image = Image.FromStream(Stream),
+			// Image = Image.FromStream(Stream),
 			Direct =
 			{
-				Stream = Stream,
+				// Stream = Stream,
 				Url = UploadUri
 			}
 		};
@@ -108,8 +108,6 @@ public sealed class ImageQuery
 		result.OtherMetadata.Add("Input type", IsUri ? "URI" : "File");
 		result.OtherMetadata.Add("Input value", Value);
 		result.OtherMetadata.Add("Time", $"(upload: {UploadTime.TotalSeconds:F3})");
-
-		result.ReloadImageData();
 
 		return result;
 	}

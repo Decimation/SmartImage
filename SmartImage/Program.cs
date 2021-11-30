@@ -14,6 +14,7 @@
 
 using SmartImage.Core;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
@@ -170,10 +171,9 @@ public static class Program
 		 * Register events
 		 */
 
-		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
-		Console.OutputEncoding = Encoding.Unicode;
+		Console.OutputEncoding                     =  Encoding.Unicode;
 
 		Console.Title = $"{AppInfo.NAME}";
 
@@ -223,7 +223,17 @@ public static class Program
 			}
 		};
 
-		
+		ThreadPool.QueueUserWorkItem(_ =>
+		{
+			while (Client.Pending2 > 0) { }
+
+			Client.Dispose();
+			Client.Reset();
+
+			GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+			GC.Collect(2, GCCollectionMode.Forced);
+			Debug.WriteLine("done");
+		});
 
 		Client.ResultUpdated += (sender, result) =>
 		{
@@ -233,7 +243,7 @@ public static class Program
 
 		CPI.Start(_cancellationToken);
 
-		
+
 		// Show results
 		var searchTask = Client.RunSearchAsync();
 
@@ -371,12 +381,24 @@ public static class Program
 
 	#region Event handlers
 
-	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
-	                                      CancellationTokenSource cts)
+	private static void SecondaryPass()
 	{
 		Client.Dispose();
 		Client.Reset();
-		GC.Collect();
+
+		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+		GC.Collect(2, GCCollectionMode.Forced);
+	}
+
+
+	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
+	                                      CancellationTokenSource cts)
+	{
+
+
+		Debug.WriteLine("Search completed");
+
+		// GC.Collect();
 
 		Native.FlashConsoleWindow();
 
@@ -421,6 +443,9 @@ public static class Program
 		status += $" | Pending: {Client.Pending}";
 
 		ResultDialog.Status = status;
+
+		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+		GC.Collect();
 
 	}
 

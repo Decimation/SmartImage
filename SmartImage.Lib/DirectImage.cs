@@ -4,9 +4,11 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using RestSharp;
+// ReSharper disable NonReadonlyMemberInGetHashCode
 
 namespace SmartImage.Lib
 {
@@ -15,15 +17,11 @@ namespace SmartImage.Lib
 	{
 		public Uri Url { get; internal set; }
 
-		public Stream Stream { get; internal set; }
-
-		public IRestResponse Response { get; internal set; }
+		public HttpResponseMessage Response { get; internal set; }
 
 		public bool Equals(DirectImage other)
 		{
-			
-			return Url == other?.Url && Equals(Stream, other?.Stream) 
-			                        && Equals(Response, other?.Response);
+			return Url == other?.Url && Equals(Response, other?.Response);
 		}
 
 		public override bool Equals(object obj)
@@ -33,31 +31,24 @@ namespace SmartImage.Lib
 
 		public override int GetHashCode()
 		{
-			return HashCode.Combine(Stream, Response, Url);
+			return HashCode.Combine(Response, Url);
 		}
 
 		public static bool operator ==(DirectImage left, DirectImage right)
 		{
-			return !ReferenceEquals(left, null) && left.Equals(right);
+			return left is not null && left.Equals(right);
 
 		}
 
 		public static bool operator !=(DirectImage left, DirectImage right)
 		{
-			return !ReferenceEquals(left, null) && !left.Equals(right);
+			return left is not null && !left.Equals(right);
 
 		}
 
 		public void Dispose()
 		{
-			Stream?.Dispose();
-			// Response          = null;
-
-			if (Response is {}) {
-				Response.RawBytes = null;
-				Response.Content  = null;
-
-			}
+			Response?.Dispose();
 		}
 
 		public override string ToString()

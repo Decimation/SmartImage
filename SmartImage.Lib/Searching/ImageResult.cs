@@ -11,6 +11,7 @@ using Kantan.Model;
 using Kantan.Numeric;
 using Kantan.Text;
 using SmartImage.Lib.Utilities;
+
 // ReSharper disable SuggestVarOrType_DeconstructionDeclarations
 
 // ReSharper disable CognitiveComplexity
@@ -128,9 +129,6 @@ public sealed class ImageResult : IOutline, IDisposable
 	/// </summary>
 	public Dictionary<string, object> OtherMetadata { get; }
 
-	[CanBeNull]
-	public Image Image { get; set; }
-
 	/// <summary>
 	/// The display resolution of this image
 	/// </summary>
@@ -138,11 +136,16 @@ public sealed class ImageResult : IOutline, IDisposable
 	{
 		get
 		{
+			// ReSharper disable PossibleInvalidOperationException
+
+
 			if (HasImageDimensions) {
 				return ImageHelper.GetDisplayResolution(Width.Value, Height.Value);
 			}
 
 			throw new SmartImageException("Resolution unavailable");
+			// ReSharper restore PossibleInvalidOperationException
+
 		}
 	}
 
@@ -191,7 +194,7 @@ public sealed class ImageResult : IOutline, IDisposable
 	public void UpdateFrom(ImageResult result)
 	{
 		Url         = result.Url;
-		Direct.Url      = result.Direct.Url;
+		Direct      = result.Direct;
 		Similarity  = result.Similarity;
 		Width       = result.Width;
 		Height      = result.Height;
@@ -201,8 +204,6 @@ public sealed class ImageResult : IOutline, IDisposable
 		Site        = result.Site;
 		Description = result.Description;
 		Date        = result.Date;
-
-		ReloadImageData();
 
 	}
 
@@ -223,8 +224,12 @@ public sealed class ImageResult : IOutline, IDisposable
 			var direct = directImages.FirstOrDefault();
 
 			if (direct != null) {
-				Direct    = direct;
-				ReloadImageData();
+				Direct = direct;
+
+				for (int i = 1; i < directImages.Count; i++) {
+					directImages[i].Dispose();
+				}
+
 				return true;
 			}
 		}
@@ -248,24 +253,13 @@ public sealed class ImageResult : IOutline, IDisposable
 
 		if (b) {
 
-			try {
-				Image = Image.FromStream(di.Stream);
-			}
-			catch (Exception e) {
-			}
-
-			Direct.Url = Url;
+			Direct = di;
+		}
+		else {
+			di.Dispose();
 		}
 
 		return b;
-	}
-
-	public void ReloadImageData()
-	{
-		if (Image is { }) {
-			Width  = Image.Width;
-			Height = Image.Height;
-		}
 	}
 
 	public override string ToString() => Strings.OutlineString(this);
@@ -277,7 +271,7 @@ public sealed class ImageResult : IOutline, IDisposable
 			var map = new Dictionary<string, object>
 			{
 				{ nameof(Url), Url },
-				{ "Direct Url",Direct.Url }
+				{ "Direct Url", Direct.Url }
 			};
 
 			if (Similarity.HasValue) {
@@ -320,7 +314,6 @@ public sealed class ImageResult : IOutline, IDisposable
 
 	public void Dispose()
 	{
-		Image?.Dispose();
 		Direct?.Dispose();
 	}
 }

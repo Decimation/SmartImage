@@ -215,6 +215,8 @@ public sealed class YandexEngine : WebSearchEngine
 			>= 1 => ResultQuality.High,
 			_    => ResultQuality.Low,
 		};
+		
+
 		return sr;
 	}
 }

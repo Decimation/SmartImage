@@ -7,11 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
 using Kantan.Net;
 using Kantan.Utilities;
@@ -112,14 +114,24 @@ public static class ImageHelper
 	{
 		var images = new List<DirectImage>();
 
-		IHtmlDocument document;
+		IHtmlDocument document = null;
 
 		try {
-			document = WebUtilities.GetHtmlDocument(url);
+			var h = new HttpClient();
+			var t=h.GetStringAsync(url);
+			t.Wait();
+			var s = t.Result;
+
+			var doc1 = new HtmlParser();
+			document=doc1.ParseDocument(s);
+			h.Dispose();
+			
+
+			// document = WebUtilities.GetHtmlDocument(url);
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{nameof(WebUtilities)}: {e.Message}", C_ERROR);
-
+			document?.Dispose();
 			return images;
 		}
 
@@ -188,18 +200,34 @@ public static class ImageHelper
 		return images;
 	}
 
-	public static bool IsImage(string url, out DirectImage di) => IsImage(url, TimeoutMS, out di);
+	public static bool IsImage(string url, out DirectImage di)
+	{
+		return IsImage(url, TimeoutMS, out di);
+	}
 
 
 	public static bool IsImage(string url, long timeout, out DirectImage di)
 	{
 		di = new DirectImage() { };
 
-		var response = HttpUtilities.GetResponse(url, (int) timeout, Method.HEAD);
-
-		if (!response.IsSuccessful) {
+		if (!UriUtilities.IsUri(url ,out Uri u)) {
 			return false;
 		}
+		
+
+		// var response = HttpUtilities.GetResponse(url, (int) timeout, Method.HEAD);
+		var  response = HttpUtilities.GetHttpResponse(url, (int)timeout, HttpMethod.Head);
+		
+
+		if (response is not {}) {
+			return false;
+		}
+		if (!response.IsSuccessStatusCode) {
+			response?.Dispose();
+			return false;
+		}
+
+		
 
 		di.Url      = new Uri(url);
 		di.Response = response;
@@ -214,7 +242,11 @@ public static class ImageHelper
 		const string image      = "image";
 		const int    min_size_b = 50_000;
 
-		try {
+		long? length = response.Content.Headers.ContentLength;
+		di.Response = response;
+
+		try
+		{
 			using var client = new HttpClient();
 			var       task   = client.GetStreamAsync(url);
 			task.Wait((int) timeout);
@@ -225,12 +257,14 @@ public static class ImageHelper
 			stream.Read(buffer, 0, buffer.Length);
 			var m = MediaTypes.ResolveFromData(buffer);
 			type      = m.StartsWith(image) && m != svg_xml;
-			size      = response.ContentLength is -1 or >= min_size_b;
-			di.Stream = stream;
+			size      = length is -1 or >= min_size_b;
+			// di.Stream = stream;
+			stream.Dispose();
 		}
 		catch (Exception x) {
-			type = response.ContentType.StartsWith(image) && response.ContentType != svg_xml;
-			size = response.ContentLength >= min_size_b;
+			var value = response.Content.Headers.ContentType;
+			type = value.MediaType.StartsWith(image) && value.MediaType != svg_xml;
+			size = length >= min_size_b;
 			Debug.WriteLine($"{x.Message}");
 		}
 

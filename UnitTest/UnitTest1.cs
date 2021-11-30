@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Xsl;
@@ -15,22 +17,18 @@ namespace UnitTest;
 public class Tests
 {
 	[SetUp]
-	public void Setup() { }
-
-	private static readonly string[] TestImages =
+	public void Setup()
 	{
-		@"C:\Users\Deci\Pictures\Test Images\Test1.jpg",
-		@"C:\Users\Deci\Pictures\Test Images\Test2.jpg",
-		@"C:\Users\Deci\Pictures\Test Images\Test3.png",
-		@"C:\Users\Deci\Pictures\Test Images\Test4.png",
+		var pictures   = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+		var path = Path.Combine(pictures, "Test Images");
 
-		@"C:\Users\Deci\Pictures\Art\fucking_epic.jpg",
+		TestImages = Directory.GetFiles(path).Union(new[]
+		{
+			"https://i.imgur.com/QtCausw.jpg"
+		}).ToList();
+	}
 
-		"https://i.imgur.com/QtCausw.jpg",
-
-		@"C:\Users\Deci\Pictures\Test Images\Small1.png",
-		@"C:\Users\Deci\Pictures\Test Images\Small2.png"
-	};
+	private static List<string> TestImages { get; set; }
 
 	[Test]
 	public void TestImageQuery()

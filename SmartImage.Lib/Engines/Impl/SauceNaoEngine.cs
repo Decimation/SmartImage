@@ -7,6 +7,8 @@ using System.IO;
 using System.Json;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
@@ -222,7 +224,9 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				{ Urls = new[] { link }!, Similarity = similarity, Creator = creator1 };
 
 			return dataResult;
+
 		}
+
 
 		return results.Select(Parse).ToList();
 	}
@@ -237,6 +241,20 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		req.AddQueryParameter("numres", "16");
 		req.AddQueryParameter("api_key", Authentication);
 		req.AddQueryParameter("url", url.UploadUri.ToString());
+
+		/*var h   = new HttpClient();
+		var r   = new HttpRequestMessage(HttpMethod.Post, BASE_URL + "search.php");
+		var res = h.Send(r);
+
+		if (res.StatusCode == HttpStatusCode.Forbidden) {
+			return null;
+		}
+
+		var task = res.Content.ReadAsStringAsync();
+		task.Wait();
+
+		string c = task.Result;*/
+
 
 		var res = Client.Execute(req);
 
@@ -271,6 +289,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				obj          =  obj.Remove(obj.Length - 1);
 				obj          += data.ToString().Remove(0, 1).Insert(0, ",");
 				jsonArray[i] =  JsonValue.Parse(obj);
+
 			}
 
 			string json = jsonArray.ToString();
@@ -302,9 +321,13 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				buffer.Add(item);
 			}
 
+			h.Dispose();
+			r.Dispose();
 			return buffer.ToArray();
 		}
 
+		h.Dispose();
+		r.Dispose();
 		return null;
 	}
 

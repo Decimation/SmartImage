@@ -83,6 +83,7 @@ public sealed class SearchClient : IDisposable
 	/// Number of pending results
 	/// </summary>
 	public int Pending { get; private set; }
+	public int Pending2 { get; private set; }
 
 	public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
 
@@ -181,7 +182,40 @@ public sealed class SearchClient : IDisposable
 
 			/* 1st pass */
 			if (value.IsSuccessful && value.IsNonPrimitive) {
-				ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
+				// ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
+				Pending2++;
+				ThreadPool.QueueUserWorkItem(_ =>
+				{
+					var imageResults = value.AllResults;
+					var take2        = 5;
+
+					var images = imageResults.AsParallel()
+					                         .Where(x => x.IsAlreadyDirect())
+					                         .Take(take2)
+					                         .ToList();
+
+					if (images.Any()) {
+						Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
+						DirectResults.AddRange(images);
+						value.Scanned = true;
+					}
+
+					if (value.Scanned) {
+						Pending2--;
+						return;
+					}
+
+					var task = value.FindDirectResults();
+					task.Wait();
+					var result = task.Result;
+					Debug.WriteLine($"adding {result.Count} to {DirectResults.Count}");
+					DirectResults.AddRange(result);
+					value.Scanned = true;
+
+					ResultUpdated?.Invoke(null, EventArgs.Empty);
+					Pending2--;
+				});
+
 			}
 
 			// Call event
@@ -192,7 +226,7 @@ public sealed class SearchClient : IDisposable
 			});
 
 			IsComplete = !tasks.Any();
-			
+
 		}
 
 		Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
@@ -215,49 +249,19 @@ public sealed class SearchClient : IDisposable
 
 	
 
-
-	private void FindDirectResults(object state, SearchResult value, int take2 = 5)
-	{
-		var imageResults = value.AllResults;
-
-		var images = imageResults.AsParallel()
-		                         .Where(x => x.IsAlreadyDirect())
-		                         .Take(take2)
-		                         .ToList();
-
-		if (images.Any()) {
-			Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
-			DirectResults.AddRange(images);
-
-		}
-		else {
-			var t = Task.Factory.StartNew(async () =>
-			{
-				if (value.Scanned) {
-					return;
-				}
-				var d = await value.FindDirectResults();
-				Debug.WriteLine($"adding {d.Count} to {DirectResults.Count}");
-				DirectResults.AddRange(d);
-				value.Scanned = true;
-
-				ResultUpdated?.Invoke(null, EventArgs.Empty);
-			});
-			
-		}
-	}
-
 	/// <summary>
 	/// Waits until <see cref="DirectResults"/> contains any elements
 	/// </summary>
 	/// <returns><see cref="DirectResults"/></returns>
 	public Task<bool> WaitForDirectResults()
 	{
+		//todo: this is stupid
+
 		return Task.Run(() =>
 		{
 			while (Results.Any() && !DirectResults.Any()) {
 				if (IsComplete) {
-					
+
 					/*var imageResults = Results.SelectMany(x =>
 					               {
 						               return x.AllResults.Where(x2 => x2.Direct != null);
@@ -363,32 +367,21 @@ public sealed class SearchClient : IDisposable
 	///     Fires when a search is complete (<see cref="RunSearchAsync" />).
 	/// </summary>
 	public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
-	
+
 
 	private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
 
 	private static readonly SmartImageException SearchException = new("Search must be completed");
 
-	
 
 	public void Dispose()
 	{
 		for (int i = 0; i < AllResults.Count; i++) {
-			var a=AllResults[i];
+			var a = AllResults[i];
 			a.Dispose();
-			
+
 		}
 	}
-}
-
-public sealed class DirectResultsFoundEventArgs : EventArgs
-{
-	/// <remarks>
-	/// This field will always be a subset of <see cref="SearchClient.DirectResults"/>
-	/// <para/>
-	/// <see cref="DirectResultsSubset"/> &#x2282; <see cref="SearchClient.DirectResults"/>
-	/// </remarks>
-	public List<ImageResult> DirectResultsSubset { get; init; }
 }
 
 public sealed class SearchCompletedEventArgs : EventArgs

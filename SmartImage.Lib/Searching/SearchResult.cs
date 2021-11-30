@@ -139,7 +139,7 @@ public class SearchResult : IOutline, IDisposable
 	/// </summary>
 	public TimeSpan? RetrievalTime { get; internal set; }
 
-	
+
 	public bool Scanned { get; internal set; }
 
 	public async Task<List<ImageResult>> FindDirectResults()
@@ -202,18 +202,14 @@ public class SearchResult : IOutline, IDisposable
 
 			return map;
 		}
-
-		
 	}
 
 	public void Dispose()
 	{
-		for (int i = 0; i < AllResults.Count; i++)
-		{
-			var a = AllResults[i];
-			a.Direct.Dispose();
-
+		foreach (ImageResult imageResult in AllResults) {
+			imageResult.Dispose();
 		}
+
 		Origin.Dispose();
 		Origin = null;
 	}
