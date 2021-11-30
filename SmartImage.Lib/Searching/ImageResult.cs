@@ -209,9 +209,9 @@ public sealed class ImageResult : IOutline, IDisposable
 
 	public DirectImage Direct { get; internal set; } = new();
 
-	public async Task<bool> TryScanForDirectImages()
+	public async Task<bool> TryScanForImagesAsync()
 	{
-		if (Url == null || Direct.Url != null) {
+		if (Url == null || Direct?.Url != null) {
 			return true;
 		}
 
@@ -219,7 +219,7 @@ public sealed class ImageResult : IOutline, IDisposable
 
 			var directImages = await ImageHelper.ScanForImages(Url.ToString());
 
-			Debug.WriteLine($"{nameof(ImageResult)}: Found {directImages.Count} direct images");
+			Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
 
 			var direct = directImages.FirstOrDefault();
 
@@ -252,7 +252,6 @@ public sealed class ImageResult : IOutline, IDisposable
 		var b = ImageHelper.IsImage(s, out var di);
 
 		if (b) {
-
 			Direct = di;
 		}
 		else {

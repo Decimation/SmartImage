@@ -241,8 +241,7 @@ public sealed class SearchClient : IDisposable
 				value.Scanned = true;
 			}
 
-			if (value.Scanned) { }
-			else {
+			if (!value.Scanned) {
 				var task2 = value.FindDirectResults();
 				task2.Wait();
 				var result = task2.Result;
@@ -253,6 +252,7 @@ public sealed class SearchClient : IDisposable
 				ResultUpdated?.Invoke(null, EventArgs.Empty);
 
 			}
+			else { }
 
 		}
 
@@ -389,6 +389,11 @@ public sealed class SearchClient : IDisposable
 
 	public void Dispose()
 	{
+		foreach (var result in DirectResults)
+		{
+			result.Dispose();
+		}
+
 		foreach (SearchResult result in AllResults) {
 			result.Dispose();
 		}

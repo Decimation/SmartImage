@@ -266,6 +266,7 @@ public static class ImageHelper
 			size = length is -1 or >= min_size_b;
 			// di.Stream = stream;
 			stream.Dispose();
+
 		}
 		catch (Exception x) {
 			var value = response.Content.Headers.ContentType;

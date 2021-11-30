@@ -18,7 +18,7 @@ namespace SmartImage.Lib.Searching;
 /// <summary>
 /// Search query
 /// </summary>
-public sealed class ImageQuery
+public sealed class ImageQuery : IDisposable
 {
 	/// <summary>
 	/// Original input
@@ -86,7 +86,7 @@ public sealed class ImageQuery
 	public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 	{
 		var isUriOrFile = (ImageHelper.IsImage(x, out var di), File.Exists(x));
-
+		di?.Dispose();
 		return isUriOrFile;
 	}
 
@@ -115,5 +115,10 @@ public sealed class ImageQuery
 	public override string ToString()
 	{
 		return $"{Value} | {UploadUri}";
+	}
+
+	public void Dispose()
+	{
+		Stream?.Dispose();
 	}
 }

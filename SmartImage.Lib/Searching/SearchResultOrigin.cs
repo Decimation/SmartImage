@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Http;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using RestSharp;
@@ -14,8 +15,10 @@ public class SearchResultOrigin : IDisposable
 {
 	public ImageQuery Query { get; init; }
 
-	public IRestResponse InitialResponse { get; init; }
+	public HttpResponseMessage InitialResponse { get; init; }
 
+	public string Content { get; init; }
+		
 	public TimeSpan Retrieval { get; init; }
 
 	public bool InitialSuccess { get; init; }
@@ -25,8 +28,7 @@ public class SearchResultOrigin : IDisposable
 	public void Dispose()
 	{
 		if (InitialResponse is {}) {
-			InitialResponse.RawBytes = null;
-			InitialResponse.Content  = null;
+			// InitialResponse.Dispose();
 		}
 		
 	}

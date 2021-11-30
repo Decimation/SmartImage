@@ -112,8 +112,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 
 			string anilistUrl = ANILIST_URL + doc.anilist;
-
-			string name = m_anilistClient.GetTitle((int) doc.anilist);
+			string name       = m_anilistClient.GetTitle((int) doc.anilist);
 
 			var result = new ImageResult
 			{

@@ -150,7 +150,7 @@ public class SearchResult : IOutline, IDisposable
 		var directResults = new List<ImageResult>();
 
 		foreach (ImageResult ir in AllResults) {
-			var b = await ir.TryScanForDirectImages();
+			var b = await ir.TryScanForImagesAsync();
 
 			if (b && !directResults.Contains(ir)) {
 

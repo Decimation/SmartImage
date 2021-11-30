@@ -46,7 +46,7 @@ public abstract class BaseSearchEngine
 
 		if (!sr.Origin.InitialSuccess) {
 			sr.Status       = ResultStatus.Unavailable;
-			sr.ErrorMessage = $"{sr.Origin.InitialResponse.ErrorMessage} | {sr.Origin.InitialResponse.StatusCode}";
+			sr.ErrorMessage = $"{sr} | {sr.Origin.InitialResponse.StatusCode}";
 		}
 		else {
 			sr.RawUri = sr.Origin.RawUri;
@@ -85,13 +85,14 @@ public abstract class BaseSearchEngine
 		Uri rawUri = GetRawUri(query);
 
 
-		var res = HttpUtilities.GetResponse(rawUri.ToString(), 
-		                                    (int) Timeout.TotalMilliseconds, Method.GET, FollowRedirects);
+		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(), 
+		                                    (int) Timeout.TotalMilliseconds, 
+		                                    HttpMethod.Get, FollowRedirects);
 
 
 		bool success;
 
-		if (!res.IsSuccessful) {
+		if (res is { IsSuccessStatusCode: false }) {
 			if (res.StatusCode == HttpStatusCode.Redirect) {
 				success = true;
 			}
@@ -105,9 +106,17 @@ public abstract class BaseSearchEngine
 			success = true;
 		}
 
+		Task<string> task = null;
+
+		if (success) {
+			task = res?.Content.ReadAsStringAsync();
+			task?.Wait(Timeout);
+		}
+
 		var origin = new SearchResultOrigin
 		{
 			InitialResponse = res,
+			Content = task?.Result,
 			InitialSuccess  = success,
 			RawUri          = rawUri,
 			Query           = query

@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using Kantan.Diagnostics;
 using RestSharp;
 using SmartImage.Lib.Engines.Model;
@@ -81,15 +82,19 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		var rawUri = GetRawUri(query);
 
-		var content = WebUtilities.GetString(rawUri.ToString());
-		var diff    = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+		HttpClient c       = new HttpClient();
+		var v=c.Send(new HttpRequestMessage(HttpMethod.Get, rawUri));
+
+		var task = v.Content.ReadAsStringAsync();
+		task.Wait(Timeout);
+
+		var    content           = task.Result;
+		var    diff              = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		var stub = new SearchResultOrigin()
 		{
-			InitialResponse = new RestResponse
-			{
-				Content = content
-			},
+			InitialResponse = v,
+			Content = content,
 			Retrieval      = diff,
 			InitialSuccess = true,
 			RawUri         = rawUri
