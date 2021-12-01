@@ -37,13 +37,11 @@ namespace SmartImage.Lib
 		public static bool operator ==(DirectImage left, DirectImage right)
 		{
 			return left is not null && left.Equals(right);
-
 		}
 
 		public static bool operator !=(DirectImage left, DirectImage right)
 		{
 			return left is not null && !left.Equals(right);
-
 		}
 
 		public void Dispose()

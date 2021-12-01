@@ -235,9 +235,8 @@ public static class Program
 
 
 		// Show results
-		var searchTask = Client.RunSearchAsync();
-
-		var t2 = Client.RunSecondary();
+		var searchTask    = Client.RunSearchAsync();
+		var secondaryTask = Client.RunContinueAsync();
 
 		_originalResult = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
 		                                                      Elements.ColorMain, -0.1f);
@@ -251,13 +250,15 @@ public static class Program
 		}
 
 		await searchTask;
-		await t2;
+		await secondaryTask;
+
 		Client.Dispose();
 		Client.Reset();
 
 		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 		GC.Collect(2, GCCollectionMode.Forced);
 		Debug.WriteLine("done");
+
 		if (Config.OutputOnly) {
 			ResultDialog.Display(false);
 		}

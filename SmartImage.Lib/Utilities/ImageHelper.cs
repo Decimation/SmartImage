@@ -69,7 +69,7 @@ public static class ImageHelper
 		IHtmlDocument document = null;
 
 		try {
-			var          client = new HttpClient();
+			var client = new HttpClient();
 			var task   = client.GetStringAsync(url);
 			task.Wait();
 			string result = task.Result;
@@ -95,6 +95,7 @@ public static class ImageHelper
 
 		urls = urls.Where(x => x != null).Select(u1 =>
 		{
+
 			if (UriUtilities.IsUri(u1, out Uri u2)) {
 				return UriUtilities.NormalizeUrl(u2);
 			}
@@ -111,6 +112,10 @@ public static class ImageHelper
 			case "www.deviantart.com":
 				//https://images-wixmp-
 				urls = urls.Where(x => x.StartsWith("https://images-wixmp")).ToList();
+				break;
+			case "twitter.com":
+				urls = urls.Where(x => !x.Contains("profile_banners"))
+				           .ToList();
 				break;
 		}
 
@@ -195,8 +200,8 @@ public static class ImageHelper
 		di.Response = response;
 
 		try {
-			using var    client = new HttpClient();
-			var task   = client.GetStreamAsync(url);
+			using var client = new HttpClient();
+			var       task   = client.GetStreamAsync(url);
 			task.Wait((int) timeout);
 
 			var stream = task.Result;

@@ -13,11 +13,13 @@ using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.UI.AppInterface;
 
+// ReSharper disable PossibleNullReferenceException
+
 namespace SmartImage.UI;
 
 internal static class AppToast
 {
-	internal static async void ShowToast(object sender, SearchCompletedEventArgs args)
+	internal static void ShowToast(object sender, SearchCompletedEventArgs args)
 	{
 		Debug.WriteLine($"Building toast", C_DEBUG);
 
@@ -27,19 +29,19 @@ internal static class AppToast
 
 		button2.SetContent("Dismiss").AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
 
-		
+
 		var sb = new StringBuilder();
 
 		string url = null;
 
 
-		if (args.Detailed.Any()) {
-			var detailed = args.Detailed.First();
+		if (Program.Client.DetailedResults.Any()) {
+			var detailed = Program.Client.DetailedResults.First();
 			url = detailed.Url.ToString();
 			sb.Append(detailed);
 		}
-		else if (args.Results.Any()) {
-			var result = args.Results.First();
+		else if (Program.Client.Results.Any()) {
+			var result = Program.Client.Results.First();
 			url = result.PrimaryResult.Url.ToString();
 			sb.Append(result);
 		}
@@ -56,17 +58,19 @@ internal static class AppToast
 
 		if (Program.Config.Notification && Program.Config.NotificationImage) {
 
-			var b = await Program.Client.WaitForDirectResults();
 
-			var directResults  = args.Direct;
+			var w = Program.Client.GetWaitHandle();
+			w.WaitOne();
+			w.Dispose();
 
-			Debug.Assert(Object.ReferenceEquals(args.Direct, Program.Client.DirectResults));
+			var directResults = Program.Client.DirectResults;
+
 
 			if (!directResults.Any()) {
 				goto ShowToast;
 			}
 
-			var directImage = directResults.OrderByDescending(x=>x.PixelResolution).First();
+			var directImage = directResults.OrderByDescending(x => x.PixelResolution).First();
 			var path        = Path.GetTempPath();
 
 			string file = ImageHelper.Download(directImage.Direct.Url, path);
@@ -102,7 +106,7 @@ internal static class AppToast
 		builder.SetBackgroundActivation();
 		builder.Show();
 	}
-	
+
 
 	internal static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)
 	{
@@ -126,7 +130,7 @@ internal static class AppToast
 		}
 
 		if (ToastNotificationManagerCompat.WasCurrentProcessToastActivated()) {
-			
+
 			// ToastNotificationManagerCompat.History.Clear();
 			// Environment.Exit(0);
 
@@ -163,6 +167,6 @@ internal static class AppToast
 	}
 
 
-	private const string ARG_KEY_ACTION = "action";
+	private const string ARG_KEY_ACTION    = "action";
 	private const string ARG_VALUE_DISMISS = "dismiss";
 }

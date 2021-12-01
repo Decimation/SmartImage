@@ -40,7 +40,9 @@ public sealed class SearchClient : IDisposable
 		FilteredResults = new List<SearchResult>();
 		DirectResults   = new List<ImageResult>();
 		DetailedResults = new List<ImageResult>();
-		tasks2          = new List<Task>();
+		ContinueTasks   = new List<Task>();
+		new AutoResetEvent(false);
+
 		Reload();
 	}
 
@@ -81,12 +83,16 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	public List<SearchResult> FilteredResults { get; }
 
+	public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
+
 	/// <summary>
 	/// Number of pending results
 	/// </summary>
 	public int Pending { get; private set; }
 
-	public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
+	public bool IsContinueComplete { get; private set; }
+
+	private List<Task> ContinueTasks { get; }
 
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
@@ -113,13 +119,12 @@ public sealed class SearchClient : IDisposable
 		DirectResults.Clear();
 		FilteredResults.Clear();
 		DetailedResults.Clear();
-		tasks2.Clear();
-		Pending    = 0;
-		IsComplete = false;
+		ContinueTasks.Clear();
+		Pending            = 0;
+		IsComplete         = false;
+		IsContinueComplete = false;
 		Reload();
 	}
-
-	#region
 
 	/// <summary>
 	///     Performs an image search asynchronously.
@@ -142,14 +147,15 @@ public sealed class SearchClient : IDisposable
 		{
 			return t.ContinueWith(GetResultContinueCallback, null);
 		}));*/
-		
+
 		Pending = tasks.Count;
 
 		while (!IsComplete) {
-			var  finished     = await Task.WhenAny(tasks);
+			var finished = await Task.WhenAny(tasks);
+
 			var task = finished.ContinueWith(GetResultContinueCallback, null, TaskScheduler.Default);
-			tasks2.Add(task);
-			
+			ContinueTasks.Add(task);
+
 			SearchResult value = await finished;
 
 			tasks.Remove(finished);
@@ -209,40 +215,53 @@ public sealed class SearchClient : IDisposable
 
 		/* 2nd pass */
 
+		DetailedResults.AddRange(ApplyPredicateFilter(Results, DetailPredicate));
 
 		var args = new SearchCompletedEventArgs
-		{
-			Results  = Results,
-			Detailed = ApplyPredicateFilter(Results, DetailPredicate),
-			Direct   = DirectResults,
-			Filtered = FilteredResults
-		};
-
+			{ };
 
 		SearchCompleted?.Invoke(null, args);
 	}
 
-	public async Task RunSecondary()
+	public async Task RunContinueAsync()
 	{
-		
-		bool x = false;
-		while (!x) {
-			var t = await Task.WhenAny(tasks2);
-			await t;
-			tasks2.Remove(t);
-			x = !tasks2.Any();
+		IsContinueComplete = false;
+
+		while (!IsContinueComplete) {
+			var task = await Task.WhenAny(ContinueTasks);
+			await task;
+
+			ContinueTasks.Remove(task);
+			IsContinueComplete = !ContinueTasks.Any();
 		}
 	}
+
+	public WaitHandle GetWaitHandle()
+	{
+		WaitHandle w = new AutoResetEvent(false);
+
+		ThreadPool.QueueUserWorkItem((state) =>
+		{
+			//todo
+			while (!DirectResults.Any()) { }
+
+			var resetEvent = (AutoResetEvent) state;
+			resetEvent.Set();
+
+		}, w);
+
+		return w;
+	}
+
 	private void GetResultContinueCallback(Task<SearchResult> task, object state)
 	{
-
 		var value = task.Result;
 
 		if (value.IsSuccessful && value.IsNonPrimitive) {
 			// ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
 			// ThreadPool.QueueUserWorkItem(_ => Back(_, value));
 			Debug.WriteLine($">>{value.Engine.Name}");
-			var imageResults = value.AllResults;
+			/*var imageResults = value.AllResults;
 
 			var take2 = 5;
 
@@ -255,20 +274,27 @@ public sealed class SearchClient : IDisposable
 				Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
 				DirectResults.AddRange(images);
 				value.Scanned = true;
-			}
+			}*/
 
 			if (!value.Scanned) {
 				var task2 = value.FindDirectResultsAsync();
 				task2.Wait();
 				var result = task2.Result;
 
-				if (result.Any()) {
-					Debug.WriteLine($"adding {result.Count} to {DirectResults.Count}");
-					DirectResults.AddRange(result);
-					value.Scanned = true;
 
-					ResultUpdated?.Invoke(null, EventArgs.Empty);
+				if (result != null && result.Any()) {
+					result = result.Where(x => x.Direct != null).ToList();
+
+					if (result.Any()) {
+						Debug.WriteLine($"adding {result.Count} to {DirectResults.Count}");
+						DirectResults.AddRange(result);
+						value.Scanned = true;
+
+						ResultUpdated?.Invoke(null, EventArgs.Empty);
+
+					}
 				}
+
 			}
 			else { }
 
@@ -276,39 +302,6 @@ public sealed class SearchClient : IDisposable
 
 		return;
 	}
-
-
-	/// <summary>
-	/// Waits until <see cref="DirectResults"/> contains any elements
-	/// </summary>
-	/// <returns><see cref="DirectResults"/></returns>
-	public Task<bool> WaitForDirectResults()
-	{
-		//todo: this is stupid
-
-		return Task.Run(() =>
-		{
-			while (Results.Any() && !DirectResults.Any()) {
-				if (IsComplete) {
-
-					/*var imageResults = Results.SelectMany(x =>
-					               {
-						               return x.AllResults.Where(x2 => x2.Direct != null);
-					               })
-					               .OrderByDescending(x => x.PixelResolution)
-					               .ToList();
-
-					DirectResults.AddRange(imageResults);*/
-
-					break;
-				}
-			}
-
-			return true;
-		});
-	}
-
-	#endregion
 
 	/// <summary>
 	///     Refines search results by searching with the most-detailed result (<see cref="FindDirectResults" />).
@@ -402,9 +395,6 @@ public sealed class SearchClient : IDisposable
 
 	private static readonly SmartImageException SearchException = new("Search must be completed");
 
-	public List<Task> tasks2;
-
-
 
 	public void Dispose()
 	{
@@ -420,13 +410,7 @@ public sealed class SearchClient : IDisposable
 
 public sealed class SearchCompletedEventArgs : EventArgs
 {
-	public List<SearchResult> Results { get; init; }
-
-	public List<ImageResult> Direct { get; internal set; }
-
-	public List<ImageResult> Detailed { get; internal set; }
-
-	public List<SearchResult> Filtered { get; internal set; }
+	//todo
 }
 
 public sealed class ResultCompletedEventArgs : EventArgs

@@ -211,7 +211,7 @@ public sealed class ImageResult : IOutline, IDisposable
 
 	public async Task<bool> ScanForImagesAsync()
 	{
-		if (Url == null || Direct?.Url != null) {
+		if (Url == null || Direct?.Url != null||IsAlreadyDirect()) {
 			return true;
 		}
 
