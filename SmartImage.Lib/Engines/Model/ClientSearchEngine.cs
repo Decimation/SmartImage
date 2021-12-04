@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net.Http;
 using RestSharp;
 using SmartImage.Lib.Searching;
 
@@ -12,7 +13,7 @@ public abstract class ClientSearchEngine : ProcessedSearchEngine
 {
 	protected ClientSearchEngine(string baseUrl, string endpointUrl) : base(baseUrl)
 	{
-		Client      = new RestClient(endpointUrl);
+		
 		EndpointUrl = endpointUrl;
 	}
 
@@ -23,8 +24,7 @@ public abstract class ClientSearchEngine : ProcessedSearchEngine
 	public abstract override EngineSearchType SearchType { get; }
 
 	protected string EndpointUrl { get; }
-
-	protected RestClient Client { get; }
+	
 
 	protected override object ParseContent(SearchResultOrigin s)
 	{

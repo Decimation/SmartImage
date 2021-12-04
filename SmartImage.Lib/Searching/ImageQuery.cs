@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Net;
 using Kantan.Text;
@@ -70,7 +71,17 @@ public sealed class ImageQuery : IDisposable
 		//note: default upload engine
 		UploadEngine = engine ?? new LitterboxEngine();
 
-		UploadUri = IsUri ? new Uri(Value) : UploadEngine.Upload(Value);
+		
+
+		if (IsFile) {
+			var task = UploadEngine.Upload(Value);
+			task.Wait();
+			UploadUri = task.Result;
+		}
+		else if (IsUri) {
+			UploadUri = new Uri(Value);
+		}
+		
 
 		Stream = IsFile ? File.OpenRead(value) : HttpUtilities.GetStream(value);
 

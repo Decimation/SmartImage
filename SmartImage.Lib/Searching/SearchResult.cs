@@ -164,11 +164,7 @@ public class SearchResult : IOutline, IDisposable
 		return directResults;
 	}
 
-
-	public void Consolidate()
-	{
-		PrimaryResult = ReflectionHelper.Consolidate(PrimaryResult, OtherResults);
-	}
+	
 
 	public override string ToString() => Strings.OutlineString(this);
 

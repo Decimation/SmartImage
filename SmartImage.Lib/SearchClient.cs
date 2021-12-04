@@ -398,7 +398,7 @@ public sealed class SearchClient : IDisposable
 
 	public void Dispose()
 	{
-		foreach (var result in DirectResults) {
+		foreach (ImageResult result in DirectResults) {
 			result.Dispose();
 		}
 

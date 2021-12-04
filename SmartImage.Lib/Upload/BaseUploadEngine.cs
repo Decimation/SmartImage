@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Novus.Win32;
 using Kantan.Numeric;
 
@@ -14,7 +15,7 @@ public abstract class BaseUploadEngine
 	public abstract string Name { get; }
 
 
-	public abstract Uri Upload(string file);
+	public abstract Task<Uri> Upload(string file);
 
 
 	protected bool IsFileSizeValid(string file)

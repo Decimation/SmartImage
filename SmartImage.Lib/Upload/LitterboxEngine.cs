@@ -1,4 +1,8 @@
 ﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Flurl.Http;
+using Kantan.Threading;
 using RestSharp;
 using SmartImage.Lib.Utilities;
 
@@ -14,30 +18,36 @@ public sealed class LitterboxEngine : BaseUploadEngine
 
 	public override int MaxSize => 1000;
 
-	private readonly RestClient m_client;
+	private readonly string m_client;
 
 	public LitterboxEngine()
 	{
-		m_client = new RestClient("https://litterbox.catbox.moe/resources/internals/api.php");
+		m_client = ("https://litterbox.catbox.moe/resources/internals/api.php");
 	}
 
-	public override Uri Upload(string file)
+	public override async Task<Uri> Upload(string file)
 	{
 		Verify(file);
 
-		var req = new RestRequest(Method.POST);
 
-		req.AddParameter("time", "1h");
-		req.AddParameter("reqtype", "fileupload");
-		req.AddFile("fileToUpload", file);
-		req.AddHeader("Content-Type", "multipart/form-data");
+		string task=null;
 
-		var res = m_client.Execute(req);
+		var vv = await m_client
+			         .PostMultipartAsync(mp =>
+				                             mp.AddFile("fileToUpload", file)
+				                               .AddString("reqtype", "fileupload")
+				                               .AddString("time", "1h")
+			         );
+		var content = vv.ResponseMessage.Content;
+		task = await content.ReadAsStringAsync();
+		
+		
 
-		if (!res.IsSuccessful) {
+
+		if (!vv.ResponseMessage.IsSuccessStatusCode) {
 			return null;
 		}
 
-		return new Uri(res.Content);
+		return new Uri(task);
 	}
 }

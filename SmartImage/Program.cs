@@ -250,11 +250,19 @@ public static class Program
 		}
 
 		await searchTask;
-		await secondaryTask;
+
+		try {
+			await secondaryTask;
+
+		}
+		catch (Exception e) {
+			
+		}
 
 		Client.Dispose();
 		Client.Reset();
 
+		//todo
 		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
 		GC.Collect(2, GCCollectionMode.Forced);
 		Debug.WriteLine("done");

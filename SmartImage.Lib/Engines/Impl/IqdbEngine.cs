@@ -12,6 +12,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
+using Flurl.Http;
 using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
@@ -33,7 +34,8 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 	public override string Name => "IQDB";
 
-	public override TimeSpan         Timeout    => TimeSpan.FromSeconds(4.5);
+	public override TimeSpan Timeout => TimeSpan.FromSeconds(4.5);
+
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
 	private static ImageResult ParseResult(IHtmlCollection<IElement> tr)
@@ -117,36 +119,34 @@ public sealed class IqdbEngine : ClientSearchEngine
 	}
 
 
-	private IDocument GetDocument(ImageQuery query)
+	private async Task<IDocument> GetDocument(ImageQuery query)
 	{
-		var rq = new RestRequest(Method.POST);
 
 		const int MAX_FILE_SIZE = 8388608;
+		
 
-		rq.AddParameter("MAX_FILE_SIZE", MAX_FILE_SIZE, ParameterType.GetOrPost);
-		rq.AddHeader("Content-Type", "multipart/form-data");
+		var x=await EndpointUrl.PostMultipartAsync(m =>
+		{
+			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
 
-		byte[] fileBytes = Array.Empty<byte>();
-		object uri       = String.Empty;
+			m.AddString("url", query.IsUri?query.Value:String.Empty);
 
-		if (query.IsFile) {
-			fileBytes = File.ReadAllBytes(query.Value);
-		}
-		else if (query.IsUri) {
-			uri = query.Value;
-		}
-		else {
-			throw new SmartImageException();
-		}
+			if (query.IsUri) { }
+			else if (query.IsFile) {
+				m.AddFile("file", query.Value, fileName: "image.jpg");
+				
+			}
+			return;
+		});
+		var ss=await x.GetStringAsync();
 
-		rq.AddFile("file", fileBytes, "image.jpg");
-		rq.AddParameter("url", uri, ParameterType.GetOrPost);
-			
-
-		var response = Client.Execute(rq);
+		
 
 		var parser = new HtmlParser();
-		return parser.ParseDocument(response.Content);
+		return parser.ParseDocument(ss);
+		// var task = p.Result.Content.ReadAsStringAsync();
+		// task.Wait();
+		// return parser.ParseDocument(task.Result);
 	}
 
 
@@ -159,12 +159,12 @@ public sealed class IqdbEngine : ClientSearchEngine
 		var diff  = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 		sr.RetrievalTime = diff;
 
-		var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
+		var pages  = doc.Result.Body.SelectSingleNode("//div[@id='pages']");
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
 		// No relevant results?
 
-		var ns = doc.Body?.QuerySelector("#pages > div.nomatch");
+		var ns = doc.Result.Body?.QuerySelector("#pages > div.nomatch");
 
 		if (ns != null) {
 

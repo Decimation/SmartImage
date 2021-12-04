@@ -72,13 +72,10 @@ public class Tests
 			Assert.Inconclusive();
 		}
 
-		t.Consolidate();
+		
 
 
-		var a = t.PrimaryResult.Artist.Contains(name);
-
-
-		var b = t.OtherResults.Any(r =>
+		var b = t.AllResults.Any(r =>
 		{
 			if (r.Artist != null) {
 				return r.Artist.Contains(name);
@@ -88,7 +85,8 @@ public class Tests
 				return false;
 			}
 		});
-		Assert.True(a || b);
+
+		Assert.True( b);
 
 
 	}

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Web;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
 using RestSharp;
@@ -39,13 +41,18 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 	protected override SearchResult Process(object obj, SearchResult r)
 	{
+		var Client = new RestClient(EndpointUrl);
 
 		//var r = base.GetResult(url);
 		var query = (ImageQuery) obj;
 		// https://soruly.github.io/trace.moe/#/
 
-		var rq = new RestRequest("search");
+		
+		var rq  = new RestRequest("search");
 		rq.AddQueryParameter("url", query.UploadUri.ToString(), true);
+
+		
+
 		//rq.AddQueryParameter("anilistInfo", "");
 		rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 		rq.Timeout                 = Timeout.Milliseconds;

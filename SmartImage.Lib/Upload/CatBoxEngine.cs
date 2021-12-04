@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Net.Http;
+using System.Threading.Tasks;
+using Flurl.Http;
 using RestSharp;
 using SmartImage.Lib.Utilities;
 
@@ -12,30 +15,29 @@ public sealed class CatBoxEngine : BaseUploadEngine
 
 	public override int MaxSize => 200;
 
-	private readonly RestClient m_client;
+	private readonly string m_client;
 
 	public CatBoxEngine()
 	{
-		m_client = new RestClient("https://catbox.moe/user/api.php");
+		m_client = ("https://catbox.moe/user/api.php");
 	}
 
-	public override Uri Upload(string file)
+	public override async Task<Uri> Upload(string file)
 	{
 		Verify(file);
 
+		var vv = await m_client
+			         .PostMultipartAsync(mp =>
+				                             mp.AddFile("fileToUpload", file)
+				                               .AddUrlEncoded("reqtype", "fileupload")
+			         );
 
-		var req = new RestRequest(Method.POST);
+		var c = vv.ResponseMessage.Content.ReadAsStringAsync().Result;
 
-		req.AddParameter("reqtype", "fileupload");
-		req.AddFile("fileToUpload", file);
-		req.AddHeader("Content-Type", "multipart/form-data");
-
-		var res = m_client.Execute(req);
-
-		if (!res.IsSuccessful) {
+		if (!vv.ResponseMessage.IsSuccessStatusCode) {
 			return null;
 		}
 
-		return new Uri(res.Content);
+		return new Uri(c);
 	}
 }

@@ -16,6 +16,7 @@ using JetBrains.Annotations;
 using Kantan.Net;
 using Novus.Win32;
 using static Kantan.Diagnostics.LogCategories;
+#pragma warning disable CS0168
 
 #pragma warning disable CS0618
 #pragma warning disable SYSLIB0014
@@ -81,7 +82,7 @@ public static class ImageHelper
 			// document = WebUtilities.GetHtmlDocument(url);
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{nameof(WebUtilities)}: {e.Message}", C_ERROR);
+			// Debug.WriteLine($"{nameof(WebUtilities)}: {e.Message}", C_ERROR);
 			document?.Dispose();
 			return images;
 		}

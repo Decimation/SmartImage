@@ -12,6 +12,8 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
+using Flurl;
+using Flurl.Http;
 using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
@@ -50,7 +52,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
-	public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_URL)
+	public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_URL + "search.php")
 	{
 		Authentication = authentication;
 	}
@@ -70,7 +72,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var primaryResult = new ImageResult();
 
-		var parseFunc = (Func<ImageQuery, IEnumerable<SauceNaoDataResult>>)
+		var parseFunc = (Func<ImageQuery, Task<IEnumerable<SauceNaoDataResult>>>)
 			(!UsingAPI ? GetWebResults : GetAPIResults);
 
 		var now = Stopwatch.GetTimestamp();
@@ -86,7 +88,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			goto ret;
 		}
 
-		var imageResults = dataResults.Where(o => o != null)
+		var imageResults = dataResults.Result.Where(o => o != null)
 		                              .AsParallel()
 		                              .Select(ConvertToImageResult)
 		                              .Where(o => o != null)
@@ -101,6 +103,8 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		}
 
 		primaryResult.UpdateFrom(imageResults.First());
+		
+		primaryResult.Url ??= imageResults.FirstOrDefault(x=>x.Url!=null)?.Url;
 
 		result.OtherResults.AddRange(imageResults);
 
@@ -110,7 +114,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		}
 
 		result.PrimaryResult = primaryResult;
-		result.Consolidate();
+
 
 		ret:
 
@@ -125,31 +129,34 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	}
 
 
-	private IEnumerable<SauceNaoDataResult> GetWebResults(ImageQuery query)
+	private async Task<IEnumerable<SauceNaoDataResult>> GetWebResults(ImageQuery query)
 	{
 
 		Trace.WriteLine($"{Name}: | Parsing HTML", LogCategories.C_INFO);
 
 		var docp = new HtmlParser();
 
+		// var form = new MultipartFormDataContent();
 
-		var req = new RestRequest("search.php", Method.POST);
+		byte[] fileBytes = Array.Empty<byte>();
+		object uri       = String.Empty;
 
-		if (query.IsFile) {
-			req.AddFile("file", File.ReadAllBytes(query.Value), "image.png");
-		}
-		else if (query.IsUri) {
-			req.AddParameter("url", query.Value, ParameterType.GetOrPost);
-		}
-		else {
-			throw new SmartImageException();
-		}
+		var x = await EndpointUrl.PostMultipartAsync(m =>
+		{
 
-		var execute = Client.Execute(req);
+			m.AddString("url", query.IsUri ? query.Value : String.Empty);
 
-		string html = execute.Content;
+			if (query.IsUri) { }
+			else if (query.IsFile) {
+				m.AddFile("file", query.Value, fileName: "image.png");
 
+			}
 
+			return;
+		});
+		var html = await x.GetStringAsync();
+
+		
 		/*
 		 * Daily Search Limit Exceeded.
 		 * 208.110.232.218, your IP has exceeded the unregistered user's daily limit of 100 searches.
@@ -231,29 +238,33 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		return results.Select(Parse).ToList();
 	}
 
-	private IEnumerable<SauceNaoDataResult> GetAPIResults(ImageQuery url)
+	private async Task<IEnumerable<SauceNaoDataResult>> GetAPIResults(ImageQuery url)
 	{
 		Trace.WriteLine($"{Name} | API");
 
-		var req = new RestRequest("search.php");
-		req.AddQueryParameter("db", "999");
-		req.AddQueryParameter("output_type", "2");
-		req.AddQueryParameter("numres", "16");
-		req.AddQueryParameter("api_key", Authentication);
-		req.AddQueryParameter("url", url.UploadUri.ToString());
+		
+		HttpClient Client  = new HttpClient();
+		string     dbIndex = "999", numRes = "6";
 
-		using var h   = new HttpClient();
-		using var r   = new HttpRequestMessage(HttpMethod.Post, BASE_URL + "search.php");
-		using var res = h.Send(r);
+		var values = new Dictionary<string, string>
+		{
+			{"db", dbIndex },
+			{"output_type", "2" },
+			{"api_key", Authentication },
+			{"url", url.ToString() },
+			{"numres", numRes }
+		};
+		var content = new FormUrlEncodedContent(values);
+
+		var       res       = await Client.PostAsync("https://saucenao.com/search.php", content);
+		var       c = await res.Content.ReadAsStringAsync();
+		
 
 		if (res.StatusCode == HttpStatusCode.Forbidden) {
 			return null;
 		}
-
-		var task = res.Content.ReadAsStringAsync();
-		task.Wait();
-
-		string c = task.Result;
+		
+		
 
 
 		/*var res = Client.Execute(req);
@@ -321,7 +332,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				buffer.Add(item);
 			}
 
-			return buffer.ToArray();
+			return await Task.FromResult<IEnumerable<SauceNaoDataResult>>(buffer.ToArray());
 		}
 
 		return null;

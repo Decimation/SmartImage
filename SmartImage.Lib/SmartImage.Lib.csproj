@@ -13,6 +13,7 @@
     <PackageReference Include="AngleSharp.Io" Version="0.16.0" />
     <PackageReference Include="AngleSharp.Js" Version="0.15.0" />
     <PackageReference Include="AngleSharp.XPath" Version="1.1.7" />
+    <PackageReference Include="Flurl.Http" Version="3.2.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2021.3.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="RestSharp" Version="106.13.0" />
