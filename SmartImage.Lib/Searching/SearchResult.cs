@@ -15,7 +15,6 @@ using Kantan.Model;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
-using RestSharp;
 using SmartImage.Lib.Engines.Model;
 
 #pragma warning disable IDE0066

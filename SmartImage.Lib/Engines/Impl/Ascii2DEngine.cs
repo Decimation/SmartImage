@@ -11,7 +11,6 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Kantan.Diagnostics;
-using RestSharp;
 using SmartImage.Lib.Engines.Model;
 
 #nullable disable

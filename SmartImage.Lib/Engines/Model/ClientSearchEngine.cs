@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net.Http;
-using RestSharp;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Model;

@@ -14,7 +14,6 @@ using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl;
 using Flurl.Http;
-using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Text;
@@ -41,7 +40,10 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 {
 	private const string BASE_URL = "https://saucenao.com/";
 
-	private const string BASIC_RESULT = "https://saucenao.com/search.php?url=";
+	private const string BASE_ENDPOINT = BASE_URL + "search.php";
+
+	private const string BASIC_RESULT  = $"{BASE_ENDPOINT}?url=";
+
 
 	public override string Name => EngineOption.ToString();
 
@@ -52,7 +54,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
-	public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_URL + "search.php")
+	public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_ENDPOINT)
 	{
 		Authentication = authentication;
 	}
@@ -103,8 +105,8 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		}
 
 		primaryResult.UpdateFrom(imageResults.First());
-		
-		primaryResult.Url ??= imageResults.FirstOrDefault(x=>x.Url!=null)?.Url;
+
+		primaryResult.Url ??= imageResults.FirstOrDefault(x => x.Url != null)?.Url;
 
 		result.OtherResults.AddRange(imageResults);
 
@@ -131,32 +133,24 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	private async Task<IEnumerable<SauceNaoDataResult>> GetWebResults(ImageQuery query)
 	{
-
 		Trace.WriteLine($"{Name}: | Parsing HTML", LogCategories.C_INFO);
 
 		var docp = new HtmlParser();
 
-		// var form = new MultipartFormDataContent();
-
-		byte[] fileBytes = Array.Empty<byte>();
-		object uri       = String.Empty;
-
 		var x = await EndpointUrl.PostMultipartAsync(m =>
 		{
-
 			m.AddString("url", query.IsUri ? query.Value : String.Empty);
 
 			if (query.IsUri) { }
 			else if (query.IsFile) {
 				m.AddFile("file", query.Value, fileName: "image.png");
-
 			}
 
 			return;
 		});
 		var html = await x.GetStringAsync();
 
-		
+
 		/*
 		 * Daily Search Limit Exceeded.
 		 * 208.110.232.218, your IP has exceeded the unregistered user's daily limit of 100 searches.
@@ -242,38 +236,31 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	{
 		Trace.WriteLine($"{Name} | API");
 
-		
-		HttpClient Client  = new HttpClient();
-		string     dbIndex = "999", numRes = "6";
+
+		var client = new HttpClient();
+
+		const string dbIndex = "999";
+		const string numRes  = "6";
 
 		var values = new Dictionary<string, string>
 		{
-			{"db", dbIndex },
-			{"output_type", "2" },
-			{"api_key", Authentication },
-			{"url", url.ToString() },
-			{"numres", numRes }
+			{ "db", dbIndex },
+			{ "output_type", "2" },
+			{ "api_key", Authentication },
+			{ "url", url.ToString() },
+			{ "numres", numRes }
 		};
+
 		var content = new FormUrlEncodedContent(values);
 
-		var       res       = await Client.PostAsync("https://saucenao.com/search.php", content);
-		var       c = await res.Content.ReadAsStringAsync();
-		
+		var res = await client.PostAsync(BASE_ENDPOINT, content);
+		var c   = await res.Content.ReadAsStringAsync();
+
 
 		if (res.StatusCode == HttpStatusCode.Forbidden) {
 			return null;
 		}
 		
-		
-
-
-		/*var res = Client.Execute(req);
-
-		if (res.StatusCode == HttpStatusCode.Forbidden) {
-			return null;
-		}
-
-		string c = res.Content;*/
 
 		// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
 
@@ -313,8 +300,9 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				float similarity = Single.Parse(result[KeySimilarity]);
 
 				string[] strings = result.ContainsKey(KeyUrls)
-					                   ? (result[KeyUrls] as JsonArray)!.Select(j => j.ToString().CleanString())
-					                                                    .ToArray()
+					                   ? (result[KeyUrls] as JsonArray)!
+					                     .Select(j => j.ToString().CleanString())
+					                     .ToArray()
 					                   : null;
 
 				var index = (SauceNaoSiteIndex) Int32.Parse(result[KeyIndex].ToString());
@@ -332,7 +320,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				buffer.Add(item);
 			}
 
-			return await Task.FromResult<IEnumerable<SauceNaoDataResult>>(buffer.ToArray());
+			return await Task.FromResult(buffer.ToArray());
 		}
 
 		return null;

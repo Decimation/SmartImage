@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using System.Net.Http;
 using AngleSharp.Dom;
-using RestSharp;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 

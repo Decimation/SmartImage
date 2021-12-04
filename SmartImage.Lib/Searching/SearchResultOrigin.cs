@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Net.Http;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
-using RestSharp;
 
 namespace SmartImage.Lib.Searching;
 

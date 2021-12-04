@@ -13,7 +13,6 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
-using RestSharp;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Text;
@@ -121,10 +120,8 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 	private async Task<IDocument> GetDocument(ImageQuery query)
 	{
-
 		const int MAX_FILE_SIZE = 8388608;
 		
-
 		var x=await EndpointUrl.PostMultipartAsync(m =>
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
@@ -134,8 +131,8 @@ public sealed class IqdbEngine : ClientSearchEngine
 			if (query.IsUri) { }
 			else if (query.IsFile) {
 				m.AddFile("file", query.Value, fileName: "image.jpg");
-				
 			}
+
 			return;
 		});
 		var ss=await x.GetStringAsync();

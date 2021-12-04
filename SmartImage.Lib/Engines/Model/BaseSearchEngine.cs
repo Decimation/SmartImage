@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Kantan.Diagnostics;
 using Kantan.Net;
-using RestSharp;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 

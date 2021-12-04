@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Flurl.Http.Content;
 using Novus.Win32;
 using Kantan.Numeric;
 
@@ -14,9 +15,14 @@ public abstract class BaseUploadEngine
 
 	public abstract string Name { get; }
 
+	protected string EndpointUrl { get; }
 
-	public abstract Task<Uri> Upload(string file);
+	protected BaseUploadEngine(string s)
+	{
+		EndpointUrl = s;
+	}
 
+	public abstract Task<Uri> UploadFileAsync(string file);
 
 	protected bool IsFileSizeValid(string file)
 	{

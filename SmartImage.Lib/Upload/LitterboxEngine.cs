@@ -3,7 +3,6 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Flurl.Http;
 using Kantan.Threading;
-using RestSharp;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable StringLiteralTypo
@@ -18,36 +17,27 @@ public sealed class LitterboxEngine : BaseUploadEngine
 
 	public override int MaxSize => 1000;
 
-	private readonly string m_client;
+	public LitterboxEngine() : base("https://litterbox.catbox.moe/resources/internals/api.php") { }
 
-	public LitterboxEngine()
-	{
-		m_client = ("https://litterbox.catbox.moe/resources/internals/api.php");
-	}
-
-	public override async Task<Uri> Upload(string file)
+	public override async Task<Uri> UploadFileAsync(string file)
 	{
 		Verify(file);
 
+		using var response = await EndpointUrl
+			                     .PostMultipartAsync(mp =>
+				                                         mp.AddFile("fileToUpload", file)
+				                                           .AddString("reqtype", "fileupload")
+				                                           .AddString("time", "1h")
+			                     );
 
-		string task=null;
+		var responseMessage = response.ResponseMessage;
 
-		var vv = await m_client
-			         .PostMultipartAsync(mp =>
-				                             mp.AddFile("fileToUpload", file)
-				                               .AddString("reqtype", "fileupload")
-				                               .AddString("time", "1h")
-			         );
-		var content = vv.ResponseMessage.Content;
-		task = await content.ReadAsStringAsync();
-		
-		
+		var content = await responseMessage.Content.ReadAsStringAsync();
 
-
-		if (!vv.ResponseMessage.IsSuccessStatusCode) {
+		if (!responseMessage.IsSuccessStatusCode) {
 			return null;
 		}
 
-		return new Uri(task);
+		return new Uri(content);
 	}
 }

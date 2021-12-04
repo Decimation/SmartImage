@@ -4,10 +4,13 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Web;
+using Flurl;
+using Flurl.Http;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
-using RestSharp;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Model;
 using SmartImage.Lib.Searching;
@@ -41,26 +44,29 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 	protected override SearchResult Process(object obj, SearchResult r)
 	{
-		var Client = new RestClient(EndpointUrl);
 
 		//var r = base.GetResult(url);
 		var query = (ImageQuery) obj;
 		// https://soruly.github.io/trace.moe/#/
-
 		
-		var rq  = new RestRequest("search");
-		rq.AddQueryParameter("url", query.UploadUri.ToString(), true);
-
+		var f = (EndpointUrl+"/search")
+		                   .SetQueryParam("url", query.UploadUri.ToString(), true)
+		                   .GetAsync();
+		f.Wait();
 		
+		var response =  f.Result.GetStringAsync();
+		response.Wait();
 
 		//rq.AddQueryParameter("anilistInfo", "");
-		rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
-		rq.Timeout                 = Timeout.Milliseconds;
-		rq.RequestFormat           = DataFormat.Json;
+		// rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
+		// rq.Timeout                 = Timeout.Milliseconds;
+		// rq.RequestFormat           = DataFormat.Json;
 
 		var now  = Stopwatch.GetTimestamp();
-		var re   = Client.Execute<TraceMoeRootObject>(rq, Method.GET);
-		var tm   = re.Data;
+		
+		// var re   = client.Execute<TraceMoeRootObject>(rq, Method.GET);
+		var re   = JsonConvert.DeserializeObject<TraceMoeRootObject>(response.Result);
+		var tm   = re;
 		var diff = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 		r.RetrievalTime = diff;
 
@@ -94,7 +100,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		}
 		else {
 			Debug.WriteLine($"{Name}: API error", C_ERROR);
-			r.ErrorMessage = $"{re.ErrorMessage} {re.StatusCode}";
+
 		}
 
 		ret:

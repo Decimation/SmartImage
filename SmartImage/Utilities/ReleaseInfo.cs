@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Globalization;
+using Flurl.Http;
 using Newtonsoft.Json.Linq;
-using RestSharp;
 using Kantan.Diagnostics;
+using Newtonsoft.Json;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -60,19 +62,23 @@ public readonly struct ReleaseInfo
 
 	public static ReleaseInfo GetLatestRelease()
 	{
-		var rc = new RestClient(GITHUB_API_ENDPOINT);
-		var re = new RestRequest(GITHUB_API_SMARTIMAGE);
-		var rs = rc.Execute(re);
-		var ja = JArray.Parse(rs.Content);
+		const string s =
+			"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36";
 
-		var first = ja[0];
+		var task = (GITHUB_API_ENDPOINT + GITHUB_API_SMARTIMAGE)
+		           .WithHeader("User-Agent", s)
+		           .GetJsonListAsync();
 
-		var tagName = first["tag_name"];
-		var url     = first["html_url"];
-		var publish = first["published_at"];
+		task.Wait();
 
-		var assets = first["assets"];
-		var dlUrl  = assets[0]["browser_download_url"];
+		var list  = task.Result;
+		var first = list[0];
+
+		var tagName = first.tag_name;
+		var url     = first.html_url;
+		var publish = first.published_at;
+		var assets  = first.assets;
+		var dlUrl   = assets[0].browser_download_url;
 
 		var r = new ReleaseInfo(tagName.ToString(), url.ToString(), publish.ToString(), dlUrl.ToString());
 

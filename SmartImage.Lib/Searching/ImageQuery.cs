@@ -74,7 +74,7 @@ public sealed class ImageQuery : IDisposable
 		
 
 		if (IsFile) {
-			var task = UploadEngine.Upload(Value);
+			var task = UploadEngine.UploadFileAsync(Value);
 			task.Wait();
 			UploadUri = task.Result;
 		}
