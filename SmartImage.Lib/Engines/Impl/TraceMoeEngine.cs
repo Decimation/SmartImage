@@ -51,18 +51,21 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		//var r = base.GetResult(url);
 		var query = (ImageQuery) obj;
 		// https://soruly.github.io/trace.moe/#/
+		
 
-		TraceMoeRootObject re = null;
+		TraceMoeRootObject tm;
 
 		try {
 			IFlurlRequest request = (EndpointUrl + "/search")
 			                             .AllowAnyHttpStatus()
-			                             .SetQueryParam("url", query.UploadUri.ToString(), true);
+			                             .SetQueryParam("url", 
+			                                            query.UploadUri.ToString(), 
+			                                            true);
 
 			var task = request.GetStringAsync();
 
 			task.Wait(Timeout);
-			re = JsonConvert.DeserializeObject<TraceMoeRootObject>(task.Result);
+			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(task.Result);
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}");
@@ -71,20 +74,6 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		}
 
 
-		//rq.AddQueryParameter("anilistInfo", "");
-		// rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
-		// rq.Timeout                 = Timeout.Milliseconds;
-		// rq.RequestFormat           = DataFormat.Json;
-
-		var now = Stopwatch.GetTimestamp();
-
-		// var re   = client.Execute<TraceMoeRootObject>(rq, Method.GET);
-		var tm   = re;
-		var diff = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
-		r.RetrievalTime = diff;
-
-		//var tm=JsonConvert.DeserializeObject<TraceMoeRootObject>(re.Content);
-
 		if (tm?.result != null) {
 			// Most similar to least similar
 
@@ -92,12 +81,6 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				var results = ConvertResults(tm).ToList();
 				var best    = results[0];
 
-				/*r = new SearchResult(this)
-				{
-					PrimaryResult = best,
-					RawUri        = new Uri(BaseUrl + query.UploadUri),
-
-				};*/
 				r.PrimaryResult = best;
 				r.RawUri        = new Uri(BaseUrl + query.UploadUri);
 				r.OtherResults.AddRange(results);
@@ -120,9 +103,8 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 		r.PrimaryResult.Quality = r.PrimaryResult.Similarity switch
 		{
-			null                => ResultQuality.Indeterminate,
 			>= FILTER_THRESHOLD => ResultQuality.High,
-			_                   => ResultQuality.Low,
+			_ or null                  => ResultQuality.NA,
 		};
 		return r;
 	}

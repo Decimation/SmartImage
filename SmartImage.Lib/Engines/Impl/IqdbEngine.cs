@@ -147,10 +147,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 	{
 		// Don't select other results
 		var query = (ImageQuery) obj;
-		var now   = Stopwatch.GetTimestamp();
 		var doc   = GetDocument(query);
-		var diff  = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
-		sr.RetrievalTime = diff;
 
 		var pages  = doc.Result.Body.SelectSingleNode("//div[@id='pages']");
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
@@ -181,9 +178,8 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 		sr.PrimaryResult.Quality = sr.PrimaryResult.Similarity switch
 		{
-			null  => ResultQuality.Indeterminate,
-			>= 75 => ResultQuality.High,
-			_     => ResultQuality.Low,
+			>= 75     => ResultQuality.High,
+			_ or null => ResultQuality.NA,
 		};
 
 		return sr;

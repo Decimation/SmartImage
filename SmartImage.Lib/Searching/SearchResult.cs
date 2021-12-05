@@ -133,11 +133,7 @@ public class SearchResult : IOutline, IDisposable
 		PrimaryResult = new ImageResult();
 		OtherResults  = new List<ImageResult>();
 	}
-
-	/// <summary>
-	/// The time taken to retrieve results from the engine
-	/// </summary>
-	public TimeSpan? RetrievalTime { get; internal set; }
+	
 
 	public bool Scanned { get; internal set; }
 
@@ -188,9 +184,6 @@ public class SearchResult : IOutline, IDisposable
 				map.Add("Status", Status);
 			}
 
-			if (RetrievalTime.HasValue) {
-				map.Add("Time", $"(retrieval: {RetrievalTime.Value.TotalSeconds:F3})");
-			}
 
 			return map;
 		}

@@ -256,7 +256,7 @@ public static class Program
 
 		}
 		catch (Exception e) {
-			
+			//ignored
 		}
 
 		Client.Dispose();

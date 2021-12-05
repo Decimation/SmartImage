@@ -83,7 +83,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var dataResults = parseFunc(query);
 
-		result.RetrievalTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		if (dataResults == null) {
 			result.ErrorMessage = "Daily search limit (100) exceeded";
@@ -124,9 +123,8 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		result.PrimaryResult.Quality = result.PrimaryResult.Similarity switch
 		{
-			null  => ResultQuality.Indeterminate,
 			>= 75 => ResultQuality.High,
-			_     => ResultQuality.Low,
+			_ or null    => ResultQuality.NA,
 		};
 
 		return result;

@@ -71,8 +71,6 @@ public sealed class ImageQuery : IDisposable
 		//note: default upload engine
 		UploadEngine = engine ?? new LitterboxEngine();
 
-		
-
 		if (IsFile) {
 			var task = UploadEngine.UploadFileAsync(Value);
 			task.Wait();
@@ -96,6 +94,7 @@ public sealed class ImageQuery : IDisposable
 
 	public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 	{
+		//todo
 		var isUriOrFile = (ImageHelper.IsImage(x, out var di), File.Exists(x));
 		// di?.Dispose();
 		return isUriOrFile;

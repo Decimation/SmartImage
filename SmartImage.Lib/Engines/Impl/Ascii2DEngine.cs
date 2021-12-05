@@ -174,11 +174,10 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		sr.PrimaryResult.Quality = sr.PrimaryResult.MegapixelResolution switch
 		{
-			null => ResultQuality.Indeterminate,
-			>= 1 => ResultQuality.High,
-			_    => ResultQuality.Low,
+			>= 1      => ResultQuality.High,
+			_ or null => ResultQuality.NA,
 		};
-
+		
 
 		return sr;
 	}

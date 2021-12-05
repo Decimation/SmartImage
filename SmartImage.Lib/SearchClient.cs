@@ -41,7 +41,6 @@ public sealed class SearchClient : IDisposable
 		DirectResults   = new List<ImageResult>();
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
-		new AutoResetEvent(false);
 
 		Reload();
 	}
@@ -139,7 +138,6 @@ public sealed class SearchClient : IDisposable
 		{
 			var task = engine.GetResultAsync(Config.Query);
 
-
 			return task;
 		}));
 
@@ -217,8 +215,7 @@ public sealed class SearchClient : IDisposable
 
 		DetailedResults.AddRange(ApplyPredicateFilter(Results, DetailPredicate));
 
-		var args = new SearchCompletedEventArgs
-			{ };
+		var args = new SearchCompletedEventArgs { };
 
 		SearchCompleted?.Invoke(null, args);
 	}
@@ -238,6 +235,8 @@ public sealed class SearchClient : IDisposable
 
 	public WaitHandle GetWaitHandle()
 	{
+		// ReSharper disable PossibleNullReferenceException
+
 		WaitHandle w = new AutoResetEvent(false);
 
 		ThreadPool.QueueUserWorkItem((state) =>
@@ -251,6 +250,8 @@ public sealed class SearchClient : IDisposable
 		}, w);
 
 		return w;
+
+		// ReSharper restore PossibleNullReferenceException
 	}
 
 	private void GetResultContinueCallback(Task<SearchResult> task, object state)
@@ -258,9 +259,7 @@ public sealed class SearchClient : IDisposable
 		var value = task.Result;
 
 		if (value.IsSuccessful && value.IsNonPrimitive) {
-			// ThreadPool.QueueUserWorkItem(c => FindDirectResults(c, value));
-			// ThreadPool.QueueUserWorkItem(_ => Back(_, value));
-			Debug.WriteLine($">>{value.Engine.Name}");
+			
 			/*var imageResults = value.AllResults;
 
 			var take2 = 5;
@@ -286,7 +285,6 @@ public sealed class SearchClient : IDisposable
 					result = result.Where(x => x.Direct != null).ToList();
 
 					if (result.Any()) {
-						Debug.WriteLine($"adding {result.Count} to {DirectResults.Count}");
 						DirectResults.AddRange(result);
 						value.Scanned = true;
 
@@ -294,13 +292,8 @@ public sealed class SearchClient : IDisposable
 
 					}
 				}
-
 			}
-			else { }
-
 		}
-
-		return;
 	}
 
 	/// <summary>
@@ -316,8 +309,6 @@ public sealed class SearchClient : IDisposable
 
 		if (directResult == null) {
 			throw new SmartImageException("Could not find direct result");
-
-			// return;
 		}
 
 		var direct = directResult.Direct.Url;

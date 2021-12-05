@@ -95,7 +95,6 @@ public abstract class BaseSearchEngine
 				Debug.WriteLine($"{Name} is unavailable or timed out after " +
 				                $"{Timeout:g} | {rawUri} {res.StatusCode}", C_WARN);
 				success = false;
-				// res.Dispose();
 			}
 		}
 		else {
