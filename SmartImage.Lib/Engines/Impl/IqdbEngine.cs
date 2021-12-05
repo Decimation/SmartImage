@@ -121,12 +121,12 @@ public sealed class IqdbEngine : ClientSearchEngine
 	private async Task<IDocument> GetDocument(ImageQuery query)
 	{
 		const int MAX_FILE_SIZE = 8388608;
-		
-		var x=await EndpointUrl.PostMultipartAsync(m =>
+
+		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
 
-			m.AddString("url", query.IsUri?query.Value:String.Empty);
+			m.AddString("url", query.IsUri ? query.Value : String.Empty);
 
 			if (query.IsUri) { }
 			else if (query.IsFile) {
@@ -135,15 +135,11 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 			return;
 		});
-		var ss=await x.GetStringAsync();
 
-		
+		var s = await response.GetStringAsync();
 
 		var parser = new HtmlParser();
-		return parser.ParseDocument(ss);
-		// var task = p.Result.Content.ReadAsStringAsync();
-		// task.Wait();
-		// return parser.ParseDocument(task.Result);
+		return parser.ParseDocument(s);
 	}
 
 

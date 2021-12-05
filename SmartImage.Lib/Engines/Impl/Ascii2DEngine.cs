@@ -90,7 +90,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		var content = task.Result;
 
-		var diff    = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+		var diff = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		var stub = new SearchResultOrigin()
 		{

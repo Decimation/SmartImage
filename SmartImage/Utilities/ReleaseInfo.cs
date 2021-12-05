@@ -10,7 +10,7 @@ using Newtonsoft.Json;
 
 namespace SmartImage.Utilities;
 
-public readonly struct ReleaseInfo
+public readonly record struct ReleaseInfo
 {
 	private const string GITHUB_API_ENDPOINT = "https://api.github.com/";
 

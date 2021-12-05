@@ -25,6 +25,8 @@ using static Kantan.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
+// ReSharper disable PossibleNullReferenceException
+
 // ReSharper disable PropertyCanBeMadeInitOnly.Local
 // ReSharper disable StringLiteralTypo
 // ReSharper disable UnusedAutoPropertyAccessor.Local
@@ -42,7 +44,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	private const string BASE_ENDPOINT = BASE_URL + "search.php";
 
-	private const string BASIC_RESULT  = $"{BASE_ENDPOINT}?url=";
+	private const string BASIC_RESULT = $"{BASE_ENDPOINT}?url=";
 
 
 	public override string Name => EngineOption.ToString();
@@ -183,16 +185,17 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				return null;
 			}
 
-			var resulttablecontent = result.FirstChild.FirstChild.FirstChild.ChildNodes[1];
+			var resulttablecontent = result.FirstChild
+			                               .FirstChild
+			                               .FirstChild
+			                               .ChildNodes[1];
 
 			var resultmatchinfo      = resulttablecontent.FirstChild;
 			var resultsimilarityinfo = resultmatchinfo.FirstChild;
 
 			// Contains links
-			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
-
-			var resultcontent = resulttablecontent.ChildNodes[1];
-
+			var resultmiscinfo      = resultmatchinfo.ChildNodes[1];
+			var resultcontent       = resulttablecontent.ChildNodes[1];
 			var resultcontentcolumn = resultcontent.ChildNodes[1];
 
 			string link = null;
@@ -207,22 +210,26 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			//	//div[contains(@class, 'resulttitle')]
 			//	//div/node()[self::strong]
 
-			var    resulttitle = resultcontent.ChildNodes[0];
+			INode  resulttitle = resultcontent.ChildNodes[0];
 			string rti         = resulttitle?.TextContent;
 
-			var    resultcontentcolumn1 = resultcontent.ChildNodes[1];
+			INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
 			string rcci                 = resultcontentcolumn1?.TextContent;
 
 			string material1 = rcci?.SubstringAfter("Material: ");
 
 			string creator1 = rti ?? rcci;
-			creator1 = creator1?.SubstringAfter("Creator: ");
+			creator1 = creator1.SubstringAfter("Creator: ");
 
 
 			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
 			var dataResult = new SauceNaoDataResult
-				{ Urls = new[] { link }!, Similarity = similarity, Creator = creator1 };
+			{
+				Urls       = new[] { link },
+				Similarity = similarity,
+				Creator    = creator1
+			};
 
 			return dataResult;
 
@@ -235,7 +242,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	private async Task<IEnumerable<SauceNaoDataResult>> GetAPIResults(ImageQuery url)
 	{
 		Trace.WriteLine($"{Name} | API");
-
 
 		var client = new HttpClient();
 
@@ -256,11 +262,10 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		var res = await client.PostAsync(BASE_ENDPOINT, content);
 		var c   = await res.Content.ReadAsStringAsync();
 
-
 		if (res.StatusCode == HttpStatusCode.Forbidden) {
 			return null;
 		}
-		
+
 
 		// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
 
@@ -270,10 +275,9 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		const string KeyCreator    = "creator";
 		const string KeyCharacters = "characters";
 		const string KeyMaterial   = "material";
-
-		const string KeyResults = "results";
-		const string KeyHeader  = "header";
-		const string KeyData    = "data";
+		const string KeyResults    = "results";
+		const string KeyHeader     = "header";
+		const string KeyData       = "data";
 
 		var jsonString = JsonValue.Parse(c);
 

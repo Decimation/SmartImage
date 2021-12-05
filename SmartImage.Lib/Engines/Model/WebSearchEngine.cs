@@ -6,7 +6,6 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Kantan.Utilities;
-using RestSharp;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Model;

@@ -6,10 +6,13 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
+using Kantan.Net;
+using Kantan.Threading;
 using Newtonsoft.Json;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Model;
@@ -48,24 +51,34 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		//var r = base.GetResult(url);
 		var query = (ImageQuery) obj;
 		// https://soruly.github.io/trace.moe/#/
-		
-		var f = (EndpointUrl+"/search")
-		                   .SetQueryParam("url", query.UploadUri.ToString(), true)
-		                   .GetAsync();
-		f.Wait();
-		
-		var response =  f.Result.GetStringAsync();
-		response.Wait();
+
+		TraceMoeRootObject re = null;
+
+		try {
+			IFlurlRequest request = (EndpointUrl + "/search")
+			                             .AllowAnyHttpStatus()
+			                             .SetQueryParam("url", query.UploadUri.ToString(), true);
+
+			var task = request.GetStringAsync();
+
+			task.Wait(Timeout);
+			re = JsonConvert.DeserializeObject<TraceMoeRootObject>(task.Result);
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+
+			goto ret;
+		}
+
 
 		//rq.AddQueryParameter("anilistInfo", "");
 		// rq.OnBeforeDeserialization = resp => { resp.ContentType = "application/json"; };
 		// rq.Timeout                 = Timeout.Milliseconds;
 		// rq.RequestFormat           = DataFormat.Json;
 
-		var now  = Stopwatch.GetTimestamp();
-		
+		var now = Stopwatch.GetTimestamp();
+
 		// var re   = client.Execute<TraceMoeRootObject>(rq, Method.GET);
-		var re   = JsonConvert.DeserializeObject<TraceMoeRootObject>(response.Result);
 		var tm   = re;
 		var diff = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 		r.RetrievalTime = diff;
@@ -90,7 +103,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				r.OtherResults.AddRange(results);
 			}
 			catch (Exception e) {
-				r              = GetResult(query);
+				// r              = base.GetResult(query);
 				r.ErrorMessage = e.Message;
 				r.Status       = ResultStatus.Failure;
 				//return r;
@@ -123,21 +136,26 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			var   doc = docs[i];
 			float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
-
-			string anilistUrl = ANILIST_URL + doc.anilist;
-			string name       = m_anilistClient.GetTitle((int) doc.anilist);
-
 			var result = new ImageResult
 			{
-				Url         = new Uri(anilistUrl),
 				Similarity  = sim,
-				Source      = name,
 				Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.from)}"
 			};
 
+			try {
+				string anilistUrl = ANILIST_URL + doc.anilist;
+				string name       = m_anilistClient.GetTitle((int) doc.anilist);
+				result.Source = name;
+				result.Url    = new Uri(anilistUrl);
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+			}
+
 			if (result.Similarity < FILTER_THRESHOLD) {
 				result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
-				                                 $"({result.Similarity.Value.AsPercent()} < {FILTER_THRESHOLD.AsPercent()})");
+				                                 $"({result.Similarity.Value.AsPercent()} " +
+				                                 $"< {FILTER_THRESHOLD.AsPercent()})");
 			}
 
 			results[i] = result;
