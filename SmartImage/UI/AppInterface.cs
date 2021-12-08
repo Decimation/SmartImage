@@ -1,30 +1,17 @@
 ﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
-
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.IO;
-using System.Linq;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Net;
-using Kantan.Numeric;
 using Kantan.Text;
 using Kantan.Utilities;
-using Microsoft.Toolkit.Uwp.Notifications;
-using Novus.Utilities;
 using SmartImage.Core;
-using SmartImage.Lib;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Properties;
 using SmartImage.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
-using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.Program;
-using static SmartImage.UI.ConsoleUIFactory;
 
 // ReSharper disable LocalizableElement
 // ReSharper disable AssignNullToNotNullAttribute
@@ -61,14 +48,14 @@ internal static partial class AppInterface
 			}
 		},
 
-		CreateEnumConfigOption(nameof(Config.SearchEngines), "Engines"),
-		CreateEnumConfigOption(nameof(Config.PriorityEngines), "Priority engines"),
-		CreateConfigOption(nameof(Config.Filtering), "Filter", Program.Config),
-		CreateConfigOption(nameof(Config.Notification), "Notification", Program.Config),
-		CreateConfigOption(nameof(Config.NotificationImage), "Notification image", Program.Config),
+		Elements.CreateEnumConfigOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines",Config),
+		Elements.CreateEnumConfigOption<SearchEngineOptions>(nameof(Config.PriorityEngines), "Priority engines",Config),
+		Elements.CreateConfigOption(nameof(Config.Filtering), "Filter", Config),
+		Elements.CreateConfigOption(nameof(Config.Notification), "Notification", Config),
+		Elements.CreateConfigOption(nameof(Config.NotificationImage), "Notification image", Config),
 
-		CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu",
-		                   added => AppIntegration.HandleContextMenu(!added)),
+		Elements.CreateConfigOption(propertyof(() => AppIntegration.IsContextMenuAdded), "Context menu",
+		                            added => AppIntegration.HandleContextMenu(!added), Config),
 
 		new()
 		{

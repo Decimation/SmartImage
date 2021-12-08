@@ -13,19 +13,19 @@ public class SearchResultOrigin : IDisposable
 {
 	public ImageQuery Query { get; init; }
 
-	public HttpResponseMessage InitialResponse { get; init; }
+	public HttpResponseMessage Response { get; init; }
 
 	public string Content { get; init; }
 		
 	public TimeSpan Retrieval { get; init; }
 
-	public bool InitialSuccess { get; init; }
+	public bool Success { get; init; }
 
 	public Uri RawUri { get; init; }
 
 	public void Dispose()
 	{
-		InitialResponse?.Dispose();
+		Response?.Dispose();
 
 	}
 }

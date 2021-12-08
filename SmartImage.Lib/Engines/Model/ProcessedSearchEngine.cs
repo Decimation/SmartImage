@@ -33,6 +33,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 		var sr = base.GetResult(query);
 
 		if (!sr.IsSuccessful) {
+			// sr.Origin.Dispose();
 			return sr;
 		}
 		try {
@@ -44,6 +45,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 			if (obj is IDisposable d) {
 				d.Dispose();
 			}
+			// sr.Origin.Dispose();
 
 			return sr;
 		}

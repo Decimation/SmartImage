@@ -10,14 +10,19 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Kantan.Cli.Controls;
+using Kantan.Diagnostics;
 using Kantan.Model;
+using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
+using Novus.Win32;
 using SmartImage.Lib.Engines.Model;
 
-#pragma warning disable IDE0066
+#pragma warning disable IDE0066, CA1416
 
 namespace SmartImage.Lib.Searching;
 
@@ -57,7 +62,7 @@ public enum ResultStatus
 /// <summary>
 /// Describes a search result
 /// </summary>
-public class SearchResult : IOutline, IDisposable
+public class SearchResult : IResult
 {
 	/// <summary>
 	/// Primary image result
@@ -133,7 +138,7 @@ public class SearchResult : IOutline, IDisposable
 		PrimaryResult = new ImageResult();
 		OtherResults  = new List<ImageResult>();
 	}
-	
+
 
 	public bool Scanned { get; internal set; }
 
@@ -159,17 +164,94 @@ public class SearchResult : IOutline, IDisposable
 		return directResults;
 	}
 
-	
 
-	public override string ToString() => Strings.OutlineString(this);
+	public ConsoleOption GetConsoleOption()
+	{
+		//todo
 
-	public Dictionary<string, object> Outline
+		// var color = Elements.EngineColorMap[result.Engine.EngineOption];
+
+		ConsoleModifiers NC_FN_MAIN = 0;
+
+		var option = new ConsoleOption
+		{
+			Functions = new()
+			{
+				[NC_FN_MAIN] = IResult.CreateOpenFunction(PrimaryResult is { Url: { } }
+					                                          ? PrimaryResult.Url
+					                                          : RawUri),
+
+				[ConsoleModifiers.Shift] = IResult.CreateOpenFunction(RawUri),
+				[ConsoleModifiers.Alt] = () =>
+				{
+					if (OtherResults.Any()) {
+						//todo
+
+						var c = Color.BurlyWood;
+						var n = "Other result";
+						int i = 0;
+
+						var options = OtherResults.Select(r =>
+							                                  r.GetConsoleOption($"{n} #{i++}", c))
+						                          .ToArray();
+
+						var dialog = new ConsoleDialog
+						{
+							Options = options
+						};
+
+						dialog.ReadInput();
+					}
+
+					return null;
+				},
+			},
+
+			// Color = color,
+
+			Name = Engine.Name,
+			Data = this.Data,
+		};
+
+
+		option.Functions[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
+			IResult.CreateDownloadFunction(() => PrimaryResult.Direct.Url);
+
+		option.Functions[ConsoleModifiers.Control] = () =>
+		{
+			var cts = new CancellationTokenSource();
+
+			if (OperatingSystem.IsWindows()) {
+				ConsoleProgressIndicator.Start(cts);
+			}
+
+			// Program.Client.FindDirectResults(result);
+
+			_ = FindDirectResultsAsync();
+
+			cts.Cancel();
+			cts.Dispose();
+
+			option.Data = Data;
+
+			return null;
+		};
+
+		return option;
+	}
+
+	public Dictionary<string, object> Data
 	{
 		get
 		{
 			var map = new Dictionary<string, object>();
 
-			map.Add(nameof(PrimaryResult), PrimaryResult);
+			// map.Add(nameof(PrimaryResult), PrimaryResult);
+
+			foreach ((string key, object value) in PrimaryResult.Data) {
+				map.Add(key, value);
+			}
+
 			map.Add("Raw", RawUri);
 
 			if (OtherResults.Count != 0) {

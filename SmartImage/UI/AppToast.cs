@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Text;
 using Windows.ApplicationModel.Background;
@@ -27,7 +28,8 @@ internal static class AppToast
 		var button  = new ToastButton();
 		var button2 = new ToastButton();
 
-		button2.SetContent("Dismiss").AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
+		button2.SetContent("Dismiss")
+		       .AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
 
 
 		var sb = new StringBuilder();
@@ -106,8 +108,7 @@ internal static class AppToast
 		builder.SetBackgroundActivation();
 		builder.Show();
 	}
-
-
+	
 	internal static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)
 	{
 		// NOTE: Does not return if invoked from background

@@ -4,6 +4,8 @@ using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Kantan.Cli.Controls;
+using Kantan.Model;
 using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
@@ -19,7 +21,7 @@ namespace SmartImage.Lib.Searching;
 /// <summary>
 /// Search query
 /// </summary>
-public sealed class ImageQuery : IDisposable
+public sealed class ImageQuery : IDisposable, IConsoleComponent
 {
 	/// <summary>
 	/// Original input
@@ -125,6 +127,11 @@ public sealed class ImageQuery : IDisposable
 	public override string ToString()
 	{
 		return $"{Value} | {UploadUri}";
+	}
+
+	public ConsoleOption GetConsoleOption()
+	{
+		return GetImageResult().GetConsoleOption("(Original image)", Color.Red, -0.1f);
 	}
 
 	public void Dispose()

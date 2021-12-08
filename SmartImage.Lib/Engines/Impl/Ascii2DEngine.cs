@@ -94,10 +94,10 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		var stub = new SearchResultOrigin()
 		{
-			InitialResponse = response,
+			Response = response,
 			Content         = content,
 			Retrieval       = diff,
-			InitialSuccess  = true,
+			Success  = true,
 			RawUri          = rawUri
 		};
 

@@ -7,9 +7,11 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Kantan.Cli.Controls;
 using Kantan.Model;
 using Kantan.Numeric;
 using Kantan.Text;
+using Kantan.Utilities;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable SuggestVarOrType_DeconstructionDeclarations
@@ -31,7 +33,7 @@ public enum ResultQuality
 /// <summary>
 /// Describes an image search result
 /// </summary>
-public sealed class ImageResult : IOutline, IDisposable
+public sealed class ImageResult : IResult
 {
 	/// <summary>
 	/// Result url
@@ -184,7 +186,9 @@ public sealed class ImageResult : IOutline, IDisposable
 
 	private static List<FieldInfo> GetDetailFields()
 	{
-		var fields = typeof(ImageResult).GetRuntimeFields().Where(f => !f.IsStatic).ToList();
+		var fields = typeof(ImageResult).GetRuntimeFields()
+		                                .Where(f => !f.IsStatic)
+		                                .ToList();
 
 		fields.RemoveAll(f => f.Name.Contains(nameof(OtherMetadata)));
 
@@ -211,13 +215,14 @@ public sealed class ImageResult : IOutline, IDisposable
 
 	public async Task<bool> ScanForImagesAsync()
 	{
-		if (Url == null || Direct?.Url != null||IsAlreadyDirect()) {
+		if (Url == null || Direct?.Url != null || IsAlreadyDirect()) {
 			return true;
 		}
 
 		try {
 
 			var directImages = await ImageHelper.ScanForImages(Url.ToString());
+
 			if (directImages.Any()) {
 				Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
 
@@ -263,9 +268,7 @@ public sealed class ImageResult : IOutline, IDisposable
 		return b;
 	}
 
-	public override string ToString() => Strings.OutlineString(this);
-
-	public Dictionary<string, object> Outline
+	public Dictionary<string, object> Data
 	{
 		get
 		{
@@ -316,5 +319,30 @@ public sealed class ImageResult : IOutline, IDisposable
 	public void Dispose()
 	{
 		Direct?.Dispose();
+	}
+
+	public ConsoleOption GetConsoleOption()
+	{
+		return null;
+	}
+
+	public ConsoleOption GetConsoleOption(string n, Color c, float correction = -.3f)
+	{
+		ConsoleModifiers NC_FN_MAIN = 0;
+
+		var option = new ConsoleOption
+		{
+			Color = c.ChangeBrightness(correction),
+			Name  = n,
+			Data  = Data,
+			Functions =
+			{
+				[NC_FN_MAIN] = IResult.CreateOpenFunction(Url),
+				[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
+					IResult.CreateDownloadFunction(() => Direct.Url)
+			}
+		};
+
+		return option;
 	}
 }

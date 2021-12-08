@@ -43,9 +43,9 @@ public abstract class BaseSearchEngine
 		};
 
 
-		if (!sr.Origin.InitialSuccess) {
+		if (!sr.Origin.Success) {
 			sr.Status       = ResultStatus.Unavailable;
-			sr.ErrorMessage = $"{sr} | {sr.Origin.InitialResponse.StatusCode}";
+			sr.ErrorMessage = $"{sr} | {sr.Origin.Response.StatusCode}";
 		}
 		else {
 			sr.RawUri = sr.Origin.RawUri;
@@ -111,9 +111,9 @@ public abstract class BaseSearchEngine
 
 		var origin = new SearchResultOrigin
 		{
-			InitialResponse = res,
+			Response = res,
 			Content         = content,
-			InitialSuccess  = success,
+			Success  = success,
 			RawUri          = rawUri,
 			Query           = query
 		};

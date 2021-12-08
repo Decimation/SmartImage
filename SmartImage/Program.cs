@@ -98,7 +98,7 @@ public static class Program
 		              $"{"F1:".AddColor(Elements.ColorKey)} Show filtered results | " +
 		              $"{"F2:".AddColor(Elements.ColorKey)} Refine | " +
 		              $"{"F5:".AddColor(Elements.ColorKey)} Refresh",
-
+		
 		Functions = new()
 		{
 			[ConsoleKey.F1] = () =>
@@ -116,7 +116,7 @@ public static class Program
 
 				ResultDialog.Options.Add(_originalResult);
 
-				foreach (ConsoleOption option in buffer.Select(ConsoleUIFactory.CreateResultOption)) {
+				foreach (ConsoleOption option in buffer.Select(x=>x.GetConsoleOption())) {
 					ResultDialog.Options.Add(option);
 				}
 
@@ -231,15 +231,15 @@ public static class Program
 		};
 
 
-		CPI.Start(_cancellationToken);
+		ConsoleProgressIndicator.Start(_cancellationToken);
 
 
 		// Show results
 		var searchTask    = Client.RunSearchAsync();
 		var secondaryTask = Client.RunContinueAsync();
 
-		_originalResult = ConsoleUIFactory.CreateResultOption(Config.Query.GetImageResult(), "(Original image)",
-		                                                      Elements.ColorMain, -0.1f);
+
+		_originalResult = Config.Query.GetConsoleOption();
 
 		// Add original image
 		ResultDialog.Options.Add(_originalResult);
@@ -328,7 +328,7 @@ public static class Program
 				}
 			}
 		},
-		Default = new CliParameter
+		Default = new()
 		{
 			ArgumentCount = 1,
 			ParameterId   = null,
@@ -420,7 +420,7 @@ public static class Program
 	{
 		SearchResult result = eventArgs.Result;
 
-		ConsoleOption option = ConsoleUIFactory.CreateResultOption(result);
+		ConsoleOption option = result.GetConsoleOption();
 
 		bool? isFiltered = eventArgs.IsFiltered;
 
@@ -442,8 +442,8 @@ public static class Program
 
 		ResultDialog.Status = status;
 
-		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-		GC.Collect();
+		/*GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+		GC.Collect();*/
 
 	}
 
