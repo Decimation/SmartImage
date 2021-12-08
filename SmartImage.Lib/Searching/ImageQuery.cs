@@ -131,7 +131,7 @@ public sealed class ImageQuery : IDisposable, IConsoleComponent
 
 	public ConsoleOption GetConsoleOption()
 	{
-		return GetImageResult().GetConsoleOption("(Original image)", Color.Red, -0.1f);
+		return GetImageResult().GetConsoleOption("(Original image)", Color.Red.ChangeBrightness(-0.1f));
 	}
 
 	public void Dispose()

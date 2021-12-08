@@ -323,25 +323,24 @@ public sealed class ImageResult : IResult
 
 	public ConsoleOption GetConsoleOption()
 	{
-		return null;
-	}
-
-	public ConsoleOption GetConsoleOption(string n, Color c, float correction = -.3f)
-	{
-		ConsoleModifiers NC_FN_MAIN = 0;
-
 		var option = new ConsoleOption
 		{
-			Color = c.ChangeBrightness(correction),
-			Name  = n,
-			Data  = Data,
+			Data = Data,
 			Functions =
 			{
-				[NC_FN_MAIN] = IResult.CreateOpenFunction(Url),
-				[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
-					IResult.CreateDownloadFunction(() => Direct.Url)
+				[ConsoleOption.NC_FN_MAIN]  = IResult.CreateOpenFunction(Url),
+				[ConsoleOption.NC_FN_COMBO] = IResult.CreateDownloadFunction(() => Direct.Url)
 			}
 		};
+
+		return option;
+	}
+
+	public ConsoleOption GetConsoleOption(string n, Color c)
+	{
+		var option = GetConsoleOption();
+		option.Color = c;
+		option.Name  = n;
 
 		return option;
 	}

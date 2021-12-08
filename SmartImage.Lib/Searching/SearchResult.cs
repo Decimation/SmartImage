@@ -1,4 +1,5 @@
-﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+﻿
+global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 using JetBrains.Annotations;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
@@ -170,19 +171,18 @@ public class SearchResult : IResult
 		//todo
 
 		// var color = Elements.EngineColorMap[result.Engine.EngineOption];
-
-		ConsoleModifiers NC_FN_MAIN = 0;
+		
 
 		var option = new ConsoleOption
 		{
 			Functions = new()
 			{
-				[NC_FN_MAIN] = IResult.CreateOpenFunction(PrimaryResult is { Url: { } }
+				[ConsoleOption.NC_FN_MAIN] = IResult.CreateOpenFunction(PrimaryResult is { Url: { } }
 					                                          ? PrimaryResult.Url
 					                                          : RawUri),
 
-				[ConsoleModifiers.Shift] = IResult.CreateOpenFunction(RawUri),
-				[ConsoleModifiers.Alt] = () =>
+				[ConsoleOption.NC_FN_SHIFT] = IResult.CreateOpenFunction(RawUri),
+				[ConsoleOption.NC_FN_ALT] = () =>
 				{
 					if (OtherResults.Any()) {
 						//todo
@@ -214,19 +214,17 @@ public class SearchResult : IResult
 		};
 
 
-		option.Functions[ConsoleModifiers.Control | ConsoleModifiers.Alt] =
+		option.Functions[ConsoleOption.NC_FN_COMBO] =
 			IResult.CreateDownloadFunction(() => PrimaryResult.Direct.Url);
 
-		option.Functions[ConsoleModifiers.Control] = () =>
+		option.Functions[ConsoleOption.NC_FN_CTRL] = () =>
 		{
 			var cts = new CancellationTokenSource();
 
 			if (OperatingSystem.IsWindows()) {
 				ConsoleProgressIndicator.Start(cts);
 			}
-
-			// Program.Client.FindDirectResults(result);
-
+			
 			_ = FindDirectResultsAsync();
 
 			cts.Cancel();
