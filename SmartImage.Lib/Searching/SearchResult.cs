@@ -169,17 +169,7 @@ public class SearchResult : IResult
 	{
 		//todo
 
-		// var color = Elements.EngineColorMap[result.Engine.EngineOption];
 		const float factor = -.2f;
-
-		// var of = Array.IndexOf(Enum.GetValues(typeof(SearchEngineOptions)), Engine.EngineOption);
-		var of = (int) Engine.EngineOption;
-
-		/*var random = new Random(of);
-
-		var c = Color.FromArgb(random.Next(0, byte.MaxValue), random.Next(0, byte.MaxValue),
-		                       random.Next(0, byte.MaxValue));*/
-
 
 		var option = new ConsoleOption
 		{
@@ -293,6 +283,7 @@ public class SearchResult : IResult
 		}
 
 		Origin.Dispose();
+		GC.SuppressFinalize(this);
 	}
 
 	[ThreadStatic]

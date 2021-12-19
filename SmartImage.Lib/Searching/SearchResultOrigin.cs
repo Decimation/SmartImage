@@ -26,6 +26,7 @@ public class SearchResultOrigin : IDisposable
 	public void Dispose()
 	{
 		Response?.Dispose();
+		GC.SuppressFinalize(this);
 
 	}
 }

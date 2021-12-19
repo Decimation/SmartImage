@@ -46,6 +46,8 @@ namespace SmartImage.Lib
 		public void Dispose()
 		{
 			Response?.Dispose();
+			GC.SuppressFinalize(this);
+
 		}
 
 		public override string ToString()
