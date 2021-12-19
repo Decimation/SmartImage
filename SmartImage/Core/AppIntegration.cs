@@ -1,5 +1,5 @@
 ﻿using Microsoft.Win32;
-using Novus.Win32;
+using Novus.OS.Win32;
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -9,6 +9,7 @@ using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading;
 using Kantan.Cli;
+using Novus.OS;
 using Novus.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 

@@ -1,6 +1,6 @@
 #nullable enable
 using JetBrains.Annotations;
-using Novus.Win32;
+using Novus.OS.Win32;
 using SmartImage.Utilities;
 using System;
 using System.Collections.Generic;
@@ -19,6 +19,7 @@ using Kantan.Diagnostics;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus;
+using Novus.OS;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 

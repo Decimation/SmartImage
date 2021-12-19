@@ -5,12 +5,15 @@ using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
 using Kantan.Model;
 using Kantan.Net;
-using Novus.Win32;
+using Novus.OS;
+using Novus.OS.Win32;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Searching;
 #pragma warning disable	CA1416
-public interface IResult : IDisposable, IConsoleComponent
+
+
+public interface IResult : IDisposable, IConsoleOption
 {
 	protected static ConsoleOptionFunction CreateDownloadFunction(Func<Uri> d)
 	{
@@ -54,8 +57,7 @@ public interface IResult : IDisposable, IConsoleComponent
 	{
 		return () =>
 		{
-			if (url != null)
-			{
+			if (url != null) {
 				WebUtilities.OpenUrl(url.ToString());
 			}
 

@@ -1,5 +1,4 @@
-﻿
-global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 using JetBrains.Annotations;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
@@ -20,7 +19,7 @@ using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
-using Novus.Win32;
+using Novus.OS.Win32;
 using SmartImage.Lib.Engines.Model;
 
 #pragma warning disable IDE0066, CA1416
@@ -154,7 +153,7 @@ public class SearchResult : IResult
 
 			if (b && !directResults.Contains(ir)) {
 
-				Debug.WriteLine($"{nameof(SearchClient)}: Found direct result {ir.Direct.Url}");
+				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {ir.Direct.Url}");
 				directResults.Add(ir);
 				PrimaryResult.Direct.Url ??= ir.Direct.Url;
 			}
@@ -171,48 +170,66 @@ public class SearchResult : IResult
 		//todo
 
 		// var color = Elements.EngineColorMap[result.Engine.EngineOption];
-		
+		const float factor = -.2f;
+
+		// var of = Array.IndexOf(Enum.GetValues(typeof(SearchEngineOptions)), Engine.EngineOption);
+		var of = (int) Engine.EngineOption;
+
+		/*var random = new Random(of);
+
+		var c = Color.FromArgb(random.Next(0, byte.MaxValue), random.Next(0, byte.MaxValue),
+		                       random.Next(0, byte.MaxValue));*/
+
 
 		var option = new ConsoleOption
 		{
+
 			Functions = new()
 			{
 				[ConsoleOption.NC_FN_MAIN] = IResult.CreateOpenFunction(PrimaryResult is { Url: { } }
-					                                          ? PrimaryResult.Url
-					                                          : RawUri),
+					                                                        ? PrimaryResult.Url
+					                                                        : RawUri),
 
 				[ConsoleOption.NC_FN_SHIFT] = IResult.CreateOpenFunction(RawUri),
-				[ConsoleOption.NC_FN_ALT] = () =>
-				{
-					if (OtherResults.Any()) {
-						//todo
 
-						var c = Color.BurlyWood;
-						var n = "Other result";
-						int i = 0;
-
-						var options = OtherResults.Select(r =>
-							                                  r.GetConsoleOption($"{n} #{i++}", c))
-						                          .ToArray();
-
-						var dialog = new ConsoleDialog
-						{
-							Options = options
-						};
-
-						dialog.ReadInput();
-					}
-
-					return null;
-				},
 			},
 
-			// Color = color,
 
 			Name = Engine.Name,
 			Data = this.Data,
 		};
 
+		option.Functions[ConsoleOption.NC_FN_ALT] = () =>
+		{
+			if (OtherResults.Any()) {
+				//todo
+
+
+				const string n = "Other result";
+
+				int i = 0;
+
+				var fallback = Color.AliceBlue;
+
+				var options = OtherResults
+				              .Select(r =>
+				              {
+					              var c = option.Color ?? fallback;
+
+					              return r.GetConsoleOption($"{n} #{i++}", c.ChangeBrightness(factor));
+				              })
+				              .ToArray();
+
+				var dialog = new ConsoleDialog
+				{
+					Options = options
+				};
+
+				dialog.ReadInput();
+			}
+
+			return null;
+		};
 
 		option.Functions[ConsoleOption.NC_FN_COMBO] =
 			IResult.CreateDownloadFunction(() => PrimaryResult.Direct.Url);
@@ -224,7 +241,7 @@ public class SearchResult : IResult
 			if (OperatingSystem.IsWindows()) {
 				ConsoleProgressIndicator.Start(cts);
 			}
-			
+
 			_ = FindDirectResultsAsync();
 
 			cts.Cancel();
@@ -277,4 +294,7 @@ public class SearchResult : IResult
 
 		Origin.Dispose();
 	}
+
+	[ThreadStatic]
+	internal static readonly Random Random = new();
 }

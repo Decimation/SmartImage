@@ -10,7 +10,7 @@ using Kantan.Cli.Controls;
 using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
-using Novus.Win32;
+using Novus.OS.Win32;
 using SmartImage.Core;
 using SmartImage.Lib.Engines;
 
@@ -55,7 +55,7 @@ internal static partial class AppInterface
 
 		#region Constants
 
-		private static readonly Encoding CodePage437 = CodePagesEncodingProvider.Instance.GetEncoding(Native.CP_IBM437);
+		private static readonly Encoding CodePage437 = CodePagesEncodingProvider.Instance.GetEncoding((int) Native.CodePages.CP_IBM437);
 
 		private static readonly string CheckMark =
 			Strings.EncodingConvert(Encoding.Unicode, CodePage437, Strings.Constants.CHECK_MARK.ToString());

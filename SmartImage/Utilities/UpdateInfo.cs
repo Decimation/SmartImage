@@ -4,7 +4,8 @@ using System.IO;
 using System.Net;
 using JetBrains.Annotations;
 using Kantan.Cli;
-using Novus.Win32;
+using Novus.OS;
+using Novus.OS.Win32;
 using SmartImage.Core;
 
 namespace SmartImage.Utilities;

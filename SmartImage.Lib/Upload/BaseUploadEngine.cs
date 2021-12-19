@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Flurl.Http.Content;
-using Novus.Win32;
+using Novus.OS.Win32;
 using Kantan.Numeric;
+using Novus.OS;
 
 namespace SmartImage.Lib.Upload;
 

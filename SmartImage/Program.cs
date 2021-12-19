@@ -44,8 +44,8 @@ using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Novus;
-using Novus.Win32;
-using Novus.Win32.Structures;
+using Novus.OS.Win32;
+using Novus.OS.Win32.Structures;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
@@ -270,8 +270,11 @@ public static class Program
 		if (Config.OutputOnly) {
 			ResultDialog.Display(false);
 		}
+
+		
 	}
 
+	
 	private static CancellationTokenSource _cancellationToken;
 
 	private static bool _isFilteredShown;
@@ -421,7 +424,7 @@ public static class Program
 		SearchResult result = eventArgs.Result;
 
 		ConsoleOption option = result.GetConsoleOption();
-
+		option.Color = Elements.EngineColorMap[result.Engine.EngineOption];
 		bool? isFiltered = eventArgs.IsFiltered;
 
 		if (isFiltered.HasValue && !isFiltered.Value || !isFiltered.HasValue) {

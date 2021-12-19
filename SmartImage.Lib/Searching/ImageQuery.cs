@@ -21,7 +21,7 @@ namespace SmartImage.Lib.Searching;
 /// <summary>
 /// Search query
 /// </summary>
-public sealed class ImageQuery : IDisposable, IConsoleComponent
+public sealed class ImageQuery : IDisposable, IConsoleOption
 {
 	/// <summary>
 	/// Original input

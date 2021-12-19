@@ -14,9 +14,12 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
 using Kantan.Net;
-using Novus.Win32;
+using Novus.OS;
+using Novus.OS.Win32;
 using static Kantan.Diagnostics.LogCategories;
+
 #pragma warning disable CS0168
+#pragma warning disable IDE0059
 
 #pragma warning disable CS0618
 #pragma warning disable SYSLIB0014
@@ -112,7 +115,8 @@ public static class ImageHelper
 		switch (hostComponent) {
 			case "www.deviantart.com":
 				//https://images-wixmp-
-				urls = urls.Where(x => x.StartsWith("https://images-wixmp")).ToList();
+				urls = urls.Where(x => x.StartsWith("https://images-wixmp"))
+				           .ToList();
 				break;
 			case "twitter.com":
 				urls = urls.Where(x => !x.Contains("profile_banners"))
@@ -124,7 +128,7 @@ public static class ImageHelper
 		for (int i = 0; i < urls.Count; i++) {
 			int iCopy = i;
 
-			tasks.Add(Task<DirectImage>.Factory.StartNew(() =>
+			tasks.Add(Task.Run(() =>
 			{
 				string s = urls[iCopy];
 
@@ -166,7 +170,7 @@ public static class ImageHelper
 	{
 		di = new DirectImage();
 
-		if (!UriUtilities.IsUri(url, out var u)) {
+		if (!UriUtilities.IsUri(url, out Uri u)) {
 			return false;
 		}
 
