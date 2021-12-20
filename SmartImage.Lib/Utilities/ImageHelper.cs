@@ -164,7 +164,9 @@ public static class ImageHelper
 		return images;
 	}
 
-	public static bool IsImage(string url, out DirectImage di) => IsImage(url, TimeoutMS, out di);
+	public static bool IsImage(string url, out DirectImage di)
+		=> IsImage(url, TimeoutMS, out di);
+
 
 	public static bool IsImage(string url, long timeout, out DirectImage di)
 	{
@@ -175,9 +177,11 @@ public static class ImageHelper
 		}
 
 
-		// var response = HttpUtilities.GetResponse(url, (int) timeout, Method.HEAD);
 		var response = HttpUtilities.GetHttpResponse(url, (int) timeout, HttpMethod.Head);
 
+		// var response1 = HttpUtilities.GetHttpResponseAsync(url, (int) timeout, HttpMethod.Head, c: c);
+		// response1.Wait();
+		// var response = response1.Result;
 
 		if (response is not { }) {
 			return false;

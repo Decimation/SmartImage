@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Net.Http;
+using System.Threading;
 using AngleSharp.Dom;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
@@ -28,7 +29,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 	protected abstract object ParseContent(SearchResultOrigin s);
 
 	[DebuggerHidden]
-	public sealed override SearchResult GetResult(ImageQuery query)
+	public sealed override SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
 	{
 		var sr = base.GetResult(query);
 

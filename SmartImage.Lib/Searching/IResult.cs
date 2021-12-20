@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
+using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
 using Kantan.Model;
@@ -30,7 +31,7 @@ public interface IResult : IDisposable, IConsoleOption
 			var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 			var cts  = new CancellationTokenSource();
 
-			ConsoleProgressIndicator.Start(cts);
+			ConsoleManager.UI.ProgressIndicator.Instance.Start(cts);
 
 			// Console.WriteLine($"\nDownloading...".AddColor(Elements.ColorOther));
 

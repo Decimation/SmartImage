@@ -42,7 +42,6 @@ public sealed class SearchClient : IDisposable
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
 
-		CancellationTokenSource = new CancellationTokenSource();
 
 		Reload();
 	}
@@ -97,9 +96,8 @@ public sealed class SearchClient : IDisposable
 
 	private List<Task> ContinueTasks { get; }
 
-	public CancellationTokenSource CancellationTokenSource { get; set; }
 
-	public bool Cancelled => CancellationTokenSource.IsCancellationRequested;
+
 
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
@@ -138,34 +136,33 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	///     Performs an image search asynchronously.
 	/// </summary>
-	public async Task RunSearchAsync()
+	public async Task RunSearchAsync(CancellationTokenSource cts = null, CancellationTokenSource cts2= null)
 	{
 		if (IsComplete) {
 			Reset();
 		}
 
-		var token = CancellationTokenSource.Token;
 
-		var tasks = new List<Task<SearchResult>>(Engines.Select(engine =>
+		Tasks = new List<Task<SearchResult>>(Engines.Select(engine =>
 		{
-			var task = engine.GetResultAsync(Config.Query, token);
+			var task = engine.GetResultAsync(Config.Query, cts?.Token ?? CancellationToken.None);
 
 			return task;
 		}));
 
-		PendingCount = tasks.Count;
+		PendingCount = Tasks.Count;
 
 		while (!IsComplete) {
-			var finished = await Task.WhenAny(tasks);
+			var finished = await Task.WhenAny(Tasks);
 
-			var task = finished.ContinueWith(GetResultContinueCallback, null, CancellationTokenSource.Token,
+			var task = finished.ContinueWith(GetResultContinueCallback, null, cts2?.Token ?? CancellationToken.None,
 			                                 0, TaskScheduler.Default);
 			ContinueTasks.Add(task);
 
 			SearchResult value = await finished;
 
-			tasks.Remove(finished);
-			PendingCount = tasks.Count;
+			Tasks.Remove(finished);
+			PendingCount = Tasks.Count;
 
 			bool? isFiltered;
 			bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
@@ -212,7 +209,7 @@ public sealed class SearchClient : IDisposable
 				IsPriority = isPriority
 			});
 
-			IsComplete = !tasks.Any();
+			IsComplete = !Tasks.Any();
 
 		}
 
@@ -230,7 +227,10 @@ public sealed class SearchClient : IDisposable
 
 	public async Task RunContinueAsync()
 	{
+
 		IsContinueComplete = false;
+
+
 
 		while (!IsContinueComplete) {
 			var task = await Task.WhenAny(ContinueTasks);
@@ -380,6 +380,8 @@ public sealed class SearchClient : IDisposable
 
 	private static readonly SmartImageException SearchException = new("Search must be completed");
 
+	public List<Task<SearchResult>> Tasks { get; private set; }
+
 
 	public void Dispose()
 	{
@@ -390,6 +392,7 @@ public sealed class SearchClient : IDisposable
 		foreach (SearchResult result in AllResults) {
 			result.Dispose();
 		}
+
 	}
 }
 

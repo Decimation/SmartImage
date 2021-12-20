@@ -11,51 +11,26 @@
 #pragma warning disable IDE0008
 #pragma warning restore CA1416
 #nullable disable
-
 using SmartImage.Core;
-using System;
 using System.Buffers;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Globalization;
-using System.IO;
-using System.Linq;
 using System.Media;
-using System.Net.NetworkInformation;
-using System.Resources;
-using System.Runtime;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Runtime.Versioning;
 using System.Text;
-using System.Text.Unicode;
-using System.Threading;
-using System.Threading.Tasks;
-using Windows.ApplicationModel.Background;
-using Windows.Networking.Connectivity;
-using Windows.UI.Notifications;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
-using Kantan.Diagnostics;
-using Kantan.Model;
 using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
-using Novus;
 using Novus.OS.Win32;
-using Novus.OS.Win32.Structures;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
-using SmartImage.Lib.Utilities;
 using SmartImage.Properties;
 using SmartImage.UI;
-using SmartImage.Utilities;
 using static SmartImage.UI.AppInterface;
-// ReSharper disable AccessToDisposedClosure
 
+// ReSharper disable AccessToDisposedClosure
 // ReSharper disable SuggestVarOrType_Elsewhere
 // ReSharper disable PossibleNullReferenceException
 // ReSharper disable AsyncVoidLambda
@@ -71,7 +46,7 @@ namespace SmartImage;
 // |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 //                                                     |___/
 
-public static class Program
+public static partial class Program
 {
 	#region Core fields
 
@@ -89,7 +64,7 @@ public static class Program
 	/// <summary>
 	/// Console UI for search results
 	/// </summary>
-	internal static readonly ConsoleDialog ResultDialog = new()
+	internal static ConsoleDialog ResultDialog = new()
 	{
 		Options = new List<ConsoleOption>(),
 		Description = "Press the result number to open in browser\n".AddColor(Elements.ColorOther) +
@@ -100,7 +75,7 @@ public static class Program
 		              $"{"F1:".AddColor(Elements.ColorKey)} Show filtered results | " +
 		              $"{"F2:".AddColor(Elements.ColorKey)} Refine | " +
 		              $"{"F5:".AddColor(Elements.ColorKey)} Refresh",
-		
+
 		Functions = new()
 		{
 			[ConsoleKey.F1] = () =>
@@ -118,7 +93,7 @@ public static class Program
 
 				ResultDialog.Options.Add(_originalResult);
 
-				foreach (ConsoleOption option in buffer.Select(x=>x.GetConsoleOption())) {
+				foreach (ConsoleOption option in buffer.Select(x => x.GetConsoleOption())) {
 					ResultDialog.Options.Add(option);
 				}
 
@@ -182,8 +157,6 @@ public static class Program
 		ConsoleManager.Init();
 		Console.Clear();
 
-		
-
 
 		/*
 		 * Start
@@ -200,7 +173,7 @@ public static class Program
 
 		AppConfig.ReadConfigFile();
 
-		if (!await HandleArguments())
+		if (!await Cli.HandleArguments())
 			return;
 
 		ResultDialog.Subtitle = $"SE: {Config.SearchEngines} " +
@@ -208,8 +181,9 @@ public static class Program
 		                        $"| Filtering: {Elements.ToToggleString(Config.Filtering)}";
 
 
-		_cancellationTokenSource = new ();
+		_cancellationTokenSource  = new();
 		_cancellationTokenSource2 = new();
+		_cancellationTokenSource3 = new();
 
 		// Run search
 
@@ -222,25 +196,54 @@ public static class Program
 			if (Config.Notification) {
 				AppToast.ShowToast(obj, eventArgs);
 			}
+
+			var sp = new SoundPlayer(Resources.hint);
+			sp.Play();
+			sp.Dispose();
 		};
 
-		
 
 		Client.ResultUpdated += (sender, result) =>
 		{
 			ResultDialog.Refresh();
 		};
 
-		Console.CancelKeyPress +=  (o, eventArgs) =>
+		Console.CancelKeyPress += (o, eventArgs) =>
 		{
-			OnHandler(o, eventArgs).Wait();
+			OnHandler(o, eventArgs);
+
+			SystemSounds.Hand.Play();
+
+			// var x  = cd.ReadInputAsync();
+			// x.Wait();
+			// Debug.WriteLine($"{ResultDialog.Options.Count}|{Client.AllResults.Count}");
+			// ResultDialog = cd;
+
+			var results = Client.Results;
+			
+			var options = results.Select(x =>
+			{
+				return x.GetConsoleOption();
+			}).ToArray();
+
+			var cd = new ConsoleDialog()
+			{
+				Description = ResultDialog.Description,
+				Header      = ResultDialog.Header,
+				Options     = options,
+				Subtitle    = ResultDialog.Subtitle,
+			};
+			cd.ReadInput();
+
+			// await cd.ReadInputAsync();
+
 		};
 
-		ConsoleProgressIndicator.Start(_cancellationTokenSource);
+		ConsoleManager.UI.ProgressIndicator.Instance.Start(_cancellationTokenSource);
 
 
 		// Show results
-		_searchTask    = Client.RunSearchAsync();
+		_searchTask    = Client.RunSearchAsync(_cancellationTokenSource, _cancellationTokenSource2);
 		_secondaryTask = Client.RunContinueAsync();
 
 
@@ -250,8 +253,13 @@ public static class Program
 		ResultDialog.Options.Add(_originalResult);
 
 		if (!Config.OutputOnly) {
-			await ResultDialog.ReadInputAsync(_cancellationTokenSource2.Token);
-			
+			try {
+				await ResultDialog.ReadInputAsync(_cancellationTokenSource3.Token);
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+			}
+
 		}
 
 		await _searchTask;
@@ -274,38 +282,30 @@ public static class Program
 			ResultDialog.Display(false);
 		}
 
-		
+
 	}
 
-	private static async Task OnHandler(object sender, ConsoleCancelEventArgs eventArgs)
+	private static void OnHandler(object sender, ConsoleCancelEventArgs eventArgs)
 	{
-		var buf = new List<ConsoleOption>(ResultDialog.Options.Skip(1));
 
 		/*ResultDialog.Options.Clear();
 		ResultDialog.Options.Add(_originalResult);*/
 
-		Client.CancellationTokenSource.Cancel();
+
+		ResultDialog.Options.Clear();
+		ResultDialog.Refresh();
 		_cancellationTokenSource.Cancel();
 		_cancellationTokenSource2.Cancel();
+		_cancellationTokenSource3.Cancel();
 
-		ResultDialog.Refresh();
 
-		/*foreach (ConsoleOption option in buf) {
-			ResultDialog.Options.Add(option);
-		}*/
-
-		var sp=new SoundPlayer(Resources.hint);
-		sp.Play();
-		sp.Dispose();
-
-		ResultDialog.Refresh();
-
-		Debug.WriteLine($"{ResultDialog.Options.Count}|{Client.AllResults.Count}");
 		// _cancellationTokenSource = new();
 
 		// ResultDialog.Refresh();
 		// await ResultDialog.ReadInputAsync();
 	}
+
+	private static CancellationTokenSource _cancellationTokenSource3;
 
 	private static CancellationTokenSource _cancellationTokenSource2;
 
@@ -315,116 +315,8 @@ public static class Program
 
 	private static ConsoleOption _originalResult;
 
-	#region CLI
-
-	/// <summary>
-	/// Command line argument handler
-	/// </summary>
-	private static readonly CliHandler ArgumentHandler = new()
-	{
-		Parameters =
-		{
-			new()
-			{
-				ArgumentCount = 1,
-				ParameterId   = "-se",
-				Function = strings =>
-				{
-					Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 1,
-				ParameterId   = "-pe",
-				Function = strings =>
-				{
-					Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 0,
-				ParameterId   = "-f",
-				Function = delegate
-				{
-					Config.Filtering = true;
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 0,
-				ParameterId   = "-output_only",
-				Function = delegate
-				{
-					Config.OutputOnly = true;
-					return null;
-				}
-			}
-		},
-		Default = new()
-		{
-			ArgumentCount = 1,
-			ParameterId   = null,
-			Function = strings =>
-			{
-				Config.Query = strings[0];
-				return null;
-			}
-		}
-	};
-
 	private static Task _searchTask;
 	private static Task _secondaryTask;
-
-	private static async Task<bool> HandleArguments()
-	{
-		var args = Environment.GetCommandLineArgs();
-
-		// first element is executing assembly
-		args = args.Skip(1).ToArray();
-
-		if (!args.Any()) {
-			var options = await MainMenuDialog.ReadInputAsync();
-
-			var file = options.DragAndDrop;
-
-			if (file != null) {
-				Debug.WriteLine($"Drag and drop: {file}");
-				Console.WriteLine($">> {file}".AddColor(Elements.ColorMain));
-				Config.Query = file;
-				return true;
-			}
-
-			if (!options.Output.Any()) {
-				return false;
-			}
-		}
-		else {
-
-			/*
-			 * Handle CLI args
-			 */
-
-			try {
-
-				ArgumentHandler.Run(args);
-
-				Client.Reload();
-			}
-			catch (Exception e) {
-				Console.WriteLine($"Error: {e.Message}");
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	#endregion
 
 
 	#region Event handlers
@@ -461,6 +353,7 @@ public static class Program
 		SearchResult result = eventArgs.Result;
 
 		ConsoleOption option = result.GetConsoleOption();
+
 		option.Color = Elements.EngineColorMap[result.Engine.EngineOption];
 		bool? isFiltered = eventArgs.IsFiltered;
 

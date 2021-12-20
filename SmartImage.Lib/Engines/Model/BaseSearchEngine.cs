@@ -35,12 +35,17 @@ public abstract class BaseSearchEngine
 	public abstract EngineSearchType SearchType { get; }
 
 
-	public virtual SearchResult GetResult(ImageQuery query)
+	public virtual SearchResult GetResult(ImageQuery query, CancellationToken? c= null)
 	{
 		var sr = new SearchResult(this)
 		{
 			Origin = GetResultOrigin(query)
 		};
+		c ??= CancellationToken.None;
+		
+		if (c is { IsCancellationRequested: true}) {
+			return sr;
+		}
 
 
 		if (!sr.Origin.Success) {
@@ -59,11 +64,12 @@ public abstract class BaseSearchEngine
 
 	public async Task<SearchResult> GetResultAsync(ImageQuery query, CancellationToken? c = null)
 	{
+		
 		var task = Task.Run(delegate
 		{
 			Debug.WriteLine($"{Name}: getting result async", C_VERBOSE);
 
-			var res = GetResult(query);
+			var res = GetResult(query, c);
 
 			Debug.WriteLine($"{Name}: result done", C_SUCCESS);
 
@@ -79,13 +85,15 @@ public abstract class BaseSearchEngine
 		return new(BaseUrl + query.UploadUri);
 	}
 
-	protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query)
+	protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query, CancellationToken? c = null)
 	{
 		Uri rawUri = GetRawUri(query);
 
+		const int maxAutoRedirects = 50;
+
 		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(),
-		                                        (int) Timeout.TotalMilliseconds,
-		                                        HttpMethod.Get, FollowRedirects);
+		                                             (int) Timeout.TotalMilliseconds,
+		                                             HttpMethod.Get, FollowRedirects);
 		bool success;
 
 		if (res is { IsSuccessStatusCode: false }) {
@@ -106,6 +114,7 @@ public abstract class BaseSearchEngine
 
 		if (success && res is { }) {
 			var task = res.Content.ReadAsStringAsync();
+			
 			task.Wait(Timeout);
 			content = task.Result;
 		}

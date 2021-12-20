@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Kantan.Diagnostics;
 using SmartImage.Lib.Engines.Model;
@@ -75,7 +76,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 	}
 
-	protected override SearchResultOrigin GetResultOrigin(ImageQuery query)
+	protected override SearchResultOrigin GetResultOrigin(ImageQuery query, CancellationToken? c = null)
 	{
 		var now = Stopwatch.GetTimestamp();
 

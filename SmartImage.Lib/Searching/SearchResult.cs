@@ -1,4 +1,6 @@
-﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+﻿
+global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+using ConsoleProgressIndicator = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 using JetBrains.Annotations;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
@@ -229,7 +231,7 @@ public class SearchResult : IResult
 			var cts = new CancellationTokenSource();
 
 			if (OperatingSystem.IsWindows()) {
-				ConsoleProgressIndicator.Start(cts);
+				ConsoleProgressIndicator.Instance.Start(cts);
 			}
 
 			_ = FindDirectResultsAsync();
