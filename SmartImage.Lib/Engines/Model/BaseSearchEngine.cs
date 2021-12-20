@@ -56,7 +56,8 @@ public abstract class BaseSearchEngine
 		return sr;
 	}
 
-	public async Task<SearchResult> GetResultAsync(ImageQuery query)
+
+	public async Task<SearchResult> GetResultAsync(ImageQuery query, CancellationToken? c = null)
 	{
 		var task = Task.Run(delegate
 		{
@@ -67,7 +68,7 @@ public abstract class BaseSearchEngine
 			Debug.WriteLine($"{Name}: result done", C_SUCCESS);
 
 			return res;
-		});
+		}, c ?? CancellationToken.None);
 
 		return await task;
 	}

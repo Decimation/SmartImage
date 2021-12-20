@@ -50,9 +50,11 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+using SmartImage.Properties;
 using SmartImage.UI;
 using SmartImage.Utilities;
 using static SmartImage.UI.AppInterface;
+// ReSharper disable AccessToDisposedClosure
 
 // ReSharper disable SuggestVarOrType_Elsewhere
 // ReSharper disable PossibleNullReferenceException
@@ -128,7 +130,7 @@ public static class Program
 			{
 				// F2 : Refine
 
-				_cancellationToken = new();
+				_cancellationTokenSource = new();
 				var buf = new List<ConsoleOption>(ResultDialog.Options);
 
 				ResultDialog.Options.Clear();
@@ -180,10 +182,8 @@ public static class Program
 		ConsoleManager.Init();
 		Console.Clear();
 
-		Console.CancelKeyPress += (sender, eventArgs) => { };
+		
 
-		var process = Process.GetCurrentProcess();
-		process.PriorityClass = ProcessPriorityClass.AboveNormal;
 
 		/*
 		 * Start
@@ -208,7 +208,8 @@ public static class Program
 		                        $"| Filtering: {Elements.ToToggleString(Config.Filtering)}";
 
 
-		_cancellationToken = new();
+		_cancellationTokenSource = new ();
+		_cancellationTokenSource2 = new();
 
 		// Run search
 
@@ -216,7 +217,7 @@ public static class Program
 
 		Client.SearchCompleted += (obj, eventArgs) =>
 		{
-			OnSearchCompleted(obj, eventArgs, _cancellationToken);
+			OnSearchCompleted(obj, eventArgs, _cancellationTokenSource);
 
 			if (Config.Notification) {
 				AppToast.ShowToast(obj, eventArgs);
@@ -230,13 +231,17 @@ public static class Program
 			ResultDialog.Refresh();
 		};
 
+		Console.CancelKeyPress +=  (o, eventArgs) =>
+		{
+			OnHandler(o, eventArgs).Wait();
+		};
 
-		ConsoleProgressIndicator.Start(_cancellationToken);
+		ConsoleProgressIndicator.Start(_cancellationTokenSource);
 
 
 		// Show results
-		var searchTask    = Client.RunSearchAsync();
-		var secondaryTask = Client.RunContinueAsync();
+		_searchTask    = Client.RunSearchAsync();
+		_secondaryTask = Client.RunContinueAsync();
 
 
 		_originalResult = Config.Query.GetConsoleOption();
@@ -245,14 +250,14 @@ public static class Program
 		ResultDialog.Options.Add(_originalResult);
 
 		if (!Config.OutputOnly) {
-			await ResultDialog.ReadInputAsync();
+			await ResultDialog.ReadInputAsync(_cancellationTokenSource2.Token);
 			
 		}
 
-		await searchTask;
+		await _searchTask;
 
 		try {
-			await secondaryTask;
+			await _secondaryTask;
 
 		}
 		catch (Exception e) {
@@ -263,8 +268,6 @@ public static class Program
 		Client.Reset();
 
 		//todo
-		GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-		GC.Collect(2, GCCollectionMode.Forced);
 		Debug.WriteLine("done");
 
 		if (Config.OutputOnly) {
@@ -274,8 +277,39 @@ public static class Program
 		
 	}
 
-	
-	private static CancellationTokenSource _cancellationToken;
+	private static async Task OnHandler(object sender, ConsoleCancelEventArgs eventArgs)
+	{
+		var buf = new List<ConsoleOption>(ResultDialog.Options.Skip(1));
+
+		/*ResultDialog.Options.Clear();
+		ResultDialog.Options.Add(_originalResult);*/
+
+		Client.CancellationTokenSource.Cancel();
+		_cancellationTokenSource.Cancel();
+		_cancellationTokenSource2.Cancel();
+
+		ResultDialog.Refresh();
+
+		/*foreach (ConsoleOption option in buf) {
+			ResultDialog.Options.Add(option);
+		}*/
+
+		var sp=new SoundPlayer(Resources.hint);
+		sp.Play();
+		sp.Dispose();
+
+		ResultDialog.Refresh();
+
+		Debug.WriteLine($"{ResultDialog.Options.Count}|{Client.AllResults.Count}");
+		// _cancellationTokenSource = new();
+
+		// ResultDialog.Refresh();
+		// await ResultDialog.ReadInputAsync();
+	}
+
+	private static CancellationTokenSource _cancellationTokenSource2;
+
+	private static CancellationTokenSource _cancellationTokenSource;
 
 	private static bool _isFilteredShown;
 
@@ -286,7 +320,7 @@ public static class Program
 	/// <summary>
 	/// Command line argument handler
 	/// </summary>
-	private static readonly CliHandler CliHandler = new()
+	private static readonly CliHandler ArgumentHandler = new()
 	{
 		Parameters =
 		{
@@ -343,6 +377,9 @@ public static class Program
 		}
 	};
 
+	private static Task _searchTask;
+	private static Task _secondaryTask;
+
 	private static async Task<bool> HandleArguments()
 	{
 		var args = Environment.GetCommandLineArgs();
@@ -374,7 +411,7 @@ public static class Program
 
 			try {
 
-				CliHandler.Run(args);
+				ArgumentHandler.Run(args);
 
 				Client.Reload();
 			}
@@ -441,7 +478,7 @@ public static class Program
 			status += $" | Filtered: {Client.FilteredResults.Count}";
 		}
 
-		status += $" | Pending: {Client.Pending}";
+		status += $" | Pending: {Client.PendingCount}";
 
 		ResultDialog.Status = status;
 

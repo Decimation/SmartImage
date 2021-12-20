@@ -42,6 +42,8 @@ public sealed class SearchClient : IDisposable
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
 
+		CancellationTokenSource = new CancellationTokenSource();
+
 		Reload();
 	}
 
@@ -87,11 +89,17 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	/// Number of pending results
 	/// </summary>
-	public int Pending { get; private set; }
+	public int PendingCount { get; private set; }
+
+	public int CompleteCount => AllResults.Count;
 
 	public bool IsContinueComplete { get; private set; }
 
 	private List<Task> ContinueTasks { get; }
+
+	public CancellationTokenSource CancellationTokenSource { get; set; }
+
+	public bool Cancelled => CancellationTokenSource.IsCancellationRequested;
 
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
@@ -107,6 +115,7 @@ public sealed class SearchClient : IDisposable
 		          .ToArray();
 
 		Trace.WriteLine($"{nameof(SearchClient)}: Config:\n{Config}", C_DEBUG);
+
 	}
 
 	/// <summary>
@@ -119,9 +128,10 @@ public sealed class SearchClient : IDisposable
 		FilteredResults.Clear();
 		DetailedResults.Clear();
 		ContinueTasks.Clear();
-		Pending            = 0;
+		PendingCount       = 0;
 		IsComplete         = false;
 		IsContinueComplete = false;
+
 		Reload();
 	}
 
@@ -134,30 +144,28 @@ public sealed class SearchClient : IDisposable
 			Reset();
 		}
 
+		var token = CancellationTokenSource.Token;
+
 		var tasks = new List<Task<SearchResult>>(Engines.Select(engine =>
 		{
-			var task = engine.GetResultAsync(Config.Query);
+			var task = engine.GetResultAsync(Config.Query, token);
 
 			return task;
 		}));
 
-		/*tasks2 = new List<Task>(tasks.Select(t =>
-		{
-			return t.ContinueWith(GetResultContinueCallback, null);
-		}));*/
-
-		Pending = tasks.Count;
+		PendingCount = tasks.Count;
 
 		while (!IsComplete) {
 			var finished = await Task.WhenAny(tasks);
 
-			var task = finished.ContinueWith(GetResultContinueCallback, null, TaskScheduler.Default);
+			var task = finished.ContinueWith(GetResultContinueCallback, null, CancellationTokenSource.Token,
+			                                 0, TaskScheduler.Default);
 			ContinueTasks.Add(task);
 
 			SearchResult value = await finished;
 
 			tasks.Remove(finished);
-			Pending = tasks.Count;
+			PendingCount = tasks.Count;
 
 			bool? isFiltered;
 			bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
@@ -259,21 +267,7 @@ public sealed class SearchClient : IDisposable
 		var value = task.Result;
 
 		if (value.IsSuccessful && value.IsNonPrimitive) {
-			
-			/*var imageResults = value.AllResults;
 
-			var take2 = 5;
-
-			var images = imageResults.AsParallel()
-			                         .Where(x => x.IsAlreadyDirect())
-			                         .Take(take2)
-			                         .ToList();
-
-			if (images.Any()) {
-				Debug.WriteLine($"*{nameof(SearchClient)}: Found {images.Count} direct results", C_DEBUG);
-				DirectResults.AddRange(images);
-				value.Scanned = true;
-			}*/
 
 			if (!value.Scanned) {
 				var task2 = value.FindDirectResultsAsync();

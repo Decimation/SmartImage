@@ -70,6 +70,15 @@ namespace SmartImage.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream hint {
+            get {
+                return ResourceManager.GetStream("hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/issues/new.
         /// </summary>
         internal static string UrlIssue {

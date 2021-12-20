@@ -120,6 +120,10 @@
   <data name="Author" xml:space="preserve">
     <value>Read Stanton</value>
   </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="hint" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\hint.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
   <data name="UrlIssue" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/issues/new</value>
   </data>
