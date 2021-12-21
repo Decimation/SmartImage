@@ -60,6 +60,22 @@ public static partial class Program
 	/// </summary>
 	internal static SearchClient Client { get; private set; } = new(Config);
 
+	private static Dictionary<string, string> desc = new()
+	{
+		["Ctrl"]     = "Load direct",
+		["Alt"]      = "Show other",
+		["Shift"]    = "Open raw",
+		["Alt+Ctrl"] = "Download",
+
+	};
+
+	private static Dictionary<string, string> desc2 = new()
+	{
+
+		["F1"] = "Show filtered results",
+		["F2"] = "Refine",
+		["F5"] = "Refresh"
+	};
 
 	/// <summary>
 	/// Console UI for search results
@@ -68,14 +84,9 @@ public static partial class Program
 	{
 		Options = new List<ConsoleOption>(),
 
-		Description = "Press the result number to open in browser\n".AddColor(Elements.ColorOther) +
-		              $"{"Ctrl:".AddColor(Elements.ColorKey)} Load direct | " +
-		              $"{"Alt:".AddColor(Elements.ColorKey)} Show other | " +
-		              $"{"Shift:".AddColor(Elements.ColorKey)} Open raw | " +
-		              $"{"Alt+Ctrl:".AddColor(Elements.ColorKey)} Download\n" +
-		              $"{"F1:".AddColor(Elements.ColorKey)} Show filtered results | " +
-		              $"{"F2:".AddColor(Elements.ColorKey)} Refine | " +
-		              $"{"F5:".AddColor(Elements.ColorKey)} Refresh",
+		Description = "Press the result number to open in browser\n".AddColor(Elements.ColorOther)
+		              + Elements.GetMapString(desc, Elements.ColorKey) + '\n' 
+		              + Elements.GetMapString(desc2, Elements.ColorKey),
 
 		Functions = new()
 		{
@@ -116,7 +127,12 @@ public static partial class Program
 					await Client.RefineSearchAsync();
 				}
 				catch (Exception e) {
-					qmsg($"Error: {e.Message.AddColor(Elements.ColorError)}");
+					string s = $"Error: {e.Message.AddColor(Elements.ColorError)}";
+
+					Console.WriteLine(
+						$"\n{Strings.Constants.CHEVRON} {s}");
+
+					ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(2));
 
 					ResultDialog.Options.Clear();
 
@@ -130,14 +146,6 @@ public static partial class Program
 			},
 		}
 	};
-
-	private static void qmsg(string s)
-	{
-		Console.WriteLine(
-			$"\n{Strings.Constants.CHEVRON} {s}");
-
-		ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(2));
-	}
 
 	#endregion
 
@@ -182,9 +190,14 @@ public static partial class Program
 		if (!await Cli.HandleArguments())
 			return;
 
-		ResultDialog.Subtitle = $"SE: {Config.SearchEngines} " +
-		                        $"| PE: {Config.PriorityEngines} " +
-		                        $"| Filtering: {Elements.ToToggleString(Config.Filtering)}";
+		var map = new Dictionary<string, string>()
+		{
+			["SE"]        = Config.SearchEngines.ToString(),
+			["PE"]        = Config.PriorityEngines.ToString(),
+			["Filtering"] = Elements.GetToggleString(Config.Filtering)
+		};
+
+		ResultDialog.Subtitle = Elements.GetMapString(map);
 
 
 		_ctsSearch    = new();
@@ -202,7 +215,6 @@ public static partial class Program
 
 		ConsoleManager.UI.ProgressIndicator.Instance.Start(_ctsProgress);
 
-
 		// Show results
 		_searchTask   = Client.RunSearchAsync(_ctsSearch.Token);
 		_continueTask = Client.RunContinueAsync(_ctsContinue.Token);
@@ -213,9 +225,7 @@ public static partial class Program
 		ResultDialog.Options.Add(_originalResult);
 
 		await ResultDialog.ReadInputAsync(_ctsReadInput.Token);
-		
 
-		// if (!Config.OutputOnly) { }
 
 		await _searchTask;
 
@@ -226,75 +236,23 @@ public static partial class Program
 			//ignored
 		}
 
-
 		/*Client.Dispose();
 		Client.Reset();
 		*/
-
-		//todo
-		Debug.WriteLine("done");
-
-		// ResultDialog.Display(false);
-
-		// if (Config.OutputOnly) { }
-
 
 	}
 
 
 	#region Event handlers
 
-	private static void OnCancel(object o, ConsoleCancelEventArgs eventArgs)
+	private static void OnCancel(object sender, ConsoleCancelEventArgs eventArgs)
 	{
-		/*ResultDialog.Options.Clear();
-		ResultDialog.Options.Add(_originalResult);*/
-
-
-		// ResultDialog.Options.Clear();
-		// ResultDialog.Refresh();
 		_ctsSearch.Cancel();
 		_ctsContinue.Cancel();
 		// _ctsReadInput.Cancel();
 
 		eventArgs.Cancel = true;
-
-		// _cancellationTokenSource = new();
-
-		// ResultDialog.Refresh();
-		// await ResultDialog.ReadInputAsync();
-
 		SystemSounds.Hand.Play();
-
-		// var x  = cd.ReadInputAsync();
-		// x.Wait();
-		// Debug.WriteLine($"{ResultDialog.Options.Count}|{Client.AllResults.Count}");
-		// ResultDialog = cd;
-
-		var results = Client.Results;
-
-		var options = results.Select(x =>
-		{
-			return x.GetConsoleOption();
-		}).ToArray();
-
-		var cd = new ConsoleDialog()
-		{
-			Description = ResultDialog.Description,
-			Header      = ResultDialog.Header,
-			Options     = options,
-			Subtitle    = ResultDialog.Subtitle,
-		};
-		// cd.ReadInput();
-
-		/*ResultDialog.Options.Clear();
-
-		foreach (ConsoleOption t in options) {
-			ResultDialog.Options.Add(t);
-		}*/
-		// await cd.ReadInputAsync();
-		// ResultDialog.Display(true);
-		qmsg("Cancelled");
-
 	}
 
 	private static void OnResultUpdated(object sender, EventArgs result)
@@ -345,28 +303,41 @@ public static partial class Program
 			option.Function();
 		}
 
-		var status = $"Results: {Client.Results.Count}";
+		var map = new Dictionary<string, string>()
+		{
+			["Results"] = Client.Results.Count.ToString(),
+		};
 
 		if (Config.Filtering) {
-			status += $" | Filtered: {Client.FilteredResults.Count}";
+			map.Add("Filtered", Client.FilteredResults.Count.ToString());
 		}
 
-		status += $" | Pending: {Client.PendingCount}";
+		map.Add("Pending", Client.PendingCount.ToString());
+
+		string s;
+
+		if (_ctsSearch.IsCancellationRequested) {
+			s = "Cancelled";
+		}
+		else if (Client.IsComplete) {
+			s = "Complete";
+		}
+		else {
+			s = "Searching";
+		}
+
+		map.Add("Status", s);
+
+		var status = Elements.GetMapString(map);
 
 		ResultDialog.Status = status;
-
-		/*GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-		GC.Collect();*/
-
 	}
 
 	#endregion
+
 	private static CancellationTokenSource _ctsProgress;
-
 	private static CancellationTokenSource _ctsReadInput;
-
 	private static CancellationTokenSource _ctsContinue;
-
 	private static CancellationTokenSource _ctsSearch;
 
 	private static bool _isFilteredShown;
