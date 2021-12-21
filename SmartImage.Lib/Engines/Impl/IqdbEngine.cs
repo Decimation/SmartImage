@@ -120,7 +120,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 	private async Task<IDocument> GetDocument(ImageQuery query)
 	{
-		const int MAX_FILE_SIZE = 8388608;
+		const int MAX_FILE_SIZE = 0x800000;
 
 		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{

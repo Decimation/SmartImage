@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
@@ -15,7 +14,6 @@ using AngleSharp.Html.Parser;
 using JetBrains.Annotations;
 using Kantan.Net;
 using Novus.OS;
-using Novus.OS.Win32;
 using static Kantan.Diagnostics.LogCategories;
 
 #pragma warning disable CS0168
@@ -74,7 +72,7 @@ public static class ImageHelper
 
 		IHtmlDocument document = null;
 
-		var c =c2?? CancellationToken.None;
+		var c = c2 ?? CancellationToken.None;
 
 		try {
 			var client = new HttpClient();
@@ -111,14 +109,14 @@ public static class ImageHelper
 		}).Distinct().ToList();
 
 
-		var tasks = new List<Task<DirectImage>>();
+		// var tasks = new List<Task<DirectImage>>();
 
 		string hostComponent = UriUtilities.GetHostComponent(new Uri(url));
 
 		switch (hostComponent) {
 			case "www.deviantart.com":
 				//https://images-wixmp-
-				urls = urls.Where(x => x.StartsWith("https://images-wixmp"))
+				urls = urls.Where(x => x.StartsWith("http://images-wixmp") || x.StartsWith("https://images-wixmp"))
 				           .ToList();
 				break;
 			case "twitter.com":
@@ -128,7 +126,7 @@ public static class ImageHelper
 		}
 
 
-		for (int i = 0; i < urls.Count; i++) {
+		/*for (int i = 0; i < urls.Count; i++) {
 			int iCopy = i;
 
 			tasks.Add(Task.Run(() =>
@@ -144,9 +142,33 @@ public static class ImageHelper
 				return null;
 
 			}, c));
-		}
+		}*/
+		var pr = Parallel.For(0, urls.Count, (i, pls) =>
+		{
+			string s = urls[i];
 
-		while (tasks.Any() && count != 0) {
+			if (IsImage(s, (int) timeoutMS, out var di, c)) {
+				// return di;
+				if (di is { } && count > 0) {
+					images.Add(di);
+					count--;
+					pls.Break();
+
+				}
+				else {
+					di?.Dispose();
+				}
+
+			}
+			else {
+				di?.Dispose();
+
+			}
+
+			// return null;
+		});
+
+		/*while (tasks.Any() && count != 0) {
 			var task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 
@@ -160,7 +182,7 @@ public static class ImageHelper
 			else {
 				result?.Dispose();
 			}
-		}
+		}*/
 
 		document.Dispose();
 
@@ -171,7 +193,7 @@ public static class ImageHelper
 		=> IsImage(url, TimeoutMS, out di, c);
 
 
-	public static bool IsImage(string url, long timeout, out DirectImage di, CancellationToken? c = null)
+	public static bool IsImage(string url, int timeout, out DirectImage di, CancellationToken? c = null)
 	{
 		di = new DirectImage();
 
@@ -179,8 +201,7 @@ public static class ImageHelper
 			return false;
 		}
 
-
-		var response1 = HttpUtilities.GetHttpResponseAsync(url, (int) timeout, HttpMethod.Head, token: c);
+		var response1 = HttpUtilities.GetHttpResponseAsync(url, timeout, HttpMethod.Head, token: c);
 		response1.Wait();
 		var response = response1.Result;
 
@@ -215,9 +236,13 @@ public static class ImageHelper
 
 		try {
 			using var client = new HttpClient();
-			var       task   = client.GetStreamAsync(url, c ?? CancellationToken.None);
-			task.Wait((int) timeout);
 
+			// var cts = new CancellationTokenSource((int) timeout);
+			// cts.CancelAfter((int) timeout);
+			// client.Timeout = TimeSpan.FromMilliseconds(timeout);
+			var task = client.GetStreamAsync(url, c ?? CancellationToken.None /*cts.Token*/);
+			// task.Wait(timeout);
+			task.Wait();
 			var stream = task.Result;
 
 			var buffer = new byte[256];
