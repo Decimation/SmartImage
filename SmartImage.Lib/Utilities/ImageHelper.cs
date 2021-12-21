@@ -66,11 +66,15 @@ public static class ImageHelper
 	/// <param name="url">Url to search</param>
 	/// <param name="count">Number of direct images to return</param>
 	/// <param name="timeoutMS"></param>
-	public static async Task<List<DirectImage>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS)
+	/// <param name="c"></param>
+	public static async Task<List<DirectImage>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS,
+	                                                          CancellationToken? c2 = null)
 	{
 		var images = new List<DirectImage>();
 
 		IHtmlDocument document = null;
+
+		var c =c2?? CancellationToken.None;
 
 		try {
 			var client = new HttpClient();
@@ -90,7 +94,6 @@ public static class ImageHelper
 			return images;
 		}
 
-		using var cts = new CancellationTokenSource();
 
 		var urls = new List<string>();
 
@@ -132,7 +135,7 @@ public static class ImageHelper
 			{
 				string s = urls[iCopy];
 
-				if (IsImage(s, (int) timeoutMS, out var di)) {
+				if (IsImage(s, (int) timeoutMS, out var di, c)) {
 					return di;
 				}
 
@@ -140,7 +143,7 @@ public static class ImageHelper
 
 				return null;
 
-			}, cts.Token));
+			}, c));
 		}
 
 		while (tasks.Any() && count != 0) {
@@ -164,11 +167,11 @@ public static class ImageHelper
 		return images;
 	}
 
-	public static bool IsImage(string url, out DirectImage di)
-		=> IsImage(url, TimeoutMS, out di);
+	public static bool IsImage(string url, out DirectImage di, CancellationToken? c = null)
+		=> IsImage(url, TimeoutMS, out di, c);
 
 
-	public static bool IsImage(string url, long timeout, out DirectImage di)
+	public static bool IsImage(string url, long timeout, out DirectImage di, CancellationToken? c = null)
 	{
 		di = new DirectImage();
 
@@ -177,7 +180,9 @@ public static class ImageHelper
 		}
 
 
-		var response = HttpUtilities.GetHttpResponse(url, (int) timeout, HttpMethod.Head);
+		var response1 = HttpUtilities.GetHttpResponseAsync(url, (int) timeout, HttpMethod.Head, token: c);
+		response1.Wait();
+		var response = response1.Result;
 
 		// var response1 = HttpUtilities.GetHttpResponseAsync(url, (int) timeout, HttpMethod.Head, c: c);
 		// response1.Wait();
@@ -210,7 +215,7 @@ public static class ImageHelper
 
 		try {
 			using var client = new HttpClient();
-			var       task   = client.GetStreamAsync(url);
+			var       task   = client.GetStreamAsync(url, c ?? CancellationToken.None);
 			task.Wait((int) timeout);
 
 			var stream = task.Result;

@@ -53,20 +53,21 @@ public static partial class Program
 	/// <summary>
 	/// User search config
 	/// </summary>
-	internal static readonly SearchConfig Config = new();
+	internal static SearchConfig Config { get; private set; } = new();
 
 	/// <summary>
 	/// Search client
 	/// </summary>
-	internal static readonly SearchClient Client = new(Config);
+	internal static SearchClient Client { get; private set; } = new(Config);
 
 
 	/// <summary>
 	/// Console UI for search results
 	/// </summary>
-	internal static ConsoleDialog ResultDialog = new()
+	internal static ConsoleDialog ResultDialog { get; private set; } = new()
 	{
 		Options = new List<ConsoleOption>(),
+
 		Description = "Press the result number to open in browser\n".AddColor(Elements.ColorOther) +
 		              $"{"Ctrl:".AddColor(Elements.ColorKey)} Load direct | " +
 		              $"{"Alt:".AddColor(Elements.ColorKey)} Show other | " +
@@ -105,7 +106,7 @@ public static partial class Program
 			{
 				// F2 : Refine
 
-				_cancellationTokenSource = new();
+				_ctsSearch = new();
 				var buf = new List<ConsoleOption>(ResultDialog.Options);
 
 				ResultDialog.Options.Clear();
@@ -115,13 +116,9 @@ public static partial class Program
 					await Client.RefineSearchAsync();
 				}
 				catch (Exception e) {
-					Console.WriteLine(
-						$"\n{Strings.Constants.CHEVRON} Error: {e.Message.AddColor(Elements.ColorError)}");
-
-					ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(2));
+					qmsg($"Error: {e.Message.AddColor(Elements.ColorError)}");
 
 					ResultDialog.Options.Clear();
-					// ResultDialog.Options.Add(_originalResult);
 
 					foreach (ConsoleOption t in buf) {
 						ResultDialog.Options.Add(t);
@@ -133,6 +130,14 @@ public static partial class Program
 			},
 		}
 	};
+
+	private static void qmsg(string s)
+	{
+		Console.WriteLine(
+			$"\n{Strings.Constants.CHEVRON} {s}");
+
+		ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(2));
+	}
 
 	#endregion
 
@@ -150,7 +155,8 @@ public static partial class Program
 
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
-		Console.OutputEncoding                     =  Encoding.Unicode;
+
+		Console.OutputEncoding = Encoding.Unicode;
 
 		Console.Title = $"{AppInfo.NAME}";
 
@@ -181,161 +187,129 @@ public static partial class Program
 		                        $"| Filtering: {Elements.ToToggleString(Config.Filtering)}";
 
 
-		_cancellationTokenSource  = new();
-		_cancellationTokenSource2 = new();
-		_cancellationTokenSource3 = new();
+		_ctsSearch    = new();
+		_ctsContinue  = new();
+		_ctsReadInput = new();
+		_ctsProgress  = new();
 
 		// Run search
 
 		Client.ResultCompleted += OnResultCompleted;
+		Client.SearchCompleted += OnSearchCompleted;
+		Client.ResultUpdated   += OnResultUpdated;
 
-		Client.SearchCompleted += (obj, eventArgs) =>
-		{
-			OnSearchCompleted(obj, eventArgs, _cancellationTokenSource);
+		Console.CancelKeyPress += OnCancel;
 
-			if (Config.Notification) {
-				AppToast.ShowToast(obj, eventArgs);
-			}
-
-			var sp = new SoundPlayer(Resources.hint);
-			sp.Play();
-			sp.Dispose();
-		};
-
-
-		Client.ResultUpdated += (sender, result) =>
-		{
-			ResultDialog.Refresh();
-		};
-
-		Console.CancelKeyPress += (o, eventArgs) =>
-		{
-			OnHandler(o, eventArgs);
-
-			SystemSounds.Hand.Play();
-
-			// var x  = cd.ReadInputAsync();
-			// x.Wait();
-			// Debug.WriteLine($"{ResultDialog.Options.Count}|{Client.AllResults.Count}");
-			// ResultDialog = cd;
-
-			var results = Client.Results;
-			
-			var options = results.Select(x =>
-			{
-				return x.GetConsoleOption();
-			}).ToArray();
-
-			var cd = new ConsoleDialog()
-			{
-				Description = ResultDialog.Description,
-				Header      = ResultDialog.Header,
-				Options     = options,
-				Subtitle    = ResultDialog.Subtitle,
-			};
-			cd.ReadInput();
-
-			// await cd.ReadInputAsync();
-
-		};
-
-		ConsoleManager.UI.ProgressIndicator.Instance.Start(_cancellationTokenSource);
+		ConsoleManager.UI.ProgressIndicator.Instance.Start(_ctsProgress);
 
 
 		// Show results
-		_searchTask    = Client.RunSearchAsync(_cancellationTokenSource, _cancellationTokenSource2);
-		_secondaryTask = Client.RunContinueAsync();
-
+		_searchTask   = Client.RunSearchAsync(_ctsSearch.Token);
+		_continueTask = Client.RunContinueAsync(_ctsContinue.Token);
 
 		_originalResult = Config.Query.GetConsoleOption();
 
 		// Add original image
 		ResultDialog.Options.Add(_originalResult);
 
-		if (!Config.OutputOnly) {
-			try {
-				await ResultDialog.ReadInputAsync(_cancellationTokenSource3.Token);
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-			}
+		await ResultDialog.ReadInputAsync(_ctsReadInput.Token);
+		
 
-		}
+		// if (!Config.OutputOnly) { }
 
 		await _searchTask;
 
 		try {
-			await _secondaryTask;
-
+			await _continueTask;
 		}
 		catch (Exception e) {
 			//ignored
 		}
 
-		Client.Dispose();
+
+		/*Client.Dispose();
 		Client.Reset();
+		*/
 
 		//todo
 		Debug.WriteLine("done");
 
-		if (Config.OutputOnly) {
-			ResultDialog.Display(false);
-		}
+		// ResultDialog.Display(false);
+
+		// if (Config.OutputOnly) { }
 
 
 	}
 
-	private static void OnHandler(object sender, ConsoleCancelEventArgs eventArgs)
-	{
 
+	#region Event handlers
+
+	private static void OnCancel(object o, ConsoleCancelEventArgs eventArgs)
+	{
 		/*ResultDialog.Options.Clear();
 		ResultDialog.Options.Add(_originalResult);*/
 
 
-		ResultDialog.Options.Clear();
-		ResultDialog.Refresh();
-		_cancellationTokenSource.Cancel();
-		_cancellationTokenSource2.Cancel();
-		_cancellationTokenSource3.Cancel();
+		// ResultDialog.Options.Clear();
+		// ResultDialog.Refresh();
+		_ctsSearch.Cancel();
+		_ctsContinue.Cancel();
+		// _ctsReadInput.Cancel();
 
+		eventArgs.Cancel = true;
 
 		// _cancellationTokenSource = new();
 
 		// ResultDialog.Refresh();
 		// await ResultDialog.ReadInputAsync();
+
+		SystemSounds.Hand.Play();
+
+		// var x  = cd.ReadInputAsync();
+		// x.Wait();
+		// Debug.WriteLine($"{ResultDialog.Options.Count}|{Client.AllResults.Count}");
+		// ResultDialog = cd;
+
+		var results = Client.Results;
+
+		var options = results.Select(x =>
+		{
+			return x.GetConsoleOption();
+		}).ToArray();
+
+		var cd = new ConsoleDialog()
+		{
+			Description = ResultDialog.Description,
+			Header      = ResultDialog.Header,
+			Options     = options,
+			Subtitle    = ResultDialog.Subtitle,
+		};
+		// cd.ReadInput();
+
+		/*ResultDialog.Options.Clear();
+
+		foreach (ConsoleOption t in options) {
+			ResultDialog.Options.Add(t);
+		}*/
+		// await cd.ReadInputAsync();
+		// ResultDialog.Display(true);
+		qmsg("Cancelled");
+
 	}
 
-	private static CancellationTokenSource _cancellationTokenSource3;
-
-	private static CancellationTokenSource _cancellationTokenSource2;
-
-	private static CancellationTokenSource _cancellationTokenSource;
-
-	private static bool _isFilteredShown;
-
-	private static ConsoleOption _originalResult;
-
-	private static Task _searchTask;
-	private static Task _secondaryTask;
-
-
-	#region Event handlers
-
-	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs,
-	                                      CancellationTokenSource cts)
+	private static void OnResultUpdated(object sender, EventArgs result)
 	{
+		ResultDialog.Refresh();
+	}
 
-
+	private static void OnSearchCompleted(object sender, SearchCompletedEventArgs eventArgs)
+	{
 		Debug.WriteLine("Search completed");
-
-		// GC.Collect();
 
 		Native.FlashConsoleWindow();
 
-		cts.Cancel();
-		cts.Dispose();
-
 		// SystemSounds.Exclamation.Play();
+		_ctsProgress.Cancel();
 
 		ResultDialog.Refresh();
 
@@ -345,7 +319,13 @@ public static partial class Program
 			WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
 		}
 
+		if (Config.Notification) {
+			AppToast.ShowToast(sender, eventArgs);
+		}
 
+		var sp = new SoundPlayer(Resources.hint);
+		sp.Play();
+		sp.Dispose();
 	}
 
 	private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
@@ -381,4 +361,18 @@ public static partial class Program
 	}
 
 	#endregion
+	private static CancellationTokenSource _ctsProgress;
+
+	private static CancellationTokenSource _ctsReadInput;
+
+	private static CancellationTokenSource _ctsContinue;
+
+	private static CancellationTokenSource _ctsSearch;
+
+	private static bool _isFilteredShown;
+
+	private static ConsoleOption _originalResult;
+
+	private static Task _searchTask;
+	private static Task _continueTask;
 }

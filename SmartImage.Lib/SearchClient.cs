@@ -97,8 +97,6 @@ public sealed class SearchClient : IDisposable
 	private List<Task> ContinueTasks { get; }
 
 
-
-
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
 	/// </summary>
@@ -136,26 +134,28 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	///     Performs an image search asynchronously.
 	/// </summary>
-	public async Task RunSearchAsync(CancellationTokenSource cts = null, CancellationTokenSource cts2= null)
+	public async Task RunSearchAsync(CancellationToken? cts = null)
 	{
 		if (IsComplete) {
 			Reset();
 		}
 
+		cts ??= CancellationToken.None;
 
 		Tasks = new List<Task<SearchResult>>(Engines.Select(engine =>
 		{
-			var task = engine.GetResultAsync(Config.Query, cts?.Token ?? CancellationToken.None);
+			var task = engine.GetResultAsync(Config.Query, cts.Value);
 
 			return task;
 		}));
 
 		PendingCount = Tasks.Count;
 
-		while (!IsComplete) {
+
+		while (!IsComplete && !cts.Value.IsCancellationRequested) {
 			var finished = await Task.WhenAny(Tasks);
 
-			var task = finished.ContinueWith(GetResultContinueCallback, null, cts2?.Token ?? CancellationToken.None,
+			var task = finished.ContinueWith(GetResultContinueCallback, null, cts.Value,
 			                                 0, TaskScheduler.Default);
 			ContinueTasks.Add(task);
 
@@ -225,14 +225,13 @@ public sealed class SearchClient : IDisposable
 		SearchCompleted?.Invoke(null, args);
 	}
 
-	public async Task RunContinueAsync()
+	public async Task RunContinueAsync(CancellationToken? c = null)
 	{
 
 		IsContinueComplete = false;
+		c??= CancellationToken.None;
 
-
-
-		while (!IsContinueComplete) {
+		while (!IsContinueComplete&&!c.Value.IsCancellationRequested) {
 			var task = await Task.WhenAny(ContinueTasks);
 			await task;
 

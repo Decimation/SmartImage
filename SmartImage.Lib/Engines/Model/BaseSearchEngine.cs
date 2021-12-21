@@ -88,12 +88,14 @@ public abstract class BaseSearchEngine
 	protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query, CancellationToken? c = null)
 	{
 		Uri rawUri = GetRawUri(query);
-
-		const int maxAutoRedirects = 50;
+		
 
 		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(),
 		                                             (int) Timeout.TotalMilliseconds,
 		                                             HttpMethod.Get, FollowRedirects);
+		
+
+
 		bool success;
 
 		if (res is { IsSuccessStatusCode: false }) {
