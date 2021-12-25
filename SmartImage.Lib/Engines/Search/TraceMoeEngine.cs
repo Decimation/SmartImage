@@ -2,27 +2,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
-using System.Threading.Tasks;
-using System.Web;
-using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
-using Kantan.Net;
-using Kantan.Threading;
 using Newtonsoft.Json;
 using SmartImage.Lib.Clients;
-using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
-using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 /// <summary>
 /// 
@@ -136,8 +126,8 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 			if (result.Similarity < FILTER_THRESHOLD) {
 				result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
-				                                 $"({result.Similarity.Value.AsPercent()} " +
-				                                 $"< {FILTER_THRESHOLD.AsPercent()})");
+				                                 $"({result.Similarity.Value/100:P} " +
+				                                 $"< {FILTER_THRESHOLD/100:P})");
 			}
 
 			results[i] = result;

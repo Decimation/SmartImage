@@ -1,26 +1,20 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Text.Unicode;
 using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Kantan.Net;
 using Kantan.Text;
-using Kantan.Utilities;
-using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
-using SmartImage.Lib.Utilities;
+
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
 #pragma warning disable 8602
 
 #nullable enable
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class YandexEngine : WebSearchEngine
 {

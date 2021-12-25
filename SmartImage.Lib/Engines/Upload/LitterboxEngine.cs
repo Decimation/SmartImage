@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Flurl.Http;
-using Kantan.Threading;
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Engines.Upload.Base;
 
 // ReSharper disable StringLiteralTypo
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Upload;
+namespace SmartImage.Lib.Engines.Upload;
 
 public sealed class LitterboxEngine : BaseUploadEngine
 {
 	public override string Name => "Litterbox";
 
-	public override int MaxSize => 1000;
+	public override int MaxSize => 1_000;
 
 	public LitterboxEngine() : base("https://litterbox.catbox.moe/resources/internals/api.php") { }
 

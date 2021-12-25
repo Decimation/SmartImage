@@ -10,9 +10,10 @@ using Kantan.Net;
 using Kantan.Threading;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Engines.Upload;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Searching;
-using SmartImage.Lib.Upload;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 

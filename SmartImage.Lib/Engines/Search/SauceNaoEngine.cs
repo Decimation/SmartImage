@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Json;
 using System.Linq;
 using System.Net;
@@ -12,15 +11,12 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
-using Flurl;
 using Flurl.Http;
 using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Text;
-using Kantan.Utilities;
-using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
-using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
@@ -36,7 +32,7 @@ using JsonObject = System.Json.JsonObject;
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class SauceNaoEngine : ClientSearchEngine
 {

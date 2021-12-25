@@ -22,7 +22,7 @@ using Kantan.Text;
 using Kantan.Utilities;
 using Novus.Utilities;
 using Novus.OS.Win32;
-using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Engines.Search.Base;
 
 #pragma warning disable IDE0066, CA1416
 
@@ -185,7 +185,6 @@ public class SearchResult : IResult
 				[ConsoleOption.NC_FN_SHIFT] = IResult.CreateOpenFunction(RawUri),
 
 			},
-
 
 			Name = Engine.Name,
 			Data = this.Data,

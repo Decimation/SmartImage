@@ -279,7 +279,7 @@ public sealed class ImageResult : IResult
 			};
 
 			if (Similarity.HasValue) {
-				map.Add($"{nameof(Similarity)}", $"{Similarity.Value.AsPercent()}");
+				map.Add($"{nameof(Similarity)}", $"{Similarity.Value/100:P}");
 			}
 
 			if (HasImageDimensions) {

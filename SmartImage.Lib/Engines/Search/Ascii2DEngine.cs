@@ -1,18 +1,14 @@
-﻿using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
-using AngleSharp.XPath;
-using Kantan.Net;
-using SmartImage.Lib.Searching;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
-using System.Threading.Tasks;
-using Kantan.Diagnostics;
-using SmartImage.Lib.Engines.Model;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using AngleSharp.XPath;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Searching;
 
 #nullable disable
 // ReSharper disable CognitiveComplexity
@@ -20,7 +16,7 @@ using SmartImage.Lib.Engines.Model;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class Ascii2DEngine : WebSearchEngine
 {

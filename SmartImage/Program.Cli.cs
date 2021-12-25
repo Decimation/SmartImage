@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 using SmartImage.UI;
 
 namespace SmartImage

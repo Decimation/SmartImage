@@ -5,6 +5,7 @@ using System.IO;
 using Kantan.Collections;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Core;

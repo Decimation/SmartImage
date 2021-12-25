@@ -14,6 +14,7 @@
 using SmartImage.Core;
 using System.Buffers;
 using System.Diagnostics;
+using System.Drawing;
 using System.Media;
 using System.Text;
 using Kantan.Cli;
@@ -85,8 +86,8 @@ public static partial class Program
 		Options = new List<ConsoleOption>(),
 
 		Description = "Press the result number to open in browser\n".AddColor(Elements.ColorOther)
-		              + Elements.GetMapString(desc, Elements.ColorKey) + '\n' 
-		              + Elements.GetMapString(desc2, Elements.ColorKey),
+		              + Strings.GetMapString(desc, Elements.ColorKey) + '\n'
+		              + Strings.GetMapString(desc2, Elements.ColorKey),
 
 		Functions = new()
 		{
@@ -197,7 +198,7 @@ public static partial class Program
 			["Filtering"] = Elements.GetToggleString(Config.Filtering)
 		};
 
-		ResultDialog.Subtitle = Elements.GetMapString(map);
+		ResultDialog.Subtitle = Strings.GetMapString(map);
 
 
 		_ctsSearch    = new();
@@ -292,7 +293,10 @@ public static partial class Program
 
 		ConsoleOption option = result.GetConsoleOption();
 
-		option.Color = Elements.EngineColorMap[result.Engine.EngineOption];
+		var color = Elements.EngineColorMap[result.Engine.EngineOption];
+		option.Color    = color;
+		option.ColorAlt = color.ChangeBrightness(-.4f);
+
 		bool? isFiltered = eventArgs.IsFiltered;
 
 		if (isFiltered.HasValue && !isFiltered.Value || !isFiltered.HasValue) {
@@ -328,7 +332,7 @@ public static partial class Program
 
 		map.Add("Status", s);
 
-		var status = Elements.GetMapString(map);
+		var status = Strings.GetMapString(map);
 
 		ResultDialog.Status = status;
 	}

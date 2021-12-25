@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Net.Http;
 using System.Threading;
-using AngleSharp.Dom;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 
-namespace SmartImage.Lib.Engines.Model;
+namespace SmartImage.Lib.Engines.Search.Base;
 
 public abstract class ProcessedSearchEngine : BaseSearchEngine
 {

@@ -10,8 +10,8 @@ using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Impl;
-using SmartImage.Lib.Upload;
+using SmartImage.Lib.Engines.Upload;
+using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 

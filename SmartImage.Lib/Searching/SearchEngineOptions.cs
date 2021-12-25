@@ -1,10 +1,10 @@
 ﻿using System;
-using SmartImage.Lib.Engines.Impl;
-using SmartImage.Lib.Engines.Impl.Other;
+using SmartImage.Lib.Engines.Search;
+using SmartImage.Lib.Engines.Search.Other;
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Searching;
 
 /// <summary>
 ///     Search engine options

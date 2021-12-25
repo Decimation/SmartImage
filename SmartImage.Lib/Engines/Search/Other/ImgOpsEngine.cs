@@ -1,7 +1,8 @@
-using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Searching;
 
 #nullable enable
-namespace SmartImage.Lib.Engines.Impl.Other;
+namespace SmartImage.Lib.Engines.Search.Other;
 
 public sealed class ImgOpsEngine : BaseSearchEngine
 {

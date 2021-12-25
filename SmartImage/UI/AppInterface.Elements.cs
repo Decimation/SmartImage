@@ -11,6 +11,7 @@ using Novus.OS.Win32;
 using Novus.Utilities;
 using SmartImage.Core;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Searching;
 
 namespace SmartImage.UI;
 
@@ -72,18 +73,6 @@ internal static partial class AppInterface
 
 		internal static string GetVersionString(Version v) => $"{v.Major}.{v.Minor}.{v.Build}";
 
-		internal static string GetMapString(Dictionary<string, string> map, Color? c = null)
-		{
-			return map.Select(kv =>
-			{
-				var key = kv.Key;
-
-				if (c.HasValue) {
-					key = key.AddColor(c.Value);
-				}
-
-				return $"{key}: {kv.Value}";
-			}).QuickJoin(" | ");
-		}
+		
 	}
 }

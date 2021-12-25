@@ -1,9 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.Net.Http;
-using SmartImage.Lib.Searching;
+﻿using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib.Engines.Model;
+namespace SmartImage.Lib.Engines.Search.Base;
 
 /// <summary>
 /// Represents a search engine whose results are returned from an API.

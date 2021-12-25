@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
@@ -38,25 +39,6 @@ public static class ImageHelper
 {
 	private const int TimeoutMS = 1000;
 
-	[CanBeNull]
-	public static string Download(Uri src, string path)
-	{
-		string    filename = UriUtilities.NormalizeFilename(src);
-		string    combine  = Path.Combine(path, filename);
-		using var wc       = new WebClient();
-
-		Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...", C_DEBUG);
-
-		try {
-			wc.DownloadFile(src.ToString(), combine);
-			return combine;
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", C_ERROR);
-			return null;
-		}
-	}
-
 
 	/// <summary>
 	///     Scans for direct images within a webpage.
@@ -64,15 +46,15 @@ public static class ImageHelper
 	/// <param name="url">Url to search</param>
 	/// <param name="count">Number of direct images to return</param>
 	/// <param name="timeoutMS"></param>
-	/// <param name="c"></param>
-	public static async Task<List<DirectImage>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS,
-	                                                          CancellationToken? c2 = null)
+	/// <param name="token"></param>
+	public static Task<List<DirectImage>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS,
+	                                                    CancellationToken? token = null)
 	{
 		var images = new List<DirectImage>();
 
 		IHtmlDocument document = null;
 
-		var c = c2 ?? CancellationToken.None;
+		var c = token ?? CancellationToken.None;
 
 		try {
 			var client = new HttpClient();
@@ -83,13 +65,9 @@ public static class ImageHelper
 			var parser = new HtmlParser();
 			document = parser.ParseDocument(result);
 			client.Dispose();
-
-			// document = WebUtilities.GetHtmlDocument(url);
 		}
 		catch (Exception e) {
-			// Debug.WriteLine($"{nameof(WebUtilities)}: {e.Message}", C_ERROR);
-			document?.Dispose();
-			return images;
+			goto _Return;
 		}
 
 
@@ -98,25 +76,29 @@ public static class ImageHelper
 		urls.AddRange(document.QuerySelectorAttributes("a", "href"));
 		urls.AddRange(document.QuerySelectorAttributes("img", "src"));
 
-		urls = urls.Where(x => x != null).Select(u1 =>
-		{
+		/*
+		 * Normalize urls
+		 */
 
-			if (UriUtilities.IsUri(u1, out Uri u2)) {
+		urls = urls.Where(url => url != null).Select(u =>
+		{
+			if (UriUtilities.IsUri(u, out Uri u2)) {
 				return UriUtilities.NormalizeUrl(u2);
 			}
 
-			return u1;
+			return u;
 		}).Distinct().ToList();
 
-
-		// var tasks = new List<Task<DirectImage>>();
+		/*
+		 * Filter urls if the host is known
+		 */
 
 		string hostComponent = UriUtilities.GetHostComponent(new Uri(url));
 
 		switch (hostComponent) {
 			case "www.deviantart.com":
 				//https://images-wixmp-
-				urls = urls.Where(x => x.StartsWith("http://images-wixmp") || x.StartsWith("https://images-wixmp"))
+				urls = urls.Where(x => x.Contains("images-wixmp"))
 				           .ToList();
 				break;
 			case "twitter.com":
@@ -126,29 +108,11 @@ public static class ImageHelper
 		}
 
 
-		/*for (int i = 0; i < urls.Count; i++) {
-			int iCopy = i;
-
-			tasks.Add(Task.Run(() =>
-			{
-				string s = urls[iCopy];
-
-				if (IsImage(s, (int) timeoutMS, out var di, c)) {
-					return di;
-				}
-
-				di?.Dispose();
-
-				return null;
-
-			}, c));
-		}*/
 		var pr = Parallel.For(0, urls.Count, (i, pls) =>
 		{
 			string s = urls[i];
 
-			if (IsImage(s, (int) timeoutMS, out var di, c)) {
-				// return di;
+			if (IsImage(s, out var di, (int) timeoutMS, c)) {
 				if (di is { } && count > 0) {
 					images.Add(di);
 					count--;
@@ -158,42 +122,21 @@ public static class ImageHelper
 				else {
 					di?.Dispose();
 				}
-
 			}
 			else {
 				di?.Dispose();
-
 			}
-
-			// return null;
 		});
 
-		/*while (tasks.Any() && count != 0) {
-			var task = await Task.WhenAny(tasks);
-			tasks.Remove(task);
+		// Debug.WriteLine($"{nameof(ScanForImages)}: {pr}");
 
-			DirectImage result = task.Result;
-
-			if (result is { } && count > 0) {
-				// result.Url = new Uri(UriUtilities.NormalizeUrl(result.Url));
-				images.Add(result);
-				count--;
-			}
-			else {
-				result?.Dispose();
-			}
-		}*/
-
-		document.Dispose();
-
-		return images;
+		_Return:
+		document?.Dispose();
+		return Task.FromResult(images);
 	}
 
-	public static bool IsImage(string url, out DirectImage di, CancellationToken? c = null)
-		=> IsImage(url, TimeoutMS, out di, c);
 
-
-	public static bool IsImage(string url, int timeout, out DirectImage di, CancellationToken? c = null)
+	public static bool IsImage(string url, out DirectImage di, int timeout = TimeoutMS, CancellationToken? token = null)
 	{
 		di = new DirectImage();
 
@@ -201,9 +144,9 @@ public static class ImageHelper
 			return false;
 		}
 
-		var response1 = HttpUtilities.GetHttpResponseAsync(url, timeout, HttpMethod.Head, token: c);
-		response1.Wait();
-		var response = response1.Result;
+		var responseTask = HttpUtilities.GetHttpResponseAsync(url, timeout, HttpMethod.Head, token: token);
+		responseTask.Wait();
+		var response = responseTask.Result;
 
 		// var response1 = HttpUtilities.GetHttpResponseAsync(url, (int) timeout, HttpMethod.Head, c: c);
 		// response1.Wait();
@@ -225,7 +168,6 @@ public static class ImageHelper
 
 		// The content-type returned from the response may not be the actual content-type, so
 		// we'll resolve it using binary data instead to be sure
-		bool type, size;
 
 		const string svg_xml    = "image/svg+xml";
 		const string image      = "image";
@@ -233,48 +175,49 @@ public static class ImageHelper
 
 		var length = response.Content.Headers.ContentLength;
 		di.Response = response;
+		string mediaType;
 
 		try {
-			using var client = new HttpClient();
-
-			// var cts = new CancellationTokenSource((int) timeout);
-			// cts.CancelAfter((int) timeout);
-			// client.Timeout = TimeSpan.FromMilliseconds(timeout);
-			var task = client.GetStreamAsync(url, c ?? CancellationToken.None /*cts.Token*/);
-			// task.Wait(timeout);
-			task.Wait();
-			var stream = task.Result;
-
-			var buffer = new byte[256];
-			stream.Read(buffer, 0, buffer.Length);
-			var m = MediaTypes.ResolveFromData(buffer);
-			type = m.StartsWith(image) && m != svg_xml;
-			size = length is -1 or >= min_size_b;
-			stream.Dispose();
+			mediaType = ResolveMediaTypeFromData(url, token);
 		}
 		catch (Exception x) {
-			var value = response.Content.Headers.ContentType;
-			type = value.MediaType.StartsWith(image) && value.MediaType != svg_xml;
-			size = length >= min_size_b;
-			// Debug.WriteLine($"{nameof(IsImage)}: {x.Message}");
+			mediaType = response.Content.Headers.ContentType.MediaType;
 		}
 
+		// string mediaType = response.Content.Headers.ContentType.MediaType;
+
+
+		bool type = mediaType.StartsWith(image) && mediaType != svg_xml;
+		bool size = length is -1 or >= min_size_b;
+
+
 		return type && size;
+	}
+
+	private static string ResolveMediaTypeFromData(string url, CancellationToken? token = null)
+	{
+		string    mediaType;
+		using var client = new HttpClient();
+
+		// var cts = new CancellationTokenSource((int) timeout);
+		// cts.CancelAfter((int) timeout);
+		// client.Timeout = TimeSpan.FromMilliseconds(timeout);
+		var task = client.GetStreamAsync(url, token ?? CancellationToken.None /*cts.Token*/);
+		// task.Wait(timeout);
+		task.Wait();
+
+		var stream = task.Result;
+		var buffer = new byte[256];
+		stream.Read(buffer, 0, buffer.Length);
+		mediaType = MediaTypes.ResolveFromData(buffer);
+		stream.Flush();
+		stream.Dispose();
+		return mediaType;
 	}
 
 	/*
 	 * Direct images are URIs that point to a binary image file
 	 */
-
-	internal static string AsPercent(this float n)
-	{
-		/*
-		 * Some engines may return the similarity value as 0f < n < 1f
-		 * Therefore, similarity is normalized (100f * n) and stored as 0f < n < 100f
-		 */
-
-		return $"{n / 100:P}";
-	}
 
 	public static DisplayResolutionType GetDisplayResolution(int w, int h)
 	{
@@ -368,7 +311,24 @@ public static class ImageHelper
 	 * https://github.com/regosen/gallery_get
 	 */
 
-	#region Cli
+	[CanBeNull]
+	public static string Download(Uri src, string path)
+	{
+		string    filename = UriUtilities.NormalizeFilename(src);
+		string    combine  = Path.Combine(path, filename);
+		using var wc       = new WebClient();
+
+		Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...", C_DEBUG);
+
+		try {
+			wc.DownloadFile(src.ToString(), combine);
+			return combine;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", C_ERROR);
+			return null;
+		}
+	}
 
 	public static Dictionary<string, string> UtilitiesMap
 	{
@@ -391,8 +351,6 @@ public static class ImageHelper
 	{
 		"ffmpeg.exe", "ffprobe.exe", "magick.exe", "youtube-dl.exe", "gallery-dl.exe"
 	};
-
-	#endregion
 }
 
 public enum DisplayResolutionType

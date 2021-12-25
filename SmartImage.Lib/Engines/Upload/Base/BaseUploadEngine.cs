@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Flurl.Http.Content;
-using Novus.OS.Win32;
 using Kantan.Numeric;
 using Novus.OS;
 
-namespace SmartImage.Lib.Upload;
+namespace SmartImage.Lib.Engines.Upload.Base;
 
 public abstract class BaseUploadEngine
 {

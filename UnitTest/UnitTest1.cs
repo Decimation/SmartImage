@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Xml.Xsl;
 using NUnit.Framework;
-using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 

@@ -7,7 +7,8 @@ using System.Net;
 using System.Threading.Tasks;
 using OpenCvSharp;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Engines.Search;
+using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using Point = OpenCvSharp.Point;
@@ -42,7 +43,7 @@ public static class Program
 	{
 
 
-		await test4();
+		await test5();
 
 	}
 
@@ -52,14 +53,21 @@ public static class Program
 		                            out var di);
 
 		Console.WriteLine(b);
+
+		var v = new AnonFilesEngine();
+		var aa= await v.UploadFileAsync(@"C:\Users\Deci\Pictures\Test Images\Test6.jpg");
+		Console.WriteLine(aa);
 	}
 	static async Task test4()
 	{
-		var task = await ImageHelper.ScanForImages(
-			           "https://www.deviantart.com/sciamano240/art/Y-shtola-Final-Fantasy-2v-898752157");
+		var task = await ImageHelper.ScanForImages("http://www.zerochan.net/2750747");
 
 		foreach (DirectImage v in task) {
 			Console.WriteLine(v);
+		}
+
+		foreach (DirectImage directImage in task) {
+			directImage.Dispose();
 		}
 	}
 

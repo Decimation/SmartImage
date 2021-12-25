@@ -1,6 +1,7 @@
-using SmartImage.Lib.Engines.Model;
+using SmartImage.Lib.Engines.Search.Base;
+using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib.Engines.Impl.Other;
+namespace SmartImage.Lib.Engines.Search.Other;
 
 public sealed class GoogleImagesEngine : BaseSearchEngine
 {

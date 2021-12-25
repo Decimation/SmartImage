@@ -4,12 +4,11 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Kantan.Diagnostics;
 using Kantan.Net;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 
-namespace SmartImage.Lib.Engines.Model;
+namespace SmartImage.Lib.Engines.Search.Base;
 
 /// <summary>
 /// Base search engine.
