@@ -149,7 +149,7 @@ public class SearchResult : IResult
 
 		var directResults = new List<ImageResult>();
 
-		var ll = Parallel.For(0, AllResults.Count, (i, pls) =>
+		var ll = Parallel.For(0, AllResults.Count, async (i, pls) =>
 		{
 			var allResult = AllResults[i];
 

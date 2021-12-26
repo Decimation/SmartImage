@@ -283,10 +283,14 @@ public sealed class SearchClient : IDisposable
 			var autoResetEvent = ((AutoResetEvent) DirectResultsWaitHandle);
 
 
-			if (DirectResults.Count > 0 &&
-			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed /*|| ContinueTasks.Count==1*/) {
-				Debug.WriteLine("wait handle set");
-				autoResetEvent.Set();
+			if (DirectResults.Count > 0 /*||
+			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed*/ /*|| ContinueTasks.Count==1*/) {
+
+				if (!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
+					Debug.WriteLine("wait handle set");
+					autoResetEvent.Set();
+
+				}
 			}
 
 			DirectResultCompleted?.Invoke(null, EventArgs.Empty);

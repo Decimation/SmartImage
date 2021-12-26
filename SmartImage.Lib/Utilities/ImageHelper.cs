@@ -152,32 +152,61 @@ public static class ImageHelper
 		// var task = url.GetAsync();
 		// task.Wait();
 		/*try {
-			var task = new HttpRequestMessage( HttpMethod.Get, url);
-			var cc   =new HttpClient(){};
+			// var r = new HttpRequestMessage(HttpMethod.Get, url);
 
-			var rg1 =cc.Send(task);
+			var clientHandler = new HttpClientHandler()
+			{
+				AllowAutoRedirect        = true,
+				MaxAutomaticRedirections = 50,
+				ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) =>
+				{
+					return true;
+				}
+			};
+
+
+			var cc = new HttpClient(clientHandler)
+			{
+				Timeout = TimeSpan.FromMilliseconds(timeout)
+			};
+
+			var rrr = cc.GetByteArrayAsync(url, token ?? CancellationToken.None);
+			rrr.Wait();
+
+			// var rg11 = cc.GetByteArrayAsync(url, token ?? CancellationToken.None);
+			// rg11.Wait();
+			// task.Wait();
+			// var rgx1 = rg11.Result;
+
+			// var rgx1 = rg11.Result;
+			var rgx1 = rrr.Result;
+
+			var data = MediaTypes.ResolveFromData(rgx1);
+
+			if (data.StartsWith(image) && data != svg_xml)
+			{
+				return true;
+			}
+
+			// var task = HttpUtilities.GetHttpResponseAsync(url, timeout, HttpMethod.Get, token: token);
+			var rg1t = cc.GetAsync(url, token ?? CancellationToken.None);
+			rg1t.Wait();
+			var rg1=rg1t.Result;
+			// var rg1 = task.Result;
 			// var rg1 = task.Result;
 			if (!rg1.IsSuccessStatusCode) {
 				return false;
 			}
+
 			// var contentType = rg1.ResponseMessage.Content.Headers.ContentType.MediaType;
 			var contentType = rg1.Content.Headers.ContentType.MediaType;
+
 
 			if (contentType.ToString().StartsWith(image) && contentType != svg_xml) {
 				return true;
 			}
 		
-			var rrr = rg1.Content.ReadAsByteArrayAsync();
-
-			// var rrr=rg1.ResponseMessage.Content.ReadAsByteArrayAsync();
-			rrr.Wait();
-			var rgx1 = rrr.Result;
-
-			var data = MediaTypes.ResolveFromData(rgx1);
-
-			if (data.StartsWith(image)&&data!=svg_xml) {
-				return true;
-			}
+			
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}");
@@ -213,13 +242,13 @@ public static class ImageHelper
 		// The content-type returned from the response may not be the actual content-type, so
 		// we'll resolve it using binary data instead to be sure
 
-		
 
 		var length = response.Content.Headers.ContentLength;
 		di.Response = response;
-		
-		
+
+
 		string mediaType;
+
 		try {
 			mediaType = ResolveMediaTypeFromData(url, token);
 		}
