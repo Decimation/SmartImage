@@ -64,7 +64,7 @@ internal static class AppToast
 		if (Program.Config.NotificationImage) {
 
 
-			var w = Program.Client.m_w;
+			var w = Program.Client.DirectResultsWaitHandle;
 			w.WaitOne();
 			w.Dispose();
 

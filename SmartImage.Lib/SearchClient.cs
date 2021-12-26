@@ -43,9 +43,10 @@ public sealed class SearchClient : IDisposable
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
 
-		m_w = new AutoResetEvent(false);
+		DirectResultsWaitHandle = new AutoResetEvent(false);
 
 		Reload();
+		
 	}
 
 	/// <summary>
@@ -96,8 +97,11 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsContinueComplete { get; private set; }
 
-	public  List<Task<SearchResult>> Tasks         { get; private set; }
-	private List<Task>               ContinueTasks { get; }
+	public List<Task<SearchResult>> Tasks { get; private set; }
+
+	private List<Task> ContinueTasks { get; }
+
+	public WaitHandle DirectResultsWaitHandle { get; private set; }
 
 
 	/// <summary>
@@ -127,10 +131,12 @@ public sealed class SearchClient : IDisposable
 		FilteredResults.Clear();
 		DetailedResults.Clear();
 		ContinueTasks.Clear();
-		PendingCount       = 0;
+		PendingCount = 0;
+
 		IsComplete         = false;
 		IsContinueComplete = false;
-		m_w                = new AutoResetEvent(false);
+
+		DirectResultsWaitHandle = new AutoResetEvent(false);
 
 		Reload();
 	}
@@ -243,6 +249,12 @@ public sealed class SearchClient : IDisposable
 
 			ContinueTasks.Remove(task);
 			IsContinueComplete = !ContinueTasks.Any();
+
+
+		}
+
+		if (!DirectResultsWaitHandle.SafeWaitHandle.IsInvalid||!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
+			((AutoResetEvent) DirectResultsWaitHandle).Set();
 		}
 	}
 
@@ -251,37 +263,36 @@ public sealed class SearchClient : IDisposable
 	{
 		var value = task.Result;
 
-		if (value.IsSuccessful && value.IsNonPrimitive) {
+		if (!value.IsSuccessful || !value.IsNonPrimitive || value.Scanned) {
+			return;
+		}
 
+		// var task2 = value.FindDirectResultsAsync();
+		// task2.Wait();
+		// var result = task2.Result;
 
-			if (!value.Scanned) {
-				// var task2 = value.FindDirectResultsAsync();
-				// task2.Wait();
-				// var result = task2.Result;
+		var result = value.FindDirectResultsAsync();
 
-				var result = value.FindDirectResultsAsync();
+		if (result.Any()) {
+			result = result /*.Where(x => x.Direct != null)*/
+				.ToList();
 
-				if (result.Any()) {
-					result = result /*.Where(x => x.Direct != null)*/
-						.ToList();
+			DirectResults.AddRange(result);
 
-					DirectResults.AddRange(result);
+			value.Scanned = true;
+			var autoResetEvent = ((AutoResetEvent)DirectResultsWaitHandle);
+			
 
-					var autoResetEvent = ((AutoResetEvent) m_w);
-
-					if (DirectResults.Count > 0 && !autoResetEvent.SafeWaitHandle.IsClosed) {
-						Debug.WriteLine("wait handle set");
-						autoResetEvent.Set();
-
-					}
-
-					value.Scanned = true;
-
-					ResultUpdated?.Invoke(null, EventArgs.Empty);
-
-					// if (result.Any()) { }
-				}
+			if (DirectResults.Count > 0&&!DirectResultsWaitHandle.SafeWaitHandle.IsClosed /*|| ContinueTasks.Count==1*/) {
+				Debug.WriteLine("wait handle set");
+				autoResetEvent.Set();
 			}
+
+			DirectResultCompleted?.Invoke(null, EventArgs.Empty);
+
+			// if (result.Any()) { }
+
+
 		}
 	}
 
@@ -358,7 +369,7 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	/// Fires when a result has been updated with new information
 	/// </summary>
-	public event EventHandler ResultUpdated;
+	public event EventHandler DirectResultCompleted;
 
 	/// <summary>
 	///     Fires when a result is returned (<see cref="RunSearchAsync" />).
@@ -375,8 +386,6 @@ public sealed class SearchClient : IDisposable
 
 	private static readonly SmartImageException SearchException = new("Search must be completed");
 
-	public WaitHandle m_w;
-
 
 	public void Dispose()
 	{
@@ -388,6 +397,10 @@ public sealed class SearchClient : IDisposable
 			result.Dispose();
 		}
 
+		if (!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
+			DirectResultsWaitHandle.Dispose();
+
+		}
 	}
 }
 

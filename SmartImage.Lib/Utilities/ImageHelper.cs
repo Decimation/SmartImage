@@ -12,10 +12,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net;
 using Novus.OS;
 using static Kantan.Diagnostics.LogCategories;
+using HttpRequestMessage = System.Net.Http.HttpRequestMessage;
 
 #pragma warning disable CS0168
 #pragma warning disable IDE0059
@@ -138,11 +140,53 @@ public static class ImageHelper
 
 	public static bool IsImage(string url, out DirectImage di, int timeout = TimeoutMS, CancellationToken? token = null)
 	{
+		const string svg_xml    = "image/svg+xml";
+		const string image      = "image";
+		const int    min_size_b = 50_000;
 		di = new DirectImage();
 
 		if (!UriUtilities.IsUri(url, out Uri u)) {
 			return false;
 		}
+
+		// var task = url.GetAsync();
+		// task.Wait();
+		/*try {
+			var task = new HttpRequestMessage( HttpMethod.Get, url);
+			var cc   =new HttpClient(){};
+
+			var rg1 =cc.Send(task);
+			// var rg1 = task.Result;
+			if (!rg1.IsSuccessStatusCode) {
+				return false;
+			}
+			// var contentType = rg1.ResponseMessage.Content.Headers.ContentType.MediaType;
+			var contentType = rg1.Content.Headers.ContentType.MediaType;
+
+			if (contentType.ToString().StartsWith(image) && contentType != svg_xml) {
+				return true;
+			}
+		
+			var rrr = rg1.Content.ReadAsByteArrayAsync();
+
+			// var rrr=rg1.ResponseMessage.Content.ReadAsByteArrayAsync();
+			rrr.Wait();
+			var rgx1 = rrr.Result;
+
+			var data = MediaTypes.ResolveFromData(rgx1);
+
+			if (data.StartsWith(image)&&data!=svg_xml) {
+				return true;
+			}
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+		}*/
+
+		/*
+		 *
+		 */
+
 
 		var responseTask = HttpUtilities.GetHttpResponseAsync(url, timeout, HttpMethod.Head, token: token);
 		responseTask.Wait();
@@ -169,14 +213,13 @@ public static class ImageHelper
 		// The content-type returned from the response may not be the actual content-type, so
 		// we'll resolve it using binary data instead to be sure
 
-		const string svg_xml    = "image/svg+xml";
-		const string image      = "image";
-		const int    min_size_b = 50_000;
+		
 
 		var length = response.Content.Headers.ContentLength;
 		di.Response = response;
+		
+		
 		string mediaType;
-
 		try {
 			mediaType = ResolveMediaTypeFromData(url, token);
 		}

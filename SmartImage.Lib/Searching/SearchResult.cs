@@ -148,8 +148,8 @@ public class SearchResult : IResult
 		Debug.WriteLine($"searching within {Engine.Name}");
 
 		var directResults = new List<ImageResult>();
-		
-		var ll=Parallel.For(0, AllResults.Count, (i, pls) =>
+
+		var ll = Parallel.For(0, AllResults.Count, (i, pls) =>
 		{
 			var allResult = AllResults[i];
 
@@ -157,7 +157,7 @@ public class SearchResult : IResult
 			task.Wait();
 			var b = task.Result;
 
-			if (b && !directResults.Contains(allResult)&& allResult.Direct != null) {
+			if (b && !directResults.Contains(allResult) && allResult.Direct != null) {
 				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.Direct.Url}");
 
 				directResults.Add(allResult);

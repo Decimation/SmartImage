@@ -213,7 +213,7 @@ public static partial class Program
 
 		Client.ResultCompleted += OnResultCompleted;
 		Client.SearchCompleted += OnSearchCompleted;
-		Client.ResultUpdated   += OnResultUpdated;
+		Client.DirectResultCompleted   += OnDirectResultCompleted;
 
 		Console.CancelKeyPress += OnCancel;
 
@@ -243,7 +243,6 @@ public static partial class Program
 		/*Client.Dispose();
 		Client.Reset();
 		*/
-
 	}
 
 
@@ -259,7 +258,7 @@ public static partial class Program
 		SystemSounds.Hand.Play();
 	}
 
-	private static void OnResultUpdated(object sender, EventArgs result)
+	private static void OnDirectResultCompleted(object sender, EventArgs result)
 	{
 		ResultDialog.Refresh();
 	}
