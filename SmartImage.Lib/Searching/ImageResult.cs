@@ -215,7 +215,11 @@ public sealed class ImageResult : IResult
 
 	public async Task<bool> ScanForImagesAsync()
 	{
-		if (Url == null || Direct?.Url != null || IsAlreadyDirect()) {
+		if (Url==null) {
+			return false;
+		}
+
+		if (Direct is {Url: {}} || IsAlreadyDirect()) {
 			return true;
 		}
 
@@ -248,7 +252,7 @@ public sealed class ImageResult : IResult
 	}
 
 
-	public bool IsAlreadyDirect()
+	private bool IsAlreadyDirect()
 	{
 		if (Url is not { }) {
 			return false;

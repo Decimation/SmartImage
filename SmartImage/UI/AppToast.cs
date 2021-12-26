@@ -1,9 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Text;
 using Windows.ApplicationModel.Background;
 using Windows.UI.Notifications;
+using Kantan.Cli.Controls;
+using Kantan.Collections;
 using Kantan.Net;
 using Kantan.Numeric;
 using Kantan.Text;
@@ -11,6 +14,7 @@ using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+using SmartImage.Properties;
 using static Kantan.Diagnostics.LogCategories;
 using static SmartImage.UI.AppInterface;
 
@@ -32,7 +36,7 @@ internal static class AppToast
 		       .AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
 
 
-		var sb = new StringBuilder();
+		builder.AddText("Search Complete");
 
 		string url = null;
 
@@ -40,12 +44,12 @@ internal static class AppToast
 		if (Program.Client.DetailedResults.Any()) {
 			var detailed = Program.Client.DetailedResults.First();
 			url = detailed.Url.ToString();
-			sb.Append(detailed);
 		}
 		else if (Program.Client.Results.Any()) {
 			var result = Program.Client.Results.First();
 			url = result.PrimaryResult.Url.ToString();
-			sb.Append(result);
+
+			builder.AddText($"Engine: {result.Engine}");
 		}
 
 
@@ -54,14 +58,13 @@ internal static class AppToast
 
 		builder.AddButton(button)
 		       .AddButton(button2)
-		       .AddText("Search complete")
-		       .AddText($"{sb}")
+		       .AddAttributionText($"{url}")
 		       .AddText($"Results: {Program.Client.Results.Count}");
 
-		if (Program.Config.Notification && Program.Config.NotificationImage) {
+		if (Program.Config.NotificationImage) {
 
 
-			var w = Program.Client.GetWaitHandle();
+			var w = Program.Client.m_w;
 			w.WaitOne();
 			w.Dispose();
 
@@ -72,8 +75,10 @@ internal static class AppToast
 				goto ShowToast;
 			}
 
-			var directImage = directResults.OrderByDescending(x => x.PixelResolution).First();
-			var path        = Path.GetTempPath();
+			var directImage = directResults.OrderByDescending(x => x.PixelResolution)
+			                               .First();
+
+			var path = Path.GetTempPath();
 
 			string file = ImageHelper.Download(directImage.Direct.Url, path);
 
@@ -84,6 +89,7 @@ internal static class AppToast
 					file = ImageHelper.Download(directResults[i++].Direct.Url, path);
 
 				} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
+				
 			}
 
 			/**/
@@ -108,7 +114,7 @@ internal static class AppToast
 		builder.SetBackgroundActivation();
 		builder.Show();
 	}
-	
+
 	internal static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)
 	{
 		// NOTE: Does not return if invoked from background

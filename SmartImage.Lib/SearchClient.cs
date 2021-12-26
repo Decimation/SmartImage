@@ -43,6 +43,7 @@ public sealed class SearchClient : IDisposable
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
 
+		m_w = new AutoResetEvent(false);
 
 		Reload();
 	}
@@ -95,7 +96,8 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsContinueComplete { get; private set; }
 
-	private List<Task> ContinueTasks { get; }
+	public  List<Task<SearchResult>> Tasks         { get; private set; }
+	private List<Task>               ContinueTasks { get; }
 
 
 	/// <summary>
@@ -128,6 +130,7 @@ public sealed class SearchClient : IDisposable
 		PendingCount       = 0;
 		IsComplete         = false;
 		IsContinueComplete = false;
+		m_w                = new AutoResetEvent(false);
 
 		Reload();
 	}
@@ -140,6 +143,7 @@ public sealed class SearchClient : IDisposable
 		if (IsComplete) {
 			Reset();
 		}
+
 
 		cts ??= CancellationToken.None;
 
@@ -230,9 +234,10 @@ public sealed class SearchClient : IDisposable
 	{
 
 		IsContinueComplete = false;
-		c??= CancellationToken.None;
 
-		while (!IsContinueComplete&&!c.Value.IsCancellationRequested) {
+		c ??= CancellationToken.None;
+
+		while (!IsContinueComplete && !c.Value.IsCancellationRequested) {
 			var task = await Task.WhenAny(ContinueTasks);
 			await task;
 
@@ -241,26 +246,6 @@ public sealed class SearchClient : IDisposable
 		}
 	}
 
-	public WaitHandle GetWaitHandle()
-	{
-		// ReSharper disable PossibleNullReferenceException
-
-		WaitHandle w = new AutoResetEvent(false);
-
-		ThreadPool.QueueUserWorkItem((state) =>
-		{
-			//todo
-			while (!DirectResults.Any()) { }
-
-			var resetEvent = (AutoResetEvent) state;
-			resetEvent.Set();
-
-		}, w);
-
-		return w;
-
-		// ReSharper restore PossibleNullReferenceException
-	}
 
 	private void GetResultContinueCallback(Task<SearchResult> task, object state)
 	{
@@ -270,21 +255,31 @@ public sealed class SearchClient : IDisposable
 
 
 			if (!value.Scanned) {
-				var task2 = value.FindDirectResultsAsync();
-				task2.Wait();
-				var result = task2.Result;
+				// var task2 = value.FindDirectResultsAsync();
+				// task2.Wait();
+				// var result = task2.Result;
 
+				var result = value.FindDirectResultsAsync();
 
-				if (result != null && result.Any()) {
-					result = result.Where(x => x.Direct != null).ToList();
+				if (result.Any()) {
+					result = result /*.Where(x => x.Direct != null)*/
+						.ToList();
 
-					if (result.Any()) {
-						DirectResults.AddRange(result);
-						value.Scanned = true;
+					DirectResults.AddRange(result);
 
-						ResultUpdated?.Invoke(null, EventArgs.Empty);
+					var autoResetEvent = ((AutoResetEvent) m_w);
+
+					if (DirectResults.Count > 0 && !autoResetEvent.SafeWaitHandle.IsClosed) {
+						Debug.WriteLine("wait handle set");
+						autoResetEvent.Set();
 
 					}
+
+					value.Scanned = true;
+
+					ResultUpdated?.Invoke(null, EventArgs.Empty);
+
+					// if (result.Any()) { }
 				}
 			}
 		}
@@ -380,7 +375,7 @@ public sealed class SearchClient : IDisposable
 
 	private static readonly SmartImageException SearchException = new("Search must be completed");
 
-	public List<Task<SearchResult>> Tasks { get; private set; }
+	public WaitHandle m_w;
 
 
 	public void Dispose()

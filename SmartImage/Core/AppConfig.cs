@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Diagnostics;
 using System.IO;
 using Kantan.Collections;
 using Kantan.Utilities;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
@@ -12,6 +14,10 @@ namespace SmartImage.Core;
 
 public static class AppConfig
 {
+	/*internal static Configuration Config=> ConfigurationManager.OpenExeConfiguration(
+		                                       ConfigurationUserLevel.None) as Configuration;
+		                                       */
+
 	public static FileInfo ConfigFile
 	{
 		get
@@ -24,6 +30,8 @@ public static class AppConfig
 			}
 
 			return new FileInfo(file);
+
+			// return new FileInfo(Config.FilePath);
 		}
 	}
 
@@ -47,6 +55,26 @@ public static class AppConfig
 
 	public static void ReadConfigFile()
 	{
+		/*var p=Program.Config;
+		
+
+		Console.WriteLine(Config.FilePath);
+		Console.WriteLine(Config.AppSettings.Settings);
+
+		const string s = "SearchConfig";
+
+		if (Config.Sections[s] == null)
+		{
+			Config.Sections.Add(s, p);
+		}
+
+		p.SectionInformation.ForceSave = true;
+
+		Config.Save(ConfigurationSaveMode.Modified);
+		ConfigurationManager.RefreshSection(s);
+		Program.Config = Config.GetSection(s) as SearchConfig;
+		*/
+
 		var map = EnumerableHelper.ReadDictionary(ConfigFile.ToString());
 
 
@@ -75,8 +103,11 @@ public static class AppConfig
 		var map = ConfigMap;
 
 		EnumerableHelper.WriteDictionary(map, ConfigFile.ToString());
+		// Config.Save();
+		// Config.Save(ConfigurationSaveMode.Modified);
 
 		Debug.WriteLine($"Saved to {ConfigFile.Name}", C_INFO);
+
 	}
 
 	private const string K_ENGINES            = "engines";
@@ -91,5 +122,22 @@ public static class AppConfig
 	{
 		Program.Client.Reload();
 		SaveConfigFile();
+	}
+
+	public static void tmp()
+	{
+		var config = ConfigurationManager.OpenExeConfiguration(
+			             ConfigurationUserLevel.None) as Configuration;
+
+		// Console.WriteLine(config.FilePath);
+		// Console.WriteLine(config.AppSettings.Settings);
+
+		if (config.Sections["SearchConfig"] == null) {
+			config.Sections.Add("SearchConfig", Program.Config);
+		}
+
+		Program.Config.SectionInformation.ForceSave = true;
+
+		config.Save(ConfigurationSaveMode.Modified);
 	}
 }

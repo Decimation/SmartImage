@@ -13,6 +13,7 @@
 #nullable disable
 using SmartImage.Core;
 using System.Buffers;
+using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
 using System.Media;
@@ -30,6 +31,7 @@ using SmartImage.Lib.Searching;
 using SmartImage.Properties;
 using SmartImage.UI;
 using static SmartImage.UI.AppInterface;
+using Configuration = System.Configuration.Configuration;
 
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable SuggestVarOrType_Elsewhere
@@ -54,7 +56,7 @@ public static partial class Program
 	/// <summary>
 	/// User search config
 	/// </summary>
-	internal static SearchConfig Config { get; private set; } = new();
+	internal static SearchConfig Config { get; set; } = new();
 
 	/// <summary>
 	/// Search client
@@ -162,7 +164,8 @@ public static partial class Program
 		 * Register events
 		 */
 
-
+		
+		
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 		Console.OutputEncoding = Encoding.Unicode;

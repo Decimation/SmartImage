@@ -1,5 +1,4 @@
-﻿
-global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 using ConsoleProgressIndicator = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 using JetBrains.Annotations;
 using SmartImage.Lib.Engines;
@@ -144,22 +143,38 @@ public class SearchResult : IResult
 
 	public bool Scanned { get; internal set; }
 
-	public async Task<List<ImageResult>> FindDirectResultsAsync()
+	public List<ImageResult> FindDirectResultsAsync()
 	{
 		Debug.WriteLine($"searching within {Engine.Name}");
 
 		var directResults = new List<ImageResult>();
+		
+		var ll=Parallel.For(0, AllResults.Count, (i, pls) =>
+		{
+			var allResult = AllResults[i];
 
-		foreach (ImageResult ir in AllResults) {
+			var task = allResult.ScanForImagesAsync();
+			task.Wait();
+			var b = task.Result;
+
+			if (b && !directResults.Contains(allResult)&& allResult.Direct != null) {
+				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.Direct.Url}");
+
+				directResults.Add(allResult);
+				PrimaryResult.Direct.Url ??= allResult.Direct.Url;
+			}
+		});
+		/*foreach (ImageResult ir in AllResults) {
 			var b = await ir.ScanForImagesAsync();
 
-			if (b && !directResults.Contains(ir)) {
+			if (b && !directResults.Contains(ir))
+			{
+				// Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {ir.Direct.Url}");
 
-				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {ir.Direct.Url}");
 				directResults.Add(ir);
 				PrimaryResult.Direct.Url ??= ir.Direct.Url;
 			}
-		}
+		}*/
 
 		Scanned = true;
 
