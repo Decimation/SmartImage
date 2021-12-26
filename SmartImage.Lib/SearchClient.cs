@@ -46,7 +46,7 @@ public sealed class SearchClient : IDisposable
 		DirectResultsWaitHandle = new AutoResetEvent(false);
 
 		Reload();
-		
+
 	}
 
 	/// <summary>
@@ -253,7 +253,7 @@ public sealed class SearchClient : IDisposable
 
 		}
 
-		if (!DirectResultsWaitHandle.SafeWaitHandle.IsInvalid||!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
+		if (!DirectResultsWaitHandle.SafeWaitHandle.IsInvalid || !DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
 			((AutoResetEvent) DirectResultsWaitHandle).Set();
 		}
 	}
@@ -280,10 +280,11 @@ public sealed class SearchClient : IDisposable
 			DirectResults.AddRange(result);
 
 			value.Scanned = true;
-			var autoResetEvent = ((AutoResetEvent)DirectResultsWaitHandle);
-			
+			var autoResetEvent = ((AutoResetEvent) DirectResultsWaitHandle);
 
-			if (DirectResults.Count > 0&&!DirectResultsWaitHandle.SafeWaitHandle.IsClosed /*|| ContinueTasks.Count==1*/) {
+
+			if (DirectResults.Count > 0 &&
+			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed /*|| ContinueTasks.Count==1*/) {
 				Debug.WriteLine("wait handle set");
 				autoResetEvent.Set();
 			}

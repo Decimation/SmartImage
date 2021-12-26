@@ -140,7 +140,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 		// Don't select other results
 		var query = (ImageQuery) obj;
 		var doc   = GetDocument(query);
-
+		doc.Wait();
 		var pages  = doc.Result.Body.SelectSingleNode("//div[@id='pages']");
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
