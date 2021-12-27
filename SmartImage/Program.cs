@@ -164,8 +164,8 @@ public static partial class Program
 		 * Register events
 		 */
 
-		
-		
+
+
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 		Console.OutputEncoding = Encoding.Unicode;
@@ -193,7 +193,7 @@ public static partial class Program
 
 		if (!await Cli.HandleArguments())
 			return;
-
+		
 		var map = new Dictionary<string, string>()
 		{
 			["SE"]        = Config.SearchEngines.ToString(),
@@ -240,9 +240,10 @@ public static partial class Program
 			//ignored
 		}
 
-		/*Client.Dispose();
+		Client.Dispose();
 		Client.Reset();
-		*/
+		
+		Console.ReadKey(true);
 	}
 
 

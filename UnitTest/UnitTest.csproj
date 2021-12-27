@@ -5,7 +5,7 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <IsPackable>false</IsPackable>
 
-    <Configurations>Debug;Release</Configurations>
+    <Configurations>Debug;Release;Test;Test</Configurations>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>

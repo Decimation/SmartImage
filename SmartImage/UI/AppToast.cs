@@ -63,10 +63,11 @@ internal static class AppToast
 
 		if (Program.Config.NotificationImage) {
 
+			Task.WaitAny(Program.Client.ContinueTasks.ToArray());
 
-			var w = Program.Client.DirectResultsWaitHandle;
-			w.WaitOne();
-			w.Dispose();
+			// var w = Program.Client.DirectResultsWaitHandle;
+			// w.WaitOne();
+			// w.Dispose();
 
 			var directResults = Program.Client.DirectResults;
 
@@ -80,13 +81,13 @@ internal static class AppToast
 
 			var path = Path.GetTempPath();
 
-			string file = ImageHelper.Download(directImage.Direct.Url, path);
+			string file = ImageHelper.Download(directImage.DirectImage.Url, path);
 
 			if (file == null) {
 				int i = 0;
 
 				do {
-					file = ImageHelper.Download(directResults[i++].Direct.Url, path);
+					file = ImageHelper.Download(directResults[i++].DirectImage.Url, path);
 
 				} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 				

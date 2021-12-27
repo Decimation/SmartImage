@@ -80,6 +80,8 @@ public class SearchResult : IResult
 	/// </summary>
 	public List<ImageResult> AllResults => OtherResults.Union(new[] { PrimaryResult }).ToList();
 
+
+
 	/// <summary>
 	/// Undifferentiated URI
 	/// </summary>
@@ -143,38 +145,25 @@ public class SearchResult : IResult
 
 	public bool Scanned { get; internal set; }
 
-	public List<ImageResult> FindDirectResultsAsync()
+	public List<ImageResult> ScanForImages()
 	{
 		Debug.WriteLine($"searching within {Engine.Name}");
 
 		var directResults = new List<ImageResult>();
 
-		var ll = Parallel.For(0, AllResults.Count, async (i, pls) =>
+		var ll = Parallel.For(0, AllResults.Count, (i, pls) =>
 		{
 			var allResult = AllResults[i];
 
-			var task = allResult.ScanForImagesAsync();
-			task.Wait();
-			var b = task.Result;
+			var b = allResult.ScanForImages();
 
-			if (b && !directResults.Contains(allResult) && allResult.Direct != null) {
-				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.Direct.Url}");
+			if (b && !directResults.Contains(allResult)) {
+				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}");
 
 				directResults.Add(allResult);
-				PrimaryResult.Direct.Url ??= allResult.Direct.Url;
+				
 			}
 		});
-		/*foreach (ImageResult ir in AllResults) {
-			var b = await ir.ScanForImagesAsync();
-
-			if (b && !directResults.Contains(ir))
-			{
-				// Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {ir.Direct.Url}");
-
-				directResults.Add(ir);
-				PrimaryResult.Direct.Url ??= ir.Direct.Url;
-			}
-		}*/
 
 		Scanned = true;
 
@@ -193,9 +182,8 @@ public class SearchResult : IResult
 
 			Functions = new()
 			{
-				[ConsoleOption.NC_FN_MAIN] = IResult.CreateOpenFunction(PrimaryResult is { Url: { } }
-					                                                        ? PrimaryResult.Url
-					                                                        : RawUri),
+				[ConsoleOption.NC_FN_MAIN] = IResult.CreateOpenFunction(
+					PrimaryResult is { Url: { } } ? PrimaryResult.Url : RawUri),
 
 				[ConsoleOption.NC_FN_SHIFT] = IResult.CreateOpenFunction(RawUri),
 
@@ -238,7 +226,7 @@ public class SearchResult : IResult
 		};
 
 		option.Functions[ConsoleOption.NC_FN_COMBO] =
-			IResult.CreateDownloadFunction(() => PrimaryResult.Direct.Url);
+			IResult.CreateDownloadFunction(() => PrimaryResult.DirectImage.Url);
 
 		option.Functions[ConsoleOption.NC_FN_CTRL] = () =>
 		{
@@ -248,7 +236,7 @@ public class SearchResult : IResult
 				ConsoleProgressIndicator.Instance.Start(cts);
 			}
 
-			_ = FindDirectResultsAsync();
+			_ = ScanForImages();
 
 			cts.Cancel();
 			cts.Dispose();

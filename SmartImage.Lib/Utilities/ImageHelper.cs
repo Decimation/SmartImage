@@ -49,8 +49,8 @@ public static class ImageHelper
 	/// <param name="count">Number of direct images to return</param>
 	/// <param name="timeoutMS"></param>
 	/// <param name="token"></param>
-	public static Task<List<DirectImage>> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS,
-	                                                    CancellationToken? token = null)
+	public static List<DirectImage> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS,
+	                                              CancellationToken? token = null)
 	{
 		var images = new List<DirectImage>();
 
@@ -134,7 +134,7 @@ public static class ImageHelper
 
 		_Return:
 		document?.Dispose();
-		return Task.FromResult(images);
+		return images;
 	}
 
 
@@ -143,87 +143,21 @@ public static class ImageHelper
 		const string svg_xml    = "image/svg+xml";
 		const string image      = "image";
 		const int    min_size_b = 50_000;
+
+
 		di = new DirectImage();
 
 		if (!UriUtilities.IsUri(url, out Uri u)) {
 			return false;
 		}
 
-		// var task = url.GetAsync();
-		// task.Wait();
-		/*try {
-			// var r = new HttpRequestMessage(HttpMethod.Get, url);
 
-			var clientHandler = new HttpClientHandler()
-			{
-				AllowAutoRedirect        = true,
-				MaxAutomaticRedirections = 50,
-				ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) =>
-				{
-					return true;
-				}
-			};
+		using var client = new HttpClient(){};
 
-
-			var cc = new HttpClient(clientHandler)
-			{
-				Timeout = TimeSpan.FromMilliseconds(timeout)
-			};
-
-			var rrr = cc.GetByteArrayAsync(url, token ?? CancellationToken.None);
-			rrr.Wait();
-
-			// var rg11 = cc.GetByteArrayAsync(url, token ?? CancellationToken.None);
-			// rg11.Wait();
-			// task.Wait();
-			// var rgx1 = rg11.Result;
-
-			// var rgx1 = rg11.Result;
-			var rgx1 = rrr.Result;
-
-			var data = MediaTypes.ResolveFromData(rgx1);
-
-			if (data.StartsWith(image) && data != svg_xml)
-			{
-				return true;
-			}
-
-			// var task = HttpUtilities.GetHttpResponseAsync(url, timeout, HttpMethod.Get, token: token);
-			var rg1t = cc.GetAsync(url, token ?? CancellationToken.None);
-			rg1t.Wait();
-			var rg1=rg1t.Result;
-			// var rg1 = task.Result;
-			// var rg1 = task.Result;
-			if (!rg1.IsSuccessStatusCode) {
-				return false;
-			}
-
-			// var contentType = rg1.ResponseMessage.Content.Headers.ContentType.MediaType;
-			var contentType = rg1.Content.Headers.ContentType.MediaType;
-
-
-			if (contentType.ToString().StartsWith(image) && contentType != svg_xml) {
-				return true;
-			}
-		
-			
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}");
-		}*/
-
-		/*
-		 *
-		 */
-
-
-		var responseTask = HttpUtilities.GetHttpResponseAsync(url, timeout, HttpMethod.Head, token: token);
-		responseTask.Wait();
-		var response = responseTask.Result;
-
-		// var response1 = HttpUtilities.GetHttpResponseAsync(url, (int) timeout, HttpMethod.Head, c: c);
-		// response1.Wait();
-		// var response = response1.Result;
+		var result=HttpUtilities.GetHttpResponse(url,timeout, HttpMethod.Get, token: token);
+		// result.Wait();
+		// var response = result.Result;
+		var response = result;
 
 		if (response is not { }) {
 			return false;
@@ -243,14 +177,33 @@ public static class ImageHelper
 		// we'll resolve it using binary data instead to be sure
 
 
+
+
+
 		var length = response.Content.Headers.ContentLength;
 		di.Response = response;
-
 
 		string mediaType;
 
 		try {
-			mediaType = ResolveMediaTypeFromData(url, token);
+			// using var client = new HttpClient();
+
+			// var task1 = client.GetStreamAsync(url, token ?? CancellationToken.None /*cts.Token*/);
+			// var cts = new CancellationTokenSource((int) timeout);
+			// cts.CancelAfter((int) timeout);
+			// client.Timeout = TimeSpan.FromMilliseconds(timeout);
+			// task.Wait(timeout);
+			// task1.Wait();
+
+			// var stream = task1.Result;
+			// var buffer = new byte[256];
+			// stream.Read(buffer, 0, buffer.Length);
+			// stream.Flush();
+			// stream.Dispose();
+			var task = response.Content.ReadAsByteArrayAsync();
+			task.Wait();
+
+			mediaType = MediaTypes.ResolveFromData(task.Result);
 		}
 		catch (Exception x) {
 			mediaType = response.Content.Headers.ContentType.MediaType;
@@ -266,63 +219,45 @@ public static class ImageHelper
 		return type && size;
 	}
 
-	private static string ResolveMediaTypeFromData(string url, CancellationToken? token = null)
-	{
-		string    mediaType;
-		using var client = new HttpClient();
-
-		// var cts = new CancellationTokenSource((int) timeout);
-		// cts.CancelAfter((int) timeout);
-		// client.Timeout = TimeSpan.FromMilliseconds(timeout);
-		var task = client.GetStreamAsync(url, token ?? CancellationToken.None /*cts.Token*/);
-		// task.Wait(timeout);
-		task.Wait();
-
-		var stream = task.Result;
-		var buffer = new byte[256];
-		stream.Read(buffer, 0, buffer.Length);
-		mediaType = MediaTypes.ResolveFromData(buffer);
-		stream.Flush();
-		stream.Dispose();
-		return mediaType;
-	}
-
 	/*
 	 * Direct images are URIs that point to a binary image file
 	 */
 
-	public static DisplayResolutionType GetDisplayResolution(int w, int h)
+	/*
+	 * https://stackoverflow.com/questions/35151067/algorithm-to-compare-two-images-in-c-sharp
+	 * https://stackoverflow.com/questions/23931/algorithm-to-compare-two-images
+	 * https://github.com/aetilius/pHash
+	 * http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
+	 * https://github.com/ishanjain28/perceptualhash
+	 * https://github.com/Tom64b/dHash
+	 * https://github.com/Rayraegah/dhash
+	 * https://tineye.com/faq#how
+	 * https://github.com/CrackedP0t/Tidder/
+	 * https://github.com/taurenshaman/imagehash
+	 */
+
+	/*
+	 * https://github.com/mikf/gallery-dl
+	 * https://github.com/regosen/gallery_get
+	 */
+
+	[CanBeNull]
+	public static string Download(Uri src, string path)
 	{
-		/*
-		 *	Other			W < 1280
-		 *	[HD, FHD)		[1280, 1920)	1280 <= W < 1920	W: >= 1280 < 1920
-		 *	[FHD, QHD)		[1920, 2560)	1920 <= W < 2560	W: >= 1920 < 2560
-		 *	[QHD, UHD)		[2560, 3840)	2560 <= W < 3840	W: >= 2560 < 3840
-		 *	[UHD, ∞)											W: >= 3840
-		 */
+		string    filename = UriUtilities.NormalizeFilename(src);
+		string    combine  = Path.Combine(path, filename);
+		using var wc       = new WebClient();
 
-		return (w, h) switch
-		{
-			/*
-			 * Specific resolutions
-			 */
+		Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...", C_DEBUG);
 
-			(640, 360) => DisplayResolutionType.nHD,
-
-			/*
-			 * General resolutions
-			 */
-
-			_ => w switch
-			{
-				>= 1280 and < 1920 => DisplayResolutionType.HD,
-				>= 1920 and < 2560 => DisplayResolutionType.FHD,
-				>= 2560 and < 3840 => DisplayResolutionType.QHD,
-				>= 3840            => DisplayResolutionType.UHD,
-				_                  => DisplayResolutionType.Unknown
-			}
-		};
-
+		try {
+			wc.DownloadFile(src.ToString(), combine);
+			return combine;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", C_ERROR);
+			return null;
+		}
 	}
 
 	public static Bitmap ResizeImage(Bitmap mg, Size newSize)
@@ -365,41 +300,39 @@ public static class ImageHelper
 		return bp;
 
 	}
-	/*
-	 * https://stackoverflow.com/questions/35151067/algorithm-to-compare-two-images-in-c-sharp
-	 * https://stackoverflow.com/questions/23931/algorithm-to-compare-two-images
-	 * https://github.com/aetilius/pHash
-	 * http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
-	 * https://github.com/ishanjain28/perceptualhash
-	 * https://github.com/Tom64b/dHash
-	 * https://github.com/Rayraegah/dhash
-	 * https://tineye.com/faq#how
-	 * https://github.com/CrackedP0t/Tidder/
-	 * https://github.com/taurenshaman/imagehash
-	 */
 
-	/*
-	 * https://github.com/mikf/gallery-dl
-	 * https://github.com/regosen/gallery_get
-	 */
-
-	[CanBeNull]
-	public static string Download(Uri src, string path)
+	public static DisplayResolutionType GetDisplayResolution(int w, int h)
 	{
-		string    filename = UriUtilities.NormalizeFilename(src);
-		string    combine  = Path.Combine(path, filename);
-		using var wc       = new WebClient();
+		/*
+		 *	Other			W < 1280
+		 *	[HD, FHD)		[1280, 1920)	1280 <= W < 1920	W: >= 1280 < 1920
+		 *	[FHD, QHD)		[1920, 2560)	1920 <= W < 2560	W: >= 1920 < 2560
+		 *	[QHD, UHD)		[2560, 3840)	2560 <= W < 3840	W: >= 2560 < 3840
+		 *	[UHD, ∞)											W: >= 3840
+		 */
 
-		Debug.WriteLine($"{nameof(ImageHelper)}: Downloading {src} to {combine} ...", C_DEBUG);
+		return (w, h) switch
+		{
+			/*
+			 * Specific resolutions
+			 */
 
-		try {
-			wc.DownloadFile(src.ToString(), combine);
-			return combine;
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{nameof(ImageHelper)}: {e.Message}", C_ERROR);
-			return null;
-		}
+			(640, 360) => DisplayResolutionType.nHD,
+
+			/*
+			 * General resolutions
+			 */
+
+			_ => w switch
+			{
+				>= 1280 and < 1920 => DisplayResolutionType.HD,
+				>= 1920 and < 2560 => DisplayResolutionType.FHD,
+				>= 2560 and < 3840 => DisplayResolutionType.QHD,
+				>= 3840            => DisplayResolutionType.UHD,
+				_                  => DisplayResolutionType.Unknown
+			}
+		};
+
 	}
 
 	public static Dictionary<string, string> UtilitiesMap

@@ -197,51 +197,51 @@ public sealed class ImageResult : IResult
 
 	public void UpdateFrom(ImageResult result)
 	{
-		Url         = result.Url;
-		Direct      = result.Direct;
-		Similarity  = result.Similarity;
-		Width       = result.Width;
-		Height      = result.Height;
-		Source      = result.Source;
-		Characters  = result.Characters;
-		Artist      = result.Artist;
-		Site        = result.Site;
-		Description = result.Description;
-		Date        = result.Date;
+		Url          = result.Url;
+		DirectImages = result.DirectImages;
+		Similarity   = result.Similarity;
+		Width        = result.Width;
+		Height       = result.Height;
+		Source       = result.Source;
+		Characters   = result.Characters;
+		Artist       = result.Artist;
+		Site         = result.Site;
+		Description  = result.Description;
+		Date         = result.Date;
 
 	}
 
-	public DirectImage Direct { get; internal set; } = new();
+	public List<DirectImage> DirectImages { get; internal set; } = new() { };
 
-	public async Task<bool> ScanForImagesAsync()
+	public DirectImage DirectImage
 	{
-		if (Url==null) {
+		get => DirectImages.FirstOrDefault();
+		set => DirectImages[0] = value;
+	}
+
+	public bool ScanForImages()
+	{
+		if (Url == null) {
 			return false;
 		}
 
-		if (Direct is {Url: {}} || IsAlreadyDirect()) {
+		if (DirectImage is { Url: { } } || IsAlreadyDirect()) {
 			return true;
 		}
 
 		try {
 
-			var directImages = await ImageHelper.ScanForImages(Url.ToString());
+			var directImages = ImageHelper.ScanForImages(Url.ToString())
+			                              .Where(x => x is { Url: { } })
+			                              .ToList();
 
 			if (directImages.Any()) {
 				Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
 
-				var direct = directImages.First();
 
-				if (direct != null) {
-					Direct = direct;
+				DirectImages.AddRange(directImages);
 
-					for (int i = 1; i < directImages.Count; i++) {
-						directImages[i].Dispose();
-					}
-
-					return true;
-				}
-
+				return true;
 			}
 		}
 		catch {
@@ -263,7 +263,7 @@ public sealed class ImageResult : IResult
 		var b = ImageHelper.IsImage(s, out var di);
 
 		if (b) {
-			Direct = di;
+			DirectImages.Add(di);
 		}
 		else {
 			di.Dispose();
@@ -279,11 +279,11 @@ public sealed class ImageResult : IResult
 			var map = new Dictionary<string, object>
 			{
 				{ nameof(Url), Url },
-				{ "Direct Url", Direct.Url }
+				{ "Direct Url", DirectImage?.Url }
 			};
 
 			if (Similarity.HasValue) {
-				map.Add($"{nameof(Similarity)}", $"{Similarity.Value/100:P}");
+				map.Add($"{nameof(Similarity)}", $"{Similarity.Value / 100:P}");
 			}
 
 			if (HasImageDimensions) {
@@ -322,7 +322,10 @@ public sealed class ImageResult : IResult
 
 	public void Dispose()
 	{
-		Direct?.Dispose();
+
+		for (int i = 0; i < DirectImages.Count; i++) {
+			DirectImages[i].Dispose();
+		}
 	}
 
 	public ConsoleOption GetConsoleOption()
@@ -333,7 +336,7 @@ public sealed class ImageResult : IResult
 			Functions =
 			{
 				[ConsoleOption.NC_FN_MAIN]  = IResult.CreateOpenFunction(Url),
-				[ConsoleOption.NC_FN_COMBO] = IResult.CreateDownloadFunction(() => Direct.Url)
+				[ConsoleOption.NC_FN_COMBO] = IResult.CreateDownloadFunction(() => DirectImage.Url)
 			}
 		};
 

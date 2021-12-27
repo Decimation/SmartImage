@@ -22,7 +22,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <!--<Nullable>enable</Nullable>-->
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-    <Configurations>Debug;Release</Configurations>
+    <Configurations>Debug;Release;Test</Configurations>
     <!-- <AnalysisLevel>latest</AnalysisLevel> -->
     <!-- <EnableNETAnalyzers>true</EnableNETAnalyzers> -->
     <!-- <GenerateDocumentationFile>true</GenerateDocumentationFile> -->
@@ -35,6 +35,11 @@
     <NoWarn>1701;1702</NoWarn>
     <NoWarn>CA1416;</NoWarn>
 
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST</DefineConstants>
+    <NoWarn>1701;1702</NoWarn>
+    <NoWarn>CA1416;</NoWarn>
   </PropertyGroup>
 
 

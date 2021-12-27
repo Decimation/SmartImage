@@ -60,7 +60,7 @@ public static class Program
 	}
 	static async Task test4()
 	{
-		var task = await ImageHelper.ScanForImages("http://www.zerochan.net/2750747");
+		var task =  ImageHelper.ScanForImages("http://www.zerochan.net/2750747");
 
 		foreach (DirectImage v in task) {
 			Console.WriteLine(v);

@@ -105,16 +105,21 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	public ImageResult GetImageResult()
 	{
 
+
+		DirectImage directImage = new()
+		{
+			// Stream = Stream,
+			Url = UploadUri
+		};
+
 		var result = new ImageResult
 		{
-			Url = UploadUri,
+			
 			// Image = Image.FromStream(Stream),
-			Direct =
-			{
-				// Stream = Stream,
-				Url = UploadUri
-			}
+			Url = UploadUri
 		};
+
+		result.DirectImages.Add(directImage);
 
 		result.OtherMetadata.Add("Upload engine", UploadEngine.Name);
 		result.OtherMetadata.Add("Input type", IsUri ? "URI" : "File");

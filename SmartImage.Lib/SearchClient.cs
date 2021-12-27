@@ -99,7 +99,7 @@ public sealed class SearchClient : IDisposable
 
 	public List<Task<SearchResult>> Tasks { get; private set; }
 
-	private List<Task> ContinueTasks { get; }
+	public List<Task> ContinueTasks { get; }
 
 	public WaitHandle DirectResultsWaitHandle { get; private set; }
 
@@ -266,27 +266,25 @@ public sealed class SearchClient : IDisposable
 		if (!value.IsSuccessful || !value.IsNonPrimitive || value.Scanned) {
 			return;
 		}
-
-		// var task2 = value.FindDirectResultsAsync();
-		// task2.Wait();
-		// var result = task2.Result;
-
-		var result = value.FindDirectResultsAsync();
+		
+		var result = value.ScanForImages();
 
 		if (result.Any()) {
-			result = result /*.Where(x => x.Direct != null)*/
-				.ToList();
 
 			DirectResults.AddRange(result);
 
 			value.Scanned = true;
 			var autoResetEvent = ((AutoResetEvent)DirectResultsWaitHandle);
 			
+			if (DirectResults.Count > 0 /*||
+			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed*/ /*|| ContinueTasks.Count==1*/) {
 
-			if (DirectResults.Count > 0 &&
-			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed /*|| ContinueTasks.Count==1*/) {
-				Debug.WriteLine("wait handle set");
-				autoResetEvent.Set();
+				if (!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
+					Debug.WriteLine("wait handle set");
+					autoResetEvent.Set();
+
+				}
+
 			}
 
 			DirectResultCompleted?.Invoke(null, EventArgs.Empty);
@@ -312,7 +310,7 @@ public sealed class SearchClient : IDisposable
 			throw new SmartImageException("Could not find direct result");
 		}
 
-		var direct = directResult.Direct.Url;
+		var direct = directResult.DirectImage.Url;
 
 		Debug.WriteLine($"{nameof(SearchClient)}: Refining by {direct}", C_DEBUG);
 
@@ -329,7 +327,8 @@ public sealed class SearchClient : IDisposable
 		                   .SelectMany(r => r.AllResults)
 		                   .OrderByDescending(r => r.Similarity)
 		                   .ThenByDescending(r => r.PixelResolution)
-		                   .ThenByDescending(r => r.DetailScore).ToList();
+		                   .ThenByDescending(r => r.DetailScore)
+		                   .ToList();
 
 		return query;
 	}
@@ -400,7 +399,6 @@ public sealed class SearchClient : IDisposable
 
 		if (!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
 			DirectResultsWaitHandle.Dispose();
-
 		}
 	}
 }

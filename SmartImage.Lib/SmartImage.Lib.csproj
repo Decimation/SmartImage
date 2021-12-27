@@ -4,7 +4,7 @@
     <TargetFramework>net6.0</TargetFramework>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
-    <Configurations>Debug;Release</Configurations>
+    <Configurations>Debug;Release;Test;Test</Configurations>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,8 +33,8 @@
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net6.0\Novus.dll</HintPath>
     </Reference>
   </ItemGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST</DefineConstants>
     <!-- <NoWarn>CA1416</NoWarn> -->
   </PropertyGroup>
 </Project>
