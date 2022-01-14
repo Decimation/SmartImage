@@ -76,4 +76,6 @@ Wiki pages useful for getting started:
 
 **See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
 
+*Ensure .NET 6 is installed!*
+
 <!-- ... -->

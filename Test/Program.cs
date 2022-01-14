@@ -43,8 +43,12 @@ public static class Program
 	{
 
 
-		await test5();
+		var q          = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
+		var i          = new TraceMoeEngine();
+		var rt         = i.GetResultAsync(q);
+		var t          = await rt;
 
+		Console.WriteLine(t);
 	}
 
 	static async Task test5()

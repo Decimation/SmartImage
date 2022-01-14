@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Net;
-using Kantan.Threading;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search.Base;

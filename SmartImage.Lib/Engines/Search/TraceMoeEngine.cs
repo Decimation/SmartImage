@@ -41,16 +41,16 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		//var r = base.GetResult(url);
 		var query = (ImageQuery) obj;
 		// https://soruly.github.io/trace.moe/#/
-		
 
-		TraceMoeRootObject tm;
+
+		TraceMoeRootObject tm = null;
 
 		try {
 			IFlurlRequest request = (EndpointUrl + "/search")
-			                             .AllowAnyHttpStatus()
-			                             .SetQueryParam("url", 
-			                                            query.UploadUri.ToString(), 
-			                                            true);
+			                        .AllowAnyHttpStatus()
+			                        .SetQueryParam("url",
+			                                       query.UploadUri.ToString(),
+			                                       true);
 
 			var task = request.GetStringAsync();
 
@@ -63,30 +63,32 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			goto ret;
 		}
 
+		if (tm != null) {
+			if (tm.result != null) {
+				// Most similar to least similar
 
-		if (tm?.result != null) {
-			// Most similar to least similar
+				try {
+					var results = ConvertResults(tm).ToList();
+					var best    = results[0];
 
-			try {
-				var results = ConvertResults(tm).ToList();
-				var best    = results[0];
+					r.PrimaryResult = best;
+					r.RawUri        = new Uri(BaseUrl + query.UploadUri);
+					r.OtherResults.AddRange(results);
+				}
+				catch (Exception e) {
+					r.ErrorMessage = e.Message;
+					r.Status       = ResultStatus.Failure;
+				}
 
-				r.PrimaryResult = best;
-				r.RawUri        = new Uri(BaseUrl + query.UploadUri);
-				r.OtherResults.AddRange(results);
 			}
-			catch (Exception e) {
-				// r              = base.GetResult(query);
-				r.ErrorMessage = e.Message;
-				r.Status       = ResultStatus.Failure;
-				//return r;
-				goto ret;
+			else if (tm.error != null) {
+				Debug.WriteLine($"{Name}: API error: {tm.error}", C_ERROR);
+				r.ErrorMessage = tm.error;
+
+				if (r.ErrorMessage.Contains("Search queue is full")) {
+					r.Status = ResultStatus.Unavailable;
+				}
 			}
-
-		}
-		else {
-			Debug.WriteLine($"{Name}: API error", C_ERROR);
-
 		}
 
 		ret:
@@ -94,8 +96,9 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		r.PrimaryResult.Quality = r.PrimaryResult.Similarity switch
 		{
 			>= FILTER_THRESHOLD => ResultQuality.High,
-			_ or null                  => ResultQuality.NA,
+			_ or null           => ResultQuality.NA,
 		};
+
 		return r;
 	}
 
@@ -126,8 +129,8 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 			if (result.Similarity < FILTER_THRESHOLD) {
 				result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
-				                                 $"({result.Similarity.Value/100:P} " +
-				                                 $"< {FILTER_THRESHOLD/100:P})");
+				                                 $"({result.Similarity.Value / 100:P} " +
+				                                 $"< {FILTER_THRESHOLD / 100:P})");
 			}
 
 			results[i] = result;

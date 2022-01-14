@@ -163,6 +163,10 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		rg = rg.Skip(1).ToList();
 
+		if (!rg.Any()) {
+			goto ret;
+		}
+
 		sr.PrimaryResult = rg.First();
 
 		//sr.PrimaryResult.UpdateFrom(rg[0]);
@@ -175,7 +179,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			_ or null => ResultQuality.NA,
 		};
 		
-
+		ret:
 		return sr;
 	}
 }

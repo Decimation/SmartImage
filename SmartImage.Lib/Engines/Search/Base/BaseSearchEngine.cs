@@ -48,7 +48,7 @@ public abstract class BaseSearchEngine
 
 
 		if (!sr.Origin.Success) {
-			sr.Status       = ResultStatus.Unavailable;
+			sr.Status       = ResultStatus.Failure;
 			sr.ErrorMessage = $"{sr} | {sr.Origin.Response.StatusCode}";
 		}
 		else {

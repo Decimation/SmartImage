@@ -155,6 +155,9 @@ public class Tests
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
 
+		if (t.Status == ResultStatus.Unavailable) {
+			Assert.Inconclusive();
+		}
 		Assert.True(t.OtherResults.Any(r => r.Source.Contains(name, StringComparison.InvariantCultureIgnoreCase)));
 
 
