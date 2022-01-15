@@ -71,7 +71,7 @@ Supported search engines:
 Wiki pages useful for getting started:
 
 - User interface and options: [Interface »](https://github.com/Decimation/SmartImage/wiki/Interface)
-- Performing a search and usage: [Usage »](https://github.com/Decimation/SmartImage/wiki/Usage)
+- Performing a search and usage: [Usage »](https://github.com/Decimation/SmartImage/wiki#usage)
 - Search engines and config: [Engines »](https://github.com/Decimation/SmartImage/wiki/Engines)
 
 **See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
