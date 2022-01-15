@@ -56,7 +56,7 @@ public static class Program
 
 	static async Task test5()
 	{
-		var b = ImageHelper.IsImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
+		var b = ImageHelper.IsBinaryImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
 		                            out var di);
 
 		Console.WriteLine(b);
@@ -67,7 +67,7 @@ public static class Program
 	}
 	static async Task test4()
 	{
-		var task =  ImageHelper.Scan("http://www.zerochan.net/2750747",-1);
+		var task =  ImageHelper.ScanForBinaryImages("http://www.zerochan.net/2750747",-1);
 
 		foreach (BinaryResource v in task) {
 			Console.WriteLine(v);
@@ -175,7 +175,7 @@ public static class Program
 
 	static void test1()
 	{
-		Console.WriteLine(ImageHelper.IsImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
+		Console.WriteLine(ImageHelper.IsBinaryImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
 		                                      out var di));
 
 		Debugger.Break();

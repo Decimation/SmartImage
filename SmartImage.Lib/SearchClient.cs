@@ -266,7 +266,7 @@ public sealed class SearchClient : IDisposable
 			return;
 		}
 		
-		var result = value.ScanForImages();
+		var result = value.GetBinaryImageResults();
 
 		if (result.Any()) {
 

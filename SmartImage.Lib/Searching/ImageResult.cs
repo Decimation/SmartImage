@@ -224,23 +224,41 @@ public sealed class ImageResult : IResult
 		set => DirectImages[0] = value;
 	}
 
-	public bool ScanForImages(int ms)
+
+	public bool ScanForBinaryImages(int ms)
 	{
-		if (Url == null) {
+		if (Url == null)
+		{
 			return false;
 		}
 
-		if (DirectImage is { Url: { } } || IsAlreadyDirect(ms)) {
+
+		var url = Url.ToString();
+
+		if (ImageHelper.IsBinaryImage(url, out var br, ms))
+		{
+			DirectImages.Add(br);
+		}
+		else
+		{
+			br.Dispose();
+		}
+
+
+		if (DirectImage is { Url: { } } || ImageHelper.IsBinaryImage(url, out var di1, ms))
+		{
 			return true;
 		}
 
-		try {
+		try
+		{
 
-			var directImages = ImageHelper.Scan(Url.ToString(), ms)
+			var directImages = ImageHelper.ScanForBinaryImages(Url.ToString(), ms)
 			                              .Where(x => x is { Url: { } })
 			                              .ToList();
 
-			if (directImages.Any()) {
+			if (directImages.Any())
+			{
 				Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
 
 
@@ -249,7 +267,8 @@ public sealed class ImageResult : IResult
 				return true;
 			}
 		}
-		catch {
+		catch
+		{
 			//
 		}
 
@@ -257,25 +276,6 @@ public sealed class ImageResult : IResult
 	}
 
 
-	private bool IsAlreadyDirect(int ms)
-	{
-		if (Url is not { }) {
-			return false;
-		}
-
-		var s = Url.ToString();
-
-		var b = ImageHelper.IsImage(s, out var di, ms);
-
-		if (b) {
-			DirectImages.Add(di);
-		}
-		else {
-			di.Dispose();
-		}
-
-		return b;
-	}
 
 	public Dictionary<string, object> Data
 	{

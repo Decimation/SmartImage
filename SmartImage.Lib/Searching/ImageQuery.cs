@@ -97,7 +97,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 	{
 		//todo
-		var isUriOrFile = (ImageHelper.IsImage(x, out var di), File.Exists(x));
+		var isUriOrFile = (ImageHelper.IsBinaryImage(x, out var di), File.Exists(x));
 		// di?.Dispose();
 		return isUriOrFile;
 	}

@@ -8,6 +8,7 @@ using Kantan.Utilities;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
+using SmartImage.Properties;
 using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Core;
@@ -41,12 +42,12 @@ public static class AppConfig
 		{
 			var map = new Dictionary<string, string>()
 			{
-				{ K_ENGINES, Program.Config.SearchEngines.ToString() },
-				{ K_PRIORITY_ENGINES, Program.Config.PriorityEngines.ToString() },
-				{ K_FILTER, Program.Config.Filtering.ToString() },
-				{ K_NOTIFICATION, Program.Config.Notification.ToString() },
-				{ K_NOTIFICATION_IMAGE, Program.Config.NotificationImage.ToString() },
-				{ K_OUTPUT_ONLY, Program.Config.OutputOnly.ToString() },
+				{ Resources.K_Engines, Program.Config.SearchEngines.ToString() },
+				{ Resources.K_PriorityEngines, Program.Config.PriorityEngines.ToString() },
+				{ Resources.K_Filter, Program.Config.Filtering.ToString() },
+				{ Resources.K_Notification, Program.Config.Notification.ToString() },
+				{ Resources.K_NotificationImage, Program.Config.NotificationImage.ToString() },
+				{ Resources.K_OutputOnly, Program.Config.OutputOnly.ToString() },
 
 			};
 			return map;
@@ -84,16 +85,16 @@ public static class AppConfig
 			}
 		}
 
-		Program.Config.SearchEngines     = Enum.Parse<SearchEngineOptions>(map[K_ENGINES]);
-		Program.Config.PriorityEngines   = Enum.Parse<SearchEngineOptions>(map[K_PRIORITY_ENGINES]);
-		Program.Config.Filtering         = Boolean.Parse(map[K_FILTER]);
-		Program.Config.Notification      = Boolean.Parse(map[K_NOTIFICATION]);
-		Program.Config.NotificationImage = Boolean.Parse(map[K_NOTIFICATION_IMAGE]);
-		Program.Config.OutputOnly        = Boolean.Parse(map[K_OUTPUT_ONLY]);
+		Program.Config.SearchEngines     = Enum.Parse<SearchEngineOptions>(map[Resources.K_Engines]);
+		Program.Config.PriorityEngines   = Enum.Parse<SearchEngineOptions>(map[Resources.K_PriorityEngines]);
+		Program.Config.Filtering         = Boolean.Parse(map[Resources.K_Filter]);
+		Program.Config.Notification      = Boolean.Parse(map[Resources.K_Notification]);
+		Program.Config.NotificationImage = Boolean.Parse(map[Resources.K_NotificationImage]);
+		Program.Config.OutputOnly        = Boolean.Parse(map[Resources.K_OutputOnly]);
 
 		SaveConfigFile();
 
-		Program.Client.Reload();
+		Program.Reload();
 
 		Debug.WriteLine($"Updated config from {ConfigFile.Name}", C_INFO);
 	}
@@ -110,17 +111,11 @@ public static class AppConfig
 
 	}
 
-	private const string K_ENGINES            = "engines";
-	private const string K_PRIORITY_ENGINES   = "priority-engines";
-	private const string K_FILTER             = "filter";
-	private const string K_NOTIFICATION       = "notification";
-	private const string K_NOTIFICATION_IMAGE = "notification-image";
-	private const string K_OUTPUT_ONLY        = "output-only";
 
 
 	public static void UpdateConfig()
 	{
-		Program.Client.Reload();
+		Program.Reload();
 		SaveConfigFile();
 	}
 

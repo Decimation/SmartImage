@@ -20,10 +20,13 @@ using System.Media;
 using System.Text;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
+using Kantan.Collections;
+using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
+using Microsoft.VisualBasic.FileIO;
 using Novus.OS.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
@@ -32,6 +35,8 @@ using SmartImage.Properties;
 using SmartImage.UI;
 using static SmartImage.UI.AppInterface;
 using Configuration = System.Configuration.Configuration;
+using EH = Kantan.Collections.EnumerableHelper;
+using E = SmartImage.UI.AppInterface.Elements;
 
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable SuggestVarOrType_Elsewhere
@@ -61,35 +66,19 @@ public static partial class Program
 	/// <summary>
 	/// Search client
 	/// </summary>
-	internal static SearchClient Client { get; private set; } = new(Config);
+	internal static SearchClient Client { get; } = new(Config);
 
-	private static Dictionary<string, string> desc = new()
-	{
-		["Ctrl"]     = "Load direct",
-		["Alt"]      = "Show other",
-		["Shift"]    = "Open raw",
-		["Alt+Ctrl"] = "Download",
-
-	};
-
-	private static Dictionary<string, string> desc2 = new()
-	{
-
-		["F1"] = "Show filtered results",
-		["F2"] = "Refine",
-		["F5"] = "Refresh"
-	};
 
 	/// <summary>
 	/// Console UI for search results
 	/// </summary>
-	internal static ConsoleDialog ResultDialog { get; private set; } = new()
+	private static ConsoleDialog ResultDialog { get; } = new()
 	{
 		Options = new List<ConsoleOption>(),
 
-		Description = "Press the result number to open in browser\n".AddColor(Elements.ColorOther)
-		              + Strings.GetMapString(desc, Elements.ColorKey) + '\n'
-		              + Strings.GetMapString(desc2, Elements.ColorKey),
+		Description = "Press the result number to open in browser\n".AddColor(E.ColorOther)
+		              + Strings.GetMapString(EH.ReadCsv(Resources.KeyModifiersDesc), E.ColorKey) + '\n'
+		              + Strings.GetMapString(EH.ReadCsv(Resources.KeyFunctionDesc), E.ColorKey),
 
 		Functions = new()
 		{
@@ -130,7 +119,7 @@ public static partial class Program
 					await Client.RefineSearchAsync();
 				}
 				catch (Exception e) {
-					string s = $"Error: {e.Message.AddColor(Elements.ColorError)}";
+					string s = $"Error: {e.Message.AddColor(E.ColorError)}";
 
 					Console.WriteLine(
 						$"\n{Strings.Constants.CHEVRON} {s}");
@@ -165,8 +154,9 @@ public static partial class Program
 		 */
 
 #if TEST
-		args = new[] {"", @"C:\Users\Deci\Pictures\Test Images\Test1.jpg" };
+		args = new[] { "", @"C:\Users\Deci\Pictures\Test Images\Test1.jpg" };
 #endif
+
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
@@ -194,19 +184,15 @@ public static partial class Program
 		AppConfig.ReadConfigFile();
 
 
-
-		if (!await Cli.HandleArguments(args))
+		if (!await HandleStartup(args))
 			return;
-		
-		var map = new Dictionary<string, string>()
+
+		ResultDialog.Subtitle = Strings.GetMapString(new Dictionary<string, string>
 		{
-			["SE"]        = Config.SearchEngines.ToString(),
-			["PE"]        = Config.PriorityEngines.ToString(),
-			["Filtering"] = Elements.GetToggleString(Config.Filtering)
-		};
-
-		ResultDialog.Subtitle = Strings.GetMapString(map);
-
+			[Resources.S_SE]     = Config.SearchEngines.ToString(),
+			[Resources.S_PE]     = Config.PriorityEngines.ToString(),
+			[Resources.S_Filter] = E.GetToggleString(Config.Filtering)
+		});
 
 		_ctsSearch    = new();
 		_ctsContinue  = new();
@@ -215,9 +201,9 @@ public static partial class Program
 
 		// Run search
 
-		Client.ResultCompleted += OnResultCompleted;
-		Client.SearchCompleted += OnSearchCompleted;
-		Client.DirectResultCompleted   += OnDirectResultCompleted;
+		Client.ResultCompleted       += OnResultCompleted;
+		Client.SearchCompleted       += OnSearchCompleted;
+		Client.DirectResultCompleted += OnDirectResultCompleted;
 
 		Console.CancelKeyPress += OnCancel;
 
@@ -234,7 +220,6 @@ public static partial class Program
 
 		await ResultDialog.ReadInputAsync(_ctsReadInput.Token);
 
-
 		await _searchTask;
 
 		try {
@@ -246,8 +231,56 @@ public static partial class Program
 
 		Client.Dispose();
 		Client.Reset();
-		
+
 		Console.ReadKey(true);
+	}
+
+	private static async Task<bool> HandleStartup(string[] args)
+	{
+		// var args = Environment.GetCommandLineArgs();
+
+		// first element is executing assembly
+		// args = args.Skip(1).ToArray();
+
+		Debug.WriteLine($"{nameof(args)}: {args.QuickJoin()}", LogCategories.C_DEBUG);
+
+		if (!args.Any()) {
+			bool ret;
+
+			var options = await MainMenuDialog.ReadInputAsync();
+
+			var file = options.DragAndDrop;
+
+			if (file != null) {
+				Debug.WriteLine($"Drag and drop: {file}");
+				Console.WriteLine($">> {file}".AddColor(E.ColorMain));
+				Config.Query = file;
+
+				ret = true;
+			}
+			else {
+				ret = !options.Output.Any();
+
+			}
+
+			return ret;
+		}
+		/*
+		* Handle CLI args
+		*/
+
+		try {
+
+			Cli.ArgumentHandler.Run(args);
+
+			Client.Reload();
+		}
+		catch (Exception e) {
+			Console.WriteLine($"Error: {e.Message}");
+			return false;
+		}
+
+		return true;
 	}
 
 
@@ -300,7 +333,7 @@ public static partial class Program
 
 		ConsoleOption option = result.GetConsoleOption();
 
-		var color = Elements.EngineColorMap[result.Engine.EngineOption];
+		var color = E.EngineColorMap[result.Engine.EngineOption];
 		option.Color    = color;
 		option.ColorAlt = color.ChangeBrightness(-.4f);
 
@@ -314,7 +347,7 @@ public static partial class Program
 			option.Function();
 		}
 
-		var map = new Dictionary<string, string>()
+		var map = new Dictionary<string, string>
 		{
 			["Results"] = Client.Results.Count.ToString(),
 		};
@@ -325,26 +358,26 @@ public static partial class Program
 
 		map.Add("Pending", Client.PendingCount.ToString());
 
-		string s;
+		string status;
 
 		if (_ctsSearch.IsCancellationRequested) {
-			s = "Cancelled";
+			status = "Cancelled";
 		}
 		else if (Client.IsComplete) {
-			s = "Complete";
+			status = "Complete";
 		}
 		else {
-			s = "Searching";
+			status = "Searching";
 		}
 
-		map.Add("Status", s);
+		map.Add("Status", status);
 
-		var status = Strings.GetMapString(map);
-
-		ResultDialog.Status = status;
+		ResultDialog.Status = Strings.GetMapString(map);
 	}
 
 	#endregion
+
+	#region Other fields
 
 	private static CancellationTokenSource _ctsProgress;
 	private static CancellationTokenSource _ctsReadInput;
@@ -357,4 +390,71 @@ public static partial class Program
 
 	private static Task _searchTask;
 	private static Task _continueTask;
+
+	#endregion
+
+	internal static void Reload() => Client.Reload();
+
+	private static class Cli
+	{
+		/// <summary>
+		/// Command line argument handler
+		/// </summary>
+		internal static readonly CliHandler ArgumentHandler = new()
+		{
+			Parameters =
+			{
+				new()
+				{
+					ArgumentCount = 1,
+					ParameterId   = "-se",
+					Function = strings =>
+					{
+						Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+						return null;
+					}
+				},
+				new()
+				{
+					ArgumentCount = 1,
+					ParameterId   = "-pe",
+					Function = strings =>
+					{
+						Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+						return null;
+					}
+				},
+				new()
+				{
+					ArgumentCount = 0,
+					ParameterId   = "-f",
+					Function = delegate
+					{
+						Config.Filtering = true;
+						return null;
+					}
+				},
+				new()
+				{
+					ArgumentCount = 0,
+					ParameterId   = "-output_only",
+					Function = delegate
+					{
+						Config.OutputOnly = true;
+						return null;
+					}
+				}
+			},
+			Default = new()
+			{
+				ArgumentCount = 1,
+				ParameterId   = null,
+				Function = strings =>
+				{
+					Config.Query = strings[0];
+					return null;
+				}
+			}
+		};
+	}
 }

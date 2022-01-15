@@ -145,7 +145,7 @@ public class SearchResult : IResult
 
 	public bool Scanned { get; internal set; }
 
-	public List<ImageResult> ScanForImages()
+	public List<ImageResult> GetBinaryImageResults()
 	{
 		Debug.WriteLine($"searching within {Engine.Name}");
 
@@ -155,7 +155,7 @@ public class SearchResult : IResult
 		{
 			var allResult = AllResults[i];
 
-			var b = allResult.ScanForImages(Timeout);
+			var b = allResult.ScanForBinaryImages(Timeout);
 
 			if (b && !directResults.Contains(allResult)) {
 				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}");
@@ -168,6 +168,49 @@ public class SearchResult : IResult
 		Scanned = true;
 
 		return directResults;
+
+	}
+
+
+	public void Dispose()
+	{
+		foreach (ImageResult imageResult in AllResults) {
+			imageResult.Dispose();
+		}
+
+		Origin.Dispose();
+		GC.SuppressFinalize(this);
+	}
+
+	public Dictionary<string, object> Data
+	{
+		get
+		{
+			var map = new Dictionary<string, object>();
+
+			// map.Add(nameof(PrimaryResult), PrimaryResult);
+
+			foreach ((string key, object value) in PrimaryResult.Data) {
+				map.Add(key, value);
+			}
+
+			map.Add("Raw", RawUri);
+
+			if (OtherResults.Count != 0) {
+				map.Add("Other image results", OtherResults.Count);
+			}
+
+			if (ErrorMessage != null) {
+				map.Add("Error", ErrorMessage);
+			}
+
+			if (!IsSuccessful) {
+				map.Add("Status", Status);
+			}
+
+
+			return map;
+		}
 	}
 
 
@@ -236,7 +279,7 @@ public class SearchResult : IResult
 				ConsoleProgressIndicator.Instance.Start(cts);
 			}
 
-			_ = ScanForImages();
+			_ = GetBinaryImageResults();
 
 			cts.Cancel();
 			cts.Dispose();
@@ -248,48 +291,4 @@ public class SearchResult : IResult
 
 		return option;
 	}
-
-	public Dictionary<string, object> Data
-	{
-		get
-		{
-			var map = new Dictionary<string, object>();
-
-			// map.Add(nameof(PrimaryResult), PrimaryResult);
-
-			foreach ((string key, object value) in PrimaryResult.Data) {
-				map.Add(key, value);
-			}
-
-			map.Add("Raw", RawUri);
-
-			if (OtherResults.Count != 0) {
-				map.Add("Other image results", OtherResults.Count);
-			}
-
-			if (ErrorMessage != null) {
-				map.Add("Error", ErrorMessage);
-			}
-
-			if (!IsSuccessful) {
-				map.Add("Status", Status);
-			}
-
-
-			return map;
-		}
-	}
-
-	public void Dispose()
-	{
-		foreach (ImageResult imageResult in AllResults) {
-			imageResult.Dispose();
-		}
-
-		Origin.Dispose();
-		GC.SuppressFinalize(this);
-	}
-
-	[ThreadStatic]
-	internal static readonly Random Random = new();
 }

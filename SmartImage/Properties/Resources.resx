@@ -124,6 +124,12 @@
   <data name="hint" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\hint.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="KeyModifiersDesc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\KeyDict.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="KeyFunctionDesc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\KeyF.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
   <data name="UrlIssue" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/issues/new</value>
   </data>
@@ -135,5 +141,41 @@
   </data>
   <data name="UrlWiki" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/wiki</value>
+  </data>
+  <data name="K_Engines" xml:space="preserve">
+    <value>engines</value>
+    <comment>Config key: engines</comment>
+  </data>
+  <data name="K_Filter" xml:space="preserve">
+    <value>filter</value>
+    <comment>Config key: filtering</comment>
+  </data>
+  <data name="K_Notification" xml:space="preserve">
+    <value>notification</value>
+    <comment>Config key: notification</comment>
+  </data>
+  <data name="K_NotificationImage" xml:space="preserve">
+    <value>notification-image</value>
+    <comment>Config key: notification image</comment>
+  </data>
+  <data name="K_OutputOnly" xml:space="preserve">
+    <value>output-only</value>
+    <comment>Config key: output only</comment>
+  </data>
+  <data name="K_PriorityEngines" xml:space="preserve">
+    <value>priority-engines</value>
+    <comment>Config key: priority engines</comment>
+  </data>
+  <data name="S_Filter" xml:space="preserve">
+    <value>Filtering</value>
+    <comment>Status: filtering</comment>
+  </data>
+  <data name="S_PE" xml:space="preserve">
+    <value>PE</value>
+    <comment>Status: priority engines</comment>
+  </data>
+  <data name="S_SE" xml:space="preserve">
+    <value>SE</value>
+    <comment>Status: search engines</comment>
   </data>
 </root>
