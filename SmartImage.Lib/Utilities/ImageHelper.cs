@@ -39,186 +39,6 @@ namespace SmartImage.Lib.Utilities;
 
 public static class ImageHelper
 {
-	private const int TimeoutMS = 1000;
-
-
-	/// <summary>
-	///     Scans for direct images within a webpage.
-	/// </summary>
-	/// <param name="url">Url to search</param>
-	/// <param name="count">Number of direct images to return</param>
-	/// <param name="timeoutMS"></param>
-	/// <param name="token"></param>
-	public static List<DirectImage> ScanForImages(string url, int count = 10, long timeoutMS = TimeoutMS,
-	                                              CancellationToken? token = null)
-	{
-		var images = new List<DirectImage>();
-
-		IHtmlDocument document = null;
-
-		var c = token ?? CancellationToken.None;
-
-		try {
-			var client = new HttpClient();
-			var task   = client.GetStringAsync(url);
-			task.Wait();
-			string result = task.Result;
-
-			var parser = new HtmlParser();
-			document = parser.ParseDocument(result);
-			client.Dispose();
-		}
-		catch (Exception e) {
-			goto _Return;
-		}
-
-
-		var urls = new List<string>();
-
-		urls.AddRange(document.QuerySelectorAttributes("a", "href"));
-		urls.AddRange(document.QuerySelectorAttributes("img", "src"));
-
-		/*
-		 * Normalize urls
-		 */
-
-		urls = urls.Where(url => url != null).Select(u =>
-		{
-			if (UriUtilities.IsUri(u, out Uri u2)) {
-				return UriUtilities.NormalizeUrl(u2);
-			}
-
-			return u;
-		}).Distinct().ToList();
-
-		/*
-		 * Filter urls if the host is known
-		 */
-
-		string hostComponent = UriUtilities.GetHostComponent(new Uri(url));
-
-		switch (hostComponent) {
-			case "www.deviantart.com":
-				//https://images-wixmp-
-				urls = urls.Where(x => x.Contains("images-wixmp"))
-				           .ToList();
-				break;
-			case "twitter.com":
-				urls = urls.Where(x => !x.Contains("profile_banners"))
-				           .ToList();
-				break;
-		}
-
-
-		var pr = Parallel.For(0, urls.Count, (i, pls) =>
-		{
-			string s = urls[i];
-
-			if (IsImage(s, out var di, (int) timeoutMS, c)) {
-				if (di is { } && count > 0) {
-					images.Add(di);
-					count--;
-					pls.Break();
-
-				}
-				else {
-					di?.Dispose();
-				}
-			}
-			else {
-				di?.Dispose();
-			}
-		});
-
-		// Debug.WriteLine($"{nameof(ScanForImages)}: {pr}");
-
-		_Return:
-		document?.Dispose();
-		return images;
-	}
-
-
-	public static bool IsImage(string url, out DirectImage di, int timeout = TimeoutMS, CancellationToken? token = null)
-	{
-		const string svg_xml    = "image/svg+xml";
-		const string image      = "image";
-		const int    min_size_b = 50_000;
-
-
-		di = new DirectImage();
-
-		if (!UriUtilities.IsUri(url, out Uri u)) {
-			return false;
-		}
-
-
-		using var client = new HttpClient(){};
-
-		var result=HttpUtilities.GetHttpResponse(url,timeout, HttpMethod.Get, token: token);
-		// result.Wait();
-		// var response = result.Result;
-		var response = result;
-
-		if (response is not { }) {
-			return false;
-		}
-
-		if (!response.IsSuccessStatusCode) {
-			response.Dispose();
-			return false;
-		}
-
-		di.Url      = new Uri(url);
-		di.Response = response;
-
-		/* Check content-type */
-
-		// The content-type returned from the response may not be the actual content-type, so
-		// we'll resolve it using binary data instead to be sure
-
-
-
-
-
-		var length = response.Content.Headers.ContentLength;
-		di.Response = response;
-
-		string mediaType;
-
-		try {
-			// using var client = new HttpClient();
-
-			// var task1 = client.GetStreamAsync(url, token ?? CancellationToken.None /*cts.Token*/);
-			// var cts = new CancellationTokenSource((int) timeout);
-			// cts.CancelAfter((int) timeout);
-			// client.Timeout = TimeSpan.FromMilliseconds(timeout);
-			// task.Wait(timeout);
-			// task1.Wait();
-
-			// var stream = task1.Result;
-			// var buffer = new byte[256];
-			// stream.Read(buffer, 0, buffer.Length);
-			// stream.Flush();
-			// stream.Dispose();
-			var task = response.Content.ReadAsByteArrayAsync();
-			task.Wait();
-
-			mediaType = MediaTypes.ResolveFromData(task.Result);
-		}
-		catch (Exception x) {
-			mediaType = response.Content.Headers.ContentType.MediaType;
-		}
-
-		// string mediaType = response.Content.Headers.ContentType.MediaType;
-
-
-		bool type = mediaType.StartsWith(image) && mediaType != svg_xml;
-		bool size = length is -1 or >= min_size_b;
-
-
-		return type && size;
-	}
-
 	/*
 	 * Direct images are URIs that point to a binary image file
 	 */
@@ -241,6 +61,16 @@ public static class ImageHelper
 	 * https://github.com/regosen/gallery_get
 	 */
 
+	public static List<BinaryResource> Scan(string url, int ms)
+	{
+		return BinaryResourceSniffer.Scan(url, ImageFilter, ms);
+	}
+
+	public static bool IsImage(string url, out BinaryResource b, int ms = -1)
+	{
+		return BinaryResourceSniffer.IsBinaryResource(url, ImageFilter, bu: out b, timeout: ms);
+	}
+
 	[CanBeNull]
 	public static string Download(Uri src, string path)
 	{
@@ -259,6 +89,8 @@ public static class ImageHelper
 			return null;
 		}
 	}
+
+	private static readonly BinaryImageFilter ImageFilter = new();
 
 	public static Bitmap ResizeImage(Bitmap mg, Size newSize)
 	{

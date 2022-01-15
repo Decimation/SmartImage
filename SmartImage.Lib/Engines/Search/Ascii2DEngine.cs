@@ -43,7 +43,9 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			RequestUri = uri
 		};
 
-		var response = new HttpClient().Send(request);
+		var client = new HttpClient();
+
+		var response = client.Send(request);
 
 
 		/*
@@ -78,11 +80,14 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		var rawUri = GetRawUri(query);
 
-		using var client = new HttpClient();
+		var client = new HttpClient();
 
-		var response = client.Send(new HttpRequestMessage(HttpMethod.Get, rawUri));
+		var message = new HttpRequestMessage(HttpMethod.Get, rawUri);
+
+		var response = client.Send(message);
 
 		var task = response.Content.ReadAsStringAsync();
+
 		task.Wait(Timeout);
 
 		var content = task.Result;
@@ -91,11 +96,11 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		var stub = new SearchResultOrigin()
 		{
-			Response = response,
-			Content         = content,
-			Retrieval       = diff,
-			Success  = true,
-			RawUri          = rawUri
+			Response  = response,
+			Content   = content,
+			Retrieval = diff,
+			Success   = true,
+			RawUri    = rawUri
 		};
 
 
@@ -112,7 +117,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		var rg = new List<ImageResult>();
 
 		foreach (var node in nodes) {
-			var ir = new ImageResult();
+			var ir = new ImageResult(sr);
 
 			var info = node.ChildNodes.Where(n => !String.IsNullOrWhiteSpace(n.TextContent)).ToArray();
 
@@ -178,7 +183,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			>= 1      => ResultQuality.High,
 			_ or null => ResultQuality.NA,
 		};
-		
+
 		ret:
 		return sr;
 	}

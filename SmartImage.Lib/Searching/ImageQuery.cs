@@ -106,13 +106,13 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	{
 
 
-		DirectImage directImage = new()
+		BinaryResource directImage = new()
 		{
 			// Stream = Stream,
 			Url = UploadUri
 		};
 
-		var result = new ImageResult
+		var result = new ImageResult(null)
 		{
 			
 			// Image = Image.FromStream(Stream),

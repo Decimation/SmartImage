@@ -34,15 +34,15 @@ public abstract class BaseSearchEngine
 	public abstract EngineSearchType SearchType { get; }
 
 
-	public virtual SearchResult GetResult(ImageQuery query, CancellationToken? c= null)
+	public virtual SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
 	{
 		var sr = new SearchResult(this)
 		{
 			Origin = GetResultOrigin(query)
 		};
 		c ??= CancellationToken.None;
-		
-		if (c is { IsCancellationRequested: true}) {
+
+		if (c is { IsCancellationRequested: true }) {
 			return sr;
 		}
 
@@ -63,7 +63,7 @@ public abstract class BaseSearchEngine
 
 	public async Task<SearchResult> GetResultAsync(ImageQuery query, CancellationToken? c = null)
 	{
-		
+
 		var task = Task.Run(delegate
 		{
 			Debug.WriteLine($"{Name}: getting result async", C_VERBOSE);
@@ -87,12 +87,11 @@ public abstract class BaseSearchEngine
 	protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query, CancellationToken? c = null)
 	{
 		Uri rawUri = GetRawUri(query);
-		
+
 
 		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(),
-		                                             (int) Timeout.TotalMilliseconds,
-		                                             HttpMethod.Get, FollowRedirects);
-		
+		                                        (int) Timeout.TotalMilliseconds,
+		                                        HttpMethod.Get, FollowRedirects);
 
 
 		bool success;
@@ -115,7 +114,7 @@ public abstract class BaseSearchEngine
 
 		if (success && res is { }) {
 			var task = res.Content.ReadAsStringAsync();
-			
+
 			task.Wait(Timeout);
 			content = task.Result;
 		}
@@ -123,10 +122,10 @@ public abstract class BaseSearchEngine
 		var origin = new SearchResultOrigin
 		{
 			Response = res,
-			Content         = content,
+			Content  = content,
 			Success  = success,
-			RawUri          = rawUri,
-			Query           = query
+			RawUri   = rawUri,
+			Query    = query
 		};
 
 		return origin;

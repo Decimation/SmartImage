@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
+using Kantan.Net;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
@@ -31,24 +32,26 @@ namespace Test;
 
 public static class Program
 {
+	public static async Task Main(string[] args)
+	{
+
+
+		/*var q          = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
+		var i          = new TraceMoeEngine();
+		var rt         = i.GetResultAsync(q);
+		var t          = await rt;
+
+		Console.WriteLine(t);*/
+
+		await test4();
+	}
+
 	public static void OnResult(object _, ResultCompletedEventArgs e)
 	{
 
 		if (e.Result.IsSuccessful) {
 			Console.WriteLine(e.Result);
 		}
-	}
-
-	public static async Task Main(string[] args)
-	{
-
-
-		var q          = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
-		var i          = new TraceMoeEngine();
-		var rt         = i.GetResultAsync(q);
-		var t          = await rt;
-
-		Console.WriteLine(t);
 	}
 
 	static async Task test5()
@@ -64,13 +67,13 @@ public static class Program
 	}
 	static async Task test4()
 	{
-		var task =  ImageHelper.ScanForImages("http://www.zerochan.net/2750747");
+		var task =  ImageHelper.Scan("http://www.zerochan.net/2750747",-1);
 
-		foreach (DirectImage v in task) {
+		foreach (BinaryResource v in task) {
 			Console.WriteLine(v);
 		}
 
-		foreach (DirectImage directImage in task) {
+		foreach (var directImage in task) {
 			directImage.Dispose();
 		}
 	}

@@ -164,7 +164,9 @@ public static partial class Program
 		 * Register events
 		 */
 
-
+#if TEST
+		args = new[] {"", @"C:\Users\Deci\Pictures\Test Images\Test1.jpg" };
+#endif
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
@@ -191,7 +193,9 @@ public static partial class Program
 
 		AppConfig.ReadConfigFile();
 
-		if (!await Cli.HandleArguments())
+
+
+		if (!await Cli.HandleArguments(args))
 			return;
 		
 		var map = new Dictionary<string, string>()

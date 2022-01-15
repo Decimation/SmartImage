@@ -81,7 +81,6 @@ public class SearchResult : IResult
 	public List<ImageResult> AllResults => OtherResults.Union(new[] { PrimaryResult }).ToList();
 
 
-
 	/// <summary>
 	/// Undifferentiated URI
 	/// </summary>
@@ -138,10 +137,11 @@ public class SearchResult : IResult
 	{
 		Engine = engine;
 
-		PrimaryResult = new ImageResult();
+		PrimaryResult = new ImageResult(this);
 		OtherResults  = new List<ImageResult>();
 	}
 
+	public int Timeout => (int) Engine.Timeout.TotalMilliseconds;
 
 	public bool Scanned { get; internal set; }
 
@@ -151,17 +151,17 @@ public class SearchResult : IResult
 
 		var directResults = new List<ImageResult>();
 
-		var ll = Parallel.For(0, AllResults.Count, (i, pls) =>
+		var plr = Parallel.For(0, AllResults.Count, (i, pls) =>
 		{
 			var allResult = AllResults[i];
 
-			var b = allResult.ScanForImages();
+			var b = allResult.ScanForImages(Timeout);
 
 			if (b && !directResults.Contains(allResult)) {
 				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}");
 
 				directResults.Add(allResult);
-				
+
 			}
 		});
 

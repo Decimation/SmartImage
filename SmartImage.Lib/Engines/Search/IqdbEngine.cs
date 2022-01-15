@@ -29,7 +29,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
-	private static ImageResult ParseResult(IHtmlCollection<IElement> tr)
+	private static ImageResult ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
 	{
 		var caption = tr[0];
 		var img     = tr[1];
@@ -95,7 +95,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 		}
 
 
-		var result = new ImageResult
+		var result = new ImageResult(r)
 		{
 			Url         = uri,
 			Similarity  = sim,
@@ -159,7 +159,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 		var select = tables.Select(table => ((IHtmlElement) table)
 			                           .QuerySelectorAll("table > tbody > tr:nth-child(n)"));
 
-		var images = select.Select(ParseResult).ToList();
+		var images = select.Select(x=>ParseResult(x, sr)).ToList();
 
 
 		// First is original image

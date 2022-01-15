@@ -70,7 +70,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	{
 		var query = (ImageQuery) obj;
 
-		var primaryResult = new ImageResult();
+		var primaryResult = new ImageResult(result);
 
 		var parseFunc = (Func<ImageQuery, Task<IEnumerable<SauceNaoDataResult>>>)
 			(!UsingAPI ? GetWebResults : GetAPIResults);
@@ -89,7 +89,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var imageResults = dataResults.Result.Where(o => o != null)
 		                              .AsParallel()
-		                              .Select(ConvertToImageResult)
+		                              .Select((x)=>ConvertToImageResult(x, result))
 		                              .Where(o => o != null)
 		                              .OrderByDescending(e => e.Similarity)
 		                              .ToList();
@@ -324,13 +324,13 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		return null;
 	}
 
-	private static ImageResult ConvertToImageResult(SauceNaoDataResult sn)
+	private static ImageResult ConvertToImageResult(SauceNaoDataResult sn, SearchResult r)
 	{
 		string url = sn.Urls?.FirstOrDefault(u => u != null);
 
 		string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
 
-		var imageResult = new ImageResult
+		var imageResult = new ImageResult(r)
 		{
 			Url         = String.IsNullOrWhiteSpace(url) ? default : new Uri(url),
 			Similarity  = MathF.Round(sn.Similarity, 2),

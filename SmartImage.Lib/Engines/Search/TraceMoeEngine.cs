@@ -68,7 +68,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				// Most similar to least similar
 
 				try {
-					var results = ConvertResults(tm).ToList();
+					var results = ConvertResults(tm, r).ToList();
 					var best    = results[0];
 
 					r.PrimaryResult = best;
@@ -102,7 +102,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		return r;
 	}
 
-	private IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj)
+	private IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj, SearchResult r)
 	{
 		var docs    = obj.result;
 		var results = new ImageResult[docs.Count];
@@ -111,7 +111,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			var   doc = docs[i];
 			float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
-			var result = new ImageResult
+			var result = new ImageResult(r)
 			{
 				Similarity  = sim,
 				Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.from)}"

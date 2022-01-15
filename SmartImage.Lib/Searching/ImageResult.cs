@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Kantan.Model;
+using Kantan.Net;
 using Kantan.Numeric;
 using Kantan.Text;
 using Kantan.Utilities;
@@ -179,8 +180,12 @@ public sealed class ImageResult : IResult
 
 	public bool IsDetailed => DetailScore >= DetailFields.Count * .4;
 
-	public ImageResult()
+	public SearchResult Root { get; internal set; }
+
+	public ImageResult(SearchResult root)
 	{
+		Root = root;
+
 		OtherMetadata = new Dictionary<string, object>();
 	}
 
@@ -211,27 +216,27 @@ public sealed class ImageResult : IResult
 
 	}
 
-	public List<DirectImage> DirectImages { get; internal set; } = new() { };
+	public List<BinaryResource> DirectImages { get; internal set; } = new() { };
 
-	public DirectImage DirectImage
+	public BinaryResource DirectImage
 	{
 		get => DirectImages.FirstOrDefault();
 		set => DirectImages[0] = value;
 	}
 
-	public bool ScanForImages()
+	public bool ScanForImages(int ms)
 	{
 		if (Url == null) {
 			return false;
 		}
 
-		if (DirectImage is { Url: { } } || IsAlreadyDirect()) {
+		if (DirectImage is { Url: { } } || IsAlreadyDirect(ms)) {
 			return true;
 		}
 
 		try {
 
-			var directImages = ImageHelper.ScanForImages(Url.ToString())
+			var directImages = ImageHelper.Scan(Url.ToString(), ms)
 			                              .Where(x => x is { Url: { } })
 			                              .ToList();
 
@@ -252,7 +257,7 @@ public sealed class ImageResult : IResult
 	}
 
 
-	private bool IsAlreadyDirect()
+	private bool IsAlreadyDirect(int ms)
 	{
 		if (Url is not { }) {
 			return false;
@@ -260,7 +265,7 @@ public sealed class ImageResult : IResult
 
 		var s = Url.ToString();
 
-		var b = ImageHelper.IsImage(s, out var di);
+		var b = ImageHelper.IsImage(s, out var di, ms);
 
 		if (b) {
 			DirectImages.Add(di);

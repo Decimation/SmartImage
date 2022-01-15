@@ -61,7 +61,7 @@ public sealed class TidderEngine : WebSearchEngine
 			//DeEntize!
 			string link = titleNode.FirstChild.TryGetAttribute("href");
 
-			var bsr = new ImageResult
+			var bsr = new ImageResult(sr)
 			{
 				Artist      = author,
 				Description = title,

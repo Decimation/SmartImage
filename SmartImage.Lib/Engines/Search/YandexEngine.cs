@@ -47,7 +47,7 @@ public sealed class YandexEngine : WebSearchEngine
 		return appearsToContain;
 	}
 
-	private static List<ImageResult>? GetOtherImages(IDocument doc)
+	private static List<ImageResult>? GetOtherImages(IDocument doc, SearchResult r)
 	{
 		var tagsItem = doc.Body.SelectNodes("//li[@class='other-sites__item']");
 
@@ -55,7 +55,7 @@ public sealed class YandexEngine : WebSearchEngine
 			return null;
 		}
 
-		static ImageResult Parse(INode siz)
+		 ImageResult Parse(INode siz)
 		{
 			string link    = siz.FirstChild.TryGetAttribute("href");
 			string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
@@ -69,7 +69,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 			var (w, h) = ParseResolution(resText);
 
-			return new ImageResult
+			return new ImageResult(r)
 			{
 				Url         = new Uri(link),
 				Site        = site.TextContent,
@@ -104,7 +104,7 @@ public sealed class YandexEngine : WebSearchEngine
 		return (w, h);
 	}
 
-	private static List<ImageResult> GetImages(IDocument doc)
+	private static List<ImageResult> GetImages(IDocument doc,SearchResult r)
 	{
 		var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
 		var images   = new List<ImageResult>();
@@ -116,7 +116,7 @@ public sealed class YandexEngine : WebSearchEngine
 		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
 		                                       .Contains("CbirItem"));
 
-		static ImageResult Parse(INode siz)
+		 ImageResult Parse(INode siz)
 		{
 			string? link = siz.TryGetAttribute("href");
 
@@ -135,7 +135,7 @@ public sealed class YandexEngine : WebSearchEngine
 				link2 = null;
 			}
 
-			var yi = new ImageResult
+			var yi = new ImageResult(r)
 			{
 				Url    = link2,
 				Width  = w,
@@ -172,9 +172,9 @@ public sealed class YandexEngine : WebSearchEngine
 		 * Find and sort through high resolution image matches
 		 */
 
-		var images = GetImages(doc);
+		var images = GetImages(doc, sr);
 
-		var otherImages = GetOtherImages(doc);
+		var otherImages = GetOtherImages(doc, sr);
 
 		if (otherImages != null) {
 			images.AddRange(otherImages);
