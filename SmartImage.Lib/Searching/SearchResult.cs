@@ -1,4 +1,5 @@
-﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+﻿
+global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 using ConsoleProgressIndicator = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 using JetBrains.Annotations;
 using SmartImage.Lib.Engines;
@@ -14,7 +15,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Kantan.Cli.Controls;
-using Kantan.Diagnostics;
 using Kantan.Model;
 using Kantan.Net;
 using Kantan.Text;
@@ -158,7 +158,7 @@ public class SearchResult : IResult
 			var b = allResult.ScanForBinaryImages(Timeout);
 
 			if (b && !directResults.Contains(allResult)) {
-				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}");
+				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}", C_INFO);
 
 				directResults.Add(allResult);
 
@@ -225,10 +225,10 @@ public class SearchResult : IResult
 
 			Functions = new()
 			{
-				[ConsoleOption.NC_FN_MAIN] = IResult.CreateOpenFunction(
+				[ConsoleOption.NC_FN_MAIN] = IResult.GetOpenFunction(
 					PrimaryResult is { Url: { } } ? PrimaryResult.Url : RawUri),
 
-				[ConsoleOption.NC_FN_SHIFT] = IResult.CreateOpenFunction(RawUri),
+				[ConsoleOption.NC_FN_SHIFT] = IResult.GetOpenFunction(RawUri),
 
 			},
 
@@ -269,7 +269,7 @@ public class SearchResult : IResult
 		};
 
 		option.Functions[ConsoleOption.NC_FN_COMBO] =
-			IResult.CreateDownloadFunction(() => PrimaryResult.DirectImage.Url);
+			IResult.GetDownloadFunction(() => PrimaryResult.DirectImage.Url);
 
 		option.Functions[ConsoleOption.NC_FN_CTRL] = () =>
 		{

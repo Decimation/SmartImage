@@ -1,26 +1,13 @@
-﻿using System.Collections;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Text;
+﻿using System.Diagnostics;
 using Windows.ApplicationModel.Background;
-using Windows.UI.Notifications;
-using Kantan.Cli.Controls;
-using Kantan.Collections;
 using Kantan.Net;
-using Kantan.Numeric;
-using Kantan.Text;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
-using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
-using SmartImage.Properties;
-using static Kantan.Diagnostics.LogCategories;
-using static SmartImage.UI.AppInterface;
 
 // ReSharper disable PossibleNullReferenceException
 
-namespace SmartImage.UI;
+namespace SmartImage.App;
 
 internal static class AppToast
 {
@@ -98,7 +85,7 @@ internal static class AppToast
 			if (file != null) {
 				// NOTE: The file size limit doesn't seem to actually matter...
 
-				Debug.WriteLine($"{nameof(AppInterface)}: Downloaded {file}", C_INFO);
+				Debug.WriteLine($"{nameof(AppToast)}: Downloaded {file}", C_INFO);
 
 				builder.AddHeroImage(new Uri(file));
 

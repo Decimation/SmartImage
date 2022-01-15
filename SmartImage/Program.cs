@@ -3,6 +3,7 @@
 // ReSharper disable ConvertSwitchStatementToSwitchExpression
 // ReSharper disable UnusedParameter.Local
 // ReSharper disable RedundantUsingDirective
+// ReSharper disable RedundantAssignment
 
 #pragma warning disable IDE0079
 #pragma warning disable CS0168
@@ -11,7 +12,9 @@
 #pragma warning disable IDE0008
 #pragma warning restore CA1416
 #nullable disable
-using SmartImage.Core;
+
+global using static Kantan.Diagnostics.LogCategories;
+
 using System.Buffers;
 using System.Configuration;
 using System.Diagnostics;
@@ -28,15 +31,15 @@ using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.VisualBasic.FileIO;
 using Novus.OS.Win32;
+using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Properties;
-using SmartImage.UI;
-using static SmartImage.UI.AppInterface;
 using Configuration = System.Configuration.Configuration;
 using EH = Kantan.Collections.EnumerableHelper;
-using E = SmartImage.UI.AppInterface.Elements;
+
+// ReSharper disable InlineTemporaryVariable
 
 // ReSharper disable AccessToDisposedClosure
 // ReSharper disable SuggestVarOrType_Elsewhere
@@ -45,7 +48,6 @@ using E = SmartImage.UI.AppInterface.Elements;
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
 // ReSharper disable CognitiveComplexity
-
 namespace SmartImage;
 //  ____                       _   ___
 // / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
@@ -54,14 +56,17 @@ namespace SmartImage;
 // |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 //                                                     |___/
 
-public static class Program
+public static partial class Program
 {
 	#region Core fields
 
 	/// <summary>
 	/// User search config
 	/// </summary>
-	internal static SearchConfig Config { get; } = new();
+	internal static SearchConfig Config { get; } = new()
+	{
+		Folder = AppInfo.AppFolder,
+	};
 
 	/// <summary>
 	/// Search client
@@ -116,7 +121,7 @@ public static class Program
 					await Client.RefineSearchAsync();
 				}
 				catch (Exception e) {
-					string s = $"Error: {e.Message.AddColor(E.ColorError)}";
+					string s = $"Error: {e.Message.AddColor(UI.Elements.ColorError)}";
 
 					Console.WriteLine(
 						$"\n{Strings.Constants.CHEVRON} {s}");
@@ -153,12 +158,12 @@ public static class Program
 #if TEST
 		args = new[] { "", @"C:\Users\Deci\Pictures\Test Images\Test1.jpg" };
 
-		Debug.WriteLine($"Configuration: TEST");
+		Debug.WriteLine($"Configuration: TEST", C_INFO);
 #endif
 
-		ResultDialog.AddDescription("Press the result number to open in browser", E.ColorOther)
-		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), E.ColorKey)
-		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), E.ColorKey);
+		ResultDialog.AddDescription("Press the result number to open in browser", UI.Elements.ColorOther)
+		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), UI.Elements.ColorKey)
+		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), UI.Elements.ColorKey);
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
@@ -182,8 +187,8 @@ public static class Program
 		 * Cli arguments override config file
 		 */
 
-		AppConfig.ReadConfigFile();
-
+		Config.Update();
+		Reload();
 
 		if (!await HandleStartup(args))
 			return;
@@ -194,14 +199,14 @@ public static class Program
 		{
 			[Resources.D_SE]     = Config.SearchEngines.ToString(),
 			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
-			[Resources.D_Filter] = E.GetToggleString(Config.Filtering),
-		}, E.ColorKey2);
+			[Resources.D_Filter] = UI.Elements.GetToggleString(Config.Filtering),
+		}, UI.Elements.ColorKey2);
 
 		ResultDialog.AddDescription(new Dictionary<string, string>
 		{
-			[Resources.D_NI] = E.GetToggleString(Config.NotificationImage),
-			[Resources.D_N]  = E.GetToggleString(Config.Notification),
-		}, E.ColorKey2);
+			[Resources.D_NI] = UI.Elements.GetToggleString(Config.NotificationImage),
+			[Resources.D_N]  = UI.Elements.GetToggleString(Config.Notification),
+		}, UI.Elements.ColorKey2);
 
 
 		_ctsSearch    = new();
@@ -217,7 +222,7 @@ public static class Program
 
 		Console.CancelKeyPress += OnCancel;
 
-		ConsoleManager.UI.ProgressIndicator.Instance.Start(_ctsProgress);
+		CPI.Instance.Start(_ctsProgress);
 
 		// Show results
 		_searchTask   = Client.RunSearchAsync(_ctsSearch.Token);
@@ -242,27 +247,32 @@ public static class Program
 		Client.Dispose();
 		Client.Reset();
 
-		Console.ReadKey(true);
+		_ = Console.ReadKey(true);
+
 	}
 
 	private static async Task<bool> HandleStartup(string[] args)
 	{
 
-#if !TEST
+#if TEST
+#else
 		args = Environment.GetCommandLineArgs();
 
 		// first element is executing assembly
 		args = args.Skip(1).ToArray();
 #endif
 
+
+		Debug.WriteLine($"Args: {args.QuickJoin()}", C_DEBUG);
+
 		if (!args.Any()) {
-			var options = await MainMenuDialog.ReadInputAsync();
+			var options = await UI.MainMenuDialog.ReadInputAsync();
 
 			var file = options.DragAndDrop;
 
 			if (file != null) {
 				Debug.WriteLine($"Drag and drop: {file}");
-				Console.WriteLine($">> {file}".AddColor(Elements.ColorMain));
+				Console.WriteLine($">> {file}".AddColor(UI.Elements.ColorMain));
 				Config.Query = file;
 				return true;
 			}
@@ -279,7 +289,7 @@ public static class Program
 
 			try {
 
-				Cli.ArgumentHandler.Run(args);
+				ArgumentHandler.Run(args);
 
 				Client.Reload();
 			}
@@ -343,7 +353,7 @@ public static class Program
 
 		ConsoleOption option = result.GetConsoleOption();
 
-		var color = E.EngineColorMap[result.Engine.EngineOption];
+		var color = UI.Elements.EngineColorMap[result.Engine.EngineOption];
 		option.Color    = color;
 		option.ColorAlt = color.ChangeBrightness(-.4f);
 
@@ -403,68 +413,75 @@ public static class Program
 
 	#endregion
 
-	internal static void Reload() => Client.Reload();
 
-	private static class Cli
+	private static void Reload(bool saveCfg = false)
 	{
-		/// <summary>
-		/// Command line argument handler
-		/// </summary>
-		internal static readonly CliHandler ArgumentHandler = new()
+		Client.Reload();
+
+		if (saveCfg) {
+			Config.Save();
+		}
+	}
+
+
+	/// <summary>
+	/// Command line argument handler
+	/// </summary>
+	internal static readonly CliHandler ArgumentHandler = new()
+	{
+		Parameters =
 		{
-			Parameters =
-			{
-				new()
-				{
-					ArgumentCount = 1,
-					ParameterId   = "-se",
-					Function = strings =>
-					{
-						Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-						return null;
-					}
-				},
-				new()
-				{
-					ArgumentCount = 1,
-					ParameterId   = "-pe",
-					Function = strings =>
-					{
-						Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-						return null;
-					}
-				},
-				new()
-				{
-					ArgumentCount = 0,
-					ParameterId   = "-f",
-					Function = delegate
-					{
-						Config.Filtering = true;
-						return null;
-					}
-				},
-				new()
-				{
-					ArgumentCount = 0,
-					ParameterId   = "-output_only",
-					Function = delegate
-					{
-						Config.OutputOnly = true;
-						return null;
-					}
-				}
-			},
-			Default = new()
+			new()
 			{
 				ArgumentCount = 1,
-				ParameterId   = null,
+				ParameterId   = "-se",
 				Function = strings =>
 				{
-					Config.Query = strings[0];
+					Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 1,
+				ParameterId   = "-pe",
+				Function = strings =>
+				{
+					Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-f",
+				Function = delegate
+				{
+					Config.Filtering = true;
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-output_only",
+				Function = delegate
+				{
+					Config.OutputOnly = true;
 					return null;
 				}
 			}
-		};
-	}
+		},
+		Default = new()
+		{
+			ArgumentCount = 1,
+			ParameterId   = null,
+			Function = strings =>
+			{
+				Config.Query = strings[0];
+				return null;
+			}
+		}
+	};
 }
+

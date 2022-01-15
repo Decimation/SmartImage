@@ -147,60 +147,6 @@ namespace SmartImage.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to engines.
-        /// </summary>
-        internal static string K_Engines {
-            get {
-                return ResourceManager.GetString("K_Engines", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to filter.
-        /// </summary>
-        internal static string K_Filter {
-            get {
-                return ResourceManager.GetString("K_Filter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to notification.
-        /// </summary>
-        internal static string K_Notification {
-            get {
-                return ResourceManager.GetString("K_Notification", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to notification-image.
-        /// </summary>
-        internal static string K_NotificationImage {
-            get {
-                return ResourceManager.GetString("K_NotificationImage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to output-only.
-        /// </summary>
-        internal static string K_OutputOnly {
-            get {
-                return ResourceManager.GetString("K_OutputOnly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to priority-engines.
-        /// </summary>
-        internal static string K_PriorityEngines {
-            get {
-                return ResourceManager.GetString("K_PriorityEngines", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/issues/new.
         /// </summary>
         internal static string U_Issue {

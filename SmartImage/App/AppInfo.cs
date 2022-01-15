@@ -1,27 +1,10 @@
 #nullable enable
-using JetBrains.Annotations;
-using Novus.OS.Win32;
-using SmartImage.Utilities;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using Kantan.Cli;
 using Kantan.Diagnostics;
 using Kantan.Text;
-using Kantan.Utilities;
-using Novus;
 using Novus.OS;
 using SmartImage.Lib.Utilities;
-using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
 
@@ -34,7 +17,7 @@ using static Kantan.Diagnostics.LogCategories;
 // ReSharper disable MemberCanBePrivate.Global
 
 #nullable disable
-namespace SmartImage.Core;
+namespace SmartImage.App;
 
 /// <summary>
 /// Program runtime information
@@ -50,15 +33,11 @@ public static class AppInfo
 	/// Executable file name
 	/// </summary>
 	public const string NAME_EXE = "SmartImage.exe";
-
-	/// <summary>
-	/// Config file name
-	/// </summary>
-	public const string NAME_CFG = "SmartImage.cfg";
+	
 		
 	public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
-	public static Version Version => typeof(AppInfo).Assembly.GetName().Version!;
+	public static Version AppVersion => typeof(AppInfo).Assembly.GetName().Version!;
 
 	public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
 

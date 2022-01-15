@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using Kantan.Cli;
 using Novus.OS;
 using Novus.OS.Win32;
-using SmartImage.Core;
+using SmartImage.App;
 
 namespace SmartImage.Utilities;
 #pragma warning disable SYSLIB0014
@@ -94,7 +94,7 @@ public readonly struct UpdateInfo
 
 	public static UpdateInfo GetUpdateInfo()
 	{
-		var currentVersion = AppInfo.Version;
+		var currentVersion = AppInfo.AppVersion;
 
 		var release = ReleaseInfo.GetLatestRelease();
 

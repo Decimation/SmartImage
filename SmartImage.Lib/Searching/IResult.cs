@@ -1,4 +1,6 @@
-﻿using System;
+﻿global using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
+
+using System;
 using System.Diagnostics;
 using System.Threading;
 using Kantan.Cli;
@@ -16,14 +18,14 @@ namespace SmartImage.Lib.Searching;
 
 public interface IResult : IDisposable, IConsoleOption
 {
-	protected static ConsoleOptionFunction CreateDownloadFunction(Func<Uri> d)
+	protected static ConsoleOptionFunction GetDownloadFunction(Func<Uri> f)
 	{
 		// Because of value type and pointer semantics, a func needs to be used here to ensure the
 		// Direct field of ImageResult is updated.
 
 		return () =>
 		{
-			var direct = d();
+			var direct = f();
 
 			if (direct == null) {
 				return null;
@@ -32,9 +34,8 @@ public interface IResult : IDisposable, IConsoleOption
 			var path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 			var cts  = new CancellationTokenSource();
 
-			ConsoleManager.UI.ProgressIndicator.Instance.Start(cts);
+			CPI.Instance.Start(cts);
 
-			// Console.WriteLine($"\nDownloading...".AddColor(Elements.ColorOther));
 
 			var file = ImageHelper.Download(direct, path);
 
@@ -54,7 +55,7 @@ public interface IResult : IDisposable, IConsoleOption
 		};
 	}
 
-	protected static ConsoleOptionFunction CreateOpenFunction(Uri url)
+	protected static ConsoleOptionFunction GetOpenFunction(Uri url)
 	{
 		return () =>
 		{

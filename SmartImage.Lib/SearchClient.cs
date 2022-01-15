@@ -1,4 +1,6 @@
-﻿using System;
+﻿global using static Kantan.Diagnostics.LogCategories;
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,7 +16,6 @@ using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
-using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable InconsistentNaming
 

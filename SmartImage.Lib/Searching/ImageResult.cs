@@ -227,38 +227,32 @@ public sealed class ImageResult : IResult
 
 	public bool ScanForBinaryImages(int ms)
 	{
-		if (Url == null)
-		{
+		if (Url == null) {
 			return false;
 		}
 
-
 		var url = Url.ToString();
 
-		if (ImageHelper.IsBinaryImage(url, out var br, ms))
-		{
+		if (ImageHelper.IsBinaryImage(url, out var br, ms)) {
 			DirectImages.Add(br);
 		}
-		else
-		{
+		else {
 			br.Dispose();
 		}
 
 
-		if (DirectImage is { Url: { } } || ImageHelper.IsBinaryImage(url, out var di1, ms))
-		{
+		if (DirectImage is { Url: { } } || ImageHelper.IsBinaryImage(url, out var di1, ms)) {
 			return true;
 		}
 
-		try
-		{
+		try {
 
 			var directImages = ImageHelper.ScanForBinaryImages(Url.ToString(), ms)
 			                              .Where(x => x is { Url: { } })
 			                              .ToList();
+			
 
-			if (directImages.Any())
-			{
+			if (directImages.Any()) {
 				Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
 
 
@@ -267,14 +261,12 @@ public sealed class ImageResult : IResult
 				return true;
 			}
 		}
-		catch
-		{
+		catch {
 			//
 		}
 
 		return false;
 	}
-
 
 
 	public Dictionary<string, object> Data
@@ -327,9 +319,8 @@ public sealed class ImageResult : IResult
 
 	public void Dispose()
 	{
-
-		for (int i = 0; i < DirectImages.Count; i++) {
-			DirectImages[i].Dispose();
+		foreach (BinaryResource t in DirectImages) {
+			t.Dispose();
 		}
 	}
 
@@ -340,8 +331,8 @@ public sealed class ImageResult : IResult
 			Data = Data,
 			Functions =
 			{
-				[ConsoleOption.NC_FN_MAIN]  = IResult.CreateOpenFunction(Url),
-				[ConsoleOption.NC_FN_COMBO] = IResult.CreateDownloadFunction(() => DirectImage.Url)
+				[ConsoleOption.NC_FN_MAIN]  = IResult.GetOpenFunction(Url),
+				[ConsoleOption.NC_FN_COMBO] = IResult.GetDownloadFunction(() => DirectImage.Url)
 			}
 		};
 

@@ -1,17 +1,8 @@
-﻿using Microsoft.Win32;
-using Novus.OS.Win32;
-using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Runtime.Versioning;
-using System.Threading;
 using Kantan.Cli;
+using Microsoft.Win32;
 using Novus.OS;
-using Novus.Utilities;
-using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable CognitiveComplexity
 
@@ -19,7 +10,7 @@ using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Core;
+namespace SmartImage.App;
 
 /// <summary>
 /// Program OS integrations
@@ -150,8 +141,7 @@ public static class AppIntegration
 
 		Trace.WriteLine("Reset config");
 	}
-
-	[SupportedOSPlatform("windows")]
+	
 	[DoesNotReturn]
 	public static void Uninstall()
 	{

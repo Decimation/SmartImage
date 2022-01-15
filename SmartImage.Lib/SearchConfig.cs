@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using JetBrains.Annotations;
-using Kantan.Model;
+using Kantan.Collections;
 using Kantan.Text;
-using Kantan.Utilities;
-using SmartImage.Lib.Engines;
+using SmartImage.Lib.Properties;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib;
@@ -25,54 +22,106 @@ public sealed class SearchConfig : ConfigurationSection
 	/// </summary>
 	public ImageQuery Query { get; set; }
 
-	public SearchConfig() { }
+	public FileInfo FullName
+	{
+		get
+		{
+			string file = Path.Combine(Folder, Name);
+
+			if (!File.Exists(file)) {
+				var f = File.Create(file);
+				f.Close();
+			}
+
+
+			return new FileInfo(file);
+		}
+	}
+
+	public string Folder { get; init; }
+
+	public string Name => Resources.F_Config;
+
+	public void Save()
+	{
+		var map = ToMap();
+
+		EnumerableHelper.WriteDictionary(map, FullName.ToString());
+
+		Debug.WriteLine($"Saved to {FullName.Name}", C_INFO);
+	}
+
+	public void Update()
+	{
+		var map = EnumerableHelper.ReadDictionary(FullName.ToString());
+
+		foreach (var (key, value) in ToMap()) {
+			if (!map.ContainsKey(key)) {
+				map.Add(key, value);
+			}
+		}
+
+		SearchEngines     = Enum.Parse<SearchEngineOptions>(map[Resources.K_Engines]);
+		PriorityEngines   = Enum.Parse<SearchEngineOptions>(map[Resources.K_PriorityEngines]);
+		Filtering         = Boolean.Parse(map[Resources.K_Filter]);
+		Notification      = Boolean.Parse(map[Resources.K_Notification]);
+		NotificationImage = Boolean.Parse(map[Resources.K_NotificationImage]);
+		OutputOnly        = Boolean.Parse(map[Resources.K_OutputOnly]);
+
+		Save();
+
+		Debug.WriteLine($"Updated config from {FullName.Name}", C_INFO);
+	}
+
+	public Dictionary<string, string> ToMap()
+	{
+		var map = new Dictionary<string, string>
+		{
+			{ Resources.K_Engines, SearchEngines.ToString() },
+			{ Resources.K_PriorityEngines, PriorityEngines.ToString() },
+			{ Resources.K_Filter, Filtering.ToString() },
+			{ Resources.K_Notification, Notification.ToString() },
+			{ Resources.K_NotificationImage, NotificationImage.ToString() },
+			{ Resources.K_OutputOnly, OutputOnly.ToString() },
+
+		};
+		return map;
+	}
+
+	#region Settings
 
 	/// <summary>
 	/// Search engines to use
 	/// </summary>
-	[ConfigurationProperty("engines", DefaultValue = SearchEngineOptions.All, IsRequired = true, IsKey = true)]
 	public SearchEngineOptions SearchEngines { get; set; }
 
 	/// <summary>
 	/// Priority engines
 	/// </summary>
-	[ConfigurationProperty("priority-engines", DefaultValue = SearchEngineOptions.Auto, IsRequired = true,
-	                       IsKey = true)]
 	public SearchEngineOptions PriorityEngines { get; set; }
 
 	/// <summary>
 	/// Filters any non-primitive results.
 	/// Filtered results are determined by <see cref="SearchResult.IsNonPrimitive"/>.
 	/// </summary>
-	[ConfigurationProperty("filtering", DefaultValue = true, IsRequired = true, IsKey = true)]
 	public bool Filtering { get; set; } = true;
 
 	/// <summary>
 	/// <see cref="SearchClient.SearchCompleted"/>
 	/// </summary>
-	[ConfigurationProperty("notification", DefaultValue = true, IsRequired = true, IsKey = true)]
 	public bool Notification { get; set; } = true;
 
 	/// <summary>
 	/// <see cref="SearchClient.SearchCompleted"/>
 	/// </summary>
+	public bool NotificationImage { get; set; }
 
-	[ConfigurationProperty("notification-image", DefaultValue = false, IsRequired = true, IsKey = true)]
-	public bool NotificationImage { get; set; } = false;
+	public bool OutputOnly { get; set; }
 
-	public bool OutputOnly { get; set; } = false;
+	#endregion
 
 	public override string ToString()
 	{
-		var sb = new StringBuilder();
-		sb.Append("Search engines", SearchEngines);
-		sb.Append("Priority engines", PriorityEngines);
-		sb.Append("Filtering", Filtering);
-		sb.Append("Notification", Notification);
-		sb.Append("Notification image", NotificationImage);
-		sb.Append("Output only", OutputOnly);
-
-
-		return sb.ToString();
+		return Strings.GetMapString(ToMap());
 	}
 }
