@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Net.Http;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Cli.Controls;
@@ -81,9 +82,11 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 		else if (IsUri) {
 			UploadUri = new Uri(Value);
 		}
-		
 
-		Stream = IsFile ? File.OpenRead(value) : HttpUtilities.GetStream(value);
+
+		var client = new HttpClient();//todo
+		Stream = IsFile ? File.OpenRead(value) : client.GetStream(value);
+
 
 		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 

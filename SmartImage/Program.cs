@@ -152,10 +152,9 @@ public static class Program
 
 #if TEST
 		args = new[] { "", @"C:\Users\Deci\Pictures\Test Images\Test1.jpg" };
+
+		Debug.WriteLine($"Configuration: TEST");
 #endif
-
-
-
 
 		ResultDialog.AddDescription("Press the result number to open in browser", E.ColorOther)
 		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), E.ColorKey)
@@ -164,8 +163,7 @@ public static class Program
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 		Console.OutputEncoding = Encoding.Unicode;
-
-		Console.Title = $"{AppInfo.NAME}";
+		Console.Title          = $"{AppInfo.NAME}";
 
 		ConsoleManager.Init();
 		Console.Clear();
@@ -192,14 +190,14 @@ public static class Program
 
 		ConsoleManager.BufferLimit += 10;
 
-		ResultDialog.AddDescription(new Dictionary<string, string>()
+		ResultDialog.AddDescription(new Dictionary<string, string>
 		{
 			[Resources.D_SE]     = Config.SearchEngines.ToString(),
 			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
 			[Resources.D_Filter] = E.GetToggleString(Config.Filtering),
 		}, E.ColorKey2);
 
-		ResultDialog.AddDescription(new Dictionary<string, string>()
+		ResultDialog.AddDescription(new Dictionary<string, string>
 		{
 			[Resources.D_NI] = E.GetToggleString(Config.NotificationImage),
 			[Resources.D_N]  = E.GetToggleString(Config.Notification),
@@ -257,42 +255,35 @@ public static class Program
 		args = args.Skip(1).ToArray();
 #endif
 
-		
-		if (!args.Any())
-		{
-			var options = await AppInterface.MainMenuDialog.ReadInputAsync();
+		if (!args.Any()) {
+			var options = await MainMenuDialog.ReadInputAsync();
 
 			var file = options.DragAndDrop;
 
-			if (file != null)
-			{
+			if (file != null) {
 				Debug.WriteLine($"Drag and drop: {file}");
-				Console.WriteLine($">> {file}".AddColor(AppInterface.Elements.ColorMain));
+				Console.WriteLine($">> {file}".AddColor(Elements.ColorMain));
 				Config.Query = file;
 				return true;
 			}
 
-			if (!options.Output.Any())
-			{
+			if (!options.Output.Any()) {
 				return false;
 			}
 		}
-		else
-		{
+		else {
 
 			/*
-	 * Handle CLI args
-	 */
+			* Handle CLI args
+			*/
 
-			try
-			{
+			try {
 
 				Cli.ArgumentHandler.Run(args);
 
 				Client.Reload();
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Console.WriteLine($"Error: {e.Message}");
 				return false;
 			}

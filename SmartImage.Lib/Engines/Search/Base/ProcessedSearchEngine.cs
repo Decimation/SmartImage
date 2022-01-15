@@ -27,15 +27,15 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 
 	protected abstract object ParseContent(SearchResultOrigin s);
 
-	[DebuggerHidden]
 	public sealed override SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
 	{
 		var sr = base.GetResult(query);
 
-		if (sr.Origin.Response.StatusCode == HttpStatusCode.TooManyRequests) {
+		if (sr.Origin.Response?.StatusCode == HttpStatusCode.TooManyRequests) {
 			sr.Status = ResultStatus.Cooldown;
 			goto ret;
 		}
+
 
 		if (!sr.IsSuccessful) {
 			// sr.Origin.Dispose();

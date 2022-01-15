@@ -166,22 +166,24 @@
     <value>priority-engines</value>
     <comment>Config key: priority engines</comment>
   </data>
-  <data name="D_Filter" xml:space="preserve">
-    <value>Filtering</value>
-    <comment>Status: filtering</comment>
-  </data>
   <data name="D_PE" xml:space="preserve">
     <value>Priority engines</value>
-    <comment>Status: priority engines</comment>
+    <comment>Desc: priority engines</comment>
   </data>
   <data name="D_SE" xml:space="preserve">
     <value>Search engines</value>
-    <comment>Status: search engines</comment>
+    <comment>Desc: search engines</comment>
   </data>
   <data name="D_N" xml:space="preserve">
     <value>Notification</value>
+    <comment>Desc: Notification</comment>
   </data>
   <data name="D_NI" xml:space="preserve">
     <value>Notification image</value>
+    <comment>Desc: Notification image</comment>
+  </data>
+  <data name="D_Filter" xml:space="preserve">
+    <value>Filtering</value>
+    <comment>Desc: filtering</comment>
   </data>
 </root>
