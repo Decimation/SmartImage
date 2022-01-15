@@ -55,8 +55,7 @@ public abstract class BaseSearchEngine
 			sr.RawUri = sr.Origin.RawUri;
 			sr.Status = ResultStatus.Success;
 		}
-
-
+		
 		return sr;
 	}
 
@@ -109,6 +108,8 @@ public abstract class BaseSearchEngine
 		else {
 			success = true;
 		}
+
+		
 
 		string content = null;
 

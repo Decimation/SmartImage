@@ -70,6 +70,74 @@ namespace SmartImage.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Filtering.
+        /// </summary>
+        internal static string D_Filter {
+            get {
+                return ResourceManager.GetString("D_Filter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to F1,Show filtered results
+        ///F2,Refine
+        ///F5,Refresh.
+        /// </summary>
+        internal static string D_FuncKeys {
+            get {
+                return ResourceManager.GetString("D_FuncKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Ctrl,Load direct
+        ///Alt,Show other
+        ///Shift,Open raw
+        ///Alt+Ctrl,Download.
+        /// </summary>
+        internal static string D_ModifierKeys {
+            get {
+                return ResourceManager.GetString("D_ModifierKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notification.
+        /// </summary>
+        internal static string D_N {
+            get {
+                return ResourceManager.GetString("D_N", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Notification image.
+        /// </summary>
+        internal static string D_NI {
+            get {
+                return ResourceManager.GetString("D_NI", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Priority engines.
+        /// </summary>
+        internal static string D_PE {
+            get {
+                return ResourceManager.GetString("D_PE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search engines.
+        /// </summary>
+        internal static string D_SE {
+            get {
+                return ResourceManager.GetString("D_SE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
         internal static System.IO.UnmanagedMemoryStream hint {
@@ -133,88 +201,38 @@ namespace SmartImage.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to F1,Show filtered results
-        ///F2,Refine
-        ///F5,Refresh.
-        /// </summary>
-        internal static string KeyFunctionDesc {
-            get {
-                return ResourceManager.GetString("KeyFunctionDesc", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ctrl,Load direct
-        ///Alt,Show other
-        ///Shift,Open raw
-        ///Alt+Ctrl,Download.
-        /// </summary>
-        internal static string KeyModifiersDesc {
-            get {
-                return ResourceManager.GetString("KeyModifiersDesc", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Filtering.
-        /// </summary>
-        internal static string S_Filter {
-            get {
-                return ResourceManager.GetString("S_Filter", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to PE.
-        /// </summary>
-        internal static string S_PE {
-            get {
-                return ResourceManager.GetString("S_PE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SE.
-        /// </summary>
-        internal static string S_SE {
-            get {
-                return ResourceManager.GetString("S_SE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/issues/new.
         /// </summary>
-        internal static string UrlIssue {
+        internal static string U_Issue {
             get {
-                return ResourceManager.GetString("UrlIssue", resourceCulture);
+                return ResourceManager.GetString("U_Issue", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/blob/master/README.md.
         /// </summary>
-        internal static string UrlReadme {
+        internal static string U_Readme {
             get {
-                return ResourceManager.GetString("UrlReadme", resourceCulture);
+                return ResourceManager.GetString("U_Readme", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage.
         /// </summary>
-        internal static string UrlRepo {
+        internal static string U_Repo {
             get {
-                return ResourceManager.GetString("UrlRepo", resourceCulture);
+                return ResourceManager.GetString("U_Repo", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/wiki.
         /// </summary>
-        internal static string UrlWiki {
+        internal static string U_Wiki {
             get {
-                return ResourceManager.GetString("UrlWiki", resourceCulture);
+                return ResourceManager.GetString("U_Wiki", resourceCulture);
             }
         }
     }

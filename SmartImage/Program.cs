@@ -54,14 +54,14 @@ namespace SmartImage;
 // |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 //                                                     |___/
 
-public static partial class Program
+public static class Program
 {
 	#region Core fields
 
 	/// <summary>
 	/// User search config
 	/// </summary>
-	internal static SearchConfig Config { get; set; } = new();
+	internal static SearchConfig Config { get; } = new();
 
 	/// <summary>
 	/// Search client
@@ -76,9 +76,6 @@ public static partial class Program
 	{
 		Options = new List<ConsoleOption>(),
 
-		Description = "Press the result number to open in browser\n".AddColor(E.ColorOther)
-		              + Strings.GetMapString(EH.ReadCsv(Resources.KeyModifiersDesc), E.ColorKey) + '\n'
-		              + Strings.GetMapString(EH.ReadCsv(Resources.KeyFunctionDesc), E.ColorKey),
 
 		Functions = new()
 		{
@@ -158,6 +155,12 @@ public static partial class Program
 #endif
 
 
+
+
+		ResultDialog.AddDescription("Press the result number to open in browser", E.ColorOther)
+		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), E.ColorKey)
+		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), E.ColorKey);
+
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 		Console.OutputEncoding = Encoding.Unicode;
@@ -187,12 +190,21 @@ public static partial class Program
 		if (!await HandleStartup(args))
 			return;
 
-		ResultDialog.Subtitle = Strings.GetMapString(new Dictionary<string, string>
+		ConsoleManager.BufferLimit += 10;
+
+		ResultDialog.AddDescription(new Dictionary<string, string>()
 		{
-			[Resources.S_SE]     = Config.SearchEngines.ToString(),
-			[Resources.S_PE]     = Config.PriorityEngines.ToString(),
-			[Resources.S_Filter] = E.GetToggleString(Config.Filtering)
-		});
+			[Resources.D_SE]     = Config.SearchEngines.ToString(),
+			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
+			[Resources.D_Filter] = E.GetToggleString(Config.Filtering),
+		}, E.ColorKey2);
+
+		ResultDialog.AddDescription(new Dictionary<string, string>()
+		{
+			[Resources.D_NI] = E.GetToggleString(Config.NotificationImage),
+			[Resources.D_N]  = E.GetToggleString(Config.Notification),
+		}, E.ColorKey2);
+
 
 		_ctsSearch    = new();
 		_ctsContinue  = new();
@@ -237,48 +249,55 @@ public static partial class Program
 
 	private static async Task<bool> HandleStartup(string[] args)
 	{
-		// var args = Environment.GetCommandLineArgs();
+
+#if !TEST
+		args = Environment.GetCommandLineArgs();
 
 		// first element is executing assembly
-		// args = args.Skip(1).ToArray();
+		args = args.Skip(1).ToArray();
+#endif
 
-		Debug.WriteLine($"{nameof(args)}: {args.QuickJoin()}", LogCategories.C_DEBUG);
-
-		if (!args.Any()) {
-			bool ret;
-
-			var options = await MainMenuDialog.ReadInputAsync();
+		
+		if (!args.Any())
+		{
+			var options = await AppInterface.MainMenuDialog.ReadInputAsync();
 
 			var file = options.DragAndDrop;
 
-			if (file != null) {
+			if (file != null)
+			{
 				Debug.WriteLine($"Drag and drop: {file}");
-				Console.WriteLine($">> {file}".AddColor(E.ColorMain));
+				Console.WriteLine($">> {file}".AddColor(AppInterface.Elements.ColorMain));
 				Config.Query = file;
-
-				ret = true;
-			}
-			else {
-				ret = !options.Output.Any();
-
+				return true;
 			}
 
-			return ret;
+			if (!options.Output.Any())
+			{
+				return false;
+			}
 		}
-		/*
-		* Handle CLI args
-		*/
+		else
+		{
 
-		try {
+			/*
+	 * Handle CLI args
+	 */
 
-			Cli.ArgumentHandler.Run(args);
+			try
+			{
 
-			Client.Reload();
+				Cli.ArgumentHandler.Run(args);
+
+				Client.Reload();
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine($"Error: {e.Message}");
+				return false;
+			}
 		}
-		catch (Exception e) {
-			Console.WriteLine($"Error: {e.Message}");
-			return false;
-		}
+
 
 		return true;
 	}

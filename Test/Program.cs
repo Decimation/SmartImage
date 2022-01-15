@@ -43,6 +43,14 @@ public static class Program
 
 		Console.WriteLine(t);*/
 
+
+
+		var u = "https://i.imgur.com/QtCausw.png";
+
+		var r = HttpWebRequest.Create(u);
+		
+
+
 		await test4();
 	}
 

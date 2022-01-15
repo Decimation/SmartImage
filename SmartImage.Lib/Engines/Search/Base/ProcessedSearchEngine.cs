@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net;
 using System.Threading;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
@@ -31,10 +32,17 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 	{
 		var sr = base.GetResult(query);
 
+		if (sr.Origin.Response.StatusCode == HttpStatusCode.TooManyRequests) {
+			sr.Status = ResultStatus.Cooldown;
+			goto ret;
+		}
+
 		if (!sr.IsSuccessful) {
 			// sr.Origin.Dispose();
-			return sr;
+			goto ret;
 		}
+
+
 		try {
 
 			object obj = ParseContent(sr.Origin);
@@ -56,6 +64,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 			Trace.WriteLine($"{sr.Engine.Name}: {e.Message}", C_ERROR);
 		}
 
+		ret:
 		return sr;
 	}
 }

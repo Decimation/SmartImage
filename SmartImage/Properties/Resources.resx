@@ -124,22 +124,22 @@
   <data name="hint" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\hint.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="KeyModifiersDesc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="D_ModifierKeys" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\KeyDict.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="KeyFunctionDesc" type="System.Resources.ResXFileRef, System.Windows.Forms">
+  <data name="D_FuncKeys" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\KeyF.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
-  <data name="UrlIssue" xml:space="preserve">
+  <data name="U_Issue" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/issues/new</value>
   </data>
-  <data name="UrlReadme" xml:space="preserve">
+  <data name="U_Readme" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/blob/master/README.md</value>
   </data>
-  <data name="UrlRepo" xml:space="preserve">
+  <data name="U_Repo" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage</value>
   </data>
-  <data name="UrlWiki" xml:space="preserve">
+  <data name="U_Wiki" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/wiki</value>
   </data>
   <data name="K_Engines" xml:space="preserve">
@@ -166,16 +166,22 @@
     <value>priority-engines</value>
     <comment>Config key: priority engines</comment>
   </data>
-  <data name="S_Filter" xml:space="preserve">
+  <data name="D_Filter" xml:space="preserve">
     <value>Filtering</value>
     <comment>Status: filtering</comment>
   </data>
-  <data name="S_PE" xml:space="preserve">
-    <value>PE</value>
+  <data name="D_PE" xml:space="preserve">
+    <value>Priority engines</value>
     <comment>Status: priority engines</comment>
   </data>
-  <data name="S_SE" xml:space="preserve">
-    <value>SE</value>
+  <data name="D_SE" xml:space="preserve">
+    <value>Search engines</value>
     <comment>Status: search engines</comment>
+  </data>
+  <data name="D_N" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="D_NI" xml:space="preserve">
+    <value>Notification image</value>
   </data>
 </root>

@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
+using Kantan.Net;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
 
@@ -40,13 +42,14 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		var request = new HttpRequestMessage()
 		{
-			RequestUri = uri
+			RequestUri = uri,
 		};
+
+		request.Headers.Add("User-Agent", HttpUtilities.UserAgent);
 
 		var client = new HttpClient();
 
 		var response = client.Send(request);
-
 
 		/*
 		 * URL parameters
@@ -83,9 +86,9 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		var client = new HttpClient();
 
 		var message = new HttpRequestMessage(HttpMethod.Get, rawUri);
-
+		message.Headers.Add("User-Agent", HttpUtilities.UserAgent);
 		var response = client.Send(message);
-
+		
 		var task = response.Content.ReadAsStringAsync();
 
 		task.Wait(Timeout);

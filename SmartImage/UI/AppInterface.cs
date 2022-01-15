@@ -124,7 +124,7 @@ internal static partial class AppInterface
 			Name = "Help",
 			Function = () =>
 			{
-				WebUtilities.OpenUrl(Resources.UrlWiki);
+				WebUtilities.OpenUrl(Resources.U_Wiki);
 
 				return null;
 			}

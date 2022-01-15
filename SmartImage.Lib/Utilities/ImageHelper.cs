@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Dom;
@@ -63,12 +64,12 @@ public static class ImageHelper
 
 	public static List<BinaryResource> ScanForBinaryImages(string url, int ms)
 	{
-		return BinaryResourceSniffer.Scan(url, ImageFilter, ms);
+		return BinaryResourceSniffer.Scan(url, BinaryResourceSniffer.ImageFilter, ms);
 	}
 
 	public static bool IsBinaryImage(string url, out BinaryResource b, int ms = -1)
 	{
-		return BinaryResourceSniffer.IsBinaryResource(url, ImageFilter, bu: out b, timeout: ms);
+		return BinaryResourceSniffer.IsBinaryResource(url, BinaryResourceSniffer.ImageFilter, out b, ms);
 	}
 
 	[CanBeNull]
@@ -90,7 +91,6 @@ public static class ImageHelper
 		}
 	}
 
-	private static readonly BinaryImageFilter ImageFilter = new();
 
 	public static Bitmap ResizeImage(Bitmap mg, Size newSize)
 	{
