@@ -27,8 +27,7 @@ public sealed class Ascii2DEngine : WebClientSearchEngine
 	public override TimeSpan Timeout => TimeSpan.FromSeconds(5);
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
-
-	public override string Name => EngineOption.ToString();
+	
 
 	/// <inheritdoc />
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;

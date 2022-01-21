@@ -14,7 +14,6 @@
 #nullable disable
 
 global using static Kantan.Diagnostics.LogCategories;
-
 using System.Buffers;
 using System.Configuration;
 using System.Diagnostics;
@@ -156,7 +155,13 @@ public static partial class Program
 		 */
 
 #if TEST
-		args = new[] { "", @"C:\Users\Deci\Pictures\Test Images\Test1.jpg" };
+		args = new[]
+		{
+		
+			"",
+			@"https://i.imgur.com/QtCausw.png"
+			// @"C:\Users\Deci\Pictures\Test Images\Test1.jpg"
+		};
 
 		Debug.WriteLine($"Configuration: TEST", C_INFO);
 #endif
@@ -345,6 +350,8 @@ public static partial class Program
 		var sp = new SoundPlayer(Resources.hint);
 		sp.Play();
 		sp.Dispose();
+
+		GetStatus();
 	}
 
 	private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
@@ -367,6 +374,11 @@ public static partial class Program
 			option.Function();
 		}
 
+		GetStatus();
+	}
+
+	private static void GetStatus()
+	{
 		var map = new Dictionary<string, string>
 		{
 			["Results"] = Client.Results.Count.ToString(),
@@ -484,4 +496,3 @@ public static partial class Program
 		}
 	};
 }
-

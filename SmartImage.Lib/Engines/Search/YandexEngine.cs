@@ -21,8 +21,7 @@ public sealed class YandexEngine : WebClientSearchEngine
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
-
-	public override string Name => EngineOption.ToString();
+	
 
 	public override TimeSpan Timeout => TimeSpan.FromSeconds(6.5);
 

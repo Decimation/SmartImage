@@ -5,21 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 using SmartImage.Lib.Searching;
 
-namespace SmartImage.Lib.Engines.Search.Base
+namespace SmartImage.Lib.Engines.Search.Base;
+
+public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 {
-	public abstract class WebDriverSearchEngine : ProcessedSearchEngine
-	{
-		protected WebDriverSearchEngine(string baseUrl) : base(baseUrl) { }
-		
+	protected WebDriverSearchEngine(string baseUrl) : base(baseUrl) { }
 
-		public abstract override SearchEngineOptions EngineOption { get; }
+	public abstract override SearchEngineOptions EngineOption { get; }
+	
+	public abstract override EngineSearchType SearchType { get; }
 
-		public abstract override string Name { get; }
-
-		
-		public abstract override EngineSearchType SearchType { get; }
-
-		protected abstract Task<List<ImageResult>> Browse(ImageQuery sd, SearchResult r);
-
-	}
+	protected abstract Task<List<ImageResult>> Browse(ImageQuery sd, SearchResult r);
 }

@@ -18,8 +18,7 @@ public sealed class TidderEngine : WebClientSearchEngine
 	public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Tidder;
-
-	public override string Name => EngineOption.ToString();
+	
 
 	public override EngineSearchType SearchType => EngineSearchType.External | EngineSearchType.Metadata;
 

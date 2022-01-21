@@ -32,6 +32,7 @@ public abstract class BaseSearchEngine
 	protected bool FollowRedirects { get; set; } = true;
 
 	public abstract EngineSearchType SearchType { get; }
+	
 
 
 	public virtual SearchResult GetResult(ImageQuery query, CancellationToken? c = null)

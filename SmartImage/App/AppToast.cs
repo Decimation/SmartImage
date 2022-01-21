@@ -39,7 +39,6 @@ internal static class AppToast
 			builder.AddText($"Engine: {result.Engine}");
 		}
 
-
 		button.SetContent("Open")
 		      .AddArgument(ARG_KEY_ACTION, $"{url}");
 
@@ -49,58 +48,59 @@ internal static class AppToast
 		       .AddText($"Results: {Program.Client.Results.Count}");
 
 		if (Program.Config.NotificationImage) {
+			AddNotificationImage(builder);
+		}
 
-			Task.WaitAny(Program.Client.ContinueTasks.ToArray());
+		show_toast:
+		builder.SetBackgroundActivation();
+		builder.Show();
+	}
 
-			// var w = Program.Client.DirectResultsWaitHandle;
-			// w.WaitOne();
-			// w.Dispose();
+	private static void AddNotificationImage(ToastContentBuilder builder)
+	{
+		Task.WaitAny(Program.Client.ContinueTasks.ToArray());
 
-			var directResults = Program.Client.DirectResults;
+		// var w = Program.Client.DirectResultsWaitHandle;
+		// w.WaitOne();
+		// w.Dispose();
 
+		var directResults = Program.Client.DirectResults;
 
-			if (!directResults.Any()) {
-				goto ShowToast;
-			}
+		if (!directResults.Any()) {
+			return;
+		}
 
-			var directImage = directResults.OrderByDescending(x => x.PixelResolution)
-			                               .First();
+		var directImage = directResults.OrderByDescending(x => x.PixelResolution)
+		                               .First();
 
-			var path = Path.GetTempPath();
+		var path = Path.GetTempPath();
 
-			string file = ImageHelper.Download(directImage.DirectImage.Url, path);
+		string file = ImageHelper.Download(directImage.DirectImage.Url, path);
 
-			if (file == null) {
-				int i = 0;
+		if (file == null) {
+			int i = 0;
 
-				do {
-					file = ImageHelper.Download(directResults[i++].DirectImage.Url, path);
+			do {
+				file = ImageHelper.Download(directResults[i++].DirectImage.Url, path);
 
-				} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
-				
-			}
-
-			/**/
-
-			if (file != null) {
-				// NOTE: The file size limit doesn't seem to actually matter...
-
-				Debug.WriteLine($"{nameof(AppToast)}: Downloaded {file}", C_INFO);
-
-				builder.AddHeroImage(new Uri(file));
-
-				AppDomain.CurrentDomain.ProcessExit += (_, _) =>
-				{
-					File.Delete(file);
-				};
-			}
-
+			} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 
 		}
 
-		ShowToast:
-		builder.SetBackgroundActivation();
-		builder.Show();
+		/**/
+
+		if (file != null) {
+			// NOTE: The file size limit doesn't seem to actually matter...
+
+			Debug.WriteLine($"{nameof(AppToast)}: Downloaded {file}", C_INFO);
+
+			builder.AddHeroImage(new Uri(file));
+
+			AppDomain.CurrentDomain.ProcessExit += (_, _) =>
+			{
+				File.Delete(file);
+			};
+		}
 	}
 
 	internal static void OnToastActivated(ToastNotificationActivatedEventArgsCompat compat)

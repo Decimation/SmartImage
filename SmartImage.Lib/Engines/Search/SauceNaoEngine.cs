@@ -43,8 +43,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	private const string BASIC_RESULT = $"{BASE_ENDPOINT}?url=";
 
 	
-
-	public override string Name => EngineOption.ToString();
+	
 
 	/*
 	 * Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53

@@ -13,30 +13,26 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 
 	public abstract override SearchEngineOptions EngineOption { get; }
 
-	public abstract override string Name { get; }
-
 	public abstract override EngineSearchType SearchType { get; }
 
 	public sealed override SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
 	{
-		var sr = base.GetResult(query);
+		var sr = base.GetResult(query, c);
 
 		if (sr.Origin.Response?.StatusCode == HttpStatusCode.TooManyRequests) {
 			sr.Status = ResultStatus.Cooldown;
 			goto ret;
 		}
 
-
 		if (!sr.IsSuccessful) {
 			// sr.Origin.Dispose();
 			goto ret;
 		}
 
-
 		try {
 
 			// object obj = ParseContent(sr.Origin);
-			var obj = GetProcessObj(sr);
+			var obj = GetProcessingObject(sr);
 			sr = Process(obj, sr);
 
 			if (obj is IDisposable d) {
@@ -58,7 +54,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 		return sr;
 	}
 
-	protected abstract object GetProcessObj(SearchResult r);
+	protected abstract object GetProcessingObject(SearchResult r);
 
 	/// <summary>
 	/// Processes engine results

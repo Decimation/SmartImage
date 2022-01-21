@@ -42,6 +42,8 @@ public sealed class ImageResult : IResult
 	[MaybeNull]
 	public Uri Url { get; set; }
 
+	public List<Uri> OtherUrl { get; set; }
+
 	/// <summary>
 	/// Similarity
 	/// </summary>
@@ -184,8 +186,8 @@ public sealed class ImageResult : IResult
 
 	public ImageResult(SearchResult root)
 	{
-		Root = root;
-
+		Root          = root;
+		OtherUrl      = new();
 		OtherMetadata = new Dictionary<string, object>();
 	}
 
@@ -213,6 +215,7 @@ public sealed class ImageResult : IResult
 		Site         = result.Site;
 		Description  = result.Description;
 		Date         = result.Date;
+		OtherUrl     = result.OtherUrl;
 
 	}
 
@@ -235,25 +238,40 @@ public sealed class ImageResult : IResult
 
 		if (ImageHelper.IsBinaryImage(url, out var br, ms)) {
 			DirectImages.Add(br);
+			return true;
 		}
 		else {
 			br.Dispose();
 		}
 
-
-		if (DirectImage is { Url: { } } || ImageHelper.IsBinaryImage(url, out var di1, ms)) {
+		/*if (DirectImage is { Url: { } } || ImageHelper.IsBinaryImage(url, out var di1, ms)) {
 			return true;
+		}*/
+		
+		if (OtherUrl.Any()) {
+			var plr = Parallel.For(0, OtherUrl.Count, (i, s) =>
+			{
+				if (ImageHelper.IsBinaryImage(OtherUrl[i].ToString(), out br, ms)) {
+					DirectImages.Add(br);
+				}
+			});
+
+		}
+
+		if (DirectImages.Any()) {
+			return true;
+
 		}
 
 		try {
 
-			var directImages = ImageHelper.ScanForBinaryImages(Url.ToString(), ms)
+			var directImages = ImageHelper.ScanForBinaryImages(url, ms)
 			                              .Where(x => x is { Url: { } })
 			                              .ToList();
-			
+
 
 			if (directImages.Any()) {
-				Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
+				// Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
 
 
 				DirectImages.AddRange(directImages);
@@ -264,6 +282,7 @@ public sealed class ImageResult : IResult
 		catch {
 			//
 		}
+
 
 		return false;
 	}

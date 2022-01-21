@@ -11,12 +11,10 @@ public abstract class WebClientSearchEngine : ProcessedSearchEngine
 	protected WebClientSearchEngine(string baseUrl) : base(baseUrl) { }
 
 	public abstract override SearchEngineOptions EngineOption { get; }
-
-	public abstract override string Name { get; }
-
+	
 	public abstract override EngineSearchType SearchType { get; }
 
-	protected override object GetProcessObj(SearchResult r)
+	protected override object GetProcessingObject(SearchResult r)
 	{
 		return ParseContent(r.Origin);
 	}

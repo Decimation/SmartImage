@@ -1,5 +1,4 @@
 ﻿global using static Kantan.Diagnostics.LogCategories;
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -46,7 +45,7 @@ public sealed class SearchClient : IDisposable
 		DirectResultsWaitHandle = new AutoResetEvent(false);
 
 		Reload();
-		
+
 	}
 
 	/// <summary>
@@ -168,6 +167,7 @@ public sealed class SearchClient : IDisposable
 
 			var task = finished.ContinueWith(GetResultContinueCallback, null, cts.Value,
 			                                 0, TaskScheduler.Default);
+
 			ContinueTasks.Add(task);
 
 			SearchResult value = await finished;
@@ -253,7 +253,7 @@ public sealed class SearchClient : IDisposable
 
 		}
 
-		if (!DirectResultsWaitHandle.SafeWaitHandle.IsInvalid||!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
+		if (!DirectResultsWaitHandle.SafeWaitHandle.IsInvalid || !DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
 			((AutoResetEvent) DirectResultsWaitHandle).Set();
 		}
 	}
@@ -266,7 +266,7 @@ public sealed class SearchClient : IDisposable
 		if (!value.IsSuccessful || !value.IsNonPrimitive || value.Scanned) {
 			return;
 		}
-		
+
 		var result = value.GetBinaryImageResults();
 
 		if (result.Any()) {
@@ -274,8 +274,8 @@ public sealed class SearchClient : IDisposable
 			DirectResults.AddRange(result);
 
 			value.Scanned = true;
-			var autoResetEvent = ((AutoResetEvent)DirectResultsWaitHandle);
-			
+			var autoResetEvent = ((AutoResetEvent) DirectResultsWaitHandle);
+
 			if (DirectResults.Count > 0 /*||
 			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed*/ /*|| ContinueTasks.Count==1*/) {
 

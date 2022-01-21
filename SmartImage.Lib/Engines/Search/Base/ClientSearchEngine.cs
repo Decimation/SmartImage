@@ -14,15 +14,14 @@ public abstract class ClientSearchEngine : ProcessedSearchEngine
 	}
 
 	public abstract override SearchEngineOptions EngineOption { get; }
-
-	public abstract override string Name { get; }
+	
 
 	public abstract override EngineSearchType SearchType { get; }
 
 	protected string EndpointUrl { get; }
 
 
-	protected override object GetProcessObj(SearchResult r)
+	protected override object GetProcessingObject(SearchResult r)
 	{
 		return r.Origin.Query;
 	}

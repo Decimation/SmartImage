@@ -22,8 +22,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 	public IqdbEngine() : base("https://iqdb.org/?url=", "https://iqdb.org/") { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
-
-	public override string Name => "IQDB";
+	
 
 	public override TimeSpan Timeout => TimeSpan.FromSeconds(4.5);
 
