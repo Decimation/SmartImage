@@ -158,7 +158,7 @@ public class SearchResult : IResult
 			var b = allResult.ScanForBinaryImages(Timeout);
 
 			if (b && !directResults.Contains(allResult)) {
-				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}", C_INFO);
+				// Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}", C_VERBOSE);
 
 				directResults.Add(allResult);
 

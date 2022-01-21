@@ -20,7 +20,7 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class Ascii2DEngine : WebSearchEngine
+public sealed class Ascii2DEngine : WebClientSearchEngine
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
 

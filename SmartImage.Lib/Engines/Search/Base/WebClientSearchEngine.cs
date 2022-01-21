@@ -6,9 +6,9 @@ namespace SmartImage.Lib.Engines.Search.Base;
 /// <summary>
 ///     Represents a search engine whose results are from HTML.
 /// </summary>
-public abstract class WebSearchEngine : ProcessedSearchEngine
+public abstract class WebClientSearchEngine : ProcessedSearchEngine
 {
-	protected WebSearchEngine(string baseUrl) : base(baseUrl) { }
+	protected WebClientSearchEngine(string baseUrl) : base(baseUrl) { }
 
 	public abstract override SearchEngineOptions EngineOption { get; }
 
@@ -16,7 +16,12 @@ public abstract class WebSearchEngine : ProcessedSearchEngine
 
 	public abstract override EngineSearchType SearchType { get; }
 
-	protected override object ParseContent(SearchResultOrigin s)
+	protected override object GetProcessObj(SearchResult r)
+	{
+		return ParseContent(r.Origin);
+	}
+
+	protected virtual object ParseContent(SearchResultOrigin s)
 	{
 		var parser = new HtmlParser();
 

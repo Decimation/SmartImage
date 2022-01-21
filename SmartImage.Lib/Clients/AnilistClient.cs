@@ -34,7 +34,7 @@ public sealed class AnilistClient
 				}
 			}";
 
-
+		
 		var response = (JObject) m_client.Execute(GRAPH_QUERY, new
 		{
 			query = GRAPH_QUERY,

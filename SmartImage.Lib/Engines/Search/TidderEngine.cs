@@ -13,7 +13,7 @@ using SmartImage.Lib.Searching;
 #nullable enable
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class TidderEngine : WebSearchEngine
+public sealed class TidderEngine : WebClientSearchEngine
 {
 	public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 

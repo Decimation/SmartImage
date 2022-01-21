@@ -27,6 +27,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 	public override TimeSpan Timeout => TimeSpan.FromSeconds(4.5);
 
+
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
 	private static ImageResult ParseResult(IHtmlCollection<IElement> tr, SearchResult r)

@@ -28,6 +28,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 	/// Used to retrieve more information about results
 	/// </summary>
 	private readonly AnilistClient m_anilistClient = new();
+	
 
 	public override string Name => "trace.moe";
 

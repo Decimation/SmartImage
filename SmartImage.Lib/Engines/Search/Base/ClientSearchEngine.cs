@@ -20,10 +20,11 @@ public abstract class ClientSearchEngine : ProcessedSearchEngine
 	public abstract override EngineSearchType SearchType { get; }
 
 	protected string EndpointUrl { get; }
-	
 
-	protected override object ParseContent(SearchResultOrigin s)
+
+	protected override object GetProcessObj(SearchResult r)
 	{
-		return s.Query;
+		return r.Origin.Query;
 	}
+
 }

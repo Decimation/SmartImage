@@ -16,7 +16,7 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class YandexEngine : WebSearchEngine
+public sealed class YandexEngine : WebClientSearchEngine
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
