@@ -50,6 +50,8 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 		await using Page page = await browser.NewPageAsync();
 
 		await page.GoToAsync(BaseUrl + sd.UploadUri);
+		// await page.ScreenshotAsync(@"C:\Users\Deci\Downloads\a.png");
+		await page.WaitForNavigationAsync();
 
 		var rd = page.Url;
 		Debug.WriteLine($"{rd}");
@@ -95,13 +97,8 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 					}
 				}
 
-				if (uri.Any()) {
-					ir.Url = uri[0];
-
-					if (uri.Count >= 2) {
-						ir.OtherUrl.AddRange(uri.Skip(1));
-					}
-				}
+				ir.OtherUrl.AddRange(uri);
+				
 
 				var imgElems  = await t1.QuerySelectorAllAsync("img");
 				var imgList = new List<Uri>();
@@ -113,6 +110,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 				}
 				
 				ir.OtherUrl.AddRange(imgList);
+				ir.Url = ir.OtherUrl.FirstOrDefault();
 
 				/*var union = imgList.Union(uri).ToArray();
 
