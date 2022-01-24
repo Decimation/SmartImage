@@ -219,9 +219,9 @@ public sealed class ImageResult : IResult
 
 	}
 
-	public List<BinaryResource> DirectImages { get; internal set; } = new() { };
+	public List<MediaResource> DirectImages { get; internal set; } = new() { };
 
-	public BinaryResource DirectImage
+	public MediaResource DirectImage
 	{
 		get => DirectImages.FirstOrDefault();
 		set => DirectImages[0] = value;
@@ -248,7 +248,7 @@ public sealed class ImageResult : IResult
 			return true;
 		}*/
 		
-		if (OtherUrl.Any()) {
+		/*if (OtherUrl.Any()) {
 			var plr = Parallel.For(0, OtherUrl.Count, (i, s) =>
 			{
 				if (ImageHelper.IsBinaryImage(OtherUrl[i].ToString(), out br, ms)) {
@@ -256,7 +256,7 @@ public sealed class ImageResult : IResult
 				}
 			});
 
-		}
+		}*/
 
 		if (DirectImages.Any()) {
 			return true;
@@ -338,7 +338,7 @@ public sealed class ImageResult : IResult
 
 	public void Dispose()
 	{
-		foreach (BinaryResource t in DirectImages) {
+		foreach (MediaResource t in DirectImages) {
 			t.Dispose();
 		}
 	}

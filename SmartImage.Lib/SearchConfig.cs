@@ -15,7 +15,7 @@ namespace SmartImage.Lib;
 /// Contains configuration for <see cref="SearchClient"/>
 /// </summary>
 /// <remarks>Search config is only applicable when used in <see cref="SearchClient"/></remarks>
-public sealed class SearchConfig : ConfigurationSection
+public sealed class SearchConfig /*: ConfigurationSection*/
 {
 	/// <summary>
 	/// Search query

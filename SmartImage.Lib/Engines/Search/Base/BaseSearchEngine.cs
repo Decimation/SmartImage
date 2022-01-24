@@ -41,6 +41,7 @@ public abstract class BaseSearchEngine
 		{
 			Origin = GetResultOrigin(query)
 		};
+
 		c ??= CancellationToken.None;
 
 		if (c is { IsCancellationRequested: true }) {
@@ -63,6 +64,7 @@ public abstract class BaseSearchEngine
 
 	public async Task<SearchResult> GetResultAsync(ImageQuery query, CancellationToken? c = null)
 	{
+		c??= CancellationToken.None;
 
 		var task = Task.Run(delegate
 		{
@@ -73,7 +75,7 @@ public abstract class BaseSearchEngine
 			Debug.WriteLine($"{Name}: result done", C_SUCCESS);
 
 			return res;
-		}, c ?? CancellationToken.None);
+		}, c.Value);
 
 		return await task;
 	}
@@ -91,7 +93,7 @@ public abstract class BaseSearchEngine
 
 		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(),
 		                                        (int) Timeout.TotalMilliseconds,
-		                                        HttpMethod.Get, FollowRedirects);
+		                                        HttpMethod.Get, FollowRedirects, token: c);
 
 
 		bool success;
@@ -115,16 +117,15 @@ public abstract class BaseSearchEngine
 		string content = null;
 
 		if (success && res is { }) {
-			var task = res.Content.ReadAsStringAsync();
-
-			task.Wait(Timeout);
-			content = task.Result;
+			// var task = res.Content.ReadAsStringAsync();
+			// task.Wait(Timeout);
+			// content = task.Result;
 		}
 
 		var origin = new SearchResultOrigin
 		{
 			Response = res,
-			Content  = content,
+			// Content  = content,
 			Success  = success,
 			RawUri   = rawUri,
 			Query    = query

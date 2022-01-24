@@ -24,7 +24,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 			goto ret;
 		}
 
-		if (!sr.IsSuccessful) {
+		if (!sr.IsStatusSuccessful) {
 			// sr.Origin.Dispose();
 			goto ret;
 		}

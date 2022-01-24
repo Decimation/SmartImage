@@ -50,7 +50,7 @@ public static class AppInfo
 		{
 			var module = Process.GetCurrentProcess().MainModule;
 
-			Guard.AssertNotNull(module);
+			Require.NotNull(module);
 
 			return module.FileName;
 		}

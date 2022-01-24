@@ -57,7 +57,7 @@ public static class Program
 	public static void OnResult(object _, ResultCompletedEventArgs e)
 	{
 
-		if (e.Result.IsSuccessful) {
+		if (e.Result.IsStatusSuccessful) {
 			Console.WriteLine(e.Result);
 		}
 	}
@@ -65,7 +65,7 @@ public static class Program
 	static async Task test5()
 	{
 		var b = ImageHelper.IsBinaryImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
-		                            out var di);
+		                            out var di,-1);
 
 		Console.WriteLine(b);
 
@@ -77,7 +77,7 @@ public static class Program
 	{
 		var task =  ImageHelper.ScanForBinaryImages("http://www.zerochan.net/2750747",-1);
 
-		foreach (BinaryResource v in task) {
+		foreach (MediaResource v in task) {
 			Console.WriteLine(v);
 		}
 
@@ -184,7 +184,7 @@ public static class Program
 	static void test1()
 	{
 		Console.WriteLine(ImageHelper.IsBinaryImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
-		                                      out var di));
+		                                      out var di,-1));
 
 		Debugger.Break();
 		var wc    = new WebClient();

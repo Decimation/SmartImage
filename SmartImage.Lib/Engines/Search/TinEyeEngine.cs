@@ -3,18 +3,23 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Kantan.Net;
 using PuppeteerExtraSharp;
 using PuppeteerExtraSharp.Plugins.ExtraStealth;
 using PuppeteerSharp;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
 public static class WebDriverExtensions
 {
 	public static string ToValueString(this JSHandle h)
-		=> h.ToString().Replace("jshandle:", string.Empty, StringComparison.InvariantCultureIgnoreCase);
+	{
+		// return h.JsonValueAsync().GetAwaiter().GetResult().ToString();
+		return h.ToString().Replace("jshandle:", string.Empty, StringComparison.InvariantCultureIgnoreCase);
+	}
 }
 
 public sealed class TinEyeEngine : WebDriverSearchEngine
@@ -75,8 +80,8 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 			var ir = new ImageResult(r) { };
 
-			var p    = await elem.QuerySelectorAllAsync("p");
-			var h4   = await elem.QuerySelectorAsync("h4");
+			var p  = await elem.QuerySelectorAllAsync("p");
+			var h4 = await elem.QuerySelectorAsync("h4");
 
 			var name = await h4.GetPropertyAsync("textContent");
 
@@ -87,25 +92,32 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 				var uri = new List<Uri>();
 
+				// a=a.Distinct().ToArray();
+
 				foreach (ElementHandle t in a) {
 					var href = await t.GetPropertyAsync("href");
 
 					string s = href.ToValueString();
-					Debug.WriteLine($"{s} | {await href.JsonValueAsync()}");
+
 					if (!string.IsNullOrWhiteSpace(s)) {
-						uri.Add(new Uri(s));
+						var item = new Uri(s);
+						// item = item.Normalize();
+
+						if (!uri.Contains(item)) {
+							uri.Add(item);
+						}
 					}
 				}
 
 				ir.OtherUrl.AddRange(uri);
 				
 
-				var imgElems  = await t1.QuerySelectorAllAsync("img");
-				var imgList = new List<Uri>();
+				var imgElems = await t1.QuerySelectorAllAsync("img");
+				var imgList  = new List<Uri>();
 
 				for (int k = 0; k < imgElems.Length; k++) {
 					var src = await a[k].GetPropertyAsync("src");
-					
+
 					imgList.Add(new Uri(src.ToValueString()));
 				}
 				
@@ -126,7 +138,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 			img.Add(ir);
 		}
-		
+
 		return img;
 	}
 
@@ -134,7 +146,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 	protected override SearchResult Process(object obj, SearchResult sr)
 	{
 		var query = (ImageQuery) obj;
-		
+
 		// var vr = base.GetResult(query);
 
 		var task = Browse(query, sr);

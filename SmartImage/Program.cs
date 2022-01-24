@@ -157,9 +157,10 @@ public static partial class Program
 #if TEST
 		args = new[]
 		{
-		
+
 			"",
-			@"https://i.imgur.com/QtCausw.png"
+			@"https://litter.catbox.moe/zxvtym.jpg"
+			// @"https://i.imgur.com/QtCausw.png"
 			// @"C:\Users\Deci\Pictures\Test Images\Test1.jpg"
 		};
 
@@ -221,9 +222,9 @@ public static partial class Program
 
 		// Run search
 
-		Client.ResultCompleted       += OnResultCompleted;
-		Client.SearchCompleted       += OnSearchCompleted;
-		Client.DirectResultCompleted += OnDirectResultCompleted;
+		Client.ResultCompleted   += OnResultCompleted;
+		Client.SearchCompleted   += OnSearchCompleted;
+		Client.ContinueCompleted += OnContinueCompleted;
 
 		Console.CancelKeyPress += OnCancel;
 
@@ -321,7 +322,7 @@ public static partial class Program
 		SystemSounds.Hand.Play();
 	}
 
-	private static void OnDirectResultCompleted(object sender, EventArgs result)
+	private static void OnContinueCompleted(object sender, EventArgs result)
 	{
 		ResultDialog.Refresh();
 	}

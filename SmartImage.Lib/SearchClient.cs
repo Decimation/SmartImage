@@ -42,7 +42,7 @@ public sealed class SearchClient : IDisposable
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
 
-		DirectResultsWaitHandle = new AutoResetEvent(false);
+		DirectResultsWaitHandle = new();
 
 		Reload();
 
@@ -90,7 +90,7 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	/// Number of pending results
 	/// </summary>
-	public int PendingCount { get; private set; }
+	public int PendingCount => Tasks.Count;
 
 	public int CompleteCount => AllResults.Count;
 
@@ -100,7 +100,7 @@ public sealed class SearchClient : IDisposable
 
 	public List<Task> ContinueTasks { get; }
 
-	public WaitHandle DirectResultsWaitHandle { get; private set; }
+	public TaskCompletionSource DirectResultsWaitHandle { get; private set; }
 
 
 	/// <summary>
@@ -130,13 +130,12 @@ public sealed class SearchClient : IDisposable
 		FilteredResults.Clear();
 		DetailedResults.Clear();
 		ContinueTasks.Clear();
-		PendingCount = 0;
+
 
 		IsComplete         = false;
 		IsContinueComplete = false;
 
-		DirectResultsWaitHandle = new AutoResetEvent(false);
-
+		DirectResultsWaitHandle = new();
 		Reload();
 	}
 
@@ -159,8 +158,6 @@ public sealed class SearchClient : IDisposable
 			return task;
 		}));
 
-		PendingCount = Tasks.Count;
-
 
 		while (!IsComplete && !cts.Value.IsCancellationRequested) {
 			var finished = await Task.WhenAny(Tasks);
@@ -170,10 +167,9 @@ public sealed class SearchClient : IDisposable
 
 			ContinueTasks.Add(task);
 
-			SearchResult value = await finished;
+			SearchResult value = finished.Result;
 
 			Tasks.Remove(finished);
-			PendingCount = Tasks.Count;
 
 			bool? isFiltered;
 			bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
@@ -194,6 +190,7 @@ public sealed class SearchClient : IDisposable
 
 				if (value.IsNonPrimitive) {
 					Results.Add(value);
+					DetailedResults.Add(value.PrimaryResult);
 					isFiltered = false;
 				}
 				else {
@@ -204,11 +201,6 @@ public sealed class SearchClient : IDisposable
 			else {
 				Results.Add(value);
 				isFiltered = null;
-			}
-
-
-			if (DetailPredicate(value)) {
-				DetailedResults.Add(value.PrimaryResult);
 			}
 
 			//
@@ -229,7 +221,7 @@ public sealed class SearchClient : IDisposable
 
 		/* 2nd pass */
 
-		DetailedResults.AddRange(ApplyPredicateFilter(Results, DetailPredicate));
+		// DetailedResults.AddRange(ApplyPredicateFilter(Results, v => v.IsNonPrimitive));
 
 		var args = new SearchCompletedEventArgs { };
 
@@ -253,9 +245,6 @@ public sealed class SearchClient : IDisposable
 
 		}
 
-		if (!DirectResultsWaitHandle.SafeWaitHandle.IsInvalid || !DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
-			((AutoResetEvent) DirectResultsWaitHandle).Set();
-		}
 	}
 
 
@@ -263,7 +252,7 @@ public sealed class SearchClient : IDisposable
 	{
 		var value = task.Result;
 
-		if (!value.IsSuccessful || !value.IsNonPrimitive || value.Scanned) {
+		if (!value.IsStatusSuccessful || !value.IsNonPrimitive || value.Scanned) {
 			return;
 		}
 
@@ -274,20 +263,19 @@ public sealed class SearchClient : IDisposable
 			DirectResults.AddRange(result);
 
 			value.Scanned = true;
-			var autoResetEvent = ((AutoResetEvent) DirectResultsWaitHandle);
 
 			if (DirectResults.Count > 0 /*||
 			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed*/ /*|| ContinueTasks.Count==1*/) {
 
-				if (!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
+				if (DirectResultsWaitHandle.TrySetResult()) {
 					Debug.WriteLine("wait handle set");
-					autoResetEvent.Set();
+
 
 				}
 
 			}
 
-			DirectResultCompleted?.Invoke(null, EventArgs.Empty);
+			ContinueCompleted?.Invoke(null, EventArgs.Empty);
 
 			// if (result.Any()) { }
 
@@ -345,7 +333,7 @@ public sealed class SearchClient : IDisposable
 
 		var res = Results.OrderByDescending(property).ToList();
 
-		res.RemoveAll(r => !DetailPredicate(r));
+		res.RemoveAll(r => !r.IsNonPrimitive);
 
 		return res;
 	}
@@ -367,9 +355,9 @@ public sealed class SearchClient : IDisposable
 	}
 
 	/// <summary>
-	/// Fires when a result has been updated with new information
+	/// Fires when <see cref="GetResultContinueCallback"/> returns
 	/// </summary>
-	public event EventHandler DirectResultCompleted;
+	public event EventHandler ContinueCompleted;
 
 	/// <summary>
 	///     Fires when a result is returned (<see cref="RunSearchAsync" />).
@@ -382,24 +370,19 @@ public sealed class SearchClient : IDisposable
 	public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
 
-	private static readonly Predicate<SearchResult> DetailPredicate = r => r.IsNonPrimitive;
-
-	private static readonly SmartImageException SearchException = new("Search must be completed");
+	private static readonly SmartImageException SearchException = new("Search not complete");
 
 
 	public void Dispose()
 	{
-		foreach (ImageResult result in DirectResults) {
+		/*foreach (ImageResult result in DirectResults) {
 			result.Dispose();
-		}
+		}*/
 
 		foreach (SearchResult result in AllResults) {
 			result.Dispose();
 		}
 
-		if (!DirectResultsWaitHandle.SafeWaitHandle.IsClosed) {
-			DirectResultsWaitHandle.Dispose();
-		}
 	}
 }
 

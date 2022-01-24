@@ -63,14 +63,14 @@ public static class ImageHelper
 	 * https://github.com/regosen/gallery_get
 	 */
 
-	public static List<BinaryResource> ScanForBinaryImages(string url, int ms = TIMEOUT)
+	public static List<MediaResource> ScanForBinaryImages(string url, int ms)
 	{
-		return BinaryResourceSniffer.Scan(url, BinaryImageFilter.Default, ms);
+		return MediaSniffer.Scan(url, MediaImageFilter.Default, ms);
 	}
 
-	public static bool IsBinaryImage(string url, out BinaryResource b, int ms = TIMEOUT)
+	public static bool IsBinaryImage(string url, out MediaResource b, int ms)
 	{
-		return BinaryResource.FromUrl(url, BinaryImageFilter.Default, out b, ms);
+		return MediaResource.FromUrl(url, MediaImageFilter.Default, out b, ms);
 	}
 
 	[CanBeNull]

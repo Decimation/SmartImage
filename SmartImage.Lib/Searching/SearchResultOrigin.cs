@@ -15,8 +15,6 @@ public class SearchResultOrigin : IDisposable
 
 	public HttpResponseMessage Response { get; init; }
 
-	public string Content { get; init; }
-		
 	public TimeSpan Retrieval { get; init; }
 
 	public bool Success { get; init; }

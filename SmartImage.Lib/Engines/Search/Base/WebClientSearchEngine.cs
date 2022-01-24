@@ -21,9 +21,11 @@ public abstract class WebClientSearchEngine : ProcessedSearchEngine
 
 	protected virtual object ParseContent(SearchResultOrigin s)
 	{
-		var parser = new HtmlParser();
-
-		var document = parser.ParseDocument(s.Content);
+		var    parser            = new HtmlParser();
+		var async = s.Response.Content.ReadAsStringAsync();
+		async.Wait();
+		var content = async.Result;
+		var document = parser.ParseDocument((string) content);
 
 		return document;
 	}

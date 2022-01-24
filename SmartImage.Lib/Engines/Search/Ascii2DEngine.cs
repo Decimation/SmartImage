@@ -99,7 +99,6 @@ public sealed class Ascii2DEngine : WebClientSearchEngine
 		var stub = new SearchResultOrigin()
 		{
 			Response  = response,
-			Content   = content,
 			Retrieval = diff,
 			Success   = true,
 			RawUri    = rawUri

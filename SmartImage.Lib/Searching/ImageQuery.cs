@@ -100,7 +100,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
 	{
 		//todo
-		var isUriOrFile = (ImageHelper.IsBinaryImage(x, out var di), File.Exists(x));
+		var isUriOrFile = (ImageHelper.IsBinaryImage(x, out var di,-1), File.Exists(x));
 		// di?.Dispose();
 		return isUriOrFile;
 	}
@@ -109,7 +109,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	{
 
 
-		BinaryResource directImage = new()
+		MediaResource directImage = new()
 		{
 			// Stream = Stream,
 			Url = UploadUri

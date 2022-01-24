@@ -1,5 +1,4 @@
-﻿
-global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
+﻿global using ReflectionHelper = Novus.Utilities.ReflectionHelper;
 using ConsoleProgressIndicator = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 using JetBrains.Annotations;
 using SmartImage.Lib.Engines;
@@ -15,6 +14,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Kantan.Cli.Controls;
+using Kantan.Diagnostics;
 using Kantan.Model;
 using Kantan.Net;
 using Kantan.Text;
@@ -112,7 +112,7 @@ public class SearchResult : IResult
 
 	public SearchResultOrigin Origin { get; internal set; }
 
-	public bool IsSuccessful
+	public bool IsStatusSuccessful
 	{
 		get
 		{
@@ -147,7 +147,7 @@ public class SearchResult : IResult
 
 	public List<ImageResult> GetBinaryImageResults()
 	{
-		Debug.WriteLine($"searching within {Engine.Name}");
+		Debug.WriteLine($"{Engine.Name}: {nameof(GetBinaryImageResults)}", LogCategories.C_INFO);
 
 		var directResults = new List<ImageResult>();
 
@@ -158,7 +158,9 @@ public class SearchResult : IResult
 			var b = allResult.ScanForBinaryImages(Timeout);
 
 			if (b && !directResults.Contains(allResult)) {
-				Debug.WriteLine($"{nameof(SearchResult)}: Found direct result {allResult.DirectImage.Url}", C_VERBOSE);
+				Debug.WriteLine($"{Engine.Name}: Found direct result " +
+				                $"{allResult.DirectImages.Select(x => x.Url.ToString()).QuickJoin()}",
+				                C_VERBOSE);
 
 				directResults.Add(allResult);
 
@@ -177,7 +179,7 @@ public class SearchResult : IResult
 		foreach (ImageResult imageResult in AllResults) {
 			imageResult.Dispose();
 		}
-
+		
 		Origin.Dispose();
 		GC.SuppressFinalize(this);
 	}
@@ -204,7 +206,7 @@ public class SearchResult : IResult
 				map.Add("Error", ErrorMessage);
 			}
 
-			if (!IsSuccessful) {
+			if (!IsStatusSuccessful) {
 				map.Add("Status", Status);
 			}
 
@@ -218,22 +220,24 @@ public class SearchResult : IResult
 	{
 		//todo
 
-		const float factor = -.2f;
+		const float  factor = -.2f;
+		const string n      = "Other result";
+
+		int i = 0;
+
+		Uri uri = PrimaryResult is { Url: { } } ? PrimaryResult.Url : RawUri;
 
 		var option = new ConsoleOption
 		{
 
-			Functions = new()
+			Functions = new Dictionary<ConsoleModifiers, ConsoleOptionFunction>
 			{
-				[ConsoleOption.NC_FN_MAIN] = IResult.GetOpenFunction(
-					PrimaryResult is { Url: { } } ? PrimaryResult.Url : RawUri),
-
+				[ConsoleOption.NC_FN_MAIN]  = IResult.GetOpenFunction(uri),
 				[ConsoleOption.NC_FN_SHIFT] = IResult.GetOpenFunction(RawUri),
-
 			},
 
 			Name = Engine.Name,
-			Data = this.Data,
+			Data = Data,
 		};
 
 		option.Functions[ConsoleOption.NC_FN_ALT] = () =>
@@ -242,18 +246,14 @@ public class SearchResult : IResult
 				//todo
 
 
-				const string n = "Other result";
-
-				int i = 0;
-
 				var fallback = Color.AliceBlue;
 
 				var options = OtherResults
-				              .Select(r =>
+				              .Select(ir =>
 				              {
-					              var c = option.Color ?? fallback;
+					              Color c = option.Color ?? fallback;
 
-					              return r.GetConsoleOption($"{n} #{i++}", c.ChangeBrightness(factor));
+					              return ir.GetConsoleOption($"{n} #{i++}", c.ChangeBrightness(factor));
 				              })
 				              .ToArray();
 
@@ -279,7 +279,7 @@ public class SearchResult : IResult
 				ConsoleProgressIndicator.Instance.Start(cts);
 			}
 
-			_ = GetBinaryImageResults();
+			var bir = GetBinaryImageResults();
 
 			cts.Cancel();
 			cts.Dispose();

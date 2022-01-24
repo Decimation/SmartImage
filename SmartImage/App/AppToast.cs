@@ -58,6 +58,8 @@ internal static class AppToast
 
 	private static void AddNotificationImage(ToastContentBuilder builder)
 	{
+
+		
 		Task.WaitAny(Program.Client.ContinueTasks.ToArray());
 
 		// var w = Program.Client.DirectResultsWaitHandle;
