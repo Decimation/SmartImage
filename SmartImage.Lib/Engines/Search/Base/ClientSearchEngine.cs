@@ -9,21 +9,18 @@ public abstract class ClientSearchEngine : ProcessedSearchEngine
 {
 	protected ClientSearchEngine(string baseUrl, string endpointUrl) : base(baseUrl)
 	{
-		
 		EndpointUrl = endpointUrl;
 	}
 
 	public abstract override SearchEngineOptions EngineOption { get; }
 	
-
 	public abstract override EngineSearchType SearchType { get; }
 
 	protected string EndpointUrl { get; }
 
-
-	protected override object GetProcessingObject(SearchResult r)
+	protected override object GetProcessingObject(SearchResult sr)
 	{
-		return r.Origin.Query;
+		return sr.Origin.Query;
 	}
 
 }

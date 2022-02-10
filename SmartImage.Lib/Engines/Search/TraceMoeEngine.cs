@@ -5,6 +5,8 @@ using System.Linq;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using RestSharp.Serialization.Json;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
@@ -28,7 +30,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 	/// Used to retrieve more information about results
 	/// </summary>
 	private readonly AnilistClient m_anilistClient = new();
-	
+
 
 	public override string Name => "trace.moe";
 
@@ -56,7 +58,38 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			var task = request.GetStringAsync();
 
 			task.Wait(Timeout);
-			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(task.Result);
+			var result = task.Result;
+
+			/*JObject jo;
+
+			jo = JObject.Parse(result);
+			var token = jo["result"];
+
+			Debug.WriteLine(result);
+			var rg    = JsonConvert.DeserializeObject<List<TraceMoeDoc>>(token.ToString());
+
+			tm            = new();
+			tm.result     = rg.ToList();
+			tm.error      = jo["error"].ToString();
+			tm.frameCount = long.Parse(jo["frameCount"].ToString());*/
+
+
+			// tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(result);
+			
+			var settings = new JsonSerializerSettings
+			{
+				Error = (sender, args) =>
+				{
+					if (object.Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) &&
+					    args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeDoc))
+					{
+						args.ErrorContext.Handled = true;
+					}
+				}
+			};
+			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(result, settings);
+
+
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}");
@@ -166,6 +199,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 
 		/// <remarks>Episode field may contain multiple possible results delimited by <c>|</c></remarks>
+		[JsonIgnore]
 		public string episode { get; set; }
 
 		public double similarity { get; set; }
@@ -178,9 +212,11 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	private class TraceMoeRootObject
 	{
-		public long              frameCount { get; set; }
-		public string            error      { get; set; }
-		public List<TraceMoeDoc> result     { get; set; }
+		public long frameCount { get; set; }
+
+		public string error { get; set; }
+
+		public List<TraceMoeDoc> result { get; set; }
 	}
 
 	#endregion

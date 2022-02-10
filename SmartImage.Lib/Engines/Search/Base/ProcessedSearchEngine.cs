@@ -7,6 +7,9 @@ using static Kantan.Diagnostics.LogCategories;
 
 namespace SmartImage.Lib.Engines.Search.Base;
 
+/// <summary>
+/// Represents a search engine whose results require further processing.
+/// </summary>
 public abstract class ProcessedSearchEngine : BaseSearchEngine
 {
 	protected ProcessedSearchEngine(string baseUrl) : base(baseUrl) { }
@@ -54,7 +57,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 		return sr;
 	}
 
-	protected abstract object GetProcessingObject(SearchResult r);
+	protected abstract object GetProcessingObject(SearchResult sr);
 
 	/// <summary>
 	/// Processes engine results

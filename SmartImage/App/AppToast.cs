@@ -51,15 +51,12 @@ internal static class AppToast
 			AddNotificationImage(builder);
 		}
 
-		show_toast:
 		builder.SetBackgroundActivation();
 		builder.Show();
 	}
 
 	private static void AddNotificationImage(ToastContentBuilder builder)
 	{
-
-		
 		Task.WaitAny(Program.Client.ContinueTasks.ToArray());
 
 		// var w = Program.Client.DirectResultsWaitHandle;
@@ -77,13 +74,13 @@ internal static class AppToast
 
 		var path = Path.GetTempPath();
 
-		string file = ImageHelper.Download(directImage.DirectImage.Url, path);
+		string file = ImageMedia.Download(directImage.DirectImage.Url, path);
 
 		if (file == null) {
 			int i = 0;
 
 			do {
-				file = ImageHelper.Download(directResults[i++].DirectImage.Url, path);
+				file = ImageMedia.Download(directResults[i++].DirectImage.Url, path);
 
 			} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 

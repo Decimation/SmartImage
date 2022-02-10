@@ -53,9 +53,9 @@ public class Tests
 	{
 		var i = Image.FromFile(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
 		var (w, h) = (i.Width, i.Height);
-		Assert.AreEqual(ImageHelper.GetDisplayResolution(w, h), DisplayResolutionType.HD);
-		Assert.AreEqual(ImageHelper.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
-		Assert.AreEqual(ImageHelper.GetDisplayResolution(640, 360), DisplayResolutionType.nHD);
+		Assert.AreEqual(ImageManipulation.GetDisplayResolution(w, h), DisplayResolutionType.HD);
+		Assert.AreEqual(ImageManipulation.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
+		Assert.AreEqual(ImageManipulation.GetDisplayResolution(640, 360), DisplayResolutionType.nHD);
 	}
 
 	[Test]

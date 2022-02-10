@@ -137,6 +137,18 @@ public static partial class Program
 
 				ResultDialog.Refresh();
 			},
+			[ConsoleKey.F10] = () =>
+			{
+				if (KeepOnTop) {
+					Native.RemoveWindowOnTop(WindowHandle);
+				}
+				else {
+					Native.KeepWindowOnTop(WindowHandle);
+				}
+
+				KeepOnTop = !KeepOnTop;
+				PlaySound(Resources.ding);
+			}
 		}
 	};
 
@@ -159,12 +171,16 @@ public static partial class Program
 		{
 
 			"",
-			@"https://litter.catbox.moe/zxvtym.jpg"
+			// @"https://litter.catbox.moe/zxvtym.jpg"
 			// @"https://i.imgur.com/QtCausw.png"
+			
+			@"C:\Users\Deci\Downloads\maxresdefault.jpeg"
 			// @"C:\Users\Deci\Pictures\Test Images\Test1.jpg"
 		};
 
 		Debug.WriteLine($"Configuration: TEST", C_INFO);
+
+		Config.SearchEngines = SearchEngineOptions.TraceMoe;
 #endif
 
 		ResultDialog.AddDescription("Press the result number to open in browser", UI.Elements.ColorOther)
@@ -176,8 +192,12 @@ public static partial class Program
 		Console.OutputEncoding = Encoding.Unicode;
 		Console.Title          = $"{AppInfo.NAME}";
 
+		ConsoleManager.BufferLimit += 10;
+
 		ConsoleManager.Init();
 		Console.Clear();
+
+		WindowHandle = Native.GetConsoleWindow();
 
 
 		/*
@@ -199,7 +219,6 @@ public static partial class Program
 		if (!await HandleStartup(args))
 			return;
 
-		ConsoleManager.BufferLimit += 10;
 
 		ResultDialog.AddDescription(new Dictionary<string, string>
 		{
@@ -214,11 +233,6 @@ public static partial class Program
 			[Resources.D_N]  = UI.Elements.GetToggleString(Config.Notification),
 		}, UI.Elements.ColorKey2);
 
-
-		_ctsSearch    = new();
-		_ctsContinue  = new();
-		_ctsReadInput = new();
-		_ctsProgress  = new();
 
 		// Run search
 
@@ -256,6 +270,10 @@ public static partial class Program
 		_ = Console.ReadKey(true);
 
 	}
+
+	public static IntPtr WindowHandle { get; private set; }
+
+	public static bool KeepOnTop { get; private set; }
 
 	private static async Task<bool> HandleStartup(string[] args)
 	{
@@ -331,7 +349,7 @@ public static partial class Program
 	{
 		Debug.WriteLine("Search completed");
 
-		Native.FlashConsoleWindow();
+		Native.FlashWindow(WindowHandle);
 
 		// SystemSounds.Exclamation.Play();
 		_ctsProgress.Cancel();
@@ -348,11 +366,16 @@ public static partial class Program
 			AppToast.ShowToast(sender, eventArgs);
 		}
 
-		var sp = new SoundPlayer(Resources.hint);
-		sp.Play();
-		sp.Dispose();
+		PlaySound(Resources.hint);
 
 		GetStatus();
+	}
+
+	private static void PlaySound(Stream s)
+	{
+		var sp = new SoundPlayer(s);
+		sp.Play();
+		sp.Dispose();
 	}
 
 	private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
@@ -412,10 +435,10 @@ public static partial class Program
 
 	#region Other fields
 
-	private static CancellationTokenSource _ctsProgress;
-	private static CancellationTokenSource _ctsReadInput;
-	private static CancellationTokenSource _ctsContinue;
-	private static CancellationTokenSource _ctsSearch;
+	private static CancellationTokenSource _ctsProgress  = new();
+	private static CancellationTokenSource _ctsReadInput = new();
+	private static CancellationTokenSource _ctsContinue  = new();
+	private static CancellationTokenSource _ctsSearch    = new();
 
 	private static bool _isFilteredShown;
 

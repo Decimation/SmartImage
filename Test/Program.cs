@@ -64,8 +64,7 @@ public static class Program
 
 	static async Task test5()
 	{
-		var b = ImageHelper.IsBinaryImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
-		                            out var di,-1);
+		var b =(bool) ImageMedia.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
 
 		Console.WriteLine(b);
 
@@ -75,7 +74,7 @@ public static class Program
 	}
 	static async Task test4()
 	{
-		var task =  ImageHelper.ScanForBinaryImages("http://www.zerochan.net/2750747",-1);
+		var task =  ImageMedia.Scan("http://www.zerochan.net/2750747",-1);
 
 		foreach (MediaResource v in task) {
 			Console.WriteLine(v);
@@ -183,8 +182,7 @@ public static class Program
 
 	static void test1()
 	{
-		Console.WriteLine(ImageHelper.IsBinaryImage(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png",
-		                                      out var di,-1));
+		Console.WriteLine(ImageMedia.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png"));
 
 		Debugger.Break();
 		var wc    = new WebClient();
@@ -194,7 +192,7 @@ public static class Program
 		var ext   = Path.GetExtension(png);
 		var read  = wc.OpenRead(png);
 		var img   = Image.FromStream(read);
-		var img2  = ImageHelper.ResizeImage((Bitmap) img, img.Size / 2);
+		var img2  = ImageManipulation.ResizeImage((Bitmap) img, img.Size / 2);
 
 		var    path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 		string s    = Path.Combine(path, name2 + "-1" + ext);

@@ -192,4 +192,26 @@ public static class AppIntegration
 			return false;
 		}
 	}
+
+	public static Dictionary<string, string> UtilitiesMap
+	{
+		get
+		{
+			var rg = new Dictionary<string, string>();
+
+			foreach (string exe in Utilities) {
+				string path = FileSystem.SearchInPath(exe);
+
+				rg.Add(exe, path);
+			}
+
+			return rg;
+
+		}
+	}
+
+	public static readonly List<string> Utilities = new()
+	{
+		"ffmpeg.exe", "ffprobe.exe", "magick.exe", "youtube-dl.exe", "gallery-dl.exe"
+	};
 }

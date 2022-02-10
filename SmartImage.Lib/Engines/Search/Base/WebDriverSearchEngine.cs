@@ -7,6 +7,9 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Search.Base;
 
+/// <summary>
+/// Represents a search engine whose results are parsed through a web driver.
+/// </summary>
 public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 {
 	protected WebDriverSearchEngine(string baseUrl) : base(baseUrl) { }

@@ -45,8 +45,8 @@ public static partial class Program
 					{
 						x = x.CleanString();
 
-						(bool url, bool file) = ImageQuery.IsUriOrFile(x);
-						return !(url || file);
+						var m = ImageMedia.GetMediaInfo(x);
+						return !(m.IsValid);
 					}, "Input must be file or direct image link");
 
 					Program.Config.Query = query;
@@ -100,7 +100,7 @@ public static partial class Program
 					Console.WriteLine();
 					Console.WriteLine(Strings.Constants.Separator);
 
-					foreach (var utility in ImageHelper.UtilitiesMap) {
+					foreach (var utility in AppIntegration.UtilitiesMap) {
 						Console.WriteLine(utility);
 					}
 

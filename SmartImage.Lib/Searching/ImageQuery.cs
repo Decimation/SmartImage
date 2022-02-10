@@ -32,12 +32,12 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	/// <summary>
 	/// Whether <see cref="Value"/> is a file
 	/// </summary>
-	public bool IsFile { get; }
+	public bool IsFile => Info.IsFile;
 
 	/// <summary>
 	/// Whether <see cref="Value"/> is an image link
 	/// </summary>
-	public bool IsUri { get; }
+	public bool IsUri => Info.IsUri;
 
 	/// <summary>
 	/// Uploaded direct image
@@ -53,6 +53,8 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public TimeSpan UploadTime { get; }
 
+	public MediaResourceInfo Info { get; }
+
 	public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 	{
 		var now = Stopwatch.GetTimestamp();
@@ -63,10 +65,10 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 		value = value.CleanString();
 
-		(IsUri, IsFile) = IsUriOrFile(value);
+		Info = ImageMedia.GetMediaInfo(value);
 
-		if (!IsUri && !IsFile) {
-			throw new ArgumentException("Input was neither file nor direct image link", nameof(value));
+		if (!((bool) Info)) {
+			throw new ArgumentException($"Input error: {Info.Message?.ReasonPhrase}");
 		}
 
 		Value = value;
@@ -84,7 +86,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 		}
 
 
-		var client = new HttpClient();//todo
+		var client = new HttpClient(); //todo
 		Stream = IsFile ? File.OpenRead(value) : client.GetStream(value);
 
 
@@ -96,14 +98,6 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
 	public static implicit operator ImageQuery(string value) => new(value);
-
-	public static (bool IsUri, bool IsFile) IsUriOrFile(string x)
-	{
-		//todo
-		var isUriOrFile = (ImageHelper.IsBinaryImage(x, out var di,-1), File.Exists(x));
-		// di?.Dispose();
-		return isUriOrFile;
-	}
 
 	public ImageResult GetImageResult()
 	{
@@ -117,7 +111,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 		var result = new ImageResult(null)
 		{
-			
+
 			// Image = Image.FromStream(Stream),
 			Url = UploadUri
 		};

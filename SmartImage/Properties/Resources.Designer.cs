@@ -81,11 +81,21 @@ namespace SmartImage.Properties {
         /// <summary>
         ///   Looks up a localized string similar to F1,Show filtered results
         ///F2,Refine
-        ///F5,Refresh.
+        ///F5,Refresh
+        ///F10,Keep on top.
         /// </summary>
         internal static string D_FuncKeys {
             get {
                 return ResourceManager.GetString("D_FuncKeys", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keep on top.
+        /// </summary>
+        internal static string D_KOT {
+            get {
+                return ResourceManager.GetString("D_KOT", resourceCulture);
             }
         }
         
@@ -134,6 +144,15 @@ namespace SmartImage.Properties {
         internal static string D_SE {
             get {
                 return ResourceManager.GetString("D_SE", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream ding {
+            get {
+                return ResourceManager.GetStream("ding", resourceCulture);
             }
         }
         

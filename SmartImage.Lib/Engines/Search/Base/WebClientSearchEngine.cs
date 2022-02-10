@@ -4,28 +4,25 @@ using SmartImage.Lib.Searching;
 namespace SmartImage.Lib.Engines.Search.Base;
 
 /// <summary>
-///     Represents a search engine whose results are from HTML.
+///     Represents a search engine whose results are parsed from HTML.
 /// </summary>
 public abstract class WebClientSearchEngine : ProcessedSearchEngine
 {
 	protected WebClientSearchEngine(string baseUrl) : base(baseUrl) { }
 
 	public abstract override SearchEngineOptions EngineOption { get; }
-	
+
 	public abstract override EngineSearchType SearchType { get; }
 
-	protected override object GetProcessingObject(SearchResult r)
-	{
-		return ParseContent(r.Origin);
-	}
+	protected override object GetProcessingObject(SearchResult sr) => ParseContent(sr.Origin);
 
 	protected virtual object ParseContent(SearchResultOrigin s)
 	{
-		var    parser            = new HtmlParser();
-		var async = s.Response.Content.ReadAsStringAsync();
-		async.Wait();
-		var content = async.Result;
-		var document = parser.ParseDocument((string) content);
+		var parser = new HtmlParser();
+		var readStringTask  = s.Response.Content.ReadAsStringAsync();
+		readStringTask.Wait();
+		var content  = readStringTask.Result;
+		var document = parser.ParseDocument(content);
 
 		return document;
 	}

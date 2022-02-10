@@ -26,9 +26,9 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 {
 	public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
 
-	protected override object GetProcessingObject(SearchResult r)
+	protected override object GetProcessingObject(SearchResult sr)
 	{
-		return r.Origin.Query;
+		return sr.Origin.Query;
 	}
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;

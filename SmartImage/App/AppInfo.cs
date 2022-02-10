@@ -82,6 +82,6 @@ public static class AppInfo
 			AppIntegration.HandlePath(true);
 		}
 
-		Debug.WriteLine($"Cli utilities: {ImageHelper.Utilities.QuickJoin()}", C_INFO);
+		Debug.WriteLine($"Cli utilities: {AppIntegration.Utilities.QuickJoin()}", C_INFO);
 	}
 }

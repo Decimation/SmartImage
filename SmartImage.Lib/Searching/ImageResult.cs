@@ -145,7 +145,7 @@ public sealed class ImageResult : IResult
 
 
 			if (HasImageDimensions) {
-				return ImageHelper.GetDisplayResolution(Width.Value, Height.Value);
+				return ImageManipulation.GetDisplayResolution(Width.Value, Height.Value);
 			}
 
 			throw new SmartImageException("Resolution unavailable");
@@ -236,18 +236,20 @@ public sealed class ImageResult : IResult
 
 		var url = Url.ToString();
 
-		if (ImageHelper.IsBinaryImage(url, out var br, ms)) {
-			DirectImages.Add(br);
+		var info = ImageMedia.GetMediaInfo(url);
+
+		if ((bool) info) {
+			DirectImages.Add(info.Resource);
 			return true;
 		}
 		else {
-			br.Dispose();
+			info.Dispose();
 		}
 
 		/*if (DirectImage is { Url: { } } || ImageHelper.IsBinaryImage(url, out var di1, ms)) {
 			return true;
 		}*/
-		
+
 		/*if (OtherUrl.Any()) {
 			var plr = Parallel.For(0, OtherUrl.Count, (i, s) =>
 			{
@@ -265,7 +267,7 @@ public sealed class ImageResult : IResult
 
 		try {
 
-			var directImages = ImageHelper.ScanForBinaryImages(url, ms)
+			var directImages = ImageMedia.Scan(url, ms)
 			                              .Where(x => x is { Url: { } })
 			                              .ToList();
 

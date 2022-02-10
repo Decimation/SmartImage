@@ -1,4 +1,5 @@
 ﻿global using static Kantan.Diagnostics.LogCategories;
+global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
