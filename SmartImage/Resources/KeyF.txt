@@ -1,4 +1,3 @@
 F1,Show filtered results
-F2,Refine
 F5,Refresh
 F10,Keep on top

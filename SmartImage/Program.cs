@@ -18,8 +18,10 @@ using System.Buffers;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
+using System.Linq;
 using System.Media;
 using System.Text;
+using Windows.Media.Playback;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Collections;
@@ -30,13 +32,19 @@ using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using Microsoft.VisualBasic.FileIO;
 using Novus.OS.Win32;
+using Novus.Utilities;
 using SmartImage.App;
+using SmartImage.Cli;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
+using SmartImage.Lib.Utilities;
 using SmartImage.Properties;
+using SmartImage.UI;
+using SmartImage.Utilities;
 using Configuration = System.Configuration.Configuration;
 using EH = Kantan.Collections.EnumerableHelper;
+using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 
 // ReSharper disable InlineTemporaryVariable
 
@@ -55,7 +63,7 @@ namespace SmartImage;
 // |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
 //                                                     |___/
 
-public static partial class Program
+public static class Program
 {
 	#region Core fields
 
@@ -106,11 +114,11 @@ public static partial class Program
 
 				ResultDialog.Refresh();
 			},
-			[ConsoleKey.F2] = async () =>
+			/*[ConsoleKey.F2] = async () =>
 			{
 				// F2 : Refine
 
-				_ctsSearch = new();
+				tkSearch = new();
 				var buf = new List<ConsoleOption>(ResultDialog.Options);
 
 				ResultDialog.Options.Clear();
@@ -136,18 +144,18 @@ public static partial class Program
 				}
 
 				ResultDialog.Refresh();
-			},
+			},*/
 			[ConsoleKey.F10] = () =>
 			{
-				if (KeepOnTop) {
-					Native.RemoveWindowOnTop(WindowHandle);
-				}
-				else {
+				if (!_keepOnTop) {
 					Native.KeepWindowOnTop(WindowHandle);
 				}
+				else {
+					Native.RemoveWindowOnTop(WindowHandle);
+				}
 
-				KeepOnTop = !KeepOnTop;
-				PlaySound(Resources.ding);
+				_keepOnTop = !_keepOnTop;
+				ding.Play();
 			}
 		}
 	};
@@ -183,22 +191,12 @@ public static partial class Program
 		Config.SearchEngines = SearchEngineOptions.TraceMoe;
 #endif
 
-		ResultDialog.AddDescription("Press the result number to open in browser", UI.Elements.ColorOther)
-		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), UI.Elements.ColorKey)
-		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), UI.Elements.ColorKey);
 
-		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
-
-		Console.OutputEncoding = Encoding.Unicode;
-		Console.Title          = $"{AppInfo.NAME}";
-
-		ConsoleManager.BufferLimit += 10;
-
-		ConsoleManager.Init();
-		Console.Clear();
+		InitConsole();
 
 		WindowHandle = Native.GetConsoleWindow();
 
+		_keepOnTop = false;
 
 		/*
 		 * Start
@@ -216,44 +214,30 @@ public static partial class Program
 		Config.Update();
 		Reload();
 
+		// Read config and arguments
+
 		if (!await HandleStartup(args))
 			return;
 
+		BuildDescription();
 
-		ResultDialog.AddDescription(new Dictionary<string, string>
-		{
-			[Resources.D_SE]     = Config.SearchEngines.ToString(),
-			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
-			[Resources.D_Filter] = UI.Elements.GetToggleString(Config.Filtering),
-		}, UI.Elements.ColorKey2);
+		RegisterEvents();
 
-		ResultDialog.AddDescription(new Dictionary<string, string>
-		{
-			[Resources.D_NI] = UI.Elements.GetToggleString(Config.NotificationImage),
-			[Resources.D_N]  = UI.Elements.GetToggleString(Config.Notification),
-		}, UI.Elements.ColorKey2);
+		CPI.Instance.Start(TkProgress);
 
+		// Show results
 
 		// Run search
 
-		Client.ResultCompleted   += OnResultCompleted;
-		Client.SearchCompleted   += OnSearchCompleted;
-		Client.ContinueCompleted += OnContinueCompleted;
-
-		Console.CancelKeyPress += OnCancel;
-
-		CPI.Instance.Start(_ctsProgress);
-
-		// Show results
-		_searchTask   = Client.RunSearchAsync(_ctsSearch.Token);
-		_continueTask = Client.RunContinueAsync(_ctsContinue.Token);
+		_searchTask   = Client.RunSearchAsync(TkSearch.Token);
+		_continueTask = Client.RunContinueAsync(TkContinue.Token);
 
 		_originalResult = Config.Query.GetConsoleOption();
 
 		// Add original image
 		ResultDialog.Options.Add(_originalResult);
 
-		await ResultDialog.ReadInputAsync(_ctsReadInput.Token);
+		await ResultDialog.ReadInputAsync(TkReadInput.Token);
 
 		await _searchTask;
 
@@ -268,13 +252,52 @@ public static partial class Program
 		Client.Reset();
 
 		_ = Console.ReadKey(true);
-
 	}
 
-	public static IntPtr WindowHandle { get; private set; }
+	private static void InitConsole()
+	{
+		Console.OutputEncoding = Encoding.Unicode;
+		Console.Title          = $"{AppInfo.NAME}";
 
-	public static bool KeepOnTop { get; private set; }
+		ConsoleManager.BufferLimit += 10;
+		ConsoleManager.Init();
+		Console.Clear();
+	}
 
+	private static void RegisterEvents()
+	{
+		Client.ResultCompleted   += OnResultCompleted;
+		Client.SearchCompleted   += OnSearchCompleted;
+		Client.ContinueCompleted += OnContinueCompleted;
+
+		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
+
+		Console.CancelKeyPress += OnCancel;
+	}
+
+	private static void BuildDescription()
+	{
+		ResultDialog.AddDescription("Press the result number to open in browser", Elements.ColorOther)
+		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), Elements.ColorKey)
+		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), Elements.ColorKey);
+
+		ResultDialog.AddDescription(new Dictionary<string, string>
+		{
+			[Resources.D_SE]     = Config.SearchEngines.ToString(),
+			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
+			[Resources.D_Filter] = Elements.GetToggleString(Config.Filtering),
+		}, Elements.ColorKey2);
+
+		ResultDialog.AddDescription(new Dictionary<string, string>
+		{
+			[Resources.D_NI] = Elements.GetToggleString(Config.NotificationImage),
+			[Resources.D_N]  = Elements.GetToggleString(Config.Notification),
+		}, Elements.ColorKey2);
+	}
+
+	/// <summary>
+	/// Handles arguments and startup interaction
+	/// </summary>
 	private static async Task<bool> HandleStartup(string[] args)
 	{
 
@@ -290,13 +313,13 @@ public static partial class Program
 		Debug.WriteLine($"Args: {args.QuickJoin()}", C_DEBUG);
 
 		if (!args.Any()) {
-			var options = await UI.MainMenuDialog.ReadInputAsync();
+			var options = await MainMenuDialog.ReadInputAsync();
 
 			var file = options.DragAndDrop;
 
 			if (file != null) {
 				Debug.WriteLine($"Drag and drop: {file}");
-				Console.WriteLine($">> {file}".AddColor(UI.Elements.ColorMain));
+				Console.WriteLine($">> {file}".AddColor(Elements.ColorMain));
 				Config.Query = file;
 				return true;
 			}
@@ -313,7 +336,7 @@ public static partial class Program
 
 			try {
 
-				ArgumentHandler.Run(args);
+				CliArguments.ArgumentHandler.Run(args);
 
 				Client.Reload();
 			}
@@ -327,13 +350,12 @@ public static partial class Program
 		return true;
 	}
 
-
 	#region Event handlers
 
 	private static void OnCancel(object sender, ConsoleCancelEventArgs eventArgs)
 	{
-		_ctsSearch.Cancel();
-		_ctsContinue.Cancel();
+		TkSearch.Cancel();
+		TkContinue.Cancel();
 		// _ctsReadInput.Cancel();
 
 		eventArgs.Cancel = true;
@@ -352,7 +374,7 @@ public static partial class Program
 		Native.FlashWindow(WindowHandle);
 
 		// SystemSounds.Exclamation.Play();
-		_ctsProgress.Cancel();
+		TkProgress.Cancel();
 
 		ResultDialog.Refresh();
 
@@ -366,17 +388,12 @@ public static partial class Program
 			AppToast.ShowToast(sender, eventArgs);
 		}
 
-		PlaySound(Resources.hint);
+		hint.Play();
 
 		GetStatus();
+
 	}
 
-	private static void PlaySound(Stream s)
-	{
-		var sp = new SoundPlayer(s);
-		sp.Play();
-		sp.Dispose();
-	}
 
 	private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
 	{
@@ -384,7 +401,7 @@ public static partial class Program
 
 		ConsoleOption option = result.GetConsoleOption();
 
-		var color = UI.Elements.EngineColorMap[result.Engine.EngineOption];
+		var color = Elements.EngineColorMap[result.Engine.EngineOption];
 		option.Color    = color;
 		option.ColorAlt = color.ChangeBrightness(-.4f);
 
@@ -416,7 +433,7 @@ public static partial class Program
 
 		string status;
 
-		if (_ctsSearch.IsCancellationRequested) {
+		if (TkSearch.IsCancellationRequested) {
 			status = "Cancelled";
 		}
 		else if (Client.IsComplete) {
@@ -431,26 +448,7 @@ public static partial class Program
 		ResultDialog.Status = Strings.GetMapString(map);
 	}
 
-	#endregion
-
-	#region Other fields
-
-	private static CancellationTokenSource _ctsProgress  = new();
-	private static CancellationTokenSource _ctsReadInput = new();
-	private static CancellationTokenSource _ctsContinue  = new();
-	private static CancellationTokenSource _ctsSearch    = new();
-
-	private static bool _isFilteredShown;
-
-	private static ConsoleOption _originalResult;
-
-	private static Task _searchTask;
-	private static Task _continueTask;
-
-	#endregion
-
-
-	private static void Reload(bool saveCfg = false)
+	internal static void Reload(bool saveCfg = false)
 	{
 		Client.Reload();
 
@@ -459,64 +457,185 @@ public static partial class Program
 		}
 	}
 
+	#endregion
 
-	/// <summary>
-	/// Command line argument handler
-	/// </summary>
-	internal static readonly CliHandler ArgumentHandler = new()
+	#region Resources
+
+	private static readonly SoundPlayer ding = new(Resources.ding);
+	private static readonly SoundPlayer hint = new(Resources.hint);
+
+	#endregion
+
+	#region CTS
+
+	private static readonly CancellationTokenSource TkProgress  = new();
+	private static readonly CancellationTokenSource TkReadInput = new();
+	private static readonly CancellationTokenSource TkContinue  = new();
+	private static readonly CancellationTokenSource TkSearch    = new();
+
+	#endregion
+
+	#region State
+
+	private static bool _isFilteredShown;
+	private static bool _keepOnTop;
+
+	#endregion
+
+	#region
+
+	private static ConsoleOption _originalResult;
+
+	private static Task _searchTask;
+	private static Task _continueTask;
+
+	internal static IntPtr WindowHandle { get; set; }
+
+	#endregion
+
+	private static readonly ConsoleOption[] MainMenuOptions =
 	{
-		Parameters =
+		new()
 		{
-			new()
+			Name  = ">>> Run <<<",
+			Color = Elements.ColorMain,
+			Function = () =>
 			{
-				ArgumentCount = 1,
-				ParameterId   = "-se",
-				Function = strings =>
+				ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
 				{
-					Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 1,
-				ParameterId   = "-pe",
-				Function = strings =>
-				{
-					Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 0,
-				ParameterId   = "-f",
-				Function = delegate
-				{
-					Config.Filtering = true;
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 0,
-				ParameterId   = "-output_only",
-				Function = delegate
-				{
-					Config.OutputOnly = true;
-					return null;
-				}
+					x = x.CleanString();
+
+					var m = ImageMedia.GetMediaInfo(x);
+					return !((bool) m);
+				}, "Input must be file or direct image link");
+
+				Config.Query = query;
+				return true;
 			}
 		},
-		Default = new()
+
+
+		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
+
+		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines),
+		                                           "Priority engines", Config),
+
+		Controls.CreateOption(nameof(Config.Filtering), "Filter", Config),
+		Controls.CreateOption(nameof(Config.Notification), "Notification", Config),
+		Controls.CreateOption(nameof(Config.NotificationImage), "Notification image", Config),
+
+		Controls.CreateOption(ReflectionOperatorHelpers.propertyof(() => AppIntegration.IsContextMenuAdded),
+		                      "Context menu", added => AppIntegration.HandleContextMenu(!added), Config),
+
+		new()
 		{
-			ArgumentCount = 1,
-			ParameterId   = null,
-			Function = strings =>
+			Name = "Config",
+			Function = () =>
 			{
-				Config.Query = strings[0];
+				//Console.Clear();
+
+				Console.WriteLine(Config);
+				ConsoleManager.WaitForInput();
+
 				return null;
 			}
-		}
+		},
+		new()
+		{
+			Name = "Info",
+			Function = () =>
+			{
+				//Console.Clear();
+
+				var di = new DirectoryInfo(AppInfo.ExeLocation);
+
+				var dependencies = ReflectionHelper.DumpDependencies();
+
+				var ls = new List<string>()
+				{
+					$"Author: {Resources.Author}",
+					$"Current version: {AppInfo.AppVersion} ({UpdateInfo.GetUpdateInfo().Status})",
+					$"Latest version: {ReleaseInfo.GetLatestRelease()}",
+					$"Executable location: {di.Parent.Name}",
+					$"In path: {AppInfo.IsAppFolderInPath}",
+					Strings.Constants.Separator
+				};
+
+				ls.AddRange(AppIntegration.UtilitiesMap.Select(x => $"{x.Key}: {x.Value}"));
+				ls.AddRange(dependencies.Select(x => $"{x.Name} ({x.Version})"));
+				ls.Add(Strings.Constants.Separator);
+
+				ls.ForEach(Console.WriteLine);
+
+				ConsoleManager.WaitForInput();
+
+				return null;
+			}
+		},
+		new()
+		{
+			Name     = "Update",
+			Function = null
+		},
+		new()
+		{
+			Name = "Help",
+			Function = () =>
+			{
+				WebUtilities.OpenUrl(Resources.U_Wiki);
+
+				return null;
+			}
+		},
+#if DEBUG
+
+		new()
+		{
+			Name = "Debug",
+			Function = () =>
+			{
+				Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+				return true;
+			}
+		},
+#endif
+
 	};
+
+	internal static readonly ConsoleDialog MainMenuDialog = new()
+	{
+		Options   = MainMenuOptions,
+		Header    = Elements.NAME_BANNER,
+		Functions = new Dictionary<ConsoleKey, Action>(),
+		Status    = "You can also drag and drop a file to run a search."
+	};
+
+	static Program()
+	{
+		// NOTE: Static initializer must be AFTER MainMenuDialog
+
+		var current = UpdateInfo.GetUpdateInfo();
+
+		if (current.Status != VersionStatus.Available) {
+			return;
+		}
+
+		var option = MainMenuDialog["Update"];
+
+		option.Name = option.Name.AddColor(Elements.ColorHighlight);
+
+		var updateStr =
+			$"* Update available (latest: {Elements.GetVersionString(current.Latest.Version)};" +
+			$" current: {Elements.GetVersionString(current.Current)})";
+
+		updateStr = updateStr.AddColor(Elements.ColorHighlight);
+
+		MainMenuDialog.Description = updateStr;
+
+		option.Function = () =>
+		{
+			UpdateInfo.Update(current);
+			return null;
+		};
+	}
 }

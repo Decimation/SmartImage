@@ -1,4 +1,5 @@
-﻿using AngleSharp.Html.Parser;
+﻿using System.Diagnostics;
+using AngleSharp.Html.Parser;
 using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Search.Base;
@@ -16,10 +17,11 @@ public abstract class WebClientSearchEngine : ProcessedSearchEngine
 
 	protected override object GetProcessingObject(SearchResult sr) => ParseContent(sr.Origin);
 
-	protected virtual object ParseContent(SearchResultOrigin s)
+	
+	protected virtual object ParseContent(SearchResultOrigin origin)
 	{
 		var parser = new HtmlParser();
-		var readStringTask  = s.Response.Content.ReadAsStringAsync();
+		var readStringTask  = origin.Response.Content.ReadAsStringAsync();
 		readStringTask.Wait();
 		var content  = readStringTask.Result;
 		var document = parser.ParseDocument(content);

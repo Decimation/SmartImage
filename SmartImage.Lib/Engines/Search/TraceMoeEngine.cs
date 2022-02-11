@@ -66,46 +66,19 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			{
 				Error = (sender, args) =>
 				{
-
 					if (object.Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) /*&&
 					    args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)*/) {
 						args.ErrorContext.Handled = true;
-
 					}
 
 					Debug.WriteLine($"{args.ErrorContext}");
 				}
 			};
 
-			/*var tm2t = request.GetJsonAsync();
-			tm2t.Wait();
-			var tm2 = tm2t.Result;
-
-			dynamic result = tm2.result;
-			Debug.WriteLine($"{result}");
-			tm = new() { result = new(), error = tm2.error, frameCount = tm2.frameCount };
-
-			for (int i = 0; i < result.Count; i++) {
-				Debug.WriteLine($"{result[i]}");
-
-				var d = result[i];
-
-				var doc = new TraceMoeDoc()
-				{
-					episode = d.episode, 
-					from = d.from, 
-					to = d.to, 
-					filename = d.filename, anilist = d.anilist
-				};
-
-				tm.result.Add(doc);
-			}*/
-
-
 			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(json, settings);
 		}
 		catch (Exception e) {
-			Debug.WriteLine($">>>>{e.Message}");
+			Debug.WriteLine($"{Name}: {nameof(Process)}: {e.Message}");
 
 			goto ret;
 		}
@@ -149,28 +122,18 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		return r;
 	}
 
-	private IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj, SearchResult r)
+	private IEnumerable<ImageResult> ConvertResults(TraceMoeRootObject obj, SearchResult sr)
 	{
-		var docs    = obj.result;
-		var results = new ImageResult[docs.Count];
+		var results    = obj.result;
+		var imageResults = new ImageResult[results.Count];
 
-		for (int i = 0; i < results.Length; i++) {
-			var   doc = docs[i];
+		for (int i = 0; i < imageResults.Length; i++) {
+			var   doc = results[i];
 			float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
-			var episode = doc.episode;
+			string epStr = GetEpisodeString(doc);
 
-			string epStr = episode.ToString();
-
-			if (episode is string) {
-				epStr = episode as string;
-			}
-			else if (episode is IEnumerable enumerable) {
-				var ls = enumerable.CopyToList().Select(x => Int64.Parse(x.ToString() ?? String.Empty));
-				epStr = ls.QuickJoin();
-			}
-
-			var result = new ImageResult(r)
+			var result = new ImageResult(sr)
 			{
 				Similarity  = sim,
 				Description = $"Episode #{epStr} @ {TimeSpan.FromSeconds(doc.from)}"
@@ -192,10 +155,26 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				                                 $"< {FILTER_THRESHOLD / 100:P})");
 			}
 
-			results[i] = result;
+			imageResults[i] = result;
 		}
 
-		return results;
+		return imageResults;
+
+		static string GetEpisodeString(TraceMoeDoc doc)
+		{
+			object episode = doc.episode;
+
+			string epStr = episode is string s ? s : episode.ToString();
+
+			if (episode is IEnumerable e) {
+				var epList = e.CopyToList()
+				          .Select(x => Int64.Parse(x.ToString() ?? String.Empty));
+
+				epStr = epList.QuickJoin();
+			}
+
+			return epStr;
+		}
 	}
 
 	/// <summary>
@@ -223,8 +202,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		public string filename { get; set; }
 
 
-		/// <remarks>Episode field may contain multiple possible results delimited by <c>|</c></remarks>
-		// [JsonIgnore]
+		/// <remarks>Episode may be a JSON array (edge case) or a normal integer</remarks>
 		public object episode { get; set; }
 
 		public double similarity { get; set; }

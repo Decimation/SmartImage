@@ -3,6 +3,7 @@ using Windows.ApplicationModel.Background;
 using Kantan.Net;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
+using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable PossibleNullReferenceException
@@ -34,9 +35,12 @@ internal static class AppToast
 		}
 		else if (Program.Client.Results.Any()) {
 			var result = Program.Client.Results.First();
-			url = result.PrimaryResult.Url.ToString();
 
-			builder.AddText($"Engine: {result.Engine}");
+			url = result.PrimaryResult.Url.ToString();
+			/*var rr    = Program.Client.Results.Where(x => x.PrimaryResult is { Url: { } });
+			var first = rr.First();
+			url = first.PrimaryResult?.Url?.ToString() ?? first.RawUri.ToString();*/
+			builder.AddText($"Engine: {result.Engine.Name}");
 		}
 
 		button.SetContent("Open")
