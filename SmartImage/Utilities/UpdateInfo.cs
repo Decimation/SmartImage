@@ -2,11 +2,15 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Net;
+using AngleSharp.Dom;
 using JetBrains.Annotations;
 using Kantan.Cli;
+using Kantan.Cli.Controls;
+using Kantan.Text;
 using Novus.OS;
 using Novus.OS.Win32;
 using SmartImage.App;
+using SmartImage.UI;
 
 namespace SmartImage.Utilities;
 #pragma warning disable SYSLIB0014
@@ -18,7 +22,7 @@ public enum VersionStatus
 	Preview,
 }
 
-public readonly struct UpdateInfo
+public readonly struct UpdateInfo:IConsoleOption
 {
 	public Version Current { get; }
 
@@ -108,5 +112,20 @@ public readonly struct UpdateInfo
 		};
 
 		return new UpdateInfo(currentVersion, release, status);
+	}
+
+	public ConsoleOption GetConsoleOption()
+	{
+		var current = this;
+		var option  = new ConsoleOption() { Name = $"Update {Current}".AddColor(Elements.ColorHighlight)};
+		
+		option.Function = () =>
+		{
+			UpdateInfo.Update(current);
+			return null;
+		};
+		return option;
+
+
 	}
 }

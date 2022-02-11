@@ -34,7 +34,6 @@ using Microsoft.VisualBasic.FileIO;
 using Novus.OS.Win32;
 using Novus.Utilities;
 using SmartImage.App;
-using SmartImage.Cli;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
@@ -104,7 +103,7 @@ public static class Program
 					buffer.AddRange(Client.FilteredResults);
 				}
 
-				ResultDialog.Options.Add(_originalResult);
+				ResultDialog.Options.Add(_origRes);
 
 				foreach (ConsoleOption option in buffer.Select(x => x.GetConsoleOption())) {
 					ResultDialog.Options.Add(option);
@@ -155,10 +154,146 @@ public static class Program
 				}
 
 				_keepOnTop = !_keepOnTop;
-				ding.Play();
+				SndDing.Play();
 			}
 		}
 	};
+
+	private static readonly List<ConsoleOption> MainMenuOptions = new()
+	{
+		new()
+		{
+			Name  = ">>> Run <<<",
+			Color = Elements.ColorMain,
+			Function = () =>
+			{
+				ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
+				{
+					x = x.CleanString();
+
+					var m = ImageMedia.GetMediaInfo(x);
+					return !((bool) m);
+				}, "Input must be file or direct image link");
+
+				Config.Query = query;
+				return true;
+			}
+		},
+
+
+		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
+
+		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines),
+		                                           "Priority engines", Config),
+
+		Controls.CreateOption(nameof(Config.Filtering), "Filter", Config),
+		Controls.CreateOption(nameof(Config.Notification), "Notification", Config),
+		Controls.CreateOption(nameof(Config.NotificationImage), "Notification image", Config),
+
+		Controls.CreateOption(ReflectionOperatorHelpers.propertyof(() => AppIntegration.IsContextMenuAdded),
+		                      "Context menu", added => AppIntegration.HandleContextMenu(!added), Config),
+
+		new()
+		{
+			Name = "Config",
+			Function = () =>
+			{
+				//Console.Clear();
+
+				Console.WriteLine(Config);
+				ConsoleManager.WaitForInput();
+
+				return null;
+			}
+		},
+		new()
+		{
+			Name = "Info",
+			Function = () =>
+			{
+				//Console.Clear();
+
+				var di = new DirectoryInfo(AppInfo.ExeLocation);
+
+				var dependencies = ReflectionHelper.DumpDependencies();
+
+				var ls = new List<string>()
+				{
+					$"Author: {Resources.Author}",
+					$"Current version: {AppInfo.AppVersion} ({UpdateInfo.GetUpdateInfo().Status})",
+					$"Latest version: {ReleaseInfo.GetLatestRelease()}",
+					$"Executable location: {di.Parent.Name}",
+					$"In path: {AppInfo.IsAppFolderInPath}",
+					Strings.Constants.Separator
+				};
+
+				ls.AddRange(AppIntegration.UtilitiesMap.Select(x => $"{x.Key}: {x.Value}"));
+				ls.AddRange(dependencies.Select(x => $"{x.Name} ({x.Version})"));
+				ls.Add(Strings.Constants.Separator);
+
+				ls.ForEach(Console.WriteLine);
+
+				ConsoleManager.WaitForInput();
+
+				return null;
+			}
+		},
+		new()
+		{
+			Name = "Help",
+			Function = () =>
+			{
+				WebUtilities.OpenUrl(Resources.U_Wiki);
+
+				return null;
+			}
+		},
+#if DEBUG
+
+		new()
+		{
+			Name = "Debug",
+			Function = () =>
+			{
+				Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
+				return true;
+			}
+		},
+#endif
+
+	};
+
+	private static readonly ConsoleDialog MainMenuDialog = new()
+	{
+		Options   = MainMenuOptions,
+		Header    = Elements.NAME_BANNER,
+		Functions = new Dictionary<ConsoleKey, Action>(),
+		Status    = "You can also drag and drop a file to run a search."
+	};
+
+	static Program()
+	{
+		// NOTE: Static initializer must be AFTER MainMenuDialog
+
+		var current = UpdateInfo.GetUpdateInfo();
+
+		if (current.Status != VersionStatus.Available) {
+			return;
+		}
+
+		int delta = 1;
+
+#if DEBUG
+		delta++;
+#endif
+
+		var idx = MainMenuOptions.Count - delta;
+
+		MainMenuDialog.Insert(idx, current.GetConsoleOption());
+		WindowHandle = Native.GetConsoleWindow();
+
+
+	}
 
 	#endregion
 
@@ -194,7 +329,6 @@ public static class Program
 
 		InitConsole();
 
-		WindowHandle = Native.GetConsoleWindow();
 
 		_keepOnTop = false;
 
@@ -222,22 +356,22 @@ public static class Program
 		BuildDescription();
 
 		RegisterEvents();
+		_origRes = Config.Query.GetConsoleOption();
 
-		CPI.Instance.Start(TkProgress);
+		CPI.Instance.Start(CtsProgress);
 
 		// Show results
 
 		// Run search
 
-		_searchTask   = Client.RunSearchAsync(TkSearch.Token);
-		_continueTask = Client.RunContinueAsync(TkContinue.Token);
+		_searchTask   = Client.RunSearchAsync(CtsSearch.Token);
+		_continueTask = Client.RunContinueAsync(CtsContinue.Token);
 
-		_originalResult = Config.Query.GetConsoleOption();
 
 		// Add original image
-		ResultDialog.Options.Add(_originalResult);
+		ResultDialog.Options.Add(_origRes);
 
-		await ResultDialog.ReadInputAsync(TkReadInput.Token);
+		await ResultDialog.ReadInputAsync(CtsReadInput.Token);
 
 		await _searchTask;
 
@@ -336,7 +470,7 @@ public static class Program
 
 			try {
 
-				CliArguments.ArgumentHandler.Run(args);
+				ArgumentHandler.Run(args);
 
 				Client.Reload();
 			}
@@ -350,12 +484,51 @@ public static class Program
 		return true;
 	}
 
+	private static void GetStatus()
+	{
+		var map = new Dictionary<string, string>
+		{
+			["Results"] = Client.Results.Count.ToString(),
+		};
+
+		if (Config.Filtering) {
+			map.Add("Filtered", Client.FilteredResults.Count.ToString());
+		}
+
+		map.Add("Pending", Client.PendingCount.ToString());
+
+		string status;
+
+		if (CtsSearch.IsCancellationRequested) {
+			status = "Cancelled";
+		}
+		else if (Client.IsComplete) {
+			status = "Complete";
+		}
+		else {
+			status = "Searching";
+		}
+
+		map.Add("Status", status);
+
+		ResultDialog.Status = Strings.GetMapString(map);
+	}
+
+	internal static void Reload(bool saveCfg = false)
+	{
+		Client.Reload();
+
+		if (saveCfg) {
+			Config.Save();
+		}
+	}
+
 	#region Event handlers
 
 	private static void OnCancel(object sender, ConsoleCancelEventArgs eventArgs)
 	{
-		TkSearch.Cancel();
-		TkContinue.Cancel();
+		CtsSearch.Cancel();
+		CtsContinue.Cancel();
 		// _ctsReadInput.Cancel();
 
 		eventArgs.Cancel = true;
@@ -374,7 +547,7 @@ public static class Program
 		Native.FlashWindow(WindowHandle);
 
 		// SystemSounds.Exclamation.Play();
-		TkProgress.Cancel();
+		CtsProgress.Cancel();
 
 		ResultDialog.Refresh();
 
@@ -388,7 +561,7 @@ public static class Program
 			AppToast.ShowToast(sender, eventArgs);
 		}
 
-		hint.Play();
+		SndHint.Play();
 
 		GetStatus();
 
@@ -418,60 +591,21 @@ public static class Program
 		GetStatus();
 	}
 
-	private static void GetStatus()
-	{
-		var map = new Dictionary<string, string>
-		{
-			["Results"] = Client.Results.Count.ToString(),
-		};
-
-		if (Config.Filtering) {
-			map.Add("Filtered", Client.FilteredResults.Count.ToString());
-		}
-
-		map.Add("Pending", Client.PendingCount.ToString());
-
-		string status;
-
-		if (TkSearch.IsCancellationRequested) {
-			status = "Cancelled";
-		}
-		else if (Client.IsComplete) {
-			status = "Complete";
-		}
-		else {
-			status = "Searching";
-		}
-
-		map.Add("Status", status);
-
-		ResultDialog.Status = Strings.GetMapString(map);
-	}
-
-	internal static void Reload(bool saveCfg = false)
-	{
-		Client.Reload();
-
-		if (saveCfg) {
-			Config.Save();
-		}
-	}
-
 	#endregion
 
 	#region Resources
 
-	private static readonly SoundPlayer ding = new(Resources.ding);
-	private static readonly SoundPlayer hint = new(Resources.hint);
+	private static readonly SoundPlayer SndDing = new(Resources.ding);
+	private static readonly SoundPlayer SndHint = new(Resources.hint);
 
 	#endregion
 
 	#region CTS
 
-	private static readonly CancellationTokenSource TkProgress  = new();
-	private static readonly CancellationTokenSource TkReadInput = new();
-	private static readonly CancellationTokenSource TkContinue  = new();
-	private static readonly CancellationTokenSource TkSearch    = new();
+	private static readonly CancellationTokenSource CtsProgress  = new();
+	private static readonly CancellationTokenSource CtsReadInput = new();
+	private static readonly CancellationTokenSource CtsContinue  = new();
+	private static readonly CancellationTokenSource CtsSearch    = new();
 
 	#endregion
 
@@ -482,160 +616,70 @@ public static class Program
 
 	#endregion
 
-	#region
-
-	private static ConsoleOption _originalResult;
-
 	private static Task _searchTask;
 	private static Task _continueTask;
 
 	internal static IntPtr WindowHandle { get; set; }
 
-	#endregion
-
-	private static readonly ConsoleOption[] MainMenuOptions =
+	/// <summary>
+	/// Command line argument handler
+	/// </summary>
+	private static readonly CliHandler ArgumentHandler = new()
 	{
-		new()
+		Parameters =
 		{
-			Name  = ">>> Run <<<",
-			Color = Elements.ColorMain,
-			Function = () =>
+			new()
 			{
-				ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
+				ArgumentCount = 1,
+				ParameterId   = "-se",
+				Function = strings =>
 				{
-					x = x.CleanString();
-
-					var m = ImageMedia.GetMediaInfo(x);
-					return !((bool) m);
-				}, "Input must be file or direct image link");
-
-				Config.Query = query;
-				return true;
-			}
-		},
-
-
-		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
-
-		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines),
-		                                           "Priority engines", Config),
-
-		Controls.CreateOption(nameof(Config.Filtering), "Filter", Config),
-		Controls.CreateOption(nameof(Config.Notification), "Notification", Config),
-		Controls.CreateOption(nameof(Config.NotificationImage), "Notification image", Config),
-
-		Controls.CreateOption(ReflectionOperatorHelpers.propertyof(() => AppIntegration.IsContextMenuAdded),
-		                      "Context menu", added => AppIntegration.HandleContextMenu(!added), Config),
-
-		new()
-		{
-			Name = "Config",
-			Function = () =>
+					Program.Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new()
 			{
-				//Console.Clear();
-
-				Console.WriteLine(Config);
-				ConsoleManager.WaitForInput();
-
-				return null;
-			}
-		},
-		new()
-		{
-			Name = "Info",
-			Function = () =>
-			{
-				//Console.Clear();
-
-				var di = new DirectoryInfo(AppInfo.ExeLocation);
-
-				var dependencies = ReflectionHelper.DumpDependencies();
-
-				var ls = new List<string>()
+				ArgumentCount = 1,
+				ParameterId   = "-pe",
+				Function = strings =>
 				{
-					$"Author: {Resources.Author}",
-					$"Current version: {AppInfo.AppVersion} ({UpdateInfo.GetUpdateInfo().Status})",
-					$"Latest version: {ReleaseInfo.GetLatestRelease()}",
-					$"Executable location: {di.Parent.Name}",
-					$"In path: {AppInfo.IsAppFolderInPath}",
-					Strings.Constants.Separator
-				};
-
-				ls.AddRange(AppIntegration.UtilitiesMap.Select(x => $"{x.Key}: {x.Value}"));
-				ls.AddRange(dependencies.Select(x => $"{x.Name} ({x.Version})"));
-				ls.Add(Strings.Constants.Separator);
-
-				ls.ForEach(Console.WriteLine);
-
-				ConsoleManager.WaitForInput();
-
+					Program.Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-f",
+				Function = delegate
+				{
+					Program.Config.Filtering = true;
+					return null;
+				}
+			},
+			new()
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-output_only",
+				Function = delegate
+				{
+					Program.Config.OutputOnly = true;
+					return null;
+				}
+			}
+		},
+		Default = new()
+		{
+			ArgumentCount = 1,
+			ParameterId   = null,
+			Function = strings =>
+			{
+				Program.Config.Query = strings[0];
 				return null;
 			}
-		},
-		new()
-		{
-			Name     = "Update",
-			Function = null
-		},
-		new()
-		{
-			Name = "Help",
-			Function = () =>
-			{
-				WebUtilities.OpenUrl(Resources.U_Wiki);
-
-				return null;
-			}
-		},
-#if DEBUG
-
-		new()
-		{
-			Name = "Debug",
-			Function = () =>
-			{
-				Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
-				return true;
-			}
-		},
-#endif
-
-	};
-
-	internal static readonly ConsoleDialog MainMenuDialog = new()
-	{
-		Options   = MainMenuOptions,
-		Header    = Elements.NAME_BANNER,
-		Functions = new Dictionary<ConsoleKey, Action>(),
-		Status    = "You can also drag and drop a file to run a search."
-	};
-
-	static Program()
-	{
-		// NOTE: Static initializer must be AFTER MainMenuDialog
-
-		var current = UpdateInfo.GetUpdateInfo();
-
-		if (current.Status != VersionStatus.Available) {
-			return;
 		}
+	};
 
-		var option = MainMenuDialog["Update"];
-
-		option.Name = option.Name.AddColor(Elements.ColorHighlight);
-
-		var updateStr =
-			$"* Update available (latest: {Elements.GetVersionString(current.Latest.Version)};" +
-			$" current: {Elements.GetVersionString(current.Current)})";
-
-		updateStr = updateStr.AddColor(Elements.ColorHighlight);
-
-		MainMenuDialog.Description = updateStr;
-
-		option.Function = () =>
-		{
-			UpdateInfo.Update(current);
-			return null;
-		};
-	}
+	private static ConsoleOption _origRes;
 }

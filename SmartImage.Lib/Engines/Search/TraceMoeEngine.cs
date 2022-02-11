@@ -164,7 +164,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		{
 			object episode = doc.episode;
 
-			string epStr = episode is string s ? s : episode.ToString();
+			string epStr = episode is {}?  episode is string s ? s : episode.ToString(): String.Empty;
 
 			if (episode is IEnumerable e) {
 				var epList = e.CopyToList()
