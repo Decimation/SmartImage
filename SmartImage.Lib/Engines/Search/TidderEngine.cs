@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
@@ -13,15 +14,18 @@ using SmartImage.Lib.Searching;
 #nullable enable
 namespace SmartImage.Lib.Engines.Search;
 
+[Obsolete]
 public sealed class TidderEngine : WebClientSearchEngine
 {
 	public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Tidder;
-	
+
 
 	public override EngineSearchType SearchType => EngineSearchType.External | EngineSearchType.Metadata;
 
+
+	[DebuggerHidden]
 	protected override SearchResult Process(object obj, SearchResult sr)
 	{
 		var doc = (IDocument) obj;

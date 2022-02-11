@@ -18,7 +18,7 @@ using SmartImage.Lib.Utilities;
 // ReSharper disable SuggestVarOrType_DeconstructionDeclarations
 
 // ReSharper disable CognitiveComplexity
-#pragma warning disable 8629,CA1416
+#pragma warning disable IDE0079
 #nullable disable
 
 namespace SmartImage.Lib.Searching;
@@ -245,20 +245,7 @@ public sealed class ImageResult : IResult
 		else {
 			info.Dispose();
 		}
-
-		/*if (DirectImage is { Url: { } } || ImageHelper.IsBinaryImage(url, out var di1, ms)) {
-			return true;
-		}*/
-
-		/*if (OtherUrl.Any()) {
-			var plr = Parallel.For(0, OtherUrl.Count, (i, s) =>
-			{
-				if (ImageHelper.IsBinaryImage(OtherUrl[i].ToString(), out br, ms)) {
-					DirectImages.Add(br);
-				}
-			});
-
-		}*/
+		
 
 		if (DirectImages.Any()) {
 			return true;

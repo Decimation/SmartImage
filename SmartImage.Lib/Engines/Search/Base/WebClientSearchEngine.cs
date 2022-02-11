@@ -14,13 +14,13 @@ public abstract class WebClientSearchEngine : ProcessedSearchEngine
 	public abstract override SearchEngineOptions EngineOption { get; }
 
 	public abstract override EngineSearchType SearchType { get; }
-	
+
 	protected override object GetProcessingObject(SearchResult sr) => ParseContent(sr.Origin);
-	
+
 	protected virtual object ParseContent(SearchResultOrigin origin)
 	{
-		var parser = new HtmlParser();
-		var readStringTask  = origin.Response.Content.ReadAsStringAsync();
+		var parser         = new HtmlParser();
+		var readStringTask = origin.Response.Content.ReadAsStringAsync();
 		readStringTask.Wait();
 		var content  = readStringTask.Result;
 		var document = parser.ParseDocument(content);

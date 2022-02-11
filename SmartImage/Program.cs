@@ -41,6 +41,7 @@ using SmartImage.Lib.Utilities;
 using SmartImage.Properties;
 using SmartImage.UI;
 using SmartImage.Utilities;
+using static Novus.Utilities.ReflectionOperatorHelpers;
 using Configuration = System.Configuration.Configuration;
 using EH = Kantan.Collections.EnumerableHelper;
 using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
@@ -113,44 +114,14 @@ public static class Program
 
 				ResultDialog.Refresh();
 			},
-			/*[ConsoleKey.F2] = async () =>
-			{
-				// F2 : Refine
-
-				tkSearch = new();
-				var buf = new List<ConsoleOption>(ResultDialog.Options);
-
-				ResultDialog.Options.Clear();
-				ResultDialog.Options.Add(_originalResult);
-
-				try {
-					await Client.RefineSearchAsync();
-				}
-				catch (Exception e) {
-					string s = $"Error: {e.Message.AddColor(UI.Elements.ColorError)}";
-
-					Console.WriteLine(
-						$"\n{Strings.Constants.CHEVRON} {s}");
-
-					ConsoleManager.WaitForTimeSpan(TimeSpan.FromSeconds(2));
-
-					ResultDialog.Options.Clear();
-
-					foreach (ConsoleOption t in buf) {
-						ResultDialog.Options.Add(t);
-					}
-
-				}
-
-				ResultDialog.Refresh();
-			},*/
 			[ConsoleKey.F10] = () =>
 			{
 				if (!_keepOnTop) {
-					Native.KeepWindowOnTop(WindowHandle);
+					Native.KeepWindowOnTop(_windowHandle);
 				}
 				else {
-					Native.RemoveWindowOnTop(WindowHandle);
+					Native.RemoveWindowOnTop(_windowHandle);
+
 				}
 
 				_keepOnTop = !_keepOnTop;
@@ -172,7 +143,8 @@ public static class Program
 				{
 					x = x.CleanString();
 
-					var m = ImageMedia.GetMediaInfo(x);
+					using var m = ImageMedia.GetMediaInfo(x);
+
 					return !((bool) m);
 				}, "Input must be file or direct image link");
 
@@ -183,15 +155,13 @@ public static class Program
 
 
 		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
-
-		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines),
-		                                           "Priority engines", Config),
+		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines), "Priority engines", Config),
 
 		Controls.CreateOption(nameof(Config.Filtering), "Filter", Config),
 		Controls.CreateOption(nameof(Config.Notification), "Notification", Config),
 		Controls.CreateOption(nameof(Config.NotificationImage), "Notification image", Config),
 
-		Controls.CreateOption(ReflectionOperatorHelpers.propertyof(() => AppIntegration.IsContextMenuAdded),
+		Controls.CreateOption(propertyof(() => AppIntegration.IsContextMenuAdded),
 		                      "Context menu", added => AppIntegration.HandleContextMenu(!added), Config),
 
 		new()
@@ -248,19 +218,7 @@ public static class Program
 
 				return null;
 			}
-		},
-#if DEBUG
-
-		new()
-		{
-			Name = "Debug",
-			Function = () =>
-			{
-				Config.Query = @"C:\Users\Deci\Pictures\Test Images\Test1.jpg";
-				return true;
-			}
-		},
-#endif
+		}
 
 	};
 
@@ -281,12 +239,9 @@ public static class Program
 		if (current.Status != VersionStatus.Available) {
 			return;
 		}
+		
 
-
-		MainMenuDialog.Insert("Help", current.GetConsoleOption());
-		WindowHandle = Native.GetConsoleWindow();
-
-
+		MainMenuDialog.Insert(^(1), current.GetConsoleOption());
 	}
 
 	#endregion
@@ -302,6 +257,7 @@ public static class Program
 		 * Check compatibility
 		 * Register events
 		 */
+		_windowHandle = Native.GetConsoleWindow();
 
 #if TEST
 		args = new[]
@@ -310,7 +266,7 @@ public static class Program
 			"",
 			// @"https://litter.catbox.moe/zxvtym.jpg"
 			// @"https://i.imgur.com/QtCausw.png"
-			
+
 			@"C:\Users\Deci\Downloads\maxresdefault.jpeg"
 			// @"C:\Users\Deci\Pictures\Test Images\Test1.jpg"
 		};
@@ -357,8 +313,8 @@ public static class Program
 
 		// Run search
 
-		_searchTask   = Client.RunSearchAsync(CtsSearch.Token);
-		_continueTask = Client.RunContinueAsync(CtsContinue.Token);
+		_searchTask   = Client.RunSearchAsync(CtsSearch.Token, CtsContinue);
+		_continueTask = Client.RunContinueAsync(CtsContinueTask.Token);
 
 
 		// Add original image
@@ -513,9 +469,11 @@ public static class Program
 
 	private static void OnCancel(object sender, ConsoleCancelEventArgs eventArgs)
 	{
+		Debug.WriteLine($"{nameof(OnCancel)}: cancellation requested", C_DEBUG);
+
 		CtsSearch.Cancel();
+		CtsContinueTask.Cancel();
 		CtsContinue.Cancel();
-		// _ctsReadInput.Cancel();
 
 		eventArgs.Cancel = true;
 		SystemSounds.Hand.Play();
@@ -530,7 +488,7 @@ public static class Program
 	{
 		Debug.WriteLine("Search completed");
 
-		Native.FlashWindow(WindowHandle);
+		Native.FlashWindow(_windowHandle);
 
 		// SystemSounds.Exclamation.Play();
 		CtsProgress.Cancel();
@@ -604,7 +562,7 @@ public static class Program
 
 	#endregion
 
-	private static readonly IntPtr WindowHandle;
+	private static IntPtr _windowHandle;
 
 	private static Task _searchTask;
 	private static Task _continueTask;
@@ -671,4 +629,6 @@ public static class Program
 			}
 		}
 	};
+
+	private static readonly CancellationTokenSource CtsContinueTask = new CancellationTokenSource();
 }

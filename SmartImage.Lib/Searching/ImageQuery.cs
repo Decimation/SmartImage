@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Kantan.Model;
@@ -93,14 +94,6 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
-	}
-
-	public static implicit operator ImageQuery(Uri value) => new(value.ToString());
-
-	public static implicit operator ImageQuery(string value) => new(value);
-
-	public ImageResult GetImageResult()
-	{
 
 
 		MediaResource directImage = new()
@@ -109,22 +102,36 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 			Url = UploadUri
 		};
 
-		var result = new ImageResult(null)
+		Image = Image.FromStream(Stream);
+
+		AsImageResult = new ImageResult(null)
 		{
 
 			// Image = Image.FromStream(Stream),
-			Url = UploadUri
+			Url = UploadUri,
+			OtherMetadata =
+			{
+				{ "Upload engine", UploadEngine.Name },
+				{ "Input type", IsUri ? "URI" : "File" },
+				{ "Input value", Value },
+				{ "Time", $"(upload: {UploadTime.TotalSeconds:F3})" }
+			},
+			Width = Image.Width, 
+			Height = Image.Height
+
 		};
+		AsImageResult.DirectImages.Add(directImage);
 
-		result.DirectImages.Add(directImage);
 
-		result.OtherMetadata.Add("Upload engine", UploadEngine.Name);
-		result.OtherMetadata.Add("Input type", IsUri ? "URI" : "File");
-		result.OtherMetadata.Add("Input value", Value);
-		result.OtherMetadata.Add("Time", $"(upload: {UploadTime.TotalSeconds:F3})");
-
-		return result;
 	}
+
+	public Image Image { get; }
+
+	public static implicit operator ImageQuery(Uri value) => new(value.ToString());
+
+	public static implicit operator ImageQuery(string value) => new(value);
+
+	public ImageResult AsImageResult { get; private set; }
 
 	public override string ToString()
 	{
@@ -133,11 +140,13 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public ConsoleOption GetConsoleOption()
 	{
-		return GetImageResult().GetConsoleOption("(Original image)", Color.Red.ChangeBrightness(-0.1f));
+		return AsImageResult.GetConsoleOption("(Original image)", Color.Red.ChangeBrightness(-0.1f));
 	}
 
 	public void Dispose()
 	{
 		Stream?.Dispose();
+		Image.Dispose();
+		Info.Dispose();
 	}
 }

@@ -114,8 +114,8 @@ public sealed class SearchClient : IDisposable
 		}
 
 		Engines = BaseSearchEngine.GetAllSearchEngines()
-		            .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
-		            .ToArray();
+		                          .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
+		                          .ToArray();
 
 		Trace.WriteLine($"{nameof(SearchClient)}: Config:\n{Config}", C_DEBUG);
 
@@ -146,27 +146,25 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	///     Performs an image search asynchronously.
 	/// </summary>
-	public async Task RunSearchAsync(CancellationToken? cts = null)
+	public async Task RunSearchAsync(CancellationToken cts, CancellationTokenSource cts2)
 	{
 		if (IsComplete) {
 			Reset();
 		}
 
 
-		cts ??= CancellationToken.None;
-
 		Tasks = new List<Task<SearchResult>>(Engines.Select(engine =>
 		{
-			var task = engine.GetResultAsync(Config.Query, cts.Value);
+			var task = engine.GetResultAsync(Config.Query, cts);
 
 			return task;
 		}));
 
 
-		while (!IsComplete && !cts.Value.IsCancellationRequested) {
+		while (!IsComplete && !cts.IsCancellationRequested) {
 			var finished = await Task.WhenAny(Tasks);
 
-			var task = finished.ContinueWith(GetResultContinueCallback, null, cts.Value,
+			var task = finished.ContinueWith(GetResultContinueCallback, state: cts2, cts,
 			                                 0, TaskScheduler.Default);
 
 			ContinueTasks.Add(task);
@@ -232,14 +230,13 @@ public sealed class SearchClient : IDisposable
 		SearchCompleted?.Invoke(null, args);
 	}
 
-	public async Task RunContinueAsync(CancellationToken? c = null)
+	public async Task RunContinueAsync(CancellationToken c)
 	{
 
 		IsContinueComplete = false;
 
-		c ??= CancellationToken.None;
 
-		while (!IsContinueComplete && !c.Value.IsCancellationRequested) {
+		while (!IsContinueComplete && !c.IsCancellationRequested) {
 			var task = await Task.WhenAny(ContinueTasks);
 			await task;
 
@@ -260,7 +257,8 @@ public sealed class SearchClient : IDisposable
 			return;
 		}
 
-		var result = value.GetBinaryImageResults();
+		var cts    = (CancellationTokenSource) state;
+		var result = value.GetBinaryImageResults(cts);
 
 		if (result.Any()) {
 
@@ -274,7 +272,7 @@ public sealed class SearchClient : IDisposable
 				if (DirectResultsWaitHandle.TrySetResult()) {
 					Debug.WriteLine("wait handle set");
 
-
+					
 				}
 
 			}
@@ -285,32 +283,6 @@ public sealed class SearchClient : IDisposable
 
 
 		}
-	}
-
-	/// <summary>
-	///     Refines search results by searching with the most-detailed result (<see cref="FindDirectResults" />).
-	/// </summary>
-	public async Task RefineSearchAsync()
-	{
-		if (!IsComplete) {
-			throw SearchException;
-		}
-
-		var directResult = DirectResults.FirstOrDefault();
-
-		if (directResult == null) {
-			throw new SmartImageException("Could not find direct result");
-		}
-
-		var direct = directResult.DirectImage.Url;
-
-		Debug.WriteLine($"{nameof(SearchClient)}: Refining by {direct}", C_DEBUG);
-
-		Config.Query = direct;
-
-		Reset();
-
-		await RunSearchAsync();
 	}
 
 	public static List<ImageResult> ApplyPredicateFilter(List<SearchResult> results, Predicate<SearchResult> predicate)
@@ -325,22 +297,6 @@ public sealed class SearchClient : IDisposable
 		return query;
 	}
 
-	/// <summary>
-	///     Maximizes search results by using the specified property selector.
-	/// </summary>
-	/// <returns><see cref="Results" /> ordered by <paramref name="property" /></returns>
-	public List<SearchResult> MaximizeResults<T>(Func<SearchResult, T> property)
-	{
-		if (!IsComplete) {
-			throw SearchException;
-		}
-
-		var res = Results.OrderByDescending(property).ToList();
-
-		res.RemoveAll(r => !r.IsNonPrimitive);
-
-		return res;
-	}
 
 	/// <summary>
 	/// Fires when <see cref="GetResultContinueCallback"/> returns

@@ -2,11 +2,13 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using JetBrains.Annotations;
 using Kantan.Net;
 using Novus.OS;
+#pragma warning disable IDE0079
 
 #pragma warning disable CS0168
 #pragma warning disable IDE0059

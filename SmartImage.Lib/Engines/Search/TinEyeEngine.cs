@@ -37,14 +37,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 	protected override async Task<List<ImageResult>> Browse(ImageQuery sd, SearchResult r)
 	{
-		using var browserFetcher = new BrowserFetcher();
-
-		var ri = await browserFetcher.DownloadAsync();
-
-		Debug.WriteLine($"{ri}");
-
-		var extra = new PuppeteerExtra();
-		extra.Use(new StealthPlugin());
+		PuppeteerExtra extra = await GetBrowser();
 
 		await using Browser browser = await extra.LaunchAsync(new LaunchOptions
 		{
@@ -55,24 +48,20 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 		await using Page page = await browser.NewPageAsync();
 
 		await page.GoToAsync(BaseUrl + sd.UploadUri);
-		// await page.ScreenshotAsync(@"C:\Users\Deci\Downloads\a.png");
 		await page.WaitForNavigationAsync();
 
 		var rd = page.Url;
 		Debug.WriteLine($"{rd}");
 
-		/*var rcText = await (await page.WaitForSelectorAsync("#result_count"))
-			             .GetPropertyAsync("textContent");*/
-
-		//div[class="match"]
-		//div[class*='match-row']
 
 		var resultElems = await page.QuerySelectorAllAsync("div[class='match']");
 
 		var img = new List<ImageResult>();
 
-		if ((await (await resultElems[0].QuerySelectorAsync("span")).GetPropertyAsync("textContent"))
-		    .ToValueString().Contains("sponsored", StringComparison.InvariantCultureIgnoreCase)) {
+		var firstSpan = await (await resultElems[0].QuerySelectorAsync("span"))
+			                .GetPropertyAsync("textContent");
+
+		if (firstSpan.ToValueString().Contains("sponsored", StringComparison.InvariantCultureIgnoreCase)) {
 			resultElems = resultElems.Skip(1).ToArray();
 		}
 
@@ -110,7 +99,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 				}
 
 				ir.OtherUrl.AddRange(uri);
-				
+
 
 				var imgElems = await t1.QuerySelectorAllAsync("img");
 				var imgList  = new List<Uri>();
@@ -120,26 +109,28 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 					imgList.Add(new Uri(src.ToValueString()));
 				}
-				
+
 				ir.OtherUrl.AddRange(imgList);
 				ir.Url = ir.OtherUrl.FirstOrDefault();
-
-				/*var union = imgList.Union(uri).ToArray();
-
-				var plr=Parallel.For(0, union.Length, (i, s) =>
-				{
-					if (ImageHelper.IsBinaryImage(union[i].ToString(), out var b,2000)) {
-						ir.DirectImages.Add(b);
-					}
-
-				});
-				r.Scanned = true;*/
 			}
 
 			img.Add(ir);
 		}
 
 		return img;
+	}
+
+	private static async Task<PuppeteerExtra> GetBrowser()
+	{
+		using var browserFetcher = new BrowserFetcher();
+
+		var ri = await browserFetcher.DownloadAsync();
+
+		Debug.WriteLine($"{ri}");
+
+		var extra = new PuppeteerExtra();
+		extra.Use(new StealthPlugin());
+		return extra;
 	}
 
 

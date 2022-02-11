@@ -3,9 +3,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Flurl.Http;
+using Kantan.Collections;
 using Kantan.Net;
 using Kantan.Text;
 using Novus.Utilities;
@@ -143,9 +145,24 @@ public abstract class BaseSearchEngine
 		var engines = typeof(BaseSearchEngine).GetAllSubclasses()
 		                                      .Select(Activator.CreateInstance)
 		                                      .Cast<BaseSearchEngine>()
-		                                      .ToArray();
-		
-		return engines;
+		                                      .ToList();
+
+		for (var i = engines.Count - 1; i >= 0; i--) {
+			BaseSearchEngine engine = engines[i];
+
+			var attr = engine.GetType().GetTypeInfo()
+			                 .GetCustomAttributes(typeof(ObsoleteAttribute), true)
+			                 .Cast<ObsoleteAttribute>()
+			                 .FirstOrDefault();
+
+			if (attr is { }) {
+				Debug.WriteLine($"Removing obsolete engine: {engine.Name}", C_INFO);
+				engines.RemoveAt(i);
+			}
+		}
+
+
+		return engines.ToArray();
 	}
 }
 

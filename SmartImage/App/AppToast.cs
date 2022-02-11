@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Drawing;
 using Windows.ApplicationModel.Background;
 using Kantan.Net;
 using Microsoft.Toolkit.Uwp.Notifications;
@@ -73,18 +74,50 @@ internal static class AppToast
 			return;
 		}
 
-		var directImage = directResults.OrderByDescending(x => x.PixelResolution)
-		                               .First();
+		/*var query = Program.Config.Query;
+
+		var img = Image.FromStream(query.Stream);
+
+		var aspectRatio = (double) img.Width / img.Height;
+
+		for (int di = 0; di < directResults.Count; di++) {
+			var ix = directResults[di];
+
+		}*/
+
+		var query = Program.Config.Query.AsImageResult;
+		var ar1   = (double) query.Width.Value / query.Height.Value;
+
+		var mediaResources = directResults.SelectMany(d => (d.DirectImages)).OrderBy(mr =>
+		{
+			var img = Image.FromStream(mr.Response.Content.ReadAsStream());
+
+			var ar2 = (double) img.Width / img.Height;
+
+			double d = ar1 / ar2;
+
+			Debug.WriteLine($"{mr.Url}: {ar2} | {d}");
+
+			return d;
+		}).ToList();
+
+		// var directImage = directResults.First();
 
 		var path = Path.GetTempPath();
 
-		string file = ImageMedia.Download(directImage.DirectImage.Url, path);
+		// string file = ImageMedia.Download(directImage.DirectImage.Url, path);
+
+		var mediaResource = mediaResources.First();
+
+		string file = ImageMedia.Download(mediaResource.Url, path);
 
 		if (file == null) {
 			int i = 0;
 
 			do {
-				file = ImageMedia.Download(directResults[i++].DirectImage.Url, path);
+				// file = ImageMedia.Download(directResults[i++].DirectImage.Url, path);
+
+				file = ImageMedia.Download(mediaResources[i++].Url, path);
 
 			} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 

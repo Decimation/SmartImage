@@ -145,27 +145,49 @@ public class SearchResult : IResult
 
 	public bool Scanned { get; internal set; }
 
-	public List<ImageResult> GetBinaryImageResults()
+	public List<ImageResult> GetBinaryImageResults(CancellationTokenSource c)
 	{
 		Debug.WriteLine($"{Engine.Name}: {nameof(GetBinaryImageResults)}", LogCategories.C_INFO);
 
 		var directResults = new List<ImageResult>();
 
-		var plr = Parallel.For(0, AllResults.Count, (i, pls) =>
+
+		var po = new ParallelOptions()
+		{
+			CancellationToken      = c.Token,
+			MaxDegreeOfParallelism = -1
+		};
+
+
+		var plr = Parallel.For(0, AllResults.Count, po, (i, pls) =>
 		{
 			var allResult = AllResults[i];
 
+
 			var b = allResult.ScanForBinaryImages(Timeout);
 
-			if (b && !directResults.Contains(allResult)) {
-				Debug.WriteLine($"{Engine.Name}: Found direct result " +
-				                $"{allResult.DirectImages.Select(x => x.Url.ToString()).QuickJoin()}",
-				                C_VERBOSE);
+			if (pls.IsStopped) {
+				Debug.WriteLine($"stopping parallel for {nameof(GetBinaryImageResults)}");
+				pls.Stop();
+			}
 
-				directResults.Add(allResult);
+			if (pls.ShouldExitCurrentIteration) {
+				pls.Break();
+			}
+
+			lock (directResults) {
+				if (b && !directResults.Contains(allResult)) {
+					Debug.WriteLine($"{Engine.Name}: Found direct result " +
+					                $"{allResult.DirectImages.Select(x => x.Url.ToString()).QuickJoin()}",
+					                C_VERBOSE);
+
+					directResults.Add(allResult);
+
+				}
 
 			}
 		});
+
 
 		Scanned = true;
 
@@ -179,7 +201,7 @@ public class SearchResult : IResult
 		foreach (ImageResult imageResult in AllResults) {
 			imageResult.Dispose();
 		}
-		
+
 		Origin.Dispose();
 		GC.SuppressFinalize(this);
 	}
@@ -279,7 +301,9 @@ public class SearchResult : IResult
 				ConsoleProgressIndicator.Instance.Start(cts);
 			}
 
-			var bir = GetBinaryImageResults();
+			var token = new CancellationTokenSource();
+
+			var bir = GetBinaryImageResults(token);
 
 			cts.Cancel();
 			cts.Dispose();
