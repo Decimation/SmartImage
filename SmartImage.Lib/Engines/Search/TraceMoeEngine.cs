@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Flurl.Http;
 using JetBrains.Annotations;
+using Kantan.Collections;
+using Kantan.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp.Serialization.Json;
@@ -11,6 +14,7 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
+using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
@@ -54,45 +58,54 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			                        .SetQueryParam("url",
 			                                       query.UploadUri.ToString(),
 			                                       true);
-
 			var task = request.GetStringAsync();
-
 			task.Wait(Timeout);
-			var result = task.Result;
+			var json = task.Result;
 
-			/*JObject jo;
-
-			jo = JObject.Parse(result);
-			var token = jo["result"];
-
-			Debug.WriteLine(result);
-			var rg    = JsonConvert.DeserializeObject<List<TraceMoeDoc>>(token.ToString());
-
-			tm            = new();
-			tm.result     = rg.ToList();
-			tm.error      = jo["error"].ToString();
-			tm.frameCount = long.Parse(jo["frameCount"].ToString());*/
-
-
-			// tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(result);
-			
 			var settings = new JsonSerializerSettings
 			{
 				Error = (sender, args) =>
 				{
-					if (object.Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) &&
-					    args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeDoc))
-					{
+
+					if (object.Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) /*&&
+					    args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)*/) {
 						args.ErrorContext.Handled = true;
+
 					}
+
+					Debug.WriteLine($"{args.ErrorContext}");
 				}
 			};
-			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(result, settings);
+
+			/*var tm2t = request.GetJsonAsync();
+			tm2t.Wait();
+			var tm2 = tm2t.Result;
+
+			dynamic result = tm2.result;
+			Debug.WriteLine($"{result}");
+			tm = new() { result = new(), error = tm2.error, frameCount = tm2.frameCount };
+
+			for (int i = 0; i < result.Count; i++) {
+				Debug.WriteLine($"{result[i]}");
+
+				var d = result[i];
+
+				var doc = new TraceMoeDoc()
+				{
+					episode = d.episode, 
+					from = d.from, 
+					to = d.to, 
+					filename = d.filename, anilist = d.anilist
+				};
+
+				tm.result.Add(doc);
+			}*/
 
 
+			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(json, settings);
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}");
+			Debug.WriteLine($">>>>{e.Message}");
 
 			goto ret;
 		}
@@ -145,10 +158,22 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			var   doc = docs[i];
 			float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
+			var episode = doc.episode;
+
+			string epStr = episode.ToString();
+
+			if (episode is string) {
+				epStr = episode as string;
+			}
+			else if (episode is IEnumerable enumerable) {
+				var ls = enumerable.CopyToList().Select(x => Int64.Parse(x.ToString() ?? String.Empty));
+				epStr = ls.QuickJoin();
+			}
+
 			var result = new ImageResult(r)
 			{
 				Similarity  = sim,
-				Description = $"Episode #{doc.episode} @ {TimeSpan.FromSeconds(doc.from)}"
+				Description = $"Episode #{epStr} @ {TimeSpan.FromSeconds(doc.from)}"
 			};
 
 			try {
@@ -199,8 +224,8 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 
 		/// <remarks>Episode field may contain multiple possible results delimited by <c>|</c></remarks>
-		[JsonIgnore]
-		public string episode { get; set; }
+		// [JsonIgnore]
+		public object episode { get; set; }
 
 		public double similarity { get; set; }
 
