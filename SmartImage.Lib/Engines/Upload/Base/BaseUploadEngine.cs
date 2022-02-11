@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Kantan.Numeric;
 using Novus.OS;
+using Novus.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload.Base;
 
@@ -42,5 +44,13 @@ public abstract class BaseUploadEngine
 		if (!IsFileSizeValid(file)) {
 			throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}");
 		}
+	}
+
+	public static BaseUploadEngine[] GetAllUploadEngines()
+	{
+		return typeof(BaseUploadEngine).GetAllSubclasses()
+		                               .Select(Activator.CreateInstance)
+		                               .Cast<BaseUploadEngine>()
+		                               .ToArray();
 	}
 }

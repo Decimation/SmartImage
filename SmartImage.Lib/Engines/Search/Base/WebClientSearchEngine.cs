@@ -14,9 +14,8 @@ public abstract class WebClientSearchEngine : ProcessedSearchEngine
 	public abstract override SearchEngineOptions EngineOption { get; }
 
 	public abstract override EngineSearchType SearchType { get; }
-
+	
 	protected override object GetProcessingObject(SearchResult sr) => ParseContent(sr.Origin);
-
 	
 	protected virtual object ParseContent(SearchResultOrigin origin)
 	{

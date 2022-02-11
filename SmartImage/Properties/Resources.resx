@@ -168,4 +168,13 @@
   <data name="ding" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\ding.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="MM_Status" xml:space="preserve">
+    <value>You can also drag and drop a file to run a search.</value>
+  </data>
+  <data name="NameBanner" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\NameBanner.txt;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
+  </data>
+  <data name="ticktock" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\ticktock1-half.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
 </root>

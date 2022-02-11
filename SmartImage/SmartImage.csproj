@@ -107,10 +107,6 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Cli\" />
-  </ItemGroup>
-
 
   <PropertyGroup>
     <PackageId>SmartImage</PackageId>

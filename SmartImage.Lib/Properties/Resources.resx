@@ -144,4 +144,7 @@
     <value>priority-engines</value>
     <comment>Config key: priority engines</comment>
   </data>
+  <data name="U_DeprecatedEngines" xml:space="preserve">
+    <value>https://raw.githubusercontent.com/Decimation/SmartImage/master/DEPRECATED_ENGINES</value>
+  </data>
 </root>

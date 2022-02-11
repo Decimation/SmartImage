@@ -122,5 +122,14 @@ namespace SmartImage.Lib.Properties {
                 return ResourceManager.GetString("K_PriorityEngines", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://raw.githubusercontent.com/Decimation/SmartImage/master/DEPRECATED_ENGINES.
+        /// </summary>
+        internal static string U_DeprecatedEngines {
+            get {
+                return ResourceManager.GetString("U_DeprecatedEngines", resourceCulture);
+            }
+        }
     }
 }

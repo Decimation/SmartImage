@@ -1,10 +1,15 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using Flurl.Http;
 using Kantan.Net;
+using Kantan.Text;
+using Novus.Utilities;
+using SmartImage.Lib.Properties;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -32,7 +37,6 @@ public abstract class BaseSearchEngine
 	protected bool FollowRedirects { get; set; } = true;
 
 	public abstract EngineSearchType SearchType { get; }
-	
 
 
 	public virtual SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
@@ -57,14 +61,14 @@ public abstract class BaseSearchEngine
 			sr.RawUri = sr.Origin.RawUri;
 			sr.Status = ResultStatus.Success;
 		}
-		
+
 		return sr;
 	}
 
 
 	public async Task<SearchResult> GetResultAsync(ImageQuery query, CancellationToken? c = null)
 	{
-		c??= CancellationToken.None;
+		c ??= CancellationToken.None;
 
 		var task = Task.Run(delegate
 		{
@@ -112,7 +116,6 @@ public abstract class BaseSearchEngine
 			success = true;
 		}
 
-		
 
 		string content = null;
 
@@ -126,13 +129,23 @@ public abstract class BaseSearchEngine
 		{
 			Response = res,
 			// Content  = content,
-			Success  = success,
-			RawUri   = rawUri,
-			Query    = query
+			Success = success,
+			RawUri  = rawUri,
+			Query   = query
 		};
 
 		return origin;
 
+	}
+
+	public static BaseSearchEngine[] GetAllSearchEngines()
+	{
+		var engines = typeof(BaseSearchEngine).GetAllSubclasses()
+		                                      .Select(Activator.CreateInstance)
+		                                      .Cast<BaseSearchEngine>()
+		                                      .ToArray();
+		
+		return engines;
 	}
 }
 

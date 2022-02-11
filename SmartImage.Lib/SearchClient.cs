@@ -107,18 +107,21 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
 	/// </summary>
-	public void Reload()
+	public void Reload(bool saveCfg = false)
 	{
 		if (Config.SearchEngines == SearchEngineOptions.None) {
 			Config.SearchEngines = SearchEngineOptions.All;
 		}
 
-		Engines = GetAllSearchEngines()
-		          .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
-		          .ToArray();
+		Engines = BaseSearchEngine.GetAllSearchEngines()
+		            .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
+		            .ToArray();
 
 		Trace.WriteLine($"{nameof(SearchClient)}: Config:\n{Config}", C_DEBUG);
 
+		if (saveCfg) {
+			Config.Save();
+		}
 	}
 
 	/// <summary>
@@ -337,22 +340,6 @@ public sealed class SearchClient : IDisposable
 		res.RemoveAll(r => !r.IsNonPrimitive);
 
 		return res;
-	}
-
-	public static BaseUploadEngine[] GetAllUploadEngines()
-	{
-		return typeof(BaseUploadEngine).GetAllSubclasses()
-		                               .Select(Activator.CreateInstance)
-		                               .Cast<BaseUploadEngine>()
-		                               .ToArray();
-	}
-
-	public static BaseSearchEngine[] GetAllSearchEngines()
-	{
-		return typeof(BaseSearchEngine).GetAllSubclasses()
-		                               .Select(Activator.CreateInstance)
-		                               .Cast<BaseSearchEngine>()
-		                               .ToArray();
 	}
 
 	/// <summary>

@@ -6,26 +6,28 @@ using Kantan.Cli.Controls;
 using Kantan.Utilities;
 using Novus.Utilities;
 
+// ReSharper disable PossibleNullReferenceException
+
 namespace SmartImage.UI;
 
 internal static class Controls
 {
-	public static ConsoleOption CreateOption(PropertyInfo member, string name, Action<bool> fn, object o)
+	internal static ConsoleOption CreateOption(PropertyInfo member, string name, Action<bool> fn, object o)
 	{
-		bool initVal = (bool) member.GetValue(o);
+		var initVal = (bool) member.GetValue(o);
 
 		var option = new ConsoleOption
 		{
-			Name = Controls.GetName(name, initVal)
+			Name = GetName(name, initVal)
 		};
 
 		option.Function = () =>
 		{
 			var pi = member.DeclaringType.GetProperty(member.Name);
 
-			bool curVal = (bool) pi.GetValue(null);
+			var curVal = (bool) pi.GetValue(null);
 			fn(curVal);
-			bool newVal = (bool) pi.GetValue(null);
+			var newVal = (bool) pi.GetValue(null);
 			option.Name = GetName(name, newVal);
 
 			Debug.Assert((bool) pi.GetValue(null) == newVal);
@@ -36,10 +38,10 @@ internal static class Controls
 		return option;
 	}
 
-	public static ConsoleOption CreateOption(string field, string name, object t)
+	internal static ConsoleOption CreateOption(string field, string name, object t)
 	{
-		bool initVal = (bool) t.GetType().GetAnyResolvedField(field)
-		                       .GetValue(t);
+		var initVal = (bool) t.GetType().GetAnyResolvedField(field)
+		                      .GetValue(t);
 
 		var option = new ConsoleOption
 		{
@@ -58,7 +60,7 @@ internal static class Controls
 
 			Debug.Assert((bool) fi.GetValue(t) == newVal);
 
-			Program.Reload(true);
+			Program.Client.Reload(true);
 
 			return null;
 		};
@@ -67,7 +69,7 @@ internal static class Controls
 		return option;
 	}
 
-	public static ConsoleOption CreateOption<T>(string f, string name, object o) where T : Enum
+	internal static ConsoleOption CreateOption<T>(string f, string name, object o) where T : Enum
 	{
 		return new()
 		{
@@ -93,7 +95,7 @@ internal static class Controls
 
 				Debug.Assert(((T) field.GetValue(o)).Equals(enumValue));
 
-				Program.Reload(true);
+				Program.Client.Reload(true);
 
 				return null;
 			}

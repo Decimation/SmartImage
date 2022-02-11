@@ -80,7 +80,6 @@ namespace SmartImage.Properties {
         
         /// <summary>
         ///   Looks up a localized string similar to F1,Show filtered results
-        ///F2,Refine
         ///F5,Refresh
         ///F10,Keep on top.
         /// </summary>
@@ -162,6 +161,40 @@ namespace SmartImage.Properties {
         internal static System.IO.UnmanagedMemoryStream hint {
             get {
                 return ResourceManager.GetStream("hint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You can also drag and drop a file to run a search..
+        /// </summary>
+        internal static string MM_Status {
+            get {
+                return ResourceManager.GetString("MM_Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to   ____                       _   ___
+        /// / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
+        /// \___ \| &apos;_ ` _ \ / _` | &apos;__| __|| || &apos;_ ` _ \ / _` |/ _` |/ _ \
+        ///  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/
+        /// |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|
+        ///                                                     |___/
+        ///
+        ///.
+        /// </summary>
+        internal static string NameBanner {
+            get {
+                return ResourceManager.GetString("NameBanner", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream ticktock {
+            get {
+                return ResourceManager.GetStream("ticktock", resourceCulture);
             }
         }
         

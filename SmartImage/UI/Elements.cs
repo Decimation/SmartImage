@@ -58,14 +58,5 @@ internal static class Elements
 
 	internal static string GetVersionString(Version v) => $"{v.Major}.{v.Minor}.{v.Build}";
 
-	/// <summary>
-	/// Name in ASCII art
-	/// </summary>
-	internal const string NAME_BANNER =
-		"  ____                       _   ___\n" +
-		" / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___\n" +
-		@" \___ \| '_ ` _ \ / _` | '__| __|| || '_ ` _ \ / _` |/ _` |/ _ \" + "\n" +
-		"  ___) | | | | | | (_| | |  | |_ | || | | | | | (_| | (_| |  __/\n" +
-		@" |____/|_| |_| |_|\__,_|_|   \__|___|_| |_| |_|\__,_|\__, |\___|" + "\n" +
-		"                                                     |___/\n";
+	
 }

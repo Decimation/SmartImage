@@ -154,7 +154,8 @@ public static class Program
 				}
 
 				_keepOnTop = !_keepOnTop;
-				SndDing.Play();
+				SndTick.Play();
+
 			}
 		}
 	};
@@ -217,7 +218,7 @@ public static class Program
 
 				var dependencies = ReflectionHelper.DumpDependencies();
 
-				var ls = new List<string>()
+				var ls = new List<string>
 				{
 					$"Author: {Resources.Author}",
 					$"Current version: {AppInfo.AppVersion} ({UpdateInfo.GetUpdateInfo().Status})",
@@ -266,9 +267,9 @@ public static class Program
 	private static readonly ConsoleDialog MainMenuDialog = new()
 	{
 		Options   = MainMenuOptions,
-		Header    = Elements.NAME_BANNER,
+		Header    = Resources.NameBanner,
 		Functions = new Dictionary<ConsoleKey, Action>(),
-		Status    = "You can also drag and drop a file to run a search."
+		Status    = Resources.MM_Status
 	};
 
 	static Program()
@@ -281,15 +282,8 @@ public static class Program
 			return;
 		}
 
-		int delta = 1;
 
-#if DEBUG
-		delta++;
-#endif
-
-		var idx = MainMenuOptions.Count - delta;
-
-		MainMenuDialog.Insert(idx, current.GetConsoleOption());
+		MainMenuDialog.Insert("Help", current.GetConsoleOption());
 		WindowHandle = Native.GetConsoleWindow();
 
 
@@ -346,7 +340,7 @@ public static class Program
 		 */
 
 		Config.Update();
-		Reload();
+		Client.Reload();
 
 		// Read config and arguments
 
@@ -356,7 +350,6 @@ public static class Program
 		BuildDescription();
 
 		RegisterEvents();
-		_origRes = Config.Query.GetConsoleOption();
 
 		CPI.Instance.Start(CtsProgress);
 
@@ -369,6 +362,8 @@ public static class Program
 
 
 		// Add original image
+		_origRes = Config.Query.GetConsoleOption();
+
 		ResultDialog.Options.Add(_origRes);
 
 		await ResultDialog.ReadInputAsync(CtsReadInput.Token);
@@ -407,26 +402,6 @@ public static class Program
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 		Console.CancelKeyPress += OnCancel;
-	}
-
-	private static void BuildDescription()
-	{
-		ResultDialog.AddDescription("Press the result number to open in browser", Elements.ColorOther)
-		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), Elements.ColorKey)
-		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), Elements.ColorKey);
-
-		ResultDialog.AddDescription(new Dictionary<string, string>
-		{
-			[Resources.D_SE]     = Config.SearchEngines.ToString(),
-			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
-			[Resources.D_Filter] = Elements.GetToggleString(Config.Filtering),
-		}, Elements.ColorKey2);
-
-		ResultDialog.AddDescription(new Dictionary<string, string>
-		{
-			[Resources.D_NI] = Elements.GetToggleString(Config.NotificationImage),
-			[Resources.D_N]  = Elements.GetToggleString(Config.Notification),
-		}, Elements.ColorKey2);
 	}
 
 	/// <summary>
@@ -484,7 +459,27 @@ public static class Program
 		return true;
 	}
 
-	private static void GetStatus()
+	private static void BuildDescription()
+	{
+		ResultDialog.AddDescription("Press the result number to open in browser", Elements.ColorOther)
+		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), Elements.ColorKey)
+		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), Elements.ColorKey);
+
+		ResultDialog.AddDescription(new Dictionary<string, string>
+		{
+			[Resources.D_SE]     = Config.SearchEngines.ToString(),
+			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
+			[Resources.D_Filter] = Elements.GetToggleString(Config.Filtering),
+		}, Elements.ColorKey2);
+
+		ResultDialog.AddDescription(new Dictionary<string, string>
+		{
+			[Resources.D_NI] = Elements.GetToggleString(Config.NotificationImage),
+			[Resources.D_N]  = Elements.GetToggleString(Config.Notification),
+		}, Elements.ColorKey2);
+	}
+
+	private static void BuildStatus()
 	{
 		var map = new Dictionary<string, string>
 		{
@@ -512,15 +507,6 @@ public static class Program
 		map.Add("Status", status);
 
 		ResultDialog.Status = Strings.GetMapString(map);
-	}
-
-	internal static void Reload(bool saveCfg = false)
-	{
-		Client.Reload();
-
-		if (saveCfg) {
-			Config.Save();
-		}
 	}
 
 	#region Event handlers
@@ -563,7 +549,7 @@ public static class Program
 
 		SndHint.Play();
 
-		GetStatus();
+		BuildStatus();
 
 	}
 
@@ -588,14 +574,16 @@ public static class Program
 			option.Function();
 		}
 
-		GetStatus();
+		BuildStatus();
 	}
 
 	#endregion
 
+
 	#region Resources
 
-	private static readonly SoundPlayer SndDing = new(Resources.ding);
+	private static readonly SoundPlayer SndTick = new(Resources.ticktock);
+
 	private static readonly SoundPlayer SndHint = new(Resources.hint);
 
 	#endregion
@@ -616,10 +604,13 @@ public static class Program
 
 	#endregion
 
+	private static readonly IntPtr WindowHandle;
+
 	private static Task _searchTask;
 	private static Task _continueTask;
 
-	internal static IntPtr WindowHandle { get; set; }
+	private static ConsoleOption _origRes;
+
 
 	/// <summary>
 	/// Command line argument handler
@@ -634,7 +625,7 @@ public static class Program
 				ParameterId   = "-se",
 				Function = strings =>
 				{
-					Program.Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
 					return null;
 				}
 			},
@@ -644,7 +635,7 @@ public static class Program
 				ParameterId   = "-pe",
 				Function = strings =>
 				{
-					Program.Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
 					return null;
 				}
 			},
@@ -654,7 +645,7 @@ public static class Program
 				ParameterId   = "-f",
 				Function = delegate
 				{
-					Program.Config.Filtering = true;
+					Config.Filtering = true;
 					return null;
 				}
 			},
@@ -664,7 +655,7 @@ public static class Program
 				ParameterId   = "-output_only",
 				Function = delegate
 				{
-					Program.Config.OutputOnly = true;
+					Config.OutputOnly = true;
 					return null;
 				}
 			}
@@ -675,11 +666,9 @@ public static class Program
 			ParameterId   = null,
 			Function = strings =>
 			{
-				Program.Config.Query = strings[0];
+				Config.Query = strings[0];
 				return null;
 			}
 		}
 	};
-
-	private static ConsoleOption _origRes;
 }
