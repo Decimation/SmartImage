@@ -5,7 +5,7 @@ using Kantan.Numeric;
 using Novus.OS;
 using Novus.Utilities;
 
-namespace SmartImage.Lib.Engines.Upload.Base;
+namespace SmartImage.Lib.Engines.Upload;
 
 public abstract class BaseUploadEngine
 {

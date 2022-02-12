@@ -7,7 +7,6 @@ using Flurl.Http;
 using Flurl.Http.Content;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SmartImage.Lib.Engines.Upload.Base;
 
 // ReSharper disable PossibleNullReferenceException
 

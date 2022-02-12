@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using Kantan.Net;
+using Kantan.Net.Media;
 
 namespace SmartImage.Lib.Utilities;
 
@@ -11,7 +12,7 @@ public readonly struct MediaResourceInfo : IDisposable
 	public MediaResource Resource { get; internal init; }
 
 	[MN]
-	public HttpResponseMessage Message { get; internal init; }
+	public HttpResponseMessage Message => Resource.Response;
 
 	/// <summary>
 	/// Whether this is a binary URI

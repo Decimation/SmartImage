@@ -25,19 +25,17 @@ public static class WebDriverExtensions
 public sealed class TinEyeEngine : WebDriverSearchEngine
 {
 	public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
-
-	protected override object GetProcessingObject(SearchResult sr)
-	{
-		return sr.Origin.Query;
-	}
+	
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
 
 	public override EngineSearchType SearchType => EngineSearchType.Image;
 
-	protected override async Task<List<ImageResult>> Browse(ImageQuery sd, SearchResult r)
+	public override void Dispose() { }
+
+	protected override async Task<List<ImageResult>> BrowseAsync(ImageQuery sd, SearchResult r)
 	{
-		PuppeteerExtra extra = await GetBrowser();
+		PuppeteerExtra extra = await GetBrowserAsync();
 
 		await using Browser browser = await extra.LaunchAsync(new LaunchOptions
 		{
@@ -51,7 +49,6 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 		await page.WaitForNavigationAsync();
 
 		var rd = page.Url;
-		Debug.WriteLine($"{rd}");
 
 
 		var resultElems = await page.QuerySelectorAllAsync("div[class='match']");
@@ -117,20 +114,8 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 			img.Add(ir);
 		}
 
+		browser.Dispose();
 		return img;
-	}
-
-	private static async Task<PuppeteerExtra> GetBrowser()
-	{
-		using var browserFetcher = new BrowserFetcher();
-
-		var ri = await browserFetcher.DownloadAsync();
-
-		Debug.WriteLine($"{ri}");
-
-		var extra = new PuppeteerExtra();
-		extra.Use(new StealthPlugin());
-		return extra;
 	}
 
 
@@ -140,7 +125,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 		// var vr = base.GetResult(query);
 
-		var task = Browse(query, sr);
+		var task = BrowseAsync(query, sr);
 		task.Wait();
 		List<ImageResult> list = task.Result;
 		Debug.WriteLine($"{list.Count}");

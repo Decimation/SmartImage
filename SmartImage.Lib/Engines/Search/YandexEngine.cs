@@ -16,12 +16,12 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class YandexEngine : WebClientSearchEngine
+public sealed class YandexEngine : WebContentSearchEngine
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=") { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
-	
+
 
 	public override TimeSpan Timeout => TimeSpan.FromSeconds(6.5);
 
@@ -54,7 +54,7 @@ public sealed class YandexEngine : WebClientSearchEngine
 			return null;
 		}
 
-		 ImageResult Parse(INode siz)
+		ImageResult Parse(INode siz)
 		{
 			string link    = siz.FirstChild.TryGetAttribute("href");
 			string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
@@ -103,7 +103,7 @@ public sealed class YandexEngine : WebClientSearchEngine
 		return (w, h);
 	}
 
-	private static List<ImageResult> GetImages(IDocument doc,SearchResult r)
+	private static List<ImageResult> GetImages(IDocument doc, SearchResult r)
 	{
 		var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
 		var images   = new List<ImageResult>();
@@ -115,7 +115,7 @@ public sealed class YandexEngine : WebClientSearchEngine
 		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
 		                                       .Contains("CbirItem"));
 
-		 ImageResult Parse(INode siz)
+		ImageResult Parse(INode siz)
 		{
 			string? link = siz.TryGetAttribute("href");
 
@@ -160,7 +160,7 @@ public sealed class YandexEngine : WebClientSearchEngine
 			sr.Status = ResultStatus.Cooldown;
 			return sr;
 		}
-			
+
 		/*
 		 * Parse what the image looks like
 		 */
@@ -208,7 +208,7 @@ public sealed class YandexEngine : WebClientSearchEngine
 			>= 1 => ResultQuality.High,
 			_    => ResultQuality.Low,
 		};
-		
+
 
 		return sr;
 	}

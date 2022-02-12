@@ -23,4 +23,5 @@ public abstract class ClientSearchEngine : ProcessedSearchEngine
 		return sr.Origin.Query;
 	}
 
+
 }

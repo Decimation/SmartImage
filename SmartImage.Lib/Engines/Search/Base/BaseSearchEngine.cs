@@ -20,7 +20,7 @@ namespace SmartImage.Lib.Engines.Search.Base;
 /// <summary>
 /// Base search engine.
 /// </summary>
-public abstract class BaseSearchEngine
+public abstract class BaseSearchEngine : IDisposable
 {
 	protected BaseSearchEngine(string baseUrl)
 	{
@@ -164,6 +164,9 @@ public abstract class BaseSearchEngine
 
 		return engines.ToArray();
 	}
+
+	public virtual void Dispose() { }
+
 }
 
 /// <summary>

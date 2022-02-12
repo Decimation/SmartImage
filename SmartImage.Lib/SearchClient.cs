@@ -13,7 +13,6 @@ using Novus.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload;
-using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Flurl.Http;
-using SmartImage.Lib.Engines.Upload.Base;
 
 // ReSharper disable StringLiteralTypo
 

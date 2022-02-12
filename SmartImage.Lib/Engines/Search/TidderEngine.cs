@@ -15,7 +15,7 @@ using SmartImage.Lib.Searching;
 namespace SmartImage.Lib.Engines.Search;
 
 [Obsolete]
-public sealed class TidderEngine : WebClientSearchEngine
+public sealed class TidderEngine : WebContentSearchEngine
 {
 	public TidderEngine() : base("http://tidder.xyz/?imagelink=") { }
 

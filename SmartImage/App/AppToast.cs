@@ -156,7 +156,7 @@ internal static class AppToast
 					break;
 				}
 
-				WebUtilities.OpenUrl(argument.Value);
+				HttpUtilities.OpenUrl(argument.Value);
 			}
 		}
 

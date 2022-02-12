@@ -214,7 +214,7 @@ public static class Program
 			Name = "Help",
 			Function = () =>
 			{
-				WebUtilities.OpenUrl(Resources.U_Wiki);
+				HttpUtilities.OpenUrl(Resources.U_Wiki);
 
 				return null;
 			}
@@ -498,7 +498,7 @@ public static class Program
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 			var m = Client.Results.OrderByDescending(x => x.PrimaryResult.Similarity);
 
-			WebUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
+			HttpUtilities.OpenUrl(m.First().PrimaryResult.Url.ToString());
 		}
 
 		if (Config.Notification) {

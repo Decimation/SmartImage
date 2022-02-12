@@ -60,7 +60,7 @@ public interface IResult : IDisposable, IConsoleOption
 		return () =>
 		{
 			if (url != null) {
-				WebUtilities.OpenUrl(url.ToString());
+				HttpUtilities.OpenUrl(url.ToString());
 			}
 
 			return null;

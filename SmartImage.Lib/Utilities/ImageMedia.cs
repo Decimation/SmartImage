@@ -7,7 +7,10 @@ using System.Net;
 using System.Net.Http;
 using JetBrains.Annotations;
 using Kantan.Net;
+using Kantan.Net.Media;
+using Kantan.Net.Media.Filters;
 using Novus.OS;
+
 #pragma warning disable IDE0079
 
 #pragma warning disable CS0168
@@ -54,19 +57,16 @@ public static class ImageMedia
 	 * https://github.com/regosen/gallery_get
 	 */
 
-	public static List<MediaResource> Scan(string url, int ms) 
-		=> MediaSniffer.Scan(url, MediaImageFilter.Default, ms);
+	public static List<MediaResource> Scan(string url, int ms) => MediaSniffer.Scan(url, MediaImageFilter.Default, ms);
 
 	public static MediaResourceInfo GetMediaInfo(string x, int ms = TIMEOUT)
 	{
-		var isBinUri = MediaResource.FromUrl(x, MediaImageFilter.Default,
-		                                     out var di, out var m, ms);
+		var isBinUri = MediaResource.FromUrl(x, MediaImageFilter.Default, out var di, ms);
 
 		var isFile = File.Exists(x);
 
 		var mri = new MediaResourceInfo
 		{
-			Message  = m,
 			Resource = di,
 			IsFile   = isFile,
 			IsUri    = isBinUri

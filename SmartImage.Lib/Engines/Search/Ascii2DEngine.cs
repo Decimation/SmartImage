@@ -20,14 +20,15 @@ using SmartImage.Lib.Searching;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class Ascii2DEngine : WebClientSearchEngine
+public sealed class Ascii2DEngine : WebContentSearchEngine
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
 
 	public override TimeSpan Timeout => TimeSpan.FromSeconds(5);
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
-	
+
+
 
 	/// <inheritdoc />
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
@@ -87,7 +88,7 @@ public sealed class Ascii2DEngine : WebClientSearchEngine
 		var message = new HttpRequestMessage(HttpMethod.Get, rawUri);
 		message.Headers.Add("User-Agent", HttpUtilities.UserAgent);
 		var response = client.Send(message);
-		
+
 		var task = response.Content.ReadAsStringAsync();
 
 		task.Wait(Timeout);

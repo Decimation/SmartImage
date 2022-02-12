@@ -9,11 +9,11 @@ using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Kantan.Model;
 using Kantan.Net;
+using Kantan.Net.Media;
 using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Upload;
-using SmartImage.Lib.Engines.Upload.Base;
 using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
 
@@ -54,7 +54,11 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public TimeSpan UploadTime { get; }
 
-	public MediaResourceInfo Info { get; }
+	public MediaResourceInfo Info          { get; }
+	
+	public Image             Image         { get; }
+
+	public ImageResult       AsImageResult { get; }
 
 	public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 	{
@@ -116,22 +120,17 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 				{ "Input value", Value },
 				{ "Time", $"(upload: {UploadTime.TotalSeconds:F3})" }
 			},
-			Width = Image.Width, 
+			Width  = Image.Width,
 			Height = Image.Height
 
 		};
+
 		AsImageResult.DirectImages.Add(directImage);
-
-
 	}
-
-	public Image Image { get; }
 
 	public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
 	public static implicit operator ImageQuery(string value) => new(value);
-
-	public ImageResult AsImageResult { get; private set; }
 
 	public override string ToString()
 	{

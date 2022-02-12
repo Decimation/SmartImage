@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Kantan.Net;
+using Kantan.Net.Media;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;

@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Kantan.Model;
 using Kantan.Net;
+using Kantan.Net.Media;
 using Kantan.Numeric;
 using Kantan.Text;
 using Kantan.Utilities;
