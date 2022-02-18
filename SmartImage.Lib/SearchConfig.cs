@@ -59,6 +59,7 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 			if (!map.ContainsKey(key)) {
 				map.Add(key, value);
 			}
+			
 		}
 
 		SearchEngines     = Enum.Parse<SearchEngineOptions>(map[Resources.K_Engines]);

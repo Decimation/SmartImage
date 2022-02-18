@@ -19,7 +19,7 @@ using Size = OpenCvSharp.Size;
 
 #pragma warning disable IDE0079
 #pragma warning disable CS0168, CS1998
-#pragma warning disable IDE0060
+#pragma warning disable IDE0060, IDE1006, IDE0051,IDE0059
 
 namespace Test;
 /* 
@@ -169,15 +169,17 @@ public static class Program
 		t2 = sigma1_2 + sigma22 + C2;
 		t1 = t1.Mul(t2); // t1 =((mu1_2 + mu2_2 + C1).*(sigma1_2 + sigma2_2 + C2))
 
-		Mat ssimMap = new Mat();
+		var ssimMap = new Mat();
 		Cv2.Divide(t3, t1, ssimMap); // ssim_map =  t3./t1;
 
 		Scalar mssim = Cv2.Mean(ssimMap); // mssim = average of ssim map
 
 
-		SSIMResult result = new SSIMResult();
-		result.diff  = ssimMap;
-		result.mssim = mssim;
+		var result = new SSIMResult
+		{
+			diff  = ssimMap,
+			mssim = mssim
+		};
 		Console.WriteLine(result.score);
 	}
 

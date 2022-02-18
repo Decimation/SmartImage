@@ -17,11 +17,4 @@ public abstract class ClientSearchEngine : ProcessedSearchEngine
 	public abstract override EngineSearchType SearchType { get; }
 
 	protected string EndpointUrl { get; }
-
-	protected override object GetProcessingObject(SearchResult sr)
-	{
-		return sr.Origin.Query;
-	}
-
-
 }

@@ -33,6 +33,8 @@ public readonly struct MediaResourceInfo : IDisposable
 	/// <returns><see cref="IsValid"/></returns>
 	public static explicit operator bool(MediaResourceInfo mri) => mri.IsValid;
 
+	
+
 	public override string ToString()
 	{
 		return $"{nameof(Resource)}: {Resource}, " +

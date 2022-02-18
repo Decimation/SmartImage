@@ -19,7 +19,6 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 	public abstract override EngineSearchType SearchType { get; }
 
 
-
 	public sealed override SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
 	{
 		var sr = base.GetResult(query, c);
@@ -59,13 +58,10 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 		return sr;
 	}
 
-	protected abstract object GetProcessingObject(SearchResult sr);
+	protected virtual object GetProcessingObject(SearchResult sr) => sr.Origin.Query;
 
 	/// <summary>
 	/// Processes engine results
 	/// </summary>
-	/// <param name="obj">Content upon which to operate, returned by <see cref="SearchResult.ParseContent"/></param>
-	/// <param name="sr"><see cWebContentSearchEngineineineParseContent"/> to build</param>
-	/// <returns>Final <see cref="WebContentSearchEngine"/></returns>
 	protected abstract SearchResult Process(object obj, SearchResult sr);
 }

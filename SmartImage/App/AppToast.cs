@@ -64,9 +64,10 @@ internal static class AppToast
 	{
 		Task.WaitAny(Program.Client.ContinueTasks.ToArray());
 
-		// var w = Program.Client.DirectResultsWaitHandle;
+		var w = Program.Client.ContinueTaskCompletionSource;
 		// w.WaitOne();
 		// w.Dispose();
+		w.Task.Wait();
 
 		var directResults = Program.Client.DirectResults;
 
@@ -86,20 +87,9 @@ internal static class AppToast
 		}*/
 
 		var query = Program.Config.Query.AsImageResult;
-		var ar1   = (double) query.Width.Value / query.Height.Value;
+		// var ar1   = (double) query.Width.Value / query.Height.Value;
 
-		var mediaResources = directResults.SelectMany(d => (d.DirectImages)).OrderBy(mr =>
-		{
-			var img = Image.FromStream(mr.Response.Content.ReadAsStream());
-
-			var ar2 = (double) img.Width / img.Height;
-
-			double d = ar1 / ar2;
-
-			Debug.WriteLine($"{mr.Url}: {ar2} | {d}");
-
-			return d;
-		}).ToList();
+		var mediaResources = directResults.SelectMany(d => (d.DirectImages)).ToList();
 
 		// var directImage = directResults.First();
 

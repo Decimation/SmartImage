@@ -42,7 +42,7 @@ public sealed class SearchClient : IDisposable
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
 
-		DirectResultsWaitHandle = new();
+		ContinueTaskCompletionSource = new();
 
 		Reload();
 
@@ -100,7 +100,7 @@ public sealed class SearchClient : IDisposable
 
 	public List<Task> ContinueTasks { get; }
 
-	public TaskCompletionSource DirectResultsWaitHandle { get; private set; }
+	public TaskCompletionSource ContinueTaskCompletionSource { get; private set; }
 
 
 	/// <summary>
@@ -138,14 +138,14 @@ public sealed class SearchClient : IDisposable
 		IsComplete         = false;
 		IsContinueComplete = false;
 
-		DirectResultsWaitHandle = new();
+		ContinueTaskCompletionSource = new();
 		Reload();
 	}
 
 	/// <summary>
 	///     Performs an image search asynchronously.
 	/// </summary>
-	public async Task RunSearchAsync(CancellationToken cts, CancellationTokenSource cts2)
+	public async Task RunSearchAsync(CancellationTokenSource cts2, CancellationToken cts)
 	{
 		if (IsComplete) {
 			Reset();
@@ -262,38 +262,18 @@ public sealed class SearchClient : IDisposable
 		if (result.Any()) {
 
 			DirectResults.AddRange(result);
-
 			value.Scanned = true;
 
 			if (DirectResults.Count > 0 /*||
 			    !DirectResultsWaitHandle.SafeWaitHandle.IsClosed*/ /*|| ContinueTasks.Count==1*/) {
 
-				if (DirectResultsWaitHandle.TrySetResult()) {
-					Debug.WriteLine("wait handle set");
-
-					
+				if (ContinueTaskCompletionSource.TrySetResult()) {
+					Debug.WriteLine($"{nameof(ContinueTaskCompletionSource)} set");
 				}
-
 			}
 
 			ContinueCompleted?.Invoke(null, EventArgs.Empty);
-
-			// if (result.Any()) { }
-
-
 		}
-	}
-
-	public static List<ImageResult> ApplyPredicateFilter(List<SearchResult> results, Predicate<SearchResult> predicate)
-	{
-		var query = results.Where(r => predicate(r))
-		                   .SelectMany(r => r.AllResults)
-		                   .OrderByDescending(r => r.Similarity)
-		                   .ThenByDescending(r => r.PixelResolution)
-		                   .ThenByDescending(r => r.DetailScore)
-		                   .ToList();
-
-		return query;
 	}
 
 
@@ -311,9 +291,6 @@ public sealed class SearchClient : IDisposable
 	///     Fires when a search is complete (<see cref="RunSearchAsync" />).
 	/// </summary>
 	public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
-
-
-	private static readonly SmartImageException SearchException = new("Search not complete");
 
 
 	public void Dispose()

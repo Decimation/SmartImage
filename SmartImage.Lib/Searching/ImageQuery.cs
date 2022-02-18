@@ -54,11 +54,11 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public TimeSpan UploadTime { get; }
 
-	public MediaResourceInfo Info          { get; }
-	
-	public Image             Image         { get; }
+	public MediaResourceInfo Info { get; }
 
-	public ImageResult       AsImageResult { get; }
+	public Image Image { get; }
+
+	public ImageResult AsImageResult { get; }
 
 	public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
 	{
@@ -72,8 +72,9 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 		Info = ImageMedia.GetMediaInfo(value);
 
-		if (!((bool) Info)) {
-			throw new ArgumentException($"Input error: {Info.Message?.ReasonPhrase}");
+		if (!(bool) Info) {
+			var errStr = !Info.IsFile ? "Invalid file" : "Invalid URI";
+			throw new ArgumentException($"Input error: {errStr}");
 		}
 
 		Value = value;

@@ -119,7 +119,7 @@ public abstract class BaseSearchEngine : IDisposable
 		}
 
 
-		string content = null;
+		// string content = null;
 
 		if (success && res is { }) {
 			// var task = res.Content.ReadAsStringAsync();
@@ -165,8 +165,10 @@ public abstract class BaseSearchEngine : IDisposable
 		return engines.ToArray();
 	}
 
-	public virtual void Dispose() { }
-
+	public virtual void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
 }
 
 /// <summary>

@@ -23,12 +23,7 @@ public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 	public abstract override EngineSearchType SearchType { get; }
 
 	protected abstract Task<List<ImageResult>> BrowseAsync(ImageQuery sd, SearchResult r);
-
-	protected override object GetProcessingObject(SearchResult sr)
-	{
-		return sr.Origin.Query;
-	}
-
+	
 	protected static async Task<PuppeteerExtra> GetBrowserAsync()
 	{
 		using var browserFetcher = new BrowserFetcher();

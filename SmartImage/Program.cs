@@ -45,6 +45,7 @@ using static Novus.Utilities.ReflectionOperatorHelpers;
 using Configuration = System.Configuration.Configuration;
 using EH = Kantan.Collections.EnumerableHelper;
 using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
+using FileSystem = Novus.OS.FileSystem;
 
 // ReSharper disable InlineTemporaryVariable
 
@@ -179,6 +180,17 @@ public static class Program
 		},
 		new()
 		{
+			Name = "Open folder",
+			Function = () =>
+			{
+				//Console.Clear();
+				FileSystem.ExploreFile(Config.FullName.ToString());
+
+				return null;
+			}
+		},
+		new()
+		{
 			Name = "Info",
 			Function = () =>
 			{
@@ -218,7 +230,19 @@ public static class Program
 
 				return null;
 			}
+		},
+#if DEBUG
+		new()
+		{
+			Name     = "debug",
+			Function = () =>
+			{
+
+				Config.Query = @"https://i.imgur.com/QtCausw.png";
+				return true;
+			}
 		}
+#endif
 
 	};
 
@@ -239,7 +263,7 @@ public static class Program
 		if (current.Status != VersionStatus.Available) {
 			return;
 		}
-		
+
 
 		MainMenuDialog.Insert(^(1), current.GetConsoleOption());
 	}
@@ -265,20 +289,20 @@ public static class Program
 
 			"",
 			// @"https://litter.catbox.moe/zxvtym.jpg"
-			// @"https://i.imgur.com/QtCausw.png"
+			@"https://i.imgur.com/QtCausw.png"
 
-			@"C:\Users\Deci\Downloads\maxresdefault.jpeg"
+			// @"C:\Users\Deci\Downloads\maxresdefault.jpeg"
 			// @"C:\Users\Deci\Pictures\Test Images\Test1.jpg"
 		};
 
 		Debug.WriteLine($"Configuration: TEST", C_INFO);
 
 		Config.SearchEngines = SearchEngineOptions.TraceMoe;
+		Config.NotificationImage = true;
 #endif
 
 
 		InitConsole();
-
 
 		_keepOnTop = false;
 
@@ -304,7 +328,6 @@ public static class Program
 			return;
 
 		BuildDescription();
-
 		RegisterEvents();
 
 		CPI.Instance.Start(CtsProgress);
@@ -313,7 +336,8 @@ public static class Program
 
 		// Run search
 
-		_searchTask   = Client.RunSearchAsync(CtsSearch.Token, CtsContinue);
+		
+		_searchTask   = Client.RunSearchAsync(CtsContinue, CtsSearch.Token);
 		_continueTask = Client.RunContinueAsync(CtsContinueTask.Token);
 
 
@@ -336,7 +360,7 @@ public static class Program
 		Client.Dispose();
 		Client.Reset();
 
-		_ = Console.ReadKey(true);
+		ConsoleManager.WaitForInput();
 	}
 
 	private static void InitConsole()
@@ -630,5 +654,5 @@ public static class Program
 		}
 	};
 
-	private static readonly CancellationTokenSource CtsContinueTask = new CancellationTokenSource();
+	private static readonly CancellationTokenSource CtsContinueTask = new();
 }

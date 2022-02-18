@@ -17,7 +17,6 @@ public abstract class WebContentSearchEngine : ProcessedSearchEngine
 
 	protected override object GetProcessingObject(SearchResult sr) => ParseContent(sr.Origin);
 
-
 	protected virtual object ParseContent(SearchResultOrigin origin)
 	{
 		var parser         = new HtmlParser();
