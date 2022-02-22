@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Kantan.Diagnostics;
 using Kantan.Text;
+using Novus;
 using Novus.OS;
 using SmartImage.Lib.Utilities;
 
@@ -33,8 +34,8 @@ public static class AppInfo
 	/// Executable file name
 	/// </summary>
 	public const string NAME_EXE = "SmartImage.exe";
-	
-		
+
+
 	public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
 	public static Version AppVersion => typeof(AppInfo).Assembly.GetName().Version!;
@@ -68,16 +69,16 @@ public static class AppInfo
 		/*if (!OperatingSystem.IsWindows()) {
 			throw new NotSupportedException();
 		}*/
-			
+
 		// Remove old path directories
-		
+		Global.Setup();
 		var pathDirectories = FileSystem.GetEnvironmentPathDirectories();
-		var oldFolders      = pathDirectories.Where(x=>x.Contains(NAME) && x!= AppFolder);
+		var oldFolders      = pathDirectories.Where(x => x.Contains(NAME) && x != AppFolder);
 
 		foreach (string s in oldFolders) {
 			FileSystem.RemoveFromPath(s);
 		}
-		
+
 		if (!IsAppFolderInPath) {
 			AppIntegration.HandlePath(true);
 		}

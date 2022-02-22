@@ -45,7 +45,15 @@ internal static class Controls
 
 		var option = new ConsoleOption
 		{
-			Name = GetName(name, initVal)
+			Name = GetName(name, initVal),
+
+			UpdateOption = (xx) =>
+			{
+				var v = (bool) t.GetType().GetAnyResolvedField(field)
+				                .GetValue(t);
+
+				return GetName(name, v);
+			}
 		};
 
 		option.Function = () =>

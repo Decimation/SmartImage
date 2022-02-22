@@ -234,7 +234,7 @@ public static class Program
 #if DEBUG
 		new()
 		{
-			Name     = "debug",
+			Name = "debug",
 			Function = () =>
 			{
 
@@ -322,12 +322,23 @@ public static class Program
 		Config.Update();
 		Client.Reload();
 
+
+		foreach (ConsoleOption option in MainMenuDialog.Options) {
+			if (option.UpdateOption is {}) {
+				var name =option.UpdateOption?.Invoke(option);
+				option.Name = name;
+				Debug.WriteLine(name);
+			}
+		}
+
 		// Read config and arguments
+
 
 		if (!await HandleStartup(args))
 			return;
 
 		BuildDescription();
+
 		RegisterEvents();
 
 		CPI.Instance.Start(CtsProgress);
@@ -336,10 +347,8 @@ public static class Program
 
 		// Run search
 
-		
 		_searchTask   = Client.RunSearchAsync(CtsContinue, CtsSearch.Token);
 		_continueTask = Client.RunContinueAsync(CtsContinueTask.Token);
-
 
 		// Add original image
 		_origRes = Config.Query.GetConsoleOption();
@@ -402,6 +411,7 @@ public static class Program
 		Debug.WriteLine($"Args: {args.QuickJoin()}", C_DEBUG);
 
 		if (!args.Any()) {
+
 			var options = await MainMenuDialog.ReadInputAsync();
 
 			var file = options.DragAndDrop;
@@ -426,7 +436,6 @@ public static class Program
 			try {
 
 				ArgumentHandler.Run(args);
-
 				Client.Reload();
 			}
 			catch (Exception e) {

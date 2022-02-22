@@ -97,15 +97,16 @@ public abstract class BaseSearchEngine : IDisposable
 		Uri rawUri = GetRawUri(query);
 
 
-		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(),
-		                                        (int) Timeout.TotalMilliseconds,
+		const byte i = 0xFF;
+
+		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds,
 		                                        HttpMethod.Get, FollowRedirects, token: c);
 
 
 		bool success;
 
-		if (res is { IsSuccessStatusCode: false }) {
-			if (res.StatusCode == HttpStatusCode.Redirect) {
+		if (res is { ResponseMessage: { IsSuccessStatusCode: false } }) {
+			if (res.ResponseMessage.StatusCode == HttpStatusCode.Redirect) {
 				success = true;
 			}
 			else {
@@ -129,7 +130,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 		var origin = new SearchResultOrigin
 		{
-			Response = res,
+			Response = res?.ResponseMessage,
 			// Content  = content,
 			Success = success,
 			RawUri  = rawUri,

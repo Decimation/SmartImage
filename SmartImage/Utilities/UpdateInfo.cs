@@ -22,7 +22,7 @@ public enum VersionStatus
 	Preview,
 }
 
-public readonly struct UpdateInfo:IConsoleOption
+public readonly struct UpdateInfo : IConsoleOption
 {
 	public Version Current { get; }
 
@@ -55,7 +55,6 @@ public readonly struct UpdateInfo:IConsoleOption
 
 		wc.DownloadFile(ui.Latest.AssetUrl, destNew);
 
-			
 
 		string exeFileName = AppInfo.ExeLocation;
 
@@ -117,8 +116,8 @@ public readonly struct UpdateInfo:IConsoleOption
 	public ConsoleOption GetConsoleOption()
 	{
 		var current = this;
-		var option  = new ConsoleOption() { Name = $"Update {Current}".AddColor(Elements.ColorHighlight)};
-		
+		var option  = new ConsoleOption() { Name = $"Update {Current}".AddColor(Elements.ColorHighlight) };
+
 		option.Function = () =>
 		{
 			UpdateInfo.Update(current);

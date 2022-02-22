@@ -110,14 +110,15 @@
 
   <PropertyGroup>
     <PackageId>SmartImage</PackageId>
-    <Version>2.2.3</Version>
+    <Version>2.3.0</Version>
     <Authors>Read Stanton (Decimation)</Authors>
     <PackageTags>Image reverse search identification source sauce</PackageTags>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
     <PackageIcon>Icon.png</PackageIcon>
     <Description>Reverse image search identification library. Features Windows context menu integration and a command line interface.</Description>
-    <Copyright>Copyright 2021</Copyright>
+    <Copyright>Copyright 2022</Copyright>
     <ImplicitUsings>enable</ImplicitUsings>
+    <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
     <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
   </PropertyGroup>
 </Project>

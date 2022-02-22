@@ -106,15 +106,9 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 	/// Filtered results are determined by <see cref="SearchResult.IsNonPrimitive"/>.
 	/// </summary>
 	public bool Filtering { get; set; } = true;
-
-	/// <summary>
-	/// <see cref="SearchClient.SearchCompleted"/>
-	/// </summary>
+	
 	public bool Notification { get; set; } = true;
-
-	/// <summary>
-	/// <see cref="SearchClient.SearchCompleted"/>
-	/// </summary>
+	
 	public bool NotificationImage { get; set; }
 
 	public bool OutputOnly { get; set; }

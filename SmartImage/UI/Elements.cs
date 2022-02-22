@@ -57,6 +57,4 @@ internal static class Elements
 	internal static string GetToggleString(bool b) => b ? Enabled : Disabled;
 
 	internal static string GetVersionString(Version v) => $"{v.Major}.{v.Minor}.{v.Build}";
-
-	
 }

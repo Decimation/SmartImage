@@ -82,10 +82,9 @@ public static class AppIntegration
 					}
 
 					break;
-				
+
 			}
 
-				
 
 		}
 
@@ -141,7 +140,7 @@ public static class AppIntegration
 
 		Trace.WriteLine("Reset config");
 	}
-	
+
 	[DoesNotReturn]
 	public static void Uninstall()
 	{

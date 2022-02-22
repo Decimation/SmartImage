@@ -93,13 +93,10 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 
 		var client = new HttpClient(); //todo
-		Stream = IsFile ? File.OpenRead(value) : client.GetStream(value);
-
-
+		Stream     = IsFile ? File.OpenRead(value) : client.GetStream(value);
 		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
-
 
 		MediaResource directImage = new()
 		{
@@ -108,10 +105,8 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 		};
 
 		Image = Image.FromStream(Stream);
-
 		AsImageResult = new ImageResult(null)
 		{
-
 			// Image = Image.FromStream(Stream),
 			Url = UploadUri,
 			OtherMetadata =
@@ -123,7 +118,6 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 			},
 			Width  = Image.Width,
 			Height = Image.Height
-
 		};
 
 		AsImageResult.DirectImages.Add(directImage);
