@@ -42,9 +42,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	private const string BASIC_RESULT = $"{BASE_ENDPOINT}?url=";
 
-	
-	
-
 	/*
 	 * Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
 	 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
@@ -65,7 +62,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
-
 	protected override SearchResult Process(object obj, SearchResult result)
 	{
 		var query = (ImageQuery) obj;
@@ -79,15 +75,12 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var dataResults = parseFunc(query);
 
-
 		if (dataResults == null) {
 			result.ErrorMessage = "Daily search limit (100) exceeded";
 			result.Status       = ResultStatus.Cooldown;
 			//return sresult;
 			goto ret;
 		}
-		
-		
 
 		var imageResults = dataResults.Result.Where(o => o != null)
 		                              .AsParallel()
@@ -95,7 +88,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		                              .Where(o => o != null)
 		                              .OrderByDescending(e => e.Similarity)
 		                              .ToList();
-
 
 		if (!imageResults.Any()) {
 			// No good results
@@ -109,13 +101,11 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		result.OtherResults.AddRange(imageResults);
 
-
 		if (UsingAPI) {
 			Debug.WriteLine($"{Name} API key: {Authentication}");
 		}
 
 		result.PrimaryResult = primaryResult;
-
 
 		ret:
 
@@ -127,7 +117,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		return result;
 	}
-
 
 	private async Task<IEnumerable<SauceNaoDataResult>> GetWebResults(ImageQuery query)
 	{
@@ -148,7 +137,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		});
 		var html = await x.GetStringAsync();
 
-
 		/*
 		 * Daily Search Limit Exceeded.
 		 * 208.110.232.218, your IP has exceeded the unregistered user's daily limit of 100 searches.
@@ -167,7 +155,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		const string RESULT_NODE = "//div[@class='result']";
 
 		var results = doc.Body.SelectNodes(RESULT_NODE);
-
 
 		static SauceNaoDataResult Parse(INode result)
 		{
@@ -217,7 +204,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			string creator1 = rti ?? rcci;
 			creator1 = creator1.SubstringAfter("Creator: ");
 
-
 			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
 			var dataResult = new SauceNaoDataResult
@@ -231,7 +217,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		}
 
-
 		return results.Select(Parse).ToList();
 	}
 
@@ -239,7 +224,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	{
 		Trace.WriteLine($"{Name} | API");
 
-		var client = new HttpClient();
+		// var client = new HttpClient();
 
 		const string dbIndex = "999";
 		const string numRes  = "6";
@@ -255,13 +240,12 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var content = new FormUrlEncodedContent(values);
 
-		var res = await client.PostAsync(BASE_ENDPOINT, content);
+		var res = await Client.PostAsync(BASE_ENDPOINT, content);
 		var c   = await res.Content.ReadAsStringAsync();
 
 		if (res.StatusCode == HttpStatusCode.Forbidden) {
 			return null;
 		}
-
 
 		// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
 

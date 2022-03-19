@@ -28,8 +28,6 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
-
-
 	/// <inheritdoc />
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
@@ -47,9 +45,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 		request.Headers.Add("User-Agent", HttpUtilities.UserAgent);
 
-		var client = new HttpClient();
-
-		var response = client.Send(request);
+		var response = Client.Send(request);
 
 		/*
 		 * URL parameters
@@ -105,10 +101,8 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 			RawUri    = rawUri
 		};
 
-
 		return stub;
 	}
-
 
 	protected override SearchResult Process(object obj, SearchResult sr)
 	{

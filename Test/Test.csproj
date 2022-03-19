@@ -15,7 +15,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="OpenCvSharp4.Windows" Version="4.5.3.20210817" />
+    <PackageReference Include="OpenCvSharp4.Windows" Version="4.5.5.20211231" />
   </ItemGroup>
 
   <ItemGroup>

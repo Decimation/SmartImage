@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Flurl;
 using Flurl.Http;
 using Kantan.Collections;
 using Kantan.Net;
@@ -25,6 +26,7 @@ public abstract class BaseSearchEngine : IDisposable
 	protected BaseSearchEngine(string baseUrl)
 	{
 		BaseUrl = baseUrl;
+		Client  = new HttpClient();
 
 	}
 
@@ -40,6 +42,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public abstract EngineSearchType SearchType { get; }
 
+	protected HttpClient Client { get; }
 
 	public virtual SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
 	{
@@ -54,7 +57,6 @@ public abstract class BaseSearchEngine : IDisposable
 			return sr;
 		}
 
-
 		if (!sr.Origin.Success) {
 			sr.Status       = ResultStatus.Failure;
 			sr.ErrorMessage = $"{sr} | {sr.Origin.Response.StatusCode}";
@@ -66,7 +68,6 @@ public abstract class BaseSearchEngine : IDisposable
 
 		return sr;
 	}
-
 
 	public async Task<SearchResult> GetResultAsync(ImageQuery query, CancellationToken? c = null)
 	{
@@ -94,18 +95,20 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query, CancellationToken? c = null)
 	{
-		Uri rawUri = GetRawUri(query);
-
+		var rawUri = GetRawUri(query);
 
 		const byte i = 0xFF;
 
 		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds,
 		                                        HttpMethod.Get, FollowRedirects, token: c);
 
+		// var task = rawUri.WithClient(new FlurlClient(Client)).WithTimeout(Timeout).WithAutoRedirect(true).GetAsync();
+		// task.Wait();
+		// var res = task.Result;
 
 		bool success;
 
-		if (res is { ResponseMessage: { IsSuccessStatusCode: false } }) {
+		if (res is { ResponseMessage.IsSuccessStatusCode: false }) {
 			if (res.ResponseMessage.StatusCode == HttpStatusCode.Redirect) {
 				success = true;
 			}
@@ -118,7 +121,6 @@ public abstract class BaseSearchEngine : IDisposable
 		else {
 			success = true;
 		}
-
 
 		// string content = null;
 
@@ -162,12 +164,12 @@ public abstract class BaseSearchEngine : IDisposable
 			}
 		}
 
-
 		return engines.ToArray();
 	}
 
 	public virtual void Dispose()
 	{
+		Client.Dispose();
 		GC.SuppressFinalize(this);
 	}
 }
