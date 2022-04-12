@@ -14,38 +14,31 @@
 #nullable disable
 
 global using static Kantan.Diagnostics.LogCategories;
-using System.Buffers;
-using System.Configuration;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Media;
-using System.Text;
-using Windows.Media.Playback;
 using Kantan.Cli;
 using Kantan.Cli.Controls;
-using Kantan.Collections;
-using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
-using Microsoft.VisualBasic.FileIO;
 using Novus.OS.Win32;
 using Novus.Utilities;
 using SmartImage.App;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using SmartImage.Properties;
 using SmartImage.UI;
 using SmartImage.Utilities;
+using System.Buffers;
+using System.Diagnostics;
+using System.Media;
+using System.Text;
 using static Novus.Utilities.ReflectionOperatorHelpers;
-using Configuration = System.Configuration.Configuration;
-using EH = Kantan.Collections.EnumerableHelper;
 using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
+using EH = Kantan.Collections.EnumerableHelper;
 using FileSystem = Novus.OS.FileSystem;
+
+// ReSharper disable InconsistentNaming
 
 // ReSharper disable InlineTemporaryVariable
 
@@ -81,14 +74,12 @@ public static class Program
 	/// </summary>
 	internal static SearchClient Client { get; } = new(Config);
 
-
 	/// <summary>
 	/// Console UI for search results
 	/// </summary>
 	private static ConsoleDialog ResultDialog { get; } = new()
 	{
 		Options = new List<ConsoleOption>(),
-
 
 		Functions = new()
 		{
@@ -153,7 +144,6 @@ public static class Program
 				return true;
 			}
 		},
-
 
 		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
 		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines), "Priority engines", Config),
@@ -264,12 +254,10 @@ public static class Program
 			return;
 		}
 
-
 		MainMenuDialog.Insert(^(1), current.GetConsoleOption());
 	}
 
 	#endregion
-
 
 	/// <summary>
 	/// Entry point
@@ -301,7 +289,6 @@ public static class Program
 		Config.NotificationImage = true;
 #endif
 
-
 		InitConsole();
 
 		_keepOnTop = false;
@@ -322,17 +309,15 @@ public static class Program
 		Config.Update();
 		Client.Reload();
 
-
 		foreach (ConsoleOption option in MainMenuDialog.Options) {
-			if (option.UpdateOption is {}) {
-				var name =option.UpdateOption?.Invoke(option);
+			if (option.UpdateOption is { }) {
+				var name = option.UpdateOption?.Invoke(option);
 				option.Name = name;
 				Debug.WriteLine(name);
 			}
 		}
 
 		// Read config and arguments
-
 
 		if (!await HandleStartup(args))
 			return;
@@ -355,9 +340,11 @@ public static class Program
 
 		ResultDialog.Options.Add(_origRes);
 
-		await ResultDialog.ReadInputAsync(CtsReadInput.Token);
-
 		await _searchTask;
+
+		Client.Dispose();
+
+		await ResultDialog.ReadInputAsync(CtsReadInput.Token);
 
 		try {
 			await _continueTask;
@@ -365,9 +352,6 @@ public static class Program
 		catch (Exception e) {
 			//ignored
 		}
-
-		Client.Dispose();
-		Client.Reset();
 
 		ConsoleManager.WaitForInput();
 	}
@@ -407,7 +391,6 @@ public static class Program
 		args = args.Skip(1).ToArray();
 #endif
 
-
 		Debug.WriteLine($"Args: {args.QuickJoin()}", C_DEBUG);
 
 		if (!args.Any()) {
@@ -443,7 +426,6 @@ public static class Program
 				return false;
 			}
 		}
-
 
 		return true;
 	}
@@ -544,7 +526,6 @@ public static class Program
 
 	}
 
-
 	private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
 	{
 		SearchResult result = eventArgs.Result;
@@ -569,7 +550,6 @@ public static class Program
 	}
 
 	#endregion
-
 
 	#region Resources
 
@@ -601,7 +581,6 @@ public static class Program
 	private static Task _continueTask;
 
 	private static ConsoleOption _origRes;
-
 
 	/// <summary>
 	/// Command line argument handler
@@ -664,4 +643,8 @@ public static class Program
 	};
 
 	private static readonly CancellationTokenSource CtsContinueTask = new();
+
+	private static CancellationTokenSource CtsContinueTask2 = new();
+
+	private static CancellationTokenSource prop { get; set; } = new();
 }

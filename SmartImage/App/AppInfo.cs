@@ -35,7 +35,6 @@ public static class AppInfo
 	/// </summary>
 	public const string NAME_EXE = "SmartImage.exe";
 
-
 	public static string AppFolder => Path.GetDirectoryName(ExeLocation);
 
 	public static Version AppVersion => typeof(AppInfo).Assembly.GetName().Version!;
@@ -57,7 +56,6 @@ public static class AppInfo
 		}
 	}
 
-
 	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
 
 	/// <summary>
@@ -73,7 +71,8 @@ public static class AppInfo
 		// Remove old path directories
 		Global.Setup();
 		var pathDirectories = FileSystem.GetEnvironmentPathDirectories();
-		var oldFolders      = pathDirectories.Where(x => x.Contains(NAME) && x != AppFolder);
+
+		var oldFolders = pathDirectories.Where(x => x.Contains(NAME) && x != AppFolder);
 
 		foreach (string s in oldFolders) {
 			FileSystem.RemoveFromPath(s);
@@ -82,7 +81,7 @@ public static class AppInfo
 		if (!IsAppFolderInPath) {
 			AppIntegration.HandlePath(true);
 		}
-
+		
 		Debug.WriteLine($"Cli utilities: {AppIntegration.Utilities.QuickJoin()}", C_INFO);
 	}
 }

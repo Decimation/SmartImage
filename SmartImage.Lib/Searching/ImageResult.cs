@@ -144,7 +144,6 @@ public sealed class ImageResult : IResult
 		{
 			// ReSharper disable PossibleInvalidOperationException
 
-
 			if (HasImageDimensions) {
 				return ImageManipulation.GetDisplayResolution(Width.Value, Height.Value);
 			}
@@ -228,7 +227,6 @@ public sealed class ImageResult : IResult
 		set => DirectImages[0] = value;
 	}
 
-
 	public bool ScanForBinaryImages(int ms)
 	{
 		if (Url == null) {
@@ -246,7 +244,6 @@ public sealed class ImageResult : IResult
 		else {
 			info.Dispose();
 		}
-		
 
 		if (DirectImages.Any()) {
 			return true;
@@ -256,13 +253,11 @@ public sealed class ImageResult : IResult
 		try {
 
 			var directImages = ImageMedia.Scan(url, ms)
-			                              .Where(x => x is { Url: { } })
-			                              .ToList();
-
+			                             .Where(x => x is { Url: { } })
+			                             .ToList();
 
 			if (directImages.Any()) {
 				// Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
-
 
 				DirectImages.AddRange(directImages);
 
@@ -273,10 +268,8 @@ public sealed class ImageResult : IResult
 			//
 		}
 
-
 		return false;
 	}
-
 
 	public Dictionary<string, object> Data
 	{
@@ -331,6 +324,8 @@ public sealed class ImageResult : IResult
 		foreach (MediaResource t in DirectImages) {
 			t.Dispose();
 		}
+
+		DirectImages.Clear();
 	}
 
 	public ConsoleOption GetConsoleOption()

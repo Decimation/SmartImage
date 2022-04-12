@@ -80,7 +80,6 @@ public class SearchResult : IResult
 	/// </summary>
 	public List<ImageResult> AllResults => OtherResults.Union(new[] { PrimaryResult }).ToList();
 
-
 	/// <summary>
 	/// Undifferentiated URI
 	/// </summary>
@@ -151,18 +150,15 @@ public class SearchResult : IResult
 
 		var directResults = new List<ImageResult>();
 
-
 		var po = new ParallelOptions()
 		{
 			CancellationToken      = c.Token,
 			MaxDegreeOfParallelism = -1
 		};
 
-
 		var plr = Parallel.For(0, AllResults.Count, po, (i, pls) =>
 		{
 			var allResult = AllResults[i];
-
 
 			var b = allResult.ScanForBinaryImages(Timeout);
 
@@ -188,19 +184,28 @@ public class SearchResult : IResult
 			}
 		});
 
-
 		Scanned = true;
 
 		return directResults;
 
 	}
 
+	#region Overrides of Object
+
+	public override string ToString()
+	{
+		return base.ToString();
+	}
+
+	#endregion
 
 	public void Dispose()
 	{
 		foreach (ImageResult imageResult in AllResults) {
 			imageResult.Dispose();
 		}
+		
+		OtherResults.Clear();
 
 		Origin.Dispose();
 		GC.SuppressFinalize(this);
@@ -232,11 +237,9 @@ public class SearchResult : IResult
 				map.Add("Status", Status);
 			}
 
-
 			return map;
 		}
 	}
-
 
 	public ConsoleOption GetConsoleOption()
 	{
@@ -266,7 +269,6 @@ public class SearchResult : IResult
 		{
 			if (OtherResults.Any()) {
 				//todo
-
 
 				var fallback = Color.AliceBlue;
 

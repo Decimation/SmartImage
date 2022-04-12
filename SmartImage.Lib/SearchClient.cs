@@ -1,6 +1,7 @@
 ﻿global using static Kantan.Diagnostics.LogCategories;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Net;
+using Kantan.Utilities;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search.Base;
@@ -79,20 +81,19 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	public List<ImageResult> DetailedResults { get; }
 
-
 	/// <summary>
 	///     Contains filtered search results
 	/// </summary>
 	public List<SearchResult> FilteredResults { get; }
 
-	public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
+	// public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
 
 	/// <summary>
 	/// Number of pending results
 	/// </summary>
 	public int PendingCount => Tasks.Count;
 
-	public int CompleteCount => AllResults.Count;
+	public int CompleteCount => Results.Count;
 
 	public bool IsContinueComplete { get; private set; }
 
@@ -101,7 +102,6 @@ public sealed class SearchClient : IDisposable
 	public List<Task> ContinueTasks { get; }
 
 	public TaskCompletionSource ContinueTaskCompletionSource { get; private set; }
-
 
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
@@ -124,33 +124,13 @@ public sealed class SearchClient : IDisposable
 	}
 
 	/// <summary>
-	///     Resets this instance in order to perform a new search.
-	/// </summary>
-	public void Reset()
-	{
-		Results.Clear();
-		DirectResults.Clear();
-		FilteredResults.Clear();
-		DetailedResults.Clear();
-		ContinueTasks.Clear();
-
-
-		IsComplete         = false;
-		IsContinueComplete = false;
-
-		ContinueTaskCompletionSource = new();
-		Reload();
-	}
-
-	/// <summary>
 	///     Performs an image search asynchronously.
 	/// </summary>
 	public async Task RunSearchAsync(CancellationTokenSource cts2, CancellationToken cts)
 	{
 		if (IsComplete) {
-			Reset();
+			throw new SmartImageException();
 		}
-
 
 		Tasks = new List<Task<SearchResult>>(Engines.Select(engine =>
 		{
@@ -158,7 +138,6 @@ public sealed class SearchClient : IDisposable
 
 			return task;
 		}));
-
 
 		while (!IsComplete && !cts.IsCancellationRequested) {
 			var finished = await Task.WhenAny(Tasks);
@@ -219,7 +198,6 @@ public sealed class SearchClient : IDisposable
 
 		Trace.WriteLine($"{nameof(SearchClient)}: Search complete", C_SUCCESS);
 
-
 		/* 2nd pass */
 
 		// DetailedResults.AddRange(ApplyPredicateFilter(Results, v => v.IsNonPrimitive));
@@ -234,7 +212,6 @@ public sealed class SearchClient : IDisposable
 
 		IsContinueComplete = false;
 
-
 		while (!IsContinueComplete && !c.IsCancellationRequested) {
 			var task = await Task.WhenAny(ContinueTasks);
 			await task;
@@ -242,11 +219,9 @@ public sealed class SearchClient : IDisposable
 			ContinueTasks.Remove(task);
 			IsContinueComplete = !ContinueTasks.Any();
 
-
 		}
 
 	}
-
 
 	private void GetResultContinueCallback(Task<SearchResult> task, object state)
 	{
@@ -276,7 +251,6 @@ public sealed class SearchClient : IDisposable
 		}
 	}
 
-
 	/// <summary>
 	/// Fires when <see cref="GetResultContinueCallback"/> returns
 	/// </summary>
@@ -292,17 +266,36 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 
-
 	public void Dispose()
 	{
-		/*foreach (ImageResult result in DirectResults) {
-			result.Dispose();
-		}*/
+		Debug.WriteLine($"Disposing {nameof(SearchClient)}");
+		// var rg  = AllResults;
+		// var rg2 = DetailedResults.Union(DirectResults).ToList();
 
-		foreach (SearchResult result in AllResults) {
+		var un = (Results.Union(FilteredResults).Distinct())
+		         .Cast<IDisposable>()
+		         .Union(DirectResults.Union(DetailedResults).Distinct())
+		         .ToList();
+
+		foreach (var result in un) {
 			result.Dispose();
+
 		}
 
+		foreach (var v in new IList[] { Results, FilteredResults, DirectResults, DetailedResults }) {
+			v.Clear();
+		}
+
+		/*Results.Clear();
+		DirectResults.Clear();
+		FilteredResults.Clear();
+		DetailedResults.Clear();*/
+		ContinueTasks.Clear();
+
+		IsComplete         = false;
+		IsContinueComplete = false;
+
+		ContinueTaskCompletionSource = new();
 	}
 }
 
