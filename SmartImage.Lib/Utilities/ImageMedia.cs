@@ -71,7 +71,9 @@ public static class ImageMedia
 
 			return resource;
 		}));
-		v = v.Where(t =>t !=null&& t.IsBinary).ToArray();
+
+		v = v.Where(t => t != null && t.IsBinary).ToArray();
+
 		return v;
 	}
 
@@ -85,20 +87,19 @@ public static class ImageMedia
 
 	public static MediaResourceInfo GetMediaInfo(string x, int ms = TIMEOUT)
 	{
+		var isFile = File.Exists(x);
+
 		var di = HttpResource.GetAsync(x);
 		di.Wait();
 
 		var o = di.Result;
-
-		var t = o.Resolve();
-
-		var isFile = File.Exists(x);
+		o?.Resolve();
 
 		var mri = new MediaResourceInfo
 		{
 			Resource = o,
 			IsFile   = isFile,
-			IsUri    = o.IsBinary
+			IsUri    = o is { IsBinary: true }
 		};
 
 		return mri;
