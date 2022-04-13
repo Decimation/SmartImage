@@ -9,6 +9,7 @@ using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Kantan.Model;
 using Kantan.Net;
+using Kantan.Net.Content;
 using Kantan.Net.Media;
 using Kantan.Text;
 using Kantan.Utilities;
@@ -91,17 +92,16 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 			UploadUri = new Uri(Value);
 		}
 
-
 		var client = new HttpClient(); //todo
 		Stream     = IsFile ? File.OpenRead(value) : client.GetStream(value);
 		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
 
-		MediaResource directImage = new()
+		HttpResource directImage = new()
 		{
 			// Stream = Stream,
-			Url = UploadUri
+			Url = UploadUri.ToString()
 		};
 
 		Image = Image.FromStream(Stream);

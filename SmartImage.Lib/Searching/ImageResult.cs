@@ -10,6 +10,7 @@ using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Kantan.Model;
 using Kantan.Net;
+using Kantan.Net.Content;
 using Kantan.Net.Media;
 using Kantan.Numeric;
 using Kantan.Text;
@@ -219,9 +220,9 @@ public sealed class ImageResult : IResult
 
 	}
 
-	public List<MediaResource> DirectImages { get; internal set; } = new() { };
+	public List<HttpResource> DirectImages { get; internal set; } = new() { };
 
-	public MediaResource DirectImage
+	public HttpResource DirectImage
 	{
 		get => DirectImages.FirstOrDefault();
 		set => DirectImages[0] = value;
@@ -321,7 +322,7 @@ public sealed class ImageResult : IResult
 
 	public void Dispose()
 	{
-		foreach (MediaResource t in DirectImages) {
+		foreach (var t in DirectImages) {
 			t.Dispose();
 		}
 
@@ -336,7 +337,7 @@ public sealed class ImageResult : IResult
 			Functions =
 			{
 				[ConsoleOption.NC_FN_MAIN]  = IResult.GetOpenFunction(Url),
-				[ConsoleOption.NC_FN_COMBO] = IResult.GetDownloadFunction(() => DirectImage.Url)
+				[ConsoleOption.NC_FN_COMBO] = IResult.GetDownloadFunction(() => new Uri(DirectImage.Url))
 			}
 		};
 

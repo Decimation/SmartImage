@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using Kantan.Net;
+using Kantan.Net.Content;
 using Kantan.Net.Media;
 
 namespace SmartImage.Lib.Utilities;
@@ -9,10 +10,10 @@ namespace SmartImage.Lib.Utilities;
 public readonly struct MediaResourceInfo : IDisposable
 {
 	[MN]
-	public MediaResource Resource { get; internal init; }
+	public HttpResource Resource { get; internal init; }
 
 	[MN]
-	public HttpResponseMessage Message => Resource.Response;
+	public HttpResponseMessage Message => Resource.Response.ResponseMessage;
 
 	/// <summary>
 	/// Whether this is a binary URI
@@ -29,11 +30,8 @@ public readonly struct MediaResourceInfo : IDisposable
 	/// </summary>
 	public bool IsValid => IsUri || IsFile;
 
-
 	/// <returns><see cref="IsValid"/></returns>
 	public static explicit operator bool(MediaResourceInfo mri) => mri.IsValid;
-
-	
 
 	public override string ToString()
 	{

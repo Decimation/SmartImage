@@ -1,4 +1,6 @@
-﻿global using static Kantan.Diagnostics.LogCategories;
+﻿#region
+
+global using static Kantan.Diagnostics.LogCategories;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 using System;
 using System.Collections;
@@ -17,6 +19,8 @@ using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
+
+#endregion
 
 // ReSharper disable InconsistentNaming
 
@@ -71,13 +75,13 @@ public sealed class SearchClient : IDisposable
 	public List<SearchResult> Results { get; }
 
 	/// <summary>
-	/// Contains the <see cref="ImageResult"/> elements of <see cref="Results"/> which contain
-	/// direct image links
+	///     Contains the <see cref="ImageResult" /> elements of <see cref="Results" /> which contain
+	///     direct image links
 	/// </summary>
 	public List<ImageResult> DirectResults { get; }
 
 	/// <summary>
-	/// Contains the most detailed <see cref="ImageResult"/> elements of <see cref="Results"/>
+	///     Contains the most detailed <see cref="ImageResult" /> elements of <see cref="Results" />
 	/// </summary>
 	public List<ImageResult> DetailedResults { get; }
 
@@ -89,7 +93,7 @@ public sealed class SearchClient : IDisposable
 	// public List<SearchResult> AllResults => Results.Union(FilteredResults).Distinct().ToList();
 
 	/// <summary>
-	/// Number of pending results
+	///     Number of pending results
 	/// </summary>
 	public int PendingCount => Tasks.Count;
 
@@ -102,6 +106,39 @@ public sealed class SearchClient : IDisposable
 	public List<Task> ContinueTasks { get; }
 
 	public TaskCompletionSource ContinueTaskCompletionSource { get; private set; }
+
+	public void Dispose()
+	{
+		Debug.WriteLine($"Disposing {nameof(SearchClient)}");
+
+		// var rg  = AllResults;
+		// var rg2 = DetailedResults.Union(DirectResults).ToList();
+
+		var un = (Results.Union(FilteredResults).Distinct())
+		         .Cast<IDisposable>()
+		         .Union(DirectResults.Union(DetailedResults).Distinct())
+		         .ToList();
+
+		foreach (var result in un) {
+			result.Dispose();
+
+		}
+
+		foreach (var v in new IList[] { Results, FilteredResults, DirectResults, DetailedResults }) {
+			v.Clear();
+		}
+
+		/*Results.Clear();
+		DirectResults.Clear();
+		FilteredResults.Clear();
+		DetailedResults.Clear();*/
+		ContinueTasks.Clear();
+
+		IsComplete         = false;
+		IsContinueComplete = false;
+
+		ContinueTaskCompletionSource = new();
+	}
 
 	/// <summary>
 	///     Reloads <see cref="Config" /> and <see cref="Engines" /> accordingly.
@@ -252,7 +289,7 @@ public sealed class SearchClient : IDisposable
 	}
 
 	/// <summary>
-	/// Fires when <see cref="GetResultContinueCallback"/> returns
+	///     Fires when <see cref="GetResultContinueCallback" /> returns
 	/// </summary>
 	public event EventHandler ContinueCompleted;
 
@@ -265,38 +302,6 @@ public sealed class SearchClient : IDisposable
 	///     Fires when a search is complete (<see cref="RunSearchAsync" />).
 	/// </summary>
 	public event EventHandler<SearchCompletedEventArgs> SearchCompleted;
-
-	public void Dispose()
-	{
-		Debug.WriteLine($"Disposing {nameof(SearchClient)}");
-		// var rg  = AllResults;
-		// var rg2 = DetailedResults.Union(DirectResults).ToList();
-
-		var un = (Results.Union(FilteredResults).Distinct())
-		         .Cast<IDisposable>()
-		         .Union(DirectResults.Union(DetailedResults).Distinct())
-		         .ToList();
-
-		foreach (var result in un) {
-			result.Dispose();
-
-		}
-
-		foreach (var v in new IList[] { Results, FilteredResults, DirectResults, DetailedResults }) {
-			v.Clear();
-		}
-
-		/*Results.Clear();
-		DirectResults.Clear();
-		FilteredResults.Clear();
-		DetailedResults.Clear();*/
-		ContinueTasks.Clear();
-
-		IsComplete         = false;
-		IsContinueComplete = false;
-
-		ContinueTaskCompletionSource = new();
-	}
 }
 
 public sealed class SearchCompletedEventArgs : EventArgs

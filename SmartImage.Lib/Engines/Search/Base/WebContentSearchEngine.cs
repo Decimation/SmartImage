@@ -20,9 +20,9 @@ public abstract class WebContentSearchEngine : ProcessedSearchEngine
 	protected virtual object ParseContent(SearchResultOrigin origin)
 	{
 		var parser         = new HtmlParser();
-		var readStringTask = origin.Response.Content.ReadAsStringAsync();
-		readStringTask.Wait();
-		var content  = readStringTask.Result;
+		var readStr = origin.Response.Content.ReadAsStringAsync();
+		readStr.Wait();
+		var content  = readStr.Result;
 		var document = parser.ParseDocument(content);
 
 		return document;

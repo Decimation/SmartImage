@@ -24,11 +24,9 @@ internal static class AppToast
 		button2.SetContent("Dismiss")
 		       .AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
 
-
 		builder.AddText("Search Complete");
 
 		string url = null;
-
 
 		if (Program.Client.DetailedResults.Any()) {
 			var detailed = Program.Client.DetailedResults.First();
@@ -99,7 +97,7 @@ internal static class AppToast
 
 		var mediaResource = mediaResources.First();
 
-		string file = ImageMedia.Download(mediaResource.Url, path);
+		string file = ImageMedia.Download(new Uri(mediaResource.Url), path);
 
 		if (file == null) {
 			int i = 0;
@@ -107,7 +105,7 @@ internal static class AppToast
 			do {
 				// file = ImageMedia.Download(directResults[i++].DirectImage.Url, path);
 
-				file = ImageMedia.Download(mediaResources[i++].Url, path);
+				file = ImageMedia.Download(new Uri(mediaResources[i++].Url), path);
 
 			} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 
@@ -186,7 +184,6 @@ internal static class AppToast
 
 		// todo
 	}
-
 
 	private const string ARG_KEY_ACTION    = "action";
 	private const string ARG_VALUE_DISMISS = "dismiss";

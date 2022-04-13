@@ -5,10 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Net;
+using Kantan.Net.Content;
+using Kantan.Net.Content.Filters;
 using Kantan.Net.Media;
-using Kantan.Net.Media.Filters;
 using Novus.OS;
 
 #pragma warning disable IDE0079
@@ -57,19 +59,46 @@ public static class ImageMedia
 	 * https://github.com/regosen/gallery_get
 	 */
 
-	public static List<MediaResource> Scan(string url, int ms) => MediaSniffer.Scan(url, MediaImageFilter.Default, ms);
+	public static async Task<HttpResource[]> ScanAsync(string url, int ms)
+	{
+		List<string> urls = await IHttpResourceFilter.Default.Extract(url);
+
+		var v = await Task.WhenAll(urls.Select(async Task<HttpResource>(s1) =>
+		{
+			var resource = await HttpResource.GetAsync(s1);
+
+			var tt = resource?.Resolve(true);
+
+			return resource;
+		}));
+		v = v.Where(t =>t !=null&& t.IsBinary).ToArray();
+		return v;
+	}
+
+	public static HttpResource[] Scan(string url, int ms)
+	{
+		var t = ScanAsync(url, ms);
+		t.Wait();
+		;
+		return t.Result;
+	}
 
 	public static MediaResourceInfo GetMediaInfo(string x, int ms = TIMEOUT)
 	{
-		var isBinUri = MediaResource.FromUrl(x, MediaImageFilter.Default, out var di, ms);
+		var di = HttpResource.GetAsync(x);
+		di.Wait();
+
+		var o = di.Result;
+
+		var t = o.Resolve();
 
 		var isFile = File.Exists(x);
 
 		var mri = new MediaResourceInfo
 		{
-			Resource = di,
+			Resource = o,
 			IsFile   = isFile,
-			IsUri    = isBinUri
+			IsUri    = o.IsBinary
 		};
 
 		return mri;

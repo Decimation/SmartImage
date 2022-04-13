@@ -340,11 +340,11 @@ public static class Program
 
 		ResultDialog.Options.Add(_origRes);
 
-		await _searchTask;
-
-		Client.Dispose();
+		// Client.Dispose();
 
 		await ResultDialog.ReadInputAsync(CtsReadInput.Token);
+
+		await _searchTask;
 
 		try {
 			await _continueTask;

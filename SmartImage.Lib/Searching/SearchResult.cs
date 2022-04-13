@@ -293,7 +293,7 @@ public class SearchResult : IResult
 		};
 
 		option.Functions[ConsoleOption.NC_FN_COMBO] =
-			IResult.GetDownloadFunction(() => PrimaryResult.DirectImage.Url);
+			IResult.GetDownloadFunction(() => new Uri(PrimaryResult.DirectImage.Url));
 
 		option.Functions[ConsoleOption.NC_FN_CTRL] = () =>
 		{
