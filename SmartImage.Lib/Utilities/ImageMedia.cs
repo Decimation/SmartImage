@@ -61,7 +61,7 @@ public static class ImageMedia
 
 	public static async Task<HttpResource[]> ScanAsync(string url, int ms)
 	{
-		List<string> urls = await IHttpResourceFilter.Default.Extract(url);
+		List<string> urls = await HttpResourceFilter.Default.Extract(url);
 
 		var v = await Task.WhenAll(urls.Select(async Task<HttpResource>(s1) =>
 		{
