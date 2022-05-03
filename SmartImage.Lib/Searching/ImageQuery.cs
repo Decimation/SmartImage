@@ -10,7 +10,7 @@ using Kantan.Cli.Controls;
 using Kantan.Model;
 using Kantan.Net;
 using Kantan.Net.Content;
-using Kantan.Net.Media;
+using Kantan.Net.Utilities;
 using Kantan.Text;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;

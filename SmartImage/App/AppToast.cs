@@ -2,6 +2,7 @@
 using System.Drawing;
 using Windows.ApplicationModel.Background;
 using Kantan.Net;
+using Kantan.Net.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
 using SmartImage.Lib.Searching;

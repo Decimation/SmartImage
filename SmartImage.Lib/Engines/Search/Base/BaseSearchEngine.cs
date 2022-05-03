@@ -10,6 +10,7 @@ using Flurl;
 using Flurl.Http;
 using Kantan.Collections;
 using Kantan.Net;
+using Kantan.Net.Utilities;
 using Kantan.Text;
 using Novus.Utilities;
 using SmartImage.Lib.Properties;

@@ -6,7 +6,6 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Kantan.Net;
-using Kantan.Net.Media;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
@@ -77,7 +76,7 @@ public static class Program
 	{
 		var task =  ImageMedia.Scan("http://www.zerochan.net/2750747",-1);
 
-		foreach (MediaResource v in task) {
+		foreach (var v in task) {
 			Console.WriteLine(v);
 		}
 

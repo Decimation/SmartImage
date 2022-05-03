@@ -167,7 +167,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			string epStr = episode is {}?  episode is string s ? s : episode.ToString(): String.Empty;
 
 			if (episode is IEnumerable e) {
-				var epList = e.CopyToList()
+				var epList = e.CastToList()
 				          .Select(x => Int64.Parse(x.ToString() ?? String.Empty));
 
 				epStr = epList.QuickJoin();

@@ -9,6 +9,7 @@ using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net;
+using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;

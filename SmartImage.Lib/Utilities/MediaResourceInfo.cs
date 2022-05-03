@@ -3,7 +3,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.Http;
 using Kantan.Net;
 using Kantan.Net.Content;
-using Kantan.Net.Media;
 
 namespace SmartImage.Lib.Utilities;
 

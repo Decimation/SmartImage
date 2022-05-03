@@ -33,6 +33,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Media;
 using System.Text;
+using Kantan.Net.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 using EH = Kantan.Collections.EnumerableHelper;

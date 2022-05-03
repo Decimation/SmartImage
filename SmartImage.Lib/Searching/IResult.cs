@@ -8,6 +8,7 @@ using Kantan.Cli.Controls;
 using Kantan.Diagnostics;
 using Kantan.Model;
 using Kantan.Net;
+using Kantan.Net.Utilities;
 using Novus.OS;
 using Novus.OS.Win32;
 using SmartImage.Lib.Utilities;

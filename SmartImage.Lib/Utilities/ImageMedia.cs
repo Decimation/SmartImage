@@ -9,8 +9,8 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Kantan.Net;
 using Kantan.Net.Content;
-using Kantan.Net.Content.Filters;
-using Kantan.Net.Media;
+using Kantan.Net.Content.Resolvers;
+using Kantan.Net.Utilities;
 using Novus.OS;
 
 #pragma warning disable IDE0079
@@ -63,18 +63,33 @@ public static class ImageMedia
 	{
 		List<string> urls = await HttpResourceFilter.Default.Extract(url);
 
-		var v = await Task.WhenAll(urls.Select(async Task<HttpResource>(s1) =>
+		var v = (await Task.WhenAll(urls.Select(async Task<HttpResource> (s1) =>
+			        {
+				        var resource = await HttpResource.GetAsync(s1);
+
+				        var tt = resource?.Resolve(true, new UrlmonResolver());
+
+				        return resource;
+			        }))).ToList();
+
+		for (int i = v.Count - 1; i >= 0; i--)
 		{
-			var resource = await HttpResource.GetAsync(s1);
+			HttpResource httpResource = v[i];
 
-			var tt = resource?.Resolve(true);
+			if (httpResource == null)
+			{
+				v.RemoveAt(i);
+				continue;
+			}
+			if (!httpResource.IsBinary)
+			{
+				httpResource.Dispose();
+				v.RemoveAt(i);
+			}
+		}
 
-			return resource;
-		}));
 
-		v = v.Where(t => t != null && t.IsBinary).ToArray();
-
-		return v;
+		return v.ToArray();
 	}
 
 	public static HttpResource[] Scan(string url, int ms)

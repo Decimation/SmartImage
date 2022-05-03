@@ -6,6 +6,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Kantan.Net;
+using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines.Search.Base;
 using SmartImage.Lib.Searching;
 
