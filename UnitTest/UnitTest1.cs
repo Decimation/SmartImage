@@ -19,8 +19,8 @@ public class Tests
 	[SetUp]
 	public void Setup()
 	{
-		var pictures   = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-		var path = Path.Combine(pictures, "Test Images");
+		var pictures = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+		var path     = Path.Combine(pictures, "Test Images");
 
 		TestImages = Directory.GetFiles(path).Union(new[]
 		{
@@ -72,9 +72,6 @@ public class Tests
 			Assert.Inconclusive();
 		}
 
-		
-
-
 		var b = t.AllResults.Any(r =>
 		{
 			if (r.Artist != null) {
@@ -85,8 +82,8 @@ public class Tests
 				return false;
 			}
 		});
-
-		Assert.True( b);
+		
+		Assert.True(b);
 
 
 	}
@@ -158,6 +155,7 @@ public class Tests
 		if (t.Status == ResultStatus.Unavailable) {
 			Assert.Inconclusive();
 		}
+
 		Assert.True(t.OtherResults.Any(r => r.Source.Contains(name, StringComparison.InvariantCultureIgnoreCase)));
 
 

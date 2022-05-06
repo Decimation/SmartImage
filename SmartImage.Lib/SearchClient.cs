@@ -33,6 +33,15 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib;
 
+/*
+ * TODO: THE DESIGN OF THIS TYPE IS POORLY DONE
+ * TODO: REFACTOR
+ *
+ * TODO: Results should not be fields, and should be returned by their respective functions
+ *
+ */
+
+
 /// <summary>
 ///     Handles searches
 /// </summary>
@@ -169,12 +178,7 @@ public sealed class SearchClient : IDisposable
 			throw new SmartImageException();
 		}
 
-		Tasks = new List<Task<SearchResult>>(Engines.Select(engine =>
-		{
-			var task = engine.GetResultAsync(Config.Query, cts);
-
-			return task;
-		}));
+		Tasks = GetSearchTasks(cts);
 
 		while (!IsComplete && !cts.IsCancellationRequested) {
 			var finished = await Task.WhenAny(Tasks);
@@ -244,6 +248,16 @@ public sealed class SearchClient : IDisposable
 		SearchCompleted?.Invoke(null, args);
 	}
 
+	public List<Task<SearchResult>> GetSearchTasks(CancellationToken cts)
+	{
+		return new List<Task<SearchResult>>(Engines.Select(engine =>
+		{
+			var task = engine.GetResultAsync(Config.Query, cts);
+
+			return task;
+		}));
+	}
+
 	public async Task RunContinueAsync(CancellationToken c)
 	{
 
@@ -260,7 +274,7 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	private void GetResultContinueCallback(Task<SearchResult> task, object state)
+	public void GetResultContinueCallback(Task<SearchResult> task, object state)
 	{
 		var value = task.Result;
 
