@@ -1,50 +1,131 @@
 ﻿#nullable disable
 
+using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using AngleSharp.Css.Values;
+using ConsoleTableExt;
 using Kantan.Utilities;
 using SmartImage.Lib;
 using SmartImage.Lib.Searching;
 using Novus;
 using Kantan;
+using Kantan.Cli.Controls;
 using Kantan.Net;
+using Kantan.Text;
+using Color = System.Drawing.Color;
 
 namespace SmartImage.Cli;
 
 public static class Program
 {
+	private static readonly SearchConfig Config = new()
+	{
+		Notification      = true,
+		NotificationImage = true,
+		SearchEngines     = SearchEngineOptions.All,
+		PriorityEngines   = SearchEngineOptions.Auto,
+		Filtering         = true
+	};
+
+	private static readonly SearchClient Client = new(Config);
+
+	private static ImageQuery Query => Config.Query;
+
+
+	/// <summary>
+	/// Command line argument handler
+	/// </summary>
+	private static readonly CliHandler ArgumentHandler = new()
+	{
+		Parameters =
+		{
+			new CliParameter
+			{
+				ArgumentCount = 1,
+				ParameterId   = "-se",
+				Function = strings =>
+				{
+					Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new CliParameter
+			{
+				ArgumentCount = 1,
+				ParameterId   = "-pe",
+				Function = strings =>
+				{
+					Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
+					return null;
+				}
+			},
+			new CliParameter
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-f",
+				Function = delegate
+				{
+					Config.Filtering = true;
+					return null;
+				}
+			},
+			new CliParameter
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-output_only",
+				Function = delegate
+				{
+					Config.OutputOnly = true;
+					return null;
+				}
+			}
+		},
+		Default = new CliParameter
+		{
+			ArgumentCount = 1,
+			ParameterId   = null,
+			Function = strings =>
+			{
+				Config.Query = strings[0];
+				return null;
+			}
+		}
+	};
+
 	public static async Task Main(string[] args)
 	{
-		Console.WriteLine();
-		Trace.WriteLine($"");
-
-#if TEST
-		Console.WriteLine();
-#endif
 
 #if DEBUG
-
-		args = new[]
-		{
-			@"C:\Users\Deci\Pictures\Test Images\Test6.jpg",
-			"https://data17.kemono.party/data/3e/b4/3eb449b10212f019acf07c595b653700a15feec3a7341d5432ebf008f69d6d5f.png?f=17EA29A6-8966-4801-A508-AC89FABE714D.png"
-		};
-
+		if (args is not { } || !args.Any())
+			args = new[]
+			{
+				// @"C:\Users\Deci\Pictures\Test Images\Test6.jpg",
+				"https://data17.kemono.party/data/3e/b4/3eb449b10212f019acf07c595b653700a15feec3a7341d5432ebf008f69d6d5f.png?f=17EA29A6-8966-4801-A508-AC89FABE714D.png"
+			};
 #endif
+
+		Debug.WriteLine($"{args.QuickJoin()}");
+
+		Init.Setup();
+		Console.Title          = Resources.Name;
+		Console.OutputEncoding = Encoding.Unicode;
 
 
 		ArgumentHandler.Run(args);
 
-		Console.WriteLine(Query);
 
-		var asm = typeof(SearchClient).Assembly.GetName();
-		Debug.WriteLine($"{asm.Version}");
+		Console.WriteLine($"{"Query:".AddColor(Color.LawnGreen)} {Query}");
+		Console.WriteLine($"{"Config:".AddColor(Color.Cyan)} {Config}");
+
 
 		var cts = new CancellationTokenSource();
 
 		bool isComplete = false;
 
-		var tasks           = Client.GetSearchTasks(cts.Token);
+		List<Task<SearchResult>> tasks = Client.GetSearchTasks(cts.Token);
+
 		var continueTasks   = new List<Task>();
 		var results         = new List<SearchResult>();
 		var detailedResults = new List<ImageResult>();
@@ -52,24 +133,24 @@ public static class Program
 
 		SearchCompleted += (sender, eventArgs) =>
 		{
-			Console.WriteLine($"{eventArgs}");
+			Console.WriteLine($"Search complete: {eventArgs}");
 		};
 
 		ContinueCompleted += (sender, eventArgs) =>
 		{
-			Console.WriteLine($"{eventArgs}");
+			Console.WriteLine($"Continue complete: {eventArgs}");
 		};
 
 		ResultCompleted += (sender, eventArgs) =>
 		{
-			Console.WriteLine($"{eventArgs}");
+			Console.WriteLine($"Result complete: {eventArgs}");
 		};
 
 		while (!isComplete && !cts.IsCancellationRequested) {
-			var finished = await Task.WhenAny(tasks);
+			Task<SearchResult> finished = await Task.WhenAny(tasks);
 
-			var task = finished.ContinueWith(Client.GetResultContinueCallback, state: cts.Token, cts.Token,
-			                                 0, TaskScheduler.Default);
+			Task task = finished.ContinueWith(Client.GetResultContinueCallback, cts, cts.Token,
+			                                  0, TaskScheduler.Default);
 
 			continueTasks.Add(task);
 
@@ -121,94 +202,34 @@ public static class Program
 			isComplete = !tasks.Any();
 
 		}
-	}
 
-	/// <summary>
-	///     Fires when <see cref="GetResultContinueCallback" /> returns
-	/// </summary>
-	public static event EventHandler ContinueCompleted;
+		Console.WriteLine();
 
-	/// <summary>
-	///     Fires when a result is returned (<see cref="RunSearchAsync" />).
-	/// </summary>
-	public static event EventHandler<ResultCompletedEventArgs> ResultCompleted;
+		foreach (SearchResult searchResult in results) {
 
-	/// <summary>
-	///     Fires when a search is complete (<see cref="RunSearchAsync" />).
-	/// </summary>
-	public static event EventHandler<SearchCompletedEventArgs> SearchCompleted;
-
-	private static readonly SearchConfig Config = new()
-	{
-		Notification      = true,
-		NotificationImage = true,
-		SearchEngines     = SearchEngineOptions.All,
-		PriorityEngines   = SearchEngineOptions.Auto,
-		Filtering         = true,
-	};
-
-	private static readonly SearchClient Client = new(Config);
-
-	private static ImageQuery Query => Config.Query;
-
-
-	/// <summary>
-	/// Command line argument handler
-	/// </summary>
-	private static readonly CliHandler ArgumentHandler = new()
-	{
-		Parameters =
-		{
-			new()
+			IEnumerable<KeyValuePair<string, string>> dict = searchResult.Data.Where(x =>
 			{
-				ArgumentCount = 1,
-				ParameterId   = "-se",
-				Function = strings =>
-				{
-					Config.SearchEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-					return null;
-				}
-			},
-			new()
+				object o = x.Value;
+				return o is { };
+			}).Select(kv =>
 			{
-				ArgumentCount = 1,
-				ParameterId   = "-pe",
-				Function = strings =>
-				{
-					Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(strings[0]);
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 0,
-				ParameterId   = "-f",
-				Function = delegate
-				{
-					Config.Filtering = true;
-					return null;
-				}
-			},
-			new()
-			{
-				ArgumentCount = 0,
-				ParameterId   = "-output_only",
-				Function = delegate
-				{
-					Config.OutputOnly = true;
-					return null;
-				}
-			}
-		},
-		Default = new()
-		{
-			ArgumentCount = 1,
-			ParameterId   = null,
-			Function = strings =>
-			{
-				Config.Query = strings[0];
-				return null;
-			}
+				(string s, object o) = kv;
+				string value = o.ToString();
+				string key   = s.AddColor(Color.LawnGreen);
+				return new KeyValuePair<string, string>(key, value);
+			});
+
+			var ct = dict.Select(x => new[] { x.Key, x.Value }).ToList();
+			var dv = ConsoleTableBuilder.From(ct);
+			dv.ExportAndWriteLine();
+			
+			Console.WriteLine();
 		}
-	};
+	}
+	
+	public static event EventHandler ContinueCompleted;
+	
+	public static event EventHandler<ResultCompletedEventArgs> ResultCompleted;
+	
+	public static event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 }

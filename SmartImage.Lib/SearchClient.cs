@@ -349,4 +349,9 @@ public sealed class ResultCompletedEventArgs : EventArgs
 	///     one of the specified <see cref="SearchConfig.PriorityEngines" />
 	/// </summary>
 	public bool IsPriority { get; init; }
+
+	public override string ToString()
+	{
+		return $"{nameof(Result)}: {Result}, {nameof(IsFiltered)}: {IsFiltered}, {nameof(IsPriority)}: {IsPriority}";
+	}
 }
