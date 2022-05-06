@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
+using System.Text.RegularExpressions;
 using AngleSharp.Css.Values;
 using ConsoleTableExt;
 using Kantan.Utilities;
@@ -109,12 +110,12 @@ public static class Program
 		Debug.WriteLine($"{args.QuickJoin()}");
 
 		Init.Setup();
+
 		Console.Title          = Resources.Name;
 		Console.OutputEncoding = Encoding.Unicode;
 
 
 		ArgumentHandler.Run(args);
-
 
 		Console.WriteLine($"{"Query:".AddColor(Color.LawnGreen)} {Query}");
 		Console.WriteLine($"{"Config:".AddColor(Color.Cyan)} {Config}");
@@ -131,30 +132,24 @@ public static class Program
 		var detailedResults = new List<ImageResult>();
 		var filteredResults = new List<SearchResult>();
 
-		SearchCompleted += (sender, eventArgs) =>
-		{
-			Console.WriteLine($"Search complete: {eventArgs}");
-		};
+		SearchCompleted += (sender, eventArgs) => { };
 
-		ContinueCompleted += (sender, eventArgs) =>
-		{
-			Console.WriteLine($"Continue complete: {eventArgs}");
-		};
+		ContinueCompleted += (sender, eventArgs) => { };
 
 		ResultCompleted += (sender, eventArgs) =>
 		{
-			Console.WriteLine($"Result complete: {eventArgs}");
+			HandleResult(eventArgs.Result);
 		};
 
 		while (!isComplete && !cts.IsCancellationRequested) {
-			Task<SearchResult> finished = await Task.WhenAny(tasks);
+			var finished = await Task.WhenAny(tasks);
 
 			Task task = finished.ContinueWith(Client.GetResultContinueCallback, cts, cts.Token,
 			                                  0, TaskScheduler.Default);
 
 			continueTasks.Add(task);
 
-			SearchResult value = finished.Result;
+			var value = finished.Result;
 
 			tasks.Remove(finished);
 
@@ -205,31 +200,154 @@ public static class Program
 
 		Console.WriteLine();
 
-		foreach (SearchResult searchResult in results) {
+	}
 
-			IEnumerable<KeyValuePair<string, string>> dict = searchResult.Data.Where(x =>
-			{
-				object o = x.Value;
-				return o is { };
-			}).Select(kv =>
-			{
-				(string s, object o) = kv;
-				string value = o.ToString();
-				string key   = s.AddColor(Color.LawnGreen);
-				return new KeyValuePair<string, string>(key, value);
-			});
+	private static void HandleResult(SearchResult searchResult)
+	{
+		var dict = searchResult.Data.Where(x =>
+		{
+			object o = x.Value;
+			return o is { };
+		}).Select(kv =>
+		{
+			(string s, object o) = kv;
+			string value = o.ToString();
+			// string key   = s.AddColor(Color.LawnGreen);
+			var key = s;
+			return new KeyValuePair<string, string>(key, value);
+		});
 
-			var ct = dict.Select(x => new[] { x.Key, x.Value }).ToList();
-			var dv = ConsoleTableBuilder.From(ct);
-			dv.ExportAndWriteLine();
-			
-			Console.WriteLine();
+
+		/*var dt = new DataTable()
+		{
+			Columns = { "Property", "Value" }
+		};*/
+
+		/*var tableData = new List<List<object>>
+		{
+			new List<object>{ "Sakura Yamamoto", "Support Engineer", "London", 46},
+			new List<object>{ "Serge Baldwin", "Data Coordinator", "San Francisco", 28, "something else" },
+			new List<object>{ "Shad Decker", "Regional Director", "Edinburgh"},
+		};*/
+
+		/*foreach ((string key, string value) in dict) {
+
+			// dt.Rows.Add(key, value);
+			var v = value;
+
+			if (Strings.StringWraps(value)) {
+				// v = v.Truncate();//todo
+				// v = WordWrap(value, Console.BufferWidth).QuickJoin(Environment.NewLine);
+				Debug.WriteLine($"wraps: {value}");
+				continue;
+			}
+			else {
+				v = value;
+			}
+
+			dt.Rows.Add(key, v);
+		}*/
+
+		var vvv = dict.Where(k => k.Value is not { } s || !Strings.StringWraps(s))
+		              .Select(x => new List<object>() { x.Key, x.Value.ToString() })
+		              .ToList();
+		var ctb = ConsoleTableBuilder.From(vvv);
+
+		// var ctb = ConsoleTableBuilder.From(dt);
+
+		ctb.WithCharMapDefinition(CharMapDefinition.FramePipDefinition)
+		   .WithMetadataRow(MetaRowPositions.Bottom, builder =>
+		   {
+			   var sb = new StringBuilder();
+
+			   if (searchResult is { RawUri: { } }) {
+				   sb.Append($"Raw: {searchResult.RawUri}");
+			   }
+
+			   sb.AppendLine();
+
+			   return sb.ToString();
+		   })
+		   /*.WithTextAlignment(new Dictionary<int, TextAligntment>
+			   {
+				   { 0, TextAligntment.Center },
+				   { 1, TextAligntment.Right },
+				   { 3, TextAligntment.Right },
+				   { 100, TextAligntment.Right }
+			   })
+			   .WithMinLength(new Dictionary<int, int>
+			   {
+				   { 1, 30 }
+			   })*/
+		   .WithTitle(searchResult.Engine.Name,
+		              ConsoleColor.White,
+		              searchResult.IsStatusSuccessful ? ConsoleColor.Blue : ConsoleColor.Red,
+		              TextAligntment.Center)
+		   /*.WithFormatter(1, (text) =>
+			   {
+				   return text.ToUpper().Replace(" ", "-") + " «";
+			   })*/
+		   .ExportAndWriteLine();
+	}
+
+	public static event EventHandler ContinueCompleted;
+
+	public static event EventHandler<ResultCompletedEventArgs> ResultCompleted;
+
+	public static event EventHandler<SearchCompletedEventArgs> SearchCompleted;
+
+	/// <summary>
+	///     Writes the specified data, followed by the current line terminator, to the standard output stream, while wrapping lines that would otherwise break words.
+	/// </summary>
+	/// <param name="paragraph">The value to write.</param>
+	/// <param name="tabSize">The value that indicates the column width of tab characters.</param>
+	public static IEnumerable<string> WriteLineWordWrap(string paragraph, int tabSize = 8)
+	{
+		string[] lines = paragraph
+		                 .Replace("\t", new String(' ', tabSize))
+		                 .Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
+
+		for (int i = 0; i < lines.Length; i++) {
+			string       process = lines[i];
+			List<String> wrapped = new List<string>();
+
+			while (process.Length > Console.WindowWidth) {
+				int wrapAt = process.LastIndexOf(' ', Math.Min(Console.WindowWidth - 1, process.Length));
+				if (wrapAt <= 0) break;
+
+				wrapped.Add(process.Substring(0, wrapAt));
+				process = process.Remove(0, wrapAt + 1);
+			}
+
+			foreach (string wrap in wrapped) {
+				yield return wrap;
+			}
+
+
 		}
 	}
-	
-	public static event EventHandler ContinueCompleted;
-	
-	public static event EventHandler<ResultCompletedEventArgs> ResultCompleted;
-	
-	public static event EventHandler<SearchCompletedEventArgs> SearchCompleted;
+
+	static IEnumerable<string> WordWrap(string text, int width)
+	{
+
+		var forcedZones = Regex.Matches(text, @"\n").Cast<Match>().ToList();
+		var normalZones = Regex.Matches(text, @"\s+|(?<=[-,.;])|$").Cast<Match>().ToList();
+
+		int start = 0;
+
+		while (start < text.Length) {
+			var zone =
+				forcedZones.Find(z => z.Index >= start && z.Index <= start + width) ??
+				normalZones.FindLast(z => z.Index >= start && z.Index <= start + width);
+
+			if (zone == null) {
+				yield return text.Substring(start, width);
+				start += width;
+			}
+			else {
+				yield return text.Substring(start, zone.Index - start);
+				start = zone.Index + zone.Length;
+			}
+		}
+	}
 }
