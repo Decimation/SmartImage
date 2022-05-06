@@ -1,5 +1,6 @@
 ﻿#nullable disable
 
+using System.Collections;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -12,9 +13,11 @@ using SmartImage.Lib;
 using SmartImage.Lib.Searching;
 using Novus;
 using Kantan;
+using Kantan.Cli;
 using Kantan.Cli.Controls;
 using Kantan.Net;
 using Kantan.Text;
+using Novus.OS.Win32;
 using Color = System.Drawing.Color;
 
 namespace SmartImage.Cli;
@@ -114,23 +117,36 @@ public static class Program
 		Console.Title          = Resources.Name;
 		Console.OutputEncoding = Encoding.Unicode;
 
+		ConsoleManager.BufferLimit += 10;
+		ConsoleManager.Init();
+
+		// Console.Clear();
+
 
 		ArgumentHandler.Run(args);
 
-		Console.WriteLine($"{"Query:".AddColor(Color.LawnGreen)} {Query}");
-		Console.WriteLine($"{"Config:".AddColor(Color.Cyan)} {Config}");
 
+		Console.WriteLine($"{"Query:".AddColor(Color.LawnGreen)} {Query}");
+
+		var cfglist = Config.ToMap().Select(x => new List<object> { x.Key, x.Value.ToString() })
+		                    .ToList();
+
+		var ctb = ConsoleTableBuilder.From(cfglist);
+
+		ctb.WithCharMapDefinition(CharMapDefinition.FramePipDefinition)
+		   .WithTitle($"Config", ConsoleColor.White, ConsoleColor.Magenta, TextAligntment.Center)
+		   .ExportAndWriteLine();
 
 		var cts = new CancellationTokenSource();
 
-		bool isComplete = false;
+		_isComplete = false;
 
-		List<Task<SearchResult>> tasks = Client.GetSearchTasks(cts.Token);
+		_tasks = Client.GetSearchTasks(cts.Token);
 
-		var continueTasks   = new List<Task>();
-		var results         = new List<SearchResult>();
-		var detailedResults = new List<ImageResult>();
-		var filteredResults = new List<SearchResult>();
+		_continueTasks   = new List<Task>();
+		_results         = new List<SearchResult>();
+		_detailedResults = new List<ImageResult>();
+		_filteredResults = new List<SearchResult>();
 
 		SearchCompleted += (sender, eventArgs) => { };
 
@@ -141,20 +157,21 @@ public static class Program
 			HandleResult(eventArgs.Result);
 		};
 
-		while (!isComplete && !cts.IsCancellationRequested) {
-			var finished = await Task.WhenAny(tasks);
+		while (!_isComplete && !cts.IsCancellationRequested) {
+			var finished = await Task.WhenAny(_tasks);
 
 			Task task = finished.ContinueWith(Client.GetResultContinueCallback, cts, cts.Token,
 			                                  0, TaskScheduler.Default);
 
-			continueTasks.Add(task);
+			_continueTasks.Add(task);
 
 			var value = finished.Result;
 
-			tasks.Remove(finished);
+			_tasks.Remove(finished);
 
 			bool? isFiltered;
 			bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
+			value.Flags |= SearchResultFlags.Priority;
 
 			//
 			//                          Filtering
@@ -167,25 +184,23 @@ public static class Program
 			//             /               \
 			//        [Results]        [FilteredResults]
 			//
-
 			if (Config.Filtering) {
 
 				if (value.IsNonPrimitive) {
-					results.Add(value);
-					detailedResults.Add(value.PrimaryResult);
+					_results.Add(value);
+					_detailedResults.Add(value.PrimaryResult);
 					isFiltered = false;
 				}
 				else {
-					filteredResults.Add(value);
-					isFiltered = true;
+					_filteredResults.Add(value);
+					isFiltered  =  true;
+					value.Flags |= SearchResultFlags.Filtered;
 				}
 			}
 			else {
-				results.Add(value);
+				_results.Add(value);
 				isFiltered = null;
 			}
-
-			//
 
 			// Call event
 			ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
@@ -194,7 +209,7 @@ public static class Program
 				IsPriority = isPriority
 			});
 
-			isComplete = !tasks.Any();
+			_isComplete = !_tasks.Any();
 
 		}
 
@@ -202,93 +217,74 @@ public static class Program
 
 	}
 
+	private static readonly Encoding CodePage437 =
+		CodePagesEncodingProvider.Instance.GetEncoding((int) Native.CodePages.CP_IBM437);
+
+	private static readonly string CheckMark =
+		Strings.EncodingConvert(Encoding.Unicode, CodePage437, Strings.Constants.CHECK_MARK.ToString());
+
+	private static readonly string MulSign = Strings.Constants.MUL_SIGN.ToString();
+
+	private static List<SearchResult>       _results;
+	private static List<ImageResult>        _detailedResults;
+	private static List<SearchResult>       _filteredResults;
+	private static List<Task>               _continueTasks;
+	private static List<Task<SearchResult>> _tasks;
+	private static bool                     _isComplete;
+
+	public static bool HideRaw { get; set; } = true;
+
 	private static void HandleResult(SearchResult searchResult)
 	{
-		var dict = searchResult.Data.Where(x =>
-		{
-			object o = x.Value;
-			return o is { };
-		}).Select(kv =>
-		{
-			(string s, object o) = kv;
-			string value = o.ToString();
-			// string key   = s.AddColor(Color.LawnGreen);
-			var key = s;
-			return new KeyValuePair<string, string>(key, value);
-		});
+		var dict = searchResult.Data.Where(x => x.Value is { })
+		                       .Select(kv => new KeyValuePair<string, string>(kv.Key, kv.Value.ToString()));
 
+		var dictList = dict.Where(k => k.Value is not { } s || !Strings.StringWraps(s))
+		                   .Select(x => new List<object> { x.Key, x.Value.ToString() })
+		                   .ToList();
 
-		/*var dt = new DataTable()
-		{
-			Columns = { "Property", "Value" }
-		};*/
+		var ctb = ConsoleTableBuilder.From(dictList);
 
-		/*var tableData = new List<List<object>>
-		{
-			new List<object>{ "Sakura Yamamoto", "Support Engineer", "London", 46},
-			new List<object>{ "Serge Baldwin", "Data Coordinator", "San Francisco", 28, "something else" },
-			new List<object>{ "Shad Decker", "Regional Director", "Edinburgh"},
-		};*/
+		var titleColor = (searchResult.IsStatusSuccessful ? ConsoleColor.Blue : ConsoleColor.DarkRed);
 
-		/*foreach ((string key, string value) in dict) {
+		if (searchResult is { Flags: SearchResultFlags.Priority }) {
+			titleColor = ConsoleColor.Green;
+		}
 
-			// dt.Rows.Add(key, value);
-			var v = value;
-
-			if (Strings.StringWraps(value)) {
-				// v = v.Truncate();//todo
-				// v = WordWrap(value, Console.BufferWidth).QuickJoin(Environment.NewLine);
-				Debug.WriteLine($"wraps: {value}");
-				continue;
-			}
-			else {
-				v = value;
-			}
-
-			dt.Rows.Add(key, v);
-		}*/
-
-		var vvv = dict.Where(k => k.Value is not { } s || !Strings.StringWraps(s))
-		              .Select(x => new List<object>() { x.Key, x.Value.ToString() })
-		              .ToList();
-		var ctb = ConsoleTableBuilder.From(vvv);
-
-		// var ctb = ConsoleTableBuilder.From(dt);
 
 		ctb.WithCharMapDefinition(CharMapDefinition.FramePipDefinition)
+		   /*.WithMetadataRow(MetaRowPositions.Top, builder =>
+		   {
+			   var sb = new StringBuilder();
+
+			   if (searchResult is { Flags: SearchResultFlags.Filtered }) sb.Append($"- ");
+			   if (searchResult is { Flags: SearchResultFlags.Priority }) sb.Append($"! ");
+
+			   // sb.AppendLine();
+
+			   return sb.ToString();
+		   })*/
 		   .WithMetadataRow(MetaRowPositions.Bottom, builder =>
 		   {
 			   var sb = new StringBuilder();
 
-			   if (searchResult is { RawUri: { } }) {
+			   // if (searchResult is { RawUri: { } }) 
+
+			   if (!HideRaw) {
 				   sb.Append($"Raw: {searchResult.RawUri}");
+
 			   }
 
 			   sb.AppendLine();
 
 			   return sb.ToString();
+
+			   // return searchResult?.RawUri?.ToString();
 		   })
-		   /*.WithTextAlignment(new Dictionary<int, TextAligntment>
-			   {
-				   { 0, TextAligntment.Center },
-				   { 1, TextAligntment.Right },
-				   { 3, TextAligntment.Right },
-				   { 100, TextAligntment.Right }
-			   })
-			   .WithMinLength(new Dictionary<int, int>
-			   {
-				   { 1, 30 }
-			   })*/
-		   .WithTitle(searchResult.Engine.Name,
-		              ConsoleColor.White,
-		              searchResult.IsStatusSuccessful ? ConsoleColor.Blue : ConsoleColor.Red,
-		              TextAligntment.Center)
-		   /*.WithFormatter(1, (text) =>
-			   {
-				   return text.ToUpper().Replace(" ", "-") + " «";
-			   })*/
+		   .WithTitle(searchResult.Engine.Name, ConsoleColor.White, titleColor, TextAligntment.Center)
 		   .ExportAndWriteLine();
 	}
+
 
 	public static event EventHandler ContinueCompleted;
 

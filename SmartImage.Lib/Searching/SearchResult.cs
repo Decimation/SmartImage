@@ -204,7 +204,7 @@ public class SearchResult : IResult
 		foreach (ImageResult imageResult in AllResults) {
 			imageResult.Dispose();
 		}
-		
+
 		OtherResults.Clear();
 
 		Origin.Dispose();
@@ -237,6 +237,7 @@ public class SearchResult : IResult
 				map.Add("Status", Status);
 			}
 
+			map.Add(nameof(Flags), Flags);
 			return map;
 		}
 	}
@@ -317,4 +318,14 @@ public class SearchResult : IResult
 
 		return option;
 	}
+
+	public SearchResultFlags Flags { get; internal set; }
+}
+
+[Flags]
+public enum SearchResultFlags
+{
+	Null     = 0,
+	Filtered = 1 << 0,
+	Priority = 1 << 1,
 }

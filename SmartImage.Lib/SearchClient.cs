@@ -30,6 +30,7 @@ using SmartImage.Lib.Utilities;
 // ReSharper disable UnusedMember.Global
 
 [assembly: InternalsVisibleTo("SmartImage")]
+[assembly: InternalsVisibleTo("SmartImage.Cli")]
 
 namespace SmartImage.Lib;
 
