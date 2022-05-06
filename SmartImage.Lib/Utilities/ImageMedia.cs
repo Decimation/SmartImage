@@ -63,7 +63,7 @@ public static class ImageMedia
 	{
 		List<string> urls = await HttpResourceFilter.Default.Extract(url);
 
-		var v = (await Task.WhenAll(urls.Select(async Task<HttpResource> (s1) =>
+		var v = (await Task.WhenAll(urls.Select(async Task<HttpResource>(s1) =>
 			        {
 				        var resource = await HttpResource.GetAsync(s1);
 
@@ -72,17 +72,15 @@ public static class ImageMedia
 				        return resource;
 			        }))).ToList();
 
-		for (int i = v.Count - 1; i >= 0; i--)
-		{
+		for (int i = v.Count - 1; i >= 0; i--) {
 			HttpResource httpResource = v[i];
 
-			if (httpResource == null)
-			{
+			if (httpResource == null) {
 				v.RemoveAt(i);
 				continue;
 			}
-			if (!httpResource.IsBinary)
-			{
+
+			if (!httpResource.IsBinary) {
 				httpResource.Dispose();
 				v.RemoveAt(i);
 			}
@@ -92,32 +90,16 @@ public static class ImageMedia
 		return v.ToArray();
 	}
 
-	public static HttpResource[] Scan(string url, int ms)
-	{
-		var t = ScanAsync(url, ms);
-		t.Wait();
-		;
-		return t.Result;
-	}
 
-	public static MediaResourceInfo GetMediaInfo(string x, int ms = TIMEOUT)
+	public static HttpResource GetMediaInfo(string x, int ms = TIMEOUT)
 	{
-		var isFile = File.Exists(x);
-
 		var di = HttpResource.GetAsync(x);
 		di.Wait();
 
 		var o = di.Result;
 		o?.Resolve();
 
-		var mri = new MediaResourceInfo
-		{
-			Resource = o,
-			IsFile   = isFile,
-			IsUri    = o is { IsBinary: true }
-		};
-
-		return mri;
+		return o;
 	}
 
 	[CanBeNull]

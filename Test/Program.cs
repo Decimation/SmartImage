@@ -6,6 +6,7 @@ using System.IO;
 using System.Net;
 using System.Threading.Tasks;
 using Kantan.Net;
+using Kantan.Net.Content;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
@@ -64,7 +65,7 @@ public static class Program
 
 	static async Task test5()
 	{
-		var b =(bool) ImageMedia.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
+		var b = ImageMedia.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
 
 		Console.WriteLine(b);
 
@@ -74,7 +75,9 @@ public static class Program
 	}
 	static async Task test4()
 	{
-		var task =  ImageMedia.Scan("http://www.zerochan.net/2750747",-1);
+		var t = ImageMedia.ScanAsync("http://www.zerochan.net/2750747", -1);
+		t.Wait();
+		var task =  t.Result;
 
 		foreach (var v in task) {
 			Console.WriteLine(v);

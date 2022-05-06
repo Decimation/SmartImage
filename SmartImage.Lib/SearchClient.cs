@@ -228,11 +228,7 @@ public sealed class SearchClient : IDisposable
 			//
 
 			// Call event
-			ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
-			{
-				IsFiltered = isFiltered,
-				IsPriority = isPriority
-			});
+			ResultCompleted?.Invoke(null, value);
 
 			IsComplete = !Tasks.Any();
 
@@ -311,7 +307,7 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	///     Fires when a result is returned (<see cref="RunSearchAsync" />).
 	/// </summary>
-	public event EventHandler<ResultCompletedEventArgs> ResultCompleted;
+	public event EventHandler<SearchResult> ResultCompleted;
 
 	/// <summary>
 	///     Fires when a search is complete (<see cref="RunSearchAsync" />).

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Data;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Dynamic;
 using System.Text;
 using System.Text.RegularExpressions;
 using AngleSharp.Css.Values;
@@ -24,6 +25,11 @@ namespace SmartImage.Cli;
 
 public static class Program
 {
+	private const int WIDTH  = 120;
+	private const int HEIGHT = 250;
+
+	#region
+
 	private static readonly SearchConfig Config = new()
 	{
 		Notification      = true,
@@ -36,6 +42,8 @@ public static class Program
 	private static readonly SearchClient Client = new(Config);
 
 	private static ImageQuery Query => Config.Query;
+
+	#endregion
 
 
 	/// <summary>
@@ -105,8 +113,8 @@ public static class Program
 		if (args is not { } || !args.Any())
 			args = new[]
 			{
-				// @"C:\Users\Deci\Pictures\Test Images\Test6.jpg",
-				"https://data17.kemono.party/data/3e/b4/3eb449b10212f019acf07c595b653700a15feec3a7341d5432ebf008f69d6d5f.png?f=17EA29A6-8966-4801-A508-AC89FABE714D.png"
+				@"C:\Users\Deci\Pictures\Test Images\Test6.jpg",
+				// "https://data17.kemono.party/data/3e/b4/3eb449b10212f019acf07c595b653700a15feec3a7341d5432ebf008f69d6d5f.png?f=17EA29A6-8966-4801-A508-AC89FABE714D.png"
 			};
 #endif
 
@@ -116,8 +124,6 @@ public static class Program
 
 		Console.Title          = Resources.Name;
 		Console.OutputEncoding = Encoding.Unicode;
-
-		ConsoleManager.BufferLimit += 10;
 		ConsoleManager.Init();
 
 		// Console.Clear();
@@ -154,7 +160,10 @@ public static class Program
 
 		ResultCompleted += (sender, eventArgs) =>
 		{
-			HandleResult(eventArgs.Result);
+			if (!eventArgs.Flags.HasFlag(SearchResultFlags.Filtered)) {
+				HandleResult(eventArgs);
+
+			}
 		};
 
 		while (!_isComplete && !cts.IsCancellationRequested) {
@@ -189,25 +198,18 @@ public static class Program
 				if (value.IsNonPrimitive) {
 					_results.Add(value);
 					_detailedResults.Add(value.PrimaryResult);
-					isFiltered = false;
 				}
 				else {
 					_filteredResults.Add(value);
-					isFiltered  =  true;
 					value.Flags |= SearchResultFlags.Filtered;
 				}
 			}
 			else {
 				_results.Add(value);
-				isFiltered = null;
 			}
 
 			// Call event
-			ResultCompleted?.Invoke(null, new ResultCompletedEventArgs(value)
-			{
-				IsFiltered = isFiltered,
-				IsPriority = isPriority
-			});
+			ResultCompleted?.Invoke(null, value);
 
 			_isComplete = !_tasks.Any();
 
@@ -225,6 +227,8 @@ public static class Program
 
 	private static readonly string MulSign = Strings.Constants.MUL_SIGN.ToString();
 
+	#region
+
 	private static List<SearchResult>       _results;
 	private static List<ImageResult>        _detailedResults;
 	private static List<SearchResult>       _filteredResults;
@@ -232,15 +236,52 @@ public static class Program
 	private static List<Task<SearchResult>> _tasks;
 	private static bool                     _isComplete;
 
+	#endregion
+
 	public static bool HideRaw { get; set; } = true;
+
+	public static Dictionary<string, object> getmap(SearchResult s)
+	{
+		var map = new Dictionary<string, object>();
+
+		// map.Add(nameof(PrimaryResult), PrimaryResult);
+
+		foreach ((string key, object value) in s.PrimaryResult.Data) {
+			map.Add(key, value);
+		}
+
+		// map.Add("Raw", s.RawUri);
+
+		if (s.OtherResults.Count != 0) {
+			map.Add("Other image results", s.OtherResults.Count);
+		}
+
+		if (s.ErrorMessage != null) {
+			map.Add("Error", s.ErrorMessage);
+		}
+
+		if (!s.IsStatusSuccessful) {
+			map.Add(nameof(SearchResult.Status), s.Status);
+		}
+
+		map.Add(nameof(SearchResult.Flags), s.Flags);
+
+		return map;
+	}
+
 
 	private static void HandleResult(SearchResult searchResult)
 	{
-		var dict = searchResult.Data.Where(x => x.Value is { })
-		                       .Select(kv => new KeyValuePair<string, string>(kv.Key, kv.Value.ToString()));
+		// var data = getmap(searchResult);
+		var data = searchResult.Data;
 
-		var dictList = dict.Where(k => k.Value is not { } s || !Strings.StringWraps(s))
-		                   .Select(x => new List<object> { x.Key, x.Value.ToString() })
+
+		var dict = data.Where(x => x.Value is { })
+		               .Select(kv => new KeyValuePair<string, string>(kv.Key, kv.Value.ToString()));
+
+		var dictList = dict.Where(k => (k.Value != null))
+		                   .Select(x => new List<object>
+			                           { $"{x.Key}", x.Value.ToString().Truncate(Console.BufferWidth - 30) })
 		                   .ToList();
 
 		var ctb = ConsoleTableBuilder.From(dictList);
@@ -256,12 +297,12 @@ public static class Program
 		   /*.WithMetadataRow(MetaRowPositions.Top, builder =>
 		   {
 			   var sb = new StringBuilder();
-
+	
 			   if (searchResult is { Flags: SearchResultFlags.Filtered }) sb.Append($"- ");
 			   if (searchResult is { Flags: SearchResultFlags.Priority }) sb.Append($"! ");
-
+	
 			   // sb.AppendLine();
-
+	
 			   return sb.ToString();
 		   })*/
 		   .WithMetadataRow(MetaRowPositions.Bottom, builder =>
@@ -272,7 +313,6 @@ public static class Program
 
 			   if (!HideRaw) {
 				   sb.Append($"Raw: {searchResult.RawUri}");
-
 			   }
 
 			   sb.AppendLine();
@@ -285,10 +325,9 @@ public static class Program
 		   .ExportAndWriteLine();
 	}
 
-
 	public static event EventHandler ContinueCompleted;
 
-	public static event EventHandler<ResultCompletedEventArgs> ResultCompleted;
+	public static event EventHandler<SearchResult> ResultCompleted;
 
 	public static event EventHandler<SearchCompletedEventArgs> SearchCompleted;
 

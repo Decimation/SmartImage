@@ -238,7 +238,7 @@ public sealed class ImageResult : IResult
 		var info = ImageMedia.GetMediaInfo(url);
 
 		if ((bool) info) {
-			DirectImages.Add(info.Resource);
+			DirectImages.Add(info);
 			return true;
 		}
 		else {
@@ -252,9 +252,12 @@ public sealed class ImageResult : IResult
 
 		try {
 
-			var directImages = ImageMedia.Scan(url, ms)
-			                             .Where(x => x is { Url: { } })
-			                             .ToList();
+			var t = ImageMedia.ScanAsync(url, ms);
+			t.Wait();
+
+			var directImages = t.Result
+			                    .Where(x => x is { Url: { } })
+			                    .ToList();
 
 			if (directImages.Any()) {
 				// Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");

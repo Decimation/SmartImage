@@ -527,9 +527,9 @@ public static class Program
 
 	}
 
-	private static void OnResultCompleted(object sender, ResultCompletedEventArgs eventArgs)
+	private static void OnResultCompleted(object sender, SearchResult eventArgs)
 	{
-		SearchResult result = eventArgs.Result;
+		SearchResult result = eventArgs;
 
 		ConsoleOption option = result.GetConsoleOption();
 
@@ -537,13 +537,13 @@ public static class Program
 		option.Color    = color;
 		option.ColorAlt = color.ChangeBrightness(-.4f);
 
-		bool? isFiltered = eventArgs.IsFiltered;
+		bool? isFiltered = eventArgs.Flags.HasFlag(SearchResultFlags.Filtered);
 
 		if (isFiltered.HasValue && !isFiltered.Value || !isFiltered.HasValue) {
 			ResultDialog.Options.Add(option);
 		}
 
-		if (eventArgs.IsPriority) {
+		if (eventArgs.Flags.HasFlag(SearchResultFlags.Priority)) {
 			option.Function();
 		}
 

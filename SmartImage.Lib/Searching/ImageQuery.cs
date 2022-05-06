@@ -55,7 +55,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public TimeSpan UploadTime { get; }
 
-	public MediaResourceInfo Info { get; }
+	public HttpResource Info { get; }
 
 	public Image Image { get; }
 
