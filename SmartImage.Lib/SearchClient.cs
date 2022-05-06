@@ -42,7 +42,6 @@ namespace SmartImage.Lib;
  *
  */
 
-
 /// <summary>
 ///     Handles searches
 /// </summary>
@@ -193,8 +192,9 @@ public sealed class SearchClient : IDisposable
 
 			Tasks.Remove(finished);
 
-			bool? isFiltered;
-			bool  isPriority = Config.PriorityEngines.HasFlag(value.Engine.EngineOption);
+			if (Config.PriorityEngines.HasFlag(value.Engine.EngineOption)) {
+				value.Flags |= SearchResultFlags.Priority;
+			}
 
 			//
 			//                          Filtering
@@ -213,16 +213,16 @@ public sealed class SearchClient : IDisposable
 				if (value.IsNonPrimitive) {
 					Results.Add(value);
 					DetailedResults.Add(value.PrimaryResult);
-					isFiltered = false;
+
 				}
 				else {
 					FilteredResults.Add(value);
-					isFiltered = true;
+
 				}
 			}
 			else {
 				Results.Add(value);
-				isFiltered = null;
+
 			}
 
 			//
