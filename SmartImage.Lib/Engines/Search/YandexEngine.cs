@@ -158,7 +158,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
 		if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
-			sr.Status = ResultStatus.Cooldown;
+			sr.Status = SearchResultStatus.Cooldown;
 			return sr;
 		}
 
@@ -200,7 +200,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		if (doc.Body.TextContent.Contains(NO_MATCHING)) {
 
 			sr.ErrorMessage = NO_MATCHING;
-			sr.Status       = ResultStatus.Extraneous;
+			sr.Status       = SearchResultStatus.Extraneous;
 		}
 
 		sr.PrimaryResult.Quality = sr.PrimaryResult.MegapixelResolution switch

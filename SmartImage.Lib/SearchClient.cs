@@ -213,10 +213,10 @@ public sealed class SearchClient : IDisposable
 				if (value.IsNonPrimitive) {
 					Results.Add(value);
 					DetailedResults.Add(value.PrimaryResult);
-
 				}
 				else {
 					FilteredResults.Add(value);
+					value.Flags |= SearchResultFlags.Filtered;
 
 				}
 			}

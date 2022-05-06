@@ -59,12 +59,12 @@ public abstract class BaseSearchEngine : IDisposable
 		}
 
 		if (!sr.Origin.Success) {
-			sr.Status       = ResultStatus.Failure;
+			sr.Status       = SearchResultStatus.Failure;
 			sr.ErrorMessage = $"{sr} | {sr.Origin.Response.StatusCode}";
 		}
 		else {
 			sr.RawUri = sr.Origin.RawUri;
-			sr.Status = ResultStatus.Success;
+			sr.Status = SearchResultStatus.Success;
 		}
 
 		return sr;

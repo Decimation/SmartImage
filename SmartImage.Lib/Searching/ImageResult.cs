@@ -237,7 +237,11 @@ public sealed class ImageResult : IResult
 
 		var info = ImageMedia.GetMediaInfo(url);
 
-		if ((bool) info) {
+		if (info == null) {
+			return false;
+		}
+
+		if (info.IsBinary) {
 			DirectImages.Add(info);
 			return true;
 		}

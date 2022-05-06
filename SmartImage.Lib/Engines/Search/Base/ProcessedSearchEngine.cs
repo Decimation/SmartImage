@@ -24,7 +24,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 		var sr = base.GetResult(query, c);
 
 		if (sr.Origin.Response?.StatusCode == HttpStatusCode.TooManyRequests) {
-			sr.Status = ResultStatus.Cooldown;
+			sr.Status = SearchResultStatus.Cooldown;
 			goto ret;
 		}
 
@@ -48,7 +48,7 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 		}
 		catch (Exception e) {
 
-			sr.Status       = ResultStatus.Failure;
+			sr.Status       = SearchResultStatus.Failure;
 			sr.ErrorMessage = e.Message;
 
 			Trace.WriteLine($"{sr.Engine.Name}: {e.Message}", C_ERROR);

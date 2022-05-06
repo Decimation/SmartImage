@@ -68,7 +68,7 @@ public class Tests
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
 
-		if (t.Status == ResultStatus.Cooldown) {
+		if (t.Status == SearchResultStatus.Cooldown) {
 			Assert.Inconclusive();
 		}
 
@@ -98,7 +98,7 @@ public class Tests
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
 
-		if (t.Status == ResultStatus.Unavailable) {
+		if (t.Status == SearchResultStatus.Unavailable) {
 			Assert.Inconclusive();
 		}
 
@@ -152,7 +152,7 @@ public class Tests
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
 
-		if (t.Status == ResultStatus.Unavailable) {
+		if (t.Status == SearchResultStatus.Unavailable) {
 			Assert.Inconclusive();
 		}
 

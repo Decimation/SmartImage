@@ -97,7 +97,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				}
 				catch (Exception e) {
 					r.ErrorMessage = e.Message;
-					r.Status       = ResultStatus.Failure;
+					r.Status       = SearchResultStatus.Failure;
 				}
 
 			}
@@ -106,7 +106,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				r.ErrorMessage = tm.error;
 
 				if (r.ErrorMessage.Contains("Search queue is full")) {
-					r.Status = ResultStatus.Unavailable;
+					r.Status = SearchResultStatus.Unavailable;
 				}
 			}
 		}

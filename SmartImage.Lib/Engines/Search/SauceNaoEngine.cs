@@ -78,7 +78,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		if (dataResults == null) {
 			result.ErrorMessage = "Daily search limit (100) exceeded";
-			result.Status       = ResultStatus.Cooldown;
+			result.Status       = SearchResultStatus.Cooldown;
 			//return sresult;
 			goto ret;
 		}

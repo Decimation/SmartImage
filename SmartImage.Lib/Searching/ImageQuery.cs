@@ -34,12 +34,12 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	/// <summary>
 	/// Whether <see cref="Value"/> is a file
 	/// </summary>
-	public bool IsFile => Info.IsFile;
+	public bool IsFile => Resource.IsFile;
 
 	/// <summary>
 	/// Whether <see cref="Value"/> is an image link
 	/// </summary>
-	public bool IsUri => Info.IsUri;
+	public bool IsUri => Resource.IsUri;
 
 	/// <summary>
 	/// Uploaded direct image
@@ -55,7 +55,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public TimeSpan UploadTime { get; }
 
-	public HttpResource Info { get; }
+	public HttpResource Resource { get; }
 
 	public Image Image { get; }
 
@@ -71,10 +71,10 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 		value = value.CleanString();
 
-		Info = ImageMedia.GetMediaInfo(value);
+		Resource = ImageMedia.GetMediaInfo(value);
 
-		if (!(bool) Info) {
-			var errStr = !Info.IsFile ? "Invalid file" : "Invalid URI";
+		if (!Resource.IsBinary) {
+			var errStr = !Resource.IsFile ? "Invalid file" : "Invalid URI";
 			throw new ArgumentException($"Input error: {errStr}");
 		}
 
@@ -141,6 +141,6 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	{
 		Stream?.Dispose();
 		Image.Dispose();
-		Info.Dispose();
+		Resource.Dispose();
 	}
 }

@@ -27,39 +27,6 @@ using SmartImage.Lib.Engines.Search.Base;
 
 namespace SmartImage.Lib.Searching;
 
-public enum ResultStatus
-{
-	/// <summary>
-	/// Succeeded in parsing/retrieving result
-	/// </summary>
-	Success,
-
-	/// <summary>
-	/// No results found
-	/// </summary>
-	NoResults,
-
-	/// <summary>
-	/// Server unavailable
-	/// </summary>
-	Unavailable,
-
-	/// <summary>
-	/// Failed to parse/retrieve results
-	/// </summary>
-	Failure,
-
-	/// <summary>
-	/// Result is extraneous
-	/// </summary>
-	Extraneous,
-
-	/// <summary>
-	/// Engine which returned the result is on cooldown
-	/// </summary>
-	Cooldown
-}
-
 /// <summary>
 /// Describes a search result
 /// </summary>
@@ -93,7 +60,7 @@ public class SearchResult : IResult
 	/// <summary>
 	/// Result status
 	/// </summary>
-	public ResultStatus Status { get; internal set; }
+	public SearchResultStatus Status { get; internal set; }
 
 	/// <summary>
 	/// Error message; if applicable
@@ -107,7 +74,7 @@ public class SearchResult : IResult
 	/// If filtering is enabled (i.e., <see cref="SearchConfig.Filtering"/> is <c>true</c>), this determines whether the
 	/// result is filtered.
 	/// </summary>
-	public bool IsNonPrimitive => (Status != ResultStatus.Extraneous && PrimaryResult.Url != null);
+	public bool IsNonPrimitive => (Status != SearchResultStatus.Extraneous && PrimaryResult.Url != null);
 
 	public SearchResultOrigin Origin { get; internal set; }
 
@@ -116,14 +83,14 @@ public class SearchResult : IResult
 		get
 		{
 			switch (Status) {
-				case ResultStatus.Failure:
-				case ResultStatus.Unavailable:
+				case SearchResultStatus.Failure:
+				case SearchResultStatus.Unavailable:
 					return false;
 
-				case ResultStatus.Success:
-				case ResultStatus.NoResults:
-				case ResultStatus.Cooldown:
-				case ResultStatus.Extraneous:
+				case SearchResultStatus.Success:
+				case SearchResultStatus.NoResults:
+				case SearchResultStatus.Cooldown:
+				case SearchResultStatus.Extraneous:
 					return true;
 
 				default:
@@ -322,10 +289,45 @@ public class SearchResult : IResult
 	public SearchResultFlags Flags { get; internal set; }
 }
 
+public enum SearchResultStatus
+{
+	/// <summary>
+	/// Succeeded in parsing/retrieving result
+	/// </summary>
+	Success,
+
+	/// <summary>
+	/// No results found
+	/// </summary>
+	NoResults,
+
+	/// <summary>
+	/// Server unavailable
+	/// </summary>
+	Unavailable,
+
+	/// <summary>
+	/// Failed to parse/retrieve results
+	/// </summary>
+	Failure,
+
+	/// <summary>
+	/// Result is extraneous
+	/// </summary>
+	Extraneous,
+
+	/// <summary>
+	/// Engine which returned the result is on cooldown
+	/// </summary>
+	Cooldown
+}
+
 [Flags]
 public enum SearchResultFlags
 {
 	Null     = 0,
+
 	Filtered = 1 << 0,
+
 	Priority = 1 << 1,
 }

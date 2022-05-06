@@ -230,60 +230,6 @@ public static class Program
 		   .ExportAndWriteLine();
 	}
 
-	/// <summary>
-	///     Writes the specified data, followed by the current line terminator, to the standard output stream, while wrapping lines that would otherwise break words.
-	/// </summary>
-	/// <param name="paragraph">The value to write.</param>
-	/// <param name="tabSize">The value that indicates the column width of tab characters.</param>
-	public static IEnumerable<string> WriteLineWordWrap(string paragraph, int tabSize = 8)
-	{
-		string[] lines = paragraph
-		                 .Replace("\t", new String(' ', tabSize))
-		                 .Split(new string[] { Environment.NewLine }, StringSplitOptions.None);
-
-		for (int i = 0; i < lines.Length; i++) {
-			string       process = lines[i];
-			List<String> wrapped = new List<string>();
-
-			while (process.Length > Console.WindowWidth) {
-				int wrapAt = process.LastIndexOf(' ', Math.Min(Console.WindowWidth - 1, process.Length));
-				if (wrapAt <= 0) break;
-
-				wrapped.Add(process.Substring(0, wrapAt));
-				process = process.Remove(0, wrapAt + 1);
-			}
-
-			foreach (string wrap in wrapped) {
-				yield return wrap;
-			}
-
-
-		}
-	}
-
-	static IEnumerable<string> WordWrap(string text, int width)
-	{
-
-		var forcedZones = Regex.Matches(text, @"\n").Cast<Match>().ToList();
-		var normalZones = Regex.Matches(text, @"\s+|(?<=[-,.;])|$").Cast<Match>().ToList();
-
-		int start = 0;
-
-		while (start < text.Length) {
-			var zone =
-				forcedZones.Find(z => z.Index >= start && z.Index <= start + width) ??
-				normalZones.FindLast(z => z.Index >= start && z.Index <= start + width);
-
-			if (zone == null) {
-				yield return text.Substring(start, width);
-				start += width;
-			}
-			else {
-				yield return text.Substring(start, zone.Index - start);
-				start = zone.Index + zone.Length;
-			}
-		}
-	}
 
 	public static event EventHandler ContinueCompleted;
 

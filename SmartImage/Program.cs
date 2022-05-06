@@ -138,7 +138,7 @@ public static class Program
 
 					using var m = ImageMedia.GetMediaInfo(x);
 
-					return !((bool) m);
+					return !(m.IsBinary);
 				}, "Input must be file or direct image link");
 
 				Config.Query = query;
@@ -537,9 +537,9 @@ public static class Program
 		option.Color    = color;
 		option.ColorAlt = color.ChangeBrightness(-.4f);
 
-		bool? isFiltered = eventArgs.Flags.HasFlag(SearchResultFlags.Filtered);
+		// bool? isFiltered = eventArgs.Flags.HasFlag(SearchResultFlags.Filtered);
 
-		if (isFiltered.HasValue && !isFiltered.Value || !isFiltered.HasValue) {
+		if (!eventArgs.Flags.HasFlag(SearchResultFlags.Filtered)) {
 			ResultDialog.Options.Add(option);
 		}
 

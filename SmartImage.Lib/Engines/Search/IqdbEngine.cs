@@ -152,7 +152,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 		if (ns != null) {
 
-			sr.Status = ResultStatus.NoResults;
+			sr.Status = SearchResultStatus.NoResults;
 
 			return sr;
 		}
