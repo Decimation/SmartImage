@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -61,6 +61,7 @@ public class Tests
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg", "sciamano240")]
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg", "koyoriin")]
+	[TestCase(@"C:\Users\Deci\Pictures\shellvi - ヨル (98022741).jpg", "shellvi")]
 	public async Task TestSauceNao(string art, string name)
 	{
 		var q  = new ImageQuery(art);
@@ -68,7 +69,7 @@ public class Tests
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
 
-		if (t.Status == SearchResultStatus.Cooldown) {
+		if (t.Status is SearchResultStatus.Cooldown or SearchResultStatus.Failure) {
 			Assert.Inconclusive();
 		}
 
@@ -82,7 +83,7 @@ public class Tests
 				return false;
 			}
 		});
-		
+
 		Assert.True(b);
 
 

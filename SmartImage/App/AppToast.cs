@@ -94,19 +94,19 @@ internal static class AppToast
 
 		var path = Path.GetTempPath();
 
-		// string file = ImageMedia.Download(directImage.DirectImage.Url, path);
+		// string file = MediaHelper.Download(directImage.DirectImage.Url, path);
 
 		var mediaResource = mediaResources.First();
 
-		string file = ImageMedia.Download(new Uri(mediaResource.Url), path);
+		string file = MediaHelper.Download(new Uri(mediaResource.Url), path);
 
 		if (file == null) {
 			int i = 0;
 
 			do {
-				// file = ImageMedia.Download(directResults[i++].DirectImage.Url, path);
+				// file = MediaHelper.Download(directResults[i++].DirectImage.Url, path);
 
-				file = ImageMedia.Download(new Uri(mediaResources[i++].Url), path);
+				file = MediaHelper.Download(new Uri(mediaResources[i++].Url), path);
 
 			} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 

@@ -65,7 +65,7 @@ public static class Program
 
 	static async Task test5()
 	{
-		var b = ImageMedia.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
+		var b = MediaHelper.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
 
 		Console.WriteLine(b);
 
@@ -75,7 +75,7 @@ public static class Program
 	}
 	static async Task test4()
 	{
-		var t = ImageMedia.ScanAsync("http://www.zerochan.net/2750747", -1);
+		var t = MediaHelper.ScanAsync("http://www.zerochan.net/2750747", -1);
 		t.Wait();
 		var task =  t.Result;
 
@@ -187,7 +187,7 @@ public static class Program
 
 	static void test1()
 	{
-		Console.WriteLine(ImageMedia.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png"));
+		Console.WriteLine(MediaHelper.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png"));
 
 		Debugger.Break();
 		var wc    = new WebClient();

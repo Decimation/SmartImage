@@ -235,7 +235,7 @@ public sealed class ImageResult : IResult
 
 		var url = Url.ToString();
 
-		var info = ImageMedia.GetMediaInfo(url);
+		var info = MediaHelper.GetMediaInfo(url);
 
 		if (info == null) {
 			return false;
@@ -256,7 +256,7 @@ public sealed class ImageResult : IResult
 
 		try {
 
-			var t = ImageMedia.ScanAsync(url, ms);
+			var t = MediaHelper.ScanAsync(url, ms);
 			t.Wait();
 
 			var directImages = t.Result

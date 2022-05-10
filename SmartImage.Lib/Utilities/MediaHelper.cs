@@ -33,7 +33,7 @@ using Novus.OS;
 
 namespace SmartImage.Lib.Utilities;
 
-public static class ImageMedia
+public static class MediaHelper
 {
 	private const int TIMEOUT = -1;
 
@@ -61,7 +61,7 @@ public static class ImageMedia
 
 	public static async Task<HttpResource[]> ScanAsync(string url, int ms)
 	{
-		List<string> urls = await HttpResourceFilter.Default.Extract(url);
+		List<string> urls = await HttpResourceFilter.Default.ExtractUrls(url);
 
 		var v = (await Task.WhenAll(urls.Select(async Task<HttpResource>(s1) =>
 			        {
@@ -109,14 +109,14 @@ public static class ImageMedia
 		string    combine  = Path.Combine(path, filename);
 		using var wc       = new WebClient();
 
-		Debug.WriteLine($"{nameof(ImageMedia)}: Downloading {src} to {combine} ...", C_DEBUG);
+		Debug.WriteLine($"{nameof(MediaHelper)}: Downloading {src} to {combine} ...", C_DEBUG);
 
 		try {
 			wc.DownloadFile(src.ToString(), combine);
 			return combine;
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{nameof(ImageMedia)}: {e.Message}", C_ERROR);
+			Debug.WriteLine($"{nameof(MediaHelper)}: {e.Message}", C_ERROR);
 			return null;
 		}
 	}

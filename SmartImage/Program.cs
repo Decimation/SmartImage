@@ -136,7 +136,7 @@ public static class Program
 				{
 					x = x.CleanString();
 
-					using var m = ImageMedia.GetMediaInfo(x);
+					using var m = MediaHelper.GetMediaInfo(x);
 
 					return !(m.IsBinary);
 				}, "Input must be file or direct image link");
