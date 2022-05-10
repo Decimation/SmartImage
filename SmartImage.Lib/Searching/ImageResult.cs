@@ -235,7 +235,12 @@ public sealed class ImageResult : IResult
 
 		var url = Url.ToString();
 
-		var info = MediaHelper.GetMediaInfo(url);
+		var di = HttpResource.GetAsync(url);
+		di.Wait();
+
+		var o = di.Result;
+		o?.Resolve();
+		var info = o;
 
 		if (info == null) {
 			return false;
@@ -256,12 +261,10 @@ public sealed class ImageResult : IResult
 
 		try {
 
-			var t = MediaHelper.ScanAsync(url, ms);
-			t.Wait();
+			var async = HttpResourceFilter.Media.ScanAsync(url);
+			async.Wait();
 
-			var directImages = t.Result
-			                    .Where(x => x is { Url: { } })
-			                    .ToList();
+			var directImages = (async.Result.Where(x => x is { Url: { } })).ToArray();
 
 			if (directImages.Any()) {
 				// Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");

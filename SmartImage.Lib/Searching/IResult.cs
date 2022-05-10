@@ -38,7 +38,7 @@ public interface IResult : IDisposable, IConsoleOption
 			CPI.Instance.Start(cts);
 
 
-			var file = MediaHelper.Download(direct, path);
+			var file = HttpUtilities.Download(direct, path);
 
 			// Program.ResultDialog.Refresh();
 

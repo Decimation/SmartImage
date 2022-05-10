@@ -103,7 +103,7 @@ internal static class AppToast
 		var mediaResource = mediaResources.First();
 
 
-		string file = MediaHelper.Download(new Uri(mediaResource.Url), path);
+		string file = HttpUtilities.Download(new Uri(mediaResource.Url), path);
 
 		if (file == null) {
 			int i = 0;
@@ -111,7 +111,7 @@ internal static class AppToast
 			do {
 				// file = MediaHelper.Download(directResults[i++].DirectImage.Url, path);
 
-				file = MediaHelper.Download(new Uri(mediaResources[i++].Url), path);
+				file = HttpUtilities.Download(new Uri(mediaResources[i++].Url), path);
 
 			} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 

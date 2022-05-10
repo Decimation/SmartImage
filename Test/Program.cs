@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Kantan.Net;
@@ -45,11 +46,9 @@ public static class Program
 		Console.WriteLine(t);*/
 
 
-
 		var u = "https://i.imgur.com/QtCausw.png";
 
 		var r = HttpWebRequest.Create(u);
-		
 
 
 		await test4();
@@ -65,19 +64,25 @@ public static class Program
 
 	static async Task test5()
 	{
-		var b = MediaHelper.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
+		var di = HttpResource.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
+		di.Wait();
+
+		var o = di.Result;
+		o?.Resolve();
+		var b = o;
 
 		Console.WriteLine(b);
 
-		var v = new AnonFilesEngine();
-		var aa= await v.UploadFileAsync(@"C:\Users\Deci\Pictures\Test Images\Test6.jpg");
+		var v  = new AnonFilesEngine();
+		var aa = await v.UploadFileAsync(@"C:\Users\Deci\Pictures\Test Images\Test6.jpg");
 		Console.WriteLine(aa);
 	}
+
 	static async Task test4()
 	{
-		var t = MediaHelper.ScanAsync("http://www.zerochan.net/2750747", -1);
-		t.Wait();
-		var task =  t.Result;
+		var async = (HttpResourceFilter.Media.ScanAsync("http://www.zerochan.net/2750747"));
+		async.Wait();
+		var task = async.Result;
 
 		foreach (var v in task) {
 			Console.WriteLine(v);
@@ -187,7 +192,14 @@ public static class Program
 
 	static void test1()
 	{
-		Console.WriteLine(MediaHelper.GetMediaInfo(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png"));
+		var di = HttpResource.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
+		di.Wait();
+
+		var o = di.Result;
+		o?.Resolve();
+
+		Console.WriteLine(
+			o);
 
 		Debugger.Break();
 		var wc    = new WebClient();

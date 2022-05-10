@@ -33,6 +33,7 @@ using System.Buffers;
 using System.Diagnostics;
 using System.Media;
 using System.Text;
+using Kantan.Net.Content;
 using Kantan.Net.Utilities;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
@@ -136,7 +137,12 @@ public static class Program
 				{
 					x = x.CleanString();
 
-					using var m = MediaHelper.GetMediaInfo(x);
+					var di = HttpResource.GetAsync(x);
+					di.Wait();
+
+					var o = di.Result;
+					o?.Resolve();
+					using var m = o;
 
 					return !(m.IsBinary);
 				}, "Input must be file or direct image link");

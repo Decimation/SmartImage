@@ -21,6 +21,27 @@ using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 
 #endregion
+/*
+	 * Direct images are URIs that point to a binary image file
+	 */
+
+/*
+ * https://stackoverflow.com/questions/35151067/algorithm-to-compare-two-images-in-c-sharp
+ * https://stackoverflow.com/questions/23931/algorithm-to-compare-two-images
+ * https://github.com/aetilius/pHash
+ * http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
+ * https://github.com/ishanjain28/perceptualhash
+ * https://github.com/Tom64b/dHash
+ * https://github.com/Rayraegah/dhash
+ * https://tineye.com/faq#how
+ * https://github.com/CrackedP0t/Tidder/
+ * https://github.com/taurenshaman/imagehash
+ */
+
+/*
+ * https://github.com/mikf/gallery-dl
+ * https://github.com/regosen/gallery_get
+ */
 
 // ReSharper disable InconsistentNaming
 

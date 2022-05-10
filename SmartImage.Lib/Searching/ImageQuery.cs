@@ -71,7 +71,13 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 		value = value.CleanString();
 
-		Resource = MediaHelper.GetMediaInfo(value);
+		var di = HttpResource.GetAsync(value);
+		di.Wait();
+
+		var o = di.Result;
+		o?.Resolve();
+
+		Resource = o;
 
 		if (!Resource.IsBinary) {
 			var errStr = !Resource.IsFile ? "Invalid file" : "Invalid URI";
