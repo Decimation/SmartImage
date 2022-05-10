@@ -7,9 +7,9 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Kantan.Files;
 using Kantan.Net;
 using Kantan.Net.Content;
-using Kantan.Net.Content.Resolvers;
 using Kantan.Net.Utilities;
 using Novus.OS;
 
@@ -61,8 +61,8 @@ public static class MediaHelper
 
 	public static async Task<HttpResource[]> ScanAsync(string url, int ms)
 	{
-		List<string> urls = await HttpResourceFilter.Default.ExtractUrls(url);
-
+		/*List<string> urls = await HttpResourceFilter.Default.ExtractUrls(url);
+	
 		var v = (await Task.WhenAll(urls.Select(async Task<HttpResource>(s1) =>
 			        {
 				        var resource = await HttpResource.GetAsync(s1);
@@ -87,7 +87,9 @@ public static class MediaHelper
 		}
 
 
-		return v.ToArray();
+		return v.ToArray();*/
+		return (await HttpResourceFilter.Media.ScanAsync(url)).ToArray();
+
 	}
 
 

@@ -278,15 +278,16 @@ public static class Program
 
 			"",
 			// @"https://litter.catbox.moe/zxvtym.jpg"
-			@"https://i.imgur.com/QtCausw.png"
+			// @"https://i.imgur.com/QtCausw.png"
 
+			@"C:\Users\Deci\Pictures\NSFW\17EA29A6-8966-4801-A508-AC89FABE714D.png"
 			// @"C:\Users\Deci\Downloads\maxresdefault.jpeg"
 			// @"C:\Users\Deci\Pictures\Test Images\Test1.jpg"
 		};
 
 		Debug.WriteLine($"Configuration: TEST", C_INFO);
 
-		Config.SearchEngines = SearchEngineOptions.TraceMoe;
+			Config.SearchEngines = SearchEngineOptions.All;
 		Config.NotificationImage = true;
 #endif
 
@@ -307,6 +308,10 @@ public static class Program
 		 * Cli arguments override config file
 		 */
 
+#if TEST
+		goto main;
+		
+#endif
 		Config.Update();
 		Client.Reload();
 
@@ -320,9 +325,10 @@ public static class Program
 
 		// Read config and arguments
 
+		main:
+
 		if (!await HandleStartup(args))
 			return;
-
 		BuildDescription();
 
 		RegisterEvents();

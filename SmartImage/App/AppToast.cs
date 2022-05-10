@@ -2,6 +2,7 @@
 using System.Drawing;
 using Windows.ApplicationModel.Background;
 using Kantan.Net;
+using Kantan.Net.Content;
 using Kantan.Net.Utilities;
 using Microsoft.Toolkit.Uwp.Notifications;
 using SmartImage.Lib;
@@ -68,7 +69,7 @@ internal static class AppToast
 		// w.Dispose();
 		w.Task.Wait();
 
-		var directResults = Program.Client.DirectResults;
+		var directResults = Program.Client.DirectResults.ToList();
 
 		if (!directResults.Any()) {
 			return;
@@ -88,7 +89,10 @@ internal static class AppToast
 		var query = Program.Config.Query.AsImageResult;
 		// var ar1   = (double) query.Width.Value / query.Height.Value;
 
-		var mediaResources = directResults.SelectMany(d => (d.DirectImages)).ToList();
+		var mediaResources = directResults.SelectMany(d => (d.DirectImages))
+		                                  .Where(d => !HttpResourceFilter.Media.UrlBlacklist.Any(dd=> d.Url.Contains(dd)))
+		                                  .OrderByDescending(x => x.Stream.Length)
+		                                  .ToList();
 
 		// var directImage = directResults.First();
 
@@ -97,6 +101,7 @@ internal static class AppToast
 		// string file = MediaHelper.Download(directImage.DirectImage.Url, path);
 
 		var mediaResource = mediaResources.First();
+
 
 		string file = MediaHelper.Download(new Uri(mediaResource.Url), path);
 
