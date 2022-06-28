@@ -74,7 +74,7 @@ public class SearchResult : IResult
 	/// If filtering is enabled (i.e., <see cref="SearchConfig.Filtering"/> is <c>true</c>), this determines whether the
 	/// result is filtered.
 	/// </summary>
-	public bool IsNonPrimitive => (Status != SearchResultStatus.Extraneous && PrimaryResult.Url != null);
+	public bool IsNonPrimitive => (Status != SearchResultStatus.Extraneous && PrimaryResult.Url != null) && PrimaryResult.IsDetailed;
 
 	public SearchResultOrigin Origin { get; internal set; }
 

@@ -1,12 +1,11 @@
 ﻿// ReSharper disable SuggestVarOrType_BuiltInTypes
 // ReSharper disable AssignNullToNotNullAttribute
 // ReSharper disable ConvertSwitchStatementToSwitchExpression
-// ReSharper disable UnusedParameter.Local
 // ReSharper disable RedundantUsingDirective
 // ReSharper disable RedundantAssignment
 
 #pragma warning disable IDE0079
-#pragma warning disable CS0168
+// #pragma warning disable CS0168
 #pragma warning disable IDE0060
 #pragma warning disable CA1825
 #pragma warning disable IDE0008
@@ -53,6 +52,7 @@ using FileSystem = Novus.OS.FileSystem;
 // ReSharper disable ConditionIsAlwaysTrueOrFalse
 // ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
 // ReSharper disable CognitiveComplexity
+
 namespace SmartImage;
 //  ____                       _   ___
 // / ___| _ __ ___   __ _ _ __| |_|_ _|_ __ ___   __ _  __ _  ___
@@ -170,8 +170,10 @@ public static class Program
 
 		Debug.WriteLine($"Configuration: TEST", C_INFO);
 
-		Config.SearchEngines = SearchEngineOptions.TinEye;
+		Config.SearchEngines     = SearchEngineOptions.All;
 		Config.NotificationImage = true;
+		Config.RestartAfterExit = false;
+
 #endif
 
 		InitConsole();
@@ -209,7 +211,6 @@ public static class Program
 		// Read config and arguments
 
 		main:
-		bool atmm = true;
 		if (!await HandleStartup(args)) {
 			return;
 			// goto EXIT;
@@ -250,15 +251,13 @@ public static class Program
 		EXIT:
 
 		if (Config.RestartAfterExit) {
+
 			HandleRestart();
 			// Control flow -> exit
 		}
 		else {
-			while (Console.KeyAvailable)
-				Console.ReadKey(false); // skips previous input chars
 
-			Console.ReadKey(true); // reads a char
-
+			ConsoleManager.ClearInputBuffer();
 			ConsoleManager.WaitForInput();
 
 		}
