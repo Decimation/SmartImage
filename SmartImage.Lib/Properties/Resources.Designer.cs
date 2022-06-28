@@ -124,6 +124,15 @@ namespace SmartImage.Lib.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SmartImage.
+        /// </summary>
+        internal static string Name {
+            get {
+                return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to https://raw.githubusercontent.com/Decimation/SmartImage/master/DEPRECATED_ENGINES.
         /// </summary>
         internal static string U_DeprecatedEngines {

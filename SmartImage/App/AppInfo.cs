@@ -5,6 +5,7 @@ using Kantan.Diagnostics;
 using Kantan.Text;
 using Novus;
 using Novus.OS;
+using SmartImage.Lib;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable CognitiveComplexity
@@ -35,11 +36,11 @@ public static class AppInfo
 	/// </summary>
 	public const string NAME_EXE = "SmartImage.exe";
 
-	public static string AppFolder => Path.GetDirectoryName(ExeLocation);
+	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
 
 	public static Version AppVersion => typeof(AppInfo).Assembly.GetName().Version!;
 
-	public static bool IsExeInAppFolder => File.Exists(Path.Combine(AppFolder, NAME_EXE));
+	public static bool IsExeInAppFolder => File.Exists(Path.Combine(CurrentAppFolder, NAME_EXE));
 
 	/// <summary>
 	///     <c>Null</c> if executable is not in path.
@@ -56,7 +57,7 @@ public static class AppInfo
 		}
 	}
 
-	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(AppFolder);
+	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(CurrentAppFolder);
 
 	/// <summary>
 	/// Setup
@@ -72,7 +73,7 @@ public static class AppInfo
 		Global.Setup();
 		var pathDirectories = FileSystem.GetEnvironmentPathDirectories();
 
-		var oldFolders = pathDirectories.Where(x => x.Contains(NAME) && x != AppFolder);
+		var oldFolders = pathDirectories.Where(x => x.Contains(NAME) && x != CurrentAppFolder);
 
 		foreach (string s in oldFolders) {
 			FileSystem.RemoveFromPath(s);
@@ -81,7 +82,10 @@ public static class AppInfo
 		if (!IsAppFolderInPath) {
 			AppIntegration.HandlePath(true);
 		}
-		
+
+		Directory.CreateDirectory(SearchConfig.AppFolder);
+
+
 		Debug.WriteLine($"Cli utilities: {AppIntegration.Utilities.QuickJoin()}", C_INFO);
 	}
 }

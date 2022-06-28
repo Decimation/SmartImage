@@ -25,7 +25,7 @@ public static class WebDriverExtensions
 public sealed class TinEyeEngine : WebDriverSearchEngine
 {
 	public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
-	
+
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
 
@@ -35,13 +35,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 	protected override async Task<List<ImageResult>> BrowseAsync(ImageQuery sd, SearchResult r)
 	{
-		PuppeteerExtra extra = await GetBrowserAsync();
-
-		await using Browser browser = await extra.LaunchAsync(new LaunchOptions
-		{
-			Headless = true
-		});
-
+		var browser = await LaunchBrowserAsync(await GetBrowserRevisionAsync());
 
 		await using Page page = await browser.NewPageAsync();
 
@@ -49,7 +43,6 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 		await page.WaitForNavigationAsync();
 
 		var rd = page.Url;
-
 
 		var resultElems = await page.QuerySelectorAllAsync("div[class='match']");
 
@@ -114,7 +107,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 			img.Add(ir);
 		}
 
-		browser.Dispose();
+		await browser.DisposeAsync();
 		return img;
 	}
 
@@ -125,12 +118,14 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 		// var vr = base.GetResult(query);
 
-		var task = BrowseAsync(query, sr);
+		using var task = BrowseAsync(query, sr);
 		task.Wait();
-		List<ImageResult> list = task.Result;
+		var list = task.Result;
 		Debug.WriteLine($"{list.Count}");
 		sr.OtherResults.AddRange(list);
 		sr.PrimaryResult = list.First();
+
+
 		return sr;
 	}
 

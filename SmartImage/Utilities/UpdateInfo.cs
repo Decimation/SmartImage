@@ -45,7 +45,7 @@ public readonly struct UpdateInfo : IConsoleOption
 		const string UPDATE_BAT = "SmartImage_Updater.bat";
 
 
-		var destNew = Path.Combine(AppInfo.AppFolder, NEW_EXE);
+		var destNew = Path.Combine(AppInfo.CurrentAppFolder, NEW_EXE);
 
 		using var wc = new WebClient();
 
@@ -80,7 +80,7 @@ public readonly struct UpdateInfo : IConsoleOption
 			WAIT_1_SEC,
 
 			/* Open the new SmartImage version */
-			$"start /d \"{AppInfo.AppFolder}\" {AppInfo.NAME_EXE}",
+			$"start /d \"{AppInfo.CurrentAppFolder}\" {AppInfo.NAME_EXE}",
 
 			/* Delete this batch file */
 			"echo y | del " + UPDATE_BAT,

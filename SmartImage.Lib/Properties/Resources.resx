@@ -147,4 +147,7 @@
   <data name="U_DeprecatedEngines" xml:space="preserve">
     <value>https://raw.githubusercontent.com/Decimation/SmartImage/master/DEPRECATED_ENGINES</value>
   </data>
+  <data name="Name" xml:space="preserve">
+    <value>SmartImage</value>
+  </data>
 </root>

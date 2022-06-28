@@ -98,7 +98,7 @@ public static class AppIntegration
 			case true:
 			{
 				string oldValue  = FileSystem.GetEnvironmentPath();
-				string appFolder = AppInfo.AppFolder;
+				string appFolder = AppInfo.CurrentAppFolder;
 
 				if (AppInfo.IsAppFolderInPath) {
 					return;
@@ -119,7 +119,7 @@ public static class AppIntegration
 				break;
 			}
 			case false:
-				FileSystem.RemoveFromPath(AppInfo.AppFolder);
+				FileSystem.RemoveFromPath(AppInfo.CurrentAppFolder);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(option), option, null);

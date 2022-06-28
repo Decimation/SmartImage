@@ -68,7 +68,8 @@ public static class Program
 	/// </summary>
 	internal static SearchConfig Config { get; } = new()
 	{
-		Folder = AppInfo.AppFolder,
+		// Folder = AppInfo.CurrentAppFolder,
+		Folder = SearchConfig.AppFolder,
 	};
 
 	/// <summary>
@@ -293,7 +294,7 @@ public static class Program
 
 		Debug.WriteLine($"Configuration: TEST", C_INFO);
 
-			Config.SearchEngines = SearchEngineOptions.All;
+		Config.SearchEngines     = SearchEngineOptions.TinEye;
 		Config.NotificationImage = true;
 #endif
 
@@ -316,7 +317,7 @@ public static class Program
 
 #if TEST
 		goto main;
-		
+
 #endif
 		Config.Update();
 		Client.Reload();

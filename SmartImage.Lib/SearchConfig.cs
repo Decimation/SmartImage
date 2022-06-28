@@ -119,4 +119,7 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 	{
 		return Strings.GetMapString(ToMap());
 	}
+
+	public static string AppFolder
+		=> Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Resources.Name);//todo
 }

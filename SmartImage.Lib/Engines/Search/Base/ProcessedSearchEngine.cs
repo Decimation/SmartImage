@@ -59,6 +59,11 @@ public abstract class ProcessedSearchEngine : BaseSearchEngine
 	}
 
 	protected virtual object GetProcessingObject(SearchResult sr) => sr.Origin.Query;
+	
+	/*
+	 * TODO: MAKE PROCESS ASYNC
+	 *
+	 */
 
 	/// <summary>
 	/// Processes engine results
