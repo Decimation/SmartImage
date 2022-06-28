@@ -32,9 +32,11 @@ using SmartImage.Utilities;
 using System.Buffers;
 using System.Diagnostics;
 using System.Media;
+using System.Net.Mime;
 using System.Text;
 using Kantan.Net.Content;
 using Kantan.Net.Utilities;
+using Novus.OS;
 using static Novus.Utilities.ReflectionOperatorHelpers;
 using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 using EH = Kantan.Collections.EnumerableHelper;
@@ -126,132 +128,6 @@ public static class Program
 		}
 	};
 
-	private static readonly List<ConsoleOption> MainMenuOptions = new()
-	{
-		new()
-		{
-			Name  = ">>> Run <<<",
-			Color = Elements.ColorMain,
-			Function = () =>
-			{
-				ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
-				{
-					x = x.CleanString();
-
-					var di = HttpResource.GetAsync(x);
-					di.Wait();
-
-					var o = di.Result;
-					o?.Resolve();
-					using var m = o;
-
-					return !(m.IsBinary);
-				}, "Input must be file or direct image link");
-
-				Config.Query = query;
-				return true;
-			}
-		},
-
-		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
-		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines), "Priority engines", Config),
-
-		Controls.CreateOption(nameof(Config.Filtering), "Filter", Config),
-		Controls.CreateOption(nameof(Config.Notification), "Notification", Config),
-		Controls.CreateOption(nameof(Config.NotificationImage), "Notification image", Config),
-
-		Controls.CreateOption(propertyof(() => AppIntegration.IsContextMenuAdded),
-		                      "Context menu", added => AppIntegration.HandleContextMenu(!added), Config),
-
-		new()
-		{
-			Name = "Config",
-			Function = () =>
-			{
-				//Console.Clear();
-
-				Console.WriteLine(Config);
-				ConsoleManager.WaitForInput();
-
-				return null;
-			}
-		},
-		new()
-		{
-			Name = "Open folder",
-			Function = () =>
-			{
-				//Console.Clear();
-				FileSystem.ExploreFile(Config.FullName.ToString());
-
-				return null;
-			}
-		},
-		new()
-		{
-			Name = "Info",
-			Function = () =>
-			{
-				//Console.Clear();
-
-				var di = new DirectoryInfo(AppInfo.ExeLocation);
-
-				var dependencies = ReflectionHelper.DumpDependencies();
-
-				var ls = new List<string>
-				{
-					$"Author: {Resources.Author}",
-					$"Current version: {AppInfo.AppVersion} ({UpdateInfo.GetUpdateInfo().Status})",
-					$"Latest version: {ReleaseInfo.GetLatestRelease()}",
-					$"Executable location: {di.Parent.Name}",
-					$"In path: {AppInfo.IsAppFolderInPath}",
-					Strings.Constants.Separator
-				};
-
-				ls.AddRange(AppIntegration.UtilitiesMap.Select(x => $"{x.Key}: {x.Value}"));
-				ls.AddRange(dependencies.Select(x => $"{x.Name} ({x.Version})"));
-				ls.Add(Strings.Constants.Separator);
-
-				ls.ForEach(Console.WriteLine);
-
-				ConsoleManager.WaitForInput();
-
-				return null;
-			}
-		},
-		new()
-		{
-			Name = "Help",
-			Function = () =>
-			{
-				HttpUtilities.OpenUrl(Resources.U_Wiki);
-
-				return null;
-			}
-		},
-#if DEBUG
-		new()
-		{
-			Name = "debug",
-			Function = () =>
-			{
-
-				Config.Query = @"https://i.imgur.com/QtCausw.png";
-				return true;
-			}
-		}
-#endif
-
-	};
-
-	private static readonly ConsoleDialog MainMenuDialog = new()
-	{
-		Options   = MainMenuOptions,
-		Header    = Resources.NameBanner,
-		Functions = new Dictionary<ConsoleKey, Action>(),
-		Status    = Resources.MM_Status
-	};
-
 	static Program()
 	{
 		// NOTE: Static initializer must be AFTER MainMenuDialog
@@ -294,7 +170,7 @@ public static class Program
 
 		Debug.WriteLine($"Configuration: TEST", C_INFO);
 
-		Config.SearchEngines     = SearchEngineOptions.TinEye;
+		Config.SearchEngines = SearchEngineOptions.TinEye;
 		Config.NotificationImage = true;
 #endif
 
@@ -333,9 +209,13 @@ public static class Program
 		// Read config and arguments
 
 		main:
+		bool atmm = true;
 
-		if (!await HandleStartup(args))
+		if (!await HandleStartup(args)) {
 			return;
+			// goto EXIT;
+		}
+
 		BuildDescription();
 
 		RegisterEvents();
@@ -367,7 +247,38 @@ public static class Program
 			//ignored
 		}
 
-		ConsoleManager.WaitForInput();
+
+		EXIT:
+
+		if (Config.RestartAfterExit) {
+			HandleRestart();
+			// Control flow -> exit
+		}
+		else {
+			while (Console.KeyAvailable)
+				Console.ReadKey(false); // skips previous input chars
+
+			Console.ReadKey(true); // reads a char
+
+			ConsoleManager.WaitForInput();
+
+		}
+
+		return;
+	}
+
+	private static void HandleRestart()
+	{
+		var s = Path.Combine(Path.GetTempPath(), "Restart.bat");
+
+		var p = Command.Batch(new string[]
+		{
+			"ping localhost -n 1 >nul",
+			"taskkill /f /im SmartImage.exe",
+			$"start {AppInfo.ExeLocation}"
+		}, s);
+		Debug.WriteLine($"{s}");
+		p.Start();
 	}
 
 	private static void InitConsole()
@@ -388,7 +299,7 @@ public static class Program
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
-		Console.CancelKeyPress += OnCancel;
+		Console.CancelKeyPress += (sender, eventArgs) => OnCancel(sender, eventArgs, force: true);
 	}
 
 	/// <summary>
@@ -441,63 +352,21 @@ public static class Program
 			}
 		}
 
+
 		return true;
-	}
-
-	private static void BuildDescription()
-	{
-		ResultDialog.AddDescription("Press the result number to open in browser", Elements.ColorOther)
-		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), Elements.ColorKey)
-		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), Elements.ColorKey);
-
-		ResultDialog.AddDescription(new Dictionary<string, string>
-		{
-			[Resources.D_SE]     = Config.SearchEngines.ToString(),
-			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
-			[Resources.D_Filter] = Elements.GetToggleString(Config.Filtering),
-		}, Elements.ColorKey2);
-
-		ResultDialog.AddDescription(new Dictionary<string, string>
-		{
-			[Resources.D_NI] = Elements.GetToggleString(Config.NotificationImage),
-			[Resources.D_N]  = Elements.GetToggleString(Config.Notification),
-		}, Elements.ColorKey2);
-	}
-
-	private static void BuildStatus()
-	{
-		var map = new Dictionary<string, string>
-		{
-			["Results"] = Client.Results.Count.ToString(),
-		};
-
-		if (Config.Filtering) {
-			map.Add("Filtered", Client.FilteredResults.Count.ToString());
-		}
-
-		map.Add("Pending", Client.PendingCount.ToString());
-
-		string status;
-
-		if (CtsSearch.IsCancellationRequested) {
-			status = "Cancelled";
-		}
-		else if (Client.IsComplete) {
-			status = "Complete";
-		}
-		else {
-			status = "Searching";
-		}
-
-		map.Add("Status", status);
-
-		ResultDialog.Status = Strings.GetMapString(map);
 	}
 
 	#region Event handlers
 
-	private static void OnCancel(object sender, ConsoleCancelEventArgs eventArgs)
+	private static void OnCancel(object sender, ConsoleCancelEventArgs eventArgs, bool force = true)
 	{
+		if (force) {
+			if (Config.RestartAfterExit) {
+				HandleRestart();
+			}
+			Environment.Exit(-1);
+		}
+
 		Debug.WriteLine($"{nameof(OnCancel)}: cancellation requested", C_DEBUG);
 
 		CtsSearch.Cancel();
@@ -642,6 +511,16 @@ public static class Program
 					Config.OutputOnly = true;
 					return null;
 				}
+			},
+			new()
+			{
+				ArgumentCount = 0,
+				ParameterId   = "-restart-after-exit",
+				Function = delegate
+				{
+					Config.RestartAfterExit = true;
+					return null;
+				}
 			}
 		},
 		Default = new()
@@ -661,4 +540,185 @@ public static class Program
 	private static CancellationTokenSource CtsContinueTask2 = new();
 
 	private static CancellationTokenSource prop { get; set; } = new();
+
+	#region Shell UI
+
+	private static readonly List<ConsoleOption> MainMenuOptions = new()
+	{
+		new()
+		{
+			Name  = ">>> Run <<<",
+			Color = Elements.ColorMain,
+			Function = () =>
+			{
+				ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
+				{
+					x = x.CleanString();
+
+					var di = HttpResource.GetAsync(x);
+					di.Wait();
+
+					var o = di.Result;
+					o?.Resolve();
+					using var m = o;
+
+					return !(m.IsBinary);
+				}, "Input must be file or direct image link");
+
+				Config.Query = query;
+				return true;
+			}
+		},
+
+		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
+		Controls.CreateOption<SearchEngineOptions>(nameof(Config.PriorityEngines), "Priority engines", Config),
+
+		Controls.CreateOption(nameof(Config.Filtering), "Filter", Config),
+		Controls.CreateOption(nameof(Config.Notification), "Notification", Config),
+		Controls.CreateOption(nameof(Config.NotificationImage), "Notification image", Config),
+		Controls.CreateOption(nameof(Config.RestartAfterExit), "Restart after exit", Config),
+
+		Controls.CreateOption(propertyof(() => AppIntegration.IsContextMenuAdded),
+		                      "Context menu", added => AppIntegration.HandleContextMenu(!added), Config),
+
+		new()
+		{
+			Name = "Config",
+			Function = () =>
+			{
+				//Console.Clear();
+
+				Console.WriteLine(Config);
+				ConsoleManager.WaitForInput();
+
+				return null;
+			}
+		},
+		new()
+		{
+			Name = "Open folder",
+			Function = () =>
+			{
+				//Console.Clear();
+				FileSystem.ExploreFile(Config.FullName.ToString());
+
+				return null;
+			}
+		},
+		new()
+		{
+			Name = "Info",
+			Function = () =>
+			{
+				//Console.Clear();
+
+				var di = new DirectoryInfo(AppInfo.ExeLocation);
+
+				var dependencies = ReflectionHelper.DumpDependencies();
+
+				var ls = new List<string>
+				{
+					$"Author: {Resources.Author}",
+					$"Current version: {AppInfo.AppVersion} ({UpdateInfo.GetUpdateInfo().Status})",
+					$"Latest version: {ReleaseInfo.GetLatestRelease()}",
+					$"Executable location: {di.Parent.Name}",
+					$"In path: {AppInfo.IsAppFolderInPath}",
+					Strings.Constants.Separator
+				};
+
+				ls.AddRange(AppIntegration.UtilitiesMap.Select(x => $"{x.Key}: {x.Value}"));
+				ls.AddRange(dependencies.Select(x => $"{x.Name} ({x.Version})"));
+				ls.Add(Strings.Constants.Separator);
+
+				ls.ForEach(Console.WriteLine);
+
+				ConsoleManager.WaitForInput();
+
+				return null;
+			}
+		},
+		new()
+		{
+			Name = "Help",
+			Function = () =>
+			{
+				HttpUtilities.OpenUrl(Resources.U_Wiki);
+
+				return null;
+			}
+		},
+#if DEBUG
+		new()
+		{
+			Name = "debug",
+			Function = () =>
+			{
+
+				Config.Query = @"https://i.imgur.com/QtCausw.png";
+				return true;
+			}
+		}
+#endif
+
+	};
+
+	private static readonly ConsoleDialog MainMenuDialog = new()
+	{
+		Options   = MainMenuOptions,
+		Header    = Resources.NameBanner,
+		Functions = new Dictionary<ConsoleKey, Action>(),
+		Status    = Resources.MM_Status
+	};
+
+	private static void BuildDescription()
+	{
+		ResultDialog.AddDescription("Press the result number to open in browser", Elements.ColorOther)
+		            .AddDescription(EH.ReadCsv(Resources.D_ModifierKeys), Elements.ColorKey)
+		            .AddDescription(EH.ReadCsv(Resources.D_FuncKeys), Elements.ColorKey);
+
+		ResultDialog.AddDescription(new Dictionary<string, string>
+		{
+			[Resources.D_SE]     = Config.SearchEngines.ToString(),
+			[Resources.D_PE]     = Config.PriorityEngines.ToString(),
+			[Resources.D_Filter] = Elements.GetToggleString(Config.Filtering),
+		}, Elements.ColorKey2);
+
+		ResultDialog.AddDescription(new Dictionary<string, string>
+		{
+			[Resources.D_NI] = Elements.GetToggleString(Config.NotificationImage),
+			[Resources.D_N]  = Elements.GetToggleString(Config.Notification),
+		}, Elements.ColorKey2);
+	}
+
+	private static void BuildStatus()
+	{
+		var map = new Dictionary<string, string>
+		{
+			["Results"] = Client.Results.Count.ToString(),
+		};
+
+		if (Config.Filtering) {
+			map.Add("Filtered", Client.FilteredResults.Count.ToString());
+		}
+
+		map.Add("Pending", Client.PendingCount.ToString());
+
+		string status;
+
+		if (CtsSearch.IsCancellationRequested) {
+			status = "Cancelled";
+		}
+		else if (Client.IsComplete) {
+			status = "Complete";
+		}
+		else {
+			status = "Searching";
+		}
+
+		map.Add("Status", status);
+
+		ResultDialog.Status = Strings.GetMapString(map);
+	}
+
+	#endregion
 }

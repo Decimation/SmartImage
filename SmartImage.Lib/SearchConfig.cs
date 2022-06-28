@@ -59,7 +59,7 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 			if (!map.ContainsKey(key)) {
 				map.Add(key, value);
 			}
-			
+
 		}
 
 		SearchEngines     = Enum.Parse<SearchEngineOptions>(map[Resources.K_Engines]);
@@ -68,6 +68,7 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 		Notification      = Boolean.Parse(map[Resources.K_Notification]);
 		NotificationImage = Boolean.Parse(map[Resources.K_NotificationImage]);
 		OutputOnly        = Boolean.Parse(map[Resources.K_OutputOnly]);
+		RestartAfterExit        = Boolean.Parse(map[Resources.K_RestartAfterExit]);
 
 		Save();
 
@@ -84,6 +85,7 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 			{ Resources.K_Notification, Notification.ToString() },
 			{ Resources.K_NotificationImage, NotificationImage.ToString() },
 			{ Resources.K_OutputOnly, OutputOnly.ToString() },
+			{ Resources.K_RestartAfterExit, RestartAfterExit.ToString() },
 
 		};
 		return map;
@@ -106,12 +108,14 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 	/// Filtered results are determined by <see cref="SearchResult.IsNonPrimitive"/>.
 	/// </summary>
 	public bool Filtering { get; set; } = true;
-	
+
 	public bool Notification { get; set; } = true;
-	
+
 	public bool NotificationImage { get; set; }
 
 	public bool OutputOnly { get; set; }
+
+	public bool RestartAfterExit { get; set; } = true;
 
 	#endregion
 
@@ -121,5 +125,6 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 	}
 
 	public static string AppFolder
-		=> Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), Resources.Name);//todo
+		=> Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
+		                Resources.Name); //todo
 }

@@ -108,6 +108,8 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 		}
 
 		await browser.DisposeAsync();
+
+		// browser.Dispose();
 		return img;
 	}
 

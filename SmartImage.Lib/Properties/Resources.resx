@@ -150,4 +150,8 @@
   <data name="Name" xml:space="preserve">
     <value>SmartImage</value>
   </data>
+  <data name="K_RestartAfterExit" xml:space="preserve">
+    <value>restart-after-exit</value>
+    <comment>Config key: restart after exit</comment>
+  </data>
 </root>

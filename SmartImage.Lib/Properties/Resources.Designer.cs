@@ -124,6 +124,15 @@ namespace SmartImage.Lib.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to restart-after-exit.
+        /// </summary>
+        internal static string K_RestartAfterExit {
+            get {
+                return ResourceManager.GetString("K_RestartAfterExit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SmartImage.
         /// </summary>
         internal static string Name {

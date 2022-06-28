@@ -325,7 +325,7 @@ public enum SearchResultStatus
 [Flags]
 public enum SearchResultFlags
 {
-	Null     = 0,
+	Null = 0,
 
 	Filtered = 1 << 0,
 

@@ -64,7 +64,7 @@ public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 
 		await using Browser browser = await extra.LaunchAsync(new LaunchOptions
 		{
-			Headless       = true,
+			// Headless       = true,
 			ExecutablePath = exe,
 		});
 
