@@ -210,7 +210,6 @@ public static class Program
 
 		main:
 		bool atmm = true;
-
 		if (!await HandleStartup(args)) {
 			return;
 			// goto EXIT;
@@ -263,6 +262,7 @@ public static class Program
 			ConsoleManager.WaitForInput();
 
 		}
+
 
 		return;
 	}
@@ -364,6 +364,7 @@ public static class Program
 			if (Config.RestartAfterExit) {
 				HandleRestart();
 			}
+
 			Environment.Exit(-1);
 		}
 

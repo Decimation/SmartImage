@@ -107,7 +107,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 			img.Add(ir);
 		}
 
-		await browser.DisposeAsync();
+		// await browser.DisposeAsync();
 
 		// browser.Dispose();
 		return img;
@@ -120,7 +120,7 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 
 		// var vr = base.GetResult(query);
 
-		using var task = BrowseAsync(query, sr);
+		var task = BrowseAsync(query, sr);
 		task.Wait();
 		var list = task.Result;
 		Debug.WriteLine($"{list.Count}");

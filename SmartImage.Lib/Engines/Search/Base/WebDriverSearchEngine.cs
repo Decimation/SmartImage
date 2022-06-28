@@ -18,14 +18,14 @@ namespace SmartImage.Lib.Engines.Search.Base;
 /// </summary>
 public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 {
-
 	/*
 	 * TODO: THIS IS A STOPGAP
 	 */
 
 	protected const string CHROME_EXE_PATTERN = "*chrome.exe*";
+	private const   string LOCAL_CHROMIUM     = ".local-chromium";
 
-	public static string BrowserPath { get; } = Path.Combine(SearchConfig.AppFolder, ".local-chromium");
+	public static string BrowserPath { get; } = Path.Combine(SearchConfig.AppFolder, LOCAL_CHROMIUM);
 
 	protected WebDriverSearchEngine(string baseUrl) : base(baseUrl) { }
 
@@ -37,19 +37,21 @@ public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 
 	protected static async Task<RevisionInfo> GetBrowserRevisionAsync()
 	{
-		if (Directory.Exists(BrowserPath)) {
-			return new RevisionInfo()
-			{
-				FolderPath = BrowserPath
-			};
+
+		RevisionInfo ri = default;
+
+		if (!Directory.Exists(LOCAL_CHROMIUM)) {
+			using var browserFetcher = new BrowserFetcher();
+			ri                = await browserFetcher.DownloadAsync();
+
+			// Debug.WriteLine($"{ri.ExecutablePath}, {ri.FolderPath}");
+			// Directory.Move(ri.FolderPath, BrowserPath);
 		}
+		else {
+			// ri.FolderPath     = BrowserPath;
+			// ri.ExecutablePath = GetExecutableForRevision(BrowserPath);
 
-		using var browserFetcher = new BrowserFetcher();
-
-		var ri = await browserFetcher.DownloadAsync();
-
-		// Debug.WriteLine($"{ri.ExecutablePath}, {ri.FolderPath}");
-		Directory.Move(ri.FolderPath, BrowserPath);
+		}
 
 
 		return ri;
@@ -59,21 +61,22 @@ public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 	{
 		var extra = new PuppeteerExtra() { };
 		extra.Use(new StealthPlugin());
-
-		string exe = GetExecutableForRevision(ri);
+		
 
 		await using Browser browser = await extra.LaunchAsync(new LaunchOptions
 		{
-			// Headless       = true,
-			ExecutablePath = exe,
-		});
+			Headless       = true,
 
+			// ExecutablePath = ri?.ExecutablePath ?? LOCAL_CHROMIUM,
+			
+		});
+		
 		return browser;
 	}
 
-	private static string GetExecutableForRevision(RevisionInfo ri)
+	private static string GetExecutableForRevision(string f)
 	{
-		var df = Directory.EnumerateFiles(ri.FolderPath, enumerationOptions: new EnumerationOptions()
+		var df = Directory.EnumerateFiles(f, enumerationOptions: new EnumerationOptions()
 		{
 			MaxRecursionDepth     = 2,
 			RecurseSubdirectories = true
