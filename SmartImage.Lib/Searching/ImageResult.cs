@@ -145,7 +145,7 @@ public sealed class ImageResult : IResult
 			// ReSharper disable PossibleInvalidOperationException
 
 			if (HasImageDimensions) {
-				return ImageManipulation.GetDisplayResolution(Width.Value, Height.Value);
+				return ImageOperations.GetDisplayResolution(Width.Value, Height.Value);
 			}
 
 			throw new SmartImageException("Resolution unavailable");
@@ -219,9 +219,9 @@ public sealed class ImageResult : IResult
 
 	}
 
-	public List<HttpResource> DirectImages { get; internal set; } = new() { };
+	public List<ResourceHandle> DirectImages { get; internal set; } = new() { };
 
-	public HttpResource DirectImage
+	public ResourceHandle DirectImage
 	{
 		get => DirectImages.FirstOrDefault();
 		set => DirectImages[0] = value;
@@ -235,7 +235,7 @@ public sealed class ImageResult : IResult
 
 		var url = Url.ToString();
 
-		var di = HttpResource.GetAsync(url);
+		var di = HttpResourceHandle.GetAsync(url);
 		di.Wait();
 
 		var o = di.Result;
@@ -261,10 +261,10 @@ public sealed class ImageResult : IResult
 
 		try {
 
-			var async = HttpResourceFilter.Media.ScanAsync(url);
+			var async = HttpResourceSniffer.Media.ScanAsync(url);
 			async.Wait();
 
-			var directImages = (async.Result.Where(x => x is { Url: { } })).ToArray();
+			var directImages = (async.Result.Where(x => x is { Value: { } })).ToArray();
 
 			if (directImages.Any()) {
 				// Debug.WriteLine($"{Url}: Found {directImages.Count} direct images");
@@ -288,7 +288,7 @@ public sealed class ImageResult : IResult
 			var map = new Dictionary<string, object>
 			{
 				{ nameof(Url), Url },
-				{ "Direct Url", DirectImage?.Url }
+				{ "Direct Url", DirectImage?.Value }
 			};
 
 			if (Similarity.HasValue) {
@@ -346,7 +346,7 @@ public sealed class ImageResult : IResult
 			Functions =
 			{
 				[ConsoleOption.NC_FN_MAIN]  = IResult.GetOpenFunction(Url),
-				[ConsoleOption.NC_FN_COMBO] = IResult.GetDownloadFunction(() => new Uri(DirectImage.Url))
+				[ConsoleOption.NC_FN_COMBO] = IResult.GetDownloadFunction(() => new Uri(DirectImage.Value))
 			}
 		};
 

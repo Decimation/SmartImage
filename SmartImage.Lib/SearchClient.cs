@@ -193,7 +193,7 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	///     Performs an image search asynchronously.
 	/// </summary>
-	public async Task RunSearchAsync(CancellationTokenSource cts2, CancellationToken cts)
+	public async Task<List<SearchResult>> RunSearchAsync(CancellationTokenSource cts2, CancellationToken cts)
 	{
 		if (IsComplete) {
 			throw new SmartImageException();
@@ -264,6 +264,8 @@ public sealed class SearchClient : IDisposable
 		var args = new SearchCompletedEventArgs { };
 
 		SearchCompleted?.Invoke(null, args);
+
+		return Results;// >:( stupid
 	}
 
 	public List<Task<SearchResult>> GetSearchTasks(CancellationToken cts)

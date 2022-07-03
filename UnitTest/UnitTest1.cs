@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml.Xsl;
 using NUnit.Framework;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Searching;
@@ -12,7 +11,7 @@ using SmartImage.Lib.Utilities;
 
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051, IDE0052
-namespace UnitTest;
+namespace SmartImage.Lib_Unit_Test;
 
 public class Tests
 {
@@ -35,7 +34,7 @@ public class Tests
 	{
 		//Assert.That(() => new ImageQuery("https://imgur.com/QtCausw"), Throws.Exception);
 
-		Assert.Throws<ArgumentException>(() => new ImageQuery("https://imgur.com/QtCausw"));
+		Assert.Throws<SmartImageException>(() => new ImageQuery("https://imgur.com/QtCausw"));
 		Assert.DoesNotThrow(() => new ImageQuery("https://i.imgur.com/QtCausw.png"));
 	}
 
@@ -53,9 +52,9 @@ public class Tests
 	{
 		var i = Image.FromFile(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg");
 		var (w, h) = (i.Width, i.Height);
-		Assert.AreEqual(ImageManipulation.GetDisplayResolution(w, h), DisplayResolutionType.HD);
-		Assert.AreEqual(ImageManipulation.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
-		Assert.AreEqual(ImageManipulation.GetDisplayResolution(640, 360), DisplayResolutionType.nHD);
+		Assert.AreEqual(ImageOperations.GetDisplayResolution(w, h), DisplayResolutionType.HD);
+		Assert.AreEqual(ImageOperations.GetDisplayResolution(1920, 1080), DisplayResolutionType.FHD);
+		Assert.AreEqual(ImageOperations.GetDisplayResolution(640, 360), DisplayResolutionType.nHD);
 	}
 
 	[Test]

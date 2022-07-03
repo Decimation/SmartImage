@@ -20,7 +20,7 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 	/// <summary>
 	/// Search query
 	/// </summary>
-	public ImageQuery Query { get; set; }
+	public ImageQuery Query { get; set; } //todo: remove as field
 
 	public FileInfo FullName
 	{

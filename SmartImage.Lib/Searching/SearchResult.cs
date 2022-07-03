@@ -141,7 +141,7 @@ public class SearchResult : IResult
 			lock (directResults) {
 				if (b && !directResults.Contains(allResult)) {
 					Debug.WriteLine($"{Engine.Name}: Found direct result " +
-					                $"{allResult.DirectImages.Select(x => x.Url.ToString()).QuickJoin()}",
+					                $"{allResult.DirectImages.Select(x => x.Value.ToString()).QuickJoin()}",
 					                C_VERBOSE);
 
 					directResults.Add(allResult);
@@ -261,7 +261,7 @@ public class SearchResult : IResult
 		};
 
 		option.Functions[ConsoleOption.NC_FN_COMBO] =
-			IResult.GetDownloadFunction(() => new Uri(PrimaryResult.DirectImage.Url));
+			IResult.GetDownloadFunction(() => new Uri(PrimaryResult.DirectImage.Value));
 
 		option.Functions[ConsoleOption.NC_FN_CTRL] = () =>
 		{

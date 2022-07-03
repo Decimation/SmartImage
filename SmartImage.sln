@@ -7,11 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage", "SmartImage\Sm
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib", "SmartImage.Lib\SmartImage.Lib.csproj", "{AD7595AB-6759-4688-96D1-667D26114CAB}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{244F57D9-F021-4F47-9844-45F26CA9378D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib Test", "Test\SmartImage.Lib Test.csproj", "{244F57D9-F021-4F47-9844-45F26CA9378D}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnitTest", "UnitTest\UnitTest.csproj", "{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib Unit Test", "UnitTest\SmartImage.Lib Unit Test.csproj", "{0318489D-8B5C-4B0E-90F8-AB6CDEC16AD7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.Cli", "SmartImage.Cli\SmartImage.Cli.csproj", "{FCD8DFE7-F5A0-406C-BB3F-4F5C16C02833}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Cli", "SmartImage.Cli\SmartImage.Cli.csproj", "{FCD8DFE7-F5A0-406C-BB3F-4F5C16C02833}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage 3", "SmartImage 3\SmartImage 3.csproj", "{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -116,6 +118,24 @@ Global
 		{FCD8DFE7-F5A0-406C-BB3F-4F5C16C02833}.Test|x64.Build.0 = Debug|Any CPU
 		{FCD8DFE7-F5A0-406C-BB3F-4F5C16C02833}.Test|x86.ActiveCfg = Debug|Any CPU
 		{FCD8DFE7-F5A0-406C-BB3F-4F5C16C02833}.Test|x86.Build.0 = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x64.Build.0 = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x86.Build.0 = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x64.ActiveCfg = Release|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x64.Build.0 = Release|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x86.ActiveCfg = Release|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x86.Build.0 = Release|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x64.ActiveCfg = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x64.Build.0 = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x86.ActiveCfg = Debug|Any CPU
+		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

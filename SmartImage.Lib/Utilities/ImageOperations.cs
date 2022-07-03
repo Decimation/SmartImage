@@ -5,7 +5,7 @@ using System.Drawing.Drawing2D;
 
 namespace SmartImage.Lib.Utilities;
 #pragma warning disable CA1416
-public static class ImageManipulation
+public static class ImageOperations
 {
 	public static Bitmap ResizeImage(Bitmap mg, Size newSize)
 	{

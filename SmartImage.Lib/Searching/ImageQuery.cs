@@ -51,11 +51,11 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	/// </summary>
 	public BaseUploadEngine UploadEngine { get; }
 
-	public Stream Stream { get; }
+	public Stream Stream => Resource.Stream;
 
 	public TimeSpan UploadTime { get; }
 
-	public HttpResource Resource { get; }
+	public ResourceHandle Resource { get; set; }
 
 	public Image Image { get; }
 
@@ -65,26 +65,15 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	{
 		var now = Stopwatch.GetTimestamp();
 
-		if (String.IsNullOrWhiteSpace(value)) {
-			throw new ArgumentNullException(nameof(value), "No input specified");
+
+		if (TryVerifyInput(value, out var o)) {
+			Value    = value;
+			Resource = o;
+
 		}
-
-		value = value.CleanString();
-
-		var di = HttpResource.GetAsync(value);
-		di.Wait();
-
-		var o = di.Result;
-		o?.Resolve();
-
-		Resource = o;
-
-		if (!Resource.IsBinary) {
-			var errStr = !Resource.IsFile ? "Invalid file" : "Invalid URI";
-			throw new ArgumentException($"Input error: {errStr}");
+		else {
+			throw new SmartImageException();
 		}
-
-		Value = value;
 
 		//note: default upload engine
 		UploadEngine = engine ?? new LitterboxEngine();
@@ -98,17 +87,16 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 			UploadUri = new Uri(Value);
 		}
 
+		// Stream = Resource.Stream;
+
+		/*
 		var client = new HttpClient(); //todo
-		Stream     = IsFile ? File.OpenRead(value) : client.GetStream(value);
+		Stream     = IsFile ? File.OpenRead(value) : client.GetStream(value);*/
 		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
 
-		HttpResource directImage = new()
-		{
-			// Stream = Stream,
-			Url = UploadUri.ToString()
-		};
+		Resource = o;
 
 		Image = Image.FromStream(Stream);
 		AsImageResult = new ImageResult(null)
@@ -126,13 +114,41 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 			Height = Image.Height
 		};
 
-		AsImageResult.DirectImages.Add(directImage);
+		AsImageResult.DirectImages.Add(o);
+	}
+
+	public static bool TryVerifyInput(string value, out ResourceHandle o)
+	{
+		o = null;
+		if (String.IsNullOrWhiteSpace(value)) {
+			// throw new ArgumentNullException(nameof(value), "No input specified");
+			return false;
+		}
+
+		value = value.CleanString();
+
+		var di = ResourceHandle.GetAsync(value);
+		di.Wait();
+
+		o = di.Result;
+		o?.Resolve();
+
+		// Resource = o;
+
+		if (!o.IsBinary) {
+			var errStr = !o.IsFile ? "Invalid file" : "Invalid URI";
+			// throw new ArgumentException($"Input error: {errStr}");
+
+			return false;
+		}
+
+		return true;
 	}
 
 	public static implicit operator ImageQuery(Uri value) => new(value.ToString());
 
 	public static implicit operator ImageQuery(string value) => new(value);
-
+	
 	public override string ToString()
 	{
 		return $"{Value} | {UploadUri}";
@@ -145,8 +161,8 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public void Dispose()
 	{
-		Stream?.Dispose();
-		Image.Dispose();
 		Resource.Dispose();
+		// Stream?.Dispose();
+		Image.Dispose();
 	}
 }

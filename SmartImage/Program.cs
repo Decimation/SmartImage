@@ -555,7 +555,7 @@ public static class Program
 				{
 					x = x.CleanString();
 
-					var di = HttpResource.GetAsync(x);
+					var di = HttpResourceHandle.GetAsync(x);
 					di.Wait();
 
 					var o = di.Result;

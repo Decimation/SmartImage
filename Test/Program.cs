@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using Kantan.Net;
 using Kantan.Net.Content;
 using OpenCvSharp;
 using SmartImage.Lib;
@@ -15,14 +12,13 @@ using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
 using Point = OpenCvSharp.Point;
-using Range = System.Range;
 using Size = OpenCvSharp.Size;
 
 #pragma warning disable IDE0079
 #pragma warning disable CS0168, CS1998
 #pragma warning disable IDE0060, IDE1006, IDE0051,IDE0059
 
-namespace Test;
+namespace SmartImage.Lib_Test;
 /* 
  * >>> SmartImage.Lib <<<
  *
@@ -64,7 +60,7 @@ public static class Program
 
 	static async Task test5()
 	{
-		var di = HttpResource.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
+		var di = HttpResourceHandle.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
 		di.Wait();
 
 		var o = di.Result;
@@ -80,7 +76,7 @@ public static class Program
 
 	static async Task test4()
 	{
-		var async = (HttpResourceFilter.Media.ScanAsync("http://www.zerochan.net/2750747"));
+		var async = (HttpResourceSniffer.Media.ScanAsync("http://www.zerochan.net/2750747"));
 		async.Wait();
 		var task = async.Result;
 
@@ -192,7 +188,7 @@ public static class Program
 
 	static void test1()
 	{
-		var di = HttpResource.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
+		var di = HttpResourceHandle.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
 		di.Wait();
 
 		var o = di.Result;
@@ -209,7 +205,7 @@ public static class Program
 		var ext   = Path.GetExtension(png);
 		var read  = wc.OpenRead(png);
 		var img   = Image.FromStream(read);
-		var img2  = ImageManipulation.ResizeImage((Bitmap) img, img.Size / 2);
+		var img2  = ImageOperations.ResizeImage((Bitmap) img, img.Size / 2);
 
 		var    path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 		string s    = Path.Combine(path, name2 + "-1" + ext);
