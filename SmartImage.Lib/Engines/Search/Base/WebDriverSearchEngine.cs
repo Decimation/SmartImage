@@ -42,7 +42,7 @@ public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 
 		if (!Directory.Exists(LOCAL_CHROMIUM)) {
 			using var browserFetcher = new BrowserFetcher();
-			ri                = await browserFetcher.DownloadAsync();
+			ri = await browserFetcher.DownloadAsync();
 
 			// Debug.WriteLine($"{ri.ExecutablePath}, {ri.FolderPath}");
 			// Directory.Move(ri.FolderPath, BrowserPath);
@@ -61,16 +61,15 @@ public abstract class WebDriverSearchEngine : ProcessedSearchEngine
 	{
 		var extra = new PuppeteerExtra() { };
 		extra.Use(new StealthPlugin());
-		
 
 		await using Browser browser = await extra.LaunchAsync(new LaunchOptions
 		{
-			Headless       = true,
+			Headless = true,
 
 			// ExecutablePath = ri?.ExecutablePath ?? LOCAL_CHROMIUM,
-			
+
 		});
-		
+
 		return browser;
 	}
 

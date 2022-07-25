@@ -1,4 +1,6 @@
-﻿using System;
+﻿#region
+
+using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -17,20 +19,15 @@ using SmartImage.Lib.Properties;
 using SmartImage.Lib.Searching;
 using static Kantan.Diagnostics.LogCategories;
 
+#endregion
+
 namespace SmartImage.Lib.Engines.Search.Base;
 
 /// <summary>
-/// Base search engine.
+///     Base search engine.
 /// </summary>
 public abstract class BaseSearchEngine : IDisposable
 {
-	protected BaseSearchEngine(string baseUrl)
-	{
-		BaseUrl = baseUrl;
-		Client  = new HttpClient();
-
-	}
-
 	public string BaseUrl { get; }
 
 	public abstract SearchEngineOptions EngineOption { get; }
@@ -44,6 +41,13 @@ public abstract class BaseSearchEngine : IDisposable
 	public abstract EngineSearchType SearchType { get; }
 
 	protected HttpClient Client { get; }
+
+	protected BaseSearchEngine(string baseUrl)
+	{
+		BaseUrl = baseUrl;
+		Client  = new HttpClient();
+
+	}
 
 	public virtual SearchResult GetResult(ImageQuery query, CancellationToken? c = null)
 	{
@@ -91,7 +95,7 @@ public abstract class BaseSearchEngine : IDisposable
 	protected virtual Uri GetRawUri(ImageQuery query)
 	{
 		//
-		return new(BaseUrl + query.UploadUri);
+		return new Uri(BaseUrl + query.UploadUri);
 	}
 
 	protected virtual SearchResultOrigin GetResultOrigin(ImageQuery query, CancellationToken? c = null)
@@ -176,23 +180,23 @@ public abstract class BaseSearchEngine : IDisposable
 }
 
 /// <summary>
-/// Indicates the search criteria and result type of an engine.
+///     Indicates the search criteria and result type of an engine.
 /// </summary>
 [Flags]
 public enum EngineSearchType
 {
 	/// <summary>
-	/// The engine returns image results
+	///     The engine returns image results
 	/// </summary>
 	Image,
 
 	/// <summary>
-	/// The engine returns metadata
+	///     The engine returns metadata
 	/// </summary>
 	Metadata,
 
 	/// <summary>
-	/// The engine returns external information
+	///     The engine returns external information
 	/// </summary>
 	External,
 

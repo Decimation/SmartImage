@@ -33,7 +33,6 @@ public static class Program
 	public static async Task Main(string[] args)
 	{
 
-
 		/*var q          = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
 		var i          = new TraceMoeEngine();
 		var rt         = i.GetResultAsync(q);
@@ -41,13 +40,17 @@ public static class Program
 
 		Console.WriteLine(t);*/
 
+		var rg = new[] { "https://i.imgur.com/QtCausw.png", @"C:\Users\Deci\Pictures\Test Images\Test2.jpg" };
 
-		var u = "https://i.imgur.com/QtCausw.png";
-
-		var r = HttpWebRequest.Create(u);
-
-
-		await test4();
+		foreach (string s in rg) {
+			var r = await ImageQuery.TryAllocHandleAsync(s);
+			var q = new ImageQuery(r);
+			// Console.WriteLine(ImageQuery.TryCreate(u,out var q));
+			Console.WriteLine(q);
+			await q.UploadAsync();
+			Console.WriteLine($"{q.UploadUri}");
+			q.Dispose();
+		}
 	}
 
 	public static void OnResult(object _, ResultCompletedEventArgs e)
@@ -91,7 +94,9 @@ public static class Program
 
 	static async Task test3()
 	{
-		var q      = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test6.jpg");
+		var u1     = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		var h      = await ImageQuery.TryAllocHandleAsync(u1);
+		var q      = new ImageQuery(h);
 		var engine = new SauceNaoEngine() { };
 		engine.Authentication = "362e7e82bc8cf7f6025431fbf3006510057298c3";
 		var task = engine.GetResultAsync(q);
@@ -104,7 +109,6 @@ public static class Program
 
 		Console.WriteLine("waiting");
 		var result = await task;
-
 
 		Console.WriteLine(">> {0}", result);
 		var result2 = await task2;
@@ -125,7 +129,6 @@ public static class Program
 		var p2 = i2.Width * i2.Height;
 
 		if (p1 > p2) {
-
 
 			var x = i1[new Rect(new Point(0, 0), i2.Size())];
 
@@ -176,7 +179,6 @@ public static class Program
 		Cv2.Divide(t3, t1, ssimMap); // ssim_map =  t3./t1;
 
 		Scalar mssim = Cv2.Mean(ssimMap); // mssim = average of ssim map
-
 
 		var result = new SSIMResult
 		{

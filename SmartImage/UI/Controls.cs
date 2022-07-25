@@ -73,13 +73,12 @@ internal static class Controls
 			return null;
 		};
 
-
 		return option;
 	}
 
 	internal static ConsoleOption CreateOption<T>(string f, string name, object o) where T : Enum
 	{
-		return new()
+		return new ConsoleOption
 		{
 			Name  = name,
 			Color = Elements.ColorOther,

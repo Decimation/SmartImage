@@ -1,4 +1,6 @@
-﻿using System;
+﻿global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
+using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -29,7 +31,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	/// <summary>
 	/// Original input
 	/// </summary>
-	public string Value { get; init; }
+	public string Value => Resource.Value;
 
 	/// <summary>
 	/// Whether <see cref="Value"/> is a file
@@ -44,16 +46,16 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	/// <summary>
 	/// Uploaded direct image
 	/// </summary>
-	public Uri UploadUri { get; }
+	public Uri UploadUri { get; set; }
 
 	/// <summary>
-	/// Upload engine used for uploading the input file; if applicable
+	/// UploadAsync engine used for uploading the input file; if applicable
 	/// </summary>
-	public BaseUploadEngine UploadEngine { get; }
+	public BaseUploadEngine UploadEngine { get; set; }
 
 	public Stream Stream => Resource.Stream;
 
-	public TimeSpan UploadTime { get; }
+	public TimeSpan UploadTime { get; private set; }
 
 	public ResourceHandle Resource { get; set; }
 
@@ -61,54 +63,34 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public ImageResult AsImageResult { get; }
 
-	public ImageQuery([NotNull] string value, [CanBeNull] BaseUploadEngine engine = null)
+	public ImageQuery([NotNull]  ResourceHandle o, BaseUploadEngine e = null)
 	{
-		var now = Stopwatch.GetTimestamp();
 
-
-		if (TryVerifyInput(value, out var o)) {
-			Value    = value;
-			Resource = o;
-
-		}
-		else {
-			throw new SmartImageException();
-		}
-
-		//note: default upload engine
-		UploadEngine = engine ?? new LitterboxEngine();
-
-		if (IsFile) {
-			var task = UploadEngine.UploadFileAsync(Value);
-			task.Wait();
-			UploadUri = task.Result;
-		}
-		else if (IsUri) {
-			UploadUri = new Uri(Value);
-		}
+		Resource     = o;
+		// Value        = o.Value;
+		UploadEngine = e;
 
 		// Stream = Resource.Stream;
 
 		/*
 		var client = new HttpClient(); //todo
 		Stream     = IsFile ? File.OpenRead(value) : client.GetStream(value);*/
-		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
-		Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
+		// Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
 
-		Resource = o;
+		// Resource = o;
 
 		Image = Image.FromStream(Stream);
+
 		AsImageResult = new ImageResult(null)
 		{
 			// Image = Image.FromStream(Stream),
-			Url = UploadUri,
 			OtherMetadata =
 			{
-				{ "Upload engine", UploadEngine.Name },
+				// { "UploadAsync engine", UploadEngine.Name },
 				{ "Input type", IsUri ? "URI" : "File" },
 				{ "Input value", Value },
-				{ "Time", $"(upload: {UploadTime.TotalSeconds:F3})" }
+				// { "Time", $"(upload: {UploadTime.TotalSeconds:F3})" }
 			},
 			Width  = Image.Width,
 			Height = Image.Height
@@ -117,38 +99,59 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 		AsImageResult.DirectImages.Add(o);
 	}
 
-	public static bool TryVerifyInput(string value, out ResourceHandle o)
+	public async Task<Uri> UploadAsync(BaseUploadEngine engine = null)
 	{
-		o = null;
+		var now = Stopwatch.GetTimestamp();
+		//note: default upload engine
+		UploadEngine = engine ?? new LitterboxEngine();
+
+		if (IsFile) {
+			var task = await UploadEngine.UploadFileAsync(Value);
+
+			UploadUri = task;
+		}
+		else {
+			if (IsUri) {
+				UploadUri = new Uri(Value);
+			}
+
+		}
+
+		AsImageResult.Url = UploadUri;
+
+		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
+
+		return UploadUri;
+	}
+
+	public static async Task<ResourceHandle> TryAllocHandleAsync(string value)
+	{
+		ResourceHandle o = null;
+
 		if (String.IsNullOrWhiteSpace(value)) {
 			// throw new ArgumentNullException(nameof(value), "No input specified");
-			return false;
+			return null;
 		}
 
 		value = value.CleanString();
 
-		var di = ResourceHandle.GetAsync(value);
-		di.Wait();
+		o = await ResourceHandle.GetAsync(value);
 
-		o = di.Result;
 		o?.Resolve();
 
 		// Resource = o;
 
-		if (!o.IsBinary) {
+		//www.youtube.com/watch?v=Ja_3FNMTsD8if
+		if (o is { IsBinary: false }) {
 			var errStr = !o.IsFile ? "Invalid file" : "Invalid URI";
 			// throw new ArgumentException($"Input error: {errStr}");
 
-			return false;
+			return null;
 		}
 
-		return true;
+		return o;
 	}
 
-	public static implicit operator ImageQuery(Uri value) => new(value.ToString());
-
-	public static implicit operator ImageQuery(string value) => new(value);
-	
 	public override string ToString()
 	{
 		return $"{Value} | {UploadUri}";

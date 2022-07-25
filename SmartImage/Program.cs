@@ -86,7 +86,7 @@ public static class Program
 	{
 		Options = new List<ConsoleOption>(),
 
-		Functions = new()
+		Functions = new Dictionary<ConsoleKey, Action>
 		{
 			[ConsoleKey.F1] = () =>
 			{
@@ -247,7 +247,6 @@ public static class Program
 			//ignored
 		}
 
-
 		EXIT:
 
 		if (Config.RestartAfterExit) {
@@ -261,7 +260,6 @@ public static class Program
 			ConsoleManager.WaitForInput();
 
 		}
-
 
 		return;
 	}
@@ -350,7 +348,6 @@ public static class Program
 				return false;
 			}
 		}
-
 
 		return true;
 	}
@@ -472,7 +469,7 @@ public static class Program
 	{
 		Parameters =
 		{
-			new()
+			new CliParameter
 			{
 				ArgumentCount = 1,
 				ParameterId   = "-se",
@@ -482,7 +479,7 @@ public static class Program
 					return null;
 				}
 			},
-			new()
+			new CliParameter
 			{
 				ArgumentCount = 1,
 				ParameterId   = "-pe",
@@ -492,7 +489,7 @@ public static class Program
 					return null;
 				}
 			},
-			new()
+			new CliParameter
 			{
 				ArgumentCount = 0,
 				ParameterId   = "-f",
@@ -502,7 +499,7 @@ public static class Program
 					return null;
 				}
 			},
-			new()
+			new CliParameter
 			{
 				ArgumentCount = 0,
 				ParameterId   = "-output_only",
@@ -512,7 +509,7 @@ public static class Program
 					return null;
 				}
 			},
-			new()
+			new CliParameter
 			{
 				ArgumentCount = 0,
 				ParameterId   = "-restart-after-exit",
@@ -523,7 +520,7 @@ public static class Program
 				}
 			}
 		},
-		Default = new()
+		Default = new CliParameter
 		{
 			ArgumentCount = 1,
 			ParameterId   = null,
@@ -545,7 +542,7 @@ public static class Program
 
 	private static readonly List<ConsoleOption> MainMenuOptions = new()
 	{
-		new()
+		new ConsoleOption
 		{
 			Name  = ">>> Run <<<",
 			Color = Elements.ColorMain,
@@ -581,7 +578,7 @@ public static class Program
 		Controls.CreateOption(propertyof(() => AppIntegration.IsContextMenuAdded),
 		                      "Context menu", added => AppIntegration.HandleContextMenu(!added), Config),
 
-		new()
+		new ConsoleOption
 		{
 			Name = "Config",
 			Function = () =>
@@ -594,7 +591,7 @@ public static class Program
 				return null;
 			}
 		},
-		new()
+		new ConsoleOption
 		{
 			Name = "Open folder",
 			Function = () =>
@@ -605,7 +602,7 @@ public static class Program
 				return null;
 			}
 		},
-		new()
+		new ConsoleOption
 		{
 			Name = "Info",
 			Function = () =>
@@ -637,7 +634,7 @@ public static class Program
 				return null;
 			}
 		},
-		new()
+		new ConsoleOption
 		{
 			Name = "Help",
 			Function = () =>
@@ -648,7 +645,7 @@ public static class Program
 			}
 		},
 #if DEBUG
-		new()
+		new ConsoleOption
 		{
 			Name = "debug",
 			Function = () =>

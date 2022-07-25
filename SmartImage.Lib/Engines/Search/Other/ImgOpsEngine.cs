@@ -13,12 +13,11 @@ public sealed class ImgOpsEngine : BaseSearchEngine
 
 	public ImgOpsEngine() : base("http://imgops.com/") { }
 
-	/*public Uri Upload(string img)
+	/*public Uri UploadAsync(string img)
 	{
 		IUploadEngine.Verify(this, img);
 
 		Debug.WriteLine($"Uploading {img}");
-
 
 		var imgOpsUrl = UploadInternal(img);
 
@@ -42,7 +41,6 @@ public sealed class ImgOpsEngine : BaseSearchEngine
 		rq.AddFile("photo", path);
 
 		var re = rc.Execute(rq);
-
 
 		return re.ResponseUri;
 	}*/

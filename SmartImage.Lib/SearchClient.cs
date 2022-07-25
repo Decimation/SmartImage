@@ -78,7 +78,7 @@ public sealed class SearchClient : IDisposable
 		DetailedResults = new List<ImageResult>();
 		ContinueTasks   = new List<Task>();
 
-		ContinueTaskCompletionSource = new();
+		ContinueTaskCompletionSource = new TaskCompletionSource();
 
 		Reload();
 
@@ -167,7 +167,7 @@ public sealed class SearchClient : IDisposable
 		IsComplete         = false;
 		IsContinueComplete = false;
 
-		ContinueTaskCompletionSource = new();
+		ContinueTaskCompletionSource = new TaskCompletionSource();
 	}
 
 	/// <summary>

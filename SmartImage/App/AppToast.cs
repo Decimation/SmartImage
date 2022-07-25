@@ -90,7 +90,7 @@ internal static class AppToast
 		// var ar1   = (double) query.Width.Value / query.Height.Value;
 
 		var mediaResources = directResults.SelectMany(d => (d.DirectImages))
-		                                  .Where(d => !HttpResourceFilter.Media.UrlBlacklist.Any(dd=> d.Url.Contains(dd)))
+		                                  // .Where(d => !Kantan.Net.Content.FileResourceHandle.Media.UrlBlacklist.Any(dd=> d.Url.Contains(dd)))
 		                                  .OrderByDescending(x => x.Stream.Length)
 		                                  .ToList();
 
@@ -102,8 +102,7 @@ internal static class AppToast
 
 		var mediaResource = mediaResources.First();
 
-
-		string file = HttpUtilities.Download(new Uri(mediaResource.Url), path);
+		string file = HttpUtilities.Download(new Uri(mediaResource.Value), path);
 
 		if (file == null) {
 			int i = 0;
@@ -111,7 +110,7 @@ internal static class AppToast
 			do {
 				// file = MediaHelper.Download(directResults[i++].DirectImage.Url, path);
 
-				file = HttpUtilities.Download(new Uri(mediaResources[i++].Url), path);
+				file = HttpUtilities.Download(new Uri(mediaResources[i++].Value), path);
 
 			} while (String.IsNullOrWhiteSpace(file) && i < directResults.Count);
 

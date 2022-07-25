@@ -9,6 +9,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
@@ -85,7 +86,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var imageResults = dataResults.Result.Where(o => o != null)
 		                              .AsParallel()
-		                              .Select((x)=>ConvertToImageResult(x, result))
+		                              .Select((x) => ConvertToImageResult(x, result))
 		                              .Where(o => o != null)
 		                              .OrderByDescending(e => e.Similarity)
 		                              .ToList();
@@ -112,8 +113,8 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		result.PrimaryResult.Quality = result.PrimaryResult.Similarity switch
 		{
-			>= 75 => ResultQuality.High,
-			_ or null    => ResultQuality.NA,
+			>= 75     => ResultQuality.High,
+			_ or null => ResultQuality.NA,
 		};
 
 		return result;
@@ -181,6 +182,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			var resultmiscinfo      = resultmatchinfo.ChildNodes[1];
 			var resultcontent       = resulttablecontent.ChildNodes[1];
 			var resultcontentcolumn = resultcontent.ChildNodes[1];
+			// var resulttitle = resultcontent.ChildNodes[0];
 
 			string link = null;
 
@@ -197,21 +199,33 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			INode  resulttitle = resultcontent.ChildNodes[0];
 			string rti         = resulttitle?.TextContent;
 
-			INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
-			string rcci                 = resultcontentcolumn1?.TextContent;
+			// INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
+			string rcci = resultcontentcolumn?.TextContent;
+
+			var synonyms = new[] { "Creator: ", "Member: ", "Artist: " };
 
 			string material1 = rcci?.SubstringAfter("Material: ");
 
-			string creator1 = rti ?? rcci;
-			creator1 = creator1.SubstringAfter("Creator: ");
+			string creator1 = rcci;
 
+			// creator1 = creator1.SubstringAfter("Creator: ");
+			// resultcontentcolumn.GetNodes(true, (IElement element) => element.LocalName == "strong");
+
+			// resultcontentcolumn.GetNodes(deep:true, predicate: (INode n)=>n.TryGetAttribute() )
+			var t = resultcontentcolumn.ChildNodes[0].TextContent;
+			resultcontentcolumn.ChildNodes[1].TryGetAttribute("href");
+
+			
 			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
 			var dataResult = new SauceNaoDataResult
 			{
 				Urls       = new[] { link },
 				Similarity = similarity,
-				Creator    = creator1
+				Creator    = creator1,
+				Title      = rti,
+				Material   = material1
+
 			};
 
 			return dataResult;
@@ -353,6 +367,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		public float Similarity { get; internal set; }
 
 		public string WebsiteTitle { get; internal set; }
+		public string Title        { get; internal set; }
 
 		public string Character { get; internal set; }
 

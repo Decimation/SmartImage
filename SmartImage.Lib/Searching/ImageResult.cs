@@ -187,7 +187,7 @@ public sealed class ImageResult : IResult
 	public ImageResult(SearchResult root)
 	{
 		Root          = root;
-		OtherUrl      = new();
+		OtherUrl      = new List<Uri>();
 		OtherMetadata = new Dictionary<string, object>();
 	}
 

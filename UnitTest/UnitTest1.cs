@@ -30,12 +30,22 @@ public class Tests
 	private static List<string> TestImages { get; set; }
 
 	[Test]
-	public void TestImageQuery()
+	public async void TestImageQuery()
 	{
 		//Assert.That(() => new ImageQuery("https://imgur.com/QtCausw"), Throws.Exception);
 
-		Assert.Throws<SmartImageException>(() => new ImageQuery("https://imgur.com/QtCausw"));
-		Assert.DoesNotThrow(() => new ImageQuery("https://i.imgur.com/QtCausw.png"));
+		Assert.Throws<SmartImageException>(() =>
+		{
+
+		});
+
+		Assert.DoesNotThrow(async()  =>
+		{
+			const string s = "https://i.imgur.com/QtCausw.png";
+			var          h = await ImageQuery.TryAllocHandleAsync(s);
+			var          q = new ImageQuery(h);
+
+		});
 	}
 
 	[Test]
@@ -63,7 +73,8 @@ public class Tests
 	[TestCase(@"C:\Users\Deci\Pictures\shellvi - ヨル (98022741).jpg", "shellvi")]
 	public async Task TestSauceNao(string art, string name)
 	{
-		var q  = new ImageQuery(art);
+		var qq = await ImageQuery.TryAllocHandleAsync(art);
+		var q  = new ImageQuery(qq);
 		var i  = new SauceNaoEngine();
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
@@ -82,9 +93,7 @@ public class Tests
 				return false;
 			}
 		});
-
 		Assert.True(b);
-
 
 	}
 
@@ -93,7 +102,8 @@ public class Tests
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg")]
 	public async Task TestIqdb(string art)
 	{
-		var q  = new ImageQuery(art);
+		var qq = await ImageQuery.TryAllocHandleAsync(art);
+		var q  = new ImageQuery(qq);
 		var i  = new IqdbEngine();
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
@@ -104,9 +114,7 @@ public class Tests
 
 		//t.Consolidate();
 
-
 		var a = t.IsNonPrimitive;
-
 
 		var b = t.OtherResults.Any(r =>
 		{
@@ -114,7 +122,6 @@ public class Tests
 		});
 
 		Assert.True(a || b);
-
 
 	}
 
@@ -123,14 +130,13 @@ public class Tests
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test2.jpg")]
 	public async Task TestAscii2D(string art)
 	{
-		var q  = new ImageQuery(art);
+		var qq = await ImageQuery.TryAllocHandleAsync(art);
+		var q  = new ImageQuery(qq);
 		var i  = new Ascii2DEngine();
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
 
-
 		var a = t.IsNonPrimitive;
-
 
 		var b = t.OtherResults.Any(r =>
 		{
@@ -139,7 +145,6 @@ public class Tests
 
 		Assert.True(a || b);
 
-
 	}
 
 	[Test]
@@ -147,7 +152,8 @@ public class Tests
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test3.png", "Neon Genesis")]
 	public async Task TestTraceMoe(string screenshot, string name)
 	{
-		var q  = new ImageQuery(screenshot);
+		var qq = await ImageQuery.TryAllocHandleAsync(screenshot);
+		var q  = new ImageQuery(qq);
 		var i  = new TraceMoeEngine();
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
@@ -157,7 +163,6 @@ public class Tests
 		}
 
 		Assert.True(t.OtherResults.Any(r => r.Source.Contains(name, StringComparison.InvariantCultureIgnoreCase)));
-
 
 	}
 }

@@ -13,15 +13,6 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public static class WebDriverExtensions
-{
-	public static string ToValueString(this JSHandle h)
-	{
-		// return h.JsonValueAsync().GetAwaiter().GetResult().ToString();
-		return h.ToString().Replace("jshandle:", string.Empty, StringComparison.InvariantCultureIgnoreCase);
-	}
-}
-
 public sealed class TinEyeEngine : WebDriverSearchEngine
 {
 	public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
@@ -138,4 +129,13 @@ public sealed class TinEyeEngine : WebDriverSearchEngine
 	 * https://stackoverflow.com/questions/704956/getting-the-redirected-url-from-the-original-url
 	 * https://github.com/search?p=3&q=TinEye&type=Repositories
 	 */
+}
+
+public static class WebDriverExtensions
+{
+	public static string ToValueString(this JSHandle h)
+	{
+		// return h.JsonValueAsync().GetAwaiter().GetResult().ToString();
+		return h.ToString().Replace("jshandle:", string.Empty, StringComparison.InvariantCultureIgnoreCase);
+	}
 }
