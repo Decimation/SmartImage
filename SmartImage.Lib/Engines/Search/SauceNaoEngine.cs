@@ -128,11 +128,11 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var x = await EndpointUrl.PostMultipartAsync(m =>
 		{
-			m.AddString("url", query.IsUri ? query.Value : String.Empty);
+			m.AddString("url", query.IsUri ? query.Query : String.Empty);
 
 			if (query.IsUri) { }
 			else if (query.IsFile) {
-				m.AddFile("file", query.Value, fileName: "image.png");
+				m.AddFile("file", query.Query, fileName: "image.png");
 			}
 
 			return;
@@ -215,7 +215,6 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			var t = resultcontentcolumn.ChildNodes[0].TextContent;
 			resultcontentcolumn.ChildNodes[1].TryGetAttribute("href");
 
-			
 			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
 			var dataResult = new SauceNaoDataResult

@@ -29,17 +29,19 @@ namespace SmartImage.Lib.Searching;
 public sealed class ImageQuery : IDisposable, IConsoleOption
 {
 	/// <summary>
-	/// Original input
+	/// Original query
 	/// </summary>
-	public string Value => Resource.Value;
+	public string Query => Resource.Value;
+
+	public ResourceHandle Resource { set; get; }
 
 	/// <summary>
-	/// Whether <see cref="Value"/> is a file
+	/// Whether <see cref="Resource"/> is a file
 	/// </summary>
 	public bool IsFile => Resource.IsFile;
 
 	/// <summary>
-	/// Whether <see cref="Value"/> is an image link
+	/// Whether <see cref="Resource"/> is an image link
 	/// </summary>
 	public bool IsUri => Resource.IsUri;
 
@@ -53,73 +55,53 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	/// </summary>
 	public BaseUploadEngine UploadEngine { get; set; }
 
-	public Stream Stream => Resource.Stream;
-
-	public TimeSpan UploadTime { get; private set; }
-
-	public ResourceHandle Resource { get; set; }
-
-	public Image Image { get; }
-
-	public ImageResult AsImageResult { get; }
-
-	public ImageQuery([NotNull]  ResourceHandle o, BaseUploadEngine e = null)
+	public ImageQuery([NotNull] ResourceHandle value, BaseUploadEngine engine = null)
 	{
-
-		Resource     = o;
-		// Value        = o.Value;
-		UploadEngine = e;
-
-		// Stream = Resource.Stream;
-
-		/*
-		var client = new HttpClient(); //todo
-		Stream     = IsFile ? File.OpenRead(value) : client.GetStream(value);*/
-
-		// Trace.WriteLine($"{nameof(ImageQuery)}: {UploadUri}", C_SUCCESS);
-
-		// Resource = o;
-
-		Image = Image.FromStream(Stream);
-
-		AsImageResult = new ImageResult(null)
-		{
-			// Image = Image.FromStream(Stream),
-			OtherMetadata =
-			{
-				// { "UploadAsync engine", UploadEngine.Name },
-				{ "Input type", IsUri ? "URI" : "File" },
-				{ "Input value", Value },
-				// { "Time", $"(upload: {UploadTime.TotalSeconds:F3})" }
-			},
-			Width  = Image.Width,
-			Height = Image.Height
-		};
-
-		AsImageResult.DirectImages.Add(o);
-	}
-
-	public async Task<Uri> UploadAsync(BaseUploadEngine engine = null)
-	{
-		var now = Stopwatch.GetTimestamp();
-		//note: default upload engine
+		Resource     = value;
 		UploadEngine = engine ?? new LitterboxEngine();
 
+	}
+
+	/// <summary>
+	/// <see cref="System.Drawing.Image"/> of <see cref="Query"/>
+	/// </summary>
+	public ImageResult ToImageResult()
+	{
+		var i = Image.FromStream(Resource.Stream);
+
+		var ir = new ImageResult(null)
+		{
+			OtherMetadata =
+			{
+				{ "Input type", IsUri ? "URI" : "File" },
+				{ "Input value", Query },
+			},
+			Width  = i.Width,
+			Height = i.Height,
+			Url    = UploadUri
+
+		};
+
+		ir.DirectImages.Add(Resource);
+
+		return ir;
+
+	}
+
+	public async Task<Uri> UploadAsync()
+	{
+
 		if (IsFile) {
-			var task = await UploadEngine.UploadFileAsync(Value);
+			var task = await UploadEngine.UploadFileAsync(Query);
 
 			UploadUri = task;
 		}
 		else {
 			if (IsUri) {
-				UploadUri = new Uri(Value);
+				UploadUri = new Uri(Query);
 			}
 
 		}
-
-		AsImageResult.Url = UploadUri;
-
-		UploadTime = TimeSpan.FromTicks(Stopwatch.GetTimestamp() - now);
 
 		return UploadUri;
 	}
@@ -139,7 +121,7 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 		o?.Resolve();
 
-		// Resource = o;
+		// Resource = value;
 
 		//www.youtube.com/watch?v=Ja_3FNMTsD8if
 		if (o is { IsBinary: false }) {
@@ -154,18 +136,18 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public override string ToString()
 	{
-		return $"{Value} | {UploadUri}";
-	}
-
-	public ConsoleOption GetConsoleOption()
-	{
-		return AsImageResult.GetConsoleOption("(Original image)", Color.Red.ChangeBrightness(-0.1f));
+		return $"{Query} | {UploadUri}";
 	}
 
 	public void Dispose()
 	{
 		Resource.Dispose();
 		// Stream?.Dispose();
-		Image.Dispose();
+	}
+
+	public ConsoleOption GetConsoleOption()
+	{
+		var ir = ToImageResult(); //todo
+		return ir.GetConsoleOption("(Original image)", Color.Red.ChangeBrightness(-0.1f));
 	}
 }

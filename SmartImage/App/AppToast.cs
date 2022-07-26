@@ -86,8 +86,8 @@ internal static class AppToast
 
 		}*/
 
-		var query = Program.Config.Query.AsImageResult;
-		// var ar1   = (double) query.Width.Value / query.Height.Value;
+		var query = Program.Config.Query.ToImageResult();
+		// var ar1   = (double) query.Width.Query / query.Height.Query;
 
 		var mediaResources = directResults.SelectMany(d => (d.DirectImages))
 		                                  // .Where(d => !Kantan.Net.Content.FileResourceHandle.Media.UrlBlacklist.Any(dd=> d.Url.Contains(dd)))

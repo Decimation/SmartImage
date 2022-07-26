@@ -30,22 +30,40 @@ public class Tests
 	private static List<string> TestImages { get; set; }
 
 	[Test]
-	public async void TestImageQuery()
+	[TestCase("https://i.imgur.com/QtCausw")]
+	[TestCase("")]
+	[TestCase(null)]
+	public async Task TestImageQuery_Fail(string s)
 	{
-		//Assert.That(() => new ImageQuery("https://imgur.com/QtCausw"), Throws.Exception);
+		try {
 
-		Assert.Throws<SmartImageException>(() =>
-		{
+			var h = await ImageQuery.TryAllocHandleAsync(s);
+			var q = new ImageQuery(h);
+			await q.UploadAsync();
+		}
+		catch (Exception) {
+			Assert.Pass();
+		}
+		Assert.Fail();
+	}
 
-		});
+	[Test]
+	[TestCase("https://i.imgur.com/QtCausw.png")]
+	[TestCase(@"C:\Users\Deci\Pictures\shellvi - ヨル (98022741).jpg")]
+	public async Task TestImageQuery_Pass(string s)
+	{
+		try {
 
-		Assert.DoesNotThrow(async()  =>
-		{
-			const string s = "https://i.imgur.com/QtCausw.png";
-			var          h = await ImageQuery.TryAllocHandleAsync(s);
-			var          q = new ImageQuery(h);
+			var h = await ImageQuery.TryAllocHandleAsync(s);
+			var q = new ImageQuery(h);
+			await q.UploadAsync();
+		}
+		catch (Exception) {
+			Assert.Fail();
+		}
 
-		});
+		Assert.Pass();
+
 	}
 
 	[Test]
@@ -132,6 +150,8 @@ public class Tests
 	{
 		var qq = await ImageQuery.TryAllocHandleAsync(art);
 		var q  = new ImageQuery(qq);
+		await q.UploadAsync();
+
 		var i  = new Ascii2DEngine();
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;
@@ -154,6 +174,7 @@ public class Tests
 	{
 		var qq = await ImageQuery.TryAllocHandleAsync(screenshot);
 		var q  = new ImageQuery(qq);
+		var u  = await q.UploadAsync();
 		var i  = new TraceMoeEngine();
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;

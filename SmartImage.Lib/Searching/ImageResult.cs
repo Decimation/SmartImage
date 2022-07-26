@@ -173,7 +173,7 @@ public sealed class ImageResult : IResult
 
 			s += OtherMetadata.Count;
 			/*if (Similarity.HasValue) {
-				s +=(int) Math.Ceiling(((Similarity.Value/100) * 13f) * .66f);
+				s +=(int) Math.Ceiling(((Similarity.Query/100) * 13f) * .66f);
 			}*/
 
 			return s;

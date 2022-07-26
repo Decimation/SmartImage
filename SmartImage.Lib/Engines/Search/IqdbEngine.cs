@@ -23,10 +23,8 @@ public sealed class IqdbEngine : ClientSearchEngine
 	public IqdbEngine() : base("https://iqdb.org/?url=", "https://iqdb.org/") { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
-	
 
 	public override TimeSpan Timeout => TimeSpan.FromSeconds(4.5);
-
 
 	public override EngineSearchType SearchType => EngineSearchType.Image | EngineSearchType.Metadata;
 
@@ -40,7 +38,6 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 		//img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
 
-
 		try {
 			//url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
 
@@ -52,7 +49,6 @@ public sealed class IqdbEngine : ClientSearchEngine
 		catch {
 			// ignored
 		}
-
 
 		int w = 0, h = 0;
 
@@ -95,7 +91,6 @@ public sealed class IqdbEngine : ClientSearchEngine
 			uri = null;
 		}
 
-
 		var result = new ImageResult(r)
 		{
 			Url         = uri,
@@ -106,10 +101,8 @@ public sealed class IqdbEngine : ClientSearchEngine
 			Description = caption.TextContent,
 		};
 
-
 		return result;
 	}
-
 
 	private async Task<IDocument> GetDocument(ImageQuery query)
 	{
@@ -119,11 +112,11 @@ public sealed class IqdbEngine : ClientSearchEngine
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
 
-			m.AddString("url", query.IsUri ? query.Value : String.Empty);
+			m.AddString("url", query.IsUri ? query.Query : String.Empty);
 
 			if (query.IsUri) { }
 			else if (query.IsFile) {
-				m.AddFile("file", query.Value, fileName: "image.jpg");
+				m.AddFile("file", query.Query, fileName: "image.jpg");
 			}
 
 			return;
@@ -134,7 +127,6 @@ public sealed class IqdbEngine : ClientSearchEngine
 		var parser = new HtmlParser();
 		return parser.ParseDocument(s);
 	}
-
 
 	protected override SearchResult Process(object obj, SearchResult sr)
 	{
@@ -161,7 +153,6 @@ public sealed class IqdbEngine : ClientSearchEngine
 			                           .QuerySelectorAll("table > tbody > tr:nth-child(n)"));
 
 		var images = select.Select(x=>ParseResult(x, sr)).ToList();
-
 
 		// First is original image
 		images.RemoveAt(0);
