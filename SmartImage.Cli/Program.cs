@@ -38,10 +38,9 @@ public static class Program
 
 	private static readonly SearchClient Client = new(Config);
 
-	private static ImageQuery Query => Config.Query;
+	private static ImageQuery Query;
 
 	#endregion
-
 
 	public static async Task Main(string[] args)
 	{
@@ -68,9 +67,7 @@ public static class Program
 
 		// Console.Clear();
 
-
 		ArgumentHandler.Run(args);
-
 
 		Console.WriteLine($"{"Query:".AddColor(Color.LawnGreen)} {Query}");
 
@@ -87,7 +84,7 @@ public static class Program
 
 		IsComplete = false;
 
-		Tasks = Client.GetSearchTasks(cts.Token);
+		Tasks = Client.GetSearchTasks(Config.Query, cts.Token);
 
 		ContinueTasks   = new List<Task>();
 		Results         = new List<SearchResult>();
@@ -174,12 +171,10 @@ public static class Program
 
 	#endregion
 
-
 	private static void HandleResult(SearchResult searchResult)
 	{
 		// var data = getmap(searchResult);
 		var data = searchResult.Data;
-
 
 		var dict = data.Where(x => x.Value is { })
 		               .Select(kv => new KeyValuePair<string, string>(kv.Key, kv.Value.ToString()));
@@ -196,7 +191,6 @@ public static class Program
 		if (searchResult.Flags.HasFlag(SearchResultFlags.Priority)) {
 			titleColor = ConsoleColor.Green;
 		}
-
 
 		ctb.WithCharMapDefinition(CharMapDefinition.FramePipDefinition)
 		   /*.WithMetadataRow(MetaRowPositions.Top, builder =>
@@ -229,7 +223,6 @@ public static class Program
 		   .WithTitle(searchResult.Engine.Name, ConsoleColor.White, titleColor, TextAligntment.Center)
 		   .ExportAndWriteLine();
 	}
-
 
 	public static event EventHandler ContinueCompleted;
 
@@ -297,11 +290,13 @@ public static class Program
 		{
 			ArgumentCount = 1,
 			ParameterId   = null,
-			Function = strings =>
-			{
-				Config.Query = strings[0];
-				return null;
-			}
+			Function = DefaultFunctionAsync
 		}
 	};
+
+	private static async Task<object> DefaultFunctionAsync(string[] strings)
+	{
+		Config.Query = new ImageQuery(await ImageQuery.TryAllocHandleAsync(strings[0]));
+		return null;
+	}
 }

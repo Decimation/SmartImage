@@ -1,4 +1,5 @@
-﻿using Terminal.Gui;
+﻿using NStack;
+using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
 
 namespace SmartImage_3;
@@ -61,4 +62,35 @@ public static partial class Gui
 			Focus  = Attribute.Make(background: Color.DarkGray, foreground: Color.White)
 		};
 	}
+
+	public static readonly TextField Tf_Input = new(ustring.Empty)
+	{
+		X           = Pos.Right(Lbl_Input),
+		Y           = Pos.Top(Lbl_Input),
+		Width       = 50,
+		ColorScheme = GS.CS_Win2,
+
+		// AutoSize = true,
+	};
+
+	public static readonly Button Btn_Ok = new("Run")
+	{
+		X           = Pos.Right(Tf_Input) + 2,
+		Y           = Pos.Y(Tf_Input),
+		ColorScheme = GS.CS_Elem1
+	};
+
+	public static readonly Window Win = new(GC.NAME)
+	{
+		X = 0,
+		Y = 1, // Leave one row for the toplevel menu - todo
+
+		// By using Dim.Fill(), it will automatically resize without manual intervention
+		Width       = Dim.Fill(),
+		Height      = Dim.Fill(),
+		ColorScheme = GS.CS_Win
+
+	};
+
+	public static readonly Toplevel Top = Application.Top;
 }

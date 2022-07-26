@@ -193,13 +193,14 @@ public sealed class SearchClient : IDisposable
 	/// <summary>
 	///     Performs an image search asynchronously.
 	/// </summary>
-	public async Task<List<SearchResult>> RunSearchAsync(CancellationTokenSource cts2, CancellationToken cts)
+	public async Task<List<SearchResult>> RunSearchAsync(ImageQuery query, CancellationTokenSource cts2,
+	                                                     CancellationToken cts)
 	{
 		if (IsComplete) {
 			throw new SmartImageException();
 		}
 
-		Tasks = GetSearchTasks(cts);
+		Tasks = GetSearchTasks(query, cts);
 
 		while (!IsComplete && !cts.IsCancellationRequested) {
 			var finished = await Task.WhenAny(Tasks);
@@ -268,11 +269,11 @@ public sealed class SearchClient : IDisposable
 		return Results;// >:( stupid
 	}
 
-	public List<Task<SearchResult>> GetSearchTasks(CancellationToken cts)
+	public List<Task<SearchResult>> GetSearchTasks(ImageQuery query, CancellationToken cts)
 	{
 		return new List<Task<SearchResult>>(Engines.Select(engine =>
 		{
-			var task = engine.GetResultAsync(Config.Query, cts);
+			var task = engine.GetResultAsync(query, cts);
 
 			return task;
 		}));

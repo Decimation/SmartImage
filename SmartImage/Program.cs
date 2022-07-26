@@ -63,6 +63,8 @@ namespace SmartImage;
 
 public static class Program
 {
+	private const string URL_DBG_TEST = @"https://i.imgur.com/QtCausw.png";
+
 	#region Core fields
 
 	/// <summary>
@@ -128,6 +130,8 @@ public static class Program
 		}
 	};
 
+	private static ImageQuery _q = Config.Query;
+
 	static Program()
 	{
 		// NOTE: Static initializer must be AFTER MainMenuDialog
@@ -172,7 +176,7 @@ public static class Program
 
 		Config.SearchEngines     = SearchEngineOptions.All;
 		Config.NotificationImage = true;
-		Config.RestartAfterExit = false;
+		Config.RestartAfterExit  = false;
 
 #endif
 
@@ -211,6 +215,7 @@ public static class Program
 		// Read config and arguments
 
 		main:
+
 		if (!await HandleStartup(args)) {
 			return;
 			// goto EXIT;
@@ -226,11 +231,11 @@ public static class Program
 
 		// Run search
 
-		_searchTask   = Client.RunSearchAsync(CtsContinue, CtsSearch.Token);
+		_searchTask   = Client.RunSearchAsync(_q, CtsContinue, CtsSearch.Token);
 		_continueTask = Client.RunContinueAsync(CtsContinueTask.Token);
 
 		// Add original image
-		_origRes = Config.Query.GetConsoleOption();
+		_origRes = _q.GetConsoleOption();
 
 		ResultDialog.Options.Add(_origRes);
 
@@ -324,7 +329,9 @@ public static class Program
 			if (file != null) {
 				Debug.WriteLine($"Drag and drop: {file}");
 				Console.WriteLine($">> {file}".AddColor(Elements.ColorMain));
-				Config.Query = file;
+				var b = await ImageQuery.TryAllocHandleAsync(file);
+				_q = new ImageQuery(b);
+				await _q.UploadAsync();
 				return true;
 			}
 
@@ -524,13 +531,15 @@ public static class Program
 		{
 			ArgumentCount = 1,
 			ParameterId   = null,
-			Function = strings =>
-			{
-				Config.Query = strings[0];
-				return null;
-			}
+			Function      = DefaultOptionAsync
 		}
 	};
+
+	private static async Task<object> DefaultOptionAsync(string[] strings)
+	{
+		_q = new ImageQuery(await ImageQuery.TryAllocHandleAsync(strings[0]));
+		return null;
+	}
 
 	private static readonly CancellationTokenSource CtsContinueTask = new();
 
@@ -544,27 +553,9 @@ public static class Program
 	{
 		new ConsoleOption
 		{
-			Name  = ">>> Run <<<",
-			Color = Elements.ColorMain,
-			Function = () =>
-			{
-				ImageQuery query = ConsoleManager.ReadLine("Image file or direct URL", x =>
-				{
-					x = x.CleanString();
-
-					var di = HttpResourceHandle.GetAsync(x);
-					di.Wait();
-
-					var o = di.Result;
-					o?.Resolve();
-					using var m = o;
-
-					return !(m.IsBinary);
-				}, "Input must be file or direct image link");
-
-				Config.Query = query;
-				return true;
-			}
+			Name     = ">>> Run <<<",
+			Color    = Elements.ColorMain,
+			Function = MainMenuFunctionAsync
 		},
 
 		Controls.CreateOption<SearchEngineOptions>(nameof(Config.SearchEngines), "Engines", Config),
@@ -647,17 +638,41 @@ public static class Program
 #if DEBUG
 		new ConsoleOption
 		{
-			Name = "debug",
-			Function = () =>
-			{
-
-				Config.Query = @"https://i.imgur.com/QtCausw.png";
-				return true;
-			}
+			Name     = "debug",
+			Function = DebugOption
 		}
-#endif
-
 	};
+
+	private static async Task<object> MainMenuFunctionAsync()
+	{
+		var readLine = ConsoleManager.ReadLine("Image file or direct URL", x =>
+		{
+			x = x.CleanString();
+
+			var di = HttpResourceHandle.GetAsync(x);
+			di.Wait();
+
+			var o = di.Result;
+			o?.Resolve();
+			using var m = o;
+
+			return !(m.IsBinary);
+		}, "Input must be file or direct image link");
+
+		ImageQuery query = new(await ImageQuery.TryAllocHandleAsync(readLine));
+
+		_q = query;
+		return true;
+	}
+
+	private static async Task<bool> DebugOption()
+	{
+		var h = await ImageQuery.TryAllocHandleAsync(URL_DBG_TEST);
+		_q = new ImageQuery(h);
+		await _q.UploadAsync();
+		return true;
+	}
+#endif
 
 	private static readonly ConsoleDialog MainMenuDialog = new()
 	{
