@@ -1,5 +1,7 @@
 ﻿global using G = SmartImage_3.Gui;
 global using GC = SmartImage_3.Gui.Constants;
+global using GS = SmartImage_3.Gui.Styles;
+using System.Data;
 using System.Diagnostics;
 using System.Text;
 using Kantan.Cli;
@@ -24,40 +26,59 @@ public static class Program
 	private static readonly Label Lbl_Input = new($"Input:")
 	{
 		X           = 3,
-		AutoSize    = true,
 		Y           = 2,
-		ColorScheme = Gui.CS_Elem2
+		ColorScheme = GS.CS_Elem2
 	};
 
-	private static readonly TextField TF_Input = new(ustring.Empty)
+	private static readonly TextField Tf_Input = new(ustring.Empty)
 	{
 		X           = Pos.Right(Lbl_Input),
 		Y           = Pos.Top(Lbl_Input),
 		Width       = 50,
-		ColorScheme = Gui.CS_Win2
-		// AutoSize = true,
+		ColorScheme = GS.CS_Win2,
 
+		// AutoSize = true,
+	};
+
+	private static readonly Label Lbl_Query = new($">>>")
+	{
+		X           = Pos.X(Lbl_Input),
+		Y           = Pos.Bottom(Lbl_Input),
+		ColorScheme = GS.CS_Elem2
+	};
+
+	private static readonly TextField Tf_Query = new(ustring.Empty)
+	{
+		X           = Pos.X(Tf_Input),
+		Y           = Pos.Bottom(Tf_Input),
+		Width       = 50,
+		ColorScheme = GS.CS_Win2,
+		ReadOnly    = true,
+		CanFocus    = false,
+
+		// AutoSize = true,
 	};
 
 	private static readonly Button Btn_Ok = new("Run")
 	{
-		X           = Pos.Right(TF_Input) + 2,
-		Y           = Pos.Y(TF_Input),
-		ColorScheme = Gui.CS_Elem1
+		X           = Pos.Right(Tf_Input) + 2,
+		Y           = Pos.Y(Tf_Input),
+		ColorScheme = GS.CS_Elem1
 	};
 
-	private static readonly Label Lbl_InputOk = new(Gui.Constants.SYM_NA)
+	private static readonly Label Lbl_InputOk = new(GC.SYM_NA)
 	{
 		X           = Pos.Right(Btn_Ok),
 		Y           = Pos.Y(Btn_Ok),
-		ColorScheme = Gui.CS_Win2
+		ColorScheme = GS.CS_Elem4
 	};
 
-	private static readonly ListView Lv_Engines = new(new Rect(5, 5, 15, 15), Gui.Constants.EngineNames)
+	private static readonly ListView Lv_Engines = new(new Rect(3, 8, 15, 25), GC.EngineNames)
 	{
 		AllowsMultipleSelection = true,
 		AllowsMarking           = true,
-		ColorScheme             = Gui.CS_Elem3,
+		CanFocus                = true,
+		ColorScheme             = GS.CS_Elem3,
 	};
 
 	private static readonly Window Win = new(GC.NAME)
@@ -68,13 +89,21 @@ public static class Program
 		// By using Dim.Fill(), it will automatically resize without manual intervention
 		Width       = Dim.Fill(),
 		Height      = Dim.Fill(),
-		ColorScheme = Gui.CS_Win
+		ColorScheme = GS.CS_Win
 
 	};
 
+	private static DataTable Dt_Config = new DataTable()
+	{
+		Columns = { },
+		Rows    = { }
+	};
+
+	private static readonly TableView Tv_Config = new(Dt_Config);
+
 	private static readonly Toplevel Top = Application.Top;
 
-	private static ustring TF_InputStr = null;
+	private static ustring _tfInputStrBuffer = null;
 
 	public static async Task Main(string[] args)
 	{
@@ -82,46 +111,64 @@ public static class Program
 
 		Console.OutputEncoding = Encoding.Unicode;
 
-		var f = new MainLoop(new FakeMainLoop());
-		f.AddTimeout(TimeSpan.FromMilliseconds(500), Callback);
-
-		Win.KeyPress += eventArgs =>
-		{
-			switch (eventArgs.KeyEvent.Key) {
-				case Key.F5:
-					Console.Beep();
-					Top.Redraw(Top.Bounds);
-					Win.Redraw(Win.Bounds);
-					break;
-			}
-		};
-
 		Top.Add(Win);
 
-		Btn_Ok.Clicked += async () =>
-		{
+		Top.HotKey = Key.Null;
+		Win.HotKey = Key.Null;
 
-			if (_ok) {
-				var res = await Client.RunSearchAsync(Cts, CancellationToken.None);
-				_res.AddRange(res);
+		Win.KeyPress          += Win_KeyPress;
+		Btn_Ok.Clicked        += BtnOk_Clicked;
+		Tf_Input.TextChanged  += TfInput_TextChanged;
+		Tf_Input.KeyPress     += TfInput_KeyPress;
+		Tf_Input.TextChanging += TfInput_TextChanging;
+
+		// Lv_Engines.SelectedItemChanged += LvEngines_SelectedItemChanged;
+		Lv_Engines.OpenSelectedItem += eventArgs =>
+		{
+			Debug.WriteLine($"{eventArgs.Value} {eventArgs.Item} osi");
+		};
+
+		Lv_Engines.KeyPress += eventArgs =>
+		{
+			switch (eventArgs.KeyEvent.Key) {
+				case Key.Enter:
+					for (int i = 0; i < Lv_Engines.Source.Length; i++) {
+						if (Lv_Engines.Source.IsMarked(i)) {
+							var v = Lv_Engines.Source.ToList()[i];
+
+						}
+					}
+
+					break;
 
 			}
 		};
 
-		TF_Input.TextChanged += HandleInputChanged;
+		Lv_Engines.SelectedItemChanged += eventArgs =>
+		{
+			Debug.WriteLine($"{eventArgs.Value} {eventArgs.Item} sic {Lv_Engines.Source}");
+			var e = Enum.Parse<SearchEngineOptions>(eventArgs.Value.ToString());
 
-		TF_Input.KeyPress += HandleInputKeys;
+			switch (e) {
+				case SearchEngineOptions.None:
+					Config.SearchEngines = SearchEngineOptions.None;
+					break;
+			}
+
+			var prev = Config.SearchEngines;
+			Config.SearchEngines |= e;
+
+			Debug.WriteLine($"{prev} | {e} -> {Config.SearchEngines}");
+		};
 
 		Win.Add(
-			// The ones with my favorite layout system, Computed
-			Lbl_Input, TF_Input,
-
-			// The ones laid out like an australopithecus, with Absolute positions:
+			Lbl_Input,
+			Tf_Input,
 			Btn_Ok,
 			Lbl_InputOk,
-			Lv_Engines
-
-			// new ListView(_res)
+			Lv_Engines,
+			Tf_Query,
+			Lbl_Query
 		);
 
 		// var source  = new CancellationTokenSource();
@@ -133,55 +180,104 @@ public static class Program
 		Application.Shutdown();
 	}
 
-	private static bool Callback(MainLoop loop)
+	private static void LvEngines_SelectedItemChanged(ListViewItemEventArgs obj)
 	{
-		ProcessInputForQuery().Wait();
-		return true;
+		var s     = obj.Value.ToString();
+		var value = Enum.Parse<SearchEngineOptions>(s);
+
+		switch (value) {
+			case SearchEngineOptions.None:
+				Config.SearchEngines = value;
+				break;
+			default:
+				Config.SearchEngines |= value;
+				break;
+		}
+
+		Debug.WriteLine($"{Config.SearchEngines}");
+
 	}
 
-	private static void HandleInputChanged(ustring u)
+	private static void Win_KeyPress(View.KeyEventEventArgs eventArgs)
 	{
-		TF_InputStr = u;
+		switch (eventArgs.KeyEvent.Key) {
+			case Key.F5:
+				Console.Beep();
+				Top.Redraw(Top.Bounds);
+				Win.Redraw(Win.Bounds);
+				//todo???
+				break;
+		}
+	}
+
+	private static async void BtnOk_Clicked()
+	{
+		if (_ok) {
+			Debug.WriteLine($"{Client.Config}");
+			var res = await Client.RunSearchAsync(Cts, CancellationToken.None);
+			_res.AddRange(res);
+
+		}
+	}
+
+	private static void TfInput_TextChanging(TextChangingEventArgs obj)
+	{
+		// Debug.WriteLine($"new {obj.NewText}");
+
+	}
+
+	private static void TfInput_TextChanged(ustring u)
+	{
+		// Debug.WriteLine($"change {u} buf: {_tfInputStrBuffer} actual {Tf_Input.Text}");
 
 		/*_ok = false;
 		Btn_Ok.Redraw(Btn_Ok.Bounds);
 		Config.Query   = null;
 		Btn_Ok.Enabled = false;*/
 
-		if (ustring.IsNullOrEmpty(u)) {
+		if (ustring.IsNullOrEmpty(u) || ustring.IsNullOrEmpty(Tf_Input.Text)) {
 			_ok = false;
-			Config.Query.Dispose();
-			Config.Query     = null;
-			Lbl_InputOk.Text = Gui.Constants.SYM_NA;
+
+			/*if (Config.Query is { IsUploaded: true }) {
+				Config.Query.Dispose();
+				Config.Query = null;
+			}*/
+
+			Lbl_InputOk.Text = GC.SYM_NA;
 			Btn_Ok.Enabled   = false;
+			Btn_Ok.Redraw(Btn_Ok.Bounds);
+			Lbl_InputOk.Redraw(Lbl_InputOk.Bounds);
 		}
+
+		_tfInputStrBuffer = u;
+
 	}
 
-	private static async void HandleInputKeys(View.KeyEventEventArgs eventArgs)
+	private static async void TfInput_KeyPress(View.KeyEventEventArgs eventArgs)
 	{
 		switch (eventArgs.KeyEvent.Key) {
 			case Key.Enter:
-
-				await ProcessInputForQuery();
-
+				await HandleInputQueryAsync();
 				break;
 		}
 	}
 
-	private static async Task ProcessInputForQuery()
+	private static async Task HandleInputQueryAsync()
 	{
 		try {
-			var s = TF_Input.Text.ToString();
+			var s = Tf_Input.Text.ToString();
 			var h = await ImageQuery.TryAllocHandleAsync(s);
 
 			if (h != null) {
 				var q = new ImageQuery(h);
-				Lbl_InputOk.Text = Gui.Constants.SYM_PROCESS;
+				Lbl_InputOk.Text = GC.SYM_PROCESS;
 				Lbl_InputOk.Redraw(Lbl_InputOk.Bounds);
 
 				await q.UploadAsync();
 				Config.Query = q;
 
+				Tf_Query.Text = q.UploadUri.ToString();
+				Tf_Query.Redraw(Tf_Query.Bounds);
 				_ok = true;
 			}
 			else {
@@ -195,12 +291,14 @@ public static class Program
 		finally { }
 
 		if (_ok) {
-			Lbl_InputOk.Text += Gui.Constants.SYM_OK;
+			Lbl_InputOk.Text += GC.SYM_OK;
 
 			Debug.WriteLine($"{Config.Query} - {_ok} - {Config.Query.UploadUri}", "Query");
 		}
 		else {
-			Lbl_InputOk.Text = Gui.Constants.SYM_ERR;
+			Lbl_InputOk.Text = GC.SYM_ERR;
+			Tf_Query.Text    = ustring.Empty;
+			Tf_Query.Redraw(Tf_Query.Bounds);
 		}
 
 		Btn_Ok.Enabled = _ok;

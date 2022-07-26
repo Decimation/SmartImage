@@ -88,9 +88,10 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	}
 
+	public bool IsUploaded => Resource is { } && UploadUri is { };
+
 	public async Task<Uri> UploadAsync()
 	{
-
 		if (IsFile) {
 			var task = await UploadEngine.UploadFileAsync(Query);
 
@@ -100,7 +101,6 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 			if (IsUri) {
 				UploadUri = new Uri(Query);
 			}
-
 		}
 
 		return UploadUri;
@@ -141,7 +141,10 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public void Dispose()
 	{
-		Resource.Dispose();
+
+		Resource?.Dispose();
+		// Resource  = null;
+		// UploadUri = null;
 		// Stream?.Dispose();
 	}
 
