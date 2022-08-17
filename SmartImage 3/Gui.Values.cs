@@ -1,7 +1,15 @@
 ﻿using System.Data;
+using System.Diagnostics;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using JetBrains.Annotations;
+using Kantan.Text;
+using Novus.Utilities;
 using NStack;
 using SmartImage.Lib.Searching;
 using Terminal.Gui;
+using Attribute = System.Attribute;
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage_3;
@@ -13,9 +21,15 @@ public static partial class Gui
 	/// </summary>
 	public static partial class Values
 	{
+		private static View[] All
+		{
+			get { return TerminalHelper.GetViewFields(typeof(GV)); }
+		}
+
+		[ReflectionHelper.FieldIdAttribute]
 		private static readonly string[] EngineNames = Enum.GetNames<SearchEngineOptions>();
-		
-		private static readonly Toplevel Top         = Application.Top;
+
+		private static readonly Toplevel Top = Application.Top;
 
 		private static readonly Window Win = new(R.Name)
 		{
@@ -73,13 +87,6 @@ public static partial class Gui
 			ColorScheme = Styles.CS_Elem1
 		};
 
-		private static readonly Label Lbl_Query = new(">>>")
-		{
-			X           = Pos.X(Lbl_Input),
-			Y           = Pos.Bottom(Lbl_Input),
-			ColorScheme = Styles.CS_Elem2
-		};
-
 		private static readonly Label Lbl_InputOk = new(R.Sym_NA)
 		{
 			X           = Pos.Right(Btn_Ok),
@@ -87,19 +94,39 @@ public static partial class Gui
 			ColorScheme = Styles.CS_Elem4
 		};
 
-		private static DataTable Dt_Config = new DataTable();
+		public static readonly Button Btn_Clear = new Button("X")
+		{
+			X = Pos.Right(Lbl_InputOk),
+			Y = 2
 
-		private static ustring _tfInputStrBuffer = null;
+		};
+
+		private static readonly Label Lbl_Query = new(">>>")
+		{
+			X           = Pos.X(Lbl_Input),
+			Y           = Pos.Bottom(Lbl_Input),
+			ColorScheme = Styles.CS_Elem2
+		};
+
+		private static readonly DataTable Dt_Config = new DataTable();
 
 		private static readonly TableView Tv_Config = new(Dt_Config);
 
+		private static ustring? _tfInputStrBuffer = null;
+
 		static Values()
 		{
+			Trace.WriteLine($"Init", nameof(Values));
+
+			RuntimeHelpers.RunClassConstructor(typeof(Styles).TypeHandle);
+			RuntimeHelpers.RunClassConstructor(typeof(Gui.Values.Functions).TypeHandle);
+
 			Top.Add(Win);
 
 			Top.HotKey = Key.Null;
 			Win.HotKey = Key.Null;
 
+			Debug.WriteLine($"{All.Length}");
 		}
 	}
 }

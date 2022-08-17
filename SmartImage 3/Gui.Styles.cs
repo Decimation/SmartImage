@@ -65,6 +65,11 @@ public static partial class Gui
 			Normal = Attribute.Make(Color.Black, Color.White),
 			Focus  = Attribute.Make(background: Color.DarkGray, foreground: Color.White)
 		};
+
+		static Styles()
+		{
+
+		}
 	}
 
 }

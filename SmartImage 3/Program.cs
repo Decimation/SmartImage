@@ -1,18 +1,13 @@
-﻿#region Global usings
-
-global using P = SmartImage_3.Program;
-global using G = SmartImage_3.Gui;
-global using R = SmartImage_3.Resources;
-global using GV = SmartImage_3.Gui.Values;
-global using GS = SmartImage_3.Gui.Styles;
-#endregion
+﻿
 #nullable disable
+using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using SmartImage.Lib;
 using SmartImage.Lib.Searching;
 using Terminal.Gui;
+using static SmartImage_3.Gui;
 
 #pragma warning disable CS0168
 
@@ -43,12 +38,6 @@ public static class Program
 	{
 		Trace.WriteLine("Init", R.Name);
 
-		/*var types = new [] { typeof(G), typeof(G.Values), typeof(G.Styles), typeof(Program) };
-
-		foreach (Type type in types) {
-			RuntimeHelpers.RunClassConstructor(type.TypeHandle);
-		}*/
-
 		// Gui.Init();
 	}
 
@@ -57,7 +46,7 @@ public static class Program
 		Application.Init();
 
 		Console.OutputEncoding = Encoding.Unicode;
-
+		
 		Gui.Init();
 
 		Application.Run();

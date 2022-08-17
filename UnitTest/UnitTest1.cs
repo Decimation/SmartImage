@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -12,6 +13,22 @@ using SmartImage.Lib.Utilities;
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051, IDE0052
 namespace SmartImage.Lib_Unit_Test;
+
+[SetUpFixture]
+public class SetupTrace
+{
+	[OneTimeSetUp]
+	public void StartTest()
+	{
+		Trace.Listeners.Add(new ConsoleTraceListener());
+	}
+
+	[OneTimeTearDown]
+	public void EndTest()
+	{
+		Trace.Flush();
+	}
+}
 
 public class Tests
 {
@@ -44,6 +61,7 @@ public class Tests
 		catch (Exception) {
 			Assert.Pass();
 		}
+
 		Assert.Fail();
 	}
 
