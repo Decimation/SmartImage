@@ -15,7 +15,7 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Windows.Extensions" Version="6.0.0" />
-    <PackageReference Include="Terminal.Gui" Version="1.6.4" />
+    <PackageReference Include="Terminal.Gui" Version="1.7.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +32,21 @@
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net6.0\Novus.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

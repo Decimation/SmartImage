@@ -1,11 +1,15 @@
-﻿using NStack;
-using Terminal.Gui;
+﻿using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
+
+// ReSharper disable InconsistentNaming
 
 namespace SmartImage_3;
 
 public static partial class Gui
 {
+	/// <summary>
+	/// Contains Gui styles for controls defined within <see cref="Values"/>
+	/// </summary>
 	public static class Styles
 	{
 		private static readonly Attribute AT_GreenBlack        = Attribute.Make(Color.Green, Color.Black);
@@ -31,9 +35,9 @@ public static partial class Gui
 
 		public static readonly ColorScheme CS_Elem3 = new()
 		{
-			Normal   = Attribute.Make(Color.Blue, Color.Black),
-			Focus    = Attribute.Make(Color.BrightBlue, Color.Black),
-			Disabled = Attribute.Make(Color.DarkGray, Color.Black)
+			Normal   = Attribute.Make(Color.BrightBlue, Color.Black),
+			Focus    = Attribute.Make(Color.Cyan, Color.DarkGray),
+			Disabled = Attribute.Make(Color.BrightBlue, Color.DarkGray)
 		};
 
 		public static readonly ColorScheme CS_Elem4 = new()
@@ -63,34 +67,4 @@ public static partial class Gui
 		};
 	}
 
-	public static readonly TextField Tf_Input = new(ustring.Empty)
-	{
-		X           = Pos.Right(Lbl_Input),
-		Y           = Pos.Top(Lbl_Input),
-		Width       = 50,
-		ColorScheme = GS.CS_Win2,
-
-		// AutoSize = true,
-	};
-
-	public static readonly Button Btn_Ok = new("Run")
-	{
-		X           = Pos.Right(Tf_Input) + 2,
-		Y           = Pos.Y(Tf_Input),
-		ColorScheme = GS.CS_Elem1
-	};
-
-	public static readonly Window Win = new(GC.NAME)
-	{
-		X = 0,
-		Y = 1, // Leave one row for the toplevel menu - todo
-
-		// By using Dim.Fill(), it will automatically resize without manual intervention
-		Width       = Dim.Fill(),
-		Height      = Dim.Fill(),
-		ColorScheme = GS.CS_Win
-
-	};
-
-	public static readonly Toplevel Top = Application.Top;
 }

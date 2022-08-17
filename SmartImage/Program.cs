@@ -9,7 +9,7 @@
 #pragma warning disable IDE0060
 #pragma warning disable CA1825
 #pragma warning disable IDE0008
-#pragma warning restore CA1416
+#pragma warning restore CA1416,CS0162
 #nullable disable
 
 global using static Kantan.Diagnostics.LogCategories;
@@ -40,6 +40,7 @@ using static Novus.Utilities.ReflectionOperatorHelpers;
 using CPI = Kantan.Cli.ConsoleManager.UI.ProgressIndicator;
 using EH = Kantan.Collections.EnumerableHelper;
 using FileSystem = Novus.OS.FileSystem;
+#pragma warning disable CS0164
 
 // ReSharper disable InconsistentNaming
 
@@ -250,6 +251,8 @@ public static class Program
 		}
 		catch (Exception e) {
 			//ignored
+
+			Debug.WriteLine($"{e.Message}");
 		}
 
 		EXIT:

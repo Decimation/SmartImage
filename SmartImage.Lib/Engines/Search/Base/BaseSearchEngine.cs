@@ -102,7 +102,7 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		var rawUri = GetRawUri(query);
 
-		const byte i = 0xFF;
+		// const byte i = 0xFF;
 
 		var res = HttpUtilities.GetHttpResponse(rawUri.ToString(), (int) Timeout.TotalMilliseconds,
 		                                        HttpMethod.Get, FollowRedirects, token: c);
