@@ -8,6 +8,7 @@ using SmartImage.Lib;
 using SmartImage.Lib.Searching;
 using Terminal.Gui;
 using static SmartImage_3.Gui;
+using Rune = System.Text.Rune;
 
 #pragma warning disable CS0168
 

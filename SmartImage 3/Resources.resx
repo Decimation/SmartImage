@@ -120,16 +120,4 @@
   <data name="Name" xml:space="preserve">
     <value>SmartImage</value>
   </data>
-  <data name="Sym_ERR" xml:space="preserve">
-    <value>!</value>
-  </data>
-  <data name="Sym_NA" xml:space="preserve">
-    <value>-</value>
-  </data>
-  <data name="Sym_OK" xml:space="preserve">
-    <value>✓</value>
-  </data>
-  <data name="Sym_PRC" xml:space="preserve">
-    <value>^</value>
-  </data>
 </root>

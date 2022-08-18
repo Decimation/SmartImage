@@ -50,20 +50,10 @@ public static partial class Gui
 			{
 				// Debug.WriteLine($"change {u} buf: {_tfInputStrBuffer} actual {Tf_Input.Text}");
 
-				/*_ok = false;
-			Btn_Ok.Redraw(Btn_Ok.Bounds);
-			Config.Query   = null;
-			Btn_Ok.Enabled = false;*/
-
 				if (ustring.IsNullOrEmpty(u) || ustring.IsNullOrEmpty(Tf_Input.Text)) {
 					_ok = false;
 
-					/*if (Config.Query is { IsUploaded: true }) {
-					Config.Query.Dispose();
-					Config.Query = null;
-				}*/
-
-					Lbl_InputOk.Text = R.Sym_NA;
+					Lbl_InputOk.Text = NA;
 					Btn_Ok.Enabled   = false;
 					Btn_Ok.Redraw(Btn_Ok.Bounds);
 					Lbl_InputOk.Redraw(Lbl_InputOk.Bounds);
@@ -85,7 +75,7 @@ public static partial class Gui
 
 							if (h != null) {
 								var q = new ImageQuery(h);
-								Lbl_InputOk.Text = Resources.Sym_PRC;
+								Lbl_InputOk.Text = PRC;
 								Lbl_InputOk.Redraw(Lbl_InputOk.Bounds);
 
 								await q.UploadAsync();
@@ -93,6 +83,7 @@ public static partial class Gui
 
 								Tf_Query.Text = q.UploadUri.ToString();
 								Tf_Query.Redraw(Tf_Query.Bounds);
+
 								_ok = true;
 							}
 							else {
@@ -106,12 +97,12 @@ public static partial class Gui
 						}
 
 						if (_ok) {
-							Lbl_InputOk.Text += Resources.Sym_OK;
+							Lbl_InputOk.Text += OK;
 
 							Debug.WriteLine($"{Program._query} - {_ok} - {Program._query.UploadUri}", "Query");
 						}
 						else {
-							Lbl_InputOk.Text = Resources.Sym_ERR;
+							Lbl_InputOk.Text = Err;
 							Tf_Query.Text    = ustring.Empty;
 							Tf_Query.Redraw(Tf_Query.Bounds);
 						}

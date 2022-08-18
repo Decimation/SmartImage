@@ -23,10 +23,17 @@ public static partial class Gui
 	{
 		private static View[] All
 		{
+			//todo
 			get { return TerminalHelper.GetViewFields(typeof(GV)); }
 		}
 
-		[ReflectionHelper.FieldIdAttribute]
+		private static ustring Err => ustring.Make(Application.Driver.HLine);
+
+		private static ustring NA => ustring.Make(Application.Driver.RightDefaultIndicator);
+
+		private static ustring OK => ustring.Make(Application.Driver.Checked);
+		private static ustring PRC => ustring.Make(Application.Driver.Diamond);
+
 		private static readonly string[] EngineNames = Enum.GetNames<SearchEngineOptions>();
 
 		private static readonly Toplevel Top = Application.Top;
@@ -87,7 +94,7 @@ public static partial class Gui
 			ColorScheme = Styles.CS_Elem1
 		};
 
-		private static readonly Label Lbl_InputOk = new(R.Sym_NA)
+		private static readonly Label Lbl_InputOk = new(NA)
 		{
 			X           = Pos.Right(Btn_Ok),
 			Y           = Pos.Y(Btn_Ok),
@@ -119,7 +126,7 @@ public static partial class Gui
 			Trace.WriteLine($"Init", nameof(Values));
 
 			RuntimeHelpers.RunClassConstructor(typeof(Styles).TypeHandle);
-			RuntimeHelpers.RunClassConstructor(typeof(Gui.Values.Functions).TypeHandle);
+			RuntimeHelpers.RunClassConstructor(typeof(Functions).TypeHandle);
 
 			Top.Add(Win);
 
