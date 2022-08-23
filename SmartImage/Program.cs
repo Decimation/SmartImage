@@ -131,7 +131,7 @@ public static class Program
 		}
 	};
 
-	private static ImageQuery _q = Config.Query;
+	private static ImageQuery _q = null;//todo?
 
 	static Program()
 	{

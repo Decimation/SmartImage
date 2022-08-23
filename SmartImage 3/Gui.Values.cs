@@ -31,10 +31,10 @@ public static partial class Gui
 
 		private static ustring NA => ustring.Make(Application.Driver.RightDefaultIndicator);
 
-		private static ustring OK => ustring.Make(Application.Driver.Checked);
+		private static ustring OK  => ustring.Make(Application.Driver.Checked);
 		private static ustring PRC => ustring.Make(Application.Driver.Diamond);
 
-		private static readonly string[] EngineNames = Enum.GetNames<SearchEngineOptions>();
+		private static readonly SearchEngineOptions[] EngineNames = Enum.GetValues<SearchEngineOptions>();
 
 		private static readonly Toplevel Top = Application.Top;
 
@@ -108,6 +108,17 @@ public static partial class Gui
 
 		};
 
+		private static readonly ComboBox Cb_Engines = new(new Rect(3, 8, 15,25),EngineNames)
+		{
+			CanFocus = true,
+			// ColorScheme             = GS.CS_Elem3,
+		};
+		private static readonly ListView Lv_Results = new(Program._res)
+		{
+			X= Pos.Right(Cb_Engines),
+			Y=Pos.Bottom(Btn_Ok), AutoSize = true
+		};
+
 		private static readonly Label Lbl_Query = new(">>>")
 		{
 			X           = Pos.X(Lbl_Input),
@@ -130,9 +141,8 @@ public static partial class Gui
 
 			Top.Add(Win);
 
-			Top.HotKey = Key.Null;
-			Win.HotKey = Key.Null;
-
+			Top.HotKey        = Key.Null;
+			Win.HotKey        = Key.Null;
 			Debug.WriteLine($"{All.Length}");
 		}
 	}

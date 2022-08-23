@@ -85,8 +85,7 @@ internal static class AppToast
 			var ix = directResults[di];
 
 		}*/
-
-		var query = Program.Config.Query.ToImageResult();
+		
 		// var ar1   = (double) query.Width.Query / query.Height.Query;
 
 		var mediaResources = directResults.SelectMany(d => (d.DirectImages))

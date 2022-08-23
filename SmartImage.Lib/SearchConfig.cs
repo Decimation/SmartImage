@@ -17,11 +17,6 @@ namespace SmartImage.Lib;
 /// <remarks>Search config is only applicable when used in <see cref="SearchClient"/></remarks>
 public sealed class SearchConfig /*: ConfigurationSection*/
 {
-	/// <summary>
-	/// Search query
-	/// </summary>
-	public ImageQuery Query { get; set; } //todo: remove as field
-
 	public FileInfo FullName
 	{
 		get
@@ -32,7 +27,6 @@ public sealed class SearchConfig /*: ConfigurationSection*/
 				var f = File.Create(file);
 				f.Close();
 			}
-
 
 			return new FileInfo(file);
 		}

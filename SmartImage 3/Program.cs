@@ -49,7 +49,7 @@ public static class Program
 		Console.OutputEncoding = Encoding.Unicode;
 		
 		Gui.Init();
-
+		
 		Application.Run();
 		Application.Shutdown();
 	}
