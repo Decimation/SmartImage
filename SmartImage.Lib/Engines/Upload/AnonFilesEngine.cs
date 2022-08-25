@@ -12,18 +12,19 @@ using Newtonsoft.Json.Linq;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public class AnonFilesEngine : BaseUploadEngine
+public sealed class AnonFilesEngine : BaseUploadEngine
 {
 	public AnonFilesEngine() : base("https://api.anonfiles.com/upload") { }
 
 	public override async Task<Uri> UploadFileAsync(string file)
 	{
-		var task = await EndpointUrl.PostMultipartAsync(mp =>
+		using var task = await EndpointUrl.PostMultipartAsync(mp =>
 		{
 			mp.AddFile("file", file);
 		});
 
 		var data = await task.GetJsonAsync<AnonFilesUpload>();
+
 		return new Uri(data.Data.File.Url.Full);
 
 		// var json = JObject.Parse(data);
@@ -31,7 +32,7 @@ public class AnonFilesEngine : BaseUploadEngine
 		// return new(token.ToString());
 	}
 
-	public override int MaxSize => 20_000;
+	public override int MaxSize => 20 * 1000 * 1000;
 
 	public override string Name => "Anonfiles";
 

@@ -47,9 +47,10 @@ public static class Program
 			var q = new ImageQuery(r);
 			// Console.WriteLine(ImageQuery.TryCreate(u,out var q));
 			Console.WriteLine(q);
-			await q.UploadAsync();
-			Console.WriteLine($"{q.UploadUri}");
+			var u=await q.UploadAsync();
+			Console.WriteLine($"{u}");
 			q.Dispose();
+
 		}
 	}
 

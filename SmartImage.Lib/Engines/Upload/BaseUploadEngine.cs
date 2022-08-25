@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Kantan.Numeric;
@@ -10,7 +11,7 @@ namespace SmartImage.Lib.Engines.Upload;
 public abstract class BaseUploadEngine
 {
 	/// <summary>
-	/// Max file size, in MB
+	/// Max file size, in bytes
 	/// </summary>
 	public abstract int MaxSize { get; }
 
@@ -25,12 +26,11 @@ public abstract class BaseUploadEngine
 
 	public abstract Task<Uri> UploadFileAsync(string file);
 
-	protected bool IsFileSizeValid(string file)
+	private protected bool IsFileSizeValid(string file)
 	{
-		double fileSizeMegabytes =
-			MathHelper.ConvertToUnit(FileSystem.GetFileSize(file), MetricPrefix.Mega);
+		var bytes = FileSystem.GetFileSize(file);
 
-		var b = fileSizeMegabytes >= MaxSize;
+		var b = bytes >= MaxSize;
 
 		return !b;
 	}

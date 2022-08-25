@@ -45,6 +45,8 @@ public static partial class Gui
 					foreach (var _res in res) {
 						Debug.WriteLine($"{_res}");
 					}
+					Lv_Results.SetNeedsDisplay();
+					
 				}
 			}
 

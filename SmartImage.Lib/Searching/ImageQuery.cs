@@ -7,7 +7,6 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Flurl.Http;
-using JetBrains.Annotations;
 using Kantan.Cli.Controls;
 using Kantan.Model;
 using Kantan.Net;
@@ -48,17 +47,12 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 	/// <summary>
 	/// Uploaded direct image
 	/// </summary>
+	[MN]
 	public Uri UploadUri { get; set; }
 
-	/// <summary>
-	/// UploadAsync engine used for uploading the input file; if applicable
-	/// </summary>
-	public BaseUploadEngine UploadEngine { get; set; }
-
-	public ImageQuery([NotNull] ResourceHandle value, BaseUploadEngine engine = null)
+	public ImageQuery([JetBrains.Annotations.NotNull] ResourceHandle value)
 	{
 		Resource     = value;
-		UploadEngine = engine ?? new LitterboxEngine();
 
 	}
 
@@ -90,10 +84,12 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 
 	public bool IsUploaded => Resource is { } && UploadUri is { };
 
-	public async Task<Uri> UploadAsync()
+	public async Task<Uri> UploadAsync(BaseUploadEngine uploadEngine = null)
 	{
+		uploadEngine ??= new LitterboxEngine();
+
 		if (IsFile) {
-			var task = await UploadEngine.UploadFileAsync(Query);
+			var task = await uploadEngine.UploadFileAsync(Query);
 
 			UploadUri = task;
 		}

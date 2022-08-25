@@ -110,10 +110,10 @@ public static partial class Gui
 
 		private static readonly ComboBox Cb_Engines = new(new Rect(3, 8, 15,25),EngineNames)
 		{
-			CanFocus = true,
+			// CanFocus = true,
 			// ColorScheme             = GS.CS_Elem3,
 		};
-		private static readonly ListView Lv_Results = new(Program._res)
+		private static readonly ListView Lv_Results = new(new Rect(20, 8, 25, 30),Program._res)
 		{
 			X= Pos.Right(Cb_Engines),
 			Y=Pos.Bottom(Btn_Ok), AutoSize = true
