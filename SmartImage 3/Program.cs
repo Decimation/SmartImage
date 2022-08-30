@@ -4,8 +4,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using SmartImage.Lib;
-using SmartImage.Lib.Searching;
+using SmartImage_3.Lib;
 using Terminal.Gui;
 using static SmartImage_3.Gui;
 using Rune = System.Text.Rune;
@@ -23,7 +22,7 @@ public static class Program
 	internal static readonly SearchConfig Config = new();
 	internal static readonly SearchClient Client = new(Config);
 
-	internal static ImageQuery _query;
+	internal static SearchQuery _query;
 
 	internal static readonly CancellationTokenSource Cts  = new();
 	internal static readonly List<SearchResult>      _res = new();

@@ -89,9 +89,9 @@ public sealed class ImageQuery : IDisposable, IConsoleOption
 		uploadEngine ??= new LitterboxEngine();
 
 		if (IsFile) {
-			var task = await uploadEngine.UploadFileAsync(Query);
+			var uri = await uploadEngine.UploadFileAsync(Query);
 
-			UploadUri = task;
+			UploadUri = uri;
 		}
 		else {
 			if (IsUri) {

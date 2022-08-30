@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using Kantan.Text;
 using Novus.Utilities;
 using NStack;
-using SmartImage.Lib.Searching;
+using SmartImage_3.Lib;
 using Terminal.Gui;
 using Attribute = System.Attribute;
 

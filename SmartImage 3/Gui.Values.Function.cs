@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Kantan.Text;
 using NStack;
-using SmartImage.Lib.Searching;
+using SmartImage_3.Lib;
 using Terminal.Gui;
 using static Terminal.Gui.View;
 using P = SmartImage_3.Program;
@@ -81,6 +81,7 @@ public static partial class Gui
 
 						try {
 							var s = Tf_Input.Text.ToString();
+							var hg = new SearchQuery(s);
 							var h = await ImageQuery.TryAllocHandleAsync(s);
 
 							if (h != null) {
@@ -200,12 +201,12 @@ public static partial class Gui
 				Btn_Clear.Clicked  += BtnClear_Clicked;
 				Btn_Clear.KeyPress += BtnClear_KeyPress;
 
-				Lv_Engines.OpenSelectedItem    += LvEngines_OpenSelectedItem;
-				Lv_Engines.KeyPress            += LvEngines_KeyPress;
-				Lv_Engines.SelectedItemChanged += LvEngines_SelectedItemChanged;
+				Cb_Engines.OpenSelectedItem    += LvEngines_OpenSelectedItem;
+				Cb_Engines.KeyPress            += LvEngines_KeyPress;
+				Cb_Engines.SelectedItemChanged += LvEngines_SelectedItemChanged;
 
 				Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk, /*Cb_Engines,*/ Tf_Query,
-				        Lbl_Query, Btn_Clear,Lv_Results, Lv_Engines
+				        Lbl_Query, Btn_Clear,Lv_Results, Cb_Engines
 				);
 			}
 		}

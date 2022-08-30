@@ -111,6 +111,8 @@ public class Tests
 	{
 		var qq = await ImageQuery.TryAllocHandleAsync(art);
 		var q  = new ImageQuery(qq);
+		var u=await q.UploadAsync();
+
 		var i  = new SauceNaoEngine();
 		var rt = i.GetResultAsync(q);
 		var t  = await rt;

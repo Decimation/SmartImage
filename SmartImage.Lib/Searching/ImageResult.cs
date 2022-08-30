@@ -182,7 +182,7 @@ public sealed class ImageResult : IResult
 
 	public bool IsDetailed => DetailScore >= DetailFields.Count * .4;
 
-	public SearchResult Root { get; internal set; }
+	public SearchResult Root { get; private set; }
 
 	public ImageResult(SearchResult root)
 	{
@@ -240,18 +240,17 @@ public sealed class ImageResult : IResult
 
 		var o = di.Result;
 		o?.Resolve();
-		var info = o;
 
-		if (info == null) {
+		if (o == null) {
 			return false;
 		}
 
-		if (info.IsBinary) {
-			DirectImages.Add(info);
+		if (o.IsBinary) {
+			DirectImages.Add(o);
 			return true;
 		}
 		else {
-			info.Dispose();
+			o.Dispose();
 		}
 
 		if (DirectImages.Any()) {

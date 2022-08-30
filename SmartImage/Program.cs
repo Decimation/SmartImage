@@ -652,7 +652,7 @@ public static class Program
 		{
 			x = x.CleanString();
 
-			var di = HttpResourceHandle.GetAsync(x);
+			var di = ResourceHandle.GetAsync(x);
 			di.Wait();
 
 			var o = di.Result;
@@ -665,6 +665,8 @@ public static class Program
 		ImageQuery query = new(await ImageQuery.TryAllocHandleAsync(readLine));
 
 		_q = query;
+		await _q.UploadAsync();
+
 		return true;
 	}
 
@@ -673,6 +675,7 @@ public static class Program
 		var h = await ImageQuery.TryAllocHandleAsync(URL_DBG_TEST);
 		_q = new ImageQuery(h);
 		await _q.UploadAsync();
+
 		return true;
 	}
 #endif
