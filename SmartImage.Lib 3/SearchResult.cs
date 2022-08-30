@@ -6,10 +6,13 @@ public enum SearchResultStatus
 {
 	None,
 	Cooldown,
-	NoResults
+	NoResults,
+	Failure,
+	Unavailable,
+	Extraneous
 }
 
-public class SearchResult
+public sealed class SearchResult
 {
 	public Url RawUrl { get; internal set; }
 

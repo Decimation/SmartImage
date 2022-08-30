@@ -16,10 +16,11 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		BaseUrl = baseUrl;
 	}
-	protected virtual Url GetRawUri(SearchQuery query)
+
+	protected virtual Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		//
-		return (BaseUrl + query.Upload);
+		return Task.FromResult<Url>((BaseUrl + query.Upload));
 	}
 
 	#region Implementation of IDisposable

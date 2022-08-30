@@ -25,7 +25,7 @@ using JsonObject = System.Json.JsonObject;
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 
-namespace SmartImage_3.Lib.Engines;
+namespace SmartImage_3.Lib.Engines.Impl;
 
 public sealed class SauceNaoEngine : ClientSearchEngine
 {
@@ -100,6 +100,12 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	ret:
 
 		return result;
+	}
+
+	public override void Dispose()
+	{
+		base.Dispose();
+
 	}
 
 	private async Task<IEnumerable<SauceNaoDataResult>> GetWebResultsAsync(SearchQuery query)
@@ -330,7 +336,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			Artist = Strings.NormalizeNull(sn.Creator),
 			Source = Strings.NormalizeNull(sn.Material),
 			// Characters  = Strings.NormalizeNull(sn.Character),
-			// Site        = Strings.NormalizeNull(siteName)
+			Site = Strings.NormalizeNull(siteName)
 		};
 
 		return imageResult;

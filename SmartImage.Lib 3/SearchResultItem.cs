@@ -2,7 +2,7 @@
 
 namespace SmartImage_3.Lib;
 
-public class SearchResultItem
+public record SearchResultItem
 {
 	public SearchResult Root { get; }
 
@@ -19,6 +19,8 @@ public class SearchResultItem
 	public string Artist { get; internal set; }
 
 	public string Description { get; internal set; }
+
+	public string Site { get; internal set; }
 
 	public double? Similarity { get; internal set; }
 

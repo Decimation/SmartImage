@@ -7,7 +7,7 @@ using SmartImage_3.Lib.Engines;
 
 namespace SmartImage_3.Lib;
 
-public class SearchQuery : IDisposable
+public sealed class SearchQuery : IDisposable
 {
 	public string Value { get; }
 
@@ -20,7 +20,7 @@ public class SearchQuery : IDisposable
 
 	public bool IsFile { get; private set; }
 
-	private SearchQuery([NN] string value, Stream stream)
+	private SearchQuery(string value, Stream stream)
 	{
 		Value  = value;
 		Stream = stream;
@@ -42,18 +42,25 @@ public class SearchQuery : IDisposable
 			else {
 				stream = await value.GetStreamAsync();
 				isUrl  = true;
+
 			}
 		}
 		finally { }
 
-		return new SearchQuery(value, stream) { IsFile = isFile, IsUrl = isUrl };
+		var sq = new SearchQuery(value, stream)
+		{
+			IsFile = isFile, 
+			IsUrl = isUrl
+		};
+
+		return sq;
 	}
 
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null)
 	{
 		if (IsUrl) {
 			Upload = Value;
-			Debug.WriteLine($"Skipping upload for {Value}");
+			Debug.WriteLine($"Skipping upload for {Value}", nameof(SearchQuery));
 		}
 		else {
 			engine ??= BaseUploadEngine.Default;
