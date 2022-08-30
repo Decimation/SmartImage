@@ -3,7 +3,7 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using Flurl.Http;
-using Url = Flurl.Url;
+using SmartImage_3.Lib.Engines;
 
 namespace SmartImage_3.Lib;
 
@@ -11,14 +11,14 @@ public class SearchQuery : IDisposable
 {
 	public string Value { get; }
 
+	public Stream Stream { get; }
+
 	[MN]
 	public Url Upload { get; private set; }
 
 	public bool IsUrl { get; private set; }
 
 	public bool IsFile { get; private set; }
-
-	public Stream Stream { get; private set; }
 
 	private SearchQuery([NN] string value, Stream stream)
 	{
@@ -28,7 +28,7 @@ public class SearchQuery : IDisposable
 
 	public static readonly SearchQuery Null = new(null, Stream.Null);
 
-	public static async Task<SearchQuery> Try(string value)
+	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
 		bool   isFile = false, isUrl = false;
 		Stream stream;
@@ -51,7 +51,6 @@ public class SearchQuery : IDisposable
 
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null)
 	{
-
 		if (IsUrl) {
 			Upload = Value;
 			Debug.WriteLine($"Skipping upload for {Value}");
@@ -67,7 +66,10 @@ public class SearchQuery : IDisposable
 
 	#region IDisposable
 
-	public void Dispose() { }
+	public void Dispose()
+	{
+		Stream?.Dispose();
+	}
 
 	#endregion
 }

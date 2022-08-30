@@ -5,7 +5,8 @@ namespace SmartImage_3.Lib;
 public enum SearchResultStatus
 {
 	None,
-	Cooldown
+	Cooldown,
+	NoResults
 }
 
 public class SearchResult
