@@ -1,6 +1,6 @@
 ﻿global using Url = Flurl.Url;
 
-namespace SmartImage_3.Lib.Engines;
+namespace SmartImage.Lib.Engines;
 
 public abstract class BaseSearchEngine : IDisposable
 {

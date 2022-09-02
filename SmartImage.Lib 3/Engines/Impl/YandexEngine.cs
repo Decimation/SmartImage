@@ -9,7 +9,7 @@ using Kantan.Text;
 
 #nullable enable
 
-namespace SmartImage_3.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Impl;
 
 public sealed class YandexEngine : WebContentSearchEngine
 {
@@ -31,7 +31,8 @@ public sealed class YandexEngine : WebContentSearchEngine
 			return null;
 		}
 
-		string? appearsToContain = nodes.Select(n => n.TextContent).QuickJoin();
+		string? appearsToContain = nodes.Select(n => n.TextContent)
+		                                .QuickJoin();
 
 		return appearsToContain;
 	}
@@ -105,7 +106,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
 		                                       .Contains("CbirItem"));
 
-		SearchResultItem Parse(INode siz)
+		SearchResultItem? Parse(INode siz)
 		{
 			string? link = siz.TryGetAttribute("href");
 
@@ -119,31 +120,36 @@ public sealed class YandexEngine : WebContentSearchEngine
 				//link = null;
 			}
 
-			if (UriUtilities.IsUri(link, out var link2)) { }
+			if (UriUtilities.IsUri(link, out var link2)) {
+				var yi = new SearchResultItem(r)
+				{
+					Url    = link2,
+					Width  = w,
+					Height = h,
+				};
+				return yi;
+
+			}
 			else {
 				link2 = null;
+				return null;
 			}
-
-			var yi = new SearchResultItem(r)
-			{
-				Url    = link2,
-				Width  = w,
-				Height = h,
-			};
-
-			return yi;
 		}
 
-		images.AddRange(sizeTags.AsParallel().Select(Parse));
+		var list = sizeTags.Select(Parse)
+		                   .Where(x => x != null)
+		                   .Cast<SearchResultItem>();
+
+		images.AddRange(list);
 
 		return images;
 	}
 
-	public async override Task<SearchResult> GetResultAsync(SearchQuery query)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
 	{
 		var url = await GetRawUrlAsync(query);
-		var doc         = (IDocument) await ParseContent(url);
-		var sr          = new SearchResult();
+		var doc = (IDocument) await ParseContent(url);
+		var sr  = new SearchResult();
 
 		// Automation detected
 		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
@@ -194,8 +200,5 @@ public sealed class YandexEngine : WebContentSearchEngine
 		return sr;
 	}
 
-	public override void Dispose()
-	{
-		
-	}
+	public override void Dispose() { }
 }

@@ -25,7 +25,7 @@ using JsonObject = System.Json.JsonObject;
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 
-namespace SmartImage_3.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Impl;
 
 public sealed class SauceNaoEngine : ClientSearchEngine
 {

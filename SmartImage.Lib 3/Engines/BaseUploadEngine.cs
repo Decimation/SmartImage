@@ -1,55 +1,53 @@
 ﻿using Novus.OS;
 using Novus.Utilities;
 
-namespace SmartImage_3.Lib.Engines;
+namespace SmartImage.Lib.Engines;
 
 public abstract class BaseUploadEngine
 {
-    /// <summary>
-    /// Max file size, in bytes
-    /// </summary>
-    public abstract int MaxSize { get; }
+	/// <summary>
+	/// Max file size, in bytes
+	/// </summary>
+	public abstract int MaxSize { get; }
 
-    public abstract string Name { get; }
+	public abstract string Name { get; }
 
-    protected string EndpointUrl { get; }
+	protected string EndpointUrl { get; }
 
-    protected BaseUploadEngine(string s)
-    {
-        EndpointUrl = s;
-    }
+	protected BaseUploadEngine(string s)
+	{
+		EndpointUrl = s;
+	}
 
-    public static BaseUploadEngine Default { get; } = new LitterboxEngine();
+	public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
-    public abstract Task<Uri> UploadFileAsync(string file);
+	public abstract Task<Url> UploadFileAsync(string file);
 
-    private protected bool IsFileSizeValid(string file)
-    {
-        var bytes = FileSystem.GetFileSize(file);
+	private protected bool IsFileSizeValid(string file)
+	{
+		var bytes = FileSystem.GetFileSize(file);
 
-        var b = bytes >= MaxSize;
+		var b = bytes >= MaxSize;
 
-        return !b;
-    }
+		return !b;
+	}
 
-    protected void Verify(string file)
-    {
-        if (string.IsNullOrWhiteSpace(file))
-        {
-            throw new ArgumentNullException(nameof(file));
-        }
+	protected void Verify(string file)
+	{
+		if (string.IsNullOrWhiteSpace(file)) {
+			throw new ArgumentNullException(nameof(file));
+		}
 
-        if (!IsFileSizeValid(file))
-        {
-            throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}");
-        }
-    }
+		if (!IsFileSizeValid(file)) {
+			throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}");
+		}
+	}
 
-    public static BaseUploadEngine[] GetAllUploadEngines()
-    {
-        return typeof(BaseUploadEngine).GetAllSubclasses()
-                                       .Select(Activator.CreateInstance)
-                                       .Cast<BaseUploadEngine>()
-                                       .ToArray();
-    }
+	public static BaseUploadEngine[] GetAllUploadEngines()
+	{
+		return typeof(BaseUploadEngine).GetAllSubclasses()
+		                               .Select(Activator.CreateInstance)
+		                               .Cast<BaseUploadEngine>()
+		                               .ToArray();
+	}
 }

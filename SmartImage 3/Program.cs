@@ -4,16 +4,16 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using SmartImage_3.Lib;
+using SmartImage.Lib;
 using Terminal.Gui;
-using static SmartImage_3.Gui;
+using static SmartImage.Gui;
 using Rune = System.Text.Rune;
 
 #pragma warning disable CS0168
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage_3;
+namespace SmartImage;
 
 public static class Program
 {
@@ -36,7 +36,7 @@ public static class Program
 	[ModuleInitializer]
 	public static void Init()
 	{
-		Trace.WriteLine("Init", R.Name);
+		Trace.WriteLine("Init", Resources.Name);
 
 		// Gui.Init();
 	}

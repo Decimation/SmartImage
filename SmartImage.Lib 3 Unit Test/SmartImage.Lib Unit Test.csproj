@@ -1,8 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>SmartImage.Lib_3_Unit_Test</RootNamespace>
+    <RootNamespace>SmartImage.Lib.Unit_Test</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib 3.csproj" />
+    <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
   </ItemGroup>
 
 </Project>

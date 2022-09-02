@@ -2,7 +2,7 @@
 using Novus.Utilities;
 using Terminal.Gui;
 
-namespace SmartImage_3;
+namespace SmartImage;
 
 public static class TerminalHelper
 {

@@ -14,7 +14,7 @@ using Kantan.Text;
 
 // ReSharper disable StringLiteralTypo
 
-namespace SmartImage_3.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Impl;
 
 public sealed class IqdbEngine : ClientSearchEngine
 {

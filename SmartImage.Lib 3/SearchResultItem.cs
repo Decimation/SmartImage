@@ -1,6 +1,6 @@
 ﻿using Flurl;
 
-namespace SmartImage_3.Lib;
+namespace SmartImage.Lib;
 
 public record SearchResultItem
 {

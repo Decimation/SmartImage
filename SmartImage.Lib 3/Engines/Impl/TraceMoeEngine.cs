@@ -1,23 +1,15 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SmartImage_3.Lib;
-using SmartImage_3.Lib.Engines;
-using SmartImage_3.Lib.Engines.Impl;
 using static Kantan.Diagnostics.LogCategories;
-using JsonSerializer = Newtonsoft.Json.JsonSerializer;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
-namespace SmartImage.Lib.Engines.Search;
+namespace SmartImage.Lib.Engines.Impl;
 
 /// <summary>
 /// 
@@ -46,9 +38,6 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
 	{
-
-		//var r = base.GetResult(url);
-
 		// https://soruly.github.io/trace.moe/#/
 
 		TraceMoeRootObject tm = null;
@@ -58,7 +47,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		try {
 			IFlurlRequest request = (EndpointUrl + "/search")
 			                        .AllowAnyHttpStatus()
-			                        .SetQueryParam("url", query.Upload.ToString(), true);
+			                        .SetQueryParam("url", query.Upload, true);
 
 			var json = await request.GetStringAsync();
 
@@ -71,7 +60,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 						args.ErrorContext.Handled = true;
 					}
 
-					Debug.WriteLine($"{args.ErrorContext}");
+					Debug.WriteLine($"{args.ErrorContext}", Name);
 				}
 			};
 
@@ -88,10 +77,9 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				// Most similar to least similar
 
 				try {
-					var results = ConvertResults(tm, r).ToList();
-					var best    = results[0];
+					var results = await ConvertResults(tm, r);
 
-					r.RawUrl        = new Uri(BaseUrl + query.Upload);
+					r.RawUrl        = new Url(BaseUrl + query.Upload);
 					r.Results.AddRange(results);
 				}
 				catch (Exception e) {
@@ -115,7 +103,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		return r;
 	}
 
-	private IEnumerable<SearchResultItem> ConvertResults(TraceMoeRootObject obj, SearchResult sr)
+	private async Task<IEnumerable<SearchResultItem>> ConvertResults(TraceMoeRootObject obj, SearchResult sr)
 	{
 		var results      = obj.result;
 		var imageResults = new SearchResultItem[results.Count];
@@ -134,7 +122,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 			try {
 				string anilistUrl = ANILIST_URL + doc.anilist;
-				string name       = m_anilistClient.GetTitle((int) doc.anilist);
+				string name       = await m_anilistClient.GetTitle((int) doc.anilist);
 				result.Source = name;
 				result.Url    = new Uri(anilistUrl);
 			}

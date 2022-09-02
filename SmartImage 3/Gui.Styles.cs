@@ -3,7 +3,7 @@ using Attribute = Terminal.Gui.Attribute;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage_3;
+namespace SmartImage;
 
 public static partial class Gui
 {

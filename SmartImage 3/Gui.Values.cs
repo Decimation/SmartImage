@@ -6,13 +6,13 @@ using JetBrains.Annotations;
 using Kantan.Text;
 using Novus.Utilities;
 using NStack;
-using SmartImage_3.Lib;
+using SmartImage.Lib;
 using Terminal.Gui;
 using Attribute = System.Attribute;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage_3;
+namespace SmartImage;
 
 public static partial class Gui
 {
@@ -24,7 +24,7 @@ public static partial class Gui
 		private static View[] All
 		{
 			//todo
-			get { return TerminalHelper.GetViewFields(typeof(GV)); }
+			get { return TerminalHelper.GetViewFields(typeof(Values)); }
 		}
 
 		private static ustring Err => ustring.Make(Application.Driver.HLine);
@@ -38,7 +38,7 @@ public static partial class Gui
 
 		private static readonly Toplevel Top = Application.Top;
 
-		private static readonly Window Win = new(R.Name)
+		private static readonly Window Win = new(Resources.Name)
 		{
 			X = 0,
 			Y = 1, // Leave one row for the toplevel menu - todo

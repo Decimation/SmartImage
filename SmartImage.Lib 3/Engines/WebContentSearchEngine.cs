@@ -7,7 +7,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 
-namespace SmartImage_3.Lib.Engines
+namespace SmartImage.Lib.Engines
 {
 	public abstract class WebContentSearchEngine : BaseSearchEngine
 	{

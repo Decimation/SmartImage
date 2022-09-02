@@ -5,9 +5,9 @@ using Newtonsoft.Json.Linq;
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage_3.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Impl;
 
-public sealed class AnilistClient
+public sealed class AnilistClient : IDisposable
 {
 	private readonly GraphQLClient m_client;
 
@@ -16,7 +16,7 @@ public sealed class AnilistClient
 		m_client = new GraphQLClient("https://graphql.anilist.co");
 	}
 
-	public string GetTitle(int anilistId)
+	public async Task<string> GetTitle(int anilistId)
 	{
 		/*
 		 * https://anilist.gitbook.io/anilist-apiv2-docs/overview/graphql
@@ -35,12 +35,21 @@ public sealed class AnilistClient
 				}
 			}";
 
-		var response = (JObject)m_client.Execute(GRAPH_QUERY, new
+		var response = await m_client.ExecuteAsync(GRAPH_QUERY, new
 		{
 			query = GRAPH_QUERY,
-			id = anilistId
-		});
+			id    = anilistId
+		}) as JObject;
 
 		return response["data"]["Media"]["title"]["english"].ToString();
 	}
+
+	#region IDisposable
+
+	public void Dispose()
+	{
+		m_client.Dispose();
+	}
+
+	#endregion
 }

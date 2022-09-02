@@ -11,7 +11,7 @@ using Kantan.Net.Utilities;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace SmartImage_3.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Impl;
 
 public sealed class Ascii2DEngine : WebContentSearchEngine
 {

@@ -1,13 +1,10 @@
-﻿using NUnit.Framework;
-using SmartImage_3.Lib;
-using System.Diagnostics;
-using SmartImage.Lib.Engines.Search;
-using SmartImage_3.Lib.Engines;
-using SmartImage_3.Lib.Engines.Impl;
+﻿using System.Diagnostics;
+using NUnit.Framework;
+using SmartImage.Lib.Engines.Impl;
 using Assert = NUnit.Framework.Assert;
 using TestContext = NUnit.Framework.TestContext;
 
-namespace SmartImage.Lib_3_Unit_Test;
+namespace SmartImage.Lib.Unit_Test;
 
 [SetUpFixture]
 public class SetupTrace

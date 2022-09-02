@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics;
 using Kantan.Text;
 using NStack;
-using SmartImage_3.Lib;
+using SmartImage.Lib;
 using Terminal.Gui;
 using static Terminal.Gui.View;
-using P = SmartImage_3.Program;
+using P = SmartImage.Program;
 
-namespace SmartImage_3;
+namespace SmartImage;
 
 public static partial class Gui
 {
@@ -81,18 +81,17 @@ public static partial class Gui
 
 						try {
 							var s = Tf_Input.Text.ToString();
-							var hg = new SearchQuery(s);
-							var h = await ImageQuery.TryAllocHandleAsync(s);
+							
+							var q = await SearchQuery.TryCreateAsync(s);
 
-							if (h != null) {
-								var q = new ImageQuery(h);
+							if (q != null) {
 								Lbl_InputOk.Text = PRC;
 								Lbl_InputOk.Redraw(Lbl_InputOk.Bounds);
 
 								await q.UploadAsync();
 								Program._query = q;
 
-								Tf_Query.Text = q.UploadUri.ToString();
+								Tf_Query.Text = q.Upload.ToString();
 								Tf_Query.Redraw(Tf_Query.Bounds);
 
 								_ok = true;
@@ -110,7 +109,7 @@ public static partial class Gui
 						if (_ok) {
 							Lbl_InputOk.Text += OK;
 
-							Debug.WriteLine($"{Program._query} - {_ok} - {Program._query.UploadUri}", "Query");
+							Debug.WriteLine($"{Program._query} - {_ok} - {Program._query.Upload}", "Query");
 						}
 						else {
 							Lbl_InputOk.Text = Err;
@@ -151,10 +150,10 @@ public static partial class Gui
 
 				switch (e) {
 					case SearchEngineOptions.None:
-						P.Config.SearchEngines = e;
+						Program.Config.SearchEngines = e;
 						break;
 					default:
-						P.Config.SearchEngines |= e;
+						Program.Config.SearchEngines |= e;
 						break;
 				}
 
@@ -163,12 +162,12 @@ public static partial class Gui
 				// Lv_Engines.Source.SetMark(eventArgs.Item, true);
 
 				// Debug.WriteLine($"{prev} | {e} -> {P.Config.SearchEngines}");
-				Debug.WriteLine($"{P.Config.SearchEngines}");
+				Debug.WriteLine($"{Program.Config.SearchEngines}");
 			}
 
 			private static void LvEngines_KeyPress(KeyEventEventArgs eventArgs)
 			{
-				Debug.WriteLine($"{eventArgs.KeyEvent} {P.Config.SearchEngines} {Lv_Engines.SelectedItem}");
+				Debug.WriteLine($"{eventArgs.KeyEvent} {Program.Config.SearchEngines} {Lv_Engines.SelectedItem}");
 			}
 
 			private static void LvEngines_OpenSelectedItem(ListViewItemEventArgs eventArgs)

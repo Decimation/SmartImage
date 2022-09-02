@@ -3,9 +3,9 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using Flurl.Http;
-using SmartImage_3.Lib.Engines;
+using SmartImage.Lib.Engines;
 
-namespace SmartImage_3.Lib;
+namespace SmartImage.Lib;
 
 public sealed class SearchQuery : IDisposable
 {

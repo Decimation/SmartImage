@@ -8,7 +8,6 @@
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <NoWarn>$(NoWarn);CS0618</NoWarn>
 
-
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
@@ -17,9 +16,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.6.0.20220608" />
   </ItemGroup>
-
   <ItemGroup>
-    <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
+    <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

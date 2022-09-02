@@ -69,9 +69,6 @@
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Windows.Extensions" Version="6.0.0" />
-    
-
-    <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
     <Reference Include="Kantan">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
     </Reference>

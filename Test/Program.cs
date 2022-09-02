@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using Kantan.Net.Content;
 using OpenCvSharp;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Searching;
 using SmartImage.Lib.Utilities;
