@@ -43,11 +43,5 @@ public abstract class BaseUploadEngine
 		}
 	}
 
-	public static BaseUploadEngine[] GetAllUploadEngines()
-	{
-		return typeof(BaseUploadEngine).GetAllSubclasses()
-		                               .Select(Activator.CreateInstance)
-		                               .Cast<BaseUploadEngine>()
-		                               .ToArray();
-	}
+	public static readonly BaseUploadEngine[] All = ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 }

@@ -25,7 +25,6 @@ public sealed class SearchResult
 	internal SearchResult()
 	{
 		Results = new List<SearchResultItem>();
-
 	}
 
 	public override string ToString()

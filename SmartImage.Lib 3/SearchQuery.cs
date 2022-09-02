@@ -30,23 +30,20 @@ public sealed class SearchQuery : IDisposable
 
 	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
-		bool   isFile = false, isUrl = false;
-		Stream stream;
+		bool   isFile, isUrl;
+		var stream = Stream.Null;
 
-		try {
-			isFile = File.Exists(value);
+		isFile = File.Exists(value);
 
-			if (isFile) {
-				stream = File.OpenRead(value);
-			}
-			else {
-				stream = await value.GetStreamAsync();
-				isUrl  = true;
-
-			}
+		if (isFile) {
+			stream = File.OpenRead(value);
+			isUrl  = false;
 		}
-		finally { }
-
+		else {
+			stream = await value.GetStreamAsync();
+			isUrl  = true;
+		}
+		
 		var sq = new SearchQuery(value, stream)
 		{
 			IsFile = isFile, 
@@ -75,7 +72,7 @@ public sealed class SearchQuery : IDisposable
 
 	public void Dispose()
 	{
-		Stream?.Dispose();
+		Stream.Dispose();
 	}
 
 	#endregion

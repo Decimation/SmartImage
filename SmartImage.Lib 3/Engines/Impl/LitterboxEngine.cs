@@ -4,7 +4,7 @@
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Engines.Impl;
 
 public sealed class LitterboxEngine : BaseUploadEngine
 {
@@ -19,11 +19,11 @@ public sealed class LitterboxEngine : BaseUploadEngine
 		Verify(file);
 
 		using var response = await EndpointUrl
-			                     .PostMultipartAsync(mp =>
-				                                         mp.AddFile("fileToUpload", file)
-				                                           .AddString("reqtype", "fileupload")
-				                                           .AddString("time", "1h")
-			                     );
+								 .PostMultipartAsync(mp =>
+														 mp.AddFile("fileToUpload", file)
+														   .AddString("reqtype", "fileupload")
+														   .AddString("time", "1h")
+								 );
 
 		var responseMessage = response.ResponseMessage;
 

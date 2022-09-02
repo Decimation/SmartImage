@@ -1,4 +1,5 @@
 ﻿global using Url = Flurl.Url;
+using Novus.Utilities;
 
 namespace SmartImage.Lib.Engines;
 
@@ -28,4 +29,6 @@ public abstract class BaseSearchEngine : IDisposable
 	public abstract void Dispose();
 
 	#endregion
+
+	public static readonly BaseSearchEngine[] All = ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
 }
