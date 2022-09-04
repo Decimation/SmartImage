@@ -37,7 +37,7 @@ public record SearchResultItem
 
 	public override string ToString()
 	{
-		return $"{Root} :: {Url} | {Similarity} {Artist} {Source}";
+		return $"{Url} | {Similarity} {Artist} {Source}";
 	}
 
 	#endregion

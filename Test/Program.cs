@@ -53,7 +53,12 @@ public static class Program
 			var res = await sc.RunSearchAsync(q);
 
 			foreach (SearchResult searchResult in res) {
-				Console.WriteLine(searchResult);
+
+				Console.WriteLine($"{searchResult}");
+
+				foreach (var sri in searchResult.Results) {
+					Console.WriteLine($"\t{sri}");
+				}
 			}
 		}
 	}

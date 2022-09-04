@@ -18,7 +18,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query)
 	{
-		var res = new SearchResult()
+		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query)
 		};

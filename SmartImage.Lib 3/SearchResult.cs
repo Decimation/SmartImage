@@ -1,4 +1,5 @@
 ﻿using Flurl;
+using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib;
 
@@ -14,6 +15,8 @@ public enum SearchResultStatus
 
 public sealed class SearchResult
 {
+	public BaseSearchEngine Root { get; }
+
 	public Url RawUrl { get; internal set; }
 
 	public List<SearchResultItem> Results { get; internal set; }
@@ -24,13 +27,14 @@ public sealed class SearchResult
 
 	public string Overview { get; internal set; }
 
-	internal SearchResult()
+	internal SearchResult(BaseSearchEngine bse)
 	{
+		Root    = bse;
 		Results = new List<SearchResultItem>();
 	}
 
 	public override string ToString()
 	{
-		return $"Raw: {RawUrl} | N results: {Results.Count}";
+		return $"[{Root.Name}] {RawUrl} | {Results.Count} | {Status}";
 	}
 }

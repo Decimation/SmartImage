@@ -99,7 +99,10 @@ public sealed class YandexEngine : WebContentSearchEngine
 		var url = await GetRawUrlAsync(query);
 		var doc = await ParseDocumentAsync(url);
 
-		var sr = new SearchResult() { RawUrl = url };
+		var sr = new SearchResult(this)
+		{
+			RawUrl = url
+		};
 
 		// Automation detected
 		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";

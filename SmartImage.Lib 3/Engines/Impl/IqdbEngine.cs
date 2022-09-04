@@ -126,7 +126,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 	{
 		// Don't select other results
 		// var query = (ImageQuery)obj;
-		var sr  = new SearchResult();
+		var sr  = await base.GetResultAsync(query);
 		var doc = await GetDocumentAsync(query);
 
 		var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
