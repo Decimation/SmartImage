@@ -21,13 +21,17 @@ public static class Program
 {
 	#region
 
-	internal static readonly SearchConfig Config = new();
-	internal static readonly SearchClient Client = new(Config);
+	internal static SearchConfig Config { get; private set; }
+
+	internal static SearchClient Client { get; private set; }
 
 	internal static SearchQuery _query;
 
-	internal static readonly CancellationTokenSource Cts  = new();
-	internal static readonly List<SearchResult>      _res = new();
+	//todo
+	internal static CancellationTokenSource Cts { get; } = new();
+
+	//todo
+	internal static List<SearchResult> Results { get; } = new();
 
 	#endregion
 
@@ -45,6 +49,13 @@ public static class Program
 
 	public static async Task Main(string[] args)
 	{
+		Config = new SearchConfig();
+		Client = new SearchClient(Config);
+
+		var configuration = new ConfigurationBuilder();
+		configuration.AddJsonFile("smartimage.json", optional: true, reloadOnChange: true);
+		IConfigurationRoot configurationRoot = configuration.Build();
+		configurationRoot.Bind(Config);
 
 		Application.Init();
 

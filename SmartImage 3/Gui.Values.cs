@@ -113,7 +113,7 @@ public static partial class Gui
 			// CanFocus = true,
 			// ColorScheme             = GS.CS_Elem3,
 		};
-		private static readonly ListView Lv_Results = new(new Rect(20, 8, 25, 30),Program._res)
+		private static readonly ListView Lv_Results = new(new Rect(20, 8, 25, 30),Program.Results)
 		{
 			X= Pos.Right(Cb_Engines),
 			Y=Pos.Bottom(Btn_Ok), AutoSize = true

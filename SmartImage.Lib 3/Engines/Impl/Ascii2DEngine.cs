@@ -51,7 +51,10 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		return new Url(detailUrl);
 	}
 
-	public override          void                     Dispose() { }
+	public override void Dispose()
+	{
+		
+	}
 
 	#region Overrides of WebContentSearchEngine
 
@@ -67,7 +70,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		var sri = new SearchResultItem(r);
 
 		var info = n.ChildNodes.Where(n => !String.IsNullOrWhiteSpace(n.TextContent))
-		               .ToArray();
+		            .ToArray();
 
 		string hash = info.First().TextContent;
 
@@ -83,32 +86,27 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 		string size = data[2];
 
-		if (info.Length >= 3)
-		{
+		if (info.Length >= 3) {
 			var node2 = info[2];
 			var desc  = info.Last().FirstChild;
 			var ns    = desc.NextSibling;
 
-			if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2)
-			{
+			if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2) {
 				var node2Sub = node2.ChildNodes[1];
 
-				if (node2Sub.ChildNodes.Length >= 8)
-				{
+				if (node2Sub.ChildNodes.Length >= 8) {
 					sri.Description = node2Sub.ChildNodes[3].TextContent.Trim();
 					sri.Artist      = node2Sub.ChildNodes[5].TextContent.Trim();
 					sri.Site        = node2Sub.ChildNodes[7].TextContent.Trim();
 				}
 			}
 
-			if (ns.ChildNodes.Length >= 4)
-			{
+			if (ns.ChildNodes.Length >= 4) {
 				var childNode = ns.ChildNodes[3];
 
-				string l1 = ((IHtmlElement)childNode).GetAttribute("href");
+				string l1 = ((IHtmlElement) childNode).GetAttribute("href");
 
-				if (l1 is not null)
-				{
+				if (l1 is not null) {
 					sri.Url = new Url(l1);
 				}
 			}
@@ -118,5 +116,4 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 	}
 
 	#endregion
-
 }

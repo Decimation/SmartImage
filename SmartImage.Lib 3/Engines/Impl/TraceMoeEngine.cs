@@ -36,7 +36,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 		TraceMoeRootObject tm = null;
 
-		var r = new SearchResult();
+		var r  = await base.GetResultAsync(query);
 
 		try {
 			IFlurlRequest request = (EndpointUrl + "/search")

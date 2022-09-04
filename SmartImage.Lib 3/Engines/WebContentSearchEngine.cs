@@ -27,11 +27,9 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
 	{
-		var u = await GetRawUrlAsync(query);
-		var d = await ParseDocumentAsync(u);
+		var r = await base.GetResultAsync(query);
+		var d = await ParseDocumentAsync(r.RawUrl);
 		var n = await GetNodesAsync(d);
-
-		var r = new SearchResult();
 
 		foreach (INode node in n) {
 			var sri = await ParseResultItemAsync(node, r);

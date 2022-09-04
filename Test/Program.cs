@@ -7,9 +7,7 @@ using System.Threading.Tasks;
 using Kantan.Net.Content;
 using OpenCvSharp;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines.Upload;
-using SmartImage.Lib.Searching;
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Engines.Impl;
 using Point = OpenCvSharp.Point;
 using Size = OpenCvSharp.Size;
 
@@ -42,61 +40,30 @@ public static class Program
 		var rg = new[] { "https://i.imgur.com/QtCausw.png", @"C:\Users\Deci\Pictures\Test Images\Test2.jpg" };
 
 		foreach (string s in rg) {
-			var r = await ImageQuery.TryAllocHandleAsync(s);
-			var q = new ImageQuery(r);
+			using var q = await SearchQuery.TryCreateAsync(s);
+
+			var cfg = new SearchConfig() { Engines = SearchEngineOptions.All };
+			var sc  = new SearchClient(cfg);
+
 			// Console.WriteLine(ImageQuery.TryCreate(u,out var q));
-			Console.WriteLine(q);
-			var u=await q.UploadAsync();
-			Console.WriteLine($"{u}");
-			q.Dispose();
 
-		}
-	}
+			var u = await q.UploadAsync();
+			Console.WriteLine($"{q}");
 
-	public static void OnResult(object _, ResultCompletedEventArgs e)
-	{
+			var res = await sc.RunSearchAsync(q);
 
-		if (e.Result.IsStatusSuccessful) {
-			Console.WriteLine(e.Result);
-		}
-	}
-
-	static async Task test5()
-	{
-		var di = HttpResourceHandle.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
-		di.Wait();
-
-		var o = di.Result;
-		o?.Resolve();
-		var b = o;
-
-		Console.WriteLine(b);
-
-		var v  = new AnonFilesEngine();
-		var aa = await v.UploadFileAsync(@"C:\Users\Deci\Pictures\Test Images\Test6.jpg");
-		Console.WriteLine(aa);
-	}
-
-	static async Task test4()
-	{
-		var async = (HttpResourceSniffer.Media.ScanAsync("http://www.zerochan.net/2750747"));
-		async.Wait();
-		var task = async.Result;
-
-		foreach (var v in task) {
-			Console.WriteLine(v);
-		}
-
-		foreach (var directImage in task) {
-			directImage.Dispose();
+			foreach (SearchResult searchResult in res) {
+				Console.WriteLine(searchResult);
+			}
 		}
 	}
 
 	static async Task test3()
 	{
-		var u1     = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
-		var h      = await ImageQuery.TryAllocHandleAsync(u1);
-		var q      = new ImageQuery(h);
+		var u1 = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		var q  = await SearchQuery.TryCreateAsync(u1);
+		await q.UploadAsync();
+
 		var engine = new SauceNaoEngine() { };
 		engine.Authentication = "362e7e82bc8cf7f6025431fbf3006510057298c3";
 		var task = engine.GetResultAsync(q);
@@ -207,12 +174,12 @@ public static class Program
 		var ext   = Path.GetExtension(png);
 		var read  = wc.OpenRead(png);
 		var img   = Image.FromStream(read);
-		var img2  = ImageOperations.ResizeImage((Bitmap) img, img.Size / 2);
+		// var img2  = ImageOperations.ResizeImage((Bitmap) img, img.Size / 2);
 
-		var    path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+		/*var    path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 		string s    = Path.Combine(path, name2 + "-1" + ext);
 		Console.WriteLine(s);
-		img2.Save(s);
+		img2.Save(s);*/
 	}
 
 	public class SSIMResult

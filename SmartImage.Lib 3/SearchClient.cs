@@ -17,8 +17,10 @@ public class SearchClient
 		Config = cfg;
 	}
 
-	public async Task<IEnumerable<SearchResult>> RunSearchAsync(SearchQuery q)
+	public async Task<IEnumerable<SearchResult>> RunSearchAsync(SearchQuery q, CancellationToken? t = null)
 	{
+		t ??= CancellationToken.None;
+
 		var e = BaseSearchEngine.All.Where(e => Config.Engines.HasFlag(e.EngineOption))
 		                        .Select(e => e.GetResultAsync(q))
 		                        .ToArray();

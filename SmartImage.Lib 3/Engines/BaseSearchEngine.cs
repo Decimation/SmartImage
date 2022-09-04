@@ -16,7 +16,15 @@ public abstract class BaseSearchEngine : IDisposable
 		BaseUrl = baseUrl;
 	}
 
-	public abstract Task<SearchResult> GetResultAsync(SearchQuery query);
+	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query)
+	{
+		var res = new SearchResult()
+		{
+			RawUrl = await GetRawUrlAsync(query)
+		};
+
+		return res;
+	}
 
 	protected virtual Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
@@ -32,5 +40,4 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
-
 }

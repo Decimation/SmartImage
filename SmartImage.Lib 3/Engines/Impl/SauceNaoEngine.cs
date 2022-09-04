@@ -55,7 +55,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
 	{
-		var result = new SearchResult();
+		var result = await base.GetResultAsync(query);
 
 		IEnumerable<SauceNaoDataResult> dataResults;
 

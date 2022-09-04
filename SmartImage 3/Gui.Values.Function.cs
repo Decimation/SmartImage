@@ -35,18 +35,20 @@ public static partial class Gui
 			{
 				if (_ok) {
 					Debug.WriteLine($"{Program.Client.Config}");
-					var res = await Program.Client.RunSearchAsync(Program._query, 
-					                                              Program.Cts, CancellationToken.None);
-					Program._res.AddRange(res);
+
+					var res =
+						(await Program.Client.RunSearchAsync(Program._query, Program.Cts.Token)).ToList();
+					Program.Results.AddRange(res);
 					await Lv_Results.SetSourceAsync(res);
-					
+
 					Lv_Results.Redraw(Lv_Results.Bounds);
 
 					foreach (var _res in res) {
 						Debug.WriteLine($"{_res}");
 					}
+
 					Lv_Results.SetNeedsDisplay();
-					
+
 				}
 			}
 
@@ -81,7 +83,7 @@ public static partial class Gui
 
 						try {
 							var s = Tf_Input.Text.ToString();
-							
+
 							var q = await SearchQuery.TryCreateAsync(s);
 
 							if (q != null) {
@@ -136,24 +138,24 @@ public static partial class Gui
 				}
 
 				var result = new List<string>();
-				for (int i = 0; i < EngineNames.Length; i++)
-				{
-					if (Lv_Engines.Source.IsMarked(i))
-					{
+
+				for (int i = 0; i < EngineNames.Length; i++) {
+					if (Lv_Engines.Source.IsMarked(i)) {
 						result.Add(EngineNames[i].ToString());
 					}
 				}
 
-				Debug.WriteLine($"{value} {eventArgs.Item} sic {Lv_Engines.Source} {Lv_Engines.Source.IsMarked(eventArgs.Item)} || {result.QuickJoin()}");
+				Debug.WriteLine(
+					$"{value} {eventArgs.Item} sic {Lv_Engines.Source} {Lv_Engines.Source.IsMarked(eventArgs.Item)} || {result.QuickJoin()}");
 
 				var e = Enum.Parse<SearchEngineOptions>(value.ToString());
 
 				switch (e) {
 					case SearchEngineOptions.None:
-						Program.Config.SearchEngines = e;
+						Program.Config.Engines = e;
 						break;
 					default:
-						Program.Config.SearchEngines |= e;
+						Program.Config.Engines |= e;
 						break;
 				}
 
@@ -162,12 +164,12 @@ public static partial class Gui
 				// Lv_Engines.Source.SetMark(eventArgs.Item, true);
 
 				// Debug.WriteLine($"{prev} | {e} -> {P.Config.SearchEngines}");
-				Debug.WriteLine($"{Program.Config.SearchEngines}");
+				Debug.WriteLine($"{Program.Config.Engines}");
 			}
 
 			private static void LvEngines_KeyPress(KeyEventEventArgs eventArgs)
 			{
-				Debug.WriteLine($"{eventArgs.KeyEvent} {Program.Config.SearchEngines} {Lv_Engines.SelectedItem}");
+				Debug.WriteLine($"{eventArgs.KeyEvent} {Program.Config.Engines} {Lv_Engines.SelectedItem}");
 			}
 
 			private static void LvEngines_OpenSelectedItem(ListViewItemEventArgs eventArgs)
@@ -205,7 +207,7 @@ public static partial class Gui
 				Cb_Engines.SelectedItemChanged += LvEngines_SelectedItemChanged;
 
 				Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk, /*Cb_Engines,*/ Tf_Query,
-				        Lbl_Query, Btn_Clear,Lv_Results, Cb_Engines
+				        Lbl_Query, Btn_Clear, Lv_Results, Cb_Engines
 				);
 			}
 		}
