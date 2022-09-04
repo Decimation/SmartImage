@@ -35,7 +35,7 @@ public abstract class BaseUploadEngine
 
 	protected void Verify(string file)
 	{
-		if (string.IsNullOrWhiteSpace(file)) {
+		if (String.IsNullOrWhiteSpace(file)) {
 			throw new ArgumentNullException(nameof(file));
 		}
 

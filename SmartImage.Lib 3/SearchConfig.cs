@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SmartImage.Lib
+namespace SmartImage.Lib;
+
+public class SearchConfig
 {
-	public class SearchConfig
-	{
-	}
 }

@@ -66,7 +66,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 	{
 		var sri = new SearchResultItem(r);
 
-		var info = n.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.TextContent))
+		var info = n.ChildNodes.Where(n => !String.IsNullOrWhiteSpace(n.TextContent))
 		               .ToArray();
 
 		string hash = info.First().TextContent;
@@ -76,8 +76,8 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		string[] data = info[1].TextContent.Split(' ');
 
 		string[] res = data[0].Split('x');
-		sri.Width  = int.Parse(res[0]);
-		sri.Height = int.Parse(res[1]);
+		sri.Width  = Int32.Parse(res[0]);
+		sri.Height = Int32.Parse(res[1]);
 
 		string fmt = data[1];
 

@@ -22,6 +22,8 @@ public sealed class SearchResult
 
 	public SearchResultStatus Status { get; internal set; }
 
+	public string Overview { get; internal set; }
+
 	internal SearchResult()
 	{
 		Results = new List<SearchResultItem>();

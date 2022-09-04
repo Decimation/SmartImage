@@ -31,18 +31,18 @@ public sealed class YandexEngine : WebContentSearchEngine
 			return null;
 		}
 
-		string? appearsToContain = nodes.Select(n => n.TextContent)
-		                                .QuickJoin();
+		string appearsToContain = nodes.Select(n => n.TextContent)
+		                               .QuickJoin();
 
 		return appearsToContain;
 	}
 
-	private static List<SearchResultItem> GetOtherImages(IDocument doc, SearchResult r)
+	private static IEnumerable<SearchResultItem> GetOtherImages(IDocument doc, SearchResult r)
 	{
 		var tagsItem = doc.Body.SelectNodes("//li[@class='other-sites__item']");
 
 		if (tagsItem == null) {
-			return Enumerable.Empty<SearchResultItem>() as List<SearchResultItem>;
+			return Enumerable.Empty<SearchResultItem>();
 		}
 
 		SearchResultItem Parse(INode siz)
@@ -63,7 +63,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 			{
 				Url         = new Uri(link),
 				Site        = site.TextContent,
-				Description = title.TextContent,
+				Description = title?.TextContent,
 				Width       = w,
 				Height      = h,
 			};
@@ -98,7 +98,8 @@ public sealed class YandexEngine : WebContentSearchEngine
 	{
 		var url = await GetRawUrlAsync(query);
 		var doc = await ParseDocumentAsync(url);
-		var sr  = new SearchResult();
+
+		var sr = new SearchResult();
 
 		// Automation detected
 		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
@@ -132,7 +133,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		string looksLike = GetAnalysis(doc);
 
 		if (looksLike != null) {
-			sr.Results[0].Description = looksLike;
+			sr.Overview = looksLike;
 		}
 
 		const string NO_MATCHING = "No matching images found";
@@ -179,14 +180,13 @@ public sealed class YandexEngine : WebContentSearchEngine
 		}
 
 		if (UriUtilities.IsUri(link, out var link2)) {
-			var yi = new SearchResultItem(r)
+			var sri = new SearchResultItem(r)
 			{
 				Url    = link2,
 				Width  = w,
 				Height = h,
 			};
-			return Task.FromResult(yi);
-
+			return Task.FromResult(sri);
 		}
 
 		return Task.FromResult<SearchResultItem>(null);

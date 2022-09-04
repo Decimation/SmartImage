@@ -43,6 +43,7 @@ public static class Program
 
 	public static async Task Main(string[] args)
 	{
+
 		Application.Init();
 
 		Console.OutputEncoding = Encoding.Unicode;

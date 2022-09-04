@@ -22,24 +22,17 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
-	public override void Dispose()
-	{
-		base.Dispose();
-
-	}
-
 	private static SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
 	{
 		var caption = tr[0];
-		var img = tr[1];
-		var src = tr[2];
+		var img     = tr[1];
+		var src     = tr[2];
 
 		string url = null!;
 
 		//img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
 
-		try
-		{
+		try {
 			//url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
 
 			url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href");
@@ -47,65 +40,58 @@ public sealed class IqdbEngine : ClientSearchEngine
 			// Links must begin with http:// in order to work with "start"
 
 		}
-		catch
-		{
+		catch {
 			// ignored
 		}
 
 		int w = 0, h = 0;
 
-		if (tr.Length >= 4)
-		{
+		if (tr.Length >= 4) {
 			var res = tr[3];
 
 			string[] wh = res.TextContent.Split(Strings.Constants.MUL_SIGN);
 
 			string wStr = wh[0].SelectOnlyDigits();
-			w = int.Parse(wStr);
+			w = Int32.Parse(wStr);
 
 			// May have NSFW caption, so remove it
 
 			string hStr = wh[1].SelectOnlyDigits();
-			h = int.Parse(hStr);
+			h = Int32.Parse(hStr);
 		}
 
 		double? sim;
 
-		if (tr.Length >= 5)
-		{
-			var simNode = tr[4];
-			string simStr = simNode.TextContent.Split('%')[0];
-			sim = double.Parse(simStr);
+		if (tr.Length >= 5) {
+			var    simNode = tr[4];
+			string simStr  = simNode.TextContent.Split('%')[0];
+			sim = Double.Parse(simStr);
 			sim = Math.Round(sim.Value, 2);
 		}
-		else
-		{
+		else {
 			sim = null;
 		}
 
 		Url uri;
 
-		if (url != null)
-		{
-			if (url.StartsWith("//"))
-			{
+		if (url != null) {
+			if (url.StartsWith("//")) {
 				url = "http:" + url;
 			}
 
 			uri = url;
 		}
-		else
-		{
+		else {
 			uri = null;
 		}
 
 		var result = new SearchResultItem(r)
 		{
-			Url = uri,
-			Similarity = sim,
-			Width = w,
-			Height = h,
-			Source = src.TextContent,
+			Url         = uri,
+			Similarity  = sim,
+			Width       = w,
+			Height      = h,
+			Source      = src.TextContent,
 			Description = caption.TextContent,
 		};
 
@@ -120,11 +106,10 @@ public sealed class IqdbEngine : ClientSearchEngine
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
 
-			m.AddString("url", query.IsUrl ? query.Value : string.Empty);
+			m.AddString("url", query.IsUrl ? query.Value : String.Empty);
 
 			if (query.IsUrl) { }
-			else if (query.IsFile)
-			{
+			else if (query.IsFile) {
 				m.AddFile("file", query.Value, fileName: "image.jpg");
 			}
 
@@ -141,26 +126,25 @@ public sealed class IqdbEngine : ClientSearchEngine
 	{
 		// Don't select other results
 		// var query = (ImageQuery)obj;
-		var sr = new SearchResult();
+		var sr  = new SearchResult();
 		var doc = await GetDocumentAsync(query);
 
-		var pages = doc.Body.SelectSingleNode("//div[@id='pages']");
-		var tables = ((IHtmlElement)pages).SelectNodes("div/table");
+		var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
+		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
 		// No relevant results?
 
 		var ns = doc.Body?.QuerySelector("#pages > div.nomatch");
 
-		if (ns != null)
-		{
+		if (ns != null) {
 
 			sr.Status = SearchResultStatus.NoResults;
 
 			return sr;
 		}
 
-		var select = tables.Select(table => ((IHtmlElement)table)
-									   .QuerySelectorAll("table > tbody > tr:nth-child(n)"));
+		var select = tables.Select(table => ((IHtmlElement) table)
+			                           .QuerySelectorAll("table > tbody > tr:nth-child(n)"));
 
 		var images = select.Select(x => ParseResult(x, sr)).ToList();
 
@@ -178,5 +162,10 @@ public sealed class IqdbEngine : ClientSearchEngine
 		};*/
 
 		return sr;
+	}
+
+	public override void Dispose()
+	{
+		base.Dispose();
 	}
 }

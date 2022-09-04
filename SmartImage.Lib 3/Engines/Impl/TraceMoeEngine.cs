@@ -17,12 +17,6 @@ namespace SmartImage.Lib.Engines.Impl;
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
 public sealed class TraceMoeEngine : ClientSearchEngine
 {
-	public override void Dispose()
-	{
-		base.Dispose();
-
-	}
-
 	public TraceMoeEngine() : base("https://trace.moe/?url=", "https://api.trace.moe") { }
 
 	//public override TimeSpan Timeout => TimeSpan.FromSeconds(4);
@@ -55,7 +49,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 			{
 				Error = (sender, args) =>
 				{
-					if (object.Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) /*&&
+					if (Object.Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) /*&&
 					    args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)*/) {
 						args.ErrorContext.Handled = true;
 					}
@@ -79,7 +73,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				try {
 					var results = await ConvertResults(tm, r);
 
-					r.RawUrl        = new Url(BaseUrl + query.Upload);
+					r.RawUrl = new Url(BaseUrl + query.Upload);
 					r.Results.AddRange(results);
 				}
 				catch (Exception e) {
@@ -106,13 +100,13 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 	private async Task<IEnumerable<SearchResultItem>> ConvertResults(TraceMoeRootObject obj, SearchResult sr)
 	{
 		var results      = obj.result;
-		var imageResults = new SearchResultItem[results.Count];
+		var items = new SearchResultItem[results.Count];
 
-		for (int i = 0; i < imageResults.Length; i++) {
+		for (int i = 0; i < items.Length; i++) {
 			var   doc = results[i];
 			float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
 
-			string epStr = GetEpisodeString(doc);
+			string epStr = doc.EpisodeString;
 
 			var result = new SearchResultItem(sr)
 			{
@@ -127,7 +121,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				result.Url    = new Uri(anilistUrl);
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
+				Debug.WriteLine($"{e.Message}", Name);
 			}
 
 			if (result.Similarity < FILTER_THRESHOLD) {
@@ -136,28 +130,14 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				                                 $"< {FILTER_THRESHOLD / 100:P})");*/
 				//todo
 
+				result.Metadata["Warning"] = $"Similarity exceeds threshold {FILTER_THRESHOLD:P}";
 			}
 
-			imageResults[i] = result;
+			items[i] = result;
 		}
 
-		return imageResults;
+		return items;
 
-		static string GetEpisodeString(TraceMoeDoc doc)
-		{
-			object episode = doc.episode;
-
-			string epStr = episode is { } ? episode is string s ? s : episode.ToString() : String.Empty;
-
-			if (episode is IEnumerable e) {
-				var epList = e.CastToList()
-				              .Select(x => Int64.Parse(x.ToString() ?? String.Empty));
-
-				epStr = epList.QuickJoin();
-			}
-
-			return epStr;
-		}
 	}
 
 	/// <summary>
@@ -169,6 +149,12 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 	/// Threshold at which results become inaccurate
 	/// </summary>
 	private const float FILTER_THRESHOLD = 87.00F;
+
+	public override void Dispose()
+	{
+		m_anilistClient.Dispose();
+		base.Dispose();
+	}
 
 	#region API Objects
 
@@ -191,6 +177,23 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		public string video { get; set; }
 
 		public string image { get; set; }
+
+		public string EpisodeString
+		{
+			get
+			{
+				string epStr = episode is { } ? episode is string s ? s : episode.ToString() : String.Empty;
+
+				if (episode is IEnumerable e) {
+					var epList = e.CastToList()
+					              .Select(x => Int64.Parse(x.ToString() ?? String.Empty));
+
+					epStr = epList.QuickJoin();
+				}
+
+				return epStr;
+			}
+		}
 	}
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]

@@ -1,4 +1,5 @@
-﻿using Flurl;
+﻿using System.Dynamic;
+using Flurl;
 
 namespace SmartImage.Lib;
 
@@ -24,9 +25,12 @@ public record SearchResultItem
 
 	public double? Similarity { get; internal set; }
 
+	public dynamic Metadata { get; internal set; }
+
 	internal SearchResultItem(SearchResult r)
 	{
-		Root = r;
+		Root     = r;
+		Metadata = new ExpandoObject();
 	}
 
 	#region Overrides of Object
