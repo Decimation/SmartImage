@@ -21,12 +21,12 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
-		var uri = await base.GetRawUrlAsync(query);
+		var url = await base.GetRawUrlAsync(query);
 
-		// var       request  = WebRequest.Create(uri);
-		// using var response = request.GetResponse();
-
-		var response = await uri.WithHeaders(new { User_Agent = HttpUtilities.UserAgent }).GetAsync();
+		var response = await url.WithHeaders(new
+		{
+			User_Agent = HttpUtilities.UserAgent
+		}).GetAsync();
 
 		/*
 		 * URL parameters
@@ -42,103 +42,81 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		 *
 		 */
 
-		// var    responseUri = response.ResponseUri;
-
 		var requestUri = response.ResponseMessage?.RequestMessage?.RequestUri;
 
 		Debug.Assert(requestUri != null);
 
 		string detailUrl = requestUri.ToString().Replace("/color/", "/bovw/");
 
-		return new Uri(detailUrl);
-
+		return new Url(detailUrl);
 	}
 
-	public override void Dispose()
+	public override          void                     Dispose() { }
+
+	#region Overrides of WebContentSearchEngine
+
+	protected override Task<IEnumerable<INode>> GetNodesAsync(IDocument doc)
 	{
-		
-	}
-
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
-	{
-		var sr2 = await GetRawUrlAsync(query);
-
-		var doc = await ParseContent(sr2);
-
 		var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
 
-		var rg = new List<SearchResultItem>();
+		return Task.FromResult<IEnumerable<INode>>(nodes);
+	}
 
-		var sr = new SearchResult();
+	protected override Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
+	{
+		var sri = new SearchResultItem(r);
 
-		foreach (var node in nodes)
+		var info = n.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.TextContent))
+		               .ToArray();
+
+		string hash = info.First().TextContent;
+
+		// ir.OtherMetadata.Add("Hash", hash);
+
+		string[] data = info[1].TextContent.Split(' ');
+
+		string[] res = data[0].Split('x');
+		sri.Width  = int.Parse(res[0]);
+		sri.Height = int.Parse(res[1]);
+
+		string fmt = data[1];
+
+		string size = data[2];
+
+		if (info.Length >= 3)
 		{
-			var ir = new SearchResultItem(sr);
+			var node2 = info[2];
+			var desc  = info.Last().FirstChild;
+			var ns    = desc.NextSibling;
 
-			var info = node.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.TextContent)).ToArray();
-
-			string hash = info.First().TextContent;
-
-			// ir.OtherMetadata.Add("Hash", hash);
-
-			string[] data = info[1].TextContent.Split(' ');
-
-			string[] res = data[0].Split('x');
-			ir.Width = int.Parse(res[0]);
-			ir.Height = int.Parse(res[1]);
-
-			string fmt = data[1];
-
-			string size = data[2];
-
-			if (info.Length >= 3)
+			if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2)
 			{
-				var node2 = info[2];
-				var desc = info.Last().FirstChild;
-				var ns = desc.NextSibling;
+				var node2Sub = node2.ChildNodes[1];
 
-				if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2)
+				if (node2Sub.ChildNodes.Length >= 8)
 				{
-					var node2Sub = node2.ChildNodes[1];
-
-					if (node2Sub.ChildNodes.Length >= 8)
-					{
-						ir.Description = node2Sub.ChildNodes[3].TextContent.Trim();
-						ir.Artist = node2Sub.ChildNodes[5].TextContent.Trim();
-						ir.Site = node2Sub.ChildNodes[7].TextContent.Trim();
-					}
-				}
-
-				if (ns.ChildNodes.Length >= 4)
-				{
-					var childNode = ns.ChildNodes[3];
-
-					string l1 = ((IHtmlElement)childNode).GetAttribute("href");
-
-					if (l1 is not null)
-					{
-						ir.Url = new Uri(l1);
-					}
+					sri.Description = node2Sub.ChildNodes[3].TextContent.Trim();
+					sri.Artist      = node2Sub.ChildNodes[5].TextContent.Trim();
+					sri.Site        = node2Sub.ChildNodes[7].TextContent.Trim();
 				}
 			}
 
-			rg.Add(ir);
+			if (ns.ChildNodes.Length >= 4)
+			{
+				var childNode = ns.ChildNodes[3];
+
+				string l1 = ((IHtmlElement)childNode).GetAttribute("href");
+
+				if (l1 is not null)
+				{
+					sri.Url = new Url(l1);
+				}
+			}
 		}
 
-		// Skip original image
-
-		rg = rg.Skip(1).ToList();
-
-		if (!rg.Any())
-		{
-			goto ret;
-		}
-
-		//sr.PrimaryResult.UpdateFrom(rg[0]);
-
-		sr.Results.AddRange(rg);
-
-	ret:
-		return sr;
+		return Task.FromResult(sri);
 	}
+
+	#endregion
+
 }

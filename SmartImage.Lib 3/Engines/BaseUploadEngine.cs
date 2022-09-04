@@ -1,5 +1,6 @@
 ﻿using Novus.OS;
 using Novus.Utilities;
+using SmartImage.Lib.Engines.Impl;
 
 namespace SmartImage.Lib.Engines;
 

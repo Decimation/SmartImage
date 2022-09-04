@@ -7,7 +7,7 @@ using Kantan.Text;
 
 #pragma warning disable 8602
 
-#nullable enable
+#nullable disable
 
 namespace SmartImage.Lib.Engines.Impl;
 
@@ -17,7 +17,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
-	private static string? GetAnalysis(IDocument doc)
+	private static string GetAnalysis(IDocument doc)
 	{
 		var nodes = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item') and " +
 		                                 "../../../../div[contains(@class,'CbirTags')]]/*");
@@ -37,12 +37,12 @@ public sealed class YandexEngine : WebContentSearchEngine
 		return appearsToContain;
 	}
 
-	private static List<SearchResultItem>? GetOtherImages(IDocument doc, SearchResult r)
+	private static List<SearchResultItem> GetOtherImages(IDocument doc, SearchResult r)
 	{
 		var tagsItem = doc.Body.SelectNodes("//li[@class='other-sites__item']");
 
 		if (tagsItem == null) {
-			return null;
+			return Enumerable.Empty<SearchResultItem>() as List<SearchResultItem>;
 		}
 
 		SearchResultItem Parse(INode siz)
@@ -94,61 +94,10 @@ public sealed class YandexEngine : WebContentSearchEngine
 		return (w, h);
 	}
 
-	private static List<SearchResultItem> GetImages(IDocument doc, SearchResult r)
-	{
-		var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
-		var images   = new List<SearchResultItem>();
-
-		if (tagsItem.Count == 0) {
-			return images;
-		}
-
-		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class")
-		                                       .Contains("CbirItem"));
-
-		SearchResultItem? Parse(INode siz)
-		{
-			string? link = siz.TryGetAttribute("href");
-
-			string? resText = siz.FirstChild.GetExclusiveText();
-
-			(int? w, int? h) = ParseResolution(resText!);
-
-			if (!w.HasValue || !h.HasValue) {
-				w = null;
-				h = null;
-				//link = null;
-			}
-
-			if (UriUtilities.IsUri(link, out var link2)) {
-				var yi = new SearchResultItem(r)
-				{
-					Url    = link2,
-					Width  = w,
-					Height = h,
-				};
-				return yi;
-
-			}
-			else {
-				link2 = null;
-				return null;
-			}
-		}
-
-		var list = sizeTags.Select(Parse)
-		                   .Where(x => x != null)
-		                   .Cast<SearchResultItem>();
-
-		images.AddRange(list);
-
-		return images;
-	}
-
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
 	{
 		var url = await GetRawUrlAsync(query);
-		var doc = (IDocument) await ParseContent(url);
+		var doc = await ParseDocumentAsync(url);
 		var sr  = new SearchResult();
 
 		// Automation detected
@@ -160,33 +109,30 @@ public sealed class YandexEngine : WebContentSearchEngine
 		}
 
 		/*
-		 * Parse what the image looks like
-		 */
-
-		string? looksLike = GetAnalysis(doc);
-
-		/*
 		 * Find and sort through high resolution image matches
 		 */
 
-		var images = GetImages(doc, sr);
+		foreach (var node in await GetNodesAsync(doc)) {
+			var sri = await ParseResultItemAsync(node, sr);
+
+			if (sri != null) {
+				sr.Results.Add(sri);
+			}
+		}
 
 		var otherImages = GetOtherImages(doc, sr);
-
-		if (otherImages != null) {
-			images.AddRange(otherImages);
-		}
+		sr.Results.AddRange(otherImages);
 
 		//
 
-		if (images.Count > 0) {
-			var best = images[0];
+		/*
+		 * Parse what the image looks like
+		 */
 
-			sr.Results.AddRange(images);
+		string looksLike = GetAnalysis(doc);
 
-			if (looksLike != null) {
-				sr.Results[0].Description = looksLike;
-			}
+		if (looksLike != null) {
+			sr.Results[0].Description = looksLike;
 		}
 
 		const string NO_MATCHING = "No matching images found";
@@ -201,4 +147,50 @@ public sealed class YandexEngine : WebContentSearchEngine
 	}
 
 	public override void Dispose() { }
+
+	#region Overrides of WebContentSearchEngine
+
+	protected override async Task<IEnumerable<INode>> GetNodesAsync(IDocument doc)
+	{
+		var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
+
+		if (tagsItem.Count == 0) {
+			return await Task.FromResult(Enumerable.Empty<INode>());
+			// return tagsItem;
+		}
+
+		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class").Contains("CbirItem"));
+
+		return sizeTags;
+	}
+
+	protected override Task<SearchResultItem> ParseResultItemAsync(INode siz, SearchResult r)
+	{
+		string link = siz.TryGetAttribute("href");
+
+		string resText = siz.FirstChild.GetExclusiveText();
+
+		(int? w, int? h) = ParseResolution(resText!);
+
+		if (!w.HasValue || !h.HasValue) {
+			w = null;
+			h = null;
+			//link = null;
+		}
+
+		if (UriUtilities.IsUri(link, out var link2)) {
+			var yi = new SearchResultItem(r)
+			{
+				Url    = link2,
+				Width  = w,
+				Height = h,
+			};
+			return Task.FromResult(yi);
+
+		}
+
+		return Task.FromResult<SearchResultItem>(null);
+	}
+
+	#endregion
 }

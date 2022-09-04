@@ -11,12 +11,12 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual string BaseUrl { get; }
 
-	public abstract Task<SearchResult> GetResultAsync(SearchQuery query);
-
 	protected BaseSearchEngine(string baseUrl)
 	{
 		BaseUrl = baseUrl;
 	}
+
+	public abstract Task<SearchResult> GetResultAsync(SearchQuery query);
 
 	protected virtual Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
@@ -30,5 +30,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	#endregion
 
-	public static readonly BaseSearchEngine[] All = ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
+	public static readonly BaseSearchEngine[] All =
+		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
+
 }
