@@ -1,9 +1,9 @@
-﻿
-#nullable disable
+﻿#nullable disable
 using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.Extensions.Hosting;
 using SmartImage.Lib;
 using Terminal.Gui;
 using static SmartImage.Gui;
@@ -14,6 +14,8 @@ using Rune = System.Text.Rune;
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage;
+
+using Microsoft.Extensions.Configuration;
 
 public static class Program
 {
@@ -47,9 +49,9 @@ public static class Program
 		Application.Init();
 
 		Console.OutputEncoding = Encoding.Unicode;
-		
+
 		Gui.Init();
-		
+
 		Application.Run();
 		Application.Shutdown();
 
