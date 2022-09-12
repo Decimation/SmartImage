@@ -23,10 +23,14 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 	{
 		var url = await base.GetRawUrlAsync(query);
 
-		var response = await url.WithHeaders(new
+		var headers = new
 		{
 			User_Agent = HttpUtilities.UserAgent
-		}).GetAsync();
+		};
+
+		var response = await url.AllowAnyHttpStatus()
+		                        .WithAutoRedirect(true)
+		                        .GetAsync();
 
 		/*
 		 * URL parameters
@@ -47,14 +51,17 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		Debug.Assert(requestUri != null);
 
 		string detailUrl = requestUri.ToString().Replace("/color/", "/bovw/");
+		
+		Debug.WriteLine($"{url} {requestUri} {detailUrl} {response.StatusCode} ", Name);
 
 		return new Url(detailUrl);
 	}
 
-	public override void Dispose()
-	{
-		
-	}
+	#region Overrides of WebContentSearchEngine
+
+	#endregion
+
+	public override void Dispose() { }
 
 	#region Overrides of WebContentSearchEngine
 

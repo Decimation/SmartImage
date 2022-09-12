@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
+using Kantan.Net.Utilities;
 
 namespace SmartImage.Lib.Engines;
 
@@ -17,8 +19,12 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	protected virtual async Task<IDocument> ParseDocumentAsync(Url origin)
 	{
-		var parser  = new HtmlParser();
-		var readStr = await origin.GetStringAsync();
+		var parser = new HtmlParser();
+
+		var readStr = await origin.AllowAnyHttpStatus()
+		                          .WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
+		                          /*.WithAutoRedirect(true)*/
+		                          .GetStringAsync();
 
 		var document = await parser.ParseDocumentAsync(readStr);
 
@@ -29,13 +35,14 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 	{
 		var r = await base.GetResultAsync(query);
 		var d = await ParseDocumentAsync(r.RawUrl);
-		var n = await GetNodesAsync(d);
+		var n = (await GetNodesAsync(d)).ToList();
 
 		foreach (INode node in n) {
 			var sri = await ParseResultItemAsync(node, r);
 			r.Results.Add(sri);
 		}
 
+		Debug.WriteLine($"{r.RawUrl} {d.TextContent?.Length} {n.Count}", Name);
 		return r;
 	}
 

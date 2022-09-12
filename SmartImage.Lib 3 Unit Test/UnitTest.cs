@@ -23,12 +23,12 @@ public class SetupTrace
 }
 
 [TestFixture]
-public class UnitTest_v3
+public class UnitTest
 {
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
 	[TestCase(@"https://i.imgur.com/QtCausw.png")]
-	public async Task Test1(string s)
+	public async Task SauceNao_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
 		var u  = await sq.UploadAsync();
@@ -44,7 +44,7 @@ public class UnitTest_v3
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
 	[TestCase(@"https://i.imgur.com/QtCausw.png")]
-	public async Task Test2(string s)
+	public async Task Iqdb_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
 		var u  = await sq.UploadAsync();
@@ -60,7 +60,7 @@ public class UnitTest_v3
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
 	[TestCase(@"https://i.imgur.com/QtCausw.png")]
-	public async Task Test3(string s)
+	public async Task Ascii2D_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
 		var u  = await sq.UploadAsync();
@@ -76,7 +76,7 @@ public class UnitTest_v3
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
 	[TestCase(@"https://i.imgur.com/QtCausw.png")]
-	public async Task Test5(string s)
+	public async Task Yandex_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
 		var u  = await sq.UploadAsync();
@@ -91,7 +91,7 @@ public class UnitTest_v3
 
 	[Test]
 	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test3.png")]
-	public async Task Test4(string s)
+	public async Task TraceMoe_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
 		var u  = await sq.UploadAsync();

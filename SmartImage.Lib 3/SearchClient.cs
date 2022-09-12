@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Flurl.Http;
 using Microsoft.Extensions.Configuration;
 using SmartImage.Lib.Engines;
 
@@ -15,6 +17,11 @@ public class SearchClient
 	public SearchClient(SearchConfig cfg)
 	{
 		Config = cfg;
+	}
+
+	static SearchClient()
+	{
+		
 	}
 
 	public async Task<IEnumerable<SearchResult>> RunSearchAsync(SearchQuery q, CancellationToken? t = null)
