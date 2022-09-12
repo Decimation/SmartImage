@@ -11,7 +11,7 @@ using Kantan.Net.Utilities;
 // ReSharper disable IdentifierTypo
 // ReSharper disable StringLiteralTypo
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class Ascii2DEngine : WebContentSearchEngine
 {
@@ -65,11 +65,11 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 	#region Overrides of WebContentSearchEngine
 
-	protected override Task<IEnumerable<INode>> GetNodesAsync(IDocument doc)
+	protected override Task<IList<INode>> GetNodesAsync(IDocument doc)
 	{
 		var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
 
-		return Task.FromResult<IEnumerable<INode>>(nodes);
+		return Task.FromResult<IList<INode>>(nodes);
 	}
 
 	protected override Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)

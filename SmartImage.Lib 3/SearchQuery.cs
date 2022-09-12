@@ -3,7 +3,7 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using Flurl.Http;
-using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Upload;
 
 namespace SmartImage.Lib;
 

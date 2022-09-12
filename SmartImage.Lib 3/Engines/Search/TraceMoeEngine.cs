@@ -9,7 +9,7 @@ using static Kantan.Diagnostics.LogCategories;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 /// <summary>
 /// 

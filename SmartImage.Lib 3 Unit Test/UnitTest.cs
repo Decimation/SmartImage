@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using NUnit.Framework;
-using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Engines.Search;
 using Assert = NUnit.Framework.Assert;
 using TestContext = NUnit.Framework.TestContext;
 

@@ -1,8 +1,7 @@
 ﻿using Novus.OS;
 using Novus.Utilities;
-using SmartImage.Lib.Engines.Impl;
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Engines.Upload;
 
 public abstract class BaseUploadEngine
 {
@@ -35,14 +34,15 @@ public abstract class BaseUploadEngine
 
 	protected void Verify(string file)
 	{
-		if (String.IsNullOrWhiteSpace(file)) {
+		if (string.IsNullOrWhiteSpace(file)) {
 			throw new ArgumentNullException(nameof(file));
 		}
 
 		if (!IsFileSizeValid(file)) {
-			throw new ArgumentException($"File {file} is too large (max {MaxSize} MB) for {Name}");
+			throw new ArgumentException($"File {file} is too large (max {MaxSize}) for {Name}");
 		}
 	}
 
-	public static readonly BaseUploadEngine[] All = ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
+	public static readonly BaseUploadEngine[] All =
+		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 }

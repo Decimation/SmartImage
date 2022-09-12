@@ -35,7 +35,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 	{
 		var r = await base.GetResultAsync(query);
 		var d = await ParseDocumentAsync(r.RawUrl);
-		var n = (await GetNodesAsync(d)).ToList();
+		var n = await GetNodesAsync(d);
 
 		foreach (INode node in n) {
 			var sri = await ParseResultItemAsync(node, r);
@@ -48,7 +48,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	#endregion
 
-	protected abstract Task<IEnumerable<INode>> GetNodesAsync(IDocument doc);
+	protected abstract Task<IList<INode>> GetNodesAsync(IDocument doc);
 
 	protected abstract Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r);
 }

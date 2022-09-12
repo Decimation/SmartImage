@@ -1,7 +1,7 @@
 ﻿
 // ReSharper disable UnusedMember.Global
 
-using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Engines.Search;
 
 namespace SmartImage.Lib;
 

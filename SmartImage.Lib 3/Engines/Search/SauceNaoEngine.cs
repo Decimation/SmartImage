@@ -7,7 +7,6 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
-using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using static Kantan.Diagnostics.LogCategories;
@@ -25,7 +24,7 @@ using JsonObject = System.Json.JsonObject;
 // ReSharper disable InconsistentNaming
 // ReSharper disable ParameterTypeCanBeEnumerable.Local
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class SauceNaoEngine : ClientSearchEngine
 {

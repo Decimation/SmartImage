@@ -8,14 +8,13 @@ using SmartImage.Lib;
 using Terminal.Gui;
 using static SmartImage.Gui;
 using Rune = System.Text.Rune;
+using Microsoft.Extensions.Configuration;
 
 #pragma warning disable CS0168
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage;
-
-using Microsoft.Extensions.Configuration;
 
 public static class Program
 {
@@ -25,7 +24,7 @@ public static class Program
 
 	internal static SearchClient Client { get; private set; }
 
-	internal static SearchQuery _query;
+	internal static SearchQuery _query { get; set; }
 
 	//todo
 	internal static CancellationTokenSource Cts { get; } = new();
@@ -34,8 +33,6 @@ public static class Program
 	internal static List<SearchResult> Results { get; } = new();
 
 	#endregion
-
-	//todo
 
 	//todo
 
@@ -53,13 +50,16 @@ public static class Program
 		Client = new SearchClient(Config);
 
 		var configuration = new ConfigurationBuilder();
-		configuration.AddJsonFile("smartimage.json", optional: true, reloadOnChange: true);
+
+		configuration.AddJsonFile("smartimage.json", optional: true, reloadOnChange: true)
+		             .AddCommandLine(args);
+
 		IConfigurationRoot configurationRoot = configuration.Build();
 		configurationRoot.Bind(Config);
 
-		Application.Init();
-
 		Console.OutputEncoding = Encoding.Unicode;
+
+		Application.Init();
 
 		Gui.Init();
 

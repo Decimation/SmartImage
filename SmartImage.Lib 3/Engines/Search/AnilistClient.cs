@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class AnilistClient : IDisposable
 {

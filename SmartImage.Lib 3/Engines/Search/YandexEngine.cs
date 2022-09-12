@@ -9,7 +9,7 @@ using Kantan.Text;
 
 #nullable disable
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class YandexEngine : WebContentSearchEngine
 {
@@ -154,18 +154,21 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	#region Overrides of WebContentSearchEngine
 
-	protected override async Task<IEnumerable<INode>> GetNodesAsync(IDocument doc)
+	protected override async Task<IList<INode>> GetNodesAsync(IDocument doc)
 	{
 		var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
 
 		if (tagsItem.Count == 0) {
-			return await Task.FromResult(Enumerable.Empty<INode>());
+			// return await Task.FromResult(Enumerable.Empty<INode>());
+			return await Task.FromResult(tagsItem);
 			// return tagsItem;
 		}
 
-		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class").Contains("CbirItem"));
+		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class").Contains("CbirItem")).ToList();
 
-		return sizeTags;
+		return await Task.FromResult(sizeTags);
+
+		// return sizeTags;
 	}
 
 	protected override Task<SearchResultItem> ParseResultItemAsync(INode siz, SearchResult r)

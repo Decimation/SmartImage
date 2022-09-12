@@ -1,20 +1,16 @@
 ﻿// ReSharper disable UnusedMember.Global
 
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
-using Kantan.Net;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 
 // ReSharper disable StringLiteralTypo
 
-namespace SmartImage.Lib.Engines.Impl;
+namespace SmartImage.Lib.Engines.Search;
 
 public sealed class IqdbEngine : ClientSearchEngine
 {

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Kantan.Net.Content;
 using OpenCvSharp;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines.Impl;
+using SmartImage.Lib.Engines.Search;
 using Point = OpenCvSharp.Point;
 using Size = OpenCvSharp.Size;
 
