@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System.CommandLine;
+using System.CommandLine.Builder;
 using System.CommandLine.Parsing;
 using System.Reflection;
 using System.Diagnostics;
@@ -12,6 +13,7 @@ using Terminal.Gui;
 using static SmartImage.Gui;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
+using Spectre.Console;
 
 #pragma warning disable CS0168
 
@@ -28,7 +30,7 @@ public static class Program
 	}, isDefault: false, "Query (file or direct image URL)");
 
 	private static readonly Option<string> Opt_Priority =
-		new("-p", description: "Priority engines", 
+		new("-p", description: "Priority engines",
 		    getDefaultValue: () => SearchEngineOptions.All.ToString());
 
 	private static readonly Option<string> Opt_Engines =
@@ -76,7 +78,8 @@ public static class Program
 		Client = new SearchClient(Config);
 
 #if TEST
-		args = new[] { "-q", "https://i.imgur.com/QtCausw.png", "-p", "All" };
+		// args = new String[] { null };
+		args = new[] { "-q", "https://i.imgur.com/QtCausw.png", "-p", "Artwork" };
 #endif
 
 		bool cli = args is { } && args.Any();
@@ -95,16 +98,19 @@ public static class Program
 
 			}, Opt_Query, Opt_Priority, Opt_Engines);
 
-			var r = await Cmd_Root.InvokeAsync(args);
+			var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp((ctx) => { }).Build();
+			var r      = await parser.InvokeAsync(args);
 
-			if (r!=0) {
+			if (r != 0||Query==null) {
 				return;
 			}
+
 			Console.WriteLine(Config);
 			Console.WriteLine(Client);
 			Console.WriteLine(Query);
 
 			var now = Stopwatch.StartNew();
+
 			var results = await Client.RunSearchAsync(Query, CancellationToken.None, async (sender, result) =>
 			{
 				Console.WriteLine($">> {result}");
