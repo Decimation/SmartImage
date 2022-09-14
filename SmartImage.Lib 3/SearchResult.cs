@@ -15,7 +15,7 @@ public enum SearchResultStatus
 
 public sealed class SearchResult
 {
-	public BaseSearchEngine Root { get; }
+	public BaseSearchEngine Engine { get; }
 
 	public Url RawUrl { get; internal set; }
 
@@ -35,12 +35,12 @@ public sealed class SearchResult
 
 	internal SearchResult(BaseSearchEngine bse)
 	{
-		Root    = bse;
+		Engine  = bse;
 		Results = new List<SearchResultItem>();
 	}
 
 	public override string ToString()
 	{
-		return $"[{Root.Name}] {RawUrl} | {Results.Count} | {Status}";
+		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status}";
 	}
 }

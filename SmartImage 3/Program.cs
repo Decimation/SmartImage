@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System.CommandLine;
 using System.CommandLine.Builder;
+using System.CommandLine.Help;
 using System.CommandLine.Parsing;
 using System.Reflection;
 using System.Diagnostics;
@@ -23,19 +24,18 @@ namespace SmartImage;
 
 public static class Program
 {
-	private static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: (x) =>
+	private static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: (ar) =>
 	{
-		return SearchQuery.TryCreateAsync(x.Tokens.Single().Value).Result;
+		return SearchQuery.TryCreateAsync(ar.Tokens.Single().Value).Result;
 
 	}, isDefault: false, "Query (file or direct image URL)");
 
 	private static readonly Option<string> Opt_Priority =
-		new("-p", description: "Priority engines",
-		    getDefaultValue: () => SearchEngineOptions.All.ToString());
+		new("-p", description: "Priority engines", getDefaultValue: () => SearchEngineOptions.All.ToString());
 
-	private static readonly Option<string> Opt_Engines =
-		new("-e", description: $"Search engines\n{Enum.GetValues<SearchEngineOptions>().QuickJoin("\n")}",
-		    getDefaultValue: () => SearchEngineOptions.All.ToString());
+	private static readonly Option<string> Opt_Engines = new(
+		"-e", description: $"Search engines\n{Enum.GetValues<SearchEngineOptions>().QuickJoin("\n")}",
+		getDefaultValue: () => SearchEngineOptions.All.ToString());
 
 	private static readonly RootCommand Cmd_Root = new("Run a search")
 	{
@@ -98,10 +98,21 @@ public static class Program
 
 			}, Opt_Query, Opt_Priority, Opt_Engines);
 
-			var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp((ctx) => { }).Build();
-			var r      = await parser.InvokeAsync(args);
+			var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp(async (ctx) =>
+			{
+				ctx.HelpBuilder.CustomizeLayout(
+					_ =>
+						HelpBuilder.Default.GetLayout()
+						           .Skip(1) // Skip the default command description section.
+						           .Prepend(
+							           _ => Spectre.Console.AnsiConsole.Write(
+								           new FigletText("SmartImage"))
+						           ));
+			}).Build();
 
-			if (r != 0||Query==null) {
+			var r = await parser.InvokeAsync(args);
+
+			if (r != 0 || Query == null) {
 				return;
 			}
 

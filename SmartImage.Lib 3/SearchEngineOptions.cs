@@ -67,7 +67,7 @@ public enum SearchEngineOptions
 	Bing = 1 << 9,
 
 	/// <summary>
-	///     <see cref="TidderEngine" />
+	///     <see cref="KarmaDecayEngine" />
 	/// </summary>
 	Tidder = 1 << 10,
 

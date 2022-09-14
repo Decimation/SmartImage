@@ -41,4 +41,13 @@ public record SearchResultItem
 	}
 
 	#endregion
+
+	public static bool Validate([CBN] SearchResultItem r)
+	{
+		return r switch
+		{
+			not { } => false,
+			_       => true
+		};
+	}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -34,21 +35,17 @@ public class SearchClient
 	{
 		t ??= CancellationToken.None;
 
-		var tasks = (BaseSearchEngine.All
-		                         .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
-		                         .Select(e1 =>
-		                         {
-			                         var task = e1.GetResultAsync(q);
-
-			                         return task;
-		                         })).ToList();
+		var tasks = BaseSearchEngine.All
+		                            .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
+		                            .Select(e => e.GetResultAsync(q))
+		                            .ToList();
 
 		var results = new List<SearchResult>();
 
 		while (tasks.Any()) {
 
-			var task = (await Task.WhenAny(tasks));
-			var result  = await task;
+			var task   = (await Task.WhenAny(tasks));
+			var result = await task;
 
 			var options = TaskContinuationOptions.AttachedToParent |
 			              TaskContinuationOptions.RunContinuationsAsynchronously |
@@ -56,11 +53,13 @@ public class SearchClient
 
 			ex?.Invoke(this, result);
 
-			if (Config.PriorityEngines.HasFlag(result.Root.EngineOption)) {
-				var url = result.Results?.FirstOrDefault(f => f.Url is { })?.Url;
+			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+				// var url = result.Results?.FirstOrDefault(f => f.Url is { })?.Url;
 
-				if (url is { }) {
-					HttpUtilities.OpenUrl(url);
+				var first = result.First;
+
+				if (first is { Url : { } }) {
+					HttpUtilities.OpenUrl(first.Url);
 				}
 			}
 

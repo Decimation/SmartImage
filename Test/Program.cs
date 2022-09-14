@@ -1,9 +1,18 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Net;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
+using AngleSharp.Html.Parser;
+using Kantan.Net.Utilities;
+using Microsoft.ClearScript.V8;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
@@ -36,12 +45,22 @@ public static class Program
 
 		Console.WriteLine(t);*/
 
+		var q = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
+		await q.UploadAsync();
+		var e = new KarmaDecayEngine();
+		var r = await e.GetResultAsync(q);
+		Console.WriteLine(r);
+
+	}
+	
+	private static async Task Test1()
+	{
 		var rg = new[] { "https://i.imgur.com/QtCausw.png", @"C:\Users\Deci\Pictures\Test Images\Test2.jpg" };
 
 		foreach (string s in rg) {
 			using var q = await SearchQuery.TryCreateAsync(s);
 
-			var cfg = new SearchConfig() {  };
+			var cfg = new SearchConfig() { };
 			var sc  = new SearchClient(cfg);
 
 			// Console.WriteLine(ImageQuery.TryCreate(u,out var q));

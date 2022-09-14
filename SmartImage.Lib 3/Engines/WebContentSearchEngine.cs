@@ -21,10 +21,13 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 	{
 		var parser = new HtmlParser();
 
-		var readStr = await origin.AllowAnyHttpStatus()
-		                          .WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
-		                          /*.WithAutoRedirect(true)*/
-		                          .GetStringAsync();
+		var res = await origin.AllowAnyHttpStatus()
+		                      .WithCookies(out var cj)
+		                      .WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
+		                      /*.WithAutoRedirect(true)*/
+		                      .GetAsync();
+
+		var readStr = await res.GetStringAsync();
 
 		var document = await parser.ParseDocumentAsync(readStr);
 
@@ -39,7 +42,12 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 		foreach (INode node in n) {
 			var sri = await ParseResultItemAsync(node, r);
-			r.Results.Add(sri);
+			if (SearchResultItem.Validate(sri)) {
+				r.Results.Add(sri);
+			}
+			else {
+				Debug.WriteLine($"{sri} failed validation", Name);
+			}
 		}
 
 		Debug.WriteLine($"{r.RawUrl} {d.TextContent?.Length} {n.Count}", Name);
