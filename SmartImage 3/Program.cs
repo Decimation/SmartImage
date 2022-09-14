@@ -72,7 +72,8 @@ public static class Program
 
 	public static async Task Main(string[] args)
 	{
-		Console.OutputEncoding = Encoding.Unicode;
+		// Console.OutputEncoding = Encoding.Unicode;
+		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 
 		Config = new SearchConfig();
 		Client = new SearchClient(Config);
@@ -121,13 +122,15 @@ public static class Program
 			Console.WriteLine(Query);
 
 			var now = Stopwatch.StartNew();
-
+			
 			var results = await Client.RunSearchAsync(Query, CancellationToken.None, async (sender, result) =>
 			{
-				Console.WriteLine($">> {result}");
+				AnsiConsole.MarkupLine($"[green]{result.Engine.Name}[/] | [link={result.RawUrl}]Raw[/]");
 
 				foreach (SearchResultItem item in result.Results) {
-					Console.WriteLine($"\t{item}");
+					// Console.WriteLine($"\t{item}");
+					AnsiConsole.MarkupLine(
+						$"\t[link={item.Url}]{item.Url.Root}[/] | {item.Similarity / 100:P} {item.Artist} {item.Description} [italic]{item.Title}[/] {item.Width}x{item.Height}");
 				}
 			});
 			now.Stop();

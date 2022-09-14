@@ -58,12 +58,19 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		IEnumerable<SauceNaoDataResult> dataResults;
 
-		if (UsingAPI) {
-			dataResults = await GetAPIResultsAsync(query);
-			Debug.WriteLine($"{Name} API key: {Authentication}");
+		try {
+			if (UsingAPI) {
+				dataResults = await GetAPIResultsAsync(query);
+				Debug.WriteLine($"{Name} API key: {Authentication}");
+			}
+			else {
+				dataResults = await GetWebResultsAsync(query);
+			}
 		}
-		else {
-			dataResults = await GetWebResultsAsync(query);
+		catch (Exception e) {
+			result.ErrorMessage = e.Message;
+			result.Status       = SearchResultStatus.Failure;
+			return result;
 		}
 
 		if (dataResults == null) {
@@ -239,7 +246,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var content = new FormUrlEncodedContent(values);
 
-		var res = await BASE_ENDPOINT.PostAsync(content);
+		var res = await BASE_ENDPOINT.AllowAnyHttpStatus().PostAsync(content);
 		var c   = await res.GetStringAsync();
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden) {
