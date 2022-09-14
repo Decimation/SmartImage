@@ -144,6 +144,7 @@ public static partial class Gui
 			Top.HotKey        = Key.Null;
 			Win.HotKey        = Key.Null;
 			Debug.WriteLine($"{All.Length}");
+			
 		}
 	}
 }

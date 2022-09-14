@@ -27,6 +27,12 @@ public sealed class SearchResult
 
 	public string Overview { get; internal set; }
 
+	[CBN]
+	public SearchResultItem First
+	{
+		get { return Results.FirstOrDefault(r => r.Url is { }); }
+	}
+
 	internal SearchResult(BaseSearchEngine bse)
 	{
 		Root    = bse;

@@ -22,4 +22,10 @@
     <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Kantan">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

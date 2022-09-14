@@ -10,13 +10,15 @@ namespace SmartImage.Lib;
 
 public class SearchConfig
 {
-	public SearchEngineOptions Engines
-	{
-		get;
-		set;
-	}
+	public SearchEngineOptions SearchEngines { get; set; } = SearchEngineOptions.All;
 
-	public SearchConfig()
+	public SearchEngineOptions PriorityEngines { get; set; } = SearchEngineOptions.Auto;
+
+	public SearchConfig() { }
+
+	public override string ToString()
 	{
+		return $"{nameof(SearchEngines)}: {SearchEngines}, \n" +
+		       $"{nameof(PriorityEngines)}: {PriorityEngines}";
 	}
 }

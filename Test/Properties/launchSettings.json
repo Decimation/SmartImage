@@ -1,0 +1,13 @@
+{
+  "profiles": {
+    "SmartImage.Lib Test": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "commandLineArgs": "-q 'https://i.imgur.com/QtCausw.png' -p All",
+      "nativeDebugging": false
+    }
+  }
+}

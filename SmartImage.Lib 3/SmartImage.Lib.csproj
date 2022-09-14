@@ -4,7 +4,8 @@
     <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>SmartImage.Lib</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-   
+    <Configurations>Debug;Release;Test</Configurations>
+
   </PropertyGroup>
 
   <ItemGroup>

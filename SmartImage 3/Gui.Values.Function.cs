@@ -37,7 +37,7 @@ public static partial class Gui
 					Debug.WriteLine($"{Program.Client.Config}");
 
 					var res =
-						(await Program.Client.RunSearchAsync(Program._query, Program.Cts.Token)).ToList();
+						(await Program.Client.RunSearchAsync(Program.Query, Program.Cts.Token)).ToList();
 					Program.Results.AddRange(res);
 					await Lv_Results.SetSourceAsync(res);
 
@@ -91,7 +91,7 @@ public static partial class Gui
 								Lbl_InputOk.Redraw(Lbl_InputOk.Bounds);
 
 								await q.UploadAsync();
-								Program._query = q;
+								Program.Query = q;
 
 								Tf_Query.Text = q.Upload.ToString();
 								Tf_Query.Redraw(Tf_Query.Bounds);
@@ -111,7 +111,7 @@ public static partial class Gui
 						if (_ok) {
 							Lbl_InputOk.Text += OK;
 
-							Debug.WriteLine($"{Program._query} - {_ok} - {Program._query.Upload}", "Query");
+							Debug.WriteLine($"{Program.Query} - {_ok} - {Program.Query.Upload}", "Query");
 						}
 						else {
 							Lbl_InputOk.Text = Err;
@@ -152,10 +152,10 @@ public static partial class Gui
 
 				switch (e) {
 					case SearchEngineOptions.None:
-						Program.Config.Engines = e;
+						Program.Config.SearchEngines = e;
 						break;
 					default:
-						Program.Config.Engines |= e;
+						Program.Config.SearchEngines |= e;
 						break;
 				}
 
@@ -164,12 +164,12 @@ public static partial class Gui
 				// Lv_Engines.Source.SetMark(eventArgs.Item, true);
 
 				// Debug.WriteLine($"{prev} | {e} -> {P.Config.SearchEngines}");
-				Debug.WriteLine($"{Program.Config.Engines}");
+				Debug.WriteLine($"{Program.Config.SearchEngines}");
 			}
 
 			private static void LvEngines_KeyPress(KeyEventEventArgs eventArgs)
 			{
-				Debug.WriteLine($"{eventArgs.KeyEvent} {Program.Config.Engines} {Lv_Engines.SelectedItem}");
+				Debug.WriteLine($"{eventArgs.KeyEvent} {Program.Config.SearchEngines} {Lv_Engines.SelectedItem}");
 			}
 
 			private static void LvEngines_OpenSelectedItem(ListViewItemEventArgs eventArgs)

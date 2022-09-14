@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Flurl.Http;
 using NUnit.Framework;
 using SmartImage.Lib.Engines.Search;
 using Assert = NUnit.Framework.Assert;
@@ -19,6 +20,35 @@ public class SetupTrace
 	public void EndTest()
 	{
 		Trace.Flush();
+	}
+}
+
+[TestFixture]
+public class UnitTest2
+{
+	[Test]
+	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
+	[TestCase(@"https://i.imgur.com/QtCausw.png")]
+	public async Task SearchQuery_Test(string s)
+	{
+		var sq = await SearchQuery.TryCreateAsync(s);
+		Assert.IsNotNull(sq);
+		var u = await sq.UploadAsync();
+		Assert.IsNotNull(u);
+		TestContext.WriteLine(sq);
+	}
+
+	[Test]
+	// [TestCase(@"C:\Users\Deci\Pictures\Test Images\Test999")]
+	[TestCase(@"https://imgur.com/QtCausw")]
+	public async Task SearchQuery_Test2(string s)
+	{
+
+		var sq = await SearchQuery.TryCreateAsync(s);
+
+		TestContext.WriteLine(sq);
+		Assert.IsNotEmpty(sq.FileTypes);
+
 	}
 }
 

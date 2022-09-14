@@ -3,6 +3,8 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using Flurl.Http;
+using Kantan.FileTypes;
+using Kantan.Text;
 using SmartImage.Lib.Engines.Upload;
 
 namespace SmartImage.Lib;
@@ -16,9 +18,11 @@ public sealed class SearchQuery : IDisposable
 	[MN]
 	public Url Upload { get; private set; }
 
-	public bool IsUrl { get; private set; }
+	public bool IsUrl { get; private init; }
 
-	public bool IsFile { get; private set; }
+	public bool IsFile { get; private init; }
+
+	public FileType[] FileTypes { get; private init; }
 
 	private SearchQuery(string value, Stream stream)
 	{
@@ -30,8 +34,8 @@ public sealed class SearchQuery : IDisposable
 
 	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
-		bool   isFile, isUrl;
-		var stream = Stream.Null;
+		bool isFile, isUrl;
+		var  stream = Stream.Null;
 
 		isFile = File.Exists(value);
 
@@ -40,14 +44,40 @@ public sealed class SearchQuery : IDisposable
 			isUrl  = false;
 		}
 		else {
-			stream = await value.GetStreamAsync();
-			isUrl  = true;
+			try {
+				var res = await value.AllowAnyHttpStatus()
+				                     .GetAsync();
+				
+				/*if (!res.ResponseMessage.IsSuccessStatusCode) {
+					Debug.WriteLine($"invalid status code {res.ResponseMessage.StatusCode} {value}");
+					return null;
+				}*/
+
+				stream = await res.GetStreamAsync();
+				isUrl  = true;
+
+			}
+			catch (FlurlHttpException e) {
+				Debug.WriteLine($"{e.Message} - {value}", nameof(SearchQuery));
+				return await Task.FromException<SearchQuery>(e);
+				// return null;
+			}
 		}
-		
+
+		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
+
+		var t = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
+
+		if (!t.Any()) {
+			var e = new ArgumentException("Invalid file types", nameof(value));
+			return await Task.FromException<SearchQuery>(e);
+		}
+
 		var sq = new SearchQuery(value, stream)
 		{
-			IsFile = isFile, 
-			IsUrl = isUrl
+			IsFile    = isFile,
+			IsUrl     = isUrl,
+			FileTypes = t
 		};
 
 		return sq;
@@ -73,6 +103,16 @@ public sealed class SearchQuery : IDisposable
 	public void Dispose()
 	{
 		Stream.Dispose();
+	}
+
+	#endregion
+
+	#region Overrides of Object
+
+	public override string ToString()
+	{
+		var s = IsFile ? "File" : (IsUrl ? "Url" : null);
+		return $"{Value} ({s}) : {Upload} [{FileTypes.QuickJoin()}]";
 	}
 
 	#endregion

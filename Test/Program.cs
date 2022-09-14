@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Kantan.Net.Content;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
@@ -42,7 +41,7 @@ public static class Program
 		foreach (string s in rg) {
 			using var q = await SearchQuery.TryCreateAsync(s);
 
-			var cfg = new SearchConfig() { Engines = SearchEngineOptions.All };
+			var cfg = new SearchConfig() {  };
 			var sc  = new SearchClient(cfg);
 
 			// Console.WriteLine(ImageQuery.TryCreate(u,out var q));
@@ -158,33 +157,6 @@ public static class Program
 			mssim = mssim
 		};
 		Console.WriteLine(result.score);
-	}
-
-	static void test1()
-	{
-		var di = HttpResourceHandle.GetAsync(@"http://i235.photobucket.com/albums/ee99/jay911_50/anime/bl/omfg.png");
-		di.Wait();
-
-		var o = di.Result;
-		o?.Resolve();
-
-		Console.WriteLine(
-			o);
-
-		Debugger.Break();
-		var wc    = new WebClient();
-		var png   = "https://i.imgur.com/QtCausw.png";
-		var name  = Path.GetFileName(png);
-		var name2 = Path.GetFileNameWithoutExtension(png);
-		var ext   = Path.GetExtension(png);
-		var read  = wc.OpenRead(png);
-		var img   = Image.FromStream(read);
-		// var img2  = ImageOperations.ResizeImage((Bitmap) img, img.Size / 2);
-
-		/*var    path = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-		string s    = Path.Combine(path, name2 + "-1" + ext);
-		Console.WriteLine(s);
-		img2.Save(s);*/
 	}
 
 	public class SSIMResult

@@ -3,10 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <Configurations>Debug;Release;Test;Test</Configurations>
+    <Configurations>Debug;Release;Test</Configurations>
     <NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
     <NoWarn>$(NoWarn);CS0618</NoWarn>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
