@@ -4,9 +4,8 @@ using NStack;
 using SmartImage.Lib;
 using Terminal.Gui;
 using static Terminal.Gui.View;
-using P = SmartImage.Program;
 
-namespace SmartImage;
+namespace SmartImage.UI;
 
 public static partial class Gui
 {
@@ -37,7 +36,7 @@ public static partial class Gui
 					Debug.WriteLine($"{Program.Client.Config}");
 
 					var res =
-						(await Program.Client.RunSearchAsync(Program.Query, Program.Cts.Token)).ToList();
+						(await Program.Client.RunSearchAsync(Program.Query)).ToList();
 					Program.Results.AddRange(res);
 					await Lv_Results.SetSourceAsync(res);
 
@@ -79,7 +78,6 @@ public static partial class Gui
 			{
 				switch (eventArgs.KeyEvent.Key) {
 					case Key.Enter:
-						Task ret;
 
 						try {
 							var s = Tf_Input.Text.ToString();
@@ -179,7 +177,9 @@ public static partial class Gui
 
 			private static void BtnClear_KeyPress(KeyEventEventArgs args)
 			{
-				switch (args.KeyEvent) { }
+				switch (args.KeyEvent) {
+					//todo
+				}
 			}
 
 			private static void BtnClear_Clicked()

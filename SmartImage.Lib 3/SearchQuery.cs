@@ -5,7 +5,6 @@ using System.Diagnostics;
 using Flurl.Http;
 using Novus.FileTypes;
 using Kantan.Text;
-using Novus.FileTypes;
 using SmartImage.Lib.Engines.Upload;
 
 namespace SmartImage.Lib;

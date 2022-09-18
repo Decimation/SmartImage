@@ -10,9 +10,21 @@ namespace SmartImage.Lib;
 
 public sealed class SearchConfig
 {
-	public SearchEngineOptions SearchEngines { get; set; } = SearchEngineOptions.All;
+	/// <summary>
+	/// Default value for <see cref="SearchEngines"/>
+	/// </summary>
+	public const SearchEngineOptions SE_DEFAULT = SearchEngineOptions.All;
 
-	public SearchEngineOptions PriorityEngines { get; set; } = SearchEngineOptions.Auto;
+	/// <summary>
+	/// Default value for <see cref="PriorityEngines"/>
+	/// </summary>
+	public const SearchEngineOptions PE_DEFAULT = SearchEngineOptions.Auto;
+
+	public SearchEngineOptions SearchEngines { get; set; } = SE_DEFAULT;
+
+	public SearchEngineOptions PriorityEngines { get; set; } = PE_DEFAULT;
+
+	public bool OnTop { get; set; }
 
 	public SearchConfig() { }
 

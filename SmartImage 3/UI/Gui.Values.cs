@@ -1,18 +1,13 @@
 ﻿using System.Data;
 using System.Diagnostics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
-using Kantan.Text;
-using Novus.Utilities;
 using NStack;
 using SmartImage.Lib;
 using Terminal.Gui;
-using Attribute = System.Attribute;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage;
+namespace SmartImage.UI;
 
 public static partial class Gui
 {
@@ -31,7 +26,8 @@ public static partial class Gui
 
 		private static ustring NA => ustring.Make(Application.Driver.RightDefaultIndicator);
 
-		private static ustring OK  => ustring.Make(Application.Driver.Checked);
+		private static ustring OK => ustring.Make(Application.Driver.Checked);
+
 		private static ustring PRC => ustring.Make(Application.Driver.Diamond);
 
 		private static readonly SearchEngineOptions[] EngineNames = Enum.GetValues<SearchEngineOptions>();
@@ -108,15 +104,16 @@ public static partial class Gui
 
 		};
 
-		private static readonly ComboBox Cb_Engines = new(new Rect(3, 8, 15,25),EngineNames)
+		private static readonly ComboBox Cb_Engines = new(new Rect(3, 8, 15, 25), EngineNames)
 		{
 			// CanFocus = true,
 			// ColorScheme             = GS.CS_Elem3,
 		};
-		private static readonly ListView Lv_Results = new(new Rect(20, 8, 25, 30),Program.Results)
+
+		private static readonly ListView Lv_Results = new(new Rect(20, 8, 25, 30), Program.Results)
 		{
-			X= Pos.Right(Cb_Engines),
-			Y=Pos.Bottom(Btn_Ok), AutoSize = true
+			X = Pos.Right(Cb_Engines),
+			Y = Pos.Bottom(Btn_Ok), AutoSize = true
 		};
 
 		private static readonly Label Lbl_Query = new(">>>")
@@ -141,10 +138,10 @@ public static partial class Gui
 
 			Top.Add(Win);
 
-			Top.HotKey        = Key.Null;
-			Win.HotKey        = Key.Null;
+			Top.HotKey = Key.Null;
+			Win.HotKey = Key.Null;
 			Debug.WriteLine($"{All.Length}");
-			
+
 		}
 	}
 }

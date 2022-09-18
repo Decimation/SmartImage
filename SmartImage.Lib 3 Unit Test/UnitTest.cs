@@ -53,6 +53,7 @@ public class UnitTest2
 }
 
 [TestFixture]
+[Parallelizable]
 public class UnitTest
 {
 	private static object[] _rg =

@@ -15,7 +15,7 @@ using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib;
 
-public class SearchClient
+public sealed class SearchClient
 {
 	public SearchConfig Config { get; }
 
@@ -44,10 +44,6 @@ public class SearchClient
 
 			var task   = (await Task.WhenAny(tasks));
 			var result = await task;
-
-			var options = TaskContinuationOptions.AttachedToParent |
-			              TaskContinuationOptions.RunContinuationsAsynchronously |
-			              TaskContinuationOptions.OnlyOnRanToCompletion;
 
 			callback?.Invoke(this, result);
 
