@@ -26,18 +26,16 @@ public class SearchClient
 
 	static SearchClient() { }
 
-	public delegate Task AsyncEventHandler(object sender, SearchResult e);
+	public delegate Task AsyncResultCompleteCallback(object sender, SearchResult e);
 
-	public delegate void AsyncEventHandler2(object sender, SearchResult e);
-
-	public async Task<List<SearchResult>> RunSearchAsync(SearchQuery q, CancellationToken? t = null,
-	                                                     AsyncEventHandler ex = null)
+	public async Task<List<SearchResult>> RunSearchAsync(SearchQuery query, CancellationToken? token = null,
+	                                                     AsyncResultCompleteCallback callback = null)
 	{
-		t ??= CancellationToken.None;
+		token ??= CancellationToken.None;
 
 		var tasks = BaseSearchEngine.All
 		                            .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
-		                            .Select(e => e.GetResultAsync(q))
+		                            .Select(e => e.GetResultAsync(query))
 		                            .ToList();
 
 		var results = new List<SearchResult>();
@@ -51,7 +49,7 @@ public class SearchClient
 			              TaskContinuationOptions.RunContinuationsAsynchronously |
 			              TaskContinuationOptions.OnlyOnRanToCompletion;
 
-			ex?.Invoke(this, result);
+			callback?.Invoke(this, result);
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 				// var url = result.Results?.FirstOrDefault(f => f.Url is { })?.Url;

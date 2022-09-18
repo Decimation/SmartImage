@@ -101,7 +101,6 @@ public sealed class IqdbEngine : ClientSearchEngine
 		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-
 			m.AddString("url", query.IsUrl ? query.Value : String.Empty);
 
 			if (query.IsUrl) { }

@@ -106,7 +106,7 @@ public static class Program
 						HelpBuilder.Default.GetLayout()
 						           .Skip(1) // Skip the default command description section.
 						           .Prepend(
-							           _ => Spectre.Console.AnsiConsole.Write(
+							           _ => AnsiConsole.Write(
 								           new FigletText("SmartImage"))
 						           ));
 			}).Build();
@@ -117,12 +117,12 @@ public static class Program
 				return;
 			}
 
-			Console.WriteLine(Config);
-			Console.WriteLine(Client);
-			Console.WriteLine(Query);
+			AnsiConsole.WriteLine(Config.ToString());
+			AnsiConsole.WriteLine(Client.ToString());
+			AnsiConsole.WriteLine(Query.ToString());
 
 			var now = Stopwatch.StartNew();
-			
+
 			var results = await Client.RunSearchAsync(Query, CancellationToken.None, async (sender, result) =>
 			{
 				AnsiConsole.MarkupLine($"[green]{result.Engine.Name}[/] | [link={result.RawUrl}]Raw[/]");
@@ -130,12 +130,14 @@ public static class Program
 				foreach (SearchResultItem item in result.Results) {
 					// Console.WriteLine($"\t{item}");
 					AnsiConsole.MarkupLine(
-						$"\t[link={item.Url}]{item.Url.Root}[/] | {item.Similarity / 100:P} {item.Artist} {item.Description} [italic]{item.Title}[/] {item.Width}x{item.Height}");
+						$"\t[link={item.Url}]{item.Root.Engine.Name}[/] | {item.Similarity / 100:P} {item.Artist} " +
+						$"{item.Description} [italic]{item.Title}[/] {item.Width}x{item.Height}");
 				}
 			});
+
 			now.Stop();
 			var diff = now.Elapsed;
-			Console.WriteLine($"Completed in ~{diff.TotalSeconds}");
+			AnsiConsole.WriteLine($"Completed in ~{diff.TotalSeconds}");
 		}
 
 		else {

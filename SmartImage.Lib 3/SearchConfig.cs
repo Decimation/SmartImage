@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace SmartImage.Lib;
 
-public class SearchConfig
+public sealed class SearchConfig
 {
 	public SearchEngineOptions SearchEngines { get; set; } = SearchEngineOptions.All;
 

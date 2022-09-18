@@ -116,7 +116,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 			try {
 				string anilistUrl = ANILIST_URL + doc.anilist;
-				string name       = await m_anilistClient.GetTitle((int) doc.anilist);
+				string name       = await m_anilistClient.GetTitleAsync((int) doc.anilist);
 				result.Source = name;
 				result.Url    = new Uri(anilistUrl);
 			}

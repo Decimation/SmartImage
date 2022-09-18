@@ -36,22 +36,23 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
 	{
-		var r = await base.GetResultAsync(query);
-		var d = await ParseDocumentAsync(r.RawUrl);
-		var n = await GetNodesAsync(d);
+		var result = await base.GetResultAsync(query);
+		var doc    = await ParseDocumentAsync(result.RawUrl);
+		var nodes  = await GetNodesAsync(doc);
 
-		foreach (INode node in n) {
-			var sri = await ParseResultItemAsync(node, r);
+		foreach (INode node in nodes) {
+			var sri = await ParseResultItemAsync(node, result);
+
 			if (SearchResultItem.Validate(sri)) {
-				r.Results.Add(sri);
+				result.Results.Add(sri);
 			}
 			else {
 				Debug.WriteLine($"{sri} failed validation", Name);
 			}
 		}
 
-		Debug.WriteLine($"{r.RawUrl} {d.TextContent?.Length} {n.Count}", Name);
-		return r;
+		Debug.WriteLine($"{result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", Name);
+		return result;
 	}
 
 	#endregion

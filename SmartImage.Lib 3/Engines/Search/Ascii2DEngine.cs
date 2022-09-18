@@ -57,10 +57,6 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		return new Url(detailUrl);
 	}
 
-	#region Overrides of WebContentSearchEngine
-
-	#endregion
-
 	public override void Dispose() { }
 
 	#region Overrides of WebContentSearchEngine

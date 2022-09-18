@@ -21,6 +21,8 @@ public record SearchResultItem
 
 	public string Description { get; internal set; }
 
+	public string Character { get; internal set; }
+
 	public string Site { get; internal set; }
 
 	public double? Similarity { get; internal set; }
@@ -37,7 +39,7 @@ public record SearchResultItem
 
 	public override string ToString()
 	{
-		return $"[link]{Url}[/] {Similarity/100:P} {Artist} {Description} {Site} {Source} {Title}";
+		return $"[link]{Url}[/] {Similarity/100:P} {Artist} {Description} {Site} {Source} {Title} {Character}";
 	}
 
 	#endregion

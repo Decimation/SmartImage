@@ -55,9 +55,21 @@ public class UnitTest2
 [TestFixture]
 public class UnitTest
 {
+	private static object[] _rg =
+	{
+		@"C:\Users\Deci\Pictures\Test Images\Test1.jpg",
+		@"https://i.imgur.com/QtCausw.png",
+		@"C:\Users\Deci\Pictures\Test Images\Test3.png"
+	};
+
+	private static object[] _rg2 =
+	{
+		
+		@"C:\Users\Deci\Pictures\Test Images\Test3.png"
+	};
+
 	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
-	[TestCase(@"https://i.imgur.com/QtCausw.png")]
+	[TestCaseSource(nameof(_rg))]
 	public async Task SauceNao_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
@@ -72,8 +84,7 @@ public class UnitTest
 	}
 
 	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
-	[TestCase(@"https://i.imgur.com/QtCausw.png")]
+	[TestCaseSource(nameof(_rg))]
 	public async Task Iqdb_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
@@ -88,8 +99,7 @@ public class UnitTest
 	}
 
 	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
-	[TestCase(@"https://i.imgur.com/QtCausw.png")]
+	[TestCaseSource(nameof(_rg))]
 	public async Task Ascii2D_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
@@ -104,8 +114,7 @@ public class UnitTest
 	}
 
 	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
-	[TestCase(@"https://i.imgur.com/QtCausw.png")]
+	[TestCaseSource(nameof(_rg))]
 	public async Task Yandex_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
@@ -120,7 +129,7 @@ public class UnitTest
 	}
 
 	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test3.png")]
+	[TestCaseSource(nameof(_rg2))]
 	public async Task TraceMoe_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);

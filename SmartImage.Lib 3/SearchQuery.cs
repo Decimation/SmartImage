@@ -3,11 +3,14 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using Flurl.Http;
-using Kantan.FileTypes;
+using Novus.FileTypes;
 using Kantan.Text;
+using Novus.FileTypes;
 using SmartImage.Lib.Engines.Upload;
 
 namespace SmartImage.Lib;
+
+//todo: DynamicResource
 
 public sealed class SearchQuery : IDisposable
 {
@@ -47,7 +50,7 @@ public sealed class SearchQuery : IDisposable
 			try {
 				var res = await value.AllowAnyHttpStatus()
 				                     .GetAsync();
-				
+
 				/*if (!res.ResponseMessage.IsSuccessStatusCode) {
 					Debug.WriteLine($"invalid status code {res.ResponseMessage.StatusCode} {value}");
 					return null;
@@ -66,9 +69,9 @@ public sealed class SearchQuery : IDisposable
 
 		// Trace.Assert((isFile || isUrl) && !(isFile && isUrl));
 
-		var t = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
+		var types = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
 
-		if (!t.Any()) {
+		if (!types.Any()) {
 			var e = new ArgumentException("Invalid file types", nameof(value));
 			return await Task.FromException<SearchQuery>(e);
 		}
@@ -77,7 +80,7 @@ public sealed class SearchQuery : IDisposable
 		{
 			IsFile    = isFile,
 			IsUrl     = isUrl,
-			FileTypes = t
+			FileTypes = types
 		};
 
 		return sq;

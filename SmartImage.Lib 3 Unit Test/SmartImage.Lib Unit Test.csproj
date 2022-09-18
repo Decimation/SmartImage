@@ -26,6 +26,9 @@
     <Reference Include="Kantan">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
     </Reference>
+    <Reference Include="Novus">
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net6.0\Novus.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
 </Project>

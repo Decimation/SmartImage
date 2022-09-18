@@ -184,6 +184,12 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 				link = element.GetAttribute("href");
 			}
 
+			if (resultmiscinfo != null) {
+				link ??= resultmiscinfo.ChildNodes.GetElementsByTagName("a")
+				                       .FirstOrDefault(x => x.GetAttribute("href") != null)?
+				                       .GetAttribute("href");
+			}
+
 			//	//div[contains(@class, 'resulttitle')]
 			//	//div/node()[self::strong]
 
@@ -329,8 +335,8 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			Description = Strings.NormalizeNull(sn.WebsiteTitle),
 			Artist      = Strings.NormalizeNull(sn.Creator),
 			Source      = Strings.NormalizeNull(sn.Material),
-			// Characters  = Strings.NormalizeNull(sn.Character),
-			Site = Strings.NormalizeNull(siteName)
+			Character   = Strings.NormalizeNull(sn.Character),
+			Site        = Strings.NormalizeNull(siteName)
 		};
 
 		return imageResult;

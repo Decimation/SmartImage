@@ -16,7 +16,7 @@ public sealed class AnilistClient : IDisposable
 		m_client = new GraphQLClient("https://graphql.anilist.co");
 	}
 
-	public async Task<string> GetTitle(int anilistId)
+	public async Task<string> GetTitleAsync(int anilistId)
 	{
 		/*
 		 * https://anilist.gitbook.io/anilist-apiv2-docs/overview/graphql
