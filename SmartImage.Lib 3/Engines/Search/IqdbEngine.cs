@@ -117,11 +117,11 @@ public sealed class IqdbEngine : ClientSearchEngine
 		return parser.ParseDocument(s);
 	}
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		// Don't select other results
 		// var query = (ImageQuery)obj;
-		var sr  = await base.GetResultAsync(query);
+		var sr  = await base.GetResultAsync(query, token);
 		var doc = await GetDocumentAsync(query);
 
 		var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");

@@ -8,7 +8,7 @@ using System.Runtime.CompilerServices;
 
 #nullable disable
 
-namespace SmartImage.UI;
+namespace SmartImage.UI_Old;
 
 /// <summary>
 /// Root class for <see cref="Gui"/>

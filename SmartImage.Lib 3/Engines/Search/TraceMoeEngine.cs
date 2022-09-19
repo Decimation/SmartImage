@@ -30,13 +30,13 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		// https://soruly.github.io/trace.moe/#/
 
 		TraceMoeRootObject tm = null;
 
-		var r  = await base.GetResultAsync(query);
+		var r = await base.GetResultAsync(query, token);
 
 		try {
 			IFlurlRequest request = (EndpointUrl + "/search")
@@ -99,8 +99,8 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 
 	private async Task<IEnumerable<SearchResultItem>> ConvertResults(TraceMoeRootObject obj, SearchResult sr)
 	{
-		var results      = obj.result;
-		var items = new SearchResultItem[results.Count];
+		var results = obj.result;
+		var items   = new SearchResultItem[results.Count];
 
 		for (int i = 0; i < items.Length; i++) {
 			var   doc = results[i];

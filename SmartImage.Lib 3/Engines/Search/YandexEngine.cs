@@ -94,7 +94,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		return (w, h);
 	}
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		var url = await GetRawUrlAsync(query);
 		var doc = await ParseDocumentAsync(url);

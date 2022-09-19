@@ -21,10 +21,12 @@ public sealed class SearchResult
 
 	public List<SearchResultItem> Results { get; internal set; }
 
+	[CBN]
 	public string ErrorMessage { get; internal set; }
 
 	public SearchResultStatus Status { get; internal set; }
 
+	[CBN]
 	public string Overview { get; internal set; }
 
 	[CBN]

@@ -9,8 +9,14 @@ namespace SmartImage.Lib.Engines;
 
 public abstract class BaseSearchEngine : IDisposable
 {
+	/// <summary>
+	/// The corresponding <see cref="SearchEngineOptions"/> of this engine
+	/// </summary>
 	public abstract SearchEngineOptions EngineOption { get; }
 
+	/// <summary>
+	/// Name of this engine
+	/// </summary>
 	public virtual string Name => EngineOption.ToString();
 
 	public virtual string BaseUrl { get; }
@@ -30,11 +36,13 @@ public abstract class BaseSearchEngine : IDisposable
 			settings.Redirects.MaxAutoRedirects           = 15;   // default 10 (consecutive)
 		});*/
 
-		Trace.WriteLine($"Configured HTTP", nameof(BaseSearchEngine));
+		// Trace.WriteLine($"Configured HTTP", nameof(BaseSearchEngine));
 	}
 
-	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query)
+	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		token ??= CancellationToken.None;
+
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query)

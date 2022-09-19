@@ -17,7 +17,7 @@ namespace SmartImage.Lib;
 
 public sealed class SearchClient
 {
-	public SearchConfig Config { get; }
+	public SearchConfig Config { get; init; }
 
 	public SearchClient(SearchConfig cfg)
 	{
@@ -28,6 +28,12 @@ public sealed class SearchClient
 
 	public delegate Task AsyncResultCompleteCallback(object sender, SearchResult e);
 
+	/// <summary>
+	/// Runs a search of <paramref name="query"/>.
+	/// </summary>
+	/// <param name="query">Search query</param>
+	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
+	/// <param name="callback">Callback function invoked when a result is returned</param>
 	public async Task<List<SearchResult>> RunSearchAsync(SearchQuery query, CancellationToken? token = null,
 	                                                     AsyncResultCompleteCallback callback = null)
 	{
@@ -42,7 +48,7 @@ public sealed class SearchClient
 
 		while (tasks.Any()) {
 
-			var task   = (await Task.WhenAny(tasks));
+			var task   = await Task.WhenAny(tasks);
 			var result = await task;
 
 			callback?.Invoke(this, result);

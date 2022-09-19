@@ -8,6 +8,14 @@
     <Nullable>enable</Nullable>
     <StartupObject>SmartImage.Program</StartupObject>
     <Configurations>Debug;Release;Test</Configurations>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <ApplicationIcon>..\Assets\Icon.ico</ApplicationIcon>
+    <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
 
   </PropertyGroup>
 
@@ -64,7 +72,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Cli\" />
+    <Folder Include="Console\" />
   </ItemGroup>
-
+  <PropertyGroup>
+    <PackageId>SmartImage</PackageId>
+    <Version>3.0.0</Version>
+    <Authors>Read Stanton (Decimation)</Authors>
+    <PackageTags>Image reverse search identification source sauce</PackageTags>
+    <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
+    <PackageIcon>Icon.png</PackageIcon>
+    <Description>Reverse image search identification library. Features Windows context menu integration and a command line interface.</Description>
+    <!-- <Copyright>Copyright 2022</Copyright> -->
+    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
+    <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
+  </PropertyGroup>
 </Project>

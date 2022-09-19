@@ -5,7 +5,7 @@ using SmartImage.Lib;
 using Terminal.Gui;
 using static Terminal.Gui.View;
 
-namespace SmartImage.UI;
+namespace SmartImage.UI_Old;
 
 public static partial class Gui
 {

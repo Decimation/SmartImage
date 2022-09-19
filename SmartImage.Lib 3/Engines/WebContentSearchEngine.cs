@@ -34,13 +34,19 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		return document;
 	}
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
-		var result = await base.GetResultAsync(query);
+		token ??= CancellationToken.None;
+
+		var result = await base.GetResultAsync(query, token);
 		var doc    = await ParseDocumentAsync(result.RawUrl);
 		var nodes  = await GetNodesAsync(doc);
 
 		foreach (INode node in nodes) {
+			if (token.Value.IsCancellationRequested) {
+				break;
+			}
+
 			var sri = await ParseResultItemAsync(node, result);
 
 			if (SearchResultItem.Validate(sri)) {
@@ -52,6 +58,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		}
 
 		Debug.WriteLine($"{result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", Name);
+
 		return result;
 	}
 

@@ -11,11 +11,11 @@ using Kantan.Text;
 using Microsoft.Extensions.Hosting;
 using SmartImage.Lib;
 using Terminal.Gui;
-using static SmartImage.UI.Gui;
+using static SmartImage.UI_Old.Gui;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
 using Novus.OS.Win32;
-using SmartImage.UI;
+using SmartImage.Cli_;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
@@ -52,8 +52,6 @@ public static class Program
 		Opt_OnTop
 	};
 
-	public static readonly Table tr = new();
-
 	#endregion
 
 	#region
@@ -68,8 +66,6 @@ public static class Program
 	internal static List<SearchResult> Results { get; private set; }
 
 	#endregion
-
-	//todo
 
 	[ModuleInitializer]
 	public static void Init()
@@ -103,33 +99,6 @@ public static class Program
 				return;
 			}
 
-			var table = new Table()
-				{ };
-
-			table.AddColumns(new TableColumn("Input"), new TableColumn("Value"))
-			     .AddRow("[cyan]Search engines[/]", Config.SearchEngines.ToString())
-			     .AddRow("[cyan]Priority engines[/]", Config.PriorityEngines.ToString())
-			     .AddRow("[blue]Query value[/]", Query.Value)
-			     .AddRow("[blue]Query upload[/]", Query.Upload.ToString());
-
-			AnsiConsole.Write(table);
-
-			var now = Stopwatch.StartNew();
-
-			var t = AnsiConsole.Live(tr)
-			                   .AutoClear(false)
-			                   .Overflow(VerticalOverflow.Ellipsis)
-			                   .Cropping(VerticalOverflowCropping.Top)
-			                   .StartAsync(Func);
-
-			_b      = false;
-			Results = await Client.RunSearchAsync(Query, CancellationToken.None, Callback);
-			_b      = true;
-			await t;
-
-			now.Stop();
-			var diff = now.Elapsed;
-			AnsiConsole.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
 		}
 
 		else {
@@ -141,19 +110,57 @@ public static class Program
 			IConfigurationRoot configurationRoot = configuration.Build();
 			configurationRoot.Bind(Config);*/
 
-			Application.Init();
-
+			/*Application.Init();
 			Gui.Init();
-
 			Application.Run();
-			Application.Shutdown();
+			Application.Shutdown();*/
+
+			var q  = AnsiConsole.Prompt(Cli.Prompt);
+			var t1 = AnsiConsole.Prompt(Cli.Prompt2);
+			var t2 = AnsiConsole.Prompt(Cli.Prompt2);
+			var t4 = AnsiConsole.Prompt(Cli.Prompt3);
+
+			await RootHandler(Query, t1, t2, t4);
 		}
+
+		await RunMain();
 
 	}
 
-	private static async Task Func(LiveDisplayContext ctx)
+	private static async Task RunMain()
 	{
-		tr.AddColumns("Engine", "Raw", nameof(SearchResult.Results));
+		var table = new Table()
+			{ };
+
+		table.AddColumns(new TableColumn("Input"), new TableColumn("Value"))
+		     .AddRow("[cyan]Search engines[/]", Config.SearchEngines.ToString())
+		     .AddRow("[cyan]Priority engines[/]", Config.PriorityEngines.ToString())
+		     .AddRow("[blue]Query value[/]", Query.Value)
+		     .AddRow("[blue]Query upload[/]", Query.Upload.ToString());
+
+		AnsiConsole.Write(table);
+
+		var now = Stopwatch.StartNew();
+
+		var live = AnsiConsole.Live(Cli.ResultsTable)
+		                      .AutoClear(false)
+		                      .Overflow(VerticalOverflow.Ellipsis)
+		                      .Cropping(VerticalOverflowCropping.Top)
+		                      .StartAsync(LiveCallback);
+
+		_b      = false;
+		Results = await Client.RunSearchAsync(Query, CancellationToken.None, SearchCallback);
+		_b      = true;
+		await live;
+
+		now.Stop();
+		var diff = now.Elapsed;
+		AnsiConsole.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
+	}
+
+	private static async Task LiveCallback(LiveDisplayContext ctx)
+	{
+		Cli.ResultsTable.AddColumns("Engine", "Raw", nameof(SearchResult.Results));
 
 		while (!_b) {
 			ctx.Refresh();
@@ -163,27 +170,54 @@ public static class Program
 
 	private static volatile bool _b = false;
 
-	private static async Task Callback(object sender, SearchResult result)
+	private static async Task SearchCallback(object sender, SearchResult result)
 	{
 
 		// AnsiConsole.MarkupLine($"[green]{result.Engine.Name}[/] | [link={result.RawUrl}]Raw[/]");
 
 		var tx = new Table();
 
-		tx.AddColumns(new TableColumn(nameof(SearchResultItem.Url)),
-		              new TableColumn(nameof(SearchResultItem.Similarity)));
+		var col = new TableColumn[]
+		{
+			new(nameof(SearchResultItem.Url)),
+			new(nameof(SearchResultItem.Similarity)),
+			new(nameof(SearchResultItem.Artist)),
+			new(nameof(SearchResultItem.Character)),
+			new(nameof(SearchResultItem.Source)),
+			new(nameof(SearchResultItem.Description)),
+			new("Dimensions")
+
+		};
+
+		tx.AddColumns(col);
 
 		foreach (SearchResultItem item in result.Results) {
 			/*AnsiConsole.MarkupLine(
 				$"\t[link={item.Url}]{item.Root.Engine.Name}[/] | {item.Similarity / 100:P} {item.Artist} " +
 				$"{item.Description} [italic]{item.Title}[/] {item.Width}x{item.Height}");*/
-			tx.AddRow(($"[link={item.Url}]Link[/]"), ($"{item.Similarity / 100:P}"));
+
+			var row = new[]
+			{
+				$"[link={item.Url}]Link[/]",
+				(($"{item.Similarity / 100:P}")),
+				($"{item.Artist}").EscapeMarkup(),
+				($"{item.Character}"),
+				($"{item.Source}").EscapeMarkup(),
+				$"{item.Description}".EscapeMarkup(),
+				$"{item.Width}x{item.Height}"
+			};
+
+			tx.AddRow(row);
 		}
 
-		var rawText  = new Text(result.RawUrl.ToString()) { Overflow = Overflow.Ellipsis };
+		var rawText = new Text("Raw", Style.WithLink(result.RawUrl))
+		{
+			Overflow = Overflow.Ellipsis,
+		};
+
 		var nameText = new Text(result.Engine.Name);
 
-		tr.AddRow(nameText, rawText, tx);
+		Cli.ResultsTable.AddRow(nameText, rawText, tx);
 
 		return;
 	}
@@ -208,8 +242,8 @@ public static class Program
 			                 ctx.Status = "Uploaded";
 		                 });
 
-		Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(t2);
-		Config.SearchEngines   = Enum.Parse<SearchEngineOptions>(t3);
+		Config.SearchEngines   = Enum.Parse<SearchEngineOptions>(t2);
+		Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(t3);
 
 		Config.OnTop = t4;
 

@@ -52,9 +52,9 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
-		var result = await base.GetResultAsync(query);
+		var result = await base.GetResultAsync(query, token);
 
 		IEnumerable<SauceNaoDataResult> dataResults;
 
