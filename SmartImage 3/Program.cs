@@ -160,7 +160,7 @@ public static class Program
 
 	private static async Task LiveCallback(LiveDisplayContext ctx)
 	{
-		Cli.ResultsTable.AddColumns("Engine", "Raw", nameof(SearchResult.Results));
+		Cli.ResultsTable.AddColumns("Engine", "Info", nameof(SearchResult.Results));
 
 		while (!_b) {
 			ctx.Refresh();

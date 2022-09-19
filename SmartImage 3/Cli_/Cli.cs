@@ -49,5 +49,6 @@ public static class Cli
 	static Cli()
 	{
 		Prompt2 = Prompt2.DefaultValue(SearchConfig.SE_DEFAULT.ToString());
+		Prompt3 = Prompt3.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
 	}
 }

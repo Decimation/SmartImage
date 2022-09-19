@@ -54,7 +54,6 @@ public sealed class SearchClient
 			callback?.Invoke(this, result);
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
-				// var url = result.Results?.FirstOrDefault(f => f.Url is { })?.Url;
 
 				var first = result.First;
 

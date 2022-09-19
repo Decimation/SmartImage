@@ -15,8 +15,14 @@ public enum SearchResultStatus
 
 public sealed class SearchResult
 {
+	/// <summary>
+	/// Engine
+	/// </summary>
 	public BaseSearchEngine Engine { get; }
 
+	/// <summary>
+	/// Undifferentiated result URL
+	/// </summary>
 	public Url RawUrl { get; internal set; }
 
 	public List<SearchResultItem> Results { get; internal set; }

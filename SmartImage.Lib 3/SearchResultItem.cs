@@ -1,5 +1,6 @@
 ﻿using System.Dynamic;
 using Flurl;
+using Novus.FileTypes;
 
 namespace SmartImage.Lib;
 
@@ -47,7 +48,7 @@ public record SearchResultItem
 
 	public override string ToString()
 	{
-		return $"[link]{Url}[/] {Similarity/100:P} {Artist} {Description} {Site} {Source} {Title} {Character}";
+		return $"[link]{Url}[/] {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character}";
 	}
 
 	#endregion

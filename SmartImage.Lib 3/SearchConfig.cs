@@ -21,6 +21,11 @@ public sealed class SearchConfig
 	public const SearchEngineOptions PE_DEFAULT = SearchEngineOptions.Auto;
 
 	/// <summary>
+	/// Default value for <see cref="OnTop"/>
+	/// </summary>
+	public const bool ON_TOP_DEFAULT = true;
+
+	/// <summary>
 	/// Engines used to search.
 	/// </summary>
 	public SearchEngineOptions SearchEngines { get; set; } = SE_DEFAULT;
@@ -33,7 +38,7 @@ public sealed class SearchConfig
 	/// <summary>
 	/// Keeps console window on-top.
 	/// </summary>
-	public bool OnTop { get; set; }
+	public bool OnTop { get; set; } = ON_TOP_DEFAULT;
 
 	public SearchConfig() { }
 
