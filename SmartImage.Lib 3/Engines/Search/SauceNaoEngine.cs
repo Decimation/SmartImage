@@ -73,8 +73,8 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 			return result;
 		}
 
-		if (dataResults == null) {
-			result.ErrorMessage = "Daily search limit (100) exceeded";
+		if (!dataResults.Any()) {
+			result.ErrorMessage = "Daily search limit (50) exceeded";
 			result.Status       = SearchResultStatus.Cooldown;
 			//return sresult;
 			goto ret;
@@ -116,34 +116,39 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var docp = new HtmlParser();
 
-		var response = await EndpointUrl.PostMultipartAsync(m =>
-		{
-			m.AddString("url", query.IsUrl ? query.Value : String.Empty);
+		string         html     = null;
+		IFlurlResponse response = null;
 
-			if (query.IsUrl) { }
-			else if (query.IsFile) {
-				m.AddFile("file", query.Value, fileName: "image.png");
+		try {
+			response = await EndpointUrl.AllowHttpStatus().PostMultipartAsync(m =>
+			{
+				m.AddString("url", query.IsUrl ? query.Value : String.Empty);
+
+				if (query.IsUrl) { }
+				else if (query.IsFile) {
+					m.AddFile("file", query.Value, fileName: "image.png");
+				}
+
+				return;
+			});
+			html = await response.GetStringAsync();
+		}
+		catch (FlurlHttpException e) {
+
+			/*
+			 * Daily Search Limit Exceeded.
+			 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
+			 */
+
+			if (e.StatusCode == (int) HttpStatusCode.TooManyRequests) {
+				Trace.WriteLine($"On cooldown!", Name);
+				return await Task.FromResult(Enumerable.Empty<SauceNaoDataResult>());
 			}
 
-			return;
-		});
-
-		var html = await response.GetStringAsync();
-
-		/*
-		 * Daily Search Limit Exceeded.
-		 * 208.110.232.218, your IP has exceeded the unregistered user's daily limit of 100 searches.
-		 */
-
-		const string COOLDOWN = "Search Limit Exceeded";
-
-		if (html.Contains(COOLDOWN)) {
-			Trace.WriteLine($"On cooldown!", Name);
-
-			return await Task.FromResult(Enumerable.Empty<SauceNaoDataResult>());
+			html = await e.GetResponseStringAsync();
 		}
 
-		var doc = docp.ParseDocument(html);
+		var doc = await docp.ParseDocumentAsync(html);
 
 		const string RESULT_NODE = "//div[@class='result']";
 

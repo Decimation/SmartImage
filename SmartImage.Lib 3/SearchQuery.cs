@@ -70,7 +70,7 @@ public sealed class SearchQuery : IDisposable
 
 		var types = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
 
-		if (!types.Any()) {
+		if (!types.Any(t=>t.IsType(FileType.MT_IMAGE))) {
 			var e = new ArgumentException("Invalid file types", nameof(value));
 			return await Task.FromException<SearchQuery>(e);
 		}

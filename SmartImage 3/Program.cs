@@ -18,6 +18,7 @@ using Novus.OS.Win32;
 using SmartImage.Cli_;
 using Spectre.Console;
 using Spectre.Console.Rendering;
+using Color = Spectre.Console.Color;
 
 #pragma warning disable CS0168
 
@@ -89,7 +90,7 @@ public static class Program
 
 		if (cli) {
 
-			Cmd_Root.SetHandler(RootHandler, Opt_Query, Opt_Priority, Opt_Engines, Opt_OnTop);
+			Cmd_Root.SetHandler(RootHandler, Opt_Query, Opt_Engines, Opt_Priority, Opt_OnTop);
 
 			var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp(HelpHandler).Build();
 
@@ -160,7 +161,7 @@ public static class Program
 
 	private static async Task LiveCallback(LiveDisplayContext ctx)
 	{
-		Cli.ResultsTable.AddColumns("Engine", "Info", nameof(SearchResult.Results));
+		Cli.ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", nameof(SearchResult.Results));
 
 		while (!_b) {
 			ctx.Refresh();
@@ -175,17 +176,38 @@ public static class Program
 
 		// AnsiConsole.MarkupLine($"[green]{result.Engine.Name}[/] | [link={result.RawUrl}]Raw[/]");
 
-		var tx = new Table();
+		var tx = new Table() { };
 
 		var col = new TableColumn[]
 		{
-			new(nameof(SearchResultItem.Url)),
-			new(nameof(SearchResultItem.Similarity)),
-			new(nameof(SearchResultItem.Artist)),
-			new(nameof(SearchResultItem.Character)),
-			new(nameof(SearchResultItem.Source)),
-			new(nameof(SearchResultItem.Description)),
+			new(nameof(SearchResultItem.Url))
+			{
+				Alignment = Justify.Center
+			},
+			new(nameof(SearchResultItem.Similarity))
+			{
+				Alignment = Justify.Center
+			},
+			new(nameof(SearchResultItem.Artist))
+			{
+				Alignment = Justify.Center
+			},
+			new(nameof(SearchResultItem.Character))
+			{
+				Alignment = Justify.Center
+			},
+			new(nameof(SearchResultItem.Source))
+			{
+				Alignment = Justify.Center
+			},
+			new(nameof(SearchResultItem.Description))
+			{
+				Alignment = Justify.Center
+			},
 			new("Dimensions")
+			{
+				Alignment = Justify.Center
+			}
 
 		};
 
@@ -210,12 +232,16 @@ public static class Program
 			tx.AddRow(row);
 		}
 
+		var nameText = new Text(result.Engine.Name, Style.WithForeground(Color.Aqua))
+		{
+			Alignment = Justify.Center
+		};
+
 		var rawText = new Text("Raw", Style.WithLink(result.RawUrl))
 		{
 			Overflow = Overflow.Ellipsis,
+			Alignment = Justify.Center
 		};
-
-		var nameText = new Text(result.Engine.Name);
 
 		Cli.ResultsTable.AddRow(nameText, rawText, tx);
 

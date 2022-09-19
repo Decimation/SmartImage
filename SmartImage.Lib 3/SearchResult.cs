@@ -49,6 +49,6 @@ public sealed class SearchResult
 
 	public override string ToString()
 	{
-		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status}";
+		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
 	}
 }

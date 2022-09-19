@@ -118,7 +118,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				string anilistUrl = ANILIST_URL + doc.anilist;
 				string name       = await m_anilistClient.GetTitleAsync((int) doc.anilist);
 				result.Source = name;
-				result.Url    = new Uri(anilistUrl);
+				result.Url    = new Url(anilistUrl);
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", Name);
@@ -130,7 +130,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 				                                 $"< {FILTER_THRESHOLD / 100:P})");*/
 				//todo
 
-				result.Metadata["Warning"] = $"Similarity exceeds threshold {FILTER_THRESHOLD:P}";
+				result.Metadata.Warning = $"Similarity exceeds threshold {FILTER_THRESHOLD:P}";
 			}
 
 			items[i] = result;

@@ -44,7 +44,12 @@ public static class Cli
 		PromptStyle = PromptStyle,
 	};
 
-	public static readonly Table ResultsTable = new();
+	public static readonly Table ResultsTable = new()
+	{
+		
+		Border = TableBorder.Heavy,
+		BorderStyle = Style.Plain
+	};
 
 	static Cli()
 	{

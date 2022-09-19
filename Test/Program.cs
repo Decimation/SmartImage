@@ -47,10 +47,13 @@ public static class Program
 
 		var q = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
 		await q.UploadAsync();
-		var e = new KarmaDecayEngine();
+		var e = new IqdbEngine();
 		var r = await e.GetResultAsync(q);
-		Console.WriteLine(r);
+		Console.WriteLine($"{r}");
 
+		foreach (var r1 in r.Results) {
+			Console.WriteLine(r1);
+		}
 	}
 	
 	private static async Task Test1()
