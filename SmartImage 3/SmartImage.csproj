@@ -34,10 +34,10 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="6.0.1" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Windows.Extensions" Version="6.0.0" />
-    <PackageReference Include="Terminal.Gui" Version="1.7.2" />
+    <PackageReference Include="Terminal.Gui" Version="1.8.0" />
   </ItemGroup>
 
   <ItemGroup>

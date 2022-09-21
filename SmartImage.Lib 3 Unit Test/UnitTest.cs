@@ -24,39 +24,10 @@ public class SetupTrace
 }
 
 [TestFixture]
-public class UnitTest2
-{
-	[Test]
-	[TestCase(@"C:\Users\Deci\Pictures\Test Images\Test1.jpg")]
-	[TestCase(@"https://i.imgur.com/QtCausw.png")]
-	public async Task SearchQuery_Test(string s)
-	{
-		var sq = await SearchQuery.TryCreateAsync(s);
-		Assert.IsNotNull(sq);
-		var u = await sq.UploadAsync();
-		Assert.IsNotNull(u);
-		TestContext.WriteLine(sq);
-	}
-
-	[Test]
-	// [TestCase(@"C:\Users\Deci\Pictures\Test Images\Test999")]
-	[TestCase(@"https://imgur.com/QtCausw")]
-	public async Task SearchQuery_Test2(string s)
-	{
-
-		var sq = await SearchQuery.TryCreateAsync(s);
-
-		TestContext.WriteLine(sq);
-		Assert.IsNotEmpty(sq.FileTypes);
-
-	}
-}
-
-[TestFixture]
 [Parallelizable]
 public class UnitTest
 {
-	private static object[] _rg =
+	public static object[] _rg =
 	{
 		@"C:\Users\Deci\Pictures\Test Images\Test1.jpg",
 		@"https://i.imgur.com/QtCausw.png",
@@ -64,10 +35,14 @@ public class UnitTest
 		@"https://data19.kemono.party/data/cd/ef/cdef8267d679a9ee1869d5e657f81f7e971f0f401925594fb76c8ff8393db7bd.png?f=Yelan2.png"
 	};
 
-	private static object[] _rg2 =
+	public static object[] _rg2 =
 	{
-		
 		@"C:\Users\Deci\Pictures\Test Images\Test3.png"
+	};
+
+	public static object[] _rg3 =
+	{
+		@"https://imgur.com/QtCausw"
 	};
 
 	[Test]
@@ -78,6 +53,11 @@ public class UnitTest
 		var u  = await sq.UploadAsync();
 		var se = new SauceNaoEngine();
 		var r  = await se.GetResultAsync(sq);
+
+		if (r.Status == SearchResultStatus.Cooldown) {
+			Assert.Inconclusive();
+		}
+
 		Assert.True(r.Results.Any());
 
 		foreach (var x in r.Results) {
@@ -143,5 +123,31 @@ public class UnitTest
 		foreach (var x in r.Results) {
 			TestContext.WriteLine(x);
 		}
+	}
+}
+
+[TestFixture]
+public class UnitTest2
+{
+	public static object[] _rg = UnitTest._rg;
+	public static object[] _rg3 = UnitTest._rg3;
+
+	[Test]
+	[TestCaseSource(nameof(_rg))]
+	public async Task SearchQuery_Test(string s)
+	{ 
+		var sq = await SearchQuery.TryCreateAsync(s);
+		Assert.IsNotNull(sq);
+		var u = await sq.UploadAsync();
+		Assert.IsNotNull(u);
+		TestContext.WriteLine(sq);
+	}
+
+	[Test]
+	[TestCaseSource(nameof(_rg3))]
+	public async Task SearchQuery_Test2(string s)
+	{
+		var sq = await SearchQuery.TryCreateAsync(s);
+		Assert.Null(sq);
 	}
 }

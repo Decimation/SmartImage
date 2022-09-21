@@ -23,6 +23,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 		var res = await origin.AllowAnyHttpStatus()
 		                      .WithCookies(out var cj)
+		                      .WithTimeout(Timeout)
 		                      .WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
 		                      /*.WithAutoRedirect(true)*/
 		                      .GetAsync();

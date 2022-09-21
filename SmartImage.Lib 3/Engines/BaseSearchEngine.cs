@@ -21,6 +21,8 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual string BaseUrl { get; }
 
+	protected TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
+
 	protected BaseSearchEngine(string baseUrl)
 	{
 		BaseUrl = baseUrl;
