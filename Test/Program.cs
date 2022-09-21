@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using AngleSharp.Html.Parser;
+using Flurl.Http;
 using Kantan.Net.Utilities;
 using Microsoft.ClearScript.V8;
 using OpenCvSharp;
@@ -37,14 +38,27 @@ public static class Program
 {
 	public static async Task Main(string[] args)
 	{
+		await test4();
 
-		/*var q          = new ImageQuery(@"C:\Users\Deci\Pictures\Test Images\Test4.png");
-		var i          = new TraceMoeEngine();
-		var rt         = i.GetResultAsync(q);
-		var t          = await rt;
+	}
 
-		Console.WriteLine(t);*/
+	private static async Task print(IFlurlResponse r)
+	{
+		CookieJar j;
 
+		foreach ((string Name, string Value) header in r.Headers) {
+			Console.WriteLine($"{header}");
+		}
+
+		Console.WriteLine(await r.GetStringAsync());
+
+		foreach (FlurlCookie flurlCookie in r.Cookies) {
+			Console.WriteLine(flurlCookie);
+		}
+	}
+
+	private static async Task test4()
+	{
 		var q = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
 		await q.UploadAsync();
 		var e = new IqdbEngine();
@@ -55,7 +69,7 @@ public static class Program
 			Console.WriteLine(r1);
 		}
 	}
-	
+
 	private static async Task Test1()
 	{
 		var rg = new[] { "https://i.imgur.com/QtCausw.png", @"C:\Users\Deci\Pictures\Test Images\Test2.jpg" };

@@ -14,8 +14,8 @@ using Terminal.Gui;
 using static SmartImage.UI_Old.Gui;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
-using Novus.OS.Win32;
-using SmartImage.Cli_;
+using Novus.Win32;
+using SmartImage.Shell;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Color = Spectre.Console.Color;
@@ -28,33 +28,6 @@ namespace SmartImage;
 
 public static class Program
 {
-	#region Console
-
-	private static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: (ar) =>
-	{
-		return SearchQuery.TryCreateAsync(ar.Tokens.Single().Value).Result;
-
-	}, isDefault: false, "Query (file or direct image URL)");
-
-	private static readonly Option<string> Opt_Priority =
-		new("-p", description: "Priority engines", getDefaultValue: () => SearchConfig.PE_DEFAULT.ToString());
-
-	private static readonly Option<string> Opt_Engines = new(
-		"-e", description: $"Search engines\n{Enum.GetValues<SearchEngineOptions>().QuickJoin("\n")}",
-		getDefaultValue: () => SearchConfig.SE_DEFAULT.ToString());
-
-	public static readonly Option<bool> Opt_OnTop = new(name: "-ontop", description: "Stay on top");
-
-	private static readonly RootCommand Cmd_Root = new("Run a search")
-	{
-		Opt_Query,
-		Opt_Priority,
-		Opt_Engines,
-		Opt_OnTop
-	};
-
-	#endregion
-
 	#region
 
 	internal static readonly SearchConfig Config = new();
@@ -65,6 +38,8 @@ public static class Program
 
 	//todo
 	internal static List<SearchResult> Results { get; private set; }
+
+	internal static volatile bool Status = false;
 
 	#endregion
 
@@ -90,9 +65,10 @@ public static class Program
 
 		if (cli) {
 
-			Cmd_Root.SetHandler(RootHandler, Opt_Query, Opt_Engines, Opt_Priority, Opt_OnTop);
+			Cli.Cli.Cmd_Root.SetHandler(RootHandler, Cli.Cli.Opt_Query, Cli.Cli.Opt_Engines, Cli.Cli.Opt_Priority,
+			                            Cli.Cli.Opt_OnTop);
 
-			var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp(HelpHandler).Build();
+			var parser = new CommandLineBuilder(Cli.Cli.Cmd_Root).UseDefaults().UseHelp(Cli.Cli.HelpHandler).Build();
 
 			var r = await parser.InvokeAsync(args);
 
@@ -116,12 +92,15 @@ public static class Program
 			Application.Run();
 			Application.Shutdown();*/
 
-			var q  = AnsiConsole.Prompt(Cli.Prompt);
-			var t1 = AnsiConsole.Prompt(Cli.Prompt2);
-			var t2 = AnsiConsole.Prompt(Cli.Prompt2);
-			var t4 = AnsiConsole.Prompt(Cli.Prompt3);
+			var q  = AnsiConsole.Prompt(Gui.Prompt);
+			var t1 = AnsiConsole.Prompt(Gui.Prompt2);
+			var t2 = AnsiConsole.Prompt(Gui.Prompt2);
+			var t4 = AnsiConsole.Prompt(Gui.Prompt3);
 
-			await RootHandler(Query, t1, t2, t4);
+			SearchEngineOptions a = t1.Aggregate(SearchEngineOptions.None, EnumAggregator);
+			SearchEngineOptions b = t2.Aggregate(SearchEngineOptions.None, EnumAggregator);
+
+			await RootHandler(Query, a.ToString(), b.ToString(), t4);
 		}
 
 		await RunMain();
@@ -143,117 +122,21 @@ public static class Program
 
 		var now = Stopwatch.StartNew();
 
-		var live = AnsiConsole.Live(Cli.ResultsTable)
+		var live = AnsiConsole.Live(Gui.ResultsTable)
 		                      .AutoClear(false)
 		                      .Overflow(VerticalOverflow.Ellipsis)
 		                      .Cropping(VerticalOverflowCropping.Top)
-		                      .StartAsync(LiveCallback);
+		                      .StartAsync(Gui.LiveCallback);
 
-		_b      = false;
-		Results = await Client.RunSearchAsync(Query, CancellationToken.None, SearchCallback);
-		_b      = true;
+		Status  = false;
+		Results = await Client.RunSearchAsync(Query, CancellationToken.None, Gui.SearchCallback);
+		Status  = true;
+
 		await live;
 
 		now.Stop();
 		var diff = now.Elapsed;
 		AnsiConsole.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
-	}
-
-	private static async Task LiveCallback(LiveDisplayContext ctx)
-	{
-		Cli.ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", nameof(SearchResult.Results));
-
-		while (!_b) {
-			ctx.Refresh();
-			await Task.Delay(TimeSpan.FromMilliseconds(100));
-		}
-	}
-
-	private static volatile bool _b = false;
-
-	private static async Task SearchCallback(object sender, SearchResult result)
-	{
-
-		// AnsiConsole.MarkupLine($"[green]{result.Engine.Name}[/] | [link={result.RawUrl}]Raw[/]");
-
-		var tx = new Table() { };
-
-		var col = new TableColumn[]
-		{
-			new(nameof(SearchResultItem.Url))
-			{
-				Alignment = Justify.Center
-			},
-			new(nameof(SearchResultItem.Similarity))
-			{
-				Alignment = Justify.Center
-			},
-			new(nameof(SearchResultItem.Artist))
-			{
-				Alignment = Justify.Center
-			},
-			new(nameof(SearchResultItem.Character))
-			{
-				Alignment = Justify.Center
-			},
-			new(nameof(SearchResultItem.Source))
-			{
-				Alignment = Justify.Center
-			},
-			new(nameof(SearchResultItem.Description))
-			{
-				Alignment = Justify.Center
-			},
-			new("Dimensions")
-			{
-				Alignment = Justify.Center
-			}
-
-		};
-
-		tx.AddColumns(col);
-
-		foreach (SearchResultItem item in result.Results) {
-			/*AnsiConsole.MarkupLine(
-				$"\t[link={item.Url}]{item.Root.Engine.Name}[/] | {item.Similarity / 100:P} {item.Artist} " +
-				$"{item.Description} [italic]{item.Title}[/] {item.Width}x{item.Height}");*/
-
-			var row = new[]
-			{
-				$"[link={item.Url}]Link[/]",
-				(($"{item.Similarity / 100:P}")),
-				($"{item.Artist}").EscapeMarkup(),
-				($"{item.Character}"),
-				($"{item.Source}").EscapeMarkup(),
-				$"{item.Description}".EscapeMarkup(),
-				$"{item.Width}x{item.Height}"
-			};
-
-			tx.AddRow(row);
-		}
-
-		var nameText = new Text(result.Engine.Name, Style.WithForeground(Color.Aqua))
-		{
-			Alignment = Justify.Center
-		};
-
-		var rawText = new Text("Raw", Style.WithLink(result.RawUrl))
-		{
-			Overflow = Overflow.Ellipsis,
-			Alignment = Justify.Center
-		};
-
-		Cli.ResultsTable.AddRow(nameText, rawText, tx);
-
-		return;
-	}
-
-	private static void HelpHandler(HelpContext ctx)
-	{
-		ctx.HelpBuilder.CustomizeLayout(_ => HelpBuilder.Default.GetLayout()
-		                                                .Skip(1) // Skip the default command description section.
-		                                                .Prepend(_ => AnsiConsole.Write(
-			                                                         new FigletText(Resources.Name))));
 	}
 
 	private static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
@@ -268,8 +151,13 @@ public static class Program
 			                 ctx.Status = "Uploaded";
 		                 });
 
-		Config.SearchEngines   = Enum.Parse<SearchEngineOptions>(t2);
-		Config.PriorityEngines = Enum.Parse<SearchEngineOptions>(t3);
+		RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
+	}
+
+	private static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
+	{
+		Config.SearchEngines   = t2;
+		Config.PriorityEngines = t3;
 
 		Config.OnTop = t4;
 
@@ -277,4 +165,7 @@ public static class Program
 			Native.KeepWindowOnTop(Native.GetConsoleWindow());
 		}
 	}
+
+	private static readonly Func<SearchEngineOptions, SearchEngineOptions, SearchEngineOptions> EnumAggregator =
+		(current, searchEngineOptions) => current | searchEngineOptions;
 }
