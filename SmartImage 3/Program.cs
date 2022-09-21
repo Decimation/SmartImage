@@ -15,6 +15,7 @@ using static SmartImage.UI_Old.Gui;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
 using Novus.Win32;
+using SmartImage.CommandLine;
 using SmartImage.Shell;
 using Spectre.Console;
 using Spectre.Console.Rendering;
@@ -39,6 +40,7 @@ public static class Program
 	//todo
 	internal static List<SearchResult> Results { get; private set; }
 
+	//todo
 	internal static volatile bool Status = false;
 
 	#endregion
@@ -65,10 +67,10 @@ public static class Program
 
 		if (cli) {
 
-			Cli.Cli.Cmd_Root.SetHandler(RootHandler, Cli.Cli.Opt_Query, Cli.Cli.Opt_Engines, Cli.Cli.Opt_Priority,
-			                            Cli.Cli.Opt_OnTop);
+			Cli.Cmd_Root.SetHandler(RootHandler, Cli.Opt_Query, Cli.Opt_Engines, Cli.Opt_Priority,
+			                        Cli.Opt_OnTop);
 
-			var parser = new CommandLineBuilder(Cli.Cli.Cmd_Root).UseDefaults().UseHelp(Cli.Cli.HelpHandler).Build();
+			var parser = new CommandLineBuilder(Cli.Cmd_Root).UseDefaults().UseHelp(Cli.HelpHandler).Build();
 
 			var r = await parser.InvokeAsync(args);
 
@@ -104,6 +106,7 @@ public static class Program
 		}
 
 		await RunMain();
+		Native.FlashWindow(_hndWindow);
 
 	}
 
@@ -162,10 +165,12 @@ public static class Program
 		Config.OnTop = t4;
 
 		if (Config.OnTop) {
-			Native.KeepWindowOnTop(Native.GetConsoleWindow());
+			Native.KeepWindowOnTop(_hndWindow);
 		}
 	}
 
 	private static readonly Func<SearchEngineOptions, SearchEngineOptions, SearchEngineOptions> EnumAggregator =
 		(current, searchEngineOptions) => current | searchEngineOptions;
+
+	private static readonly IntPtr _hndWindow = Native.GetConsoleWindow();
 }

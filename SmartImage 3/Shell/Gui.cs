@@ -3,6 +3,9 @@ using Spectre.Console;
 
 namespace SmartImage.Shell;
 
+/// <summary>
+/// <see cref="Spectre"/>
+/// </summary>
 public static class Gui
 {
 	private static readonly Style PromptStyle = Style.Parse("underline");
@@ -74,6 +77,7 @@ public static class Gui
 		while (!Program.Status) {
 			ctx.Refresh();
 			await Task.Delay(TimeSpan.FromMilliseconds(100));
+			
 		}
 	}
 

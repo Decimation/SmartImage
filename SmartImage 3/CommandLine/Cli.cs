@@ -6,8 +6,11 @@ using Spectre.Console;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.Cli;
+namespace SmartImage.CommandLine;
 
+/// <summary>
+/// <see cref="System.CommandLine"/>
+/// </summary>
 public static class Cli
 {
 	public static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: (ar) =>
