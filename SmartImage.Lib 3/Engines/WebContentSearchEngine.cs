@@ -21,18 +21,23 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 	{
 		var parser = new HtmlParser();
 
-		var res = await origin.AllowAnyHttpStatus()
-		                      .WithCookies(out var cj)
-		                      .WithTimeout(Timeout)
-		                      .WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
-		                      /*.WithAutoRedirect(true)*/
-		                      .GetAsync();
+		try {
+			var res = await origin.AllowAnyHttpStatus()
+			                      .WithCookies(out var cj)
+			                      .WithTimeout(Timeout)
+			                      .WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
+			                      /*.WithAutoRedirect(true)*/
+			                      .GetAsync();
 
-		var readStr = await res.GetStringAsync();
+			var readStr = await res.GetStringAsync();
 
-		var document = await parser.ParseDocumentAsync(readStr);
+			var document = await parser.ParseDocumentAsync(readStr);
 
-		return document;
+			return document;
+		}
+		catch (FlurlHttpException e) {
+			return await Task.FromException<IDocument>(e);
+		}
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)

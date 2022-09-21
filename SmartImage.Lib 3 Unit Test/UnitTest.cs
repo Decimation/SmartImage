@@ -147,7 +147,13 @@ public class UnitTest2
 	[TestCaseSource(nameof(_rg3))]
 	public async Task SearchQuery_Test2(string s)
 	{
-		var sq = await SearchQuery.TryCreateAsync(s);
-		Assert.Null(sq);
+		try {
+			var sq = await SearchQuery.TryCreateAsync(s);
+			Assert.Fail();
+		}
+		catch (Exception e) {
+			Assert.Pass();
+		}
+
 	}
 }

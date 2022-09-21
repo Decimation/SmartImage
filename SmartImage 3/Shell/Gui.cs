@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using SmartImage.Lib;
+﻿using SmartImage.Lib;
 using Spectre.Console;
 
 namespace SmartImage.Shell;
@@ -36,11 +31,21 @@ public static class Gui
 		{
 			return option.ToString();
 		},
-		Title = "Engines:",
+		Title    = "Engines:",
 		PageSize = 15,
 	};
 
-	public static readonly TextPrompt<bool> Prompt3 = new("Stay on top")
+	public static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt3 = new()
+	{
+		Converter = option =>
+		{
+			return option.ToString();
+		},
+		Title    = "Priority engines:",
+		PageSize = 15,
+	};
+
+	public static readonly TextPrompt<bool> Prompt4 = new("Stay on top")
 	{
 		AllowEmpty       = true,
 		ShowDefaultValue = true,
@@ -49,20 +54,22 @@ public static class Gui
 
 	public static readonly Table ResultsTable = new()
 	{
-
 		Border      = TableBorder.Heavy,
 		BorderStyle = Style.Plain
 	};
 
 	static Gui()
 	{
-		Prompt2 = Prompt2.AddChoices(Enum.GetValues<SearchEngineOptions>());
-		Prompt3 = Prompt3.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
+		var values = Enum.GetValues<SearchEngineOptions>();
+
+		Prompt2 = Prompt2.AddChoices(values);
+		Prompt3 = Prompt3.AddChoices(values);
+		Prompt4 = Prompt4.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
 	}
 
 	public static async Task LiveCallback(LiveDisplayContext ctx)
 	{
-		Gui.ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", nameof(SearchResult.Results));
+		ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", nameof(SearchResult.Results));
 
 		while (!Program.Status) {
 			ctx.Refresh();
@@ -72,10 +79,7 @@ public static class Gui
 
 	public static async Task SearchCallback(object sender, SearchResult result)
 	{
-
-		// AnsiConsole.MarkupLine($"[green]{result.Engine.Name}[/] | [link={result.RawUrl}]Raw[/]");
-
-		var tx = new Table() { };
+		var tx = new Table();
 
 		var col = new TableColumn[]
 		{
@@ -109,7 +113,7 @@ public static class Gui
 			}
 
 		};
-
+		
 		tx.AddColumns(col);
 
 		foreach (SearchResultItem item in result.Results) {
@@ -120,10 +124,10 @@ public static class Gui
 			var row = new[]
 			{
 				$"[link={item.Url}]Link[/]",
-				(($"{item.Similarity / 100:P}")),
-				($"{item.Artist}").EscapeMarkup(),
-				($"{item.Character}").EscapeMarkup(),
-				($"{item.Source}").EscapeMarkup(),
+				$"{item.Similarity / 100:P}",
+				$"{item.Artist}".EscapeMarkup(),
+				$"{item.Character}".EscapeMarkup(),
+				$"{item.Source}".EscapeMarkup(),
 				$"{item.Description}".EscapeMarkup(),
 				$"{item.Width}x{item.Height}"
 			};
@@ -131,19 +135,18 @@ public static class Gui
 			tx.AddRow(row);
 		}
 
-		var nameText = new Text(result.Engine.Name, Style.WithForeground(Color.Aqua))
+		var nameText = new Text(result.Engine.Name, new Style(foreground: Color.Aqua, decoration: Decoration.Bold))
 		{
 			Alignment = Justify.Center
 		};
 
-		var rawText = new Text("Raw", Style.WithLink(result.RawUrl))
+		var rawText = new Text("Raw", new Style(link: result.RawUrl.ToString()))
 		{
 			Overflow  = Overflow.Ellipsis,
 			Alignment = Justify.Center
 		};
 
-		Gui.ResultsTable.AddRow(nameText, rawText, tx);
+		ResultsTable.AddRow(nameText, rawText, tx);
 
-		return;
 	}
 }

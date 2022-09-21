@@ -206,17 +206,42 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 			var synonyms = new[] { "Creator: ", "Member: ", "Artist: " };
 
-			string material1 = rcci?.SubstringAfter("Material: ");
+			string material1 = rcci.SubstringAfter("Material: ");
 
+			// string creator1 = rcci;
 			string creator1 = rcci;
 
 			// creator1 = creator1.SubstringAfter("Creator: ");
 			// resultcontentcolumn.GetNodes(true, (IElement element) => element.LocalName == "strong");
 
 			// resultcontentcolumn.GetNodes(deep:true, predicate: (INode n)=>n.TryGetAttribute() )
-			var t = resultcontentcolumn.ChildNodes[0].TextContent;
+			// var t = resultcontentcolumn.ChildNodes[0].TextContent;
 
+			if (resultcontentcolumn.ChildNodes.Length >= 2) {
+				string creatorTitle = null;
+
+				creatorTitle +=
+					$"{resultcontentcolumn.ChildNodes[0].TextContent} {resultcontentcolumn.ChildNodes[1].TextContent}\n";
+
+				if (resultcontentcolumn.ChildNodes.Length >= 6) {
+					creatorTitle += $"{resultcontentcolumn.ChildNodes[4].TextContent} {resultcontentcolumn.ChildNodes[5].TextContent}";
+					
+				}
+
+				creator1 = creatorTitle;
+			}
+			
 			// resultcontentcolumn.ChildNodes[1].TryGetAttribute("href");
+
+			/*for (int i = 0; i < resultcontentcolumn.ChildNodes.Length - 1; i++) {
+				if (i % 3 == 0 && i != 0) {
+					continue;
+				}
+
+				var cn1 = resultcontentcolumn.ChildNodes[i];
+				var cn2 = resultcontentcolumn.ChildNodes[i + 1];
+				title1 += $"{cn1.TextContent} {cn2.TextContent}\n";
+			}*/
 
 			float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
@@ -337,11 +362,11 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		{
 			Url         = url,
 			Similarity  = MathF.Round(sn.Similarity, 2),
-			Description = Strings.NormalizeNull(sn.WebsiteTitle),
+			Description = Strings.NormalizeNull(sn.Title),
 			Artist      = Strings.NormalizeNull(sn.Creator),
 			Source      = Strings.NormalizeNull(sn.Material),
 			Character   = Strings.NormalizeNull(sn.Character),
-			Site        = Strings.NormalizeNull(siteName)
+			Site        = Strings.NormalizeNull(siteName) + $" [{Strings.NormalizeNull(sn.WebsiteTitle)}]"
 		};
 
 		return imageResult;

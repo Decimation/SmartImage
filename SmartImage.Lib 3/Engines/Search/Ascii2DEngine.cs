@@ -15,7 +15,10 @@ namespace SmartImage.Lib.Engines.Search;
 
 public sealed class Ascii2DEngine : WebContentSearchEngine
 {
-	public Ascii2DEngine() : base("https://ascii2d.net/search/url/") { }
+	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
+	{
+		Timeout = TimeSpan.FromSeconds(6);
+	}
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 

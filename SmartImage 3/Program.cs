@@ -93,12 +93,12 @@ public static class Program
 			Application.Shutdown();*/
 
 			var q  = AnsiConsole.Prompt(Gui.Prompt);
-			var t1 = AnsiConsole.Prompt(Gui.Prompt2);
 			var t2 = AnsiConsole.Prompt(Gui.Prompt2);
-			var t4 = AnsiConsole.Prompt(Gui.Prompt3);
+			var t3 = AnsiConsole.Prompt(Gui.Prompt3);
+			var t4 = AnsiConsole.Prompt(Gui.Prompt4);
 
-			SearchEngineOptions a = t1.Aggregate(SearchEngineOptions.None, EnumAggregator);
-			SearchEngineOptions b = t2.Aggregate(SearchEngineOptions.None, EnumAggregator);
+			SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, EnumAggregator);
+			SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, EnumAggregator);
 
 			await RootHandler(Query, a.ToString(), b.ToString(), t4);
 		}

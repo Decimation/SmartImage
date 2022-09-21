@@ -1,5 +1,6 @@
 ﻿using System.Dynamic;
 using Flurl;
+using Kantan.Model;
 using Novus.FileTypes;
 
 namespace SmartImage.Lib;

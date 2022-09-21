@@ -60,9 +60,9 @@ public sealed class SearchQuery : IDisposable
 
 			}
 			catch (FlurlHttpException e) {
-				Debug.WriteLine($"{e.Message} - {value}", nameof(SearchQuery));
-				// return await Task.FromException<SearchQuery>(e);
-				return null;
+				Debug.WriteLine($"{e.Message} ({value})", nameof(SearchQuery));
+				return await Task.FromException<SearchQuery>(e);
+				// return null;
 			}
 		}
 
@@ -70,11 +70,10 @@ public sealed class SearchQuery : IDisposable
 
 		var types = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
 
-		if (!types.Any(t=>t.IsType(FileType.MT_IMAGE))) {
-			// var e = new ArgumentException("Invalid file types", nameof(value));
-			// return await Task.FromException<SearchQuery>(e);
-
-			return null;
+		if (!types.Any(t => t.IsType(FileType.MT_IMAGE))) {
+			var e = new ArgumentException("Invalid file types", nameof(value));
+			return await Task.FromException<SearchQuery>(e);
+			// return null;
 
 		}
 

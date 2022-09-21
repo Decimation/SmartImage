@@ -1,5 +1,6 @@
 ﻿// ReSharper disable UnusedMember.Global
 
+using System.Diagnostics;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -11,6 +12,8 @@ using Kantan.Text;
 // ReSharper disable StringLiteralTypo
 
 namespace SmartImage.Lib.Engines.Search;
+
+#nullable disable
 
 public sealed class IqdbEngine : ClientSearchEngine
 {
@@ -114,22 +117,29 @@ public sealed class IqdbEngine : ClientSearchEngine
 		var s = await response.GetStringAsync();
 
 		var parser = new HtmlParser();
-		return parser.ParseDocument(s);
+		return await parser.ParseDocumentAsync(s);
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		// Don't select other results
-		// var query = (ImageQuery)obj;
+
 		var sr  = await base.GetResultAsync(query, token);
 		var doc = await GetDocumentAsync(query);
+
+		if (doc == null) {
+			sr.ErrorMessage = $"Could not retrieve data";
+			return sr;
+		}
+
+		Trace.Assert(doc != null);
 
 		var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
 		// No relevant results?
 
-		var ns = doc.Body?.QuerySelector("#pages > div.nomatch");
+		var ns = doc.Body.QuerySelector("#pages > div.nomatch");
 
 		if (ns != null) {
 
