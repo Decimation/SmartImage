@@ -17,6 +17,7 @@ using Microsoft.ClearScript.V8;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
+using Spectre.Console;
 using Point = OpenCvSharp.Point;
 using Size = OpenCvSharp.Size;
 
@@ -39,7 +40,7 @@ public static class Program
 	public static async Task Main(string[] args)
 	{
 		await test4();
-
+		
 	}
 
 	private static async Task print(IFlurlResponse r)

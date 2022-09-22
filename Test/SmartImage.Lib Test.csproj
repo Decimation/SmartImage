@@ -27,6 +27,7 @@
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="OpenCvSharp4.Windows" Version="4.6.0.20220608" />
+    <PackageReference Include="Spectre.Console" Version="0.45.1-preview.0.4" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
