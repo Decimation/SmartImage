@@ -17,6 +17,7 @@ using static SmartImage.UI_Old.Gui;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
 using Novus.Win32;
+using SmartImage.App;
 using SmartImage.CommandLine;
 using SmartImage.Shell;
 using Spectre.Console;
@@ -59,10 +60,12 @@ public static class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
+		// Debugger.Launch();
 
 #if TEST
 		// args = new String[] { null };
-		args = new[] { "-q", "https://i.imgur.com/QtCausw.png", "-p", "Artwork", "-ontop" };
+		args = new[] { "-q", "https://i.imgur.com/QtCausw.png" };
+		// args = new[] { "-q", "https://i.imgur.com/QtCausw.png", "-p", "Artwork", "-ontop" };
 #endif
 
 		bool cli = args is { } && args.Any();
@@ -96,6 +99,7 @@ public static class Program
 			Application.Run();
 			Application.Shutdown();*/
 
+			MAIN_MENU:
 			var opt = AnsiConsole.Prompt(Gui.MainPrompt);
 
 			switch (opt) {
@@ -111,8 +115,16 @@ public static class Program
 					await RootHandler(Query, a.ToString(), b.ToString(), t4);
 					break;
 				case Gui.MainMenu.Options:
-					
-					break;
+					SelectionPrompt<bool> ctx = new();
+					ctx=ctx.AddChoices(true, false);
+
+					var v = AnsiConsole.Prompt(ctx);
+
+					AnsiConsole.MarkupLine($"{Integration.ExeLocation}\n" +
+					                       $"{Integration.IsAppFolderInPath}\n" +
+					                       $"{Integration.IsContextMenuAdded}");
+
+					goto MAIN_MENU;
 				default:
 					break;
 			}
@@ -121,7 +133,6 @@ public static class Program
 
 		await RunMain();
 		Native.FlashWindow(_hndWindow);
-
 	}
 
 	private static async Task RunMain()
