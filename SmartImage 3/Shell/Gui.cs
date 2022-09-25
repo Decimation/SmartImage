@@ -53,13 +53,13 @@ internal static class Gui
 		BorderStyle = Style.Plain
 	};
 
-	internal static readonly SelectionPrompt<MainMenu> MainPrompt = new()
+	internal static readonly SelectionPrompt<MainMenuOption> MainPrompt = new()
 	{
 		Title    = "[underline]Main menu[/]",
 		PageSize = 15,
 	};
 
-	internal enum MainMenu
+	internal enum MainMenuOption
 	{
 		Search,
 		Options
@@ -69,7 +69,7 @@ internal static class Gui
 	{
 		var values = Enum.GetValues<SearchEngineOptions>();
 
-		MainPrompt = MainPrompt.AddChoices(Enum.GetValues<MainMenu>());
+		MainPrompt = MainPrompt.AddChoices(Enum.GetValues<MainMenuOption>());
 
 		Prompt2 = Prompt2.AddChoices(values);
 		Prompt3 = Prompt3.AddChoices(values);

@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Hosting;
 using SmartImage.Lib;
@@ -103,7 +104,7 @@ public static class Program
 			var opt = AnsiConsole.Prompt(Gui.MainPrompt);
 
 			switch (opt) {
-				case Gui.MainMenu.Search:
+				case Gui.MainMenuOption.Search:
 					var q  = AnsiConsole.Prompt(Gui.Prompt);
 					var t2 = AnsiConsole.Prompt(Gui.Prompt2);
 					var t3 = AnsiConsole.Prompt(Gui.Prompt3);
@@ -114,9 +115,9 @@ public static class Program
 
 					await RootHandler(Query, a.ToString(), b.ToString(), t4);
 					break;
-				case Gui.MainMenu.Options:
+				case Gui.MainMenuOption.Options:
 					SelectionPrompt<bool> ctx = new();
-					ctx=ctx.AddChoices(true, false);
+					ctx = ctx.AddChoices(true, false);
 
 					var v = AnsiConsole.Prompt(ctx);
 
@@ -132,7 +133,6 @@ public static class Program
 		}
 
 		await RunMain();
-		Native.FlashWindow(_hndWindow);
 	}
 
 	private static async Task RunMain()
@@ -165,6 +165,49 @@ public static class Program
 		now.Stop();
 		var diff = now.Elapsed;
 		AnsiConsole.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
+		Native.FlashWindow(_hndWindow);
+
+		var p2 = new SelectionPrompt<ResultMenuOption>();
+		p2 = p2.AddChoices(Enum.GetValues<ResultMenuOption>());
+
+		var p3 = new SelectionPrompt<int>();
+		var c  = Enumerable.Range(0, Results.Count).ToList();
+
+		const int i = -1;
+
+		c.Insert(0, i);
+		p3 = p3.AddChoices(c);
+
+		switch (AnsiConsole.Prompt(p2)) {
+
+			case ResultMenuOption.Stay:
+
+				int l;
+
+				do {
+					l = AnsiConsole.Prompt(p3);
+
+					if (l == i) {
+						break;
+					}
+
+					var r = Results[l];
+					HttpUtilities.OpenUrl(r.First?.Url);
+				} while (true);
+
+				break;
+			case ResultMenuOption.Exit:
+				Environment.Exit(0);
+				break;
+			default:
+				break;
+		}
+	}
+
+	internal enum ResultMenuOption
+	{
+		Stay,
+		Exit
 	}
 
 	private static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
@@ -173,7 +216,7 @@ public static class Program
 
 		await AnsiConsole.Status()
 		                 .Spinner(Spinner.Known.Star)
-		                 .StartAsync($"Uploading {Query}...", async ctx =>
+		                 .StartAsync($"Uploading...", async ctx =>
 		                 {
 			                 await Query.UploadAsync();
 			                 ctx.Status = "Uploaded";

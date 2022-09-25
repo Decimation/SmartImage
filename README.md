@@ -63,6 +63,7 @@ Supported search engines:
 - <img src="https://www.bing.com/favicon.ico" width="16" height="16"/> [Bing](https://www.bing.com/images/)
 - <img src="http://tidder.xyz/favicon.ico" width="16" height="16"/> [Tidder](http://tidder.xyz/)
 - <img src="https://ascii2d.net/favicon.ico" width="16" height="16"/> [Ascii2D](https://ascii2d.net/)
+- <img src="https://repostsleuth.com/favicon.png" width="16" height="16"/> [RepostSleuth](https://repostsleuth.com/)
 
 <!-- ... -->
 
