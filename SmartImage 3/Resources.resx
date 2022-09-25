@@ -120,4 +120,7 @@
   <data name="Name" xml:space="preserve">
     <value>SmartImage</value>
   </data>
+  <data name="NameExe" xml:space="preserve">
+    <value>SmartImage.exe</value>
+  </data>
 </root>

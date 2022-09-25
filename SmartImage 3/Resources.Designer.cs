@@ -68,5 +68,14 @@ namespace SmartImage {
                 return ResourceManager.GetString("Name", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SmartImage.exe.
+        /// </summary>
+        internal static string NameExe {
+            get {
+                return ResourceManager.GetString("NameExe", resourceCulture);
+            }
+        }
     }
 }

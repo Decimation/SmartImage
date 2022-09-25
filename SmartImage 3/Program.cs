@@ -1,4 +1,6 @@
 ﻿#nullable disable
+
+global using static Kantan.Diagnostics.LogCategories;
 using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Help;
@@ -94,15 +96,27 @@ public static class Program
 			Application.Run();
 			Application.Shutdown();*/
 
-			var q  = AnsiConsole.Prompt(Gui.Prompt);
-			var t2 = AnsiConsole.Prompt(Gui.Prompt2);
-			var t3 = AnsiConsole.Prompt(Gui.Prompt3);
-			var t4 = AnsiConsole.Prompt(Gui.Prompt4);
+			var opt = AnsiConsole.Prompt(Gui.MainPrompt);
 
-			SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, EnumAggregator);
-			SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, EnumAggregator);
+			switch (opt) {
+				case Gui.MainMenu.Search:
+					var q  = AnsiConsole.Prompt(Gui.Prompt);
+					var t2 = AnsiConsole.Prompt(Gui.Prompt2);
+					var t3 = AnsiConsole.Prompt(Gui.Prompt3);
+					var t4 = AnsiConsole.Prompt(Gui.Prompt4);
 
-			await RootHandler(Query, a.ToString(), b.ToString(), t4);
+					SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, EnumAggregator);
+					SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, EnumAggregator);
+
+					await RootHandler(Query, a.ToString(), b.ToString(), t4);
+					break;
+				case Gui.MainMenu.Options:
+					
+					break;
+				default:
+					break;
+			}
+
 		}
 
 		await RunMain();

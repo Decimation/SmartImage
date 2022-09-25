@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
+#pragma warning disable CS0649
 
 // ReSharper disable ClassNeverInstantiated.Local
 // ReSharper disable InconsistentNaming
@@ -16,7 +17,10 @@ namespace SmartImage.Lib.Engines.Search;
 public sealed class RepostSleuthEngine : ClientSearchEngine
 {
 	public RepostSleuthEngine() : base("https://repostsleuth.com/search?url=",
-	                                   "https://api.repostsleuth.com/image") { }
+	                                   "https://api.repostsleuth.com/image")
+	{
+		Timeout = TimeSpan.FromSeconds(4.5);
+	}
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.RepostSleuth;
 
@@ -31,8 +35,9 @@ public sealed class RepostSleuthEngine : ClientSearchEngine
 	{
 		var sr = await base.GetResultAsync(query, token);
 
-		var req = await EndpointUrl.SetQueryParam("filter", "true")
-		                           .SetQueryParam("url", query.Value)
+		var req = await EndpointUrl.WithClient(Client)
+		                           .SetQueryParam("filter", "true")
+		                           .SetQueryParam("url", query.Upload)
 		                           .SetQueryParam("same_sub", "false")
 		                           .SetQueryParam("filter_author", "true")
 		                           .SetQueryParam("only_older", "false")
@@ -70,93 +75,93 @@ public sealed class RepostSleuthEngine : ClientSearchEngine
 	#endregion
 
 	#region Objects
-
+	
 	private class ClosestMatch
 	{
-		public int    hamming_distance      { get; set; }
-		public double annoy_distance        { get; set; }
-		public double hamming_match_percent { get; set; }
-		public int    hash_size             { get; set; }
-		public string searched_url          { get; set; }
-		public Post   post                  { get; set; }
-		public int    title_similarity      { get; set; }
+		public int hamming_distance;
+		public double annoy_distance;
+		public double hamming_match_percent;
+		public int hash_size;
+		public string searched_url;
+		public Post post;
+		public int title_similarity;
 	}
 
 	private class Match
 	{
-		public int    hamming_distance      { get; set; }
-		public double annoy_distance        { get; set; }
-		public double hamming_match_percent { get; set; }
-		public int    hash_size             { get; set; }
-		public string searched_url          { get; set; }
-		public Post   post                  { get; set; }
-		public int    title_similarity      { get; set; }
+		public int hamming_distance;
+		public double annoy_distance;
+		public double hamming_match_percent;
+		public int hash_size;
+		public string searched_url;
+		public Post post;
+		public int title_similarity;
 	}
 
 	private class Post
 	{
-		public string post_id    { get; set; }
-		public string url        { get; set; }
-		public object shortlink  { get; set; }
-		public string perma_link { get; set; }
-		public string title      { get; set; }
-		public string dhash_v    { get; set; }
-		public string dhash_h    { get; set; }
-		public double created_at { get; set; }
-		public string author     { get; set; }
-		public string subreddit  { get; set; }
+		public string post_id;
+		public string url;
+		public object shortlink;
+		public string perma_link;
+		public string title;
+		public string dhash_v;
+		public string dhash_h;
+		public double created_at;
+		public string author;
+		public string subreddit;
 	}
 
 	private class Root
 	{
-		public object         meme_template   { get; set; }
-		public ClosestMatch   closest_match   { get; set; }
-		public string         checked_url     { get; set; }
-		public object         checked_post    { get; set; }
-		public SearchSettings search_settings { get; set; }
-		public SearchTimes    search_times    { get; set; }
-		public List<Match>    matches         { get; set; }
+		public object meme_template;
+		public ClosestMatch closest_match;
+		public string checked_url;
+		public object checked_post;
+		public SearchSettings search_settings;
+		public SearchTimes search_times;
+		public List<Match> matches;
 	}
 
 	private class SearchSettings
 	{
-		public bool   filter_crossposts         { get; set; }
-		public bool   filter_same_author        { get; set; }
-		public bool   only_older_matches        { get; set; }
-		public bool   filter_removed_matches    { get; set; }
-		public bool   filter_dead_matches       { get; set; }
-		public int    max_days_old              { get; set; }
-		public bool   same_sub                  { get; set; }
-		public int    max_matches               { get; set; }
-		public object target_title_match        { get; set; }
-		public string search_scope              { get; set; }
-		public bool   check_title               { get; set; }
-		public int    max_depth                 { get; set; }
-		public bool   meme_filter               { get; set; }
-		public int    target_annoy_distance     { get; set; }
-		public int    target_meme_match_percent { get; set; }
-		public int    target_match_percent      { get; set; }
+		public bool filter_crossposts;
+		public bool filter_same_author;
+		public bool only_older_matches;
+		public bool filter_removed_matches;
+		public bool filter_dead_matches;
+		public int max_days_old;
+		public bool same_sub;
+		public int max_matches;
+		public object target_title_match;
+		public string search_scope;
+		public bool check_title;
+		public int max_depth;
+		public bool meme_filter;
+		public int target_annoy_distance;
+		public int target_meme_match_percent;
+		public int target_match_percent;
 	}
 
 	private class SearchTimes
 	{
-		public double pre_annoy_filter_time      { get; set; }
-		public double index_search_time          { get; set; }
-		public double meme_filter_time           { get; set; }
-		public double meme_detection_time        { get; set; }
-		public double set_match_post_time        { get; set; }
-		public double remove_duplicate_time      { get; set; }
-		public double set_match_hamming          { get; set; }
-		public double image_search_api_time      { get; set; }
-		public double filter_removed_posts_time  { get; set; }
-		public double filter_deleted_posts_time  { get; set; }
-		public double set_meme_hash_time         { get; set; }
-		public double set_closest_meme_hash_time { get; set; }
-		public double distance_filter_time       { get; set; }
-		public double get_closest_match_time     { get; set; }
-		public double total_search_time          { get; set; }
-		public double total_filter_time          { get; set; }
-		public double set_title_similarity_time  { get; set; }
+		public double pre_annoy_filter_time;
+		public double index_search_time;
+		public double meme_filter_time;
+		public double meme_detection_time;
+		public double set_match_post_time;
+		public double remove_duplicate_time;
+		public double set_match_hamming;
+		public double image_search_api_time;
+		public double filter_removed_posts_time;
+		public double filter_deleted_posts_time;
+		public double set_meme_hash_time;
+		public double set_closest_meme_hash_time;
+		public double distance_filter_time;
+		public double get_closest_match_time;
+		public double total_search_time;
+		public double total_filter_time;
+		public double set_title_similarity_time;
 	}
 
 	#endregion

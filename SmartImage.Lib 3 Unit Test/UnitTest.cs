@@ -5,6 +5,8 @@ using SmartImage.Lib.Engines.Search;
 using Assert = NUnit.Framework.Assert;
 using TestContext = NUnit.Framework.TestContext;
 
+// ReSharper disable InconsistentNaming
+
 namespace SmartImage.Lib.Unit_Test;
 
 [SetUpFixture]
@@ -124,18 +126,33 @@ public class UnitTest
 			TestContext.WriteLine(x);
 		}
 	}
+
+	[Test]
+	[TestCaseSource(nameof(_rg))]
+	public async Task RepostSleuth_Test(string s)
+	{
+		var sq = await SearchQuery.TryCreateAsync(s);
+		var u  = await sq.UploadAsync();
+		var se = new RepostSleuthEngine();
+		var r  = await se.GetResultAsync(sq);
+		Assert.True(r.Results.Any());
+
+		foreach (var x in r.Results) {
+			TestContext.WriteLine(x);
+		}
+	}
 }
 
 [TestFixture]
 public class UnitTest2
 {
-	public static object[] _rg = UnitTest._rg;
+	public static object[] _rg  = UnitTest._rg;
 	public static object[] _rg3 = UnitTest._rg3;
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
 	public async Task SearchQuery_Test(string s)
-	{ 
+	{
 		var sq = await SearchQuery.TryCreateAsync(s);
 		Assert.IsNotNull(sq);
 		var u = await sq.UploadAsync();

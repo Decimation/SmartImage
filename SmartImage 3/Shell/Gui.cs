@@ -6,11 +6,11 @@ namespace SmartImage.Shell;
 /// <summary>
 /// <see cref="Spectre"/>
 /// </summary>
-public static class Gui
+internal static class Gui
 {
 	private static readonly Style PromptStyle = Style.Parse("underline");
 
-	public static readonly TextPrompt<string> Prompt = new("Input:")
+	internal static readonly TextPrompt<string> Prompt = new("Input:")
 	{
 		AllowEmpty = false,
 		Validator = static s =>
@@ -28,60 +28,66 @@ public static class Gui
 		PromptStyle = PromptStyle,
 	};
 
-	public static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt2 = new()
+	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt2 = new()
 	{
-		Converter = option =>
-		{
-			return option.ToString();
-		},
 		Title    = "Engines:",
 		PageSize = 15,
 	};
 
-	public static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt3 = new()
+	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt3 = new()
 	{
-		Converter = option =>
-		{
-			return option.ToString();
-		},
 		Title    = "Priority engines:",
 		PageSize = 15,
 	};
 
-	public static readonly TextPrompt<bool> Prompt4 = new("Stay on top")
+	internal static readonly TextPrompt<bool> Prompt4 = new("Stay on top")
 	{
 		AllowEmpty       = true,
 		ShowDefaultValue = true,
 		PromptStyle      = PromptStyle,
 	};
 
-	public static readonly Table ResultsTable = new()
+	internal static readonly Table ResultsTable = new()
 	{
 		Border      = TableBorder.Heavy,
 		BorderStyle = Style.Plain
 	};
 
+	internal static readonly SelectionPrompt<MainMenu> MainPrompt = new()
+	{
+		Title    = "[underline]Main menu[/]",
+		PageSize = 15,
+	};
+
+	internal enum MainMenu
+	{
+		Search,
+		Options
+	}
+
 	static Gui()
 	{
 		var values = Enum.GetValues<SearchEngineOptions>();
+
+		MainPrompt = MainPrompt.AddChoices(Enum.GetValues<MainMenu>());
 
 		Prompt2 = Prompt2.AddChoices(values);
 		Prompt3 = Prompt3.AddChoices(values);
 		Prompt4 = Prompt4.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
 	}
 
-	public static async Task LiveCallback(LiveDisplayContext ctx)
+	internal static async Task LiveCallback(LiveDisplayContext ctx)
 	{
 		ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", nameof(SearchResult.Results));
 
 		while (!Program.Status) {
 			ctx.Refresh();
 			await Task.Delay(TimeSpan.FromMilliseconds(100));
-			
+
 		}
 	}
 
-	public static async Task SearchCallback(object sender, SearchResult result)
+	internal static async Task SearchCallback(object sender, SearchResult result)
 	{
 		var tx = new Table();
 
@@ -117,7 +123,7 @@ public static class Gui
 			}
 
 		};
-		
+
 		tx.AddColumns(col);
 
 		foreach (SearchResultItem item in result.Results) {
