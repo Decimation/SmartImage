@@ -39,8 +39,17 @@ public static class Program
 {
 	public static async Task Main(string[] args)
 	{
-		await test4();
-		
+		// await test4();
+		var q = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
+		await q.UploadAsync();
+		var e = new RepostSleuthEngine();
+		var r = await e.GetResultAsync(q);
+		Console.WriteLine($"{r}");
+
+		foreach (var r1 in r.Results)
+		{
+			Console.WriteLine(r1);
+		}
 	}
 
 	private static async Task print(IFlurlResponse r)

@@ -77,10 +77,15 @@ public enum SearchEngineOptions
 	Ascii2D = 1 << 11,
 
 	/// <summary>
+	/// <see cref="RepostSleuthEngine"/>
+	/// </summary>
+	RepostSleuth = 1 << 12,
+
+	/// <summary>
 	///     All engines
 	/// </summary>
 	All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing | Tidder |
-	      Ascii2D,
+	      Ascii2D | RepostSleuth,
 
 	Artwork = SauceNao | Iqdb | Ascii2D,
 }

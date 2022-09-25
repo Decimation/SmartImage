@@ -29,9 +29,9 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 			                      /*.WithAutoRedirect(true)*/
 			                      .GetAsync();
 
-			var readStr = await res.GetStringAsync();
+			var str = await res.GetStringAsync();
 
-			var document = await parser.ParseDocumentAsync(readStr);
+			var document = await parser.ParseDocumentAsync(str);
 
 			return document;
 		}
