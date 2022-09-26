@@ -6,10 +6,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
+using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchConfig
+public sealed class SearchConfig : ConfigurationSection
 {
 	/// <summary>
 	/// Default value for <see cref="SearchEngines"/>
@@ -29,29 +30,48 @@ public sealed class SearchConfig
 	/// <summary>
 	/// Engines used to search.
 	/// </summary>
-	public SearchEngineOptions SearchEngines { get; set; } = SE_DEFAULT;
+	[ConfigurationProperty(nameof(SearchEngines), DefaultValue = SE_DEFAULT)]
+	public SearchEngineOptions SearchEngines
+	{
+		get => Enum.Parse<SearchEngineOptions>(this[nameof(SearchEngines)].ToString());
+		set => this[nameof(SearchEngines)] = value;
+	}
 
 	/// <summary>
 	/// Engines whose results are opened in the default browser.
 	/// </summary>
-	public SearchEngineOptions PriorityEngines { get; set; } = PE_DEFAULT;
+	[ConfigurationProperty(nameof(PriorityEngines), DefaultValue = PE_DEFAULT)]
+	public SearchEngineOptions PriorityEngines
+	{
+		get => Enum.Parse<SearchEngineOptions>(this[nameof(PriorityEngines)].ToString());
+		set => this[nameof(PriorityEngines)] = value;
+	}
 
 	/// <summary>
 	/// Keeps console window on-top.
 	/// </summary>
-	public bool OnTop { get; set; } = ON_TOP_DEFAULT;
+	[ConfigurationProperty(nameof(OnTop), DefaultValue = ON_TOP_DEFAULT)]
+	public bool OnTop
+	{
+		get =>(bool) this[nameof(OnTop)];
+		set => this[nameof(OnTop)] = value;
 
-	public SearchConfig() { }
+	}
+
+	public SearchConfig()
+	{
+		var c=Configuration.Sections["Config"];
+
+		if (c == null) {
+			Configuration.Sections.Add("Config", this);
+		}
+
+		this.SectionInformation.ForceSave = true;
+		
+	}
 
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-	public void Update()
-	{
-		var s = Configuration.AppSettings.Settings[nameof(SearchEngines)];
-		
-		SearchEngines = Enum.Parse<SearchEngineOptions>(s.Value);
-	}
 
 	public void Save()
 	{

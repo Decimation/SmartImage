@@ -1,4 +1,5 @@
-﻿using Kantan.Net.Utilities;
+﻿using Flurl;
+using Kantan.Net.Utilities;
 using SmartImage.App;
 using SmartImage.Lib;
 using Spectre.Console;
@@ -10,9 +11,17 @@ namespace SmartImage.CommandLine;
 /// </summary>
 internal static class Gui
 {
-	private static readonly Style PromptStyle = Style.Parse("underline");
+	#region Styles
 
-	internal static readonly TextPrompt<string> Prompt = new("Input:")
+	private static readonly Style S_Underline = Style.Parse("underline");
+
+	internal static readonly Style S_Generic1 = new(foreground: Color.Blue);
+
+	internal static readonly Style S_Generic2 = new(foreground: Color.Cyan1);
+
+	#endregion
+
+	internal static readonly TextPrompt<string> Pr_Input = new("Input:")
 	{
 		AllowEmpty = false,
 		Validator = static s =>
@@ -27,35 +36,30 @@ internal static class Gui
 				return ValidationResult.Error($"Error: {e.Message}");
 			}
 		},
-		PromptStyle = PromptStyle,
+		PromptStyle = S_Underline,
 	};
 
-	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt2 = new()
+	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Pr_Multi = new()
 	{
-		Title    = "Engines:",
 		PageSize = 20,
 	};
 
-	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt3 = new()
-	{
-		Title    = "Priority engines:",
-		PageSize = 20,
-	};
-
-	internal static readonly TextPrompt<bool> Prompt4 = new("Stay on top")
+	internal static readonly TextPrompt<bool> Pr_Cfg_OnTop = new("Stay on top")
 	{
 		AllowEmpty       = true,
 		ShowDefaultValue = true,
-		PromptStyle      = PromptStyle,
+		PromptStyle      = S_Underline,
 	};
 
-	internal static readonly Table ResultsTable = new()
+	private static readonly SelectionPrompt<ResultMenuOption> Pr_ResultMenu = new ();
+
+	internal static readonly Table Tb_Results = new()
 	{
 		Border      = TableBorder.Heavy,
 		BorderStyle = Style.Plain
 	};
 
-	internal static readonly SelectionPrompt<MainMenuOption> MainPrompt = new()
+	internal static readonly SelectionPrompt<MainMenuOption> Pr_Main = new()
 	{
 		Title    = "[underline]Main menu[/]",
 		PageSize = 20,
@@ -77,16 +81,17 @@ internal static class Gui
 	{
 		var values = Cache.EngineOptions;
 
-		MainPrompt = MainPrompt.AddChoices(Enum.GetValues<MainMenuOption>());
+		Pr_Main = Pr_Main.AddChoices(Enum.GetValues<MainMenuOption>());
 
-		Prompt2 = Prompt2.AddChoices(values);
-		Prompt3 = Prompt3.AddChoices(values);
-		Prompt4 = Prompt4.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
+		Pr_Multi = Pr_Multi.AddChoices(values);
+		Pr_Cfg_OnTop = Pr_Cfg_OnTop.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
+		Pr_ResultMenu     = Pr_ResultMenu.AddChoices(Enum.GetValues<ResultMenuOption>());
+
 	}
 
 	internal static async Task LiveCallback(LiveDisplayContext ctx)
 	{
-		ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", "[bold]Results[/]");
+		Tb_Results.AddColumns("[bold]Engine[/]", "[bold]Info[/]", "[bold]Results[/]");
 
 		while (!Program.Status) {
 			ctx.Refresh();
@@ -147,9 +152,11 @@ internal static class Gui
 				$"\t[link={item.Url}]{item.Root.Engine.Name}[/] | {item.Similarity / 100:P} {item.Artist} " +
 				$"{item.Description} [italic]{item.Title}[/] {item.Width}x{item.Height}");*/
 
+			var url = item.Url?.ToString()?.EscapeMarkup();
+
 			var row = new[]
 			{
-				$"[link={item.Url}]Link[/]",
+				$"[link={url}]Link[/]",
 				$"{item.Similarity / 100:P}",
 				$"{item.Artist}".EscapeMarkup(),
 				$"{item.Character}".EscapeMarkup(),
@@ -163,13 +170,11 @@ internal static class Gui
 
 		// AC.Write(tx);
 
-		ResultsTable.AddRow(text, caption, tx);
+		Tb_Results.AddRow(text, caption, tx);
 	}
 
 	internal static async Task AfterSearch()
 	{
-		var p2 = new SelectionPrompt<ResultMenuOption>();
-		p2 = p2.AddChoices(Enum.GetValues<ResultMenuOption>());
 
 		var p3 = new SelectionPrompt<int>();
 		var c  = Enumerable.Range(0, Program.Results.Count).ToList();
@@ -179,7 +184,7 @@ internal static class Gui
 		c.Insert(0, i);
 		p3 = p3.AddChoices(c);
 
-		switch (AC.Prompt(p2)) {
+		switch (AC.Prompt(Pr_ResultMenu)) {
 
 			case ResultMenuOption.Stay:
 
@@ -193,12 +198,19 @@ internal static class Gui
 					}
 
 					var r = Program.Results[l];
-					HttpUtilities.OpenUrl(r.First?.Url);
+
+					if (r.First is { Url: { } }) {
+						HttpUtilities.OpenUrl(r.First.Url);
+					}
+
 				} while (true);
 
 				break;
 			case ResultMenuOption.Exit:
 				Environment.Exit(0);
+				break;
+			default:
+				Environment.Exit(-1);
 				break;
 		}
 	}
@@ -206,14 +218,14 @@ internal static class Gui
 	internal static async Task RunGui()
 	{
 		MAIN_MENU:
-		var opt = AC.Prompt(MainPrompt);
+		var opt = AC.Prompt(Pr_Main);
 
 		switch (opt) {
 			case MainMenuOption.Search:
-				var q  = AC.Prompt(Prompt);
-				var t2 = AC.Prompt(Prompt2);
-				var t3 = AC.Prompt(Prompt3);
-				var t4 = AC.Prompt(Prompt4);
+				var q  = AC.Prompt(Pr_Input);
+				var t2 = AC.Prompt(Pr_Multi.Title("Engines"));
+				var t3 = AC.Prompt(Pr_Multi.Title("Priority engines"));
+				var t4 = AC.Prompt(Pr_Cfg_OnTop);
 
 				SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
 				SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
@@ -228,8 +240,8 @@ internal static class Gui
 				var v = AC.Prompt(ctx);
 
 				AC.MarkupLine($"{Integration.ExeLocation}\n" +
-				                       $"{Integration.IsAppFolderInPath}\n" +
-				                       $"{Integration.IsContextMenuAdded}");
+				              $"{Integration.IsAppFolderInPath}\n" +
+				              $"{Integration.IsContextMenuAdded}");
 
 				goto MAIN_MENU;
 		}

@@ -4,8 +4,12 @@ using Spectre.Console;
 
 namespace SmartImage;
 
-public static class TerminalHelper
+public static class Util
 {
+	public static Text T(this string s, Style? st = null)
+	{
+		return new Text(s, st);
+	}
 
 	public static Table RemoveColumn(this Table t, int i)
 	{

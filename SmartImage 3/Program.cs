@@ -76,12 +76,9 @@ public static class Program
 		bool cli = args is { } && args.Any();
 
 		if (cli) {
-
 			int r = await Cli.RunCli(args);
-
 		}
 		else {
-
 			await Gui.RunGui();
 		}
 
@@ -93,19 +90,26 @@ public static class Program
 		//todo
 
 		var table = new Table()
-			{ };
+		{
+			Border = TableBorder.Heavy,
+			Alignment = Justify.Center
+		};
 
+		//NOTE: WTF
 		table.AddColumns(new TableColumn("Input"), new TableColumn("Value"))
-		     .AddRow("[cyan]Search engines[/]", Config.SearchEngines.ToString())
-		     .AddRow("[cyan]Priority engines[/]", Config.PriorityEngines.ToString())
-		     .AddRow("[blue]Query value[/]", Query.Value)
-		     .AddRow("[blue]Query upload[/]", Query.Upload.ToString());
+		     .AddRow(new Text("Search engines", Gui.S_Generic1),
+		             new Text(Config.SearchEngines.ToString(), Gui.S_Generic2))
+		     .AddRow(new Text("Priority engines", Gui.S_Generic1),
+		             new Text(Config.PriorityEngines.ToString(), Gui.S_Generic2))
+		     .AddRow(new Text("Stay on top", Gui.S_Generic1), new Text(Config.OnTop.ToString(), Gui.S_Generic2))
+		     .AddRow(new Text("Query input", Gui.S_Generic1), new Text(Query.Value, Gui.S_Generic2))
+		     .AddRow(new Text("Query upload", Gui.S_Generic1), new Text(Query.Upload.ToString(), Gui.S_Generic2));
 
 		AC.Write(table);
 
 		var now = Stopwatch.StartNew();
 
-		var live = AC.Live(Gui.ResultsTable)
+		var live = AC.Live(Gui.Tb_Results)
 		             .AutoClear(false)
 		             .Overflow(VerticalOverflow.Ellipsis)
 		             .Cropping(VerticalOverflowCropping.Top)
@@ -144,7 +148,6 @@ public static class Program
 
 	internal static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{
-		Config.Update();
 
 		Config.SearchEngines   = t2;
 		Config.PriorityEngines = t3;
