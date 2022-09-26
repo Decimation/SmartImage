@@ -13,8 +13,6 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Hosting;
 using SmartImage.Lib;
-using Terminal.Gui;
-using static SmartImage.UI_Old.Gui;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
 using Novus.Win32;
@@ -61,15 +59,16 @@ public static class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
-		// Debugger.Launch();
-		
-		AnsiConsole.Profile.Capabilities.Links   = true;
-		AnsiConsole.Profile.Capabilities.Unicode = true;
+
+		// AnsiConsole.Profile.Capabilities.Links   = true;
+		// AnsiConsole.Profile.Capabilities.Unicode = true;
 		
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-q", "https://i.imgur.com/QtCausw.png" };
 		// args = new[] { "-q", "https://i.imgur.com/QtCausw.png", "-p", "Artwork", "-ontop" };
+
+		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
 
 		bool cli = args is { } && args.Any();
@@ -113,8 +112,8 @@ public static class Program
 					var t3 = AnsiConsole.Prompt(Gui.Prompt3);
 					var t4 = AnsiConsole.Prompt(Gui.Prompt4);
 
-					SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, EnumAggregator);
-					SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, EnumAggregator);
+					SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
+					SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
 
 					await RootHandler(Query, a.ToString(), b.ToString(), t4);
 					break;
@@ -170,60 +169,22 @@ public static class Program
 		AnsiConsole.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
 		Native.FlashWindow(_hndWindow);
 
-		var p2 = new SelectionPrompt<ResultMenuOption>();
-		p2 = p2.AddChoices(Enum.GetValues<ResultMenuOption>());
-
-		var p3 = new SelectionPrompt<int>();
-		var c  = Enumerable.Range(0, Results.Count).ToList();
-
-		const int i = -1;
-
-		c.Insert(0, i);
-		p3 = p3.AddChoices(c);
-
-		switch (AnsiConsole.Prompt(p2)) {
-
-			case ResultMenuOption.Stay:
-
-				int l;
-
-				do {
-					l = AnsiConsole.Prompt(p3);
-
-					if (l == i) {
-						break;
-					}
-
-					var r = Results[l];
-					HttpUtilities.OpenUrl(r.First?.Url);
-				} while (true);
-
-				break;
-			case ResultMenuOption.Exit:
-				Environment.Exit(0);
-				break;
-			default:
-				break;
-		}
-	}
-
-	internal enum ResultMenuOption
-	{
-		Stay,
-		Exit
+		await Gui.AfterSearch();
 	}
 
 	private static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
 	{
 		Query = t1;
 
-		await AnsiConsole.Status()
+		var t= AnsiConsole.Status()
 		                 .Spinner(Spinner.Known.Star)
 		                 .StartAsync($"Uploading...", async ctx =>
 		                 {
 			                 await Query.UploadAsync();
 			                 ctx.Status = "Uploaded";
 		                 });
+
+		await t;
 
 		RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
 	}
@@ -239,9 +200,6 @@ public static class Program
 			Native.KeepWindowOnTop(_hndWindow);
 		}
 	}
-
-	private static readonly Func<SearchEngineOptions, SearchEngineOptions, SearchEngineOptions> EnumAggregator =
-		(current, searchEngineOptions) => current | searchEngineOptions;
 
 	private static readonly IntPtr _hndWindow = Native.GetConsoleWindow();
 }

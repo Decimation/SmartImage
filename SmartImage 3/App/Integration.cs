@@ -125,7 +125,7 @@ public static class Integration
 				                       .Any(p => p == appFolder);
 
 				string cd  = Environment.CurrentDirectory;
-				string exe = Path.Combine(cd, Resources.NameExe);
+				string exe = Path.Combine(cd, Resources.Name_Exe);
 
 				if (!appFolderInPath) {
 					string newValue = oldValue + FileSystem.PATH_DELIM + cd;

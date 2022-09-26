@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using Kantan.Net.Utilities;
 using SmartImage.Lib;
 using Spectre.Console;
 
@@ -157,5 +158,50 @@ internal static class Gui
 		// AnsiConsole.Write(tx);
 
 		ResultsTable.AddRow(text, caption, tx);
+	}
+
+	public static async Task AfterSearch()
+	{
+		var p2 = new SelectionPrompt<ResultMenuOption>();
+		p2 = p2.AddChoices(Enum.GetValues<ResultMenuOption>());
+
+		var p3 = new SelectionPrompt<int>();
+		var c  = Enumerable.Range(0, Program.Results.Count).ToList();
+
+		const int i = -1;
+
+		c.Insert(0, i);
+		p3 = p3.AddChoices(c);
+
+		switch (AnsiConsole.Prompt(p2)) {
+
+			case ResultMenuOption.Stay:
+
+				int l;
+
+				do {
+					l = AnsiConsole.Prompt(p3);
+
+					if (l == i) {
+						break;
+					}
+
+					var r = Program.Results[l];
+					HttpUtilities.OpenUrl(r.First?.Url);
+				} while (true);
+
+				break;
+			case ResultMenuOption.Exit:
+				Environment.Exit(0);
+				break;
+			default:
+				break;
+		}
+	}
+
+	internal enum ResultMenuOption
+	{
+		Stay,
+		Exit
 	}
 }

@@ -72,9 +72,27 @@ namespace SmartImage {
         /// <summary>
         ///   Looks up a localized string similar to SmartImage.exe.
         /// </summary>
-        internal static string NameExe {
+        internal static string Name_Exe {
             get {
-                return ResourceManager.GetString("NameExe", resourceCulture);
+                return ResourceManager.GetString("Name_Exe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage.
+        /// </summary>
+        internal static string Repo_Url {
+            get {
+                return ResourceManager.GetString("Repo_Url", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/wiki.
+        /// </summary>
+        internal static string Wiki_Url {
+            get {
+                return ResourceManager.GetString("Wiki_Url", resourceCulture);
             }
         }
     }

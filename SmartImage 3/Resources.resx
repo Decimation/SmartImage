@@ -120,7 +120,13 @@
   <data name="Name" xml:space="preserve">
     <value>SmartImage</value>
   </data>
-  <data name="NameExe" xml:space="preserve">
+  <data name="Name_Exe" xml:space="preserve">
     <value>SmartImage.exe</value>
+  </data>
+  <data name="Repo_Url" xml:space="preserve">
+    <value>https://github.com/Decimation/SmartImage</value>
+  </data>
+  <data name="Wiki_Url" xml:space="preserve">
+    <value>https://github.com/Decimation/SmartImage/wiki</value>
   </data>
 </root>
