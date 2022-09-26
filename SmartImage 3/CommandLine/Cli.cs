@@ -1,5 +1,7 @@
 ﻿using System.CommandLine;
+using System.CommandLine.Builder;
 using System.CommandLine.Help;
+using System.CommandLine.Parsing;
 using Kantan.Text;
 using SmartImage.Lib;
 using Spectre.Console;
@@ -11,24 +13,26 @@ namespace SmartImage.CommandLine;
 /// <summary>
 /// <see cref="System.CommandLine"/>
 /// </summary>
-public static class Cli
+internal static class Cli
 {
-	public static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: (ar) =>
+	private static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: ar =>
 	{
-		return SearchQuery.TryCreateAsync(ar.Tokens.Single().Value).Result;
+		var value = ar.Tokens.Single().Value;
+		var task  = SearchQuery.TryCreateAsync(value);
+		return task.Result;
 
 	}, isDefault: false, "Query (file or direct image URL)");
 
-	public static readonly Option<string> Opt_Priority =
+	private static readonly Option<string> Opt_Priority =
 		new("-p", description: "Priority engines", getDefaultValue: () => SearchConfig.PE_DEFAULT.ToString());
 
-	public static readonly Option<string> Opt_Engines = new(
-		"-e", description: $"Search engines\n{Enum.GetValues<SearchEngineOptions>().QuickJoin("\n")}",
+	private static readonly Option<string> Opt_Engines = new(
+		"-e", description: $"Search engines\n{Cache.EngineOptions.QuickJoin("\n")}",
 		getDefaultValue: () => SearchConfig.SE_DEFAULT.ToString());
 
-	public static readonly Option<bool> Opt_OnTop = new(name: "-ontop", description: "Stay on top");
+	private static readonly Option<bool> Opt_OnTop = new(name: "-ontop", description: "Stay on top");
 
-	public static readonly RootCommand Cmd_Root = new("Run a search")
+	private static readonly RootCommand Cmd_Root = new("Run a search")
 	{
 		Opt_Query,
 		Opt_Priority,
@@ -36,11 +40,29 @@ public static class Cli
 		Opt_OnTop
 	};
 
-	public static void HelpHandler(HelpContext ctx)
+	private static void HelpHandler(HelpContext ctx)
 	{
 		ctx.HelpBuilder.CustomizeLayout(_ => HelpBuilder.Default.GetLayout()
 		                                                .Skip(1) // Skip the default command description section.
-		                                                .Prepend(_ => AnsiConsole.Write(
+		                                                .Prepend(_ => AC.Write(
 			                                                         new FigletText(Resources.Name))));
+	}
+
+	static Cli() { }
+
+	internal static async Task<int> RunCli(string[] args)
+	{
+		Cmd_Root.SetHandler(Program.RootHandler, Opt_Query, Opt_Engines,
+		                    Opt_Priority, Opt_OnTop);
+
+		var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp(HelpHandler).Build();
+
+		var r = await parser.InvokeAsync(args);
+
+		if (r != 0 || Program.Query == null) {
+			return r;
+		}
+
+		return r;
 	}
 }

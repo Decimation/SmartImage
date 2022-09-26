@@ -1,5 +1,6 @@
 ﻿#nullable disable
 
+global using AC = Spectre.Console.AnsiConsole;
 global using static Kantan.Diagnostics.LogCategories;
 using System.CommandLine;
 using System.CommandLine.Builder;
@@ -18,7 +19,6 @@ using Microsoft.Extensions.Configuration;
 using Novus.Win32;
 using SmartImage.App;
 using SmartImage.CommandLine;
-using SmartImage.Shell;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Color = Spectre.Console.Color;
@@ -60,9 +60,9 @@ public static class Program
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 
-		// AnsiConsole.Profile.Capabilities.Links   = true;
-		// AnsiConsole.Profile.Capabilities.Unicode = true;
-		
+		// AC.Profile.Capabilities.Links   = true;
+		// AC.Profile.Capabilities.Unicode = true;
+
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-q", "https://i.imgur.com/QtCausw.png" };
@@ -75,63 +75,12 @@ public static class Program
 
 		if (cli) {
 
-			Cli.Cmd_Root.SetHandler(RootHandler, Cli.Opt_Query, Cli.Opt_Engines, Cli.Opt_Priority,
-			                        Cli.Opt_OnTop);
-
-			var parser = new CommandLineBuilder(Cli.Cmd_Root).UseDefaults().UseHelp(Cli.HelpHandler).Build();
-
-			var r = await parser.InvokeAsync(args);
-
-			if (r != 0 || Query == null) {
-				return;
-			}
+			int r = await Cli.RunCli(args);
 
 		}
-
 		else {
-			/*var configuration = new ConfigurationBuilder();
 
-			configuration.AddJsonFile("smartimage.json", optional: true, reloadOnChange: true)
-			             .AddCommandLine(args);
-
-			IConfigurationRoot configurationRoot = configuration.Build();
-			configurationRoot.Bind(Config);*/
-
-			/*Application.Init();
-			Gui.Init();
-			Application.Run();
-			Application.Shutdown();*/
-
-			MAIN_MENU:
-			var opt = AnsiConsole.Prompt(Gui.MainPrompt);
-
-			switch (opt) {
-				case Gui.MainMenuOption.Search:
-					var q  = AnsiConsole.Prompt(Gui.Prompt);
-					var t2 = AnsiConsole.Prompt(Gui.Prompt2);
-					var t3 = AnsiConsole.Prompt(Gui.Prompt3);
-					var t4 = AnsiConsole.Prompt(Gui.Prompt4);
-
-					SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
-					SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
-
-					await RootHandler(Query, a.ToString(), b.ToString(), t4);
-					break;
-				case Gui.MainMenuOption.Options:
-					SelectionPrompt<bool> ctx = new();
-					ctx = ctx.AddChoices(true, false);
-
-					var v = AnsiConsole.Prompt(ctx);
-
-					AnsiConsole.MarkupLine($"{Integration.ExeLocation}\n" +
-					                       $"{Integration.IsAppFolderInPath}\n" +
-					                       $"{Integration.IsContextMenuAdded}");
-
-					goto MAIN_MENU;
-				default:
-					break;
-			}
-
+			await Gui.RunGui();
 		}
 
 		await RunMain();
@@ -139,6 +88,8 @@ public static class Program
 
 	private static async Task RunMain()
 	{
+		//todo
+
 		var table = new Table()
 			{ };
 
@@ -148,15 +99,15 @@ public static class Program
 		     .AddRow("[blue]Query value[/]", Query.Value)
 		     .AddRow("[blue]Query upload[/]", Query.Upload.ToString());
 
-		AnsiConsole.Write(table);
+		AC.Write(table);
 
 		var now = Stopwatch.StartNew();
 
-		var live = AnsiConsole.Live(Gui.ResultsTable)
-		                      .AutoClear(false)
-		                      .Overflow(VerticalOverflow.Ellipsis)
-		                      .Cropping(VerticalOverflowCropping.Top)
-		                      .StartAsync(Gui.LiveCallback);
+		var live = AC.Live(Gui.ResultsTable)
+		             .AutoClear(false)
+		             .Overflow(VerticalOverflow.Ellipsis)
+		             .Cropping(VerticalOverflowCropping.Top)
+		             .StartAsync(Gui.LiveCallback);
 
 		Status  = false;
 		Results = await Client.RunSearchAsync(Query, CancellationToken.None, Gui.SearchCallback);
@@ -165,31 +116,31 @@ public static class Program
 		await live;
 
 		now.Stop();
+
 		var diff = now.Elapsed;
-		AnsiConsole.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
-		Native.FlashWindow(_hndWindow);
+		AC.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
+		Native.FlashWindow(Cache.HndWindow);
 
 		await Gui.AfterSearch();
 	}
 
-	private static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
+	internal static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
 	{
 		Query = t1;
 
-		var t= AnsiConsole.Status()
-		                 .Spinner(Spinner.Known.Star)
-		                 .StartAsync($"Uploading...", async ctx =>
-		                 {
-			                 await Query.UploadAsync();
-			                 ctx.Status = "Uploaded";
-		                 });
+		var t = AC.Status().Spinner(Spinner.Known.Star)
+		          .StartAsync($"Uploading...", async ctx =>
+		          {
+			          await Query.UploadAsync();
+			          ctx.Status = "Uploaded";
+		          });
 
 		await t;
 
 		RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
 	}
 
-	private static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
+	internal static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{
 		Config.SearchEngines   = t2;
 		Config.PriorityEngines = t3;
@@ -197,9 +148,7 @@ public static class Program
 		Config.OnTop = t4;
 
 		if (Config.OnTop) {
-			Native.KeepWindowOnTop(_hndWindow);
+			Native.KeepWindowOnTop(Cache.HndWindow);
 		}
 	}
-
-	private static readonly IntPtr _hndWindow = Native.GetConsoleWindow();
 }

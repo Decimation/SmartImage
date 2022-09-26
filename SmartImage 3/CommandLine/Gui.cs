@@ -1,9 +1,9 @@
-﻿using System.Net.Http.Headers;
-using Kantan.Net.Utilities;
+﻿using Kantan.Net.Utilities;
+using SmartImage.App;
 using SmartImage.Lib;
 using Spectre.Console;
 
-namespace SmartImage.Shell;
+namespace SmartImage.CommandLine;
 
 /// <summary>
 /// <see cref="Spectre"/>
@@ -67,9 +67,15 @@ internal static class Gui
 		Options
 	}
 
+	private enum ResultMenuOption
+	{
+		Stay,
+		Exit
+	}
+
 	static Gui()
 	{
-		var values = Enum.GetValues<SearchEngineOptions>();
+		var values = Cache.EngineOptions;
 
 		MainPrompt = MainPrompt.AddChoices(Enum.GetValues<MainMenuOption>());
 
@@ -80,7 +86,7 @@ internal static class Gui
 
 	internal static async Task LiveCallback(LiveDisplayContext ctx)
 	{
-		ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", $"[bold]Results[/]");
+		ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", "[bold]Results[/]");
 
 		while (!Program.Status) {
 			ctx.Refresh();
@@ -93,12 +99,12 @@ internal static class Gui
 	{
 		var text = new Text($"{result.Engine.Name}", style: new Style(decoration: Decoration.Bold));
 
-		var caption = new Text($"Raw", new Style(link: result.RawUrl, decoration: Decoration.Italic));
+		var caption = new Text("Raw", new Style(link: result.RawUrl, decoration: Decoration.Italic));
 
-		var tx = new Table()
+		var tx = new Table
 		{
 			Alignment = Justify.Center,
-			Border = TableBorder.Heavy
+			Border    = TableBorder.Heavy
 		};
 
 		var col = new TableColumn[]
@@ -137,7 +143,7 @@ internal static class Gui
 		tx.AddColumns(col);
 
 		foreach (SearchResultItem item in result.Results) {
-			/*AnsiConsole.MarkupLine(
+			/*AC.MarkupLine(
 				$"\t[link={item.Url}]{item.Root.Engine.Name}[/] | {item.Similarity / 100:P} {item.Artist} " +
 				$"{item.Description} [italic]{item.Title}[/] {item.Width}x{item.Height}");*/
 
@@ -155,12 +161,12 @@ internal static class Gui
 			tx.AddRow(row);
 		}
 
-		// AnsiConsole.Write(tx);
+		// AC.Write(tx);
 
 		ResultsTable.AddRow(text, caption, tx);
 	}
 
-	public static async Task AfterSearch()
+	internal static async Task AfterSearch()
 	{
 		var p2 = new SelectionPrompt<ResultMenuOption>();
 		p2 = p2.AddChoices(Enum.GetValues<ResultMenuOption>());
@@ -173,14 +179,14 @@ internal static class Gui
 		c.Insert(0, i);
 		p3 = p3.AddChoices(c);
 
-		switch (AnsiConsole.Prompt(p2)) {
+		switch (AC.Prompt(p2)) {
 
 			case ResultMenuOption.Stay:
 
 				int l;
 
 				do {
-					l = AnsiConsole.Prompt(p3);
+					l = AC.Prompt(p3);
 
 					if (l == i) {
 						break;
@@ -194,14 +200,38 @@ internal static class Gui
 			case ResultMenuOption.Exit:
 				Environment.Exit(0);
 				break;
-			default:
-				break;
 		}
 	}
 
-	internal enum ResultMenuOption
+	internal static async Task RunGui()
 	{
-		Stay,
-		Exit
+		MAIN_MENU:
+		var opt = AC.Prompt(MainPrompt);
+
+		switch (opt) {
+			case MainMenuOption.Search:
+				var q  = AC.Prompt(Prompt);
+				var t2 = AC.Prompt(Prompt2);
+				var t3 = AC.Prompt(Prompt3);
+				var t4 = AC.Prompt(Prompt4);
+
+				SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
+				SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
+
+				await Program.RootHandler(Program.Query, a.ToString(), b.ToString(), t4);
+
+				break;
+			case MainMenuOption.Options:
+				SelectionPrompt<bool> ctx = new();
+				ctx = ctx.AddChoices(true, false);
+
+				var v = AC.Prompt(ctx);
+
+				AC.MarkupLine($"{Integration.ExeLocation}\n" +
+				                       $"{Integration.IsAppFolderInPath}\n" +
+				                       $"{Integration.IsContextMenuAdded}");
+
+				goto MAIN_MENU;
+		}
 	}
 }

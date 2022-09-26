@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Flurl;
 using Flurl.Http;
+
 #pragma warning disable CS0649
 
 // ReSharper disable ClassNeverInstantiated.Local
@@ -36,16 +37,19 @@ public sealed class RepostSleuthEngine : ClientSearchEngine
 		var sr = await base.GetResultAsync(query, token);
 
 		var req = await EndpointUrl.WithClient(Client)
-		                           .SetQueryParam("filter", "true")
-		                           .SetQueryParam("url", query.Upload)
-		                           .SetQueryParam("same_sub", "false")
-		                           .SetQueryParam("filter_author", "true")
-		                           .SetQueryParam("only_older", "false")
-		                           .SetQueryParam("include_crossposts", "false")
-		                           .SetQueryParam("meme_filter", "false")
-		                           .SetQueryParam("target_match_percent", "90")
-		                           .SetQueryParam("filter_dead_matches", "false")
-		                           .SetQueryParam("target_days_old", "0")
+		                           .SetQueryParams(new
+		                           {
+			                           filter               = true,
+			                           url                  = query.Upload,
+			                           same_sub             = false,
+			                           filter_author        = true,
+			                           only_older           = false,
+			                           include_crossposts   = false,
+			                           meme_filter          = false,
+			                           target_match_percent = 90,
+			                           filter_dead_matches  = false,
+			                           target_days_old      = 0
+		                           })
 		                           .GetAsync();
 
 		var obj = await req.GetJsonAsync<Root>();
@@ -75,27 +79,27 @@ public sealed class RepostSleuthEngine : ClientSearchEngine
 	#endregion
 
 	#region Objects
-	
+
 	private class ClosestMatch
 	{
-		public int hamming_distance;
+		public int    hamming_distance;
 		public double annoy_distance;
 		public double hamming_match_percent;
-		public int hash_size;
+		public int    hash_size;
 		public string searched_url;
-		public Post post;
-		public int title_similarity;
+		public Post   post;
+		public int    title_similarity;
 	}
 
 	private class Match
 	{
-		public int hamming_distance;
+		public int    hamming_distance;
 		public double annoy_distance;
 		public double hamming_match_percent;
-		public int hash_size;
+		public int    hash_size;
 		public string searched_url;
-		public Post post;
-		public int title_similarity;
+		public Post   post;
+		public int    title_similarity;
 	}
 
 	private class Post
@@ -114,33 +118,33 @@ public sealed class RepostSleuthEngine : ClientSearchEngine
 
 	private class Root
 	{
-		public object meme_template;
-		public ClosestMatch closest_match;
-		public string checked_url;
-		public object checked_post;
+		public object         meme_template;
+		public ClosestMatch   closest_match;
+		public string         checked_url;
+		public object         checked_post;
 		public SearchSettings search_settings;
-		public SearchTimes search_times;
-		public List<Match> matches;
+		public SearchTimes    search_times;
+		public List<Match>    matches;
 	}
 
 	private class SearchSettings
 	{
-		public bool filter_crossposts;
-		public bool filter_same_author;
-		public bool only_older_matches;
-		public bool filter_removed_matches;
-		public bool filter_dead_matches;
-		public int max_days_old;
-		public bool same_sub;
-		public int max_matches;
+		public bool   filter_crossposts;
+		public bool   filter_same_author;
+		public bool   only_older_matches;
+		public bool   filter_removed_matches;
+		public bool   filter_dead_matches;
+		public int    max_days_old;
+		public bool   same_sub;
+		public int    max_matches;
 		public object target_title_match;
 		public string search_scope;
-		public bool check_title;
-		public int max_depth;
-		public bool meme_filter;
-		public int target_annoy_distance;
-		public int target_meme_match_percent;
-		public int target_match_percent;
+		public bool   check_title;
+		public int    max_depth;
+		public bool   meme_filter;
+		public int    target_annoy_distance;
+		public int    target_meme_match_percent;
+		public int    target_match_percent;
 	}
 
 	private class SearchTimes

@@ -105,8 +105,9 @@ public static class Integration
 		}
 	}
 
-	public static string CurrentAppFolder  => Path.GetDirectoryName(ExeLocation);
-	public static bool   IsAppFolderInPath => FileSystem.IsFolderInPath(CurrentAppFolder);
+	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
+
+	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(CurrentAppFolder);
 
 	public static void HandlePath(bool option)
 	{
