@@ -6,6 +6,7 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Help;
 using System.CommandLine.Parsing;
+using System.Configuration;
 using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -22,6 +23,7 @@ using SmartImage.CommandLine;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Color = Spectre.Console.Color;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 #pragma warning disable CS0168
 
@@ -142,6 +144,8 @@ public static class Program
 
 	internal static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{
+		Config.Update();
+
 		Config.SearchEngines   = t2;
 		Config.PriorityEngines = t3;
 

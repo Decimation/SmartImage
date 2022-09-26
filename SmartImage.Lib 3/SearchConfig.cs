@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 namespace SmartImage.Lib;
 
@@ -41,6 +42,22 @@ public sealed class SearchConfig
 	public bool OnTop { get; set; } = ON_TOP_DEFAULT;
 
 	public SearchConfig() { }
+
+	public static readonly Configuration Configuration =
+		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+	public void Update()
+	{
+		var s = Configuration.AppSettings.Settings[nameof(SearchEngines)];
+		
+		SearchEngines = Enum.Parse<SearchEngineOptions>(s.Value);
+	}
+
+	public void Save()
+	{
+		Configuration.Save(ConfigurationSaveMode.Modified);
+		ConfigurationManager.RefreshSection(Configuration.AppSettings.SectionInformation.Name);
+	}
 
 	public override string ToString()
 	{
