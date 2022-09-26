@@ -57,7 +57,7 @@ internal static class Gui
 	internal static readonly SelectionPrompt<MainMenuOption> MainPrompt = new()
 	{
 		Title    = "[underline]Main menu[/]",
-		PageSize = 15,
+		PageSize = 20,
 	};
 
 	internal enum MainMenuOption
@@ -90,10 +90,12 @@ internal static class Gui
 
 	internal static async Task SearchCallback(object sender, SearchResult result)
 	{
+		var text = new Text($"{result.Engine.Name}", style: new Style(decoration: Decoration.Bold));
+
+		var caption = new Text($"Raw", new Style(link: result.RawUrl, decoration: Decoration.Italic));
+
 		var tx = new Table()
 		{
-			Title   = new TableTitle(result.Engine.Name, style: new Style(decoration: Decoration.Bold)),
-			Caption = new TableTitle($"Raw", new Style(link: result.RawUrl, decoration: Decoration.Italic)),
 			Alignment = Justify.Center,
 			Border = TableBorder.Heavy
 		};
@@ -152,7 +154,8 @@ internal static class Gui
 			tx.AddRow(row);
 		}
 
-		AnsiConsole.Write(tx);
+		// AnsiConsole.Write(tx);
 
+		ResultsTable.AddRow(text, caption, tx);
 	}
 }

@@ -25,10 +25,17 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 			var res = await origin.AllowAnyHttpStatus()
 			                      .WithCookies(out var cj)
 			                      .WithTimeout(Timeout)
-			                      .WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
+			                      .WithHeaders(new
+			                      {
+				                      User_Agent = HttpUtilities.UserAgent
+			                      })
 			                      /*.WithAutoRedirect(true)*/
+			                      /*.OnError(s =>
+			                      {
+				                      s.ExceptionHandled = true;
+			                      })*/
 			                      .GetAsync();
-
+			
 			var str = await res.GetStringAsync();
 
 			var document = await parser.ParseDocumentAsync(str);

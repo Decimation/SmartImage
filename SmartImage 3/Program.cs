@@ -62,7 +62,10 @@ public static class Program
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 		// Debugger.Launch();
-
+		
+		AnsiConsole.Profile.Capabilities.Links   = true;
+		AnsiConsole.Profile.Capabilities.Unicode = true;
+		
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-q", "https://i.imgur.com/QtCausw.png" };
