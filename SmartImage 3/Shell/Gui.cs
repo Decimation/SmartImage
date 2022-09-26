@@ -1,4 +1,5 @@
-﻿using SmartImage.Lib;
+﻿using System.Net.Http.Headers;
+using SmartImage.Lib;
 using Spectre.Console;
 
 namespace SmartImage.Shell;
@@ -31,13 +32,13 @@ internal static class Gui
 	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt2 = new()
 	{
 		Title    = "Engines:",
-		PageSize = 15,
+		PageSize = 20,
 	};
 
 	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Prompt3 = new()
 	{
 		Title    = "Priority engines:",
-		PageSize = 15,
+		PageSize = 20,
 	};
 
 	internal static readonly TextPrompt<bool> Prompt4 = new("Stay on top")
@@ -78,7 +79,7 @@ internal static class Gui
 
 	internal static async Task LiveCallback(LiveDisplayContext ctx)
 	{
-		ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", nameof(SearchResult.Results));
+		ResultsTable.AddColumns("[bold]Engine[/]", "[bold]Info[/]", $"[bold]Results[/]");
 
 		while (!Program.Status) {
 			ctx.Refresh();
@@ -89,35 +90,41 @@ internal static class Gui
 
 	internal static async Task SearchCallback(object sender, SearchResult result)
 	{
-		var tx = new Table();
+		var tx = new Table()
+		{
+			Title   = new TableTitle(result.Engine.Name, style: new Style(decoration: Decoration.Bold)),
+			Caption = new TableTitle($"Raw", new Style(link: result.RawUrl, decoration: Decoration.Italic)),
+			Alignment = Justify.Center,
+			Border = TableBorder.Heavy
+		};
 
 		var col = new TableColumn[]
 		{
-			new(nameof(SearchResultItem.Url))
+			new($"[bold]{nameof(SearchResultItem.Url)}[/]")
 			{
 				Alignment = Justify.Center
 			},
-			new(nameof(SearchResultItem.Similarity))
+			new($"[bold]{nameof(SearchResultItem.Similarity)}[/]")
 			{
 				Alignment = Justify.Center
 			},
-			new(nameof(SearchResultItem.Artist))
+			new($"[bold]{nameof(SearchResultItem.Artist)}[/]")
+			{
+				Alignment = Justify.Center,
+			},
+			new($"[bold]{nameof(SearchResultItem.Character)}[/]")
 			{
 				Alignment = Justify.Center
 			},
-			new(nameof(SearchResultItem.Character))
+			new($"[bold]{nameof(SearchResultItem.Source)}[/]")
 			{
 				Alignment = Justify.Center
 			},
-			new(nameof(SearchResultItem.Source))
+			new($"[bold]{nameof(SearchResultItem.Description)}[/]")
 			{
 				Alignment = Justify.Center
 			},
-			new(nameof(SearchResultItem.Description))
-			{
-				Alignment = Justify.Center
-			},
-			new("Dimensions")
+			new("[bold]Dimensions[/]")
 			{
 				Alignment = Justify.Center
 			}
@@ -145,18 +152,7 @@ internal static class Gui
 			tx.AddRow(row);
 		}
 
-		var nameText = new Text(result.Engine.Name, new Style(foreground: Color.Aqua, decoration: Decoration.Bold))
-		{
-			Alignment = Justify.Center
-		};
-
-		var rawText = new Text("Raw", new Style(link: result.RawUrl.ToString()))
-		{
-			Overflow  = Overflow.Ellipsis,
-			Alignment = Justify.Center
-		};
-
-		ResultsTable.AddRow(nameText, rawText, tx);
+		AnsiConsole.Write(tx);
 
 	}
 }

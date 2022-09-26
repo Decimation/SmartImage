@@ -36,6 +36,8 @@ public sealed class SearchQuery : IDisposable
 
 	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
+		value = value.CleanString();
+
 		bool isFile, isUrl;
 		var  stream = Stream.Null;
 
