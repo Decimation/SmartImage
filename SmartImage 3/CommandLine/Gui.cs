@@ -4,6 +4,8 @@ using SmartImage.App;
 using SmartImage.Lib;
 using Spectre.Console;
 
+// ReSharper disable InconsistentNaming
+
 namespace SmartImage.CommandLine;
 
 /// <summary>
@@ -27,9 +29,11 @@ internal static class Gui
 		Validator = static s =>
 		{
 			try {
+
 				var task  = SearchQuery.TryCreateAsync(s);
 				var query = task.Result;
 				Program.Query = query;
+				
 				return ValidationResult.Success();
 			}
 			catch (Exception e) {
@@ -43,7 +47,10 @@ internal static class Gui
 	{
 		PageSize = 20,
 	};
-
+	internal static readonly MultiSelectionPrompt<SearchEngineOptions> Pr_Multi2 = new()
+	{
+		PageSize = 20,
+	};
 	internal static readonly TextPrompt<bool> Pr_Cfg_OnTop = new("Stay on top")
 	{
 		AllowEmpty       = true,
@@ -51,7 +58,7 @@ internal static class Gui
 		PromptStyle      = S_Underline,
 	};
 
-	private static readonly SelectionPrompt<ResultMenuOption> Pr_ResultMenu = new ();
+	private static readonly SelectionPrompt<ResultMenuOption> Pr_ResultMenu = new();
 
 	internal static readonly Table Tb_Results = new()
 	{
@@ -59,13 +66,13 @@ internal static class Gui
 		BorderStyle = Style.Plain
 	};
 
-	internal static readonly SelectionPrompt<MainMenuOption> Pr_Main = new()
+	private static readonly SelectionPrompt<MainMenuOption> Pr_Main = new()
 	{
 		Title    = "[underline]Main menu[/]",
 		PageSize = 20,
 	};
 
-	internal enum MainMenuOption
+	private enum MainMenuOption
 	{
 		Search,
 		Options
@@ -84,8 +91,10 @@ internal static class Gui
 		Pr_Main = Pr_Main.AddChoices(Enum.GetValues<MainMenuOption>());
 
 		Pr_Multi = Pr_Multi.AddChoices(values);
-		Pr_Cfg_OnTop = Pr_Cfg_OnTop.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
-		Pr_ResultMenu     = Pr_ResultMenu.AddChoices(Enum.GetValues<ResultMenuOption>());
+		Pr_Multi2 = Pr_Multi2.AddChoices(values);
+
+		Pr_Cfg_OnTop  = Pr_Cfg_OnTop.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
+		Pr_ResultMenu = Pr_ResultMenu.AddChoices(Enum.GetValues<ResultMenuOption>());
 
 	}
 
@@ -182,8 +191,12 @@ internal static class Gui
 		const int i = -1;
 
 		c.Insert(0, i);
-		p3 = p3.AddChoices(c);
+		for (int j = 0; j < Program.Results.Count; j++) {
+			var range = Enumerable.Range(0, Program.Results[j].Results.Count).ToList();
+			range.Insert(0, i);
+			p3 = p3.AddChoiceGroup(j, range);
 
+		}
 		switch (AC.Prompt(Pr_ResultMenu)) {
 
 			case ResultMenuOption.Stay:
@@ -224,7 +237,7 @@ internal static class Gui
 			case MainMenuOption.Search:
 				var q  = AC.Prompt(Pr_Input);
 				var t2 = AC.Prompt(Pr_Multi.Title("Engines"));
-				var t3 = AC.Prompt(Pr_Multi.Title("Priority engines"));
+				var t3 = AC.Prompt(Pr_Multi2.Title("Priority engines"));
 				var t4 = AC.Prompt(Pr_Cfg_OnTop);
 
 				SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);

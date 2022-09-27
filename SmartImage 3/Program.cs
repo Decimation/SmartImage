@@ -6,11 +6,13 @@ using System.CommandLine;
 using System.CommandLine.Builder;
 using System.CommandLine.Help;
 using System.CommandLine.Parsing;
+using System.ComponentModel;
 using System.Configuration;
 using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Kantan.Cli;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Hosting;
@@ -18,6 +20,7 @@ using SmartImage.Lib;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
 using Novus.Win32;
+using Novus.Win32.Structures.Kernel32;
 using SmartImage.App;
 using SmartImage.CommandLine;
 using Spectre.Console;
@@ -45,7 +48,10 @@ public static class Program
 	internal static List<SearchResult> Results { get; private set; }
 
 	//todo
-	internal static volatile bool Status = false;
+	internal static volatile bool         Status = false;
+	internal static readonly IntPtr       StdOut = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+	internal static readonly IntPtr       StdIn  = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
+	internal static          ConsoleModes OldMode1;
 
 	#endregion
 
@@ -64,6 +70,18 @@ public static class Program
 
 		// AC.Profile.Capabilities.Links   = true;
 		// AC.Profile.Capabilities.Unicode = true;
+
+		ConsoleModes lpMode;
+
+		Native.GetConsoleMode(StdIn, out lpMode);
+
+		OldMode1 = lpMode;
+
+		Native.SetConsoleMode(StdIn, lpMode | ((ConsoleModes.ENABLE_MOUSE_INPUT &
+		                                        ~ConsoleModes.ENABLE_QUICK_EDIT_MODE) |
+		                                       ConsoleModes.ENABLE_EXTENDED_FLAGS |
+		                                       ConsoleModes.ENABLE_ECHO_INPUT |
+		                                       ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));
 
 #if TEST
 		// args = new String[] { null };
@@ -91,7 +109,7 @@ public static class Program
 
 		var table = new Table()
 		{
-			Border = TableBorder.Heavy,
+			Border    = TableBorder.Heavy,
 			Alignment = Justify.Center
 		};
 
