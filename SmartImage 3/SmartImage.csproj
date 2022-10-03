@@ -57,6 +57,9 @@
     <Reference Include="Kantan">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
     </Reference>
+    <Reference Include="Kantan.Console">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Console\bin\Release\net6.0\Kantan.Console.dll</HintPath>
+    </Reference>
     <Reference Include="Kantan.Net">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net6.0\Kantan.Net.dll</HintPath>
     </Reference>

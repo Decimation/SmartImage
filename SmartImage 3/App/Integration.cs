@@ -1,4 +1,7 @@
-﻿using Kantan.Cli;
+﻿
+#nullable disable
+
+using Kantan.Console;
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
@@ -7,11 +10,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kantan.Console.Cli;
 using Novus.OS;
 using Kantan.Diagnostics;
-
-#nullable disable
-
 namespace SmartImage.App;
 
 /// <summary>

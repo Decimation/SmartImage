@@ -12,7 +12,6 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Kantan.Cli;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Hosting;
@@ -22,7 +21,6 @@ using Microsoft.Extensions.Configuration;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.App;
-using SmartImage.CommandLine;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using Color = Spectre.Console.Color;
@@ -34,7 +32,7 @@ using ConfigurationManager = System.Configuration.ConfigurationManager;
 
 namespace SmartImage;
 
-public static class Program
+public static partial class Program
 {
 	#region
 
@@ -48,10 +46,13 @@ public static class Program
 	internal static List<SearchResult> Results { get; private set; }
 
 	//todo
-	internal static volatile bool         Status = false;
-	internal static readonly IntPtr       StdOut = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
-	internal static readonly IntPtr       StdIn  = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
-	internal static          ConsoleModes OldMode1;
+	internal static volatile bool Status = false;
+
+	internal static readonly IntPtr StdOut = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+
+	internal static readonly IntPtr StdIn = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
+
+	internal static ConsoleModes OldMode1;
 
 	#endregion
 
@@ -142,13 +143,14 @@ public static class Program
 		now.Stop();
 
 		var diff = now.Elapsed;
+
 		AC.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
 		Native.FlashWindow(Cache.HndWindow);
 
 		await Gui.AfterSearch();
 	}
 
-	internal static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
+	private static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
 	{
 		Query = t1;
 
@@ -164,7 +166,7 @@ public static class Program
 		RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
 	}
 
-	internal static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
+	private static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{
 
 		Config.SearchEngines   = t2;
