@@ -2,15 +2,16 @@
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Flurl.Http;
 using Novus.FileTypes;
 using Kantan.Text;
 using SmartImage.Lib.Engines.Upload;
 
+[assembly: InternalsVisibleTo("SmartImage")]
 namespace SmartImage.Lib;
 
 //todo: DynamicResource
-
 public sealed class SearchQuery : IDisposable
 {
 	public string Value { get; }
@@ -26,7 +27,7 @@ public sealed class SearchQuery : IDisposable
 
 	public FileType[] FileTypes { get; private init; }
 
-	private SearchQuery(string value, Stream stream)
+	internal SearchQuery(string value, Stream stream)
 	{
 		Value  = value;
 		Stream = stream;

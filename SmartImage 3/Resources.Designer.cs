@@ -88,6 +88,15 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Input:.
+        /// </summary>
+        internal static string S_Input {
+            get {
+                return ResourceManager.GetString("S_Input", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Stay on top.
         /// </summary>
         internal static string S_OnTop {

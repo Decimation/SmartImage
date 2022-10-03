@@ -30,9 +30,9 @@ public sealed class SearchClient
 
 	public delegate Task AsyncSearchCompleteCallback(object sender, List<SearchResult> e);
 
-	public AsyncResultCompleteCallback OnResult { get; init; }
+	public AsyncResultCompleteCallback OnResult { get; set; }
 
-	public AsyncSearchCompleteCallback OnComplete { get; init; }
+	public AsyncSearchCompleteCallback OnComplete { get; set; }
 
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.

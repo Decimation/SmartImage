@@ -54,14 +54,14 @@ public static partial class Program
 
 		internal static async Task<int> RunCli(string[] args)
 		{
-			Cmd_Root.SetHandler(Program.RootHandler, Opt_Query, Opt_Engines,
+			Cmd_Root.SetHandler(RootHandler, Opt_Query, Opt_Engines,
 			                    Opt_Priority, Opt_OnTop);
 
 			var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp(HelpHandler).Build();
 
 			var r = await parser.InvokeAsync(args);
 
-			if (r != 0 || Program.Query == null) {
+			if (r != 0 || Query == null) {
 				return r;
 			}
 

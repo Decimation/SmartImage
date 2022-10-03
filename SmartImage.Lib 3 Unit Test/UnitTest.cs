@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using Flurl.Http;
+using Novus.FileTypes;
 using NUnit.Framework;
 using SmartImage.Lib.Engines.Search;
 using Assert = NUnit.Framework.Assert;
@@ -172,5 +173,15 @@ public class UnitTest2
 			Assert.Pass();
 		}
 
+	}
+
+	[Test]
+	[TestCaseSource(nameof(_rg))]
+
+	public async Task Test3(string s)
+	{
+		var o              = await QFileHandle.GetHandleAsync(s);
+		var o2 = await SearchQuery.TryCreateAsync(s);
+		Assert.Pass();
 	}
 }

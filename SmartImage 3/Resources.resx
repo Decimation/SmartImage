@@ -126,6 +126,9 @@
   <data name="Repo_Url" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage</value>
   </data>
+  <data name="S_Input" xml:space="preserve">
+    <value>Input:</value>
+  </data>
   <data name="S_OnTop" xml:space="preserve">
     <value>Stay on top</value>
   </data>

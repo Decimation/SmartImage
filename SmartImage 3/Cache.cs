@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.Lib;
@@ -21,4 +22,6 @@ internal static class Cache
 	internal static readonly IntPtr StdIn     = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
 
 	internal static ConsoleModes OldMode;
+
+	internal static QFileInfo Clipboard;
 }

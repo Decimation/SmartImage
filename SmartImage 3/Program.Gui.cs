@@ -24,7 +24,9 @@ public static partial class Program
 
 		#endregion
 
-		internal static readonly TextPrompt<string> Pr_Input = new("Input:")
+		#region Widgets
+
+		internal static TextPrompt<string> Pr_Input = new(Resources.S_Input)
 		{
 			AllowEmpty = false,
 			Validator = static s =>
@@ -54,7 +56,7 @@ public static partial class Program
 			PageSize = 20,
 		};
 
-		internal static readonly TextPrompt<bool> Pr_Cfg_OnTop = new("Stay on top")
+		internal static readonly TextPrompt<bool> Pr_Cfg_OnTop = new(Resources.S_OnTop)
 		{
 			AllowEmpty       = true,
 			ShowDefaultValue = true,
@@ -75,10 +77,15 @@ public static partial class Program
 			PageSize = 20,
 		};
 
+		internal static readonly FigletText NameFiglet = new(font: FigletFont.Default, text: Resources.Name);
+
+		#endregion
+
 		private enum MainMenuOption
 		{
 			Search,
-			Options
+			Options,
+			Clipboard
 		}
 
 		private enum ResultMenuOption
@@ -93,9 +100,8 @@ public static partial class Program
 
 			Pr_Main = Pr_Main.AddChoices(Enum.GetValues<MainMenuOption>());
 
-			Pr_Multi  = Pr_Multi.AddChoices(values);
-			Pr_Multi2 = Pr_Multi2.AddChoices(values);
-
+			Pr_Multi      = Pr_Multi.AddChoices(values);
+			Pr_Multi2     = Pr_Multi2.AddChoices(values);
 			Pr_Cfg_OnTop  = Pr_Cfg_OnTop.DefaultValue(SearchConfig.ON_TOP_DEFAULT);
 			Pr_ResultMenu = Pr_ResultMenu.AddChoices(Enum.GetValues<ResultMenuOption>());
 
@@ -239,7 +245,11 @@ public static partial class Program
 			var opt = AC.Prompt(Pr_Main);
 
 			switch (opt) {
+				case MainMenuOption.Clipboard:
+					Pr_Input = Pr_Input.DefaultValue(Cache.Clipboard.Value);
+					goto case MainMenuOption.Search;
 				case MainMenuOption.Search:
+					
 					var q  = AC.Prompt(Pr_Input);
 					var t2 = AC.Prompt(Pr_Multi.Title("Engines"));
 					var t3 = AC.Prompt(Pr_Multi2.Title("Priority engines"));
@@ -264,7 +274,5 @@ public static partial class Program
 					goto MAIN_MENU;
 			}
 		}
-
-		public static readonly FigletText NameFiglet = new FigletText(font: FigletFont.Default, text: Resources.Name);
 	}
 }

@@ -19,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using SmartImage.Lib;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
+using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.App;
@@ -63,17 +64,17 @@ public static partial class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
-		
+
 		Native.GetConsoleMode(Cache.StdIn, out ConsoleModes lpMode);
 
 		Cache.OldMode = lpMode;
 
 		Native.SetConsoleMode(Cache.StdIn, lpMode | ((ConsoleModes.ENABLE_MOUSE_INPUT &
-		                                           ~ConsoleModes.ENABLE_QUICK_EDIT_MODE) |
-		                                          ConsoleModes.ENABLE_EXTENDED_FLAGS |
-		                                          ConsoleModes.ENABLE_ECHO_INPUT |
-		                                          ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));
-		
+		                                              ~ConsoleModes.ENABLE_QUICK_EDIT_MODE) |
+		                                             ConsoleModes.ENABLE_EXTENDED_FLAGS |
+		                                             ConsoleModes.ENABLE_ECHO_INPUT |
+		                                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-q", "https://i.imgur.com/QtCausw.png" };
@@ -81,6 +82,21 @@ public static partial class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
+		Native.OpenClipboard();
+
+		var c = (string) Native.GetClipboard((uint?) ClipboardFormat.CF_UNICODETEXT);
+
+		try {
+			var task = await QFileHandle.GetInfoAsync(c, true);
+
+			if (task.IsFile || task.IsUri) {
+				Cache.Clipboard = task;
+
+				Query = new(Cache.Clipboard.Value, Cache.Clipboard.Stream);
+
+			}
+		}
+		catch (Exception e) { }
 
 		AC.Write(Gui.NameFiglet);
 
@@ -126,6 +142,15 @@ public static partial class Program
 		             .Cropping(VerticalOverflowCropping.Top)
 		             .StartAsync(Gui.LiveCallback);
 
+		Client.OnResult += Gui.SearchCallback;
+
+		Client.OnComplete += async (sender, list) =>
+		{
+			Native.FlashWindow(Cache.HndWindow);
+
+			return;
+		};
+
 		Status  = false;
 		Results = await Client.RunSearchAsync(Query, CancellationToken.None);
 		Status  = true;
@@ -137,7 +162,6 @@ public static partial class Program
 		var diff = now.Elapsed;
 
 		AC.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
-		Native.FlashWindow(Cache.HndWindow);
 
 		await Gui.AfterSearch();
 	}
