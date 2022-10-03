@@ -28,14 +28,18 @@ public sealed class SearchClient
 
 	public delegate Task AsyncResultCompleteCallback(object sender, SearchResult e);
 
+	public delegate Task AsyncSearchCompleteCallback(object sender, List<SearchResult> e);
+
+	public AsyncResultCompleteCallback OnResult { get; init; }
+
+	public AsyncSearchCompleteCallback OnComplete { get; init; }
+
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
-	/// <param name="callback">Callback function invoked when a result is returned</param>
-	public async Task<List<SearchResult>> RunSearchAsync(SearchQuery query, CancellationToken? token = null,
-	                                                     AsyncResultCompleteCallback callback = null)
+	public async Task<List<SearchResult>> RunSearchAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		token ??= CancellationToken.None;
 
@@ -51,7 +55,7 @@ public sealed class SearchClient
 			var task   = await Task.WhenAny(tasks);
 			var result = await task;
 
-			callback?.Invoke(this, result);
+			OnResult?.Invoke(this, result);
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
@@ -65,6 +69,8 @@ public sealed class SearchClient
 			results.Add(result);
 			tasks.Remove(task);
 		}
+
+		OnComplete?.Invoke(this, results);
 
 		return results;
 	}

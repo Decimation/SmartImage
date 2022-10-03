@@ -1,5 +1,4 @@
-﻿using Flurl;
-using Kantan.Net.Utilities;
+﻿using Kantan.Net.Utilities;
 using SmartImage.App;
 using SmartImage.Lib;
 using Spectre.Console;
@@ -34,7 +33,7 @@ public static partial class Program
 
 					var task  = SearchQuery.TryCreateAsync(s);
 					var query = task.Result;
-					Program.Query = query;
+					Query = query;
 
 					return ValidationResult.Success();
 				}
@@ -106,7 +105,7 @@ public static partial class Program
 		{
 			Tb_Results.AddColumns("[bold]Engine[/]", "[bold]Info[/]", "[bold]Results[/]");
 
-			while (!Program.Status) {
+			while (!Status) {
 				ctx.Refresh();
 				await Task.Delay(TimeSpan.FromMilliseconds(100));
 
@@ -190,14 +189,14 @@ public static partial class Program
 		{
 
 			var p3 = new SelectionPrompt<int>();
-			var c  = Enumerable.Range(0, Program.Results.Count).ToList();
+			var c  = Enumerable.Range(0, Results.Count).ToList();
 
 			const int i = -1;
 
 			c.Insert(0, i);
 
-			for (int j = 0; j < Program.Results.Count; j++) {
-				var range = Enumerable.Range(0, Program.Results[j].Results.Count).ToList();
+			for (int j = 0; j < Results.Count; j++) {
+				var range = Enumerable.Range(0, Results[j].Results.Count).ToList();
 				range.Insert(0, i);
 				p3 = p3.AddChoiceGroup(j, range);
 
@@ -216,7 +215,7 @@ public static partial class Program
 							break;
 						}
 
-						var r = Program.Results[l];
+						var r = Results[l];
 
 						if (r.First is { Url: { } }) {
 							HttpUtilities.OpenUrl(r.First.Url);
@@ -249,7 +248,7 @@ public static partial class Program
 					SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
 					SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
 
-					await Program.RootHandler(Program.Query, a.ToString(), b.ToString(), t4);
+					await RootHandler(Query, a.ToString(), b.ToString(), t4);
 
 					break;
 				case MainMenuOption.Options:
@@ -265,5 +264,7 @@ public static partial class Program
 					goto MAIN_MENU;
 			}
 		}
+
+		public static readonly FigletText NameFiglet = new FigletText(font: FigletFont.Default, text: Resources.Name);
 	}
 }

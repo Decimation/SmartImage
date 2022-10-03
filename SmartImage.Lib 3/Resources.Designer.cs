@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace SmartImage {
+namespace SmartImage.Lib {
     using System;
     
     
@@ -39,7 +39,7 @@ namespace SmartImage {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SmartImage.Resources", typeof(Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SmartImage.Lib.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,69 +57,6 @@ namespace SmartImage {
             }
             set {
                 resourceCulture = value;
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SmartImage.
-        /// </summary>
-        internal static string Name {
-            get {
-                return ResourceManager.GetString("Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SmartImage.exe.
-        /// </summary>
-        internal static string Name_Exe {
-            get {
-                return ResourceManager.GetString("Name_Exe", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage.
-        /// </summary>
-        internal static string Repo_Url {
-            get {
-                return ResourceManager.GetString("Repo_Url", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Stay on top.
-        /// </summary>
-        internal static string S_OnTop {
-            get {
-                return ResourceManager.GetString("S_OnTop", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Priority engines.
-        /// </summary>
-        internal static string S_PriorityEngines {
-            get {
-                return ResourceManager.GetString("S_PriorityEngines", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Search engines.
-        /// </summary>
-        internal static string S_SearchEngines {
-            get {
-                return ResourceManager.GetString("S_SearchEngines", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/wiki.
-        /// </summary>
-        internal static string Wiki_Url {
-            get {
-                return ResourceManager.GetString("Wiki_Url", resourceCulture);
             }
         }
     }

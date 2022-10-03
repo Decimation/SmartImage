@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Kantan.Console;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Hosting;
@@ -48,12 +49,6 @@ public static partial class Program
 	//todo
 	internal static volatile bool Status = false;
 
-	internal static readonly IntPtr StdOut = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
-
-	internal static readonly IntPtr StdIn = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
-
-	internal static ConsoleModes OldMode1;
-
 	#endregion
 
 	[ModuleInitializer]
@@ -68,22 +63,17 @@ public static partial class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
+		
+		Native.GetConsoleMode(Cache.StdIn, out ConsoleModes lpMode);
 
-		// AC.Profile.Capabilities.Links   = true;
-		// AC.Profile.Capabilities.Unicode = true;
+		Cache.OldMode = lpMode;
 
-		ConsoleModes lpMode;
-
-		Native.GetConsoleMode(StdIn, out lpMode);
-
-		OldMode1 = lpMode;
-
-		Native.SetConsoleMode(StdIn, lpMode | ((ConsoleModes.ENABLE_MOUSE_INPUT &
-		                                        ~ConsoleModes.ENABLE_QUICK_EDIT_MODE) |
-		                                       ConsoleModes.ENABLE_EXTENDED_FLAGS |
-		                                       ConsoleModes.ENABLE_ECHO_INPUT |
-		                                       ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));
-
+		Native.SetConsoleMode(Cache.StdIn, lpMode | ((ConsoleModes.ENABLE_MOUSE_INPUT &
+		                                           ~ConsoleModes.ENABLE_QUICK_EDIT_MODE) |
+		                                          ConsoleModes.ENABLE_EXTENDED_FLAGS |
+		                                          ConsoleModes.ENABLE_ECHO_INPUT |
+		                                          ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+		
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-q", "https://i.imgur.com/QtCausw.png" };
@@ -91,6 +81,8 @@ public static partial class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
+
+		AC.Write(Gui.NameFiglet);
 
 		bool cli = args is { } && args.Any();
 
@@ -115,12 +107,12 @@ public static partial class Program
 		};
 
 		//NOTE: WTF
-		table.AddColumns(new TableColumn("Input"), new TableColumn("Value"))
-		     .AddRow(new Text("Search engines", Gui.S_Generic1),
+		table.AddColumns(new TableColumn("Input".T()), new TableColumn("Value".T()))
+		     .AddRow(new Text(Resources.S_SearchEngines, Gui.S_Generic1),
 		             new Text(Config.SearchEngines.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text("Priority engines", Gui.S_Generic1),
+		     .AddRow(new Text(Resources.S_PriorityEngines, Gui.S_Generic1),
 		             new Text(Config.PriorityEngines.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text("Stay on top", Gui.S_Generic1), new Text(Config.OnTop.ToString(), Gui.S_Generic2))
+		     .AddRow(new Text(Resources.S_OnTop, Gui.S_Generic1), new Text(Config.OnTop.ToString(), Gui.S_Generic2))
 		     .AddRow(new Text("Query input", Gui.S_Generic1), new Text(Query.Value, Gui.S_Generic2))
 		     .AddRow(new Text("Query upload", Gui.S_Generic1), new Text(Query.Upload.ToString(), Gui.S_Generic2));
 
@@ -135,7 +127,7 @@ public static partial class Program
 		             .StartAsync(Gui.LiveCallback);
 
 		Status  = false;
-		Results = await Client.RunSearchAsync(Query, CancellationToken.None, Gui.SearchCallback);
+		Results = await Client.RunSearchAsync(Query, CancellationToken.None);
 		Status  = true;
 
 		await live;
