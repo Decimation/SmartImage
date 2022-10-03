@@ -12,7 +12,8 @@
     <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>..\Assets\Icon.ico</ApplicationIcon>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
@@ -28,6 +29,12 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
+    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2022.1.0" />
@@ -51,8 +58,16 @@
 
   <ItemGroup>
     <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
+    <TrimmerRootAssembly Include="SmartImage.Lib"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <TrimmerRootAssembly Include="System.Net" />
+    <TrimmerRootAssembly Include="System.IO.FileSystem" />
+    <TrimmerRootAssembly Include="Novus" />
+    <TrimmerRootAssembly Include="SmartImage.Lib" />
+    <TrimmerRootAssembly Include="Kantan" />
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="Kantan">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
@@ -75,7 +90,12 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
-
+  <!--<PropertyGroup>
+    <PublishReadyToRun>True</PublishReadyToRun>
+    <TrimMode>Link</TrimMode>
+    <TrimmerDefaultAction>link</TrimmerDefaultAction>
+    
+  </PropertyGroup>-->
   <ItemGroup>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

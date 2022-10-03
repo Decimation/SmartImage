@@ -6,7 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Configurations>Debug;Release;Test</Configurations>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-
+    <PublishTrimmed>True</PublishTrimmed>
+    <PublishSingleFile>true</PublishSingleFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>

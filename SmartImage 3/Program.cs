@@ -82,7 +82,7 @@ public static partial class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
-		Native.OpenClipboard();
+		/*Native.OpenClipboard();
 
 		var c = (string) Native.GetClipboard((uint?) ClipboardFormat.CF_UNICODETEXT);
 
@@ -96,7 +96,7 @@ public static partial class Program
 
 			}
 		}
-		catch (Exception e) { }
+		catch (Exception e) { }*/
 
 		AC.Write(Gui.NameFiglet);
 
