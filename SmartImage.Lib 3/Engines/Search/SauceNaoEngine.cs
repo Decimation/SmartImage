@@ -90,6 +90,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		if (!imageResults.Any()) {
 			// No good results
 			//return sresult;
+			result.Status = SearchResultStatus.NoResults;
 			goto ret;
 		}
 
@@ -100,6 +101,8 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 		// result.Url ??= imageResults.FirstOrDefault(x => x.Url != null)?.Url;
 
 		ret:
+
+		FinalizeResult(result);
 
 		return result;
 	}

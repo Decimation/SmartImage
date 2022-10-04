@@ -167,7 +167,7 @@ public static partial class Program
 		await Gui.AfterSearchCallback();
 	}
 
-	private static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
+	private static async Task SetQuery(SearchQuery t1)
 	{
 		Query = t1;
 
@@ -179,8 +179,6 @@ public static partial class Program
 		          });
 
 		await t;
-
-		RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
 	}
 
 	private static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)

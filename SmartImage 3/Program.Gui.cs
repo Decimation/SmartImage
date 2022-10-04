@@ -1,4 +1,5 @@
-﻿using Kantan.Net.Utilities;
+﻿using Kantan.Console;
+using Kantan.Net.Utilities;
 using SmartImage.App;
 using SmartImage.Lib;
 using Spectre.Console;
@@ -129,7 +130,7 @@ public static partial class Program
 				SearchResultStatus.Cooldown    => Color.Orange1,
 				SearchResultStatus.Failure     => Color.Red,
 				SearchResultStatus.Success     => Color.Green,
-				_=> Color.Grey,
+				_                              => Color.Grey,
 			};
 
 			var text = new Text($"{result.Engine.Name}", style: new Style(decoration: Decoration.Bold, background: bg));
@@ -180,7 +181,7 @@ public static partial class Program
 			};
 
 			tx.AddColumns(col);
-			
+
 			foreach (SearchResultItem item in result.Results) {
 				/*AC.MarkupLine(
 					$"\t[link={item.Url}]{item.Root.Engine.Name}[/] | {item.Similarity / 100:P} {item.Artist} " +
@@ -204,7 +205,7 @@ public static partial class Program
 			}
 
 			// AC.Write(tx);
-
+			tx = tx.RemoveEmpty();
 			Tb_Results.AddRow(text, caption, tx);
 		}
 
@@ -220,10 +221,21 @@ public static partial class Program
 
 			for (int j = 0; j < Results.Count; j++) {
 				var range = Enumerable.Range(0, Results[j].Results.Count).ToList();
-				range.Insert(0, i);
-				p3 = p3.AddChoiceGroup(j, range);
+				// range.Insert(0, i);
+
+				p3 = p3.UseConverter(i1 =>
+				{
+
+					return i1.ToString();
+				}).AddChoiceGroup(j, range).UseConverter(i2 =>
+				{
+					
+					return i2.ToString();
+				});
 
 			}
+
+			p3.AddChoice(i);
 
 			switch (AC.Prompt(Pr_ResultMenu)) {
 
@@ -270,14 +282,16 @@ public static partial class Program
 				case MainMenuOption.Search:
 
 					var q  = AC.Prompt(Pr_Input);
-					var t2 = AC.Prompt(Pr_Multi.Title("Engines"));
-					var t3 = AC.Prompt(Pr_Multi2.Title("Priority engines"));
+					var t2 = AC.Prompt(Pr_Multi.Title("Engines").NotRequired());
+					var t3 = AC.Prompt(Pr_Multi2.Title("Priority engines").NotRequired());
 					var t4 = AC.Prompt(Pr_Cfg_OnTop);
 
 					SearchEngineOptions a = t2.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
 					SearchEngineOptions b = t3.Aggregate(SearchEngineOptions.None, Cache.EnumAggregator);
 
-					await RootHandler(Query, a.ToString(), b.ToString(), t4);
+					await SetQuery(Query);
+
+					RootHandler(a, b, t4);
 
 					break;
 				case MainMenuOption.Options:

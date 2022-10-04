@@ -66,7 +66,9 @@ public abstract class BaseSearchEngine : IDisposable
 			r.Status = SearchResultStatus.NoResults;
 		}
 
-		r.Status = SearchResultStatus.Success;
+		if (r.Status != SearchResultStatus.None) {
+			r.Status = SearchResultStatus.Success;
+		}
 	}
 
 	#region Implementation of IDisposable

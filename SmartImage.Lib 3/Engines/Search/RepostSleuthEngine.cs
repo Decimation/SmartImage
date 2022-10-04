@@ -68,6 +68,8 @@ public sealed class RepostSleuthEngine : ClientSearchEngine
 			sr.Results.Add(sri);
 		}
 
+		FinalizeResult(sr);
+
 		return sr;
 	}
 

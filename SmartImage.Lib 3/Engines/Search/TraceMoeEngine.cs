@@ -93,6 +93,8 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 		}
 
 		ret:
+		
+		FinalizeResult(r);
 
 		return r;
 	}

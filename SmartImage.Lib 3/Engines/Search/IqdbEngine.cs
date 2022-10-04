@@ -166,6 +166,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 			_ or null => ResultQuality.NA,
 		};*/
 
+		FinalizeResult(sr);
 		return sr;
 	}
 

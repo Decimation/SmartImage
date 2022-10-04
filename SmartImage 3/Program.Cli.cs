@@ -54,8 +54,12 @@ public static partial class Program
 
 		internal static async Task<int> RunCli(string[] args)
 		{
-			Cmd_Root.SetHandler(RootHandler, Opt_Query, Opt_Engines,
-			                    Opt_Priority, Opt_OnTop);
+			Cmd_Root.SetHandler(async (t1, t2, t3, t4) =>
+			{
+				await SetQuery(t1);
+
+				RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
+			}, Opt_Query, Opt_Engines, Opt_Priority, Opt_OnTop);
 
 			var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp(HelpHandler).Build();
 
