@@ -47,7 +47,8 @@ public abstract class BaseSearchEngine : IDisposable
 
 		var res = new SearchResult(this)
 		{
-			RawUrl = await GetRawUrlAsync(query)
+			RawUrl = await GetRawUrlAsync(query),
+			Status = SearchResultStatus.None
 		};
 
 		return res;
@@ -57,6 +58,15 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		//
 		return Task.FromResult<Url>((BaseUrl + query.Upload));
+	}
+
+	protected void FinalizeResult(SearchResult r)
+	{
+		if (!r.Results.Any()) {
+			r.Status = SearchResultStatus.NoResults;
+		}
+
+		r.Status = SearchResultStatus.Success;
 	}
 
 	#region Implementation of IDisposable

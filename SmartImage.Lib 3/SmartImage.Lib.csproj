@@ -50,7 +50,12 @@
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net6.0\Novus.dll</HintPath>
     </Reference>
   </ItemGroup>
-
+  <ItemGroup>
+    <TrimmerRootAssembly Include="System.Net" />
+    <TrimmerRootAssembly Include="System.IO.FileSystem" />
+    <TrimmerRootAssembly Include="Novus" />
+    <TrimmerRootAssembly Include="Kantan" />
+  </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>

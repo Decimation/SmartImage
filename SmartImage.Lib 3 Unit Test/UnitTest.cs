@@ -35,7 +35,7 @@ public class UnitTest
 		@"C:\Users\Deci\Pictures\Test Images\Test1.jpg",
 		@"https://i.imgur.com/QtCausw.png",
 		@"C:\Users\Deci\Pictures\Test Images\Test3.png",
-		@"https://data19.kemono.party/data/cd/ef/cdef8267d679a9ee1869d5e657f81f7e971f0f401925594fb76c8ff8393db7bd.png?f=Yelan2.png"
+		// @"https://data19.kemono.party/data/cd/ef/cdef8267d679a9ee1869d5e657f81f7e971f0f401925594fb76c8ff8393db7bd.png?f=Yelan2.png"
 	};
 
 	public static object[] _rg2 =

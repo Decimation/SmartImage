@@ -17,7 +17,7 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>..\Assets\Icon.ico</ApplicationIcon>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
-
+    <!-- <TrimMode>CopyUsed</TrimMode> -->
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>

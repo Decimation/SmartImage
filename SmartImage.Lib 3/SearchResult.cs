@@ -6,6 +6,7 @@ namespace SmartImage.Lib;
 public enum SearchResultStatus
 {
 	None,
+	Success,
 	Cooldown,
 	NoResults,
 	Failure,

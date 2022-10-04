@@ -110,6 +110,7 @@ public static partial class Program
 		internal static async Task LiveCallback(LiveDisplayContext ctx)
 		{
 			Tb_Results.AddColumns("[bold]Engine[/]", "[bold]Info[/]", "[bold]Results[/]");
+			Tb_Results.Alignment = Justify.Center;
 
 			while (!Status) {
 				ctx.Refresh();
@@ -118,9 +119,20 @@ public static partial class Program
 			}
 		}
 
-		internal static async Task SearchCallback(object sender, SearchResult result)
+		internal static async Task OnResultCallback(object sender, SearchResult result)
 		{
-			var text = new Text($"{result.Engine.Name}", style: new Style(decoration: Decoration.Bold));
+			var bg = result.Status switch
+			{
+				SearchResultStatus.Unavailable => Color.Yellow4,
+				SearchResultStatus.NoResults   => Color.Grey,
+				SearchResultStatus.Extraneous  => Color.Orange3,
+				SearchResultStatus.Cooldown    => Color.Orange1,
+				SearchResultStatus.Failure     => Color.Red,
+				SearchResultStatus.Success     => Color.Green,
+				_=> Color.Grey,
+			};
+
+			var text = new Text($"{result.Engine.Name}", style: new Style(decoration: Decoration.Bold, background: bg));
 
 			var caption = new Text("Raw", new Style(link: result.RawUrl, decoration: Decoration.Italic));
 
@@ -132,6 +144,10 @@ public static partial class Program
 
 			var col = new TableColumn[]
 			{
+				new($"[bold]#[/]")
+				{
+					Alignment = Justify.Center
+				},
 				new($"[bold]{nameof(SearchResultItem.Url)}[/]")
 				{
 					Alignment = Justify.Center
@@ -164,7 +180,7 @@ public static partial class Program
 			};
 
 			tx.AddColumns(col);
-
+			
 			foreach (SearchResultItem item in result.Results) {
 				/*AC.MarkupLine(
 					$"\t[link={item.Url}]{item.Root.Engine.Name}[/] | {item.Similarity / 100:P} {item.Artist} " +
@@ -174,6 +190,7 @@ public static partial class Program
 
 				var row = new[]
 				{
+					$"{result.Results.IndexOf(item)}",
 					$"[link={url}]Link[/]",
 					$"{item.Similarity / 100:P}",
 					$"{item.Artist}".EscapeMarkup(),
@@ -191,7 +208,7 @@ public static partial class Program
 			Tb_Results.AddRow(text, caption, tx);
 		}
 
-		internal static async Task AfterSearch()
+		internal static async Task AfterSearchCallback()
 		{
 
 			var p3 = new SelectionPrompt<int>();
@@ -221,10 +238,12 @@ public static partial class Program
 							break;
 						}
 
-						var r = Results[l];
+						if (l >= 0 && l < Results.Count) {
+							var r = Results[l];
 
-						if (r.First is { Url: { } }) {
-							HttpUtilities.OpenUrl(r.First.Url);
+							if (r.First is { Url: { } }) {
+								HttpUtilities.OpenUrl(r.First.Url);
+							}
 						}
 
 					} while (true);
@@ -249,7 +268,7 @@ public static partial class Program
 					Pr_Input = Pr_Input.DefaultValue(Cache.Clipboard.Value);
 					goto case MainMenuOption.Search;
 				case MainMenuOption.Search:
-					
+
 					var q  = AC.Prompt(Pr_Input);
 					var t2 = AC.Prompt(Pr_Multi.Title("Engines"));
 					var t3 = AC.Prompt(Pr_Multi2.Title("Priority engines"));

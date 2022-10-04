@@ -35,7 +35,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 				                      s.ExceptionHandled = true;
 			                      })*/
 			                      .GetAsync();
-			
+
 			var str = await res.GetStringAsync();
 
 			var document = await parser.ParseDocumentAsync(str);
@@ -71,6 +71,8 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		}
 
 		Debug.WriteLine($"{result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", Name);
+
+		FinalizeResult(result);
 
 		return result;
 	}

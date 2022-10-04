@@ -19,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using SmartImage.Lib;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
+using Novus;
 using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
@@ -55,6 +56,7 @@ public static partial class Program
 	[ModuleInitializer]
 	public static void Init()
 	{
+		Global.Setup();
 		Trace.WriteLine("Init", Resources.Name);
 
 		// Gui.Init();
@@ -64,7 +66,6 @@ public static partial class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
-
 		Native.GetConsoleMode(Cache.StdIn, out ConsoleModes lpMode);
 
 		Cache.OldMode = lpMode;
@@ -142,7 +143,7 @@ public static partial class Program
 		             .Cropping(VerticalOverflowCropping.Top)
 		             .StartAsync(Gui.LiveCallback);
 
-		Client.OnResult += Gui.SearchCallback;
+		Client.OnResult += Gui.OnResultCallback;
 
 		Client.OnComplete += async (sender, list) =>
 		{
@@ -163,7 +164,7 @@ public static partial class Program
 
 		AC.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
 
-		await Gui.AfterSearch();
+		await Gui.AfterSearchCallback();
 	}
 
 	private static async Task RootHandler(SearchQuery t1, string t2, string t3, bool t4)
