@@ -59,10 +59,10 @@ public sealed class SearchClient
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
-				var first = result.First;
+				var url1 = result.First?.Url ?? result.RawUrl; 
 
-				if (first is { Url : { } }) {
-					HttpUtilities.OpenUrl(first.Url);
+				if (url1 is {}) {
+					HttpUtilities.OpenUrl(url1);
 				}
 			}
 

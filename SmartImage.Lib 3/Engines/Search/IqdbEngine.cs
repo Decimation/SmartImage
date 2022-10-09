@@ -144,8 +144,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 		if (ns != null) {
 
 			sr.Status = SearchResultStatus.NoResults;
-
-			return sr;
+			goto ret;
 		}
 
 		var select = tables.Select(table => ((IHtmlElement) table)
@@ -166,6 +165,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 			_ or null => ResultQuality.NA,
 		};*/
 
+		ret:
 		FinalizeResult(sr);
 		return sr;
 	}

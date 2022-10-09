@@ -147,35 +147,43 @@ public static partial class Program
 			{
 				new($"[bold]#[/]")
 				{
-					Alignment = Justify.Center
+					// Alignment = Justify.Center
 				},
 				new($"[bold]{nameof(SearchResultItem.Url)}[/]")
 				{
-					Alignment = Justify.Center
+					// Alignment = Justify.Center
 				},
 				new($"[bold]{nameof(SearchResultItem.Similarity)}[/]")
 				{
-					Alignment = Justify.Center
+					// Alignment = Justify.Center
 				},
 				new($"[bold]{nameof(SearchResultItem.Artist)}[/]")
 				{
-					Alignment = Justify.Center,
+					// Alignment = Justify.Center,
 				},
 				new($"[bold]{nameof(SearchResultItem.Character)}[/]")
 				{
-					Alignment = Justify.Center
+					// Alignment = Justify.Center
 				},
 				new($"[bold]{nameof(SearchResultItem.Source)}[/]")
 				{
-					Alignment = Justify.Center
+					// Alignment = Justify.Center
 				},
 				new($"[bold]{nameof(SearchResultItem.Description)}[/]")
 				{
-					Alignment = Justify.Center
+					// Alignment = Justify.Center
+				},
+				new($"[bold]{nameof(SearchResultItem.Title)}[/]")
+				{
+					// Alignment = Justify.Center
+				},
+				new($"[bold]{nameof(SearchResultItem.Time)}[/]")
+				{
+					// Alignment = Justify.Center
 				},
 				new("[bold]Dimensions[/]")
 				{
-					Alignment = Justify.Center
+					// Alignment = Justify.Center
 				}
 
 			};
@@ -198,6 +206,8 @@ public static partial class Program
 					$"{item.Character}".EscapeMarkup(),
 					$"{item.Source}".EscapeMarkup(),
 					$"{item.Description}".EscapeMarkup(),
+					$"{item.Title}".EscapeMarkup(),
+					$"{item.Time}".EscapeMarkup(),
 					$"{item.Width}x{item.Height}"
 				};
 
@@ -211,7 +221,6 @@ public static partial class Program
 
 		internal static async Task AfterSearchCallback()
 		{
-
 			var p3 = new SelectionPrompt<int>();
 			var c  = Enumerable.Range(0, Results.Count).ToList();
 
@@ -222,6 +231,8 @@ public static partial class Program
 			for (int j = 0; j < Results.Count; j++) {
 				var range = Enumerable.Range(0, Results[j].Results.Count).ToList();
 				// range.Insert(0, i);
+
+				int j1 = j;
 
 				p3 = p3.UseConverter(i1 =>
 				{

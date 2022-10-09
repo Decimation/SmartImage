@@ -62,13 +62,15 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected void FinalizeResult(SearchResult r)
 	{
-		if (!r.Results.Any()) {
+		bool any = r.Results.Any();
+
+		if (!any) {
 			r.Status = SearchResultStatus.NoResults;
 		}
-
-		if (r.Status != SearchResultStatus.None) {
+		else {
 			r.Status = SearchResultStatus.Success;
 		}
+		
 	}
 
 	#region Implementation of IDisposable

@@ -53,21 +53,20 @@ public sealed class SearchConfig : ConfigurationSection
 	[ConfigurationProperty(nameof(OnTop), DefaultValue = ON_TOP_DEFAULT)]
 	public bool OnTop
 	{
-		get =>(bool) this[nameof(OnTop)];
+		get => (bool) this[nameof(OnTop)];
 		set => this[nameof(OnTop)] = value;
-
 	}
 
 	public SearchConfig()
 	{
-		var c=Configuration.Sections["Config"];
+		var c = Configuration.Sections["Config"];
 
 		if (c == null) {
 			Configuration.Sections.Add("Config", this);
 		}
 
 		this.SectionInformation.ForceSave = true;
-		
+
 	}
 
 	public static readonly Configuration Configuration =

@@ -39,10 +39,7 @@ public sealed class SearchResult
 	[CBN]
 	public SearchResultItem First
 	{
-		get
-		{
-			return Results.FirstOrDefault(r => r.Url is { });
-		}
+		get { return Results.FirstOrDefault(r => r.Url is { }); }
 	}
 
 	internal SearchResult(BaseSearchEngine bse)
