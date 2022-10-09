@@ -26,6 +26,7 @@ using Novus.Win32.Structures.Kernel32;
 using SmartImage.App;
 using Spectre.Console;
 using Spectre.Console.Rendering;
+using Terminal.Gui;
 using Color = Spectre.Console.Color;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 
@@ -65,7 +66,8 @@ public static partial class Program
 	public static async Task Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
-		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
+		
+		/*Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 		Native.GetConsoleMode(Cache.StdIn, out ConsoleModes lpMode);
 
 		Cache.OldMode = lpMode;
@@ -74,7 +76,7 @@ public static partial class Program
 		                                              ~ConsoleModes.ENABLE_QUICK_EDIT_MODE) |
 		                                             ConsoleModes.ENABLE_EXTENDED_FLAGS |
 		                                             ConsoleModes.ENABLE_ECHO_INPUT |
-		                                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));
+		                                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));*/
 
 #if TEST
 		// args = new String[] { null };
@@ -83,23 +85,8 @@ public static partial class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
-		/*Native.OpenClipboard();
-
-		var c = (string) Native.GetClipboard((uint?) ClipboardFormat.CF_UNICODETEXT);
-
-		try {
-			var task = await QFileHandle.GetInfoAsync(c, true);
-
-			if (task.IsFile || task.IsUri) {
-				Cache.Clipboard = task;
-
-				Query = new(Cache.Clipboard.Value, Cache.Clipboard.Stream);
-
-			}
-		}
-		catch (Exception e) { }*/
-
-		AC.Write(Gui.NameFiglet);
+		
+		// AC.Write(Gui.NameFiglet);
 
 		bool cli = args is { } && args.Any();
 
@@ -107,13 +94,20 @@ public static partial class Program
 			int r = await Cli.RunCli(args);
 		}
 		else {
-			await Gui.RunGui();
+			// await Gui.RunGui();
+			
+			Application.Init();
+			Gui2.Run2();
+			Application.Run();
+			Application.Shutdown();
+
+			return;
 		}
 
 		await RunMain();
 	}
 
-	private static async Task RunMain()
+	internal static async Task RunMain()
 	{
 		//todo
 
