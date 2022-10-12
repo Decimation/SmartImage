@@ -160,31 +160,4 @@ public static partial class Program
 
 		await Gui.AfterSearchCallback();
 	}
-
-	private static async Task SetQuery(SearchQuery t1)
-	{
-		Query = t1;
-
-		var t = AC.Status().Spinner(Spinner.Known.Star)
-		          .StartAsync($"Uploading...", async ctx =>
-		          {
-			          await Query.UploadAsync();
-			          ctx.Status = "Uploaded";
-		          });
-
-		await t;
-	}
-
-	private static void RootHandler(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
-	{
-
-		Config.SearchEngines   = t2;
-		Config.PriorityEngines = t3;
-
-		Config.OnTop = t4;
-
-		if (Config.OnTop) {
-			Native.KeepWindowOnTop(Cache.HndWindow);
-		}
-	}
 }
