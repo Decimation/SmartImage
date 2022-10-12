@@ -8,43 +8,43 @@ using Spectre.Console;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage;
+namespace SmartImage.Modes;
 
 /// <summary>
 /// <see cref="Spectre"/>
 /// </summary>
-internal class Gui : ProgramMode
+internal class Gui1Mode : BaseProgramMode
 {
 	#region Styles
 
 	private static readonly Style S_Underline = Style.Parse("underline");
 
-	internal static readonly Style S_Generic1 = new(foreground: Color.Blue);
+	private static readonly Style S_Generic1 = new(foreground: Color.Blue);
 
-	internal static readonly Style S_Generic2 = new(foreground: Color.Cyan1);
+	private static readonly Style S_Generic2 = new(foreground: Color.Cyan1);
 
 	#endregion
 
 	#region Widgets
 
-	internal TextPrompt<string> Pr_Input = new(Resources.S_Input)
+	private TextPrompt<string> Pr_Input = new(Resources.S_Input)
 	{
 		AllowEmpty = false,
 
 		PromptStyle = S_Underline,
 	};
 
-	internal readonly MultiSelectionPrompt<SearchEngineOptions> Pr_Multi = new()
+	private readonly MultiSelectionPrompt<SearchEngineOptions> Pr_Multi = new()
 	{
 		PageSize = 20,
 	};
 
-	internal readonly MultiSelectionPrompt<SearchEngineOptions> Pr_Multi2 = new()
+	private readonly MultiSelectionPrompt<SearchEngineOptions> Pr_Multi2 = new()
 	{
 		PageSize = 20,
 	};
 
-	internal readonly TextPrompt<bool> Pr_Cfg_OnTop = new(Resources.S_OnTop)
+	private readonly TextPrompt<bool> Pr_Cfg_OnTop = new(Resources.S_OnTop)
 	{
 		AllowEmpty       = true,
 		ShowDefaultValue = true,
@@ -53,7 +53,7 @@ internal class Gui : ProgramMode
 
 	private readonly SelectionPrompt<ResultMenuOption> Pr_ResultMenu = new();
 
-	internal readonly Table Tb_Results = new()
+	private readonly Table Tb_Results = new()
 	{
 		Border      = TableBorder.Heavy,
 		BorderStyle = Style.Plain
@@ -65,9 +65,7 @@ internal class Gui : ProgramMode
 		PageSize = 20,
 	};
 
-	internal readonly FigletText NameFiglet = new(font: FigletFont.Default, text: Resources.Name);
-
-	private Task m_live1;
+	private readonly FigletText NameFiglet = new(font: FigletFont.Default, text: Resources.Name);
 
 	#endregion
 
@@ -84,9 +82,9 @@ internal class Gui : ProgramMode
 		Exit
 	}
 
-	static Gui() { }
+	static Gui1Mode() { }
 
-	internal async Task LiveCallback(LiveDisplayContext ctx)
+	private async Task LiveCallback(LiveDisplayContext ctx)
 	{
 		Tb_Results.AddColumns("[bold]Engine[/]", "[bold]Info[/]", "[bold]Results[/]");
 		Tb_Results.Alignment = Justify.Center;
@@ -112,9 +110,11 @@ internal class Gui : ProgramMode
 		await t;
 	}
 
+	private Task m_live1;
+
 	#region Overrides of ProgramMode<object>
 
-	public override async Task<object> Run(SearchClient c, string[] args)
+	public override async Task<object> RunAsync(SearchClient c, string[] args)
 	{
 		MAIN_MENU:
 		var opt = AC.Prompt(Pr_Main);
@@ -135,7 +135,7 @@ internal class Gui : ProgramMode
 
 				await HandleQueryAsync(Query);
 
-				RootHandler(a, b, t4);
+				SetConfig(a, b, t4);
 
 				break;
 			case MainMenuOption.Options:
@@ -154,13 +154,9 @@ internal class Gui : ProgramMode
 		return this;
 	}
 
-	#region Overrides of ProgramMode
+	public Gui1Mode(SearchQuery q) : base(q) { }
 
-	#endregion
-
-	public Gui(SearchQuery q) : base(q) { }
-
-	public Gui()
+	public Gui1Mode()
 	{
 		var values = Cache.EngineOptions;
 
@@ -187,7 +183,7 @@ internal class Gui : ProgramMode
 		Pr_ResultMenu = Pr_ResultMenu.AddChoices(Enum.GetValues<ResultMenuOption>());
 	}
 
-	public override async Task PreSearch(SearchConfig c, object? sender)
+	public override async Task PreSearchAsync(SearchConfig c, object? sender)
 	{
 		var table = new Table()
 		{
@@ -197,13 +193,13 @@ internal class Gui : ProgramMode
 
 		//NOTE: WTF
 		table.AddColumns(new TableColumn("Input".T()), new TableColumn("Value".T()))
-		     .AddRow(new Text(Resources.S_SearchEngines, Gui.S_Generic1),
-		             new Text(c.SearchEngines.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text(Resources.S_PriorityEngines, Gui.S_Generic1),
-		             new Text(c.PriorityEngines.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text(Resources.S_OnTop, Gui.S_Generic1), new Text(c.OnTop.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text("Query input", Gui.S_Generic1), new Text(Query.Value, Gui.S_Generic2))
-		     .AddRow(new Text("Query upload", Gui.S_Generic1), new Text(Query.Upload.ToString(), Gui.S_Generic2));
+		     .AddRow(new Text(Resources.S_SearchEngines, S_Generic1),
+		             new Text(c.SearchEngines.ToString(), S_Generic2))
+		     .AddRow(new Text(Resources.S_PriorityEngines, S_Generic1),
+		             new Text(c.PriorityEngines.ToString(), S_Generic2))
+		     .AddRow(new Text(Resources.S_OnTop, S_Generic1), new Text(c.OnTop.ToString(), S_Generic2))
+		     .AddRow(new Text("Query input", S_Generic1), new Text(Query.Value, S_Generic2))
+		     .AddRow(new Text("Query upload", S_Generic1), new Text(Query.Upload.ToString(), S_Generic2));
 
 		AC.Write(table);
 
@@ -214,7 +210,7 @@ internal class Gui : ProgramMode
 		            .StartAsync(LiveCallback);
 	}
 
-	public override async Task PostSearch(SearchConfig c, object? sender, List<SearchResult> results1)
+	public override async Task PostSearchAsync(SearchConfig c, object? sender, List<SearchResult> results1)
 	{
 		var now = sender as Stopwatch;
 
@@ -391,13 +387,9 @@ internal class Gui : ProgramMode
 
 	}
 
-	#region Overrides of ProgramMode
-
-	public override async Task Close() { }
+	public override async Task CloseAsync() { }
 
 	public override void Dispose() { }
-
-	#endregion
 
 	#endregion
 }

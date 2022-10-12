@@ -12,9 +12,9 @@ using Attribute = Terminal.Gui.Attribute;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage;
+namespace SmartImage.Modes;
 
-internal class Gui2 : ProgramMode
+internal class Gui2Mode : BaseProgramMode
 {
 	#region Values
 
@@ -27,6 +27,8 @@ internal class Gui2 : ProgramMode
 	private static ustring PRC => ustring.Make(Application.Driver.Diamond);
 
 	#endregion
+
+	#region Controls
 
 	private static readonly Toplevel Top = Application.Top;
 
@@ -59,26 +61,6 @@ internal class Gui2 : ProgramMode
 		// AutoSize = true,
 	};
 
-	private static readonly TextField Tf_Query = new(ustring.Empty)
-	{
-		X           = Pos.X(Tf_Input),
-		Y           = Pos.Bottom(Tf_Input),
-		Width       = 50,
-		ColorScheme = Styles.CS_Win2,
-		ReadOnly    = true,
-		CanFocus    = false,
-
-		// AutoSize = true,
-	};
-
-	private static readonly ListView Lv_Engines = new(new Rect(3, 8, 15, 25), Cache.EngineOptions)
-	{
-		AllowsMultipleSelection = true,
-		AllowsMarking           = true,
-		CanFocus                = true,
-		// ColorScheme             = GS.CS_Elem3,
-	};
-
 	private static readonly Button Btn_Ok = new("Run")
 	{
 		X           = Pos.Right(Tf_Input) + 2,
@@ -109,15 +91,24 @@ internal class Gui2 : ProgramMode
 		Height   = 25
 	};
 
-	private static readonly DataTable Dt_Config = new();
+	private static readonly DataTable Dt_Config1 = new()
+	{
+		Columns = { "Engine" }
+	};
 
-	private static readonly TableView Tv_Config = new(Dt_Config);
+	private static readonly TableView Dt_Config = new(Dt_Config1)
+	{
+		X=Pos.Bottom(Tf_Input),
+		Y = Pos.Y(Tf_Input)
+	};
+	
+	#endregion
 
 	#region Overrides of ProgramMode
 
-	public Gui2(SearchQuery q) : base(q) { }
+	public Gui2Mode(SearchQuery q) : base(q) { }
 
-	public Gui2()
+	public Gui2Mode()
 	{
 		Application.Init();
 
@@ -131,12 +122,10 @@ internal class Gui2 : ProgramMode
 
 			Lbl_InputOk.Text = PRC;
 
-			if (sq is { })
-			{
+			if (sq is { }) {
 				await sq.UploadAsync();
 			}
-			else
-			{
+			else {
 				Lbl_InputOk.Text = Err;
 				return;
 			}
@@ -150,14 +139,12 @@ internal class Gui2 : ProgramMode
 
 		Btn_Clear.Clicked += () =>
 		{
-			try
-			{
+			try {
 				Tf_Input.DeleteAll();
 				Query            = SearchQuery.Null;
 				Lbl_InputOk.Text = NA;
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
 			}
 		};
@@ -168,46 +155,42 @@ internal class Gui2 : ProgramMode
 		};
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
-		        /*Cb_Engines,*/ Tf_Query, Btn_Clear, Cb_Engines
+		        /*Cb_Engines,*/ Btn_Clear, Cb_Engines, Dt_Config
 		);
-
+		
 		Top.Add(Win);
 	}
 
-	public override async Task<object> Run(SearchClient c, string[] args)
+	public override async Task<object> RunAsync(SearchClient c, string[] args)
 	{
 		Application.Run();
 
 		return this;
 	}
 
-	public override async Task PreSearch(SearchConfig c, object? sender)
+	public override async Task PreSearchAsync(SearchConfig c, object? sender) { }
+
+	public override async Task PostSearchAsync(SearchConfig c, object? sender, List<SearchResult> results1) { }
+
+	public override async Task OnResult(object o, SearchResult r)
 	{
-
+		Dt_Config1.Rows.Add(new TextView() { Text = r.Engine.Name });
 	}
-
-	public override async Task PostSearch(SearchConfig c, object? sender, List<SearchResult> results1) { }
-
-	public override async Task OnResult(object o, SearchResult r) { }
 
 	public override async Task OnComplete(object sender, List<SearchResult> e) { }
 
-	public override async Task Close()
+	public override async Task CloseAsync()
 	{
 		Application.Shutdown();
 
 	}
 
-	public override void Dispose()
-	{
-
-	}
+	public override void Dispose() { }
 
 	#endregion
 
 	private static class Styles
 	{
-
 		private static readonly Attribute AT_GreenBlack        = Attribute.Make(Color.Green, Color.Black);
 		private static readonly Attribute AT_RedBlack          = Attribute.Make(Color.Red, Color.Black);
 		private static readonly Attribute AT_BrightYellowBlack = Attribute.Make(Color.BrightYellow, Color.Black);

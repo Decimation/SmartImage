@@ -29,6 +29,7 @@ using Spectre.Console.Rendering;
 using Terminal.Gui;
 using Color = Spectre.Console.Color;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
+using SmartImage.Modes;
 
 #pragma warning disable CS0168
 
@@ -47,10 +48,7 @@ public static partial class Program
 	//todo
 	private static List<SearchResult> _results;
 
-	//todo
-	private static volatile bool _status = false;
-
-	private static ProgramMode _prgm;
+	private static BaseProgramMode _prgm;
 
 	#endregion
 
@@ -90,14 +88,15 @@ public static partial class Program
 
 		bool cli = args is { } && args.Any();
 
-		_prgm = cli ? new Cli() : new Gui2();
+		_prgm = cli ? new CliMode() : new Gui2Mode();
 
 		Task ret;
+
 		//todo
 
 		var now = Stopwatch.StartNew();
 
-		var pre = _prgm.PreSearch(Config, now);
+		var pre = _prgm.PreSearchAsync(Config, now);
 
 		Client.OnResult += _prgm.OnResult;
 
@@ -107,7 +106,7 @@ public static partial class Program
 
 		_prgm.Status = false;
 
-		var run = _prgm.Run(Client, args);
+		var run = _prgm.RunAsync(Client, args);
 
 		_results = await Client.RunSearchAsync(_prgm.Query, CancellationToken.None);
 
@@ -115,7 +114,7 @@ public static partial class Program
 		
 		await run;
 
-		var post = _prgm.PostSearch(Config, now, _results);
+		var post = _prgm.PostSearchAsync(Config, now, _results);
 
 		await post;
 	}
