@@ -121,7 +121,7 @@ internal class Gui1Mode : BaseProgramMode
 
 		switch (opt) {
 			case MainMenuOption.Clipboard:
-				Pr_Input = Pr_Input.DefaultValue(Cache.Clipboard.Value);
+				Pr_Input = Pr_Input.DefaultValue(Cache._clipboard.Value);
 				goto case MainMenuOption.Search;
 			case MainMenuOption.Search:
 
@@ -212,7 +212,7 @@ internal class Gui1Mode : BaseProgramMode
 
 	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1)
 	{
-		var now = sender as Stopwatch;
+		var now = (Stopwatch) sender;
 
 		now.Stop();
 

@@ -37,6 +37,12 @@ using SmartImage.Modes;
 
 namespace SmartImage;
 
+// # Test values
+/*
+ *
+ * https://i.imgur.com/QtCausw.png
+ */
+
 public static partial class Program
 {
 	#region
@@ -44,7 +50,7 @@ public static partial class Program
 	//todo
 	private static List<SearchResult> _results;
 
-	private static BaseProgramMode _prgm;
+	private static BaseProgramMode _main;
 
 	#endregion
 
@@ -84,7 +90,7 @@ public static partial class Program
 
 		bool cli = args is { } && args.Any();
 
-		_prgm = cli ? new CliMode() : new Gui2Mode();
+		_main = cli ? new CliMode() : new Gui2Mode();
 
 		Task ret;
 
@@ -92,24 +98,23 @@ public static partial class Program
 
 		var now = Stopwatch.StartNew();
 
-		var pre = _prgm.PreSearchAsync(now);
+		var pre = _main.PreSearchAsync(now);
 
-		_prgm.Client.OnResult += _prgm.OnResult;
+		_main.Client.OnResult += _main.OnResult;
 
-		_prgm.Client.OnComplete += _prgm.OnComplete;
+		_main.Client.OnComplete += _main.OnComplete;
 
 		await pre;
 
-		_prgm.Status = 0;
+		_main.Status = 0;
 		
-		var run = _prgm.RunAsync(args);
-		Debug.WriteLine($"run {_prgm.Config}");
-		_prgm.CanRun.WaitOne();
-		_results = await _prgm.Client.RunSearchAsync(_prgm.Query, CancellationToken.None);
+		var run = _main.RunAsync(args);
+		_main.IsReady.WaitOne();
+		_results = await _main.Client.RunSearchAsync(_main.Query, CancellationToken.None);
 
-		_prgm.Status = 1;
+		_main.Status = 1;
 
-		var post = _prgm.PostSearchAsync(now, _results);
+		var post = _main.PostSearchAsync(now, _results);
 
 		await post;
 

@@ -21,7 +21,7 @@ internal static class Cache
 	internal static readonly IntPtr StdOut    = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
 	internal static readonly IntPtr StdIn     = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
 
-	internal static ConsoleModes OldMode;
+	internal static ConsoleModes _oldMode;
 
-	internal static QFileInfo Clipboard;
+	internal static QFileInfo _clipboard;
 }

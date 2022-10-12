@@ -34,6 +34,8 @@ public sealed class SearchClient
 
 	public AsyncSearchCompleteCallback OnComplete { get; set; }
 
+	public BaseSearchEngine[] Engines { get; private set; }
+
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
@@ -43,10 +45,10 @@ public sealed class SearchClient
 	{
 		token ??= CancellationToken.None;
 
-		var tasks = BaseSearchEngine.All
-		                            .Where(e => Config.SearchEngines.HasFlag(e.EngineOption))
-		                            .Select(e => e.GetResultAsync(query))
-		                            .ToList();
+		Engines = BaseSearchEngine.All.Where(e => Config.SearchEngines.HasFlag(e.EngineOption)).ToArray();
+
+		var tasks = Engines.Select(e => e.GetResultAsync(query))
+		                   .ToList();
 
 		var results = new List<SearchResult>();
 
@@ -59,9 +61,9 @@ public sealed class SearchClient
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
-				var url1 = result.First?.Url ?? result.RawUrl; 
+				var url1 = result.First?.Url ?? result.RawUrl;
 
-				if (url1 is {}) {
+				if (url1 is { }) {
 					HttpUtilities.OpenUrl(url1);
 				}
 			}

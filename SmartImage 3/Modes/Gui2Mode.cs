@@ -7,12 +7,14 @@ using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
+using System.Media;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Kantan.Net.Utilities;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
+using Rune = System.Rune;
 
 // ReSharper disable InconsistentNaming
 
@@ -22,7 +24,7 @@ internal class Gui2Mode : BaseProgramMode
 {
 	#region Values
 
-	private static ustring Err => ustring.Make(Application.Driver.HLine);
+	private static ustring Err => ustring.Make('!');
 
 	private static ustring NA => ustring.Make(Application.Driver.RightDefaultIndicator);
 
@@ -65,24 +67,24 @@ internal class Gui2Mode : BaseProgramMode
 		// AutoSize = true,
 	};
 
+	private static readonly Label Lbl_InputOk = new(NA)
+	{
+		X           = Pos.Right(Tf_Input),
+		Y           = Pos.Y(Tf_Input),
+		// ColorScheme = Styles.CS_Elem4
+	};
+
 	private static readonly Button Btn_Ok = new("Run")
 	{
-		X           = Pos.Right(Tf_Input) + 2,
+		X           = Pos.Right(Lbl_InputOk) + 2,
 		Y           = Pos.Y(Tf_Input),
 		ColorScheme = Styles.CS_Elem1
 	};
 
-	private static readonly Label Lbl_InputOk = new(NA)
-	{
-		X           = Pos.Right(Btn_Ok),
-		Y           = Pos.Y(Btn_Ok),
-		ColorScheme = Styles.CS_Elem4
-	};
-
 	public static readonly Button Btn_Clear = new("X")
 	{
-		X = Pos.Right(Lbl_InputOk),
-		Y = Pos.Y(Lbl_InputOk)
+		X = Pos.Right(Btn_Ok),
+		Y = Pos.Y(Btn_Ok)
 
 	};
 
@@ -100,11 +102,20 @@ internal class Gui2Mode : BaseProgramMode
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X        = Pos.Bottom(Tf_Input),
-		Y        = Pos.Y(Tf_Input) + 1,
-		Width    = 120,
-		Height   = 200,
+		X      = Pos.Bottom(Tf_Input),
+		Y      = Pos.Y(Tf_Input) + 1,
+		Width  = 120,
+		Height = 300,
+
 		AutoSize = false
+	};
+
+	private static readonly ProgressBar Pbr_Status = new()
+	{
+		X                = Pos.Right(Cb_Engines),
+		Y                = Pos.Y(Cb_Engines),
+		Width            = 10,
+		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
 	#endregion
@@ -118,11 +129,39 @@ internal class Gui2Mode : BaseProgramMode
 		var col = new DataColumn[]
 		{
 			new("Engine", typeof(string)),
-			new("Url", typeof(Flurl.Url)),
-			new("Status", typeof(SearchResultStatus))
+			new(nameof(SearchResultItem.Url), typeof(Flurl.Url)),
+			new(nameof(SearchResultItem.Similarity), typeof(float)),
+			new(nameof(SearchResultItem.Artist), typeof(string)),
+			new(nameof(SearchResultItem.Description), typeof(string)),
+			new(nameof(SearchResultItem.Source), typeof(string)),
+			new(nameof(SearchResultItem.Title), typeof(string)),
+			new(nameof(SearchResultItem.Site), typeof(string)),
 		};
 
 		Dt_Results.Columns.AddRange(col);
+
+		var columnStyle = new TableView.ColumnStyle()
+		{
+			Alignment = TextAlignment.Left,
+		};
+
+		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
+		
+		columnStyles[col[1]].MaxWidth = 50;
+
+		Tv_Results.Style = new TableView.TableStyle()
+		{
+			ShowHorizontalScrollIndicators = true,
+			AlwaysShowHeaders              = true,
+			RowColorGetter = args =>
+			{
+				// var eng=args.Table.Rows[args.RowIndex]["Engine"];
+				return null;
+			},
+			ShowHorizontalHeaderUnderline = true,
+			ShowHorizontalHeaderOverline  = true,
+			ColumnStyles                  = columnStyles,
+		};
 
 		Btn_Ok.Clicked += async () =>
 		{
@@ -130,15 +169,23 @@ internal class Gui2Mode : BaseProgramMode
 
 			Debug.WriteLine($"{text}");
 
-			var sq = await SearchQuery.TryCreateAsync(text.ToString());
+			SearchQuery sq;
+
+			try {
+				sq = await SearchQuery.TryCreateAsync(text.ToString());
+			}
+			catch (Exception e) {
+				sq = SearchQuery.Null;
+			}
 
 			Lbl_InputOk.Text = PRC;
 
-			if (sq is { }) {
+			if (sq is { } && sq != SearchQuery.Null) {
 				await sq.UploadAsync();
 			}
 			else {
 				Lbl_InputOk.Text = Err;
+				
 				return;
 			}
 
@@ -148,7 +195,8 @@ internal class Gui2Mode : BaseProgramMode
 
 			Query  = sq;
 			Status = 1;
-			((ManualResetEvent) CanRun).Set();
+
+			IsReady.Set();
 		};
 
 		Btn_Clear.Clicked += () =>
@@ -157,21 +205,39 @@ internal class Gui2Mode : BaseProgramMode
 				Tf_Input.DeleteAll();
 				Query            = SearchQuery.Null;
 				Lbl_InputOk.Text = NA;
+				Dt_Results.Clear();
+				IsReady.Reset();
+				ResultCount         = 0;
+				Pbr_Status.Fraction = 0;
+				Application.Refresh();
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
 			}
 		};
 
-		Cb_Engines.OpenSelectedItem += args =>
+		Cb_Engines.OpenSelectedItem += args => { };
+
+		Tv_Results.CellActivated += args =>
 		{
-			Debug.WriteLine($"{args.Item} {args.Value}");
+			if (args.Table is not { }) {
+				return;
+			}
+
+			try {
+				var cell = args.Table.Rows[args.Row][args.Col];
+
+				if (cell is Url { } u) {
+					HttpUtilities.OpenUrl(u);
+				}
+			}
+			catch (Exception e) { }
 		};
 
 		Tv_Results.Table = Dt_Results;
 
-		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk, 
-		        Btn_Clear, Cb_Engines, Tv_Results
+		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
+		        Btn_Clear, Cb_Engines, Tv_Results, Pbr_Status
 		);
 
 		Top.Add(Win);
@@ -185,7 +251,7 @@ internal class Gui2Mode : BaseProgramMode
 		{
 			Application.Run();
 
-			Task.Delay(Timeout.InfiniteTimeSpan);//todo:????
+			Task.Delay(Timeout.InfiniteTimeSpan); //todo:????
 		});
 	}
 
@@ -195,34 +261,27 @@ internal class Gui2Mode : BaseProgramMode
 
 	public override Task OnResult(object o, SearchResult r)
 	{
+		for (int i = 0; i < r.Results.Count; i++) {
+			SearchResultItem sri = r.Results[i];
 
-		Dt_Results.Rows.Add(r.Engine.Name, r.First?.Url, r.Status);
+			Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
+			                    sri.Url, sri.Similarity, sri.Artist, sri.Description, sri.Source,
+			                    sri.Title, sri.Site);
+		}
 
 		// Tv_Results.Redraw(Tv_Results.Bounds);
-		Tv_Results.Redraw(Top.Bounds);
+		// Tv_Results.Redraw(Top.Bounds);
 
-		Tv_Results.CellActivated += args =>
-		{
-			if (args.Table is not { }) {
-				return;
-			}
-			try {
-				var v = args.Table.Rows[args.Row][args.Col];
-
-				if (v is Url { } u) {
-
-					HttpUtilities.OpenUrl(u);
-				}
-			}
-			catch (Exception e) {
-				
-			}
-		};
-
+		Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
+		Application.Refresh();
 		return Task.CompletedTask;
 	}
 
-	public override async Task OnComplete(object sender, List<SearchResult> e) { }
+	public override async Task OnComplete(object sender, List<SearchResult> e)
+	{
+		SystemSounds.Asterisk.Play();
+		
+	}
 
 	public override Task CloseAsync()
 	{
@@ -278,7 +337,7 @@ internal class Gui2Mode : BaseProgramMode
 			HotFocus  = AT_CyanBlack
 		};
 
-		private static readonly ColorScheme CS_Title = new()
+		internal static readonly ColorScheme CS_Title = new()
 		{
 			Normal = AT_RedBlack,
 			Focus  = Attribute.Make(Color.BrightRed, Color.Black)
