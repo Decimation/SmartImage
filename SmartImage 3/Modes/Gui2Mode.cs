@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Kantan.Net.Utilities;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
 
@@ -91,24 +92,26 @@ internal class Gui2Mode : BaseProgramMode
 		Height   = 25
 	};
 
-	private static readonly DataTable Dt_Config1 = new()
+	private static readonly DataTable Dt_Results = new()
 	{
-		Columns = { "Engine" }
+		Columns = { "Engine" },
+		Rows = {  }
 	};
 
-	private static readonly TableView Dt_Config = new(Dt_Config1)
+	private static readonly TableView Tv_Results = new()
 	{
 		X=Pos.Bottom(Tf_Input),
-		Y = Pos.Y(Tf_Input)
+		Y = Pos.Y(Tf_Input) + 1,
+		Width = 150,
+		Height = 50,
+		AutoSize = true
 	};
 	
 	#endregion
 
 	#region Overrides of ProgramMode
 
-	public Gui2Mode(SearchQuery q) : base(q) { }
-
-	public Gui2Mode()
+	public Gui2Mode() : base(SearchQuery.Null)
 	{
 		Application.Init();
 
@@ -134,7 +137,8 @@ internal class Gui2Mode : BaseProgramMode
 
 			Lbl_InputOk.Text = OK;
 
-			Query = sq;
+			Query  = sq;
+			Status = true;
 		};
 
 		Btn_Clear.Clicked += () =>
@@ -153,28 +157,57 @@ internal class Gui2Mode : BaseProgramMode
 		{
 			Debug.WriteLine($"{args.Item} {args.Value}");
 		};
+		
+		Tv_Results.Table = Dt_Results;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
-		        /*Cb_Engines,*/ Btn_Clear, Cb_Engines, Dt_Config
+		        /*Cb_Engines,*/ Btn_Clear, Cb_Engines, Tv_Results
 		);
 		
 		Top.Add(Win);
+
 	}
 
-	public override async Task<object> RunAsync(SearchClient c, string[] args)
+	public override async Task<object> RunAsync(string[] args)
 	{
-		Application.Run();
 
-		return this;
+		return	Task.Run(() =>
+		{
+			Application.Run();
+			return this;
+		});
 	}
 
-	public override async Task PreSearchAsync(SearchConfig c, object? sender) { }
+	#region Overrides of BaseProgramMode
 
-	public override async Task PostSearchAsync(SearchConfig c, object? sender, List<SearchResult> results1) { }
+	#endregion
+	public override async Task<bool> CanRun()
+	{
+		while (!Status) {
+			
+		}
+
+		return true;
+	}
+	public override async Task PreSearchAsync(object? sender) { }
+
+	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1) { }
 
 	public override async Task OnResult(object o, SearchResult r)
 	{
-		Dt_Config1.Rows.Add(new TextView() { Text = r.Engine.Name });
+		var textView = new TextView()
+		{
+			Text = $"{r.Engine.Name}"
+		};
+		textView.MouseClick += args =>
+		{
+			if (r is {First: {}}) {
+				HttpUtilities.OpenUrl(r.First.Url);
+			}
+		};
+
+		Dt_Results.Rows.Add(textView);
+		Tv_Results.Redraw(Tv_Results.Bounds);
 	}
 
 	public override async Task OnComplete(object sender, List<SearchResult> e) { }

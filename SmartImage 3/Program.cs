@@ -41,10 +41,6 @@ public static partial class Program
 {
 	#region
 
-	private static readonly SearchConfig Config = new();
-
-	private static readonly SearchClient Client = new(Config);
-
 	//todo
 	private static List<SearchResult> _results;
 
@@ -88,7 +84,7 @@ public static partial class Program
 
 		bool cli = args is { } && args.Any();
 
-		_prgm = cli ? new CliMode() : new Gui2Mode();
+		_prgm        = cli ? new CliMode() : new Gui2Mode();
 
 		Task ret;
 
@@ -96,26 +92,28 @@ public static partial class Program
 
 		var now = Stopwatch.StartNew();
 
-		var pre = _prgm.PreSearchAsync(Config, now);
+		var pre = _prgm.PreSearchAsync(now);
 
-		Client.OnResult += _prgm.OnResult;
+		_prgm.Client.OnResult += _prgm.OnResult;
 
-		Client.OnComplete += _prgm.OnComplete;
+		_prgm.Client.OnComplete += _prgm.OnComplete;
 
 		await pre;
 
 		_prgm.Status = false;
 
-		var run = _prgm.RunAsync(Client, args);
+		var run = _prgm.RunAsync(args);
+		var can = _prgm.CanRun();
+		await can;
+		Debug.WriteLine($"run {_prgm.Config}");
+		_results = await _prgm.Client.RunSearchAsync(_prgm.Query, CancellationToken.None);
 
-		_results = await Client.RunSearchAsync(_prgm.Query, CancellationToken.None);
+		_prgm.Status = true;
 
-		_prgm.Status  = true;
-		
-		await run;
-
-		var post = _prgm.PostSearchAsync(Config, now, _results);
+		var post = _prgm.PostSearchAsync(now, _results);
 
 		await post;
+
+		await run;
 	}
 }

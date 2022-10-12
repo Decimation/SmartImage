@@ -114,7 +114,7 @@ internal class Gui1Mode : BaseProgramMode
 
 	#region Overrides of ProgramMode<object>
 
-	public override async Task<object> RunAsync(SearchClient c, string[] args)
+	public override async Task<object> RunAsync(string[] args)
 	{
 		MAIN_MENU:
 		var opt = AC.Prompt(Pr_Main);
@@ -154,15 +154,14 @@ internal class Gui1Mode : BaseProgramMode
 		return this;
 	}
 
-	public Gui1Mode(SearchQuery q) : base(q) { }
-
-	public Gui1Mode()
+	public Gui1Mode(SearchQuery q) : base(q)
 	{
 		var values = Cache.EngineOptions;
 
 		Pr_Input.Validator = s =>
 		{
-			try {
+			try
+			{
 
 				var task  = SearchQuery.TryCreateAsync(s);
 				var query = task.Result;
@@ -170,7 +169,8 @@ internal class Gui1Mode : BaseProgramMode
 
 				return ValidationResult.Success();
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				return ValidationResult.Error($"Error: {e.Message}");
 			}
 		};
@@ -183,7 +183,7 @@ internal class Gui1Mode : BaseProgramMode
 		Pr_ResultMenu = Pr_ResultMenu.AddChoices(Enum.GetValues<ResultMenuOption>());
 	}
 
-	public override async Task PreSearchAsync(SearchConfig c, object? sender)
+	public override async Task PreSearchAsync(object? sender)
 	{
 		var table = new Table()
 		{
@@ -194,10 +194,10 @@ internal class Gui1Mode : BaseProgramMode
 		//NOTE: WTF
 		table.AddColumns(new TableColumn("Input".T()), new TableColumn("Value".T()))
 		     .AddRow(new Text(Resources.S_SearchEngines, S_Generic1),
-		             new Text(c.SearchEngines.ToString(), S_Generic2))
+		             new Text(Config.SearchEngines.ToString(), S_Generic2))
 		     .AddRow(new Text(Resources.S_PriorityEngines, S_Generic1),
-		             new Text(c.PriorityEngines.ToString(), S_Generic2))
-		     .AddRow(new Text(Resources.S_OnTop, S_Generic1), new Text(c.OnTop.ToString(), S_Generic2))
+		             new Text(Config.PriorityEngines.ToString(), S_Generic2))
+		     .AddRow(new Text(Resources.S_OnTop, S_Generic1), new Text(Config.OnTop.ToString(), S_Generic2))
 		     .AddRow(new Text("Query input", S_Generic1), new Text(Query.Value, S_Generic2))
 		     .AddRow(new Text("Query upload", S_Generic1), new Text(Query.Upload.ToString(), S_Generic2));
 
@@ -210,7 +210,7 @@ internal class Gui1Mode : BaseProgramMode
 		            .StartAsync(LiveCallback);
 	}
 
-	public override async Task PostSearchAsync(SearchConfig c, object? sender, List<SearchResult> results1)
+	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1)
 	{
 		var now = sender as Stopwatch;
 
@@ -389,7 +389,16 @@ internal class Gui1Mode : BaseProgramMode
 
 	public override async Task CloseAsync() { }
 
-	public override void Dispose() { }
+	public override       void       Dispose() { }
+
+	#region Overrides of BaseProgramMode
+
+	public override async Task<bool> CanRun()
+	{
+		return true;
+	}
+
+	#endregion
 
 	#endregion
 }

@@ -10,31 +10,36 @@ namespace SmartImage.Modes;
 
 public abstract class BaseProgramMode : IDisposable
 {
-	protected BaseProgramMode(SearchQuery q)
+
+	protected BaseProgramMode(SearchQuery? sq = null)
 	{
-		Query = q;
+		Query  = sq ?? SearchQuery.Null;
+		Client = new SearchClient(new SearchConfig());
+
 	}
 
-	protected BaseProgramMode() : this(SearchQuery.Null) { }
+	public SearchQuery Query { get; set; }
 
-	public SearchQuery Query { get; protected set; }
+	public SearchConfig Config => Client.Config;
 
-	public SearchConfig Config { get; protected set; }
+	public SearchClient Client { get; init; }
 
 	//todo
 	public volatile bool Status;
 
-	public abstract Task<object> RunAsync(SearchClient c, string[] args);
+	public abstract Task<object> RunAsync(string[] args);
 
-	public abstract Task PreSearchAsync(SearchConfig c, object? sender);
+	public abstract Task PreSearchAsync(object? sender);
 
-	public abstract Task PostSearchAsync(SearchConfig c, object? sender, List<SearchResult> results1);
+	public abstract Task PostSearchAsync(object? sender, List<SearchResult> results1);
 
 	public abstract Task OnResult(object o, SearchResult r);
 
 	public abstract Task OnComplete(object sender, List<SearchResult> e);
 
 	public abstract Task CloseAsync();
+
+	public abstract Task<bool> CanRun();
 
 	protected void SetConfig(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{
