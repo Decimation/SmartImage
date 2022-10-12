@@ -1,12 +1,15 @@
-﻿using NStack;
+﻿global using Url = Flurl.Url;
+using NStack;
 using SmartImage.Lib;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Kantan.Net.Utilities;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
@@ -93,20 +96,17 @@ internal class Gui2Mode : BaseProgramMode
 	};
 
 	private static readonly DataTable Dt_Results = new()
-	{
-		Columns = { "Engine" },
-		Rows = {  }
-	};
+		{ };
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X=Pos.Bottom(Tf_Input),
-		Y = Pos.Y(Tf_Input) + 1,
-		Width = 150,
-		Height = 50,
-		AutoSize = true
+		X        = Pos.Bottom(Tf_Input),
+		Y        = Pos.Y(Tf_Input) + 1,
+		Width    = 120,
+		Height   = 200,
+		AutoSize = false
 	};
-	
+
 	#endregion
 
 	#region Overrides of ProgramMode
@@ -114,6 +114,15 @@ internal class Gui2Mode : BaseProgramMode
 	public Gui2Mode() : base(SearchQuery.Null)
 	{
 		Application.Init();
+
+		var col = new DataColumn[]
+		{
+			new("Engine", typeof(string)),
+			new("Url", typeof(Flurl.Url)),
+			new("Status", typeof(SearchResultStatus))
+		};
+
+		Dt_Results.Columns.AddRange(col);
 
 		Btn_Ok.Clicked += async () =>
 		{
@@ -138,7 +147,8 @@ internal class Gui2Mode : BaseProgramMode
 			Lbl_InputOk.Text = OK;
 
 			Query  = sq;
-			Status = true;
+			Status = 1;
+			((ManualResetEvent) CanRun).Set();
 		};
 
 		Btn_Clear.Clicked += () =>
@@ -157,13 +167,13 @@ internal class Gui2Mode : BaseProgramMode
 		{
 			Debug.WriteLine($"{args.Item} {args.Value}");
 		};
-		
+
 		Tv_Results.Table = Dt_Results;
 
-		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
-		        /*Cb_Engines,*/ Btn_Clear, Cb_Engines, Tv_Results
+		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk, 
+		        Btn_Clear, Cb_Engines, Tv_Results
 		);
-		
+
 		Top.Add(Win);
 
 	}
@@ -171,51 +181,53 @@ internal class Gui2Mode : BaseProgramMode
 	public override async Task<object> RunAsync(string[] args)
 	{
 
-		return	Task.Run(() =>
+		return Task.Run(() =>
 		{
 			Application.Run();
-			return this;
+
+			Task.Delay(Timeout.InfiniteTimeSpan);//todo:????
 		});
 	}
 
-	#region Overrides of BaseProgramMode
-
-	#endregion
-	public override async Task<bool> CanRun()
-	{
-		while (!Status) {
-			
-		}
-
-		return true;
-	}
 	public override async Task PreSearchAsync(object? sender) { }
 
 	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1) { }
 
-	public override async Task OnResult(object o, SearchResult r)
+	public override Task OnResult(object o, SearchResult r)
 	{
-		var textView = new TextView()
+
+		Dt_Results.Rows.Add(r.Engine.Name, r.First?.Url, r.Status);
+
+		// Tv_Results.Redraw(Tv_Results.Bounds);
+		Tv_Results.Redraw(Top.Bounds);
+
+		Tv_Results.CellActivated += args =>
 		{
-			Text = $"{r.Engine.Name}"
-		};
-		textView.MouseClick += args =>
-		{
-			if (r is {First: {}}) {
-				HttpUtilities.OpenUrl(r.First.Url);
+			if (args.Table is not { }) {
+				return;
+			}
+			try {
+				var v = args.Table.Rows[args.Row][args.Col];
+
+				if (v is Url { } u) {
+
+					HttpUtilities.OpenUrl(u);
+				}
+			}
+			catch (Exception e) {
+				
 			}
 		};
 
-		Dt_Results.Rows.Add(textView);
-		Tv_Results.Redraw(Tv_Results.Bounds);
+		return Task.CompletedTask;
 	}
 
 	public override async Task OnComplete(object sender, List<SearchResult> e) { }
 
-	public override async Task CloseAsync()
+	public override Task CloseAsync()
 	{
 		Application.Shutdown();
-
+		return Task.CompletedTask;
 	}
 
 	public override void Dispose() { }

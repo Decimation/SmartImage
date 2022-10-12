@@ -15,7 +15,7 @@ public abstract class BaseProgramMode : IDisposable
 	{
 		Query  = sq ?? SearchQuery.Null;
 		Client = new SearchClient(new SearchConfig());
-
+		CanRun = new ManualResetEvent(false);
 	}
 
 	public SearchQuery Query { get; set; }
@@ -25,7 +25,7 @@ public abstract class BaseProgramMode : IDisposable
 	public SearchClient Client { get; init; }
 
 	//todo
-	public volatile bool Status;
+	public volatile int Status;
 
 	public abstract Task<object> RunAsync(string[] args);
 
@@ -39,7 +39,7 @@ public abstract class BaseProgramMode : IDisposable
 
 	public abstract Task CloseAsync();
 
-	public abstract Task<bool> CanRun();
+	public WaitHandle CanRun { get; protected set; }
 
 	protected void SetConfig(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{

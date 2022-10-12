@@ -89,7 +89,7 @@ internal class Gui1Mode : BaseProgramMode
 		Tb_Results.AddColumns("[bold]Engine[/]", "[bold]Info[/]", "[bold]Results[/]");
 		Tb_Results.Alignment = Justify.Center;
 
-		while (!Status) {
+		while (Status != 1) {
 			ctx.Refresh();
 			await Task.Delay(TimeSpan.FromMilliseconds(100));
 
@@ -392,11 +392,6 @@ internal class Gui1Mode : BaseProgramMode
 	public override       void       Dispose() { }
 
 	#region Overrides of BaseProgramMode
-
-	public override async Task<bool> CanRun()
-	{
-		return true;
-	}
 
 	#endregion
 

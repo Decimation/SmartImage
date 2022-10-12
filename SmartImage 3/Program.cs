@@ -84,7 +84,7 @@ public static partial class Program
 
 		bool cli = args is { } && args.Any();
 
-		_prgm        = cli ? new CliMode() : new Gui2Mode();
+		_prgm = cli ? new CliMode() : new Gui2Mode();
 
 		Task ret;
 
@@ -100,20 +100,22 @@ public static partial class Program
 
 		await pre;
 
-		_prgm.Status = false;
-
+		_prgm.Status = 0;
+		
 		var run = _prgm.RunAsync(args);
-		var can = _prgm.CanRun();
-		await can;
 		Debug.WriteLine($"run {_prgm.Config}");
+		_prgm.CanRun.WaitOne();
 		_results = await _prgm.Client.RunSearchAsync(_prgm.Query, CancellationToken.None);
 
-		_prgm.Status = true;
+		_prgm.Status = 1;
 
 		var post = _prgm.PostSearchAsync(now, _results);
 
 		await post;
 
-		await run;
+		// await run;
+
+		Application.Run();
+
 	}
 }

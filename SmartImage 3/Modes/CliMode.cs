@@ -87,9 +87,6 @@ internal class CliMode : BaseProgramMode
 	public override void Dispose() { }
 	
 	public CliMode() : base() { }
-	public override async Task<bool> CanRun()
-	{
-		return true;
-	}
+	
 	#endregion
 }
