@@ -3,6 +3,7 @@ using System.CommandLine.Builder;
 using System.CommandLine.Help;
 using System.CommandLine.Parsing;
 using Kantan.Text;
+using Novus.Win32;
 using SmartImage.Lib;
 using Spectre.Console;
 
@@ -13,7 +14,7 @@ namespace SmartImage;
 /// <summary>
 /// <see cref="System.CommandLine"/>
 /// </summary>
-internal static class Cli
+internal class Cli : ProgramMode
 {
 	private static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: ar =>
 	{
@@ -50,23 +51,41 @@ internal static class Cli
 
 	static Cli() { }
 
-	internal static async Task<int> RunCli(string[] args)
+	#region Overrides of ProgramMode
+
+	public override async Task<object> Run(SearchClient c, string[] args)
 	{
 		Cmd_Root.SetHandler(async (t1, t2, t3, t4) =>
 		{
-			await Gui.HandleQueryAsync(t1);
+			await t1.UploadAsync();
 
-			ConfigAdapter.RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
+			RootHandler(Enum.Parse<SearchEngineOptions>(t2), Enum.Parse<SearchEngineOptions>(t3), t4);
+
 		}, Opt_Query, Opt_Engines, Opt_Priority, Opt_OnTop);
 
 		var parser = new CommandLineBuilder(Cmd_Root).UseDefaults().UseHelp(HelpHandler).Build();
 
 		var r = await parser.InvokeAsync(args);
 
-		if (r != 0 || Program.Query == null) {
+		if (r != 0 || Query == null) {
 			return r;
 		}
 
 		return r;
 	}
+
+	public override async Task PreSearch(SearchConfig c, object? sender) { }
+
+	public override async Task PostSearch(SearchConfig c, object? sender, List<SearchResult> results1) { }
+	public override async Task OnResult(object o, SearchResult r)                                      { }
+	public override async Task OnComplete(object sender, List<SearchResult> e)                         { }
+
+	public override async Task Close() { }
+
+	public override void Dispose() { }
+
+	#endregion
+
+	public Cli() : base() { }
+	public Cli(SearchQuery q) : base(q) { }
 }

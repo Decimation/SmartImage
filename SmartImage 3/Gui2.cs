@@ -14,64 +14,9 @@ using Attribute = Terminal.Gui.Attribute;
 
 namespace SmartImage;
 
-internal static class Gui2
+internal class Gui2 : ProgramMode
 {
-	internal static class Styles
-	{
-		private static readonly Attribute AT_GreenBlack        = Attribute.Make(Color.Green, Color.Black);
-		private static readonly Attribute AT_RedBlack          = Attribute.Make(Color.Red, Color.Black);
-		private static readonly Attribute AT_BrightYellowBlack = Attribute.Make(Color.BrightYellow, Color.Black);
-		private static readonly Attribute AT_WhiteBlack        = Attribute.Make(Color.White, Color.Black);
-		private static readonly Attribute AT_CyanBlack         = Attribute.Make(Color.Cyan, Color.Black);
-
-		public static readonly ColorScheme CS_Elem1 = new()
-		{
-			Normal    = AT_GreenBlack,
-			Focus     = Attribute.Make(Color.BrightGreen, Color.Black),
-			Disabled  = AT_BrightYellowBlack,
-			HotNormal = AT_GreenBlack,
-			HotFocus  = Attribute.Make(Color.BrightGreen, Color.Black)
-		};
-
-		public static readonly ColorScheme CS_Elem2 = new()
-		{
-			Normal   = AT_CyanBlack,
-			Disabled = Attribute.Make(Color.DarkGray, Color.Black)
-		};
-
-		public static readonly ColorScheme CS_Elem3 = new()
-		{
-			Normal   = Attribute.Make(Color.BrightBlue, Color.Black),
-			Focus    = Attribute.Make(Color.Cyan, Color.DarkGray),
-			Disabled = Attribute.Make(Color.BrightBlue, Color.DarkGray)
-		};
-
-		public static readonly ColorScheme CS_Elem4 = new()
-		{
-			Normal = Attribute.Make(Color.Blue, Color.Gray),
-		};
-
-		public static readonly ColorScheme CS_Win = new()
-		{
-			Normal    = AT_WhiteBlack,
-			Focus     = AT_CyanBlack,
-			Disabled  = Attribute.Make(Color.Gray, Color.Black),
-			HotNormal = AT_WhiteBlack,
-			HotFocus  = AT_CyanBlack
-		};
-
-		private static readonly ColorScheme CS_Title = new()
-		{
-			Normal = AT_RedBlack,
-			Focus  = Attribute.Make(Color.BrightRed, Color.Black)
-		};
-
-		public static readonly ColorScheme CS_Win2 = new()
-		{
-			Normal = Attribute.Make(Color.Black, Color.White),
-			Focus  = Attribute.Make(background: Color.DarkGray, foreground: Color.White)
-		};
-	}
+	#region Values
 
 	private static ustring Err => ustring.Make(Application.Driver.HLine);
 
@@ -81,7 +26,7 @@ internal static class Gui2
 
 	private static ustring PRC => ustring.Make(Application.Driver.Diamond);
 
-	private static readonly SearchEngineOptions[] EngineNames = Enum.GetValues<SearchEngineOptions>();
+	#endregion
 
 	private static readonly Toplevel Top = Application.Top;
 
@@ -126,7 +71,7 @@ internal static class Gui2
 		// AutoSize = true,
 	};
 
-	private static readonly ListView Lv_Engines = new(new Rect(3, 8, 15, 25), EngineNames)
+	private static readonly ListView Lv_Engines = new(new Rect(3, 8, 15, 25), Cache.EngineOptions)
 	{
 		AllowsMultipleSelection = true,
 		AllowsMarking           = true,
@@ -148,17 +93,15 @@ internal static class Gui2
 		ColorScheme = Styles.CS_Elem4
 	};
 
-	public static readonly Button Btn_Clear = new Button("X")
+	public static readonly Button Btn_Clear = new("X")
 	{
 		X = Pos.Right(Lbl_InputOk),
 		Y = Pos.Y(Lbl_InputOk)
 
 	};
 
-	private static readonly ComboBox Cb_Engines = new(EngineNames)
+	private static readonly ComboBox Cb_Engines = new(Cache.EngineOptions)
 	{
-		// CanFocus = true,
-		// ColorScheme             = GS.CS_Elem3,
 		X        = Pos.Right(Btn_Clear),
 		Y        = Pos.Y(Btn_Clear),
 		AutoSize = true,
@@ -166,28 +109,18 @@ internal static class Gui2
 		Height   = 25
 	};
 
-	private static readonly ListView Lv_Results = new(new Rect(20, 8, 25, 30), Program.Results)
-	{
-		X        = Pos.Right(Cb_Engines),
-		Y        = Pos.Bottom(Btn_Ok),
-		AutoSize = true
-	};
-
-	private static readonly Label Lbl_Query = new(">>>")
-	{
-		X           = Pos.X(Lbl_Input),
-		Y           = Pos.Bottom(Lbl_Input),
-		ColorScheme = Styles.CS_Elem2
-	};
-
-	private static readonly DataTable Dt_Config = new DataTable();
+	private static readonly DataTable Dt_Config = new();
 
 	private static readonly TableView Tv_Config = new(Dt_Config);
 
-	static Gui2() { }
+	#region Overrides of ProgramMode
 
-	public static void Run2()
+	public Gui2(SearchQuery q) : base(q) { }
+
+	public Gui2()
 	{
+		Application.Init();
+
 		Btn_Ok.Clicked += async () =>
 		{
 			var text = Tf_Input.Text;
@@ -198,10 +131,12 @@ internal static class Gui2
 
 			Lbl_InputOk.Text = PRC;
 
-			if (sq is { }) {
+			if (sq is { })
+			{
 				await sq.UploadAsync();
 			}
-			else {
+			else
+			{
 				Lbl_InputOk.Text = Err;
 				return;
 			}
@@ -210,17 +145,19 @@ internal static class Gui2
 
 			Lbl_InputOk.Text = OK;
 
-			Program.Query = sq;
+			Query = sq;
 		};
 
 		Btn_Clear.Clicked += () =>
 		{
-			try {
+			try
+			{
 				Tf_Input.DeleteAll();
-				Program.Query    = SearchQuery.Null;
+				Query            = SearchQuery.Null;
 				Lbl_InputOk.Text = NA;
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				Debug.WriteLine($"{e.Message}");
 			}
 		};
@@ -230,10 +167,99 @@ internal static class Gui2
 			Debug.WriteLine($"{args.Item} {args.Value}");
 		};
 
-		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk, /*Cb_Engines,*/ Tf_Query,
-		        Lbl_Query, Btn_Clear, Lv_Results, Cb_Engines
+		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
+		        /*Cb_Engines,*/ Tf_Query, Btn_Clear, Cb_Engines
 		);
-		Top.Add(Win);
 
+		Top.Add(Win);
+	}
+
+	public override async Task<object> Run(SearchClient c, string[] args)
+	{
+		Application.Run();
+
+		return this;
+	}
+
+	public override async Task PreSearch(SearchConfig c, object? sender)
+	{
+
+	}
+
+	public override async Task PostSearch(SearchConfig c, object? sender, List<SearchResult> results1) { }
+
+	public override async Task OnResult(object o, SearchResult r) { }
+
+	public override async Task OnComplete(object sender, List<SearchResult> e) { }
+
+	public override async Task Close()
+	{
+		Application.Shutdown();
+
+	}
+
+	public override void Dispose()
+	{
+
+	}
+
+	#endregion
+
+	private static class Styles
+	{
+
+		private static readonly Attribute AT_GreenBlack        = Attribute.Make(Color.Green, Color.Black);
+		private static readonly Attribute AT_RedBlack          = Attribute.Make(Color.Red, Color.Black);
+		private static readonly Attribute AT_BrightYellowBlack = Attribute.Make(Color.BrightYellow, Color.Black);
+		private static readonly Attribute AT_WhiteBlack        = Attribute.Make(Color.White, Color.Black);
+		private static readonly Attribute AT_CyanBlack         = Attribute.Make(Color.Cyan, Color.Black);
+
+		internal static readonly ColorScheme CS_Elem1 = new()
+		{
+			Normal    = AT_GreenBlack,
+			Focus     = Attribute.Make(Color.BrightGreen, Color.Black),
+			Disabled  = AT_BrightYellowBlack,
+			HotNormal = AT_GreenBlack,
+			HotFocus  = Attribute.Make(Color.BrightGreen, Color.Black)
+		};
+
+		internal static readonly ColorScheme CS_Elem2 = new()
+		{
+			Normal   = AT_CyanBlack,
+			Disabled = Attribute.Make(Color.DarkGray, Color.Black)
+		};
+
+		internal static readonly ColorScheme CS_Elem3 = new()
+		{
+			Normal   = Attribute.Make(Color.BrightBlue, Color.Black),
+			Focus    = Attribute.Make(Color.Cyan, Color.DarkGray),
+			Disabled = Attribute.Make(Color.BrightBlue, Color.DarkGray)
+		};
+
+		internal static readonly ColorScheme CS_Elem4 = new()
+		{
+			Normal = Attribute.Make(Color.Blue, Color.Gray),
+		};
+
+		internal static readonly ColorScheme CS_Win = new()
+		{
+			Normal    = AT_WhiteBlack,
+			Focus     = AT_CyanBlack,
+			Disabled  = Attribute.Make(Color.Gray, Color.Black),
+			HotNormal = AT_WhiteBlack,
+			HotFocus  = AT_CyanBlack
+		};
+
+		private static readonly ColorScheme CS_Title = new()
+		{
+			Normal = AT_RedBlack,
+			Focus  = Attribute.Make(Color.BrightRed, Color.Black)
+		};
+
+		internal static readonly ColorScheme CS_Win2 = new()
+		{
+			Normal = Attribute.Make(Color.Black, Color.White),
+			Focus  = Attribute.Make(background: Color.DarkGray, foreground: Color.White)
+		};
 	}
 }

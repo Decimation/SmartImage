@@ -40,17 +40,17 @@ public static partial class Program
 {
 	#region
 
-	internal static readonly SearchConfig Config = new();
+	private static readonly SearchConfig Config = new();
 
-	internal static readonly SearchClient Client = new(Config);
-
-	internal static SearchQuery Query { get; set; }
+	private static readonly SearchClient Client = new(Config);
 
 	//todo
-	internal static List<SearchResult> Results { get; private set; }
+	private static List<SearchResult> _results;
 
 	//todo
-	internal static volatile bool Status = false;
+	private static volatile bool _status = false;
+
+	private static ProgramMode _prgm;
 
 	#endregion
 
@@ -66,7 +66,7 @@ public static partial class Program
 	public static async Task Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
-		
+
 		/*Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 		Native.GetConsoleMode(Cache.StdIn, out ConsoleModes lpMode);
 
@@ -85,79 +85,38 @@ public static partial class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
-		
+
 		// AC.Write(Gui.NameFiglet);
 
 		bool cli = args is { } && args.Any();
 
-		if (cli) {
-			int r = await Cli.RunCli(args);
-		}
-		else {
-			// await Gui.RunGui();
-			
-			Application.Init();
-			Gui2.Run2();
-			Application.Run();
-			Application.Shutdown();
+		_prgm = cli ? new Cli() : new Gui2();
 
-			return;
-		}
-
-		await RunMain();
-	}
-
-	internal static async Task RunMain()
-	{
+		Task ret;
 		//todo
-
-		var table = new Table()
-		{
-			Border    = TableBorder.Heavy,
-			Alignment = Justify.Center
-		};
-
-		//NOTE: WTF
-		table.AddColumns(new TableColumn("Input".T()), new TableColumn("Value".T()))
-		     .AddRow(new Text(Resources.S_SearchEngines, Gui.S_Generic1),
-		             new Text(Config.SearchEngines.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text(Resources.S_PriorityEngines, Gui.S_Generic1),
-		             new Text(Config.PriorityEngines.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text(Resources.S_OnTop, Gui.S_Generic1), new Text(Config.OnTop.ToString(), Gui.S_Generic2))
-		     .AddRow(new Text("Query input", Gui.S_Generic1), new Text(Query.Value, Gui.S_Generic2))
-		     .AddRow(new Text("Query upload", Gui.S_Generic1), new Text(Query.Upload.ToString(), Gui.S_Generic2));
-
-		AC.Write(table);
 
 		var now = Stopwatch.StartNew();
 
-		var live = AC.Live(Gui.Tb_Results)
-		             .AutoClear(false)
-		             .Overflow(VerticalOverflow.Ellipsis)
-		             .Cropping(VerticalOverflowCropping.Top)
-		             .StartAsync(Gui.LiveCallback);
+		var pre = _prgm.PreSearch(Config, now);
 
-		Client.OnResult += Gui.OnResultCallback;
+		Client.OnResult += _prgm.OnResult;
 
-		Client.OnComplete += async (sender, list) =>
-		{
-			Native.FlashWindow(Cache.HndWindow);
+		Client.OnComplete += _prgm.OnComplete;
 
-			return;
-		};
+		await pre;
 
-		Status  = false;
-		Results = await Client.RunSearchAsync(Query, CancellationToken.None);
-		Status  = true;
+		_prgm.Status = false;
 
-		await live;
+		var run = _prgm.Run(Client, args);
 
-		now.Stop();
+		_results = await Client.RunSearchAsync(_prgm.Query, CancellationToken.None);
 
-		var diff = now.Elapsed;
+		_prgm.Status  = true;
+		
+		await run;
 
-		AC.WriteLine($"Completed in ~{diff.TotalSeconds:F}");
+		var post = _prgm.PostSearch(Config, now, _results);
 
-		await Gui.AfterSearchCallback();
+		await post;
 	}
 }
