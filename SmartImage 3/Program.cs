@@ -16,7 +16,6 @@ using Kantan.Console;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Hosting;
-using SmartImage.Lib;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
 using Novus;
@@ -53,10 +52,7 @@ namespace SmartImage;
 public static partial class Program
 {
 	#region
-
-	//todo
-	private static List<SearchResult> _results;
-
+	
 	private static BaseProgramMode _main;
 
 	#endregion
@@ -98,8 +94,6 @@ public static partial class Program
 		bool cli = args is { } && args.Any();
 
 		_main = cli ? new CliMode() : new GuiMode();
-
-		//todo
 
 		var now = Stopwatch.StartNew();
 

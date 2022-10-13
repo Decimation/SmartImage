@@ -84,17 +84,36 @@ public sealed class GuiMode : BaseProgramMode
 	public static readonly Button Btn_Clear = new("X")
 	{
 		X = Pos.Right(Btn_Ok),
-		Y = Pos.Y(Btn_Ok)
-
+		Y = Pos.Y(Btn_Ok),
+		ColorScheme = new()
+		{
+			Normal    = Attribute.Make(Color.BrightRed, Color.Black),
+			Disabled  = Attribute.Make(Color.White, Color.Black),
+			HotNormal = Attribute.Make(Color.White, Color.Black),
+			HotFocus  = Attribute.Make(Color.Red, Color.Black),
+			Focus     = Attribute.Make(Color.Red, Color.Black)
+		}
 	};
 
-	private static readonly ComboBox Cb_Engines = new(Cache.EngineOptions)
+	/*private static readonly ComboBox Cb_Engines = new(Cache.EngineOptions)
 	{
 		X        = Pos.Right(Btn_Clear),
 		Y        = Pos.Y(Btn_Clear),
 		AutoSize = true,
 		Width    = 15,
 		Height   = 25
+	};*/
+	private static readonly ListView Lv_Engines = new ListView(Cache.EngineOptions)
+	{
+		AllowsMultipleSelection = true,
+		AllowsMarking           = true,
+		X                       = Pos.Right(Btn_Clear),
+		Y                       = Pos.Y(Btn_Clear),
+		AutoSize                = true,
+		Width = 15,
+		Height = Dim.Height(Tf_Input)
+		/*Width                   = 15,
+		Height                  = 25*/
 	};
 
 	private static readonly DataTable Dt_Results = new()
@@ -112,8 +131,8 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Cb_Engines),
-		Y                = Pos.Y(Cb_Engines),
+		X                = Pos.Right(Lv_Engines),
+		Y                = Pos.Y(Lv_Engines),
 		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
@@ -146,7 +165,7 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
-
+		
 		columnStyles[col[1]].MaxWidth = 50;
 
 		Tv_Results.Style = new TableView.TableStyle()
@@ -174,9 +193,7 @@ public sealed class GuiMode : BaseProgramMode
 			try {
 				sq = await SearchQuery.TryCreateAsync(text.ToString());
 
-				if (sq == null) {
-					
-				}
+				if (sq == null) { }
 			}
 			catch (Exception e) {
 				sq = SearchQuery.Null;
@@ -220,8 +237,33 @@ public sealed class GuiMode : BaseProgramMode
 			}
 		};
 
-		Cb_Engines.OpenSelectedItem += args => { };
+		for (int i = 1; i < Cache.EngineOptions.Length; i++) {
+			Lv_Engines.Source.SetMark(i,true);
+		}
 
+		Lv_Engines.OpenSelectedItem += args =>
+		{
+
+			var val = (SearchEngineOptions) args.Value;
+
+			var isMarked = Lv_Engines.Source.IsMarked(args.Item);
+
+			if (isMarked) {
+				if (val == SearchEngineOptions.None) {
+					Config.SearchEngines = val;
+				}
+
+				else {
+					Config.SearchEngines |= val;
+				}
+			}
+			else {
+				Config.SearchEngines &= ~val;
+			}
+
+			Debug.WriteLine($"{val} {args.Item} -> {Config.SearchEngines} {isMarked}");
+		};
+		
 		Tv_Results.CellActivated += args =>
 		{
 			if (args.Table is not { }) {
@@ -239,9 +281,9 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		Tv_Results.Table = Dt_Results;
-
+		
 		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
-		        Btn_Clear, Cb_Engines, Tv_Results, Pbr_Status
+		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status
 		);
 
 		Top.Add(Win);
@@ -254,10 +296,10 @@ public sealed class GuiMode : BaseProgramMode
 
 		// HACK: Application.Run blocks main thread and async/threads complicate things
 		// and due to how the program modes are modeled, it makes things even more convoluted...
-		
+
 		ThreadPool.QueueUserWorkItem(c =>
 		{
-			
+
 			Application.Run(errorHandler: exception =>
 			{
 				Debug.WriteLine($"{exception.Message}");
@@ -276,7 +318,9 @@ public sealed class GuiMode : BaseProgramMode
 		return null;
 	}
 
-	public override async Task PreSearchAsync(object? sender) { }
+	public override async Task PreSearchAsync(object? sender)
+	{
+	}
 
 	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1) { }
 
