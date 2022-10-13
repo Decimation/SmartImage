@@ -43,7 +43,9 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 			return document;
 		}
 		catch (FlurlHttpException e) {
-			return await Task.FromException<IDocument>(e);
+			// return await Task.FromException<IDocument>(e);
+
+			return null;
 		}
 	}
 
@@ -53,6 +55,12 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 		var result = await base.GetResultAsync(query, token);
 		var doc    = await ParseDocumentAsync(result.RawUrl);
+
+		if (doc is not {}) {
+			result.Status = SearchResultStatus.Failure;
+			return result;
+		}
+
 		var nodes  = await GetNodesAsync(doc);
 
 		foreach (INode node in nodes) {

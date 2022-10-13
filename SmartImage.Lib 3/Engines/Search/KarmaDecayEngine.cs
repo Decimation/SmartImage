@@ -28,18 +28,6 @@ public sealed class KarmaDecayEngine : WebContentSearchEngine
 
 	#endregion
 
-	protected override async Task<IDocument> ParseDocumentAsync(Url origin)
-	{
-		/*var res = await origin.WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
-		                      .AllowAnyHttpStatus()
-		                      .WithTimeout(TimeSpan.FromSeconds(5))
-		                      .WithCookies(out var cj)
-		                      .WithAutoRedirect(true)
-		                      .GetAsync();*/
-
-		return await base.ParseDocumentAsync(origin);
-	}
-
 	protected override async Task<IList<INode>> GetNodesAsync(IDocument doc)
 	{
 		var results = doc.QuerySelectorAll("tr.result").Cast<INode>().ToList();

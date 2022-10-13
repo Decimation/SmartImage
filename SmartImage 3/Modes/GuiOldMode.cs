@@ -13,7 +13,8 @@ namespace SmartImage.Modes;
 /// <summary>
 /// <see cref="Spectre"/>
 /// </summary>
-internal class Gui1Mode : BaseProgramMode
+[Obsolete]
+public sealed class GuiOldMode : BaseProgramMode
 {
 	#region Styles
 
@@ -82,7 +83,7 @@ internal class Gui1Mode : BaseProgramMode
 		Exit
 	}
 
-	static Gui1Mode() { }
+	static GuiOldMode() { }
 
 	private async Task LiveCallback(LiveDisplayContext ctx)
 	{
@@ -114,7 +115,7 @@ internal class Gui1Mode : BaseProgramMode
 
 	#region Overrides of ProgramMode<object>
 
-	public override async Task<object> RunAsync(string[] args)
+	public override async Task<object> RunAsync(string[] args, object? sender = null)
 	{
 		MAIN_MENU:
 		var opt = AC.Prompt(Pr_Main);
@@ -154,7 +155,7 @@ internal class Gui1Mode : BaseProgramMode
 		return this;
 	}
 
-	public Gui1Mode(SearchQuery q) : base(q)
+	public GuiOldMode(SearchQuery q) : base(q)
 	{
 		var values = Cache.EngineOptions;
 
@@ -164,7 +165,13 @@ internal class Gui1Mode : BaseProgramMode
 			{
 
 				var task  = SearchQuery.TryCreateAsync(s);
+
 				var query = task.Result;
+
+				if (query == null) {
+					return ValidationResult.Error($"Error");
+				}
+				
 				Query = query;
 
 				return ValidationResult.Success();

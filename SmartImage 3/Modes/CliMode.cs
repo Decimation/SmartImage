@@ -14,13 +14,23 @@ namespace SmartImage.Modes;
 /// <summary>
 /// <see cref="System.CommandLine"/>
 /// </summary>
-internal class CliMode : BaseProgramMode
+public sealed class CliMode : BaseProgramMode
 {
 	private static readonly Option<SearchQuery> Opt_Query = new("-q", parseArgument: ar =>
 	{
 		var value = ar.Tokens.Single().Value;
 		var task  = SearchQuery.TryCreateAsync(value);
-		return task.Result;
+
+		var query = task.Result;
+
+		if (query == null) {
+			// ...todo
+
+			ar.ErrorMessage = "Error";
+			
+		}
+
+		return query;
 
 	}, isDefault: false, "Query (file or direct image URL)");
 
@@ -53,7 +63,7 @@ internal class CliMode : BaseProgramMode
 
 	#region Overrides of ProgramMode
 
-	public override async Task<object> RunAsync(string[] args)
+	public override async Task<object> RunAsync(string[] args, object? sender = null)
 	{
 		Cmd_Root.SetHandler(async (t1, t2, t3, t4) =>
 		{

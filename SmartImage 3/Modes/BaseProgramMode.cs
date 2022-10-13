@@ -15,6 +15,8 @@ public abstract class BaseProgramMode : IDisposable
 		Query   = sq ?? SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
+		IsExit  = new ManualResetEvent(false);
+
 	}
 
 	public SearchQuery Query { get; set; }
@@ -26,7 +28,39 @@ public abstract class BaseProgramMode : IDisposable
 	//todo
 	public volatile int Status;
 
-	public abstract Task<object> RunAsync(string[] args);
+	public virtual async Task<object> RunAsync(string[] args, object? sender = null)
+	{
+		var pre = PreSearchAsync(sender);
+
+		Client.OnResult   += OnResult;
+		Client.OnComplete += OnComplete;
+
+		await pre;
+
+		Status = 0;
+
+		IsReady.WaitOne();
+
+		var results = await Client.RunSearchAsync(Query, CancellationToken.None);
+
+		Status = 1;
+
+		var post = PostSearchAsync(sender, results);
+
+		await post;
+
+		// await run;
+		/*Application.MainLoop.Invoke(async () =>
+		{
+			await Task.Delay(100);
+
+			if (_main.Status == 2) {
+				Application.RequestStop();
+			}
+		});*/
+
+		return Task.CompletedTask;
+	}
 
 	public abstract Task PreSearchAsync(object? sender);
 
@@ -41,6 +75,8 @@ public abstract class BaseProgramMode : IDisposable
 	protected int ResultCount { get; set; }
 
 	public ManualResetEvent IsReady { get; protected set; }
+
+	public ManualResetEvent IsExit { get; protected set; }
 
 	protected void SetConfig(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{

@@ -20,7 +20,7 @@ using Rune = System.Rune;
 
 namespace SmartImage.Modes;
 
-internal class Gui2Mode : BaseProgramMode
+public sealed class GuiMode : BaseProgramMode
 {
 	#region Values
 
@@ -69,8 +69,8 @@ internal class Gui2Mode : BaseProgramMode
 
 	private static readonly Label Lbl_InputOk = new(NA)
 	{
-		X           = Pos.Right(Tf_Input),
-		Y           = Pos.Y(Tf_Input),
+		X = Pos.Right(Tf_Input),
+		Y = Pos.Y(Tf_Input),
 		// ColorScheme = Styles.CS_Elem4
 	};
 
@@ -122,7 +122,7 @@ internal class Gui2Mode : BaseProgramMode
 
 	#region Overrides of ProgramMode
 
-	public Gui2Mode() : base(SearchQuery.Null)
+	public GuiMode() : base(SearchQuery.Null)
 	{
 		Application.Init();
 
@@ -146,7 +146,7 @@ internal class Gui2Mode : BaseProgramMode
 		};
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
-		
+
 		columnStyles[col[1]].MaxWidth = 50;
 
 		Tv_Results.Style = new TableView.TableStyle()
@@ -173,6 +173,10 @@ internal class Gui2Mode : BaseProgramMode
 
 			try {
 				sq = await SearchQuery.TryCreateAsync(text.ToString());
+
+				if (sq == null) {
+					
+				}
 			}
 			catch (Exception e) {
 				sq = SearchQuery.Null;
@@ -185,7 +189,7 @@ internal class Gui2Mode : BaseProgramMode
 			}
 			else {
 				Lbl_InputOk.Text = Err;
-				
+
 				return;
 			}
 
@@ -244,15 +248,32 @@ internal class Gui2Mode : BaseProgramMode
 
 	}
 
-	public override async Task<object> RunAsync(string[] args)
+	public override async Task<object> RunAsync(string[] args, object? sender = null)
 	{
+		// todo: what the fuck?
 
-		return Task.Run(() =>
+		// HACK: Application.Run blocks main thread and async/threads complicate things
+		// and due to how the program modes are modeled, it makes things even more convoluted...
+		
+		ThreadPool.QueueUserWorkItem(c =>
 		{
-			Application.Run();
+			
+			Application.Run(errorHandler: exception =>
+			{
+				Debug.WriteLine($"{exception.Message}");
+				return true;
+			});
 
-			Task.Delay(Timeout.InfiniteTimeSpan); //todo:????
+			IsExit.WaitOne();
 		});
+
+		var t = base.RunAsync(args, sender);
+
+		await t;
+
+		Application.Run();
+
+		return null;
 	}
 
 	public override async Task PreSearchAsync(object? sender) { }
@@ -280,7 +301,7 @@ internal class Gui2Mode : BaseProgramMode
 	public override async Task OnComplete(object sender, List<SearchResult> e)
 	{
 		SystemSounds.Asterisk.Play();
-		
+
 	}
 
 	public override Task CloseAsync()

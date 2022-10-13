@@ -64,8 +64,8 @@ public sealed class SearchQuery : IDisposable
 			}
 			catch (FlurlHttpException e) {
 				Debug.WriteLine($"{e.Message} ({value})", nameof(SearchQuery));
-				return await Task.FromException<SearchQuery>(e);
-				// return null;
+				// return await Task.FromException<SearchQuery>(e);
+				return null;
 			}
 		}
 
