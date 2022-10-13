@@ -53,7 +53,7 @@ public sealed class GuiMode : BaseProgramMode
 	private static readonly Label Lbl_Input = new("Input:")
 	{
 		X           = 1,
-		Y           = 1,
+		Y           = 0,
 		ColorScheme = Styles.CS_Elem2
 	};
 
@@ -69,14 +69,14 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly Label Lbl_InputOk = new(NA)
 	{
-		X = Pos.Right(Tf_Input),
+		X = Pos.Right(Tf_Input) + 1,
 		Y = Pos.Y(Tf_Input),
 		// ColorScheme = Styles.CS_Elem4
 	};
 
 	private static readonly Button Btn_Ok = new("Run")
 	{
-		X           = Pos.Right(Lbl_InputOk) + 2,
+		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
 		ColorScheme = Styles.CS_Elem1
 	};
@@ -85,35 +85,34 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X = Pos.Right(Btn_Ok),
 		Y = Pos.Y(Btn_Ok),
+
 		ColorScheme = new()
 		{
-			Normal    = Attribute.Make(Color.BrightRed, Color.Black),
-			Disabled  = Attribute.Make(Color.White, Color.Black),
-			HotNormal = Attribute.Make(Color.White, Color.Black),
-			HotFocus  = Attribute.Make(Color.Red, Color.Black),
-			Focus     = Attribute.Make(Color.Red, Color.Black)
+			Normal    = Styles.AT_BrightRedBlack,
+			Disabled  = Styles.AT_WhiteBlack,
+			HotNormal = Styles.AT_WhiteBlack,
+			HotFocus  = Styles.AT_RedBlack,
+			Focus     = Styles.AT_RedBlack
 		}
 	};
 
-	/*private static readonly ComboBox Cb_Engines = new(Cache.EngineOptions)
-	{
-		X        = Pos.Right(Btn_Clear),
-		Y        = Pos.Y(Btn_Clear),
-		AutoSize = true,
-		Width    = 15,
-		Height   = 25
-	};*/
-	private static readonly ListView Lv_Engines = new ListView(Cache.EngineOptions)
+	private static readonly ListView Lv_Engines = new(Cache.EngineOptions)
 	{
 		AllowsMultipleSelection = true,
 		AllowsMarking           = true,
-		X                       = Pos.Right(Btn_Clear),
+		X                       = Pos.Right(Btn_Clear) + 1,
 		Y                       = Pos.Y(Btn_Clear),
 		AutoSize                = true,
-		Width = 15,
-		Height = Dim.Height(Tf_Input)
-		/*Width                   = 15,
-		Height                  = 25*/
+		Width                   = 15,
+		Height                  = Dim.Height(Tf_Input)
+	};
+
+	private static readonly Label Lbl_InputInfo = new()
+	{
+		X      = Pos.Bottom(Tf_Input),
+		Y      = 1,
+		Width  = 15,
+		Height = Dim.Height(Lv_Engines)
 	};
 
 	private static readonly DataTable Dt_Results = new()
@@ -121,8 +120,8 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X      = Pos.Bottom(Tf_Input),
-		Y      = Pos.Y(Tf_Input) + 1,
+		X      = Pos.X(Lbl_Input),
+		Y      = Pos.Bottom(Lbl_InputInfo),
 		Width  = 120,
 		Height = 300,
 
@@ -165,7 +164,7 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
-		
+
 		columnStyles[col[1]].MaxWidth = 50;
 
 		Tv_Results.Style = new TableView.TableStyle()
@@ -179,7 +178,8 @@ public sealed class GuiMode : BaseProgramMode
 			},
 			ShowHorizontalHeaderUnderline = true,
 			ShowHorizontalHeaderOverline  = true,
-			ColumnStyles                  = columnStyles,
+
+			ColumnStyles = columnStyles,
 		};
 
 		Btn_Ok.Clicked += async () =>
@@ -192,21 +192,21 @@ public sealed class GuiMode : BaseProgramMode
 
 			try {
 				sq = await SearchQuery.TryCreateAsync(text.ToString());
-
-				if (sq == null) { }
 			}
 			catch (Exception e) {
 				sq = SearchQuery.Null;
+
+				Lbl_InputInfo.Text = $"Error: {e.Message}";
 			}
 
 			Lbl_InputOk.Text = PRC;
 
 			if (sq is { } && sq != SearchQuery.Null) {
-				await sq.UploadAsync();
+				var u = await sq.UploadAsync();
 			}
 			else {
 				Lbl_InputOk.Text = Err;
-
+				Lbl_InputInfo.Text  = "Error: invalid input";
 				return;
 			}
 
@@ -216,6 +216,8 @@ public sealed class GuiMode : BaseProgramMode
 
 			Query  = sq;
 			Status = 1;
+
+			Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
 
 			IsReady.Set();
 		};
@@ -238,12 +240,11 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		for (int i = 1; i < Cache.EngineOptions.Length; i++) {
-			Lv_Engines.Source.SetMark(i,true);
+			Lv_Engines.Source.SetMark(i, true);
 		}
 
 		Lv_Engines.OpenSelectedItem += args =>
 		{
-
 			var val = (SearchEngineOptions) args.Value;
 
 			var isMarked = Lv_Engines.Source.IsMarked(args.Item);
@@ -263,7 +264,7 @@ public sealed class GuiMode : BaseProgramMode
 
 			Debug.WriteLine($"{val} {args.Item} -> {Config.SearchEngines} {isMarked}");
 		};
-		
+
 		Tv_Results.CellActivated += args =>
 		{
 			if (args.Table is not { }) {
@@ -281,9 +282,9 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		Tv_Results.Table = Dt_Results;
-		
+
 		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
-		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status
+		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo
 		);
 
 		Top.Add(Win);
@@ -297,30 +298,31 @@ public sealed class GuiMode : BaseProgramMode
 		// HACK: Application.Run blocks main thread and async/threads complicate things
 		// and due to how the program modes are modeled, it makes things even more convoluted...
 
-		ThreadPool.QueueUserWorkItem(c =>
+		//TODO: HACK
+
+		var t1 = new Thread(() => Application.Run((er) =>
 		{
-
-			Application.Run(errorHandler: exception =>
-			{
-				Debug.WriteLine($"{exception.Message}");
-				return true;
-			});
-
-			IsExit.WaitOne();
-		});
+			
+			return true;
+		}))
+		{
+			IsBackground = true,
+			Priority     = ThreadPriority.Normal
+		};
+		t1.Start();
 
 		var t = base.RunAsync(args, sender);
 
 		await t;
+
+		// cunning
 
 		Application.Run();
 
 		return null;
 	}
 
-	public override async Task PreSearchAsync(object? sender)
-	{
-	}
+	public override async Task PreSearchAsync(object? sender) { }
 
 	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1) { }
 
@@ -334,11 +336,16 @@ public sealed class GuiMode : BaseProgramMode
 			                    sri.Title, sri.Site);
 		}
 
-		// Tv_Results.Redraw(Tv_Results.Bounds);
-		// Tv_Results.Redraw(Top.Bounds);
-
 		Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
-		Application.Refresh();
+
+		try {
+			// throws an undocumented IndexOutOfRangeException when "over-scrolling" while table is being updated
+			Application.Refresh();
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+		}
+
 		return Task.CompletedTask;
 	}
 
@@ -360,11 +367,11 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static class Styles
 	{
-		private static readonly Attribute AT_GreenBlack        = Attribute.Make(Color.Green, Color.Black);
-		private static readonly Attribute AT_RedBlack          = Attribute.Make(Color.Red, Color.Black);
-		private static readonly Attribute AT_BrightYellowBlack = Attribute.Make(Color.BrightYellow, Color.Black);
-		private static readonly Attribute AT_WhiteBlack        = Attribute.Make(Color.White, Color.Black);
-		private static readonly Attribute AT_CyanBlack         = Attribute.Make(Color.Cyan, Color.Black);
+		internal static readonly Attribute AT_GreenBlack        = Attribute.Make(Color.Green, Color.Black);
+		internal static readonly Attribute AT_RedBlack          = Attribute.Make(Color.Red, Color.Black);
+		internal static readonly Attribute AT_BrightYellowBlack = Attribute.Make(Color.BrightYellow, Color.Black);
+		internal static readonly Attribute AT_WhiteBlack        = Attribute.Make(Color.White, Color.Black);
+		internal static readonly Attribute AT_CyanBlack         = Attribute.Make(Color.Cyan, Color.Black);
 
 		internal static readonly ColorScheme CS_Elem1 = new()
 		{
@@ -405,7 +412,7 @@ public sealed class GuiMode : BaseProgramMode
 		internal static readonly ColorScheme CS_Title = new()
 		{
 			Normal = AT_RedBlack,
-			Focus  = Attribute.Make(Color.BrightRed, Color.Black)
+			Focus  = AT_BrightRedBlack
 		};
 
 		internal static readonly ColorScheme CS_Win2 = new()
@@ -413,5 +420,7 @@ public sealed class GuiMode : BaseProgramMode
 			Normal = Attribute.Make(Color.Black, Color.White),
 			Focus  = Attribute.Make(background: Color.DarkGray, foreground: Color.White)
 		};
+
+		internal static readonly Attribute AT_BrightRedBlack = Attribute.Make(Color.BrightRed, Color.Black);
 	}
 }
