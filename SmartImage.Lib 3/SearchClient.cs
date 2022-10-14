@@ -26,13 +26,13 @@ public sealed class SearchClient
 
 	static SearchClient() { }
 
-	public delegate Task AsyncResultCompleteCallback(object sender, SearchResult e);
+	public delegate void ResultCompleteCallback(object sender, SearchResult e);
 
-	public delegate Task AsyncSearchCompleteCallback(object sender, List<SearchResult> e);
+	public delegate void SearchCompleteCallback(object sender, List<SearchResult> e);
 
-	public AsyncResultCompleteCallback OnResult { get; set; }
+	public ResultCompleteCallback OnResult { get; set; }
 
-	public AsyncSearchCompleteCallback OnComplete { get; set; }
+	public SearchCompleteCallback OnComplete { get; set; }
 
 	public BaseSearchEngine[] Engines { get; private set; }
 

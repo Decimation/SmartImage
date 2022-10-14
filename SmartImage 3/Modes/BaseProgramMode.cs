@@ -30,24 +30,20 @@ public abstract class BaseProgramMode : IDisposable
 
 	public virtual async Task<object> RunAsync(string[] args, object? sender = null)
 	{
-		var pre = PreSearchAsync(sender);
+		PreSearch(sender);
 
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
-
-		await pre;
-
+		
 		Status = 0;
 
 		IsReady.WaitOne();
-
+		
 		var results = await Client.RunSearchAsync(Query, CancellationToken.None);
 
 		Status = 1;
 
-		var post = PostSearchAsync(sender, results);
-
-		await post;
+		PostSearch(sender, results);
 
 		// await run;
 		/*Application.MainLoop.Invoke(async () =>
@@ -62,13 +58,13 @@ public abstract class BaseProgramMode : IDisposable
 		return Task.CompletedTask;
 	}
 
-	public abstract Task PreSearchAsync(object? sender);
+	public abstract void PreSearch(object? sender);
 
-	public abstract Task PostSearchAsync(object? sender, List<SearchResult> results1);
+	public abstract void PostSearch(object? sender, List<SearchResult> results1);
 
-	public abstract Task OnResult(object o, SearchResult r);
+	public abstract void OnResult(object o, SearchResult r);
 
-	public abstract Task OnComplete(object sender, List<SearchResult> e);
+	public abstract void OnComplete(object sender, List<SearchResult> e);
 
 	public abstract Task CloseAsync();
 

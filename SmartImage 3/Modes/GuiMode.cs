@@ -322,34 +322,29 @@ public sealed class GuiMode : BaseProgramMode
 		return null;
 	}
 
-	public override async Task PreSearchAsync(object? sender) { }
+	public override void PreSearch(object? sender) { }
 
-	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1) { }
+	public override void PostSearch(object? sender, List<SearchResult> results1) { }
 
-	public override Task OnResult(object o, SearchResult r)
+	public override void OnResult(object o, SearchResult r)
 	{
-		for (int i = 0; i < r.Results.Count; i++) {
-			SearchResultItem sri = r.Results[i];
+		Application.MainLoop.Invoke(() =>
+		{
+			for (int i = 0; i < r.Results.Count; i++) {
+				SearchResultItem sri = r.Results[i];
 
-			Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
-			                    sri.Url, sri.Similarity, sri.Artist, sri.Description, sri.Source,
-			                    sri.Title, sri.Site);
-		}
+				Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
+				                    sri.Url, sri.Similarity, sri.Artist, sri.Description, sri.Source,
+				                    sri.Title, sri.Site);
+			}
 
-		Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
+			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
 
-		try {
-			// throws an undocumented IndexOutOfRangeException when "over-scrolling" while table is being updated
-			Application.Refresh();
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}");
-		}
+		});
 
-		return Task.CompletedTask;
 	}
 
-	public override async Task OnComplete(object sender, List<SearchResult> e)
+	public override void OnComplete(object sender, List<SearchResult> e)
 	{
 		SystemSounds.Asterisk.Play();
 

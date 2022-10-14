@@ -84,13 +84,13 @@ public sealed class CliMode : BaseProgramMode
 		return r;
 	}
 
-	public override async Task PreSearchAsync(object? sender) { }
+	public override async void PreSearch(object? sender) { }
 
-	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1) { }
+	public override async void PostSearch(object? sender, List<SearchResult> results1) { }
 
-	public override async Task OnResult(object o, SearchResult r)                           { }
+	public override async void OnResult(object o, SearchResult r) { }
 	
-	public override async Task OnComplete(object sender, List<SearchResult> e)              { }
+	public override async void OnComplete(object sender, List<SearchResult> e) { }
 
 	public override async Task CloseAsync() { }
 

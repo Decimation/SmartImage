@@ -190,7 +190,7 @@ public sealed class GuiOldMode : BaseProgramMode
 		Pr_ResultMenu = Pr_ResultMenu.AddChoices(Enum.GetValues<ResultMenuOption>());
 	}
 
-	public override async Task PreSearchAsync(object? sender)
+	public override async void PreSearch(object? sender)
 	{
 		var table = new Table()
 		{
@@ -217,7 +217,7 @@ public sealed class GuiOldMode : BaseProgramMode
 		            .StartAsync(LiveCallback);
 	}
 
-	public override async Task PostSearchAsync(object? sender, List<SearchResult> results1)
+	public override async void PostSearch(object? sender, List<SearchResult> results1)
 	{
 		var now = (Stopwatch) sender;
 
@@ -289,7 +289,7 @@ public sealed class GuiOldMode : BaseProgramMode
 
 	}
 
-	public override async Task OnResult(object o, SearchResult result)
+	public override async void OnResult(object o, SearchResult result)
 	{
 		var bg = result.Status switch
 		{
@@ -388,7 +388,7 @@ public sealed class GuiOldMode : BaseProgramMode
 		Tb_Results.AddRow(text, caption, tx);
 	}
 
-	public override async Task OnComplete(object sender, List<SearchResult> e)
+	public override async void OnComplete(object sender, List<SearchResult> e)
 	{
 		Native.FlashWindow(Cache.HndWindow);
 
