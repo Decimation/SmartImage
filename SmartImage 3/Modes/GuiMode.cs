@@ -141,7 +141,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X = Pos.Right(Pbr_Status),
 		Y = Pos.Y(Pbr_Status),
-		
+
 	};
 
 	#endregion
@@ -213,8 +213,8 @@ public sealed class GuiMode : BaseProgramMode
 				var u = await sq.UploadAsync();
 			}
 			else {
-				Lbl_InputOk.Text = Err;
-				Lbl_InputInfo.Text  = "Error: invalid input";
+				Lbl_InputOk.Text   = Err;
+				Lbl_InputInfo.Text = "Error: invalid input";
 				return;
 			}
 
@@ -228,15 +228,18 @@ public sealed class GuiMode : BaseProgramMode
 			Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
 
 			IsReady.Set();
+
+			var t = base.RunAsync(Array.Empty<string>(), new Stopwatch());
+
+			await t;
 		};
 
 		Btn_Restart.Clicked += async () =>
 		{
-			var t = base.RunAsync(Array.Empty<string>(), new Stopwatch());
 
-			await t;
-
+			Status = 3;
 		};
+
 		Btn_Clear.Clicked += () =>
 		{
 			try {
@@ -295,11 +298,11 @@ public sealed class GuiMode : BaseProgramMode
 			}
 			catch (Exception e) { }
 		};
-		
+
 		Tv_Results.Table = Dt_Results;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
-		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo,Btn_Restart
+		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart
 		);
 
 		Top.Add(Win);
@@ -309,7 +312,7 @@ public sealed class GuiMode : BaseProgramMode
 	public override Task<object?> RunAsync(string[] args, object? sender = null)
 	{
 		Application.Run();
-		return Task.FromResult<object>(null);
+		return Task.FromResult(Status == 3 ? (object) true : null);
 	}
 
 	public override void PreSearch(object? sender) { }

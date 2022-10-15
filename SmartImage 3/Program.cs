@@ -85,6 +85,7 @@ public static partial class Program
 
 		// AC.Write(Gui.NameFiglet);
 
+		main1:
 		bool cli = args is { } && args.Any();
 
 		_main = cli ? new CliMode() : new GuiMode();
@@ -95,6 +96,10 @@ public static partial class Program
 
 		var run = _main.RunAsync(args, now);
 		run1 = await run;
-		
+
+		if (run1 is bool{} and true) {
+			_main.Dispose();
+			goto main1;
+		}
 	}
 }
