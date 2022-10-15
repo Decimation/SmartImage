@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Novus.Win32;
 using SmartImage.Lib;
+using Terminal.Gui;
 
 namespace SmartImage.Modes;
 
@@ -27,8 +29,8 @@ public abstract class BaseProgramMode : IDisposable
 
 	//todo
 	public volatile int Status;
-
-	public virtual async Task<object> RunAsync(string[] args, object? sender = null)
+	
+	public virtual async Task<object?> RunAsync(string[] args, object? sender = null)
 	{
 		PreSearch(sender);
 
@@ -40,7 +42,7 @@ public abstract class BaseProgramMode : IDisposable
 		IsReady.WaitOne();
 		
 		var results = await Client.RunSearchAsync(Query, CancellationToken.None);
-
+		
 		Status = 1;
 
 		PostSearch(sender, results);

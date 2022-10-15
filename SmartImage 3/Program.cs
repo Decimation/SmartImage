@@ -37,25 +37,19 @@ using SmartImage.Modes;
 namespace SmartImage;
 
 // # Test values
-
 /*
  *
  * https://i.imgur.com/QtCausw.png
  */
 
 // # Notes
-
 /*
  * ...
  */
 
 public static partial class Program
 {
-	#region
-	
 	private static BaseProgramMode _main;
-
-	#endregion
 
 	[ModuleInitializer]
 	public static void Init()
@@ -97,8 +91,10 @@ public static partial class Program
 
 		var now = Stopwatch.StartNew();
 
-		var run = _main.RunAsync(args, now);
+		object run1;
 
-		await run;
+		var run = _main.RunAsync(args, now);
+		run1 = await run;
+		
 	}
 }

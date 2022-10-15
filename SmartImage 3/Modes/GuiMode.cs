@@ -15,6 +15,7 @@ using Kantan.Net.Utilities;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
 using Rune = System.Rune;
+using System.Reflection;
 
 // ReSharper disable InconsistentNaming
 
@@ -136,6 +137,13 @@ public sealed class GuiMode : BaseProgramMode
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
+	private static readonly Button Btn_Restart = new("R")
+	{
+		X = Pos.Right(Pbr_Status),
+		Y = Pos.Y(Pbr_Status),
+		
+	};
+
 	#endregion
 
 	#region Overrides of ProgramMode
@@ -222,6 +230,13 @@ public sealed class GuiMode : BaseProgramMode
 			IsReady.Set();
 		};
 
+		Btn_Restart.Clicked += async () =>
+		{
+			var t = base.RunAsync(Array.Empty<string>(), new Stopwatch());
+
+			await t;
+
+		};
 		Btn_Clear.Clicked += () =>
 		{
 			try {
@@ -280,46 +295,21 @@ public sealed class GuiMode : BaseProgramMode
 			}
 			catch (Exception e) { }
 		};
-
+		
 		Tv_Results.Table = Dt_Results;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
-		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo
+		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo,Btn_Restart
 		);
 
 		Top.Add(Win);
 
 	}
 
-	public override async Task<object> RunAsync(string[] args, object? sender = null)
+	public override Task<object?> RunAsync(string[] args, object? sender = null)
 	{
-		// todo: what the fuck?
-
-		// HACK: Application.Run blocks main thread and async/threads complicate things
-		// and due to how the program modes are modeled, it makes things even more convoluted...
-
-		//TODO: HACK
-
-		var t1 = new Thread(() => Application.Run((er) =>
-		{
-			
-			return true;
-		}))
-		{
-			IsBackground = true,
-			Priority     = ThreadPriority.Normal
-		};
-		t1.Start();
-
-		var t = base.RunAsync(args, sender);
-
-		await t;
-
-		// cunning
-
 		Application.Run();
-
-		return null;
+		return Task.FromResult<object>(null);
 	}
 
 	public override void PreSearch(object? sender) { }
