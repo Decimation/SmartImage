@@ -18,6 +18,7 @@ using Rune = System.Rune;
 using System.Reflection;
 using Kantan.Utilities;
 using Novus.Win32;
+using SmartImage.App;
 using static Novus.Win32.SysCommand;
 
 // ReSharper disable InconsistentNaming
@@ -135,8 +136,8 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X      = Pos.X(Lbl_Input),
-		Y      = Pos.Bottom(Lbl_InputInfo),
+		X = Pos.X(Lbl_Input),
+		Y = Pos.Bottom(Lbl_InputInfo),
 
 		AutoSize = true
 	};
@@ -149,6 +150,16 @@ public sealed partial class GuiMode : BaseProgramMode
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
+	private static readonly ListView Lv_Integration = new(Integration.IntegrationNames)
+	{
+		X                       = Pos.X(Lv_Engines),
+		Y                       = Pos.Bottom(Lv_Engines),
+		Width                   = 15,
+		Height                  = Dim.Height(Tf_Input),
+		AllowsMarking           = true,
+		AllowsMultipleSelection = true
+	};
+
 	#endregion
 
 	#region Overrides of ProgramMode
@@ -157,6 +168,8 @@ public sealed partial class GuiMode : BaseProgramMode
 	{
 		Application.Init();
 		Cache.SetConsoleMenu();
+
+		ProcessArgs();
 
 		var col = new DataColumn[]
 		{
@@ -197,9 +210,9 @@ public sealed partial class GuiMode : BaseProgramMode
 
 			ColumnStyles = columnStyles,
 		};
-		
-		Tv_Results.Width    =  Console.WindowWidth - 4;
-		Tv_Results.Height   =  Console.WindowHeight;
+
+		Tv_Results.Width  = Console.WindowWidth - 4;
+		Tv_Results.Height = Console.WindowHeight;
 
 		Btn_Run.Clicked     += OnRun;
 		Btn_Restart.Clicked += OnRestart;
@@ -210,18 +223,60 @@ public sealed partial class GuiMode : BaseProgramMode
 		}
 
 		Lv_Engines.OpenSelectedItem += OnEngineSelected;
-
 		Lv_Engines.ScrollDown(Cache.EngineOptions.Length);
 
 		Tv_Results.CellActivated += OnCellActivated;
 
 		Tv_Results.Table = Dt_Results;
 
+		Lv_Integration.OpenSelectedItem += OnIntegrationSelected;
+
+		EnsureUICongruency();
+
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart
+		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
+		        Lv_Integration
 		);
 
 		Top.Add(Win);
+	}
+
+	private void EnsureUICongruency()
+	{
+		var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
+
+		for (var i = 0; i < Lv_Integration.Source.Count; i++) {
+			var b = list[i] == Resources.Int_ContextMenu;
+
+			if (b) {
+				Lv_Integration.Source.SetMark(i, Integration.IsContextMenuAdded);
+			}
+		}
+	}
+
+	private void ProcessArgs()
+	{
+		var enumer = Args.GetEnumerator();
+
+		while (enumer.MoveNext()) {
+			var val = enumer.Current as string;
+
+			if (val == Resources.Arg_Input) {
+				enumer.MoveNext();
+				Tf_Input.Text = enumer.Current.ToString();
+			}
+		}
+	}
+
+	private void OnIntegrationSelected(ListViewItemEventArgs eventArgs)
+	{
+		var marked = Lv_Integration.Source.IsMarked(eventArgs.Item);
+		var value  = (string) eventArgs.Value;
+
+		if (value == Resources.Int_ContextMenu) {
+			App.Integration.HandleContextMenu(marked);
+		}
+
 	}
 
 	public override Task<object?> RunAsync(object? sender = null)

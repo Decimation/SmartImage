@@ -61,6 +61,24 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to -i.
+        /// </summary>
+        internal static string Arg_Input {
+            get {
+                return ResourceManager.GetString("Arg_Input", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Context Menu.
+        /// </summary>
+        internal static string Int_ContextMenu {
+            get {
+                return ResourceManager.GetString("Int_ContextMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SmartImage.
         /// </summary>
         internal static string Name {

@@ -69,8 +69,7 @@ public static class Program
 
 #if TEST
 		// args = new String[] { null };
-		args = new[] { "-q", "https://i.imgur.com/QtCausw.png" };
-		// args = new[] { "-q", "https://i.imgur.com/QtCausw.png", "-p", "Artwork", "-ontop" };
+		args = new[] { "-i", "https://i.imgur.com/QtCausw.png" };
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif

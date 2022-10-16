@@ -25,7 +25,7 @@ internal static class Cache
 
 	internal static QFileInfo _clipboard;
 
-	public static void SetConsoleMenu()
+	internal static void SetConsoleMenu()
 	{
 		IntPtr sysMenu = Native.GetSystemMenu(HndWindow, false);
 		

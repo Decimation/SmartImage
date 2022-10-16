@@ -47,11 +47,10 @@ public static class Integration
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
 						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
-						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
+						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" {Resources.Arg_Input} \"%1\"");
 					}
 					catch (Exception ex) {
 						Trace.WriteLine($"{ex.Message}");
-						ConsoleManager.WaitForInput();
 						return false;
 					}
 					finally {
@@ -144,7 +143,7 @@ public static class Integration
 		}
 	}
 
-	public static void ResetIntegrations()
+	public static void Reset()
 	{
 		// Computer\HKEY_CLASSES_ROOT\*\shell\SmartImage
 
@@ -154,8 +153,7 @@ public static class Integration
 
 			}
 		}
-
-		Trace.WriteLine("Reset config");
+		
 	}
 
 	[DoesNotReturn]
@@ -207,4 +205,6 @@ public static class Integration
 			return false;
 		}
 	}
+
+	public static readonly string[] IntegrationNames = new[] { Resources.Int_ContextMenu };
 }

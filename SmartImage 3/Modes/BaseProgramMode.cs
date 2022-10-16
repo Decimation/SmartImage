@@ -15,11 +15,12 @@ public abstract class BaseProgramMode : IDisposable
 {
 	protected BaseProgramMode(string[] args1, SearchQuery? sq = null)
 	{
+		Args = args1;
+		
 		Query   = sq ?? SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
 		IsExit  = new ManualResetEvent(false);
-		Args    = args1;
 	}
 
 	public SearchQuery Query { get; set; }

@@ -141,4 +141,10 @@
   <data name="Wiki_Url" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/wiki</value>
   </data>
+  <data name="Int_ContextMenu" xml:space="preserve">
+    <value>Context Menu</value>
+  </data>
+  <data name="Arg_Input" xml:space="preserve">
+    <value>-i</value>
+  </data>
 </root>
