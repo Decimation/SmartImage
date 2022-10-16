@@ -24,4 +24,12 @@ internal static class Cache
 	internal static ConsoleModes _oldMode;
 
 	internal static QFileInfo _clipboard;
+
+	public static void SetConsoleMenu()
+	{
+		IntPtr sysMenu = Native.GetSystemMenu(HndWindow, false);
+		
+		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_MAXIMIZE, (int) Native.MF_BYCOMMAND);
+		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_SIZE, (int) Native.MF_BYCOMMAND);
+	}
 }

@@ -2,6 +2,7 @@
 using NStack;
 using SmartImage.Lib;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
@@ -13,15 +14,17 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using Kantan.Net.Utilities;
 using Terminal.Gui;
-using Attribute = Terminal.Gui.Attribute;
 using Rune = System.Rune;
 using System.Reflection;
+using Kantan.Utilities;
+using Novus.Win32;
+using static Novus.Win32.SysCommand;
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Modes;
 
-public sealed class GuiMode : BaseProgramMode
+public sealed partial class GuiMode : BaseProgramMode
 {
 	#region Values
 
@@ -37,17 +40,20 @@ public sealed class GuiMode : BaseProgramMode
 
 	#region Controls
 
+	// NOTE: DO NOT REARRANGE FIELD ORDER
+
 	private static readonly Toplevel Top = Application.Top;
 
 	private static readonly Window Win = new(Resources.Name)
 	{
 		X = 0,
-		Y = 1, // Leave one row for the toplevel menu - todo
+		Y = 1,
+		// Leave one row for the toplevel menu - todo
 
 		// By using Dim.Fill(), it will automatically resize without manual intervention
 		Width       = Dim.Fill(),
 		Height      = Dim.Fill(),
-		ColorScheme = Styles.CS_Win
+		ColorScheme = Styles.Cs_Win
 
 	};
 
@@ -55,7 +61,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X           = 1,
 		Y           = 0,
-		ColorScheme = Styles.CS_Elem2
+		ColorScheme = Styles.Cs_Elem2
 	};
 
 	private static readonly TextField Tf_Input = new(ustring.Empty)
@@ -63,7 +69,7 @@ public sealed class GuiMode : BaseProgramMode
 		X           = Pos.Right(Lbl_Input),
 		Y           = Pos.Top(Lbl_Input),
 		Width       = 50,
-		ColorScheme = Styles.CS_Win2,
+		ColorScheme = Styles.Cs_Win2,
 		AutoSize    = false
 		// AutoSize = true,
 	};
@@ -75,34 +81,42 @@ public sealed class GuiMode : BaseProgramMode
 		// ColorScheme = Styles.CS_Elem4
 	};
 
-	private static readonly Button Btn_Ok = new("Run")
+	private static readonly Button Btn_Run = new("Run")
 	{
 		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
-		ColorScheme = Styles.CS_Elem1
+		ColorScheme = Styles.Cs_Elem1
 	};
 
-	public static readonly Button Btn_Clear = new("X")
+	private static readonly Button Btn_Clear = new("Clear")
 	{
-		X = Pos.Right(Btn_Ok),
-		Y = Pos.Y(Btn_Ok),
-
+		X               = Pos.Right(Btn_Run),
+		Y               = Pos.Y(Btn_Run),
+		HotKey          = Key.Null,
+		HotKeySpecifier = default,
 		ColorScheme = new()
 		{
-			Normal    = Styles.AT_BrightRedBlack,
-			Disabled  = Styles.AT_WhiteBlack,
-			HotNormal = Styles.AT_WhiteBlack,
-			HotFocus  = Styles.AT_RedBlack,
-			Focus     = Styles.AT_RedBlack
+			Normal    = Styles.Atr_BrightRed_Black,
+			Disabled  = Styles.Atr_White_Black,
+			HotNormal = Styles.Atr_BrightRed_Black,
+			HotFocus  = Styles.Atr_Red_Black,
+			Focus     = Styles.Atr_Red_Black
 		}
+	};
+
+	private static readonly Button Btn_Restart = new("Restart")
+	{
+		X       = Pos.Right(Btn_Clear),
+		Y       = Pos.Y(Btn_Clear),
+		Enabled = false,
 	};
 
 	private static readonly ListView Lv_Engines = new(Cache.EngineOptions)
 	{
 		AllowsMultipleSelection = true,
 		AllowsMarking           = true,
-		X                       = Pos.Right(Btn_Clear) + 1,
-		Y                       = Pos.Y(Btn_Clear),
+		X                       = Pos.Right(Btn_Restart) + 1,
+		Y                       = Pos.Y(Btn_Restart),
 		AutoSize                = true,
 		Width                   = 15,
 		Height                  = Dim.Height(Tf_Input)
@@ -123,10 +137,8 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X      = Pos.X(Lbl_Input),
 		Y      = Pos.Bottom(Lbl_InputInfo),
-		Width  = 120,
-		Height = 300,
 
-		AutoSize = false
+		AutoSize = true
 	};
 
 	private static readonly ProgressBar Pbr_Status = new()
@@ -137,20 +149,14 @@ public sealed class GuiMode : BaseProgramMode
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
-	private static readonly Button Btn_Restart = new("R")
-	{
-		X = Pos.Right(Pbr_Status),
-		Y = Pos.Y(Pbr_Status),
-
-	};
-
 	#endregion
 
 	#region Overrides of ProgramMode
 
-	public GuiMode() : base(SearchQuery.Null)
+	public GuiMode(string[] args) : base(args, SearchQuery.Null)
 	{
 		Application.Init();
+		Cache.SetConsoleMenu();
 
 		var col = new DataColumn[]
 		{
@@ -179,143 +185,56 @@ public sealed class GuiMode : BaseProgramMode
 		{
 			ShowHorizontalScrollIndicators = true,
 			AlwaysShowHeaders              = true,
+
 			RowColorGetter = args =>
 			{
 				// var eng=args.Table.Rows[args.RowIndex]["Engine"];
 				return null;
 			},
+
 			ShowHorizontalHeaderUnderline = true,
 			ShowHorizontalHeaderOverline  = true,
 
 			ColumnStyles = columnStyles,
 		};
+		
+		Tv_Results.Width    =  Console.WindowWidth - 4;
+		Tv_Results.Height   =  Console.WindowHeight;
 
-		Btn_Ok.Clicked += async () =>
-		{
-			var text = Tf_Input.Text;
-
-			Debug.WriteLine($"{text}");
-
-			SearchQuery sq;
-
-			try {
-				sq = await SearchQuery.TryCreateAsync(text.ToString());
-			}
-			catch (Exception e) {
-				sq = SearchQuery.Null;
-
-				Lbl_InputInfo.Text = $"Error: {e.Message}";
-			}
-
-			Lbl_InputOk.Text = PRC;
-
-			if (sq is { } && sq != SearchQuery.Null) {
-				var u = await sq.UploadAsync();
-			}
-			else {
-				Lbl_InputOk.Text   = Err;
-				Lbl_InputInfo.Text = "Error: invalid input";
-				return;
-			}
-
-			Debug.WriteLine($">> {sq}");
-
-			Lbl_InputOk.Text = OK;
-
-			Query  = sq;
-			Status = 1;
-
-			Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
-
-			IsReady.Set();
-
-			var t = base.RunAsync(Array.Empty<string>(), new Stopwatch());
-
-			await t;
-		};
-
-		Btn_Restart.Clicked += async () =>
-		{
-
-			Status = 3;
-		};
-
-		Btn_Clear.Clicked += () =>
-		{
-			try {
-				Tf_Input.DeleteAll();
-				Query            = SearchQuery.Null;
-				Lbl_InputOk.Text = NA;
-				Dt_Results.Clear();
-				IsReady.Reset();
-				ResultCount         = 0;
-				Pbr_Status.Fraction = 0;
-				Application.Refresh();
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-			}
-		};
+		Btn_Run.Clicked     += OnRun;
+		Btn_Restart.Clicked += OnRestart;
+		Btn_Clear.Clicked   += OnClear;
 
 		for (int i = 1; i < Cache.EngineOptions.Length; i++) {
 			Lv_Engines.Source.SetMark(i, true);
 		}
 
-		Lv_Engines.OpenSelectedItem += args =>
-		{
-			var val = (SearchEngineOptions) args.Value;
+		Lv_Engines.OpenSelectedItem += OnEngineSelected;
 
-			var isMarked = Lv_Engines.Source.IsMarked(args.Item);
+		Lv_Engines.ScrollDown(Cache.EngineOptions.Length);
 
-			if (isMarked) {
-				if (val == SearchEngineOptions.None) {
-					Config.SearchEngines = val;
-				}
-
-				else {
-					Config.SearchEngines |= val;
-				}
-			}
-			else {
-				Config.SearchEngines &= ~val;
-			}
-
-			Debug.WriteLine($"{val} {args.Item} -> {Config.SearchEngines} {isMarked}");
-		};
-
-		Tv_Results.CellActivated += args =>
-		{
-			if (args.Table is not { }) {
-				return;
-			}
-
-			try {
-				var cell = args.Table.Rows[args.Row][args.Col];
-
-				if (cell is Url { } u) {
-					HttpUtilities.OpenUrl(u);
-				}
-			}
-			catch (Exception e) { }
-		};
+		Tv_Results.CellActivated += OnCellActivated;
 
 		Tv_Results.Table = Dt_Results;
 
-		Win.Add(Lbl_Input, Tf_Input, Btn_Ok, Lbl_InputOk,
+		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart
 		);
 
 		Top.Add(Win);
-
 	}
 
-	public override Task<object?> RunAsync(string[] args, object? sender = null)
+	public override Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
-		return Task.FromResult(Status == 3 ? (object) true : null);
+
+		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
 	}
 
-	public override void PreSearch(object? sender) { }
+	public override void PreSearch(object? sender)
+	{
+		Tf_Input.SetFocus();
+	}
 
 	public override void PostSearch(object? sender, List<SearchResult> results1) { }
 
@@ -340,75 +259,165 @@ public sealed class GuiMode : BaseProgramMode
 	public override void OnComplete(object sender, List<SearchResult> e)
 	{
 		SystemSounds.Asterisk.Play();
+		Btn_Restart.Enabled = true;
 
 	}
 
-	public override Task CloseAsync()
+	public override void Close()
 	{
 		Application.Shutdown();
-		return Task.CompletedTask;
 	}
 
 	public override void Dispose() { }
 
 	#endregion
 
-	private static class Styles
+	#region Control functions
+
+	private void OnCellActivated(TableView.CellActivatedEventArgs args)
 	{
-		internal static readonly Attribute AT_GreenBlack        = Attribute.Make(Color.Green, Color.Black);
-		internal static readonly Attribute AT_RedBlack          = Attribute.Make(Color.Red, Color.Black);
-		internal static readonly Attribute AT_BrightYellowBlack = Attribute.Make(Color.BrightYellow, Color.Black);
-		internal static readonly Attribute AT_WhiteBlack        = Attribute.Make(Color.White, Color.Black);
-		internal static readonly Attribute AT_CyanBlack         = Attribute.Make(Color.Cyan, Color.Black);
+		if (args.Table is not { }) {
+			return;
+		}
 
-		internal static readonly ColorScheme CS_Elem1 = new()
-		{
-			Normal    = AT_GreenBlack,
-			Focus     = Attribute.Make(Color.BrightGreen, Color.Black),
-			Disabled  = AT_BrightYellowBlack,
-			HotNormal = AT_GreenBlack,
-			HotFocus  = Attribute.Make(Color.BrightGreen, Color.Black)
-		};
+		try {
+			var cell = args.Table.Rows[args.Row][args.Col];
 
-		internal static readonly ColorScheme CS_Elem2 = new()
-		{
-			Normal   = AT_CyanBlack,
-			Disabled = Attribute.Make(Color.DarkGray, Color.Black)
-		};
-
-		internal static readonly ColorScheme CS_Elem3 = new()
-		{
-			Normal   = Attribute.Make(Color.BrightBlue, Color.Black),
-			Focus    = Attribute.Make(Color.Cyan, Color.DarkGray),
-			Disabled = Attribute.Make(Color.BrightBlue, Color.DarkGray)
-		};
-
-		internal static readonly ColorScheme CS_Elem4 = new()
-		{
-			Normal = Attribute.Make(Color.Blue, Color.Gray),
-		};
-
-		internal static readonly ColorScheme CS_Win = new()
-		{
-			Normal    = AT_WhiteBlack,
-			Focus     = AT_CyanBlack,
-			Disabled  = Attribute.Make(Color.Gray, Color.Black),
-			HotNormal = AT_WhiteBlack,
-			HotFocus  = AT_CyanBlack
-		};
-
-		internal static readonly ColorScheme CS_Title = new()
-		{
-			Normal = AT_RedBlack,
-			Focus  = AT_BrightRedBlack
-		};
-
-		internal static readonly ColorScheme CS_Win2 = new()
-		{
-			Normal = Attribute.Make(Color.Black, Color.White),
-			Focus  = Attribute.Make(background: Color.DarkGray, foreground: Color.White)
-		};
-
-		internal static readonly Attribute AT_BrightRedBlack = Attribute.Make(Color.BrightRed, Color.Black);
+			if (cell is Url { } u) {
+				HttpUtilities.OpenUrl(u);
+			}
+		}
+		catch (Exception e) { }
 	}
+
+	private void OnEngineSelected(ListViewItemEventArgs args)
+	{
+		var val = (SearchEngineOptions) args.Value;
+
+		var isMarked = Lv_Engines.Source.IsMarked(args.Item);
+
+		if (isMarked) {
+			if (val == SearchEngineOptions.None) {
+				Config.SearchEngines = val;
+			}
+
+			else {
+				Config.SearchEngines |= val;
+			}
+		}
+		else {
+			Config.SearchEngines &= ~val;
+		}
+
+		/*var selected = EnumHelper.GetSetFlags<SearchEngineOptions>(Config.SearchEngines, false);
+
+		for (int se = 0; se < Lv_Engines.Source.Count; se++) {
+			Lv_Engines.Source.SetMark(se, selected.Contains(val));
+		}*/
+
+		/*var selected = EnumHelper.GetSetFlags(Config.SearchEngines, false);
+		var list     = Lv_Engines.Source.ToList().Cast<SearchEngineOptions>().ToList();
+
+		for (int se = 0; se < Lv_Engines.Source.Count; se++) {
+			var a =Lv_Engines.Source.IsMarked(se);
+			var x = list[se];
+
+			switch (a) {
+				case true when selected.Contains(x):
+					continue;
+				case true:
+				{
+					if (!selected.Contains(x)) {
+						Lv_Engines.Source.SetMark(se, false);
+					}
+
+					break;
+				}
+			}
+
+		}*/
+
+		Debug.WriteLine($"{val} {args.Item} -> {Config.SearchEngines} {isMarked}");
+	}
+
+	private void OnRestart()
+	{
+		if (!Client.IsComplete) {
+			return;
+		}
+
+		OnClear();
+		Dt_Results.Clear();
+		Status              = ProgramStatus.Restart;
+		Btn_Restart.Enabled = false;
+	}
+
+	private async void OnRun()
+	{
+		var text = Tf_Input.Text;
+
+		Debug.WriteLine($"{text}", nameof(OnRun));
+
+		SearchQuery sq;
+
+		try {
+			sq = await SearchQuery.TryCreateAsync(text.ToString());
+		}
+		catch (Exception e) {
+			sq = SearchQuery.Null;
+
+			Lbl_InputInfo.Text = $"Error: {e.Message}";
+		}
+
+		Lbl_InputOk.Text = PRC;
+
+		if (sq is { } && sq != SearchQuery.Null) {
+			var u = await sq.UploadAsync();
+		}
+		else {
+			Lbl_InputOk.Text   = Err;
+			Lbl_InputInfo.Text = "Error: invalid input";
+			return;
+		}
+
+		Debug.WriteLine($">> {sq}", nameof(OnRun));
+
+		Lbl_InputOk.Text = OK;
+
+		Query  = sq;
+		Status = ProgramStatus.Signal;
+
+		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
+
+		IsReady.Set();
+
+		var run = base.RunAsync(null);
+
+		await run;
+	}
+
+	private void OnClear()
+	{
+		try {
+			Tf_Input.DeleteAll();
+
+			Query = SearchQuery.Null;
+
+			Lbl_InputOk.Text = NA;
+			Dt_Results.Clear();
+
+			IsReady.Reset();
+			ResultCount         = 0;
+			Pbr_Status.Fraction = 0;
+
+			Lbl_InputInfo.Text = ustring.Empty;
+
+			Application.Refresh();
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(OnClear));
+		}
+	}
+
+	#endregion
 }

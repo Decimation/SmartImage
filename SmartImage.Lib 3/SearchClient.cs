@@ -19,6 +19,8 @@ public sealed class SearchClient
 {
 	public SearchConfig Config { get; init; }
 
+	public bool IsComplete { get; private set; }
+
 	public SearchClient(SearchConfig cfg)
 	{
 		Config = cfg;
@@ -73,6 +75,8 @@ public sealed class SearchClient
 		}
 
 		OnComplete?.Invoke(this, results);
+
+		IsComplete = true;
 
 		return results;
 	}

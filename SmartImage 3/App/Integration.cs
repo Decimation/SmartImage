@@ -47,7 +47,7 @@ public static class Integration
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
 						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
-						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" -q \"%1\"");
+						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
 					}
 					catch (Exception ex) {
 						Trace.WriteLine($"{ex.Message}");
@@ -189,9 +189,9 @@ public static class Integration
 
 	}
 
-	private const string REG_SHELL = "SOFTWARE\\Classes\\*\\shell\\SmartImage";
+	private const string REG_SHELL = @"SOFTWARE\Classes\*\shell\SmartImage";
 
-	private const string REG_SHELL_CMD = "SOFTWARE\\Classes\\*\\shell\\SmartImage\\command";
+	private const string REG_SHELL_CMD = @"SOFTWARE\Classes\*\shell\SmartImage\command";
 
 	public static bool IsContextMenuAdded
 	{

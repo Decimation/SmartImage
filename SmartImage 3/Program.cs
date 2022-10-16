@@ -1,11 +1,6 @@
 ﻿#nullable disable
 
-global using AC = Spectre.Console.AnsiConsole;
 global using static Kantan.Diagnostics.LogCategories;
-using System.CommandLine;
-using System.CommandLine.Builder;
-using System.CommandLine.Help;
-using System.CommandLine.Parsing;
 using System.ComponentModel;
 using System.Configuration;
 using System.Reflection;
@@ -23,10 +18,7 @@ using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.App;
-using Spectre.Console;
-using Spectre.Console.Rendering;
 using Terminal.Gui;
-using Color = Spectre.Console.Color;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using SmartImage.Modes;
 
@@ -47,7 +39,7 @@ namespace SmartImage;
  * ...
  */
 
-public static partial class Program
+public static class Program
 {
 	private static BaseProgramMode _main;
 
@@ -88,16 +80,14 @@ public static partial class Program
 		main1:
 		bool cli = args is { } && args.Any();
 
-		_main = cli ? new CliMode() : new GuiMode();
+		_main = new GuiMode(args);
 
-		var now = Stopwatch.StartNew();
+		object status;
 
-		object run1;
+		var run = _main.RunAsync(null);
+		status = await run;
 
-		var run = _main.RunAsync(args, now);
-		run1 = await run;
-
-		if (run1 is bool{} and true) {
+		if (status is bool { } and true) {
 			_main.Dispose();
 			goto main1;
 		}

@@ -99,13 +99,31 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		// var sr = await base.GetResultAsync(query, token);
+
 		var url = await GetRawUrlAsync(query);
-		var doc = await ParseDocumentAsync(url);
 
 		var sr = new SearchResult(this)
 		{
 			RawUrl = url
 		};
+
+		IDocument doc;
+
+		try {
+			doc = await ParseDocumentAsync(url);
+		}
+		catch (Exception e) {
+			// Console.WriteLine(e);
+			// throw;
+			doc = null;
+			
+		}
+
+		if (doc == null) {
+			sr.Status = SearchResultStatus.Failure;
+			return sr;
+		}
 
 		// Automation detected
 		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";

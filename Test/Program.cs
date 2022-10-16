@@ -17,7 +17,6 @@ using Microsoft.ClearScript.V8;
 using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
-using Spectre.Console;
 using Point = OpenCvSharp.Point;
 using Size = OpenCvSharp.Size;
 

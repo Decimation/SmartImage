@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -12,13 +13,13 @@ namespace SmartImage.Modes;
 
 public abstract class BaseProgramMode : IDisposable
 {
-	protected BaseProgramMode(SearchQuery? sq = null)
+	protected BaseProgramMode(string[] args1, SearchQuery? sq = null)
 	{
 		Query   = sq ?? SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
 		IsExit  = new ManualResetEvent(false);
-
+		Args    = args1;
 	}
 
 	public SearchQuery Query { get; set; }
@@ -27,35 +28,30 @@ public abstract class BaseProgramMode : IDisposable
 
 	public SearchClient Client { get; init; }
 
-	//todo
-	public volatile int Status;
-	
-	public virtual async Task<object?> RunAsync(string[] args, object? sender = null)
+	protected ProgramStatus Status { get; set; }
+
+	protected string[] Args { get; set; }
+
+	public virtual async Task<object?> RunAsync(object? sender = null)
 	{
+		var now = Stopwatch.StartNew();
+
 		PreSearch(sender);
 
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
-		
-		Status = 0;
+
+		Status = ProgramStatus.None;
 
 		IsReady.WaitOne();
-		
+
 		var results = await Client.RunSearchAsync(Query, CancellationToken.None);
-		
-		Status = 1;
+
+		now.Stop();
+
+		Status = ProgramStatus.Signal;
 
 		PostSearch(sender, results);
-
-		// await run;
-		/*Application.MainLoop.Invoke(async () =>
-		{
-			await Task.Delay(100);
-
-			if (_main.Status == 2) {
-				Application.RequestStop();
-			}
-		});*/
 
 		return Task.CompletedTask;
 	}
@@ -68,7 +64,7 @@ public abstract class BaseProgramMode : IDisposable
 
 	public abstract void OnComplete(object sender, List<SearchResult> e);
 
-	public abstract Task CloseAsync();
+	public abstract void Close();
 
 	protected int ResultCount { get; set; }
 
@@ -93,4 +89,11 @@ public abstract class BaseProgramMode : IDisposable
 	public abstract void Dispose();
 
 	#endregion
+}
+
+public enum ProgramStatus
+{
+	None,
+	Signal,
+	Restart
 }
