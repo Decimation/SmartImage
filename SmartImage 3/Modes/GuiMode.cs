@@ -54,9 +54,26 @@ public sealed partial class GuiMode : BaseProgramMode
 		// By using Dim.Fill(), it will automatically resize without manual intervention
 		Width       = Dim.Fill(),
 		Height      = Dim.Fill(),
-		ColorScheme = Styles.Cs_Win
+		ColorScheme = Styles.Cs_Win,
 
 	};
+
+	private static readonly MenuBar Mb_Menu = new(new MenuBarItem[]
+		{
+			new("_Help", null, () =>
+			{
+				var about = new Dialog("About")
+				{
+					Text     = "Press enter",
+					AutoSize = true,
+				};
+				var button = new Button("Ok") { };
+				button.Clicked += () => Application.RequestStop();
+				about.AddButton(button);
+				Application.Run(about);
+			})
+		})
+		{ };
 
 	private static readonly Label Lbl_Input = new("Input:")
 	{
@@ -170,6 +187,8 @@ public sealed partial class GuiMode : BaseProgramMode
 		Cache.SetConsoleMenu();
 
 		ProcessArgs();
+
+		Top.Add(Mb_Menu);
 
 		var col = new DataColumn[]
 		{
