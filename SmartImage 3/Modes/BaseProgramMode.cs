@@ -54,7 +54,7 @@ public abstract class BaseProgramMode : IDisposable
 
 		PostSearch(sender, results);
 
-		return Task.CompletedTask;
+		return null;
 	}
 
 	public abstract void PreSearch(object? sender);

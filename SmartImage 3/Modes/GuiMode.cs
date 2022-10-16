@@ -27,6 +27,7 @@ namespace SmartImage.Modes;
 
 public sealed partial class GuiMode : BaseProgramMode
 {
+
 	#region Values
 
 	private static ustring Err => ustring.Make('!');
@@ -179,6 +180,33 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	#endregion
 
+	private void EnsureUICongruency()
+	{
+		var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
+
+		for (var i = 0; i < Lv_Integration.Source.Count; i++) {
+			var b = list[i] == Resources.Int_ContextMenu;
+
+			if (b) {
+				Lv_Integration.Source.SetMark(i, Integration.IsContextMenuAdded);
+			}
+		}
+	}
+
+	private void ProcessArgs()
+	{
+		var enumer = Args.GetEnumerator();
+
+		while (enumer.MoveNext()) {
+			var val = enumer.Current as string;
+
+			if (val == Resources.Arg_Input) {
+				enumer.MoveNext();
+				Tf_Input.Text = enumer.Current.ToString();
+			}
+		}
+	}
+
 	#region Overrides of ProgramMode
 
 	public GuiMode(string[] args) : base(args, SearchQuery.Null)
@@ -260,44 +288,6 @@ public sealed partial class GuiMode : BaseProgramMode
 		Top.Add(Win);
 	}
 
-	private void EnsureUICongruency()
-	{
-		var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
-
-		for (var i = 0; i < Lv_Integration.Source.Count; i++) {
-			var b = list[i] == Resources.Int_ContextMenu;
-
-			if (b) {
-				Lv_Integration.Source.SetMark(i, Integration.IsContextMenuAdded);
-			}
-		}
-	}
-
-	private void ProcessArgs()
-	{
-		var enumer = Args.GetEnumerator();
-
-		while (enumer.MoveNext()) {
-			var val = enumer.Current as string;
-
-			if (val == Resources.Arg_Input) {
-				enumer.MoveNext();
-				Tf_Input.Text = enumer.Current.ToString();
-			}
-		}
-	}
-
-	private void OnIntegrationSelected(ListViewItemEventArgs eventArgs)
-	{
-		var marked = Lv_Integration.Source.IsMarked(eventArgs.Item);
-		var value  = (string) eventArgs.Value;
-
-		if (value == Resources.Int_ContextMenu) {
-			App.Integration.HandleContextMenu(marked);
-		}
-
-	}
-
 	public override Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
@@ -347,6 +337,17 @@ public sealed partial class GuiMode : BaseProgramMode
 	#endregion
 
 	#region Control functions
+
+	private void OnIntegrationSelected(ListViewItemEventArgs eventArgs)
+	{
+		var marked = Lv_Integration.Source.IsMarked(eventArgs.Item);
+		var value  = (string) eventArgs.Value;
+
+		if (value == Resources.Int_ContextMenu) {
+			App.Integration.HandleContextMenu(marked);
+		}
+
+	}
 
 	private void OnCellActivated(TableView.CellActivatedEventArgs args)
 	{
@@ -446,7 +447,14 @@ public sealed partial class GuiMode : BaseProgramMode
 		Lbl_InputOk.Text = PRC;
 
 		if (sq is { } && sq != SearchQuery.Null) {
-			var u = await sq.UploadAsync();
+
+			try {
+				var u = await sq.UploadAsync();
+			}
+			catch (Exception e) {
+				
+			}
+
 		}
 		else {
 			Lbl_InputOk.Text   = Err;

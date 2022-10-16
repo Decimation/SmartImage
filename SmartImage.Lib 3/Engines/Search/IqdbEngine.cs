@@ -101,6 +101,10 @@ public sealed class IqdbEngine : ClientSearchEngine
 	{
 		const int MAX_FILE_SIZE = 0x800000;
 
+		if (query.Size > MAX_FILE_SIZE) {
+			return null;
+		}
+
 		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());

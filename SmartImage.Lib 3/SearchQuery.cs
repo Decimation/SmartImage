@@ -27,6 +27,8 @@ public sealed class SearchQuery : IDisposable
 
 	public FileType[] FileTypes { get; private init; }
 
+	public long Size { get; private set; }
+
 	internal SearchQuery(string value, Stream stream)
 	{
 		Value  = value;
@@ -96,12 +98,14 @@ public sealed class SearchQuery : IDisposable
 	{
 		if (IsUrl) {
 			Upload = Value;
+			Size   = -1; // todo: indeterminate/unknown size
 			Debug.WriteLine($"Skipping upload for {Value}", nameof(SearchQuery));
 		}
 		else {
 			engine ??= BaseUploadEngine.Default;
 			var u = await engine.UploadFileAsync(Value);
 			Upload = u;
+			Size   = engine.Size;
 		}
 
 		return Upload;

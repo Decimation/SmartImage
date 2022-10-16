@@ -23,11 +23,12 @@ public abstract class BaseUploadEngine
 
 	public abstract Task<Url> UploadFileAsync(string file);
 
+	public long Size { get; set; }
+
 	private protected bool IsFileSizeValid(string file)
 	{
-		var bytes = FileSystem.GetFileSize(file);
-
-		var b = bytes >= MaxSize;
+		Size = FileSystem.GetFileSize(file);
+		var b = Size >= MaxSize;
 
 		return !b;
 	}
