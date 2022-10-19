@@ -14,32 +14,21 @@ public sealed class KarmaDecayEngine : WebContentSearchEngine
 {
 	public KarmaDecayEngine() : base("http://karmadecay.com/search/?q=") { }
 
-	#region Overrides of BaseSearchEngine
-
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.KarmaDecay;
 
 	public override void Dispose() { }
 
-	#endregion
-
-	#region Overrides of WebContentSearchEngine
-
-	#region Overrides of BaseSearchEngine
-
-	#endregion
-
-	protected override async Task<IList<INode>> GetNodesAsync(IDocument doc)
-	{
-		var results = doc.QuerySelectorAll("tr.result").Cast<INode>().ToList();
-
-		return await Task.FromResult(results);
-	}
+	protected override string NodesSelector => "tr.result";
 
 	protected override async Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
 	{
-
-		return await Task.FromResult<SearchResultItem>(null);
+		throw new NotImplementedException();
 	}
 
-	#endregion
+	/*protected override async Task<List<INode>> GetNodesAsync(IDocument doc)
+	{
+		var results = doc.QuerySelectorAll(NodesSelector).Cast<INode>().ToList();
+
+		return await Task.FromResult(results);
+	}*/
 }

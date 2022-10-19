@@ -15,9 +15,20 @@ namespace SmartImage.Lib.Engines.Search;
 
 #nullable disable
 
-public sealed class IqdbEngine : ClientSearchEngine
+public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 {
-	public IqdbEngine() : base("https://iqdb.org/?url=", "https://iqdb.org/") { }
+	public IqdbEngine() : base("https://iqdb.org/?url=")
+	{
+		Client = new FlurlClient(EndpointUrl);
+	}
+
+	#region Implementation of IClientSearchEngine
+
+	public string EndpointUrl => "https://iqdb.org/";
+
+	public FlurlClient Client { get; }
+
+	#endregion
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
@@ -34,7 +45,7 @@ public sealed class IqdbEngine : ClientSearchEngine
 		try {
 			//url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
 
-			url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href");
+			url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute(Resources.Atr_href);
 
 			// Links must begin with http:// in order to work with "start"
 
@@ -176,6 +187,6 @@ public sealed class IqdbEngine : ClientSearchEngine
 
 	public override void Dispose()
 	{
-		base.Dispose();
+		Client.Dispose();
 	}
 }

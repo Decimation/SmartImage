@@ -16,7 +16,14 @@ public sealed class YandexEngine : WebContentSearchEngine
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
 		Timeout = TimeSpan.FromSeconds(8);
+
 	}
+
+	#region Overrides of WebContentSearchEngine
+
+	protected override string NodesSelector => "//a[contains(@class, 'Tags-Item')]";
+
+	#endregion
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
@@ -50,7 +57,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 		SearchResultItem Parse(INode siz)
 		{
-			string link    = siz.FirstChild.TryGetAttribute("href");
+			string link    = siz.FirstChild.TryGetAttribute(Resources.Atr_href);
 			string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
 
 			//other-sites__snippet
@@ -117,7 +124,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 			// Console.WriteLine(e);
 			// throw;
 			doc = null;
-			
+
 		}
 
 		if (doc == null) {
@@ -176,11 +183,11 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	#region Overrides of WebContentSearchEngine
 
-	protected override async Task<IList<INode>> GetNodesAsync(IDocument doc)
+	protected override async Task<List<INode>> GetNodesAsync(IDocument doc)
 	{
-		var tagsItem = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item')]");
+		var tagsItem = await base.GetNodesAsync(doc);
 
-		if (tagsItem.Count == 0) {
+		if (tagsItem is { Count: 0 }) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
 			return await Task.FromResult(tagsItem);
 			// return tagsItem;
@@ -195,7 +202,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	protected override Task<SearchResultItem> ParseResultItemAsync(INode siz, SearchResult r)
 	{
-		string link = siz.TryGetAttribute("href");
+		string link = siz.TryGetAttribute(Resources.Atr_href);
 
 		string resText = siz.FirstChild.GetExclusiveText();
 

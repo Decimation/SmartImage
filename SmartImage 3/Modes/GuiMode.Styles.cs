@@ -16,11 +16,9 @@ public sealed partial class GuiMode
 		internal static readonly Attribute Atr_BrightYellow_Black = Attribute.Make(Color.BrightYellow, Color.Black);
 		internal static readonly Attribute Atr_White_Black        = Attribute.Make(Color.White, Color.Black);
 		internal static readonly Attribute Atr_Cyan_Black         = Attribute.Make(Color.Cyan, Color.Black);
-
-		internal static readonly Attribute Atr_BrightRed_Black   = Attribute.Make(Color.BrightRed, Color.Black);
-		internal static readonly Attribute Atr_BrightGreen_Black = Attribute.Make(Color.BrightGreen, Color.Black);
-
-		internal static readonly Attribute Atr_Black_White = Attribute.Make(Color.Black, Color.White);
+		internal static readonly Attribute Atr_BrightRed_Black    = Attribute.Make(Color.BrightRed, Color.Black);
+		internal static readonly Attribute Atr_BrightGreen_Black  = Attribute.Make(Color.BrightGreen, Color.Black);
+		internal static readonly Attribute Atr_Black_White        = Attribute.Make(Color.Black, Color.White);
 
 		#endregion
 

@@ -60,7 +60,7 @@ public abstract class BaseSearchEngine : IDisposable
 		return Task.FromResult<Url>((BaseUrl + query.Upload));
 	}
 
-	protected void FinalizeResult(SearchResult r)
+	protected static void FinalizeResult(SearchResult r)
 	{
 		bool any = r.Results.Any();
 

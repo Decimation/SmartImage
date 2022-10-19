@@ -15,9 +15,20 @@ namespace SmartImage.Lib.Engines.Search;
 /// 
 /// </summary>
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
-public sealed class TraceMoeEngine : ClientSearchEngine
+public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 {
-	public TraceMoeEngine() : base("https://trace.moe/?url=", "https://api.trace.moe") { }
+	public TraceMoeEngine() : base("https://trace.moe/?url=")
+	{
+		Client = new FlurlClient(EndpointUrl);
+	}
+
+	#region Implementation of IClientSearchEngine
+
+	public string EndpointUrl => "https://api.trace.moe";
+
+	public FlurlClient Client { get; }
+
+	#endregion
 
 	//public override TimeSpan Timeout => TimeSpan.FromSeconds(4);
 
@@ -155,7 +166,7 @@ public sealed class TraceMoeEngine : ClientSearchEngine
 	public override void Dispose()
 	{
 		m_anilistClient.Dispose();
-		base.Dispose();
+		Client.Dispose();
 	}
 
 	#region API Objects

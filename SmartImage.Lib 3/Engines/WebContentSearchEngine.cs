@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
+using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 
@@ -15,8 +17,11 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 {
 	protected WebContentSearchEngine(string baseUrl) : base(baseUrl) { }
 
+	protected abstract string NodesSelector { get; }
+
 	#region Overrides of BaseSearchEngine
 
+	[ICBN]
 	protected virtual async Task<IDocument> ParseDocumentAsync(Url origin)
 	{
 		var parser = new HtmlParser();
@@ -56,12 +61,12 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		var result = await base.GetResultAsync(query, token);
 		var doc    = await ParseDocumentAsync(result.RawUrl);
 
-		if (doc is not {}) {
+		if (doc is not { }) {
 			result.Status = SearchResultStatus.Failure;
 			return result;
 		}
 
-		var nodes  = await GetNodesAsync(doc);
+		var nodes = await GetNodesAsync(doc);
 
 		foreach (INode node in nodes) {
 			if (token.Value.IsCancellationRequested) {
@@ -86,8 +91,11 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 	}
 
 	#endregion
-
-	protected abstract Task<IList<INode>> GetNodesAsync(IDocument doc);
+	
+	protected virtual Task<List<INode>> GetNodesAsync(IDocument doc)
+	{
+		return Task.FromResult(doc.Body.SelectNodes(NodesSelector));
+	}
 
 	protected abstract Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r);
 }

@@ -26,7 +26,7 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class SauceNaoEngine : ClientSearchEngine
+public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 {
 	private const string BASE_URL = "https://saucenao.com/";
 
@@ -39,9 +39,12 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
 	 */
 
-	public SauceNaoEngine(string authentication) : base(BASIC_RESULT, BASE_ENDPOINT)
+	public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
 	{
 		Authentication = authentication;
+
+		Client = new FlurlClient(EndpointUrl);
+
 	}
 
 	public SauceNaoEngine() : this(null) { }
@@ -109,8 +112,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 	public override void Dispose()
 	{
-		base.Dispose();
-
+		Client.Dispose();
 	}
 
 	private async Task<IEnumerable<SauceNaoDataResult>> GetWebResultsAsync(SearchQuery query)
@@ -153,9 +155,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		var doc = await docp.ParseDocumentAsync(html);
 
-		const string RESULT_NODE = "//div[@class='result']";
-
-		var results = doc.Body.SelectNodes(RESULT_NODE);
+		var results = doc.Body.SelectNodes(Resources.Sel_SauceNao_Result);
 
 		static SauceNaoDataResult Parse(INode result)
 		{
@@ -165,7 +165,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 			const string HIDDEN_ID_VAL = "result-hidden-notification";
 
-			if (result.TryGetAttribute("id") == HIDDEN_ID_VAL) {
+			if (result.TryGetAttribute(Resources.Atr_id) == HIDDEN_ID_VAL) {
 				return null;
 			}
 
@@ -185,17 +185,17 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 			string link = null;
 
-			var element = resultcontentcolumn.ChildNodes.GetElementsByTagName("a")
-			                                 .FirstOrDefault(x => x.GetAttribute("href") != null);
+			var element = resultcontentcolumn.ChildNodes.GetElementsByTagName(Resources.Tag_a)
+			                                 .FirstOrDefault(x => x.GetAttribute(Resources.Atr_href) != null);
 
 			if (element != null) {
-				link = element.GetAttribute("href");
+				link = element.GetAttribute(Resources.Atr_href);
 			}
 
 			if (resultmiscinfo != null) {
-				link ??= resultmiscinfo.ChildNodes.GetElementsByTagName("a")
-				                       .FirstOrDefault(x => x.GetAttribute("href") != null)?
-				                       .GetAttribute("href");
+				link ??= resultmiscinfo.ChildNodes.GetElementsByTagName(Resources.Tag_a)
+				                       .FirstOrDefault(x => x.GetAttribute(Resources.Atr_href) != null)?
+				                       .GetAttribute(Resources.Atr_href);
 			}
 
 			//	//div[contains(@class, 'resulttitle')]
@@ -227,13 +227,14 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 					$"{resultcontentcolumn.ChildNodes[0].TextContent} {resultcontentcolumn.ChildNodes[1].TextContent}\n";
 
 				if (resultcontentcolumn.ChildNodes.Length >= 6) {
-					creatorTitle += $"{resultcontentcolumn.ChildNodes[4].TextContent} {resultcontentcolumn.ChildNodes[5].TextContent}";
-					
+					creatorTitle +=
+						$"{resultcontentcolumn.ChildNodes[4].TextContent} {resultcontentcolumn.ChildNodes[5].TextContent}";
+
 				}
 
 				creator1 = creatorTitle;
 			}
-			
+
 			// resultcontentcolumn.ChildNodes[1].TryGetAttribute("href");
 
 			/*for (int i = 0; i < resultcontentcolumn.ChildNodes.Length - 1; i++) {
@@ -379,7 +380,7 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 	/// <summary>
 	/// Origin result
 	/// </summary>
-	private class SauceNaoDataResult
+	private sealed class SauceNaoDataResult
 	{
 		/// <summary>
 		///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
@@ -406,6 +407,14 @@ public sealed class SauceNaoEngine : ClientSearchEngine
 
 		public string Creator { get; internal set; }
 	}
+
+	#region Implementation of IClientSearchEngine
+
+	public string EndpointUrl => BASE_ENDPOINT;
+
+	public FlurlClient Client { get; }
+
+	#endregion
 }
 
 public enum SauceNaoSiteIndex

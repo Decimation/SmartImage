@@ -15,19 +15,27 @@ using Flurl.Http;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class RepostSleuthEngine : ClientSearchEngine
+public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 {
-	public RepostSleuthEngine() : base("https://repostsleuth.com/search?url=",
-	                                   "https://api.repostsleuth.com/image")
+	public RepostSleuthEngine() : base("https://repostsleuth.com/search?url=")
 	{
+		Client  = new FlurlClient(EndpointUrl);
 		Timeout = TimeSpan.FromSeconds(4.5);
 	}
+
+	#region Implementation of IClientSearchEngine
+
+	public string EndpointUrl => "https://api.repostsleuth.com/image";
+
+	public FlurlClient Client { get; }
+
+	#endregion
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.RepostSleuth;
 
 	public override void Dispose()
 	{
-		base.Dispose();
+		
 	}
 
 	#region Overrides of BaseSearchEngine

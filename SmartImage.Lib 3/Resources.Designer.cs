@@ -59,5 +59,41 @@ namespace SmartImage.Lib {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to href.
+        /// </summary>
+        internal static string Atr_href {
+            get {
+                return ResourceManager.GetString("Atr_href", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to id.
+        /// </summary>
+        internal static string Atr_id {
+            get {
+                return ResourceManager.GetString("Atr_id", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to //div[@class=&apos;result&apos;].
+        /// </summary>
+        internal static string Sel_SauceNao_Result {
+            get {
+                return ResourceManager.GetString("Sel_SauceNao_Result", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to a.
+        /// </summary>
+        internal static string Tag_a {
+            get {
+                return ResourceManager.GetString("Tag_a", resourceCulture);
+            }
+        }
     }
 }

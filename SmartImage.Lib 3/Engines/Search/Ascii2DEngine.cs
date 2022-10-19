@@ -17,10 +17,13 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
-		Timeout = TimeSpan.FromSeconds(6);
+		Timeout       = TimeSpan.FromSeconds(6);
+		
 	}
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
+	protected override string NodesSelector => "//*[contains(@class, 'info-box')]";
+
+	public override    SearchEngineOptions EngineOption  => SearchEngineOptions.Ascii2D;
 
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
@@ -62,15 +65,6 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 	public override void Dispose() { }
 
-	#region Overrides of WebContentSearchEngine
-
-	protected override Task<IList<INode>> GetNodesAsync(IDocument doc)
-	{
-		var nodes = doc.Body.SelectNodes("//*[contains(@class, 'info-box')]");
-
-		return Task.FromResult<IList<INode>>(nodes);
-	}
-
 	protected override Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
@@ -110,7 +104,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 			if (ns.ChildNodes.Length >= 4) {
 				var childNode = ns.ChildNodes[3];
 
-				string l1 = ((IHtmlElement) childNode).GetAttribute("href");
+				string l1 = ((IHtmlElement) childNode).GetAttribute(Resources.Atr_href);
 
 				if (l1 is not null) {
 					sri.Url = new Url(l1);
@@ -120,6 +114,4 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 		return Task.FromResult(sri);
 	}
-
-	#endregion
 }
