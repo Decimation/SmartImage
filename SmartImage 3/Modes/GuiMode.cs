@@ -26,6 +26,7 @@ using OpenCvSharp;
 using SmartImage.App;
 using static Novus.Win32.SysCommand;
 using Window = Terminal.Gui.Window;
+using System.Xml.Linq;
 
 // ReSharper disable InconsistentNaming
 
@@ -212,6 +213,11 @@ public sealed partial class GuiMode : BaseProgramMode
 		}
 	}
 
+	internal void SetInputText(ustring s)
+	{
+		Tf_Input.Text = s;
+	}
+
 	#region Overrides of ProgramMode
 
 	public GuiMode(string[] args) : base(args, SearchQuery.Null)
@@ -341,12 +347,12 @@ public sealed partial class GuiMode : BaseProgramMode
 	public override void Dispose()
 	{
 		Client.Dispose();
-		QueryMat.Dispose();
+
+		Query.Dispose();
+		QueryMat?.Dispose();
 	}
 
 	#endregion
-
-	public Mat QueryMat { get; private set; }
 
 	#region Control functions
 
@@ -387,7 +393,11 @@ public sealed partial class GuiMode : BaseProgramMode
 			}
 
 		}
-		catch (Exception e) { }
+		catch (Exception e) {
+
+			Debug.WriteLine($"{e.Message}", nameof(OnCellActivated));
+
+		}
 	}
 
 	private void OnEngineSelected(ListViewItemEventArgs args)
@@ -477,7 +487,10 @@ public sealed partial class GuiMode : BaseProgramMode
 			try {
 				var u = await sq.UploadAsync();
 			}
-			catch (Exception e) { }
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}", nameof(OnRun));
+
+			}
 
 		}
 		else {

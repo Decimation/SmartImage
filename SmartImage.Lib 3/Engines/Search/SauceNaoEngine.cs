@@ -3,6 +3,7 @@
 using System.Diagnostics;
 using System.Json;
 using System.Net;
+using System.Text;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
@@ -155,7 +156,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		var doc = await docp.ParseDocumentAsync(html);
 
-		var results = doc.Body.SelectNodes(Resources.Sel_SauceNao_Result);
+		var results = doc.Body.SelectNodes("//div[@class='result']");
 
 		static SauceNaoDataResult Parse(INode result)
 		{
@@ -362,6 +363,21 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
 
+		var site  = Strings.NormalizeNull(siteName);
+		var title = Strings.NormalizeNull(sn.WebsiteTitle);
+		
+		var sb    = new StringBuilder();
+
+		if (site is {}) {
+			sb.Append(site);
+		}
+
+		if (title is {}) {
+			sb.Append($" [{title}]");
+		}
+
+		site = sb.ToString().Trim(' ');
+
 		var imageResult = new SearchResultItem(r)
 		{
 			Url         = url,
@@ -370,7 +386,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			Artist      = Strings.NormalizeNull(sn.Creator),
 			Source      = Strings.NormalizeNull(sn.Material),
 			Character   = Strings.NormalizeNull(sn.Character),
-			Site        = Strings.NormalizeNull(siteName) + $" [{Strings.NormalizeNull(sn.WebsiteTitle)}]"
+			Site        = site
 		};
 
 		return imageResult;

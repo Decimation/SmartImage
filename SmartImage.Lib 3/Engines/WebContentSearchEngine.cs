@@ -49,6 +49,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		}
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
+			Debug.WriteLine($"{e.Message}", Name);
 
 			return null;
 		}

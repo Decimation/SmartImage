@@ -169,7 +169,7 @@ public class UnitTest2
 			var sq = await SearchQuery.TryCreateAsync(s);
 			Assert.Fail();
 		}
-		catch (Exception e) {
+		catch (Exception) {
 			Assert.Pass();
 		}
 

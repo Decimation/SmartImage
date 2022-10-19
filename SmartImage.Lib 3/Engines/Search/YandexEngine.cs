@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using AngleSharp.Dom;
 using AngleSharp.XPath;
 using Kantan.Net.Utilities;
@@ -124,7 +125,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 			// Console.WriteLine(e);
 			// throw;
 			doc = null;
-
+			Debug.WriteLine($"{e.Message}", Name);
 		}
 
 		if (doc == null) {

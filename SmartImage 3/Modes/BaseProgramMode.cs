@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Novus.Win32;
+using OpenCvSharp;
 using SmartImage.Lib;
 using Terminal.Gui;
 
@@ -16,11 +17,12 @@ public abstract class BaseProgramMode : IDisposable
 	protected BaseProgramMode(string[] args1, SearchQuery? sq = null)
 	{
 		Args = args1;
-		
-		Query   = sq ?? SearchQuery.Null;
-		Client  = new SearchClient(new SearchConfig());
-		IsReady = new ManualResetEvent(false);
-		IsExit  = new ManualResetEvent(false);
+
+		Query    = sq ?? SearchQuery.Null;
+		Client   = new SearchClient(new SearchConfig());
+		IsReady  = new ManualResetEvent(false);
+		IsExit   = new ManualResetEvent(false);
+		QueryMat = null;
 	}
 
 	public SearchQuery Query { get; set; }
@@ -72,6 +74,11 @@ public abstract class BaseProgramMode : IDisposable
 	public ManualResetEvent IsReady { get; protected set; }
 
 	public ManualResetEvent IsExit { get; protected set; }
+
+	/// <summary>
+	/// <see cref="Mat"/> of <see cref="Query"/>
+	/// </summary>
+	protected Mat? QueryMat { get; set; }
 
 	protected void SetConfig(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
 	{

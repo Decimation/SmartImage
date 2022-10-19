@@ -17,13 +17,13 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
-		Timeout       = TimeSpan.FromSeconds(6);
-		
+		Timeout = TimeSpan.FromSeconds(6);
+
 	}
 
 	protected override string NodesSelector => "//*[contains(@class, 'info-box')]";
 
-	public override    SearchEngineOptions EngineOption  => SearchEngineOptions.Ascii2D;
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
@@ -57,13 +57,15 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		Debug.Assert(requestUri != null);
 
 		string detailUrl = requestUri.ToString().Replace("/color/", "/bovw/");
-		
+
 		Debug.WriteLine($"{url} {requestUri} {detailUrl} {response.StatusCode} ", Name);
 
 		return new Url(detailUrl);
 	}
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+	}
 
 	protected override Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
 	{
