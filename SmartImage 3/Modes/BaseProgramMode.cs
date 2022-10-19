@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Novus.Win32;
 using OpenCvSharp;
 using SmartImage.Lib;
 using Terminal.Gui;
@@ -18,10 +18,10 @@ public abstract class BaseProgramMode : IDisposable
 	{
 		Args = args1;
 
-		Query    = sq ?? SearchQuery.Null;
-		Client   = new SearchClient(new SearchConfig());
-		IsReady  = new ManualResetEvent(false);
-		IsExit   = new ManualResetEvent(false);
+		Query   = sq ?? SearchQuery.Null;
+		Client  = new SearchClient(new SearchConfig());
+		IsReady = new ManualResetEvent(false);
+
 		QueryMat = null;
 	}
 
@@ -34,6 +34,15 @@ public abstract class BaseProgramMode : IDisposable
 	protected ProgramStatus Status { get; set; }
 
 	protected string[] Args { get; set; }
+
+	protected int ResultCount { get; set; }
+
+	public ManualResetEvent IsReady { get; protected set; }
+
+	/// <summary>
+	/// <see cref="Mat"/> of <see cref="Query"/>
+	/// </summary>
+	protected Mat? QueryMat { get; set; }
 
 	public virtual async Task<object?> RunAsync(object? sender = null)
 	{
@@ -67,30 +76,19 @@ public abstract class BaseProgramMode : IDisposable
 
 	public abstract void OnComplete(object sender, List<SearchResult> e);
 
-	public abstract void Close();
+	protected abstract void ProcessArg(object? val, IEnumerator e);
 
-	protected int ResultCount { get; set; }
-
-	public ManualResetEvent IsReady { get; protected set; }
-
-	public ManualResetEvent IsExit { get; protected set; }
-
-	/// <summary>
-	/// <see cref="Mat"/> of <see cref="Query"/>
-	/// </summary>
-	protected Mat? QueryMat { get; set; }
-
-	protected void SetConfig(SearchEngineOptions t2, SearchEngineOptions t3, bool t4)
+	protected virtual void ProcessArgs()
 	{
-		Config.SearchEngines   = t2;
-		Config.PriorityEngines = t3;
+		var enumer = Args.GetEnumerator();
 
-		Config.OnTop = t4;
-
-		if (Config.OnTop) {
-			Native.KeepWindowOnTop(Cache.HndWindow);
+		while (enumer.MoveNext()) {
+			var val = enumer.Current;
+			ProcessArg(val, enumer);
 		}
 	}
+
+	public abstract void Close();
 
 	#region Implementation of IDisposable
 

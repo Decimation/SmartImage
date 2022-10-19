@@ -34,7 +34,7 @@ using Color = Terminal.Gui.Color;
 
 namespace SmartImage.Modes;
 
-public sealed partial class GuiMode : BaseProgramMode
+public sealed class GuiMode : BaseProgramMode
 {
 	#region Values
 
@@ -113,7 +113,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
 		ColorScheme = Styles.Cs_Elem1,
-		
+
 	};
 
 	private static readonly Button Btn_Clear = new("Clear")
@@ -180,7 +180,9 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y        = Pos.Bottom(Lbl_InputInfo),
 		Width    = Dim.Fill(),
 		Height   = Dim.Fill(),
-		AutoSize = true
+		AutoSize = true,
+		FullRowSelect = true,
+		
 	};
 
 	private static readonly ProgressBar Pbr_Status = new()
@@ -225,6 +227,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		var col = new DataColumn[]
 		{
 			new("Engine", typeof(string)),
+
 			new(nameof(SearchResultItem.Url), typeof(Flurl.Url)),
 			new(nameof(SearchResultItem.Similarity), typeof(float)),
 			new(nameof(SearchResultItem.Artist), typeof(string)),
@@ -235,10 +238,11 @@ public sealed partial class GuiMode : BaseProgramMode
 		};
 
 		Dt_Results.Columns.AddRange(col);
-
+		
 		var columnStyle = new TableView.ColumnStyle()
 		{
 			Alignment = TextAlignment.Left,
+			
 		};
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
@@ -249,7 +253,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		{
 			ShowHorizontalScrollIndicators = true,
 			AlwaysShowHeaders              = true,
-
+			
 			RowColorGetter = args =>
 			{
 				// var eng=args.Table.Rows[args.RowIndex]["Engine"];
@@ -258,8 +262,18 @@ public sealed partial class GuiMode : BaseProgramMode
 
 			ShowHorizontalHeaderUnderline = true,
 			ShowHorizontalHeaderOverline  = true,
-
+			
 			ColumnStyles = columnStyles,
+		};
+
+		Tv_Results.Border = new Border()
+		{
+			BorderStyle     = BorderStyle.Single,
+			DrawMarginFrame = true,
+			BorderThickness = new Thickness(2),
+			BorderBrush     = Color.Red,
+			Background      = Color.Black,
+			Effect3D        = true,
 		};
 
 		// Tv_Results.Width  = Console.WindowWidth - 4;
@@ -368,6 +382,14 @@ public sealed partial class GuiMode : BaseProgramMode
 		QueryMat?.Dispose();
 	}
 
+	protected override void ProcessArg(object? val, IEnumerator e)
+	{
+		if (val is string s && s == Resources.Arg_Input) {
+			e.MoveNext();
+			SetInputText(s);
+		}
+	}
+
 	#endregion
 
 	private void EnsureUICongruency()
@@ -383,21 +405,6 @@ public sealed partial class GuiMode : BaseProgramMode
 		}*/
 
 		Cb_ContextMenu.Checked = Integration.IsContextMenuAdded;
-
-	}
-
-	private void ProcessArgs()
-	{
-		var enumer = Args.GetEnumerator();
-
-		while (enumer.MoveNext()) {
-			var val = enumer.Current as string;
-
-			if (val == Resources.Arg_Input) {
-				enumer.MoveNext();
-				SetInputText(enumer.Current.ToString());
-			}
-		}
 
 	}
 
@@ -428,7 +435,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		try {
 			var cell = args.Table.Rows[args.Row][args.Col];
 
-			if (cell is Url { } u) {
+			if (cell is Url { } u && Url.IsValid(u)) {
 				HttpUtilities.OpenUrl(u);
 			}
 
@@ -519,7 +526,6 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private async void OnRun()
 	{
-
 		var text = Tf_Input.Text;
 
 		Debug.WriteLine($"{text}", nameof(OnRun));
@@ -555,7 +561,7 @@ public sealed partial class GuiMode : BaseProgramMode
 			return;
 		}
 
-		Debug.WriteLine($">> {sq}", nameof(OnRun));
+		Debug.WriteLine($">> {sq} {Config}", nameof(OnRun));
 
 		Lbl_InputOk.Text = OK;
 
@@ -566,7 +572,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
 
 		IsReady.Set();
-		Btn_Run.Enabled = true;
+		Btn_Run.Enabled = false;
 
 		var run = base.RunAsync(null);
 

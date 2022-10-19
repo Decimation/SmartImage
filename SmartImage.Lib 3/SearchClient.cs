@@ -66,7 +66,7 @@ public sealed class SearchClient : IDisposable
 
 				var url1 = result.Best?.Url ?? result.RawUrl;
 
-				if (url1 is { }) {
+				if (url1 is { } && Url.IsValid(url1)) {
 					HttpUtilities.OpenUrl(url1);
 				}
 
@@ -102,6 +102,7 @@ public sealed class SearchClient : IDisposable
 				                    .First();
 
 				Debug.WriteLine($"{result}");
+
 				HttpUtilities.OpenUrl(result.Url);
 			}
 			catch (Exception e) { }

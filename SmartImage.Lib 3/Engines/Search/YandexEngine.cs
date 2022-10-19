@@ -16,7 +16,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
-		Timeout = TimeSpan.FromSeconds(8);
+		Timeout = TimeSpan.FromSeconds(10);
 
 	}
 
