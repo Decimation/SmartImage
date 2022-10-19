@@ -15,15 +15,18 @@ using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchClient
+public sealed class SearchClient : IDisposable
 {
 	public SearchConfig Config { get; init; }
 
 	public bool IsComplete { get; private set; }
+	
+	public BaseSearchEngine[] Engines { get; private set; }
 
 	public SearchClient(SearchConfig cfg)
 	{
-		Config = cfg;
+		Config  = cfg;
+		Engines = Array.Empty<BaseSearchEngine>();
 	}
 
 	static SearchClient() { }
@@ -35,8 +38,6 @@ public sealed class SearchClient
 	public ResultCompleteCallback OnResult { get; set; }
 
 	public SearchCompleteCallback OnComplete { get; set; }
-
-	public BaseSearchEngine[] Engines { get; private set; }
 
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
@@ -80,4 +81,15 @@ public sealed class SearchClient
 
 		return results;
 	}
+
+	#region Implementation of IDisposable
+
+	public void Dispose()
+	{
+		foreach (var engine in Engines) {
+			engine.Dispose();
+		}
+	}
+
+	#endregion
 }

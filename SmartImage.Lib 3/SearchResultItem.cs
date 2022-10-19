@@ -5,7 +5,7 @@ using Novus.FileTypes;
 
 namespace SmartImage.Lib;
 
-public record SearchResultItem
+public record SearchResultItem : IDisposable
 {
 	[NN]
 	public SearchResult Root { get; }
@@ -82,14 +82,15 @@ public record SearchResultItem
 		Metadata = new ExpandoObject();
 	}
 
-	#region Overrides of Object
-
 	public override string ToString()
 	{
 		return $"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time}";
 	}
 
-	#endregion
+	public void Dispose()
+	{
+		
+	}
 
 	public static bool Validate([CBN] SearchResultItem r)
 	{

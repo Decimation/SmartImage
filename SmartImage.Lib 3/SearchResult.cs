@@ -14,7 +14,10 @@ public enum SearchResultStatus
 	Extraneous
 }
 
-public sealed class SearchResult
+/// <summary>
+/// Root search result returned by a <see cref="BaseSearchEngine"/>
+/// </summary>
+public sealed class SearchResult : IDisposable
 {
 	/// <summary>
 	/// Engine
@@ -52,4 +55,15 @@ public sealed class SearchResult
 	{
 		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
 	}
+
+	#region IDisposable
+
+	public void Dispose()
+	{
+		foreach (SearchResultItem item in Results) {
+			item.Dispose();
+		}
+	}
+
+	#endregion
 }

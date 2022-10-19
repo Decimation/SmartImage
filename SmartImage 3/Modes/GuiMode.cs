@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Media;
 using System.Text;
@@ -16,10 +17,15 @@ using Kantan.Net.Utilities;
 using Terminal.Gui;
 using Rune = System.Rune;
 using System.Reflection;
+using Flurl.Http;
 using Kantan.Utilities;
+using Novus.FileTypes;
+using Novus.Utilities;
 using Novus.Win32;
+using OpenCvSharp;
 using SmartImage.App;
 using static Novus.Win32.SysCommand;
+using Window = Terminal.Gui.Window;
 
 // ReSharper disable InconsistentNaming
 
@@ -27,7 +33,6 @@ namespace SmartImage.Modes;
 
 public sealed partial class GuiMode : BaseProgramMode
 {
-
 	#region Values
 
 	private static ustring Err => ustring.Make('!');
@@ -286,6 +291,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		);
 
 		Top.Add(Win);
+
 	}
 
 	public override Task<object?> RunAsync(object? sender = null)
@@ -332,9 +338,15 @@ public sealed partial class GuiMode : BaseProgramMode
 		Application.Shutdown();
 	}
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+		Client.Dispose();
+		QueryMat.Dispose();
+	}
 
 	#endregion
+
+	public Mat QueryMat { get; private set; }
 
 	#region Control functions
 
@@ -360,7 +372,20 @@ public sealed partial class GuiMode : BaseProgramMode
 
 			if (cell is Url { } u) {
 				HttpUtilities.OpenUrl(u);
+
+				// TODO
+				/*ThreadPool.QueueUserWorkItem(async c =>
+				{
+					try {
+						await ImageUtility.CalculateSimilarityAsync(u, QueryMat);
+					}
+					catch (Exception e) {
+						
+					}
+				});*/
+
 			}
+
 		}
 		catch (Exception e) { }
 	}
@@ -437,6 +462,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		try {
 			sq = await SearchQuery.TryCreateAsync(text.ToString());
+
 		}
 		catch (Exception e) {
 			sq = SearchQuery.Null;
@@ -451,9 +477,7 @@ public sealed partial class GuiMode : BaseProgramMode
 			try {
 				var u = await sq.UploadAsync();
 			}
-			catch (Exception e) {
-				
-			}
+			catch (Exception e) { }
 
 		}
 		else {
@@ -466,8 +490,9 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		Lbl_InputOk.Text = OK;
 
-		Query  = sq;
-		Status = ProgramStatus.Signal;
+		Query      = sq;
+		QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
+		Status     = ProgramStatus.Signal;
 
 		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
 
