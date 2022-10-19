@@ -19,6 +19,8 @@ public sealed partial class GuiMode
 		internal static readonly Attribute Atr_BrightRed_Black    = Attribute.Make(Color.BrightRed, Color.Black);
 		internal static readonly Attribute Atr_BrightGreen_Black  = Attribute.Make(Color.BrightGreen, Color.Black);
 		internal static readonly Attribute Atr_Black_White        = Attribute.Make(Color.Black, Color.White);
+		public static readonly   Attribute Atr_Gray_Black         = Attribute.Make(Color.Gray, Color.Black);
+		public static readonly   Attribute Atr_White_DarkGray     = Attribute.Make(Color.White, Color.DarkGray);
 
 		#endregion
 
@@ -73,5 +75,14 @@ public sealed partial class GuiMode
 		};
 
 		#endregion
+
+		internal static readonly ColorScheme Cs_ListView = new ColorScheme()
+		{
+			Disabled  = Styles.Atr_Gray_Black,
+			Normal    = Styles.Atr_White_Black,
+			HotNormal = Styles.Atr_White_Black,
+			Focus     = Styles.Atr_Green_Black,
+			HotFocus  = Styles.Atr_Green_Black
+		};
 	}
 }

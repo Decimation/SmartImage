@@ -27,6 +27,8 @@ using SmartImage.App;
 using static Novus.Win32.SysCommand;
 using Window = Terminal.Gui.Window;
 using System.Xml.Linq;
+using Attribute = Terminal.Gui.Attribute;
+using Color = Terminal.Gui.Color;
 
 // ReSharper disable InconsistentNaming
 
@@ -110,7 +112,8 @@ public sealed partial class GuiMode : BaseProgramMode
 	{
 		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
-		ColorScheme = Styles.Cs_Elem1
+		ColorScheme = Styles.Cs_Elem1,
+		
 	};
 
 	private static readonly Button Btn_Clear = new("Clear")
@@ -144,7 +147,8 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y                       = Pos.Y(Btn_Restart),
 		AutoSize                = true,
 		Width                   = 15,
-		Height                  = Dim.Height(Tf_Input)
+		Height                  = Dim.Height(Tf_Input),
+		ColorScheme             = Styles.Cs_ListView
 	};
 
 	private static readonly ListView Lv_Engines2 = new(Cache.EngineOptions)
@@ -155,7 +159,8 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y                       = Pos.Y(Lv_Engines),
 		AutoSize                = true,
 		Width                   = 15,
-		Height                  = Dim.Height(Tf_Input)
+		Height                  = Dim.Height(Tf_Input),
+		ColorScheme             = Styles.Cs_ListView
 	};
 
 	private static readonly Label Lbl_InputInfo = new()
@@ -171,9 +176,10 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X = Pos.X(Lbl_Input),
-		Y = Pos.Bottom(Lbl_InputInfo),
-
+		X        = Pos.X(Lbl_Input),
+		Y        = Pos.Bottom(Lbl_InputInfo),
+		Width    = Dim.Fill(),
+		Height   = Dim.Fill(),
 		AutoSize = true
 	};
 
@@ -185,7 +191,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
-	private static readonly ListView Lv_Integration = new(Integration.IntegrationNames)
+	/*private static readonly ListView Lv_Integration = new(Integration.IntegrationNames)
 	{
 		X                       = Pos.X(Lv_Engines),
 		Y                       = Pos.Bottom(Lv_Engines),
@@ -193,6 +199,14 @@ public sealed partial class GuiMode : BaseProgramMode
 		Height                  = Dim.Height(Tf_Input),
 		AllowsMarking           = true,
 		AllowsMultipleSelection = true
+	};*/
+
+	private static readonly CheckBox Cb_ContextMenu = new(Resources.Int_ContextMenu)
+	{
+		X      = Pos.X(Lv_Engines),
+		Y      = Pos.Bottom(Lv_Engines),
+		Width  = 15,
+		Height = Dim.Height(Tf_Input),
 	};
 
 	#endregion
@@ -202,7 +216,7 @@ public sealed partial class GuiMode : BaseProgramMode
 	public GuiMode(string[] args) : base(args, SearchQuery.Null)
 	{
 		Application.Init();
-		Cache.SetConsoleMenu();
+		// Cache.SetConsoleMenu();
 
 		ProcessArgs();
 
@@ -248,8 +262,8 @@ public sealed partial class GuiMode : BaseProgramMode
 			ColumnStyles = columnStyles,
 		};
 
-		Tv_Results.Width  = Console.WindowWidth - 4;
-		Tv_Results.Height = Console.WindowHeight;
+		// Tv_Results.Width  = Console.WindowWidth - 4;
+		// Tv_Results.Height = Console.WindowHeight;
 
 		Btn_Run.Clicked     += OnRun;
 		Btn_Restart.Clicked += OnRestart;
@@ -277,15 +291,20 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		Tv_Results.CellActivated += OnCellActivated;
 
+		Cb_ContextMenu.Toggled += b =>
+		{
+			Integration.HandleContextMenu(!b);
+		};
+
 		Tv_Results.Table = Dt_Results;
 
-		Lv_Integration.OpenSelectedItem += OnIntegrationSelected;
+		// Lv_Integration.OpenSelectedItem += OnIntegrationSelected;
 
 		EnsureUICongruency();
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Lv_Engines, Lv_Engines2, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
-		        Lv_Integration
+		        /*Lv_Integration,*/ Cb_ContextMenu
 		);
 
 		Top.Add(Win);
@@ -304,7 +323,12 @@ public sealed partial class GuiMode : BaseProgramMode
 		Tf_Input.SetFocus();
 	}
 
-	public override void PostSearch(object? sender, List<SearchResult> results1) { }
+	public override void PostSearch(object? sender, List<SearchResult> results1)
+	{
+		if (Client.IsComplete) {
+			Btn_Run.Enabled = false;
+		}
+	}
 
 	public override void OnResult(object o, SearchResult r)
 	{
@@ -348,7 +372,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private void EnsureUICongruency()
 	{
-		var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
+		/*var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
 
 		for (var i = 0; i < Lv_Integration.Source.Count; i++) {
 			var b = list[i] == Resources.Int_ContextMenu;
@@ -356,7 +380,10 @@ public sealed partial class GuiMode : BaseProgramMode
 			if (b) {
 				Lv_Integration.Source.SetMark(i, Integration.IsContextMenuAdded);
 			}
-		}
+		}*/
+
+		Cb_ContextMenu.Checked = Integration.IsContextMenuAdded;
+
 	}
 
 	private void ProcessArgs()
@@ -368,9 +395,10 @@ public sealed partial class GuiMode : BaseProgramMode
 
 			if (val == Resources.Arg_Input) {
 				enumer.MoveNext();
-				Tf_Input.Text = enumer.Current.ToString();
+				SetInputText(enumer.Current.ToString());
 			}
 		}
+
 	}
 
 	internal void SetInputText(ustring s)
@@ -380,7 +408,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	#region Control functions
 
-	private void OnIntegrationSelected(ListViewItemEventArgs eventArgs)
+	/*private void OnIntegrationSelected(ListViewItemEventArgs eventArgs)
 	{
 		var marked = Lv_Integration.Source.IsMarked(eventArgs.Item);
 		var value  = (string) eventArgs.Value;
@@ -389,7 +417,7 @@ public sealed partial class GuiMode : BaseProgramMode
 			App.Integration.HandleContextMenu(marked);
 		}
 
-	}
+	}*/
 
 	private void OnCellActivated(TableView.CellActivatedEventArgs args)
 	{
@@ -440,7 +468,7 @@ public sealed partial class GuiMode : BaseProgramMode
 				// continue;
 				// mark = false;
 			}*/
-			
+
 			lv.Source.SetMark(i, mark);
 		}
 
@@ -485,10 +513,13 @@ public sealed partial class GuiMode : BaseProgramMode
 		Dt_Results.Clear();
 		Status              = ProgramStatus.Restart;
 		Btn_Restart.Enabled = false;
+		Btn_Run.Enabled     = true;
+
 	}
 
 	private async void OnRun()
 	{
+
 		var text = Tf_Input.Text;
 
 		Debug.WriteLine($"{text}", nameof(OnRun));
@@ -535,6 +566,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
 
 		IsReady.Set();
+		Btn_Run.Enabled = true;
 
 		var run = base.RunAsync(null);
 
