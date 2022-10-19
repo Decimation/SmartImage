@@ -5,7 +5,7 @@ using Novus.FileTypes;
 
 namespace SmartImage.Lib;
 
-public record SearchResultItem : IDisposable
+public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
 {
 	[NN]
 	public SearchResult Root { get; }
@@ -100,4 +100,42 @@ public record SearchResultItem : IDisposable
 			_       => true
 		};
 	}
+
+	#region Relational members
+
+	public int CompareTo(SearchResultItem other)
+	{
+		if (ReferenceEquals(this, other)) return 0;
+		if (ReferenceEquals(null, other)) return 1;
+		return Nullable.Compare(Similarity, other.Similarity);
+	}
+
+	public int CompareTo(object obj)
+	{
+		if (ReferenceEquals(null, obj)) return 1;
+		if (ReferenceEquals(this, obj)) return 0;
+		return obj is SearchResultItem other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
+	}
+
+	public static bool operator <(SearchResultItem left, SearchResultItem right)
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) < 0;
+	}
+
+	public static bool operator >(SearchResultItem left, SearchResultItem right)
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) > 0;
+	}
+
+	public static bool operator <=(SearchResultItem left, SearchResultItem right)
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) <= 0;
+	}
+
+	public static bool operator >=(SearchResultItem left, SearchResultItem right)
+	{
+		return Comparer<SearchResultItem>.Default.Compare(left, right) >= 0;
+	}
+
+	#endregion
 }

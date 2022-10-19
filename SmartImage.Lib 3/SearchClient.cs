@@ -20,7 +20,7 @@ public sealed class SearchClient : IDisposable
 	public SearchConfig Config { get; init; }
 
 	public bool IsComplete { get; private set; }
-	
+
 	public BaseSearchEngine[] Engines { get; private set; }
 
 	public SearchClient(SearchConfig cfg)
@@ -64,11 +64,12 @@ public sealed class SearchClient : IDisposable
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
-				var url1 = result.First?.Url ?? result.RawUrl;
+				var url1 = result.Best?.Url ?? result.RawUrl;
 
 				if (url1 is { }) {
 					HttpUtilities.OpenUrl(url1);
 				}
+
 			}
 
 			results.Add(result);
@@ -78,6 +79,33 @@ public sealed class SearchClient : IDisposable
 		OnComplete?.Invoke(this, results);
 
 		IsComplete = true;
+
+		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+			/*SearchResult result = results[0];
+			double?      max    = 0;
+
+			foreach (SearchResult sr in results) {
+				var avg = sr.Results.Average(r => r.Similarity);
+
+				if (avg > max) {
+					result = sr;
+					max    = avg;
+				}
+			}
+
+			Debug.WriteLine($"Auto {result}");*/
+
+			try {
+				var result = results.SelectMany(r => r.Results)
+				                    .Where(r => Url.IsValid(r.Url))
+				                    .OrderByDescending(r => r.Similarity)
+				                    .First();
+
+				Debug.WriteLine($"{result}");
+				HttpUtilities.OpenUrl(result.Url);
+			}
+			catch (Exception e) { }
+		}
 
 		return results;
 	}

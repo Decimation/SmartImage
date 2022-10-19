@@ -80,6 +80,7 @@ public static class Program
 		 */
 		ThreadPool.QueueUserWorkItem(c =>
 		{
+			
 			if (Clipboard.TryGetClipboardData(out var str)) {
 				var b = Url.IsValid(str) || File.Exists(str);
 

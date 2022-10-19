@@ -42,7 +42,12 @@ public sealed class SearchResult : IDisposable
 	[CBN]
 	public SearchResultItem First
 	{
-		get { return Results.FirstOrDefault(r => r.Url is { }); }
+		get { return Results.FirstOrDefault(r => Url.IsValid(r.Url)); }
+	}
+	
+	public SearchResultItem Best
+	{
+		get { return Results.MaxBy(r=>r.Similarity ?? 0); }
 	}
 
 	internal SearchResult(BaseSearchEngine bse)

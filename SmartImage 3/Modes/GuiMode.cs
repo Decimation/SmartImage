@@ -147,6 +147,17 @@ public sealed partial class GuiMode : BaseProgramMode
 		Height                  = Dim.Height(Tf_Input)
 	};
 
+	private static readonly ListView Lv_Engines2 = new(Cache.EngineOptions)
+	{
+		AllowsMultipleSelection = true,
+		AllowsMarking           = true,
+		X                       = Pos.Right(Lv_Engines) + 1,
+		Y                       = Pos.Y(Lv_Engines),
+		AutoSize                = true,
+		Width                   = 15,
+		Height                  = Dim.Height(Tf_Input)
+	};
+
 	private static readonly Label Lbl_InputInfo = new()
 	{
 		X      = Pos.Bottom(Tf_Input),
@@ -168,8 +179,8 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Lv_Engines),
-		Y                = Pos.Y(Lv_Engines),
+		X                = Pos.Right(Lv_Engines2),
+		Y                = Pos.Y(Lv_Engines2),
 		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
@@ -185,38 +196,6 @@ public sealed partial class GuiMode : BaseProgramMode
 	};
 
 	#endregion
-
-	private void EnsureUICongruency()
-	{
-		var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
-
-		for (var i = 0; i < Lv_Integration.Source.Count; i++) {
-			var b = list[i] == Resources.Int_ContextMenu;
-
-			if (b) {
-				Lv_Integration.Source.SetMark(i, Integration.IsContextMenuAdded);
-			}
-		}
-	}
-
-	private void ProcessArgs()
-	{
-		var enumer = Args.GetEnumerator();
-
-		while (enumer.MoveNext()) {
-			var val = enumer.Current as string;
-
-			if (val == Resources.Arg_Input) {
-				enumer.MoveNext();
-				Tf_Input.Text = enumer.Current.ToString();
-			}
-		}
-	}
-
-	internal void SetInputText(ustring s)
-	{
-		Tf_Input.Text = s;
-	}
 
 	#region Overrides of ProgramMode
 
@@ -280,7 +259,20 @@ public sealed partial class GuiMode : BaseProgramMode
 			Lv_Engines.Source.SetMark(i, true);
 		}
 
-		Lv_Engines.OpenSelectedItem += OnEngineSelected;
+		Lv_Engines.OpenSelectedItem += args1 =>
+		{
+			SearchEngineOptions e = Config.SearchEngines;
+			OnEngineSelected(args1, ref e, Lv_Engines);
+			Config.SearchEngines = e;
+		};
+
+		Lv_Engines2.OpenSelectedItem += args1 =>
+		{
+			SearchEngineOptions e = Config.PriorityEngines;
+			OnEngineSelected(args1, ref e, Lv_Engines2);
+			Config.PriorityEngines = e;
+		};
+
 		Lv_Engines.ScrollDown(Cache.EngineOptions.Length);
 
 		Tv_Results.CellActivated += OnCellActivated;
@@ -292,7 +284,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		EnsureUICongruency();
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear, Lv_Engines, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
+		        Btn_Clear, Lv_Engines, Lv_Engines2, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
 		        Lv_Integration
 		);
 
@@ -354,6 +346,38 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	#endregion
 
+	private void EnsureUICongruency()
+	{
+		var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
+
+		for (var i = 0; i < Lv_Integration.Source.Count; i++) {
+			var b = list[i] == Resources.Int_ContextMenu;
+
+			if (b) {
+				Lv_Integration.Source.SetMark(i, Integration.IsContextMenuAdded);
+			}
+		}
+	}
+
+	private void ProcessArgs()
+	{
+		var enumer = Args.GetEnumerator();
+
+		while (enumer.MoveNext()) {
+			var val = enumer.Current as string;
+
+			if (val == Resources.Arg_Input) {
+				enumer.MoveNext();
+				Tf_Input.Text = enumer.Current.ToString();
+			}
+		}
+	}
+
+	internal void SetInputText(ustring s)
+	{
+		Tf_Input.Text = s;
+	}
+
 	#region Control functions
 
 	private void OnIntegrationSelected(ListViewItemEventArgs eventArgs)
@@ -378,18 +402,6 @@ public sealed partial class GuiMode : BaseProgramMode
 
 			if (cell is Url { } u) {
 				HttpUtilities.OpenUrl(u);
-
-				// TODO
-				/*ThreadPool.QueueUserWorkItem(async c =>
-				{
-					try {
-						await ImageUtility.CalculateSimilarityAsync(u, QueryMat);
-					}
-					catch (Exception e) {
-						
-					}
-				});*/
-
 			}
 
 		}
@@ -400,23 +412,36 @@ public sealed partial class GuiMode : BaseProgramMode
 		}
 	}
 
-	private void OnEngineSelected(ListViewItemEventArgs args)
+	private static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)
 	{
 		var val = (SearchEngineOptions) args.Value;
 
-		var isMarked = Lv_Engines.Source.IsMarked(args.Item);
+		var isMarked = lv.Source.IsMarked(args.Item);
+		var list     = lv.Source.ToList();
 
 		if (isMarked) {
 			if (val == SearchEngineOptions.None) {
-				Config.SearchEngines = val;
+				e = val;
 			}
-
 			else {
-				Config.SearchEngines |= val;
+				e |= val;
 			}
 		}
 		else {
-			Config.SearchEngines &= ~val;
+			e &= ~val;
+		}
+
+		for (var i = 0; i < lv.Source.Count; i++) {
+			var flag = Enum.Parse<SearchEngineOptions>(list[i].ToString());
+
+			var mark = e.HasFlag(flag);
+
+			/*if (flag == SearchEngineOptions.Auto) {
+				// continue;
+				// mark = false;
+			}*/
+			
+			lv.Source.SetMark(i, mark);
 		}
 
 		/*var selected = EnumHelper.GetSetFlags<SearchEngineOptions>(Config.SearchEngines, false);
@@ -447,7 +472,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		}*/
 
-		Debug.WriteLine($"{val} {args.Item} -> {Config.SearchEngines} {isMarked}");
+		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}");
 	}
 
 	private void OnRestart()
@@ -503,9 +528,9 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		Lbl_InputOk.Text = OK;
 
-		Query      = sq;
+		Query    = sq;
 		QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
-		Status     = ProgramStatus.Signal;
+		Status   = ProgramStatus.Signal;
 
 		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
 
