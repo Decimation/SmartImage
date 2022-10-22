@@ -524,6 +524,8 @@ public sealed class GuiMode : BaseProgramMode
 
 	private async void OnRun()
 	{
+		Btn_Run.Enabled = false;
+
 		var text = Tf_Input.Text;
 
 		Debug.WriteLine($"{text}", nameof(OnRun));
@@ -556,6 +558,7 @@ public sealed class GuiMode : BaseProgramMode
 		else {
 			Lbl_InputOk.Text   = Err;
 			Lbl_InputInfo.Text = "Error: invalid input";
+			Btn_Run.Enabled    = true;
 			return;
 		}
 
