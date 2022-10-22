@@ -23,6 +23,9 @@ public abstract class BaseProgramMode : IDisposable
 		IsReady = new ManualResetEvent(false);
 
 		QueryMat = null;
+
+		Client.OnResult   += OnResult;
+		Client.OnComplete += OnComplete;
 	}
 
 	public SearchQuery Query { get; set; }
@@ -49,9 +52,6 @@ public abstract class BaseProgramMode : IDisposable
 		var now = Stopwatch.StartNew();
 
 		PreSearch(sender);
-
-		Client.OnResult   += OnResult;
-		Client.OnComplete += OnComplete;
 
 		Status = ProgramStatus.None;
 
@@ -90,11 +90,12 @@ public abstract class BaseProgramMode : IDisposable
 
 	public abstract void Close();
 
-	#region Implementation of IDisposable
-
-	public abstract void Dispose();
-
-	#endregion
+	public virtual void Dispose()
+	{
+		Client.Dispose();
+		Query.Dispose();
+		QueryMat?.Dispose();
+	}
 }
 
 public enum ProgramStatus

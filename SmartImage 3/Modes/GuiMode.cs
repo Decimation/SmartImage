@@ -376,10 +376,8 @@ public sealed class GuiMode : BaseProgramMode
 
 	public override void Dispose()
 	{
-		Client.Dispose();
-
-		Query.Dispose();
-		QueryMat?.Dispose();
+		
+		base.Dispose();
 	}
 
 	protected override void ProcessArg(object? val, IEnumerator e)
@@ -566,7 +564,7 @@ public sealed class GuiMode : BaseProgramMode
 		Lbl_InputOk.Text = OK;
 
 		Query    = sq;
-		QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
+		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
 		Status   = ProgramStatus.Signal;
 
 		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";

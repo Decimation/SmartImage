@@ -69,12 +69,9 @@ public static class Program
 
 		// AC.Write(Gui.NameFiglet);
 
-		main1:
-
 		bool cli = args is { } && args.Any();
 
 		_main = new GuiMode(args);
-
 		/*
 		 * Check if clipboard contains valid query input
 		 */
@@ -92,6 +89,7 @@ public static class Program
 
 		});
 
+		main1:
 		object status;
 
 		var run = _main.RunAsync(null);
