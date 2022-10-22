@@ -6,7 +6,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using OpenCvSharp;
+// using OpenCvSharp;
 using SmartImage.Lib;
 using Terminal.Gui;
 
@@ -22,7 +22,7 @@ public abstract class BaseProgramMode : IDisposable
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
 
-		QueryMat = null;
+		// QueryMat = null;
 
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
@@ -41,11 +41,6 @@ public abstract class BaseProgramMode : IDisposable
 	protected int ResultCount { get; set; }
 
 	public ManualResetEvent IsReady { get; protected set; }
-
-	/// <summary>
-	/// <see cref="Mat"/> of <see cref="Query"/>
-	/// </summary>
-	protected Mat? QueryMat { get; set; }
 
 	public virtual async Task<object?> RunAsync(object? sender = null)
 	{
@@ -94,7 +89,7 @@ public abstract class BaseProgramMode : IDisposable
 	{
 		Client.Dispose();
 		Query.Dispose();
-		QueryMat?.Dispose();
+		// QueryMat?.Dispose();
 	}
 }
 

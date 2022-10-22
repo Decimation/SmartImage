@@ -1,5 +1,6 @@
 ﻿using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.App;
@@ -71,13 +72,22 @@ internal static class Styles
 		Focus = Atr_Black_White,
 	};
 
-	internal static readonly ColorScheme Cs_ListView = new ColorScheme()
+	internal static readonly ColorScheme Cs_ListView = new ColorScheme
 	{
 		Disabled = Atr_Gray_Black,
 		Normal = Atr_White_Black,
 		HotNormal = Atr_White_Black,
 		Focus = Atr_Green_Black,
 		HotFocus = Atr_Green_Black
+	};
+
+	internal static readonly ColorScheme Cs_Btn1 = new()
+	{
+		Normal    = Atr_BrightRed_Black,
+		Disabled  = Atr_White_Black,
+		HotNormal = Atr_BrightRed_Black,
+		HotFocus  = Atr_Red_Black,
+		Focus     = Atr_Red_Black
 	};
 
 	#endregion

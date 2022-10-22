@@ -7,17 +7,16 @@ using System.Threading.Tasks;
 using Flurl.Http;
 using Kantan.Utilities;
 using Novus.FileTypes;
-using OpenCvSharp;
 
 namespace SmartImage;
 
 public static class ImageUtility
 {
-	public static SSIMResult CalculateSimilarity(Mat i1, Mat i2, int wh)
+	/*public static SSIMResult CalculateSimilarity(Mat i1, Mat i2, int wh)
 	{
 		const double C1 = 6.5025, C2 = 58.5225;
 
-		/***************************** INITS **********************************/
+		/***************************** INITS *********************************#1#
 		MatType d = MatType.CV_32F;
 
 		i1.ConvertTo(i1, d); // cannot calculate on one byte large values
@@ -39,7 +38,7 @@ public static class ImageUtility
 		Mat i12  = i1.Mul(i1); // I1^2
 		Mat i1I2 = i1.Mul(i2); // I1 * I2
 
-		/***********************PRELIMINARY COMPUTING ******************************/
+		/***********************PRELIMINARY COMPUTING *****************************#1#
 
 		Mat mu1 = new(), mu2 = new(); //
 		Cv2.GaussianBlur(i1, mu1, new Size(wh, wh), 1.5);
@@ -118,5 +117,5 @@ public static class ImageUtility
 		}
 
 		return default;
-	}
+	}*/
 }

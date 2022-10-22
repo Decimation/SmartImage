@@ -17,7 +17,6 @@ using Novus;
 using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
-using OpenCvSharp;
 using SmartImage.App;
 using SmartImage.Lib;
 using Terminal.Gui;

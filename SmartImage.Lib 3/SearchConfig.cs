@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Configuration;
+﻿using System.Configuration;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using ConfigurationManager = System.Configuration.ConfigurationManager;
-using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
 
@@ -31,34 +23,29 @@ public sealed class SearchConfig
 	/// <summary>
 	/// Engines used to search.
 	/// </summary>
-	[ConfigurationProperty(nameof(SearchEngines), DefaultValue = SE_DEFAULT)]
 	public SearchEngineOptions SearchEngines
 	{
-		get => ReadSetting<SearchEngineOptions>(nameof(SearchEngines), SE_DEFAULT);
+		get => ReadSetting(nameof(SearchEngines), SE_DEFAULT);
 		set => AddUpdateAppSettings(nameof(SearchEngines), value.ToString());
 	}
 
 	/// <summary>
 	/// Engines whose results are opened in the default browser.
 	/// </summary>
-	[ConfigurationProperty(nameof(PriorityEngines), DefaultValue = PE_DEFAULT)]
 	public SearchEngineOptions PriorityEngines
 	{
-		get => ReadSetting<SearchEngineOptions>(nameof(PriorityEngines), PE_DEFAULT);
+		get => ReadSetting(nameof(PriorityEngines), PE_DEFAULT);
 		set => AddUpdateAppSettings(nameof(PriorityEngines), value.ToString());
 	}
 
 	/// <summary>
 	/// Keeps console window on-top.
 	/// </summary>
-	[ConfigurationProperty(nameof(OnTop), DefaultValue = ON_TOP_DEFAULT)]
 	public bool OnTop
 	{
-		get => ReadSetting<bool>(nameof(OnTop), ON_TOP_DEFAULT);
+		get => ReadSetting(nameof(OnTop), ON_TOP_DEFAULT);
 		set => AddUpdateAppSettings(nameof(OnTop), value.ToString());
 	}
-
-	public SearchConfig() { }
 
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
@@ -66,17 +53,21 @@ public sealed class SearchConfig
 	public void Save()
 	{
 		Configuration.Save(ConfigurationSaveMode.Full, true);
+
+		Debug.WriteLine($"{Configuration.FilePath}");
 	}
 
 	[CBN]
-	static T ReadSetting<T>(string key, [CBN] T def)
+	private static T ReadSetting<T>(string key, [CBN] T def)
 	{
 		try {
+			def ??= default(T);
+
 			var appSettings = Configuration.AppSettings.Settings;
 			var result      = appSettings[key] ?? null;
 
-			if (result  == null) {
-				AddUpdateAppSettings(key, def);
+			if (result == null) {
+				AddUpdateAppSettings(key, def.ToString());
 				result = appSettings[key];
 			}
 
@@ -87,7 +78,8 @@ public sealed class SearchConfig
 			if (type.IsEnum) {
 				return (T) Enum.Parse(type, value);
 			}
-			else if (type == typeof(bool)) {
+
+			if (type == typeof(bool)) {
 				return (T) (object) bool.Parse(value);
 			}
 
@@ -98,7 +90,7 @@ public sealed class SearchConfig
 		}
 	}
 
-	static void AddUpdateAppSettings(string key, string value)
+	private static void AddUpdateAppSettings(string key, string value)
 	{
 		try {
 			var settings = Configuration.AppSettings.Settings;
@@ -117,7 +109,6 @@ public sealed class SearchConfig
 			Debug.WriteLine("Error writing app settings");
 		}
 
-		Debug.WriteLine($"{Configuration.FilePath}");
 	}
 
 	public override string ToString()

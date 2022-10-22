@@ -22,7 +22,6 @@ using Kantan.Utilities;
 using Novus.FileTypes;
 using Novus.Utilities;
 using Novus.Win32;
-using OpenCvSharp;
 using SmartImage.App;
 using static Novus.Win32.SysCommand;
 using Window = Terminal.Gui.Window;
@@ -122,14 +121,7 @@ public sealed class GuiMode : BaseProgramMode
 		Y               = Pos.Y(Btn_Run),
 		HotKey          = Key.Null,
 		HotKeySpecifier = default,
-		ColorScheme = new()
-		{
-			Normal    = Styles.Atr_BrightRed_Black,
-			Disabled  = Styles.Atr_White_Black,
-			HotNormal = Styles.Atr_BrightRed_Black,
-			HotFocus  = Styles.Atr_Red_Black,
-			Focus     = Styles.Atr_Red_Black
-		}
+		ColorScheme = Styles.Cs_Btn1
 	};
 
 	private static readonly Button Btn_Restart = new("Restart")
@@ -203,7 +195,7 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly Button Btn_Save = new("Save")
 	{
-		X       = Pos.Left(Cb_ContextMenu)-10,
+		X       = Pos.X(Btn_Restart),
 		Y       = Pos.Bottom(Btn_Restart),
 		Enabled = true,
 	};

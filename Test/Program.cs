@@ -14,11 +14,8 @@ using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Microsoft.ClearScript.V8;
-using OpenCvSharp;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
-using Point = OpenCvSharp.Point;
-using Size = OpenCvSharp.Size;
 
 #pragma warning disable IDE0079
 #pragma warning disable CS0168, CS1998
