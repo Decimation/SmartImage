@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchConfig : ConfigurationSection
+public sealed class SearchConfig
 {
 	/// <summary>
 	/// Default value for <see cref="SearchEngines"/>
@@ -33,8 +34,8 @@ public sealed class SearchConfig : ConfigurationSection
 	[ConfigurationProperty(nameof(SearchEngines), DefaultValue = SE_DEFAULT)]
 	public SearchEngineOptions SearchEngines
 	{
-		get => Enum.Parse<SearchEngineOptions>(this[nameof(SearchEngines)].ToString());
-		set => this[nameof(SearchEngines)] = value;
+		get => ReadSetting<SearchEngineOptions>(nameof(SearchEngines), SE_DEFAULT);
+		set => AddUpdateAppSettings(nameof(SearchEngines), value.ToString());
 	}
 
 	/// <summary>
@@ -43,8 +44,8 @@ public sealed class SearchConfig : ConfigurationSection
 	[ConfigurationProperty(nameof(PriorityEngines), DefaultValue = PE_DEFAULT)]
 	public SearchEngineOptions PriorityEngines
 	{
-		get => Enum.Parse<SearchEngineOptions>(this[nameof(PriorityEngines)].ToString());
-		set => this[nameof(PriorityEngines)] = value;
+		get => ReadSetting<SearchEngineOptions>(nameof(PriorityEngines), PE_DEFAULT);
+		set => AddUpdateAppSettings(nameof(PriorityEngines), value.ToString());
 	}
 
 	/// <summary>
@@ -53,29 +54,70 @@ public sealed class SearchConfig : ConfigurationSection
 	[ConfigurationProperty(nameof(OnTop), DefaultValue = ON_TOP_DEFAULT)]
 	public bool OnTop
 	{
-		get => (bool) this[nameof(OnTop)];
-		set => this[nameof(OnTop)] = value;
+		get => ReadSetting<bool>(nameof(OnTop), ON_TOP_DEFAULT);
+		set => AddUpdateAppSettings(nameof(OnTop), value.ToString());
 	}
 
-	public SearchConfig()
-	{
-		var c = Configuration.Sections["Config"];
-
-		if (c == null) {
-			Configuration.Sections.Add("Config", this);
-		}
-
-		this.SectionInformation.ForceSave = true;
-
-	}
+	public SearchConfig() { }
 
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
 	public void Save()
 	{
-		Configuration.Save(ConfigurationSaveMode.Modified);
-		ConfigurationManager.RefreshSection(Configuration.AppSettings.SectionInformation.Name);
+		Configuration.Save(ConfigurationSaveMode.Full, true);
+	}
+
+	[CBN]
+	static T ReadSetting<T>(string key, [CBN] T def)
+	{
+		try {
+			var appSettings = Configuration.AppSettings.Settings;
+			var result      = appSettings[key] ?? null;
+
+			if (result  == null) {
+				AddUpdateAppSettings(key, def);
+				result = appSettings[key];
+			}
+
+			var value = result.Value;
+
+			var type = typeof(T);
+
+			if (type.IsEnum) {
+				return (T) Enum.Parse(type, value);
+			}
+			else if (type == typeof(bool)) {
+				return (T) (object) bool.Parse(value);
+			}
+
+			return (T) (object) value;
+		}
+		catch (ConfigurationErrorsException) {
+			return default;
+		}
+	}
+
+	static void AddUpdateAppSettings(string key, string value)
+	{
+		try {
+			var settings = Configuration.AppSettings.Settings;
+
+			if (settings[key] == null) {
+				settings.Add(key, value);
+			}
+			else {
+				settings[key].Value = value;
+			}
+
+			Configuration.Save(ConfigurationSaveMode.Modified);
+			ConfigurationManager.RefreshSection(Configuration.AppSettings.SectionInformation.Name);
+		}
+		catch (ConfigurationErrorsException) {
+			Debug.WriteLine("Error writing app settings");
+		}
+
+		Debug.WriteLine($"{Configuration.FilePath}");
 	}
 
 	public override string ToString()

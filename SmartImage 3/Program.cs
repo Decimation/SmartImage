@@ -66,12 +66,11 @@ public static class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
-
-		// AC.Write(Gui.NameFiglet);
-
+		
 		bool cli = args is { } && args.Any();
 
 		_main = new GuiMode(args);
+		
 		/*
 		 * Check if clipboard contains valid query input
 		 */

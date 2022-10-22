@@ -54,11 +54,11 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 		var requestUri = response.ResponseMessage?.RequestMessage?.RequestUri;
 
-		Debug.Assert(requestUri != null);
+		// Debug.Assert(requestUri != null);
 
 		string detailUrl = requestUri.ToString().Replace("/color/", "/bovw/");
 
-		Debug.WriteLine($"{url} {requestUri} {detailUrl} {response.StatusCode} ", Name);
+		// Debug.WriteLine($"{url} {requestUri} {detailUrl} {response.StatusCode} ", Name);
 
 		return new Url(detailUrl);
 	}

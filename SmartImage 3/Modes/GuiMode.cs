@@ -97,7 +97,7 @@ public sealed class GuiMode : BaseProgramMode
 		Y           = Pos.Top(Lbl_Input),
 		Width       = 50,
 		ColorScheme = Styles.Cs_Win2,
-		AutoSize    = false
+		AutoSize    = false,
 		// AutoSize = true,
 	};
 
@@ -176,13 +176,13 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X        = Pos.X(Lbl_Input),
-		Y        = Pos.Bottom(Lbl_InputInfo),
-		Width    = Dim.Fill(),
-		Height   = Dim.Fill(),
-		AutoSize = true,
+		X             = Pos.X(Lbl_Input),
+		Y             = Pos.Bottom(Lbl_InputInfo),
+		Width         = Dim.Fill(),
+		Height        = Dim.Fill(),
+		AutoSize      = true,
 		FullRowSelect = true,
-		
+
 	};
 
 	private static readonly ProgressBar Pbr_Status = new()
@@ -193,22 +193,19 @@ public sealed class GuiMode : BaseProgramMode
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
-	/*private static readonly ListView Lv_Integration = new(Integration.IntegrationNames)
-	{
-		X                       = Pos.X(Lv_Engines),
-		Y                       = Pos.Bottom(Lv_Engines),
-		Width                   = 15,
-		Height                  = Dim.Height(Tf_Input),
-		AllowsMarking           = true,
-		AllowsMultipleSelection = true
-	};*/
-
 	private static readonly CheckBox Cb_ContextMenu = new(Resources.Int_ContextMenu)
 	{
 		X      = Pos.X(Lv_Engines),
 		Y      = Pos.Bottom(Lv_Engines),
 		Width  = 15,
 		Height = Dim.Height(Tf_Input),
+	};
+
+	private static readonly Button Btn_Save = new("Save")
+	{
+		X       = Pos.Left(Cb_ContextMenu)-10,
+		Y       = Pos.Bottom(Btn_Restart),
+		Enabled = true,
 	};
 
 	#endregion
@@ -218,7 +215,6 @@ public sealed class GuiMode : BaseProgramMode
 	public GuiMode(string[] args) : base(args, SearchQuery.Null)
 	{
 		Application.Init();
-		// Cache.SetConsoleMenu();
 
 		ProcessArgs();
 
@@ -238,11 +234,10 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		Dt_Results.Columns.AddRange(col);
-		
+
 		var columnStyle = new TableView.ColumnStyle()
 		{
 			Alignment = TextAlignment.Left,
-			
 		};
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
@@ -253,7 +248,7 @@ public sealed class GuiMode : BaseProgramMode
 		{
 			ShowHorizontalScrollIndicators = true,
 			AlwaysShowHeaders              = true,
-			
+
 			RowColorGetter = args =>
 			{
 				// var eng=args.Table.Rows[args.RowIndex]["Engine"];
@@ -262,22 +257,11 @@ public sealed class GuiMode : BaseProgramMode
 
 			ShowHorizontalHeaderUnderline = true,
 			ShowHorizontalHeaderOverline  = true,
-			
+
 			ColumnStyles = columnStyles,
 		};
 
-		Tv_Results.Border = new Border()
-		{
-			BorderStyle     = BorderStyle.Single,
-			DrawMarginFrame = true,
-			BorderThickness = new Thickness(2),
-			BorderBrush     = Color.Red,
-			Background      = Color.Black,
-			Effect3D        = true,
-		};
-
-		// Tv_Results.Width  = Console.WindowWidth - 4;
-		// Tv_Results.Height = Console.WindowHeight;
+		Tv_Results.Border = Styles.Br_1;
 
 		Btn_Run.Clicked     += OnRun;
 		Btn_Restart.Clicked += OnRestart;
@@ -301,6 +285,8 @@ public sealed class GuiMode : BaseProgramMode
 			Config.PriorityEngines = e;
 		};
 
+		// Update(Lv_Engines, Config.SearchEngines);
+
 		Lv_Engines.ScrollDown(Cache.EngineOptions.Length);
 
 		Tv_Results.CellActivated += OnCellActivated;
@@ -313,12 +299,17 @@ public sealed class GuiMode : BaseProgramMode
 		Tv_Results.Table = Dt_Results;
 
 		// Lv_Integration.OpenSelectedItem += OnIntegrationSelected;
+		
+		Btn_Save.Clicked += () =>
+		{
+			Config.Save();
+		};
 
 		EnsureUICongruency();
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Lv_Engines, Lv_Engines2, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
-		        /*Lv_Integration,*/ Cb_ContextMenu
+		        Cb_ContextMenu, Btn_Save
 		);
 
 		Top.Add(Win);
@@ -357,7 +348,8 @@ public sealed class GuiMode : BaseProgramMode
 			}
 
 			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
-
+			Tv_Results.SetNeedsDisplay();
+			Pbr_Status.SetNeedsDisplay();
 		});
 
 	}
@@ -376,7 +368,7 @@ public sealed class GuiMode : BaseProgramMode
 
 	public override void Dispose()
 	{
-		
+
 		base.Dispose();
 	}
 
@@ -384,7 +376,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		if (val is string s && s == Resources.Arg_Input) {
 			e.MoveNext();
-			SetInputText(s);
+			SetInputText(e.Current.ToString());
 		}
 	}
 
@@ -392,18 +384,9 @@ public sealed class GuiMode : BaseProgramMode
 
 	private void EnsureUICongruency()
 	{
-		/*var list = Lv_Integration.Source.ToList().Cast<string>().ToArray();
-
-		for (var i = 0; i < Lv_Integration.Source.Count; i++) {
-			var b = list[i] == Resources.Int_ContextMenu;
-
-			if (b) {
-				Lv_Integration.Source.SetMark(i, Integration.IsContextMenuAdded);
-			}
-		}*/
-
 		Cb_ContextMenu.Checked = Integration.IsContextMenuAdded;
-
+		Update(Lv_Engines, Config.SearchEngines);
+		Update(Lv_Engines2, Config.PriorityEngines);
 	}
 
 	internal void SetInputText(ustring s)
@@ -411,18 +394,25 @@ public sealed class GuiMode : BaseProgramMode
 		Tf_Input.Text = s;
 	}
 
-	#region Control functions
-
-	/*private void OnIntegrationSelected(ListViewItemEventArgs eventArgs)
+	private static void Update(ListView lv, SearchEngineOptions e)
 	{
-		var marked = Lv_Integration.Source.IsMarked(eventArgs.Item);
-		var value  = (string) eventArgs.Value;
+		var list = lv.Source.ToList();
 
-		if (value == Resources.Int_ContextMenu) {
-			App.Integration.HandleContextMenu(marked);
+		for (var i = 0; i < lv.Source.Count; i++) {
+			var flag = Enum.Parse<SearchEngineOptions>(list[i].ToString());
+
+			var mark = e.HasFlag(flag);
+
+			/*if (flag == SearchEngineOptions.Auto) {
+				// continue;
+				// mark = false;
+			}*/
+
+			lv.Source.SetMark(i, mark);
 		}
+	}
 
-	}*/
+	#region Control functions
 
 	private void OnCellActivated(TableView.CellActivatedEventArgs args)
 	{
@@ -439,9 +429,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		}
 		catch (Exception e) {
-
 			Debug.WriteLine($"{e.Message}", nameof(OnCellActivated));
-
 		}
 	}
 
@@ -450,7 +438,6 @@ public sealed class GuiMode : BaseProgramMode
 		var val = (SearchEngineOptions) args.Value;
 
 		var isMarked = lv.Source.IsMarked(args.Item);
-		var list     = lv.Source.ToList();
 
 		if (isMarked) {
 			if (val == SearchEngineOptions.None) {
@@ -464,46 +451,7 @@ public sealed class GuiMode : BaseProgramMode
 			e &= ~val;
 		}
 
-		for (var i = 0; i < lv.Source.Count; i++) {
-			var flag = Enum.Parse<SearchEngineOptions>(list[i].ToString());
-
-			var mark = e.HasFlag(flag);
-
-			/*if (flag == SearchEngineOptions.Auto) {
-				// continue;
-				// mark = false;
-			}*/
-
-			lv.Source.SetMark(i, mark);
-		}
-
-		/*var selected = EnumHelper.GetSetFlags<SearchEngineOptions>(Config.SearchEngines, false);
-
-		for (int se = 0; se < Lv_Engines.Source.Count; se++) {
-			Lv_Engines.Source.SetMark(se, selected.Contains(val));
-		}*/
-
-		/*var selected = EnumHelper.GetSetFlags(Config.SearchEngines, false);
-		var list     = Lv_Engines.Source.ToList().Cast<SearchEngineOptions>().ToList();
-
-		for (int se = 0; se < Lv_Engines.Source.Count; se++) {
-			var a =Lv_Engines.Source.IsMarked(se);
-			var x = list[se];
-
-			switch (a) {
-				case true when selected.Contains(x):
-					continue;
-				case true:
-				{
-					if (!selected.Contains(x)) {
-						Lv_Engines.Source.SetMark(se, false);
-					}
-
-					break;
-				}
-			}
-
-		}*/
+		Update(lv, e);
 
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}");
 	}
@@ -566,9 +514,9 @@ public sealed class GuiMode : BaseProgramMode
 
 		Lbl_InputOk.Text = OK;
 
-		Query    = sq;
+		Query = sq;
 		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
-		Status   = ProgramStatus.Signal;
+		Status = ProgramStatus.Signal;
 
 		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
 
@@ -595,8 +543,9 @@ public sealed class GuiMode : BaseProgramMode
 			Pbr_Status.Fraction = 0;
 
 			Lbl_InputInfo.Text = ustring.Empty;
+			Tv_Results.SetNeedsDisplay();
 
-			Application.Refresh();
+			// Application.Refresh();
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}", nameof(OnClear));
