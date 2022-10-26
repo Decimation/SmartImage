@@ -26,30 +26,20 @@ using SmartImage.App;
 using static Novus.Win32.SysCommand;
 using Window = Terminal.Gui.Window;
 using System.Xml.Linq;
+using Kantan.Console;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
+using SmartImage.UI;
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Modes;
 
-public sealed class GuiMode : BaseProgramMode
+public sealed partial class GuiMode : BaseProgramMode
 {
-	#region Values
-
-	private static ustring Err => ustring.Make('!');
-
-	private static ustring NA => ustring.Make(Application.Driver.RightDefaultIndicator);
-
-	private static ustring OK => ustring.Make(Application.Driver.Checked);
-
-	private static ustring PRC => ustring.Make(Application.Driver.Diamond);
-
-	#endregion
+	// NOTE: DO NOT REARRANGE FIELD ORDER
 
 	#region Controls
-
-	// NOTE: DO NOT REARRANGE FIELD ORDER
 
 	private static readonly Toplevel Top = Application.Top;
 
@@ -60,47 +50,61 @@ public sealed class GuiMode : BaseProgramMode
 		// Leave one row for the toplevel menu - todo
 
 		// By using Dim.Fill(), it will automatically resize without manual intervention
-		Width       = Dim.Fill(),
-		Height      = Dim.Fill(),
+		Width = Dim.Fill(),
+		Height = Dim.Fill(),
 		ColorScheme = Styles.Cs_Win,
 
 	};
 
-	private static readonly MenuBar Mb_Menu = new(new MenuBarItem[]
+	private static readonly MenuBar Mb_Menu = new()
+	{ };
+
+	private static readonly MenuBarItem[] Mbi_Items = new MenuBarItem[]
+	{
+		new("_Help", null, () =>
 		{
-			new("_Help", null, () =>
+			var about = new Dialog("Help")
 			{
-				var about = new Dialog("About")
-				{
-					Text     = "Press enter",
-					AutoSize = true,
-				};
-				var button = new Button("Ok") { };
-				button.Clicked += () => Application.RequestStop();
-				about.AddButton(button);
-				Application.Run(about);
-			})
+				Text     = "Press enter",
+				AutoSize = true,
+			};
+			var button = new Button("Ok") { };
+			button.Clicked += () => Application.RequestStop();
+			about.AddButton(button);
+			Application.Run(about);
+		}),
+		new("_About", null, () =>
+		{
+			var about = new Dialog("About")
+			{
+				Text     = "Press enter",
+				AutoSize = true,
+			};
+			var button = new Button("Ok") { };
+			button.Clicked += () => Application.RequestStop();
+			about.AddButton(button);
+			Application.Run(about);
 		})
-		{ };
+	};
 
 	private static readonly Label Lbl_Input = new("Input:")
 	{
-		X           = 1,
-		Y           = 0,
+		X = 1,
+		Y = 0,
 		ColorScheme = Styles.Cs_Elem2
 	};
 
 	private static readonly TextField Tf_Input = new(ustring.Empty)
 	{
-		X           = Pos.Right(Lbl_Input),
-		Y           = Pos.Top(Lbl_Input),
-		Width       = 50,
+		X = Pos.Right(Lbl_Input),
+		Y = Pos.Top(Lbl_Input),
+		Width = 50,
 		ColorScheme = Styles.Cs_Win2,
-		AutoSize    = false,
+		AutoSize = false,
 		// AutoSize = true,
 	};
 
-	private static readonly Label Lbl_InputOk = new(NA)
+	private static readonly Label Lbl_InputOk = new(Values.NA)
 	{
 		X = Pos.Right(Tf_Input) + 1,
 		Y = Pos.Y(Tf_Input),
@@ -109,94 +113,94 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly Button Btn_Run = new("Run")
 	{
-		X           = Pos.Right(Lbl_InputOk) + 1,
-		Y           = Pos.Y(Tf_Input),
+		X = Pos.Right(Lbl_InputOk) + 1,
+		Y = Pos.Y(Tf_Input),
 		ColorScheme = Styles.Cs_Elem1,
 
 	};
 
 	private static readonly Button Btn_Clear = new("Clear")
 	{
-		X               = Pos.Right(Btn_Run),
-		Y               = Pos.Y(Btn_Run),
-		HotKey          = Key.Null,
+		X = Pos.Right(Btn_Run),
+		Y = Pos.Y(Btn_Run),
+		HotKey = Key.Null,
 		HotKeySpecifier = default,
 		ColorScheme = Styles.Cs_Btn1
 	};
 
 	private static readonly Button Btn_Restart = new("Restart")
 	{
-		X       = Pos.Right(Btn_Clear),
-		Y       = Pos.Y(Btn_Clear),
+		X = Pos.Right(Btn_Clear),
+		Y = Pos.Y(Btn_Clear),
 		Enabled = false,
 	};
 
 	private static readonly ListView Lv_Engines = new(Cache.EngineOptions)
 	{
 		AllowsMultipleSelection = true,
-		AllowsMarking           = true,
-		X                       = Pos.Right(Btn_Restart) + 1,
-		Y                       = Pos.Y(Btn_Restart),
-		AutoSize                = true,
-		Width                   = 15,
-		Height                  = Dim.Height(Tf_Input),
-		ColorScheme             = Styles.Cs_ListView
+		AllowsMarking = true,
+		X = Pos.Right(Btn_Restart) + 1,
+		Y = Pos.Y(Btn_Restart),
+		AutoSize = true,
+		Width = 15,
+		Height = Dim.Height(Tf_Input),
+		ColorScheme = Styles.Cs_ListView
 	};
 
 	private static readonly ListView Lv_Engines2 = new(Cache.EngineOptions)
 	{
 		AllowsMultipleSelection = true,
-		AllowsMarking           = true,
-		X                       = Pos.Right(Lv_Engines) + 1,
-		Y                       = Pos.Y(Lv_Engines),
-		AutoSize                = true,
-		Width                   = 15,
-		Height                  = Dim.Height(Tf_Input),
-		ColorScheme             = Styles.Cs_ListView
+		AllowsMarking = true,
+		X = Pos.Right(Lv_Engines) + 1,
+		Y = Pos.Y(Lv_Engines),
+		AutoSize = true,
+		Width = 15,
+		Height = Dim.Height(Tf_Input),
+		ColorScheme = Styles.Cs_ListView
 	};
 
 	private static readonly Label Lbl_InputInfo = new()
 	{
-		X      = Pos.Bottom(Tf_Input),
-		Y      = 1,
-		Width  = 15,
+		X = Pos.Bottom(Tf_Input),
+		Y = 1,
+		Width = 15,
 		Height = Dim.Height(Lv_Engines)
 	};
 
 	private static readonly DataTable Dt_Results = new()
-		{ };
+	{ };
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X             = Pos.X(Lbl_Input),
-		Y             = Pos.Bottom(Lbl_InputInfo),
-		Width         = Dim.Fill(),
-		Height        = Dim.Fill(),
-		AutoSize      = true,
+		X = Pos.X(Lbl_Input),
+		Y = Pos.Bottom(Lbl_InputInfo),
+		Width = Dim.Fill(),
+		Height = Dim.Fill(),
+		AutoSize = true,
 		FullRowSelect = true,
 
 	};
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Lv_Engines2),
-		Y                = Pos.Y(Lv_Engines2),
-		Width            = 10,
+		X = Pos.Right(Lv_Engines2),
+		Y = Pos.Y(Lv_Engines2),
+		Width = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
 	private static readonly CheckBox Cb_ContextMenu = new(Resources.Int_ContextMenu)
 	{
-		X      = Pos.X(Lv_Engines),
-		Y      = Pos.Bottom(Lv_Engines),
-		Width  = 15,
+		X = Pos.X(Lv_Engines),
+		Y = Pos.Bottom(Lv_Engines),
+		Width = 15,
 		Height = Dim.Height(Tf_Input),
 	};
 
 	private static readonly Button Btn_Save = new("Save")
 	{
-		X       = Pos.X(Btn_Restart),
-		Y       = Pos.Bottom(Btn_Restart),
+		X = Pos.X(Btn_Restart),
+		Y = Pos.Bottom(Btn_Restart),
 		Enabled = true,
 	};
 
@@ -209,6 +213,47 @@ public sealed class GuiMode : BaseProgramMode
 		Application.Init();
 
 		ProcessArgs();
+
+		Mb_Menu.Menus = new MenuBarItem[]
+		{
+			new("_About", null, () =>
+			{
+				var about = new Dialog("About")
+				{
+					Text     = ustring.Empty,
+					AutoSize = false,
+				};
+
+				var button = new Button("Refresh") { };
+				var button2 = new Button("Ok") { };
+
+				DataTable table = Config.ToTable();
+
+				var tv = new TableView(table)
+				{
+					AutoSize = true,
+					
+					Width = Dim.Fill(),
+					Height = Dim.Fill() - (Dim.Height(button) + Dim.Height(button2)),
+				};
+
+				button.Clicked += () =>
+				{
+					tv.Table = Config.ToTable();
+					tv.SetNeedsDisplay();
+					about.SetNeedsDisplay();
+				};
+				button2.Clicked += () =>
+				{
+					Application.RequestStop();
+				};
+				about.Add(tv);
+				about.AddButton(button);
+				about.AddButton(button2);
+
+				Application.Run(about);
+			}),
+		};
 
 		Top.Add(Mb_Menu);
 
@@ -291,11 +336,8 @@ public sealed class GuiMode : BaseProgramMode
 		Tv_Results.Table = Dt_Results;
 
 		// Lv_Integration.OpenSelectedItem += OnIntegrationSelected;
-		
-		Btn_Save.Clicked += () =>
-		{
-			Config.Save();
-		};
+
+		Btn_Save.Clicked += OnSave;
 
 		EnsureUICongruency();
 
@@ -306,6 +348,12 @@ public sealed class GuiMode : BaseProgramMode
 
 		Top.Add(Win);
 
+	}
+
+	private void OnSave()
+	{
+		Config.Save();
+		Tf_Input.SetFocus();
 	}
 
 	public override Task<object?> RunAsync(object? sender = null)
@@ -377,31 +425,13 @@ public sealed class GuiMode : BaseProgramMode
 	private void EnsureUICongruency()
 	{
 		Cb_ContextMenu.Checked = Integration.IsContextMenuAdded;
-		Update(Lv_Engines, Config.SearchEngines);
-		Update(Lv_Engines2, Config.PriorityEngines);
+		Lv_Engines.FromEnum(Config.SearchEngines);
+		Lv_Engines.FromEnum(Config.PriorityEngines);
 	}
 
 	internal void SetInputText(ustring s)
 	{
 		Tf_Input.Text = s;
-	}
-
-	private static void Update(ListView lv, SearchEngineOptions e)
-	{
-		var list = lv.Source.ToList();
-
-		for (var i = 0; i < lv.Source.Count; i++) {
-			var flag = Enum.Parse<SearchEngineOptions>(list[i].ToString());
-
-			var mark = e.HasFlag(flag);
-
-			/*if (flag == SearchEngineOptions.Auto) {
-				// continue;
-				// mark = false;
-			}*/
-
-			lv.Source.SetMark(i, mark);
-		}
 	}
 
 	#region Control functions
@@ -443,7 +473,7 @@ public sealed class GuiMode : BaseProgramMode
 			e &= ~val;
 		}
 
-		Update(lv, e);
+		lv.FromEnum(e);
 
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}");
 	}
@@ -459,6 +489,7 @@ public sealed class GuiMode : BaseProgramMode
 		Status              = ProgramStatus.Restart;
 		Btn_Restart.Enabled = false;
 		Btn_Run.Enabled     = true;
+		Tf_Input.SetFocus();
 
 	}
 
@@ -482,7 +513,7 @@ public sealed class GuiMode : BaseProgramMode
 			Lbl_InputInfo.Text = $"Error: {e.Message}";
 		}
 
-		Lbl_InputOk.Text = PRC;
+		Lbl_InputOk.Text = Values.PRC;
 
 		if (sq is { } && sq != SearchQuery.Null) {
 
@@ -496,7 +527,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		}
 		else {
-			Lbl_InputOk.Text   = Err;
+			Lbl_InputOk.Text   = Values.Err;
 			Lbl_InputInfo.Text = "Error: invalid input";
 			Btn_Run.Enabled    = true;
 			return;
@@ -504,7 +535,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		Debug.WriteLine($">> {sq} {Config}", nameof(OnRun));
 
-		Lbl_InputOk.Text = OK;
+		Lbl_InputOk.Text = Values.OK;
 
 		Query = sq;
 		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
@@ -527,7 +558,7 @@ public sealed class GuiMode : BaseProgramMode
 
 			Query = SearchQuery.Null;
 
-			Lbl_InputOk.Text = NA;
+			Lbl_InputOk.Text = Values.NA;
 			Dt_Results.Clear();
 
 			IsReady.Reset();
@@ -536,7 +567,7 @@ public sealed class GuiMode : BaseProgramMode
 
 			Lbl_InputInfo.Text = ustring.Empty;
 			Tv_Results.SetNeedsDisplay();
-
+			Tf_Input.SetFocus();
 			// Application.Refresh();
 		}
 		catch (Exception e) {

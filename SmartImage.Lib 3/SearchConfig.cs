@@ -1,9 +1,12 @@
 ﻿using System.Configuration;
+using System.Data;
 using System.Diagnostics;
+using Kantan.Model;
+using Kantan.Utilities;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchConfig
+public sealed class SearchConfig : IDataTable
 {
 	/// <summary>
 	/// Default value for <see cref="SearchEngines"/>
@@ -25,8 +28,8 @@ public sealed class SearchConfig
 	/// </summary>
 	public SearchEngineOptions SearchEngines
 	{
-		get => ReadSetting(nameof(SearchEngines), SE_DEFAULT);
-		set => AddUpdateAppSettings(nameof(SearchEngines), value.ToString());
+		get => Configuration.ReadSetting(nameof(SearchEngines), SE_DEFAULT);
+		set => Configuration.AddUpdateSetting(nameof(SearchEngines), value.ToString());
 	}
 
 	/// <summary>
@@ -34,8 +37,8 @@ public sealed class SearchConfig
 	/// </summary>
 	public SearchEngineOptions PriorityEngines
 	{
-		get => ReadSetting(nameof(PriorityEngines), PE_DEFAULT);
-		set => AddUpdateAppSettings(nameof(PriorityEngines), value.ToString());
+		get => Configuration.ReadSetting(nameof(PriorityEngines), PE_DEFAULT);
+		set => Configuration.AddUpdateSetting(nameof(PriorityEngines), value.ToString());
 	}
 
 	/// <summary>
@@ -43,8 +46,8 @@ public sealed class SearchConfig
 	/// </summary>
 	public bool OnTop
 	{
-		get => ReadSetting(nameof(OnTop), ON_TOP_DEFAULT);
-		set => AddUpdateAppSettings(nameof(OnTop), value.ToString());
+		get => Configuration.ReadSetting(nameof(OnTop), ON_TOP_DEFAULT);
+		set => Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
 	}
 
 	public static readonly Configuration Configuration =
@@ -57,59 +60,25 @@ public sealed class SearchConfig
 		Debug.WriteLine($"{Configuration.FilePath}");
 	}
 
-	[CBN]
-	private static T ReadSetting<T>(string key, [CBN] T def)
+	#region Implementation of IDataTable
+
+	public DataTable ToTable()
 	{
-		try {
-			def ??= default(T);
+		var table = new DataTable("Configuration");
 
-			var appSettings = Configuration.AppSettings.Settings;
-			var result      = appSettings[key] ?? null;
+		table.Columns.AddRange(new DataColumn[]
+		{
+			new("Setting", typeof(string)),
+			new("Value", typeof(object)),
+		});
 
-			if (result == null) {
-				AddUpdateAppSettings(key, def.ToString());
-				result = appSettings[key];
-			}
-
-			var value = result.Value;
-
-			var type = typeof(T);
-
-			if (type.IsEnum) {
-				return (T) Enum.Parse(type, value);
-			}
-
-			if (type == typeof(bool)) {
-				return (T) (object) bool.Parse(value);
-			}
-
-			return (T) (object) value;
-		}
-		catch (ConfigurationErrorsException) {
-			return default;
-		}
+		table.Rows.Add("Search engines", SearchEngines);
+		table.Rows.Add("Priority engines", PriorityEngines);
+		table.Rows.Add("On top", OnTop);
+		return table;
 	}
 
-	private static void AddUpdateAppSettings(string key, string value)
-	{
-		try {
-			var settings = Configuration.AppSettings.Settings;
-
-			if (settings[key] == null) {
-				settings.Add(key, value);
-			}
-			else {
-				settings[key].Value = value;
-			}
-
-			Configuration.Save(ConfigurationSaveMode.Modified);
-			ConfigurationManager.RefreshSection(Configuration.AppSettings.SectionInformation.Name);
-		}
-		catch (ConfigurationErrorsException) {
-			Debug.WriteLine("Error writing app settings");
-		}
-
-	}
+	#endregion
 
 	public override string ToString()
 	{

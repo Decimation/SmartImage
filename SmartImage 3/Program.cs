@@ -1,6 +1,7 @@
 ﻿#nullable disable
 
 global using static Kantan.Diagnostics.LogCategories;
+using System.Collections;
 using System.ComponentModel;
 using System.Configuration;
 using System.Reflection;
@@ -52,6 +53,7 @@ public static class Program
 
 		// Gui.Init();
 	}
+	
 
 	public static async Task Main(string[] args)
 	{

@@ -87,10 +87,7 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		return $"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time}";
 	}
 
-	public void Dispose()
-	{
-		
-	}
+	public void Dispose() { }
 
 	public static bool Validate([CBN] SearchResultItem r)
 	{
@@ -107,6 +104,7 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	{
 		if (ReferenceEquals(this, other)) return 0;
 		if (ReferenceEquals(null, other)) return 1;
+
 		return Nullable.Compare(Similarity, other.Similarity);
 	}
 
@@ -114,7 +112,10 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	{
 		if (ReferenceEquals(null, obj)) return 1;
 		if (ReferenceEquals(this, obj)) return 0;
-		return obj is SearchResultItem other ? CompareTo(other) : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
+
+		return obj is SearchResultItem other
+			       ? CompareTo(other)
+			       : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
 	}
 
 	public static bool operator <(SearchResultItem left, SearchResultItem right)
