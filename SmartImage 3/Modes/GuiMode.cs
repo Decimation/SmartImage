@@ -162,6 +162,21 @@ public sealed class GuiMode : BaseProgramMode
 
 		ProcessArgs();
 
+		/*bool Callback(MainLoop loop)
+		{
+			var s = Tf_Input.Text.ToString();
+
+			if (Url.IsValid(s) || File.Exists(s)) {
+				var task = GetValue(s);
+				task.Wait();
+				var ok = task.Result;
+			}
+
+			return true;
+		}
+
+		Application.MainLoop.AddTimeout(TimeSpan.FromSeconds(8), Callback);*/
+
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
 			// new("_Config", null, ConfigDialog),
@@ -293,6 +308,8 @@ public sealed class GuiMode : BaseProgramMode
 			Height   = 10,
 		};
 
+		// If only properties could be used as ref/pointers...
+
 		lvSearchEngines.OpenSelectedItem += args1 =>
 		{
 			SearchEngineOptions e = Config.SearchEngines;
@@ -413,7 +430,76 @@ public sealed class GuiMode : BaseProgramMode
 		Tf_Input.Text = s;
 	}
 
+	private async Task<bool> SetQuery(ustring text)
+	{
+		SearchQuery sq;
+
+		try {
+			sq = await SearchQuery.TryCreateAsync(text.ToString());
+
+		}
+		catch (Exception e) {
+			sq = SearchQuery.Null;
+
+			Lbl_InputInfo.Text = $"Error: {e.Message}";
+		}
+
+		Lbl_InputOk.Text = Values.PRC;
+
+		if (sq is { } && sq != SearchQuery.Null) {
+
+			try {
+				var u = await sq.UploadAsync();
+				Lbl_InputInfo2.Text = u.ToString();
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}", nameof(OnRun));
+
+			}
+
+		}
+		else {
+			Lbl_InputOk.Text    = Values.Err;
+			Lbl_InputInfo.Text  = "Error: invalid input";
+			Btn_Run.Enabled     = true;
+			Lbl_InputInfo2.Text = ustring.Empty;
+			return false;
+		}
+
+		Debug.WriteLine($">> {sq} {Config}", nameof(OnRun));
+
+		Lbl_InputOk.Text = Values.OK;
+
+		Query = sq;
+		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
+		Status = ProgramStatus.Signal;
+
+		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
+
+		IsReady.Set();
+		Btn_Run.Enabled = false;
+		return true;
+	}
+
 	#region Control functions
+
+	private void OnRestart()
+	{
+		if (!Client.IsComplete) {
+			return;
+		}
+
+		OnClear();
+		Tv_Results.RowOffset    = 0;
+		Tv_Results.ColumnOffset = 0;
+		Dt_Results.Clear();
+		Status                  = ProgramStatus.Restart;
+		Btn_Restart.Enabled     = false;
+		Btn_Run.Enabled         = true;
+		Tf_Input.SetFocus();
+		Tf_Input.EnsureFocus();
+
+	}
 
 	private void OnCellActivated(TableView.CellActivatedEventArgs args)
 	{
@@ -469,22 +555,6 @@ public sealed class GuiMode : BaseProgramMode
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}");
 	}
 
-	private void OnRestart()
-	{
-		if (!Client.IsComplete) {
-			return;
-		}
-
-		OnClear();
-		Dt_Results.Clear();
-		Status              = ProgramStatus.Restart;
-		Btn_Restart.Enabled = false;
-		Btn_Run.Enabled     = true;
-		Tf_Input.SetFocus();
-		Tf_Input.EnsureFocus();
-
-	}
-
 	private async void OnRun()
 	{
 		Btn_Run.Enabled = false;
@@ -493,52 +563,11 @@ public sealed class GuiMode : BaseProgramMode
 
 		Debug.WriteLine($"{text}", nameof(OnRun));
 
-		SearchQuery sq;
+		var ok = await SetQuery(text);
 
-		try {
-			sq = await SearchQuery.TryCreateAsync(text.ToString());
-
-		}
-		catch (Exception e) {
-			sq = SearchQuery.Null;
-
-			Lbl_InputInfo.Text = $"Error: {e.Message}";
-		}
-
-		Lbl_InputOk.Text = Values.PRC;
-
-		if (sq is { } && sq != SearchQuery.Null) {
-
-			try {
-				var u = await sq.UploadAsync();
-				Lbl_InputInfo2.Text = u.ToString();
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", nameof(OnRun));
-
-			}
-
-		}
-		else {
-			Lbl_InputOk.Text    = Values.Err;
-			Lbl_InputInfo.Text  = "Error: invalid input";
-			Btn_Run.Enabled     = true;
-			Lbl_InputInfo2.Text = ustring.Empty;
+		if (!ok) {
 			return;
 		}
-
-		Debug.WriteLine($">> {sq} {Config}", nameof(OnRun));
-
-		Lbl_InputOk.Text = Values.OK;
-
-		Query = sq;
-		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
-		Status = ProgramStatus.Signal;
-
-		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
-
-		IsReady.Set();
-		Btn_Run.Enabled = false;
 
 		var run = base.RunAsync(null);
 

@@ -53,14 +53,12 @@ public static class Program
 
 		// Gui.Init();
 	}
-	
 
 	public static async Task Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 
 		Cache.SetConsoleMode();
-
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-i", "https://i.imgur.com/QtCausw.png" };
