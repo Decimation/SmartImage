@@ -57,7 +57,7 @@ public sealed class SearchConfig : IDataTable
 	{
 		Configuration.Save(ConfigurationSaveMode.Full, true);
 
-		Debug.WriteLine($"{Configuration.FilePath}");
+		Debug.WriteLine($"Saved to {Configuration.FilePath}");
 	}
 
 	#region Implementation of IDataTable
@@ -75,6 +75,8 @@ public sealed class SearchConfig : IDataTable
 		table.Rows.Add("Search engines", SearchEngines);
 		table.Rows.Add("Priority engines", PriorityEngines);
 		table.Rows.Add("On top", OnTop);
+		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
+
 		return table;
 	}
 

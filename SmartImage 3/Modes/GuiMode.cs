@@ -35,7 +35,7 @@ using SmartImage.UI;
 
 namespace SmartImage.Modes;
 
-public sealed partial class GuiMode : BaseProgramMode
+public sealed class GuiMode : BaseProgramMode
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 
@@ -58,34 +58,6 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private static readonly MenuBar Mb_Menu = new()
 		{ };
-
-	private static readonly MenuBarItem[] Mbi_Items = new MenuBarItem[]
-	{
-		new("_Help", null, () =>
-		{
-			var about = new Dialog("Help")
-			{
-				Text     = "Press enter",
-				AutoSize = true,
-			};
-			var button = new Button("Ok") { };
-			button.Clicked += () => Application.RequestStop();
-			about.AddButton(button);
-			Application.Run(about);
-		}),
-		new("_About", null, () =>
-		{
-			var about = new Dialog("About")
-			{
-				Text     = "Press enter",
-				AutoSize = true,
-			};
-			var button = new Button("Ok") { };
-			button.Clicked += () => Application.RequestStop();
-			about.AddButton(button);
-			Application.Run(about);
-		})
-	};
 
 	private static readonly Label Lbl_Input = new("Input:")
 	{
@@ -134,12 +106,14 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y       = Pos.Y(Btn_Clear),
 		Enabled = false,
 	};
+
 	private static readonly Button Btn_Config = new("Config")
 	{
 		X       = Pos.Right(Btn_Restart),
 		Y       = Pos.Y(Btn_Restart),
 		Enabled = true,
 	};
+
 	private static readonly Label Lbl_InputInfo = new()
 	{
 		X      = Pos.Bottom(Tf_Input),
@@ -233,17 +207,14 @@ public sealed partial class GuiMode : BaseProgramMode
 		Btn_Run.Clicked     += OnRun;
 		Btn_Restart.Clicked += OnRestart;
 		Btn_Clear.Clicked   += OnClear;
+		Btn_Config.Clicked  += ConfigDialog;
 
 		Tv_Results.CellActivated += OnCellActivated;
 
 		Tv_Results.Table = Dt_Results;
 
-		// Lv_Integration.OpenSelectedItem += OnIntegrationSelected;
-		
-		Btn_Config.Clicked += ConfigDialog;
-
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear,  Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart, Btn_Config
+		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart, Btn_Config
 		);
 
 		Top.Add(Win);
@@ -254,97 +225,104 @@ public sealed partial class GuiMode : BaseProgramMode
 	{
 		var about = new Dialog("Configuration")
 		{
-			Text = ustring.Empty, 
+			Text     = ustring.Empty,
 			AutoSize = false,
 		};
 
-		var button  = new Button("Refresh") { };
-		var button2 = new Button("Ok") { };
+		var btnRefresh  = new Button("Refresh") { };
+		var btnSave  = new Button("Save") { };
+		var btnOk = new Button("Ok") { };
 
-		DataTable table = Config.ToTable();
+		DataTable dtConfig = Config.ToTable();
 
-		ListView lv1 = new(Cache.EngineOptions)
+		const int WIDTH  = 15;
+		const int HEIGHT = 20;
+
+		ListView lvSearchEngines = new(Cache.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
 			AutoSize                = true,
-			Width                   = 15,
-			Height                  = 20,
+			Width                   = WIDTH,
+			Height                  = HEIGHT,
 		};
 
-		ListView lv2 = new(Cache.EngineOptions)
+		ListView lvPriorityEngines = new(Cache.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
 			AutoSize                = true,
-			Width                   = 15,
-			Height                  = 20,
-			X                       = Pos.Right(lv1)
+			Width                   = WIDTH,
+			Height                  = HEIGHT,
+			X                       = Pos.Right(lvSearchEngines)
 		};
 
-		CheckBox cb1 = new(Resources.Int_ContextMenu)
+		CheckBox cbContextMenu = new(Resources.Int_ContextMenu)
 		{
-			// X      = Pos.X(lv1),
-			Y=Pos.Bottom(lv1),
+			Y      = Pos.Bottom(lvSearchEngines),
 			Width  = Dim.Fill(),
 			Height = Dim.Fill(),
 		};
 
-		cb1.Toggled += b =>
+		cbContextMenu.Toggled += b =>
 		{
 			Integration.HandleContextMenu(!b);
 		};
 
-		var tv = new TableView(table)
+		var tvConfig = new TableView(dtConfig)
 		{
-			AutoSize = true, 
-			X        = Pos.Right(lv2), 
-			Width    = Dim.Fill(15), 
+			AutoSize = true,
+			X        = Pos.Right(lvPriorityEngines),
+			Width    = Dim.Fill(WIDTH),
 			Height   = 10,
 		};
 
-		lv1.OpenSelectedItem += args1 =>
+		lvSearchEngines.OpenSelectedItem += args1 =>
 		{
 			SearchEngineOptions e = Config.SearchEngines;
-			OnEngineSelected(args1, ref e, lv1);
+			OnEngineSelected(args1, ref e, lvSearchEngines);
 			Config.SearchEngines = e;
-			ReloadTable();
+			ReloadDialog();
 		};
 
-		lv2.OpenSelectedItem += args1 =>
+		lvPriorityEngines.OpenSelectedItem += args1 =>
 		{
 			SearchEngineOptions e = Config.PriorityEngines;
-			OnEngineSelected(args1, ref e, lv2);
+			OnEngineSelected(args1, ref e, lvPriorityEngines);
 			Config.PriorityEngines = e;
-			ReloadTable();
+			ReloadDialog();
 		};
 
-		void ReloadTable()
+		void ReloadDialog()
 		{
-			tv.Table = Config.ToTable();
-			tv.SetNeedsDisplay();
+			tvConfig.Table = Config.ToTable();
+			tvConfig.SetNeedsDisplay();
 			about.SetNeedsDisplay();
 		}
 
-		lv1.FromEnum(Config.SearchEngines);
-		lv2.FromEnum(Config.PriorityEngines);
-		cb1.Checked = Integration.IsContextMenuAdded;
-		
-		button.Clicked += ReloadTable;
+		lvSearchEngines.FromEnum(Config.SearchEngines);
+		lvPriorityEngines.FromEnum(Config.PriorityEngines);
+		cbContextMenu.Checked = Integration.IsContextMenuAdded;
 
-		button2.Clicked += () => { Application.RequestStop(); };
+		btnRefresh.Clicked += ReloadDialog;
 
-		about.Add(tv, lv1, lv2, cb1);
-		about.AddButton(button);
-		about.AddButton(button2);
+		btnOk.Clicked += () =>
+		{
+			Application.RequestStop();
+		};
+
+		btnSave.Clicked += () =>
+		{
+			Config.Save();
+			Tf_Input.SetFocus();
+		};
+
+		about.Add(tvConfig, lvSearchEngines, lvPriorityEngines, cbContextMenu);
+		about.AddButton(btnRefresh);
+		about.AddButton(btnOk);
+		about.AddButton(btnSave);
 
 		Application.Run(about);
-	}
-
-	private void OnSave()
-	{
-		Config.Save();
-		Tf_Input.SetFocus();
 	}
 
 	public override Task<object?> RunAsync(object? sender = null)
@@ -399,7 +377,6 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	public override void Dispose()
 	{
-
 		base.Dispose();
 	}
 
