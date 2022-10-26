@@ -179,24 +179,33 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			var resultsimilarityinfo = resultmatchinfo.FirstChild;
 
 			// Contains links
-			var resultmiscinfo      = resultmatchinfo.ChildNodes[1];
-			var resultcontent       = resulttablecontent.ChildNodes[1];
-			var resultcontentcolumn = resultcontent.ChildNodes[1];
+			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
+			var resultcontent  = resulttablecontent.ChildNodes[1];
+			// var resultcontentcolumn = resultcontent.ChildNodes[1];
+
+			IHtmlCollection<IElement> resultcontentcolumn_rg = null;
+
+			if (result is IElement { } elem) {
+				resultcontentcolumn_rg = elem.QuerySelectorAll(".resultcontentcolumn");
+
+			}
 			// var resulttitle = resultcontent.ChildNodes[0];
 
-			string link = null;
+			var links = new List<string>();
 
-			var element = resultcontentcolumn.ChildNodes.GetElementsByTagName(Resources.Tag_a)
-			                                 .FirstOrDefault(x => x.GetAttribute(Resources.Atr_href) != null);
+			var element = (resultcontentcolumn_rg.Select(c => c.ChildNodes))
+			              .SelectMany(c => c.GetElementsByTagName(Resources.Tag_a)
+			                                .Select(x => x.GetAttribute(Resources.Atr_href)))
+			              .Where(e => e != null);
 
-			if (element != null) {
-				link = element.GetAttribute(Resources.Atr_href);
+			if (element.Any()) {
+				links.AddRange(element);
 			}
 
 			if (resultmiscinfo != null) {
-				link ??= resultmiscinfo.ChildNodes.GetElementsByTagName(Resources.Tag_a)
-				                       .FirstOrDefault(x => x.GetAttribute(Resources.Atr_href) != null)?
-				                       .GetAttribute(Resources.Atr_href);
+				links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Resources.Tag_a)
+				                        .FirstOrDefault(x => x.GetAttribute(Resources.Atr_href) != null)?
+				                        .GetAttribute(Resources.Atr_href));
 			}
 
 			//	//div[contains(@class, 'resulttitle')]
@@ -206,22 +215,57 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			string rti         = resulttitle?.TextContent;
 
 			// INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
-			string rcci = resultcontentcolumn?.TextContent;
+			string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
 
-			var synonyms = new[] { "Creator: ", "Member: ", "Artist: " };
+			var synonyms = new[] { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
 
-			string material1 = rcci.SubstringAfter("Material: ");
+			var material = new[] { "Material:", "Source:" };
+			var characters = new[] { "Characters:" };
+
+			// string material1 = rcci.SubstringAfter(material);
+			string material1 = rcci.SubstringAfter(material.First());
 
 			// string creator1 = rcci;
-			string creator1 = rcci;
+			string creator1    = rcci;
+			string characters1 = null;
 
+			foreach (var s in synonyms) {
+				if (rti.StartsWith(s)) {
+					rti = rti.SubstringAfter(s).Trim(' ');
+				}
+			}
 			// creator1 = creator1.SubstringAfter("Creator: ");
 			// resultcontentcolumn.GetNodes(true, (IElement element) => element.LocalName == "strong");
 
 			// resultcontentcolumn.GetNodes(deep:true, predicate: (INode n)=>n.TryGetAttribute() )
 			// var t = resultcontentcolumn.ChildNodes[0].TextContent;
 
-			if (resultcontentcolumn.ChildNodes.Length >= 2) {
+			var nodes = resultcontentcolumn_rg.SelectMany(e => e.ChildNodes)
+			                                  .Where(c => c is not (IElement { TagName: "BR" }
+				                                              or IElement { NodeName: "SPAN" }))
+			                                  .ToArray();
+
+			for (int i = 0; i < nodes.Length - 1; i += 2) {
+				var n  = nodes[i];
+				var n2 = nodes[i + 1];
+
+				var nStr  = n.TextContent;
+				var n2Str = n2.TextContent;
+
+				if (synonyms.Any(s => nStr.StartsWith(s))) {
+					creator1 = n2Str;
+				}
+
+				if (material.Any(s => nStr.StartsWith(s))) {
+					material1 = n2Str;
+				}
+				if (characters.Any(s => nStr.StartsWith(s)))
+				{
+					characters1 = n2Str;
+				}
+			}
+
+			/*if (resultcontentcolumn.ChildNodes.Length >= 2) {
 				string creatorTitle = null;
 
 				creatorTitle +=
@@ -234,7 +278,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 				}
 
 				creator1 = creatorTitle;
-			}
+			}*/
 
 			// resultcontentcolumn.ChildNodes[1].TryGetAttribute("href");
 
@@ -252,7 +296,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 			var dataResult = new SauceNaoDataResult
 			{
-				Urls       = new[] { link },
+				Urls       = links.ToArray(),
 				Similarity = similarity,
 				Creator    = creator1,
 				Title      = rti,
@@ -365,14 +409,14 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		var site  = Strings.NormalizeNull(siteName);
 		var title = Strings.NormalizeNull(sn.WebsiteTitle);
-		
-		var sb    = new StringBuilder();
 
-		if (site is {}) {
+		var sb = new StringBuilder();
+
+		if (site is { }) {
 			sb.Append(site);
 		}
 
-		if (title is {}) {
+		if (title is { }) {
 			sb.Append($" [{title}]");
 		}
 
@@ -382,11 +426,12 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		{
 			Url         = url,
 			Similarity  = MathF.Round(sn.Similarity, 2),
-			Description = Strings.NormalizeNull(sn.Title),
+			Description = Strings.NormalizeNull(sn.Index.ToString()),
 			Artist      = Strings.NormalizeNull(sn.Creator),
 			Source      = Strings.NormalizeNull(sn.Material),
 			Character   = Strings.NormalizeNull(sn.Character),
-			Site        = site
+			Site        = site,
+			Title       = Strings.NormalizeNull(sn.Title)
 		};
 
 		return imageResult;

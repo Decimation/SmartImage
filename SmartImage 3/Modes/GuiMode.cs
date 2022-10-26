@@ -45,11 +45,8 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly Window Win = new(Resources.Name)
 	{
-		X = 0,
-		Y = 1,
-		// Leave one row for the toplevel menu - todo
-
-		// By using Dim.Fill(), it will automatically resize without manual intervention
+		X           = 0,
+		Y           = 1,
 		Width       = Dim.Fill(),
 		Height      = Dim.Fill(),
 		ColorScheme = Styles.Cs_Win,
@@ -383,6 +380,9 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		Application.MainLoop.Invoke(() =>
 		{
+			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, null, null, 
+			                    r.Status.ToString(), null, null, null);
+
 			for (int i = 0; i < r.Results.Count; i++) {
 				SearchResultItem sri = r.Results[i];
 
@@ -493,9 +493,9 @@ public sealed class GuiMode : BaseProgramMode
 		Tv_Results.RowOffset    = 0;
 		Tv_Results.ColumnOffset = 0;
 		Dt_Results.Clear();
-		Status                  = ProgramStatus.Restart;
-		Btn_Restart.Enabled     = false;
-		Btn_Run.Enabled         = true;
+		Status              = ProgramStatus.Restart;
+		Btn_Restart.Enabled = false;
+		Btn_Run.Enabled     = true;
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 
@@ -578,7 +578,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		try {
 			Tf_Input.DeleteAll();
-
+			Tf_Input.ClearHistoryChanges();
 			Query = SearchQuery.Null;
 
 			Lbl_InputOk.Text = Values.NA;
