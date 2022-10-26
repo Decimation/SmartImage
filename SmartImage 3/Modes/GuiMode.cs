@@ -134,7 +134,12 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y       = Pos.Y(Btn_Clear),
 		Enabled = false,
 	};
-	
+	private static readonly Button Btn_Config = new("Config")
+	{
+		X       = Pos.Right(Btn_Restart),
+		Y       = Pos.Y(Btn_Restart),
+		Enabled = true,
+	};
 	private static readonly Label Lbl_InputInfo = new()
 	{
 		X      = Pos.Bottom(Tf_Input),
@@ -159,25 +164,10 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Btn_Restart),
+		X                = Pos.Right(Btn_Config),
 		Y                = Pos.Y(Tf_Input),
 		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
-	};
-
-	private static readonly CheckBox Cb_ContextMenu = new(Resources.Int_ContextMenu)
-	{
-		X      = Pos.X(Pbr_Status),
-		Y      = Pos.Bottom(Pbr_Status),
-		Width  = 15,
-		Height = Dim.Height(Tf_Input),
-	};
-
-	private static readonly Button Btn_Save = new("Save")
-	{
-		X       = Pos.X(Btn_Restart),
-		Y       = Pos.Bottom(Btn_Restart),
-		Enabled = true,
 	};
 
 	#endregion
@@ -192,88 +182,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
-			new("_About", null, () =>
-			{
-				var about = new Dialog("Configuration")
-				{
-					Text     = ustring.Empty,
-					AutoSize = false,
-				};
-
-				var button  = new Button("Refresh") { };
-				var button2 = new Button("Ok") { };
-
-				DataTable table = Config.ToTable();
-
-				ListView lv1 = new(Cache.EngineOptions)
-				{
-					AllowsMultipleSelection = true,
-					AllowsMarking           = true,
-
-					AutoSize = true,
-					Width    = 15,
-					Height   = 25,
-				};
-
-				ListView lv2 = new(Cache.EngineOptions)
-				{
-					AllowsMultipleSelection = true,
-					AllowsMarking           = true,
-
-					AutoSize = true,
-					Width    = 15,
-					Height   = 25,
-					X        = Pos.Right(lv1)
-				};
-
-				var tv = new TableView(table)
-				{
-					AutoSize = true,
-					X        = Pos.Right(lv2),
-
-					Width  = Dim.Fill(15 * 2),
-					Height = 10,
-				};
-
-				lv1.OpenSelectedItem += args1 =>
-				{
-					SearchEngineOptions e = Config.SearchEngines;
-					OnEngineSelected(args1, ref e, lv1);
-					Config.SearchEngines = e;
-					ReloadTable();
-				};
-
-				lv2.OpenSelectedItem += args1 =>
-				{
-					SearchEngineOptions e = Config.PriorityEngines;
-					OnEngineSelected(args1, ref e, lv2);
-					Config.PriorityEngines = e;
-					ReloadTable();
-				};
-
-				void ReloadTable()
-				{
-					tv.Table = Config.ToTable();
-					tv.SetNeedsDisplay();
-					about.SetNeedsDisplay();
-				}
-
-				lv1.FromEnum(Config.SearchEngines);
-				lv2.FromEnum(Config.PriorityEngines);
-
-				button.Clicked += ReloadTable;
-
-				button2.Clicked += () =>
-				{
-					Application.RequestStop();
-				};
-
-				about.Add(tv, lv1, lv2);
-				about.AddButton(button);
-				about.AddButton(button2);
-
-				Application.Run(about);
-			}),
+			new("_Config", null, ConfigDialog),
 		};
 
 		Top.Add(Mb_Menu);
@@ -327,26 +236,109 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		Tv_Results.CellActivated += OnCellActivated;
 
-		Cb_ContextMenu.Toggled += b =>
-		{
-			Integration.HandleContextMenu(!b);
-		};
-
 		Tv_Results.Table = Dt_Results;
 
 		// Lv_Integration.OpenSelectedItem += OnIntegrationSelected;
-
-		Btn_Save.Clicked += OnSave;
-
-		EnsureUICongruency();
+		
+		Btn_Config.Clicked += ConfigDialog;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear,  Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
-		        Cb_ContextMenu, Btn_Save
+		        Btn_Clear,  Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart, Btn_Config
 		);
 
 		Top.Add(Win);
 
+	}
+
+	private void ConfigDialog()
+	{
+		var about = new Dialog("Configuration")
+		{
+			Text = ustring.Empty, 
+			AutoSize = false,
+		};
+
+		var button  = new Button("Refresh") { };
+		var button2 = new Button("Ok") { };
+
+		DataTable table = Config.ToTable();
+
+		ListView lv1 = new(Cache.EngineOptions)
+		{
+			AllowsMultipleSelection = true,
+			AllowsMarking           = true,
+			AutoSize                = true,
+			Width                   = 15,
+			Height                  = 20,
+		};
+
+		ListView lv2 = new(Cache.EngineOptions)
+		{
+			AllowsMultipleSelection = true,
+			AllowsMarking           = true,
+			AutoSize                = true,
+			Width                   = 15,
+			Height                  = 20,
+			X                       = Pos.Right(lv1)
+		};
+
+		CheckBox cb1 = new(Resources.Int_ContextMenu)
+		{
+			// X      = Pos.X(lv1),
+			Y=Pos.Bottom(lv1),
+			Width  = Dim.Fill(),
+			Height = Dim.Fill(),
+		};
+
+		cb1.Toggled += b =>
+		{
+			Integration.HandleContextMenu(!b);
+		};
+
+		var tv = new TableView(table)
+		{
+			AutoSize = true, 
+			X        = Pos.Right(lv2), 
+			Width    = Dim.Fill(15), 
+			Height   = 10,
+		};
+
+		lv1.OpenSelectedItem += args1 =>
+		{
+			SearchEngineOptions e = Config.SearchEngines;
+			OnEngineSelected(args1, ref e, lv1);
+			Config.SearchEngines = e;
+			ReloadTable();
+		};
+
+		lv2.OpenSelectedItem += args1 =>
+		{
+			SearchEngineOptions e = Config.PriorityEngines;
+			OnEngineSelected(args1, ref e, lv2);
+			Config.PriorityEngines = e;
+			ReloadTable();
+		};
+
+		void ReloadTable()
+		{
+			tv.Table = Config.ToTable();
+			tv.SetNeedsDisplay();
+			about.SetNeedsDisplay();
+		}
+
+		lv1.FromEnum(Config.SearchEngines);
+		lv2.FromEnum(Config.PriorityEngines);
+		cb1.Checked = Integration.IsContextMenuAdded;
+		
+		button.Clicked += ReloadTable;
+
+		button2.Clicked += () => { Application.RequestStop(); };
+
+		about.Add(tv, lv1, lv2, cb1);
+		about.AddButton(button);
+		about.AddButton(button2);
+
+		Application.Run(about);
 	}
 
 	private void OnSave()
@@ -420,12 +412,6 @@ public sealed partial class GuiMode : BaseProgramMode
 	}
 
 	#endregion
-
-	private void EnsureUICongruency()
-	{
-		Cb_ContextMenu.Checked = Integration.IsContextMenuAdded;
-		
-	}
 
 	internal void SetInputText(ustring s)
 	{
