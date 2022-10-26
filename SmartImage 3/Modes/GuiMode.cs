@@ -97,7 +97,7 @@ public sealed class GuiMode : BaseProgramMode
 		Y               = Pos.Y(Btn_Run),
 		HotKey          = Key.Null,
 		HotKeySpecifier = default,
-		ColorScheme     = Styles.Cs_Btn1
+		ColorScheme     = Styles.Cs_Btn1,
 	};
 
 	private static readonly Button Btn_Restart = new("Restart")
@@ -120,6 +120,14 @@ public sealed class GuiMode : BaseProgramMode
 		Y      = 1,
 		Width  = 15,
 		Height = Dim.Height(Tf_Input)
+	};
+
+	private static readonly Label Lbl_InputInfo2 = new()
+	{
+		X      = Pos.Right(Lbl_InputInfo) + 1,
+		Y      = 1,
+		Width  = 15,
+		Height = Dim.Height(Lbl_InputInfo)
 	};
 
 	private static readonly DataTable Dt_Results = new()
@@ -156,7 +164,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
-			new("_Config", null, ConfigDialog),
+			// new("_Config", null, ConfigDialog),
 		};
 
 		Top.Add(Mb_Menu);
@@ -213,8 +221,16 @@ public sealed class GuiMode : BaseProgramMode
 
 		Tv_Results.Table = Dt_Results;
 
+		Lbl_InputInfo2.Clicked += () =>
+		{
+			try {
+				HttpUtilities.OpenUrl(Query.Upload);
+			}
+			catch (Exception e) { }
+		};
+
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart, Btn_Config
+		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_InputInfo2, Btn_Restart, Btn_Config
 		);
 
 		Top.Add(Win);
@@ -229,9 +245,9 @@ public sealed class GuiMode : BaseProgramMode
 			AutoSize = false,
 		};
 
-		var btnRefresh  = new Button("Refresh") { };
-		var btnSave  = new Button("Save") { };
-		var btnOk = new Button("Ok") { };
+		var btnRefresh = new Button("Refresh") { };
+		var btnSave    = new Button("Save") { };
+		var btnOk      = new Button("Ok") { };
 
 		DataTable dtConfig = Config.ToTable();
 
@@ -314,7 +330,6 @@ public sealed class GuiMode : BaseProgramMode
 		btnSave.Clicked += () =>
 		{
 			Config.Save();
-			Tf_Input.SetFocus();
 		};
 
 		about.Add(tvConfig, lvSearchEngines, lvPriorityEngines, cbContextMenu);
@@ -323,6 +338,9 @@ public sealed class GuiMode : BaseProgramMode
 		about.AddButton(btnSave);
 
 		Application.Run(about);
+
+		Tf_Input.SetFocus();
+		Tf_Input.EnsureFocus();
 	}
 
 	public override Task<object?> RunAsync(object? sender = null)
@@ -463,6 +481,7 @@ public sealed class GuiMode : BaseProgramMode
 		Btn_Restart.Enabled = false;
 		Btn_Run.Enabled     = true;
 		Tf_Input.SetFocus();
+		Tf_Input.EnsureFocus();
 
 	}
 
@@ -492,6 +511,7 @@ public sealed class GuiMode : BaseProgramMode
 
 			try {
 				var u = await sq.UploadAsync();
+				Lbl_InputInfo2.Text = u.ToString();
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", nameof(OnRun));
@@ -500,9 +520,10 @@ public sealed class GuiMode : BaseProgramMode
 
 		}
 		else {
-			Lbl_InputOk.Text   = Values.Err;
-			Lbl_InputInfo.Text = "Error: invalid input";
-			Btn_Run.Enabled    = true;
+			Lbl_InputOk.Text    = Values.Err;
+			Lbl_InputInfo.Text  = "Error: invalid input";
+			Btn_Run.Enabled     = true;
+			Lbl_InputInfo2.Text = ustring.Empty;
 			return;
 		}
 
@@ -538,9 +559,11 @@ public sealed class GuiMode : BaseProgramMode
 			ResultCount         = 0;
 			Pbr_Status.Fraction = 0;
 
-			Lbl_InputInfo.Text = ustring.Empty;
+			Lbl_InputInfo.Text  = ustring.Empty;
+			Lbl_InputInfo2.Text = ustring.Empty;
 			Tv_Results.SetNeedsDisplay();
 			Tf_Input.SetFocus();
+			Tf_Input.EnsureFocus();
 			// Application.Refresh();
 		}
 		catch (Exception e) {
