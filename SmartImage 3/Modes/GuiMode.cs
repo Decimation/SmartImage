@@ -50,14 +50,14 @@ public sealed partial class GuiMode : BaseProgramMode
 		// Leave one row for the toplevel menu - todo
 
 		// By using Dim.Fill(), it will automatically resize without manual intervention
-		Width = Dim.Fill(),
-		Height = Dim.Fill(),
+		Width       = Dim.Fill(),
+		Height      = Dim.Fill(),
 		ColorScheme = Styles.Cs_Win,
 
 	};
 
 	private static readonly MenuBar Mb_Menu = new()
-	{ };
+		{ };
 
 	private static readonly MenuBarItem[] Mbi_Items = new MenuBarItem[]
 	{
@@ -89,18 +89,18 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private static readonly Label Lbl_Input = new("Input:")
 	{
-		X = 1,
-		Y = 0,
+		X           = 1,
+		Y           = 0,
 		ColorScheme = Styles.Cs_Elem2
 	};
 
 	private static readonly TextField Tf_Input = new(ustring.Empty)
 	{
-		X = Pos.Right(Lbl_Input),
-		Y = Pos.Top(Lbl_Input),
-		Width = 50,
+		X           = Pos.Right(Lbl_Input),
+		Y           = Pos.Top(Lbl_Input),
+		Width       = 50,
 		ColorScheme = Styles.Cs_Win2,
-		AutoSize = false,
+		AutoSize    = false,
 		// AutoSize = true,
 	};
 
@@ -113,94 +113,70 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private static readonly Button Btn_Run = new("Run")
 	{
-		X = Pos.Right(Lbl_InputOk) + 1,
-		Y = Pos.Y(Tf_Input),
+		X           = Pos.Right(Lbl_InputOk) + 1,
+		Y           = Pos.Y(Tf_Input),
 		ColorScheme = Styles.Cs_Elem1,
 
 	};
 
 	private static readonly Button Btn_Clear = new("Clear")
 	{
-		X = Pos.Right(Btn_Run),
-		Y = Pos.Y(Btn_Run),
-		HotKey = Key.Null,
+		X               = Pos.Right(Btn_Run),
+		Y               = Pos.Y(Btn_Run),
+		HotKey          = Key.Null,
 		HotKeySpecifier = default,
-		ColorScheme = Styles.Cs_Btn1
+		ColorScheme     = Styles.Cs_Btn1
 	};
 
 	private static readonly Button Btn_Restart = new("Restart")
 	{
-		X = Pos.Right(Btn_Clear),
-		Y = Pos.Y(Btn_Clear),
+		X       = Pos.Right(Btn_Clear),
+		Y       = Pos.Y(Btn_Clear),
 		Enabled = false,
 	};
-
-	private static readonly ListView Lv_Engines = new(Cache.EngineOptions)
-	{
-		AllowsMultipleSelection = true,
-		AllowsMarking = true,
-		X = Pos.Right(Btn_Restart) + 1,
-		Y = Pos.Y(Btn_Restart),
-		AutoSize = true,
-		Width = 15,
-		Height = Dim.Height(Tf_Input),
-		ColorScheme = Styles.Cs_ListView
-	};
-
-	private static readonly ListView Lv_Engines2 = new(Cache.EngineOptions)
-	{
-		AllowsMultipleSelection = true,
-		AllowsMarking = true,
-		X = Pos.Right(Lv_Engines) + 1,
-		Y = Pos.Y(Lv_Engines),
-		AutoSize = true,
-		Width = 15,
-		Height = Dim.Height(Tf_Input),
-		ColorScheme = Styles.Cs_ListView
-	};
-
+	
 	private static readonly Label Lbl_InputInfo = new()
 	{
-		X = Pos.Bottom(Tf_Input),
-		Y = 1,
-		Width = 15,
-		Height = Dim.Height(Lv_Engines)
+		X      = Pos.Bottom(Tf_Input),
+		Y      = 1,
+		Width  = 15,
+		Height = Dim.Height(Tf_Input)
 	};
 
 	private static readonly DataTable Dt_Results = new()
-	{ };
+		{ };
 
 	private static readonly TableView Tv_Results = new()
 	{
-		X = Pos.X(Lbl_Input),
-		Y = Pos.Bottom(Lbl_InputInfo),
-		Width = Dim.Fill(),
-		Height = Dim.Fill(),
-		AutoSize = true,
+		X             = Pos.X(Lbl_Input),
+		Y             = Pos.Bottom(Lbl_InputInfo),
+		Width         = Dim.Fill(),
+		Height        = Dim.Fill(),
+		AutoSize      = true,
 		FullRowSelect = true,
 
 	};
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X = Pos.Right(Lv_Engines2),
-		Y = Pos.Y(Lv_Engines2),
-		Width = 10,
+		X                = Pos.Right(Btn_Restart),
+		Y                = Pos.Y(Tf_Input),
+		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
 	private static readonly CheckBox Cb_ContextMenu = new(Resources.Int_ContextMenu)
 	{
-		X = Pos.X(Lv_Engines),
-		Y = Pos.Bottom(Lv_Engines),
-		Width = 15,
+		X      = Pos.X(Pbr_Status),
+		Y      = Pos.Bottom(Pbr_Status),
+		Width  = 15,
 		Height = Dim.Height(Tf_Input),
 	};
 
 	private static readonly Button Btn_Save = new("Save")
 	{
-		X = Pos.X(Btn_Restart),
-		Y = Pos.Bottom(Btn_Restart),
+		X       = Pos.X(Btn_Restart),
+		Y       = Pos.Bottom(Btn_Restart),
 		Enabled = true,
 	};
 
@@ -218,36 +194,81 @@ public sealed partial class GuiMode : BaseProgramMode
 		{
 			new("_About", null, () =>
 			{
-				var about = new Dialog("About")
+				var about = new Dialog("Configuration")
 				{
 					Text     = ustring.Empty,
 					AutoSize = false,
 				};
 
-				var button = new Button("Refresh") { };
+				var button  = new Button("Refresh") { };
 				var button2 = new Button("Ok") { };
 
 				DataTable table = Config.ToTable();
 
+				ListView lv1 = new(Cache.EngineOptions)
+				{
+					AllowsMultipleSelection = true,
+					AllowsMarking           = true,
+
+					AutoSize = true,
+					Width    = 15,
+					Height   = 25,
+				};
+
+				ListView lv2 = new(Cache.EngineOptions)
+				{
+					AllowsMultipleSelection = true,
+					AllowsMarking           = true,
+
+					AutoSize = true,
+					Width    = 15,
+					Height   = 25,
+					X        = Pos.Right(lv1)
+				};
+
 				var tv = new TableView(table)
 				{
 					AutoSize = true,
-					
-					Width = Dim.Fill(),
-					Height = Dim.Fill() - (Dim.Height(button) + Dim.Height(button2)),
+					X        = Pos.Right(lv2),
+
+					Width  = Dim.Fill(15 * 2),
+					Height = 10,
 				};
 
-				button.Clicked += () =>
+				lv1.OpenSelectedItem += args1 =>
+				{
+					SearchEngineOptions e = Config.SearchEngines;
+					OnEngineSelected(args1, ref e, lv1);
+					Config.SearchEngines = e;
+					ReloadTable();
+				};
+
+				lv2.OpenSelectedItem += args1 =>
+				{
+					SearchEngineOptions e = Config.PriorityEngines;
+					OnEngineSelected(args1, ref e, lv2);
+					Config.PriorityEngines = e;
+					ReloadTable();
+				};
+
+				void ReloadTable()
 				{
 					tv.Table = Config.ToTable();
 					tv.SetNeedsDisplay();
 					about.SetNeedsDisplay();
-				};
+				}
+
+				lv1.FromEnum(Config.SearchEngines);
+				lv2.FromEnum(Config.PriorityEngines);
+
+				button.Clicked += ReloadTable;
+
 				button2.Clicked += () =>
 				{
 					Application.RequestStop();
 				};
-				about.Add(tv);
+
+				about.Add(tv, lv1, lv2);
 				about.AddButton(button);
 				about.AddButton(button2);
 
@@ -304,28 +325,6 @@ public sealed partial class GuiMode : BaseProgramMode
 		Btn_Restart.Clicked += OnRestart;
 		Btn_Clear.Clicked   += OnClear;
 
-		for (int i = 1; i < Cache.EngineOptions.Length; i++) {
-			Lv_Engines.Source.SetMark(i, true);
-		}
-
-		Lv_Engines.OpenSelectedItem += args1 =>
-		{
-			SearchEngineOptions e = Config.SearchEngines;
-			OnEngineSelected(args1, ref e, Lv_Engines);
-			Config.SearchEngines = e;
-		};
-
-		Lv_Engines2.OpenSelectedItem += args1 =>
-		{
-			SearchEngineOptions e = Config.PriorityEngines;
-			OnEngineSelected(args1, ref e, Lv_Engines2);
-			Config.PriorityEngines = e;
-		};
-
-		// Update(Lv_Engines, Config.SearchEngines);
-
-		Lv_Engines.ScrollDown(Cache.EngineOptions.Length);
-
 		Tv_Results.CellActivated += OnCellActivated;
 
 		Cb_ContextMenu.Toggled += b =>
@@ -342,7 +341,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		EnsureUICongruency();
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear, Lv_Engines, Lv_Engines2, Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
+		        Btn_Clear,  Tv_Results, Pbr_Status, Lbl_InputInfo, Btn_Restart,
 		        Cb_ContextMenu, Btn_Save
 		);
 
@@ -425,8 +424,7 @@ public sealed partial class GuiMode : BaseProgramMode
 	private void EnsureUICongruency()
 	{
 		Cb_ContextMenu.Checked = Integration.IsContextMenuAdded;
-		Lv_Engines.FromEnum(Config.SearchEngines);
-		Lv_Engines.FromEnum(Config.PriorityEngines);
+		
 	}
 
 	internal void SetInputText(ustring s)
@@ -461,9 +459,15 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		var isMarked = lv.Source.IsMarked(args.Item);
 
+		bool b = val == SearchEngineOptions.None;
+
 		if (isMarked) {
-			if (val == SearchEngineOptions.None) {
+			if (b) {
 				e = val;
+
+				for (int i = 1; i < lv.Source.Length; i++) {
+					lv.Source.SetMark(i, false);
+				}
 			}
 			else {
 				e |= val;
@@ -473,8 +477,14 @@ public sealed partial class GuiMode : BaseProgramMode
 			e &= ~val;
 		}
 
+		if (!b) {
+			lv.Source.SetMark(0, false);
+		}
+
 		lv.FromEnum(e);
 
+		ret:
+		lv.SetNeedsDisplay();
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}");
 	}
 
