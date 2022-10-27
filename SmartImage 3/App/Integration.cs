@@ -13,6 +13,11 @@ using System.Threading.Tasks;
 using Kantan.Console.Cli;
 using Novus.OS;
 using Kantan.Diagnostics;
+using Novus.Win32;
+using SmartImage.Modes;
+using Terminal.Gui;
+using Command = Novus.OS.Command;
+
 namespace SmartImage.App;
 
 /// <summary>
@@ -207,4 +212,31 @@ public static class Integration
 	}
 
 	public static readonly string[] IntegrationNames = new[] { Resources.Int_ContextMenu };
+
+	public static bool ReadClipboard(out string str)
+	{
+		str = null;
+		if (Native.OpenClipboard()) {
+			var files = Native.GetClipboardFileList();
+			str = files.FirstOrDefault();
+			Native.CloseClipboard();
+		}
+
+		if (Clipboard.TryGetClipboardData(out var str2) && str is not { }) {
+			str = str2;
+		}
+
+		Debug.WriteLine($"Clipboard data: {str}");
+
+		if (str is { }) {
+			var b = Url.IsValid(str) || File.Exists(str);
+
+			if (b) {
+				Debug.WriteLine($">> {str} from clipboard");
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

@@ -149,6 +149,14 @@ public sealed class GuiMode : BaseProgramMode
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
+	private static readonly Label Lbl_InputInfo3 = new()
+	{
+		X      = Pos.Right(Pbr_Status) + 1,
+		Y      = Pos.Y(Pbr_Status),
+		Width  = 15,
+		Height = Dim.Height(Lbl_InputInfo)
+	};
+
 	#endregion
 
 	#region Overrides of ProgramMode
@@ -159,20 +167,20 @@ public sealed class GuiMode : BaseProgramMode
 
 		ProcessArgs();
 
-		/*bool Callback(MainLoop loop)
-		{
-			var s = Tf_Input.Text.ToString();
+		/*
+		 * Check if clipboard contains valid query input
+		 */
 
-			if (Url.IsValid(s) || File.Exists(s)) {
-				var task = GetValue(s);
-				task.Wait();
-				var ok = task.Result;
+		var tok = Application.MainLoop.AddTimeout(TimeSpan.FromSeconds(1.5), (c) =>
+		{
+			if (Integration.ReadClipboard(out var str)) {
+				SetInputText(str);
+				AddInfo("Clipboard data");
+				return false;
 			}
 
 			return true;
-		}
-
-		Application.MainLoop.AddTimeout(TimeSpan.FromSeconds(8), Callback);*/
+		});
 
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
@@ -242,11 +250,18 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_InputInfo2, Btn_Restart, Btn_Config
+		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_InputInfo2, Btn_Restart, Btn_Config,
+		        Lbl_InputInfo3
 		);
 
 		Top.Add(Win);
 
+	}
+
+	public void AddInfo(string s)
+	{
+		Lbl_InputInfo3.Text += $"{s}";
+		Lbl_InputInfo3.SetNeedsDisplay();
 	}
 
 	private void ConfigDialog()
@@ -380,7 +395,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		Application.MainLoop.Invoke(() =>
 		{
-			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, null, null, 
+			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, null, null,
 			                    r.Status.ToString(), null, null, null);
 
 			for (int i = 0; i < r.Results.Count; i++) {
@@ -590,6 +605,7 @@ public sealed class GuiMode : BaseProgramMode
 
 			Lbl_InputInfo.Text  = ustring.Empty;
 			Lbl_InputInfo2.Text = ustring.Empty;
+			Lbl_InputInfo3.Text = ustring.Empty;
 			Tv_Results.SetNeedsDisplay();
 			Tf_Input.SetFocus();
 			Tf_Input.EnsureFocus();

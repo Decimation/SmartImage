@@ -65,27 +65,10 @@ public static class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
-		
+
 		bool cli = args is { } && args.Any();
 
 		_main = new GuiMode(args);
-		
-		/*
-		 * Check if clipboard contains valid query input
-		 */
-		ThreadPool.QueueUserWorkItem(c =>
-		{
-			
-			if (Clipboard.TryGetClipboardData(out var str)) {
-				var b = Url.IsValid(str) || File.Exists(str);
-
-				if (b) {
-					((GuiMode) _main).SetInputText(str);
-					Debug.WriteLine($"{str}");
-				}
-			}
-
-		});
 
 		main1:
 
