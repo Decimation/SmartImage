@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.Resources;
 using Kantan.Model;
 using Kantan.Utilities;
 
@@ -57,7 +58,7 @@ public sealed class SearchConfig : IDataTable
 	{
 		Configuration.Save(ConfigurationSaveMode.Full, true);
 
-		Debug.WriteLine($"Saved to {Configuration.FilePath}");
+		Debug.WriteLine($"Saved to {Configuration.FilePath}", nameof(Save));
 	}
 
 	#region Implementation of IDataTable
@@ -72,19 +73,13 @@ public sealed class SearchConfig : IDataTable
 			new("Value", typeof(object)),
 		});
 
-		table.Rows.Add("Search engines", SearchEngines);
-		table.Rows.Add("Priority engines", PriorityEngines);
-		table.Rows.Add("On top", OnTop);
+		table.Rows.Add(Resources.S_SearchEngines, SearchEngines);
+		table.Rows.Add(Resources.S_PriorityEngines, PriorityEngines);
+		table.Rows.Add(Resources.S_OnTop, OnTop);
 		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
 
 		return table;
 	}
 
 	#endregion
-
-	public override string ToString()
-	{
-		return $"{nameof(SearchEngines)}: {SearchEngines}, \n" +
-		       $"{nameof(PriorityEngines)}: {PriorityEngines}";
-	}
 }

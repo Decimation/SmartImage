@@ -79,6 +79,33 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to On top.
+        /// </summary>
+        internal static string S_OnTop {
+            get {
+                return ResourceManager.GetString("S_OnTop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Priority engines.
+        /// </summary>
+        internal static string S_PriorityEngines {
+            get {
+                return ResourceManager.GetString("S_PriorityEngines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Search engines.
+        /// </summary>
+        internal static string S_SearchEngines {
+            get {
+                return ResourceManager.GetString("S_SearchEngines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to a.
         /// </summary>
         internal static string Tag_a {

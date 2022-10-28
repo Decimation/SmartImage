@@ -173,6 +173,7 @@ public sealed class GuiMode : BaseProgramMode
 		Application.Init();
 
 		ProcessArgs();
+		ApplyConfig();
 
 		/*
 		 * Check if clipboard contains valid query input
@@ -237,17 +238,15 @@ public sealed class GuiMode : BaseProgramMode
 			ColumnStyles = columnStyles,
 		};
 
-		Tv_Results.Border = Styles.Br_1;
+		Tv_Results.Border        =  Styles.Br_1;
+		Tv_Results.Table         =  Dt_Results;
+		Tv_Results.CellActivated += OnCellActivated;
 
 		Btn_Run.Clicked     += OnRun;
 		Btn_Restart.Clicked += OnRestart;
 		Btn_Clear.Clicked   += OnClear;
 		Btn_Config.Clicked  += ConfigDialog;
 		Btn_Cancel.Clicked  += OnCancel;
-
-		Tv_Results.CellActivated += OnCellActivated;
-
-		Tv_Results.Table = Dt_Results;
 
 		Lbl_InputInfo2.Clicked += () =>
 		{
@@ -314,16 +313,24 @@ public sealed class GuiMode : BaseProgramMode
 			X                       = Pos.Right(lvSearchEngines)
 		};
 
-		CheckBox cbContextMenu = new(Resources.Int_ContextMenu)
+		CheckBox cbContextMenu = new(R2.Int_ContextMenu)
 		{
 			Y      = Pos.Bottom(lvSearchEngines),
-			Width  = Dim.Fill(),
-			Height = Dim.Fill(),
+			Width  = 15,
+			Height = 1,
 		};
 
 		cbContextMenu.Toggled += b =>
 		{
 			Integration.HandleContextMenu(!b);
+		};
+
+		CheckBox cbOnTop = new(R1.S_OnTop)
+		{
+			X      = Pos.Right(cbContextMenu),
+			Y      = Pos.Bottom(lvPriorityEngines),
+			Width  = 15,
+			Height = 1,
 		};
 
 		var tvConfig = new TableView(dtConfig)
@@ -332,6 +339,13 @@ public sealed class GuiMode : BaseProgramMode
 			X        = Pos.Right(lvPriorityEngines),
 			Width    = Dim.Fill(WIDTH),
 			Height   = 10,
+		};
+
+		cbOnTop.Toggled += b =>
+		{
+			Integration.KeepOnTop(!b);
+			Config.OnTop = Integration.IsOnTop;
+			ReloadDialog();
 		};
 
 		// If only properties could be used as ref/pointers...
@@ -362,6 +376,7 @@ public sealed class GuiMode : BaseProgramMode
 		lvSearchEngines.FromEnum(Config.SearchEngines);
 		lvPriorityEngines.FromEnum(Config.PriorityEngines);
 		cbContextMenu.Checked = Integration.IsContextMenuAdded;
+		cbOnTop.Checked       = Config.OnTop;
 
 		btnRefresh.Clicked += ReloadDialog;
 
@@ -373,9 +388,11 @@ public sealed class GuiMode : BaseProgramMode
 		btnSave.Clicked += () =>
 		{
 			Config.Save();
+			ReloadDialog();
 		};
 
-		about.Add(tvConfig, lvSearchEngines, lvPriorityEngines, cbContextMenu);
+		about.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
+		          cbContextMenu, cbOnTop);
 		about.AddButton(btnRefresh);
 		about.AddButton(btnOk);
 		about.AddButton(btnSave);
@@ -384,6 +401,11 @@ public sealed class GuiMode : BaseProgramMode
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
+	}
+
+	private void ApplyConfig()
+	{
+		Integration.KeepOnTop(Config.OnTop);
 	}
 
 	public override Task<object?> RunAsync(object? sender = null)
@@ -522,9 +544,9 @@ public sealed class GuiMode : BaseProgramMode
 		Tv_Results.ColumnOffset = 0;
 		Dt_Results.Clear();
 
-		Status                        = ProgramStatus.Restart;
-		Btn_Restart.Enabled           = false;
-		Btn_Run.Enabled               = true;
+		Status              = ProgramStatus.Restart;
+		Btn_Restart.Enabled = false;
+		Btn_Run.Enabled     = true;
 
 		Token.Dispose();
 		Token = new();
@@ -585,7 +607,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		ret:
 		lv.SetNeedsDisplay();
-		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}");
+		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}
 
 	private async void OnRun()

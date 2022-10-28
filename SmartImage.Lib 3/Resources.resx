@@ -126,4 +126,13 @@
   <data name="Atr_id" xml:space="preserve">
     <value>id</value>
   </data>
+  <data name="S_SearchEngines" xml:space="preserve">
+    <value>Search engines</value>
+  </data>
+  <data name="S_PriorityEngines" xml:space="preserve">
+    <value>Priority engines</value>
+  </data>
+  <data name="S_OnTop" xml:space="preserve">
+    <value>On top</value>
+  </data>
 </root>

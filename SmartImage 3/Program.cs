@@ -72,7 +72,7 @@ public static class Program
 
 		main1:
 
-		object             status;
+		object status;
 
 		var run = _main.RunAsync(null);
 		status = await run;

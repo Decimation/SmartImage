@@ -70,6 +70,15 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Input:.
+        /// </summary>
+        internal static string C_Input {
+            get {
+                return ResourceManager.GetString("C_Input", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Context Menu.
         /// </summary>
         internal static string Int_ContextMenu {
@@ -102,42 +111,6 @@ namespace SmartImage {
         internal static string Repo_Url {
             get {
                 return ResourceManager.GetString("Repo_Url", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Input:.
-        /// </summary>
-        internal static string S_Input {
-            get {
-                return ResourceManager.GetString("S_Input", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Stay on top.
-        /// </summary>
-        internal static string S_OnTop {
-            get {
-                return ResourceManager.GetString("S_OnTop", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Priority engines.
-        /// </summary>
-        internal static string S_PriorityEngines {
-            get {
-                return ResourceManager.GetString("S_PriorityEngines", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Search engines.
-        /// </summary>
-        internal static string S_SearchEngines {
-            get {
-                return ResourceManager.GetString("S_SearchEngines", resourceCulture);
             }
         }
         

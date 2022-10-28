@@ -1,6 +1,5 @@
 ﻿
 #nullable disable
-
 using Kantan.Console;
 using Microsoft.Win32;
 using System;
@@ -158,7 +157,7 @@ public static class Integration
 
 			}
 		}
-		
+
 	}
 
 	[DoesNotReturn]
@@ -196,6 +195,8 @@ public static class Integration
 
 	private const string REG_SHELL_CMD = @"SOFTWARE\Classes\*\shell\SmartImage\command";
 
+	public static bool IsOnTop { get; private set; }
+
 	public static bool IsContextMenuAdded
 	{
 		get
@@ -211,11 +212,22 @@ public static class Integration
 		}
 	}
 
-	public static readonly string[] IntegrationNames = new[] { Resources.Int_ContextMenu };
+	public static void KeepOnTop(bool add)
+	{
+		if (add) {
+			Native.KeepWindowOnTop(Cache.HndWindow);
+		}
+		else {
+			Native.RemoveWindowOnTop(Cache.HndWindow);
+		}
+
+		IsOnTop = add;
+	}
 
 	public static bool ReadClipboard(out string str)
 	{
 		str = null;
+
 		if (Native.OpenClipboard()) {
 			var files = Native.GetClipboardFileList();
 			str = files.FirstOrDefault();

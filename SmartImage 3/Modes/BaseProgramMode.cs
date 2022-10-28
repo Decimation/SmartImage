@@ -1,4 +1,6 @@
-﻿using System;
+﻿global using R1 = SmartImage.Lib.Resources;
+global using R2 = SmartImage.Resources;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -85,9 +87,7 @@ public abstract class BaseProgramMode : IDisposable
 		}
 	}
 
-	public virtual void Close()
-	{
-	}
+	public abstract void Close();
 
 	public virtual void Dispose()
 	{
