@@ -265,12 +265,6 @@ public sealed class GuiMode : BaseProgramMode
 
 	}
 
-	private void OnCancel()
-	{
-		Token.Cancel();
-		OnRestart();
-	}
-
 	public void AddInfo(string s)
 	{
 		Lbl_InputInfo3.Text += $"{s}";
@@ -294,7 +288,7 @@ public sealed class GuiMode : BaseProgramMode
 		const int WIDTH  = 15;
 		const int HEIGHT = 20;
 
-		ListView lvSearchEngines = new(Cache.EngineOptions)
+		ListView lvSearchEngines = new(Values.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
@@ -303,7 +297,7 @@ public sealed class GuiMode : BaseProgramMode
 			Height                  = HEIGHT,
 		};
 
-		ListView lvPriorityEngines = new(Cache.EngineOptions)
+		ListView lvPriorityEngines = new(Values.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
@@ -654,6 +648,12 @@ public sealed class GuiMode : BaseProgramMode
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}", nameof(OnClear));
 		}
+	}
+
+	private void OnCancel()
+	{
+		Token.Cancel();
+		OnRestart();
 	}
 
 	#endregion

@@ -58,7 +58,7 @@ public static class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 
-		Cache.SetConsoleMode();
+		Integration.SetConsoleMode();
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-i", "https://i.imgur.com/QtCausw.png" };
