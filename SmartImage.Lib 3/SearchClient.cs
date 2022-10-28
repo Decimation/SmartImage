@@ -50,12 +50,18 @@ public sealed class SearchClient : IDisposable
 
 		Engines = BaseSearchEngine.All.Where(e => Config.SearchEngines.HasFlag(e.EngineOption)).ToArray();
 
-		var tasks = Engines.Select(e => e.GetResultAsync(query))
+		var tasks = Engines.Select(e => e.GetResultAsync(query, token))
 		                   .ToList();
 
 		var results = new List<SearchResult>();
 
 		while (tasks.Any()) {
+			if (token.Value.IsCancellationRequested) {
+				
+				Debug.WriteLine($"Cancellation requested", nameof(RunSearchAsync));
+				IsComplete = true;
+				return results;
+			}
 
 			var task   = await Task.WhenAny(tasks);
 			var result = await task;

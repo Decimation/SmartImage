@@ -43,8 +43,6 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
-		token ??= CancellationToken.None;
-
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),

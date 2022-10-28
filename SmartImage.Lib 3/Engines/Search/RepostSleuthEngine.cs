@@ -90,7 +90,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 
 	#region Objects
 
-	private class ClosestMatch
+	private record ClosestMatch
 	{
 		public int    hamming_distance;
 		public double annoy_distance;
@@ -101,7 +101,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public int    title_similarity;
 	}
 
-	private class Match
+	private record Match
 	{
 		public int    hamming_distance;
 		public double annoy_distance;
@@ -112,7 +112,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public int    title_similarity;
 	}
 
-	private class Post
+	private record Post
 	{
 		public string post_id;
 		public string url;
@@ -126,7 +126,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public string subreddit;
 	}
 
-	private class Root
+	private record Root
 	{
 		public object         meme_template;
 		public ClosestMatch   closest_match;
@@ -137,7 +137,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public List<Match>    matches;
 	}
 
-	private class SearchSettings
+	private record SearchSettings
 	{
 		public bool   filter_crossposts;
 		public bool   filter_same_author;
@@ -157,7 +157,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public int    target_match_percent;
 	}
 
-	private class SearchTimes
+	private record SearchTimes
 	{
 		public double pre_annoy_filter_time;
 		public double index_search_time;

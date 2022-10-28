@@ -16,8 +16,8 @@ public abstract class BaseProgramMode : IDisposable
 {
 	protected BaseProgramMode(string[] args1, SearchQuery? sq = null)
 	{
-		Args = args1;
-
+		Args    = args1;
+		Token   = new();
 		Query   = sq ?? SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
@@ -40,8 +40,10 @@ public abstract class BaseProgramMode : IDisposable
 
 	protected int ResultCount { get; set; }
 
-	public ManualResetEvent IsReady { get; protected set; }
-
+	public    ManualResetEvent  IsReady { get; protected set; }
+	
+	protected CancellationTokenSource Token   { get; set; }
+	
 	public virtual async Task<object?> RunAsync(object? sender = null)
 	{
 		var now = Stopwatch.StartNew();
@@ -52,7 +54,7 @@ public abstract class BaseProgramMode : IDisposable
 
 		IsReady.WaitOne();
 
-		var results = await Client.RunSearchAsync(Query, CancellationToken.None);
+		var results = await Client.RunSearchAsync(Query, Token.Token);
 
 		now.Stop();
 
@@ -83,12 +85,16 @@ public abstract class BaseProgramMode : IDisposable
 		}
 	}
 
-	public abstract void Close();
+	public virtual void Close()
+	{
+	}
 
 	public virtual void Dispose()
 	{
 		Client.Dispose();
 		Query.Dispose();
+		Token.Dispose();
+
 		// QueryMat?.Dispose();
 	}
 }

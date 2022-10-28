@@ -111,6 +111,13 @@ public sealed class GuiMode : BaseProgramMode
 		Enabled = true,
 	};
 
+	private static readonly Button Btn_Cancel = new("Cancel")
+	{
+		X       = Pos.Right(Btn_Config),
+		Y       = Pos.Y(Btn_Config),
+		Enabled = true,
+	};
+
 	private static readonly Label Lbl_InputInfo = new()
 	{
 		X      = Pos.Bottom(Tf_Input),
@@ -143,7 +150,7 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Btn_Config),
+		X                = Pos.Right(Btn_Cancel),
 		Y                = Pos.Y(Tf_Input),
 		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
@@ -236,6 +243,7 @@ public sealed class GuiMode : BaseProgramMode
 		Btn_Restart.Clicked += OnRestart;
 		Btn_Clear.Clicked   += OnClear;
 		Btn_Config.Clicked  += ConfigDialog;
+		Btn_Cancel.Clicked  += OnCancel;
 
 		Tv_Results.CellActivated += OnCellActivated;
 
@@ -251,11 +259,17 @@ public sealed class GuiMode : BaseProgramMode
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_InputInfo2, Btn_Restart, Btn_Config,
-		        Lbl_InputInfo3
+		        Lbl_InputInfo3, Btn_Cancel
 		);
 
 		Top.Add(Win);
 
+	}
+
+	private void OnCancel()
+	{
+		Token.Cancel();
+		OnRestart();
 	}
 
 	public void AddInfo(string s)
@@ -375,7 +389,6 @@ public sealed class GuiMode : BaseProgramMode
 	public override Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
-
 		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
 	}
 
@@ -434,7 +447,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		if (val is string s && s == Resources.Arg_Input) {
 			e.MoveNext();
-			SetInputText(e.Current.ToString());
+			SetInputText(e.Current?.ToString());
 		}
 	}
 
@@ -508,9 +521,14 @@ public sealed class GuiMode : BaseProgramMode
 		Tv_Results.RowOffset    = 0;
 		Tv_Results.ColumnOffset = 0;
 		Dt_Results.Clear();
-		Status              = ProgramStatus.Restart;
-		Btn_Restart.Enabled = false;
-		Btn_Run.Enabled     = true;
+
+		Status                        = ProgramStatus.Restart;
+		Btn_Restart.Enabled           = false;
+		Btn_Run.Enabled               = true;
+
+		Token.Dispose();
+		Token = new();
+
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 

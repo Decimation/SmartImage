@@ -226,7 +226,7 @@ public static class Integration
 			str = str2;
 		}
 
-		Debug.WriteLine($"Clipboard data: {str}");
+		// Debug.WriteLine($"Clipboard data: {str}");
 
 		if (str is { }) {
 			var b = Url.IsValid(str) || File.Exists(str);

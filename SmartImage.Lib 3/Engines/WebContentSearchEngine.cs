@@ -92,7 +92,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 	}
 
 	#endregion
-	
+
 	protected virtual Task<List<INode>> GetNodesAsync(IDocument doc)
 	{
 		return Task.FromResult(doc.Body.SelectNodes(NodesSelector));
