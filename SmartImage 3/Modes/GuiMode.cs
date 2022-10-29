@@ -84,7 +84,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
-		ColorScheme = Styles.Cs_Elem1,
+		ColorScheme = Styles.Cs_Btn1x,
 
 	};
 
@@ -99,23 +99,28 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly Button Btn_Restart = new("Restart")
 	{
-		X       = Pos.Right(Btn_Clear),
-		Y       = Pos.Y(Btn_Clear),
-		Enabled = false,
-	};
+		X           = Pos.Right(Btn_Clear),
+		Y           = Pos.Y(Btn_Clear),
+		Enabled     = false,
+		ColorScheme = Styles.Cs_Btn1,
 
-	private static readonly Button Btn_Config = new("Config")
-	{
-		X       = Pos.Right(Btn_Restart),
-		Y       = Pos.Y(Btn_Restart),
-		Enabled = true,
 	};
 
 	private static readonly Button Btn_Cancel = new("Cancel")
 	{
-		X       = Pos.Right(Btn_Config),
-		Y       = Pos.Y(Btn_Config),
-		Enabled = true,
+		X           = Pos.Right(Btn_Restart),
+		Y           = Pos.Y(Btn_Restart),
+		Enabled     = false,
+		ColorScheme = Styles.Cs_Btn2,
+
+	};
+
+	private static readonly Button Btn_Config = new("Config")
+	{
+		X           = Pos.Right(Btn_Cancel),
+		Y           = Pos.Y(Btn_Cancel),
+		Enabled     = true,
+		ColorScheme = Styles.Cs_Btn2,
 	};
 
 	private static readonly Label Lbl_InputInfo = new()
@@ -150,7 +155,7 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Btn_Cancel),
+		X                = Pos.Right(Btn_Config),
 		Y                = Pos.Y(Tf_Input),
 		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
@@ -186,6 +191,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		m_tok       = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 		m_clipboard = new List<ustring>();
+
 		/*m_tok = Application.MainLoop.AddIdle(() =>
 		{
 			return ClipboardCallback(null);
@@ -248,7 +254,10 @@ public sealed class GuiMode : BaseProgramMode
 
 		Btn_Run.Clicked     += OnRun;
 		Btn_Restart.Clicked += OnRestart;
-		Btn_Clear.Clicked   += OnClear;
+		Btn_Clear.Clicked += () =>
+		{
+			Tf_Input.DeleteAll();
+		};
 		Btn_Config.Clicked  += ConfigDialog;
 		Btn_Cancel.Clicked  += OnCancel;
 
@@ -310,6 +319,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		SystemSounds.Asterisk.Play();
 		Btn_Restart.Enabled = true;
+		Btn_Cancel.Enabled  = false;
 
 	}
 
@@ -328,6 +338,11 @@ public sealed class GuiMode : BaseProgramMode
 		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
 		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
 	}
+
+	/* 
+	 * Semiprimed	:	Input is valid
+	 * Primed		:	Query is allocated and uploaded
+	 */
 
 	private bool IsSemiPrimed()
 	{
@@ -465,6 +480,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		about.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop);
+
 		about.AddButton(btnRefresh);
 		about.AddButton(btnOk);
 		about.AddButton(btnSave);
@@ -480,9 +496,9 @@ public sealed class GuiMode : BaseProgramMode
 		Integration.KeepOnTop(Config.OnTop);
 	}
 
-	public void AddInfo(string s)
+	public void SetInfoText(string s)
 	{
-		Lbl_InputInfo3.Text += $"{s}";
+		Lbl_InputInfo3.Text = $"{s}";
 		Lbl_InputInfo3.SetNeedsDisplay();
 	}
 
@@ -556,7 +572,7 @@ public sealed class GuiMode : BaseProgramMode
 			 */
 			if (Integration.ReadClipboard(out var str) && !IsSemiPrimed() && !m_clipboard.Contains(str)) {
 				SetInputText(str);
-				AddInfo("Clipboard data");
+				SetInfoText("Clipboard data");
 				m_clipboard.Add(str);
 			}
 
@@ -654,8 +670,8 @@ public sealed class GuiMode : BaseProgramMode
 
 	private async void OnRun()
 	{
-		Btn_Run.Enabled = false;
-
+		Btn_Run.Enabled    = false;
+		Btn_Cancel.Enabled = true;
 		var text = Tf_Input.Text;
 
 		Debug.WriteLine($"{text}", nameof(OnRun));
@@ -691,6 +707,7 @@ public sealed class GuiMode : BaseProgramMode
 			Tv_Results.SetNeedsDisplay();
 			Tf_Input.SetFocus();
 			Tf_Input.EnsureFocus();
+			Btn_Cancel.Enabled = false;
 			// Application.Refresh();
 		}
 		catch (Exception e) {
@@ -703,6 +720,7 @@ public sealed class GuiMode : BaseProgramMode
 		Token.Cancel();
 		Lbl_InputInfo3.Text = $"Canceled";
 		Lbl_InputInfo3.SetNeedsDisplay();
+		Btn_Restart.Enabled = true;
 	}
 
 	#endregion
