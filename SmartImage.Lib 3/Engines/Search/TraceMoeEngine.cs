@@ -126,7 +126,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			var result = new SearchResultItem(sr)
 			{
 				Similarity  = sim,
-				Description = $"Episode #{epStr} @ [{TimeSpan.FromSeconds(doc.from)} - {TimeSpan.FromSeconds(doc.to)}]",
+				Description = $"Episode #{epStr} @ " +
+				              $"[{TimeSpan.FromSeconds(doc.from):g} - {TimeSpan.FromSeconds(doc.to):g}]",
 			};
 
 			try {

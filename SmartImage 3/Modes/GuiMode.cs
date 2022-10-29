@@ -463,7 +463,7 @@ public sealed class GuiMode : BaseProgramMode
 			 */
 			if (Integration.ReadClipboard(out var str) && !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
 				SetInputText(str);
-				Lbl_InputOk.Text += "C";
+				Lbl_InputOk.Text = Values.Clp;
 
 				m_clipboard.Add(str);
 			}
@@ -629,10 +629,11 @@ public sealed class GuiMode : BaseProgramMode
 			ResultCount         = 0;
 			Pbr_Status.Fraction = 0;
 
-			Lbl_InputInfo.Text  = ustring.Empty;
+			Lbl_InputInfo.Text   = ustring.Empty;
 			Lbl_QueryUpload.Text = ustring.Empty;
-			Lbl_InputInfo2.Text = ustring.Empty;
-			Lbl_Status.Text = ustring.Empty;
+			Lbl_InputInfo2.Text  = ustring.Empty;
+			Lbl_Status.Text      = ustring.Empty;
+
 			Tv_Results.SetNeedsDisplay();
 			Tf_Input.SetFocus();
 			Tf_Input.EnsureFocus();
