@@ -166,7 +166,8 @@ public sealed class GuiMode : BaseProgramMode
 
 	#endregion
 
-	private object m_tok;
+	private object        m_tok;
+	private List<ustring> m_clipboard;
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
@@ -183,7 +184,8 @@ public sealed class GuiMode : BaseProgramMode
 		 * Check if clipboard contains valid query input
 		 */
 
-		m_tok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+		m_tok       = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+		m_clipboard = new List<ustring>();
 		/*m_tok = Application.MainLoop.AddIdle(() =>
 		{
 			return ClipboardCallback(null);
@@ -542,18 +544,26 @@ public sealed class GuiMode : BaseProgramMode
 		return true;
 	}
 
+	#region Control functions
+
 	private bool ClipboardCallback(MainLoop c)
 	{
-		Debug.WriteLine($"callback");
-
 		try {
-			if (Integration.ReadClipboard(out var str) && !IsSemiPrimed()) {
+			/*
+			 * Don't set input if:
+			 *	- Input is already semiprimed
+			 *	- Clipboard history contains it already
+			 */
+			if (Integration.ReadClipboard(out var str) && !IsSemiPrimed() && !m_clipboard.Contains(str)) {
 				SetInputText(str);
 				AddInfo("Clipboard data");
+				m_clipboard.Add(str);
 			}
 
+			// note: wtf?
 			c.RemoveTimeout(m_tok);
 			m_tok = c.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+
 			return false;
 		}
 		catch (Exception e) {
@@ -562,8 +572,6 @@ public sealed class GuiMode : BaseProgramMode
 
 		return true;
 	}
-
-	#region Control functions
 
 	private void OnRestart()
 	{
@@ -575,6 +583,8 @@ public sealed class GuiMode : BaseProgramMode
 		Tv_Results.RowOffset    = 0;
 		Tv_Results.ColumnOffset = 0;
 		Dt_Results.Clear();
+
+		m_clipboard.Clear();
 
 		Status              = ProgramStatus.Restart;
 		Btn_Restart.Enabled = false;
@@ -681,7 +691,6 @@ public sealed class GuiMode : BaseProgramMode
 			Tv_Results.SetNeedsDisplay();
 			Tf_Input.SetFocus();
 			Tf_Input.EnsureFocus();
-
 			// Application.Refresh();
 		}
 		catch (Exception e) {
