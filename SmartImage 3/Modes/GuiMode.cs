@@ -8,6 +8,7 @@ using System.Configuration;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.Dynamic;
 using System.Linq;
 using System.Media;
 using System.Text;
@@ -27,6 +28,7 @@ using static Novus.Win32.SysCommand;
 using Window = Terminal.Gui.Window;
 using System.Xml.Linq;
 using Kantan.Console;
+using Kantan.Text;
 using Novus.OS;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
@@ -201,7 +203,7 @@ public sealed class GuiMode : BaseProgramMode
 		/*
 		 * Check if clipboard contains valid query input
 		 */
-		
+
 		m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 
 		m_clipboard = new List<ustring>();
@@ -232,6 +234,7 @@ public sealed class GuiMode : BaseProgramMode
 			new(nameof(SearchResultItem.Site), typeof(string)),
 			new(nameof(SearchResultItem.Width), typeof(double)),
 			new(nameof(SearchResultItem.Height), typeof(double)),
+			new(nameof(SearchResultItem.Metadata), typeof(object)),
 		};
 
 		Dt_Results.Columns.AddRange(col);
@@ -271,7 +274,7 @@ public sealed class GuiMode : BaseProgramMode
 		Btn_Clear.Clicked        += OnClear;
 		Btn_Config.Clicked       += OnConfigDialog;
 		Btn_Cancel.Clicked       += OnCancel;
-		
+
 		Lbl_InputInfo.Clicked += () =>
 		{
 			if (!IsQueryReady()) {
@@ -286,6 +289,7 @@ public sealed class GuiMode : BaseProgramMode
 			}
 
 		};
+
 		Lbl_QueryUpload.Clicked += () =>
 		{
 			HttpUtilities.TryOpenUrl(Query.Upload);
@@ -323,14 +327,23 @@ public sealed class GuiMode : BaseProgramMode
 		Application.MainLoop.Invoke(() =>
 		{
 			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, 0, null, null,
-			                    r.Status.ToString(), null, null, null, null, null);
+			                    r.Status.ToString(), null, null, null, null, null, null);
 
 			for (int i = 0; i < r.Results.Count; i++) {
 				SearchResultItem sri = r.Results[i];
 
+				object? meta = sri.Metadata switch
+				{
+					string[] rg   => rg.QuickJoin(),
+					Array rg      => rg.QuickJoin(),
+					ICollection c => c.QuickJoin(),
+					string s      => s,
+					_             => null,
+				};
+
 				Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
 				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
-				                    sri.Title, sri.Site, sri.Width, sri.Height);
+				                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 			}
 
 			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
@@ -429,9 +442,9 @@ public sealed class GuiMode : BaseProgramMode
 
 		}
 		else {
-			Lbl_InputOk.Text    = Values.Err;
-			Lbl_InputInfo.Text  = "Error: invalid input";
-			Btn_Run.Enabled     = true;
+			Lbl_InputOk.Text     = Values.Err;
+			Lbl_InputInfo.Text   = "Error: invalid input";
+			Btn_Run.Enabled      = true;
 			Lbl_QueryUpload.Text = ustring.Empty;
 
 			return false;

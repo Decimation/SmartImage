@@ -108,6 +108,7 @@
     <!-- <Copyright>Copyright 2022</Copyright> -->
     <ImplicitUsings>enable</ImplicitUsings>
     <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
+    <Title>SmartImage</Title>
     <!--<PackageIconUrl>https://raw.githubusercontent.com/Decimation/SmartImage/master/icon64.png</PackageIconUrl>-->
   </PropertyGroup>
 </Project>
