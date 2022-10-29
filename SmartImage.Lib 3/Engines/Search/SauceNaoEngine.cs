@@ -403,8 +403,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 	private static SearchResultItem ConvertToImageResult(SauceNaoDataResult sn, SearchResult r)
 	{
-		string url = sn.Urls?.FirstOrDefault(u => u != null);
-
 		string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
 
 		var site  = Strings.NormalizeNull(siteName);
@@ -424,14 +422,15 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		var imageResult = new SearchResultItem(r)
 		{
-			Url         = url,
-			Similarity  = MathF.Round(sn.Similarity, 2),
+			Url         = sn.Urls?.FirstOrDefault(Url.IsValid),
+			Similarity  = Math.Round(sn.Similarity, 2),
 			Description = Strings.NormalizeNull(sn.Index.ToString()),
 			Artist      = Strings.NormalizeNull(sn.Creator),
 			Source      = Strings.NormalizeNull(sn.Material),
 			Character   = Strings.NormalizeNull(sn.Character),
 			Site        = site,
-			Title       = Strings.NormalizeNull(sn.Title)
+			Title       = Strings.NormalizeNull(sn.Title),
+			Metadata    = sn.Urls?[1..]
 		};
 
 		return imageResult;
@@ -456,7 +455,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		/// <summary>
 		///     How similar is the image to the one provided (Percentage)?
 		/// </summary>
-		public float Similarity { get; internal set; }
+		public double Similarity { get; internal set; }
 
 		public string WebsiteTitle { get; internal set; }
 

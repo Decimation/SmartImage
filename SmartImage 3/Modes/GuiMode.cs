@@ -27,6 +27,7 @@ using static Novus.Win32.SysCommand;
 using Window = Terminal.Gui.Window;
 using System.Xml.Linq;
 using Kantan.Console;
+using Novus.OS;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
 using SmartImage.UI;
@@ -50,11 +51,12 @@ public sealed class GuiMode : BaseProgramMode
 		Width       = Dim.Fill(),
 		Height      = Dim.Fill(),
 		ColorScheme = Styles.Cs_Win,
-
 	};
 
 	private static readonly MenuBar Mb_Menu = new()
-		{ };
+	{
+		CanFocus = false,
+	};
 
 	private static readonly Label Lbl_Input = new("Input:")
 	{
@@ -131,12 +133,20 @@ public sealed class GuiMode : BaseProgramMode
 		Height = Dim.Height(Tf_Input)
 	};
 
-	private static readonly Label Lbl_InputInfo2 = new()
+	private static readonly Label Lbl_QueryUpload = new()
 	{
 		X      = Pos.Right(Lbl_InputInfo) + 1,
 		Y      = 1,
 		Width  = 15,
 		Height = Dim.Height(Lbl_InputInfo)
+	};
+
+	private static readonly Label Lbl_InputInfo2 = new()
+	{
+		X      = Pos.Right(Lbl_QueryUpload) + 1,
+		Y      = Pos.Y(Lbl_QueryUpload),
+		Width  = 15,
+		Height = Dim.Height(Lbl_QueryUpload)
 	};
 
 	private static readonly DataTable Dt_Results = new()
@@ -155,13 +165,13 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Btn_Config),
+		X                = Pos.Right(Btn_Config) + 1,
 		Y                = Pos.Y(Tf_Input),
 		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
 	};
 
-	private static readonly Label Lbl_InputInfo3 = new()
+	private static readonly Label Lbl_Status = new()
 	{
 		X      = Pos.Right(Pbr_Status) + 1,
 		Y      = Pos.Y(Pbr_Status),
@@ -171,8 +181,11 @@ public sealed class GuiMode : BaseProgramMode
 
 	#endregion
 
-	private object        m_tok;
-	private List<ustring> m_clipboard;
+	private object m_cbCallbackTok;
+
+	private Func<bool>? m_runIdleTok;
+
+	private readonly List<ustring> m_clipboard;
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
@@ -188,8 +201,9 @@ public sealed class GuiMode : BaseProgramMode
 		/*
 		 * Check if clipboard contains valid query input
 		 */
+		
+		m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 
-		m_tok       = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 		m_clipboard = new List<ustring>();
 
 		/*m_tok = Application.MainLoop.AddIdle(() =>
@@ -248,27 +262,38 @@ public sealed class GuiMode : BaseProgramMode
 			ColumnStyles = columnStyles,
 		};
 
-		Tv_Results.Border        =  Styles.Br_1;
-		Tv_Results.Table         =  Dt_Results;
+		Tv_Results.Border = Styles.Br_1;
+		Tv_Results.Table  = Dt_Results;
+
 		Tv_Results.CellActivated += OnCellActivated;
-
-		Btn_Run.Clicked     += OnRun;
-		Btn_Restart.Clicked += OnRestart;
-		Btn_Clear.Clicked += () =>
+		Btn_Run.Clicked          += OnRun;
+		Btn_Restart.Clicked      += OnRestart;
+		Btn_Clear.Clicked        += OnClear;
+		Btn_Config.Clicked       += OnConfigDialog;
+		Btn_Cancel.Clicked       += OnCancel;
+		
+		Lbl_InputInfo.Clicked += () =>
 		{
-			Tf_Input.DeleteAll();
-		};
-		Btn_Config.Clicked  += ConfigDialog;
-		Btn_Cancel.Clicked  += OnCancel;
+			if (!IsQueryReady()) {
+				return;
+			}
 
-		Lbl_InputInfo2.Clicked += () =>
+			if (Query.IsFile) {
+				FileSystem.ExploreFile(Query.Value);
+			}
+			else if (Query.IsUrl) {
+				HttpUtilities.TryOpenUrl(Query.Value);
+			}
+
+		};
+		Lbl_QueryUpload.Clicked += () =>
 		{
 			HttpUtilities.TryOpenUrl(Query.Upload);
 		};
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_InputInfo2, Btn_Restart, Btn_Config,
-		        Lbl_InputInfo3, Btn_Cancel
+		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload, Btn_Restart, Btn_Config,
+		        Lbl_InputInfo2, Btn_Cancel, Lbl_Status
 		);
 
 		Top.Add(Win);
@@ -333,30 +358,13 @@ public sealed class GuiMode : BaseProgramMode
 		base.Dispose();
 	}
 
-	private bool IsPrimed()
-	{
-		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
-		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
-	}
-
-	/* 
-	 * Semiprimed	:	Input is valid
-	 * Primed		:	Query is allocated and uploaded
-	 */
-
-	private bool IsSemiPrimed()
-	{
-		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
-		return SearchQuery.IsValid(Tf_Input.Text.ToString());
-	}
-
 	protected override void ProcessArg(object? val, IEnumerator e)
 	{
 		if (val is string s && s == Resources.Arg_Input) {
 			e.MoveNext();
 			var s2 = e.Current?.ToString();
 
-			if (SearchQuery.IsValid(s2)) {
+			if (SearchQuery.IsIndicatorValid(s2)) {
 				SetInputText(s2);
 			}
 		}
@@ -364,7 +372,123 @@ public sealed class GuiMode : BaseProgramMode
 
 	#endregion
 
-	private void ConfigDialog()
+	private bool IsQueryReady()
+	{
+		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
+		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
+	}
+
+	private bool IsInputValidIndicator()
+	{
+		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
+		return SearchQuery.IsIndicatorValid(Tf_Input.Text.ToString());
+	}
+
+	private void ApplyConfig()
+	{
+		Integration.KeepOnTop(Config.OnTop);
+	}
+
+	public void SetInfoText(string s)
+	{
+		Lbl_InputInfo2.Text = $"{s}";
+		Lbl_InputInfo2.SetNeedsDisplay();
+	}
+
+	internal void SetInputText(ustring s)
+	{
+		Tf_Input.Text = s;
+	}
+
+	private async Task<bool> SetQuery(ustring text)
+	{
+		SearchQuery sq;
+
+		try {
+			sq = await SearchQuery.TryCreateAsync(text.ToString());
+
+		}
+		catch (Exception e) {
+			sq = SearchQuery.Null;
+
+			Lbl_InputInfo.Text = $"Error: {e.Message}";
+		}
+
+		Lbl_InputOk.Text = Values.PRC;
+
+		if (sq is { } && sq != SearchQuery.Null) {
+
+			try {
+				var u = await sq.UploadAsync();
+				Lbl_QueryUpload.Text = u.ToString();
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
+
+			}
+
+		}
+		else {
+			Lbl_InputOk.Text    = Values.Err;
+			Lbl_InputInfo.Text  = "Error: invalid input";
+			Btn_Run.Enabled     = true;
+			Lbl_QueryUpload.Text = ustring.Empty;
+
+			return false;
+		}
+
+		Debug.WriteLine($">> {sq} {Config}", nameof(SetQuery));
+
+		Lbl_InputOk.Text = Values.OK;
+
+		Query = sq;
+		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
+		Status = ProgramStatus.Signal;
+
+		Lbl_InputInfo.Text = $"[{(sq.IsFile ? "File" : "Uri")}] ({sq.FileTypes.First()})";
+
+		IsReady.Set();
+		Btn_Run.Enabled = false;
+
+		return true;
+	}
+
+	private bool ClipboardCallback(MainLoop c)
+	{
+		try {
+			/*
+			 * Don't set input if:
+			 *	- Input is already semiprimed
+			 *	- Clipboard history contains it already
+			 */
+			if (Integration.ReadClipboard(out var str) && !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
+				SetInputText(str);
+				Lbl_InputOk.Text += "C";
+
+				m_clipboard.Add(str);
+			}
+
+			// note: wtf?
+			c.RemoveTimeout(m_cbCallbackTok);
+			m_cbCallbackTok = c.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+
+			return false;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(ClipboardCallback));
+		}
+
+		return true;
+	}
+
+	#region Control functions
+
+	private void OnClear()
+	{
+		Tf_Input.DeleteAll();
+	}
+
+	private void OnConfigDialog()
 	{
 		var about = new Dialog("Configuration")
 		{
@@ -491,102 +615,33 @@ public sealed class GuiMode : BaseProgramMode
 		Tf_Input.EnsureFocus();
 	}
 
-	private void ApplyConfig()
+	private void ClearControls()
 	{
-		Integration.KeepOnTop(Config.OnTop);
-	}
-
-	public void SetInfoText(string s)
-	{
-		Lbl_InputInfo3.Text = $"{s}";
-		Lbl_InputInfo3.SetNeedsDisplay();
-	}
-
-	internal void SetInputText(ustring s)
-	{
-		Tf_Input.Text = s;
-	}
-
-	private async Task<bool> SetQuery(ustring text)
-	{
-		SearchQuery sq;
-
 		try {
-			sq = await SearchQuery.TryCreateAsync(text.ToString());
+			Tf_Input.DeleteAll();
+			Tf_Input.ClearHistoryChanges();
+			Query = SearchQuery.Null;
 
-		}
-		catch (Exception e) {
-			sq = SearchQuery.Null;
+			Lbl_InputOk.Text = Values.NA;
+			Dt_Results.Clear();
 
-			Lbl_InputInfo.Text = $"Error: {e.Message}";
-		}
+			IsReady.Reset();
+			ResultCount         = 0;
+			Pbr_Status.Fraction = 0;
 
-		Lbl_InputOk.Text = Values.PRC;
-
-		if (sq is { } && sq != SearchQuery.Null) {
-
-			try {
-				var u = await sq.UploadAsync();
-				Lbl_InputInfo2.Text = u.ToString();
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", nameof(OnRun));
-
-			}
-
-		}
-		else {
-			Lbl_InputOk.Text    = Values.Err;
-			Lbl_InputInfo.Text  = "Error: invalid input";
-			Btn_Run.Enabled     = true;
+			Lbl_InputInfo.Text  = ustring.Empty;
+			Lbl_QueryUpload.Text = ustring.Empty;
 			Lbl_InputInfo2.Text = ustring.Empty;
-
-			return false;
-		}
-
-		Debug.WriteLine($">> {sq} {Config}", nameof(OnRun));
-
-		Lbl_InputOk.Text = Values.OK;
-
-		Query = sq;
-		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
-		Status = ProgramStatus.Signal;
-
-		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} :: {sq.FileTypes.First()}";
-
-		IsReady.Set();
-		Btn_Run.Enabled = false;
-
-		return true;
-	}
-
-	#region Control functions
-
-	private bool ClipboardCallback(MainLoop c)
-	{
-		try {
-			/*
-			 * Don't set input if:
-			 *	- Input is already semiprimed
-			 *	- Clipboard history contains it already
-			 */
-			if (Integration.ReadClipboard(out var str) && !IsSemiPrimed() && !m_clipboard.Contains(str)) {
-				SetInputText(str);
-				SetInfoText("Clipboard data");
-				m_clipboard.Add(str);
-			}
-
-			// note: wtf?
-			c.RemoveTimeout(m_tok);
-			m_tok = c.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
-
-			return false;
+			Lbl_Status.Text = ustring.Empty;
+			Tv_Results.SetNeedsDisplay();
+			Tf_Input.SetFocus();
+			Tf_Input.EnsureFocus();
+			Btn_Cancel.Enabled = false;
+			// Application.Refresh();
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}");
+			Debug.WriteLine($"{e.Message}", nameof(ClearControls));
 		}
-
-		return true;
 	}
 
 	private void OnRestart()
@@ -595,7 +650,8 @@ public sealed class GuiMode : BaseProgramMode
 			return;
 		}
 
-		OnClear();
+		ClearControls();
+
 		Tv_Results.RowOffset    = 0;
 		Tv_Results.ColumnOffset = 0;
 		Dt_Results.Clear();
@@ -675,52 +731,34 @@ public sealed class GuiMode : BaseProgramMode
 		var text = Tf_Input.Text;
 
 		Debug.WriteLine($"{text}", nameof(OnRun));
-
 		var ok = await SetQuery(text);
 
 		if (!ok) {
 			return;
 		}
 
+		var sw = Stopwatch.StartNew();
+
+		m_runIdleTok = Application.MainLoop.AddIdle(() =>
+		{
+			Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec";
+			return true;
+		});
+
 		var run = base.RunAsync(null);
-
 		await run;
-	}
 
-	private void OnClear()
-	{
-		try {
-			Tf_Input.DeleteAll();
-			Tf_Input.ClearHistoryChanges();
-			Query = SearchQuery.Null;
-
-			Lbl_InputOk.Text = Values.NA;
-			Dt_Results.Clear();
-
-			IsReady.Reset();
-			ResultCount         = 0;
-			Pbr_Status.Fraction = 0;
-
-			Lbl_InputInfo.Text  = ustring.Empty;
-			Lbl_InputInfo2.Text = ustring.Empty;
-			Lbl_InputInfo3.Text = ustring.Empty;
-			Tv_Results.SetNeedsDisplay();
-			Tf_Input.SetFocus();
-			Tf_Input.EnsureFocus();
-			Btn_Cancel.Enabled = false;
-			// Application.Refresh();
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(OnClear));
-		}
+		sw.Stop();
+		Application.MainLoop.RemoveIdle(m_runIdleTok);
 	}
 
 	private void OnCancel()
 	{
 		Token.Cancel();
-		Lbl_InputInfo3.Text = $"Canceled";
-		Lbl_InputInfo3.SetNeedsDisplay();
+		Lbl_InputInfo2.Text = $"Canceled";
+		Lbl_InputInfo2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
+		Application.MainLoop.RemoveIdle(m_runIdleTok);
 	}
 
 	#endregion

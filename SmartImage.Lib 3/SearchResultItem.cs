@@ -6,8 +6,11 @@ using Novus.FileTypes;
 
 namespace SmartImage.Lib;
 
-public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
+public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
 {
+	/// <summary>
+	/// Result containing this result item
+	/// </summary>
 	[NN]
 	public SearchResult Root { get; }
 
@@ -15,47 +18,47 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	public Url Url { get; internal set; }
 
 	/// <summary>
-	/// Title/caption of this result.
+	/// Title/caption of this result
 	/// </summary>
 	[CBN]
 	public string Title { get; internal set; }
 
 	/// <summary>
-	/// Media source of this result (e.g., anime, movie, game, etc.).
+	/// Media source of this result (e.g., anime, movie, game, etc.)
 	/// </summary>
 	[CBN]
 	public string Source { get; internal set; }
 
 	/// <summary>
-	/// Image width.
+	/// Image width
 	/// </summary>
 	public double? Width { get; internal set; }
 
 	/// <summary>
-	/// Image height.
+	/// Image height
 	/// </summary>
 	public double? Height { get; internal set; }
 
 	/// <summary>
-	/// Artist or author.
+	/// Artist or author
 	/// </summary>
 	[CBN]
 	public string Artist { get; internal set; }
 
 	/// <summary>
-	/// Image description.
+	/// Image description
 	/// </summary>
 	[CBN]
 	public string Description { get; internal set; }
 
 	/// <summary>
-	/// Character(s) depicted in the image.
+	/// Character(s) depicted in the image
 	/// </summary>
 	[CBN]
 	public string Character { get; internal set; }
 
 	/// <summary>
-	/// Site which returned this result.
+	/// Site which returned this result
 	/// </summary>
 	[CBN]
 	public string Site { get; internal set; }
@@ -63,8 +66,10 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	/// <summary>
 	/// Percent similarity to query (<see cref="SearchQuery"/>).
 	/// </summary>
-	/// <remarks>The algorithm used to determine the similarity
-	/// may not be consistent across results.</remarks>
+	/// <remarks>
+	/// The algorithm used to determine the similarity
+	/// may not be consistent across results.
+	/// </remarks>
 	public double? Similarity { get; internal set; }
 
 	/// <summary>
@@ -77,20 +82,16 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	/// </summary>
 	public dynamic Metadata { get; internal set; }
 
+	public int Score { get; private set; }
+
+	private bool m_isScored;
+
 	internal SearchResultItem(SearchResult r)
 	{
-		Root     = r;
-		Metadata = new ExpandoObject();
+		Root       = r;
+		Metadata   = new ExpandoObject();
+		m_isScored = false;
 	}
-
-	public override string ToString()
-	{
-		return $"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time}";
-	}
-
-	public void Dispose() { }
-
-	public int Score { get; private set; }
 
 	public static bool Validate([CBN] SearchResultItem r)
 	{
@@ -103,6 +104,10 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 
 	public void UpdateScore()
 	{
+		if (m_isScored) {
+			return;
+		}
+
 		if (Url.IsValid(Url)) {
 			Score++;
 		}
@@ -116,11 +121,22 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		if (Time.HasValue) {
 			Score++;
 		}
+		
+		Score += Metadata switch
+		{
+			ICollection c => c.Count,
+			string s      => String.IsNullOrWhiteSpace(s) ? 0 : 1,
+			_ => 0
+		};
 
-		if (Metadata is ICollection { } e) {
-			Score += e.Count;
-		}
+		m_isScored = true;
+	}
 
+	public void Dispose() { }
+
+	public override string ToString()
+	{
+		return $"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time}";
 	}
 
 	#region Relational members

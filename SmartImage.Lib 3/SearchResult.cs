@@ -20,7 +20,7 @@ public enum SearchResultStatus
 public sealed class SearchResult : IDisposable
 {
 	/// <summary>
-	/// Engine
+	/// Engine which returned this result
 	/// </summary>
 	public BaseSearchEngine Engine { get; }
 
@@ -39,15 +39,9 @@ public sealed class SearchResult : IDisposable
 	[CBN]
 	public string Overview { get; internal set; }
 
-	[CBN]
-	public SearchResultItem First
-	{
-		get { return Results.FirstOrDefault(r => Url.IsValid(r.Url)); }
-	}
-
 	public SearchResultItem Best
 	{
-		get { return Results.MaxBy(r => r.Similarity ?? 0); }
+		get { return Results.MaxBy(r => r.Score); }
 	}
 
 	internal SearchResult(BaseSearchEngine bse)

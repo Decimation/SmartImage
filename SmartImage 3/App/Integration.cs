@@ -232,14 +232,14 @@ public static class Integration
 
 		str = Native.GetClipboardFileName();
 
-		if (!SearchQuery.IsValid(str)) {
+		if (!SearchQuery.IsIndicatorValid(str)) {
 			str = (string) Native.GetClipboard((uint) ClipboardFormat.CF_TEXT);
 		}
 
 		Native.CloseClipboard();
 		// Debug.WriteLine($"Clipboard data: {str}");
 
-		var b = SearchQuery.IsValid(str);
+		var b = SearchQuery.IsIndicatorValid(str);
 		return b;
 	}
 }

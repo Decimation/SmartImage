@@ -22,7 +22,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 	#region Overrides of BaseSearchEngine
 
 	[ICBN]
-	protected virtual async Task<IDocument> ParseDocumentAsync(Url origin)
+	protected virtual async Task<IDocument> ParseDocumentAsync(Url origin, CancellationToken token)
 	{
 		var parser = new HtmlParser();
 
@@ -39,17 +39,17 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 			                      {
 				                      s.ExceptionHandled = true;
 			                      })*/
-			                      .GetAsync();
+			                      .GetAsync(token);
 
 			var str = await res.GetStringAsync();
 
-			var document = await parser.ParseDocumentAsync(str);
+			var document = await parser.ParseDocumentAsync(str, token);
 
 			return document;
 		}
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
-			Debug.WriteLine($"{e.Message}", Name);
+			Debug.WriteLine($"{Name} :: {e.Message}", nameof(ParseDocumentAsync));
 
 			return null;
 		}
@@ -60,7 +60,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		token ??= CancellationToken.None;
 
 		var result = await base.GetResultAsync(query, token);
-		var doc    = await ParseDocumentAsync(result.RawUrl);
+		var doc    = await ParseDocumentAsync(result.RawUrl, token.Value);
 
 		if (doc is not { }) {
 			result.Status = SearchResultStatus.Failure;
@@ -79,12 +79,9 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 			if (SearchResultItem.Validate(sri)) {
 				result.Results.Add(sri);
 			}
-			else {
-				Debug.WriteLine($"{sri} failed validation", Name);
-			}
 		}
 
-		Debug.WriteLine($"{result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", Name);
+		Debug.WriteLine($"{Name} :: {result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", nameof(GetResultAsync));
 
 		result.Update();
 

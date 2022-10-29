@@ -42,25 +42,38 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		token ??= CancellationToken.None;
+
 		var sr = await base.GetResultAsync(query, token);
 
-		var req = await EndpointUrl.WithClient(Client)
-		                           .SetQueryParams(new
-		                           {
-			                           filter               = true,
-			                           url                  = query.Upload,
-			                           same_sub             = false,
-			                           filter_author        = true,
-			                           only_older           = false,
-			                           include_crossposts   = false,
-			                           meme_filter          = false,
-			                           target_match_percent = 90,
-			                           filter_dead_matches  = false,
-			                           target_days_old      = 0
-		                           })
-		                           .GetAsync();
+		Root obj = null;
 
-		var obj = await req.GetJsonAsync<Root>();
+		try {
+			var req = await EndpointUrl.WithClient(Client)
+			                           .SetQueryParams(new
+			                           {
+				                           filter               = true,
+				                           url                  = query.Upload,
+				                           same_sub             = false,
+				                           filter_author        = true,
+				                           only_older           = false,
+				                           include_crossposts   = false,
+				                           meme_filter          = false,
+				                           target_match_percent = 90,
+				                           filter_dead_matches  = false,
+				                           target_days_old      = 0
+			                           })
+			                           .GetAsync(token.Value);
+
+			obj = await req.GetJsonAsync<Root>();
+
+		}
+		catch (FlurlHttpException e) {
+			sr.ErrorMessage = e.Message;
+			sr.Status       = SearchResultStatus.Unavailable;
+			
+			goto ret;
+		}
 
 		foreach (Match m in obj.matches) {
 			var sri = new SearchResultItem(sr)
@@ -77,7 +90,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		}
 
 		sr.Update();
-
+		ret:
 		return sr;
 	}
 

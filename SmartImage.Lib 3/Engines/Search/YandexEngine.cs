@@ -107,6 +107,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		token ??= CancellationToken.None;
 		// var sr = await base.GetResultAsync(query, token);
 
 		var url = await GetRawUrlAsync(query);
@@ -119,7 +120,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		IDocument doc;
 
 		try {
-			doc = await ParseDocumentAsync(url);
+			doc = await ParseDocumentAsync(url, token.Value);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);

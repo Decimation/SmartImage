@@ -94,7 +94,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		else {
 			uri = null;
 		}
-
+		
 		var result = new SearchResultItem(r)
 		{
 			Url         = uri,

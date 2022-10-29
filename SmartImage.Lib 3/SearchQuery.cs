@@ -67,7 +67,7 @@ public sealed class SearchQuery : IDisposable
 
 			}
 			catch (FlurlHttpException e) {
-				Debug.WriteLine($"{e.Message} ({value})", nameof(SearchQuery));
+				Debug.WriteLine($"{e.Message} ({value})", nameof(TryCreateAsync));
 				// return await Task.FromException<SearchQuery>(e);
 				return null;
 			}
@@ -78,9 +78,10 @@ public sealed class SearchQuery : IDisposable
 		var types = (await IFileTypeResolver.Default.ResolveAsync(stream)).ToArray();
 
 		if (!types.Any(t => t.IsType(FileType.MT_IMAGE))) {
-			var e = new ArgumentException("Invalid file types", nameof(value));
-			return await Task.FromException<SearchQuery>(e);
-			// return null;
+			// var e = new ArgumentException("Invalid file types", nameof(value));
+			// return await Task.FromException<SearchQuery>(e);
+			Debug.WriteLine($"Invalid file types: {value} {types.QuickJoin()}", nameof(TryCreateAsync));
+			return null;
 
 		}
 
@@ -99,7 +100,7 @@ public sealed class SearchQuery : IDisposable
 		if (IsUrl) {
 			Upload = Value;
 			Size   = -1; // todo: indeterminate/unknown size
-			Debug.WriteLine($"Skipping upload for {Value}", nameof(SearchQuery));
+			Debug.WriteLine($"Skipping upload for {Value}", nameof(UploadAsync));
 		}
 		else {
 			engine ??= BaseUploadEngine.Default;
@@ -130,7 +131,7 @@ public sealed class SearchQuery : IDisposable
 
 	#endregion
 
-	public static bool IsValid(string str)
+	public static bool IsIndicatorValid(string str)
 	{
 		return Url.IsValid(str) || File.Exists(str);
 	}

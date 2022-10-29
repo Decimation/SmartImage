@@ -45,6 +45,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	{
 		// https://soruly.github.io/trace.moe/#/
 
+		token ??= CancellationToken.None;
+
 		TraceMoeRootObject tm = null;
 
 		var r = await base.GetResultAsync(query, token);
@@ -54,7 +56,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			                        .AllowAnyHttpStatus()
 			                        .SetQueryParam("url", query.Upload, true);
 
-			var json = await request.GetStringAsync();
+			var json = await request.GetStringAsync(token.Value);
 
 			var settings = new JsonSerializerSettings
 			{
@@ -65,14 +67,14 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 						args.ErrorContext.Handled = true;
 					}
 
-					Debug.WriteLine($"{args.ErrorContext}", Name);
+					Debug.WriteLine($"{Name} :: {args.ErrorContext}", nameof(GetResultAsync));
 				}
 			};
 
 			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(json, settings);
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{Name}: {nameof(Process)}: {e.Message}");
+			Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
 
 			goto ret;
 		}
@@ -94,7 +96,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 
 			}
 			else if (tm.error != null) {
-				Debug.WriteLine($"{Name}: API error: {tm.error}", C_ERROR);
+				Debug.WriteLine($"{Name} :: API error: {tm.error}", nameof(GetResultAsync));
 				r.ErrorMessage = tm.error;
 
 				if (r.ErrorMessage.Contains("Search queue is full")) {
@@ -104,7 +106,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 		}
 
 		ret:
-		
+
 		r.Update();
 
 		return r;
@@ -117,14 +119,14 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 
 		for (int i = 0; i < items.Length; i++) {
 			var   doc = results[i];
-			float sim = MathF.Round((float) (doc.similarity * 100.0f), 2);
+			var sim = Math.Round((doc.similarity * 100.0f), 2);
 
 			string epStr = doc.EpisodeString;
 
 			var result = new SearchResultItem(sr)
 			{
 				Similarity  = sim,
-				Description = $"Episode #{epStr} @ {TimeSpan.FromSeconds(doc.from)}"
+				Description = $"Episode #{epStr} @ [{TimeSpan.FromSeconds(doc.from)} - {TimeSpan.FromSeconds(doc.to)}]",
 			};
 
 			try {
@@ -134,7 +136,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				result.Url    = new Url(anilistUrl);
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", Name);
+				Debug.WriteLine($"{Name} :: {e.Message}", nameof(ConvertResults));
 			}
 
 			if (result.Similarity < FILTER_THRESHOLD) {
@@ -161,7 +163,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	/// <summary>
 	/// Threshold at which results become inaccurate
 	/// </summary>
-	private const float FILTER_THRESHOLD = 87.00F;
+	private const double FILTER_THRESHOLD = 87.00;
 
 	public override void Dispose()
 	{
