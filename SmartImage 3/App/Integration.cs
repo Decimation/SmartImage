@@ -217,10 +217,10 @@ public static class Integration
 	public static void KeepOnTop(bool add)
 	{
 		if (add) {
-			Native.KeepWindowOnTop(Values.HndWindow);
+			Native.KeepWindowOnTop(ConsoleUtil.HndWindow);
 		}
 		else {
-			Native.RemoveWindowOnTop(Values.HndWindow);
+			Native.RemoveWindowOnTop(ConsoleUtil.HndWindow);
 		}
 
 		IsOnTop = add;
@@ -252,27 +252,5 @@ public static class Integration
 		}
 
 		return false;
-	}
-
-	internal static void SetConsoleMenu()
-	{
-		IntPtr sysMenu = Native.GetSystemMenu(Values.HndWindow, false);
-
-		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_MAXIMIZE, (int) Native.MF_BYCOMMAND);
-		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_SIZE, (int) Native.MF_BYCOMMAND);
-	}
-
-	internal static void SetConsoleMode()
-	{
-		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
-		Native.GetConsoleMode(Values.StdIn, out ConsoleModes lpMode);
-
-		Values._oldMode = lpMode;
-
-		Native.SetConsoleMode(Values.StdIn, lpMode | ((ConsoleModes.ENABLE_MOUSE_INPUT &
-		                                               ~ConsoleModes.ENABLE_QUICK_EDIT_MODE) |
-		                                              ConsoleModes.ENABLE_EXTENDED_FLAGS |
-		                                              ConsoleModes.ENABLE_ECHO_INPUT |
-		                                              ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING));
 	}
 }

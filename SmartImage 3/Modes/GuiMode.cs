@@ -40,7 +40,7 @@ public sealed class GuiMode : BaseProgramMode
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 
 	#region Controls
-
+	
 	private static readonly Toplevel Top = Application.Top;
 
 	private static readonly Window Win = new(Resources.Name)
@@ -170,7 +170,7 @@ public sealed class GuiMode : BaseProgramMode
 
 	public GuiMode(string[] args) : base(args, SearchQuery.Null)
 	{
-		Application.Init();
+		// Application.Init();
 
 		ProcessArgs();
 		ApplyConfig();
@@ -288,7 +288,7 @@ public sealed class GuiMode : BaseProgramMode
 		const int WIDTH  = 15;
 		const int HEIGHT = 20;
 
-		ListView lvSearchEngines = new(Values.EngineOptions)
+		ListView lvSearchEngines = new(ConsoleUtil.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
@@ -297,7 +297,7 @@ public sealed class GuiMode : BaseProgramMode
 			Height                  = HEIGHT,
 		};
 
-		ListView lvPriorityEngines = new(Values.EngineOptions)
+		ListView lvPriorityEngines = new(ConsoleUtil.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
@@ -653,7 +653,7 @@ public sealed class GuiMode : BaseProgramMode
 	private void OnCancel()
 	{
 		Token.Cancel();
-		OnRestart();
+
 	}
 
 	#endregion

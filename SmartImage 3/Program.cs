@@ -23,6 +23,7 @@ using SmartImage.Lib;
 using Terminal.Gui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using SmartImage.Modes;
+using SmartImage.UI;
 
 #pragma warning disable CS0168
 
@@ -50,15 +51,15 @@ public static class Program
 	{
 		Global.Setup();
 		Trace.WriteLine("Init", Resources.Name);
-
 		// Gui.Init();
+		Application.Init();
 	}
 
 	public static async Task Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 
-		Integration.SetConsoleMode();
+		ConsoleUtil.SetConsoleMode();
 #if TEST
 		// args = new String[] { null };
 		args = new[] { "-i", "https://i.imgur.com/QtCausw.png" };
