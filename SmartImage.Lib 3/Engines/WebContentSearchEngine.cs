@@ -86,7 +86,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 		Debug.WriteLine($"{result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", Name);
 
-		FinalizeResult(result);
+		result.Update();
 
 		return result;
 	}

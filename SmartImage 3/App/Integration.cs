@@ -1,5 +1,4 @@
-﻿
-#nullable disable
+﻿#nullable disable
 using Kantan.Console;
 using Microsoft.Win32;
 using System;
@@ -14,6 +13,7 @@ using Novus.OS;
 using Kantan.Diagnostics;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
+using SmartImage.Lib;
 using SmartImage.Modes;
 using SmartImage.UI;
 using Terminal.Gui;
@@ -228,29 +228,18 @@ public static class Integration
 
 	public static bool ReadClipboard(out string str)
 	{
-		str = null;
+		Native.OpenClipboard();
 
-		if (Native.OpenClipboard()) {
-			var files = Native.GetClipboardFileList();
-			str = files.FirstOrDefault();
-			Native.CloseClipboard();
+		str = Native.GetClipboardFileName();
+
+		if (!SearchQuery.IsValid(str)) {
+			str = (string) Native.GetClipboard((uint) ClipboardFormat.CF_TEXT);
 		}
 
-		if (Clipboard.TryGetClipboardData(out var str2) && str is not { }) {
-			str = str2;
-		}
-
+		Native.CloseClipboard();
 		// Debug.WriteLine($"Clipboard data: {str}");
 
-		if (str is { }) {
-			var b = Url.IsValid(str) || File.Exists(str);
-
-			if (b) {
-				Debug.WriteLine($">> {str} from clipboard");
-				return true;
-			}
-		}
-
-		return false;
+		var b = SearchQuery.IsValid(str);
+		return b;
 	}
 }

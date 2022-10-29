@@ -76,7 +76,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 			sr.Results.Add(sri);
 		}
 
-		FinalizeResult(sr);
+		sr.Update();
 
 		return sr;
 	}

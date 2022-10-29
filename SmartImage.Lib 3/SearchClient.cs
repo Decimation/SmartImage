@@ -109,7 +109,7 @@ public sealed class SearchClient : IDisposable
 
 				Debug.WriteLine($"{result}");
 
-				HttpUtilities.OpenUrl(result.Url);
+				HttpUtilities.TryOpenUrl(result.Url);
 			}
 			catch (Exception e) { }
 		}

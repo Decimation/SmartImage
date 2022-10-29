@@ -176,7 +176,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 			sr.Status       = SearchResultStatus.Extraneous;
 		}
 
-		FinalizeResult(sr);
+		sr.Update();
 		return sr;
 	}
 

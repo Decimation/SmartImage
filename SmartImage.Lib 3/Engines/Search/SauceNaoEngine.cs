@@ -106,7 +106,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		ret:
 
-		FinalizeResult(result);
+		result.Update();
 
 		return result;
 	}

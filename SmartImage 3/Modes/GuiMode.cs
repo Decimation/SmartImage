@@ -40,7 +40,7 @@ public sealed class GuiMode : BaseProgramMode
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 
 	#region Controls
-	
+
 	private static readonly Toplevel Top = Application.Top;
 
 	private static readonly Window Win = new(Resources.Name)
@@ -166,6 +166,10 @@ public sealed class GuiMode : BaseProgramMode
 
 	#endregion
 
+	private object m_tok;
+
+	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+
 	#region Overrides of ProgramMode
 
 	public GuiMode(string[] args) : base(args, SearchQuery.Null)
@@ -179,16 +183,11 @@ public sealed class GuiMode : BaseProgramMode
 		 * Check if clipboard contains valid query input
 		 */
 
-		var tok = Application.MainLoop.AddTimeout(TimeSpan.FromSeconds(1.5), (c) =>
+		m_tok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+		/*m_tok = Application.MainLoop.AddIdle(() =>
 		{
-			if (Integration.ReadClipboard(out var str)) {
-				SetInputText(str);
-				AddInfo("Clipboard data");
-				return false;
-			}
-
-			return true;
-		});
+			return ClipboardCallback(null);
+		});*/
 
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
@@ -202,12 +201,15 @@ public sealed class GuiMode : BaseProgramMode
 			new("Engine", typeof(string)),
 
 			new(nameof(SearchResultItem.Url), typeof(Flurl.Url)),
-			new(nameof(SearchResultItem.Similarity), typeof(float)),
+			new(nameof(SearchResultItem.Score), typeof(int)),
+			new(nameof(SearchResultItem.Similarity), typeof(double)),
 			new(nameof(SearchResultItem.Artist), typeof(string)),
 			new(nameof(SearchResultItem.Description), typeof(string)),
 			new(nameof(SearchResultItem.Source), typeof(string)),
 			new(nameof(SearchResultItem.Title), typeof(string)),
 			new(nameof(SearchResultItem.Site), typeof(string)),
+			new(nameof(SearchResultItem.Width), typeof(double)),
+			new(nameof(SearchResultItem.Height), typeof(double)),
 		};
 
 		Dt_Results.Columns.AddRange(col);
@@ -250,10 +252,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		Lbl_InputInfo2.Clicked += () =>
 		{
-			try {
-				HttpUtilities.OpenUrl(Query.Upload);
-			}
-			catch (Exception e) { }
+			HttpUtilities.TryOpenUrl(Query.Upload);
 		};
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
@@ -265,11 +264,88 @@ public sealed class GuiMode : BaseProgramMode
 
 	}
 
-	public void AddInfo(string s)
+	public override Task<object?> RunAsync(object? sender = null)
 	{
-		Lbl_InputInfo3.Text += $"{s}";
-		Lbl_InputInfo3.SetNeedsDisplay();
+		Application.Run();
+		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
 	}
+
+	public override void PreSearch(object? sender)
+	{
+		Tf_Input.SetFocus();
+	}
+
+	public override void PostSearch(object? sender, List<SearchResult> results1)
+	{
+		if (Client.IsComplete) {
+			Btn_Run.Enabled = false;
+		}
+	}
+
+	public override void OnResult(object o, SearchResult r)
+	{
+		Application.MainLoop.Invoke(() =>
+		{
+			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, 0, null, null,
+			                    r.Status.ToString(), null, null, null, null, null);
+
+			for (int i = 0; i < r.Results.Count; i++) {
+				SearchResultItem sri = r.Results[i];
+
+				Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
+				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
+				                    sri.Title, sri.Site, sri.Width, sri.Height);
+			}
+
+			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
+			Tv_Results.SetNeedsDisplay();
+			Pbr_Status.SetNeedsDisplay();
+		});
+
+	}
+
+	public override void OnComplete(object sender, List<SearchResult> e)
+	{
+		SystemSounds.Asterisk.Play();
+		Btn_Restart.Enabled = true;
+
+	}
+
+	public override void Close()
+	{
+		Application.Shutdown();
+	}
+
+	public override void Dispose()
+	{
+		base.Dispose();
+	}
+
+	private bool IsPrimed()
+	{
+		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
+		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
+	}
+
+	private bool IsSemiPrimed()
+	{
+		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
+		return SearchQuery.IsValid(Tf_Input.Text.ToString());
+	}
+
+	protected override void ProcessArg(object? val, IEnumerator e)
+	{
+		if (val is string s && s == Resources.Arg_Input) {
+			e.MoveNext();
+			var s2 = e.Current?.ToString();
+
+			if (SearchQuery.IsValid(s2)) {
+				SetInputText(s2);
+			}
+		}
+	}
+
+	#endregion
 
 	private void ConfigDialog()
 	{
@@ -402,72 +478,11 @@ public sealed class GuiMode : BaseProgramMode
 		Integration.KeepOnTop(Config.OnTop);
 	}
 
-	public override Task<object?> RunAsync(object? sender = null)
+	public void AddInfo(string s)
 	{
-		Application.Run();
-		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
+		Lbl_InputInfo3.Text += $"{s}";
+		Lbl_InputInfo3.SetNeedsDisplay();
 	}
-
-	public override void PreSearch(object? sender)
-	{
-		Tf_Input.SetFocus();
-	}
-
-	public override void PostSearch(object? sender, List<SearchResult> results1)
-	{
-		if (Client.IsComplete) {
-			Btn_Run.Enabled = false;
-		}
-	}
-
-	public override void OnResult(object o, SearchResult r)
-	{
-		Application.MainLoop.Invoke(() =>
-		{
-			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, null, null,
-			                    r.Status.ToString(), null, null, null);
-
-			for (int i = 0; i < r.Results.Count; i++) {
-				SearchResultItem sri = r.Results[i];
-
-				Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
-				                    sri.Url, sri.Similarity, sri.Artist, sri.Description, sri.Source,
-				                    sri.Title, sri.Site);
-			}
-
-			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
-			Tv_Results.SetNeedsDisplay();
-			Pbr_Status.SetNeedsDisplay();
-		});
-
-	}
-
-	public override void OnComplete(object sender, List<SearchResult> e)
-	{
-		SystemSounds.Asterisk.Play();
-		Btn_Restart.Enabled = true;
-
-	}
-
-	public override void Close()
-	{
-		Application.Shutdown();
-	}
-
-	public override void Dispose()
-	{
-		base.Dispose();
-	}
-
-	protected override void ProcessArg(object? val, IEnumerator e)
-	{
-		if (val is string s && s == Resources.Arg_Input) {
-			e.MoveNext();
-			SetInputText(e.Current?.ToString());
-		}
-	}
-
-	#endregion
 
 	internal void SetInputText(ustring s)
 	{
@@ -507,6 +522,7 @@ public sealed class GuiMode : BaseProgramMode
 			Lbl_InputInfo.Text  = "Error: invalid input";
 			Btn_Run.Enabled     = true;
 			Lbl_InputInfo2.Text = ustring.Empty;
+
 			return false;
 		}
 
@@ -518,10 +534,32 @@ public sealed class GuiMode : BaseProgramMode
 		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
 		Status = ProgramStatus.Signal;
 
-		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} : {sq.FileTypes.First()}";
+		Lbl_InputInfo.Text = $"{(sq.IsFile ? "File" : "Uri")} :: {sq.FileTypes.First()}";
 
 		IsReady.Set();
 		Btn_Run.Enabled = false;
+
+		return true;
+	}
+
+	private bool ClipboardCallback(MainLoop c)
+	{
+		Debug.WriteLine($"callback");
+
+		try {
+			if (Integration.ReadClipboard(out var str) && !IsSemiPrimed()) {
+				SetInputText(str);
+				AddInfo("Clipboard data");
+			}
+
+			c.RemoveTimeout(m_tok);
+			m_tok = c.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+			return false;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+		}
+
 		return true;
 	}
 
@@ -559,8 +597,8 @@ public sealed class GuiMode : BaseProgramMode
 		try {
 			var cell = args.Table.Rows[args.Row][args.Col];
 
-			if (cell is Url { } u && Url.IsValid(u)) {
-				HttpUtilities.OpenUrl(u);
+			if (cell is Url { } u) {
+				HttpUtilities.TryOpenUrl(u);
 			}
 
 		}
@@ -643,6 +681,7 @@ public sealed class GuiMode : BaseProgramMode
 			Tv_Results.SetNeedsDisplay();
 			Tf_Input.SetFocus();
 			Tf_Input.EnsureFocus();
+
 			// Application.Refresh();
 		}
 		catch (Exception e) {
@@ -653,7 +692,8 @@ public sealed class GuiMode : BaseProgramMode
 	private void OnCancel()
 	{
 		Token.Cancel();
-
+		Lbl_InputInfo3.Text = $"Canceled";
+		Lbl_InputInfo3.SetNeedsDisplay();
 	}
 
 	#endregion

@@ -1,4 +1,5 @@
-﻿using System.Dynamic;
+﻿using System.Collections;
+using System.Dynamic;
 using Flurl;
 using Kantan.Model;
 using Novus.FileTypes;
@@ -89,6 +90,8 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 
 	public void Dispose() { }
 
+	public int Score { get; private set; }
+
 	public static bool Validate([CBN] SearchResultItem r)
 	{
 		return r switch
@@ -96,6 +99,28 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 			not { } => false,
 			_       => true
 		};
+	}
+
+	public void UpdateScore()
+	{
+		if (Url.IsValid(Url)) {
+			Score++;
+		}
+
+		var a = new[] { Source, Artist, Character, Description, Title, Site };
+		Score += a.Count(s => !String.IsNullOrWhiteSpace(s));
+
+		var b = new[] { Similarity, Width, Height, };
+		Score += b.Count(d => d.HasValue);
+
+		if (Time.HasValue) {
+			Score++;
+		}
+
+		if (Metadata is ICollection { } e) {
+			Score += e.Count;
+		}
+
 	}
 
 	#region Relational members

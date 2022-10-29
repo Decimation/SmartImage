@@ -1,4 +1,5 @@
 ﻿global using Url = Flurl.Url;
+using System.Collections;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Flurl.Http;
@@ -56,19 +57,6 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		//
 		return Task.FromResult<Url>((BaseUrl + query.Upload));
-	}
-
-	protected static void FinalizeResult(SearchResult r)
-	{
-		bool any = r.Results.Any();
-
-		if (!any) {
-			r.Status = SearchResultStatus.NoResults;
-		}
-		else {
-			r.Status = SearchResultStatus.Success;
-		}
-		
 	}
 
 	#region Implementation of IDisposable

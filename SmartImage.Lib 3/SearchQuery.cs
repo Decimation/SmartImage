@@ -129,4 +129,9 @@ public sealed class SearchQuery : IDisposable
 	}
 
 	#endregion
+
+	public static bool IsValid(string str)
+	{
+		return Url.IsValid(str) || File.Exists(str);
+	}
 }

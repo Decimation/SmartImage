@@ -181,7 +181,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		};*/
 
 		ret:
-		FinalizeResult(sr);
+		sr.Update();
 		return sr;
 	}
 

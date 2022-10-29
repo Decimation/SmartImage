@@ -105,7 +105,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 
 		ret:
 		
-		FinalizeResult(r);
+		r.Update();
 
 		return r;
 	}

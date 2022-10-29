@@ -44,10 +44,10 @@ public sealed class SearchResult : IDisposable
 	{
 		get { return Results.FirstOrDefault(r => Url.IsValid(r.Url)); }
 	}
-	
+
 	public SearchResultItem Best
 	{
-		get { return Results.MaxBy(r=>r.Similarity ?? 0); }
+		get { return Results.MaxBy(r => r.Similarity ?? 0); }
 	}
 
 	internal SearchResult(BaseSearchEngine bse)
@@ -71,4 +71,21 @@ public sealed class SearchResult : IDisposable
 	}
 
 	#endregion
+
+	public void Update()
+	{
+		bool any = Results.Any();
+
+		if (!any) {
+			Status = SearchResultStatus.NoResults;
+		}
+		else {
+			Status = SearchResultStatus.Success;
+
+			foreach (var v in Results) {
+				v.UpdateScore();
+			}
+		}
+
+	}
 }
