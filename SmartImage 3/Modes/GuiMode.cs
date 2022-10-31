@@ -373,6 +373,7 @@ public sealed class GuiMode : BaseProgramMode
 
 	protected override void ProcessArg(object? val, IEnumerator e)
 	{
+
 		if (val is string s && s == Resources.Arg_Input) {
 			e.MoveNext();
 			var s2 = e.Current?.ToString();
@@ -385,27 +386,21 @@ public sealed class GuiMode : BaseProgramMode
 
 	#endregion
 
+	//note: ideally some of these computations aren't necessary and can be stored as respective fields but this is to ensure program correctness
+
 	private bool IsQueryReady()
 	{
-		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
 		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
 	}
 
 	private bool IsInputValidIndicator()
 	{
-		//note: ideally this computation isn't necessary and can be stored as a bool field but this is to ensure program correctness
 		return SearchQuery.IsIndicatorValid(Tf_Input.Text.ToString());
 	}
 
 	private void ApplyConfig()
 	{
 		Integration.KeepOnTop(Config.OnTop);
-	}
-
-	public void SetInfoText(string s)
-	{
-		Lbl_InputInfo2.Text = $"{s}";
-		Lbl_InputInfo2.SetNeedsDisplay();
 	}
 
 	internal void SetInputText(ustring s)
@@ -476,7 +471,8 @@ public sealed class GuiMode : BaseProgramMode
 			 */
 			if (Integration.ReadClipboard(out var str) && !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
 				SetInputText(str);
-				Lbl_InputOk.Text = Values.Clp;
+				// Lbl_InputOk.Text   = Values.Clp;
+				Lbl_InputInfo.Text = $"Clipboard data";
 
 				m_clipboard.Add(str);
 			}
@@ -499,6 +495,10 @@ public sealed class GuiMode : BaseProgramMode
 	private void OnClear()
 	{
 		Tf_Input.DeleteAll();
+		Lbl_InputOk.Text = Values.NA;
+		Lbl_InputOk.SetNeedsDisplay();
+		Lbl_InputInfo.Text = ustring.Empty;
+		Lbl_InputInfo2.Text = ustring.Empty;
 	}
 
 	private void OnConfigDialog()
@@ -630,32 +630,39 @@ public sealed class GuiMode : BaseProgramMode
 
 	private void ClearControls()
 	{
-		try {
-			Tf_Input.DeleteAll();
-			Tf_Input.ClearHistoryChanges();
-			Query = SearchQuery.Null;
+		Tf_Input.DeleteAll();
+		Tf_Input.ClearHistoryChanges();
 
-			Lbl_InputOk.Text = Values.NA;
-			Dt_Results.Clear();
+		Query = SearchQuery.Null;
+		
+		Lbl_InputOk.Text = Values.NA;
+		Lbl_InputOk.SetNeedsDisplay();
 
-			IsReady.Reset();
-			ResultCount         = 0;
-			Pbr_Status.Fraction = 0;
+		Dt_Results.Clear();
 
-			Lbl_InputInfo.Text   = ustring.Empty;
-			Lbl_QueryUpload.Text = ustring.Empty;
-			Lbl_InputInfo2.Text  = ustring.Empty;
-			Lbl_Status.Text      = ustring.Empty;
+		IsReady.Reset();
+		ResultCount         = 0;
+		Pbr_Status.Fraction = 0;
 
-			Tv_Results.SetNeedsDisplay();
-			Tf_Input.SetFocus();
-			Tf_Input.EnsureFocus();
-			Btn_Cancel.Enabled = false;
+		Lbl_InputInfo.Text   = ustring.Empty;
+		Lbl_QueryUpload.Text = ustring.Empty;
+		Lbl_InputInfo2.Text  = ustring.Empty;
+		Lbl_Status.Text      = ustring.Empty;
+
+		Tv_Results.SetNeedsDisplay();
+		Tf_Input.SetFocus();
+		Tf_Input.EnsureFocus();
+		Btn_Cancel.Enabled = false;
+
+		/*Application.MainLoop.Invoke(() =>
+		{ });*/
+
+		/*try {
 			// Application.Refresh();
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}", nameof(ClearControls));
-		}
+		}*/
 	}
 
 	private void OnRestart()
@@ -682,6 +689,8 @@ public sealed class GuiMode : BaseProgramMode
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 
+		/*Application.MainLoop.Invoke(() =>
+		{ });*/
 	}
 
 	private void OnCellActivated(TableView.CellActivatedEventArgs args)

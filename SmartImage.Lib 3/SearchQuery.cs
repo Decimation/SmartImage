@@ -4,6 +4,7 @@ global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Flurl.Http;
+using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Kantan.Text;
 using SmartImage.Lib.Engines.Upload;
@@ -12,6 +13,7 @@ using SmartImage.Lib.Engines.Upload;
 namespace SmartImage.Lib;
 
 //todo: DynamicResource
+
 public sealed class SearchQuery : IDisposable
 {
 	public string Value { get; }
@@ -54,7 +56,10 @@ public sealed class SearchQuery : IDisposable
 		}
 		else {
 			try {
-				var res = await value.AllowAnyHttpStatus()
+				var res = await value.AllowAnyHttpStatus().WithHeaders(new
+				                     {
+										 User_Agent=HttpUtilities.UserAgent
+				                     })
 				                     .GetAsync();
 
 				/*if (!res.ResponseMessage.IsSuccessStatusCode) {

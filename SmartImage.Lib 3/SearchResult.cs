@@ -39,9 +39,17 @@ public sealed class SearchResult : IDisposable
 	[CBN]
 	public string Overview { get; internal set; }
 
+	[MN]
 	public SearchResultItem Best
 	{
-		get { return Results.MaxBy(r => r.Score); }
+		get
+		{
+			if (!Results.Any()) {
+				return null;
+			}
+
+			return Results.MaxBy(r => r.Score);
+		}
 	}
 
 	internal SearchResult(BaseSearchEngine bse)

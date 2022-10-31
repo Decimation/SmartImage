@@ -94,7 +94,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		else {
 			uri = null;
 		}
-		
+
 		var result = new SearchResultItem(r)
 		{
 			Url         = uri,
@@ -108,9 +108,10 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		return result;
 	}
 
+	public const int MAX_FILE_SIZE = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
+
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query)
 	{
-		const int MAX_FILE_SIZE = 0x800000;
 
 		if (query.Size > MAX_FILE_SIZE) {
 			return null;

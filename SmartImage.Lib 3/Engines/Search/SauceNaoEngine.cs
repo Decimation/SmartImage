@@ -40,6 +40,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 	 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
 	 */
 
+	public string EndpointUrl => BASE_ENDPOINT;
+
+	public FlurlClient Client { get; }
+
 	public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
 	{
 		Authentication = authentication;
@@ -467,14 +471,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		public string Creator { get; internal set; }
 	}
-
-	#region Implementation of IClientSearchEngine
-
-	public string EndpointUrl => BASE_ENDPOINT;
-
-	public FlurlClient Client { get; }
-
-	#endregion
 }
 
 public enum SauceNaoSiteIndex

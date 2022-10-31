@@ -72,10 +72,7 @@ public sealed class SearchClient : IDisposable
 
 				var url1 = result.Best?.Url ?? result.RawUrl;
 
-				if (url1 is { } && Url.IsValid(url1)) {
-					HttpUtilities.OpenUrl(url1);
-				}
-
+				HttpUtilities.TryOpenUrl(url1);
 			}
 
 			results.Add(result);
@@ -104,7 +101,7 @@ public sealed class SearchClient : IDisposable
 			try {
 				var result = results.SelectMany(r => r.Results)
 				                    .Where(r => Url.IsValid(r.Url))
-				                    .OrderByDescending(r => r.Similarity)
+				                    .OrderByDescending(r => r.Score)
 				                    .First();
 
 				Debug.WriteLine($"{result}");
