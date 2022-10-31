@@ -905,6 +905,7 @@ public sealed class GuiMode : BaseProgramMode
 		Lbl_InputInfo2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
+		Tv_Results.SetFocus();
 	}
 
 	#endregion
