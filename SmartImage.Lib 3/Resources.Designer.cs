@@ -79,6 +79,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Auto-search.
+        /// </summary>
+        internal static string S_AutoSearch {
+            get {
+                return ResourceManager.GetString("S_AutoSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to On top.
         /// </summary>
         internal static string S_OnTop {

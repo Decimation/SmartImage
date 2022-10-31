@@ -61,6 +61,15 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to -auto.
+        /// </summary>
+        internal static string Arg_AutoSearch {
+            get {
+                return ResourceManager.GetString("Arg_AutoSearch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to -i.
         /// </summary>
         internal static string Arg_Input {

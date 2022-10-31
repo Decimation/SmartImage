@@ -144,4 +144,7 @@
   <data name="Inf_Cancel" xml:space="preserve">
     <value>Canceled</value>
   </data>
+  <data name="Arg_AutoSearch" xml:space="preserve">
+    <value>-auto</value>
+  </data>
 </root>

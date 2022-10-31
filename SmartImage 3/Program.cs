@@ -61,7 +61,7 @@ public static class Program
 		ConsoleUtil.SetConsoleMode();
 #if TEST
 		// args = new String[] { null };
-		args = new[] { "-i", "https://i.imgur.com/QtCausw.png" };
+		args = new[] { R2.Arg_Input, "https://i.imgur.com/QtCausw.png",R2.Arg_AutoSearch };
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif

@@ -135,4 +135,7 @@
   <data name="S_OnTop" xml:space="preserve">
     <value>On top</value>
   </data>
+  <data name="S_AutoSearch" xml:space="preserve">
+    <value>Auto-search</value>
+  </data>
 </root>

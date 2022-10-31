@@ -320,7 +320,6 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		Tf_Input.SetFocus();
 		Tv_Results.Visible = true;
-
 	}
 
 	public override void PostSearch(object? sender, List<SearchResult> results1)
@@ -383,14 +382,26 @@ public sealed class GuiMode : BaseProgramMode
 
 	protected override void ProcessArg(object? val, IEnumerator e)
 	{
+		if (val is string s) {
+			if (s == Resources.Arg_Input) {
+				e.MoveNext();
+				var s2 = e.Current?.ToString();
 
-		if (val is string s && s == Resources.Arg_Input) {
-			e.MoveNext();
-			var s2 = e.Current?.ToString();
+				if (SearchQuery.IsIndicatorValid(s2)) {
+					SetInputText(s2);
 
-			if (SearchQuery.IsIndicatorValid(s2)) {
-				SetInputText(s2);
+				}
 			}
+			else if (s == R2.Arg_AutoSearch) {
+				/*e.MoveNext();
+				_ = e.Current?.ToString();*/
+
+				Config.AutoSearch = true;
+				// IsReady.Set();
+			}
+
+			// Debug.WriteLine($"{s}");
+
 		}
 	}
 
@@ -411,37 +422,43 @@ public sealed class GuiMode : BaseProgramMode
 	private void ApplyConfig()
 	{
 		Integration.KeepOnTop(Config.OnTop);
+
 	}
 
-	internal void SetInputText(ustring s)
+	internal async void SetInputText(ustring s)
 	{
 		Tf_Input.Text = s;
+
 	}
 
 	private async Task<bool> SetQuery(ustring text)
 	{
 		SearchQuery sq;
 
-		try {
-			sq = await SearchQuery.TryCreateAsync(text.ToString());
+		Pbr_Status.BidirectionalMarquee = true;
+		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.MarqueeContinuous;
 
+		try {
+			Pbr_Status.Pulse();
+			sq = await SearchQuery.TryCreateAsync(text.ToString());
+			Pbr_Status.Pulse();
 		}
 		catch (Exception e) {
 			sq = SearchQuery.Null;
 
 			Lbl_InputInfo.Text = $"Error: {e.Message}";
+
 		}
 
 		Lbl_InputOk.Text = Values.PRC;
 
 		if (sq is { } && sq != SearchQuery.Null) {
-
 			try {
-				Pbr_Status.BidirectionalMarquee = true;
-				Pbr_Status.ProgressBarStyle     = ProgressBarStyle.MarqueeContinuous;
 				Pbr_Status.Pulse();
+
 				var t = sq.UploadAsync();
 				Pbr_Status.Pulse();
+
 				var u = await t;
 				Pbr_Status.Pulse();
 
@@ -459,6 +476,7 @@ public sealed class GuiMode : BaseProgramMode
 			Lbl_InputInfo.Text   = "Error: invalid input";
 			Btn_Run.Enabled      = true;
 			Lbl_QueryUpload.Text = ustring.Empty;
+			Pbr_Status.Fraction  = 0;
 
 			return false;
 		}
@@ -585,6 +603,8 @@ public sealed class GuiMode : BaseProgramMode
 		{
 			Text     = ustring.Empty,
 			AutoSize = false,
+			Width    = Dim.Percent(80),
+			Height   = Dim.Percent(80),
 		};
 
 		var btnRefresh = new Button("Refresh") { };
@@ -594,7 +614,7 @@ public sealed class GuiMode : BaseProgramMode
 		DataTable dtConfig = Config.ToTable();
 
 		const int WIDTH  = 15;
-		const int HEIGHT = 20;
+		const int HEIGHT = 17;
 
 		Label lbSearchEngines = new(R1.S_SearchEngines)
 		{
@@ -635,36 +655,6 @@ public sealed class GuiMode : BaseProgramMode
 			X = Pos.Right(lvSearchEngines) + 1
 		};
 
-		CheckBox cbContextMenu = new(R2.Int_ContextMenu)
-		{
-			Y      = Pos.Bottom(lvSearchEngines),
-			Width  = WIDTH,
-			Height = 1,
-		};
-
-		cbContextMenu.Toggled += b =>
-		{
-			Integration.HandleContextMenu(!b);
-		};
-
-		CheckBox cbOnTop = new(R1.S_OnTop)
-		{
-			X      = Pos.Right(cbContextMenu),
-			Y      = Pos.Bottom(lvPriorityEngines),
-			Width  = WIDTH,
-			Height = 1,
-		};
-
-		Label lbHelp = new($"{Values.Line} Arrow keys or mouse :: select option\n" +
-		                   $"{Values.Line} Space bar or click :: toggle mark option\n" +
-		                   $"{Values.Line} Enter :: save option")
-		{
-			AutoSize = true,
-
-			X = 0,
-			Y = Pos.Bottom(cbContextMenu) + 1
-		};
-
 		var cfgInfo = new FileInfo(SearchConfig.Configuration.FilePath);
 
 		Label lbConfig = new($"Config")
@@ -685,9 +675,37 @@ public sealed class GuiMode : BaseProgramMode
 			Height   = 7,
 		};
 
-		lbConfig.Clicked += () =>
+		CheckBox cbContextMenu = new(R2.Int_ContextMenu)
 		{
-			FileSystem.ExploreFile(cfgInfo.FullName);
+			X           = Pos.X(tvConfig),
+			Y           = Pos.Bottom(tvConfig) + 1,
+			Width       = WIDTH,
+			Height      = 1,
+			ColorScheme = Styles.Cs_Btn3
+		};
+
+		cbContextMenu.Toggled += b =>
+		{
+			Integration.HandleContextMenu(!b);
+		};
+
+		Label lbHelp = new($"{Values.Line} Arrow keys or mouse :: select option\n" +
+		                   $"{Values.Line} Space bar or click :: toggle mark option\n" +
+		                   $"{Values.Line} Enter :: save option")
+		{
+			AutoSize = true,
+
+			X = 0,
+			Y = Pos.Bottom(lvSearchEngines) + 1
+		};
+
+		CheckBox cbOnTop = new(R1.S_OnTop)
+		{
+			X           = Pos.Right(cbContextMenu) + 1,
+			Y           = Pos.Y(cbContextMenu),
+			AutoSize    = true,
+			ColorScheme = Styles.Cs_Btn3,
+			Height      = 1,
 		};
 
 		cbOnTop.Toggled += b =>
@@ -695,6 +713,29 @@ public sealed class GuiMode : BaseProgramMode
 			Integration.KeepOnTop(!b);
 			Config.OnTop = Integration.IsOnTop;
 			ReloadDialog();
+		};
+
+		CheckBox cbAutoSearch = new(R1.S_AutoSearch)
+		{
+			X = Pos.Right(cbOnTop) + 1,
+			Y = Pos.Y(cbOnTop),
+			// Width  = WIDTH,
+			Height      = 1,
+			AutoSize    = true,
+			ColorScheme = Styles.Cs_Btn3
+
+		};
+
+		cbAutoSearch.Toggled += b =>
+		{
+
+			Config.AutoSearch = !b;
+			ReloadDialog();
+		};
+
+		lbConfig.Clicked += () =>
+		{
+			FileSystem.ExploreFile(cfgInfo.FullName);
 		};
 
 		// If only properties could be used as ref/pointers...
@@ -742,7 +783,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
-		          lbHelp);
+		          lbHelp, cbAutoSearch);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);

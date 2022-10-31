@@ -54,7 +54,7 @@ public static class Integration
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
 						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
-						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" {Resources.Arg_Input} \"%1\"");
+						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" {Resources.Arg_Input} \"%1\" {R2.Arg_AutoSearch}");
 					}
 					catch (Exception ex) {
 						Trace.WriteLine($"{ex.Message}");

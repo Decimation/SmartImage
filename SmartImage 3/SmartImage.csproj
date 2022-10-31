@@ -19,7 +19,7 @@
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <!-- <TrimMode>CopyUsed</TrimMode> -->
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
   </PropertyGroup>
 

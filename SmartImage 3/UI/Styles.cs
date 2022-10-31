@@ -30,10 +30,11 @@ internal static class Styles
 	internal static readonly Attribute Atr_DarkGray_Blue       = Attribute.Make(Color.DarkGray, Color.Blue);
 	internal static readonly Attribute Atr_DarkGray_Black      = Attribute.Make(Color.DarkGray, Color.Black);
 	
-	private static readonly  Attribute Atr_BrightBlue_Black    = Attribute.Make(Color.BrightBlue, Color.Black);
-	private static readonly  Attribute Atr_Blue_Black          = Attribute.Make(Color.Blue, Color.Black);
-	private static readonly  Attribute Atr_Brown_Black         = Attribute.Make(Color.Brown, Color.Black);
-	private static readonly  Attribute Atr_DarkGray_White      = Attribute.Make(Color.DarkGray, Color.White);
+	private static readonly  Attribute Atr_BrightBlue_Black = Attribute.Make(Color.BrightBlue, Color.Black);
+	private static readonly  Attribute Atr_Blue_Black       = Attribute.Make(Color.Blue, Color.Black);
+	private static readonly  Attribute Atr_Brown_Black      = Attribute.Make(Color.Brown, Color.Black);
+	private static readonly  Attribute Atr_DarkGray_White   = Attribute.Make(Color.DarkGray, Color.White);
+	internal static readonly Attribute Atr_Black_DarkGray   = Attribute.Make(Color.Black, Color.DarkGray);
 
 	#endregion
 
@@ -62,6 +63,15 @@ internal static class Styles
 		Normal    = Atr_Blue_White,
 		Disabled  = Atr_DarkGray_White,
 		HotNormal = Atr_Blue_White,
+		HotFocus  = Atr_BrightBlue_Gray,
+		Focus     = Atr_BrightBlue_Gray
+	};
+
+	internal static readonly ColorScheme Cs_Btn3 = new()
+	{
+		Normal    = Atr_Black_DarkGray,
+		// Disabled  = Atr_DarkGray_White,
+		HotNormal = Atr_Black_DarkGray,
 		HotFocus  = Atr_BrightBlue_Gray,
 		Focus     = Atr_BrightBlue_Gray
 	};
@@ -109,6 +119,7 @@ internal static class Styles
 		Focus     = Styles.Atr_Cyan_Black,
 		HotFocus  = Styles.Atr_Cyan_Black,
 	};
+
 	internal static readonly ColorScheme Cs_Lbl2 = new()
 	{
 		Normal    = Atr_BrightCyan_DarkGray,
@@ -116,6 +127,7 @@ internal static class Styles
 		Focus     = Styles.Atr_Cyan_Black,
 		HotFocus  = Styles.Atr_Cyan_Black,
 	};
+
 	internal static readonly ColorScheme Cs_Lbl3 = new()
 	{
 		Normal    = Styles.Atr_BrightBlue_Gray,
@@ -123,6 +135,7 @@ internal static class Styles
 		Focus     = Styles.Atr_Cyan_Black,
 		HotFocus  = Styles.Atr_Cyan_Black,
 	};
+
 	#endregion
 
 	#region Styles
