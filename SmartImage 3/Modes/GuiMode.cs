@@ -172,6 +172,8 @@ public sealed class GuiMode : BaseProgramMode
 		Y                = Pos.Y(Tf_Input),
 		Width            = 10,
 		ProgressBarStyle = ProgressBarStyle.Continuous,
+		BidirectionalMarquee = false,
+		ProgressBarFormat = ProgressBarFormat.SimplePlusPercentage
 	};
 
 	private static readonly Label Lbl_Status = new()
@@ -208,7 +210,7 @@ public sealed class GuiMode : BaseProgramMode
 		m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 
 		m_clipboard = new List<ustring>();
-		
+
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
 			new("_About", null, AboutDialog),
@@ -428,8 +430,16 @@ public sealed class GuiMode : BaseProgramMode
 		if (sq is { } && sq != SearchQuery.Null) {
 
 			try {
-				var u = await sq.UploadAsync();
+				Pbr_Status.BidirectionalMarquee = true;
+				Pbr_Status.ProgressBarStyle     = ProgressBarStyle.MarqueeContinuous;
+				Pbr_Status.Pulse();
+				var t = sq.UploadAsync();
+				Pbr_Status.Pulse();
+				var u = await t;
+				Pbr_Status.Pulse();
+
 				Lbl_QueryUpload.Text = u.ToString();
+
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
@@ -821,19 +831,24 @@ public sealed class GuiMode : BaseProgramMode
 
 	private async void OnRun()
 	{
-		Btn_Run.Enabled    = false;
-		Btn_Cancel.Enabled = true;
-		Tv_Results.Visible = true;
+		Btn_Run.Enabled = false;
+		// Btn_Cancel.Enabled = true;
 		var text = Tf_Input.Text;
 
 		Debug.WriteLine($"Input: {text}", nameof(OnRun));
 
 		var ok = await SetQuery(text);
 		Btn_Cancel.Enabled = ok;
+		Tv_Results.Visible = ok;
 
 		if (!ok) {
 			return;
 		}
+		
+		Pbr_Status.BidirectionalMarquee = false;
+		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.Continuous;
+		Pbr_Status.Fraction             = 0;
+		Pbr_Status.SetNeedsDisplay();
 
 		var sw = Stopwatch.StartNew();
 
