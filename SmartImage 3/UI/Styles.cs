@@ -109,7 +109,20 @@ internal static class Styles
 		Focus     = Styles.Atr_Cyan_Black,
 		HotFocus  = Styles.Atr_Cyan_Black,
 	};
-
+	internal static readonly ColorScheme Cs_Lbl2 = new()
+	{
+		Normal    = Atr_BrightCyan_DarkGray,
+		HotNormal = Atr_BrightCyan_DarkGray,
+		Focus     = Styles.Atr_Cyan_Black,
+		HotFocus  = Styles.Atr_Cyan_Black,
+	};
+	internal static readonly ColorScheme Cs_Lbl3 = new()
+	{
+		Normal    = Styles.Atr_BrightBlue_Gray,
+		HotNormal = Styles.Atr_BrightBlue_Gray,
+		Focus     = Styles.Atr_Cyan_Black,
+		HotFocus  = Styles.Atr_Cyan_Black,
+	};
 	#endregion
 
 	#region Styles

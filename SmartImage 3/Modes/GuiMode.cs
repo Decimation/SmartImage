@@ -130,26 +130,31 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly Label Lbl_InputInfo = new()
 	{
-		X      = Pos.Bottom(Tf_Input),
-		Y      = 1,
-		Width  = 15,
-		Height = Dim.Height(Tf_Input)
+		X           = Pos.Bottom(Tf_Input),
+		Y           = 1,
+		Width       = 15,
+		Height      = Dim.Height(Tf_Input),
+		ColorScheme = Styles.Cs_Lbl2
+
 	};
 
 	private static readonly Label Lbl_QueryUpload = new()
 	{
-		X      = Pos.Right(Lbl_InputInfo) + 1,
-		Y      = 1,
-		Width  = 15,
-		Height = Dim.Height(Lbl_InputInfo)
+		X           = Pos.Right(Lbl_InputInfo) + 1,
+		Y           = 1,
+		Width       = 15,
+		Height      = Dim.Height(Lbl_InputInfo),
+		ColorScheme = Styles.Cs_Lbl2
+
 	};
 
 	private static readonly Label Lbl_InputInfo2 = new()
 	{
-		X      = Pos.Right(Lbl_QueryUpload) + 1,
-		Y      = Pos.Y(Lbl_QueryUpload),
-		Width  = 15,
-		Height = Dim.Height(Lbl_QueryUpload)
+		X           = Pos.Right(Lbl_QueryUpload) + 1,
+		Y           = Pos.Y(Lbl_QueryUpload),
+		Width       = 15,
+		Height      = Dim.Height(Lbl_QueryUpload),
+		ColorScheme = Styles.Cs_Lbl1
 	};
 
 	private static readonly DataTable Dt_Results = new()
@@ -178,10 +183,12 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly Label Lbl_Status = new()
 	{
-		X      = Pos.Right(Pbr_Status) + 1,
-		Y      = Pos.Y(Pbr_Status),
-		Width  = 15,
-		Height = Dim.Height(Lbl_InputInfo)
+		X           = Pos.Right(Pbr_Status) + 1,
+		Y           = Pos.Y(Pbr_Status),
+		Width       = 15,
+		Height      = Dim.Height(Lbl_InputInfo),
+		ColorScheme = Styles.Cs_Lbl1
+
 	};
 
 	#endregion
@@ -483,7 +490,7 @@ public sealed class GuiMode : BaseProgramMode
 			    !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
 				SetInputText(str);
 				// Lbl_InputOk.Text   = Values.Clp;
-				Lbl_InputInfo.Text = $"Clipboard data";
+				Lbl_InputInfo.Text = Resources.Inf_Clipboard;
 
 				m_clipboard.Add(str);
 			}
@@ -516,7 +523,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		var d = new Dialog()
 		{
-			Text = $"{R2.Name} {Integration.Version}\n" +
+			Text = $"{R2.Name} {Integration.Version} by {R2.Author}\n" +
 			       $"Current directory: {Integration.CurrentAppFolder}",
 
 			Title    = R2.Name,
@@ -660,9 +667,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		var cfgInfo = new FileInfo(SearchConfig.Configuration.FilePath);
 
-		ustring s = $"Config";
-
-		Label lbConfig = new(s)
+		Label lbConfig = new($"Config")
 		{
 			X           = Pos.Right(lbPriorityEngines) + 1,
 			Y           = 0,
@@ -896,7 +901,7 @@ public sealed class GuiMode : BaseProgramMode
 	private void OnCancel()
 	{
 		Token.Cancel();
-		Lbl_InputInfo2.Text = $"Canceled";
+		Lbl_InputInfo2.Text = Resources.Inf_Cancel;
 		Lbl_InputInfo2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);

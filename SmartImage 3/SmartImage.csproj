@@ -12,8 +12,8 @@
     <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
-    <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework>
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
+    <!-- <TargetFramework>net6.0-windows10.0.22000.0</TargetFramework> -->
+    <!-- <RuntimeIdentifier>win10-x64</RuntimeIdentifier> -->
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <ApplicationIcon>..\Assets\Icon.ico</ApplicationIcon>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>

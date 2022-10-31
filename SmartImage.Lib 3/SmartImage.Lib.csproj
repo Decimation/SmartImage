@@ -7,7 +7,8 @@
     <Configurations>Debug;Release;Test</Configurations>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <PublishTrimmed>True</PublishTrimmed>
-    <PublishSingleFile>true</PublishSingleFile>
+    <!-- <PublishSingleFile>true</PublishSingleFile> -->
+    <PublishSingleFile Condition="'$(Configuration)' == 'Release|AnyCPU'">true</PublishSingleFile>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>

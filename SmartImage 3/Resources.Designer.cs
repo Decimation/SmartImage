@@ -88,6 +88,24 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Canceled.
+        /// </summary>
+        internal static string Inf_Cancel {
+            get {
+                return ResourceManager.GetString("Inf_Cancel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Clipboard data.
+        /// </summary>
+        internal static string Inf_Clipboard {
+            get {
+                return ResourceManager.GetString("Inf_Clipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Context Menu.
         /// </summary>
         internal static string Int_ContextMenu {

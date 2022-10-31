@@ -138,4 +138,10 @@
   <data name="Author" xml:space="preserve">
     <value>Read Stanton</value>
   </data>
+  <data name="Inf_Clipboard" xml:space="preserve">
+    <value>Clipboard data</value>
+  </data>
+  <data name="Inf_Cancel" xml:space="preserve">
+    <value>Canceled</value>
+  </data>
 </root>
