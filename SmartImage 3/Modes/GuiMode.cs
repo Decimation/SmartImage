@@ -115,7 +115,7 @@ public sealed class GuiMode : BaseProgramMode
 		X           = Pos.Right(Btn_Restart),
 		Y           = Pos.Y(Btn_Restart),
 		Enabled     = false,
-		ColorScheme = Styles.Cs_Btn2,
+		ColorScheme = Styles.Cs_Btn1,
 
 	};
 
@@ -265,8 +265,9 @@ public sealed class GuiMode : BaseProgramMode
 			ColumnStyles = columnStyles,
 		};
 
-		Tv_Results.Border = Styles.Br_1;
-		Tv_Results.Table  = Dt_Results;
+		Tv_Results.Border  = Styles.Br_1;
+		Tv_Results.Table   = Dt_Results;
+		Tv_Results.Visible = false;
 
 		Tv_Results.CellActivated += OnCellActivated;
 		Btn_Run.Clicked          += OnRun;
@@ -313,12 +314,16 @@ public sealed class GuiMode : BaseProgramMode
 	public override void PreSearch(object? sender)
 	{
 		Tf_Input.SetFocus();
+		Tv_Results.Visible = true;
+
 	}
 
 	public override void PostSearch(object? sender, List<SearchResult> results1)
 	{
+
 		if (Client.IsComplete) {
-			Btn_Run.Enabled = false;
+			Btn_Run.Enabled    = false;
+			Btn_Cancel.Enabled = false;
 		}
 	}
 
@@ -681,6 +686,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		Status              = ProgramStatus.Restart;
 		Btn_Restart.Enabled = false;
+		Btn_Cancel.Enabled = false;
 		Btn_Run.Enabled     = true;
 
 		Token.Dispose();
@@ -755,7 +761,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		Debug.WriteLine($"{text}", nameof(OnRun));
 		var ok = await SetQuery(text);
-
+		Btn_Cancel.Enabled = ok;
 		if (!ok) {
 			return;
 		}

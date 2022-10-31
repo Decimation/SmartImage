@@ -24,6 +24,7 @@ using Terminal.Gui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using SmartImage.Modes;
 using SmartImage.UI;
+using Attribute = Terminal.Gui.Attribute;
 
 #pragma warning disable CS0168
 
@@ -56,7 +57,7 @@ public static class Program
 	public static async Task Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
-
+		
 		ConsoleUtil.SetConsoleMode();
 #if TEST
 		// args = new String[] { null };

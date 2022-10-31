@@ -9,22 +9,30 @@ internal static class Styles
 {
 	#region Attributes
 
-	internal static readonly Attribute Atr_Green_Black        = Attribute.Make(Color.Green, Color.Black);
-	internal static readonly Attribute Atr_Red_Black          = Attribute.Make(Color.Red, Color.Black);
-	internal static readonly Attribute Atr_BrightYellow_Black = Attribute.Make(Color.BrightYellow, Color.Black);
-	internal static readonly Attribute Atr_White_Black        = Attribute.Make(Color.White, Color.Black);
-	internal static readonly Attribute Atr_Cyan_Black         = Attribute.Make(Color.Cyan, Color.Black);
-	internal static readonly Attribute Atr_Cyan_White         = Attribute.Make(Color.Cyan, Color.White);
-	internal static readonly Attribute Atr_Blue_White         = Attribute.Make(Color.Blue, Color.White);
-	internal static readonly Attribute Atr_BrightRed_Black    = Attribute.Make(Color.BrightRed, Color.Black);
-	internal static readonly Attribute Atr_BrightGreen_Black  = Attribute.Make(Color.BrightGreen, Color.Black);
-	internal static readonly Attribute Atr_Black_White        = Attribute.Make(Color.Black, Color.White);
-	internal static readonly Attribute Atr_Gray_Black         = Attribute.Make(Color.Gray, Color.Black);
-	internal static readonly Attribute Atr_White_DarkGray     = Attribute.Make(Color.White, Color.DarkGray);
-	internal static readonly Attribute Atr_DarkGray_Black     = Attribute.Make(Color.DarkGray, Color.Black);
-	private static readonly  Attribute Atr_BrightBlue_Black   = Attribute.Make(Color.BrightBlue, Color.Black);
-	private static readonly  Attribute Atr_Blue_Black         = Attribute.Make(Color.Blue, Color.Black);
-	private static readonly  Attribute Atr_Brown_Black        = Attribute.Make(Color.Brown, Color.Black);
+	internal static readonly Attribute Atr_Green_Black         = Attribute.Make(Color.Green, Color.Black);
+	internal static readonly Attribute Atr_Red_Black           = Attribute.Make(Color.Red, Color.Black);
+	internal static readonly Attribute Atr_BrightYellow_Black  = Attribute.Make(Color.BrightYellow, Color.Black);
+	internal static readonly Attribute Atr_White_Black         = Attribute.Make(Color.White, Color.Black);
+	internal static readonly Attribute Atr_White_Blue          = Attribute.Make(Color.White, Color.Blue);
+	internal static readonly Attribute Atr_Cyan_Black          = Attribute.Make(Color.Cyan, Color.Black);
+	internal static readonly Attribute Atr_White_Cyan          = Attribute.Make(Color.White, Color.Cyan);
+	internal static readonly Attribute Atr_White_BrightCyan = Attribute.Make(Color.White, Color.BrightCyan);
+	internal static readonly Attribute Atr_BrightCyan_DarkGray = Attribute.Make(Color.BrightCyan, Color.DarkGray);
+	internal static readonly Attribute Atr_Cyan_White          = Attribute.Make(Color.Cyan, Color.White);
+	internal static readonly Attribute Atr_Blue_White          = Attribute.Make(Color.Blue, Color.White);
+	internal static readonly Attribute Atr_BrightBlue_White    = Attribute.Make(Color.BrightBlue, Color.White);
+	internal static readonly Attribute Atr_BrightBlue_Gray = Attribute.Make(Color.BrightBlue, Color.Gray);
+	internal static readonly Attribute Atr_BrightRed_Black     = Attribute.Make(Color.BrightRed, Color.Black);
+	internal static readonly Attribute Atr_BrightGreen_Black   = Attribute.Make(Color.BrightGreen, Color.Black);
+	internal static readonly Attribute Atr_Black_White         = Attribute.Make(Color.Black, Color.White);
+	internal static readonly Attribute Atr_Gray_Black          = Attribute.Make(Color.Gray, Color.Black);
+	internal static readonly Attribute Atr_DarkGray_Blue       = Attribute.Make(Color.DarkGray, Color.Blue);
+	internal static readonly Attribute Atr_White_DarkGray      = Attribute.Make(Color.White, Color.DarkGray);
+	internal static readonly Attribute Atr_DarkGray_Black      = Attribute.Make(Color.DarkGray, Color.Black);
+	private static readonly  Attribute Atr_BrightBlue_Black    = Attribute.Make(Color.BrightBlue, Color.Black);
+	private static readonly  Attribute Atr_Blue_Black          = Attribute.Make(Color.Blue, Color.Black);
+	private static readonly  Attribute Atr_Brown_Black         = Attribute.Make(Color.Brown, Color.Black);
+	private static readonly  Attribute Atr_DarkGray_White      = Attribute.Make(Color.DarkGray, Color.White);
 
 	#endregion
 
@@ -32,32 +40,34 @@ internal static class Styles
 
 	internal static readonly ColorScheme Cs_Btn1x = new()
 	{
-		Normal    = Atr_Cyan_Black,
-		Focus     = Atr_BrightGreen_Black,
-		Disabled  = Atr_BrightYellow_Black,
-		HotNormal = Atr_Cyan_Black,
-		HotFocus  = Atr_BrightGreen_Black
+		Normal    = Atr_White_Cyan,
+		Disabled  = Atr_DarkGray_Blue,
+		HotNormal = Atr_White_Cyan,
+		HotFocus  = Atr_White_BrightCyan,
+		Focus = Atr_White_BrightCyan,
 	};
 
 	internal static readonly ColorScheme Cs_Btn1 = new()
 	{
-		Normal    = Atr_BrightBlue_Black,
-		Disabled  = Atr_DarkGray_Black,
-		HotNormal = Atr_BrightBlue_Black,
-		HotFocus  = Atr_Blue_Black,
-		Focus     = Atr_Blue_Black
+		Normal    = Atr_Blue_White,
+		Disabled  = Atr_DarkGray_White,
+		HotNormal = Atr_Blue_White,
+		HotFocus  = Atr_BrightBlue_Gray,
+		Focus     = Atr_BrightBlue_Gray
 	};
+
 	internal static readonly ColorScheme Cs_Btn2 = new()
 	{
-		Normal    = Atr_Brown_Black,
-		Disabled  = Atr_DarkGray_Black,
-		HotNormal = Atr_Brown_Black,
-		HotFocus  = Atr_Blue_Black,
-		Focus     = Atr_Blue_Black
+		Normal    = Atr_Blue_White,
+		Disabled  = Atr_DarkGray_White,
+		HotNormal = Atr_Blue_White,
+		HotFocus  = Atr_BrightBlue_Gray,
+		Focus     = Atr_BrightBlue_Gray
 	};
+
 	internal static readonly ColorScheme Cs_Elem2 = new()
 	{
-		Normal   = Atr_Cyan_Black,
+		Normal   = Atr_White_Cyan,
 		Disabled = Atr_DarkGray_Black
 	};
 
