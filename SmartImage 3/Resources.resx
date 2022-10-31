@@ -120,9 +120,6 @@
   <data name="Name" xml:space="preserve">
     <value>SmartImage</value>
   </data>
-  <data name="Name_Exe" xml:space="preserve">
-    <value>SmartImage.exe</value>
-  </data>
   <data name="Repo_Url" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage</value>
   </data>
@@ -137,5 +134,8 @@
   </data>
   <data name="Arg_Input" xml:space="preserve">
     <value>-i</value>
+  </data>
+  <data name="Author" xml:space="preserve">
+    <value>Read Stanton</value>
   </data>
 </root>

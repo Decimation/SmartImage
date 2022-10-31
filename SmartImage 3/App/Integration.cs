@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Kantan.Console.Cli;
@@ -106,10 +107,11 @@ public static class Integration
 
 			// Require.NotNull(module);
 			Trace.Assert(module != null);
-
 			return module.FileName;
 		}
 	}
+
+	public static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
 
 	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
 
@@ -132,7 +134,7 @@ public static class Integration
 				                       .Any(p => p == appFolder);
 
 				string cd  = Environment.CurrentDirectory;
-				string exe = Path.Combine(cd, Resources.Name_Exe);
+				string exe = Path.Combine(cd, ExeLocation);
 
 				if (!appFolderInPath) {
 					string newValue = oldValue + FileSystem.PATH_DELIM + cd;

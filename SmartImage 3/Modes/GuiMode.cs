@@ -168,12 +168,12 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly ProgressBar Pbr_Status = new()
 	{
-		X                = Pos.Right(Btn_Config) + 1,
-		Y                = Pos.Y(Tf_Input),
-		Width            = 10,
-		ProgressBarStyle = ProgressBarStyle.Continuous,
+		X                    = Pos.Right(Btn_Config) + 1,
+		Y                    = Pos.Y(Tf_Input),
+		Width                = 10,
+		ProgressBarStyle     = ProgressBarStyle.Continuous,
 		BidirectionalMarquee = false,
-		ProgressBarFormat = ProgressBarFormat.SimplePlusPercentage
+		ProgressBarFormat    = ProgressBarFormat.SimplePlusPercentage
 	};
 
 	private static readonly Label Lbl_Status = new()
@@ -516,7 +516,9 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		var d = new Dialog()
 		{
-			Text     = $"{R2.Name}",
+			Text = $"{R2.Name} {Integration.Version}\n" +
+			       $"Current directory: {Integration.CurrentAppFolder}",
+
 			Title    = R2.Name,
 			AutoSize = true,
 			Width    = Dim.Percent(30),
@@ -528,7 +530,11 @@ public sealed class GuiMode : BaseProgramMode
 			d.SetNeedsDisplay();
 		}
 
-		var b1 = new Button() { AutoSize = true, Text = $"Repo", };
+		var b1 = new Button()
+		{
+			AutoSize = true,
+			Text     = $"Repo",
+		};
 
 		b1.Clicked += () =>
 		{
@@ -536,7 +542,11 @@ public sealed class GuiMode : BaseProgramMode
 			RefreshDialog();
 		};
 
-		var b2 = new Button() { AutoSize = true, Text = $"Wiki", };
+		var b2 = new Button()
+		{
+			AutoSize = true,
+			Text     = $"Wiki",
+		};
 
 		b2.Clicked += () =>
 		{
@@ -544,9 +554,16 @@ public sealed class GuiMode : BaseProgramMode
 			RefreshDialog();
 		};
 
-		var b3 = new Button() { Text = $"Ok", AutoSize = true, };
+		var b3 = new Button()
+		{
+			Text     = $"Ok",
+			AutoSize = true,
+		};
 
-		b3.Clicked += () => { Application.RequestStop(); };
+		b3.Clicked += () =>
+		{
+			Application.RequestStop();
+		};
 
 		d.AddButton(b1);
 		d.AddButton(b2);
@@ -631,6 +648,16 @@ public sealed class GuiMode : BaseProgramMode
 			Height = 1,
 		};
 
+		Label lbHelp = new($"{Values.Line} Arrow keys or mouse :: select option\n" +
+		                   $"{Values.Line} Space bar or click :: toggle mark option\n" +
+		                   $"{Values.Line} Enter :: save option")
+		{
+			AutoSize = true,
+
+			X = 0,
+			Y = Pos.Bottom(cbContextMenu) + 1
+		};
+
 		var cfgInfo = new FileInfo(SearchConfig.Configuration.FilePath);
 
 		ustring s = $"Config";
@@ -709,7 +736,8 @@ public sealed class GuiMode : BaseProgramMode
 		};
 
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
-		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines);
+		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
+		          lbHelp);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);
@@ -844,7 +872,7 @@ public sealed class GuiMode : BaseProgramMode
 		if (!ok) {
 			return;
 		}
-		
+
 		Pbr_Status.BidirectionalMarquee = false;
 		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.Continuous;
 		Pbr_Status.Fraction             = 0;

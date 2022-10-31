@@ -12,4 +12,6 @@ internal static class Values
 	internal static readonly ustring NA  = ustring.Make(Application.Driver.RightDefaultIndicator);
 	internal static readonly ustring OK  = ustring.Make(Application.Driver.Checked);
 	internal static readonly ustring PRC = ustring.Make(Application.Driver.Diamond);
+
+	internal static readonly Rune Line = Application.Driver.HLine;
 }

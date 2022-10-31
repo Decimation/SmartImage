@@ -70,6 +70,15 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read Stanton.
+        /// </summary>
+        internal static string Author {
+            get {
+                return ResourceManager.GetString("Author", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Input:.
         /// </summary>
         internal static string C_Input {
@@ -93,15 +102,6 @@ namespace SmartImage {
         internal static string Name {
             get {
                 return ResourceManager.GetString("Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SmartImage.exe.
-        /// </summary>
-        internal static string Name_Exe {
-            get {
-                return ResourceManager.GetString("Name_Exe", resourceCulture);
             }
         }
         
