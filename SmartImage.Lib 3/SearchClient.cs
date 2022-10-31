@@ -1,6 +1,7 @@
 ﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 using System;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -62,7 +63,6 @@ public sealed class SearchClient : IDisposable
 				IsComplete = true;
 				return results;
 			}
-
 			var task   = await Task.WhenAny(tasks);
 			var result = await task;
 
@@ -84,27 +84,14 @@ public sealed class SearchClient : IDisposable
 		IsComplete = true;
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
-			/*SearchResult result = results[0];
-			double?      max    = 0;
-
-			foreach (SearchResult sr in results) {
-				var avg = sr.Results.Average(r => r.Similarity);
-
-				if (avg > max) {
-					result = sr;
-					max    = avg;
-				}
-			}
-
-			Debug.WriteLine($"Auto {result}");*/
-
+			
 			try {
 				var result = results.SelectMany(r => r.Results)
 				                    .Where(r => Url.IsValid(r.Url))
 				                    .OrderByDescending(r => r.Score)
 				                    .First();
 
-				Debug.WriteLine($"{result}");
+				Debug.WriteLine($"Auto: {result}", nameof(RunSearchAsync));
 
 				HttpUtilities.TryOpenUrl(result.Url);
 			}

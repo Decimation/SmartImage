@@ -33,6 +33,7 @@ using Novus.OS;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
 using SmartImage.UI;
+using Size = Terminal.Gui.Size;
 
 // ReSharper disable InconsistentNaming
 
@@ -207,15 +208,10 @@ public sealed class GuiMode : BaseProgramMode
 		m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 
 		m_clipboard = new List<ustring>();
-
-		/*m_tok = Application.MainLoop.AddIdle(() =>
-		{
-			return ClipboardCallback(null);
-		});*/
-
+		
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
-			// new("_Config", null, ConfigDialog),
+			new("_About", null, AboutDialog),
 		};
 
 		Top.Add(Mb_Menu);
@@ -454,8 +450,7 @@ public sealed class GuiMode : BaseProgramMode
 
 		Lbl_InputOk.Text = Values.OK;
 
-		Query = sq;
-		// QueryMat = Mat.FromImageData(Query.Stream.ToByteArray()); // todo: advances stream position?
+		Query  = sq;
 		Status = ProgramStatus.Signal;
 
 		Lbl_InputInfo.Text = $"[{(sq.IsFile ? "File" : "Uri")}] ({sq.FileTypes.First()})";
@@ -474,7 +469,8 @@ public sealed class GuiMode : BaseProgramMode
 			 *	- Input is already semiprimed
 			 *	- Clipboard history contains it already
 			 */
-			if (Integration.ReadClipboard(out var str) && !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
+			if (Integration.ReadClipboard(out var str) &&
+			    !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
 				SetInputText(str);
 				// Lbl_InputOk.Text   = Values.Clp;
 				Lbl_InputInfo.Text = $"Clipboard data";
@@ -502,13 +498,56 @@ public sealed class GuiMode : BaseProgramMode
 		Tf_Input.DeleteAll();
 		Lbl_InputOk.Text = Values.NA;
 		Lbl_InputOk.SetNeedsDisplay();
-		Lbl_InputInfo.Text = ustring.Empty;
+		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
+	}
+
+	private void AboutDialog()
+	{
+		var d = new Dialog()
+		{
+			Text     = $"{R2.Name}",
+			Title    = R2.Name,
+			AutoSize = true,
+			Width    = Dim.Percent(30),
+			Height   = Dim.Percent(30),
+		};
+
+		void RefreshDialog()
+		{
+			d.SetNeedsDisplay();
+		}
+
+		var b1 = new Button() { AutoSize = true, Text = $"Repo", };
+
+		b1.Clicked += () =>
+		{
+			HttpUtilities.TryOpenUrl(R2.Repo_Url);
+			RefreshDialog();
+		};
+
+		var b2 = new Button() { AutoSize = true, Text = $"Wiki", };
+
+		b2.Clicked += () =>
+		{
+			HttpUtilities.TryOpenUrl(R2.Wiki_Url);
+			RefreshDialog();
+		};
+
+		var b3 = new Button() { Text = $"Ok", AutoSize = true, };
+
+		b3.Clicked += () => { Application.RequestStop(); };
+
+		d.AddButton(b1);
+		d.AddButton(b2);
+		d.AddButton(b3);
+
+		Application.Run(d);
 	}
 
 	private void OnConfigDialog()
 	{
-		var about = new Dialog("Configuration")
+		var dlCfg = new Dialog("Configuration")
 		{
 			Text     = ustring.Empty,
 			AutoSize = false,
@@ -523,6 +562,14 @@ public sealed class GuiMode : BaseProgramMode
 		const int WIDTH  = 15;
 		const int HEIGHT = 20;
 
+		Label lbSearchEngines = new(R1.S_SearchEngines)
+		{
+			X           = 0,
+			Y           = 0,
+			AutoSize    = true,
+			ColorScheme = Styles.Cs_Lbl1
+		};
+
 		ListView lvSearchEngines = new(ConsoleUtil.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
@@ -530,6 +577,16 @@ public sealed class GuiMode : BaseProgramMode
 			AutoSize                = true,
 			Width                   = WIDTH,
 			Height                  = HEIGHT,
+
+			Y = Pos.Bottom(lbSearchEngines)
+		};
+
+		Label lbPriorityEngines = new(R1.S_PriorityEngines)
+		{
+			X           = Pos.Right(lbSearchEngines) + 1,
+			Y           = 0,
+			AutoSize    = true,
+			ColorScheme = Styles.Cs_Lbl1
 		};
 
 		ListView lvPriorityEngines = new(ConsoleUtil.EngineOptions)
@@ -539,13 +596,15 @@ public sealed class GuiMode : BaseProgramMode
 			AutoSize                = true,
 			Width                   = WIDTH,
 			Height                  = HEIGHT,
-			X                       = Pos.Right(lvSearchEngines)
+
+			Y = Pos.Bottom(lbPriorityEngines),
+			X = Pos.Right(lvSearchEngines) + 1
 		};
 
 		CheckBox cbContextMenu = new(R2.Int_ContextMenu)
 		{
 			Y      = Pos.Bottom(lvSearchEngines),
-			Width  = 15,
+			Width  = WIDTH,
 			Height = 1,
 		};
 
@@ -558,16 +617,35 @@ public sealed class GuiMode : BaseProgramMode
 		{
 			X      = Pos.Right(cbContextMenu),
 			Y      = Pos.Bottom(lvPriorityEngines),
-			Width  = 15,
+			Width  = WIDTH,
 			Height = 1,
+		};
+
+		var cfgInfo = new FileInfo(SearchConfig.Configuration.FilePath);
+
+		ustring s = $"Config";
+
+		Label lbConfig = new(s)
+		{
+			X           = Pos.Right(lbPriorityEngines) + 1,
+			Y           = 0,
+			AutoSize    = true,
+			ColorScheme = Styles.Cs_Lbl1
+			// Height = 10,
 		};
 
 		var tvConfig = new TableView(dtConfig)
 		{
 			AutoSize = true,
-			X        = Pos.Right(lvPriorityEngines),
+			Y        = Pos.Bottom(lbConfig),
+			X        = Pos.Right(lvPriorityEngines) + 1,
 			Width    = Dim.Fill(WIDTH),
-			Height   = 10,
+			Height   = 7,
+		};
+
+		lbConfig.Clicked += () =>
+		{
+			FileSystem.ExploreFile(cfgInfo.FullName);
 		};
 
 		cbOnTop.Toggled += b =>
@@ -599,7 +677,7 @@ public sealed class GuiMode : BaseProgramMode
 		{
 			tvConfig.Table = Config.ToTable();
 			tvConfig.SetNeedsDisplay();
-			about.SetNeedsDisplay();
+			dlCfg.SetNeedsDisplay();
 		}
 
 		lvSearchEngines.FromEnum(Config.SearchEngines);
@@ -620,14 +698,14 @@ public sealed class GuiMode : BaseProgramMode
 			ReloadDialog();
 		};
 
-		about.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
-		          cbContextMenu, cbOnTop);
+		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
+		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines);
 
-		about.AddButton(btnRefresh);
-		about.AddButton(btnOk);
-		about.AddButton(btnSave);
+		dlCfg.AddButton(btnRefresh);
+		dlCfg.AddButton(btnOk);
+		dlCfg.AddButton(btnSave);
 
-		Application.Run(about);
+		Application.Run(dlCfg);
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
@@ -639,7 +717,7 @@ public sealed class GuiMode : BaseProgramMode
 		Tf_Input.ClearHistoryChanges();
 
 		Query = SearchQuery.Null;
-		
+
 		Lbl_InputOk.Text = Values.NA;
 		Lbl_InputOk.SetNeedsDisplay();
 
@@ -658,16 +736,6 @@ public sealed class GuiMode : BaseProgramMode
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 		Btn_Cancel.Enabled = false;
-
-		/*Application.MainLoop.Invoke(() =>
-		{ });*/
-
-		/*try {
-			// Application.Refresh();
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(ClearControls));
-		}*/
 	}
 
 	private void OnRestart()
@@ -681,12 +749,13 @@ public sealed class GuiMode : BaseProgramMode
 		Tv_Results.RowOffset    = 0;
 		Tv_Results.ColumnOffset = 0;
 		Dt_Results.Clear();
+		Tv_Results.Visible = false;
 
 		m_clipboard.Clear();
 
 		Status              = ProgramStatus.Restart;
 		Btn_Restart.Enabled = false;
-		Btn_Cancel.Enabled = false;
+		Btn_Cancel.Enabled  = false;
 		Btn_Run.Enabled     = true;
 
 		Token.Dispose();
@@ -694,9 +763,6 @@ public sealed class GuiMode : BaseProgramMode
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
-
-		/*Application.MainLoop.Invoke(() =>
-		{ });*/
 	}
 
 	private void OnCellActivated(TableView.CellActivatedEventArgs args)
@@ -757,11 +823,14 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		Btn_Run.Enabled    = false;
 		Btn_Cancel.Enabled = true;
+		Tv_Results.Visible = true;
 		var text = Tf_Input.Text;
 
-		Debug.WriteLine($"{text}", nameof(OnRun));
+		Debug.WriteLine($"Input: {text}", nameof(OnRun));
+
 		var ok = await SetQuery(text);
 		Btn_Cancel.Enabled = ok;
+
 		if (!ok) {
 			return;
 		}

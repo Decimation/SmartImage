@@ -57,7 +57,7 @@ public static class Program
 	public static async Task Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
-		
+		Console.Title = R2.Name;
 		ConsoleUtil.SetConsoleMode();
 #if TEST
 		// args = new String[] { null };

@@ -38,14 +38,14 @@ public abstract class BaseProgramMode : IDisposable
 
 	protected ProgramStatus Status { get; set; }
 
-	protected string[] Args { get; set; }
+	protected string[] Args { get; init; }
 
 	protected int ResultCount { get; set; }
 
-	public    ManualResetEvent  IsReady { get; protected set; }
-	
-	protected CancellationTokenSource Token   { get; set; }
-	
+	public ManualResetEvent IsReady { get; protected set; }
+
+	protected CancellationTokenSource Token { get; set; }
+
 	public virtual async Task<object?> RunAsync(object? sender = null)
 	{
 		var now = Stopwatch.StartNew();
@@ -79,11 +79,11 @@ public abstract class BaseProgramMode : IDisposable
 
 	protected virtual void ProcessArgs()
 	{
-		var enumer = Args.GetEnumerator();
+		var e = Args.GetEnumerator();
 
-		while (enumer.MoveNext()) {
-			var val = enumer.Current;
-			ProcessArg(val, enumer);
+		while (e.MoveNext()) {
+			var val = e.Current;
+			ProcessArg(val, e);
 		}
 	}
 
@@ -94,8 +94,6 @@ public abstract class BaseProgramMode : IDisposable
 		Client.Dispose();
 		Query.Dispose();
 		Token.Dispose();
-
-		// QueryMat?.Dispose();
 	}
 }
 
