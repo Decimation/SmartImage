@@ -78,7 +78,7 @@ public sealed class SearchResult : IDisposable
 	{
 		bool any = Results.Any();
 
-		if (!any) {
+		if (!any && Status != SearchResultStatus.None) {
 			Status = SearchResultStatus.NoResults;
 		}
 		else {

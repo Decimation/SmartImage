@@ -56,7 +56,9 @@ public abstract class BaseSearchEngine : IDisposable
 	protected virtual Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		//
-		return Task.FromResult<Url>((BaseUrl + query.Upload));
+		Url u = ((BaseUrl + query.Upload));
+		
+		return Task.FromResult<Url>(u);
 	}
 
 	#region Implementation of IDisposable

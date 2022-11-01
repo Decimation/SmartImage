@@ -132,7 +132,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X           = Pos.Bottom(Tf_Input),
 		Y           = 1,
-		Width       = 15,
+		Width       = 10,
 		Height      = Dim.Height(Tf_Input),
 		ColorScheme = Styles.Cs_Lbl2
 
@@ -142,7 +142,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X           = Pos.Right(Lbl_InputInfo) + 1,
 		Y           = 1,
-		Width       = 15,
+		Width       = 10,
 		Height      = Dim.Height(Lbl_InputInfo),
 		ColorScheme = Styles.Cs_Lbl2
 
@@ -152,7 +152,7 @@ public sealed class GuiMode : BaseProgramMode
 	{
 		X           = Pos.Right(Lbl_QueryUpload) + 1,
 		Y           = Pos.Y(Lbl_QueryUpload),
-		Width       = 15,
+		Width       = 10,
 		Height      = Dim.Height(Lbl_QueryUpload),
 		ColorScheme = Styles.Cs_Lbl1
 	};

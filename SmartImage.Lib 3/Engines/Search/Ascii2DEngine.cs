@@ -28,16 +28,8 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		var url = await base.GetRawUrlAsync(query);
-
-		var headers = new
-		{
-			User_Agent = HttpUtilities.UserAgent
-		};
-
-		var response = await url.AllowAnyHttpStatus()
-		                        .WithAutoRedirect(true)
-		                        .GetAsync();
-
+		url = url.SetQueryParams(new { type = "color" });
+		
 		/*
 		 * URL parameters
 		 *
@@ -45,27 +37,11 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		 * detail	https://ascii2d.net/search/bovw/<hash>
 		 *
 		 */
-
-		/*
-		 * With Ascii2D, two requests need to be made in order to get the detail results
-		 * as the color results are returned by default
-		 *
-		 */
-
-		var requestUri = response.ResponseMessage?.RequestMessage?.RequestUri;
-
-		// Debug.Assert(requestUri != null);
-
-		string detailUrl = requestUri.ToString().Replace("/color/", "/bovw/");
-
-		// Debug.WriteLine($"{url} {requestUri} {detailUrl} {response.StatusCode} ", Name);
-
-		return new Url(detailUrl);
+		
+		return url;
 	}
 
-	public override void Dispose()
-	{
-	}
+	public override void Dispose() { }
 
 	protected override Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
 	{

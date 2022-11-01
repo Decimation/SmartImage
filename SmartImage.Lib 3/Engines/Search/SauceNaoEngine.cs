@@ -130,7 +130,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		IFlurlResponse response = null;
 
 		try {
-			response = await EndpointUrl.AllowHttpStatus().PostMultipartAsync(m =>
+			response = await EndpointUrl.AllowHttpStatus()
+			                            .PostMultipartAsync(m =>
 			{
 				m.AddString("url", query.IsUrl ? query.Value : String.Empty);
 
@@ -157,6 +158,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 			html = await e.GetResponseStringAsync();
 		}
+
+		/*var raw=await GetRawUrlAsync(query);
+		var html2=await raw.GetStringAsync();*/
 
 		var doc = await docp.ParseDocumentAsync(html);
 
@@ -334,8 +338,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		var content = new FormUrlEncodedContent(values);
 
-		var res = await BASE_ENDPOINT.AllowAnyHttpStatus().PostAsync(content);
-		var c   = await res.GetStringAsync();
+		var res = await BASE_ENDPOINT.AllowAnyHttpStatus()
+		                             .PostAsync(content);
+		var c = await res.GetStringAsync();
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden) {
 			return null;
