@@ -118,19 +118,22 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 		var items   = new SearchResultItem[results.Count];
 
 		for (int i = 0; i < items.Length; i++) {
-			var   doc = results[i];
+			var doc = results[i];
 			var sim = Math.Round((doc.similarity * 100.0f), 2);
 
 			string epStr = doc.EpisodeString;
-			
+
 			var result = new SearchResultItem(sr)
 			{
-				Similarity  = sim,
-				// Metadata = doc,
-				Title = doc.filename,
+				Similarity = sim,
+				// Metadata   = new[] { doc.video, doc.image },
+				Title      = doc.filename,
+				
 				Description = $"Episode #{epStr} @ " +
 				              $"[{TimeSpan.FromSeconds(doc.from):g} - {TimeSpan.FromSeconds(doc.to):g}]",
 			};
+			result.Metadata.video      = doc.video;
+			result.Metadata.image      = doc.image;
 
 			try {
 				string anilistUrl = ANILIST_URL + doc.anilist;

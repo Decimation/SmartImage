@@ -347,11 +347,13 @@ public sealed class GuiMode : BaseProgramMode
 
 				object? meta = sri.Metadata switch
 				{
-					string[] rg   => rg.QuickJoin(),
-					Array rg      => rg.QuickJoin(),
-					ICollection c => c.QuickJoin(),
-					string s      => s,
-					_             => null,
+					string[] rg      => rg.QuickJoin(),
+					Array rg         => rg.QuickJoin(),
+					ICollection c    => c.QuickJoin(),
+					string s         => s,
+					ExpandoObject eo => eo.QuickJoin(),
+					_                => null,
+
 				};
 
 				Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
@@ -863,7 +865,6 @@ public sealed class GuiMode : BaseProgramMode
 		if (args.Table is not { }) {
 			return;
 		}
-
 		try {
 			var cell = args.Table.Rows[args.Row][args.Col];
 

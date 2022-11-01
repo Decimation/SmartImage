@@ -78,7 +78,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	public DateTime? Time { get; internal set; }
 
 	/// <summary>
-	/// Extraneous/additional metadata.
+	/// Additional metadata.
 	/// </summary>
 	public dynamic Metadata { get; internal set; }
 

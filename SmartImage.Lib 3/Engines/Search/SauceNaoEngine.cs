@@ -221,9 +221,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			// INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
 			string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
 
-			var synonyms = new[] { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
-
-			var material = new[] { "Material:", "Source:" };
+			var synonyms   = new[] { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
+			var material   = new[] { "Material:", "Source:" };
 			var characters = new[] { "Characters:" };
 
 			// string material1 = rcci.SubstringAfter(material);
@@ -263,8 +262,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 				if (material.Any(s => nStr.StartsWith(s))) {
 					material1 = n2Str;
 				}
-				if (characters.Any(s => nStr.StartsWith(s)))
-				{
+
+				if (characters.Any(s => nStr.StartsWith(s))) {
 					characters1 = n2Str;
 				}
 			}
