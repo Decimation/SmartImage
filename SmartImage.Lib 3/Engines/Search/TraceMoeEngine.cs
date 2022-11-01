@@ -122,10 +122,12 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			var sim = Math.Round((doc.similarity * 100.0f), 2);
 
 			string epStr = doc.EpisodeString;
-
+			
 			var result = new SearchResultItem(sr)
 			{
 				Similarity  = sim,
+				// Metadata = doc,
+				Title = doc.filename,
 				Description = $"Episode #{epStr} @ " +
 				              $"[{TimeSpan.FromSeconds(doc.from):g} - {TimeSpan.FromSeconds(doc.to):g}]",
 			};
@@ -146,7 +148,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				                                 $"< {FILTER_THRESHOLD / 100:P})");*/
 				//todo
 
-				result.Metadata.Warning = $"Similarity exceeds threshold {FILTER_THRESHOLD:P}";
+				result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
 			}
 
 			items[i] = result;

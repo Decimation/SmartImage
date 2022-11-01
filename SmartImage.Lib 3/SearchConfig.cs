@@ -25,11 +25,6 @@ public sealed class SearchConfig : IDataTable
 	public const bool ON_TOP_DEFAULT = true;
 
 	/// <summary>
-	/// Default value for <see cref="AutoSearch"/>
-	/// </summary>
-	public const bool AUTO_SEARCH_DEFAULT = true;
-
-	/// <summary>
 	/// Engines used to search.
 	/// </summary>
 	public SearchEngineOptions SearchEngines
@@ -54,14 +49,6 @@ public sealed class SearchConfig : IDataTable
 	{
 		get => Configuration.ReadSetting(nameof(OnTop), ON_TOP_DEFAULT);
 		set => Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
-	}
-	/// <summary>
-	/// Keeps console window on-top.
-	/// </summary>
-	public bool AutoSearch
-	{
-		get => Configuration.ReadSetting(nameof(AutoSearch), AUTO_SEARCH_DEFAULT);
-		set => Configuration.AddUpdateSetting(nameof(AutoSearch), value.ToString());
 	}
 
 	public static readonly Configuration Configuration =
@@ -89,7 +76,6 @@ public sealed class SearchConfig : IDataTable
 		table.Rows.Add(Resources.S_SearchEngines, SearchEngines);
 		table.Rows.Add(Resources.S_PriorityEngines, PriorityEngines);
 		table.Rows.Add(Resources.S_OnTop, OnTop);
-		table.Rows.Add(Resources.S_AutoSearch, AutoSearch);
 
 		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
 

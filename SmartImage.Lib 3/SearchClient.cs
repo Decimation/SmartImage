@@ -88,7 +88,8 @@ public sealed class SearchClient : IDisposable
 			try {
 				var result = results.SelectMany(r => r.Results)
 				                    .Where(r => Url.IsValid(r.Url))
-				                    .OrderByDescending(r => r.Score)
+				                    .OrderByDescending(r => r.Similarity)
+				                    .ThenByDescending(r=>r.Score)
 				                    .First();
 
 				Debug.WriteLine($"Auto: {result}", nameof(RunSearchAsync));

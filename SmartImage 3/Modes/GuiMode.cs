@@ -201,6 +201,10 @@ public sealed class GuiMode : BaseProgramMode
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
+	private bool m_autoSearch;
+
+	private object? m_autoTok;
+
 	#region Overrides of ProgramMode
 
 	public GuiMode(string[] args) : base(args, SearchQuery.Null)
@@ -380,9 +384,24 @@ public sealed class GuiMode : BaseProgramMode
 		base.Dispose();
 	}
 
-	protected override void ProcessArg(object? val, IEnumerator e)
+	protected override void ProcessArgs()
 	{
-		if (val is string s) {
+		var e = Args.GetEnumerator();
+
+		m_autoSearch = false;
+
+		while (e.MoveNext()) {
+			var val = e.Current;
+			if (val is not string s) continue;
+
+			if (s == R2.Arg_AutoSearch) {
+				/*e.MoveNext();
+				_ = e.Current?.ToString();*/
+
+				// IsReady.Set();
+
+			}
+
 			if (s == Resources.Arg_Input) {
 				e.MoveNext();
 				var s2 = e.Current?.ToString();
@@ -392,14 +411,6 @@ public sealed class GuiMode : BaseProgramMode
 
 				}
 			}
-			else if (s == R2.Arg_AutoSearch) {
-				/*e.MoveNext();
-				_ = e.Current?.ToString();*/
-
-				Config.AutoSearch = true;
-				// IsReady.Set();
-			}
-
 			// Debug.WriteLine($"{s}");
 
 		}
@@ -425,7 +436,7 @@ public sealed class GuiMode : BaseProgramMode
 
 	}
 
-	internal async void SetInputText(ustring s)
+	internal void SetInputText(ustring s)
 	{
 		Tf_Input.Text = s;
 
@@ -728,8 +739,6 @@ public sealed class GuiMode : BaseProgramMode
 
 		cbAutoSearch.Toggled += b =>
 		{
-
-			Config.AutoSearch = !b;
 			ReloadDialog();
 		};
 

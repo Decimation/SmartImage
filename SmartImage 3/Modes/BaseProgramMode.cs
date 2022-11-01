@@ -75,17 +75,7 @@ public abstract class BaseProgramMode : IDisposable
 
 	public abstract void OnComplete(object sender, List<SearchResult> e);
 
-	protected abstract void ProcessArg(object? val, IEnumerator e);
-
-	protected virtual void ProcessArgs()
-	{
-		var e = Args.GetEnumerator();
-
-		while (e.MoveNext()) {
-			var val = e.Current;
-			ProcessArg(val, e);
-		}
-	}
+	protected abstract void ProcessArgs();
 
 	public abstract void Close();
 
