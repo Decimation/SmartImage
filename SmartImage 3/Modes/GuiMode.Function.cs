@@ -417,7 +417,7 @@ public sealed partial class GuiMode
 			return true;
 		});
 
-		var run = RunAsync1(null);
+		var run = RunSearchAsync(null);
 		await run;
 
 		sw.Stop();

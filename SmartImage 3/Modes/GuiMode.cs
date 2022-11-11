@@ -1,4 +1,6 @@
-﻿global using Url = Flurl.Url;
+﻿global using R2 = SmartImage.Resources;
+global using R1 = SmartImage.Lib.Resources;
+global using Url = Flurl.Url;
 using NStack;
 using SmartImage.Lib;
 using System;
@@ -207,9 +209,23 @@ public sealed partial class GuiMode : IDisposable
 	private                 object?  m_autoTok;
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
-	#endregion
+	public SearchQuery Query { get; internal set; }
 
-	#region Overrides of ProgramMode
+	public SearchConfig Config => Client.Config;
+
+	public SearchClient Client { get; init; }
+
+	internal ProgramStatus Status { get; set; }
+
+	public string[] Args { get; init; }
+
+	private int ResultCount { get; set; }
+
+	internal ManualResetEvent IsReady { get; set; }
+
+	private CancellationTokenSource Token { get; set; }
+
+	#endregion
 
 	public GuiMode(string[] args)
 	{
@@ -329,15 +345,6 @@ public sealed partial class GuiMode : IDisposable
 
 	}
 
-	public    SearchQuery             Query       { get; set; }
-	public    SearchConfig            Config      => Client.Config;
-	public    SearchClient            Client      { get; init; }
-	protected ProgramStatus           Status      { get; set; }
-	protected string[]                Args        { get; init; }
-	protected int                     ResultCount { get; set; }
-	public    ManualResetEvent        IsReady     { get; protected set; }
-	protected CancellationTokenSource Token       { get; set; }
-
 	public Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
@@ -437,8 +444,6 @@ public sealed partial class GuiMode : IDisposable
 
 		}
 	}
-
-	#endregion
 
 	//note: ideally some of these computations aren't necessary and can be stored as respective fields but this is to ensure program correctness
 
@@ -559,7 +564,7 @@ public sealed partial class GuiMode : IDisposable
 		return true;
 	}
 
-	public async Task<object?> RunAsync1(object? sender = null)
+	private async Task<object?> RunSearchAsync(object? sender = null)
 	{
 		var now = Stopwatch.StartNew();
 
