@@ -57,6 +57,8 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		var sw = Stopwatch.StartNew();
+
 		token ??= CancellationToken.None;
 
 		var result = await base.GetResultAsync(query, token);
@@ -84,6 +86,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		Debug.WriteLine($"{Name} :: {result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", nameof(GetResultAsync));
 
 		result.Update();
+		sw.Stop();
 
 		return result;
 	}

@@ -1,45 +1,25 @@
 ﻿global using R2 = SmartImage.Resources;
 global using R1 = SmartImage.Lib.Resources;
 global using Url = Flurl.Url;
-using NStack;
-using SmartImage.Lib;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Dynamic;
-using System.Linq;
 using System.Media;
-using System.Text;
-using System.Threading.Tasks;
-using AngleSharp.Dom;
+using System.Runtime.Versioning;
 using Kantan.Net.Utilities;
-using Terminal.Gui;
-using Rune = System.Rune;
-using System.Reflection;
-using Flurl.Http;
-using Kantan.Utilities;
-using Novus.FileTypes;
-using Novus.Utilities;
-using Novus.Win32;
-using SmartImage.App;
-using static Novus.Win32.SysCommand;
-using Window = Terminal.Gui.Window;
-using System.Xml.Linq;
-using Kantan.Console;
 using Kantan.Text;
 using Novus.OS;
-using Attribute = Terminal.Gui.Attribute;
-using Color = Terminal.Gui.Color;
-using Size = Terminal.Gui.Size;
-using SmartImage.Lib.Engines;
+using NStack;
+using SmartImage.App;
+using SmartImage.Lib;
+using SmartImage.Shell;
+using Terminal.Gui;
+using Window = Terminal.Gui.Window;
 
 // ReSharper disable InconsistentNaming
-
-namespace SmartImage.Modes;
+#pragma warning disable IDE0060
+namespace SmartImage;
 
 public sealed partial class GuiMain : IDisposable
 {
@@ -206,9 +186,8 @@ public sealed partial class GuiMain : IDisposable
 
 	private bool m_autoSearch;
 
-	private object? m_autoTok;
-
-	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+	private static readonly TimeSpan    TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+	private static readonly SoundPlayer m_sndHint       = new SoundPlayer(R2.hint);
 
 	#region
 
@@ -327,13 +306,16 @@ public sealed partial class GuiMain : IDisposable
 				return;
 			}
 
-			if (Query.IsFile) {
-				FileSystem.ExploreFile(Query.Uni.Value);
+			Func<string, bool> f = _ => false;
+
+			if (Query.Uni.IsFile) {
+				f = FileSystem.ExploreFile;
 			}
-			else if (Query.IsUrl) {
-				HttpUtilities.TryOpenUrl(Query.Uni.Value);
+			else if (Query.Uni.IsUri) {
+				f = HttpUtilities.TryOpenUrl;
 			}
 
+			f(Query.Uni.Value);
 		};
 
 		Lbl_QueryUpload.Clicked += () =>
@@ -356,13 +338,13 @@ public sealed partial class GuiMain : IDisposable
 		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
 	}
 
-	public void PreSearch(object? sender)
+	private void PreSearch(object? sender)
 	{
 		Tf_Input.SetFocus();
 		Tv_Results.Visible = true;
 	}
 
-	public void PostSearch(object? sender, List<SearchResult> results1)
+	private void PostSearch(object? sender, List<SearchResult> results1)
 	{
 
 		if (Client.IsComplete) {
@@ -371,12 +353,12 @@ public sealed partial class GuiMain : IDisposable
 		}
 	}
 
-	public void OnResult(object o, SearchResult r)
+	private void OnResult(object o, SearchResult r)
 	{
 		Application.MainLoop.Invoke(() =>
 		{
-			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, 0, null, null,
-			                    r.Status.ToString(), null, null, null, null, null, null);
+			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, 0, null, $"{r.Status}",
+			                    null, null, null, null, null, null, null);
 
 			for (int i = 0; i < r.Results.Count; i++) {
 				SearchResultItem sri = r.Results[i];
@@ -404,12 +386,21 @@ public sealed partial class GuiMain : IDisposable
 
 	}
 
-	public void OnComplete(object sender, List<SearchResult> e)
+	private void OnComplete(object sender, List<SearchResult> e)
 	{
-		SystemSounds.Asterisk.Play();
+		if (OperatingSystem.IsWindows()) {
+			OnCompleteWin(sender, e);
+		}
 
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
+
+	}
+
+	[SupportedOSPlatform("windows")]
+	private void OnCompleteWin(object sender, List<SearchResult> e)
+	{
+		m_sndHint.Play();
 
 	}
 
@@ -418,7 +409,7 @@ public sealed partial class GuiMain : IDisposable
 		Application.Shutdown();
 	}
 
-	protected void ProcessArgs()
+	private void ProcessArgs()
 	{
 		var e = Args.GetEnumerator();
 
@@ -531,7 +522,7 @@ public sealed partial class GuiMain : IDisposable
 		Query  = sq;
 		Status = ProgramStatus.Signal;
 
-		Lbl_InputInfo.Text = $"[{(sq.IsFile ? "File" : "Uri")}] ({sq.Uni.FileTypes.First()})";
+		Lbl_InputInfo.Text = $"{sq}";
 
 		IsReady.Set();
 		Btn_Run.Enabled = false;
@@ -576,7 +567,6 @@ public sealed partial class GuiMain : IDisposable
 		PreSearch(sender);
 
 		Status = ProgramStatus.None;
-
 		IsReady.WaitOne();
 
 		var results = await Client.RunSearchAsync(Query, Token.Token);

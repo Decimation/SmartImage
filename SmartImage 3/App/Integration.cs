@@ -15,9 +15,9 @@ using Kantan.Diagnostics;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.Lib;
-using SmartImage.Modes;
 using Terminal.Gui;
 using Command = Novus.OS.Command;
+using SmartImage.Shell;
 
 namespace SmartImage.App;
 

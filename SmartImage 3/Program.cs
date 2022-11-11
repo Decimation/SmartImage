@@ -18,12 +18,11 @@ using Novus;
 using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
-using SmartImage.App;
 using SmartImage.Lib;
 using Terminal.Gui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
-using SmartImage.Modes;
 using Attribute = Terminal.Gui.Attribute;
+using SmartImage.Shell;
 
 #pragma warning disable CS0168
 

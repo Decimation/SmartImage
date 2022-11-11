@@ -120,10 +120,10 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-			m.AddString("url", query.IsUrl ? query.Uni.Value : String.Empty);
+			m.AddString("url", query.Uni.IsUri ? query.Uni.Value : String.Empty);
 
-			if (query.IsUrl) { }
-			else if (query.IsFile) {
+			if (query.Uni.IsUri) { }
+			else if (query.Uni.IsFile) {
 				m.AddFile("file", query.Uni.Value, fileName: "image.jpg");
 			}
 

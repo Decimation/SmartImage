@@ -44,6 +44,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),
@@ -58,7 +59,7 @@ public abstract class BaseSearchEngine : IDisposable
 		//
 		Url u = ((BaseUrl + query.Upload));
 		
-		return Task.FromResult<Url>(u);
+		return Task.FromResult(u);
 	}
 
 	#region Implementation of IDisposable

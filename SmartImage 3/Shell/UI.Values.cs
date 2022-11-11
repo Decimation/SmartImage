@@ -3,7 +3,7 @@ using Terminal.Gui;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage;
+namespace SmartImage.Shell;
 
 internal static partial class UI
 {

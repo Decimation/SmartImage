@@ -7,9 +7,10 @@ using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Shell;
 using Terminal.Gui;
 
-namespace SmartImage.Modes;
+namespace SmartImage;
 
 public sealed partial class GuiMain
 {

@@ -52,7 +52,7 @@
 
 Supported search engines:
 
-**See the [Engines Index](https://docs.google.com/spreadsheets/d/1BdBqGzEQ7x6XKcDSE_w_KrfBzTaYB48CCPJyeSNtbyg/edit?usp=sharing) spreadsheet**
+**See the [Engines Index](https://docs.google.com/spreadsheets/d/1BdBqGzEQ7x6XKcDSE_w_KrfBzTaYB48CCPJyeSNtbyg/edit?usp=sharing) spreadsheet.**
 
 <!-- - <img src="https://saucenao.com/favicon.ico" width="16" height="16"/> [SauceNao](https://saucenao.com/)
 - <img src="http://imgops.com/favicon.ico" width="16" height="16"/> [ImgOps](http://imgops.com/)
@@ -71,14 +71,14 @@ Supported search engines:
 
 ## Getting Started
 
+**See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
+
 Wiki pages useful for getting started:
 
-- Installation and requirements: [Installation »](https://github.com/Decimation/SmartImage/wiki#installation)
 - User interface and options: [Interface »](https://github.com/Decimation/SmartImage/wiki/Interface)
 - Performing a search and usage: [Usage »](https://github.com/Decimation/SmartImage/wiki#usage)
 - Search engines and config: [Engines »](https://github.com/Decimation/SmartImage/wiki#engines)
 
-**See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
 
 *Ensure .NET 7 is installed!*
 

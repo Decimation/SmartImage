@@ -17,10 +17,6 @@ namespace SmartImage.Lib;
 
 public sealed class SearchQuery : IDisposable
 {
-	public bool IsUrl => Uni.IsUri;
-
-	public bool IsFile => Uni.IsFile;
-	
 	public UniFile Uni { get; }
 
 	[MN]
