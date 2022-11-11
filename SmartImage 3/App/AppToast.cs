@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Drawing;
 using Windows.ApplicationModel.Background;
+using Flurl.Http;
 using Kantan.Net;
 using Kantan.Net.Utilities;
 using Microsoft.Toolkit.Uwp;
 using Microsoft.Toolkit.Uwp.Notifications;
+using Novus.FileTypes;
 using SmartImage.Lib;
 
 namespace SmartImage.App;
@@ -17,7 +19,7 @@ namespace SmartImage.App;
 // ReSharper disable PossibleNullReferenceException
 internal static class AppToast
 {
-	internal static void ShowToast(object sender, List<SearchResult> args)
+	internal static async Task ShowToast(object sender, List<UniFile> args)
 	{
 		Debug.WriteLine($"Building toast", C_DEBUG);
 
@@ -31,8 +33,8 @@ internal static class AppToast
 		builder.AddText("Search Complete");
 
 		string? url    = null;
-		var    result = args.First();
-		builder.AddText($"Engine: {result.Engine.Name}");
+		var     result = args.First();
+		builder.AddText($"Engine: {sender}");
 
 		button.SetContent("Open")
 		      .AddArgument(ARG_KEY_ACTION, $"{url}");
@@ -42,15 +44,19 @@ internal static class AppToast
 		       .AddAttributionText($"{url}")
 		       .AddText($"Results: {args.Count}");
 
-		AddNotificationImage(builder, args);
+		await AddNotificationImage(builder, result);
 
 		builder.SetBackgroundActivation();
 		builder.Show();
 
 	}
 
-	private static void AddNotificationImage(ToastContentBuilder builder, List<SearchResult> directResults)
+	private static async Task AddNotificationImage(ToastContentBuilder builder, UniFile directResults)
 	{
+		var uri = new Uri(directResults.Value);
+		var f   = await uri.DownloadFileAsync(Path.GetTempPath());
+
+		builder.AddHeroImage(new Uri(f));
 
 		/*if (!directResults.Any()) {
 			return;

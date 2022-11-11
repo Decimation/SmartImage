@@ -404,25 +404,9 @@ public sealed partial class GuiMain : IDisposable
 	{
 		m_sndHint.Play();
 
-		var x = SearchClient.Optimize(e).AsParallel().Where(r => r.Score >= 5).Select(r =>
-		{
-			return r.GetUniAsync();
-		}).ToList();
+		var di = await SearchClient.GetDirectImages(e);
 
-		var di = new List<UniFile>();
-
-		while (x.Any()) {
-			var x1 = await Task.WhenAny(x);
-			x.Remove(x1);
-			var x2 = await x1;
-
-			if (x2 != null) {
-				Debug.WriteLine($"{x2}");
-				di.Add(x2);
-			}
-		}
-
-		AppToast.ShowToast(sender, e);
+		await AppToast.ShowToast(sender, di);
 	}
 
 	public void Close()

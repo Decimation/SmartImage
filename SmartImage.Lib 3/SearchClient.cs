@@ -112,6 +112,31 @@ public sealed class SearchClient : IDisposable
 		              .ThenByDescending(r => r.Similarity);
 	}
 
+	public static async Task<List<UniFile>> GetDirectImages(List<SearchResult> results)
+	{
+		var filter = Optimize(results).AsParallel()
+		                         .DistinctBy(r => r.Url)
+		                         .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
+		                         .Select(r =>
+		                         {
+			                         return r.GetUniAsync();
+		                         }).ToList();
+
+		var di = new List<UniFile>();
+
+		while (filter.Any()) {
+			var t1 = await Task.WhenAny(filter);
+			filter.Remove(t1);
+			var uf = await t1;
+
+			if (uf != null) {
+				di.Add(uf);
+			}
+		}
+
+		return di;
+	}
+
 	#region Implementation of IDisposable
 
 	public void Dispose()

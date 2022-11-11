@@ -134,6 +134,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public const int MAX_SCORE = 12;
 
+	public const int SCORE_THRESHOLD = 5;
 	public void Dispose()
 	{
 	}

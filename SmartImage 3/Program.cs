@@ -14,6 +14,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Hosting;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Toolkit.Uwp.Notifications;
 using Novus;
 using Novus.FileTypes;
 using Novus.Win32;
@@ -23,6 +24,7 @@ using Terminal.Gui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using Attribute = Terminal.Gui.Attribute;
 using SmartImage.Shell;
+using SmartImage.App;
 
 #pragma warning disable CS0168
 
@@ -57,6 +59,8 @@ public static class Program
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.Title = R2.Name;
 		ConsoleUtil.SetConsoleMode();
+
+		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
 
 #if TEST
 		// args = new String[] { null };
