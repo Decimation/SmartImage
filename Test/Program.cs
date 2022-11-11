@@ -36,22 +36,6 @@ public static class Program
 	public static async Task Main(string[] args)
 	{
 		var f = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
-		var e = new EHentaiEngine();
-
-		//test cookies
-		var dict = new Dictionary<string, string>()
-		{
-			["igneous"] = "388bd84ac",
-			["ipb_member_id"]= "3200336",
-			["ipb_pass_hash"]= "52e494963cba3c6f072a2d2be88a18a8",
-			["sk"]= "utrq4k3ddevkgnj4fc8163qzq6gz"
-		};
-
-		/*
-		 *
-		 */
-
-		var res = await e.Search(File.OpenRead(f), dict);
 
 	}
 

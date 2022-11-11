@@ -38,9 +38,9 @@ public sealed partial class GuiMain
 			Height   = UI.Dim_30_Pct,
 		};
 
-		var b1 = UI.BtnGenerator(d, "Repo", R2.Repo_Url);
-		var b2 = UI.BtnGenerator(d, "Wiki", R2.Wiki_Url);
-		var b3 = UI.BtnGenerator(d, "Ok", null, ()=> Application.RequestStop());
+		var b1 = UI.CreateLinkButton(d, "Repo", R2.Repo_Url);
+		var b2 = UI.CreateLinkButton(d, "Wiki", R2.Wiki_Url);
+		var b3 = UI.CreateLinkButton(d, "Ok", null, ()=> Application.RequestStop());
 
 		d.AddButton(b1);
 		d.AddButton(b2);

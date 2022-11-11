@@ -16,19 +16,19 @@ internal static partial class UI
 
 	internal static readonly Rune Line = Application.Driver.HLine;
 
-	internal static Button BtnGenerator(Dialog d, string s, string? u = null, Action? f = null)
+	internal static Button CreateLinkButton(Dialog d, string text, string? url = null, Action? urlAction = null)
 	{
 		var b = new Button()
 		{
-			Text     = s,
+			Text     = text,
 			AutoSize = true,
 		};
 
-		f ??= () => HttpUtilities.TryOpenUrl(u);
+		urlAction ??= () => HttpUtilities.TryOpenUrl(url);
 
 		b.Clicked += () =>
 		{
-			f();
+			urlAction();
 			d.SetNeedsDisplay();
 		};
 		

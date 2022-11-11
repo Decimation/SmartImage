@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Runtime.Caching;
+using System.Text;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.Lib.Engines;
@@ -7,35 +8,42 @@ namespace SmartImage.Shell;
 
 internal static class ConsoleUtil
 {
-    internal static readonly SearchEngineOptions[] EngineOptions = Enum.GetValues<SearchEngineOptions>();
+	private static readonly ObjectCache Cache = MemoryCache.Default;
 
-    internal static readonly IntPtr HndWindow = Native.GetConsoleWindow();
-    internal static readonly IntPtr StdOut = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
-    internal static readonly IntPtr StdIn = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
+	internal static SearchEngineOptions[] EngineOptions => (SearchEngineOptions[]) Cache[nameof(EngineOptions)];
 
-    internal static ConsoleModes _oldMode;
+	internal static readonly IntPtr HndWindow = Native.GetConsoleWindow();
+	internal static readonly IntPtr StdOut    = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+	internal static readonly IntPtr StdIn     = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
 
-    internal static void SetConsoleMenu()
-    {
-        IntPtr sysMenu = Native.GetSystemMenu(HndWindow, false);
+	internal static ConsoleModes _oldMode;
 
-        Native.DeleteMenu(sysMenu, (int)SysCommand.SC_MAXIMIZE, Native.MF_BYCOMMAND);
-        Native.DeleteMenu(sysMenu, (int)SysCommand.SC_SIZE, Native.MF_BYCOMMAND);
-    }
+	static ConsoleUtil()
+	{
+		Cache[nameof(EngineOptions)] = Enum.GetValues<SearchEngineOptions>();
+	}
 
-    internal static void SetConsoleMode()
-    {
-        Native.OpenClipboard();
+	internal static void SetConsoleMenu()
+	{
+		IntPtr sysMenu = Native.GetSystemMenu(HndWindow, false);
 
-        Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
-        Native.GetConsoleMode(StdIn, out ConsoleModes lpMode);
+		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_MAXIMIZE, Native.MF_BYCOMMAND);
+		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_SIZE, Native.MF_BYCOMMAND);
+	}
 
-        _oldMode = lpMode;
+	internal static void SetConsoleMode()
+	{
+		Native.OpenClipboard();
 
-        Native.SetConsoleMode(StdIn, lpMode | ConsoleModes.ENABLE_MOUSE_INPUT &
-                                                            ~ConsoleModes.ENABLE_QUICK_EDIT_MODE |
-                                                           ConsoleModes.ENABLE_EXTENDED_FLAGS |
-                                                           ConsoleModes.ENABLE_ECHO_INPUT |
-                                                           ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-    }
+		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
+		Native.GetConsoleMode(StdIn, out ConsoleModes lpMode);
+
+		_oldMode = lpMode;
+
+		Native.SetConsoleMode(StdIn, lpMode | ConsoleModes.ENABLE_MOUSE_INPUT &
+		                             ~ConsoleModes.ENABLE_QUICK_EDIT_MODE |
+		                             ConsoleModes.ENABLE_EXTENDED_FLAGS |
+		                             ConsoleModes.ENABLE_ECHO_INPUT |
+		                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+	}
 }

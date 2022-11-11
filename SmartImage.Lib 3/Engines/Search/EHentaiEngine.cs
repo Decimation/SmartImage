@@ -16,7 +16,7 @@ public sealed class EHentaiEngine : BaseSearchEngine
 
 	public override void Dispose() { }
 
-	public async Task<SearchResult> Search(Stream u, Dictionary<string, string> cj)
+	public async Task<SearchResult> SearchImage(Stream u, Dictionary<string, string> cj)
 	{
 		var sr = new SearchResult(this);
 

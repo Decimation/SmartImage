@@ -50,7 +50,9 @@ public sealed class SearchClient : IDisposable
 	{
 		token ??= CancellationToken.None;
 
-		Engines = BaseSearchEngine.All.Where(e => Config.SearchEngines.HasFlag(e.EngineOption)).ToArray();
+		Engines = BaseSearchEngine.All.Where(e => Config.SearchEngines.HasFlag(e.EngineOption)
+		                                          && e.EngineOption != default)
+		                          .ToArray();
 
 		var tasks = Engines.Select(e => e.GetResultAsync(query, token))
 		                   .ToList();
@@ -115,12 +117,13 @@ public sealed class SearchClient : IDisposable
 	public static async Task<List<UniFile>> GetDirectImages(List<SearchResult> results)
 	{
 		var filter = Optimize(results).AsParallel()
-		                         .DistinctBy(r => r.Url)
-		                         .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
-		                         .Select(r =>
-		                         {
-			                         return r.GetUniAsync();
-		                         }).ToList();
+		                              .DistinctBy(r => r.Url)
+		                              // .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
+		                              .Select(r =>
+		                              {
+			                              return r.GetUniAsync();
+		                              })
+		                              .ToList();
 
 		var di = new List<UniFile>();
 
@@ -132,7 +135,13 @@ public sealed class SearchClient : IDisposable
 			if (uf != null) {
 				di.Add(uf);
 			}
+
+			/*if (uf is { Stream: { CanSeek: true, Length: >= 1000 << 2 } }) {
+				di.Add(uf);
+			}*/
 		}
+
+		// di = di.OrderByDescending(d => d.Stream.Length).ToList();
 
 		return di;
 	}

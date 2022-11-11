@@ -60,7 +60,7 @@ public static class Program
 		Console.Title = R2.Name;
 		ConsoleUtil.SetConsoleMode();
 
-		ToastNotificationManagerCompat.OnActivated += AppToast.OnToastActivated;
+		ToastNotificationManagerCompat.OnActivated += AppToast.OnActivated;
 
 #if TEST
 		// args = new String[] { null };

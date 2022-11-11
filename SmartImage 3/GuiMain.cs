@@ -12,6 +12,7 @@ using Kantan.Text;
 using Novus;
 using Novus.FileTypes;
 using Novus.OS;
+using Novus.Win32;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
@@ -388,10 +389,10 @@ public sealed partial class GuiMain : IDisposable
 
 	}
 
-	private void OnComplete(object sender, List<SearchResult> e)
+	private void OnComplete(object sender, List<SearchResult> results)
 	{
 		if (OperatingSystem.IsWindows()) {
-			OnCompleteWin(sender, e);
+			OnCompleteWin(sender, results);
 		}
 
 		Btn_Restart.Enabled = true;
@@ -400,13 +401,18 @@ public sealed partial class GuiMain : IDisposable
 	}
 
 	[SupportedOSPlatform(Global.OS_WIN)]
-	private async Task OnCompleteWin(object sender, List<SearchResult> e)
+	private async Task OnCompleteWin(object sender, List<SearchResult> results)
 	{
 		m_sndHint.Play();
+		Native.FlashWindow(ConsoleUtil.HndWindow);
 
-		var di = await SearchClient.GetDirectImages(e);
+		var di = await SearchClient.GetDirectImages(results);
+		await AppToast.BuildShow(sender, di);
 
-		await AppToast.ShowToast(sender, di);
+		foreach (UniFile file in di) {
+			Debug.WriteLine($"Disposing {file.Value}");
+			file.Dispose();
+		}
 	}
 
 	public void Close()
