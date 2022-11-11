@@ -11,7 +11,7 @@ using Terminal.Gui;
 
 namespace SmartImage.Modes;
 
-public sealed partial class GuiMode
+public sealed partial class GuiMain
 {
 	#region Control functions
 

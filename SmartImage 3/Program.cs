@@ -42,7 +42,7 @@ namespace SmartImage;
 
 public static class Program
 {
-	private static GuiMode _main;
+	private static GuiMain _main;
 
 	[ModuleInitializer]
 	public static void Init()
@@ -68,7 +68,7 @@ public static class Program
 
 		bool cli = args is { } && args.Any();
 
-		_main = new GuiMode(args);
+		_main = new GuiMain(args);
 
 		main1:
 

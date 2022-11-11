@@ -41,7 +41,7 @@ using SmartImage.Lib.Engines;
 
 namespace SmartImage.Modes;
 
-public sealed partial class GuiMode : IDisposable
+public sealed partial class GuiMain : IDisposable
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 	// NOTE: Static initialization order is nondeterminant with partial classes
@@ -196,7 +196,7 @@ public sealed partial class GuiMode : IDisposable
 
 	#endregion
 
-	#region Fields
+	#region Fields/properties
 
 	private object m_cbCallbackTok;
 
@@ -206,8 +206,11 @@ public sealed partial class GuiMode : IDisposable
 
 	private bool m_autoSearch;
 
-	private                 object?  m_autoTok;
+	private object? m_autoTok;
+
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+
+	#region
 
 	public SearchQuery Query { get; internal set; }
 
@@ -227,7 +230,9 @@ public sealed partial class GuiMode : IDisposable
 
 	#endregion
 
-	public GuiMode(string[] args)
+	#endregion
+
+	public GuiMain(string[] args)
 	{
 		Args    = args;
 		Token   = new();
@@ -323,10 +328,10 @@ public sealed partial class GuiMode : IDisposable
 			}
 
 			if (Query.IsFile) {
-				FileSystem.ExploreFile(Query.Value);
+				FileSystem.ExploreFile(Query.Uni.Value);
 			}
 			else if (Query.IsUrl) {
-				HttpUtilities.TryOpenUrl(Query.Value);
+				HttpUtilities.TryOpenUrl(Query.Uni.Value);
 			}
 
 		};
@@ -526,7 +531,7 @@ public sealed partial class GuiMode : IDisposable
 		Query  = sq;
 		Status = ProgramStatus.Signal;
 
-		Lbl_InputInfo.Text = $"[{(sq.IsFile ? "File" : "Uri")}] ({sq.FileTypes.First()})";
+		Lbl_InputInfo.Text = $"[{(sq.IsFile ? "File" : "Uri")}] ({sq.Uni.FileTypes.First()})";
 
 		IsReady.Set();
 		Btn_Run.Enabled = false;
