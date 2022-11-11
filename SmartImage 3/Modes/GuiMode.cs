@@ -32,7 +32,6 @@ using Kantan.Text;
 using Novus.OS;
 using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
-using SmartImage.UI;
 using Size = Terminal.Gui.Size;
 using SmartImage.Lib.Engines;
 
@@ -40,9 +39,10 @@ using SmartImage.Lib.Engines;
 
 namespace SmartImage.Modes;
 
-public sealed partial class GuiMode : BaseProgramMode
+public sealed partial class GuiMode : IDisposable
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
+	// NOTE: Static initialization order is nondeterminant with partial classes
 
 	#region Controls
 
@@ -54,7 +54,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y           = 1,
 		Width       = Dim.Fill(),
 		Height      = Dim.Fill(),
-		ColorScheme = Styles.Cs_Win,
+		ColorScheme = UI.Cs_Win,
 	};
 
 	private static readonly MenuBar Mb_Menu = new()
@@ -66,7 +66,7 @@ public sealed partial class GuiMode : BaseProgramMode
 	{
 		X           = 1,
 		Y           = 0,
-		ColorScheme = Styles.Cs_Elem2
+		ColorScheme = UI.Cs_Elem2
 	};
 
 	private static readonly TextField Tf_Input = new(ustring.Empty)
@@ -74,12 +74,12 @@ public sealed partial class GuiMode : BaseProgramMode
 		X           = Pos.Right(Lbl_Input),
 		Y           = Pos.Top(Lbl_Input),
 		Width       = 50,
-		ColorScheme = Styles.Cs_Win2,
+		ColorScheme = UI.Cs_Win2,
 		AutoSize    = false,
 		// AutoSize = true,
 	};
 
-	private static readonly Label Lbl_InputOk = new(Values.NA)
+	private static readonly Label Lbl_InputOk = new(UI.NA)
 	{
 		X = Pos.Right(Tf_Input) + 1,
 		Y = Pos.Y(Tf_Input),
@@ -90,7 +90,7 @@ public sealed partial class GuiMode : BaseProgramMode
 	{
 		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
-		ColorScheme = Styles.Cs_Btn1x,
+		ColorScheme = UI.Cs_Btn1x,
 
 	};
 
@@ -100,7 +100,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y               = Pos.Y(Btn_Run),
 		HotKey          = Key.Null,
 		HotKeySpecifier = default,
-		ColorScheme     = Styles.Cs_Btn1,
+		ColorScheme     = UI.Cs_Btn1,
 	};
 
 	private static readonly Button Btn_Restart = new("Restart")
@@ -108,7 +108,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		X           = Pos.Right(Btn_Clear),
 		Y           = Pos.Y(Btn_Clear),
 		Enabled     = false,
-		ColorScheme = Styles.Cs_Btn1,
+		ColorScheme = UI.Cs_Btn1,
 
 	};
 
@@ -117,7 +117,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		X           = Pos.Right(Btn_Restart),
 		Y           = Pos.Y(Btn_Restart),
 		Enabled     = false,
-		ColorScheme = Styles.Cs_Btn1,
+		ColorScheme = UI.Cs_Btn1,
 
 	};
 
@@ -126,7 +126,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		X           = Pos.Right(Btn_Cancel),
 		Y           = Pos.Y(Btn_Cancel),
 		Enabled     = true,
-		ColorScheme = Styles.Cs_Btn2,
+		ColorScheme = UI.Cs_Btn2,
 	};
 
 	private static readonly Label Lbl_InputInfo = new()
@@ -135,7 +135,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y           = 1,
 		Width       = 10,
 		Height      = Dim.Height(Tf_Input),
-		ColorScheme = Styles.Cs_Lbl2
+		ColorScheme = UI.Cs_Lbl2
 
 	};
 
@@ -145,7 +145,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y           = 1,
 		Width       = 10,
 		Height      = Dim.Height(Lbl_InputInfo),
-		ColorScheme = Styles.Cs_Lbl2
+		ColorScheme = UI.Cs_Lbl2
 
 	};
 
@@ -155,7 +155,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y           = Pos.Y(Lbl_QueryUpload),
 		Width       = 10,
 		Height      = Dim.Height(Lbl_QueryUpload),
-		ColorScheme = Styles.Cs_Lbl1
+		ColorScheme = UI.Cs_Lbl1
 	};
 
 	private static readonly DataTable Dt_Results = new()
@@ -188,11 +188,13 @@ public sealed partial class GuiMode : BaseProgramMode
 		Y           = Pos.Y(Pbr_Status),
 		Width       = 15,
 		Height      = Dim.Height(Lbl_InputInfo),
-		ColorScheme = Styles.Cs_Lbl1
+		ColorScheme = UI.Cs_Lbl1
 
 	};
 
 	#endregion
+
+	#region Fields
 
 	private object m_cbCallbackTok;
 
@@ -200,16 +202,28 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	private readonly List<ustring> m_clipboard;
 
-	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
-
 	private bool m_autoSearch;
 
-	private object? m_autoTok;
+	private                 object?  m_autoTok;
+	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+
+	#endregion
 
 	#region Overrides of ProgramMode
 
-	public GuiMode(string[] args) : base(args, SearchQuery.Null)
+	public GuiMode(string[] args)
 	{
+		Args    = args;
+		Token   = new();
+		Query   = SearchQuery.Null;
+		Client  = new SearchClient(new SearchConfig());
+		IsReady = new ManualResetEvent(false);
+
+		// QueryMat = null;
+
+		Client.OnResult   += OnResult;
+		Client.OnComplete += OnComplete;
+
 		// Application.Init();
 
 		ProcessArgs();
@@ -275,7 +289,7 @@ public sealed partial class GuiMode : BaseProgramMode
 			ColumnStyles = columnStyles,
 		};
 
-		Tv_Results.Border  = Styles.Br_1;
+		Tv_Results.Border  = UI.Br_1;
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
 
@@ -315,19 +329,28 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	}
 
-	public override Task<object?> RunAsync(object? sender = null)
+	public    SearchQuery             Query       { get; set; }
+	public    SearchConfig            Config      => Client.Config;
+	public    SearchClient            Client      { get; init; }
+	protected ProgramStatus           Status      { get; set; }
+	protected string[]                Args        { get; init; }
+	protected int                     ResultCount { get; set; }
+	public    ManualResetEvent        IsReady     { get; protected set; }
+	protected CancellationTokenSource Token       { get; set; }
+
+	public Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
 		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
 	}
 
-	public override void PreSearch(object? sender)
+	public void PreSearch(object? sender)
 	{
 		Tf_Input.SetFocus();
 		Tv_Results.Visible = true;
 	}
 
-	public override void PostSearch(object? sender, List<SearchResult> results1)
+	public void PostSearch(object? sender, List<SearchResult> results1)
 	{
 
 		if (Client.IsComplete) {
@@ -336,7 +359,7 @@ public sealed partial class GuiMode : BaseProgramMode
 		}
 	}
 
-	public override void OnResult(object o, SearchResult r)
+	public void OnResult(object o, SearchResult r)
 	{
 		Application.MainLoop.Invoke(() =>
 		{
@@ -369,26 +392,21 @@ public sealed partial class GuiMode : BaseProgramMode
 
 	}
 
-	public override void OnComplete(object sender, List<SearchResult> e)
+	public void OnComplete(object sender, List<SearchResult> e)
 	{
 		SystemSounds.Asterisk.Play();
-		
+
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
 
 	}
 
-	public override void Close()
+	public void Close()
 	{
 		Application.Shutdown();
 	}
 
-	public override void Dispose()
-	{
-		base.Dispose();
-	}
-
-	protected override void ProcessArgs()
+	protected void ProcessArgs()
 	{
 		var e = Args.GetEnumerator();
 
@@ -465,7 +483,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		}
 
-		Lbl_InputOk.Text = Values.PRC;
+		Lbl_InputOk.Text = UI.PRC;
 
 		if (sq is { } && sq != SearchQuery.Null) {
 			try {
@@ -487,7 +505,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		}
 		else {
-			Lbl_InputOk.Text     = Values.Err;
+			Lbl_InputOk.Text     = UI.Err;
 			Lbl_InputInfo.Text   = "Error: invalid input";
 			Btn_Run.Enabled      = true;
 			Lbl_QueryUpload.Text = ustring.Empty;
@@ -498,7 +516,7 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		Debug.WriteLine($">> {sq} {Config}", nameof(SetQuery));
 
-		Lbl_InputOk.Text = Values.OK;
+		Lbl_InputOk.Text = UI.OK;
 
 		Query  = sq;
 		Status = ProgramStatus.Signal;
@@ -522,7 +540,7 @@ public sealed partial class GuiMode : BaseProgramMode
 			if (Integration.ReadClipboard(out var str) &&
 			    !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
 				SetInputText(str);
-				// Lbl_InputOk.Text   = Values.Clp;
+				// Lbl_InputOk.Text   = UI.Clp;
 				Lbl_InputInfo.Text = Resources.Inf_Clipboard;
 
 				m_clipboard.Add(str);
@@ -540,4 +558,39 @@ public sealed partial class GuiMode : BaseProgramMode
 
 		return true;
 	}
+
+	public async Task<object?> RunAsync1(object? sender = null)
+	{
+		var now = Stopwatch.StartNew();
+
+		PreSearch(sender);
+
+		Status = ProgramStatus.None;
+
+		IsReady.WaitOne();
+
+		var results = await Client.RunSearchAsync(Query, Token.Token);
+
+		now.Stop();
+
+		Status = ProgramStatus.Signal;
+
+		PostSearch(sender, results);
+
+		return null;
+	}
+
+	public void Dispose()
+	{
+		Client.Dispose();
+		Query.Dispose();
+		Token.Dispose();
+	}
+}
+
+public enum ProgramStatus
+{
+	None,
+	Signal,
+	Restart
 }

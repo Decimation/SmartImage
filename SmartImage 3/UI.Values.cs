@@ -3,9 +3,9 @@ using Terminal.Gui;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.UI;
+namespace SmartImage;
 
-internal static class Values
+internal static partial class UI
 {
 	internal static readonly ustring Err = ustring.Make('x');
 	internal static readonly ustring Clp = ustring.Make('c');

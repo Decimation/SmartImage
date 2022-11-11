@@ -1,11 +1,10 @@
 ﻿using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
-
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.UI;
+namespace SmartImage;
 
-internal static class Styles
+internal static partial class UI
 {
 	#region Attributes
 
@@ -29,12 +28,11 @@ internal static class Styles
 	internal static readonly Attribute Atr_Gray_Black          = Attribute.Make(Color.Gray, Color.Black);
 	internal static readonly Attribute Atr_DarkGray_Blue       = Attribute.Make(Color.DarkGray, Color.Blue);
 	internal static readonly Attribute Atr_DarkGray_Black      = Attribute.Make(Color.DarkGray, Color.Black);
-	
-	private static readonly  Attribute Atr_BrightBlue_Black = Attribute.Make(Color.BrightBlue, Color.Black);
-	private static readonly  Attribute Atr_Blue_Black       = Attribute.Make(Color.Blue, Color.Black);
-	private static readonly  Attribute Atr_Brown_Black      = Attribute.Make(Color.Brown, Color.Black);
-	private static readonly  Attribute Atr_DarkGray_White   = Attribute.Make(Color.DarkGray, Color.White);
-	internal static readonly Attribute Atr_Black_DarkGray   = Attribute.Make(Color.Black, Color.DarkGray);
+	private static readonly  Attribute Atr_BrightBlue_Black    = Attribute.Make(Color.BrightBlue, Color.Black);
+	private static readonly  Attribute Atr_Blue_Black          = Attribute.Make(Color.Blue, Color.Black);
+	private static readonly  Attribute Atr_Brown_Black         = Attribute.Make(Color.Brown, Color.Black);
+	private static readonly  Attribute Atr_DarkGray_White      = Attribute.Make(Color.DarkGray, Color.White);
+	internal static readonly Attribute Atr_Black_DarkGray      = Attribute.Make(Color.Black, Color.DarkGray);
 
 	#endregion
 
@@ -69,7 +67,7 @@ internal static class Styles
 
 	internal static readonly ColorScheme Cs_Btn3 = new()
 	{
-		Normal    = Atr_Black_DarkGray,
+		Normal = Atr_Black_DarkGray,
 		// Disabled  = Atr_DarkGray_White,
 		HotNormal = Atr_Black_DarkGray,
 		HotFocus  = Atr_BrightBlue_Gray,
@@ -112,28 +110,28 @@ internal static class Styles
 		HotFocus  = Atr_Green_Black
 	};
 
-	internal static readonly ColorScheme Cs_Lbl1 = new ()
+	internal static readonly ColorScheme Cs_Lbl1 = new()
 	{
-		Normal    = Styles.Atr_White_Black,
-		HotNormal = Styles.Atr_White_Black,
-		Focus     = Styles.Atr_Cyan_Black,
-		HotFocus  = Styles.Atr_Cyan_Black,
+		Normal    = UI.Atr_White_Black,
+		HotNormal = UI.Atr_White_Black,
+		Focus     = UI.Atr_Cyan_Black,
+		HotFocus  = UI.Atr_Cyan_Black,
 	};
 
 	internal static readonly ColorScheme Cs_Lbl2 = new()
 	{
 		Normal    = Atr_BrightCyan_DarkGray,
 		HotNormal = Atr_BrightCyan_DarkGray,
-		Focus     = Styles.Atr_Cyan_Black,
-		HotFocus  = Styles.Atr_Cyan_Black,
+		Focus     = UI.Atr_Cyan_Black,
+		HotFocus  = UI.Atr_Cyan_Black,
 	};
 
 	internal static readonly ColorScheme Cs_Lbl3 = new()
 	{
-		Normal    = Styles.Atr_BrightBlue_Gray,
-		HotNormal = Styles.Atr_BrightBlue_Gray,
-		Focus     = Styles.Atr_Cyan_Black,
-		HotFocus  = Styles.Atr_Cyan_Black,
+		Normal    = UI.Atr_BrightBlue_Gray,
+		HotNormal = UI.Atr_BrightBlue_Gray,
+		Focus     = UI.Atr_Cyan_Black,
+		HotFocus  = UI.Atr_Cyan_Black,
 	};
 
 	#endregion
@@ -151,4 +149,5 @@ internal static class Styles
 	};
 
 	#endregion
+
 }

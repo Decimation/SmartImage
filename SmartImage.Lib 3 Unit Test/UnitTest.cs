@@ -186,7 +186,7 @@ public class UnitTest2
 
 	public async Task Test3(string s)
 	{
-		var o              = await UniFile.GetHandleAsync(s);
+		var o              = await UniFile.TryGetAsync(s);
 		var o2 = await SearchQuery.TryCreateAsync(s);
 		Assert.Pass();
 	}

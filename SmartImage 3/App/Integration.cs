@@ -16,7 +16,6 @@ using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.Lib;
 using SmartImage.Modes;
-using SmartImage.UI;
 using Terminal.Gui;
 using Command = Novus.OS.Command;
 

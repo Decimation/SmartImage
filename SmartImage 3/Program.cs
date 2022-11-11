@@ -23,7 +23,6 @@ using SmartImage.Lib;
 using Terminal.Gui;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using SmartImage.Modes;
-using SmartImage.UI;
 using Attribute = Terminal.Gui.Attribute;
 
 #pragma warning disable CS0168
@@ -43,7 +42,7 @@ namespace SmartImage;
 
 public static class Program
 {
-	private static BaseProgramMode _main;
+	private static GuiMode _main;
 
 	[ModuleInitializer]
 	public static void Init()

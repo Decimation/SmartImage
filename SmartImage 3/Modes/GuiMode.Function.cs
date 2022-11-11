@@ -7,7 +7,6 @@ using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.UI;
 using Terminal.Gui;
 
 namespace SmartImage.Modes;
@@ -19,7 +18,7 @@ public sealed partial class GuiMode
 	private void OnClear()
 	{
 		Tf_Input.DeleteAll();
-		Lbl_InputOk.Text = Values.NA;
+		Lbl_InputOk.Text = UI.NA;
 		Lbl_InputOk.SetNeedsDisplay();
 		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
@@ -34,8 +33,8 @@ public sealed partial class GuiMode
 
 			Title    = R2.Name,
 			AutoSize = true,
-			Width    = Dim.Percent(30),
-			Height   = Dim.Percent(30),
+			Width    = UI.Dim_30_Pct,
+			Height   = UI.Dim_30_Pct,
 		};
 
 		void RefreshDialog()
@@ -109,7 +108,7 @@ public sealed partial class GuiMode
 			X           = 0,
 			Y           = 0,
 			AutoSize    = true,
-			ColorScheme = Styles.Cs_Lbl1
+			ColorScheme = UI.Cs_Lbl1
 		};
 
 		ListView lvSearchEngines = new(ConsoleUtil.EngineOptions)
@@ -128,7 +127,7 @@ public sealed partial class GuiMode
 			X           = Pos.Right(lbSearchEngines) + 1,
 			Y           = 0,
 			AutoSize    = true,
-			ColorScheme = Styles.Cs_Lbl1
+			ColorScheme = UI.Cs_Lbl1
 		};
 
 		ListView lvPriorityEngines = new(ConsoleUtil.EngineOptions)
@@ -150,7 +149,7 @@ public sealed partial class GuiMode
 			X           = Pos.Right(lbPriorityEngines) + 1,
 			Y           = 0,
 			AutoSize    = true,
-			ColorScheme = Styles.Cs_Lbl1
+			ColorScheme = UI.Cs_Lbl1
 			// Height = 10,
 		};
 
@@ -169,7 +168,7 @@ public sealed partial class GuiMode
 			Y           = Pos.Bottom(tvConfig) + 1,
 			Width       = WIDTH,
 			Height      = 1,
-			ColorScheme = Styles.Cs_Btn3
+			ColorScheme = UI.Cs_Btn3
 		};
 
 		cbContextMenu.Toggled += b =>
@@ -177,9 +176,9 @@ public sealed partial class GuiMode
 			Integration.HandleContextMenu(!b);
 		};
 
-		Label lbHelp = new($"{Values.Line} Arrow keys or mouse :: select option\n" +
-		                   $"{Values.Line} Space bar or click :: toggle mark option\n" +
-		                   $"{Values.Line} Enter :: save option")
+		Label lbHelp = new($"{UI.Line} Arrow keys or mouse :: select option\n" +
+		                   $"{UI.Line} Space bar or click :: toggle mark option\n" +
+		                   $"{UI.Line} Enter :: save option")
 		{
 			AutoSize = true,
 
@@ -192,7 +191,7 @@ public sealed partial class GuiMode
 			X           = Pos.Right(cbContextMenu) + 1,
 			Y           = Pos.Y(cbContextMenu),
 			AutoSize    = true,
-			ColorScheme = Styles.Cs_Btn3,
+			ColorScheme = UI.Cs_Btn3,
 			Height      = 1,
 		};
 
@@ -210,7 +209,7 @@ public sealed partial class GuiMode
 			// Width  = WIDTH,
 			Height      = 1,
 			AutoSize    = true,
-			ColorScheme = Styles.Cs_Btn3
+			ColorScheme = UI.Cs_Btn3
 
 		};
 
@@ -288,7 +287,7 @@ public sealed partial class GuiMode
 
 		Query = SearchQuery.Null;
 
-		Lbl_InputOk.Text = Values.NA;
+		Lbl_InputOk.Text = UI.NA;
 		Lbl_InputOk.SetNeedsDisplay();
 
 		Dt_Results.Clear();
@@ -418,7 +417,7 @@ public sealed partial class GuiMode
 			return true;
 		});
 
-		var run = base.RunAsync(null);
+		var run = RunAsync1(null);
 		await run;
 
 		sw.Stop();
