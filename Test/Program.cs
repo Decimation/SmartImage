@@ -35,15 +35,35 @@ public static class Program
 {
 	public static async Task Main(string[] args)
 	{
-		// await test4();
+		var f = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		var e = new EHentaiEngine();
+
+		//test cookies
+		var dict = new Dictionary<string, string>()
+		{
+			["igneous"] = "388bd84ac",
+			["ipb_member_id"]= "3200336",
+			["ipb_pass_hash"]= "52e494963cba3c6f072a2d2be88a18a8",
+			["sk"]= "utrq4k3ddevkgnj4fc8163qzq6gz"
+		};
+
+		/*
+		 *
+		 */
+
+		var res = await e.Search(File.OpenRead(f), dict);
+
+	}
+
+	private static async Task test5()
+	{
 		var q = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
 		await q.UploadAsync();
 		var e = new RepostSleuthEngine();
 		var r = await e.GetResultAsync(q);
 		Console.WriteLine($"{r}");
 
-		foreach (var r1 in r.Results)
-		{
+		foreach (var r1 in r.Results) {
 			Console.WriteLine(r1);
 		}
 	}
@@ -127,5 +147,4 @@ public static class Program
 		var result2 = await task2;
 		Console.WriteLine(">> {0}", result2);
 	}
-
 }

@@ -39,7 +39,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 			                      {
 				                      s.ExceptionHandled = true;
 			                      })*/
-			                      .GetAsync(token);
+			                      .GetAsync(cancellationToken: token);
 
 			var str = await res.GetStringAsync();
 
