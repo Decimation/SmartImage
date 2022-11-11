@@ -12,6 +12,7 @@ using AngleSharp.Html;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Configuration;
+using Novus.FileTypes;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib;
@@ -58,11 +59,12 @@ public sealed class SearchClient : IDisposable
 
 		while (tasks.Any()) {
 			if (token.Value.IsCancellationRequested) {
-				
+
 				Debug.WriteLine($"Cancellation requested", nameof(RunSearchAsync));
 				IsComplete = true;
 				return results;
 			}
+
 			var task   = await Task.WhenAny(tasks);
 			var result = await task;
 
@@ -84,13 +86,9 @@ public sealed class SearchClient : IDisposable
 		IsComplete = true;
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
-			
+
 			try {
-				var result = results.SelectMany(r => r.Results)
-				                    .Where(r => Url.IsValid(r.Url))
-				                    .OrderByDescending(r => r.Similarity)
-				                    .ThenByDescending(r=>r.Score)
-				                    .First();
+				var result = Optimize(results).First();
 
 				Debug.WriteLine($"Auto: {result}", nameof(RunSearchAsync));
 
@@ -100,6 +98,18 @@ public sealed class SearchClient : IDisposable
 		}
 
 		return results;
+	}
+
+	public static IEnumerable<SearchResultItem> Optimize(List<SearchResult> results)
+	{
+		return results.SelectMany(r => r.Results)
+		              .Where(r =>
+		              {
+			              var (isFile, isUri) = UniFile.IsUriOrFile(r.Url);
+			              return isFile || isUri;
+		              })
+		              .OrderByDescending(r => r.Score)
+		              .ThenByDescending(r => r.Similarity);
 	}
 
 	#region Implementation of IDisposable

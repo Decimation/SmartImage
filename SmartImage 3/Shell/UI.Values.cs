@@ -1,4 +1,5 @@
-﻿using NStack;
+﻿using Kantan.Net.Utilities;
+using NStack;
 using Terminal.Gui;
 
 // ReSharper disable InconsistentNaming
@@ -14,4 +15,23 @@ internal static partial class UI
 	internal static readonly ustring PRC = ustring.Make(Application.Driver.Diamond);
 
 	internal static readonly Rune Line = Application.Driver.HLine;
+
+	internal static Button BtnGenerator(Dialog d, string s, string? u = null, Action? f = null)
+	{
+		var b = new Button()
+		{
+			Text     = s,
+			AutoSize = true,
+		};
+
+		f ??= () => HttpUtilities.TryOpenUrl(u);
+
+		b.Clicked += () =>
+		{
+			f();
+			d.SetNeedsDisplay();
+		};
+		
+		return b;
+	}
 }

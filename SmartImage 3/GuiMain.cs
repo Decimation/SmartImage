@@ -9,6 +9,8 @@ using System.Media;
 using System.Runtime.Versioning;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Novus;
+using Novus.FileTypes;
 using Novus.OS;
 using NStack;
 using SmartImage.App;
@@ -397,15 +399,21 @@ public sealed partial class GuiMain : IDisposable
 
 	}
 
-	[SupportedOSPlatform("windows")]
+	[SupportedOSPlatform(Global.OS_WIN)]
 	private void OnCompleteWin(object sender, List<SearchResult> e)
 	{
 		m_sndHint.Play();
+		var x=SearchClient.Optimize(e).AsParallel().Where(r => r.Score >= 5).Select(async r =>
+		{
+			return await UniFile.TryGetAsync(r.Url);
+		});
 
+		AppToast.ShowToast(sender, e);
 	}
 
 	public void Close()
 	{
+		m_sndHint.Dispose();
 		Application.Shutdown();
 	}
 
@@ -427,7 +435,7 @@ public sealed partial class GuiMain : IDisposable
 
 			}
 
-			if (s == Resources.Arg_Input) {
+			if (s == R2.Arg_Input) {
 				e.MoveNext();
 				var s2 = e.Current?.ToString();
 
@@ -501,7 +509,6 @@ public sealed partial class GuiMain : IDisposable
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
-
 			}
 
 		}

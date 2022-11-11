@@ -132,6 +132,8 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		m_isScored = true;
 	}
 
+	public const int MAX_SCORE = 12;
+
 	public void Dispose() { }
 
 	public override string ToString()

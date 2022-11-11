@@ -148,6 +148,11 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 			return sr;
 		}
 
+		if (doc.Body!.TextContent.Contains("too large")) {
+			sr.ErrorMessage = "Image too large";
+			return sr;
+		}
+
 		Trace.Assert(doc != null);
 
 		var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");

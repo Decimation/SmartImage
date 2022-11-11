@@ -38,45 +38,9 @@ public sealed partial class GuiMain
 			Height   = UI.Dim_30_Pct,
 		};
 
-		void RefreshDialog()
-		{
-			d.SetNeedsDisplay();
-		}
-
-		var b1 = new Button()
-		{
-			AutoSize = true,
-			Text     = $"Repo",
-		};
-
-		b1.Clicked += () =>
-		{
-			HttpUtilities.TryOpenUrl(R2.Repo_Url);
-			RefreshDialog();
-		};
-
-		var b2 = new Button()
-		{
-			AutoSize = true,
-			Text     = $"Wiki",
-		};
-
-		b2.Clicked += () =>
-		{
-			HttpUtilities.TryOpenUrl(R2.Wiki_Url);
-			RefreshDialog();
-		};
-
-		var b3 = new Button()
-		{
-			Text     = $"Ok",
-			AutoSize = true,
-		};
-
-		b3.Clicked += () =>
-		{
-			Application.RequestStop();
-		};
+		var b1 = UI.BtnGenerator(d, "Repo", R2.Repo_Url);
+		var b2 = UI.BtnGenerator(d, "Wiki", R2.Wiki_Url);
+		var b3 = UI.BtnGenerator(d, "Ok", null, ()=> Application.RequestStop());
 
 		d.AddButton(b1);
 		d.AddButton(b2);
