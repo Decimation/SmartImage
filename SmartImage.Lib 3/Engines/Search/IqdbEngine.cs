@@ -145,12 +145,14 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 
 		if (doc == null) {
 			sr.ErrorMessage = $"Could not retrieve data";
-			return sr;
+			sr.Status       = SearchResultStatus.Failure;
+			goto ret;
 		}
 
 		if (doc.Body!.TextContent.Contains("too large")) {
 			sr.ErrorMessage = "Image too large";
-			return sr;
+			sr.Status       = SearchResultStatus.IllegalInput;
+			goto ret;
 		}
 
 		Trace.Assert(doc != null);

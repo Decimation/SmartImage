@@ -31,9 +31,11 @@ public sealed class SearchQuery : IDisposable
 
 	public static readonly SearchQuery Null = new(null);
 
+	public static readonly FileType[] ImageTypes = FileType.Find("image").ToArray();
+
 	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
-		var uf = await UniFile.TryGetAsync(value, whitelist: FileType.Find("image").ToArray());
+		var uf = await UniFile.TryGetAsync(value, whitelist: ImageTypes);
 
 		var sq = new SearchQuery(uf)
 			{ };

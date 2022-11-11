@@ -83,6 +83,11 @@ public class UnitTest
 		var u  = await sq.UploadAsync();
 		var se = new IqdbEngine();
 		var r  = await se.GetResultAsync(sq);
+
+		if (r.Status == SearchResultStatus.IllegalInput) {
+			Assert.Inconclusive();
+		}
+
 		Assert.True(r.Results.Any());
 
 		foreach (var x in r.Results) {

@@ -5,13 +5,37 @@ namespace SmartImage.Lib;
 
 public enum SearchResultStatus
 {
+	/// <summary>
+	/// N/A
+	/// </summary>
 	None,
+	/// <summary>
+	/// Result obtained successfully
+	/// </summary>
 	Success,
+	/// <summary>
+	/// Engine is on cooldown due to too many requests
+	/// </summary>
 	Cooldown,
+	/// <summary>
+	/// Engine returned no results
+	/// </summary>
 	NoResults,
+	/// <summary>
+	/// Obtaining results failed due to an engine error
+	/// </summary>
 	Failure,
+
+	IllegalInput,
+	/// <summary>
+	/// Engine is unavailable
+	/// </summary>
 	Unavailable,
-	Extraneous
+	/// <summary>
+	/// Result is extraneous
+	/// </summary>
+	Extraneous,
+
 }
 
 /// <summary>
@@ -78,15 +102,15 @@ public sealed class SearchResult : IDisposable
 	{
 		bool any = Results.Any();
 
-		if (!any && Status != SearchResultStatus.None) {
+		/*if (!any && Status != SearchResultStatus.None) {
 			Status = SearchResultStatus.NoResults;
 		}
 		else {
 			Status = SearchResultStatus.Success;
+		}*/
 
-			foreach (var v in Results) {
-				v.UpdateScore();
-			}
+		foreach (var v in Results) {
+			v.UpdateScore();
 		}
 
 	}

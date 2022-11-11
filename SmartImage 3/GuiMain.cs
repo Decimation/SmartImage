@@ -400,13 +400,27 @@ public sealed partial class GuiMain : IDisposable
 	}
 
 	[SupportedOSPlatform(Global.OS_WIN)]
-	private void OnCompleteWin(object sender, List<SearchResult> e)
+	private async Task OnCompleteWin(object sender, List<SearchResult> e)
 	{
 		m_sndHint.Play();
-		var x=SearchClient.Optimize(e).AsParallel().Where(r => r.Score >= 5).Select(async r =>
+
+		var x = SearchClient.Optimize(e).AsParallel().Where(r => r.Score >= 5).Select(r =>
 		{
-			return await UniFile.TryGetAsync(r.Url);
-		});
+			return r.GetUniAsync();
+		}).ToList();
+
+		var di = new List<UniFile>();
+
+		while (x.Any()) {
+			var x1 = await Task.WhenAny(x);
+			x.Remove(x1);
+			var x2 = await x1;
+
+			if (x2 != null) {
+				Debug.WriteLine($"{x2}");
+				di.Add(x2);
+			}
+		}
 
 		AppToast.ShowToast(sender, e);
 	}

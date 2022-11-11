@@ -134,7 +134,15 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public const int MAX_SCORE = 12;
 
-	public void Dispose() { }
+	public void Dispose()
+	{
+	}
+
+	public async Task<UniFile> GetUniAsync()
+	{
+		var uni = await UniFile.TryGetAsync(Url, whitelist: SearchQuery.ImageTypes);
+		return uni;
+	}
 
 	public override string ToString()
 	{
