@@ -12,7 +12,7 @@ using SmartImage.Lib.Engines.Upload;
 [assembly: InternalsVisibleTo("SmartImage")]
 namespace SmartImage.Lib;
 
-//todo: DynamicResource
+//todo: UniFile
 
 public sealed class SearchQuery : IDisposable
 {
