@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <Configurations>Debug;Release;Test</Configurations>
     <NoWarn>$(NoWarn);SYSLIB0014</NoWarn>
     <NoWarn>$(NoWarn);CA1416</NoWarn>
@@ -33,13 +33,13 @@
 
   <ItemGroup>
     <Reference Include="Kantan">
-      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net6.0\Kantan.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
     </Reference>
     <Reference Include="Kantan.Net">
-      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net6.0\Kantan.Net.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net7.0\Kantan.Net.dll</HintPath>
     </Reference>
     <Reference Include="Novus">
-      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net6.0\Novus.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net7.0\Novus.dll</HintPath>
     </Reference>
   </ItemGroup>
 
