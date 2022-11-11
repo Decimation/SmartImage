@@ -34,6 +34,7 @@ using Attribute = Terminal.Gui.Attribute;
 using Color = Terminal.Gui.Color;
 using SmartImage.UI;
 using Size = Terminal.Gui.Size;
+using SmartImage.Lib.Engines;
 
 // ReSharper disable InconsistentNaming
 

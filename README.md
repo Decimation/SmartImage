@@ -52,7 +52,9 @@
 
 Supported search engines:
 
-- <img src="https://saucenao.com/favicon.ico" width="16" height="16"/> [SauceNao](https://saucenao.com/)
+**See the [Engines Index](https://docs.google.com/spreadsheets/d/1BdBqGzEQ7x6XKcDSE_w_KrfBzTaYB48CCPJyeSNtbyg/edit?usp=sharing) spreadsheet**
+
+<!-- - <img src="https://saucenao.com/favicon.ico" width="16" height="16"/> [SauceNao](https://saucenao.com/)
 - <img src="http://imgops.com/favicon.ico" width="16" height="16"/> [ImgOps](http://imgops.com/)
 - <img src="https://images.google.com/favicon.ico" width="16" height="16"/> [Google Images](https://images.google.com/)
 - <img src="https://tineye.com/favicon.ico" width="16" height="16"/> [TinEye](https://tineye.com/)
@@ -63,7 +65,7 @@ Supported search engines:
 - <img src="https://www.bing.com/favicon.ico" width="16" height="16"/> [Bing](https://www.bing.com/images/)
 - <img src="http://tidder.xyz/favicon.ico" width="16" height="16"/> [Tidder](http://tidder.xyz/)
 - <img src="https://ascii2d.net/favicon.ico" width="16" height="16"/> [Ascii2D](https://ascii2d.net/)
-- <img src="https://repostsleuth.com/favicon.png" width="16" height="16"/> [RepostSleuth](https://repostsleuth.com/)
+- <img src="https://repostsleuth.com/favicon.png" width="16" height="16"/> [RepostSleuth](https://repostsleuth.com/) -->
 
 <!-- ... -->
 
@@ -78,6 +80,6 @@ Wiki pages useful for getting started:
 
 **See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
 
-*Ensure .NET 6 is installed!*
+*Ensure .NET 7 is installed!*
 
 <!-- ... -->

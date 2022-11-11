@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Resources;
 using Kantan.Model;
 using Kantan.Utilities;
+using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib;
 

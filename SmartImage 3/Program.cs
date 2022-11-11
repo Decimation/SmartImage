@@ -59,6 +59,7 @@ public static class Program
 		// Console.OutputEncoding = Encoding.Unicode;
 		Console.Title = R2.Name;
 		ConsoleUtil.SetConsoleMode();
+
 #if TEST
 		// args = new String[] { null };
 		args = new[] { R2.Arg_Input, "https://i.imgur.com/QtCausw.png",R2.Arg_AutoSearch };

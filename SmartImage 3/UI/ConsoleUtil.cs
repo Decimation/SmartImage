@@ -1,7 +1,7 @@
 ﻿using System.Text;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
-using SmartImage.Lib;
+using SmartImage.Lib.Engines;
 
 namespace SmartImage.UI;
 
