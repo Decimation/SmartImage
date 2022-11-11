@@ -23,9 +23,9 @@ namespace SmartImage.App;
 [SupportedOSPlatform(Global.OS_WIN)]
 internal static class AppToast
 {
-	internal static async Task BuildShow(object sender, List<UniFile> args)
+	internal static async Task ShowAsync(object sender, List<UniFile> args)
 	{
-		Debug.WriteLine($"Building toast", nameof(BuildShow));
+		Debug.WriteLine($"Building toast", nameof(ShowAsync));
 
 		var builder = new ToastContentBuilder();
 		var button  = new ToastButton();
@@ -35,7 +35,7 @@ internal static class AppToast
 		       .AddArgument(ARG_KEY_ACTION, ARG_VALUE_DISMISS);
 
 		builder.AddText("Search Complete");
-		builder.AddText($"Engine: {sender}");
+		// builder.AddText($"{sender}");
 
 		if (args.Any()) {
 			var result = args.First();
@@ -48,7 +48,7 @@ internal static class AppToast
 			builder.AddAttributionText($"{url}")
 			       .AddText($"Direct Results: {args.Count}");
 
-			await AddImage(builder, result);
+			await AddImageAsync(builder, result);
 		}
 
 		builder.AddButton(button)
@@ -59,11 +59,9 @@ internal static class AppToast
 
 	}
 
-	private static async Task AddImage(ToastContentBuilder builder, UniFile uf)
+	private static async Task AddImageAsync(ToastContentBuilder builder, UniFile uf)
 	{
-		var uri = new Uri(uf.Value);
-
-		var file = await uri.DownloadFileAsync(Path.GetTempPath());
+		var file = await uf.DownloadAsync();
 
 		builder.AddHeroImage(new Uri(file));
 
@@ -107,7 +105,7 @@ internal static class AppToast
 	}
 
 	[method: SupportedOSPlatform("windows10.0.10240.0")]
-	private static async void RegisterBackground()
+	private static async void RegisterBackgroundAsync()
 	{
 		const string taskName = "ToastBackgroundTask";
 
@@ -125,7 +123,7 @@ internal static class AppToast
 		};
 
 		// Assign the toast action trigger
-		builder.SetTrigger(new ToastNotificationActionTrigger());
+		builder.SetTrigger(new ToastNotificationActionTrigger() { });
 
 		// And register the task
 		BackgroundTaskRegistration registration = builder.Register();

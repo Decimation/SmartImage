@@ -407,10 +407,10 @@ public sealed partial class GuiMain : IDisposable
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
 		var di = await SearchClient.GetDirectImages(results);
-		await AppToast.BuildShow(sender, di);
+		await AppToast.ShowAsync(sender, di);
 
 		foreach (UniFile file in di) {
-			Debug.WriteLine($"Disposing {file.Value}");
+			// Debug.WriteLine($"Disposing {file.Value}");
 			file.Dispose();
 		}
 	}
