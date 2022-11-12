@@ -26,14 +26,10 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
-	#region Overrides of BaseSearchEngine
-
 	protected override bool VerifyImage(Image i)
 	{
 		return i.Width < 10000;
 	}
-
-	#endregion
 
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
 	{

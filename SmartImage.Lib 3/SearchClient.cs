@@ -65,6 +65,7 @@ public sealed class SearchClient : IDisposable
 
 				Debug.WriteLine($"Cancellation requested", nameof(RunSearchAsync));
 				IsComplete = true;
+				
 				return results;
 			}
 

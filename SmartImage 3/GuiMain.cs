@@ -189,8 +189,8 @@ public sealed partial class GuiMain : IDisposable
 
 	private bool m_autoSearch;
 
-	private static readonly TimeSpan    TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 	private static readonly SoundPlayer m_sndHint       = new SoundPlayer(R2.hint);
+	private static readonly TimeSpan    TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
 	#region
 

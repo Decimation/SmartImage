@@ -69,9 +69,11 @@ public sealed class SearchQuery : IDisposable
 	[SupportedOSPlatform(Global.OS_WIN)]
 	public bool LoadImage()
 	{
+		if (Image!= null) {
+			return true;
+		}
 
 		try {
-
 			Image = Image.FromStream(Uni.Stream);
 			return true;
 		}
@@ -86,11 +88,11 @@ public sealed class SearchQuery : IDisposable
 
 	public void Dispose()
 	{
-		Uni.Dispose();
-
 		if (OperatingSystem.IsWindows()) {
 			Image?.Dispose();
 		}
+
+		Uni.Dispose();
 	}
 
 	#endregion
