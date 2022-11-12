@@ -42,7 +42,6 @@
     <PackageReference Include="CommunityToolkit.Common" Version="8.0.0" />
     <PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
@@ -68,6 +67,9 @@
     <TrimmerRootAssembly Include="System.IO.FileSystem" />
     <TrimmerRootAssembly Include="Novus" />
     <TrimmerRootAssembly Include="SmartImage.Lib" />
+    <TrimmerRootAssembly Include="System.Runtime.Caching" />
+    <TrimmerRootAssembly Include="System.Configuration.ConfigurationManager" />
+
     <TrimmerRootAssembly Include="Kantan" />
   </ItemGroup>
   <ItemGroup>

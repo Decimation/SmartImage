@@ -1,5 +1,4 @@
-﻿using System.Runtime.Caching;
-using System.Text;
+﻿using System.Text;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.Lib.Engines;
@@ -8,9 +7,9 @@ namespace SmartImage.Shell;
 
 internal static class ConsoleUtil
 {
-	private static readonly ObjectCache Cache = MemoryCache.Default;
 
-	internal static SearchEngineOptions[] EngineOptions => (SearchEngineOptions[]) Cache[nameof(EngineOptions)];
+	// internal static SearchEngineOptions[] EngineOptions => (SearchEngineOptions[]) Cache[nameof(EngineOptions)];
+	internal static SearchEngineOptions[] EngineOptions = Enum.GetValues<SearchEngineOptions>();
 
 	internal static readonly IntPtr HndWindow = Native.GetConsoleWindow();
 	internal static readonly IntPtr StdOut    = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
@@ -20,7 +19,7 @@ internal static class ConsoleUtil
 
 	static ConsoleUtil()
 	{
-		Cache[nameof(EngineOptions)] = Enum.GetValues<SearchEngineOptions>();
+		// Cache[nameof(EngineOptions)] = Enum.GetValues<SearchEngineOptions>();
 	}
 
 	internal static void SetConsoleMenu()

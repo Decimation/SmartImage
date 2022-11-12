@@ -2,6 +2,7 @@
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using Flurl.Http;
 using Kantan.Net.Utilities;
@@ -12,8 +13,6 @@ using SmartImage.Lib.Engines.Upload;
 [assembly: InternalsVisibleTo("SmartImage")]
 
 namespace SmartImage.Lib;
-
-//todo: UniFile
 
 public sealed class SearchQuery : IDisposable
 {
@@ -31,11 +30,14 @@ public sealed class SearchQuery : IDisposable
 
 	public static readonly SearchQuery Null = new(null);
 
-	public static readonly FileType[] ImageTypes = FileType.Find("image").ToArray();
+	static SearchQuery()
+	{	
+
+	}
 
 	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
-		var uf = await UniFile.TryGetAsync(value, whitelist: ImageTypes);
+		var uf = await UniFile.TryGetAsync(value, whitelist: FileType.Image);
 
 		var sq = new SearchQuery(uf)
 			{ };
@@ -80,6 +82,7 @@ public sealed class SearchQuery : IDisposable
 
 	public static bool IsIndicatorValid(string str)
 	{
-		return Url.IsValid(str) || File.Exists(str);
+		var (f, u) = UniFile.IsUriOrFile(str);
+		return f || u;
 	}
 }

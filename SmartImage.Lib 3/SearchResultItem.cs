@@ -141,7 +141,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public async Task<UniFile> GetUniAsync()
 	{
-		var uni = await UniFile.TryGetAsync(Url, whitelist: SearchQuery.ImageTypes);
+		var uni = await UniFile.TryGetAsync(Url, whitelist: FileType.Image);
 		return uni;
 	}
 

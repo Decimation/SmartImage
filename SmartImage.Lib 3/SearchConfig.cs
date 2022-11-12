@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Resources;
 using Kantan.Model;
 using Kantan.Utilities;
@@ -52,6 +53,7 @@ public sealed class SearchConfig : IDataTable
 		set => Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
 	}
 
+	[DynamicDependency(DynamicallyAccessedMemberTypes.All, "System.Configuration.ClientConfigurationHost", "System.Configuration.ConfigurationManager.dll")]
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 

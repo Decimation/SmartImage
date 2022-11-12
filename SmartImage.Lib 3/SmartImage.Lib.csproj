@@ -30,7 +30,6 @@
     <PackageReference Include="Flurl.Http" Version="3.2.4" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
     <PackageReference Include="Microsoft.ClearScript.V8" Version="7.3.4" />
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
@@ -58,6 +57,9 @@
     <TrimmerRootAssembly Include="System.IO.FileSystem" />
     <TrimmerRootAssembly Include="Novus" />
     <TrimmerRootAssembly Include="Kantan" />
+    <TrimmerRootAssembly Include="System.Runtime.Caching" />
+    <TrimmerRootAssembly Include="System.Configuration.ConfigurationManager" />
+
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Resources.Designer.cs">
