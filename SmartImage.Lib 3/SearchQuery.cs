@@ -3,11 +3,16 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Runtime.CompilerServices;
+using System.Runtime.Versioning;
+using AngleSharp.Js.Dom;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Kantan.Text;
+using Novus;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Upload;
 
 [assembly: InternalsVisibleTo("SmartImage")]
@@ -23,6 +28,8 @@ public sealed class SearchQuery : IDisposable
 
 	public long Size { get; private set; }
 
+	public Image Image { get; private set; }
+
 	internal SearchQuery([MN] UniFile f)
 	{
 		Uni = f;
@@ -30,10 +37,7 @@ public sealed class SearchQuery : IDisposable
 
 	public static readonly SearchQuery Null = new(null);
 
-	static SearchQuery()
-	{	
-
-	}
+	static SearchQuery() { }
 
 	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
@@ -49,7 +53,7 @@ public sealed class SearchQuery : IDisposable
 	{
 		if (Uni.IsUri) {
 			Upload = Uni.Value;
-			Size   = -1; // todo: indeterminate/unknown size
+			Size   = BaseSearchEngine.NA_SIZE;
 			Debug.WriteLine($"Skipping upload for {Uni.Value}", nameof(UploadAsync));
 		}
 		else {
@@ -62,11 +66,31 @@ public sealed class SearchQuery : IDisposable
 		return Upload;
 	}
 
+	[SupportedOSPlatform(Global.OS_WIN)]
+	public bool LoadImage()
+	{
+
+		try {
+
+			Image = Image.FromStream(Uni.Stream);
+			return true;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(LoadImage));
+			return false;
+		}
+
+	}
+
 	#region IDisposable
 
 	public void Dispose()
 	{
 		Uni.Dispose();
+
+		if (OperatingSystem.IsWindows()) {
+			Image?.Dispose();
+		}
 	}
 
 	#endregion

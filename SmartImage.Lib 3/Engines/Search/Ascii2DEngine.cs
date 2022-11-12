@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System.Diagnostics;
+using System.Drawing;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
@@ -18,18 +19,27 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
 		Timeout = TimeSpan.FromSeconds(6);
-
+		MaxSize = 5 * 1000 * 1000;
 	}
 
 	protected override string NodesSelector => "//*[contains(@class, 'info-box')]";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
+	#region Overrides of BaseSearchEngine
+
+	protected override bool VerifyImage(Image i)
+	{
+		return i.Width < 10000;
+	}
+
+	#endregion
+
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		var url = await base.GetRawUrlAsync(query);
 		url = url.SetQueryParams(new { type = "color" });
-		
+
 		/*
 		 * URL parameters
 		 *
@@ -37,7 +47,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		 * detail	https://ascii2d.net/search/bovw/<hash>
 		 *
 		 */
-		
+
 		return url;
 	}
 

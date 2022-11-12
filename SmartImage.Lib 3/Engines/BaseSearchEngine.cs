@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.Utilities;
@@ -11,6 +12,8 @@ namespace SmartImage.Lib.Engines;
 
 public abstract class BaseSearchEngine : IDisposable
 {
+	public const int NA_SIZE = -1;
+
 	/// <summary>
 	/// The corresponding <see cref="SearchEngineOptions"/> of this engine
 	/// </summary>
@@ -25,7 +28,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
-	protected long MaxSize { get; set; } = -1;
+	protected long MaxSize { get; set; } = NA_SIZE;
 
 	protected BaseSearchEngine(string baseUrl)
 	{
@@ -47,24 +50,35 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected virtual bool Verify(SearchQuery q)
 	{
-		if (q.Size == -1) {
-			return true;
+		bool b = q.LoadImage(), b2;
+
+		if (b) {
+			b = VerifyImage(q.Image);
 		}
 
-		return q.Size <= MaxSize;
+		if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {
+			b2 = true;
+		}
+
+		else b2 = q.Size <= MaxSize;
+
+		return b && b2;
+	}
+
+	protected virtual bool VerifyImage(Image i)
+	{
+		return true;
 	}
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		bool b = Verify(query);
+
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),
-			Status = SearchResultStatus.None
+			Status = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None
 		};
-
-		bool b = Verify(q: query);
-
-		res.Status = !b ? SearchResultStatus.IllegalInput : res.Status;
 
 		return res;
 	}

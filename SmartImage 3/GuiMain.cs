@@ -401,7 +401,7 @@ public sealed partial class GuiMain : IDisposable
 	}
 
 	[SupportedOSPlatform(Global.OS_WIN)]
-	private async Task OnCompleteWin(object sender, List<SearchResult> results)
+	private async Task OnCompleteWin(object sender, IEnumerable<SearchResult> results)
 	{
 		m_sndHint.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
@@ -452,9 +452,7 @@ public sealed partial class GuiMain : IDisposable
 
 		}
 	}
-
-	//note: ideally some of these computations aren't necessary and can be stored as respective fields but this is to ensure program correctness
-
+	
 	private bool IsQueryReady()
 	{
 		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
@@ -497,18 +495,17 @@ public sealed partial class GuiMain : IDisposable
 			try {
 
 				using CancellationTokenSource cts = new();
-				ThreadPool.QueueUserWorkItem((e) =>
+				ThreadPool.QueueUserWorkItem((state) =>
 				{
-					while (e is CancellationToken { IsCancellationRequested: false }) {
+					while (state is CancellationToken { IsCancellationRequested: false }) {
 						Pbr_Status.Pulse();
 						// Thread.Sleep(TimeSpan.FromMilliseconds(100));
 					}
 
 				}, cts.Token);
 
-				var t = sq.UploadAsync();
-
-				var u = await t;
+				var u = await sq.UploadAsync();
+				
 				cts.Cancel();
 
 				Lbl_QueryUpload.Text = u.ToString();

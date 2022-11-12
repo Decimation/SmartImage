@@ -63,14 +63,14 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		var result = await base.GetResultAsync(query, token);
 
 		if (result.Status == SearchResultStatus.IllegalInput) {
-			return result;
+			goto ret;
 		}
 
 		var doc = await ParseDocumentAsync(result.RawUrl, token.Value);
 
 		if (doc is not { }) {
 			result.Status = SearchResultStatus.Failure;
-			return result;
+			goto ret;
 		}
 
 		var nodes = await GetNodesAsync(doc);
@@ -89,8 +89,8 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 		Debug.WriteLine($"{Name} :: {result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", nameof(GetResultAsync));
 
+		ret:
 		result.Update();
-
 		return result;
 	}
 

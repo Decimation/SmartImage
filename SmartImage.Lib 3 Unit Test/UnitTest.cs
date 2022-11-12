@@ -103,8 +103,15 @@ public class UnitTest
 		var u  = await sq.UploadAsync();
 		var se = new Ascii2DEngine();
 		var r  = await se.GetResultAsync(sq);
-		Assert.True(r.Results.Any());
 
+		if (r.Status == SearchResultStatus.IllegalInput ) {
+			Assert.Inconclusive();
+
+		}
+		else {
+			Assert.True(r.Results.Any());
+
+		}
 		foreach (var x in r.Results) {
 			TestContext.WriteLine(x);
 		}
