@@ -1,5 +1,6 @@
 ﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -90,7 +91,7 @@ public sealed class SearchClient : IDisposable
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 
 			try {
-				var result = Optimize(results).First();
+				var result = Optimize(results.SelectMany(r => r.Results)).First();
 
 				Debug.WriteLine($"Auto: {result}", nameof(RunSearchAsync));
 
@@ -102,28 +103,27 @@ public sealed class SearchClient : IDisposable
 		return results;
 	}
 
-	public static IEnumerable<SearchResultItem> Optimize(List<SearchResult> results)
+	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{
-		return results.SelectMany(r => r.Results)
-		              .Where(r =>
-		              {
-			              var (isFile, isUri) = UniFile.IsUriOrFile(r.Url);
-			              return isFile || isUri;
-		              })
-		              .OrderByDescending(r => r.Score)
-		              .ThenByDescending(r => r.Similarity);
+		return sri.Where(r =>
+		          {
+			          var (isFile, isUri) = UniFile.IsUriOrFile(r.Url);
+			          return isFile || isUri;
+		          })
+		          .OrderByDescending(r => r.Score)
+		          .ThenByDescending(r => r.Similarity);
 	}
 
-	public static async Task<List<UniFile>> GetDirectImages(List<SearchResult> results)
+	public static async Task<List<UniFile>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
 	{
-		var filter = Optimize(results).AsParallel()
-		                              .DistinctBy(r => r.Url)
-		                              // .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
-		                              .Select(r =>
-		                              {
-			                              return r.GetUniAsync();
-		                              })
-		                              .ToList();
+		var filter = Optimize(sri)
+		             .DistinctBy(r => r.Url)
+		             // .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
+		             .Select(r =>
+		             {
+			             return r.GetUniAsync();
+		             })
+		             .ToList();
 
 		var di = new List<UniFile>();
 

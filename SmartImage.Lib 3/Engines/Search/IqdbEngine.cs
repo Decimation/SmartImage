@@ -19,7 +19,8 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 {
 	public IqdbEngine() : base("https://iqdb.org/?url=")
 	{
-		Client = new FlurlClient(EndpointUrl);
+		Client  = new FlurlClient(EndpointUrl);
+		MaxSize = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 	}
 
 	#region Implementation of IClientSearchEngine
@@ -108,18 +109,12 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		return result;
 	}
 
-	public const int MAX_FILE_SIZE = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
-
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query)
 	{
 
-		if (query.Size > MAX_FILE_SIZE) {
-			return null;
-		}
-
 		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{
-			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
+			m.AddString("MAX_FILE_SIZE", MaxSize.ToString());
 			m.AddString("url", query.Uni.IsUri ? query.Uni.Value : String.Empty);
 
 			if (query.Uni.IsUri) { }
@@ -141,6 +136,10 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		// Don't select other results
 
 		var sr  = await base.GetResultAsync(query, token);
+
+		if (sr.Status == SearchResultStatus.IllegalInput) {
+			goto ret;
+		}
 		var doc = await GetDocumentAsync(query);
 
 		if (doc == null) {

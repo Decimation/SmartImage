@@ -80,7 +80,7 @@ public sealed class SearchQuery : IDisposable
 
 	#endregion
 
-	public static bool IsIndicatorValid(string str)
+	public static bool IsUriOrFile(string str)
 	{
 		var (f, u) = UniFile.IsUriOrFile(str);
 		return f || u;

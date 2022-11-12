@@ -57,12 +57,16 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
-		var sw = Stopwatch.StartNew();
 
 		token ??= CancellationToken.None;
 
 		var result = await base.GetResultAsync(query, token);
-		var doc    = await ParseDocumentAsync(result.RawUrl, token.Value);
+
+		if (result.Status == SearchResultStatus.IllegalInput) {
+			return result;
+		}
+
+		var doc = await ParseDocumentAsync(result.RawUrl, token.Value);
 
 		if (doc is not { }) {
 			result.Status = SearchResultStatus.Failure;
@@ -86,7 +90,6 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		Debug.WriteLine($"{Name} :: {result.RawUrl} {doc.TextContent?.Length} {nodes.Count}", nameof(GetResultAsync));
 
 		result.Update();
-		sw.Stop();
 
 		return result;
 	}

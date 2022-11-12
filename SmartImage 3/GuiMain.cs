@@ -406,7 +406,7 @@ public sealed partial class GuiMain : IDisposable
 		m_sndHint.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
-		var di = await SearchClient.GetDirectImages(results);
+		var di = await SearchClient.GetDirectImagesAsync(results.SelectMany(r => r.Results));
 		await AppToast.ShowAsync(sender, di);
 
 		foreach (UniFile file in di) {
@@ -443,7 +443,7 @@ public sealed partial class GuiMain : IDisposable
 				e.MoveNext();
 				var s2 = e.Current?.ToString();
 
-				if (SearchQuery.IsIndicatorValid(s2)) {
+				if (SearchQuery.IsUriOrFile(s2)) {
 					SetInputText(s2);
 
 				}
@@ -458,11 +458,6 @@ public sealed partial class GuiMain : IDisposable
 	private bool IsQueryReady()
 	{
 		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
-	}
-
-	private bool IsInputValidIndicator()
-	{
-		return SearchQuery.IsIndicatorValid(Tf_Input.Text.ToString());
 	}
 
 	private void ApplyConfig()
@@ -500,13 +495,21 @@ public sealed partial class GuiMain : IDisposable
 
 		if (sq is { } && sq != SearchQuery.Null) {
 			try {
-				Pbr_Status.Pulse();
+
+				using CancellationTokenSource cts = new();
+				ThreadPool.QueueUserWorkItem((e) =>
+				{
+					while (e is CancellationToken { IsCancellationRequested: false }) {
+						Pbr_Status.Pulse();
+						// Thread.Sleep(TimeSpan.FromMilliseconds(100));
+					}
+
+				}, cts.Token);
 
 				var t = sq.UploadAsync();
-				Pbr_Status.Pulse();
 
 				var u = await t;
-				Pbr_Status.Pulse();
+				cts.Cancel();
 
 				Lbl_QueryUpload.Text = u.ToString();
 
@@ -550,7 +553,7 @@ public sealed partial class GuiMain : IDisposable
 			 *	- Clipboard history contains it already
 			 */
 			if (Integration.ReadClipboard(out var str) &&
-			    !IsInputValidIndicator() && !m_clipboard.Contains(str)) {
+			    !SearchQuery.IsUriOrFile(Tf_Input.Text.ToString()) && !m_clipboard.Contains(str)) {
 				SetInputText(str);
 				// Lbl_InputOk.Text   = UI.Clp;
 				Lbl_InputInfo.Text = Resources.Inf_Clipboard;

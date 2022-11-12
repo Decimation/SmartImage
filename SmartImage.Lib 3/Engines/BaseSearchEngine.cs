@@ -1,5 +1,6 @@
 ﻿global using Url = Flurl.Url;
 using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Flurl.Http;
@@ -24,6 +25,8 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
+	protected long MaxSize { get; set; } = -1;
+
 	protected BaseSearchEngine(string baseUrl)
 	{
 		BaseUrl = baseUrl;
@@ -42,14 +45,26 @@ public abstract class BaseSearchEngine : IDisposable
 		// Trace.WriteLine($"Configured HTTP", nameof(BaseSearchEngine));
 	}
 
+	protected virtual bool Verify(SearchQuery q)
+	{
+		if (q.Size == -1) {
+			return true;
+		}
+
+		return q.Size <= MaxSize;
+	}
+
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
-
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),
 			Status = SearchResultStatus.None
 		};
+
+		bool b = Verify(q: query);
+
+		res.Status = !b ? SearchResultStatus.IllegalInput : res.Status;
 
 		return res;
 	}
@@ -58,7 +73,7 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		//
 		Url u = ((BaseUrl + query.Upload));
-		
+
 		return Task.FromResult(u);
 	}
 

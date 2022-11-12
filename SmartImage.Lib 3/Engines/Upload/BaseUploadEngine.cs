@@ -28,7 +28,7 @@ public abstract class BaseUploadEngine
 	private protected bool IsFileSizeValid(string file)
 	{
 		Size = FileSystem.GetFileSize(file);
-		var b = Size >= MaxSize;
+		var b = Size > MaxSize;
 
 		return !b;
 	}
