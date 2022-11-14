@@ -17,6 +17,7 @@ using Kantan.Net.Utilities;
 using Microsoft.ClearScript.V8;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
+using SmartImage.Lib.Engines.Search.Other;
 
 #pragma warning disable IDE0079
 #pragma warning disable CS0168, CS1998
@@ -37,6 +38,17 @@ public static class Program
 	public static async Task Main(string[] args)
 	{
 		var f = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		var b = new BingEngine();
+
+		var q = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
+		await q.UploadAsync();
+
+		var r              = await b.SearchQueryAsync("butt");
+		Console.WriteLine(r);
+	}
+
+	private static async Task TestEh(string f)
+	{
 		var e = new EHentaiEngine();
 
 		FileInfo f1 = new FileInfo(f);
@@ -48,7 +60,6 @@ public static class Program
 			["ipb_pass_hash"] = "52e494963cba3c6f072a2d2be88a18a8",
 			["sk"]            = "utrq4k3ddevkgnj4fc8163qzq6gz",
 		});
-
 	}
 
 	static async Task<IFlurlResponse> send()
