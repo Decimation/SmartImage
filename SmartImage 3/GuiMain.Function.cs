@@ -40,7 +40,7 @@ public sealed partial class GuiMain
 
 		var b1 = UI.CreateLinkButton(d, "Repo", R2.Repo_Url);
 		var b2 = UI.CreateLinkButton(d, "Wiki", R2.Wiki_Url);
-		var b3 = UI.CreateLinkButton(d, "Ok", null, ()=> Application.RequestStop());
+		var b3 = UI.CreateLinkButton(d, "Ok", null, () => Application.RequestStop());
 
 		d.AddButton(b1);
 		d.AddButton(b2);
@@ -387,6 +387,17 @@ public sealed partial class GuiMain
 
 		sw.Stop();
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
+	}
+
+	private void OnBrowseClicked()
+	{
+		Tf_Input.DeleteAll();
+
+		var f = Integration.OpenFile();
+		Debug.WriteLine($"{f}", nameof(OnBrowseClicked));
+
+		SetInputText(f);
+		Btn_Run.SetFocus();
 	}
 
 	private void OnCancel()

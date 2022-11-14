@@ -311,16 +311,7 @@ public sealed partial class GuiMain : IDisposable
 		Btn_Clear.Clicked        += OnClear;
 		Btn_Config.Clicked       += OnConfigDialog;
 		Btn_Cancel.Clicked       += OnCancel;
-
-		Btn_Browse.Clicked += () =>
-		{
-			Tf_Input.DeleteAll();
-
-			var f=Integration.OpenFile();
-			Debug.WriteLine($"{f}", nameof(Btn_Browse));
-
-			SetInputText(f);
-		};
+		Btn_Browse.Clicked       += OnBrowseClicked;
 
 		Lbl_InputInfo.Clicked += () =>
 		{
@@ -406,7 +397,7 @@ public sealed partial class GuiMain : IDisposable
 				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
 				                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 			}
-			
+
 			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
 			Tv_Results.SetNeedsDisplay();
 			Pbr_Status.SetNeedsDisplay();
@@ -477,7 +468,7 @@ public sealed partial class GuiMain : IDisposable
 
 		}
 	}
-	
+
 	private bool IsQueryReady()
 	{
 		return Query != SearchQuery.Null && Url.IsValid(Query.Upload);
@@ -520,6 +511,7 @@ public sealed partial class GuiMain : IDisposable
 			try {
 
 				using CancellationTokenSource cts = new();
+
 				ThreadPool.QueueUserWorkItem((state) =>
 				{
 					while (state is CancellationToken { IsCancellationRequested: false }) {
@@ -530,7 +522,7 @@ public sealed partial class GuiMain : IDisposable
 				}, cts.Token);
 
 				var u = await sq.UploadAsync();
-				
+
 				cts.Cancel();
 
 				Lbl_QueryUpload.Text = u.ToString();
