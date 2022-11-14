@@ -69,12 +69,13 @@ public sealed class SearchQuery : IDisposable
 	[SupportedOSPlatform(Global.OS_WIN)]
 	public bool LoadImage()
 	{
-		if (Image!= null) {
+		if (Image != null) {
 			return true;
 		}
 
 		try {
-			Image = Image.FromStream(Uni.Stream);
+			Image = Image.FromStream(Uni.Stream, useEmbeddedColorManagement: false, validateImageData: false);
+			Debug.WriteLine($"Loaded image: {Image.PhysicalDimension}", nameof(LoadImage));
 			return true;
 		}
 		catch (Exception e) {
@@ -101,7 +102,12 @@ public sealed class SearchQuery : IDisposable
 
 	public override string ToString()
 	{
-		return Uni.ToString();
+		var s = $"{Uni}";
+
+		if (OperatingSystem.IsWindows()) {
+			s += $" {Image?.PhysicalDimension}";
+		}
+		return s;
 	}
 
 	#endregion

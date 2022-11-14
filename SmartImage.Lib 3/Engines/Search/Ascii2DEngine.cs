@@ -28,7 +28,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 	protected override bool VerifyImage(Image i)
 	{
-		return i.Width < 10000;
+		return i.PhysicalDimension is { Width: < 10000.0f };
 	}
 
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)

@@ -87,16 +87,12 @@ public sealed class SearchResult : IDisposable
 		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
 	}
 
-	#region IDisposable
-
 	public void Dispose()
 	{
 		foreach (SearchResultItem item in Results) {
 			item.Dispose();
 		}
 	}
-
-	#endregion
 
 	public void Update()
 	{

@@ -121,12 +121,12 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		if (Time.HasValue) {
 			Score++;
 		}
-		
+
 		Score += Metadata switch
 		{
 			ICollection c => c.Count,
 			string s      => String.IsNullOrWhiteSpace(s) ? 0 : 1,
-			_ => 0
+			_             => 0
 		};
 
 		m_isScored = true;
@@ -134,14 +134,19 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public const int MAX_SCORE = 12;
 
-	public const int SCORE_THRESHOLD = 5;
+	public const int SCORE_THRESHOLD = MAX_SCORE / 2;
+
 	public void Dispose()
 	{
+		Uni?.Dispose();
 	}
+
+	public UniFile Uni { get; private set; }
 
 	public async Task<UniFile> GetUniAsync()
 	{
 		var uni = await UniFile.TryGetAsync(Url, whitelist: FileType.Image);
+		Uni = uni;
 		return uni;
 	}
 

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -36,7 +37,29 @@ public static class Program
 	public static async Task Main(string[] args)
 	{
 		var f = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		var e = new EHentaiEngine();
 
+		var x = await e.SearchImage(File.OpenRead(f), new()
+		{
+			
+		});
+
+	}
+
+	static async Task<IFlurlResponse> send()
+	{
+		var sh   = SHA256.Create();
+		var now  = DateTime.Now.ToBinary();
+		var rg   = BitConverter.GetBytes(now);
+		var hash = sh.ComputeHash(rg);
+
+		var u = "https://api.koromo.xyz/top?offset=0&count=100&month=9".WithHeaders(new
+		{
+			v_token = now,
+			v_hash  = hash,
+		});
+
+		return await u.GetAsync();
 	}
 
 	private static async Task test5()

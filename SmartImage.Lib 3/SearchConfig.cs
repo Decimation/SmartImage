@@ -53,7 +53,8 @@ public sealed class SearchConfig : IDataTable
 		set => Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
 	}
 
-	[DynamicDependency(DynamicallyAccessedMemberTypes.All, "System.Configuration.ClientConfigurationHost", "System.Configuration.ConfigurationManager.dll")]
+	[DynamicDependency(DynamicallyAccessedMemberTypes.All, "System.Configuration.ClientConfigurationHost",
+	                   "System.Configuration.ConfigurationManager.dll")]
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
