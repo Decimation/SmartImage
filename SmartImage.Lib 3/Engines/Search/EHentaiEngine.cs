@@ -20,13 +20,17 @@ public sealed class EHentaiEngine : BaseSearchEngine
 
 	public override void Dispose() { }
 
-	public async Task<SearchResult> SearchImage(Stream u, Dictionary<string, string> cj)
+	public async Task<SearchResult> SearchImage(FileInfo f, Dictionary<string, string> cj)
 	{
 		var sr = new SearchResult(this);
 
 		var data = new MultipartFormDataContent()
 			{ };
-		data.Add(new StreamContent(u));
+		data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
+		data.Add(new StringContent("fs_similar"));
+		data.Add(new StringContent("fs_similar"));
+		data.Add(new StringContent("fs_similar"));
+		data.Add(new StringContent("fs_sfile"));
 
 		const string uri = "https://exhentai.org/upld/image_lookup.php";
 
@@ -71,12 +75,16 @@ public sealed class EHentaiEngine : BaseSearchEngine
 
 		var req = new HttpRequestMessage(HttpMethod.Post, uri)
 		{
-			Content = data
+			Content = data,
+			Headers =
+			{
+				{ "User-Agent", HttpUtilities.UserAgent }
+
+			}
 		};
-
-		req.Headers.Add("User-Agent", HttpUtilities.UserAgent);
-
-		var res= await cl.SendAsync(req);
+		//https://stackoverflow.com/questions/37373138/httpclient-post-generates-get-instead
+		// https://stackoverflow.com/questions/35094809/c-sharp-httpclient-postasjson-sending-get-request-instead-of-post
+		var res = await cl.SendAsync(req);
 
 		var content = await res.Content.ReadAsStringAsync();
 

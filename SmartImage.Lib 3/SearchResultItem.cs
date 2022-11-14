@@ -84,7 +84,8 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public int Score { get; private set; }
 
-	private bool m_isScored;
+	private bool    m_isScored;
+	public  UniFile Uni { get; private set; }
 
 	internal SearchResultItem(SearchResult r)
 	{
@@ -140,8 +141,6 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	{
 		Uni?.Dispose();
 	}
-
-	public UniFile Uni { get; private set; }
 
 	public async Task<UniFile> GetUniAsync()
 	{

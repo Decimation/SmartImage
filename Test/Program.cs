@@ -39,9 +39,12 @@ public static class Program
 		var f = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
 		var e = new EHentaiEngine();
 
-		var x = await e.SearchImage(File.OpenRead(f), new()
+		var x = await e.SearchImage(new FileInfo(f), new()
 		{
-			
+			["igneous"]       = "388bd84ac",
+			["ipb_member_id"] = "3200336",
+			["ipb_pass_hash"] = "52e494963cba3c6f072a2d2be88a18a8",
+			["sk"]            = "utrq4k3ddevkgnj4fc8163qzq6gz",
 		});
 
 	}
