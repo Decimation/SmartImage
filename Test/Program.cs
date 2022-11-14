@@ -39,7 +39,9 @@ public static class Program
 		var f = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
 		var e = new EHentaiEngine();
 
-		var x = await e.SearchImage(new FileInfo(f), new()
+		FileInfo f1 = new FileInfo(f);
+
+		var x = await e.SearchImage(f1.OpenRead(), new()
 		{
 			["igneous"]       = "388bd84ac",
 			["ipb_member_id"] = "3200336",

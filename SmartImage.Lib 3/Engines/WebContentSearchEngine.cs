@@ -57,16 +57,16 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		token  ??= CancellationToken.None;
 
-		token ??= CancellationToken.None;
+		var result =   await base.GetResultAsync(query, token);
 
-		var result = await base.GetResultAsync(query, token);
-
-		if (result.Status == SearchResultStatus.IllegalInput) {
-			goto ret;
+		if (result.Status == SearchResultStatus.IllegalInput)
+		{
+			return null;
 		}
 
-		var doc = await ParseDocumentAsync(result.RawUrl, token.Value);
+		IDocument doc  = await ParseDocumentAsync(result.RawUrl, token.Value);
 
 		if (doc is not { }) {
 			result.Status = SearchResultStatus.Failure;
