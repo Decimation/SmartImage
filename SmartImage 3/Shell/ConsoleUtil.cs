@@ -44,5 +44,8 @@ internal static class ConsoleUtil
 		                             ConsoleModes.ENABLE_EXTENDED_FLAGS |
 		                             ConsoleModes.ENABLE_ECHO_INPUT |
 		                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
+		Console.SetWindowSize(150, 35);
+		Console.BufferWidth = 150;
+
 	}
 }

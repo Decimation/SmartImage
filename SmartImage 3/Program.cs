@@ -54,14 +54,14 @@ public static class Program
 		Global.Setup();
 		Trace.WriteLine("Init", Resources.Name);
 		// Gui.Init();
+		Console.Title = R2.Name;
+		ConsoleUtil.SetConsoleMode();
 		Application.Init();
 	}
 
 	public static async Task Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
-		Console.Title = R2.Name;
-		ConsoleUtil.SetConsoleMode();
 
 		ToastNotificationManagerCompat.OnActivated += AppToast.OnActivated;
 

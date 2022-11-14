@@ -79,10 +79,19 @@ public sealed partial class GuiMain : IDisposable
 
 	};
 
-	private static readonly Button Btn_Clear = new("Clear")
+	private static readonly Button Btn_Browse = new("Browse")
 	{
 		X               = Pos.Right(Btn_Run),
 		Y               = Pos.Y(Btn_Run),
+		HotKey          = Key.Null,
+		HotKeySpecifier = default,
+		ColorScheme     = UI.Cs_Btn1,
+	};
+
+	private static readonly Button Btn_Clear = new("Clear")
+	{
+		X               = Pos.Right(Btn_Browse),
+		Y               = Pos.Y(Btn_Browse),
 		HotKey          = Key.Null,
 		HotKeySpecifier = default,
 		ColorScheme     = UI.Cs_Btn1,
@@ -303,6 +312,16 @@ public sealed partial class GuiMain : IDisposable
 		Btn_Config.Clicked       += OnConfigDialog;
 		Btn_Cancel.Clicked       += OnCancel;
 
+		Btn_Browse.Clicked += () =>
+		{
+			Tf_Input.DeleteAll();
+
+			var f=Integration.OpenFile();
+			Debug.WriteLine($"{f}", nameof(Btn_Browse));
+
+			SetInputText(f);
+		};
+
 		Lbl_InputInfo.Clicked += () =>
 		{
 			if (!IsQueryReady()) {
@@ -328,10 +347,16 @@ public sealed partial class GuiMain : IDisposable
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload, Btn_Restart, Btn_Config,
-		        Lbl_InputInfo2, Btn_Cancel, Lbl_Status
+		        Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse
 		);
-
 		Top.Add(Win);
+		Top.HotKey = Key.F5;
+
+		Top.Resized += size =>
+		{
+			Top.SetNeedsDisplay();
+			Top.Redraw(Top.Bounds);
+		};
 
 	}
 
@@ -381,7 +406,7 @@ public sealed partial class GuiMain : IDisposable
 				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
 				                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 			}
-
+			
 			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
 			Tv_Results.SetNeedsDisplay();
 			Pbr_Status.SetNeedsDisplay();

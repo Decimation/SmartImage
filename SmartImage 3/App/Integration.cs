@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Kantan.Console.Cli;
@@ -14,6 +15,7 @@ using Novus.OS;
 using Kantan.Diagnostics;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Structures.User32;
 using SmartImage.Lib;
 using Terminal.Gui;
 using Command = Novus.OS.Command;
@@ -242,5 +244,27 @@ public static class Integration
 
 		var b = SearchQuery.IsUriOrFile(str);
 		return b;
+	}
+
+	public static string OpenFile()
+	{
+		var ofn = new OPENFILENAME()
+		{
+			lStructSize     = Marshal.SizeOf<OPENFILENAME>(),
+			lpstrFilter     = "All Files\0*.*\0\0",
+
+			lpstrFile       = new string(stackalloc char[256]),
+			lpstrFileTitle  = new string(stackalloc char[64]),
+			lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
+			lpstrTitle      = "Pick an image"
+		};
+		ofn.nMaxFile      = ofn.lpstrFile.Length;
+		ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
+
+		if (Native.GetOpenFileName(ref ofn)) {
+			return ofn.lpstrFile;
+		}
+
+		return null;
 	}
 }
