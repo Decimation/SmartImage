@@ -12,6 +12,7 @@ using Flurl;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Kantan.Net.Utilities;
+using Kantan.Text;
 
 namespace SmartImage.Lib.Engines.Search.Other;
 
@@ -27,11 +28,11 @@ public sealed class BingEngine : BaseSearchEngine
 
 	#region Overrides of BaseSearchEngine
 
-	public async Task<SearchResult> SearchQueryAsync(string query)
+	public async Task<SearchResult> SearchAltQueryAsync(string query)
 	{
 		var sr = new SearchResult(this)
 		{
-			RawUrl = GetRawUrlAsync(query),
+			RawUrl = GetAltQueryUrl(query),
 		};
 
 		var req = await sr.RawUrl.WithHeaders(new
@@ -48,19 +49,19 @@ public sealed class BingEngine : BaseSearchEngine
 		foreach (IElement e in elem) {
 			var imgpt = e.FirstChild;
 
-			if (imgpt is IElement{ClassName:"tit"}) {
+			if (imgpt is IElement { ClassName: "tit" }) {
 				continue;
 			}
 
-			var iusc  = imgpt.FirstChild;
-			var attr  = iusc.TryGetAttribute("m");
-			var j     = JsonValue.Parse(attr);
+			var iusc = imgpt.FirstChild;
+			var attr = iusc.TryGetAttribute("m");
+			var j    = JsonValue.Parse(attr);
 
 			var infopt = e.ChildNodes[1];
 
 			sr.Results.Add(new SearchResultItem(sr)
 			{
-				Url = j["murl"].ToString(),
+				Url         = j["murl"].ToString().CleanString(),
 				Description = infopt.TextContent
 			});
 		}
@@ -68,14 +69,15 @@ public sealed class BingEngine : BaseSearchEngine
 		return sr;
 	}
 
-	private const string Query = "https://www.bing.com/images/async";
-	private Url GetRawUrlAsync(string query)
+	private const string ALT_QUERY_URL = "https://www.bing.com/images/async";
+
+	private static Url GetAltQueryUrl(string query, int cnt = 35)
 	{
-		var url = Query.SetQueryParams(new
+		var url = ALT_QUERY_URL.SetQueryParams(new
 		{
-			q=query,
+			q     = query,
 			first = 0,
-			count = 35,
+			count = cnt,
 			// qft   = @""""
 		});
 		return url;

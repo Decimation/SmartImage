@@ -56,7 +56,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			                        .AllowAnyHttpStatus()
 			                        .SetQueryParam("url", query.Upload, true);
 
-			var json = await request.GetStringAsync(token.Value);
+			var json = await request.GetStringAsync(cancellationToken: token.Value);
 
 			var settings = new JsonSerializerSettings
 			{

@@ -34,6 +34,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		var url = await base.GetRawUrlAsync(query);
+
 		url = url.SetQueryParams(new { type = "color" });
 
 		/*

@@ -33,10 +33,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.RepostSleuth;
 
-	public override void Dispose()
-	{
-		
-	}
+	public override void Dispose() { }
 
 	#region Overrides of BaseSearchEngine
 
@@ -49,54 +46,42 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		Root obj = null;
 
 		try {
-			var req = await EndpointUrl.WithClient(Client)
-			                           .SetQueryParams(new
-			                           {
-				                           filter               = true,
-				                           url                  = query.Upload,
-				                           same_sub             = false,
-				                           filter_author        = true,
-				                           only_older           = false,
-				                           include_crossposts   = false,
-				                           meme_filter          = false,
-				                           target_match_percent = 90,
-				                           filter_dead_matches  = false,
-				                           target_days_old      = 0
-			                           })
-			                           .GetAsync(token.Value);
-
-			obj = await req.GetJsonAsync<Root>();
-
+			obj = await Client.Request().SetQueryParams(new
+			{
+				filter               = true,
+				url                  = query.Upload,
+				same_sub             = false,
+				filter_author        = true,
+				only_older           = false,
+				include_crossposts   = false,
+				meme_filter          = false,
+				target_match_percent = 90,
+				filter_dead_matches  = false,
+				target_days_old      = 0
+			}).GetJsonAsync<Root>();
 		}
 		catch (FlurlHttpException e) {
 			sr.ErrorMessage = e.Message;
 			sr.Status       = SearchResultStatus.Unavailable;
-			
+
 			goto ret;
 		}
-
-		foreach (Match m in obj.matches) {
-			var sri = new SearchResultItem(sr)
-			{
-				Similarity = m.hamming_match_percent,
-				Artist     = m.post.author,
-				Site       = m.post.subreddit,
-				Url        = m.post.url,
-				Title      = m.post.title,
-				Time       = DateTimeOffset.FromUnixTimeSeconds((long) m.post.created_at).LocalDateTime
-			};
-
+		
+		foreach (SearchResultItem sri in obj.matches.Select(m => new SearchResultItem(sr)
+		         {
+			         Similarity = m.hamming_match_percent,
+			         Artist     = m.post.author,
+			         Site       = m.post.subreddit,
+			         Url        = m.post.url,
+			         Title      = m.post.title,
+			         Time       = DateTimeOffset.FromUnixTimeSeconds((long) m.post.created_at).LocalDateTime
+		         })) {
 			sr.Results.Add(sri);
 		}
 
 		sr.Update();
 		ret:
 		return sr;
-	}
-
-	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
-	{
-		return await base.GetRawUrlAsync(query);
 	}
 
 	#endregion

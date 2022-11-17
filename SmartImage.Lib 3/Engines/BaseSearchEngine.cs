@@ -78,6 +78,9 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		bool b = Verify(query);
 
+		if (!b) {
+			throw new ArgumentException("Illegal input", nameof(query));
+		}
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),

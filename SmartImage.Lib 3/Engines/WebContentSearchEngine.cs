@@ -60,7 +60,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		token  ??= CancellationToken.None;
 
 		var result =   await base.GetResultAsync(query, token);
-
+		
 		if (result.Status == SearchResultStatus.IllegalInput)
 		{
 			return null;

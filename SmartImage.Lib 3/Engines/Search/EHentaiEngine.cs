@@ -19,7 +19,7 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 
 	public override SearchEngineOptions EngineOption => default;
 
-	public override          void      Dispose() { }
+	public override void Dispose() { }
 
 	/*
 	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer/client
@@ -57,19 +57,19 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 			settings.Redirects.Enabled                    = true; // default true
 			settings.Redirects.AllowSecureToInsecure      = true; // default false
 			settings.Redirects.ForwardAuthorizationHeader = true; // default false
-			settings.Redirects.MaxAutoRedirects           = 10;   // default 10 (consecutive)
+			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
 		});
 
 		q = cj.Aggregate(q, (current, kv) => current.WithCookie(kv.Key, kv.Value));
+		
 		// TODO: Flurl throws an exception because it detects "circular redirects"
 		// https://github.com/tmenier/Flurl/issues/714
 
 		var res   = await q.SendAsync(HttpMethod.Post, data);*/
 
-		/*var flurl = FlurlHttp.GlobalSettings.HttpClientFactory;
-		var mh   = flurl.CreateMessageHandler();
-		var cl    = flurl.CreateHttpClient(mh);
-		*/
+		// var flurl = FlurlHttp.GlobalSettings.HttpClientFactory;
+		// var mh   = flurl.CreateMessageHandler();
+		// var cl    = flurl.CreateHttpClient(mh);
 		using var clientHandler = new HttpClientHandler
 		{
 			AllowAutoRedirect              = true,

@@ -100,11 +100,24 @@ public class UnitTest
 	public async Task Ascii2D_Test(string s)
 	{
 		var sq = await SearchQuery.TryCreateAsync(s);
+
 		var u  = await sq.UploadAsync();
 		var se = new Ascii2DEngine();
-		var r  = await se.GetResultAsync(sq);
 
-		if (r.Status == SearchResultStatus.IllegalInput ) {
+		SearchResult r = null;
+		if (s == (string) _rg[^1]) {
+			Assert.CatchAsync<ArgumentException>(async ()=> await se.GetResultAsync(sq));
+			Assert.Pass();
+		}
+		else {
+			Assert.DoesNotThrowAsync(async() =>
+			{
+				r = await se.GetResultAsync(sq);
+
+			});
+		}
+
+		if (r.Status == SearchResultStatus.IllegalInput) {
 			Assert.Inconclusive();
 
 		}
@@ -112,6 +125,7 @@ public class UnitTest
 			Assert.True(r.Results.Any());
 
 		}
+
 		foreach (var x in r.Results) {
 			TestContext.WriteLine(x);
 		}
@@ -196,10 +210,9 @@ public class UnitTest2
 
 	[Test]
 	[TestCaseSource(nameof(_rg))]
-
 	public async Task Test3(string s)
 	{
-		var o              = await UniFile.TryGetAsync(s);
+		var o  = await UniFile.TryGetAsync(s);
 		var o2 = await SearchQuery.TryCreateAsync(s);
 		Assert.Pass();
 	}

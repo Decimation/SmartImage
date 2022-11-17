@@ -15,6 +15,7 @@ using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Microsoft.ClearScript.V8;
+using Novus.FileTypes;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;
@@ -37,14 +38,12 @@ public static class Program
 {
 	public static async Task Main(string[] args)
 	{
-		var f = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
-		var b = new BingEngine();
+		const string s = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
 
-		var q = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
-		await q.UploadAsync();
+		var u=await UniFile.GetAsync(s);
 
-		var r              = await b.SearchQueryAsync("butt");
-		Console.WriteLine(r);
+		// await TestEh(s);
+
 	}
 
 	private static async Task TestEh(string f)
