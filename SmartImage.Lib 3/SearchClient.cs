@@ -34,21 +34,13 @@ public sealed class SearchClient : IDisposable
 
 	static SearchClient() { }
 
-	public delegate void ResultCompleteCallback(object sender, SearchResult e);
+	public delegate void ResultCompleteCallback(object sender,  SearchResult e);
 
-	public delegate Task ResultCompleteCallbackAsync(object sender, SearchResult e);
-
-	public delegate void SearchCompleteCallback(object sender, List<SearchResult> e);
-
-	public delegate Task SearchCompleteCallbackAsync(object sender, List<SearchResult> e);
+	public delegate void SearchCompleteCallback(object sender,  List<SearchResult> e);
 
 	public ResultCompleteCallback OnResult { get; set; }
 
-	public ResultCompleteCallbackAsync OnResultAsync { get; set; }
-
 	public SearchCompleteCallback OnComplete { get; set; }
-
-	public SearchCompleteCallbackAsync OnCompleteAsync { get; set; }
 
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
@@ -63,8 +55,7 @@ public sealed class SearchClient : IDisposable
 		                                          && e.EngineOption != default)
 		                          .ToArray();
 
-		var tasks = Engines.Select(e => e.GetResultAsync(query, token))
-		                   .ToList();
+		var tasks = Engines.Select(e => e.GetResultAsync(query, token)).ToList();
 
 		var results = new List<SearchResult>();
 
@@ -77,11 +68,18 @@ public sealed class SearchClient : IDisposable
 				return results;
 			}
 
-			var task   = await Task.WhenAny(tasks);
+			var task = await Task.WhenAny(tasks);
+
+			/*var cont =task.ContinueWith(async (c) =>
+			{
+				var opt = await SearchClient.GetDirectImagesAsync(c.Result.Results);
+
+				return opt;
+			}, TaskContinuationOptions.OnlyOnRanToCompletion);*/
+
 			var result = await task;
 			
-			OnResult?.Invoke(this, result);
-			OnResultAsync?.Invoke(this, result);
+			OnResult?.Invoke(this,  result);
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
@@ -94,8 +92,7 @@ public sealed class SearchClient : IDisposable
 			tasks.Remove(task);
 		}
 
-		OnComplete?.Invoke(this, results);
-		OnCompleteAsync?.Invoke(this, results);
+		OnComplete?.Invoke(this,  results);
 
 		IsComplete = true;
 

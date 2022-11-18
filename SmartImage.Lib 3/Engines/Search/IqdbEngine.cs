@@ -111,10 +111,11 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query)
 	{
+		const int MAX_FILE_SIZE = 0x800000;
 
 		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{
-			m.AddString("MAX_FILE_SIZE", MaxSize.ToString());
+			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
 			m.AddString("url", query.Uni.IsUri ? query.Uni.Value : String.Empty);
 
 			if (query.Uni.IsUri) { }
@@ -177,9 +178,9 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		// First is original image
 		images.RemoveAt(0);
 
-		var best = images[0];
+		// var best = images[0];
 		// sr.PrimaryResult.UpdateFrom(best);
-		sr.Results.AddRange(images.Skip(1));
+		sr.Results.AddRange(images);
 
 		/*sr.Results.Quality = sr.PrimaryResult.Similarity switch
 		{

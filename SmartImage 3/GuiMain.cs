@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Media;
 using System.Runtime.Caching;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using Kantan.Net.Utilities;
 using Kantan.Text;
@@ -16,6 +17,7 @@ using Novus;
 using Novus.FileTypes;
 using Novus.OS;
 using Novus.Win32;
+using Novus.Win32.Structures.User32;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
@@ -218,8 +220,7 @@ public sealed partial class GuiMain : IDisposable
 
 	private int ResultCount { get; set; }
 
-	internal ManualResetEvent IsReady         { get; set; }
-	internal ManualResetEvent IsDirectResults { get; set; }
+	internal ManualResetEvent IsReady { get; set; }
 
 	private CancellationTokenSource Token { get; set; }
 
@@ -227,21 +228,28 @@ public sealed partial class GuiMain : IDisposable
 
 	#endregion
 
+	private readonly ConcurrentBag<SearchResult> m_results;
+
 	private readonly ConcurrentDictionary<SearchResult, UniFile[]> m_cache;
 
 	public GuiMain(string[] args)
 	{
-		Args    = args;
-		Token   = new();
-		Query   = SearchQuery.Null;
-		Client  = new SearchClient(new SearchConfig());
-		IsReady = new ManualResetEvent(false);
-		m_cache = new();
+		Args      = args;
+		Token     = new();
+		Query     = SearchQuery.Null;
+		Client    = new SearchClient(new SearchConfig());
+		IsReady   = new ManualResetEvent(false);
+		m_cache   = new();
+		m_results = new();
 		// QueryMat = null;
 
-		Client.OnResultAsync   += OnResult;
-		Client.OnCompleteAsync += OnComplete;
-		Client.OnCompleteAsync += OnCompleteWin;
+		Client.OnResult   += OnResult;
+		Client.OnComplete += OnComplete;
+		Client.OnResult   += (sender, result) => { };
+
+		if (OperatingSystem.IsWindows()) {
+			Client.OnComplete += async (o, r) => await OnCompleteWin(o, r);
+		}
 
 		// Application.Init();
 
@@ -358,26 +366,19 @@ public sealed partial class GuiMain : IDisposable
 
 	}
 
-	private async Task OnAsync(object o, SearchResult r)
-	{
-		var opt = await SearchClient.GetDirectImagesAsync(r.Results);
-
-		m_cache.TryAdd(r, opt.ToArray());
-	}
-
 	public Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
 		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
 	}
 
-	private void PreSearch(object? sender)
+	private void PreSearch()
 	{
 		Tf_Input.SetFocus();
 		Tv_Results.Visible = true;
 	}
 
-	private void PostSearch(object? sender, List<SearchResult> results1)
+	private void PostSearch(List<SearchResult> results1)
 	{
 
 		if (Client.IsComplete) {
@@ -386,17 +387,23 @@ public sealed partial class GuiMain : IDisposable
 		}
 	}
 
-	private async Task OnResult(object o, SearchResult r)
+	private void OnResult(object o, SearchResult result)
 	{
-		ThreadPool.QueueUserWorkItem(async (c) => await OnAsync(c, r), null);
+		m_results.Add(result);
+
+		ThreadPool.QueueUserWorkItem(async (c) =>
+		{
+			var ls = await SearchClient.GetDirectImagesAsync(result.Results);
+			m_cache.TryAdd(result, ls.ToArray());
+		});
 
 		Application.MainLoop.Invoke(() =>
 		{
-			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, 0, null, $"{r.Status}",
+			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", result.RawUrl, 0, null, $"{result.Status}",
 			                    null, null, null, null, null, null, null);
 
-			for (int i = 0; i < r.Results.Count; i++) {
-				SearchResultItem sri = r.Results[i];
+			for (int i = 0; i < result.Results.Count; i++) {
+				SearchResultItem sri = result.Results[i];
 
 				object? meta = sri.Metadata switch
 				{
@@ -409,7 +416,7 @@ public sealed partial class GuiMain : IDisposable
 
 				};
 
-				Dt_Results.Rows.Add($"{r.Engine.Name} #{i + 1}",
+				Dt_Results.Rows.Add($"{result.Engine.Name} #{i + 1}",
 				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
 				                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 			}
@@ -420,11 +427,12 @@ public sealed partial class GuiMain : IDisposable
 		});
 
 	}
-
-	private async Task OnComplete(object sender, List<SearchResult> results)
+	
+	private void OnComplete(object sender,  List<SearchResult> results)
 	{
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
+		
 	}
 
 	[SupportedOSPlatform(Global.OS_WIN)]
@@ -587,6 +595,16 @@ public sealed partial class GuiMain : IDisposable
 				Lbl_InputInfo.Text = Resources.Inf_Clipboard;
 
 				m_clipboard.Add(str);
+
+				var pwfi = new FLASHWINFO()
+				{
+					cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+					hwnd      = ConsoleUtil.HndWindow,
+					dwFlags   = FlashWindowType.FLASHW_TRAY,
+					uCount    = 8,
+					dwTimeout = 75
+				};
+				Native.FlashWindowEx(ref pwfi);
 			}
 
 			// note: wtf?
@@ -606,7 +624,7 @@ public sealed partial class GuiMain : IDisposable
 	{
 		var now = Stopwatch.StartNew();
 
-		PreSearch(sender);
+		PreSearch();
 
 		Status = ProgramStatus.None;
 		IsReady.WaitOne();
@@ -617,7 +635,7 @@ public sealed partial class GuiMain : IDisposable
 
 		Status = ProgramStatus.Signal;
 
-		PostSearch(sender, results);
+		PostSearch(results);
 
 		return null;
 	}
