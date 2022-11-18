@@ -287,6 +287,7 @@ public sealed partial class GuiMain
 
 		m_clipboard.Clear();
 		m_cache.Clear();
+		m_results.Clear();
 
 		Status              = ProgramStatus.Restart;
 		Btn_Restart.Enabled = false;
@@ -383,7 +384,7 @@ public sealed partial class GuiMain
 			return true;
 		});
 
-		var run = RunSearchAsync(null);
+		var run = RunSearchAsync();
 		await run;
 
 		sw.Stop();

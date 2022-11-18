@@ -248,7 +248,7 @@ public sealed partial class GuiMain : IDisposable
 		Client.OnResult   += (sender, result) => { };
 
 		if (OperatingSystem.IsWindows()) {
-			Client.OnComplete += async (o, r) => await OnCompleteWin(o, r);
+			Client.OnComplete += async (o, r) => await OnCompleteWin(o);
 		}
 
 		// Application.Init();
@@ -378,7 +378,7 @@ public sealed partial class GuiMain : IDisposable
 		Tv_Results.Visible = true;
 	}
 
-	private void PostSearch(List<SearchResult> results1)
+	private void PostSearch()
 	{
 
 		if (Client.IsComplete) {
@@ -390,12 +390,6 @@ public sealed partial class GuiMain : IDisposable
 	private void OnResult(object o, SearchResult result)
 	{
 		m_results.Add(result);
-
-		ThreadPool.QueueUserWorkItem(async (c) =>
-		{
-			var ls = await SearchClient.GetDirectImagesAsync(result.Results);
-			m_cache.TryAdd(result, ls.ToArray());
-		});
 
 		Application.MainLoop.Invoke(() =>
 		{
@@ -427,26 +421,26 @@ public sealed partial class GuiMain : IDisposable
 		});
 
 	}
-	
-	private void OnComplete(object sender,  List<SearchResult> results)
+
+	private void OnComplete(object sender, List<SearchResult> results)
 	{
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
-		
+
 	}
 
 	[SupportedOSPlatform(Global.OS_WIN)]
-	private async Task OnCompleteWin(object sender, List<SearchResult> results)
+	private async Task OnCompleteWin(object sender)
 	{
-
 		m_sndHint.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
-		// var di = await SearchClient.GetDirectImagesAsync(results.SelectMany(r => r.Results));
-		var u = m_cache.Values.SelectMany(r => r).ToArray();
-		await AppToast.ShowAsync(sender, u);
+		var u = m_results.SelectMany(r=>r.Results).ToArray();
+		var di= (await SearchClient.GetDirectImagesAsync(u)).ToArray();
 
-		foreach (UniFile uniFile in u) {
+		await AppToast.ShowAsync(sender, di);
+
+		foreach (UniFile uniFile in di) {
 			uniFile.Dispose();
 		}
 
@@ -620,7 +614,7 @@ public sealed partial class GuiMain : IDisposable
 		return true;
 	}
 
-	private async Task<object?> RunSearchAsync(object? sender = null)
+	private async Task<object?> RunSearchAsync()
 	{
 		var now = Stopwatch.StartNew();
 
@@ -635,7 +629,7 @@ public sealed partial class GuiMain : IDisposable
 
 		Status = ProgramStatus.Signal;
 
-		PostSearch(results);
+		PostSearch();
 
 		return null;
 	}
