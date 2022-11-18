@@ -23,7 +23,7 @@ namespace SmartImage.App;
 [SupportedOSPlatform(Global.OS_WIN)]
 internal static class AppToast
 {
-	internal static async Task ShowAsync(object sender, List<UniFile> args)
+	internal static async Task ShowAsync(object sender, UniFile[] args)
 	{
 		Debug.WriteLine($"Building toast", nameof(ShowAsync));
 
@@ -46,7 +46,7 @@ internal static class AppToast
 			      .AddArgument(ARG_KEY_ACTION, $"{url}");
 
 			builder.AddAttributionText($"{url}")
-			       .AddText($"Direct Results: {args.Count}");
+			       .AddText($"Direct Results: {args.Length}");
 
 			await AddImageAsync(builder, result);
 		}

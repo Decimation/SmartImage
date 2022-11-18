@@ -21,6 +21,10 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 
 	#region Overrides of BaseSearchEngine
 
+	/*
+	 * TODO: improve polymorphic design of this type
+	 */
+
 	[ICBN]
 	protected virtual async Task<IDocument> ParseDocumentAsync(Url origin, CancellationToken token)
 	{
@@ -63,7 +67,7 @@ public abstract class WebContentSearchEngine : BaseSearchEngine
 		
 		if (result.Status == SearchResultStatus.IllegalInput)
 		{
-			return null;
+			
 		}
 
 		IDocument doc  = await ParseDocumentAsync(result.RawUrl, token.Value);

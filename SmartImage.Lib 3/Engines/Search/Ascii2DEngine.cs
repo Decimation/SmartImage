@@ -35,7 +35,10 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 	{
 		var url = await base.GetRawUrlAsync(query);
 
-		url = url.SetQueryParams(new { type = "color" });
+		url = url.SetQueryParams(new
+		{
+			type = "color"
+		});
 
 		/*
 		 * URL parameters

@@ -145,8 +145,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	public async Task<UniFile> GetUniAsync()
 	{
 		var uni = await UniFile.TryGetAsync(Url, whitelist: FileType.Image);
-		Uni = uni;
-		return uni;
+		return Uni = uni;
 	}
 
 	public override string ToString()

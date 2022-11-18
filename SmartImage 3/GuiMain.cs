@@ -1,11 +1,14 @@
 ﻿global using R2 = SmartImage.Resources;
 global using R1 = SmartImage.Lib.Resources;
 global using Url = Flurl.Url;
+using System.Buffers;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Media;
+using System.Runtime.Caching;
 using System.Runtime.Versioning;
 using Kantan.Net.Utilities;
 using Kantan.Text;
@@ -223,6 +226,8 @@ public sealed partial class GuiMain : IDisposable
 
 	#endregion
 
+	public ConcurrentBag<UniFile> m_cache;
+
 	public GuiMain(string[] args)
 	{
 		Args    = args;
@@ -230,11 +235,22 @@ public sealed partial class GuiMain : IDisposable
 		Query   = SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
-
+		m_cache = new();
 		// QueryMat = null;
 
-		Client.OnResult   += OnResult;
-		Client.OnComplete += OnComplete;
+		Client.OnResult += OnResult;
+
+		Client.OnResultAsync += async (o, r) =>
+		{
+			var opt = await SearchClient.GetDirectImagesAsync(r.Results);
+
+			foreach (UniFile uniFile in opt) {
+				m_cache.Add(uniFile);
+
+			}
+		};
+		Client.OnComplete      += OnComplete;
+		Client.OnCompleteAsync += OnCompleteWin;
 
 		// Application.Init();
 
@@ -407,28 +423,24 @@ public sealed partial class GuiMain : IDisposable
 
 	private void OnComplete(object sender, List<SearchResult> results)
 	{
-		if (OperatingSystem.IsWindows()) {
-			OnCompleteWin(sender, results);
-		}
-
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
-
 	}
 
 	[SupportedOSPlatform(Global.OS_WIN)]
-	private async Task OnCompleteWin(object sender, IEnumerable<SearchResult> results)
+	private async Task OnCompleteWin(object sender, List<SearchResult> results)
 	{
 		m_sndHint.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
-		var di = await SearchClient.GetDirectImagesAsync(results.SelectMany(r => r.Results));
-		await AppToast.ShowAsync(sender, di);
+		// var di = await SearchClient.GetDirectImagesAsync(results.SelectMany(r => r.Results));
+		await AppToast.ShowAsync(sender, m_cache.ToArray());
 
-		foreach (UniFile file in di) {
-			// Debug.WriteLine($"Disposing {file.Value}");
-			file.Dispose();
+		foreach (UniFile uniFile in m_cache) {
+			uniFile.Dispose();
 		}
+		m_cache.Clear();
+		
 	}
 
 	public void Close()
@@ -491,7 +503,7 @@ public sealed partial class GuiMain : IDisposable
 		SearchQuery sq;
 
 		Pbr_Status.BidirectionalMarquee = true;
-		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.MarqueeContinuous;
+		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.MarqueeBlocks;
 
 		try {
 			Pbr_Status.Pulse();

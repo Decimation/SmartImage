@@ -392,10 +392,10 @@ public sealed partial class GuiMain
 	private void OnBrowseClicked()
 	{
 		Tf_Input.DeleteAll();
-
+		Integration.KeepOnTop(false);
 		var f = Integration.OpenFile();
 		Debug.WriteLine($"{f}", nameof(OnBrowseClicked));
-
+		Integration.KeepOnTop(Client.Config.OnTop);
 		SetInputText(f);
 		Btn_Run.SetFocus();
 	}

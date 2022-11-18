@@ -71,7 +71,6 @@ public static class Program
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 #endif
-
 		bool cli = args is { } && args.Any();
 
 		_main = new GuiMain(args);

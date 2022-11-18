@@ -36,11 +36,17 @@ public sealed class SearchClient : IDisposable
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);
 
+	public delegate Task ResultCompleteCallbackAsync(object sender, SearchResult e);
+
 	public delegate void SearchCompleteCallback(object sender, List<SearchResult> e);
 
+	public delegate Task SearchCompleteCallbackAsync(object sender, List<SearchResult> e);
+
 	public ResultCompleteCallback OnResult { get; set; }
+	public ResultCompleteCallbackAsync OnResultAsync { get; set; }
 
 	public SearchCompleteCallback OnComplete { get; set; }
+	public SearchCompleteCallbackAsync OnCompleteAsync { get; set; }
 
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
@@ -73,6 +79,7 @@ public sealed class SearchClient : IDisposable
 			var result = await task;
 
 			OnResult?.Invoke(this, result);
+			OnResultAsync?.Invoke(this, result);
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
@@ -86,6 +93,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		OnComplete?.Invoke(this, results);
+		OnCompleteAsync?.Invoke(this, results);
 
 		IsComplete = true;
 
