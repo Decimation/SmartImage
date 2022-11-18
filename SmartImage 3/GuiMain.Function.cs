@@ -286,6 +286,7 @@ public sealed partial class GuiMain
 		Tv_Results.Visible = false;
 
 		m_clipboard.Clear();
+		m_cache.Clear();
 
 		Status              = ProgramStatus.Restart;
 		Btn_Restart.Enabled = false;
@@ -394,7 +395,7 @@ public sealed partial class GuiMain
 		Tf_Input.DeleteAll();
 		Integration.KeepOnTop(false);
 		var f = Integration.OpenFile();
-		Debug.WriteLine($"{f}", nameof(OnBrowseClicked));
+		Debug.WriteLine($"Picked file: {f}", nameof(OnBrowseClicked));
 		Integration.KeepOnTop(Client.Config.OnTop);
 		SetInputText(f);
 		Btn_Run.SetFocus();

@@ -38,6 +38,7 @@ internal static class AppToast
 		// builder.AddText($"{sender}");
 
 		if (args.Any()) {
+			
 			var result = args.First();
 
 			string url = result.Value;
@@ -49,10 +50,10 @@ internal static class AppToast
 			       .AddText($"Direct Results: {args.Length}");
 
 			await AddImageAsync(builder, result);
+			builder.AddButton(button);
 		}
 
-		builder.AddButton(button)
-		       .AddButton(button2);
+		builder .AddButton(button2);
 
 		builder.SetBackgroundActivation();
 		builder.Show();

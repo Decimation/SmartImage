@@ -218,7 +218,8 @@ public sealed partial class GuiMain : IDisposable
 
 	private int ResultCount { get; set; }
 
-	internal ManualResetEvent IsReady { get; set; }
+	internal ManualResetEvent IsReady         { get; set; }
+	internal ManualResetEvent IsDirectResults { get; set; }
 
 	private CancellationTokenSource Token { get; set; }
 
@@ -226,7 +227,7 @@ public sealed partial class GuiMain : IDisposable
 
 	#endregion
 
-	public ConcurrentBag<UniFile> m_cache;
+	private readonly ConcurrentDictionary<SearchResult, UniFile[]> m_cache;
 
 	public GuiMain(string[] args)
 	{
@@ -238,18 +239,8 @@ public sealed partial class GuiMain : IDisposable
 		m_cache = new();
 		// QueryMat = null;
 
-		Client.OnResult += OnResult;
-
-		Client.OnResultAsync += async (o, r) =>
-		{
-			var opt = await SearchClient.GetDirectImagesAsync(r.Results);
-
-			foreach (UniFile uniFile in opt) {
-				m_cache.Add(uniFile);
-
-			}
-		};
-		Client.OnComplete      += OnComplete;
+		Client.OnResultAsync   += OnResult;
+		Client.OnCompleteAsync += OnComplete;
 		Client.OnCompleteAsync += OnCompleteWin;
 
 		// Application.Init();
@@ -367,6 +358,13 @@ public sealed partial class GuiMain : IDisposable
 
 	}
 
+	private async Task OnAsync(object o, SearchResult r)
+	{
+		var opt = await SearchClient.GetDirectImagesAsync(r.Results);
+
+		m_cache.TryAdd(r, opt.ToArray());
+	}
+
 	public Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
@@ -388,8 +386,10 @@ public sealed partial class GuiMain : IDisposable
 		}
 	}
 
-	private void OnResult(object o, SearchResult r)
+	private async Task OnResult(object o, SearchResult r)
 	{
+		ThreadPool.QueueUserWorkItem(async (c) => await OnAsync(c, r), null);
+
 		Application.MainLoop.Invoke(() =>
 		{
 			Dt_Results.Rows.Add($"{r.Engine.Name} (Raw)", r.RawUrl, 0, null, $"{r.Status}",
@@ -421,7 +421,7 @@ public sealed partial class GuiMain : IDisposable
 
 	}
 
-	private void OnComplete(object sender, List<SearchResult> results)
+	private async Task OnComplete(object sender, List<SearchResult> results)
 	{
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
@@ -430,17 +430,19 @@ public sealed partial class GuiMain : IDisposable
 	[SupportedOSPlatform(Global.OS_WIN)]
 	private async Task OnCompleteWin(object sender, List<SearchResult> results)
 	{
+
 		m_sndHint.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
 		// var di = await SearchClient.GetDirectImagesAsync(results.SelectMany(r => r.Results));
-		await AppToast.ShowAsync(sender, m_cache.ToArray());
+		var u = m_cache.Values.SelectMany(r => r).ToArray();
+		await AppToast.ShowAsync(sender, u);
 
-		foreach (UniFile uniFile in m_cache) {
+		foreach (UniFile uniFile in u) {
 			uniFile.Dispose();
 		}
+
 		m_cache.Clear();
-		
 	}
 
 	public void Close()

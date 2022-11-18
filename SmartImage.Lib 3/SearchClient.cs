@@ -43,9 +43,11 @@ public sealed class SearchClient : IDisposable
 	public delegate Task SearchCompleteCallbackAsync(object sender, List<SearchResult> e);
 
 	public ResultCompleteCallback OnResult { get; set; }
+
 	public ResultCompleteCallbackAsync OnResultAsync { get; set; }
 
 	public SearchCompleteCallback OnComplete { get; set; }
+
 	public SearchCompleteCallbackAsync OnCompleteAsync { get; set; }
 
 	/// <summary>
@@ -71,13 +73,13 @@ public sealed class SearchClient : IDisposable
 
 				Debug.WriteLine($"Cancellation requested", nameof(RunSearchAsync));
 				IsComplete = true;
-				
+
 				return results;
 			}
 
 			var task   = await Task.WhenAny(tasks);
 			var result = await task;
-
+			
 			OnResult?.Invoke(this, result);
 			OnResultAsync?.Invoke(this, result);
 
