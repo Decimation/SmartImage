@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using Kantan.Console;
 using Kantan.Net.Utilities;
+using Novus.FileTypes;
 using Novus.OS;
 using NStack;
 using SmartImage.App;
@@ -286,7 +287,6 @@ public sealed partial class GuiMain
 		Tv_Results.Visible = false;
 
 		m_clipboard.Clear();
-		m_cache.Clear();
 		m_results.Clear();
 
 		Status              = ProgramStatus.Restart;
@@ -363,7 +363,12 @@ public sealed partial class GuiMain
 
 		Debug.WriteLine($"Input: {text}", nameof(OnRun));
 
+		/*if (!SearchQuery.IsUriOrFile(text.ToString())) {
+			return;
+		}*/
+
 		var ok = await SetQuery(text);
+
 		Btn_Cancel.Enabled = ok;
 		Tv_Results.Visible = ok;
 

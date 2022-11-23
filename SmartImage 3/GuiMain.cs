@@ -203,8 +203,11 @@ public sealed partial class GuiMain : IDisposable
 
 	private bool m_autoSearch;
 
-	private static readonly SoundPlayer m_sndHint       = new SoundPlayer(R2.hint);
-	private static readonly TimeSpan    TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+	private static readonly SoundPlayer m_sndHint = new SoundPlayer(R2.hint);
+
+	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+
+	private readonly ConcurrentBag<SearchResult> m_results;
 
 	#region
 
@@ -228,18 +231,14 @@ public sealed partial class GuiMain : IDisposable
 
 	#endregion
 
-	private readonly ConcurrentBag<SearchResult> m_results;
-
-	private readonly ConcurrentDictionary<SearchResult, UniFile[]> m_cache;
-
 	public GuiMain(string[] args)
 	{
-		Args      = args;
-		Token     = new();
-		Query     = SearchQuery.Null;
-		Client    = new SearchClient(new SearchConfig());
-		IsReady   = new ManualResetEvent(false);
-		m_cache   = new();
+		Args    = args;
+		Token   = new();
+		Query   = SearchQuery.Null;
+		Client  = new SearchClient(new SearchConfig());
+		IsReady = new ManualResetEvent(false);
+
 		m_results = new();
 		// QueryMat = null;
 
@@ -355,6 +354,7 @@ public sealed partial class GuiMain : IDisposable
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload, Btn_Restart, Btn_Config,
 		        Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse
 		);
+
 		Top.Add(Win);
 		Top.HotKey = Key.F5;
 
@@ -435,8 +435,8 @@ public sealed partial class GuiMain : IDisposable
 		m_sndHint.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
-		var u = m_results.SelectMany(r=>r.Results).ToArray();
-		var di= (await SearchClient.GetDirectImagesAsync(u)).ToArray();
+		var u  = m_results.SelectMany(r => r.Results).ToArray();
+		var di = (await SearchClient.GetDirectImagesAsync(u)).ToArray();
 
 		await AppToast.ShowAsync(sender, di);
 
@@ -444,7 +444,6 @@ public sealed partial class GuiMain : IDisposable
 			uniFile.Dispose();
 		}
 
-		m_cache.Clear();
 	}
 
 	public void Close()

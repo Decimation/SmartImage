@@ -19,7 +19,7 @@ using SmartImage.Lib.Engines.Upload;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchQuery : IDisposable
+public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 {
 	public UniFile Uni { get; }
 
@@ -34,6 +34,43 @@ public sealed class SearchQuery : IDisposable
 	{
 		Uni = f;
 	}
+
+	#region Equality members
+
+	public bool Equals(SearchQuery other)
+	{
+		if (ReferenceEquals(null, other)) return false;
+		if (ReferenceEquals(this, other)) return true;
+		return Equals(Uni, other.Uni) && Equals(Upload, other.Upload) && Size == other.Size && Equals(Image, other.Image);
+	}
+
+	public override bool Equals(object obj)
+	{
+		return ReferenceEquals(this, obj) || obj is SearchQuery other && Equals(other);
+	}
+
+	public override int GetHashCode()
+	{
+		unchecked {
+			int hashCode = (Uni != null ? Uni.GetHashCode() : 0);
+			hashCode = (hashCode * 397) ^ (Upload != null ? Upload.GetHashCode() : 0);
+			hashCode = (hashCode * 397) ^ Size.GetHashCode();
+			hashCode = (hashCode * 397) ^ (Image != null ? Image.GetHashCode() : 0);
+			return hashCode;
+		}
+	}
+
+	public static bool operator ==(SearchQuery left, SearchQuery right)
+	{
+		return Equals(left, right);
+	}
+
+	public static bool operator !=(SearchQuery left, SearchQuery right)
+	{
+		return !Equals(left, right);
+	}
+
+	#endregion
 
 	public static readonly SearchQuery Null = new(null);
 
@@ -85,6 +122,12 @@ public sealed class SearchQuery : IDisposable
 
 	}
 
+	public static bool IsUriOrFile(string str)
+	{
+		var (f, u) = UniFile.IsUriOrFile(str);
+		return f || u;
+	}
+
 	#region IDisposable
 
 	public void Dispose()
@@ -111,10 +154,4 @@ public sealed class SearchQuery : IDisposable
 	}
 
 	#endregion
-
-	public static bool IsUriOrFile(string str)
-	{
-		var (f, u) = UniFile.IsUriOrFile(str);
-		return f || u;
-	}
 }
