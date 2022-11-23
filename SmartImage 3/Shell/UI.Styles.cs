@@ -150,4 +150,11 @@ internal static partial class UI
 
 	#endregion
 
+	#region Dimensions
+
+	internal static readonly Dim Dim_30_Pct = Dim.Percent(30);
+	internal static readonly Dim Dim_80_Pct = Dim.Percent(80);
+
+	#endregion
+
 }

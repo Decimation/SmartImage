@@ -50,13 +50,13 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected virtual bool Verify(SearchQuery q)
 	{
-		if (q.Upload is not {}) {
+		if (q.Upload is not { }) {
 			return false;
 		}
 
-		bool b = q.LoadImage(), b2;
-
-		if (b) {
+		bool  b =q.LoadImage(), b2;
+		
+		if (b && OperatingSystem.IsWindows()) {
 			b = VerifyImage(q.Image);
 		}
 
@@ -83,7 +83,7 @@ public abstract class BaseSearchEngine : IDisposable
 			RawUrl = await GetRawUrlAsync(query),
 			Status = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None
 		};
-		
+
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
 
 		return res;

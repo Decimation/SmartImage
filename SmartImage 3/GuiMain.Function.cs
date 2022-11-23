@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using System.Diagnostics;
+using System.Numerics;
 using Kantan.Console;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
@@ -15,17 +16,6 @@ namespace SmartImage;
 
 public sealed partial class GuiMain
 {
-	#region Control functions
-
-	private void OnClear()
-	{
-		Tf_Input.DeleteAll();
-		Lbl_InputOk.Text = UI.NA;
-		Lbl_InputOk.SetNeedsDisplay();
-		Lbl_InputInfo.Text  = ustring.Empty;
-		Lbl_InputInfo2.Text = ustring.Empty;
-	}
-
 	private void AboutDialog()
 	{
 		var d = new Dialog()
@@ -50,14 +40,17 @@ public sealed partial class GuiMain
 		Application.Run(d);
 	}
 
-	private void OnConfigDialog()
+	/// <summary>
+	/// <see cref="Btn_Config"/>
+	/// </summary>
+	private void Config_Clicked()
 	{
 		var dlCfg = new Dialog("Configuration")
 		{
 			Text     = ustring.Empty,
 			AutoSize = false,
-			Width    = Dim.Percent(80),
-			Height   = Dim.Percent(80),
+			Width    = UI.Dim_80_Pct,
+			Height   = UI.Dim_80_Pct,
 		};
 
 		var btnRefresh = new Button("Refresh") { };
@@ -246,80 +239,6 @@ public sealed partial class GuiMain
 		Tf_Input.EnsureFocus();
 	}
 
-	private void ClearControls()
-	{
-		Tf_Input.DeleteAll();
-		Tf_Input.ClearHistoryChanges();
-
-		Query = SearchQuery.Null;
-
-		Lbl_InputOk.Text = UI.NA;
-		Lbl_InputOk.SetNeedsDisplay();
-
-		Dt_Results.Clear();
-
-		IsReady.Reset();
-		ResultCount         = 0;
-		Pbr_Status.Fraction = 0;
-
-		Lbl_InputInfo.Text   = ustring.Empty;
-		Lbl_QueryUpload.Text = ustring.Empty;
-		Lbl_InputInfo2.Text  = ustring.Empty;
-		Lbl_Status.Text      = ustring.Empty;
-
-		Tv_Results.SetNeedsDisplay();
-		Tf_Input.SetFocus();
-		Tf_Input.EnsureFocus();
-		Btn_Cancel.Enabled = false;
-	}
-
-	private void OnRestart()
-	{
-		if (!Client.IsComplete) {
-			return;
-		}
-
-		ClearControls();
-
-		Tv_Results.RowOffset    = 0;
-		Tv_Results.ColumnOffset = 0;
-		Dt_Results.Clear();
-		Tv_Results.Visible = false;
-
-		m_clipboard.Clear();
-		m_results.Clear();
-
-		Status              = ProgramStatus.Restart;
-		Btn_Restart.Enabled = false;
-		Btn_Cancel.Enabled  = false;
-		Btn_Run.Enabled     = true;
-
-		Token.Dispose();
-		Token = new();
-
-		Tf_Input.SetFocus();
-		Tf_Input.EnsureFocus();
-	}
-
-	private void OnCellActivated(TableView.CellActivatedEventArgs args)
-	{
-		if (args.Table is not { }) {
-			return;
-		}
-
-		try {
-			var cell = args.Table.Rows[args.Row][args.Col];
-
-			if (cell is Url { } u) {
-				HttpUtilities.TryOpenUrl(u);
-			}
-
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(OnCellActivated));
-		}
-	}
-
 	private static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)
 	{
 		var val = (SearchEngineOptions) args.Value;
@@ -355,17 +274,70 @@ public sealed partial class GuiMain
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}
 
-	private async void OnRun()
+	/// <summary>
+	/// <see cref="Tv_Results"/>
+	/// </summary>
+	private void Result_CellActivated(TableView.CellActivatedEventArgs args)
+	{
+		if (args.Table is not { }) {
+			return;
+		}
+
+		try {
+			var cell = args.Table.Rows[args.Row][args.Col];
+
+			if (cell is Url { } u) {
+				HttpUtilities.TryOpenUrl(u);
+			}
+
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(Result_CellActivated));
+		}
+	}
+
+	/// <summary>
+	/// <see cref="Btn_Restart"/>
+	/// </summary>
+	private void Restart_Clicked()
+	{
+		if (!Client.IsComplete) {
+			return;
+		}
+
+		Clear();
+
+		Tv_Results.RowOffset    = 0;
+		Tv_Results.ColumnOffset = 0;
+		Dt_Results.Clear();
+		Tv_Results.Visible = false;
+
+		m_clipboard.Clear();
+		m_results.Clear();
+
+		Status = ProgramStatus.Restart;
+
+		Btn_Restart.Enabled = false;
+		Btn_Cancel.Enabled  = false;
+		Btn_Run.Enabled     = true;
+
+		Token.Dispose();
+		Token = new();
+
+		Tf_Input.SetFocus();
+		Tf_Input.EnsureFocus();
+	}
+
+	/// <summary>
+	/// <see cref="Btn_Run"/>
+	/// </summary>
+	private async void Run_Clicked()
 	{
 		Btn_Run.Enabled = false;
-		// Btn_Cancel.Enabled = true;
+
 		var text = Tf_Input.Text;
 
-		Debug.WriteLine($"Input: {text}", nameof(OnRun));
-
-		/*if (!SearchQuery.IsUriOrFile(text.ToString())) {
-			return;
-		}*/
+		Debug.WriteLine($"Input: {text}", nameof(Run_Clicked));
 
 		var ok = await SetQuery(text);
 
@@ -396,18 +368,51 @@ public sealed partial class GuiMain
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 	}
 
-	private void OnBrowseClicked()
+	/// <summary>
+	/// <see cref="Btn_Browse"/>
+	/// </summary>
+	private void Browse_Clicked()
 	{
 		Tf_Input.DeleteAll();
 		Integration.KeepOnTop(false);
 		var f = Integration.OpenFile();
-		Debug.WriteLine($"Picked file: {f}", nameof(OnBrowseClicked));
+		Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
 		Integration.KeepOnTop(Client.Config.OnTop);
 		SetInputText(f);
 		Btn_Run.SetFocus();
 	}
 
-	private void OnCancel()
+	/// <summary>
+	/// <see cref="Lbl_InputInfo"/>
+	/// </summary>
+	private void InputInfo_Clicked()
+	{
+		if (!IsQueryReady()) {
+			return;
+		}
+
+		Func<string, bool> f = _ => false;
+
+		if (Query.Uni.IsFile) {
+			f = FileSystem.ExploreFile;
+		}
+		else if (Query.Uni.IsUri) {
+			f = HttpUtilities.TryOpenUrl;
+		}
+
+		f(Query.Uni.Value);
+	}
+
+	private static void Clear_Clicked()
+	{
+		Tf_Input.DeleteAll();
+		Lbl_InputOk.Text = UI.NA;
+		Lbl_InputOk.SetNeedsDisplay();
+		Lbl_InputInfo.Text  = ustring.Empty;
+		Lbl_InputInfo2.Text = ustring.Empty;
+	}
+
+	private void Cancel_Clicked()
 	{
 		Token.Cancel();
 		Lbl_InputInfo2.Text = Resources.Inf_Cancel;
@@ -417,5 +422,30 @@ public sealed partial class GuiMain
 		Tv_Results.SetFocus();
 	}
 
-	#endregion
+	private void Clear()
+	{
+		Tf_Input.DeleteAll();
+		Tf_Input.ClearHistoryChanges();
+
+		Lbl_InputOk.Text = UI.NA;
+		Lbl_InputOk.SetNeedsDisplay();
+
+		Dt_Results.Clear();
+
+		Query = SearchQuery.Null;
+		IsReady.Reset();
+		ResultCount         = 0;
+
+		Pbr_Status.Fraction = 0;
+
+		Lbl_InputInfo.Text   = ustring.Empty;
+		Lbl_QueryUpload.Text = ustring.Empty;
+		Lbl_InputInfo2.Text  = ustring.Empty;
+		Lbl_Status.Text      = ustring.Empty;
+
+		Tv_Results.SetNeedsDisplay();
+		Tf_Input.SetFocus();
+		Tf_Input.EnsureFocus();
+		Btn_Cancel.Enabled = false;
+	}
 }

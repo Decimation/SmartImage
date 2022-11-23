@@ -226,6 +226,9 @@ public sealed partial class GuiMain : IDisposable
 	internal ManualResetEvent IsReady { get; set; }
 
 	private CancellationTokenSource Token { get; set; }
+	
+	[field: SupportedOSPlatformGuard(Global.OS_WIN)]
+	internal static bool _isWin = OperatingSystem.IsWindows();
 
 	#endregion
 
@@ -240,13 +243,11 @@ public sealed partial class GuiMain : IDisposable
 		IsReady = new ManualResetEvent(false);
 
 		m_results = new();
-		// QueryMat = null;
 
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
-		Client.OnResult   += (sender, result) => { };
 
-		if (OperatingSystem.IsWindows()) {
+		if (_isWin) {
 			Client.OnComplete += async (o, r) => await OnCompleteWin(o);
 		}
 
@@ -319,31 +320,14 @@ public sealed partial class GuiMain : IDisposable
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
 
-		Tv_Results.CellActivated += OnCellActivated;
-		Btn_Run.Clicked          += OnRun;
-		Btn_Restart.Clicked      += OnRestart;
-		Btn_Clear.Clicked        += OnClear;
-		Btn_Config.Clicked       += OnConfigDialog;
-		Btn_Cancel.Clicked       += OnCancel;
-		Btn_Browse.Clicked       += OnBrowseClicked;
-
-		Lbl_InputInfo.Clicked += () =>
-		{
-			if (!IsQueryReady()) {
-				return;
-			}
-
-			Func<string, bool> f = _ => false;
-
-			if (Query.Uni.IsFile) {
-				f = FileSystem.ExploreFile;
-			}
-			else if (Query.Uni.IsUri) {
-				f = HttpUtilities.TryOpenUrl;
-			}
-
-			f(Query.Uni.Value);
-		};
+		Tv_Results.CellActivated += Result_CellActivated;
+		Btn_Run.Clicked          += Run_Clicked;
+		Btn_Restart.Clicked      += Restart_Clicked;
+		Btn_Clear.Clicked        += Clear_Clicked;
+		Btn_Config.Clicked       += Config_Clicked;
+		Btn_Cancel.Clicked       += Cancel_Clicked;
+		Btn_Browse.Clicked       += Browse_Clicked;
+		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
 
 		Lbl_QueryUpload.Clicked += () =>
 		{
@@ -386,6 +370,8 @@ public sealed partial class GuiMain : IDisposable
 			Btn_Cancel.Enabled = false;
 		}
 	}
+
+	#region SearchClient callbacks
 
 	private void OnResult(object o, SearchResult result)
 	{
@@ -445,6 +431,8 @@ public sealed partial class GuiMain : IDisposable
 		}
 
 	}
+
+	#endregion
 
 	public void Close()
 	{
@@ -506,7 +494,7 @@ public sealed partial class GuiMain : IDisposable
 		SearchQuery sq;
 
 		Pbr_Status.BidirectionalMarquee = true;
-		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.MarqueeBlocks;
+		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.MarqueeContinuous;
 
 		try {
 			Pbr_Status.Pulse();
@@ -573,6 +561,30 @@ public sealed partial class GuiMain : IDisposable
 		return true;
 	}
 
+	private async Task<object?> RunSearchAsync()
+	{
+
+		PreSearch();
+
+		Status = ProgramStatus.None;
+		IsReady.WaitOne();
+
+		var results = await Client.RunSearchAsync(Query, Token.Token);
+
+		Status = ProgramStatus.Signal;
+
+		PostSearch();
+
+		return null;
+	}
+
+	public void Dispose()
+	{
+		Client.Dispose();
+		Query.Dispose();
+		Token.Dispose();
+	}
+
 	private bool ClipboardCallback(MainLoop c)
 	{
 		try {
@@ -611,33 +623,6 @@ public sealed partial class GuiMain : IDisposable
 		}
 
 		return true;
-	}
-
-	private async Task<object?> RunSearchAsync()
-	{
-		var now = Stopwatch.StartNew();
-
-		PreSearch();
-
-		Status = ProgramStatus.None;
-		IsReady.WaitOne();
-
-		var results = await Client.RunSearchAsync(Query, Token.Token);
-
-		now.Stop();
-
-		Status = ProgramStatus.Signal;
-
-		PostSearch();
-
-		return null;
-	}
-
-	public void Dispose()
-	{
-		Client.Dispose();
-		Query.Dispose();
-		Token.Dispose();
 	}
 }
 

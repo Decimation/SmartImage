@@ -11,9 +11,9 @@ internal static class ConsoleUtil
 	// internal static SearchEngineOptions[] EngineOptions => (SearchEngineOptions[]) Cache[nameof(EngineOptions)];
 	internal static SearchEngineOptions[] EngineOptions = Enum.GetValues<SearchEngineOptions>();
 
-	internal static readonly IntPtr HndWindow = Native.GetConsoleWindow();
-	internal static readonly IntPtr StdOut    = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
-	internal static readonly IntPtr StdIn     = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
+	internal static readonly nint HndWindow = Native.GetConsoleWindow();
+	internal static readonly nint StdOut    = Native.GetStdHandle(StandardHandle.STD_OUTPUT_HANDLE);
+	internal static readonly nint StdIn     = Native.GetStdHandle(StandardHandle.STD_INPUT_HANDLE);
 
 	internal static ConsoleModes _oldMode;
 
@@ -24,7 +24,7 @@ internal static class ConsoleUtil
 
 	internal static void SetConsoleMenu()
 	{
-		IntPtr sysMenu = Native.GetSystemMenu(HndWindow, false);
+		nint sysMenu = Native.GetSystemMenu(HndWindow, false);
 
 		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_MAXIMIZE, Native.MF_BYCOMMAND);
 		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_SIZE, Native.MF_BYCOMMAND);

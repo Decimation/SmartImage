@@ -28,6 +28,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public long Size { get; private set; }
 
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public Image Image { get; private set; }
 
 	internal SearchQuery([MN] UniFile f)
@@ -41,7 +42,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	{
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
-		return Equals(Uni, other.Uni) && Equals(Upload, other.Upload) && Size == other.Size && Equals(Image, other.Image);
+		return Equals(Uni, other.Uni) && Equals(Upload, other.Upload) && Size == other.Size &&
+		       (!OperatingSystem.IsWindows() || Equals(Image, other.Image));
 	}
 
 	public override bool Equals(object obj)
@@ -55,7 +57,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			int hashCode = (Uni != null ? Uni.GetHashCode() : 0);
 			hashCode = (hashCode * 397) ^ (Upload != null ? Upload.GetHashCode() : 0);
 			hashCode = (hashCode * 397) ^ Size.GetHashCode();
-			hashCode = (hashCode * 397) ^ (Image != null ? Image.GetHashCode() : 0);
+			if (OperatingSystem.IsWindows()) {
+				hashCode = (hashCode * 397) ^ (Image != null ? Image.GetHashCode() : 0);
+			}
 			return hashCode;
 		}
 	}
@@ -103,9 +107,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		return Upload;
 	}
 
-	[SupportedOSPlatform(Global.OS_WIN)]
 	public bool LoadImage()
 	{
+		if (!OperatingSystem.IsWindows()) {
+			return false;
+		}
+
 		if (Image != null) {
 			return true;
 		}
@@ -150,6 +157,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		if (OperatingSystem.IsWindows()) {
 			s += $" {Image?.PhysicalDimension}";
 		}
+
 		return s;
 	}
 

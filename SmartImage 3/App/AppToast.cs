@@ -20,9 +20,11 @@ namespace SmartImage.App;
 
 // ReSharper disable PossibleNullReferenceException
 
-[SupportedOSPlatform(Global.OS_WIN)]
+[SupportedOSPlatform(WIN_VER)]
 internal static class AppToast
 {
+	public const string WIN_VER = "windows10.0.10240.0";
+
 	internal static async Task ShowAsync(object sender, UniFile[] args)
 	{
 		Debug.WriteLine($"Building toast", nameof(ShowAsync));
@@ -105,7 +107,7 @@ internal static class AppToast
 		}
 	}
 
-	[method: SupportedOSPlatform("windows10.0.10240.0")]
+	[method: SupportedOSPlatform(WIN_VER)]
 	private static async void RegisterBackgroundAsync()
 	{
 		const string taskName = "ToastBackgroundTask";
