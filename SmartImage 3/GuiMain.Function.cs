@@ -348,6 +348,11 @@ public sealed partial class GuiMain
 			return;
 		}
 
+		await RunMain();
+	}
+
+	private async Task RunMain()
+	{
 		Pbr_Status.BidirectionalMarquee = false;
 		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.Continuous;
 		Pbr_Status.Fraction             = 0;

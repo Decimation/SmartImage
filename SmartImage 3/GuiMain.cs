@@ -25,6 +25,8 @@ using SmartImage.Shell;
 using Terminal.Gui;
 using Window = Terminal.Gui.Window;
 
+// ReSharper disable IdentifierTypo
+
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE0060
 namespace SmartImage;
@@ -203,7 +205,7 @@ public sealed partial class GuiMain : IDisposable
 
 	private bool m_autoSearch;
 
-	private static readonly SoundPlayer m_sndHint = new SoundPlayer(R2.hint);
+	private static readonly SoundPlayer m_sndHint = new(R2.hint);
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
@@ -226,9 +228,6 @@ public sealed partial class GuiMain : IDisposable
 	internal ManualResetEvent IsReady { get; set; }
 
 	private CancellationTokenSource Token { get; set; }
-	
-	[field: SupportedOSPlatformGuard(Global.OS_WIN)]
-	internal static bool _isWin = OperatingSystem.IsWindows();
 
 	#endregion
 
@@ -247,7 +246,7 @@ public sealed partial class GuiMain : IDisposable
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
 
-		if (_isWin) {
+		if (ConsoleUtil._isWin) {
 			Client.OnComplete += async (o, r) => await OnCompleteWin(o);
 		}
 
@@ -328,6 +327,25 @@ public sealed partial class GuiMain : IDisposable
 		Btn_Cancel.Clicked       += Cancel_Clicked;
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
+
+		Tf_Input.TextChanging += async (tc) =>
+		{
+			Debug.WriteLine($"testing {tc.NewText}");
+
+			if (SearchQuery.IsUriOrFile(tc.NewText.ToString())) {
+				var ok = await SetQuery(tc.NewText);
+
+				/*Btn_Cancel.Enabled = ok;
+				Tv_Results.Visible = ok;
+
+				if (!ok) {
+					return;
+				}
+
+				await RunMain();*/
+
+			}
+		};
 
 		Lbl_QueryUpload.Clicked += () =>
 		{
@@ -533,6 +551,8 @@ public sealed partial class GuiMain : IDisposable
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
+				Lbl_InputInfo.Text = $"Error: {e.Message}";
+
 			}
 
 		}
@@ -563,7 +583,6 @@ public sealed partial class GuiMain : IDisposable
 
 	private async Task<object?> RunSearchAsync()
 	{
-
 		PreSearch();
 
 		Status = ProgramStatus.None;

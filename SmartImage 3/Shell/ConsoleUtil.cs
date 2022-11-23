@@ -1,4 +1,6 @@
-﻿using System.Text;
+﻿using System.Runtime.Versioning;
+using System.Text;
+using Novus;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using SmartImage.Lib.Engines;
@@ -48,4 +50,7 @@ internal static class ConsoleUtil
 		Console.BufferWidth = 150;
 
 	}
+
+	[field: SupportedOSPlatformGuard(Global.OS_WIN)]
+	internal static bool _isWin = OperatingSystem.IsWindows();
 }
