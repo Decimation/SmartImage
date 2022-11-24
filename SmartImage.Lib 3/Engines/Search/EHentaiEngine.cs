@@ -5,17 +5,29 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
+using Flurl;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Kantan.Threading;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib.Engines.Search;
 
 public sealed class EHentaiEngine : WebContentSearchEngine
 {
-	public EHentaiEngine() : base("https://exhentai.org/") { }
+	public CookieJar Cookies { get; private set; }
+
+	private const string EHENTAI_INDEX_URI         = "https://forums.e-hentai.org/index.php";
+	private const string EXHENTAI_IMAGE_LOOKUP_URI = "https://exhentai.org/upld/image_lookup.php";
+	private const string EXHENTAI_URI              = "https://exhentai.org/";
+	private const string EHENTAI_URI               = "https://e-hentai.org/";
+
+	public EHentaiEngine() : base(EXHENTAI_URI)
+	{
+		Cookies = new CookieJar();
+	}
 
 	public override SearchEngineOptions EngineOption => default;
 
@@ -31,20 +43,20 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	public async Task<SearchResult> SearchImage(Stream s, Dictionary<string, string> cj)
+	public async Task<SearchResult> SearchImage(Stream s)
 	{
 		var sr = new SearchResult(this);
 
 		var data = new MultipartFormDataContent()
-			{ };
-		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
-		data.Add(new StreamContent(s), "sfile", "a.jpg");
-		data.Add(new StringContent("fs_similar"));
-		data.Add(new StringContent("fs_similar"));
-		data.Add(new StringContent("fs_similar"));
-		data.Add(new StringContent("fs_sfile"));
+		{
+			{ new StreamContent(s), "sfile", "a.jpg" },
+			{ new StringContent("fs_similar") },
+			{ new StringContent("fs_covers") },
+			{ new StringContent("fs_exp") },
+			{ new StringContent("fs_sfile") }
+		};
 
-		const string uri = "https://exhentai.org/upld/image_lookup.php";
+		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
 
 		/*var q = uri
 		        .WithHeaders(new
@@ -79,19 +91,18 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 			CookieContainer                = new() { },
 		};
 
-		foreach (var c in cj.Select(c => new Cookie(c.Key, c.Value, domain: ((new Uri(uri).Host)), path: "/"))) {
-			clientHandler.CookieContainer.Add(c);
+		foreach (var c in Cookies) {
+			clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
 		}
 
 		var cl = new HttpClient(clientHandler) { };
 
-		var req = new HttpRequestMessage(HttpMethod.Post, uri)
+		var req = new HttpRequestMessage(HttpMethod.Post, EXHENTAI_IMAGE_LOOKUP_URI)
 		{
 			Content = data,
 			Headers =
 			{
 				{ "User-Agent", HttpUtilities.UserAgent }
-
 			}
 		};
 
@@ -100,6 +111,44 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 		var content = await res.Content.ReadAsStringAsync();
 
 		return sr;
+	}
+
+	public async Task<IFlurlResponse> Auth()
+	{
+		var res = await EXHENTAI_URI.WithCookies(Cookies).WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
+		                            .WithAutoRedirect(true).GetAsync();
+		return res;
+	}
+
+	public async Task<IFlurlResponse> Login(string username, string password)
+	{
+		var content = new MultipartFormDataContent()
+		{
+			{ new StringContent("1"), "CookieDate" },
+			{ new StringContent("d"), "b" },
+			{ new StringContent("1-6"), "bt" },
+			{ new StringContent(username), "UserName" },
+			{ new StringContent(password), "PassWord" },
+			{ new StringContent("Login!"), "ipb_login_submit" }
+		};
+
+		var u = await EHENTAI_INDEX_URI
+		              .SetQueryParams(new
+		              {
+			              act  = "Login",
+			              CODE = 01
+		              }).WithHeaders(new
+		              {
+			              User_Agent = HttpUtilities.UserAgent
+		              })
+		              .WithCookies(out var cj)
+		              .PostAsync(content);
+
+		foreach (FlurlCookie fc in cj) {
+			Cookies.AddOrReplace(fc);
+		}
+
+		return u;
 	}
 
 	#region Overrides of WebContentSearchEngine

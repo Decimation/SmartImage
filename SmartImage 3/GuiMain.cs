@@ -334,7 +334,7 @@ public sealed partial class GuiMain : IDisposable
 
 			if (SearchQuery.IsUriOrFile(tc.NewText.ToString())) {
 				var ok = await SetQuery(tc.NewText);
-
+				Btn_Run.Enabled = ok;
 				/*Btn_Cancel.Enabled = ok;
 				Tv_Results.Visible = ok;
 

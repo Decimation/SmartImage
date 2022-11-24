@@ -38,12 +38,34 @@ public static class Program
 {
 	public static async Task Main(string[] args)
 	{
-		const string s = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
 
-		var u=await UniFile.GetAsync(s);
+		var e = new EHentaiEngine();
+		await e.Login("", "");
 
-		// await TestEh(s);
+		var f  =("C:\\Users\\Deci\\Pictures\\Art\\2020_08_2B_Nier_Automata_1_03c.jpg");
+		var f1 = new FileInfo(f);
 
+		foreach (FlurlCookie flurlCookie in e.Cookies)
+		{
+			Console.WriteLine($"{flurlCookie.Name} {flurlCookie.Value}");
+		}
+
+		Console.WriteLine();
+		/*
+		 * new()
+		{
+			["igneous"]       = "388bd84ac",
+			["ipb_member_id"] = "3200336",
+			["ipb_pass_hash"] = "52e494963cba3c6f072a2d2be88a18a8",
+			["sk"]            = "utrq4k3ddevkgnj4fc8163qzq6gz",
+		}5
+		 */
+		var r = await e.Auth();
+		foreach (FlurlCookie flurlCookie in e.Cookies)
+		{
+			Console.WriteLine($"{flurlCookie.Name} {flurlCookie.Value}");
+		}
+		var x = await e.SearchImage(f1.OpenRead());
 	}
 
 	private static async Task TestEh(string f)
@@ -51,14 +73,7 @@ public static class Program
 		var e = new EHentaiEngine();
 
 		FileInfo f1 = new FileInfo(f);
-
-		var x = await e.SearchImage(f1.OpenRead(), new()
-		{
-			["igneous"]       = "388bd84ac",
-			["ipb_member_id"] = "3200336",
-			["ipb_pass_hash"] = "52e494963cba3c6f072a2d2be88a18a8",
-			["sk"]            = "utrq4k3ddevkgnj4fc8163qzq6gz",
-		});
+		
 	}
 
 	static async Task<IFlurlResponse> send()
