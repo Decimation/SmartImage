@@ -9,30 +9,39 @@ namespace SmartImage.Lib.Engines;
 
 public interface IWebContentEngine<T> where T : INode
 {
-	public async Task<IDocument> ParseDocumentAsync(Url origin, CancellationToken token)
+
+	public async Task<IDocument> ParseDocumentAsync(object origin1, CancellationToken token, SearchQuery q,
+	                                                TimeSpan? timeout = null)
 	{
 		var parser = new HtmlParser();
+		timeout ??= Timeout.InfiniteTimeSpan;
 
 		try {
-			var res = await origin.AllowAnyHttpStatus()
-			                      .WithCookies(out var cj)
-			                      // .WithTimeout(Timeout)
-			                      .WithHeaders(new
-			                      {
-				                      User_Agent = HttpUtilities.UserAgent
-			                      })
-			                      /*.WithAutoRedirect(true)*/
-			                      /*.OnError(s =>
+			if (origin1 is Url origin) {
+				var res = await origin.AllowAnyHttpStatus()
+				                      .WithCookies(out var cj)
+				                      .WithTimeout(timeout.Value)
+				                      .WithHeaders(new
+				                      {
+					                      User_Agent = HttpUtilities.UserAgent
+				                      })
+				                      /*.WithAutoRedirect(true)*/
+				                      /*.OnError(s =>
 			                      {
 				                      s.ExceptionHandled = true;
 			                      })*/
-			                      .GetAsync(cancellationToken: token);
+				                      .GetAsync(cancellationToken: token);
 
-			var str = await res.GetStringAsync();
+				var str = await res.GetStringAsync();
 
-			var document = await parser.ParseDocumentAsync(str, token);
+				var document = await parser.ParseDocumentAsync(str, token);
 
-			return document;
+				return document;
+
+			}
+			else {
+				return null;
+			}
 		}
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
@@ -44,8 +53,8 @@ public interface IWebContentEngine<T> where T : INode
 
 	public Task<SearchResultItem> ParseResultItemAsync(T n, SearchResult r);
 
-	public Task<IEnumerable<T>> GetItems(IDocument d)
-		=> Task.FromResult<IEnumerable<T>>((IEnumerable<T>) d.Body.SelectNodes(NodesSelector));
+	public Task<IList<T>> GetItems(IDocument d)
+		=> Task.FromResult((IList<T>) d.Body.SelectNodes(NodesSelector));
 
 	public string NodesSelector { get; }
 }

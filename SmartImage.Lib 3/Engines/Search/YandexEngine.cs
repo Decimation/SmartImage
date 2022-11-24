@@ -12,7 +12,7 @@ using Kantan.Text;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class YandexEngine : BaseSearchEngine, IParse<INode>
+public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
@@ -120,7 +120,7 @@ public sealed class YandexEngine : BaseSearchEngine, IParse<INode>
 		IDocument doc;
 
 		try {
-			doc = await ((IParse<INode>)this).ParseDocumentAsync(url, token.Value);
+			doc = await ((IWebContentEngine<INode>)this).ParseDocumentAsync(url, token.Value, q: query);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
@@ -146,7 +146,7 @@ public sealed class YandexEngine : BaseSearchEngine, IParse<INode>
 		 * Find and sort through high resolution image matches
 		 */
 
-		foreach (var node in await ((IParse<INode>)this).GetItems(doc)) {
+		foreach (var node in await ((IWebContentEngine<INode>)this).GetItems(doc)) {
 			var sri = await ParseResultItemAsync(node, sr);
 
 			if (sri != null) {

@@ -89,15 +89,15 @@ public abstract class BaseSearchEngine : IDisposable
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
 
-		if (this is IParse<INode> { } p) {
-			IDocument doc = await p.ParseDocumentAsync(res.RawUrl, token.Value);
+		if (this is IWebContentEngine<INode> { } p) {
+			IDocument doc = await p.ParseDocumentAsync(res.RawUrl, token.Value, q: query);
 
 			if (doc is not { }) {
 				res.Status = SearchResultStatus.Failure;
 				goto ret;
 			}
 
-			var nodes = await p.GetItems(doc);
+			var nodes = (await p.GetItems(doc)).ToArray();
 
 			foreach (INode node in nodes) {
 				if (token.Value.IsCancellationRequested) {
@@ -111,7 +111,8 @@ public abstract class BaseSearchEngine : IDisposable
 				}
 			}
 
-			Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Count()}", nameof(GetResultAsync));
+			Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Length}",
+			                nameof(GetResultAsync));
 
 			ret:
 			res.Update();

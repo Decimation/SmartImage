@@ -14,7 +14,7 @@ using Kantan.Net.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class Ascii2DEngine : BaseSearchEngine, IParse<INode>
+public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine<INode>
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{

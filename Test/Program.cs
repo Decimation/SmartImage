@@ -59,13 +59,18 @@ public static class Program
 			["sk"]            = "utrq4k3ddevkgnj4fc8163qzq6gz",
 		}5
 		 */
-		var r = await e.Auth();
+		var r = await e.GetSession();
 
 		foreach (FlurlCookie flurlCookie in e.Cookies) {
 			Console.WriteLine($"{flurlCookie.Name} {flurlCookie.Value}");
 		}
 
-		var x = await e.SearchImage(f1.OpenRead());
+		var x = await e.GetResultAsync(await SearchQuery.TryCreateAsync(f));
+		Console.WriteLine(x);
+
+		foreach (var v in x.Results) {
+			Console.WriteLine(v);
+		}
 	}
 
 	private static async Task TestEh(string f)

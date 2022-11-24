@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using Flurl;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -16,7 +18,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class EHentaiEngine : BaseSearchEngine, IParse<INode>
+public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 {
 	private const string EHENTAI_INDEX_URI         = "https://forums.e-hentai.org/index.php";
 	private const string EXHENTAI_IMAGE_LOOKUP_URI = "https://exhentai.org/upld/image_lookup.php";
@@ -30,7 +32,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IParse<INode>
 
 	public CookieJar Cookies { get; }
 
-	public override SearchEngineOptions EngineOption => default;
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
 	public override void Dispose() { }
 
@@ -44,13 +46,14 @@ public sealed class EHentaiEngine : BaseSearchEngine, IParse<INode>
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	public async Task<SearchResult> SearchImage(Stream s)
-	{
-		var sr = new SearchResult(this);
+	#region Implementation of IWebContentEngine<INode>
 
+	public async Task<IDocument> ParseDocumentAsync(object origin, CancellationToken token, SearchQuery q,
+	                                                TimeSpan? timeout = null)
+	{
 		var data = new MultipartFormDataContent()
 		{
-			{ new StreamContent(s), "sfile", "a.jpg" },
+			{ new StreamContent((Stream) q.Uni.Stream), "sfile", "a.jpg" },
 			{ new StringContent("fs_similar") },
 			{ new StringContent("fs_covers") },
 			{ new StringContent("fs_exp") },
@@ -86,14 +89,15 @@ public sealed class EHentaiEngine : BaseSearchEngine, IParse<INode>
 
 		using var clientHandler = new HttpClientHandler
 		{
-			AllowAutoRedirect              = true,
-			MaxAutomaticRedirections       = 15,
+			AllowAutoRedirect = true,
+			MaxAutomaticRedirections = 15,
 			CheckCertificateRevocationList = false,
-			UseCookies                     = true,
-			CookieContainer                = new() { },
+			UseCookies = true,
+			CookieContainer = new() { },
 		};
 
-		foreach (var c in Cookies) {
+		foreach (var c in Cookies)
+		{
 			clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
 		}
 
@@ -105,17 +109,24 @@ public sealed class EHentaiEngine : BaseSearchEngine, IParse<INode>
 			Headers =
 			{
 				{ "User-Agent", HttpUtilities.UserAgent }
-			}
+			},
 		};
 
 		var res = await cl.SendAsync(req);
 
 		var content = await res.Content.ReadAsStringAsync();
 
-		return sr;
+		if (content.Contains("Please wait a bit longer between each file search.")) {
+			Debug.WriteLine($"cooldown",Name);
+			return null;
+		}
+		var parser = new HtmlParser();
+		return await parser.ParseDocumentAsync(content);
 	}
 
-	public async Task<IFlurlResponse> Auth()
+	#endregion
+
+	public async Task<IFlurlResponse> GetSession()
 	{
 		var res = await EXHENTAI_URI.WithCookies(Cookies)
 		                            .WithHeaders(new
@@ -158,36 +169,18 @@ public sealed class EHentaiEngine : BaseSearchEngine, IParse<INode>
 		return response;
 	}
 
-	#region Overrides of WebContentSearchEngine
-
-	public async Task<IEnumerable<INode>> GetItems(IDocument d)
-	{
-		return d.QuerySelectorAll(NodesSelector);
-	}
-
-	#region Implementation of IParse<INode>
-
-	public string NodesSelector => ".gl1t";
-
-	#endregion
-
-	#endregion
-
-	#region Implementation of IParse<INode>
+	public string NodesSelector => "//div[@class='gl1t']";
 
 	public async Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
 	{
-		var e    =n.FirstChild as IHtmlElement;
-		var attr =e.GetAttribute("a");
+		var e    = n.FirstChild as IHtmlElement;
+		var attr = e.GetAttribute("a");
 		var t    = e.FirstChild.TextContent;
 
 		return new SearchResultItem(r)
 		{
 			Title = t,
-			Url = attr
+			Url   = attr
 		};
 	}
-
-	#endregion
-
 }
