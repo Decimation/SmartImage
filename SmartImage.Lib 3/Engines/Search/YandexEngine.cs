@@ -12,7 +12,7 @@ using Kantan.Text;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class YandexEngine : WebContentSearchEngine
+public sealed class YandexEngine : BaseSearchEngine, IParse<INode>
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
@@ -22,7 +22,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	#region Overrides of WebContentSearchEngine
 
-	protected override string NodesSelector => "//a[contains(@class, 'Tags-Item')]";
+	public string NodesSelector => "//a[contains(@class, 'Tags-Item')]";
 
 	#endregion
 
@@ -120,7 +120,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		IDocument doc;
 
 		try {
-			doc = await ParseDocumentAsync(url, token.Value);
+			doc = await ((IParse<INode>)this).ParseDocumentAsync(url, token.Value);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
@@ -146,7 +146,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		 * Find and sort through high resolution image matches
 		 */
 
-		foreach (var node in await GetNodesAsync(doc)) {
+		foreach (var node in await ((IParse<INode>)this).GetItems(doc)) {
 			var sri = await ParseResultItemAsync(node, sr);
 
 			if (sri != null) {
@@ -185,11 +185,11 @@ public sealed class YandexEngine : WebContentSearchEngine
 
 	#region Overrides of WebContentSearchEngine
 
-	protected override async Task<List<INode>> GetNodesAsync(IDocument doc)
+	public async Task<IEnumerable<INode>> GetItems(IDocument doc)
 	{
-		var tagsItem = await base.GetNodesAsync(doc);
+		var tagsItem = doc.Body.SelectNodes(NodesSelector);
 
-		if (tagsItem is { Count: 0 }) {
+		if (!tagsItem.Any()) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
 			return await Task.FromResult(tagsItem);
 			// return tagsItem;
@@ -202,7 +202,7 @@ public sealed class YandexEngine : WebContentSearchEngine
 		// return sizeTags;
 	}
 
-	protected override Task<SearchResultItem> ParseResultItemAsync(INode siz, SearchResult r)
+	public Task<SearchResultItem> ParseResultItemAsync(INode siz, SearchResult r)
 	{
 		string link = siz.TryGetAttribute(Resources.Atr_href);
 

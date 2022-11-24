@@ -5,6 +5,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using Flurl;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -15,10 +16,8 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class EHentaiEngine : WebContentSearchEngine
+public sealed class EHentaiEngine : BaseSearchEngine, IParse<INode>
 {
-	public CookieJar Cookies { get; private set; }
-
 	private const string EHENTAI_INDEX_URI         = "https://forums.e-hentai.org/index.php";
 	private const string EXHENTAI_IMAGE_LOOKUP_URI = "https://exhentai.org/upld/image_lookup.php";
 	private const string EXHENTAI_URI              = "https://exhentai.org/";
@@ -28,6 +27,8 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 	{
 		Cookies = new CookieJar();
 	}
+
+	public CookieJar Cookies { get; }
 
 	public override SearchEngineOptions EngineOption => default;
 
@@ -82,6 +83,7 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 		// var flurl = FlurlHttp.GlobalSettings.HttpClientFactory;
 		// var mh   = flurl.CreateMessageHandler();
 		// var cl    = flurl.CreateHttpClient(mh);
+
 		using var clientHandler = new HttpClientHandler
 		{
 			AllowAutoRedirect              = true,
@@ -115,8 +117,13 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 
 	public async Task<IFlurlResponse> Auth()
 	{
-		var res = await EXHENTAI_URI.WithCookies(Cookies).WithHeaders(new { User_Agent = HttpUtilities.UserAgent })
-		                            .WithAutoRedirect(true).GetAsync();
+		var res = await EXHENTAI_URI.WithCookies(Cookies)
+		                            .WithHeaders(new
+		                            {
+			                            User_Agent = HttpUtilities.UserAgent
+		                            })
+		                            .WithAutoRedirect(true)
+		                            .GetAsync();
 		return res;
 	}
 
@@ -132,34 +139,55 @@ public sealed class EHentaiEngine : WebContentSearchEngine
 			{ new StringContent("Login!"), "ipb_login_submit" }
 		};
 
-		var u = await EHENTAI_INDEX_URI
-		              .SetQueryParams(new
-		              {
-			              act  = "Login",
-			              CODE = 01
-		              }).WithHeaders(new
-		              {
-			              User_Agent = HttpUtilities.UserAgent
-		              })
-		              .WithCookies(out var cj)
-		              .PostAsync(content);
+		var response = await EHENTAI_INDEX_URI
+		                     .SetQueryParams(new
+		                     {
+			                     act  = "Login",
+			                     CODE = 01
+		                     }).WithHeaders(new
+		                     {
+			                     User_Agent = HttpUtilities.UserAgent
+		                     })
+		                     .WithCookies(out var cj)
+		                     .PostAsync(content);
 
 		foreach (FlurlCookie fc in cj) {
 			Cookies.AddOrReplace(fc);
 		}
 
-		return u;
+		return response;
 	}
 
 	#region Overrides of WebContentSearchEngine
 
-	protected override string NodesSelector => ".gl1t";
-
-	protected override async Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
+	public async Task<IEnumerable<INode>> GetItems(IDocument d)
 	{
+		return d.QuerySelectorAll(NodesSelector);
+	}
 
-		return default;
+	#region Implementation of IParse<INode>
+
+	public string NodesSelector => ".gl1t";
+
+	#endregion
+
+	#endregion
+
+	#region Implementation of IParse<INode>
+
+	public async Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
+	{
+		var e    =n.FirstChild as IHtmlElement;
+		var attr =e.GetAttribute("a");
+		var t    = e.FirstChild.TextContent;
+
+		return new SearchResultItem(r)
+		{
+			Title = t,
+			Url = attr
+		};
 	}
 
 	#endregion
+
 }

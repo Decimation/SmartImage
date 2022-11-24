@@ -42,11 +42,10 @@ public static class Program
 		var e = new EHentaiEngine();
 		await e.Login("", "");
 
-		var f  =("C:\\Users\\Deci\\Pictures\\Art\\2020_08_2B_Nier_Automata_1_03c.jpg");
+		var f  = ("C:\\Users\\Deci\\Pictures\\Art\\2020_08_2B_Nier_Automata_1_03c.jpg");
 		var f1 = new FileInfo(f);
 
-		foreach (FlurlCookie flurlCookie in e.Cookies)
-		{
+		foreach (FlurlCookie flurlCookie in e.Cookies) {
 			Console.WriteLine($"{flurlCookie.Name} {flurlCookie.Value}");
 		}
 
@@ -61,10 +60,11 @@ public static class Program
 		}5
 		 */
 		var r = await e.Auth();
-		foreach (FlurlCookie flurlCookie in e.Cookies)
-		{
+
+		foreach (FlurlCookie flurlCookie in e.Cookies) {
 			Console.WriteLine($"{flurlCookie.Name} {flurlCookie.Value}");
 		}
+
 		var x = await e.SearchImage(f1.OpenRead());
 	}
 
@@ -73,7 +73,7 @@ public static class Program
 		var e = new EHentaiEngine();
 
 		FileInfo f1 = new FileInfo(f);
-		
+
 	}
 
 	static async Task<IFlurlResponse> send()

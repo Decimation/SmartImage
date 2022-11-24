@@ -14,7 +14,7 @@ using Kantan.Net.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class Ascii2DEngine : WebContentSearchEngine
+public sealed class Ascii2DEngine : BaseSearchEngine, IParse<INode>
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
@@ -22,7 +22,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 		MaxSize = 5 * 1000 * 1000;
 	}
 
-	protected override string NodesSelector => "//*[contains(@class, 'info-box')]";
+	public string NodesSelector => "//*[contains(@class, 'info-box')]";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
@@ -53,7 +53,7 @@ public sealed class Ascii2DEngine : WebContentSearchEngine
 
 	public override void Dispose() { }
 
-	protected override Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
+	public Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
 

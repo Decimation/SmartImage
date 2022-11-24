@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using AngleSharp.Dom;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.Utilities;
@@ -54,8 +55,8 @@ public abstract class BaseSearchEngine : IDisposable
 			return false;
 		}
 
-		bool  b =q.LoadImage(), b2;
-		
+		bool b = q.LoadImage(), b2;
+
 		if (b && OperatingSystem.IsWindows()) {
 			b = VerifyImage(q.Image);
 		}
@@ -76,6 +77,8 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		token ??= CancellationToken.None;
+
 		bool b = Verify(query);
 
 		var res = new SearchResult(this)
@@ -85,6 +88,36 @@ public abstract class BaseSearchEngine : IDisposable
 		};
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
+
+		if (this is IParse<INode> { } p) {
+			IDocument doc = await p.ParseDocumentAsync(res.RawUrl, token.Value);
+
+			if (doc is not { }) {
+				res.Status = SearchResultStatus.Failure;
+				goto ret;
+			}
+
+			var nodes = await p.GetItems(doc);
+
+			foreach (INode node in nodes) {
+				if (token.Value.IsCancellationRequested) {
+					break;
+				}
+
+				var sri = await p.ParseResultItemAsync(node, res);
+
+				if (SearchResultItem.Validate(sri)) {
+					res.Results.Add(sri);
+				}
+			}
+
+			Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Count()}", nameof(GetResultAsync));
+
+			ret:
+			res.Update();
+			return res;
+
+		}
 
 		return res;
 	}
