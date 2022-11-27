@@ -1,3 +1,0 @@
-F1,Show filtered results
-F5,Refresh
-F10,Keep on top

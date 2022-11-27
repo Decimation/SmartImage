@@ -1,4 +1,0 @@
-Ctrl,Load direct
-Alt,Show other
-Shift,Open raw
-Alt+Ctrl,Download
