@@ -327,25 +327,7 @@ public sealed partial class GuiMain : IDisposable
 		Btn_Cancel.Clicked       += Cancel_Clicked;
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
-
-		Tf_Input.TextChanging += async (tc) =>
-		{
-			Debug.WriteLine($"testing {tc.NewText}");
-
-			if (SearchQuery.IsUriOrFile(tc.NewText.ToString())) {
-				var ok = await SetQuery(tc.NewText);
-				Btn_Run.Enabled = ok;
-				/*Btn_Cancel.Enabled = ok;
-				Tv_Results.Visible = ok;
-
-				if (!ok) {
-					return;
-				}
-
-				await RunMain();*/
-
-			}
-		};
+		Tf_Input.TextChanging    += Input_TextChanging;
 
 		Lbl_QueryUpload.Clicked += () =>
 		{

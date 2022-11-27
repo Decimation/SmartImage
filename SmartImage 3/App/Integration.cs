@@ -206,7 +206,6 @@ public static class Integration
 	{
 		get
 		{
-
 			if (OperatingSystem.IsWindows()) {
 				var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
 				return reg != null;

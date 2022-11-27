@@ -9,11 +9,13 @@ namespace SmartImage.Lib.Engines;
 
 public interface IWebContentEngine<TNode> where TNode : INode
 {
-	public async Task<IDocument> GetDocumentAsync(object origin2, CancellationToken token, SearchQuery query,
-	                                              TimeSpan? timeout = null)
+	public async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query,
+	                                              TimeSpan? timeout = null, CancellationToken? token = null)
 	{
-		var parser = new HtmlParser();
+		token   ??= CancellationToken.None;
 		timeout ??= Timeout.InfiniteTimeSpan;
+
+		var parser = new HtmlParser();
 
 		try {
 			if (origin2 is Url origin) {
@@ -29,11 +31,11 @@ public interface IWebContentEngine<TNode> where TNode : INode
 				                      {
 					                      s.ExceptionHandled = true;
 				                      })*/
-				                      .GetAsync(cancellationToken: token);
+				                      .GetAsync(cancellationToken: token.Value);
 
 				var str = await res.GetStringAsync();
 
-				var document = await parser.ParseDocumentAsync(str, token);
+				var document = await parser.ParseDocumentAsync(str, token.Value);
 
 				return document;
 
@@ -52,8 +54,8 @@ public interface IWebContentEngine<TNode> where TNode : INode
 
 	public Task<SearchResultItem> ParseNodeToItem(TNode n, SearchResult r);
 
-	public Task<IList<TNode>> GetNodes(IDocument d)
-		=> Task.FromResult((IList<TNode>) d.Body.SelectNodes(NodesSelector));
+	public Task<List<TNode>> GetNodes(IDocument d)
+		=> Task.FromResult((List<TNode>) (object) d.Body.SelectNodes(NodesSelector));
 
 	public string NodesSelector { get; }
 }

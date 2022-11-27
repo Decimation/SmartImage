@@ -378,13 +378,17 @@ public sealed partial class GuiMain
 	/// </summary>
 	private void Browse_Clicked()
 	{
-		Tf_Input.DeleteAll();
 		Integration.KeepOnTop(false);
 		var f = Integration.OpenFile();
-		Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
+
+		if (!string.IsNullOrWhiteSpace(f)) {
+			Tf_Input.DeleteAll();
+			Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
+			SetInputText(f);
+			Btn_Run.SetFocus();
+
+		}
 		Integration.KeepOnTop(Client.Config.OnTop);
-		SetInputText(f);
-		Btn_Run.SetFocus();
 	}
 
 	/// <summary>
@@ -439,7 +443,7 @@ public sealed partial class GuiMain
 
 		Query = SearchQuery.Null;
 		IsReady.Reset();
-		ResultCount         = 0;
+		ResultCount = 0;
 
 		Pbr_Status.Fraction = 0;
 
@@ -452,5 +456,17 @@ public sealed partial class GuiMain
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 		Btn_Cancel.Enabled = false;
+	}
+
+	private async void Input_TextChanging(TextChangingEventArgs tc)
+	{
+		var text = tc.NewText;
+
+		Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
+
+		if (SearchQuery.IsUriOrFile(text.ToString())) {
+			var ok = await SetQuery(text);
+			Btn_Run.Enabled = ok;
+		}
 	}
 }

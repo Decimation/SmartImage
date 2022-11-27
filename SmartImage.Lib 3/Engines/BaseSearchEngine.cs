@@ -90,7 +90,7 @@ public abstract class BaseSearchEngine : IDisposable
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
 
 		if (this is IWebContentEngine<INode> { } p) {
-			IDocument doc = await p.GetDocumentAsync(res.RawUrl, token.Value, query: query);
+			IDocument doc = await p.GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
 
 			if (doc is not { }) {
 				res.Status = SearchResultStatus.Failure;

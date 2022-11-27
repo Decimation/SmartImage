@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using AngleSharp.XPath;
 using Flurl;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -46,14 +47,13 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	#region Implementation of IWebContentEngine<INode>
-
-	public async Task<IDocument> GetDocumentAsync(object origin, CancellationToken token, SearchQuery query,
-	                                              TimeSpan? timeout = null)
+	public async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query,
+	                                              TimeSpan? timeout = null, CancellationToken? token = null)
 	{
 		var data = new MultipartFormDataContent()
 		{
-			{ new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
+			{ new FileContent(query.Uni.Value), "sfile", "a.jpg" },
+			// { new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
 			{ new StringContent("fs_similar") },
 			{ new StringContent("fs_covers") },
 			{ new StringContent("fs_exp") },
@@ -89,15 +89,14 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 		using var clientHandler = new HttpClientHandler
 		{
-			AllowAutoRedirect = true,
-			MaxAutomaticRedirections = 15,
+			AllowAutoRedirect              = true,
+			MaxAutomaticRedirections       = 15,
 			CheckCertificateRevocationList = false,
-			UseCookies = true,
-			CookieContainer = new() { },
+			UseCookies                     = true,
+			CookieContainer                = new() { },
 		};
 
-		foreach (var c in Cookies)
-		{
+		foreach (var c in Cookies) {
 			clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
 		}
 
@@ -117,14 +116,13 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 		var content = await res.Content.ReadAsStringAsync();
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
-			Debug.WriteLine($"cooldown",Name);
+			Debug.WriteLine($"cooldown", Name);
 			return null;
 		}
+
 		var parser = new HtmlParser();
 		return await parser.ParseDocumentAsync(content);
 	}
-
-	#endregion
 
 	public async Task<IFlurlResponse> GetSessionAsync()
 	{
@@ -170,6 +168,13 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 	}
 
 	public string NodesSelector => "//div[@class='gl1t']";
+
+	public Task<List<INode>> GetNodes(IDocument d)
+	{
+		var where = d.All.Where(e => e.ClassName == "gl1t");
+		return Task.FromResult(where.Cast<INode>().ToList());
+		// return  Task.FromResult(d.Body.SelectNodes(NodesSelector));
+	}
 
 	public async Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{

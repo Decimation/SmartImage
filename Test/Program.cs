@@ -40,7 +40,7 @@ public static class Program
 	{
 
 		var e = new EHentaiEngine();
-		await e.LoginAsync("", "");
+		await e.LoginAsync("Decimation001x", "minecraft!");
 
 		var f  = ("C:\\Users\\Deci\\Pictures\\Art\\2020_08_2B_Nier_Automata_1_03c.jpg");
 		var f1 = new FileInfo(f);
@@ -65,7 +65,9 @@ public static class Program
 			Console.WriteLine($"{flurlCookie.Name} {flurlCookie.Value}");
 		}
 
-		var x = await e.GetResultAsync(await SearchQuery.TryCreateAsync(f));
+		var query = await SearchQuery.TryCreateAsync(f);
+		await query.UploadAsync();
+		var x              = await e.GetResultAsync(query);
 		Console.WriteLine(x);
 
 		foreach (var v in x.Results) {

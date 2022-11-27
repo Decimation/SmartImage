@@ -120,7 +120,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 		IDocument doc;
 
 		try {
-			doc = await ((IWebContentEngine<INode>)this).GetDocumentAsync(url, token.Value, query: query);
+			doc = await ((IWebContentEngine<INode>)this).GetDocumentAsync(url, query: query, token: token.Value);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
