@@ -48,12 +48,12 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 	#region Implementation of IWebContentEngine<INode>
 
-	public async Task<IDocument> ParseDocumentAsync(object origin, CancellationToken token, SearchQuery q,
-	                                                TimeSpan? timeout = null)
+	public async Task<IDocument> GetDocumentAsync(object origin, CancellationToken token, SearchQuery query,
+	                                              TimeSpan? timeout = null)
 	{
 		var data = new MultipartFormDataContent()
 		{
-			{ new StreamContent((Stream) q.Uni.Stream), "sfile", "a.jpg" },
+			{ new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
 			{ new StringContent("fs_similar") },
 			{ new StringContent("fs_covers") },
 			{ new StringContent("fs_exp") },
@@ -126,7 +126,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 	#endregion
 
-	public async Task<IFlurlResponse> GetSession()
+	public async Task<IFlurlResponse> GetSessionAsync()
 	{
 		var res = await EXHENTAI_URI.WithCookies(Cookies)
 		                            .WithHeaders(new
@@ -138,7 +138,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 		return res;
 	}
 
-	public async Task<IFlurlResponse> Login(string username, string password)
+	public async Task<IFlurlResponse> LoginAsync(string username, string password)
 	{
 		var content = new MultipartFormDataContent()
 		{
@@ -171,7 +171,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 	public string NodesSelector => "//div[@class='gl1t']";
 
-	public async Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
+	public async Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
 		var e    = n.FirstChild as IHtmlElement;
 		var attr = e.GetAttribute("a");

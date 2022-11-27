@@ -120,7 +120,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 		IDocument doc;
 
 		try {
-			doc = await ((IWebContentEngine<INode>)this).ParseDocumentAsync(url, token.Value, q: query);
+			doc = await ((IWebContentEngine<INode>)this).GetDocumentAsync(url, token.Value, query: query);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
@@ -146,8 +146,8 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 		 * Find and sort through high resolution image matches
 		 */
 
-		foreach (var node in await ((IWebContentEngine<INode>)this).GetItems(doc)) {
-			var sri = await ParseResultItemAsync(node, sr);
+		foreach (var node in await ((IWebContentEngine<INode>)this).GetNodes(doc)) {
+			var sri = await ParseNodeToItem(node, sr);
 
 			if (sri != null) {
 				sr.Results.Add(sri);
@@ -202,7 +202,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 		// return sizeTags;
 	}
 
-	public Task<SearchResultItem> ParseResultItemAsync(INode siz, SearchResult r)
+	public Task<SearchResultItem> ParseNodeToItem(INode siz, SearchResult r)
 	{
 		string link = siz.TryGetAttribute(Resources.Atr_href);
 

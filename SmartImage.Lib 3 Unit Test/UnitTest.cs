@@ -52,7 +52,8 @@ public class UnitTest
 
 	public static object[] _rg3 =
 	{
-		@"https://imgur.com/QtCausw"
+		@"https://imgur.com/QtCausw",
+		@"https://i.redd.it/9h88i5kue9z31.jpg"
 	};
 
 	[Test]
@@ -105,17 +106,12 @@ public class UnitTest
 		var se = new Ascii2DEngine();
 
 		SearchResult r = null;
-		if (s == (string) _rg[^1]) {
-			Assert.CatchAsync<ArgumentException>(async ()=> await se.GetResultAsync(sq));
-			Assert.Pass();
-		}
-		else {
-			Assert.DoesNotThrowAsync(async() =>
-			{
-				r = await se.GetResultAsync(sq);
 
-			});
-		}
+		Assert.DoesNotThrowAsync(async () =>
+		{
+			r = await se.GetResultAsync(sq);
+
+		});
 
 		if (r.Status == SearchResultStatus.IllegalInput) {
 			Assert.Inconclusive();

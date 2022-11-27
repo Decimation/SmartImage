@@ -63,7 +63,7 @@ public static class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 
-		ToastNotificationManagerCompat.OnActivated += AppToast.OnActivated;
+		ToastNotificationManagerCompat.OnActivated += ToastNotification.OnActivated;
 
 #if TEST
 		// args = new String[] { null };

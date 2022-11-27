@@ -53,7 +53,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 	public override void Dispose() { }
 
-	public Task<SearchResultItem> ParseResultItemAsync(INode n, SearchResult r)
+	public Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
 

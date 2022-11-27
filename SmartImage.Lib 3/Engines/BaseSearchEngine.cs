@@ -90,21 +90,21 @@ public abstract class BaseSearchEngine : IDisposable
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
 
 		if (this is IWebContentEngine<INode> { } p) {
-			IDocument doc = await p.ParseDocumentAsync(res.RawUrl, token.Value, q: query);
+			IDocument doc = await p.GetDocumentAsync(res.RawUrl, token.Value, query: query);
 
 			if (doc is not { }) {
 				res.Status = SearchResultStatus.Failure;
 				goto ret;
 			}
 
-			var nodes = (await p.GetItems(doc)).ToArray();
+			var nodes = (await p.GetNodes(doc)).ToArray();
 
 			foreach (INode node in nodes) {
 				if (token.Value.IsCancellationRequested) {
 					break;
 				}
 
-				var sri = await p.ParseResultItemAsync(node, res);
+				var sri = await p.ParseNodeToItem(node, res);
 
 				if (SearchResultItem.Validate(sri)) {
 					res.Results.Add(sri);
@@ -117,7 +117,6 @@ public abstract class BaseSearchEngine : IDisposable
 			ret:
 			res.Update();
 			return res;
-
 		}
 
 		return res;

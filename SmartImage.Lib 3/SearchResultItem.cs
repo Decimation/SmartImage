@@ -84,14 +84,18 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public int Score { get; private set; }
 
-	private bool    m_isScored;
-	public  UniFile Uni { get; private set; }
+	private bool m_isScored;
+
+	private bool m_uniAllocated;
+
+	public UniFile Uni { get; private set; }
 
 	internal SearchResultItem(SearchResult r)
 	{
-		Root       = r;
-		Metadata   = new ExpandoObject();
-		m_isScored = false;
+		Root           = r;
+		Metadata       = new ExpandoObject();
+		m_isScored     = false;
+		m_uniAllocated = false;
 	}
 
 	public static bool Validate([CBN] SearchResultItem r)
@@ -130,21 +134,32 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 			_             => 0
 		};
 
+		if (Uni is { }) {
+			Score++;
+		}
+
 		m_isScored = true;
 	}
 
-	public const int MAX_SCORE = 12;
+	public const int MAX_SCORE = 13;
 
 	public const int SCORE_THRESHOLD = MAX_SCORE / 2;
 
 	public void Dispose()
 	{
 		Uni?.Dispose();
+		m_uniAllocated = false;
 	}
 
 	public async Task<UniFile> GetUniAsync()
 	{
+		if (m_uniAllocated) {
+			return Uni;
+		}
+
 		var uni = await UniFile.TryGetAsync(Url, whitelist: FileType.Image);
+		m_uniAllocated = true;
+
 		return Uni = uni;
 	}
 

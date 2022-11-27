@@ -442,7 +442,7 @@ public sealed partial class GuiMain : IDisposable
 		var u  = m_results.SelectMany(r => r.Results).ToArray();
 		var di = (await SearchClient.GetDirectImagesAsync(u)).ToArray();
 
-		await AppToast.ShowAsync(sender, di);
+		await ToastNotification.ShowAsync(sender, di);
 
 		foreach (UniFile uniFile in di) {
 			uniFile.Dispose();
@@ -576,7 +576,8 @@ public sealed partial class GuiMain : IDisposable
 		Lbl_InputInfo.Text = $"{sq}";
 
 		IsReady.Set();
-		Btn_Run.Enabled = false;
+		Btn_Run.Enabled     = false;
+		Pbr_Status.Fraction = 0;
 
 		return true;
 	}

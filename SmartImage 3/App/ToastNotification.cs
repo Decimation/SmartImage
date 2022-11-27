@@ -19,9 +19,8 @@ using SmartImage.Lib;
 namespace SmartImage.App;
 
 // ReSharper disable PossibleNullReferenceException
-
 [SupportedOSPlatform(WIN_VER)]
-internal static class AppToast
+internal static class ToastNotification
 {
 	public const string WIN_VER = "windows10.0.10240.0";
 
@@ -40,7 +39,7 @@ internal static class AppToast
 		// builder.AddText($"{sender}");
 
 		if (args.Any()) {
-			
+
 			var result = args.First();
 
 			string url = result.Value;
@@ -55,7 +54,7 @@ internal static class AppToast
 			builder.AddButton(button);
 		}
 
-		builder .AddButton(button2);
+		builder.AddButton(button2);
 
 		builder.SetBackgroundActivation();
 		builder.Show();
@@ -65,6 +64,7 @@ internal static class AppToast
 	private static async Task AddImageAsync(ToastContentBuilder builder, UniFile uf)
 	{
 		var file = await uf.DownloadAsync();
+		Debug.WriteLine($"{uf.Value} {file} {uf.Stream.Length}");
 
 		builder.AddHeroImage(new Uri(file));
 
@@ -106,8 +106,7 @@ internal static class AppToast
 			return;
 		}
 	}
-
-	[method: SupportedOSPlatform(WIN_VER)]
+	
 	private static async void RegisterBackgroundAsync()
 	{
 		const string taskName = "ToastBackgroundTask";

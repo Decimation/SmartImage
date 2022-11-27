@@ -7,17 +7,16 @@ using Kantan.Net.Utilities;
 
 namespace SmartImage.Lib.Engines;
 
-public interface IWebContentEngine<T> where T : INode
+public interface IWebContentEngine<TNode> where TNode : INode
 {
-
-	public async Task<IDocument> ParseDocumentAsync(object origin1, CancellationToken token, SearchQuery q,
-	                                                TimeSpan? timeout = null)
+	public async Task<IDocument> GetDocumentAsync(object origin2, CancellationToken token, SearchQuery query,
+	                                              TimeSpan? timeout = null)
 	{
 		var parser = new HtmlParser();
 		timeout ??= Timeout.InfiniteTimeSpan;
 
 		try {
-			if (origin1 is Url origin) {
+			if (origin2 is Url origin) {
 				var res = await origin.AllowAnyHttpStatus()
 				                      .WithCookies(out var cj)
 				                      .WithTimeout(timeout.Value)
@@ -27,9 +26,9 @@ public interface IWebContentEngine<T> where T : INode
 				                      })
 				                      /*.WithAutoRedirect(true)*/
 				                      /*.OnError(s =>
-			                      {
-				                      s.ExceptionHandled = true;
-			                      })*/
+				                      {
+					                      s.ExceptionHandled = true;
+				                      })*/
 				                      .GetAsync(cancellationToken: token);
 
 				var str = await res.GetStringAsync();
@@ -45,16 +44,16 @@ public interface IWebContentEngine<T> where T : INode
 		}
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
-			Debug.WriteLine($"{this} :: {e.Message}", nameof(ParseDocumentAsync));
+			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
 
 			return null;
 		}
 	}
 
-	public Task<SearchResultItem> ParseResultItemAsync(T n, SearchResult r);
+	public Task<SearchResultItem> ParseNodeToItem(TNode n, SearchResult r);
 
-	public Task<IList<T>> GetItems(IDocument d)
-		=> Task.FromResult((IList<T>) d.Body.SelectNodes(NodesSelector));
+	public Task<IList<TNode>> GetNodes(IDocument d)
+		=> Task.FromResult((IList<TNode>) d.Body.SelectNodes(NodesSelector));
 
 	public string NodesSelector { get; }
 }
