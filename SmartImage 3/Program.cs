@@ -10,6 +10,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
 using System.Text;
+// using Windows.UI.Notifications;
+// using CommunityToolkit.WinUI.Notifications;
 using Flurl.Http;
 using Kantan.Console;
 using Kantan.Net.Utilities;
@@ -17,7 +19,6 @@ using Kantan.Text;
 using Microsoft.Extensions.Hosting;
 using Rune = System.Text.Rune;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Toolkit.Uwp.Notifications;
 using Novus;
 using Novus.FileTypes;
 using Novus.Win32;
@@ -63,7 +64,7 @@ public static class Program
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 
-		ToastNotificationManagerCompat.OnActivated += ToastNotification.OnActivated;
+		// ToastNotificationManagerCompat.OnActivated += AppNotification.OnActivated;
 
 #if TEST
 		// args = new String[] { null };

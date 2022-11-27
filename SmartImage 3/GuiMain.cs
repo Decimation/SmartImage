@@ -247,10 +247,6 @@ public sealed partial class GuiMain : IDisposable
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
 
-		if (ConsoleUtil._isWin) {
-			Client.OnComplete += async (o, r) => await OnCompleteWin(o);
-		}
-
 		// Application.Init();
 
 		ProcessArgs();
@@ -412,14 +408,13 @@ public sealed partial class GuiMain : IDisposable
 
 	}
 
-	private void OnComplete(object sender, List<SearchResult> results)
+	private async void OnComplete(object sender, List<SearchResult> results)
 	{
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
-
+		await OnCompleteWin(sender);
 	}
-
-	[SupportedOSPlatform(Global.OS_WIN)]
+	
 	private async Task OnCompleteWin(object sender)
 	{
 		m_sndHint.Play();
@@ -428,7 +423,7 @@ public sealed partial class GuiMain : IDisposable
 		var u  = m_results.SelectMany(r => r.Results).ToArray();
 		var di = (await SearchClient.GetDirectImagesAsync(u)).ToArray();
 
-		await ToastNotification.ShowAsync(sender, di);
+		// await AppNotification.ShowAsync(sender, di);
 
 		foreach (UniFile uniFile in di) {
 			uniFile.Dispose();

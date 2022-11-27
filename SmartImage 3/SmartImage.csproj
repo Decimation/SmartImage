@@ -2,9 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <!-- <TargetFramework>net7.0</TargetFramework> -->
+    <TargetFramework>net7.0</TargetFramework>
     <!-- <RuntimeIdentifier>win10-x64</RuntimeIdentifier> -->
-    <TargetFramework>net7.0-windows10.0.22000.0</TargetFramework>
+    <!-- <TargetFramework>net7.0-windows10.0.22000.0</TargetFramework> -->
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <RootNamespace>SmartImage</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
@@ -31,18 +31,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
-    <TargetFramework>net7.0-windows10.0.22000.0</TargetFramework>
-    <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
-    <PublishSingleFile>true</PublishSingleFile>
-    <PublishTrimmed>true</PublishTrimmed>
-
-    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Platform)'=='Windows'">
-
-    <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
-    <TargetFramework>net7.0-windows10.0.22000.0</TargetFramework>
+    <!-- <TargetFramework>net7.0-windows10.0.22000.0</TargetFramework> -->
+    <TargetFramework>net7.0</TargetFramework>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
@@ -50,8 +40,6 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CommunityToolkit.Common" Version="8.0.0" />
-    <PackageReference Include="CommunityToolkit.WinUI.Notifications" Version="7.1.2" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
@@ -60,7 +48,7 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />

@@ -6,23 +6,25 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.Versioning;
-using Windows.ApplicationModel.Background;
+// using Windows.ApplicationModel.Background;
+// using Windows.UI.Notifications;
 using Flurl.Http;
 using Kantan.Net;
 using Kantan.Net.Utilities;
-using Microsoft.Toolkit.Uwp;
-using Microsoft.Toolkit.Uwp.Notifications;
 using Novus;
 using Novus.FileTypes;
 using SmartImage.Lib;
+// using Windows.UI.Notifications;
+// using CommunityToolkit.WinUI.Notifications;
 
 namespace SmartImage.App;
 
 // ReSharper disable PossibleNullReferenceException
-[SupportedOSPlatform(WIN_VER)]
-internal static class ToastNotification
+// [SupportedOSPlatform(WIN_VER)]
+/*
+internal static class AppNotification
 {
-	public const string WIN_VER = "windows10.0.10240.0";
+	// public const string WIN_VER = "windows10.0.10240.0";
 
 	internal static async Task ShowAsync(object sender, UniFile[] args)
 	{
@@ -58,15 +60,54 @@ internal static class ToastNotification
 
 		builder.SetBackgroundActivation();
 		builder.Show();
+	}
+	public static void SendUpdatableToastWithProgress()
+	{
+		// Define a tag (and optionally a group) to uniquely identify the notification, in order update the notification data later;
+		string tag   = "weekly-playlist";
+		string group = "downloads";
 
+		// Construct the toast content with data bound fields
+		var content = new ToastContentBuilder()
+		              .AddText("Downloading your weekly playlist...")
+		              .AddVisualChild(new AdaptiveProgressBar()
+		              {
+			              Title               = "Weekly playlist",
+			              Value               = new BindableProgressBarValue("progressValue"),
+			              ValueStringOverride = new BindableString("progressValueString"),
+			              Status              = new BindableString("progressStatus")
+		              })
+		              .GetToastContent();
+
+		// Generate the toast notification
+		var toast = new ToastNotification(content.GetXml());
+
+		// Assign the tag and group
+		toast.Tag   = tag;
+		toast.Group = group;
+
+		// Assign initial NotificationData values
+		// Values must be of type string
+		toast.Data                               = new NotificationData();
+		toast.Data.Values["progressValue"]       = "0.6";
+		toast.Data.Values["progressValueString"] = "15/26 songs";
+		toast.Data.Values["progressStatus"]      = "Downloading...";
+
+		// Provide sequence number to prevent out-of-order updates, or assign 0 to indicate "always update"
+		toast.Data.SequenceNumber = 1;
+		
+		// Show the toast notification to the user
+		ToastNotificationManager.CreateToastNotifier().Show(toast);
 	}
 
 	private static async Task AddImageAsync(ToastContentBuilder builder, UniFile uf)
 	{
 		var file = await uf.DownloadAsync();
+		File.Move(file, file+".jpg");
+		file += file + ".jpg";
 		Debug.WriteLine($"{uf.Value} {file} {uf.Stream.Length}");
 
-		builder.AddHeroImage(new Uri(file));
+		builder.AddHeroImage(new Uri(uf.Value));
 
 		AppDomain.CurrentDomain.ProcessExit += (_, _) =>
 		{
@@ -135,4 +176,4 @@ internal static class ToastNotification
 
 	private const string ARG_KEY_ACTION    = "action";
 	private const string ARG_VALUE_DISMISS = "dismiss";
-}
+}*/
