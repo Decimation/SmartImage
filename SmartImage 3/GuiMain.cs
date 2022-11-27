@@ -247,6 +247,10 @@ public sealed partial class GuiMain : IDisposable
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
 
+		if (OperatingSystem.IsWindows()) {
+			Client.OnComplete += OnCompleteWin;
+		}
+
 		// Application.Init();
 
 		ProcessArgs();
@@ -412,22 +416,21 @@ public sealed partial class GuiMain : IDisposable
 	{
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
-		await OnCompleteWin(sender);
 	}
 	
-	private async Task OnCompleteWin(object sender)
+	private async void OnCompleteWin(object sender, List<SearchResult> results)
 	{
 		m_sndHint.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
-		var u  = m_results.SelectMany(r => r.Results).ToArray();
+		/*var u  = m_results.SelectMany(r => r.Results).ToArray();
 		var di = (await SearchClient.GetDirectImagesAsync(u)).ToArray();
 
 		// await AppNotification.ShowAsync(sender, di);
 
 		foreach (UniFile uniFile in di) {
 			uniFile.Dispose();
-		}
+		}*/
 
 	}
 

@@ -151,14 +151,10 @@ public sealed class SearchClient : IDisposable
 		return di;
 	}
 
-	#region Implementation of IDisposable
-
 	public void Dispose()
 	{
 		foreach (var engine in Engines) {
 			engine.Dispose();
 		}
 	}
-
-	#endregion
 }

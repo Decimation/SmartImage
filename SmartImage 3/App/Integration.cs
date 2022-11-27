@@ -1,4 +1,7 @@
 ﻿#nullable disable
+
+#region
+
 using Kantan.Console;
 using Microsoft.Win32;
 using System;
@@ -21,13 +24,48 @@ using Terminal.Gui;
 using Command = Novus.OS.Command;
 using SmartImage.Shell;
 
+#endregion
+
 namespace SmartImage.App;
 
 /// <summary>
-/// Program OS integrations
+///     Program OS integrations
 /// </summary>
 public static class Integration
 {
+	public static string ExeLocation
+	{
+		get
+		{
+			var module = Process.GetCurrentProcess().MainModule;
+
+			// Require.NotNull(module);
+			Trace.Assert(module != null);
+			return module.FileName;
+		}
+	}
+
+	public static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
+
+	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
+
+	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(CurrentAppFolder);
+
+	public static bool IsOnTop { get; private set; }
+
+	public static bool IsContextMenuAdded
+	{
+		get
+		{
+			if (OperatingSystem.IsWindows()) {
+				var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
+				return reg != null;
+
+			}
+
+			return false;
+		}
+	}
 	/*
 	 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
 	 *		HKEY_CURRENT_USER\Software\Classes
@@ -102,24 +140,6 @@ public static class Integration
 
 	}
 
-	public static string ExeLocation
-	{
-		get
-		{
-			var module = Process.GetCurrentProcess().MainModule;
-
-			// Require.NotNull(module);
-			Trace.Assert(module != null);
-			return module.FileName;
-		}
-	}
-
-	public static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-
-	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
-
-	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(CurrentAppFolder);
-
 	public static void HandlePath(bool option)
 	{
 		switch (option) {
@@ -149,8 +169,6 @@ public static class Integration
 			case false:
 				FileSystem.RemoveFromPath(CurrentAppFolder);
 				break;
-			default:
-				throw new ArgumentOutOfRangeException(nameof(option), option, null);
 		}
 	}
 
@@ -196,22 +214,6 @@ public static class Integration
 		var proc = Command.Batch(commands, DEL_BAT_NAME);
 		proc.Start();
 
-	}
-
-	public static bool IsOnTop { get; private set; }
-
-	public static bool IsContextMenuAdded
-	{
-		get
-		{
-			if (OperatingSystem.IsWindows()) {
-				var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
-				return reg != null;
-
-			}
-
-			return false;
-		}
 	}
 
 	public static void KeepOnTop(bool add)
