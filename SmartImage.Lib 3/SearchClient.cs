@@ -34,9 +34,9 @@ public sealed class SearchClient : IDisposable
 
 	static SearchClient() { }
 
-	public delegate void ResultCompleteCallback(object sender,  SearchResult e);
+	public delegate void ResultCompleteCallback(object sender, SearchResult e);
 
-	public delegate void SearchCompleteCallback(object sender,  List<SearchResult> e);
+	public delegate void SearchCompleteCallback(object sender, List<SearchResult> e);
 
 	public ResultCompleteCallback OnResult { get; set; }
 
@@ -78,8 +78,8 @@ public sealed class SearchClient : IDisposable
 			}, TaskContinuationOptions.OnlyOnRanToCompletion);*/
 
 			var result = await task;
-			
-			OnResult?.Invoke(this,  result);
+
+			OnResult?.Invoke(this, result);
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
@@ -92,7 +92,7 @@ public sealed class SearchClient : IDisposable
 			tasks.Remove(task);
 		}
 
-		OnComplete?.Invoke(this,  results);
+		OnComplete?.Invoke(this, results);
 
 		IsComplete = true;
 
@@ -113,11 +113,7 @@ public sealed class SearchClient : IDisposable
 
 	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{
-		return sri.Where(r =>
-		          {
-			          var (isFile, isUri) = UniFile.IsUriOrFile(r.Url);
-			          return isFile || isUri;
-		          })
+		return sri.Where(r => SearchQuery.IsUriOrFile(r.Url))
 		          .OrderByDescending(r => r.Score)
 		          .ThenByDescending(r => r.Similarity);
 	}
@@ -127,9 +123,10 @@ public sealed class SearchClient : IDisposable
 		var filter = Optimize(sri)
 		             .DistinctBy(r => r.Url)
 		             // .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
-		             .Select(r =>
+		             .Select(async r =>
 		             {
-			             return r.GetUniAsync();
+			             bool b = await r.GetUniAsync();
+			             return r.Uni;
 		             })
 		             .ToList();
 

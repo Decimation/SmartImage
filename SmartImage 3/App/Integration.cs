@@ -50,12 +50,14 @@ public static class Integration
 					string fullPath = ExeLocation;
 
 					try {
-						regMenu = Registry.CurrentUser.CreateSubKey(REG_SHELL);
+						regMenu = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell);
 						regMenu?.SetValue(String.Empty, Resources.Name);
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
-						regCmd = Registry.CurrentUser.CreateSubKey(REG_SHELL_CMD);
-						regCmd?.SetValue(String.Empty, $"\"{fullPath}\" {Resources.Arg_Input} \"%1\" {R2.Arg_AutoSearch}");
+						regCmd = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell_Cmd);
+
+						regCmd?.SetValue(String.Empty,
+						                 $"\"{fullPath}\" {Resources.Arg_Input} \"%1\" {R2.Arg_AutoSearch}");
 					}
 					catch (Exception ex) {
 						Trace.WriteLine($"{ex.Message}");
@@ -70,18 +72,18 @@ public static class Integration
 				case false:
 
 					try {
-						var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
+						var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
 
 						if (reg != null) {
 							reg.Close();
-							Registry.CurrentUser.DeleteSubKey(REG_SHELL_CMD);
+							Registry.CurrentUser.DeleteSubKey(R1.Reg_Shell_Cmd);
 						}
 
-						reg = Registry.CurrentUser.OpenSubKey(REG_SHELL);
+						reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell);
 
 						if (reg != null) {
 							reg.Close();
-							Registry.CurrentUser.DeleteSubKey(REG_SHELL);
+							Registry.CurrentUser.DeleteSubKey(R1.Reg_Shell);
 						}
 					}
 					catch (Exception ex) {
@@ -196,10 +198,6 @@ public static class Integration
 
 	}
 
-	private const string REG_SHELL = @"SOFTWARE\Classes\*\shell\SmartImage";
-
-	private const string REG_SHELL_CMD = @"SOFTWARE\Classes\*\shell\SmartImage\command";
-
 	public static bool IsOnTop { get; private set; }
 
 	public static bool IsContextMenuAdded
@@ -207,7 +205,7 @@ public static class Integration
 		get
 		{
 			if (OperatingSystem.IsWindows()) {
-				var reg = Registry.CurrentUser.OpenSubKey(REG_SHELL_CMD);
+				var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
 				return reg != null;
 
 			}
@@ -249,8 +247,8 @@ public static class Integration
 	{
 		var ofn = new OPENFILENAME()
 		{
-			lStructSize     = Marshal.SizeOf<OPENFILENAME>(),
-			lpstrFilter     = "All Files\0*.*\0\0",
+			lStructSize = Marshal.SizeOf<OPENFILENAME>(),
+			lpstrFilter = "All Files\0*.*\0\0",
 
 			lpstrFile       = new string(stackalloc char[256]),
 			lpstrFileTitle  = new string(stackalloc char[64]),

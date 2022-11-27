@@ -79,6 +79,24 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SOFTWARE\Classes\*\shell\SmartImage.
+        /// </summary>
+        internal static string Reg_Shell {
+            get {
+                return ResourceManager.GetString("Reg_Shell", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SOFTWARE\Classes\*\shell\SmartImage\command.
+        /// </summary>
+        internal static string Reg_Shell_Cmd {
+            get {
+                return ResourceManager.GetString("Reg_Shell_Cmd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Auto-search.
         /// </summary>
         internal static string S_AutoSearch {

@@ -1,15 +1,25 @@
-﻿using System.Collections;
+﻿#region
+
+using System.Collections;
 using System.Dynamic;
 using Flurl;
 using Kantan.Model;
 using Novus.FileTypes;
 
+#endregion
+
 namespace SmartImage.Lib;
 
 public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
 {
+	private bool m_isScored;
+
+	public const int MAX_SCORE = 13;
+
+	public const int SCORE_THRESHOLD = MAX_SCORE / 2;
+
 	/// <summary>
-	/// Result containing this result item
+	///     Result containing this result item
 	/// </summary>
 	[NN]
 	public SearchResult Root { get; }
@@ -18,75 +28,71 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	public Url Url { get; internal set; }
 
 	/// <summary>
-	/// Title/caption of this result
+	///     Title/caption of this result
 	/// </summary>
 	[CBN]
 	public string Title { get; internal set; }
 
 	/// <summary>
-	/// Media source of this result (e.g., anime, movie, game, etc.)
+	///     Media source of this result (e.g., anime, movie, game, etc.)
 	/// </summary>
 	[CBN]
 	public string Source { get; internal set; }
 
 	/// <summary>
-	/// Image width
+	///     Image width
 	/// </summary>
 	public double? Width { get; internal set; }
 
 	/// <summary>
-	/// Image height
+	///     Image height
 	/// </summary>
 	public double? Height { get; internal set; }
 
 	/// <summary>
-	/// Artist or author
+	///     Artist or author
 	/// </summary>
 	[CBN]
 	public string Artist { get; internal set; }
 
 	/// <summary>
-	/// Image description
+	///     Image description
 	/// </summary>
 	[CBN]
 	public string Description { get; internal set; }
 
 	/// <summary>
-	/// Character(s) depicted in the image
+	///     Character(s) depicted in the image
 	/// </summary>
 	[CBN]
 	public string Character { get; internal set; }
 
 	/// <summary>
-	/// Site which returned this result
+	///     Site which returned this result
 	/// </summary>
 	[CBN]
 	public string Site { get; internal set; }
 
 	/// <summary>
-	/// Percent similarity to query (<see cref="SearchQuery"/>).
+	///     Percent similarity to query (<see cref="SearchQuery" />).
 	/// </summary>
 	/// <remarks>
-	/// The algorithm used to determine the similarity
-	/// may not be consistent across results.
+	///     The algorithm used to determine the similarity
+	///     may not be consistent across results.
 	/// </remarks>
 	public double? Similarity { get; internal set; }
 
 	/// <summary>
-	/// Timestamp of the image.
+	///     Timestamp of the image.
 	/// </summary>
 	public DateTime? Time { get; internal set; }
 
 	/// <summary>
-	/// Additional metadata.
+	///     Additional metadata.
 	/// </summary>
 	public dynamic Metadata { get; internal set; }
 
 	public int Score { get; private set; }
-
-	private bool m_isScored;
-
-	private bool m_uniAllocated;
 
 	public UniFile Uni { get; private set; }
 
@@ -95,7 +101,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		Root           = r;
 		Metadata       = new ExpandoObject();
 		m_isScored     = false;
-		m_uniAllocated = false;
+		Uni = UniFile.Null;
 	}
 
 	public static bool Validate([CBN] SearchResultItem r)
@@ -141,31 +147,25 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		m_isScored = true;
 	}
 
-	public const int MAX_SCORE = 13;
-
-	public const int SCORE_THRESHOLD = MAX_SCORE / 2;
-
-	public void Dispose()
+	public async Task<bool> GetUniAsync()
 	{
-		Uni?.Dispose();
-		m_uniAllocated = false;
-	}
-
-	public async Task<UniFile> GetUniAsync()
-	{
-		if (m_uniAllocated) {
-			return Uni;
+		if (Uni != UniFile.Null) {
+			return true;
 		}
 
-		var uni = await UniFile.TryGetAsync(Url, whitelist: FileType.Image);
-		m_uniAllocated = true;
-
-		return Uni = uni;
+		Uni = await UniFile.TryGetAsync(Url, whitelist: FileType.Image);
+		
+		return Uni != UniFile.Null;
 	}
 
 	public override string ToString()
 	{
 		return $"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time}";
+	}
+
+	public void Dispose()
+	{
+		Uni?.Dispose();
 	}
 
 	#region Relational members

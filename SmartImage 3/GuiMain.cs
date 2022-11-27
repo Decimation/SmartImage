@@ -11,6 +11,7 @@ using System.Media;
 using System.Runtime.Caching;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using Kantan.Collections;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Novus;
@@ -348,6 +349,9 @@ public sealed partial class GuiMain : IDisposable
 			Top.Redraw(Top.Bounds);
 		};
 
+		if (m_autoSearch) {
+			Btn_Run.OnClicked();
+		}
 	}
 
 	public Task<object?> RunAsync(object? sender = null)
@@ -442,22 +446,14 @@ public sealed partial class GuiMain : IDisposable
 
 	private void ProcessArgs()
 	{
-		var e = Args.GetEnumerator();
+		m_autoSearch = Args.Contains(R2.Arg_AutoSearch);
 
-		m_autoSearch = false;
+		var e = Args.GetEnumerator();
 
 		while (e.MoveNext()) {
 			var val = e.Current;
 			if (val is not string s) continue;
-
-			if (s == R2.Arg_AutoSearch) {
-				/*e.MoveNext();
-				_ = e.Current?.ToString();*/
-
-				// IsReady.Set();
-
-			}
-
+			
 			if (s == R2.Arg_Input) {
 				e.MoveNext();
 				var s2 = e.Current?.ToString();

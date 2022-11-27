@@ -138,4 +138,10 @@
   <data name="S_AutoSearch" xml:space="preserve">
     <value>Auto-search</value>
   </data>
+  <data name="Reg_Shell" xml:space="preserve">
+    <value>SOFTWARE\Classes\*\shell\SmartImage</value>
+  </data>
+  <data name="Reg_Shell_Cmd" xml:space="preserve">
+    <value>SOFTWARE\Classes\*\shell\SmartImage\command</value>
+  </data>
 </root>
