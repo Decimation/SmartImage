@@ -1,5 +1,8 @@
-﻿using Kantan.Net.Utilities;
+﻿using System.Diagnostics;
+using Kantan.Console;
+using Kantan.Net.Utilities;
 using NStack;
+using SmartImage.Lib.Engines;
 using Terminal.Gui;
 
 // ReSharper disable InconsistentNaming
@@ -16,22 +19,6 @@ internal static partial class UI
 
 	internal static readonly Rune Line = Application.Driver.HLine;
 
-	internal static Button CreateLinkButton(Dialog d, string text, string? url = null, Action? urlAction = null)
-	{
-		var b = new Button()
-		{
-			Text     = text,
-			AutoSize = true,
-		};
+	internal static SearchEngineOptions[] EngineOptions = Enum.GetValues<SearchEngineOptions>();
 
-		urlAction ??= () => HttpUtilities.TryOpenUrl(url);
-
-		b.Clicked += () =>
-		{
-			urlAction();
-			d.SetNeedsDisplay();
-		};
-		
-		return b;
-	}
 }

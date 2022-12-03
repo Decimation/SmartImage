@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Runtime.Intrinsics.X86;
 using AngleSharp.Dom;
 using Flurl.Http;
 using Novus.Utilities;
@@ -74,13 +75,31 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		return true;
 	}
-	
+
+	public virtual async Task LoadAsync(SearchConfig cfg)
+	{
+		if (this is ILoginEngine e) {
+			if (e is { IsLoggedIn: true }) {
+				Debug.WriteLine($"{this.Name} is already logged in", nameof(LoadAsync));
+				return;
+			}
+
+			if (e is EHentaiEngine eh) {
+				eh.Username = cfg.EhUsername;
+				eh.Password = cfg.EhPassword;
+			}
+
+			await e.LoginAsync();
+			Debug.WriteLine($"{Name} logged in", nameof(LoadAsync));
+		}
+	}
+
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		token ??= CancellationToken.None;
-		
+
 		bool b = Verify(query);
-		
+
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),
@@ -88,7 +107,7 @@ public abstract class BaseSearchEngine : IDisposable
 		};
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
-		
+
 		if (this is IWebContentEngine { } p) {
 			IDocument doc = await p.GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
 
@@ -138,5 +157,4 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
-	
 }

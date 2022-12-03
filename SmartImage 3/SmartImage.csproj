@@ -21,7 +21,22 @@
     <ApplicationIcon>..\Assets\Icon.ico</ApplicationIcon>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <!-- <TrimMode>CopyUsed</TrimMode> -->
+
   </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <DefineConstants>OS_WINDOWS</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <DefineConstants>OS_LINUX</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('FreeBSD'))">
+    <DefineConstants>OS_FREEBSD</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX'))">
+    <DefineConstants>OS_MAC</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
   </PropertyGroup>

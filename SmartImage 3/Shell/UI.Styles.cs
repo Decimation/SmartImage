@@ -1,5 +1,6 @@
 ﻿using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Shell;
@@ -9,7 +10,14 @@ internal static partial class UI
 	#region Attributes
 
 	internal static readonly Attribute Atr_Green_Black         = Attribute.Make(Color.Green, Color.Black);
+	internal static readonly Attribute Atr_BrightGreen_White   = Attribute.Make(Color.BrightGreen, Color.White);
+	internal static readonly Attribute Atr_BrightGreen_Gray    = Attribute.Make(Color.BrightGreen, Color.Gray);
+	internal static readonly Attribute Atr_BrightRed_White     = Attribute.Make(Color.BrightRed, Color.White);
+	internal static readonly Attribute Atr_BrightRed_Gray      = Attribute.Make(Color.BrightRed, Color.Gray);
+	internal static readonly Attribute Atr_Brown_White         = Attribute.Make(Color.Brown, Color.White);
 	internal static readonly Attribute Atr_Red_Black           = Attribute.Make(Color.Red, Color.Black);
+	internal static readonly Attribute Atr_Red_White           = Attribute.Make(Color.Red, Color.White);
+	internal static readonly Attribute Atr_Red_DarkGray           = Attribute.Make(Color.Red, Color.DarkGray);
 	internal static readonly Attribute Atr_BrightYellow_Black  = Attribute.Make(Color.BrightYellow, Color.Black);
 	internal static readonly Attribute Atr_White_Black         = Attribute.Make(Color.White, Color.Black);
 	internal static readonly Attribute Atr_White_Blue          = Attribute.Make(Color.White, Color.Blue);
@@ -17,6 +25,8 @@ internal static partial class UI
 	internal static readonly Attribute Atr_White_DarkGray      = Attribute.Make(Color.White, Color.DarkGray);
 	internal static readonly Attribute Atr_White_BrightCyan    = Attribute.Make(Color.White, Color.BrightCyan);
 	internal static readonly Attribute Atr_BrightCyan_DarkGray = Attribute.Make(Color.BrightCyan, Color.DarkGray);
+	internal static readonly Attribute Atr_BrightCyan_Gray     = Attribute.Make(Color.BrightCyan, Color.Gray);
+	internal static readonly Attribute Atr_Cyan_Gray           = Attribute.Make(Color.Cyan, Color.Gray);
 	internal static readonly Attribute Atr_Cyan_Black          = Attribute.Make(Color.Cyan, Color.Black);
 	internal static readonly Attribute Atr_Cyan_White          = Attribute.Make(Color.Cyan, Color.White);
 	internal static readonly Attribute Atr_Blue_White          = Attribute.Make(Color.Blue, Color.White);
@@ -34,9 +44,35 @@ internal static partial class UI
 	private static readonly  Attribute Atr_DarkGray_White      = Attribute.Make(Color.DarkGray, Color.White);
 	internal static readonly Attribute Atr_Black_DarkGray      = Attribute.Make(Color.Black, Color.DarkGray);
 
+	internal static readonly Attribute Atr_Brown_Gray = Attribute.Make(Color.Brown, Color.Gray);
+
 	#endregion
 
 	#region Color schemes
+
+	internal static ColorScheme Make(Attribute norm, Attribute focus = default, Attribute disabled = default)
+	{
+		if (focus == default) {
+			focus = Attribute.Get();
+		}
+
+		if (disabled == default) {
+			disabled = Attribute.Get();
+		}
+
+		return new ColorScheme()
+		{
+			Normal    = norm,
+			HotNormal = norm,
+			Focus     = focus,
+			HotFocus  = focus,
+			Disabled  = disabled
+		};
+	}
+
+	internal static readonly ColorScheme Cs_Err = Make(Atr_BrightRed_White, disabled: Atr_BrightRed_Gray);
+	internal static readonly ColorScheme Cs_Ok = Make(Atr_BrightGreen_White, disabled: Atr_BrightGreen_Gray);
+	internal static readonly ColorScheme Cs_NA = Make(Atr_Brown_White, disabled: Atr_Brown_Gray);
 
 	internal static readonly ColorScheme Cs_Btn1x = new()
 	{
@@ -55,6 +91,8 @@ internal static partial class UI
 		HotFocus  = Atr_BrightBlue_Gray,
 		Focus     = Atr_BrightBlue_Gray
 	};
+
+	internal static readonly ColorScheme Cs_Btn_Cancel = Make(Atr_Red_White, disabled: Atr_DarkGray_White);
 
 	internal static readonly ColorScheme Cs_Btn2 = new()
 	{
@@ -152,9 +190,8 @@ internal static partial class UI
 
 	#region Dimensions
 
-	internal static readonly Dim Dim_30_Pct = Dim.Percent(30);
-	internal static readonly Dim Dim_80_Pct = Dim.Percent(80);
+	internal static readonly Dim       Dim_30_Pct     = Dim.Percent(30);
+	internal static readonly Dim       Dim_80_Pct     = Dim.Percent(80);
 
 	#endregion
-
 }

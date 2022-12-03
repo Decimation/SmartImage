@@ -30,15 +30,20 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 	public EHentaiEngine() : base(EXHENTAI_URI)
 	{
-		Cookies = new CookieJar();
+		Cookies      = new CookieJar();
+		m_isLoggedIn = false;
 	}
 
 	public CookieJar Cookies { get; }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
-	public string Username { get; set; }
-	public string Password { get; set; }
+	public string Username      { get; set; }
+	public string Password      { get; set; }
+
+	private bool m_isLoggedIn;
+
+	public  bool IsLoggedIn => m_isLoggedIn ;
 
 	public string NodesSelector => "//table/tbody/tr";
 
@@ -174,6 +179,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 		await GetSessionAsync();
 
+		m_isLoggedIn = true;
 	}
 
 	public Task<List<INode>> GetNodes(IDocument d)

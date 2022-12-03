@@ -25,6 +25,7 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Shell;
 using Terminal.Gui;
+using Attribute = Terminal.Gui.Attribute;
 using Window = Terminal.Gui.Window;
 
 // ReSharper disable IdentifierTypo
@@ -75,9 +76,9 @@ public sealed partial class GuiMain : IDisposable
 
 	private static readonly Label Lbl_InputOk = new(UI.NA)
 	{
-		X = Pos.Right(Tf_Input) + 1,
-		Y = Pos.Y(Tf_Input),
-		// ColorScheme = Styles.CS_Elem4
+		X           = Pos.Right(Tf_Input) + 1,
+		Y           = Pos.Y(Tf_Input),
+		ColorScheme = UI.Cs_NA
 	};
 
 	private static readonly Button Btn_Run = new("Run")
@@ -120,7 +121,7 @@ public sealed partial class GuiMain : IDisposable
 		X           = Pos.Right(Btn_Restart),
 		Y           = Pos.Y(Btn_Restart),
 		Enabled     = false,
-		ColorScheme = UI.Cs_Btn1,
+		ColorScheme = UI.Cs_Btn_Cancel,
 
 	};
 
@@ -195,6 +196,16 @@ public sealed partial class GuiMain : IDisposable
 
 	};
 
+	private static readonly Label Lbl_Status2 = new()
+	{
+		X           = Pos.X(Lbl_Status),
+		Y           = Pos.Bottom(Lbl_Status),
+		Width       = 15,
+		Height      = Dim.Height(Lbl_InputInfo),
+		ColorScheme = UI.Cs_Lbl1
+
+	};
+
 	#endregion
 
 	#region Fields/properties
@@ -207,11 +218,17 @@ public sealed partial class GuiMain : IDisposable
 
 	private bool m_autoSearch;
 
-	private static readonly SoundPlayer Player = new(R2.hint);
+	private readonly ConcurrentBag<SearchResult> m_results;
+
+	private CancellationTokenSource m_token;
+
+	#region Static
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
-	private readonly ConcurrentBag<SearchResult> m_results;
+	private static readonly SoundPlayer Player = new(R2.hint);
+
+	#endregion
 
 	#region
 
@@ -221,15 +238,13 @@ public sealed partial class GuiMain : IDisposable
 
 	public SearchClient Client { get; init; }
 
-	internal ProgramStatus Status { get; set; }
+	internal bool? Status { get; set; }
 
 	public string[] Args { get; init; }
 
-	private int ResultCount { get; set; }
+	public int ResultCount { get; private set; }
 
 	internal ManualResetEvent IsReady { get; set; }
-
-	private CancellationTokenSource Token { get; set; }
 
 	#endregion
 
@@ -240,7 +255,7 @@ public sealed partial class GuiMain : IDisposable
 	public GuiMain(string[] args)
 	{
 		Args    = args;
-		Token   = new();
+		m_token = new();
 		Query   = SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
@@ -250,7 +265,7 @@ public sealed partial class GuiMain : IDisposable
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
 
-		if (OperatingSystem.IsWindows()) {
+		if (Compat.IsWin) {
 			Client.OnComplete += OnCompleteWin;
 		}
 
@@ -327,7 +342,7 @@ public sealed partial class GuiMain : IDisposable
 		Btn_Run.Clicked          += Run_Clicked;
 		Btn_Restart.Clicked      += Restart_Clicked;
 		Btn_Clear.Clicked        += Clear_Clicked;
-		Btn_Config.Clicked       += Config_Clicked;
+		Btn_Config.Clicked       += ConfigDialog;
 		Btn_Cancel.Clicked       += Cancel_Clicked;
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
@@ -340,7 +355,8 @@ public sealed partial class GuiMain : IDisposable
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
-		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse
+		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
+		        Lbl_Status2
 		);
 
 		Top.Add(Win);
@@ -357,17 +373,17 @@ public sealed partial class GuiMain : IDisposable
 		}
 	}
 
-	public Task<object?> RunAsync(object? sender = null)
+	public Task<bool?> RunAsync(object? sender = null)
 	{
 		Application.Run();
-		return Task.FromResult(Status == ProgramStatus.Restart ? (object) true : null);
+		return Task.FromResult(Status);
 	}
 
 	private void PreSearch()
 	{
 		Tf_Input.SetFocus();
 		Tv_Results.Visible = true;
-		
+
 	}
 
 	private void PostSearch()
@@ -421,6 +437,7 @@ public sealed partial class GuiMain : IDisposable
 		Btn_Cancel.Enabled  = false;
 	}
 
+	[SupportedOSPlatform(Compat.OS)]
 	private async void OnCompleteWin(object sender, List<SearchResult> results)
 	{
 		Player.Play();
@@ -441,7 +458,10 @@ public sealed partial class GuiMain : IDisposable
 
 	public void Close()
 	{
-		Player.Dispose();
+		if (Compat.IsWin) {
+			Player.Dispose();
+		}
+
 		Application.Shutdown();
 	}
 
@@ -487,6 +507,11 @@ public sealed partial class GuiMain : IDisposable
 
 	private async Task<bool> SetQuery(ustring text)
 	{
+		if (IsQueryReady() && Query.Uni.Value == text) {
+			Debug.WriteLine($"Already loaded {text}", nameof(SetQuery));
+			return true;
+		}
+
 		SearchQuery sq;
 
 		Pbr_Status.BidirectionalMarquee = true;
@@ -494,6 +519,8 @@ public sealed partial class GuiMain : IDisposable
 
 		try {
 			Pbr_Status.Pulse();
+			Lbl_Status2.Text = $"Verifying...";
+
 			sq = await SearchQuery.TryCreateAsync(text.ToString());
 			Pbr_Status.Pulse();
 		}
@@ -501,48 +528,54 @@ public sealed partial class GuiMain : IDisposable
 			sq = SearchQuery.Null;
 
 			Lbl_InputInfo.Text = $"Error: {e.Message}";
-
+			Lbl_Status2.Text   = ustring.Empty;
 		}
 
-		Lbl_InputOk.Text = UI.PRC;
+		UI.SetLabelStatus(Lbl_InputOk, null);
 
 		if (sq is { } && sq != SearchQuery.Null) {
 			try {
 
 				using CancellationTokenSource cts = new();
+				Lbl_Status2.Text = $"Uploading...";
 
-				ConsoleUtil.QueueProgress(cts, Pbr_Status);
+				UI.QueueProgress(cts, Pbr_Status);
 
 				var u = await sq.UploadAsync();
 
 				cts.Cancel();
 
 				Lbl_QueryUpload.Text = u.ToString();
+				Lbl_Status2.Text     = ustring.Empty;
 
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
 				Lbl_InputInfo.Text = $"Error: {e.Message}";
+				Lbl_Status2.Text   = ustring.Empty;
 
 			}
 
 		}
 		else {
-			Lbl_InputOk.Text     = UI.Err;
+			UI.SetLabelStatus(Lbl_InputOk, false);
+
 			Lbl_InputInfo.Text   = "Error: invalid input";
 			Btn_Run.Enabled      = true;
 			Lbl_QueryUpload.Text = ustring.Empty;
 			Pbr_Status.Fraction  = 0;
+			Lbl_Status2.Text     = ustring.Empty;
 
 			return false;
 		}
 
 		Debug.WriteLine($">> {sq} {Config}", nameof(SetQuery));
 
-		Lbl_InputOk.Text = UI.OK;
+		UI.SetLabelStatus(Lbl_InputOk, true);
 
-		Query  = sq;
-		Status = ProgramStatus.Signal;
+		Query = sq;
+
+		Status = false;
 
 		Lbl_InputInfo.Text = $"{sq}";
 
@@ -557,23 +590,16 @@ public sealed partial class GuiMain : IDisposable
 	{
 		PreSearch();
 
-		Status = ProgramStatus.None;
+		Status = null;
 		IsReady.WaitOne();
 
-		var results = await Client.RunSearchAsync(Query, Token.Token);
+		var results = await Client.RunSearchAsync(Query, m_token.Token);
 
-		Status = ProgramStatus.Signal;
+		Status = false;
 
 		PostSearch();
 
 		return null;
-	}
-
-	public void Dispose()
-	{
-		Client.Dispose();
-		Query.Dispose();
-		Token.Dispose();
 	}
 
 	private bool ClipboardCallback(MainLoop c)
@@ -588,11 +614,13 @@ public sealed partial class GuiMain : IDisposable
 			    !SearchQuery.IsUriOrFile(Tf_Input.Text.ToString()) && !m_clipboard.Contains(str)) {
 				SetInputText(str);
 				// Lbl_InputOk.Text   = UI.Clp;
-				Lbl_InputInfo.Text = Resources.Inf_Clipboard;
+				Lbl_InputInfo.Text = R2.Inf_Clipboard;
 
 				m_clipboard.Add(str);
 
-				ConsoleUtil.FlashTaskbar();
+				if (Compat.IsWin) {
+					ConsoleUtil.FlashTaskbar();
+				}
 			}
 
 			// note: wtf?
@@ -607,11 +635,11 @@ public sealed partial class GuiMain : IDisposable
 
 		return true;
 	}
-}
 
-public enum ProgramStatus
-{
-	None,
-	Signal,
-	Restart
+	public void Dispose()
+	{
+		Client.Dispose();
+		Query.Dispose();
+		m_token.Dispose();
+	}
 }

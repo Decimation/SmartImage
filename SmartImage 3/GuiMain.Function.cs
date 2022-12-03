@@ -9,6 +9,7 @@ using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Search;
 using SmartImage.Shell;
 using Terminal.Gui;
 
@@ -43,7 +44,7 @@ public sealed partial class GuiMain
 	/// <summary>
 	/// <see cref="Btn_Config"/>
 	/// </summary>
-	private void Config_Clicked()
+	private void ConfigDialog()
 	{
 		var dlCfg = new Dialog("Configuration")
 		{
@@ -72,7 +73,7 @@ public sealed partial class GuiMain
 			ColorScheme = UI.Cs_Lbl1
 		};
 
-		ListView lvSearchEngines = new(ConsoleUtil.EngineOptions)
+		ListView lvSearchEngines = new(UI.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
@@ -91,7 +92,7 @@ public sealed partial class GuiMain
 			ColorScheme = UI.Cs_Lbl1
 		};
 
-		ListView lvPriorityEngines = new(ConsoleUtil.EngineOptions)
+		ListView lvPriorityEngines = new(UI.EngineOptions)
 		{
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
@@ -140,7 +141,7 @@ public sealed partial class GuiMain
 		lvSearchEngines.OpenSelectedItem += args1 =>
 		{
 			SearchEngineOptions e = Config.SearchEngines;
-			ConsoleUtil.OnEngineSelected(args1, ref e, lvSearchEngines);
+			UI.OnEngineSelected(args1, ref e, lvSearchEngines);
 			Config.SearchEngines = e;
 			ReloadDialog();
 		};
@@ -148,7 +149,7 @@ public sealed partial class GuiMain
 		lvPriorityEngines.OpenSelectedItem += args1 =>
 		{
 			SearchEngineOptions e = Config.PriorityEngines;
-			ConsoleUtil.OnEngineSelected(args1, ref e, lvPriorityEngines);
+			UI.OnEngineSelected(args1, ref e, lvPriorityEngines);
 			Config.PriorityEngines = e;
 			ReloadDialog();
 		};
@@ -223,7 +224,7 @@ public sealed partial class GuiMain
 			Eh username/password
 		\*============================================================================*/
 
-		Label lbEhUsername = new("Eh Username")
+		Label lbEhUsername = new(R1.S_EhUsername)
 		{
 			X           = Pos.X(cbContextMenu),
 			Y           = Pos.Bottom(cbContextMenu) + 1,
@@ -245,7 +246,7 @@ public sealed partial class GuiMain
 			ReloadDialog();
 		};
 
-		Label lbEhPassword = new("Eh Password")
+		Label lbEhPassword = new(R1.S_EhPassword)
 		{
 			X           = Pos.X(lbEhUsername),
 			Y           = Pos.Bottom(lbEhUsername),
@@ -261,7 +262,7 @@ public sealed partial class GuiMain
 			Height = 1,
 		};
 
-		tfEhPassword.TextChanging  += args =>
+		tfEhPassword.TextChanging += args =>
 		{
 			Config.EhPassword = args.NewText.ToString();
 			ReloadDialog();
@@ -339,14 +340,14 @@ public sealed partial class GuiMain
 		m_clipboard.Clear();
 		m_results.Clear();
 
-		Status = ProgramStatus.Restart;
+		Status = true;
 
 		Btn_Restart.Enabled = false;
 		Btn_Cancel.Enabled  = false;
 		Btn_Run.Enabled     = true;
 
-		Token.Dispose();
-		Token = new();
+		m_token.Dispose();
+		m_token = new();
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
@@ -440,17 +441,18 @@ public sealed partial class GuiMain
 	private static void Clear_Clicked()
 	{
 		Tf_Input.DeleteAll();
-		Lbl_InputOk.Text = UI.NA;
+		UI.SetLabelStatus(Lbl_InputOk, null);
 		Lbl_InputOk.SetNeedsDisplay();
 		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
+		Lbl_Status2.Text    = ustring.Empty;
 	}
 
 	private void Cancel_Clicked()
 	{
-		Token.Cancel();
-		Lbl_InputInfo2.Text = Resources.Inf_Cancel;
-		Lbl_InputInfo2.SetNeedsDisplay();
+		m_token.Cancel();
+		Lbl_Status2.Text = Resources.Inf_Cancel;
+		Lbl_Status2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
@@ -461,7 +463,8 @@ public sealed partial class GuiMain
 		Tf_Input.DeleteAll();
 		Tf_Input.ClearHistoryChanges();
 
-		Lbl_InputOk.Text = UI.NA;
+		UI.SetLabelStatus(Lbl_InputOk, null);
+
 		Lbl_InputOk.SetNeedsDisplay();
 
 		Dt_Results.Clear();
@@ -476,6 +479,7 @@ public sealed partial class GuiMain
 		Lbl_QueryUpload.Text = ustring.Empty;
 		Lbl_InputInfo2.Text  = ustring.Empty;
 		Lbl_Status.Text      = ustring.Empty;
+		Lbl_Status2.Text     = ustring.Empty;
 
 		Tv_Results.SetNeedsDisplay();
 		Tf_Input.SetFocus();

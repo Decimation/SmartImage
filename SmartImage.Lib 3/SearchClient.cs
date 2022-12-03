@@ -25,12 +25,19 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsComplete { get; private set; }
 
-	public BaseSearchEngine[] Engines { get; private set; }
+	public BaseSearchEngine[] Engines { get; }
+
+	public bool EnginesLoaded { get; private set; }
 
 	public SearchClient(SearchConfig cfg)
 	{
-		Config  = cfg;
-		Engines = Array.Empty<BaseSearchEngine>();
+		Config        = cfg;
+		EnginesLoaded = false;
+		Engines = BaseSearchEngine.All.Where(e =>
+		                          {
+			                          return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
+		                          })
+		                          .ToArray();
 	}
 
 	static SearchClient() { }
@@ -56,7 +63,9 @@ public sealed class SearchClient : IDisposable
 
 		token ??= CancellationToken.None;
 
-		await LoadEngines();
+		if (!EnginesLoaded) {
+			await LoadEngines();
+		}
 
 		var tasks = Engines.Select(e =>
 		{
@@ -119,23 +128,16 @@ public sealed class SearchClient : IDisposable
 
 	public async Task LoadEngines()
 	{
-		Engines = BaseSearchEngine.All.Where(e =>
-		                          {
-			                          return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
-		                          })
-		                          .ToArray();
-
 		foreach (BaseSearchEngine bse in Engines) {
-			if (bse is ILoginEngine e) {
-				if (e is EHentaiEngine eh) {
-					eh.Username = Config.EhUsername;
-					eh.Password = Config.EhPassword;
-				}
-
-				await e.LoginAsync();
-			}
+			await bse.LoadAsync(Config);
 		}
+
+		Debug.WriteLine($"Loaded engines", nameof(LoadEngines));
+		EnginesLoaded = true;
 	}
+
+	[CBN]
+	public BaseSearchEngine Find(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
 
 	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{
@@ -182,5 +184,7 @@ public sealed class SearchClient : IDisposable
 		foreach (var engine in Engines) {
 			engine.Dispose();
 		}
+
+		EnginesLoaded = false;
 	}
 }

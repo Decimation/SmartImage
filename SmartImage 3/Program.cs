@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Reflection;
 using System.Diagnostics;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.Arm;
 using System.Security.Cryptography;
@@ -62,7 +63,7 @@ public static class Program
 		// Console.OutputEncoding = Encoding.Unicode;
 
 		// ToastNotificationManagerCompat.OnActivated += AppNotification.OnActivated;
-
+		
 #if TEST
 		// args = new String[] { null };
 		args = new[] { R2.Arg_Input, "https://i.imgur.com/QtCausw.png",R2.Arg_AutoSearch };
