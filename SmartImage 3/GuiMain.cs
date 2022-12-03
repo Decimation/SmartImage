@@ -22,6 +22,7 @@ using Novus.Win32.Structures.User32;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines;
 using SmartImage.Shell;
 using Terminal.Gui;
 using Window = Terminal.Gui.Window;
@@ -366,6 +367,7 @@ public sealed partial class GuiMain : IDisposable
 	{
 		Tf_Input.SetFocus();
 		Tv_Results.Visible = true;
+		
 	}
 
 	private void PostSearch()
@@ -384,8 +386,8 @@ public sealed partial class GuiMain : IDisposable
 
 		Application.MainLoop.Invoke(() =>
 		{
-			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", result.RawUrl, 0, null, $"{result.Status}",
-			                    null, null, null, null, null, null, null);
+			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", result.RawUrl, 0, 0, null, $"{result.Status}",
+			                    null, null, null, null, null, null);
 
 			for (int i = 0; i < result.Results.Count; i++) {
 				SearchResultItem sri = result.Results[i];
