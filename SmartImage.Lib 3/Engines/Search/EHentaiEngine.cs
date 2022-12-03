@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -14,12 +15,13 @@ using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
+using Kantan.Text;
 using Kantan.Threading;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
+public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginEngine
 {
 	private const string EHENTAI_INDEX_URI         = "https://forums.e-hentai.org/index.php";
 	private const string EXHENTAI_IMAGE_LOOKUP_URI = "https://exhentai.org/upld/image_lookup.php";
@@ -124,7 +126,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 		return await parser.ParseDocumentAsync(content);
 	}
 
-	public async Task<IFlurlResponse> GetSessionAsync()
+	private async Task<IFlurlResponse> GetSessionAsync()
 	{
 		var res = await EXHENTAI_URI.WithCookies(Cookies)
 		                            .WithHeaders(new
@@ -136,7 +138,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 		return res;
 	}
 
-	public async Task<IFlurlResponse> LoginAsync(string username, string password)
+	public async Task LoginAsync(string username, string password)
 	{
 		var content = new MultipartFormDataContent()
 		{
@@ -164,28 +166,123 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine<INode>
 			Cookies.AddOrReplace(fc);
 		}
 
-		return response;
+		await GetSessionAsync();
+
 	}
 
-	public string NodesSelector => "//div[@class='gl1t']";
+	/*
+	 * Default result layout is [Compact]
+	 */
+
+	public string NodesSelector => "//table/tbody/tr";
 
 	public Task<List<INode>> GetNodes(IDocument d)
 	{
-		var where = d.All.Where(e => e.ClassName == "gl1t");
-		return Task.FromResult(where.Cast<INode>().ToList());
-		// return  Task.FromResult(d.Body.SelectNodes(NodesSelector));
+		// Index 0 is table header
+		var nodes = d.Body.SelectNodes(NodesSelector).Skip(1).ToList();
+
+		return Task.FromResult(nodes);
 	}
 
 	public async Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
-		var e    = n.FirstChild as IHtmlElement;
-		var attr = e.GetAttribute("a");
-		var t    = e.FirstChild.TextContent;
+		var item = new SearchResultItem(r)
+			{ };
 
-		return new SearchResultItem(r)
-		{
-			Title = t,
-			Url   = attr
-		};
+		EhResult eh = GetEhResult(n);
+
+		if (eh.Tags.TryGetValue("artist", out var v)) {
+			item.Artist = v.FirstOrDefault();
+		}
+
+		item.Description = new[] { eh.Pages, $"({eh.Type})" }.QuickJoin(" ");
+		item.Title       = eh.Title;
+		item.Url         = eh.Url;
+
+		/*var gl1c        = n.ChildNodes[0];
+		var gl2c        = n.ChildNodes[1];
+		var ehx_compact = n.ChildNodes[2];
+		var gl3c        = n.ChildNodes[3];
+		var gl4c        = n.ChildNodes[4];*/
+
+		return item;
+	}
+
+	private static EhResult GetEhResult(INode n)
+	{
+		var eh = new EhResult();
+
+		var gl1c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl1c" } e);
+
+		if (gl1c is { }) {
+			if (gl1c.FirstChild is { } t) {
+				eh.Type = t.TextContent;
+			}
+		}
+
+		var gl2c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl2c" } e);
+
+		if (gl2c is { }) {
+			if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
+				eh.Pages = div.TextContent;
+			}
+		}
+
+		var gl3c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl3c glname" } e);
+
+		if (gl3c is { }) {
+			if (gl3c.FirstChild is { } f) {
+				eh.Url = (Url) f.TryGetAttribute(Resources.Atr_href);
+
+				if (f.FirstChild is { } ff) {
+					eh.Title = ff.TextContent;
+				}
+
+				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
+					var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
+
+					foreach (string s in tagValuesRaw) {
+						var split = s.Split(':');
+						var tag   = split[0];
+						var val   = split[1];
+
+						if (eh.Tags.ContainsKey(tag)) {
+							eh.Tags[tag].Add(val);
+						}
+						else {
+							eh.Tags.Add(tag, new List<string>() { val });
+
+						}
+					}
+				}
+			}
+		}
+
+		var gl4c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl4c glhide" } e);
+
+		if (gl4c is { }) {
+			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
+				eh.AuthorUrl = div1.TryGetAttribute(Resources.Atr_href);
+				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
+			}
+
+			if (gl4c.ChildNodes[1] is { } div2) {
+				eh.Pages ??= div2.TextContent;
+			}
+		}
+
+		return eh;
+	}
+
+	private sealed record EhResult
+	{
+		internal string Type      { get; set; }
+		internal string Pages     { get; set; }
+		internal string Title     { get; set; }
+		internal string Author    { get; set; }
+		internal string AuthorUrl { get; set; }
+		internal Url    Url       { get; set; }
+
+		internal Dictionary<string, List<string>> Tags { get; set; } = new();
 	}
 }

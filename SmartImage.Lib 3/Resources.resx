@@ -144,4 +144,10 @@
   <data name="Reg_Shell_Cmd" xml:space="preserve">
     <value>SOFTWARE\Classes\*\shell\SmartImage\command</value>
   </data>
+  <data name="S_EhPassword" xml:space="preserve">
+    <value>Eh Password</value>
+  </data>
+  <data name="S_EhUsername" xml:space="preserve">
+    <value>Eh Username</value>
+  </data>
 </root>

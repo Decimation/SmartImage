@@ -206,7 +206,7 @@ public sealed partial class GuiMain : IDisposable
 
 	private bool m_autoSearch;
 
-	private static readonly SoundPlayer m_sndHint = new(R2.hint);
+	private static readonly SoundPlayer Player = new(R2.hint);
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
@@ -233,6 +233,8 @@ public sealed partial class GuiMain : IDisposable
 	#endregion
 
 	#endregion
+
+	static GuiMain() { }
 
 	public GuiMain(string[] args)
 	{
@@ -336,8 +338,8 @@ public sealed partial class GuiMain : IDisposable
 		};
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
-		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload, Btn_Restart, Btn_Config,
-		        Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse
+		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
+		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse
 		);
 
 		Top.Add(Win);
@@ -368,7 +370,6 @@ public sealed partial class GuiMain : IDisposable
 
 	private void PostSearch()
 	{
-
 		if (Client.IsComplete) {
 			Btn_Run.Enabled    = false;
 			Btn_Cancel.Enabled = false;
@@ -417,10 +418,10 @@ public sealed partial class GuiMain : IDisposable
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
 	}
-	
+
 	private async void OnCompleteWin(object sender, List<SearchResult> results)
 	{
-		m_sndHint.Play();
+		Player.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
 
 		/*var u  = m_results.SelectMany(r => r.Results).ToArray();
@@ -438,7 +439,7 @@ public sealed partial class GuiMain : IDisposable
 
 	public void Close()
 	{
-		m_sndHint.Dispose();
+		Player.Dispose();
 		Application.Shutdown();
 	}
 
@@ -451,14 +452,13 @@ public sealed partial class GuiMain : IDisposable
 		while (e.MoveNext()) {
 			var val = e.Current;
 			if (val is not string s) continue;
-			
+
 			if (s == R2.Arg_Input) {
 				e.MoveNext();
 				var s2 = e.Current?.ToString();
 
 				if (SearchQuery.IsUriOrFile(s2)) {
 					SetInputText(s2);
-
 				}
 			}
 			// Debug.WriteLine($"{s}");
@@ -509,14 +509,7 @@ public sealed partial class GuiMain : IDisposable
 
 				using CancellationTokenSource cts = new();
 
-				ThreadPool.QueueUserWorkItem((state) =>
-				{
-					while (state is CancellationToken { IsCancellationRequested: false }) {
-						Pbr_Status.Pulse();
-						// Thread.Sleep(TimeSpan.FromMilliseconds(100));
-					}
-
-				}, cts.Token);
+				ConsoleUtil.QueueProgress(cts, Pbr_Status);
 
 				var u = await sq.UploadAsync();
 
@@ -586,7 +579,7 @@ public sealed partial class GuiMain : IDisposable
 		try {
 			/*
 			 * Don't set input if:
-			 *	- Input is already semiprimed
+			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
 			if (Integration.ReadClipboard(out var str) &&
@@ -597,15 +590,7 @@ public sealed partial class GuiMain : IDisposable
 
 				m_clipboard.Add(str);
 
-				var pwfi = new FLASHWINFO()
-				{
-					cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
-					hwnd      = ConsoleUtil.HndWindow,
-					dwFlags   = FlashWindowType.FLASHW_TRAY,
-					uCount    = 8,
-					dwTimeout = 75
-				};
-				Native.FlashWindowEx(ref pwfi);
+				ConsoleUtil.FlashTaskbar();
 			}
 
 			// note: wtf?

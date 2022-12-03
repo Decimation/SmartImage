@@ -1,8 +1,6 @@
 ﻿using System.Configuration;
 using System.Data;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Resources;
 using Kantan.Model;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
@@ -11,6 +9,8 @@ namespace SmartImage.Lib;
 
 public sealed class SearchConfig : IDataTable
 {
+	#region Defaults
+
 	/// <summary>
 	/// Default value for <see cref="SearchEngines"/>
 	/// </summary>
@@ -25,6 +25,8 @@ public sealed class SearchConfig : IDataTable
 	/// Default value for <see cref="OnTop"/>
 	/// </summary>
 	public const bool ON_TOP_DEFAULT = true;
+
+	#endregion
 
 	/// <summary>
 	/// Engines used to search.
@@ -53,8 +55,23 @@ public sealed class SearchConfig : IDataTable
 		set => Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
 	}
 
-	[DynamicDependency(DynamicallyAccessedMemberTypes.All, "System.Configuration.ClientConfigurationHost",
-	                   "System.Configuration.ConfigurationManager.dll")]
+	public string EhUsername
+	{
+		get => Configuration.ReadSetting<string>(nameof(EhUsername), null);
+		set => Configuration.AddUpdateSetting(nameof(EhUsername), value);
+	}
+
+	public string EhPassword
+	{
+		get => Configuration.ReadSetting<string>(nameof(EhPassword), null);
+		set => Configuration.AddUpdateSetting(nameof(EhPassword), value);
+	}
+
+	public static readonly SearchConfig Default = new();
+
+	/*[DynamicDependency(DynamicallyAccessedMemberTypes.All, "System.Configuration.ClientConfigurationHost",
+	                   "System.Configuration.ConfigurationManager.dll")]*/
+	
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
@@ -80,6 +97,8 @@ public sealed class SearchConfig : IDataTable
 		table.Rows.Add(Resources.S_SearchEngines, SearchEngines);
 		table.Rows.Add(Resources.S_PriorityEngines, PriorityEngines);
 		table.Rows.Add(Resources.S_OnTop, OnTop);
+		table.Rows.Add(Resources.S_EhUsername, EhUsername);
+		table.Rows.Add(Resources.S_EhPassword, EhPassword);
 
 		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
 

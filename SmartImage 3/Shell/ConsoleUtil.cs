@@ -1,9 +1,14 @@
-﻿using System.Runtime.Versioning;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
+using Kantan.Console;
 using Novus;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
+using Novus.Win32.Structures.User32;
 using SmartImage.Lib.Engines;
+using Terminal.Gui;
 
 namespace SmartImage.Shell;
 
@@ -53,4 +58,66 @@ internal static class ConsoleUtil
 
 	[field: SupportedOSPlatformGuard(Global.OS_WIN)]
 	internal static bool _isWin = OperatingSystem.IsWindows();
+
+	internal static void FlashTaskbar()
+	{
+		var pwfi = new FLASHWINFO()
+		{
+			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+			hwnd      = ConsoleUtil.HndWindow,
+			dwFlags   = FlashWindowType.FLASHW_TRAY,
+			uCount    = 8,
+			dwTimeout = 75
+		};
+
+		Native.FlashWindowEx(ref pwfi);
+	}
+
+	internal static bool QueueProgress(CancellationTokenSource cts, ProgressBar pbr, Action<object>? f = null)
+	{
+		return ThreadPool.QueueUserWorkItem((state) =>
+		{
+			while (state is CancellationToken { IsCancellationRequested: false }) {
+				pbr.Pulse();
+				f?.Invoke(state);
+				// Thread.Sleep(TimeSpan.FromMilliseconds(100));
+			}
+
+		}, cts.Token);
+	}
+
+	internal static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)
+	{
+		var val = (SearchEngineOptions) args.Value;
+
+		var isMarked = lv.Source.IsMarked(args.Item);
+
+		bool b = val == SearchEngineOptions.None;
+
+		if (isMarked) {
+			if (b) {
+				e = val;
+
+				for (int i = 1; i < lv.Source.Length; i++) {
+					lv.Source.SetMark(i, false);
+				}
+			}
+			else {
+				e |= val;
+			}
+		}
+		else {
+			e &= ~val;
+		}
+
+		if (!b) {
+			lv.Source.SetMark(0, false);
+		}
+
+		lv.FromEnum(e);
+
+		ret:
+		lv.SetNeedsDisplay();
+		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
+	}
 }

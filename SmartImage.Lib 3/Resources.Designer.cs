@@ -106,6 +106,24 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Eh Password.
+        /// </summary>
+        internal static string S_EhPassword {
+            get {
+                return ResourceManager.GetString("S_EhPassword", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Eh Username.
+        /// </summary>
+        internal static string S_EhUsername {
+            get {
+                return ResourceManager.GetString("S_EhUsername", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to On top.
         /// </summary>
         internal static string S_OnTop {

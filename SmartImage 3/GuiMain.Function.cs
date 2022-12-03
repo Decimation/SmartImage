@@ -57,10 +57,12 @@ public sealed partial class GuiMain
 		var btnSave    = new Button("Save") { };
 		var btnOk      = new Button("Ok") { };
 
-		DataTable dtConfig = Config.ToTable();
-
 		const int WIDTH  = 15;
 		const int HEIGHT = 17;
+
+		/*============================================================================*\
+			Engines
+		\*============================================================================*/
 
 		Label lbSearchEngines = new(R1.S_SearchEngines)
 		{
@@ -112,14 +114,51 @@ public sealed partial class GuiMain
 			// Height = 10,
 		};
 
+		lbConfig.Clicked += () =>
+		{
+			FileSystem.ExploreFile(cfgInfo.FullName);
+		};
+
+		DataTable dtConfig = Config.ToTable();
+
 		var tvConfig = new TableView(dtConfig)
 		{
 			AutoSize = true,
 			Y        = Pos.Bottom(lbConfig),
 			X        = Pos.Right(lvPriorityEngines) + 1,
 			Width    = Dim.Fill(WIDTH),
-			Height   = 7,
+			Height   = 9,
 		};
+
+		void ReloadDialog()
+		{
+			tvConfig.Table = Config.ToTable();
+			tvConfig.SetNeedsDisplay();
+			dlCfg.SetNeedsDisplay();
+		}
+
+		lvSearchEngines.OpenSelectedItem += args1 =>
+		{
+			SearchEngineOptions e = Config.SearchEngines;
+			ConsoleUtil.OnEngineSelected(args1, ref e, lvSearchEngines);
+			Config.SearchEngines = e;
+			ReloadDialog();
+		};
+
+		lvPriorityEngines.OpenSelectedItem += args1 =>
+		{
+			SearchEngineOptions e = Config.PriorityEngines;
+			ConsoleUtil.OnEngineSelected(args1, ref e, lvPriorityEngines);
+			Config.PriorityEngines = e;
+			ReloadDialog();
+		};
+
+		lvSearchEngines.FromEnum(Config.SearchEngines);
+		lvPriorityEngines.FromEnum(Config.PriorityEngines);
+
+		/*============================================================================*\
+			Checkboxes
+		\*============================================================================*/
 
 		CheckBox cbContextMenu = new(R2.Int_ContextMenu)
 		{
@@ -177,40 +216,60 @@ public sealed partial class GuiMain
 			ReloadDialog();
 		};
 
-		lbConfig.Clicked += () =>
-		{
-			FileSystem.ExploreFile(cfgInfo.FullName);
-		};
-
-		// If only properties could be used as ref/pointers...
-
-		lvSearchEngines.OpenSelectedItem += args1 =>
-		{
-			SearchEngineOptions e = Config.SearchEngines;
-			OnEngineSelected(args1, ref e, lvSearchEngines);
-			Config.SearchEngines = e;
-			ReloadDialog();
-		};
-
-		lvPriorityEngines.OpenSelectedItem += args1 =>
-		{
-			SearchEngineOptions e = Config.PriorityEngines;
-			OnEngineSelected(args1, ref e, lvPriorityEngines);
-			Config.PriorityEngines = e;
-			ReloadDialog();
-		};
-
-		void ReloadDialog()
-		{
-			tvConfig.Table = Config.ToTable();
-			tvConfig.SetNeedsDisplay();
-			dlCfg.SetNeedsDisplay();
-		}
-
-		lvSearchEngines.FromEnum(Config.SearchEngines);
-		lvPriorityEngines.FromEnum(Config.PriorityEngines);
 		cbContextMenu.Checked = Integration.IsContextMenuAdded;
 		cbOnTop.Checked       = Config.OnTop;
+
+		/*============================================================================*\
+			Eh username/password
+		\*============================================================================*/
+
+		Label lbEhUsername = new("Eh Username")
+		{
+			X           = Pos.X(cbContextMenu),
+			Y           = Pos.Bottom(cbContextMenu) + 1,
+			CanFocus    = false,
+			ColorScheme = UI.Cs_Lbl1
+		};
+
+		TextField tfEhUsername = new()
+		{
+			X      = Pos.Right(lbEhUsername) + 1,
+			Y      = Pos.Y(lbEhUsername),
+			Width  = WIDTH * 2,
+			Height = 1,
+		};
+
+		tfEhUsername.TextChanging += args =>
+		{
+			Config.EhUsername = args.NewText.ToString();
+			ReloadDialog();
+		};
+
+		Label lbEhPassword = new("Eh Password")
+		{
+			X           = Pos.X(lbEhUsername),
+			Y           = Pos.Bottom(lbEhUsername),
+			CanFocus    = false,
+			ColorScheme = UI.Cs_Lbl1
+		};
+
+		TextField tfEhPassword = new()
+		{
+			X      = Pos.Right(lbEhPassword) + 1,
+			Y      = Pos.Y(lbEhPassword),
+			Width  = WIDTH * 2,
+			Height = 1,
+		};
+
+		tfEhPassword.TextChanging  += args =>
+		{
+			Config.EhPassword = args.NewText.ToString();
+			ReloadDialog();
+		};
+
+		/*============================================================================*\
+		    Register
+		\*============================================================================*/
 
 		btnRefresh.Clicked += ReloadDialog;
 
@@ -227,7 +286,7 @@ public sealed partial class GuiMain
 
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
-		          lbHelp, cbAutoSearch);
+		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);
@@ -237,41 +296,6 @@ public sealed partial class GuiMain
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
-	}
-
-	private static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)
-	{
-		var val = (SearchEngineOptions) args.Value;
-
-		var isMarked = lv.Source.IsMarked(args.Item);
-
-		bool b = val == SearchEngineOptions.None;
-
-		if (isMarked) {
-			if (b) {
-				e = val;
-
-				for (int i = 1; i < lv.Source.Length; i++) {
-					lv.Source.SetMark(i, false);
-				}
-			}
-			else {
-				e |= val;
-			}
-		}
-		else {
-			e &= ~val;
-		}
-
-		if (!b) {
-			lv.Source.SetMark(0, false);
-		}
-
-		lv.FromEnum(e);
-
-		ret:
-		lv.SetNeedsDisplay();
-		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}
 
 	/// <summary>
@@ -388,6 +412,7 @@ public sealed partial class GuiMain
 			Btn_Run.SetFocus();
 
 		}
+
 		Integration.KeepOnTop(Client.Config.OnTop);
 	}
 

@@ -37,13 +37,10 @@ using SmartImage.App;
 namespace SmartImage;
 
 // # Notes
+
 /*
  * ...
  */
-
-// # Terminology
-// Indicators	|	in this codebase and in relevant contexts, refers to the "pointer" or "link" referencing a binary resource
-//					(e.g., a file path or direct URI)
 
 public static class Program
 {

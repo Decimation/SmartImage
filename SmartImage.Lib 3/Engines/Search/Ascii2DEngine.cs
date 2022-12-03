@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Drawing;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net.Utilities;
@@ -14,9 +15,11 @@ using Kantan.Net.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine<INode>
+// todo
+
+public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 {
-	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
+	public Ascii2DEngine() : base("https://ascii2d.net/search/uri/")
 	{
 		Timeout = TimeSpan.FromSeconds(6);
 		MaxSize = 5 * 1000 * 1000;
@@ -35,10 +38,10 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine<INode>
 	{
 		var url = await base.GetRawUrlAsync(query);
 
-		url = url.SetQueryParams(new
+		/*url = url.SetQueryParams(new
 		{
 			type = "color"
-		});
+		});*/
 
 		/*
 		 * URL parameters
@@ -53,12 +56,63 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 	public override void Dispose() { }
 
+	public async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query, TimeSpan? timeout = null, CancellationToken? token = null)
+	{
+		token   ??= CancellationToken.None;
+		timeout ??= System.Threading.Timeout.InfiniteTimeSpan;
+
+		var parser = new HtmlParser();
+
+		try
+		{
+			if (origin2 is Url origin)
+			{
+				var data =new MultipartFormDataContent()
+				{
+					{ new StringContent(origin),"uri" }
+				};
+
+				var res = await origin.AllowAnyHttpStatus()
+				                      .WithCookies(out var cj)
+				                      .WithTimeout(timeout.Value)
+				                      .WithHeaders(new
+				                      {
+					                      User_Agent = HttpUtilities.UserAgent
+				                      })
+				                      .WithAutoRedirect(true)
+				                      /*.OnError(s =>
+									  {
+										  s.ExceptionHandled = true;
+									  })*/
+				                      .PostAsync(data);
+
+				var str = await res.GetStringAsync();
+
+				var document = await parser.ParseDocumentAsync(str, token.Value);
+
+				return document;
+
+			}
+			else
+			{
+				return null;
+			}
+		}
+		catch (FlurlHttpException e)
+		{
+			// return await Task.FromException<IDocument>(e);
+			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
+
+			return null;
+		}
+	}
+
 	public Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
 
 		var info = n.ChildNodes.Where(n => !String.IsNullOrWhiteSpace(n.TextContent))
-		            .ToArray();
+					.ToArray();
 
 		string hash = info.First().TextContent;
 

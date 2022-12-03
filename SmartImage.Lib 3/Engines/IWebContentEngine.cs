@@ -7,10 +7,11 @@ using Kantan.Net.Utilities;
 
 namespace SmartImage.Lib.Engines;
 
-public interface IWebContentEngine<TNode> where TNode : INode
+public interface IWebContentEngine
 {
 	public async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query,
-	                                              TimeSpan? timeout = null, CancellationToken? token = null)
+	                                              TimeSpan? timeout = null, 
+	                                              CancellationToken? token = null)
 	{
 		token   ??= CancellationToken.None;
 		timeout ??= Timeout.InfiniteTimeSpan;
@@ -26,7 +27,7 @@ public interface IWebContentEngine<TNode> where TNode : INode
 				                      {
 					                      User_Agent = HttpUtilities.UserAgent
 				                      })
-				                      /*.WithAutoRedirect(true)*/
+				                      .WithAutoRedirect(true)
 				                      /*.OnError(s =>
 				                      {
 					                      s.ExceptionHandled = true;
@@ -52,10 +53,10 @@ public interface IWebContentEngine<TNode> where TNode : INode
 		}
 	}
 
-	public Task<SearchResultItem> ParseNodeToItem(TNode n, SearchResult r);
+	public Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r);
 
-	public Task<List<TNode>> GetNodes(IDocument d)
-		=> Task.FromResult((List<TNode>) (object) d.Body.SelectNodes(NodesSelector));
+	public Task<List<INode>> GetNodes(IDocument d)
+		=> Task.FromResult(d.Body.SelectNodes(NodesSelector));
 
 	public string NodesSelector { get; }
 }

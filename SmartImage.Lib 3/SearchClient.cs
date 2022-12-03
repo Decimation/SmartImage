@@ -49,13 +49,21 @@ public sealed class SearchClient : IDisposable
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<List<SearchResult>> RunSearchAsync(SearchQuery query, CancellationToken? token = null)
 	{
+		if (query.Upload is not { }) {
+			throw new ArgumentException($"Query was not uploaded", nameof(query));
+		}
+
 		token ??= CancellationToken.None;
 
 		Engines = BaseSearchEngine.All.Where(e => Config.SearchEngines.HasFlag(e.EngineOption)
 		                                          && e.EngineOption != default)
 		                          .ToArray();
 
-		var tasks = Engines.Select(e => e.GetResultAsync(query, token)).ToList();
+		var tasks = Engines.Select(e =>
+		{
+			e.Config = Config;
+			return e.GetResultAsync(query, token);
+		}).ToList();
 
 		var results = new List<SearchResult>();
 

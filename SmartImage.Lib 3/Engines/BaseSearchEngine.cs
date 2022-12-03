@@ -8,6 +8,7 @@ using AngleSharp.Dom;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.Utilities;
+using SmartImage.Lib.Engines.Search;
 
 namespace SmartImage.Lib.Engines;
 
@@ -30,6 +31,8 @@ public abstract class BaseSearchEngine : IDisposable
 	protected TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
 	protected long MaxSize { get; set; } = NA_SIZE;
+	
+	public SearchConfig Config { get; set; } = SearchConfig.Default;
 
 	protected BaseSearchEngine(string baseUrl)
 	{
@@ -38,13 +41,13 @@ public abstract class BaseSearchEngine : IDisposable
 
 	static BaseSearchEngine()
 	{
-		/*FlurlHttp.Configure(settings =>
+		FlurlHttp.Configure(settings =>
 		{
 			settings.Redirects.Enabled                    = true; // default true
 			settings.Redirects.AllowSecureToInsecure      = true; // default false
 			settings.Redirects.ForwardAuthorizationHeader = true; // default false
 			settings.Redirects.MaxAutoRedirects           = 15;   // default 10 (consecutive)
-		});*/
+		});
 
 		// Trace.WriteLine($"Configured HTTP", nameof(BaseSearchEngine));
 	}
@@ -78,9 +81,9 @@ public abstract class BaseSearchEngine : IDisposable
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		token ??= CancellationToken.None;
-
+		
 		bool b = Verify(query);
-
+		
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),
@@ -89,7 +92,13 @@ public abstract class BaseSearchEngine : IDisposable
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
 
-		if (this is IWebContentEngine<INode> { } p) {
+		if (this is ILoginEngine {} e) {
+			if (e is EHentaiEngine eh) {
+				await eh.LoginAsync(Config.EhUsername, Config.EhPassword);
+			}
+		}
+
+		if (this is IWebContentEngine { } p) {
 			IDocument doc = await p.GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
 
 			if (doc is not { }) {

@@ -12,7 +12,7 @@ using Kantan.Text;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
+public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
@@ -20,21 +20,20 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 	}
 
-	#region Overrides of WebContentSearchEngine
-
 	public string NodesSelector => "//a[contains(@class, 'Tags-Item')]";
-
-	#endregion
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
 	private static string GetAnalysis(IDocument doc)
 	{
-		var nodes = doc.Body.SelectNodes("//a[contains(@class, 'Tags-Item') and " +
-		                                 "../../../../div[contains(@class,'CbirTags')]]/*");
+		if (doc.Body is not { }) {
+			return null;
+		}
 
-		var nodes2 = doc.Body.QuerySelectorAll(".CbirTags > .Tags > " +
-		                                       ".Tags-Wrapper > .Tags-Item");
+		var nodes = doc.Body.SelectNodes(
+			"//a[contains(@class, 'Tags-Item') and ../../../../div[contains(@class,'CbirTags')]]/*");
+
+		var nodes2 = doc.Body.QuerySelectorAll(".CbirTags > .Tags > .Tags-Wrapper > .Tags-Item");
 
 		nodes.AddRange(nodes2);
 
@@ -42,8 +41,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 			return null;
 		}
 
-		string appearsToContain = nodes.Select(n => n.TextContent)
-		                               .QuickJoin();
+		string appearsToContain = nodes.Select(n => n.TextContent).QuickJoin();
 
 		return appearsToContain;
 	}
@@ -117,19 +115,19 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 			RawUrl = url
 		};
 
-		IDocument doc;
+		IDocument doc = null;
 
 		try {
-			doc = await ((IWebContentEngine<INode>)this).GetDocumentAsync(url, query: query, token: token.Value);
+			doc = await ((IWebContentEngine) this).GetDocumentAsync(url, query: query, token: token.Value);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
 			// throw;
 			doc = null;
-			Debug.WriteLine($"{e.Message}", Name);
+			Debug.WriteLine($"{Name}: {e.Message}", nameof(GetResultAsync));
 		}
 
-		if (doc == null) {
+		if (doc is null or {Body: null}) {
 			sr.Status = SearchResultStatus.Failure;
 			return sr;
 		}
@@ -146,7 +144,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 		 * Find and sort through high resolution image matches
 		 */
 
-		foreach (var node in await ((IWebContentEngine<INode>)this).GetNodes(doc)) {
+		foreach (var node in await ((IWebContentEngine) this).GetNodes(doc)) {
 			var sri = await ParseNodeToItem(node, sr);
 
 			if (sri != null) {
@@ -182,8 +180,6 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 	}
 
 	public override void Dispose() { }
-
-	#region Overrides of WebContentSearchEngine
 
 	public async Task<IEnumerable<INode>> GetItems(IDocument doc)
 	{
@@ -228,6 +224,4 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine<INode>
 
 		return Task.FromResult<SearchResultItem>(null);
 	}
-
-	#endregion
 }
