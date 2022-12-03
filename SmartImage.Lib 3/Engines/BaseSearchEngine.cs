@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using AngleSharp.Dom;
 using Flurl.Http;
-using JetBrains.Annotations;
 using Novus.Utilities;
 using SmartImage.Lib.Engines.Search;
 
@@ -31,8 +30,6 @@ public abstract class BaseSearchEngine : IDisposable
 	protected TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
 	protected long MaxSize { get; set; } = NA_SIZE;
-	
-	public SearchConfig Config { get; set; } = SearchConfig.Default;
 
 	protected BaseSearchEngine(string baseUrl)
 	{
@@ -77,7 +74,7 @@ public abstract class BaseSearchEngine : IDisposable
 	{
 		return true;
 	}
-
+	
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
 		token ??= CancellationToken.None;
@@ -91,13 +88,7 @@ public abstract class BaseSearchEngine : IDisposable
 		};
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
-
-		if (this is ILoginEngine {} e) {
-			if (e is EHentaiEngine eh) {
-				await eh.LoginAsync(Config.EhUsername, Config.EhPassword);
-			}
-		}
-
+		
 		if (this is IWebContentEngine { } p) {
 			IDocument doc = await p.GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
 
@@ -147,4 +138,5 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
+	
 }

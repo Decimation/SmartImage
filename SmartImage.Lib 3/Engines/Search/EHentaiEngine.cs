@@ -37,7 +37,10 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
-	public override void Dispose() { }
+	public string Username { get; set; }
+	public string Password { get; set; }
+
+	public string NodesSelector => "//table/tbody/tr";
 
 	/*
 	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer/client
@@ -126,7 +129,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		return await parser.ParseDocumentAsync(content);
 	}
 
-	private async Task<IFlurlResponse> GetSessionAsync()
+	private async Task GetSessionAsync()
 	{
 		var res = await EXHENTAI_URI.WithCookies(Cookies)
 		                            .WithHeaders(new
@@ -135,18 +138,21 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		                            })
 		                            .WithAutoRedirect(true)
 		                            .GetAsync();
-		return res;
 	}
 
-	public async Task LoginAsync(string username, string password)
+	/*
+	 * Default result layout is [Compact]
+	 */
+
+	public async Task LoginAsync()
 	{
 		var content = new MultipartFormDataContent()
 		{
 			{ new StringContent("1"), "CookieDate" },
 			{ new StringContent("d"), "b" },
 			{ new StringContent("1-6"), "bt" },
-			{ new StringContent(username), "UserName" },
-			{ new StringContent(password), "PassWord" },
+			{ new StringContent(Username), "UserName" },
+			{ new StringContent(Password), "PassWord" },
 			{ new StringContent("Login!"), "ipb_login_submit" }
 		};
 
@@ -169,12 +175,6 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		await GetSessionAsync();
 
 	}
-
-	/*
-	 * Default result layout is [Compact]
-	 */
-
-	public string NodesSelector => "//table/tbody/tr";
 
 	public Task<List<INode>> GetNodes(IDocument d)
 	{
@@ -273,6 +273,8 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 		return eh;
 	}
+
+	public override void Dispose() { }
 
 	private sealed record EhResult
 	{

@@ -15,6 +15,7 @@ using Kantan.Net.Utilities;
 using Microsoft.Extensions.Configuration;
 using Novus.FileTypes;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Search;
 
 namespace SmartImage.Lib;
 
@@ -55,13 +56,10 @@ public sealed class SearchClient : IDisposable
 
 		token ??= CancellationToken.None;
 
-		Engines = BaseSearchEngine.All.Where(e => Config.SearchEngines.HasFlag(e.EngineOption)
-		                                          && e.EngineOption != default)
-		                          .ToArray();
+		await LoadEngines();
 
 		var tasks = Engines.Select(e =>
 		{
-			e.Config = Config;
 			return e.GetResultAsync(query, token);
 		}).ToList();
 
@@ -117,6 +115,26 @@ public sealed class SearchClient : IDisposable
 		}
 
 		return results;
+	}
+
+	public async Task LoadEngines()
+	{
+		Engines = BaseSearchEngine.All.Where(e =>
+		                          {
+			                          return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
+		                          })
+		                          .ToArray();
+
+		foreach (BaseSearchEngine bse in Engines) {
+			if (bse is ILoginEngine e) {
+				if (e is EHentaiEngine eh) {
+					eh.Username = Config.EhUsername;
+					eh.Password = Config.EhPassword;
+				}
+
+				await e.LoginAsync();
+			}
+		}
 	}
 
 	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
