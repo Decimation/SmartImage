@@ -440,3 +440,7 @@ fabric.properties
 /Test/Test.csproj
 /Test/Program.cs
 /Test/Program.cs
+/Test/Test.csproj
+/SmartImage.Lib 3 Unit Test/SmartImage.Lib Unit Test.csproj
+/SmartImage.Lib 3 Unit Test/UnitTest.cs
+/SmartImage.Lib 3 Unit Test/Usings.cs
