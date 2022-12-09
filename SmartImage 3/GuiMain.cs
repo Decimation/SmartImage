@@ -610,8 +610,10 @@ public sealed partial class GuiMain : IDisposable
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
-			if (Integration.ReadClipboard(out var str) &&
-			    !SearchQuery.IsUriOrFile(Tf_Input.Text.ToString()) && !m_clipboard.Contains(str)) {
+			if (!SearchQuery.IsUriOrFile(Tf_Input.Text.ToString()) 
+			    && Integration.ReadClipboard(out var str) 
+			    && !m_clipboard.Contains(str)) {
+				
 				SetInputText(str);
 				// Lbl_InputOk.Text   = UI.Clp;
 				Lbl_InputInfo.Text = R2.Inf_Clipboard;

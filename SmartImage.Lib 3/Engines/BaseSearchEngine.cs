@@ -39,13 +39,13 @@ public abstract class BaseSearchEngine : IDisposable
 
 	static BaseSearchEngine()
 	{
-		FlurlHttp.Configure(settings =>
+		/*FlurlHttp.Configure(settings =>
 		{
 			settings.Redirects.Enabled                    = true; // default true
 			settings.Redirects.AllowSecureToInsecure      = true; // default false
 			settings.Redirects.ForwardAuthorizationHeader = true; // default false
 			settings.Redirects.MaxAutoRedirects           = 15;   // default 10 (consecutive)
-		});
+		});*/
 
 		// Trace.WriteLine($"Configured HTTP", nameof(BaseSearchEngine));
 	}

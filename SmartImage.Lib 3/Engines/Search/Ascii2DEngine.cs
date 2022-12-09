@@ -6,6 +6,8 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
+using Jint;
+using Jint.Parser;
 using Kantan.Net.Utilities;
 
 // ReSharper disable CognitiveComplexity
@@ -19,7 +21,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 {
-	public Ascii2DEngine() : base("https://ascii2d.net/search/uri/")
+	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
 		Timeout = TimeSpan.FromSeconds(6);
 		MaxSize = 5 * 1000 * 1000;
@@ -72,6 +74,14 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 					{ new StringContent(origin),"uri" }
 				};
 
+				FlurlHttp.Configure(settings =>
+				{
+					settings.Redirects.Enabled                    = true; // default true
+					settings.Redirects.AllowSecureToInsecure      = true; // default false
+					settings.Redirects.ForwardAuthorizationHeader = true; // default false
+					settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
+				});
+
 				var res = await origin.AllowAnyHttpStatus()
 				                      .WithCookies(out var cj)
 				                      .WithTimeout(timeout.Value)
@@ -84,8 +94,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 									  {
 										  s.ExceptionHandled = true;
 									  })*/
-				                      .PostAsync(data);
-
+				                      .GetAsync();
 				var str = await res.GetStringAsync();
 
 				var document = await parser.ParseDocumentAsync(str, token.Value);

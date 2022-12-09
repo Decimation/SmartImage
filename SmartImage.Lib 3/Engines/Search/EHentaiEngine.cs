@@ -38,12 +38,12 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
-	public string Username      { get; set; }
-	public string Password      { get; set; }
+	public string Username { get; set; }
+	public string Password { get; set; }
 
 	private bool m_isLoggedIn;
 
-	public  bool IsLoggedIn => m_isLoggedIn ;
+	public bool IsLoggedIn => m_isLoggedIn;
 
 	public string NodesSelector => "//table/tbody/tr";
 
@@ -134,15 +134,15 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		return await parser.ParseDocumentAsync(content);
 	}
 
-	private async Task GetSessionAsync()
+	private async Task<IFlurlResponse> GetSessionAsync()
 	{
-		var res = await EXHENTAI_URI.WithCookies(Cookies)
-		                            .WithHeaders(new
-		                            {
-			                            User_Agent = HttpUtilities.UserAgent
-		                            })
-		                            .WithAutoRedirect(true)
-		                            .GetAsync();
+		return await EXHENTAI_URI.WithCookies(Cookies)
+		                           .WithHeaders(new
+		                           {
+			                           User_Agent = HttpUtilities.UserAgent
+		                           })
+		                           .WithAutoRedirect(true)
+		                           .GetAsync();
 	}
 
 	/*
@@ -177,7 +177,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 			Cookies.AddOrReplace(fc);
 		}
 
-		await GetSessionAsync();
+		var res2 = await GetSessionAsync();
 
 		m_isLoggedIn = true;
 	}

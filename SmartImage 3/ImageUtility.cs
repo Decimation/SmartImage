@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Flurl.Http;
@@ -119,4 +120,71 @@ public static class ImageUtility
 		return default;
 	}*/
 
+	/// <summary>
+	/// Reads a <c>PNG</c>
+	/// </summary>
+	/// <remarks>Specifically designed for Windows Snipping Tool <c>PNG</c> format</remarks>
+	public static byte[] ReadPNG(nint data)
+	{
+		/*
+		 * TODO: optimize
+		 */
+
+		int  i = 0;
+		byte b;
+		var  rg = new List<byte>();
+
+		// IEND
+		ReadOnlySpan<byte> s = stackalloc byte[]
+		{
+			0x49,
+			0x45,
+			0x4E,
+			0x44
+		};
+
+		void Read()
+		{
+			try {
+				b = Marshal.ReadByte(data, i++);
+				rg.Add(b);
+			}
+			catch (AccessViolationException x) {
+				b = Byte.MaxValue;
+			}
+			finally { }
+		}
+
+		do {
+			Read();
+
+			if (b == s[0]) {
+				Read();
+
+				if (b == s[1]) {
+					Read();
+
+					if (b == s[2]) {
+						Read();
+
+						if (b == s[3]) {
+							var rg2 = new byte[]
+							{
+								Marshal.ReadByte(data, i++),
+								Marshal.ReadByte(data, i++),
+								Marshal.ReadByte(data, i++),
+								Marshal.ReadByte(data, i++),
+
+							};
+							rg.AddRange(rg2);
+							break;
+						}
+					}
+				}
+			}
+
+		} while (true);
+
+		return rg.ToArray();
+	}
 }

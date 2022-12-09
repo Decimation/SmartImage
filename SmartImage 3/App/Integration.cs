@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -228,6 +229,23 @@ public static class Integration
 		IsOnTop = add;
 	}
 
+	public static bool ReadClipboardImage(out byte[] i)
+	{
+		const uint png = (uint)ClipboardFormat.PNG;
+
+		if (Native.IsClipboardFormatAvailable(png))
+		{
+			var data    = Native.GetClipboardData(png);
+			var pngData = ImageUtility.ReadPNG(data);
+			i = pngData;
+			return true;
+		}
+		else {
+			i = null;
+			return false;
+		}
+	}
+
 	public static bool ReadClipboard(out string str)
 	{
 		Native.OpenClipboard();
@@ -236,6 +254,17 @@ public static class Integration
 
 		if (!SearchQuery.IsUriOrFile(str)) {
 			str = (string) Native.GetClipboard((uint) ClipboardFormat.CF_TEXT);
+		}
+
+		if (ReadClipboardImage(out var ms)) {
+			var s = Path.Combine(Path.GetTempPath(), $"clipboard_{ms.Length}.png");
+			if (!File.Exists(s)) {
+				File.WriteAllBytes(s, ms);
+
+			}
+
+			str = s;
+			Debug.WriteLine($"read png from clipboard {s}");
 		}
 
 		Native.CloseClipboard();
