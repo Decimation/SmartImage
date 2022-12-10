@@ -26,7 +26,7 @@ internal static class AppNotification
 {
 	// public const string WIN_VER = "windows10.0.10240.0";
 
-	internal static async Task ShowAsync(object sender, UniFile[] args)
+	internal static async Task ShowAsync(object sender, UniSource[] args)
 	{
 		Debug.WriteLine($"Building toast", nameof(ShowAsync));
 
@@ -100,7 +100,7 @@ internal static class AppNotification
 		ToastNotificationManager.CreateToastNotifier().Show(toast);
 	}
 
-	private static async Task AddImageAsync(ToastContentBuilder builder, UniFile uf)
+	private static async Task AddImageAsync(ToastContentBuilder builder, UniSource uf)
 	{
 		var file = await uf.DownloadAsync();
 		File.Move(file, file+".jpg");

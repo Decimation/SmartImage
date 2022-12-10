@@ -10,6 +10,7 @@ using Novus.Win32.Structures.User32;
 using SmartImage.App;
 using SmartImage.Lib.Engines;
 using Terminal.Gui;
+using Clipboard = Novus.Win32.Clipboard;
 
 namespace SmartImage.Shell;
 
@@ -41,7 +42,7 @@ internal static class ConsoleUtil
 	
 	internal static void SetConsoleMode()
 	{
-		Native.OpenClipboard();
+		// Clipboard.Open();
 
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 		Native.GetConsoleMode(StdIn, out ConsoleModes lpMode);

@@ -62,7 +62,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 	{
 		var data = new MultipartFormDataContent()
 		{
-			{ new FileContent(query.Uni.Value), "sfile", "a.jpg" },
+			{ new FileContent(query.Uni.Value.ToString()), "sfile", "a.jpg" },
 			// { new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
 			{ new StringContent("fs_similar") },
 			{ new StringContent("fs_covers") },

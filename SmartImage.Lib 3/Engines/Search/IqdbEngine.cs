@@ -8,6 +8,7 @@ using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Novus.FileTypes;
 
 // ReSharper disable StringLiteralTypo
 
@@ -116,11 +117,11 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		var response = await EndpointUrl.PostMultipartAsync(m =>
 		{
 			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-			m.AddString("url", query.Uni.IsUri ? query.Uni.Value : String.Empty);
+			m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);
 
 			if (query.Uni.IsUri) { }
 			else if (query.Uni.IsFile) {
-				m.AddFile("file", query.Uni.Value, fileName: "image.jpg");
+				m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
 			}
 
 			return;

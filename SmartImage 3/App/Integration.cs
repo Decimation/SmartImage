@@ -24,6 +24,7 @@ using SmartImage.Lib;
 using Terminal.Gui;
 using Command = Novus.OS.Command;
 using SmartImage.Shell;
+using Clipboard = Novus.Win32.Clipboard;
 
 #endregion
 
@@ -248,12 +249,12 @@ public static class Integration
 
 	public static bool ReadClipboard(out string str)
 	{
-		Native.OpenClipboard();
+		Clipboard.Open();
 
-		str = Native.GetClipboardFileName();
+		str =(string) Clipboard.GetData((uint) ClipboardFormat.FileNameW);
 
 		if (!SearchQuery.IsUriOrFile(str)) {
-			str = (string) Native.GetClipboard((uint) ClipboardFormat.CF_TEXT);
+			str = (string)  Clipboard.GetData((uint) ClipboardFormat.CF_TEXT);
 		}
 
 		if (ReadClipboardImage(out var ms)) {
@@ -267,7 +268,7 @@ public static class Integration
 			Debug.WriteLine($"read png from clipboard {s}");
 		}
 
-		Native.CloseClipboard();
+		Clipboard.Close();
 		// Debug.WriteLine($"Clipboard data: {str}");
 
 		var b = SearchQuery.IsUriOrFile(str);

@@ -133,11 +133,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			response = await EndpointUrl.AllowHttpStatus()
 			                            .PostMultipartAsync(m =>
 			{
-				m.AddString("url", query.Uni.IsUri ? query.Uni.Value : String.Empty);
+				m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);
 
 				if (query.Uni.IsUri) { }
 				else if (query.Uni.IsFile) {
-					m.AddFile("file", query.Uni.Value, fileName: "image.png");
+					m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.png");
 				}
 
 				return;

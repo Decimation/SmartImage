@@ -146,7 +146,7 @@ public sealed class SearchClient : IDisposable
 		          .ThenByDescending(r => r.Similarity);
 	}
 
-	public static async Task<List<UniFile>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
+	public static async Task<List<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
 	{
 		var filter = Optimize(sri)
 		             .DistinctBy(r => r.Url)
@@ -158,7 +158,7 @@ public sealed class SearchClient : IDisposable
 		             })
 		             .ToList();
 
-		var di = new List<UniFile>();
+		var di = new List<UniSource>();
 
 		while (filter.Any()) {
 			var t1 = await Task.WhenAny(filter);

@@ -448,7 +448,7 @@ public sealed partial class GuiMain : IDisposable
 
 		// await AppNotification.ShowAsync(sender, di);
 
-		foreach (UniFile uniFile in di) {
+		foreach (UniSource uniFile in di) {
 			uniFile.Dispose();
 		}*/
 

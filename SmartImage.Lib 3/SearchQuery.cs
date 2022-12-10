@@ -21,7 +21,7 @@ namespace SmartImage.Lib;
 
 public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 {
-	public UniFile Uni { get; }
+	public UniSource Uni { get; }
 
 	[MN]
 	public Url Upload { get; private set; }
@@ -31,7 +31,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[SupportedOSPlatform(Global.OS_WIN)]
 	public Image Image { get; private set; }
 
-	internal SearchQuery([MN] UniFile f)
+	internal SearchQuery([MN] UniSource f)
 	{
 		Uni = f;
 	}
@@ -42,7 +42,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static async Task<SearchQuery> TryCreateAsync(string value)
 	{
-		var uf = await UniFile.TryGetAsync(value, whitelist: FileType.Image);
+		var uf = await UniSource.TryGetAsync(value, whitelist: FileType.Image);
 
 		var sq = new SearchQuery(uf)
 			{ };
@@ -53,13 +53,13 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null)
 	{
 		if (Uni.IsUri) {
-			Upload = Uni.Value;
+			Upload = Uni.Value.ToString();
 			Size   = BaseSearchEngine.NA_SIZE;
 			Debug.WriteLine($"Skipping upload for {Uni.Value}", nameof(UploadAsync));
 		}
 		else {
 			engine ??= BaseUploadEngine.Default;
-			var u = await engine.UploadFileAsync(Uni.Value);
+			var u = await engine.UploadFileAsync(Uni.Value.ToString());
 			Upload = u;
 			Size   = engine.Size;
 		}
@@ -91,7 +91,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static bool IsUriOrFile(string str)
 	{
-		var (f, u) = UniFile.IsUriOrFile(str);
+		var (f, u) = UniSource.IsUriOrFile(str);
 		return f || u;
 	}
 

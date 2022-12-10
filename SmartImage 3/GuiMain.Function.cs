@@ -435,7 +435,7 @@ public sealed partial class GuiMain
 			f = HttpUtilities.TryOpenUrl;
 		}
 
-		f(Query.Uni.Value);
+		f(Query.Uni.Value.ToString());
 	}
 
 	private static void Clear_Clicked()

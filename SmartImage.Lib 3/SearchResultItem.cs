@@ -94,14 +94,14 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public int Score { get; private set; }
 
-	public UniFile Uni { get; private set; }
+	public UniSource Uni { get; private set; }
 
 	internal SearchResultItem(SearchResult r)
 	{
 		Root           = r;
 		Metadata       = new ExpandoObject();
 		m_isScored     = false;
-		Uni = UniFile.Null;
+		Uni = UniSource.Null;
 	}
 
 	public static bool Validate([CBN] SearchResultItem r)
@@ -149,13 +149,13 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public async Task<bool> GetUniAsync()
 	{
-		if (Uni != UniFile.Null) {
+		if (Uni != UniSource.Null) {
 			return true;
 		}
 
-		Uni = await UniFile.TryGetAsync(Url, whitelist: FileType.Image);
+		Uni = await UniSource.TryGetAsync(Url, whitelist: FileType.Image);
 		
-		return Uni != UniFile.Null;
+		return Uni != UniSource.Null;
 	}
 
 	public override string ToString()
