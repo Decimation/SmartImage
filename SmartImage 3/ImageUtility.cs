@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Flurl.Http;
 using Kantan.Utilities;
 using Novus.FileTypes;
+using Novus.Win32;
 
 namespace SmartImage;
 
@@ -120,6 +121,7 @@ public static class ImageUtility
 		return default;
 	}*/
 
+	/*
 	/// <summary>
 	/// Reads a <c>PNG</c>
 	/// </summary>
@@ -128,7 +130,7 @@ public static class ImageUtility
 	{
 		/*
 		 * TODO: optimize
-		 */
+		 #1#
 
 		int  i = 0;
 		byte b;
@@ -186,5 +188,5 @@ public static class ImageUtility
 		} while (true);
 
 		return rg.ToArray();
-	}
+	}*/
 }

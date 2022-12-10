@@ -232,13 +232,10 @@ public static class Integration
 
 	public static bool ReadClipboardImage(out byte[] i)
 	{
-		const uint png = (uint)ClipboardFormat.PNG;
+		const uint png = (uint) ClipboardFormat.PNG;
 
-		if (Native.IsClipboardFormatAvailable(png))
-		{
-			var data    = Native.GetClipboardData(png);
-			var pngData = ImageUtility.ReadPNG(data);
-			i = pngData;
+		if (Clipboard.IsFormatAvailable(png)) {
+			i = Clipboard.GetData(png) as byte[];
 			return true;
 		}
 		else {
@@ -250,18 +247,31 @@ public static class Integration
 	public static bool ReadClipboard(out string str)
 	{
 		Clipboard.Open();
+		var data = Clipboard.GetData((uint) ClipboardFormat.FileNameW);
 
-		str =(string) Clipboard.GetData((uint) ClipboardFormat.FileNameW);
+		if (data is IntPtr { } p && p == IntPtr.Zero) {
+			str = null;
+		}
+		else {
+			str = (string) data;
+		}
 
 		if (!SearchQuery.IsUriOrFile(str)) {
-			str = (string)  Clipboard.GetData((uint) ClipboardFormat.CF_TEXT);
+			var o = Clipboard.GetData((uint) ClipboardFormat.CF_TEXT);
+
+			if (data is IntPtr { } p2 && p2 == IntPtr.Zero) {
+				str = null;
+			}
+			else {
+				str = (string) o;
+			}
 		}
 
 		if (ReadClipboardImage(out var ms)) {
 			var s = Path.Combine(Path.GetTempPath(), $"clipboard_{ms.Length}.png");
+
 			if (!File.Exists(s)) {
 				File.WriteAllBytes(s, ms);
-
 			}
 
 			str = s;

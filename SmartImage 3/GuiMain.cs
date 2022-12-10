@@ -26,6 +26,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Shell;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
+using Clipboard = Novus.Win32.Clipboard;
 using Window = Terminal.Gui.Window;
 
 // ReSharper disable IdentifierTypo
@@ -602,18 +603,23 @@ public sealed partial class GuiMain : IDisposable
 		return null;
 	}
 
+	private static int m_prevSeq;
+
 	private bool ClipboardCallback(MainLoop c)
 	{
+
 		try {
 			/*
 			 * Don't set input if:
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
-			if (!SearchQuery.IsUriOrFile(Tf_Input.Text.ToString()) 
-			    && Integration.ReadClipboard(out var str) 
-			    && !m_clipboard.Contains(str)) {
-				
+			int sequenceNumber = Novus.Win32.Clipboard.SequenceNumber;
+			if (!SearchQuery.IsUriOrFile(Tf_Input.Text.ToString())
+			    && Integration.ReadClipboard(out var str)
+			    && !m_clipboard.Contains(str)
+			    /*&& (m_prevSeq != sequenceNumber)*/) {
+
 				SetInputText(str);
 				// Lbl_InputOk.Text   = UI.Clp;
 				Lbl_InputInfo.Text = R2.Inf_Clipboard;
@@ -628,11 +634,15 @@ public sealed partial class GuiMain : IDisposable
 			// note: wtf?
 			c.RemoveTimeout(m_cbCallbackTok);
 			m_cbCallbackTok = c.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
-
 			return false;
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}", nameof(ClipboardCallback));
+		}
+
+		finally {
+			m_prevSeq = Clipboard.SequenceNumber;
+
 		}
 
 		return true;
