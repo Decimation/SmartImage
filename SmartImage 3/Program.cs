@@ -45,7 +45,7 @@ namespace SmartImage;
 
 public static class Program
 {
-	private static GuiMain _main;
+	private static TerminalMain _main;
 
 	[ModuleInitializer]
 	public static void Init()
@@ -72,7 +72,7 @@ public static class Program
 #endif
 		bool cli = args is { } && args.Any();
 
-		_main = new GuiMain(args);
+		_main = new TerminalMain(args);
 
 		main1:
 

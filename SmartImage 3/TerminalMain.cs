@@ -35,7 +35,7 @@ using Window = Terminal.Gui.Window;
 #pragma warning disable IDE0060
 namespace SmartImage;
 
-public sealed partial class GuiMain : IDisposable
+public sealed partial class TerminalMain : IDisposable
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 	// NOTE: Static initialization order is nondeterminant with partial classes
@@ -251,9 +251,9 @@ public sealed partial class GuiMain : IDisposable
 
 	#endregion
 
-	static GuiMain() { }
+	static TerminalMain() { }
 
-	public GuiMain(string[] args)
+	public TerminalMain(string[] args)
 	{
 		Args    = args;
 		m_token = new();
@@ -614,7 +614,9 @@ public sealed partial class GuiMain : IDisposable
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
+			
 			int sequenceNumber = Novus.Win32.Clipboard.SequenceNumber;
+
 			if (!SearchQuery.IsUriOrFile(Tf_Input.Text.ToString())
 			    && Integration.ReadClipboard(out var str)
 			    && !m_clipboard.Contains(str)

@@ -15,7 +15,7 @@ using Terminal.Gui;
 
 namespace SmartImage;
 
-public sealed partial class GuiMain
+public sealed partial class TerminalMain
 {
 	private void AboutDialog()
 	{
@@ -214,6 +214,7 @@ public sealed partial class GuiMain
 
 		cbAutoSearch.Toggled += b =>
 		{
+			m_autoSearch = b;
 			ReloadDialog();
 		};
 

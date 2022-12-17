@@ -11,6 +11,7 @@ using Novus.Utilities;
 using SmartImage.Lib.Engines.Search;
 
 namespace SmartImage.Lib.Engines;
+#nullable enable
 
 public abstract class BaseSearchEngine : IDisposable
 {
@@ -79,18 +80,29 @@ public abstract class BaseSearchEngine : IDisposable
 	public virtual async Task LoadAsync(SearchConfig cfg)
 	{
 		if (this is ILoginEngine e) {
+			string u = null, p = null;
+
 			if (e is { IsLoggedIn: true }) {
 				Debug.WriteLine($"{this.Name} is already logged in", nameof(LoadAsync));
 				return;
 			}
 
 			if (e is EHentaiEngine eh) {
-				eh.Username = cfg.EhUsername;
-				eh.Password = cfg.EhPassword;
+				u = cfg.EhUsername;
+				p = cfg.EhPassword;
 			}
 
-			await e.LoginAsync();
-			Debug.WriteLine($"{Name} logged in", nameof(LoadAsync));
+			if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p)) {
+				Debug.WriteLine($"{Name}: username/password is null", nameof(LoadAsync));
+				return;
+
+			}
+
+			e.Username = u;
+			e.Password = p;
+
+			var ok = await e.LoginAsync();
+			Debug.WriteLine($"{Name} logged in - {ok}", nameof(LoadAsync));
 		}
 	}
 
@@ -99,6 +111,10 @@ public abstract class BaseSearchEngine : IDisposable
 		token ??= CancellationToken.None;
 
 		bool b = Verify(query);
+
+		/*if (!b) {
+			throw new SmartImageException($"{query}");
+		}*/
 
 		var res = new SearchResult(this)
 		{
@@ -129,7 +145,6 @@ public abstract class BaseSearchEngine : IDisposable
 					res.Results.Add(sri);
 				}
 			}
-
 			Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Length}",
 			                nameof(GetResultAsync));
 

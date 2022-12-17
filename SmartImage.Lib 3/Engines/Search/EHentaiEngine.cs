@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Linq;
 using System.Net;
@@ -31,7 +32,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 	public EHentaiEngine() : base(EXHENTAI_URI)
 	{
 		Cookies      = new CookieJar();
-		m_isLoggedIn = false;
+		IsLoggedIn = false;
 	}
 
 	public CookieJar Cookies { get; }
@@ -41,9 +42,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 	public string Username { get; set; }
 	public string Password { get; set; }
 
-	private bool m_isLoggedIn;
-
-	public bool IsLoggedIn => m_isLoggedIn;
+	public bool IsLoggedIn { get; private set; }
 
 	public string NodesSelector => "//table/tbody/tr";
 
@@ -149,10 +148,10 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 	 * Default result layout is [Compact]
 	 */
 
-	public async Task LoginAsync()
+	public async Task<bool> LoginAsync()
 	{
 		if (Username is not {} || Password is not {}) {
-			return;
+			return false;
 		}
 
 		var content = new MultipartFormDataContent()
@@ -183,7 +182,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 		var res2 = await GetSessionAsync();
 
-		m_isLoggedIn = true;
+		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
 	public Task<List<INode>> GetNodes(IDocument d)
@@ -217,13 +216,13 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 		return item;
 	}
-
+	
 	private static EhResult GetEhResult(INode n)
 	{
+		// ReSharper disable InconsistentNaming
 		var eh = new EhResult();
 
 		var gl1c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl1c" } e);
-
 		if (gl1c is { }) {
 			if (gl1c.FirstChild is { } t) {
 				eh.Type = t.TextContent;
@@ -231,7 +230,6 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		}
 
 		var gl2c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl2c" } e);
-
 		if (gl2c is { }) {
 			if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
 				eh.Pages = div.TextContent;
@@ -239,7 +237,6 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		}
 
 		var gl3c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl3c glname" } e);
-
 		if (gl3c is { }) {
 			if (gl3c.FirstChild is { } f) {
 				eh.Url = (Url) f.TryGetAttribute(Resources.Atr_href);
@@ -269,7 +266,6 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		}
 
 		var gl4c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl4c glhide" } e);
-
 		if (gl4c is { }) {
 			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
 				eh.AuthorUrl = div1.TryGetAttribute(Resources.Atr_href);
@@ -282,6 +278,8 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		}
 
 		return eh;
+
+		// ReSharper restore InconsistentNaming
 	}
 
 	public override void Dispose() { }

@@ -33,6 +33,7 @@ public sealed class SearchClient : IDisposable
 	{
 		Config        = cfg;
 		EnginesLoaded = false;
+
 		Engines = BaseSearchEngine.All.Where(e =>
 		                          {
 			                          return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
@@ -141,9 +142,15 @@ public sealed class SearchClient : IDisposable
 
 	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{
-		return sri.Where(r => SearchQuery.IsUriOrFile(r.Url))
-		          .OrderByDescending(r => r.Score)
-		          .ThenByDescending(r => r.Similarity);
+		var items = sri.Where(r => SearchQuery.IsUriOrFile(r.Url))
+		               .OrderByDescending(r => r.Score)
+		               .ThenByDescending(r => r.Similarity);
+
+		var c      = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe 
+		                              /*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD*/);
+		var items2 = items.Except(c);
+
+		return items2;
 	}
 
 	public static async Task<List<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)

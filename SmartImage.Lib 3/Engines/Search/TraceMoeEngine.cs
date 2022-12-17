@@ -169,7 +169,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	/// <summary>
 	/// Threshold at which results become inaccurate
 	/// </summary>
-	private const double FILTER_THRESHOLD = 87.00;
+	public const double FILTER_THRESHOLD = 87.00;
 
 	public override void Dispose()
 	{

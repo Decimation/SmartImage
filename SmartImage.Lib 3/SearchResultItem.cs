@@ -3,6 +3,7 @@
 using System.Collections;
 using System.Dynamic;
 using Flurl;
+using JetBrains.Annotations;
 using Kantan.Model;
 using Novus.FileTypes;
 
@@ -22,7 +23,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	///     Result containing this result item
 	/// </summary>
 	[NN]
-	public SearchResult Root { get; }
+	public SearchResult Root { get;  }
 
 	[MN]
 	public Url Url { get; internal set; }
@@ -147,6 +148,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		m_isScored = true;
 	}
 
+	[MustUseReturnValue]
 	public async Task<bool> GetUniAsync()
 	{
 		if (Uni != UniSource.Null) {
