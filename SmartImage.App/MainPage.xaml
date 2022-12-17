@@ -7,33 +7,48 @@
         <VerticalStackLayout
             Spacing="25"
             Padding="30,0"
-            VerticalOptions="Center">
+            VerticalOptions="Fill">
 
-            <Image
-                Source="dotnet_bot.png"
-                SemanticProperties.Description="Cute dot net bot waving hi to you!"
-                HeightRequest="200"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Hello, World!"
-                SemanticProperties.HeadingLevel="Level1"
-                FontSize="32"
-                HorizontalOptions="Center" />
-
-            <Label
-                Text="Welcome to .NET Multi-platform App UI"
-                SemanticProperties.HeadingLevel="Level2"
-                SemanticProperties.Description="Welcome to dot net Multi platform App U I"
+            <Label 
+                Text=""
+                Grid.Row="0"
                 FontSize="18"
+                FontAttributes="Bold"
+                x:Name="FolderLabel"
                 HorizontalOptions="Center" />
 
-            <Button
-                x:Name="CounterBtn"
-                Text="Click me"
-                SemanticProperties.Hint="Counts the number of times you click"
-                Clicked="OnCounterClicked"
+            <Button 
+                x:Name="Btn_Pick"
+                Text="Pick Folder"
+                FontAttributes="Bold"
+                Grid.Row="1"
+                SemanticProperties.Hint="Allows you to pick a folder on the filesystem"
+                Clicked="OnPickFolderClicked"
                 HorizontalOptions="Center" />
+            <Button
+                x:Name="Btn_Run"
+                Text="Run"
+                FontAttributes="Bold"
+                Grid.Row="1"
+                Clicked="OnRunClicked"
+                HorizontalOptions="Center" />
+
+            <TableView Intent="Menu">
+                <TableRoot>
+                    <TableSection Title="Chapters">
+                        <TextCell Text="1. Introduction to .NET MAUI"
+                                  Detail="Learn about .NET MAUI and what it provides." />
+                        <TextCell Text="2. Anatomy of an app"
+                                  Detail="Learn about the visual elements in .NET MAUI" />
+                        <TextCell Text="3. Text"
+                                  Detail="Learn about the .NET MAUI controls that display text." />
+                        <TextCell Text="4. Dealing with sizes"
+                                  Detail="Learn how to size .NET MAUI controls on screen." />
+                        <TextCell Text="5. XAML vs code"
+                                  Detail="Learn more about creating your UI in XAML." />
+                    </TableSection>
+                </TableRoot>
+            </TableView>
 
         </VerticalStackLayout>
     </ScrollView>

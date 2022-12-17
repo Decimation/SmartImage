@@ -26,8 +26,18 @@
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'maccatalyst'">13.1</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'android'">21.0</SupportedOSPlatformVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</SupportedOSPlatformVersion>
-		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0</TargetPlatformMinVersion>
+		<TargetPlatformMinVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'windows'">10.0.17763.0
+		</TargetPlatformMinVersion>
 		<SupportedOSPlatformVersion Condition="$([MSBuild]::GetTargetPlatformIdentifier('$(TargetFramework)')) == 'tizen'">6.5</SupportedOSPlatformVersion>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net7.0-windows10.0.19041.0|AnyCPU'">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net7.0-windows10.0.19041.0|AnyCPU'">
+		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -53,19 +63,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
+		<ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Reference Include="Kantan">
-	    <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Kantan.Net">
-	    <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net7.0\Kantan.Net.dll</HintPath>
-	  </Reference>
-	  <Reference Include="Novus">
-	    <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net7.0\Novus.dll</HintPath>
-	  </Reference>
+		<Reference Include="Kantan">
+			<HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net7.0\Kantan.dll</HintPath>
+		</Reference>
+		<Reference Include="Kantan.Net">
+			<HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net7.0\Kantan.Net.dll</HintPath>
+		</Reference>
+		<Reference Include="Novus">
+			<HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net7.0\Novus.dll</HintPath>
+		</Reference>
 	</ItemGroup>
 
 </Project>

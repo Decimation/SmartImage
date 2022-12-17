@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using System.Diagnostics;
+using Microsoft.Extensions.Logging;
 
 namespace SmartImage.App;
 
@@ -18,7 +19,10 @@ public static class MauiProgram
 #if DEBUG
 		builder.Logging.AddDebug();
 #endif
-
+		
+		builder.Services.AddTransient<MainPage>();
+		builder.Services.AddTransient<App>();
+		
 		return builder.Build();
 	}
 }

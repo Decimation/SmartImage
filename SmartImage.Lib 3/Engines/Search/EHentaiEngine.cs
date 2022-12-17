@@ -151,6 +151,10 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 	public async Task LoginAsync()
 	{
+		if (Username is not {} || Password is not {}) {
+			return;
+		}
+
 		var content = new MultipartFormDataContent()
 		{
 			{ new StringContent("1"), "CookieDate" },

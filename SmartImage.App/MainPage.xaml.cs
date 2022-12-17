@@ -1,23 +1,47 @@
-﻿namespace SmartImage.App;
+﻿using System.Diagnostics;
+using JetBrains.Annotations;
+using SmartImage.Lib;
+
+namespace SmartImage.App;
 
 public partial class MainPage : ContentPage
 {
-	int count = 0;
+	[CanBeNull]
+	private FileResult m_file;
+
+	private SearchConfig m_cfg;
+
+	private SearchClient m_client;
+
+	private SearchQuery m_query;
 
 	public MainPage()
 	{
 		InitializeComponent();
+
+		m_cfg    = new SearchConfig();
+		m_client = new SearchClient(m_cfg);
 	}
 
-	private void OnCounterClicked(object sender, EventArgs e)
+	private async void OnRunClicked(object sender, EventArgs e)
 	{
-		count++;
+		var r = await m_client.RunSearchAsync(m_query);
+	}
 
-		if (count == 1)
-			CounterBtn.Text = $"Clicked {count} time";
-		else
-			CounterBtn.Text = $"Clicked {count} times";
+	private async void OnPickFolderClicked(object sender, EventArgs e)
+	{
+		Btn_Run.IsEnabled = false;
 
-		SemanticScreenReader.Announce(CounterBtn.Text);
+		m_file = await FilePicker.PickAsync(PickOptions.Images);
+
+		if (m_file is { }) {
+			FolderLabel.Text = m_file.FullPath;
+			SemanticScreenReader.Announce(FolderLabel.Text);
+			m_query = await SearchQuery.TryCreateAsync(m_file.FullPath);
+			Debug.WriteLine($"{m_query}");
+			await m_query.UploadAsync();
+			Debug.WriteLine($"{m_query}");
+			Btn_Run.IsEnabled = true;
+		}
 	}
 }
