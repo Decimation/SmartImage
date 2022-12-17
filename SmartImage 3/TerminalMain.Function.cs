@@ -494,7 +494,7 @@ public sealed partial class TerminalMain
 
 		Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
 
-		if (SearchQuery.IsUriOrFile(text.ToString())) {
+		if (SearchQuery.IsValidSourceType(text.ToString())) {
 			var ok = await SetQuery(text);
 			Btn_Run.Enabled = ok;
 		}

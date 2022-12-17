@@ -45,7 +45,7 @@ public sealed class SearchClient : IDisposable
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);
 
-	public delegate void SearchCompleteCallback(object sender, List<SearchResult> e);
+	public delegate void SearchCompleteCallback(object sender, SearchResult[] e);
 
 	public ResultCompleteCallback OnResult { get; set; }
 
@@ -56,24 +56,18 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
-	public async Task<List<SearchResult>> RunSearchAsync(SearchQuery query, CancellationToken? token = null)
+	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null)
 	{
-		if (query.Upload is not { }) {
-			throw new ArgumentException($"Query was not uploaded", nameof(query));
-		}
-
-		token ??= CancellationToken.None;
-
 		if (!EnginesLoaded) {
 			await LoadEngines();
 		}
 
-		var tasks = Engines.Select(e =>
-		{
-			return e.GetResultAsync(query, token);
-		}).ToList();
+		token ??= CancellationToken.None;
 
-		var results = new List<SearchResult>();
+		List<Task<SearchResult>> tasks = GetSearchTasks(query, token.Value);
+
+		var results = new SearchResult[tasks.Count];
+		int i       = 0;
 
 		while (tasks.Any()) {
 			if (token.Value.IsCancellationRequested) {
@@ -104,7 +98,8 @@ public sealed class SearchClient : IDisposable
 				HttpUtilities.TryOpenUrl(url1);
 			}
 
-			results.Add(result);
+			results[i++] = result;
+			// results.Add(result);
 			tasks.Remove(task);
 		}
 
@@ -114,17 +109,31 @@ public sealed class SearchClient : IDisposable
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 
-			try {
-				var result = Optimize(results.SelectMany(r => r.Results)).First();
+			var sri    = results.SelectMany(r => r.Results).ToArray();
+			var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 
+			if (result is {}) {
 				Debug.WriteLine($"Auto: {result}", nameof(RunSearchAsync));
-
 				HttpUtilities.TryOpenUrl(result.Url);
 			}
-			catch (Exception e) { }
+			
 		}
 
 		return results;
+	}
+
+	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
+	{
+		if (query.Upload is not { }) {
+			throw new ArgumentException($"Query was not uploaded", nameof(query));
+		}
+
+		var tasks = Engines.Select(e =>
+		{
+			return e.GetResultAsync(query, token);
+		}).ToList();
+
+		return tasks;
 	}
 
 	public async Task LoadEngines()
@@ -142,15 +151,20 @@ public sealed class SearchClient : IDisposable
 
 	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{
-		var items = sri.Where(r => SearchQuery.IsUriOrFile(r.Url))
+		var items = sri.Where(r => SearchQuery.IsValidSourceType(r.Url))
 		               .OrderByDescending(r => r.Score)
-		               .ThenByDescending(r => r.Similarity);
+		               .ThenByDescending(r => r.Similarity)
+		               .ToArray();
 
-		var c      = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe 
-		                              /*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD*/);
-		var items2 = items.Except(c);
+		try {
+			var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
+				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD*/);
+			items = items.Except(c).ToArray();
+		}
+		catch (Exception e) { }
+		finally { }
 
-		return items2;
+		return items;
 	}
 
 	public static async Task<List<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)

@@ -102,7 +102,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		Root           = r;
 		Metadata       = new ExpandoObject();
 		m_isScored     = false;
-		Uni = UniSource.Null;
+		Uni = null;
 	}
 
 	public static bool Validate([CBN] SearchResultItem r)
@@ -151,13 +151,13 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	[MustUseReturnValue]
 	public async Task<bool> GetUniAsync()
 	{
-		if (Uni != UniSource.Null) {
+		if (Uni != null) {
 			return true;
 		}
 
 		Uni = await UniSource.TryGetAsync(Url, whitelist: FileType.Image);
 		
-		return Uni != UniSource.Null;
+		return Uni != null;
 	}
 
 	public override string ToString()

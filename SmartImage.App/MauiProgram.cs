@@ -1,7 +1,6 @@
-﻿using System.Diagnostics;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 
-namespace SmartImage.App;
+namespace SmartImage.UI;
 
 public static class MauiProgram
 {

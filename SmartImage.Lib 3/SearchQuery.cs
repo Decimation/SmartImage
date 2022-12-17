@@ -89,10 +89,10 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	}
 
-	public static bool IsUriOrFile(string str)
+	public static bool IsValidSourceType(object str)
 	{
-		var (f, u) = UniSource.IsUriOrFile(str);
-		return f || u;
+		var v = UniSource.GetSourceType(str);
+		return v is UniSourceType.Uri or UniSourceType.File or UniSourceType.Stream;
 	}
 
 	public void Dispose()
@@ -121,6 +121,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	{
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
+
 		return Equals(Uni, other.Uni) && Equals(Upload, other.Upload) && Size == other.Size &&
 		       (!OperatingSystem.IsWindows() || Equals(Image, other.Image));
 	}
@@ -136,9 +137,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			int hashCode = (Uni != null ? Uni.GetHashCode() : 0);
 			hashCode = (hashCode * 397) ^ (Upload != null ? Upload.GetHashCode() : 0);
 			hashCode = (hashCode * 397) ^ Size.GetHashCode();
+
 			if (OperatingSystem.IsWindows()) {
 				hashCode = (hashCode * 397) ^ (Image != null ? Image.GetHashCode() : 0);
 			}
+
 			return hashCode;
 		}
 	}

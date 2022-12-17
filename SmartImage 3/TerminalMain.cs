@@ -432,14 +432,14 @@ public sealed partial class TerminalMain : IDisposable
 
 	}
 
-	private async void OnComplete(object sender, List<SearchResult> results)
+	private async void OnComplete(object sender, SearchResult[] results)
 	{
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
 	}
 
 	[SupportedOSPlatform(Compat.OS)]
-	private async void OnCompleteWin(object sender, List<SearchResult> results)
+	private async void OnCompleteWin(object sender, SearchResult[] results)
 	{
 		Player.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
@@ -480,7 +480,7 @@ public sealed partial class TerminalMain : IDisposable
 				e.MoveNext();
 				var s2 = e.Current?.ToString();
 
-				if (SearchQuery.IsUriOrFile(s2)) {
+				if (SearchQuery.IsValidSourceType(s2)) {
 					SetInputText(s2);
 				}
 			}
@@ -617,7 +617,7 @@ public sealed partial class TerminalMain : IDisposable
 			
 			int sequenceNumber = Novus.Win32.Clipboard.SequenceNumber;
 
-			if (!SearchQuery.IsUriOrFile(Tf_Input.Text.ToString())
+			if (!SearchQuery.IsValidSourceType(Tf_Input.Text.ToString())
 			    && Integration.ReadClipboard(out var str)
 			    && !m_clipboard.Contains(str)
 			    /*&& (m_prevSeq != sequenceNumber)*/) {

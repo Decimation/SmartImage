@@ -1,9 +1,8 @@
-﻿using System.Diagnostics;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using SmartImage.Lib;
 using Debug = System.Diagnostics.Debug;
 
-namespace SmartImage.App;
+namespace SmartImage.UI;
 
 public partial class MainPage : ContentPage
 {
@@ -30,7 +29,7 @@ public partial class MainPage : ContentPage
 
 	}
 
-	private void OnComplete(object sender, List<SearchResult> e) { }
+	private void OnComplete(object sender, SearchResult[] e) { }
 
 	private void OnResult(object sender, SearchResult result)
 	{

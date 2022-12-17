@@ -256,7 +256,7 @@ public static class Integration
 			str = (string) data;
 		}
 
-		if (!SearchQuery.IsUriOrFile(str)) {
+		if (!SearchQuery.IsValidSourceType(str)) {
 			var o = Clipboard.GetData((uint) ClipboardFormat.CF_TEXT);
 
 			if (data is IntPtr { } p2 && p2 == IntPtr.Zero) {
@@ -281,7 +281,7 @@ public static class Integration
 		Clipboard.Close();
 		// Debug.WriteLine($"Clipboard data: {str}");
 
-		var b = SearchQuery.IsUriOrFile(str);
+		var b = SearchQuery.IsValidSourceType(str);
 		return b;
 	}
 

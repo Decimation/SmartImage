@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib Unit Test", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{C3235D7A-ACEC-4910-8EFE-6ACB670352BC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.App", "SmartImage.App\SmartImage.App.csproj", "{D07064C4-FB96-4609-AD64-98D863DEA871}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.UI", "SmartImage.App\SmartImage.UI.csproj", "{D07064C4-FB96-4609-AD64-98D863DEA871}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
