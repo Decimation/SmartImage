@@ -1,7 +1,7 @@
 ﻿using ObjCRuntime;
 using UIKit;
 
-namespace SmartImage.App;
+namespace SmartImage.UI;
 
 public class Program
 {

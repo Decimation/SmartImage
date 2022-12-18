@@ -61,24 +61,6 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to href.
-        /// </summary>
-        internal static string Atr_href {
-            get {
-                return ResourceManager.GetString("Atr_href", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to id.
-        /// </summary>
-        internal static string Atr_id {
-            get {
-                return ResourceManager.GetString("Atr_id", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SOFTWARE\Classes\*\shell\SmartImage.
         /// </summary>
         internal static string Reg_Shell {
@@ -147,15 +129,6 @@ namespace SmartImage.Lib {
         internal static string S_SearchEngines {
             get {
                 return ResourceManager.GetString("S_SearchEngines", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to a.
-        /// </summary>
-        internal static string Tag_a {
-            get {
-                return ResourceManager.GetString("Tag_a", resourceCulture);
             }
         }
     }

@@ -20,7 +20,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 
 	}
 
-	public string NodesSelector => EngineInfo.S_Yandex_Images;
+	public string NodesSelector => Serialization.S_Yandex_Images;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
@@ -30,9 +30,9 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 			return null;
 		}
 
-		var nodes = doc.Body.SelectNodes(EngineInfo.S_Yandex_Analysis);
+		var nodes = doc.Body.SelectNodes(Serialization.S_Yandex_Analysis);
 
-		var nodes2 = doc.Body.QuerySelectorAll(EngineInfo.S_Yandex_Analysis2);
+		var nodes2 = doc.Body.QuerySelectorAll(Serialization.S_Yandex_Analysis2);
 
 		nodes.AddRange(nodes2);
 
@@ -47,7 +47,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 
 	private static IEnumerable<SearchResultItem> GetOtherImages(IDocument doc, SearchResult r)
 	{
-		var tagsItem = doc.Body.SelectNodes(EngineInfo.S_Yandex_OtherImages);
+		var tagsItem = doc.Body.SelectNodes(Serialization.S_Yandex_OtherImages);
 
 		if (tagsItem == null) {
 			return Enumerable.Empty<SearchResultItem>();
@@ -55,7 +55,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 
 		SearchResultItem Parse(INode siz)
 		{
-			string link    = siz.FirstChild.TryGetAttribute(Resources.Atr_href);
+			string link    = siz.FirstChild.TryGetAttribute(Serialization.Atr_href);
 			string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
 
 			//other-sites__snippet
@@ -197,9 +197,9 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 		// return sizeTags;
 	}
 
-	public Task<SearchResultItem> ParseNodeToItem(INode siz, SearchResult r)
+	public ValueTask<SearchResultItem> ParseNodeToItem(INode siz, SearchResult r)
 	{
-		string link = siz.TryGetAttribute(Resources.Atr_href);
+		string link = siz.TryGetAttribute(Serialization.Atr_href);
 
 		string resText = siz.FirstChild.GetExclusiveText();
 
@@ -218,9 +218,9 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 				Width  = w,
 				Height = h,
 			};
-			return Task.FromResult(sri);
+			return ValueTask.FromResult(sri);
 		}
 
-		return Task.FromResult<SearchResultItem>(null);
+		return ValueTask.FromResult<SearchResultItem>(null);
 	}
 }

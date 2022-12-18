@@ -80,7 +80,7 @@ public abstract class BaseSearchEngine : IDisposable
 	public virtual async Task LoadAsync(SearchConfig cfg)
 	{
 		if (this is ILoginEngine e) {
-			string u = null, p = null;
+			string? u = null, p = null;
 
 			if (e is { IsLoggedIn: true }) {
 				Debug.WriteLine($"{this.Name} is already logged in", nameof(LoadAsync));
@@ -95,7 +95,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 			if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p)) {
 
-				throw new ArgumentException($"{Name} : username/password is null");
+				// throw new ArgumentException($"{Name} : username/password is null");
 				return;
 
 			}

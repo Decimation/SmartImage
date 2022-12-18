@@ -1,7 +1,7 @@
 ﻿using Foundation;
 using SmartImage.UI;
 
-namespace SmartImage.App;
+namespace SmartImage.UI;
 
 [Register("AppDelegate")]
 public class AppDelegate : MauiUIApplicationDelegate

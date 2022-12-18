@@ -193,7 +193,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		return Task.FromResult(nodes);
 	}
 
-	public async Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
+	public ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
 		var item = new SearchResultItem(r)
 			{ };
@@ -214,7 +214,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		var gl3c        = n.ChildNodes[3];
 		var gl4c        = n.ChildNodes[4];*/
 
-		return item;
+		return ValueTask.FromResult(item);
 	}
 	
 	private static EhResult GetEhResult(INode n)
@@ -239,7 +239,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		var gl3c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl3c glname" } e);
 		if (gl3c is { }) {
 			if (gl3c.FirstChild is { } f) {
-				eh.Url = (Url) f.TryGetAttribute(Resources.Atr_href);
+				eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
 
 				if (f.FirstChild is { } ff) {
 					eh.Title = ff.TextContent;
@@ -268,7 +268,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		var gl4c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl4c glhide" } e);
 		if (gl4c is { }) {
 			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
-				eh.AuthorUrl = div1.TryGetAttribute(Resources.Atr_href);
+				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
 				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
 			}
 

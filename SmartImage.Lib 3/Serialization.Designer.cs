@@ -22,14 +22,14 @@ namespace SmartImage.Lib {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class EngineInfo {
+    internal class Serialization {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal EngineInfo() {
+        internal Serialization() {
         }
         
         /// <summary>
@@ -39,7 +39,7 @@ namespace SmartImage.Lib {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SmartImage.Lib.EngineInfo", typeof(EngineInfo).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("SmartImage.Lib.Serialization", typeof(Serialization).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;
@@ -57,6 +57,24 @@ namespace SmartImage.Lib {
             }
             set {
                 resourceCulture = value;
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to href.
+        /// </summary>
+        internal static string Atr_href {
+            get {
+                return ResourceManager.GetString("Atr_href", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to id.
+        /// </summary>
+        internal static string Atr_id {
+            get {
+                return ResourceManager.GetString("Atr_id", resourceCulture);
             }
         }
         
@@ -138,6 +156,15 @@ namespace SmartImage.Lib {
         internal static string S_Yandex_OtherImages {
             get {
                 return ResourceManager.GetString("S_Yandex_OtherImages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to a.
+        /// </summary>
+        internal static string Tag_a {
+            get {
+                return ResourceManager.GetString("Tag_a", resourceCulture);
             }
         }
     }

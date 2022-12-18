@@ -15,7 +15,7 @@ using Terminal.Gui;
 
 namespace SmartImage;
 
-public sealed partial class TerminalMain
+public sealed partial class ShellMain
 {
 	private void AboutDialog()
 	{
@@ -436,7 +436,7 @@ public sealed partial class TerminalMain
 			f = HttpUtilities.TryOpenUrl;
 		}
 
-		f(Query.Uni.Value.ToString());
+		var v = f(Query.Uni.Value.ToString());
 	}
 
 	private static void Clear_Clicked()
@@ -492,7 +492,7 @@ public sealed partial class TerminalMain
 	{
 		var text = tc.NewText;
 
-		Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
+		// Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
 
 		if (SearchQuery.IsValidSourceType(text.ToString())) {
 			var ok = await SetQuery(text);

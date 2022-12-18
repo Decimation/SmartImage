@@ -27,7 +27,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 		MaxSize = 5 * 1000 * 1000;
 	}
 
-	public string NodesSelector => EngineInfo.S_Ascii2D_Images;
+	public string NodesSelector => Serialization.S_Ascii2D_Images;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
@@ -58,29 +58,20 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 
 	public override void Dispose() { }
 
-	public async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query, TimeSpan? timeout = null, CancellationToken? token = null)
+	public async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query, TimeSpan? timeout = null,
+	                                              CancellationToken? token = null)
 	{
 		token   ??= CancellationToken.None;
 		timeout ??= System.Threading.Timeout.InfiniteTimeSpan;
 
 		var parser = new HtmlParser();
 
-		try
-		{
-			if (origin2 is Url origin)
-			{
-				var data =new MultipartFormDataContent()
+		try {
+			if (origin2 is Url origin) {
+				var data = new MultipartFormDataContent()
 				{
-					{ new StringContent(origin),"uri" }
+					{ new StringContent(origin), "uri" }
 				};
-
-				FlurlHttp.Configure(settings =>
-				{
-					settings.Redirects.Enabled                    = true; // default true
-					settings.Redirects.AllowSecureToInsecure      = true; // default false
-					settings.Redirects.ForwardAuthorizationHeader = true; // default false
-					settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
-				});
 
 				var res = await origin.AllowAnyHttpStatus()
 				                      .WithCookies(out var cj)
@@ -90,6 +81,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 					                      User_Agent = HttpUtilities.UserAgent
 				                      })
 				                      .WithAutoRedirect(true)
+				                      .WithClient(SearchClient.Client)
 				                      /*.OnError(s =>
 									  {
 										  s.ExceptionHandled = true;
@@ -102,13 +94,11 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 				return document;
 
 			}
-			else
-			{
+			else {
 				return null;
 			}
 		}
-		catch (FlurlHttpException e)
-		{
+		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
 			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
 
@@ -116,12 +106,12 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 		}
 	}
 
-	public Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
+	public ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
 
 		var info = n.ChildNodes.Where(n => !String.IsNullOrWhiteSpace(n.TextContent))
-					.ToArray();
+		            .ToArray();
 
 		string hash = info.First().TextContent;
 
@@ -155,7 +145,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 			if (ns.ChildNodes.Length >= 4) {
 				var childNode = ns.ChildNodes[3];
 
-				string l1 = ((IHtmlElement) childNode).GetAttribute(Resources.Atr_href);
+				string l1 = ((IHtmlElement) childNode).GetAttribute(Serialization.Atr_href);
 
 				if (l1 is not null) {
 					sri.Url = new Url(l1);
@@ -163,6 +153,6 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 			}
 		}
 
-		return Task.FromResult(sri);
+		return ValueTask.FromResult(sri);
 	}
 }

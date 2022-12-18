@@ -39,9 +39,20 @@ public sealed class SearchClient : IDisposable
 			                          return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
 		                          })
 		                          .ToArray();
+
 	}
 
-	static SearchClient() { }
+	static SearchClient()
+	{
+		FlurlHttp.Configure(settings =>
+		{
+			settings.Redirects.Enabled                    = true; // default true
+			settings.Redirects.AllowSecureToInsecure      = true; // default false
+			settings.Redirects.ForwardAuthorizationHeader = true; // default false
+			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
+		});
+		Client = new FlurlClient();
+	}
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);
 
@@ -50,6 +61,8 @@ public sealed class SearchClient : IDisposable
 	public ResultCompleteCallback OnResult { get; set; }
 
 	public SearchCompleteCallback OnComplete { get; set; }
+
+	public static FlurlClient Client { get; }
 
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
@@ -112,11 +125,11 @@ public sealed class SearchClient : IDisposable
 			var sri    = results.SelectMany(r => r.Results).ToArray();
 			var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 
-			if (result is {}) {
+			if (result is { }) {
 				Debug.WriteLine($"Auto: {result}", nameof(RunSearchAsync));
 				HttpUtilities.TryOpenUrl(result.Url);
 			}
-			
+
 		}
 
 		return results;
@@ -136,7 +149,7 @@ public sealed class SearchClient : IDisposable
 		return tasks;
 	}
 
-	public async Task LoadEngines()
+	public async ValueTask LoadEngines()
 	{
 		foreach (BaseSearchEngine bse in Engines) {
 			await bse.LoadAsync(Config);
@@ -161,7 +174,9 @@ public sealed class SearchClient : IDisposable
 				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD*/);
 			items = items.Except(c).ToArray();
 		}
-		catch (Exception e) { }
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(Optimize));
+		}
 		finally { }
 
 		return items;

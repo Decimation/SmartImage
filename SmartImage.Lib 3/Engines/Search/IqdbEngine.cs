@@ -20,15 +20,13 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 {
 	public IqdbEngine() : base("https://iqdb.org/?url=")
 	{
-		Client  = new FlurlClient(EndpointUrl);
+		new FlurlClient(EndpointUrl);
 		MaxSize = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 	}
 
 	#region Implementation of IClientSearchEngine
 
 	public string EndpointUrl => "https://iqdb.org/";
-
-	public FlurlClient Client { get; }
 
 	#endregion
 
@@ -47,7 +45,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		try {
 			//url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
 
-			url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute(Resources.Atr_href);
+			url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
 
 			// Links must begin with http:// in order to work with "start"
 
@@ -158,12 +156,12 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 
 		Trace.Assert(doc != null);
 
-		var pages  = doc.Body.SelectSingleNode(EngineInfo.S_Iqdb_Pages);
+		var pages  = doc.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
 		// No relevant results?
 
-		var ns = doc.Body.QuerySelector(EngineInfo.S_Iqdb_NoMatches);
+		var ns = doc.Body.QuerySelector(Serialization.S_Iqdb_NoMatches);
 
 		if (ns != null) {
 
@@ -172,7 +170,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		}
 
 		var select = tables.Select(table => ((IHtmlElement) table)
-			                           .QuerySelectorAll(EngineInfo.S_Iqdb_Table));
+			                           .QuerySelectorAll(Serialization.S_Iqdb_Table));
 
 		var images = select.Select(x => ParseResult(x, sr)).ToList();
 
@@ -196,6 +194,5 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 
 	public override void Dispose()
 	{
-		Client.Dispose();
 	}
 }

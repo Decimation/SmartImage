@@ -1,7 +1,8 @@
 ﻿using Android.App;
 using Android.Runtime;
+using SmartImage.UI;
 
-namespace SmartImage.App;
+namespace SmartImage.UI;
 
 [Application]
 public class MainApplication : MauiApplication

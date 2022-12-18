@@ -35,7 +35,7 @@ using Window = Terminal.Gui.Window;
 #pragma warning disable IDE0060
 namespace SmartImage;
 
-public sealed partial class TerminalMain : IDisposable
+public sealed partial class ShellMain : IDisposable
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 	// NOTE: Static initialization order is nondeterminant with partial classes
@@ -226,7 +226,7 @@ public sealed partial class TerminalMain : IDisposable
 	#region Static
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
-
+	
 	private static readonly SoundPlayer Player = new(R2.hint);
 
 	#endregion
@@ -251,9 +251,9 @@ public sealed partial class TerminalMain : IDisposable
 
 	#endregion
 
-	static TerminalMain() { }
+	static ShellMain() { }
 
-	public TerminalMain(string[] args)
+	public ShellMain(string[] args)
 	{
 		Args    = args;
 		m_token = new();
@@ -432,14 +432,14 @@ public sealed partial class TerminalMain : IDisposable
 
 	}
 
-	private async void OnComplete(object sender, SearchResult[] results)
+	private void OnComplete(object sender, SearchResult[] results)
 	{
 		Btn_Restart.Enabled = true;
 		Btn_Cancel.Enabled  = false;
 	}
 
 	[SupportedOSPlatform(Compat.OS)]
-	private async void OnCompleteWin(object sender, SearchResult[] results)
+	private void OnCompleteWin(object sender, SearchResult[] results)
 	{
 		Player.Play();
 		Native.FlashWindow(ConsoleUtil.HndWindow);
@@ -508,7 +508,7 @@ public sealed partial class TerminalMain : IDisposable
 
 	private async Task<bool> SetQuery(ustring text)
 	{
-		if (IsQueryReady() && Query.Uni.Value == text) {
+		if (IsQueryReady() && Query.Uni.Value as string == text) {
 			Debug.WriteLine($"Already loaded {text}", nameof(SetQuery));
 			return true;
 		}
@@ -617,7 +617,10 @@ public sealed partial class TerminalMain : IDisposable
 			
 			int sequenceNumber = Novus.Win32.Clipboard.SequenceNumber;
 
-			if (!SearchQuery.IsValidSourceType(Tf_Input.Text.ToString())
+			var s = Tf_Input.Text.ToString();
+			s = s.CleanString();
+
+			if (!SearchQuery.IsValidSourceType(s)
 			    && Integration.ReadClipboard(out var str)
 			    && !m_clipboard.Contains(str)
 			    /*&& (m_prevSeq != sequenceNumber)*/) {

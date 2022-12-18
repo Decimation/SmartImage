@@ -62,10 +62,10 @@
 
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="EngineInfo.Designer.cs">
+    <Compile Update="Serialization.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>EngineInfo.resx</DependentUpon>
+      <DependentUpon>Serialization.resx</DependentUpon>
     </Compile>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
@@ -75,9 +75,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Update="EngineInfo.resx">
+    <EmbeddedResource Update="Serialization.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>EngineInfo.Designer.cs</LastGenOutput>
+      <LastGenOutput>Serialization.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

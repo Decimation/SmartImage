@@ -12,10 +12,10 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 
 		<!-- Display name -->
-		<ApplicationTitle>SmartImage.App</ApplicationTitle>
+		<ApplicationTitle>SmartImage.UI</ApplicationTitle>
 
 		<!-- App Identifier -->
-		<ApplicationId>com.companyname.smartimage.app</ApplicationId>
+		<ApplicationId>com.companyname.smartimage.ui</ApplicationId>
 		<ApplicationIdGuid>b65f982b-69ea-476e-9bbd-5a152cb5cb47</ApplicationIdGuid>
 
 		<!-- Versions -->

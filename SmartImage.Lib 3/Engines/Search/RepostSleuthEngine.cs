@@ -19,15 +19,12 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 {
 	public RepostSleuthEngine() : base("https://repostsleuth.com/search?url=")
 	{
-		Client  = new FlurlClient(EndpointUrl);
 		Timeout = TimeSpan.FromSeconds(4.5);
 	}
 
 	#region Implementation of IClientSearchEngine
 
 	public string EndpointUrl => "https://api.repostsleuth.com/image";
-
-	public FlurlClient Client { get; }
 
 	#endregion
 
@@ -46,7 +43,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		Root obj = null;
 
 		try {
-			obj = await Client.Request().SetQueryParams(new
+			obj = await SearchClient.Client.Request(EndpointUrl).SetQueryParams(new
 			{
 				filter               = true,
 				url                  = query.Upload,

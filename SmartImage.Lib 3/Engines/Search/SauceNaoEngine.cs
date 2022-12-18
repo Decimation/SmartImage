@@ -42,13 +42,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 	public string EndpointUrl => BASE_ENDPOINT;
 
-	public FlurlClient Client { get; }
-
 	public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
 	{
 		Authentication = authentication;
 
-		Client = new FlurlClient(EndpointUrl);
+		new FlurlClient(EndpointUrl);
 
 	}
 
@@ -117,7 +115,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 	public override void Dispose()
 	{
-		Client.Dispose();
 	}
 
 	private async Task<IEnumerable<SauceNaoDataResult>> GetWebResultsAsync(SearchQuery query)
@@ -174,7 +171,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 			const string HIDDEN_ID_VAL = "result-hidden-notification";
 
-			if (result.TryGetAttribute(Resources.Atr_id) == HIDDEN_ID_VAL) {
+			if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
 				return null;
 			}
 
@@ -194,7 +191,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			IHtmlCollection<IElement> resultcontentcolumn_rg = null;
 
 			if (result is IElement { } elem) {
-				resultcontentcolumn_rg = elem.QuerySelectorAll(EngineInfo.S_SauceNao_ResultContentColumn);
+				resultcontentcolumn_rg = elem.QuerySelectorAll(Serialization.S_SauceNao_ResultContentColumn);
 
 			}
 			// var resulttitle = resultcontent.ChildNodes[0];
@@ -202,8 +199,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			var links = new List<string>();
 
 			var element = (resultcontentcolumn_rg.Select(c => c.ChildNodes))
-			              .SelectMany(c => c.GetElementsByTagName(Resources.Tag_a)
-			                                .Select(x => x.GetAttribute(Resources.Atr_href)))
+			              .SelectMany(c => c.GetElementsByTagName(Serialization.Tag_a)
+			                                .Select(x => x.GetAttribute(Serialization.Atr_href)))
 			              .Where(e => e != null);
 
 			if (element.Any()) {
@@ -211,9 +208,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			}
 
 			if (resultmiscinfo != null) {
-				links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Resources.Tag_a)
-				                        .FirstOrDefault(x => x.GetAttribute(Resources.Atr_href) != null)?
-				                        .GetAttribute(Resources.Atr_href));
+				links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Serialization.Tag_a)
+				                        .FirstOrDefault(x => x.GetAttribute(Serialization.Atr_href) != null)?
+				                        .GetAttribute(Serialization.Atr_href));
 			}
 
 			//	//div[contains(@class, 'resulttitle')]

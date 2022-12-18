@@ -117,15 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Tag_a" xml:space="preserve">
-    <value>a</value>
-  </data>
-  <data name="Atr_href" xml:space="preserve">
-    <value>href</value>
-  </data>
-  <data name="Atr_id" xml:space="preserve">
-    <value>id</value>
-  </data>
   <data name="S_SearchEngines" xml:space="preserve">
     <value>Search engines</value>
   </data>

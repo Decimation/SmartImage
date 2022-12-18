@@ -17,7 +17,7 @@ public interface IWebContentEngine
 		timeout ??= Timeout.InfiniteTimeSpan;
 
 		var parser = new HtmlParser();
-
+		
 		try {
 			if (origin2 is Url origin) {
 				var res = await origin.AllowAnyHttpStatus()
@@ -53,7 +53,7 @@ public interface IWebContentEngine
 		}
 	}
 
-	public Task<SearchResultItem> ParseNodeToItem(INode n, SearchResult r);
+	public ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r);
 
 	public Task<List<INode>> GetNodes(IDocument d)
 		=> Task.FromResult(d.Body.SelectNodes(NodesSelector));

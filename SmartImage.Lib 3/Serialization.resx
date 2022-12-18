@@ -144,4 +144,13 @@
   <data name="S_SauceNao_ResultContentColumn" xml:space="preserve">
     <value>.resultcontentcolumn</value>
   </data>
+  <data name="Atr_href" xml:space="preserve">
+    <value>href</value>
+  </data>
+  <data name="Atr_id" xml:space="preserve">
+    <value>id</value>
+  </data>
+  <data name="Tag_a" xml:space="preserve">
+    <value>a</value>
+  </data>
 </root>

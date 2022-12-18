@@ -268,6 +268,7 @@ public static class Integration
 		}
 
 		if (ReadClipboardImage(out var ms)) {
+			//todo: delete on exit
 			var s = Path.Combine(Path.GetTempPath(), $"clipboard_{ms.Length}.png");
 
 			if (!File.Exists(s)) {

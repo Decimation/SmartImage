@@ -10,7 +10,7 @@ using Kantan.Utilities;
 using Novus.FileTypes;
 using Novus.Win32;
 
-namespace SmartImage;
+namespace SmartImage.App;
 
 public static class ImageUtility
 {

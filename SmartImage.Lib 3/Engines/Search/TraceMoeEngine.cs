@@ -19,14 +19,12 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 {
 	public TraceMoeEngine() : base("https://trace.moe/?url=")
 	{
-		Client = new FlurlClient(EndpointUrl);
+		new FlurlClient(EndpointUrl);
 	}
 
 	#region Implementation of IClientSearchEngine
 
 	public string EndpointUrl => "https://api.trace.moe";
-
-	public FlurlClient Client { get; }
 
 	#endregion
 
@@ -132,6 +130,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				Description = $"Episode #{epStr} @ " +
 				              $"[{TimeSpan.FromSeconds(doc.from):g} - {TimeSpan.FromSeconds(doc.to):g}]",
 			};
+
 			result.Metadata.video      = doc.video;
 			result.Metadata.image      = doc.image;
 
@@ -174,7 +173,6 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	public override void Dispose()
 	{
 		m_anilistClient.Dispose();
-		Client.Dispose();
 	}
 
 	#region API Objects
