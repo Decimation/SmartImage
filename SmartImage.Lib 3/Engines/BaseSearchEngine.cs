@@ -40,15 +40,6 @@ public abstract class BaseSearchEngine : IDisposable
 
 	static BaseSearchEngine()
 	{
-		/*FlurlHttp.Configure(settings =>
-		{
-			settings.Redirects.Enabled                    = true; // default true
-			settings.Redirects.AllowSecureToInsecure      = true; // default false
-			settings.Redirects.ForwardAuthorizationHeader = true; // default false
-			settings.Redirects.MaxAutoRedirects           = 15;   // default 10 (consecutive)
-		});*/
-
-		// Trace.WriteLine($"Configured HTTP", nameof(BaseSearchEngine));
 	}
 
 	protected virtual bool Verify(SearchQuery q)
@@ -134,7 +125,7 @@ public abstract class BaseSearchEngine : IDisposable
 				goto ret;
 			}
 
-			var nodes = (await p.GetNodes(doc)).ToArray();
+			var nodes = (await p.GetNodes(doc));
 
 			foreach (INode node in nodes) {
 				if (token.Value.IsCancellationRequested) {
@@ -143,7 +134,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 				var sri = await p.ParseNodeToItem(node, res);
 
-				if (SearchResultItem.Validate(sri)) {
+				if (SearchResultItem.IsValid(sri)) {
 					res.Results.Add(sri);
 				}
 			}
@@ -158,12 +149,12 @@ public abstract class BaseSearchEngine : IDisposable
 		return res;
 	}
 
-	protected virtual Task<Url> GetRawUrlAsync(SearchQuery query)
+	protected virtual ValueTask<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		//
 		Url u = ((BaseUrl + query.Upload));
 
-		return Task.FromResult(u);
+		return ValueTask.FromResult(u);
 	}
 
 	#region Implementation of IDisposable

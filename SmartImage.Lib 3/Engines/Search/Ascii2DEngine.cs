@@ -33,10 +33,13 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 
 	protected override bool VerifyImage(Image i)
 	{
+#pragma warning disable CA1416
+
 		return i.PhysicalDimension is { Width: < 10000.0f };
 	}
+#pragma warning restore
 
-	protected override async Task<Url> GetRawUrlAsync(SearchQuery query)
+	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		var url = await base.GetRawUrlAsync(query);
 

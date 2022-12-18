@@ -90,8 +90,7 @@ internal static partial class UI
 		}
 
 		lv.FromEnum(e);
-
-		ret:
+		
 		lv.SetNeedsDisplay();
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}

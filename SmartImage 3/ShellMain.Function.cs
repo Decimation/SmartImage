@@ -436,7 +436,7 @@ public sealed partial class ShellMain
 			f = HttpUtilities.TryOpenUrl;
 		}
 
-		var v = f(Query.Uni.Value.ToString());
+		var v = f(Query.Uni.Value.ToString()!);
 	}
 
 	private static void Clear_Clicked()

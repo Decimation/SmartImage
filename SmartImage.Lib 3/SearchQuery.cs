@@ -157,4 +157,30 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	}
 
 	#endregion
+
+	public async Task<string> GetFilePathOrTemp(string fn = null)
+	{
+		string t;
+		fn ??= Path.GetTempFileName();
+
+		if (!Uni.IsFile) {
+			t = Path.Combine(Path.GetTempPath(), fn);
+
+			await using (var fs = File.Create(t)) {
+				var s = Uni.Stream.CanSeek;
+
+				if (s) {
+					Uni.Stream.Position = 0;
+				}
+
+				await Uni.Stream.CopyToAsync(fs);
+				fs.Flush();
+			}
+		}
+		else {
+			t = Uni.Value.ToString();
+		}
+
+		return t;
+	}
 }

@@ -496,8 +496,10 @@ public sealed partial class ShellMain : IDisposable
 
 	private void ApplyConfig()
 	{
-		Integration.KeepOnTop(Config.OnTop);
+		if (Compat.IsWin) {
+			Integration.KeepOnTop(Config.OnTop);
 
+		}
 	}
 
 	internal void SetInputText(ustring s)

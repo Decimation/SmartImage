@@ -12,11 +12,13 @@ using System.Drawing;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
 using Kantan.Console.Cli;
 using Novus.OS;
 using Kantan.Diagnostics;
+using Novus;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
@@ -27,6 +29,8 @@ using SmartImage.Shell;
 using Clipboard = Novus.Win32.Clipboard;
 
 #endregion
+
+// TODO: cross-platform compatibility
 
 namespace SmartImage.App;
 
@@ -218,6 +222,7 @@ public static class Integration
 
 	}
 
+	[SupportedOSPlatform(Global.OS_WIN)]
 	public static void KeepOnTop(bool add)
 	{
 		if (add) {

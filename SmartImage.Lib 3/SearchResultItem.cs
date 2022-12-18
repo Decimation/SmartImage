@@ -6,12 +6,15 @@ using Flurl;
 using JetBrains.Annotations;
 using Kantan.Model;
 using Novus.FileTypes;
+using SmartImage.Lib.Utilities;
 
 #endregion
 
 namespace SmartImage.Lib;
 
-public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
+public sealed record SearchResultItem : IDisposable, 
+	IComparable<SearchResultItem>, IComparable, 
+	IValidity<SearchResultItem>
 {
 	private bool m_isScored;
 
@@ -23,7 +26,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	///     Result containing this result item
 	/// </summary>
 	[NN]
-	public SearchResult Root { get;  }
+	public SearchResult Root { get; }
 
 	[MN]
 	public Url Url { get; internal set; }
@@ -99,13 +102,13 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	internal SearchResultItem(SearchResult r)
 	{
-		Root           = r;
-		Metadata       = new ExpandoObject();
-		m_isScored     = false;
-		Uni = null;
+		Root       = r;
+		Metadata   = new ExpandoObject();
+		m_isScored = false;
+		Uni        = null;
 	}
 
-	public static bool Validate([CBN] SearchResultItem r)
+	public static bool IsValid([CBN] SearchResultItem r)
 	{
 		return r switch
 		{
@@ -156,7 +159,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		}
 
 		Uni = await UniSource.TryGetAsync(Url, whitelist: FileType.Image);
-		
+
 		return Uni != null;
 	}
 

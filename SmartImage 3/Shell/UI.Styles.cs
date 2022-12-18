@@ -17,7 +17,7 @@ internal static partial class UI
 	internal static readonly Attribute Atr_Brown_White         = Attribute.Make(Color.Brown, Color.White);
 	internal static readonly Attribute Atr_Red_Black           = Attribute.Make(Color.Red, Color.Black);
 	internal static readonly Attribute Atr_Red_White           = Attribute.Make(Color.Red, Color.White);
-	internal static readonly Attribute Atr_Red_DarkGray           = Attribute.Make(Color.Red, Color.DarkGray);
+	internal static readonly Attribute Atr_Red_DarkGray        = Attribute.Make(Color.Red, Color.DarkGray);
 	internal static readonly Attribute Atr_BrightYellow_Black  = Attribute.Make(Color.BrightYellow, Color.Black);
 	internal static readonly Attribute Atr_White_Black         = Attribute.Make(Color.White, Color.Black);
 	internal static readonly Attribute Atr_White_Blue          = Attribute.Make(Color.White, Color.Blue);
@@ -71,8 +71,8 @@ internal static partial class UI
 	}
 
 	internal static readonly ColorScheme Cs_Err = Make(Atr_BrightRed_White, disabled: Atr_BrightRed_Gray);
-	internal static readonly ColorScheme Cs_Ok = Make(Atr_BrightGreen_White, disabled: Atr_BrightGreen_Gray);
-	internal static readonly ColorScheme Cs_NA = Make(Atr_Brown_White, disabled: Atr_Brown_Gray);
+	internal static readonly ColorScheme Cs_Ok  = Make(Atr_BrightGreen_White, disabled: Atr_BrightGreen_Gray);
+	internal static readonly ColorScheme Cs_NA  = Make(Atr_Brown_White, disabled: Atr_Brown_Gray);
 
 	internal static readonly ColorScheme Cs_Btn1x = new()
 	{
@@ -190,8 +190,8 @@ internal static partial class UI
 
 	#region Dimensions
 
-	internal static readonly Dim       Dim_30_Pct     = Dim.Percent(30);
-	internal static readonly Dim       Dim_80_Pct     = Dim.Percent(80);
+	internal static readonly Dim Dim_30_Pct = Dim.Percent(30);
+	internal static readonly Dim Dim_80_Pct = Dim.Percent(80);
 
 	#endregion
 }

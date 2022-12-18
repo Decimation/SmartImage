@@ -24,6 +24,20 @@ namespace SmartImage.Lib.Engines.Search;
 
 public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginEngine
 {
+	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
+
+	private readonly HttpClientHandler m_clientHandler = new()
+	{
+		AllowAutoRedirect              = true,
+		MaxAutomaticRedirections       = 15,
+		CheckCertificateRevocationList = false,
+		UseCookies                     = true,
+		CookieContainer                = new() { },
+
+	};
+
+	private readonly HttpClient m_client;
+
 	private const string EHENTAI_INDEX_URI         = "https://forums.e-hentai.org/index.php";
 	private const string EXHENTAI_IMAGE_LOOKUP_URI = "https://exhentai.org/upld/image_lookup.php";
 	private const string EXHENTAI_URI              = "https://exhentai.org/";
@@ -31,9 +45,12 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 	public EHentaiEngine() : base(EXHENTAI_URI)
 	{
-		Cookies      = new CookieJar();
+		m_client   = new HttpClient(m_clientHandler);
+		Cookies    = new CookieJar();
 		IsLoggedIn = false;
 	}
+
+	static EHentaiEngine() { }
 
 	public CookieJar Cookies { get; }
 
@@ -59,9 +76,13 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 	public async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query,
 	                                              TimeSpan? timeout = null, CancellationToken? token = null)
 	{
+		const string name = "a.jpg";
+
+		string t = await query.GetFilePathOrTemp(name);
+
 		var data = new MultipartFormDataContent()
 		{
-			{ new FileContent(query.Uni.Value.ToString()), "sfile", "a.jpg" },
+			{ new FileContent(t), "sfile", name },
 			// { new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
 			{ new StringContent("fs_similar") },
 			{ new StringContent("fs_covers") },
@@ -96,20 +117,9 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		// var mh   = flurl.CreateMessageHandler();
 		// var cl    = flurl.CreateHttpClient(mh);
 
-		using var clientHandler = new HttpClientHandler
-		{
-			AllowAutoRedirect              = true,
-			MaxAutomaticRedirections       = 15,
-			CheckCertificateRevocationList = false,
-			UseCookies                     = true,
-			CookieContainer                = new() { },
-		};
-
 		foreach (var c in Cookies) {
-			clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
+			m_clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
 		}
-
-		var cl = new HttpClient(clientHandler) { };
 
 		var req = new HttpRequestMessage(HttpMethod.Post, EXHENTAI_IMAGE_LOOKUP_URI)
 		{
@@ -120,7 +130,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 			},
 		};
 
-		var res = await cl.SendAsync(req);
+		var res = await m_client.SendAsync(req);
 
 		var content = await res.Content.ReadAsStringAsync();
 
@@ -136,12 +146,12 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 	private async Task<IFlurlResponse> GetSessionAsync()
 	{
 		return await EXHENTAI_URI.WithCookies(Cookies)
-		                           .WithHeaders(new
-		                           {
-			                           User_Agent = HttpUtilities.UserAgent
-		                           })
-		                           .WithAutoRedirect(true)
-		                           .GetAsync();
+		                         .WithHeaders(new
+		                         {
+			                         User_Agent = HttpUtilities.UserAgent
+		                         })
+		                         .WithAutoRedirect(true)
+		                         .GetAsync();
 	}
 
 	/*
@@ -150,7 +160,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 	public async Task<bool> LoginAsync()
 	{
-		if (Username is not {} || Password is not {}) {
+		if (Username is not { } || Password is not { }) {
 			return false;
 		}
 
@@ -185,12 +195,17 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
-	public Task<List<INode>> GetNodes(IDocument d)
+	public ValueTask<INode[]> GetNodes(IDocument d)
 	{
 		// Index 0 is table header
-		var nodes = d.Body.SelectNodes(NodesSelector).Skip(1).ToList();
+		var array = d.Body.SelectNodes(NodesSelector).ToArray();
 
-		return Task.FromResult(nodes);
+		if (array.Any()) {
+			array = array[1..];
+
+		}
+
+		return ValueTask.FromResult(array);
 	}
 
 	public ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
@@ -216,13 +231,14 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 		return ValueTask.FromResult(item);
 	}
-	
+
 	private static EhResult GetEhResult(INode n)
 	{
 		// ReSharper disable InconsistentNaming
 		var eh = new EhResult();
 
 		var gl1c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl1c" } e);
+
 		if (gl1c is { }) {
 			if (gl1c.FirstChild is { } t) {
 				eh.Type = t.TextContent;
@@ -230,6 +246,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		}
 
 		var gl2c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl2c" } e);
+
 		if (gl2c is { }) {
 			if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
 				eh.Pages = div.TextContent;
@@ -237,6 +254,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		}
 
 		var gl3c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl3c glname" } e);
+
 		if (gl3c is { }) {
 			if (gl3c.FirstChild is { } f) {
 				eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
@@ -266,6 +284,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		}
 
 		var gl4c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl4c glhide" } e);
+
 		if (gl4c is { }) {
 			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
 				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);

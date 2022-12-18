@@ -20,7 +20,8 @@ public interface IWebContentEngine
 		
 		try {
 			if (origin2 is Url origin) {
-				var res = await origin.AllowAnyHttpStatus()
+				var res = await origin.WithClient(SearchClient.Client)
+				                      .AllowAnyHttpStatus()
 				                      .WithCookies(out var cj)
 				                      .WithTimeout(timeout.Value)
 				                      .WithHeaders(new
@@ -55,8 +56,8 @@ public interface IWebContentEngine
 
 	public ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r);
 
-	public Task<List<INode>> GetNodes(IDocument d)
-		=> Task.FromResult(d.Body.SelectNodes(NodesSelector));
+	public ValueTask<INode[]> GetNodes(IDocument d)
+		=> ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
 
 	public string NodesSelector { get; }
 }
