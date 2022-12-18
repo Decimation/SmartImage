@@ -62,6 +62,11 @@
 
   </ItemGroup>
   <ItemGroup>
+    <Compile Update="EngineInfo.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>EngineInfo.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -70,6 +75,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="EngineInfo.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>EngineInfo.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>

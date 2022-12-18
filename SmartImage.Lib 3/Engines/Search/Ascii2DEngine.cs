@@ -27,7 +27,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 		MaxSize = 5 * 1000 * 1000;
 	}
 
-	public string NodesSelector => "//*[contains(@class, 'info-box')]";
+	public string NodesSelector => EngineInfo.S_Ascii2D_Images;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 

@@ -194,7 +194,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			IHtmlCollection<IElement> resultcontentcolumn_rg = null;
 
 			if (result is IElement { } elem) {
-				resultcontentcolumn_rg = elem.QuerySelectorAll(".resultcontentcolumn");
+				resultcontentcolumn_rg = elem.QuerySelectorAll(EngineInfo.S_SauceNao_ResultContentColumn);
 
 			}
 			// var resulttitle = resultcontent.ChildNodes[0];

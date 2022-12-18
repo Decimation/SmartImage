@@ -71,6 +71,49 @@ Supported search engines:
 
 ## Getting Started
 
+
+SmartImage is designed to be intuitive and agile. There are multiple ways of running the program, and you can use 2 different forms of input: direct image links or files.
+
+See [Usage »](https://github.com/Decimation/SmartImage/wiki#usage)
+
+### 1. Input Field
+
+#### 1a. Text
+
+Simply use the text input field in the shell UI. You are able to copy/paste text and use common text manipulation functions such as undo/redo.
+
+#### 1b. Drag-and-drop
+
+You are able to drag-and-drop images into the text field, in which case the file path populates the input field.
+
+### 2. Clipboard
+SmartImage automatically detects clipboard changes
+
+#### 2a. Text
+
+Copy a link or file path, and the input field will update with its value.
+
+#### 2b. Image file
+
+Copy an image file, and the input field will update with its file path.
+
+
+### 3. Context menu
+
+Once the context menu integration is enabled, right-click on an image to open SmartImage with the selected 
+file used as the input.
+
+### 4. Command-line
+
+Use the following parameters to invoke SmartImage:
+
+| Parameter | Definition |
+| - | - |
+| `-i` | Input |
+| `-auto` | Start search immediately |
+
+## Wiki
+
 **See the [Wiki »](https://github.com/Decimation/SmartImage/wiki) for documentation.**
 
 Wiki pages useful for getting started:
@@ -78,8 +121,3 @@ Wiki pages useful for getting started:
 - User interface and options: [Interface »](https://github.com/Decimation/SmartImage/wiki/Interface)
 - Performing a search and usage: [Usage »](https://github.com/Decimation/SmartImage/wiki#usage)
 - Search engines and config: [Engines »](https://github.com/Decimation/SmartImage/wiki#engines)
-
-
-*Ensure .NET 7 is installed!*
-
-<!-- ... -->

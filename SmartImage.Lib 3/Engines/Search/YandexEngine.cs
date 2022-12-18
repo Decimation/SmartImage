@@ -20,7 +20,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 
 	}
 
-	public string NodesSelector => "//a[contains(@class, 'Tags-Item')]";
+	public string NodesSelector => EngineInfo.S_Yandex_Images;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
@@ -30,10 +30,9 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 			return null;
 		}
 
-		var nodes = doc.Body.SelectNodes(
-			"//a[contains(@class, 'Tags-Item') and ../../../../div[contains(@class,'CbirTags')]]/*");
+		var nodes = doc.Body.SelectNodes(EngineInfo.S_Yandex_Analysis);
 
-		var nodes2 = doc.Body.QuerySelectorAll(".CbirTags > .Tags > .Tags-Wrapper > .Tags-Item");
+		var nodes2 = doc.Body.QuerySelectorAll(EngineInfo.S_Yandex_Analysis2);
 
 		nodes.AddRange(nodes2);
 
@@ -48,7 +47,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 
 	private static IEnumerable<SearchResultItem> GetOtherImages(IDocument doc, SearchResult r)
 	{
-		var tagsItem = doc.Body.SelectNodes("//li[@class='other-sites__item']");
+		var tagsItem = doc.Body.SelectNodes(EngineInfo.S_Yandex_OtherImages);
 
 		if (tagsItem == null) {
 			return Enumerable.Empty<SearchResultItem>();

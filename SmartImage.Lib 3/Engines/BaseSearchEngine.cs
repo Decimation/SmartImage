@@ -84,6 +84,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 			if (e is { IsLoggedIn: true }) {
 				Debug.WriteLine($"{this.Name} is already logged in", nameof(LoadAsync));
+				
 				return;
 			}
 
@@ -93,7 +94,8 @@ public abstract class BaseSearchEngine : IDisposable
 			}
 
 			if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p)) {
-				Debug.WriteLine($"{Name}: username/password is null", nameof(LoadAsync));
+
+				throw new ArgumentException($"{Name} : username/password is null");
 				return;
 
 			}

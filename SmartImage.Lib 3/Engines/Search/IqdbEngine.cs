@@ -158,12 +158,12 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 
 		Trace.Assert(doc != null);
 
-		var pages  = doc.Body.SelectSingleNode("//div[@id='pages']");
+		var pages  = doc.Body.SelectSingleNode(EngineInfo.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
 		// No relevant results?
 
-		var ns = doc.Body.QuerySelector("#pages > div.nomatch");
+		var ns = doc.Body.QuerySelector(EngineInfo.S_Iqdb_NoMatches);
 
 		if (ns != null) {
 
@@ -172,7 +172,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		}
 
 		var select = tables.Select(table => ((IHtmlElement) table)
-			                           .QuerySelectorAll("table > tbody > tr:nth-child(n)"));
+			                           .QuerySelectorAll(EngineInfo.S_Iqdb_Table));
 
 		var images = select.Select(x => ParseResult(x, sr)).ToList();
 
