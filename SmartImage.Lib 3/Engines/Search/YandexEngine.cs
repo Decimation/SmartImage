@@ -12,7 +12,7 @@ using Kantan.Text;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
+public sealed class YandexEngine : WebSearchEngine
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
@@ -20,7 +20,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 
 	}
 
-	public string NodesSelector => Serialization.S_Yandex_Images;
+	protected override string NodesSelector => Serialization.S_Yandex_Images;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
@@ -117,7 +117,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 		IDocument doc = null;
 
 		try {
-			doc = await ((IWebContentEngine) this).GetDocumentAsync(url, query: query, token: token.Value);
+			doc = await GetDocumentAsync(url, query: query, token: token.Value);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
@@ -143,7 +143,7 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 		 * Find and sort through high resolution image matches
 		 */
 
-		foreach (var node in await ((IWebContentEngine) this).GetNodes(doc)) {
+		foreach (var node in await GetNodes(doc)) {
 			var sri = await ParseNodeToItem(node, sr);
 
 			if (sri != null) {
@@ -180,24 +180,24 @@ public sealed class YandexEngine : BaseSearchEngine, IWebContentEngine
 
 	public override void Dispose() { }
 
-	public async Task<IEnumerable<INode>> GetItems(IDocument doc)
+	protected override async ValueTask<INode[]> GetNodes(IDocument doc)
 	{
 		var tagsItem = doc.Body.SelectNodes(NodesSelector);
 
 		if (!tagsItem.Any()) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
-			return await Task.FromResult(tagsItem);
+			return await Task.FromResult(tagsItem.ToArray());
 			// return tagsItem;
 		}
 
 		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class").Contains("CbirItem")).ToList();
 
-		return await Task.FromResult(sizeTags);
+		return await Task.FromResult(sizeTags.ToArray());
 
 		// return sizeTags;
 	}
 
-	public ValueTask<SearchResultItem> ParseNodeToItem(INode siz, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseNodeToItem(INode siz, SearchResult r)
 	{
 		string link = siz.TryGetAttribute(Serialization.Atr_href);
 

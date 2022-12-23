@@ -19,7 +19,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
+public sealed class Ascii2DEngine :WebSearchEngine
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
@@ -27,7 +27,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 		MaxSize = 5 * 1000 * 1000;
 	}
 
-	public string NodesSelector => Serialization.S_Ascii2D_Images;
+	protected override string NodesSelector => Serialization.S_Ascii2D_Images;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
@@ -61,11 +61,10 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 
 	public override void Dispose() { }
 
-	public async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query, TimeSpan? timeout = null,
+	protected override async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query,
 	                                              CancellationToken? token = null)
 	{
 		token   ??= CancellationToken.None;
-		timeout ??= System.Threading.Timeout.InfiniteTimeSpan;
 
 		var parser = new HtmlParser();
 
@@ -78,7 +77,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 
 				var res = await origin.AllowAnyHttpStatus()
 				                      .WithCookies(out var cj)
-				                      .WithTimeout(timeout.Value)
+				                      .WithTimeout(Timeout)
 				                      .WithHeaders(new
 				                      {
 					                      User_Agent = HttpUtilities.UserAgent
@@ -109,7 +108,7 @@ public sealed class Ascii2DEngine : BaseSearchEngine, IWebContentEngine
 		}
 	}
 
-	public ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
 

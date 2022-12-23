@@ -1,14 +1,10 @@
-﻿#region
-
-using System.Collections;
+﻿using System.Collections;
 using System.Dynamic;
 using Flurl;
 using JetBrains.Annotations;
 using Kantan.Model;
 using Novus.FileTypes;
 using SmartImage.Lib.Utilities;
-
-#endregion
 
 namespace SmartImage.Lib;
 

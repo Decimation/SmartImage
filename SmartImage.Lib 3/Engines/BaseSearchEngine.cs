@@ -117,35 +117,6 @@ public abstract class BaseSearchEngine : IDisposable
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
 
-		if (this is IWebContentEngine { } p) {
-			IDocument doc = await p.GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
-
-			if (doc is not { }) {
-				res.Status = SearchResultStatus.Failure;
-				goto ret;
-			}
-
-			var nodes = (await p.GetNodes(doc));
-
-			foreach (INode node in nodes) {
-				if (token.Value.IsCancellationRequested) {
-					break;
-				}
-
-				var sri = await p.ParseNodeToItem(node, res);
-
-				if (SearchResultItem.IsValid(sri)) {
-					res.Results.Add(sri);
-				}
-			}
-			Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Length}",
-			                nameof(GetResultAsync));
-
-			ret:
-			res.Update();
-			return res;
-		}
-
 		return res;
 	}
 

@@ -22,7 +22,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginEngine
+public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
 {
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
 
@@ -61,7 +61,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 
 	public bool IsLoggedIn { get; private set; }
 
-	public string NodesSelector => "//table/tbody/tr";
+	protected override string NodesSelector => "//table/tbody/tr";
 
 	/*
 	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer/client
@@ -73,8 +73,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	public async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query,
-	                                              TimeSpan? timeout = null, CancellationToken? token = null)
+	protected override async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query, CancellationToken? token = null)
 	{
 		const string name = "a.jpg";
 
@@ -195,7 +194,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
-	public ValueTask<INode[]> GetNodes(IDocument d)
+	protected override ValueTask<INode[]> GetNodes(IDocument d)
 	{
 		// Index 0 is table header
 		var array = d.Body.SelectNodes(NodesSelector).ToArray();
@@ -208,7 +207,7 @@ public sealed class EHentaiEngine : BaseSearchEngine, IWebContentEngine, ILoginE
 		return ValueTask.FromResult(array);
 	}
 
-	public ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
 	{
 		var item = new SearchResultItem(r)
 			{ };
