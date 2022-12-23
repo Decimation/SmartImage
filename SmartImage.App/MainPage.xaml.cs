@@ -31,10 +31,60 @@ public partial class MainPage : ContentPage
 
 	private void OnComplete(object sender, SearchResult[] e) { }
 
+	private static Cell[] ToCell(SearchResultItem sri)
+	{
+		return new Cell[]
+		{
+			new TextCell()
+			{
+				Text = sri.Url
+			},
+			new TextCell()
+			{
+				Text = sri.Description
+			},
+			new TextCell()
+			{
+				Text = sri.Similarity.ToString()
+			},
+			new TextCell()
+			{
+				Text = sri.Artist
+			},
+			new TextCell()
+			{
+				Text = sri.Character
+			},
+			new TextCell()
+			{
+				Text = sri.Site
+			},
+			new TextCell()
+			{
+				Text = sri.Source
+			},
+		};
+	}
+
 	private void OnResult(object sender, SearchResult result)
 	{
 		Pbr_Input.Progress = (double) (m_results) / m_client.Engines.Length;
-		
+
+		var many = result.Results.SelectMany(ToCell).ToArray();
+
+		var view = new TableView()
+			{ };
+
+		view.Root.Add(new TableSection()
+		{
+			many
+		});
+
+		var viewCell = new ViewCell()
+		{
+			View = view
+		};
+
 		Tv_Results.Root.Add(new TableSection()
 		{
 			new Cell[]
@@ -47,7 +97,8 @@ public partial class MainPage : ContentPage
 				{
 					Text = $"{result.Status}"
 				},
-			}
+				viewCell
+			},
 		});
 	}
 
@@ -55,7 +106,7 @@ public partial class MainPage : ContentPage
 	{
 		var r = await m_client.RunSearchAsync(m_query);
 	}
-	
+
 	private async void OnPickFileClicked(object sender, EventArgs e)
 	{
 		Btn_Run.IsEnabled = false;
@@ -75,8 +126,8 @@ public partial class MainPage : ContentPage
 
 			Debug.WriteLine($"{m_query}");
 
-			Btn_Run.IsEnabled    = true;
-			Img_Input.Source     = ImageSource.FromFile(m_file.FullPath);
+			Btn_Run.IsEnabled = true;
+			Img_Input.Source  = ImageSource.FromFile(m_file.FullPath);
 
 			Img_Input.Scale      = 0.5;
 			Act_Status.IsRunning = false;
@@ -87,6 +138,6 @@ public partial class MainPage : ContentPage
 	private void Ent_Input_OnTextChanged(object sender, TextChangedEventArgs e)
 	{
 		Debug.WriteLine($"{e.OldTextValue} -> {e.NewTextValue}");
-		
+
 	}
 }
