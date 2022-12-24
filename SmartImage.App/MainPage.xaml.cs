@@ -1,4 +1,6 @@
-﻿using JetBrains.Annotations;
+﻿using System.Collections.Concurrent;
+using System.Collections.ObjectModel;
+using JetBrains.Annotations;
 using SmartImage.Lib;
 using Debug = System.Diagnostics.Debug;
 
@@ -17,16 +19,57 @@ public partial class MainPage : ContentPage
 
 	private int m_results;
 
+	private readonly ObservableCollection<SearchResult> m_searchResults;
+
 	public MainPage()
 	{
 		InitializeComponent();
 
 		m_cfg    = new SearchConfig();
 		m_client = new SearchClient(m_cfg);
+		m_searchResults = new ();
 
 		m_client.OnResult   += OnResult;
 		m_client.OnComplete += OnComplete;
 
+		Lv_Results.ItemsSource = m_searchResults;
+
+		Lv_Results.ItemTemplate = new DataTemplate(() =>
+		{
+			// Create views with bindings for displaying each property.
+			Label nameLabel = new();
+			nameLabel.SetBinding(Label.TextProperty, "Engine.Name");
+
+			ListView birthdayLabel = new();
+
+			birthdayLabel.SetBinding(ListView.ItemsSourceProperty,
+			                         new Binding(nameof(SearchResult.Results), BindingMode.OneWay,
+			                                     null, null));
+			
+			// Return an assembled ViewCell.
+			return new ViewCell
+			{
+				View = new StackLayout
+				{
+					Padding     = new Thickness(0, 5),
+					Orientation = StackOrientation.Horizontal,
+					Children =
+					{
+						new StackLayout
+						{
+							VerticalOptions = LayoutOptions.Center,
+							Spacing         = 0,
+							Children =
+							{
+								nameLabel,
+								birthdayLabel
+							}
+						}
+					}
+				}
+			};
+			;
+		});
 	}
 
 	private void OnComplete(object sender, SearchResult[] e) { }
@@ -70,36 +113,19 @@ public partial class MainPage : ContentPage
 	{
 		Pbr_Input.Progress = (double) (m_results) / m_client.Engines.Length;
 
-		var many = result.Results.SelectMany(ToCell).ToArray();
+		m_searchResults.Add(result);
 
-		var view = new TableView()
-			{ };
-
-		view.Root.Add(new TableSection()
+		/*Tv_Results.Root.Add(new TableSection()
 		{
-			many
-		});
-
-		var viewCell = new ViewCell()
-		{
-			View = view
-		};
-
-		Tv_Results.Root.Add(new TableSection()
-		{
-			new Cell[]
+			new TextCell()
 			{
-				new TextCell()
-				{
-					Text = $"{result.Engine.Name}"
-				},
-				new TextCell()
-				{
-					Text = $"{result.Status}"
-				},
-				viewCell
+				Text = $"{result.Engine.Name}"
 			},
-		});
+			new ViewCell()
+			{
+				View = lv
+			}
+		});*/
 	}
 
 	private async void OnRunClicked(object sender, EventArgs e)
@@ -133,6 +159,8 @@ public partial class MainPage : ContentPage
 			Act_Status.IsRunning = false;
 
 		}
+
+		m_searchResults.Clear();
 	}
 
 	private void Ent_Input_OnTextChanged(object sender, TextChangedEventArgs e)

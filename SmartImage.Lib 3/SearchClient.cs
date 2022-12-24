@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Html;
@@ -52,6 +53,8 @@ public sealed class SearchClient : IDisposable
 			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
 		});
 		Client = new FlurlClient();
+
+		Debug.WriteLine($"Init", nameof(SearchClient));
 	}
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);
@@ -106,9 +109,7 @@ public sealed class SearchClient : IDisposable
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
-				var url1 = result.Best?.Url ?? result.RawUrl;
-
-				HttpUtilities.TryOpenUrl(url1);
+				OpenResult(result);
 			}
 
 			results[i++] = result;
@@ -122,17 +123,24 @@ public sealed class SearchClient : IDisposable
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 
-			var sri    = results.SelectMany(r => r.Results).ToArray();
-			var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
-
-			if (result is { }) {
-				Debug.WriteLine($"Auto: {result}", nameof(RunSearchAsync));
-				HttpUtilities.TryOpenUrl(result.Url);
-			}
+			// var sri    = results.SelectMany(r => r.Results).ToArray();
+			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
+			//todo
+			OpenResult(results.FirstOrDefault());
 
 		}
 
 		return results;
+	}
+
+	private static void OpenResult(SearchResult result)
+	{
+#if DEBUG
+		Debug.WriteLine("Not opening result (DEBUG)", nameof(OpenResult));
+		return;
+#endif
+		var url1 = result.Best?.Url ?? result.RawUrl;
+		HttpUtilities.TryOpenUrl(url1);
 	}
 
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)

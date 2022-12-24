@@ -50,7 +50,6 @@
                 x:Name="Btn_Pick"
                 Text="Pick File"
                 FontAttributes="Bold"
-                SemanticProperties.Hint="Allows you to pick a file on the filesystem"
                 Clicked="OnPickFileClicked"
                 HorizontalOptions="Center" />
 
@@ -62,7 +61,12 @@
                 Clicked="OnRunClicked"
                 HorizontalOptions="Center" />
 
-            <TableView
+            <ListView
+                x:Name="Lv_Results">
+
+            </ListView>
+
+            <!--<TableView
                 x:Name="Tv_Results"
                 Intent="Menu"
                 HorizontalOptions="Fill">
@@ -70,7 +74,7 @@
                     <TableSection Title="Results">
                     </TableSection>
                 </TableRoot>
-            </TableView>
+            </TableView>-->
 
         </VerticalStackLayout>
     </ScrollView>
