@@ -36,10 +36,10 @@ public sealed class SearchClient : IDisposable
 		EnginesLoaded = false;
 
 		Engines = BaseSearchEngine.All.Where(e =>
-		                          {
-			                          return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
-		                          })
-		                          .ToArray();
+			{
+				return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
+			})
+			.ToArray();
 
 	}
 
@@ -174,9 +174,9 @@ public sealed class SearchClient : IDisposable
 	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{
 		var items = sri.Where(r => SearchQuery.IsValidSourceType(r.Url))
-		               .OrderByDescending(r => r.Score)
-		               .ThenByDescending(r => r.Similarity)
-		               .ToArray();
+			.OrderByDescending(r => r.Score)
+			.ThenByDescending(r => r.Similarity)
+			.ToArray();
 
 		try {
 			var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
@@ -194,14 +194,14 @@ public sealed class SearchClient : IDisposable
 	public static async Task<List<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
 	{
 		var filter = Optimize(sri)
-		             .DistinctBy(r => r.Url)
-		             // .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
-		             .Select(async r =>
-		             {
-			             bool b = await r.GetUniAsync();
-			             return r.Uni;
-		             })
-		             .ToList();
+			.DistinctBy(r => r.Url)
+			// .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
+			.Select(async r =>
+			{
+				bool b = await r.GetUniAsync();
+				return r.Uni;
+			})
+			.ToList();
 
 		var di = new List<UniSource>();
 
@@ -232,5 +232,4 @@ public sealed class SearchClient : IDisposable
 
 		EnginesLoaded = false;
 	}
-	
 }

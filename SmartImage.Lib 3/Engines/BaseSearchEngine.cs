@@ -38,9 +38,7 @@ public abstract class BaseSearchEngine : IDisposable
 		BaseUrl = baseUrl;
 	}
 
-	static BaseSearchEngine()
-	{
-	}
+	static BaseSearchEngine() { }
 
 	protected virtual bool Verify(SearchQuery q)
 	{
@@ -75,7 +73,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 			if (e is { IsLoggedIn: true }) {
 				Debug.WriteLine($"{this.Name} is already logged in", nameof(LoadAsync));
-				
+
 				return;
 			}
 
@@ -128,11 +126,7 @@ public abstract class BaseSearchEngine : IDisposable
 		return ValueTask.FromResult(u);
 	}
 
-	#region Implementation of IDisposable
-
 	public abstract void Dispose();
-
-	#endregion
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();

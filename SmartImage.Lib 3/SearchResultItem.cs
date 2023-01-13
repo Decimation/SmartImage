@@ -8,8 +8,8 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib;
 
-public sealed record SearchResultItem : IDisposable, 
-	IComparable<SearchResultItem>, IComparable, 
+public sealed record SearchResultItem : IDisposable,
+	IComparable<SearchResultItem>, IComparable,
 	IValidity<SearchResultItem>
 {
 	private bool m_isScored;

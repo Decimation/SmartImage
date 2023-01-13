@@ -61,19 +61,19 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		try {
 			if (origin2 is Url origin) {
 				var res = await origin.WithClient(SearchClient.Client)
-				                      .AllowAnyHttpStatus()
-				                      .WithCookies(out var cj)
-				                      .WithTimeout(Timeout)
-				                      .WithHeaders(new
-				                      {
-					                      User_Agent = HttpUtilities.UserAgent
-				                      })
-				                      .WithAutoRedirect(true)
-				                      /*.OnError(s =>
-				                      {
-					                      s.ExceptionHandled = true;
-				                      })*/
-				                      .GetAsync(cancellationToken: token.Value);
+					          .AllowAnyHttpStatus()
+					          .WithCookies(out var cj)
+					          .WithTimeout(Timeout)
+					          .WithHeaders(new
+					          {
+						          User_Agent = HttpUtilities.UserAgent
+					          })
+					          .WithAutoRedirect(true)
+					          /*.OnError(s =>
+					          {
+						          s.ExceptionHandled = true;
+					          })*/
+					          .GetAsync(cancellationToken: token.Value);
 
 				var str = await res.GetStringAsync();
 
@@ -100,4 +100,12 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		=> ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
 
 	protected abstract string NodesSelector { get; }
+}
+
+internal static class NodeHelper
+{
+	internal static INode TryFindElementByClassName(this INodeList nodes, string className)
+	{
+		return nodes.FirstOrDefault(f => f is IElement e && e.ClassName == className);
+	}
 }

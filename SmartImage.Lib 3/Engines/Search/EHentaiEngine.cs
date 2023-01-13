@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -20,6 +21,7 @@ using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Kantan.Threading;
+using SmartImage.Lib.Utilities;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib.Engines.Search;
@@ -44,31 +46,17 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 
 	#region Url
 
-	private const string EHENTAI_INDEX_URI = "https://forums.e-hentai.org/index.php";
+	private static readonly Url EHentaiIndex = "https://forums.e-hentai.org/index.php";
 
-	private const string EXHENTAI_URI = "https://exhentai.org/";
-	private const string EHENTAI_URI  = "https://e-hentai.org/";
+	public static readonly Url ExHentaiBase = "https://exhentai.org/";
+	public static readonly Url EHentaiBase  = "https://e-hentai.org/";
 
-	private static readonly Url ExHentai_Image_Lookup = Url.Combine(EXHENTAI_URI, "upld", "image_lookup.php");
+	private static readonly Url ExHentaiLookup = Url.Combine(ExHentaiBase, "upld", "image_lookup.php");
+	private static readonly Url EHentaiLookup  = "https://upld.e-hentai.org/image_lookup.php";
 
-	public override Url BaseUrl
-	{
-		get { return IsLoggedIn ? EXHENTAI_URI : EHENTAI_URI; }
-	}
+	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
 
-	private Url Lookup
-	{
-		get
-		{
-			if (IsLoggedIn) {
-				return ExHentai_Image_Lookup;
-			}
-			else {
-				return "https://upld.e-hentai.org/image_lookup.php";
-
-			}
-		}
-	}
+	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
 
 	#endregion
 
@@ -80,12 +68,20 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 
 	static EHentaiEngine() { }
 
-	public EHentaiEngine() : base(EHENTAI_URI)
+	public EHentaiEngine() : base(EHentaiBase)
 	{
 		m_client   = new HttpClient(m_clientHandler);
 		Cookies    = new CookieJar();
 		IsLoggedIn = false;
 
+		PropertyChanged += (sender, args) =>
+		{
+			if (IsLoggedIn) {
+				IsLoggedIn = false;
+			}
+
+			Trace.WriteLine($"{IsLoggedIn} - {args.PropertyName}", nameof(PropertyChanged));
+		};
 	}
 
 	/*
@@ -108,6 +104,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 		if (b) {
 			Trace.WriteLine($"allocated {t}", nameof(GetDocumentAsync));
 		}
+
 		var data = new MultipartFormDataContent()
 		{
 			{ new FileContent(t), "sfile", name },
@@ -149,8 +146,9 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 			m_clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
 		}
 
-		Debug.WriteLine($"{Lookup}", nameof(GetDocumentAsync));
-		var req = new HttpRequestMessage(HttpMethod.Post, Lookup)
+		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
+
+		var req = new HttpRequestMessage(HttpMethod.Post, LookupUrl)
 		{
 			Content = data,
 			Headers =
@@ -174,7 +172,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 
 	private async Task<IFlurlResponse> GetSessionAsync()
 	{
-		return await EXHENTAI_URI.WithCookies(Cookies)
+		return await ExHentaiBase.WithCookies(Cookies)
 			       .WithHeaders(new
 			       {
 				       User_Agent = HttpUtilities.UserAgent
@@ -201,7 +199,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 		var item = new SearchResultItem(r)
 			{ };
 
-		EhResult eh = GetEhResult(n);
+		var eh = EhResult.Parse(n);
 
 		if (eh.Tags.TryGetValue("artist", out var v)) {
 			item.Artist = v.FirstOrDefault();
@@ -218,75 +216,6 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 		var gl4c        = n.ChildNodes[4];*/
 
 		return ValueTask.FromResult(item);
-	}
-
-	private static EhResult GetEhResult(INode n)
-	{
-		// ReSharper disable InconsistentNaming
-		var eh = new EhResult();
-
-		var gl1c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl1c" } e);
-
-		if (gl1c is { }) {
-			if (gl1c.FirstChild is { } t) {
-				eh.Type = t.TextContent;
-			}
-		}
-
-		var gl2c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl2c" } e);
-
-		if (gl2c is { }) {
-			if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
-				eh.Pages = div.TextContent;
-			}
-		}
-
-		var gl3c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl3c glname" } e);
-
-		if (gl3c is { }) {
-			if (gl3c.FirstChild is { } f) {
-				eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
-
-				if (f.FirstChild is { } ff) {
-					eh.Title = ff.TextContent;
-				}
-
-				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
-					var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
-
-					foreach (string s in tagValuesRaw) {
-						var split = s.Split(':');
-						var tag   = split[0];
-						var val   = split[1];
-
-						if (eh.Tags.ContainsKey(tag)) {
-							eh.Tags[tag].Add(val);
-						}
-						else {
-							eh.Tags.Add(tag, new() { val });
-
-						}
-					}
-				}
-			}
-		}
-
-		var gl4c = n.ChildNodes.FirstOrDefault(f => f is IElement { ClassName: "gl4c glhide" } e);
-
-		if (gl4c is { }) {
-			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
-				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
-				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
-			}
-
-			if (gl4c.ChildNodes[1] is { } div2) {
-				eh.Pages ??= div2.TextContent;
-			}
-		}
-
-		return eh;
-
-		// ReSharper restore InconsistentNaming
 	}
 
 	public override void Dispose()
@@ -341,7 +270,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 			{ new StringContent("Login!"), "ipb_login_submit" }
 		};
 
-		var response = await EHENTAI_INDEX_URI
+		var response = await EHentaiIndex
 			               .SetQueryParams(new
 			               {
 				               act  = "Login",
@@ -381,7 +310,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 
 	#endregion
 
-	private sealed record EhResult
+	private sealed record EhResult : IParseable<EhResult, INode>
 	{
 		internal string Type      { get; set; }
 		internal string Pages     { get; set; }
@@ -390,6 +319,79 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 		internal string AuthorUrl { get; set; }
 		internal Url    Url       { get; set; }
 
-		internal Dictionary<string, List<string>> Tags { get; set; } = new();
+		internal ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get;  } = new();
+
+		public static EhResult Parse(INode n)
+		{
+			// ReSharper disable InconsistentNaming
+			var eh = new EhResult();
+
+			var gl1c = n.ChildNodes.TryFindElementByClassName("gl1c");
+
+			if (gl1c is { }) {
+				if (gl1c.FirstChild is { } t) {
+					eh.Type = t.TextContent;
+				}
+			}
+
+			var gl2c = n.ChildNodes.TryFindElementByClassName("gl2c");
+
+			if (gl2c is { }) {
+				if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
+					eh.Pages = div.TextContent;
+				}
+			}
+
+			var gl3c = n.ChildNodes.TryFindElementByClassName("gl3c glname");
+
+			if (gl3c is { }) {
+				if (gl3c.FirstChild is { } f) {
+					eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
+
+					if (f.FirstChild is { } ff) {
+						eh.Title = ff.TextContent;
+					}
+
+					if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
+						var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
+
+						foreach (string s in tagValuesRaw) {
+							if (s is not { }) {
+								continue;
+							}
+
+							var split = s.Split(':');
+							var tag   = split[0];
+							var val   = split[1];
+
+							if (eh.Tags.ContainsKey(tag)) {
+								eh.Tags[tag].Add(val);
+							}
+							else {
+								eh.Tags.TryAdd(tag, new() { val });
+
+							}
+						}
+					}
+				}
+			}
+
+			var gl4c = n.ChildNodes.TryFindElementByClassName("gl4c glhide");
+
+			if (gl4c is { }) {
+				if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
+					eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
+					eh.Author    = div1Outer.TextContent ?? div1.TextContent;
+				}
+
+				if (gl4c.ChildNodes[1] is { } div2) {
+					eh.Pages ??= div2.TextContent;
+				}
+			}
+
+			return eh;
+
+			// ReSharper restore InconsistentNaming
+		}
 	}
 }
