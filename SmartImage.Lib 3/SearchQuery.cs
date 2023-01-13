@@ -160,11 +160,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	#endregion
 
 	[MustUseReturnValue]
-	public async Task<string> GetFilePathOrTemp(string fn = null)
+	public async Task<(string,bool)> GetFilePathOrTemp(string fn = null)
 	{
 		string t;
 		fn ??= Path.GetTempFileName();
-
+		bool b;
 		if (!Uni.IsFile) {
 			t = Path.Combine(Path.GetTempPath(), fn);
 
@@ -178,11 +178,14 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 				await Uni.Stream.CopyToAsync(fs);
 				fs.Flush();
 			}
+
+			b = true;
 		}
 		else {
 			t = Uni.Value.ToString();
+			b = false;
 		}
 
-		return t;
+		return (t,b);
 	}
 }

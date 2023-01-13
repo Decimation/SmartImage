@@ -40,7 +40,6 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 	};
 
 	private string m_password;
-
 	private string m_username;
 
 	#region Url
@@ -52,7 +51,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 
 	private static readonly Url ExHentai_Image_Lookup = Url.Combine(EXHENTAI_URI, "upld", "image_lookup.php");
 
-	private Url Base
+	public override Url BaseUrl
 	{
 		get { return IsLoggedIn ? EXHENTAI_URI : EHENTAI_URI; }
 	}
@@ -86,6 +85,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 		m_client   = new HttpClient(m_clientHandler);
 		Cookies    = new CookieJar();
 		IsLoggedIn = false;
+
 	}
 
 	/*
@@ -103,8 +103,11 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 	{
 		const string name = "a.jpg";
 
-		string t = await query.GetFilePathOrTemp(name);
+		(string t, bool b) = await query.GetFilePathOrTemp(name);
 
+		if (b) {
+			Trace.WriteLine($"allocated {t}", nameof(GetDocumentAsync));
+		}
 		var data = new MultipartFormDataContent()
 		{
 			{ new FileContent(t), "sfile", name },
@@ -146,6 +149,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 			m_clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
 		}
 
+		Debug.WriteLine($"{Lookup}", nameof(GetDocumentAsync));
 		var req = new HttpRequestMessage(HttpMethod.Post, Lookup)
 		{
 			Content = data,
@@ -170,7 +174,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 
 	private async Task<IFlurlResponse> GetSessionAsync()
 	{
-		return await Base.WithCookies(Cookies)
+		return await EXHENTAI_URI.WithCookies(Cookies)
 			       .WithHeaders(new
 			       {
 				       User_Agent = HttpUtilities.UserAgent
@@ -285,7 +289,13 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 		// ReSharper restore InconsistentNaming
 	}
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+		m_client.Dispose();
+		m_clientHandler.Dispose();
+		Cookies.Clear();
+		IsLoggedIn = false;
+	}
 
 	public string Username
 	{
@@ -348,11 +358,11 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyProper
 		}
 
 		var res2 = await GetSessionAsync();
-		BaseUrl = Base;
+
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
-	#region 
+	#region
 
 	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 	{
