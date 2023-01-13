@@ -31,8 +31,8 @@ public partial class MainPage : ContentPage
 
 		m_client.OnResult   += OnResult;
 		m_client.OnComplete += OnComplete;
-
-		Lv_Results.ItemsSource = m_searchResults;
+		
+		/*Lv_Results.ItemsSource = m_searchResults;
 
 		Lv_Results.ItemTemplate = new DataTemplate(() =>
 		{
@@ -69,7 +69,7 @@ public partial class MainPage : ContentPage
 				}
 			};
 			;
-		});
+		});*/
 	}
 
 	private void OnComplete(object sender, SearchResult[] e) { }
@@ -114,8 +114,20 @@ public partial class MainPage : ContentPage
 		Pbr_Input.Progress = (double) (m_results) / m_client.Engines.Length;
 
 		m_searchResults.Add(result);
+		var c = result.Results.SelectMany(ToCell);
 
-		/*Tv_Results.Root.Add(new TableSection()
+		Tv_Results.Root.Add(new TableSection(result.Engine.Name)
+		{
+			c
+		});
+
+		/*var s = result.Results.Select(ToCell).Select(r => new TableSection() { r });
+		var root = new TableRoot()
+		{
+			s
+		};
+
+		Tv_Results.Root.Add(new TableSection()
 		{
 			new TextCell()
 			{
@@ -123,7 +135,10 @@ public partial class MainPage : ContentPage
 			},
 			new ViewCell()
 			{
-				View = lv
+				View = new TableView()
+				{
+					Root = root
+				}
 			}
 		});*/
 	}

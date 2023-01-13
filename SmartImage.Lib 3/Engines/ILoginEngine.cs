@@ -1,5 +1,9 @@
 ﻿namespace SmartImage.Lib.Engines;
 
+/*
+ * TODO: due to design and control flow complications this interface had to be designed this way...
+ */
+
 public interface ILoginEngine
 {
     public string Username { get; set; }

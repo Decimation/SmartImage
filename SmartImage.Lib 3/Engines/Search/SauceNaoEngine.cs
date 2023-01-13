@@ -46,8 +46,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 	{
 		Authentication = authentication;
 
-		new FlurlClient(EndpointUrl);
-
 	}
 
 	public SauceNaoEngine() : this(null) { }

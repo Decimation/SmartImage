@@ -20,7 +20,6 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 {
 	public IqdbEngine() : base("https://iqdb.org/?url=")
 	{
-		new FlurlClient(EndpointUrl);
 		MaxSize = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 	}
 

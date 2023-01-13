@@ -38,7 +38,6 @@ using SmartImage.App;
 namespace SmartImage;
 
 // # Notes
-
 /*
  * ...
  */
@@ -54,8 +53,17 @@ public static class Program
 		Trace.WriteLine("Init", Resources.Name);
 		// Gui.Init();
 		Console.Title = R2.Name;
-		ConsoleUtil.SetConsoleMode();
+
+		if (Compat.IsWin) {
+			ConsoleUtil.SetConsoleMode();
+		}
+
 		Application.Init();
+
+		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
+		{
+			Trace.WriteLine($"Exiting", R2.Name);
+		};
 	}
 
 	public static async Task Main(string[] args)
@@ -63,7 +71,7 @@ public static class Program
 		// Console.OutputEncoding = Encoding.Unicode;
 
 		// ToastNotificationManagerCompat.OnActivated += AppNotification.OnActivated;
-		
+
 #if TEST
 		// args = new String[] { null };
 		args = new[] { R2.Arg_Input, "https://i.imgur.com/QtCausw.png",R2.Arg_AutoSearch };
@@ -86,5 +94,4 @@ public static class Program
 			goto main1;
 		}
 	}
-
 }

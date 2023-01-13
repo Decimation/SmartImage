@@ -19,7 +19,6 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 {
 	public TraceMoeEngine() : base("https://trace.moe/?url=")
 	{
-		new FlurlClient(EndpointUrl);
 	}
 
 	#region Implementation of IClientSearchEngine

@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using AngleSharp.Dom;
@@ -22,8 +24,9 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
+public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, INotifyPropertyChanged
 {
+	private readonly HttpClient m_client;
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
 
 	private readonly HttpClientHandler m_clientHandler = new()
@@ -36,32 +39,54 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
 
 	};
 
-	private readonly HttpClient m_client;
+	private string m_password;
 
-	private const string EHENTAI_INDEX_URI         = "https://forums.e-hentai.org/index.php";
-	private const string EXHENTAI_IMAGE_LOOKUP_URI = "https://exhentai.org/upld/image_lookup.php";
-	private const string EXHENTAI_URI              = "https://exhentai.org/";
-	private const string EHENTAI_URI               = "https://e-hentai.org/";
+	private string m_username;
 
-	public EHentaiEngine() : base(EXHENTAI_URI)
+	#region Url
+
+	private const string EHENTAI_INDEX_URI = "https://forums.e-hentai.org/index.php";
+
+	private const string EXHENTAI_URI = "https://exhentai.org/";
+	private const string EHENTAI_URI  = "https://e-hentai.org/";
+
+	private static readonly Url ExHentai_Image_Lookup = Url.Combine(EXHENTAI_URI, "upld", "image_lookup.php");
+
+	private Url Base
 	{
-		m_client   = new HttpClient(m_clientHandler);
-		Cookies    = new CookieJar();
-		IsLoggedIn = false;
+		get { return IsLoggedIn ? EXHENTAI_URI : EHENTAI_URI; }
 	}
 
-	static EHentaiEngine() { }
+	private Url Lookup
+	{
+		get
+		{
+			if (IsLoggedIn) {
+				return ExHentai_Image_Lookup;
+			}
+			else {
+				return "https://upld.e-hentai.org/image_lookup.php";
+
+			}
+		}
+	}
+
+	#endregion
 
 	public CookieJar Cookies { get; }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
-	public string Username { get; set; }
-	public string Password { get; set; }
-
-	public bool IsLoggedIn { get; private set; }
-
 	protected override string NodesSelector => "//table/tbody/tr";
+
+	static EHentaiEngine() { }
+
+	public EHentaiEngine() : base(EHENTAI_URI)
+	{
+		m_client   = new HttpClient(m_clientHandler);
+		Cookies    = new CookieJar();
+		IsLoggedIn = false;
+	}
 
 	/*
 	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer/client
@@ -73,7 +98,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	protected override async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query, CancellationToken? token = null)
+	protected override async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query,
+	                                                          CancellationToken? token = null)
 	{
 		const string name = "a.jpg";
 
@@ -120,7 +146,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
 			m_clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
 		}
 
-		var req = new HttpRequestMessage(HttpMethod.Post, EXHENTAI_IMAGE_LOOKUP_URI)
+		var req = new HttpRequestMessage(HttpMethod.Post, Lookup)
 		{
 			Content = data,
 			Headers =
@@ -144,54 +170,13 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
 
 	private async Task<IFlurlResponse> GetSessionAsync()
 	{
-		return await EXHENTAI_URI.WithCookies(Cookies)
-		                         .WithHeaders(new
-		                         {
-			                         User_Agent = HttpUtilities.UserAgent
-		                         })
-		                         .WithAutoRedirect(true)
-		                         .GetAsync();
-	}
-
-	/*
-	 * Default result layout is [Compact]
-	 */
-
-	public async Task<bool> LoginAsync()
-	{
-		if (Username is not { } || Password is not { }) {
-			return false;
-		}
-
-		var content = new MultipartFormDataContent()
-		{
-			{ new StringContent("1"), "CookieDate" },
-			{ new StringContent("d"), "b" },
-			{ new StringContent("1-6"), "bt" },
-			{ new StringContent(Username), "UserName" },
-			{ new StringContent(Password), "PassWord" },
-			{ new StringContent("Login!"), "ipb_login_submit" }
-		};
-
-		var response = await EHENTAI_INDEX_URI
-		                     .SetQueryParams(new
-		                     {
-			                     act  = "Login",
-			                     CODE = 01
-		                     }).WithHeaders(new
-		                     {
-			                     User_Agent = HttpUtilities.UserAgent
-		                     })
-		                     .WithCookies(out var cj)
-		                     .PostAsync(content);
-
-		foreach (FlurlCookie fc in cj) {
-			Cookies.AddOrReplace(fc);
-		}
-
-		var res2 = await GetSessionAsync();
-
-		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
+		return await Base.WithCookies(Cookies)
+			       .WithHeaders(new
+			       {
+				       User_Agent = HttpUtilities.UserAgent
+			       })
+			       .WithAutoRedirect(true)
+			       .GetAsync();
 	}
 
 	protected override ValueTask<INode[]> GetNodes(IDocument d)
@@ -274,7 +259,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
 							eh.Tags[tag].Add(val);
 						}
 						else {
-							eh.Tags.Add(tag, new List<string>() { val });
+							eh.Tags.Add(tag, new() { val });
 
 						}
 					}
@@ -301,6 +286,90 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine
 	}
 
 	public override void Dispose() { }
+
+	public string Username
+	{
+		get => m_username;
+		set
+		{
+			if (value == m_username) return;
+			m_username = value;
+			OnPropertyChanged();
+		}
+	}
+
+	public string Password
+	{
+		get => m_password;
+		set
+		{
+			if (value == m_password) return;
+			m_password = value;
+			OnPropertyChanged();
+		}
+	}
+
+	public bool IsLoggedIn { get; private set; }
+
+	/*
+	 * Default result layout is [Compact]
+	 */
+
+	public async Task<bool> LoginAsync()
+	{
+		if (Username is not { } || Password is not { }) {
+			return false;
+		}
+
+		var content = new MultipartFormDataContent()
+		{
+			{ new StringContent("1"), "CookieDate" },
+			{ new StringContent("d"), "b" },
+			{ new StringContent("1-6"), "bt" },
+			{ new StringContent(Username), "UserName" },
+			{ new StringContent(Password), "PassWord" },
+			{ new StringContent("Login!"), "ipb_login_submit" }
+		};
+
+		var response = await EHENTAI_INDEX_URI
+			               .SetQueryParams(new
+			               {
+				               act  = "Login",
+				               CODE = 01
+			               }).WithHeaders(new
+			               {
+				               User_Agent = HttpUtilities.UserAgent
+			               })
+			               .WithCookies(out var cj)
+			               .PostAsync(content);
+
+		foreach (FlurlCookie fc in cj) {
+			Cookies.AddOrReplace(fc);
+		}
+
+		var res2 = await GetSessionAsync();
+		BaseUrl = Base;
+		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
+	}
+
+	#region 
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	#endregion
 
 	private sealed record EhResult
 	{

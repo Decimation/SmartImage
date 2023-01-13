@@ -27,7 +27,7 @@ public abstract class BaseSearchEngine : IDisposable
 	/// </summary>
 	public virtual string Name => EngineOption.ToString();
 
-	public virtual string BaseUrl { get; }
+	public string BaseUrl { get; protected set; }
 
 	protected TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 

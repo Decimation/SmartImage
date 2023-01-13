@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
 using AngleSharp.Js.Dom;
 using Flurl.Http;
+using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Kantan.Text;
@@ -158,6 +159,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	#endregion
 
+	[MustUseReturnValue]
 	public async Task<string> GetFilePathOrTemp(string fn = null)
 	{
 		string t;

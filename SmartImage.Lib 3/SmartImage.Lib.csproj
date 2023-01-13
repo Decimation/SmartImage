@@ -22,21 +22,21 @@
     <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="0.17.1" />
+    <PackageReference Include="AngleSharp" Version="1.0.0" />
     <PackageReference Include="AngleSharp.Css" Version="0.16.4" />
     <PackageReference Include="AngleSharp.Io" Version="0.17.0" />
     <PackageReference Include="AngleSharp.Js" Version="0.15.0" />
     <PackageReference Include="AngleSharp.XPath" Version="2.0.1" />
     <PackageReference Include="Flurl.Http" Version="3.2.4" />
     <PackageReference Include="JetBrains.Annotations" Version="2022.3.1" />
-    <PackageReference Include="Microsoft.ClearScript.V8" Version="7.3.4" />
+    <PackageReference Include="Microsoft.ClearScript.V8" Version="7.3.6" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="7.0.2" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />

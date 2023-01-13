@@ -61,10 +61,15 @@
                 Clicked="OnRunClicked"
                 HorizontalOptions="Center" />
 
-            <ListView
+            <!--<ListView
                 x:Name="Lv_Results">
 
-            </ListView>
+            </ListView>-->
+
+            <TableView
+                x:Name="Tv_Results">
+
+            </TableView>
 
             <!--<TableView
                 x:Name="Tv_Results"

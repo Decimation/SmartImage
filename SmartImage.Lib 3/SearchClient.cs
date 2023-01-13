@@ -55,6 +55,7 @@ public sealed class SearchClient : IDisposable
 		Client = new FlurlClient();
 
 		Debug.WriteLine($"Init", nameof(SearchClient));
+
 	}
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);
@@ -231,4 +232,5 @@ public sealed class SearchClient : IDisposable
 
 		EnginesLoaded = false;
 	}
+	
 }
