@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using Kantan.Console;
-using Kantan.Net.Utilities;
-using NStack;
+﻿using NStack;
 using SmartImage.Lib.Engines;
 using Terminal.Gui;
 

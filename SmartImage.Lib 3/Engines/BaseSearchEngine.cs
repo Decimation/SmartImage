@@ -1,14 +1,7 @@
 ﻿global using Url = Flurl.Url;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
-using System.Runtime.Intrinsics.X86;
-using AngleSharp.Dom;
-using Flurl.Http;
 using Novus.Utilities;
-using SmartImage.Lib.Engines.Search;
 
 namespace SmartImage.Lib.Engines;
 #nullable enable
@@ -64,37 +57,6 @@ public abstract class BaseSearchEngine : IDisposable
 	protected virtual bool VerifyImage(Image i)
 	{
 		return true;
-	}
-
-	public virtual async Task LoadAsync(SearchConfig cfg)
-	{
-		if (this is ILoginEngine e) {
-			string? u = null, p = null;
-
-			if (e is { IsLoggedIn: true }) {
-				Debug.WriteLine($"{this.Name} is already logged in", nameof(LoadAsync));
-
-				return;
-			}
-
-			if (e is EHentaiEngine eh) {
-				u = cfg.EhUsername;
-				p = cfg.EhPassword;
-			}
-
-			if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p)) {
-
-				// throw new ArgumentException($"{Name} : username/password is null");
-				return;
-
-			}
-
-			e.Username = u;
-			e.Password = p;
-
-			var ok = await e.LoginAsync();
-			Debug.WriteLine($"{Name} logged in - {ok}", nameof(LoadAsync));
-		}
 	}
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)

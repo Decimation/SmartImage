@@ -1,16 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using Flurl.Http;
-using Kantan.Utilities;
-using Novus.FileTypes;
-using Novus.Win32;
-
-namespace SmartImage.App;
+﻿namespace SmartImage.App;
 
 public static class ImageUtility
 {

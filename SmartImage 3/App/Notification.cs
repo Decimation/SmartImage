@@ -1,19 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Drawing;
-using System.Runtime.Versioning;
-// using Windows.ApplicationModel.Background;
+﻿// using Windows.ApplicationModel.Background;
 // using Windows.UI.Notifications;
-using Flurl.Http;
-using Kantan.Net;
-using Kantan.Net.Utilities;
-using Novus;
-using Novus.FileTypes;
-using SmartImage.Lib;
+
 // using Windows.UI.Notifications;
 // using CommunityToolkit.WinUI.Notifications;
 

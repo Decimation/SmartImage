@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 using JetBrains.Annotations;
 using SmartImage.Lib;
 using Debug = System.Diagnostics.Debug;
@@ -31,7 +30,7 @@ public partial class MainPage : ContentPage
 
 		m_client.OnResult   += OnResult;
 		m_client.OnComplete += OnComplete;
-		
+		m_results           =  0;
 		/*Lv_Results.ItemsSource = m_searchResults;
 
 		Lv_Results.ItemTemplate = new DataTemplate(() =>

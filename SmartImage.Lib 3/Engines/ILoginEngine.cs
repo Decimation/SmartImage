@@ -12,4 +12,5 @@ public interface ILoginEngine
     public Task<bool> LoginAsync();
 
     public bool IsLoggedIn { get; }
+
 }

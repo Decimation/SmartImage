@@ -1,22 +1,8 @@
 ﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
-using System;
-using System.Buffers;
-using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-using AngleSharp.Html;
 using Flurl.Http;
-using Kantan.Net.Utilities;
-using Microsoft.Extensions.Configuration;
 using Novus.FileTypes;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Search;
 
 namespace SmartImage.Lib;
 
@@ -28,12 +14,12 @@ public sealed class SearchClient : IDisposable
 
 	public BaseSearchEngine[] Engines { get; }
 
-	public bool EnginesLoaded { get; private set; }
+	public bool EnginesConfigLoaded { get; private set; }
 
 	public SearchClient(SearchConfig cfg)
 	{
-		Config        = cfg;
-		EnginesLoaded = false;
+		Config              = cfg;
+		EnginesConfigLoaded = false;
 
 		Engines = BaseSearchEngine.All.Where(e =>
 			{
@@ -75,8 +61,8 @@ public sealed class SearchClient : IDisposable
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null)
 	{
-		if (!EnginesLoaded) {
-			await LoadEngines();
+		if (!EnginesConfigLoaded) {
+			await ApplyConfigAsync();
 		}
 
 		token ??= CancellationToken.None;
@@ -90,6 +76,7 @@ public sealed class SearchClient : IDisposable
 			if (token.Value.IsCancellationRequested) {
 
 				Debug.WriteLine($"Cancellation requested", nameof(RunSearchAsync));
+
 				IsComplete = true;
 
 				return results;
@@ -139,9 +126,10 @@ public sealed class SearchClient : IDisposable
 #if DEBUG
 		Debug.WriteLine("Not opening result (DEBUG)", nameof(OpenResult));
 		return;
-#endif
+#else
 		var url1 = result.Best?.Url ?? result.RawUrl;
 		HttpUtilities.TryOpenUrl(url1);
+#endif
 	}
 
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
@@ -158,20 +146,22 @@ public sealed class SearchClient : IDisposable
 		return tasks;
 	}
 
-	public async ValueTask LoadEngines()
+	public async ValueTask ApplyConfigAsync()
 	{
 		foreach (BaseSearchEngine bse in Engines) {
-			await bse.LoadAsync(Config);
+			if (bse is IConfig cfg) {
+				await cfg.ApplyAsync(Config);
+			}
 		}
 
-		Debug.WriteLine($"Loaded engines", nameof(LoadEngines));
-		EnginesLoaded = true;
+		Debug.WriteLine($"Loaded engines", nameof(ApplyConfigAsync));
+		EnginesConfigLoaded = true;
 	}
 
 	[CBN]
-	public BaseSearchEngine Find(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
+	public BaseSearchEngine TryFind(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
 
-	public static IEnumerable<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
+	public static IReadOnlyList<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{
 		var items = sri.Where(r => SearchQuery.IsValidSourceType(r.Url))
 			.OrderByDescending(r => r.Score)
@@ -179,7 +169,8 @@ public sealed class SearchClient : IDisposable
 			.ToArray();
 
 		try {
-			var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
+			var c = items.Where(r =>
+				                    r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
 				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD*/);
 			items = items.Except(c).ToArray();
 		}
@@ -188,10 +179,10 @@ public sealed class SearchClient : IDisposable
 		}
 		finally { }
 
-		return items;
+		return items.AsReadOnly();
 	}
 
-	public static async Task<List<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
+	public static async Task<IReadOnlyList<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
 	{
 		var filter = Optimize(sri)
 			.DistinctBy(r => r.Url)
@@ -221,7 +212,7 @@ public sealed class SearchClient : IDisposable
 
 		// di = di.OrderByDescending(d => d.Stream.Length).ToList();
 
-		return di;
+		return di.AsReadOnly();
 	}
 
 	public void Dispose()
@@ -230,6 +221,6 @@ public sealed class SearchClient : IDisposable
 			engine.Dispose();
 		}
 
-		EnginesLoaded = false;
+		EnginesConfigLoaded = false;
 	}
 }

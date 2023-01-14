@@ -1,13 +1,16 @@
-﻿using System.Configuration;
+﻿using System.ComponentModel;
+using System.Configuration;
 using System.Data;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Kantan.Model;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl.Search;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchConfig : IDataTable
+public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 {
 	#region Defaults
 
@@ -33,8 +36,12 @@ public sealed class SearchConfig : IDataTable
 	/// </summary>
 	public SearchEngineOptions SearchEngines
 	{
-		get => Configuration.ReadSetting(nameof(SearchEngines), SE_DEFAULT);
-		set => Configuration.AddUpdateSetting(nameof(SearchEngines), value.ToString());
+		get { return Configuration.ReadSetting(nameof(SearchEngines), SE_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(SearchEngines), value.ToString());
+			OnPropertyChanged();
+		}
 	}
 
 	/// <summary>
@@ -42,8 +49,12 @@ public sealed class SearchConfig : IDataTable
 	/// </summary>
 	public SearchEngineOptions PriorityEngines
 	{
-		get => Configuration.ReadSetting(nameof(PriorityEngines), PE_DEFAULT);
-		set => Configuration.AddUpdateSetting(nameof(PriorityEngines), value.ToString());
+		get { return Configuration.ReadSetting(nameof(PriorityEngines), PE_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(PriorityEngines), value.ToString());
+			OnPropertyChanged();
+		}
 	}
 
 	/// <summary>
@@ -51,27 +62,50 @@ public sealed class SearchConfig : IDataTable
 	/// </summary>
 	public bool OnTop
 	{
-		get => Configuration.ReadSetting(nameof(OnTop), ON_TOP_DEFAULT);
-		set => Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
+		get { return Configuration.ReadSetting(nameof(OnTop), ON_TOP_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
+			OnPropertyChanged();
+		}
 	}
 
+	/// <summary>
+	/// <see cref="EHentaiEngine.Username"/>
+	/// </summary>
 	public string EhUsername
 	{
-		get => Configuration.ReadSetting<string>(nameof(EhUsername), null);
-		set => Configuration.AddUpdateSetting(nameof(EhUsername), value);
+		get { return Configuration.ReadSetting<string>(nameof(EhUsername)); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(EhUsername), value);
+			OnPropertyChanged();
+		}
 	}
 
+	/// <summary>
+	/// <see cref="EHentaiEngine.Password"/>
+	/// </summary>
 	public string EhPassword
 	{
-		get => Configuration.ReadSetting<string>(nameof(EhPassword), null);
-		set => Configuration.AddUpdateSetting(nameof(EhPassword), value);
+		get { return Configuration.ReadSetting<string>(nameof(EhPassword)); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(EhPassword), value);
+			OnPropertyChanged();
+		}
 	}
 
 	public static readonly SearchConfig Default = new();
 
-	/*[DynamicDependency(DynamicallyAccessedMemberTypes.All, "System.Configuration.ClientConfigurationHost",
-	                   "System.Configuration.ConfigurationManager.dll")]*/
-	
+	public SearchConfig()
+	{
+		PropertyChanged += (sender, args) =>
+		{
+			Trace.WriteLine($"{args.PropertyName}", nameof(SearchConfig));
+		};
+	}
+
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
@@ -81,8 +115,6 @@ public sealed class SearchConfig : IDataTable
 
 		Debug.WriteLine($"Saved to {Configuration.FilePath}", nameof(Save));
 	}
-
-	#region Implementation of IDataTable
 
 	public DataTable ToTable()
 	{
@@ -105,5 +137,19 @@ public sealed class SearchConfig : IDataTable
 		return table;
 	}
 
-	#endregion
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+	
 }

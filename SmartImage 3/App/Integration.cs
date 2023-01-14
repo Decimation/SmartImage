@@ -2,28 +2,17 @@
 
 #region
 
-using Kantan.Console;
 using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using System.Text;
-using System.Threading.Tasks;
-using Kantan.Console.Cli;
 using Novus.OS;
-using Kantan.Diagnostics;
 using Novus;
 using Novus.Win32;
-using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib;
-using Terminal.Gui;
 using Command = Novus.OS.Command;
 using SmartImage.Shell;
 using Clipboard = Novus.Win32.Clipboard;

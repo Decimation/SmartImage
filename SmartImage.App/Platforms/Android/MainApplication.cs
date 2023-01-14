@@ -1,6 +1,5 @@
 ﻿using Android.App;
 using Android.Runtime;
-using SmartImage.UI;
 
 namespace SmartImage.UI;
 

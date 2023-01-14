@@ -1,15 +1,12 @@
 ﻿using System.Data;
 using System.Diagnostics;
-using System.Numerics;
 using Kantan.Console;
 using Kantan.Net.Utilities;
-using Novus.FileTypes;
 using Novus.OS;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Search;
 using SmartImage.Shell;
 using Terminal.Gui;
 

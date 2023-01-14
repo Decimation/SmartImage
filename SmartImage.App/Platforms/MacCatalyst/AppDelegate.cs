@@ -1,5 +1,4 @@
 ﻿using Foundation;
-using SmartImage.UI;
 
 namespace SmartImage.UI;
 

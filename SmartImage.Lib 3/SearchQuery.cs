@@ -2,19 +2,14 @@
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
-using AngleSharp.Js.Dom;
-using Flurl.Http;
 using JetBrains.Annotations;
-using Kantan.Net.Utilities;
 using Novus.FileTypes;
-using Kantan.Text;
 using Novus;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Upload;
+using SmartImage.Lib.Engines.Impl.Upload;
 
 [assembly: InternalsVisibleTo("SmartImage")]
 

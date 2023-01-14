@@ -5,7 +5,7 @@ using Newtonsoft.Json.Linq;
 
 // ReSharper disable UnusedMember.Global
 
-namespace SmartImage.Lib.Engines.Search;
+namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class AnilistClient : IDisposable
 {
@@ -38,7 +38,7 @@ public sealed class AnilistClient : IDisposable
 		var response = await m_client.ExecuteAsync(GRAPH_QUERY, new
 		{
 			query = GRAPH_QUERY,
-			id    = anilistId
+			id = anilistId
 		}) as JObject;
 
 		return response["data"]["Media"]["title"]["english"].ToString();

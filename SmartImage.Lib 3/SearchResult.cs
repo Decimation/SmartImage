@@ -1,5 +1,4 @@
-﻿using Flurl;
-using SmartImage.Lib.Engines;
+﻿using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib;
 

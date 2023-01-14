@@ -1,33 +1,12 @@
 ﻿#nullable disable
 
 global using static Kantan.Diagnostics.LogCategories;
-using System.Collections;
-using System.ComponentModel;
-using System.Configuration;
-using System.Reflection;
 using System.Diagnostics;
-using System.Runtime;
 using System.Runtime.CompilerServices;
-using System.Runtime.Intrinsics.Arm;
-using System.Security.Cryptography;
-using System.Text;
 // using Windows.UI.Notifications;
 // using CommunityToolkit.WinUI.Notifications;
-using Flurl.Http;
-using Kantan.Console;
-using Kantan.Net.Utilities;
-using Kantan.Text;
-using Microsoft.Extensions.Hosting;
-using Rune = System.Text.Rune;
-using Microsoft.Extensions.Configuration;
 using Novus;
-using Novus.FileTypes;
-using Novus.Win32;
-using Novus.Win32.Structures.Kernel32;
-using SmartImage.Lib;
 using Terminal.Gui;
-using ConfigurationManager = System.Configuration.ConfigurationManager;
-using Attribute = Terminal.Gui.Attribute;
 using SmartImage.Shell;
 using SmartImage.App;
 

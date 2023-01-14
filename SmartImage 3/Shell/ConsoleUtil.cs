@@ -1,16 +1,10 @@
-﻿using System.Diagnostics;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
-using Kantan.Console;
-using Novus;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using SmartImage.App;
-using SmartImage.Lib.Engines;
-using Terminal.Gui;
-using Clipboard = Novus.Win32.Clipboard;
 
 namespace SmartImage.Shell;
 

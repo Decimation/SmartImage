@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace SmartImage.Lib.Engines.Search.Other;
+﻿namespace SmartImage.Lib.Engines.Impl.Search.Other;
 
 public sealed class ImgOpsEngine : BaseSearchEngine
 {
