@@ -142,6 +142,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to //li[contains(@class,&apos;CbirSites-Item&apos;)].
+        /// </summary>
+        internal static string S_Yandex_ExtInfo {
+            get {
+                return ResourceManager.GetString("S_Yandex_ExtInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to //a[contains(@class, &apos;Tags-Item&apos;)].
         /// </summary>
         internal static string S_Yandex_Images {

@@ -153,4 +153,7 @@
   <data name="Tag_a" xml:space="preserve">
     <value>a</value>
   </data>
+  <data name="S_Yandex_ExtInfo" xml:space="preserve">
+    <value>//li[contains(@class,'CbirSites-Item')]</value>
+  </data>
 </root>

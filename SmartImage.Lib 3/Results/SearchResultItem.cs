@@ -164,7 +164,7 @@ public sealed record SearchResultItem : IDisposable,
 
     public override string ToString()
     {
-        return $"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time}";
+        return $"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
     }
 
     public void Dispose()

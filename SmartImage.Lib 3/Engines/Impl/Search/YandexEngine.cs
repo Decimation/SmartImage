@@ -85,6 +85,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 	private static (int? w, int? h) ParseResolution(string resText)
 	{
+
 		string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
 
 		int? w = null, h = null;
@@ -157,7 +158,8 @@ public sealed class YandexEngine : WebSearchEngine
 		var otherImages = GetOtherImages(doc, sr);
 		sr.Results.AddRange(otherImages);
 
-		await ParseExternalInfo(doc,sr);
+		var ext = await ParseExternalInfo(doc, sr);
+		sr.Results.AddRange(ext);
 
 		//
 
@@ -186,27 +188,34 @@ public sealed class YandexEngine : WebSearchEngine
 	/// <summary>
 	/// Parses <em>sites containing information about the image</em>
 	/// </summary>
-	private static async ValueTask ParseExternalInfo(IDocument doc, SearchResult r)
+	private static async ValueTask<IEnumerable<SearchResultItem>> ParseExternalInfo(IDocument doc, SearchResult r)
 	{
-		var items = doc.Body.SelectNodes("//li[contains(@class,'CbirSites-Item')]");
+		var items = doc.Body.SelectNodes(Serialization.S_Yandex_ExtInfo);
+		var rg    = new List<SearchResultItem>(items.Count);
 
 		foreach (INode item in items) {
 			// var thumb = item.ChildNodes[0];
 			var info  = item.ChildNodes[1];
 			var title = info.ChildNodes[0].TextContent;
 			var href  = info.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
-			var thumb = item.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
+			var n     = item.ChildNodes[0].ChildNodes[0];
+			var thumb = n.TryGetAttribute(Serialization.Atr_href);
+			var res   = n.ChildNodes[1].TextContent;
 
 			var sri = new SearchResultItem(r)
 			{
 				Title = title,
-				Url   = href
+				Url   = href,
 			};
+
+			(sri.Width, sri.Height) = ParseResolution(res);
 
 			sri.Metadata.thumb = thumb;
 
-			r.Results.Add(sri);
+			rg.Add(sri);
 		}
+
+		return rg;
 	}
 
 	public override void Dispose() { }
