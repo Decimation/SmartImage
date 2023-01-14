@@ -344,7 +344,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 			// ReSharper disable InconsistentNaming
 			var eh = new EhResult();
 
-			var gl1c = n.ChildNodes.TryFindElementByClassName("gl1c");
+			var gl1c = n.ChildNodes.TryFindSingleElementByClassName("gl1c");
 
 			if (gl1c is { }) {
 				if (gl1c.FirstChild is { } t) {
@@ -352,7 +352,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 				}
 			}
 
-			var gl2c = n.ChildNodes.TryFindElementByClassName("gl2c");
+			var gl2c = n.ChildNodes.TryFindSingleElementByClassName("gl2c");
 
 			if (gl2c is { }) {
 				if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
@@ -360,7 +360,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 				}
 			}
 
-			var gl3c = n.ChildNodes.TryFindElementByClassName("gl3c glname");
+			var gl3c = n.ChildNodes.TryFindSingleElementByClassName("gl3c glname");
 
 			if (gl3c is { }) {
 				if (gl3c.FirstChild is { } f) {
@@ -394,7 +394,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 				}
 			}
 
-			var gl4c = n.ChildNodes.TryFindElementByClassName("gl4c glhide");
+			var gl4c = n.ChildNodes.TryFindSingleElementByClassName("gl4c glhide");
 
 			if (gl4c is { }) {
 				if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {

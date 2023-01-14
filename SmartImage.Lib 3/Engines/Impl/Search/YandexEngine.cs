@@ -1,9 +1,11 @@
 using System.Diagnostics;
+using System.Dynamic;
 using AngleSharp.Dom;
 using AngleSharp.XPath;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
@@ -27,8 +29,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 	private static string GetAnalysis(IDocument doc)
 	{
-		if (doc.Body is not { })
-		{
+		if (doc.Body is not { }) {
 			return null;
 		}
 
@@ -38,8 +39,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 		nodes.AddRange(nodes2);
 
-		if (!nodes.Any())
-		{
+		if (!nodes.Any()) {
 			return null;
 		}
 
@@ -52,32 +52,31 @@ public sealed class YandexEngine : WebSearchEngine
 	{
 		var tagsItem = doc.Body.SelectNodes(Serialization.S_Yandex_OtherImages);
 
-		if (tagsItem == null)
-		{
+		if (tagsItem == null) {
 			return Enumerable.Empty<SearchResultItem>();
 		}
 
 		SearchResultItem Parse(INode siz)
 		{
-			string link = siz.FirstChild.TryGetAttribute(Serialization.Atr_href);
+			string link    = siz.FirstChild.TryGetAttribute(Serialization.Atr_href);
 			string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
 
 			//other-sites__snippet
 
 			var snippet = siz.ChildNodes[1];
-			var title = snippet.FirstChild;
-			var site = snippet.ChildNodes[1];
-			var desc = snippet.ChildNodes[2];
+			var title   = snippet.FirstChild;
+			var site    = snippet.ChildNodes[1];
+			var desc    = snippet.ChildNodes[2];
 
 			var (w, h) = ParseResolution(resText);
 
 			return new SearchResultItem(r)
 			{
-				Url = new Uri(link),
-				Site = site.TextContent,
+				Url         = new Uri(link),
+				Site        = site.TextContent,
 				Description = title?.TextContent,
-				Width = w,
-				Height = h,
+				Width       = w,
+				Height      = h,
 			};
 		}
 
@@ -90,18 +89,15 @@ public sealed class YandexEngine : WebSearchEngine
 
 		int? w = null, h = null;
 
-		if (resFull.Length == 1 && resFull[0] == resText)
-		{
+		if (resFull.Length == 1 && resFull[0] == resText) {
 			const string TIMES_DELIM = "&times;";
 
-			if (resText.Contains(TIMES_DELIM))
-			{
+			if (resText.Contains(TIMES_DELIM)) {
 				resFull = resText.Split(TIMES_DELIM);
 			}
 		}
 
-		if (resFull.Length == 2)
-		{
+		if (resFull.Length == 2) {
 			w = int.Parse(resFull[0]);
 			h = int.Parse(resFull[1]);
 		}
@@ -123,20 +119,17 @@ public sealed class YandexEngine : WebSearchEngine
 
 		IDocument doc = null;
 
-		try
-		{
+		try {
 			doc = await GetDocumentAsync(url, query: query, token: token.Value);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			// Console.WriteLine(e);
 			// throw;
 			doc = null;
 			Debug.WriteLine($"{Name}: {e.Message}", nameof(GetResultAsync));
 		}
 
-		if (doc is null or { Body: null })
-		{
+		if (doc is null or { Body: null }) {
 			sr.Status = SearchResultStatus.Failure;
 			return sr;
 		}
@@ -144,8 +137,7 @@ public sealed class YandexEngine : WebSearchEngine
 		// Automation detected
 		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
 
-		if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG))
-		{
+		if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
 			sr.Status = SearchResultStatus.Cooldown;
 			return sr;
 		}
@@ -154,18 +146,18 @@ public sealed class YandexEngine : WebSearchEngine
 		 * Find and sort through high resolution image matches
 		 */
 
-		foreach (var node in await GetNodes(doc))
-		{
+		foreach (var node in await GetNodes(doc)) {
 			var sri = await ParseNodeToItem(node, sr);
 
-			if (sri != null)
-			{
+			if (sri != null) {
 				sr.Results.Add(sri);
 			}
 		}
 
 		var otherImages = GetOtherImages(doc, sr);
 		sr.Results.AddRange(otherImages);
+
+		await ParseExternalInfo(doc,sr);
 
 		//
 
@@ -175,22 +167,46 @@ public sealed class YandexEngine : WebSearchEngine
 
 		string looksLike = GetAnalysis(doc);
 
-		if (looksLike != null)
-		{
+		if (looksLike != null) {
 			sr.Overview = looksLike;
 		}
 
 		const string NO_MATCHING = "No matching images found";
 
-		if (doc.Body.TextContent.Contains(NO_MATCHING))
-		{
+		if (doc.Body.TextContent.Contains(NO_MATCHING)) {
 
 			sr.ErrorMessage = NO_MATCHING;
-			sr.Status = SearchResultStatus.Extraneous;
+			sr.Status       = SearchResultStatus.Extraneous;
 		}
 
 		sr.Update();
 		return sr;
+	}
+
+	/// <summary>
+	/// Parses <em>sites containing information about the image</em>
+	/// </summary>
+	private static async ValueTask ParseExternalInfo(IDocument doc, SearchResult r)
+	{
+		var items = doc.Body.SelectNodes("//li[contains(@class,'CbirSites-Item')]");
+
+		foreach (INode item in items) {
+			// var thumb = item.ChildNodes[0];
+			var info  = item.ChildNodes[1];
+			var title = info.ChildNodes[0].TextContent;
+			var href  = info.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
+			var thumb = item.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
+
+			var sri = new SearchResultItem(r)
+			{
+				Title = title,
+				Url   = href
+			};
+
+			sri.Metadata.thumb = thumb;
+
+			r.Results.Add(sri);
+		}
 	}
 
 	public override void Dispose() { }
@@ -199,8 +215,7 @@ public sealed class YandexEngine : WebSearchEngine
 	{
 		var tagsItem = doc.Body.SelectNodes(NodesSelector);
 
-		if (!tagsItem.Any())
-		{
+		if (!tagsItem.Any()) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
 			return await Task.FromResult(tagsItem.ToArray());
 			// return tagsItem;
@@ -213,6 +228,7 @@ public sealed class YandexEngine : WebSearchEngine
 		// return sizeTags;
 	}
 
+	[ICBN]
 	protected override ValueTask<SearchResultItem> ParseNodeToItem(INode siz, SearchResult r)
 	{
 		string link = siz.TryGetAttribute(Serialization.Atr_href);
@@ -221,19 +237,17 @@ public sealed class YandexEngine : WebSearchEngine
 
 		(int? w, int? h) = ParseResolution(resText!);
 
-		if (!w.HasValue || !h.HasValue)
-		{
+		if (!w.HasValue || !h.HasValue) {
 			w = null;
 			h = null;
 			//link = null;
 		}
 
-		if (UriUtilities.IsUri(link, out var link2))
-		{
+		if (UriUtilities.IsUri(link, out var link2)) {
 			var sri = new SearchResultItem(r)
 			{
-				Url = link2,
-				Width = w,
+				Url    = link2,
+				Width  = w,
 				Height = h,
 			};
 			return ValueTask.FromResult(sri);

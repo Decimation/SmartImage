@@ -69,7 +69,7 @@ public sealed class SearchClient : IDisposable
 
 		token ??= CancellationToken.None;
 
-		List<Task<SearchResult>> tasks = GetSearchTasks(query, token.Value);
+		var tasks = GetSearchTasks(query, token.Value);
 
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
