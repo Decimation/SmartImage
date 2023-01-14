@@ -1,4 +1,5 @@
 ﻿using Flurl.Http;
+using SmartImage.Lib.Results;
 
 #pragma warning disable CS0649
 

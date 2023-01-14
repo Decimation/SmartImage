@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 using JetBrains.Annotations;
 using SmartImage.Lib;
+using SmartImage.Lib.Results;
 using Debug = System.Diagnostics.Debug;
 
 namespace SmartImage.UI;

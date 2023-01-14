@@ -3,6 +3,8 @@ using System.Diagnostics;
 using Flurl.Http;
 using Novus.FileTypes;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Model;
+using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib;
 
@@ -14,12 +16,12 @@ public sealed class SearchClient : IDisposable
 
 	public BaseSearchEngine[] Engines { get; }
 
-	public bool EnginesConfigLoaded { get; private set; }
+	public bool ConfigApplied { get; private set; }
 
 	public SearchClient(SearchConfig cfg)
 	{
 		Config              = cfg;
-		EnginesConfigLoaded = false;
+		ConfigApplied = false;
 
 		Engines = BaseSearchEngine.All.Where(e =>
 			{
@@ -48,9 +50,9 @@ public sealed class SearchClient : IDisposable
 
 	public delegate void SearchCompleteCallback(object sender, SearchResult[] e);
 
-	public ResultCompleteCallback OnResult { get; set; }
+	public event ResultCompleteCallback OnResult;
 
-	public SearchCompleteCallback OnComplete { get; set; }
+	public event SearchCompleteCallback OnComplete;
 
 	public static FlurlClient Client { get; }
 
@@ -61,7 +63,7 @@ public sealed class SearchClient : IDisposable
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null)
 	{
-		if (!EnginesConfigLoaded) {
+		if (!ConfigApplied) {
 			await ApplyConfigAsync();
 		}
 
@@ -155,7 +157,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		Debug.WriteLine($"Loaded engines", nameof(ApplyConfigAsync));
-		EnginesConfigLoaded = true;
+		ConfigApplied = true;
 	}
 
 	[CBN]
@@ -221,6 +223,7 @@ public sealed class SearchClient : IDisposable
 			engine.Dispose();
 		}
 
-		EnginesConfigLoaded = false;
+		ConfigApplied = false;
+		IsComplete          = false;
 	}
 }

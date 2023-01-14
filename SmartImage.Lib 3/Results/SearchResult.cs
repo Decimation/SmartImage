@@ -1,6 +1,6 @@
 ﻿using SmartImage.Lib.Engines;
 
-namespace SmartImage.Lib;
+namespace SmartImage.Lib.Results;
 
 public enum SearchResultStatus
 {
@@ -67,7 +67,8 @@ public sealed class SearchResult : IDisposable
 	{
 		get
 		{
-			if (!Results.Any()) {
+			if (!Results.Any())
+			{
 				return null;
 			}
 
@@ -77,7 +78,7 @@ public sealed class SearchResult : IDisposable
 
 	internal SearchResult(BaseSearchEngine bse)
 	{
-		Engine  = bse;
+		Engine = bse;
 		Results = new List<SearchResultItem>();
 	}
 
@@ -88,7 +89,8 @@ public sealed class SearchResult : IDisposable
 
 	public void Dispose()
 	{
-		foreach (SearchResultItem item in Results) {
+		foreach (SearchResultItem item in Results)
+		{
 			item.Dispose();
 		}
 	}
@@ -104,7 +106,8 @@ public sealed class SearchResult : IDisposable
 			Status = SearchResultStatus.Success;
 		}*/
 
-		foreach (var v in Results) {
+		foreach (var v in Results)
+		{
 			v.UpdateScore();
 		}
 

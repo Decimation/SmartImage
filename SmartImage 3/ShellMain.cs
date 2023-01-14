@@ -18,6 +18,7 @@ using SmartImage.Shell;
 using Terminal.Gui;
 using Clipboard = Novus.Win32.Clipboard;
 using Window = Terminal.Gui.Window;
+using SmartImage.Lib.Results;
 
 // ReSharper disable IdentifierTypo
 
@@ -488,7 +489,6 @@ public sealed partial class ShellMain : IDisposable
 	{
 		if (Compat.IsWin) {
 			Integration.KeepOnTop(Config.OnTop);
-
 		}
 	}
 

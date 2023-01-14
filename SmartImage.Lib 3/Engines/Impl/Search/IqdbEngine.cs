@@ -8,6 +8,7 @@ using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using SmartImage.Lib.Results;
 
 // ReSharper disable StringLiteralTypo
 

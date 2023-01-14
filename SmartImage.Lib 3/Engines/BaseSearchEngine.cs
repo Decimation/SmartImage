@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Drawing;
 using Novus.Utilities;
+using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines;
 #nullable enable
@@ -32,6 +33,11 @@ public abstract class BaseSearchEngine : IDisposable
 	}
 
 	static BaseSearchEngine() { }
+
+	public override string ToString()
+	{
+		return $"{Name}: {BaseUrl} {Timeout}";
+	}
 
 	protected virtual bool Verify(SearchQuery q)
 	{

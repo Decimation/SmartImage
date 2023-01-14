@@ -12,7 +12,7 @@ internal static partial class UI
 {
 	internal static bool QueueProgress(CancellationTokenSource cts, ProgressBar pbr, Action<object>? f = null)
 	{
-		return ThreadPool.QueueUserWorkItem((state) =>
+		return ThreadPool.QueueUserWorkItem(state =>
 		{
 			while (state is CancellationToken { IsCancellationRequested: false }) {
 				pbr.Pulse();
@@ -25,7 +25,7 @@ internal static partial class UI
 
 	internal static Button CreateLinkButton(Dialog d, string text, string? url = null, Action? urlAction = null)
 	{
-		var b = new Button()
+		var b = new Button
 		{
 			Text     = text,
 			AutoSize = true,
@@ -47,16 +47,16 @@ internal static partial class UI
 
 		switch (b) {
 			case null:
-				lbl.Text        = UI.NA;
-				lbl.ColorScheme = UI.Cs_NA;
+				lbl.Text        = NA;
+				lbl.ColorScheme = Cs_NA;
 				break;
 			case true:
-				lbl.Text        = UI.OK;
-				lbl.ColorScheme = UI.Cs_Ok;
+				lbl.Text        = OK;
+				lbl.ColorScheme = Cs_Ok;
 				break;
 			case false:
-				lbl.Text        = UI.Err;
-				lbl.ColorScheme = UI.Cs_Err;
+				lbl.Text        = Err;
+				lbl.ColorScheme = Cs_Err;
 				break;
 		}
 	}

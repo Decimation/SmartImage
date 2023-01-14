@@ -5,6 +5,7 @@ using AngleSharp.XPath;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
+using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines;
 
@@ -46,7 +47,8 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		return res;
 	}
 
-	protected virtual async Task<IDocument> GetDocumentAsync(object origin2, SearchQuery query,
+	[ItemCanBeNull]
+	protected virtual async Task<IDocument> GetDocumentAsync(object sender, SearchQuery query,
 	                                                         CancellationToken? token = null)
 	{
 		token ??= CancellationToken.None;
@@ -54,7 +56,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		var parser = new HtmlParser();
 
 		try {
-			if (origin2 is Url origin) {
+			if (sender is Url origin) {
 				var res = await origin.WithClient(SearchClient.Client)
 					          .AllowAnyHttpStatus()
 					          .WithCookies(out var cj)
@@ -95,12 +97,4 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		=> ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
 
 	protected abstract string NodesSelector { get; }
-}
-
-internal static class NodeHelper
-{
-	internal static INode TryFindElementByClassName(this INodeList nodes, string className)
-	{
-		return nodes.FirstOrDefault(f => f is IElement e && e.ClassName == className);
-	}
 }
