@@ -13,7 +13,7 @@ namespace SmartImage;
 
 public class CliMain : IDisposable
 {
-	private const int COMPLETE = 100;
+	private const double COMPLETE = 100.0D;
 
 	private static readonly ProgressColumn[] PrgCol_1 =
 	{
@@ -25,19 +25,21 @@ public class CliMain : IDisposable
 		new ElapsedTimeColumn(),
 		new ProgressBarColumn()
 	};
-	
-	static CliMain()
-	{
-	}
 
-	private static readonly Progress Prg_1 = AnsiConsole.Progress().Columns(PrgCol_1);
+	static CliMain() { }
+
+	private static readonly Progress Prg_1 = AnsiConsole.Progress()
+		.AutoClear(true)
+		.AutoRefresh(true)
+		.HideCompleted(false)
+		.Columns(PrgCol_1);
 
 	public static async Task RunCliAsync(string c)
 	{
 		var q = await Prg_1.StartAsync(async ctx =>
 		{
 			var t = ctx.AddTask("Validating input");
-
+			t.IsIndeterminate = true;
 			var qInner = await SearchQuery.TryCreateAsync(c);
 			t.Increment(COMPLETE);
 			return qInner;
@@ -47,8 +49,9 @@ public class CliMain : IDisposable
 
 		var url = await Prg_1.StartAsync(async (p) =>
 		{
-			var pt = p.AddTask($"Upload");
-			var  urlInner= await q.UploadAsync();
+			var pt       = p.AddTask($"Upload");
+			pt.IsIndeterminate = true;
+			var urlInner = await q.UploadAsync();
 			pt.Increment(COMPLETE);
 			return urlInner;
 
@@ -76,22 +79,26 @@ public class CliMain : IDisposable
 
 			foreach (var e in sc.Engines) {
 				var t = ctx.AddTask($"{e}");
+				t.IsIndeterminate = true;
 				ptMap.Add(e, t);
 			}
 
 			var pt1 = ctx.AddTask("[yellow]Searching[/]");
+			pt1.IsIndeterminate = false;
 			var rg  = new ConcurrentBag<SearchResult>();
 
 			sc.OnComplete += (sender, searchResults) =>
 			{
 				pt1.Increment(COMPLETE);
 			};
+			pt1.MaxValue = sc.Engines.Length;
 
 			sc.OnResult += (sender, result) =>
 			{
+				rg.Add(result);
 				ptMap[result.Engine].Increment(COMPLETE);
-				pt1.Increment((double) rg.Count / sc.Engines.Length);
-
+				pt1.Increment((1.0));
+				
 			};
 
 			var resultsInner = await sc.RunSearchAsync(q, cts.Token);
@@ -100,10 +107,11 @@ public class CliMain : IDisposable
 		});
 
 		foreach (SearchResult sr in results) {
-			AnsiConsole.MarkupLine($"[cyan]{sr.Engine.Name}[/]");
+			AnsiConsole.MarkupLine($"[cyan][bold]{sr.Engine.Name}[/][/]");
+			int i = 0;
 			foreach (SearchResultItem sri in sr.Results) {
-				AnsiConsole.MarkupLine($"[link={sri.Url}]{sr.Engine} #[/]");
-
+				AnsiConsole.MarkupLine($"[link={sri.Url}]{sr.Engine.Name} #{i+1}[/]");
+				i++;
 			}
 		}
 	}
