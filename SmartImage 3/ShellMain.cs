@@ -26,7 +26,7 @@ using SmartImage.Utilities;
 #pragma warning disable IDE0060
 namespace SmartImage;
 
-public sealed partial class ShellMain : IDisposable
+public sealed partial class ShellMain : IDisposable, IMain
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 	// NOTE: Static initialization order is nondeterminant with partial classes
@@ -366,10 +366,10 @@ public sealed partial class ShellMain : IDisposable
 		}
 	}
 
-	public Task<bool?> RunAsync(object? sender = null)
+	public Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
-		return Task.FromResult(Status);
+		return Task.FromResult<object?>(Status);
 	}
 
 	private void PreSearch()

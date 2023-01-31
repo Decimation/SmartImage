@@ -85,7 +85,7 @@ public static class Program
 			rc.AddOption(arg);
 			rc.AddOption(opt2);
 
-			rc.SetHandler(CliMain.RunCliAsync, arg);
+			rc.SetHandler(main.RunAsync, arg);
 
 			var i = await rc.InvokeAsync(args);
 
@@ -98,8 +98,8 @@ public static class Program
 			var main = new ShellMain(args);
 			object status;
 
-			var run = main.RunAsync(null);
-			status = await run;
+			var run =  main.RunAsync(null);
+			status = (bool?) await run;
 
 			if (status is bool { } and true) {
 				main.Dispose();
