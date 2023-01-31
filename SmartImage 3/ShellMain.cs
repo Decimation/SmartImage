@@ -16,9 +16,9 @@ using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Shell;
 using Terminal.Gui;
-using Clipboard = Novus.Win32.Clipboard;
 using Window = Terminal.Gui.Window;
 using SmartImage.Lib.Results;
+using SmartImage.Utilities;
 
 // ReSharper disable IdentifierTypo
 
@@ -217,7 +217,8 @@ public sealed partial class ShellMain : IDisposable
 	#region Static
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
-	
+
+	[SupportedOSPlatform(Compat.OS)]
 	private static readonly SoundPlayer Player = new(R2.hint);
 
 	#endregion
@@ -595,8 +596,6 @@ public sealed partial class ShellMain : IDisposable
 		return null;
 	}
 
-	private static int m_prevSeq;
-
 	private bool ClipboardCallback(MainLoop c)
 	{
 
@@ -606,7 +605,7 @@ public sealed partial class ShellMain : IDisposable
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
-			
+
 			int sequenceNumber = Novus.Win32.Clipboard.SequenceNumber;
 
 			var s = Tf_Input.Text.ToString();
@@ -637,10 +636,7 @@ public sealed partial class ShellMain : IDisposable
 			Debug.WriteLine($"{e.Message}", nameof(ClipboardCallback));
 		}
 
-		finally {
-			m_prevSeq = Clipboard.SequenceNumber;
-
-		}
+		finally { }
 
 		return true;
 	}

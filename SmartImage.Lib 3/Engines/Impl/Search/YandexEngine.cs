@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using AngleSharp.Dom;
 using AngleSharp.XPath;
+using Kantan.Monad;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Results;
@@ -158,7 +159,7 @@ public sealed class YandexEngine : WebSearchEngine
 		var otherImages = GetOtherImages(doc, sr);
 		sr.Results.AddRange(otherImages);
 
-		var ext = await ParseExternalInfo(doc, sr);
+		var ext =  ParseExternalInfo(doc, sr);
 		sr.Results.AddRange(ext);
 
 		//
@@ -188,7 +189,7 @@ public sealed class YandexEngine : WebSearchEngine
 	/// <summary>
 	/// Parses <em>sites containing information about the image</em>
 	/// </summary>
-	private static async ValueTask<IEnumerable<SearchResultItem>> ParseExternalInfo(IDocument doc, SearchResult r)
+	private static IEnumerable<SearchResultItem> ParseExternalInfo(IDocument doc, SearchResult r)
 	{
 		var items = doc.Body.SelectNodes(Serialization.S_Yandex_ExtInfo);
 		var rg    = new List<SearchResultItem>(items.Count);

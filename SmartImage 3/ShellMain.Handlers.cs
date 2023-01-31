@@ -114,6 +114,7 @@ public sealed partial class ShellMain
 		if (!string.IsNullOrWhiteSpace(f)) {
 			Tf_Input.DeleteAll();
 			Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
+			
 			SetInputText(f);
 			Btn_Run.SetFocus();
 

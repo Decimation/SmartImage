@@ -60,35 +60,33 @@ public sealed class Ascii2DEngine : WebSearchEngine
 	public override void Dispose() { }
 
 	protected override async Task<IDocument> GetDocumentAsync(object sender, SearchQuery query,
-												  CancellationToken? token = null)
+	                                                          CancellationToken? token = null)
 	{
 		token ??= CancellationToken.None;
 
 		var parser = new HtmlParser();
 
-		try
-		{
-			if (sender is Url origin)
-			{
+		try {
+			if (sender is Url origin) {
 				var data = new MultipartFormDataContent()
 				{
 					{ new StringContent(origin), "uri" }
 				};
 
 				var res = await origin.AllowAnyHttpStatus()
-									  .WithCookies(out var cj)
-									  .WithTimeout(Timeout)
-									  .WithHeaders(new
-									  {
-										  User_Agent = HttpUtilities.UserAgent
-									  })
-									  .WithAutoRedirect(true)
-									  .WithClient(SearchClient.Client)
-									  /*.OnError(s =>
-									  {
-										  s.ExceptionHandled = true;
-									  })*/
-									  .GetAsync();
+					          .WithCookies(out var cj)
+					          .WithTimeout(Timeout)
+					          .WithHeaders(new
+					          {
+						          User_Agent = HttpUtilities.UserAgent
+					          })
+					          .WithAutoRedirect(true)
+					          .WithClient(SearchClient.Client)
+					          /*.OnError(s =>
+					          {
+						          s.ExceptionHandled = true;
+					          })*/
+					          .GetAsync();
 				var str = await res.GetStringAsync();
 
 				var document = await parser.ParseDocumentAsync(str, token.Value);
@@ -96,13 +94,11 @@ public sealed class Ascii2DEngine : WebSearchEngine
 				return document;
 
 			}
-			else
-			{
+			else {
 				return null;
 			}
 		}
-		catch (FlurlHttpException e)
-		{
+		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
 			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
 
@@ -115,7 +111,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		var sri = new SearchResultItem(r);
 
 		var info = n.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.TextContent))
-					.ToArray();
+			.ToArray();
 
 		string hash = info.First().TextContent;
 
@@ -124,39 +120,34 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		string[] data = info[1].TextContent.Split(' ');
 
 		string[] res = data[0].Split('x');
-		sri.Width = int.Parse(res[0]);
+		sri.Width  = int.Parse(res[0]);
 		sri.Height = int.Parse(res[1]);
 
 		string fmt = data[1];
 
 		string size = data[2];
 
-		if (info.Length >= 3)
-		{
+		if (info.Length >= 3) {
 			var node2 = info[2];
-			var desc = info.Last().FirstChild;
-			var ns = desc.NextSibling;
+			var desc  = info.Last().FirstChild;
+			var ns    = desc.NextSibling;
 
-			if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2)
-			{
+			if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2) {
 				var node2Sub = node2.ChildNodes[1];
 
-				if (node2Sub.ChildNodes.Length >= 8)
-				{
+				if (node2Sub.ChildNodes.Length >= 8) {
 					sri.Description = node2Sub.ChildNodes[3].TextContent.Trim();
-					sri.Artist = node2Sub.ChildNodes[5].TextContent.Trim();
-					sri.Site = node2Sub.ChildNodes[7].TextContent.Trim();
+					sri.Artist      = node2Sub.ChildNodes[5].TextContent.Trim();
+					sri.Site        = node2Sub.ChildNodes[7].TextContent.Trim();
 				}
 			}
 
-			if (ns.ChildNodes.Length >= 4)
-			{
+			if (ns.ChildNodes.Length >= 4) {
 				var childNode = ns.ChildNodes[3];
 
-				string l1 = ((IHtmlElement)childNode).GetAttribute(Serialization.Atr_href);
+				string l1 = ((IHtmlElement) childNode).GetAttribute(Serialization.Atr_href);
 
-				if (l1 is not null)
-				{
+				if (l1 is not null) {
 					sri.Url = new Url(l1);
 				}
 			}

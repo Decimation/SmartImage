@@ -1,14 +1,21 @@
 ﻿#nullable disable
 
 global using static Kantan.Diagnostics.LogCategories;
+using Console = Spectre.Console.AnsiConsole;
+using System.CommandLine;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 // using Windows.UI.Notifications;
 // using CommunityToolkit.WinUI.Notifications;
 using Novus;
 using Terminal.Gui;
-using SmartImage.Shell;
 using SmartImage.App;
+using SmartImage.Lib;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Results;
+using SmartImage.Utilities;
+using Spectre.Console;
+using Command = System.CommandLine.Command;
 
 #pragma warning disable CS0168
 
@@ -23,7 +30,6 @@ namespace SmartImage;
 
 public static class Program
 {
-	private static ShellMain _main;
 
 	[ModuleInitializer]
 	public static void Init()
@@ -31,13 +37,11 @@ public static class Program
 		Global.Setup();
 		Trace.WriteLine("Init", Resources.Name);
 		// Gui.Init();
-		Console.Title = R2.Name;
+		System.Console.Title = R2.Name;
 
 		if (Compat.IsWin) {
 			ConsoleUtil.SetConsoleMode();
 		}
-
-		Application.Init();
 
 		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 		{
@@ -45,7 +49,7 @@ public static class Program
 		};
 	}
 
-	public static async Task Main(string[] args)
+	public static async Task<int> Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
 
@@ -53,24 +57,56 @@ public static class Program
 
 #if TEST
 		// args = new String[] { null };
-		args = new[] { R2.Arg_Input, "https://i.imgur.com/QtCausw.png",R2.Arg_AutoSearch };
+		// args = new[] { R2.Arg_Input, "https://i.imgur.com/QtCausw.png",R2.Arg_AutoSearch };
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
+
+		Debug.WriteLine($"TEST");
 #endif
+
 		bool cli = args is { } && args.Any();
 
-		_main = new ShellMain(args);
+		if (cli && args.Contains(Resources.Arg_NoUI)) {
+			
+			var main = new CliMain();
 
-		main1:
+			var rc = new RootCommand()
+				{ };
 
-		object status;
+			var arg = new Option<string>(Resources.Arg_Input)
+				{ };
 
-		var run = _main.RunAsync(null);
-		status = await run;
+			var opt2 = new Option<bool>(Resources.Arg_NoUI)
+			{
+				Arity = ArgumentArity.Zero,
 
-		if (status is bool { } and true) {
-			_main.Dispose();
-			goto main1;
+			};
+
+			rc.AddOption(arg);
+			rc.AddOption(opt2);
+
+			rc.SetHandler(CliMain.RunCliAsync, arg);
+
+			var i = await rc.InvokeAsync(args);
+
+			return i;
+		}
+		else {
+			main1:
+			Application.Init();
+
+			var main = new ShellMain(args);
+			object status;
+
+			var run = main.RunAsync(null);
+			status = await run;
+
+			if (status is bool { } and true) {
+				main.Dispose();
+				goto main1;
+			}
+
+			return 0;
 		}
 	}
 }

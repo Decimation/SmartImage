@@ -109,8 +109,8 @@ Use the following parameters to invoke SmartImage:
 
 | Parameter | Definition |
 | - | - |
-| `-i` | Input |
-| `-auto` | Start search immediately |
+| `--i` | Input |
+| `--auto` | Start search immediately |
 
 ## Wiki
 

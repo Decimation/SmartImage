@@ -6,12 +6,11 @@ using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using SmartImage.App;
 
-namespace SmartImage.Shell;
+namespace SmartImage.Utilities;
 
 [SupportedOSPlatform(Compat.OS)]
 internal static class ConsoleUtil
 {
-
 	// internal static SearchEngineOptions[] EngineOptions => (SearchEngineOptions[]) Cache[nameof(EngineOptions)];
 
 	internal static readonly nint HndWindow = Native.GetConsoleWindow();
@@ -25,7 +24,7 @@ internal static class ConsoleUtil
 		// Cache[nameof(EngineOptions)] = Enum.GetValues<SearchEngineOptions>();
 
 	}
-	
+
 	internal static void SetConsoleMenu()
 	{
 		nint sysMenu = Native.GetSystemMenu(HndWindow, false);
@@ -33,7 +32,7 @@ internal static class ConsoleUtil
 		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_MAXIMIZE, Native.MF_BYCOMMAND);
 		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_SIZE, Native.MF_BYCOMMAND);
 	}
-	
+
 	internal static void SetConsoleMode()
 	{
 		// Clipboard.Open();
@@ -52,13 +51,13 @@ internal static class ConsoleUtil
 		Console.BufferWidth = 150;
 
 	}
-	
+
 	internal static void FlashTaskbar()
 	{
 		var pwfi = new FLASHWINFO()
 		{
 			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
-			hwnd      = ConsoleUtil.HndWindow,
+			hwnd      = HndWindow,
 			dwFlags   = FlashWindowType.FLASHW_TRAY,
 			uCount    = 8,
 			dwTimeout = 75

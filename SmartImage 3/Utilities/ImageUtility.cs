@@ -1,4 +1,4 @@
-﻿namespace SmartImage.App;
+﻿namespace SmartImage.Utilities;
 
 public static class ImageUtility
 {

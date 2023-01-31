@@ -1,0 +1,19 @@
+{
+  "profiles": {
+    "WSL": {
+      "commandName": "WSL2",
+      "distributionName": ""
+    },
+    "SmartImage": {
+      "commandName": "Project"
+    },
+    "CLI Test 1": {
+      "commandName": "Project",
+      "commandLineArgs": "--i \"C:\\Users\\Deci\\Pictures\\lilith___the_maid_i_hired_recently_is_mysterious_by_sciamano240_dfmo4dr.png\" --noui"
+    },
+    "CLI Test 2": {
+      "commandName": "Project",
+      "commandLineArgs": "--i \"https://i.imgur.com/QtCausw.png\" --noui"
+    }
+  }
+}

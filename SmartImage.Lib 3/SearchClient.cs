@@ -1,10 +1,20 @@
 ﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 using System.Diagnostics;
+using System.Text.Json;
 using Flurl.Http;
+using Flurl.Http.Configuration;
+using Flurl.Http.Testing;
+using JetBrains.Annotations;
+using Kantan.Net;
+using Kantan.Net.Utilities;
+using Microsoft.Extensions.Http;
+using Microsoft.Extensions.Http.Logging;
+using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib;
 
@@ -18,9 +28,14 @@ public sealed class SearchClient : IDisposable
 
 	public bool ConfigApplied { get; private set; }
 
+	internal static readonly ILoggerFactory _LoggerFactory =
+		LoggerFactory.Create(builder => builder.AddDebug());
+
+	private static readonly ILogger Logger = _LoggerFactory.CreateLogger(nameof(SearchClient));
+
 	public SearchClient(SearchConfig cfg)
 	{
-		Config              = cfg;
+		Config        = cfg;
 		ConfigApplied = false;
 
 		Engines = BaseSearchEngine.All.Where(e =>
@@ -31,6 +46,20 @@ public sealed class SearchClient : IDisposable
 
 	}
 
+	internal class LoggingHandler : DelegatingHandler
+	{
+		public LoggingHandler() { }
+		public LoggingHandler([NotNull] HttpMessageHandler innerHandler) : base(innerHandler) { }
+
+		protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
+		                                                       CancellationToken cancellationToken)
+		{
+			Logger.LogInformation("Request {Request}", request.RequestUri);
+
+			return base.SendAsync(request, cancellationToken);
+		}
+	}
+
 	static SearchClient()
 	{
 		FlurlHttp.Configure(settings =>
@@ -39,10 +68,21 @@ public sealed class SearchClient : IDisposable
 			settings.Redirects.AllowSecureToInsecure      = true; // default false
 			settings.Redirects.ForwardAuthorizationHeader = true; // default false
 			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
-		});
-		Client = new FlurlClient();
 
-		Debug.WriteLine($"Init", nameof(SearchClient));
+		});
+
+		var handler = new LoggingHttpMessageHandler(Logger)
+		{
+			InnerHandler = new LoggingHandler()
+			{
+				InnerHandler = new HttpClientHandler()
+			}
+		};
+
+		Client = new FlurlClient(new HttpClient(handler))
+			{ };
+
+		Logger.LogInformation("Init");
 
 	}
 
@@ -77,21 +117,13 @@ public sealed class SearchClient : IDisposable
 		while (tasks.Any()) {
 			if (token.Value.IsCancellationRequested) {
 
-				Debug.WriteLine($"Cancellation requested", nameof(RunSearchAsync));
-
+				Logger.LogWarning("Cancellation requested");
 				IsComplete = true;
 
 				return results;
 			}
 
 			var task = await Task.WhenAny(tasks);
-
-			/*var cont =task.ContinueWith(async (c) =>
-			{
-				var opt = await SearchClient.GetDirectImagesAsync(c.Result.Results);
-
-				return opt;
-			}, TaskContinuationOptions.OnlyOnRanToCompletion);*/
 
 			var result = await task;
 
@@ -126,7 +158,7 @@ public sealed class SearchClient : IDisposable
 	private static void OpenResult(SearchResult result)
 	{
 #if DEBUG
-		Debug.WriteLine("Not opening result (DEBUG)", nameof(OpenResult));
+		Logger.LogDebug("Not opening result {result}", result);
 		return;
 #else
 		var url1 = result.Best?.Url ?? result.RawUrl;
@@ -156,7 +188,7 @@ public sealed class SearchClient : IDisposable
 			}
 		}
 
-		Debug.WriteLine($"Loaded engines", nameof(ApplyConfigAsync));
+		Logger.LogDebug("Loaded engines");
 		ConfigApplied = true;
 	}
 
@@ -171,13 +203,12 @@ public sealed class SearchClient : IDisposable
 			.ToArray();
 
 		try {
-			var c = items.Where(r =>
-				                    r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
+			var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
 				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD*/);
 			items = items.Except(c).ToArray();
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(Optimize));
+			Logger.LogError("{Error}", e.Message);
 		}
 		finally { }
 
@@ -207,12 +238,7 @@ public sealed class SearchClient : IDisposable
 				di.Add(uf);
 			}
 
-			/*if (uf is { Stream: { CanSeek: true, Length: >= 1000 << 2 } }) {
-				di.Add(uf);
-			}*/
 		}
-
-		// di = di.OrderByDescending(d => d.Stream.Length).ToList();
 
 		return di.AsReadOnly();
 	}
@@ -224,6 +250,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		ConfigApplied = false;
-		IsComplete          = false;
+		IsComplete    = false;
 	}
 }
+

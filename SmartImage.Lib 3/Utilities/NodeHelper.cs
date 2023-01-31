@@ -11,7 +11,7 @@ internal static class NodeHelper
 	{
 		return nodes.FirstOrDefault(f => f is IElement e && e.ClassName == className);
 	}
-
+	
 	internal static INode[] TryFindElementsByClassName(this INodeList nodes, string className)
 	{
 		return nodes.Where(f => f is IElement e && e.ClassName == className).ToArray();

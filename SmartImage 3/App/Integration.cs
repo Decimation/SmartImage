@@ -14,8 +14,8 @@ using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib;
 using Command = Novus.OS.Command;
-using SmartImage.Shell;
 using Clipboard = Novus.Win32.Clipboard;
+using SmartImage.Utilities;
 
 #endregion
 
