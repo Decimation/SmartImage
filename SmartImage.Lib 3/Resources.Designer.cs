@@ -115,6 +115,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Open raw.
+        /// </summary>
+        internal static string S_OpenRaw {
+            get {
+                return ResourceManager.GetString("S_OpenRaw", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Priority engines.
         /// </summary>
         internal static string S_PriorityEngines {

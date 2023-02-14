@@ -96,6 +96,16 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		}
 	}
 
+	public bool OpenRaw
+	{
+		get { return Configuration.ReadSetting(nameof(OpenRaw), false); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(OpenRaw), value.ToString());
+			OnPropertyChanged();
+		}
+	}
+
 	public static readonly SearchConfig Default = new();
 
 	public SearchConfig()
@@ -129,6 +139,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		table.Rows.Add(Resources.S_SearchEngines, SearchEngines);
 		table.Rows.Add(Resources.S_PriorityEngines, PriorityEngines);
 		table.Rows.Add(Resources.S_OnTop, OnTop);
+		table.Rows.Add(Resources.S_OpenRaw, OpenRaw);
 		table.Rows.Add(Resources.S_EhUsername, EhUsername);
 		table.Rows.Add(Resources.S_EhPassword, EhPassword);
 
@@ -151,5 +162,4 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		OnPropertyChanged(propertyName);
 		return true;
 	}
-	
 }

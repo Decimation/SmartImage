@@ -219,6 +219,24 @@ public sealed partial class ShellMain
 		cbContextMenu.Checked = Integration.IsContextMenuAdded;
 		cbOnTop.Checked       = Config.OnTop;
 
+		CheckBox cbOpenRaw = new(R1.S_OpenRaw)
+		{
+			X = Pos.Right(cbAutoSearch) + 1,
+			Y = Pos.Y(cbAutoSearch),
+			// Width  = WIDTH,
+			Height      = 1,
+			AutoSize    = true,
+			ColorScheme = UI.Cs_Btn3
+
+		};
+
+		cbOpenRaw.Toggled += b =>
+		{
+			Config.OpenRaw = b;
+			ReloadDialog();
+		};
+		cbOpenRaw.Checked = Config.OpenRaw;
+
 		/*============================================================================*\
 			Eh username/password
 		\*============================================================================*/
@@ -286,7 +304,8 @@ public sealed partial class ShellMain
 
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
-		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword);
+		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
+			cbOpenRaw);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);

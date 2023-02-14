@@ -141,4 +141,7 @@
   <data name="S_EhUsername" xml:space="preserve">
     <value>Eh Username</value>
   </data>
+  <data name="S_OpenRaw" xml:space="preserve">
+    <value>Open raw</value>
+  </data>
 </root>

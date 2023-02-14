@@ -155,13 +155,23 @@ public sealed class SearchClient : IDisposable
 		return results;
 	}
 
-	private static void OpenResult(SearchResult result)
+	private void OpenResult(SearchResult result)
 	{
 #if DEBUG
 		Logger.LogDebug("Not opening result {result}", result);
 		return;
 #else
-		var url1 = result.Best?.Url ?? result.RawUrl;
+		Url url1;
+
+		if (Config.OpenRaw) {
+			url1 = result.RawUrl;
+		}
+		else {
+			url1 = result.Best?.Url ?? result.RawUrl;
+		}
+
+		Logger.LogInformation("Opening {Url}", url1);
+
 		HttpUtilities.TryOpenUrl(url1);
 #endif
 	}
@@ -253,4 +263,3 @@ public sealed class SearchClient : IDisposable
 		IsComplete    = false;
 	}
 }
-
