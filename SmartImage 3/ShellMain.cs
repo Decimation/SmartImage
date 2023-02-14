@@ -10,6 +10,7 @@ using System.Media;
 using System.Runtime.Versioning;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft.VisualBasic.FileIO;
 using Novus.Win32;
 using NStack;
 using SmartImage.App;
@@ -198,6 +199,26 @@ public sealed partial class ShellMain : IDisposable, IMain
 
 	};
 
+	private static readonly Button Btn_Queue = new("Queue")
+	{
+		X = Pos.X(Btn_Run),
+		Y = Pos.Bottom(Btn_Run),
+
+		Height      = Dim.Height(Btn_Run),
+		ColorScheme = UI.Cs_Lbl1
+
+	};
+
+	private static readonly Button Btn_Delete = new("Delete")
+	{
+		X = Pos.X(Btn_Cancel),
+		Y = Pos.Bottom(Btn_Cancel),
+
+		Height      = Dim.Height(Btn_Cancel),
+		ColorScheme = UI.Cs_Btn4
+
+	};
+
 	#endregion
 
 	#region Fields/properties
@@ -346,10 +367,23 @@ public sealed partial class ShellMain : IDisposable, IMain
 			HttpUtilities.TryOpenUrl(Query.Upload);
 		};
 
+		Btn_Delete.Clicked += () =>
+		{
+			var file = Tf_Input.Text.ToString();
+
+			if (!string.IsNullOrWhiteSpace(file)) {
+				Query.Dispose();
+				FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+				Debug.WriteLine($"deleted {file}");
+				Clear();
+			}
+
+		};
+
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2
+		        Lbl_Status2, Btn_Queue, Btn_Delete
 		);
 
 		Top.Add(Win);
@@ -552,9 +586,9 @@ public sealed partial class ShellMain : IDisposable, IMain
 
 		}
 		else {
-			UI.SetLabelStatus(Lbl_InputOk, false);
+			Lbl_InputInfo.Text = "Error: invalid input";
 
-			Lbl_InputInfo.Text   = "Error: invalid input";
+			UI.SetLabelStatus(Lbl_InputOk, false);
 			Btn_Run.Enabled      = true;
 			Lbl_QueryUpload.Text = ustring.Empty;
 			Pbr_Status.Fraction  = 0;

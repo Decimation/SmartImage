@@ -253,7 +253,7 @@ public static class Integration
 		if (!SearchQuery.IsValidSourceType(str)) {
 			var o = Clipboard.GetData((uint) ClipboardFormat.CF_TEXT);
 
-			if (data is IntPtr { } p2 && p2 == IntPtr.Zero) {
+			if ((data is IntPtr { } p2 && p2 == IntPtr.Zero) || o is IntPtr data2 && data2 == IntPtr.Zero) {
 				str = null;
 			}
 			else {

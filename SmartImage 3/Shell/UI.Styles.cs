@@ -111,7 +111,14 @@ internal static partial class UI
 		HotFocus  = Atr_BrightBlue_Gray,
 		Focus     = Atr_BrightBlue_Gray
 	};
-
+	internal static readonly ColorScheme Cs_Btn4 = new()
+	{
+		Normal = Atr_Red_White,
+		// Disabled  = Atr_DarkGray_White,
+		HotNormal = Atr_Red_White,
+		HotFocus  = Atr_BrightRed_White,
+		Focus     = Atr_BrightRed_White
+	};
 	internal static readonly ColorScheme Cs_Elem2 = new()
 	{
 		Normal   = Atr_White_Cyan,
