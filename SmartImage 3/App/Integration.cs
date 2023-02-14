@@ -84,13 +84,13 @@ public static class Integration
 
 					try {
 						regMenu = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell);
-						regMenu?.SetValue(String.Empty, Resources.Name);
+						regMenu?.SetValue(String.Empty, R2.Name);
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
 						regCmd = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell_Cmd);
 
 						regCmd?.SetValue(String.Empty,
-						                 $"\"{fullPath}\" {Resources.Arg_Input} \"%1\" {R2.Arg_AutoSearch}");
+						                 $"\"{fullPath}\" {R2.Arg_Input} \"%1\" {R2.Arg_AutoSearch}");
 					}
 					catch (Exception ex) {
 						Trace.WriteLine($"{ex.Message}");

@@ -36,7 +36,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private static readonly Toplevel Top = Application.Top;
 
-	private static readonly Window Win = new(Resources.Name)
+	private static readonly Window Win = new(R2.Name)
 	{
 		X           = 0,
 		Y           = 1,
@@ -307,7 +307,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		{
 			new("Engine", typeof(string)),
 
-			new(nameof(SearchResultItem.Url), typeof(Flurl.Url)),
+			new(nameof(SearchResultItem.Url), typeof(Url)),
 			new(nameof(SearchResultItem.Score), typeof(int)),
 			new(nameof(SearchResultItem.Similarity), typeof(double)),
 			new(nameof(SearchResultItem.Artist), typeof(string)),

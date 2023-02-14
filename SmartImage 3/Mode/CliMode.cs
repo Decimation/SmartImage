@@ -19,26 +19,11 @@ public sealed class CliMode : IDisposable, IMode
 {
 	#region
 
-	private const double COMPLETE = 100.0D;
-
-	private static readonly ProgressColumn[] PrgCol_1 =
+	static CliMode()
 	{
-		new TaskDescriptionColumn()
-		{
-			Alignment = Justify.Left
-		},
-		new SpinnerColumn(),
-		new ElapsedTimeColumn(),
-		new ProgressBarColumn()
-	};
+		Debug.WriteLine($"{AConsole.Profile.Capabilities.Unicode} {AConsole.Profile.Capabilities.Links}");
 
-	private static readonly Progress Prg_1 = AnsiConsole.Progress()
-		.AutoClear(true)
-		.AutoRefresh(true)
-		.HideCompleted(true)
-		.Columns(PrgCol_1);
-
-	static CliMode() { }
+	}
 
 	#endregion
 
@@ -54,6 +39,7 @@ public sealed class CliMode : IDisposable, IMode
 
 	private readonly CancellationTokenSource m_cts;
 
+	public SearchConfig Config => m_cfg;
 	public CliMode()
 	{
 		m_cfg    = new SearchConfig();
@@ -66,31 +52,33 @@ public sealed class CliMode : IDisposable, IMode
 	{
 
 		// await Prg_1.StartAsync(ctx => ValidateInputAsync(ctx, c as string));
-		await ValidateInputAsync(null, c as string);
-		AnsiConsole.WriteLine($"{m_query}");
+		await ValidateInputAsync((c as string)!);
+		AConsole.WriteLine($"{m_query}");
 
 		// var url = await Prg_1.StartAsync(UploadInputAsync);
 
-		var url = await UploadInputAsync(null);
-		AnsiConsole.MarkupLine($"[green]{m_query.Upload}[/]");
+		var url = await UploadInputAsync();
 
-		AnsiConsole.WriteLine($"{m_cfg}");
+		AConsole.MarkupLine($"[green]{m_query.Upload}[/]");
 
-		Console.CancelKeyPress += (sender, args) =>
+		AConsole.WriteLine($"{m_cfg}");
+
+		SConsole.CancelKeyPress += (sender, args) =>
 		{
 			args.Cancel = false;
 			m_cts.Cancel();
-			AnsiConsole.MarkupLine($"[red]Cancellation requested {args}[/]");
+			AConsole.MarkupLine($"[red]Cancellation requested {args}[/]");
 		};
 
 		// await Prg_1.StartAsync(RunSearchAsync);
 
-		await RunSearchAsync(null);
+		await RunSearchAsync();
+
 		return null;
 
 	}
 
-	private async Task ValidateInputAsync(ProgressContext ctx, string c)
+	private async Task ValidateInputAsync(string c)
 	{
 		// var t = ctx.AddTask("Validating input");
 		// t.IsIndeterminate = true;
@@ -100,7 +88,7 @@ public sealed class CliMode : IDisposable, IMode
 		// t.Increment(COMPLETE);
 	}
 
-	private async Task<Url> UploadInputAsync(ProgressContext p)
+	private async Task<Url> UploadInputAsync()
 	{
 		// var pt = p.AddTask($"Upload");
 		// pt.IsIndeterminate = true;
@@ -110,7 +98,7 @@ public sealed class CliMode : IDisposable, IMode
 
 	}
 
-	private async Task RunSearchAsync(ProgressContext ctx)
+	private async Task RunSearchAsync()
 	{
 		/*var ptMap = new Dictionary<BaseSearchEngine, (ProgressTask, Table)>();
 
@@ -170,19 +158,21 @@ public sealed class CliMode : IDisposable, IMode
 		while (!pt1.IsFinished) { }*/
 		var sw = Stopwatch.StartNew();
 
-		var sp = AnsiConsole.Status().Spinner(Spinner.Known.Aesthetic).StartAsync("Wait...", async ctx =>
-		{
-			// await ttt;
+		var sp = AConsole.Status()
+			.Spinner(Spinner.Known.Aesthetic)
+			.StartAsync("Wait...", async ctx =>
+			{
+				// await ttt;
 
-			while (!ttt.IsCompleted) {
-				ctx.Refresh();
-				await Task.Delay(TimeSpan.FromMilliseconds(300));
+				while (!ttt.IsCompleted) {
+					ctx.Refresh();
+					await Task.Delay(TimeSpan.FromMilliseconds(300));
 
-				ctx.Status =
-					$"{m_results.Count} | {m_results.Sum(c => c.Results.Count)} | {sw.Elapsed.TotalSeconds:3F}";
-			}
-			// m_results2 = await ttt;
-		});
+					ctx.Status =
+						$"{m_results.Count} | {m_results.Sum(c => c.Results.Count)} | {sw.Elapsed.TotalSeconds:3F}";
+				}
+				// m_results2 = await ttt;
+			});
 
 		await ttt;
 
@@ -204,7 +194,7 @@ public sealed class CliMode : IDisposable, IMode
 
 		foreach (var vt in ptMap.Values) {
 			// vt.Item1.StopTask();
-			AnsiConsole.Write(vt.Item2);
+			AConsole.Write(vt.Item2);
 		}
 
 	}

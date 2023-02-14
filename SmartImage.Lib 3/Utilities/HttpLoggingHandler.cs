@@ -6,14 +6,14 @@ using Microsoft.Extensions.Logging;
 
 namespace SmartImage.Lib.Utilities;
 
-internal class HttpClientLoggingHandler : DelegatingHandler
+internal class HttpLoggingHandler : DelegatingHandler
 {
-	public HttpClientLoggingHandler(ILogger l)
+	public HttpLoggingHandler(ILogger l)
 	{
 		m_logger = l;
 	}
 
-	public HttpClientLoggingHandler([NotNull] HttpMessageHandler innerHandler) : base(innerHandler)
+	public HttpLoggingHandler([NotNull] HttpMessageHandler innerHandler) : base(innerHandler)
 	{
 	}
 
@@ -22,7 +22,7 @@ internal class HttpClientLoggingHandler : DelegatingHandler
 	protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
 														   CancellationToken cancellationToken)
 	{
-		m_logger.LogInformation("Request {Request}", request.RequestUri);
+		m_logger.LogDebug("Request {Request}", request.RequestUri);
 
 		return base.SendAsync(request, cancellationToken);
 	}

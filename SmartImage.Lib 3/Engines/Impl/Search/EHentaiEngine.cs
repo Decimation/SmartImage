@@ -55,7 +55,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
-	protected override string NodesSelector => "//table/tbody/tr";
+	protected override string NodesSelector => Serialization.S_EHentai;
 
 	static EHentaiEngine() { }
 
@@ -188,15 +188,15 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		return await parser.ParseDocumentAsync(content);
 	}
 
-	private async Task<IFlurlResponse> GetSessionAsync()
+	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return await ExHentaiBase.WithCookies(Cookies)
-			       .WithHeaders(new
-			       {
-				       User_Agent = HttpUtilities.UserAgent
-			       })
-			       .WithAutoRedirect(true)
-			       .GetAsync();
+		return ExHentaiBase.WithCookies(Cookies)
+			.WithHeaders(new
+			{
+				User_Agent = HttpUtilities.UserAgent
+			})
+			.WithAutoRedirect(true)
+			.GetAsync();
 	}
 
 	protected override ValueTask<INode[]> GetNodes(IDocument d)

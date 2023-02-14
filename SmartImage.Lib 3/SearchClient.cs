@@ -1,4 +1,5 @@
 ﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+using System.Collections;
 using System.Diagnostics;
 using System.Text.Json;
 using Flurl.Http;
@@ -56,7 +57,7 @@ public sealed class SearchClient : IDisposable
 
 		var handler = new LoggingHttpMessageHandler(Logger)
 		{
-			InnerHandler = new HttpClientLoggingHandler(Logger)
+			InnerHandler = new HttpLoggingHandler(Logger)
 			{
 				InnerHandler = new HttpClientHandler()
 			}
@@ -192,6 +193,50 @@ public sealed class SearchClient : IDisposable
 
 	[CBN]
 	public BaseSearchEngine TryGetEngine(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
+
+	public class SearchResultItemCollection : ICollection<SearchResultItem>
+	{
+		private readonly ICollection<SearchResultItem> m_value;
+
+		public IEnumerator<SearchResultItem> GetEnumerator()
+		{
+			return m_value.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return ((IEnumerable) m_value).GetEnumerator();
+		}
+
+		public void Add(SearchResultItem item)
+		{
+			m_value.Add(item);
+		}
+
+		public void Clear()
+		{
+			m_value.Clear();
+		}
+
+		public bool Contains(SearchResultItem item)
+		{
+			return m_value.Contains(item);
+		}
+
+		public void CopyTo(SearchResultItem[] array, int arrayIndex)
+		{
+			m_value.CopyTo(array, arrayIndex);
+		}
+
+		public bool Remove(SearchResultItem item)
+		{
+			return m_value.Remove(item);
+		}
+
+		public int Count => m_value.Count;
+
+		public bool IsReadOnly => m_value.IsReadOnly;
+	}
 
 	public static IReadOnlyList<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{

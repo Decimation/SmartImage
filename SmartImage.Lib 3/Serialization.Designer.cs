@@ -88,6 +88,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to //table/tbody/tr.
+        /// </summary>
+        internal static string S_EHentai {
+            get {
+                return ResourceManager.GetString("S_EHentai", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #pages &gt; div.nomatch.
         /// </summary>
         internal static string S_Iqdb_NoMatches {

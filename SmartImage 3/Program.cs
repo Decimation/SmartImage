@@ -1,10 +1,12 @@
 ﻿#nullable disable
-
+global using AConsole = Spectre.Console.AnsiConsole;
+global using SConsole = System.Console;
 global using static Kantan.Diagnostics.LogCategories;
 using Console = Spectre.Console.AnsiConsole;
 using System.CommandLine;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using System.Text;
 using Kantan.Threading;
 // using Windows.UI.Notifications;
 // using CommunityToolkit.WinUI.Notifications;
@@ -37,18 +39,20 @@ public static class Program
 	public static void Init()
 	{
 		Global.Setup();
-		Trace.WriteLine("Init", Resources.Name);
+		Trace.WriteLine("Init", R2.Name);
 		// Gui.Init();
 		System.Console.Title = R2.Name;
 
 		if (Compat.IsWin) {
 			ConsoleUtil.SetConsoleMode();
+			System.Console.OutputEncoding = Encoding.Unicode;
 		}
 
 		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 		{
 			Trace.WriteLine($"Exiting", R2.Name);
 		};
+
 	}
 
 	public static async Task<int> Main(string[] args)
@@ -64,7 +68,7 @@ public static class Program
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 
 		Debug.WriteLine($"TEST");
-		
+
 		/*
 		 * & .\bin\Test\net7.0\win10-x64\SmartImage.exe --noui --i C:\Users\Deci\Pictures\lilith___the_maid_i_hired_recently_is_mysterious_by_sciamano240_dfnpdmn.png
 		 *
@@ -74,7 +78,7 @@ public static class Program
 
 		bool cli = args is { } && args.Any();
 
-		if (cli && args.Contains(Resources.Arg_NoUI)) {
+		if (cli && args.Contains(R2.Arg_NoUI)) {
 
 			var main = new CliMode();
 
@@ -83,14 +87,15 @@ public static class Program
 
 			var options = new Option[]
 			{
-				new Option<string>(Resources.Arg_Input)
+				new Option<string>(R2.Arg_Input)
 					{ },
 
-				new Option<bool>(Resources.Arg_NoUI)
+				new Option<bool>(R2.Arg_NoUI)
 				{
 					Arity = ArgumentArity.Zero,
 
-				}
+				},
+				
 			};
 
 			foreach (Option option in options) {

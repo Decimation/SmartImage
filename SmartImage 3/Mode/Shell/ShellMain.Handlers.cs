@@ -157,7 +157,7 @@ public sealed partial class ShellMode
 	private void Cancel_Clicked()
 	{
 		m_token.Cancel();
-		Lbl_Status2.Text = Resources.Inf_Cancel;
+		Lbl_Status2.Text = R2.Inf_Cancel;
 		Lbl_Status2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);

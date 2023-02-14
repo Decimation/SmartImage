@@ -156,4 +156,7 @@
   <data name="S_Yandex_ExtInfo" xml:space="preserve">
     <value>//li[contains(@class,'CbirSites-Item')]</value>
   </data>
+  <data name="S_EHentai" xml:space="preserve">
+    <value>//table/tbody/tr</value>
+  </data>
 </root>
