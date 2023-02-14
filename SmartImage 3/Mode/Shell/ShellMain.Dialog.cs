@@ -8,12 +8,12 @@ using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.Shell;
+using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 
-namespace SmartImage;
+namespace SmartImage.Mode.Shell;
 
-public sealed partial class ShellMain
+public sealed partial class ShellMode
 {
 	private void AboutDialog()
 	{

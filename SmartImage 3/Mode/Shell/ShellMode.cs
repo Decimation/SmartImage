@@ -15,19 +15,19 @@ using Novus.Win32;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
-using SmartImage.Shell;
+using SmartImage.Lib.Results;
+using SmartImage.Mode.Shell.Assets;
+using SmartImage.Utilities;
 using Terminal.Gui;
 using Window = Terminal.Gui.Window;
-using SmartImage.Lib.Results;
-using SmartImage.Utilities;
 
 // ReSharper disable IdentifierTypo
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE0060
-namespace SmartImage;
+namespace SmartImage.Mode.Shell;
 
-public sealed partial class ShellMain : IDisposable, IMain
+public sealed partial class ShellMode : IDisposable, IMode
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 	// NOTE: Static initialization order is nondeterminant with partial classes
@@ -264,9 +264,9 @@ public sealed partial class ShellMain : IDisposable, IMain
 
 	#endregion
 
-	static ShellMain() { }
+	static ShellMode() { }
 
-	public ShellMain(string[] args)
+	public ShellMode(string[] args)
 	{
 		Args    = args;
 		m_token = new();

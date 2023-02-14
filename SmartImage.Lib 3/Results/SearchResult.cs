@@ -1,4 +1,6 @@
-﻿using SmartImage.Lib.Engines;
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib.Results;
 
@@ -8,39 +10,44 @@ public enum SearchResultStatus
 	/// N/A
 	/// </summary>
 	None,
+
 	/// <summary>
 	/// Result obtained successfully
 	/// </summary>
 	Success,
+
 	/// <summary>
 	/// Engine is on cooldown due to too many requests
 	/// </summary>
 	Cooldown,
+
 	/// <summary>
 	/// Engine returned no results
 	/// </summary>
 	NoResults,
+
 	/// <summary>
 	/// Obtaining results failed due to an engine error
 	/// </summary>
 	Failure,
 
 	IllegalInput,
+
 	/// <summary>
 	/// Engine is unavailable
 	/// </summary>
 	Unavailable,
+
 	/// <summary>
 	/// Result is extraneous
 	/// </summary>
 	Extraneous,
-
 }
 
 /// <summary>
 /// Root search result returned by a <see cref="BaseSearchEngine"/>
 /// </summary>
-public sealed class SearchResult : IDisposable
+public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 {
 	/// <summary>
 	/// Engine which returned this result
@@ -67,8 +74,7 @@ public sealed class SearchResult : IDisposable
 	{
 		get
 		{
-			if (!Results.Any())
-			{
+			if (!Results.Any()) {
 				return null;
 			}
 
@@ -78,7 +84,7 @@ public sealed class SearchResult : IDisposable
 
 	internal SearchResult(BaseSearchEngine bse)
 	{
-		Engine = bse;
+		Engine  = bse;
 		Results = new List<SearchResultItem>();
 	}
 
@@ -89,8 +95,7 @@ public sealed class SearchResult : IDisposable
 
 	public void Dispose()
 	{
-		foreach (SearchResultItem item in Results)
-		{
+		foreach (SearchResultItem item in Results) {
 			item.Dispose();
 		}
 	}
@@ -106,10 +111,24 @@ public sealed class SearchResult : IDisposable
 			Status = SearchResultStatus.Success;
 		}*/
 
-		foreach (var v in Results)
-		{
+		foreach (var v in Results) {
 			v.UpdateScore();
 		}
 
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
 	}
 }

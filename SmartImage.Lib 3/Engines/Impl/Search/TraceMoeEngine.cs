@@ -29,9 +29,10 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	public override string Name => "trace.moe";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
-
+	
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
 	{
+
 		// https://soruly.github.io/trace.moe/#/
 
 		token ??= CancellationToken.None;
@@ -40,8 +41,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 
 		var r = await base.GetResultAsync(query, token);
 
-		try
-		{
+		try {
 			IFlurlRequest request = (EndpointUrl + "/search")
 				.AllowAnyHttpStatus()
 				.SetQueryParam("url", query.Upload, true);
@@ -53,8 +53,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				Error = (sender, args) =>
 				{
 					if (Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) /*&&
-						args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)*/)
-					{
+						args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)*/) {
 						args.ErrorContext.Handled = true;
 					}
 
@@ -64,47 +63,39 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 
 			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(json, settings);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
 
 			goto ret;
 		}
 
-		if (tm != null)
-		{
-			if (tm.result != null)
-			{
+		if (tm != null) {
+			if (tm.result != null) {
 				// Most similar to least similar
 
-				try
-				{
+				try {
 					var results = await ConvertResults(tm, r);
 
 					r.RawUrl = new Url(BaseUrl + query.Upload);
 					r.Results.AddRange(results);
 				}
-				catch (Exception e)
-				{
+				catch (Exception e) {
 					r.ErrorMessage = e.Message;
-					r.Status = SearchResultStatus.Failure;
+					r.Status       = SearchResultStatus.Failure;
 				}
 
 			}
-			else if (tm.error != null)
-			{
+			else if (tm.error != null) {
 				Debug.WriteLine($"{Name} :: API error: {tm.error}", nameof(GetResultAsync));
 				r.ErrorMessage = tm.error;
 
-				if (r.ErrorMessage.Contains("Search queue is full"))
-				{
+				if (r.ErrorMessage.Contains("Search queue is full")) {
 					r.Status = SearchResultStatus.Unavailable;
 				}
 			}
 		}
 
-	ret:
-
+		ret:
 		r.Update();
 
 		return r;
@@ -113,10 +104,9 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	private async Task<IEnumerable<SearchResultItem>> ConvertResults(TraceMoeRootObject obj, SearchResult sr)
 	{
 		var results = obj.result;
-		var items = new SearchResultItem[results.Count];
+		var items   = new SearchResultItem[results.Count];
 
-		for (int i = 0; i < items.Length; i++)
-		{
+		for (int i = 0; i < items.Length; i++) {
 			var doc = results[i];
 			var sim = Math.Round(doc.similarity * 100.0f, 2);
 
@@ -129,26 +119,23 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				Title = doc.filename,
 
 				Description = $"Episode #{epStr} @ " +
-							  $"[{TimeSpan.FromSeconds(doc.from):g} - {TimeSpan.FromSeconds(doc.to):g}]",
+				              $"[{TimeSpan.FromSeconds(doc.from):g} - {TimeSpan.FromSeconds(doc.to):g}]",
 			};
 
 			result.Metadata.video = doc.video;
 			result.Metadata.image = doc.image;
 
-			try
-			{
+			try {
 				string anilistUrl = ANILIST_URL + doc.anilist;
-				string name = await m_anilistClient.GetTitleAsync((int)doc.anilist);
+				string name       = await m_anilistClient.GetTitleAsync((int) doc.anilist);
 				result.Source = name;
-				result.Url = new Url(anilistUrl);
+				result.Url    = new Url(anilistUrl);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Debug.WriteLine($"{Name} :: {e.Message}", nameof(ConvertResults));
 			}
 
-			if (result.Similarity < FILTER_THRESHOLD)
-			{
+			if (result.Similarity < FILTER_THRESHOLD) {
 				/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
 												 $"({result.Similarity.Value / 100:P} " +
 												 $"< {FILTER_THRESHOLD / 100:P})");*/
@@ -207,8 +194,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			{
 				string epStr = episode is { } ? episode is string s ? s : episode.ToString() : string.Empty;
 
-				if (episode is IEnumerable e)
-				{
+				if (episode is IEnumerable e) {
 					var epList = e.CastToList()
 						.Select(x => long.Parse(x.ToString() ?? string.Empty));
 

@@ -3,7 +3,7 @@ using Attribute = Terminal.Gui.Attribute;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.Shell;
+namespace SmartImage.Mode.Shell.Assets;
 // todo: possible overkill with caching
 internal static partial class UI
 {

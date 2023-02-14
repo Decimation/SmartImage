@@ -1,18 +1,12 @@
-﻿using System.Data;
-using System.Diagnostics;
-using Kantan.Console;
-using Kantan.Net.Utilities;
-using Novus.OS;
+﻿using System.Diagnostics;
 using NStack;
-using SmartImage.App;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines;
-using SmartImage.Shell;
+using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 
-namespace SmartImage;
+namespace SmartImage.Mode.Shell;
 
-public sealed partial class ShellMain
+public sealed partial class ShellMode
 {
 	private async Task RunMain()
 	{

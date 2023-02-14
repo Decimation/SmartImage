@@ -7,12 +7,12 @@ using Novus.OS;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
-using SmartImage.Shell;
+using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 
-namespace SmartImage;
+namespace SmartImage.Mode.Shell;
 
-public sealed partial class ShellMain
+public sealed partial class ShellMode
 {
 	/// <summary>
 	/// <see cref="Tv_Results"/>

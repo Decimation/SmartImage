@@ -5,6 +5,7 @@ using Console = Spectre.Console.AnsiConsole;
 using System.CommandLine;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Kantan.Threading;
 // using Windows.UI.Notifications;
 // using CommunityToolkit.WinUI.Notifications;
 using Novus;
@@ -13,6 +14,8 @@ using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
+using SmartImage.Mode;
+using SmartImage.Mode.Shell;
 using SmartImage.Utilities;
 using Spectre.Console;
 using Command = System.CommandLine.Command;
@@ -30,7 +33,6 @@ namespace SmartImage;
 
 public static class Program
 {
-
 	[ModuleInitializer]
 	public static void Init()
 	{
@@ -62,30 +64,40 @@ public static class Program
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
 
 		Debug.WriteLine($"TEST");
+		
+		/*
+		 * & .\bin\Test\net7.0\win10-x64\SmartImage.exe --noui --i C:\Users\Deci\Pictures\lilith___the_maid_i_hired_recently_is_mysterious_by_sciamano240_dfnpdmn.png
+		 *
+		 * dotnet run -c Test --project .\SmartImage.csproj --interactive --noui --i C:\Users\Deci\Pictures\lilith___the_maid_i_hired_recently_is_mysterious_by_sciamano240_dfnpdmn.png
+		 */
 #endif
 
 		bool cli = args is { } && args.Any();
 
 		if (cli && args.Contains(Resources.Arg_NoUI)) {
-			
-			var main = new CliMain();
+
+			var main = new CliMode();
 
 			var rc = new RootCommand()
 				{ };
 
-			var arg = new Option<string>(Resources.Arg_Input)
-				{ };
-
-			var opt2 = new Option<bool>(Resources.Arg_NoUI)
+			var options = new Option[]
 			{
-				Arity = ArgumentArity.Zero,
+				new Option<string>(Resources.Arg_Input)
+					{ },
 
+				new Option<bool>(Resources.Arg_NoUI)
+				{
+					Arity = ArgumentArity.Zero,
+
+				}
 			};
 
-			rc.AddOption(arg);
-			rc.AddOption(opt2);
+			foreach (Option option in options) {
+				rc.AddOption(option);
+			}
 
-			rc.SetHandler(main.RunAsync, arg);
+			rc.SetHandler(main.RunAsync, (Option<string>) options[0]);
 
 			var i = await rc.InvokeAsync(args);
 
@@ -95,10 +107,10 @@ public static class Program
 			main1:
 			Application.Init();
 
-			var main = new ShellMain(args);
+			var    main = new ShellMode(args);
 			object status;
 
-			var run =  main.RunAsync(null);
+			var run = main.RunAsync(null);
 			status = (bool?) await run;
 
 			if (status is bool { } and true) {

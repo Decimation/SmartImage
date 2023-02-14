@@ -4,7 +4,6 @@ using System.Text.Json;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Testing;
-using JetBrains.Annotations;
 using Kantan.Net;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Http;
@@ -14,6 +13,7 @@ using Novus.FileTypes;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace SmartImage.Lib;
@@ -28,10 +28,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool ConfigApplied { get; private set; }
 
-	internal static readonly ILoggerFactory _LoggerFactory =
-		LoggerFactory.Create(builder => builder.AddDebug());
-
-	private static readonly ILogger Logger = _LoggerFactory.CreateLogger(nameof(SearchClient));
+	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
 
 	public SearchClient(SearchConfig cfg)
 	{
@@ -44,20 +41,6 @@ public sealed class SearchClient : IDisposable
 			})
 			.ToArray();
 
-	}
-
-	internal class LoggingHandler : DelegatingHandler
-	{
-		public LoggingHandler() { }
-		public LoggingHandler([NotNull] HttpMessageHandler innerHandler) : base(innerHandler) { }
-
-		protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-		                                                       CancellationToken cancellationToken)
-		{
-			Logger.LogInformation("Request {Request}", request.RequestUri);
-
-			return base.SendAsync(request, cancellationToken);
-		}
 	}
 
 	static SearchClient()
@@ -73,7 +56,7 @@ public sealed class SearchClient : IDisposable
 
 		var handler = new LoggingHttpMessageHandler(Logger)
 		{
-			InnerHandler = new LoggingHandler()
+			InnerHandler = new HttpClientLoggingHandler(Logger)
 			{
 				InnerHandler = new HttpClientHandler()
 			}
@@ -158,8 +141,12 @@ public sealed class SearchClient : IDisposable
 	private void OpenResult(SearchResult result)
 	{
 #if DEBUG
+#pragma warning disable CA1822
+		// ReSharper disable once MemberCanBeMadeStatic.Local        
 		Logger.LogDebug("Not opening result {result}", result);
 		return;
+
+#pragma warning restore CA1822
 #else
 		Url url1;
 
@@ -174,6 +161,7 @@ public sealed class SearchClient : IDisposable
 
 		HttpUtilities.TryOpenUrl(url1);
 #endif
+
 	}
 
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
@@ -203,7 +191,7 @@ public sealed class SearchClient : IDisposable
 	}
 
 	[CBN]
-	public BaseSearchEngine TryFind(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
+	public BaseSearchEngine TryGetEngine(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
 
 	public static IReadOnlyList<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
 	{

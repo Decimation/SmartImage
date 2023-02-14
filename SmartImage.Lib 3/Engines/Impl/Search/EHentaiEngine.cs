@@ -117,7 +117,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	{
 		const string name = "a.jpg";
 
-		(string t, bool b) = await query.GetFilePathOrTemp(name);
+		(string t, bool b) = await query.GetFilePathOrTempAsync(name);
 
 		if (b) {
 			Trace.WriteLine($"allocated {t}", nameof(GetDocumentAsync));

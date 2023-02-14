@@ -155,11 +155,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	#endregion
 
 	[MustUseReturnValue]
-	public async Task<(string,bool)> GetFilePathOrTemp(string fn = null)
+	public async Task<(string, bool)> GetFilePathOrTempAsync(string fn = null)
 	{
 		string t;
 		fn ??= Path.GetTempFileName();
 		bool b;
+
 		if (!Uni.IsFile) {
 			t = Path.Combine(Path.GetTempPath(), fn);
 
@@ -181,6 +182,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			b = false;
 		}
 
-		return (t,b);
+		return (t, b);
 	}
 }
