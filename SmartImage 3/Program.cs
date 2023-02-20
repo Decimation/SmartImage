@@ -1,8 +1,6 @@
 ﻿#nullable disable
-global using AConsole = Spectre.Console.AnsiConsole;
 global using SConsole = System.Console;
 global using static Kantan.Diagnostics.LogCategories;
-using Console = Spectre.Console.AnsiConsole;
 using System.CommandLine;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -19,7 +17,6 @@ using SmartImage.Lib.Results;
 using SmartImage.Mode;
 using SmartImage.Mode.Shell;
 using SmartImage.Utilities;
-using Spectre.Console;
 using Command = System.CommandLine.Command;
 
 #pragma warning disable CS0168

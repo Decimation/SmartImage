@@ -15,7 +15,7 @@ using Spectre.Console.Rendering;
 
 namespace SmartImage.Mode;
 
-public sealed class CliMode : IDisposable, IMode
+public sealed class CliMode : IDisposable, IMode, IProgress<int>
 {
 	#region
 
@@ -31,19 +31,18 @@ public sealed class CliMode : IDisposable, IMode
 
 	private SearchResult[] m_results2;
 
-	private readonly SearchConfig m_cfg;
-
 	private SearchQuery m_query;
 
 	private readonly SearchClient m_client;
 
 	private readonly CancellationTokenSource m_cts;
 
-	public SearchConfig Config => m_cfg;
+	public SearchConfig Config { get; }
+
 	public CliMode()
 	{
-		m_cfg    = new SearchConfig();
-		m_client = new SearchClient(m_cfg);
+		Config   = new SearchConfig();
+		m_client = new SearchClient(Config);
 		m_query  = SearchQuery.Null;
 		m_cts    = new CancellationTokenSource();
 	}
@@ -52,7 +51,7 @@ public sealed class CliMode : IDisposable, IMode
 	{
 
 		// await Prg_1.StartAsync(ctx => ValidateInputAsync(ctx, c as string));
-		await ValidateInputAsync((c as string)!);
+		await ValidateInputAsync((string) c!);
 		AConsole.WriteLine($"{m_query}");
 
 		// var url = await Prg_1.StartAsync(UploadInputAsync);
@@ -61,7 +60,7 @@ public sealed class CliMode : IDisposable, IMode
 
 		AConsole.MarkupLine($"[green]{m_query.Upload}[/]");
 
-		AConsole.WriteLine($"{m_cfg}");
+		AConsole.WriteLine($"{Config}");
 
 		SConsole.CancelKeyPress += (sender, args) =>
 		{
@@ -117,14 +116,17 @@ public sealed class CliMode : IDisposable, IMode
 			// pt1.Increment(COMPLETE);
 		}
 
-		var ptMap = new Dictionary<BaseSearchEngine, (object, Table)>();
-
-		foreach (var e in m_client.Engines) {
-			var tt = get_table(e);
-			ptMap.Add(e, (this, tt));
-		}
-
 		m_client.OnComplete += OnComplete;
+
+		var mt = new Table()
+		{
+			Border      = TableBorder.Heavy,
+			Title       = new($"Results"),
+			ShowFooters = true,
+			ShowHeaders = true,
+		};
+
+		mt.AddColumns(new TableColumn("#"), new TableColumn("Link"));
 
 		// pt1.MaxValue = m_client.Engines.Length;
 
@@ -135,10 +137,10 @@ public sealed class CliMode : IDisposable, IMode
 			// pt1.Increment(1.0);
 			int i = 0;
 
-			var t = ptMap[sr.Engine].Item2;
+			// var t = ptMap[sr.Engine].Item2;
 
 			foreach (SearchResultItem sri in sr.Results) {
-				t.Rows.Add(new IRenderable[]
+				mt.Rows.Add(new IRenderable[]
 				{
 					new Text($"{i + 1}"),
 					Markup.FromInterpolated($"[link={sri.Url}]{sr.Engine.Name} #{i + 1}[/]")
@@ -158,20 +160,17 @@ public sealed class CliMode : IDisposable, IMode
 		while (!pt1.IsFinished) { }*/
 		var sw = Stopwatch.StartNew();
 
-		var sp = AConsole.Status()
-			.Spinner(Spinner.Known.Aesthetic)
-			.StartAsync("Wait...", async ctx =>
+		var sp = AConsole.Live(mt)
+			.AutoClear(false)
+			.Overflow(VerticalOverflow.Ellipsis)
+			.StartAsync(async (ctx) =>
 			{
-				// await ttt;
-
 				while (!ttt.IsCompleted) {
 					ctx.Refresh();
-					await Task.Delay(TimeSpan.FromMilliseconds(300));
-
-					ctx.Status =
-						$"{m_results.Count} | {m_results.Sum(c => c.Results.Count)} | {sw.Elapsed.TotalSeconds:3F}";
+					mt.Caption = new TableTitle($"{sw.Elapsed.TotalSeconds:F3}");
+					// await Task.Delay(1000);
 				}
-				// m_results2 = await ttt;
+
 			});
 
 		await ttt;
@@ -191,11 +190,6 @@ public sealed class CliMode : IDisposable, IMode
 		// AnsiConsole.Clear();
 
 		await sp;
-
-		foreach (var vt in ptMap.Values) {
-			// vt.Item1.StopTask();
-			AConsole.Write(vt.Item2);
-		}
 
 	}
 
@@ -221,5 +215,10 @@ public sealed class CliMode : IDisposable, IMode
 		m_cts.Dispose();
 		m_query.Dispose();
 		m_client.Dispose();
+	}
+
+	public void Report(int value)
+	{
+		Debug.WriteLine($"{value}");
 	}
 }

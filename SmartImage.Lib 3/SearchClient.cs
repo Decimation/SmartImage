@@ -1,6 +1,9 @@
 ﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Net;
+using System.Net.NetworkInformation;
 using System.Text.Json;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -85,7 +88,7 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null)
+	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null, [CBN] IProgress<int> p=null)
 	{
 		if (!ConfigApplied) {
 			await ApplyConfigAsync();
@@ -112,13 +115,15 @@ public sealed class SearchClient : IDisposable
 			var result = await task;
 
 			OnResult?.Invoke(this, result);
+			p?.Report(i);
 
 			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 
 				OpenResult(result);
 			}
 
-			results[i++] = result;
+			results[i] = result;
+			i++;
 			// results.Add(result);
 			tasks.Remove(task);
 		}
@@ -194,48 +199,19 @@ public sealed class SearchClient : IDisposable
 	[CBN]
 	public BaseSearchEngine TryGetEngine(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
 
-	public class SearchResultItemCollection : ICollection<SearchResultItem>
+	public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{
-		private readonly ICollection<SearchResultItem> m_value;
 
-		public IEnumerator<SearchResultItem> GetEnumerator()
+		var sri2 = sri.AsParallel().DistinctBy(e => e.Url).ToList();
+
+		/*Parallel.ForEachAsync(sri2, async (item, token) =>
 		{
-			return m_value.GetEnumerator();
-		}
+			var r = await item.Url.AllowAnyHttpStatus().GetAsync();
 
-		IEnumerator IEnumerable.GetEnumerator()
-		{
-			return ((IEnumerable) m_value).GetEnumerator();
-		}
+			if (r.ResponseMessage.IsSuccessStatusCode) { }
+		});*/
 
-		public void Add(SearchResultItem item)
-		{
-			m_value.Add(item);
-		}
-
-		public void Clear()
-		{
-			m_value.Clear();
-		}
-
-		public bool Contains(SearchResultItem item)
-		{
-			return m_value.Contains(item);
-		}
-
-		public void CopyTo(SearchResultItem[] array, int arrayIndex)
-		{
-			m_value.CopyTo(array, arrayIndex);
-		}
-
-		public bool Remove(SearchResultItem item)
-		{
-			return m_value.Remove(item);
-		}
-
-		public int Count => m_value.Count;
-
-		public bool IsReadOnly => m_value.IsReadOnly;
+		return ValueTask.FromResult<IReadOnlyList<SearchResultItem>>(sri2);
 	}
 
 	public static IReadOnlyList<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
@@ -295,4 +271,5 @@ public sealed class SearchClient : IDisposable
 		ConfigApplied = false;
 		IsComplete    = false;
 	}
+	
 }

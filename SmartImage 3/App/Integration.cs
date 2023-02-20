@@ -148,8 +148,8 @@ public static class Integration
 				}
 
 				bool appFolderInPath = oldValue
-				                       .Split(FileSystem.PATH_DELIM)
-				                       .Any(p => p == appFolder);
+					.Split(FileSystem.PATH_DELIM)
+					.Any(p => p == appFolder);
 
 				string cd  = Environment.CurrentDirectory;
 				string exe = Path.Combine(cd, ExeLocation);
