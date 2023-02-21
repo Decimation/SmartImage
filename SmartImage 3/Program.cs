@@ -75,39 +75,35 @@ public static class Program
 
 		bool cli = args is { } && args.Any();
 
-		if (cli) {
-			if (args.Contains(R2.Arg_NoUI)) {
-				var main = new CliMode();
+		if (cli&& args.Contains(R2.Arg_NoUI)) {
+			var main = new CliMode();
 
-				var rc = new RootCommand()
-					{ };
+			var rc = new RootCommand()
+				{ };
 
-				var options = new Option[]
+			var options = new Option[]
+			{
+				new Option<string>(R2.Arg_Input)
+					{ },
+
+				new Option<bool>(R2.Arg_NoUI)
 				{
-					new Option<string>(R2.Arg_Input)
-						{ },
+					Arity = ArgumentArity.Zero,
 
-					new Option<bool>(R2.Arg_NoUI)
-					{
-						Arity = ArgumentArity.Zero,
+				},
 
-					},
-				
-				};
+			};
 
-				foreach (Option option in options) {
-					rc.AddOption(option);
-				}
-
-				rc.SetHandler(main.RunAsync, (Option<string>) options[0]);
-
-				var i = await rc.InvokeAsync(args);
-
-				return i;
-
+			foreach (Option option in options)
+			{
+				rc.AddOption(option);
 			}
 
-			return ConsoleUtil.CODE_ERR;
+			rc.SetHandler(main.RunAsync, (Option<string>)options[0]);
+
+			var i = await rc.InvokeAsync(args);
+
+			return i;
 		}
 		else {
 			main1:
