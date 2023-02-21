@@ -232,7 +232,7 @@ public sealed partial class ShellMode
 
 		cbOpenRaw.Toggled += b =>
 		{
-			Config.OpenRaw = b;
+			Config.OpenRaw = !b;
 			ReloadDialog();
 		};
 		cbOpenRaw.Checked = Config.OpenRaw;

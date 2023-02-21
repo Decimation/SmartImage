@@ -383,7 +383,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2, Btn_Queue, Btn_Delete
+		        Lbl_Status2, /*Btn_Queue,*/ Btn_Delete
 		);
 
 		Top.Add(Win);

@@ -10,7 +10,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
 using Spectre.Console;
 using Spectre.Console.Rendering;
-
+using AConsole=Spectre.Console.AnsiConsole;
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Mode;
