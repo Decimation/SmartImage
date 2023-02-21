@@ -144,6 +144,7 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 				{
 					new Text($"{i + 1}"),
 					Markup.FromInterpolated($"[link={sri.Url}]{sr.Engine.Name} #{i + 1}[/]")
+
 				});
 
 				i++;

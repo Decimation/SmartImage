@@ -42,7 +42,7 @@ public static class Program
 
 		if (Compat.IsWin) {
 			ConsoleUtil.SetConsoleMode();
-			System.Console.OutputEncoding = Encoding.Unicode;
+			// System.Console.OutputEncoding = Encoding.Unicode;
 		}
 
 		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
@@ -75,35 +75,52 @@ public static class Program
 
 		bool cli = args is { } && args.Any();
 
-		if (cli && args.Contains(R2.Arg_NoUI)) {
+		if (cli) {
+			if (args.Contains(R2.Arg_NoUI)) {
+				var main = new CliMode();
 
-			var main = new CliMode();
+				var rc = new RootCommand()
+					{ };
 
-			var rc = new RootCommand()
-				{ };
-
-			var options = new Option[]
-			{
-				new Option<string>(R2.Arg_Input)
-					{ },
-
-				new Option<bool>(R2.Arg_NoUI)
+				var options = new Option[]
 				{
-					Arity = ArgumentArity.Zero,
+					new Option<string>(R2.Arg_Input)
+						{ },
 
-				},
+					new Option<bool>(R2.Arg_NoUI)
+					{
+						Arity = ArgumentArity.Zero,
+
+					},
 				
-			};
+				};
 
-			foreach (Option option in options) {
-				rc.AddOption(option);
+				foreach (Option option in options) {
+					rc.AddOption(option);
+				}
+
+				rc.SetHandler(main.RunAsync, (Option<string>) options[0]);
+
+				var i = await rc.InvokeAsync(args);
+
+				return i;
+
 			}
+			else if (args.Contains("-d")) {
+				var sc             =new SearchClient(SearchConfig.Default);
+				var sq = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
+				await sq.UploadAsync();
+				var r              =await sc.RunSearchAsync(sq);
 
-			rc.SetHandler(main.RunAsync, (Option<string>) options[0]);
+				foreach (SearchResult searchResult in r) {
+					Console.WriteLine(searchResult);
+				}
 
-			var i = await rc.InvokeAsync(args);
-
-			return i;
+				return 0;
+			}
+			else {
+				return -1;
+			}
 		}
 		else {
 			main1:

@@ -42,13 +42,21 @@ internal static class ConsoleUtil
 
 		_oldMode = lpMode;
 
+		/*Native.SetConsoleMode(StdIn, lpMode | ConsoleModes.ENABLE_MOUSE_INPUT &
+		                             ~ConsoleModes.ENABLE_QUICK_EDIT_MODE |
+		                             ConsoleModes.ENABLE_EXTENDED_FLAGS |
+		                             ConsoleModes.ENABLE_ECHO_INPUT |
+		                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING);*/
+
 		Native.SetConsoleMode(StdIn, lpMode | ConsoleModes.ENABLE_MOUSE_INPUT &
 		                             ~ConsoleModes.ENABLE_QUICK_EDIT_MODE |
 		                             ConsoleModes.ENABLE_EXTENDED_FLAGS |
 		                             ConsoleModes.ENABLE_ECHO_INPUT |
-		                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING);
-		Console.SetWindowSize(150, 35);
-		Console.BufferWidth = 150;
+		                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING | 
+		                             ConsoleModes.ENABLE_PROCESSED_OUTPUT);
+
+		// Console.SetWindowSize(150, 35);
+		// Console.BufferWidth = 150;
 
 	}
 
