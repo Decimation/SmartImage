@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using SmartImage.Lib;
 using SmartImage.Lib.Results;
+using SmartImage.Utilities;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using AConsole = Spectre.Console.AnsiConsole;
@@ -51,11 +52,14 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 	public async Task<object?> RunAsync(object? c)
 	{
+		var cstr = (string) c;
+		Debug.WriteLine($"Input: {cstr}");
+
 		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
 		{
 			var p = ctx.AddTask("Creating query");
 			p.IsIndeterminate = true;
-			m_query           = await SearchQuery.TryCreateAsync((string) c!);
+			m_query           = await SearchQuery.TryCreateAsync(cstr);
 			p.Increment(COMPLETE);
 			ctx.Refresh();
 		});
@@ -78,10 +82,11 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 		SConsole.CancelKeyPress += (sender, args) =>
 		{
-			args.Cancel = false;
-			m_cts.Cancel();
 			AConsole.MarkupLine($"[red]Cancellation requested[/]");
-			Environment.Exit(-1);
+			m_cts.Cancel();
+			args.Cancel = false;
+
+			Environment.Exit(ConsoleUtil.CODE_ERR);
 		};
 
 		// await Prg_1.StartAsync(RunSearchAsync);

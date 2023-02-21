@@ -88,9 +88,73 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null, [CBN] IProgress<int> p=null)
+	/// <param name="p"><see cref="IProgress{T}"/></param>
+	public async Task<SearchResult[]> RunSearchAsync(SearchQuery[] query, CancellationToken? token = null,
+	                                                 [CBN] IProgress<int> p = null)
 	{
 		if (!ConfigApplied) {
+			await ApplyConfigAsync();
+		}
+
+		token ??= CancellationToken.None;
+		var tasks = query.SelectMany(e => GetSearchTasks(e, token.Value)).ToList();
+
+		var results = new SearchResult[tasks.Count];
+		int i       = 0;
+
+		while (tasks.Any()) {
+			if (token.Value.IsCancellationRequested) {
+
+				Logger.LogWarning("Cancellation requested");
+				IsComplete = true;
+
+				return results;
+			}
+
+			var task = await Task.WhenAny(tasks);
+
+			var result = await task;
+
+			OnResult?.Invoke(this, result);
+			p?.Report(i);
+
+			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+
+				OpenResult(result);
+			}
+
+			results[i] = result;
+			i++;
+			// results.Add(result);
+			tasks.Remove(task);
+		}
+
+		OnComplete?.Invoke(this, results);
+
+		IsComplete = true;
+
+		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+
+			// var sri    = results.SelectMany(r => r.Results).ToArray();
+			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
+			//todo
+			OpenResult(results.FirstOrDefault());
+
+		}
+
+		return results;
+	}
+
+	/// <summary>
+	/// Runs a search of <paramref name="query"/>.
+	/// </summary>
+	/// <param name="query">Search query</param>
+	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
+	/// <param name="p"><see cref="IProgress{T}"/></param>
+	public Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null,
+	                                           [CBN] IProgress<int> p = null)
+	{
+		/*if (!ConfigApplied) {
 			await ApplyConfigAsync();
 		}
 
@@ -141,7 +205,9 @@ public sealed class SearchClient : IDisposable
 
 		}
 
-		return results;
+		return results;*/
+
+		return RunSearchAsync(new SearchQuery[] { query }, token, p);
 	}
 
 	private void OpenResult(SearchResult result)
@@ -271,5 +337,4 @@ public sealed class SearchClient : IDisposable
 		ConfigApplied = false;
 		IsComplete    = false;
 	}
-	
 }

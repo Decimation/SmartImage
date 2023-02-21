@@ -73,4 +73,7 @@ internal static class ConsoleUtil
 
 		Native.FlashWindowEx(ref pwfi);
 	}
+
+	internal const int CODE_ERR = -1;
+	internal const int CODE_OK  = 0;
 }

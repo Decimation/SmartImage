@@ -159,7 +159,7 @@ public sealed class YandexEngine : WebSearchEngine
 		var otherImages = GetOtherImages(doc, sr);
 		sr.Results.AddRange(otherImages);
 
-		var ext =  ParseExternalInfo(doc, sr);
+		var ext = ParseExternalInfo(doc, sr);
 		sr.Results.AddRange(ext);
 
 		//

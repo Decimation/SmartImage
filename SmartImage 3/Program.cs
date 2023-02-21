@@ -106,21 +106,8 @@ public static class Program
 				return i;
 
 			}
-			else if (args.Contains("-d")) {
-				var sc             =new SearchClient(SearchConfig.Default);
-				var sq = await SearchQuery.TryCreateAsync("https://i.imgur.com/QtCausw.png");
-				await sq.UploadAsync();
-				var r              =await sc.RunSearchAsync(sq);
 
-				foreach (SearchResult searchResult in r) {
-					Console.WriteLine(searchResult);
-				}
-
-				return 0;
-			}
-			else {
-				return -1;
-			}
+			return ConsoleUtil.CODE_ERR;
 		}
 		else {
 			main1:
@@ -137,7 +124,7 @@ public static class Program
 				goto main1;
 			}
 
-			return 0;
+			return ConsoleUtil.CODE_OK;
 		}
 	}
 }

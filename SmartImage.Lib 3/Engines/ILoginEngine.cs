@@ -6,11 +6,10 @@
 
 public interface ILoginEngine
 {
-    public string Username { get; set; }
-    public string Password { get; set; }
+	public string Username { get; set; }
+	public string Password { get; set; }
 
-    public Task<bool> LoginAsync();
+	public Task<bool> LoginAsync();
 
-    public bool     IsLoggedIn { get; }
-
+	public bool IsLoggedIn { get; }
 }
