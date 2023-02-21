@@ -15,6 +15,7 @@ using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
@@ -98,7 +99,7 @@ public sealed class SearchClient : IDisposable
 
 		token ??= CancellationToken.None;
 		var tasks = query.SelectMany(e => GetSearchTasks(e, token.Value)).ToList();
-
+		
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
 
@@ -235,7 +236,6 @@ public sealed class SearchClient : IDisposable
 #endif
 
 	}
-
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
 	{
 		if (query.Upload is not { }) {
@@ -244,9 +244,11 @@ public sealed class SearchClient : IDisposable
 
 		var tasks = Engines.Select(e =>
 		{
-			return e.GetResultAsync(query, token);
-		}).ToList();
+			var res = e.GetResultAsync(query, token);
 
+			return res;
+		}).ToList();
+		
 		return tasks;
 	}
 
