@@ -6,17 +6,19 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
 using Spectre.Console;
 using Spectre.Console.Rendering;
-using AConsole=Spectre.Console.AnsiConsole;
+using AConsole = Spectre.Console.AnsiConsole;
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Mode;
 
 public sealed class CliMode : IDisposable, IMode, IProgress<int>
 {
+	private const int COMPLETE = 100;
+
 	#region
 
 	static CliMode()
@@ -49,14 +51,26 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 	public async Task<object?> RunAsync(object? c)
 	{
+		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
+		{
+			var p = ctx.AddTask("Creating query");
+			p.IsIndeterminate = true;
+			m_query           = await SearchQuery.TryCreateAsync((string) c!);
+			p.Increment(COMPLETE);
+			ctx.Refresh();
+		});
 
-		// await Prg_1.StartAsync(ctx => ValidateInputAsync(ctx, c as string));
-		await ValidateInputAsync((string) c!);
-		AConsole.WriteLine($"{m_query}");
+		AConsole.WriteLine($"Input: {m_query}");
+		
+		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
+		{
+			var p = ctx.AddTask("Uploading");
+			p.IsIndeterminate = true;
+			var url = await m_query.UploadAsync();
 
-		// var url = await Prg_1.StartAsync(UploadInputAsync);
-
-		var url = await UploadInputAsync();
+			p.Increment(COMPLETE);
+			ctx.Refresh();
+		});
 
 		AConsole.MarkupLine($"[green]{m_query.Upload}[/]");
 
@@ -66,7 +80,8 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 		{
 			args.Cancel = false;
 			m_cts.Cancel();
-			AConsole.MarkupLine($"[red]Cancellation requested {args}[/]");
+			AConsole.MarkupLine($"[red]Cancellation requested[/]");
+			Environment.Exit(-1);
 		};
 
 		// await Prg_1.StartAsync(RunSearchAsync);
@@ -77,39 +92,8 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 	}
 
-	private async Task ValidateInputAsync(string c)
-	{
-		// var t = ctx.AddTask("Validating input");
-		// t.IsIndeterminate = true;
-
-		m_query = await SearchQuery.TryCreateAsync(c);
-
-		// t.Increment(COMPLETE);
-	}
-
-	private async Task<Url> UploadInputAsync()
-	{
-		// var pt = p.AddTask($"Upload");
-		// pt.IsIndeterminate = true;
-		var urlInner = await m_query.UploadAsync();
-		// pt.Increment(COMPLETE);
-		return urlInner;
-
-	}
-
 	private async Task RunSearchAsync()
 	{
-		/*var ptMap = new Dictionary<BaseSearchEngine, (ProgressTask, Table)>();
-
-		foreach (var e in m_client.Engines) {
-			var t  = ctx.AddTask($"{e}");
-			var tt = get_table(e);
-			t.IsIndeterminate = true;
-			ptMap.Add(e, (t, tt));
-		}
-
-		var pt1 = ctx.AddTask("[yellow]Searching[/]");
-		pt1.IsIndeterminate = false;*/
 
 		void OnComplete(object sender, SearchResult[] searchResults)
 		{
@@ -126,7 +110,13 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 			ShowHeaders = true,
 		};
 
-		mt.AddColumns(new TableColumn("#"), new TableColumn("Link"));
+		mt.AddColumns(new TableColumn("#"),
+		              new TableColumn("Name"),
+		              new TableColumn("Similarity"),
+		              new TableColumn("Artist"),
+		              new TableColumn("Description"),
+		              new TableColumn("Character")
+		);
 
 		// pt1.MaxValue = m_client.Engines.Length;
 
@@ -143,8 +133,11 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 				mt.Rows.Add(new IRenderable[]
 				{
 					new Text($"{i + 1}"),
-					Markup.FromInterpolated($"[link={sri.Url}]{sr.Engine.Name} #{i + 1}[/]")
-
+					Markup.FromInterpolated($"[link={sri.Url}]{sr.Engine.Name} #{i + 1}[/]"),
+					Markup.FromInterpolated($"{sri.Similarity}"),
+					Markup.FromInterpolated($"{sri.Artist}"),
+					Markup.FromInterpolated($"{sri.Description}"),
+					Markup.FromInterpolated($"{sri.Character}"),
 				});
 
 				i++;
@@ -155,18 +148,16 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 		m_client.OnResult += OnResult;
 
-		var ttt = m_client.RunSearchAsync(m_query, m_cts.Token);
+		var run = m_client.RunSearchAsync(m_query, m_cts.Token);
 
-		/*
-		while (!pt1.IsFinished) { }*/
 		var sw = Stopwatch.StartNew();
 
-		var sp = AConsole.Live(mt)
+		var live = AConsole.Live(mt)
 			.AutoClear(false)
 			.Overflow(VerticalOverflow.Ellipsis)
 			.StartAsync(async (ctx) =>
 			{
-				while (!ttt.IsCompleted) {
+				while (!run.IsCompleted) {
 					ctx.Refresh();
 					mt.Caption = new TableTitle($"{sw.Elapsed.TotalSeconds:F3}");
 					// await Task.Delay(1000);
@@ -174,39 +165,10 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 			});
 
-		await ttt;
+		await run;
 
-		/*var ld = AnsiConsole.Live(new Table()
-									  { });
-		ld.StartAsync(async (x) =>
-		{
-			return;
-		});*/
-		// pt1.StopTask();
+		await live;
 
-		/*while (!pt1.IsFinished || ptMap.Any(s => !s.Value.Item1.IsFinished)) {
-			await Task.Delay(TimeSpan.FromMilliseconds(100));
-		}*/
-
-		// AnsiConsole.Clear();
-
-		await sp;
-
-	}
-
-	private static Table get_table(BaseSearchEngine bse)
-	{
-		var tt = new Table()
-		{
-			Border      = TableBorder.Heavy,
-			Title       = new($"{bse.Name}"),
-			ShowFooters = true,
-			ShowHeaders = true,
-		};
-
-		tt.AddColumns(new TableColumn("#"), new TableColumn("Link"));
-
-		return tt;
 	}
 
 	public void Dispose()
