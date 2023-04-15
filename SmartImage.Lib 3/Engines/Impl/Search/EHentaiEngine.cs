@@ -16,6 +16,10 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
+/// <summary>
+/// <see cref="SearchEngineOptions.EHentai"/>
+/// Handles both ExHentai and E-Hentai
+/// </summary>
 public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	INotifyPropertyChanged
 {
@@ -212,7 +216,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		return ValueTask.FromResult(array);
 	}
 
-	protected override ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
 		var item = new SearchResultItem(r)
 			{ };

@@ -149,7 +149,7 @@ public sealed class YandexEngine : WebSearchEngine
 		 */
 
 		foreach (var node in await GetNodes(doc)) {
-			var sri = await ParseNodeToItem(node, sr);
+			var sri = await ParseResultItem(node, sr);
 
 			if (sri != null) {
 				sr.Results.Add(sri);
@@ -239,7 +239,7 @@ public sealed class YandexEngine : WebSearchEngine
 	}
 
 	[ICBN]
-	protected override ValueTask<SearchResultItem> ParseNodeToItem(INode siz, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseResultItem(INode siz, SearchResult r)
 	{
 		string link = siz.TryGetAttribute(Serialization.Atr_href);
 

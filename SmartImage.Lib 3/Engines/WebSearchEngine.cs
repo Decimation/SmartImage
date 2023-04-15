@@ -32,7 +32,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 				break;
 			}
 
-			var sri = await ParseNodeToItem(node, res);
+			var sri = await ParseResultItem(node, res);
 
 			if (SearchResultItem.IsValid(sri)) {
 				res.Results.Add(sri);
@@ -91,8 +91,8 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		}
 	}
 
-	protected abstract ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r);
-
+	protected abstract ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r);
+	
 	protected virtual ValueTask<INode[]> GetNodes(IDocument d)
 		=> ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
 

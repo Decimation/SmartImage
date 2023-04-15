@@ -106,7 +106,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		}
 	}
 
-	protected override ValueTask<SearchResultItem> ParseNodeToItem(INode n, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
 
