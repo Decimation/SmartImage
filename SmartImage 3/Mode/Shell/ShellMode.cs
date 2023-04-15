@@ -199,13 +199,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	};
 
-	private static readonly Button Btn_Queue = new("Queue")
+	private static readonly CheckBox Cb_Queue = new()
 	{
 		X = Pos.X(Btn_Run),
 		Y = Pos.Bottom(Btn_Run),
 
+	};
+
+	private static readonly Button Btn_Queue = new("Queue")
+	{
+		X = Pos.Right(Cb_Queue),
+		Y = Pos.Y(Cb_Queue),
+
 		Height      = Dim.Height(Btn_Run),
-		ColorScheme = UI.Cs_Lbl1
+		ColorScheme = UI.Cs_Btn1
 
 	};
 
@@ -260,6 +267,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	internal ManualResetEvent IsReady { get; set; }
 
+	private readonly ConcurrentQueue<ustring> m_queue;
+
 	#endregion
 
 	#endregion
@@ -273,6 +282,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Query   = SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
+		m_queue = new();
 
 		m_results = new();
 
@@ -295,7 +305,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 
 		m_clipboard = new List<ustring>();
-
+		
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
 			new("_About", null, AboutDialog),
@@ -373,17 +383,32 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			if (!string.IsNullOrWhiteSpace(file)) {
 				Query.Dispose();
+				Debug.WriteLine($"{IsQueryReady()}");
 				FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
 				Debug.WriteLine($"deleted {file}");
 				Clear();
 			}
 
 		};
+		
+		Cb_Queue.Toggled += b =>
+		{
+			Btn_Queue.Enabled = !b;
+		};
+
+		Btn_Queue.Clicked += () =>
+		{
+			if (IsQueryReady()) {
+				
+			}
+		};
+		
+		Btn_Queue.Enabled = false;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2, /*Btn_Queue,*/ Btn_Delete
+		        Lbl_Status2, Btn_Queue, Btn_Delete, Cb_Queue
 		);
 
 		Top.Add(Win);
@@ -610,6 +635,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 		IsReady.Set();
 		Btn_Run.Enabled     = false;
 		Pbr_Status.Fraction = 0;
+		// Btn_Delete.Enabled = true;
+
+		Tf_Input.ReadOnly    = true;
 
 		return true;
 	}
@@ -680,5 +708,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Client.Dispose();
 		Query.Dispose();
 		m_token.Dispose();
+		m_queue.Clear();
 	}
 }

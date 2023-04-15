@@ -32,6 +32,8 @@ public sealed partial class ShellMode
 
 	private void Clear()
 	{
+		Tf_Input.ReadOnly = false;
+
 		Tf_Input.DeleteAll();
 		Tf_Input.ClearHistoryChanges();
 
@@ -57,5 +59,8 @@ public sealed partial class ShellMode
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 		Btn_Cancel.Enabled = false;
+
+		m_queue.Clear();
+
 	}
 }

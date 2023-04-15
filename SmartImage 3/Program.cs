@@ -18,6 +18,8 @@ using SmartImage.Mode;
 using SmartImage.Mode.Shell;
 using SmartImage.Utilities;
 using Command = System.CommandLine.Command;
+using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Utilities;
 
 #pragma warning disable CS0168
 
@@ -52,6 +54,8 @@ public static class Program
 
 	}
 
+	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
+
 	public static async Task<int> Main(string[] args)
 	{
 		// Console.OutputEncoding = Encoding.Unicode;
@@ -73,9 +77,15 @@ public static class Program
 		 */
 #endif
 
+		bool c = Global.IsCompatible;
+
+		if (!c) {
+			Logger.LogCritical("{Lib} incompatible!", Global.LIB_NAME);
+		}
+
 		bool cli = args is { } && args.Any();
 
-		if (cli&& args.Contains(R2.Arg_NoUI)) {
+		if (cli && args.Contains(R2.Arg_NoUI)) {
 			var main = new CliMode();
 
 			var rc = new RootCommand()
@@ -94,12 +104,11 @@ public static class Program
 
 			};
 
-			foreach (Option option in options)
-			{
+			foreach (Option option in options) {
 				rc.AddOption(option);
 			}
 
-			rc.SetHandler(main.RunAsync, (Option<string>)options[0]);
+			rc.SetHandler(main.RunAsync, (Option<string>) options[0]);
 
 			var i = await rc.InvokeAsync(args);
 

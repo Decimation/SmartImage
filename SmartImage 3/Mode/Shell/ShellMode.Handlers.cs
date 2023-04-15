@@ -85,7 +85,8 @@ public sealed partial class ShellMode
 	/// </summary>
 	private async void Run_Clicked()
 	{
-		Btn_Run.Enabled = false;
+		Btn_Run.Enabled    = false;
+		// Btn_Delete.Enabled = false;
 
 		var text = Tf_Input.Text;
 
@@ -146,12 +147,16 @@ public sealed partial class ShellMode
 
 	private static void Clear_Clicked()
 	{
+		Tf_Input.ReadOnly = false;
 		Tf_Input.DeleteAll();
 		UI.SetLabelStatus(Lbl_InputOk, null);
 		Lbl_InputOk.SetNeedsDisplay();
 		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
 		Lbl_Status2.Text    = ustring.Empty;
+
+		Tf_Input.SetFocus();
+		// Btn_Delete.Enabled = false;
 	}
 
 	private void Cancel_Clicked()
