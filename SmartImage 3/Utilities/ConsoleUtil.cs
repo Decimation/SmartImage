@@ -1,10 +1,14 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using Kantan.Console;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using Novus.Win32.Structures.User32;
 using SmartImage.App;
+using Terminal.Gui;
 
 namespace SmartImage.Utilities;
 
@@ -76,4 +80,5 @@ internal static class ConsoleUtil
 
 	internal const int CODE_ERR = -1;
 	internal const int CODE_OK  = 0;
+
 }

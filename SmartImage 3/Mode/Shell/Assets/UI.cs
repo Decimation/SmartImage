@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Kantan.Console;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
@@ -61,6 +63,95 @@ internal static partial class UI
 		}
 	}
 
+	public static void FromEnum2<TEnum>(this ListView lv, TEnum e) where TEnum : struct, Enum
+	{
+		var list = lv.Source.ToList<TEnum>().ToArray();
+
+		for (var i = 0; i < list.Length; i++) {
+			// var flag = Enum.Parse<TEnum>(list[i].ToString());
+			// var mark = e.HasFlag(flag);
+			TEnum e2   = list[i];
+			var   mark = e.HasFlag(e2);
+
+			if (e2.Equals(default(TEnum))) {
+				Debug.WriteLine($"Skipping {default(TEnum)}");
+				continue;
+			}
+
+			Debug.WriteLine($"{e}, {e2} -> {mark}");
+			lv.Source.SetMark(i, mark);
+		}
+	}
+
+	public static TEnum GetEnum2<TEnum>(this IListDataSource lv, TEnum t = default) where TEnum : struct, Enum
+	{
+		var m = lv.GetItems<TEnum>();
+
+		TEnum t2 = t;
+
+		Debug.Assert(Unsafe.SizeOf<TEnum>() == Unsafe.SizeOf<int>());
+
+		unsafe {
+			var ptr = (int*) Unsafe.AsPointer(ref t2);
+
+			foreach (var t1 in m) {
+				TEnum tv  = t1.Value;
+				var   val = (int*) Unsafe.AsPointer(ref tv);
+
+				if (t1.IsMarked) {
+					*ptr |= *val;
+
+				}
+				else {
+					*ptr &= ~*val;
+				}
+			}
+
+		}
+
+		return t2;
+	}
+
+	static IList<T> GetItems<T>(IListDataSource src)
+	{
+		var ls  = new List<T>();
+		var cpy = src.ToList();
+
+		for (int i = 0; i < src.Length; i++) {
+			if (src.IsMarked(i)) {
+				// ls.RemoveAt(i);
+				ls.Add((T) (object) cpy[i]);
+			}
+		}
+
+		return ls;
+	}
+
+	internal static void OnEngineSelected_(ListView lv, ref SearchEngineOptions e)
+	{
+		var l = lv.Source.ToList<SearchEngineOptions>().ToArray();
+
+		for (int i = 0; i < l.Length; i++) {
+			if (lv.Source.IsMarked(i)) {
+				switch (l[i]) {
+					case SearchEngineOptions.None:
+						e = SearchEngineOptions.None;
+						goto ret;
+					case SearchEngineOptions.All:
+						e = SearchEngineOptions.All;
+						goto ret;
+				}
+
+				e |= l[i];
+			}
+		}
+
+		ret:
+		lv.FromEnum2(e);
+
+		Debug.WriteLine($"{e}");
+	}
+
 	internal static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)
 	{
 		var val = (SearchEngineOptions) args.Value;
@@ -89,10 +180,9 @@ internal static partial class UI
 			lv.Source.SetMark(0, false);
 		}
 
-		lv.FromEnum(e);
-		
+		lv.FromEnum2(e);
+
 		lv.SetNeedsDisplay();
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}
-
 }

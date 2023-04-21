@@ -162,4 +162,9 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		OnPropertyChanged(propertyName);
 		return true;
 	}
+
+	public override string ToString()
+	{
+		return $"{SearchEngines}\n{PriorityEngines}";
+	}
 }

@@ -1,0 +1,8 @@
+{
+	"yandex": {
+		"host": "https://yandex.com/images/search?rpt=imageview&url="
+	},
+	"google": {
+		"host": null
+	}
+}

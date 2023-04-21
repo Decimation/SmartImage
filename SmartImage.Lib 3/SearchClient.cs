@@ -29,7 +29,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsComplete { get; private set; }
 
-	public BaseSearchEngine[] Engines { get; }
+	public BaseSearchEngine[] Engines { get; private set; }
 
 	public bool ConfigApplied { get; private set; }
 
@@ -39,12 +39,7 @@ public sealed class SearchClient : IDisposable
 	{
 		Config        = cfg;
 		ConfigApplied = false;
-
-		Engines = BaseSearchEngine.All.Where(e =>
-			{
-				return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
-			})
-			.ToArray();
+		LoadEngines();
 
 	}
 
@@ -91,11 +86,15 @@ public sealed class SearchClient : IDisposable
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	/// <param name="p"><see cref="IProgress{T}"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null,
-	                                           [CBN] IProgress<int> p = null)
+	                                                 [CBN] IProgress<int> p = null)
 	{
 		if (!ConfigApplied) {
 			await ApplyConfigAsync();
 		}
+
+		LoadEngines();
+
+		Debug.WriteLine($"Config: {Config}");
 
 		token ??= CancellationToken.None;
 
@@ -172,6 +171,7 @@ public sealed class SearchClient : IDisposable
 #endif
 
 	}
+
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
 	{
 		if (query.Upload is not { }) {
@@ -184,12 +184,14 @@ public sealed class SearchClient : IDisposable
 
 			return res;
 		}).ToList();
-		
+
 		return tasks;
 	}
 
 	public async ValueTask ApplyConfigAsync()
 	{
+		LoadEngines();
+
 		foreach (BaseSearchEngine bse in Engines) {
 			if (bse is IConfig cfg) {
 				await cfg.ApplyAsync(Config);
@@ -198,6 +200,15 @@ public sealed class SearchClient : IDisposable
 
 		Logger.LogDebug("Loaded engines");
 		ConfigApplied = true;
+	}
+
+	public BaseSearchEngine[] LoadEngines()
+	{
+		return Engines = BaseSearchEngine.All.Where(e =>
+			       {
+				       return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
+			       })
+			       .ToArray();
 	}
 
 	[CBN]

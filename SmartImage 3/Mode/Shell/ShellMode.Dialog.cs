@@ -1,14 +1,19 @@
 ﻿// Read Stanton SmartImage ShellMain.Dialog.cs
 // 2023-01-13 @ 11:28 PM
 
+using System.Collections;
 using System.Data;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Kantan.Console;
+using Kantan.Text;
 using Novus.OS;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Mode.Shell.Assets;
+using SmartImage.Utilities;
 using Terminal.Gui;
 
 namespace SmartImage.Mode.Shell;
@@ -139,7 +144,9 @@ public sealed partial class ShellMode
 		lvSearchEngines.OpenSelectedItem += args1 =>
 		{
 			SearchEngineOptions e = Config.SearchEngines;
-			UI.OnEngineSelected(args1, ref e, lvSearchEngines);
+			// UI.OnEngineSelected(args1, ref e, lvSearchEngines);
+			UI.OnEngineSelected_(lvSearchEngines, ref e);
+			Debug.WriteLine($"Setting {e}");
 			Config.SearchEngines = e;
 			ReloadDialog();
 		};
@@ -147,13 +154,18 @@ public sealed partial class ShellMode
 		lvPriorityEngines.OpenSelectedItem += args1 =>
 		{
 			SearchEngineOptions e = Config.PriorityEngines;
-			UI.OnEngineSelected(args1, ref e, lvPriorityEngines);
+			// UI.OnEngineSelected(args1, ref e, lvPriorityEngines);
+			UI.OnEngineSelected_(lvPriorityEngines, ref e);
+			Debug.WriteLine($"Setting {e}");
 			Config.PriorityEngines = e;
 			ReloadDialog();
 		};
 
-		lvSearchEngines.FromEnum(Config.SearchEngines);
-		lvPriorityEngines.FromEnum(Config.PriorityEngines);
+		// Debug.WriteLine($"{GetItems<SearchEngineOptions>(lvSearchEngines.Source).QuickJoin()}");
+		// lvSearchEngines.FromEnum2(Config.SearchEngines);
+		// lvPriorityEngines.FromEnum2(Config.PriorityEngines);
+		
+		// var e=lvSearchEngines.Source.GetEnum2(default(SearchEngineOptions));
 
 		/*============================================================================*\
 			Checkboxes
@@ -305,7 +317,7 @@ public sealed partial class ShellMode
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
-			cbOpenRaw);
+		          cbOpenRaw);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);
@@ -316,4 +328,5 @@ public sealed partial class ShellMode
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 	}
+	
 }

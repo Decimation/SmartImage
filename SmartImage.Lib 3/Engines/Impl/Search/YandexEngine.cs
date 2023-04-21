@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Dynamic;
+using System.Net.NetworkInformation;
 using AngleSharp.Dom;
 using AngleSharp.XPath;
 using Kantan.Monad;
@@ -21,7 +22,6 @@ public sealed class YandexEngine : WebSearchEngine
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
 		Timeout = TimeSpan.FromSeconds(10);
-
 	}
 
 	protected override string NodesSelector => Serialization.S_Yandex_Images;

@@ -18,193 +18,179 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 {
-    public IqdbEngine() : base("https://iqdb.org/?url=")
-    {
-        MaxSize = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
-    }
+	public IqdbEngine() : base("https://iqdb.org/?url=")
+	{
+		MaxSize = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
+	}
 
-    #region Implementation of IClientSearchEngine
+	#region Implementation of IClientSearchEngine
 
-    public string EndpointUrl => "https://iqdb.org/";
+	public string EndpointUrl => "https://iqdb.org/";
 
-    #endregion
+	#endregion
 
-    public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
-    private static SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
-    {
-        var caption = tr[0];
-        var img = tr[1];
-        var src = tr[2];
+	private static SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
+	{
+		var caption = tr[0];
+		var img     = tr[1];
+		var src     = tr[2];
 
-        string url = null!;
+		string url = null!;
 
-        //img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
+		//img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
 
-        try
-        {
-            //url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
+		try {
+			//url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
 
-            url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
+			url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
 
-            // Links must begin with http:// in order to work with "start"
+			// Links must begin with http:// in order to work with "start"
 
-        }
-        catch
-        {
-            // ignored
-        }
+		}
+		catch {
+			// ignored
+		}
 
-        int w = 0, h = 0;
+		int w = 0, h = 0;
 
-        if (tr.Length >= 4)
-        {
-            var res = tr[3];
+		if (tr.Length >= 4) {
+			var res = tr[3];
 
-            string[] wh = res.TextContent.Split(Strings.Constants.MUL_SIGN);
+			string[] wh = res.TextContent.Split(Strings.Constants.MUL_SIGN);
 
-            string wStr = wh[0].SelectOnlyDigits();
-            w = int.Parse(wStr);
+			string wStr = wh[0].SelectOnlyDigits();
+			w = int.Parse(wStr);
 
-            // May have NSFW caption, so remove it
+			// May have NSFW caption, so remove it
 
-            string hStr = wh[1].SelectOnlyDigits();
-            h = int.Parse(hStr);
-        }
+			string hStr = wh[1].SelectOnlyDigits();
+			h = int.Parse(hStr);
+		}
 
-        double? sim;
+		double? sim;
 
-        if (tr.Length >= 5)
-        {
-            var simNode = tr[4];
-            string simStr = simNode.TextContent.Split('%')[0];
-            sim = double.Parse(simStr);
-            sim = Math.Round(sim.Value, 2);
-        }
-        else
-        {
-            sim = null;
-        }
+		if (tr.Length >= 5) {
+			var    simNode = tr[4];
+			string simStr  = simNode.TextContent.Split('%')[0];
+			sim = double.Parse(simStr);
+			sim = Math.Round(sim.Value, 2);
+		}
+		else {
+			sim = null;
+		}
 
-        Url uri;
+		Url uri;
 
-        if (url != null)
-        {
-            if (url.StartsWith("//"))
-            {
-                url = "http:" + url;
-            }
+		if (url != null) {
+			if (url.StartsWith("//")) {
+				url = "http:" + url;
+			}
 
-            uri = url;
-        }
-        else
-        {
-            uri = null;
-        }
+			uri = url;
+		}
+		else {
+			uri = null;
+		}
 
-        var result = new SearchResultItem(r)
-        {
-            Url = uri,
-            Similarity = sim,
-            Width = w,
-            Height = h,
-            Source = src.TextContent,
-            Description = caption.TextContent,
-        };
+		var result = new SearchResultItem(r)
+		{
+			Url         = uri,
+			Similarity  = sim,
+			Width       = w,
+			Height      = h,
+			Source      = src.TextContent,
+			Description = caption.TextContent,
+		};
 
-        return result;
-    }
+		return result;
+	}
 
-    private async Task<IDocument> GetDocumentAsync(SearchQuery query)
-    {
-        const int MAX_FILE_SIZE = 0x800000;
+	private async Task<IDocument> GetDocumentAsync(SearchQuery query)
+	{
+		const int MAX_FILE_SIZE = 0x800000;
 
-        var response = await EndpointUrl.PostMultipartAsync(m =>
-        {
-            m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-            m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : string.Empty);
+		var response = await EndpointUrl.PostMultipartAsync(m =>
+		{
+			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
+			m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : string.Empty);
 
-            if (query.Uni.IsUri) { }
-            else if (query.Uni.IsFile)
-            {
-                m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
-            }
+			if (query.Uni.IsUri) { }
+			else if (query.Uni.IsFile) {
+				m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
+			}
 
-            return;
-        });
+			return;
+		});
 
-        var s = await response.GetStringAsync();
+		var s = await response.GetStringAsync();
 
-        var parser = new HtmlParser();
-        return await parser.ParseDocumentAsync(s);
-    }
+		var parser = new HtmlParser();
+		return await parser.ParseDocumentAsync(s);
+	}
 
-    public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
-    {
-        // Don't select other results
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	{
+		// Don't select other results
 
-        var sr = await base.GetResultAsync(query, token);
+		var sr = await base.GetResultAsync(query, token);
 
-        if (sr.Status == SearchResultStatus.IllegalInput)
-        {
-            goto ret;
-        }
-        var doc = await GetDocumentAsync(query);
+		if (sr.Status == SearchResultStatus.IllegalInput) {
+			goto ret;
+		}
 
-        if (doc == null)
-        {
-            sr.ErrorMessage = $"Could not retrieve data";
-            sr.Status = SearchResultStatus.Failure;
-            goto ret;
-        }
+		var doc = await GetDocumentAsync(query);
 
-        if (doc.Body!.TextContent.Contains("too large"))
-        {
-            sr.ErrorMessage = "Image too large";
-            sr.Status = SearchResultStatus.IllegalInput;
-            goto ret;
-        }
+		if (doc == null) {
+			sr.ErrorMessage = $"Could not retrieve data";
+			sr.Status       = SearchResultStatus.Failure;
+			goto ret;
+		}
 
-        Trace.Assert(doc != null);
+		if (doc.Body!.TextContent.Contains("too large")) {
+			sr.ErrorMessage = "Image too large";
+			sr.Status       = SearchResultStatus.IllegalInput;
+			goto ret;
+		}
 
-        var pages = doc.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
-        var tables = ((IHtmlElement)pages).SelectNodes("div/table");
+		Trace.Assert(doc != null);
 
-        // No relevant results?
+		var pages  = doc.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
+		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
-        var ns = doc.Body.QuerySelector(Serialization.S_Iqdb_NoMatches);
+		// No relevant results?
 
-        if (ns != null)
-        {
+		var ns = doc.Body.QuerySelector(Serialization.S_Iqdb_NoMatches);
 
-            sr.Status = SearchResultStatus.NoResults;
-            goto ret;
-        }
+		if (ns != null) {
 
-        var select = tables.Select(table => ((IHtmlElement)table)
-                                       .QuerySelectorAll(Serialization.S_Iqdb_Table));
+			sr.Status = SearchResultStatus.NoResults;
+			goto ret;
+		}
 
-        var images = select.Select(x => ParseResult(x, sr)).ToList();
+		var select = tables.Select(table => ((IHtmlElement) table)
+			                           .QuerySelectorAll(Serialization.S_Iqdb_Table));
 
-        // First is original image
-        images.RemoveAt(0);
+		var images = select.Select(x => ParseResult(x, sr)).ToList();
 
-        // var best = images[0];
-        // sr.PrimaryResult.UpdateFrom(best);
-        sr.Results.AddRange(images);
+		// First is original image
+		images.RemoveAt(0);
 
-    /*sr.Results.Quality = sr.PrimaryResult.Similarity switch
-    {
-        >= 75 => ResultQuality.High,
-        _ or null => ResultQuality.NA,
-    };*/
+		// var best = images[0];
+		// sr.PrimaryResult.UpdateFrom(best);
+		sr.Results.AddRange(images);
 
-    ret:
-        sr.Update();
-        return sr;
-    }
+		/*sr.Results.Quality = sr.PrimaryResult.Similarity switch
+		{
+		    >= 75 => ResultQuality.High,
+		    _ or null => ResultQuality.NA,
+		};*/
 
-    public override void Dispose()
-    {
-    }
+		ret:
+		sr.Update();
+		return sr;
+	}
+
+	public override void Dispose() { }
 }
