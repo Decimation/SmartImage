@@ -226,7 +226,7 @@ public sealed class SearchClient : IDisposable
 
 			if (r.ResponseMessage.IsSuccessStatusCode) { }
 		});*/
-
+		
 		return ValueTask.FromResult<IReadOnlyList<SearchResultItem>>(sri2);
 	}
 

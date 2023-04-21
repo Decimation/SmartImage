@@ -1,9 +1,11 @@
-﻿using Terminal.Gui;
+﻿using AngleSharp.Dom;
+using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Mode.Shell.Assets;
+
 // todo: possible overkill with caching
 internal static partial class UI
 {
@@ -52,11 +54,12 @@ internal static partial class UI
 
 	internal static ColorScheme Make(Attribute norm, Attribute focus = default, Attribute disabled = default)
 	{
-		if (focus == default) {
+
+		if (focus.Equals(default(Attribute))) {
 			focus = Attribute.Get();
 		}
 
-		if (disabled == default) {
+		if (disabled.Equals(default(Attribute))) {
 			disabled = Attribute.Get();
 		}
 
@@ -70,9 +73,10 @@ internal static partial class UI
 		};
 	}
 
-	internal static readonly ColorScheme Cs_Err = Make(Atr_BrightRed_White, disabled: Atr_BrightRed_Gray);
-	internal static readonly ColorScheme Cs_Ok  = Make(Atr_BrightGreen_White, disabled: Atr_BrightGreen_Gray);
-	internal static readonly ColorScheme Cs_NA  = Make(Atr_Brown_White, disabled: Atr_Brown_Gray);
+	internal static readonly ColorScheme Cs_Err        = Make(Atr_BrightRed_White, disabled: Atr_BrightRed_Gray);
+	internal static readonly ColorScheme Cs_Ok         = Make(Atr_BrightGreen_White, disabled: Atr_BrightGreen_Gray);
+	internal static readonly ColorScheme Cs_NA         = Make(Atr_Brown_White, disabled: Atr_Brown_Gray);
+	internal static readonly ColorScheme Cs_Btn_Cancel = Make(Atr_Red_White, disabled: Atr_DarkGray_White);
 
 	internal static readonly ColorScheme Cs_Btn1x = new()
 	{
@@ -92,8 +96,6 @@ internal static partial class UI
 		Focus     = Atr_BrightBlue_Gray
 	};
 
-	internal static readonly ColorScheme Cs_Btn_Cancel = Make(Atr_Red_White, disabled: Atr_DarkGray_White);
-
 	internal static readonly ColorScheme Cs_Btn2 = new()
 	{
 		Normal    = Atr_Blue_White,
@@ -111,6 +113,7 @@ internal static partial class UI
 		HotFocus  = Atr_BrightBlue_Gray,
 		Focus     = Atr_BrightBlue_Gray
 	};
+
 	internal static readonly ColorScheme Cs_Btn4 = new()
 	{
 		Normal = Atr_Red_White,
@@ -119,6 +122,7 @@ internal static partial class UI
 		HotFocus  = Atr_BrightRed_White,
 		Focus     = Atr_BrightRed_White
 	};
+
 	internal static readonly ColorScheme Cs_Elem2 = new()
 	{
 		Normal   = Atr_White_Cyan,
@@ -201,4 +205,6 @@ internal static partial class UI
 	internal static readonly Dim Dim_80_Pct = Dim.Percent(80);
 
 	#endregion
+
+	static UI() { }
 }

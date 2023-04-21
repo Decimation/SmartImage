@@ -27,7 +27,7 @@ public sealed partial class ShellMode
 		await run;
 
 		sw.Stop();
-		Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec {UI.OK}";
+		// Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec {UI.OK}";
 
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 	}
@@ -47,8 +47,8 @@ public sealed partial class ShellMode
 
 		Query = SearchQuery.Null;
 		IsReady.Reset();
-		ResultCount = 0;
-
+		// ResultCount = 0;
+		// m_results.Clear();
 		Pbr_Status.Fraction = 0;
 
 		Lbl_InputInfo.Text   = ustring.Empty;

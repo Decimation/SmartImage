@@ -35,6 +35,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	#region Controls
 
+	static ShellMode()
+	{
+
+	}
+
 	private static readonly Toplevel Top = Application.Top;
 
 	private static readonly Window Win = new(R2.Name)
@@ -264,7 +269,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public string[] Args { get; init; }
 
-	public int ResultCount { get; private set; }
+	// public int ResultCount { get; private set; }
+
+	public int ResultCount => m_results.Count;
 
 	internal ManualResetEvent IsReady { get; set; }
 
@@ -273,8 +280,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 	#endregion
 
 	#endregion
-
-	static ShellMode() { }
 
 	public ShellMode(string[] args)
 	{
@@ -378,7 +383,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			HttpUtilities.TryOpenUrl(Query.Upload);
 		};
 
-		Btn_Delete.Clicked += On_Delete;
+		Btn_Delete.Clicked += Delete_Clicked;
 
 		Cb_Queue.Toggled += b =>
 		{
@@ -410,6 +415,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 		if (m_autoSearch) {
 			Btn_Run.OnClicked();
 		}
+
+		/*var tok = Application.MainLoop.AddIdle(() =>
+		{
+			if (m_autoSearch && IsQueryReady()) {
+				Btn_Run.OnClicked();
+				return false;
+			}
+
+			return true;
+		});*/
 	}
 
 	public Task<object?> RunAsync(object? sender = null)
@@ -464,7 +479,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 				                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 			}
 
-			Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
+			// Interlocked.Increment(ref ResultCount);
+			Pbr_Status.Fraction = (float) m_results.Count / (Client.Engines.Length);
+
+			// Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
 			Tv_Results.SetNeedsDisplay();
 			Pbr_Status.SetNeedsDisplay();
 		});
@@ -699,5 +717,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Query.Dispose();
 		m_token.Dispose();
 		m_queue.Clear();
+		m_results.Clear();
 	}
 }

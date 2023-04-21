@@ -74,11 +74,11 @@ internal static partial class UI
 			var   mark = e.HasFlag(e2);
 
 			if (e2.Equals(default(TEnum))) {
-				Debug.WriteLine($"Skipping {default(TEnum)}");
+				// Debug.WriteLine($"Skipping {default(TEnum)}");
 				continue;
 			}
 
-			Debug.WriteLine($"{e}, {e2} -> {mark}");
+			// Debug.WriteLine($"{e}, {e2} -> {mark}");
 			lv.Source.SetMark(i, mark);
 		}
 	}
@@ -132,7 +132,6 @@ internal static partial class UI
 		}
 
 		ret:
-		Debug.WriteLine($"1 {e}");
 		var v = ((SearchEngineOptions) lvie.Value);
 		if (lv.Source.IsMarked(lvie.Item)) {
 			e |= v;
@@ -141,9 +140,7 @@ internal static partial class UI
 			e &= ~v;
 		}
 
-		Debug.WriteLine($"2 {e}");
 		lv.FromEnum(e);
-		Debug.WriteLine($"3 {e}");
 	}
 
 	/*internal static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)

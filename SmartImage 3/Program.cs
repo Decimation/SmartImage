@@ -54,6 +54,11 @@ public static class Program
 
 	}
 
+	static Program()
+	{
+
+	}
+
 	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
 
 	public static async Task<int> Main(string[] args)
@@ -118,7 +123,7 @@ public static class Program
 			main1:
 			Application.Init();
 
-			var    main = new ShellMode(args);
+			var main = new ShellMode(args);
 			object status;
 
 			var run = main.RunAsync(null);

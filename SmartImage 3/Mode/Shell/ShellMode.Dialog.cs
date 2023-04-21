@@ -146,7 +146,7 @@ public sealed partial class ShellMode
 			SearchEngineOptions e = Config.SearchEngines;
 			// UI.OnEngineSelected(args1, ref e, lvSearchEngines);
 			UI.OnEngineSelected(lvSearchEngines, args1, ref e);
-			Debug.WriteLine($"Setting {e}");
+			// Debug.WriteLine($"Setting {e}");
 			Config.SearchEngines = e;
 			ReloadDialog();
 		};
@@ -156,7 +156,7 @@ public sealed partial class ShellMode
 			SearchEngineOptions e = Config.PriorityEngines;
 			// UI.OnEngineSelected(args1, ref e, lvPriorityEngines);
 			UI.OnEngineSelected(lvPriorityEngines, args1, ref e);
-			Debug.WriteLine($"Setting {e}");
+			// Debug.WriteLine($"Setting {e}");
 			Config.PriorityEngines = e;
 			ReloadDialog();
 		};
@@ -224,7 +224,7 @@ public sealed partial class ShellMode
 
 		cbAutoSearch.Toggled += b =>
 		{
-			m_autoSearch = b;
+			m_autoSearch = !b;
 			ReloadDialog();
 		};
 

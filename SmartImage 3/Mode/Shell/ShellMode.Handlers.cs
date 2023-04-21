@@ -49,6 +49,7 @@ public sealed partial class ShellMode
 		if (SearchQuery.IsValidSourceType(text.ToString())) {
 			var ok = await SetQuery(text);
 			Btn_Run.Enabled = ok;
+			
 		}
 	}
 
@@ -76,13 +77,14 @@ public sealed partial class ShellMode
 		Btn_Restart.Enabled = false;
 		Btn_Cancel.Enabled  = false;
 		Btn_Run.Enabled     = true;
-		Btn_Delete.Enabled     = false;
+		Btn_Delete.Enabled  = false;
 
 		m_token.Dispose();
 		m_token = new();
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
+
 	}
 
 	/// <summary>
@@ -174,7 +176,7 @@ public sealed partial class ShellMode
 		Tv_Results.SetFocus();
 	}
 
-	private void On_Delete()
+	private void Delete_Clicked()
 	{
 		Clipboard.Close();
 		// Restart_Clicked(true);
