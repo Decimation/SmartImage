@@ -3,12 +3,16 @@
 
 using System.Diagnostics;
 using Kantan.Net.Utilities;
+using Microsoft.VisualBasic.FileIO;
 using Novus.OS;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
+using Clipboard = Novus.Win32.Clipboard;
+using Microsoft.VisualBasic.FileIO;
+using FileSystem = Novus.OS.FileSystem;
 
 namespace SmartImage.Mode.Shell;
 
@@ -85,7 +89,7 @@ public sealed partial class ShellMode
 	/// </summary>
 	private async void Run_Clicked()
 	{
-		Btn_Run.Enabled    = false;
+		Btn_Run.Enabled = false;
 		// Btn_Delete.Enabled = false;
 
 		var text = Tf_Input.Text;
@@ -115,7 +119,7 @@ public sealed partial class ShellMode
 		if (!string.IsNullOrWhiteSpace(f)) {
 			Tf_Input.DeleteAll();
 			Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
-			
+
 			SetInputText(f);
 			Btn_Run.SetFocus();
 
@@ -167,5 +171,24 @@ public sealed partial class ShellMode
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
+	}
+
+	private void On_Delete()
+	{
+		Clipboard.Close();
+		// Restart_Clicked(true);
+
+		var file = Tf_Input.Text.ToString();
+
+		if (!string.IsNullOrWhiteSpace(file)) {
+			Query.Dispose();
+			Debug.WriteLine($"{IsQueryReady()}");
+
+			Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs,
+			                                                   RecycleOption.SendToRecycleBin);
+			Debug.WriteLine($"deleted {file}");
+			Clear();
+		}
+
 	}
 }

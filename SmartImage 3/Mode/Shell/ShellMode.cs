@@ -412,23 +412,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		}
 	}
 
-	private void On_Delete()
-	{
-		Clipboard.Close();
-		Restart_Clicked(true);
-
-		var file = Tf_Input.Text.ToString();
-
-		if (!string.IsNullOrWhiteSpace(file)) {
-			Query.Dispose();
-			Debug.WriteLine($"{IsQueryReady()}");
-			FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
-			Debug.WriteLine($"deleted {file}");
-			Clear();
-		}
-
-	}
-
 	public Task<object?> RunAsync(object? sender = null)
 	{
 		Application.Run();
