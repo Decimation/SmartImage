@@ -76,6 +76,7 @@ public sealed partial class ShellMode
 		Btn_Restart.Enabled = false;
 		Btn_Cancel.Enabled  = false;
 		Btn_Run.Enabled     = true;
+		Btn_Delete.Enabled     = false;
 
 		m_token.Dispose();
 		m_token = new();

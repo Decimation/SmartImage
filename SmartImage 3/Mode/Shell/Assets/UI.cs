@@ -111,8 +111,8 @@ internal static partial class UI
 
 		return t2;
 	}
-	
-	internal static void OnEngineSelected(ListView lv, ref SearchEngineOptions e)
+
+	internal static void OnEngineSelected(ListView lv, ListViewItemEventArgs lvie, ref SearchEngineOptions e)
 	{
 		var l = lv.Source.ToList<SearchEngineOptions>().ToArray();
 
@@ -132,9 +132,18 @@ internal static partial class UI
 		}
 
 		ret:
-		lv.FromEnum(e);
+		Debug.WriteLine($"1 {e}");
+		var v = ((SearchEngineOptions) lvie.Value);
+		if (lv.Source.IsMarked(lvie.Item)) {
+			e |= v;
+		}
+		else {
+			e &= ~v;
+		}
 
-		Debug.WriteLine($"{e}");
+		Debug.WriteLine($"2 {e}");
+		lv.FromEnum(e);
+		Debug.WriteLine($"3 {e}");
 	}
 
 	/*internal static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)

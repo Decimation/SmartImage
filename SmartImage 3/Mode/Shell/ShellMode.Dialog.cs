@@ -145,7 +145,7 @@ public sealed partial class ShellMode
 		{
 			SearchEngineOptions e = Config.SearchEngines;
 			// UI.OnEngineSelected(args1, ref e, lvSearchEngines);
-			UI.OnEngineSelected(lvSearchEngines, ref e);
+			UI.OnEngineSelected(lvSearchEngines, args1, ref e);
 			Debug.WriteLine($"Setting {e}");
 			Config.SearchEngines = e;
 			ReloadDialog();
@@ -155,15 +155,15 @@ public sealed partial class ShellMode
 		{
 			SearchEngineOptions e = Config.PriorityEngines;
 			// UI.OnEngineSelected(args1, ref e, lvPriorityEngines);
-			UI.OnEngineSelected(lvPriorityEngines, ref e);
+			UI.OnEngineSelected(lvPriorityEngines, args1, ref e);
 			Debug.WriteLine($"Setting {e}");
 			Config.PriorityEngines = e;
 			ReloadDialog();
 		};
 
 		// Debug.WriteLine($"{GetItems<SearchEngineOptions>(lvSearchEngines.Source).QuickJoin()}");
-		// lvSearchEngines.FromEnum2(Config.SearchEngines);
-		// lvPriorityEngines.FromEnum2(Config.PriorityEngines);
+		lvSearchEngines.FromEnum(Config.SearchEngines);
+		lvPriorityEngines.FromEnum(Config.PriorityEngines);
 		
 		// var e=lvSearchEngines.Source.GetEnum2(default(SearchEngineOptions));
 

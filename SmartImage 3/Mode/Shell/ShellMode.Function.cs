@@ -27,6 +27,8 @@ public sealed partial class ShellMode
 		await run;
 
 		sw.Stop();
+		Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec {UI.OK}";
+
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 	}
 
