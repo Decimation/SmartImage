@@ -19,6 +19,7 @@ using SmartImage.Lib.Results;
 using SmartImage.Mode.Shell.Assets;
 using SmartImage.Utilities;
 using Terminal.Gui;
+using Clipboard = Novus.Win32.Clipboard;
 using Window = Terminal.Gui.Window;
 
 // ReSharper disable IdentifierTypo
@@ -305,7 +306,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 
 		m_clipboard = new List<ustring>();
-		
+
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
 			new("_About", null, AboutDialog),
@@ -364,7 +365,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Tv_Results.CellActivated += Result_CellActivated;
 		Btn_Run.Clicked          += Run_Clicked;
-		Btn_Restart.Clicked      += Restart_Clicked;
+		Btn_Restart.Clicked      += () => Restart_Clicked(false);
 		Btn_Clear.Clicked        += Clear_Clicked;
 		Btn_Config.Clicked       += ConfigDialog;
 		Btn_Cancel.Clicked       += Cancel_Clicked;
@@ -377,20 +378,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 			HttpUtilities.TryOpenUrl(Query.Upload);
 		};
 
-		Btn_Delete.Clicked += () =>
-		{
-			var file = Tf_Input.Text.ToString();
+		Btn_Delete.Clicked += On_Delete;
 
-			if (!string.IsNullOrWhiteSpace(file)) {
-				Query.Dispose();
-				Debug.WriteLine($"{IsQueryReady()}");
-				FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
-				Debug.WriteLine($"deleted {file}");
-				Clear();
-			}
-
-		};
-		
 		Cb_Queue.Toggled += b =>
 		{
 			Btn_Queue.Enabled = !b;
@@ -398,11 +387,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Btn_Queue.Clicked += () =>
 		{
-			if (IsQueryReady()) {
-				
-			}
+			if (IsQueryReady()) { }
 		};
-		
+
 		Btn_Queue.Enabled = false;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
@@ -423,6 +410,23 @@ public sealed partial class ShellMode : IDisposable, IMode
 		if (m_autoSearch) {
 			Btn_Run.OnClicked();
 		}
+	}
+
+	private void On_Delete()
+	{
+		Clipboard.Close();
+		Restart_Clicked(true);
+
+		var file = Tf_Input.Text.ToString();
+
+		if (!string.IsNullOrWhiteSpace(file)) {
+			Query.Dispose();
+			Debug.WriteLine($"{IsQueryReady()}");
+			FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+			Debug.WriteLine($"deleted {file}");
+			Clear();
+		}
+
 	}
 
 	public Task<object?> RunAsync(object? sender = null)
@@ -454,7 +458,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Application.MainLoop.Invoke(() =>
 		{
-			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", result.RawUrl, 0, 0, null, $"{result.Status}",
+			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)",
+			                    result.RawUrl, 0, 0, null, $"{result.Status}",
 			                    null, null, null, null, null, null);
 
 			for (int i = 0; i < result.Results.Count; i++) {
@@ -618,6 +623,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Lbl_QueryUpload.Text = ustring.Empty;
 			Pbr_Status.Fraction  = 0;
 			Lbl_Status2.Text     = ustring.Empty;
+			Btn_Delete.Enabled   = false;
 
 			return false;
 		}
@@ -637,7 +643,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Pbr_Status.Fraction = 0;
 		// Btn_Delete.Enabled = true;
 
-		Tf_Input.ReadOnly    = true;
+		Tf_Input.ReadOnly  = true;
+		Btn_Delete.Enabled = true;
 
 		return true;
 	}

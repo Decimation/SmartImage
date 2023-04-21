@@ -51,9 +51,9 @@ public sealed partial class ShellMode
 	/// <summary>
 	/// <see cref="Btn_Restart"/>
 	/// </summary>
-	private void Restart_Clicked()
+	private void Restart_Clicked(bool force = false)
 	{
-		if (!Client.IsComplete) {
+		if (!Client.IsComplete && !force) {
 			return;
 		}
 

@@ -145,7 +145,7 @@ public sealed partial class ShellMode
 		{
 			SearchEngineOptions e = Config.SearchEngines;
 			// UI.OnEngineSelected(args1, ref e, lvSearchEngines);
-			UI.OnEngineSelected_(lvSearchEngines, ref e);
+			UI.OnEngineSelected(lvSearchEngines, ref e);
 			Debug.WriteLine($"Setting {e}");
 			Config.SearchEngines = e;
 			ReloadDialog();
@@ -155,7 +155,7 @@ public sealed partial class ShellMode
 		{
 			SearchEngineOptions e = Config.PriorityEngines;
 			// UI.OnEngineSelected(args1, ref e, lvPriorityEngines);
-			UI.OnEngineSelected_(lvPriorityEngines, ref e);
+			UI.OnEngineSelected(lvPriorityEngines, ref e);
 			Debug.WriteLine($"Setting {e}");
 			Config.PriorityEngines = e;
 			ReloadDialog();

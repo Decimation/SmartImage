@@ -63,7 +63,7 @@ internal static partial class UI
 		}
 	}
 
-	public static void FromEnum2<TEnum>(this ListView lv, TEnum e) where TEnum : struct, Enum
+	public static void FromEnum<TEnum>(this ListView lv, TEnum e) where TEnum : struct, Enum
 	{
 		var list = lv.Source.ToList<TEnum>().ToArray();
 
@@ -83,7 +83,7 @@ internal static partial class UI
 		}
 	}
 
-	public static TEnum GetEnum2<TEnum>(this IListDataSource lv, TEnum t = default) where TEnum : struct, Enum
+	public static TEnum GetEnum<TEnum>(this IListDataSource lv, TEnum t = default) where TEnum : struct, Enum
 	{
 		var m = lv.GetItems<TEnum>();
 
@@ -111,23 +111,8 @@ internal static partial class UI
 
 		return t2;
 	}
-
-	static IList<T> GetItems<T>(IListDataSource src)
-	{
-		var ls  = new List<T>();
-		var cpy = src.ToList();
-
-		for (int i = 0; i < src.Length; i++) {
-			if (src.IsMarked(i)) {
-				// ls.RemoveAt(i);
-				ls.Add((T) (object) cpy[i]);
-			}
-		}
-
-		return ls;
-	}
-
-	internal static void OnEngineSelected_(ListView lv, ref SearchEngineOptions e)
+	
+	internal static void OnEngineSelected(ListView lv, ref SearchEngineOptions e)
 	{
 		var l = lv.Source.ToList<SearchEngineOptions>().ToArray();
 
@@ -147,12 +132,12 @@ internal static partial class UI
 		}
 
 		ret:
-		lv.FromEnum2(e);
+		lv.FromEnum(e);
 
 		Debug.WriteLine($"{e}");
 	}
 
-	internal static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)
+	/*internal static void OnEngineSelected(ListViewItemEventArgs args, ref SearchEngineOptions e, ListView lv)
 	{
 		var val = (SearchEngineOptions) args.Value;
 
@@ -184,5 +169,5 @@ internal static partial class UI
 
 		lv.SetNeedsDisplay();
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
-	}
+	}*/
 }

@@ -10,6 +10,7 @@ using Flurl.Http.Configuration;
 using Flurl.Http.Testing;
 using Kantan.Net;
 using Kantan.Net.Utilities;
+using Kantan.Text;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
@@ -94,7 +95,7 @@ public sealed class SearchClient : IDisposable
 
 		LoadEngines();
 
-		Debug.WriteLine($"Config: {Config}");
+		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
 		token ??= CancellationToken.None;
 
