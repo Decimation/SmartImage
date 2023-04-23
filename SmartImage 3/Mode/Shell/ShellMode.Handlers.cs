@@ -161,7 +161,7 @@ public sealed partial class ShellMode
 		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
 		Lbl_Status2.Text    = ustring.Empty;
-
+		Btn_Run.Enabled     = true;
 		Tf_Input.SetFocus();
 		// Btn_Delete.Enabled = false;
 	}

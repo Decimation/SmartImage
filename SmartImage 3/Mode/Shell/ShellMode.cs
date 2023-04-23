@@ -11,6 +11,7 @@ using System.Runtime.Versioning;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.VisualBasic.FileIO;
+using Novus.FileTypes;
 using Novus.Win32;
 using NStack;
 using SmartImage.App;
@@ -35,10 +36,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	#region Controls
 
-	static ShellMode()
-	{
-
-	}
+	static ShellMode() { }
 
 	private static readonly Toplevel Top = Application.Top;
 
@@ -580,7 +578,14 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Pbr_Status.Pulse();
 			Lbl_Status2.Text = $"Verifying...";
 
+			lock (Btn_Run) {
+				Btn_Run.Enabled = false;
+			}
+
 			sq = await SearchQuery.TryCreateAsync(text.ToString());
+
+			Btn_Run.Enabled = true;
+
 			Pbr_Status.Pulse();
 		}
 		catch (Exception e) {
@@ -685,6 +690,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 			    && Integration.ReadClipboard(out var str)
 			    && !m_clipboard.Contains(str)
 			    /*&& (m_prevSeq != sequenceNumber)*/) {
+				/*bool vl = SearchQuery.IsValidSourceType(str);
+
+				if (vl) {
+					var sq = SearchQuery.TryCreateAsync(str);
+					sq.Wait();
+					if (sq.Result.Uni.FileTypes
+					    .All(e => e.IsType(FileType.MT_IMAGE))) { }
+				}
+
+				Debug.WriteLine($"{str}");*/
 
 				SetInputText(str);
 				// Lbl_InputOk.Text   = UI.Clp;

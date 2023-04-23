@@ -63,6 +63,6 @@ public sealed partial class ShellMode
 		Btn_Cancel.Enabled = false;
 
 		m_queue.Clear();
-
+		m_results.Clear();
 	}
 }

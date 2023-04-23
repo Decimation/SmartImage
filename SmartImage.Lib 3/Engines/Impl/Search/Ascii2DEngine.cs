@@ -98,6 +98,10 @@ public sealed class Ascii2DEngine : WebSearchEngine
 				return null;
 			}
 		}
+		catch (TaskCanceledException) {
+			return null;
+
+		}
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
 			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));

@@ -83,6 +83,15 @@ internal static partial class UI
 		}
 	}
 
+	public static void ClearBy<T>(this ListView lv, Predicate<T> p)
+	{
+		var cc=lv.Source.ToList<T>().ToArray();
+
+		for (int i = 0; i < lv.Source.Length; i++) {
+			lv.Source.SetMark(i, p(cc[i]));
+		}
+	}
+
 	public static TEnum GetEnum<TEnum>(this IListDataSource lv, TEnum t = default) where TEnum : struct, Enum
 	{
 		var m = lv.GetItems<TEnum>();
@@ -133,6 +142,7 @@ internal static partial class UI
 
 		ret:
 		var v = ((SearchEngineOptions) lvie.Value);
+
 		if (lv.Source.IsMarked(lvie.Item)) {
 			e |= v;
 		}

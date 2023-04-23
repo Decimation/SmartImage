@@ -2,7 +2,9 @@
 global using SConsole = System.Console;
 global using static Kantan.Diagnostics.LogCategories;
 using System.CommandLine;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Kantan.Threading;

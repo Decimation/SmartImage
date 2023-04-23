@@ -164,7 +164,7 @@ public sealed partial class ShellMode
 		// Debug.WriteLine($"{GetItems<SearchEngineOptions>(lvSearchEngines.Source).QuickJoin()}");
 		lvSearchEngines.FromEnum(Config.SearchEngines);
 		lvPriorityEngines.FromEnum(Config.PriorityEngines);
-		
+
 		// var e=lvSearchEngines.Source.GetEnum2(default(SearchEngineOptions));
 
 		/*============================================================================*\
@@ -192,7 +192,7 @@ public sealed partial class ShellMode
 			AutoSize = true,
 
 			X = 0,
-			Y = Pos.Bottom(lvSearchEngines) + 1
+			Y = Pos.Bottom(lvSearchEngines) + 2
 		};
 
 		CheckBox cbOnTop = new(R1.S_OnTop)
@@ -314,10 +314,33 @@ public sealed partial class ShellMode
 			ReloadDialog();
 		};
 
+		var btnClear = new Button("Clear")
+		{
+			Y = Pos.Bottom(lvSearchEngines),
+		};
+		btnClear.Clicked += () => OnAction(lvSearchEngines, (e) => Config.SearchEngines = e);
+
+		var btnClear2 = new Button("Clear")
+		{
+			Y = Pos.Bottom(lvPriorityEngines),
+			X = Pos.Bottom(lvPriorityEngines)
+		};
+		btnClear2.Clicked += () => OnAction(lvPriorityEngines, (e) => Config.PriorityEngines = e);
+
+		void OnAction(ListView lv, Action<SearchEngineOptions> f)
+		{
+			lv.ClearBy<SearchEngineOptions>(_ => false);
+			lv.FromEnum(default(SearchEngineOptions));
+			f(default(SearchEngineOptions));
+			ReloadDialog();
+
+			lv.SetNeedsDisplay();
+		}
+
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
-		          cbOpenRaw);
+		          cbOpenRaw, btnClear, btnClear2);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);
@@ -328,5 +351,4 @@ public sealed partial class ShellMode
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 	}
-	
 }
