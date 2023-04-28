@@ -20,7 +20,7 @@ public abstract class BaseUploadEngine
 		EndpointUrl = s;
 	}
 
-	public static BaseUploadEngine Default { get; } = new CatboxEngine();
+	public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
 	public abstract Task<Url> UploadFileAsync(string file);
 

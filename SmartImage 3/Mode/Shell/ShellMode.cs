@@ -85,7 +85,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
 		ColorScheme = UI.Cs_Btn1x,
-		Enabled = false
+		// Enabled = false
 	};
 
 	private static readonly Button Btn_Browse = new("Browse")
@@ -572,11 +572,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private async Task<bool> SetQuery(ustring text)
 	{
-		Btn_Run.Enabled = false;
+		// Btn_Run.Enabled = false;
 
 		if (IsQueryReady() && Query.Uni.Value as string == text) {
 			Debug.WriteLine($"Already loaded {text}", nameof(SetQuery));
-			Btn_Run.Enabled = true;
+			// Btn_Run.Enabled = true;
 			return true;
 		}
 
@@ -628,7 +628,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
 				Lbl_InputInfo.Text = $"Error: {e.Message}";
 				Lbl_Status2.Text   = ustring.Empty;
-				Btn_Run.Enabled    = false;
+				// Btn_Run.Enabled    = false;
 
 			}
 

@@ -80,7 +80,7 @@ public sealed partial class ShellMode
 
 		Btn_Restart.Enabled = false;
 		Btn_Cancel.Enabled  = false;
-		Btn_Run.Enabled     = false;
+		Btn_Run.Enabled     = true;
 		Btn_Delete.Enabled  = false;
 
 		m_token.Dispose();
@@ -192,12 +192,13 @@ public sealed partial class ShellMode
 			if (!string.IsNullOrWhiteSpace(file)) {
 				file = file.CleanString();
 				Query.Dispose();
+				Restart_Clicked(true);
 				Debug.WriteLine($"{IsQueryReady()}");
 
 				Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs,
 				                                                   RecycleOption.SendToRecycleBin);
 				Debug.WriteLine($"deleted {file}");
-				Clear();
+				// Clear();
 			}
 
 		}
