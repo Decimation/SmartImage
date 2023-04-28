@@ -26,34 +26,38 @@ public partial class MainWindow : Window
 	{
 		InitializeComponent();
 		// Tb_Input.AllowDrop = true;
+		m_sc    = new SearchClient(SearchConfig.Default);
+		m_query = SearchQuery.Null;
 	}
 
-	private SearchClient _searchClient;
-	private SearchQuery  _query;
+	private SearchClient m_sc;
+	private SearchQuery  m_query;
 
 	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e) { }
 
 	private void Tb_Input_OnDrop(object sender, DragEventArgs e) { }
 
-	private void UIElement_OnDrop(object sender, DragEventArgs e) { }
-
-	private async void Grid_Drop(object sender, DragEventArgs e)
+	private async void Tb_Input_Drop(object sender, DragEventArgs e)
 	{
 		if (null != e.Data && e.Data.GetDataPresent(DataFormats.FileDrop)) {
 			var data = e.Data.GetData(DataFormats.FileDrop) as string[];
 			e.Handled = true;
 			// handle the files here!
 
-			var v = data[0];
-
-			Tb_Input.Text = v;
-
-			var sq = await SearchQuery.TryCreateAsync(v);
-			Img_Query.Source = new BitmapImage(new Uri(sq.Uni.Value.ToString()));
+			await SetInput(data[0]);
 		}
 	}
 
-	private void Grid_DragOver(object sender, DragEventArgs e)
+	private async Task SetInput(string v)
+	{
+		Tb_Input.Text = v;
+
+		m_query = await SearchQuery.TryCreateAsync(v);
+
+		Img_Query.Source = new BitmapImage(new Uri(m_query.Uni.Value.ToString()));
+	}
+
+	private void Tb_Input_DragOver(object sender, DragEventArgs e)
 	{
 		if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
 			e.Effects = DragDropEffects.Copy;
@@ -62,5 +66,12 @@ public partial class MainWindow : Window
 		else {
 			e.Effects = DragDropEffects.None;
 		}
+	}
+
+	private void Btn_Clear_Click(object sender, RoutedEventArgs e)
+	{
+		Tb_Input.Text    = String.Empty;
+		Img_Query.Source = null;
+		m_query.Dispose();
 	}
 }
