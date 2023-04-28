@@ -60,6 +60,7 @@ public sealed partial class ShellMode
 		Tv_Results.SetNeedsDisplay();
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
+		Btn_Run.Enabled    = false;
 		Btn_Cancel.Enabled = false;
 
 		m_queue.Clear();

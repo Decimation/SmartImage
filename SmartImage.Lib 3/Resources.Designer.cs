@@ -150,5 +150,14 @@ namespace SmartImage.Lib {
                 return ResourceManager.GetString("S_SearchEngines", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Silent.
+        /// </summary>
+        internal static string S_Silent {
+            get {
+                return ResourceManager.GetString("S_Silent", resourceCulture);
+            }
+        }
     }
 }

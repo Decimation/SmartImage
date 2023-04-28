@@ -41,7 +41,8 @@ public sealed class SearchClient : IDisposable
 		Config        = cfg;
 		ConfigApplied = false;
 		LoadEngines();
-
+		FileLogger.Fl.Writer.WriteLine($"Init");
+		FileLogger.Fl.Writer.Flush();
 	}
 
 	static SearchClient()

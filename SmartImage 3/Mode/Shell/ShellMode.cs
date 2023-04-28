@@ -10,6 +10,7 @@ using System.Media;
 using System.Runtime.Versioning;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 using Novus.FileTypes;
 using Novus.Win32;
@@ -17,6 +18,7 @@ using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
 using SmartImage.Mode.Shell.Assets;
 using SmartImage.Utilities;
 using Terminal.Gui;
@@ -83,7 +85,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		X           = Pos.Right(Lbl_InputOk) + 1,
 		Y           = Pos.Y(Tf_Input),
 		ColorScheme = UI.Cs_Btn1x,
-
+		Enabled = false
 	};
 
 	private static readonly Button Btn_Browse = new("Browse")
@@ -496,8 +498,12 @@ public sealed partial class ShellMode : IDisposable, IMode
 	[SupportedOSPlatform(Compat.OS)]
 	private void OnCompleteWin(object sender, SearchResult[] results)
 	{
-		Player.Play();
-		Native.FlashWindow(ConsoleUtil.HndWindow);
+
+		if (!Config.Silent) {
+			Player.Play();
+			Native.FlashWindow(ConsoleUtil.HndWindow);
+
+		}
 
 		/*var u  = m_results.SelectMany(r => r.Results).ToArray();
 		var di = (await SearchClient.GetDirectImagesAsync(u)).ToArray();
@@ -562,10 +568,15 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	}
 
+	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(ShellMode));
+
 	private async Task<bool> SetQuery(ustring text)
 	{
+		Btn_Run.Enabled = false;
+
 		if (IsQueryReady() && Query.Uni.Value as string == text) {
 			Debug.WriteLine($"Already loaded {text}", nameof(SetQuery));
+			Btn_Run.Enabled = true;
 			return true;
 		}
 
@@ -584,7 +595,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			sq = await SearchQuery.TryCreateAsync(text.ToString());
 
-			Btn_Run.Enabled = true;
+			// Btn_Run.Enabled = false;
 
 			Pbr_Status.Pulse();
 		}
@@ -617,6 +628,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
 				Lbl_InputInfo.Text = $"Error: {e.Message}";
 				Lbl_Status2.Text   = ustring.Empty;
+				Btn_Run.Enabled    = false;
 
 			}
 
@@ -625,7 +637,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Lbl_InputInfo.Text = "Error: invalid input";
 
 			UI.SetLabelStatus(Lbl_InputOk, false);
-			Btn_Run.Enabled      = true;
+			Btn_Run.Enabled      = false;
 			Lbl_QueryUpload.Text = ustring.Empty;
 			Pbr_Status.Fraction  = 0;
 			Lbl_Status2.Text     = ustring.Empty;

@@ -249,6 +249,25 @@ public sealed partial class ShellMode
 		};
 		cbOpenRaw.Checked = Config.OpenRaw;
 
+		CheckBox cbSilent = new(R1.S_Silent)
+		{
+			X = Pos.Right(cbOpenRaw) + 1,
+			Y = Pos.Y(cbOpenRaw),
+			// Width  = WIDTH,
+			Height      = 1,
+			AutoSize    = true,
+			ColorScheme = UI.Cs_Btn3
+
+		};
+
+		cbSilent.Toggled += b =>
+		{
+			Config.Silent = !b;
+			ReloadDialog();
+		};
+		
+		cbSilent.Checked = Config.Silent;
+
 		/*============================================================================*\
 			Eh username/password
 		\*============================================================================*/
@@ -314,6 +333,8 @@ public sealed partial class ShellMode
 			ReloadDialog();
 		};
 
+		#region
+
 		var btnClear = new Button("Clear")
 		{
 			Y = Pos.Bottom(lvSearchEngines),
@@ -331,16 +352,18 @@ public sealed partial class ShellMode
 		{
 			lv.ClearBy<SearchEngineOptions>(_ => false);
 			lv.FromEnum(default(SearchEngineOptions));
-			f(default(SearchEngineOptions));
+			f(default);
 			ReloadDialog();
 
 			lv.SetNeedsDisplay();
 		}
 
+		#endregion
+
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
-		          cbOpenRaw, btnClear, btnClear2);
+		          cbOpenRaw, cbSilent, btnClear, btnClear2);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);

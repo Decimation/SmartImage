@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Kantan.Net.Utilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 using Novus.OS;
 using NStack;
@@ -12,12 +13,14 @@ using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 using Clipboard = Novus.Win32.Clipboard;
 using Microsoft.VisualBasic.FileIO;
+using SmartImage.Lib.Utilities;
 using FileSystem = Novus.OS.FileSystem;
 
 namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
+
 	/// <summary>
 	/// <see cref="Tv_Results"/>
 	/// </summary>
@@ -76,7 +79,7 @@ public sealed partial class ShellMode
 
 		Btn_Restart.Enabled = false;
 		Btn_Cancel.Enabled  = false;
-		Btn_Run.Enabled     = true;
+		Btn_Run.Enabled     = false;
 		Btn_Delete.Enabled  = false;
 
 		m_token.Dispose();
@@ -161,7 +164,8 @@ public sealed partial class ShellMode
 		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
 		Lbl_Status2.Text    = ustring.Empty;
-		Btn_Run.Enabled     = true;
+		// Btn_Run.Enabled     = true;
+		Btn_Run.Enabled     = false;
 		Tf_Input.SetFocus();
 		// Btn_Delete.Enabled = false;
 	}
@@ -178,19 +182,26 @@ public sealed partial class ShellMode
 
 	private void Delete_Clicked()
 	{
-		Clipboard.Close();
-		// Restart_Clicked(true);
+		try {
+			Clipboard.Close();
+			// Restart_Clicked(true);
 
-		var file = Tf_Input.Text.ToString();
+			var file = Tf_Input.Text.ToString();
 
-		if (!string.IsNullOrWhiteSpace(file)) {
-			Query.Dispose();
-			Debug.WriteLine($"{IsQueryReady()}");
+			if (!string.IsNullOrWhiteSpace(file)) {
+				Query.Dispose();
+				Debug.WriteLine($"{IsQueryReady()}");
 
-			Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs,
-			                                                   RecycleOption.SendToRecycleBin);
-			Debug.WriteLine($"deleted {file}");
-			Clear();
+				Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs,
+				                                                   RecycleOption.SendToRecycleBin);
+				Debug.WriteLine($"deleted {file}");
+				Clear();
+			}
+
+		}
+		catch (Exception e) {
+			FileLogger.Fl.Writer.WriteLine($"{e.Message} {e.Source} {e.StackTrace}");
+			FileLogger.Fl.Writer.Flush();
 		}
 
 	}

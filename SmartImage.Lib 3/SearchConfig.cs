@@ -105,6 +105,15 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 			OnPropertyChanged();
 		}
 	}
+	public bool Silent
+	{
+		get { return Configuration.ReadSetting(nameof(Silent), false); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(Silent), value.ToString());
+			OnPropertyChanged();
+		}
+	}
 
 	public static readonly SearchConfig Default = new();
 
@@ -140,6 +149,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		table.Rows.Add(Resources.S_PriorityEngines, PriorityEngines);
 		table.Rows.Add(Resources.S_OnTop, OnTop);
 		table.Rows.Add(Resources.S_OpenRaw, OpenRaw);
+		table.Rows.Add(Resources.S_Silent, Silent);
 		table.Rows.Add(Resources.S_EhUsername, EhUsername);
 		table.Rows.Add(Resources.S_EhPassword, EhPassword);
 
