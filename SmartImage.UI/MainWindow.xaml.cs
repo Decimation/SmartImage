@@ -28,6 +28,7 @@ public partial class MainWindow : Window
 		// Tb_Input.AllowDrop = true;
 		m_sc    = new SearchClient(SearchConfig.Default);
 		m_query = SearchQuery.Null;
+
 	}
 
 	private SearchClient m_sc;
@@ -73,5 +74,30 @@ public partial class MainWindow : Window
 		Tb_Input.Text    = String.Empty;
 		Img_Query.Source = null;
 		m_query.Dispose();
+	}
+
+	private void Btn_Run_Click(object sender, RoutedEventArgs e)
+	{
+		// Lb_Res.Items[0] = new Image();
+		Lb_Res.Items[0] = new ListBoxItem()
+			{ };
+	}
+
+	public class MovieData
+	{
+		private string _Title;
+		public string Title
+		{
+			get { return this._Title; }
+			set { this._Title = value; }
+		}
+
+		private BitmapImage _ImageData;
+		public BitmapImage ImageData
+		{
+			get { return this._ImageData; }
+			set { this._ImageData = value; }
+		}
+
 	}
 }
