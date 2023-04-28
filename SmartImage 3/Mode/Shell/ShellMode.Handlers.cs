@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using Kantan.Net.Utilities;
+using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
 using Novus.OS;
@@ -164,8 +165,8 @@ public sealed partial class ShellMode
 		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
 		Lbl_Status2.Text    = ustring.Empty;
-		// Btn_Run.Enabled     = true;
-		Btn_Run.Enabled     = false;
+		Btn_Run.Enabled     = true;
+		// Btn_Run.Enabled     = false;
 		Tf_Input.SetFocus();
 		// Btn_Delete.Enabled = false;
 	}
@@ -189,6 +190,7 @@ public sealed partial class ShellMode
 			var file = Tf_Input.Text.ToString();
 
 			if (!string.IsNullOrWhiteSpace(file)) {
+				file = file.CleanString();
 				Query.Dispose();
 				Debug.WriteLine($"{IsQueryReady()}");
 
