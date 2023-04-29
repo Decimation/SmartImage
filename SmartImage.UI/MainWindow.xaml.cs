@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,6 +15,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SmartImage.Lib;
+using SmartImage.Lib.Results;
 
 namespace SmartImage.UI;
 
@@ -26,13 +28,29 @@ public partial class MainWindow : Window
 	{
 		InitializeComponent();
 		// Tb_Input.AllowDrop = true;
-		m_sc    = new SearchClient(SearchConfig.Default);
-		m_query = SearchQuery.Null;
+		m_sc     = new SearchClient(SearchConfig.Default);
+		m_query  = SearchQuery.Null;
+		m_result = new ResultItem();
 
+		m_sc.OnResult += (sender, result) =>
+		{
+			Results.Add(result);
+		};
+
+		/*Binding binding = new Binding();
+		binding.Source = this;
+		PropertyPath path = new PropertyPath(nameof(Results));
+		binding.Path = path;
+
+		// Setup binding:
+		BindingOperations.SetBinding(this.Lb_Res, ListBox.ItemsSourceProperty, binding);*/
 	}
 
 	private SearchClient m_sc;
 	private SearchQuery  m_query;
+	private ResultItem   m_result;
+
+	public static ObservableCollection<SearchResult> Results { get; set; } = new ObservableCollection<SearchResult>();
 
 	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e) { }
 
@@ -51,11 +69,16 @@ public partial class MainWindow : Window
 
 	private async Task SetInput(string v)
 	{
-		Tb_Input.Text = v;
+		Tb_Input.Text     = v;
+		Btn_Run.IsEnabled = false;
 
 		m_query = await SearchQuery.TryCreateAsync(v);
 
 		Img_Query.Source = new BitmapImage(new Uri(m_query.Uni.Value.ToString()));
+
+		await m_query.UploadAsync();
+		Btn_Run.IsEnabled = true;
+
 	}
 
 	private void Tb_Input_DragOver(object sender, DragEventArgs e)
@@ -76,28 +99,9 @@ public partial class MainWindow : Window
 		m_query.Dispose();
 	}
 
-	private void Btn_Run_Click(object sender, RoutedEventArgs e)
+	private async void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
 		// Lb_Res.Items[0] = new Image();
-		Lb_Res.Items[0] = new ListBoxItem()
-			{ };
-	}
-
-	public class MovieData
-	{
-		private string _Title;
-		public string Title
-		{
-			get { return this._Title; }
-			set { this._Title = value; }
-		}
-
-		private BitmapImage _ImageData;
-		public BitmapImage ImageData
-		{
-			get { return this._ImageData; }
-			set { this._ImageData = value; }
-		}
-
+		await m_sc.RunSearchAsync(m_query);
 	}
 }
