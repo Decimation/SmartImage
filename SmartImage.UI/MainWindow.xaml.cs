@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,6 +19,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SmartImage.Lib;
 using SmartImage.Lib.Results;
+using Size = System.Windows.Size;
 
 namespace SmartImage.UI;
 
@@ -34,7 +38,21 @@ public partial class MainWindow : Window
 
 		m_sc.OnResult += (sender, result) =>
 		{
-			Results.Add(result);
+			ListViewItem l = new ListViewItem();
+
+			Lv_Results.Items.Add(result);
+			
+			MenuItem m = new MenuItem()
+			{
+				Header = $"{result.Engine.Name}",
+				
+			};
+
+			foreach (SearchResultItem searchResultItem in result.Results) {
+				m.Items.Add(searchResultItem);
+			}
+
+			Tv_Results.Items.Add(m);
 		};
 
 		/*Binding binding = new Binding();
@@ -44,13 +62,24 @@ public partial class MainWindow : Window
 
 		// Setup binding:
 		BindingOperations.SetBinding(this.Lb_Res, ListBox.ItemsSourceProperty, binding);*/
+
+	}
+
+	private void ListViewItem_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+	{
+		var item = sender as ListViewItem;
+
+		if (item != null && item.IsSelected) {
+			//Do your stuff
+			Debug.WriteLine($"{item}");
+		}
 	}
 
 	private SearchClient m_sc;
 	private SearchQuery  m_query;
 	private ResultItem   m_result;
 
-	public static ObservableCollection<SearchResult> Results { get; set; } = new ObservableCollection<SearchResult>();
+	public ObservableCollection<SearchResult> Lv_SrcResults { get; set; } = new ObservableCollection<SearchResult>();
 
 	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e) { }
 
@@ -104,4 +133,34 @@ public partial class MainWindow : Window
 		// Lb_Res.Items[0] = new Image();
 		await m_sc.RunSearchAsync(m_query);
 	}
+
+	private void EventSetter_OnHandler(object sender, RoutedEventArgs e)
+	{
+		Debug.WriteLine($"{e.Source} {e.OriginalSource} {e.RoutedEvent.Name}");
+
+		var sr = ((ListViewItem) e.Source).Content as SearchResult;
+
+		ThreadPool.QueueUserWorkItem((x) =>
+		{
+			Debug.WriteLine("queue");
+			for (int i = 0; i < sr.Results.Count; i++) {
+				var task = sr.Results[i].GetUniAsync();
+				task.Wait();
+
+				if (task.Result) {
+					var u =  sr.Results[i].Uni;
+					Debug.WriteLine($"{u}");
+				}
+
+				Debug.WriteLine($"{i}/{sr.Results.Count} {sr.Engine.Name}");
+			}
+		});
+	}
+}
+
+public class ListViewResult
+{
+	public string Name { get; set; }
+
+	public SearchResult Result { get; set; }
 }

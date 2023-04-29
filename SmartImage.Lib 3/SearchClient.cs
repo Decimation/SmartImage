@@ -239,9 +239,10 @@ public sealed class SearchClient : IDisposable
 			.ToArray();
 
 		try {
-			var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
-				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD*/);
-			items = items.Except(c).ToArray();
+			/*var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
+				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD#1#);
+			items = items.Except(c).ToArray();*/
+
 		}
 		catch (Exception e) {
 			Logger.LogError("{Error}", e.Message);
