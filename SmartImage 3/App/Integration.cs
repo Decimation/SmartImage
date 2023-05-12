@@ -227,7 +227,8 @@ public static class Integration
 
 	public static bool ReadClipboardImage(out byte[] i)
 	{
-		const uint png            = (uint) ClipboardFormat.PNG;
+		const uint png = (uint) ClipboardFormat.PNG;
+
 		// var        sb = new StringBuilder(2048);
 		// var l=Native.GetClipboardFormatName(png, sb, sb.Length);
 		// Debug.WriteLine($"{sb} {l}");
@@ -244,6 +245,11 @@ public static class Integration
 	public static bool ReadClipboard(out string str)
 	{
 		Clipboard.Open();
+
+		/*
+		 * 1	File
+		 */
+
 		var data = Clipboard.GetData((uint) ClipboardFormat.FileNameW);
 
 		if (data is IntPtr { } p && p == IntPtr.Zero) {
@@ -253,8 +259,14 @@ public static class Integration
 			str = (string) data;
 		}
 
+		if (!string.IsNullOrWhiteSpace(str)) goto cl;
+
+		/*
+		 * 3	Text
+		 */
+
 		if (!SearchQuery.IsValidSourceType(str)) {
-			var o = Clipboard.GetData((uint) ClipboardFormat.CF_TEXT);
+			var o = Clipboard.GetData((uint) ClipboardFormat.CF_UNICODETEXT);
 
 			if ((data is IntPtr { } p2 && p2 == IntPtr.Zero) || o is IntPtr data2 && data2 == IntPtr.Zero) {
 				str = null;
@@ -262,7 +274,19 @@ public static class Integration
 			else {
 				str = (string) o;
 			}
+
+			if (o is nint n && n != nint.Zero) {
+				// str = (string) o;
+
+				str = Marshal.PtrToStringUni(n);
+			}
+
+			if (!string.IsNullOrWhiteSpace(str)) goto cl;
 		}
+
+		/*
+		 * 3	Screenshot
+		 */
 
 		if (ReadClipboardImage(out var ms)) {
 			//todo: delete on exit
@@ -276,8 +300,9 @@ public static class Integration
 			Debug.WriteLine($"read png from clipboard {s}");
 		}
 
+		cl:
 		Clipboard.Close();
-		// Debug.WriteLine($"Clipboard data: {str}");
+		Debug.WriteLine($"Clipboard data: {str}");
 
 		var b = SearchQuery.IsValidSourceType(str);
 		return b;

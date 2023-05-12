@@ -234,6 +234,17 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	#endregion
 
+	#region Static
+
+	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
+
+	[SupportedOSPlatform(Compat.OS)]
+	private static readonly SoundPlayer Player = new(R2.hint);
+
+	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(ShellMode));
+
+	#endregion
+
 	#region Fields/properties
 
 	private object m_cbCallbackTok;
@@ -247,6 +258,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private readonly ConcurrentBag<SearchResult> m_results;
 
 	private CancellationTokenSource m_token;
+	private CancellationTokenSource m_tokenu;
 
 	private bool m_useclipboard;
 
@@ -270,17 +282,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 	}
 
 	private readonly ConcurrentQueue<ustring> m_queue;
-
-	#region Static
-
-	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
-
-	[SupportedOSPlatform(Compat.OS)]
-	private static readonly SoundPlayer Player = new(R2.hint);
-
-	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(ShellMode));
-
-	#endregion
 
 	#region
 
@@ -308,6 +309,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	{
 		Args    = args;
 		m_token = new();
+		m_tokenu = new();
 		Query   = SearchQuery.Null;
 		Client  = new SearchClient(new SearchConfig());
 		IsReady = new ManualResetEvent(false);
@@ -633,17 +635,27 @@ public sealed partial class ShellMode : IDisposable, IMode
 		if (sq is { } && sq != SearchQuery.Null) {
 			try {
 
+				/*Btn_Cancel.Enabled = true;
+
+				Btn_Cancel.Clicked += () =>
+				{
+					m_tokenu.Cancel();
+
+				};*/
+
 				using CancellationTokenSource cts = new();
 				Lbl_Status2.Text = $"Uploading...";
 
 				UI.QueueProgress(cts, Pbr_Status);
 
-				var u = await sq.UploadAsync();
+				var u = await sq.UploadAsync(ct: m_tokenu.Token);
 
 				cts.Cancel();
 
-				Lbl_QueryUpload.Text = u.ToString();
-				Lbl_Status2.Text     = ustring.Empty;
+				Lbl_QueryUpload.Text =  u.ToString();
+				Lbl_Status2.Text     =  ustring.Empty;
+				
+				// Btn_Cancel.Clicked   += Cancel_Clicked;
 
 			}
 			catch (Exception e) {
@@ -707,7 +719,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private bool ClipboardCallback(MainLoop c)
 	{
-		Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard} {c.EventsPending(false)}");
+		Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard}");
 		
 		try {
 			/*
@@ -721,8 +733,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 			var s = Tf_Input.Text.ToString();
 			s = s.CleanString();
 
-			if (!SearchQuery.IsValidSourceType(s)
-			    && Integration.ReadClipboard(out var str)
+			var rc = Integration.ReadClipboard(out var str);
+
+			if (/*!SearchQuery.IsValidSourceType(s)
+			    &&*/ rc
 			    && !m_clipboard.Contains(str)
 			    /*&& (m_prevSeq != sequenceNumber)*/) {
 				/*bool vl = SearchQuery.IsValidSourceType(str);
@@ -735,7 +749,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				}
 
 				Debug.WriteLine($"{str}");*/
-
+				
 				SetInputText(str);
 				// Lbl_InputOk.Text   = UI.Clp;
 				Lbl_InputInfo.Text = R2.Inf_Clipboard;
@@ -758,9 +772,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		finally { }
 
-		Debug.WriteLine($"{UseClipboard}");
-		// return true;
-		return UseClipboard;
+		// Debug.WriteLine($"{UseClipboard}");
+		return true;
+		// return UseClipboard;
 	}
 
 	public void Dispose()
@@ -768,6 +782,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Client.Dispose();
 		Query.Dispose();
 		m_token.Dispose();
+		m_tokenu.Dispose();
 		m_queue.Clear();
 		m_results.Clear();
 	}

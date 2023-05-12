@@ -1,10 +1,13 @@
-﻿using Flurl.Http;
+﻿using System.Diagnostics;
+using System.Net.NetworkInformation;
+using Flurl.Http;
 using Novus.OS;
 using Novus.Utilities;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Upload;
 
-public abstract class BaseUploadEngine
+public abstract class BaseUploadEngine : IEndpoint
 {
 	/// <summary>
 	/// Max file size, in bytes
@@ -13,16 +16,16 @@ public abstract class BaseUploadEngine
 
 	public abstract string Name { get; }
 
-	protected string EndpointUrl { get; }
+	public Url EndpointUrl { get; }
 
 	protected BaseUploadEngine(string s)
 	{
 		EndpointUrl = s;
 	}
 
-	public static BaseUploadEngine Default { get; } = new LitterboxEngine();
+	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
-	public abstract Task<Url> UploadFileAsync(string file);
+	public abstract Task<Url> UploadFileAsync(string file, CancellationToken ct = default);
 
 	public long Size { get; set; }
 
@@ -36,38 +39,46 @@ public abstract class BaseUploadEngine
 
 	protected void Verify(string file)
 	{
-		if (string.IsNullOrWhiteSpace(file))
-		{
+		if (string.IsNullOrWhiteSpace(file)) {
 			throw new ArgumentNullException(nameof(file));
 		}
 
-		if (!IsFileSizeValid(file))
-		{
+		if (!IsFileSizeValid(file)) {
 			throw new ArgumentException($"File {file} is too large (max {MaxSize}) for {Name}");
 		}
 	}
 
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
+
+	public static async ValueTask<BaseUploadEngine[]> UpdateAlive()
+	{
+		var a = await IEndpoint.QueryAlive(All);
+		
+		Default = a?.FirstOrDefault();
+
+		return a;
+	}
+	
+	public static BaseUploadEngine Default { get; set; } = new CatboxEngine();
 }
 
 public abstract class BaseCatboxEngine : BaseUploadEngine
 {
-	
-	public override async Task<Url> UploadFileAsync(string file)
+	public override async Task<Url> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		Verify(file);
 
 		using var response = await EndpointUrl
-								 .PostMultipartAsync(mp =>
-														 mp.AddFile("fileToUpload", file)
-															 .AddString("reqtype", "fileupload")
-															 .AddString("time", "1h")
-								 );
+			                     .PostMultipartAsync(mp =>
+				                                         mp.AddFile("fileToUpload", file)
+					                                         .AddString("reqtype", "fileupload")
+					                                         .AddString("time", "1h")
+			                     , ct);
 
 		var responseMessage = response.ResponseMessage;
 
-		var content = await responseMessage.Content.ReadAsStringAsync();
+		var content = await responseMessage.Content.ReadAsStringAsync(ct);
 
 		/*if (!responseMessage.IsSuccessStatusCode) {
 

@@ -21,7 +21,6 @@ namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
-
 	/// <summary>
 	/// <see cref="Tv_Results"/>
 	/// </summary>
@@ -48,12 +47,14 @@ public sealed partial class ShellMode
 	{
 		var text = tc.NewText;
 
-		// Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
+		Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
+
+		Application.MainLoop.Invoke(() => Task.Delay(TimeSpan.FromSeconds(1)));
 
 		if (SearchQuery.IsValidSourceType(text.ToString())) {
 			var ok = await SetQuery(text);
 			Btn_Run.Enabled = ok;
-			
+			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
 		}
 	}
 
@@ -72,6 +73,8 @@ public sealed partial class ShellMode
 		Tv_Results.ColumnOffset = 0;
 		Dt_Results.Clear();
 		Tv_Results.Visible = false;
+
+		// m_clipboard.RemoveRange(1, m_clipboard.Count - 1);
 
 		m_clipboard.Clear();
 		m_results.Clear();

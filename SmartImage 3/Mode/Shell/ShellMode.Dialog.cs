@@ -270,8 +270,8 @@ public sealed partial class ShellMode
 
 		CheckBox cbCb = new(R1.S_Clipboard)
 		{
-			X = Pos.Right(cbOpenRaw) + 1,
-			Y = Pos.Y(cbOpenRaw),
+			X = Pos.X(cbContextMenu) ,
+			Y = Pos.Bottom(cbContextMenu)+1,
 			// Width  = WIDTH,
 			Height      = 1,
 			AutoSize    = true,
@@ -290,8 +290,8 @@ public sealed partial class ShellMode
 
 		Label lbEhUsername = new(R1.S_EhUsername)
 		{
-			X           = Pos.X(cbContextMenu),
-			Y           = Pos.Bottom(cbContextMenu) + 1,
+			X           = Pos.X(cbCb),
+			Y           = Pos.Bottom(cbCb) + 1,
 			CanFocus    = false,
 			ColorScheme = UI.Cs_Lbl1
 		};
