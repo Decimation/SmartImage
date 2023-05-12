@@ -265,8 +265,24 @@ public sealed partial class ShellMode
 			Config.Silent = !b;
 			ReloadDialog();
 		};
-		
+
 		cbSilent.Checked = Config.Silent;
+
+		CheckBox cbCb = new(R1.S_Clipboard)
+		{
+			X = Pos.Right(cbOpenRaw) + 1,
+			Y = Pos.Y(cbOpenRaw),
+			// Width  = WIDTH,
+			Height      = 1,
+			AutoSize    = true,
+			ColorScheme = UI.Cs_Btn3,
+			Checked = UseClipboard
+		};
+
+		cbCb.Toggled += b =>
+		{
+			UseClipboard = !b;
+		};
 
 		/*============================================================================*\
 			Eh username/password
@@ -363,7 +379,7 @@ public sealed partial class ShellMode
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
-		          cbOpenRaw, cbSilent, btnClear, btnClear2);
+		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);

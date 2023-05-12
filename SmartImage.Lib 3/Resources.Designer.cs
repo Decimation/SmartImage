@@ -98,6 +98,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Clipboard detection.
+        /// </summary>
+        internal static string S_Clipboard {
+            get {
+                return ResourceManager.GetString("S_Clipboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Eh Password.
         /// </summary>
         internal static string S_EhPassword {

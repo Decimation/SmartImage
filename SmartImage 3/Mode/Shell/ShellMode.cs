@@ -248,12 +248,37 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private CancellationTokenSource m_token;
 
+	private bool m_useclipboard;
+
+	public bool UseClipboard
+	{
+		get { return m_useclipboard; }
+		set
+		{
+			m_useclipboard = value;
+
+			if (m_useclipboard) {
+				m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+
+			}
+			else {
+				m_cbCallbackTok = Application.MainLoop.RemoveTimeout(m_cbCallbackTok);
+				m_clipboard.Clear();
+			}
+			
+		}
+	}
+
+	private readonly ConcurrentQueue<ustring> m_queue;
+
 	#region Static
 
 	private static readonly TimeSpan TimeoutTimeSpan = TimeSpan.FromSeconds(1.5);
 
 	[SupportedOSPlatform(Compat.OS)]
 	private static readonly SoundPlayer Player = new(R2.hint);
+
+	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(ShellMode));
 
 	#endregion
 
@@ -274,8 +299,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 	public int ResultCount => m_results.Count;
 
 	internal ManualResetEvent IsReady { get; set; }
-
-	private readonly ConcurrentQueue<ustring> m_queue;
 
 	#endregion
 
@@ -308,7 +331,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		 * Check if clipboard contains valid query input
 		 */
 
-		m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+		// m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+		UseClipboard = true;
 
 		m_clipboard = new List<ustring>();
 
@@ -568,8 +592,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	}
 
-	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(ShellMode));
-
 	private async Task<bool> SetQuery(ustring text)
 	{
 		// Btn_Run.Enabled = false;
@@ -685,7 +707,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private bool ClipboardCallback(MainLoop c)
 	{
-
+		Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard} {c.EventsPending(false)}");
+		
 		try {
 			/*
 			 * Don't set input if:
@@ -735,7 +758,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		finally { }
 
-		return true;
+		Debug.WriteLine($"{UseClipboard}");
+		// return true;
+		return UseClipboard;
 	}
 
 	public void Dispose()

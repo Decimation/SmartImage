@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using System.Text;
 using Novus.OS;
 using Novus;
 using Novus.Win32;
@@ -226,8 +227,10 @@ public static class Integration
 
 	public static bool ReadClipboardImage(out byte[] i)
 	{
-		const uint png = (uint) ClipboardFormat.PNG;
-
+		const uint png            = (uint) ClipboardFormat.PNG;
+		// var        sb = new StringBuilder(2048);
+		// var l=Native.GetClipboardFormatName(png, sb, sb.Length);
+		// Debug.WriteLine($"{sb} {l}");
 		if (Clipboard.IsFormatAvailable(png)) {
 			i = Clipboard.GetData(png) as byte[];
 			return true;

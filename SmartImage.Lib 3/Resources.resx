@@ -151,4 +151,7 @@
   <data name="S_Silent" xml:space="preserve">
     <value>Silent</value>
   </data>
+  <data name="S_Clipboard" xml:space="preserve">
+    <value>Clipboard detection</value>
+  </data>
 </root>
