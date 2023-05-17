@@ -2,3 +2,6 @@
 
 # HAA0501: Explicit new array type allocation
 dotnet_diagnostic.HAA0501.severity = silent
+
+dotnet_style_predefined_type_for_member_access = false
+dotnet_style_predefined_type_for_locals_parameters_members = true

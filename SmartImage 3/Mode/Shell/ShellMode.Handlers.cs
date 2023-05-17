@@ -1,8 +1,6 @@
 ﻿// Read S SmartImage ShellMode.Handlers.cs
 // 2023-02-14 @ 12:13 AM
 
-#region
-
 using System.Diagnostics;
 using Kantan.Net.Utilities;
 using Kantan.Text;
@@ -18,8 +16,6 @@ using Clipboard = Novus.Win32.Clipboard;
 using Microsoft.VisualBasic.FileIO;
 using SmartImage.Lib.Utilities;
 using FileSystem = Novus.OS.FileSystem;
-
-#endregion
 
 namespace SmartImage.Mode.Shell;
 
@@ -176,7 +172,7 @@ public sealed partial class ShellMode
 		// Btn_Run.Enabled     = false;
 		Tf_Input.SetFocus();
 		Btn_Delete.Enabled = false;
-		
+
 	}
 
 	private void Cancel_Clicked()
@@ -187,7 +183,7 @@ public sealed partial class ShellMode
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
-		
+
 	}
 
 	private void Delete_Clicked()
@@ -220,7 +216,7 @@ public sealed partial class ShellMode
 
 		}
 		finally {
-			
+
 			// Restart_Clicked(true);
 		}
 
