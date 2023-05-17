@@ -277,7 +277,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				m_cbCallbackTok = Application.MainLoop.RemoveTimeout(m_cbCallbackTok);
 				m_clipboard.Clear();
 			}
-			
+
 		}
 	}
 
@@ -307,13 +307,13 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public ShellMode(string[] args)
 	{
-		Args    = args;
-		m_token = new();
+		Args     = args;
+		m_token  = new();
 		m_tokenu = new();
-		Query   = SearchQuery.Null;
-		Client  = new SearchClient(new SearchConfig());
-		IsReady = new ManualResetEvent(false);
-		m_queue = new();
+		Query    = SearchQuery.Null;
+		Client   = new SearchClient(new SearchConfig());
+		IsReady  = new ManualResetEvent(false);
+		m_queue  = new();
 
 		m_results = new();
 
@@ -652,9 +652,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 				cts.Cancel();
 
-				Lbl_QueryUpload.Text =  u.ToString();
-				Lbl_Status2.Text     =  ustring.Empty;
-				
+				Lbl_QueryUpload.Text = u.ToString();
+				Lbl_Status2.Text     = ustring.Empty;
+
 				// Btn_Cancel.Clicked   += Cancel_Clicked;
 
 			}
@@ -717,10 +717,12 @@ public sealed partial class ShellMode : IDisposable, IMode
 		return null;
 	}
 
+	private static int m_seq;
+
 	private bool ClipboardCallback(MainLoop c)
 	{
 		Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard}");
-		
+
 		try {
 			/*
 			 * Don't set input if:
@@ -728,17 +730,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 			 *	- Clipboard history contains it already
 			 */
 
-			int sequenceNumber = Novus.Win32.Clipboard.SequenceNumber;
+			int curSeq  = Clipboard.SequenceNumber;
+			int prevSeq = m_seq;
+			m_seq = curSeq;
 
-			var s = Tf_Input.Text.ToString();
-			s = s.CleanString();
+			var s = Tf_Input.Text.ToString().CleanString();
 
 			var rc = Integration.ReadClipboard(out var str);
 
-			if (/*!SearchQuery.IsValidSourceType(s)
-			    &&*/ rc
-			    && !m_clipboard.Contains(str)
+			var b = !m_clipboard.Contains(str);
+
+			if ( /*!SearchQuery.IsValidSourceType(s)
+			    &&*/ rc && b
 			    /*&& (m_prevSeq != sequenceNumber)*/) {
+
 				/*bool vl = SearchQuery.IsValidSourceType(str);
 
 				if (vl) {
@@ -749,7 +754,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				}
 
 				Debug.WriteLine($"{str}");*/
-				
+
 				SetInputText(str);
 				// Lbl_InputOk.Text   = UI.Clp;
 				Lbl_InputInfo.Text = R2.Inf_Clipboard;
@@ -759,6 +764,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				if (Compat.IsWin) {
 					ConsoleUtil.FlashTaskbar();
 				}
+
 			}
 
 			// note: wtf?

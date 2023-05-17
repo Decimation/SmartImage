@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
+using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.FileTypes;
 using Novus;
@@ -49,6 +50,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null, CancellationToken ct = default)
 	{
+
 		if (Uni.IsUri) {
 			Upload = Uni.Value.ToString();
 			Size   = BaseSearchEngine.NA_SIZE;
@@ -56,13 +58,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		}
 		else {
 			engine ??= BaseUploadEngine.Default;
-
-			if (engine == null) {
-				throw new SmartImageException($"No upload engines seem to be responding");
-			}
-
-			Debug.WriteLine($"using {engine.Name} to upload");
-
+			
 			var u = await engine.UploadFileAsync(Uni.Value.ToString(), ct);
 			Upload = u;
 			Size   = engine.Size;

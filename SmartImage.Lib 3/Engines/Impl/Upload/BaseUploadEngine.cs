@@ -24,7 +24,7 @@ public abstract class BaseUploadEngine : IEndpoint
 	}
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
-
+	
 	public abstract Task<Url> UploadFileAsync(string file, CancellationToken ct = default);
 
 	public long Size { get; set; }
@@ -51,15 +51,6 @@ public abstract class BaseUploadEngine : IEndpoint
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 
-	public static async ValueTask<BaseUploadEngine[]> UpdateAlive()
-	{
-		var a = await IEndpoint.QueryAlive(All);
-		
-		Default = a?.FirstOrDefault();
-
-		return a;
-	}
-	
 	public static BaseUploadEngine Default { get; set; } = new CatboxEngine();
 }
 

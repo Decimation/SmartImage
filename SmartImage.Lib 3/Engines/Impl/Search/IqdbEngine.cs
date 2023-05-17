@@ -155,7 +155,14 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		}
 
 		Trace.Assert(doc != null);
+		var err=doc.Body.GetElementsByClassName("err");
 
+		if (err.Any()) {
+			var fe = err[0];
+			sr.Status       = SearchResultStatus.Failure;
+			sr.ErrorMessage = $"{fe.TextContent}";
+			goto ret;
+		}
 		var pages  = doc.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 

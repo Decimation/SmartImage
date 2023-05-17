@@ -34,8 +34,6 @@ public abstract class BaseSearchEngine : IDisposable
 		BaseUrl = baseUrl;
 	}
 
-	protected JsonValue? Data => EngineData[Name.ToLower()];
-
 	static BaseSearchEngine() { }
 
 	public override string ToString()
@@ -102,8 +100,4 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
-
-	private static readonly MemoryStream EngineDataStream = new MemoryStream(Resources.data);
-
-	protected static readonly JsonValue? EngineData = JsonValue.Load(EngineDataStream);
 }

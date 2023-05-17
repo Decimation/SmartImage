@@ -206,8 +206,9 @@ public sealed partial class ShellMode
 
 		}
 		catch (Exception e) {
-			FileLogger.Fl.Writer.WriteLine($"{e.Message} {e.Source} {e.StackTrace}");
-			FileLogger.Fl.Writer.Flush();
+
+			File.WriteAllText("crash.log", $"{e.Message} {e.Source} {e.StackTrace}");
+
 		}
 
 	}

@@ -41,8 +41,6 @@ public sealed class SearchClient : IDisposable
 		Config        = cfg;
 		ConfigApplied = false;
 		LoadEngines();
-		FileLogger.Fl.Writer.WriteLine($"Init");
-		FileLogger.Fl.Writer.Flush();
 	}
 
 	static SearchClient()
@@ -87,7 +85,7 @@ public sealed class SearchClient : IDisposable
 	/// <param name="query">Search query</param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	/// <param name="p"><see cref="IProgress{T}"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken? token = null,
+	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken token = default,
 	                                                 [CBN] IProgress<int> p = null)
 	{
 		if (!ConfigApplied) {
@@ -98,15 +96,13 @@ public sealed class SearchClient : IDisposable
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
-		token ??= CancellationToken.None;
-
-		var tasks = GetSearchTasks(query, token.Value);
+		var tasks = GetSearchTasks(query, token);
 
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
 
 		while (tasks.Any()) {
-			if (token.Value.IsCancellationRequested) {
+			if (token.IsCancellationRequested) {
 
 				Logger.LogWarning("Cancellation requested");
 				IsComplete = true;
@@ -218,7 +214,6 @@ public sealed class SearchClient : IDisposable
 
 	public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{
-
 		var sri2 = sri.AsParallel().DistinctBy(e => e.Url).ToList();
 
 		/*Parallel.ForEachAsync(sri2, async (item, token) =>
@@ -227,7 +222,7 @@ public sealed class SearchClient : IDisposable
 
 			if (r.ResponseMessage.IsSuccessStatusCode) { }
 		});*/
-		
+
 		return ValueTask.FromResult<IReadOnlyList<SearchResultItem>>(sri2);
 	}
 

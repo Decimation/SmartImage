@@ -61,16 +61,6 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] data {
-            get {
-                object obj = ResourceManager.GetObject("data", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SOFTWARE\Classes\*\shell\SmartImage.
         /// </summary>
         internal static string Reg_Shell {
