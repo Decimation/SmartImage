@@ -1,4 +1,9 @@
-﻿using System.Diagnostics;
+﻿// Read S SmartImage ConsoleUtil.cs
+// 2023-01-30 @ 7:45 PM
+
+#region
+
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -10,11 +15,16 @@ using Novus.Win32.Structures.User32;
 using SmartImage.App;
 using Terminal.Gui;
 
+#endregion
+
 namespace SmartImage.Utilities;
 
 [SupportedOSPlatform(Compat.OS)]
 internal static class ConsoleUtil
 {
+	internal const int CODE_ERR = -1;
+
+	internal const int CODE_OK = 0;
 	// internal static SearchEngineOptions[] EngineOptions => (SearchEngineOptions[]) Cache[nameof(EngineOptions)];
 
 	internal static readonly nint HndWindow = Native.GetConsoleWindow();
@@ -56,7 +66,7 @@ internal static class ConsoleUtil
 		                             ~ConsoleModes.ENABLE_QUICK_EDIT_MODE |
 		                             ConsoleModes.ENABLE_EXTENDED_FLAGS |
 		                             ConsoleModes.ENABLE_ECHO_INPUT |
-		                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING | 
+		                             ConsoleModes.ENABLE_VIRTUAL_TERMINAL_PROCESSING |
 		                             ConsoleModes.ENABLE_PROCESSED_OUTPUT);
 
 		// Console.SetWindowSize(150, 35);
@@ -77,8 +87,4 @@ internal static class ConsoleUtil
 
 		Native.FlashWindowEx(ref pwfi);
 	}
-
-	internal const int CODE_ERR = -1;
-	internal const int CODE_OK  = 0;
-
 }

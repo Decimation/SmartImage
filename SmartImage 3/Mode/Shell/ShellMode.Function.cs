@@ -1,14 +1,21 @@
-﻿using System.Diagnostics;
+﻿// Read S SmartImage ShellMode.Function.cs
+// 2023-02-14 @ 12:13 AM
+
+#region
+
+using System.Diagnostics;
 using NStack;
 using SmartImage.Lib;
 using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 
+#endregion
+
 namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
-	private async Task RunMain()
+	private async Task RunMainAsync()
 	{
 		Pbr_Status.BidirectionalMarquee = false;
 		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.Continuous;
@@ -45,6 +52,7 @@ public sealed partial class ShellMode
 
 		Dt_Results.Clear();
 
+		Query?.Dispose();
 		Query = SearchQuery.Null;
 		IsReady.Reset();
 		// ResultCount = 0;

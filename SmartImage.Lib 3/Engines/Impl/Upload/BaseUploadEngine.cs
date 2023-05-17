@@ -24,7 +24,7 @@ public abstract class BaseUploadEngine : IEndpoint
 	}
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
-	
+
 	public abstract Task<Url> UploadFileAsync(string file, CancellationToken ct = default);
 
 	public long Size { get; set; }
@@ -65,17 +65,12 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 				                                         mp.AddFile("fileToUpload", file)
 					                                         .AddString("reqtype", "fileupload")
 					                                         .AddString("time", "1h")
-			                     , ct);
+			                                         , ct);
 
 		var responseMessage = response.ResponseMessage;
 
 		var content = await responseMessage.Content.ReadAsStringAsync(ct);
-
-		/*if (!responseMessage.IsSuccessStatusCode) {
-
-		return null;
-	}*/
-
+		
 		return new(content);
 	}
 

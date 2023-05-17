@@ -1,5 +1,7 @@
-﻿// Read Stanton SmartImage ShellMain.Handlers.cs
-// 2023-01-13 @ 11:29 PM
+﻿// Read S SmartImage ShellMode.Handlers.cs
+// 2023-02-14 @ 12:13 AM
+
+#region
 
 using System.Diagnostics;
 using Kantan.Net.Utilities;
@@ -17,12 +19,14 @@ using Microsoft.VisualBasic.FileIO;
 using SmartImage.Lib.Utilities;
 using FileSystem = Novus.OS.FileSystem;
 
+#endregion
+
 namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
 	/// <summary>
-	/// <see cref="Tv_Results"/>
+	///     <see cref="Tv_Results" />
 	/// </summary>
 	private void Result_CellActivated(TableView.CellActivatedEventArgs args)
 	{
@@ -59,7 +63,7 @@ public sealed partial class ShellMode
 	}
 
 	/// <summary>
-	/// <see cref="Btn_Restart"/>
+	///     <see cref="Btn_Restart" />
 	/// </summary>
 	private void Restart_Clicked(bool force = false)
 	{
@@ -95,7 +99,7 @@ public sealed partial class ShellMode
 	}
 
 	/// <summary>
-	/// <see cref="Btn_Run"/>
+	///     <see cref="Btn_Run" />
 	/// </summary>
 	private async void Run_Clicked()
 	{
@@ -115,11 +119,11 @@ public sealed partial class ShellMode
 			return;
 		}
 
-		await RunMain();
+		await RunMainAsync();
 	}
 
 	/// <summary>
-	/// <see cref="Btn_Browse"/>
+	///     <see cref="Btn_Browse" />
 	/// </summary>
 	private void Browse_Clicked()
 	{
@@ -139,7 +143,7 @@ public sealed partial class ShellMode
 	}
 
 	/// <summary>
-	/// <see cref="Lbl_InputInfo"/>
+	///     <see cref="Lbl_InputInfo" />
 	/// </summary>
 	private void InputInfo_Clicked()
 	{
@@ -171,7 +175,8 @@ public sealed partial class ShellMode
 		Btn_Run.Enabled     = true;
 		// Btn_Run.Enabled     = false;
 		Tf_Input.SetFocus();
-		// Btn_Delete.Enabled = false;
+		Btn_Delete.Enabled = false;
+		
 	}
 
 	private void Cancel_Clicked()
@@ -182,6 +187,7 @@ public sealed partial class ShellMode
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
+		
 	}
 
 	private void Delete_Clicked()
@@ -195,13 +201,16 @@ public sealed partial class ShellMode
 			if (!string.IsNullOrWhiteSpace(file)) {
 				file = file.CleanString();
 				Query.Dispose();
-				Restart_Clicked(true);
+				// Restart_Clicked(true);
 				Debug.WriteLine($"{IsQueryReady()}");
 
 				Microsoft.VisualBasic.FileIO.FileSystem.DeleteFile(file, UIOption.OnlyErrorDialogs,
 				                                                   RecycleOption.SendToRecycleBin);
 				Debug.WriteLine($"deleted {file}");
 				// Clear();
+				Cancel_Clicked();
+				Clear_Clicked();
+				// Btn_Delete.Enabled = false;
 			}
 
 		}
@@ -209,6 +218,10 @@ public sealed partial class ShellMode
 
 			File.WriteAllText("crash.log", $"{e.Message} {e.Source} {e.StackTrace}");
 
+		}
+		finally {
+			
+			// Restart_Clicked(true);
 		}
 
 	}

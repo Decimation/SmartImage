@@ -1,4 +1,10 @@
-﻿#nullable disable
+﻿// Read S SmartImage Program.cs
+// 2022-07-02 @ 11:39 PM
+
+#nullable disable
+
+#region
+
 global using static Kantan.Diagnostics.LogCategories;
 using System.CommandLine;
 using System.ComponentModel;
@@ -21,6 +27,8 @@ using SmartImage.Utilities;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Utilities;
 
+#endregion
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage;
@@ -32,6 +40,10 @@ namespace SmartImage;
 
 public static class Program
 {
+	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
+
+	static Program() { }
+
 	[ModuleInitializer]
 	public static void Init()
 	{
@@ -51,13 +63,6 @@ public static class Program
 		};
 
 	}
-
-	static Program()
-	{
-
-	}
-
-	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
 
 	public static async Task<int> Main(string[] args)
 	{
@@ -121,7 +126,7 @@ public static class Program
 			main1:
 			Application.Init();
 
-			var main = new ShellMode(args);
+			var    main = new ShellMode(args);
 			object status;
 
 			var run = main.RunAsync(null);

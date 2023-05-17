@@ -1,4 +1,7 @@
-﻿namespace SmartImage.Utilities;
+﻿// Read S SmartImage ImageUtility.cs
+// 2023-01-30 @ 7:45 PM
+
+namespace SmartImage.Utilities;
 
 public static class ImageUtility
 {

@@ -58,7 +58,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		}
 		else {
 			engine ??= BaseUploadEngine.Default;
-			
+
 			var u = await engine.UploadFileAsync(Uni.Value.ToString(), ct);
 			Upload = u;
 			Size   = engine.Size;
@@ -100,8 +100,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		if (OperatingSystem.IsWindows()) {
 			Image?.Dispose();
 		}
-
-		Uni.Dispose();
+		
+		Uni?.Dispose();
 	}
 
 	public override string ToString()

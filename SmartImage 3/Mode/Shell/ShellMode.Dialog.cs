@@ -1,5 +1,7 @@
-﻿// Read Stanton SmartImage ShellMain.Dialog.cs
-// 2023-01-13 @ 11:28 PM
+﻿// Read S SmartImage ShellMode.Dialog.cs
+// 2023-02-14 @ 12:13 AM
+
+#region
 
 using System.Collections;
 using System.Data;
@@ -16,6 +18,8 @@ using SmartImage.Lib.Engines;
 using SmartImage.Mode.Shell.Assets;
 using SmartImage.Utilities;
 using Terminal.Gui;
+
+#endregion
 
 namespace SmartImage.Mode.Shell;
 
@@ -49,7 +53,7 @@ public sealed partial class ShellMode
 	}
 
 	/// <summary>
-	/// <see cref="Btn_Config"/>
+	///     <see cref="Btn_Config" />
 	/// </summary>
 	private void ConfigDialog()
 	{

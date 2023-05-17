@@ -1,10 +1,17 @@
-﻿using System.Collections;
+﻿// Read S SmartImage UI.cs
+// 2023-02-14 @ 12:12 AM
+
+#region
+
+using System.Collections;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Kantan.Console;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
 using Terminal.Gui;
+
+#endregion
 
 // ReSharper disable InconsistentNaming
 
@@ -85,7 +92,7 @@ internal static partial class UI
 
 	public static void ClearBy<T>(this ListView lv, Predicate<T> p)
 	{
-		var cc=lv.Source.ToList<T>().ToArray();
+		var cc = lv.Source.ToList<T>().ToArray();
 
 		for (int i = 0; i < lv.Source.Length; i++) {
 			lv.Source.SetMark(i, p(cc[i]));

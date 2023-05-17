@@ -1,9 +1,9 @@
-﻿// Read Stanton SmartImage IMain.cs
-// 2023-01-31 @ 11:22 AM
+﻿// Read S SmartImage IMode.cs
+// 2023-02-14 @ 12:12 AM
 
 namespace SmartImage.Mode;
 
 public interface IMode
 {
-    public Task<object?> RunAsync(object? sender);
+	public Task<object?> RunAsync(object? sender);
 }

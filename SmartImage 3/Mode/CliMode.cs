@@ -1,5 +1,7 @@
-﻿// Read Stanton SmartImage CliMain.cs
-// 2023-01-30 @ 10:37 PM
+﻿// Read S SmartImage CliMode.cs
+// 2023-02-14 @ 12:12 AM
+
+#region
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -12,15 +14,26 @@ using Spectre.Console;
 using Spectre.Console.Rendering;
 using AConsole = Spectre.Console.AnsiConsole;
 
+#endregion
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Mode;
 
 public sealed class CliMode : IDisposable, IMode, IProgress<int>
 {
-	private const int COMPLETE = 100;
+	private readonly SearchClient m_client;
 
-	#region
+	private readonly CancellationTokenSource m_cts;
+
+	private readonly ConcurrentBag<SearchResult> m_results = new();
+
+	private SearchQuery m_query;
+
+	private SearchResult[] m_results2;
+
+	public        SearchConfig Config { get; }
+	private const int          COMPLETE = 100;
 
 	static CliMode()
 	{
@@ -28,73 +41,12 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 	}
 
-	#endregion
-
-	private readonly ConcurrentBag<SearchResult> m_results = new();
-
-	private SearchResult[] m_results2;
-
-	private SearchQuery m_query;
-
-	private readonly SearchClient m_client;
-
-	private readonly CancellationTokenSource m_cts;
-
-	public SearchConfig Config { get; }
-
 	public CliMode()
 	{
 		Config   = new SearchConfig();
 		m_client = new SearchClient(Config);
 		m_query  = SearchQuery.Null;
 		m_cts    = new CancellationTokenSource();
-	}
-
-	public async Task<object?> RunAsync(object? c)
-	{
-		var cstr = (string) c;
-		Debug.WriteLine($"Input: {cstr}");
-
-		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
-		{
-			var p = ctx.AddTask("Creating query");
-			p.IsIndeterminate = true;
-			m_query           = await SearchQuery.TryCreateAsync(cstr);
-			p.Increment(COMPLETE);
-			ctx.Refresh();
-		});
-
-		AConsole.WriteLine($"Input: {m_query}");
-		
-		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
-		{
-			var p = ctx.AddTask("Uploading");
-			p.IsIndeterminate = true;
-			var url = await m_query.UploadAsync();
-
-			p.Increment(COMPLETE);
-			ctx.Refresh();
-		});
-
-		AConsole.MarkupLine($"[green]{m_query.Upload}[/]");
-
-		AConsole.WriteLine($"{Config}");
-
-		Console.CancelKeyPress += (sender, args) =>
-		{
-			AConsole.MarkupLine($"[red]Cancellation requested[/]");
-			m_cts.Cancel();
-			args.Cancel = false;
-
-			Environment.Exit(ConsoleUtil.CODE_ERR);
-		};
-
-		// await Prg_1.StartAsync(RunSearchAsync);
-
-		await RunSearchAsync();
-
-		return null;
-
 	}
 
 	private async Task RunSearchAsync()
@@ -176,6 +128,8 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 	}
 
+	#region
+
 	public void Dispose()
 	{
 		m_results.Clear();
@@ -185,8 +139,57 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 		m_client.Dispose();
 	}
 
+	public async Task<object?> RunAsync(object? c)
+	{
+		var cstr = (string) c;
+		Debug.WriteLine($"Input: {cstr}");
+
+		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
+		{
+			var p = ctx.AddTask("Creating query");
+			p.IsIndeterminate = true;
+			m_query           = await SearchQuery.TryCreateAsync(cstr);
+			p.Increment(COMPLETE);
+			ctx.Refresh();
+		});
+
+		AConsole.WriteLine($"Input: {m_query}");
+
+		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
+		{
+			var p = ctx.AddTask("Uploading");
+			p.IsIndeterminate = true;
+			var url = await m_query.UploadAsync();
+
+			p.Increment(COMPLETE);
+			ctx.Refresh();
+		});
+
+		AConsole.MarkupLine($"[green]{m_query.Upload}[/]");
+
+		AConsole.WriteLine($"{Config}");
+
+		Console.CancelKeyPress += (sender, args) =>
+		{
+			AConsole.MarkupLine($"[red]Cancellation requested[/]");
+			m_cts.Cancel();
+			args.Cancel = false;
+
+			Environment.Exit(ConsoleUtil.CODE_ERR);
+		};
+
+		// await Prg_1.StartAsync(RunSearchAsync);
+
+		await RunSearchAsync();
+
+		return null;
+
+	}
+
 	public void Report(int value)
 	{
 		Debug.WriteLine($"{value}");
 	}
+
+	#endregion
 }

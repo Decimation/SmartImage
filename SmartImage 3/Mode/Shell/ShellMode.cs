@@ -228,8 +228,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Y = Pos.Bottom(Btn_Cancel),
 
 		Height      = Dim.Height(Btn_Cancel),
-		ColorScheme = UI.Cs_Btn4
-
+		ColorScheme = UI.Cs_Btn_Cancel,
+		Enabled = false
 	};
 
 	#endregion

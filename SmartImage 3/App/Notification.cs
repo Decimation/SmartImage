@@ -1,4 +1,7 @@
-﻿// using Windows.ApplicationModel.Background;
+﻿// Read S SmartImage Notification.cs
+// 2022-11-10 @ 11:27 PM
+
+// using Windows.ApplicationModel.Background;
 // using Windows.UI.Notifications;
 
 // using Windows.UI.Notifications;

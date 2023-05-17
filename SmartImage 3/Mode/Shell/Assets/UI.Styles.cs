@@ -1,6 +1,13 @@
-﻿using AngleSharp.Dom;
+﻿// Read S SmartImage UI.Styles.cs
+// 2023-02-14 @ 12:12 AM
+
+#region
+
+using AngleSharp.Dom;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
+
+#endregion
 
 // ReSharper disable InconsistentNaming
 
@@ -9,8 +16,6 @@ namespace SmartImage.Mode.Shell.Assets;
 // todo: possible overkill with caching
 internal static partial class UI
 {
-	#region Attributes
-
 	internal static readonly Attribute Atr_Green_Black         = Attribute.Make(Color.Green, Color.Black);
 	internal static readonly Attribute Atr_BrightGreen_White   = Attribute.Make(Color.BrightGreen, Color.White);
 	internal static readonly Attribute Atr_BrightGreen_Gray    = Attribute.Make(Color.BrightGreen, Color.Gray);
@@ -47,31 +52,6 @@ internal static partial class UI
 	internal static readonly Attribute Atr_Black_DarkGray      = Attribute.Make(Color.Black, Color.DarkGray);
 
 	internal static readonly Attribute Atr_Brown_Gray = Attribute.Make(Color.Brown, Color.Gray);
-
-	#endregion
-
-	#region Color schemes
-
-	internal static ColorScheme Make(Attribute norm, Attribute focus = default, Attribute disabled = default)
-	{
-
-		if (focus.Equals(default(Attribute))) {
-			focus = Attribute.Get();
-		}
-
-		if (disabled.Equals(default(Attribute))) {
-			disabled = Attribute.Get();
-		}
-
-		return new ColorScheme()
-		{
-			Normal    = norm,
-			HotNormal = norm,
-			Focus     = focus,
-			HotFocus  = focus,
-			Disabled  = disabled
-		};
-	}
 
 	internal static readonly ColorScheme Cs_Err        = Make(Atr_BrightRed_White, disabled: Atr_BrightRed_Gray);
 	internal static readonly ColorScheme Cs_Ok         = Make(Atr_BrightGreen_White, disabled: Atr_BrightGreen_Gray);
@@ -161,31 +141,27 @@ internal static partial class UI
 
 	internal static readonly ColorScheme Cs_Lbl1 = new()
 	{
-		Normal    = UI.Atr_White_Black,
-		HotNormal = UI.Atr_White_Black,
-		Focus     = UI.Atr_Cyan_Black,
-		HotFocus  = UI.Atr_Cyan_Black,
+		Normal    = Atr_White_Black,
+		HotNormal = Atr_White_Black,
+		Focus     = Atr_Cyan_Black,
+		HotFocus  = Atr_Cyan_Black,
 	};
 
 	internal static readonly ColorScheme Cs_Lbl2 = new()
 	{
 		Normal    = Atr_BrightCyan_DarkGray,
 		HotNormal = Atr_BrightCyan_DarkGray,
-		Focus     = UI.Atr_Cyan_Black,
-		HotFocus  = UI.Atr_Cyan_Black,
+		Focus     = Atr_Cyan_Black,
+		HotFocus  = Atr_Cyan_Black,
 	};
 
 	internal static readonly ColorScheme Cs_Lbl3 = new()
 	{
-		Normal    = UI.Atr_BrightBlue_Gray,
-		HotNormal = UI.Atr_BrightBlue_Gray,
-		Focus     = UI.Atr_Cyan_Black,
-		HotFocus  = UI.Atr_Cyan_Black,
+		Normal    = Atr_BrightBlue_Gray,
+		HotNormal = Atr_BrightBlue_Gray,
+		Focus     = Atr_Cyan_Black,
+		HotFocus  = Atr_Cyan_Black,
 	};
-
-	#endregion
-
-	#region Styles
 
 	internal static readonly Border Br_1 = new()
 	{
@@ -197,14 +173,29 @@ internal static partial class UI
 		Effect3D        = true,
 	};
 
-	#endregion
-
-	#region Dimensions
-
 	internal static readonly Dim Dim_30_Pct = Dim.Percent(30);
 	internal static readonly Dim Dim_80_Pct = Dim.Percent(80);
 
-	#endregion
-
 	static UI() { }
+
+	internal static ColorScheme Make(Attribute norm, Attribute focus = default, Attribute disabled = default)
+	{
+
+		if (focus.Equals(default(Attribute))) {
+			focus = Attribute.Get();
+		}
+
+		if (disabled.Equals(default(Attribute))) {
+			disabled = Attribute.Get();
+		}
+
+		return new ColorScheme()
+		{
+			Normal    = norm,
+			HotNormal = norm,
+			Focus     = focus,
+			HotFocus  = focus,
+			Disabled  = disabled
+		};
+	}
 }

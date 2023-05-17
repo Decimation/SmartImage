@@ -1,4 +1,7 @@
-﻿#nullable disable
+﻿// Read S SmartImage Integration.cs
+// 2022-09-25 @ 2:44 PM
+
+#nullable disable
 
 #region
 
@@ -29,6 +32,8 @@ namespace SmartImage.App;
 /// </summary>
 public static class Integration
 {
+	#region
+
 	public static string ExeLocation
 	{
 		get
@@ -62,6 +67,9 @@ public static class Integration
 			return false;
 		}
 	}
+
+	#endregion
+
 	/*
 	 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
 	 *		HKEY_CURRENT_USER\Software\Classes
@@ -320,6 +328,7 @@ public static class Integration
 			lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
 			lpstrTitle      = "Pick an image"
 		};
+
 		ofn.nMaxFile      = ofn.lpstrFile.Length;
 		ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
 

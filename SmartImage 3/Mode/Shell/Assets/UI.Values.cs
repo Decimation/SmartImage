@@ -1,6 +1,13 @@
-﻿using NStack;
+﻿// Read S SmartImage UI.Values.cs
+// 2023-02-14 @ 12:12 AM
+
+#region
+
+using NStack;
 using SmartImage.Lib.Engines;
 using Terminal.Gui;
+
+#endregion
 
 // ReSharper disable InconsistentNaming
 
@@ -17,5 +24,4 @@ internal static partial class UI
 	internal static readonly Rune Line = Application.Driver.HLine;
 
 	internal static SearchEngineOptions[] EngineOptions = Enum.GetValues<SearchEngineOptions>();
-
 }

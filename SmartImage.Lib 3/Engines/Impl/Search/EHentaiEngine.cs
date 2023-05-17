@@ -120,7 +120,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	public async ValueTask ApplyAsync(SearchConfig cfg)
 	{
-		string u = null, p = null;
+		string u, p;
 
 		if (this is { IsLoggedIn: true }) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyAsync));
