@@ -5,6 +5,7 @@ using System.Collections;
 using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Flurl.Http;
 using Kantan.Console;
 using Kantan.Text;
 using Novus.OS;
@@ -20,6 +21,9 @@ namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
+	private const int WIDTH1  = 15;
+	private const int HEIGHT1 = 17;
+
 	private void AboutDialog()
 	{
 		var d = new Dialog()
@@ -61,9 +65,6 @@ public sealed partial class ShellMode
 		var btnSave    = new Button("Save") { };
 		var btnOk      = new Button("Ok") { };
 
-		const int WIDTH  = 15;
-		const int HEIGHT = 17;
-
 		/*============================================================================*\
 			Engines
 		\*============================================================================*/
@@ -81,8 +82,8 @@ public sealed partial class ShellMode
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
 			AutoSize                = true,
-			Width                   = WIDTH,
-			Height                  = HEIGHT,
+			Width                   = WIDTH1,
+			Height                  = HEIGHT1,
 
 			Y = Pos.Bottom(lbSearchEngines)
 		};
@@ -100,8 +101,8 @@ public sealed partial class ShellMode
 			AllowsMultipleSelection = true,
 			AllowsMarking           = true,
 			AutoSize                = true,
-			Width                   = WIDTH,
-			Height                  = HEIGHT,
+			Width                   = WIDTH1,
+			Height                  = HEIGHT1,
 
 			Y = Pos.Bottom(lbPriorityEngines),
 			X = Pos.Right(lvSearchEngines) + 1
@@ -130,7 +131,7 @@ public sealed partial class ShellMode
 			AutoSize = true,
 			Y        = Pos.Bottom(lbConfig),
 			X        = Pos.Right(lvPriorityEngines) + 1,
-			Width    = Dim.Fill(WIDTH),
+			Width    = Dim.Fill(WIDTH1),
 			Height   = 9,
 		};
 
@@ -175,7 +176,7 @@ public sealed partial class ShellMode
 		{
 			X           = Pos.X(tvConfig),
 			Y           = Pos.Bottom(tvConfig) + 1,
-			Width       = WIDTH,
+			Width       = WIDTH1,
 			Height      = 1,
 			ColorScheme = UI.Cs_Btn3
 		};
@@ -270,13 +271,13 @@ public sealed partial class ShellMode
 
 		CheckBox cbCb = new(R1.S_Clipboard)
 		{
-			X = Pos.X(cbContextMenu) ,
-			Y = Pos.Bottom(cbContextMenu)+1,
+			X = Pos.X(cbContextMenu),
+			Y = Pos.Bottom(cbContextMenu) + 1,
 			// Width  = WIDTH,
 			Height      = 1,
 			AutoSize    = true,
 			ColorScheme = UI.Cs_Btn3,
-			Checked = UseClipboard
+			Checked     = UseClipboard
 		};
 
 		cbCb.Toggled += b =>
@@ -300,7 +301,7 @@ public sealed partial class ShellMode
 		{
 			X      = Pos.Right(lbEhUsername) + 1,
 			Y      = Pos.Y(lbEhUsername),
-			Width  = WIDTH * 2,
+			Width  = WIDTH1 * 2,
 			Height = 1,
 		};
 
@@ -322,7 +323,7 @@ public sealed partial class ShellMode
 		{
 			X      = Pos.Right(lbEhPassword) + 1,
 			Y      = Pos.Y(lbEhPassword),
-			Width  = WIDTH * 2,
+			Width  = WIDTH1 * 2,
 			Height = 1,
 		};
 

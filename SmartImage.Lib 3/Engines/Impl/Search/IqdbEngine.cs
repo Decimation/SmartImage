@@ -1,4 +1,9 @@
-﻿// ReSharper disable UnusedMember.Global
+﻿// Read S SmartImage.Lib IqdbEngine.cs
+// 2023-01-13 @ 11:21 PM
+
+// ReSharper disable UnusedMember.Global
+
+#region
 
 using System.Diagnostics;
 using AngleSharp.Dom;
@@ -10,6 +15,8 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Results;
 
+#endregion
+
 // ReSharper disable StringLiteralTypo
 
 namespace SmartImage.Lib.Engines.Impl.Search;
@@ -18,18 +25,14 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 {
+	public string EndpointUrl => "https://iqdb.org/";
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
+
 	public IqdbEngine() : base("https://iqdb.org/?url=")
 	{
 		MaxSize = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 	}
-
-	#region Implementation of IClientSearchEngine
-
-	public string EndpointUrl => "https://iqdb.org/";
-
-	#endregion
-
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
 	private static SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
 	{
@@ -127,7 +130,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		var s = await response.GetStringAsync();
 
 		var parser = new HtmlParser();
-		return await parser.ParseDocumentAsync(s);
+		return await parser.ParseDocumentAsync(s).ConfigureAwait(false);
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
@@ -142,20 +145,19 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 
 		var doc = await GetDocumentAsync(query);
 
-		if (doc == null) {
+		if (doc == null || doc.Body == null) {
 			sr.ErrorMessage = $"Could not retrieve data";
 			sr.Status       = SearchResultStatus.Failure;
 			goto ret;
 		}
-
-		if (doc.Body!.TextContent.Contains("too large")) {
+		
+		if (doc.Body.TextContent.Contains("too large")) {
 			sr.ErrorMessage = "Image too large";
 			sr.Status       = SearchResultStatus.IllegalInput;
 			goto ret;
 		}
 
-		Trace.Assert(doc != null);
-		var err=doc.Body.GetElementsByClassName("err");
+		var err = doc.Body.GetElementsByClassName("err");
 
 		if (err.Any()) {
 			var fe = err[0];
@@ -163,6 +165,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 			sr.ErrorMessage = $"{fe.TextContent}";
 			goto ret;
 		}
+
 		var pages  = doc.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
 
@@ -199,5 +202,9 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		return sr;
 	}
 
+	#region
+
 	public override void Dispose() { }
+
+	#endregion
 }

@@ -80,7 +80,7 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 		AConsole.WriteLine($"{Config}");
 
-		SConsole.CancelKeyPress += (sender, args) =>
+		Console.CancelKeyPress += (sender, args) =>
 		{
 			AConsole.MarkupLine($"[red]Cancellation requested[/]");
 			m_cts.Cancel();

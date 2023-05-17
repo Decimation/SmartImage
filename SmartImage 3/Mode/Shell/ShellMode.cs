@@ -426,7 +426,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2, Btn_Queue, Btn_Delete, Cb_Queue
+		        Lbl_Status2, Btn_Delete
+
+			// Btn_Queue, Cb_Queue
 		);
 
 		Top.Add(Win);
@@ -721,7 +723,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private bool ClipboardCallback(MainLoop c)
 	{
-		Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard}");
+		// Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard} {Clipboard.SequenceNumber}");
 
 		try {
 			/*
@@ -733,6 +735,13 @@ public sealed partial class ShellMode : IDisposable, IMode
 			int curSeq  = Clipboard.SequenceNumber;
 			int prevSeq = m_seq;
 			m_seq = curSeq;
+
+			if (curSeq != prevSeq) {
+				Debug.WriteLine($"Sequence changed", nameof(ClipboardCallback));
+			}
+			else {
+				goto r2;
+			}
 
 			var s = Tf_Input.Text.ToString().CleanString();
 
@@ -768,6 +777,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			}
 
 			// note: wtf?
+			r1:
 			c.RemoveTimeout(m_cbCallbackTok);
 			m_cbCallbackTok = c.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 			return false;
@@ -778,6 +788,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		finally { }
 
+		r2:
 		// Debug.WriteLine($"{UseClipboard}");
 		return true;
 		// return UseClipboard;

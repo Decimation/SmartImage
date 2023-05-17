@@ -1,5 +1,4 @@
 ﻿#nullable disable
-global using SConsole = System.Console;
 global using static Kantan.Diagnostics.LogCategories;
 using System.CommandLine;
 using System.ComponentModel;
@@ -19,11 +18,8 @@ using SmartImage.Lib.Results;
 using SmartImage.Mode;
 using SmartImage.Mode.Shell;
 using SmartImage.Utilities;
-using Command = System.CommandLine.Command;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Utilities;
-
-#pragma warning disable CS0168
 
 // ReSharper disable InconsistentNaming
 
@@ -42,7 +38,7 @@ public static class Program
 		Global.Setup();
 		Trace.WriteLine("Init", R2.Name);
 		// Gui.Init();
-		System.Console.Title = R2.Name;
+		Console.Title = R2.Name;
 
 		if (Compat.IsWin) {
 			ConsoleUtil.SetConsoleMode();
