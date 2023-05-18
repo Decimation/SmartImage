@@ -105,12 +105,23 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 			OnPropertyChanged();
 		}
 	}
+
 	public bool Silent
 	{
 		get { return Configuration.ReadSetting(nameof(Silent), false); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(Silent), value.ToString());
+			OnPropertyChanged();
+		}
+	}
+
+	public bool Clipboard
+	{
+		get { return Configuration.ReadSetting(nameof(Clipboard), true); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(Clipboard), value.ToString());
 			OnPropertyChanged();
 		}
 	}
@@ -152,6 +163,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		table.Rows.Add(Resources.S_Silent, Silent);
 		table.Rows.Add(Resources.S_EhUsername, EhUsername);
 		table.Rows.Add(Resources.S_EhPassword, EhPassword);
+		table.Rows.Add(Resources.S_Clipboard, Clipboard);
 
 		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
 

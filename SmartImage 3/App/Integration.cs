@@ -316,26 +316,81 @@ public static class Integration
 		return b;
 	}
 
-	public static string OpenFile()
+	public static string[] OpenFile(int f = 0)
 	{
-		var ofn = new OPENFILENAME()
-		{
-			lStructSize = Marshal.SizeOf<OPENFILENAME>(),
-			lpstrFilter = "All Files\0*.*\0\0",
+		// Span<char> p1 = stackalloc char[1024];
+		// Span<char> p2 = stackalloc char[512];
+		unsafe {
+			const int ss = 1024;
 
-			lpstrFile       = new string(stackalloc char[256]),
-			lpstrFileTitle  = new string(stackalloc char[64]),
-			lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
-			lpstrTitle      = "Pick an image"
-		};
+			var p1 = stackalloc sbyte[ss];
+			var p2 = stackalloc sbyte[ss];
 
-		ofn.nMaxFile      = ofn.lpstrFile.Length;
-		ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
+			var ofn = new OPENFILENAME()
+			{
+				lStructSize = Marshal.SizeOf<OPENFILENAME>(),
+				lpstrFilter = "All Files\0*.*\0\0",
+				// lpstrFile       = new string(p1),
+				// lpstrFileTitle  = new string(p2),
+				lpstrFile      = (nint) p1,
+				lpstrFileTitle = new string(p2),
 
-		if (Native.GetOpenFileName(ref ofn)) {
-			return ofn.lpstrFile;
+				lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
+				lpstrTitle      = "Pick an image",
+				Flags           = f
+			};
+
+			// ofn.nMaxFile      = ofn.lpstrFile.Length;
+			ofn.nMaxFile      = ss;
+			ofn.nMaxFileTitle = ss;
+			// ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
+
+			string rgz;
+
+			bool ok = Native.GetOpenFileName(ref ofn);
+
+			string[] files;
+			var      pd = Marshal.PtrToStringAuto((nint) p1);
+
+			if ((f & 0x00000200) == 0 /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
+				files = new[] { pd };
+				goto ret;
+			}
+
+			var ofs   = (ofn.nFileOffset * 2);
+			var ptr1  = ((byte*) p1 + ofs);
+			var _dir1 = Encoding.Unicode.GetString(ptr1, ofs);
+			files = _dir1.Split('\0').Select(s => Path.Combine(pd, s)).ToArray();
+
+			// Debug.WriteLine($"{_dir1} {sz1}");
+			/*rgz = ok ? new string(ofn.lpstrFile, 0, ) : null;
+
+		unsafe {
+			fixed (char* p = rgz) {
+				sbyte* pp = (sbyte*) p;
+
+				int i = 0;
+
+				while (*pp++ != 0) { ++i; }
+
+				Debug.WriteLine($"{i} {(nint) pp:X}");
+			}
+
+		}*/
+			ret:
+			return files;
+
+		}
+	}
+
+	private static unsafe int _count(int ss, sbyte* p1)
+	{
+		int i;
+
+		for (i = 0; i < ss; i++) {
+			if (p1[i] == 0 && p1[i + 1] == 0) { }
 		}
 
-		return null;
+		return i;
 	}
 }

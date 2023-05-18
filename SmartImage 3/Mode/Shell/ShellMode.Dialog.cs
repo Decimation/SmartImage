@@ -136,7 +136,7 @@ public sealed partial class ShellMode
 			Y        = Pos.Bottom(lbConfig),
 			X        = Pos.Right(lvPriorityEngines) + 1,
 			Width    = Dim.Fill(WIDTH1),
-			Height   = 9,
+			Height   = 11,
 		};
 
 		void ReloadDialog()
@@ -281,12 +281,13 @@ public sealed partial class ShellMode
 			Height      = 1,
 			AutoSize    = true,
 			ColorScheme = UI.Cs_Btn3,
-			Checked     = UseClipboard
+			Checked     = UseClipboard,
 		};
 
 		cbCb.Toggled += b =>
 		{
 			UseClipboard = !b;
+			ReloadDialog();
 		};
 
 		/*============================================================================*\

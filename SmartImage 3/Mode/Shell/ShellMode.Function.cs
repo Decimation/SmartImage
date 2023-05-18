@@ -71,7 +71,7 @@ public sealed partial class ShellMode
 		// Btn_Run.Enabled    = false;
 		Btn_Cancel.Enabled = false;
 
-		m_queue.Clear();
+		Queue.Clear();
 		m_results.Clear();
 	}
 }

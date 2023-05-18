@@ -118,14 +118,42 @@ public sealed partial class ShellMode
 		await RunMainAsync();
 	}
 
+	private void Queue_Clicked()
+	{
+		if (IsQueryReady()) { }
+	}
+
+	private void Queue_Checked(bool b)
+	{
+		QueueMode = !b;
+
+		Btn_Queue.Enabled = QueueMode;
+	}
+
 	/// <summary>
 	///     <see cref="Btn_Browse" />
 	/// </summary>
 	private void Browse_Clicked()
 	{
 		Integration.KeepOnTop(false);
-		var f = Integration.OpenFile();
 
+		int flags = 0x0;
+		
+		if (QueueMode) {
+			flags |= 0x00000200;
+		}
+
+		flags |= 0x00080000 | 0x00001000;
+
+		var files = Integration.OpenFile(flags);
+		
+		if (QueueMode) {
+			foreach (string fs in files) {
+				Queue.Enqueue(fs);
+			}
+		}
+
+		var f = files[0]; //todo
 		if (!string.IsNullOrWhiteSpace(f)) {
 			Tf_Input.DeleteAll();
 			Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));

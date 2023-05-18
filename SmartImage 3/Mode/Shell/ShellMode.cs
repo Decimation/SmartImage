@@ -229,7 +229,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Height      = Dim.Height(Btn_Cancel),
 		ColorScheme = UI.Cs_Btn_Cancel,
-		Enabled = false
+		Enabled     = false
 	};
 
 	#endregion
@@ -260,16 +260,14 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private CancellationTokenSource m_token;
 	private CancellationTokenSource m_tokenu;
 
-	private bool m_useclipboard;
-
 	public bool UseClipboard
 	{
-		get { return m_useclipboard; }
+		get { return Config.Clipboard; }
 		set
 		{
-			m_useclipboard = value;
+			Config.Clipboard = value;
 
-			if (m_useclipboard) {
+			if (Config.Clipboard) {
 				m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 
 			}
@@ -281,9 +279,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 		}
 	}
 
-	private readonly ConcurrentQueue<ustring> m_queue;
+	public bool QueueMode { get; private set; }
 
 	#region
+
+	public ConcurrentQueue<string> Queue { get; private set; }
 
 	public SearchQuery Query { get; internal set; }
 
@@ -313,7 +313,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Query    = SearchQuery.Null;
 		Client   = new SearchClient(new SearchConfig());
 		IsReady  = new ManualResetEvent(false);
-		m_queue  = new();
+		Queue    = new();
 
 		m_results = new();
 
@@ -334,7 +334,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		 */
 
 		// m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
-		UseClipboard = true;
+		// UseClipboard = true;
 
 		m_clipboard = new List<ustring>();
 
@@ -403,32 +403,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
 		Tf_Input.TextChanging    += Input_TextChanging;
+		Btn_Delete.Clicked       += Delete_Clicked;
+		Cb_Queue.Toggled         += Queue_Checked;
+		Btn_Queue.Clicked        += Queue_Clicked;
 
 		Lbl_QueryUpload.Clicked += () =>
 		{
 			HttpUtilities.TryOpenUrl(Query.Upload);
 		};
-
-		Btn_Delete.Clicked += Delete_Clicked;
-
-		Cb_Queue.Toggled += b =>
-		{
-			Btn_Queue.Enabled = !b;
-		};
-
-		Btn_Queue.Clicked += () =>
-		{
-			if (IsQueryReady()) { }
-		};
-
 		Btn_Queue.Enabled = false;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2, Btn_Delete
-
-			// Btn_Queue, Cb_Queue
+		        Lbl_Status2, Btn_Delete, Btn_Queue, Cb_Queue
 		);
 
 		Top.Add(Win);
@@ -800,7 +788,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Query.Dispose();
 		m_token.Dispose();
 		m_tokenu.Dispose();
-		m_queue.Clear();
+		Queue.Clear();
 		m_results.Clear();
 	}
 }
