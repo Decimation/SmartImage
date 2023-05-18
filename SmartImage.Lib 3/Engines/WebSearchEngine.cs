@@ -18,7 +18,16 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		token ??= CancellationToken.None;
 		var res = await base.GetResultAsync(query, token);
 
-		IDocument doc = await GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
+		IDocument doc;
+
+		try {
+			doc = await GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(GetResultAsync));
+			doc = null;
+
+		}
 
 		if (doc is not { }) {
 			res.Status = SearchResultStatus.Failure;

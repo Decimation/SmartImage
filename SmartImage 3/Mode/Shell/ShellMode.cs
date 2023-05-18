@@ -417,7 +417,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tf_Input.TextChanging    += Input_TextChanging;
 		Btn_Delete.Clicked       += Delete_Clicked;
 		Cb_Queue.Toggled         += Queue_Checked;
-		Btn_Queue.Clicked        += Queue_Clicked;
+		Btn_Queue.Clicked        += Queue_Dialog;
 		Btn_Next.Clicked         += Next_Clicked;
 
 		Lbl_QueryUpload.Clicked += () =>
@@ -547,13 +547,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	#endregion
 
-	public void Close()
+	private async Task<object?> RunSearchAsync()
 	{
-		if (Compat.IsWin) {
-			Player.Dispose();
-		}
+		PreSearch();
 
-		Application.Shutdown();
+		Status = null;
+		IsReady.WaitOne();
+
+		var results = await Client.RunSearchAsync(Query, m_token.Token);
+
+		Status = false;
+
+		PostSearch();
+
+		return null;
 	}
 
 	private void ProcessArgs()
@@ -704,22 +711,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		return true;
 	}
 
-	private async Task<object?> RunSearchAsync()
-	{
-		PreSearch();
-
-		Status = null;
-		IsReady.WaitOne();
-
-		var results = await Client.RunSearchAsync(Query, m_token.Token);
-
-		Status = false;
-
-		PostSearch();
-
-		return null;
-	}
-
 	private bool ClipboardCallback(MainLoop c)
 	{
 		// Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard} {Clipboard.SequenceNumber}");
@@ -793,16 +784,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		// return UseClipboard;
 	}
 
-	public void Dispose()
-	{
-		Client.Dispose();
-		Query.Dispose();
-		m_token.Dispose();
-		m_tokenu.Dispose();
-		Queue.Clear();
-		m_results.Clear();
-	}
-
 	private async Task RunMainAsync()
 	{
 		Pbr_Status.BidirectionalMarquee = false;
@@ -860,6 +841,25 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Cancel.Enabled = false;
 
 		// Queue.Clear();
+		m_results.Clear();
+	}
+
+	public void Close()
+	{
+		if (Compat.IsWin) {
+			Player.Dispose();
+		}
+
+		Application.Shutdown();
+	}
+
+	public void Dispose()
+	{
+		Client.Dispose();
+		Query.Dispose();
+		m_token.Dispose();
+		m_tokenu.Dispose();
+		Queue.Clear();
 		m_results.Clear();
 	}
 }

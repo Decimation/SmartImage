@@ -123,7 +123,7 @@ public sealed partial class ShellMode
 		await RunMainAsync();
 	}
 
-	private void Queue_Clicked()
+	private void Queue_Dialog()
 	{
 		var d = new Dialog()
 		{
@@ -146,7 +146,7 @@ public sealed partial class ShellMode
 		{
 			Width  = Dim.Fill(),
 			Height = Dim.Fill(),
-			Y      =Pos.Bottom(tf)
+			Y      = Pos.Bottom(tf)
 		};
 
 		var btnRm = new Button("Remove")
@@ -163,6 +163,7 @@ public sealed partial class ShellMode
 		btnRm.Clicked += () =>
 		{
 			var cpy2 = lv.Source.ToList();
+
 			if (lv.SelectedItem < cpy2.Count && lv.SelectedItem >= 0) {
 				var i = (string) cpy2[lv.SelectedItem];
 				Debug.WriteLine($"{i}");
@@ -179,12 +180,28 @@ public sealed partial class ShellMode
 
 		btnRmAll.Clicked += () =>
 		{
-			lv.Source = new ListWrapper(Enumerable.Empty<string>().ToList());
+			lv.Source = new ListWrapper(Array.Empty<string>());
 			Queue.Clear();
 			lv.SetFocus();
 		};
 
-		d.Add(tf,lv);
+		tf.TextChanging += a =>
+		{
+
+			var s = a.NewText.ToString();
+
+			if (SearchQuery.IsValidSourceType(s)) {
+				Queue.Enqueue(s);
+				lv.Source = new ListWrapper(Queue.ToList());
+				tf.DeleteAll();
+				tf.Text  = ustring.Empty;
+				a.Cancel = true;
+				tf.SetFocus();
+				tf.SetNeedsDisplay();
+			}
+		};
+
+		d.Add(tf, lv);
 		d.AddButton(btnRm);
 		d.AddButton(btnRmAll);
 
@@ -196,7 +213,7 @@ public sealed partial class ShellMode
 		QueueMode = !b;
 
 		Btn_Queue.Enabled = QueueMode;
-		Btn_Next.Enabled = QueueMode;
+		Btn_Next.Enabled  = QueueMode;
 	}
 
 	/// <summary>
@@ -227,16 +244,21 @@ public sealed partial class ShellMode
 			foreach (string fs in files) {
 				Queue.Enqueue(fs);
 			}
+
+			NextQueue();
 		}
 
-		var f = files.FirstOrDefault(); //todo
+		else {
+			var f = files.FirstOrDefault(); //todo
 
-		if (!string.IsNullOrWhiteSpace(f)) {
-			Tf_Input.DeleteAll();
-			Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
+			if (!string.IsNullOrWhiteSpace(f)) {
+				Tf_Input.DeleteAll();
+				Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
 
-			SetInputText(f);
-			Btn_Run.SetFocus();
+				SetInputText(f);
+				Btn_Run.SetFocus();
+
+			}
 
 		}
 
@@ -330,12 +352,17 @@ public sealed partial class ShellMode
 	private void Next_Clicked()
 	{
 		Restart_Clicked(true);
+		NextQueue();
+	}
+
+	private void NextQueue()
+	{
 		var tryDequeue = Queue.TryDequeue(out var n);
+
 		if (tryDequeue) {
 			// SetQuery(n);
 
 			SetInputText(n);
 		}
 	}
-
 }
