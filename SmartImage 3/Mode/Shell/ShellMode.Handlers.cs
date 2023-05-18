@@ -188,7 +188,7 @@ public sealed partial class ShellMode
 		tf.TextChanging += a =>
 		{
 
-			var s = a.NewText.ToString();
+			var s = a.NewText.ToString().CleanString();
 
 			if (SearchQuery.IsValidSourceType(s)) {
 				Queue.Enqueue(s);
@@ -196,6 +196,8 @@ public sealed partial class ShellMode
 				tf.DeleteAll();
 				tf.Text  = ustring.Empty;
 				a.Cancel = true;
+				a.NewText = ustring.Empty;
+				tf.DeleteAll();
 				tf.SetFocus();
 				tf.SetNeedsDisplay();
 			}
