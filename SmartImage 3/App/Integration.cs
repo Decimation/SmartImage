@@ -323,26 +323,29 @@ public static class Integration
 		unsafe {
 			const int ss = 4096;
 
-			var p1 = stackalloc sbyte[ss];
-			var p2 = stackalloc sbyte[ss];
+			Memory<sbyte> p1 = new sbyte[ss];
+			Memory<sbyte> p2 = new sbyte[ss];
 
-			var ofn = new OPENFILENAME()
+			var p1p = p1.Pin();
+			var p2p = p2.Pin();
+
+			var ofn = new OPENFILENAME
 			{
 				lStructSize = Marshal.SizeOf<OPENFILENAME>(),
 				lpstrFilter = "All Files\0*.*\0\0",
 				// lpstrFile       = new string(p1),
 				// lpstrFileTitle  = new string(p2),
-				lpstrFile      = (nint) p1,
-				lpstrFileTitle = new string(p2),
+				lpstrFile      = (nint) p1p.Pointer,
+				lpstrFileTitle = (nint) p2p.Pointer,
 
 				lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
 				lpstrTitle      = "Pick an image",
-				Flags           = (int) flags
+				Flags           = (int) flags,
+				// ofn.nMaxFile      = ofn.lpstrFile.Length;
+				nMaxFile      = ss,
+				nMaxFileTitle = ss
 			};
 
-			// ofn.nMaxFile      = ofn.lpstrFile.Length;
-			ofn.nMaxFile      = ss;
-			ofn.nMaxFileTitle = ss;
 			// ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
 
 			bool ok = Native.GetOpenFileName(ref ofn);
@@ -353,7 +356,7 @@ public static class Integration
 				goto ret;
 			}
 
-			var pd = Marshal.PtrToStringAuto((nint) p1);
+			var pd = Marshal.PtrToStringAuto((nint) p1p.Pointer);
 
 			if (!(flags.HasFlag(OFN.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
 				files.Add(pd);
@@ -361,7 +364,7 @@ public static class Integration
 			}
 
 			var ofs  = (ofn.nFileOffset * 2);
-			var ptr1 = ((byte*) p1 + ofs);
+			var ptr1 = (((byte*) p1p.Pointer) + ofs);
 
 			while (true) {
 
@@ -382,9 +385,10 @@ public static class Integration
 			}
 
 			ret:
+			p1p.Dispose();
+			p2p.Dispose();
 			return files.ToArray();
 
 		}
 	}
-
 }

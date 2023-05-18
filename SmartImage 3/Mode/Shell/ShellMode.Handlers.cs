@@ -54,7 +54,9 @@ public sealed partial class ShellMode
 
 		Application.MainLoop.Invoke(() => Task.Delay(TimeSpan.FromSeconds(1)));
 
-		if (SearchQuery.IsValidSourceType(text.ToString())) {
+		var sourceType = SearchQuery.IsValidSourceType(text.ToString());
+
+		if (sourceType) {
 			var ok = await SetQuery(text);
 			Btn_Run.Enabled = ok;
 			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
@@ -133,10 +135,18 @@ public sealed partial class ShellMode
 
 		var cpy = Queue.ToList();
 
+		var tf = new TextField()
+		{
+
+			Width  = Dim.Fill(),
+			Height = 3,
+		};
+
 		var lv = new ListView(cpy)
 		{
 			Width  = Dim.Fill(),
-			Height = Dim.Fill()
+			Height = Dim.Fill(),
+			Y      =Pos.Bottom(tf)
 		};
 
 		var btnRm = new Button("Remove")
@@ -153,7 +163,7 @@ public sealed partial class ShellMode
 		btnRm.Clicked += () =>
 		{
 			var cpy2 = lv.Source.ToList();
-			if (cpy2.Count < lv.SelectedItem && lv.SelectedItem >= 0) {
+			if (lv.SelectedItem < cpy2.Count && lv.SelectedItem >= 0) {
 				var i = (string) cpy2[lv.SelectedItem];
 				Debug.WriteLine($"{i}");
 				cpy.Remove(i);
@@ -164,8 +174,19 @@ public sealed partial class ShellMode
 			}
 		};
 
-		d.Add(lv);
+		var btnRmAll = new Button("Clear")
+			{ };
+
+		btnRmAll.Clicked += () =>
+		{
+			lv.Source = new ListWrapper(Enumerable.Empty<string>().ToList());
+			Queue.Clear();
+			lv.SetFocus();
+		};
+
+		d.Add(tf,lv);
 		d.AddButton(btnRm);
+		d.AddButton(btnRmAll);
 
 		Application.Run(d);
 	}
@@ -191,9 +212,16 @@ public sealed partial class ShellMode
 			flags |= OFN.OFN_ALLOWMULTISELECT;
 		}
 
-		flags |= OFN.OFN_EXPLORER | OFN.OFN_FILEMUSTEXIST;
+		flags |= OFN.OFN_EXPLORER | OFN.OFN_FILEMUSTEXIST | OFN.OFN_LONGNAMES | OFN.OFN_PATHMUSTEXIST;
+		string[]? files;
 
-		var files = Integration.OpenFile(flags);
+		try {
+			files = Integration.OpenFile(flags);
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+			return;
+		}
 
 		if (QueueMode) {
 			foreach (string fs in files) {
