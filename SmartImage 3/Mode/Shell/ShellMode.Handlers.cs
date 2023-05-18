@@ -4,6 +4,7 @@
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Reflection;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
@@ -185,23 +186,52 @@ public sealed partial class ShellMode
 			lv.SetFocus();
 		};
 
+		tf.TextChanged += delegate(ustring ustring)
+		{
+			Debug.WriteLine($"{ustring}");
+		};
+
 		tf.TextChanging += a =>
 		{
 
-			var s = a.NewText.ToString().CleanString();
+			var s = a.NewText.ToString().CleanString().Trim('\"');
 
+			// Application.MainLoop.Invoke(() => Task.Delay(TimeSpan.FromSeconds(1)));
 			if (SearchQuery.IsValidSourceType(s)) {
 				Queue.Enqueue(s);
 				lv.Source = new ListWrapper(Queue.ToList());
-				tf.DeleteAll();
-				tf.Text  = ustring.Empty;
-				a.Cancel = true;
+				/*tf.DeleteAll();
+				tf.Text   = ustring.Empty;
+				a.Cancel  = false;
 				a.NewText = ustring.Empty;
+				tf.DeleteAll();*/
 				tf.DeleteAll();
-				tf.SetFocus();
-				tf.SetNeedsDisplay();
+				Debug.WriteLine($"{tf.Text} {s}");
+				// tf.Text = ustring.Empty;
+				// a.NewText = ustring.Empty;
+				// tf.SetFocus();
+				// tf.SetNeedsDisplay();
+				Application.MainLoop.Invoke(() => Action(tf));
+				tf.Text = ustring.Empty;
+				
+				Debug.WriteLine($"{tf.Text} {a.NewText}");
 			}
 		};
+
+		static void Action(TextField tf)
+		{
+			Debug.WriteLine($"clearing");
+			// Task.Delay(TimeSpan.FromSeconds(3));
+			// tf.Text           = ustring.Empty;
+			// tf.CursorPosition = 0;
+			tf.DeleteAll();
+			tf.ClearHistoryChanges();
+			tf.ClearAllSelection();
+			tf.SetNeedsDisplay();
+			Debug.WriteLine($"cleared");
+		}
+
+		void Reload() { }
 
 		d.Add(tf, lv);
 		d.AddButton(btnRm);
@@ -247,7 +277,7 @@ public sealed partial class ShellMode
 				Queue.Enqueue(fs);
 			}
 
-			NextQueue();
+			// NextQueue();
 		}
 
 		else {

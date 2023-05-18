@@ -287,7 +287,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			}
 			else {
 				m_cbCallbackTok = Application.MainLoop.RemoveTimeout(m_cbCallbackTok);
-				m_clipboard.Clear();
+				m_clipboard?.Clear();
 			}
 
 		}
