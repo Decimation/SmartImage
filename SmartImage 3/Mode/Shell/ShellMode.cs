@@ -346,7 +346,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		 */
 
 		// m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
-		// UseClipboard = true;
+		UseClipboard = Config.Clipboard;
 
 		m_clipboard = new List<ustring>();
 

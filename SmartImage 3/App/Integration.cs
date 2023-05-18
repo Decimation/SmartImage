@@ -316,7 +316,7 @@ public static class Integration
 		return b;
 	}
 
-	public static string[] OpenFile(OFN f = 0)
+	public static string[] OpenFile(OFN flags = 0)
 	{
 		// Span<char> p1 = stackalloc char[1024];
 		// Span<char> p2 = stackalloc char[512];
@@ -337,7 +337,7 @@ public static class Integration
 
 				lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
 				lpstrTitle      = "Pick an image",
-				Flags           = (int) f
+				Flags           = (int) flags
 			};
 
 			// ofn.nMaxFile      = ofn.lpstrFile.Length;
@@ -345,11 +345,9 @@ public static class Integration
 			ofn.nMaxFileTitle = ss;
 			// ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
 
-			string rgz;
-
 			bool ok = Native.GetOpenFileName(ref ofn);
 
-			List<string> files = new List<string>();
+			var files = new List<string>();
 
 			if (!ok) {
 				goto ret;
@@ -357,60 +355,36 @@ public static class Integration
 
 			var pd = Marshal.PtrToStringAuto((nint) p1);
 
-			if (!(f.HasFlag(OFN.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
-				files = new List<string>() { pd };
+			if (!(flags.HasFlag(OFN.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
+				files.Add(pd);
 				goto ret;
 			}
 
-			var ofs  = (ofn.nFileOffset*2);
+			var ofs  = (ofn.nFileOffset * 2);
 			var ptr1 = ((byte*) p1 + ofs);
 
 			while (true) {
-				// var _dir1 = Encoding.Unicode.GetString(ptr1, ofs+1);
 
-				var _dir1 = Marshal.PtrToStringAuto((nint)ptr1);
-				if (string.IsNullOrWhiteSpace(_dir1)) {
+				var file = Marshal.PtrToStringAuto((nint) ptr1);
+
+				if (string.IsNullOrWhiteSpace(file)) {
 					break;
 				}
 
-				var ff    = _dir1.Split('\0').Select(s => Path.Combine(pd, s)).ToArray();
-				files.AddRange(ff);
-				ptr1 += (_dir1.Length*2) + 2;
+				ptr1 += (file.Length * 2) + 2;
+				file =  Path.Combine(pd, file);
+				files.Add(file);
 
-				if ((*ptr1 ==0 && ptr1[1] == 0)) {
+				// Last filename is double NULL-terminated
+				if ((*ptr1 == 0 && ptr1[1] == 0)) {
 					break;
 				}
 			}
 
-			// Debug.WriteLine($"{_dir1} {sz1}");
-			/*rgz = ok ? new string(ofn.lpstrFile, 0, ) : null;
-
-		unsafe {
-			fixed (char* p = rgz) {
-				sbyte* pp = (sbyte*) p;
-
-				int i = 0;
-
-				while (*pp++ != 0) { ++i; }
-
-				Debug.WriteLine($"{i} {(nint) pp:X}");
-			}
-
-		}*/
 			ret:
 			return files.ToArray();
 
 		}
 	}
 
-	private static unsafe int _count(int ss, sbyte* p1)
-	{
-		int i;
-
-		for (i = 0; i < ss; i++) {
-			if (p1[i] == 0 && p1[i + 1] == 0) { }
-		}
-
-		return i;
-	}
 }
