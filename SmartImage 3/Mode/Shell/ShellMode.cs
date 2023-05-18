@@ -207,15 +207,25 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private static readonly CheckBox Cb_Queue = new()
 	{
-		X = Pos.X(Btn_Run),
-		Y = Pos.Bottom(Btn_Run),
+		X = Pos.X(Lbl_InputOk),
+		Y = Pos.Bottom(Lbl_InputOk),
 
+	};
+
+	private static readonly Button Btn_Next = new("Next")
+	{
+		X = Pos.Right(Cb_Queue),
+		Y = Pos.Y(Cb_Queue),
+
+		Height      = Dim.Height(Btn_Cancel),
+		ColorScheme = UI.Cs_Btn1x,
+		Enabled     = false
 	};
 
 	private static readonly Button Btn_Queue = new("Queue")
 	{
-		X = Pos.Right(Cb_Queue),
-		Y = Pos.Y(Cb_Queue),
+		X = Pos.Right(Btn_Next),
+		Y = Pos.Y(Btn_Next),
 
 		Height      = Dim.Height(Btn_Run),
 		ColorScheme = UI.Cs_Btn1
@@ -260,6 +270,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private CancellationTokenSource m_token;
 	private CancellationTokenSource m_tokenu;
 
+	private static int m_seq;
+
+	#region
+
 	public bool UseClipboard
 	{
 		get { return Config.Clipboard; }
@@ -280,8 +294,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 	}
 
 	public bool QueueMode { get; private set; }
-
-	#region
 
 	public ConcurrentQueue<string> Queue { get; private set; }
 
@@ -406,6 +418,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Delete.Clicked       += Delete_Clicked;
 		Cb_Queue.Toggled         += Queue_Checked;
 		Btn_Queue.Clicked        += Queue_Clicked;
+		Btn_Next.Clicked         += Next_Clicked;
 
 		Lbl_QueryUpload.Clicked += () =>
 		{
@@ -416,7 +429,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2, Btn_Delete, Btn_Queue, Cb_Queue
+		        Lbl_Status2, Btn_Delete, Btn_Queue, Cb_Queue, Btn_Next
 		);
 
 		Top.Add(Win);
@@ -707,8 +720,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		return null;
 	}
 
-	private static int m_seq;
-
 	private bool ClipboardCallback(MainLoop c)
 	{
 		// Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard} {Clipboard.SequenceNumber}");
@@ -789,6 +800,66 @@ public sealed partial class ShellMode : IDisposable, IMode
 		m_token.Dispose();
 		m_tokenu.Dispose();
 		Queue.Clear();
+		m_results.Clear();
+	}
+
+	private async Task RunMainAsync()
+	{
+		Pbr_Status.BidirectionalMarquee = false;
+		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.Continuous;
+		Pbr_Status.Fraction             = 0;
+		Pbr_Status.SetNeedsDisplay();
+
+		var sw = Stopwatch.StartNew();
+
+		m_runIdleTok = Application.MainLoop.AddIdle(() =>
+		{
+			Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec";
+			return true;
+		});
+
+		var run = RunSearchAsync();
+		await run;
+
+		sw.Stop();
+		// Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec {UI.OK}";
+
+		Application.MainLoop.RemoveIdle(m_runIdleTok);
+	}
+
+	private void Clear()
+	{
+		Tf_Input.ReadOnly = false;
+
+		Tf_Input.DeleteAll();
+		Tf_Input.ClearHistoryChanges();
+
+		UI.SetLabelStatus(Lbl_InputOk, null);
+
+		Lbl_InputOk.SetNeedsDisplay();
+
+		Dt_Results.Clear();
+
+		Query?.Dispose();
+		Query = SearchQuery.Null;
+		IsReady.Reset();
+		// ResultCount = 0;
+		// m_results.Clear();
+		Pbr_Status.Fraction = 0;
+
+		Lbl_InputInfo.Text   = ustring.Empty;
+		Lbl_QueryUpload.Text = ustring.Empty;
+		Lbl_InputInfo2.Text  = ustring.Empty;
+		Lbl_Status.Text      = ustring.Empty;
+		Lbl_Status2.Text     = ustring.Empty;
+
+		Tv_Results.SetNeedsDisplay();
+		Tf_Input.SetFocus();
+		Tf_Input.EnsureFocus();
+		// Btn_Run.Enabled    = false;
+		Btn_Cancel.Enabled = false;
+
+		// Queue.Clear();
 		m_results.Clear();
 	}
 }

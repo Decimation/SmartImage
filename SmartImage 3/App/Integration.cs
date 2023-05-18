@@ -316,12 +316,12 @@ public static class Integration
 		return b;
 	}
 
-	public static string[] OpenFile(int f = 0)
+	public static string[] OpenFile(OFN f = 0)
 	{
 		// Span<char> p1 = stackalloc char[1024];
 		// Span<char> p2 = stackalloc char[512];
 		unsafe {
-			const int ss = 1024;
+			const int ss = 4096;
 
 			var p1 = stackalloc sbyte[ss];
 			var p2 = stackalloc sbyte[ss];
@@ -337,7 +337,7 @@ public static class Integration
 
 				lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
 				lpstrTitle      = "Pick an image",
-				Flags           = f
+				Flags           = (int) f
 			};
 
 			// ofn.nMaxFile      = ofn.lpstrFile.Length;
@@ -349,18 +349,38 @@ public static class Integration
 
 			bool ok = Native.GetOpenFileName(ref ofn);
 
-			string[] files;
-			var      pd = Marshal.PtrToStringAuto((nint) p1);
+			List<string> files = new List<string>();
 
-			if ((f & 0x00000200) == 0 /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
-				files = new[] { pd };
+			if (!ok) {
 				goto ret;
 			}
 
-			var ofs   = (ofn.nFileOffset * 2);
-			var ptr1  = ((byte*) p1 + ofs);
-			var _dir1 = Encoding.Unicode.GetString(ptr1, ofs);
-			files = _dir1.Split('\0').Select(s => Path.Combine(pd, s)).ToArray();
+			var pd = Marshal.PtrToStringAuto((nint) p1);
+
+			if (!(f.HasFlag(OFN.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
+				files = new List<string>() { pd };
+				goto ret;
+			}
+
+			var ofs  = (ofn.nFileOffset*2);
+			var ptr1 = ((byte*) p1 + ofs);
+
+			while (true) {
+				// var _dir1 = Encoding.Unicode.GetString(ptr1, ofs+1);
+
+				var _dir1 = Marshal.PtrToStringAuto((nint)ptr1);
+				if (string.IsNullOrWhiteSpace(_dir1)) {
+					break;
+				}
+
+				var ff    = _dir1.Split('\0').Select(s => Path.Combine(pd, s)).ToArray();
+				files.AddRange(ff);
+				ptr1 += (_dir1.Length*2) + 2;
+
+				if ((*ptr1 ==0 && ptr1[1] == 0)) {
+					break;
+				}
+			}
 
 			// Debug.WriteLine($"{_dir1} {sz1}");
 			/*rgz = ok ? new string(ofn.lpstrFile, 0, ) : null;
@@ -378,7 +398,7 @@ public static class Integration
 
 		}*/
 			ret:
-			return files;
+			return files.ToArray();
 
 		}
 	}

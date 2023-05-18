@@ -1,6 +1,8 @@
 ﻿// Read S SmartImage ShellMode.Handlers.cs
 // 2023-02-14 @ 12:13 AM
 
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Kantan.Net.Utilities;
 using Kantan.Text;
@@ -14,6 +16,7 @@ using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 using Clipboard = Novus.Win32.Clipboard;
 using Microsoft.VisualBasic.FileIO;
+using Novus.Win32.Structures.User32;
 using SmartImage.Lib.Utilities;
 using FileSystem = Novus.OS.FileSystem;
 
@@ -120,7 +123,51 @@ public sealed partial class ShellMode
 
 	private void Queue_Clicked()
 	{
-		if (IsQueryReady()) { }
+		var d = new Dialog()
+		{
+			AutoSize = false,
+			Width    = Dim.Percent(60),
+			Height   = Dim.Percent(50),
+			// Height   = UI.Dim_80_Pct,
+		};
+
+		var cpy = Queue.ToList();
+
+		var lv = new ListView(cpy)
+		{
+			Width  = Dim.Fill(),
+			Height = Dim.Fill()
+		};
+
+		var btnRm = new Button("Remove")
+			{ };
+
+		lv.KeyPress += args =>
+		{
+			if (args.KeyEvent.Key == Key.DeleteChar) {
+				Debug.WriteLine($"{args}!!!");
+
+			}
+		};
+
+		btnRm.Clicked += () =>
+		{
+			var cpy2 = lv.Source.ToList();
+			if (cpy2.Count < lv.SelectedItem && lv.SelectedItem >= 0) {
+				var i = (string) cpy2[lv.SelectedItem];
+				Debug.WriteLine($"{i}");
+				cpy.Remove(i);
+				// Queue.Clear();
+				Queue = new ConcurrentQueue<string>(cpy);
+				lv.SetFocus();
+
+			}
+		};
+
+		d.Add(lv);
+		d.AddButton(btnRm);
+
+		Application.Run(d);
 	}
 
 	private void Queue_Checked(bool b)
@@ -128,6 +175,7 @@ public sealed partial class ShellMode
 		QueueMode = !b;
 
 		Btn_Queue.Enabled = QueueMode;
+		Btn_Next.Enabled = QueueMode;
 	}
 
 	/// <summary>
@@ -137,23 +185,24 @@ public sealed partial class ShellMode
 	{
 		Integration.KeepOnTop(false);
 
-		int flags = 0x0;
-		
+		OFN flags = 0x0;
+
 		if (QueueMode) {
-			flags |= 0x00000200;
+			flags |= OFN.OFN_ALLOWMULTISELECT;
 		}
 
-		flags |= 0x00080000 | 0x00001000;
+		flags |= OFN.OFN_EXPLORER | OFN.OFN_FILEMUSTEXIST;
 
 		var files = Integration.OpenFile(flags);
-		
+
 		if (QueueMode) {
 			foreach (string fs in files) {
 				Queue.Enqueue(fs);
 			}
 		}
 
-		var f = files[0]; //todo
+		var f = files.FirstOrDefault(); //todo
+
 		if (!string.IsNullOrWhiteSpace(f)) {
 			Tf_Input.DeleteAll();
 			Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
@@ -249,4 +298,16 @@ public sealed partial class ShellMode
 		}
 
 	}
+
+	private void Next_Clicked()
+	{
+		Restart_Clicked(true);
+		var tryDequeue = Queue.TryDequeue(out var n);
+		if (tryDequeue) {
+			// SetQuery(n);
+
+			SetInputText(n);
+		}
+	}
+
 }
