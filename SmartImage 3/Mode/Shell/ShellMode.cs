@@ -22,6 +22,7 @@ using SmartImage.Lib.Utilities;
 using SmartImage.Mode.Shell.Assets;
 using SmartImage.Utilities;
 using Terminal.Gui;
+using Attribute = Terminal.Gui.Attribute;
 using Clipboard = Novus.Win32.Clipboard;
 using Window = Terminal.Gui.Window;
 
@@ -466,6 +467,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	{
 		Tf_Input.SetFocus();
 		Tv_Results.Visible = true;
+		Lbl_Status2.Text   = "Searching...";
 
 	}
 
@@ -475,6 +477,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Btn_Run.Enabled    = false;
 			Btn_Cancel.Enabled = false;
 		}
+
+		Lbl_Status2.ColorScheme = UI.Cs_Lbl1_Success;
+		Lbl_Status2.Text        = "Complete";
 	}
 
 	#region SearchClient callbacks
@@ -621,7 +626,12 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		try {
 			Pbr_Status.Pulse();
-			Lbl_Status2.Text = $"Verifying...";
+
+			Lbl_Status2.WithScheme(_ =>
+			{
+				Lbl_Status2.Text = $"Verifying...";
+				return;
+			}, UI.Cs_Lbl1_Neutral);
 
 			lock (Btn_Run) {
 				Btn_Run.Enabled = false;
@@ -654,7 +664,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 				};*/
 
 				using CancellationTokenSource cts = new();
-				Lbl_Status2.Text = $"Uploading...";
+				
+				Lbl_Status2.Text        = $"Uploading...";
 
 				UI.QueueProgress(cts, Pbr_Status);
 
@@ -819,6 +830,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Lbl_InputOk.SetNeedsDisplay();
 
+		Lbl_Status2.ColorScheme = UI.Cs_Lbl1;
+
 		Dt_Results.Clear();
 
 		Query?.Dispose();
@@ -853,13 +866,22 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Application.Shutdown();
 	}
 
-	public void Dispose()
+	public void Dispose(bool q)
 	{
 		Client.Dispose();
 		Query.Dispose();
 		m_token.Dispose();
 		m_tokenu.Dispose();
-		Queue.Clear();
+
+		if (q) {
+			Queue.Clear();
+		}
+
 		m_results.Clear();
+	}
+
+	public void Dispose()
+	{
+		Dispose(true);
 	}
 }

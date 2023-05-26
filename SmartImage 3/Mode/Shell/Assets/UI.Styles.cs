@@ -173,6 +173,22 @@ internal static partial class UI
 		Effect3D        = true,
 	};
 
+	internal static readonly ColorScheme Cs_Lbl1_Neutral = new ColorScheme()
+	{
+		Normal    = Atr_BrightYellow_Black,
+		HotNormal = Atr_BrightYellow_Black,
+		Disabled  = Cs_Lbl1.Disabled,
+		Focus     = Cs_Lbl1.Focus,
+		HotFocus  = Cs_Lbl1.HotFocus
+	};
+	internal static readonly ColorScheme Cs_Lbl1_Success = new ColorScheme()
+	{
+		Normal    = Atr_BrightGreen_Black,
+		HotNormal = Atr_BrightGreen_Black,
+		Disabled  = Cs_Lbl1.Disabled,
+		Focus     = Cs_Lbl1.Focus,
+		HotFocus  = Cs_Lbl1.HotFocus
+	};
 	internal static readonly Dim Dim_30_Pct = Dim.Percent(30);
 	internal static readonly Dim Dim_80_Pct = Dim.Percent(80);
 
@@ -197,5 +213,13 @@ internal static partial class UI
 			HotFocus  = focus,
 			Disabled  = disabled
 		};
+	}
+
+	internal static void WithScheme(this View v, Action<View> f, ColorScheme cs)
+	{
+		var buf = v.ColorScheme;
+		v.ColorScheme = cs;
+		f(v);
+		v.ColorScheme = buf;
 	}
 }

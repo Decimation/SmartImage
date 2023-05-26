@@ -316,7 +316,7 @@ public static class Integration
 		return b;
 	}
 
-	public static string[] OpenFile(OFN flags = 0)
+	public static string[] OpenFile(OpenFileNameFlags flags = 0)
 	{
 		// Span<char> p1 = stackalloc char[1024];
 		// Span<char> p2 = stackalloc char[512];
@@ -329,9 +329,9 @@ public static class Integration
 			var p1p = p1.Pin();
 			var p2p = p2.Pin();
 
-			var ofn = new OPENFILENAME
+			var ofn = new OpenFileName
 			{
-				lStructSize = Marshal.SizeOf<OPENFILENAME>(),
+				lStructSize = Marshal.SizeOf<OpenFileName>(),
 				lpstrFilter = "All Files\0*.*\0\0",
 				// lpstrFile       = new string(p1),
 				// lpstrFileTitle  = new string(p2),
@@ -358,7 +358,7 @@ public static class Integration
 
 			var pd = Marshal.PtrToStringAuto((nint) p1p.Pointer);
 
-			if (!(flags.HasFlag(OFN.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
+			if (!(flags.HasFlag(OpenFileNameFlags.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
 				files.Add(pd);
 				goto ret;
 			}

@@ -94,6 +94,8 @@ public sealed partial class ShellMode
 
 		m_token.Dispose();
 		m_token = new();
+		m_tokenu.Dispose();
+		m_tokenu = new();
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
@@ -124,122 +126,6 @@ public sealed partial class ShellMode
 		await RunMainAsync();
 	}
 
-	private void Queue_Dialog()
-	{
-		var d = new Dialog()
-		{
-			AutoSize = false,
-			Width    = Dim.Percent(60),
-			Height   = Dim.Percent(50),
-			// Height   = UI.Dim_80_Pct,
-		};
-
-		var cpy = Queue.ToList();
-
-		var tf = new TextField()
-		{
-
-			Width  = Dim.Fill(),
-			Height = 3,
-		};
-
-		var lv = new ListView(cpy)
-		{
-			Width  = Dim.Fill(),
-			Height = Dim.Fill(),
-			Y      = Pos.Bottom(tf)
-		};
-
-		var btnRm = new Button("Remove")
-			{ };
-
-		lv.KeyPress += args =>
-		{
-			if (args.KeyEvent.Key == Key.DeleteChar) {
-				Debug.WriteLine($"{args}!!!");
-
-			}
-		};
-
-		btnRm.Clicked += () =>
-		{
-			var cpy2 = lv.Source.ToList();
-
-			if (lv.SelectedItem < cpy2.Count && lv.SelectedItem >= 0) {
-				var i = (string) cpy2[lv.SelectedItem];
-				Debug.WriteLine($"{i}");
-				cpy.Remove(i);
-				// Queue.Clear();
-				Queue = new ConcurrentQueue<string>(cpy);
-				lv.SetFocus();
-
-			}
-		};
-
-		var btnRmAll = new Button("Clear")
-			{ };
-
-		btnRmAll.Clicked += () =>
-		{
-			lv.Source = new ListWrapper(Array.Empty<string>());
-			Queue.Clear();
-			lv.SetFocus();
-		};
-
-		tf.TextChanged += delegate(ustring ustring)
-		{
-			Debug.WriteLine($"{ustring}");
-		};
-
-		tf.TextChanging += a =>
-		{
-
-			var s = a.NewText.ToString().CleanString().Trim('\"');
-
-			// Application.MainLoop.Invoke(() => Task.Delay(TimeSpan.FromSeconds(1)));
-			if (SearchQuery.IsValidSourceType(s)) {
-				Queue.Enqueue(s);
-				lv.Source = new ListWrapper(Queue.ToList());
-				/*tf.DeleteAll();
-				tf.Text   = ustring.Empty;
-				a.Cancel  = false;
-				a.NewText = ustring.Empty;
-				tf.DeleteAll();*/
-				tf.DeleteAll();
-				Debug.WriteLine($"{tf.Text} {s}");
-				// tf.Text = ustring.Empty;
-				// a.NewText = ustring.Empty;
-				// tf.SetFocus();
-				// tf.SetNeedsDisplay();
-				Application.MainLoop.Invoke(() => Action(tf));
-				tf.Text = ustring.Empty;
-				
-				Debug.WriteLine($"{tf.Text} {a.NewText}");
-			}
-		};
-
-		static void Action(TextField tf)
-		{
-			Debug.WriteLine($"clearing");
-			// Task.Delay(TimeSpan.FromSeconds(3));
-			// tf.Text           = ustring.Empty;
-			// tf.CursorPosition = 0;
-			tf.DeleteAll();
-			tf.ClearHistoryChanges();
-			tf.ClearAllSelection();
-			tf.SetNeedsDisplay();
-			Debug.WriteLine($"cleared");
-		}
-
-		void Reload() { }
-
-		d.Add(tf, lv);
-		d.AddButton(btnRm);
-		d.AddButton(btnRmAll);
-
-		Application.Run(d);
-	}
-
 	private void Queue_Checked(bool b)
 	{
 		QueueMode = !b;
@@ -255,13 +141,14 @@ public sealed partial class ShellMode
 	{
 		Integration.KeepOnTop(false);
 
-		OFN flags = 0x0;
+		OpenFileNameFlags flags = 0x0;
 
 		if (QueueMode) {
-			flags |= OFN.OFN_ALLOWMULTISELECT;
+			flags |= OpenFileNameFlags.OFN_ALLOWMULTISELECT;
 		}
 
-		flags |= OFN.OFN_EXPLORER | OFN.OFN_FILEMUSTEXIST | OFN.OFN_LONGNAMES | OFN.OFN_PATHMUSTEXIST;
+		flags |= OpenFileNameFlags.OFN_EXPLORER | OpenFileNameFlags.OFN_FILEMUSTEXIST |
+		         OpenFileNameFlags.OFN_LONGNAMES | OpenFileNameFlags.OFN_PATHMUSTEXIST;
 		string[]? files;
 
 		try {
@@ -276,8 +163,10 @@ public sealed partial class ShellMode
 			foreach (string fs in files) {
 				Queue.Enqueue(fs);
 			}
+			if (!IsQueryReady()) {
+				NextQueue();
 
-			// NextQueue();
+			}
 		}
 
 		else {
@@ -337,6 +226,7 @@ public sealed partial class ShellMode
 	private void Cancel_Clicked()
 	{
 		m_token.Cancel();
+		m_tokenu.Cancel();
 		Lbl_Status2.Text = R2.Inf_Cancel;
 		Lbl_Status2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
@@ -363,9 +253,18 @@ public sealed partial class ShellMode
 				                                                   RecycleOption.SendToRecycleBin);
 				Debug.WriteLine($"deleted {file}");
 				// Clear();
-				Cancel_Clicked();
-				Clear_Clicked();
+
 				// Btn_Delete.Enabled = false;
+
+				if (QueueMode) {
+					Next_Clicked();
+				}
+				else {
+					Cancel_Clicked();
+					Clear_Clicked();
+
+				}
+
 			}
 
 		}
@@ -383,7 +282,14 @@ public sealed partial class ShellMode
 
 	private void Next_Clicked()
 	{
+		if (!Client.IsComplete) {
+			Cancel_Clicked();
+		}
+
+		Dispose(false);
+
 		Restart_Clicked(true);
+
 		NextQueue();
 	}
 

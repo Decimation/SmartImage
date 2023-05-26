@@ -4,6 +4,7 @@
 #region
 
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -395,5 +396,140 @@ public sealed partial class ShellMode
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
+	}
+
+	private void Queue_Dialog()
+	{
+		var d = new Dialog()
+		{
+			Title    = $"Queue ({Queue.Count} items)",
+			AutoSize = false,
+			Width    = Dim.Percent(60),
+			Height   = Dim.Percent(55),
+			// Height   = UI.Dim_80_Pct,
+		};
+
+		var cpy = Queue.ToList();
+
+		var tf = new TextField()
+		{
+			Width  = Dim.Fill(),
+			Height = 2,
+		};
+
+		var lv = new ListView(cpy)
+		{
+			Width  = Dim.Fill(),
+			Height = Dim.Fill(),
+			Y      = Pos.Bottom(tf),
+			Border = new Border()
+			{
+				BorderStyle     = BorderStyle.Rounded,
+				BorderThickness = new Thickness(2)
+			}
+		};
+
+		/*var btnAdd = new Button("Add")
+		{
+			X = Pos.Right(tf),
+			Y = Pos.Y(tf)
+		};
+		btnAdd.Clicked += () =>
+		{
+			var s = tf.Text.ToString();
+			Queue.Enqueue(s);
+			lv.Source = new ListWrapper(Queue.ToList());
+
+		};*/
+
+		var btnRm = new Button("Remove")
+		{
+			ColorScheme = UI.Cs_Btn3
+		};
+		
+		btnRm.Clicked += () =>
+		{
+			var cpy2 = lv.Source.ToList();
+
+			if (lv.SelectedItem < cpy2.Count && lv.SelectedItem >= 0) {
+				var i = (string) cpy2[lv.SelectedItem];
+				// Debug.WriteLine($"{i}");
+				cpy.Remove(i);
+				// Queue.Clear();
+				Queue = new ConcurrentQueue<string>(cpy);
+				lv.SetFocus();
+
+			}
+		};
+
+		var btnRmAll = new Button("Clear")
+		{
+			ColorScheme = UI.Cs_Btn3
+		};
+
+		btnRmAll.Clicked += () =>
+		{
+			lv.Source = new ListWrapper(Array.Empty<string>());
+			Queue.Clear();
+			lv.SetFocus();
+		};
+
+		tf.TextChanged += delegate(ustring ustring)
+		{
+			Debug.WriteLine($"{ustring}");
+		};
+
+		tf.TextChanging += a =>
+		{
+
+			var s = a.NewText.ToString().CleanString().Trim('\"');
+
+			// Application.MainLoop.Invoke(() => Task.Delay(TimeSpan.FromSeconds(1)));
+			if (SearchQuery.IsValidSourceType(s)) {
+				Queue.Enqueue(s);
+				lv.Source = new ListWrapper(Queue.ToList());
+				/*tf.DeleteAll();
+				tf.Text   = ustring.Empty;
+				a.Cancel  = false;
+				a.NewText = ustring.Empty;
+				tf.DeleteAll();*/
+				tf.DeleteAll();
+				Debug.WriteLine($"{tf.Text} {s}");
+				// tf.Text = ustring.Empty;
+				// a.NewText = ustring.Empty;
+				// tf.SetFocus();
+				// tf.SetNeedsDisplay();
+				Application.MainLoop.Invoke(() => Action(tf));
+				tf.Text = ustring.Empty;
+
+				Debug.WriteLine($"{tf.Text} {a.NewText}");
+			}
+		};
+
+		static void Action(TextField tf)
+		{
+			Debug.WriteLine($"clearing");
+			// Task.Delay(TimeSpan.FromSeconds(3));
+			// tf.Text           = ustring.Empty;
+			// tf.CursorPosition = 0;
+			tf.DeleteAll();
+			tf.ClearHistoryChanges();
+			tf.ClearAllSelection();
+			tf.SetNeedsDisplay();
+			Debug.WriteLine($"cleared");
+		}
+		
+		var btnOk = new Button("Ok")
+		{
+			ColorScheme = UI.Cs_Btn3
+		};
+		btnOk.Clicked += () => { Application.RequestStop(); };
+
+		d.Add(tf, lv);
+		d.AddButton(btnRm);
+		d.AddButton(btnRmAll);
+		d.AddButton(btnOk);
+
+		Application.Run(d);
 	}
 }
