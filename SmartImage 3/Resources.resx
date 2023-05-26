@@ -157,4 +157,7 @@
   <data name="Arg_NoUI" xml:space="preserve">
     <value>--noui</value>
   </data>
+  <data name="Inf_Complete" xml:space="preserve">
+    <value>Complete</value>
+  </data>
 </root>

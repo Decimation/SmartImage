@@ -478,8 +478,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Btn_Cancel.Enabled = false;
 		}
 
-		Lbl_Status2.ColorScheme = UI.Cs_Lbl1_Success;
-		Lbl_Status2.Text        = "Complete";
 	}
 
 	#region SearchClient callbacks
@@ -525,8 +523,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private void OnComplete(object sender, SearchResult[] results)
 	{
-		Btn_Restart.Enabled = true;
-		Btn_Cancel.Enabled  = false;
+		Btn_Restart.Enabled     = true;
+		Btn_Cancel.Enabled      = false;
+		Lbl_Status2.ColorScheme = UI.Cs_Lbl1_Success;
+		Lbl_Status2.Text        = R2.Inf_Complete;
+
 	}
 
 	[SupportedOSPlatform(Compat.OS)]
@@ -627,11 +628,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		try {
 			Pbr_Status.Pulse();
 
-			Lbl_Status2.WithScheme(_ =>
-			{
-				Lbl_Status2.Text = $"Verifying...";
-				return;
-			}, UI.Cs_Lbl1_Neutral);
+			Lbl_Status2.Text = $"Verifying...";
 
 			lock (Btn_Run) {
 				Btn_Run.Enabled = false;

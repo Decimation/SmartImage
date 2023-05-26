@@ -34,12 +34,15 @@ public sealed class SearchClient : IDisposable
 
 	public bool ConfigApplied { get; private set; }
 
+	public bool IsRunning { get; private set;  }
+
 	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
 
 	public SearchClient(SearchConfig cfg)
 	{
 		Config        = cfg;
 		ConfigApplied = false;
+		IsRunning     = false;
 		LoadEngines();
 	}
 
@@ -88,6 +91,7 @@ public sealed class SearchClient : IDisposable
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, CancellationToken token = default,
 	                                                 [CBN] IProgress<int> p = null)
 	{
+		IsRunning = true;
 		if (!ConfigApplied) {
 			await ApplyConfigAsync();
 		}
@@ -140,6 +144,8 @@ public sealed class SearchClient : IDisposable
 			OpenResult(results.FirstOrDefault());
 
 		}
+
+		IsRunning = false;
 
 		return results;
 	}
@@ -283,5 +289,6 @@ public sealed class SearchClient : IDisposable
 
 		ConfigApplied = false;
 		IsComplete    = false;
+		IsRunning     = false;
 	}
 }

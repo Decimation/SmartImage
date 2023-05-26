@@ -142,6 +142,15 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Complete.
+        /// </summary>
+        internal static string Inf_Complete {
+            get {
+                return ResourceManager.GetString("Inf_Complete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Context Menu.
         /// </summary>
         internal static string Int_ContextMenu {

@@ -123,7 +123,11 @@ internal static partial class UI
 		Normal = Atr_Red_Black,
 		Focus  = Atr_BrightRed_Black
 	};
-
+	internal static readonly ColorScheme Cs_Lbl4 = new()
+	{
+		Normal = Atr_Red_Black,
+		HotNormal = Atr_Red_Black,
+	};
 	internal static readonly ColorScheme Cs_Win2 = new()
 	{
 		Normal = Atr_White_Black,

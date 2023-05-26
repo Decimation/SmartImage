@@ -163,6 +163,7 @@ public sealed partial class ShellMode
 			foreach (string fs in files) {
 				Queue.Enqueue(fs);
 			}
+
 			if (!IsQueryReady()) {
 				NextQueue();
 
@@ -227,11 +228,13 @@ public sealed partial class ShellMode
 	{
 		m_token.Cancel();
 		m_tokenu.Cancel();
+		Lbl_Status2.ColorScheme = UI.Cs_Lbl4;
 		Lbl_Status2.Text = R2.Inf_Cancel;
 		Lbl_Status2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
+		Lbl_Status2.ColorScheme = UI.Cs_Lbl1;
 
 	}
 
@@ -282,11 +285,11 @@ public sealed partial class ShellMode
 
 	private void Next_Clicked()
 	{
-		if (!Client.IsComplete) {
+		if (Client.IsRunning) {
 			Cancel_Clicked();
 		}
 
-		Dispose(false);
+		// Dispose(false);
 
 		Restart_Clicked(true);
 

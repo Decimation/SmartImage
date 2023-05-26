@@ -362,6 +362,11 @@ public static class Integration
 				files.Add(pd);
 				goto ret;
 			}
+			else {
+				if (File.Exists(pd)) {
+					pd = Path.GetDirectoryName(pd);
+				}
+			}
 
 			var ofs  = (ofn.nFileOffset * 2);
 			var ptr1 = (((byte*) p1p.Pointer) + ofs);
