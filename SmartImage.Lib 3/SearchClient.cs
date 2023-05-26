@@ -34,7 +34,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool ConfigApplied { get; private set; }
 
-	public bool IsRunning { get; private set;  }
+	public bool IsRunning { get; private set; }
 
 	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
 
@@ -92,6 +92,7 @@ public sealed class SearchClient : IDisposable
 	                                                 [CBN] IProgress<int> p = null)
 	{
 		IsRunning = true;
+
 		if (!ConfigApplied) {
 			await ApplyConfigAsync();
 		}
@@ -141,8 +142,15 @@ public sealed class SearchClient : IDisposable
 			// var sri    = results.SelectMany(r => r.Results).ToArray();
 			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 			//todo
-			OpenResult(results.FirstOrDefault());
+			try {
+				var rr = results.Where(r => r.Results.Any());
 
+				OpenResult(rr.MaxBy(r => r.Results.Average(r2 => r2.Score)));
+			}
+			catch (Exception e) {
+
+				OpenResult(results.FirstOrDefault());
+			}
 		}
 
 		IsRunning = false;
@@ -152,7 +160,7 @@ public sealed class SearchClient : IDisposable
 
 	private void OpenResult(SearchResult result)
 	{
-#if DEBUG
+#if DEBUG && !TEST
 #pragma warning disable CA1822
 		// ReSharper disable once MemberCanBeMadeStatic.Local        
 		Logger.LogDebug("Not opening result {result}", result);
