@@ -10,6 +10,7 @@ using Kantan.Console;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
 using Terminal.Gui;
+using Attribute = Terminal.Gui.Attribute;
 
 #endregion
 
@@ -193,4 +194,10 @@ internal static partial class UI
 		lv.SetNeedsDisplay();
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}*/
+	public static ColorScheme NormalizeHot(this ColorScheme cs)
+	{
+		cs.HotFocus  = cs.Focus;
+		cs.HotNormal = cs.Normal;
+		return cs;
+	}
 }

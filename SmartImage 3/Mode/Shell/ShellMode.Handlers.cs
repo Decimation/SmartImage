@@ -18,7 +18,9 @@ using Terminal.Gui;
 using Clipboard = Novus.Win32.Clipboard;
 using Microsoft.VisualBasic.FileIO;
 using Novus.Win32.Structures.User32;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
+using Attribute = Terminal.Gui.Attribute;
 using FileSystem = Novus.OS.FileSystem;
 
 namespace SmartImage.Mode.Shell;
@@ -229,7 +231,7 @@ public sealed partial class ShellMode
 		m_token.Cancel();
 		m_tokenu.Cancel();
 		Lbl_Status2.ColorScheme = UI.Cs_Lbl4;
-		Lbl_Status2.Text = R2.Inf_Cancel;
+		Lbl_Status2.Text        = R2.Inf_Cancel;
 		Lbl_Status2.SetNeedsDisplay();
 		Btn_Restart.Enabled = true;
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
@@ -305,5 +307,71 @@ public sealed partial class ShellMode
 
 			SetInputText(n);
 		}
+	}
+
+	private static readonly Dictionary<BaseSearchEngine, ColorScheme> Colors = new()
+	{
+	};
+
+	private ColorScheme? Results_RowColor(TableView.RowColorGetterArgs r)
+	{
+		// var eng=args.Table.Rows[args.RowIndex]["Engine"];
+
+		ColorScheme? cs = null;
+
+		var ar = r.Table.Rows[r.RowIndex].ItemArray;
+
+		var eng = ar[0];
+
+		if (eng == null) {
+			goto ret;
+		}
+
+		var eng2 = Client.Engines.FirstOrDefault(f => eng.ToString().Contains(f.Name));
+
+		if (eng2 == null) {
+			goto ret;
+		}
+		if (!Colors.ContainsKey(eng2)) {
+			var colors = Enum.GetValues<Color>();
+
+			var cc = colors[Array.IndexOf(UI.EngineOptions, eng2.EngineOption) % UI.EngineOptions.Length];
+
+			Color cc2;
+
+			switch (cc) {
+				case Color.Cyan:
+					cc2 = Color.BrightCyan;
+					break;
+				default:
+					cc2 = cc;
+					break;
+			}
+
+			cs = new ColorScheme()
+			{
+				Normal = Attribute.Make(cc, Color.Black),
+				Focus  = Attribute.Make(cc2, Color.DarkGray),
+			
+			};
+			cs = cs.NormalizeHot();
+
+			Colors.Add(eng2, cs);
+		}
+		else {
+			cs = Colors[eng2];
+		}
+
+		ret:
+		return cs;
+	}
+
+	private async void Reload_Clicked()
+	{
+		var q = Query;
+		Cancel_Clicked();
+		Restart_Clicked(true);
+		// Query = q;
+		// SetQuery(q.Uni.Value.ToString());
 	}
 }

@@ -16,16 +16,20 @@ namespace SmartImage.Mode.Shell.Assets;
 // todo: possible overkill with caching
 internal static partial class UI
 {
-	internal static readonly Attribute Atr_Green_Black         = Attribute.Make(Color.Green, Color.Black);
-	internal static readonly Attribute Atr_BrightGreen_White   = Attribute.Make(Color.BrightGreen, Color.White);
-	internal static readonly Attribute Atr_BrightGreen_Gray    = Attribute.Make(Color.BrightGreen, Color.Gray);
-	internal static readonly Attribute Atr_BrightRed_White     = Attribute.Make(Color.BrightRed, Color.White);
-	internal static readonly Attribute Atr_BrightRed_Gray      = Attribute.Make(Color.BrightRed, Color.Gray);
-	internal static readonly Attribute Atr_Brown_White         = Attribute.Make(Color.Brown, Color.White);
-	internal static readonly Attribute Atr_Red_Black           = Attribute.Make(Color.Red, Color.Black);
-	internal static readonly Attribute Atr_Red_White           = Attribute.Make(Color.Red, Color.White);
-	internal static readonly Attribute Atr_Red_DarkGray        = Attribute.Make(Color.Red, Color.DarkGray);
-	internal static readonly Attribute Atr_BrightYellow_Black  = Attribute.Make(Color.BrightYellow, Color.Black);
+	internal static readonly Attribute Atr_Green_Black        = Attribute.Make(Color.Green, Color.Black);
+	internal static readonly Attribute Atr_Green_White        = Attribute.Make(Color.Green, Color.White);
+	internal static readonly Attribute Atr_Green_Gray     = Attribute.Make(Color.Green, Color.Gray);
+	internal static readonly Attribute Atr_Green_DarkGray     = Attribute.Make(Color.Green, Color.DarkGray);
+	internal static readonly Attribute Atr_BrightGreen_White  = Attribute.Make(Color.BrightGreen, Color.White);
+	internal static readonly Attribute Atr_BrightGreen_Gray   = Attribute.Make(Color.BrightGreen, Color.Gray);
+	internal static readonly Attribute Atr_BrightRed_White    = Attribute.Make(Color.BrightRed, Color.White);
+	internal static readonly Attribute Atr_BrightRed_Gray     = Attribute.Make(Color.BrightRed, Color.Gray);
+	internal static readonly Attribute Atr_Brown_White        = Attribute.Make(Color.Brown, Color.White);
+	internal static readonly Attribute Atr_Red_Black          = Attribute.Make(Color.Red, Color.Black);
+	internal static readonly Attribute Atr_Red_White          = Attribute.Make(Color.Red, Color.White);
+	internal static readonly Attribute Atr_Red_DarkGray       = Attribute.Make(Color.Red, Color.DarkGray);
+	internal static readonly Attribute Atr_BrightYellow_Black = Attribute.Make(Color.BrightYellow, Color.Black);
+	
 	internal static readonly Attribute Atr_White_Black         = Attribute.Make(Color.White, Color.Black);
 	internal static readonly Attribute Atr_White_Blue          = Attribute.Make(Color.White, Color.Blue);
 	internal static readonly Attribute Atr_White_Cyan          = Attribute.Make(Color.White, Color.Cyan);
@@ -78,13 +82,20 @@ internal static partial class UI
 
 	internal static readonly ColorScheme Cs_Btn2 = new()
 	{
-		Normal    = Atr_Blue_White,
+		Normal    = Atr_BrightGreen_White,
 		Disabled  = Atr_DarkGray_White,
-		HotNormal = Atr_Blue_White,
-		HotFocus  = Atr_BrightBlue_Gray,
-		Focus     = Atr_BrightBlue_Gray
+		HotNormal = Atr_BrightGreen_White,
+		HotFocus  = Atr_BrightGreen_Gray,
+		Focus     = Atr_BrightGreen_Gray
 	};
-
+	internal static readonly ColorScheme Cs_Btn2x = new()
+	{
+		Normal    = Atr_Green_White,
+		Disabled  = Atr_DarkGray_White,
+		HotNormal = Atr_Green_White,
+		HotFocus  = Atr_Green_Gray,
+		Focus     = Atr_Green_Gray
+	};
 	internal static readonly ColorScheme Cs_Btn3 = new()
 	{
 		Normal = Atr_Black_DarkGray,

@@ -130,7 +130,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		X           = Pos.Right(Btn_Cancel),
 		Y           = Pos.Y(Btn_Cancel),
 		Enabled     = true,
-		ColorScheme = UI.Cs_Btn2,
+		ColorScheme = UI.Cs_Btn2x,
 	};
 
 	private static readonly Label Lbl_InputInfo = new()
@@ -237,6 +237,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 	{
 		X = Pos.X(Btn_Cancel),
 		Y = Pos.Bottom(Btn_Cancel),
+
+		Height      = Dim.Height(Btn_Cancel),
+		ColorScheme = UI.Cs_Btn_Cancel,
+		Enabled     = false
+	};
+
+	private static readonly Button Btn_Reload = new("Reload")
+	{
+		X = Pos.X(Btn_Restart),
+		Y = Pos.Bottom(Btn_Restart),
 
 		Height      = Dim.Height(Btn_Cancel),
 		ColorScheme = UI.Cs_Btn_Cancel,
@@ -391,11 +401,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			ShowHorizontalScrollIndicators = true,
 			AlwaysShowHeaders              = true,
 
-			RowColorGetter = args =>
-			{
-				// var eng=args.Table.Rows[args.RowIndex]["Engine"];
-				return null;
-			},
+			RowColorGetter = Results_RowColor,
 
 			ShowHorizontalHeaderUnderline = true,
 			ShowHorizontalHeaderOverline  = true,
@@ -420,6 +426,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Cb_Queue.Toggled         += Queue_Checked;
 		Btn_Queue.Clicked        += Queue_Dialog;
 		Btn_Next.Clicked         += Next_Clicked;
+		// Btn_Reload.Clicked       += Reload_Clicked;
 
 		Lbl_QueryUpload.Clicked += () =>
 		{
@@ -612,6 +619,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private async Task<bool> SetQuery(ustring text)
 	{
+		// TODO: IMPROVE
+
 		// Btn_Run.Enabled = false;
 
 		if (IsQueryReady() && Query.Uni.Value as string == text) {
@@ -645,6 +654,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			Lbl_InputInfo.Text = $"Error: {e.Message}";
 			Lbl_Status2.Text   = ustring.Empty;
+			Btn_Reload.Enabled = false;
+
 		}
 
 		UI.SetLabelStatus(Lbl_InputOk, null);
@@ -661,8 +672,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 				};*/
 
 				using CancellationTokenSource cts = new();
-				
-				Lbl_Status2.Text        = $"Uploading...";
+
+				Lbl_Status2.Text = $"Uploading...";
 
 				UI.QueueProgress(cts, Pbr_Status);
 
@@ -681,6 +692,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				Lbl_InputInfo.Text = $"Error: {e.Message}";
 				Lbl_Status2.Text   = ustring.Empty;
 				// Btn_Run.Enabled    = false;
+				Btn_Reload.Enabled = false;
 
 			}
 
@@ -694,6 +706,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Pbr_Status.Fraction  = 0;
 			Lbl_Status2.Text     = ustring.Empty;
 			Btn_Delete.Enabled   = false;
+			Btn_Reload.Enabled   = false;
 
 			return false;
 		}
@@ -715,6 +728,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Tf_Input.ReadOnly  = true;
 		Btn_Delete.Enabled = true;
+		Btn_Reload.Enabled = true;
 
 		return true;
 	}
