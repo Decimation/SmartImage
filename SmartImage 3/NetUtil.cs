@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Novus.FileTypes;
@@ -39,17 +41,10 @@ internal static class NetUtil
 		var p  = new HtmlParser();
 		var dd = await p.ParseDocumentAsync(stream, ct);
 
-		var a = dd.QuerySelectorAll("a")
-			.Distinct()
-			.Select(e => e.GetAttribute("href"))
-			.Distinct();
-		// .Where(e=> SearchQuery.IsValidSourceType(e));
+		var a = dd.QueryAllDistinctAttribute("a", "href");
+		var b = dd.QueryAllDistinctAttribute("img", "src");
 
-		var b = dd.QuerySelectorAll("img")
-			.Distinct()
-			.Select(e => e.GetAttribute("src"))
-			.Distinct();
-		var c = a.Union(b);
+		var c = a.Union(b).Where(SearchQuery.IsValidSourceType);
 
 		await Parallel.ForEachAsync(c, ct, async (s, token) =>
 		{
@@ -59,6 +54,9 @@ internal static class NetUtil
 				ul.Add(ux);
 
 			}
+			else {
+
+			}
 
 			return;
 		});
@@ -66,5 +64,14 @@ internal static class NetUtil
 		dd.Dispose();
 		ret:
 		return ul.ToArray();
+
+	}
+
+	private static IEnumerable<string?> QueryAllDistinctAttribute(this IParentNode doc, string sel, string attr)
+	{
+		return doc.QuerySelectorAll(sel)
+			.Distinct()
+			.Select(e => e.GetAttribute(attr))
+			.Distinct();
 	}
 }

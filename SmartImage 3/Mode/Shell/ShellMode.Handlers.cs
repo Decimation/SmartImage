@@ -53,18 +53,23 @@ public sealed partial class ShellMode
 
 	private async void Input_TextChanging(TextChangingEventArgs tc)
 	{
-		var text = tc.NewText;
+		var text = tc.NewText.ToString().TrimStart('\"');
 
-		Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
+		// Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
 
-		Application.MainLoop.Invoke(() => Task.Delay(TimeSpan.FromSeconds(1)));
+		// Application.MainLoop.Invoke(() => Task.Delay(TimeSpan.FromSeconds(1)));
 
-		var sourceType = SearchQuery.IsValidSourceType(text.ToString());
+		var sourceType = SearchQuery.IsValidSourceType(text);
 
 		if (sourceType) {
 			var ok = await TrySetQueryAsync(text);
+
 			Btn_Run.Enabled = ok;
 			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
+
+			if (ok && m_autoSearch && !Client.IsRunning) {
+				Run_Clicked();
+			}
 		}
 	}
 
@@ -239,7 +244,7 @@ public sealed partial class ShellMode
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
 		Lbl_Status2.ColorScheme = UI.Cs_Lbl1;
-
+		
 	}
 
 	private void Delete_Clicked()

@@ -111,7 +111,7 @@ public sealed class SearchClient : IDisposable
 
 				Logger.LogWarning("Cancellation requested");
 				IsComplete = true;
-
+				IsRunning  = false;
 				return results;
 			}
 
