@@ -22,6 +22,7 @@ using Microsoft.VisualBasic.FileIO;
 using Novus.FileTypes;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Attribute = Terminal.Gui.Attribute;
 using FileSystem = Novus.OS.FileSystem;
@@ -115,6 +116,8 @@ public sealed partial class ShellMode
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 
+		_keyPressHandling = false;
+		_inputVerifying = false;
 	}
 
 	/// <summary>
@@ -431,7 +434,81 @@ public sealed partial class ShellMode
 
 				break;
 			}
+			case Key.X:
+				//TODO: WIP
+
+				if (_keyPressHandling) {
+					return;
+				}
+
+				_keyPressHandling = true;
+
+				var res = m_results.SelectMany(e => e.Results).ToArray();
+				var dr  = new ConcurrentBag<SearchResultItem>();
+				int ca  = 0, cf = 0;
+				Pbr_Status.Fraction         = 0;
+				Pbr_Status.ProgressBarStyle = ProgressBarStyle.MarqueeContinuous;
+
+				await Parallel.ForEachAsync(res, async (result, token) =>
+				{
+					var u = await result.GetUniAsync();
+
+					if (u) {
+						dr.Add(result);
+					}
+					else {
+						cf++;
+						result?.Dispose();
+					}
+
+					Pbr_Status.Fraction = (((float) dr.Count) / (res.Length - cf));
+
+					Pbr_Status.Pulse();
+
+					return;
+				});
+				Lbl_Status2.Text = $"{dr.Count} | {res.Length}";
+
+				var d1 = new Dialog()
+				{
+					Title    = $"",
+					AutoSize = false,
+					Width    = Dim.Percent(60),
+					Height   = Dim.Percent(55),
+					// Height   = UI.Dim_80_Pct,
+				};
+				var drCpy = dr.ToArray();
+
+				var lv1 = new ListView(drCpy)
+				{
+					Width  = Dim.Fill(),
+					Height = Dim.Percent(80),
+					Border = new Border()
+					{
+						BorderStyle     = BorderStyle.Rounded,
+						BorderThickness = new Thickness(2)
+					}
+				};
+
+				var bt = new Button("Ok") { };
+				bt.Clicked += () => { Application.RequestStop(); };
+				d1.Add(lv1);
+				d1.AddButton(bt);
+				lv1.SetFocus();
+				Application.Run(d1);
+
+				foreach (SearchResultItem item in dr) {
+					item.Dispose();
+				}
+
+				foreach (SearchResultItem sr in drCpy) {
+					sr.Dispose();
+				}
+
+				break;
 			case Key.D:
+				//TODO: WIP
+
 				if (sx.TryGetValue(v, out var b) && b) {
 					return;
 				}
@@ -541,10 +618,11 @@ public sealed partial class ShellMode
 		return false;
 	}
 
-	private static int Norm(int n, int n2=0) => n == INV ? n2 : n;
+	private static int Norm(int n, int n2 = 0) => n == INV ? n2 : n;
 
 	private void OnCellSelected(TableView.SelectedCellChangedEventArgs eventArgs)
 	{
+		// TODO: WIP
 		var nr = (eventArgs.NewRow == INV ? eventArgs.OldRow : eventArgs.NewRow);
 		var nc = eventArgs.NewCol == INV ? eventArgs.OldCol : eventArgs.NewCol;
 		nr = Norm(nr);

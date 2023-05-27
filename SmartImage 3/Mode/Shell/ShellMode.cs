@@ -281,7 +281,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private CancellationTokenSource m_token;
 	private CancellationTokenSource m_tokenu;
 
-	private static int m_seq;
+	private static int _sequence;
 
 	#region
 
@@ -323,6 +323,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 	public int ResultCount => m_results.Count;
 
 	internal ManualResetEvent IsReady { get; set; }
+
+	private static bool _keyPressHandling;
+
+	private static bool _inputVerifying;
 
 	#endregion
 
@@ -414,8 +418,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
 
-		Tv_Results.SelectedCellChanged += OnCellSelected;
-		Tv_Results.KeyPress            += OnResultKeyPress;
+		// Tv_Results.SelectedCellChanged += OnCellSelected;
+		Tv_Results.KeyPress += OnResultKeyPress;
 
 		Tv_Results.CellActivated += Result_CellActivated;
 		Btn_Run.Clicked          += Run_Clicked;
@@ -496,6 +500,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private void OnResult(object o, SearchResult result)
 	{
 		m_results.Add(result);
+
 		Application.MainLoop.Invoke(() =>
 		{
 			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)",
@@ -631,7 +636,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		// TODO: IMPROVE
 
 		// Btn_Run.Enabled = false;
-
+		_inputVerifying = true;
 		SearchQuery sq = await TryGetQueryAsync(text);
 
 		Lbl_InputOk.SetLabelStatus(null);
@@ -652,7 +657,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Lbl_Status2.Text     = ustring.Empty;
 			Btn_Delete.Enabled   = false;
 			Btn_Reload.Enabled   = false;
-
+			_inputVerifying     = false;
 			return false;
 		}
 
@@ -674,6 +679,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tf_Input.ReadOnly  = true;
 		Btn_Delete.Enabled = true;
 		Btn_Reload.Enabled = true;
+		_inputVerifying   = false;
 
 		return true;
 	}
@@ -768,14 +774,14 @@ public sealed partial class ShellMode : IDisposable, IMode
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
-			if (IsQueryReady()) {
+			if (IsQueryReady() || _inputVerifying) {
 				Debug.WriteLine($"Ignoring...");
 				goto r1;
 			}
 
 			int curSeq  = Clipboard.SequenceNumber;
-			int prevSeq = m_seq;
-			m_seq = curSeq;
+			int prevSeq = _sequence;
+			_sequence = curSeq;
 
 			if (curSeq != prevSeq) {
 				Debug.WriteLine($"Sequence changed", nameof(ClipboardCallback));
@@ -895,6 +901,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		// Queue.Clear();
 		m_results.Clear();
+
+		_keyPressHandling = false;
+		_inputVerifying  = false;
 	}
 
 	public void Close()
