@@ -244,7 +244,7 @@ public sealed partial class ShellMode
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
 		Lbl_Status2.ColorScheme = UI.Cs_Lbl1;
-		
+
 	}
 
 	private void Delete_Clicked()
@@ -407,71 +407,125 @@ public sealed partial class ShellMode
 		var kek = eventArgs.KeyEvent.Key;
 		Debug.WriteLine($"{eventArgs.KeyEvent} {eventArgs.KeyEvent.IsCtrl} {kek}");
 		var k = kek & ~Key.CtrlMask;
+		var (r, c) = (Tv_Results.SelectedRow, Tv_Results.SelectedColumn);
 
-		if (k == Key.S) {
-			var (r, c) = (Tv_Results.SelectedRow, Tv_Results.SelectedColumn);
+		// NOTE: Column 1 contains the URL
+		c = 1;
+		Url v = (Tv_Results.Table.Rows[r][c]).ToString();
 
-			// NOTE: Column 1 contains the URL
-			c = 1;
-			Url v = (Tv_Results.Table.Rows[r][c]).ToString();
+		switch (k) {
+			case Key.S:
+			{
+				if (await ScanResult(v)) return;
 
-			if (sx.Contains(v)) {
-				Lbl_Status2.Text = $"Scanning...!";
-				Lbl_Status2.SetNeedsDisplay();
-				return;
+				break;
 			}
-			else {
-				Lbl_Status2.Text = $"Scanning started...!";
-				Lbl_Status2.SetNeedsDisplay();
+			case Key.D:
+				if (sx.Contains(v)) {
+					return;
+				}
 				sx.Add(v);
+				Lbl_Status2.Text = "....";
+				Pbr_Status.Pulse();
+				var u = await UniSource.TryGetAsync(v, whitelist: FileType.Image);
 
-			}
+				if (u != null && u.FileTypes.Any()) {
+					var path  = $"{v.PathSegments[^1]}";
+					var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
 
-			if (Scanned.ContainsKey(v)) {
-				//todo
-				Lbl_Status2.Text = Scanned[v].Message;
-				Lbl_Status2.SetNeedsDisplay();
-			}
-			else {
-				UniSource[] urls = null;
-
-				urls = await NetUtil.ScanAsync(v);
-
-				Scanned.TryAdd(v, new ResultMeta() { Url = v, Sources = urls, Message = "..." });
-
-				Lbl_Status2.Text = Scanned[v].Message;
-				Lbl_Status2.SetNeedsDisplay();
-
-				var d = new Dialog()
-				{
-					Title    = $"",
-					AutoSize = false,
-					Width    = Dim.Percent(60),
-					Height   = Dim.Percent(55),
-					// Height   = UI.Dim_80_Pct,
-				};
-
-				var lv = new ListView(Scanned[v].Sources.Select(e => $"{e.FileTypes[0]} {e.Value}").ToArray())
-				{
-					Width  = Dim.Fill(),
-					Height = Dim.Fill(),
-
-					Border = new Border()
-					{
-						BorderStyle     = BorderStyle.Rounded,
-						BorderThickness = new Thickness(2)
+					if (File.Exists(path2)) {
+						goto open;
 					}
-				};
-				d.Add(lv);
-				Application.Run(d);
 
-				// var rmi = Scanned[v];
-				// Scanned[v]          = urls;
-				// Pbr_Status.Fraction = 0;
+					var f = File.OpenWrite(path2);
 
-			}
+					if (u.Stream.CanSeek) {
+						u.Stream.Position = 0;
+
+					}
+
+					await u.Stream.CopyToAsync(f);
+					// f.Close();
+					f.Dispose();
+					open:
+					u.Dispose();
+					Novus.OS.FileSystem.ExploreFile(path2);
+				}
+				else {
+					Lbl_Status2.Text = $"Invalid";
+				}
+
+				// Pbr_Status.Pulse();
+
+				var list = sx.ToList();
+				var    bx   = list.Remove(v);
+				sx = new(list);
+
+				break;
 		}
 
 		eventArgs.Handled = true;
+	}
+
+	private static async Task<bool> ScanResult(Url v)
+	{
+
+		if (sx.Contains(v)) {
+			Lbl_Status2.Text = $"Scanning...!";
+			Lbl_Status2.SetNeedsDisplay();
+			return true;
+		}
+		else {
+			Lbl_Status2.Text = $"Scanning started...!";
+			Lbl_Status2.SetNeedsDisplay();
+			sx.Add(v);
+
+		}
+
+		if (Scanned.ContainsKey(v)) {
+			//todo
+			Lbl_Status2.Text = Scanned[v].Message;
+			Lbl_Status2.SetNeedsDisplay();
+		}
+		else {
+			UniSource[] urls = null;
+
+			urls = await NetUtil.ScanAsync(v);
+
+			Scanned.TryAdd(v, new ResultMeta() { Url = v, Sources = urls, Message = "..." });
+
+			Lbl_Status2.Text = Scanned[v].Message;
+			Lbl_Status2.SetNeedsDisplay();
+
+			var d = new Dialog()
+			{
+				Title    = $"",
+				AutoSize = false,
+				Width    = Dim.Percent(60),
+				Height   = Dim.Percent(55),
+				// Height   = UI.Dim_80_Pct,
+			};
+
+			var lv = new ListView(Scanned[v].Sources.Select(e => $"{e.FileTypes[0]} {e.Value}").ToArray())
+			{
+				Width  = Dim.Fill(),
+				Height = Dim.Fill(),
+
+				Border = new Border()
+				{
+					BorderStyle     = BorderStyle.Rounded,
+					BorderThickness = new Thickness(2)
+				}
+			};
+			d.Add(lv);
+			Application.Run(d);
+
+			// var rmi = Scanned[v];
+			// Scanned[v]          = urls;
+			// Pbr_Status.Fraction = 0;
+
+		}
+
+		return false;
 	}
 }

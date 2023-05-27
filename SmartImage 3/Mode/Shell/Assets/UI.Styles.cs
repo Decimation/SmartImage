@@ -3,6 +3,7 @@
 
 #region
 
+using System.Runtime.Caching;
 using AngleSharp.Dom;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
@@ -19,7 +20,6 @@ internal static partial class UI
 	internal static readonly Attribute Atr_Green_Black        = Attribute.Make(Color.Green, Color.Black);
 	internal static readonly Attribute Atr_Green_White        = Attribute.Make(Color.Green, Color.White);
 	internal static readonly Attribute Atr_Green_Gray         = Attribute.Make(Color.Green, Color.Gray);
-	internal static readonly Attribute Atr_Green_DarkGray     = Attribute.Make(Color.Green, Color.DarkGray);
 	internal static readonly Attribute Atr_BrightGreen_White  = Attribute.Make(Color.BrightGreen, Color.White);
 	internal static readonly Attribute Atr_BrightGreen_Gray   = Attribute.Make(Color.BrightGreen, Color.Gray);
 	internal static readonly Attribute Atr_BrightRed_White    = Attribute.Make(Color.BrightRed, Color.White);
@@ -50,16 +50,13 @@ internal static partial class UI
 	internal static readonly Attribute Atr_Gray_Black          = Attribute.Make(Color.Gray, Color.Black);
 	internal static readonly Attribute Atr_DarkGray_Blue       = Attribute.Make(Color.DarkGray, Color.Blue);
 	internal static readonly Attribute Atr_DarkGray_Black      = Attribute.Make(Color.DarkGray, Color.Black);
-	private static readonly  Attribute Atr_BrightBlue_Black    = Attribute.Make(Color.BrightBlue, Color.Black);
-	private static readonly  Attribute Atr_Blue_Black          = Attribute.Make(Color.Blue, Color.Black);
-	private static readonly  Attribute Atr_Brown_Black         = Attribute.Make(Color.Brown, Color.Black);
 	private static readonly  Attribute Atr_DarkGray_White      = Attribute.Make(Color.DarkGray, Color.White);
 	internal static readonly Attribute Atr_Black_DarkGray      = Attribute.Make(Color.Black, Color.DarkGray);
 	internal static readonly Attribute Atr_Black_Gray          = Attribute.Make(Color.Black, Color.Gray);
 	internal static readonly Attribute Atr_Brown_Gray          = Attribute.Make(Color.Brown, Color.Gray);
 	internal static readonly Attribute Atr_Brown_DarkGray      = Attribute.Make(Color.Brown, Color.DarkGray);
-	internal static readonly Attribute Atr_Yellow_DarkGray      = Attribute.Make(Color.BrightYellow, Color.DarkGray);
-	internal static readonly Attribute Atr_Yellow_White      = Attribute.Make(Color.Brown, Color.White);
+	internal static readonly Attribute Atr_Yellow_DarkGray     = Attribute.Make(Color.BrightYellow, Color.DarkGray);
+	internal static readonly Attribute Atr_Yellow_White        = Attribute.Make(Color.Brown, Color.White);
 
 	internal static readonly ColorScheme Cs_Err        = Make(Atr_BrightRed_White, disabled: Atr_BrightRed_Gray);
 	internal static readonly ColorScheme Cs_Ok         = Make(Atr_BrightGreen_White, disabled: Atr_BrightGreen_Gray);
@@ -121,8 +118,6 @@ internal static partial class UI
 		HotFocus  = Atr_BrightRed_White,
 		Focus     = Atr_BrightRed_White
 	};
-
-	internal static readonly ColorScheme Cs_Btn5 = Make(Atr_Yellow_White, Atr_Yellow_DarkGray, Atr_DarkGray_White);
 
 	internal static readonly ColorScheme Cs_Elem2 = new()
 	{

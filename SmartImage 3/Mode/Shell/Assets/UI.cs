@@ -28,10 +28,11 @@ internal static partial class UI
 			while (state is CancellationToken { IsCancellationRequested: false }) {
 				pbr.Pulse();
 				f?.Invoke(state);
+				Task.Delay(TimeSpan.FromSeconds(0.5));
 				// Thread.Sleep(TimeSpan.FromMilliseconds(100));
 			}
 
-		}, cts.Token, true);
+		}, cts.Token);
 	}
 
 	internal static Button CreateLinkButton(this Dialog d, string text, string? url = null, Action? urlAction = null)
