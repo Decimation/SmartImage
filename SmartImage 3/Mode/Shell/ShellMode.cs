@@ -276,8 +276,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private readonly List<ustring> m_clipboard;
 
-	private bool m_autoSearch;
-
 	private readonly ConcurrentBag<SearchResult> m_results;
 
 	private CancellationTokenSource m_token;
@@ -454,7 +452,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Top.Redraw(Top.Bounds);
 		};
 
-		if (m_autoSearch) {
+		if (Config.AutoSearch) {
 			Btn_Run.OnClicked();
 		}
 
@@ -583,8 +581,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private void ProcessArgs()
 	{
-		m_autoSearch = Args.Contains(R2.Arg_AutoSearch);
+		if (Args.Any()) {
+			Config.AutoSearch = Args.Contains(R2.Arg_AutoSearch);
 
+		}
 		var e = Args.GetEnumerator();
 
 		while (e.MoveNext()) {

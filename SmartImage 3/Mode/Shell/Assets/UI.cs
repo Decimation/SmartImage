@@ -31,7 +31,7 @@ internal static partial class UI
 				// Thread.Sleep(TimeSpan.FromMilliseconds(100));
 			}
 
-		}, cts.Token);
+		}, cts.Token, true);
 	}
 
 	internal static Button CreateLinkButton(this Dialog d, string text, string? url = null, Action? urlAction = null)

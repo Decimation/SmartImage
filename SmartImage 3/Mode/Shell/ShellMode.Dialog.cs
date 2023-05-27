@@ -229,13 +229,13 @@ public sealed partial class ShellMode
 			// Width  = WIDTH,
 			Height      = 1,
 			AutoSize    = true,
-			ColorScheme = UI.Cs_Btn3
-
+			ColorScheme = UI.Cs_Btn3,
+			Checked = Config.AutoSearch
 		};
 
 		cbAutoSearch.Toggled += b =>
 		{
-			m_autoSearch = !b;
+			Config.AutoSearch = !b;
 			ReloadDialog();
 		};
 

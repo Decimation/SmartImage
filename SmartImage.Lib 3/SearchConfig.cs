@@ -125,7 +125,15 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 			OnPropertyChanged();
 		}
 	}
-
+	public bool AutoSearch
+	{
+		get { return Configuration.ReadSetting(nameof(AutoSearch), false); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(AutoSearch), value.ToString());
+			OnPropertyChanged();
+		}
+	}
 	public static readonly SearchConfig Default = new();
 
 	public SearchConfig()
@@ -164,6 +172,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		table.Rows.Add(Resources.S_EhUsername, EhUsername);
 		table.Rows.Add(Resources.S_EhPassword, EhPassword);
 		table.Rows.Add(Resources.S_Clipboard, Clipboard);
+		table.Rows.Add(Resources.S_AutoSearch, AutoSearch);
 
 		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
 

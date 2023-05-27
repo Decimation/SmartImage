@@ -67,7 +67,7 @@ public sealed partial class ShellMode
 			Btn_Run.Enabled = ok;
 			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
 
-			if (ok && m_autoSearch && !Client.IsRunning) {
+			if (ok && Config.AutoSearch && !Client.IsRunning) {
 				Run_Clicked();
 			}
 		}
