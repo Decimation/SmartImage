@@ -9,11 +9,14 @@ using Microsoft.Win32;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
 using System.Text;
+using Kantan.Text;
 using Novus.OS;
 using Novus;
+using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib;
@@ -323,27 +326,43 @@ public static class Integration
 		unsafe {
 			const int ss = 4096;
 
-			Memory<sbyte> p1 = new sbyte[ss];
-			Memory<sbyte> p2 = new sbyte[ss];
+			Span<sbyte> p1  = stackalloc sbyte[ss];
+			Span<sbyte> p2  = stackalloc sbyte[ss];
+			ref sbyte   p1p = ref p1.GetPinnableReference();
+			ref sbyte   p2p = ref p2.GetPinnableReference();
 
-			var p1p = p1.Pin();
-			var p2p = p2.Pin();
+			// var p1p = p1.Pin();
+			// var p2p = p2.Pin();
+
+			var ext = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif" };
+
+			/*var ext2 = FileType.Image.Select(f => "*." + f.MediaType.Split('/')[1])
+				.Distinct();*/
+
+			const string wildcard = "*.*";
+
+			string extStr = string.Join(";", ext);
+
+			var p1pp = (nint) Unsafe.AsPointer(ref p1p);
+
+			var p2pp = (nint) Unsafe.AsPointer(ref p2p);
 
 			var ofn = new OpenFileName
 			{
 				lStructSize = Marshal.SizeOf<OpenFileName>(),
-				lpstrFilter = "All Files\0*.*\0\0",
+				lpstrFilter = $"Image files\0{extStr}\0\0",
 				// lpstrFile       = new string(p1),
 				// lpstrFileTitle  = new string(p2),
-				lpstrFile      = (nint) p1p.Pointer,
-				lpstrFileTitle = (nint) p2p.Pointer,
-
+				// lpstrFile      = (nint) p1p.Pointer,
+				// lpstrFileTitle = (nint) p2p.Pointer,
+				lpstrFile       =p1pp,
+				lpstrFileTitle       = p2pp,
 				lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
 				lpstrTitle      = "Pick an image",
 				Flags           = (int) flags,
 				// ofn.nMaxFile      = ofn.lpstrFile.Length;
 				nMaxFile      = ss,
-				nMaxFileTitle = ss
+				nMaxFileTitle = ss,
 			};
 
 			// ofn.nMaxFileTitle = ofn.lpstrFileTitle.Length;
@@ -356,7 +375,8 @@ public static class Integration
 				goto ret;
 			}
 
-			var pd = Marshal.PtrToStringAuto((nint) p1p.Pointer);
+			var pd = Marshal.PtrToStringAuto((nint) p1pp);
+			// var pd = Marshal.PtrToStringAuto((nint) p1p.Pointer);
 
 			if (!(flags.HasFlag(OpenFileNameFlags.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
 				files.Add(pd);
@@ -369,7 +389,8 @@ public static class Integration
 			}
 
 			var ofs  = (ofn.nFileOffset * 2);
-			var ptr1 = (((byte*) p1p.Pointer) + ofs);
+			// var ptr1 = (((byte*) p1p.Pointer) + ofs);
+			var ptr1 = (((byte*) p1pp) + ofs);
 
 			while (true) {
 
@@ -390,8 +411,8 @@ public static class Integration
 			}
 
 			ret:
-			p1p.Dispose();
-			p2p.Dispose();
+			// p1p.Dispose();
+			// p2p.Dispose();
 			return files.ToArray();
 
 		}

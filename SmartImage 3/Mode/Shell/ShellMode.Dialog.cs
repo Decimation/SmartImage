@@ -42,9 +42,9 @@ public sealed partial class ShellMode
 			Height   = UI.Dim_30_Pct,
 		};
 
-		var b1 = UI.CreateLinkButton(d, "Repo", R2.Repo_Url);
-		var b2 = UI.CreateLinkButton(d, "Wiki", R2.Wiki_Url);
-		var b3 = UI.CreateLinkButton(d, "Ok", null, () => Application.RequestStop());
+		var b1 = d.CreateLinkButton("Repo", R2.Repo_Url);
+		var b2 = d.CreateLinkButton("Wiki", R2.Wiki_Url);
+		var b3 = d.CreateLinkButton("Ok", null, () => Application.RequestStop());
 
 		d.AddButton(b1);
 		d.AddButton(b2);
@@ -90,7 +90,8 @@ public sealed partial class ShellMode
 			Width                   = WIDTH1,
 			Height                  = HEIGHT1,
 
-			Y = Pos.Bottom(lbSearchEngines)
+			Y = Pos.Bottom(lbSearchEngines),
+			ColorScheme = UI.Cs_ListView2
 		};
 
 		Label lbPriorityEngines = new(R1.S_PriorityEngines)
@@ -109,8 +110,11 @@ public sealed partial class ShellMode
 			Width                   = WIDTH1,
 			Height                  = HEIGHT1,
 
-			Y = Pos.Bottom(lbPriorityEngines),
-			X = Pos.Right(lvSearchEngines) + 1
+			Y           = Pos.Bottom(lbPriorityEngines),
+			X           = Pos.Right(lvSearchEngines) + 1,
+
+			ColorScheme = UI.Cs_ListView2
+
 		};
 
 		var cfgInfo = new FileInfo(SearchConfig.Configuration.FilePath);
@@ -138,6 +142,7 @@ public sealed partial class ShellMode
 			X        = Pos.Right(lvPriorityEngines) + 1,
 			Width    = Dim.Fill(WIDTH1),
 			Height   = 11,
+			
 		};
 
 		void ReloadDialog()
@@ -476,11 +481,12 @@ public sealed partial class ShellMode
 
 		tf.TextChanged += delegate(ustring ustring)
 		{
-			Debug.WriteLine($"{ustring}");
+			// Debug.WriteLine($"{ustring}");
 		};
 
 		tf.TextChanging += a =>
 		{
+			//todo
 
 			var s = a.NewText.ToString().CleanString().Trim('\"');
 
@@ -488,20 +494,12 @@ public sealed partial class ShellMode
 			if (SearchQuery.IsValidSourceType(s)) {
 				Queue.Enqueue(s);
 				lv.Source = new ListWrapper(Queue.ToList());
-				/*tf.DeleteAll();
-				tf.Text   = ustring.Empty;
-				a.Cancel  = false;
-				a.NewText = ustring.Empty;
-				tf.DeleteAll();*/
+
 				tf.DeleteAll();
 				Debug.WriteLine($"{tf.Text} {s}");
-				// tf.Text = ustring.Empty;
-				// a.NewText = ustring.Empty;
-				// tf.SetFocus();
-				// tf.SetNeedsDisplay();
-				Application.MainLoop.Invoke(() => Action(tf));
+				
+				// Application.MainLoop.Invoke(() => Action(tf));
 				tf.Text = ustring.Empty;
-
 				Debug.WriteLine($"{tf.Text} {a.NewText}");
 			}
 		};

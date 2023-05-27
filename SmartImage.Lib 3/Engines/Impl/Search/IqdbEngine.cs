@@ -113,24 +113,30 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query)
 	{
 		const int MAX_FILE_SIZE = 0x800000;
+		try {
+			var response = await EndpointUrl.PostMultipartAsync(m =>
+			{
+				m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
+				m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);
 
-		var response = await EndpointUrl.PostMultipartAsync(m =>
-		{
-			m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-			m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);
+				if (query.Uni.IsUri) { }
+				else if (query.Uni.IsFile) {
+					m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
+				}
 
-			if (query.Uni.IsUri) { }
-			else if (query.Uni.IsFile) {
-				m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
-			}
+				return;
+			});
 
-			return;
-		});
+			var s = await response.GetStringAsync();
 
-		var s = await response.GetStringAsync();
+			var parser = new HtmlParser();
+			return await parser.ParseDocumentAsync(s).ConfigureAwait(false);
 
-		var parser = new HtmlParser();
-		return await parser.ParseDocumentAsync(s).ConfigureAwait(false);
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}!");
+			return null;
+		}
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)

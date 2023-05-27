@@ -5,6 +5,7 @@
 
 using System.Collections;
 using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using Kantan.Console;
 using Kantan.Net.Utilities;
@@ -33,7 +34,7 @@ internal static partial class UI
 		}, cts.Token);
 	}
 
-	internal static Button CreateLinkButton(Dialog d, string text, string? url = null, Action? urlAction = null)
+	internal static Button CreateLinkButton(this Dialog d, string text, string? url = null, Action? urlAction = null)
 	{
 		var b = new Button
 		{
@@ -52,7 +53,7 @@ internal static partial class UI
 		return b;
 	}
 
-	internal static void SetLabelStatus(Label lbl, bool? b)
+	internal static void SetLabelStatus(this Label lbl, bool? b)
 	{
 
 		switch (b) {
@@ -194,10 +195,25 @@ internal static partial class UI
 		lv.SetNeedsDisplay();
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}*/
+
 	public static ColorScheme NormalizeHot(this ColorScheme cs)
 	{
 		cs.HotFocus  = cs.Focus;
 		cs.HotNormal = cs.Normal;
 		return cs;
+	}
+
+	private const int BRIGHT_DELTA = 0b1000;
+
+	public static Color ToBrightVariant(this Color c)
+	{
+		// +8
+		return (Color) ((int) c + BRIGHT_DELTA);
+	}
+
+	public static Color ToDarkVariant(this Color c)
+	{
+		// +8
+		return (Color) ((int) c - BRIGHT_DELTA);
 	}
 }

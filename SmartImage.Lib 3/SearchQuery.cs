@@ -33,7 +33,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	{
 		Uni = f;
 	}
-
+	
 	public static readonly SearchQuery Null = new(null);
 
 	static SearchQuery() { }

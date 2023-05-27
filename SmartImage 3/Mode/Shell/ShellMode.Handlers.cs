@@ -5,6 +5,7 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
+using AngleSharp.Dom;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 using Clipboard = Novus.Win32.Clipboard;
 using Microsoft.VisualBasic.FileIO;
+using Novus.FileTypes;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
@@ -60,7 +62,7 @@ public sealed partial class ShellMode
 		var sourceType = SearchQuery.IsValidSourceType(text.ToString());
 
 		if (sourceType) {
-			var ok = await SetQuery(text);
+			var ok = await TrySetQueryAsync(text);
 			Btn_Run.Enabled = ok;
 			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
 		}
@@ -116,7 +118,7 @@ public sealed partial class ShellMode
 
 		Debug.WriteLine($"Input: {text}", nameof(Run_Clicked));
 
-		var ok = await SetQuery(text);
+		var ok = await TrySetQueryAsync(text);
 
 		Btn_Cancel.Enabled = ok;
 		Tv_Results.Visible = ok;
@@ -214,7 +216,7 @@ public sealed partial class ShellMode
 	{
 		Tf_Input.ReadOnly = false;
 		Tf_Input.DeleteAll();
-		UI.SetLabelStatus(Lbl_InputOk, null);
+		Lbl_InputOk.SetLabelStatus(null);
 		Lbl_InputOk.SetNeedsDisplay();
 		Lbl_InputInfo.Text  = ustring.Empty;
 		Lbl_InputInfo2.Text = ustring.Empty;
@@ -310,8 +312,7 @@ public sealed partial class ShellMode
 	}
 
 	private static readonly Dictionary<BaseSearchEngine, ColorScheme> Colors = new()
-	{
-	};
+		{ };
 
 	private ColorScheme? Results_RowColor(TableView.RowColorGetterArgs r)
 	{
@@ -332,6 +333,7 @@ public sealed partial class ShellMode
 		if (eng2 == null) {
 			goto ret;
 		}
+
 		if (!Colors.ContainsKey(eng2)) {
 			var colors = Enum.GetValues<Color>();
 
@@ -352,7 +354,7 @@ public sealed partial class ShellMode
 			{
 				Normal = Attribute.Make(cc, Color.Black),
 				Focus  = Attribute.Make(cc2, Color.DarkGray),
-			
+
 			};
 			cs = cs.NormalizeHot();
 
@@ -373,5 +375,98 @@ public sealed partial class ShellMode
 		Restart_Clicked(true);
 		// Query = q;
 		// SetQuery(q.Uni.Value.ToString());
+	}
+
+	private static readonly ConcurrentDictionary<Url, ResultMeta> Scanned = new();
+
+	private static ConcurrentBag<Url> sx = new();
+
+	public sealed record ResultMeta : IDisposable
+	{
+		public Url Url { get; init; }
+
+		public string Message { get; set; }
+
+		public UniSource[] Sources { get; set; }
+
+		public void Dispose()
+		{
+			for (int i = 0; i < Sources.Length; i++) {
+				Sources[i].Dispose();
+			}
+		}
+	}
+
+	private async void OnResultKeyPress(View.KeyEventEventArgs eventArgs)
+	{
+		var kek = eventArgs.KeyEvent.Key;
+		Debug.WriteLine($"{eventArgs.KeyEvent} {eventArgs.KeyEvent.IsCtrl} {kek}");
+		var k = kek & ~Key.CtrlMask;
+
+		if (k == Key.S) {
+			var (r, c) = (Tv_Results.SelectedRow, Tv_Results.SelectedColumn);
+
+			// NOTE: Column 1 contains the URL
+			c = 1;
+			Url v = (Tv_Results.Table.Rows[r][c]).ToString();
+
+			if (sx.Contains(v)) {
+				Lbl_Status2.Text = $"Scanning...!";
+				Lbl_Status2.SetNeedsDisplay();
+				return;
+			}
+			else {
+				Lbl_Status2.Text = $"Scanning started...!";
+				Lbl_Status2.SetNeedsDisplay();
+				sx.Add(v);
+
+			}
+
+			if (Scanned.ContainsKey(v)) {
+				//todo
+				Lbl_Status2.Text = Scanned[v].Message;
+				Lbl_Status2.SetNeedsDisplay();
+			}
+			else {
+				UniSource[] urls = null;
+
+				urls = await NetUtil.ScanAsync(v);
+
+				Scanned.TryAdd(v, new ResultMeta() { Url = v, Sources = urls, Message = "..." });
+
+				Lbl_Status2.Text = Scanned[v].Message;
+				Lbl_Status2.SetNeedsDisplay();
+
+				var d = new Dialog()
+				{
+					Title    = $"",
+					AutoSize = false,
+					Width    = Dim.Percent(60),
+					Height   = Dim.Percent(55),
+					// Height   = UI.Dim_80_Pct,
+				};
+
+				var lv = new ListView(Scanned[v].Sources.Select(e => $"{e.FileTypes[0]} {e.Value}").ToArray())
+				{
+					Width  = Dim.Fill(),
+					Height = Dim.Fill(),
+
+					Border = new Border()
+					{
+						BorderStyle     = BorderStyle.Rounded,
+						BorderThickness = new Thickness(2)
+					}
+				};
+				d.Add(lv);
+				Application.Run(d);
+
+				// var rmi = Scanned[v];
+				// Scanned[v]          = urls;
+				// Pbr_Status.Fraction = 0;
+
+			}
+		}
+
+		eventArgs.Handled = true;
 	}
 }

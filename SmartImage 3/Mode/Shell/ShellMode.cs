@@ -54,7 +54,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private static readonly MenuBar Mb_Menu = new()
 	{
-		CanFocus = false,
+		CanFocus    = false,
+		ColorScheme = UI.Cs_Win2,
+
 	};
 
 	private static readonly Label Lbl_Input = new("Input:")
@@ -87,6 +89,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Y           = Pos.Y(Tf_Input),
 		ColorScheme = UI.Cs_Btn1x,
 		// Enabled = false
+		HotKey = Key.r
 	};
 
 	private static readonly Button Btn_Browse = new("Browse")
@@ -210,7 +213,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 	{
 		X = Pos.X(Lbl_InputOk),
 		Y = Pos.Bottom(Lbl_InputOk),
-
 	};
 
 	private static readonly Button Btn_Next = new("Next")
@@ -363,7 +365,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
-			new("_About", null, AboutDialog),
+			new("_About", null, AboutDialog)
+				{ },
 		};
 
 		Top.Add(Mb_Menu);
@@ -412,6 +415,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tv_Results.Border  = UI.Br_1;
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
+
+		Tv_Results.KeyPress += OnResultKeyPress;
 
 		Tv_Results.CellActivated += Result_CellActivated;
 		Btn_Run.Clicked          += Run_Clicked;
@@ -611,22 +616,72 @@ public sealed partial class ShellMode : IDisposable, IMode
 		}
 	}
 
+	#region
+
 	internal void SetInputText(ustring s)
 	{
 		Tf_Input.Text = s;
 
 	}
 
-	private async Task<bool> SetQuery(ustring text)
+	private async Task<bool> TrySetQueryAsync(ustring text)
 	{
 		// TODO: IMPROVE
 
 		// Btn_Run.Enabled = false;
 
+		SearchQuery sq = await TryGetQueryAsync(text);
+
+		Lbl_InputOk.SetLabelStatus(null);
+
+		bool ok;
+
+		if (sq != SearchQuery.Null) {
+			ok = await TryUploadQueryAsync(sq);
+
+		}
+		else {
+			Lbl_InputInfo.Text = "Error: invalid input";
+
+			Lbl_InputOk.SetLabelStatus(false);
+			Btn_Run.Enabled      = false;
+			Lbl_QueryUpload.Text = ustring.Empty;
+			Pbr_Status.Fraction  = 0;
+			Lbl_Status2.Text     = ustring.Empty;
+			Btn_Delete.Enabled   = false;
+			Btn_Reload.Enabled   = false;
+
+			return false;
+		}
+
+		Debug.WriteLine($">> {sq} {Config}", nameof(TrySetQueryAsync));
+
+		Lbl_InputOk.SetLabelStatus(true);
+
+		Query = sq;
+
+		Status = false;
+
+		Lbl_InputInfo.Text = $"{sq}";
+
+		IsReady.Set();
+		Btn_Run.Enabled     = false;
+		Pbr_Status.Fraction = 0;
+		// Btn_Delete.Enabled = true;
+
+		Tf_Input.ReadOnly  = true;
+		Btn_Delete.Enabled = true;
+		Btn_Reload.Enabled = true;
+
+		return true;
+	}
+
+	private async Task<SearchQuery> TryGetQueryAsync(ustring text)
+	{
 		if (IsQueryReady() && Query.Uni.Value as string == text) {
-			Debug.WriteLine($"Already loaded {text}", nameof(SetQuery));
+			Debug.WriteLine($"Already loaded {text}", nameof(TrySetQueryAsync));
 			// Btn_Run.Enabled = true;
-			return true;
+			return Query;
 		}
 
 		SearchQuery sq;
@@ -658,12 +713,14 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		}
 
-		UI.SetLabelStatus(Lbl_InputOk, null);
+		return sq;
+	}
 
-		if (sq is { } && sq != SearchQuery.Null) {
-			try {
+	private async Task<bool> TryUploadQueryAsync(SearchQuery sq)
+	{
+		try {
 
-				/*Btn_Cancel.Enabled = true;
+			/*Btn_Cancel.Enabled = true;
 
 				Btn_Cancel.Clicked += () =>
 				{
@@ -671,67 +728,33 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 				};*/
 
-				using CancellationTokenSource cts = new();
+			using CancellationTokenSource cts = new();
 
-				Lbl_Status2.Text = $"Uploading...";
+			Lbl_Status2.Text = $"Uploading...";
 
-				UI.QueueProgress(cts, Pbr_Status);
+			UI.QueueProgress(cts, Pbr_Status);
 
-				var u = await sq.UploadAsync(ct: m_tokenu.Token);
+			var u = await sq.UploadAsync(ct: m_tokenu.Token);
 
-				cts.Cancel();
+			cts.Cancel();
 
-				Lbl_QueryUpload.Text = u.ToString();
-				Lbl_Status2.Text     = ustring.Empty;
-
-				// Btn_Cancel.Clicked   += Cancel_Clicked;
-
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}", nameof(SetQuery));
-				Lbl_InputInfo.Text = $"Error: {e.Message}";
-				Lbl_Status2.Text   = ustring.Empty;
-				// Btn_Run.Enabled    = false;
-				Btn_Reload.Enabled = false;
-
-			}
-
-		}
-		else {
-			Lbl_InputInfo.Text = "Error: invalid input";
-
-			UI.SetLabelStatus(Lbl_InputOk, false);
-			Btn_Run.Enabled      = false;
-			Lbl_QueryUpload.Text = ustring.Empty;
-			Pbr_Status.Fraction  = 0;
+			Lbl_QueryUpload.Text = u.ToString();
 			Lbl_Status2.Text     = ustring.Empty;
-			Btn_Delete.Enabled   = false;
-			Btn_Reload.Enabled   = false;
 
+			// Btn_Cancel.Clicked   += Cancel_Clicked;
+			return true;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(TrySetQueryAsync));
+			Lbl_InputInfo.Text = $"Error: {e.Message}";
+			Lbl_Status2.Text   = ustring.Empty;
+			// Btn_Run.Enabled    = false;
+			Btn_Reload.Enabled = false;
 			return false;
 		}
-
-		Debug.WriteLine($">> {sq} {Config}", nameof(SetQuery));
-
-		UI.SetLabelStatus(Lbl_InputOk, true);
-
-		Query = sq;
-
-		Status = false;
-
-		Lbl_InputInfo.Text = $"{sq}";
-
-		IsReady.Set();
-		Btn_Run.Enabled     = false;
-		Pbr_Status.Fraction = 0;
-		// Btn_Delete.Enabled = true;
-
-		Tf_Input.ReadOnly  = true;
-		Btn_Delete.Enabled = true;
-		Btn_Reload.Enabled = true;
-
-		return true;
 	}
+
+	#endregion
 
 	private bool ClipboardCallback(MainLoop c)
 	{
@@ -837,7 +860,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tf_Input.DeleteAll();
 		Tf_Input.ClearHistoryChanges();
 
-		UI.SetLabelStatus(Lbl_InputOk, null);
+		Lbl_InputOk.SetLabelStatus(null);
 
 		Lbl_InputOk.SetNeedsDisplay();
 
