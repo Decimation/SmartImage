@@ -414,7 +414,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
 
-		Tv_Results.KeyPress += OnResultKeyPress;
+		Tv_Results.SelectedCellChanged += OnCellSelected;
+		Tv_Results.KeyPress            += OnResultKeyPress;
 
 		Tv_Results.CellActivated += Result_CellActivated;
 		Btn_Run.Clicked          += Run_Clicked;
@@ -495,12 +496,12 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private void OnResult(object o, SearchResult result)
 	{
 		m_results.Add(result);
-
 		Application.MainLoop.Invoke(() =>
 		{
 			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)",
 			                    result.RawUrl, 0, 0, null, $"{result.Status}",
 			                    null, null, null, null, null, null);
+			Message[result.RawUrl] = "?";
 
 			for (int i = 0; i < result.Results.Count; i++) {
 				SearchResultItem sri = result.Results[i];
@@ -585,6 +586,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Config.AutoSearch = Args.Contains(R2.Arg_AutoSearch);
 
 		}
+
 		var e = Args.GetEnumerator();
 
 		while (e.MoveNext()) {
@@ -766,6 +768,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
+			if (IsQueryReady()) {
+				Debug.WriteLine($"Ignoring...");
+				goto r1;
+			}
 
 			int curSeq  = Clipboard.SequenceNumber;
 			int prevSeq = m_seq;

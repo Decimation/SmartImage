@@ -3,6 +3,7 @@
 
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Diagnostics;
 using System.Reflection;
 using AngleSharp.Dom;
@@ -29,6 +30,10 @@ namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
+	private const           int                                   INDEX   = 1;
+	private const           int                                   INV     = -1;
+	private static readonly ConcurrentDictionary<object, ustring> Message = new();
+
 	/// <summary>
 	///     <see cref="Tv_Results" />
 	/// </summary>
@@ -39,7 +44,8 @@ public sealed partial class ShellMode
 		}
 
 		try {
-			var cell = args.Table.Rows[args.Row][args.Col];
+			var rows = args.Table.Rows;
+			var cell = rows[args.Row][args.Col];
 
 			if (cell is Url { } u) {
 				HttpUtilities.TryOpenUrl(u);
@@ -384,7 +390,7 @@ public sealed partial class ShellMode
 
 	private static readonly ConcurrentDictionary<Url, ResultMeta> Scanned = new();
 
-	private static ConcurrentBag<Url> sx = new();
+	private static ConcurrentDictionary<Url, bool> sx = new();
 
 	public sealed record ResultMeta : IDisposable
 	{
@@ -413,6 +419,11 @@ public sealed partial class ShellMode
 		c = 1;
 		Url v = (Tv_Results.Table.Rows[r][c]).ToString();
 
+		if (!Message.ContainsKey(v)) {
+			Message[v] = $"?";
+
+		}
+
 		switch (k) {
 			case Key.S:
 			{
@@ -421,11 +432,13 @@ public sealed partial class ShellMode
 				break;
 			}
 			case Key.D:
-				if (sx.Contains(v)) {
+				if (sx.TryGetValue(v, out var b) && b) {
 					return;
 				}
-				sx.Add(v);
-				Lbl_Status2.Text = "....";
+
+				sx.TryAdd(v, true);
+				Message[v] = "Resolving";
+
 				Pbr_Status.Pulse();
 				var u = await UniSource.TryGetAsync(v, whitelist: FileType.Image);
 
@@ -450,16 +463,15 @@ public sealed partial class ShellMode
 					open:
 					u.Dispose();
 					Novus.OS.FileSystem.ExploreFile(path2);
+					Message[v] = $"Downloaded";
 				}
 				else {
-					Lbl_Status2.Text = $"Invalid";
+					Message[v] = "Invalid";
 				}
 
 				// Pbr_Status.Pulse();
 
-				var list = sx.ToList();
-				var    bx   = list.Remove(v);
-				sx = new(list);
+				sx.TryRemove(v, out var x);
 
 				break;
 		}
@@ -470,7 +482,7 @@ public sealed partial class ShellMode
 	private static async Task<bool> ScanResult(Url v)
 	{
 
-		if (sx.Contains(v)) {
+		if (sx.ContainsKey(v)) {
 			Lbl_Status2.Text = $"Scanning...!";
 			Lbl_Status2.SetNeedsDisplay();
 			return true;
@@ -478,7 +490,7 @@ public sealed partial class ShellMode
 		else {
 			Lbl_Status2.Text = $"Scanning started...!";
 			Lbl_Status2.SetNeedsDisplay();
-			sx.Add(v);
+			sx.TryAdd(v, true);
 
 		}
 
@@ -527,5 +539,26 @@ public sealed partial class ShellMode
 		}
 
 		return false;
+	}
+
+	private static int Norm(int n, int n2=0) => n == INV ? n2 : n;
+
+	private void OnCellSelected(TableView.SelectedCellChangedEventArgs eventArgs)
+	{
+		var nr = (eventArgs.NewRow == INV ? eventArgs.OldRow : eventArgs.NewRow);
+		var nc = eventArgs.NewCol == INV ? eventArgs.OldCol : eventArgs.NewCol;
+		nr = Norm(nr);
+		nc = Norm(nc);
+
+		var cell  = eventArgs.Table.Rows[nr][nc];
+		var cell2 = eventArgs.Table.Rows[nr][INDEX];
+
+		if (Message.ContainsKey(cell)) {
+			Lbl_Status2.Text = Message[cell];
+		}
+
+		else if (Message.ContainsKey(cell2)) {
+			Lbl_Status2.Text = Message[cell2];
+		}
 	}
 }
