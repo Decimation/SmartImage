@@ -33,7 +33,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	{
 		Uni = f;
 	}
-	
+
 	public static readonly SearchQuery Null = new(null);
 
 	static SearchQuery() { }
@@ -59,9 +59,19 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		else {
 			engine ??= BaseUploadEngine.Default;
 
+			retry:
 			var u = await engine.UploadFileAsync(Uni.Value.ToString(), ct);
-			Upload = u;
+
+			if (!u.IsValid) {
+				engine = BaseUploadEngine.All[Array.IndexOf(BaseUploadEngine.All, engine) + 1];
+				Debug.WriteLine($"{u.Response.ResponseMessage} failed, retrying with {engine.Name}");
+				u.Dispose();
+				goto retry;
+			}
+
+			Upload = u.Url;
 			Size   = engine.Size;
+			u.Dispose();
 		}
 
 		return Upload;
@@ -100,7 +110,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		if (OperatingSystem.IsWindows()) {
 			Image?.Dispose();
 		}
-		
+
 		Uni?.Dispose();
 	}
 

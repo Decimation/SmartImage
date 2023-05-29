@@ -25,7 +25,7 @@ public abstract class BaseUploadEngine : IEndpoint
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
-	public abstract Task<Url> UploadFileAsync(string file, CancellationToken ct = default);
+	public abstract Task<BaseUploadResponse> UploadFileAsync(string file, CancellationToken ct = default);
 
 	public long Size { get; set; }
 
@@ -36,6 +36,11 @@ public abstract class BaseUploadEngine : IEndpoint
 
 		return !b;
 	}
+
+	protected bool Paranoid { get; set; }
+
+	protected abstract Task<BaseUploadResponse> VerifyResultAsync(IFlurlResponse response,
+	                                                              CancellationToken ct = default);
 
 	protected void Verify(string file)
 	{
@@ -56,22 +61,46 @@ public abstract class BaseUploadEngine : IEndpoint
 
 public abstract class BaseCatboxEngine : BaseUploadEngine
 {
-	public override async Task<Url> UploadFileAsync(string file, CancellationToken ct = default)
+	public override async Task<BaseUploadResponse> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		Verify(file);
 
-		using var response = await EndpointUrl
-			                     .PostMultipartAsync(mp =>
-				                                         mp.AddFile("fileToUpload", file)
-					                                         .AddString("reqtype", "fileupload")
-					                                         .AddString("time", "1h")
-			                                         , ct);
+		var response = await EndpointUrl
+			               .PostMultipartAsync(mp =>
+				                                   mp.AddFile("fileToUpload", file)
+					                                   .AddString("reqtype", "fileupload")
+					                                   .AddString("time", "1h")
+			                                   , ct);
 
+		return await VerifyResultAsync(response, ct).ConfigureAwait(false);
+	}
+
+	protected override async Task<BaseUploadResponse> VerifyResultAsync(
+		IFlurlResponse response, CancellationToken ct = default)
+	{
 		var responseMessage = response.ResponseMessage;
 
-		var content = await responseMessage.Content.ReadAsStringAsync(ct);
-		
-		return new(content);
+		var url = await responseMessage.Content.ReadAsStringAsync(ct);
+
+		bool ok = true;
+
+		if (Paranoid) {
+			var r2 = await url.GetAsync(ct);
+
+			if (r2.Headers.TryGetFirst("Content-Length", out var cls)) {
+				if (int.Parse(cls) == 0) {
+					ok = false;
+				}
+			}
+
+		}
+
+		return new()
+		{
+			Url      = url,
+			Response = response,
+			IsValid  = ok
+		};
 	}
 
 	protected BaseCatboxEngine(string s) : base(s) { }

@@ -229,14 +229,7 @@ public sealed class SearchClient : IDisposable
 	public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{
 		var sri2 = sri.AsParallel().DistinctBy(e => e.Url).ToList();
-
-		/*Parallel.ForEachAsync(sri2, async (item, token) =>
-		{
-			var r = await item.Url.AllowAnyHttpStatus().GetAsync();
-
-			if (r.ResponseMessage.IsSuccessStatusCode) { }
-		});*/
-
+		
 		return ValueTask.FromResult<IReadOnlyList<SearchResultItem>>(sri2);
 	}
 
@@ -263,6 +256,7 @@ public sealed class SearchClient : IDisposable
 
 	public static async Task<IReadOnlyList<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
 	{
+		//
 		var filter = Optimize(sri)
 			.DistinctBy(r => r.Url)
 			// .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
