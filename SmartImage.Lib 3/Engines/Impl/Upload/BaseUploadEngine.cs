@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net.NetworkInformation;
+using System.Reflection.PortableExecutable;
 using Flurl.Http;
 using Novus.OS;
 using Novus.Utilities;
@@ -12,7 +13,7 @@ public abstract class BaseUploadEngine : IEndpoint
 	/// <summary>
 	/// Max file size, in bytes
 	/// </summary>
-	public abstract int MaxSize { get; }
+	public abstract long MaxSize { get; }
 
 	public abstract string Name { get; }
 
@@ -78,6 +79,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 	protected override async Task<BaseUploadResponse> VerifyResultAsync(
 		IFlurlResponse response, CancellationToken ct = default)
 	{
+		
 		var responseMessage = response.ResponseMessage;
 
 		var url = await responseMessage.Content.ReadAsStringAsync(ct);
@@ -87,10 +89,8 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		if (Paranoid) {
 			var r2 = await url.GetAsync(ct);
 
-			if (r2.Headers.TryGetFirst("Content-Length", out var cls)) {
-				if (int.Parse(cls) == 0) {
-					ok = false;
-				}
+			if (NetHelper.GetContentLength(r2) == 0) {
+				ok = false;
 			}
 
 		}

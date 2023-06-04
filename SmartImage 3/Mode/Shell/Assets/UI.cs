@@ -12,7 +12,7 @@ using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
-
+using Color=Terminal.Gui.Color;
 #endregion
 
 // ReSharper disable InconsistentNaming

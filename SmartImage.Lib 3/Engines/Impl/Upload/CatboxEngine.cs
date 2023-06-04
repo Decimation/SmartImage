@@ -7,7 +7,7 @@ public sealed class CatboxEngine : BaseCatboxEngine
 
 	public override string Name => "Catbox";
 
-	public override int MaxSize => 1 * 1000 * 1000 * 200;
+	public override long MaxSize => 1 * 1000 * 1000 * 200;
 
 	public CatboxEngine() : base("https://catbox.moe/user/api.php")
 	{

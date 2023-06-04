@@ -1,4 +1,6 @@
-﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+﻿global using IColor = SixLabors.ImageSharp.Color;
+global using IImage = SixLabors.ImageSharp.Image;
+global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;

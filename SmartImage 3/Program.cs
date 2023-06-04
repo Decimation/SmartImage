@@ -5,6 +5,8 @@
 
 #region
 
+global using IColor = SixLabors.ImageSharp.Color;
+global using IImage = SixLabors.ImageSharp.Image;
 global using static Kantan.Diagnostics.LogCategories;
 using System.CommandLine;
 using System.ComponentModel;
@@ -139,5 +141,7 @@ public static class Program
 
 			return ConsoleUtil.CODE_OK;
 		}
+
 	}
+
 }

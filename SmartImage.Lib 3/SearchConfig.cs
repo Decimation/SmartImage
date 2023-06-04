@@ -7,7 +7,7 @@ using Kantan.Model;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
-
+using Configuration = System.Configuration.Configuration;
 namespace SmartImage.Lib;
 
 public sealed class SearchConfig : IDataTable, INotifyPropertyChanged

@@ -1,4 +1,5 @@
 ﻿global using Url = Flurl.Url;
+using Image = System.Drawing.Image;
 using System.Diagnostics;
 using System.Drawing;
 using System.Json;
@@ -80,7 +81,8 @@ public abstract class BaseSearchEngine : IDisposable
 		var res = new SearchResult(this)
 		{
 			RawUrl = await GetRawUrlAsync(query),
-			Status = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None
+			Status = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None,
+			ErrorMessage = $"Engine restriction"
 		};
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));

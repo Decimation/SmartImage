@@ -1,6 +1,7 @@
 ﻿// Read S SmartImage ShellMode.Handlers.cs
 // 2023-02-14 @ 12:13 AM
 
+using Color = Terminal.Gui.Color;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Data;
@@ -31,8 +32,9 @@ namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
-	private const           int                                   INDEX   = 1;
-	private const           int                                   INV     = -1;
+	private const int INDEX = 1;
+	private const int INV   = -1;
+
 	private static readonly ConcurrentDictionary<object, ustring> Message = new();
 
 	/// <summary>
@@ -117,7 +119,7 @@ public sealed partial class ShellMode
 		Tf_Input.EnsureFocus();
 
 		_keyPressHandling = false;
-		_inputVerifying = false;
+		_inputVerifying   = false;
 	}
 
 	/// <summary>

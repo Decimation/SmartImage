@@ -10,7 +10,7 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 {
 	public override string Name => "Litterbox";
 
-	public override int MaxSize => 1 * 1000 * 1000 * 1000;
+	public override long MaxSize => 1 * 1000 * 1000 * 1000;
 
 	public LitterboxEngine() : base("https://litterbox.catbox.moe/resources/internals/api.php") { }
 }

@@ -2,7 +2,7 @@
 // 2023-02-14 @ 12:12 AM
 
 #region
-
+using Color = Terminal.Gui.Color;
 using System.Runtime.Caching;
 using AngleSharp.Dom;
 using Terminal.Gui;

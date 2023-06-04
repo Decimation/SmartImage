@@ -7,7 +7,7 @@ using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Results;
-
+using Image=System.Drawing.Image;
 // ReSharper disable CognitiveComplexity
 
 // ReSharper disable IdentifierTypo
@@ -27,7 +27,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images;
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
+	public override    SearchEngineOptions EngineOption          => SearchEngineOptions.Ascii2D;
 
 	protected override bool VerifyImage(Image i)
 	{

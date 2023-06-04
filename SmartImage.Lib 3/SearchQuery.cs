@@ -12,6 +12,7 @@ using Novus;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Utilities;
+using Image = System.Drawing.Image;
 
 [assembly: InternalsVisibleTo("SmartImage")]
 
@@ -42,6 +43,18 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	{
 		var uf = await UniSource.TryGetAsync(value, whitelist: FileType.Image);
 
+		if (uf != null) {
+			if (uf.IsFile) {
+				var f  = uf.Value.ToString();
+				var f2 = await test(f);
+				Debug.WriteLine($"replacing {f} with {f2}");
+				if (f!=f2) {
+					uf.Dispose();
+					uf = await UniSource.TryGetAsync(f2, whitelist: FileType.Image);
+				}
+			}
+		}
+
 		var sq = new SearchQuery(uf)
 			{ };
 
@@ -51,26 +64,28 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null, CancellationToken ct = default)
 	{
 
+		var fu = Uni.Value.ToString();
+
 		if (Uni.IsUri) {
-			Upload = Uni.Value.ToString();
+			Upload = fu;
 			Size   = BaseSearchEngine.NA_SIZE;
 			Debug.WriteLine($"Skipping upload for {Uni.Value}", nameof(UploadAsync));
 		}
 		else {
+			// fu = await test(fu);
+
 			engine ??= BaseUploadEngine.Default;
 
-			retry:
-			var u = await engine.UploadFileAsync(Uni.Value.ToString(), ct);
+			var u = await engine.UploadFileAsync(fu, ct);
 
-			if (!u.IsValid) {
+			/*if (!u.IsValid) {
 				engine = BaseUploadEngine.All[Array.IndexOf(BaseUploadEngine.All, engine) + 1];
 				Debug.WriteLine($"{u.Response.ResponseMessage} failed, retrying with {engine.Name}");
-				u.Dispose();
-				goto retry;
-			}
+				u = await engine.UploadFileAsync(Uni.Value.ToString(), ct);
+			}*/
 
 			Upload = u.Url;
-			Size   = engine.Size;
+			Size   = NetHelper.GetContentLength(u.Response) ?? 0;
 			u.Dispose();
 		}
 
@@ -198,4 +213,25 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		return (t, b);
 	}
+
+	public static async Task<string> test(string fi)
+	{
+		using var im = await SixLabors.ImageSharp.Image.LoadAsync(fi);
+		var       m  = im.Metadata;
+
+		string fn = fi;
+
+		if (m.XmpProfile is { } || m.ExifProfile is { }) {
+			Debug.WriteLine($"metadata found");
+			m.XmpProfile  = null;
+			m.ExifProfile = null;
+			fn            = Path.GetFileNameWithoutExtension(fi) + "_1" + Path.GetExtension(fi);
+
+			await im.SaveAsync(fn);
+		}
+		else { }
+
+		return fn;
+	}
+	
 }
