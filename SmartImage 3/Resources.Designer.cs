@@ -88,6 +88,15 @@ namespace SmartImage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to --queue.
+        /// </summary>
+        internal static string Arg_Queue {
+            get {
+                return ResourceManager.GetString("Arg_Queue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Read Stanton.
         /// </summary>
         internal static string Author {

@@ -52,7 +52,24 @@ public sealed partial class ShellMode
 
 		Application.Run(d);
 	}
+	private void InfoDialog()
+	{
+		var d = new Dialog()
+		{
+			Text = $"{Environment.GetCommandLineArgs().QuickJoin("\n")}",
 
+			Title    = R2.Name,
+			AutoSize = true,
+			Width    = UI.Dim_30_Pct,
+			Height   = UI.Dim_30_Pct,
+		};
+		
+		var b3 = d.CreateLinkButton("Ok", null, () => Application.RequestStop());
+		
+		d.AddButton(b3);
+
+		Application.Run(d);
+	}
 	/// <summary>
 	///     <see cref="Btn_Config" />
 	/// </summary>
@@ -295,7 +312,22 @@ public sealed partial class ShellMode
 			UseClipboard = !b;
 			ReloadDialog();
 		};
+		CheckBox cbSendTo = new("Send to")
+		{
+			X = Pos.Right(cbCb)+1,
+			Y = Pos.Y(cbCb)  ,
+			// Width  = WIDTH,
+			Height      = 1,
+			AutoSize    = true,
+			ColorScheme = UI.Cs_Btn3,
+			Checked     = Integration.InSendTo,
+		};
 
+		cbSendTo.Toggled += b =>
+		{
+			Integration.HandleSendToMenu(!b);
+			ReloadDialog();
+		};
 		/*============================================================================*\
 			Eh username/password
 		\*============================================================================*/
@@ -391,7 +423,7 @@ public sealed partial class ShellMode
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
-		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb);
+		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb, cbSendTo);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);

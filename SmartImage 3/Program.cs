@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Runtime;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Kantan.Text;
 using Kantan.Threading;
 // using Windows.UI.Notifications;
 // using CommunityToolkit.WinUI.Notifications;
@@ -77,8 +78,6 @@ public static class Program
 		// args = new[] { R2.Arg_Input, "https://i.imgur.com/QtCausw.png",R2.Arg_AutoSearch };
 
 		// ReSharper disable once ConditionIsAlwaysTrueOrFalse
-
-		Debug.WriteLine($"TEST");
 
 		/*
 		 * & .\bin\Test\net7.0\win10-x64\SmartImage.exe --noui --i C:\Users\Deci\Pictures\lilith___the_maid_i_hired_recently_is_mysterious_by_sciamano240_dfnpdmn.png

@@ -160,4 +160,7 @@
   <data name="Inf_Complete" xml:space="preserve">
     <value>Complete</value>
   </data>
+  <data name="Arg_Queue" xml:space="preserve">
+    <value>--queue</value>
+  </data>
 </root>

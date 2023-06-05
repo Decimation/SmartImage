@@ -222,7 +222,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Height      = Dim.Height(Btn_Cancel),
 		ColorScheme = UI.Cs_Btn1x,
-		Enabled     = false
+		// Enabled     = false
 	};
 
 	private static readonly Button Btn_Queue = new("Queue")
@@ -369,6 +369,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		{
 			new("_About", null, AboutDialog)
 				{ },
+			new("_Info", null, InfoDialog)
+				{ },
 		};
 
 		Top.Add(Mb_Menu);
@@ -449,7 +451,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 		{
 			HttpUtilities.TryOpenUrl(Query.Upload);
 		};
-		Btn_Queue.Enabled = false;
+
+		Btn_Queue.Enabled = QueueMode;
+		Cb_Queue.Checked  = QueueMode;
+		Btn_Next.Enabled  = QueueMode;
 
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
@@ -468,6 +473,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		if (Config.AutoSearch) {
 			Btn_Run.OnClicked();
+		}
+
+		if (QueueMode) {
+			Next_Clicked();
 		}
 
 		/*var tok = Application.MainLoop.AddIdle(() =>
@@ -597,7 +606,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private void ProcessArgs()
 	{
 		if (Args.Any()) {
-			Config.AutoSearch = Args.Contains(R2.Arg_AutoSearch);
+			Config.AutoSearch |= Args.Contains(R2.Arg_AutoSearch);
 
 		}
 
@@ -614,6 +623,15 @@ public sealed partial class ShellMode : IDisposable, IMode
 				if (SearchQuery.IsValidSourceType(s2)) {
 					SetInputText(s2);
 				}
+			}
+
+			else if (s == R2.Arg_Queue) {
+				while (e.MoveNext()) {
+					Queue.Enqueue(e.Current?.ToString());
+				}
+
+				QueueMode = true;
+
 			}
 			// Debug.WriteLine($"{s}");
 
