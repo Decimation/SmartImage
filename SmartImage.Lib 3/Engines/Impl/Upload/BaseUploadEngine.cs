@@ -57,7 +57,7 @@ public abstract class BaseUploadEngine : IEndpoint
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 
-	public static BaseUploadEngine Default { get; set; } = new CatboxEngine();
+	public static BaseUploadEngine Default { get; set; } = new LitterboxEngine();
 }
 
 public abstract class BaseCatboxEngine : BaseUploadEngine

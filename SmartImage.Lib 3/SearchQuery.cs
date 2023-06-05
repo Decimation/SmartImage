@@ -43,18 +43,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	{
 		var uf = await UniSource.TryGetAsync(value, whitelist: FileType.Image);
 
-		if (uf != null) {
-			if (uf.IsFile) {
-				var f  = uf.Value.ToString();
-				var f2 = await test(f);
-				Debug.WriteLine($"replacing {f} with {f2}");
-				if (f!=f2) {
-					uf.Dispose();
-					uf = await UniSource.TryGetAsync(f2, whitelist: FileType.Image);
-				}
-			}
-		}
-
 		var sq = new SearchQuery(uf)
 			{ };
 
@@ -213,25 +201,4 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		return (t, b);
 	}
-
-	public static async Task<string> test(string fi)
-	{
-		using var im = await SixLabors.ImageSharp.Image.LoadAsync(fi);
-		var       m  = im.Metadata;
-
-		string fn = fi;
-
-		if (m.XmpProfile is { } || m.ExifProfile is { }) {
-			Debug.WriteLine($"metadata found");
-			m.XmpProfile  = null;
-			m.ExifProfile = null;
-			fn            = Path.GetFileNameWithoutExtension(fi) + "_1" + Path.GetExtension(fi);
-
-			await im.SaveAsync(fn);
-		}
-		else { }
-
-		return fn;
-	}
-	
 }

@@ -71,11 +71,17 @@ public sealed partial class ShellMode
 		var sourceType = SearchQuery.IsValidSourceType(text);
 
 		if (sourceType) {
+			// m_upload.WaitOne();
+			/*if (_inputVerifying) {
+				return;
+			}*/
+
 			var ok = await TrySetQueryAsync(text);
 
 			Btn_Run.Enabled = ok;
 			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
 
+			// m_upload.Release();
 			if (ok && Config.AutoSearch && !Client.IsRunning) {
 				Run_Clicked();
 			}

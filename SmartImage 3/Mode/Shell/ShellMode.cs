@@ -429,11 +429,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Cancel.Clicked       += Cancel_Clicked;
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
-		Tf_Input.TextChanging    += Input_TextChanging;
-		Btn_Delete.Clicked       += Delete_Clicked;
-		Cb_Queue.Toggled         += Queue_Checked;
-		Btn_Queue.Clicked        += Queue_Dialog;
-		Btn_Next.Clicked         += Next_Clicked;
+
+		Tf_Input.TextChanging += delegate(TextChangingEventArgs eventArgs)
+		{
+			if (_inputVerifying) {
+				return;
+			}
+
+			Input_TextChanging(eventArgs);
+		};
+
+		Btn_Delete.Clicked += Delete_Clicked;
+		Cb_Queue.Toggled   += Queue_Checked;
+		Btn_Queue.Clicked  += Queue_Dialog;
+		Btn_Next.Clicked   += Next_Clicked;
 		// Btn_Reload.Clicked       += Reload_Clicked;
 
 		Lbl_QueryUpload.Clicked += () =>
@@ -631,8 +640,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	}
 
+	private Semaphore m_upload = new Semaphore(0, 1);
+
 	private async Task<bool> TrySetQueryAsync(ustring text)
 	{
+
 		// TODO: IMPROVE
 
 		// Btn_Run.Enabled = false;
@@ -657,7 +669,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Lbl_Status2.Text     = ustring.Empty;
 			Btn_Delete.Enabled   = false;
 			Btn_Reload.Enabled   = false;
-			_inputVerifying     = false;
+			_inputVerifying      = false;
 			return false;
 		}
 
@@ -679,7 +691,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tf_Input.ReadOnly  = true;
 		Btn_Delete.Enabled = true;
 		Btn_Reload.Enabled = true;
-		_inputVerifying   = false;
+		_inputVerifying    = false;
 
 		return true;
 	}
@@ -764,6 +776,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	#endregion
 
+	internal static bool _clipboardFile;
+
 	private bool ClipboardCallback(MainLoop c)
 	{
 		// Debug.WriteLine($"executing timeout {nameof(ClipboardCallback)} {c} {UseClipboard} {Clipboard.SequenceNumber}");
@@ -810,8 +824,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 				}
 
 				Debug.WriteLine($"{str}");*/
+				_clipboardFile = true;
 
 				SetInputText(str);
+				_clipboardFile = false;
+
 				// Lbl_InputOk.Text   = UI.Clp;
 				Lbl_InputInfo.Text = R2.Inf_Clipboard;
 
@@ -827,6 +844,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			r1:
 			c.RemoveTimeout(m_cbCallbackTok);
 			m_cbCallbackTok = c.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
+			_clipboardFile  = false;
 			return false;
 		}
 		catch (Exception e) {
@@ -836,6 +854,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		finally { }
 
 		r2:
+		_clipboardFile = false;
 		// Debug.WriteLine($"{UseClipboard}");
 		return true;
 		// return UseClipboard;
@@ -867,6 +886,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private void Clear()
 	{
+		_inputVerifying   = false;
 		Tf_Input.ReadOnly = false;
 
 		Tf_Input.DeleteAll();
@@ -903,7 +923,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		m_results.Clear();
 
 		_keyPressHandling = false;
-		_inputVerifying  = false;
+		_inputVerifying   = false;
 	}
 
 	public void Close()
