@@ -97,6 +97,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Context menu.
+        /// </summary>
+        internal static string S_ContextMenu {
+            get {
+                return ResourceManager.GetString("S_ContextMenu", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Eh Password.
         /// </summary>
         internal static string S_EhPassword {
@@ -147,6 +156,15 @@ namespace SmartImage.Lib {
         internal static string S_SearchEngines {
             get {
                 return ResourceManager.GetString("S_SearchEngines", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Send-to menu.
+        /// </summary>
+        internal static string S_SendTo {
+            get {
+                return ResourceManager.GetString("S_SendTo", resourceCulture);
             }
         }
         

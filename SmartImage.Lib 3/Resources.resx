@@ -150,4 +150,10 @@
   <data name="S_Clipboard" xml:space="preserve">
     <value>Clipboard detection</value>
   </data>
+  <data name="S_SendTo" xml:space="preserve">
+    <value>Send-to menu</value>
+  </data>
+  <data name="S_ContextMenu" xml:space="preserve">
+    <value>Context menu</value>
+  </data>
 </root>

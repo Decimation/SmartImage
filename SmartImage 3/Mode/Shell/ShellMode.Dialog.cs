@@ -52,6 +52,7 @@ public sealed partial class ShellMode
 
 		Application.Run(d);
 	}
+
 	private void InfoDialog()
 	{
 		var d = new Dialog()
@@ -63,13 +64,14 @@ public sealed partial class ShellMode
 			Width    = UI.Dim_30_Pct,
 			Height   = UI.Dim_30_Pct,
 		};
-		
+
 		var b3 = d.CreateLinkButton("Ok", null, () => Application.RequestStop());
-		
+
 		d.AddButton(b3);
 
 		Application.Run(d);
 	}
+
 	/// <summary>
 	///     <see cref="Btn_Config" />
 	/// </summary>
@@ -81,6 +83,7 @@ public sealed partial class ShellMode
 			AutoSize = false,
 			Width    = UI.Dim_80_Pct,
 			Height   = UI.Dim_80_Pct,
+
 		};
 
 		var btnRefresh = new Button("Refresh") { };
@@ -107,7 +110,7 @@ public sealed partial class ShellMode
 			Width                   = WIDTH1,
 			Height                  = HEIGHT1,
 
-			Y = Pos.Bottom(lbSearchEngines),
+			Y           = Pos.Bottom(lbSearchEngines),
 			ColorScheme = UI.Cs_ListView2
 		};
 
@@ -127,8 +130,8 @@ public sealed partial class ShellMode
 			Width                   = WIDTH1,
 			Height                  = HEIGHT1,
 
-			Y           = Pos.Bottom(lbPriorityEngines),
-			X           = Pos.Right(lvSearchEngines) + 1,
+			Y = Pos.Bottom(lbPriorityEngines),
+			X = Pos.Right(lvSearchEngines) + 1,
 
 			ColorScheme = UI.Cs_ListView2
 
@@ -159,7 +162,7 @@ public sealed partial class ShellMode
 			X        = Pos.Right(lvPriorityEngines) + 1,
 			Width    = Dim.Fill(WIDTH1),
 			Height   = 11,
-			
+
 		};
 
 		void ReloadDialog()
@@ -199,7 +202,7 @@ public sealed partial class ShellMode
 			Checkboxes
 		\*============================================================================*/
 
-		CheckBox cbContextMenu = new(R2.Int_ContextMenu)
+		CheckBox cbContextMenu = new(R1.S_ContextMenu)
 		{
 			X           = Pos.X(tvConfig),
 			Y           = Pos.Bottom(tvConfig) + 1,
@@ -247,7 +250,7 @@ public sealed partial class ShellMode
 			Height      = 1,
 			AutoSize    = true,
 			ColorScheme = UI.Cs_Btn3,
-			Checked = Config.AutoSearch
+			Checked     = Config.AutoSearch
 		};
 
 		cbAutoSearch.Toggled += b =>
@@ -275,6 +278,7 @@ public sealed partial class ShellMode
 			Config.OpenRaw = !b;
 			ReloadDialog();
 		};
+
 		cbOpenRaw.Checked = Config.OpenRaw;
 
 		CheckBox cbSilent = new(R1.S_Silent)
@@ -312,15 +316,16 @@ public sealed partial class ShellMode
 			UseClipboard = !b;
 			ReloadDialog();
 		};
-		CheckBox cbSendTo = new("Send to")
+
+		CheckBox cbSendTo = new(R1.S_SendTo)
 		{
-			X = Pos.Right(cbCb)+1,
-			Y = Pos.Y(cbCb)  ,
+			X = Pos.Right(cbCb) + 1,
+			Y = Pos.Y(cbCb),
 			// Width  = WIDTH,
 			Height      = 1,
 			AutoSize    = true,
 			ColorScheme = UI.Cs_Btn3,
-			Checked     = Integration.InSendTo,
+			Checked     = Integration.IsSendToAdded,
 		};
 
 		cbSendTo.Toggled += b =>
@@ -328,6 +333,7 @@ public sealed partial class ShellMode
 			Integration.HandleSendToMenu(!b);
 			ReloadDialog();
 		};
+
 		/*============================================================================*\
 			Eh username/password
 		\*============================================================================*/
@@ -399,6 +405,7 @@ public sealed partial class ShellMode
 		{
 			Y = Pos.Bottom(lvSearchEngines),
 		};
+
 		btnClear.Clicked += () => OnAction(lvSearchEngines, (e) => Config.SearchEngines = e);
 
 		var btnClear2 = new Button("Clear")
@@ -406,6 +413,7 @@ public sealed partial class ShellMode
 			Y = Pos.Bottom(lvPriorityEngines),
 			X = Pos.Bottom(lvPriorityEngines)
 		};
+
 		btnClear2.Clicked += () => OnAction(lvPriorityEngines, (e) => Config.PriorityEngines = e);
 
 		void OnAction(ListView lv, Action<SearchEngineOptions> f)
@@ -425,9 +433,12 @@ public sealed partial class ShellMode
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
 		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb, cbSendTo);
 
+		var btnHelp = dlCfg.CreateLinkButton("?", R2.Wiki_Url);
+
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);
 		dlCfg.AddButton(btnSave);
+		dlCfg.AddButton(btnHelp);
 
 		Application.Run(dlCfg);
 
@@ -483,7 +494,7 @@ public sealed partial class ShellMode
 		{
 			ColorScheme = UI.Cs_Btn3
 		};
-		
+
 		btnRm.Clicked += () =>
 		{
 			var cpy2 = lv.Source.ToList();
@@ -529,7 +540,7 @@ public sealed partial class ShellMode
 
 				tf.DeleteAll();
 				Debug.WriteLine($"{tf.Text} {s}");
-				
+
 				// Application.MainLoop.Invoke(() => Action(tf));
 				tf.Text = ustring.Empty;
 				Debug.WriteLine($"{tf.Text} {a.NewText}");
@@ -548,7 +559,7 @@ public sealed partial class ShellMode
 			tf.SetNeedsDisplay();
 			Debug.WriteLine($"cleared");
 		}
-		
+
 		var btnOk = new Button("Ok")
 		{
 			ColorScheme = UI.Cs_Btn3

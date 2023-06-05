@@ -91,8 +91,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		}
 
 		try {
+#if ALT
+			
 			Image = Image.FromStream(Uni.Stream, useEmbeddedColorManagement: false, validateImageData: false);
 			Debug.WriteLine($"Loaded image: {Image.PhysicalDimension}", nameof(LoadImage));
+#endif
+
 			return true;
 		}
 		catch (Exception e) {

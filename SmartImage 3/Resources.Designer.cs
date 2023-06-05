@@ -160,20 +160,20 @@ namespace SmartImage {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Context Menu.
-        /// </summary>
-        internal static string Int_ContextMenu {
-            get {
-                return ResourceManager.GetString("Int_ContextMenu", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SmartImage.
         /// </summary>
         internal static string Name {
             get {
                 return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SmartImage.lnk.
+        /// </summary>
+        internal static string NameLink {
+            get {
+                return ResourceManager.GetString("NameLink", resourceCulture);
             }
         }
         

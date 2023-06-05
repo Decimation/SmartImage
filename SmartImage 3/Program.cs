@@ -5,10 +5,7 @@
 
 #region
 
-global using IColor = SixLabors.ImageSharp.Color;
-global using IImage = SixLabors.ImageSharp.Image;
 global using static Kantan.Diagnostics.LogCategories;
-using System.CommandLine;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Runtime;
@@ -97,7 +94,7 @@ public static class Program
 		if (cli && args.Contains(R2.Arg_NoUI)) {
 			var main = new CliMode();
 
-			var rc = new RootCommand()
+			/*var rc = new RootCommand()
 				{ };
 
 			var options = new Option[]
@@ -121,7 +118,11 @@ public static class Program
 
 			var i = await rc.InvokeAsync(args);
 
-			return i;
+			return i;*/
+
+			var r = await main.RunAsync(args[0]);
+
+			return 0;
 		}
 		else {
 			main1:
@@ -142,5 +143,4 @@ public static class Program
 		}
 
 	}
-
 }

@@ -378,6 +378,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		var col = new DataColumn[]
 		{
 			new("Engine", typeof(string)),
+			new("*", typeof(string)),
 
 			new(nameof(SearchResultItem.Url), typeof(Url)),
 			new(nameof(SearchResultItem.Score), typeof(int)),
@@ -400,15 +401,18 @@ public sealed partial class ShellMode : IDisposable, IMode
 		};
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
-
-		columnStyles[col[1]].MaxWidth = 50;
+	
+		columnStyles[col[1]].MinAcceptableWidth = 2;
+		columnStyles[col[1]].MinWidth           = 1;
+		columnStyles[col[1]].MaxWidth           = 2;
+		columnStyles[col[2]].MaxWidth           = 50;
 
 		Tv_Results.Style = new TableView.TableStyle()
 		{
 			ShowHorizontalScrollIndicators = true,
 			AlwaysShowHeaders              = true,
 
-			RowColorGetter = Results_RowColor,
+			RowColorGetter = ResultTable_RowColor,
 
 			ShowHorizontalHeaderUnderline = true,
 			ShowHorizontalHeaderOverline  = true,
@@ -419,11 +423,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tv_Results.Border  = UI.Br_1;
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
-
+		
 		// Tv_Results.SelectedCellChanged += OnCellSelected;
-		Tv_Results.KeyPress += OnResultKeyPress;
+		Tv_Results.KeyPress += ResultTable_KeyPress;
 
-		Tv_Results.CellActivated += Result_CellActivated;
+		Tv_Results.CellActivated += ResultTable_CellActivated;
 		Btn_Run.Clicked          += Run_Clicked;
 		Btn_Restart.Clicked      += () => Restart_Clicked(false);
 		Btn_Clear.Clicked        += Clear_Clicked;
@@ -521,10 +525,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Application.MainLoop.Invoke(() =>
 		{
-			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)",
+			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", string.Empty,
 			                    result.RawUrl, 0, 0, null, $"{result.Status}",
 			                    null, null, null, null, null, null);
-			Message[result.RawUrl] = "?";
+
+			// Message[result.RawUrl] = "?";
 
 			for (int i = 0; i < result.Results.Count; i++) {
 				SearchResultItem sri = result.Results[i];
@@ -540,7 +545,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 				};
 
-				Dt_Results.Rows.Add($"{result.Engine.Name} #{i + 1}",
+				Dt_Results.Rows.Add($"{result.Engine.Name} #{i + 1}", "",
 				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
 				                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 			}

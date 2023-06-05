@@ -26,39 +26,19 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Attribute = Terminal.Gui.Attribute;
+using Command = Terminal.Gui.Command;
 using FileSystem = Novus.OS.FileSystem;
 
 namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode
 {
-	private const int INDEX = 1;
-	private const int INV   = -1;
+	private const int INV = -1;
 
-	private static readonly ConcurrentDictionary<object, ustring> Message = new();
+	private const int COL_URL    = 2;
+	private const int COL_STATUS = 1;
 
-	/// <summary>
-	///     <see cref="Tv_Results" />
-	/// </summary>
-	private void Result_CellActivated(TableView.CellActivatedEventArgs args)
-	{
-		if (args.Table is not { }) {
-			return;
-		}
-
-		try {
-			var rows = args.Table.Rows;
-			var cell = rows[args.Row][args.Col];
-
-			if (cell is Url { } u) {
-				HttpUtilities.TryOpenUrl(u);
-			}
-
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(Result_CellActivated));
-		}
-	}
+	private static readonly ConcurrentDictionary<object, string> Downloaded = new();
 
 	private async void Input_TextChanging(TextChangingEventArgs tc)
 	{
@@ -165,7 +145,10 @@ public sealed partial class ShellMode
 	/// </summary>
 	private void Browse_Clicked()
 	{
-		Integration.KeepOnTop(false);
+		if (Compat.IsWin) {
+			Integration.KeepOnTop(false);
+
+		}
 
 		OpenFileNameFlags flags = 0x0;
 
@@ -210,7 +193,10 @@ public sealed partial class ShellMode
 
 		}
 
-		Integration.KeepOnTop(Client.Config.OnTop);
+		if (Compat.IsWin) {
+			Integration.KeepOnTop(Client.Config.OnTop);
+
+		}
 	}
 
 	/// <summary>
@@ -336,7 +322,38 @@ public sealed partial class ShellMode
 	private static readonly Dictionary<BaseSearchEngine, ColorScheme> Colors = new()
 		{ };
 
-	private ColorScheme? Results_RowColor(TableView.RowColorGetterArgs r)
+	private static int Norm(int n, int n2 = 0) => n == INV ? n2 : n;
+
+	/// <summary>
+	///     <see cref="Tv_Results" />
+	/// </summary>
+	private void ResultTable_CellActivated(TableView.CellActivatedEventArgs args)
+	{
+		if (args.Table is not { }) {
+			return;
+		}
+
+		try {
+			var rows = args.Table.Rows;
+			var cell = rows[args.Row][args.Col];
+
+			if (cell is Url { } u) {
+				HttpUtilities.TryOpenUrl(u);
+			}
+
+			var key = rows[args.Row][COL_URL];
+
+			if (args.Col == 0 && Downloaded.ContainsKey(key)) {
+				FileSystem.ExploreFile(Downloaded[key]);
+			}
+
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(ResultTable_CellActivated));
+		}
+	}
+
+	private ColorScheme? ResultTable_RowColor(TableView.RowColorGetterArgs r)
 	{
 		// var eng=args.Table.Rows[args.RowIndex]["Engine"];
 
@@ -390,6 +407,84 @@ public sealed partial class ShellMode
 		return cs;
 	}
 
+	private async void ResultTable_KeyPress(View.KeyEventEventArgs eventArgs)
+	{
+		var kek = eventArgs.KeyEvent.Key;
+
+		var k = kek & ~Key.CtrlMask;
+		var (r, c) = (Tv_Results.SelectedRow, Tv_Results.SelectedColumn);
+
+		// NOTE: Column 2 contains the URL
+
+		Url v = (Tv_Results.Table.Rows[r][COL_URL]).ToString();
+
+		switch (k) {
+			case Key.D:
+				eventArgs.Handled = true;
+				string path;
+
+				if (v.PathSegments is { Count: >= 1 }) {
+					path = $"{v.PathSegments[^1]}";
+
+				}
+				else path = v.Path;
+
+				var  path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
+				bool ok    = false;
+
+				if (File.Exists(path2) || Downloaded.ContainsKey(v)) {
+					ok = true;
+					goto open;
+				}
+
+				var u = await UniSource.TryGetAsync(v, whitelist: FileType.Image);
+
+				if (u != null && u.FileTypes.Any()) {
+					var f = File.OpenWrite(path2);
+
+					if (u.Stream.CanSeek) {
+						u.Stream.Position = 0;
+
+					}
+
+					await u.Stream.CopyToAsync(f);
+					// f.Close();
+					f.Dispose();
+					u.Dispose();
+					ok = true;
+
+				}
+				else {
+					ok = false;
+				}
+
+				open:
+				ustring status = ok ? UI.OK : UI.Err;
+				string? val;
+
+				if (ok) {
+					// Novus.OS.FileSystem.ExploreFile(path2);
+					val = path2;
+				}
+				else {
+					val = null;
+				}
+
+				Downloaded.TryAdd(Tv_Results.Table.Rows[r][COL_URL], val);
+
+				Tv_Results.Table.Rows[r][COL_STATUS] = $"{status}";
+
+				break;
+
+			case Key.X:
+				//TODO: WIP
+				break;
+		}
+
+		eventArgs.Handled = false;
+	}
+
+#if ALT
 	private async void Reload_Clicked()
 	{
 		var q = Query;
@@ -452,9 +547,9 @@ public sealed partial class ShellMode
 				_keyPressHandling = true;
 
 				var res = m_results.SelectMany(e => e.Results).ToArray();
-				var dr  = new ConcurrentBag<SearchResultItem>();
-				int ca  = 0, cf = 0;
-				Pbr_Status.Fraction         = 0;
+				var dr = new ConcurrentBag<SearchResultItem>();
+				int ca = 0, cf = 0;
+				Pbr_Status.Fraction = 0;
 				Pbr_Status.ProgressBarStyle = ProgressBarStyle.MarqueeContinuous;
 
 				await Parallel.ForEachAsync(res, async (result, token) =>
@@ -479,21 +574,21 @@ public sealed partial class ShellMode
 
 				var d1 = new Dialog()
 				{
-					Title    = $"",
+					Title = $"",
 					AutoSize = false,
-					Width    = Dim.Percent(60),
-					Height   = Dim.Percent(55),
+					Width = Dim.Percent(60),
+					Height = Dim.Percent(55),
 					// Height   = UI.Dim_80_Pct,
 				};
 				var drCpy = dr.ToArray();
 
 				var lv1 = new ListView(drCpy)
 				{
-					Width  = Dim.Fill(),
+					Width = Dim.Fill(),
 					Height = Dim.Percent(80),
 					Border = new Border()
 					{
-						BorderStyle     = BorderStyle.Rounded,
+						BorderStyle = BorderStyle.Rounded,
 						BorderThickness = new Thickness(2)
 					}
 				};
@@ -528,7 +623,7 @@ public sealed partial class ShellMode
 				var u = await UniSource.TryGetAsync(v, whitelist: FileType.Image);
 
 				if (u != null && u.FileTypes.Any()) {
-					var path  = $"{v.PathSegments[^1]}";
+					var path = $"{v.PathSegments[^1]}";
 					var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
 
 					if (File.Exists(path2)) {
@@ -596,21 +691,21 @@ public sealed partial class ShellMode
 
 			var d = new Dialog()
 			{
-				Title    = $"",
+				Title = $"",
 				AutoSize = false,
-				Width    = Dim.Percent(60),
-				Height   = Dim.Percent(55),
+				Width = Dim.Percent(60),
+				Height = Dim.Percent(55),
 				// Height   = UI.Dim_80_Pct,
 			};
 
 			var lv = new ListView(Scanned[v].Sources.Select(e => $"{e.FileTypes[0]} {e.Value}").ToArray())
 			{
-				Width  = Dim.Fill(),
+				Width = Dim.Fill(),
 				Height = Dim.Fill(),
 
 				Border = new Border()
 				{
-					BorderStyle     = BorderStyle.Rounded,
+					BorderStyle = BorderStyle.Rounded,
 					BorderThickness = new Thickness(2)
 				}
 			};
@@ -626,8 +721,6 @@ public sealed partial class ShellMode
 		return false;
 	}
 
-	private static int Norm(int n, int n2 = 0) => n == INV ? n2 : n;
-
 	private void OnCellSelected(TableView.SelectedCellChangedEventArgs eventArgs)
 	{
 		// TODO: WIP
@@ -636,7 +729,7 @@ public sealed partial class ShellMode
 		nr = Norm(nr);
 		nc = Norm(nc);
 
-		var cell  = eventArgs.Table.Rows[nr][nc];
+		var cell = eventArgs.Table.Rows[nr][nc];
 		var cell2 = eventArgs.Table.Rows[nr][INDEX];
 
 		if (Message.ContainsKey(cell)) {
@@ -647,4 +740,5 @@ public sealed partial class ShellMode
 			Lbl_Status2.Text = Message[cell2];
 		}
 	}
+#endif
 }
