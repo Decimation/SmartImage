@@ -306,7 +306,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public bool QueueMode { get; private set; }
 
-	public ConcurrentQueue<string> Queue { get; private set; }
+	public readonly ConcurrentQueue<string> Queue;
 
 	public SearchQuery Query { get; internal set; }
 
@@ -401,7 +401,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		};
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
-	
+
 		columnStyles[col[1]].MinAcceptableWidth = 2;
 		columnStyles[col[1]].MinWidth           = 1;
 		columnStyles[col[1]].MaxWidth           = 2;
@@ -423,7 +423,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tv_Results.Border  = UI.Br_1;
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
-		
+
 		// Tv_Results.SelectedCellChanged += OnCellSelected;
 		Tv_Results.KeyPress += ResultTable_KeyPress;
 
@@ -436,13 +436,34 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
 
-		Tf_Input.TextChanging += delegate(TextChangingEventArgs eventArgs)
+		Tf_Input.TextChanging += async delegate(TextChangingEventArgs eventArgs)
 		{
 			if (_inputVerifying) {
 				return;
 			}
 
-			Input_TextChanging(eventArgs);
+			if (!m_s.WaitOne(300)) {
+				return;
+			}
+
+			var ok = await Input_TextChanging(eventArgs);
+
+			m_s.Release();
+
+			/*
+			if (ok && Config.AutoSearch && !Client.IsRunning)
+			{
+				Run_Clicked();
+			}
+			*/
+
+			Application.MainLoop.Invoke(() =>
+			{
+				if (ok && Config.AutoSearch && !Client.IsRunning) {
+					Run_Clicked();
+				}
+
+			});
 		};
 
 		Btn_Delete.Clicked += Delete_Clicked;
@@ -599,7 +620,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Status = null;
 		IsReady.WaitOne();
 
-		var results = await Client.RunSearchAsync(Query, m_token.Token);
+		// var results = await Client.RunSearchAsync(Query, m_token.Token);
+		await Client.RunSearchAsync(Query, m_token.Token);
 
 		Status = false;
 
@@ -662,8 +684,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tf_Input.Text = s;
 
 	}
-
-	private Semaphore m_upload = new Semaphore(0, 1);
 
 	private async Task<bool> TrySetQueryAsync(ustring text)
 	{
@@ -799,7 +819,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	#endregion
 
-	internal static bool _clipboardFile;
+	internal static bool      _clipboardFile;
+	private         Semaphore m_s = new Semaphore(1, 1);
 
 	private bool ClipboardCallback(MainLoop c)
 	{

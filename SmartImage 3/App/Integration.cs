@@ -5,6 +5,7 @@
 
 #region
 
+using System.Buffers;
 using Microsoft.Win32;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
@@ -59,7 +60,7 @@ public static class Integration
 
 	#endregion
 
-	#region 
+	#region
 
 	public static bool IsContextMenuAdded
 	{
@@ -240,7 +241,7 @@ public static class Integration
 		IsOnTop = add;
 	}
 
-	#region 
+	#region
 
 	public static bool ReadClipboardImage(out byte[] i)
 	{
@@ -332,15 +333,16 @@ public static class Integration
 		// Span<char> p1 = stackalloc char[1024];
 		// Span<char> p2 = stackalloc char[512];
 		unsafe {
-			const int ss = 4096;
+			const int ss = 0x4000;
 
-			Span<sbyte> p1  = stackalloc sbyte[ss];
-			Span<sbyte> p2  = stackalloc sbyte[ss];
-			ref sbyte   p1p = ref p1.GetPinnableReference();
-			ref sbyte   p2p = ref p2.GetPinnableReference();
+			Memory<sbyte> p1 = new sbyte[ss];
+			Memory<sbyte> p2 = new sbyte[ss];
 
-			// var p1p = p1.Pin();
-			// var p2p = p2.Pin();
+			// ref sbyte     p1p = ref p1.GetPinnableReference();
+			// ref sbyte     p2p = ref p2.GetPinnableReference();
+
+			var p1p = p1.Pin();
+			var p2p = p2.Pin();
 
 			var ext = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif" };
 
@@ -351,9 +353,8 @@ public static class Integration
 
 			string extStr = string.Join(";", ext);
 
-			var p1pp = (nint) Unsafe.AsPointer(ref p1p);
-
-			var p2pp = (nint) Unsafe.AsPointer(ref p2p);
+			// var p1pp = (nint) Unsafe.AsPointer(ref p1p);
+			// var p2pp = (nint) Unsafe.AsPointer(ref p2p);
 
 			var ofn = new OpenFileName
 			{
@@ -363,8 +364,8 @@ public static class Integration
 				// lpstrFileTitle  = new string(p2),
 				// lpstrFile      = (nint) p1p.Pointer,
 				// lpstrFileTitle = (nint) p2p.Pointer,
-				lpstrFile       = p1pp,
-				lpstrFileTitle  = p2pp,
+				lpstrFile       = (nint) p1p.Pointer,
+				lpstrFileTitle  = (nint) p2p.Pointer,
 				lpstrInitialDir = Environment.GetFolderPath(Environment.SpecialFolder.CommonPictures),
 				lpstrTitle      = "Pick an image",
 				Flags           = (int) flags,
@@ -383,7 +384,7 @@ public static class Integration
 				goto ret;
 			}
 
-			var pd = Marshal.PtrToStringAuto((nint) p1pp);
+			var pd = Marshal.PtrToStringAuto((nint) p1p.Pointer);
 			// var pd = Marshal.PtrToStringAuto((nint) p1p.Pointer);
 
 			if (!(flags.HasFlag(OpenFileNameFlags.OFN_ALLOWMULTISELECT)) /*!Directory.Exists(pd)&&File.Exists(pd)*/) {
@@ -398,7 +399,7 @@ public static class Integration
 
 			var ofs = (ofn.nFileOffset * 2);
 			// var ptr1 = (((byte*) p1p.Pointer) + ofs);
-			var ptr1 = (((byte*) p1pp) + ofs);
+			var ptr1 = (((byte*) p1p.Pointer) + ofs);
 
 			while (true) {
 
@@ -419,8 +420,8 @@ public static class Integration
 			}
 
 			ret:
-			// p1p.Dispose();
-			// p2p.Dispose();
+			p1p.Dispose();
+			p2p.Dispose();
 			return files.ToArray();
 
 		}
@@ -473,4 +474,3 @@ public static class Integration
 
 	#endregion
 }
-

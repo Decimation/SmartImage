@@ -40,8 +40,9 @@ public sealed partial class ShellMode
 
 	private static readonly ConcurrentDictionary<object, string> Downloaded = new();
 
-	private async void Input_TextChanging(TextChangingEventArgs tc)
+	private async Task<bool> Input_TextChanging(TextChangingEventArgs tc)
 	{
+
 		var text = tc.NewText.ToString().TrimStart('\"');
 
 		// Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
@@ -50,22 +51,26 @@ public sealed partial class ShellMode
 
 		var sourceType = SearchQuery.IsValidSourceType(text);
 
+		bool ok = false;
+
 		if (sourceType) {
 			// m_upload.WaitOne();
 			/*if (_inputVerifying) {
 				return;
 			}*/
 
-			var ok = await TrySetQueryAsync(text);
+			ok = await TrySetQueryAsync(text);
 
 			Btn_Run.Enabled = ok;
 			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
 
 			// m_upload.Release();
-			if (ok && Config.AutoSearch && !Client.IsRunning) {
+			/*if (ok && Config.AutoSearch && !Client.IsRunning) {
 				Run_Clicked();
-			}
+			}*/
 		}
+
+		return ok;
 	}
 
 	/// <summary>

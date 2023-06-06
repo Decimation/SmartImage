@@ -21,6 +21,7 @@
     <ApplicationIcon>..\Assets\Icon.ico</ApplicationIcon>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <!-- <TrimMode>CopyUsed</TrimMode> -->
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 
   </PropertyGroup>
 
@@ -53,7 +54,7 @@
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <PublishSingleFile>true</PublishSingleFile>
     <PublishTrimmed>true</PublishTrimmed>
-
+    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
 
     <NoWarn>1701;1702;NU1608</NoWarn>

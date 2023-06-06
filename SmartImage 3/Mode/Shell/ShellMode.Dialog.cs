@@ -504,7 +504,14 @@ public sealed partial class ShellMode
 				// Debug.WriteLine($"{i}");
 				cpy.Remove(i);
 				// Queue.Clear();
-				Queue = new ConcurrentQueue<string>(cpy);
+				Queue.Clear();
+
+				foreach (var c in cpy) {
+					Queue.Enqueue(c);
+				}
+
+				;
+				// Queue = new ConcurrentQueue<string>(cpy);
 				lv.SetFocus();
 
 			}

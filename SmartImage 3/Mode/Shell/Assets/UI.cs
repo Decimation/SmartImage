@@ -7,6 +7,7 @@ using System.Collections;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using Jint.Parser;
 using Kantan.Console;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
@@ -28,11 +29,13 @@ internal static partial class UI
 			while (state is CancellationToken { IsCancellationRequested: false }) {
 				pbr.Pulse();
 				f?.Invoke(state);
-				Task.Delay(TimeSpan.FromSeconds(0.5));
+				// Task.Delay(TimeSpan.FromSeconds(0.5));
 				// Thread.Sleep(TimeSpan.FromMilliseconds(100));
+				
 			}
 
 		}, cts.Token);
+		
 	}
 
 	internal static Button CreateLinkButton(this Dialog d, string text, string? url = null, Action? urlAction = null)
