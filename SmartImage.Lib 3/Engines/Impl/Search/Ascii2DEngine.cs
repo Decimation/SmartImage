@@ -90,9 +90,12 @@ public sealed class Ascii2DEngine : WebSearchEngine
 					          .WithClient(SearchClient.Client)
 					          /*.OnError(s =>
 					          {
+						          Debug.WriteLine($"{s.Response}");
 						          s.ExceptionHandled = true;
+								  
 					          })*/
 					          .GetAsync();
+				
 				var str = await res.GetStringAsync();
 
 				var document = await parser.ParseDocumentAsync(str, token.Value);

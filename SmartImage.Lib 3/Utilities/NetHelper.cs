@@ -1,8 +1,10 @@
 ﻿// Read Stanton SmartImage.Lib NodeHelper.cs
 // 2023-01-13 @ 11:37 PM
 
+using System.Diagnostics;
 using AngleSharp.Dom;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 
 namespace SmartImage.Lib.Utilities;
 
@@ -22,5 +24,22 @@ internal static class NetHelper
 	{
 		return r.Headers.TryGetFirst("Content-Length", out var cls) ? long.Parse(cls) : null;
 
+	}
+
+	public static IEnumerable<string> QueryAllDistinctAttribute(this IParentNode doc, string sel, string attr)
+	{
+		return doc.QuerySelectorAll(sel)
+			.Distinct()
+			.Select(e => e.GetAttribute(attr))
+			.Distinct();
+	}
+
+	public static Action<FlurlHttpSettings> Configure()
+	{
+		return r =>
+		{
+			r.OnError = SearchClient.Client.Settings.OnError;
+
+		};
 	}
 }

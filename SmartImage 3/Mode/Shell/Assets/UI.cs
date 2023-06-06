@@ -29,6 +29,7 @@ internal static partial class UI
 			while (state is CancellationToken { IsCancellationRequested: false }) {
 				pbr.Pulse();
 				f?.Invoke(state);
+				
 				// Task.Delay(TimeSpan.FromSeconds(0.5));
 				// Thread.Sleep(TimeSpan.FromMilliseconds(100));
 				

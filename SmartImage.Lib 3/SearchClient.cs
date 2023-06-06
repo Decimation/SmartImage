@@ -55,6 +55,12 @@ public sealed class SearchClient : IDisposable
 			settings.Redirects.ForwardAuthorizationHeader = true; // default false
 			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
 
+			settings.OnError = r =>
+			{
+				Debug.WriteLine($"exception: {r.Exception}");
+				r.ExceptionHandled = false;
+
+			};
 		});
 
 		var handler = new LoggingHttpMessageHandler(Logger)
@@ -66,7 +72,9 @@ public sealed class SearchClient : IDisposable
 		};
 
 		Client = new FlurlClient(new HttpClient(handler))
-			{ };
+		{
+			
+		};
 
 		Logger.LogInformation("Init");
 
@@ -229,7 +237,7 @@ public sealed class SearchClient : IDisposable
 	public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{
 		var sri2 = sri.AsParallel().DistinctBy(e => e.Url).ToList();
-		
+
 		return ValueTask.FromResult<IReadOnlyList<SearchResultItem>>(sri2);
 	}
 

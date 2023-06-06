@@ -2,13 +2,14 @@
 using System.Net.NetworkInformation;
 using System.Reflection.PortableExecutable;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Novus.OS;
 using Novus.Utilities;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Upload;
 
-public abstract class BaseUploadEngine : IEndpoint
+public abstract class BaseUploadEngine : IClientSearchEngine
 {
 	/// <summary>
 	/// Max file size, in bytes
@@ -17,7 +18,7 @@ public abstract class BaseUploadEngine : IEndpoint
 
 	public abstract string Name { get; }
 
-	public Url EndpointUrl { get; }
+	public string EndpointUrl { get; }
 
 	protected BaseUploadEngine(string s)
 	{
@@ -58,6 +59,8 @@ public abstract class BaseUploadEngine : IEndpoint
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 
 	public static BaseUploadEngine Default { get; set; } = new LitterboxEngine();
+
+	public void Dispose() { }
 }
 
 public abstract class BaseCatboxEngine : BaseUploadEngine
@@ -67,6 +70,10 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		Verify(file);
 
 		var response = await EndpointUrl
+			               .ConfigureRequest(r => r.OnError = rx =>
+			               {
+				               rx.ExceptionHandled = true;
+			               })
 			               .PostMultipartAsync(mp =>
 				                                   mp.AddFile("fileToUpload", file)
 					                                   .AddString("reqtype", "fileupload")
@@ -79,21 +86,37 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 	protected override async Task<BaseUploadResponse> VerifyResultAsync(
 		IFlurlResponse response, CancellationToken ct = default)
 	{
-		
+		string url = null;
+		bool   ok;
+
+		if (response == null) {
+			ok = false;
+
+			goto ret;
+		}
+
 		var responseMessage = response.ResponseMessage;
+		url = await responseMessage.Content.ReadAsStringAsync(ct);
 
-		var url = await responseMessage.Content.ReadAsStringAsync(ct);
-
-		bool ok = true;
+		ok = true;
 
 		if (Paranoid) {
-			var r2 = await url.GetAsync(ct);
+			var r2 = await url.ConfigureRequest(r => r.OnError = rx =>
+			{
+				rx.ExceptionHandled = true;
+			}).GetAsync(ct);
 
-			if (NetHelper.GetContentLength(r2) == 0) {
+			if (r2 == null) {
+				ok = false;
+
+			}
+			else if (NetHelper.GetContentLength(r2) == 0) {
 				ok = false;
 			}
 
 		}
+
+		ret:
 
 		return new()
 		{

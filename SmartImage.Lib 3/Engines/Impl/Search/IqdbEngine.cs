@@ -14,6 +14,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
 
 #endregion
 
@@ -114,7 +115,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 	{
 		const int MAX_FILE_SIZE = 0x800000;
 		try {
-			var response = await EndpointUrl.PostMultipartAsync(m =>
+			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure()).PostMultipartAsync(m =>
 			{
 				m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
 				m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);

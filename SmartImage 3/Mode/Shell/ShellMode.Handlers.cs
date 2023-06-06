@@ -92,6 +92,11 @@ public sealed partial class ShellMode
 		// m_clipboard.RemoveRange(1, m_clipboard.Count - 1);
 
 		m_clipboard.Clear();
+
+		foreach (var res in m_results) {
+			res.Dispose();
+		}
+
 		m_results.Clear();
 
 		Status = true;
