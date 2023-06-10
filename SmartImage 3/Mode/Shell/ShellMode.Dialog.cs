@@ -514,7 +514,6 @@ public sealed partial class ShellMode
 					Queue.Enqueue(c);
 				}
 
-				;
 				// Queue = new ConcurrentQueue<string>(cpy);
 				lv.SetFocus();
 
@@ -557,19 +556,6 @@ public sealed partial class ShellMode
 				Debug.WriteLine($"{tf.Text} {a.NewText}");
 			}
 		};
-
-		static void Action(TextField tf)
-		{
-			Debug.WriteLine($"clearing");
-			// Task.Delay(TimeSpan.FromSeconds(3));
-			// tf.Text           = ustring.Empty;
-			// tf.CursorPosition = 0;
-			tf.DeleteAll();
-			tf.ClearHistoryChanges();
-			tf.ClearAllSelection();
-			tf.SetNeedsDisplay();
-			Debug.WriteLine($"cleared");
-		}
 
 		var btnOk = new Button("Ok")
 		{

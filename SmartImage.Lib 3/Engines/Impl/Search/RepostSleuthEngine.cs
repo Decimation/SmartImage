@@ -29,10 +29,8 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 
 	#region Overrides of BaseSearchEngine
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		token ??= CancellationToken.None;
-
 		var sr = await base.GetResultAsync(query, token);
 
 		Root obj = null;

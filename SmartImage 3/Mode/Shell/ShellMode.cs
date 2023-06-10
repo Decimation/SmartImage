@@ -50,6 +50,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Width       = Dim.Fill(),
 		Height      = Dim.Fill(),
 		ColorScheme = UI.Cs_Win,
+		CanFocus    = false
 	};
 
 	private static readonly MenuBar Mb_Menu = new()
@@ -211,8 +212,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private static readonly CheckBox Cb_Queue = new()
 	{
-		X = Pos.X(Lbl_InputOk),
-		Y = Pos.Bottom(Lbl_InputOk),
+		X           = Pos.X(Lbl_InputOk),
+		Y           = Pos.Bottom(Lbl_InputOk),
 	};
 
 	private static readonly Button Btn_Next = new("Next")
@@ -266,6 +267,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(ShellMode));
 
+	private static  bool _inputVerifying;
+	internal static bool _clipboardFile;
+	private static  int  _sequence;
+
 	#endregion
 
 	#region Fields/properties
@@ -281,7 +286,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private CancellationTokenSource m_token;
 	private CancellationTokenSource m_tokenu;
 
-	private static int _sequence;
+	private readonly Semaphore m_s = new(1, 1);
 
 	#region
 
@@ -323,11 +328,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 	public int ResultCount => m_results.Count;
 
 	internal ManualResetEvent IsReady { get; set; }
-
-	private static  bool _inputVerifying;
-	internal static bool _clipboardFile;
-
-	private readonly Semaphore m_s = new(1, 1);
 
 	#endregion
 
@@ -511,13 +511,15 @@ public sealed partial class ShellMode : IDisposable, IMode
 		);
 
 		Top.Add(Win);
-		Top.HotKey = Key.F5;
+		// Top.HotKey = Key.F5;
 
 		Top.Resized += size =>
 		{
 			Top.SetNeedsDisplay();
 			Top.Redraw(Top.Bounds);
 		};
+
+		Application.RootKeyEvent = RootKeyEvent;
 
 		if (Config.AutoSearch) {
 			Btn_Run.OnClicked();
@@ -536,6 +538,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			return true;
 		});*/
+
 	}
 
 	public Task<object?> RunAsync(object? sender = null)
@@ -706,6 +709,30 @@ public sealed partial class ShellMode : IDisposable, IMode
 		}
 	}
 
+	private async Task RunMainAsync()
+	{
+		Pbr_Status.BidirectionalMarquee = false;
+		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.Continuous;
+		Pbr_Status.Fraction             = 0;
+		Pbr_Status.SetNeedsDisplay();
+
+		var sw = Stopwatch.StartNew();
+
+		m_runIdleTok = Application.MainLoop.AddIdle(() =>
+		{
+			Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec";
+			return true;
+		});
+
+		var run = RunSearchAsync();
+		await run;
+
+		sw.Stop();
+		// Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec {UI.OK}";
+
+		Application.MainLoop.RemoveIdle(m_runIdleTok);
+	}
+
 	#region
 
 	internal void SetInputText(ustring s)
@@ -820,6 +847,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 				};*/
 
+			// Btn_Cancel.Enabled = true;
+
 			using CancellationTokenSource cts = new();
 
 			Lbl_Status2.Text = $"Uploading...";
@@ -847,6 +876,39 @@ public sealed partial class ShellMode : IDisposable, IMode
 	}
 
 	#endregion
+
+	private bool RootKeyEvent(KeyEvent ke)
+	{
+		bool c = ke.IsCtrl;
+		bool s = false;
+		var  k = ke.Key & ~Key.CtrlMask;
+
+		if (c) {
+			switch (k) {
+				case Key.C:
+					Cancel_Clicked();
+					break;
+				case Key.R:
+					Restart_Clicked();
+					break;
+				case Key.B:
+					Browse_Clicked();
+					break;
+				case Key.N:
+					Next_Clicked();
+					break;
+				default:
+					s = false;
+					goto ret;
+			}
+
+			s = true;
+
+		}
+
+		ret:
+		return s;
+	}
 
 	private bool ClipboardCallback(MainLoop c)
 	{
@@ -930,30 +992,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		// return UseClipboard;
 	}
 
-	private async Task RunMainAsync()
-	{
-		Pbr_Status.BidirectionalMarquee = false;
-		Pbr_Status.ProgressBarStyle     = ProgressBarStyle.Continuous;
-		Pbr_Status.Fraction             = 0;
-		Pbr_Status.SetNeedsDisplay();
-
-		var sw = Stopwatch.StartNew();
-
-		m_runIdleTok = Application.MainLoop.AddIdle(() =>
-		{
-			Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec";
-			return true;
-		});
-
-		var run = RunSearchAsync();
-		await run;
-
-		sw.Stop();
-		// Lbl_Status.Text = $"{ResultCount} | {sw.Elapsed.TotalSeconds:F3} sec {UI.OK}";
-
-		Application.MainLoop.RemoveIdle(m_runIdleTok);
-	}
-
 	private void Clear()
 	{
 		_inputVerifying   = false;
@@ -1023,7 +1061,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Dispose(true);
 	}
 
-	internal SearchResultItem? Find(Url v)
+	internal SearchResultItem? FindResultByUrl(Url v)
 	{
 		// todo: optimize
 		var sri = m_results.SelectMany(s => s.Results)

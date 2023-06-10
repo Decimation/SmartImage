@@ -490,19 +490,11 @@ public sealed partial class ShellMode
 			case Key.M:
 				eventArgs.Handled = true;
 
-				var sri = Find(v);
+				var sri = FindResultByUrl(v);
 
-				dynamic d = null;
+				dynamic? d = sri?.Metadata;
 
-				if (sri is { }) {
-					d = sri.Metadata;
-				}
-
-				else {
-					// d = Tv_Results.Table.Rows[r][COL_METADATA];
-				}
-
-				if (d is Array dr) {
+				if (d is Array { Length: > 0 } dr) {
 
 					var dl = new Dialog()
 					{

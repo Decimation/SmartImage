@@ -140,7 +140,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		}
 	}
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// Don't select other results
 

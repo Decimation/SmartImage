@@ -101,7 +101,8 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		ok = true;
 
 		if (Paranoid) {
-			var r2 = await url.ConfigureRequest(r => r.OnError = rx =>
+			var r2 = await url.ConfigureRequest(r => 
+			r.OnError = rx =>
 			{
 				rx.ExceptionHandled = true;
 			}).GetAsync(ct);

@@ -30,12 +30,10 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 	
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 
 		// https://soruly.github.io/trace.moe/#/
-
-		token ??= CancellationToken.None;
 
 		TraceMoeRootObject tm = null;
 
@@ -46,7 +44,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				.AllowAnyHttpStatus()
 				.SetQueryParam("url", query.Upload, true);
 
-			var json = await request.GetStringAsync(cancellationToken: token.Value);
+			var json = await request.GetStringAsync(cancellationToken: token);
 
 			var settings = new JsonSerializerSettings
 			{

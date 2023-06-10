@@ -68,9 +68,8 @@ public abstract class BaseSearchEngine : IDisposable
 		return true;
 	}
 
-	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		token ??= CancellationToken.None;
 
 		bool b = Verify(query);
 

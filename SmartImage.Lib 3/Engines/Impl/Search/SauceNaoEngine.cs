@@ -57,7 +57,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var result = await base.GetResultAsync(query, token);
 

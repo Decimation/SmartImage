@@ -13,15 +13,14 @@ public abstract class WebSearchEngine : BaseSearchEngine
 {
 	protected WebSearchEngine([NotNull] string baseUrl) : base(baseUrl) { }
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		token ??= CancellationToken.None;
 		var res = await base.GetResultAsync(query, token);
 
 		IDocument doc;
 
 		try {
-			doc = await GetDocumentAsync(res.RawUrl, query: query, token: token.Value);
+			doc = await GetDocumentAsync(res.RawUrl, query: query, token: token);
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}", nameof(GetResultAsync));
@@ -37,7 +36,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		var nodes = await GetNodes(doc);
 
 		foreach (INode node in nodes) {
-			if (token.Value.IsCancellationRequested) {
+			if (token.IsCancellationRequested) {
 				break;
 			}
 

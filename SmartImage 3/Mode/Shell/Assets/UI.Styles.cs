@@ -173,7 +173,13 @@ internal static partial class UI
 		Focus     = Atr_Cyan_Black,
 		HotFocus  = Atr_Cyan_Black,
 	};
-
+	internal static readonly ColorScheme Cs_Lbl1a = new()
+	{
+		Normal    = Atr_Black_White,
+		HotNormal = Atr_Black_White,
+		Focus     = Atr_Blue_Gray,
+		HotFocus  = Atr_Blue_Gray,
+	};
 	internal static readonly ColorScheme Cs_Lbl1x = new()
 	{
 		Normal    = Atr_White_DarkGray,
@@ -189,13 +195,19 @@ internal static partial class UI
 		Focus     = Atr_Cyan_Black,
 		HotFocus  = Atr_Cyan_Black,
 	};
-
+	internal static readonly ColorScheme Cs_Lbl2x = new()
+	{
+		Normal    = Atr_Cyan_Gray,
+		HotNormal = Atr_Cyan_Gray,
+		Focus     = Atr_BrightCyan_DarkGray,
+		HotFocus  = Atr_BrightCyan_DarkGray,
+	};
 	internal static readonly ColorScheme Cs_Lbl3 = new()
 	{
 		Normal    = Atr_BrightBlue_Gray,
 		HotNormal = Atr_BrightBlue_Gray,
-		Focus     = Atr_Cyan_Black,
-		HotFocus  = Atr_Cyan_Black,
+		Focus     = Atr_BrightCyan_DarkGray,
+		HotFocus  = Atr_BrightCyan_DarkGray,
 	};
 
 	internal static readonly Border Br_1 = new()

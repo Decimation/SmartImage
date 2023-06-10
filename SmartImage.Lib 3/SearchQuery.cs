@@ -73,7 +73,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			}*/
 
 			Upload = u.Url;
-			Size   = NetHelper.GetContentLength(u.Response) ?? 0;
+
+			if (u.Response is { }) {
+				Size = NetHelper.GetContentLength(u.Response) ?? 0;
+			}
+
 			u.Dispose();
 		}
 
@@ -92,7 +96,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		try {
 #if ALT
-			
 			Image = Image.FromStream(Uni.Stream, useEmbeddedColorManagement: false, validateImageData: false);
 			Debug.WriteLine($"Loaded image: {Image.PhysicalDimension}", nameof(LoadImage));
 #endif

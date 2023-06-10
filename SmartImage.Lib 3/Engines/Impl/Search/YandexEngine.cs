@@ -107,9 +107,8 @@ public sealed class YandexEngine : WebSearchEngine
 		return (w, h);
 	}
 
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken? token = null)
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		token ??= CancellationToken.None;
 		// var sr = await base.GetResultAsync(query, token);
 
 		var url = await GetRawUrlAsync(query);
@@ -122,7 +121,7 @@ public sealed class YandexEngine : WebSearchEngine
 		IDocument doc = null;
 
 		try {
-			doc = await GetDocumentAsync(url, query: query, token: token.Value);
+			doc = await GetDocumentAsync(url, query: query, token: token);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);

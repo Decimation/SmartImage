@@ -15,6 +15,6 @@ public sealed class BaseUploadResponse : IDisposable
 
 	public void Dispose()
 	{
-		Response.Dispose();
+		Response?.Dispose();
 	}
 }
