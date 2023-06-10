@@ -324,9 +324,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	internal ManualResetEvent IsReady { get; set; }
 
-	private static bool _keyPressHandling;
+	private static  bool _inputVerifying;
+	internal static bool _clipboardFile;
 
-	private static bool _inputVerifying;
+	private readonly Semaphore m_s = new(1, 1);
 
 	#endregion
 
@@ -426,6 +427,28 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		// Tv_Results.SelectedCellChanged += OnCellSelected;
 		Tv_Results.KeyPress += ResultTable_KeyPress;
+
+		/*Tv_Results.SelectedCellChanged += eventArgs =>
+		{
+			// todo
+			var (r, c) = (Norm(eventArgs.NewRow), Norm(eventArgs.NewCol));
+
+			var cc = eventArgs.Table.Rows[r][COL_URL].ToString();
+
+			var sri = Find(cc);
+
+			if (sri is { }) {
+				if (sri.Metadata is Array rg) {
+					Lbl_Status2.Text = $"{rg.Length} m";
+
+				}
+			}
+			/*var r = Find(rows[args.Row][COL_URL].ToString());
+
+			if (r is { }) {
+				Lbl_Status2.Text = $"{r.Metadata is { }}";
+			}#1#
+		};*/
 
 		Tv_Results.CellActivated += ResultTable_CellActivated;
 		Btn_Run.Clicked          += Run_Clicked;
@@ -555,7 +578,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			for (int i = 0; i < result.Results.Count; i++) {
 				SearchResultItem sri = result.Results[i];
 
-				/*object? meta = sri.Metadata switch
+				object? meta = sri.Metadata switch
 				{
 					string[] rg      => rg.QuickJoin(),
 					Array rg         => rg.QuickJoin(),
@@ -564,11 +587,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 					ExpandoObject eo => eo.QuickJoin(),
 					_                => null,
 
-				};*/
-				
-				object? meta = sri.Metadata;
+				};
 
-				if (sri.Similarity is {} and 0) {
+				// object? meta = sri.Metadata;
+
+				if (sri.Similarity is { } and 0) {
 					sri.Similarity = null;
 				}
 
@@ -798,7 +821,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				};*/
 
 			using CancellationTokenSource cts = new();
-			
+
 			Lbl_Status2.Text = $"Uploading...";
 
 			UI.QueueProgress(cts, Pbr_Status);
@@ -824,9 +847,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 	}
 
 	#endregion
-
-	internal static bool      _clipboardFile;
-	private         Semaphore m_s = new Semaphore(1, 1);
 
 	private bool ClipboardCallback(MainLoop c)
 	{
@@ -972,8 +992,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		// Queue.Clear();
 		m_results.Clear();
 
-		_keyPressHandling = false;
-		_inputVerifying   = false;
+		_inputVerifying = false;
 	}
 
 	public void Close()
@@ -1002,5 +1021,14 @@ public sealed partial class ShellMode : IDisposable, IMode
 	public void Dispose()
 	{
 		Dispose(true);
+	}
+
+	internal SearchResultItem? Find(Url v)
+	{
+		// todo: optimize
+		var sri = m_results.SelectMany(s => s.Results)
+			.FirstOrDefault(r => v.Equals(r.Url));
+
+		return sri;
 	}
 }

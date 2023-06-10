@@ -41,6 +41,9 @@ public sealed partial class ShellMode
 
 	private static readonly ConcurrentDictionary<object, string> Downloaded = new();
 
+	private static readonly Dictionary<BaseSearchEngine, ColorScheme> Colors = new()
+		{ };
+
 	private async Task<bool> Input_TextChanging(TextChangingEventArgs tc)
 	{
 
@@ -115,8 +118,7 @@ public sealed partial class ShellMode
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
 
-		_keyPressHandling = false;
-		_inputVerifying   = false;
+		_inputVerifying = false;
 	}
 
 	/// <summary>
@@ -330,9 +332,6 @@ public sealed partial class ShellMode
 		}
 	}
 
-	private static readonly Dictionary<BaseSearchEngine, ColorScheme> Colors = new()
-		{ };
-
 	private static int Norm(int n, int n2 = 0) => n == INV ? n2 : n;
 
 	/// <summary>
@@ -425,6 +424,8 @@ public sealed partial class ShellMode
 		var k = kek & ~Key.CtrlMask;
 		var (r, c) = (Tv_Results.SelectedRow, Tv_Results.SelectedColumn);
 
+		(r, c) = (Norm(r), Norm(c));
+
 		// NOTE: Column 2 contains the URL
 
 		Url v = (Tv_Results.Table.Rows[r][COL_URL]).ToString();
@@ -488,8 +489,18 @@ public sealed partial class ShellMode
 				break;
 			case Key.M:
 				eventArgs.Handled = true;
-				// var res = m_results.ToArray();
-				dynamic d = Tv_Results.Table.Rows[r][COL_METADATA];
+
+				var sri = Find(v);
+
+				dynamic d = null;
+
+				if (sri is { }) {
+					d = sri.Metadata;
+				}
+
+				else {
+					// d = Tv_Results.Table.Rows[r][COL_METADATA];
+				}
 
 				if (d is Array dr) {
 
@@ -516,6 +527,7 @@ public sealed partial class ShellMode
 							BorderThickness = new Thickness(2)
 						}
 					};
+
 					lv.OpenSelectedItem += args =>
 					{
 						var i = args.Value.ToString();

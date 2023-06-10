@@ -432,12 +432,20 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			Url u = s;
 			return u.Host == "gelbooru" || u.Host == "danbooru";
 		}).ToArray();*/
-		
-		var urls = sn.Urls;
+
+		var      urls = sn.Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+		string[] meta = Array.Empty<string>();
+
+		if ((urls.Length >= 2)) {
+			meta = urls[1..];
+		}
+		else {
+
+		}
 
 		var imageResult = new SearchResultItem(r)
 		{
-			Url         = urls[0],
+			Url         = urls.FirstOrDefault(),
 			Similarity  = Math.Round(sn.Similarity, 2),
 			Description = Strings.NormalizeNull(sn.Index.ToString()),
 			Artist      = Strings.NormalizeNull(sn.Creator),
@@ -445,7 +453,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			Character   = Strings.NormalizeNull(sn.Character),
 			Site        = site,
 			Title       = Strings.NormalizeNull(sn.Title),
-			Metadata    = urls[1..]
+			Metadata    = meta
 		};
 
 		return imageResult;
