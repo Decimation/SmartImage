@@ -114,6 +114,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query)
 	{
 		const int MAX_FILE_SIZE = 0x800000;
+
 		try {
 			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure()).PostMultipartAsync(m =>
 			{
@@ -140,6 +141,8 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		}
 	}
 
+	protected override string[] Illegal => new[] { "Can't read query result!","too large" };
+
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// Don't select other results
@@ -157,13 +160,14 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 			sr.Status       = SearchResultStatus.Failure;
 			goto ret;
 		}
-		
-		if (doc.Body.TextContent.Contains("too large")) {
-			sr.ErrorMessage = "Image too large";
-			sr.Status       = SearchResultStatus.IllegalInput;
-			goto ret;
-		}
+		foreach (string s in Illegal) {
+			if (doc.Body.TextContent.Contains(s)) {
+				
+				sr.Status       = SearchResultStatus.IllegalInput;
+				goto ret;
+			}
 
+		}
 		var err = doc.Body.GetElementsByClassName("err");
 
 		if (err.Any()) {

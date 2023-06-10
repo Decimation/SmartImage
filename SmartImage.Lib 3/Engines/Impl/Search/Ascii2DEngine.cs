@@ -95,7 +95,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 								  
 					          })*/
 					          .GetAsync();
-				
+
 				var str = await res.GetStringAsync();
 
 				var document = await parser.ParseDocumentAsync(str, token.Value);
@@ -118,6 +118,8 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			return null;
 		}
 	}
+
+	protected override string[] Illegal => new[] { "検索できるのは 縦 10000px での画像です。" };
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{

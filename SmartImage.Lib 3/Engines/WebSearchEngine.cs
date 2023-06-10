@@ -28,8 +28,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 		}
 
-		if (doc is not { }) {
-			res.Status = SearchResultStatus.Failure;
+		if (!Validate(doc, res)) {
 			goto ret;
 		}
 
@@ -100,9 +99,28 @@ public abstract class WebSearchEngine : BaseSearchEngine
 	}
 
 	protected abstract ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r);
-	
+
 	protected virtual ValueTask<INode[]> GetNodes(IDocument d)
 		=> ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
 
 	protected abstract string NodesSelector { get; }
+
+	protected bool Validate(IDocument doc, SearchResult sr)
+	{
+		if (doc is null or { Body: null }) {
+			sr.Status = SearchResultStatus.Failure;
+			return false;
+		}
+
+		foreach (string s in Illegal) {
+			if (doc.Body.TextContent.Contains(s)) {
+				sr.Status = SearchResultStatus.Cooldown;
+				return false;
+			}
+
+		}
+
+		return true;
+
+	}
 }

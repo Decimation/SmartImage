@@ -130,17 +130,8 @@ public sealed class YandexEngine : WebSearchEngine
 			Debug.WriteLine($"{Name}: {e.Message}", nameof(GetResultAsync));
 		}
 
-		if (doc is null or { Body: null }) {
-			sr.Status = SearchResultStatus.Failure;
-			return sr;
-		}
-
-		// Automation detected
-		const string AUTOMATION_ERROR_MSG = "Please confirm that you and not a robot are sending requests";
-
-		if (doc.Body.TextContent.Contains(AUTOMATION_ERROR_MSG)) {
-			sr.Status = SearchResultStatus.Cooldown;
-			return sr;
+		if (!Validate(doc,sr)) {
+			goto ret;
 		}
 
 		/*
@@ -181,6 +172,7 @@ public sealed class YandexEngine : WebSearchEngine
 			sr.Status       = SearchResultStatus.Extraneous;
 		}
 
+		ret:
 		sr.Update();
 		return sr;
 	}
@@ -218,7 +210,9 @@ public sealed class YandexEngine : WebSearchEngine
 		return rg;
 	}
 
-	public override void Dispose() { }
+	public override    void     Dispose() { }
+
+	protected override string[] Illegal => new []{ "Please confirm that you and not a robot are sending requests" };
 
 	protected override async ValueTask<INode[]> GetNodes(IDocument doc)
 	{

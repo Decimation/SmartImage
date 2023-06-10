@@ -212,8 +212,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private static readonly CheckBox Cb_Queue = new()
 	{
-		X           = Pos.X(Lbl_InputOk),
-		Y           = Pos.Bottom(Lbl_InputOk),
+		X = Pos.X(Lbl_InputOk),
+		Y = Pos.Bottom(Lbl_InputOk),
 	};
 
 	private static readonly Button Btn_Next = new("Next")
@@ -755,7 +755,46 @@ public sealed partial class ShellMode : IDisposable, IMode
 		bool ok;
 
 		if (sq != SearchQuery.Null) {
-			ok = await TryUploadQueryAsync(sq);
+			bool ret;
+
+			try {
+
+				/*Btn_Cancel.Enabled = true;
+
+				Btn_Cancel.Clicked += () =>
+				{
+					m_tokenu.Cancel();
+
+				};*/
+
+				// Btn_Cancel.Enabled = true;
+
+				using CancellationTokenSource cts = new();
+
+				Lbl_Status2.Text = $"Uploading...";
+
+				UI.QueueProgress(cts, Pbr_Status);
+
+				var u = await sq.UploadAsync(ct: m_tokenu.Token);
+
+				cts.Cancel();
+
+				Lbl_QueryUpload.Text = u.ToString();
+				Lbl_Status2.Text     = ustring.Empty;
+
+				// Btn_Cancel.Clicked   += Cancel_Clicked;
+				ret = true;
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}", nameof(TrySetQueryAsync));
+				Lbl_InputInfo.Text = $"Error: {e.Message}";
+				Lbl_Status2.Text   = ustring.Empty;
+				// Btn_Run.Enabled    = false;
+				Btn_Reload.Enabled = false;
+				ret                = false;
+			}
+
+			ok = ret;
 
 		}
 		else {
@@ -835,46 +874,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		return sq;
 	}
 
-	private async Task<bool> TryUploadQueryAsync(SearchQuery sq)
-	{
-		try {
-
-			/*Btn_Cancel.Enabled = true;
-
-				Btn_Cancel.Clicked += () =>
-				{
-					m_tokenu.Cancel();
-
-				};*/
-
-			// Btn_Cancel.Enabled = true;
-
-			using CancellationTokenSource cts = new();
-
-			Lbl_Status2.Text = $"Uploading...";
-
-			UI.QueueProgress(cts, Pbr_Status);
-
-			var u = await sq.UploadAsync(ct: m_tokenu.Token);
-
-			cts.Cancel();
-
-			Lbl_QueryUpload.Text = u.ToString();
-			Lbl_Status2.Text     = ustring.Empty;
-
-			// Btn_Cancel.Clicked   += Cancel_Clicked;
-			return true;
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(TrySetQueryAsync));
-			Lbl_InputInfo.Text = $"Error: {e.Message}";
-			Lbl_Status2.Text   = ustring.Empty;
-			// Btn_Run.Enabled    = false;
-			Btn_Reload.Enabled = false;
-			return false;
-		}
-	}
-
 	#endregion
 
 	private bool RootKeyEvent(KeyEvent ke)
@@ -886,16 +885,32 @@ public sealed partial class ShellMode : IDisposable, IMode
 		if (c) {
 			switch (k) {
 				case Key.C:
-					Cancel_Clicked();
+					if (Btn_Cancel.Enabled) {
+						Btn_Cancel.OnClicked();
+
+					}
+
+					// Cancel_Clicked();
 					break;
 				case Key.R:
-					Restart_Clicked();
+					// Restart_Clicked();
+					if (Btn_Restart.Enabled) {
+						Btn_Restart.OnClicked();
+					}
+
 					break;
 				case Key.B:
 					Browse_Clicked();
 					break;
 				case Key.N:
-					Next_Clicked();
+					/*if (QueueMode) {
+						Next_Clicked();
+					}*/
+					if (Btn_Next.Enabled) {
+						Btn_Next.OnClicked();
+
+					}
+
 					break;
 				default:
 					s = false;
@@ -1042,23 +1057,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Application.Shutdown();
 	}
 
-	public void Dispose(bool q)
+	public void Dispose()
 	{
 		Client.Dispose();
 		Query.Dispose();
 		m_token.Dispose();
 		m_tokenu.Dispose();
 
-		if (q) {
-			Queue.Clear();
-		}
+		Queue.Clear();
 
 		m_results.Clear();
-	}
-
-	public void Dispose()
-	{
-		Dispose(true);
 	}
 
 	internal SearchResultItem? FindResultByUrl(Url v)

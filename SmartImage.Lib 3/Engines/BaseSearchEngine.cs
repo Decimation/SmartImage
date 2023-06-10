@@ -6,6 +6,7 @@ using System.Json;
 using System.Resources;
 using Novus.Utilities;
 using SmartImage.Lib.Results;
+using AngleSharp.Dom;
 
 namespace SmartImage.Lib.Engines;
 #nullable enable
@@ -26,9 +27,11 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual Url BaseUrl { get; }
 
-	protected TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
+	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
 	protected long MaxSize { get; set; } = NA_SIZE;
+
+	protected virtual string[] Illegal { get; } = Array.Empty<string>();
 
 	protected BaseSearchEngine(string baseUrl)
 	{
@@ -79,8 +82,8 @@ public abstract class BaseSearchEngine : IDisposable
 
 		var res = new SearchResult(this)
 		{
-			RawUrl = await GetRawUrlAsync(query),
-			Status = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None,
+			RawUrl       = await GetRawUrlAsync(query),
+			Status       = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None,
 			ErrorMessage = $"Engine restriction"
 		};
 
@@ -101,4 +104,5 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
+
 }
