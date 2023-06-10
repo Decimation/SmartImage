@@ -547,7 +547,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Application.MainLoop.Invoke(() =>
 		{
 			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", string.Empty,
-			                    result.RawUrl, 0, 0, null, $"{result.Status}",
+			                    result.RawUrl, 0, null, null, $"{result.Status}",
 			                    null, null, null, null, null, null);
 
 			// Message[result.RawUrl] = "?";
@@ -555,7 +555,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			for (int i = 0; i < result.Results.Count; i++) {
 				SearchResultItem sri = result.Results[i];
 
-				object? meta = sri.Metadata switch
+				/*object? meta = sri.Metadata switch
 				{
 					string[] rg      => rg.QuickJoin(),
 					Array rg         => rg.QuickJoin(),
@@ -564,7 +564,13 @@ public sealed partial class ShellMode : IDisposable, IMode
 					ExpandoObject eo => eo.QuickJoin(),
 					_                => null,
 
-				};
+				};*/
+				
+				object? meta = sri.Metadata;
+
+				if (sri.Similarity is {} and 0) {
+					sri.Similarity = null;
+				}
 
 				Dt_Results.Rows.Add($"{result.Engine.Name} #{i + 1}", "",
 				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,

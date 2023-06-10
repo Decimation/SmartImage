@@ -431,7 +431,11 @@ public sealed partial class ShellMode
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
-		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb, cbSendTo);
+		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb
+		          
+		          /*cbSendTo*/
+		          
+		          );
 
 		var btnHelp = dlCfg.CreateLinkButton("?", R2.Wiki_Url);
 

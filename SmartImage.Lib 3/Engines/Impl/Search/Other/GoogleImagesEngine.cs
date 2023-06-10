@@ -2,7 +2,7 @@
 
 public sealed class GoogleImagesEngine : BaseSearchEngine
 {
-    public GoogleImagesEngine() : base("http://images.google.com/searchbyimage?image_url=") { }
+    public GoogleImagesEngine() : base("https://lens.google.com/uploadbyurl?url=") { }
 
     public override string Name => "Google Images";
 

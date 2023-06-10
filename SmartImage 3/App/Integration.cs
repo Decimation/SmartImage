@@ -439,6 +439,8 @@ public static class Integration
 
 	public static bool? HandleSendToMenu(bool? b = null)
 	{
+		//TODO: FIX COM INTEROP WHEN PUBLISHING
+
 		Debug.WriteLine($"{ExeLocation}");
 
 		b ??= !IsSendToAdded;

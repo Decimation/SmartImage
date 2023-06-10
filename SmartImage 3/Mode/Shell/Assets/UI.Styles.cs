@@ -2,6 +2,7 @@
 // 2023-02-14 @ 12:12 AM
 
 #region
+
 using Color = Terminal.Gui.Color;
 using System.Runtime.Caching;
 using AngleSharp.Dom;
@@ -232,12 +233,14 @@ internal static partial class UI
 
 	internal static ColorScheme Make(Attribute norm, Attribute focus = default, Attribute disabled = default)
 	{
-		if (focus.Equals(default(Attribute))) {
+		if (EqualityComparer<Attribute>.Default.Equals(focus, default)) {
 			focus = Attribute.Get();
+
 		}
 
-		if (disabled.Equals(default(Attribute))) {
+		if (EqualityComparer<Attribute>.Default.Equals(disabled, default)) {
 			disabled = Attribute.Get();
+
 		}
 
 		return new ColorScheme()

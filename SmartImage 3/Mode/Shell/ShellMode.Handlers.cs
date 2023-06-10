@@ -35,8 +35,9 @@ public sealed partial class ShellMode
 {
 	private const int INV = -1;
 
-	private const int COL_URL    = 2;
-	private const int COL_STATUS = 1;
+	private const int COL_URL      = 2;
+	private const int COL_STATUS   = 1;
+	private const int COL_METADATA = 12;
 
 	private static readonly ConcurrentDictionary<object, string> Downloaded = new();
 
@@ -485,13 +486,59 @@ public sealed partial class ShellMode
 				Tv_Results.Table.Rows[r][COL_STATUS] = $"{status}";
 
 				break;
+			case Key.M:
+				eventArgs.Handled = true;
+				// var res = m_results.ToArray();
+				dynamic d = Tv_Results.Table.Rows[r][COL_METADATA];
 
+				if (d is Array dr) {
+
+					var dl = new Dialog()
+					{
+						Title    = $"Metadata",
+						AutoSize = false,
+						Width    = Dim.Percent(60),
+						Height   = Dim.Percent(45),
+						/*Border = new Border()
+						{
+							// Background = default
+						}*/
+						// Height   = UI.Dim_80_Pct,
+					};
+
+					var lv = new ListView(dr)
+					{
+						Width  = Dim.Fill(),
+						Height = Dim.Fill(),
+						Border = new Border()
+						{
+							BorderStyle     = BorderStyle.Rounded,
+							BorderThickness = new Thickness(2)
+						}
+					};
+					lv.OpenSelectedItem += args =>
+					{
+						var i = args.Value.ToString();
+						HttpUtilities.TryOpenUrl(i);
+					};
+					dl.Add(lv);
+
+					var btnOk = new Button("Ok")
+					{
+						ColorScheme = UI.Cs_Btn3
+					};
+					btnOk.Clicked += () => { Application.RequestStop(); };
+					dl.AddButton(btnOk);
+					Application.Run(dl);
+				}
+
+				break;
 			case Key.X:
 				//TODO: WIP
 				break;
 		}
 
-		eventArgs.Handled = false;
+		// eventArgs.Handled = false;
 	}
 
 #if ALT
