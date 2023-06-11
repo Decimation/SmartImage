@@ -56,9 +56,8 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 	[ItemCanBeNull]
 	protected virtual async Task<IDocument> GetDocumentAsync(object sender, SearchQuery query,
-	                                                         CancellationToken? token = null)
+	                                                         CancellationToken token = default)
 	{
-		token ??= CancellationToken.None;
 
 		var parser = new HtmlParser();
 
@@ -77,11 +76,11 @@ public abstract class WebSearchEngine : BaseSearchEngine
 					          {
 						          s.ExceptionHandled = true;
 					          })*/
-					          .GetAsync(cancellationToken: token.Value);
+					          .GetAsync(cancellationToken: token);
 
 				var str = await res.GetStringAsync();
 
-				var document = await parser.ParseDocumentAsync(str, token.Value);
+				var document = await parser.ParseDocumentAsync(str, token);
 
 				return document;
 

@@ -243,23 +243,16 @@ internal static partial class UI
 
 	static UI() { }
 
-	internal static ColorScheme Make(Attribute norm, Attribute focus = default, Attribute disabled = default)
+	internal static ColorScheme Make(Attribute norm, Attribute? focus = null, Attribute? disabled = null)
 	{
-		if (EqualityComparer<Attribute>.Default.Equals(focus, default)) {
-			focus = Attribute.Get();
-
-		}
-
-		if (EqualityComparer<Attribute>.Default.Equals(disabled, default)) {
-			disabled = Attribute.Get();
-
-		}
-
+		focus??= Attribute.Get();
+		disabled ??= Attribute.Get();
+		
 		return new ColorScheme()
 		{
 			Normal   = norm,
-			Focus    = focus,
-			Disabled = disabled
+			Focus    = focus.Value,
+			Disabled = disabled.Value
 		}.NormalizeHot();
 	}
 

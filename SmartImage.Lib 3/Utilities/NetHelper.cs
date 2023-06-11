@@ -39,7 +39,6 @@ internal static class NetHelper
 		return r =>
 		{
 			r.OnError = SearchClient.Client.Settings.OnError;
-
 		};
 	}
 }

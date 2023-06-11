@@ -39,15 +39,42 @@ public sealed partial class ShellMode
 	private const int COL_STATUS   = 1;
 	private const int COL_METADATA = 12;
 
+	private static readonly Color[] ColorValues = Enum.GetValues<Color>();
+
 	private static readonly ConcurrentDictionary<object, string> Downloaded = new();
 
-	private static readonly Dictionary<BaseSearchEngine, ColorScheme> Colors = new()
-		{ };
+	private static ConcurrentDictionary<BaseSearchEngine, ColorScheme> EngineColors = new();
+
+	private static ConcurrentDictionary<int, ColorScheme> IndexColors = new();
+
+	private static ColorScheme GetColor(BaseSearchEngine baseSearchEngine)
+	{
+		if (EngineColors.TryGetValue(baseSearchEngine, out var cs)) {
+			return cs;
+
+		}
+		else {
+			var cc = ColorValues[
+				Array.IndexOf(UI.EngineOptions, baseSearchEngine.EngineOption) % UI.EngineOptions.Length];
+
+			cs = new ColorScheme()
+			{
+				Normal = Attribute.Make(cc, Color.Black),
+				Focus  = Attribute.Make(Color.White, cc),
+
+			};
+			cs = cs.NormalizeHot();
+			EngineColors.TryAdd(baseSearchEngine, cs);
+
+		}
+
+		return cs;
+	}
 
 	private async Task<bool> Input_TextChanging(TextChangingEventArgs tc)
 	{
 
-		var text = tc.NewText.ToString().TrimStart('\"');
+		var text = tc.NewText?.ToString()?.TrimStart('\"');
 
 		// Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
 
@@ -246,7 +273,7 @@ public sealed partial class ShellMode
 		// Btn_Run.Enabled     = false;
 		Tf_Input.SetFocus();
 		Btn_Delete.Enabled = false;
-
+		IndexColors.Clear();
 	}
 
 	private void Cancel_Clicked()
@@ -365,7 +392,10 @@ public sealed partial class ShellMode
 
 	private ColorScheme? ResultTable_RowColor(TableView.RowColorGetterArgs r)
 	{
-		// var eng=args.Table.Rows[args.RowIndex]["Engine"];
+		// var ar = r.Table.Rows[r.RowIndex];
+		return IndexColors[r.RowIndex];
+
+		/*// var eng=args.Table.Rows[args.RowIndex]["Engine"];
 
 		ColorScheme? cs = null;
 
@@ -377,44 +407,24 @@ public sealed partial class ShellMode
 			goto ret;
 		}
 
-		var eng2 = Client.Engines.FirstOrDefault(f => eng.ToString().Contains(f.Name));
+		// var               eng2 = Client.Engines.FirstOrDefault(f => eng.ToString().Contains(f.Name));
+
+		BaseSearchEngine? eng2 = null;
+
+		foreach (BaseSearchEngine csx in Client.Engines) {
+			if (eng.ToString().Contains(csx.Name)) {
+				eng2 = csx;
+				break;
+			}
+		}
 
 		if (eng2 == null) {
 			goto ret;
 		}
 
-		if (!Colors.ContainsKey(eng2)) {
-			var colors = Enum.GetValues<Color>();
-
-			var cc = colors[Array.IndexOf(UI.EngineOptions, eng2.EngineOption) % UI.EngineOptions.Length];
-
-			Color cc2;
-
-			switch (cc) {
-				case Color.Cyan:
-					cc2 = Color.BrightCyan;
-					break;
-				default:
-					cc2 = cc;
-					break;
-			}
-
-			cs = new ColorScheme()
-			{
-				Normal = Attribute.Make(cc, Color.Black),
-				Focus  = Attribute.Make(cc2, Color.DarkGray),
-
-			};
-			cs = cs.NormalizeHot();
-
-			Colors.Add(eng2, cs);
-		}
-		else {
-			cs = Colors[eng2];
-		}
-
+		cs = Colors[eng2];
 		ret:
-		return cs;
+		return cs;*/
 	}
 
 	private async void ResultTable_KeyPress(View.KeyEventEventArgs eventArgs)
@@ -540,9 +550,10 @@ public sealed partial class ShellMode
 			case Key.X:
 				//TODO: WIP
 				break;
+			default:
+				eventArgs.Handled = false;
+				break;
 		}
-
-		// eventArgs.Handled = false;
 	}
 
 #if ALT

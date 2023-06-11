@@ -111,7 +111,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		return result;
 	}
 
-	private async Task<IDocument> GetDocumentAsync(SearchQuery query)
+	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
 	{
 		const int MAX_FILE_SIZE = 0x800000;
 
@@ -127,12 +127,12 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 				}
 
 				return;
-			});
+			}, ct);
 
 			var s = await response.GetStringAsync();
 
 			var parser = new HtmlParser();
-			return await parser.ParseDocumentAsync(s).ConfigureAwait(false);
+			return await parser.ParseDocumentAsync(s, ct).ConfigureAwait(false);
 
 		}
 		catch (Exception e) {
@@ -153,7 +153,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 			goto ret;
 		}
 
-		var doc = await GetDocumentAsync(query);
+		var doc = await GetDocumentAsync(query, token);
 
 		if (doc == null || doc.Body == null) {
 			sr.ErrorMessage = $"Could not retrieve data";

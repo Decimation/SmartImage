@@ -191,7 +191,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	#endregion
 
 	protected override async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query,
-	                                                          CancellationToken? token = null)
+	                                                          CancellationToken token = default)
 	{
 		const string name = "a.jpg";
 
@@ -253,9 +253,9 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 			},
 		};
 
-		var res = await m_client.SendAsync(req);
+		var res = await m_client.SendAsync(req, token);
 
-		var content = await res.Content.ReadAsStringAsync();
+		var content = await res.Content.ReadAsStringAsync(token);
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			Debug.WriteLine($"cooldown", Name);
@@ -263,7 +263,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		}
 
 		var parser = new HtmlParser();
-		return await parser.ParseDocumentAsync(content).ConfigureAwait(false);
+		return await parser.ParseDocumentAsync(content, token).ConfigureAwait(false);
 	}
 
 	private Task<IFlurlResponse> GetSessionAsync()

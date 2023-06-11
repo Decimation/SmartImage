@@ -572,10 +572,13 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Application.MainLoop.Invoke(() =>
 		{
+			int st = Dt_Results.Rows.Count;
+
+			IndexColors[st] = GetColor(result.Engine);
+
 			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", string.Empty,
 			                    result.RawUrl, 0, null, null, $"{result.Status}",
 			                    null, null, null, null, null, null);
-
 			// Message[result.RawUrl] = "?";
 
 			for (int i = 0; i < result.Results.Count; i++) {
@@ -597,6 +600,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 				if (sri.Similarity is { } and 0) {
 					sri.Similarity = null;
 				}
+
+				st = Dt_Results.Rows.Count;
+
+				IndexColors[st] = GetColor(result.Engine);
 
 				Dt_Results.Rows.Add($"{result.Engine.Name} #{i + 1}", "",
 				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
