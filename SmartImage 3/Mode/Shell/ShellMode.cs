@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Media;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
@@ -274,7 +275,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	#endregion
 
 	#region Fields/properties
-
+	
 	private object m_cbCallbackTok;
 
 	private Func<bool>? m_runIdleTok;
@@ -660,7 +661,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		IsReady.WaitOne();
 
 		// var results = await Client.RunSearchAsync(Query, m_token.Token);
-		await Client.RunSearchAsync(Query, m_token.Token);
+		await Client.RunSearchAsync(Query, token: m_token.Token);
 
 		Status = false;
 
@@ -1078,10 +1079,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	internal SearchResultItem? FindResultByUrl(Url v)
 	{
-		// todo: optimize
-		var sri = m_results.SelectMany(s => s.Results)
-			.FirstOrDefault(r => v.Equals(r.Url));
+		using var e = m_results.GetEnumerator();
 
-		return sri;
+		while (e.MoveNext()) {
+			var c = e.Current;
+
+			for (int i = 0; i < c.Results.Count; i++) {
+				var sr = c.Results[i];
+
+				if (v.Equals(sr.Url)) {
+					return sr;
+				}
+			}
+		}
+
+		return null;
 	}
 }

@@ -5,6 +5,7 @@ using AngleSharp.XPath;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines;

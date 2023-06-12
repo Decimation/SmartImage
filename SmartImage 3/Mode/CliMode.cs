@@ -105,7 +105,7 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 		m_client.OnResult += OnResult;
 
-		var run = m_client.RunSearchAsync(m_query, m_cts.Token);
+		var run = m_client.RunSearchAsync(m_query, token: m_cts.Token);
 
 		var sw = Stopwatch.StartNew();
 

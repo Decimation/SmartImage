@@ -43,9 +43,11 @@ public sealed partial class ShellMode
 
 	private static readonly ConcurrentDictionary<object, string> Downloaded = new();
 
-	private static ConcurrentDictionary<BaseSearchEngine, ColorScheme> EngineColors = new();
+	private static readonly ConcurrentDictionary<BaseSearchEngine, ColorScheme> EngineColors = new();
 
-	private static ConcurrentDictionary<int, ColorScheme> IndexColors = new();
+	private static readonly ConcurrentDictionary<int, ColorScheme> IndexColors = new();
+
+	private static readonly ConcurrentDictionary<Color, ColorScheme> IndexColors2 = new();
 
 	private static ColorScheme GetColor(BaseSearchEngine baseSearchEngine)
 	{
@@ -57,13 +59,16 @@ public sealed partial class ShellMode
 			var cc = ColorValues[
 				Array.IndexOf(UI.EngineOptions, baseSearchEngine.EngineOption) % UI.EngineOptions.Length];
 
-			cs = new ColorScheme()
-			{
-				Normal = Attribute.Make(cc, Color.Black),
-				Focus  = Attribute.Make(Color.White, cc),
+			if (!IndexColors2.TryGetValue(cc, out cs)) {
+				cs = new ColorScheme()
+				{
+					Normal = Attribute.Make(cc, Color.Black),
+					Focus  = Attribute.Make(Color.White, cc),
 
-			};
-			cs = cs.NormalizeHot();
+				}.NormalizeHot();
+				IndexColors2.TryAdd(cc, cs);
+			}
+
 			EngineColors.TryAdd(baseSearchEngine, cs);
 
 		}
