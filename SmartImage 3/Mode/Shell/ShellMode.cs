@@ -26,6 +26,7 @@ using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
 using Clipboard = Novus.Win32.Clipboard;
 using Window = Terminal.Gui.Window;
+using Kantan.Monad;
 
 // ReSharper disable IdentifierTypo
 
@@ -237,6 +238,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	};
 
+	private static readonly Button Btn_Filter = new("Filter")
+	{
+		X = Pos.Right(Btn_Queue),
+		Y = Pos.Y(Btn_Queue),
+
+		Height      = Dim.Height(Btn_Run),
+		ColorScheme = UI.Cs_Btn1
+
+	};
+
 	private static readonly Button Btn_Delete = new("Delete")
 	{
 		X = Pos.X(Btn_Cancel),
@@ -304,7 +315,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			}
 			else {
 				m_cbCallbackTok = Application.MainLoop.RemoveTimeout(m_cbCallbackTok);
-				m_clipboard?.Clear();
+				m_clipboard.Clear();
 			}
 
 		}
@@ -312,7 +323,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public bool QueueMode { get; private set; }
 
-	public readonly ConcurrentQueue<string> Queue;
+	internal readonly ConcurrentQueue<string> Queue;
 
 	public SearchQuery Query { get; internal set; }
 
@@ -505,10 +516,12 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Cb_Queue.Checked  = QueueMode;
 		Btn_Next.Enabled  = QueueMode;
 
+		Btn_Filter.Clicked += Filter_Clicked;
+
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2, Btn_Delete, Btn_Queue, Cb_Queue, Btn_Next
+		        Lbl_Status2, Btn_Delete, Btn_Queue, Cb_Queue, Btn_Next, Btn_Filter
 		);
 
 		Top.Add(Win);
@@ -573,52 +586,67 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Application.MainLoop.Invoke(() =>
 		{
-			int st = Dt_Results.Rows.Count;
-
-			IndexColors[st] = GetColor(result.Engine);
-
-			Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", string.Empty,
-			                    result.RawUrl, 0, null, null, $"{result.Status}",
-			                    null, null, null, null, null, null);
-			// Message[result.RawUrl] = "?";
-
-			for (int i = 0; i < result.Results.Count; i++) {
-				SearchResultItem sri = result.Results[i];
-
-				object? meta = sri.Metadata switch
-				{
-					string[] rg      => rg.QuickJoin(),
-					Array rg         => rg.QuickJoin(),
-					ICollection c    => c.QuickJoin(),
-					string s         => s,
-					ExpandoObject eo => eo.QuickJoin(),
-					_                => null,
-
-				};
-
-				// object? meta = sri.Metadata;
-
-				if (sri.Similarity is { } and 0) {
-					sri.Similarity = null;
-				}
-
-				st = Dt_Results.Rows.Count;
-
-				IndexColors[st] = GetColor(result.Engine);
-
-				Dt_Results.Rows.Add($"{result.Engine.Name} #{i + 1}", "",
-				                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
-				                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
-			}
-
-			// Interlocked.Increment(ref ResultCount);
-			Pbr_Status.Fraction = (float) m_results.Count / (Client.Engines.Length);
-
-			// Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
-			Tv_Results.SetNeedsDisplay();
-			Pbr_Status.SetNeedsDisplay();
+			AddResultToTable(result);
 		});
 
+	}
+
+	private void AddResultToTable(SearchResult result)
+	{
+		int st = Dt_Results.Rows.Count;
+
+		var cs = GetColor(result.Engine);
+
+		IndexColors[st] = cs;
+
+		Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", string.Empty,
+		                    result.RawUrl, 0, null, null, $"{result.Status}",
+		                    null, null, null, null, null, null);
+		// Message[result.RawUrl] = "?";
+		// var rawSri = new SearchResultItem(result) { Url = result.RawUrl, Similarity = null };
+
+		for (int i = 0; i < result.Results.Count; i++) {
+			SearchResultItem sri = result.Results[i];
+			add(sri, i);
+
+		}
+
+		// Interlocked.Increment(ref ResultCount);
+		Pbr_Status.Fraction = (float) m_results.Count / (Client.Engines.Length);
+
+		// Pbr_Status.Fraction = (float) ++ResultCount / (Client.Engines.Length);
+		Tv_Results.SetNeedsDisplay();
+		Pbr_Status.SetNeedsDisplay();
+
+	}
+
+	void add(SearchResultItem sri, int i)
+	{
+		object? meta = sri.Metadata switch
+		{
+			string[] rg      => rg.QuickJoin(),
+			Array rg         => rg.QuickJoin(),
+			ICollection c    => c.QuickJoin(),
+			string s         => s,
+			ExpandoObject eo => eo.QuickJoin(),
+			_                => null,
+
+		};
+
+		// object? meta = sri.Metadata;
+
+		if (sri.Similarity is { } and 0) {
+			sri.Similarity = null;
+		}
+
+		var cs = GetColor(sri.Root.Engine);
+		var st = Dt_Results.Rows.Count;
+
+		IndexColors[st] = cs;
+
+		Dt_Results.Rows.Add($"{sri.Root.Engine.Name} #{i + 1}", "",
+		                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
+		                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 	}
 
 	private void OnComplete(object sender, SearchResult[] results)
@@ -694,7 +722,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			else if (s == R2.Arg_Queue) {
 				while (e.MoveNext()) {
-					Queue.Enqueue(e.Current?.ToString());
+					Queue.Enqueue(e.Current.ToString());
 				}
 
 				QueueMode = true;

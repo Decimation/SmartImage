@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
@@ -21,6 +22,7 @@ internal static class ImageHelper
         }
         catch (Exception e)
         {
+            Debug.WriteLine($"{e.Message}");
             return Array.Empty<UniSource>();
         }
 

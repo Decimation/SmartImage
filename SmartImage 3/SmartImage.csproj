@@ -78,6 +78,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Spectre.Console.Cli" Version="0.47.0" />
     <PackageReference Include="Spectre.Console.Extensions.Progress" Version="1.0.0" />
     <PackageReference Include="Spectre.Console.Extensions.Table" Version="1.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />

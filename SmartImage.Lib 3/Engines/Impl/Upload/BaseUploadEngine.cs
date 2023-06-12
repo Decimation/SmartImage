@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection.PortableExecutable;
 using Flurl.Http;
@@ -96,6 +97,14 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		}
 
 		var responseMessage = response.ResponseMessage;
+
+		switch (responseMessage.StatusCode) {
+			case HttpStatusCode.GatewayTimeout:
+				url = null;
+				ok  = false;
+				goto ret;
+		}
+
 		url = await responseMessage.Content.ReadAsStringAsync(ct);
 
 		ok = true;

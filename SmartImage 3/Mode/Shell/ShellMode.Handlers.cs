@@ -2,31 +2,22 @@
 // 2023-02-14 @ 12:13 AM
 
 using Color = Terminal.Gui.Color;
-using System.Collections;
 using System.Collections.Concurrent;
-using System.Data;
 using System.Diagnostics;
-using System.Reflection;
-using AngleSharp.Dom;
 using Kantan.Net.Utilities;
 using Kantan.Text;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualBasic.FileIO;
-using Novus.OS;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Mode.Shell.Assets;
 using Terminal.Gui;
 using Clipboard = Novus.Win32.Clipboard;
-using Microsoft.VisualBasic.FileIO;
 using Novus.FileTypes;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
-using SmartImage.Lib.Utilities;
 using Attribute = Terminal.Gui.Attribute;
-using Command = Terminal.Gui.Command;
 using FileSystem = Novus.OS.FileSystem;
 
 namespace SmartImage.Mode.Shell;
@@ -175,6 +166,66 @@ public sealed partial class ShellMode
 		}
 
 		await RunMainAsync();
+	}
+
+	private static int filterOrder = 0;
+	private const  int filterMax   = 3;
+
+	private static Func<SearchResultItem, bool>[] funcs = new[]
+	{
+		(SearchResultItem x) =>
+		{
+			return x.Score >= 3;
+		},
+		(SearchResultItem x) =>
+		{
+			return SearchQuery.IsValidSourceType(x.Url);
+		},
+
+	};
+
+	private async void Filter_Clicked()
+	{
+
+		var res = m_results
+			.Where(r => r.Status == SearchResultStatus.Success || r.Status == SearchResultStatus.None)
+			.SelectMany(r => r.Results);
+
+		filterOrder     = Math.Clamp(++filterOrder, 0, filterMax);
+		Btn_Filter.Text = $"Filter {filterOrder}";
+
+		for (int j = 0; j < filterOrder - (funcs.Length - 1); j++) {
+			res = res.Where(funcs[j]);
+		}
+
+		if (filterOrder == filterMax) {
+			var res3 = res as List<SearchResultItem> ?? res.ToList();
+			var res2 = new ConcurrentBag<SearchResultItem>();
+
+			await Parallel.ForEachAsync(res3, async (item, token) =>
+			{
+				var us = await item.GetUniAsync().ConfigureAwait(false);
+
+				if (us) {
+					res2.Add(item);
+
+				}
+			});
+			res = res2;
+
+			filterOrder = 0;
+		}
+
+		IndexColors.Clear();
+		Dt_Results.Clear();
+
+		int i = 0;
+
+		foreach (var sri in res) {
+			add(sri, i);
+			i++;
+			Tv_Results.Update();
+		}
 	}
 
 	private void Queue_Checked(bool b)

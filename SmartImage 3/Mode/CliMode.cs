@@ -9,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using JetBrains.Annotations;
 using SmartImage.Lib;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
 using SmartImage.Utilities;
 using Spectre.Console;
 using Spectre.Console.Rendering;
@@ -29,8 +30,6 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 	private readonly ConcurrentBag<SearchResult> m_results = new();
 
 	private SearchQuery m_query;
-
-	private SearchResult[] m_results2;
 
 	public        SearchConfig Config { get; }
 	private const int          COMPLETE = 100;
@@ -133,7 +132,6 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 	public void Dispose()
 	{
 		m_results.Clear();
-		Array.Clear(m_results2);
 		m_cts.Dispose();
 		m_query.Dispose();
 		m_client.Dispose();
@@ -141,7 +139,7 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 
 	public async Task<object?> RunAsync(object? c)
 	{
-		var cstr = (string) c;
+		var cstr = (string?) c;
 		Debug.WriteLine($"Input: {cstr}");
 
 		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
@@ -160,6 +158,10 @@ public sealed class CliMode : IDisposable, IMode, IProgress<int>
 			var p = ctx.AddTask("Uploading");
 			p.IsIndeterminate = true;
 			var url = await m_query.UploadAsync();
+
+			if (url == null) {
+				throw new SmartImageException();//todo
+			}
 
 			p.Increment(COMPLETE);
 			ctx.Refresh();
