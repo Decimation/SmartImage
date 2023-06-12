@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
+using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Collections;
@@ -40,7 +41,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 		var r = await base.GetResultAsync(query, token);
 
 		try {
-			IFlurlRequest request = (EndpointUrl + "/search")
+			IFlurlRequest request = (EndpointUrl.AppendPathSegment("/search"))
 				.AllowAnyHttpStatus()
 				.SetQueryParam("url", query.Upload, true);
 
@@ -72,7 +73,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				// Most similar to least similar
 
 				try {
-					var results = await ConvertResults(tm, r);
+					var results = await ConvertResultsAsync(tm, r);
 
 					r.RawUrl = new Url(BaseUrl + query.Upload);
 					r.Results.AddRange(results);
@@ -99,7 +100,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 		return r;
 	}
 
-	private async Task<IEnumerable<SearchResultItem>> ConvertResults(TraceMoeRootObject obj, SearchResult sr)
+	private async Task<IEnumerable<SearchResultItem>> ConvertResultsAsync(TraceMoeRootObject obj, SearchResult sr)
 	{
 		var results = obj.result;
 		var items   = new SearchResultItem[results.Count];
@@ -124,13 +125,13 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			result.Metadata.image = doc.image;
 
 			try {
-				string anilistUrl = ANILIST_URL + doc.anilist;
+				string anilistUrl = ANILIST_URL.AppendPathSegment(doc.anilist);
 				string name       = await m_anilistClient.GetTitleAsync((int) doc.anilist);
 				result.Source = name;
 				result.Url    = new Url(anilistUrl);
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{Name} :: {e.Message}", nameof(ConvertResults));
+				Debug.WriteLine($"{Name} :: {e.Message}", nameof(ConvertResultsAsync));
 			}
 
 			if (result.Similarity < FILTER_THRESHOLD) {

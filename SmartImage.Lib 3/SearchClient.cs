@@ -156,7 +156,7 @@ public sealed class SearchClient : IDisposable
 				OpenResult(rr.MaxBy(r => r.Results.Average(r2 => r2.Score)));
 			}
 			catch (Exception e) {
-
+				Debug.WriteLine($"{e.Message}");
 				OpenResult(results.FirstOrDefault());
 			}
 		}

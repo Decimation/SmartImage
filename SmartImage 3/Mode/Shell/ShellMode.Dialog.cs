@@ -432,10 +432,8 @@ public sealed partial class ShellMode
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
 		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb
-		          
-		          /*cbSendTo*/
-		          
-		          );
+			/*cbSendTo*/
+		);
 
 		var btnHelp = dlCfg.CreateLinkButton("?", R2.Wiki_Url);
 
@@ -504,18 +502,19 @@ public sealed partial class ShellMode
 			var cpy2 = lv.Source.ToList();
 
 			if (lv.SelectedItem < cpy2.Count && lv.SelectedItem >= 0) {
-				var i = (string) cpy2[lv.SelectedItem];
-				// Debug.WriteLine($"{i}");
-				cpy.Remove(i);
-				// Queue.Clear();
-				Queue.Clear();
+				if (cpy2[lv.SelectedItem] is string i) {
+					// Debug.WriteLine($"{i}");
+					cpy.Remove(i);
+					// Queue.Clear();
+					Queue.Clear();
 
-				foreach (var c in cpy) {
-					Queue.Enqueue(c);
+					foreach (var c in cpy) {
+						Queue.Enqueue(c);
+					}
+
+					// Queue = new ConcurrentQueue<string>(cpy);
+					lv.SetFocus();
 				}
-
-				// Queue = new ConcurrentQueue<string>(cpy);
-				lv.SetFocus();
 
 			}
 		};

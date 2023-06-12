@@ -112,9 +112,9 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			return false;
 		}
 
-		foreach (string s in Illegal) {
+		foreach (string s in ErrorBodyMessages) {
 			if (doc.Body.TextContent.Contains(s)) {
-				sr.Status = SearchResultStatus.Cooldown;
+				sr.Status = SearchResultStatus.IllegalInput;
 				return false;
 			}
 

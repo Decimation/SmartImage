@@ -182,8 +182,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 			// Contains links
 			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
-			var resultcontent  = resulttablecontent.ChildNodes[1];
+			// var resultcontent  = resulttablecontent.ChildNodes[1];
 			// var resultcontentcolumn = resultcontent.ChildNodes[1];
+			var resultcontent = ((IElement) result).GetElementsByClassName("resultcontent")[0];
 
 			IHtmlCollection<IElement> resultcontentcolumn_rg = null;
 
@@ -196,7 +197,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			var links = new List<string>();
 
 			if (resulttablecontent is IElement { } e) {
-				var links1 = e.QuerySelectorAll("a").Select(x => x.GetAttribute(Serialization.Atr_href));
+				var links1 = e.QuerySelectorAll(Serialization.Tag_a)
+					.Select(x => x.GetAttribute(Serialization.Atr_href));
 				links.AddRange(links1);
 			}
 
@@ -258,15 +260,15 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 				var nStr  = n.TextContent;
 				var n2Str = n2.TextContent;
 
-				if (synonyms.Any(s => nStr.StartsWith(s))) {
+				if (synonyms.Any(nStr.StartsWith)) {
 					creator1 = n2Str;
 				}
 
-				if (material.Any(s => nStr.StartsWith(s))) {
+				if (material.Any(nStr.StartsWith)) {
 					material1 = n2Str;
 				}
 
-				if (characters.Any(s => nStr.StartsWith(s))) {
+				if (characters.Any(nStr.StartsWith)) {
 					characters1 = n2Str;
 				}
 			}
@@ -309,6 +311,48 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 				Material   = material1
 
 			};
+
+			/*foreach (INode rccn in resultcontent.ChildNodes) {
+				foreach (string s in material) {
+					if (rccn.TextContent.StartsWith(s)) {
+						dataResult.Material = rccn.TextContent.Split(s)[1];
+
+					}
+				}
+			}*/
+			foreach (IElement element1 in resultcontent.QuerySelectorAll("strong")) {
+				for (int i = 0; i < element1.Children.Length - 1; i += 2) {
+					IElement ec1 = element1.Children[i];
+
+					if (ec1.TagName == "BR") {
+						continue;
+					}
+
+					foreach (string m in material) {
+						if (ec1.TextContent.StartsWith(m)) {
+							dataResult.Material = element1.Children[++i].TextContent;
+							break;
+						}
+
+					}
+
+					foreach (string m in characters) {
+						if (ec1.TextContent.StartsWith(m)) {
+							dataResult.Character = element1.Children[++i].TextContent;
+							break;
+						}
+
+					}
+
+					foreach (string m in synonyms) {
+						if (ec1.TextContent.StartsWith(m)) {
+							dataResult.Creator = element1.Children[++i].TextContent;
+							break;
+						}
+
+					}
+				}
+			}
 
 			return dataResult;
 
@@ -410,7 +454,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 	private static SearchResultItem ConvertToImageResult(SauceNaoDataResult sn, SearchResult r)
 	{
-		string siteName = sn.Index != 0 ? sn.Index.ToString() : null;
+		var    idxStr   = sn.Index.ToString();
+		string siteName = sn.Index != 0 ? idxStr : null;
 
 		var site  = Strings.NormalizeNull(siteName);
 		var title = Strings.NormalizeNull(sn.WebsiteTitle);
@@ -439,15 +484,13 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		if ((urls.Length >= 2)) {
 			meta = urls[1..];
 		}
-		else {
-
-		}
+		else { }
 
 		var imageResult = new SearchResultItem(r)
 		{
 			Url         = urls.FirstOrDefault(),
 			Similarity  = Math.Round(sn.Similarity, 2),
-			Description = Strings.NormalizeNull(sn.Index.ToString()),
+			Description = Strings.NormalizeNull(idxStr),
 			Artist      = Strings.NormalizeNull(sn.Creator),
 			Source      = Strings.NormalizeNull(sn.Material),
 			Character   = Strings.NormalizeNull(sn.Character),

@@ -81,7 +81,7 @@ public sealed class YandexEngine : WebSearchEngine
 			};
 		}
 
-		return tagsItem.AsParallel().Select(Parse).ToList();
+		return tagsItem.AsParallel().Select(Parse);
 	}
 
 	private static (int? w, int? h) ParseResolution(string resText)
@@ -130,7 +130,7 @@ public sealed class YandexEngine : WebSearchEngine
 			Debug.WriteLine($"{Name}: {e.Message}", nameof(GetResultAsync));
 		}
 
-		if (!Validate(doc,sr)) {
+		if (!Validate(doc, sr)) {
 			goto ret;
 		}
 
@@ -164,13 +164,14 @@ public sealed class YandexEngine : WebSearchEngine
 			sr.Overview = looksLike;
 		}
 
-		const string NO_MATCHING = "No matching images found";
+		/*const string NO_MATCHING = "No matching images found";
 
 		if (doc.Body.TextContent.Contains(NO_MATCHING)) {
 
 			sr.ErrorMessage = NO_MATCHING;
 			sr.Status       = SearchResultStatus.Extraneous;
 		}
+		*/
 
 		ret:
 		sr.Update();
@@ -210,9 +211,15 @@ public sealed class YandexEngine : WebSearchEngine
 		return rg;
 	}
 
-	public override    void     Dispose() { }
+	public override void Dispose() { }
 
-	protected override string[] Illegal => new []{ "Please confirm that you and not a robot are sending requests" };
+	protected override string[] ErrorBodyMessages
+		=> new[]
+		{
+			"Please confirm that you and not a robot are sending requests",
+			"Изображение не загрузилось, попробуйте загрузить другое.",
+			"No matching images found"
+		};
 
 	protected override async ValueTask<INode[]> GetNodes(IDocument doc)
 	{
@@ -220,13 +227,13 @@ public sealed class YandexEngine : WebSearchEngine
 
 		if (!tagsItem.Any()) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
-			return await Task.FromResult(tagsItem.ToArray());
+			return await Task.FromResult(tagsItem.ToArray()).ConfigureAwait(false);
 			// return tagsItem;
 		}
 
 		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class").Contains("CbirItem")).ToList();
 
-		return await Task.FromResult(sizeTags.ToArray());
+		return await Task.FromResult(sizeTags.ToArray()).ConfigureAwait(false);
 
 		// return sizeTags;
 	}
@@ -238,7 +245,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 		string resText = siz.FirstChild.GetExclusiveText();
 
-		(int? w, int? h) = ParseResolution(resText!);
+		(int? w, int? h) = ParseResolution(resText);
 
 		if (!w.HasValue || !h.HasValue) {
 			w = null;

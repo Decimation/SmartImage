@@ -442,6 +442,10 @@ public sealed partial class ShellMode
 		(r, c) = (Norm(r), Norm(c));
 
 		// NOTE: Column 2 contains the URL
+		//index >= 0 && index < array.Length
+		if (!(r >= 0 && r < Tv_Results.Table.Rows.Count)) {
+			return;
+		}
 
 		Url v = (Tv_Results.Table.Rows[r][COL_URL]).ToString();
 

@@ -141,7 +141,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		}
 	}
 
-	protected override string[] Illegal => new[] { "Can't read query result!","too large" };
+	protected override string[] ErrorBodyMessages => new[] { "Can't read query result!","too large" };
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
@@ -160,7 +160,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 			sr.Status       = SearchResultStatus.Failure;
 			goto ret;
 		}
-		foreach (string s in Illegal) {
+		foreach (string s in ErrorBodyMessages) {
 			if (doc.Body.TextContent.Contains(s)) {
 				
 				sr.Status       = SearchResultStatus.IllegalInput;

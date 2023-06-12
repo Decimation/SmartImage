@@ -161,9 +161,9 @@ internal static partial class UI
 
 	internal static ColorScheme Make(Attribute norm, Attribute? focus = null, Attribute? disabled = null)
 	{
-		focus??= Attribute.Get();
+		focus    ??= Attribute.Get();
 		disabled ??= Attribute.Get();
-		
+
 		return new ColorScheme()
 		{
 			Normal   = norm,
@@ -171,5 +171,25 @@ internal static partial class UI
 			Disabled = disabled.Value
 		}.NormalizeHot();
 	}
-	
+
+	public static ColorScheme NormalizeHot(this ColorScheme cs)
+	{
+		cs.HotFocus  = cs.Focus;
+		cs.HotNormal = cs.Normal;
+		return cs;
+	}
+
+	private const int BRIGHT_DELTA = 0b1000;
+
+	public static Color ToBrightVariant(this Color c)
+	{
+		// +8
+		return (Color) ((int) c + BRIGHT_DELTA);
+	}
+
+	public static Color ToDarkVariant(this Color c)
+	{
+		// +8
+		return (Color) ((int) c - BRIGHT_DELTA);
+	}
 }

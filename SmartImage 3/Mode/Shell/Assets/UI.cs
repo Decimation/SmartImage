@@ -13,7 +13,8 @@ using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
 using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
-using Color=Terminal.Gui.Color;
+using Color = Terminal.Gui.Color;
+
 #endregion
 
 // ReSharper disable InconsistentNaming
@@ -29,14 +30,14 @@ internal static partial class UI
 			while (state is CancellationToken { IsCancellationRequested: false }) {
 				pbr.Pulse();
 				f?.Invoke(state);
-				
+
 				// Task.Delay(TimeSpan.FromSeconds(0.5));
 				// Thread.Sleep(TimeSpan.FromMilliseconds(100));
-				
+
 			}
 
 		}, cts.Token);
-		
+
 	}
 
 	internal static Button CreateLinkButton(this Dialog d, string text, string? url = null, Action? urlAction = null)
@@ -87,7 +88,7 @@ internal static partial class UI
 			TEnum e2   = list[i];
 			var   mark = e.HasFlag(e2);
 
-			if (e2.Equals(default(TEnum))) {
+			if (EqualityComparer<TEnum>.Default.Equals(e2, default)) {
 				// Debug.WriteLine($"Skipping {default(TEnum)}");
 				continue;
 			}
@@ -200,25 +201,4 @@ internal static partial class UI
 		lv.SetNeedsDisplay();
 		Debug.WriteLine($"{val} {args.Item} -> {e} {isMarked}", nameof(OnEngineSelected));
 	}*/
-
-	public static ColorScheme NormalizeHot(this ColorScheme cs)
-	{
-		cs.HotFocus  = cs.Focus;
-		cs.HotNormal = cs.Normal;
-		return cs;
-	}
-
-	private const int BRIGHT_DELTA = 0b1000;
-
-	public static Color ToBrightVariant(this Color c)
-	{
-		// +8
-		return (Color) ((int) c + BRIGHT_DELTA);
-	}
-
-	public static Color ToDarkVariant(this Color c)
-	{
-		// +8
-		return (Color) ((int) c - BRIGHT_DELTA);
-	}
 }

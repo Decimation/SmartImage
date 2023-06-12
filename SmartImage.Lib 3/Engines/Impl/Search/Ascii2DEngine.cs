@@ -118,7 +118,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		}
 	}
 
-	protected override string[] Illegal => new[] { "検索できるのは 縦 10000px での画像です。" };
+	protected override string[] ErrorBodyMessages => new[] { "検索できるのは 縦 10000px での画像です。" };
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
