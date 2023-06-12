@@ -275,7 +275,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	#endregion
 
 	#region Fields/properties
-	
+
 	private object m_cbCallbackTok;
 
 	private Func<bool>? m_runIdleTok;
@@ -961,9 +961,17 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			var s = Tf_Input.Text.ToString().CleanString();
 
-			var rc = Integration.ReadClipboard(out var str);
+			var    rc  = Integration.ReadClipboard(out var strs);
+			string str = strs[0];
 
-			var b = !m_clipboard.Contains(str);
+			if (QueueMode) {
+				foreach (string str1 in strs[1..]) {
+					Queue.Enqueue(str1);
+				}
+			}
+
+			// var b = !m_clipboard.Contains(str);
+			var b = strs.Any(s => !m_clipboard.Contains(s));
 
 			if ( /*!SearchQuery.IsValidSourceType(s)
 			    &&*/ rc && b

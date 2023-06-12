@@ -260,13 +260,20 @@ public static class Integration
 		}
 	}
 
-	public static bool ReadClipboard(out string str)
+	public static bool ReadClipboard(out string[] str)
 	{
 		Clipboard.Open();
-
+		str = Array.Empty<string>();
 		/*
 		 * 1	File
 		 */
+
+		if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_HDROP)) {
+			// var d = Clipboard.GetData((uint) ClipboardFormat.CF_HDROP);
+			var files = Clipboard.GetDragQueryList();
+			str = files;
+			goto cl;
+		}
 
 		var data = Clipboard.GetData((uint) ClipboardFormat.FileNameW);
 
@@ -274,10 +281,10 @@ public static class Integration
 			str = null;
 		}
 		else {
-			str = (string) data;
+			str = new string[] { (string) data };
 		}
 
-		if (!string.IsNullOrWhiteSpace(str)) goto cl;
+		if (str is { } && str.Any()) goto cl;
 
 		/*
 		 * 3	Text
@@ -290,16 +297,16 @@ public static class Integration
 				str = null;
 			}
 			else {
-				str = (string) o;
+				str = new string[] { (string) o };
 			}
 
 			if (o is nint n && n != nint.Zero) {
 				// str = (string) o;
 
-				str = Marshal.PtrToStringUni(n);
+				str = new[] { Marshal.PtrToStringUni(n) };
 			}
 
-			if (!string.IsNullOrWhiteSpace(str)) goto cl;
+			if (str is { } && str.Any()) goto cl;
 		}
 
 		/*
@@ -314,15 +321,17 @@ public static class Integration
 				File.WriteAllBytes(s, ms);
 			}
 
-			str = s;
+			str = new[] { s };
 			Debug.WriteLine($"read png from clipboard {s}");
 		}
 
 		cl:
 		Clipboard.Close();
 		Debug.WriteLine($"Clipboard data: {str}");
+		str = str.Where(SearchQuery.IsValidSourceType).ToArray();
 
-		var b = SearchQuery.IsValidSourceType(str);
+		// var b = SearchQuery.IsValidSourceType(str);
+		var b = str.Any();
 		return b;
 	}
 
