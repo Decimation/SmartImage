@@ -78,7 +78,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 				return null;
 			}
 
-			return Results.MaxBy(r => r.Score);
+			return Results.OrderByDescending(r => r.Similarity).FirstOrDefault(r => Url.IsValid(r.Url));
 		}
 	}
 

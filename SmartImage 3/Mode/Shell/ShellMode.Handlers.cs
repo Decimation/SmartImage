@@ -140,7 +140,7 @@ public sealed partial class ShellMode
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
-
+		Btn_Filter.Text = $"Filter";
 		_inputVerifying = false;
 	}
 
@@ -199,6 +199,8 @@ public sealed partial class ShellMode
 		}
 
 		if (filterOrder == filterMax) {
+			Btn_Filter.Enabled = false;
+
 			var res3 = res as List<SearchResultItem> ?? res.ToList();
 			var res2 = new ConcurrentBag<SearchResultItem>();
 
@@ -226,6 +228,9 @@ public sealed partial class ShellMode
 			i++;
 			Tv_Results.Update();
 		}
+
+		Btn_Filter.Enabled = true;
+
 	}
 
 	private void Queue_Checked(bool b)
@@ -281,7 +286,8 @@ public sealed partial class ShellMode
 			if (!string.IsNullOrWhiteSpace(f)) {
 				Tf_Input.DeleteAll();
 				Debug.WriteLine($"Picked file: {f}", nameof(Browse_Clicked));
-
+				Cancel_Clicked();
+				Restart_Clicked(true);
 				SetInputText(f);
 				Btn_Run.SetFocus();
 

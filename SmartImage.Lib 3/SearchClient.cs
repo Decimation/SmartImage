@@ -72,9 +72,7 @@ public sealed class SearchClient : IDisposable
 		};
 
 		Client = new FlurlClient(new HttpClient(handler))
-		{
-			
-		};
+			{ };
 
 		Logger.LogInformation("Init");
 
@@ -96,7 +94,7 @@ public sealed class SearchClient : IDisposable
 	/// <param name="query">Search query</param>
 	/// <param name="p"><see cref="IProgress{T}"/></param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, [CBN] IProgress<int> p = null, 
+	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, [CBN] IProgress<int> p = null,
 	                                                 CancellationToken token = default)
 	{
 		IsRunning = true;
@@ -152,8 +150,9 @@ public sealed class SearchClient : IDisposable
 			//todo
 			try {
 				var rr = results.Where(r => r.Results.Any());
+				OpenResult(rr.MaxBy(r4 => r4.Results.Select(r5 => r5.Similarity)));
 
-				OpenResult(rr.MaxBy(r => r.Results.Average(r2 => r2.Score)));
+				// OpenResult(rr.MaxBy(r => r.Results.Average(r2 => r2.Score)));
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
@@ -234,7 +233,7 @@ public sealed class SearchClient : IDisposable
 	[CBN]
 	public BaseSearchEngine TryGetEngine(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
 
-	#region 
+	#region
 
 	public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{

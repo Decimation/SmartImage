@@ -83,6 +83,7 @@
     <PackageReference Include="Spectre.Console.Extensions.Table" Version="1.0.0" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
+    <PackageReference Include="System.Reactive" Version="6.0.0" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
     <PackageReference Include="System.Windows.Extensions" Version="7.0.0" />
     <PackageReference Include="Terminal.Gui" Version="1.12.1" />

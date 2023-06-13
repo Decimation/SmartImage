@@ -655,7 +655,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Cancel.Enabled      = false;
 		Lbl_Status2.ColorScheme = UI.Cs_Lbl1_Success;
 		Lbl_Status2.Text        = R2.Inf_Complete;
-
+		Btn_Browse.Enabled      = true;
 	}
 
 	[SupportedOSPlatform(Compat.OS)]
@@ -861,6 +861,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Run.Enabled     = false;
 		Pbr_Status.Fraction = 0;
 		// Btn_Delete.Enabled = true;
+		
+		Btn_Browse.Enabled = QueueMode;
 
 		Tf_Input.ReadOnly  = true;
 		Btn_Delete.Enabled = true;
