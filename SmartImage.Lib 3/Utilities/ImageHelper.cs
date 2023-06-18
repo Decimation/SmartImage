@@ -16,7 +16,7 @@ public static class ImageHelper
 		try {
 			stream = await u.AllowAnyHttpStatus().WithAutoRedirect(true).OnError(f =>
 			{
-				f.ExceptionHandled = true;
+				// f.ExceptionHandled = true;
 				return;
 			}).GetStreamAsync(ct);
 		}

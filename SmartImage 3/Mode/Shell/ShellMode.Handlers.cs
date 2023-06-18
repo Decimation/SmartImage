@@ -202,7 +202,7 @@ public sealed partial class ShellMode
 		Btn_Filter.Text = $"Filter {_filterOrder}";
 
 		for (int j = 0; j < _filterOrder - (FilterFuncs.Length - 1); j++) {
-			res.RemoveAll(x=>FilterFuncs[j](x));
+			res.RemoveAll(x => FilterFuncs[j](x));
 		}
 
 		if (_filterOrder == FILTER_MAX) {
@@ -641,8 +641,68 @@ public sealed partial class ShellMode
 				}
 
 				break;
-			case Key.X:
+			case Key.S:
 				//TODO: WIP
+				eventArgs.Handled = true;
+
+				sri = FindResultByUrl(v);
+
+				if (sri ==  null) {
+					break;
+				}
+				UniSource[]? ih;
+
+				if (!Binary.ContainsKey(sri)) {
+					ih = await ImageHelper.ScanAsync(sri.Url, m_token.Token);
+					Binary.TryAdd(sri, ih);
+				}
+				else {
+					ih = Binary[sri];
+				}
+
+				if (ih == null || !ih.Any()) {
+					break;
+				}
+
+				var dl2 = new Dialog
+				{
+					Title    = "Metadata",
+					AutoSize = false,
+					Width    = Dim.Percent(60),
+					Height   = Dim.Percent(45),
+					/*Border = new Border()
+					{
+						// Background = default
+					}*/
+					// Height   = UI.Dim_80_Pct,
+				};
+
+				var lv2 = new ListView(ih)
+				{
+					Width  = Dim.Fill(),
+					Height = Dim.Fill(),
+					Border = new Border
+					{
+						BorderStyle     = BorderStyle.Rounded,
+						BorderThickness = new Thickness(2)
+					}
+				};
+
+				lv2.OpenSelectedItem += args =>
+				{
+					var i = args.Value.ToString();
+					HttpUtilities.TryOpenUrl(i);
+				};
+				dl2.Add(lv2);
+
+				var btnOk2 = new Button("Ok")
+				{
+					ColorScheme = UI.Cs_Btn3
+				};
+				btnOk2.Clicked += () => { Application.RequestStop(); };
+				dl2.AddButton(btnOk2);
+				Application.Run(dl2);
+
 				break;
 			default:
 				eventArgs.Handled = false;
