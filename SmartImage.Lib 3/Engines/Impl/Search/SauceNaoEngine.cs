@@ -414,7 +414,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		string[] meta = Array.Empty<string>();
 
 		if ((urls.Length >= 2)) {
-			meta = urls[1..];
+			meta = urls[1..].Where(u => !((Url) u).QueryParams.Contains("lookup_type")).ToArray();
 		}
 
 		var imageResult = new SearchResultItem(r)

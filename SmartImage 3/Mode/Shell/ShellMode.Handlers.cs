@@ -191,18 +191,15 @@ public sealed partial class ShellMode
 
 	private async void Filter_Clicked()
 	{
-
 		var res = m_results
 			.Where(r => r.Status is SearchResultStatus.Success or SearchResultStatus.None)
-			.SelectMany(r => r.Results)
-			.ToList();
-		res.AddRange(res.SelectMany(r => r.Sisters));
+			.SelectMany(r => r.Results);
 
 		_filterOrder    = Math.Clamp(++_filterOrder, 0, FILTER_MAX);
 		Btn_Filter.Text = $"Filter {_filterOrder}";
 
 		for (int j = 0; j < _filterOrder - (FilterFuncs.Length - 1); j++) {
-			res.RemoveAll(x => FilterFuncs[j](x));
+			res = res.Where(FilterFuncs[j]);
 		}
 
 		if (_filterOrder == FILTER_MAX) {
@@ -220,7 +217,7 @@ public sealed partial class ShellMode
 
 				}
 			});
-			res = res2.ToList();
+			res = res2;
 
 			_filterOrder = 0;
 		}
@@ -228,15 +225,22 @@ public sealed partial class ShellMode
 		IndexColors.Clear();
 		Dt_Results.Clear();
 
-		int i = 0;
+		var resx = res as SearchResultItem[] ?? res.ToArray();
+		var rg   = resx.GroupBy(r => r.Root);
 
-		foreach (var sri in res) {
-			AddResultItemToTable(sri, i);
-			i++;
-			Tv_Results.Update();
+		foreach (var gg in rg) {
+			int i = 0;
+
+			foreach (var sri in gg) {
+				AddResultItemToTable(sri, i);
+				i++;
+				Tv_Results.Update();
+			}
+
 		}
 
 		Btn_Filter.Enabled = true;
+
 	}
 
 	#endregion
@@ -461,8 +465,13 @@ public sealed partial class ShellMode
 	private ColorScheme ResultTable_RowColor(TableView.RowColorGetterArgs r)
 	{
 		// var ar = r.Table.Rows[r.RowIndex];
-		return IndexColors[r.RowIndex];
+		if (IndexColors.ContainsKey(r.RowIndex)) {
+			return IndexColors[r.RowIndex];
 
+		}
+		else {
+			return new ColorScheme();
+		}
 		/*// var eng=args.Table.Rows[args.RowIndex]["Engine"];
 
 		ColorScheme? cs = null;

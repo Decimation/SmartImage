@@ -660,7 +660,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Lbl_Status2.ColorScheme = UI.Cs_Lbl1_Success;
 		Lbl_Status2.Text        = R2.Inf_Complete;
 		Btn_Browse.Enabled      = true;
+		_buffer                 = Dt_Results.Copy();
+
 	}
+
+	private static DataTable _buffer;
 
 	[SupportedOSPlatform(Compat.OS)]
 	private void OnCompleteWin(object sender, SearchResult[] results)
@@ -1114,6 +1118,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Binary.Clear();
 
 		_inputVerifying = false;
+
+		Tv_Results.Table = Dt_Results;
 	}
 
 	public void Close()

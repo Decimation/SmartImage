@@ -22,7 +22,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 {
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
-		Timeout = TimeSpan.FromSeconds(6);
+		Timeout = TimeSpan.FromSeconds(10);
 		MaxSize = 5 * 1000 * 1000;
 	}
 
