@@ -146,6 +146,18 @@ public sealed record SearchResultItem : IDisposable,
 		m_isScored = true;
 	}
 
+	public IEnumerable<SearchResultItem> FromMetadata()
+	{
+		if (Metadata is string[] rg) {
+			for (int i = 0; i < rg.Length; i++) {
+				yield return new SearchResultItem(this)
+				{
+					Url = rg[i]
+				};
+			}
+		}
+	}
+
 	[MustUseReturnValue]
 	public async Task<bool> GetUniAsync()
 	{

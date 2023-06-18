@@ -347,6 +347,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public ShellMode(string[] args)
 	{
+		if (Compat.IsWin) {
+			try {
+				Console.SetWindowSize(150, 35);
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+			}
+
+		}
+
 		Args     = args;
 		m_token  = new();
 		m_tokenu = new();
@@ -602,13 +612,34 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", string.Empty,
 		                    result.RawUrl, 0, null, null, $"{result.Status}",
 		                    null, null, null, null, null, null);
+
 		// Message[result.RawUrl] = "?";
 		// var rawSri = new SearchResultItem(result) { Url = result.RawUrl, Similarity = null };
 
 		for (int i = 0; i < result.Results.Count; i++) {
 			SearchResultItem sri = result.Results[i];
+
+			object? meta = sri.Metadata switch
+			{
+				/*string[] rg      => rg.QuickJoin(),
+				Array rg         => rg.QuickJoin(),
+				ICollection c    => c.QuickJoin(),*/
+				string s         => s,
+				ExpandoObject eo => eo.QuickJoin(),
+				_                => null,
+
+			};
+
 			add(sri, i);
 
+			if (sri.Metadata is string[] rg) {
+				var extra = sri.FromMetadata().ToArray();
+
+				for (int j = 0; j < extra.Length; j++) {
+					SearchResultItem searchResultItem = extra[j];
+					add(searchResultItem, i, j + 1);
+				}
+			}
 		}
 
 		// Interlocked.Increment(ref ResultCount);
@@ -620,20 +651,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	}
 
-	void add(SearchResultItem sri, int i)
+	void add(SearchResultItem sri, int i, int j = 0)
 	{
-		object? meta = sri.Metadata switch
-		{
-			string[] rg      => rg.QuickJoin(),
-			Array rg         => rg.QuickJoin(),
-			ICollection c    => c.QuickJoin(),
-			string s         => s,
-			ExpandoObject eo => eo.QuickJoin(),
-			_                => null,
 
-		};
-
-		// object? meta = sri.Metadata;
+		object? meta = sri.Metadata;
 
 		if (sri.Similarity is { } and 0) {
 			sri.Similarity = null;
@@ -644,7 +665,13 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		IndexColors[st] = cs;
 
-		Dt_Results.Rows.Add($"{sri.Root.Engine.Name} #{i + 1}", "",
+		string s = $"{sri.Root.Engine.Name} #{i + 1}";
+
+		if (j != 0) {
+			s += $".{j}";
+		}
+
+		Dt_Results.Rows.Add(s, "",
 		                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
 		                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
 	}
@@ -861,7 +888,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Run.Enabled     = false;
 		Pbr_Status.Fraction = 0;
 		// Btn_Delete.Enabled = true;
-		
+
 		Btn_Browse.Enabled = QueueMode;
 
 		Tf_Input.ReadOnly  = true;

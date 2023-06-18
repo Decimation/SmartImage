@@ -188,7 +188,7 @@ public sealed partial class ShellMode
 	{
 
 		var res = m_results
-			.Where(r => r.Status == SearchResultStatus.Success || r.Status == SearchResultStatus.None)
+			.Where(r => r.Status is SearchResultStatus.Success or SearchResultStatus.None)
 			.SelectMany(r => r.Results);
 
 		filterOrder     = Math.Clamp(++filterOrder, 0, filterMax);
@@ -197,7 +197,7 @@ public sealed partial class ShellMode
 		for (int j = 0; j < filterOrder - (funcs.Length - 1); j++) {
 			res = res.Where(funcs[j]);
 		}
-
+		
 		if (filterOrder == filterMax) {
 			Btn_Filter.Enabled = false;
 
@@ -230,7 +230,6 @@ public sealed partial class ShellMode
 		}
 
 		Btn_Filter.Enabled = true;
-
 	}
 
 	private void Queue_Checked(bool b)

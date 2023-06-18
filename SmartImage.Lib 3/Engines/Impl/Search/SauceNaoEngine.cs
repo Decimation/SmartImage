@@ -30,7 +30,10 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 {
-	private const string BASE_URL = "https://saucenao.com/";
+	private static readonly string[] Syn_Artists    = new[] { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
+	private static readonly string[] Syn_Characters = new[] { "Characters:" };
+	private static readonly string[] Syn_Material   = new[] { "Material:", "Source:" };
+	private const           string   BASE_URL       = "https://saucenao.com/";
 
 	private const string BASE_ENDPOINT = BASE_URL + "search.php";
 
@@ -226,18 +229,14 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			// INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
 			string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
 
-			var synonyms   = new[] { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
-			var material   = new[] { "Material:", "Source:" };
-			var characters = new[] { "Characters:" };
-
 			// string material1 = rcci.SubstringAfter(material);
-			string material1 = rcci.SubstringAfter(material.First());
+			string material1 = rcci.SubstringAfter(Syn_Material.First());
 
 			// string creator1 = rcci;
 			string creator1    = rcci;
 			string characters1 = null;
 
-			foreach (var s in synonyms) {
+			foreach (var s in Syn_Artists) {
 				if (rti.StartsWith(s)) {
 					rti = rti.SubstringAfter(s).Trim(' ');
 				}
@@ -253,7 +252,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 					            or IElement { NodeName: "SPAN" }))
 				.ToArray();
 
-			for (int i = 0; i < nodes.Length - 1; i += 2) {
+			/*for (int i = 0; i < nodes.Length - 1; i += 2) {
 				var n  = nodes[i];
 				var n2 = nodes[i + 1];
 
@@ -271,7 +270,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 				if (characters.Any(nStr.StartsWith)) {
 					characters1 = n2Str;
 				}
-			}
+			}*/
 
 			/*if (resultcontentcolumn.ChildNodes.Length >= 2) {
 				string creatorTitle = null;
@@ -306,11 +305,36 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			{
 				Urls       = links.Distinct().ToArray(),
 				Similarity = similarity,
-				Creator    = creator1,
-				Title      = rti,
-				Material   = material1
+				// Creator    = creator1,
+				Title    = rti,
+				Material = material1
 
 			};
+
+			for (int i = 0; i < nodes.Length; i++) {
+				var node = nodes[i];
+				var s    = node.TextContent;
+
+				if (s.StartsWith("Source:")) {
+					dataResult.Source = nodes[++i].TextContent;
+					continue;
+				}
+
+				if (s.StartsWith("Material:")) {
+					dataResult.Material = nodes[++i].TextContent;
+					continue;
+				}
+
+				if (Syn_Characters.Any(s.StartsWith)) {
+					dataResult.Character = nodes[++i].TextContent;
+					continue;
+				}
+
+				if (Syn_Artists.Any(s.StartsWith)) {
+					dataResult.Creator = nodes[++i].TextContent;
+					continue;
+				}
+			}
 
 			/*foreach (INode rccn in resultcontent.ChildNodes) {
 				foreach (string s in material) {
@@ -320,7 +344,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 					}
 				}
 			}*/
-			foreach (IElement element1 in resultcontent.QuerySelectorAll("strong")) {
+			/*foreach (IElement element1 in resultcontent.QuerySelectorAll("strong")) {
 				for (int i = 0; i < element1.Children.Length - 1; i += 2) {
 					IElement ec1 = element1.Children[i];
 
@@ -352,7 +376,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 					}
 				}
-			}
+			}*/
 
 			return dataResult;
 
@@ -532,6 +556,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		public string Material { get; internal set; }
 
 		public string Creator { get; internal set; }
+		public string Source  { get; internal set; }
 	}
 }
 
