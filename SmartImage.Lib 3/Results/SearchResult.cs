@@ -100,6 +100,15 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		}
 	}
 
+	public bool IsStatusSuccessful
+		=> Status is not (SearchResultStatus.None
+			   or SearchResultStatus.Cooldown
+			   or SearchResultStatus.Extraneous
+			   or SearchResultStatus.Failure
+			   or SearchResultStatus.IllegalInput
+			   or SearchResultStatus.NoResults
+			   or SearchResultStatus.Unavailable);
+
 	public void Update()
 	{
 		bool any = Results.Any();

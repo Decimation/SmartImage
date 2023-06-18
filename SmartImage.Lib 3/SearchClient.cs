@@ -156,7 +156,9 @@ public sealed class SearchClient : IDisposable
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
-				OpenResult(results.FirstOrDefault());
+
+				var result = results.FirstOrDefault(f => f.IsStatusSuccessful) ?? results.First();
+				OpenResult(result);
 			}
 		}
 

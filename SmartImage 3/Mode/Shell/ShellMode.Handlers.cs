@@ -224,7 +224,7 @@ public sealed partial class ShellMode
 		int i = 0;
 
 		foreach (var sri in res) {
-			add(sri, i);
+			AddResultItemToTable(sri, i);
 			i++;
 			Tv_Results.Update();
 		}

@@ -30,10 +30,11 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 {
-	private static readonly string[] Syn_Artists    = new[] { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
-	private static readonly string[] Syn_Characters = new[] { "Characters:" };
-	private static readonly string[] Syn_Material   = new[] { "Material:", "Source:" };
-	private const           string   BASE_URL       = "https://saucenao.com/";
+	private static readonly string[] Syn_Artists    = { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
+	private static readonly string[] Syn_Characters = { "Characters:" };
+	private static readonly string[] Syn_Material   = { "Material:", "Source:" };
+
+	private const string BASE_URL = "https://saucenao.com/";
 
 	private const string BASE_ENDPOINT = BASE_URL + "search.php";
 
@@ -90,7 +91,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		var imageResults = dataResults.Where(o => o != null)
 			// .AsParallel()
-			.Select((x) => ConvertToImageResult(x, result))
+			.Select(x => ConvertToImageResult(x, result))
 			.Where(o => o != null)
 			.OrderByDescending(e => e.Similarity)
 			.ToList();
@@ -100,6 +101,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			//return sresult;
 			result.Status = SearchResultStatus.NoResults;
 			goto ret;
+		}
+		else {
+			result.Status = SearchResultStatus.Success;
 		}
 
 		result.Results.AddRange(imageResults);
@@ -137,7 +141,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 						           m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.png");
 					           }
 
-					           return;
 				           });
 			html = await response.GetStringAsync();
 		}
@@ -149,7 +152,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			 */
 
 			if (e.StatusCode == (int) HttpStatusCode.TooManyRequests) {
-				Trace.WriteLine($"On cooldown!", Name);
+				Trace.WriteLine("On cooldown!", Name);
 				return await Task.FromResult(Enumerable.Empty<SauceNaoDataResult>());
 			}
 
@@ -241,63 +244,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 					rti = rti.SubstringAfter(s).Trim(' ');
 				}
 			}
-			// creator1 = creator1.SubstringAfter("Creator: ");
-			// resultcontentcolumn.GetNodes(true, (IElement element) => element.LocalName == "strong");
-
-			// resultcontentcolumn.GetNodes(deep:true, predicate: (INode n)=>n.TryGetAttribute() )
-			// var t = resultcontentcolumn.ChildNodes[0].TextContent;
 
 			var nodes = resultcontentcolumn_rg.SelectMany(e => e.ChildNodes)
 				.Where(c => c is not (IElement { TagName: "BR" }
 					            or IElement { NodeName: "SPAN" }))
 				.ToArray();
-
-			/*for (int i = 0; i < nodes.Length - 1; i += 2) {
-				var n  = nodes[i];
-				var n2 = nodes[i + 1];
-
-				var nStr  = n.TextContent;
-				var n2Str = n2.TextContent;
-
-				if (synonyms.Any(nStr.StartsWith)) {
-					creator1 = n2Str;
-				}
-
-				if (material.Any(nStr.StartsWith)) {
-					material1 = n2Str;
-				}
-
-				if (characters.Any(nStr.StartsWith)) {
-					characters1 = n2Str;
-				}
-			}*/
-
-			/*if (resultcontentcolumn.ChildNodes.Length >= 2) {
-				string creatorTitle = null;
-
-				creatorTitle +=
-					$"{resultcontentcolumn.ChildNodes[0].TextContent} {resultcontentcolumn.ChildNodes[1].TextContent}\n";
-
-				if (resultcontentcolumn.ChildNodes.Length >= 6) {
-					creatorTitle +=
-						$"{resultcontentcolumn.ChildNodes[4].TextContent} {resultcontentcolumn.ChildNodes[5].TextContent}";
-
-				}
-
-				creator1 = creatorTitle;
-			}*/
-
-			// resultcontentcolumn.ChildNodes[1].TryGetAttribute("href");
-
-			/*for (int i = 0; i < resultcontentcolumn.ChildNodes.Length - 1; i++) {
-				if (i % 3 == 0 && i != 0) {
-					continue;
-				}
-
-				var cn1 = resultcontentcolumn.ChildNodes[i];
-				var cn2 = resultcontentcolumn.ChildNodes[i + 1];
-				title1 += $"{cn1.TextContent} {cn2.TextContent}\n";
-			}*/
 
 			float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
 
@@ -315,68 +266,25 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 				var node = nodes[i];
 				var s    = node.TextContent;
 
-				if (s.StartsWith("Source:")) {
-					dataResult.Source = nodes[++i].TextContent;
+				if (s.StartsWith(Syn_Material[0])) {
+					dataResult.Source = nodes[++i].TextContent.Trim(' ');
 					continue;
 				}
 
-				if (s.StartsWith("Material:")) {
-					dataResult.Material = nodes[++i].TextContent;
+				if (s.StartsWith(Syn_Material[1])) {
+					dataResult.Material = nodes[++i].TextContent.Trim(' ');
 					continue;
 				}
 
 				if (Syn_Characters.Any(s.StartsWith)) {
-					dataResult.Character = nodes[++i].TextContent;
+					dataResult.Character = nodes[++i].TextContent.Trim(' ');
 					continue;
 				}
 
 				if (Syn_Artists.Any(s.StartsWith)) {
-					dataResult.Creator = nodes[++i].TextContent;
-					continue;
+					dataResult.Creator = nodes[++i].TextContent.Trim(' ');
 				}
 			}
-
-			/*foreach (INode rccn in resultcontent.ChildNodes) {
-				foreach (string s in material) {
-					if (rccn.TextContent.StartsWith(s)) {
-						dataResult.Material = rccn.TextContent.Split(s)[1];
-
-					}
-				}
-			}*/
-			/*foreach (IElement element1 in resultcontent.QuerySelectorAll("strong")) {
-				for (int i = 0; i < element1.Children.Length - 1; i += 2) {
-					IElement ec1 = element1.Children[i];
-
-					if (ec1.TagName == "BR") {
-						continue;
-					}
-
-					foreach (string m in material) {
-						if (ec1.TextContent.StartsWith(m)) {
-							dataResult.Material = element1.Children[++i].TextContent;
-							break;
-						}
-
-					}
-
-					foreach (string m in characters) {
-						if (ec1.TextContent.StartsWith(m)) {
-							dataResult.Character = element1.Children[++i].TextContent;
-							break;
-						}
-
-					}
-
-					foreach (string m in synonyms) {
-						if (ec1.TextContent.StartsWith(m)) {
-							dataResult.Creator = element1.Children[++i].TextContent;
-							break;
-						}
-
-					}
-				}
-			}*/
 
 			return dataResult;
 
@@ -508,7 +416,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		if ((urls.Length >= 2)) {
 			meta = urls[1..];
 		}
-		else { }
 
 		var imageResult = new SearchResultItem(r)
 		{
@@ -522,6 +429,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			Title       = Strings.NormalizeNull(sn.Title),
 			Metadata    = meta
 		};
+
+		imageResult.AddSisters(meta);
 
 		return imageResult;
 

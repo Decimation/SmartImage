@@ -630,15 +630,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			};
 
-			add(sri, i);
+			AddResultItemToTable(sri, i);
 
-			if (sri.Metadata is string[] rg) {
-				var extra = sri.FromMetadata().ToArray();
-
-				for (int j = 0; j < extra.Length; j++) {
-					SearchResultItem searchResultItem = extra[j];
-					add(searchResultItem, i, j + 1);
-				}
+			for (int j = 0; j < sri.Sisters.Count; j++) {
+				AddResultItemToTable(sri.Sisters[j], i, j);
 			}
 		}
 
@@ -651,7 +646,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	}
 
-	void add(SearchResultItem sri, int i, int j = 0)
+	private void AddResultItemToTable(SearchResultItem sri, int i, int j = 0)
 	{
 
 		object? meta = sri.Metadata;
@@ -668,7 +663,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		string s = $"{sri.Root.Engine.Name} #{i + 1}";
 
 		if (j != 0) {
-			s += $".{j}";
+			s += $".{j + 1}";
 		}
 
 		Dt_Results.Rows.Add(s, "",

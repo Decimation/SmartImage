@@ -101,6 +101,7 @@ public sealed record SearchResultItem : IDisposable,
 		Metadata   = new ExpandoObject();
 		m_isScored = false;
 		Uni        = null;
+		Sisters    = new List<SearchResultItem>();
 	}
 
 	public static bool IsValid([CBN] SearchResultItem r)
@@ -146,16 +147,24 @@ public sealed record SearchResultItem : IDisposable,
 		m_isScored = true;
 	}
 
-	public IEnumerable<SearchResultItem> FromMetadata()
+	[CanBeNull]
+	public SearchResultItem Parent { get; internal set; }
+
+	public List<SearchResultItem> Sisters { get; internal set; }
+
+	public void AddSisters(string[] rg)
 	{
-		if (Metadata is string[] rg) {
-			for (int i = 0; i < rg.Length; i++) {
-				yield return new SearchResultItem(this)
-				{
-					Url = rg[i]
-				};
-			}
+		for (int i = 0; i < rg.Length; i++) {
+
+			var sri = new SearchResultItem(this)
+			{
+				Url    = rg[i],
+				Parent = this
+			};
+
+			Sisters.Add(sri);
 		}
+
 	}
 
 	[MustUseReturnValue]
