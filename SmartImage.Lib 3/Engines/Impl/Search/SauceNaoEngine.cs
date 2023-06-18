@@ -427,7 +427,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			Character   = Strings.NormalizeNull(sn.Character),
 			Site        = site,
 			Title       = Strings.NormalizeNull(sn.Title),
-			Metadata    = meta
+			Metadata    = meta,
 		};
 
 		imageResult.AddSisters(meta);

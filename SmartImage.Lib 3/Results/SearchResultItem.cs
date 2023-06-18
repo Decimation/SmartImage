@@ -101,6 +101,7 @@ public sealed record SearchResultItem : IDisposable,
 		Metadata   = new ExpandoObject();
 		m_isScored = false;
 		Uni        = null;
+		Parent     = null;
 		Sisters    = new List<SearchResultItem>();
 	}
 

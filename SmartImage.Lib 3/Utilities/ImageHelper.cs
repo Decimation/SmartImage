@@ -7,64 +7,57 @@ using Novus.FileTypes;
 
 namespace SmartImage.Lib.Utilities;
 
-internal static class ImageHelper
+public static class ImageHelper
 {
-    public static async Task<UniSource[]> ScanAsync(Url u, CancellationToken ct = default)
-    {
-        Stream stream;
+	public static async Task<UniSource[]> ScanAsync(Url u, CancellationToken ct = default)
+	{
+		Stream stream;
 
-        try
-        {
-            stream = await u.AllowAnyHttpStatus().WithAutoRedirect(true).OnError(f =>
-            {
-                return;
-            }).GetStreamAsync(ct);
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine($"{e.Message}");
-            return Array.Empty<UniSource>();
-        }
+		try {
+			stream = await u.AllowAnyHttpStatus().WithAutoRedirect(true).OnError(f =>
+			{
+				f.ExceptionHandled = true;
+				return;
+			}).GetStreamAsync(ct);
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+			return Array.Empty<UniSource>();
+		}
 
-        var ul = new ConcurrentBag<UniSource>();
+		var ul = new ConcurrentBag<UniSource>();
 
-        var us = await UniSource.TryGetAsync(stream, whitelist: FileType.Image);
+		var us = await UniSource.TryGetAsync(stream, whitelist: FileType.Image);
 
-        if (us != null)
-        {
-            ul.Add(us);
-            goto ret;
-        }
+		if (us != null) {
+			ul.Add(us);
+			goto ret;
+		}
 
-        var p = new HtmlParser();
-        var dd = await p.ParseDocumentAsync(stream, ct);
+		var p  = new HtmlParser();
+		var dd = await p.ParseDocumentAsync(stream, ct);
 
-        var a = dd.QueryAllDistinctAttribute("a", "href");
-        var b = dd.QueryAllDistinctAttribute("img", "src");
+		var a = dd.QueryAllDistinctAttribute("a", "href");
+		var b = dd.QueryAllDistinctAttribute("img", "src");
 
-        var c = a.Union(b).Where(SearchQuery.IsValidSourceType);
+		var c = a.Union(b).Where(SearchQuery.IsValidSourceType);
 
-        await Parallel.ForEachAsync(c, ct, async (s, token) =>
-        {
-            var ux = await UniSource.TryGetAsync(s, whitelist: FileType.Image);
+		await Parallel.ForEachAsync(c, ct, async (s, token) =>
+		{
+			var ux = await UniSource.TryGetAsync(s, whitelist: FileType.Image);
 
-            if (ux != null)
-            {
-                ul.Add(ux);
+			if (ux != null) {
+				ul.Add(ux);
 
-            }
-            else
-            {
+			}
+			else { }
 
-            }
+			return;
+		});
 
-            return;
-        });
+		dd.Dispose();
+		ret:
+		return ul.ToArray();
 
-        dd.Dispose();
-    ret:
-        return ul.ToArray();
-
-    }
-
+	}
 }

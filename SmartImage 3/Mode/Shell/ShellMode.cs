@@ -268,6 +268,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Enabled     = false
 	};
 
+	private static readonly Button Btn_Scan = new("Scan")
+	{
+		X = Pos.Right(Btn_Filter),
+		Y = Pos.Y(Btn_Filter),
+
+		Height      = Dim.Height(Btn_Cancel),
+		ColorScheme = UI.Cs_Btn1,
+
+	};
+
 	#endregion
 
 	#region Static
@@ -515,6 +525,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Cb_Queue.Toggled   += Queue_Checked;
 		Btn_Queue.Clicked  += Queue_Dialog;
 		Btn_Next.Clicked   += Next_Clicked;
+		Btn_Scan.Clicked   += BtnScan;
 		// Btn_Reload.Clicked       += Reload_Clicked;
 
 		Lbl_QueryUpload.Clicked += () =>
@@ -531,7 +542,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Win.Add(Lbl_Input, Tf_Input, Btn_Run, Lbl_InputOk,
 		        Btn_Clear, Tv_Results, Pbr_Status, Lbl_InputInfo, Lbl_QueryUpload,
 		        Btn_Restart, Btn_Config, Lbl_InputInfo2, Btn_Cancel, Lbl_Status, Btn_Browse,
-		        Lbl_Status2, Btn_Delete, Btn_Queue, Cb_Queue, Btn_Next, Btn_Filter
+		        Lbl_Status2, Btn_Delete, Btn_Queue, Cb_Queue, Btn_Next, Btn_Filter, Btn_Scan
 		);
 
 		Top.Add(Win);
@@ -584,6 +595,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		if (Client.IsComplete) {
 			Btn_Run.Enabled    = false;
 			Btn_Cancel.Enabled = false;
+			Btn_Filter.Enabled = true;
+			Btn_Scan.Enabled   = true;
 		}
 
 	}
@@ -633,7 +646,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			AddResultItemToTable(sri, i);
 
 			for (int j = 0; j < sri.Sisters.Count; j++) {
-				AddResultItemToTable(sri.Sisters[j], i, j);
+				AddResultItemToTable(sri.Sisters[j], i, j+1);
 			}
 		}
 
@@ -661,11 +674,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 		IndexColors[st] = cs;
 
 		string s = $"{sri.Root.Engine.Name} #{i + 1}";
+		if (j!=0) {
+			s += $".{j}";
 
-		if (j != 0) {
-			s += $".{j + 1}";
 		}
-
 		Dt_Results.Rows.Add(s, "",
 		                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
 		                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
@@ -940,10 +952,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 	{
 		bool c = ke.IsCtrl;
 		bool s = false;
-		var  k = ke.Key & ~Key.CtrlMask;
+		var  key = ke.Key & ~Key.CtrlMask;
 
 		if (c) {
-			switch (k) {
+			switch (key) {
 				case Key.C:
 					if (Btn_Cancel.Enabled) {
 						Btn_Cancel.OnClicked();
@@ -971,6 +983,59 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 					}
 
+					break;
+				case Key.D:
+					var dl = new Dialog
+					{
+						Title    = "Metadata",
+						AutoSize = false,
+						Width    = Dim.Percent(80),
+						Height   = Dim.Percent(70),
+						/*Border = new Border()
+						{
+							// Background = default
+						}*/
+						// Height   = UI.Dim_80_Pct,
+					};
+
+					var dt = new DataTable()
+					{
+						Columns =
+						{
+							"Item",
+							"Url"
+						}
+					};
+
+					foreach (var (k, v) in Binary) {
+						int i = 0;
+
+						foreach (UniSource source in v) {
+							dt.Rows.Add($"{k.Root.Engine.Name} #{i++}", source.Value.ToString());
+
+						}
+					}
+
+					var lv = new TableView(dt)
+					{
+						Width  = Dim.Fill(),
+						Height = Dim.Fill(),
+						Border = new Border
+						{
+							BorderStyle     = BorderStyle.Rounded,
+							BorderThickness = new Thickness(2)
+						}
+					};
+
+					dl.Add(lv);
+
+					var btnOk = new Button("Ok")
+					{
+						ColorScheme = UI.Cs_Btn3
+					};
+					btnOk.Clicked += () => { Application.RequestStop(); };
+					dl.AddButton(btnOk);
+					Application.Run(dl);
 					break;
 				default:
 					s = false;

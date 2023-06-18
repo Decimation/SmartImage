@@ -1,23 +1,25 @@
 ﻿// Read S SmartImage ShellMode.Handlers.cs
 // 2023-02-14 @ 12:13 AM
 
-using Color = Terminal.Gui.Color;
 using System.Collections.Concurrent;
+using System.Data;
 using System.Diagnostics;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft.VisualBasic;
 using Microsoft.VisualBasic.FileIO;
+using Novus.FileTypes;
+using Novus.Win32.Structures.User32;
 using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
-using SmartImage.Mode.Shell.Assets;
-using Terminal.Gui;
-using Clipboard = Novus.Win32.Clipboard;
-using Novus.FileTypes;
-using Novus.Win32.Structures.User32;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
+using SmartImage.Mode.Shell.Assets;
+using Terminal.Gui;
 using Attribute = Terminal.Gui.Attribute;
+using Clipboard = Novus.Win32.Clipboard;
 using FileSystem = Novus.OS.FileSystem;
 
 namespace SmartImage.Mode.Shell;
@@ -40,29 +42,29 @@ public sealed partial class ShellMode
 
 	private static readonly ConcurrentDictionary<Color, ColorScheme> IndexColors2 = new();
 
+	private static readonly ConcurrentDictionary<SearchResultItem, UniSource[]> Binary = new();
+
 	private static ColorScheme GetColor(BaseSearchEngine baseSearchEngine)
 	{
 		if (EngineColors.TryGetValue(baseSearchEngine, out var cs)) {
 			return cs;
 
 		}
-		else {
-			var cc = ColorValues[
-				Array.IndexOf(UI.EngineOptions, baseSearchEngine.EngineOption) % UI.EngineOptions.Length];
 
-			if (!IndexColors2.TryGetValue(cc, out cs)) {
-				cs = new ColorScheme()
-				{
-					Normal = Attribute.Make(cc, Color.Black),
-					Focus  = Attribute.Make(Color.White, cc),
+		var cc = ColorValues[
+			Array.IndexOf(UI.EngineOptions, baseSearchEngine.EngineOption) % UI.EngineOptions.Length];
 
-				}.NormalizeHot();
-				IndexColors2.TryAdd(cc, cs);
-			}
+		if (!IndexColors2.TryGetValue(cc, out cs)) {
+			cs = new ColorScheme
+			{
+				Normal = Attribute.Make(cc, Color.Black),
+				Focus  = Attribute.Make(Color.White, cc),
 
-			EngineColors.TryAdd(baseSearchEngine, cs);
-
+			}.NormalizeHot();
+			IndexColors2.TryAdd(cc, cs);
 		}
+
+		EngineColors.TryAdd(baseSearchEngine, cs);
 
 		return cs;
 	}
@@ -140,7 +142,7 @@ public sealed partial class ShellMode
 
 		Tf_Input.SetFocus();
 		Tf_Input.EnsureFocus();
-		Btn_Filter.Text = $"Filter";
+		Btn_Filter.Text = "Filter";
 		_inputVerifying = false;
 	}
 
@@ -168,16 +170,19 @@ public sealed partial class ShellMode
 		await RunMainAsync();
 	}
 
-	private static int filterOrder = 0;
-	private const  int filterMax   = 3;
+	#region Filter
 
-	private static Func<SearchResultItem, bool>[] funcs = new[]
+	private static int _filterOrder;
+
+	private const int FILTER_MAX = 3;
+
+	private static readonly Func<SearchResultItem, bool>[] FilterFuncs =
 	{
-		(SearchResultItem x) =>
+		x =>
 		{
 			return x.Score >= 3;
 		},
-		(SearchResultItem x) =>
+		x =>
 		{
 			return SearchQuery.IsValidSourceType(x.Url);
 		},
@@ -189,16 +194,18 @@ public sealed partial class ShellMode
 
 		var res = m_results
 			.Where(r => r.Status is SearchResultStatus.Success or SearchResultStatus.None)
-			.SelectMany(r => r.Results);
+			.SelectMany(r => r.Results)
+			.ToList();
+		res.AddRange(res.SelectMany(r => r.Sisters));
 
-		filterOrder     = Math.Clamp(++filterOrder, 0, filterMax);
-		Btn_Filter.Text = $"Filter {filterOrder}";
+		_filterOrder    = Math.Clamp(++_filterOrder, 0, FILTER_MAX);
+		Btn_Filter.Text = $"Filter {_filterOrder}";
 
-		for (int j = 0; j < filterOrder - (funcs.Length - 1); j++) {
-			res = res.Where(funcs[j]);
+		for (int j = 0; j < _filterOrder - (FilterFuncs.Length - 1); j++) {
+			res.RemoveAll(x=>FilterFuncs[j](x));
 		}
-		
-		if (filterOrder == filterMax) {
+
+		if (_filterOrder == FILTER_MAX) {
 			Btn_Filter.Enabled = false;
 
 			var res3 = res as List<SearchResultItem> ?? res.ToList();
@@ -213,9 +220,9 @@ public sealed partial class ShellMode
 
 				}
 			});
-			res = res2;
+			res = res2.ToList();
 
-			filterOrder = 0;
+			_filterOrder = 0;
 		}
 
 		IndexColors.Clear();
@@ -231,6 +238,8 @@ public sealed partial class ShellMode
 
 		Btn_Filter.Enabled = true;
 	}
+
+	#endregion
 
 	private void Queue_Checked(bool b)
 	{
@@ -389,10 +398,6 @@ public sealed partial class ShellMode
 			File.WriteAllText("crash.log", $"{e.Message} {e.Source} {e.StackTrace}");
 
 		}
-		finally {
-
-			// Restart_Clicked(true);
-		}
 
 	}
 
@@ -421,6 +426,30 @@ public sealed partial class ShellMode
 	}
 
 	private static int Norm(int n, int n2 = 0) => n == INV ? n2 : n;
+
+	private async void BtnScan()
+	{
+		var urls = m_results.SelectMany(r => r.Results)
+			.Where(s => Url.IsValid(s.Url))
+			.ToArray();
+
+		Lbl_Status2.Text = $"Scanning...";
+
+		await Parallel.ForEachAsync(urls, async (item, token) =>
+		{
+			var u = await ImageHelper.ScanAsync(item.Url, token);
+
+			if (u is not null) {
+				Binary.TryAdd(item, u);
+
+			}
+		});
+
+		Lbl_Status2.Text = $"Complete...";
+
+	}
+
+	#region
 
 	/// <summary>
 	///     <see cref="Tv_Results" />
@@ -451,7 +480,7 @@ public sealed partial class ShellMode
 		}
 	}
 
-	private ColorScheme? ResultTable_RowColor(TableView.RowColorGetterArgs r)
+	private ColorScheme ResultTable_RowColor(TableView.RowColorGetterArgs r)
 	{
 		// var ar = r.Table.Rows[r.RowIndex];
 		return IndexColors[r.RowIndex];
@@ -571,9 +600,9 @@ public sealed partial class ShellMode
 
 				if (d is Array { Length: > 0 } dr) {
 
-					var dl = new Dialog()
+					var dl = new Dialog
 					{
-						Title    = $"Metadata",
+						Title    = "Metadata",
 						AutoSize = false,
 						Width    = Dim.Percent(60),
 						Height   = Dim.Percent(45),
@@ -588,7 +617,7 @@ public sealed partial class ShellMode
 					{
 						Width  = Dim.Fill(),
 						Height = Dim.Fill(),
-						Border = new Border()
+						Border = new Border
 						{
 							BorderStyle     = BorderStyle.Rounded,
 							BorderThickness = new Thickness(2)
@@ -620,6 +649,8 @@ public sealed partial class ShellMode
 				break;
 		}
 	}
+
+	#endregion
 
 #if ALT
 	private async void Reload_Clicked()
