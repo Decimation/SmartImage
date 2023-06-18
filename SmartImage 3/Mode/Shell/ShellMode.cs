@@ -36,6 +36,14 @@ namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode : IDisposable, IMode
 {
+	#region
+
+	private const int CON_WIDTH = 150;
+
+	private const int CON_HEIGHT = 35;
+
+	#endregion
+
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 	// NOTE: Static initialization order is nondeterminant with partial classes
 
@@ -244,8 +252,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Y = Pos.Y(Btn_Queue),
 
 		Height      = Dim.Height(Btn_Run),
-		ColorScheme = UI.Cs_Btn1
-
+		ColorScheme = UI.Cs_Btn1,
+		Enabled     = false
 	};
 
 	private static readonly Button Btn_Delete = new("Delete")
@@ -349,7 +357,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 	{
 		if (Compat.IsWin) {
 			try {
-				Console.SetWindowSize(150, 35);
+				Console.SetWindowSize(CON_WIDTH, CON_HEIGHT);
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
@@ -374,8 +382,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Client.OnComplete += OnCompleteWin;
 		}
 
-		// Application.Init();
-
 		ProcessArgs();
 		ApplyConfig();
 
@@ -383,7 +389,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		 * Check if clipboard contains valid query input
 		 */
 
-		// m_cbCallbackTok = Application.MainLoop.AddTimeout(TimeoutTimeSpan, ClipboardCallback);
 		UseClipboard = Config.Clipboard;
 
 		m_clipboard = new List<ustring>();
@@ -447,31 +452,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Tv_Results.Table   = Dt_Results;
 		Tv_Results.Visible = false;
 
-		// Tv_Results.SelectedCellChanged += OnCellSelected;
-		Tv_Results.KeyPress += ResultTable_KeyPress;
-
-		/*Tv_Results.SelectedCellChanged += eventArgs =>
-		{
-			// todo
-			var (r, c) = (Norm(eventArgs.NewRow), Norm(eventArgs.NewCol));
-
-			var cc = eventArgs.Table.Rows[r][COL_URL].ToString();
-
-			var sri = Find(cc);
-
-			if (sri is { }) {
-				if (sri.Metadata is Array rg) {
-					Lbl_Status2.Text = $"{rg.Length} m";
-
-				}
-			}
-			/*var r = Find(rows[args.Row][COL_URL].ToString());
-
-			if (r is { }) {
-				Lbl_Status2.Text = $"{r.Metadata is { }}";
-			}#1#
-		};*/
-
+		Tv_Results.KeyPress      += ResultTable_KeyPress;
 		Tv_Results.CellActivated += ResultTable_CellActivated;
 		Btn_Run.Clicked          += Run_Clicked;
 		Btn_Restart.Clicked      += () => Restart_Clicked(false);
@@ -1118,6 +1099,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 		// Queue.Clear();
 		m_results.Clear();
 
+		var e = Binary.GetEnumerator();
+
+		while (e.MoveNext())
+		{
+			var (k, v) = e.Current;
+
+			foreach (UniSource uv in v)
+			{
+				uv.Dispose();
+			}
+		}
+
+		Binary.Clear();
+
 		_inputVerifying = false;
 	}
 
@@ -1138,6 +1133,18 @@ public sealed partial class ShellMode : IDisposable, IMode
 		m_tokenu.Dispose();
 
 		Queue.Clear();
+
+		var e = Binary.GetEnumerator();
+
+		while (e.MoveNext()) {
+			var (k, v) = e.Current;
+
+			foreach (UniSource uv in v) {
+				uv.Dispose();
+			}
+		}
+
+		Binary.Clear();
 
 		m_results.Clear();
 	}

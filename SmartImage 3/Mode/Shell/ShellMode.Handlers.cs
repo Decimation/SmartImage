@@ -427,28 +427,6 @@ public sealed partial class ShellMode
 
 	private static int Norm(int n, int n2 = 0) => n == INV ? n2 : n;
 
-	private async void BtnScan()
-	{
-		var urls = m_results.SelectMany(r => r.Results)
-			.Where(s => Url.IsValid(s.Url))
-			.ToArray();
-
-		Lbl_Status2.Text = $"Scanning...";
-
-		await Parallel.ForEachAsync(urls, async (item, token) =>
-		{
-			var u = await ImageHelper.ScanAsync(item.Url, token);
-
-			if (u is not null) {
-				Binary.TryAdd(item, u);
-
-			}
-		});
-
-		Lbl_Status2.Text = $"Complete...";
-
-	}
-
 	#region
 
 	/// <summary>
@@ -647,10 +625,11 @@ public sealed partial class ShellMode
 
 				sri = FindResultByUrl(v);
 
-				if (sri ==  null) {
+				if (sri == null) {
 					break;
 				}
-				UniSource[]? ih;
+
+				UniSource[] ih;
 
 				if (!Binary.ContainsKey(sri)) {
 					ih = await ImageHelper.ScanAsync(sri.Url, m_token.Token);
@@ -660,16 +639,16 @@ public sealed partial class ShellMode
 					ih = Binary[sri];
 				}
 
-				if (ih == null || !ih.Any()) {
+				if (!ih.Any()) {
 					break;
 				}
 
 				var dl2 = new Dialog
 				{
-					Title    = "Metadata",
+					Title    = "Direct Images",
 					AutoSize = false,
-					Width    = Dim.Percent(60),
-					Height   = Dim.Percent(45),
+					Width    = Dim.Percent(80),
+					Height   = Dim.Percent(75),
 					/*Border = new Border()
 					{
 						// Background = default
@@ -677,7 +656,27 @@ public sealed partial class ShellMode
 					// Height   = UI.Dim_80_Pct,
 				};
 
-				var lv2 = new ListView(ih)
+				var dt2 = new DataTable()
+				{
+					Columns =
+					{
+						{ "Source" },
+						{ "Url", typeof(Url) },
+						{ "Info" }
+					}
+				};
+
+				var e = Binary.GetEnumerator();
+
+				while (e.MoveNext()) {
+					var (kk, vv) = e.Current;
+
+					foreach (UniSource uv in vv) {
+						dt2.Rows.Add(kk.Root.Engine.Name, (Url) uv.Value.ToString(), $"{uv.FileTypes[0]}");
+					}
+				}
+
+				var lv2 = new TableView(dt2)
 				{
 					Width  = Dim.Fill(),
 					Height = Dim.Fill(),
@@ -688,9 +687,9 @@ public sealed partial class ShellMode
 					}
 				};
 
-				lv2.OpenSelectedItem += args =>
+				lv2.CellActivated += args =>
 				{
-					var i = args.Value.ToString();
+					var i = (Url) args.Table.Rows[args.Row][1];
 					HttpUtilities.TryOpenUrl(i);
 				};
 				dl2.Add(lv2);

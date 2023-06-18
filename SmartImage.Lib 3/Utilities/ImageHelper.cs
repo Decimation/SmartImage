@@ -1,6 +1,8 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics;
+using AngleSharp;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Novus.FileTypes;
@@ -14,11 +16,12 @@ public static class ImageHelper
 		Stream stream;
 
 		try {
-			stream = await u.AllowAnyHttpStatus().WithAutoRedirect(true).OnError(f =>
+			stream = await u.AllowAnyHttpStatus().WithCookies(out var cj).WithAutoRedirect(true).OnError(f =>
 			{
 				// f.ExceptionHandled = true;
 				return;
 			}).GetStreamAsync(ct);
+
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}");
@@ -34,13 +37,17 @@ public static class ImageHelper
 			goto ret;
 		}
 
-		var p  = new HtmlParser();
-		var dd = await p.ParseDocumentAsync(stream, ct);
+		// var p  = new HtmlParser();
+		// var dd = await p.ParseDocumentAsync(stream, ct);
+
+		var config  = Configuration.Default.WithDefaultLoader().WithCookies().WithJs().WithMetaRefresh();
+		var context = BrowsingContext.New(config);
+		var dd      = await context.OpenAsync(u, ct);
 
 		var a = dd.QueryAllDistinctAttribute("a", "href");
 		var b = dd.QueryAllDistinctAttribute("img", "src");
 
-		var c = a.Union(b).Where(SearchQuery.IsValidSourceType);
+		var c = a.Union(b).Where(SearchQuery.IsValidSourceType).Distinct();
 
 		await Parallel.ForEachAsync(c, ct, async (s, token) =>
 		{
@@ -55,6 +62,7 @@ public static class ImageHelper
 			return;
 		});
 
+		context.Dispose();
 		dd.Dispose();
 		ret:
 		return ul.ToArray();
