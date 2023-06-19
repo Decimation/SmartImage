@@ -84,7 +84,7 @@ public abstract class BaseSearchEngine : IDisposable
 		{
 			RawUrl       = await GetRawUrlAsync(query),
 			Status       = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None,
-			ErrorMessage = $"Engine restriction"
+			ErrorMessage = null
 		};
 
 		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));

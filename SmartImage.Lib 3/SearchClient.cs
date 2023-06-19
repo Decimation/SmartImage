@@ -54,7 +54,6 @@ public sealed class SearchClient : IDisposable
 			settings.Redirects.AllowSecureToInsecure      = true; // default false
 			settings.Redirects.ForwardAuthorizationHeader = true; // default false
 			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
-
 			settings.OnError = r =>
 			{
 				Debug.WriteLine($"exception: {r.Exception}");

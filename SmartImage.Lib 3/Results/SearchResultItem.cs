@@ -168,7 +168,7 @@ public sealed record SearchResultItem : IDisposable,
 
 	}
 
-	[MustUseReturnValue]
+	// [MustUseReturnValue]
 	public async Task<bool> GetUniAsync()
 	{
 		if (Uni != null) {
@@ -189,6 +189,10 @@ public sealed record SearchResultItem : IDisposable,
 	public void Dispose()
 	{
 		Uni?.Dispose();
+
+		foreach (var sis in Sisters) {
+			sis.Dispose();
+		}
 	}
 
 	#region Relational members

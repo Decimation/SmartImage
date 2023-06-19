@@ -430,10 +430,13 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		var columnStyles = col.ToDictionary(k => k, e => columnStyle);
 
-		columnStyles[col[1]].MinAcceptableWidth = 2;
-		columnStyles[col[1]].MinWidth           = 1;
-		columnStyles[col[1]].MaxWidth           = 2;
-		columnStyles[col[2]].MaxWidth           = 50;
+		/*
+		columnStyles[col[COL_STATUS]].MinAcceptableWidth = 2;
+		columnStyles[col[COL_STATUS]].MinWidth           = 1;
+		columnStyles[col[COL_STATUS]].MaxWidth           = 2;
+		columnStyles[col[COL_URL]].MaxWidth              = 60;
+		columnStyles[col[COL_METADATA]].MaxWidth         = 25;
+		*/
 
 		Tv_Results.Style = new TableView.TableStyle()
 		{
@@ -461,36 +464,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Cancel.Clicked       += Cancel_Clicked;
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
-
-		Tf_Input.TextChanging += async delegate(TextChangingEventArgs eventArgs)
-		{
-			if (_inputVerifying) {
-				return;
-			}
-
-			if (!m_s.WaitOne(300)) {
-				return;
-			}
-
-			var ok = await Input_TextChanging(eventArgs);
-
-			m_s.Release();
-
-			/*
-			if (ok && Config.AutoSearch && !Client.IsRunning)
-			{
-				Run_Clicked();
-			}
-			*/
-
-			Application.MainLoop.Invoke(() =>
-			{
-				if (ok && Config.AutoSearch && !Client.IsRunning) {
-					Run_Clicked();
-				}
-
-			});
-		};
+		Tf_Input.TextChanging    += OnTf_InputOnTextChanging;
 
 		Btn_Delete.Clicked += Delete_Clicked;
 		Cb_Queue.Toggled   += Queue_Checked;
@@ -600,17 +574,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		for (int i = 0; i < result.Results.Count; i++) {
 			SearchResultItem sri = result.Results[i];
 
-			object? meta = sri.Metadata switch
-			{
-				/*string[] rg      => rg.QuickJoin(),
-				Array rg         => rg.QuickJoin(),
-				ICollection c    => c.QuickJoin(),*/
-				string s         => s,
-				ExpandoObject eo => eo.QuickJoin(),
-				_                => null,
-
-			};
-
 			AddResultItemToTable(sri, i);
 
 			for (int j = 0; j < sri.Sisters.Count; j++) {
@@ -630,7 +593,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private void AddResultItemToTable(SearchResultItem sri, int i, int j = 0)
 	{
 
-		object? meta = sri.Metadata;
+		object? meta = sri.Metadata switch
+		{
+			/*string[] rg      => rg.QuickJoin(),
+			Array rg         => rg.QuickJoin(),
+			ICollection c    => c.QuickJoin(),*/
+			string s1        => s1,
+			ExpandoObject eo => eo.QuickJoin(),
+			_                => null,
+
+		};
 
 		if (sri.Similarity is { } and 0) {
 			sri.Similarity = null;
@@ -1004,7 +976,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 			var    rc  = Integration.ReadClipboard(out var strs);
 			string str = strs[0];
 
-			if (QueueMode) {
+			if (strs.Length > 1) {
+				QueueMode = true;
+				Queue_Checked(!true);
+				Cb_Queue.Checked = true;
+
 				foreach (string str1 in strs[1..]) {
 					Queue.Enqueue(str1);
 				}
@@ -1105,12 +1081,10 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		var e = Binary.GetEnumerator();
 
-		while (e.MoveNext())
-		{
+		while (e.MoveNext()) {
 			var (k, v) = e.Current;
 
-			foreach (UniSource uv in v)
-			{
+			foreach (UniSource uv in v) {
 				uv.Dispose();
 			}
 		}
@@ -1119,7 +1093,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		_inputVerifying = false;
 
-		Tv_Results.Table = Dt_Results;
 	}
 
 	public void Close()

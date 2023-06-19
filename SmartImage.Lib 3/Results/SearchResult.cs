@@ -78,17 +78,16 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 				return null;
 			}
 
-			return Results.OrderByDescending(r => r.Similarity).FirstOrDefault(r => Url.IsValid(r.Url));
+			return Results.OrderByDescending(r => r.Similarity)
+				.FirstOrDefault(r => Url.IsValid(r.Url));
 		}
 	}
 
 	public bool IsStatusSuccessful
-		=> Status is not (SearchResultStatus.None
-			   or SearchResultStatus.Cooldown
+		=> Status is not (SearchResultStatus.Cooldown
 			   or SearchResultStatus.Extraneous
 			   or SearchResultStatus.Failure
 			   or SearchResultStatus.IllegalInput
-			   or SearchResultStatus.NoResults
 			   or SearchResultStatus.Unavailable);
 
 	internal SearchResult(BaseSearchEngine bse)

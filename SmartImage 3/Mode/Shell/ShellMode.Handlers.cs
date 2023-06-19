@@ -69,10 +69,17 @@ public sealed partial class ShellMode
 		return cs;
 	}
 
-	private async Task<bool> Input_TextChanging(TextChangingEventArgs tc)
+	private async void OnTf_InputOnTextChanging(TextChangingEventArgs eventArgs)
 	{
+		if (_inputVerifying) {
+			return;
+		}
 
-		var text = tc.NewText?.ToString()?.TrimStart('\"');
+		if (!m_s.WaitOne(300)) {
+			return;
+		}
+
+		var text = eventArgs.NewText?.ToString()?.TrimStart('\"');
 
 		// Debug.WriteLine($"testing {text}", nameof(Input_TextChanging));
 
@@ -80,7 +87,7 @@ public sealed partial class ShellMode
 
 		var sourceType = SearchQuery.IsValidSourceType(text);
 
-		bool ok = false;
+		bool ok1 = false;
 
 		if (sourceType) {
 			// m_upload.WaitOne();
@@ -88,10 +95,10 @@ public sealed partial class ShellMode
 				return;
 			}*/
 
-			ok = await TrySetQueryAsync(text);
+			ok1 = await TrySetQueryAsync(text);
 
-			Btn_Run.Enabled = ok;
-			Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
+			Btn_Run.Enabled = ok1;
+			// Debug.WriteLine($"{nameof(Input_TextChanging)} :: ok");
 
 			// m_upload.Release();
 			/*if (ok && Config.AutoSearch && !Client.IsRunning) {
@@ -99,7 +106,24 @@ public sealed partial class ShellMode
 			}*/
 		}
 
-		return ok;
+		var ok = ok1;
+
+		m_s.Release();
+
+		/*
+			if (ok && Config.AutoSearch && !Client.IsRunning)
+			{
+				Run_Clicked();
+			}
+			*/
+
+		Application.MainLoop.Invoke(() =>
+		{
+			if (ok && Config.AutoSearch && !Client.IsRunning) {
+				Run_Clicked();
+			}
+
+		});
 	}
 
 	/// <summary>
@@ -462,16 +486,20 @@ public sealed partial class ShellMode
 		}
 	}
 
-	private ColorScheme ResultTable_RowColor(TableView.RowColorGetterArgs r)
+	private static ColorScheme ResultTable_RowColor(TableView.RowColorGetterArgs r)
 	{
 		// var ar = r.Table.Rows[r.RowIndex];
-		if (IndexColors.ContainsKey(r.RowIndex)) {
-			return IndexColors[r.RowIndex];
 
-		}
+		// GC.TryStartNoGCRegion(10);
+
+		if (IndexColors.TryGetValue(r.RowIndex, out ColorScheme? cs)) { }
 		else {
-			return new ColorScheme();
+			cs = new ColorScheme();
 		}
+
+		// GC.EndNoGCRegion();
+		return cs;
+
 		/*// var eng=args.Table.Rows[args.RowIndex]["Engine"];
 
 		ColorScheme? cs = null;

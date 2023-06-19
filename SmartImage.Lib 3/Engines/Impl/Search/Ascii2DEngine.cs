@@ -5,6 +5,7 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
+using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Results;
 using Image = System.Drawing.Image;
@@ -73,27 +74,9 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		try {
 			if (sender is Url origin) {
-				var data = new MultipartFormDataContent()
-				{
-					{ new StringContent(origin), "uri" }
-				};
+				IFlurlResponse res;
 
-				var res = await origin.AllowAnyHttpStatus()
-					          .WithCookies(out var cj)
-					          .WithTimeout(Timeout)
-					          .WithHeaders(new
-					          {
-						          User_Agent = HttpUtilities.UserAgent
-					          })
-					          .WithAutoRedirect(true)
-					          .WithClient(SearchClient.Client)
-					          /*.OnError(s =>
-					          {
-						          Debug.WriteLine($"{s.Response}");
-						          s.ExceptionHandled = true;
-								  
-					          })*/
-					          .GetAsync(token);
+				res = await GetResponseByUrlAsync(origin, token);
 
 				var str = await res.GetStringAsync();
 
@@ -118,13 +101,39 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		}
 	}
 
+	private async Task<IFlurlResponse> GetResponseByUrlAsync(Url origin, CancellationToken token)
+	{
+		var data = new MultipartFormDataContent()
+		{
+			{ new StringContent(origin), "uri" }
+		};
+
+		var res = await origin.AllowAnyHttpStatus()
+			          .WithCookies(out var cj)
+			          .WithTimeout(Timeout)
+			          .WithHeaders(new
+			          {
+				          User_Agent = HttpUtilities.UserAgent
+			          })
+			          .WithAutoRedirect(true)
+			          .WithClient(SearchClient.Client)
+			          /*.OnError(s =>
+					          {
+						          Debug.WriteLine($"{s.Response}");
+						          s.ExceptionHandled = true;
+								  
+					          })*/
+			          .GetAsync(token);
+		return res;
+	}
+
 	protected override string[] ErrorBodyMessages => new[] { "検索できるのは 縦 10000px での画像です。" };
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
 
-		var info = n.ChildNodes.Where(n => !string.IsNullOrWhiteSpace(n.TextContent))
+		var info = n.ChildNodes.Where(n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
 			.ToArray();
 
 		string hash = info.First().TextContent;
