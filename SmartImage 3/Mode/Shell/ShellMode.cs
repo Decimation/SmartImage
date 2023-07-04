@@ -499,7 +499,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Application.RootKeyEvent = RootKeyEvent;
 
-		if (Config.AutoSearch) {
+		if (Config.AutoSearch && !string.IsNullOrWhiteSpace(Tf_Input.Text.ToString())) {
 			Btn_Run.OnClicked();
 		}
 
@@ -766,9 +766,13 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		bool ok;
 
-		if (sq != SearchQuery.Null) {
+		if (sq  != SearchQuery.Null) {
 			bool ret;
 
+			if (Query == sq) {
+				// return true;
+				goto ret;
+			}
 			try {
 
 				/*Btn_Cancel.Enabled = true;
@@ -822,7 +826,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			_inputVerifying      = false;
 			return false;
 		}
-
+		ret:
 		Debug.WriteLine($">> {sq} {Config}", nameof(TrySetQueryAsync));
 
 		Lbl_InputOk.SetLabelStatus(true);
@@ -951,7 +955,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
-			if (IsQueryReady() || _inputVerifying) {
+			if ((IsQueryReady()&&!string.IsNullOrWhiteSpace(Tf_Input.Text.ToString())) || _inputVerifying) {
 				Debug.WriteLine($"Ignoring...");
 				goto r1;
 			}
@@ -967,7 +971,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				goto r2;
 			}
 
-			var s = Tf_Input.Text.ToString().CleanString();
+			// var s = Tf_Input.Text.ToString().CleanString();
 
 			var    rc  = Integration.ReadClipboard(out var strs);
 			string str = strs[0];
@@ -1088,7 +1092,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Binary.Clear();
 
 		_inputVerifying = false;
-
 	}
 
 	public void Close()

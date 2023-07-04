@@ -460,7 +460,7 @@ public sealed partial class ShellMode
 		var v = f(Query.Uni.Value.ToString()!);
 	}
 
-	private static void Clear_Clicked()
+	private void Clear_Clicked()
 	{
 		Tf_Input.ReadOnly = false;
 		Tf_Input.DeleteAll();
@@ -474,6 +474,8 @@ public sealed partial class ShellMode
 		Tf_Input.SetFocus();
 		Btn_Delete.Enabled = false;
 		IndexColors.Clear();
+		m_clipboard.Clear();
+
 	}
 
 	private void Cancel_Clicked()
