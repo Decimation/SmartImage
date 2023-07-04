@@ -108,6 +108,11 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		}
 	}
 
+	public IEnumerable<SearchResultItem> AllResults
+	{
+		get { return Results.Union(Results.SelectMany(r => r.Sisters)); }
+	}
+
 	public void Update()
 	{
 		bool any = Results.Any();

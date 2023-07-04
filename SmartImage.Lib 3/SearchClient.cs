@@ -54,6 +54,7 @@ public sealed class SearchClient : IDisposable
 			settings.Redirects.AllowSecureToInsecure      = true; // default false
 			settings.Redirects.ForwardAuthorizationHeader = true; // default false
 			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
+
 			settings.OnError = r =>
 			{
 				Debug.WriteLine($"exception: {r.Exception}");
@@ -148,10 +149,10 @@ public sealed class SearchClient : IDisposable
 			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 			//todo
 			try {
-				var rr = results.Where(r => r.Results.Any());
-				OpenResult(rr.MaxBy(r4 => r4.Results.Select(r5 => r5.Similarity)));
+				var rr = results.SelectMany(rr => rr.AllResults)
+					.OrderByDescending(rr => rr.Score);
 
-				// OpenResult(rr.MaxBy(r => r.Results.Average(r2 => r2.Score)));
+				OpenResult(rr.FirstOrDefault()?.Url);
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
@@ -165,7 +166,23 @@ public sealed class SearchClient : IDisposable
 
 		return results;
 	}
+	private void OpenResult(Url url1)
+	{
+#if DEBUG && !TEST
+#pragma warning disable CA1822
+		// ReSharper disable once MemberCanBeMadeStatic.Local        
+		Logger.LogDebug("Not opening result {result}", result);
+		return;
 
+#pragma warning restore CA1822
+#else
+
+		Logger.LogInformation("Opening {Url}", url1);
+
+		HttpUtilities.TryOpenUrl(url1);
+#endif
+
+	}
 	private void OpenResult(SearchResult result)
 	{
 #if DEBUG && !TEST
@@ -184,10 +201,8 @@ public sealed class SearchClient : IDisposable
 		else {
 			url1 = result.Best?.Url ?? result.RawUrl;
 		}
-
-		Logger.LogInformation("Opening {Url}", url1);
-
-		HttpUtilities.TryOpenUrl(url1);
+		
+		OpenResult(url1);
 #endif
 
 	}
