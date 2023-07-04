@@ -4,6 +4,8 @@
 using System.Collections.Concurrent;
 using System.Data;
 using System.Diagnostics;
+using System.Net;
+using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.VisualBasic;
@@ -32,44 +34,62 @@ public sealed partial class ShellMode
 	private const int COL_STATUS   = 1;
 	private const int COL_METADATA = 12;
 
-	private static readonly Color[] ColorValues = Enum.GetValues<Color>();
-
-	private static readonly ConcurrentDictionary<object, string> Downloaded = new();
-
-	private static readonly ConcurrentDictionary<BaseSearchEngine, ColorScheme> EngineColors = new();
-
-	private static readonly ConcurrentDictionary<int, ColorScheme> IndexColors = new();
-
-	private static readonly ConcurrentDictionary<Color, ColorScheme> IndexColors2 = new();
-
-	private static readonly ConcurrentDictionary<SearchResultItem, UniSource[]> Binary = new();
-
-	private static ColorScheme GetColor(BaseSearchEngine baseSearchEngine)
+	private static readonly Dictionary<SearchEngineOptions, Color> ColorValues = new()
 	{
-		if (EngineColors.TryGetValue(baseSearchEngine, out var cs)) {
+		[SearchEngineOptions.SauceNao] = Color.Green,
+		[SearchEngineOptions.EHentai]  = Color.Magenta,
+		[SearchEngineOptions.Iqdb]     = Color.BrightGreen,
+		[SearchEngineOptions.Ascii2D]  = Color.Cyan,
+		[SearchEngineOptions.TraceMoe] = Color.Blue,
+
+		[SearchEngineOptions.RepostSleuth] = Color.Brown,
+
+		[SearchEngineOptions.ArchiveMoe] = Color.BrightBlue,
+		[SearchEngineOptions.Yandex]     = Color.BrightRed,
+
+		[SearchEngineOptions.GoogleImages] = Color.DarkGray,
+		[SearchEngineOptions.KarmaDecay]   = Color.DarkGray,
+		[SearchEngineOptions.Bing]         = Color.DarkGray,
+		[SearchEngineOptions.TinEye]       = Color.DarkGray,
+		[SearchEngineOptions.ImgOps]       = Color.DarkGray,
+
+	};
+
+	private static readonly ConcurrentDictionary<object, string>                Downloaded   = new();
+	private static readonly ConcurrentDictionary<BaseSearchEngine, ColorScheme> EngineColors = new();
+	private static readonly ConcurrentDictionary<int, ColorScheme>              IndexColors  = new();
+	private static readonly ConcurrentDictionary<Color, ColorScheme>            IndexColors2 = new();
+	private static readonly ConcurrentDictionary<SearchResultItem, UniSource[]> Binary       = new();
+
+	private static ColorScheme GetColor(BaseSearchEngine bse)
+	{
+		if (EngineColors.TryGetValue(bse, out var cs)) {
 			return cs;
 
 		}
 
-		var cc = ColorValues[
-			Array.IndexOf(UI.EngineOptions, baseSearchEngine.EngineOption) % UI.EngineOptions.Length];
+		var cc = ColorValues[bse.EngineOption];
 
 		if (!IndexColors2.TryGetValue(cc, out cs)) {
+
+			var attrNormal = Attribute.Make(cc, Color.Black);
+			var attrFocus  = Attribute.Make(Color.White, cc);
+
 			cs = new ColorScheme
 			{
-				Normal = Attribute.Make(cc, Color.Black),
-				Focus  = Attribute.Make(Color.White, cc),
+				Normal = attrNormal,
+				Focus  = attrFocus,
 
 			}.NormalizeHot();
 			IndexColors2.TryAdd(cc, cs);
 		}
 
-		EngineColors.TryAdd(baseSearchEngine, cs);
+		EngineColors.TryAdd(bse, cs);
 
 		return cs;
 	}
 
-	private async void OnTf_InputOnTextChanging(TextChangingEventArgs eventArgs)
+	private async void Input_TextChanging(TextChangingEventArgs eventArgs)
 	{
 		if (_inputVerifying) {
 			return;
@@ -198,32 +218,45 @@ public sealed partial class ShellMode
 
 	private static int _filterOrder;
 
-	private const int FILTER_MAX = 3;
-
-	private static readonly Func<SearchResultItem, bool>[] FilterFuncs =
-	{
-		x =>
-		{
-			return x.Score >= 3;
-		},
-		x =>
-		{
-			return SearchQuery.IsValidSourceType(x.Url);
-		},
-
-	};
+	private const int FILTER_MAX = 4;
 
 	private async void Filter_Clicked()
 	{
 		var res = m_results
 			.Where(r => r.Status is SearchResultStatus.Success or SearchResultStatus.None)
-			.SelectMany(r => r.Results);
+			.SelectMany(r => r.AllResults);
 
 		_filterOrder    = Math.Clamp(++_filterOrder, 0, FILTER_MAX);
 		Btn_Filter.Text = $"Filter {_filterOrder}";
 
-		for (int j = 0; j < _filterOrder - (FilterFuncs.Length - 1); j++) {
-			res = res.Where(FilterFuncs[j]);
+		if (_filterOrder >= 1) {
+			res = res.Where(x => x.Score >= 3);
+		}
+
+		if (_filterOrder >= 2) {
+			res = res.Where(x => SearchQuery.IsValidSourceType(x.Url));
+
+		}
+
+		var resl = new ConcurrentBag<SearchResultItem>();
+
+		if (_filterOrder >= 3) {
+			await Parallel.ForEachAsync(res.ToArray(), async (item, token) =>
+			{
+				using var r = await item.Url.AllowAnyHttpStatus().OnError(x => x.ExceptionHandled = true)
+					              .GetAsync(token);
+
+				switch (r.ResponseMessage.StatusCode) {
+					case HttpStatusCode.NotFound:
+					case HttpStatusCode.UnavailableForLegalReasons:
+					case HttpStatusCode.Unauthorized:
+						return;
+					default:
+						resl.Add(item);
+						break;
+				}
+			});
+			res = resl;
 		}
 
 		if (_filterOrder == FILTER_MAX) {
@@ -246,6 +279,7 @@ public sealed partial class ShellMode
 			_filterOrder = 0;
 		}
 
+		ret:
 		IndexColors.Clear();
 		Dt_Results.Clear();
 
@@ -266,6 +300,73 @@ public sealed partial class ShellMode
 		Btn_Filter.Enabled = true;
 
 	}
+
+	/*void UpdateTable(IEnumerable<SearchResultItem> res)
+	{
+		IndexColors.Clear();
+		Dt_Results.Clear();
+
+		var resx = res as SearchResultItem[] ?? res.ToArray();
+		var rg   = resx.GroupBy(r => r.Root);
+
+		foreach (var gg in rg) {
+			int i = 0;
+
+			foreach (var sri in gg) {
+				AddResultItemToTable(sri, i);
+				i++;
+				Tv_Results.Update();
+			}
+
+		}
+	}*/
+
+	/*private async void Filter_Clicked()
+	{
+		var dlFilter = new Dialog()
+		{
+			AutoSize = false,
+			Width    = UI.Dim_30_Pct,
+			Height   = UI.Dim_30_Pct
+		};
+		var cbCode = new CheckBox("Code");
+
+		cbCode.Toggled += async b =>
+		{
+			if (b) {
+				return;
+			}
+
+			var cb  = new ConcurrentBag<SearchResultItem>();
+			var res = m_results.SelectMany(r => r.AllResults).Where(r => r.Url != null);
+
+			await Parallel.ForEachAsync(res, async (item, token) =>
+			{
+				using var r = await item.Url.AllowAnyHttpStatus()
+					              .OnError(x => x.ExceptionHandled = true)
+					              .GetAsync(token);
+
+				switch (r.ResponseMessage.StatusCode) {
+					case HttpStatusCode.NotFound:
+					case HttpStatusCode.UnavailableForLegalReasons:
+					case HttpStatusCode.Unauthorized:
+						return;
+					default:
+						cb.Add(item);
+						break;
+				}
+			});
+
+			UpdateTable(cb);
+		};
+
+		var btnOk = new Button();
+		btnOk.Clicked += () => { Application.RequestStop(); };
+
+		dlFilter.Add(cbCode);
+		dlFilter.AddButton(btnOk);
+		Application.Run(dlFilter);
+	}*/
 
 	#endregion
 

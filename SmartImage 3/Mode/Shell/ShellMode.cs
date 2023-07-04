@@ -331,7 +331,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public bool QueueMode { get; private set; }
 
-	internal readonly ConcurrentQueue<string> Queue;
+	private readonly ConcurrentQueue<string> Queue;
 
 	public SearchQuery Query { get; internal set; }
 
@@ -339,7 +339,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public SearchClient Client { get; init; }
 
-	internal bool? Status { get; set; }
+	private bool? Status { get; set; }
 
 	public string[] Args { get; init; }
 
@@ -347,7 +347,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public int ResultCount => m_results.Count;
 
-	internal ManualResetEvent IsReady { get; set; }
+	private ManualResetEvent IsReady { get; set; }
 
 	#endregion
 
@@ -464,7 +464,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Btn_Cancel.Clicked       += Cancel_Clicked;
 		Btn_Browse.Clicked       += Browse_Clicked;
 		Lbl_InputInfo.Clicked    += InputInfo_Clicked;
-		Tf_Input.TextChanging    += OnTf_InputOnTextChanging;
+		Tf_Input.TextChanging    += Input_TextChanging;
 
 		Btn_Delete.Clicked += Delete_Clicked;
 		Cb_Queue.Toggled   += Queue_Checked;

@@ -76,13 +76,21 @@ public enum SearchEngineOptions
 	/// </summary>
 	RepostSleuth = 1 << 11,
 
+	/// <summary>
+	/// <see cref="EHentaiEngine"/>
+	/// </summary>
 	EHentai = 1 << 12,
+
+	/// <summary>
+	/// <see cref="ArchiveMoeEngine"/>
+	/// </summary>
+	ArchiveMoe = 1 << 13,
 
 	/// <summary>
 	///     All engines
 	/// </summary>
 	All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing |
-	      Ascii2D | RepostSleuth | EHentai,
+	      Ascii2D | RepostSleuth | EHentai | ArchiveMoe,
 
 	Artwork = SauceNao | Iqdb | Ascii2D | EHentai,
 }

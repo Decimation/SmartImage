@@ -1,5 +1,8 @@
-﻿using System.ComponentModel;
+﻿using System.Collections.Concurrent;
+using System.ComponentModel;
+using System.Net;
 using System.Runtime.CompilerServices;
+using Flurl.Http;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.Lib.Results;
@@ -61,6 +64,11 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public List<SearchResultItem> Results { get; internal set; }
 
+	public IEnumerable<SearchResultItem> AllResults
+	{
+		get { return Results.Union(Results.SelectMany(r => r.Sisters)); }
+	}
+
 	[CBN]
 	public string ErrorMessage { get; internal set; }
 
@@ -106,11 +114,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		foreach (SearchResultItem item in Results) {
 			item.Dispose();
 		}
-	}
-
-	public IEnumerable<SearchResultItem> AllResults
-	{
-		get { return Results.Union(Results.SelectMany(r => r.Sisters)); }
 	}
 
 	public void Update()

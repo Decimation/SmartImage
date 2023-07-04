@@ -1,0 +1,120 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
+using JetBrains.Annotations;
+using SmartImage.Lib.Results;
+
+namespace SmartImage.Lib.Engines.Impl.Search;
+
+public class ArchiveMoeEngine : WebSearchEngine
+{
+	public ArchiveMoeEngine() : base("https://archived.moe/_/search/") { }
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
+
+	public override void Dispose() { }
+
+	protected string Base64Hash { get; set; }
+
+	protected static string GetHash(SearchQuery q)
+	{
+		var md5 = MD5.HashData(q.Uni.Stream);
+		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
+		var b64 = Convert.ToBase64String(md5).Replace("==", "");
+		b64 = Regex.Replace(b64, @"\//", "_");
+		b64 = Regex.Replace(b64, @"\+", "-");
+
+		return b64;
+	}
+
+	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
+	{
+		Base64Hash = GetHash(query);
+
+		return BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash);
+	}
+	
+	protected override async ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
+	{
+		// ReSharper disable PossibleNullReferenceException
+
+		var e        = n as HtmlElement;
+
+		var pff      = e.QuerySelector(".post_file_filename");
+		var pfm      = e.QuerySelector(".post_file_metadata").TextContent.Split(", ");
+		var pd       = e.QuerySelector(".post_data");
+		var pt       = pd.QuerySelector(".post_title").TextContent;
+		var pa       = pd.QuerySelector(".post_author").TextContent;
+		var ptc      = pd.QuerySelector(".post_tripcode").TextContent;
+		var tw = pd.QuerySelector(".time_wrap").Children[0];
+		var time2Ok  = DateTime.TryParse(tw.GetAttribute("datetime"), out var time2);
+		var time     = tw.TextContent;
+		var text     = e.QuerySelector(".text").TextContent;
+
+		var wh = pfm[1].Split('x');
+
+		var p = new ChanPost()
+		{
+			Id       = long.Parse(e.GetAttribute("id")),
+			Board    = e.GetAttribute("data-board"),
+			Filename = pff.TextContent,
+			File     = pff.GetAttribute("href"),
+			Width    = long.Parse(wh[0]),
+			Height   = long.Parse(wh[1]),
+			Size     = pfm[0],
+			Title    = pt,
+			Author   = pa,
+			Tripcode = ptc,
+			Time1    = time,
+			Time2    = time2,
+			Text     = text
+		};
+
+		return Parse(p, r);
+
+		// ReSharper restore PossibleNullReferenceException
+
+	}
+
+	protected static SearchResultItem Parse(ChanPost p, SearchResult sr)
+	{
+		var sri = new SearchResultItem(sr)
+		{
+			Url      = p.File,
+			Width = p.Width,
+			Height = p.Height,
+			Artist = p.Author,
+			Description = p.Title,
+			Time = p.Time2,
+			Metadata = p
+		};
+
+		return sri;
+	}
+
+	protected record ChanPost
+	{
+		public long     Id;
+		public string   Board;
+		public string   Filename;
+		public Url      File;
+		public long     Width;
+		public long     Height;
+		public string   Size;
+		public string   Title;
+		public string   Author;
+		public string   Tripcode;
+		public string   Time1;
+		public DateTime Time2;
+		public string   Text;
+	}
+
+	protected override string NodesSelector => "//article[contains(@class,'post')]";
+}
