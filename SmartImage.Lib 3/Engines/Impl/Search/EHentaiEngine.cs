@@ -85,7 +85,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	public static readonly Url ExHentaiBase = "https://exhentai.org/";
 	public static readonly Url EHentaiBase  = "https://e-hentai.org/";
 
-	private static readonly Url ExHentaiLookup = Url.Combine(ExHentaiBase, "upld", "image_lookup.php");
+	private static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
 	private static readonly Url EHentaiLookup  = "https://upld.e-hentai.org/image_lookup.php";
 
 	static EHentaiEngine() { }
@@ -122,7 +122,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	{
 		string u, p;
 
-		if (this is { IsLoggedIn: true }) {
+		if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)*/) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyAsync));
 
 			return;
