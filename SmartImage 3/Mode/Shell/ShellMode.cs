@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Dynamic;
 using System.Media;
+using System.Reflection;
 using System.Runtime.Versioning;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
@@ -507,16 +508,37 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Next_Clicked();
 		}
 
-		/*var tok = Application.MainLoop.AddIdle(() =>
-		{
-			if (m_autoSearch && IsQueryReady()) {
-				Btn_Run.OnClicked();
-				return false;
-			}
+		Application.MainLoop.Invoke(CheckForUpdates);
 
-			return true;
-		});*/
+	}
 
+	private async void CheckForUpdates()
+	{
+		var releases  = await AppInfo.GetRepoReleasesAsync();
+		var releases2 = releases.OrderByDescending(x => x.published_at);
+
+		var cv  = Assembly.GetExecutingAssembly().GetName().Version;
+		var fst = releases2.FirstOrDefault();
+
+		if (fst == default) {
+			return;
+		}
+
+		if (!Version.TryParse(fst.tag_name[1..], out var lv)) {
+			return;
+		}
+
+		if (lv > cv) {
+			var menus = new MenuBarItem[Mb_Menu.Menus.Length + 1];
+
+			Mb_Menu.Menus.CopyTo(menus, 0);
+			Mb_Menu.Menus = menus;
+
+			menus[^1] = new MenuBarItem(title: "[Update available]", null, action: () =>
+			{
+				HttpUtilities.OpenUrl(fst.assets[0].browser_download_url);
+			});
+		}
 	}
 
 	public Task<object?> RunAsync(object? sender = null)
@@ -766,13 +788,14 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		bool ok;
 
-		if (sq  != SearchQuery.Null) {
+		if (sq != SearchQuery.Null) {
 			bool ret;
 
 			if (Query == sq) {
 				// return true;
 				goto ret;
 			}
+
 			try {
 
 				/*Btn_Cancel.Enabled = true;
@@ -826,6 +849,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			_inputVerifying      = false;
 			return false;
 		}
+
 		ret:
 		Debug.WriteLine($">> {sq} {Config}", nameof(TrySetQueryAsync));
 
@@ -955,7 +979,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
-			if ((IsQueryReady()&&!string.IsNullOrWhiteSpace(Tf_Input.Text.ToString())) || _inputVerifying) {
+			if ((IsQueryReady() && !string.IsNullOrWhiteSpace(Tf_Input.Text.ToString())) || _inputVerifying) {
 				Debug.WriteLine($"Ignoring...");
 				goto r1;
 			}
