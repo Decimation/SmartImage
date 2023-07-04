@@ -119,5 +119,5 @@ Use the following parameters to invoke SmartImage:
 Wiki pages useful for getting started:
 
 - User interface and options: [Interface »](https://github.com/Decimation/SmartImage/wiki/Interface)
-- Performing a search and usage: [Usage »](https://github.com/Decimation/SmartImage/wiki#usage)
-- Search engines and config: [Engines »](https://github.com/Decimation/SmartImage/wiki#engines)
+- Performing a search and usage: [Usage »](https://github.com/Decimation/SmartImage/wiki/Usage)
+- Search engines and config: [Engines »](https://github.com/Decimation/SmartImage/wiki/Engines)
