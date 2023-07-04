@@ -590,7 +590,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	}
 
-	private void AddResultItemToTable(SearchResultItem sri, int i, int j = 0)
+	private static void AddResultItemToTable(SearchResultItem sri, int i, int j = 0)
 	{
 
 		object? meta = sri.Metadata switch
@@ -620,9 +620,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		}
 
-		Dt_Results.Rows.Add(s, "",
-		                    sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description, sri.Source,
-		                    sri.Title, sri.Site, sri.Width, sri.Height, meta);
+		Dt_Results.Rows.Add(s, string.Empty, sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description,
+		                    sri.Source, sri.Title, sri.Site, sri.Width, sri.Height, meta);
 	}
 
 	private void OnComplete(object sender, SearchResult[] results)
@@ -632,11 +631,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Lbl_Status2.ColorScheme = UI.Cs_Lbl1_Success;
 		Lbl_Status2.Text        = R2.Inf_Complete;
 		Btn_Browse.Enabled      = true;
-		_buffer                 = Dt_Results.Copy();
 
 	}
-
-	private static DataTable _buffer;
 
 	[SupportedOSPlatform(Compat.OS)]
 	private void OnCompleteWin(object sender, SearchResult[] results)
@@ -1079,7 +1075,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		// Queue.Clear();
 		m_results.Clear();
 
-		var e = Binary.GetEnumerator();
+		using var e = Binary.GetEnumerator();
 
 		while (e.MoveNext()) {
 			var (k, v) = e.Current;
@@ -1113,7 +1109,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Queue.Clear();
 
-		var e = Binary.GetEnumerator();
+		using var e = Binary.GetEnumerator();
 
 		while (e.MoveNext()) {
 			var (k, v) = e.Current;

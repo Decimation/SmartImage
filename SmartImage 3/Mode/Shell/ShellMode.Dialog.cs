@@ -216,9 +216,11 @@ public sealed partial class ShellMode
 			Integration.HandleContextMenu(!b);
 		};
 
-		Label lbHelp = new($"{UI.Line} Arrow keys or mouse :: select option\n" +
-		                   $"{UI.Line} Space bar or click :: toggle mark option\n" +
-		                   $"{UI.Line} Enter :: save option")
+		string txtHelp = $"{UI.Line} Arrow keys or mouse :: select option\n" +
+		                 $"{UI.Line} Space bar or click :: toggle mark option\n" +
+		                 $"{UI.Line} Enter :: save option";
+
+		Label lbHelp = new(txtHelp)
 		{
 			AutoSize = true,
 

@@ -100,10 +100,25 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			// No good results
 			//return sresult;
 			result.Status = SearchResultStatus.NoResults;
+
 			goto ret;
+
 		}
 		else {
 			result.Status = SearchResultStatus.Success;
+
+			// TODO: HACK
+
+			var allSisters = imageResults.SelectMany(ir => ir.Sisters)
+				.DistinctBy(s => s.Url)
+				.ToList(); // note: need ToList()
+
+			for (int i = 0; i < imageResults.Count; i++) {
+				var ir = imageResults[i];
+				ir.Sisters.Clear();
+				ir.Sisters.AddRange(allSisters.Where(irs => irs.Parent == ir));
+			}
+
 		}
 
 		result.Results.AddRange(imageResults);
