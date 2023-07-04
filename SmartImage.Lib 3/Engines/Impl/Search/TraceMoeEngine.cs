@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
 using Newtonsoft.Json;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 
 // ReSharper disable InconsistentNaming
@@ -30,7 +31,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	public override string Name => "trace.moe";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
-	
+
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 
@@ -106,23 +107,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 		var items   = new SearchResultItem[results.Count];
 
 		for (int i = 0; i < items.Length; i++) {
-			var doc = results[i];
-			var sim = Math.Round(doc.similarity * 100.0f, 2);
-
-			string epStr = doc.EpisodeString;
-
-			var result = new SearchResultItem(sr)
-			{
-				Similarity = sim,
-				// Metadata   = new[] { doc.video, doc.image },
-				Title = doc.filename,
-
-				Description = $"Episode #{epStr} @ " +
-				              $"[{TimeSpan.FromSeconds(doc.from):g} - {TimeSpan.FromSeconds(doc.to):g}]",
-			};
-
-			result.Metadata.video = doc.video;
-			result.Metadata.image = doc.image;
+			var doc    = results[i];
+			var result = doc.Convert(sr);
 
 			try {
 				string anilistUrl = ANILIST_URL.AppendPathSegment(doc.anilist);
@@ -131,16 +117,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 				result.Url    = new Url(anilistUrl);
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{Name} :: {e.Message}", nameof(ConvertResultsAsync));
-			}
-
-			if (result.Similarity < FILTER_THRESHOLD) {
-				/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
-												 $"({result.Similarity.Value / 100:P} " +
-												 $"< {FILTER_THRESHOLD / 100:P})");*/
-				//todo
-
-				result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
+				Debug.WriteLine($"{this} :: {e.Message}", nameof(ConvertResultsAsync));
 			}
 
 			items[i] = result;
@@ -168,7 +145,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	#region API Objects
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	private class TraceMoeDoc
+	private class TraceMoeDoc : IResultConvertable
 	{
 		public double from { get; set; }
 
@@ -202,6 +179,37 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 
 				return epStr;
 			}
+		}
+
+		public SearchResultItem Convert(SearchResult sr)
+		{
+			var sim = Math.Round(similarity * 100.0f, 2);
+
+			string epStr = EpisodeString;
+
+			var result = new SearchResultItem(sr)
+			{
+				Similarity = sim,
+				// Metadata   = new[] { doc.video, doc.image },
+				Title = filename,
+
+				Description = $"Episode #{epStr} @ " +
+				              $"[{TimeSpan.FromSeconds(from):g} - {TimeSpan.FromSeconds(to):g}]",
+			};
+
+			result.Metadata.video = video;
+			result.Metadata.image = image;
+
+			if (result.Similarity < FILTER_THRESHOLD) {
+				/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
+												 $"({result.Similarity.Value / 100:P} " +
+												 $"< {FILTER_THRESHOLD / 100:P})");*/
+				//todo
+
+				result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
+			}
+
+			return result;
 		}
 	}
 

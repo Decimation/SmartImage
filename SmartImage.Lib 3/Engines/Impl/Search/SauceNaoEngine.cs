@@ -10,6 +10,7 @@ using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using static Kantan.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
@@ -91,7 +92,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		var imageResults = dataResults.Where(o => o != null)
 			// .AsParallel()
-			.Select(x => ConvertToImageResult(x, result))
+			.Select(x => x.Convert(result))
 			.Where(o => o != null)
 			.OrderByDescending(e => e.Similarity)
 			.ToList();
@@ -399,62 +400,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 		return null;
 	}
 
-	private static SearchResultItem ConvertToImageResult(SauceNaoDataResult sn, SearchResult r)
-	{
-		var    idxStr   = sn.Index.ToString();
-		string siteName = sn.Index != 0 ? idxStr : null;
-
-		var site  = Strings.NormalizeNull(siteName);
-		var title = Strings.NormalizeNull(sn.WebsiteTitle);
-
-		var sb = new StringBuilder();
-
-		if (site is { }) {
-			sb.Append(site);
-		}
-
-		if (title is { }) {
-			sb.Append($" [{title}]");
-		}
-
-		site = sb.ToString().Trim(' ');
-
-		/*var urls = sn.Urls.OrderByDescending(s =>
-		{
-			Url u = s;
-			return u.Host == "gelbooru" || u.Host == "danbooru";
-		}).ToArray();*/
-
-		var      urls = sn.Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
-		string[] meta = Array.Empty<string>();
-
-		if ((urls.Length >= 2)) {
-			meta = urls[1..].Where(u => !((Url) u).QueryParams.Contains("lookup_type")).ToArray();
-		}
-
-		var imageResult = new SearchResultItem(r)
-		{
-			Url         = urls.FirstOrDefault(),
-			Similarity  = Math.Round(sn.Similarity, 2),
-			Description = Strings.NormalizeNull(idxStr),
-			Artist      = Strings.NormalizeNull(sn.Creator),
-			Source      = Strings.NormalizeNull(sn.Material),
-			Character   = Strings.NormalizeNull(sn.Character),
-			Site        = site,
-			Title       = Strings.NormalizeNull(sn.Title),
-			Metadata    = meta,
-		};
-
-		imageResult.AddSisters(meta);
-
-		return imageResult;
-
-	}
-
 	/// <summary>
 	/// Origin result
 	/// </summary>
-	private sealed class SauceNaoDataResult
+	private sealed class SauceNaoDataResult : IResultConvertable
 	{
 		/// <summary>
 		///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
@@ -481,6 +430,61 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 
 		public string Creator { get; internal set; }
 		public string Source  { get; internal set; }
+
+		public SearchResultItem Convert(SearchResult r)
+		{
+			var    idxStr   = Index.ToString();
+			string siteName = Index != 0 ? idxStr : null;
+
+			var site  = Strings.NormalizeNull(siteName);
+			var title = Strings.NormalizeNull(WebsiteTitle);
+
+			var sb = new StringBuilder();
+
+			if (site is { })
+			{
+				sb.Append(site);
+			}
+
+			if (title is { })
+			{
+				sb.Append($" [{title}]");
+			}
+
+			site = sb.ToString().Trim(' ');
+
+			/*var urls = sn.Urls.OrderByDescending(s =>
+			{
+				Url u = s;
+				return u.Host == "gelbooru" || u.Host == "danbooru";
+			}).ToArray();*/
+
+			var      urls = Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+			string[] meta = Array.Empty<string>();
+
+			if ((urls.Length >= 2))
+			{
+				meta = urls[1..].Where(u => !((Url)u).QueryParams.Contains("lookup_type")).ToArray();
+			}
+
+			var imageResult = new SearchResultItem(r)
+			{
+				Url         = urls.FirstOrDefault(),
+				Similarity  = Math.Round(Similarity, 2),
+				Description = Strings.NormalizeNull(idxStr),
+				Artist      = Strings.NormalizeNull(Creator),
+				Source      = Strings.NormalizeNull(Material),
+				Character   = Strings.NormalizeNull(Character),
+				Site        = site,
+				Title       = Strings.NormalizeNull(Title),
+				Metadata    = meta,
+			};
+
+			imageResult.AddSisters(meta);
+
+			return imageResult;
+
+		}
 	}
 }
 

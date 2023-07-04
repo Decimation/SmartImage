@@ -16,6 +16,7 @@ using NStack;
 using SmartImage.App;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using SmartImage.Mode.Shell.Assets;
@@ -755,7 +756,28 @@ public sealed partial class ShellMode
 					dl.AddButton(btnOk);
 					Application.Run(dl);
 				}
-
+				else if (d is ChanPost p) {
+					var dl = new Dialog
+					{
+						Title    = "Metadata",
+						AutoSize = false,
+						Width    = Dim.Percent(60),
+						Height   = Dim.Percent(45),
+						/*Border = new Border()
+						{
+							// Background = default
+						}*/
+						// Height   = UI.Dim_80_Pct,
+						Text = p.Text
+					};
+					var btnOk = new Button("Ok")
+					{
+						ColorScheme = UI.Cs_Btn3
+					};
+					btnOk.Clicked += () => { Application.RequestStop(); };
+					dl.AddButton(btnOk);
+					Application.Run(dl);
+				}
 				break;
 			case Key.S:
 				//TODO: WIP
