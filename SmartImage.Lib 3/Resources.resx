@@ -156,4 +156,7 @@
   <data name="S_ContextMenu" xml:space="preserve">
     <value>Context menu</value>
   </data>
+  <data name="S_SauceNaoKey" xml:space="preserve">
+    <value>SauceNao Key</value>
+  </data>
 </root>

@@ -980,15 +980,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		}
 
-		else if (a) {
-			switch (keyAlt) {
-				case Key.S:
-					m_token.Cancel();
-					SystemSounds.Beep.Play();
-					break;
-			}
-		}
-
 		ret:
 		return s;
 	}
@@ -1004,7 +995,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			 *	- Clipboard history contains it already
 			 */
 			if ((IsQueryReady() && IsInputReady()) || _inputVerifying) {
-				Debug.WriteLine($"Ignoring...");
+				// Debug.WriteLine($"Ignoring...");
 				goto r1;
 			}
 

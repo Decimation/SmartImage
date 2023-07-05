@@ -151,6 +151,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to SauceNao Key.
+        /// </summary>
+        internal static string S_SauceNaoKey {
+            get {
+                return ResourceManager.GetString("S_SauceNaoKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Search engines.
         /// </summary>
         internal static string S_SearchEngines {

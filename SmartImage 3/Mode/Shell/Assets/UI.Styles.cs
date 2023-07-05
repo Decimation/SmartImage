@@ -29,6 +29,7 @@ internal static partial class UI
 	internal static readonly Attribute Atr_Red_White           = Attribute.Make(Color.Red, Color.White);
 	internal static readonly Attribute Atr_White_Black         = Attribute.Make(Color.White, Color.Black);
 	internal static readonly Attribute Atr_White_Cyan          = Attribute.Make(Color.White, Color.Cyan);
+	internal static readonly Attribute Atr_White_Gray      = Attribute.Make(Color.White, Color.Gray);
 	internal static readonly Attribute Atr_White_DarkGray      = Attribute.Make(Color.White, Color.DarkGray);
 	internal static readonly Attribute Atr_White_BrightCyan    = Attribute.Make(Color.White, Color.BrightCyan);
 	internal static readonly Attribute Atr_BrightCyan_DarkGray = Attribute.Make(Color.BrightCyan, Color.DarkGray);
@@ -126,7 +127,13 @@ internal static partial class UI
 		Focus     = Atr_Cyan_Black,
 		HotFocus  = Atr_Cyan_Black,
 	};
-
+	internal static readonly ColorScheme Cs_Lbl1x = new()
+	{
+		Normal    = Atr_Black_Gray,
+		HotNormal = Atr_Black_Gray,
+		Focus     = Atr_Cyan_Black,
+		HotFocus  = Atr_Cyan_Black,
+	};
 	internal static readonly ColorScheme Cs_Lbl2 = new()
 	{
 		Normal    = Atr_BrightCyan_DarkGray,

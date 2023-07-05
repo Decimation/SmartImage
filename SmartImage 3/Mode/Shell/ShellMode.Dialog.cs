@@ -225,7 +225,9 @@ public sealed partial class ShellMode
 			AutoSize = true,
 
 			X = 0,
-			Y = Pos.Bottom(lvSearchEngines) + 2
+			Y = Pos.Bottom(lvSearchEngines) + 4,
+
+			ColorScheme = UI.Cs_Lbl1x
 		};
 
 		CheckBox cbOnTop = new(R1.S_OnTop)
@@ -350,7 +352,7 @@ public sealed partial class ShellMode
 
 		TextField tfEhUsername = new()
 		{
-			X      = Pos.Right(lbEhUsername) + 1,
+			X      = Pos.Right(lbEhUsername) + 2,
 			Y      = Pos.Y(lbEhUsername),
 			Width  = WIDTH1 * 2,
 			Height = 1,
@@ -373,7 +375,7 @@ public sealed partial class ShellMode
 
 		TextField tfEhPassword = new()
 		{
-			X      = Pos.Right(lbEhPassword) + 1,
+			X      = Pos.Right(lbEhPassword) + 2,
 			Y      = Pos.Y(lbEhPassword),
 			Width  = WIDTH1 * 2,
 			Height = 1,
@@ -433,10 +435,34 @@ public sealed partial class ShellMode
 
 		#endregion
 
+		Label lbSauceNaoKey = new(R1.S_SauceNaoKey)
+		{
+			X           = Pos.X(lbEhPassword),
+			Y           = Pos.Bottom(lbEhPassword)+1,
+			Width       = Dim.Width(lbEhPassword),
+			Height      = Dim.Height(lbEhPassword),
+			CanFocus    = false,
+			ColorScheme = UI.Cs_Lbl1
+		};
+
+		TextField tfSauceNaoKey = new()
+		{
+			X      = Pos.Right(lbSauceNaoKey) + 1,
+			Y      = Pos.Y(lbSauceNaoKey),
+			Width  = WIDTH1 * 2,
+			Height = 1,
+		};
+
+		tfSauceNaoKey.TextChanging += txt =>
+		{
+			Config.SauceNaoKey = txt.NewText.ToString();
+			ReloadDialog();
+		};
+
 		dlCfg.Add(tvConfig, lvSearchEngines, lvPriorityEngines,
 		          cbContextMenu, cbOnTop, lbConfig, lbSearchEngines, lbPriorityEngines,
 		          lbHelp, cbAutoSearch, lbEhUsername, tfEhUsername, lbEhPassword, tfEhPassword,
-		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb
+		          cbOpenRaw, cbSilent, btnClear, btnClear2, cbCb, lbSauceNaoKey, tfSauceNaoKey
 			/*cbSendTo*/
 		);
 

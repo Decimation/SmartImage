@@ -29,7 +29,7 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
+public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, IConfig
 {
 	private static readonly string[] Syn_Artists    = { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
 	private static readonly string[] Syn_Characters = { "Characters:" };
@@ -485,6 +485,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine
 			return imageResult;
 
 		}
+	}
+
+	public async ValueTask ApplyAsync(SearchConfig cfg)
+	{
+		Authentication = cfg.SauceNaoKey;
 	}
 }
 
