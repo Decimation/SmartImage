@@ -356,7 +356,7 @@ public sealed partial class ShellMode
 			Height = 1,
 		};
 
-		tfEhUsername.TextChanging +=   args =>
+		tfEhUsername.TextChanging += args =>
 		{
 			Config.EhUsername = args.NewText.ToString();
 			ReloadDialog();
@@ -379,7 +379,7 @@ public sealed partial class ShellMode
 			Height = 1,
 		};
 
-		tfEhPassword.TextChanging +=  args =>
+		tfEhPassword.TextChanging += args =>
 		{
 			Config.EhPassword = args.NewText.ToString();
 			ReloadDialog();

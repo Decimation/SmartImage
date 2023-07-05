@@ -65,13 +65,7 @@ public static class Program
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) =>
 		{
 			var ex = args.ExceptionObject as Exception;
-			File.WriteAllLines($"smartimage.log", new []
-			{
-				$"Message: {ex.Message}",
-				$"Source: {ex.Source}",
-				$"Stack trace: {ex.StackTrace}",
-
-			});
+			AppInfo.ExceptionLog(ex);
 		};
 
 	}

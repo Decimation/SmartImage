@@ -4,13 +4,29 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Flurl.Http;
+using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Newtonsoft.Json;
+
+// ReSharper disable InconsistentNaming
+#pragma warning disable CS8618
+#pragma warning disable IDE1006
 
 namespace SmartImage.App;
 
 internal static class AppInfo
 {
+	internal static void ExceptionLog(Exception ex)
+	{
+		File.WriteAllLines($"smartimage.log", new[]
+		{
+			$"Message: {ex.Message}",
+			$"Source: {ex.Source}",
+			$"Stack trace: {ex.StackTrace}",
+
+		});
+	}
+
 	internal static async Task<Release[]> GetRepoReleasesAsync()
 	{
 		var res = await "https://api.github.com/repos/Decimation/SmartImage/releases"
@@ -26,6 +42,9 @@ internal static class AppInfo
 	}
 
 	// Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
+	#region GitHub objects
+
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal class ReleaseAsset
 	{
 		public string   url                  { get; set; }
@@ -43,6 +62,7 @@ internal static class AppInfo
 		public string   browser_download_url { get; set; }
 	}
 
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal class Author
 	{
 		public string login               { get; set; }
@@ -65,6 +85,7 @@ internal static class AppInfo
 		public bool   site_admin          { get; set; }
 	}
 
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal class Reactions
 	{
 		public string url         { get; set; }
@@ -74,7 +95,8 @@ internal static class AppInfo
 		public int Plus1 { get; set; }
 
 		[JsonProperty("-1")]
-		public int Minus1 { get;   set; }
+		public int Minus1 { get; set; }
+
 		public int laugh    { get; set; }
 		public int hooray   { get; set; }
 		public int confused { get; set; }
@@ -83,6 +105,7 @@ internal static class AppInfo
 		public int eyes     { get; set; }
 	}
 
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	internal class Release
 	{
 		public string             url              { get; set; }
@@ -107,7 +130,8 @@ internal static class AppInfo
 		public Reactions          reactions        { get; set; }
 	}
 
-	public class Uploader
+	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+	internal class Uploader
 	{
 		public string login               { get; set; }
 		public int    id                  { get; set; }
@@ -129,4 +153,5 @@ internal static class AppInfo
 		public bool   site_admin          { get; set; }
 	}
 
+	#endregion
 }

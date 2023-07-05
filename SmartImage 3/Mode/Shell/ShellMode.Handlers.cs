@@ -150,7 +150,7 @@ public sealed partial class ShellMode
 	/// <summary>
 	///     <see cref="Btn_Restart" />
 	/// </summary>
-	private  void Restart_Clicked(bool force = false)
+	private void Restart_Clicked(bool force = false)
 	{
 		if (!Client.IsComplete && !force) {
 			return;
@@ -268,7 +268,7 @@ public sealed partial class ShellMode
 
 			await Parallel.ForEachAsync(res3, async (item, token) =>
 			{
-				var us = await item.GetUniAsync().ConfigureAwait(false);
+				var us = await item.LoadUniAsync().ConfigureAwait(false);
 
 				if (us) {
 					res2.Add(item);
@@ -489,6 +489,8 @@ public sealed partial class ShellMode
 		Application.MainLoop.RemoveIdle(m_runIdleTok);
 		Tv_Results.SetFocus();
 		Lbl_Status2.ColorScheme = UI.Cs_Lbl1;
+		m_token.Dispose();
+		m_token = new();
 
 	}
 
@@ -526,8 +528,7 @@ public sealed partial class ShellMode
 
 		}
 		catch (Exception e) {
-
-			File.WriteAllText("crash.log", $"{e.Message} {e.Source} {e.StackTrace}");
+			AppInfo.ExceptionLog(e);
 
 		}
 
@@ -651,7 +652,9 @@ public sealed partial class ShellMode
 			return;
 		}
 
-		Url v = (Tv_Results.Table.Rows[r][COL_URL]).ToString();
+		var ctr = Tv_Results.Table.Rows;
+		var cr  = ctr[r];
+		Url v   = (cr[COL_URL]).ToString();
 
 		switch (k) {
 			case Key.D:
@@ -772,6 +775,7 @@ public sealed partial class ShellMode
 						// Height   = UI.Dim_80_Pct,
 						Text = p.Text
 					};
+
 					var btnOk = new Button("Ok")
 					{
 						ColorScheme = UI.Cs_Btn3
@@ -780,6 +784,7 @@ public sealed partial class ShellMode
 					dl.AddButton(btnOk);
 					Application.Run(dl);
 				}
+
 				break;
 			case Key.S:
 				//TODO: WIP
@@ -796,6 +801,31 @@ public sealed partial class ShellMode
 				if (!Binary.ContainsKey(sri)) {
 					ih = await ImageHelper.ScanAsync(sri.Url, m_token.Token);
 					Binary.TryAdd(sri, ih);
+					var ddr  = Get(sri.Root);
+					var ixx  = Array.IndexOf(ddr, cr);
+					var ixxx = Dt_Results.Rows.IndexOf(ddr[ixx]);
+
+					var xc = Dt_Results.Rows.Count;
+
+					var engSplit = cr[0].ToString().Split(' ');
+					var eng      = engSplit[0];
+					var iijj     = (engSplit[1][1..].Split('.'));
+					var (ii, jj) = (int.Parse(iijj[0]), iijj.Length > 1 ? int.Parse(iijj[1]) : 0);
+
+					for (int j = 0; j < ih.Length; j++) {
+						var sri_ih = new SearchResultItem(sri.Root)
+						{
+							Url = ih[j].Value.ToString(),
+							Uni = ih[j]
+						};
+						sri.Sisters.Add(sri_ih);
+
+						var nr = Create(sri_ih, ii, jj+j);
+
+						Dt_Results.Rows.InsertAt(nr, ixxx + (j+1));
+					}
+
+					return;
 				}
 				else {
 					ih = Binary[sri];
@@ -863,7 +893,7 @@ public sealed partial class ShellMode
 				btnOk2.Clicked += () => { Application.RequestStop(); };
 				dl2.AddButton(btnOk2);
 				Application.Run(dl2);
-
+				e.Dispose();
 				break;
 			default:
 				eventArgs.Handled = false;

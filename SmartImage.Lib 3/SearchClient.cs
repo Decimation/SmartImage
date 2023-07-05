@@ -287,7 +287,7 @@ public sealed class SearchClient : IDisposable
 			// .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
 			.Select(async r =>
 			{
-				bool b = await r.GetUniAsync();
+				bool b = await r.LoadUniAsync();
 				return r.Uni;
 			})
 			.ToList();

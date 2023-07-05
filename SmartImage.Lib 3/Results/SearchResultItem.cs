@@ -93,7 +93,12 @@ public sealed record SearchResultItem : IDisposable,
 
 	public int Score { get; private set; }
 
-	public UniSource Uni { get; private set; }
+	public UniSource Uni { get; internal set; }
+
+	[CanBeNull]
+	public SearchResultItem Parent { get; internal set; }
+
+	public List<SearchResultItem> Sisters { get; internal set; }
 
 	internal SearchResultItem(SearchResult r)
 	{
@@ -148,11 +153,6 @@ public sealed record SearchResultItem : IDisposable,
 		m_isScored = true;
 	}
 
-	[CanBeNull]
-	public SearchResultItem Parent { get; internal set; }
-
-	public List<SearchResultItem> Sisters { get; internal set; }
-
 	public void AddSisters(string[] rg)
 	{
 		for (int i = 0; i < rg.Length; i++) {
@@ -169,7 +169,7 @@ public sealed record SearchResultItem : IDisposable,
 	}
 
 	// [MustUseReturnValue]
-	public async Task<bool> GetUniAsync()
+	public async Task<bool> LoadUniAsync()
 	{
 		if (Uni != null) {
 			return true;

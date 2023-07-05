@@ -164,8 +164,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Y           = 1,
 		Width       = 10,
 		Height      = Dim.Height(Lbl_InputInfo),
-		ColorScheme = UI.Cs_Lbl2
-
+		ColorScheme = UI.Cs_Lbl2,
 	};
 
 	private static readonly Label Lbl_InputInfo2 = new()
@@ -397,10 +396,12 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
 			new("_About", null, AboutDialog)
-				{ },
+				{ HotKey = default, Shortcut = default },
 			new("_Info", null, InfoDialog)
-				{ },
+				{ HotKey = default, Shortcut = default },
 		};
+		Mb_Menu.HotKey   = Key.Null;
+		Mb_Menu.Shortcut = Key.Null;
 
 		Top.Add(Mb_Menu);
 
@@ -500,7 +501,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		Application.RootKeyEvent = RootKeyEvent;
 
-		if (Config.AutoSearch && !string.IsNullOrWhiteSpace(Tf_Input.Text.ToString())) {
+		if (Config.AutoSearch && IsInputReady()) {
 			Btn_Run.OnClicked();
 		}
 
@@ -615,6 +616,18 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private static void AddResultItemToTable(SearchResultItem sri, int i, int j = 0)
 	{
 
+		var cs = GetColor(sri.Root.Engine);
+		var st = Dt_Results.Rows.Count;
+
+		IndexColors[st] = cs;
+
+		Dt_Results.Rows.Add(Create(sri, i+1, j));
+	}
+
+	private static DataRow Create(SearchResultItem sri, int i, int j)
+	{
+		var nr = Dt_Results.NewRow();
+
 		object? meta = sri.Metadata switch
 		{
 			/*string[] rg      => rg.QuickJoin(),
@@ -630,20 +643,20 @@ public sealed partial class ShellMode : IDisposable, IMode
 			sri.Similarity = null;
 		}
 
-		var cs = GetColor(sri.Root.Engine);
-		var st = Dt_Results.Rows.Count;
-
-		IndexColors[st] = cs;
-
-		string s = $"{sri.Root.Engine.Name} #{i + 1}";
+		string s = $"{sri.Root.Engine.Name} #{i}";
 
 		if (j != 0) {
 			s += $".{j}";
 
 		}
 
-		Dt_Results.Rows.Add(s, string.Empty, sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description,
-		                    sri.Source, sri.Title, sri.Site, sri.Width, sri.Height, meta);
+		nr.ItemArray = new[]
+		{
+			s, string.Empty, sri.Url, sri.Score, sri.Similarity, sri.Artist, sri.Description,
+			sri.Source, sri.Title, sri.Site, sri.Width, sri.Height, meta
+		};
+
+		return nr;
 	}
 
 	private void OnComplete(object sender, SearchResult[] results)
@@ -866,7 +879,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Pbr_Status.Fraction = 0;
 		// Btn_Delete.Enabled = true;
 
-		Btn_Browse.Enabled = QueueMode;
+		// Btn_Browse.Enabled = QueueMode;
 
 		Tf_Input.ReadOnly  = true;
 		Btn_Delete.Enabled = true;
@@ -922,9 +935,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private bool RootKeyEvent(KeyEvent ke)
 	{
-		bool c   = ke.IsCtrl;
-		bool s   = false;
-		var  key = ke.Key & ~Key.CtrlMask;
+		bool c      = ke.IsCtrl;
+		bool a      = ke.IsAlt;
+		bool s      = false;
+		var  key    = ke.Key & ~Key.CtrlMask;
+		var  keyAlt = key & ~Key.AltMask;
 
 		if (c) {
 			switch (key) {
@@ -965,6 +980,15 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		}
 
+		else if (a) {
+			switch (keyAlt) {
+				case Key.S:
+					m_token.Cancel();
+					SystemSounds.Beep.Play();
+					break;
+			}
+		}
+
 		ret:
 		return s;
 	}
@@ -979,7 +1003,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 			 *	- Input is already ready
 			 *	- Clipboard history contains it already
 			 */
-			if ((IsQueryReady() && !string.IsNullOrWhiteSpace(Tf_Input.Text.ToString())) || _inputVerifying) {
+			if ((IsQueryReady() && IsInputReady()) || _inputVerifying) {
 				Debug.WriteLine($"Ignoring...");
 				goto r1;
 			}
@@ -1062,6 +1086,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		return true;
 		// return UseClipboard;
 	}
+
+	private static bool IsInputReady() => !string.IsNullOrWhiteSpace(Tf_Input.Text.ToString());
 
 	#endregion
 
@@ -1149,6 +1175,22 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Binary.Clear();
 
 		m_results.Clear();
+	}
+
+	internal DataRow[] Get(SearchResult sr)
+	{
+		var l = new List<DataRow>();
+
+		for (int i = 0; i < Dt_Results.Rows.Count; i++) {
+			var n = Dt_Results.Rows[i];
+
+			if (n[0].ToString().Contains(sr.Engine.Name)) {
+				l.Add(n);
+			}
+
+		}
+
+		return l.ToArray();
 	}
 
 	internal SearchResultItem? FindResultByUrl(Url v)
