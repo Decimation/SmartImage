@@ -99,7 +99,7 @@ public static class Integration
 
 					try {
 						regMenu = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell);
-						regMenu?.SetValue(String.Empty, R2.Name);
+						regMenu?.SetValue(String.Empty, R1.Name);
 						regMenu?.SetValue("Icon", $"\"{fullPath}\"");
 
 						regCmd = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell_Cmd);

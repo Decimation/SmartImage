@@ -150,7 +150,7 @@ public sealed partial class ShellMode
 	/// <summary>
 	///     <see cref="Btn_Restart" />
 	/// </summary>
-	private async void Restart_Clicked(bool force = false)
+	private void Restart_Clicked(bool force = false)
 	{
 		if (!Client.IsComplete && !force) {
 			return;
@@ -189,7 +189,6 @@ public sealed partial class ShellMode
 		Tf_Input.EnsureFocus();
 		Btn_Filter.Text = "Filter";
 		_inputVerifying = false;
-		await Client.ApplyConfigAsync();
 	}
 
 	/// <summary>
@@ -302,73 +301,6 @@ public sealed partial class ShellMode
 		Btn_Filter.Enabled = true;
 
 	}
-
-	/*void UpdateTable(IEnumerable<SearchResultItem> res)
-	{
-		IndexColors.Clear();
-		Dt_Results.Clear();
-
-		var resx = res as SearchResultItem[] ?? res.ToArray();
-		var rg   = resx.GroupBy(r => r.Root);
-
-		foreach (var gg in rg) {
-			int i = 0;
-
-			foreach (var sri in gg) {
-				AddResultItemToTable(sri, i);
-				i++;
-				Tv_Results.Update();
-			}
-
-		}
-	}*/
-
-	/*private async void Filter_Clicked()
-	{
-		var dlFilter = new Dialog()
-		{
-			AutoSize = false,
-			Width    = UI.Dim_30_Pct,
-			Height   = UI.Dim_30_Pct
-		};
-		var cbCode = new CheckBox("Code");
-
-		cbCode.Toggled += async b =>
-		{
-			if (b) {
-				return;
-			}
-
-			var cb  = new ConcurrentBag<SearchResultItem>();
-			var res = m_results.SelectMany(r => r.AllResults).Where(r => r.Url != null);
-
-			await Parallel.ForEachAsync(res, async (item, token) =>
-			{
-				using var r = await item.Url.AllowAnyHttpStatus()
-					              .OnError(x => x.ExceptionHandled = true)
-					              .GetAsync(token);
-
-				switch (r.ResponseMessage.StatusCode) {
-					case HttpStatusCode.NotFound:
-					case HttpStatusCode.UnavailableForLegalReasons:
-					case HttpStatusCode.Unauthorized:
-						return;
-					default:
-						cb.Add(item);
-						break;
-				}
-			});
-
-			UpdateTable(cb);
-		};
-
-		var btnOk = new Button();
-		btnOk.Clicked += () => { Application.RequestStop(); };
-
-		dlFilter.Add(cbCode);
-		dlFilter.AddButton(btnOk);
-		Application.Run(dlFilter);
-	}*/
 
 	#endregion
 

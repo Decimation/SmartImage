@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "SmartImage.Linux": {
+      "commandName": "Project"
+    },
+    "WSL": {
+      "commandName": "WSL",
+      "distributionName": ""
+    },
+    "Test 1": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\1654086015521.png\""
+    }
+  }
+}

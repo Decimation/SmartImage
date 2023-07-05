@@ -33,17 +33,17 @@ public sealed partial class ShellMode
 	{
 		var d = new Dialog()
 		{
-			Text = $"{R2.Name} {Integration.Version} by {R2.Author}\n" +
+			Text = $"{R1.Name} {Integration.Version} by {R1.Author}\n" +
 			       $"Current directory: {Integration.CurrentAppFolder}",
 
-			Title    = R2.Name,
+			Title    = R1.Name,
 			AutoSize = true,
 			Width    = UI.Dim_30_Pct,
 			Height   = UI.Dim_30_Pct,
 		};
 
-		var b1 = d.CreateLinkButton("Repo", R2.Repo_Url);
-		var b2 = d.CreateLinkButton("Wiki", R2.Wiki_Url);
+		var b1 = d.CreateLinkButton("Repo", R1.Repo_Url);
+		var b2 = d.CreateLinkButton("Wiki", R1.Wiki_Url);
 		var b3 = d.CreateLinkButton("Ok", null, () => Application.RequestStop());
 
 		d.AddButton(b1);
@@ -59,7 +59,7 @@ public sealed partial class ShellMode
 		{
 			Text = $"{Environment.GetCommandLineArgs().QuickJoin("\n")}",
 
-			Title    = R2.Name,
+			Title    = R1.Name,
 			AutoSize = true,
 			Width    = UI.Dim_30_Pct,
 			Height   = UI.Dim_30_Pct,
@@ -466,7 +466,7 @@ public sealed partial class ShellMode
 			/*cbSendTo*/
 		);
 
-		var btnHelp = dlCfg.CreateLinkButton("?", R2.Wiki_Url);
+		var btnHelp = dlCfg.CreateLinkButton("?", R1.Wiki_Url);
 
 		dlCfg.AddButton(btnRefresh);
 		dlCfg.AddButton(btnOk);

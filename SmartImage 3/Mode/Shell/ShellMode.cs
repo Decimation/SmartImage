@@ -54,7 +54,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private static readonly Toplevel Top = Application.Top;
 
-	private static readonly Window Win = new(R2.Name)
+	private static readonly Window Win = new(R1.Name)
 	{
 		X           = 0,
 		Y           = 1,

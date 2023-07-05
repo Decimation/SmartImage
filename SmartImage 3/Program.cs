@@ -48,9 +48,9 @@ public static class Program
 	public static void Init()
 	{
 		Global.Setup();
-		Trace.WriteLine("Init", R2.Name);
+		Trace.WriteLine("Init", R1.Name);
 		// Gui.Init();
-		Console.Title = R2.Name;
+		Console.Title = R1.Name;
 
 		if (Compat.IsWin) {
 			ConsoleUtil.SetConsoleMode();
@@ -59,7 +59,7 @@ public static class Program
 
 		AppDomain.CurrentDomain.ProcessExit += (sender, args) =>
 		{
-			Trace.WriteLine($"Exiting", R2.Name);
+			Trace.WriteLine($"Exiting", R1.Name);
 		};
 
 		AppDomain.CurrentDomain.UnhandledException += (sender, args) =>

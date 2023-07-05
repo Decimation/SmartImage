@@ -117,23 +117,11 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Name" xml:space="preserve">
-    <value>SmartImage</value>
-  </data>
-  <data name="Repo_Url" xml:space="preserve">
-    <value>https://github.com/Decimation/SmartImage</value>
-  </data>
   <data name="C_Input" xml:space="preserve">
     <value>Input:</value>
   </data>
-  <data name="Wiki_Url" xml:space="preserve">
-    <value>https://github.com/Decimation/SmartImage/wiki</value>
-  </data>
   <data name="Arg_Input" xml:space="preserve">
     <value>--i</value>
-  </data>
-  <data name="Author" xml:space="preserve">
-    <value>Read Stanton</value>
   </data>
   <data name="Inf_Clipboard" xml:space="preserve">
     <value>Clipboard data</value>

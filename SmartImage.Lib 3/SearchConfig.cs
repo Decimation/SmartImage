@@ -8,6 +8,7 @@ using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using Configuration = System.Configuration.Configuration;
+
 namespace SmartImage.Lib;
 
 public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
@@ -28,6 +29,11 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// Default value for <see cref="OnTop"/>
 	/// </summary>
 	public const bool ON_TOP_DEFAULT = true;
+
+	/// <summary>
+	/// Default value for <see cref="AutoSearch"/>
+	/// </summary>
+	public const bool AUTOSEARCH_DEFAULT = true;
 
 	#endregion
 
@@ -125,6 +131,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 			OnPropertyChanged();
 		}
 	}
+
 	public bool AutoSearch
 	{
 		get { return Configuration.ReadSetting(nameof(AutoSearch), false); }

@@ -97,15 +97,6 @@ namespace SmartImage {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Read Stanton.
-        /// </summary>
-        internal static string Author {
-            get {
-                return ResourceManager.GetString("Author", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Input:.
         /// </summary>
         internal static string C_Input {
@@ -160,38 +151,11 @@ namespace SmartImage {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SmartImage.
-        /// </summary>
-        internal static string Name {
-            get {
-                return ResourceManager.GetString("Name", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SmartImage.lnk.
         /// </summary>
         internal static string NameLink {
             get {
                 return ResourceManager.GetString("NameLink", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage.
-        /// </summary>
-        internal static string Repo_Url {
-            get {
-                return ResourceManager.GetString("Repo_Url", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/wiki.
-        /// </summary>
-        internal static string Wiki_Url {
-            get {
-                return ResourceManager.GetString("Wiki_Url", resourceCulture);
             }
         }
     }

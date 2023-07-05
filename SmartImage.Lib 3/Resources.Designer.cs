@@ -61,6 +61,24 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read Stanton.
+        /// </summary>
+        internal static string Author {
+            get {
+                return ResourceManager.GetString("Author", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SmartImage.
+        /// </summary>
+        internal static string Name {
+            get {
+                return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SOFTWARE\Classes\*\shell\SmartImage.
         /// </summary>
         internal static string Reg_Shell {
@@ -75,6 +93,15 @@ namespace SmartImage.Lib {
         internal static string Reg_Shell_Cmd {
             get {
                 return ResourceManager.GetString("Reg_Shell_Cmd", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage.
+        /// </summary>
+        internal static string Repo_Url {
+            get {
+                return ResourceManager.GetString("Repo_Url", resourceCulture);
             }
         }
         
@@ -183,6 +210,15 @@ namespace SmartImage.Lib {
         internal static string S_Silent {
             get {
                 return ResourceManager.GetString("S_Silent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/wiki.
+        /// </summary>
+        internal static string Wiki_Url {
+            get {
+                return ResourceManager.GetString("Wiki_Url", resourceCulture);
             }
         }
     }
