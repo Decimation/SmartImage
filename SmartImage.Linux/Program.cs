@@ -1,32 +1,43 @@
-﻿global using R2 = SmartImage.Linux.Resources;
-global using R1 = SmartImage.Lib.Resources;
-global using AC = Spectre.Console.AnsiConsole;
-global using AConsole = Spectre.Console.AnsiConsole;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using JetBrains.Annotations;
 using Kantan.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Linux.Cli;
+using Spectre.Console.Cli.Internal.Configuration;
 
 namespace SmartImage.Linux;
 
 public static class Program
 {
+	internal static readonly bool IsLinux   = OperatingSystem.IsLinux();
+	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
+	internal static readonly bool IsMacOs   = OperatingSystem.IsMacOS();
+
 	public static async Task<int> Main(string[] args)
 	{
 		//dotnet run --project SmartImage.Linux/ "$HOME/1654086015521.png"
+		//dotnet run -c 'DEBUG' --project SmartImage.Linux "$HOME/1654086015521.png"
+		//dotnet run -lp 'SmartImage.Linux' -c 'WSL' --project SmartImage.Linux "$HOME/1654086015521.png"
 
-		AC.WriteLine(args.QuickJoin());
-		AC.Write(new FigletText(R1.Name)
-			         .LeftJustified()
-			         .Color(Color.Red));
+		var fs = R2.ResourceManager.GetStream(nameof(R2.Fg_Cybermedium));
+
+		var fg = new FigletText(FigletFont.Load(fs), R1.Name)
+			.LeftJustified()
+			.Color(new Color(0x80, 0xFF, 0x80));
+
+		AC.Write(fg);
 #if DEBUG
-		
+		AC.WriteLine(args.QuickJoin());
+
 #endif
-		AC.WriteLine($"{OperatingSystem.IsLinux()}|{OperatingSystem.IsWindows()}|{OperatingSystem.IsMacOS()}");
+		AC.WriteLine($"{IsLinux}|{IsWindows}|{IsMacOs}");
 
 		var app = new CommandApp<SearchCommand>();
-		return await app.RunAsync(args);
+		app.Configure(c => { });
+
+		var x = await app.RunAsync(args);
+
+		return x;
 	}
 }

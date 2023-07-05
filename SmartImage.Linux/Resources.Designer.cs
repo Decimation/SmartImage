@@ -59,5 +59,35 @@ namespace SmartImage.Linux {
                 resourceCulture = value;
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Fg_Cybermedium {
+            get {
+                object obj = ResourceManager.GetObject("Fg_Cybermedium", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Fg_larry3d {
+            get {
+                object obj = ResourceManager.GetObject("Fg_larry3d", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] Fg_SantaClara {
+            get {
+                object obj = ResourceManager.GetObject("Fg_SantaClara", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
     }
 }
