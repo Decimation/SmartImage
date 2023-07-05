@@ -46,7 +46,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		var sq = new SearchQuery(uf)
 			{ };
-
+		
 		return sq;
 	}
 

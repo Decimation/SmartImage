@@ -5,11 +5,10 @@
     },
     "WSL": {
       "commandName": "WSL",
+      "environmentVariables": {},
+      "commandLineArgs": "\"{OutDir}/SmartImage.Linux.dll\" /home/neorenegade/1654086015521.png",
       "distributionName": ""
-    },
-    "Test 1": {
-      "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\1654086015521.png\""
+
     }
   }
 }
