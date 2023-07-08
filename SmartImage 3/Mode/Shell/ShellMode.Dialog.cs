@@ -167,6 +167,7 @@ public sealed partial class ShellMode
 
 		void ReloadDialog()
 		{
+			dtConfig.Dispose();
 			tvConfig.Table = Config.ToTable();
 			tvConfig.SetNeedsDisplay();
 			dlCfg.SetNeedsDisplay();
@@ -396,7 +397,10 @@ public sealed partial class ShellMode
 		    Register
 		\*============================================================================*/
 
-		btnRefresh.Clicked += ReloadDialog;
+		btnRefresh.Clicked += () =>
+		{
+
+		} ;
 
 		btnOk.Clicked += () =>
 		{

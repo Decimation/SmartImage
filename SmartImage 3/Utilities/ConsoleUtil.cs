@@ -51,8 +51,8 @@ internal static class ConsoleUtil
 	{
 		// Clipboard.Open();
 
-		// Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
-		Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
+		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
+		// Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;
 
 		Native.GetConsoleMode(StdIn, out ConsoleModes lpMode);
 

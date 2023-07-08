@@ -18,16 +18,23 @@ internal static class AppInfo
 {
 	internal static void ExceptionLog(Exception ex)
 	{
-		File.WriteAllLines($"smartimage.log", new[]
+		var msg = new[]
 		{
 			$"Message: {ex.Message}",
 			$"Source: {ex.Source}",
 			$"Stack trace: {ex.StackTrace}",
 
-		});
+		};
+		File.WriteAllLines($"smartimage.log", msg);
+
+		foreach (var e in msg) {
+			Console.Error.WriteLine(e);
+		}
+
+		Console.ReadKey();
 	}
 
-	internal static async Task<Release[]> GetRepoReleasesAsync()
+	internal static async Task<Release[]?> GetRepoReleasesAsync()
 	{
 		var res = await "https://api.github.com/repos/Decimation/SmartImage/releases"
 			          .WithAutoRedirect(true)
@@ -35,6 +42,10 @@ internal static class AppInfo
 			          .WithHeaders(new
 			          {
 				          User_Agent = HttpUtilities.UserAgent
+			          })
+			          .OnError(e =>
+			          {
+				          e.ExceptionHandled = true;
 			          })
 			          .GetJsonAsync<Release[]>();
 

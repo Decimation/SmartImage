@@ -516,6 +516,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 	private async void CheckForUpdates()
 	{
 		var releases  = await AppInfo.GetRepoReleasesAsync();
+
+		if (releases == null) {
+			return;
+		}
+
 		var releases2 = releases.OrderByDescending(x => x.published_at);
 
 		var cv  = Assembly.GetExecutingAssembly().GetName().Version;
