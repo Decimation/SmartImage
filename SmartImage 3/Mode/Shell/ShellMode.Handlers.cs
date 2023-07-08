@@ -488,6 +488,7 @@ public sealed partial class ShellMode
 			// SetQuery(n);
 
 			SetInputText(n);
+			Btn_Queue.Text = $"Queue ({Queue.Count})";
 		}
 	}
 

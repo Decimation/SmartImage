@@ -1028,6 +1028,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 				foreach (string str1 in strs[1..]) {
 					Queue.Enqueue(str1);
 				}
+				Btn_Queue.Text = $"Queue ({Queue.Count})";
+
 			}
 
 			// var b = !m_clipboard.Contains(str);
