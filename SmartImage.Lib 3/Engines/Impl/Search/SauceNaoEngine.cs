@@ -13,6 +13,7 @@ using Kantan.Text;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using static Kantan.Diagnostics.LogCategories;
+using static SmartImage.Lib.Engines.Impl.Search.SauceNaoEngine.Strings;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
@@ -31,9 +32,15 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, IConfig
 {
-	private static readonly string[] Syn_Artists    = { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
-	private static readonly string[] Syn_Characters = { "Characters:" };
-	private static readonly string[] Syn_Material   = { "Material:", "Source:" };
+	internal static class Strings
+	{
+		public const string Twitter = "Twitter:";
+		public const string TweetID = "Tweet ID:";
+
+		public static readonly string[] Syn_Artists    = { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
+		public static readonly string[] Syn_Characters = { "Characters:" };
+		public static readonly string[] Syn_Material   = { "Material:", "Source:" };
+	}
 
 	private const string BASE_URL = "https://saucenao.com/";
 
@@ -182,131 +189,135 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 
 		var results = doc.Body.SelectNodes("//div[@class='result']");
 
-		static SauceNaoDataResult Parse(INode result)
+		return results.Select(Parse).ToList();
+	}
+
+	private static SauceNaoDataResult Parse(INode result)
+	{
+		// TODO: OPTIMIZE
+
+		if (result == null) {
+			return null;
+		}
+
+		const string HIDDEN_ID_VAL = "result-hidden-notification";
+
+		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
+			return null;
+		}
+
+		var resulttablecontent = result.FirstChild
+			.FirstChild
+			.FirstChild
+			.ChildNodes[1];
+
+		var resultmatchinfo      = resulttablecontent.FirstChild;
+		var resultsimilarityinfo = resultmatchinfo.FirstChild;
+
+		// Contains links
+		var resultmiscinfo = resultmatchinfo.ChildNodes[1];
+		// var resultcontent  = resulttablecontent.ChildNodes[1];
+		// var resultcontentcolumn = resultcontent.ChildNodes[1];
+		var resultcontent = ((IElement) result).GetElementsByClassName("resultcontent")[0];
+
+		IHtmlCollection<IElement> resultcontentcolumn_rg = null;
+
+		if (result is IElement { } elem) {
+			resultcontentcolumn_rg = elem.QuerySelectorAll(Serialization.S_SauceNao_ResultContentColumn);
+
+		}
+		// var resulttitle = resultcontent.ChildNodes[0];
+
+		var links = new List<string>();
+
+		if (resulttablecontent is IElement { } e) {
+			var links1 = e.QuerySelectorAll(Serialization.Tag_a)
+				.Select(x => x.GetAttribute(Serialization.Atr_href));
+			links.AddRange(links1);
+		}
+
+		var element = resultcontentcolumn_rg.Select(c => c.ChildNodes)
+			.SelectMany(c => c.GetElementsByTagName(Serialization.Tag_a)
+				            .Select(x => x.GetAttribute(Serialization.Atr_href)))
+			.Where(ec => ec != null);
+
+		if (element.Any()) {
+			links.AddRange(element);
+		}
+
+		if (resultmiscinfo != null) {
+			links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Serialization.Tag_a)
+				          .FirstOrDefault(x => x.GetAttribute(Serialization.Atr_href) != null)?
+				          .GetAttribute(Serialization.Atr_href));
+		}
+
+		//	//div[contains(@class, 'resulttitle')]
+		//	//div/node()[self::strong]
+
+		INode  resulttitle = resultcontent.ChildNodes[0];
+		string rti         = resulttitle?.TextContent;
+
+		// INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
+		string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
+
+		// string material1 = rcci.SubstringAfter(material);
+		string material1 = rcci.SubstringAfter(Syn_Material.First());
+
+		// string creator1 = rcci;
+		string creator1    = rcci;
+		string characters1 = null;
+
+		foreach (var s in Syn_Artists) {
+			if (rti.StartsWith(s)) {
+				rti = rti.SubstringAfter(s).Trim(' ');
+			}
+		}
+
+		var nodes = resultcontentcolumn_rg.SelectMany(e => e.ChildNodes)
+			.Where(c => c is not (IElement { TagName: "BR" }
+				            or IElement { NodeName: "SPAN" }))
+			.ToArray();
+
+		float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
+
+		var sndr = new SauceNaoDataResult
 		{
-			if (result == null) {
-				return null;
+			Urls       = links.Distinct().ToArray(),
+			Similarity = similarity,
+			// Creator    = creator1,
+			Title    = rti,
+			Material = material1
+
+		};
+
+		for (int i = 0; i < nodes.Length; i++) {
+			var node = nodes[i];
+			var s    = node.TextContent;
+
+			if (s.StartsWith(Syn_Material[0])) {
+				sndr.Source = nodes[++i].TextContent.Trim(' ');
+				continue;
 			}
 
-			const string HIDDEN_ID_VAL = "result-hidden-notification";
-
-			if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
-				return null;
+			if (s.StartsWith(Syn_Material[1])) {
+				sndr.Material = nodes[++i].TextContent.Trim(' ');
+				continue;
 			}
 
-			var resulttablecontent = result.FirstChild
-				.FirstChild
-				.FirstChild
-				.ChildNodes[1];
-
-			var resultmatchinfo      = resulttablecontent.FirstChild;
-			var resultsimilarityinfo = resultmatchinfo.FirstChild;
-
-			// Contains links
-			var resultmiscinfo = resultmatchinfo.ChildNodes[1];
-			// var resultcontent  = resulttablecontent.ChildNodes[1];
-			// var resultcontentcolumn = resultcontent.ChildNodes[1];
-			var resultcontent = ((IElement) result).GetElementsByClassName("resultcontent")[0];
-
-			IHtmlCollection<IElement> resultcontentcolumn_rg = null;
-
-			if (result is IElement { } elem) {
-				resultcontentcolumn_rg = elem.QuerySelectorAll(Serialization.S_SauceNao_ResultContentColumn);
-
-			}
-			// var resulttitle = resultcontent.ChildNodes[0];
-
-			var links = new List<string>();
-
-			if (resulttablecontent is IElement { } e) {
-				var links1 = e.QuerySelectorAll(Serialization.Tag_a)
-					.Select(x => x.GetAttribute(Serialization.Atr_href));
-				links.AddRange(links1);
+			if (Syn_Characters.Any(s.StartsWith) || Syn_Artists.Any(s.StartsWith)) {
+				sndr.Character = nodes[++i].TextContent.Trim(' ');
+				continue;
 			}
 
-			var element = resultcontentcolumn_rg.Select(c => c.ChildNodes)
-				.SelectMany(c => c.GetElementsByTagName(Serialization.Tag_a)
-					            .Select(x => x.GetAttribute(Serialization.Atr_href)))
-				.Where(e => e != null);
-
-			if (element.Any()) {
-				links.AddRange(element);
+			if (s.StartsWith(Twitter)) {
+				sndr.Creator = nodes[++i].TextContent.Trim(' ');
+				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
+				continue;
 			}
-
-			if (resultmiscinfo != null) {
-				links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Serialization.Tag_a)
-					          .FirstOrDefault(x => x.GetAttribute(Serialization.Atr_href) != null)?
-					          .GetAttribute(Serialization.Atr_href));
-			}
-
-			//	//div[contains(@class, 'resulttitle')]
-			//	//div/node()[self::strong]
-
-			INode  resulttitle = resultcontent.ChildNodes[0];
-			string rti         = resulttitle?.TextContent;
-
-			// INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
-			string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
-
-			// string material1 = rcci.SubstringAfter(material);
-			string material1 = rcci.SubstringAfter(Syn_Material.First());
-
-			// string creator1 = rcci;
-			string creator1    = rcci;
-			string characters1 = null;
-
-			foreach (var s in Syn_Artists) {
-				if (rti.StartsWith(s)) {
-					rti = rti.SubstringAfter(s).Trim(' ');
-				}
-			}
-
-			var nodes = resultcontentcolumn_rg.SelectMany(e => e.ChildNodes)
-				.Where(c => c is not (IElement { TagName: "BR" }
-					            or IElement { NodeName: "SPAN" }))
-				.ToArray();
-
-			float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
-
-			var dataResult = new SauceNaoDataResult
-			{
-				Urls       = links.Distinct().ToArray(),
-				Similarity = similarity,
-				// Creator    = creator1,
-				Title    = rti,
-				Material = material1
-
-			};
-
-			for (int i = 0; i < nodes.Length; i++) {
-				var node = nodes[i];
-				var s    = node.TextContent;
-
-				if (s.StartsWith(Syn_Material[0])) {
-					dataResult.Source = nodes[++i].TextContent.Trim(' ');
-					continue;
-				}
-
-				if (s.StartsWith(Syn_Material[1])) {
-					dataResult.Material = nodes[++i].TextContent.Trim(' ');
-					continue;
-				}
-
-				if (Syn_Characters.Any(s.StartsWith)) {
-					dataResult.Character = nodes[++i].TextContent.Trim(' ');
-					continue;
-				}
-
-				if (Syn_Artists.Any(s.StartsWith)) {
-					dataResult.Creator = nodes[++i].TextContent.Trim(' ');
-				}
-			}
-
-			return dataResult;
 
 		}
 
-		return results.Select(Parse).ToList();
+		return sndr;
 	}
 
 	private async Task<IEnumerable<SauceNaoDataResult>> GetAPIResultsAsync(SearchQuery url)
@@ -323,8 +334,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 			{ "db", dbIndex },
 			{ "output_type", "2" },
 			{ "api_key", Authentication },
-			{ "url", url.ToString() },
-			{ "numres", numRes }
+			{ "url", url.Upload },
+			// { "numres", numRes }
 		};
 
 		var content = new FormUrlEncodedContent(values);
@@ -436,18 +447,16 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 			var    idxStr   = Index.ToString();
 			string siteName = Index != 0 ? idxStr : null;
 
-			var site  = Strings.NormalizeNull(siteName);
-			var title = Strings.NormalizeNull(WebsiteTitle);
+			var site  = Kantan.Text.Strings.NormalizeNull(siteName);
+			var title = Kantan.Text.Strings.NormalizeNull(WebsiteTitle);
 
 			var sb = new StringBuilder();
 
-			if (site is { })
-			{
+			if (site is { }) {
 				sb.Append(site);
 			}
 
-			if (title is { })
-			{
+			if (title is { }) {
 				sb.Append($" [{title}]");
 			}
 
@@ -458,25 +467,25 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 				Url u = s;
 				return u.Host == "gelbooru" || u.Host == "danbooru";
 			}).ToArray();*/
-
-			var      urls = Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray();
+			
+			string[] urls = (Urls != null) ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() : Array.Empty<string>();
+			
 			string[] meta = Array.Empty<string>();
 
-			if ((urls.Length >= 2))
-			{
-				meta = urls[1..].Where(u => !((Url)u).QueryParams.Contains("lookup_type")).ToArray();
+			if ((urls.Length >= 2)) {
+				meta = urls[1..].Where(u => !((Url) u).QueryParams.Contains("lookup_type")).ToArray();
 			}
 
 			var imageResult = new SearchResultItem(r)
 			{
 				Url         = urls.FirstOrDefault(),
 				Similarity  = Math.Round(Similarity, 2),
-				Description = Strings.NormalizeNull(idxStr),
-				Artist      = Strings.NormalizeNull(Creator),
-				Source      = Strings.NormalizeNull(Material),
-				Character   = Strings.NormalizeNull(Character),
+				Description = Kantan.Text.Strings.NormalizeNull(idxStr),
+				Artist      = Kantan.Text.Strings.NormalizeNull(Creator),
+				Source      = Kantan.Text.Strings.NormalizeNull(Material),
+				Character   = Kantan.Text.Strings.NormalizeNull(Character),
 				Site        = site,
-				Title       = Strings.NormalizeNull(Title),
+				Title       = Kantan.Text.Strings.NormalizeNull(Title),
 				Metadata    = meta,
 			};
 

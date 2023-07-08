@@ -356,6 +356,7 @@ public sealed partial class ShellMode
 			Y      = Pos.Y(lbEhUsername),
 			Width  = WIDTH1 * 2,
 			Height = 1,
+			Text = Config.EhUsername
 		};
 
 		tfEhUsername.TextChanging += args =>
@@ -370,7 +371,8 @@ public sealed partial class ShellMode
 			X           = Pos.X(lbEhUsername),
 			Y           = Pos.Bottom(lbEhUsername),
 			CanFocus    = false,
-			ColorScheme = UI.Cs_Lbl1
+			ColorScheme = UI.Cs_Lbl1,
+
 		};
 
 		TextField tfEhPassword = new()
@@ -379,6 +381,8 @@ public sealed partial class ShellMode
 			Y      = Pos.Y(lbEhPassword),
 			Width  = WIDTH1 * 2,
 			Height = 1,
+			Text   = Config.EhPassword
+
 		};
 
 		tfEhPassword.TextChanging += args =>
@@ -451,6 +455,7 @@ public sealed partial class ShellMode
 			Y      = Pos.Y(lbSauceNaoKey),
 			Width  = WIDTH1 * 2,
 			Height = 1,
+			Text = Config.SauceNaoKey
 		};
 
 		tfSauceNaoKey.TextChanging += txt =>
