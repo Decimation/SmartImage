@@ -300,7 +300,7 @@ public sealed class SearchClient : IDisposable
 			var uf = await t1;
 
 			if (uf != null) {
-				di.Add(uf);
+				di.AddRange(uf);
 			}
 
 		}

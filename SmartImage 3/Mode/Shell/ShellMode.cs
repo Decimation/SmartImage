@@ -37,14 +37,6 @@ namespace SmartImage.Mode.Shell;
 
 public sealed partial class ShellMode : IDisposable, IMode
 {
-	#region
-
-	private const int CON_WIDTH = 150;
-
-	private const int CON_HEIGHT = 35;
-
-	#endregion
-
 	// NOTE: DO NOT REARRANGE FIELD ORDER
 	// NOTE: Static initialization order is nondeterminant with partial classes
 
@@ -355,15 +347,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	public ShellMode(string[] args)
 	{
-		if (Compat.IsWin) {
-			try {
-				Console.SetWindowSize(CON_WIDTH, CON_HEIGHT);
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-			}
-
-		}
 
 		Args     = args;
 		m_token  = new();
@@ -509,32 +492,16 @@ public sealed partial class ShellMode : IDisposable, IMode
 			Next_Clicked();
 		}
 
-		Application.MainLoop.Invoke(CheckForUpdates);
+		Application.MainLoop.Invoke(UpdateHandler);
 
 	}
 
-	private async void CheckForUpdates()
+	private static async void UpdateHandler()
 	{
-		var releases  = await AppInfo.GetRepoReleasesAsync();
+		var cv = AppInfo.Version;
+		var lv = await AppInfo.GetLatestReleaseAsync();
 
-		if (releases == null) {
-			return;
-		}
-
-		var releases2 = releases.OrderByDescending(x => x.published_at);
-
-		var cv  = Assembly.GetExecutingAssembly().GetName().Version;
-		var fst = releases2.FirstOrDefault();
-
-		if (fst == default) {
-			return;
-		}
-
-		if (!Version.TryParse(fst.tag_name[1..], out var lv)) {
-			return;
-		}
-
-		if (lv > cv) {
+		if (lv is { Version: { } } && lv.Version > cv) {
 			var menus = new MenuBarItem[Mb_Menu.Menus.Length + 1];
 
 			Mb_Menu.Menus.CopyTo(menus, 0);
@@ -542,7 +509,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			menus[^1] = new MenuBarItem(title: "[Update available]", null, action: () =>
 			{
-				HttpUtilities.OpenUrl(fst.assets[0].browser_download_url);
+				HttpUtilities.OpenUrl(lv.assets[0].browser_download_url);
 			});
 		}
 	}
@@ -573,28 +540,23 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	#region
 
-	private void OnResult(object o, SearchResult result)
-	{
-		m_results.Add(result);
-
-		Application.MainLoop.Invoke(() =>
-		{
-			AddResultToTable(result);
-		});
-
-	}
-
 	private void AddResultToTable(SearchResult result)
 	{
 		int st = Dt_Results.Rows.Count;
 
-		var cs = GetColor(result.Engine);
+		var cs = GetEngineColorScheme(result.Engine);
 
-		IndexColors[st] = cs;
+		var rnr = Dt_Results.NewRow();
+		rnr.ItemArray = new object[]
+		{
+			$"{result.Engine.Name} (Raw)", string.Empty,
+			result.RawUrl, 0, null, null, $"{result.Status}",
+			null, null, null, null, null, null
+		};
 
-		Dt_Results.Rows.Add($"{result.Engine.Name} (Raw)", string.Empty,
-		                    result.RawUrl, 0, null, null, $"{result.Status}",
-		                    null, null, null, null, null, null);
+		IndexColors[rnr] = cs;
+
+		Dt_Results.Rows.Add(rnr);
 
 		// Message[result.RawUrl] = "?";
 		// var rawSri = new SearchResultItem(result) { Url = result.RawUrl, Similarity = null };
@@ -605,7 +567,11 @@ public sealed partial class ShellMode : IDisposable, IMode
 			AddResultItemToTable(sri, i);
 
 			for (int j = 0; j < sri.Sisters.Count; j++) {
-				AddResultItemToTable(sri.Sisters[j], i, j + 1);
+
+				var sris = sri.Sisters[j];
+				var j1   = j + 1;
+
+				AddResultItemToTable(sris, i, j1);
 			}
 		}
 
@@ -617,19 +583,18 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Pbr_Status.SetNeedsDisplay();
 
 	}
-
+	
 	private static void AddResultItemToTable(SearchResultItem sri, int i, int j = 0)
 	{
-
-		var cs = GetColor(sri.Root.Engine);
+		var cs = GetEngineColorScheme(sri.Root.Engine);
 		var st = Dt_Results.Rows.Count;
 
-		IndexColors[st] = cs;
-
-		Dt_Results.Rows.Add(Create(sri, i+1, j));
+		var nr = CreateRowForResultItem(sri, i + 1, j);
+		IndexColors[nr] = cs;
+		Dt_Results.Rows.Add(nr);
 	}
 
-	private static DataRow Create(SearchResultItem sri, int i, int j)
+	private static DataRow CreateRowForResultItem(SearchResultItem sri, int i, int j)
 	{
 		var nr = Dt_Results.NewRow();
 
@@ -650,10 +615,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		string s = $"{sri.Root.Engine.Name} #{i}";
 
-		if (j != 0) {
-			s += $".{j}";
-
-		}
+		s += $".{j}";
 
 		nr.ItemArray = new[]
 		{
@@ -662,6 +624,21 @@ public sealed partial class ShellMode : IDisposable, IMode
 		};
 
 		return nr;
+	}
+
+	#endregion
+
+	#region
+
+	private void OnResult(object o, SearchResult result)
+	{
+		m_results.Add(result);
+
+		Application.MainLoop.Invoke(() =>
+		{
+			AddResultToTable(result);
+		});
+
 	}
 
 	private void OnComplete(object sender, SearchResult[] results)
@@ -1017,7 +994,12 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 			// var s = Tf_Input.Text.ToString().CleanString();
 
-			var    rc  = Integration.ReadClipboard(out var strs);
+			var rc = Integration.ReadClipboard(out var strs);
+
+			if (!rc) {
+				goto r2;
+			}
+
 			string str = strs[0];
 
 			if (strs.Length > 1) {
@@ -1028,6 +1010,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 				foreach (string str1 in strs[1..]) {
 					Queue.Enqueue(str1);
 				}
+
 				Btn_Queue.Text = $"Queue ({Queue.Count})";
 
 			}
@@ -1138,7 +1121,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 		}
 
 		Binary.Clear();
-
 		_inputVerifying = false;
 	}
 
@@ -1175,7 +1157,9 @@ public sealed partial class ShellMode : IDisposable, IMode
 		m_results.Clear();
 	}
 
-	internal DataRow[] Get(SearchResult sr)
+	#region 
+
+	internal DataRow[] FindRowsForResult(SearchResult sr)
 	{
 		var l = new List<DataRow>();
 
@@ -1191,7 +1175,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		return l.ToArray();
 	}
 
-	internal SearchResultItem? FindResultByUrl(Url v)
+	internal SearchResultItem? FindResultItemForUrl(Url v)
 	{
 		using var e = m_results.GetEnumerator();
 
@@ -1217,4 +1201,6 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 		return null;
 	}
+
+	#endregion
 }

@@ -58,11 +58,11 @@ public sealed partial class ShellMode
 
 	private static readonly ConcurrentDictionary<object, string>                Downloaded   = new();
 	private static readonly ConcurrentDictionary<BaseSearchEngine, ColorScheme> EngineColors = new();
-	private static readonly ConcurrentDictionary<int, ColorScheme>              IndexColors  = new();
+	private static readonly ConcurrentDictionary<DataRow, ColorScheme>              IndexColors  = new();
 	private static readonly ConcurrentDictionary<Color, ColorScheme>            IndexColors2 = new();
 	private static readonly ConcurrentDictionary<SearchResultItem, UniSource[]> Binary       = new();
 
-	private static ColorScheme GetColor(BaseSearchEngine bse)
+	private static ColorScheme GetEngineColorScheme(BaseSearchEngine bse)
 	{
 		if (EngineColors.TryGetValue(bse, out var cs)) {
 			return cs;
@@ -223,6 +223,8 @@ public sealed partial class ShellMode
 
 	private async void Filter_Clicked()
 	{
+		// TODO
+
 		var res = m_results
 			.Where(r => r.Status is SearchResultStatus.Success or SearchResultStatus.None)
 			.SelectMany(r => r.AllResults);
@@ -244,7 +246,9 @@ public sealed partial class ShellMode
 		if (_filterOrder >= 3) {
 			await Parallel.ForEachAsync(res.ToArray(), async (item, token) =>
 			{
-				using var r = await item.Url.AllowAnyHttpStatus().OnError(x => x.ExceptionHandled = true)
+				using var r = await item.Url
+					              .AllowAnyHttpStatus()
+					              .OnError(x => x.ExceptionHandled = true)
 					              .GetAsync(token);
 
 				switch (r.ResponseMessage.StatusCode) {
@@ -268,7 +272,7 @@ public sealed partial class ShellMode
 
 			await Parallel.ForEachAsync(res3, async (item, token) =>
 			{
-				var us = await item.LoadUniAsync().ConfigureAwait(false);
+				var us = await item.LoadUniAsync(token).ConfigureAwait(false);
 
 				if (us) {
 					res2.Add(item);
@@ -531,7 +535,7 @@ public sealed partial class ShellMode
 
 		// GC.TryStartNoGCRegion(10);
 
-		if (IndexColors.TryGetValue(r.RowIndex, out ColorScheme? cs)) { }
+		if (IndexColors.TryGetValue(r.Table.Rows[r.RowIndex], out ColorScheme? cs)) { }
 		else {
 			cs = new ColorScheme();
 		}
@@ -539,36 +543,6 @@ public sealed partial class ShellMode
 		// GC.EndNoGCRegion();
 		return cs;
 
-		/*// var eng=args.Table.Rows[args.RowIndex]["Engine"];
-
-		ColorScheme? cs = null;
-
-		var ar = r.Table.Rows[r.RowIndex].ItemArray;
-
-		var eng = ar[0];
-
-		if (eng == null) {
-			goto ret;
-		}
-
-		// var               eng2 = Client.Engines.FirstOrDefault(f => eng.ToString().Contains(f.Name));
-
-		BaseSearchEngine? eng2 = null;
-
-		foreach (BaseSearchEngine csx in Client.Engines) {
-			if (eng.ToString().Contains(csx.Name)) {
-				eng2 = csx;
-				break;
-			}
-		}
-
-		if (eng2 == null) {
-			goto ret;
-		}
-
-		cs = Colors[eng2];
-		ret:
-		return cs;*/
 	}
 
 	private async void ResultTable_KeyPress(View.KeyEventEventArgs eventArgs)
@@ -650,7 +624,7 @@ public sealed partial class ShellMode
 			case Key.M:
 				eventArgs.Handled = true;
 
-				var sri = FindResultByUrl(v);
+				var sri = FindResultItemForUrl(v);
 
 				dynamic? d = sri?.Metadata;
 
@@ -724,7 +698,7 @@ public sealed partial class ShellMode
 				//TODO: WIP
 				eventArgs.Handled = true;
 
-				sri = FindResultByUrl(v);
+				sri = FindResultItemForUrl(v);
 
 				if (sri == null) {
 					break;
@@ -733,30 +707,49 @@ public sealed partial class ShellMode
 				UniSource[] ih;
 
 				if (!Binary.ContainsKey(sri)) {
-					ih = await ImageHelper.ScanAsync(sri.Url, m_token.Token);
+					(int g, int s) = ParseDataRowGroup(cr);
+
+					var ok1 = await sri.LoadUniAsync(m_token.Token);
+
+					if (ok1 && sri.HasUni) {
+						ih = sri.Uni;
+					}
+					else {
+						break;
+					}
+
 					Binary.TryAdd(sri, ih);
-					var ddr  = Get(sri.Root);
-					var ixx  = Array.IndexOf(ddr, cr);
-					var ixxx = Dt_Results.Rows.IndexOf(ddr[ixx]);
+					var sriDataRow = FindRowsForResult(sri.Root);
+					var crIdx      = Array.IndexOf(sriDataRow, cr);
+					var dtIdx      = Dt_Results.Rows.IndexOf(sriDataRow[crIdx]);
+
+					/*(int ii, int jj) = ParseDataRowGroup(cr);
+
+					var crg = sriDataRow.Where(x =>
+					{
+						var (i, j) = ParseDataRowGroup(x);
+						return i == ii;
+					});*/
 
 					var xc = Dt_Results.Rows.Count;
 
-					var engSplit = cr[0].ToString().Split(' ');
-					var eng      = engSplit[0];
-					var iijj     = (engSplit[1][1..].Split('.'));
-					var (ii, jj) = (int.Parse(iijj[0]), iijj.Length > 1 ? int.Parse(iijj[1]) : 0);
+					// Todo: this is really inefficient and unoptimized
 
 					for (int j = 0; j < ih.Length; j++) {
-						var sri_ih = new SearchResultItem(sri.Root)
+						var sriOfIh = new SearchResultItem(sri.Root)
 						{
 							Url = ih[j].Value.ToString(),
-							Uni = ih[j]
+							Uni = new[] { ih[j] }
 						};
-						sri.Sisters.Add(sri_ih);
+						sri.Sisters.Add(sriOfIh);
 
-						var nr = Create(sri_ih, ii, jj+j);
+						var nr    = CreateRowForResultItem(sriOfIh, g,  s);
+						var cs    = GetEngineColorScheme(sriOfIh.Root.Engine);
+						var nrIdx = dtIdx + (j + 1);
+						IndexColors[nr] = cs;
 
-						Dt_Results.Rows.InsertAt(nr, ixxx + (j+1));
+						Dt_Results.Rows.InsertAt(nr, nrIdx);
+						Tv_Results.Update();
 					}
 
 					return;
@@ -833,6 +826,15 @@ public sealed partial class ShellMode
 				eventArgs.Handled = false;
 				break;
 		}
+	}
+
+	private static (int ii, int jj) ParseDataRowGroup(DataRow cr)
+	{
+		var engSplit = cr[0].ToString().Split(' ');
+		var eng      = engSplit[0];
+		var ij       = (engSplit[1][1..].Split('.'));
+		var ijk = (int.Parse(ij[0]), ij.Length > 1 ? int.Parse(ij[1]) : 0);
+		return ijk;
 	}
 
 	#endregion

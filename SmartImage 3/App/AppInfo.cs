@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Flurl.Http;
@@ -16,8 +18,15 @@ namespace SmartImage.App;
 
 internal static class AppInfo
 {
+	public static readonly Assembly Current = Assembly.GetExecutingAssembly();
+	public static readonly Version  Version = Current.GetName().Version;
+
+	static AppInfo() { }
+
 	internal static void ExceptionLog(Exception ex)
 	{
+		Debugger.Break();
+
 		var msg = new[]
 		{
 			$"Message: {ex.Message}",
@@ -25,6 +34,7 @@ internal static class AppInfo
 			$"Stack trace: {ex.StackTrace}",
 
 		};
+
 		File.WriteAllLines($"smartimage.log", msg);
 
 		foreach (var e in msg) {
@@ -52,7 +62,27 @@ internal static class AppInfo
 		return res;
 	}
 
+	public static async Task<Release?> GetLatestReleaseAsync()
+	{
+		var r = await GetRepoReleasesAsync();
+
+		if (r == null) {
+			return null;
+		}
+
+		return r.OrderByDescending(x => x.published_at).FirstOrDefault(x =>
+		{
+			if (Version.TryParse(x.tag_name[1..], out var xv)) {
+				x.Version = xv;
+				return xv > Version;
+			}
+
+			return false;
+		});
+	}
+
 	// Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
+
 	#region GitHub objects
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
@@ -139,6 +169,10 @@ internal static class AppInfo
 		public string             body             { get; set; }
 		public string             discussion_url   { get; set; }
 		public Reactions          reactions        { get; set; }
+
+		[JsonIgnore]
+		[NonSerialized]
+		public Version? Version;
 	}
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]

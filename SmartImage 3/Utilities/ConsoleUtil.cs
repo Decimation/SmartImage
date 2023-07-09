@@ -47,9 +47,19 @@ internal static class ConsoleUtil
 		Native.DeleteMenu(sysMenu, (int) SysCommand.SC_SIZE, Native.MF_BYCOMMAND);
 	}
 
+	private const int CON_WIDTH = 150;
+
+	private const int CON_HEIGHT = 35;
+
 	internal static void SetConsoleMode()
 	{
 		// Clipboard.Open();
+		try {
+			Console.SetWindowSize(CON_WIDTH, CON_HEIGHT);
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+		}
 
 		Console.InputEncoding = Console.OutputEncoding = Encoding.UTF8;
 		// Console.InputEncoding = Console.OutputEncoding = Encoding.Unicode;

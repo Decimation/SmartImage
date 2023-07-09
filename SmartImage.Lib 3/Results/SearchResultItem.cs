@@ -4,6 +4,7 @@ using System.Dynamic;
 using JetBrains.Annotations;
 using Novus.FileTypes;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Results;
 
@@ -93,7 +94,7 @@ public sealed record SearchResultItem : IDisposable,
 
 	public int Score { get; private set; }
 
-	public UniSource Uni { get; internal set; }
+	public UniSource[] Uni { get; internal set; }
 
 	[CanBeNull]
 	public SearchResultItem Parent { get; internal set; }
@@ -169,16 +170,22 @@ public sealed record SearchResultItem : IDisposable,
 	}
 
 	// [MustUseReturnValue]
-	public async Task<bool> LoadUniAsync()
+	public async Task<bool> LoadUniAsync(CancellationToken ct = default)
 	{
-		if (Uni != null) {
+		if (HasUni) {
 			return true;
 		}
 
-		Uni = await UniSource.TryGetAsync(Url, whitelist: FileType.Image);
+		if (Url == null) {
+			return false;
+		}
 
-		return Uni != null;
+		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
+		Uni = await BaseImageHost.ScanAsync(Url, ct);
+		return HasUni;
 	}
+
+	public bool HasUni => Uni != null && Uni.Any();
 
 	public override string ToString()
 	{
@@ -188,8 +195,12 @@ public sealed record SearchResultItem : IDisposable,
 
 	public void Dispose()
 	{
-		Uni?.Dispose();
+		if (Uni != null && Uni.Any()) {
+			foreach (var us in Uni) {
+				us?.Dispose();
+			}
 
+		}
 		foreach (var sis in Sisters) {
 			sis.Dispose();
 		}

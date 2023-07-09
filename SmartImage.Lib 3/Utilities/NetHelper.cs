@@ -26,12 +26,10 @@ internal static class NetHelper
 
 	}
 
-	public static IEnumerable<string> QueryAllDistinctAttribute(this IParentNode doc, string sel, string attr)
+	public static IEnumerable<string> QueryAllAttribute(this IParentNode doc, string sel, string attr)
 	{
 		return doc.QuerySelectorAll(sel)
-			.Distinct()
-			.Select(e => e.GetAttribute(attr))
-			.Distinct();
+			.Select(e => e.GetAttribute(attr));
 	}
 
 	public static Action<FlurlHttpSettings> Configure()
