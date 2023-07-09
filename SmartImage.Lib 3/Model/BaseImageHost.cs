@@ -14,11 +14,30 @@ namespace SmartImage.Lib.Model;
 
 public class GenericImageHost : BaseImageHost
 {
-	public override Url Host => default;
+	public override        Url           Host => default;
+	public static readonly BaseImageHost Instance = new GenericImageHost();
 
-	public override IEnumerable<Url> Refine(IEnumerable<Url> b)
+	public override string[] Illegal
+		=> new[]
+		{
+			"thumbnail", "avatar", "error", "logo"
+		};
+
+	public override bool Refine(string b)
 	{
-		return b.Where(x => x.PathSegments.Contains("thumbnail"));
+		if (!Url.IsValid(b)) {
+			return false;
+		}
+
+		var u  = Url.Parse(b);
+		var ps = u.PathSegments;
+
+		if (ps.Any()) {
+			return !Illegal.Any(i => ps.Any(p => p.Contains(i, StringComparison.InvariantCultureIgnoreCase)));
+		}
+
+		return true;
+		;
 	}
 }
 
@@ -26,7 +45,9 @@ public abstract class BaseImageHost
 {
 	public abstract Url Host { get; }
 
-	public abstract IEnumerable<Url> Refine(IEnumerable<Url> b);
+	public abstract string[] Illegal { get; }
+
+	public abstract bool Refine(string b);
 
 	public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(TypeProperties.Subclass).ToArray();
@@ -70,7 +91,7 @@ public abstract class BaseImageHost
 		var a = dd.QueryAllAttribute("a", "href");
 		var b = dd.QueryAllAttribute("img", "src");
 
-		var c = a.Union(b).Where(Url.IsValid).Distinct();
+		var c = a.Union(b).Where(GenericImageHost.Instance.Refine).Distinct();
 
 		var po = new ParallelOptions()
 		{
@@ -83,7 +104,7 @@ public abstract class BaseImageHost
 			var ux = await UniSource.TryGetAsync(s, whitelist: FileType.Image, ct: token);
 
 			if (ux != null) {
-				Debug.WriteLine($"Found ${ux.Value} for {u}", nameof(ScanAsync));
+				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanAsync));
 				ul.Add(ux);
 
 			}
@@ -104,7 +125,7 @@ public class DanbooruImageHost : GenericImageHost
 {
 	public override Url Host => "danbooru.donmai.us";
 
-	public override IEnumerable<Url> Refine(IEnumerable<Url> b)
+	public override bool Refine(string b)
 	{
 		return base.Refine(b);
 	}
