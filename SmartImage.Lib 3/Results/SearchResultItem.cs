@@ -181,7 +181,7 @@ public sealed record SearchResultItem : IDisposable,
 		}
 
 		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
-		Uni = await BaseImageHost.ScanAsync(Url, ct).ConfigureAwait(false);
+		Uni = await BaseImageHost.ScanAsync(Url, ct);
 		return HasUni;
 	}
 

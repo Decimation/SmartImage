@@ -35,6 +35,8 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public const bool AUTOSEARCH_DEFAULT = true;
 
+	private static readonly string STR_DEFAULT = String.Empty;
+
 	#endregion
 
 	/// <summary>
@@ -81,7 +83,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string EhUsername
 	{
-		get { return Configuration.ReadSetting<string>(nameof(EhUsername)); }
+		get { return Configuration.ReadSetting<string>(nameof(EhUsername), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(EhUsername), value);
@@ -94,7 +96,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string EhPassword
 	{
-		get { return Configuration.ReadSetting<string>(nameof(EhPassword)); }
+		get { return Configuration.ReadSetting<string>(nameof(EhPassword), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(EhPassword), value);
@@ -147,7 +149,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string SauceNaoKey
 	{
-		get { return Configuration.ReadSetting<string>(nameof(SauceNaoKey)); }
+		get { return Configuration.ReadSetting<string>(nameof(SauceNaoKey), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(SauceNaoKey), value);
