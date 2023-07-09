@@ -372,9 +372,8 @@ public sealed partial class ShellMode : IDisposable, IMode
 		 * Check if clipboard contains valid query input
 		 */
 
+		m_clipboard  = new List<ustring>();
 		UseClipboard = Config.Clipboard;
-
-		m_clipboard = new List<ustring>();
 
 		Mb_Menu.Menus = new MenuBarItem[]
 		{
