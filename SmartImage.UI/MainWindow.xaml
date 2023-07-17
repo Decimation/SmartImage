@@ -36,7 +36,7 @@
                     <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="378,8,0,0" VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click"/>
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,8,0,0" VerticalAlignment="Top" Height="24" FontWeight="Bold"/>
                     <Label x:Name="Lb_Input2" Content="Info" HorizontalAlignment="Left" Margin="4,35,0,0" VerticalAlignment="Top" Height="24" FontWeight="Bold"/>
-                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="335,8,0,0" VerticalAlignment="Top" FontStyle="Italic"/>
+                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="335,8,0,0" VerticalAlignment="Top" FontStyle="Italic" Click="Btn_Next_Click"/>
                     <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="414,8,0,0" VerticalAlignment="Top" Click="Btn_Restart_Click"/>
                 </Grid>
             </TabItem>
@@ -45,7 +45,7 @@
                     <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,58,0,0" Drop="Lv_Queue_Drop" DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="300" />
+                                <GridViewColumn Header="Value" Width="300" />
                                 <!-- <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="85"/> -->
                             </GridView>
                         </ListView.View>

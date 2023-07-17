@@ -15,10 +15,13 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using AngleSharp.Dom;
+using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
+using Url = Flurl.Url;
 
 namespace SmartImage.UI;
 
@@ -42,6 +45,7 @@ public partial class MainWindow : Window, IDisposable
 		Client.OnResult        += OnResult;
 		Lb_Engines.ItemsSource =  Engines;
 		Lb_Engines.SelectAll();
+		m_queuePos = 0;
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 	}
 
@@ -60,7 +64,8 @@ public partial class MainWindow : Window, IDisposable
 
 	public ObservableCollection<Result1> Results { get; }
 
-	public ObservableCollection<Query1> Queue { get; }
+	public  ObservableCollection<string> Queue { get; }
+	private int                          m_queuePos;
 
 	#endregion
 
@@ -68,20 +73,11 @@ public partial class MainWindow : Window, IDisposable
 
 	private async void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
-		await SetQuery(Tb_Input.Text);
+		await SetQueryAsync(Tb_Input.Text);
 		Btn_Run.IsEnabled = false;
 
 		var r = await Client.RunSearchAsync(Query);
 
-	}
-
-	private async Task SetQuery(string q)
-	{
-		Query                     = await SearchQuery.TryCreateAsync(q);
-		Pb_Status.IsIndeterminate = true;
-		var u = await Query.UploadAsync();
-		Tb_Input2.Text            = u;
-		Pb_Status.IsIndeterminate = false;
 	}
 
 	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
@@ -95,13 +91,17 @@ public partial class MainWindow : Window, IDisposable
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
 		if (ok) {
-			await SetQuery(txt);
+			await SetQueryAsync(txt);
 		}
+		Btn_Run.IsEnabled = ok;
 	}
 
 	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e) { }
 
-	private void Tb_Input2_MouseDoubleClick(object sender, MouseButtonEventArgs e) { }
+	private void Tb_Input2_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+		HttpUtilities.TryOpenUrl(Query.Upload);
+	}
 
 	private void Tb_Input_Drop(object sender, DragEventArgs e)
 	{
@@ -164,9 +164,28 @@ public partial class MainWindow : Window, IDisposable
 		Dispose();
 	}
 
+	private async void Btn_Next_Click(object sender, RoutedEventArgs e)
+	{
+		Clear();
+		if (m_queuePos < Queue.Count && m_queuePos >= 0) {
+			var next = Queue[m_queuePos++];
+			Tb_Input.Text = next;
+			await SetQueryAsync(next);
+		}
+	}
+
 	#endregion
 
 	#region
+
+	private async Task SetQueryAsync(string q)
+	{
+		Query                     = await SearchQuery.TryCreateAsync(q);
+		Pb_Status.IsIndeterminate = true;
+		var u = await Query.UploadAsync();
+		Tb_Input2.Text            = u;
+		Pb_Status.IsIndeterminate = false;
+	}
 
 	private void OnResult(object o, SearchResult result)
 	{
@@ -177,7 +196,10 @@ public partial class MainWindow : Window, IDisposable
 
 			var allResults = result.AllResults;
 
-			var sri1 = new SearchResultItem(result) { Url = result.RawUrl, };
+			var sri1 = new SearchResultItem(result)
+			{
+				Url = result.RawUrl,
+			};
 
 			Results.Add(new Result1(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
 
@@ -194,13 +216,9 @@ public partial class MainWindow : Window, IDisposable
 
 		foreach (var s in files) {
 
-			var q1 = new Query1(s);
-
-			if (Queue.Contains(q1)) {
-				continue;
+			if (!Queue.Contains(s)) {
+				Queue.Add(s);
 			}
-
-			Queue.Add(q1);
 		}
 
 		return files;
@@ -229,18 +247,13 @@ public partial class MainWindow : Window, IDisposable
 		Pb_Status.Value = 0;
 	}
 
-	#endregion
-
 	public void Dispose()
 	{
 		Client.Dispose();
 		Query.Dispose();
-
-		foreach (var q1 in Queue) {
-			q1.Dispose();
-		}
-
+		
 		Queue.Clear();
+		m_queuePos = 0;
 
 		foreach (var r1 in Results) {
 			r1.Dispose();
@@ -248,6 +261,8 @@ public partial class MainWindow : Window, IDisposable
 
 		Results.Clear();
 	}
+
+	#endregion
 }
 
 public class Query1 : IDisposable
