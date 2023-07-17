@@ -6,16 +6,16 @@
         xmlns:local="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="500" Width="800">
+        Title="MainWindow" Height="600" Width="1050">
 
     <Grid>
         <TabControl x:Name="Tb_Main">
-            <TabItem Header="TabItem">
+            <TabItem x:Name="Ti_Main" Header="Main">
                 <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="49,8,0,0" VerticalAlignment="Top" Width="250" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20" Drop="Tb_Input_Drop"/>
-                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="304,8,0,0" VerticalAlignment="Top" Click="Btn_Run_Click" Height="20"/>
-                    <Image x:Name="Img_Preview" HorizontalAlignment="Left" Height="100" Margin="684,10,0,0" VerticalAlignment="Top" Width="100"/>
-                    <ListView x:Name="Lv_Results" Margin="0,125,0,0" d:ItemsSource="{Binding m_results}">
+                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="49,8,0,0" VerticalAlignment="Top" Width="250" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20" Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver" PreviewDragOver="Tb_Input_PreviewDragOver"/>
+                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="304,8,0,0" VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"/>
+                    <Image x:Name="Img_Preview" HorizontalAlignment="Left" Height="100" Margin="927,8,0,0" VerticalAlignment="Top" Width="100"/>
+                    <ListView x:Name="Lv_Results" Margin="0,125,0,0" d:ItemsSource="{Binding Results}">
                         <!--<ListView.View>
                             <GridView>
                                 <GridViewColumn/>
@@ -30,23 +30,32 @@
                         </ListView.View>
 
                     </ListView>
-                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="684,110,0,0" VerticalAlignment="Top" Width="100" Minimum="0"  Maximum="100"/>
+                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="927,110,0,0" VerticalAlignment="Top" Width="100" Minimum="0"  Maximum="100"/>
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="25" Margin="10,10,0,0" VerticalAlignment="Top" Width="20"/>
                     <TextBox x:Name="Tb_Input2" HorizontalAlignment="Left" Margin="49,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="250" IsReadOnly="True" Height="20" MouseDoubleClick="Tb_Input2_MouseDoubleClick"/>
-                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="334,8,0,0" VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click"/>
+                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="378,8,0,0" VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click"/>
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,8,0,0" VerticalAlignment="Top" Height="24" FontWeight="Bold"/>
                     <Label x:Name="Lb_Input2" Content="Info" HorizontalAlignment="Left" Margin="4,35,0,0" VerticalAlignment="Top" Height="24" FontWeight="Bold"/>
+                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="335,8,0,0" VerticalAlignment="Top" FontStyle="Italic"/>
+                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="414,8,0,0" VerticalAlignment="Top" Click="Btn_Restart_Click"/>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="Queue" Header="TabItem">
+            <TabItem x:Name="Ti_Queue" Header="Queue">
                 <Grid Background="#FFE5E5E5">
-                    <ListView x:Name="Lv_Queue" d:ItemsSource="{d:SampleData ItemCount=5}" Margin="0,58,0,0">
+                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,58,0,0" Drop="Lv_Queue_Drop" DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn/>
+                                <GridViewColumn Header="Value" DisplayMemberBinding="{Binding Value}" Width="300" />
+                                <!-- <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="85"/> -->
                             </GridView>
                         </ListView.View>
                     </ListView>
+                </Grid>
+            </TabItem>
+            <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config" VerticalAlignment="Center" Width="54">
+                <Grid Background="#FFE5E5E5">
+                    <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="10,33,884,226" SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Height="400"/>
+                    <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,666,223" SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Height="400"/>
                 </Grid>
             </TabItem>
         </TabControl>
