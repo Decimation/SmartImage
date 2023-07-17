@@ -27,21 +27,35 @@ public partial class MainWindow : Window, IDisposable
 {
 	public MainWindow()
 	{
-		this.DataContext = this;
 		InitializeComponent();
+		this.DataContext = this;
 		Client           = new SearchClient(new SearchConfig());
 		// m_results = new ConcurrentBag<SearchResult>();
-		m_results        = new();
+		m_results = new();
 
 		Query                  = SearchQuery.Null;
 		Lv_Results.ItemsSource = m_results;
-		
+
 		Client.OnResult += (o, result) =>
 		{
-			lock (m_lock) {
-				m_results.Add(new Result1(result));
+			Pb_Status.Value += (m_results.Count / (double) Client.Engines.Length)*10;
 
-				// foreach (SearchResultItem sri in result.AllResults) { }
+			lock (m_lock) {
+				int i = 0;
+
+				var allResults = result.AllResults;
+
+				var sri1 = new SearchResultItem(result)
+				{
+					Url = result.RawUrl,
+				};
+
+				m_results.Add(new Result1(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
+
+				foreach (SearchResultItem sri in allResults) {
+					m_results.Add(new Result1(sri, $"{sri.Root.Engine.Name} #{++i}"));
+
+				}
 			}
 		};
 
@@ -56,15 +70,16 @@ public partial class MainWindow : Window, IDisposable
 
 	public SearchQuery Query { get; internal set; }
 
-	public readonly ObservableCollection<Result1> m_results;
+	public ObservableCollection<Result1> m_results { get; }
 
 	private async void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
-		Query              = await SearchQuery.TryCreateAsync(Tb_Input.Text);
-		Lbl_Status.Content = "🔃";
+		Query                     = await SearchQuery.TryCreateAsync(Tb_Input.Text);
+		Pb_Status.IsIndeterminate = true;
 		var u = await Query.UploadAsync();
-		Lbl_Status.Content = "☑";
-		Btn_Run.IsEnabled  = false;
+		Tb_Input2.Text            = u;
+		Pb_Status.IsIndeterminate = false;
+		Btn_Run.IsEnabled         = false;
 
 		var r = await Client.RunSearchAsync(Query);
 	}
@@ -79,17 +94,42 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e) { }
 
+	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
+	{
+		m_results.Clear();
+		Btn_Run.IsEnabled = true;
+		Tb_Input.Text = string.Empty;
+		Query.Dispose();
+		Pb_Status.Value = 0;
+	}
+
+	private void Tb_Input2_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+		
+	}
+
+	private void Tb_Input_Drop(object sender, DragEventArgs e)
+	{
+		if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+			var files = e.Data.GetData(DataFormats.FileDrop, true) as string[];
+		}
+	}
 }
 
 public class Result1
 {
-	public string URL  { get; }
+	public string URL { get; }
+
 	public string Name { get; }
-	public Result1(SearchResult result)
+	public double? Similarity { get; }
+
+	public Result1(SearchResultItem result, string name)
 	{
-		Result = result;
-		Name   = Result.Engine.Name;
-		URL    = Result.Best?.Url;
+		Result     = result;
+		Name       = name;
+		URL        = Result.Url;
+		Similarity = result.Similarity;
 	}
-	public SearchResult Result { get; }
+
+	public SearchResultItem Result { get; }
 }

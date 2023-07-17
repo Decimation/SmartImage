@@ -16,6 +16,7 @@ using SmartImage.Lib.Utilities;
 using Image = System.Drawing.Image;
 
 [assembly: InternalsVisibleTo("SmartImage")]
+[assembly: InternalsVisibleTo("SmartImage.UI")]
 [assembly: InternalsVisibleTo("SmartImage.Linux")]
 
 namespace SmartImage.Lib;
