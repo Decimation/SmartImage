@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -35,8 +36,7 @@ public partial class MainWindow : Window, IDisposable
 		InitializeComponent();
 		this.DataContext = this;
 		Client           = new SearchClient(new SearchConfig());
-		// m_results = new ConcurrentBag<SearchResult>();
-		Results = new();
+		Results          = new();
 
 		Query                  =  SearchQuery.Null;
 		Queue                  =  new();
@@ -46,11 +46,20 @@ public partial class MainWindow : Window, IDisposable
 		Lb_Engines.ItemsSource =  Engines;
 		Lb_Engines.SelectAll();
 		m_queuePos = 0;
+		m_cts      = new CancellationTokenSource();
+
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 	}
 
-	private readonly object                m_lock = new();
-	public static    SearchEngineOptions[] Engines { get; } = Enum.GetValues<SearchEngineOptions>();
+	#region
+
+	private CancellationTokenSource m_cts;
+
+	private readonly object m_lock = new();
+
+	public static SearchEngineOptions[] Engines { get; } = Enum.GetValues<SearchEngineOptions>();
+
+	#endregion
 
 	#region
 
@@ -58,14 +67,13 @@ public partial class MainWindow : Window, IDisposable
 
 	public SearchConfig Config => Client.Config;
 
-	// public readonly ConcurrentBag<SearchResult>        m_results;
-
 	public SearchQuery Query { get; internal set; }
 
 	public ObservableCollection<Result1> Results { get; }
 
-	public  ObservableCollection<string> Queue { get; }
-	private int                          m_queuePos;
+	public ObservableCollection<string> Queue { get; }
+
+	private int m_queuePos;
 
 	#endregion
 
@@ -73,10 +81,10 @@ public partial class MainWindow : Window, IDisposable
 
 	private async void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
-		await SetQueryAsync(Tb_Input.Text);
+		// await SetQueryAsync(Tb_Input.Text);
 		Btn_Run.IsEnabled = false;
 
-		var r = await Client.RunSearchAsync(Query);
+		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 
 	}
 
@@ -93,10 +101,21 @@ public partial class MainWindow : Window, IDisposable
 		if (ok) {
 			await SetQueryAsync(txt);
 		}
+
 		Btn_Run.IsEnabled = ok;
 	}
 
 	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e) { }
+
+	private void Tb_Input_DragOver(object sender, DragEventArgs e)
+	{
+		e.Handled = true;
+	}
+
+	private void Tb_Input_PreviewDragOver(object sender, DragEventArgs e)
+	{
+		e.Handled = true;
+	}
 
 	private void Tb_Input2_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
@@ -118,17 +137,7 @@ public partial class MainWindow : Window, IDisposable
 		e.Handled = true;
 	}
 
-	private void Tb_Input_DragOver(object sender, DragEventArgs e)
-	{
-		e.Handled = true;
-	}
-
 	private void Lv_Queue_DragOver(object sender, DragEventArgs e)
-	{
-		e.Handled = true;
-	}
-
-	private void Tb_Input_PreviewDragOver(object sender, DragEventArgs e)
 	{
 		e.Handled = true;
 	}
@@ -140,9 +149,11 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		var ai = e.AddedItems.OfType<SearchEngineOptions>().Aggregate(default(SearchEngineOptions), (n, l) => n | l);
+		var ai = e.AddedItems.OfType<SearchEngineOptions>()
+			.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
 
-		var ri = e.RemovedItems.OfType<SearchEngineOptions>().Aggregate(default(SearchEngineOptions), (n, l) => n | l);
+		var ri = e.RemovedItems.OfType<SearchEngineOptions>()
+			.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
 
 		if (ai.HasFlag(SearchEngineOptions.All)) {
 			Lb_Engines.SelectAll();
@@ -160,18 +171,37 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
 	{
-		Clear();
-		Dispose();
+		Restart();
+
 	}
 
 	private async void Btn_Next_Click(object sender, RoutedEventArgs e)
 	{
-		Clear();
+		Restart();
+
 		if (m_queuePos < Queue.Count && m_queuePos >= 0) {
 			var next = Queue[m_queuePos++];
 			Tb_Input.Text = next;
 			await SetQueryAsync(next);
 		}
+	}
+
+	private void Btn_Cancel_Click(object sender, RoutedEventArgs e)
+	{
+		m_cts.Cancel();
+	}
+
+	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+
+		if (Lv_Results.SelectedItem is Result1 si) {
+			HttpUtilities.TryOpenUrl(si.URL);
+		}
+	}
+
+	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
+	{
+		Btn_Run.IsEnabled = false;
 	}
 
 	#endregion
@@ -182,9 +212,16 @@ public partial class MainWindow : Window, IDisposable
 	{
 		Query                     = await SearchQuery.TryCreateAsync(q);
 		Pb_Status.IsIndeterminate = true;
-		var u = await Query.UploadAsync();
-		Tb_Input2.Text            = u;
-		Pb_Status.IsIndeterminate = false;
+		var b = Query != SearchQuery.Null;
+
+		if (b) {
+			var u = await Query.UploadAsync();
+			Tb_Input2.Text            = u;
+			Pb_Status.IsIndeterminate = false;
+		}
+		else { }
+
+		Btn_Run.IsEnabled = b;
 	}
 
 	private void OnResult(object o, SearchResult result)
@@ -238,28 +275,43 @@ public partial class MainWindow : Window, IDisposable
 		return Array.Empty<string>();
 	}
 
+	private void Restart()
+	{
+		Clear();
+		Dispose(false);
+		m_cts = new();
+	}
+
 	private void Clear()
 	{
 		Results.Clear();
-		Btn_Run.IsEnabled = true;
+		Btn_Run.IsEnabled = false;
 		Tb_Input.Text     = string.Empty;
 		Query.Dispose();
 		Pb_Status.Value = 0;
 	}
 
-	public void Dispose()
+	public void Dispose(bool full)
 	{
-		Client.Dispose();
-		Query.Dispose();
-		
-		Queue.Clear();
-		m_queuePos = 0;
+		if (full) {
+			Client.Dispose();
+			Query.Dispose();
+
+			Queue.Clear();
+			m_queuePos = 0;
+		}
 
 		foreach (var r1 in Results) {
 			r1.Dispose();
 		}
 
 		Results.Clear();
+		m_cts.Dispose();
+	}
+
+	public void Dispose()
+	{
+		Dispose(true);
 	}
 
 	#endregion
