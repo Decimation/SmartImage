@@ -122,11 +122,11 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	{
 		string u, p;
 
-		if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)*/) {
+		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyAsync));
 
 			return;
-		}
+		}*/
 
 		u = cfg.EhUsername;
 		p = cfg.EhPassword;
@@ -151,9 +151,11 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	public async Task<bool> LoginAsync()
 	{
-		if (Username is not { } || Password is not { }) {
+		/*
+		if (IsLoggedIn) {
 			return false;
 		}
+		*/
 
 		var content = new MultipartFormDataContent()
 		{
@@ -182,7 +184,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		}
 
 		var res2 = await GetSessionAsync();
-
+		
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
@@ -263,7 +265,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		}
 
 		var parser = new HtmlParser();
-		return await parser.ParseDocumentAsync(content, token).ConfigureAwait(false);
+		return await parser.ParseDocumentAsync(content, token);
 	}
 
 	private Task<IFlurlResponse> GetSessionAsync()

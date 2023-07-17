@@ -99,9 +99,7 @@ public sealed class SearchClient : IDisposable
 	{
 		IsRunning = true;
 
-		if (!ConfigApplied) {
-			await ApplyConfigAsync();
-		}
+		await ApplyConfigAsync();
 
 		LoadEngines();
 

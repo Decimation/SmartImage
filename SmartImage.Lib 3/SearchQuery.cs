@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Runtime.Versioning;
+using System.Security.Cryptography;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.FileTypes;
@@ -31,12 +32,16 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[SupportedOSPlatform(Global.OS_WIN)]
 	public Image Image { get; private set; }
 
+	public ReadOnlyMemory<byte> Hash { get; private init; }
+
 	internal SearchQuery([MN] UniSource f)
 	{
 		Uni = f;
 	}
 
-	public static readonly SearchQuery Null = new(null);
+	private SearchQuery() : this(null) { }
+
+	public static readonly SearchQuery Null = new();
 
 	static SearchQuery() { }
 
@@ -44,10 +49,19 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	{
 		var uf = await UniSource.TryGetAsync(value, whitelist: FileType.Image);
 
-		var sq = new SearchQuery(uf)
-			{ };
-		
-		return sq;
+		if (uf == null) {
+			return Null;
+
+		}
+		else {
+			var sq = new SearchQuery(uf)
+			{
+				Hash = await MD5.HashDataAsync(uf.Stream)
+			};
+
+			return sq;
+
+		}
 	}
 
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null, CancellationToken ct = default)

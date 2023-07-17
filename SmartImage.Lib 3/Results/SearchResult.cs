@@ -120,6 +120,9 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	{
 		bool any = Results.Any();
 
+		if (!any) {
+			Status = SearchResultStatus.NoResults;
+		}
 		/*if (!any && Status != SearchResultStatus.None) {
 			Status = SearchResultStatus.NoResults;
 		}
