@@ -26,6 +26,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using AngleSharp.Dom;
 using Flurl.Http;
+using Kantan.Collections;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Kantan.Utilities;
@@ -57,6 +58,7 @@ public partial class MainWindow : Window, IDisposable
 	static MainWindow()
 	{
 		Args = Environment.GetCommandLineArgs();
+
 	}
 
 	public MainWindow()
@@ -64,7 +66,13 @@ public partial class MainWindow : Window, IDisposable
 
 		Client    = new SearchClient(new SearchConfig());
 		m_queries = new ConcurrentDictionary<string, SearchQuery>();
+
 		InitializeComponent();
+
+		foreach (var arg in Args) {
+			Tb_Log.Text += $"{arg}\n";
+		}
+
 		DataContext = this;
 		Results     = new();
 
@@ -83,7 +91,8 @@ public partial class MainWindow : Window, IDisposable
 		Lv_Results.ItemsSource = Results;
 		Lv_Queue.ItemsSource   = Queue;
 
-		Client.OnResult += OnResult;
+		Client.OnResult   += OnResult;
+		Client.OnComplete += OnComplete;
 
 		m_cbDispatch = new DispatcherTimer
 		{
@@ -96,6 +105,25 @@ public partial class MainWindow : Window, IDisposable
 		m_are                    = new AutoResetEvent(false);
 		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
 
+		var e = Args.GetEnumerator();
+
+		while (e.MoveNext()) {
+			var c = e.Current.ToString();
+
+			if (c == R2.Arg_Input) {
+				var inp = e.MoveAndGet();
+				InputText = inp.ToString();
+				continue;
+			}
+
+			if (c == R2.Arg_AutoSearch) {
+
+				e.MoveNext();
+				Config.AutoSearch = true;
+				continue;
+			}
+		}
+
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 	}
 
@@ -105,11 +133,11 @@ public partial class MainWindow : Window, IDisposable
 
 	public static SearchEngineOptions[] Engines { get; } = Enum.GetValues<SearchEngineOptions>();
 
+	private readonly object m_lock = new();
+
 	#endregion
 
 	#region
-
-	private readonly object m_lock = new();
 
 	/// <summary>
 	/// <see cref="Lb_Engines"/>
@@ -129,7 +157,7 @@ public partial class MainWindow : Window, IDisposable
 
 	public SearchQuery Query { get; internal set; }
 
-	public ObservableCollection<ResultItem> Results { get; }
+	public ObservableCollection<ResultItem> Results { get; set; }
 
 	public ObservableCollection<string> Queue { get; }
 
@@ -143,19 +171,21 @@ public partial class MainWindow : Window, IDisposable
 
 	#region
 
-	private CancellationTokenSource m_cts;
-
 	private readonly ConcurrentDictionary<ResultItem, UniSource[]> m_uni;
 
 	private readonly List<string> m_clipboard;
 
 	private readonly DispatcherTimer m_cbDispatch;
 
-	private        int                                       m_queuePos;
-	private        BitmapImage                               m_image;
-	private        ConcurrentDictionary<string, SearchQuery> m_queries;
-	private        AutoResetEvent                            m_are;
-	private static int                                       m_s = 0;
+	private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
+
+	private int m_queuePos;
+
+	private BitmapImage             m_image;
+	private CancellationTokenSource m_cts;
+	private AutoResetEvent          m_are;
+
+	private static int Status = S_OK;
 
 	private const int S_NO = 0;
 	private const int S_OK = 1;
@@ -229,7 +259,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task SetQueryAsync(string q)
 	{
-		Interlocked.Exchange(ref m_s, S_NO);
+		Interlocked.Exchange(ref Status, S_NO);
 
 		Btn_Run.IsEnabled = false;
 		bool b;
@@ -263,9 +293,11 @@ public partial class MainWindow : Window, IDisposable
 		else { }
 
 		Btn_Run.IsEnabled = b;
-		Interlocked.Exchange(ref m_s, S_OK);
+		Interlocked.Exchange(ref Status, S_OK);
 
 	}
+
+	private void OnComplete(object sender, SearchResult[] e) { }
 
 	private void OnResult(object o, SearchResult result)
 	{
@@ -304,7 +336,7 @@ public partial class MainWindow : Window, IDisposable
 				files = files[1..];
 
 			}
-			
+
 		}
 
 		foreach (var s in files) {
@@ -365,6 +397,11 @@ public partial class MainWindow : Window, IDisposable
 		}
 	}
 
+	public void Dispose()
+	{
+		Dispose(true);
+	}
+
 	public void Dispose(bool full)
 	{
 		if (full) {
@@ -373,6 +410,19 @@ public partial class MainWindow : Window, IDisposable
 
 			Queue.Clear();
 			m_queuePos = 0;
+
+			foreach (var kv in m_queries) {
+				kv.Value.Dispose();
+			}
+
+			m_queries.Clear();
+
+			foreach (var kv in m_uni) {
+				kv.Key.Dispose();
+			}
+
+			m_uni.Clear();
+
 		}
 
 		foreach (var r1 in Results) {
@@ -383,31 +433,15 @@ public partial class MainWindow : Window, IDisposable
 		m_cts.Dispose();
 	}
 
-	public void Dispose()
-	{
-		Dispose(true);
-	}
-
 	#endregion
 
 	#region
 
-	private void Btn_Run_Click(object sender, RoutedEventArgs e)
-	{
-		// await SetQueryAsync(InputText);
-		Btn_Run.IsEnabled = false;
-
-		Dispatcher.InvokeAsync(RunAsync);
-	}
-
-	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
-	{
-		Clear();
-	}
+	#region
 
 	private async void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		if (Interlocked.CompareExchange(ref m_s, S_OK, S_NO) == S_NO) {
+		if (Interlocked.CompareExchange(ref Status, S_OK, S_NO) == S_NO) {
 			return;
 		}
 
@@ -433,11 +467,6 @@ public partial class MainWindow : Window, IDisposable
 		e.Handled = true;
 	}
 
-	private void Tb_Input2_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-	{
-		HttpUtilities.TryOpenUrl(Query.Upload);
-	}
-
 	private void Tb_Input_Drop(object sender, DragEventArgs e)
 	{
 		var files1 = GetFilesFromDrop(e);
@@ -449,6 +478,15 @@ public partial class MainWindow : Window, IDisposable
 		e.Handled = true;
 
 	}
+
+	private void Tb_Input2_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+		HttpUtilities.TryOpenUrl(Query.Upload);
+	}
+
+	#endregion
+
+	#region
 
 	private void Lv_Queue_Drop(object sender, DragEventArgs e)
 	{
@@ -469,6 +507,17 @@ public partial class MainWindow : Window, IDisposable
 		e.Handled = true;
 	}
 
+	private async void Lv_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (e.AddedItems.Count > 0) {
+			var i = e.AddedItems[0] as string;
+			InputText = i;
+
+		}
+	}
+
+	#endregion
+
 	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		Lb_Engines.HandleEnumOption(e, (ai, ri) =>
@@ -487,6 +536,19 @@ public partial class MainWindow : Window, IDisposable
 		});
 	}
 
+	private void Btn_Run_Click(object sender, RoutedEventArgs e)
+	{
+		// await SetQueryAsync(InputText);
+		Btn_Run.IsEnabled = false;
+
+		Dispatcher.InvokeAsync(RunAsync);
+	}
+
+	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
+	{
+		Clear();
+	}
+
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
 	{
 		Restart();
@@ -503,16 +565,18 @@ public partial class MainWindow : Window, IDisposable
 		m_cts.Cancel();
 	}
 
+	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
+	{
+		// Btn_Run.IsEnabled = false;
+	}
+
+	#region
+
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
 		if (Lv_Results.SelectedItem is ResultItem si) {
 			HttpUtilities.TryOpenUrl(si.Result.Url);
 		}
-	}
-
-	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
-	{
-		// Btn_Run.IsEnabled = false;
 	}
 
 	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e) { }
@@ -615,7 +679,12 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Cb_ContextMenu_Checked(object sender, RoutedEventArgs e)
 	{
+		if (!((FrameworkElement) e.Source).IsLoaded) {
+			return;
+		}
+
 		AppUtil.HandleContextMenu(!AppUtil.IsContextMenuAdded);
+
 	}
 
 	#endregion
@@ -634,12 +703,5 @@ public partial class MainWindow : Window, IDisposable
 
 	#endregion
 
-	private async void Lv_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		if (e.AddedItems.Count>0) {
-			var i = e.AddedItems[0] as string;
-			InputText = i;
-
-		}
-	}
+	#endregion
 }

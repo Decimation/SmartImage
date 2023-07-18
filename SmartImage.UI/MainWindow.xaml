@@ -126,6 +126,11 @@
                     <Label x:Name="Lbl_PriorityEngines" Content="Priority Engines" HorizontalAlignment="Left" Margin="228,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
                 </Grid>
             </TabItem>
+            <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center" Width="54">
+                <Grid Background="#FFE5E5E5">
+                    <TextBox x:Name="Tb_Log" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="1178" Height="366" IsReadOnly="True" AcceptsReturn="True" AcceptsTab="True" Margin="0,180,0,0"/>
+                </Grid>
+            </TabItem>
         </TabControl>
 
     </Grid>
