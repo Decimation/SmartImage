@@ -26,18 +26,22 @@
     <Grid>
         <TabControl x:Name="Tb_Main">
             <TabItem x:Name="Ti_Main" Header="Main">
-                <Grid Background="{DynamicResource Black1}">
-                    <ListView ItemContainerStyle="{DynamicResource S_Lvic}" x:Name="Lv_Results" Margin="0,163,0,10"
+                <Grid Background="{DynamicResource Black1}" >
+                    <ListView x:Name="Lv_Results" Margin="0,163,0,10"
                               d:ItemsSource="{Binding Results}"
-                              MouseDoubleClick="Lv_Results_MouseDoubleClick" Background="{DynamicResource Black2}"
-                              Foreground="DeepSkyBlue" MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
-                              SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown" Height="385" d:IsLocked="True">
+                              MouseDoubleClick="Lv_Results_MouseDoubleClick" 
+                              Foreground="White"
+                              Background="{DynamicResource Black2}"
+                              MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
+                              SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown">
+
                         <!--<ListView.View>
                             <GridView>
                                 <GridViewColumn/>
                             </GridView>
                         </ListView.View>-->
-                        <ListView.View>
+
+                        <ListView.View >
                             <GridView>
                                 <GridViewColumn Header="Name"
                                                 DisplayMemberBinding="{Binding Name}" Width="115" />
@@ -107,13 +111,19 @@
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
                      VerticalAlignment="Center" Width="54">
                 <Grid Background="{DynamicResource Black1}">
-                    <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="10,33,884,123"
-                             SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Height="400" />
+                    <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="27,33,867,123"
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" />
                     <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,666,123"
-                             SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Height="400" />
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" />
+                    <CheckBox x:Name="Cb_Clipboard" Content="Clipboard" HorizontalAlignment="Left" Margin="409,33,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_Clipboard_Checked"/>
+                    <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search" HorizontalAlignment="Left" Margin="409,62,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_AutoSearch_Checked"/>
+                    <CheckBox x:Name="Cb_OpenRaw" Content="Open raw" HorizontalAlignment="Left" Margin="409,93,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_OpenRaw_Checked"/>
+                    <CheckBox x:Name="Cb_ContextMenu" Content="Context menu" HorizontalAlignment="Left" Margin="409,124,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_ContextMenu_Checked"/>
                 </Grid>
             </TabItem>
         </TabControl>
 
     </Grid>
 </Window>
+    
+    

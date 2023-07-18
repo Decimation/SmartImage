@@ -62,25 +62,27 @@ public partial class MainWindow : Window, IDisposable
 		Queue      = new();
 		m_queuePos = 0;
 		m_cts      = new CancellationTokenSource();
-		Engines1   = new(Engines);
-		Engines2   = new(Engines);
+
+		Engines1                = new(Engines);
+		Engines2                = new(Engines);
+		Lb_Engines.ItemsSource  = Engines1;
+		Lb_Engines2.ItemsSource = Engines2;
+		Lb_Engines.HandleEnumList(Engines1, Config.SearchEngines);
+		Lb_Engines2.HandleEnumList(Engines2, Config.PriorityEngines);
 
 		Lv_Results.ItemsSource = Results;
 		Lv_Queue.ItemsSource   = Queue;
 
 		Client.OnResult += OnResult;
 
-		Lb_Engines.ItemsSource = Engines1;
-		Lb_Engines.SelectAll();
-		Lb_Engines2.ItemsSource = Engines2;
-
-		m_auto = new DispatcherTimer
+		m_cbDispatch = new DispatcherTimer
 		{
 			Interval = TimeSpan.FromSeconds(1)
 		};
-		m_auto.Tick += ClipboardListenAsync;
-		m_uni       =  new();
-		m_clipboard =  new();
+		m_cbDispatch.Tick += ClipboardListenAsync;
+
+		m_uni       = new();
+		m_clipboard = new();
 
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 	}
@@ -97,8 +99,16 @@ public partial class MainWindow : Window, IDisposable
 
 	private readonly object m_lock = new();
 
+	/// <summary>
+	/// <see cref="Lb_Engines"/>
+	/// <see cref="SearchConfig.SearchEngines"/>
+	/// </summary>
 	public List<SearchEngineOptions> Engines1 { get; }
 
+	/// <summary>
+	/// <see cref="Lb_Engines2"/>
+	/// <see cref="SearchConfig.PriorityEngines"/>
+	/// </summary>
 	public List<SearchEngineOptions> Engines2 { get; }
 
 	public SearchClient Client { get; }
@@ -118,22 +128,201 @@ public partial class MainWindow : Window, IDisposable
 	private CancellationTokenSource m_cts;
 
 	private readonly ConcurrentDictionary<ResultItem, UniSource[]> m_uni;
-	private readonly List<string>                                  m_clipboard;
-	private readonly DispatcherTimer                               m_auto;
 
-	private int m_queuePos;
+	private readonly List<string> m_clipboard;
+
+	private readonly DispatcherTimer m_cbDispatch;
+
+	private int         m_queuePos;
+	private BitmapImage m_image;
+	private bool        m_cb;
 
 	#endregion
 
 	#region
 
-	private async void Btn_Run_Click(object sender, RoutedEventArgs e)
+	private async Task Run()
+	{
+
+		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
+	}
+
+	private bool IsInputReady()
+	{
+		return !string.IsNullOrWhiteSpace(Tb_Input.Text);
+	}
+
+	private async void ClipboardListenAsync(object? s, EventArgs e)
+	{
+		var cImg  = Clipboard.ContainsImage();
+		var cText = Clipboard.ContainsText();
+		var cFile = Clipboard.ContainsFileDropList();
+
+		if (cImg) {
+			var bmp = (Bitmap) Clipboard.GetData(DataFormats.Bitmap);
+		}
+
+		if (cText) {
+			var txt = (string) Clipboard.GetData(DataFormats.Text);
+
+			if (SearchQuery.IsValidSourceType(txt)) {
+
+				if (!IsInputReady() && !m_clipboard.Contains(txt)) {
+					m_clipboard.Add(txt);
+					await SetQueryAsync(txt);
+				}
+			}
+
+			return;
+		}
+
+		if (cFile) {
+			var files = Clipboard.GetFileDropList();
+			var rg    = new string[files.Count];
+			files.CopyTo(rg, 0);
+			rg = rg.Where(x => !m_clipboard.Contains(x)).ToArray();
+			EnqueueAsync(rg);
+
+			return;
+		}
+
+		// Thread.Sleep(1000);
+	}
+
+	private async Task SetQueryAsync(string q)
+	{
+		Btn_Run.IsEnabled = false;
+
+		Query                     = await SearchQuery.TryCreateAsync(q);
+		Pb_Status.IsIndeterminate = true;
+		var b = Query != SearchQuery.Null;
+
+		if (b) {
+			var u = await Query.UploadAsync();
+			Tb_Input2.Text            = u;
+			Pb_Status.IsIndeterminate = false;
+			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
+
+			if (Config.AutoSearch) {
+				Dispatcher.InvokeAsync(Run);
+
+			}
+		}
+		else { }
+
+		Btn_Run.IsEnabled = b;
+	}
+
+	private void OnResult(object o, SearchResult result)
+	{
+		Pb_Status.Value += (Results.Count / (double) Client.Engines.Length) * 10;
+
+		lock (m_lock) {
+			int i = 0;
+
+			var allResults = result.AllResults;
+
+			var sri1 = new SearchResultItem(result)
+			{
+				Url = result.RawUrl,
+			};
+
+			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
+
+			foreach (SearchResultItem sri in allResults) {
+				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
+
+			}
+		}
+	}
+
+	private async void EnqueueAsync(string[] files)
+	{
+		if (!IsInputReady()) {
+			var ff = files[0];
+			Tb_Input.Text = ff;
+
+			if (files.Length > 1) {
+				files = files[1..];
+
+			}
+
+			await SetQueryAsync(ff);
+		}
+
+		foreach (var s in files) {
+
+			if (!Queue.Contains(s)) {
+				Queue.Add(s);
+			}
+		}
+	}
+
+	private static string[] GetFilesFromDrop(DragEventArgs e)
+	{
+		if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+
+			if (e.Data.GetData(DataFormats.FileDrop, true) is string[] files
+			    && files.Any()) {
+
+				return files;
+
+			}
+		}
+
+		return Array.Empty<string>();
+	}
+
+	private void Restart()
+	{
+		Clear();
+		Dispose(false);
+		m_cts = new();
+		m_clipboard.Clear();
+	}
+
+	private void Clear()
+	{
+		Results.Clear();
+		Btn_Run.IsEnabled = false;
+		Tb_Input.Text     = string.Empty;
+		Query.Dispose();
+		Pb_Status.Value = 0;
+	}
+
+	public void Dispose(bool full)
+	{
+		if (full) {
+			Client.Dispose();
+			Query.Dispose();
+
+			Queue.Clear();
+			m_queuePos = 0;
+		}
+
+		foreach (var r1 in Results) {
+			r1.Dispose();
+		}
+
+		Results.Clear();
+		m_cts.Dispose();
+	}
+
+	public void Dispose()
+	{
+		Dispose(true);
+	}
+
+	#endregion
+
+	#region
+
+	private void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
 		// await SetQueryAsync(Tb_Input.Text);
 		Btn_Run.IsEnabled = false;
 
-		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
-
+		Dispatcher.InvokeAsync(Run);
 	}
 
 	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
@@ -146,7 +335,7 @@ public partial class MainWindow : Window, IDisposable
 		var txt = Tb_Input.Text;
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
-		if (ok) {
+		if (ok && !IsInputReady()) {
 			await SetQueryAsync(txt);
 		}
 
@@ -203,59 +392,21 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		var rg = Lb_Engines.Items.OfType<SearchEngineOptions>().ToArray();
-
-		var ai = e.AddedItems.OfType<SearchEngineOptions>()
-			.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
-
-		var ri = e.RemovedItems.OfType<SearchEngineOptions>()
-			.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
-
-		var si = Lb_Engines.SelectedItems.OfType<SearchEngineOptions>().ToArray();
-
-		if (ai.HasFlag(SearchEngineOptions.All)) {
-			Lb_Engines.SelectAll();
-		}
-
-		if (ri.HasFlag(SearchEngineOptions.All)) {
-			Lb_Engines.UnselectAll();
-		}
-
-		if (ai.Equals(SearchEngineOptions.Artwork)) {
-			var sf1 = EnumHelper.GetSetFlags(SearchEngineOptions.Artwork);
-
-			foreach (var seo in sf1) {
-				Lb_Engines.SelectedItems.Add(seo);
-			}
-		}
-
-		if (ri.Equals(SearchEngineOptions.Artwork)) {
-			var sf1 = EnumHelper.GetSetFlags(SearchEngineOptions.Artwork);
-
-			foreach (var seo in sf1) {
-				Lb_Engines.SelectedItems.Remove(seo);
-			}
-		}
-
-		for (int i = 0; i < rg.Length; i++) { }
-
-		Config.SearchEngines |= (ai);
-		Config.SearchEngines &= ~ri;
-
-		/*for (int i = 0; i < Lb_Engines.SelectedItems.Count; i++) {
-			var ix = (SearchEngineOptions) Lb_Engines.SelectedItems[i];
-
-			if (!Config.SearchEngines.HasFlag(ix)) {
-				Lb_Engines.SelectedItems.Remove(ix);
-			}
-		}*/
-		Debug.WriteLine($"{ai} {si} -> {Config.SearchEngines}");
-
-		var sf = EnumHelper.GetSetFlags(Config.SearchEngines, false);
-
+		Lb_Engines.HandleEnumOption(e, (ai,ri) =>
+		{
+			Config.SearchEngines |= (ai);
+			Config.SearchEngines &= ~ri;
+		});
 	}
 
-	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		Lb_Engines2.HandleEnumOption(e, (ai, ri) =>
+		{
+			Config.PriorityEngines |= (ai);
+			Config.PriorityEngines &= ~ri;
+		});
+	}
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
 	{
@@ -371,175 +522,33 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
 	{
-		m_auto.Start();
+		m_cbDispatch.Start();
 
 	}
 
 	#endregion
 
-	#region
+	#region 
 
-	private bool IsInputReady()
+	private void Cb_Clipboard_Checked(object sender, RoutedEventArgs e)
 	{
-		return !string.IsNullOrWhiteSpace(Tb_Input.Text);
+		m_cb = !m_cb;
+
 	}
 
-	private async void ClipboardListenAsync(object? s, EventArgs e)
+	private void Cb_AutoSearch_Checked(object sender, RoutedEventArgs e)
 	{
-		var cImg  = Clipboard.ContainsImage();
-		var cText = Clipboard.ContainsText();
-		var cFile = Clipboard.ContainsFileDropList();
-
-		if (cImg) {
-			var bmp = (Bitmap) Clipboard.GetData(DataFormats.Bitmap);
-		}
-
-		if (cText) {
-			var txt = (string) Clipboard.GetData(DataFormats.Text);
-
-			if (SearchQuery.IsValidSourceType(txt)) {
-
-				if (!IsInputReady() && !m_clipboard.Contains(txt)) {
-					m_clipboard.Add(txt);
-					await SetQueryAsync(txt);
-				}
-			}
-
-			return;
-		}
-
-		if (cFile) {
-			var files = Clipboard.GetFileDropList();
-			var rg    = new string[files.Count];
-			files.CopyTo(rg, 0);
-			rg = rg.Where(x => !m_clipboard.Contains(x)).ToArray();
-			EnqueueAsync(rg);
-
-			return;
-		}
-
-		// Thread.Sleep(1000);
+		Config.AutoSearch = !Config.AutoSearch;
 	}
 
-	private BitmapImage m_image;
-
-	private async Task SetQueryAsync(string q)
+	private void Cb_OpenRaw_Checked(object sender, RoutedEventArgs e)
 	{
-		Btn_Run.IsEnabled = false;
-
-		Query                     = await SearchQuery.TryCreateAsync(q);
-		Pb_Status.IsIndeterminate = true;
-		var b = Query != SearchQuery.Null;
-
-		if (b) {
-			var u = await Query.UploadAsync();
-			Tb_Input2.Text            = u;
-			Pb_Status.IsIndeterminate = false;
-			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
-		}
-		else { }
-
-		Btn_Run.IsEnabled = b;
+		Config.OpenRaw = !Config.OpenRaw;
 	}
 
-	private void OnResult(object o, SearchResult result)
+	private void Cb_ContextMenu_Checked(object sender, RoutedEventArgs e)
 	{
-		Pb_Status.Value += (Results.Count / (double) Client.Engines.Length) * 10;
-
-		lock (m_lock) {
-			int i = 0;
-
-			var allResults = result.AllResults;
-
-			var sri1 = new SearchResultItem(result)
-			{
-				Url = result.RawUrl,
-			};
-
-			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
-
-			foreach (SearchResultItem sri in allResults) {
-				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
-
-			}
-		}
-	}
-
-	private async void EnqueueAsync(string[] files)
-	{
-		if (!IsInputReady()) {
-			var ff = files[0];
-			Tb_Input.Text = ff;
-
-			if (files.Length > 1) {
-				files = files[1..];
-
-			}
-
-			await SetQueryAsync(ff);
-		}
-
-		foreach (var s in files) {
-
-			if (!Queue.Contains(s)) {
-				Queue.Add(s);
-			}
-		}
-	}
-
-	private static string[] GetFilesFromDrop(DragEventArgs e)
-	{
-		if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
-
-			if (e.Data.GetData(DataFormats.FileDrop, true) is string[] files
-			    && files.Any()) {
-
-				return files;
-
-			}
-		}
-
-		return Array.Empty<string>();
-	}
-
-	private void Restart()
-	{
-		Clear();
-		Dispose(false);
-		m_cts = new();
-		m_clipboard.Clear();
-	}
-
-	private void Clear()
-	{
-		Results.Clear();
-		Btn_Run.IsEnabled = false;
-		Tb_Input.Text     = string.Empty;
-		Query.Dispose();
-		Pb_Status.Value = 0;
-	}
-
-	public void Dispose(bool full)
-	{
-		if (full) {
-			Client.Dispose();
-			Query.Dispose();
-
-			Queue.Clear();
-			m_queuePos = 0;
-		}
-
-		foreach (var r1 in Results) {
-			r1.Dispose();
-		}
-
-		Results.Clear();
-		m_cts.Dispose();
-	}
-
-	public void Dispose()
-	{
-		Dispose(true);
+		
 	}
 
 	#endregion

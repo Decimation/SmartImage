@@ -4,8 +4,44 @@
              xmlns:local="clr-namespace:SmartImage.UI"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
-        <SolidColorBrush x:Key="Black1" Color="#FF151515"/>
-        <SolidColorBrush x:Key="Black2" Color="#FF1D1D1D"/>
+
+        <SolidColorBrush x:Key="Black1" Color="#FF151515" />
+        <SolidColorBrush x:Key="Black2" Color="#FF1D1D1D" />
+        <Style TargetType="{x:Type ListViewItem}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <SolidColorBrush Color="DarkSlateGray"></SolidColorBrush>
+                            <!--<LinearGradientBrush>
+                                <GradientStop Color="#39B4E7" Offset="0" />
+                                <GradientStop Color="#39B4E7" Offset="1" />
+                            </LinearGradientBrush>-->
+                        </Setter.Value>
+                    </Setter>
+                    <Setter Property="Foreground">
+                        <Setter.Value>
+                            <SolidColorBrush Color="White"></SolidColorBrush>
+                            <!--<LinearGradientBrush>
+                                <GradientStop Color="#39B4E7" Offset="0" />
+                                <GradientStop Color="#39B4E7" Offset="1" />
+                            </LinearGradientBrush>-->
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="DarkSlateGray" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="ListViewItemContainerStyle" TargetType="{x:Type ListViewItem}">
+            <Style.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.ControlBrushKey}" Color="#00000000" />
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#00000000" />
+            </Style.Resources>
+        </Style>
+
     </Application.Resources>
 </Application>
