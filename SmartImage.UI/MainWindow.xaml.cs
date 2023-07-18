@@ -27,6 +27,7 @@ using System.Windows.Threading;
 using AngleSharp.Dom;
 using Flurl.Http;
 using Kantan.Net.Utilities;
+using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
@@ -51,12 +52,20 @@ namespace SmartImage.UI;
 /// </summary>
 public partial class MainWindow : Window, IDisposable
 {
+	private static readonly string[] Args;
+
+	static MainWindow()
+	{
+		Args = Environment.GetCommandLineArgs();
+	}
+
 	public MainWindow()
 	{
-		InitializeComponent();
 
+		Client = new SearchClient(new SearchConfig());
+
+		InitializeComponent();
 		DataContext = this;
-		Client      = new SearchClient(new SearchConfig());
 		Results     = new();
 
 		Query      = SearchQuery.Null;
@@ -82,8 +91,10 @@ public partial class MainWindow : Window, IDisposable
 		};
 		m_cbDispatch.Tick += ClipboardListenAsync;
 
-		m_uni       = new();
-		m_clipboard = new();
+		m_uni                    = new();
+		m_clipboard              = new();
+		m_are                    = new AutoResetEvent(false);
+		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
 
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 	}
@@ -134,9 +145,9 @@ public partial class MainWindow : Window, IDisposable
 
 	private readonly DispatcherTimer m_cbDispatch;
 
-	private int         m_queuePos;
-	private BitmapImage m_image;
-	private bool        m_cb;
+	private int            m_queuePos;
+	private BitmapImage    m_image;
+	private AutoResetEvent m_are;
 
 	#endregion
 
@@ -152,16 +163,7 @@ public partial class MainWindow : Window, IDisposable
 	{
 		return !string.IsNullOrWhiteSpace(Tb_Input.Text);
 	}
-	private Stream StreamFromBitmapSource(BitmapSource writeBmp)
-	{
-		Stream bmp = new MemoryStream();
 
-		BitmapEncoder enc = new BmpBitmapEncoder();
-		enc.Frames.Add(BitmapFrame.Create(writeBmp));
-		enc.Save(bmp);
-
-		return bmp;
-	}
 	private async void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		var cImg  = Clipboard.ContainsImage();
@@ -169,15 +171,16 @@ public partial class MainWindow : Window, IDisposable
 		var cFile = Clipboard.ContainsFileDropList();
 
 		if (cImg) {
-			if (IsInputReady()|| Query!= SearchQuery.Null) {
+			if (IsInputReady() || Query != SearchQuery.Null) {
 				return;
 			}
+
 			var bmp = Clipboard.GetImage();
 			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
-			var fn = Path.GetTempFileName();
-			var ms           = File.Open(fn, FileMode.OpenOrCreate);
-
-			BitmapEncoder enc = new BmpBitmapEncoder();
+			var fn = Path.GetTempFileName().Split('.')[0] + ".png";
+			var ms = File.Open(fn, FileMode.OpenOrCreate);
+			Tb_Input.Text = fn;
+			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(ms);
 			ms.Dispose();
@@ -191,6 +194,7 @@ public partial class MainWindow : Window, IDisposable
 
 				if (!IsInputReady() && !m_clipboard.Contains(txt)) {
 					m_clipboard.Add(txt);
+					Tb_Input.Text = txt;
 					await SetQueryAsync(txt);
 				}
 			}
@@ -213,9 +217,12 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task SetQueryAsync(string q)
 	{
+		Interlocked.Exchange(ref m_s, S_NO);
+
 		Btn_Run.IsEnabled = false;
 
-		Query                     = await SearchQuery.TryCreateAsync(q);
+		Query = await SearchQuery.TryCreateAsync(q);
+
 		Pb_Status.IsIndeterminate = true;
 		var b = Query != SearchQuery.Null;
 
@@ -224,6 +231,7 @@ public partial class MainWindow : Window, IDisposable
 			Tb_Input2.Text            = u;
 			Pb_Status.IsIndeterminate = false;
 			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
+			Tb_Input3.Text            = $"{Query.Uni.SourceType} {Query.Uni.FileTypes[0]}";
 
 			if (Config.AutoSearch) {
 				Dispatcher.InvokeAsync(RunAsync);
@@ -233,6 +241,8 @@ public partial class MainWindow : Window, IDisposable
 		else { }
 
 		Btn_Run.IsEnabled = b;
+		Interlocked.Exchange(ref m_s, S_OK);
+
 	}
 
 	private void OnResult(object o, SearchResult result)
@@ -352,8 +362,16 @@ public partial class MainWindow : Window, IDisposable
 		Clear();
 	}
 
+	private static int m_s  = 0;
+	private const  int S_OK = 1;
+	private const  int S_NO = 0;
+
 	private async void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
+		if (Interlocked.CompareExchange(ref m_s, S_OK, S_NO) == S_NO) {
+			return;
+		}
+
 		var txt = Tb_Input.Text;
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
@@ -414,7 +432,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		Lb_Engines.HandleEnumOption(e, (ai,ri) =>
+		Lb_Engines.HandleEnumOption(e, (ai, ri) =>
 		{
 			Config.SearchEngines |= (ai);
 			Config.SearchEngines &= ~ri;
@@ -542,36 +560,44 @@ public partial class MainWindow : Window, IDisposable
 		}
 	}
 
+	#endregion
+
+	#region
+
+	private void Cb_Clipboard_Checked(object sender, RoutedEventArgs e)
+	{
+		// Config.Clipboard = !Config.Clipboard;
+
+	}
+
+	private void Cb_AutoSearch_Checked(object sender, RoutedEventArgs e)
+	{
+		// Config.AutoSearch = !Config.AutoSearch;
+	}
+
+	private void Cb_OpenRaw_Checked(object sender, RoutedEventArgs e)
+	{
+		// Config.OpenRaw = !Config.OpenRaw;
+	}
+
+	private void Cb_ContextMenu_Checked(object sender, RoutedEventArgs e)
+	{
+		AppUtil.HandleContextMenu(!AppUtil.IsContextMenuAdded);
+	}
+
+	#endregion
+
+	#region
+
 	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
 	{
 		m_cbDispatch.Start();
 
 	}
 
-	#endregion
+	private void Wnd_Main_Closed(object sender, EventArgs e) { }
 
-	#region 
-
-	private void Cb_Clipboard_Checked(object sender, RoutedEventArgs e)
-	{
-		m_cb = !m_cb;
-
-	}
-
-	private void Cb_AutoSearch_Checked(object sender, RoutedEventArgs e)
-	{
-		Config.AutoSearch = !Config.AutoSearch;
-	}
-
-	private void Cb_OpenRaw_Checked(object sender, RoutedEventArgs e)
-	{
-		Config.OpenRaw = !Config.OpenRaw;
-	}
-
-	private void Cb_ContextMenu_Checked(object sender, RoutedEventArgs e)
-	{
-		
-	}
+	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }
 
 	#endregion
 }

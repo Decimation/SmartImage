@@ -54,14 +54,12 @@ public static class FormsHelper
 
 		var si = lb.SelectedItems.OfType<SearchEngineOptions>().ToArray();
 
-		if (ai.HasFlag(SearchEngineOptions.All)) {
-			lb.SelectAll();
-		}
+		lb.HandleEnumList(ai, SearchEngineOptions.All, true);
 
 		if (ri.HasFlag(SearchEngineOptions.All)) {
 			lb.UnselectAll();
 		}
-
+		
 		lb.HandleEnumList(ai, SearchEngineOptions.Artwork, true);
 		lb.HandleEnumList(ri, SearchEngineOptions.Artwork, false);
 

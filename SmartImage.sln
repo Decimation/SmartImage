@@ -11,17 +11,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib Unit Test", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{C3235D7A-ACEC-4910-8EFE-6ACB670352BC}"
 EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SmartImage.App.Shared", "SmartImage.App\SmartImage.App.Shared\SmartImage.App.Shared.shproj", "{6279C845-92F8-4333-AB99-3D213163593C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{AFE945E7-67F5-424B-86F8-0F144B3E7907}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.App.Mobile", "SmartImage.App\SmartImage.App.Mobile\SmartImage.App.Mobile.csproj", "{D8AFEF17-7257-46A9-977C-89BFE412FA34}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.App.Windows", "SmartImage.App\SmartImage.App.Windows\SmartImage.App.Windows.csproj", "{72109028-3FC1-45B1-929C-035CD11FB1C8}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Linux", "SmartImage.Linux\SmartImage.Linux.csproj", "{AAE1CED0-FF74-4E38-99C1-2ECAE85566F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.UI", "SmartImage.UI\SmartImage.UI.csproj", "{E1FA3231-DC61-4E0D-A73F-C9D368644B6E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.UI", "SmartImage.UI\SmartImage.UI.csproj", "{E1FA3231-DC61-4E0D-A73F-C9D368644B6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -135,78 +127,6 @@ Global
 		{C3235D7A-ACEC-4910-8EFE-6ACB670352BC}.Test|x64.Build.0 = Debug|Any CPU
 		{C3235D7A-ACEC-4910-8EFE-6ACB670352BC}.Test|x86.ActiveCfg = Debug|Any CPU
 		{C3235D7A-ACEC-4910-8EFE-6ACB670352BC}.Test|x86.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|arm64.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|arm64.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|arm64.Deploy.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|x64.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|x64.Deploy.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|x86.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Debug|x86.Deploy.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|Any CPU.Deploy.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|arm64.ActiveCfg = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|arm64.Build.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|arm64.Deploy.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|x64.ActiveCfg = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|x64.Build.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|x64.Deploy.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|x86.ActiveCfg = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|x86.Build.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Release|x86.Deploy.0 = Release|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|Any CPU.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|Any CPU.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|Any CPU.Deploy.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|arm64.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|arm64.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|arm64.Deploy.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|x64.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|x64.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|x64.Deploy.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|x86.ActiveCfg = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|x86.Build.0 = Debug|Any CPU
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34}.Test|x86.Deploy.0 = Debug|Any CPU
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|Any CPU.ActiveCfg = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|Any CPU.Build.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|Any CPU.Deploy.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|arm64.ActiveCfg = Debug|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|arm64.Build.0 = Debug|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|arm64.Deploy.0 = Debug|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|x64.ActiveCfg = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|x64.Build.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|x64.Deploy.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|x86.ActiveCfg = Debug|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|x86.Build.0 = Debug|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Debug|x86.Deploy.0 = Debug|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|Any CPU.ActiveCfg = Release|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|Any CPU.Build.0 = Release|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|Any CPU.Deploy.0 = Release|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|arm64.ActiveCfg = Release|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|arm64.Build.0 = Release|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|arm64.Deploy.0 = Release|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|x64.ActiveCfg = Release|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|x64.Build.0 = Release|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|x64.Deploy.0 = Release|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|x86.ActiveCfg = Release|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|x86.Build.0 = Release|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Release|x86.Deploy.0 = Release|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|Any CPU.ActiveCfg = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|Any CPU.Build.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|Any CPU.Deploy.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|arm64.ActiveCfg = Debug|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|arm64.Build.0 = Debug|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|arm64.Deploy.0 = Debug|arm64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|x64.ActiveCfg = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|x64.Build.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|x64.Deploy.0 = Debug|x64
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|x86.ActiveCfg = Debug|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|x86.Build.0 = Debug|x86
-		{72109028-3FC1-45B1-929C-035CD11FB1C8}.Test|x86.Deploy.0 = Debug|x86
 		{AAE1CED0-FF74-4E38-99C1-2ECAE85566F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{AAE1CED0-FF74-4E38-99C1-2ECAE85566F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AAE1CED0-FF74-4E38-99C1-2ECAE85566F1}.Debug|arm64.ActiveCfg = Debug|Any CPU
@@ -259,16 +179,7 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(NestedProjects) = preSolution
-		{D8AFEF17-7257-46A9-977C-89BFE412FA34} = {AFE945E7-67F5-424B-86F8-0F144B3E7907}
-		{72109028-3FC1-45B1-929C-035CD11FB1C8} = {AFE945E7-67F5-424B-86F8-0F144B3E7907}
-	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DE4E765E-F0E1-40F9-B11E-522639F217CA}
-	EndGlobalSection
-	GlobalSection(SharedMSBuildProjectFiles) = preSolution
-		SmartImage.App\SmartImage.App.Shared\SmartImage.App.Shared.projitems*{6279c845-92f8-4333-ab99-3d213163593c}*SharedItemsImports = 13
-		SmartImage.App\SmartImage.App.Shared\SmartImage.App.Shared.projitems*{72109028-3fc1-45b1-929c-035cd11fb1c8}*SharedItemsImports = 5
-		SmartImage.App\SmartImage.App.Shared\SmartImage.App.Shared.projitems*{d8afef17-7257-46a9-977c-89bfe412fa34}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

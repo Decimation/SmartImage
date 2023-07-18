@@ -8,7 +8,7 @@
         xmlns:local="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1050" Loaded="Wnd_Main_Loaded">
+        Title="MainWindow" Height="600" Width="1050" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed" Closing="Wnd_Main_Closing">
     <Window.Resources>
         <Style x:Key="S_Lvic" TargetType="{x:Type ListViewItem}">
             <!--
@@ -67,31 +67,36 @@
                         </ListView.View>
 
                     </ListView>
-                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="49,8,0,0" VerticalAlignment="Top"
+                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="57,8,0,0" VerticalAlignment="Top"
                              Width="250" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver" />
-                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="304,8,0,0"
+                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="312,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
-                            Loaded="Btn_Run_Loaded" />
+                            Loaded="Btn_Run_Loaded" Width="35" />
                     <Image x:Name="Img_Preview" Height="150" Margin="881,5,13,0" Width="150" VerticalAlignment="Top" />
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="10,148,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" />
-                    <TextBox x:Name="Tb_Input2" HorizontalAlignment="Left" Margin="49,37,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_Input2" HorizontalAlignment="Left" Margin="57,37,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="250" IsReadOnly="True" Height="20"
-                             MouseDoubleClick="Tb_Input2_MouseDoubleClick" />
-                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="403,8,0,0"
+                             MouseDoubleClick="Tb_Input2_MouseDoubleClick" Foreground="White" Background="Black" />
+                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="314,37,0,0"
                             VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click" />
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
-                           VerticalAlignment="Top" Height="27" FontWeight="Bold" Foreground="White" />
-                    <Label x:Name="Lb_Input2" Content="Info" HorizontalAlignment="Left" Margin="4,35,0,0"
-                           VerticalAlignment="Top" Height="24" FontWeight="Bold" Foreground="White" />
-                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="335,8,0,0"
-                            VerticalAlignment="Top" FontStyle="Italic" Click="Btn_Next_Click" Width="43" />
-                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="439,8,0,0"
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5" />
+                    <Label x:Name="Lb_Input2" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
+                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="352,8,0,0"
+                            VerticalAlignment="Top" FontStyle="Italic" Click="Btn_Next_Click" Width="35" />
+                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="352,37,0,0"
                             VerticalAlignment="Top" Click="Btn_Restart_Click" />
-                    <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="304,35,0,0"
+                    <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="404,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" />
+                    <Label x:Name="Lb_Input3" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
+                        VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
+                    <TextBox x:Name="Tb_Input3" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
+                        VerticalAlignment="Top" Width="250" IsReadOnly="True" Height="20"
+                        MouseDoubleClick="Tb_Input2_MouseDoubleClick" Background="Black" Foreground="White" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Queue" Header="Queue">
@@ -115,10 +120,10 @@
                              SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" />
                     <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,666,123"
                              SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" />
-                    <CheckBox x:Name="Cb_Clipboard" Content="Clipboard" HorizontalAlignment="Left" Margin="409,33,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_Clipboard_Checked"/>
-                    <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search" HorizontalAlignment="Left" Margin="409,62,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_AutoSearch_Checked"/>
-                    <CheckBox x:Name="Cb_OpenRaw" Content="Open raw" HorizontalAlignment="Left" Margin="409,93,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_OpenRaw_Checked"/>
-                    <CheckBox x:Name="Cb_ContextMenu" Content="Context menu" HorizontalAlignment="Left" Margin="409,124,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_ContextMenu_Checked"/>
+                    <CheckBox x:Name="Cb_Clipboard" Content="Clipboard" IsChecked="{Binding Path=Config.Clipboard, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,33,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_Clipboard_Checked"/>
+                    <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search" IsChecked="{Binding Path=Config.AutoSearch, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,62,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_AutoSearch_Checked"/>
+                    <CheckBox x:Name="Cb_OpenRaw" Content="Open raw"  IsChecked="{Binding Path=Config.OpenRaw, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,93,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_OpenRaw_Checked"/>
+                    <CheckBox x:Name="Cb_ContextMenu" Content="Context menu"  HorizontalAlignment="Left" Margin="409,124,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_ContextMenu_Checked"/>
                 </Grid>
             </TabItem>
         </TabControl>
