@@ -18,6 +18,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -141,7 +142,7 @@ public partial class MainWindow : Window, IDisposable
 
 	#region
 
-	private async Task Run()
+	private async Task RunAsync()
 	{
 
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
@@ -151,7 +152,16 @@ public partial class MainWindow : Window, IDisposable
 	{
 		return !string.IsNullOrWhiteSpace(Tb_Input.Text);
 	}
+	private Stream StreamFromBitmapSource(BitmapSource writeBmp)
+	{
+		Stream bmp = new MemoryStream();
 
+		BitmapEncoder enc = new BmpBitmapEncoder();
+		enc.Frames.Add(BitmapFrame.Create(writeBmp));
+		enc.Save(bmp);
+
+		return bmp;
+	}
 	private async void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		var cImg  = Clipboard.ContainsImage();
@@ -159,7 +169,19 @@ public partial class MainWindow : Window, IDisposable
 		var cFile = Clipboard.ContainsFileDropList();
 
 		if (cImg) {
-			var bmp = (Bitmap) Clipboard.GetData(DataFormats.Bitmap);
+			if (IsInputReady()|| Query!= SearchQuery.Null) {
+				return;
+			}
+			var bmp = Clipboard.GetImage();
+			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
+			var fn = Path.GetTempFileName();
+			var ms           = File.Open(fn, FileMode.OpenOrCreate);
+
+			BitmapEncoder enc = new BmpBitmapEncoder();
+			enc.Frames.Add(BitmapFrame.Create(bmp));
+			enc.Save(ms);
+			ms.Dispose();
+			await SetQueryAsync(fn);
 		}
 
 		if (cText) {
@@ -204,7 +226,7 @@ public partial class MainWindow : Window, IDisposable
 			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
 
 			if (Config.AutoSearch) {
-				Dispatcher.InvokeAsync(Run);
+				Dispatcher.InvokeAsync(RunAsync);
 
 			}
 		}
@@ -322,7 +344,7 @@ public partial class MainWindow : Window, IDisposable
 		// await SetQueryAsync(Tb_Input.Text);
 		Btn_Run.IsEnabled = false;
 
-		Dispatcher.InvokeAsync(Run);
+		Dispatcher.InvokeAsync(RunAsync);
 	}
 
 	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)

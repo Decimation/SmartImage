@@ -11,7 +11,7 @@ namespace SmartImage.UI;
 
 public sealed class ResultItem : IDisposable
 {
-	public        string Name { get; }
+	public string Name { get; }
 
 	public SearchResultItem Result { get; }
 
