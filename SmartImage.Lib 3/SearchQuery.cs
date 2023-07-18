@@ -67,6 +67,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null, CancellationToken ct = default)
 	{
+		if (Url.IsValid(Upload)) {
+			return Upload;
+		}
 
 		var fu = Uni.Value.ToString();
 

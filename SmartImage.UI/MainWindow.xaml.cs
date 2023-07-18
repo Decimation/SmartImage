@@ -62,8 +62,8 @@ public partial class MainWindow : Window, IDisposable
 	public MainWindow()
 	{
 
-		Client = new SearchClient(new SearchConfig());
-
+		Client    = new SearchClient(new SearchConfig());
+		m_queries = new ConcurrentDictionary<string, SearchQuery>();
 		InitializeComponent();
 		DataContext = this;
 		Results     = new();
@@ -133,6 +133,12 @@ public partial class MainWindow : Window, IDisposable
 
 	public ObservableCollection<string> Queue { get; }
 
+	public string InputText
+	{
+		get => Tb_Input.Text;
+		set => Tb_Input.Text = value;
+	}
+
 	#endregion
 
 	#region
@@ -145,9 +151,14 @@ public partial class MainWindow : Window, IDisposable
 
 	private readonly DispatcherTimer m_cbDispatch;
 
-	private int            m_queuePos;
-	private BitmapImage    m_image;
-	private AutoResetEvent m_are;
+	private        int                                       m_queuePos;
+	private        BitmapImage                               m_image;
+	private        ConcurrentDictionary<string, SearchQuery> m_queries;
+	private        AutoResetEvent                            m_are;
+	private static int                                       m_s = 0;
+
+	private const int S_NO = 0;
+	private const int S_OK = 1;
 
 	#endregion
 
@@ -161,7 +172,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private bool IsInputReady()
 	{
-		return !string.IsNullOrWhiteSpace(Tb_Input.Text);
+		return !string.IsNullOrWhiteSpace(InputText);
 	}
 
 	private async void ClipboardListenAsync(object? s, EventArgs e)
@@ -179,7 +190,7 @@ public partial class MainWindow : Window, IDisposable
 			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
 			var fn = Path.GetTempFileName().Split('.')[0] + ".png";
 			var ms = File.Open(fn, FileMode.OpenOrCreate);
-			Tb_Input.Text = fn;
+			InputText = fn;
 			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(ms);
@@ -194,7 +205,7 @@ public partial class MainWindow : Window, IDisposable
 
 				if (!IsInputReady() && !m_clipboard.Contains(txt)) {
 					m_clipboard.Add(txt);
-					Tb_Input.Text = txt;
+					InputText = txt;
 					await SetQueryAsync(txt);
 				}
 			}
@@ -208,6 +219,7 @@ public partial class MainWindow : Window, IDisposable
 			files.CopyTo(rg, 0);
 			rg = rg.Where(x => !m_clipboard.Contains(x)).ToArray();
 			EnqueueAsync(rg);
+			m_clipboard.AddRange(rg);
 
 			return;
 		}
@@ -220,18 +232,28 @@ public partial class MainWindow : Window, IDisposable
 		Interlocked.Exchange(ref m_s, S_NO);
 
 		Btn_Run.IsEnabled = false;
+		bool b;
 
-		Query = await SearchQuery.TryCreateAsync(q);
+		if (m_queries.TryGetValue(q, out var qq)) {
+			Query = qq;
+			b     = true;
+		}
 
-		Pb_Status.IsIndeterminate = true;
-		var b = Query != SearchQuery.Null;
+		else {
+			Query                     = await SearchQuery.TryCreateAsync(q);
+			Pb_Status.IsIndeterminate = true;
+			b                         = Query != SearchQuery.Null;
+		}
 
 		if (b) {
 			var u = await Query.UploadAsync();
+
 			Tb_Input2.Text            = u;
 			Pb_Status.IsIndeterminate = false;
 			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
 			Tb_Input3.Text            = $"{Query.Uni.SourceType} {Query.Uni.FileTypes[0]}";
+
+			m_queries.TryAdd(q, Query);
 
 			if (Config.AutoSearch) {
 				Dispatcher.InvokeAsync(RunAsync);
@@ -270,16 +292,19 @@ public partial class MainWindow : Window, IDisposable
 
 	private async void EnqueueAsync(string[] files)
 	{
+		if (!files.Any()) {
+			return;
+		}
+
 		if (!IsInputReady()) {
 			var ff = files[0];
-			Tb_Input.Text = ff;
+			InputText = ff;
 
 			if (files.Length > 1) {
 				files = files[1..];
 
 			}
-
-			await SetQueryAsync(ff);
+			
 		}
 
 		foreach (var s in files) {
@@ -316,10 +341,28 @@ public partial class MainWindow : Window, IDisposable
 	private void Clear()
 	{
 		Results.Clear();
-		Btn_Run.IsEnabled = false;
-		Tb_Input.Text     = string.Empty;
-		Query.Dispose();
+		// Btn_Run.IsEnabled = false;
+		// InputText         = string.Empty;
+		// Query.Dispose();
 		Pb_Status.Value = 0;
+	}
+
+	private void Next()
+	{
+		Restart();
+
+		if (!Queue.Any()) {
+			return;
+		}
+
+		var next = Queue[m_queuePos++ % Queue.Count];
+		InputText = next;
+		Lv_Queue.SelectedItems.Clear();
+		Lv_Queue.SelectedItems.Add(next);
+
+		if (m_queuePos < Queue.Count && m_queuePos >= 0) {
+			// await SetQueryAsync(next);
+		}
 	}
 
 	public void Dispose(bool full)
@@ -351,7 +394,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
-		// await SetQueryAsync(Tb_Input.Text);
+		// await SetQueryAsync(InputText);
 		Btn_Run.IsEnabled = false;
 
 		Dispatcher.InvokeAsync(RunAsync);
@@ -362,20 +405,16 @@ public partial class MainWindow : Window, IDisposable
 		Clear();
 	}
 
-	private static int m_s  = 0;
-	private const  int S_OK = 1;
-	private const  int S_NO = 0;
-
 	private async void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
 		if (Interlocked.CompareExchange(ref m_s, S_OK, S_NO) == S_NO) {
 			return;
 		}
 
-		var txt = Tb_Input.Text;
+		var txt = InputText;
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
-		if (ok && !IsInputReady()) {
+		if (ok /*&& !IsInputReady()*/) {
 			await SetQueryAsync(txt);
 		}
 
@@ -406,8 +445,8 @@ public partial class MainWindow : Window, IDisposable
 		EnqueueAsync(files1);
 		var files = files1;
 		var f1    = files.FirstOrDefault();
-		Tb_Input.Text = f1;
-		e.Handled     = true;
+		InputText = f1;
+		e.Handled = true;
 
 	}
 
@@ -451,18 +490,12 @@ public partial class MainWindow : Window, IDisposable
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
 	{
 		Restart();
-
+		Queue.Clear();
 	}
 
 	private async void Btn_Next_Click(object sender, RoutedEventArgs e)
 	{
-		Restart();
-
-		if (m_queuePos < Queue.Count && m_queuePos >= 0) {
-			var next = Queue[m_queuePos++];
-			Tb_Input.Text = next;
-			await SetQueryAsync(next);
-		}
+		Next();
 	}
 
 	private void Btn_Cancel_Click(object sender, RoutedEventArgs e)
@@ -600,4 +633,13 @@ public partial class MainWindow : Window, IDisposable
 	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }
 
 	#endregion
+
+	private async void Lv_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (e.AddedItems.Count>0) {
+			var i = e.AddedItems[0] as string;
+			InputText = i;
+
+		}
+	}
 }
