@@ -27,11 +27,11 @@
         <TabControl x:Name="Tb_Main">
             <TabItem x:Name="Ti_Main" Header="Main">
                 <Grid Background="{DynamicResource Black1}">
-                    <ListView ItemContainerStyle="{DynamicResource S_Lvic}" x:Name="Lv_Results" Margin="0,125,0,0"
+                    <ListView ItemContainerStyle="{DynamicResource S_Lvic}" x:Name="Lv_Results" Margin="0,163,0,10"
                               d:ItemsSource="{Binding Results}"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick" Background="{DynamicResource Black2}"
                               Foreground="DeepSkyBlue" MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
-                              SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown">
+                              SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown" Height="385" d:IsLocked="True">
                         <!--<ListView.View>
                             <GridView>
                                 <GridViewColumn/>
@@ -70,22 +70,21 @@
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="304,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
                             Loaded="Btn_Run_Loaded" />
-                    <Image x:Name="Img_Preview" HorizontalAlignment="Left" Height="100" Margin="927,8,0,0"
-                           VerticalAlignment="Top" Width="100" />
-                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="927,110,0,0"
+                    <Image x:Name="Img_Preview" Height="150" Margin="881,5,13,0" Width="150" VerticalAlignment="Top" />
+                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="10,148,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" />
                     <TextBox x:Name="Tb_Input2" HorizontalAlignment="Left" Margin="49,37,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="250" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Input2_MouseDoubleClick" />
-                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="378,8,0,0"
+                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="403,8,0,0"
                             VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click" />
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
                            VerticalAlignment="Top" Height="27" FontWeight="Bold" Foreground="White" />
                     <Label x:Name="Lb_Input2" Content="Info" HorizontalAlignment="Left" Margin="4,35,0,0"
                            VerticalAlignment="Top" Height="24" FontWeight="Bold" Foreground="White" />
                     <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="335,8,0,0"
-                            VerticalAlignment="Top" FontStyle="Italic" Click="Btn_Next_Click" />
-                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="414,8,0,0"
+                            VerticalAlignment="Top" FontStyle="Italic" Click="Btn_Next_Click" Width="43" />
+                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="439,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Restart_Click" />
                     <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="304,35,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" />

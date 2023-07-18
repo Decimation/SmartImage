@@ -6,11 +6,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -22,10 +24,12 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 using AngleSharp.Dom;
+using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
+using Novus.OS;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
@@ -34,6 +38,8 @@ using SmartImage.Lib.Utilities;
 using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Application;
 using Clipboard = System.Windows.Clipboard;
+using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using Path = System.IO.Path;
 using Timer = System.Timers.Timer;
 using Url = Flurl.Url;
 
@@ -72,7 +78,7 @@ public partial class MainWindow : Window, IDisposable
 		{
 			Interval = TimeSpan.FromSeconds(1)
 		};
-		m_auto.Tick += Start;
+		m_auto.Tick += ClipboardListenAsync;
 		m_uni       =  new();
 		m_clipboard =  new();
 
@@ -168,7 +174,7 @@ public partial class MainWindow : Window, IDisposable
 	{
 		var files1 = GetFilesFromDrop(e);
 
-		Enqueue(files1);
+		EnqueueAsync(files1);
 		var files = files1;
 		var f1    = files.FirstOrDefault();
 		Tb_Input.Text = f1;
@@ -180,7 +186,7 @@ public partial class MainWindow : Window, IDisposable
 	{
 		var files = GetFilesFromDrop(e);
 
-		Enqueue(files);
+		EnqueueAsync(files);
 		string[] temp = files;
 		e.Handled = true;
 	}
@@ -302,11 +308,32 @@ public partial class MainWindow : Window, IDisposable
 			case Key.D when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(async () =>
 				{
-					var ri = ((ResultItem) Lv_Results.SelectedItem);
+					var    ri = ((ResultItem) Lv_Results.SelectedItem);
+					var    u  = ri.Uni;
+					var    v  = (Url) u.Value.ToString();
+					string path;
 
-					if (m_uni.TryGetValue(ri, out var us)) {
+					if (v.PathSegments is { Count: >= 1 }) {
+						path = $"{v.PathSegments[^1]}";
 
 					}
+					else path = v.Path;
+
+					path = HttpUtility.HtmlDecode(path);
+					path = FileSystem.SanitizeFilename(path);
+					var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
+
+					var f = File.OpenWrite(path2);
+
+					if (u.Stream.CanSeek) {
+						u.Stream.Position = 0;
+
+					}
+
+					await u.Stream.CopyToAsync(f);
+					FileSystem.ExploreFile(path2);
+					f.Dispose();
+					// u.Dispose();
 				});
 
 				break;
@@ -329,7 +356,7 @@ public partial class MainWindow : Window, IDisposable
 						var resultItems = new ResultItem[resultUni.Length];
 
 						for (int i = 0; i < resultUni.Length; i++) {
-							var rii = new ResultItem(null, $"{resultUni[i].SourceType} (DI)", resultUni[i].Value.ToString());
+							var rii = new ResultItem(ri.Result, $"{ri.Name} :: {resultUni[i].SourceType}", i);
 							resultItems[i] = rii;
 							Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
 						}
@@ -357,7 +384,7 @@ public partial class MainWindow : Window, IDisposable
 		return !string.IsNullOrWhiteSpace(Tb_Input.Text);
 	}
 
-	private async void Start(object? s, EventArgs e)
+	private async void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		var cImg  = Clipboard.ContainsImage();
 		var cText = Clipboard.ContainsText();
@@ -386,7 +413,7 @@ public partial class MainWindow : Window, IDisposable
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
 			rg = rg.Where(x => !m_clipboard.Contains(x)).ToArray();
-			Enqueue(rg);
+			EnqueueAsync(rg);
 
 			return;
 		}
@@ -394,9 +421,11 @@ public partial class MainWindow : Window, IDisposable
 		// Thread.Sleep(1000);
 	}
 
+	private BitmapImage m_image;
+
 	private async Task SetQueryAsync(string q)
 	{
-		Btn_Run.IsEnabled         = false;
+		Btn_Run.IsEnabled = false;
 
 		Query                     = await SearchQuery.TryCreateAsync(q);
 		Pb_Status.IsIndeterminate = true;
@@ -406,6 +435,7 @@ public partial class MainWindow : Window, IDisposable
 			var u = await Query.UploadAsync();
 			Tb_Input2.Text            = u;
 			Pb_Status.IsIndeterminate = false;
+			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
 		}
 		else { }
 
@@ -435,7 +465,7 @@ public partial class MainWindow : Window, IDisposable
 		}
 	}
 
-	private async void Enqueue(string[] files)
+	private async void EnqueueAsync(string[] files)
 	{
 		if (!IsInputReady()) {
 			var ff = files[0];

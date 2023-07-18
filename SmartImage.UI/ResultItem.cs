@@ -4,27 +4,41 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using Flurl;
+using Novus.FileTypes;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.UI;
 
 public sealed class ResultItem : IDisposable
 {
-	public string Name { get; }
+	public        string Name { get; }
 
-	[MaybeNull]
-	public SearchResultItem? Result { get; }
+	public SearchResultItem Result { get; }
 
-	public Url? Url { get; }
-
-	public ResultItem(SearchResultItem? result, string name, Url? u = default)
+	public UniSource? Uni
 	{
-		Result = result;
+		get
+		{
+			if (UniIndex.HasValue && Result.Uni != null) {
+				return Result.Uni[UniIndex.Value];
 
-		Name = name;
-		Url  = u ?? result?.Url;
+			}
+
+			return null;
+		}
 	}
-	
+
+	public int? UniIndex { get; }
+
+	public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
+
+	public ResultItem(SearchResultItem result, string name, int? idx = default)
+	{
+		Result   = result;
+		Name     = name;
+		UniIndex = idx;
+	}
+
 	public void Dispose()
 	{
 		Result.Dispose();
