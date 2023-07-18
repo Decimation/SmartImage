@@ -101,6 +101,8 @@ public sealed record SearchResultItem : IDisposable,
 
 	public List<SearchResultItem> Sisters { get; internal set; }
 
+	// public bool IsUniType { get; internal set; }
+
 	internal SearchResultItem(SearchResult r)
 	{
 		Root       = r;
@@ -110,6 +112,27 @@ public sealed record SearchResultItem : IDisposable,
 		Parent     = null;
 		Sisters    = new List<SearchResultItem>();
 	}
+
+	/*
+	internal SearchResultItem[] FromUni()
+	{
+		if (!HasUni) {
+			return null;
+		}
+
+		var u = new SearchResultItem[Uni.Length];
+
+		for (int i = 0; i < u.Length; i++) {
+			u[i] = new SearchResultItem(this)
+			{
+				Uni = null,
+				IsUniType = true
+			};
+		}
+
+		return u;
+	}
+	*/
 
 	public static bool IsValid([CBN] SearchResultItem r)
 	{

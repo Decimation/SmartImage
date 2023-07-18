@@ -1,4 +1,6 @@
-﻿<Window x:Class="SmartImage.UI.MainWindow"
+﻿<!-- ReSharper disable InconsistentNaming -->
+
+<Window x:Name="Wnd_Main" x:Class="SmartImage.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,16 +8,30 @@
         xmlns:local="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1050">
+        Title="MainWindow" Height="600" Width="1050" Loaded="Wnd_Main_Loaded">
+    <Window.Resources>
+        <Style x:Key="S_Lvic" TargetType="{x:Type ListViewItem}">
+            <!--
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type ListViewItem}">
+                        <Grid/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        -->
+        </Style>
+    </Window.Resources>
 
     <Grid>
         <TabControl x:Name="Tb_Main">
             <TabItem x:Name="Ti_Main" Header="Main">
-                <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="49,8,0,0" VerticalAlignment="Top" Width="250" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20" Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver" PreviewDragOver="Tb_Input_PreviewDragOver"/>
-                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="304,8,0,0" VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold" Loaded="Btn_Run_Loaded"/>
-                    <Image x:Name="Img_Preview" HorizontalAlignment="Left" Height="100" Margin="927,8,0,0" VerticalAlignment="Top" Width="100"/>
-                    <ListView x:Name="Lv_Results" Margin="0,125,0,0" d:ItemsSource="{Binding Results}" MouseDoubleClick="Lv_Results_MouseDoubleClick">
+                <Grid Background="{DynamicResource Black1}">
+                    <ListView ItemContainerStyle="{DynamicResource S_Lvic}" x:Name="Lv_Results" Margin="0,125,0,0"
+                              d:ItemsSource="{Binding Results}"
+                              MouseDoubleClick="Lv_Results_MouseDoubleClick" Background="{DynamicResource Black2}"
+                              Foreground="DeepSkyBlue" MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
+                              SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown">
                         <!--<ListView.View>
                             <GridView>
                                 <GridViewColumn/>
@@ -23,31 +39,63 @@
                         </ListView.View>-->
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Name" DisplayMemberBinding="{Binding Name}" Width="115"/>
-                                <GridViewColumn Header="URL" DisplayMemberBinding="{Binding Result.Url}" Width="400" />
-                                <GridViewColumn Header="Similarity" DisplayMemberBinding="{Binding Result.Similarity}" Width="75" />
-                                <GridViewColumn Header="Artist" DisplayMemberBinding="{Binding Result.Artist}" Width="75" />
-                                <GridViewColumn Header="Description" DisplayMemberBinding="{Binding Result.Description}" Width="75" />
-                                <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Result.Title}" Width="75" />
-                                <GridViewColumn Header="Source" DisplayMemberBinding="{Binding Result.Source}" Width="75" />
+                                <GridViewColumn Header="Name"
+                                                DisplayMemberBinding="{Binding Name}" Width="115" />
+                                <GridViewColumn Header="URL"
+                                                DisplayMemberBinding="{Binding Url}" Width="400" />
+                                <GridViewColumn Header="Similarity"
+                                                DisplayMemberBinding="{Binding Result.Similarity}" Width="75" />
+                                <GridViewColumn Header="Artist"
+                                                DisplayMemberBinding="{Binding Result.Artist}" Width="75" />
+                                <GridViewColumn Header="Description"
+                                                DisplayMemberBinding="{Binding Result.Description}" Width="75" />
+                                <GridViewColumn Header="Title"
+                                                DisplayMemberBinding="{Binding Result.Title}" Width="75" />
+                                <GridViewColumn Header="Source"
+                                                DisplayMemberBinding="{Binding Result.Source}" Width="75" />
+                                <GridViewColumn Header="Character"
+                                                DisplayMemberBinding="{Binding Result.Character}" Width="75" />
+                                <GridViewColumn Header="Width"
+                                                DisplayMemberBinding="{Binding Result.Width}" Width="50" />
+                                <GridViewColumn Header="Height"
+                                                DisplayMemberBinding="{Binding Result.Height}" Width="50" />
                             </GridView>
                         </ListView.View>
 
                     </ListView>
-                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="927,110,0,0" VerticalAlignment="Top" Width="100" Minimum="0"  Maximum="100"/>
-                    <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="25" Margin="10,10,0,0" VerticalAlignment="Top" Width="20"/>
-                    <TextBox x:Name="Tb_Input2" HorizontalAlignment="Left" Margin="49,37,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="250" IsReadOnly="True" Height="20" MouseDoubleClick="Tb_Input2_MouseDoubleClick"/>
-                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="378,8,0,0" VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click"/>
-                    <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,8,0,0" VerticalAlignment="Top" Height="24" FontWeight="Bold"/>
-                    <Label x:Name="Lb_Input2" Content="Info" HorizontalAlignment="Left" Margin="4,35,0,0" VerticalAlignment="Top" Height="24" FontWeight="Bold"/>
-                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="335,8,0,0" VerticalAlignment="Top" FontStyle="Italic" Click="Btn_Next_Click"/>
-                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="414,8,0,0" VerticalAlignment="Top" Click="Btn_Restart_Click"/>
-                    <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="304,35,0,0" VerticalAlignment="Top" Click="Btn_Cancel_Click"/>
+                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="49,8,0,0" VerticalAlignment="Top"
+                             Width="250" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
+                             Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
+                             PreviewDragOver="Tb_Input_PreviewDragOver" />
+                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="304,8,0,0"
+                            VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
+                            Loaded="Btn_Run_Loaded" />
+                    <Image x:Name="Img_Preview" HorizontalAlignment="Left" Height="100" Margin="927,8,0,0"
+                           VerticalAlignment="Top" Width="100" />
+                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="927,110,0,0"
+                                 VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" />
+                    <TextBox x:Name="Tb_Input2" HorizontalAlignment="Left" Margin="49,37,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="250" IsReadOnly="True" Height="20"
+                             MouseDoubleClick="Tb_Input2_MouseDoubleClick" />
+                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="378,8,0,0"
+                            VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click" />
+                    <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
+                           VerticalAlignment="Top" Height="27" FontWeight="Bold" Foreground="White" />
+                    <Label x:Name="Lb_Input2" Content="Info" HorizontalAlignment="Left" Margin="4,35,0,0"
+                           VerticalAlignment="Top" Height="24" FontWeight="Bold" Foreground="White" />
+                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="335,8,0,0"
+                            VerticalAlignment="Top" FontStyle="Italic" Click="Btn_Next_Click" />
+                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="414,8,0,0"
+                            VerticalAlignment="Top" Click="Btn_Restart_Click" />
+                    <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="304,35,0,0"
+                            VerticalAlignment="Top" Click="Btn_Cancel_Click" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Queue" Header="Queue">
-                <Grid Background="#FFE5E5E5">
-                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,58,0,0" Drop="Lv_Queue_Drop" DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True">
+                <Grid Background="{DynamicResource Black1}">
+                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,58,0,0" Drop="Lv_Queue_Drop"
+                              DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
+                              Background="{DynamicResource Black2}" Foreground="DeepSkyBlue">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Value" Width="300" />
@@ -57,10 +105,13 @@
                     </ListView>
                 </Grid>
             </TabItem>
-            <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config" VerticalAlignment="Center" Width="54">
-                <Grid Background="#FFE5E5E5">
-                    <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="10,33,884,123" SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Height="400"/>
-                    <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,666,123" SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Height="400"/>
+            <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
+                     VerticalAlignment="Center" Width="54">
+                <Grid Background="{DynamicResource Black1}">
+                    <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="10,33,884,123"
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Height="400" />
+                    <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,666,123"
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Height="400" />
                 </Grid>
             </TabItem>
         </TabControl>
