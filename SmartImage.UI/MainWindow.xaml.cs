@@ -196,7 +196,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task RunAsync()
 	{
-
+		Clear();
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -635,6 +635,7 @@ public partial class MainWindow : Window, IDisposable
 						return;
 					}
 
+					Pb_Status.IsIndeterminate = true;
 					var d = await ri.Result.LoadUniAsync();
 
 					if (d) {
@@ -644,11 +645,13 @@ public partial class MainWindow : Window, IDisposable
 						var resultItems = new ResultItem[resultUni.Length];
 
 						for (int i = 0; i < resultUni.Length; i++) {
-							var rii = new ResultItem(ri.Result, $"{ri.Name} :: {resultUni[i].SourceType}", i);
+							var rii = new ResultItem(ri.Result, $"{ri.Name} {i} 🖼", i);
 							resultItems[i] = rii;
 							Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
 						}
 					}
+					Pb_Status.IsIndeterminate = false;
+
 				});
 
 				break;

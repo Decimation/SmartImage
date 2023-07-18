@@ -52,9 +52,10 @@ public abstract class BaseImageHost
 	public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(TypeProperties.Subclass).ToArray();
 
-	public static async Task<UniSource[]> ScanAsync(Url u, CancellationToken ct = default)
+	public static async Task<UniSource[]> ScanAsync(Url u, CancellationToken ct = default, Predicate<UniSource> pred = null)
 	{
 		Stream stream;
+		pred ??= _ => true;
 
 		try {
 			stream = await u.AllowAnyHttpStatus()
@@ -105,8 +106,13 @@ public abstract class BaseImageHost
 
 			if (ux != null) {
 				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanAsync));
-				ul.Add(ux);
+				if (pred(ux)) {
+					ul.Add(ux);
 
+				}
+				else {
+					ux.Dispose();
+				}
 			}
 			else { }
 
@@ -118,6 +124,20 @@ public abstract class BaseImageHost
 		ret:
 		return ul.ToArray();
 
+	}
+
+	public static bool UniSourcePredicate(UniSource us)
+	{
+		try {
+			if (us.Stream.Length <= 25_000) {
+				return false;
+			}
+
+			return true;
+		}
+		catch (Exception e) {
+			return true;
+		}
 	}
 }
 
