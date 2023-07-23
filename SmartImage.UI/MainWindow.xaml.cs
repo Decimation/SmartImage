@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Cache;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -46,7 +47,7 @@ public partial class MainWindow : Window, IDisposable
 
 	public MainWindow()
 	{
-
+		
 		Client    = new SearchClient(new SearchConfig());
 		m_queries = new ConcurrentDictionary<string, SearchQuery>();
 
@@ -114,6 +115,7 @@ public partial class MainWindow : Window, IDisposable
 
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
+
 	}
 
 	#region
@@ -182,7 +184,7 @@ public partial class MainWindow : Window, IDisposable
 	private const int S_NO = 0;
 	private const int S_OK = 1;
 
-	private ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
+	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
 	#endregion
 
@@ -241,7 +243,7 @@ public partial class MainWindow : Window, IDisposable
 			}
 
 		}
-
+		
 		else if (cFile) {
 			var files = Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];
@@ -282,18 +284,24 @@ public partial class MainWindow : Window, IDisposable
 			if (!Url.IsValid(u)) {
 				return;
 			}
+
 			Tb_Upload.Text            = u;
 			Pb_Status.IsIndeterminate = false;
-			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
-			Tb_Info.Text              = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}";
+
+			Img_Preview.Source = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()))
+			{
+				CacheOption    = BitmapCacheOption.OnLoad,
+				UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.CacheIfAvailable)
+			};
+			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}";
 
 			m_queries.TryAdd(q, Query);
 
 			var ck = m_resultMap.TryGetValue(Query, out var res);
 
 			if (!ck) {
-				m_resultMap[Query]     = new ObservableCollection<ResultItem>();
-				
+				m_resultMap[Query] = new ObservableCollection<ResultItem>();
+
 			}
 
 			Results                = m_resultMap[Query];
@@ -454,13 +462,20 @@ public partial class MainWindow : Window, IDisposable
 			m_uni.Clear();
 			m_clipboard.Clear();
 
+			foreach (var r1 in Results) {
+				r1.Dispose();
+			}
+
+			Results.Clear();
+
+			foreach ((SearchQuery key, ObservableCollection<ResultItem> value) in m_resultMap) {
+				key.Dispose();
+				value.Clear();
+			}
+
+			m_resultMap.Clear();
 		}
 
-		foreach (var r1 in Results) {
-			r1.Dispose();
-		}
-
-		// Results.Clear();
 		m_cts.Dispose();
 		m_ctsu.Dispose();
 	}

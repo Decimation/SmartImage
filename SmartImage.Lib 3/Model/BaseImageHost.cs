@@ -4,7 +4,10 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using AngleSharp;
+using AngleSharp.Dom;
+using AngleSharp.Html.Parser;
 using Flurl.Http;
+using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
@@ -62,6 +65,10 @@ public abstract class BaseImageHost
 			stream = await u.AllowAnyHttpStatus()
 				         .WithCookies(out var cj)
 				         .WithAutoRedirect(true)
+				         .WithHeaders(new
+				         {
+					         User_Agent = HttpUtilities.UserAgent
+				         })
 				         .OnError(f =>
 				         {
 					         // f.ExceptionHandled = true;
@@ -82,13 +89,25 @@ public abstract class BaseImageHost
 			ul.Add(us);
 			goto ret;
 		}
+		else if (stream.CanSeek) {
+			stream.Position = 0;
+
+		}
 
 		// var p  = new HtmlParser();
 		// var dd = await p.ParseDocumentAsync(stream, ct);
+	
+		var parser = new HtmlParser();
+		var dd     = await parser.ParseDocumentAsync(stream);
 
-		var config  = Configuration.Default.WithDefaultLoader().WithCookies().WithMetaRefresh();
-		var context = BrowsingContext.New(config);
-		var dd      = await context.OpenAsync(u, ct);
+		// IDocument dd = await GetDocument2(u, ct);
+
+		//find all attribute in any element...
+		//where the value ends with one of the listed file extension
+		var result = from element in dd.All
+		             from attribute in element.Attributes
+		             where ImageHelper.Ext.Any(e => attribute.Value.EndsWith(e))
+		             select attribute;
 
 		var a = dd.QueryAllAttribute("a", "href");
 		var b = dd.QueryAllAttribute("img", "src");
@@ -120,11 +139,42 @@ public abstract class BaseImageHost
 			return;
 		});
 
-		context.Dispose();
+		// context.Dispose();
 		dd.Dispose();
 		ret:
 		return ul.ToArray();
 
+	}
+
+	private static async Task<IDocument> GetDocument2(Url u, CancellationToken ct)
+	{
+		var dd = await u.AllowAnyHttpStatus()
+			         .WithCookies(out var cj)
+			         .WithAutoRedirect(true)
+			         .WithHeaders(new
+			         {
+				         User_Agent = HttpUtilities.UserAgent
+			         })
+			         .OnError(f =>
+			         {
+				         // f.ExceptionHandled = true;
+				         return;
+			         }).GetStreamAsync(ct);
+		var parser = new HtmlParser();
+
+		var doc = await parser.ParseDocumentAsync(dd);
+
+		return doc;
+	}
+
+	private static async Task<IDocument> GetDocument(Url u, CancellationToken ct)
+	{
+		var config = Configuration.Default.WithDefaultLoader().WithCookies().WithRequesters().WithJs()
+			.WithMetaRefresh();
+		var context = BrowsingContext.New(config);
+		var dd      = await context.OpenAsync(u, ct);
+		context.Dispose();
+		return dd;
 	}
 
 	public static bool UniSourcePredicate(UniSource us)

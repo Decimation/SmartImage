@@ -9,6 +9,7 @@
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed" Closing="Wnd_Main_Closing" Title="SmartImage">
     <Window.Resources>
+
         <Style x:Key="S_Lvic" TargetType="{x:Type ListViewItem}">
             <!--
             <Setter Property="Template">
@@ -32,6 +33,7 @@
                               Foreground="White"
                               Background="{DynamicResource Black2}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
+                             
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown" ScrollViewer.CanContentScroll="True">
 
                         <!--<ListView.View>
@@ -39,9 +41,17 @@
                                 <GridViewColumn/>
                             </GridView>
                         </ListView.View>-->
-
+                        
                         <ListView.View >
                             <GridView>
+                                <GridViewColumn Header="Image" >
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Image Source="{Binding Image}" Width="20" Height="20" Stretch="None" />
+
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
                                 <GridViewColumn Header="Name"
                                                 DisplayMemberBinding="{Binding Name}" Width="115" />
                                 <GridViewColumn Header="URL"

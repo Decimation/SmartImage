@@ -4,10 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 
@@ -15,10 +18,39 @@ namespace SmartImage.UI;
 
 public static class FormsHelper
 {
+	public static BitmapImage ResizeBitmap(this BitmapImage originalBitmap, int newWidth, int newHeight)
+	{
+		// Calculate the scale factors for width and height
+		double scaleX = (double) newWidth / originalBitmap.PixelWidth;
+		double scaleY = (double) newHeight / originalBitmap.PixelHeight;
+
+		// Create a new Transform to apply the scale factors
+		Transform transform = new ScaleTransform(scaleX, scaleY);
+
+		// Create a new TransformedBitmap with the original BitmapImage and the scale Transform
+		var resizedBitmap = new TransformedBitmap(originalBitmap, transform);
+
+		// Create a new BitmapImage and set it as the source of the resized image
+		var bitmapImage = new BitmapImage();
+		bitmapImage.BeginInit();
+		bitmapImage.UriSource         = originalBitmap.UriSource;
+		bitmapImage.DecodePixelWidth  = newWidth;
+		bitmapImage.DecodePixelHeight = newHeight;
+		bitmapImage.CacheOption       = BitmapCacheOption.OnLoad;
+		bitmapImage.EndInit();
+
+		return bitmapImage;
+	}
+
+	public static Uri GetAsset(string n, string resources = "Resources")
+	{
+		return new Uri($"pack://application:,,,/{AppUtil.Assembly.GetName().Name};component/{resources}/{n}");
+	}
+
 	public static bool IsLoaded(this RoutedEventArgs e)
 	{
 		var b = e is { Source: FrameworkElement { IsLoaded: false } fx };
-		
+
 		return b;
 	}
 
@@ -66,7 +98,7 @@ public static class FormsHelper
 		if (ri.HasFlag(SearchEngineOptions.All)) {
 			lb.UnselectAll();
 		}
-		
+
 		lb.HandleEnumList(ai, SearchEngineOptions.Artwork, true);
 		lb.HandleEnumList(ri, SearchEngineOptions.Artwork, false);
 

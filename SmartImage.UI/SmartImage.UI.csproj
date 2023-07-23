@@ -8,6 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Resources\accept.png" />
+    <None Remove="Resources\exclamation.png" />
+    <None Remove="Resources\help.png" />
+    <None Remove="Resources\OK.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="3.2.4" />
     <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
@@ -29,6 +36,13 @@
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net7.0\Novus.dll</HintPath>
     </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\accept.png" />
+    <Resource Include="Resources\exclamation.png" />
+    <Resource Include="Resources\help.png" />
+    <Resource Include="Resources\OK.png" />
   </ItemGroup>
 
   <ItemGroup>

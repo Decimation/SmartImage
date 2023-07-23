@@ -21,6 +21,7 @@ using Novus.FileTypes;
 using Novus.Win32;
 using Novus.Win32.Structures.User32;
 using SmartImage.Lib;
+using SmartImage.Lib.Utilities;
 using Command = Novus.OS.Command;
 using Clipboard = Novus.Win32.Clipboard;
 using SmartImage.Utilities;
@@ -353,14 +354,12 @@ public static class Integration
 			var p1p = p1.Pin();
 			var p2p = p2.Pin();
 
-			var ext = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif" };
-
 			/*var ext2 = FileType.Image.Select(f => "*." + f.MediaType.Split('/')[1])
 				.Distinct();*/
 
 			const string wildcard = "*.*";
 
-			string extStr = string.Join(";", ext);
+			string extStr = string.Join(";", ImageHelper.Ext);
 
 			// var p1pp = (nint) Unsafe.AsPointer(ref p1p);
 			// var p2pp = (nint) Unsafe.AsPointer(ref p2p);

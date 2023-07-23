@@ -15,6 +15,8 @@ namespace SmartImage.UI;
 
 public static class AppUtil
 {
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+
 	#region
 
 	public static string ExeLocation
@@ -29,7 +31,7 @@ public static class AppUtil
 		}
 	}
 
-	public static Version Version => Assembly.GetExecutingAssembly().GetName().Version;
+	public static Version Version => Assembly.GetName().Version;
 
 	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
 

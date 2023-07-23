@@ -4,9 +4,11 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using Flurl.Http;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Results;
 
+// [Flags]
 public enum SearchResultStatus
 {
 	/// <summary>
@@ -45,6 +47,7 @@ public enum SearchResultStatus
 	/// Result is extraneous
 	/// </summary>
 	Extraneous,
+
 }
 
 /// <summary>
@@ -92,11 +95,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	}
 
 	public bool IsStatusSuccessful
-		=> Status is not (SearchResultStatus.Cooldown
-			   or SearchResultStatus.Extraneous
-			   or SearchResultStatus.Failure
-			   or SearchResultStatus.IllegalInput
-			   or SearchResultStatus.Unavailable);
+		=> Status.IsError();
 
 	internal SearchResult(BaseSearchEngine bse)
 	{

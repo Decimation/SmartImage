@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Web;
 using System.Windows;
@@ -212,7 +213,10 @@ public partial class MainWindow
 					}
 					else path = v.Path;
 
-					path = HttpUtility.HtmlDecode(path);
+					// path = HttpUtility.HtmlDecode(path);
+					// path = WebUtility.UrlDecode(path);
+					path = HttpUtility.UrlDecode(path);
+
 					path = FileSystem.SanitizeFilename(path);
 					var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
 

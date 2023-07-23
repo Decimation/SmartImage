@@ -1,4 +1,7 @@
 ﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
+  <BitmapImage x:Key="Img_Accept" UriSource="../Resources/accept.png" />
+  <BitmapImage x:Key="Img_Exclamation" UriSource="../Resources/exclamation.png" />
+  <BitmapImage x:Key="Img_Help" UriSource="../Resources/help.png" />
+
 </ResourceDictionary>
