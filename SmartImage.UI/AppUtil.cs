@@ -15,9 +15,9 @@ namespace SmartImage.UI;
 
 public static class AppUtil
 {
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-
 	#region
+
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
 
 	public static string ExeLocation
 	{

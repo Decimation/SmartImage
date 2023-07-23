@@ -44,10 +44,10 @@
                         
                         <ListView.View >
                             <GridView>
-                                <GridViewColumn Header="Image" >
+                                <GridViewColumn Header="Status" >
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Source="{Binding Image}" Width="20" Height="20" Stretch="None" />
+                                            <Image Source="{Binding Image}" Width="20" Height="20" Stretch="None" ToolTip="{Binding Status}" />
 
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
@@ -60,8 +60,6 @@
                                                 DisplayMemberBinding="{Binding Result.Similarity}" Width="75" />
                                 <GridViewColumn Header="Description"
                                                 DisplayMemberBinding="{Binding Result.Description}" Width="75" />
-                                <GridViewColumn Header="Status"
-                                                DisplayMemberBinding="{Binding Status}" Width="75" />
                                 <GridViewColumn Header="Artist"
                                                 DisplayMemberBinding="{Binding Result.Artist}" Width="75" />
                                 <GridViewColumn Header="Title"

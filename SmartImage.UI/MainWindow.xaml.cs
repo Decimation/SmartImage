@@ -148,7 +148,7 @@ public partial class MainWindow : Window, IDisposable
 
 	public SearchQuery Query { get; internal set; }
 
-	public ObservableCollection<ResultItem> Results { get; set; }
+	public ObservableCollection<ListResultItem> Results { get; set; }
 
 	public ObservableCollection<string> Queue { get; }
 
@@ -162,7 +162,7 @@ public partial class MainWindow : Window, IDisposable
 
 	#region
 
-	private readonly ConcurrentDictionary<ResultItem, UniSource[]> m_uni;
+	private readonly ConcurrentDictionary<ListResultItem, UniSource[]> m_uni;
 
 	private readonly List<string> m_clipboard;
 
@@ -184,7 +184,7 @@ public partial class MainWindow : Window, IDisposable
 	private const int S_NO = 0;
 	private const int S_OK = 1;
 
-	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
+	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ListResultItem>> m_resultMap;
 
 	#endregion
 
@@ -300,7 +300,7 @@ public partial class MainWindow : Window, IDisposable
 			var ck = m_resultMap.TryGetValue(Query, out var res);
 
 			if (!ck) {
-				m_resultMap[Query] = new ObservableCollection<ResultItem>();
+				m_resultMap[Query] = new ObservableCollection<ListResultItem>();
 
 			}
 
@@ -347,10 +347,10 @@ public partial class MainWindow : Window, IDisposable
 				Url = result.RawUrl,
 			};
 
-			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status));
+			Results.Add(new ListResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status));
 
 			foreach (SearchResultItem sri in allResults) {
-				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}", result.Status));
+				Results.Add(new ListResultItem(sri, $"{sri.Root.Engine.Name} #{++i}", result.Status));
 
 			}
 		}
@@ -468,7 +468,7 @@ public partial class MainWindow : Window, IDisposable
 
 			Results.Clear();
 
-			foreach ((SearchQuery key, ObservableCollection<ResultItem> value) in m_resultMap) {
+			foreach ((SearchQuery key, ObservableCollection<ListResultItem> value) in m_resultMap) {
 				key.Dispose();
 				value.Clear();
 			}

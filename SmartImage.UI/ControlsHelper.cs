@@ -16,7 +16,7 @@ using SmartImage.Lib.Engines;
 
 namespace SmartImage.UI;
 
-public static class FormsHelper
+public static class ControlsHelper
 {
 	public static BitmapImage ResizeBitmap(this BitmapImage originalBitmap, int newWidth, int newHeight)
 	{
@@ -42,7 +42,7 @@ public static class FormsHelper
 		return bitmapImage;
 	}
 
-	public static Uri GetAsset(string n, string resources = "Resources")
+	public static Uri GetComponentUri(string n, string resources = "Resources")
 	{
 		return new Uri($"pack://application:,,,/{AppUtil.Assembly.GetName().Name};component/{resources}/{n}");
 	}

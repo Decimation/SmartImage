@@ -7,12 +7,19 @@ namespace SmartImage.Lib.Utilities;
 
 public static class SearchHelper
 {
+	public static bool IsSuccessful(this SearchResultStatus s)
+	{
+		return !s.IsError();
+	}
+
+	public static bool IsUnknown(this SearchResultStatus s)
+	{
+		return s is SearchResultStatus.NoResults or SearchResultStatus.None;
+	}
+
 	public static bool IsError(this SearchResultStatus s)
 	{
-		return s is not (SearchResultStatus.Cooldown
-			       or SearchResultStatus.Extraneous
-			       or SearchResultStatus.Failure
-			       or SearchResultStatus.IllegalInput
-			       or SearchResultStatus.Unavailable);
+		return s is SearchResultStatus.Failure or SearchResultStatus.IllegalInput 
+			       or SearchResultStatus.Unavailable or SearchResultStatus.Cooldown;
 	}
 }

@@ -95,7 +95,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	}
 
 	public bool IsStatusSuccessful
-		=> Status.IsError();
+		=> Status.IsSuccessful();
 
 	internal SearchResult(BaseSearchEngine bse)
 	{

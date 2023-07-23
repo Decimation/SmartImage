@@ -181,7 +181,7 @@ public partial class MainWindow
 
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		if (Lv_Results.SelectedItem is ResultItem si) {
+		if (Lv_Results.SelectedItem is ListResultItem si) {
 			HttpUtilities.TryOpenUrl(si.Result.Url);
 		}
 	}
@@ -202,7 +202,7 @@ public partial class MainWindow
 			case Key.D when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(async () =>
 				{
-					var    ri = ((ResultItem) Lv_Results.SelectedItem);
+					var    ri = ((ListResultItem) Lv_Results.SelectedItem);
 					var    u  = ri.Uni;
 					var    v  = (Url) u.Value.ToString();
 					string path;
@@ -238,7 +238,7 @@ public partial class MainWindow
 
 				Application.Current.Dispatcher.InvokeAsync(async () =>
 				{
-					var ri = ((ResultItem) Lv_Results.SelectedItem);
+					var ri = ((ListResultItem) Lv_Results.SelectedItem);
 
 					if (m_uni.ContainsKey(ri)) {
 						return;
@@ -251,10 +251,10 @@ public partial class MainWindow
 						Debug.WriteLine($"{ri}");
 						var resultUni = ri.Result.Uni;
 						m_uni.TryAdd(ri, resultUni);
-						var resultItems = new ResultItem[resultUni.Length];
+						var resultItems = new ListResultItem[resultUni.Length];
 
 						for (int i = 0; i < resultUni.Length; i++) {
-							var rii = new ResultItem(ri.Result, $"{ri.Name} {i} 🖼", ri.Status, idx: i);
+							var rii = new ListResultItem(ri.Result, $"{ri.Name} {i} 🖼", ri.Status, idx: i);
 							resultItems[i] = rii;
 							Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
 						}

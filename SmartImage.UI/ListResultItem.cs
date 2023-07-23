@@ -9,10 +9,11 @@ using System.Windows.Media.Imaging;
 using Flurl;
 using Novus.FileTypes;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI;
 
-public sealed class ResultItem : IDisposable
+public sealed class ListResultItem : IDisposable
 {
 	public string Name { get; }
 
@@ -39,19 +40,23 @@ public sealed class ResultItem : IDisposable
 
 	public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
 
-	public ResultItem(SearchResultItem result, string name, SearchResultStatus status, int? idx = default)
+	public ListResultItem(SearchResultItem result, string name, SearchResultStatus status, int? idx = default)
 	{
 		Result   = result;
 		Name     = name;
 		Status   = status;
 		UniIndex = idx;
 
-		Image = Status switch
-		{
-			SearchResultStatus.None or SearchResultStatus.Success => AppControls.accept,
-			SearchResultStatus.Failure                            => AppControls.exclamation,
-			_                                                     => AppControls.help
-		};
+		if (Status.IsSuccessful()) {
+			Image = AppComponents.accept;
+		}
+		else if (Status.IsUnknown()) {
+			Image = AppComponents.help;
+		}
+		else {
+			Image = AppComponents.exclamation;
+		}
+		
 	}
 
 	public void Dispose()
