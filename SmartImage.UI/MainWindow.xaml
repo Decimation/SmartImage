@@ -7,8 +7,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed" Closing="Wnd_Main_Closing">
+        mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed" Closing="Wnd_Main_Closing" Title="SmartImage">
     <Window.Resources>
         <Style x:Key="S_Lvic" TargetType="{x:Type ListViewItem}">
             <!--
@@ -109,15 +108,16 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,145,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="White" FontStyle="Italic"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
                      VerticalAlignment="Center" Width="54">
                 <Grid Background="{DynamicResource Black1}">
-                    <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="27,33,996,123"
-                             SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Width="175" />
-                    <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,795,123"
-                             SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Width="175" />
+                    <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="27,33,0,0"
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Width="175" VerticalAlignment="Top" HorizontalAlignment="Left" Height="400" />
+                    <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,0,0"
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Width="175" HorizontalAlignment="Left" VerticalAlignment="Top" Height="400" />
                     <CheckBox x:Name="Cb_Clipboard" Content="Clipboard" IsChecked="{Binding Path=Config.Clipboard, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,33,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_Clipboard_Checked"/>
                     <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search" IsChecked="{Binding Path=Config.AutoSearch, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,62,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_AutoSearch_Checked"/>
                     <CheckBox x:Name="Cb_OpenRaw" Content="Open raw"  IsChecked="{Binding Path=Config.OpenRaw, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,93,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_OpenRaw_Checked"/>

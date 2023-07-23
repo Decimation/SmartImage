@@ -184,8 +184,9 @@ public partial class MainWindow : Window, IDisposable
 	private BitmapImage             m_image;
 	private CancellationTokenSource m_cts;
 	private AutoResetEvent          m_are;
+	private int                     m_cntResults;
 
-	private static int Status = S_OK;
+	private static int _status = S_OK;
 
 	private const int S_NO = 0;
 	private const int S_OK = 1;
@@ -196,7 +197,8 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task RunAsync()
 	{
-		Clear();
+		// Clear();
+
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -207,14 +209,15 @@ public partial class MainWindow : Window, IDisposable
 
 	private async void ClipboardListenAsync(object? s, EventArgs e)
 	{
+		if (IsInputReady() || Query != SearchQuery.Null) {
+			return;
+		}
+
 		var cImg  = Clipboard.ContainsImage();
 		var cText = Clipboard.ContainsText();
 		var cFile = Clipboard.ContainsFileDropList();
 
 		if (cImg) {
-			if (IsInputReady() || Query != SearchQuery.Null) {
-				return;
-			}
 
 			var bmp = Clipboard.GetImage();
 			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
@@ -228,7 +231,7 @@ public partial class MainWindow : Window, IDisposable
 			await SetQueryAsync(fn);
 		}
 
-		if (cText) {
+		else if (cText) {
 			var txt = (string) Clipboard.GetData(DataFormats.Text);
 
 			if (SearchQuery.IsValidSourceType(txt)) {
@@ -243,7 +246,7 @@ public partial class MainWindow : Window, IDisposable
 			return;
 		}
 
-		if (cFile) {
+		else if (cFile) {
 			var files = Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
@@ -259,7 +262,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task SetQueryAsync(string q)
 	{
-		Interlocked.Exchange(ref Status, S_NO);
+		Interlocked.Exchange(ref _status, S_NO);
 
 		Btn_Run.IsEnabled = false;
 		bool b;
@@ -276,7 +279,9 @@ public partial class MainWindow : Window, IDisposable
 		}
 
 		if (b) {
+			Tb_Status.Text = "Uploading...";
 			var u = await Query.UploadAsync();
+			Tb_Status.Text = "Uploaded";
 
 			Tb_Input2.Text            = u;
 			Pb_Status.IsIndeterminate = false;
@@ -285,23 +290,30 @@ public partial class MainWindow : Window, IDisposable
 
 			m_queries.TryAdd(q, Query);
 
-			if (Config.AutoSearch) {
-				Dispatcher.InvokeAsync(RunAsync);
+			if (Config.AutoSearch && !Client.IsRunning) {
 
+				Dispatcher.InvokeAsync(RunAsync);
 			}
 		}
 		else { }
 
 		Btn_Run.IsEnabled = b;
-		Interlocked.Exchange(ref Status, S_OK);
+		Interlocked.Exchange(ref _status, S_OK);
 
 	}
 
-	private void OnComplete(object sender, SearchResult[] e) { }
+	private void OnComplete(object sender, SearchResult[] e)
+	{
+		Tb_Status.Text = "Search complete";
+	}
 
 	private void OnResult(object o, SearchResult result)
 	{
-		Pb_Status.Value += (Results.Count / (double) Client.Engines.Length) * 10;
+		++m_cntResults;
+		var cle = Client.Engines.Length;
+
+		Tb_Status.Text  = $"{m_cntResults}/{cle}";
+		Pb_Status.Value = (m_cntResults / (double) cle) * 100;
 
 		lock (m_lock) {
 			int i = 0;
@@ -322,7 +334,7 @@ public partial class MainWindow : Window, IDisposable
 		}
 	}
 
-	private async void EnqueueAsync(string[] files)
+	private void EnqueueAsync(string[] files)
 	{
 		if (!files.Any()) {
 			return;
@@ -332,19 +344,25 @@ public partial class MainWindow : Window, IDisposable
 			var ff = files[0];
 			InputText = ff;
 
+			/*
 			if (files.Length > 1) {
 				files = files[1..];
-
 			}
+			*/
 
 		}
+
+		int c = 0;
 
 		foreach (var s in files) {
 
 			if (!Queue.Contains(s)) {
 				Queue.Add(s);
+				c++;
 			}
 		}
+
+		Tb_Status.Text = $"Added {c} items to queue";
 	}
 
 	private static string[] GetFilesFromDrop(DragEventArgs e)
@@ -362,21 +380,29 @@ public partial class MainWindow : Window, IDisposable
 		return Array.Empty<string>();
 	}
 
-	private void Restart()
+	private void Cancel()
 	{
+		m_cts.Cancel();
+	}
+
+	private void Restart(bool full = false)
+	{
+		Cancel();
 		Clear();
-		Dispose(false);
+		Dispose(full);
 		m_cts = new();
-		m_clipboard.Clear();
+		// m_clipboard.Clear();
 	}
 
 	private void Clear()
 	{
+		m_cntResults = 0;
 		Results.Clear();
 		// Btn_Run.IsEnabled = false;
-		// InputText         = string.Empty;
+		InputText = string.Empty;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
+		Tb_Status.Text = string.Empty;
 	}
 
 	private void Next()
@@ -387,8 +413,8 @@ public partial class MainWindow : Window, IDisposable
 			return;
 		}
 
-		var next = Queue[m_queuePos++ % Queue.Count];
-		InputText = next;
+		var next      = Queue[m_queuePos++ % Queue.Count];
+		InputText =   next;
 		Lv_Queue.SelectedItems.Clear();
 		Lv_Queue.SelectedItems.Add(next);
 
@@ -405,8 +431,9 @@ public partial class MainWindow : Window, IDisposable
 	public void Dispose(bool full)
 	{
 		if (full) {
-			Client.Dispose();
+			// Client.Dispose();
 			Query.Dispose();
+			Query = SearchQuery.Null;
 
 			Queue.Clear();
 			m_queuePos = 0;
@@ -441,7 +468,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		if (Interlocked.CompareExchange(ref Status, S_OK, S_NO) == S_NO) {
+		if (Interlocked.CompareExchange(ref _status, S_OK, S_NO) == S_NO) {
 			return;
 		}
 
@@ -472,8 +499,7 @@ public partial class MainWindow : Window, IDisposable
 		var files1 = GetFilesFromDrop(e);
 
 		EnqueueAsync(files1);
-		var files = files1;
-		var f1    = files.FirstOrDefault();
+		var f1 = files1.FirstOrDefault();
 		InputText = f1;
 		e.Handled = true;
 
@@ -493,7 +519,6 @@ public partial class MainWindow : Window, IDisposable
 		var files = GetFilesFromDrop(e);
 
 		EnqueueAsync(files);
-		string[] temp = files;
 		e.Handled = true;
 	}
 
@@ -510,9 +535,10 @@ public partial class MainWindow : Window, IDisposable
 	private async void Lv_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (e.AddedItems.Count > 0) {
+			Restart();
 			var i = e.AddedItems[0] as string;
 			InputText = i;
-
+			// Next(i);
 		}
 	}
 
@@ -551,7 +577,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
 	{
-		Restart();
+		Restart(true);
 		Queue.Clear();
 	}
 
@@ -650,6 +676,7 @@ public partial class MainWindow : Window, IDisposable
 							Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
 						}
 					}
+
 					Pb_Status.IsIndeterminate = false;
 
 				});

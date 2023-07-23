@@ -130,7 +130,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static bool IsValidSourceType(object str)
 	{
-		var v = UniSource.GetSourceType(str);
+		var v = UniHandler.GetUniType(str);
 		return v is UniSourceType.Uri or UniSourceType.File or UniSourceType.Stream;
 	}
 
