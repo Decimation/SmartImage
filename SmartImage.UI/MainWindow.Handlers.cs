@@ -15,6 +15,7 @@ using Flurl;
 using Kantan.Net.Utilities;
 using Novus.OS;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines.Impl.Upload;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace SmartImage.UI;
@@ -55,7 +56,7 @@ public partial class MainWindow
 
 	private void Tb_Input_Drop(object sender, DragEventArgs e)
 	{
-		var files1 = FormsHelper.GetFilesFromDrop(__, e);
+		var files1 = e.GetFilesFromDrop();
 
 		EnqueueAsync(files1);
 		var f1 = files1.FirstOrDefault();
@@ -88,7 +89,7 @@ public partial class MainWindow
 
 	private void Lv_Queue_Drop(object sender, DragEventArgs e)
 	{
-		var files = FormsHelper.GetFilesFromDrop(__, e);
+		var files = e.GetFilesFromDrop();
 
 		EnqueueAsync(files);
 		e.Handled = true;
@@ -114,10 +115,7 @@ public partial class MainWindow
 		}
 	}
 
-	private void Lv_Queue_KeyDown(object sender, KeyEventArgs e)
-	{
-		
-	}
+	private void Lv_Queue_KeyDown(object sender, KeyEventArgs e) { }
 
 	#endregion
 
@@ -154,7 +152,8 @@ public partial class MainWindow
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
 	{
-		Restart(true);
+		var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+		Restart(ctrl);
 		Queue.Clear();
 	}
 
@@ -305,6 +304,22 @@ public partial class MainWindow
 	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }
 
 	#endregion
+
+	private void Rb_UploadEngine_Catbox_Checked(object sender, RoutedEventArgs e)
+	{
+		if (!((FrameworkElement) e.Source).IsLoaded) {
+			return;
+		}
+		BaseUploadEngine.Default = CatboxEngine.Instance;
+	}
+
+	private void Rb_UploadEngine_Litterbox_Checked(object sender, RoutedEventArgs e)
+	{
+		if (!((FrameworkElement) e.Source).IsLoaded) {
+			return;
+		}
+		BaseUploadEngine.Default = LitterboxEngine.Instance;
+	}
 
 	#endregion
 }

@@ -24,6 +24,7 @@ using Novus.FileTypes;
 using Novus.OS;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -107,6 +108,9 @@ public partial class MainWindow : Window, IDisposable
 
 		m_image = null;
 
+		Rb_UploadEngine_Catbox.IsChecked = BaseUploadEngine.Default is CatboxEngine;
+		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
+
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 	}
@@ -185,7 +189,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task RunAsync()
 	{
-		// Clear();
+		Clear();
 
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
@@ -197,7 +201,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async void ClipboardListenAsync(object? s, EventArgs e)
 	{
-		if (IsInputReady() || Query != SearchQuery.Null) {
+		if (IsInputReady() /*|| Query != SearchQuery.Null*/) {
 			return;
 		}
 
@@ -329,12 +333,7 @@ public partial class MainWindow : Window, IDisposable
 			var ff = files[0];
 			InputText = ff;
 
-			/*
-			if (files.Length > 1) {
-				files = files[1..];
-			}
-			*/
-
+			// Lv_Queue.SelectedItems.Add(ff);
 		}
 
 		int c = 0;
@@ -346,12 +345,12 @@ public partial class MainWindow : Window, IDisposable
 				c++;
 			}
 		}
-
 		Tb_Status.Text = $"Added {c} items to queue";
 	}
 
 	private void Cancel()
 	{
+
 		m_cts.Cancel();
 		m_ctsu.Cancel();
 	}
@@ -361,9 +360,10 @@ public partial class MainWindow : Window, IDisposable
 		Cancel();
 		Clear();
 		Dispose(full);
+		InputText = string.Empty;
+
 		m_cts = new();
 		m_ctsu = new();
-		// m_clipboard.Clear();
 	}
 
 	private void Clear()
@@ -371,7 +371,6 @@ public partial class MainWindow : Window, IDisposable
 		m_cntResults = 0;
 		Results.Clear();
 		// Btn_Run.IsEnabled = false;
-		InputText = string.Empty;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
 		Tb_Status.Text  = string.Empty;
@@ -421,6 +420,7 @@ public partial class MainWindow : Window, IDisposable
 			}
 
 			m_uni.Clear();
+			m_clipboard.Clear();
 
 		}
 

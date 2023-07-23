@@ -12,5 +12,7 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 
 	public override long MaxSize => 1 * 1000 * 1000 * 1000;
 
+	public static readonly BaseCatboxEngine Instance = new LitterboxEngine();
+
 	public LitterboxEngine() : base("https://litterbox.catbox.moe/resources/internals/api.php") { }
 }

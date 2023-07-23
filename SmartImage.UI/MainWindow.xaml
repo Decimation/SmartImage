@@ -123,6 +123,8 @@
                     <CheckBox x:Name="Cb_ContextMenu" Content="Context menu"  HorizontalAlignment="Left" Margin="409,124,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_ContextMenu_Checked"/>
                     <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left" Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
                     <Label x:Name="Lbl_PriorityEngines" Content="Priority Engines" HorizontalAlignment="Left" Margin="228,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+                    <RadioButton x:Name="Rb_UploadEngine_Catbox" Content="Catbox" HorizontalAlignment="Left" Margin="599,33,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines" Foreground="White" Checked="Rb_UploadEngine_Catbox_Checked"/>
+                    <RadioButton x:Name="Rb_UploadEngine_Litterbox" Content="Litterbox" HorizontalAlignment="Left" Margin="599,53,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines" Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center" Width="54">
