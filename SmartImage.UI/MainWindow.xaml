@@ -48,10 +48,12 @@
                                                 DisplayMemberBinding="{Binding Url}" Width="400" />
                                 <GridViewColumn Header="Similarity"
                                                 DisplayMemberBinding="{Binding Result.Similarity}" Width="75" />
-                                <GridViewColumn Header="Artist"
-                                                DisplayMemberBinding="{Binding Result.Artist}" Width="75" />
                                 <GridViewColumn Header="Description"
                                                 DisplayMemberBinding="{Binding Result.Description}" Width="75" />
+                                <GridViewColumn Header="Status"
+                                                DisplayMemberBinding="{Binding Status}" Width="75" />
+                                <GridViewColumn Header="Artist"
+                                                DisplayMemberBinding="{Binding Result.Artist}" Width="75" />
                                 <GridViewColumn Header="Title"
                                                 DisplayMemberBinding="{Binding Result.Title}" Width="75" />
                                 <GridViewColumn Header="Source"

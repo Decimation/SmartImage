@@ -8,7 +8,6 @@ using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Results;
-using Image = System.Drawing.Image;
 
 // ReSharper disable CognitiveComplexity
 
@@ -30,19 +29,6 @@ public sealed class Ascii2DEngine : WebSearchEngine
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
-
-	protected override bool VerifyImage(Image i)
-	{
-#if ALT
-#pragma warning disable CA1416
-
-		return i.PhysicalDimension is { Width: < 10000.0f };
-#pragma warning restore
-#else
-		return true;
-#endif
-
-	}
 
 	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
 	{
@@ -127,7 +113,11 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		return res;
 	}
 
-	protected override string[] ErrorBodyMessages => new[] { "検索できるのは 縦 10000px での画像です。" };
+	protected override string[] ErrorBodyMessages => new[]
+	{
+		"検索できるのは 縦 10000px での画像です。",
+		"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
+	};
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{

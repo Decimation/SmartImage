@@ -37,7 +37,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	internal SearchQuery([MN] UniSource f)
 	{
-		Uni = f;
+		Uni  = f;
+		Size = Uni == null ? default : Uni.Stream.Length;
 	}
 
 	private SearchQuery() : this(null) { }
@@ -75,7 +76,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		if (Uni.IsUri) {
 			Upload = fu;
-			Size   = BaseSearchEngine.NA_SIZE;
+			// Size   = BaseSearchEngine.NA_SIZE;
 			Debug.WriteLine($"Skipping upload for {Uni.Value}", nameof(UploadAsync));
 		}
 		else {
@@ -94,7 +95,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			Upload = u.Url;
 
 			if (u.Response is { }) {
-				Size = NetHelper.GetContentLength(u.Response) ?? 0;
+				// Size = NetHelper.GetContentLength(u.Response) ?? 0;
 			}
 
 			u.Dispose();

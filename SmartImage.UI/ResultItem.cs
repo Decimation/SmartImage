@@ -15,6 +15,8 @@ public sealed class ResultItem : IDisposable
 
 	public SearchResultItem Result { get; }
 
+	public SearchResultStatus Status { get; }
+	
 	public UniSource? Uni
 	{
 		get
@@ -32,10 +34,11 @@ public sealed class ResultItem : IDisposable
 
 	public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
 
-	public ResultItem(SearchResultItem result, string name, int? idx = default)
+	public ResultItem(SearchResultItem result, string name, SearchResultStatus status, int? idx = default)
 	{
 		Result   = result;
-		Name     = name;
+		Name = name;
+		Status = status;
 		UniIndex = idx;
 	}
 

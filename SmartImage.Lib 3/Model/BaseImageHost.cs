@@ -52,7 +52,8 @@ public abstract class BaseImageHost
 	public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(TypeProperties.Subclass).ToArray();
 
-	public static async Task<UniSource[]> ScanAsync(Url u, CancellationToken ct = default, Predicate<UniSource> pred = null)
+	public static async Task<UniSource[]> ScanAsync(Url u, Predicate<UniSource> pred = null,
+	                                                CancellationToken ct = default)
 	{
 		Stream stream;
 		pred ??= _ => true;

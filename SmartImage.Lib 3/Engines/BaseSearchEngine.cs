@@ -1,5 +1,4 @@
 ﻿global using Url = Flurl.Url;
-using Image = System.Drawing.Image;
 using System.Diagnostics;
 using System.Drawing;
 using System.Json;
@@ -51,24 +50,15 @@ public abstract class BaseSearchEngine : IDisposable
 			return false;
 		}
 
-		bool b = q.LoadImage(), b2;
-
-		if (b && OperatingSystem.IsWindows()) {
-			b = VerifyImage(q.Image);
-		}
+		bool b;
 
 		if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {
-			b2 = true;
+			b = true;
 		}
 
-		else b2 = q.Size <= MaxSize;
+		else b = q.Size <= MaxSize;
 
-		return b && b2;
-	}
-
-	protected virtual bool VerifyImage(Image i)
-	{
-		return true;
+		return b;
 	}
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)

@@ -36,7 +36,11 @@ public partial class MainWindow
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
 		if (ok /*&& !IsInputReady()*/) {
-			await SetQueryAsync(txt);
+			Application.Current.Dispatcher.InvokeAsync(async () =>
+			{
+				await SetQueryAsync(txt);
+
+			});
 		}
 
 		Btn_Run.IsEnabled = ok;
@@ -142,7 +146,7 @@ public partial class MainWindow
 		// await SetQueryAsync(InputText);
 		Btn_Run.IsEnabled = false;
 
-		Dispatcher.InvokeAsync(RunAsync);
+		Application.Current.Dispatcher.InvokeAsync(RunAsync);
 	}
 
 	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
@@ -246,7 +250,7 @@ public partial class MainWindow
 						var resultItems = new ResultItem[resultUni.Length];
 
 						for (int i = 0; i < resultUni.Length; i++) {
-							var rii = new ResultItem(ri.Result, $"{ri.Name} {i} 🖼", i);
+							var rii = new ResultItem(ri.Result, $"{ri.Name} {i} 🖼", ri.Status, idx: i);
 							resultItems[i] = rii;
 							Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
 						}
@@ -282,7 +286,7 @@ public partial class MainWindow
 
 	private void Cb_ContextMenu_Checked(object sender, RoutedEventArgs e)
 	{
-		if (!((FrameworkElement) e.Source).IsLoaded) {
+		if (!e.IsLoaded()) {
 			return;
 		}
 
@@ -307,17 +311,19 @@ public partial class MainWindow
 
 	private void Rb_UploadEngine_Catbox_Checked(object sender, RoutedEventArgs e)
 	{
-		if (!((FrameworkElement) e.Source).IsLoaded) {
+		if (!e.IsLoaded()) {
 			return;
 		}
+
 		BaseUploadEngine.Default = CatboxEngine.Instance;
 	}
 
 	private void Rb_UploadEngine_Litterbox_Checked(object sender, RoutedEventArgs e)
 	{
-		if (!((FrameworkElement) e.Source).IsLoaded) {
+		if (!e.IsLoaded()) {
 			return;
 		}
+
 		BaseUploadEngine.Default = LitterboxEngine.Instance;
 	}
 

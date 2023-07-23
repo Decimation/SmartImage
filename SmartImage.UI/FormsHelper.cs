@@ -15,6 +15,12 @@ namespace SmartImage.UI;
 
 public static class FormsHelper
 {
+	public static bool IsLoaded(this RoutedEventArgs e)
+	{
+		var b = e is { Source: FrameworkElement { IsLoaded: false } fx };
+		
+		return b;
+	}
 
 	public static void HandleEnumList<T>(this ListBox lb, T a, T b, bool add) where T : struct, Enum
 	{

@@ -63,7 +63,7 @@ public partial class MainWindow : Window, IDisposable
 		Queue      = new();
 		m_queuePos = 0;
 		m_cts      = new CancellationTokenSource();
-		m_ctsu      = new CancellationTokenSource();
+		m_ctsu     = new CancellationTokenSource();
 
 		Engines1                = new(Engines);
 		Engines2                = new(Engines);
@@ -90,6 +90,7 @@ public partial class MainWindow : Window, IDisposable
 		m_resultMap              = new();
 
 		var e = Args.GetEnumerator();
+
 		while (e.MoveNext()) {
 			var c = e.Current.ToString();
 
@@ -108,7 +109,7 @@ public partial class MainWindow : Window, IDisposable
 
 		m_image = null;
 
-		Rb_UploadEngine_Catbox.IsChecked = BaseUploadEngine.Default is CatboxEngine;
+		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
 		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
 
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
@@ -169,7 +170,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private int m_queuePos;
 
-	private BitmapImage m_image;
+	private BitmapImage? m_image;
 
 	private CancellationTokenSource m_cts;
 	private CancellationTokenSource m_ctsu;
@@ -190,7 +191,6 @@ public partial class MainWindow : Window, IDisposable
 	private async Task RunAsync()
 	{
 		Clear();
-
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -220,7 +220,12 @@ public partial class MainWindow : Window, IDisposable
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(ms);
 			ms.Dispose();
-			await SetQueryAsync(fn);
+
+			Application.Current.Dispatcher.InvokeAsync(() =>
+			{
+				return SetQueryAsync(fn);
+
+			});
 		}
 
 		else if (cText) {
@@ -231,7 +236,7 @@ public partial class MainWindow : Window, IDisposable
 				if (!IsInputReady() && !m_clipboard.Contains(txt)) {
 					m_clipboard.Add(txt);
 					InputText = txt;
-					await SetQueryAsync(txt);
+					// await SetQueryAsync(txt);
 				}
 			}
 
@@ -257,9 +262,10 @@ public partial class MainWindow : Window, IDisposable
 		Btn_Run.IsEnabled = false;
 		bool b;
 
-		if (m_queries.TryGetValue(q, out var qq)) {
+		b = m_queries.TryGetValue(q, out var qq);
+
+		if (b) {
 			Query = qq;
-			b     = true;
 		}
 
 		else {
@@ -273,6 +279,9 @@ public partial class MainWindow : Window, IDisposable
 			var u = await Query.UploadAsync(ct: m_ctsu.Token);
 			Tb_Status.Text = "Uploaded";
 
+			if (!Url.IsValid(u)) {
+				return;
+			}
 			Tb_Upload.Text            = u;
 			Pb_Status.IsIndeterminate = false;
 			Img_Preview.Source        = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()));
@@ -280,9 +289,18 @@ public partial class MainWindow : Window, IDisposable
 
 			m_queries.TryAdd(q, Query);
 
-			if (Config.AutoSearch && !Client.IsRunning) {
+			var ck = m_resultMap.TryGetValue(Query, out var res);
+
+			if (!ck) {
+				m_resultMap[Query]     = new ObservableCollection<ResultItem>();
 				
-				Dispatcher.InvokeAsync(RunAsync);
+			}
+
+			Results                = m_resultMap[Query];
+			Lv_Results.ItemsSource = Results;
+
+			if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) {
+				Application.Current.Dispatcher.InvokeAsync(RunAsync);
 			}
 		}
 
@@ -293,7 +311,14 @@ public partial class MainWindow : Window, IDisposable
 
 	private void OnComplete(object sender, SearchResult[] e)
 	{
-		Tb_Status.Text = "Search complete";
+		if (m_cts.IsCancellationRequested) {
+			Tb_Status.Text = "Cancelled";
+		}
+		else {
+			Tb_Status.Text = "Search complete";
+		}
+
+		// m_resultMap[Query] = Results;
 	}
 
 	private void OnResult(object o, SearchResult result)
@@ -314,10 +339,10 @@ public partial class MainWindow : Window, IDisposable
 				Url = result.RawUrl,
 			};
 
-			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
+			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status));
 
 			foreach (SearchResultItem sri in allResults) {
-				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
+				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}", result.Status));
 
 			}
 		}
@@ -345,6 +370,7 @@ public partial class MainWindow : Window, IDisposable
 				c++;
 			}
 		}
+
 		Tb_Status.Text = $"Added {c} items to queue";
 	}
 
@@ -360,16 +386,22 @@ public partial class MainWindow : Window, IDisposable
 		Cancel();
 		Clear();
 		Dispose(full);
+
+		if (full) {
+			Results.Clear();
+
+		}
+
 		InputText = string.Empty;
 
-		m_cts = new();
+		m_cts  = new();
 		m_ctsu = new();
 	}
 
 	private void Clear()
 	{
 		m_cntResults = 0;
-		Results.Clear();
+		// Results.Clear();
 		// Btn_Run.IsEnabled = false;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
@@ -428,11 +460,10 @@ public partial class MainWindow : Window, IDisposable
 			r1.Dispose();
 		}
 
-		Results.Clear();
+		// Results.Clear();
 		m_cts.Dispose();
 		m_ctsu.Dispose();
 	}
 
 	#endregion
-
 }

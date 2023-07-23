@@ -118,6 +118,11 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Update()
 	{
+		if (Status is SearchResultStatus.IllegalInput or SearchResultStatus.Cooldown 
+		    or SearchResultStatus.Failure or SearchResultStatus.Unavailable) {
+			return;
+		}
+
 		bool any = Results.Any();
 
 		if (!any) {

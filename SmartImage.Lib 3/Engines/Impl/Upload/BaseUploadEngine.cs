@@ -59,7 +59,7 @@ public abstract class BaseUploadEngine : IClientSearchEngine
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 
-	public static BaseUploadEngine Default { get; set; } = LitterboxEngine.Instance;
+	public static BaseUploadEngine Default { get; set; } = CatboxEngine.Instance;
 
 	public void Dispose() { }
 }
