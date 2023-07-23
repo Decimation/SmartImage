@@ -264,12 +264,13 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 		string material1 = rcci.SubstringAfter(Syn_Material.First());
 
 		// string creator1 = rcci;
-		string creator1    = rcci;
-		string characters1 = null;
-
+		string creator1     = rcci;
+		string characters1  = null;
+		bool   rtiHasArtist = false;
 		foreach (var s in Syn_Artists) {
 			if (rti.StartsWith(s)) {
-				rti = rti.SubstringAfter(s).Trim(' ');
+				rti          = rti.SubstringAfter(s).Trim(' ');
+				rtiHasArtist = true;
 			}
 		}
 
@@ -284,11 +285,13 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 		{
 			Urls       = links.Distinct().ToArray(),
 			Similarity = similarity,
-			// Creator    = creator1,
-			Title    = rti,
-			Material = material1
+			Material   = material1
 
 		};
+
+		if (rtiHasArtist) {
+			sndr.Creator = rti;
+		}
 
 		for (int i = 0; i < nodes.Length; i++) {
 			var node = nodes[i];
@@ -304,12 +307,12 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 				continue;
 			}
 
-			if (Syn_Characters.Any(s.StartsWith) || Syn_Artists.Any(s.StartsWith)) {
+			if (Syn_Characters.Any(s.StartsWith)) {
 				sndr.Character = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
-			if (s.StartsWith(Twitter)) {
+			if (Syn_Artists.Any(s.StartsWith)|| s.StartsWith(Twitter)) {
 				sndr.Creator = nodes[++i].TextContent.Trim(' ');
 				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
 				continue;
