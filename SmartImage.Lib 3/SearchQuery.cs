@@ -46,9 +46,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	static SearchQuery() { }
 
-	public static async Task<SearchQuery> TryCreateAsync(string value)
+	public static async Task<SearchQuery> TryCreateAsync(string value, CancellationToken ct = default)
 	{
-		var uf = await UniSource.TryGetAsync(value, whitelist: FileType.Image);
+		var uf = await UniSource.TryGetAsync(value, ct: ct, whitelist: FileType.Image);
 
 		if (uf == null) {
 			return Null;
@@ -57,7 +57,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		else {
 			var sq = new SearchQuery(uf)
 			{
-				Hash = await MD5.HashDataAsync(uf.Stream)
+				Hash = await MD5.HashDataAsync(uf.Stream, ct)
 			};
 
 			return sq;

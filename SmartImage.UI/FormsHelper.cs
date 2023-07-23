@@ -6,6 +6,7 @@ using System.Linq;
 using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
@@ -66,5 +67,20 @@ public static class FormsHelper
 		set(ai, ri);
 
 		Debug.WriteLine($"{ai} {si}");
+	}
+
+	public static string[] GetFilesFromDrop(this DragEventArgs e)
+	{
+		if (e.Data.GetDataPresent(DataFormats.FileDrop)) {
+
+			if (e.Data.GetData(DataFormats.FileDrop, true) is string[] files
+			    && files.Any()) {
+
+				return files;
+
+			}
+		}
+
+		return Array.Empty<string>();
 	}
 }
