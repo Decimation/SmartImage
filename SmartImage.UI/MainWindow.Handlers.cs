@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
 using System.Windows.Controls;
@@ -170,6 +171,8 @@ public partial class MainWindow
 	private void Btn_Cancel_Click(object sender, RoutedEventArgs e)
 	{
 		Cancel();
+		m_cts  = new();
+		m_ctsu = new();
 	}
 
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
@@ -200,69 +203,12 @@ public partial class MainWindow
 
 		switch (key) {
 			case Key.D when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(async () =>
-				{
-					var    ri = ((ListResultItem) Lv_Results.SelectedItem);
-					var    u  = ri.Uni;
-					var    v  = (Url) u.Value.ToString();
-					string path;
-
-					if (v.PathSegments is { Count: >= 1 }) {
-						path = $"{v.PathSegments[^1]}";
-
-					}
-					else path = v.Path;
-
-					// path = HttpUtility.HtmlDecode(path);
-					// path = WebUtility.UrlDecode(path);
-					path = HttpUtility.UrlDecode(path);
-
-					path = FileSystem.SanitizeFilename(path);
-					var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
-
-					var f = File.OpenWrite(path2);
-
-					if (u.Stream.CanSeek) {
-						u.Stream.Position = 0;
-
-					}
-
-					await u.Stream.CopyToAsync(f);
-					FileSystem.ExploreFile(path2);
-					f.Dispose();
-					// u.Dispose();
-				});
+				Application.Current.Dispatcher.InvokeAsync(DownloadResultAsync);
 
 				break;
 			case Key.S when ctrl:
 
-				Application.Current.Dispatcher.InvokeAsync(async () =>
-				{
-					var ri = ((ListResultItem) Lv_Results.SelectedItem);
-
-					if (m_uni.ContainsKey(ri)) {
-						return;
-					}
-
-					Pb_Status.IsIndeterminate = true;
-					var d = await ri.Result.LoadUniAsync();
-
-					if (d) {
-						Debug.WriteLine($"{ri}");
-						var resultUni = ri.Result.Uni;
-						m_uni.TryAdd(ri, resultUni);
-						var resultItems = new ListResultItem[resultUni.Length];
-
-						for (int i = 0; i < resultUni.Length; i++) {
-							var rii = new ListResultItem(ri.Result, $"{ri.Name} {i} 🖼", ri.Status, idx: i);
-							resultItems[i] = rii;
-							Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
-						}
-					}
-
-					Pb_Status.IsIndeterminate = false;
-
-				});
+				Application.Current.Dispatcher.InvokeAsync(ScanResultAsync);
 
 				break;
 		}

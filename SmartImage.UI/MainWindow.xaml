@@ -9,7 +9,44 @@
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed" Closing="Wnd_Main_Closing" Title="SmartImage">
     <Window.Resources>
-
+        <Style x:Key="CustomListViewItemStyle" TargetType="{x:Type ListViewItem}">
+            <Setter Property="Background" Value="LightGray" />
+            <Setter Property="Foreground" Value="Black" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="SauceNao">
+                    <Setter Property="Background" Value="Green" />
+                    <Setter Property="Foreground" Value="White" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="EHentai">
+                    <Setter Property="Background" Value="MediumPurple" />
+                    <Setter Property="Foreground" Value="White" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="Iqdb">
+                    <Setter Property="Background" Value="LightGreen" />
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="Ascii2D">
+                    <Setter Property="Background" Value="Cyan" />
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="trace.moe">
+                    <Setter Property="Background" Value="DodgerBlue" />
+                    <Setter Property="Foreground" Value="White" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="RepostSleuth">
+                    <Setter Property="Background" Value="Brown" />
+                    <Setter Property="Foreground" Value="White" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="ArchiveMoe">
+                    <Setter Property="Background" Value="Wheat" />
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="Yandex">
+                    <Setter Property="Background" Value="Orange" />
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
         <Style x:Key="S_Lvic" TargetType="{x:Type ListViewItem}">
             <!--
             <Setter Property="Template">
@@ -32,6 +69,7 @@
                               MouseDoubleClick="Lv_Results_MouseDoubleClick" 
                               Foreground="White"
                               Background="{DynamicResource Black2}"
+                              ItemContainerStyle="{StaticResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
                              
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown" ScrollViewer.CanContentScroll="True">
@@ -41,13 +79,13 @@
                                 <GridViewColumn/>
                             </GridView>
                         </ListView.View>-->
-                        
+
                         <ListView.View >
                             <GridView>
                                 <GridViewColumn Header="Status" >
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Source="{Binding Image}" Width="20" Height="20" Stretch="None" ToolTip="{Binding Status}" />
+                                            <Image Source="{Binding StatusImage}" Width="20" Height="20" Stretch="None" ToolTip="{Binding Status}" />
 
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
@@ -83,8 +121,8 @@
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
                             Loaded="Btn_Run_Loaded" Width="35" />
-                    <Border Height="150" Margin="1036,8,12,0" Width="150" VerticalAlignment="Top" Background="#FFEFEFEF" >
-                        <Image x:Name="Img_Preview" />
+                    <Border Height="150" Margin="1038,8,10,398" Width="150" Background="#FFEFEFEF" HorizontalAlignment="Right" VerticalAlignment="Top" >
+                        <Image x:Name="Img_Preview" HorizontalAlignment="Right" Width="150" VerticalAlignment="Top" />
                     </Border>
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,148,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" />
@@ -107,9 +145,9 @@
                         VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
                     <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
                         VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black" Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
-                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="712,8,167,400" Drop="Lv_Queue_Drop"
+                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
                               DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
-                              Background="{DynamicResource Black2}" Foreground="DeepSkyBlue" Width="320" Height="150" SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top" KeyDown="Lv_Queue_KeyDown">
+                              Background="{DynamicResource Black2}" Foreground="DeepSkyBlue" Width="320" Height="150" SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top" KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Queue" Width="300"/>

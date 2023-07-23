@@ -11,7 +11,10 @@
     <None Remove="Resources\accept.png" />
     <None Remove="Resources\exclamation.png" />
     <None Remove="Resources\help.png" />
-    <None Remove="Resources\OK.png" />
+    <None Remove="Resources\information.png" />
+    <None Remove="Resources\picture.png" />
+    <None Remove="Resources\picture_add.png" />
+    <None Remove="Resources\picture_save.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -42,7 +45,10 @@
     <Resource Include="Resources\accept.png" />
     <Resource Include="Resources\exclamation.png" />
     <Resource Include="Resources\help.png" />
-    <Resource Include="Resources\OK.png" />
+    <Resource Include="Resources\information.png" />
+    <Resource Include="Resources\picture.png" />
+    <Resource Include="Resources\picture_add.png" />
+    <Resource Include="Resources\picture_save.png" />
   </ItemGroup>
 
   <ItemGroup>

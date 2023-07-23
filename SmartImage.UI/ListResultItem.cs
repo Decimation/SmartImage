@@ -21,7 +21,7 @@ public sealed class ListResultItem : IDisposable
 
 	public SearchResultStatus Status { get; }
 
-	public BitmapImage Image { get; }
+	public BitmapImage StatusImage { get; internal set; }
 
 	public UniSource? Uni
 	{
@@ -48,15 +48,15 @@ public sealed class ListResultItem : IDisposable
 		UniIndex = idx;
 
 		if (Status.IsSuccessful()) {
-			Image = AppComponents.accept;
+			StatusImage = AppComponents.accept;
 		}
 		else if (Status.IsUnknown()) {
-			Image = AppComponents.help;
+			StatusImage = AppComponents.help;
 		}
-		else {
-			Image = AppComponents.exclamation;
+		else if (Status.IsError()) {
+			StatusImage = AppComponents.exclamation;
 		}
-		
+
 	}
 
 	public void Dispose()

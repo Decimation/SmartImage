@@ -47,7 +47,7 @@ public partial class MainWindow : Window, IDisposable
 
 	public MainWindow()
 	{
-		
+
 		Client    = new SearchClient(new SearchConfig());
 		m_queries = new ConcurrentDictionary<string, SearchQuery>();
 
@@ -243,7 +243,7 @@ public partial class MainWindow : Window, IDisposable
 			}
 
 		}
-		
+
 		else if (cFile) {
 			var files = Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];
@@ -347,7 +347,10 @@ public partial class MainWindow : Window, IDisposable
 				Url = result.RawUrl,
 			};
 
-			Results.Add(new ListResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status));
+			Results.Add(new ListResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status)
+			{
+				StatusImage = AppComponents.help
+			});
 
 			foreach (SearchResultItem sri in allResults) {
 				Results.Add(new ListResultItem(sri, $"{sri.Root.Engine.Name} #{++i}", result.Status));
@@ -481,4 +484,79 @@ public partial class MainWindow : Window, IDisposable
 	}
 
 	#endregion
+
+	private async Task DownloadResultAsync()
+	{
+		var ri = ((ListResultItem) Lv_Results.SelectedItem);
+		var u  = ri.Uni;
+
+		var    v = (Url) u.Value.ToString();
+		string path;
+
+		if (v.PathSegments is { Count: >= 1 }) {
+			path = $"{v.PathSegments[^1]}";
+
+		}
+		else
+			path = v.Path;
+
+		// path = HttpUtility.HtmlDecode(path);
+		// path = WebUtility.UrlDecode(path);
+		path = HttpUtility.UrlDecode(path);
+
+		path = FileSystem.SanitizeFilename(path);
+		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
+
+		var f = File.OpenWrite(path2);
+
+		if (u.Stream.CanSeek) {
+			u.Stream.Position = 0;
+
+		}
+
+		ri.StatusImage = AppComponents.picture_save;
+		await u.Stream.CopyToAsync(f);
+		FileSystem.ExploreFile(path2);
+		f.Dispose();
+		// u.Dispose();
+	}
+
+	private async Task ScanResultAsync()
+	{
+		var ri = ((ListResultItem) Lv_Results.SelectedItem);
+
+		if (m_uni.ContainsKey(ri)) {
+			return;
+		}
+
+		Pb_Status.IsIndeterminate = true;
+
+		bool d;
+
+		try {
+			d = await ri.Result.LoadUniAsync(m_cts.Token);
+		}
+		catch (Exception e) {
+			d = false;
+			Debug.WriteLine($"{e.Message}");
+		}
+		if (d) {
+			Debug.WriteLine($"{ri}");
+			var resultUni = ri.Result.Uni;
+			m_uni.TryAdd(ri, resultUni);
+			var resultItems = new ListResultItem[resultUni.Length];
+
+			for (int i = 0; i < resultUni.Length; i++) {
+				var rii = new ListResultItem(ri.Result, $"{ri.Name} ({i})", ri.Status, idx: i)
+				{
+					StatusImage = AppComponents.picture
+				};
+				resultItems[i] = rii;
+				Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
+			}
+		}
+
+		Pb_Status.IsIndeterminate = false;
+
+	}
 }

@@ -3,5 +3,6 @@
   <BitmapImage x:Key="Img_Accept" UriSource="../Resources/accept.png" />
   <BitmapImage x:Key="Img_Exclamation" UriSource="../Resources/exclamation.png" />
   <BitmapImage x:Key="Img_Help" UriSource="../Resources/help.png" />
+  <BitmapImage x:Key="Img_Information" UriSource="../Resources/information.png" />
 
 </ResourceDictionary>
