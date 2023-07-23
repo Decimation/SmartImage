@@ -13,15 +13,13 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI;
 
-public sealed class ListResultItem : IDisposable
+public class UniResultItem : ResultItem
 {
-	public string Name { get; }
-
-	public SearchResultItem Result { get; }
-
-	public SearchResultStatus Status { get; }
-
-	public BitmapImage StatusImage { get; internal set; }
+	public UniResultItem(ResultItem ri, int? idx) : base(ri.Result, $"{ri.Name} ({idx})", ri.Status)
+	{
+		UniIndex = idx;
+		Url = Uni?.Value.ToString();
+	}
 
 	public UniSource? Uni
 	{
@@ -37,15 +35,27 @@ public sealed class ListResultItem : IDisposable
 	}
 
 	public int? UniIndex { get; }
+}
 
-	public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
+public class ResultItem : IDisposable
+{
+	public string Name { get; }
 
-	public ListResultItem(SearchResultItem result, string name, SearchResultStatus status, int? idx = default)
+	public SearchResultItem Result { get; }
+
+	public SearchResultStatus Status { get; }
+
+	public BitmapImage StatusImage { get; internal set; }
+
+	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
+	public Url? Url { get; protected set; }
+
+	public ResultItem(SearchResultItem result, string name, SearchResultStatus status)
 	{
-		Result   = result;
-		Name     = name;
-		Status   = status;
-		UniIndex = idx;
+		Result = result;
+		Name   = name;
+		Status = status;
+		Url = result.Url;
 
 		if (Status.IsSuccessful()) {
 			StatusImage = AppComponents.accept;

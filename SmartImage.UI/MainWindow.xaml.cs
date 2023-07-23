@@ -148,7 +148,7 @@ public partial class MainWindow : Window, IDisposable
 
 	public SearchQuery Query { get; internal set; }
 
-	public ObservableCollection<ListResultItem> Results { get; set; }
+	public ObservableCollection<ResultItem> Results { get; set; }
 
 	public ObservableCollection<string> Queue { get; }
 
@@ -162,7 +162,7 @@ public partial class MainWindow : Window, IDisposable
 
 	#region
 
-	private readonly ConcurrentDictionary<ListResultItem, UniSource[]> m_uni;
+	private readonly ConcurrentDictionary<ResultItem, UniSource[]> m_uni;
 
 	private readonly List<string> m_clipboard;
 
@@ -184,7 +184,7 @@ public partial class MainWindow : Window, IDisposable
 	private const int S_NO = 0;
 	private const int S_OK = 1;
 
-	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ListResultItem>> m_resultMap;
+	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
 	#endregion
 
@@ -300,7 +300,7 @@ public partial class MainWindow : Window, IDisposable
 			var ck = m_resultMap.TryGetValue(Query, out var res);
 
 			if (!ck) {
-				m_resultMap[Query] = new ObservableCollection<ListResultItem>();
+				m_resultMap[Query] = new ObservableCollection<ResultItem>();
 
 			}
 
@@ -347,13 +347,13 @@ public partial class MainWindow : Window, IDisposable
 				Url = result.RawUrl,
 			};
 
-			Results.Add(new ListResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status)
+			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status)
 			{
 				StatusImage = AppComponents.help
 			});
 
 			foreach (SearchResultItem sri in allResults) {
-				Results.Add(new ListResultItem(sri, $"{sri.Root.Engine.Name} #{++i}", result.Status));
+				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}", result.Status));
 
 			}
 		}
@@ -395,24 +395,27 @@ public partial class MainWindow : Window, IDisposable
 	private void Restart(bool full = false)
 	{
 		Cancel();
-		Clear();
+		Clear(full);
 		Dispose(full);
-
-		if (full) {
-			Results.Clear();
-
-		}
 
 		InputText = string.Empty;
 
+		ReloadToken();
+	}
+
+	private void ReloadToken()
+	{
 		m_cts  = new();
 		m_ctsu = new();
 	}
 
-	private void Clear()
+	private void Clear(bool full = false)
 	{
 		m_cntResults = 0;
-		// Results.Clear();
+		if (full) {
+			Results.Clear();
+
+		}
 		// Btn_Run.IsEnabled = false;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
@@ -471,7 +474,7 @@ public partial class MainWindow : Window, IDisposable
 
 			Results.Clear();
 
-			foreach ((SearchQuery key, ObservableCollection<ListResultItem> value) in m_resultMap) {
+			foreach ((SearchQuery key, ObservableCollection<ResultItem> value) in m_resultMap) {
 				key.Dispose();
 				value.Clear();
 			}
@@ -487,7 +490,8 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task DownloadResultAsync()
 	{
-		var ri = ((ListResultItem) Lv_Results.SelectedItem);
+		var ri = ((UniResultItem) Lv_Results.SelectedItem);
+
 		var u  = ri.Uni;
 
 		var    v = (Url) u.Value.ToString();
@@ -523,7 +527,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task ScanResultAsync()
 	{
-		var ri = ((ListResultItem) Lv_Results.SelectedItem);
+		var ri = ((ResultItem) Lv_Results.SelectedItem);
 
 		if (m_uni.ContainsKey(ri)) {
 			return;
@@ -540,14 +544,15 @@ public partial class MainWindow : Window, IDisposable
 			d = false;
 			Debug.WriteLine($"{e.Message}");
 		}
+
 		if (d) {
 			Debug.WriteLine($"{ri}");
 			var resultUni = ri.Result.Uni;
 			m_uni.TryAdd(ri, resultUni);
-			var resultItems = new ListResultItem[resultUni.Length];
+			var resultItems = new ResultItem[resultUni.Length];
 
 			for (int i = 0; i < resultUni.Length; i++) {
-				var rii = new ListResultItem(ri.Result, $"{ri.Name} ({i})", ri.Status, idx: i)
+				var rii = new UniResultItem(ri, i)
 				{
 					StatusImage = AppComponents.picture
 				};

@@ -153,7 +153,8 @@ public partial class MainWindow
 
 	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
 	{
-		Clear();
+		var ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+		Clear(ctrl);
 	}
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
@@ -171,8 +172,7 @@ public partial class MainWindow
 	private void Btn_Cancel_Click(object sender, RoutedEventArgs e)
 	{
 		Cancel();
-		m_cts  = new();
-		m_ctsu = new();
+		ReloadToken();
 	}
 
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
@@ -184,7 +184,7 @@ public partial class MainWindow
 
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		if (Lv_Results.SelectedItem is ListResultItem si) {
+		if (Lv_Results.SelectedItem is ResultItem si) {
 			HttpUtilities.TryOpenUrl(si.Result.Url);
 		}
 	}
