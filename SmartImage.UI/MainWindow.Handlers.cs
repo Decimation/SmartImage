@@ -13,11 +13,13 @@ using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using Flurl;
 using Kantan.Net.Utilities;
 using Novus.OS;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Impl.Upload;
+using Color = System.Drawing.Color;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace SmartImage.UI;
@@ -38,14 +40,11 @@ public partial class MainWindow
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
 		if (ok /*&& !IsInputReady()*/) {
-			Application.Current.Dispatcher.InvokeAsync(async () =>
-			{
-				await SetQueryAsync(txt);
-
-			});
+			Application.Current.Dispatcher.InvokeAsync(() => SetQueryAsync(txt));
 		}
 
 		Btn_Run.IsEnabled = ok;
+		e.Handled         = true;
 	}
 
 	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e) { }
@@ -125,35 +124,18 @@ public partial class MainWindow
 
 	#endregion
 
-	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		Lb_Engines.HandleEnumOption(e, (ai, ri) =>
-		{
-			Config.SearchEngines |= (ai);
-			Config.SearchEngines &= ~ri;
-		});
-	}
-
-	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
-	{
-		Lb_Engines2.HandleEnumOption(e, (ai, ri) =>
-		{
-			Config.PriorityEngines |= (ai);
-			Config.PriorityEngines &= ~ri;
-		});
-	}
-
 	private void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
 		// await SetQueryAsync(InputText);
 		Btn_Run.IsEnabled = false;
+		// Clear(true);
 
 		Application.Current.Dispatcher.InvokeAsync(RunAsync);
 	}
 
 	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
 	{
-		var ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+		var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		Clear(ctrl);
 	}
 
@@ -162,6 +144,15 @@ public partial class MainWindow
 		var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		Restart(ctrl);
 		Queue.Clear();
+	}
+	private void Btn_Restart_MouseEnter(object sender, MouseEventArgs e)
+	{
+		e.Handled = true;
+	}
+
+	private void Btn_Restart_MouseLeave(object sender, MouseEventArgs e)
+	{
+		e.Handled = true;
 	}
 
 	private async void Btn_Next_Click(object sender, RoutedEventArgs e)
@@ -218,10 +209,27 @@ public partial class MainWindow
 
 	#region
 
+	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		Lb_Engines.HandleEnumOption(e, (ai, ri) =>
+		{
+			Config.SearchEngines |= (ai);
+			Config.SearchEngines &= ~ri;
+		});
+	}
+
+	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		Lb_Engines2.HandleEnumOption(e, (ai, ri) =>
+		{
+			Config.PriorityEngines |= (ai);
+			Config.PriorityEngines &= ~ri;
+		});
+	}
+
 	private void Cb_Clipboard_Checked(object sender, RoutedEventArgs e)
 	{
 		// Config.Clipboard = !Config.Clipboard;
-
 	}
 
 	private void Cb_AutoSearch_Checked(object sender, RoutedEventArgs e)
@@ -244,21 +252,6 @@ public partial class MainWindow
 
 	}
 
-	#endregion
-
-	#region
-
-	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
-	{
-		m_cbDispatch.Start();
-
-	}
-
-	private void Wnd_Main_Closed(object sender, EventArgs e)        { }
-	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }
-
-	#endregion
-
 	private void Rb_UploadEngine_Catbox_Checked(object sender, RoutedEventArgs e)
 	{
 		if (!e.IsLoaded()) {
@@ -276,6 +269,24 @@ public partial class MainWindow
 
 		BaseUploadEngine.Default = LitterboxEngine.Instance;
 	}
+
+	#endregion
+
+	#region
+
+	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
+	{
+		if (Config.Clipboard) {
+			m_cbDispatch.Start();
+
+		}
+
+	}
+
+	private void Wnd_Main_Closed(object sender, EventArgs e)        { }
+	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }
+
+	#endregion
 
 	#endregion
 }

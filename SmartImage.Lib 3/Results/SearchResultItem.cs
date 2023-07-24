@@ -183,8 +183,9 @@ public sealed record SearchResultItem : IDisposable,
 
 			var sri = new SearchResultItem(this)
 			{
-				Url    = rg[i],
-				Parent = this
+				Url     = rg[i],
+				Sisters = new List<SearchResultItem>(),
+				Parent  = this
 			};
 
 			Sisters.Add(sri);
@@ -226,9 +227,7 @@ public sealed record SearchResultItem : IDisposable,
 
 		}
 		foreach (var sis in Sisters) {
-			if (sis == this) {
-				continue;
-			}
+			
 			sis.Dispose();
 		}
 	}

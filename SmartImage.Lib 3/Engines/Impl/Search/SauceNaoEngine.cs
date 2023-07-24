@@ -37,9 +37,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 		public const string Twitter = "Twitter:";
 		public const string TweetID = "Tweet ID:";
 
+		public const string Material = "Material:";
+		public const string Source   = "Source:";
+
 		public static readonly string[] Syn_Artists    = { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
 		public static readonly string[] Syn_Characters = { "Characters:" };
-		public static readonly string[] Syn_Material   = { "Material:", "Source:" };
 	}
 
 	private const string BASE_URL = "https://saucenao.com/";
@@ -261,12 +263,13 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 		string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
 
 		// string material1 = rcci.SubstringAfter(material);
-		string material1 = rcci.SubstringAfter(Syn_Material.First());
+		string material1 = rcci.SubstringAfter(Material);
 
 		// string creator1 = rcci;
 		string creator1     = rcci;
 		string characters1  = null;
 		bool   rtiHasArtist = false;
+
 		foreach (var s in Syn_Artists) {
 			if (rti.StartsWith(s)) {
 				rti          = rti.SubstringAfter(s).Trim(' ');
@@ -297,12 +300,12 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 			var node = nodes[i];
 			var s    = node.TextContent;
 
-			if (s.StartsWith(Syn_Material[0])) {
+			if (s.StartsWith(Source)) {
 				sndr.Source = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
-			if (s.StartsWith(Syn_Material[1])) {
+			if (s.StartsWith(Material)) {
 				sndr.Material = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
@@ -312,7 +315,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 				continue;
 			}
 
-			if (Syn_Artists.Any(s.StartsWith)|| s.StartsWith(Twitter)) {
+			if (Syn_Artists.Any(s.StartsWith) || s.StartsWith(Twitter)) {
 				sndr.Creator = nodes[++i].TextContent.Trim(' ');
 				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
 				continue;
@@ -470,9 +473,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 				Url u = s;
 				return u.Host == "gelbooru" || u.Host == "danbooru";
 			}).ToArray();*/
-			
-			string[] urls = (Urls != null) ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray() : Array.Empty<string>();
-			
+
+			string[] urls = (Urls != null)
+				                ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
+				                : Array.Empty<string>();
+
 			string[] meta = Array.Empty<string>();
 
 			if ((urls.Length >= 2)) {
@@ -499,9 +504,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 		}
 	}
 
-	public async ValueTask ApplyAsync(SearchConfig cfg)
+	public ValueTask ApplyAsync(SearchConfig cfg)
 	{
 		Authentication = cfg.SauceNaoKey;
+		return ValueTask.CompletedTask;
 	}
 }
 

@@ -13,12 +13,52 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI;
 
+public class ResultItem : IDisposable
+{
+	public string Name { get; }
+
+	public SearchResultItem Result { get; }
+
+	public SearchResultStatus Status { get; }
+
+	public BitmapImage StatusImage { get; internal set; }
+
+	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
+	public Url? Url { get; protected set; }
+
+	public ResultItem(SearchResultItem result, string name)
+	{
+		Result = result;
+		Name   = name;
+		Status = result.Root.Status;
+		Url    = result.Url;
+
+		if (Status.IsSuccessful()) {
+			StatusImage = AppComponents.accept;
+		}
+		else if (Status.IsUnknown()) {
+			StatusImage = AppComponents.help;
+		}
+		else /*if (Status.IsError())*/ {
+			StatusImage = AppComponents.exclamation;
+		}
+
+	}
+
+	public void Dispose()
+	{
+		Result.Dispose();
+	}
+}
+
 public class UniResultItem : ResultItem
 {
-	public UniResultItem(ResultItem ri, int? idx) : base(ri.Result, $"{ri.Name} ({idx})", ri.Status)
+	public UniResultItem(ResultItem ri, int? idx) 
+		: base(ri.Result, $"{ri.Name} ({idx})")
 	{
-		UniIndex = idx;
-		Url = Uni?.Value.ToString();
+		UniIndex    = idx;
+		Url         = Uni?.Value.ToString();
+		StatusImage = AppComponents.picture;
 	}
 
 	public UniSource? Uni
@@ -35,42 +75,4 @@ public class UniResultItem : ResultItem
 	}
 
 	public int? UniIndex { get; }
-}
-
-public class ResultItem : IDisposable
-{
-	public string Name { get; }
-
-	public SearchResultItem Result { get; }
-
-	public SearchResultStatus Status { get; }
-
-	public BitmapImage StatusImage { get; internal set; }
-
-	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
-	public Url? Url { get; protected set; }
-
-	public ResultItem(SearchResultItem result, string name, SearchResultStatus status)
-	{
-		Result = result;
-		Name   = name;
-		Status = status;
-		Url = result.Url;
-
-		if (Status.IsSuccessful()) {
-			StatusImage = AppComponents.accept;
-		}
-		else if (Status.IsUnknown()) {
-			StatusImage = AppComponents.help;
-		}
-		else if (Status.IsError()) {
-			StatusImage = AppComponents.exclamation;
-		}
-
-	}
-
-	public void Dispose()
-	{
-		Result.Dispose();
-	}
 }

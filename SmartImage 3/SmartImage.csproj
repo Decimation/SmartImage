@@ -72,7 +72,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
-    <PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.2" />
+    <PackageReference Include="Microsoft.NETCore.Platforms" Version="7.0.4" />
     <PackageReference Include="Spectre.Console" Version="0.47.0" />
     <PackageReference Include="Spectre.Console.Analyzer" Version="0.47.0">
       <PrivateAssets>all</PrivateAssets>
@@ -86,7 +86,7 @@
     <PackageReference Include="System.Reactive" Version="6.0.0" />
     <PackageReference Include="System.Runtime.Caching" Version="7.0.0" />
     <PackageReference Include="System.Windows.Extensions" Version="7.0.0" />
-    <PackageReference Include="Terminal.Gui" Version="1.12.1" />
+    <PackageReference Include="Terminal.Gui" Version="1.13.4" />
   </ItemGroup>
 
   <ItemGroup>

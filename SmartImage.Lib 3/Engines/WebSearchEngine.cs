@@ -105,7 +105,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 	protected abstract string NodesSelector { get; }
 
-	protected bool Validate(IDocument doc, SearchResult sr)
+	protected bool Validate([CBN] IDocument doc, SearchResult sr)
 	{
 		if (doc is null or { Body: null }) {
 			sr.Status = SearchResultStatus.Failure;

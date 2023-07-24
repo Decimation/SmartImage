@@ -249,7 +249,7 @@ public sealed class SearchClient : IDisposable
 
 	#region
 
-	public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
+	/*public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{
 		var sri2 = sri.AsParallel().DistinctBy(e => e.Url).ToList();
 
@@ -265,8 +265,8 @@ public sealed class SearchClient : IDisposable
 
 		try {
 			/*var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
-				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD#1#);
-			items = items.Except(c).ToArray();*/
+				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD#2#);
+			items = items.Except(c).ToArray();#1#
 
 		}
 		catch (Exception e) {
@@ -304,7 +304,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		return di.AsReadOnly();
-	}
+	}*/
 
 	#endregion
 

@@ -85,10 +85,15 @@ public partial class MainWindow : Window, IDisposable
 		};
 		m_cbDispatch.Tick += ClipboardListenAsync;
 
-		m_uni                    = new();
-		m_clipboard              = new();
-		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
-		m_resultMap              = new();
+		m_bgDispatch = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromSeconds(1)
+		};
+		m_bgDispatch.Tick        += Dispatch;
+		m_uni                    =  new();
+		m_clipboard              =  new();
+		Cb_ContextMenu.IsChecked =  AppUtil.IsContextMenuAdded;
+		m_resultMap              =  new();
 
 		var e = Args.GetEnumerator();
 
@@ -158,6 +163,22 @@ public partial class MainWindow : Window, IDisposable
 		set => Tb_Input.Text = value;
 	}
 
+	#region 
+
+	public bool UseClipboard
+	{
+		get { return Config.Clipboard; }
+		set { Config.Clipboard = m_cbDispatch.IsEnabled = value; }
+	}
+
+	public bool UseContextMenu
+	{
+		get { return AppUtil.IsContextMenuAdded; }
+		set { AppUtil.HandleContextMenu(value); }
+	}
+
+	#endregion
+
 	#endregion
 
 	#region
@@ -167,6 +188,7 @@ public partial class MainWindow : Window, IDisposable
 	private readonly List<string> m_clipboard;
 
 	private readonly DispatcherTimer m_cbDispatch;
+	private readonly DispatcherTimer m_bgDispatch;
 
 	private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
@@ -190,9 +212,71 @@ public partial class MainWindow : Window, IDisposable
 
 	#region
 
+	private void Dispatch(object? sender, EventArgs e) { }
+
+	private async Task SetQueryAsync(string q)
+	{
+		Interlocked.Exchange(ref _status, S_NO);
+
+		Btn_Run.IsEnabled = false;
+		bool b;
+
+		b = m_queries.TryGetValue(q, out var qq);
+
+		if (b) {
+			Query = qq;
+		}
+
+		else {
+			Query                     = await SearchQuery.TryCreateAsync(q, m_ctsu.Token);
+			Pb_Status.IsIndeterminate = true;
+			b                         = Query != SearchQuery.Null;
+		}
+
+		if (b) {
+			Tb_Status.Text = "Uploading...";
+			var u = await Query.UploadAsync(ct: m_ctsu.Token);
+			Tb_Status.Text = "Uploaded";
+
+			if (!Url.IsValid(u)) {
+				return;
+			}
+
+			Tb_Upload.Text            = u;
+			Pb_Status.IsIndeterminate = false;
+
+			Img_Preview.Source = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()))
+			{
+				CacheOption    = BitmapCacheOption.OnLoad,
+				UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.CacheIfAvailable)
+			};
+			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}";
+
+			m_queries.TryAdd(q, Query);
+
+			var ck = m_resultMap.TryGetValue(Query, out var res);
+
+			if (!ck) {
+				m_resultMap[Query] = new ObservableCollection<ResultItem>();
+
+			}
+
+			Results                = m_resultMap[Query];
+			Lv_Results.ItemsSource = Results;
+
+			if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) {
+				Application.Current.Dispatcher.InvokeAsync(RunAsync);
+			}
+		}
+
+		Btn_Run.IsEnabled = b;
+		Interlocked.Exchange(ref _status, S_OK);
+
+	}
+
 	private async Task RunAsync()
 	{
-		Clear();
+		Clear(true);
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -257,66 +341,6 @@ public partial class MainWindow : Window, IDisposable
 		// Thread.Sleep(1000);
 	}
 
-	private async Task SetQueryAsync(string q)
-	{
-		Interlocked.Exchange(ref _status, S_NO);
-
-		Btn_Run.IsEnabled = false;
-		bool b;
-
-		b = m_queries.TryGetValue(q, out var qq);
-
-		if (b) {
-			Query = qq;
-		}
-
-		else {
-			Query                     = await SearchQuery.TryCreateAsync(q, m_ctsu.Token);
-			Pb_Status.IsIndeterminate = true;
-			b                         = Query != SearchQuery.Null;
-		}
-
-		if (b) {
-			Tb_Status.Text = "Uploading...";
-			var u = await Query.UploadAsync(ct: m_ctsu.Token);
-			Tb_Status.Text = "Uploaded";
-
-			if (!Url.IsValid(u)) {
-				return;
-			}
-
-			Tb_Upload.Text            = u;
-			Pb_Status.IsIndeterminate = false;
-
-			Img_Preview.Source = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()))
-			{
-				CacheOption    = BitmapCacheOption.OnLoad,
-				UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.CacheIfAvailable)
-			};
-			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}";
-
-			m_queries.TryAdd(q, Query);
-
-			var ck = m_resultMap.TryGetValue(Query, out var res);
-
-			if (!ck) {
-				m_resultMap[Query] = new ObservableCollection<ResultItem>();
-
-			}
-
-			Results                = m_resultMap[Query];
-			Lv_Results.ItemsSource = Results;
-
-			if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) {
-				Application.Current.Dispatcher.InvokeAsync(RunAsync);
-			}
-		}
-
-		Btn_Run.IsEnabled = b;
-		Interlocked.Exchange(ref _status, S_OK);
-
-	}
-
 	private void OnComplete(object sender, SearchResult[] e)
 	{
 		if (m_cts.IsCancellationRequested) {
@@ -347,13 +371,11 @@ public partial class MainWindow : Window, IDisposable
 				Url = result.RawUrl,
 			};
 
-			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)", result.Status)
-			{
-				StatusImage = AppComponents.help
-			});
+			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)")
+				            { });
 
 			foreach (SearchResultItem sri in allResults) {
-				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}", result.Status));
+				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
 
 			}
 		}
@@ -385,43 +407,6 @@ public partial class MainWindow : Window, IDisposable
 		Tb_Status.Text = $"Added {c} items to queue";
 	}
 
-	private void Cancel()
-	{
-
-		m_cts.Cancel();
-		m_ctsu.Cancel();
-	}
-
-	private void Restart(bool full = false)
-	{
-		Cancel();
-		Clear(full);
-		Dispose(full);
-
-		InputText = string.Empty;
-
-		ReloadToken();
-	}
-
-	private void ReloadToken()
-	{
-		m_cts  = new();
-		m_ctsu = new();
-	}
-
-	private void Clear(bool full = false)
-	{
-		m_cntResults = 0;
-		if (full) {
-			Results.Clear();
-
-		}
-		// Btn_Run.IsEnabled = false;
-		// Query.Dispose();
-		Pb_Status.Value = 0;
-		Tb_Status.Text  = string.Empty;
-	}
-
 	private void Next()
 	{
 		Restart();
@@ -440,6 +425,50 @@ public partial class MainWindow : Window, IDisposable
 		}
 	}
 
+	#region
+
+	private void ReloadToken()
+	{
+		m_cts  = new();
+		m_ctsu = new();
+	}
+
+	private void Cancel()
+	{
+		m_cts.Cancel();
+		m_ctsu.Cancel();
+	}
+
+	private void Restart(bool full = false)
+	{
+		Cancel();
+		Clear(full);
+		Dispose(full);
+
+		InputText = string.Empty;
+
+		ReloadToken();
+	}
+
+	private void Clear(bool full = false)
+	{
+		m_cntResults = 0;
+
+		if (full) {
+			/*foreach (var r in Results) {
+				r.Dispose();
+			}*/
+
+			Results.Clear();
+
+		}
+
+		// Btn_Run.IsEnabled = false;
+		// Query.Dispose();
+		Pb_Status.Value = 0;
+		Tb_Status.Text  = string.Empty;
+	}
+
 	public void Dispose()
 	{
 		Dispose(true);
@@ -447,6 +476,7 @@ public partial class MainWindow : Window, IDisposable
 
 	public void Dispose(bool full)
 	{
+
 		if (full) {
 			// Client.Dispose();
 			Query.Dispose();
@@ -468,8 +498,8 @@ public partial class MainWindow : Window, IDisposable
 			m_uni.Clear();
 			m_clipboard.Clear();
 
-			foreach (var r1 in Results) {
-				r1.Dispose();
+			foreach (var r in Results) {
+				r.Dispose();
 			}
 
 			Results.Clear();
@@ -488,30 +518,20 @@ public partial class MainWindow : Window, IDisposable
 
 	#endregion
 
+	#endregion
+
 	private async Task DownloadResultAsync()
 	{
 		var ri = ((UniResultItem) Lv_Results.SelectedItem);
 
-		var u  = ri.Uni;
+		var u = ri.Uni;
 
-		var    v = (Url) u.Value.ToString();
-		string path;
+		var    v    = (Url) u.Value.ToString();
+		string path = v.GetPath();
 
-		if (v.PathSegments is { Count: >= 1 }) {
-			path = $"{v.PathSegments[^1]}";
-
-		}
-		else
-			path = v.Path;
-
-		// path = HttpUtility.HtmlDecode(path);
-		// path = WebUtility.UrlDecode(path);
-		path = HttpUtility.UrlDecode(path);
-
-		path = FileSystem.SanitizeFilename(path);
 		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
 
-		var f = File.OpenWrite(path2);
+		var fs = File.OpenWrite(path2);
 
 		if (u.Stream.CanSeek) {
 			u.Stream.Position = 0;
@@ -519,9 +539,9 @@ public partial class MainWindow : Window, IDisposable
 		}
 
 		ri.StatusImage = AppComponents.picture_save;
-		await u.Stream.CopyToAsync(f);
+		await u.Stream.CopyToAsync(fs);
 		FileSystem.ExploreFile(path2);
-		f.Dispose();
+		fs.Dispose();
 		// u.Dispose();
 	}
 

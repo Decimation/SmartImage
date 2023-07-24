@@ -35,6 +35,7 @@ using Kantan.Monad;
 #pragma warning disable IDE0060
 namespace SmartImage.Mode.Shell;
 
+[NoReorder]
 public sealed partial class ShellMode : IDisposable, IMode
 {
 	// NOTE: DO NOT REARRANGE FIELD ORDER
@@ -546,6 +547,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		var cs = GetEngineColorScheme(result.Engine);
 
 		var rnr = Dt_Results.NewRow();
+
 		rnr.ItemArray = new object[]
 		{
 			$"{result.Engine.Name} (Raw)", string.Empty,
@@ -582,7 +584,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		Pbr_Status.SetNeedsDisplay();
 
 	}
-	
+
 	private static void AddResultItemToTable(SearchResultItem sri, int i, int j = 0)
 	{
 		var cs = GetEngineColorScheme(sri.Root.Engine);
@@ -1156,7 +1158,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 		m_results.Clear();
 	}
 
-	#region 
+	#region
 
 	internal DataRow[] FindRowsForResult(SearchResult sr)
 	{

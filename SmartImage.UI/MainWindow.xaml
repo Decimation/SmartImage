@@ -7,11 +7,15 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed" Closing="Wnd_Main_Closing" Title="SmartImage">
+        mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
+        Closing="Wnd_Main_Closing" Title="SmartImage">
     <Window.Resources>
+
         <Style x:Key="CustomListViewItemStyle" TargetType="{x:Type ListViewItem}">
             <Setter Property="Background" Value="LightGray" />
             <Setter Property="Foreground" Value="Black" />
+            <!-- <Setter Property="FontWeight" Value="Bold" /> -->
+
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="SauceNao">
                     <Setter Property="Background" Value="Green" />
@@ -58,21 +62,23 @@
             </Setter>
         -->
         </Style>
+
     </Window.Resources>
 
     <Grid>
         <TabControl x:Name="Tb_Main">
             <TabItem x:Name="Ti_Main" Header="Main">
-                <Grid Background="{DynamicResource Black1}" >
+                <Grid Background="{DynamicResource Black1}">
                     <ListView x:Name="Lv_Results" Margin="0,163,0,10"
                               d:ItemsSource="{Binding Results}"
-                              MouseDoubleClick="Lv_Results_MouseDoubleClick" 
+                              MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
                               Background="{DynamicResource Black2}"
                               ItemContainerStyle="{StaticResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
-                             
-                              SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown" ScrollViewer.CanContentScroll="True">
+
+                              SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown"
+                              ScrollViewer.CanContentScroll="True">
 
                         <!--<ListView.View>
                             <GridView>
@@ -80,18 +86,21 @@
                             </GridView>
                         </ListView.View>-->
 
-                        <ListView.View >
+                        <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Status" >
+                                <GridViewColumn Header="Status">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Source="{Binding StatusImage}" Width="20" Height="20" Stretch="None" ToolTip="{Binding Status}" />
+                                            <Image Source="{Binding StatusImage}" Width="20" Height="20" Stretch="None"
+                                                   ToolTip="{Binding Status}" />
 
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
+
                                 <GridViewColumn Header="Name"
                                                 DisplayMemberBinding="{Binding Name}" Width="115" />
+
                                 <GridViewColumn Header="URL"
                                                 DisplayMemberBinding="{Binding Url}" Width="400" />
                                 <GridViewColumn Header="Similarity"
@@ -121,8 +130,22 @@
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
                             Loaded="Btn_Run_Loaded" Width="35" />
-                    <Border Height="150" Margin="1038,8,10,398" Width="150" Background="#FFEFEFEF" HorizontalAlignment="Right" VerticalAlignment="Top" >
-                        <Image x:Name="Img_Preview" HorizontalAlignment="Right" Width="150" VerticalAlignment="Top" />
+                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
+                              DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
+                              Background="{DynamicResource Black2}" Foreground="White" Width="320" Height="150"
+                              SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top"
+                              KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right">
+                        <ListView.View>
+                            <GridView>
+                                <!-- <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="85"/> -->
+                                <!-- <GridViewColumn Header="Status" Width="40"/> -->
+                                <GridViewColumn Header="Queue" Width="300" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                    <Border Height="150" Margin="1038,8,10,398" Width="150" Background="#FFEFEFEF"
+                            VerticalAlignment="Top" HorizontalAlignment="Right">
+                        <Image x:Name="Img_Preview" Width="150" VerticalAlignment="Top" />
                     </Border>
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,148,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" />
@@ -138,51 +161,65 @@
                     <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="539,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Next_Click" Width="35" />
                     <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="539,38,0,0"
-                            VerticalAlignment="Top" Click="Btn_Restart_Click" />
+                            VerticalAlignment="Top" Click="Btn_Restart_Click" MouseEnter="Btn_Restart_MouseEnter"
+                            MouseLeave="Btn_Restart_MouseLeave" />
                     <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="591,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" />
                     <Label x:Name="Lb_Input3" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
-                        VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
                     <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
-                        VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black" Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
-                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
-                              DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
-                              Background="{DynamicResource Black2}" Foreground="DeepSkyBlue" Width="320" Height="150" SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top" KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Queue" Width="300"/>
-                                <!-- <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="85"/> -->
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,145,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="White" FontStyle="Italic"/>
+                             VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
+                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,145,0,0" TextWrapping="Wrap"
+                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
                      VerticalAlignment="Center" Width="54">
                 <Grid Background="{DynamicResource Black1}">
                     <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="27,33,0,0"
-                             SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Width="175" VerticalAlignment="Top" HorizontalAlignment="Left" Height="400" />
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Width="175"
+                             VerticalAlignment="Top" HorizontalAlignment="Left" Height="400" />
                     <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,0,0"
-                             SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Width="175" HorizontalAlignment="Left" VerticalAlignment="Top" Height="400" />
-                    <CheckBox x:Name="Cb_Clipboard" Content="Clipboard" IsChecked="{Binding Path=Config.Clipboard, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,33,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_Clipboard_Checked"/>
-                    <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search" IsChecked="{Binding Path=Config.AutoSearch, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,62,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_AutoSearch_Checked"/>
-                    <CheckBox x:Name="Cb_OpenRaw" Content="Open raw"  IsChecked="{Binding Path=Config.OpenRaw, Mode=TwoWay}" HorizontalAlignment="Left" Margin="409,93,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_OpenRaw_Checked"/>
-                    <CheckBox x:Name="Cb_ContextMenu" Content="Context menu"  HorizontalAlignment="Left" Margin="409,124,0,0" VerticalAlignment="Top" Foreground="White" Checked="Cb_ContextMenu_Checked"/>
-                    <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left" Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-                    <Label x:Name="Lbl_PriorityEngines" Content="Priority Engines" HorizontalAlignment="Left" Margin="228,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
-                    <RadioButton x:Name="Rb_UploadEngine_Catbox" Content="Catbox" HorizontalAlignment="Left" Margin="599,33,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines" Foreground="White" Checked="Rb_UploadEngine_Catbox_Checked"/>
-                    <RadioButton x:Name="Rb_UploadEngine_Litterbox" Content="Litterbox" HorizontalAlignment="Left" Margin="599,53,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines" Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked"/>
+                             SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Width="175"
+                             HorizontalAlignment="Left" VerticalAlignment="Top" Height="400" />
+                    <CheckBox x:Name="Cb_Clipboard" Content="Clipboard"
+                              IsChecked="{Binding Path=UseClipboard, Mode=TwoWay}" HorizontalAlignment="Left"
+                              Margin="409,33,0,0" VerticalAlignment="Top" Foreground="White"
+                              Checked="Cb_Clipboard_Checked" />
+                    <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search"
+                              IsChecked="{Binding Path=Config.AutoSearch, Mode=TwoWay}" HorizontalAlignment="Left"
+                              Margin="409,62,0,0" VerticalAlignment="Top" Foreground="White"
+                              Checked="Cb_AutoSearch_Checked" />
+                    <CheckBox x:Name="Cb_OpenRaw" Content="Open raw"
+                              IsChecked="{Binding Path=Config.OpenRaw, Mode=TwoWay}" HorizontalAlignment="Left"
+                              Margin="409,93,0,0" VerticalAlignment="Top" Foreground="White"
+                              Checked="Cb_OpenRaw_Checked" />
+                    <CheckBox x:Name="Cb_ContextMenu" Content="Context menu" HorizontalAlignment="Left"
+                              IsChecked="{Binding Path=UseContextMenu, Mode=TwoWay}"
+                              Margin="409,124,0,0" VerticalAlignment="Top" Foreground="White"
+                              Checked="Cb_ContextMenu_Checked" />
+                    <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left"
+                           Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+                    <Label x:Name="Lbl_PriorityEngines" Content="Priority Engines" HorizontalAlignment="Left"
+                           Margin="228,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+                    <RadioButton x:Name="Rb_UploadEngine_Catbox" Content="Catbox" HorizontalAlignment="Left"
+                                 Margin="599,33,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
+                                 Foreground="White" Checked="Rb_UploadEngine_Catbox_Checked" />
+                    <RadioButton x:Name="Rb_UploadEngine_Litterbox" Content="Litterbox" HorizontalAlignment="Left"
+                                 Margin="599,53,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
+                                 Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
                 </Grid>
             </TabItem>
-            <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center" Width="54">
+            <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"
+                     Width="54">
                 <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="Tb_Log" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="1178" Height="366" IsReadOnly="True" AcceptsReturn="True" AcceptsTab="True" Margin="0,180,0,0"/>
+                    <TextBox x:Name="Tb_Log" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top"
+                             Width="1178" Height="366" IsReadOnly="True" AcceptsReturn="True" AcceptsTab="True"
+                             Margin="0,180,0,0" />
                 </Grid>
             </TabItem>
         </TabControl>
 
     </Grid>
 </Window>
-    
-    

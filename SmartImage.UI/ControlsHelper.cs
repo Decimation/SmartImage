@@ -42,11 +42,6 @@ public static class ControlsHelper
 		return bitmapImage;
 	}
 
-	public static Uri GetComponentUri(string n, string resources = "Resources")
-	{
-		return new Uri($"pack://application:,,,/{AppUtil.Assembly.GetName().Name};component/{resources}/{n}");
-	}
-
 	public static bool IsLoaded(this RoutedEventArgs e)
 	{
 		var b = e is { Source: FrameworkElement { IsLoaded: false } fx };

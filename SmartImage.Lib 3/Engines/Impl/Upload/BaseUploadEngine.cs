@@ -59,7 +59,7 @@ public abstract class BaseUploadEngine : IClientSearchEngine
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 
-	public static BaseUploadEngine Default { get; set; } = CatboxEngine.Instance;
+	public static BaseUploadEngine Default { get; set; } = LitterboxEngine.Instance;
 
 	public void Dispose() { }
 }
@@ -99,6 +99,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		var responseMessage = response.ResponseMessage;
 
 		switch (responseMessage.StatusCode) {
+			case HttpStatusCode.BadGateway:
 			case HttpStatusCode.GatewayTimeout:
 				url = null;
 				ok  = false;
