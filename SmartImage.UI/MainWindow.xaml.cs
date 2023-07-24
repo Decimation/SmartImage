@@ -20,6 +20,8 @@ using System.Windows.Threading;
 using Flurl;
 using Kantan.Collections;
 using Kantan.Net.Utilities;
+using Kantan.Numeric;
+using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
 using Novus.OS;
@@ -153,7 +155,7 @@ public partial class MainWindow : Window, IDisposable
 
 	public SearchQuery Query { get; internal set; }
 
-	public ObservableCollection<ResultItem> Results { get; set; }
+	public ObservableCollection<ResultItem> Results { get; private set; }
 
 	public ObservableCollection<string> Queue { get; }
 
@@ -163,7 +165,7 @@ public partial class MainWindow : Window, IDisposable
 		set => Tb_Input.Text = value;
 	}
 
-	#region 
+	#region
 
 	public bool UseClipboard
 	{
@@ -201,12 +203,12 @@ public partial class MainWindow : Window, IDisposable
 
 	private int m_cntResults;
 
+	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
+
 	private static int _status = S_OK;
 
 	private const int S_NO = 0;
 	private const int S_OK = 1;
-
-	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
 	#endregion
 
@@ -219,9 +221,9 @@ public partial class MainWindow : Window, IDisposable
 		Interlocked.Exchange(ref _status, S_NO);
 
 		Btn_Run.IsEnabled = false;
-		bool b;
+		bool b, b2;
 
-		b = m_queries.TryGetValue(q, out var qq);
+		b = b2 = m_queries.TryGetValue(q, out var qq);
 
 		if (b) {
 			Query = qq;
@@ -234,12 +236,22 @@ public partial class MainWindow : Window, IDisposable
 		}
 
 		if (b) {
-			Tb_Status.Text = "Uploading...";
-			var u = await Query.UploadAsync(ct: m_ctsu.Token);
-			Tb_Status.Text = "Uploaded";
+			Url u;
 
-			if (!Url.IsValid(u)) {
-				return;
+			if (b2) {
+				u              = Query.Upload;
+				Tb_Status.Text = $"✔";
+
+			}
+			else {
+				Tb_Status.Text = "Uploading...";
+				u              = await Query.UploadAsync(ct: m_ctsu.Token);
+				Tb_Status.Text = "Uploaded";
+
+				if (!Url.IsValid(u)) {
+					return;
+				}
+
 			}
 
 			Tb_Upload.Text            = u;
@@ -250,7 +262,9 @@ public partial class MainWindow : Window, IDisposable
 				CacheOption    = BitmapCacheOption.OnLoad,
 				UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.CacheIfAvailable)
 			};
-			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}";
+
+			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}" +
+			               $" {ControlsHelper.FormatBytes(Query.Uni.Stream.Length)}/{ControlsHelper.FormatBytes(Query.Size)}";
 
 			m_queries.TryAdd(q, Query);
 
@@ -276,7 +290,7 @@ public partial class MainWindow : Window, IDisposable
 
 	private async Task RunAsync()
 	{
-		Clear(true);
+		ClearResults();
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -285,11 +299,11 @@ public partial class MainWindow : Window, IDisposable
 		return !string.IsNullOrWhiteSpace(InputText);
 	}
 
-	private async void ClipboardListenAsync(object? s, EventArgs e)
+	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
-		if (IsInputReady() /*|| Query != SearchQuery.Null*/) {
+		/*if (IsInputReady() /*|| Query != SearchQuery.Null#1#) {
 			return;
-		}
+		}*/
 
 		var cImg  = Clipboard.ContainsImage();
 		var cText = Clipboard.ContainsText();
@@ -442,7 +456,7 @@ public partial class MainWindow : Window, IDisposable
 	private void Restart(bool full = false)
 	{
 		Cancel();
-		Clear(full);
+		ClearResults(full);
 		Dispose(full);
 
 		InputText = string.Empty;
@@ -450,7 +464,18 @@ public partial class MainWindow : Window, IDisposable
 		ReloadToken();
 	}
 
-	private void Clear(bool full = false)
+	private void ClearQueryControls()
+	{
+		m_image = null;
+		Img_Preview.UpdateLayout();
+		Tb_Status.Text            = string.Empty;
+		InputText                 = string.Empty;
+		Tb_Info.Text              = string.Empty;
+		Tb_Upload.Text            = string.Empty;
+		Pb_Status.IsIndeterminate = false;
+	}
+
+	private void ClearResults(bool full = false)
 	{
 		m_cntResults = 0;
 
@@ -460,10 +485,10 @@ public partial class MainWindow : Window, IDisposable
 			}*/
 
 			Results.Clear();
-
+			ClearQueryControls();
 		}
 
-		// Btn_Run.IsEnabled = false;
+		Btn_Run.IsEnabled = true;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
 		Tb_Status.Text  = string.Empty;

@@ -8,7 +8,7 @@
         xmlns:local="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
-        Closing="Wnd_Main_Closing" Title="SmartImage">
+        Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded">
     <Window.Resources>
 
         <Style x:Key="CustomListViewItemStyle" TargetType="{x:Type ListViewItem}">
@@ -66,7 +66,7 @@
     </Window.Resources>
 
     <Grid>
-        <TabControl x:Name="Tb_Main">
+        <TabControl x:Name="Tc_Main">
             <TabItem x:Name="Ti_Main" Header="Main">
                 <Grid Background="{DynamicResource Black1}">
                     <ListView x:Name="Lv_Results" Margin="0,163,0,10"
@@ -160,7 +160,7 @@
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
                     <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="539,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Next_Click" Width="35" />
-                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="539,38,0,0"
+                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,38,0,0"
                             VerticalAlignment="Top" Click="Btn_Restart_Click" MouseEnter="Btn_Restart_MouseEnter"
                             MouseLeave="Btn_Restart_MouseLeave" />
                     <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="591,9,0,0"
@@ -172,6 +172,7 @@
                              Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,145,0,0" TextWrapping="Wrap"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" />
+                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Center" Margin="0,38,0,0" VerticalAlignment="Top" Click="Btn_Reset_Click"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"

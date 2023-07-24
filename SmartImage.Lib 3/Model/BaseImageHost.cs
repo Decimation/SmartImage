@@ -149,6 +149,7 @@ public abstract class BaseImageHost
 			return true;
 		}
 		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(UniSourcePredicate));
 			return true;
 		}
 	}

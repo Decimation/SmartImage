@@ -2,6 +2,8 @@
 // 2023-07-23 @ 11:50 AM
 
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -18,6 +20,7 @@ using Flurl;
 using Kantan.Net.Utilities;
 using Novus.OS;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using Color = System.Drawing.Color;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -30,7 +33,7 @@ public partial class MainWindow
 
 	#region
 
-	private async void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
+	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
 		if (Interlocked.CompareExchange(ref _status, S_OK, S_NO) == S_NO) {
 			return;
@@ -65,7 +68,12 @@ public partial class MainWindow
 
 		EnqueueAsync(files1);
 		var f1 = files1.FirstOrDefault();
-		InputText = f1;
+
+		if (!string.IsNullOrWhiteSpace(f1)) {
+			InputText = f1;
+
+		}
+
 		e.Handled = true;
 
 	}
@@ -110,9 +118,14 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private async void Lv_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private void Lv_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
+		if (e.OriginalSource != sender) {
+			return;
+		}
+
 		if (e.AddedItems.Count > 0) {
+
 			Restart();
 			var i = e.AddedItems[0] as string;
 			InputText = i;
@@ -135,8 +148,8 @@ public partial class MainWindow
 
 	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
 	{
-		var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-		Clear(ctrl);
+		// var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+		ClearResults(true);
 	}
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
@@ -145,6 +158,7 @@ public partial class MainWindow
 		Restart(ctrl);
 		Queue.Clear();
 	}
+
 	private void Btn_Restart_MouseEnter(object sender, MouseEventArgs e)
 	{
 		e.Handled = true;
@@ -155,7 +169,7 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private async void Btn_Next_Click(object sender, RoutedEventArgs e)
+	private void Btn_Next_Click(object sender, RoutedEventArgs e)
 	{
 		Next();
 	}
@@ -169,6 +183,12 @@ public partial class MainWindow
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
 	{
 		// Btn_Run.IsEnabled = false;
+	}
+
+	private void Btn_Reset_Click(object sender, RoutedEventArgs e)
+	{
+		Restart(true);
+		ClearQueryControls();
 	}
 
 	#region
@@ -254,7 +274,7 @@ public partial class MainWindow
 
 	private void Rb_UploadEngine_Catbox_Checked(object sender, RoutedEventArgs e)
 	{
-		if (!e.IsLoaded()) {
+		if (!e.IsLoaded() || e.OriginalSource != sender) {
 			return;
 		}
 
@@ -263,11 +283,12 @@ public partial class MainWindow
 
 	private void Rb_UploadEngine_Litterbox_Checked(object sender, RoutedEventArgs e)
 	{
-		if (!e.IsLoaded()) {
+		if (!e.IsLoaded() || e.OriginalSource != sender) {
 			return;
 		}
 
-		BaseUploadEngine.Default = LitterboxEngine.Instance;
+		BaseUploadEngine.Default = CatboxEngine.Instance;
+
 	}
 
 	#endregion
@@ -276,12 +297,14 @@ public partial class MainWindow
 
 	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
 	{
-		if (Config.Clipboard) {
+		if (UseClipboard) {
 			m_cbDispatch.Start();
 
 		}
 
 	}
+
+	private void Wnd_Main_Unloaded(object sender, RoutedEventArgs e) { }
 
 	private void Wnd_Main_Closed(object sender, EventArgs e)        { }
 	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }

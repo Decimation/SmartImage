@@ -2,6 +2,7 @@
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Reflection.PortableExecutable;
+using System.Runtime.Intrinsics.X86;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Novus.OS;
@@ -24,6 +25,7 @@ public abstract class BaseUploadEngine : IClientSearchEngine
 	protected BaseUploadEngine(string s)
 	{
 		EndpointUrl = s;
+		Timeout     = TimeSpan.FromSeconds(10);
 	}
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
@@ -42,6 +44,8 @@ public abstract class BaseUploadEngine : IClientSearchEngine
 
 	protected bool Paranoid { get; set; }
 
+	public TimeSpan Timeout { get; set; }
+
 	protected abstract Task<BaseUploadResponse> VerifyResultAsync(IFlurlResponse response,
 	                                                              CancellationToken ct = default);
 
@@ -59,7 +63,14 @@ public abstract class BaseUploadEngine : IClientSearchEngine
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 
-	public static BaseUploadEngine Default { get; set; } = LitterboxEngine.Instance;
+	public async Task<bool> IsAlive()
+	{
+		using var res = await ((IClientSearchEngine) this).GetEndpointResponse(Timeout);
+
+		return !res.ResponseMessage.IsSuccessStatusCode;
+	}
+
+	public static BaseUploadEngine Default { get; set; } = CatboxEngine.Instance;
 
 	public void Dispose() { }
 }
@@ -71,9 +82,14 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		Verify(file);
 
 		var response = await EndpointUrl
-			               .ConfigureRequest(r => r.OnError = rx =>
+			               .ConfigureRequest(r =>
 			               {
-				               rx.ExceptionHandled = true;
+				               // r.Timeout = TimeSpan.FromSeconds(10);
+
+				               r.OnError = rx =>
+				               {
+					               rx.ExceptionHandled = true;
+				               };
 			               })
 			               .PostMultipartAsync(mp =>
 				                                   mp.AddFile("fileToUpload", file)
@@ -81,7 +97,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 					                                   .AddString("time", "1h")
 			                                   , ct);
 
-		return await VerifyResultAsync(response, ct).ConfigureAwait(false);
+		return await VerifyResultAsync(response, ct);
 	}
 
 	protected override async Task<BaseUploadResponse> VerifyResultAsync(

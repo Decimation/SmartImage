@@ -39,7 +39,7 @@ public class ResultItem : IDisposable
 		else if (Status.IsUnknown()) {
 			StatusImage = AppComponents.help;
 		}
-		else /*if (Status.IsError())*/ {
+		else if (Status.IsError()) {
 			StatusImage = AppComponents.exclamation;
 		}
 

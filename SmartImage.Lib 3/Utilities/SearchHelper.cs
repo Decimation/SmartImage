@@ -9,7 +9,7 @@ public static class SearchHelper
 {
 	public static bool IsSuccessful(this SearchResultStatus s)
 	{
-		return !s.IsError();
+		return (!s.IsError() && !s.IsUnknown()) || s is SearchResultStatus.Success;
 	}
 
 	public static bool IsUnknown(this SearchResultStatus s)

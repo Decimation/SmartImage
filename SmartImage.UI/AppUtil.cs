@@ -1,4 +1,5 @@
-﻿global using R2 = SmartImage.UI.Resources;
+﻿
+global using R2 = SmartImage.UI.Resources;
 global using R1 = SmartImage.Lib.Resources;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using Novus.OS;
-
+#nullable disable
 namespace SmartImage.UI;
 
 public static class AppUtil

@@ -117,8 +117,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Update()
 	{
-		if (Status is SearchResultStatus.IllegalInput or SearchResultStatus.Cooldown 
-		    or SearchResultStatus.Failure or SearchResultStatus.Unavailable) {
+		if (Status.IsError()) {
 			return;
 		}
 
@@ -126,6 +125,9 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 		if (!any) {
 			Status = SearchResultStatus.NoResults;
+		}
+		else {
+			Status = SearchResultStatus.Success;
 		}
 		/*if (!any && Status != SearchResultStatus.None) {
 			Status = SearchResultStatus.NoResults;

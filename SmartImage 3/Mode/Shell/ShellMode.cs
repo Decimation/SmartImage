@@ -28,11 +28,13 @@ using Attribute = Terminal.Gui.Attribute;
 using Clipboard = Novus.Win32.Clipboard;
 using Window = Terminal.Gui.Window;
 using Kantan.Monad;
+#pragma warning disable CS8625
 
 // ReSharper disable IdentifierTypo
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE0060
+// #nullable disable
 namespace SmartImage.Mode.Shell;
 
 [NoReorder]
@@ -290,7 +292,7 @@ public sealed partial class ShellMode : IDisposable, IMode
 
 	private object m_cbCallbackTok;
 
-	private Func<bool>? m_runIdleTok;
+	private Func<bool> m_runIdleTok;
 
 	private readonly List<ustring> m_clipboard;
 

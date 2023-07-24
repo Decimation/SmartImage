@@ -22,7 +22,10 @@ public class ArchiveMoeEngine : WebSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
 
 	protected string Base64Hash { get; set; }
 
@@ -36,14 +39,14 @@ public class ArchiveMoeEngine : WebSearchEngine
 		return b64;
 	}
 
-	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
+	protected override ValueTask<Url> GetRawUrlAsync(SearchQuery query)
 	{
 		Base64Hash = GetHash(query);
 
-		return BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash);
+		return ValueTask.FromResult(BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 
-	protected override async ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
 		// ReSharper disable PossibleNullReferenceException
 
@@ -79,7 +82,7 @@ public class ArchiveMoeEngine : WebSearchEngine
 			Text     = text
 		};
 
-		return p.Convert(r);
+		return ValueTask.FromResult(p.Convert(r));
 
 		// ReSharper restore PossibleNullReferenceException
 

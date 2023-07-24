@@ -42,9 +42,25 @@ public static class ControlsHelper
 		return bitmapImage;
 	}
 
+	public static string FormatBytes(long bytes)
+	{
+		string[] suffixes = { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+
+		if (bytes == 0) {
+			return "0 " + suffixes[0];
+		}
+
+		const int newBase = 1000;
+
+		int    magnitude    = (int) Math.Floor(Math.Log(bytes, newBase));
+		double adjustedSize = bytes / Math.Pow(newBase, magnitude);
+
+		return string.Format("{0:n2} {1}", adjustedSize, suffixes[magnitude]);
+	}
+
 	public static bool IsLoaded(this RoutedEventArgs e)
 	{
-		var b = e is { Source: FrameworkElement { IsLoaded: false } fx };
+		var b = e is { Source: FrameworkElement { IsLoaded: true } fx };
 
 		return b;
 	}
