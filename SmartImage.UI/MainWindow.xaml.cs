@@ -91,11 +91,13 @@ public partial class MainWindow : Window, IDisposable
 		{
 			Interval = TimeSpan.FromSeconds(1)
 		};
-		m_bgDispatch.Tick        += Dispatch;
-		m_uni                    =  new();
-		m_clipboard              =  new();
-		Cb_ContextMenu.IsChecked =  AppUtil.IsContextMenuAdded;
-		m_resultMap              =  new();
+		m_bgDispatch.Tick += Dispatch;
+
+		m_uni                    = new();
+		m_clipboard              = new();
+		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
+		m_resultMap              = new();
+		History                  = new ObservableCollection<ItemHistory>();
 
 		var e = Args.GetEnumerator();
 
@@ -159,6 +161,10 @@ public partial class MainWindow : Window, IDisposable
 
 	public ObservableCollection<string> Queue { get; }
 
+	public ObservableCollection<ItemHistory> History { get; }
+
+	private readonly List<string> m_clipboard;
+
 	public string InputText
 	{
 		get => Tb_Input.Text;
@@ -186,8 +192,6 @@ public partial class MainWindow : Window, IDisposable
 	#region
 
 	private readonly ConcurrentDictionary<ResultItem, UniSource[]> m_uni;
-
-	private readonly List<string> m_clipboard;
 
 	private readonly DispatcherTimer m_cbDispatch;
 	private readonly DispatcherTimer m_bgDispatch;
@@ -305,13 +309,13 @@ public partial class MainWindow : Window, IDisposable
 			return;
 		}*/
 
-		var cImg  = Clipboard.ContainsImage();
-		var cText = Clipboard.ContainsText();
-		var cFile = Clipboard.ContainsFileDropList();
+		var cImg  = System.Windows.Clipboard.ContainsImage();
+		var cText = System.Windows.Clipboard.ContainsText();
+		var cFile = System.Windows.Clipboard.ContainsFileDropList();
 
 		if (cImg) {
 
-			var bmp = Clipboard.GetImage();
+			var bmp = System.Windows.Clipboard.GetImage();
 			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
 			var fn = Path.GetTempFileName().Split('.')[0] + ".png";
 			var ms = File.Open(fn, FileMode.OpenOrCreate);
@@ -321,6 +325,13 @@ public partial class MainWindow : Window, IDisposable
 			enc.Save(ms);
 			ms.Dispose();
 
+			History.Add(new ItemHistory(fn)
+			{
+				Source = ItemSource.Clipboard,
+				Type   = ItemType.File
+
+			});
+
 			Application.Current.Dispatcher.InvokeAsync(() =>
 			{
 				return SetQueryAsync(fn);
@@ -329,13 +340,20 @@ public partial class MainWindow : Window, IDisposable
 		}
 
 		else if (cText) {
-			var txt = (string) Clipboard.GetData(DataFormats.Text);
+			var txt = (string) System.Windows.Clipboard.GetData(DataFormats.Text);
 
 			if (SearchQuery.IsValidSourceType(txt)) {
 
 				if (!IsInputReady() && !m_clipboard.Contains(txt)) {
 					m_clipboard.Add(txt);
 					InputText = txt;
+
+					History.Add(new ItemHistory(txt)
+					{
+						Source = ItemSource.Clipboard,
+						Type   = ItemType.Uri
+
+					});
 					// await SetQueryAsync(txt);
 				}
 			}
@@ -343,13 +361,23 @@ public partial class MainWindow : Window, IDisposable
 		}
 
 		else if (cFile) {
-			var files = Clipboard.GetFileDropList();
+			var files = System.Windows.Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
 			rg = rg.Where(x => !m_clipboard.Contains(x)).ToArray();
 			EnqueueAsync(rg);
+
 			m_clipboard.AddRange(rg);
 
+			foreach (var v in rg) {
+				History.Add(new ItemHistory(v)
+				{
+					Source = ItemSource.Clipboard,
+					Type   = ItemType.File
+
+				});
+
+			}
 		}
 
 		// Thread.Sleep(1000);
@@ -414,6 +442,7 @@ public partial class MainWindow : Window, IDisposable
 
 			if (!Queue.Contains(s)) {
 				Queue.Add(s);
+
 				c++;
 			}
 		}
@@ -608,5 +637,31 @@ public partial class MainWindow : Window, IDisposable
 
 		Pb_Status.IsIndeterminate = false;
 
+	}
+}
+
+public enum ItemSource
+{
+	Clipboard,
+	DragDrop,
+	Input
+}
+
+public enum ItemType
+{
+	File,
+	Uri,
+}
+
+public class ItemHistory
+{
+	public string Value { get; }
+
+	public ItemSource Source { get; init; }
+	public ItemType   Type   { get; init; }
+
+	public ItemHistory(string value)
+	{
+		Value = value;
 	}
 }

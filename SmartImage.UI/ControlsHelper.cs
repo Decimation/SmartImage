@@ -50,10 +50,8 @@ public static class ControlsHelper
 			return "0 " + suffixes[0];
 		}
 
-		const int newBase = 1000;
-
-		int    magnitude    = (int) Math.Floor(Math.Log(bytes, newBase));
-		double adjustedSize = bytes / Math.Pow(newBase, magnitude);
+		int    magnitude    = (int) Math.Floor(Math.Log(bytes, 1024));
+		double adjustedSize = bytes / Math.Pow(1024, magnitude);
 
 		return string.Format("{0:n2} {1}", adjustedSize, suffixes[magnitude]);
 	}
