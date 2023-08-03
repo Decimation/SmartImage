@@ -133,7 +133,7 @@ public partial class MainWindow
 		// await SetQueryAsync(InputText);
 		Btn_Run.IsEnabled = false;
 		// Clear(true);
-
+		ClearResults(true);
 		Application.Current.Dispatcher.InvokeAsync(RunAsync);
 	}
 
@@ -141,6 +141,12 @@ public partial class MainWindow
 	{
 		// var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		ClearResults(true);
+	}
+
+	private void Btn_Reset_Click(object sender, RoutedEventArgs e)
+	{
+		Restart(true);
+		ClearQueryControls();
 	}
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
@@ -174,12 +180,6 @@ public partial class MainWindow
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
 	{
 		// Btn_Run.IsEnabled = false;
-	}
-
-	private void Btn_Reset_Click(object sender, RoutedEventArgs e)
-	{
-		Restart(true);
-		ClearQueryControls();
 	}
 
 	#region
@@ -291,7 +291,7 @@ public partial class MainWindow
 			return;
 		}
 
-		BaseUploadEngine.Default = CatboxEngine.Instance;
+		BaseUploadEngine.Default = LitterboxEngine.Instance;
 
 	}
 

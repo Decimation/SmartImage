@@ -6,7 +6,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartImage.UI"
-        xmlns:themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919">
@@ -87,9 +86,9 @@
                              PreviewDragOver="Tb_Input_PreviewDragOver" />
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5" />
-                    <Label x:Name="Lb_Input2" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
+                    <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
-                    <Label x:Name="Lb_Input3" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
+                    <Label x:Name="Lb_Info" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"

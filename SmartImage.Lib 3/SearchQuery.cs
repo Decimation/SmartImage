@@ -133,8 +133,18 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static bool IsValidSourceType(object str)
 	{
-		var v = UniHandler.GetUniType(str, out _);
-		return v is UniSourceType.Uri or UniSourceType.File or UniSourceType.Stream;
+		var v      = UniHandler.GetUniType(str, out var o2);
+		var isFile = v == UniSourceType.File; 
+		var isUri = v == UniSourceType.Uri;
+		var isStream  = v== UniSourceType.Stream;
+		var  ok = isFile || isUri|| isStream;
+
+		if (isFile) {
+			var ext = Path.GetExtension(str.ToString())[1..];
+			return FileType.Image.Any(x => x.Name == ext);
+		}
+
+		return ok;
 	}
 
 	public void Dispose()

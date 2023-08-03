@@ -5,6 +5,7 @@ using System.Json;
 using System.Net;
 using System.Text;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
@@ -103,7 +104,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 			// .AsParallel()
 			.Select(x => x.Convert(result))
 			.Where(o => o != null)
-			.OrderByDescending(e => e.Similarity)
+			// .OrderByDescending(e => e.Similarity)
 			.ToList();
 
 		if (!imageResults.Any()) {
@@ -488,6 +489,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 			{
 				Url         = urls.FirstOrDefault(),
 				Similarity  = Math.Round(Similarity, 2),
+				// Similarity = Similarity,
 				Description = Kantan.Text.Strings.NormalizeNull(idxStr),
 				Artist      = Kantan.Text.Strings.NormalizeNull(Creator),
 				Source      = Kantan.Text.Strings.NormalizeNull(Material),

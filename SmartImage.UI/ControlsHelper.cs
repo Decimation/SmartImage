@@ -42,20 +42,6 @@ public static class ControlsHelper
 		return bitmapImage;
 	}
 
-	public static string FormatBytes(long bytes)
-	{
-		string[] suffixes = { "B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
-
-		if (bytes == 0) {
-			return "0 " + suffixes[0];
-		}
-
-		int    magnitude    = (int) Math.Floor(Math.Log(bytes, 1024));
-		double adjustedSize = bytes / Math.Pow(1024, magnitude);
-
-		return string.Format("{0:n2} {1}", adjustedSize, suffixes[magnitude]);
-	}
-
 	public static bool IsLoaded(this RoutedEventArgs e)
 	{
 		var b = e is { Source: FrameworkElement { IsLoaded: true } fx };

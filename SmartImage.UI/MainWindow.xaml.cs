@@ -18,6 +18,7 @@ using System.Windows.Threading;
 using Flurl;
 using Kantan.Collections;
 using Kantan.Net.Utilities;
+using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
 using Novus.OS;
@@ -179,7 +180,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		set => AppUtil.HandleContextMenu(value);
 	}
 
-	public bool QueueEnabled => !Client.IsRunning;
+	public bool IsNotRunning => !Client.IsRunning;
 
 	#endregion
 
@@ -187,7 +188,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	private readonly ConcurrentDictionary<ResultItem, UniSource[]> m_uni;
+	private readonly ConcurrentDictionary<UniResultItem, string> m_uni;
 
 	private readonly DispatcherTimer m_cbDispatch;
 	private readonly DispatcherTimer m_bgDispatch;
@@ -251,6 +252,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Tb_Status.Text = "Uploaded";
 
 				if (!Url.IsValid(u)) {
+					Pb_Status.IsIndeterminate = false;
+					Tb_Status.Text            = "-";
+					Tb_Info2.Text             = "Invalid";
+					Btn_Run.IsEnabled         = true;
 					return;
 				}
 
@@ -266,7 +271,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			};
 
 			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}" +
-			               $" {ControlsHelper.FormatBytes(Query.Uni.Stream.Length)}/{ControlsHelper.FormatBytes(Query.Size)}";
+			               $" {FormatHelper.FormatBytes(Query.Uni.Stream.Length)}/{FormatHelper.FormatBytes(Query.Size)}";
 
 			m_queries.TryAdd(q, Query);
 
@@ -293,7 +298,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private async Task RunAsync()
 	{
 		Lv_Queue.IsEnabled = false;
-		ClearResults();
+		// ClearResults();
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -363,7 +368,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var files = Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
-			rg = rg.Where(x => !m_clipboard.Contains(x)).ToArray();
+			rg = rg.Where(x => !m_clipboard.Contains(x) && SearchQuery.IsValidSourceType(x)).ToArray();
 			EnqueueAsync(rg);
 
 			m_clipboard.AddRange(rg);
@@ -385,6 +390,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void OnComplete(object sender, SearchResult[] e)
 	{
 		Lv_Queue.IsEnabled = true;
+
 		if (m_cts.IsCancellationRequested) {
 			Tb_Status.Text = "Cancelled";
 		}
@@ -406,7 +412,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		lock (m_lock) {
 			int i = 0;
 
-			var allResults = result.AllResults;
+			var allResults = result.Results;
 
 			var sri1 = new SearchResultItem(result)
 			{
@@ -417,7 +423,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			foreach (SearchResultItem sri in allResults) {
 				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
+				int j = 0;
 
+				foreach (var ssri in sri.Sisters) {
+					Results.Add(new ResultItem(ssri, $"{ssri.Root.Engine.Name} #{i}.{++j}"));
+
+				}
 			}
 		}
 	}
@@ -446,7 +457,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 
-		Tb_Status.Text = $"Added {c} items to queue";
+		Tb_Info2.Text = $"Added {c} items to queue";
 	}
 
 	private void Next()
@@ -501,6 +512,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Info.Text              = string.Empty;
 		Tb_Upload.Text            = string.Empty;
 		Pb_Status.IsIndeterminate = false;
+		Tb_Info2.Text             = string.Empty;
 	}
 
 	private void ClearResults(bool full = false)
@@ -513,7 +525,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}*/
 
 			Results.Clear();
-			ClearQueryControls();
+			// ClearQueryControls();
 		}
 
 		Btn_Run.IsEnabled = true;
@@ -575,14 +587,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void ChangeInfo2(ResultItem ri)
 	{
-		Tb_Info2.Text = $"{ri.Status}";
+		if (ri is UniResultItem { Uni: { } } uri) {
+			Tb_Info2.Text = $"{uri.Uni.FileTypes[0]}";
+
+		}
+		else {
+			Tb_Info2.Text = $"{ri.Name}";
+		}
 	}
 
 	private async Task DownloadResultAsync(UniResultItem ri)
 	{
 		var uni = ri.Uni;
 
-		var    url    = (Url) uni.Value.ToString();
+		var    url  = (Url) uni.Value.ToString();
 		string path = url.GetFileName();
 
 		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
@@ -595,12 +613,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		FileSystem.ExploreFile(path2);
 		fs.Dispose();
 		ri.CanDownload = false;
+		m_uni.TryAdd(ri, path2);
+
 		// u.Dispose();
 	}
 
 	private async Task ScanResultAsync(ResultItem ri)
 	{
-		if (m_uni.ContainsKey(ri)) {
+		if (!ri.CanScan) {
 			return;
 		}
 
@@ -616,12 +636,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Debug.WriteLine($"{e.Message}");
 		}
 
-		ri.CanScan     = d;
+		ri.CanScan = !d;
 
 		if (d) {
 			Debug.WriteLine($"{ri}");
-			var resultUni = ri.Result.Uni;
-			m_uni.TryAdd(ri, resultUni);
+			var resultUni   = ri.Result.Uni;
 			var resultItems = new ResultItem[resultUni.Length];
 
 			for (int i = 0; i < resultUni.Length; i++) {
@@ -629,8 +648,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				{
 					StatusImage = AppComponents.picture,
 					CanDownload = true,
-					CanScan = false,
-					CanOpen = true
+					CanScan     = false,
+					CanOpen     = true
 				};
 				resultItems[i] = rii;
 				Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
