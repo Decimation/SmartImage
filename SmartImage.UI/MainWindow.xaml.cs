@@ -2,10 +2,12 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Cache;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -31,7 +33,7 @@ namespace SmartImage.UI;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window, IDisposable
+public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
 	private static readonly string[] Args;
 
@@ -207,6 +209,13 @@ public partial class MainWindow : Window, IDisposable
 
 	private const int S_NO = 0;
 	private const int S_OK = 1;
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
 
 	#endregion
 
@@ -572,9 +581,8 @@ public partial class MainWindow : Window, IDisposable
 		Tb_Info2.Text = $"{ri.Status}";
 	}
 
-	private async Task DownloadResultAsync()
+	private async Task DownloadResultAsync(UniResultItem ri)
 	{
-		var ri = ((UniResultItem) Lv_Results.SelectedItem);
 
 		var u = ri.Uni;
 
@@ -590,14 +598,15 @@ public partial class MainWindow : Window, IDisposable
 		await u.Stream.CopyToAsync(fs);
 		FileSystem.ExploreFile(path2);
 		fs.Dispose();
+		ri.CanDownload = false;
 		// u.Dispose();
 	}
 
-	private async Task ScanResultAsync()
+	private async Task ScanResultAsync(ResultItem ri)
 	{
-		var ri = ((ResultItem) Lv_Results.SelectedItem);
 
 		if (m_uni.ContainsKey(ri)) {
+			ri.CanScan = false;
 			return;
 		}
 
@@ -613,6 +622,8 @@ public partial class MainWindow : Window, IDisposable
 			Debug.WriteLine($"{e.Message}");
 		}
 
+		ri.CanScan     = d;
+
 		if (d) {
 			Debug.WriteLine($"{ri}");
 			var resultUni = ri.Result.Uni;
@@ -622,7 +633,10 @@ public partial class MainWindow : Window, IDisposable
 			for (int i = 0; i < resultUni.Length; i++) {
 				var rii = new UniResultItem(ri, i)
 				{
-					StatusImage = AppComponents.picture
+					StatusImage = AppComponents.picture,
+					CanDownload = true,
+					CanScan = false,
+					CanOpen = true
 				};
 				resultItems[i] = rii;
 				Results.Insert(Results.IndexOf(ri) + 1 + i, rii);

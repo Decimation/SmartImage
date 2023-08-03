@@ -197,7 +197,7 @@ public partial class MainWindow
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
 		if (Lv_Results.SelectedItem is ResultItem si) {
-			HttpUtilities.TryOpenUrl(si.Result.Url);
+			si.Open();
 		}
 	}
 
@@ -226,12 +226,14 @@ public partial class MainWindow
 
 		switch (key) {
 			case Key.D when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(DownloadResultAsync);
+				Application.Current.Dispatcher.InvokeAsync(
+					() => DownloadResultAsync(((UniResultItem) Lv_Results.SelectedItem)));
 
 				break;
 			case Key.S when ctrl:
 
-				Application.Current.Dispatcher.InvokeAsync(ScanResultAsync);
+				Application.Current.Dispatcher.InvokeAsync(
+					() => ScanResultAsync(((ResultItem) Lv_Results.SelectedItem)));
 
 				break;
 		}
@@ -324,4 +326,25 @@ public partial class MainWindow
 	#endregion
 
 	#endregion
+	
+	private void OpenItem_Click(object sender, RoutedEventArgs e)
+	{
+		var ri = ((ResultItem) Lv_Results.SelectedItem);
+		ri.Open();
+	}
+
+	private void DownloadItem_Click(object sender, RoutedEventArgs e)
+	{
+		if (Lv_Results.SelectedItem is UniResultItem uri) {
+			Application.Current.Dispatcher.InvokeAsync(
+				() => DownloadResultAsync(uri));
+
+		}
+		e.Handled = true;
+	}
+	private void ScanItem_Click(object sender, RoutedEventArgs e)
+	{
+		Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(((ResultItem) Lv_Results.SelectedItem)));
+		e.Handled = true;
+	}
 }

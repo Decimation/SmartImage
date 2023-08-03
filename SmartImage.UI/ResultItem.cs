@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using Flurl;
+using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
@@ -24,14 +25,20 @@ public class ResultItem : IDisposable
 	public BitmapImage StatusImage { get; internal set; }
 
 	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
-	public Url?   Url  { get; protected set; }
+	public Url? Url { get; protected set; }
+
+	public bool CanScan     { get; internal set; }
+	public bool CanOpen     { get; internal set; }
+	public bool CanDownload { get; internal set; }
 
 	public ResultItem(SearchResultItem result, string name)
 	{
-		Result = result;
-		Name   = name;
-		Status = result.Root.Status;
-		Url    = result.Url;
+		Result  = result;
+		Name    = name;
+		Status  = result.Root.Status;
+		Url     = result.Url;
+		CanOpen = Url.IsValid(Url);
+		CanScan = true;
 
 		if (Status.IsSuccessful()) {
 			StatusImage = AppComponents.accept;
@@ -45,6 +52,12 @@ public class ResultItem : IDisposable
 
 	}
 
+	public bool Open()
+	{
+		return HttpUtilities.TryOpenUrl(Url);
+
+	}
+
 	public void Dispose()
 	{
 		Result.Dispose();
@@ -53,7 +66,7 @@ public class ResultItem : IDisposable
 
 public class UniResultItem : ResultItem
 {
-	public UniResultItem(ResultItem ri, int? idx) 
+	public UniResultItem(ResultItem ri, int? idx)
 		: base(ri.Result, $"{ri.Name} ({idx})")
 	{
 		UniIndex    = idx;
