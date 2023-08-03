@@ -179,6 +179,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		set => AppUtil.HandleContextMenu(value);
 	}
 
+	public bool QueueEnabled => !Client.IsRunning;
+
 	#endregion
 
 	#endregion
@@ -209,13 +211,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private const int S_NO = 0;
 	private const int S_OK = 1;
-
-	public event PropertyChangedEventHandler? PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
 
 	#endregion
 
@@ -297,6 +292,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task RunAsync()
 	{
+		Lv_Queue.IsEnabled = false;
 		ClearResults();
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
@@ -388,6 +384,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void OnComplete(object sender, SearchResult[] e)
 	{
+		Lv_Queue.IsEnabled = true;
 		if (m_cts.IsCancellationRequested) {
 			Tb_Status.Text = "Cancelled";
 		}
@@ -522,7 +519,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Btn_Run.IsEnabled = true;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
-		Tb_Status.Text  = string.Empty;
+		// Tb_Status.Text  = string.Empty;
 	}
 
 	public void Dispose()
@@ -583,19 +580,18 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task DownloadResultAsync(UniResultItem ri)
 	{
+		var uni = ri.Uni;
 
-		var u = ri.Uni;
-
-		var    v    = (Url) u.Value.ToString();
-		string path = v.GetFileName();
+		var    url    = (Url) uni.Value.ToString();
+		string path = url.GetFileName();
 
 		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
 
 		var fs = File.OpenWrite(path2);
-		u.Stream.TrySeek();
+		uni.Stream.TrySeek();
 
 		ri.StatusImage = AppComponents.picture_save;
-		await u.Stream.CopyToAsync(fs);
+		await uni.Stream.CopyToAsync(fs);
 		FileSystem.ExploreFile(path2);
 		fs.Dispose();
 		ri.CanDownload = false;
@@ -604,9 +600,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task ScanResultAsync(ResultItem ri)
 	{
-
 		if (m_uni.ContainsKey(ri)) {
-			ri.CanScan = false;
 			return;
 		}
 
@@ -645,6 +639,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Pb_Status.IsIndeterminate = false;
 
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 }
 

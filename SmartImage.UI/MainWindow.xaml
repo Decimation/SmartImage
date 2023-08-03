@@ -6,6 +6,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartImage.UI"
+        xmlns:themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero2"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919">

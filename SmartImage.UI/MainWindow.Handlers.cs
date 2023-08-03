@@ -2,27 +2,17 @@
 // 2023-07-23 @ 11:50 AM
 
 using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
-using Flurl;
 using Kantan.Net.Utilities;
 using Novus.OS;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
-using Color = System.Drawing.Color;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace SmartImage.UI;
@@ -326,7 +316,9 @@ public partial class MainWindow
 	#endregion
 
 	#endregion
-	
+
+	#region 
+
 	private void OpenItem_Click(object sender, RoutedEventArgs e)
 	{
 		var ri = ((ResultItem) Lv_Results.SelectedItem);
@@ -347,4 +339,6 @@ public partial class MainWindow
 		Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(((ResultItem) Lv_Results.SelectedItem)));
 		e.Handled = true;
 	}
+
+	#endregion
 }
