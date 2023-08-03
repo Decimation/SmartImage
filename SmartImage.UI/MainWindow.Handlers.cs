@@ -78,11 +78,6 @@ public partial class MainWindow
 
 	}
 
-	private void Tb_Upload_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-	{
-		HttpUtilities.TryOpenUrl(Query.Upload);
-	}
-
 	private void Tb_Info_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
 		var s = Query.Uni.Value.ToString();
@@ -94,6 +89,11 @@ public partial class MainWindow
 			HttpUtilities.TryOpenUrl(s);
 
 		}
+	}
+
+	private void Tb_Upload_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+		HttpUtilities.TryOpenUrl(Query.Upload);
 	}
 
 	#endregion
@@ -130,6 +130,7 @@ public partial class MainWindow
 			var i = e.AddedItems[0] as string;
 			InputText = i;
 			// Next(i);
+
 		}
 	}
 
@@ -200,8 +201,19 @@ public partial class MainWindow
 		}
 	}
 
-	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e)  { }
-	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e) { }
+	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e) { }
+
+	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	{
+		if (e.AddedItems.Count > 0) {
+			if (e.AddedItems[0] is ResultItem ri) {
+				ChangeInfo2(ri);
+			}
+
+		}
+
+		e.Handled = true;
+	}
 
 	private void Lv_Results_KeyDown(object sender, KeyEventArgs e)
 	{
@@ -312,5 +324,4 @@ public partial class MainWindow
 	#endregion
 
 	#endregion
-	
 }

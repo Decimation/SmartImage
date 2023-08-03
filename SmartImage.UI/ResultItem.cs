@@ -25,8 +25,6 @@ public class ResultItem : IDisposable
 
 	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
 	public Url?   Url  { get; protected set; }
-	
-	public string Info { get; internal set; }
 
 	public ResultItem(SearchResultItem result, string name)
 	{
@@ -45,8 +43,6 @@ public class ResultItem : IDisposable
 			StatusImage = AppComponents.exclamation;
 		}
 
-		Info = $"{Status}";
-
 	}
 
 	public void Dispose()
@@ -63,7 +59,6 @@ public class UniResultItem : ResultItem
 		UniIndex    = idx;
 		Url         = Uni?.Value.ToString();
 		StatusImage = AppComponents.picture;
-		Info        = $"Direct image";
 	}
 
 	public UniSource? Uni

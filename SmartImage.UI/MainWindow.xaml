@@ -15,7 +15,7 @@
             <Setter Property="Background" Value="LightGray" />
             <Setter Property="Foreground" Value="Black" />
             <!-- <Setter Property="ToolTip" Value="{Binding Result.Info}"/> -->
-                <!-- <Setter Property="FontWeight" Value="Bold" /> -->
+            <!-- <Setter Property="FontWeight" Value="Bold" /> -->
 
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="SauceNao">
@@ -70,6 +70,10 @@
         <TabControl x:Name="Tc_Main" Background="{DynamicResource Black1}">
             <TabItem x:Name="Ti_Main" Header="Main" >
                 <Grid Background="{DynamicResource Black1}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="47*"/>
+                        <RowDefinition Height="231*"/>
+                    </Grid.RowDefinitions>
                     <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="57,8,0,0" VerticalAlignment="Top"
                              Width="437" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
@@ -90,13 +94,14 @@
                     <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,38,0,0"
                             VerticalAlignment="Top" Click="Btn_Restart_Click" MouseEnter="Btn_Restart_MouseEnter"
                             MouseLeave="Btn_Restart_MouseLeave" Width="49" />
+                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="591,38,0,0" VerticalAlignment="Top" Click="Btn_Reset_Click" Width="41"/>
                     <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="591,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" />
                     <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
                               DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
                               Background="{DynamicResource Black2}" Foreground="White" Width="320" Height="150"
                               SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top"
-                              KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right">
+                              KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right" Grid.RowSpan="2">
                         <ListView.View>
                             <GridView>
                                 <!-- <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="85"/> -->
@@ -105,13 +110,13 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
-                    <Border Height="150" Margin="1038,8,10,398" Width="150" Background="#FFEFEFEF"
-                            VerticalAlignment="Top" HorizontalAlignment="Right">
-                        <Image x:Name="Img_Preview" Width="150" VerticalAlignment="Top" />
+                    <Border Height="150" Margin="0,8,10,0" Width="150" Background="#FFEFEFEF"
+                            VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2">
+                        <Image x:Name="Img_Preview" Width="150" VerticalAlignment="Top" HorizontalAlignment="Right" />
                     </Border>
-                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,148,0,0"
-                                 VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" />
-                    <ListView x:Name="Lv_Results" Margin="0,163,0,10"
+                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
+                                 VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
+                    <ListView x:Name="Lv_Results" Margin="0,69,0,10"
                               d:ItemsSource="{Binding Results}"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
@@ -120,7 +125,7 @@
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
 
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown"
-                              ScrollViewer.CanContentScroll="True">
+                              ScrollViewer.CanContentScroll="True" Grid.Row="1">
 
                         <!--<ListView.View>
                             <GridView>
@@ -165,15 +170,15 @@
                         </ListView.View>
 
                     </ListView>
-                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,37,0,0" TextWrapping="Wrap"
-                             VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20"
+                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,0,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Center" Width="437" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
                     <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
-                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,145,0,0" TextWrapping="Wrap"
-                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" />
-                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="591,38,0,0" VerticalAlignment="Top" Click="Btn_Reset_Click" Width="41"/>
+                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,51,0,0" TextWrapping="Wrap"
+                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
+                    <TextBlock x:Name="Tb_Info2" HorizontalAlignment="Left" Margin="10,33,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="White" Text="..." Grid.Row="1"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
@@ -221,9 +226,9 @@
                              Margin="0,180,0,0" />
                 </Grid>
             </TabItem>
-            <TabItem x:Name="Ti_History" HorizontalAlignment="Center" Height="20" Header="TabItem" VerticalAlignment="Center" Width="54">
+            <TabItem x:Name="Ti_History" HorizontalAlignment="Center" Height="20" Header="History" VerticalAlignment="Center" Width="54">
                 <Grid Background="{DynamicResource Black1}" Height="554" Width="1194">
-                    <ListView x:Name="Lv_History" d:ItemsSource="{Binding m_clipboard}" Margin="10,168,741,10">
+                    <ListView x:Name="Lv_History" d:ItemsSource="{Binding History}" Margin="10,168,741,10">
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn/>

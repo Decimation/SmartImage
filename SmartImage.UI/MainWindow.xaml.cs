@@ -567,6 +567,11 @@ public partial class MainWindow : Window, IDisposable
 
 	#endregion
 
+	private void ChangeInfo2(ResultItem ri)
+	{
+		Tb_Info2.Text = $"{ri.Status}";
+	}
+
 	private async Task DownloadResultAsync()
 	{
 		var ri = ((UniResultItem) Lv_Results.SelectedItem);
