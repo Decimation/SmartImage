@@ -14,7 +14,8 @@
         <Style x:Key="CustomListViewItemStyle" TargetType="{x:Type ListViewItem}">
             <Setter Property="Background" Value="LightGray" />
             <Setter Property="Foreground" Value="Black" />
-            <!-- <Setter Property="FontWeight" Value="Bold" /> -->
+            <!-- <Setter Property="ToolTip" Value="{Binding Result.Info}"/> -->
+                <!-- <Setter Property="FontWeight" Value="Bold" /> -->
 
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="SauceNao">

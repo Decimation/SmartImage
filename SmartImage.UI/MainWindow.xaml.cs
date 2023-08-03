@@ -2,35 +2,29 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Cache;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Flurl;
 using Kantan.Collections;
 using Kantan.Net.Utilities;
-using Kantan.Numeric;
-using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
 using Novus.OS;
+using Novus.Streams;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
-using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace SmartImage.UI;
 
@@ -163,8 +157,6 @@ public partial class MainWindow : Window, IDisposable
 
 	public ObservableCollection<ItemHistory> History { get; }
 
-	private readonly List<string> m_clipboard;
-
 	public string InputText
 	{
 		get => Tb_Input.Text;
@@ -175,14 +167,14 @@ public partial class MainWindow : Window, IDisposable
 
 	public bool UseClipboard
 	{
-		get { return Config.Clipboard; }
-		set { Config.Clipboard = m_cbDispatch.IsEnabled = value; }
+		get => Config.Clipboard;
+		set => Config.Clipboard = m_cbDispatch.IsEnabled = value;
 	}
 
 	public bool UseContextMenu
 	{
-		get { return AppUtil.IsContextMenuAdded; }
-		set { AppUtil.HandleContextMenu(value); }
+		get => AppUtil.IsContextMenuAdded;
+		set => AppUtil.HandleContextMenu(value);
 	}
 
 	#endregion
@@ -208,6 +200,8 @@ public partial class MainWindow : Window, IDisposable
 	private int m_cntResults;
 
 	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
+
+	private readonly List<string> m_clipboard;
 
 	private static int _status = S_OK;
 
@@ -244,7 +238,7 @@ public partial class MainWindow : Window, IDisposable
 
 			if (b2) {
 				u              = Query.Upload;
-				Tb_Status.Text = $"✔";
+				Tb_Status.Text = "\u2714";
 
 			}
 			else {
@@ -309,13 +303,13 @@ public partial class MainWindow : Window, IDisposable
 			return;
 		}*/
 
-		var cImg  = System.Windows.Clipboard.ContainsImage();
-		var cText = System.Windows.Clipboard.ContainsText();
-		var cFile = System.Windows.Clipboard.ContainsFileDropList();
+		var cImg  = Clipboard.ContainsImage();
+		var cText = Clipboard.ContainsText();
+		var cFile = Clipboard.ContainsFileDropList();
 
 		if (cImg) {
 
-			var bmp = System.Windows.Clipboard.GetImage();
+			var bmp = Clipboard.GetImage();
 			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
 			var fn = Path.GetTempFileName().Split('.')[0] + ".png";
 			var ms = File.Open(fn, FileMode.OpenOrCreate);
@@ -340,7 +334,7 @@ public partial class MainWindow : Window, IDisposable
 		}
 
 		else if (cText) {
-			var txt = (string) System.Windows.Clipboard.GetData(DataFormats.Text);
+			var txt = (string) Clipboard.GetData(DataFormats.Text);
 
 			if (SearchQuery.IsValidSourceType(txt)) {
 
@@ -361,7 +355,7 @@ public partial class MainWindow : Window, IDisposable
 		}
 
 		else if (cFile) {
-			var files = System.Windows.Clipboard.GetFileDropList();
+			var files = Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
 			rg = rg.Where(x => !m_clipboard.Contains(x)).ToArray();
@@ -413,8 +407,7 @@ public partial class MainWindow : Window, IDisposable
 				Url = result.RawUrl,
 			};
 
-			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)")
-				            { });
+			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
 
 			foreach (SearchResultItem sri in allResults) {
 				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
@@ -581,16 +574,12 @@ public partial class MainWindow : Window, IDisposable
 		var u = ri.Uni;
 
 		var    v    = (Url) u.Value.ToString();
-		string path = v.GetPath();
+		string path = v.GetFileName();
 
 		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
 
 		var fs = File.OpenWrite(path2);
-
-		if (u.Stream.CanSeek) {
-			u.Stream.Position = 0;
-
-		}
+		u.Stream.TrySeek();
 
 		ri.StatusImage = AppComponents.picture_save;
 		await u.Stream.CopyToAsync(fs);

@@ -78,7 +78,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		if (Uni.IsUri) {
 			Upload = fu;
-			Size   = BaseSearchEngine.NA_SIZE;
+			// Size   = BaseSearchEngine.NA_SIZE;
 			Debug.WriteLine($"Skipping upload for {Uni.Value}", nameof(UploadAsync));
 		}
 		else {
@@ -133,7 +133,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static bool IsValidSourceType(object str)
 	{
-		var v = UniHandler.GetUniType(str);
+		var v = UniHandler.GetUniType(str, out _);
 		return v is UniSourceType.Uri or UniSourceType.File or UniSourceType.Stream;
 	}
 
