@@ -28,6 +28,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
+using Color = System.Drawing.Color;
 
 namespace SmartImage.UI;
 
@@ -270,6 +271,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.CacheIfAvailable)
 			};
 
+			if (Query.Uni.IsFile) {
+				Img_Type.Source = AppComponents.image;
+			}
+			else if (Query.Uni.IsUri) {
+				Img_Type.Source = AppComponents.image_link;
+			}
+
 			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}" +
 			               $" {FormatHelper.FormatBytes(Query.Uni.Stream.Length)}/{FormatHelper.FormatBytes(Query.Size)}";
 
@@ -348,9 +356,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (SearchQuery.IsValidSourceType(txt)) {
 
-				if (!IsInputReady() && !m_clipboard.Contains(txt)) {
+				if ( /*!IsInputReady() && */ !Queue.Contains(txt) && !m_clipboard.Contains(txt)) {
 					m_clipboard.Add(txt);
-					InputText = txt;
+					// Queue.Add(txt);
+					// InputText = txt;
+
+					EnqueueAsync(new []{txt});
 
 					History.Add(new ItemHistory(txt)
 					{
@@ -382,6 +393,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				});
 
 			}
+		}
+
+		if (cFile || cImg || cText) {
+			Img_Status.Source = AppComponents.clipboard_invoice;
+
 		}
 
 		// Thread.Sleep(1000);
@@ -490,6 +506,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		m_cts.Cancel();
 		m_ctsu.Cancel();
+		// Pb_Status.Foreground = new SolidColorBrush(Colors.Red);
 	}
 
 	private void Restart(bool full = false)
@@ -510,9 +527,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Status.Text            = string.Empty;
 		InputText                 = string.Empty;
 		Tb_Info.Text              = string.Empty;
+		Tb_Info2.Text             = string.Empty;
 		Tb_Upload.Text            = string.Empty;
 		Pb_Status.IsIndeterminate = false;
-		Tb_Info2.Text             = string.Empty;
 	}
 
 	private void ClearResults(bool full = false)
@@ -537,6 +554,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public void Dispose()
 	{
 		Dispose(true);
+	}
+
+	private void Reset()
+	{
+		Restart(true);
+		ClearQueryControls();
 	}
 
 	public void Dispose(bool full)

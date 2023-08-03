@@ -4,5 +4,10 @@
   <BitmapImage x:Key="Img_Exclamation" UriSource="../Resources/exclamation.png" />
   <BitmapImage x:Key="Img_Help" UriSource="../Resources/help.png" />
   <BitmapImage x:Key="Img_Information" UriSource="../Resources/information.png" />
+  <BitmapImage x:Key="Img_Artwork" UriSource="../Resources/artwork.png" />
+  <BitmapImage x:Key="Img_Image" UriSource="../Resources/image.png" />
+  <BitmapImage x:Key="Img_ImageLink" UriSource="../Resources/image_link.png" />
+  <BitmapImage x:Key="Img_Picture" UriSource="../Resources/picture.png" />
+  <BitmapImage x:Key="Img_PictureLink" UriSource="../Resources/picture_link.png" />
 
 </ResourceDictionary>

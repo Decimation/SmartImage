@@ -80,32 +80,21 @@
                         <RowDefinition Height="47*" />
                         <RowDefinition Height="231*" />
                     </Grid.RowDefinitions>
+                    <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5" />
                     <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="57,8,0,0" VerticalAlignment="Top"
                              Width="437" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver" />
-                    <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
-                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5" />
-                    <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
-                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
-                    <Label x:Name="Lb_Info" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
-                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
                             Loaded="Btn_Run_Loaded" Width="35" Background="#FF232323" Foreground="#FF00FF10"
                             BorderBrush="#FFA2A2A2" />
-                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,38,0,0"
-                            VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click" />
                     <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="539,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Next_Click" Width="35" />
-                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,38,0,0"
-                            VerticalAlignment="Top" Click="Btn_Restart_Click" MouseEnter="Btn_Restart_MouseEnter"
-                            MouseLeave="Btn_Restart_MouseLeave" Width="49" />
-                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="591,38,0,0"
-                            VerticalAlignment="Top" Click="Btn_Reset_Click" Width="41" />
                     <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="591,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" />
-                    <ListView x:Name="Lv_Queue" d:ItemsSource="{Binding Queue}" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
+                    <ListView x:Name="Lv_Queue" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
                               DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
                               Background="{DynamicResource Black2}" Foreground="White" Width="320" Height="150"
                               SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top"
@@ -122,9 +111,28 @@
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2">
                         <Image x:Name="Img_Preview" Width="150" VerticalAlignment="Top" HorizontalAlignment="Right" />
                     </Border>
+                    <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
+                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,0,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Center" Width="437" IsReadOnly="True" Height="20"
+                             MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
+                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,38,0,0"
+                            VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click" />
+                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,38,0,0"
+                            VerticalAlignment="Top" Click="Btn_Restart_Click" MouseEnter="Btn_Restart_MouseEnter"
+                            MouseLeave="Btn_Restart_MouseLeave" Width="49" />
+                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="591,38,0,0"
+                            VerticalAlignment="Top" Click="Btn_Reset_Click" Width="41" />
+                    <Label x:Name="Lb_Info" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
+                    <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
+                    <Image Grid.Row="1" x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px" Margin="10,10,0,0"
+                        VerticalAlignment="Top" Stretch="None" />
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
-                    <ListView x:Name="Lv_Results" Margin="0,69,0,10"
+                    <ListView x:Name="Lv_Results" Margin="0,70,0,10"
                               d:ItemsSource="{Binding Results}"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
@@ -178,16 +186,11 @@
                         </ListView.View>
 
                     </ListView>
-                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,0,0,0" TextWrapping="Wrap"
-                             VerticalAlignment="Center" Width="437" IsReadOnly="True" Height="20"
-                             MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
-                    <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
-                             VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
-                             Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
-                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,51,0,0" TextWrapping="Wrap"
-                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
+                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None"  Grid.Row="1" Margin="44,10,0,0" HorizontalAlignment="Left" VerticalAlignment="Top"  />
                     <TextBlock x:Name="Tb_Info2" HorizontalAlignment="Left" Margin="10,33,0,0" TextWrapping="Wrap"
                                VerticalAlignment="Top" Foreground="White" Text="..." Grid.Row="1" />
+                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,51,0,0" TextWrapping="Wrap"
+                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"

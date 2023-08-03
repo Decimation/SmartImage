@@ -4,6 +4,7 @@
 using System;
 using System.Windows;
 using System.Windows.Media.Imaging;
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.UI;
@@ -29,7 +30,7 @@ public static class AppComponents
 		return new Uri($"pack://application:,,,/{AppUtil.Assembly.GetName().Name};component/{resources}/{n}");
 	}
 
-	#region 
+	#region
 
 	public static readonly BitmapImage accept = Load("accept.png");
 
@@ -42,6 +43,18 @@ public static class AppComponents
 	public static readonly BitmapImage picture = Load("picture.png");
 
 	public static readonly BitmapImage picture_save = Load("picture_save.png");
+
+	public static readonly BitmapImage artwork    = Load("artwork.png");
+	
+	public static readonly BitmapImage image      = Load("image.png");
+	
+	public static readonly BitmapImage image_link = Load("image_link.png");
+
+	public static readonly BitmapImage link       = Load("link.png");
+
+	public static readonly BitmapImage arrow_refresh = Load("arrow_refresh.png");
+
+	public static readonly BitmapImage clipboard_invoice = Load("clipboard_invoice.png");
 
 	#endregion
 }

@@ -145,8 +145,7 @@ public partial class MainWindow
 
 	private void Btn_Reset_Click(object sender, RoutedEventArgs e)
 	{
-		Restart(true);
-		ClearQueryControls();
+		Reset();
 	}
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
