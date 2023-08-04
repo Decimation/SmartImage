@@ -41,6 +41,7 @@
                 <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="#00000000" />
             </Style.Resources>
         </Style>
+        <SolidColorBrush x:Key="Border1" Color="#FF707070"/>
 
     </Application.Resources>
 </Application>

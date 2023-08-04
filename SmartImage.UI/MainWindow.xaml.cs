@@ -53,7 +53,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public MainWindow()
 	{
-
 		Client    = new SearchClient(new SearchConfig());
 		m_queries = new ConcurrentDictionary<string, SearchQuery>();
 
@@ -63,10 +62,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		SearchStart = default;
 		Results     = new();
 
-		Query = SearchQuery.Null;
-		Queue = new();
-		// Queue.CollectionChanged += Queue_Changed;
-		QueueIndex         = 0;
+		Query              = SearchQuery.Null;
+		Queue              = new();
+		QueueSelectedIndex = 0;
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
 		m_ctsu             = new CancellationTokenSource();
@@ -115,12 +113,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
-
-	}
-
-	private void Queue_Changed(object? sender, NotifyCollectionChangedEventArgs e)
-	{
-		Debug.WriteLine($"{e.Action} {e.NewItems} {e.OldItems}");
 
 	}
 
@@ -190,14 +182,38 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region Queue
 
-	public int QueueIndex { get; set; }
+	private int m_queueSelectedIndex;
+
+	public int QueueSelectedIndex
+	{
+		get => m_queueSelectedIndex;
+		set
+		{
+			if (value == m_queueSelectedIndex) return;
+			m_queueSelectedIndex = value;
+			OnPropertyChanged();
+		}
+	}
+
+	private object m_queueSelectedItem;
+
+	public object QueueSelectedItem
+	{
+		get => m_queueSelectedItem;
+		set
+		{
+			if (Equals(value, m_queueSelectedItem)) return;
+			m_queueSelectedItem = value;
+			OnPropertyChanged();
+		}
+	}
 
 	public ObservableCollection<string> Queue { get; }
 
 	public string TryGetQueueInput()
 	{
 		if (IsQueueIndexValid) {
-			return Queue[QueueIndex];
+			return Queue[QueueSelectedIndex];
 		}
 
 		return null;
@@ -209,14 +225,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		if (b) {
 
-			Queue[QueueIndex] = s;
+			Queue[QueueSelectedIndex] = s;
 		}
 
 		return b;
 
 	}
 
-	private bool IsQueueIndexValid => Queue.Count > 0 && QueueIndex < Queue.Count && QueueIndex >= 0;
+	private bool IsQueueIndexValid => Queue.Count > 0 && QueueSelectedIndex < Queue.Count && QueueSelectedIndex >= 0;
 
 	public string QueueInput
 	{
@@ -237,12 +253,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public bool TrySeekQueue(int i)
 	{
-		var nqi = i;
-
-		var b = MathHelper.IsInRange(nqi, Queue.Count);
+		var b = MathHelper.IsInRange(i, Queue.Count) && Queue.Count > 0;
 
 		if (b) {
-			QueueIndex = nqi;
+			QueueSelectedIndex = i;
+			QueueSelectedItem  = QueueInput;
 		}
 
 		return b;
@@ -341,7 +356,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	private void EnqueueAsync(string[] files)
+	private void AddToQueueAsync(string[] files)
 	{
 		if (!files.Any()) {
 			return;
@@ -394,31 +409,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	private void ParseArgs()
-	{
-		var e = Args.GetEnumerator();
-
-		foreach (var arg in Args) {
-			Tb_Log.Text += $"{arg}\n";
-		}
-
-		while (e.MoveNext()) {
-			var c = e.Current.ToString();
-
-			if (c == R2.Arg_Input) {
-				var inp = e.MoveAndGet();
-				QueueInput = inp.ToString();
-				continue;
-			}
-
-			if (c == R2.Arg_AutoSearch) {
-
-				e.MoveNext();
-				Config.AutoSearch = true;
-			}
-		}
-	}
-
 	private void BackgroundDispatch(object? sender, EventArgs e) { }
 
 	private async Task RunAsync()
@@ -464,7 +454,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			enc.Save(ms);
 			ms.Dispose();
 
-			EnqueueAsync(new[] { fn });
+			AddToQueueAsync(new[] { fn });
 			/*Application.Current.Dispatcher.InvokeAsync(() =>
 			{
 				return SetQueryAsync(fn);
@@ -482,7 +472,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					// Queue.Add(txt);
 					// InputText = txt;
 
-					EnqueueAsync(new[] { txt });
+					AddToQueueAsync(new[] { txt });
 
 					// await SetQueryAsync(txt);
 				}
@@ -495,7 +485,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
 			rg = rg.Where(x => !m_clipboard.Contains(x) && SearchQuery.IsValidSourceType(x)).ToArray();
-			EnqueueAsync(rg);
+			AddToQueueAsync(rg);
 
 			m_clipboard.AddRange(rg);
 
@@ -521,6 +511,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Status.Text = "Search complete";
 		}
 
+		Btn_Run.IsEnabled = IsQueueInputValid;
 		// m_resultMap[Query] = Results;
 	}
 
@@ -609,7 +600,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			// ClearQueryControls();
 		}
 
-		Btn_Run.IsEnabled = true;
+		// Btn_Run.IsEnabled = true;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
 
@@ -636,7 +627,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Query = SearchQuery.Null;
 
 			Queue.Clear();
-			QueueIndex = 0;
+			QueueSelectedIndex = 0;
 
 			foreach (var kv in m_queries) {
 				kv.Value.Dispose();
@@ -755,5 +746,30 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private void ParseArgs()
+	{
+		var e = Args.GetEnumerator();
+
+		foreach (var arg in Args) {
+			Tb_Log.Text += $"{arg}\n";
+		}
+
+		while (e.MoveNext()) {
+			var c = e.Current.ToString();
+
+			if (c == R2.Arg_Input) {
+				var inp = e.MoveAndGet();
+				QueueInput = inp.ToString();
+				continue;
+			}
+
+			if (c == R2.Arg_AutoSearch) {
+
+				e.MoveNext();
+				Config.AutoSearch = true;
+			}
+		}
 	}
 }

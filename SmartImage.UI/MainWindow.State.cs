@@ -7,7 +7,7 @@ public partial class MainWindow
 {
 	#region
 
-	private ResultItem Selected => (ResultItem) Lv_Results.SelectedItem;
+	private ResultItem SelectedResult => (ResultItem) Lv_Results.SelectedItem;
 
 	#endregion
 }
