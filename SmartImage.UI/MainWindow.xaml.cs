@@ -219,10 +219,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public  DateTime SearchStart { get; private set; }
 
+	private string m_timerText;
+
 	public string TimerText
 	{
-		get;
-		set;
+		get => m_timerText;
+		set
+		{
+			if (value == m_timerText) return;
+			m_timerText = value;
+			OnPropertyChanged();
+		}
 	}
 
 	private void TimerDispatch(object? sender, EventArgs e)
@@ -292,6 +299,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					Tb_Status.Text            = "-";
 					Tb_Info2.Text             = "Invalid";
 					Btn_Run.IsEnabled         = true;
+					// Btn_Delete.IsEnabled      = true;
+
 					return;
 				}
 
@@ -308,7 +317,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			m_image.EndInit();
 			Img_Preview.Source = m_image;
-
+			// Btn_Delete.IsEnabled = true;
 			if (Query.Uni.IsFile) {
 				Img_Type.Source = AppComponents.image;
 			}
@@ -341,6 +350,33 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
+	private void EnqueueAsync(string[] files)
+	{
+		if (!files.Any()) {
+			return;
+		}
+
+		if (!IsInputReady) {
+			var ff = files[0];
+			InputText = ff;
+
+			// Lv_Queue.SelectedItems.Add(ff);
+		}
+
+		int c = 0;
+
+		foreach (var s in files) {
+
+			if (!Queue.Contains(s)) {
+				Queue.Add(s);
+
+				c++;
+			}
+		}
+
+		Tb_Info2.Text = $"Added {c} items to queue";
+	}
+
 	private async Task RunAsync()
 	{
 		Lv_Queue.IsEnabled = false;
@@ -351,10 +387,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
-	private bool IsInputReady()
-	{
-		return !string.IsNullOrWhiteSpace(InputText);
-	}
+	public bool IsInputReady => !string.IsNullOrWhiteSpace(InputText);
 
 	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
@@ -503,33 +536,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private void EnqueueAsync(string[] files)
-	{
-		if (!files.Any()) {
-			return;
-		}
-
-		if (!IsInputReady()) {
-			var ff = files[0];
-			InputText = ff;
-
-			// Lv_Queue.SelectedItems.Add(ff);
-		}
-
-		int c = 0;
-
-		foreach (var s in files) {
-
-			if (!Queue.Contains(s)) {
-				Queue.Add(s);
-
-				c++;
-			}
-		}
-
-		Tb_Info2.Text = $"Added {c} items to queue";
-	}
-
 	private void Next()
 	{
 		Restart();
@@ -576,7 +582,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void ClearQueryControls()
 	{
-		m_image = null;
+		m_image            = null;
+		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text            = string.Empty;
 		InputText                 = string.Empty;
@@ -602,7 +609,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Btn_Run.IsEnabled = true;
 		// Query.Dispose();
-		Pb_Status.Value = 0;
+		Pb_Status.Value      = 0;
+
 		// Tb_Status.Text  = string.Empty;
 	}
 
@@ -653,6 +661,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 			m_resultMap.Clear();
+
+			m_image            = null;
+			Img_Preview.Source = m_image;
+			Img_Preview.UpdateLayout();
 		}
 
 		m_cts.Dispose();

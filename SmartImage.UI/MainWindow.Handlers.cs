@@ -198,16 +198,19 @@ public partial class MainWindow
 		Queue.Remove(old);
 		Img_Preview.Source = m_image = null;
 		Query              = SearchQuery.Null;
-
+		bool ok;
 		try {
 			VBFS.DeleteFile(old, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
 			// FileSystem.SendFileToRecycleBin(old);
+			ok = true;
 		}
 		catch (Exception exception) {
 			Debug.WriteLine($"{exception}");
+			ok = false;
 		}
 
 		m_cbDispatch.Start();
+		// Btn_Delete.IsEnabled = !ok;
 		// FileSystem.SendFileToRecycleBin(InputText);
 	}
 

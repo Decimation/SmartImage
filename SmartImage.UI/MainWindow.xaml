@@ -191,7 +191,7 @@
                                VerticalAlignment="Top" Foreground="White" Text="..." Grid.Row="1" />
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,51,0,0" TextWrapping="Wrap"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
-                    <Button x:Name="Btn_Delete" Content="Delete" HorizontalAlignment="Left" Margin="501,65,0,0" VerticalAlignment="Top" Click="Btn_Delete_Click"/>
+                    <Button x:Name="Btn_Delete" Content="Delete" IsEnabled="{Binding IsInputReady}" HorizontalAlignment="Left" Margin="501,65,0,0" VerticalAlignment="Top" Click="Btn_Delete_Click"/>
                     <TextBlock x:Name="Tb_Timer" HorizontalAlignment="Left" Margin="336,49,0,0" Grid.Row="1" Text="{Binding TimerText}" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="White" Width="60"/>
                 </Grid>
             </TabItem>
