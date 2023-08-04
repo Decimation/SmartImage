@@ -1,18 +1,21 @@
 ﻿// Read S SmartImage.UI MainWindow.Handlers.cs
 // 2023-07-23 @ 11:50 AM
 
+global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Kantan.Net.Utilities;
-using Novus.OS;
+using Microsoft.VisualBasic.FileIO;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Impl.Upload;
+using FileSystem = Novus.OS.FileSystem;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace SmartImage.UI;
@@ -181,6 +184,34 @@ public partial class MainWindow
 		// Btn_Run.IsEnabled = false;
 	}
 
+	private void Btn_Delete_Click(object sender, RoutedEventArgs e)
+	{
+		//todo
+		Cancel();
+		m_cbDispatch.Stop();
+		var old = InputText;
+		m_clipboard.Remove(old);
+		InputText = null;
+		m_queries.TryRemove(old, out var q);
+		m_resultMap.TryRemove(Query, out var x);
+		Query.Dispose();
+		Queue.Remove(old);
+		Img_Preview.Source = m_image = null;
+		Query              = SearchQuery.Null;
+
+		try {
+			VBFS.DeleteFile(old, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+			// FileSystem.SendFileToRecycleBin(old);
+		}
+		catch (Exception exception) {
+			Debug.WriteLine($"{exception}");
+		}
+
+		m_cbDispatch.Start();
+
+		// FileSystem.SendFileToRecycleBin(InputText);
+	}
+
 	#region
 
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -302,8 +333,10 @@ public partial class MainWindow
 	{
 		if (UseClipboard) {
 			m_cbDispatch.Start();
-
 		}
+
+		m_bgDispatch.Start();
+		// m_trDispatch.Start();
 
 	}
 
@@ -316,7 +349,7 @@ public partial class MainWindow
 
 	#endregion
 
-	#region 
+	#region
 
 	private void OpenItem_Click(object sender, RoutedEventArgs e)
 	{
@@ -331,8 +364,10 @@ public partial class MainWindow
 				() => DownloadResultAsync(uri));
 
 		}
+
 		e.Handled = true;
 	}
+
 	private void ScanItem_Click(object sender, RoutedEventArgs e)
 	{
 		Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(((ResultItem) Lv_Results.SelectedItem)));

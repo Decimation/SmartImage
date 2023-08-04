@@ -214,7 +214,7 @@ public sealed class SearchClient : IDisposable
 		var tasks = Engines.Select(e =>
 		{
 			var res = e.GetResultAsync(query, token);
-
+			
 			return res;
 		}).ToList();
 

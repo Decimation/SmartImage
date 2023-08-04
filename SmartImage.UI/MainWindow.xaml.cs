@@ -1,4 +1,5 @@
-﻿using System;
+﻿global using Clipboard2 = Novus.Win32.Clipboard;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -18,6 +19,7 @@ using System.Windows.Threading;
 using Flurl;
 using Kantan.Collections;
 using Kantan.Net.Utilities;
+using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
@@ -58,13 +60,16 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		DataContext = this;
+		Timer       = new();
 		Results     = new();
 
 		Query      = SearchQuery.Null;
 		Queue      = new();
 		m_queuePos = 0;
+		_seq       = 0;
 		m_cts      = new CancellationTokenSource();
 		m_ctsu     = new CancellationTokenSource();
+		timerText  = null;
 
 		Engines1                = new(Engines);
 		Engines2                = new(Engines);
@@ -89,7 +94,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 			Interval = TimeSpan.FromSeconds(1)
 		};
-		m_bgDispatch.Tick += Dispatch;
+		m_bgDispatch.Tick += BackgroundDispatch;
+
+		m_trDispatch = new DispatcherTimer
+		{
+			Interval = TimeSpan.FromMilliseconds(300)
+		};
+		m_trDispatch.Tick += TimerDispatch;
 
 		m_uni                    = new();
 		m_clipboard              = new();
@@ -97,23 +108,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_resultMap              = new();
 		History                  = new ObservableCollection<ItemHistory>();
 
-		var e = Args.GetEnumerator();
-
-		while (e.MoveNext()) {
-			var c = e.Current.ToString();
-
-			if (c == R2.Arg_Input) {
-				var inp = e.MoveAndGet();
-				InputText = inp.ToString();
-				continue;
-			}
-
-			if (c == R2.Arg_AutoSearch) {
-
-				e.MoveNext();
-				Config.AutoSearch = true;
-			}
-		}
+		ParseArgs();
 
 		m_image = null;
 
@@ -183,6 +178,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public bool IsNotRunning => !Client.IsRunning;
 
+	public DateTime Timer { get; private set; }
+
 	#endregion
 
 	#endregion
@@ -193,6 +190,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_cbDispatch;
 	private readonly DispatcherTimer m_bgDispatch;
+	private readonly DispatcherTimer m_trDispatch;
 
 	private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
@@ -211,48 +209,87 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static int _status = S_OK;
 
-	private const int S_NO = 0;
-	private const int S_OK = 1;
+	private const  int S_NO = 0;
+	private const  int S_OK = 1;
+	private static int _seq;
 
 	#endregion
 
 	#region
 
-	private void Dispatch(object? sender, EventArgs e) { }
+	private string timerText;
 
-	private async Task SetQueryAsync(string q)
+	public string TimerText
+	{
+		get { return timerText; }
+		set
+		{
+			timerText = value;
+			OnPropertyChanged(nameof(TimerText));
+		}
+	}
+
+	private void TimerDispatch(object? sender, EventArgs e)
+	{
+		TimerText = $"{(DateTime.Now - Timer).TotalSeconds:F3}";
+	}
+
+	private void ParseArgs()
+	{
+		var e = Args.GetEnumerator();
+
+		while (e.MoveNext()) {
+			var c = e.Current.ToString();
+
+			if (c == R2.Arg_Input) {
+				var inp = e.MoveAndGet();
+				InputText = inp.ToString();
+				continue;
+			}
+
+			if (c == R2.Arg_AutoSearch) {
+
+				e.MoveNext();
+				Config.AutoSearch = true;
+			}
+		}
+	}
+
+	private void BackgroundDispatch(object? sender, EventArgs e) { }
+
+	private async Task SetQueryAsync(string query)
 	{
 		Interlocked.Exchange(ref _status, S_NO);
 
 		Btn_Run.IsEnabled = false;
-		bool b, b2;
+		bool b2;
 
-		b = b2 = m_queries.TryGetValue(q, out var qq);
+		bool queryExists = b2 = m_queries.TryGetValue(query, out var existingQuery);
 
-		if (b) {
-			Query = qq;
+		if (queryExists) {
+			Query = existingQuery;
 		}
 
 		else {
-			Query                     = await SearchQuery.TryCreateAsync(q, m_ctsu.Token);
+			Query                     = await SearchQuery.TryCreateAsync(query, m_ctsu.Token);
 			Pb_Status.IsIndeterminate = true;
-			b                         = Query != SearchQuery.Null;
+			queryExists               = Query != SearchQuery.Null;
 		}
 
-		if (b) {
-			Url u;
+		if (queryExists) {
+			Url upload;
 
 			if (b2) {
-				u              = Query.Upload;
-				Tb_Status.Text = "\u2714";
+				upload         = Query.Upload;
+				Tb_Status.Text = $"{Strings.Constants.HEAVY_CHECK_MARK}";
 
 			}
 			else {
 				Tb_Status.Text = "Uploading...";
-				u              = await Query.UploadAsync(ct: m_ctsu.Token);
+				upload         = await Query.UploadAsync(ct: m_ctsu.Token);
 				Tb_Status.Text = "Uploaded";
 
-				if (!Url.IsValid(u)) {
+				if (!Url.IsValid(upload)) {
 					Pb_Status.IsIndeterminate = false;
 					Tb_Status.Text            = "-";
 					Tb_Info2.Text             = "Invalid";
@@ -262,14 +299,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			}
 
-			Tb_Upload.Text            = u;
+			Tb_Upload.Text            = upload;
 			Pb_Status.IsIndeterminate = false;
 
-			Img_Preview.Source = m_image = new BitmapImage(new Uri(Query.Uni.Value.ToString()))
-			{
-				CacheOption    = BitmapCacheOption.OnLoad,
-				UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.CacheIfAvailable)
-			};
+			m_image = new BitmapImage()
+				{ };
+			m_image.BeginInit();
+			m_image.UriSource      = new Uri(Query.Uni.Value.ToString());
+			m_image.CacheOption    = BitmapCacheOption.OnLoad;
+			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+			m_image.EndInit();
+			Img_Preview.Source = m_image;
 
 			if (Query.Uni.IsFile) {
 				Img_Type.Source = AppComponents.image;
@@ -281,11 +321,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}" +
 			               $" {FormatHelper.FormatBytes(Query.Uni.Stream.Length)}/{FormatHelper.FormatBytes(Query.Size)}";
 
-			m_queries.TryAdd(q, Query);
+			m_queries.TryAdd(query, Query);
 
-			var ck = m_resultMap.TryGetValue(Query, out var res);
+			var resultsFound = m_resultMap.TryGetValue(Query, out var res);
 
-			if (!ck) {
+			if (!resultsFound) {
 				m_resultMap[Query] = new ObservableCollection<ResultItem>();
 
 			}
@@ -298,7 +338,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 
-		Btn_Run.IsEnabled = b;
+		Btn_Run.IsEnabled = queryExists;
 		Interlocked.Exchange(ref _status, S_OK);
 
 	}
@@ -307,6 +347,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Lv_Queue.IsEnabled = false;
 		// ClearResults();
+		Timer = DateTime.Now;
+		m_trDispatch.Start();
+
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -325,11 +368,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		var cText = Clipboard.ContainsText();
 		var cFile = Clipboard.ContainsFileDropList();
 
+		var seq = Clipboard2.SequenceNumber;
+
+		if (_seq == seq) {
+			return;
+		}
+		else {
+			_seq = seq;
+		}
+
 		if (cImg) {
 
 			var bmp = Clipboard.GetImage();
 			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
-			var fn = Path.GetTempFileName().Split('.')[0] + ".png";
+			// var fn = Path.GetTempFileName().Split('.')[0] + ".png";
+			var fn = FileSystem.GetTempFileName(ext: "png");
+
 			var ms = File.Open(fn, FileMode.OpenOrCreate);
 			InputText = fn;
 			BitmapEncoder enc = new PngBitmapEncoder();
@@ -344,11 +398,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			});
 
-			Application.Current.Dispatcher.InvokeAsync(() =>
+			EnqueueAsync(new[] { fn });
+			/*Application.Current.Dispatcher.InvokeAsync(() =>
 			{
 				return SetQueryAsync(fn);
 
-			});
+			});*/
 		}
 
 		else if (cText) {
@@ -361,7 +416,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					// Queue.Add(txt);
 					// InputText = txt;
 
-					EnqueueAsync(new []{txt});
+					EnqueueAsync(new[] { txt });
 
 					History.Add(new ItemHistory(txt)
 					{
@@ -405,6 +460,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void OnComplete(object sender, SearchResult[] e)
 	{
+		m_trDispatch.Stop();
 		Lv_Queue.IsEnabled = true;
 
 		if (m_cts.IsCancellationRequested) {
@@ -528,6 +584,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		InputText                 = string.Empty;
 		Tb_Info.Text              = string.Empty;
 		Tb_Info2.Text             = string.Empty;
+		TimerText                 = String.Empty;
 		Tb_Upload.Text            = string.Empty;
 		Pb_Status.IsIndeterminate = false;
 	}
