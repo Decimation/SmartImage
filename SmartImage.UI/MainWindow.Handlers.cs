@@ -203,14 +203,13 @@ public partial class MainWindow
 
 	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
 	{
-		var cq  = QueueSelectedIndex;
-		var qi2 = cq + 1;
-		var q   = MathHelper.Wrap(qi2, Queue.Count);
+		var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
 
 		var old = QueueSelectedItem;
 		TrySeekQueue(q);
 		Queue.Remove(old);
 		m_queries.TryRemove(old, out var sq);
+		sq?.Dispose();
 	}
 
 	private void Btn_Delete_Click(object sender, RoutedEventArgs e)

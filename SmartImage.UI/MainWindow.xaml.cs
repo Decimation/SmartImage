@@ -202,7 +202,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		get => m_queueSelectedItem;
 		set
 		{
-			if (Equals(value, m_queueSelectedItem)) return;
+			if (Equals(value, m_queueSelectedItem) || string.IsNullOrWhiteSpace(value)) return;
 			m_queueSelectedItem = value;
 			OnPropertyChanged();
 		}
@@ -517,6 +517,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		m_cts.Cancel();
 		m_ctsu.Cancel();
+		m_trDispatch.Stop();
 		// Pb_Status.Foreground = new SolidColorBrush(Colors.Red);
 	}
 
@@ -537,7 +538,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text            = string.Empty;
-		QueueSelectedItem                = string.Empty;
+		QueueSelectedItem         = string.Empty;
 		Tb_Info.Text              = string.Empty;
 		Tb_Info2.Text             = string.Empty;
 		TimerText                 = String.Empty;
