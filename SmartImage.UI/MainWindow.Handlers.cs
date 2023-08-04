@@ -3,7 +3,6 @@
 
 global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
@@ -32,11 +31,20 @@ public partial class MainWindow
 			return;
 		}
 
-		var txt = InputText;
+		// Debug.Assert(InputText == Queue[m_queuePos]);
+		// Debug.Assert(Lv_Queue.SelectedValue.ToString() == InputText);
+		// Debug.Assert(Lv_Queue.SelectedItem.ToString() == InputText);
+
+		var nt  = Tb_Input.Text;
+		// var txt = InputText;
+		var txt = nt;
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
+		// QueueInsert(txt);
+
+		InputText = txt;
 		if (ok /*&& !IsInputReady()*/) {
-			Application.Current.Dispatcher.InvokeAsync(() => SetQueryAsync(txt));
+			Application.Current.Dispatcher.InvokeAsync(() => SetQueryAsync());
 		}
 
 		Btn_Run.IsEnabled = ok;
@@ -117,14 +125,22 @@ public partial class MainWindow
 			return;
 		}
 
-		if (e.AddedItems.Count > 0) {
+		// m_queuePos = Lv_Queue.SelectedIndex;
 
+		if (e.AddedItems.Count > 0) {
+			//todo
 			Restart();
 			var i = e.AddedItems[0] as string;
 			InputText = i;
+			// EnqueueAsync(new []{i});
 			// Next(i);
+			// Lv_Queue.SelectionChanged -= Lv_Queue_SelectionChanged;
+			// Queue[m_queuePos]         =  i;
+			// Lv_Queue.SelectionChanged += Lv_Queue_SelectionChanged;
 
 		}
+
+		e.Handled = true;
 	}
 
 	private void Lv_Queue_KeyDown(object sender, KeyEventArgs e) { }
@@ -373,8 +389,7 @@ public partial class MainWindow
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
 		if (Lv_Results.SelectedItem is UniResultItem uri) {
-			Application.Current.Dispatcher.InvokeAsync(
-				() => DownloadResultAsync(uri));
+			Application.Current.Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}
 
@@ -388,4 +403,11 @@ public partial class MainWindow
 	}
 
 	#endregion
+
+	private void Img_Preview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+	{
+		if (e.IsDoubleClick()) {
+
+		}
+	}
 }

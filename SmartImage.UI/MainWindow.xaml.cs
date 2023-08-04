@@ -3,6 +3,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -32,6 +33,8 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Color = System.Drawing.Color;
 
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
+
 namespace SmartImage.UI;
 
 /// <summary>
@@ -59,18 +62,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		SearchStart = default;
 		Results     = new();
 
-		Query      = SearchQuery.Null;
-		Queue      = new();
-		m_queuePos = 0;
-		_seq       = 0;
-		m_cts      = new CancellationTokenSource();
-		m_ctsu     = new CancellationTokenSource();
-		TimerText  = null;
+		Query                   =  SearchQuery.Null;
+		Queue                   =  new();
+		// Queue.CollectionChanged += Queue_Changed;
+		QueuePos                =  0;
+		_seq                    =  0;
+		m_cts                   =  new CancellationTokenSource();
+		m_ctsu                  =  new CancellationTokenSource();
+		TimerText               =  null;
 
-		Engines1                = Engines;
-		Engines2                = Engines;
-		Lb_Engines.ItemsSource  = Engines1;
-		Lb_Engines2.ItemsSource = Engines2;
+		Lb_Engines.ItemsSource  = Engines;
+		Lb_Engines2.ItemsSource = Engines;
 		Lb_Engines.HandleEnum(Config.SearchEngines);
 		Lb_Engines2.HandleEnum(Config.PriorityEngines);
 
@@ -115,6 +117,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
+	private void Queue_Changed(object? sender, NotifyCollectionChangedEventArgs e)
+	{
+		Debug.WriteLine($"{e.Action} {e.NewItems} {e.OldItems}");
+
+	}
+
 	#region
 
 	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(MainWindow));
@@ -147,12 +155,48 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public ObservableCollection<ResultItem> Results { get; private set; }
 
-	public ObservableCollection<string> Queue { get; }
+	public int                          QueuePos { get; set; }
+	public ObservableCollection<string> Queue    { get; }
+
+	public string TryGetQueue()
+	{
+		if (IsQueuePosValid) {
+			return Queue[QueuePos];
+		}
+
+		return null;
+	}
+
+	private bool QueueInsert(string s)
+	{
+		var b = IsQueuePosValid && !Queue.Contains(s) && !string.IsNullOrWhiteSpace(s);
+
+		if (b) {
+			
+			Queue[QueuePos] = s;
+		}
+
+		return b;
+
+	}
+
+	private bool IsQueuePosValid => Queue.Count > 0 && QueuePos < Queue.Count && QueuePos!=-1;
 
 	public string InputText
 	{
-		get => Tb_Input.Text;
-		set => Tb_Input.Text = value;
+		get
+		{
+			if (!IsInitialized || !IsQueuePosValid) {
+				return null;
+			}
+
+			return TryGetQueue();
+		}
+		set
+		{
+			QueueInsert(value);
+			OnPropertyChanged();
+		}
 	}
 
 	public bool IsInputReady => !string.IsNullOrWhiteSpace(InputText);
@@ -185,8 +229,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
-	private int m_queuePos;
-
 	private BitmapImage? m_image;
 
 	private CancellationTokenSource m_cts;
@@ -200,8 +242,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static int _status = S_OK;
 
-	private const  int S_NO = 0;
-	private const  int S_OK = 1;
+	private const int S_NO = 0;
+	private const int S_OK = 1;
+
 	private static int _seq;
 
 	#endregion
@@ -259,8 +302,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void BackgroundDispatch(object? sender, EventArgs e) { }
 
-	private async Task SetQueryAsync(string query)
+	private async Task SetQueryAsync()
 	{
+		var query = InputText;
 		Interlocked.Exchange(ref _status, S_NO);
 
 		Btn_Run.IsEnabled = false;
@@ -316,6 +360,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Img_Preview.Source = m_image;
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
+
 			if (Query.Uni.IsFile) {
 				Img_Type.Source = AppComponents.image;
 			}
@@ -590,7 +635,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Query = SearchQuery.Null;
 
 			Queue.Clear();
-			m_queuePos = 0;
+			QueuePos = 0;
 
 			foreach (var kv in m_queries) {
 				kv.Value.Dispose();
@@ -721,39 +766,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
-		var next = Queue[m_queuePos++ % Queue.Count];
+		var next = Queue[QueuePos++ % Queue.Count];
 		InputText = next;
 		Lv_Queue.SelectedItems.Clear();
 		Lv_Queue.SelectedItems.Add(next);
 
-		if (m_queuePos < Queue.Count && m_queuePos >= 0) {
+		if (QueuePos < Queue.Count && QueuePos >= 0) {
 			// await SetQueryAsync(next);
 		}
-	}
-}
-
-public enum ItemSource
-{
-	Clipboard,
-	DragDrop,
-	Input
-}
-
-public enum ItemType
-{
-	File,
-	Uri,
-}
-
-public class ItemHistory
-{
-	public string Value { get; }
-
-	public ItemSource Source { get; init; }
-	public ItemType   Type   { get; init; }
-
-	public ItemHistory(string value)
-	{
-		Value = value;
 	}
 }

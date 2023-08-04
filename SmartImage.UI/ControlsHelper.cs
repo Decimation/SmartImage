@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using SmartImage.Lib.Engines;
@@ -16,6 +17,11 @@ namespace SmartImage.UI;
 
 public static class ControlsHelper
 {
+	public static bool IsDoubleClick(this MouseButtonEventArgs e)
+	{
+		return e.ClickCount == 2;
+	}
+
 	public static BitmapImage ResizeBitmap(this BitmapImage originalBitmap, int newWidth, int newHeight)
 	{
 		// Calculate the scale factors for width and height
