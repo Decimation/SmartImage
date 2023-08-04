@@ -186,8 +186,8 @@ public partial class MainWindow
 
 	private void Btn_Delete_Click(object sender, RoutedEventArgs e)
 	{
-		//todo
 		Cancel();
+		ClearResults();
 		m_cbDispatch.Stop();
 		var old = InputText;
 		m_clipboard.Remove(old);
@@ -208,7 +208,6 @@ public partial class MainWindow
 		}
 
 		m_cbDispatch.Start();
-
 		// FileSystem.SendFileToRecycleBin(InputText);
 	}
 

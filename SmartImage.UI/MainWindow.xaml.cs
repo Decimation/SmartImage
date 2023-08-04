@@ -60,7 +60,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		DataContext = this;
-		Timer       = new();
+		SearchStart       = new();
 		Results     = new();
 
 		Query      = SearchQuery.Null;
@@ -69,7 +69,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		_seq       = 0;
 		m_cts      = new CancellationTokenSource();
 		m_ctsu     = new CancellationTokenSource();
-		timerText  = null;
+		TimerText  = null;
 
 		Engines1                = new(Engines);
 		Engines2                = new(Engines);
@@ -178,8 +178,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public bool IsNotRunning => !Client.IsRunning;
 
-	public DateTime Timer { get; private set; }
-
 	#endregion
 
 	#endregion
@@ -217,22 +215,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	private string timerText;
+	#region 
+
+	public  DateTime SearchStart { get; private set; }
 
 	public string TimerText
 	{
-		get { return timerText; }
-		set
-		{
-			timerText = value;
-			OnPropertyChanged(nameof(TimerText));
-		}
+		get;
+		set;
 	}
 
 	private void TimerDispatch(object? sender, EventArgs e)
 	{
-		TimerText = $"{(DateTime.Now - Timer).TotalSeconds:F3}";
+		TimerText = $"{(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 	}
+
+	#endregion
 
 	private void ParseArgs()
 	{
@@ -347,7 +345,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Lv_Queue.IsEnabled = false;
 		// ClearResults();
-		Timer = DateTime.Now;
+		SearchStart = DateTime.Now;
 		m_trDispatch.Start();
 
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
