@@ -42,7 +42,7 @@ public partial class MainWindow
 
 		// QueueInsert(txt);
 
-		InputText = txt;
+		QueueInput = txt;
 		if (ok /*&& !IsInputReady()*/) {
 			Application.Current.Dispatcher.InvokeAsync(() => SetQueryAsync());
 		}
@@ -71,7 +71,7 @@ public partial class MainWindow
 		var f1 = files1.FirstOrDefault();
 
 		if (!string.IsNullOrWhiteSpace(f1)) {
-			InputText = f1;
+			QueueInput = f1;
 
 		}
 
@@ -131,7 +131,7 @@ public partial class MainWindow
 			//todo
 			Restart();
 			var i = e.AddedItems[0] as string;
-			InputText = i;
+			QueueInput = i;
 			// EnqueueAsync(new []{i});
 			// Next(i);
 			// Lv_Queue.SelectionChanged -= Lv_Queue_SelectionChanged;
@@ -184,11 +184,6 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void Btn_Next_Click(object sender, RoutedEventArgs e)
-	{
-		Next();
-	}
-
 	private void Btn_Cancel_Click(object sender, RoutedEventArgs e)
 	{
 		Cancel();
@@ -205,9 +200,9 @@ public partial class MainWindow
 		Cancel();
 		ClearResults();
 		m_cbDispatch.Stop();
-		var old = InputText;
+		var old = QueueInput;
 		m_clipboard.Remove(old);
-		InputText = null;
+		QueueInput = null;
 		m_queries.TryRemove(old, out var q);
 		m_resultMap.TryRemove(Query, out var x);
 		Query.Dispose();

@@ -77,24 +77,20 @@
                              Width="437" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver"
-                             Text="{Binding InputText}" />
+                             Text="{Binding QueueInput}" />
 
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
-                            Loaded="Btn_Run_Loaded" Width="35" Background="#FF232323" Foreground="#FF00FF10"
-                            BorderBrush="#FFA2A2A2" />
+                            Loaded="Btn_Run_Loaded" Width="35" Background="{DynamicResource Black2}" Foreground="#FF00FF10" />
 
-                    <Button x:Name="Btn_Next" Content="Next" HorizontalAlignment="Left" Margin="539,9,0,0"
-                            VerticalAlignment="Top" Click="Btn_Next_Click" Width="35" />
-
-                    <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="591,9,0,0"
-                            VerticalAlignment="Top" Click="Btn_Cancel_Click" />
+                    <Button x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="539,9,0,0"
+                            VerticalAlignment="Top" Click="Btn_Cancel_Click" Background="{DynamicResource Black2}" Foreground="#FFE6FF00" />
 
                     <ListView x:Name="Lv_Queue" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
                               DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
                               Background="{DynamicResource Black2}" Foreground="White" Width="320" Height="150"
                               SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top"
-                              SelectedIndex="{Binding QueuePos, Mode=TwoWay}"
+                              SelectedIndex="{Binding QueueIndex, Mode=TwoWay}"
                               KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right" Grid.RowSpan="2">
                         <ListView.View>
                             <GridView>
@@ -213,9 +209,9 @@
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,51,0,0" TextWrapping="Wrap"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
 
-                    <Button x:Name="Btn_Delete" Content="Delete" IsEnabled="{Binding IsInputReady}"
-                            HorizontalAlignment="Left" Margin="501,65,0,0" VerticalAlignment="Top"
-                            Click="Btn_Delete_Click" />
+                    <Button x:Name="Btn_Delete" Content="Delete" IsEnabled="{Binding IsQueueInputValid}"
+                            HorizontalAlignment="Left" Margin="583,9,0,0" VerticalAlignment="Top"
+                            Click="Btn_Delete_Click" Background="{DynamicResource Black2}" Foreground="Red" />
 
                     <TextBlock x:Name="Tb_Timer" HorizontalAlignment="Left" Margin="336,49,0,0" Grid.Row="1"
                                Text="{Binding TimerText}" TextWrapping="Wrap" VerticalAlignment="Top"
