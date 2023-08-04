@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -11,7 +10,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.UI;
@@ -49,36 +47,28 @@ public static class ControlsHelper
 		return b;
 	}
 
-	public static void HandleEnumList<T>(this ListBox lb, T a, T b, bool add) where T : struct, Enum
+	public static void HandleEnum<T>(this ListBox lb, T src) where T : struct, Enum
 	{
-
-		if (a.Equals(b)) {
-			var sf = EnumHelper.GetSetFlags(b);
-
-			foreach (var seo in sf) {
-				if (add) {
-					lb.SelectedItems.Add(seo);
-				}
-				else {
-					lb.SelectedItems.Remove(seo);
-				}
-			}
-		}
-	}
-
-	public static void HandleEnumList<T>(this ListBox lb, List<T> rg, T src) where T : struct, Enum
-	{
-		foreach (T t in rg) {
+		foreach (T t in lb.ItemsSource.OfType<T>()) {
 			if (src.HasFlag((T) t)) {
 				lb.SelectedItems.Add(t);
 			}
+			else {
+				lb.SelectedItems.Remove(t);
+			}
 		}
 	}
 
-	public static void HandleEnumOption(this ListBox lb, SelectionChangedEventArgs e,
-	                                    Action<SearchEngineOptions, SearchEngineOptions> set)
+	/*static T parse<T>(IList x) where T : struct, Enum
 	{
-		var rg = lb.Items.OfType<SearchEngineOptions>().ToArray();
+		return x.OfType<T>().Aggregate(default(T), (n, l) => (T) (object) (Convert.ToInt32(n) | Convert.ToInt32(l)));
+
+	}*/
+
+	public static SearchEngineOptions HandleEnum(this ListBox lb, SelectionChangedEventArgs e,
+	                                             SearchEngineOptions orig)
+	{
+		var rg = lb.ItemsSource.OfType<SearchEngineOptions>().ToArray();
 
 		var ai = e.AddedItems.OfType<SearchEngineOptions>()
 			.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
@@ -88,18 +78,14 @@ public static class ControlsHelper
 
 		var si = lb.SelectedItems.OfType<SearchEngineOptions>().ToArray();
 
-		lb.HandleEnumList(ai, SearchEngineOptions.All, true);
+		var siv = si.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
 
-		if (ri.HasFlag(SearchEngineOptions.All)) {
-			lb.UnselectAll();
-		}
+		orig &= siv;
+		orig &= (~ri);
+		orig |= ai;
 
-		lb.HandleEnumList(ai, SearchEngineOptions.Artwork, true);
-		lb.HandleEnumList(ri, SearchEngineOptions.Artwork, false);
+		return orig;
 
-		set(ai, ri);
-
-		Debug.WriteLine($"{ai} {si}");
 	}
 
 	public static string[] GetFilesFromDrop(this DragEventArgs e)

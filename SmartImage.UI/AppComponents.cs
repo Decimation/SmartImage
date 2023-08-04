@@ -18,11 +18,14 @@ public static class AppComponents
 
 	public static BitmapImage Load(string name, int w = WIDTH, int h = HEIGHT)
 	{
-		return new BitmapImage(GetComponentUri(name))
-		{
-			CacheOption = BitmapCacheOption.OnLoad,
-
-		}.ResizeBitmap(w, h);
+		var bmp = new BitmapImage()
+			{ };
+		bmp.BeginInit();
+		bmp.CacheOption = BitmapCacheOption.OnLoad;
+		bmp.UriSource   = GetComponentUri(name);
+		bmp.EndInit();
+		bmp             = bmp.ResizeBitmap(w, h);
+		return bmp;
 	}
 
 	public static Uri GetComponentUri(string n, string resources = "Resources")
@@ -44,13 +47,13 @@ public static class AppComponents
 
 	public static readonly BitmapImage picture_save = Load("picture_save.png");
 
-	public static readonly BitmapImage artwork    = Load("artwork.png");
-	
-	public static readonly BitmapImage image      = Load("image.png");
-	
+	public static readonly BitmapImage artwork = Load("artwork.png");
+
+	public static readonly BitmapImage image = Load("image.png");
+
 	public static readonly BitmapImage image_link = Load("image_link.png");
 
-	public static readonly BitmapImage link       = Load("link.png");
+	public static readonly BitmapImage link = Load("link.png");
 
 	public static readonly BitmapImage arrow_refresh = Load("arrow_refresh.png");
 

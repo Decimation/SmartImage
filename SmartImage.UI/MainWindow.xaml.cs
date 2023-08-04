@@ -55,12 +55,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		InitializeComponent();
 
-		foreach (var arg in Args) {
-			Tb_Log.Text += $"{arg}\n";
-		}
-
 		DataContext = this;
-		SearchStart       = new();
+		SearchStart = default;
 		Results     = new();
 
 		Query      = SearchQuery.Null;
@@ -71,12 +67,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_ctsu     = new CancellationTokenSource();
 		TimerText  = null;
 
-		Engines1                = new(Engines);
-		Engines2                = new(Engines);
+		Engines1                = Engines;
+		Engines2                = Engines;
 		Lb_Engines.ItemsSource  = Engines1;
 		Lb_Engines2.ItemsSource = Engines2;
-		Lb_Engines.HandleEnumList(Engines1, Config.SearchEngines);
-		Lb_Engines2.HandleEnumList(Engines2, Config.PriorityEngines);
+		Lb_Engines.HandleEnum(Config.SearchEngines);
+		Lb_Engines2.HandleEnum(Config.PriorityEngines);
 
 		Lv_Results.ItemsSource = Results;
 		Lv_Queue.ItemsSource   = Queue;
@@ -98,7 +94,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		m_trDispatch = new DispatcherTimer
 		{
-			Interval = TimeSpan.FromMilliseconds(300)
+			Interval = TimeSpan.FromSeconds(0.25)
 		};
 		m_trDispatch.Tick += TimerDispatch;
 
@@ -106,7 +102,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_clipboard              = new();
 		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
 		m_resultMap              = new();
-		History                  = new ObservableCollection<ItemHistory>();
 
 		ParseArgs();
 
@@ -136,13 +131,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	/// <see cref="Lb_Engines"/>
 	/// <see cref="SearchConfig.SearchEngines"/>
 	/// </summary>
-	public List<SearchEngineOptions> Engines1 { get; }
+	public SearchEngineOptions[] Engines1 { get; }
 
 	/// <summary>
 	/// <see cref="Lb_Engines2"/>
 	/// <see cref="SearchConfig.PriorityEngines"/>
 	/// </summary>
-	public List<SearchEngineOptions> Engines2 { get; }
+	public SearchEngineOptions[] Engines2 { get; }
 
 	public SearchClient Client { get; }
 
@@ -154,13 +149,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public ObservableCollection<string> Queue { get; }
 
-	public ObservableCollection<ItemHistory> History { get; }
-
 	public string InputText
 	{
 		get => Tb_Input.Text;
 		set => Tb_Input.Text = value;
 	}
+
+	public bool IsInputReady => !string.IsNullOrWhiteSpace(InputText);
 
 	#region
 
@@ -175,8 +170,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		get => AppUtil.IsContextMenuAdded;
 		set => AppUtil.HandleContextMenu(value);
 	}
-
-	public bool IsNotRunning => !Client.IsRunning;
 
 	#endregion
 
@@ -215,9 +208,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	#region 
+	#region
 
-	public  DateTime SearchStart { get; private set; }
+	public DateTime SearchStart { get; private set; }
 
 	private string m_timerText;
 
@@ -242,6 +235,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void ParseArgs()
 	{
 		var e = Args.GetEnumerator();
+
+		foreach (var arg in Args) {
+			Tb_Log.Text += $"{arg}\n";
+		}
 
 		while (e.MoveNext()) {
 			var c = e.Current.ToString();
@@ -317,7 +314,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			m_image.EndInit();
 			Img_Preview.Source = m_image;
-			// Btn_Delete.IsEnabled = true;
+
+			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
 			if (Query.Uni.IsFile) {
 				Img_Type.Source = AppComponents.image;
 			}
@@ -387,8 +385,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
-	public bool IsInputReady => !string.IsNullOrWhiteSpace(InputText);
-
 	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		/*if (IsInputReady() /*|| Query != SearchQuery.Null#1#) {
@@ -422,13 +418,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			enc.Save(ms);
 			ms.Dispose();
 
-			History.Add(new ItemHistory(fn)
-			{
-				Source = ItemSource.Clipboard,
-				Type   = ItemType.File
-
-			});
-
 			EnqueueAsync(new[] { fn });
 			/*Application.Current.Dispatcher.InvokeAsync(() =>
 			{
@@ -449,12 +438,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 					EnqueueAsync(new[] { txt });
 
-					History.Add(new ItemHistory(txt)
-					{
-						Source = ItemSource.Clipboard,
-						Type   = ItemType.Uri
-
-					});
 					// await SetQueryAsync(txt);
 				}
 			}
@@ -470,15 +453,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			m_clipboard.AddRange(rg);
 
-			foreach (var v in rg) {
-				History.Add(new ItemHistory(v)
-				{
-					Source = ItemSource.Clipboard,
-					Type   = ItemType.File
-
-				});
-
-			}
 		}
 
 		if (cFile || cImg || cText) {
@@ -533,24 +507,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				}
 			}
-		}
-	}
-
-	private void Next()
-	{
-		Restart();
-
-		if (!Queue.Any()) {
-			return;
-		}
-
-		var next = Queue[m_queuePos++ % Queue.Count];
-		InputText = next;
-		Lv_Queue.SelectedItems.Clear();
-		Lv_Queue.SelectedItems.Add(next);
-
-		if (m_queuePos < Queue.Count && m_queuePos >= 0) {
-			// await SetQueryAsync(next);
 		}
 	}
 
@@ -609,7 +565,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Btn_Run.IsEnabled = true;
 		// Query.Dispose();
-		Pb_Status.Value      = 0;
+		Pb_Status.Value = 0;
 
 		// Tb_Status.Text  = string.Empty;
 	}
@@ -755,6 +711,24 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private void Next()
+	{
+		Restart();
+
+		if (!Queue.Any()) {
+			return;
+		}
+
+		var next = Queue[m_queuePos++ % Queue.Count];
+		InputText = next;
+		Lv_Queue.SelectedItems.Clear();
+		Lv_Queue.SelectedItems.Add(next);
+
+		if (m_queuePos < Queue.Count && m_queuePos >= 0) {
+			// await SetQueryAsync(next);
+		}
 	}
 }
 

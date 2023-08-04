@@ -199,6 +199,7 @@ public partial class MainWindow
 		Img_Preview.Source = m_image = null;
 		Query              = SearchQuery.Null;
 		bool ok;
+
 		try {
 			VBFS.DeleteFile(old, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
 			// FileSystem.SendFileToRecycleBin(old);
@@ -210,7 +211,7 @@ public partial class MainWindow
 		}
 
 		m_cbDispatch.Start();
-		// Btn_Delete.IsEnabled = !ok;
+		Btn_Delete.IsEnabled = !ok;
 		// FileSystem.SendFileToRecycleBin(InputText);
 	}
 
@@ -267,20 +268,30 @@ public partial class MainWindow
 
 	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		Lb_Engines.HandleEnumOption(e, (ai, ri) =>
-		{
-			Config.SearchEngines |= (ai);
-			Config.SearchEngines &= ~ri;
-		});
+		Lb_Engines.SelectionChanged -= Lb_Engines_SelectionChanged;
+
+		var n = Lb_Engines.HandleEnum(e, Config.SearchEngines);
+
+		Lb_Engines.HandleEnum(n);
+		Config.SearchEngines = n;
+
+		e.Handled                   =  true;
+		Lb_Engines.SelectionChanged += Lb_Engines_SelectionChanged;
+
 	}
 
 	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		Lb_Engines2.HandleEnumOption(e, (ai, ri) =>
-		{
-			Config.PriorityEngines |= (ai);
-			Config.PriorityEngines &= ~ri;
-		});
+		Lb_Engines2.SelectionChanged -= Lb_Engines2_SelectionChanged;
+
+		var n = Lb_Engines2.HandleEnum(e, Config.PriorityEngines);
+
+		Lb_Engines2.HandleEnum(n);
+		Config.PriorityEngines = n;
+
+		e.Handled                    =  true;
+		Lb_Engines2.SelectionChanged += Lb_Engines2_SelectionChanged;
+
 	}
 
 	private void Cb_Clipboard_Checked(object sender, RoutedEventArgs e)

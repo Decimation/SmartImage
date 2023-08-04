@@ -240,20 +240,6 @@
                              Margin="0,180,0,0" />
                 </Grid>
             </TabItem>
-            <TabItem x:Name="Ti_History" HorizontalAlignment="Center" Height="20" Header="History"
-                     VerticalAlignment="Center" Width="54">
-                <Grid Background="{DynamicResource Black1}" Height="554" Width="1194">
-                    <ListView x:Name="Lv_History" d:ItemsSource="{Binding History}" Margin="10,168,741,10">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn />
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                    <Image x:Name="Img_HistPreview" HorizontalAlignment="Left" Height="254" Margin="726,168,0,0"
-                           VerticalAlignment="Top" Width="448" />
-                </Grid>
-            </TabItem>
         </TabControl>
 
     </Grid>
