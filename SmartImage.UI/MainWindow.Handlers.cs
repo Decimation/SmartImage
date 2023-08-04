@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Kantan.Net.Utilities;
+using Kantan.Numeric;
 using Microsoft.VisualBasic.FileIO;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Impl.Upload;
@@ -35,7 +36,7 @@ public partial class MainWindow
 		// Debug.Assert(Lv_Queue.SelectedValue.ToString() == InputText);
 		// Debug.Assert(Lv_Queue.SelectedItem.ToString() == InputText);
 
-		var nt  = Tb_Input.Text;
+		var nt = Tb_Input.Text;
 		// var txt = InputText;
 		var txt = nt;
 		var ok  = SearchQuery.IsValidSourceType(txt);
@@ -43,6 +44,7 @@ public partial class MainWindow
 		// QueueInsert(txt);
 
 		QueueInput = txt;
+
 		if (ok /*&& !IsInputReady()*/) {
 			Application.Current.Dispatcher.InvokeAsync(() => SetQueryAsync());
 		}
@@ -125,6 +127,7 @@ public partial class MainWindow
 			return;
 		}
 
+		Debug.WriteLine($"{QueueIndex} {QueueInput}");
 		// m_queuePos = Lv_Queue.SelectedIndex;
 
 		if (e.AddedItems.Count > 0) {
@@ -193,6 +196,17 @@ public partial class MainWindow
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
 	{
 		// Btn_Run.IsEnabled = false;
+	}
+
+	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
+	{
+		var cq  = QueueIndex;
+		var qi2 = cq + 1;
+		var q   = MathHelper.Wrap(qi2, Queue.Count);
+
+		Queue.Remove(QueueInput);
+		TrySeekQueue(q);
+
 	}
 
 	private void Btn_Delete_Click(object sender, RoutedEventArgs e)
@@ -401,8 +415,6 @@ public partial class MainWindow
 
 	private void Img_Preview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 	{
-		if (e.IsDoubleClick()) {
-
-		}
+		if (e.IsDoubleClick()) { }
 	}
 }

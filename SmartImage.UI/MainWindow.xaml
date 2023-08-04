@@ -216,6 +216,9 @@
                     <TextBlock x:Name="Tb_Timer" HorizontalAlignment="Left" Margin="336,49,0,0" Grid.Row="1"
                                Text="{Binding TimerText}" TextWrapping="Wrap" VerticalAlignment="Top"
                                Foreground="White" Width="60" />
+                    <Button x:Name="Btn_Remove" Content="Remove" 
+                        HorizontalAlignment="Left" Margin="626,9,0,0" VerticalAlignment="Top"
+                        Click="Btn_Remove_Click" Background="{DynamicResource Black2}" Foreground="#FFFFD86D" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"

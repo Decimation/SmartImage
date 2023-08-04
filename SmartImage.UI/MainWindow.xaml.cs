@@ -20,6 +20,7 @@ using System.Windows.Threading;
 using Flurl;
 using Kantan.Collections;
 using Kantan.Net.Utilities;
+using Kantan.Numeric;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
@@ -65,11 +66,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Query = SearchQuery.Null;
 		Queue = new();
 		// Queue.CollectionChanged += Queue_Changed;
-		QueueIndex  = 0;
-		_clipboardSequence      = 0;
-		m_cts     = new CancellationTokenSource();
-		m_ctsu    = new CancellationTokenSource();
-		TimerText = null;
+		QueueIndex         = 0;
+		_clipboardSequence = 0;
+		m_cts              = new CancellationTokenSource();
+		m_ctsu             = new CancellationTokenSource();
+		TimerText          = null;
 
 		Lb_Engines.ItemsSource  = Engines;
 		Lb_Engines2.ItemsSource = Engines;
@@ -215,7 +216,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	private bool IsQueueIndexValid => Queue.Count > 0 && QueueIndex < Queue.Count && QueueIndex != -1;
+	private bool IsQueueIndexValid => Queue.Count > 0 && QueueIndex < Queue.Count && QueueIndex >= 0;
 
 	public string QueueInput
 	{
@@ -232,6 +233,19 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			TryInsertQueueInput(value);
 			OnPropertyChanged();
 		}
+	}
+
+	public bool TrySeekQueue(int i)
+	{
+		var nqi = i;
+
+		var b = MathHelper.IsInRange(nqi, Queue.Count);
+
+		if (b) {
+			QueueIndex = nqi;
+		}
+
+		return b;
 	}
 
 	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(QueueInput);
@@ -574,7 +588,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text            = string.Empty;
-		QueueInput                 = string.Empty;
+		QueueInput                = string.Empty;
 		Tb_Info.Text              = string.Empty;
 		Tb_Info2.Text             = string.Empty;
 		TimerText                 = String.Empty;
