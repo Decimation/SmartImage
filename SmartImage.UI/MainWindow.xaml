@@ -75,7 +75,7 @@
                              Width="437" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver"
-                             Text="{Binding QueueInput}" />
+                             Text="{Binding QueueSelectedItem}" />
 
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"

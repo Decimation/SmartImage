@@ -44,8 +44,7 @@ public partial class MainWindow
 
 		// QueueInsert(txt);
 
-		QueueInput = txt;
-		Debug.Assert(QueueInput.Equals(QueueSelectedItem));
+		QueueSelectedItem = txt;
 
 		if (ok /*&& !IsInputReady()*/) {
 			Application.Current.Dispatcher.InvokeAsync(SetQueryAsync);
@@ -75,8 +74,7 @@ public partial class MainWindow
 		var f1 = files1.FirstOrDefault();
 
 		if (!string.IsNullOrWhiteSpace(f1)) {
-			QueueInput = f1;
-			Debug.Assert(QueueInput.Equals(QueueSelectedItem));
+			QueueSelectedItem = f1;
 
 		}
 
@@ -130,15 +128,15 @@ public partial class MainWindow
 			return;
 		}
 
-		Debug.WriteLine($"{QueueSelectedIndex} {QueueInput}");
+		Debug.WriteLine($"{QueueSelectedIndex} {QueueSelectedItem}");
 		// m_queuePos = Lv_Queue.SelectedIndex;
 
 		if (e.AddedItems.Count > 0) {
 			//todo
 			Restart();
 			var i = e.AddedItems[0] as string;
-			QueueInput = i;
-			Debug.Assert(QueueInput.Equals(QueueSelectedItem));
+			QueueSelectedItem = i;
+			Debug.Assert(QueueSelectedItem.Equals(QueueSelectedItem));
 
 			// EnqueueAsync(new []{i});
 			// Next(i);
@@ -209,7 +207,7 @@ public partial class MainWindow
 		var qi2 = cq + 1;
 		var q   = MathHelper.Wrap(qi2, Queue.Count);
 
-		var old = QueueInput;
+		var old = QueueSelectedItem;
 		TrySeekQueue(q);
 		Queue.Remove(old);
 		m_queries.TryRemove(old, out var sq);
@@ -220,9 +218,9 @@ public partial class MainWindow
 		Cancel();
 		ClearResults();
 		m_cbDispatch.Stop();
-		var old = QueueInput;
+		var old = QueueSelectedItem;
 		m_clipboard.Remove(old);
-		QueueInput = null;
+		QueueSelectedItem = null;
 		m_queries.TryRemove(old, out var q);
 		m_resultMap.TryRemove(Query, out var x);
 		Query.Dispose();

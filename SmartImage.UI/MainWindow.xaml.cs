@@ -195,9 +195,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private object m_queueSelectedItem;
+	private string m_queueSelectedItem;
 
-	public object QueueSelectedItem
+	public string QueueSelectedItem
 	{
 		get => m_queueSelectedItem;
 		set
@@ -210,64 +210,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public ObservableCollection<string> Queue { get; }
 
-	public string TryGetQueueInput()
-	{
-		if (IsQueueIndexValid) {
-			return Queue[QueueSelectedIndex];
-		}
-
-		return null;
-	}
-
-	private bool TryInsertQueueInput(string s)
-	{
-		var b = IsQueueIndexValid && !Queue.Contains(s) && !string.IsNullOrWhiteSpace(s);
-
-		if (b) {
-
-			Queue[QueueSelectedIndex] = s;
-		}
-
-		return b;
-
-	}
-
-	private bool IsQueueIndexValid => Queue.Count > 0 && QueueSelectedIndex < Queue.Count && QueueSelectedIndex >= 0;
-
-	public string QueueInput
-	{
-		get
-		{
-			if (!IsInitialized || !IsQueueIndexValid) {
-				return null;
-			}
-
-			return TryGetQueueInput();
-		}
-		set
-		{
-			TryInsertQueueInput(value);
-			OnPropertyChanged();
-		}
-	}
-
 	public bool TrySeekQueue(int i)
 	{
 		var b = MathHelper.IsInRange(i, Queue.Count) && Queue.Count > 0;
 
 		if (b) {
 			QueueSelectedIndex = i;
-			QueueSelectedItem  = QueueInput;
 		}
 
 		return b;
 	}
 
-	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(QueueInput);
+	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(QueueSelectedItem);
 
 	private async Task SetQueryAsync()
 	{
-		var query = QueueInput;
+		var query = QueueSelectedItem;
 		Interlocked.Exchange(ref _status, S_NO);
 
 		Btn_Run.IsEnabled = false;
@@ -364,7 +322,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		if (!IsQueueInputValid) {
 			var ff = files[0];
-			QueueInput = ff;
+			QueueSelectedItem = ff;
 
 			// Lv_Queue.SelectedItems.Add(ff);
 		}
@@ -448,7 +406,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var fn = FileSystem.GetTempFileName(ext: "png");
 
 			var ms = File.Open(fn, FileMode.OpenOrCreate);
-			QueueInput = fn;
+			QueueSelectedItem = fn;
 			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(ms);
@@ -568,7 +526,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		ClearResults(full);
 		Dispose(full);
 
-		QueueInput = string.Empty;
+		QueueSelectedItem = string.Empty;
 
 		ReloadToken();
 	}
@@ -579,7 +537,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text            = string.Empty;
-		QueueInput                = string.Empty;
+		QueueSelectedItem                = string.Empty;
 		Tb_Info.Text              = string.Empty;
 		Tb_Info2.Text             = string.Empty;
 		TimerText                 = String.Empty;
@@ -761,7 +719,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (c == R2.Arg_Input) {
 				var inp = e.MoveAndGet();
-				QueueInput = inp.ToString();
+				QueueSelectedItem = inp.ToString();
 				continue;
 			}
 
