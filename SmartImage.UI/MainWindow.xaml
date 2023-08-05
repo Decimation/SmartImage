@@ -75,7 +75,7 @@
                              Width="437" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver"
-                             Text="{Binding QueueSelectedItem}" />
+                             Text="{Binding CurrentQueueItem}" />
 
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
@@ -139,14 +139,14 @@
                         </Button.Style>
 
                     </Button>
-
                     <ListView x:Name="Lv_Queue" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
                               DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
                               Background="{DynamicResource Black2}" Foreground="White" Width="320" Height="150"
                               SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top"
-                              SelectedItem="{Binding QueueSelectedItem, Mode=TwoWay}"
-                              SelectedIndex="{Binding QueueSelectedIndex, Mode=Default, UpdateSourceTrigger=PropertyChanged}"
+                              SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay}"
+                              IsSynchronizedWithCurrentItem="True"
                               KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right" Grid.RowSpan="2">
+                        <!-- SelectedIndex="{Binding QueueSelectedIndex, Mode=Default, UpdateSourceTrigger=PropertyChanged}" -->
                         <ListView.View>
                             <GridView>
                                 <!-- <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="85"/> -->
@@ -200,8 +200,9 @@
                               d:ItemsSource="{Binding Results}"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
+                              IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
-                              SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
+                              SelectedItem="{Binding CurrentResultItem, Mode=TwoWay}"
                               ItemContainerStyle="{StaticResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown"

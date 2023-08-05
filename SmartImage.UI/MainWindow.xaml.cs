@@ -48,13 +48,7 @@ namespace SmartImage.UI;
 /// </summary>
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
-	private static readonly string[] Args;
-
-	static MainWindow()
-	{
-		Args = Environment.GetCommandLineArgs();
-
-	}
+	static MainWindow() { }
 
 	public MainWindow()
 	{
@@ -69,7 +63,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Query              = SearchQuery.Null;
 		Queue              = new();
-		QueueSelectedIndex = 0;
+		// QueueSelectedIndex = 0;
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
 		m_ctsu             = new CancellationTokenSource();
@@ -85,8 +79,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lv_Results.ItemsSource = Results;
 		Lv_Queue.ItemsSource   = Queue;
 
-		Client.OnResult        += OnResult;
-		Client.OnComplete      += OnComplete;
+		Client.OnResult   += OnResult;
+		Client.OnComplete += OnComplete;
 
 		AppDomain.CurrentDomain.UnhandledException       += Domain_UHException;
 		Application.Current.DispatcherUnhandledException += Dispatcher_UHException;
@@ -107,9 +101,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_clipboard              = new();
 		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
 		m_resultMap              = new();
-
 		ParseArgs();
-
 		m_image = null;
 
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
@@ -118,23 +110,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
-	}
-
-	private void Log(LogEntry l)
-	{
-		Logs.Add(l);
-		Debug.WriteLine(l);
-	}
-
-	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
-	{
-		Log(new LogEntry($"AppDomain: {((Exception) e.ExceptionObject).Message}"));
-	}
-
-	private void Dispatcher_UHException(object sender, DispatcherUnhandledExceptionEventArgs e)
-	{
-		Log(new LogEntry($"Dispatcher: {e.Exception.Message}"));
-		e.Handled = true;
 	}
 
 	#region
@@ -182,9 +157,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static int _status = S_OK;
 
-	private const int                            S_NO = 0;
-	private const int                            S_OK = 1;
-	public        ObservableCollection<LogEntry> Logs { get; }
+	private const int S_NO = 0;
+	private const int S_OK = 1;
+
+	public ObservableCollection<LogEntry> Logs { get; }
 
 	#endregion
 
@@ -192,7 +168,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public SearchQuery Query { get; internal set; }
 
-	private int m_queueSelectedIndex;
+	/*private int m_queueSelectedIndex;
 
 	public int QueueSelectedIndex
 	{
@@ -203,25 +179,26 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			m_queueSelectedIndex = value;
 			OnPropertyChanged();
 		}
-	}
+	}*/
 
-	private string m_queueSelectedItem;
+	private string m_currentQueueItem;
 
-	public string QueueSelectedItem
+	public string CurrentQueueItem
 	{
-		get => m_queueSelectedItem;
+		get => m_currentQueueItem;
 		set
 		{
-			if (Equals(value, m_queueSelectedItem) || string.IsNullOrWhiteSpace(value)) return;
-			m_queueSelectedItem = value;
+			if (Equals(value, m_currentQueueItem) || string.IsNullOrWhiteSpace(value)) return;
+			m_currentQueueItem = value;
 			OnPropertyChanged();
 		}
 	}
 
 	public ObservableCollection<string> Queue { get; }
 
-	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(QueueSelectedItem);
+	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(CurrentQueueItem);
 
+	/*
 	public bool TrySeekQueue(int i)
 	{
 		var b = MathHelper.IsInRange(i, Queue.Count) && Queue.Count > 0;
@@ -232,10 +209,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		return b;
 	}
+	*/
 
 	private async Task UpdateQueryAsync()
 	{
-		var query = QueueSelectedItem;
+		var query = CurrentQueueItem;
 		Interlocked.Exchange(ref _status, S_NO);
 
 		Btn_Run.IsEnabled = false;
@@ -342,7 +320,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		if (!IsQueueInputValid) {
 			var ff = files[0];
-			QueueSelectedItem = ff;
+			CurrentQueueItem = ff;
 
 			// Lv_Queue.SelectedItems.Add(ff);
 		}
@@ -430,7 +408,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var fn = FileSystem.GetTempFileName(ext: "png");
 
 			var ms = File.Open(fn, FileMode.OpenOrCreate);
-			QueueSelectedItem = fn;
+			CurrentQueueItem = fn;
 			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(ms);
@@ -567,7 +545,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		ClearResults(full);
 		Dispose(full);
 
-		QueueSelectedItem = string.Empty;
+		CurrentQueueItem = string.Empty;
 
 		ReloadToken();
 	}
@@ -578,7 +556,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text            = string.Empty;
-		QueueSelectedItem         = string.Empty;
+		CurrentQueueItem         = string.Empty;
 		Tb_Info.Text              = string.Empty;
 		Tb_Info2.Text             = string.Empty;
 		TimerText                 = String.Empty;
@@ -626,7 +604,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Query = SearchQuery.Null;
 
 			Queue.Clear();
-			QueueSelectedIndex = 0;
+			// QueueSelectedIndex = 0;
 
 			foreach (var kv in m_queries) {
 				kv.Value.Dispose();
@@ -755,6 +733,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
+	public static readonly string[] Args = Environment.GetCommandLineArgs();
+
 	private void ParseArgs()
 	{
 		Logs.Add(new(Args.QuickJoin()));
@@ -768,7 +748,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (c == R2.Arg_Input) {
 				var inp = (string) e.MoveAndGet();
-				QueueSelectedItem = inp;
+
+				CurrentQueueItem = inp;
 				continue;
 			}
 
@@ -778,6 +759,23 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Config.AutoSearch = true;
 			}
 		}
+	}
+
+	private void Log(LogEntry l)
+	{
+		Logs.Add(l);
+		Debug.WriteLine(l);
+	}
+
+	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
+	{
+		Log(new LogEntry($"AppDomain: {((Exception) e.ExceptionObject).Message}"));
+	}
+
+	private void Dispatcher_UHException(object sender, DispatcherUnhandledExceptionEventArgs e)
+	{
+		Log(new LogEntry($"Dispatcher: {e.Exception.Message}"));
+		e.Handled = true;
 	}
 }
 

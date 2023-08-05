@@ -44,7 +44,7 @@ public partial class MainWindow
 
 		// QueueInsert(txt);
 
-		QueueSelectedItem = txt;
+		CurrentQueueItem = txt;
 
 		if (ok /*&& !IsInputReady()*/) {
 			Application.Current.Dispatcher.InvokeAsync(UpdateQueryAsync);
@@ -74,7 +74,7 @@ public partial class MainWindow
 		var f1 = files1.FirstOrDefault();
 
 		if (!string.IsNullOrWhiteSpace(f1)) {
-			QueueSelectedItem = f1;
+			CurrentQueueItem = f1;
 
 		}
 
@@ -134,7 +134,7 @@ public partial class MainWindow
 			return;
 		}
 
-		Debug.WriteLine($"{QueueSelectedIndex} {QueueSelectedItem}");
+		// Debug.WriteLine($"{QueueSelectedIndex} {QueueSelectedItem}");
 		// m_queuePos = Lv_Queue.SelectedIndex;
 
 		if (e.AddedItems.Count > 0) {
@@ -142,8 +142,8 @@ public partial class MainWindow
 			Restart();
 
 			if (e.AddedItems[0] is string i) {
-				QueueSelectedItem = i;
-				Debug.Assert(QueueSelectedItem.Equals(QueueSelectedItem));
+				CurrentQueueItem = i;
+				Debug.Assert(CurrentQueueItem.Equals(CurrentQueueItem));
 			}
 
 			// EnqueueAsync(new []{i});
@@ -211,10 +211,10 @@ public partial class MainWindow
 
 	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
 	{
-		var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
+		// var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
 
-		var old = QueueSelectedItem;
-		TrySeekQueue(q);
+		var old = CurrentQueueItem;
+		// TrySeekQueue(q);
 		Queue.Remove(old);
 		m_queries.TryRemove(old, out var sq);
 		sq?.Dispose();
@@ -225,9 +225,9 @@ public partial class MainWindow
 		Cancel();
 		ClearResults();
 		m_cbDispatch.Stop();
-		var old = QueueSelectedItem;
+		var old = CurrentQueueItem;
 		m_clipboard.Remove(old);
-		QueueSelectedItem = String.Empty;
+		CurrentQueueItem = String.Empty;
 		m_queries.TryRemove(old, out var q);
 		m_resultMap.TryRemove(Query, out var x);
 		Query.Dispose();
@@ -255,7 +255,7 @@ public partial class MainWindow
 
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		SelectedResult.Open();
+		CurrentResultItem.Open();
 	}
 
 	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e) { }
@@ -289,20 +289,20 @@ public partial class MainWindow
 
 		switch (key) {
 			case Key.D when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(() => DownloadResultAsync(((UniResultItem) SelectedResult)));
+				Application.Current.Dispatcher.InvokeAsync(() => DownloadResultAsync(((UniResultItem) CurrentResultItem)));
 
 				break;
 			case Key.S when ctrl:
 
-				Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(SelectedResult));
+				Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
 				break;
 			case Key.Delete:
-				if (SelectedResult == null) {
+				if (CurrentResultItem == null) {
 					return;
 				}
 
-				SelectedResult.Dispose();
-				Results.Remove(SelectedResult);
+				CurrentResultItem.Dispose();
+				Results.Remove(CurrentResultItem);
 				Img_Preview.Source = m_image;
 				break;
 		}
@@ -409,12 +409,12 @@ public partial class MainWindow
 
 	private void OpenItem_Click(object sender, RoutedEventArgs e)
 	{
-		SelectedResult.Open();
+		CurrentResultItem.Open();
 	}
 
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
-		if (SelectedResult is UniResultItem uri) {
+		if (CurrentResultItem is UniResultItem uri) {
 			Application.Current.Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}
@@ -424,7 +424,7 @@ public partial class MainWindow
 
 	private void ScanItem_Click(object sender, RoutedEventArgs e)
 	{
-		Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(SelectedResult));
+		Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
 		e.Handled = true;
 	}
 

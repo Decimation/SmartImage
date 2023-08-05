@@ -1,21 +1,24 @@
 ﻿// Read S SmartImage.UI MainWindow.State.cs
 // 2023-08-04 @ 1:24 PM
 
+using System.Windows;
+
 namespace SmartImage.UI;
 
 public partial class MainWindow
 {
+
 	#region
 
-	private ResultItem m_selectedResult;
+	private ResultItem m_currentResultItem;
 
-	public ResultItem SelectedResult
+	public ResultItem CurrentResultItem
 	{
-		get => m_selectedResult;
+		get => m_currentResultItem;
 		set
 		{
-			if (Equals(value, m_selectedResult)) return;
-			m_selectedResult = value;
+			if (Equals(value, m_currentResultItem)) return;
+			m_currentResultItem = value;
 			OnPropertyChanged();
 		}
 	}
