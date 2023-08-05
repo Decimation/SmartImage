@@ -7,7 +7,18 @@ public partial class MainWindow
 {
 	#region
 
-	private ResultItem SelectedResult => (ResultItem) Lv_Results.SelectedItem;
+	private ResultItem m_selectedResult;
+
+	public ResultItem SelectedResult
+	{
+		get => m_selectedResult;
+		set
+		{
+			if (Equals(value, m_selectedResult)) return;
+			m_selectedResult = value;
+			OnPropertyChanged();
+		}
+	}
 
 	#endregion
 }

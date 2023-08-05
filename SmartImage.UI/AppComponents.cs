@@ -59,5 +59,6 @@ public static class AppComponents
 
 	public static readonly BitmapImage clipboard_invoice = Load("clipboard_invoice.png");
 
+	public static readonly BitmapImage asterisk_yellow = Load("asterisk_yellow.png");
 	#endregion
 }

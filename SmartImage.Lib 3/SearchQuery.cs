@@ -4,16 +4,13 @@ global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.FileTypes;
-using Novus;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Utilities;
-using Image = System.Drawing.Image;
 
 [assembly: InternalsVisibleTo("SmartImage")]
 [assembly: InternalsVisibleTo("SmartImage.UI")]
@@ -30,12 +27,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public long Size { get; private set; }
 
-	[SupportedOSPlatform(Global.OS_WIN)]
-	public Image Image { get; private set; }
-
 	public ReadOnlyMemory<byte> Hash { get; private init; }
 
-	internal SearchQuery([MN] UniSource f)
+	internal SearchQuery([CBN] UniSource f)
 	{
 		Uni  = f;
 		Size = Uni == null ? default : Uni.Stream.Length;
@@ -106,31 +100,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		return Upload;
 	}
 
-	public bool LoadImage()
-	{
-		if (!OperatingSystem.IsWindows()) {
-			return false;
-		}
-
-		if (Image != null) {
-			return true;
-		}
-
-		try {
-#if ALT
-			Image = Image.FromStream(Uni.Stream, useEmbeddedColorManagement: false, validateImageData: false);
-			Debug.WriteLine($"Loaded image: {Image.PhysicalDimension}", nameof(LoadImage));
-#endif
-
-			return true;
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(LoadImage));
-			return false;
-		}
-
-	}
-
 	public static bool IsValidSourceType(object str)
 	{
 		var v      = UniHandler.GetUniType(str, out var o2);
@@ -149,9 +118,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public void Dispose()
 	{
-		if (OperatingSystem.IsWindows()) {
-			Image?.Dispose();
-		}
 
 		Uni?.Dispose();
 	}
@@ -159,10 +125,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public override string ToString()
 	{
 		var s = $"{Uni}";
-
-		if (OperatingSystem.IsWindows()) {
-			s += $" {Image?.PhysicalDimension}";
-		}
 
 		return s;
 	}
@@ -175,7 +137,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		if (ReferenceEquals(this, other)) return true;
 
 		return Equals(Uni, other.Uni) && Equals(Upload, other.Upload) && Size == other.Size &&
-		       (!OperatingSystem.IsWindows() || Equals(Image, other.Image));
+		       (!OperatingSystem.IsWindows());
 	}
 
 	public override bool Equals(object obj)
@@ -185,17 +147,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public override int GetHashCode()
 	{
-		unchecked {
-			int hashCode = (Uni != null ? Uni.GetHashCode() : 0);
-			hashCode = (hashCode * 397) ^ (Upload != null ? Upload.GetHashCode() : 0);
-			hashCode = (hashCode * 397) ^ Size.GetHashCode();
-
-			if (OperatingSystem.IsWindows()) {
-				hashCode = (hashCode * 397) ^ (Image != null ? Image.GetHashCode() : 0);
-			}
-
-			return hashCode;
-		}
+		return HashCode.Combine(Uni, Upload, Size);
 	}
 
 	public static bool operator ==(SearchQuery left, SearchQuery right)

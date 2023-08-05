@@ -108,7 +108,8 @@
                         </Button.Style>
                     </Button>
 
-                    <Button BorderBrush="{DynamicResource Border1}" x:Name="Btn_Cancel" Content="Cancel" HorizontalAlignment="Left" Margin="539,9,0,0"
+                    <Button BorderBrush="{DynamicResource Border1}" x:Name="Btn_Cancel" Content="Cancel"
+                            HorizontalAlignment="Left" Margin="539,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" Height="20" Width="39">
 
                         <Button.Style>
@@ -188,8 +189,8 @@
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
 
-                    <Image Grid.Row="1" x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
-                           Margin="10,10,0,0"
+                    <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
+                           Margin="503,71,0,0"
                            VerticalAlignment="Top" Stretch="None" />
 
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
@@ -200,6 +201,7 @@
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
                               Background="{DynamicResource Black2}"
+                              SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                               ItemContainerStyle="{StaticResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown"
@@ -256,18 +258,18 @@
 
                     </ListView>
 
-                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Grid.Row="1" Margin="44,10,0,0"
+                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="537,71,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Top" />
 
-                    <TextBlock x:Name="Tb_Info2" HorizontalAlignment="Left" Margin="10,33,0,0" TextWrapping="Wrap"
-                               VerticalAlignment="Top" Foreground="White" Text="..." Grid.Row="1" />
+                    <TextBlock x:Name="Tb_Info2" HorizontalAlignment="Left" Margin="115,49,0,0"
+                               VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline" />
 
-                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="109,51,0,0" TextWrapping="Wrap"
+                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="4,33,0,0"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
 
                     <Button x:Name="Btn_Delete" Content="Delete" IsEnabled="{Binding IsQueueInputValid}"
                             HorizontalAlignment="Left" Margin="634,9,0,0" VerticalAlignment="Top"
-                            Click="Btn_Delete_Click" Height="20" Width="39" >
+                            Click="Btn_Delete_Click" Height="20" Width="39">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -297,12 +299,12 @@
 
                     </Button>
 
-                    <TextBlock x:Name="Tb_Timer" HorizontalAlignment="Left" Margin="336,49,0,0" Grid.Row="1"
-                               Text="{Binding TimerText}" TextWrapping="Wrap" VerticalAlignment="Top"
-                               Foreground="White" Width="60" />
+                    <TextBlock x:Name="Tb_Timer" HorizontalAlignment="Left" Margin="630,49,0,0" Grid.Row="1"
+                               Text="{Binding TimerText}" VerticalAlignment="Top"
+                               Foreground="White" />
                     <Button x:Name="Btn_Remove" Content="Remove"
                             HorizontalAlignment="Left" Margin="583,9,0,0" VerticalAlignment="Top"
-                            Click="Btn_Remove_Click" Height="20" Width="46" >
+                            Click="Btn_Remove_Click" Height="20" Width="46">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -378,15 +380,23 @@
                                  Margin="599,53,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
                                  Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
-                        Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+                           Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"
                      Width="54">
-                <Grid Background="#FFE5E5E5">
-                    <TextBox x:Name="Tb_Log" HorizontalAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top"
-                             Width="1178" Height="366" IsReadOnly="True" AcceptsReturn="True" AcceptsTab="True"
-                             Margin="0,180,0,0" />
+                <Grid Background="{DynamicResource Black1}">
+                    <ListView x:Name="Lv_Logs" ItemsSource="{Binding Logs}" 
+                              Foreground="White"
+                              Background="{DynamicResource Black2}"
+                              Margin="0,193,0,0">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Time" Width="75" DisplayMemberBinding="{Binding Time}"/>
+                                <GridViewColumn Header="Message" Width="750" DisplayMemberBinding="{Binding Message}"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
                 </Grid>
             </TabItem>
         </TabControl>

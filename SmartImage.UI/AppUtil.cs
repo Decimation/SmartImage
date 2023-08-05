@@ -48,8 +48,6 @@ public static class AppUtil
 		{
 			var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
 			return reg != null;
-
-			return false;
 		}
 	}
 

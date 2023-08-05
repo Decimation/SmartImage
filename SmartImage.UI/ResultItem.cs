@@ -2,6 +2,8 @@
 // 2023-07-17 @ 5:54 PM
 
 using System;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.IO;
 using System.Net.Cache;
@@ -10,7 +12,9 @@ using System.Windows;
 using System.Windows.Media.Imaging;
 using Flurl;
 using Kantan.Net.Utilities;
+using Kantan.Utilities;
 using Novus.FileTypes;
+using Novus.OS;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
@@ -18,7 +22,7 @@ namespace SmartImage.UI;
 
 public class ResultItem : IDisposable
 {
-	public string Name { get; }
+	public string Name { get; protected set; }
 
 	public SearchResultItem Result { get; }
 
@@ -51,18 +55,21 @@ public class ResultItem : IDisposable
 		else if (Status.IsError()) {
 			StatusImage = AppComponents.exclamation;
 		}
+		else {
+			StatusImage = AppComponents.asterisk_yellow;
+		}
 
 	}
 
 	public bool Open()
 	{
-		return HttpUtilities.TryOpenUrl(Url);
+		return FileSystem.Open(Url);
 
 	}
 
 	public virtual void Dispose()
 	{
-		Result.Dispose();
+		// Result.Dispose();
 	}
 }
 
@@ -72,8 +79,14 @@ public class UniResultItem : ResultItem
 		: base(ri.Result, $"{ri.Name} ({idx})")
 	{
 		UniIndex = idx;
-		if (Uni is {}) {
+
+		if (Uni == null) {
+			Debugger.Break();
+		}
+
+		if (Uni != null) {
 			if (Uni.IsStream) {
+				// todo: update GetFileName
 				Url = ri.Url.GetFileName().Split(':')[0];
 
 				if (Path.GetExtension(Url) == null) {
@@ -85,7 +98,7 @@ public class UniResultItem : ResultItem
 
 			}
 
-			Image= new BitmapImage()
+			Image = new BitmapImage()
 				{ };
 			Image.BeginInit();
 			Image.StreamSource = Uni.Stream;
@@ -94,15 +107,38 @@ public class UniResultItem : ResultItem
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
 		}
+		else {
+			Image = null;
+		}
+
 		StatusImage = AppComponents.picture;
 	}
 
-	public BitmapImage Image
+	public string Description
 	{
-		get;
-		private set;
+		get
+		{
+			string bytes;
 
+			if (!Uni.Stream.CanRead) {
+				bytes = "???";
+			}
+			else bytes = FormatHelper.FormatBytes(Uni.Stream.Length);
+
+			string img;
+
+			if (Image != null)  {
+				img = $"({Image.Width:F}×{Image.Height:F})";
+			}else{
+				img = "";
+			}
+			return $"{Name} ⇉ [{Uni.FileTypes[0]}] " +
+			       $"[{bytes}] • {img}";
+		}
 	}
+
+	public BitmapImage? Image { get; private set; }
+
 	public UniSource? Uni
 	{
 		get
@@ -116,10 +152,12 @@ public class UniResultItem : ResultItem
 		}
 	}
 
-	public          int? UniIndex  { get; }
+	public int? UniIndex { get; }
+
 	public override void Dispose()
 	{
 		base.Dispose();
 		Image = null;
+		Uni?.Dispose();
 	}
 }

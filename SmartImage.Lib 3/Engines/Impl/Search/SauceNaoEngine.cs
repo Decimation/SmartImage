@@ -268,7 +268,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 
 		// string creator1 = rcci;
 		string creator1     = rcci;
-		string characters1  = null;
+		// string characters1  = null;
 		bool   rtiHasArtist = false;
 
 		foreach (var s in Syn_Artists) {
@@ -334,7 +334,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 		// var client = new HttpClient();
 
 		const string dbIndex = "999";
-		const string numRes  = "6";
+		// const string numRes  = "6";
 
 		var values = new Dictionary<string, string>
 		{

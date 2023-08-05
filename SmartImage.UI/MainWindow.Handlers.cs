@@ -47,7 +47,7 @@ public partial class MainWindow
 		QueueSelectedItem = txt;
 
 		if (ok /*&& !IsInputReady()*/) {
-			Application.Current.Dispatcher.InvokeAsync(SetQueryAsync);
+			Application.Current.Dispatcher.InvokeAsync(UpdateQueryAsync);
 		}
 
 		Btn_Run.IsEnabled = ok;
@@ -86,18 +86,24 @@ public partial class MainWindow
 	{
 		var s = Query.Uni.Value.ToString();
 
+		if (string.IsNullOrWhiteSpace(s)) {
+			return;
+		}
+
 		if (Query.Uni.IsFile) {
-			FileSystem.ExploreFile(s);
+			// FileSystem.ExploreFile(s);
+
+			FileSystem.Open(s);
 		}
 		else if (Query.Uni.IsUri) {
-			HttpUtilities.TryOpenUrl(s);
+			FileSystem.Open(s);
 
 		}
 	}
 
 	private void Tb_Upload_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		HttpUtilities.TryOpenUrl(Query.Upload);
+		FileSystem.Open(Query.Upload);
 	}
 
 	#endregion
@@ -134,9 +140,11 @@ public partial class MainWindow
 		if (e.AddedItems.Count > 0) {
 			//todo
 			Restart();
-			var i = e.AddedItems[0] as string;
-			QueueSelectedItem = i;
-			Debug.Assert(QueueSelectedItem.Equals(QueueSelectedItem));
+
+			if (e.AddedItems[0] is string i) {
+				QueueSelectedItem = i;
+				Debug.Assert(QueueSelectedItem.Equals(QueueSelectedItem));
+			}
 
 			// EnqueueAsync(new []{i});
 			// Next(i);
@@ -162,7 +170,7 @@ public partial class MainWindow
 		Application.Current.Dispatcher.InvokeAsync(RunAsync);
 	}
 
-	private async void Btn_Clear_Click(object sender, RoutedEventArgs e)
+	private void Btn_Clear_Click(object sender, RoutedEventArgs e)
 	{
 		// var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		ClearResults(true);
@@ -219,7 +227,7 @@ public partial class MainWindow
 		m_cbDispatch.Stop();
 		var old = QueueSelectedItem;
 		m_clipboard.Remove(old);
-		QueueSelectedItem = null;
+		QueueSelectedItem = String.Empty;
 		m_queries.TryRemove(old, out var q);
 		m_resultMap.TryRemove(Query, out var x);
 		Query.Dispose();
@@ -256,6 +264,8 @@ public partial class MainWindow
 	{
 		if (e.AddedItems.Count > 0) {
 			if (e.AddedItems[0] is ResultItem ri) {
+				Img_Preview.Source = m_image;
+
 				ChangeInfo2(ri);
 			}
 
@@ -285,6 +295,15 @@ public partial class MainWindow
 			case Key.S when ctrl:
 
 				Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(SelectedResult));
+				break;
+			case Key.Delete:
+				if (SelectedResult == null) {
+					return;
+				}
+
+				SelectedResult.Dispose();
+				Results.Remove(SelectedResult);
+				Img_Preview.Source = m_image;
 				break;
 		}
 	}
@@ -361,7 +380,6 @@ public partial class MainWindow
 		}
 
 		BaseUploadEngine.Default = LitterboxEngine.Instance;
-
 	}
 
 	#endregion

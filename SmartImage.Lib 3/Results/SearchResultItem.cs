@@ -221,15 +221,16 @@ public sealed record SearchResultItem : IDisposable,
 	{
 		if (Uni != null && Uni.Any()) {
 			foreach (var us in Uni) {
-				
+
 				us?.Dispose();
 			}
 
 		}
-		foreach (var sis in Sisters) {
-			
+
+		/*foreach (var sis in Sisters) {
+
 			sis.Dispose();
-		}
+		}*/
 	}
 
 	#region Relational members

@@ -13,17 +13,22 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
 using Flurl;
+using JetBrains.Annotations;
 using Kantan.Collections;
+using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Kantan.Numeric;
 using Kantan.Text;
 using Kantan.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Debug;
 using Novus.FileTypes;
 using Novus.OS;
 using Novus.Streams;
@@ -68,26 +73,31 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
 		m_ctsu             = new CancellationTokenSource();
-		TimerText          = null;
+		TimerText          = String.Empty;
 
 		Lb_Engines.ItemsSource  = Engines;
 		Lb_Engines2.ItemsSource = Engines;
 		Lb_Engines.HandleEnum(Config.SearchEngines);
 		Lb_Engines2.HandleEnum(Config.PriorityEngines);
 
+		Logs                   = new ObservableCollection<LogEntry>();
+		Lv_Logs.ItemsSource    = Logs;
 		Lv_Results.ItemsSource = Results;
 		Lv_Queue.ItemsSource   = Queue;
 
-		Client.OnResult   += OnResult;
-		Client.OnComplete += OnComplete;
+		Client.OnResult        += OnResult;
+		Client.OnComplete      += OnComplete;
 
-		m_cbDispatch = new DispatcherTimer
+		AppDomain.CurrentDomain.UnhandledException       += Domain_UHException;
+		Application.Current.DispatcherUnhandledException += Dispatcher_UHException;
+
+		m_cbDispatch = new DispatcherTimer(DispatcherPriority.Background)
 		{
 			Interval = TimeSpan.FromSeconds(1)
 		};
 		m_cbDispatch.Tick += ClipboardListenAsync;
 
-		m_trDispatch = new DispatcherTimer
+		m_trDispatch = new DispatcherTimer(DispatcherPriority.DataBind)
 		{
 			Interval = TimeSpan.FromSeconds(0.25)
 		};
@@ -110,9 +120,28 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
+	private void Log(LogEntry l)
+	{
+		Logs.Add(l);
+		Debug.WriteLine(l);
+	}
+
+	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
+	{
+		Log(new LogEntry($"AppDomain: {((Exception) e.ExceptionObject).Message}"));
+	}
+
+	private void Dispatcher_UHException(object sender, DispatcherUnhandledExceptionEventArgs e)
+	{
+		Log(new LogEntry($"Dispatcher: {e.Exception.Message}"));
+		e.Handled = true;
+	}
+
 	#region
 
-	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(MainWindow));
+	private static readonly ILogger Logger = LoggerFactory
+		.Create(builder => builder.AddDebug().AddProvider(new DebugLoggerProvider()))
+		.CreateLogger(nameof(MainWindow));
 
 	public static SearchEngineOptions[] Engines { get; } = Enum.GetValues<SearchEngineOptions>();
 
@@ -126,15 +155,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public SearchConfig Config => Client.Config;
 
-	public SearchQuery Query { get; internal set; }
-
 	public ObservableCollection<ResultItem> Results { get; private set; }
-
-	public bool UseClipboard
-	{
-		get => Config.Clipboard;
-		set => Config.Clipboard = m_cbDispatch.IsEnabled = value;
-	}
 
 	public bool UseContextMenu
 	{
@@ -148,9 +169,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly ConcurrentDictionary<UniResultItem, string> m_uni;
 
-	private readonly DispatcherTimer m_cbDispatch;
-	private readonly DispatcherTimer m_trDispatch;
-
 	private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
 	private BitmapImage? m_image;
@@ -162,18 +180,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
-	private readonly List<string> m_clipboard;
-
 	private static int _status = S_OK;
 
-	private const int S_NO = 0;
-	private const int S_OK = 1;
-
-	private static int _clipboardSequence;
+	private const int                            S_NO = 0;
+	private const int                            S_OK = 1;
+	public        ObservableCollection<LogEntry> Logs { get; }
 
 	#endregion
 
-	#region Queue
+	#region Queue/Query
+
+	public SearchQuery Query { get; internal set; }
 
 	private int m_queueSelectedIndex;
 
@@ -203,6 +220,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public ObservableCollection<string> Queue { get; }
 
+	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(QueueSelectedItem);
+
 	public bool TrySeekQueue(int i)
 	{
 		var b = MathHelper.IsInRange(i, Queue.Count) && Queue.Count > 0;
@@ -214,9 +233,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		return b;
 	}
 
-	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(QueueSelectedItem);
-
-	private async Task SetQueryAsync()
+	private async Task UpdateQueryAsync()
 	{
 		var query = QueueSelectedItem;
 		Interlocked.Exchange(ref _status, S_NO);
@@ -227,6 +244,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		bool queryExists = b2 = m_queries.TryGetValue(query, out var existingQuery);
 
 		if (queryExists) {
+			// Require.NotNull(existingQuery);
+			// assert(existingQuery!= null);
+			Debug.Assert(existingQuery != null);
 			Query = existingQuery;
 		}
 
@@ -239,10 +259,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		if (queryExists) {
 			Url upload;
 
+			Debug.Assert(Query != null);
+
 			if (b2) {
 				upload         = Query.Upload;
 				Tb_Status.Text = $"{Strings.Constants.HEAVY_CHECK_MARK}";
-
 			}
 			else {
 				Tb_Status.Text = "Uploading...";
@@ -264,7 +285,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Upload.Text            = upload;
 			Pb_Status.IsIndeterminate = false;
 
-			Uri src = new Uri(Query.Uni.Value.ToString());
+			var uriString = Query.Uni.Value.ToString();
+			Debug.Assert(uriString != null);
+
+			var src = new Uri(uriString);
 
 			m_image = new BitmapImage()
 				{ };
@@ -341,6 +365,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
+	private readonly DispatcherTimer m_trDispatch;
+
 	public DateTime SearchStart { get; private set; }
 
 	private string m_timerText;
@@ -363,15 +389,19 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	private async Task RunAsync()
-	{
-		Lv_Queue.IsEnabled = false;
-		// ClearResults();
-		SearchStart = DateTime.Now;
-		m_trDispatch.Start();
+	#region Clipboard
 
-		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
+	public bool UseClipboard
+	{
+		get => Config.Clipboard;
+		set => Config.Clipboard = m_cbDispatch.IsEnabled = value;
 	}
+
+	private readonly DispatcherTimer m_cbDispatch;
+
+	private readonly List<string> m_clipboard;
+
+	private static int _clipboardSequence;
 
 	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
@@ -451,6 +481,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// Thread.Sleep(1000);
 	}
 
+	#endregion
+
+	#region
+
+	private async Task RunAsync()
+	{
+		Lv_Queue.IsEnabled = false;
+		// ClearResults();
+		SearchStart = DateTime.Now;
+		m_trDispatch.Start();
+
+		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
+	}
+
 	private void OnComplete(object sender, SearchResult[] e)
 	{
 		m_trDispatch.Stop();
@@ -498,6 +542,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 	}
+
+	#endregion
 
 	#region
 
@@ -622,8 +668,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void ChangeInfo2(ResultItem ri)
 	{
 		if (ri is UniResultItem { Uni: { } } uri) {
-			Tb_Info2.Text = $"{uri.Uni.FileTypes[0]}";
-
+			Tb_Info2.Text = uri.Description;
 		}
 		else {
 			Tb_Info2.Text = $"{ri.Name}";
@@ -634,6 +679,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		var    uni = ri.Uni;
 		string path;
+
+		Debug.Assert(uni != null);
 
 		if (uni.IsStream) {
 			path = ri.Url;
@@ -674,7 +721,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 		catch (Exception e) {
 			d = false;
-			Debug.WriteLine($"{e.Message}");
+			Log(new($"scan: {e.Message}"));
 		}
 
 		ri.CanScan = !d;
@@ -710,18 +757,18 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void ParseArgs()
 	{
+		Logs.Add(new(Args.QuickJoin()));
+
 		var e = Args.GetEnumerator();
 
-		foreach (var arg in Args) {
-			Tb_Log.Text += $"{arg}\n";
-		}
-
 		while (e.MoveNext()) {
-			var c = e.Current.ToString();
+			if (e.Current is not string c) {
+				break;
+			}
 
 			if (c == R2.Arg_Input) {
-				var inp = e.MoveAndGet();
-				QueueSelectedItem = inp.ToString();
+				var inp = (string) e.MoveAndGet();
+				QueueSelectedItem = inp;
 				continue;
 			}
 
@@ -731,5 +778,24 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Config.AutoSearch = true;
 			}
 		}
+	}
+}
+
+public sealed class LogEntry
+{
+	public DateTime Time    { get; }
+	public string   Message { get; }
+
+	public LogEntry(string message) : this(DateTime.Now, message) { }
+
+	public LogEntry(DateTime time, string message)
+	{
+		Time    = time;
+		Message = message;
+	}
+
+	public override string ToString()
+	{
+		return $"{Time} {Message}";
 	}
 }
