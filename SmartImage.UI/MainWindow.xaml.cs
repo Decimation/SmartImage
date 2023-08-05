@@ -61,8 +61,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		SearchStart = default;
 		Results     = new();
 
-		Query              = SearchQuery.Null;
-		Queue              = new();
+		Query = SearchQuery.Null;
+		Queue = new();
 		// QueueSelectedIndex = 0;
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
@@ -211,6 +211,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 	*/
 
+	public class ResultModel
+	{
+		public string                           Value   { get; set; }
+		public SearchQuery                      Query   { get; set; }
+		public BitmapImage                      Image   { get; set; }
+		public ObservableCollection<ResultItem> Results { get; set; }
+
+		public async Task Init(string query)
+		{		}
+	}
+
 	private async Task UpdateQueryAsync()
 	{
 		var query = CurrentQueueItem;
@@ -276,6 +287,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			m_image.CacheOption    = BitmapCacheOption.OnLoad;
 			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			m_image.EndInit();
+			m_image.Freeze();
 			Img_Preview.Source = m_image;
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
@@ -556,7 +568,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text            = string.Empty;
-		CurrentQueueItem         = string.Empty;
+		CurrentQueueItem          = string.Empty;
 		Tb_Info.Text              = string.Empty;
 		Tb_Info2.Text             = string.Empty;
 		TimerText                 = String.Empty;
@@ -593,6 +605,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Restart(true);
 		ClearQueryControls();
+		GC.Collect();
+		GC.WaitForPendingFinalizers();
+		GC.Collect();
 	}
 
 	public void Dispose(bool full)

@@ -25,6 +25,7 @@ public static class AppComponents
 		bmp.UriSource   = GetComponentUri(name);
 		bmp.EndInit();
 		bmp             = bmp.ResizeBitmap(w, h);
+		bmp.Freeze();
 		return bmp;
 	}
 

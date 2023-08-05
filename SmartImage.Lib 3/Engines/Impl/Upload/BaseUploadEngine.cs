@@ -95,7 +95,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 				                                   mp.AddFile("fileToUpload", file)
 					                                   .AddString("reqtype", "fileupload")
 					                                   .AddString("time", "1h")
-			                                   , ct);
+			                                   , cancellationToken: ct);
 
 		return await VerifyResultAsync(response, ct);
 	}
@@ -131,7 +131,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 				                                    r.OnError = rx =>
 				                                    {
 					                                    rx.ExceptionHandled = true;
-				                                    }).GetAsync(ct);
+				                                    }).GetAsync(cancellationToken: ct);
 
 			if (r2 == null || NetHelper.GetContentLength(r2) == 0) {
 				ok = false;

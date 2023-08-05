@@ -103,9 +103,11 @@ public class UniResultItem : ResultItem
 			Image.BeginInit();
 			Image.StreamSource = Uni.Stream;
 			// m_image.StreamSource   = Query.Uni.Stream;
-			Image.CacheOption    = BitmapCacheOption.OnLoad;
+			Image.CacheOption    = BitmapCacheOption.OnDemand;
+			Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
+			Image.Freeze();
 		}
 		else {
 			Image = null;

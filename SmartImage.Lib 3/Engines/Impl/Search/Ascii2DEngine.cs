@@ -94,7 +94,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			{ new StringContent(origin), "uri" }
 		};
 
-		var res = await origin.AllowAnyHttpStatus()
+		var res = await SearchClient.Client.Request(origin).AllowAnyHttpStatus()
 			          .WithCookies(out var cj)
 			          .WithTimeout(Timeout)
 			          .WithHeaders(new
@@ -102,14 +102,13 @@ public sealed class Ascii2DEngine : WebSearchEngine
 				          User_Agent = HttpUtilities.UserAgent
 			          })
 			          .WithAutoRedirect(true)
-			          .WithClient(SearchClient.Client)
 			          /*.OnError(s =>
 					          {
 						          Debug.WriteLine($"{s.Response}");
 						          s.ExceptionHandled = true;
 								  
 					          })*/
-			          .GetAsync(token);
+			          .GetAsync(cancellationToken: token);
 		return res;
 	}
 

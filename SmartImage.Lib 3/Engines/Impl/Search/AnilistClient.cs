@@ -1,4 +1,5 @@
-﻿using Kantan.Net;
+﻿using System.Json;
+using Kantan.Net;
 using Newtonsoft.Json.Linq;
 
 // ReSharper disable PossibleNullReferenceException
@@ -39,9 +40,9 @@ public sealed class AnilistClient : IDisposable
 		{
 			query = GRAPH_QUERY,
 			id = anilistId
-		}) as JObject;
+		});
 
-		return response["data"]["Media"]["title"]["english"].ToString();
+		return response["data"]["Media"]["title"]["english"];
 	}
 
 	#region IDisposable

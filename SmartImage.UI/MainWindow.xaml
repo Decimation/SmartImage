@@ -22,7 +22,6 @@
             <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
             <!-- <Setter Property="ToolTip" Value="{Binding Result.Info}"/> -->
             <!-- <Setter Property="FontWeight" Value="Bold" /> -->
-
             <Style.Triggers>
                 <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="SauceNao">
                     <Setter Property="Background" Value="Green" />
@@ -387,14 +386,14 @@
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"
                      Width="54">
                 <Grid Background="{DynamicResource Black1}">
-                    <ListView x:Name="Lv_Logs" ItemsSource="{Binding Logs}" 
+                    <ListView x:Name="Lv_Logs" ItemsSource="{Binding Logs}"
                               Foreground="White"
                               Background="{DynamicResource Black2}"
                               Margin="0,193,0,0">
                         <ListView.View>
                             <GridView>
-                                <GridViewColumn Header="Time" Width="75" DisplayMemberBinding="{Binding Time}"/>
-                                <GridViewColumn Header="Message" Width="750" DisplayMemberBinding="{Binding Message}"/>
+                                <GridViewColumn Header="Time" Width="75" DisplayMemberBinding="{Binding Time}" />
+                                <GridViewColumn Header="Message" Width="750" DisplayMemberBinding="{Binding Message}" />
                             </GridView>
                         </ListView.View>
                     </ListView>

@@ -64,7 +64,8 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 		try {
 			if (sender is Url origin) {
-				var res = await origin.WithClient(SearchClient.Client)
+
+				var res = await SearchClient.Client.Request(origin)
 					          .AllowAnyHttpStatus()
 					          .WithCookies(out var cj)
 					          .WithTimeout(Timeout)

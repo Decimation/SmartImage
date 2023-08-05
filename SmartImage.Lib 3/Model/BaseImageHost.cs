@@ -58,11 +58,12 @@ public abstract class BaseImageHost
 	public static async Task<UniSource[]> ScanAsync(Url u, Predicate<UniSource> pred = null,
 	                                                CancellationToken ct = default)
 	{
-		Stream stream;
+		IFlurlResponse res;
+		Stream         stream;
 		pred ??= _ => true;
 
 		try {
-			stream = await u.AllowAnyHttpStatus()
+			res = await u.AllowAnyHttpStatus()
 				         .WithCookies(out var cj)
 				         .WithAutoRedirect(true)
 				         .WithHeaders(new
@@ -73,7 +74,7 @@ public abstract class BaseImageHost
 				         {
 					         // f.ExceptionHandled = true;
 					         return;
-				         }).GetStreamAsync(ct);
+				         }).GetAsync(cancellationToken: ct);
 
 		}
 		catch (Exception e) {
@@ -82,7 +83,7 @@ public abstract class BaseImageHost
 		}
 
 		var ul = new ConcurrentBag<UniSource>();
-
+		stream = await res.GetStreamAsync();
 		var us = await UniSource.TryGetAsync(stream, whitelist: FileType.Image, ct: ct);
 
 		if (us != null) {

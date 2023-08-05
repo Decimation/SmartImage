@@ -36,7 +36,7 @@
     <PackageReference Include="AngleSharp.Io" Version="1.0.0" />
     <PackageReference Include="AngleSharp.Js" Version="0.15.0" />
     <PackageReference Include="AngleSharp.XPath" Version="2.0.3" />
-    <PackageReference Include="Flurl.Http" Version="3.2.4" />
+    <PackageReference Include="Flurl.Http" Version="4.0.0-pre3" />
     <PackageReference Include="JetBrains.Annotations" Version="2023.2.0" />
     <PackageReference Include="Microsoft.ClearScript.V8" Version="7.4.2" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
@@ -49,7 +49,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="7.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="7.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="7.0.0" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Reactive" Version="6.0.0" />

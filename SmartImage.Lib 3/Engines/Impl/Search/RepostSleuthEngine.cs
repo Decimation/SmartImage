@@ -1,5 +1,10 @@
-﻿using Flurl.Http;
+﻿using System.Reflection;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using Flurl.Http;
+using Jint.Native.Json;
 using SmartImage.Lib.Results;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable CS0649
 
@@ -36,8 +41,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		Root obj = null;
 
 		try {
-			obj = await SearchClient.Client.Request(EndpointUrl).SetQueryParams(new
+			var s = await SearchClient.Client.Request(EndpointUrl).SetQueryParams(new
 			{
+
 				filter               = true,
 				url                  = query.Upload,
 				same_sub             = false,
@@ -48,7 +54,13 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 				target_match_percent = 90,
 				filter_dead_matches  = false,
 				target_days_old      = 0
-			}).GetJsonAsync<Root>();
+			}).GetStringAsync(cancellationToken: token);
+
+			var js = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+			{
+				IncludeFields = true
+			};
+			obj = JsonSerializer.Deserialize<Root>(s, js);
 		}
 		catch (FlurlHttpException e) {
 			sr.ErrorMessage = e.Message;
@@ -86,7 +98,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 
 	#region Objects
 
-	private record ClosestMatch
+	private class ClosestMatch
 	{
 		public int    hamming_distance;
 		public double annoy_distance;
@@ -97,7 +109,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public int    title_similarity;
 	}
 
-	private record Match
+	private class Match
 	{
 		public int    hamming_distance;
 		public double annoy_distance;
@@ -108,7 +120,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public int    title_similarity;
 	}
 
-	private record Post
+	private class Post
 	{
 		public string post_id;
 		public string url;
@@ -122,7 +134,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public string subreddit;
 	}
 
-	private record Root
+	private class Root
 	{
 		public object         meme_template;
 		public ClosestMatch   closest_match;
@@ -133,7 +145,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public List<Match>    matches;
 	}
 
-	private record SearchSettings
+	private class SearchSettings
 	{
 		public bool   filter_crossposts;
 		public bool   filter_same_author;
@@ -153,7 +165,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 		public int    target_match_percent;
 	}
 
-	private record SearchTimes
+	private class SearchTimes
 	{
 		public double pre_annoy_filter_time;
 		public double index_search_time;
@@ -175,4 +187,44 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IClientSearchEngine
 	}
 
 	#endregion
+}
+
+public class NonPublicMembersConverter<T> : JsonConverter<T> where T : class
+{
+	public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	{
+		T instance = (T) Activator.CreateInstance(typeToConvert, nonPublic: true);
+
+		while (reader.Read()) {
+			if (reader.TokenType == JsonTokenType.EndObject) {
+				break;
+			}
+
+			if (reader.TokenType != JsonTokenType.PropertyName) {
+				throw new JsonException();
+			}
+
+			string propertyName = reader.GetString();
+
+			PropertyInfo propertyInfo =
+				typeToConvert.GetProperty(propertyName,
+				                          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+			if (propertyInfo != null && propertyInfo.CanWrite) {
+				reader.Read(); // Move to the property value
+				object value = JsonSerializer.Deserialize(ref reader, propertyInfo.PropertyType, options);
+				propertyInfo.SetValue(instance, value);
+			}
+			else {
+				reader.Skip();
+			}
+		}
+
+		return instance;
+	}
+
+	public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+	{
+		JsonSerializer.Serialize(writer, value, options);
+	}
 }

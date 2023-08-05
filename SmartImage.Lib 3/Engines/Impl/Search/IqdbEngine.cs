@@ -127,7 +127,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 				}
 
 				return;
-			}, ct);
+			}, cancellationToken: ct);
 
 			var s = await response.GetStringAsync();
 
