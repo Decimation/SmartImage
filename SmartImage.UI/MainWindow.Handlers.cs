@@ -259,6 +259,10 @@ public partial class MainWindow
 				ChangeInfo2(ri);
 			}
 
+			if (e.AddedItems[0] is UniResultItem uri) {
+				Img_Preview.Source = uri.Image;
+			}
+
 		}
 
 		e.Handled = true;
@@ -300,7 +304,6 @@ public partial class MainWindow
 
 		e.Handled                   =  true;
 		Lb_Engines.SelectionChanged += Lb_Engines_SelectionChanged;
-
 	}
 
 	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -371,7 +374,6 @@ public partial class MainWindow
 			m_cbDispatch.Start();
 		}
 
-		m_bgDispatch.Start();
 		// m_trDispatch.Start();
 
 	}

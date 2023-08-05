@@ -3,6 +3,8 @@
 
 using System;
 using System.Drawing;
+using System.IO;
+using System.Net.Cache;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Media.Imaging;
@@ -58,7 +60,7 @@ public class ResultItem : IDisposable
 
 	}
 
-	public void Dispose()
+	public virtual void Dispose()
 	{
 		Result.Dispose();
 	}
@@ -69,11 +71,38 @@ public class UniResultItem : ResultItem
 	public UniResultItem(ResultItem ri, int? idx)
 		: base(ri.Result, $"{ri.Name} ({idx})")
 	{
-		UniIndex    = idx;
-		Url         = Uni?.Value.ToString();
+		UniIndex = idx;
+		if (Uni is {}) {
+			if (Uni.IsStream) {
+				Url = ri.Url.GetFileName().Split(':')[0];
+
+				if (Path.GetExtension(Url) == null) {
+					Url = Path.ChangeExtension(Url, Uni.FileTypes[0].Name);
+				}
+			}
+			else {
+				Url = Uni.Value.ToString();
+
+			}
+
+			Image= new BitmapImage()
+				{ };
+			Image.BeginInit();
+			Image.StreamSource = Uni.Stream;
+			// m_image.StreamSource   = Query.Uni.Stream;
+			Image.CacheOption    = BitmapCacheOption.OnLoad;
+			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+			Image.EndInit();
+		}
 		StatusImage = AppComponents.picture;
 	}
 
+	public BitmapImage Image
+	{
+		get;
+		private set;
+
+	}
 	public UniSource? Uni
 	{
 		get
@@ -87,5 +116,10 @@ public class UniResultItem : ResultItem
 		}
 	}
 
-	public int? UniIndex { get; }
+	public          int? UniIndex  { get; }
+	public override void Dispose()
+	{
+		base.Dispose();
+		Image = null;
+	}
 }

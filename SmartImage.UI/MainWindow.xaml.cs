@@ -87,12 +87,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		};
 		m_cbDispatch.Tick += ClipboardListenAsync;
 
-		m_bgDispatch = new DispatcherTimer
-		{
-			Interval = TimeSpan.FromSeconds(1)
-		};
-		m_bgDispatch.Tick += BackgroundDispatch;
-
 		m_trDispatch = new DispatcherTimer
 		{
 			Interval = TimeSpan.FromSeconds(0.25)
@@ -155,7 +149,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private readonly ConcurrentDictionary<UniResultItem, string> m_uni;
 
 	private readonly DispatcherTimer m_cbDispatch;
-	private readonly DispatcherTimer m_bgDispatch;
 	private readonly DispatcherTimer m_trDispatch;
 
 	private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
@@ -271,10 +264,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Upload.Text            = upload;
 			Pb_Status.IsIndeterminate = false;
 
+			Uri src = new Uri(Query.Uni.Value.ToString());
+
 			m_image = new BitmapImage()
 				{ };
 			m_image.BeginInit();
-			m_image.UriSource      = new Uri(Query.Uni.Value.ToString());
+			m_image.UriSource = src;
+			// m_image.StreamSource   = Query.Uni.Stream;
 			m_image.CacheOption    = BitmapCacheOption.OnLoad;
 			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			m_image.EndInit();
@@ -366,8 +362,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 
 	#endregion
-
-	private void BackgroundDispatch(object? sender, EventArgs e) { }
 
 	private async Task RunAsync()
 	{
@@ -638,10 +632,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task DownloadResultAsync(UniResultItem ri)
 	{
-		var uni = ri.Uni;
+		var    uni = ri.Uni;
+		string path;
 
-		var    url  = (Url) uni.Value.ToString();
-		string path = url.GetFileName();
+		if (uni.IsStream) {
+			path = ri.Url;
+		}
+		else /*if (uni.IsUri)*/ {
+			var url = (Url) uni.Value.ToString();
+			path = url.GetFileName();
+
+		}
 
 		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
 
