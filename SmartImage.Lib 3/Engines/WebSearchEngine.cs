@@ -83,7 +83,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 				var str = await res.GetStringAsync();
 
 				var document = await parser.ParseDocumentAsync(str, token);
-
+				
 				return document;
 
 			}

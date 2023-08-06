@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Threading;
 using Kantan.Net.Utilities;
 using Kantan.Numeric;
 using Microsoft.VisualBasic.FileIO;
@@ -28,11 +29,6 @@ public partial class MainWindow
 
 	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
-
-		if (Interlocked.CompareExchange(ref _status, S_OK, S_NO) == S_NO) {
-			return;
-		}
-
 		// Debug.Assert(InputText == Queue[m_queuePos]);
 		// Debug.Assert(Lv_Queue.SelectedValue.ToString() == InputText);
 		// Debug.Assert(Lv_Queue.SelectedItem.ToString() == InputText);
@@ -289,7 +285,8 @@ public partial class MainWindow
 
 		switch (key) {
 			case Key.D when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(() => DownloadResultAsync(((UniResultItem) CurrentResultItem)));
+				Application.Current.Dispatcher.InvokeAsync(
+					() => DownloadResultAsync(((UniResultItem) CurrentResultItem)));
 
 				break;
 			case Key.S when ctrl:
@@ -339,21 +336,6 @@ public partial class MainWindow
 
 	}
 
-	private void Cb_Clipboard_Checked(object sender, RoutedEventArgs e)
-	{
-		// Config.Clipboard = !Config.Clipboard;
-	}
-
-	private void Cb_AutoSearch_Checked(object sender, RoutedEventArgs e)
-	{
-		// Config.AutoSearch = !Config.AutoSearch;
-	}
-
-	private void Cb_OpenRaw_Checked(object sender, RoutedEventArgs e)
-	{
-		// Config.OpenRaw = !Config.OpenRaw;
-	}
-
 	private void Cb_ContextMenu_Checked(object sender, RoutedEventArgs e)
 	{
 		if (!e.IsLoaded()) {
@@ -361,6 +343,7 @@ public partial class MainWindow
 		}
 
 		AppUtil.HandleContextMenu(!AppUtil.IsContextMenuAdded);
+		e.Handled = true;
 
 	}
 
@@ -392,13 +375,18 @@ public partial class MainWindow
 			m_cbDispatch.Start();
 		}
 
-		// m_trDispatch.Start();
+		m_trDispatch.Start();
+		e.Handled = true;
+	}
+
+	private void Wnd_Main_Unloaded(object sender, RoutedEventArgs e)
+	{
+		e.Handled = true;
 
 	}
 
-	private void Wnd_Main_Unloaded(object sender, RoutedEventArgs e) { }
+	private void Wnd_Main_Closed(object sender, EventArgs e) { }
 
-	private void Wnd_Main_Closed(object sender, EventArgs e)        { }
 	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }
 
 	#endregion
@@ -433,5 +421,16 @@ public partial class MainWindow
 	private void Img_Preview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 	{
 		if (e.IsDoubleClick()) { }
+	}
+
+	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
+	{
+		Log(new LogEntry($"AppDomain: {((Exception) e.ExceptionObject).Message}"));
+	}
+
+	private void Dispatcher_UHException(object sender, DispatcherUnhandledExceptionEventArgs e)
+	{
+		Log(new LogEntry($"Dispatcher: {e.Exception.Message}"));
+		e.Handled = true;
 	}
 }

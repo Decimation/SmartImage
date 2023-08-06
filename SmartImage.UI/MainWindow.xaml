@@ -155,11 +155,50 @@
                         </ListView.View>
                     </ListView>
 
-                    <Border Height="150" Margin="0,8,10,0" Width="150" Background="#FFEFEFEF"
-                            VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2">
+                    <Border Height="150" Margin="0,10,10,0" Width="150" Background="#FFEFEFEF"
+                            VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1">
 
-                        <Image x:Name="Img_Preview" Width="150" VerticalAlignment="Top" HorizontalAlignment="Right"
-                               MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown" />
+                        <Image x:Name="Img_Preview" MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown"
+                               Width="150" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="0">
+
+                            <Image.RenderTransformOrigin>
+                                <Point X="1" Y="0"></Point>
+                            </Image.RenderTransformOrigin>
+
+                            <Image.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="1" ScaleY="1" CenterX="1" CenterY="0" />
+                                    <TranslateTransform X="0" Y="0" />
+                                </TransformGroup>
+                            </Image.RenderTransform>
+
+                            <Image.Triggers>
+                                <EventTrigger RoutedEvent="Image.MouseEnter">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Img_Preview"
+                                                             Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                                                             To="2.5" Duration="0:0:0.2" />
+                                            <DoubleAnimation Storyboard.TargetName="Img_Preview"
+                                                             Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                                                             To="2.5" Duration="0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                                <EventTrigger RoutedEvent="Image.MouseLeave">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Img_Preview"
+                                                             Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                                                             To="1" Duration="0:0:0.2" />
+                                            <DoubleAnimation Storyboard.TargetName="Img_Preview"
+                                                             Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                                                             To="1" Duration="0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </Image.Triggers>
+                        </Image>
                     </Border>
 
                     <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
@@ -348,18 +387,15 @@
 
                     <CheckBox x:Name="Cb_Clipboard" Content="Clipboard"
                               IsChecked="{Binding Path=UseClipboard, Mode=TwoWay}" HorizontalAlignment="Left"
-                              Margin="426,36,0,0" VerticalAlignment="Top" Foreground="White"
-                              Checked="Cb_Clipboard_Checked" />
+                              Margin="426,36,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search"
                               IsChecked="{Binding Path=Config.AutoSearch, Mode=TwoWay}" HorizontalAlignment="Left"
-                              Margin="426,65,0,0" VerticalAlignment="Top" Foreground="White"
-                              Checked="Cb_AutoSearch_Checked" />
+                              Margin="426,65,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <CheckBox x:Name="Cb_OpenRaw" Content="Open raw"
                               IsChecked="{Binding Path=Config.OpenRaw, Mode=TwoWay}" HorizontalAlignment="Left"
-                              Margin="426,96,0,0" VerticalAlignment="Top" Foreground="White"
-                              Checked="Cb_OpenRaw_Checked" />
+                              Margin="426,96,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <CheckBox x:Name="Cb_ContextMenu" Content="Context menu" HorizontalAlignment="Left"
                               IsChecked="{Binding Path=UseContextMenu, Mode=TwoWay}"

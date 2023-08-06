@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "SmartImage.App.Windows": {
-      "commandName": "MsixPackage"
-    }
-  }
-}

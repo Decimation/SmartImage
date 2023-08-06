@@ -91,11 +91,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		};
 		m_cbDispatch.Tick += ClipboardListenAsync;
 
-		m_trDispatch = new DispatcherTimer(DispatcherPriority.DataBind)
+		m_trDispatch = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
 		{
-			Interval = TimeSpan.FromSeconds(0.25)
+			Interval = TimeSpan.FromSeconds(3)
 		};
-		m_trDispatch.Tick += TimerDispatch;
+		m_trDispatch.Tick += BackgroundDispatch;
 
 		m_uni                    = new();
 		m_clipboard              = new();
@@ -110,6 +110,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
+	}
+
+	private void BackgroundDispatch(object? sender, EventArgs e)
+	{
 	}
 
 	#region
@@ -155,31 +159,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
-	private static int _status = S_OK;
-
-	private const int S_NO = 0;
-	private const int S_OK = 1;
-
-	public ObservableCollection<LogEntry> Logs { get; }
-
 	#endregion
 
 	#region Queue/Query
 
 	public SearchQuery Query { get; internal set; }
-
-	/*private int m_queueSelectedIndex;
-
-	public int QueueSelectedIndex
-	{
-		get => m_queueSelectedIndex;
-		set
-		{
-			if (value == m_queueSelectedIndex) return;
-			m_queueSelectedIndex = value;
-			OnPropertyChanged();
-		}
-	}*/
 
 	private string m_currentQueueItem;
 
@@ -198,34 +182,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(CurrentQueueItem);
 
-	/*
-	public bool TrySeekQueue(int i)
-	{
-		var b = MathHelper.IsInRange(i, Queue.Count) && Queue.Count > 0;
-
-		if (b) {
-			QueueSelectedIndex = i;
-		}
-
-		return b;
-	}
-	*/
-
-	public class ResultModel
-	{
-		public string                           Value   { get; set; }
-		public SearchQuery                      Query   { get; set; }
-		public BitmapImage                      Image   { get; set; }
-		public ObservableCollection<ResultItem> Results { get; set; }
-
-		public async Task Init(string query)
-		{		}
-	}
-
 	private async Task UpdateQueryAsync()
 	{
 		var query = CurrentQueueItem;
-		Interlocked.Exchange(ref _status, S_NO);
 
 		Btn_Run.IsEnabled = false;
 		bool b2;
@@ -320,7 +279,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Btn_Run.IsEnabled = queryExists;
-		Interlocked.Exchange(ref _status, S_OK);
 
 	}
 
@@ -370,11 +328,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			m_timerText = value;
 			OnPropertyChanged();
 		}
-	}
-
-	private void TimerDispatch(object? sender, EventArgs e)
-	{
-		TimerText = $"{(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 	}
 
 	#endregion
@@ -480,14 +433,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lv_Queue.IsEnabled = false;
 		// ClearResults();
 		SearchStart = DateTime.Now;
-		m_trDispatch.Start();
 
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
 	private void OnComplete(object sender, SearchResult[] e)
 	{
-		m_trDispatch.Stop();
 		Lv_Queue.IsEnabled = true;
 
 		if (m_cts.IsCancellationRequested) {
@@ -508,6 +459,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Tb_Status.Text  = $"{m_cntResults}/{cle}";
 		Pb_Status.Value = (m_cntResults / (double) cle) * 100;
+		TimerText       = $"{(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 
 		lock (m_lock) {
 			int i = 0;
@@ -547,7 +499,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		m_cts.Cancel();
 		m_ctsu.Cancel();
-		m_trDispatch.Stop();
 		// Pb_Status.Foreground = new SolidColorBrush(Colors.Red);
 	}
 
@@ -782,16 +733,19 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Debug.WriteLine(l);
 	}
 
-	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
-	{
-		Log(new LogEntry($"AppDomain: {((Exception) e.ExceptionObject).Message}"));
-	}
+	public ObservableCollection<LogEntry> Logs { get; }
+}
 
-	private void Dispatcher_UHException(object sender, DispatcherUnhandledExceptionEventArgs e)
-	{
-		Log(new LogEntry($"Dispatcher: {e.Exception.Message}"));
-		e.Handled = true;
-	}
+public class ResultModel
+{
+	//todo
+	public string                           Value   { get; set; }
+	public SearchQuery                      Query   { get; set; }
+	public BitmapImage                      Image   { get; set; }
+	public ObservableCollection<ResultItem> Results { get; set; }
+
+	public async Task Init(string query)
+	{		}
 }
 
 public sealed class LogEntry
