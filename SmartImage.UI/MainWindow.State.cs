@@ -2,6 +2,7 @@
 // 2023-08-04 @ 1:24 PM
 
 using System.Windows;
+using SmartImage.UI.Model;
 
 namespace SmartImage.UI;
 

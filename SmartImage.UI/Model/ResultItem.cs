@@ -3,12 +3,8 @@
 
 using System;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.IO;
 using System.Net.Cache;
-using System.Reflection;
-using System.Windows;
 using System.Windows.Media.Imaging;
 using Flurl;
 using Kantan.Net.Utilities;
@@ -18,7 +14,7 @@ using Novus.OS;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
-namespace SmartImage.UI;
+namespace SmartImage.UI.Model;
 
 public class ResultItem : IDisposable
 {

@@ -38,6 +38,9 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
+using Windows.ApplicationModel;
+using Flurl.Http;
+using SmartImage.UI.Model;
 using Color = System.Drawing.Color;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -96,7 +99,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 			Interval = TimeSpan.FromSeconds(3)
 		};
-		m_trDispatch.Tick += BackgroundDispatch;
+		m_trDispatch.Tick += IdleDispatchAsync;
 
 		m_uni                    = new();
 		m_clipboard              = new();
@@ -112,9 +115,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
+		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
 	}
-
-	private void BackgroundDispatch(object? sender, EventArgs e) { }
 
 	#region
 
@@ -238,16 +240,23 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			var src = new Uri(uriString);
 
-			m_image = new BitmapImage()
-				{ };
-			m_image.BeginInit();
-			m_image.UriSource = src;
-			// m_image.StreamSource   = Query.Uni.Stream;
-			m_image.CacheOption    = BitmapCacheOption.OnLoad;
-			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-			m_image.EndInit();
-			m_image.Freeze();
-			Img_Preview.Source = m_image;
+			try {
+				m_image = new BitmapImage()
+					{ };
+				m_image.BeginInit();
+				m_image.UriSource = src;
+				// m_image.StreamSource   = Query.Uni.Stream;
+				m_image.CacheOption    = BitmapCacheOption.OnLoad;
+				m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+				m_image.EndInit();
+				m_image.Freeze();
+
+				Img_Preview.Source = m_image;
+
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+			}
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
 
@@ -315,20 +324,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_trDispatch;
 
-	public DateTime SearchStart { get; private set; }
-
-	private string m_timerText;
-
-	public string TimerText
-	{
-		get => m_timerText;
-		set
-		{
-			if (value == m_timerText) return;
-			m_timerText = value;
-			OnPropertyChanged();
-		}
-	}
+	private async void IdleDispatchAsync(object? sender, EventArgs e) { }
 
 	#endregion
 
@@ -609,6 +605,25 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
+	#region 
+
+	public DateTime SearchStart { get; private set; }
+
+	private string m_timerText;
+
+	public string TimerText
+	{
+		get => m_timerText;
+		set
+		{
+			if (value == m_timerText) return;
+			m_timerText = value;
+			OnPropertyChanged();
+		}
+	}
+
+	#endregion
+
 	private void ChangeInfo2(ResultItem ri)
 	{
 		if (ri is UniResultItem { Uni: { } } uri) {
@@ -672,7 +687,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		if (d) {
 			Debug.WriteLine($"{ri}");
-			var resultUni   = ri.Result.Uni;
+			var resultUni = ri.Result.Uni;
 			// var resultItems = new ResultItem[resultUni.Length];
 
 			for (int i = 0; i < resultUni.Length; i++) {
@@ -692,13 +707,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	public event PropertyChangedEventHandler? PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
-
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
 
 	private void ParseArgs()
@@ -715,7 +723,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if (c == R2.Arg_Input) {
 				var inp = (string) e.MoveAndGet();
 
-				CurrentQueueItem = inp;
+				// CurrentQueueItem = inp;
+				AddToQueueAsync(new[] { inp });
 				continue;
 			}
 
@@ -735,6 +744,33 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public ObservableCollection<LogEntry> Logs { get; }
 
+	private async void CheckForUpdate()
+	{
+		var cv = AppUtil.Version;
+		var lv = await AppUtil.GetLatestReleaseAsync();
+
+		Tb_Version.Text = $"{cv}";
+
+		if (lv is { Version: { } } && lv.Version > cv) {
+			Tb_Version2.Text = $"{lv.Version} (click to download)";
+			var url = lv.assets[0].browser_download_url;
+
+			Tb_Version2.MouseDown += async (o, args) =>
+			{
+				FileSystem.Open(url);
+				// await url.GetStreamAsync();
+				args.Handled = true;
+			};
+
+		}
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
 }
 
 public class ResultModel
@@ -746,23 +782,4 @@ public class ResultModel
 	public ObservableCollection<ResultItem> Results { get; set; }
 
 	public async Task Init(string query) { }
-}
-
-public sealed class LogEntry
-{
-	public DateTime Time    { get; }
-	public string   Message { get; }
-
-	public LogEntry(string message) : this(DateTime.Now, message) { }
-
-	public LogEntry(DateTime time, string message)
-	{
-		Time    = time;
-		Message = message;
-	}
-
-	public override string ToString()
-	{
-		return $"{Time} {Message}";
-	}
 }

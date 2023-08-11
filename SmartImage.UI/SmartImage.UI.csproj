@@ -10,6 +10,8 @@
     <Authors>Read Stanton</Authors>
     <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
+    <AssemblyName>SmartImage</AssemblyName>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -34,6 +36,10 @@
     <None Remove="Resources\picture_add.png" />
     <None Remove="Resources\picture_link.png" />
     <None Remove="Resources\picture_save.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Icon.ico" />
   </ItemGroup>
 
   <ItemGroup>

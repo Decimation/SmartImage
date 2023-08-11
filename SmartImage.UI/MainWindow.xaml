@@ -439,8 +439,7 @@
 
                     <CheckBox x:Name="Cb_ContextMenu" Content="Context menu" HorizontalAlignment="Left"
                               IsChecked="{Binding Path=UseContextMenu, Mode=TwoWay}"
-                              Margin="426,127,0,0" VerticalAlignment="Top" Foreground="White"
-                              Checked="Cb_ContextMenu_Checked" />
+                              Margin="426,127,0,0" VerticalAlignment="Top" Foreground="White"/>
 
                     <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left"
                            Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
@@ -462,6 +461,9 @@
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"
                      Width="54">
                 <Grid Background="{DynamicResource Black1}">
+                    <Label x:Name="Lb_Version" Content="Current version" HorizontalAlignment="Left" Margin="10,21,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+                    <TextBlock x:Name="Tb_Version" HorizontalAlignment="Left" Margin="112,26,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="White" Width="115"/>
+                    <Button x:Name="Btn_OpenFolder" Content="Open program folder" HorizontalAlignment="Left" Margin="10,162,0,0" VerticalAlignment="Top" Click="Btn_OpenFolder_Click"/>
                     <ListView x:Name="Lv_Logs" ItemsSource="{Binding Logs}"
                               Foreground="White"
                               Background="{DynamicResource Black2}"
@@ -473,6 +475,9 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
+                    <Label x:Name="Lb_Version2" Content="Latest version" HorizontalAlignment="Left" Margin="10,52,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold"/>
+                    <TextBlock x:Name="Tb_Version2" HorizontalAlignment="Left" Margin="103,57,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Foreground="White" Width="90"/>
+                    <Button x:Name="Btn_OpenWiki" Content="Open wiki" HorizontalAlignment="Left" Margin="10,132,0,0" VerticalAlignment="Top" Width="70" Click="Btn_OpenWiki_Click"/>
                 </Grid>
             </TabItem>
         </TabControl>

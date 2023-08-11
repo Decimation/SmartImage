@@ -64,17 +64,17 @@ public abstract class BaseImageHost
 
 		try {
 			res = await u.AllowAnyHttpStatus()
-				         .WithCookies(out var cj)
-				         .WithAutoRedirect(true)
-				         .WithHeaders(new
-				         {
-					         User_Agent = HttpUtilities.UserAgent
-				         })
-				         .OnError(f =>
-				         {
-					         // f.ExceptionHandled = true;
-					         return;
-				         }).GetAsync(cancellationToken: ct);
+				      .WithCookies(out var cj)
+				      .WithAutoRedirect(true)
+				      .WithHeaders(new
+				      {
+					      User_Agent = HttpUtilities.UserAgent
+				      })
+				      .OnError(f =>
+				      {
+					      // f.ExceptionHandled = true;
+					      return;
+				      }).GetAsync(cancellationToken: ct);
 
 		}
 		catch (Exception e) {
@@ -97,7 +97,7 @@ public abstract class BaseImageHost
 
 		// var p  = new HtmlParser();
 		// var dd = await p.ParseDocumentAsync(stream, ct);
-	
+
 		var parser = new HtmlParser();
 		var dd     = await parser.ParseDocumentAsync(stream);
 
@@ -153,6 +153,33 @@ public abstract class BaseImageHost
 			Debug.WriteLine($"{e.Message}", nameof(UniSourcePredicate));
 			return true;
 		}
+	}
+
+	public static async Task<UniSource[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
+	{
+		using var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri}")
+		{
+			CreateNoWindow         = true,
+			RedirectStandardOutput = true,
+			RedirectStandardError  = true,
+		});
+		await p.WaitForExitAsync(ct);
+		var s  = await p.StandardOutput.ReadToEndAsync(ct);
+		var s2 = s.Split(Environment.NewLine);
+		var rg = new ConcurrentBag<UniSource>();
+
+		await Parallel.ForEachAsync(s2, ct, async (s1, token) =>
+		{
+			var uni = await UniSource.TryGetAsync(s1, ct: token);
+
+			if (uni != null) {
+				rg.Add(uni);
+			}
+		});
+
+		// p.Dispose();
+
+		return rg.ToArray();
 	}
 }
 

@@ -17,6 +17,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Windows.UI.Popups;
 using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
@@ -27,6 +28,8 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Engines.Impl.Upload;
+using SmartImage.Lib.Model;
+using SmartImage.UI.Model;
 using FileSystem = Novus.OS.FileSystem;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
@@ -327,31 +330,19 @@ public partial class MainWindow
 					Clipboard.SetText(text);
 				});
 				break;
-			case Key.X when ctrl:
+			case Key.G when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(async () =>
 				{
+					if (FileSystem.FindInPath("gallery-dl.exe") == null) {
+						MessageBox.Show(this, "gallery-dl not in path");
+						return;
+					}
+
 					var cri = CurrentResultItem;
+					var rg  = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
+					cri.Result.Uni = rg;
 
-					var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri.Url}")
-					{
-						CreateNoWindow         = true,
-						RedirectStandardOutput = true,
-						RedirectStandardError  = true,
-					});
-					var s  = await p.StandardOutput.ReadToEndAsync();
-					var s2 = s.Split(Environment.NewLine);
-					var rg = new ConcurrentBag<UniSource>();
-					await Parallel.ForEachAsync(s2, async (s1, token) =>
-					{
-						var uni = await UniSource.TryGetAsync(s1, ct: token);
-
-						if (uni != null) {
-							rg.Add(uni);
-						}
-					});
-					cri.Result.Uni = rg.ToArray();
-
-					for (int i = 0; i < s2.Length; i++) {
+					for (int i = 0; i < rg.Length; i++) {
 						var rii = new UniResultItem(cri, i)
 						{
 							StatusImage = AppComponents.picture,
@@ -361,6 +352,7 @@ public partial class MainWindow
 						};
 						Results.Insert(Results.IndexOf(cri) + 1 + i, rii);
 					}
+
 				});
 
 				break;
@@ -397,17 +389,6 @@ public partial class MainWindow
 
 		e.Handled                    =  true;
 		Lb_Engines2.SelectionChanged += Lb_Engines2_SelectionChanged;
-
-	}
-
-	private void Cb_ContextMenu_Checked(object sender, RoutedEventArgs e)
-	{
-		if (!e.IsLoaded()) {
-			return;
-		}
-
-		AppUtil.HandleContextMenu(!AppUtil.IsContextMenuAdded);
-		e.Handled = true;
 
 	}
 
@@ -495,6 +476,18 @@ public partial class MainWindow
 	private void Dispatcher_UHException(object sender, DispatcherUnhandledExceptionEventArgs e)
 	{
 		Log(new LogEntry($"Dispatcher: {e.Exception.Message}"));
+		e.Handled = true;
+	}
+
+	private void Btn_OpenFolder_Click(object sender, RoutedEventArgs e)
+	{
+		FileSystem.Open(AppUtil.CurrentAppFolder);
+		e.Handled = true;
+	}
+
+	private void Btn_OpenWiki_Click(object sender, RoutedEventArgs e)
+	{
+		FileSystem.Open(R1.Wiki_Url);
 		e.Handled = true;
 	}
 }
