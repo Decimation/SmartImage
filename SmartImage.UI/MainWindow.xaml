@@ -5,6 +5,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1200" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919">
@@ -21,6 +22,7 @@
             <Setter Property="Background" Value="LightGray" />
             <Setter Property="Foreground" Value="Black" />
             <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
+
             <!-- <Setter Property="ToolTip" Value="{Binding Result.Info}"/> -->
             <!-- <Setter Property="FontWeight" Value="Bold" /> -->
             <Style.Triggers>
@@ -89,7 +91,7 @@
                              PreviewDragOver="Tb_Input_PreviewDragOver"
                              Text="{Binding CurrentQueueItem}" />
 
-                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,9,0,0"
+                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
                             Loaded="Btn_Run_Loaded" Width="35">
 
@@ -123,7 +125,7 @@
 
                     <Button x:Name="Btn_Cancel"
                             BorderBrush="{DynamicResource Border1}" Content="Cancel"
-                            HorizontalAlignment="Left" Margin="539,9,0,0"
+                            HorizontalAlignment="Left" Margin="539,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" Height="20" Width="39">
 
                         <Button.Style>
@@ -171,9 +173,9 @@
                         </ListView.View>
                     </ListView>
 
-                    <Border x:Name="Br_Preview" Height="150" Margin="0,6,10,0" Width="150" Background="#FFEFEFEF"
+                    <Border x:Name="Br_Preview" Height="150" Margin="0,6,10,0" Width="150" Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
-                            Grid.ColumnSpan="2">
+                            Grid.ColumnSpan="2" d:IsLocked="True">
 
                         <Image x:Name="Img_Preview" MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown"
                                Width="150" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="0">
@@ -217,11 +219,11 @@
                             </Image.Triggers>
                         </Image>
                     </Border>
-                    <Border x:Name="Br_Preview2" Height="150" Margin="0,6,10,0" Width="150" Background="#FFEFEFEF"
+                    <Border x:Name="Br_Preview2" Height="150" Margin="0,6,10,0" Width="150" Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
-                            Grid.Column="1" Visibility="Hidden">
+                            Grid.Column="1" Visibility="Hidden" d:IsLocked="True">
                         <MediaElement x:Name="Me_Preview" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                      Width="150">
+                                      Width="150" MouseDown="Me_Preview_MouseDown">
                             <MediaElement.RenderTransformOrigin>
                                 <Point X="1" Y="0"></Point>
                             </MediaElement.RenderTransformOrigin>
@@ -269,19 +271,19 @@
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
 
-                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,38,0,0"
-                            VerticalAlignment="Top" Height="20" Click="Btn_Clear_Click">
+                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,0,0,0"
+                            VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click">
 
                     </Button>
 
-                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,38,0,0"
-                            VerticalAlignment="Top" Click="Btn_Restart_Click" MouseEnter="Btn_Restart_MouseEnter"
+                    <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,0,0,0"
+                            VerticalAlignment="Center" Click="Btn_Restart_Click" MouseEnter="Btn_Restart_MouseEnter"
                             MouseLeave="Btn_Restart_MouseLeave" Width="49" Height="20" />
 
-                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="591,38,0,0"
-                            VerticalAlignment="Top" Click="Btn_Reset_Click" Width="41" Height="20" />
-                    <Button x:Name="Btn_Browse" Content="Browse" HorizontalAlignment="Left" Margin="635,38,0,0"
-                            VerticalAlignment="Top" Click="Btn_Browse_Click" Height="20" />
+                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="591,0,0,0"
+                            VerticalAlignment="Center" Click="Btn_Reset_Click" Width="41" Height="20" />
+                    <Button x:Name="Btn_Browse" Content="Browse" HorizontalAlignment="Left" Margin="637,0,0,0"
+                            VerticalAlignment="Center" Click="Btn_Browse_Click" Height="20" Grid.ColumnSpan="2" />
 
                     <Label x:Name="Lb_Info" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
@@ -291,7 +293,7 @@
                              Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
 
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
-                           Margin="503,71,0,0"
+                           Margin="501,65,0,0"
                            VerticalAlignment="Top" Stretch="None" />
 
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
@@ -398,17 +400,17 @@
 
                     </ListView>
 
-                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="537,71,0,0"
+                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="537,65,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Top" />
 
-                    <TextBlock x:Name="Tb_Info2" HorizontalAlignment="Left" Margin="115,49,0,0"
+                    <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="115,49,0,0"
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline" />
 
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="4,33,0,0"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
 
                     <Button x:Name="Btn_Delete" Content="Delete" IsEnabled="{Binding IsQueueInputValid}"
-                            HorizontalAlignment="Left" Margin="634,9,0,0" VerticalAlignment="Top"
+                            HorizontalAlignment="Left" Margin="634,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Delete_Click" Height="20" Width="39">
 
                         <Button.Style>
@@ -443,7 +445,7 @@
                                Text="{Binding TimerText}" VerticalAlignment="Top"
                                Foreground="White" />
                     <Button x:Name="Btn_Remove" Content="Remove"
-                            HorizontalAlignment="Left" Margin="583,9,0,0" VerticalAlignment="Top"
+                            HorizontalAlignment="Left" Margin="583,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Remove_Click" Height="20" Width="46">
 
                         <Button.Style>
@@ -517,12 +519,14 @@
                                  Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="821,33,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="518,175,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhUsername, Mode=TwoWay}" TextChanged="Tb_EhUsername_TextChanged" />
-                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="821,60,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="518,204,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhPassword, Mode=TwoWay}" TextChanged="Tb_EhPassword_TextChanged" />
+                    <Label x:Name="Lb_EhUsername" Content="Eh Username" HorizontalAlignment="Left" Margin="426,171,0,0" VerticalAlignment="Top" Foreground="White"/>
+                    <Label x:Name="Lb_EhPassword" Content="Eh Password" HorizontalAlignment="Left" Margin="426,200,0,0" VerticalAlignment="Top" Foreground="White"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"
@@ -548,7 +552,7 @@
                     <Label x:Name="Lb_Version2" Content="Latest version" HorizontalAlignment="Left" Margin="10,52,0,0"
                            VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
                     <TextBlock x:Name="Tb_Version2" HorizontalAlignment="Left" Margin="103,57,0,0" TextWrapping="Wrap"
-                               VerticalAlignment="Top" Foreground="White" Width="90" />
+                               VerticalAlignment="Top" Foreground="White" Width="124" />
                     <Button x:Name="Btn_OpenWiki" Content="Open wiki" HorizontalAlignment="Left" Margin="10,132,0,0"
                             VerticalAlignment="Top" Width="70" Click="Btn_OpenWiki_Click" />
                 </Grid>

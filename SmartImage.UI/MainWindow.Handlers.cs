@@ -3,35 +3,20 @@
 
 global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Windows.UI.Popups;
-using Flurl;
-using Flurl.Http;
-using Kantan.Net.Utilities;
-using Kantan.Numeric;
 using Kantan.Text;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
-using Novus.FileTypes;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Impl.Search;
-using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Engines.Impl.Upload;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Model;
 using FileSystem = Novus.OS.FileSystem;
@@ -193,6 +178,7 @@ public partial class MainWindow
 	private void Btn_Reset_Click(object sender, RoutedEventArgs e)
 	{
 		Reset();
+		e.Handled = true;
 	}
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
@@ -200,6 +186,7 @@ public partial class MainWindow
 		var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		Restart(ctrl);
 		Queue.Clear();
+		e.Handled = true;
 	}
 
 	private void Btn_Restart_MouseEnter(object sender, MouseEventArgs e)
@@ -216,11 +203,13 @@ public partial class MainWindow
 	{
 		Cancel();
 		ReloadToken();
+		e.Handled = true;
 	}
 
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
 	{
 		// Btn_Run.IsEnabled = false;
+		e.Handled = true;
 	}
 
 	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
@@ -232,6 +221,7 @@ public partial class MainWindow
 		Queue.Remove(old);
 		m_queries.TryRemove(old, out var sq);
 		sq?.Dispose();
+		e.Handled = true;
 	}
 
 	private void Btn_Delete_Click(object sender, RoutedEventArgs e)
@@ -263,16 +253,19 @@ public partial class MainWindow
 		m_cbDispatch.Start();
 		Btn_Delete.IsEnabled = !ok;
 		// FileSystem.SendFileToRecycleBin(InputText);
+		e.Handled = true;
 	}
 
 	#region
 
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		CurrentResultItem.Open();
+		CurrentResultItem?.Open();
 	}
 
 	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e) { }
+
+	private bool m_me;
 
 	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
@@ -288,7 +281,7 @@ public partial class MainWindow
 
 					Img_Preview.Source = m_image;
 
-					ChangeInfo2(ri);
+					ChangeStatus2(ri);
 
 					if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
 						Br_Preview.Visibility       = Visibility.Hidden;
@@ -300,16 +293,21 @@ public partial class MainWindow
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
 						Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
 						Me_Preview.Play();
+						m_me = true;
 					}
 					else {
-						Br_Preview.Visibility  = Visibility.Visible;
-						Img_Preview.Visibility = Visibility.Visible;
-						Br_Preview2.Visibility = Visibility.Hidden;
-						Me_Preview.Visibility  = Visibility.Hidden;
-						Me_Preview.Stop();
-						Me_Preview.Close();
-						Me_Preview.Source      = null;
+						if (m_me) {
+							Br_Preview.Visibility  = Visibility.Visible;
+							Img_Preview.Visibility = Visibility.Visible;
+							Br_Preview2.Visibility = Visibility.Hidden;
+							Me_Preview.Visibility  = Visibility.Hidden;
+							Me_Preview.Stop();
+							Me_Preview.Close();
+							Me_Preview.Source = null;
+							m_me              = false;
+						}
 					}
+
 					break;
 
 			}
@@ -358,6 +356,14 @@ public partial class MainWindow
 			case Key.G when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResultItem));
 
+				break;
+			case Key.X when ctrl:
+				// TODO: WIP
+				Application.Current.Dispatcher.InvokeAsync(FilterResultsAsync);
+
+				break;
+			case Key.Tab when ctrl:
+				NextQueue();
 				break;
 		}
 
@@ -425,26 +431,26 @@ public partial class MainWindow
 
 		m_trDispatch.Start();
 		e.Handled = true;
-		Debug.WriteLine($"Main loaded");
+		Debug.WriteLine("Main loaded");
 
 	}
 
 	private void Wnd_Main_Unloaded(object sender, RoutedEventArgs e)
 	{
-		Debug.WriteLine($"Main unloaded");
+		Debug.WriteLine("Main unloaded");
 		e.Handled = true;
 
 	}
 
 	private void Wnd_Main_Closed(object sender, EventArgs e)
 	{
-		Debug.WriteLine($"Main closed");
+		Debug.WriteLine("Main closed");
 
 	}
 
 	private void Wnd_Main_Closing(object sender, CancelEventArgs e)
 	{
-		Debug.WriteLine($"Main closing");
+		Debug.WriteLine("Main closing");
 
 	}
 
@@ -477,9 +483,23 @@ public partial class MainWindow
 
 	#endregion
 
+	private                 int       pos1    = 0;
+	private static readonly Stretch[] Stretch = Enum.GetValues<Stretch>();
+
 	private void Img_Preview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 	{
-		if (e.IsDoubleClick()) { }
+		if (e.IsDoubleClick()) {
+			Img_Preview.Stretch= Stretch[pos1++ % Stretch.Length];
+			Img_Preview.UpdateLayout();
+		}
+
+		e.Handled = true;
+	}
+
+	private void Me_Preview_MouseDown(object sender, MouseButtonEventArgs e)
+	{
+
+		e.Handled = true;
 	}
 
 	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
@@ -507,9 +527,12 @@ public partial class MainWindow
 
 	private void Btn_Browse_Click(object sender, RoutedEventArgs e)
 	{
-		var ofn = new OpenFileDialog();
-		ofn.Multiselect = true;
-		ofn.Filter      = $"Image files|{ImageHelper.Ext.QuickJoin(";")}";
+		var ofn = new OpenFileDialog
+		{
+			Multiselect = true,
+			Filter      = $"Image files|{ImageHelper.Ext.QuickJoin(";")}"
+		};
+
 		var d = ofn.ShowDialog(this);
 
 		if (d.HasValue && d.Value) {
@@ -541,3 +564,4 @@ public partial class MainWindow
 
 	}
 }
+

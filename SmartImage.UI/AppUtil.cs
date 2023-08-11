@@ -42,7 +42,7 @@ internal static class AppUtil
 
 	}
 
-	public static Version Version => Assembly.GetName().Version;
+	public static readonly Version Version = Assembly.GetName().Version;
 
 	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
 

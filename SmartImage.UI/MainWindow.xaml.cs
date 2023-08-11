@@ -177,7 +177,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		get => m_currentQueueItem;
 		set
 		{
-			if (Equals(value, m_currentQueueItem) || string.IsNullOrWhiteSpace(value)) return;
+			if (Equals(value, m_currentQueueItem) || String.IsNullOrWhiteSpace(value)) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
 		}
@@ -185,7 +185,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public ObservableCollection<string> Queue { get; }
 
-	public bool IsQueueInputValid => !string.IsNullOrWhiteSpace(CurrentQueueItem);
+	public bool IsQueueInputValid => !String.IsNullOrWhiteSpace(CurrentQueueItem);
 
 	private async Task UpdateQueryAsync()
 	{
@@ -204,7 +204,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		else {
-			Query                     = await SearchQuery.TryCreateAsync(query, m_ctsu.Token);
+			Query = await SearchQuery.TryCreateAsync(query, m_ctsu.Token);
 			// Pb_Status.Foreground      = new SolidColorBrush(Colors.Green);
 			Pb_Status.IsIndeterminate = true;
 			queryExists               = Query != SearchQuery.Null;
@@ -227,7 +227,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				if (!Url.IsValid(upload)) {
 					Pb_Status.IsIndeterminate = false;
 					Tb_Status.Text            = "-";
-					Tb_Info2.Text             = "Invalid";
+					Tb_Status2.Text           = "Invalid";
 					Btn_Run.IsEnabled         = true;
 					// Btn_Delete.IsEnabled      = true;
 					goto ret;
@@ -327,7 +327,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 
-		Tb_Info2.Text = $"Added {c} items to queue";
+		Tb_Status2.Text = $"Added {c} items to queue";
+	}
+
+	private void NextQueue()
+	{
+		CurrentQueueItem = Queue[(Queue.IndexOf(CurrentQueueItem) + 1) % Queue.Count];
 	}
 
 	#endregion
@@ -515,7 +520,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		ClearResults(full);
 		Dispose(full);
 
-		CurrentQueueItem = string.Empty;
+		CurrentQueueItem = String.Empty;
 
 		ReloadToken();
 	}
@@ -525,12 +530,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_image            = null;
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
-		Tb_Status.Text            = string.Empty;
-		CurrentQueueItem          = string.Empty;
-		Tb_Info.Text              = string.Empty;
-		Tb_Info2.Text             = string.Empty;
+		Tb_Status.Text            = String.Empty;
+		CurrentQueueItem          = String.Empty;
+		Tb_Info.Text              = String.Empty;
+		Tb_Status2.Text           = String.Empty;
 		TimerText                 = String.Empty;
-		Tb_Upload.Text            = string.Empty;
+		Tb_Upload.Text            = String.Empty;
 		Pb_Status.IsIndeterminate = false;
 	}
 
@@ -635,13 +640,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	private void ChangeInfo2(ResultItem ri)
+	private void ChangeStatus2(ResultItem ri)
 	{
 		if (ri is UniResultItem { Uni: { } } uri) {
-			Tb_Info2.Text = uri.Description;
+			Tb_Status2.Text = uri.Description;
 		}
 		else {
-			Tb_Info2.Text = $"{ri.Name}";
+			Tb_Status2.Text = $"{ri.Name}";
 		}
 	}
 
@@ -682,6 +687,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
+		Tb_Status.Text            = "Scanning...";
 		Pb_Status.IsIndeterminate = true;
 
 		bool d;
@@ -715,26 +721,81 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Pb_Status.IsIndeterminate = false;
+		Tb_Status.Text            = $"Scanned {ri.Result.Uni.Length}";
 
 	}
 
 	private async Task ScanGalleryResultAsync(ResultItem cri)
 	{
-		if (FileSystem.FindInPath("gallery-dl.exe") == null)
-		{
+		if (FileSystem.FindInPath("gallery-dl.exe") == null) {
 			MessageBox.Show(this, "gallery-dl not in path");
 			return;
 		}
 
-		var rg  = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
+		Tb_Status.Text            = "Scanning with gallery-dl";
+		Pb_Status.IsIndeterminate = true;
+
+		var rg = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
 		cri.Result.Uni = rg;
 
-		for (int i = 0; i < rg.Length; i++)
-		{
-			var rii = new UniResultItem(cri, i) { StatusImage = AppComponents.picture, CanDownload = true, CanScan = false, CanOpen = true };
+		for (int i = 0; i < rg.Length; i++) {
+			var rii = new UniResultItem(cri, i)
+			{
+				StatusImage = AppComponents.picture,
+				CanDownload = true,
+				CanScan     = false,
+				CanOpen     = true
+			};
 			Results.Insert(Results.IndexOf(cri) + 1 + i, rii);
 		}
 
+		Pb_Status.IsIndeterminate = false;
+		Tb_Status.Text            = "Scanned with gallery-dl";
+
+	}
+
+	private async Task FilterResultsAsync()
+	{
+		Pb_Status.IsIndeterminate = true;
+		Tb_Status.Text            = "Filtering";
+
+		var cb = new ConcurrentBag<ResultItem>(Results);
+		int c  = 0;
+
+		await Parallel.ForEachAsync(cb, async (item, token) =>
+		{
+			if (!Url.IsValid(item.Url)) {
+				return;
+			}
+
+			var res = await item.Url.AllowAnyHttpStatus()
+				          .WithAutoRedirect(true)
+				          .WithTimeout(TimeSpan.FromSeconds(3))
+				          .OnError(x =>
+				          {
+					          if (x.Exception is FlurlHttpException fx) {
+						          Debug.WriteLine($"{fx}");
+					          }
+
+					          x.ExceptionHandled = true;
+				          })
+				          .GetAsync(cancellationToken: token);
+
+			if (res is { ResponseMessage.IsSuccessStatusCode: false } || res == null) {
+				Debug.WriteLine($"removing {item}");
+
+				Application.Current.Dispatcher.Invoke(() =>
+				{
+					++c;
+					Results.Remove(item);
+				});
+			}
+
+		});
+
+		Debug.WriteLine("continuing");
+		Tb_Status.Text            = $"Filtered {c}";
+		Pb_Status.IsIndeterminate = false;
 	}
 
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
@@ -764,6 +825,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Config.AutoSearch = true;
 			}
 		}
+
 	}
 
 	private void Log(LogEntry l)
