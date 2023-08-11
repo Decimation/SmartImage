@@ -40,6 +40,7 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Windows.ApplicationModel;
 using Flurl.Http;
+using SmartImage.Lib.Model;
 using SmartImage.UI.Model;
 using Color = System.Drawing.Color;
 
@@ -116,7 +117,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
 		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
-		ResizeMode = ResizeMode.NoResize;//todo
+
+		// ResizeMode         = ResizeMode.NoResize; //todo
 	}
 
 	#region
@@ -203,6 +205,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		else {
 			Query                     = await SearchQuery.TryCreateAsync(query, m_ctsu.Token);
+			// Pb_Status.Foreground      = new SolidColorBrush(Colors.Green);
 			Pb_Status.IsIndeterminate = true;
 			queryExists               = Query != SearchQuery.Null;
 		}
@@ -227,8 +230,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					Tb_Info2.Text             = "Invalid";
 					Btn_Run.IsEnabled         = true;
 					// Btn_Delete.IsEnabled      = true;
-
-					return;
+					goto ret;
+					// return;
 				}
 
 			}
@@ -286,6 +289,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) {
 				Application.Current.Dispatcher.InvokeAsync(RunAsync);
 			}
+		}
+		else { }
+
+		ret:
+
+		if (!queryExists) {
+			Pb_Status.IsIndeterminate = false;
+			// Pb_Status.Foreground      = new SolidColorBrush(Colors.Red);
 		}
 
 		Btn_Run.IsEnabled = queryExists;
@@ -467,7 +478,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			{
 				Url = result.RawUrl,
 			};
-
 			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
 
 			foreach (SearchResultItem sri in allResults) {
@@ -606,7 +616,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	#region 
+	#region
 
 	public DateTime SearchStart { get; private set; }
 
@@ -705,6 +715,25 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Pb_Status.IsIndeterminate = false;
+
+	}
+
+	private async Task ScanGalleryResultAsync(ResultItem cri)
+	{
+		if (FileSystem.FindInPath("gallery-dl.exe") == null)
+		{
+			MessageBox.Show(this, "gallery-dl not in path");
+			return;
+		}
+
+		var rg  = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
+		cri.Result.Uni = rg;
+
+		for (int i = 0; i < rg.Length; i++)
+		{
+			var rii = new UniResultItem(cri, i) { StatusImage = AppComponents.picture, CanDownload = true, CanScan = false, CanOpen = true };
+			Results.Insert(Results.IndexOf(cri) + 1 + i, rii);
+		}
 
 	}
 

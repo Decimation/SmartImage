@@ -1,7 +1,9 @@
 ﻿using System.Collections;
 using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
+using Flurl.Http;
 using JetBrains.Annotations;
+using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
@@ -209,7 +211,23 @@ public sealed record SearchResultItem : IDisposable,
 		return HasUni;
 	}
 
+	[NotNull]
+	public Task<IFlurlResponse> GetUrlResponseAsync(CancellationToken ct = default)
+	{
+		return SearchClient.Client.Request(Url)
+			.WithAutoRedirect(true)
+			.WithHeaders(new
+			{
+				User_Agent = HttpUtilities.UserAgent
+			}).OnError(x =>
+			{
+				x.ExceptionHandled = true;
+			}).GetAsync(cancellationToken: ct);
+	}
+
 	public bool HasUni => Uni != null && Uni.Any();
+
+	public IFlurlResponse Response { get; private set; }
 
 	public override string ToString()
 	{

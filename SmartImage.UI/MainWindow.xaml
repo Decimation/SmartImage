@@ -6,7 +6,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
+        mc:Ignorable="d" Height="600" Width="1200" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919">
     <Window.Resources>
 
@@ -64,10 +64,22 @@
         <TabControl x:Name="Tc_Main" Background="{DynamicResource Black1}">
             <TabItem x:Name="Ti_Main" Header="Main">
                 <Grid Background="{DynamicResource Black1}">
-                    <Grid.RowDefinitions>
+                    <!--<Grid.RowDefinitions>
                         <RowDefinition Height="47*" />
                         <RowDefinition Height="231*" />
+                    </Grid.RowDefinitions>-->
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <!-- Define your rows here -->
+                        <RowDefinition Height="*" />
+                        <!-- "*" means proportional sizing -->
                     </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <!-- Define your columns here -->
+                        <ColumnDefinition Width="*" />
+                        <!-- "*" means proportional sizing -->
+                    </Grid.ColumnDefinitions>
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5" />
 
@@ -103,12 +115,14 @@
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter Property="Background" Value="DarkGray" />
                                     </Trigger>
+
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
 
-                    <Button BorderBrush="{DynamicResource Border1}" x:Name="Btn_Cancel" Content="Cancel"
+                    <Button x:Name="Btn_Cancel"
+                            BorderBrush="{DynamicResource Border1}" Content="Cancel"
                             HorizontalAlignment="Left" Margin="539,9,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" Height="20" Width="39">
 
@@ -134,18 +148,19 @@
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter Property="Background" Value="DarkGray" />
                                     </Trigger>
+
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
 
                     </Button>
-                    <ListView x:Name="Lv_Queue" Margin="0,8,165,0" Drop="Lv_Queue_Drop"
+                    <ListView x:Name="Lv_Queue" Margin="0,6,165,0" Drop="Lv_Queue_Drop"
                               DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
                               Background="{DynamicResource Black2}" Foreground="White" Width="320" Height="150"
                               SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top"
                               SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay}"
                               IsSynchronizedWithCurrentItem="True"
-                              KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right" Grid.RowSpan="2">
+                              KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right" Grid.RowSpan="2" Grid.Column="1">
                         <!-- SelectedIndex="{Binding QueueSelectedIndex, Mode=Default, UpdateSourceTrigger=PropertyChanged}" -->
                         <ListView.View>
                             <GridView>
@@ -156,8 +171,9 @@
                         </ListView.View>
                     </ListView>
 
-                    <Border x:Name="Br_Preview" Height="150" Margin="0,10,10,0" Width="150" Background="#FFEFEFEF"
-                            VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1">
+                    <Border x:Name="Br_Preview" Height="150" Margin="0,6,10,0" Width="150" Background="#FFEFEFEF"
+                            VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
+                            Grid.ColumnSpan="2">
 
                         <Image x:Name="Img_Preview" MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown"
                                Width="150" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="0">
@@ -201,6 +217,50 @@
                             </Image.Triggers>
                         </Image>
                     </Border>
+                    <Border x:Name="Br_Preview2" Height="150" Margin="0,6,10,0" Width="150" Background="#FFEFEFEF"
+                            VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
+                            Grid.Column="1" Visibility="Hidden">
+                        <MediaElement x:Name="Me_Preview" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                      Width="150">
+                            <MediaElement.RenderTransformOrigin>
+                                <Point X="1" Y="0"></Point>
+                            </MediaElement.RenderTransformOrigin>
+
+                            <MediaElement.RenderTransform>
+                                <TransformGroup>
+                                    <ScaleTransform ScaleX="1" ScaleY="1" CenterX="1" CenterY="0" />
+                                    <TranslateTransform X="0" Y="0" />
+                                </TransformGroup>
+                            </MediaElement.RenderTransform>
+
+                            <MediaElement.Triggers>
+                                <EventTrigger RoutedEvent="MediaElement.MouseEnter">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Me_Preview"
+                                                             Storyboard.TargetProperty="(MediaElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                                                             To="2.5" Duration="0:0:0.2" />
+                                            <DoubleAnimation Storyboard.TargetName="Me_Preview"
+                                                             Storyboard.TargetProperty="(MediaElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                                                             To="2.5" Duration="0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                                <EventTrigger RoutedEvent="MediaElement.MouseLeave">
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetName="Me_Preview"
+                                                             Storyboard.TargetProperty="(MediaElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                                                             To="1" Duration="0:0:0.2" />
+                                            <DoubleAnimation Storyboard.TargetName="Me_Preview"
+                                                             Storyboard.TargetProperty="(MediaElement.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                                                             To="1" Duration="0:0:0.2" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </EventTrigger>
+                            </MediaElement.Triggers>
+                        </MediaElement>
+                    </Border>
 
                     <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
@@ -237,8 +297,7 @@
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
 
-                    <ListView x:Name="Lv_Results" Margin="0,70,0,10"
-                              d:ItemsSource="{Binding Results}"
+                    <ListView x:Name="Lv_Results" Margin="0,70,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
                               IsSynchronizedWithCurrentItem="True"
@@ -247,7 +306,7 @@
                               ItemContainerStyle="{StaticResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown"
-                              ScrollViewer.CanContentScroll="True" Grid.Row="1">
+                              ScrollViewer.CanContentScroll="True" Grid.Row="1" Grid.ColumnSpan="2">
 
                         <!--<ListView.View>
                             <GridView>
@@ -458,6 +517,12 @@
                                  Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="821,33,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="120"
+                             Text="{Binding Config.EhUsername, Mode=TwoWay}" TextChanged="Tb_EhUsername_TextChanged" />
+                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="821,60,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="120"
+                             Text="{Binding Config.EhPassword, Mode=TwoWay}" TextChanged="Tb_EhPassword_TextChanged" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"

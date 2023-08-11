@@ -5,12 +5,15 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Cache;
+using System.Threading.Tasks;
 using System.Windows.Media.Imaging;
 using Flurl;
+using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Utilities;
 using Novus.FileTypes;
 using Novus.OS;
+using SmartImage.Lib;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
@@ -27,6 +30,10 @@ public class ResultItem : IDisposable
 	public BitmapImage StatusImage { get; internal set; }
 
 	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
+
+	/// <summary>
+	/// <see cref="SearchResultItem.Url"/> of <see cref="Result"/>
+	/// </summary>
 	public Url? Url { get; protected set; }
 
 	public bool CanScan     { get; internal set; }

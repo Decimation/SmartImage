@@ -4,6 +4,7 @@
 global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -288,6 +289,27 @@ public partial class MainWindow
 					Img_Preview.Source = m_image;
 
 					ChangeInfo2(ri);
+
+					if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
+						Br_Preview.Visibility       = Visibility.Hidden;
+						Img_Preview.Visibility      = Visibility.Hidden;
+						Br_Preview2.Visibility      = Visibility.Visible;
+						Me_Preview.Visibility       = Visibility.Visible;
+						Me_Preview.ScrubbingEnabled = false;
+						Me_Preview.UnloadedBehavior = MediaState.Close;
+						Me_Preview.LoadedBehavior   = MediaState.Manual;
+						Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
+						Me_Preview.Play();
+					}
+					else {
+						Br_Preview.Visibility  = Visibility.Visible;
+						Img_Preview.Visibility = Visibility.Visible;
+						Br_Preview2.Visibility = Visibility.Hidden;
+						Me_Preview.Visibility  = Visibility.Hidden;
+						Me_Preview.Stop();
+						Me_Preview.Close();
+						Me_Preview.Source      = null;
+					}
 					break;
 
 			}
@@ -334,29 +356,7 @@ public partial class MainWindow
 				});
 				break;
 			case Key.G when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(async () =>
-				{
-					if (FileSystem.FindInPath("gallery-dl.exe") == null) {
-						MessageBox.Show(this, "gallery-dl not in path");
-						return;
-					}
-
-					var cri = CurrentResultItem;
-					var rg  = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
-					cri.Result.Uni = rg;
-
-					for (int i = 0; i < rg.Length; i++) {
-						var rii = new UniResultItem(cri, i)
-						{
-							StatusImage = AppComponents.picture,
-							CanDownload = true,
-							CanScan     = false,
-							CanOpen     = true
-						};
-						Results.Insert(Results.IndexOf(cri) + 1 + i, rii);
-					}
-
-				});
+				Application.Current.Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResultItem));
 
 				break;
 		}
@@ -518,5 +518,26 @@ public partial class MainWindow
 		}
 
 		e.Handled = true;
+	}
+
+	private async void Tb_EhUsername_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (!e.IsLoaded()) {
+			return;
+		}
+
+		await Client.ApplyConfigAsync();
+		e.Handled = true;
+	}
+
+	private async void Tb_EhPassword_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (!e.IsLoaded()) {
+			return;
+		}
+
+		await Client.ApplyConfigAsync();
+		e.Handled = true;
+
 	}
 }
