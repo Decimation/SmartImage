@@ -37,7 +37,15 @@ public static class ControlsHelper
 		// Create a new BitmapImage and set it as the source of the resized image
 		var bitmapImage = new BitmapImage();
 		bitmapImage.BeginInit();
-		bitmapImage.UriSource         = originalBitmap.UriSource;
+
+		if (originalBitmap.UriSource != null) {
+			bitmapImage.UriSource = originalBitmap.UriSource;
+		}
+
+		else if (originalBitmap.StreamSource != null) {
+			bitmapImage.StreamSource = originalBitmap.StreamSource;
+		}
+
 		bitmapImage.DecodePixelWidth  = newWidth;
 		bitmapImage.DecodePixelHeight = newHeight;
 		bitmapImage.CacheOption       = BitmapCacheOption.OnLoad;

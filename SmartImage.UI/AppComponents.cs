@@ -11,8 +11,8 @@ namespace SmartImage.UI;
 
 public static class AppComponents
 {
-	private const int WIDTH  = 20;
-	private const int HEIGHT = 20;
+	public const int WIDTH  = 20;
+	public const int HEIGHT = 20;
 
 	static AppComponents() { }
 

@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -107,14 +108,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
 		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
 
+		BindingOperations.EnableCollectionSynchronization(Queue, m_lock);
 		BindingOperations.EnableCollectionSynchronization(Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
 	}
 
-	private void BackgroundDispatch(object? sender, EventArgs e)
-	{
-	}
+	private void BackgroundDispatch(object? sender, EventArgs e) { }
 
 	#region
 
@@ -734,6 +734,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 
 	public ObservableCollection<LogEntry> Logs { get; }
+
 }
 
 public class ResultModel
@@ -744,8 +745,7 @@ public class ResultModel
 	public BitmapImage                      Image   { get; set; }
 	public ObservableCollection<ResultItem> Results { get; set; }
 
-	public async Task Init(string query)
-	{		}
+	public async Task Init(string query) { }
 }
 
 public sealed class LogEntry

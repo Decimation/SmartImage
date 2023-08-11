@@ -5,16 +5,24 @@ global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
+using Flurl;
+using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Numeric;
 using Microsoft.VisualBasic.FileIO;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines.Impl.Search;
+using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Engines.Impl.Upload;
 using FileSystem = Novus.OS.FileSystem;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -259,6 +267,7 @@ public partial class MainWindow
 	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (e.AddedItems.Count > 0) {
+
 			if (e.AddedItems[0] is ResultItem ri) {
 				Img_Preview.Source = m_image;
 
@@ -302,7 +311,17 @@ public partial class MainWindow
 				Results.Remove(CurrentResultItem);
 				Img_Preview.Source = m_image;
 				break;
+			case Key.C when ctrl:
+				Application.Current.Dispatcher.InvokeAsync(() =>
+				{
+					var text = CurrentResultItem.Url;
+					m_clipboard.Add(text);
+					Clipboard.SetText(text);
+				});
+				break;
 		}
+
+		e.Handled = true;
 	}
 
 	#endregion

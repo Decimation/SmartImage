@@ -9,6 +9,7 @@
         mc:Ignorable="d" Height="600" Width="1204.2" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919">
     <Window.Resources>
+
         <!-- Define the ContextMenu -->
         <ContextMenu x:Key="ItemContextMenu">
             <MenuItem Header="Open" Click="OpenItem_Click" IsEnabled="{Binding CanOpen}" />
@@ -155,7 +156,7 @@
                         </ListView.View>
                     </ListView>
 
-                    <Border Height="150" Margin="0,10,10,0" Width="150" Background="#FFEFEFEF"
+                    <Border x:Name="Br_Preview" Height="150" Margin="0,10,10,0" Width="150" Background="#FFEFEFEF"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1">
 
                         <Image x:Name="Img_Preview" MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown"
@@ -257,8 +258,47 @@
                                 <GridViewColumn Header="Status">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image Source="{Binding StatusImage}" Width="20" Height="20" Stretch="None"
-                                                   ToolTip="{Binding Status}" />
+                                            <Image x:Name="Img_Status" Source="{Binding StatusImage}" Width="20"
+                                                   Height="20" Stretch="None" ToolTip="{Binding Status}">
+
+                                                <!--<Image.RenderTransformOrigin>
+                                                    <Point X="0" Y="1"></Point>
+                                                </Image.RenderTransformOrigin>
+
+                                                <Image.RenderTransform>
+                                                    <TransformGroup>
+                                                        <ScaleTransform ScaleX="1" ScaleY="1" CenterX="0" CenterY="1" />
+                                                        <TranslateTransform X="0" Y="0" />
+                                                    </TransformGroup>
+                                                </Image.RenderTransform>
+
+                                                <Image.Triggers>
+                                                    <EventTrigger RoutedEvent="Image.MouseEnter">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
+                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                                                                    To="2.5" Duration="0:0:0.2" />
+                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
+                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                                                                    To="2.5" Duration="0:0:0.2" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                    <EventTrigger RoutedEvent="Image.MouseLeave">
+                                                        <BeginStoryboard>
+                                                            <Storyboard>
+                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
+                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
+                                                                    To="1" Duration="0:0:0.2" />
+                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
+                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
+                                                                    To="1" Duration="0:0:0.2" />
+                                                            </Storyboard>
+                                                        </BeginStoryboard>
+                                                    </EventTrigger>
+                                                </Image.Triggers>-->
+                                            </Image>
 
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>

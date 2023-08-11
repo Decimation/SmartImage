@@ -113,8 +113,9 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			try {
 				string anilistUrl = ANILIST_URL.AppendPathSegment(doc.anilist);
 				string name       = await m_anilistClient.GetTitleAsync((int) doc.anilist);
-				result.Source = name;
-				result.Url    = new Url(anilistUrl);
+				result.Source   = name;
+				result.Url      = new Url(anilistUrl);
+				result.Metadata = doc;
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{this} :: {e.Message}", nameof(ConvertResultsAsync));
@@ -145,7 +146,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	#region API Objects
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	private class TraceMoeDoc : IResultConvertable
+	public class TraceMoeDoc : IResultConvertable
 	{
 		public double from { get; set; }
 
@@ -214,7 +215,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 	}
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	private class TraceMoeRootObject
+	public class TraceMoeRootObject
 	{
 		public long frameCount { get; set; }
 

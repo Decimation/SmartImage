@@ -108,6 +108,7 @@ public class UniResultItem : ResultItem
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
 			Image.Freeze();
+			// StatusImage = Image;
 		}
 		else {
 			Image = null;
@@ -129,11 +130,13 @@ public class UniResultItem : ResultItem
 
 			string img;
 
-			if (Image != null)  {
+			if (Image != null) {
 				img = $"({Image.Width:F}×{Image.Height:F})";
-			}else{
+			}
+			else {
 				img = "";
 			}
+
 			return $"{Name} ⇉ [{Uni.FileTypes[0]}] " +
 			       $"[{bytes}] • {img}";
 		}
