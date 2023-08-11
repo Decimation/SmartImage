@@ -673,7 +673,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		if (d) {
 			Debug.WriteLine($"{ri}");
 			var resultUni   = ri.Result.Uni;
-			var resultItems = new ResultItem[resultUni.Length];
+			// var resultItems = new ResultItem[resultUni.Length];
 
 			for (int i = 0; i < resultUni.Length; i++) {
 				var rii = new UniResultItem(ri, i)
@@ -683,7 +683,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					CanScan     = false,
 					CanOpen     = true
 				};
-				resultItems[i] = rii;
+				// resultItems[i] = rii;
 				Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
 			}
 		}

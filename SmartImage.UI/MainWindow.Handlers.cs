@@ -3,11 +3,13 @@
 
 global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -20,6 +22,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Numeric;
 using Microsoft.VisualBasic.FileIO;
+using Novus.FileTypes;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
@@ -268,14 +271,19 @@ public partial class MainWindow
 	{
 		if (e.AddedItems.Count > 0) {
 
-			if (e.AddedItems[0] is ResultItem ri) {
-				Img_Preview.Source = m_image;
+			var ai = e.AddedItems[0];
 
-				ChangeInfo2(ri);
-			}
+			switch (ai) {
+				case UniResultItem uri:
+					Img_Preview.Source = uri.Image;
+					break;
+				case ResultItem ri:
 
-			if (e.AddedItems[0] is UniResultItem uri) {
-				Img_Preview.Source = uri.Image;
+					Img_Preview.Source = m_image;
+
+					ChangeInfo2(ri);
+					break;
+
 			}
 
 		}
@@ -318,6 +326,43 @@ public partial class MainWindow
 					m_clipboard.Add(text);
 					Clipboard.SetText(text);
 				});
+				break;
+			case Key.X when ctrl:
+				Application.Current.Dispatcher.InvokeAsync(async () =>
+				{
+					var cri = CurrentResultItem;
+
+					var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri.Url}")
+					{
+						CreateNoWindow         = true,
+						RedirectStandardOutput = true,
+						RedirectStandardError  = true,
+					});
+					var s  = await p.StandardOutput.ReadToEndAsync();
+					var s2 = s.Split(Environment.NewLine);
+					var rg = new ConcurrentBag<UniSource>();
+					await Parallel.ForEachAsync(s2, async (s1, token) =>
+					{
+						var uni = await UniSource.TryGetAsync(s1, ct: token);
+
+						if (uni != null) {
+							rg.Add(uni);
+						}
+					});
+					cri.Result.Uni = rg.ToArray();
+
+					for (int i = 0; i < s2.Length; i++) {
+						var rii = new UniResultItem(cri, i)
+						{
+							StatusImage = AppComponents.picture,
+							CanDownload = true,
+							CanScan     = false,
+							CanOpen     = true
+						};
+						Results.Insert(Results.IndexOf(cri) + 1 + i, rii);
+					}
+				});
+
 				break;
 		}
 
