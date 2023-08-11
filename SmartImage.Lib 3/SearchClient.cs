@@ -150,7 +150,12 @@ public sealed class SearchClient : IDisposable
 				var rr = results.SelectMany(rr => rr.AllResults)
 					.OrderByDescending(rr => rr.Score);
 
-				OpenResult(rr.FirstOrDefault()?.Url);
+				if (Config.OpenRaw) {
+					OpenResult(results.MaxBy(x => x.AllResults.Sum(xy => xy.Score)));
+				}
+				else {
+					OpenResult(rr.FirstOrDefault()?.Url);
+				}
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
@@ -164,6 +169,7 @@ public sealed class SearchClient : IDisposable
 
 		return results;
 	}
+
 	private void OpenResult(Url url1)
 	{
 #if DEBUG && !TEST
@@ -181,6 +187,7 @@ public sealed class SearchClient : IDisposable
 #endif
 
 	}
+
 	private void OpenResult(SearchResult result)
 	{
 #if DEBUG && !TEST
@@ -199,7 +206,7 @@ public sealed class SearchClient : IDisposable
 		else {
 			url1 = result.Best?.Url ?? result.RawUrl;
 		}
-		
+
 		OpenResult(url1);
 #endif
 
@@ -214,7 +221,7 @@ public sealed class SearchClient : IDisposable
 		var tasks = Engines.Select(e =>
 		{
 			var res = e.GetResultAsync(query, token);
-			
+
 			return res;
 		}).ToList();
 
@@ -245,9 +252,8 @@ public sealed class SearchClient : IDisposable
 	}
 
 	[CBN]
-	public BaseSearchEngine TryGetEngine(SearchEngineOptions o) => Engines.FirstOrDefault(e => e.EngineOption == o);
-
-	#region
+	public BaseSearchEngine TryGetEngine(SearchEngineOptions o)
+		=> Engines.FirstOrDefault(e => e.EngineOption == o);
 
 	/*public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{
@@ -305,8 +311,6 @@ public sealed class SearchClient : IDisposable
 
 		return di.AsReadOnly();
 	}*/
-
-	#endregion
 
 	public void Dispose()
 	{

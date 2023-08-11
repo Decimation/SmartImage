@@ -116,6 +116,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
 		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
+		ResizeMode = ResizeMode.NoResize;//todo
 	}
 
 	#region
@@ -291,7 +292,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	private void AddToQueueAsync(string[] files)
+	private void AddToQueue(string[] files)
 	{
 		if (!files.Any()) {
 			return;
@@ -375,7 +376,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			enc.Save(ms);
 			ms.Dispose();
 
-			AddToQueueAsync(new[] { fn });
+			AddToQueue(new[] { fn });
 			/*Application.Current.Dispatcher.InvokeAsync(() =>
 			{
 				return SetQueryAsync(fn);
@@ -393,7 +394,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					// Queue.Add(txt);
 					// InputText = txt;
 
-					AddToQueueAsync(new[] { txt });
+					AddToQueue(new[] { txt });
 
 					// await SetQueryAsync(txt);
 				}
@@ -406,7 +407,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
 			rg = rg.Where(x => !m_clipboard.Contains(x) && SearchQuery.IsValidSourceType(x)).ToArray();
-			AddToQueueAsync(rg);
+			AddToQueue(rg);
 
 			m_clipboard.AddRange(rg);
 
@@ -724,7 +725,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				var inp = (string) e.MoveAndGet();
 
 				// CurrentQueueItem = inp;
-				AddToQueueAsync(new[] { inp });
+				AddToQueue(new[] { inp });
 				continue;
 			}
 
@@ -771,6 +772,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
+
 }
 
 public class ResultModel

@@ -22,13 +22,16 @@ using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Numeric;
+using Kantan.Text;
 using Microsoft.VisualBasic.FileIO;
+using Microsoft.Win32;
 using Novus.FileTypes;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 using SmartImage.UI.Model;
 using FileSystem = Novus.OS.FileSystem;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
@@ -80,7 +83,7 @@ public partial class MainWindow
 	{
 		var files1 = e.GetFilesFromDrop();
 
-		AddToQueueAsync(files1);
+		AddToQueue(files1);
 		var f1 = files1.FirstOrDefault();
 
 		if (!string.IsNullOrWhiteSpace(f1)) {
@@ -124,7 +127,7 @@ public partial class MainWindow
 	{
 		var files = e.GetFilesFromDrop();
 
-		AddToQueueAsync(files);
+		AddToQueue(files);
 		e.Handled = true;
 	}
 
@@ -422,17 +425,28 @@ public partial class MainWindow
 
 		m_trDispatch.Start();
 		e.Handled = true;
+		Debug.WriteLine($"Main loaded");
+
 	}
 
 	private void Wnd_Main_Unloaded(object sender, RoutedEventArgs e)
 	{
+		Debug.WriteLine($"Main unloaded");
 		e.Handled = true;
 
 	}
 
-	private void Wnd_Main_Closed(object sender, EventArgs e) { }
+	private void Wnd_Main_Closed(object sender, EventArgs e)
+	{
+		Debug.WriteLine($"Main closed");
 
-	private void Wnd_Main_Closing(object sender, CancelEventArgs e) { }
+	}
+
+	private void Wnd_Main_Closing(object sender, CancelEventArgs e)
+	{
+		Debug.WriteLine($"Main closing");
+
+	}
 
 	#endregion
 
@@ -488,6 +502,21 @@ public partial class MainWindow
 	private void Btn_OpenWiki_Click(object sender, RoutedEventArgs e)
 	{
 		FileSystem.Open(R1.Wiki_Url);
+		e.Handled = true;
+	}
+
+	private void Btn_Browse_Click(object sender, RoutedEventArgs e)
+	{
+		var ofn = new OpenFileDialog();
+		ofn.Multiselect = true;
+		ofn.Filter      = $"Image files|{ImageHelper.Ext.QuickJoin(";")}";
+		var d = ofn.ShowDialog(this);
+
+		if (d.HasValue && d.Value) {
+			var fn = ofn.FileNames;
+			AddToQueue(fn);
+		}
+
 		e.Handled = true;
 	}
 }

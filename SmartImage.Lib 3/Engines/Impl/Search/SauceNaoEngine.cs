@@ -490,7 +490,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, ICon
 				Url         = urls.FirstOrDefault(),
 				Similarity  = Math.Round(Similarity, 2),
 				// Similarity = Similarity,
-				Description = Kantan.Text.Strings.NormalizeNull(idxStr),
+				Description = siteName,
 				Artist      = Kantan.Text.Strings.NormalizeNull(Creator),
 				Source      = Kantan.Text.Strings.NormalizeNull(Material),
 				Character   = Kantan.Text.Strings.NormalizeNull(Character),
