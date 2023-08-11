@@ -12,6 +12,8 @@
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
     <AssemblyName>SmartImage</AssemblyName>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
+    <FileVersion></FileVersion>
+    <AssemblyVersion>4.0.0.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>
