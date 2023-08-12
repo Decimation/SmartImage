@@ -15,6 +15,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -130,6 +131,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public static SearchEngineOptions[] Engines { get; } = Enum.GetValues<SearchEngineOptions>();
 
 	private readonly object m_lock = new();
+
+	private bool m_me;
 
 	#endregion
 
@@ -677,6 +680,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		fs.Dispose();
 		ri.CanDownload = false;
 		m_uni.TryAdd(ri, path2);
+		Tb_Status.Text = $"Downloaded to {path2}";
 
 		// u.Dispose();
 	}
@@ -863,7 +867,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
-
 }
 
 public class ResultModel

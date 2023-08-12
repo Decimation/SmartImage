@@ -1,0 +1,86 @@
+﻿<!-- ReSharper disable InconsistentNaming -->
+<Window x:Class="SmartImage.UI.ResultWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:SmartImage.UI"
+        mc:Ignorable="d"
+        DataContext="{Binding RelativeSource={RelativeSource Self}}"
+        Title="SubWindow" Height="450" Width="800" ResizeMode="NoResize">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Window.Resources>
+    <Grid Background="{DynamicResource Black1}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        <Image x:Name="Img_Preview" HorizontalAlignment="Left" Height="280" Margin="566,10,0,0" VerticalAlignment="Top"
+               Width="221" />
+
+        <Label x:Name="Lb_Uri" Content="URI" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+        <TextBox x:Name="Tb_Uri" HorizontalAlignment="Left" Margin="91,14,0,0" Text="{Binding Result.Url, Mode=OneWay}"
+                 VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
+
+        <Label x:Name="Lb_Sim" Content="Similarity" HorizontalAlignment="Left" Margin="10,41,0,0"
+               VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+        <TextBox x:Name="Tb_Similarity" HorizontalAlignment="Left"
+                 Text="{Binding Result.Result.Similarity, Mode=OneWay}" VerticalAlignment="Top" Width="105"
+                 Background="Black" Foreground="White" IsReadOnly="True" Margin="91,45,0,0" />
+
+        <Label x:Name="Lb_Desc" Content="Description" HorizontalAlignment="Left" Margin="10,76,0,0"
+               VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+
+        <TextBox x:Name="Tb_Desc" HorizontalAlignment="Left" Margin="91,73,0,0"
+                 Text="{Binding Result.Result.Description, Mode=OneWay}" VerticalAlignment="Top" Width="260"
+                 Background="Black" Foreground="White" IsReadOnly="True" Height="42" />
+
+        <Label x:Name="Lb_Dim" Content="Dimensions" HorizontalAlignment="Left" Margin="10,123,0,0"
+               VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+        <TextBox x:Name="Tb_DimW" HorizontalAlignment="Left"
+                 Text="{Binding Result.Result.Width, Mode=OneWay}" VerticalAlignment="Top" Width="85"
+                 Background="Black" Foreground="White" IsReadOnly="True" Margin="91,127,0,0" />
+        <TextBox x:Name="Tb_DimH" HorizontalAlignment="Left"
+                 Text="{Binding Result.Result.Height, Mode=OneWay}" VerticalAlignment="Top" Width="86"
+                 Background="Black" Foreground="White" IsReadOnly="True" Margin="186,127,0,0" />
+
+        <Label x:Name="Lb_Artist" Content="Artist" HorizontalAlignment="Left" Margin="10,158,0,0"
+               VerticalAlignment="Top"
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+        <TextBox x:Name="Tb_Artist" HorizontalAlignment="Left" Margin="91,162,0,0"
+                 Text="{Binding Result.Result.Artist, Mode=OneWay}"
+                 VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
+
+        <Label x:Name="Lb_Char" Content="Character" HorizontalAlignment="Left" Margin="10,194,0,0"
+               VerticalAlignment="Top"
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+        <TextBox x:Name="Tb_Char" HorizontalAlignment="Left" Margin="91,198,0,0"
+                 Text="{Binding Result.Result.Character, Mode=OneWay}"
+                 VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
+
+        <Label x:Name="Lb_Title" Content="Title" HorizontalAlignment="Left" Margin="10,229,0,0" VerticalAlignment="Top"
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+        <TextBox x:Name="Tb_Title" HorizontalAlignment="Left" Margin="91,233,0,0"
+                 Text="{Binding Result.Result.Title, Mode=OneWay}"
+                 VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
+
+        <Label x:Name="Lb_Site" Content="Site" HorizontalAlignment="Left" Margin="10,260,0,0" VerticalAlignment="Top"
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
+        <TextBox x:Name="Tb_Site" HorizontalAlignment="Left" Margin="91,264,0,0"
+                 Text="{Binding Result.Result.Site, Mode=OneWay}"
+                 VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
+
+        <Label x:Name="Lb_UniType" Content="Type" HorizontalAlignment="Left" Margin="10,314,0,0"
+               VerticalAlignment="Top"
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <TextBox x:Name="Tb_UniType" HorizontalAlignment="Left" Margin="91,318,0,0"
+                 Text="{Binding UniResult.Uni.FileTypes[0], Mode=OneWay}"
+                 VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
+                 Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+    </Grid>
+</Window>

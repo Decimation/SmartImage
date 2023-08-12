@@ -28,4 +28,17 @@ public partial class MainWindow
 	}
 
 	#endregion
+
+	private void OpenResultWindow()
+	{
+		var sw = new ResultWindow(CurrentResultItem)
+		{
+			Img_Preview =
+			{
+				Source = m_image
+			}
+		};
+
+		sw.Show();
+	}
 }

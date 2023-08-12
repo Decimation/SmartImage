@@ -43,6 +43,7 @@
             </Style.Resources>
         </Style>
         <SolidColorBrush x:Key="Border1" Color="#FF707070"/>
+        <SolidColorBrush x:Key="Black3" Color="#FF252525"/>
 
     </Application.Resources>
 

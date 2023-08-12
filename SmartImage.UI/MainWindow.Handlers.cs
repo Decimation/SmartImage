@@ -8,10 +8,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Kantan.Text;
+using Kantan.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using SmartImage.Lib;
@@ -142,21 +144,18 @@ public partial class MainWindow
 
 			if (e.AddedItems[0] is string i) {
 				CurrentQueueItem = i;
-				Debug.Assert(CurrentQueueItem.Equals(CurrentQueueItem));
 			}
-
-			// EnqueueAsync(new []{i});
-			// Next(i);
-			// Lv_Queue.SelectionChanged -= Lv_Queue_SelectionChanged;
-			// Queue[m_queuePos]         =  i;
-			// Lv_Queue.SelectionChanged += Lv_Queue_SelectionChanged;
 
 		}
 
 		e.Handled = true;
 	}
 
-	private void Lv_Queue_KeyDown(object sender, KeyEventArgs e) { }
+	private void Lv_Queue_KeyDown(object sender, KeyEventArgs e)
+	{
+		e.Handled = true;
+
+	}
 
 	#endregion
 
@@ -167,12 +166,14 @@ public partial class MainWindow
 		// Clear(true);
 		ClearResults(true);
 		Application.Current.Dispatcher.InvokeAsync(RunAsync);
+		e.Handled = true;
 	}
 
 	private void Btn_Clear_Click(object sender, RoutedEventArgs e)
 	{
 		// var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		ClearResults(true);
+		e.Handled = true;
 	}
 
 	private void Btn_Reset_Click(object sender, RoutedEventArgs e)
@@ -261,11 +262,14 @@ public partial class MainWindow
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
 		CurrentResultItem?.Open();
+		e.Handled = true;
 	}
 
-	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e) { }
+	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+	{
+		e.Handled = true;
 
-	private bool m_me;
+	}
 
 	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
@@ -364,6 +368,9 @@ public partial class MainWindow
 				break;
 			case Key.Tab when ctrl:
 				NextQueue();
+				break;
+			case Key.I when ctrl:
+				OpenResultWindow();
 				break;
 		}
 
@@ -481,16 +488,17 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	#endregion
+	private void InfoItem_Click(object sender, RoutedEventArgs e)
+	{
+	}
 
-	private                 int       pos1    = 0;
-	private static readonly Stretch[] Stretch = Enum.GetValues<Stretch>();
+	#endregion
 
 	private void Img_Preview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
 	{
 		if (e.IsDoubleClick()) {
-			Img_Preview.Stretch= Stretch[pos1++ % Stretch.Length];
-			Img_Preview.UpdateLayout();
+			// Img_Preview.Width  = Img_Preview.Source.Width;
+			// Img_Preview.Height = Img_Preview.Source.Height;
 		}
 
 		e.Handled = true;
@@ -564,4 +572,3 @@ public partial class MainWindow
 
 	}
 }
-
