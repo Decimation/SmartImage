@@ -14,6 +14,8 @@ using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Newtonsoft.Json;
+using Novus.Win32;
+
 // ReSharper disable InconsistentNaming
 
 #nullable disable
@@ -170,7 +172,8 @@ internal static class AppUtil
 	}
 
 	// Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
-	internal static readonly string MyPicturesFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+	internal static readonly string MyPicturesFolder        = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+	internal static          uint   m_registerWindowMessage = Native.RegisterWindowMessage("WM_SHOWME");
 }
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]

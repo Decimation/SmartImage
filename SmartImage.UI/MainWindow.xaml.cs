@@ -7,6 +7,7 @@ using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Pipes;
 using System.Linq;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
@@ -17,6 +18,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
@@ -44,6 +46,8 @@ using Flurl.Http;
 using SmartImage.Lib.Model;
 using SmartImage.UI.Model;
 using Color = System.Drawing.Color;
+using Jint.Parser.Ast;
+using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -97,7 +101,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		};
 		m_cbDispatch.Tick += ClipboardListenAsync;
 
-		m_trDispatch = new DispatcherTimer(DispatcherPriority.ApplicationIdle)
+		m_trDispatch = new DispatcherTimer(DispatcherPriority.Background)
 		{
 			Interval = TimeSpan.FromSeconds(3)
 		};
@@ -120,6 +124,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
 
 		// ResizeMode         = ResizeMode.NoResize; //todo
+
 	}
 
 	#region
@@ -791,7 +796,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Debug.WriteLine("continuing");
 		Tb_Status.Text            = $"Filtered {c}";
 		Pb_Status.IsIndeterminate = false;
-		Btn_Filter.IsEnabled = true;
+		Btn_Filter.IsEnabled      = true;
 	}
 
 	private async void RetryEngineAsync(ResultItem ri)
@@ -800,6 +805,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Status.Text = $"Retrying {eng.Name}";
 		var idx = Results.IndexOf(ri);
 		var fi  = idx;
+
 		for (int i = Results.Count - 1; i >= 0; i--) {
 			if (Results[i].Result.Root.Engine == eng) {
 				Results.RemoveAt(i);
@@ -819,12 +825,48 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			}
 		}
+
 		Lv_Results.ScrollIntoView(Results[fi]);
 	}
 
 	#endregion
 
-	public static readonly string[] Args = Environment.GetCommandLineArgs();
+	public static readonly string[]                          Args = Environment.GetCommandLineArgs();
+
+	private                System.Windows.Interop.HwndSource _hwndSoure;
+
+	protected override void OnSourceInitialized(EventArgs e)
+	{
+		base.OnSourceInitialized(e);
+
+		_hwndSoure =
+			HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(this).Handle);
+		_hwndSoure?.AddHook(HwndHook);
+	}
+
+	[DebuggerStepThrough]
+	private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+	{
+		// Single instance --> Show window
+		// Debug.WriteLine($"{wParam} {lParam}");
+
+		if (msg == AppUtil.m_registerWindowMessage) {
+			BringWindowToFront();
+			handled = true;
+
+		}
+
+		return IntPtr.Zero;
+	}
+
+	private void BringWindowToFront()
+	{
+		if (WindowState == WindowState.Minimized) {
+			WindowState = WindowState.Normal;
+		}
+
+		Activate();
+	}
 
 	private void ParseArgs()
 	{
@@ -849,6 +891,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				e.MoveNext();
 				Config.AutoSearch = true;
+			}
+
+			if (c == R2.Arg_Hide) {
+				Visibility = Visibility.Hidden;
 			}
 		}
 
@@ -889,7 +935,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
-
 }
 
 public class ResultModel

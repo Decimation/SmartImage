@@ -80,6 +80,15 @@ namespace SmartImage.UI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to -h.
+        /// </summary>
+        internal static string Arg_Hide {
+            get {
+                return ResourceManager.GetString("Arg_Hide", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to -i.
         /// </summary>
         internal static string Arg_Input {

@@ -124,6 +124,9 @@
   <data name="Arg_AutoSearch" xml:space="preserve">
     <value>-auto</value>
   </data>
+  <data name="Arg_Hide" xml:space="preserve">
+    <value>-h</value>
+  </data>
   <data name="Arg_Input" xml:space="preserve">
     <value>-i</value>
   </data>
