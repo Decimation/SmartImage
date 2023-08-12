@@ -13,6 +13,7 @@ using Kantan.Net.Utilities;
 using Kantan.Utilities;
 using Novus.FileTypes;
 using Novus.OS;
+using Novus.Streams;
 using SmartImage.Lib;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
@@ -92,7 +93,7 @@ public class UniResultItem : ResultItem
 				// todo: update GetFileName
 				Url = ri.Url.GetFileName().Split(':')[0];
 
-				if (Path.GetExtension(Url) == null) {
+				if (string.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
 					Url = Path.ChangeExtension(Url, Uni.FileTypes[0].Name);
 				}
 			}
@@ -118,6 +119,38 @@ public class UniResultItem : ResultItem
 		}
 
 		StatusImage = AppComponents.picture;
+	}
+
+	public string Download { get; private set; }
+
+	public async Task<string> DownloadResultAsync()
+	{
+		string path;
+
+		if (Uni.IsStream) {
+			path = Url;
+		}
+		else /*if (uni.IsUri)*/ {
+			var url = (Url) Uni.Value.ToString();
+			path = url.GetFileName();
+
+		}
+
+		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
+
+		var fs = File.OpenWrite(path2);
+		Uni.Stream.TrySeek();
+
+		StatusImage = AppComponents.picture_save;
+		await Uni.Stream.CopyToAsync(fs);
+		FileSystem.ExploreFile(path2);
+		fs.Dispose();
+		CanDownload = false;
+		Download    = path2;
+
+		// u.Dispose();
+
+		return path2;
 	}
 
 	public string Description

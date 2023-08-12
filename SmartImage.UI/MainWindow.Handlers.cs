@@ -5,7 +5,9 @@ global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
@@ -34,14 +36,14 @@ public partial class MainWindow
 
 	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		var nt = Tb_Input.Text;
+		var nt  = Tb_Input.Text;
 		var txt = nt;
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
 		CurrentQueueItem = txt;
 
 		if (ok /*&& !IsInputReady()*/) {
-			Application.Current.Dispatcher.InvokeAsync(UpdateQueryAsync);
+			Application.Current.Dispatcher.InvokeAsync(() => UpdateQueryAsync(CurrentQueueItem));
 		}
 
 		Btn_Run.IsEnabled = ok;
@@ -50,7 +52,7 @@ public partial class MainWindow
 
 	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e)
 	{
-		e.Handled=true;
+		e.Handled = true;
 	}
 
 	private void Tb_Input_DragOver(object sender, DragEventArgs e)
@@ -330,7 +332,7 @@ public partial class MainWindow
 		switch (key) {
 			case Key.D when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(
-					() => DownloadResultAsync(((UniResultItem) CurrentResultItem)));
+					() => DownloadResultAsync((UniResultItem) CurrentResultItem));
 
 				break;
 			case Key.S when ctrl:
@@ -369,6 +371,20 @@ public partial class MainWindow
 			case Key.Tab when ctrl:
 				NextQueue();
 				break;
+			case Key.F when ctrl:
+				Application.Current.Dispatcher.InvokeAsync(async () =>
+				{
+					if (CurrentResultItem is UniResultItem uri) {
+						// var d = await uri.Uni.TryDownloadAsync();
+						var d = await uri.DownloadResultAsync(Path.GetTempPath(), false);
+						AddToQueue(new[] { d });
+						// CurrentQueueItem = d;
+					}
+
+				});
+
+				break;
+
 		}
 
 		e.Handled = true;
@@ -488,8 +504,8 @@ public partial class MainWindow
 	private void InfoItem_Click(object sender, RoutedEventArgs e)
 	{
 		OpenResultWindow();
-		e.Handled=true;
-		
+		e.Handled = true;
+
 	}
 
 	#endregion

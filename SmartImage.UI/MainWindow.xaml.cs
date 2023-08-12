@@ -68,7 +68,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Results     = new();
 
 		Query = SearchQuery.Null;
-		Queue = new() {  };
+		Queue = new() { };
 		// QueueSelectedIndex = 0;
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
@@ -177,13 +177,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public string CurrentQueueItem
 	{
-		get
-		{
-			return m_currentQueueItem;
-		}
+		get { return m_currentQueueItem; }
 		set
 		{
-			
+
 			if (Equals(value, m_currentQueueItem) || String.IsNullOrWhiteSpace(value)) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
@@ -194,9 +191,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public bool IsQueueInputValid => !String.IsNullOrWhiteSpace(CurrentQueueItem);
 
-	private async Task UpdateQueryAsync()
+	private async Task UpdateQueryAsync(string query)
 	{
-		var query = CurrentQueueItem;
 
 		Btn_Run.IsEnabled = false;
 		bool b2;
@@ -348,6 +344,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_trDispatch;
 
+	[DebuggerHidden]
 	private async void IdleDispatchAsync(object? sender, EventArgs e) { }
 
 	#endregion
@@ -366,6 +363,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static int _clipboardSequence;
 
+	[DebuggerHidden]
 	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		/*if (IsInputReady() /*|| Query != SearchQuery.Null#1#) {
@@ -657,36 +655,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private async Task DownloadResultAsync(UniResultItem ri)
+	private async Task DownloadResultAsync(UniResultItem uri)
 	{
-		var    uni = ri.Uni;
-		string path;
-
-		Debug.Assert(uni != null);
-
-		if (uni.IsStream) {
-			path = ri.Url;
-		}
-		else /*if (uni.IsUri)*/ {
-			var url = (Url) uni.Value.ToString();
-			path = url.GetFileName();
-
-		}
-
-		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
-
-		var fs = File.OpenWrite(path2);
-		uni.Stream.TrySeek();
-
-		ri.StatusImage = AppComponents.picture_save;
-		await uni.Stream.CopyToAsync(fs);
-		FileSystem.ExploreFile(path2);
-		fs.Dispose();
-		ri.CanDownload = false;
-		m_uni.TryAdd(ri, path2);
-		Tb_Status.Text = $"Downloaded to {path2}";
-
-		// u.Dispose();
+		await uri.DownloadResultAsync();
+		m_uni.TryAdd(uri, uri.Download);
+		Tb_Status.Text = $"Downloaded to {uri.Download}";
 	}
 
 	private async Task ScanResultAsync(ResultItem ri)
@@ -871,7 +844,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
-
 }
 
 public class ResultModel

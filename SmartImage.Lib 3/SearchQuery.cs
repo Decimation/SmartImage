@@ -102,11 +102,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static bool IsValidSourceType(object str)
 	{
-		var v      = UniHandler.GetUniType(str, out var o2);
-		var isFile = v == UniSourceType.File; 
-		var isUri = v == UniSourceType.Uri;
-		var isStream  = v== UniSourceType.Stream;
-		var  ok = isFile || isUri|| isStream;
+		var v        = UniHandler.GetUniType(str, out var o2);
+		var isFile   = v == UniSourceType.File;
+		var isUri    = v == UniSourceType.Uri;
+		var isStream = v == UniSourceType.Stream;
+		var ok       = isFile || isUri || isStream;
 
 		if (isFile) {
 			var ext = Path.GetExtension(str.ToString())[1..];
