@@ -34,16 +34,9 @@ public partial class MainWindow
 
 	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		// Debug.Assert(InputText == Queue[m_queuePos]);
-		// Debug.Assert(Lv_Queue.SelectedValue.ToString() == InputText);
-		// Debug.Assert(Lv_Queue.SelectedItem.ToString() == InputText);
-
 		var nt = Tb_Input.Text;
-		// var txt = InputText;
 		var txt = nt;
 		var ok  = SearchQuery.IsValidSourceType(txt);
-
-		// QueueInsert(txt);
 
 		CurrentQueueItem = txt;
 
@@ -55,7 +48,10 @@ public partial class MainWindow
 		e.Handled         = true;
 	}
 
-	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e) { }
+	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e)
+	{
+		e.Handled=true;
+	}
 
 	private void Tb_Input_DragOver(object sender, DragEventArgs e)
 	{
@@ -111,25 +107,25 @@ public partial class MainWindow
 
 	#region
 
-	private void Lv_Queue_Drop(object sender, DragEventArgs e)
+	private void Lb_Queue_Drop(object sender, DragEventArgs e)
 	{
-		var files = e.GetFilesFromDrop();
+		var files = e.GetFilesFromDrop().Where(SearchQuery.IsValidSourceType).ToArray();
 
 		AddToQueue(files);
 		e.Handled = true;
 	}
 
-	private void Lv_Queue_DragOver(object sender, DragEventArgs e)
+	private void Lb_Queue_DragOver(object sender, DragEventArgs e)
 	{
 		e.Handled = true;
 	}
 
-	private void Lv_Queue_PreviewDragOver(object sender, DragEventArgs e)
+	private void Lb_Queue_PreviewDragOver(object sender, DragEventArgs e)
 	{
 		e.Handled = true;
 	}
 
-	private void Lv_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private void Lb_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (e.OriginalSource != sender) {
 			return;
@@ -151,7 +147,7 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void Lv_Queue_KeyDown(object sender, KeyEventArgs e)
+	private void Lb_Queue_KeyDown(object sender, KeyEventArgs e)
 	{
 		e.Handled = true;
 
@@ -204,7 +200,8 @@ public partial class MainWindow
 	{
 		Cancel();
 		ReloadToken();
-		e.Handled = true;
+		Lb_Queue.IsEnabled = true;
+		e.Handled          = true;
 	}
 
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
@@ -366,11 +363,11 @@ public partial class MainWindow
 				Application.Current.Dispatcher.InvokeAsync(FilterResultsAsync);
 
 				break;
-			case Key.Tab when ctrl:
-				NextQueue();
-				break;
 			case Key.I when ctrl:
 				OpenResultWindow();
+				break;
+			case Key.Tab when ctrl:
+				NextQueue();
 				break;
 		}
 
@@ -490,6 +487,9 @@ public partial class MainWindow
 
 	private void InfoItem_Click(object sender, RoutedEventArgs e)
 	{
+		OpenResultWindow();
+		e.Handled=true;
+		
 	}
 
 	#endregion
@@ -569,6 +569,18 @@ public partial class MainWindow
 
 		await Client.ApplyConfigAsync();
 		e.Handled = true;
+
+	}
+
+	private void Ti_Main_KeyDown(object sender, KeyEventArgs e)
+	{
+		// e.Handled = true;
+	}
+
+	private void Wnd_Main_KeyDown(object sender, KeyEventArgs e)
+	{
+
+		// e.Handled = true;
 
 	}
 }

@@ -68,7 +68,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Results     = new();
 
 		Query = SearchQuery.Null;
-		Queue = new();
+		Queue = new() {  };
 		// QueueSelectedIndex = 0;
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
@@ -83,7 +83,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Logs                   = new ObservableCollection<LogEntry>();
 		Lv_Logs.ItemsSource    = Logs;
 		Lv_Results.ItemsSource = Results;
-		Lv_Queue.ItemsSource   = Queue;
+		Lb_Queue.ItemsSource   = Queue;
 
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
@@ -177,9 +177,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public string CurrentQueueItem
 	{
-		get => m_currentQueueItem;
+		get
+		{
+			return m_currentQueueItem;
+		}
 		set
 		{
+			
 			if (Equals(value, m_currentQueueItem) || String.IsNullOrWhiteSpace(value)) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
@@ -306,7 +310,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	private void AddToQueue(string[] files)
+	private void AddToQueue(IReadOnlyList<string> files)
 	{
 		if (!files.Any()) {
 			return;
@@ -446,7 +450,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task RunAsync()
 	{
-		Lv_Queue.IsEnabled = false;
+		Lb_Queue.IsEnabled = false;
 		// ClearResults();
 		SearchStart = DateTime.Now;
 
@@ -455,7 +459,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void OnComplete(object sender, SearchResult[] e)
 	{
-		Lv_Queue.IsEnabled = true;
+		Lb_Queue.IsEnabled = true;
 
 		if (m_cts.IsCancellationRequested) {
 			Tb_Status.Text = "Cancelled";
@@ -867,6 +871,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
+
 }
 
 public class ResultModel

@@ -124,12 +124,7 @@ public class UniResultItem : ResultItem
 	{
 		get
 		{
-			string bytes;
-
-			if (!Uni.Stream.CanRead) {
-				bytes = "???";
-			}
-			else bytes = FormatHelper.FormatBytes(Uni.Stream.Length);
+			var bytes = SizeFormat;
 
 			string img;
 
@@ -142,6 +137,21 @@ public class UniResultItem : ResultItem
 
 			return $"{Name} ⇉ [{Uni.FileTypes[0]}] " +
 			       $"[{bytes}] • {img}";
+		}
+	}
+
+	public string SizeFormat
+	{
+		get
+		{
+			string bytes;
+
+			if (!Uni.Stream.CanRead) {
+				bytes = "???";
+			}
+			else bytes = FormatHelper.FormatBytes(Uni.Stream.Length);
+
+			return bytes;
 		}
 	}
 

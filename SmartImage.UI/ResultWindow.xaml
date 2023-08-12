@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:SmartImage.UI"
         mc:Ignorable="d"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        Title="SubWindow" Height="450" Width="800" ResizeMode="NoResize">
+        Title="{Binding Result.Name}" Height="450" Width="800" ResizeMode="NoResize">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
     </Window.Resources>
@@ -24,11 +24,11 @@
         <Label x:Name="Lb_Uri" Content="URI" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
         <TextBox x:Name="Tb_Uri" HorizontalAlignment="Left" Margin="91,14,0,0" Text="{Binding Result.Url, Mode=OneWay}"
-                 VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
+                 VerticalAlignment="Top" Width="320" Background="Black" Foreground="White" IsReadOnly="True" />
 
         <Label x:Name="Lb_Sim" Content="Similarity" HorizontalAlignment="Left" Margin="10,41,0,0"
                VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
-        <TextBox x:Name="Tb_Similarity" HorizontalAlignment="Left"
+        <TextBox x:Name="Tb_Sim" HorizontalAlignment="Left"
                  Text="{Binding Result.Result.Similarity, Mode=OneWay}" VerticalAlignment="Top" Width="105"
                  Background="Black" Foreground="White" IsReadOnly="True" Margin="91,45,0,0" />
 
@@ -74,11 +74,16 @@
                  Text="{Binding Result.Result.Site, Mode=OneWay}"
                  VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
 
-        <Label x:Name="Lb_UniType" Content="Type" HorizontalAlignment="Left" Margin="10,314,0,0"
+        <Label x:Name="Lb_UniTypeSize" Content="Type/Size" HorizontalAlignment="Left" Margin="10,314,0,0"
                VerticalAlignment="Top"
-               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}"
+               Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
         <TextBox x:Name="Tb_UniType" HorizontalAlignment="Left" Margin="91,318,0,0"
                  Text="{Binding UniResult.Uni.FileTypes[0], Mode=OneWay}"
+                 VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
+                 Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <TextBox x:Name="Tb_UniSize" HorizontalAlignment="Left" Margin="186,318,0,0"
+                 Text="{Binding UniResult.SizeFormat, Mode=OneWay}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 

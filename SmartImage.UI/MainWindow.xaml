@@ -8,7 +8,7 @@
         xmlns:ui="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1200" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
-        Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919">
+        Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919" KeyDown="Wnd_Main_KeyDown">
     <Window.Resources>
 
         <!-- Define the ContextMenu -->
@@ -66,7 +66,7 @@
 
     <Grid>
         <TabControl x:Name="Tc_Main" Background="{DynamicResource Black1}">
-            <TabItem x:Name="Ti_Main" Header="Main">
+            <TabItem x:Name="Ti_Main" Header="Main" KeyDown="Ti_Main_KeyDown">
                 <Grid Background="{DynamicResource Black1}">
                     <!--<Grid.RowDefinitions>
                         <RowDefinition Height="47*" />
@@ -90,8 +90,8 @@
                     <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="57,8,0,0" VerticalAlignment="Top"
                              Width="437" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
-                             PreviewDragOver="Tb_Input_PreviewDragOver"
-                             Text="{Binding CurrentQueueItem}" />
+                             PreviewDragOver="Tb_Input_PreviewDragOver" IsReadOnly="False"
+                             Text="{Binding CurrentQueueItem, Mode=TwoWay}" />
 
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
@@ -158,22 +158,76 @@
                         </Button.Style>
 
                     </Button>
-                    <ListView x:Name="Lv_Queue" Margin="0,6,165,0" Drop="Lv_Queue_Drop"
-                              DragOver="Lv_Queue_DragOver" PreviewDragOver="Lv_Queue_PreviewDragOver" AllowDrop="True"
-                              Background="{DynamicResource Black2}" Foreground="White" Width="320" Height="150"
-                              SelectionChanged="Lv_Queue_SelectionChanged" VerticalAlignment="Top"
-                              SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay}"
-                              IsSynchronizedWithCurrentItem="True"
-                              KeyDown="Lv_Queue_KeyDown" HorizontalAlignment="Right" Grid.RowSpan="2" Grid.Column="1">
-                        <!-- SelectedIndex="{Binding QueueSelectedIndex, Mode=Default, UpdateSourceTrigger=PropertyChanged}" -->
-                        <ListView.View>
-                            <GridView>
-                                <!-- <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}" Width="85"/> -->
-                                <!-- <GridViewColumn Header="Status" Width="40"/> -->
-                                <GridViewColumn Header="Queue" Width="300" />
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
+                    <Button x:Name="Btn_Remove" Content="Remove"
+                            HorizontalAlignment="Left" Margin="583,8,0,0" VerticalAlignment="Top"
+                            Click="Btn_Remove_Click" Height="20" Width="46">
+
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Foreground" Value="Orange" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
+                                <Setter Property="Background" Value="{DynamicResource Black2}" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type Button}">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="Gray" />
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter Property="Background" Value="DarkGray" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+
+                    </Button>
+                    <Button x:Name="Btn_Delete" Content="Delete" IsEnabled="{Binding IsQueueInputValid}"
+                            HorizontalAlignment="Left" Margin="634,8,0,0" VerticalAlignment="Top"
+                            Click="Btn_Delete_Click" Height="20" Width="39">
+
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Foreground" Value="Red" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
+                                <Setter Property="Background" Value="{DynamicResource Black2}" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type Button}">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="Gray" />
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter Property="Background" Value="DarkGray" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+
+                    </Button>
+                    <ListBox x:Name="Lb_Queue" Drop="Lb_Queue_Drop"
+                             DragOver="Lb_Queue_DragOver" PreviewDragOver="Lb_Queue_PreviewDragOver" AllowDrop="True"
+                             Background="{DynamicResource Black2}" Foreground="White"
+                             SelectionChanged="Lb_Queue_SelectionChanged"
+                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay}"
+                             IsSynchronizedWithCurrentItem="True"
+                             KeyDown="Lb_Queue_KeyDown" Margin="0,2,173,0" HorizontalAlignment="Right"
+                             VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2" />
                     <Border x:Name="Br_Preview" Height="150" Margin="0,6,10,0" Width="150"
                             Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
@@ -415,72 +469,9 @@
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="4,33,0,0"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
 
-                    <Button x:Name="Btn_Delete" Content="Delete" IsEnabled="{Binding IsQueueInputValid}"
-                            HorizontalAlignment="Left" Margin="634,8,0,0" VerticalAlignment="Top"
-                            Click="Btn_Delete_Click" Height="20" Width="39">
-
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}">
-                                <Setter Property="Foreground" Value="Red" />
-                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
-                                <Setter Property="Background" Value="{DynamicResource Black2}" />
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="{x:Type Button}">
-                                            <Border Background="{TemplateBinding Background}">
-                                                <ContentPresenter HorizontalAlignment="Center"
-                                                                  VerticalAlignment="Center" />
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="Gray" />
-                                    </Trigger>
-                                    <Trigger Property="IsPressed" Value="True">
-                                        <Setter Property="Background" Value="DarkGray" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-
-                    </Button>
-
                     <TextBlock x:Name="Tb_Timer" HorizontalAlignment="Left" Margin="630,49,0,0" Grid.Row="1"
                                Text="{Binding TimerText}" VerticalAlignment="Top"
                                Foreground="White" />
-                    <Button x:Name="Btn_Remove" Content="Remove"
-                            HorizontalAlignment="Left" Margin="583,8,0,0" VerticalAlignment="Top"
-                            Click="Btn_Remove_Click" Height="20" Width="46">
-
-                        <Button.Style>
-                            <Style TargetType="{x:Type Button}">
-                                <Setter Property="Foreground" Value="Orange" />
-                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
-                                <Setter Property="Background" Value="{DynamicResource Black2}" />
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="{x:Type Button}">
-                                            <Border Background="{TemplateBinding Background}">
-                                                <ContentPresenter HorizontalAlignment="Center"
-                                                                  VerticalAlignment="Center" />
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background" Value="Gray" />
-                                    </Trigger>
-                                    <Trigger Property="IsPressed" Value="True">
-                                        <Setter Property="Background" Value="DarkGray" />
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-
-                    </Button>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"

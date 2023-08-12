@@ -26,14 +26,14 @@ public partial class ResultWindow : Window
 	{
 		DataContext = this;
 		Result      = result;
-		Title       = result.Name;
+
 		InitializeComponent();
 	}
 
 	public ResultItem Result { get; set; }
 
+	[MNNW(true, nameof(UniResult))]
 	public bool IsUni => Result is UniResultItem;
 
-	[MNNW(true, nameof(IsUni))]
 	public UniResultItem? UniResult => Result as UniResultItem;
 }
