@@ -125,6 +125,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// ResizeMode         = ResizeMode.NoResize; //todo
 
+		((App)Application.Current).PipeReceived += OnPipeReceived;
+	}
+
+	private void OnPipeReceived(string s)
+	{
+		Debug.WriteLine($">>{s}");
 	}
 
 	#region
@@ -831,9 +837,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	public static readonly string[]                          Args = Environment.GetCommandLineArgs();
+	public static readonly string[] Args = Environment.GetCommandLineArgs();
 
-	private                System.Windows.Interop.HwndSource _hwndSoure;
+	/*
+	private System.Windows.Interop.HwndSource _hwndSoure;
 
 	protected override void OnSourceInitialized(EventArgs e)
 	{
@@ -866,7 +873,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Activate();
-	}
+	}*/
 
 	private void ParseArgs()
 	{

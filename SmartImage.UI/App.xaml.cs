@@ -1,21 +1,10 @@
-﻿using AngleSharp.Dom;
-using Kantan.Collections;
-using Kantan.Text;
-using SmartImage.Lib.Model;
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Configuration;
-using System.Data;
+﻿using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading.Tasks;
+using System.IO;
+using System.IO.Pipes;
+using System.Threading;
 using System.Windows;
 using Novus.Win32;
-using System.IO.Pipes;
-using System.IO;
-using System.Threading;
 
 namespace SmartImage.UI;
 
@@ -27,56 +16,89 @@ public partial class App : Application
 	/// <summary>
 	/// This identifier must be unique for each application.
 	/// </summary>
-	private const string ApplicationSingleInstanceGuid = "{910e8c27-ab31-4043-9c5d-1382707e6c93}";
+	private const string SingleGuid = "{910e8c27-ab31-4043-9c5d-1382707e6c93}";
 
-	private static System.Threading.Mutex _mutex;
+	private const string IPC_PIPE_NAME = "SIPC";
+
+	private static Mutex SingleMutex;
 
 	public NamedPipeServerStream _ps;
 
 	private void Application_Startup(object sender, StartupEventArgs e)
 	{
-		// Create SingleInstance Mutex
-		_mutex = new System.Threading.Mutex(true, ApplicationSingleInstanceGuid);
-		var isOnlyInstance = _mutex.WaitOne(TimeSpan.Zero, true);
+		SingleMutex = new Mutex(true, SingleGuid);
+		var isOnlyInstance = SingleMutex.WaitOne(TimeSpan.Zero, true);
 
-		// TODO: Read from settings if you want your users to be able to opt-in to multiple instance or not
 		var multipleInstances = false;
+		pipe = true;
 
 		if (multipleInstances || isOnlyInstance) {
 			// Show main window
 			StartupUri = new Uri("MainWindow.xaml", UriKind.Relative);
 
 			// Release SingleInstance Mutex
-			_mutex.ReleaseMutex();
-			_ps = new NamedPipeServerStream("SIPC", PipeDirection.In);
+			SingleMutex.ReleaseMutex();
 
-			var t = new Thread(() =>
-			{
-				_ps.WaitForConnection();
-				var sr = new StreamReader(_ps);
-				while (!sr.EndOfStream) {
-					Debug.WriteLine($"{sr.ReadLine()}");
-				}
-			}) { IsBackground = true };
-			t.Start();
+			StartServer();
 
 		}
 		else {
-			unsafe {
-				// Bring the already running application into the foreground
-				Native.PostMessage((IntPtr) 0xffff, AppUtil.m_registerWindowMessage, 0, 0);
-				var pc = new NamedPipeClientStream(".", "SIPC", PipeDirection.Out);
-				pc.Connect();
-				var sw = new StreamWriter(pc);
-				foreach (string s in e.Args) {
-					sw.WriteLine(s);
-				}
-				sw.Flush();
-				sw.Dispose();
-				pc.Dispose();
-				Shutdown();
-			}
+			// Bring the already running application into the foreground
+			// Native.PostMessage(0xffff, AppUtil.m_registerWindowMessage, 0, 0);
+			SendMessage(e);
+			Shutdown();
 
 		}
+	}
+
+	private static bool pipe;
+
+	protected override void OnExit(ExitEventArgs e)
+	{
+		base.OnExit(e);
+
+		// Stop the server before exiting the application
+		pipe = false;
+	}
+
+	private static void SendMessage(StartupEventArgs e)
+	{
+
+		using (var pipe = new NamedPipeClientStream(".", IPC_PIPE_NAME, PipeDirection.Out))
+		using (var stream = new StreamWriter(pipe))
+		{
+			pipe.Connect();
+
+			foreach (var s in e.Args) {
+				stream.WriteLine(s);
+			}
+		}
+	}
+
+	public delegate void MessageReceivedCallback(string s);
+
+	public event MessageReceivedCallback PipeReceived;
+
+	private void StartServer()
+	{
+		_ps = new NamedPipeServerStream(IPC_PIPE_NAME, PipeDirection.In);
+
+		var t = new Thread(() =>
+		{
+			while (true) {
+				_ps.WaitForConnection();
+				var sr = new StreamReader(_ps);
+
+				while (!sr.EndOfStream) {
+					var v = sr.ReadLine();
+					PipeReceived?.Invoke(v);
+				}
+				_ps.Disconnect();
+			}
+		})
+		{
+			IsBackground = true
+		};
+		t.Start();
 	}
 }
