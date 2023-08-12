@@ -124,23 +124,23 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
 
 		// ResizeMode         = ResizeMode.NoResize; //todo
-		pipeBuffer                              =  new List<string>();
-		((App)Application.Current).PipeReceived += OnPipeReceived;
+
+		m_pipeBuffer                               =  new List<string>();
+		((App) Application.Current).OnPipeMessage += OnPipeReceived;
 	}
 
-	private List<string> pipeBuffer;
+	private readonly List<string> m_pipeBuffer;
+
 	private void OnPipeReceived(string s)
 	{
 		Application.Current.Dispatcher.Invoke(() =>
 		{
-			if (s[0] == '\0')
-			{
-				ParseArgs(pipeBuffer.ToArray());
-				pipeBuffer.Clear();
+			if (s[0] == App.ARGS_DELIM) {
+				ParseArgs(m_pipeBuffer.ToArray());
+				m_pipeBuffer.Clear();
 			}
-			else
-			{
-				pipeBuffer.Add(s);
+			else {
+				m_pipeBuffer.Add(s);
 			}
 		});
 

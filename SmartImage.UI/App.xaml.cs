@@ -16,13 +16,17 @@ public partial class App : Application
 	/// <summary>
 	/// This identifier must be unique for each application.
 	/// </summary>
-	private const string SingleGuid = "{910e8c27-ab31-4043-9c5d-1382707e6c93}";
+	public const string SingleGuid = "{910e8c27-ab31-4043-9c5d-1382707e6c93}";
 
-	private const string IPC_PIPE_NAME = "SIPC";
+	public const string IPC_PIPE_NAME = "SIPC";
+
+	public const char ARGS_DELIM = '\0';
 
 	private static Mutex SingleMutex;
 
-	public NamedPipeServerStream _ps;
+	public NamedPipeServerStream PipeServer { get; private set; }
+
+	public Thread PipeThread { get; private set; }
 
 	private void Application_Startup(object sender, StartupEventArgs e)
 	{
@@ -30,7 +34,6 @@ public partial class App : Application
 		var isOnlyInstance = SingleMutex.WaitOne(TimeSpan.Zero, true);
 
 		var multipleInstances = false;
-		pipe = true;
 
 		if (multipleInstances || isOnlyInstance) {
 			// Show main window
@@ -51,56 +54,46 @@ public partial class App : Application
 		}
 	}
 
-	private static bool pipe;
-
-	protected override void OnExit(ExitEventArgs e)
-	{
-		base.OnExit(e);
-
-		// Stop the server before exiting the application
-		pipe = false;
-	}
-
 	private static void SendMessage(StartupEventArgs e)
 	{
 
 		using (var pipe = new NamedPipeClientStream(".", IPC_PIPE_NAME, PipeDirection.Out))
-		using (var stream = new StreamWriter(pipe))
-		{
+		using (var stream = new StreamWriter(pipe)) {
 			pipe.Connect();
 
 			foreach (var s in e.Args) {
 				stream.WriteLine(s);
 			}
 
-			stream.Write('\0');
+			stream.Write(ARGS_DELIM);
 		}
 	}
 
-	public delegate void MessageReceivedCallback(string s);
+	public delegate void PipeMessageCallback(string s);
 
-	public event MessageReceivedCallback PipeReceived;
+	public event PipeMessageCallback OnPipeMessage;
 
 	private void StartServer()
 	{
-		_ps = new NamedPipeServerStream(IPC_PIPE_NAME, PipeDirection.In);
+		PipeServer = new NamedPipeServerStream(IPC_PIPE_NAME, PipeDirection.In);
 
-		var t = new Thread(() =>
+		PipeThread = new Thread(() =>
 		{
 			while (true) {
-				_ps.WaitForConnection();
-				var sr = new StreamReader(_ps);
+				PipeServer.WaitForConnection();
+				var sr = new StreamReader(PipeServer);
 
 				while (!sr.EndOfStream) {
 					var v = sr.ReadLine();
-					PipeReceived?.Invoke(v);
+					OnPipeMessage?.Invoke(v);
 				}
-				_ps.Disconnect();
+
+				PipeServer.Disconnect();
 			}
 		})
 		{
 			IsBackground = true
 		};
-		t.Start();
+		PipeThread.Start();
 	}
 }
