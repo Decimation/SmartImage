@@ -111,7 +111,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_clipboard              = new();
 		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
 		m_resultMap              = new();
-		ParseArgs();
+		ParseArgs(Args);
 		m_image = null;
 
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
@@ -124,13 +124,26 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
 
 		// ResizeMode         = ResizeMode.NoResize; //todo
-
+		pipeBuffer                              =  new List<string>();
 		((App)Application.Current).PipeReceived += OnPipeReceived;
 	}
 
+	private List<string> pipeBuffer;
 	private void OnPipeReceived(string s)
 	{
-		Debug.WriteLine($">>{s}");
+		Application.Current.Dispatcher.Invoke(() =>
+		{
+			if (s[0] == '\0')
+			{
+				ParseArgs(pipeBuffer.ToArray());
+				pipeBuffer.Clear();
+			}
+			else
+			{
+				pipeBuffer.Add(s);
+			}
+		});
+
 	}
 
 	#region
@@ -875,11 +888,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Activate();
 	}*/
 
-	private void ParseArgs()
+	private void ParseArgs(string[] args)
 	{
-		Logs.Add(new(Args.QuickJoin()));
+		// Logs.Add(new(args.QuickJoin()));
 
-		var e = Args.GetEnumerator();
+		var e = args.GetEnumerator();
 
 		while (e.MoveNext()) {
 			if (e.Current is not string c) {

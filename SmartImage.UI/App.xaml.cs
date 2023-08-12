@@ -72,6 +72,8 @@ public partial class App : Application
 			foreach (var s in e.Args) {
 				stream.WriteLine(s);
 			}
+
+			stream.Write('\0');
 		}
 	}
 
