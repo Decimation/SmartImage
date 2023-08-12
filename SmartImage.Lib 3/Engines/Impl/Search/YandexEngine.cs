@@ -3,6 +3,7 @@ using System.Dynamic;
 using System.Net.NetworkInformation;
 using AngleSharp.Dom;
 using AngleSharp.XPath;
+using Flurl.Http;
 using Kantan.Monad;
 using Kantan.Net.Utilities;
 using Kantan.Text;
@@ -128,6 +129,11 @@ public sealed class YandexEngine : WebSearchEngine
 			// throw;
 			doc = null;
 			Debug.WriteLine($"{Name}: {e.Message}", nameof(GetResultAsync));
+
+			if (e is FlurlHttpTimeoutException t) {
+				Debug.WriteLine($"Timeout", nameof(GetResultAsync));
+
+			}
 		}
 
 		if (!Validate(doc, sr)) {

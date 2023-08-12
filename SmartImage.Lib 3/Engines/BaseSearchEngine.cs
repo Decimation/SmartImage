@@ -44,10 +44,10 @@ public abstract class BaseSearchEngine : IDisposable
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
 
-	protected virtual bool Verify(SearchQuery q)
+	protected virtual SearchResultStatus Verify(SearchQuery q)
 	{
 		if (q.Upload is not { }) {
-			return false;
+			return SearchResultStatus.IllegalInput;
 		}
 
 		bool b;
@@ -58,13 +58,13 @@ public abstract class BaseSearchEngine : IDisposable
 
 		else b = q.Size <= MaxSize;
 
-		return b;
+		return !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None;
 	}
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 
-		bool b = Verify(query);
+		var b = Verify(query);
 
 		/*if (!b) {
 			throw new SmartImageException($"{query}");
@@ -73,7 +73,7 @@ public abstract class BaseSearchEngine : IDisposable
 		var res = new SearchResult(this)
 		{
 			RawUrl       = await GetRawUrlAsync(query),
-			Status       = !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None,
+			Status       = b,
 			ErrorMessage = null
 		};
 

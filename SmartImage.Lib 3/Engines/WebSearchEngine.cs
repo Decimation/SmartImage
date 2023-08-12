@@ -18,6 +18,9 @@ public abstract class WebSearchEngine : BaseSearchEngine
 	{
 		var res = await base.GetResultAsync(query, token);
 
+		if (res.Status == SearchResultStatus.IllegalInput) {
+			goto ret;
+		}
 		IDocument doc;
 
 		try {

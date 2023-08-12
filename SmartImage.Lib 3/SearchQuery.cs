@@ -91,7 +91,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			Upload = u.Url;
 
 			if (u.Response is { }) {
-				Size = NetHelper.GetContentLength(u.Response) ?? 0;
+				Size = NetHelper.GetContentLength(u.Response) ?? Size;
 			}
 
 			u.Dispose();

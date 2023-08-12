@@ -6,6 +6,7 @@
 #region
 
 using System.Diagnostics;
+using System.Net;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -32,7 +33,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 
 	public IqdbEngine() : base("https://iqdb.org/?url=")
 	{
-		MaxSize = 8192 * 1024; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
+		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 	}
 
 	private static SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
@@ -111,10 +112,11 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 		return result;
 	}
 
+	const int MAX_FILE_SIZE = 0x800000;
+
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
 	{
-		const int MAX_FILE_SIZE = 0x800000;
-		
+
 		try {
 			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure()).PostMultipartAsync(m =>
 			{

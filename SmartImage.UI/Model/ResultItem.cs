@@ -123,7 +123,7 @@ public class UniResultItem : ResultItem
 
 	public string Download { get; private set; }
 
-	public async Task<string> DownloadResultAsync()
+	public async Task<string> DownloadResultAsync(string? dir = null, bool exp = true)
 	{
 		string path;
 
@@ -136,14 +136,19 @@ public class UniResultItem : ResultItem
 
 		}
 
-		var path2 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), path);
+		dir ??= Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+		var path2 = Path.Combine(dir, path);
 
 		var fs = File.OpenWrite(path2);
 		Uni.Stream.TrySeek();
 
 		StatusImage = AppComponents.picture_save;
 		await Uni.Stream.CopyToAsync(fs);
-		FileSystem.ExploreFile(path2);
+
+		if (exp) {
+			FileSystem.ExploreFile(path2);
+		}
+
 		fs.Dispose();
 		CanDownload = false;
 		Download    = path2;
