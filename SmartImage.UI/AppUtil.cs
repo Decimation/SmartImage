@@ -170,6 +170,7 @@ internal static class AppUtil
 	}
 
 	// Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
+	internal static readonly string MyPicturesFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
 }
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]

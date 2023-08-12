@@ -7,8 +7,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d" Height="600" Width="1200" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
-        Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919" KeyDown="Wnd_Main_KeyDown">
+        mc:Ignorable="d" Height="600" Width="1300" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
+        Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919"
+        KeyDown="Wnd_Main_KeyDown">
     <Window.Resources>
 
         <!-- Define the ContextMenu -->
@@ -17,9 +18,13 @@
             <MenuItem Header="Scan" Click="ScanItem_Click" IsEnabled="{Binding CanScan}" />
             <MenuItem Header="Download" Click="DownloadItem_Click" IsEnabled="{Binding CanDownload}" />
             <MenuItem Header="Info" Click="InfoItem_Click" />
+            <MenuItem Header="Retry" Click="RetryItem_Click" />
         </ContextMenu>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-
+        <Style x:Key="BoldGridViewCellStyle" TargetType="{x:Type TextBlock}">
+            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+        </Style>
         <Style x:Key="CustomListViewItemStyle" TargetType="{x:Type ListViewItem}">
             <Setter Property="Background" Value="LightGray" />
             <Setter Property="Foreground" Value="Black" />
@@ -85,7 +90,8 @@
                         <!-- "*" means proportional sizing -->
                     </Grid.ColumnDefinitions>
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
-                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5" />
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5"
+                           Background="{DynamicResource Black3}" Width="50" HorizontalContentAlignment="Center" />
 
                     <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="57,8,0,0" VerticalAlignment="Top"
                              Width="437" TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput" Height="20"
@@ -100,7 +106,7 @@
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Foreground" Value="Chartreuse" />
-                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Border2}" />
                                 <Setter Property="Background" Value="{DynamicResource Black2}" />
                                 <Setter Property="Template">
                                     <Setter.Value>
@@ -119,14 +125,17 @@
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter Property="Background" Value="DarkGray" />
                                     </Trigger>
-
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="Background" Value="DimGray" />
+                                    </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
                     </Button>
 
                     <Button x:Name="Btn_Cancel"
-                            BorderBrush="{DynamicResource Border1}" Content="Cancel"
+                            BorderBrush="{DynamicResource Border2}" Content="Cancel"
                             HorizontalAlignment="Left" Margin="539,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" Height="20" Width="39">
 
@@ -152,7 +161,10 @@
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter Property="Background" Value="DarkGray" />
                                     </Trigger>
-
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="Background" Value="DimGray" />
+                                    </Trigger>
                                 </Style.Triggers>
                             </Style>
                         </Button.Style>
@@ -165,7 +177,7 @@
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Foreground" Value="Orange" />
-                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Border2}" />
                                 <Setter Property="Background" Value="{DynamicResource Black2}" />
                                 <Setter Property="Template">
                                     <Setter.Value>
@@ -183,6 +195,10 @@
                                     </Trigger>
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter Property="Background" Value="DarkGray" />
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="Background" Value="DimGray" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -196,7 +212,7 @@
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
                                 <Setter Property="Foreground" Value="Red" />
-                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Border2}" />
                                 <Setter Property="Background" Value="{DynamicResource Black2}" />
                                 <Setter Property="Template">
                                     <Setter.Value>
@@ -214,6 +230,10 @@
                                     </Trigger>
                                     <Trigger Property="IsPressed" Value="True">
                                         <Setter Property="Background" Value="DarkGray" />
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="Background" Value="DimGray" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -322,10 +342,11 @@
                         </MediaElement>
                     </Border>
 
-                    <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,32,0,0"
-                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
+                    <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,34,0,0"
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White"
+                           Background="{DynamicResource Black3}" Width="50" HorizontalContentAlignment="Center" />
 
-                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,35,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,37,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
 
@@ -345,15 +366,16 @@
                             VerticalAlignment="Center" Click="Btn_Browse_Click" Height="20" Grid.ColumnSpan="2" />
 
                     <Label x:Name="Lb_Info" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
-                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" />
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White"
+                           Background="{DynamicResource Black3}" HorizontalContentAlignment="Center" Width="50" />
 
                     <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
 
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
-                           Margin="501,65,0,0"
-                           VerticalAlignment="Top" Stretch="None" />
+                           Margin="10,5,0,0"
+                           VerticalAlignment="Top" Stretch="None" Grid.Row="1" />
 
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
@@ -427,7 +449,14 @@
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="Name"
-                                                DisplayMemberBinding="{Binding Name}" Width="115" />
+                                                Width="115">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}"
+                                                       Style="{StaticResource BoldGridViewCellStyle}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
                                 <GridViewColumn Header="URL"
                                                 DisplayMemberBinding="{Binding Url}" Width="400" />
@@ -449,6 +478,8 @@
 
                                 <GridViewColumn Header="Character"
                                                 DisplayMemberBinding="{Binding Result.Character}" Width="75" />
+                                <GridViewColumn Header="Site"
+                                                DisplayMemberBinding="{Binding Result.Site}" Width="75" />
 
                                 <GridViewColumn Header="Width"
                                                 DisplayMemberBinding="{Binding Result.Width}" Width="50" />
@@ -460,8 +491,8 @@
 
                     </ListView>
 
-                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="537,65,0,0"
-                           HorizontalAlignment="Left" VerticalAlignment="Top" />
+                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="48,5,0,0"
+                           HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" />
 
                     <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="115,49,0,0"
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline" />
@@ -472,6 +503,7 @@
                     <TextBlock x:Name="Tb_Timer" HorizontalAlignment="Left" Margin="630,49,0,0" Grid.Row="1"
                                Text="{Binding TimerText}" VerticalAlignment="Top"
                                Foreground="White" />
+                    <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="501,65,0,0" VerticalAlignment="Top" Click="Btn_Filter_Click"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"

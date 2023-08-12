@@ -123,7 +123,7 @@ public class UniResultItem : ResultItem
 
 	public string Download { get; private set; }
 
-	public async Task<string> DownloadResultAsync(string? dir = null, bool exp = true)
+	public async Task<string> DownloadAsync(string? dir = null, bool exp = true)
 	{
 		string path;
 
@@ -136,7 +136,7 @@ public class UniResultItem : ResultItem
 
 		}
 
-		dir ??= Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+		dir ??= AppUtil.MyPicturesFolder;
 		var path2 = Path.Combine(dir, path);
 
 		var fs = File.OpenWrite(path2);

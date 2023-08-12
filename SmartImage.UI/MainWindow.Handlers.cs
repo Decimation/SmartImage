@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -275,45 +276,42 @@ public partial class MainWindow
 		if (e.AddedItems.Count > 0) {
 
 			var ai = e.AddedItems[0];
+			var ri = ai as ResultItem;
 
-			switch (ai) {
-				case UniResultItem uri:
-					Img_Preview.Source = uri.Image;
-					break;
-				case ResultItem ri:
+			if (ri is UniResultItem uri) {
+				Img_Preview.Source = uri.Image;
+			}
+			else {
+				Img_Preview.Source = m_image;
 
-					Img_Preview.Source = m_image;
-
-					ChangeStatus2(ri);
-
-					if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
-						Br_Preview.Visibility       = Visibility.Hidden;
-						Img_Preview.Visibility      = Visibility.Hidden;
-						Br_Preview2.Visibility      = Visibility.Visible;
-						Me_Preview.Visibility       = Visibility.Visible;
-						Me_Preview.ScrubbingEnabled = false;
-						Me_Preview.UnloadedBehavior = MediaState.Close;
-						Me_Preview.LoadedBehavior   = MediaState.Manual;
-						Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
-						Me_Preview.Play();
-						m_me = true;
+				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
+					Br_Preview.Visibility       = Visibility.Hidden;
+					Img_Preview.Visibility      = Visibility.Hidden;
+					Br_Preview2.Visibility      = Visibility.Visible;
+					Me_Preview.Visibility       = Visibility.Visible;
+					Me_Preview.ScrubbingEnabled = false;
+					Me_Preview.UnloadedBehavior = MediaState.Close;
+					Me_Preview.LoadedBehavior   = MediaState.Manual;
+					Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
+					Me_Preview.Play();
+					m_me = true;
+				}
+				else {
+					if (m_me) {
+						Br_Preview.Visibility  = Visibility.Visible;
+						Img_Preview.Visibility = Visibility.Visible;
+						Br_Preview2.Visibility = Visibility.Hidden;
+						Me_Preview.Visibility  = Visibility.Hidden;
+						Me_Preview.Stop();
+						Me_Preview.Close();
+						Me_Preview.Source = null;
+						m_me              = false;
 					}
-					else {
-						if (m_me) {
-							Br_Preview.Visibility  = Visibility.Visible;
-							Img_Preview.Visibility = Visibility.Visible;
-							Br_Preview2.Visibility = Visibility.Hidden;
-							Me_Preview.Visibility  = Visibility.Hidden;
-							Me_Preview.Stop();
-							Me_Preview.Close();
-							Me_Preview.Source = null;
-							m_me              = false;
-						}
-					}
-
-					break;
+				}
 
 			}
+
+			ChangeStatus2(ri);
 
 		}
 
@@ -322,7 +320,6 @@ public partial class MainWindow
 
 	private void Lv_Results_KeyDown(object sender, KeyEventArgs e)
 	{
-
 		var ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		var alt   = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
 		var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
@@ -360,7 +357,7 @@ public partial class MainWindow
 				Application.Current.Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResultItem));
 
 				break;
-			case Key.X when ctrl:
+			case Key.F when ctrl:
 				// TODO: WIP
 				Application.Current.Dispatcher.InvokeAsync(FilterResultsAsync);
 
@@ -371,18 +368,21 @@ public partial class MainWindow
 			case Key.Tab when ctrl:
 				NextQueue();
 				break;
-			case Key.F when ctrl:
+			case Key.E when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(async () =>
 				{
 					if (CurrentResultItem is UniResultItem uri) {
 						// var d = await uri.Uni.TryDownloadAsync();
-						var d = await uri.DownloadResultAsync(Path.GetTempPath(), false);
+						var d = await uri.DownloadAsync(Path.GetTempPath(), false);
 						AddToQueue(new[] { d });
 						// CurrentQueueItem = d;
 					}
 
 				});
 
+				break;
+			case Key.R when ctrl && alt:
+				Application.Current.Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
 				break;
 
 		}
@@ -439,6 +439,27 @@ public partial class MainWindow
 		BaseUploadEngine.Default = LitterboxEngine.Instance;
 	}
 
+	private async void Tb_EhUsername_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (!e.IsLoaded()) {
+			return;
+		}
+
+		await Client.ApplyConfigAsync();
+		e.Handled = true;
+	}
+
+	private async void Tb_EhPassword_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (!e.IsLoaded()) {
+			return;
+		}
+
+		await Client.ApplyConfigAsync();
+		e.Handled = true;
+
+	}
+
 	#endregion
 
 	#region
@@ -474,6 +495,13 @@ public partial class MainWindow
 
 	}
 
+	private void Wnd_Main_KeyDown(object sender, KeyEventArgs e)
+	{
+
+		// e.Handled = true;
+
+	}
+
 	#endregion
 
 	#endregion
@@ -506,6 +534,12 @@ public partial class MainWindow
 		OpenResultWindow();
 		e.Handled = true;
 
+	}
+
+	private void RetryItem_Click(object sender, RoutedEventArgs e)
+	{
+		Application.Current.Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
+		e.Handled = true;
 	}
 
 	#endregion
@@ -567,36 +601,14 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private async void Tb_EhUsername_TextChanged(object sender, TextChangedEventArgs e)
-	{
-		if (!e.IsLoaded()) {
-			return;
-		}
-
-		await Client.ApplyConfigAsync();
-		e.Handled = true;
-	}
-
-	private async void Tb_EhPassword_TextChanged(object sender, TextChangedEventArgs e)
-	{
-		if (!e.IsLoaded()) {
-			return;
-		}
-
-		await Client.ApplyConfigAsync();
-		e.Handled = true;
-
-	}
-
 	private void Ti_Main_KeyDown(object sender, KeyEventArgs e)
 	{
 		// e.Handled = true;
 	}
 
-	private void Wnd_Main_KeyDown(object sender, KeyEventArgs e)
+	private void Btn_Filter_Click(object sender, RoutedEventArgs e)
 	{
-
-		// e.Handled = true;
-
+		Application.Current.Dispatcher.InvokeAsync(FilterResultsAsync);
+		e.Handled = true;
 	}
 }

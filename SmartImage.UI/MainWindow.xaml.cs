@@ -198,6 +198,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		bool b2;
 
 		bool queryExists = b2 = m_queries.TryGetValue(query, out var existingQuery);
+		Tb_Status2.Text = null;
 
 		if (queryExists) {
 			// Require.NotNull(existingQuery);
@@ -451,6 +452,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lb_Queue.IsEnabled = false;
 		// ClearResults();
 		SearchStart = DateTime.Now;
+		TimerText   = String.Empty;
 
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
@@ -480,24 +482,30 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		TimerText       = $"{(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 
 		lock (m_lock) {
-			int i = 0;
+			AddResult(result);
+		}
+	}
 
-			var allResults = result.Results;
+	private void AddResult(SearchResult result)
+	{
+		int i = 0;
 
-			var sri1 = new SearchResultItem(result)
-			{
-				Url = result.RawUrl,
-			};
-			Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
+		var allResults = result.Results;
 
-			foreach (SearchResultItem sri in allResults) {
-				Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
-				int j = 0;
+		var sri1 = new SearchResultItem(result)
+		{
+			Url = result.RawUrl,
+		};
 
-				foreach (var ssri in sri.Sisters) {
-					Results.Add(new ResultItem(ssri, $"{ssri.Root.Engine.Name} #{i}.{++j}"));
+		Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
 
-				}
+		foreach (SearchResultItem sri in allResults) {
+			Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
+			int j = 0;
+
+			foreach (var ssri in sri.Sisters) {
+				Results.Add(new ResultItem(ssri, $"{ssri.Root.Engine.Name} #{i}.{++j}"));
+
 			}
 		}
 	}
@@ -655,9 +663,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
+	#region
+
+	private readonly SemaphoreSlim m_fSem = new(1);
+
 	private async Task DownloadResultAsync(UniResultItem uri)
 	{
-		await uri.DownloadResultAsync();
+		await uri.DownloadAsync();
 		m_uni.TryAdd(uri, uri.Download);
 		Tb_Status.Text = $"Downloaded to {uri.Download}";
 	}
@@ -708,6 +720,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task ScanGalleryResultAsync(ResultItem cri)
 	{
+
 		if (FileSystem.FindInPath("gallery-dl.exe") == null) {
 			MessageBox.Show(this, "gallery-dl not in path");
 			return;
@@ -732,11 +745,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Pb_Status.IsIndeterminate = false;
 		Tb_Status.Text            = "Scanned with gallery-dl";
-
 	}
 
 	private async Task FilterResultsAsync()
 	{
+		Btn_Filter.IsEnabled = false;
+
 		Pb_Status.IsIndeterminate = true;
 		Tb_Status.Text            = "Filtering";
 
@@ -777,7 +791,38 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Debug.WriteLine("continuing");
 		Tb_Status.Text            = $"Filtered {c}";
 		Pb_Status.IsIndeterminate = false;
+		Btn_Filter.IsEnabled = true;
 	}
+
+	private async void RetryEngineAsync(ResultItem ri)
+	{
+		var eng = ri.Result.Root.Engine;
+		Tb_Status.Text = $"Retrying {eng.Name}";
+		var idx = Results.IndexOf(ri);
+		var fi  = idx;
+		for (int i = Results.Count - 1; i >= 0; i--) {
+			if (Results[i].Result.Root.Engine == eng) {
+				Results.RemoveAt(i);
+			}
+		}
+
+		Pb_Status.IsIndeterminate = true;
+		var result = await eng.GetResultAsync(Query, m_cts.Token);
+		AddResult(result);
+		Pb_Status.IsIndeterminate = false;
+
+		for (int i = 0; i < Results.Count; i++) {
+			var cr = Results[i];
+
+			if (cr.Result.Root.Engine == eng) {
+				Results.Move(i, idx++);
+
+			}
+		}
+		Lv_Results.ScrollIntoView(Results[fi]);
+	}
+
+	#endregion
 
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
 
@@ -844,6 +889,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
+
 }
 
 public class ResultModel

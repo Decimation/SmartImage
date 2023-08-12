@@ -7,6 +7,8 @@ global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 using System.Windows;
 using SmartImage.UI.Model;
 using Kantan.Monad;
+using System.Linq;
+using System;
 
 namespace SmartImage.UI;
 
@@ -43,5 +45,23 @@ public partial class MainWindow
 		}
 
 		sw.Show();
+	}
+
+	private ResultItem? Find(Predicate<ResultItem> f)
+	{
+		return Results.FirstOrDefault(t => f(t));
+
+	}
+
+	private int FindIndex(Predicate<ResultItem> f)
+	{
+		var r = Find(f);
+
+		if (r == null)
+		{
+			return -1;
+		}
+
+		return Results.IndexOf(r);
 	}
 }
