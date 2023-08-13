@@ -98,6 +98,15 @@ namespace SmartImage.UI {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to -s.
+        /// </summary>
+        internal static string Arg_Switch {
+            get {
+                return ResourceManager.GetString("Arg_Switch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
         internal static System.Drawing.Bitmap exclamation {

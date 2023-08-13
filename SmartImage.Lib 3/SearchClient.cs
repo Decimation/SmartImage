@@ -15,6 +15,7 @@ using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
+using Novus.OS;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Model;
@@ -182,8 +183,8 @@ public sealed class SearchClient : IDisposable
 #else
 
 		Logger.LogInformation("Opening {Url}", url1);
-
-		HttpUtilities.TryOpenUrl(url1);
+		FileSystem.Open(url1);
+		// HttpUtilities.TryOpenUrl(url1);
 #endif
 
 	}

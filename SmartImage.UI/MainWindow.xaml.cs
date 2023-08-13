@@ -125,7 +125,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// ResizeMode         = ResizeMode.NoResize; //todo
 
-		m_pipeBuffer                               =  new List<string>();
+		m_pipeBuffer = new List<string>();
+
 		((App) Application.Current).OnPipeMessage += OnPipeReceived;
 	}
 
@@ -136,6 +137,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.Invoke(() =>
 		{
 			if (s[0] == App.ARGS_DELIM) {
+				Tb_Status2.Text = $"Received {m_pipeBuffer.Count} from pipe";
 				ParseArgs(m_pipeBuffer.ToArray());
 				m_pipeBuffer.Clear();
 			}
@@ -894,27 +896,40 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		var e = args.GetEnumerator();
 
+		string inp = null;
+
 		while (e.MoveNext()) {
 			if (e.Current is not string c) {
 				break;
 			}
 
 			if (c == R2.Arg_Input) {
-				var inp = (string) e.MoveAndGet();
+				inp = (string) e.MoveAndGet();
 
 				// CurrentQueueItem = inp;
 				AddToQueue(new[] { inp });
+
 				continue;
+			}
+
+			if (c == R2.Arg_Switch && inp != null) {
+				CurrentQueueItem = inp;
+				
 			}
 
 			if (c == R2.Arg_AutoSearch) {
 
-				e.MoveNext();
 				Config.AutoSearch = true;
 			}
 
 			if (c == R2.Arg_Hide) {
-				Visibility = Visibility.Hidden;
+
+				if (IsVisible) {
+					Visibility = Visibility.Hidden;
+				}
+				else {
+					Visibility = Visibility.Visible;
+				}
 			}
 		}
 
