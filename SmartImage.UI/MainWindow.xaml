@@ -533,6 +533,9 @@
                               IsChecked="{Binding Path=UseContextMenu, Mode=TwoWay}"
                               Margin="426,127,0,0" VerticalAlignment="Top" Foreground="White" />
 
+                    <CheckBox x:Name="Cb_Path" Content="Path" HorizontalAlignment="Left"
+                              IsChecked="{Binding InPath, Mode=TwoWay}"
+                              Margin="426,242,0,0" VerticalAlignment="Top" Foreground="White" />
                     <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left"
                            Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 

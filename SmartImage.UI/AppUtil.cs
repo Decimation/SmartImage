@@ -15,6 +15,9 @@ using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Newtonsoft.Json;
 using Novus.Win32;
+using System.ComponentModel;
+using System.Runtime.InteropServices;
+using Novus.Win32.Structures.User32;
 
 // ReSharper disable InconsistentNaming
 
@@ -50,6 +53,34 @@ internal static class AppUtil
 	public static bool IsOnTop { get; private set; }
 
 	#endregion
+
+	internal static void FlashTaskbar(IntPtr hndw)
+	{
+		var pwfi = new FLASHWINFO()
+		{
+			cbSize    = (uint) Marshal.SizeOf<FLASHWINFO>(),
+			hwnd      = hndw,
+			dwFlags   = FlashWindowType.FLASHW_TRAY,
+			uCount    = 8,
+			dwTimeout = 75
+		};
+
+		Native.FlashWindowEx(ref pwfi);
+	}
+
+	public static void AddToPath(bool b)
+	{
+
+		if (b) {
+			var p = FileSystem.GetEnvironmentPath();
+			FileSystem.SetEnvironmentPath(p + $";{CurrentAppFolder}");
+
+		}
+		else {
+			FileSystem.RemoveFromPath(CurrentAppFolder);
+
+		}
+	}
 
 	public static bool IsContextMenuAdded
 	{

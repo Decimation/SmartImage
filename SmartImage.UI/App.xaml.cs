@@ -49,6 +49,7 @@ public partial class App : Application
 			// Bring the already running application into the foreground
 			// Native.PostMessage(0xffff, AppUtil.m_registerWindowMessage, 0, 0);
 			SendMessage(e);
+
 			Shutdown();
 
 		}

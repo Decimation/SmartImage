@@ -128,6 +128,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_pipeBuffer = new List<string>();
 
 		((App) Application.Current).OnPipeMessage += OnPipeReceived;
+
+		m_wndInterop = new WindowInteropHelper(this);
 	}
 
 	private readonly List<string> m_pipeBuffer;
@@ -140,10 +142,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Tb_Status2.Text = $"Received {m_pipeBuffer.Count} from pipe";
 				ParseArgs(m_pipeBuffer.ToArray());
 				m_pipeBuffer.Clear();
+				AppUtil.FlashTaskbar(m_wndInterop.Handle);
 			}
 			else {
 				m_pipeBuffer.Add(s);
 			}
+
 		});
 
 	}
@@ -174,6 +178,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		get => AppUtil.IsContextMenuAdded;
 		set => AppUtil.HandleContextMenu(value);
+	}
+
+	public bool InPath
+	{
+		get => AppUtil.IsAppFolderInPath;
+		set => AppUtil.AddToPath(value);
 	}
 
 	#endregion
@@ -852,7 +862,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	public static readonly string[] Args = Environment.GetCommandLineArgs();
+	public static readonly string[]            Args = Environment.GetCommandLineArgs();
+	private                WindowInteropHelper m_wndInterop;
 
 	/*
 	private System.Windows.Interop.HwndSource _hwndSoure;
@@ -914,7 +925,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (c == R2.Arg_Switch && inp != null) {
 				CurrentQueueItem = inp;
-				
+
 			}
 
 			if (c == R2.Arg_AutoSearch) {
