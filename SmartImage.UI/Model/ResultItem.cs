@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Cache;
 using System.Threading.Tasks;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Flurl;
 using Flurl.Http;
@@ -41,14 +42,18 @@ public class ResultItem : IDisposable
 	public bool CanOpen     { get; internal set; }
 	public bool CanDownload { get; internal set; }
 
+	public int? Width  { get; internal set; }
+	public int? Height { get; internal set; }
+
 	public ResultItem(SearchResultItem result, string name)
 	{
-		Result  = result;
-		Name    = name;
-		Status  = result.Root.Status;
-		Url     = result.Url;
-		CanOpen = Url.IsValid(Url);
-		CanScan = true;
+		Result          = result;
+		Name            = name;
+		Status          = result.Root.Status;
+		Url             = result.Url;
+		CanOpen         = Url.IsValid(Url);
+		CanScan         = true;
+		(Width, Height) = (Result.Width, Result.Height);
 
 		if (Status.IsSuccessful()) {
 			StatusImage = AppComponents.accept;
@@ -112,6 +117,8 @@ public class UniResultItem : ResultItem
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
 			Image.Freeze();
+			Width  = Image.PixelWidth;
+			Height = Image.PixelHeight;
 			// StatusImage = Image;
 		}
 		else {
@@ -158,40 +165,7 @@ public class UniResultItem : ResultItem
 		return path2;
 	}
 
-	public string Description
-	{
-		get
-		{
-			var bytes = SizeFormat;
-
-			string img;
-
-			if (Image != null) {
-				img = $"({Image.Width:F}×{Image.Height:F})";
-			}
-			else {
-				img = "";
-			}
-
-			return $"{Name} ⇉ [{Uni.FileTypes[0]}] " +
-			       $"[{bytes}] • {img}";
-		}
-	}
-
-	public string SizeFormat
-	{
-		get
-		{
-			string bytes;
-
-			if (!Uni.Stream.CanRead) {
-				bytes = "???";
-			}
-			else bytes = FormatHelper.FormatBytes(Uni.Stream.Length);
-
-			return bytes;
-		}
-	}
+	public string Description => ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 
 	public BitmapImage? Image { get; private set; }
 

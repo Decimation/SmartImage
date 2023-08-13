@@ -44,12 +44,12 @@ public sealed record SearchResultItem : IDisposable,
 	/// <summary>
 	///     Image width
 	/// </summary>
-	public double? Width { get; internal set; }
+	public int? Width { get; internal set; }
 
 	/// <summary>
 	///     Image height
 	/// </summary>
-	public double? Height { get; internal set; }
+	public int? Height { get; internal set; }
 
 	/// <summary>
 	///     Artist or author

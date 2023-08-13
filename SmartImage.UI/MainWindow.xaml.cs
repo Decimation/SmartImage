@@ -67,6 +67,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		InitializeComponent();
 
+		m_us        = new SemaphoreSlim(1);
 		DataContext = this;
 		SearchStart = default;
 		Results     = new();
@@ -132,26 +133,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_wndInterop = new WindowInteropHelper(this);
 	}
 
-	private readonly List<string> m_pipeBuffer;
-
-	private void OnPipeReceived(string s)
-	{
-		Application.Current.Dispatcher.Invoke(() =>
-		{
-			if (s[0] == App.ARGS_DELIM) {
-				Tb_Status2.Text = $"Received {m_pipeBuffer.Count} from pipe";
-				ParseArgs(m_pipeBuffer.ToArray());
-				m_pipeBuffer.Clear();
-				AppUtil.FlashTaskbar(m_wndInterop.Handle);
-			}
-			else {
-				m_pipeBuffer.Add(s);
-			}
-
-		});
-
-	}
-
 	#region
 
 	private static readonly ILogger Logger = LoggerFactory
@@ -163,6 +144,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private readonly object m_lock = new();
 
 	private bool m_me;
+
+	private readonly WindowInteropHelper m_wndInterop;
+
+	private readonly SemaphoreSlim m_us;
+	private readonly List<string>  m_pipeBuffer;
 
 	#endregion
 
@@ -217,7 +203,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		set
 		{
 
-			if (Equals(value, m_currentQueueItem) || String.IsNullOrWhiteSpace(value)) return;
+			if (Equals(value, m_currentQueueItem) /*|| String.IsNullOrWhiteSpace(value)*/) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
 		}
@@ -229,6 +215,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task UpdateQueryAsync(string query)
 	{
+		if (await m_us.WaitAsync(TimeSpan.Zero)) {
+			// Debug.WriteLine($"blocking");
+			return;
+		}
 
 		Btn_Run.IsEnabled = false;
 		bool b2;
@@ -311,9 +301,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Img_Type.Source = AppComponents.image_link;
 			}
 
-			Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]}" +
-			               $" {FormatHelper.FormatBytes(Query.Uni.Stream.Length)}/{FormatHelper.FormatBytes(Query.Size)}";
+			/*Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]} " +
+			               $"{FormatHelper.FormatBytes(Query.Uni.Stream.Length)} ";
 
+			if (m_image != null) {
+				Tb_Info.Text += $"({m_image.PixelWidth}x{m_image.PixelHeight})";
+			}*/
+			Tb_Info.Text =
+				ControlsHelper.FormatDescription("Query", Query.Uni, m_image?.PixelWidth, m_image?.PixelHeight);
 			m_queries.TryAdd(query, Query);
 
 			var resultsFound = m_resultMap.TryGetValue(Query, out var res);
@@ -340,7 +335,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Btn_Run.IsEnabled = queryExists;
-
+		m_us.Release();
 	}
 
 	private void AddToQueue(IReadOnlyList<string> files)
@@ -352,7 +347,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		if (!IsQueueInputValid) {
 			var ff = files[0];
 			CurrentQueueItem = ff;
-
+			Debug.WriteLine($"cqi {ff}");
 			// Lv_Queue.SelectedItems.Add(ff);
 		}
 
@@ -362,6 +357,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (!Queue.Contains(s)) {
 				Queue.Add(s);
+				Debug.WriteLine($"Added {s}");
 
 				c++;
 			}
@@ -372,7 +368,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void NextQueue()
 	{
-		CurrentQueueItem = Queue[(Queue.IndexOf(CurrentQueueItem) + 1) % Queue.Count];
+		string next;
+
+		if (Queue.Count == 0) {
+			next = String.Empty;
+		}
+		else next = Queue[(Queue.IndexOf(CurrentQueueItem) + 1) % Queue.Count];
+
+		CurrentQueueItem = next;
 	}
 
 	#endregion
@@ -381,7 +384,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_trDispatch;
 
-	[DebuggerHidden]
 	private async void IdleDispatchAsync(object? sender, EventArgs e) { }
 
 	#endregion
@@ -400,7 +402,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static int _clipboardSequence;
 
-	[DebuggerHidden]
+	// [DebuggerHidden]
 	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		/*if (IsInputReady() /*|| Query != SearchQuery.Null#1#) {
@@ -443,7 +445,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		else if (cText) {
-			var txt = (string) Clipboard.GetData(DataFormats.Text);
+			var txt = (string) Clipboard.GetData(DataFormats.UnicodeText);
+			txt = txt.CleanString();
 
 			if (SearchQuery.IsValidSourceType(txt)) {
 
@@ -617,6 +620,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Restart(true);
 		ClearQueryControls();
+		CurrentQueueItem = String.Empty;
 		GC.Collect();
 		GC.WaitForPendingFinalizers();
 		GC.Collect();
@@ -700,8 +704,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 
 	#region
-
-	private readonly SemaphoreSlim m_fSem = new(1);
 
 	private async Task DownloadResultAsync(UniResultItem uri)
 	{
@@ -862,8 +864,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	public static readonly string[]            Args = Environment.GetCommandLineArgs();
-	private                WindowInteropHelper m_wndInterop;
+	public static readonly string[] Args = Environment.GetCommandLineArgs();
 
 	/*
 	private System.Windows.Interop.HwndSource _hwndSoure;
@@ -980,6 +981,24 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private void OnPipeReceived(string s)
+	{
+		Application.Current.Dispatcher.Invoke(() =>
+		{
+			if (s[0] == App.ARGS_DELIM) {
+				Tb_Status.Text = $"Received data (IPC)";
+				ParseArgs(m_pipeBuffer.ToArray());
+				m_pipeBuffer.Clear();
+				AppUtil.FlashTaskbar(m_wndInterop.Handle);
+			}
+			else {
+				m_pipeBuffer.Add(s);
+			}
+
+		});
+
 	}
 }
 

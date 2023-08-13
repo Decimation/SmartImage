@@ -449,7 +449,7 @@
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="Name"
-                                                Width="115">
+                                                Width="120">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}"
@@ -482,10 +482,10 @@
                                                 DisplayMemberBinding="{Binding Result.Site}" Width="75" />
 
                                 <GridViewColumn Header="Width"
-                                                DisplayMemberBinding="{Binding Result.Width}" Width="50" />
+                                                DisplayMemberBinding="{Binding Width}" Width="50" />
 
                                 <GridViewColumn Header="Height"
-                                                DisplayMemberBinding="{Binding Result.Height}" Width="50" />
+                                                DisplayMemberBinding="{Binding Height}" Width="50" />
                             </GridView>
                         </ListView.View>
 

@@ -11,6 +11,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using Kantan.Utilities;
+using Novus.FileTypes;
 using SmartImage.Lib.Engines;
 
 namespace SmartImage.UI;
@@ -115,5 +117,26 @@ public static class ControlsHelper
 		}
 
 		return Array.Empty<string>();
+	}
+
+	public static string FormatDescription(string name, UniSource uni, int? w, int? h)
+	{
+		string bytes;
+
+		if (!uni.Stream.CanRead) {
+			bytes = "???";
+		}
+		else bytes = FormatHelper.FormatBytes(uni.Stream.Length);
+
+		string i;
+
+		if (w.HasValue && h.HasValue) {
+			i = $"({w}×{h})";
+		}
+		else {
+			i = string.Empty;
+		}
+
+		return $"{name} ⇉ [{uni.FileTypes[0]}] [{bytes}] • {i}";
 	}
 }

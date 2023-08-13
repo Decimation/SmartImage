@@ -222,6 +222,7 @@ public partial class MainWindow
 		Queue.Remove(old);
 		m_queries.TryRemove(old, out var sq);
 		sq?.Dispose();
+		NextQueue();
 		e.Handled = true;
 	}
 
@@ -253,6 +254,7 @@ public partial class MainWindow
 
 		m_cbDispatch.Start();
 		Btn_Delete.IsEnabled = !ok;
+		NextQueue();
 		// FileSystem.SendFileToRecycleBin(InputText);
 		e.Handled = true;
 	}
