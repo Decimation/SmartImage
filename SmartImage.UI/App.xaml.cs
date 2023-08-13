@@ -4,6 +4,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Windows;
+using Novus.Utilities;
 using Novus.Win32;
 
 namespace SmartImage.UI;
@@ -66,7 +67,7 @@ public partial class App : Application
 				stream.WriteLine(s);
 			}
 
-			stream.Write(ARGS_DELIM);
+			stream.Write($"{ARGS_DELIM}{ProcessHelper.GetParent().Id}");
 		}
 	}
 

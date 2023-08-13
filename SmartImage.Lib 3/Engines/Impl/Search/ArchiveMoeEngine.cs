@@ -71,8 +71,8 @@ public class ArchiveMoeEngine : WebSearchEngine
 			Board    = e.GetAttribute("data-board"),
 			Filename = pff.TextContent,
 			File     = pff.GetAttribute("href"),
-			Width    = long.Parse(wh[0]),
-			Height   = long.Parse(wh[1]),
+			Width    = int.Parse(wh[0]),
+			Height   = int.Parse(wh[1]),
 			Size     = pfm[0],
 			Title    = pt,
 			Author   = pa,
@@ -97,8 +97,8 @@ internal record ChanPost : IResultConvertable
 	public string   Board;
 	public string   Filename;
 	public Url      File;
-	public long     Width;
-	public long     Height;
+	public int     Width;
+	public int     Height;
 	public string   Size;
 	public string   Title;
 	public string   Author;

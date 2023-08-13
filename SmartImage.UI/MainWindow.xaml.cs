@@ -47,7 +47,10 @@ using SmartImage.Lib.Model;
 using SmartImage.UI.Model;
 using Color = System.Drawing.Color;
 using Jint.Parser.Ast;
+using Novus.Win32;
+using Novus.Win32.Structures.Kernel32;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
+using Clipboard = System.Windows.Clipboard;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -988,7 +991,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.Invoke(() =>
 		{
 			if (s[0] == App.ARGS_DELIM) {
-				Tb_Status.Text = $"Received data (IPC)";
+				var parentId = int.Parse(s[1..]);
+				Tb_Status.Text = $"Received data (IPC) {parentId}";
+				
 				ParseArgs(m_pipeBuffer.ToArray());
 				m_pipeBuffer.Clear();
 				AppUtil.FlashTaskbar(m_wndInterop.Handle);
