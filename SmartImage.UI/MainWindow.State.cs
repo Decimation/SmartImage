@@ -57,11 +57,12 @@ public partial class MainWindow
 	{
 		var r = Find(f);
 
-		if (r == null)
-		{
+		if (r == null) {
 			return -1;
 		}
 
 		return Results.IndexOf(r);
 	}
+
+	private PopupWindow m_popup;
 }

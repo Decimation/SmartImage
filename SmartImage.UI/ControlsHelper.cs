@@ -66,7 +66,7 @@ public static class ControlsHelper
 	public static void HandleEnum<T>(this ListBox lb, T src) where T : struct, Enum
 	{
 		foreach (T t in lb.ItemsSource.OfType<T>()) {
-			if (src.HasFlag((T) t)) {
+			if (src.HasFlag(t)) {
 				lb.SelectedItems.Add(t);
 			}
 			else {

@@ -13,10 +13,10 @@ using Novus.OS;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
-using Newtonsoft.Json;
 using Novus.Win32;
 using System.ComponentModel;
 using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 using Novus.Win32.Structures.User32;
 
 // ReSharper disable InconsistentNaming
@@ -188,15 +188,14 @@ internal static class AppUtil
 			return null;
 		}
 
-		return r.OrderByDescending(x => x.published_at).FirstOrDefault(x =>
-		{
+		foreach (var x in r) {
 			if (Version.TryParse(x.tag_name[1..], out var xv)) {
 				x.Version = xv;
-				return xv > Version;
 			}
 
-			return false;
-		});
+		}
+
+		return r.OrderByDescending(x => x.published_at).First();
 	}
 
 	// Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
@@ -252,10 +251,10 @@ internal class GHReactions
 	public string url         { get; set; }
 	public int    total_count { get; set; }
 
-	[JsonProperty("+1")]
+	[JsonPropertyName("+1")]
 	public int Plus1 { get; set; }
 
-	[JsonProperty("-1")]
+	[JsonPropertyName("-1")]
 	public int Minus1 { get; set; }
 
 	public int laugh    { get; set; }

@@ -116,7 +116,10 @@ public class UniResultItem : ResultItem
 			Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
-			Image.Freeze();
+			if (Image.CanFreeze) {
+				Image.Freeze();
+
+			}
 			Width  = Image.PixelWidth;
 			Height = Image.PixelHeight;
 			// StatusImage = Image;

@@ -91,9 +91,9 @@ public partial class MainWindow
 		}
 
 		if (Query.Uni.IsFile) {
-			// FileSystem.ExploreFile(s);
+			FileSystem.ExploreFile(s);
 
-			FileSystem.Open(s);
+			// FileSystem.Open(s);
 		}
 		else if (Query.Uni.IsUri) {
 			FileSystem.Open(s);
@@ -222,7 +222,7 @@ public partial class MainWindow
 		Queue.Remove(old);
 		m_queries.TryRemove(old, out var sq);
 		sq?.Dispose();
-		NextQueue();
+		AdvanceQueue();
 		e.Handled = true;
 	}
 
@@ -254,7 +254,8 @@ public partial class MainWindow
 
 		m_cbDispatch.Start();
 		Btn_Delete.IsEnabled = !ok;
-		NextQueue();
+		Btn_Remove.IsEnabled = !ok;
+		AdvanceQueue();
 		// FileSystem.SendFileToRecycleBin(InputText);
 		e.Handled = true;
 	}
@@ -368,7 +369,7 @@ public partial class MainWindow
 				OpenResultWindow();
 				break;
 			case Key.Tab when ctrl:
-				NextQueue();
+				AdvanceQueue();
 				break;
 			case Key.E when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(async () =>
@@ -551,6 +552,19 @@ public partial class MainWindow
 		if (e.IsDoubleClick()) {
 			// Img_Preview.Width  = Img_Preview.Source.Width;
 			// Img_Preview.Height = Img_Preview.Source.Height;
+
+			/*if (this.m_popup == null) {
+				this.m_popup                    = new PopupWindow();
+				this.m_popup.Img_Preview.Source = m_image;
+
+				this.m_popup.Closed += (sender, args) =>
+				{
+					this.m_popup.Img_Preview.Source = null;
+					this.m_popup = null;
+				};
+				this.m_popup.Show();
+			}*/
+
 		}
 
 		e.Handled = true;

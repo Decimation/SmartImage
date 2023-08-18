@@ -77,6 +77,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Query = SearchQuery.Null;
 		Queue = new() { };
+
 		// QueueSelectedIndex = 0;
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
@@ -133,7 +134,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		((App) Application.Current).OnPipeMessage += OnPipeReceived;
 
-		m_wndInterop = new WindowInteropHelper(this);
+		m_wndInterop               = new WindowInteropHelper(this);
+		
 	}
 
 	#region
@@ -277,25 +279,36 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			var src = new Uri(uriString);
 
-			try {
-				m_image = new BitmapImage()
-					{ };
-				m_image.BeginInit();
-				m_image.UriSource = src;
-				// m_image.StreamSource   = Query.Uni.Stream;
-				m_image.CacheOption    = BitmapCacheOption.OnLoad;
-				m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-				m_image.EndInit();
+			m_image = new BitmapImage()
+				{ };
+			m_image.BeginInit();
+			m_image.UriSource = src;
+			// m_image.StreamSource   = Query.Uni.Stream;
+			m_image.CacheOption    = BitmapCacheOption.OnLoad;
+			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+
+			m_image.EndInit();
+
+			if (Query.Uni.IsUri) {
+				m_image.DownloadCompleted += (sender, args) =>
+				{
+					UpdateInfo();
+				};
+
+			}
+			else {
+				UpdateInfo();
+			}
+
+			if (m_image.CanFreeze) {
 				m_image.Freeze();
 
-				Img_Preview.Source = m_image;
+			}
 
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-			}
+			Img_Preview.Source = m_image;
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
+			// Btn_Remove.IsEnabled = Btn_Delete.IsEnabled;
 
 			if (Query.Uni.IsFile) {
 				Img_Type.Source = AppComponents.image;
@@ -310,8 +323,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if (m_image != null) {
 				Tb_Info.Text += $"({m_image.PixelWidth}x{m_image.PixelHeight})";
 			}*/
-			Tb_Info.Text =
-				ControlsHelper.FormatDescription("Query", Query.Uni, m_image?.PixelWidth, m_image?.PixelHeight);
+
 			m_queries.TryAdd(query, Query);
 
 			var resultsFound = m_resultMap.TryGetValue(Query, out var res);
@@ -339,6 +351,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Btn_Run.IsEnabled = queryExists;
 		m_us.Release();
+		return;
+
+		void UpdateInfo()
+		{
+			Tb_Info.Text =
+				ControlsHelper.FormatDescription("Query", Query.Uni, m_image?.PixelWidth, m_image?.PixelHeight);
+		}
 	}
 
 	private void AddToQueue(IReadOnlyList<string> files)
@@ -369,14 +388,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Status2.Text = $"Added {c} items to queue";
 	}
 
-	private void NextQueue()
+	private void AdvanceQueue(int i = 1)
 	{
 		string next;
 
 		if (Queue.Count == 0) {
 			next = String.Empty;
 		}
-		else next = Queue[(Queue.IndexOf(CurrentQueueItem) + 1) % Queue.Count];
+		else next = Queue[(Queue.IndexOf(CurrentQueueItem) + i) % Queue.Count];
 
 		CurrentQueueItem = next;
 	}
@@ -869,42 +888,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
 
-	/*
-	private System.Windows.Interop.HwndSource _hwndSoure;
-
-	protected override void OnSourceInitialized(EventArgs e)
-	{
-		base.OnSourceInitialized(e);
-
-		_hwndSoure =
-			HwndSource.FromHwnd(new System.Windows.Interop.WindowInteropHelper(this).Handle);
-		_hwndSoure?.AddHook(HwndHook);
-	}
-
-	[DebuggerStepThrough]
-	private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
-	{
-		// Single instance --> Show window
-		// Debug.WriteLine($"{wParam} {lParam}");
-
-		if (msg == AppUtil.m_registerWindowMessage) {
-			BringWindowToFront();
-			handled = true;
-
-		}
-
-		return IntPtr.Zero;
-	}
-
-	private void BringWindowToFront()
-	{
-		if (WindowState == WindowState.Minimized) {
-			WindowState = WindowState.Normal;
-		}
-
-		Activate();
-	}*/
-
 	private void ParseArgs(string[] args)
 	{
 		// Logs.Add(new(args.QuickJoin()));
@@ -964,18 +947,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		var lv = await AppUtil.GetLatestReleaseAsync();
 
 		Tb_Version.Text = $"{cv}";
+		// Tb_Version2.Text = $"{lv.Version}";
 
-		if (lv is { Version: { } } && lv.Version > cv) {
-			Tb_Version2.Text = $"{lv.Version} (click to download)";
-			var url = lv.assets[0].browser_download_url;
+		if (lv is { Version: { } }) {
+			Tb_Version2.Text = $"{lv.Version}";
 
-			Tb_Version2.MouseDown += async (o, args) =>
-			{
-				FileSystem.Open(url);
-				// await url.GetStreamAsync();
-				args.Handled = true;
-			};
+			if (lv.Version > cv) {
+				Tb_Version2.Text += $"(click to download)";
+				var url = lv.assets[0].browser_download_url;
 
+				Tb_Version2.MouseDown += async (o, args) =>
+				{
+					FileSystem.Open(url);
+					// await url.GetStreamAsync();
+					args.Handled = true;
+				};
+			}
 		}
 	}
 
@@ -993,7 +980,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if (s[0] == App.ARGS_DELIM) {
 				var parentId = int.Parse(s[1..]);
 				Tb_Status.Text = $"Received data (IPC) {parentId}";
-				
+
 				ParseArgs(m_pipeBuffer.ToArray());
 				m_pipeBuffer.Clear();
 				AppUtil.FlashTaskbar(m_wndInterop.Handle);
