@@ -97,8 +97,8 @@ internal record ChanPost : IResultConvertable
 	public string   Board;
 	public string   Filename;
 	public Url      File;
-	public int     Width;
-	public int     Height;
+	public int      Width;
+	public int      Height;
 	public string   Size;
 	public string   Title;
 	public string   Author;
@@ -117,6 +117,7 @@ internal record ChanPost : IResultConvertable
 			Artist      = Author,
 			Description = Title,
 			Time        = Time2,
+			Site = File.Host,
 			Metadata    = this
 		};
 

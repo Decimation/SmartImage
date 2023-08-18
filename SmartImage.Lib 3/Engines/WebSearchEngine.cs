@@ -21,10 +21,11 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		if (res.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
+
 		IDocument doc;
 
 		try {
-			doc = await GetDocumentAsync(res.RawUrl, query: query, token: token);
+			doc = await GetDocumentAsync(res, query: query, token: token);
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}", nameof(GetResultAsync));
@@ -59,40 +60,35 @@ public abstract class WebSearchEngine : BaseSearchEngine
 	}
 
 	[ItemCanBeNull]
-	protected virtual async Task<IDocument> GetDocumentAsync(object sender, SearchQuery query,
+	protected virtual async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                         CancellationToken token = default)
 	{
 
 		var parser = new HtmlParser();
 
 		try {
-			if (sender is Url origin) {
 
-				var res = await SearchClient.Client.Request(origin)
-					          .AllowAnyHttpStatus()
-					          .WithCookies(out var cj)
-					          .WithTimeout(Timeout)
-					          .WithHeaders(new
-					          {
-						          User_Agent = HttpUtilities.UserAgent
-					          })
-					          .WithAutoRedirect(true)
-					          /*.OnError(s =>
-					          {
-						          s.ExceptionHandled = true;
-					          })*/
-					          .GetAsync(cancellationToken: token);
+			var res = await SearchClient.Client.Request(sr.RawUrl)
+				          .AllowAnyHttpStatus()
+				          .WithCookies(out var cj)
+				          .WithTimeout(Timeout)
+				          .WithHeaders(new
+				          {
+					          User_Agent = HttpUtilities.UserAgent
+				          })
+				          .WithAutoRedirect(true)
+				          /*.OnError(s =>
+				          {
+					          s.ExceptionHandled = true;
+				          })*/
+				          .GetAsync(cancellationToken: token);
 
-				var str = await res.GetStringAsync();
+			var str = await res.GetStringAsync();
 
-				var document = await parser.ParseDocumentAsync(str, token);
-				
-				return document;
+			var document = await parser.ParseDocumentAsync(str, token);
 
-			}
-			else {
-				return null;
-			}
+			return document;
+
 		}
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);

@@ -107,7 +107,9 @@ public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
 			Height      = h,
 			Source      = src.TextContent,
 			Description = caption.TextContent,
+
 		};
+		result.Site ??= uri?.Host;
 
 		return result;
 	}

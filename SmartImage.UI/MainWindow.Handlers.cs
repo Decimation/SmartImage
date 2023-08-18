@@ -372,22 +372,12 @@ public partial class MainWindow
 				AdvanceQueue();
 				break;
 			case Key.E when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(async () =>
-				{
-					if (CurrentResultItem is UniResultItem uri) {
-						// var d = await uri.Uni.TryDownloadAsync();
-						var d = await uri.DownloadAsync(Path.GetTempPath(), false);
-						AddToQueue(new[] { d });
-						// CurrentQueueItem = d;
-					}
-
-				});
+				Application.Current.Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
 
 				break;
 			case Key.R when ctrl && alt:
 				Application.Current.Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
 				break;
-
 		}
 
 		e.Handled = true;
@@ -397,7 +387,7 @@ public partial class MainWindow
 
 	#region
 
-	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private async void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		Lb_Engines.SelectionChanged -= Lb_Engines_SelectionChanged;
 
@@ -405,12 +395,13 @@ public partial class MainWindow
 
 		Lb_Engines.HandleEnum(n);
 		Config.SearchEngines = n;
+		await Client.ApplyConfigAsync();
 
 		e.Handled                   =  true;
 		Lb_Engines.SelectionChanged += Lb_Engines_SelectionChanged;
 	}
 
-	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private async void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		Lb_Engines2.SelectionChanged -= Lb_Engines2_SelectionChanged;
 
@@ -418,6 +409,7 @@ public partial class MainWindow
 
 		Lb_Engines2.HandleEnum(n);
 		Config.PriorityEngines = n;
+		await Client.ApplyConfigAsync();
 
 		e.Handled                    =  true;
 		Lb_Engines2.SelectionChanged += Lb_Engines2_SelectionChanged;
@@ -545,6 +537,12 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
+	private void EnqueueItem_Click(object sender, RoutedEventArgs e)
+	{
+		Application.Current.Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
+		e.Handled = true;
+	}
+
 	#endregion
 
 	private void Img_Preview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
@@ -634,12 +632,12 @@ public partial class MainWindow
 			Lv_Results.ItemsSource = value;
 		}
 		else {
-			var si = (string) Cb_SearchFields.SelectionBoxItem;
-			var f  = SearchFields[si];
+			var selected = (string) Cb_SearchFields.SelectionBoxItem;
+			var strFunc  = SearchFields[selected];
 
-			var r = Results.Where(r =>
+			var searchResults = Results.Where(r =>
 			{
-				var s = f(r);
+				var s = strFunc(r);
 
 				if (string.IsNullOrWhiteSpace(s)) {
 					return false;
@@ -647,7 +645,7 @@ public partial class MainWindow
 
 				return s.Contains(Tb_Search.Text, StringComparison.InvariantCultureIgnoreCase);
 			});
-			Lv_Results.ItemsSource = r;
+			Lv_Results.ItemsSource = searchResults;
 
 		}
 

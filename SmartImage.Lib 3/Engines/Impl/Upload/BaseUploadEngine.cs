@@ -65,7 +65,7 @@ public abstract class BaseUploadEngine : IClientSearchEngine
 
 	public async Task<bool> IsAlive()
 	{
-		using var res = await ((IClientSearchEngine) this).GetEndpointResponse(Timeout);
+		using var res = await ((IClientSearchEngine) this).GetEndpointResponseAsync(Timeout);
 
 		return !res.ResponseMessage.IsSuccessStatusCode;
 	}

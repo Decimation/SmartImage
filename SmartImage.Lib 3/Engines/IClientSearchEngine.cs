@@ -9,7 +9,7 @@ public interface IClientSearchEngine : IDisposable
 	public string EndpointUrl { get; }
 
 	[NotNull]
-	public Task<IFlurlResponse> GetEndpointResponse(TimeSpan fs)
+	public Task<IFlurlResponse> GetEndpointResponseAsync(TimeSpan fs)
 	{
 		return EndpointUrl.WithTimeout(fs)
 			.OnError(rx =>

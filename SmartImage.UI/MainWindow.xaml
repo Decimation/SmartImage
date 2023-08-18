@@ -12,8 +12,8 @@
         KeyDown="Wnd_Main_KeyDown">
     <Window.Resources>
         <Style x:Key="CustomContextMenuStyle" TargetType="{x:Type ContextMenu}">
-            <Setter Property="Background" Value="{DynamicResource Black3}"/>
-            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="{DynamicResource Black3}" />
+            <Setter Property="Foreground" Value="White" />
             <!-- Add more setters for additional properties -->
         </Style>
         <Style x:Key="CustomMenuItemStyle" TargetType="{x:Type MenuItem}">
@@ -23,26 +23,29 @@
                         <Border x:Name="Border" Background="{TemplateBinding Background}">
                             <Grid>
                                 <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="20"/>
+                                    <ColumnDefinition Width="20" />
                                     <!-- Left column for icon -->
-                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*" />
                                     <!-- Right column for content -->
                                 </Grid.ColumnDefinitions>
-                                <Image Source="{TemplateBinding Icon}" Width="16" Height="16" VerticalAlignment="Center" Margin="5"/>
-                                <ContentPresenter Grid.Column="1" ContentSource="Header" VerticalAlignment="Center"/>
+                                <Image Source="{TemplateBinding Icon}" Width="16" Height="16"
+                                       VerticalAlignment="Center" Margin="5" />
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" VerticalAlignment="Center" />
                             </Grid>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>
         </Style>
+
         <!-- Define the ContextMenu -->
-        <ContextMenu x:Key="ItemContextMenu" >
+        <ContextMenu x:Key="ItemContextMenu">
             <MenuItem Header="Open" Click="OpenItem_Click" IsEnabled="{Binding CanOpen}" />
             <MenuItem Header="Scan" Click="ScanItem_Click" IsEnabled="{Binding CanScan}" />
             <MenuItem Header="Download" Click="DownloadItem_Click" IsEnabled="{Binding CanDownload}" />
             <MenuItem Header="Info" Click="InfoItem_Click" />
             <MenuItem Header="Retry" Click="RetryItem_Click" />
+            <MenuItem Header="Enqueue" Click="EnqueueItem_Click" IsEnabled="{Binding CanDownload}" />
         </ContextMenu>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <Style x:Key="BoldGridViewCellStyle" TargetType="{x:Type TextBlock}">
@@ -56,8 +59,8 @@
 
             <Style.Resources>
                 <!-- Define the colors for selection -->
-                <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="LightBlue"/>
-                <SolidColorBrush x:Key="SelectedTextBrush" Color="White"/>
+                <SolidColorBrush x:Key="SelectedBackgroundBrush" Color="LightBlue" />
+                <SolidColorBrush x:Key="SelectedTextBrush" Color="White" />
             </Style.Resources>
             <!-- <Setter Property="ToolTip" Value="{Binding Result.Info}"/> -->
             <!-- <Setter Property="FontWeight" Value="Bold" /> -->
@@ -432,10 +435,13 @@
 
                         <ListView.View>
                             <GridView>
+
                                 <GridViewColumn Header="Status">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <Image x:Name="Img_Status" Source="{Binding StatusImage}" Width="20"
+                                            <Image x:Name="Img_Status"
+                                                   Source="{Binding StatusImage, UpdateSourceTrigger=PropertyChanged}"
+                                                   Width="20"
                                                    Height="20" Stretch="None" ToolTip="{Binding Status}">
 
                                                 <!--<Image.RenderTransformOrigin>
@@ -482,11 +488,12 @@
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="Name"
-                                                Width="120">
+                                                Width="120" x:Name="Lvgvc_Name">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name}"
                                                        Style="{StaticResource BoldGridViewCellStyle}" />
+
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
@@ -495,16 +502,30 @@
                                                 DisplayMemberBinding="{Binding Url}" Width="400" />
 
                                 <GridViewColumn Header="Similarity"
-                                                DisplayMemberBinding="{Binding Result.Similarity}" Width="75" />
+                                                DisplayMemberBinding="{Binding Result.Similarity}" Width="75">
+
+                                </GridViewColumn>
 
                                 <GridViewColumn Header="Description"
-                                                DisplayMemberBinding="{Binding Result.Description}" Width="75" />
+                                                Width="200" x:Name="Lvgvc_Desc">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Result.Description}" TextWrapping="Wrap"/>
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
                                 <GridViewColumn Header="Artist" DisplayMemberBinding="{Binding Result.Artist}"
                                                 Width="75" />
 
-                                <GridViewColumn Header="Title" DisplayMemberBinding="{Binding Result.Title}"
-                                                Width="75" />
+                                <GridViewColumn Header="Title"
+                                                Width="75" x:Name="Lvgvc_Title">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Result.Title}" />
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
                                 <GridViewColumn Header="Source"
                                                 DisplayMemberBinding="{Binding Result.Source}" Width="75" />
@@ -533,8 +554,11 @@
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline" />
                     <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="501,65,0,0"
                             VerticalAlignment="Top" Click="Btn_Filter_Click" />
-                    <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,498,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" Width="169" TextChanged="Tb_Search_TextChanged" Grid.ColumnSpan="2"/>
-                    <ComboBox x:Name="Cb_SearchFields" HorizontalAlignment="Right" Margin="0,17,498,0" Grid.Row="1" VerticalAlignment="Top" Width="129" Grid.ColumnSpan="2"/>
+                    <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,498,0" Grid.Row="1"
+                             TextWrapping="Wrap" VerticalAlignment="Top" Width="169"
+                             TextChanged="Tb_Search_TextChanged" Grid.ColumnSpan="2" />
+                    <ComboBox x:Name="Cb_SearchFields" HorizontalAlignment="Right" Margin="0,17,498,0" Grid.Row="1"
+                              VerticalAlignment="Top" Width="129" Grid.ColumnSpan="2" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
@@ -582,18 +606,19 @@
                                  Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="512,252,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="512,208,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhUsername, Mode=TwoWay}" TextChanged="Tb_EhUsername_TextChanged" />
-                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="512,219,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="512,237,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhPassword, Mode=TwoWay}" TextChanged="Tb_EhPassword_TextChanged" />
-                    <Label x:Name="Lb_EhUsername" Content="Eh Username" HorizontalAlignment="Left" Margin="424,248,0,0"
+                    <Label x:Name="Lb_EhUsername" Content="Eh Username" HorizontalAlignment="Left" Margin="424,204,0,0"
                            VerticalAlignment="Top" Foreground="White" />
-                    <Label x:Name="Lb_EhPassword" Content="Eh Password" HorizontalAlignment="Left" Margin="424,215,0,0"
+                    <Label x:Name="Lb_EhPassword" Content="Eh Password" HorizontalAlignment="Left" Margin="424,233,0,0"
                            VerticalAlignment="Top" Foreground="White" />
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"

@@ -52,28 +52,22 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 	public override void Dispose() { }
 
-	protected override async Task<IDocument> GetDocumentAsync(object sender, SearchQuery query,
+	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
 
 		var parser = new HtmlParser();
 
 		try {
-			if (sender is Url origin) {
-				IFlurlResponse res;
+			IFlurlResponse res;
 
-				res = await GetResponseByUrlAsync(origin, token);
+			res = await GetResponseByUrlAsync(sr.RawUrl, token);
 
-				var str = await res.GetStringAsync();
+			var str = await res.GetStringAsync();
 
-				var document = await parser.ParseDocumentAsync(str, token);
+			var document = await parser.ParseDocumentAsync(str, token);
 
-				return document;
-
-			}
-			else {
-				return null;
-			}
+			return document;
 		}
 		catch (TaskCanceledException) {
 			return null;
@@ -160,7 +154,8 @@ public sealed class Ascii2DEngine : WebSearchEngine
 				string l1 = ((IHtmlElement) childNode).GetAttribute(Serialization.Atr_href);
 
 				if (l1 is not null) {
-					sri.Url = new Url(l1);
+					sri.Url  =   new Url(l1);
+					sri.Site ??= sri.Url.Host;
 				}
 			}
 		}

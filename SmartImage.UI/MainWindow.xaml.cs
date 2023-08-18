@@ -52,6 +52,7 @@ using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 using Clipboard = System.Windows.Clipboard;
+using System.Data.Common;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -136,8 +137,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		m_wndInterop = new WindowInteropHelper(this);
 
-		Cb_SearchFields.ItemsSource = SearchFields.Keys;
-
+		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
+		Cb_SearchFields.SelectedIndex = 0;
 	}
 
 	#region
@@ -279,6 +280,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var uriString = Query.Uni.Value.ToString();
 			Debug.Assert(uriString != null);
 
+			Tb_Status.Text = "Rendering preview...";
+
 			var src = new Uri(uriString);
 
 			UpdateImage(src);
@@ -314,6 +317,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) {
 				Application.Current.Dispatcher.InvokeAsync(RunAsync);
+			}
+
+			else {
+				Tb_Status.Text = $"Displaying {Results.Count} results";
 			}
 		}
 		else { }
@@ -522,7 +529,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		SearchStart = DateTime.Now;
 
 		Btn_Run.IsEnabled = false;
-		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
+		Tb_Status.Text    = "Initiating search...";
+		var r = await Client.RunSearchAsync(Query, reload: false, token: m_cts.Token);
 	}
 
 	private void OnComplete(object sender, SearchResult[] e)
@@ -736,6 +744,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Tb_Status.Text            = "Scanning...";
 		Pb_Status.IsIndeterminate = true;
+		ri.StatusImage            = AppComponents.arrow_refresh;
 
 		bool d;
 
@@ -817,20 +826,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				return;
 			}
 
-			var res = await item.Url.AllowAnyHttpStatus()
-				          .WithAutoRedirect(true)
-				          .WithTimeout(TimeSpan.FromSeconds(3))
-				          .OnError(x =>
-				          {
-					          if (x.Exception is FlurlHttpException fx) {
-						          Debug.WriteLine($"{fx}");
-					          }
+			var res = await item.GetResponseAsync(token);
 
-					          x.ExceptionHandled = true;
-				          })
-				          .GetAsync(cancellationToken: token);
-
-			if (res is { ResponseMessage.IsSuccessStatusCode: false } || res == null) {
+			if (res is { ResponseMessage.IsSuccessStatusCode: false }) {
 				Debug.WriteLine($"removing {item}");
 
 				Application.Current.Dispatcher.Invoke(() =>
@@ -839,6 +837,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					Results.Remove(item);
 				});
 			}
+			else { }
 
 		});
 
@@ -846,6 +845,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Status.Text            = $"Filtered {c}";
 		Pb_Status.IsIndeterminate = false;
 		Btn_Filter.IsEnabled      = true;
+	}
+
+	private async Task EnqueueResultAsync(UniResultItem uri)
+	{
+		// var d = await uri.Uni.TryDownloadAsync();
+		var d = await uri.DownloadAsync(Path.GetTempPath(), false);
+		AddToQueue(new[] { d });
+		// CurrentQueueItem = d;
 	}
 
 	private async void RetryEngineAsync(ResultItem ri)

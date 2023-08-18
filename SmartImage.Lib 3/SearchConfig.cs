@@ -163,7 +163,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	{
 		PropertyChanged += (sender, args) =>
 		{
-			Trace.WriteLine($"{args.PropertyName}", nameof(SearchConfig));
+			Trace.WriteLine($"Changed {args.PropertyName}", nameof(SearchConfig));
 		};
 	}
 

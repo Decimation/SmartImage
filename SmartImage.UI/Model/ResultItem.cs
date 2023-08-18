@@ -2,9 +2,13 @@
 // 2023-07-17 @ 5:54 PM
 
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Cache;
+using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -21,7 +25,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 
-public class ResultItem : IDisposable
+public class ResultItem : IDisposable,INotifyPropertyChanged
 {
 	public string Name { get; protected set; }
 
@@ -29,7 +33,18 @@ public class ResultItem : IDisposable
 
 	public SearchResultStatus Status { get; }
 
-	public BitmapImage StatusImage { get; internal set; }
+	private BitmapImage m_statusImage;
+
+	public BitmapImage StatusImage
+	{
+		get => m_statusImage;
+		internal set
+		{
+			if (Equals(value, m_statusImage)) return;
+			m_statusImage = value;
+			OnPropertyChanged();
+		}
+	}
 
 	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
 
@@ -80,6 +95,37 @@ public class ResultItem : IDisposable
 	{
 		// Result.Dispose();
 	}
+
+	public Task<IFlurlResponse> GetResponseAsync(CancellationToken token = default)
+	{
+		return Url.AllowAnyHttpStatus()
+			.WithAutoRedirect(true)
+			.WithTimeout(TimeSpan.FromSeconds(3))
+			.OnError(x =>
+			{
+				if (x.Exception is FlurlHttpException fx) {
+					Debug.WriteLine($"{fx}");
+				}
+
+				x.ExceptionHandled = true;
+			})
+			.GetAsync(cancellationToken: token);
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
 }
 
 public class UniResultItem : ResultItem
@@ -116,10 +162,12 @@ public class UniResultItem : ResultItem
 			Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
+
 			if (Image.CanFreeze) {
 				Image.Freeze();
 
 			}
+
 			Width  = Image.PixelWidth;
 			Height = Image.PixelHeight;
 			// StatusImage = Image;
@@ -167,6 +215,8 @@ public class UniResultItem : ResultItem
 
 		return path2;
 	}
+
+	public string SizeFormat => ControlsHelper.FormatSize(Uni);
 
 	public string Description => ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 

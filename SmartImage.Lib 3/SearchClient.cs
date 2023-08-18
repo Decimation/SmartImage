@@ -93,16 +93,21 @@ public sealed class SearchClient : IDisposable
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
 	/// <param name="query">Search query</param>
+	/// <param name="reload"></param>
 	/// <param name="p"><see cref="IProgress{T}"/></param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, [CBN] IProgress<int> p = null,
+	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
+	                                                 [CBN] IProgress<int> p = null,
 	                                                 CancellationToken token = default)
 	{
 		IsRunning = true;
 
-		await ApplyConfigAsync();
-
-		LoadEngines();
+		if (reload) {
+			await ApplyConfigAsync();
+		}
+		else {
+			LoadEngines();
+		}
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 

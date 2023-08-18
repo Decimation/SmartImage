@@ -8,6 +8,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
@@ -131,7 +132,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		u = cfg.EhUsername;
 		p = cfg.EhPassword;
 
-		if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p)) {
+		if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p) || IsLoggedIn) {
 
 			// throw new ArgumentException($"{Name} : username/password is null");
 			return;
@@ -184,7 +185,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		}
 
 		var res2 = await GetSessionAsync();
-		
+
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
@@ -192,10 +193,12 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	#endregion
 
-	protected override async Task<IDocument> GetDocumentAsync(object origin, SearchQuery query,
+	protected override async Task<IDocument> GetDocumentAsync(SearchResult origin, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
 		const string name = "a.jpg";
+
+		var sr = origin as SearchResult;
 
 		(string t, bool b) = await query.GetFilePathOrTempAsync(name);
 
@@ -230,7 +233,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		});
 
 		q = cj.Aggregate(q, (current, kv) => current.WithCookie(kv.Key, kv.Value));
-		
+
 		// TODO: Flurl throws an exception because it detects "circular redirects"
 		// https://github.com/tmenier/Flurl/issues/714
 
@@ -258,6 +261,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		var res = await m_client.SendAsync(req, token);
 
 		var content = await res.Content.ReadAsStringAsync(token);
+
+		sr.RawUrl = res.RequestMessage.RequestUri;
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			Debug.WriteLine($"cooldown", Name);
@@ -303,7 +308,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 			item.Artist = v.FirstOrDefault();
 		}
 
-		item.Description = new[] { eh.Pages, $"({eh.Type})" }.QuickJoin(" ");
+		var sb = eh.Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
+		item.Description = $"{eh.Pages} ({sb})";
 		item.Title       = eh.Title;
 		item.Url         = eh.Url;
 

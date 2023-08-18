@@ -74,15 +74,17 @@
                  Text="{Binding Result.Result.Site, Mode=OneWay}"
                  VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
 
-        <Label x:Name="Lb_UniTypeSize" Content="Type/Size" HorizontalAlignment="Left" Margin="10,314,0,0"
+        <Label x:Name="Lb_UniTypeSize" Content="Type/Size" HorizontalAlignment="Left" Margin="10,307,0,0"
                VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}"
                Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
-        <TextBox x:Name="Tb_UniType" HorizontalAlignment="Left" Margin="91,318,0,0"
+
+        <TextBox x:Name="Tb_UniType" HorizontalAlignment="Left" Margin="91,311,0,0"
                  Text="{Binding UniResult.Uni.FileTypes[0], Mode=OneWay}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
-        <TextBox x:Name="Tb_UniSize" HorizontalAlignment="Left" Margin="186,318,0,0"
+
+        <TextBox x:Name="Tb_UniSize" HorizontalAlignment="Left" Margin="186,311,0,0"
                  Text="{Binding UniResult.SizeFormat, Mode=OneWay}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />

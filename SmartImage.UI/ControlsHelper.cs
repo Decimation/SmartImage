@@ -121,12 +121,7 @@ public static class ControlsHelper
 
 	public static string FormatDescription(string name, UniSource uni, int? w, int? h)
 	{
-		string bytes;
-
-		if (!uni.Stream.CanRead) {
-			bytes = "???";
-		}
-		else bytes = FormatHelper.FormatBytes(uni.Stream.Length);
+		string bytes = FormatSize(uni);
 
 		string i;
 
@@ -138,5 +133,17 @@ public static class ControlsHelper
 		}
 
 		return $"{name} ⇉ [{uni.FileTypes[0]}] [{bytes}] • {i}";
+	}
+
+	public static string FormatSize(UniSource uni)
+	{
+		string bytes;
+
+		if (!uni.Stream.CanRead) {
+			bytes = "???";
+		}
+		else bytes = FormatHelper.FormatBytes(uni.Stream.Length);
+
+		return bytes;
 	}
 }

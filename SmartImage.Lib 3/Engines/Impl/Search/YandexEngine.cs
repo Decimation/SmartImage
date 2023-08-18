@@ -72,14 +72,21 @@ public sealed class YandexEngine : WebSearchEngine
 
 			var (w, h) = ParseResolution(resText);
 
-			return new SearchResultItem(r)
+			var url = new Uri(link);
+
+			var sri= new SearchResultItem(r)
 			{
-				Url         = new Uri(link),
+				Url         = url,
 				Site        = site.TextContent,
 				Description = title?.TextContent,
 				Width       = w,
 				Height      = h,
 			};
+
+			if (string.IsNullOrWhiteSpace(sri.Site)) {
+				sri.Site = url?.Host;
+			}
+			return sri;
 		}
 
 		return tagsItem.AsParallel().Select(Parse);
@@ -122,7 +129,7 @@ public sealed class YandexEngine : WebSearchEngine
 		IDocument doc = null;
 
 		try {
-			doc = await GetDocumentAsync(url, query: query, token: token);
+			doc = await GetDocumentAsync(sr, query: query, token: token);
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
@@ -265,6 +272,7 @@ public sealed class YandexEngine : WebSearchEngine
 				Url    = link2,
 				Width  = w,
 				Height = h,
+				Site = link2?.Host
 			};
 			return ValueTask.FromResult(sri);
 		}
