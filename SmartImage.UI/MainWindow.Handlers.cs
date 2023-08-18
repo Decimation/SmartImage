@@ -627,4 +627,30 @@ public partial class MainWindow
 		Application.Current.Dispatcher.InvokeAsync(FilterResultsAsync);
 		e.Handled = true;
 	}
+
+	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (string.IsNullOrWhiteSpace(Tb_Search.Text) && m_resultMap.TryGetValue(Query, out var value)) {
+			Lv_Results.ItemsSource = value;
+		}
+		else {
+			var si = (string) Cb_SearchFields.SelectionBoxItem;
+			var f  = SearchFields[si];
+
+			var r = Results.Where(r =>
+			{
+				var s = f(r);
+
+				if (string.IsNullOrWhiteSpace(s)) {
+					return false;
+				}
+
+				return s.Contains(Tb_Search.Text, StringComparison.InvariantCultureIgnoreCase);
+			});
+			Lv_Results.ItemsSource = r;
+
+		}
+
+		e.Handled = true;
+	}
 }

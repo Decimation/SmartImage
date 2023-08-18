@@ -18,6 +18,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -82,7 +83,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
 		m_ctsu             = new CancellationTokenSource();
-		TimerText          = String.Empty;
 
 		Lb_Engines.ItemsSource  = Engines;
 		Lb_Engines2.ItemsSource = Engines;
@@ -134,8 +134,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		((App) Application.Current).OnPipeMessage += OnPipeReceived;
 
-		m_wndInterop               = new WindowInteropHelper(this);
-		
+		m_wndInterop = new WindowInteropHelper(this);
+
+		Cb_SearchFields.ItemsSource = SearchFields.Keys;
+
 	}
 
 	#region
@@ -279,33 +281,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			var src = new Uri(uriString);
 
-			m_image = new BitmapImage()
-				{ };
-			m_image.BeginInit();
-			m_image.UriSource = src;
-			// m_image.StreamSource   = Query.Uni.Stream;
-			m_image.CacheOption    = BitmapCacheOption.OnLoad;
-			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-
-			m_image.EndInit();
-
-			if (Query.Uni.IsUri) {
-				m_image.DownloadCompleted += (sender, args) =>
-				{
-					UpdateInfo();
-				};
-
-			}
-			else {
-				UpdateInfo();
-			}
-
-			if (m_image.CanFreeze) {
-				m_image.Freeze();
-
-			}
-
-			Img_Preview.Source = m_image;
+			UpdateImage(src);
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
 			// Btn_Remove.IsEnabled = Btn_Delete.IsEnabled;
@@ -357,6 +333,37 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 			Tb_Info.Text =
 				ControlsHelper.FormatDescription("Query", Query.Uni, m_image?.PixelWidth, m_image?.PixelHeight);
+		}
+
+		void UpdateImage(Uri src)
+		{
+			m_image = new BitmapImage()
+				{ };
+			m_image.BeginInit();
+			m_image.UriSource = src;
+			// m_image.StreamSource   = Query.Uni.Stream;
+			m_image.CacheOption    = BitmapCacheOption.OnLoad;
+			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+
+			m_image.EndInit();
+
+			if (Query.Uni.IsUri) {
+				m_image.DownloadCompleted += (sender, args) =>
+				{
+					UpdateInfo();
+				};
+
+			}
+			else {
+				UpdateInfo();
+			}
+
+			if (m_image.CanFreeze) {
+				m_image.Freeze();
+
+			}
+
+			Img_Preview.Source = m_image;
 		}
 	}
 
@@ -513,8 +520,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lb_Queue.IsEnabled = false;
 		// ClearResults();
 		SearchStart = DateTime.Now;
-		TimerText   = String.Empty;
 
+		Btn_Run.IsEnabled = false;
 		var r = await Client.RunSearchAsync(Query, token: m_cts.Token);
 	}
 
@@ -538,9 +545,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		++m_cntResults;
 		var cle = Client.Engines.Length;
 
-		Tb_Status.Text  = $"{m_cntResults}/{cle}";
+		Tb_Status.Text  = $"{m_cntResults}/{cle} | {(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 		Pb_Status.Value = (m_cntResults / (double) cle) * 100;
-		TimerText       = $"{(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 
 		lock (m_lock) {
 			AddResult(result);
@@ -604,11 +610,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_image            = null;
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
-		Tb_Status.Text            = String.Empty;
-		CurrentQueueItem          = String.Empty;
-		Tb_Info.Text              = String.Empty;
-		Tb_Status2.Text           = String.Empty;
-		TimerText                 = String.Empty;
+		Tb_Status.Text   = String.Empty;
+		CurrentQueueItem = String.Empty;
+		Tb_Info.Text     = String.Empty;
+		Tb_Status2.Text  = String.Empty;
+
 		Tb_Upload.Text            = String.Empty;
 		Pb_Status.IsIndeterminate = false;
 	}
@@ -629,6 +635,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// Btn_Run.IsEnabled = true;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
+		Tb_Search.Text  = String.Empty;
 
 		// Tb_Status.Text  = string.Empty;
 	}
@@ -699,19 +706,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	#region
 
 	public DateTime SearchStart { get; private set; }
-
-	private string m_timerText;
-
-	public string TimerText
-	{
-		get => m_timerText;
-		set
-		{
-			if (value == m_timerText) return;
-			m_timerText = value;
-			OnPropertyChanged();
-		}
-	}
 
 	#endregion
 
@@ -858,7 +852,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		var eng = ri.Result.Root.Engine;
 		Tb_Status.Text = $"Retrying {eng.Name}";
-		var idx = Results.IndexOf(ri);
+		var idx = FindIndex(r => r.Result.Root.Engine == eng);
 		var fi  = idx;
 
 		for (int i = Results.Count - 1; i >= 0; i--) {
@@ -870,6 +864,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Pb_Status.IsIndeterminate = true;
 		var result = await eng.GetResultAsync(Query, m_cts.Token);
 		AddResult(result);
+		Tb_Status.Text            = $"{eng.Name} → {result.Results.Count}";
 		Pb_Status.IsIndeterminate = false;
 
 		for (int i = 0; i < Results.Count; i++) {
@@ -887,6 +882,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	#endregion
 
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
+
+	public static readonly Dictionary<string, Func<ResultItem, string?>> SearchFields = new()
+	{
+
+		{
+			nameof(ResultItem.Name), (x) => x.Name
+		},
+		{
+			nameof(ResultItem.Url), (x) => x.Url?.ToString()
+		},
+		{
+			nameof(ResultItem.Result.Description), (x) => x.Result.Description
+		},
+	};
 
 	private void ParseArgs(string[] args)
 	{

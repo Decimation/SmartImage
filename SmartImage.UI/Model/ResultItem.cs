@@ -52,7 +52,7 @@ public class ResultItem : IDisposable
 		Status          = result.Root.Status;
 		Url             = result.Url;
 		CanOpen         = Url.IsValid(Url);
-		CanScan         = true;
+		CanScan         = CanOpen;
 		(Width, Height) = (Result.Width, Result.Height);
 
 		if (Status.IsSuccessful()) {
