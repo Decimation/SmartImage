@@ -32,12 +32,12 @@ public partial class MainWindow
 
 	#endregion
 
-	private void OpenResultWindow()
+	private void OpenResultWindow(ResultItem ri)
 	{
-		var sw = new ResultWindow(CurrentResultItem)
+		var sw = new ResultWindow(ri)
 			{ };
 
-		if (CurrentResultItem is UniResultItem uri) {
+		if (ri is UniResultItem uri) {
 			sw.Img_Preview.Source = uri.Image;
 		}
 		else {
@@ -63,6 +63,4 @@ public partial class MainWindow
 
 		return Results.IndexOf(r);
 	}
-
-	private PopupWindow m_popup;
 }

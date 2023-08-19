@@ -109,8 +109,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		var ok       = isFile || isUri || isStream;
 
 		if (isFile) {
-			var ext = Path.GetExtension(str.ToString())[1..];
-			return FileType.Image.Any(x => x.Name == ext);
+			var ext = Path.GetExtension(str.ToString())?[1..];
+			return FileType.Image.Any(x => x.Subtype == ext);
 		}
 
 		return ok;

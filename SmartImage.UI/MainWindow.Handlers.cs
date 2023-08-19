@@ -366,7 +366,7 @@ public partial class MainWindow
 
 				break;
 			case Key.I when ctrl:
-				OpenResultWindow();
+				OpenResultWindow(CurrentResultItem);
 				break;
 			case Key.Tab when ctrl:
 				AdvanceQueue();
@@ -526,7 +526,7 @@ public partial class MainWindow
 
 	private void InfoItem_Click(object sender, RoutedEventArgs e)
 	{
-		OpenResultWindow();
+		OpenResultWindow(CurrentResultItem);
 		e.Handled = true;
 
 	}
@@ -562,7 +562,7 @@ public partial class MainWindow
 				};
 				this.m_popup.Show();
 			}*/
-
+			FileSystem.Open(CurrentQueueItem);
 		}
 
 		e.Handled = true;

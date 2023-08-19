@@ -746,39 +746,51 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Pb_Status.IsIndeterminate = true;
 		ri.StatusImage            = AppComponents.arrow_refresh;
 
-		bool d;
+		bool d = false;
 
 		try {
 			d = await ri.Result.LoadUniAsync(m_cts.Token);
+
+			if (d) {
+				Debug.WriteLine($"{ri}");
+				var resultUni = ri.Result.Uni;
+
+				// var resultItems = new ResultItem[resultUni.Length];
+				for (int i = 0; i < resultUni.Length; i++) {
+					var rii = new UniResultItem(ri, i)
+					{
+						StatusImage = AppComponents.picture,
+						CanDownload = true,
+						CanScan     = false,
+						CanOpen     = true
+					};
+					// resultItems[i] = rii;
+					Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
+				}
+
+				Tb_Status.Text = $"Scan found {ri.Result.Uni.Length} images";
+			}
+			else {
+				Tb_Status.Text = $"Scan found no images";
+
+			}
+
 		}
 		catch (Exception e) {
 			d = false;
 			Log(new($"scan: {e.Message}"));
-		}
 
-		ri.CanScan = !d;
-
-		if (d) {
-			Debug.WriteLine($"{ri}");
-			var resultUni = ri.Result.Uni;
-			// var resultItems = new ResultItem[resultUni.Length];
-
-			for (int i = 0; i < resultUni.Length; i++) {
-				var rii = new UniResultItem(ri, i)
-				{
-					StatusImage = AppComponents.picture,
-					CanDownload = true,
-					CanScan     = false,
-					CanOpen     = true
-				};
-				// resultItems[i] = rii;
-				Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
+			if (e is TaskCanceledException) {
+				Tb_Status.Text = $"Cancelled";
 			}
+
 		}
+		finally {
+			ri.CanScan = !d;
 
-		Pb_Status.IsIndeterminate = false;
-		Tb_Status.Text            = $"Scanned {ri.Result.Uni.Length}";
+			Pb_Status.IsIndeterminate = false;
 
+		}
 	}
 
 	private async Task ScanGalleryResultAsync(ResultItem cri)
@@ -792,22 +804,32 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Status.Text            = "Scanning with gallery-dl";
 		Pb_Status.IsIndeterminate = true;
 
-		var rg = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
-		cri.Result.Uni = rg;
+		try {
+			var rg = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
+			cri.Result.Uni = rg;
 
-		for (int i = 0; i < rg.Length; i++) {
-			var rii = new UniResultItem(cri, i)
-			{
-				StatusImage = AppComponents.picture,
-				CanDownload = true,
-				CanScan     = false,
-				CanOpen     = true
-			};
-			Results.Insert(Results.IndexOf(cri) + 1 + i, rii);
+			for (int i = 0; i < rg.Length; i++) {
+				var rii = new UniResultItem(cri, i)
+				{
+					StatusImage = AppComponents.picture,
+					CanDownload = true,
+					CanScan     = false,
+					CanOpen     = true
+				};
+				Results.Insert(Results.IndexOf(cri) + 1 + i, rii);
+			}
+
+			Tb_Status.Text = "Scanned with gallery-dl";
 		}
+		catch (Exception e) {
+			if (e is TaskCanceledException) {
+				Tb_Status.Text = $"Cancelled";
+			}
 
-		Pb_Status.IsIndeterminate = false;
-		Tb_Status.Text            = "Scanned with gallery-dl";
+		}
+		finally {
+			Pb_Status.IsIndeterminate = false;
+		}
 	}
 
 	private async Task FilterResultsAsync()

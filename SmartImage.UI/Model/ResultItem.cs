@@ -145,7 +145,7 @@ public class UniResultItem : ResultItem
 				Url = ri.Url.GetFileName().Split(':')[0];
 
 				if (string.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
-					Url = Path.ChangeExtension(Url, Uni.FileTypes[0].Name);
+					Url = Path.ChangeExtension(Url, Uni.FileTypes[0].Subtype);
 				}
 			}
 			else {

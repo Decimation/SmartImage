@@ -175,6 +175,8 @@ public abstract class BaseImageHost
 			if (uni != null) {
 				rg.Add(uni);
 			}
+
+			token.ThrowIfCancellationRequested();
 		});
 
 		// p.Dispose();
