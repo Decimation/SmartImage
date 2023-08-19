@@ -93,7 +93,8 @@ public class ResultItem : IDisposable,INotifyPropertyChanged
 
 	public virtual void Dispose()
 	{
-		// Result.Dispose();
+		Debug.WriteLine($"Disposing {Name}");
+		Result.Dispose();
 	}
 
 	public Task<IFlurlResponse> GetResponseAsync(CancellationToken token = default)

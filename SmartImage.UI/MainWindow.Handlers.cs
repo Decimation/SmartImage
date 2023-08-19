@@ -220,9 +220,12 @@ public partial class MainWindow
 		var old = CurrentQueueItem;
 		// TrySeekQueue(q);
 		Queue.Remove(old);
-		m_queries.TryRemove(old, out var sq);
+
+		if (m_queries.TryRemove(old, out var sq)) {
+			m_images.TryRemove(sq, out var img);
+		}
 		sq?.Dispose();
-		AdvanceQueue();
+		// AdvanceQueue();
 		e.Handled = true;
 	}
 
@@ -344,8 +347,14 @@ public partial class MainWindow
 					return;
 				}
 
+				if (CurrentResultItem is UniResultItem uri && m_uni.TryRemove(uri, out var x)) {
+					
+				}
+
 				CurrentResultItem.Dispose();
+
 				Results.Remove(CurrentResultItem);
+
 				Img_Preview.Source = m_image;
 				break;
 			case Key.C when ctrl:

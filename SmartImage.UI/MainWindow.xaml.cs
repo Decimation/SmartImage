@@ -139,6 +139,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
+		m_images                      = new();
 	}
 
 	#region
@@ -196,6 +197,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private int m_cntResults;
 
 	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
+
+	private          ConcurrentDictionary<SearchQuery, BitmapImage?>                     m_images;
 
 	#endregion
 
@@ -282,9 +285,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			Tb_Status.Text = "Rendering preview...";
 
-			var src = new Uri(uriString);
-
-			UpdateImage(src);
+			UpdateImage();
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
 			// Btn_Remove.IsEnabled = Btn_Delete.IsEnabled;
@@ -342,18 +343,25 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				ControlsHelper.FormatDescription("Query", Query.Uni, m_image?.PixelWidth, m_image?.PixelHeight);
 		}
 
-		void UpdateImage(Uri src)
+		void UpdateImage()
 		{
-			m_image = new BitmapImage()
-				{ };
-			m_image.BeginInit();
-			m_image.UriSource = src;
-			// m_image.StreamSource   = Query.Uni.Stream;
-			m_image.CacheOption    = BitmapCacheOption.OnLoad;
-			m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 
-			m_image.EndInit();
+			if (m_images.TryGetValue(Query, out m_image)) {
+				Debug.WriteLine($"Found cached {Query}");
+			}
+			else {
+				m_image = new BitmapImage()
+					{ };
+				m_image.BeginInit();
+				m_image.UriSource = new Uri(Query.Uni.Value.ToString());
+				// m_image.StreamSource   = Query.Uni.Stream;
+				m_image.CacheOption    = BitmapCacheOption.OnLoad;
+				m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 
+				m_image.EndInit();
+
+				m_images[Query] = m_image;
+			}
 			if (Query.Uni.IsUri) {
 				m_image.DownloadCompleted += (sender, args) =>
 				{
@@ -371,6 +379,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 			Img_Preview.Source = m_image;
+			
 		}
 	}
 
@@ -616,6 +625,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void ClearQueryControls()
 	{
 		m_image            = null;
+		m_images.TryRemove(Query, out var img);
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text   = String.Empty;
@@ -703,6 +713,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			m_image            = null;
 			Img_Preview.Source = m_image;
 			Img_Preview.UpdateLayout();
+
+			m_images.Clear();
 		}
 
 		m_cts.Dispose();

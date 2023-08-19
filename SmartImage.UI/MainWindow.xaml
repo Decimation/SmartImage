@@ -7,7 +7,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="clr-namespace:SmartImage.UI"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d" Height="600" Width="1300" MinWidth="1300" MinHeight="300" Loaded="Wnd_Main_Loaded" Closed="Wnd_Main_Closed"
+        mc:Ignorable="d" Height="600" Width="1300" MinWidth="1300" MinHeight="300" Loaded="Wnd_Main_Loaded"
+        Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919"
         KeyDown="Wnd_Main_KeyDown">
     <Window.Resources>
@@ -491,7 +492,7 @@
                                                 Width="120" x:Name="Lvgvc_Name">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Name}"
+                                            <TextBlock Text="{Binding Name, Mode=OneTime}"
                                                        Style="{StaticResource BoldGridViewCellStyle}" />
 
                                         </DataTemplate>
@@ -499,10 +500,11 @@
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="URL"
-                                                DisplayMemberBinding="{Binding Url}" Width="400" />
+                                                DisplayMemberBinding="{Binding Url, Mode=OneTime}" Width="400" />
 
                                 <GridViewColumn Header="Similarity"
-                                                DisplayMemberBinding="{Binding Result.Similarity}" Width="75">
+                                                DisplayMemberBinding="{Binding Result.Similarity, Mode=OneTime}"
+                                                Width="75">
 
                                 </GridViewColumn>
 
@@ -510,30 +512,33 @@
                                                 Width="200" x:Name="Lvgvc_Desc">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Result.Description}" TextWrapping="Wrap"/>
+                                            <TextBlock Text="{Binding Result.Description, Mode=OneTime}"
+                                                       TextWrapping="Wrap" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
 
-                                <GridViewColumn Header="Artist" DisplayMemberBinding="{Binding Result.Artist}"
+                                <GridViewColumn Header="Artist"
+                                                DisplayMemberBinding="{Binding Result.Artist, Mode=OneTime}"
                                                 Width="75" />
 
                                 <GridViewColumn Header="Title"
                                                 Width="75" x:Name="Lvgvc_Title">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
-                                            <TextBlock Text="{Binding Result.Title}" />
+                                            <TextBlock Text="{Binding Result.Title, Mode=OneTime}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="Source"
-                                                DisplayMemberBinding="{Binding Result.Source}" Width="75" />
+                                                DisplayMemberBinding="{Binding Result.Source, Mode=OneTime}" Width="75" />
 
                                 <GridViewColumn Header="Character"
-                                                DisplayMemberBinding="{Binding Result.Character}" Width="75" />
+                                                DisplayMemberBinding="{Binding Result.Character, Mode=OneTime}"
+                                                Width="75" />
                                 <GridViewColumn Header="Site"
-                                                DisplayMemberBinding="{Binding Result.Site}" Width="75" />
+                                                DisplayMemberBinding="{Binding Result.Site, Mode=OneTime}" Width="75" />
 
                                 <GridViewColumn Header="Width"
                                                 DisplayMemberBinding="{Binding Width}" Width="50" />
