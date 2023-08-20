@@ -25,7 +25,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 #nullable disable
 
-public sealed class IqdbEngine : BaseSearchEngine, IClientSearchEngine
+public sealed class IqdbEngine : BaseSearchEngine, IHttpClient
 {
 	public string EndpointUrl => "https://iqdb.org/";
 

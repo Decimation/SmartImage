@@ -120,8 +120,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_clipboard              = new();
 		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
 		m_resultMap              = new();
-		ParseArgs(Args);
-		m_image = null;
+		m_image                  = null;
 
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
 		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
@@ -144,6 +143,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Cb_SearchFields.SelectedIndex = 0;
 		m_images                      = new();
 		PropertyChangedEventManager.AddHandler(this, Handler, nameof(CurrentQueueItem));
+		ParseArgs(Args);
 	}
 
 	private void Handler(object? sender, PropertyChangedEventArgs args)

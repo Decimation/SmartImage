@@ -17,7 +17,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 /// 
 /// </summary>
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
-public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
+public sealed class TraceMoeEngine : BaseSearchEngine, IHttpClient
 {
 	public TraceMoeEngine() : base("https://trace.moe/?url=") { }
 

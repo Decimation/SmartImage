@@ -11,7 +11,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Upload;
 
-public abstract class BaseUploadEngine : IClientSearchEngine
+public abstract class BaseUploadEngine : IHttpClient
 {
 	/// <summary>
 	/// Max file size, in bytes
@@ -63,12 +63,12 @@ public abstract class BaseUploadEngine : IClientSearchEngine
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
 
-	public async Task<bool> IsAlive()
+	/*public async Task<bool> IsAlive()
 	{
-		using var res = await ((IClientSearchEngine) this).GetEndpointResponseAsync(Timeout);
+		using var res = await ((IHttpClient) this).GetEndpointResponseAsync(Timeout);
 
 		return !res.ResponseMessage.IsSuccessStatusCode;
-	}
+	}*/
 
 	public static BaseUploadEngine Default { get; set; } = CatboxEngine.Instance;
 

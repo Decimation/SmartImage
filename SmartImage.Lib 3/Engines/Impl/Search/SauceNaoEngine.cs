@@ -31,7 +31,7 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IClientSearchEngine, IConfig
+public sealed class SauceNaoEngine : BaseSearchEngine, IHttpClient, IConfig
 {
 	internal static class Strings
 	{

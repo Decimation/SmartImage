@@ -4,11 +4,11 @@ using JetBrains.Annotations;
 
 namespace SmartImage.Lib.Engines;
 
-public interface IClientSearchEngine : IDisposable
+public interface IHttpClient : IDisposable
 {
 	public string EndpointUrl { get; }
 
-	[NotNull]
+	/*[NotNull]
 	public Task<IFlurlResponse> GetEndpointResponseAsync(TimeSpan fs)
 	{
 		return EndpointUrl.WithTimeout(fs)
@@ -20,5 +20,5 @@ public interface IClientSearchEngine : IDisposable
 			.WithAutoRedirect(true)
 			.GetAsync();
 
-	}
+	}*/
 }
