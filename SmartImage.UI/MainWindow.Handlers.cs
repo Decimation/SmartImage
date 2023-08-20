@@ -37,7 +37,7 @@ public partial class MainWindow
 
 	#region
 
-	private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
+	/*private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
 		var nt  = Tb_Input.Text;
 		var txt = nt;
@@ -46,7 +46,7 @@ public partial class MainWindow
 		// CurrentQueueItem = txt;
 
 		// Debug.Assert(txt == CurrentQueueItem);
-		if (ok /*&& !IsInputReady()*/) {
+		if (ok /*&& !IsInputReady()#1#) {
 			Application.Current.Dispatcher.InvokeAsync(() => UpdateQueryAsync(CurrentQueueItem));
 		}
 
@@ -57,7 +57,7 @@ public partial class MainWindow
 	private void Tb_Input_TextInput(object sender, TextCompositionEventArgs e)
 	{
 		e.Handled = true;
-	}
+	}*/
 
 	private void Tb_Input_DragOver(object sender, DragEventArgs e)
 	{
@@ -87,7 +87,7 @@ public partial class MainWindow
 
 	private void Tb_Info_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		var s = Query.Uni.Value.ToString();
+		var s = Query.ValueString;
 
 		if (string.IsNullOrWhiteSpace(s)) {
 			return;
@@ -131,25 +131,10 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private async void Lb_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private void Lb_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (e.OriginalSource != sender) {
 			return;
-		}
-
-		if (e.AddedItems.Count > 0) {
-			//todo
-			// Restart();
-			/*
-			if (e.AddedItems[0] is string i) {
-				CurrentQueueItem = i;
-			}
-		*/
-
-			// Debug.WriteLine($"{QueueSelectedIndex} {QueueSelectedItem}");
-			// m_queuePos = Lv_Queue.SelectedIndex;
-			// Restart();
-
 		}
 
 		e.Handled = true;
@@ -168,8 +153,9 @@ public partial class MainWindow
 		// await SetQueryAsync(InputText);
 		Btn_Run.IsEnabled = false;
 		// Clear(true);
+		// ReloadToken();
 		ClearResults(true);
-		Application.Current.Dispatcher.InvokeAsync(RunAsync);
+		Dispatcher.InvokeAsync(RunAsync);
 		e.Handled = true;
 	}
 
@@ -223,12 +209,27 @@ public partial class MainWindow
 		// var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
 
 		var old = CurrentQueueItem;
-		// TrySeekQueue(q);
+		var i   = Queue.IndexOf(old);
 		Queue.Remove(old);
+
+		// TrySeekQueue(q);
+		// AdvanceQueue(-1);
 
 		if (m_queries.TryRemove(old, out var sq)) {
 			m_images.TryRemove(sq, out var img);
 		}
+
+		var i2 = i - 1;
+
+		i2 = Math.Clamp(i2, 0, Queue.Count);
+		string n;
+
+		if (Queue.Count == 0)
+			n = String.Empty;
+		else
+			n = Queue[i2];
+
+		CurrentQueueItem = n;
 
 		sq?.Dispose();
 		// AdvanceQueue();
@@ -340,13 +341,13 @@ public partial class MainWindow
 
 		switch (key) {
 			case Key.D when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(
+				Dispatcher.InvokeAsync(
 					() => DownloadResultAsync((UniResultItem) CurrentResultItem));
 
 				break;
 			case Key.S when ctrl:
 
-				Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
+				Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
 				break;
 			case Key.Delete:
 				if (CurrentResultItem == null) {
@@ -362,7 +363,7 @@ public partial class MainWindow
 				Img_Preview.Source = m_image;
 				break;
 			case Key.C when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(() =>
+				Dispatcher.InvokeAsync(() =>
 				{
 					var text = CurrentResultItem.Url;
 					m_clipboard.Add(text);
@@ -370,12 +371,12 @@ public partial class MainWindow
 				});
 				break;
 			case Key.G when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResultItem));
+				Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResultItem));
 
 				break;
 			case Key.F when ctrl:
 				// TODO: WIP
-				Application.Current.Dispatcher.InvokeAsync(FilterResultsAsync);
+				Dispatcher.InvokeAsync(FilterResultsAsync);
 
 				break;
 			case Key.I when ctrl:
@@ -386,11 +387,11 @@ public partial class MainWindow
 				AdvanceQueue(i);
 				break;
 			case Key.E when ctrl:
-				Application.Current.Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
+				Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
 
 				break;
 			case Key.R when ctrl && alt:
-				Application.Current.Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
+				Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
 				break;
 		}
 
@@ -520,12 +521,13 @@ public partial class MainWindow
 	private void OpenItem_Click(object sender, RoutedEventArgs e)
 	{
 		CurrentResultItem.Open();
+		e.Handled = true;
 	}
 
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
 		if (CurrentResultItem is UniResultItem uri) {
-			Application.Current.Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
+			Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}
 
@@ -534,7 +536,7 @@ public partial class MainWindow
 
 	private void ScanItem_Click(object sender, RoutedEventArgs e)
 	{
-		Application.Current.Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
+		Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
 		e.Handled = true;
 	}
 
@@ -547,13 +549,13 @@ public partial class MainWindow
 
 	private void RetryItem_Click(object sender, RoutedEventArgs e)
 	{
-		Application.Current.Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
+		Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
 		e.Handled = true;
 	}
 
 	private void EnqueueItem_Click(object sender, RoutedEventArgs e)
 	{
-		Application.Current.Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
+		Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
 		e.Handled = true;
 	}
 
@@ -636,7 +638,7 @@ public partial class MainWindow
 
 	private void Btn_Filter_Click(object sender, RoutedEventArgs e)
 	{
-		Application.Current.Dispatcher.InvokeAsync(FilterResultsAsync);
+		Dispatcher.InvokeAsync(FilterResultsAsync);
 		e.Handled = true;
 	}
 

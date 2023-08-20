@@ -143,6 +143,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
 		m_images                      = new();
+		PropertyChangedEventManager.AddHandler(this, Handler, nameof(CurrentQueueItem));
+	}
+
+	private void Handler(object? sender, PropertyChangedEventArgs args)
+	{
+		Debug.WriteLine($"{sender} {args}");
+
+		Dispatcher.InvokeAsync(async () =>
+		{
+			var ok = SearchQuery.IsValidSourceType(CurrentQueueItem);
+
+			if (ok /*&& !IsInputReady()*/) {
+				await UpdateQueryAsync(CurrentQueueItem);
+			}
+			// Btn_Run.IsEnabled = ok;
+		});
 
 	}
 
@@ -221,32 +237,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if (Equals(value, m_currentQueueItem) /*|| String.IsNullOrWhiteSpace(value)*/) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
-			Application.Current.Dispatcher.InvokeAsync(() => OnCurrentItem());
 
 		}
-	}
-
-	async Task OnCurrentItem()
-	{
-		var ok = SearchQuery
-			.IsValidSourceType(CurrentQueueItem) /* && Query?.Uni?.Value.ToString() != CurrentQueueItem*/;
-
-		// CurrentQueueItem = txt;
-
-		// Debug.Assert(txt == CurrentQueueItem);
-
-		if (ok /*&& !IsInputReady()*/) {
-			await UpdateQueryAsync(CurrentQueueItem);
-			// Application.Current.Dispatcher.InvokeAsync(() => UpdateQueryAsync(CurrentQueueItem));
-		}
-		// Btn_Run.IsEnabled = ok;
 	}
 
 	public ObservableCollection<string> Queue { get; }
 
 	public bool IsQueueInputValid => !String.IsNullOrWhiteSpace(CurrentQueueItem);
-
-	public bool IsQueryValid => Query is { Uni: { } };
 
 	private async Task UpdateQueryAsync(string query)
 	{
@@ -304,12 +301,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Upload.Text            = upload;
 			Pb_Status.IsIndeterminate = false;
 
-			var uriString = Query.Uni.Value.ToString();
+			var uriString = Query.ValueString;
 			Debug.Assert(uriString != null);
 
 			Tb_Status.Text = "Rendering preview...";
 
-			UpdateImage();
+			Dispatcher.InvokeAsync(UpdateImage);
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
 			// Btn_Remove.IsEnabled = Btn_Delete.IsEnabled;
@@ -341,11 +338,15 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Lv_Results.ItemsSource = Results;
 
 			if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) {
-				Application.Current.Dispatcher.InvokeAsync(RunAsync);
+				Dispatcher.InvokeAsync(RunAsync);
 			}
 
-			else {
+			else if (queryExists && Results.Any()) {
 				Tb_Status.Text = $"Displaying {Results.Count} results";
+			}
+			else {
+				Tb_Status.Text = $"Search ready";
+
 			}
 		}
 		else { }
@@ -378,7 +379,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				m_image = new BitmapImage()
 					{ };
 				m_image.BeginInit();
-				m_image.UriSource = new Uri(Query.Uni.Value.ToString());
+				m_image.UriSource = new Uri(Query.ValueString);
 				// m_image.StreamSource   = Query.Uni.Stream;
 				m_image.CacheOption    = BitmapCacheOption.OnLoad;
 				m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
@@ -508,7 +509,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			ms.Dispose();
 
 			AddToQueue(new[] { fn });
-			/*Application.Current.Dispatcher.InvokeAsync(() =>
+			/*Dispatcher.InvokeAsync(() =>
 			{
 				return SetQueryAsync(fn);
 
@@ -636,6 +637,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_cts.Cancel();
 		m_ctsu.Cancel();
 		// Pb_Status.Foreground = new SolidColorBrush(Colors.Red);
+		Pb_Status.IsIndeterminate = false;
 	}
 
 	private void Restart(bool full = false)
@@ -798,7 +800,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				for (int i = 0; i < resultUni.Length; i++) {
 					var rii = new UniResultItem(ri, i)
 					{
-						StatusImage = AppComponents.picture,
+						StatusImage = AppComponents.picture_link,
 						CanDownload = true,
 						CanScan     = false,
 						CanOpen     = true
@@ -807,7 +809,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					Results.Insert(Results.IndexOf(ri) + 1 + i, rii);
 				}
 
-				Tb_Status.Text = $"Scan found {ri.Result.Uni.Length} images";
+				int length = ri.Result.Uni.Length;
+
+				if (length > 0) {
+					ri.StatusImage = AppComponents.pictures;
+				}
+
+				Tb_Status.Text = $"Scan found {length} images";
 			}
 			else {
 				Tb_Status.Text = $"Scan found no images";
@@ -826,6 +834,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 		finally {
 			ri.CanScan = !d;
+
+			if (!d) {
+				ri.StatusImage = AppComponents.picture_empty;
+			}
 
 			Pb_Status.IsIndeterminate = false;
 
@@ -892,7 +904,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if (res is { ResponseMessage.IsSuccessStatusCode: false }) {
 				Debug.WriteLine($"removing {item}");
 
-				Application.Current.Dispatcher.Invoke(() =>
+				Dispatcher.Invoke(() =>
 				{
 					++c;
 					Results.Remove(item);
@@ -1052,7 +1064,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void OnPipeReceived(string s)
 	{
-		Application.Current.Dispatcher.Invoke(() =>
+		Dispatcher.Invoke(() =>
 		{
 			if (s[0] == App.ARGS_DELIM) {
 				var parentId = int.Parse(s[1..]);

@@ -122,6 +122,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		Uni?.Dispose();
 	}
 
+	[CanBeNull]
+	public string ValueString => Uni?.Value.ToString();
+
 	public override string ToString()
 	{
 		var s = $"{Uni}";

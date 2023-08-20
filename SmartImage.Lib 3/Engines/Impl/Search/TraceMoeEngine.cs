@@ -171,9 +171,17 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IClientSearchEngine
 			{
 				string epStr = episode is { } ? episode is string s ? s : episode.ToString() : string.Empty;
 
-				if (episode is IEnumerable e) {
+				if (episode is IEnumerable e && e is not string) {
 					var epList = e.CastToList()
-						.Select(x => long.Parse(x.ToString() ?? string.Empty));
+						.Select(x =>
+						{
+							var s1 = x.ToString();
+
+							if (s1.Contains('|')) {
+								s1 = s1.Split('|')[0];
+							}
+							return long.Parse(s1 ?? string.Empty);
+						});
 
 					epStr = epList.QuickJoin();
 				}

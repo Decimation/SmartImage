@@ -35,7 +35,22 @@
     <None Remove="Resources\information.png" />
     <None Remove="Resources\link.png" />
     <None Remove="Resources\picture.png" />
+    <None Remove="Resources\pictures.ico" />
+    <None Remove="Resources\pictures.png" />
+    <None Remove="Resources\picture_add.ico" />
     <None Remove="Resources\picture_add.png" />
+    <None Remove="Resources\picture_delete.ico" />
+    <None Remove="Resources\picture_delete.png" />
+    <None Remove="Resources\picture_empty.ico" />
+    <None Remove="Resources\picture_empty.png" />
+    <None Remove="Resources\picture_error.ico" />
+    <None Remove="Resources\picture_error.png" />
+    <None Remove="Resources\picture_go.ico" />
+    <None Remove="Resources\picture_go.png" />
+    <None Remove="Resources\picture_insert.ico" />
+    <None Remove="Resources\picture_insert.png" />
+    <None Remove="Resources\picture_insert_from_web.ico" />
+    <None Remove="Resources\picture_link.ico" />
     <None Remove="Resources\picture_link.png" />
     <None Remove="Resources\picture_save.png" />
   </ItemGroup>
@@ -88,7 +103,13 @@
     <Resource Include="Resources\information.png" />
     <Resource Include="Resources\link.png" />
     <Resource Include="Resources\picture.png" />
+    <Resource Include="Resources\pictures.png" />
     <Resource Include="Resources\picture_add.png" />
+    <Resource Include="Resources\picture_delete.png" />
+    <Resource Include="Resources\picture_empty.png" />
+    <Resource Include="Resources\picture_error.png" />
+    <Resource Include="Resources\picture_go.png" />
+    <Resource Include="Resources\picture_insert.png" />
     <Resource Include="Resources\picture_link.png" />
     <Resource Include="Resources\picture_save.png" />
   </ItemGroup>
