@@ -53,6 +53,9 @@ using Novus.Win32.Structures.Kernel32;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 using Clipboard = System.Windows.Clipboard;
 using System.Data.Common;
+using System.Reactive;
+using System.Reactive.Linq;
+using ReactiveUI;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -140,6 +143,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
 		m_images                      = new();
+
 	}
 
 	#region
@@ -198,7 +202,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
-	private          ConcurrentDictionary<SearchQuery, BitmapImage?>                     m_images;
+	private ConcurrentDictionary<SearchQuery, BitmapImage?> m_images;
 
 	#endregion
 
@@ -217,19 +221,39 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if (Equals(value, m_currentQueueItem) /*|| String.IsNullOrWhiteSpace(value)*/) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
+			Application.Current.Dispatcher.InvokeAsync(() => OnCurrentItem());
+
 		}
+	}
+
+	async Task OnCurrentItem()
+	{
+		var ok = SearchQuery
+			.IsValidSourceType(CurrentQueueItem) /* && Query?.Uni?.Value.ToString() != CurrentQueueItem*/;
+
+		// CurrentQueueItem = txt;
+
+		// Debug.Assert(txt == CurrentQueueItem);
+
+		if (ok /*&& !IsInputReady()*/) {
+			await UpdateQueryAsync(CurrentQueueItem);
+			// Application.Current.Dispatcher.InvokeAsync(() => UpdateQueryAsync(CurrentQueueItem));
+		}
+		// Btn_Run.IsEnabled = ok;
 	}
 
 	public ObservableCollection<string> Queue { get; }
 
 	public bool IsQueueInputValid => !String.IsNullOrWhiteSpace(CurrentQueueItem);
 
+	public bool IsQueryValid => Query is { Uni: { } };
+
 	private async Task UpdateQueryAsync(string query)
 	{
-		if (await m_us.WaitAsync(TimeSpan.Zero)) {
-			// Debug.WriteLine($"blocking");
+		/*if (await m_us.WaitAsync(TimeSpan.Zero)) {
+			Debug.WriteLine($"blocking");
 			return;
-		}
+		}*/
 
 		Btn_Run.IsEnabled = false;
 		bool b2;
@@ -335,6 +359,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Btn_Run.IsEnabled = queryExists;
 		m_us.Release();
+		Debug.WriteLine($"finished {query}");
 		return;
 
 		void UpdateInfo()
@@ -362,6 +387,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				m_images[Query] = m_image;
 			}
+
 			if (Query.Uni.IsUri) {
 				m_image.DownloadCompleted += (sender, args) =>
 				{
@@ -379,7 +405,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 			Img_Preview.Source = m_image;
-			
+
 		}
 	}
 
@@ -535,7 +561,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Lb_Queue.IsEnabled = false;
 		// ClearResults();
-		SearchStart = DateTime.Now;
+		SearchStart  = DateTime.Now;
+		m_cntResults = 0;
 
 		Btn_Run.IsEnabled = false;
 		Tb_Status.Text    = "Initiating search...";
@@ -618,13 +645,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Dispose(full);
 
 		CurrentQueueItem = String.Empty;
-
 		ReloadToken();
 	}
 
 	private void ClearQueryControls()
 	{
-		m_image            = null;
+		m_image = null;
 		m_images.TryRemove(Query, out var img);
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
@@ -715,6 +741,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Img_Preview.UpdateLayout();
 
 			m_images.Clear();
+			m_us.Release();
 		}
 
 		m_cts.Dispose();

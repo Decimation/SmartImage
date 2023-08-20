@@ -132,7 +132,7 @@ public static class ControlsHelper
 			i = string.Empty;
 		}
 
-		return $"{name} ⇉ [{uni.FileTypes[0]}] [{bytes}] • {i}";
+		return $"{name} ⇉ [{uni.FileType}] [{bytes}] • {i}";
 	}
 
 	public static string FormatSize(UniSource uni)

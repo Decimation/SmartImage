@@ -23,55 +23,55 @@
 
         <Label x:Name="Lb_Uri" Content="URI" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
-        <TextBox x:Name="Tb_Uri" HorizontalAlignment="Left" Margin="91,14,0,0" Text="{Binding Result.Url, Mode=OneWay}"
+        <TextBox x:Name="Tb_Uri" HorizontalAlignment="Left" Margin="91,14,0,0" Text="{Binding Result.Url, Mode=OneTime}"
                  VerticalAlignment="Top" Width="320" Background="Black" Foreground="White" IsReadOnly="True" />
 
         <Label x:Name="Lb_Sim" Content="Similarity" HorizontalAlignment="Left" Margin="10,41,0,0"
                VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
         <TextBox x:Name="Tb_Sim" HorizontalAlignment="Left"
-                 Text="{Binding Result.Result.Similarity, Mode=OneWay}" VerticalAlignment="Top" Width="105"
+                 Text="{Binding Result.Result.Similarity, Mode=OneTime}" VerticalAlignment="Top" Width="105"
                  Background="Black" Foreground="White" IsReadOnly="True" Margin="91,45,0,0" />
 
         <Label x:Name="Lb_Desc" Content="Description" HorizontalAlignment="Left" Margin="10,76,0,0"
                VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
 
         <TextBox x:Name="Tb_Desc" HorizontalAlignment="Left" Margin="91,73,0,0"
-                 Text="{Binding Result.Result.Description, Mode=OneWay}" VerticalAlignment="Top" Width="260"
+                 Text="{Binding Result.Result.Description, Mode=OneTime}" VerticalAlignment="Top" Width="260"
                  Background="Black" Foreground="White" IsReadOnly="True" Height="42" />
 
         <Label x:Name="Lb_Dim" Content="Dimensions" HorizontalAlignment="Left" Margin="10,123,0,0"
                VerticalAlignment="Top" Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
         <TextBox x:Name="Tb_DimW" HorizontalAlignment="Left"
-                 Text="{Binding Result.Result.Width, Mode=OneWay}" VerticalAlignment="Top" Width="85"
+                 Text="{Binding Result.Result.Width, Mode=OneTime}" VerticalAlignment="Top" Width="85"
                  Background="Black" Foreground="White" IsReadOnly="True" Margin="91,127,0,0" />
         <TextBox x:Name="Tb_DimH" HorizontalAlignment="Left"
-                 Text="{Binding Result.Result.Height, Mode=OneWay}" VerticalAlignment="Top" Width="86"
+                 Text="{Binding Result.Result.Height, Mode=OneTime}" VerticalAlignment="Top" Width="86"
                  Background="Black" Foreground="White" IsReadOnly="True" Margin="186,127,0,0" />
 
         <Label x:Name="Lb_Artist" Content="Artist" HorizontalAlignment="Left" Margin="10,158,0,0"
                VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
         <TextBox x:Name="Tb_Artist" HorizontalAlignment="Left" Margin="91,162,0,0"
-                 Text="{Binding Result.Result.Artist, Mode=OneWay}"
+                 Text="{Binding Result.Result.Artist, Mode=OneTime}"
                  VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
 
         <Label x:Name="Lb_Char" Content="Character" HorizontalAlignment="Left" Margin="10,194,0,0"
                VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
         <TextBox x:Name="Tb_Char" HorizontalAlignment="Left" Margin="91,198,0,0"
-                 Text="{Binding Result.Result.Character, Mode=OneWay}"
+                 Text="{Binding Result.Result.Character, Mode=OneTime}"
                  VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
 
         <Label x:Name="Lb_Title" Content="Title" HorizontalAlignment="Left" Margin="10,229,0,0" VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
         <TextBox x:Name="Tb_Title" HorizontalAlignment="Left" Margin="91,233,0,0"
-                 Text="{Binding Result.Result.Title, Mode=OneWay}"
+                 Text="{Binding Result.Result.Title, Mode=OneTime}"
                  VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
 
         <Label x:Name="Lb_Site" Content="Site" HorizontalAlignment="Left" Margin="10,260,0,0" VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
         <TextBox x:Name="Tb_Site" HorizontalAlignment="Left" Margin="91,264,0,0"
-                 Text="{Binding Result.Result.Site, Mode=OneWay}"
+                 Text="{Binding Result.Result.Site, Mode=OneTime}"
                  VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True" />
 
         <Label x:Name="Lb_UniTypeSize" Content="Type/Size" HorizontalAlignment="Left" Margin="10,307,0,0"
@@ -80,12 +80,12 @@
                Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
         <TextBox x:Name="Tb_UniType" HorizontalAlignment="Left" Margin="91,311,0,0"
-                 Text="{Binding UniResult.Uni.FileTypes[0], Mode=OneWay}"
+                 Text="{Binding UniResult.Uni.FileTypes[0], Mode=OneTime}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
         <TextBox x:Name="Tb_UniSize" HorizontalAlignment="Left" Margin="186,311,0,0"
-                 Text="{Binding UniResult.SizeFormat, Mode=OneWay}"
+                 Text="{Binding UniResult.SizeFormat, Mode=OneTime}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 

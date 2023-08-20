@@ -25,7 +25,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 
-public class ResultItem : IDisposable,INotifyPropertyChanged
+public class ResultItem : IDisposable, INotifyPropertyChanged
 {
 	public string Name { get; protected set; }
 
@@ -146,7 +146,7 @@ public class UniResultItem : ResultItem
 				Url = ri.Url.GetFileName().Split(':')[0];
 
 				if (string.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
-					Url = Path.ChangeExtension(Url, Uni.FileTypes[0].Subtype);
+					Url = Path.ChangeExtension(Url, Uni.FileType.Subtype);
 				}
 			}
 			else {
@@ -178,6 +178,8 @@ public class UniResultItem : ResultItem
 		}
 
 		StatusImage = AppComponents.picture;
+		SizeFormat  = ControlsHelper.FormatSize(Uni);
+		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 	}
 
 	public string Download { get; private set; }
@@ -217,9 +219,9 @@ public class UniResultItem : ResultItem
 		return path2;
 	}
 
-	public string SizeFormat => ControlsHelper.FormatSize(Uni);
+	public string SizeFormat { get; }
 
-	public string Description => ControlsHelper.FormatDescription(Name, Uni, Width, Height);
+	public string Description { get; }
 
 	public BitmapImage? Image { get; private set; }
 

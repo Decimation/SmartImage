@@ -24,6 +24,8 @@ using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Model;
+using static System.Net.Mime.MediaTypeNames;
+using Application = System.Windows.Application;
 using FileSystem = Novus.OS.FileSystem;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
@@ -41,8 +43,9 @@ public partial class MainWindow
 		var txt = nt;
 		var ok  = SearchQuery.IsValidSourceType(txt);
 
-		CurrentQueueItem = txt;
+		// CurrentQueueItem = txt;
 
+		// Debug.Assert(txt == CurrentQueueItem);
 		if (ok /*&& !IsInputReady()*/) {
 			Application.Current.Dispatcher.InvokeAsync(() => UpdateQueryAsync(CurrentQueueItem));
 		}
@@ -128,22 +131,24 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void Lb_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private async void Lb_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (e.OriginalSource != sender) {
 			return;
 		}
 
-		// Debug.WriteLine($"{QueueSelectedIndex} {QueueSelectedItem}");
-		// m_queuePos = Lv_Queue.SelectedIndex;
-
 		if (e.AddedItems.Count > 0) {
 			//todo
-			Restart();
-
+			// Restart();
+			/*
 			if (e.AddedItems[0] is string i) {
 				CurrentQueueItem = i;
 			}
+		*/
+
+			// Debug.WriteLine($"{QueueSelectedIndex} {QueueSelectedItem}");
+			// m_queuePos = Lv_Queue.SelectedIndex;
+			// Restart();
 
 		}
 
@@ -224,6 +229,7 @@ public partial class MainWindow
 		if (m_queries.TryRemove(old, out var sq)) {
 			m_images.TryRemove(sq, out var img);
 		}
+
 		sq?.Dispose();
 		// AdvanceQueue();
 		e.Handled = true;
@@ -347,9 +353,7 @@ public partial class MainWindow
 					return;
 				}
 
-				if (CurrentResultItem is UniResultItem uri && m_uni.TryRemove(uri, out var x)) {
-					
-				}
+				if (CurrentResultItem is UniResultItem uri && m_uni.TryRemove(uri, out var x)) { }
 
 				CurrentResultItem.Dispose();
 
@@ -378,7 +382,8 @@ public partial class MainWindow
 				OpenResultWindow(CurrentResultItem);
 				break;
 			case Key.Tab when ctrl:
-				AdvanceQueue();
+				int i = shift ? -1 : 1;
+				AdvanceQueue(i);
 				break;
 			case Key.E when ctrl:
 				Application.Current.Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
