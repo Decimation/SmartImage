@@ -27,7 +27,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public long Size { get; private set; }
 
-	public ReadOnlyMemory<byte> Hash { get; private init; }
+	public ReadOnlyMemory<byte> MD5Hash { get; private init; }
 
 	internal SearchQuery([CBN] UniSource f)
 	{
@@ -52,7 +52,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		else {
 			var sq = new SearchQuery(uf)
 			{
-				Hash = await MD5.HashDataAsync(uf.Stream, ct)
+				MD5Hash = await MD5.HashDataAsync(uf.Stream, ct)
 			};
 
 			return sq;

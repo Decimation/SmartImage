@@ -32,7 +32,7 @@ public class ArchiveMoeEngine : WebSearchEngine
 	protected static string GetHash(SearchQuery q)
 	{
 		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
-		var b64 = Convert.ToBase64String(q.Hash.Span).Replace("==", "");
+		var b64 = Convert.ToBase64String(q.MD5Hash.Span).Replace("==", "");
 		b64 = Regex.Replace(b64, @"\//", "_");
 		b64 = Regex.Replace(b64, @"\+", "-");
 

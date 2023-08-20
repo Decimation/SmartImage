@@ -142,24 +142,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
 		m_images                      = new();
-		PropertyChangedEventManager.AddHandler(this, Handler, nameof(CurrentQueueItem));
+
+		PropertyChangedEventManager.AddHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
+		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
-	}
-
-	private void Handler(object? sender, PropertyChangedEventArgs args)
-	{
-		Debug.WriteLine($"{sender} {args}");
-
-		Dispatcher.InvokeAsync(async () =>
-		{
-			var ok = SearchQuery.IsValidSourceType(CurrentQueueItem);
-
-			if (ok /*&& !IsInputReady()*/) {
-				await UpdateQueryAsync(CurrentQueueItem);
-			}
-			// Btn_Run.IsEnabled = ok;
-		});
-
 	}
 
 	#region
@@ -178,7 +164,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly SemaphoreSlim m_us;
 	private readonly List<string>  m_pipeBuffer;
-
+	private readonly HydrusClient  m_hydrus;
 	#endregion
 
 	#region
@@ -244,6 +230,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public ObservableCollection<string> Queue { get; }
 
 	public bool IsQueueInputValid => !String.IsNullOrWhiteSpace(CurrentQueueItem);
+
+	private void OnCurrentQueueItemChanged(object? sender, PropertyChangedEventArgs args)
+	{
+		Debug.WriteLine($"{sender} {args}");
+
+		Dispatcher.InvokeAsync(async () =>
+		{
+			var ok = SearchQuery.IsValidSourceType(CurrentQueueItem);
+
+			if (ok /*&& !IsInputReady()*/) {
+				await UpdateQueryAsync(CurrentQueueItem);
+			}
+			// Btn_Run.IsEnabled = ok;
+		});
+
+	}
 
 	private async Task UpdateQueryAsync(string query)
 	{
@@ -1081,6 +1083,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		});
 
 	}
+
 }
 
 public class ResultModel

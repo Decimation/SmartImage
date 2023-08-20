@@ -151,6 +151,24 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Hydrus Endpoint.
+        /// </summary>
+        internal static string S_HydrusEndpoint {
+            get {
+                return ResourceManager.GetString("S_HydrusEndpoint", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Hydrus Key.
+        /// </summary>
+        internal static string S_HydrusKey {
+            get {
+                return ResourceManager.GetString("S_HydrusKey", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to On top.
         /// </summary>
         internal static string S_OnTop {

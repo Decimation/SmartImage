@@ -171,4 +171,10 @@
   <data name="Wiki_Url" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/wiki</value>
   </data>
+  <data name="S_HydrusEndpoint" xml:space="preserve">
+    <value>Hydrus Endpoint</value>
+  </data>
+  <data name="S_HydrusKey" xml:space="preserve">
+    <value>Hydrus Key</value>
+  </data>
 </root>

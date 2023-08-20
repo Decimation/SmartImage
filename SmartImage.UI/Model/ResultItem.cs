@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -180,9 +181,15 @@ public class UniResultItem : ResultItem
 		StatusImage = AppComponents.picture;
 		SizeFormat  = ControlsHelper.FormatSize(Uni);
 		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
+		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
+		Uni.Stream.TrySeek();
 	}
 
 	public string Download { get; private set; }
+
+	public Dictionary<string, FileRelationship>? Relationships { get; internal set; }
+
+	public string? HyDescription { get; internal set; }
 
 	public async Task<string> DownloadAsync(string? dir = null, bool exp = true)
 	{
@@ -237,8 +244,9 @@ public class UniResultItem : ResultItem
 			return null;
 		}
 	}
+	public string Hash     { get; }
 
-	public int? UniIndex { get; }
+	public int?   UniIndex { get; }
 
 	public override void Dispose()
 	{

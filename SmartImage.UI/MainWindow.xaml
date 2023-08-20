@@ -623,10 +623,10 @@
                                  Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="512,208,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="527,208,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhUsername, Mode=TwoWay}" TextChanged="Tb_EhUsername_TextChanged" />
-                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="512,237,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="527,237,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhPassword, Mode=TwoWay}" TextChanged="Tb_EhPassword_TextChanged" />
                     <Label x:Name="Lb_EhUsername" Content="Eh Username" HorizontalAlignment="Left" Margin="424,204,0,0"
@@ -635,6 +635,16 @@
                            VerticalAlignment="Top" Foreground="White" />
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+                    <TextBox x:Name="Tb_HyEndpoint" HorizontalAlignment="Left" Margin="527,297,0,0" TextWrapping="Wrap"
+                        VerticalAlignment="Top" Width="120"
+                        Text="{Binding Config.HydrusEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <TextBox x:Name="Tb_HyKey" HorizontalAlignment="Left" Margin="527,326,0,0" TextWrapping="Wrap"
+                        VerticalAlignment="Top" Width="120"
+                        Text="{Binding Config.HydrusKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Label x:Name="Lb_HyEndpoint" Content="Hydrus Endpoint" HorizontalAlignment="Left" Margin="424,293,0,0"
+                        VerticalAlignment="Top" Foreground="White" />
+                    <Label x:Name="Lb_HyKey" Content="Hydrus Key" HorizontalAlignment="Left" Margin="424,322,0,0"
+                        VerticalAlignment="Top" Foreground="White" />
 
                 </Grid>
             </TabItem>

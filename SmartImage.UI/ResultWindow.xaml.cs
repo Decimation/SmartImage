@@ -36,4 +36,9 @@ public partial class ResultWindow : Window
 	public bool IsUni => Result is UniResultItem;
 
 	public UniResultItem? UniResult => Result as UniResultItem;
+
+	private void Btn_HyRun_Click(object sender, RoutedEventArgs e)
+	{
+		
+	}
 }

@@ -23,7 +23,8 @@
 
         <Label x:Name="Lb_Uri" Content="URI" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"
                Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}" />
-        <TextBox x:Name="Tb_Uri" HorizontalAlignment="Left" Margin="91,14,0,0" Text="{Binding Result.Url, Mode=OneTime}"
+        <TextBox x:Name="Tb_Uri" HorizontalAlignment="Left" Margin="91,14,0,0"
+                 Text="{Binding Result.Url, Mode=OneTime}"
                  VerticalAlignment="Top" Width="320" Background="Black" Foreground="White" IsReadOnly="True" />
 
         <Label x:Name="Lb_Sim" Content="Similarity" HorizontalAlignment="Left" Margin="10,41,0,0"
@@ -88,6 +89,19 @@
                  Text="{Binding UniResult.SizeFormat, Mode=OneTime}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
+
+        <Label x:Name="Lb_UniHash" Content="Hash" HorizontalAlignment="Left" Margin="10,345,0,0"
+               VerticalAlignment="Top"
+               Foreground="White" FontWeight="Bold" Background="{DynamicResource Black3}"
+               Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <TextBox x:Name="Tb_UniHash" HorizontalAlignment="Left" Margin="91,349,0,0"
+                 Text="{Binding UniResult.Hash, Mode=OneTime}"
+                 VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True"
+                 Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <TextBox x:Name="Tb_HyDesc" HorizontalAlignment="Left" Margin="514,373,0,0"
+            Text="{Binding Result.Description, Mode=OneTime}" VerticalAlignment="Top" Width="260"
+            Background="Black" Foreground="White" IsReadOnly="True" Height="42" 
+            Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
     </Grid>
 </Window>

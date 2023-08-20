@@ -470,6 +470,24 @@ public partial class MainWindow
 
 	}
 
+	private void Tb_HyEndpoint_OnTextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (!e.IsLoaded()) {
+			return;
+		}
+
+		e.Handled = true;
+	}
+
+	private void Tb_HyKey_OnTextChanged(object sender, TextChangedEventArgs e)
+	{
+		if (!e.IsLoaded()) {
+			return;
+		}
+
+		e.Handled = true;
+	}
+
 	#endregion
 
 	#region

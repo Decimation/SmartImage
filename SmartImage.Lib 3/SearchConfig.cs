@@ -103,7 +103,31 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 			OnPropertyChanged();
 		}
 	}
+	/// <summary>
+	/// <see cref="HydrusClient.EndpointUrl"/>
+	/// </summary>
+	public string HydrusEndpoint
+	{
+		get { return Configuration.ReadSetting<string>(nameof(HydrusEndpoint), STR_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(HydrusEndpoint), value);
+			OnPropertyChanged();
+		}
+	}
 
+	/// <summary>
+	/// <see cref="HydrusClient.Key"/>
+	/// </summary>
+	public string HydrusKey
+	{
+		get { return Configuration.ReadSetting<string>(nameof(HydrusKey), STR_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(HydrusKey), value);
+			OnPropertyChanged();
+		}
+	}
 	public bool OpenRaw
 	{
 		get { return Configuration.ReadSetting(nameof(OpenRaw), false); }
@@ -197,6 +221,8 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		table.Rows.Add(Resources.S_Clipboard, Clipboard);
 		table.Rows.Add(Resources.S_AutoSearch, AutoSearch);
 		table.Rows.Add(Resources.S_SauceNaoKey, SauceNaoKey);
+		table.Rows.Add(Resources.S_HydrusEndpoint, HydrusEndpoint);
+		table.Rows.Add(Resources.S_HydrusKey, HydrusKey);
 
 		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
 
