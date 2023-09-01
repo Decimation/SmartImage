@@ -88,6 +88,7 @@ public sealed class YandexEngine : WebSearchEngine
 			if (string.IsNullOrWhiteSpace(sri.Site)) {
 				sri.Site = url?.Host;
 			}
+
 			return sri;
 		}
 	}
@@ -194,6 +195,9 @@ public sealed class YandexEngine : WebSearchEngine
 		return sr;
 	}
 
+	/// <summary>
+	/// Parses <em>Similar images</em>
+	/// </summary>
 	private IEnumerable<SearchResultItem> ParseSimilarItems(IDocument doc, SearchResult r)
 	{
 		var nodes   = doc.QuerySelectorAll(Serialization.S_Yandex_SimilarImages);
@@ -201,22 +205,23 @@ public sealed class YandexEngine : WebSearchEngine
 
 		foreach (var node in nodes) {
 			var thumb  = node.Children[0].Attributes["href"];
-			var thumb2 = thumb!= null? (Url) Url.Combine(BaseUrl.Root, thumb.Value) : null;
+			var thumb2 = thumb != null ? (Url) Url.Combine(BaseUrl.Root, thumb.Value) : null;
 			var url    = (string) thumb2?.QueryParams.FirstOrDefault("url");
+			var imgUrl = (string) thumb2?.QueryParams.FirstOrDefault("img_url");
 
 			results.Add(new SearchResultItem(r)
 			{
-				Thumbnail = url,
-				Url = url
+				Thumbnail = imgUrl,
+				Url       = imgUrl
 			});
 		}
 
 		return results;
-		
+
 	}
 
 	/// <summary>
-	/// Parses <em>sites containing information about the image</em>
+	/// Parses <em>Sites containing information about the image</em>
 	/// </summary>
 	private static IEnumerable<SearchResultItem> ParseExternalInfo(IDocument doc, SearchResult r)
 	{
@@ -234,8 +239,8 @@ public sealed class YandexEngine : WebSearchEngine
 
 			var sri = new SearchResultItem(r)
 			{
-				Title = title,
-				Url   = href,
+				Title     = title,
+				Url       = href,
 				Thumbnail = thumb
 			};
 
@@ -297,7 +302,7 @@ public sealed class YandexEngine : WebSearchEngine
 				Url    = link2,
 				Width  = w,
 				Height = h,
-				Site = link2?.Host
+				Site   = link2?.Host
 			};
 			return ValueTask.FromResult(sri);
 		}
