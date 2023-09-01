@@ -25,7 +25,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 #nullable disable
 
-public sealed class IqdbEngine : BaseSearchEngine, IHttpClient
+public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
 {
 	public string EndpointUrl => "https://iqdb.org/";
 
@@ -36,13 +36,18 @@ public sealed class IqdbEngine : BaseSearchEngine, IHttpClient
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 	}
 
-	private static SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
+	private SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
 	{
 		var caption = tr[0];
 		var img     = tr[1];
 		var src     = tr[2];
 
-		string url = null!;
+		var img2      = img.Children[0].Children[0].Attributes["src"];
+		var thumbnail = img2 != null ? Url.Combine(BaseUrl.Root, img2.Value) : null;
+		var thumbnail1 = img.Children[0].Children[0].Attributes["alt"];
+		var thumbnailAlt = thumbnail1?.Value;
+
+		string url  = null;
 
 		//img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
 
@@ -107,6 +112,8 @@ public sealed class IqdbEngine : BaseSearchEngine, IHttpClient
 			Height      = h,
 			Source      = src.TextContent,
 			Description = caption.TextContent,
+			Thumbnail = thumbnail,
+			ThumbnailTitle = thumbnailAlt
 
 		};
 		result.Site ??= uri?.Host;
@@ -114,7 +121,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IHttpClient
 		return result;
 	}
 
-	const int MAX_FILE_SIZE = 0x800000;
+	private const int MAX_FILE_SIZE = 0x800000;
 
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
 	{

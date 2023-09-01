@@ -4,7 +4,7 @@ using JetBrains.Annotations;
 
 namespace SmartImage.Lib.Engines;
 
-public interface IHttpClient : IDisposable
+public interface IEndpoint : IDisposable
 {
 	public string EndpointUrl { get; }
 

@@ -11,7 +11,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Upload;
 
-public abstract class BaseUploadEngine : IHttpClient
+public abstract class BaseUploadEngine : IEndpoint
 {
 	/// <summary>
 	/// Max file size, in bytes

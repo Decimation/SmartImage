@@ -88,6 +88,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to //*[contains(@class, &apos;item-box&apos;)].
+        /// </summary>
+        internal static string S_Ascii2D_Images2 {
+            get {
+                return ResourceManager.GetString("S_Ascii2D_Images2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to //table/tbody/tr.
         /// </summary>
         internal static string S_EHentai {
@@ -174,6 +183,15 @@ namespace SmartImage.Lib {
         internal static string S_Yandex_OtherImages {
             get {
                 return ResourceManager.GetString("S_Yandex_OtherImages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to .CbirSimilar-Thumb.
+        /// </summary>
+        internal static string S_Yandex_SimilarImages {
+            get {
+                return ResourceManager.GetString("S_Yandex_SimilarImages", resourceCulture);
             }
         }
         

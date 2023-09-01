@@ -292,11 +292,13 @@ public partial class MainWindow
 			var ri = ai as ResultItem;
 
 			if (ri is UniResultItem uri) {
-				Img_Preview.Source = uri.Image;
+				UpdatePreview(uri.Image);
+			}
+			else if (ri.Image != null) {
+				UpdatePreview(ri.Image);
 			}
 			else {
-				Img_Preview.Source = m_image;
-
+				UpdatePreview(m_image);
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
 					Br_Preview.Visibility       = Visibility.Hidden;
 					Img_Preview.Visibility      = Visibility.Hidden;

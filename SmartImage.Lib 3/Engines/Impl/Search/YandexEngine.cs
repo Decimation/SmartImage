@@ -58,6 +58,8 @@ public sealed class YandexEngine : WebSearchEngine
 			return Enumerable.Empty<SearchResultItem>();
 		}
 
+		return tagsItem.AsParallel().Select(Parse);
+
 		SearchResultItem Parse(INode siz)
 		{
 			string link    = siz.FirstChild.TryGetAttribute(Serialization.Atr_href);
@@ -74,7 +76,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 			var url = new Uri(link);
 
-			var sri= new SearchResultItem(r)
+			var sri = new SearchResultItem(r)
 			{
 				Url         = url,
 				Site        = site.TextContent,
@@ -88,8 +90,6 @@ public sealed class YandexEngine : WebSearchEngine
 			}
 			return sri;
 		}
-
-		return tagsItem.AsParallel().Select(Parse);
 	}
 
 	private static (int? w, int? h) ParseResolution(string resText)
@@ -165,6 +165,9 @@ public sealed class YandexEngine : WebSearchEngine
 		var ext = ParseExternalInfo(doc, sr);
 		sr.Results.AddRange(ext);
 
+		var similar = ParseSimilarItems(doc, sr);
+		sr.Results.AddRange(similar);
+
 		//
 
 		/*
@@ -191,6 +194,27 @@ public sealed class YandexEngine : WebSearchEngine
 		return sr;
 	}
 
+	private IEnumerable<SearchResultItem> ParseSimilarItems(IDocument doc, SearchResult r)
+	{
+		var nodes   = doc.QuerySelectorAll(Serialization.S_Yandex_SimilarImages);
+		var results = new List<SearchResultItem>(nodes.Length);
+
+		foreach (var node in nodes) {
+			var thumb  = node.Children[0].Attributes["href"];
+			var thumb2 = thumb!= null? (Url) Url.Combine(BaseUrl.Root, thumb.Value) : null;
+			var url    = (string) thumb2?.QueryParams.FirstOrDefault("url");
+
+			results.Add(new SearchResultItem(r)
+			{
+				Thumbnail = url,
+				Url = url
+			});
+		}
+
+		return results;
+		
+	}
+
 	/// <summary>
 	/// Parses <em>sites containing information about the image</em>
 	/// </summary>
@@ -212,11 +236,12 @@ public sealed class YandexEngine : WebSearchEngine
 			{
 				Title = title,
 				Url   = href,
+				Thumbnail = thumb
 			};
 
 			(sri.Width, sri.Height) = ParseResolution(res);
 
-			sri.Metadata.thumb = thumb;
+			// sri.Metadata.thumb = thumb;
 
 			rg.Add(sri);
 		}

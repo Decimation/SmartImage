@@ -15,7 +15,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class RepostSleuthEngine : BaseSearchEngine, IHttpClient
+public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 {
 	public RepostSleuthEngine() : base("https://repostsleuth.com/search?url=")
 	{

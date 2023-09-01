@@ -40,6 +40,9 @@ public partial class MainWindow
 		if (ri is UniResultItem uri) {
 			sw.Img_Preview.Source = uri.Image;
 		}
+		else if (ri.Image != null) {
+			sw.Img_Preview.Source = ri.Image;
+		}
 		else {
 			sw.Img_Preview.Source = m_image;
 		}

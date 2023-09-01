@@ -21,7 +21,7 @@ using JsonValue = System.Json.JsonValue;
 
 namespace SmartImage.Lib;
 
-public class HydrusClient : IHttpClient, INotifyPropertyChanged
+public class HydrusClient : IEndpoint, INotifyPropertyChanged
 {
 	private const string HDR_HYDRUS_KEY = "Hydrus-Client-API-Access-Key";
 

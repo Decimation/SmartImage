@@ -293,14 +293,12 @@
                              SelectionChanged="Lb_Queue_SelectionChanged"
                              SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
                              IsSynchronizedWithCurrentItem="True"
-                             KeyDown="Lb_Queue_KeyDown" Margin="0,2,173,0" HorizontalAlignment="Right"
-                             VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2">
-
-                    </ListBox>
-                    <Border x:Name="Br_Preview" Height="150" Margin="0,3,10,0" Width="150"
+                             KeyDown="Lb_Queue_KeyDown" Margin="0,2,174,0" HorizontalAlignment="Right"
+                             VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2"/>
+                    <Border x:Name="Br_Preview" Height="150" Margin="0,3,11,0" Width="150"
                             Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
-                            Grid.Column="1" d:IsLocked="True">
+                            Grid.Column="1">
 
                         <Image x:Name="Img_Preview" MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown"
                                Width="150" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="0">
@@ -345,10 +343,10 @@
                         </Image>
 
                     </Border>
-                    <Border x:Name="Br_Preview2" Height="150" Margin="0,2,10,0" Width="150"
+                    <Border x:Name="Br_Preview2" Height="150" Margin="0,2,11,0" Width="150"
                             Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
-                            Grid.Column="1" Visibility="Hidden" d:IsLocked="True">
+                            Grid.Column="1" Visibility="Hidden">
                         <MediaElement x:Name="Me_Preview" HorizontalAlignment="Right" VerticalAlignment="Top"
                                       Width="150" MouseDown="Me_Preview_MouseDown">
                             <MediaElement.RenderTransformOrigin>
@@ -400,9 +398,7 @@
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
 
                     <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,0,0,0"
-                            VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click">
-
-                    </Button>
+                            VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click"/>
 
                     <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Restart_Click"
@@ -571,11 +567,11 @@
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline" />
                     <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="501,65,0,0"
                             VerticalAlignment="Top" Click="Btn_Filter_Click" />
-                    <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,498,0" Grid.Row="1"
-                             TextWrapping="Wrap" VerticalAlignment="Top" Width="169"
+                    <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,499,0" Grid.Row="1"
+                             TextWrapping="Wrap" VerticalAlignment="Top" Width="158"
                              TextChanged="Tb_Search_TextChanged" Grid.ColumnSpan="2" />
-                    <ComboBox x:Name="Cb_SearchFields" HorizontalAlignment="Right" Margin="0,17,498,0" Grid.Row="1"
-                              VerticalAlignment="Top" Width="129" Grid.ColumnSpan="2" />
+                    <ComboBox x:Name="Cb_SearchFields" HorizontalAlignment="Right" Margin="0,17,499,0" Grid.Row="1"
+                              VerticalAlignment="Top" Width="148" Grid.ColumnSpan="2" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"

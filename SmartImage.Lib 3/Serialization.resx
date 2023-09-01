@@ -159,4 +159,10 @@
   <data name="S_EHentai" xml:space="preserve">
     <value>//table/tbody/tr</value>
   </data>
+  <data name="S_Ascii2D_Images2" xml:space="preserve">
+    <value>//*[contains(@class, 'item-box')]</value>
+  </data>
+  <data name="S_Yandex_SimilarImages" xml:space="preserve">
+    <value>.CbirSimilar-Thumb</value>
+  </data>
 </root>

@@ -61,6 +61,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 	public int? Width  { get; internal set; }
 	public int? Height { get; internal set; }
 
+	public BitmapImage? Image { get; protected set; }
+
 	public ResultItem(SearchResultItem result, string name)
 	{
 		Result          = result;
@@ -84,6 +86,23 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 			StatusImage = AppComponents.asterisk_yellow;
 		}
 
+		if (Url.IsValid(result.Thumbnail)) {
+			Image = new BitmapImage()
+				{ };
+			Image.BeginInit();
+			Image.UriSource = new Uri(result.Thumbnail);
+			// m_image.StreamSource   = Query.Uni.Stream;
+			Image.CacheOption    = BitmapCacheOption.OnDemand;
+			Image.CreateOptions  = BitmapCreateOptions.None;
+			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+			Image.EndInit();
+
+			if (Image.CanFreeze) {
+				Image.Freeze();
+
+			}
+
+		}
 	}
 
 	public bool Open()
@@ -96,6 +115,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 	{
 		Debug.WriteLine($"Disposing {Name}");
 		Result.Dispose();
+		Image = null;
 	}
 
 	public Task<IFlurlResponse> GetResponseAsync(CancellationToken token = default)
@@ -230,8 +250,6 @@ public class UniResultItem : ResultItem
 
 	public string Description { get; }
 
-	public BitmapImage? Image { get; private set; }
-
 	public UniSource? Uni
 	{
 		get
@@ -244,14 +262,15 @@ public class UniResultItem : ResultItem
 			return null;
 		}
 	}
-	public string Hash     { get; }
 
-	public int?   UniIndex { get; }
+	public string Hash { get; }
+
+	public int? UniIndex { get; }
 
 	public override void Dispose()
 	{
 		base.Dispose();
-		Image = null;
+		
 		Uni?.Dispose();
 	}
 }

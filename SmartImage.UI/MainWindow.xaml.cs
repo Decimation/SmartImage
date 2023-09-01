@@ -165,6 +165,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private readonly SemaphoreSlim m_us;
 	private readonly List<string>  m_pipeBuffer;
 	private readonly HydrusClient  m_hydrus;
+
 	#endregion
 
 	#region
@@ -1064,6 +1065,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
+	private void UpdatePreview(ImageSource x)
+	{
+		Img_Preview.Dispatcher.Invoke(() =>
+		{
+			Img_Preview.Source = x;
+		});
+	}
+
 	private void OnPipeReceived(string s)
 	{
 		Dispatcher.Invoke(() =>
@@ -1083,7 +1092,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		});
 
 	}
-
 }
 
 public class ResultModel

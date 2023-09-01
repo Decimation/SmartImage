@@ -26,7 +26,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		MaxSize = 5 * 1000 * 1000;
 	}
 
-	protected override string NodesSelector => Serialization.S_Ascii2D_Images;
+	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
@@ -112,9 +112,15 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
 	};
 
-	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseResultItem(INode nx, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
+		var nxe = nx as IHtmlElement;
+
+		var n      = nxe.Children[1];
+		var imgBox = nxe.Children[0];
+		var thumb  = imgBox.Children[0].Attributes["src"];
+		sri.Thumbnail= Url.Combine(BaseUrl.Root, thumb?.Value);
 
 		var info = n.ChildNodes.Where(n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
 			.ToArray();
@@ -131,7 +137,8 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		string fmt = data[1];
 
-		string size = data[2];
+		string size   = data[2];
+		string title1 = (n as IHtmlElement).FirstChild.TryGetAttribute("Title");
 
 		if (info.Length >= 3) {
 			var node2 = info[2];

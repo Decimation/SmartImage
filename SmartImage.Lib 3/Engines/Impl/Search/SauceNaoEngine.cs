@@ -31,7 +31,7 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IHttpClient, IConfig
+public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 {
 	internal static class Strings
 	{
@@ -208,7 +208,12 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IHttpClient, IConfig
 		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
 			return null;
 		}
-
+		var resultElem = result as IHtmlElement;
+		var resultImg  = resultElem.QuerySelector(".resultimage");
+		var resultImg2 = resultImg.FirstChild.FirstChild;
+		var thumbnail  = resultImg2.TryGetAttribute("src");
+		var thumbnailTitle = resultImg2.TryGetAttribute("title");
+		
 		var resulttablecontent = result.FirstChild
 			.FirstChild
 			.FirstChild
@@ -289,7 +294,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IHttpClient, IConfig
 		{
 			Urls       = links.Distinct().ToArray(),
 			Similarity = similarity,
-			Material   = material1
+			Material   = material1,
+			Thumbnail = thumbnail,
+			ThumbnailTitle = thumbnailTitle
 
 		};
 
@@ -449,6 +456,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IHttpClient, IConfig
 		public string Creator { get; internal set; }
 		public string Source  { get; internal set; }
 
+		public Url Thumbnail { get; internal set; }
+
+		public string ThumbnailTitle { get; internal set; }
+
 		public SearchResultItem Convert(SearchResult r)
 		{
 			var    idxStr   = Index.ToString();
@@ -497,6 +508,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IHttpClient, IConfig
 				Site        = site,
 				Title       = Kantan.Text.Strings.NormalizeNull(Title),
 				Metadata    = meta,
+				Thumbnail = Thumbnail,
+				ThumbnailTitle = ThumbnailTitle
+
 			};
 
 			imageResult.AddSisters(meta);
