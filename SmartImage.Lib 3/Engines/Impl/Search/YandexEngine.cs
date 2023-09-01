@@ -22,7 +22,7 @@ public sealed class YandexEngine : WebSearchEngine
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
-		Timeout = TimeSpan.FromSeconds(10);
+		Timeout = TimeSpan.FromSeconds(15);
 	}
 
 	protected override string NodesSelector => Serialization.S_Yandex_Images;
@@ -166,7 +166,7 @@ public sealed class YandexEngine : WebSearchEngine
 		var ext = ParseExternalInfo(doc, sr);
 		sr.Results.AddRange(ext);
 
-		var similar = ParseSimilarItems(doc, sr);
+		var similar = ParseSimilarImages(doc, sr);
 		sr.Results.AddRange(similar);
 
 		//
@@ -198,7 +198,7 @@ public sealed class YandexEngine : WebSearchEngine
 	/// <summary>
 	/// Parses <em>Similar images</em>
 	/// </summary>
-	private IEnumerable<SearchResultItem> ParseSimilarItems(IDocument doc, SearchResult r)
+	private IEnumerable<SearchResultItem> ParseSimilarImages(IDocument doc, SearchResult r)
 	{
 		var nodes   = doc.QuerySelectorAll(Serialization.S_Yandex_SimilarImages);
 		var results = new List<SearchResultItem>(nodes.Length);

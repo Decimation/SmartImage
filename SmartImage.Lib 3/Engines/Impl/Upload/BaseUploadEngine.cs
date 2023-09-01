@@ -97,7 +97,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 					                                   .AddString("time", "1h")
 			                                   , cancellationToken: ct);
 
-		return await VerifyResultAsync(response, ct);
+		return await VerifyResultAsync(response, ct).ConfigureAwait(false);
 	}
 
 	protected override async Task<BaseUploadResponse> VerifyResultAsync(

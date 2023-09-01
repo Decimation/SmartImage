@@ -20,6 +20,7 @@ using Kantan.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using SmartImage.Lib;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Utilities;
@@ -216,6 +217,10 @@ public partial class MainWindow
 		// AdvanceQueue(-1);
 
 		if (m_queries.TryRemove(old, out var sq)) {
+			foreach (var r in m_resultMap[sq]) {
+				r.Dispose();
+			}
+			
 			m_images.TryRemove(sq, out var img);
 		}
 
@@ -232,6 +237,9 @@ public partial class MainWindow
 		CurrentQueueItem = n;
 
 		sq?.Dispose();
+		GC.Collect();
+		GC.WaitForPendingFinalizers();
+		GC.Collect();
 		// AdvanceQueue();
 		e.Handled = true;
 	}
@@ -292,10 +300,10 @@ public partial class MainWindow
 			var ri = ai as ResultItem;
 
 			if (ri is UniResultItem uri) {
-				UpdatePreview(uri.Image);
+				UpdatePreview(uri);
 			}
-			else if (ri.Image != null) {
-				UpdatePreview(ri.Image);
+			else if (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe){
+				UpdatePreview(ri);
 			}
 			else {
 				UpdatePreview(m_image);

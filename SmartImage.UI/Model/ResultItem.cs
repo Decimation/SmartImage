@@ -86,23 +86,43 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 			StatusImage = AppComponents.asterisk_yellow;
 		}
 
-		if (Url.IsValid(result.Thumbnail)) {
+	}
+
+	public bool HasImage => Image != null;
+
+	public virtual bool LoadImage()
+	{
+		if (CanLoadImage) {
+
+			/*
+			 * NOTE:
+			 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
+			 * 
+			 */
+
 			Image = new BitmapImage()
 				{ };
 			Image.BeginInit();
-			Image.UriSource = new Uri(result.Thumbnail);
-			// m_image.StreamSource   = Query.Uni.Stream;
-			Image.CacheOption    = BitmapCacheOption.OnDemand;
-			Image.CreateOptions  = BitmapCreateOptions.None;
+			Image.UriSource = new Uri(Result.Thumbnail);
+			// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
+			Image.CacheOption = BitmapCacheOption.OnDemand;
+			// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
+			// Image.CreateOptions = BitmapCreateOptions.None;
+
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
 
-			if (Image.CanFreeze) {
-				Image.Freeze();
+			Image.DownloadCompleted += (sender, args) =>
+			{
+				Debug.WriteLine("download complete");
 
-			}
-
+				if (Image.CanFreeze) {
+					Image.Freeze();
+				}
+			};
 		}
+
+		return HasImage;
 	}
 
 	public bool Open()
@@ -110,6 +130,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 		return FileSystem.Open(Url);
 
 	}
+
+	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
 
 	public virtual void Dispose()
 	{
@@ -175,23 +197,6 @@ public class UniResultItem : ResultItem
 
 			}
 
-			Image = new BitmapImage()
-				{ };
-			Image.BeginInit();
-			Image.StreamSource = Uni.Stream;
-			// m_image.StreamSource   = Query.Uni.Stream;
-			Image.CacheOption    = BitmapCacheOption.OnDemand;
-			Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
-			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-			Image.EndInit();
-
-			if (Image.CanFreeze) {
-				Image.Freeze();
-
-			}
-
-			Width  = Image.PixelWidth;
-			Height = Image.PixelHeight;
 			// StatusImage = Image;
 		}
 		else {
@@ -203,6 +208,33 @@ public class UniResultItem : ResultItem
 		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
+	}
+
+	public override bool CanLoadImage => !HasImage && Uni != null;
+
+	public override bool LoadImage()
+	{
+		if (CanLoadImage) {
+			Image = new BitmapImage()
+				{ };
+			Image.BeginInit();
+			Image.StreamSource = Uni.Stream;
+			// m_image.StreamSource   = Query.Uni.Stream;
+			Image.CacheOption    = BitmapCacheOption.OnLoad;
+			Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
+			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+			Image.EndInit();
+
+			if (Image.CanFreeze) {
+				Image.Freeze();
+
+			}
+
+			Width  = Image.PixelWidth;
+			Height = Image.PixelHeight;
+
+		}
+		return HasImage;
 	}
 
 	public string Download { get; private set; }
@@ -270,7 +302,7 @@ public class UniResultItem : ResultItem
 	public override void Dispose()
 	{
 		base.Dispose();
-		
+
 		Uni?.Dispose();
 	}
 }

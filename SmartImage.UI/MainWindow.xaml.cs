@@ -55,6 +55,7 @@ using Clipboard = System.Windows.Clipboard;
 using System.Data.Common;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Runtime;
 using ReactiveUI;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
@@ -66,7 +67,9 @@ namespace SmartImage.UI;
 /// </summary>
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
-	static MainWindow() { }
+	static MainWindow()
+	{
+	}
 
 	public MainWindow()
 	{
@@ -205,7 +208,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
-	private ConcurrentDictionary<SearchQuery, BitmapImage?> m_images;
+	private readonly ConcurrentDictionary<SearchQuery, BitmapImage?> m_images;
 
 	#endregion
 
@@ -279,6 +282,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Url upload;
 
 			Debug.Assert(Query != null);
+			var uriString = Query.ValueString;
+			Debug.Assert(uriString != null);
+
+			Tb_Status.Text = "Rendering preview...";
+
+			Dispatcher.InvokeAsync(UpdateImage);
 
 			if (b2) {
 				upload         = Query.Upload;
@@ -287,29 +296,25 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			else {
 				Tb_Status.Text = "Uploading...";
 				upload         = await Query.UploadAsync(ct: m_ctsu.Token);
-				Tb_Status.Text = "Uploaded";
 
 				if (!Url.IsValid(upload)) {
+					// todo: show user specific error message
 					Pb_Status.IsIndeterminate = false;
 					Tb_Status.Text            = "-";
-					Tb_Status2.Text           = "Invalid";
+					Tb_Status2.Text           = "Failed to upload: server timed out or input was invalid";
 					Btn_Run.IsEnabled         = true;
 					// Btn_Delete.IsEnabled      = true;
 					goto ret;
 					// return;
 				}
+				else {
+					Tb_Status.Text = "Uploaded";
+
+				}
 
 			}
-
 			Tb_Upload.Text            = upload;
 			Pb_Status.IsIndeterminate = false;
-
-			var uriString = Query.ValueString;
-			Debug.Assert(uriString != null);
-
-			Tb_Status.Text = "Rendering preview...";
-
-			Dispatcher.InvokeAsync(UpdateImage);
 
 			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
 			// Btn_Remove.IsEnabled = Btn_Delete.IsEnabled;
@@ -408,8 +413,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			}
 
-			Img_Preview.Source = m_image;
+			// Img_Preview.Source = m_image;
 
+			UpdatePreview(m_image);
 		}
 	}
 
@@ -1065,11 +1071,29 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
+	private void UpdatePreview(ResultItem ri)
+	{
+		/*if (ri.Load()) {
+			UpdatePreview(ri.Image);
+		}*/
+
+		Application.Current.Dispatcher.InvokeAsync(() =>
+		{
+
+			if (ri.LoadImage()) {
+				Img_Preview.Source = ri.Image;
+				Debug.WriteLine($"updated image {ri.Image}");
+
+			}
+		});
+	}
+
 	private void UpdatePreview(ImageSource x)
 	{
-		Img_Preview.Dispatcher.Invoke(() =>
+		Application.Current.Dispatcher.Invoke(() =>
 		{
 			Img_Preview.Source = x;
+			Debug.WriteLine($"updated image {x}");
 		});
 	}
 

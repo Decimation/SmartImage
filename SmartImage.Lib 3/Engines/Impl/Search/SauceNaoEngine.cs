@@ -419,7 +419,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 				buffer.Add(item);
 			}
 
-			return await Task.FromResult(buffer.ToArray());
+			return await Task.FromResult(buffer.ToArray()).ConfigureAwait(false);
 		}
 
 		return null;

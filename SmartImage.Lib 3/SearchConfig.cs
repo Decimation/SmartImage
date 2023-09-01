@@ -83,7 +83,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string EhUsername
 	{
-		get { return Configuration.ReadSetting<string>(nameof(EhUsername), STR_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(EhUsername), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(EhUsername), value);
@@ -96,7 +96,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string EhPassword
 	{
-		get { return Configuration.ReadSetting<string>(nameof(EhPassword), STR_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(EhPassword), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(EhPassword), value);
@@ -108,7 +108,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string HydrusEndpoint
 	{
-		get { return Configuration.ReadSetting<string>(nameof(HydrusEndpoint), STR_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(HydrusEndpoint), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(HydrusEndpoint), value);
@@ -121,7 +121,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string HydrusKey
 	{
-		get { return Configuration.ReadSetting<string>(nameof(HydrusKey), STR_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(HydrusKey), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(HydrusKey), value);
@@ -173,7 +173,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	/// </summary>
 	public string SauceNaoKey
 	{
-		get { return Configuration.ReadSetting<string>(nameof(SauceNaoKey), STR_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(SauceNaoKey), STR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(SauceNaoKey), value);

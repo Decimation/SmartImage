@@ -81,7 +81,7 @@
                Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
         <TextBox x:Name="Tb_UniType" HorizontalAlignment="Left" Margin="91,311,0,0"
-                 Text="{Binding UniResult.Uni.FileTypes[0], Mode=OneTime}"
+                 Text="{Binding UniResult.Uni.FileType, Mode=OneTime}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
@@ -99,7 +99,7 @@
                  VerticalAlignment="Top" Width="260" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
         <TextBox x:Name="Tb_HyDesc" HorizontalAlignment="Left" Margin="514,373,0,0"
-            Text="{Binding Result.Description, Mode=OneTime}" VerticalAlignment="Top" Width="260"
+            Text="{Binding Result.Result.Description, Mode=OneTime}" VerticalAlignment="Top" Width="260"
             Background="Black" Foreground="White" IsReadOnly="True" Height="42" 
             Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 

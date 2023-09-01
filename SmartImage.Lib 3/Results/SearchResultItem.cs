@@ -97,7 +97,7 @@ public sealed record SearchResultItem : IDisposable,
 	public int Score { get; private set; }
 
 	[CanBeNull]
-	public Url Thumbnail { get;   internal set; }
+	public Url Thumbnail { get; internal set; }
 
 	[CanBeNull]
 	public string ThumbnailTitle { get; internal set; }
@@ -161,7 +161,7 @@ public sealed record SearchResultItem : IDisposable,
 			Score++;
 		}
 
-		var a = new[] { Source, Artist, Character, Description, Title, Site, (string) Thumbnail, ThumbnailTitle };
+		var a = new string[] { Source, Artist, Character, Description, Title, Site, (string) Thumbnail, ThumbnailTitle };
 		Score += a.Count(s => !string.IsNullOrWhiteSpace(s));
 
 		var b = new[] { Similarity, Width, Height, };
@@ -217,7 +217,7 @@ public sealed record SearchResultItem : IDisposable,
 		return HasUni;
 	}
 
-	[NotNull]
+	/*[NotNull]
 	public Task<IFlurlResponse> GetUrlResponseAsync(CancellationToken ct = default)
 	{
 		return SearchClient.Client.Request(Url)
@@ -229,11 +229,11 @@ public sealed record SearchResultItem : IDisposable,
 			{
 				x.ExceptionHandled = true;
 			}).GetAsync(cancellationToken: ct);
-	}
+	}*/
 
 	public bool HasUni => Uni != null && Uni.Any();
 
-	public IFlurlResponse Response { get; private set; }
+	// public IFlurlResponse Response { get; private set; }
 
 	public override string ToString()
 	{
