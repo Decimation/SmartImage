@@ -764,16 +764,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	private void ChangeStatus2(ResultItem ri)
-	{
-		if (ri is UniResultItem { Uni: { } } uri) {
-			Tb_Status2.Text = uri.Description;
-		}
-		else {
-			Tb_Status2.Text = $"{ri.Name}";
-		}
-	}
-
 	#region
 
 	private async Task DownloadResultAsync(UniResultItem uri)
@@ -967,6 +957,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
+	#region 
+
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
 
 	public static readonly Dictionary<string, Func<ResultItem, string?>> SearchFields = new()
@@ -1028,6 +1020,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
+	#endregion
+
+	private void ChangeStatus2(ResultItem ri)
+	{
+		if (ri is UniResultItem { Uni: { } } uri) {
+			Tb_Status2.Text = uri.Description;
+		}
+		else {
+			Tb_Status2.Text = $"{ri.Name}";
+		}
+	}
+
+	#region 
+
 	private void Log(LogEntry l)
 	{
 		Logs.Add(l);
@@ -1035,6 +1041,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 
 	public ObservableCollection<LogEntry> Logs { get; }
+
+	#endregion
 
 	private async void CheckForUpdate()
 	{
@@ -1072,6 +1080,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public event PreviewChangedCallback? PreviewChanged;*/
 
+	#region 
+
 	private void UpdatePreview(ResultItem ri)
 	{
 		/*if (ri.Load()) {
@@ -1080,11 +1090,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Application.Current.Dispatcher.InvokeAsync(() =>
 		{
-
 			if (ri.LoadImage()) {
 				Img_Preview.Source = ri.Image;
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
+			}
+			else {
+				Img_Preview.Source = m_image;
 			}
 		});
 	}
@@ -1098,6 +1110,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			// PreviewChanged?.Invoke(null);
 		});
 	}
+
+	#endregion
 
 	private void OnPipeReceived(string s)
 	{
