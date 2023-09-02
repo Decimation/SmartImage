@@ -7,18 +7,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="clr-namespace:SmartImage.UI"
         xmlns:converters="clr-namespace:SmartImage.UI"
+        xmlns:controls="clr-namespace:SmartImage.UI.Controls"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1300" MinWidth="1300" MinHeight="300" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919"
         KeyDown="Wnd_Main_KeyDown">
     <Window.Resources>
+        <!-- <ui:SharedViewModel x:Key="SharedViewModel" /> -->
+        <!-- <ui:SharedImageControl x:Key="SharedImage" /> -->
+
         <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
             <converters:BooleanToBrushConverter.TrueBrush>
-                <SolidColorBrush Color="Green"/>
+                <SolidColorBrush Color="Green" />
             </converters:BooleanToBrushConverter.TrueBrush>
             <converters:BooleanToBrushConverter.FalseBrush>
-                <SolidColorBrush Color="Red"/>
+                <SolidColorBrush Color="Red" />
             </converters:BooleanToBrushConverter.FalseBrush>
         </converters:BooleanToBrushConverter>
         <Style x:Key="CustomContextMenuStyle" TargetType="{x:Type ContextMenu}">
@@ -57,7 +61,10 @@
             <MenuItem Header="Retry" Click="RetryItem_Click" />
             <MenuItem Header="Enqueue" Click="EnqueueItem_Click" IsEnabled="{Binding CanDownload}" />
         </ContextMenu>
+        
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <controls:InvertableBooleanToVisibilityConverter x:Key="BooleanVisConverter"/>
+
         <Style x:Key="BoldGridViewCellStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="FontWeight" Value="Bold" />
             <Setter Property="HorizontalAlignment" Value="Center" />
@@ -294,14 +301,17 @@
                              SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
                              IsSynchronizedWithCurrentItem="True"
                              KeyDown="Lb_Queue_KeyDown" Margin="0,2,174,0" HorizontalAlignment="Right"
-                             VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2"/>
+                             VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2" />
+
                     <Border x:Name="Br_Preview" Height="150" Margin="0,3,11,0" Width="150"
                             Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
-                            Grid.Column="1">
+                            Grid.Column="1"
+                            Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Inverted}">
 
                         <Image x:Name="Img_Preview" MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown"
-                               Width="150" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="0">
+                               Width="150" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="0"
+                               Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Inverted}">
 
                             <Image.RenderTransformOrigin>
                                 <Point X="1" Y="0"></Point>
@@ -346,9 +356,9 @@
                     <Border x:Name="Br_Preview2" Height="150" Margin="0,2,11,0" Width="150"
                             Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
-                            Grid.Column="1" Visibility="Hidden">
+                            Grid.Column="1"  Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
                         <MediaElement x:Name="Me_Preview" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                      Width="150" MouseDown="Me_Preview_MouseDown">
+                                      Width="150" MouseDown="Me_Preview_MouseDown" Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
                             <MediaElement.RenderTransformOrigin>
                                 <Point X="1" Y="0"></Point>
                             </MediaElement.RenderTransformOrigin>
@@ -398,7 +408,7 @@
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
 
                     <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,0,0,0"
-                            VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click"/>
+                            VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click" />
 
                     <Button x:Name="Btn_Restart" Content="Restart" HorizontalAlignment="Left" Margin="537,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Restart_Click"
@@ -632,15 +642,16 @@
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
                     <TextBox x:Name="Tb_HyEndpoint" HorizontalAlignment="Left" Margin="527,297,0,0" TextWrapping="Wrap"
-                        VerticalAlignment="Top" Width="120"
-                        Text="{Binding Config.HydrusEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                             VerticalAlignment="Top" Width="120"
+                             Text="{Binding Config.HydrusEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
                     <TextBox x:Name="Tb_HyKey" HorizontalAlignment="Left" Margin="527,326,0,0" TextWrapping="Wrap"
-                        VerticalAlignment="Top" Width="120"
-                        Text="{Binding Config.HydrusKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
-                    <Label x:Name="Lb_HyEndpoint" Content="Hydrus Endpoint" HorizontalAlignment="Left" Margin="424,293,0,0"
-                        VerticalAlignment="Top" Foreground="White" />
+                             VerticalAlignment="Top" Width="120"
+                             Text="{Binding Config.HydrusKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                    <Label x:Name="Lb_HyEndpoint" Content="Hydrus Endpoint" HorizontalAlignment="Left"
+                           Margin="424,293,0,0"
+                           VerticalAlignment="Top" Foreground="White" />
                     <Label x:Name="Lb_HyKey" Content="Hydrus Key" HorizontalAlignment="Left" Margin="424,322,0,0"
-                        VerticalAlignment="Top" Foreground="White" />
+                           VerticalAlignment="Top" Foreground="White" />
 
                 </Grid>
             </TabItem>

@@ -24,6 +24,15 @@ public partial class PopupWindow : Window
 		DataContext = this;
 		InitializeComponent();
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
+		RenderOptions.SetBitmapScalingMode(Img_Compare, BitmapScalingMode.HighQuality);
 
+	}
+
+	private void Img_Preview_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+	{
+	}
+
+	private void Img_Compare_OnMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+	{
 	}
 }

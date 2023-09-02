@@ -34,7 +34,7 @@ public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
 	public IqdbEngine() : base("https://iqdb.org/?url=")
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
-		
+		Timeout = TimeSpan.FromSeconds(10);
 	}
 
 	private SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)

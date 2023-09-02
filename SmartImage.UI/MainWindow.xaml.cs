@@ -67,9 +67,7 @@ namespace SmartImage.UI;
 /// </summary>
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
-	static MainWindow()
-	{
-	}
+	static MainWindow() { }
 
 	public MainWindow()
 	{
@@ -160,8 +158,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public static SearchEngineOptions[] Engines { get; } = Enum.GetValues<SearchEngineOptions>();
 
 	private readonly object m_lock = new();
-
-	private bool m_me;
 
 	private readonly WindowInteropHelper m_wndInterop;
 
@@ -313,6 +309,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				}
 
 			}
+
 			Tb_Upload.Text            = upload;
 			Pb_Status.IsIndeterminate = false;
 
@@ -1071,6 +1068,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
+	/*public delegate bool PreviewChangedCallback(ResultItem? ri);
+
+	public event PreviewChangedCallback? PreviewChanged;*/
+
 	private void UpdatePreview(ResultItem ri)
 	{
 		/*if (ri.Load()) {
@@ -1082,8 +1083,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (ri.LoadImage()) {
 				Img_Preview.Source = ri.Image;
-				Debug.WriteLine($"updated image {ri.Image}");
-
+				// Debug.WriteLine($"updated image {ri.Image}");
+				// PreviewChanged?.Invoke(ri);
 			}
 		});
 	}
@@ -1093,7 +1094,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.Invoke(() =>
 		{
 			Img_Preview.Source = x;
-			Debug.WriteLine($"updated image {x}");
+			// Debug.WriteLine($"updated image {x}");
+			// PreviewChanged?.Invoke(null);
 		});
 	}
 

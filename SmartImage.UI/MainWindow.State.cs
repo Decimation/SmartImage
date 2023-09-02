@@ -66,4 +66,17 @@ public partial class MainWindow
 
 		return Results.IndexOf(r);
 	}
+
+	private bool m_showMedia;
+
+	public bool ShowMedia
+	{
+		get => m_showMedia;
+		set
+		{
+			if (value == m_showMedia) return;
+			m_showMedia = value;
+			OnPropertyChanged();
+		}
+	}
 }

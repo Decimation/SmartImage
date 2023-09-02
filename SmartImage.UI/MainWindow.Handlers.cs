@@ -301,35 +301,25 @@ public partial class MainWindow
 
 			if (ri is UniResultItem uri) {
 				UpdatePreview(uri);
+				CheckMedia();
 			}
 			else if (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe){
 				UpdatePreview(ri);
+				CheckMedia();
 			}
 			else {
 				UpdatePreview(m_image);
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
-					Br_Preview.Visibility       = Visibility.Hidden;
-					Img_Preview.Visibility      = Visibility.Hidden;
-					Br_Preview2.Visibility      = Visibility.Visible;
-					Me_Preview.Visibility       = Visibility.Visible;
+					
 					Me_Preview.ScrubbingEnabled = false;
 					Me_Preview.UnloadedBehavior = MediaState.Close;
 					Me_Preview.LoadedBehavior   = MediaState.Manual;
 					Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
 					Me_Preview.Play();
-					m_me = true;
+					ShowMedia = true;
 				}
 				else {
-					if (m_me) {
-						Br_Preview.Visibility  = Visibility.Visible;
-						Img_Preview.Visibility = Visibility.Visible;
-						Br_Preview2.Visibility = Visibility.Hidden;
-						Me_Preview.Visibility  = Visibility.Hidden;
-						Me_Preview.Stop();
-						Me_Preview.Close();
-						Me_Preview.Source = null;
-						m_me              = false;
-					}
+					CheckMedia();
 				}
 
 			}
@@ -339,6 +329,17 @@ public partial class MainWindow
 		}
 
 		e.Handled = true;
+		return;
+
+		void CheckMedia()
+		{
+			if (ShowMedia) {
+				Me_Preview.Stop();
+				Me_Preview.Close();
+				Me_Preview.Source = null;
+				ShowMedia         = false;
+			}
+		}
 	}
 
 	private void Lv_Results_KeyDown(object sender, KeyEventArgs e)
@@ -508,7 +509,8 @@ public partial class MainWindow
 			m_cbDispatch.Start();
 		}
 
-		m_trDispatch.Start();
+		// todo: not used for now
+		// m_trDispatch.Start();
 		e.Handled = true;
 		Debug.WriteLine("Main loaded");
 
@@ -606,7 +608,8 @@ public partial class MainWindow
 				};
 				this.m_popup.Show();
 			}*/
-			FileSystem.Open(CurrentQueueItem);
+			var s = Img_Preview.Source.ToString();
+			FileSystem.Open(s);
 		}
 
 		e.Handled = true;
