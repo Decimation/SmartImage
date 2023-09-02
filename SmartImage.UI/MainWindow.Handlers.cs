@@ -344,9 +344,7 @@ public partial class MainWindow
 
 	private void Lv_Results_KeyDown(object sender, KeyEventArgs e)
 	{
-		var ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-		var alt   = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
-		var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+		(bool ctrl, bool alt, bool shift) = ControlsHelper.GetModifiers();
 
 		var key = e.Key;
 
@@ -404,6 +402,11 @@ public partial class MainWindow
 			case Key.R when ctrl && alt:
 				Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
 				break;
+			case Key.H when ctrl:
+				var w = new HydrusWindow(Shared);
+				w.Show();
+				break;
+
 		}
 
 		e.Handled = true;

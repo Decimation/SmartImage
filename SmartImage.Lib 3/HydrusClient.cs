@@ -23,7 +23,9 @@ namespace SmartImage.Lib;
 
 public class HydrusClient : IEndpoint, INotifyPropertyChanged
 {
-	private const string HDR_HYDRUS_KEY = "Hydrus-Client-API-Access-Key";
+	private const string HDR_HYDRUS_KEY      = "Hydrus-Client-API-Access-Key";
+	private const string GET_FILES_THUMBNAIL = "/get_files/thumbnail";
+	private const string GET_FILES_FILE      = "/get_files/file";
 
 	public FlurlClient Client { get; }
 
@@ -95,6 +97,40 @@ public class HydrusClient : IEndpoint, INotifyPropertyChanged
 		var j = JsonValue.Load(b);
 
 		return j;
+	}
+
+	public async Task<IFlurlResponse> GetFileAsync(string hash)
+	{
+		var res = await Client.Request(GET_FILES_FILE)
+			          .SetQueryParam("hash", hash)
+			          .GetAsync();
+
+		return res;
+	}
+	public async Task<IFlurlResponse> GetFileAsync(int id)
+	{
+		var res = await Client.Request(GET_FILES_FILE)
+			          .SetQueryParam("file_id", id)
+			          .GetAsync();
+
+		return res;
+	}
+	public async Task<IFlurlResponse> GetFileThumbnailAsync(string hash)
+	{
+		var res = await Client.Request(GET_FILES_THUMBNAIL)
+			          .SetQueryParam("hash", hash)
+			          .GetAsync();
+
+		return res;
+	}
+
+	public async Task<IFlurlResponse> GetFileThumbnailAsync(int id)
+	{
+		var res = await Client.Request(GET_FILES_THUMBNAIL)
+			          .SetQueryParam("file_id", id)
+			          .GetAsync();
+
+		return res;
 	}
 
 	private string m_key;

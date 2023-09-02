@@ -146,4 +146,12 @@ public static class ControlsHelper
 
 		return bytes;
 	}
+
+	public static (bool ctrl, bool alt, bool shift) GetModifiers()
+	{
+		var ctrl  = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
+		var alt   = Keyboard.Modifiers.HasFlag(ModifierKeys.Alt);
+		var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
+		return (ctrl, alt, shift);
+	}
 }

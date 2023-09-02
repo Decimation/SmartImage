@@ -71,7 +71,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public MainWindow()
 	{
-		Client    = new SearchClient(new SearchConfig());
+		// Client    = new SearchClient(new SearchConfig());
+		Shared    = new SharedInfo();
 		m_queries = new ConcurrentDictionary<string, SearchQuery>();
 
 		InitializeComponent();
@@ -147,6 +148,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		PropertyChangedEventManager.AddHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
+
 	}
 
 	#region
@@ -163,15 +165,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly SemaphoreSlim m_us;
 	private readonly List<string>  m_pipeBuffer;
-	private readonly HydrusClient  m_hydrus;
 
 	#endregion
 
 	#region
 
-	public SearchClient Client { get; }
+	public SearchClient Client => Shared.Client;
 
-	public SearchConfig Config => Client.Config;
+	public SearchConfig Config => Shared.Config;
 
 	public ObservableCollection<ResultItem> Results { get; private set; }
 
@@ -190,6 +191,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	#endregion
 
 	#region
+
+	public SharedInfo Shared { get; set; }
 
 	private readonly ConcurrentDictionary<UniResultItem, string> m_uni;
 
@@ -210,7 +213,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region Queue/Query
 
-	public SearchQuery Query { get; internal set; }
+	public SearchQuery Query
+	{
+		get => Shared.Query;
+		internal set => Shared.Query = value;
+	}
 
 	private string m_currentQueueItem;
 
@@ -480,7 +487,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static int _clipboardSequence;
 
-	// [DebuggerHidden]
+	[DebuggerHidden]
 	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		/*if (IsInputReady() /*|| Query != SearchQuery.Null#1#) {
@@ -957,7 +964,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	#region 
+	#region
 
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
 
@@ -1032,7 +1039,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	#region 
+	#region
 
 	private void Log(LogEntry l)
 	{
@@ -1080,7 +1087,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public event PreviewChangedCallback? PreviewChanged;*/
 
-	#region 
+	#region
 
 	private void UpdatePreview(ResultItem ri)
 	{
