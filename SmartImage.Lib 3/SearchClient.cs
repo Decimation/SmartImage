@@ -160,7 +160,8 @@ public sealed class SearchClient : IDisposable
 					OpenResult(results.MaxBy(x => x.AllResults.Sum(xy => xy.Score)));
 				}
 				else {
-					OpenResult(rr.FirstOrDefault()?.Url);
+					OpenResult(rr.OrderByDescending(x=>x.Similarity)
+						           .FirstOrDefault(x=>Url.IsValid(x.Url))?.Url);
 				}
 			}
 			catch (Exception e) {

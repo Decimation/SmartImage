@@ -1103,6 +1103,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 			else {
 				UpdatePreview();
+				Tb_Preview.Text = $"Preview: (query)";
 			}
 		});
 	}

@@ -317,6 +317,7 @@ public partial class MainWindow
 					Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
 					Me_Preview.Play();
 					ShowMedia       = true;
+					Tb_Preview.Text = $"Preview: {ri.Name}";
 				}
 				else {
 					CheckMedia();

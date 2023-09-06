@@ -208,12 +208,20 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
 			return null;
 		}
-		var resultElem = result as IHtmlElement;
-		var resultImg  = resultElem.QuerySelector(".resultimage");
-		var resultImg2 = resultImg.FirstChild.FirstChild;
-		var thumbnail  = resultImg2.TryGetAttribute("src");
-		var thumbnailTitle = resultImg2.TryGetAttribute("title");
 		
+		var resultElem     = result as IHtmlElement;
+		var ri             = resultElem.QuerySelector("img");
+
+		// var resultImg      = resultElem.QuerySelector(".resultimage");
+		// var resultImg2     = resultImg.FirstChild.FirstChild;
+		// var thumbnail      = resultImg2.TryGetAttribute("src");
+		// var thumbnailTitle = resultImg2.TryGetAttribute("title");
+		
+		var thumbnail = ri.GetAttribute("src");
+		var thumbnailTitle = ri.GetAttribute("title");
+
+		var ds = ri.Attributes.Where(x => x.Name.Contains("data-src")).ToArray();
+
 		var resulttablecontent = result.FirstChild
 			.FirstChild
 			.FirstChild

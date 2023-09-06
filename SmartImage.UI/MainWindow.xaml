@@ -582,7 +582,7 @@
                              TextChanged="Tb_Search_TextChanged" Grid.ColumnSpan="2" />
                     <ComboBox x:Name="Cb_SearchFields" HorizontalAlignment="Right" Margin="0,17,499,0" Grid.Row="1"
                               VerticalAlignment="Top" Width="148" Grid.ColumnSpan="2" />
-                    <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Left" Margin="460,65,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"/>
+                    <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0" Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White" Width="150"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
