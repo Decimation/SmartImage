@@ -84,17 +84,17 @@ public static class ControlsHelper
 	public static SearchEngineOptions HandleEnum(this ListBox lb, SelectionChangedEventArgs e,
 	                                             SearchEngineOptions orig)
 	{
-		var rg = lb.ItemsSource.OfType<SearchEngineOptions>().ToArray();
+		// var rg = lb.ItemsSource.OfType<SearchEngineOptions>().ToArray();
 
 		var ai = e.AddedItems.OfType<SearchEngineOptions>()
-			.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
+			.Aggregate(default(SearchEngineOptions), Func);
 
 		var ri = e.RemovedItems.OfType<SearchEngineOptions>()
-			.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
+			.Aggregate(default(SearchEngineOptions), Func);
 
 		var si = lb.SelectedItems.OfType<SearchEngineOptions>().ToArray();
 
-		var siv = si.Aggregate(default(SearchEngineOptions), (n, l) => n | l);
+		var siv = si.Aggregate(default(SearchEngineOptions), Func);
 
 		orig &= siv;
 		orig &= (~ri);
@@ -102,6 +102,8 @@ public static class ControlsHelper
 
 		return orig;
 
+		static SearchEngineOptions Func(SearchEngineOptions n, SearchEngineOptions l)
+			=> n | l;
 	}
 
 	public static string[] GetFilesFromDrop(this DragEventArgs e)

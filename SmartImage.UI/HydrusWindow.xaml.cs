@@ -34,7 +34,7 @@ public partial class HydrusWindow : Window
 
 	private void Btn_1_OnClick(object sender, RoutedEventArgs e)
 	{
-		Tb_Info.Dispatcher.InvokeAsync(async () =>
+		/*Tb_Info.Dispatcher.InvokeAsync(async () =>
 		{
 			Shared.Query.Uni.Stream.TrySeek();
 			var    data        = SHA256.HashData(Shared.Query.Uni.Stream);
@@ -47,7 +47,7 @@ public partial class HydrusWindow : Window
 			imageSource.EndInit();
 			imageSource.Freeze();
 			Img_Preview.Source       = imageSource;
-		});
+		});*/
 		e.Handled = true;
 	}
 }

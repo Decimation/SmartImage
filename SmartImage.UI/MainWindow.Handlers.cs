@@ -308,7 +308,7 @@ public partial class MainWindow
 				CheckMedia();
 			}
 			else {
-				UpdatePreview(m_image);
+				UpdatePreview();
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
 					
 					Me_Preview.ScrubbingEnabled = false;
@@ -316,7 +316,7 @@ public partial class MainWindow
 					Me_Preview.LoadedBehavior   = MediaState.Manual;
 					Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
 					Me_Preview.Play();
-					ShowMedia = true;
+					ShowMedia       = true;
 				}
 				else {
 					CheckMedia();
@@ -338,6 +338,9 @@ public partial class MainWindow
 				Me_Preview.Close();
 				Me_Preview.Source = null;
 				ShowMedia         = false;
+			}
+			else {
+
 			}
 		}
 	}
@@ -402,10 +405,12 @@ public partial class MainWindow
 			case Key.R when ctrl && alt:
 				Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
 				break;
+			/*
 			case Key.H when ctrl:
 				var w = new HydrusWindow(Shared);
 				w.Show();
 				break;
+				*/
 
 		}
 

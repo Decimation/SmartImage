@@ -61,7 +61,7 @@
             <MenuItem Header="Retry" Click="RetryItem_Click" />
             <MenuItem Header="Enqueue" Click="EnqueueItem_Click" IsEnabled="{Binding CanDownload}" />
         </ContextMenu>
-        
+
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <controls:InvertableBooleanToVisibilityConverter x:Key="BooleanVisConverter"/>
 
@@ -435,7 +435,7 @@
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
 
-                    <ListView x:Name="Lv_Results" Margin="0,70,0,0"
+                    <ListView x:Name="Lv_Results" Margin="0,85,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
                               IsSynchronizedWithCurrentItem="True"
@@ -582,6 +582,7 @@
                              TextChanged="Tb_Search_TextChanged" Grid.ColumnSpan="2" />
                     <ComboBox x:Name="Cb_SearchFields" HorizontalAlignment="Right" Margin="0,17,499,0" Grid.Row="1"
                               VerticalAlignment="Top" Width="148" Grid.ColumnSpan="2" />
+                    <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Left" Margin="460,65,0,0" Grid.Row="1" TextWrapping="Wrap" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
@@ -641,17 +642,18 @@
                            VerticalAlignment="Top" Foreground="White" />
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-                    <TextBox x:Name="Tb_HyEndpoint" HorizontalAlignment="Left" Margin="527,297,0,0" TextWrapping="Wrap"
+
+                    <!--<TextBox x:Name="Tb_HyEndpoint" HorizontalAlignment="Left" Margin="527,297,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
-                             Text="{Binding Config.HydrusEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding Config.HydrusEndpoint, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" d:IsHidden="True" />
                     <TextBox x:Name="Tb_HyKey" HorizontalAlignment="Left" Margin="527,326,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
-                             Text="{Binding Config.HydrusKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding Config.HydrusKey, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" d:IsHidden="True" />
                     <Label x:Name="Lb_HyEndpoint" Content="Hydrus Endpoint" HorizontalAlignment="Left"
                            Margin="424,293,0,0"
-                           VerticalAlignment="Top" Foreground="White" />
+                           VerticalAlignment="Top" Foreground="White" d:IsHidden="True" />
                     <Label x:Name="Lb_HyKey" Content="Hydrus Key" HorizontalAlignment="Left" Margin="424,322,0,0"
-                           VerticalAlignment="Top" Foreground="White" />
+                           VerticalAlignment="Top" Foreground="White" d:IsHidden="True" />-->
 
                 </Grid>
             </TabItem>

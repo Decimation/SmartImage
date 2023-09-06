@@ -14,16 +14,12 @@ namespace SmartImage.UI.Model
 	{
 		public SharedInfo()
 		{
-			Client = new SearchClient(new SearchConfig());
+			// Client = new SearchClient(new SearchConfig());
 
-			m_hydrus = new HydrusClient(Config.HydrusEndpoint, Config.HydrusKey);
+			m_hydrus = new HydrusClient();
 		}
 
 		public readonly HydrusClient m_hydrus;
-		
-		public          SearchClient Client { get; }
-
-		public  SearchConfig Config => Client.Config;
 
 		private string       _hash;
 
@@ -38,11 +34,7 @@ namespace SmartImage.UI.Model
 				}
 			}
 		}
-		public SearchQuery Query
-		{
-			get;
-			internal set;
-		}
+
 		public event PropertyChangedEventHandler? PropertyChanged;
 
 		protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)

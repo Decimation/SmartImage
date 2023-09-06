@@ -43,12 +43,12 @@ public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
 		var img     = tr[1];
 		var src     = tr[2];
 
-		var img2      = img.Children[0].Children[0].Attributes["src"];
-		var thumbnail = img2 != null ? Url.Combine(BaseUrl.Root, img2.Value) : null;
-		var thumbnail1 = img.Children[0].Children[0].Attributes["alt"];
+		var img2         = img.Children[0].Children[0].Children[0].Attributes["src"];
+		var thumbnail    = img2 != null ? Url.Combine(BaseUrl.Root, img2.Value) : null;
+		var thumbnail1   = img.Children[0].Children[0].Attributes["alt"];
 		var thumbnailAlt = thumbnail1?.Value;
 
-		string url  = null;
+		string url = null;
 
 		//img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
 
@@ -107,17 +107,19 @@ public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
 
 		var result = new SearchResultItem(r)
 		{
-			Url         = uri,
-			Similarity  = sim,
-			Width       = w,
-			Height      = h,
-			Source      = src.TextContent,
-			Description = caption.TextContent,
-			Thumbnail = thumbnail,
+			Url            = uri,
+			Similarity     = sim,
+			Width          = w,
+			Height         = h,
+			Source         = src.TextContent,
+			Description    = caption.TextContent,
+			Thumbnail      = thumbnail,
 			ThumbnailTitle = thumbnailAlt
 
 		};
 		result.Site ??= uri?.Host;
+
+		// r.Results.Add(result);
 
 		return result;
 	}
@@ -205,21 +207,27 @@ public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
 		}
 
 		var select = tables.Select(table => ((IHtmlElement) table)
-			                           .QuerySelectorAll(Serialization.S_Iqdb_Table));
+			                           .QuerySelectorAll(Serialization.S_Iqdb_Table))
+			.ToArray();
 
-		var images = select.Select(x => ParseResult(x, sr)).ToList();
+		for (int i = 1; i < select.Length; i++) {
+			var sri = ParseResult(select[i], sr);
+			sr.Results.Add(sri);
+		}
+
+		// XPATH //body/div/div/table
 
 		// First is original image
-		images.RemoveAt(0);
+		// images.RemoveAt(0);
 
 		// var best = images[0];
 		// sr.PrimaryResult.UpdateFrom(best);
-		sr.Results.AddRange(images);
+		// sr.Results.AddRange(images);
 
 		/*sr.Results.Quality = sr.PrimaryResult.Similarity switch
 		{
-		    >= 75 => ResultQuality.High,
-		    _ or null => ResultQuality.NA,
+			>= 75 => ResultQuality.High,
+			_ or null => ResultQuality.NA,
 		};*/
 
 		ret:

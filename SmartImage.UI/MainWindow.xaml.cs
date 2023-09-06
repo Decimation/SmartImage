@@ -71,7 +71,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public MainWindow()
 	{
-		// Client    = new SearchClient(new SearchConfig());
+		Client    = new SearchClient(new SearchConfig());
 		Shared    = new SharedInfo();
 		m_queries = new ConcurrentDictionary<string, SearchQuery>();
 
@@ -170,9 +170,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	public SearchClient Client => Shared.Client;
+	public SearchClient Client { get; }
 
-	public SearchConfig Config => Shared.Config;
+	public SearchConfig Config => Client.Config;
+
+	public SearchQuery Query { get; internal set; }
 
 	public ObservableCollection<ResultItem> Results { get; private set; }
 
@@ -212,12 +214,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	#endregion
 
 	#region Queue/Query
-
-	public SearchQuery Query
-	{
-		get => Shared.Query;
-		internal set => Shared.Query = value;
-	}
 
 	private string m_currentQueueItem;
 
@@ -419,7 +415,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			// Img_Preview.Source = m_image;
 
-			UpdatePreview(m_image);
+			UpdatePreview();
 		}
 	}
 
@@ -1036,6 +1032,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 		else {
 			Tb_Status2.Text = $"{ri.Name}";
+			
 		}
 	}
 
@@ -1101,11 +1098,19 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Img_Preview.Source = ri.Image;
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
+				Tb_Preview.Text = $"Preview: {ri.Name}";
+				
 			}
 			else {
-				Img_Preview.Source = m_image;
+				UpdatePreview();
 			}
 		});
+	}
+
+	private void UpdatePreview()
+	{
+		UpdatePreview(m_image);
+		
 	}
 
 	private void UpdatePreview(ImageSource x)
