@@ -3,6 +3,7 @@
 
 global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -134,9 +135,12 @@ public partial class MainWindow
 
 	private void Lb_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
+		Debug.WriteLine($"lqs: {sender} {e}");
 		if (e.OriginalSource != sender) {
 			return;
 		}
+
+		CheckMedia();
 
 		e.Handled = true;
 	}
@@ -208,21 +212,33 @@ public partial class MainWindow
 	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
 	{
 		// var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
-
+		
 		var old = CurrentQueueItem;
-		var i   = Queue.IndexOf(old);
+
+		if (old == null) {
+			goto ret;
+		}
+		var i = Queue.IndexOf(old);
 		Queue.Remove(old);
 
 		// TrySeekQueue(q);
 		// AdvanceQueue(-1);
 
 		if (m_queries.TryRemove(old, out var sq)) {
-			foreach (var r in m_resultMap[sq]) {
+			m_resultMap.TryRemove(sq, out var result);
+			
+			foreach (var r in result) {
 				r.Dispose();
 			}
-			
+			result.Clear();
+			/*foreach (var r in m_resultMap[sq]) {
+				r.Dispose();
+			}*/
+
 			m_images.TryRemove(sq, out var img);
+			img = null;
 		}
+		// ClearQueryControls();
 
 		var i2 = i - 1;
 
@@ -233,14 +249,16 @@ public partial class MainWindow
 			n = String.Empty;
 		else
 			n = Queue[i2];
-
-		CurrentQueueItem = n;
+		CurrentQueueItem       = n;
+		// Lb_Queue.ItemsSource.  = n;
+		// AdvanceQueue(i-1);
 
 		sq?.Dispose();
 		GC.Collect();
 		GC.WaitForPendingFinalizers();
 		GC.Collect();
 		// AdvanceQueue();
+		ret:
 		e.Handled = true;
 	}
 
@@ -250,7 +268,7 @@ public partial class MainWindow
 		ClearResults();
 		m_cbDispatch.Stop();
 		var old = CurrentQueueItem;
-		m_clipboard.Remove(old);
+		m_clipboardHistory.Remove(old);
 		CurrentQueueItem = String.Empty;
 		m_queries.TryRemove(old, out var q);
 		m_resultMap.TryRemove(Query, out var x);
@@ -303,14 +321,15 @@ public partial class MainWindow
 				UpdatePreview(uri);
 				CheckMedia();
 			}
-			else if (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe){
+			else if (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe) {
 				UpdatePreview(ri);
 				CheckMedia();
 			}
 			else {
 				UpdatePreview();
+
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
-					
+
 					Me_Preview.ScrubbingEnabled = false;
 					Me_Preview.UnloadedBehavior = MediaState.Close;
 					Me_Preview.LoadedBehavior   = MediaState.Manual;
@@ -332,18 +351,17 @@ public partial class MainWindow
 		e.Handled = true;
 		return;
 
-		void CheckMedia()
-		{
-			if (ShowMedia) {
-				Me_Preview.Stop();
-				Me_Preview.Close();
-				Me_Preview.Source = null;
-				ShowMedia         = false;
-			}
-			else {
+	}
 
-			}
+	private void CheckMedia()
+	{
+		if (ShowMedia) {
+			Me_Preview.Stop();
+			Me_Preview.Close();
+			Me_Preview.Source = null;
+			ShowMedia         = false;
 		}
+		else { }
 	}
 
 	private void Lv_Results_KeyDown(object sender, KeyEventArgs e)
@@ -379,7 +397,7 @@ public partial class MainWindow
 				Dispatcher.InvokeAsync(() =>
 				{
 					var text = CurrentResultItem.Url;
-					m_clipboard.Add(text);
+					m_clipboardHistory.Add(text);
 					Clipboard.SetText(text);
 				});
 				break;

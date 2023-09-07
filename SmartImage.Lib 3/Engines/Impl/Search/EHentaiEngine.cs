@@ -193,12 +193,10 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	#endregion
 
-	protected override async Task<IDocument> GetDocumentAsync(SearchResult origin, SearchQuery query,
+	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
 		const string name = "a.jpg";
-
-		var sr = origin as SearchResult;
 
 		(string t, bool b) = await query.GetFilePathOrTempAsync(name);
 
@@ -266,6 +264,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			Debug.WriteLine($"cooldown", Name);
+			sr.Status = SearchResultStatus.Cooldown;
 			return null;
 		}
 

@@ -22,7 +22,7 @@ public sealed class YandexEngine : WebSearchEngine
 {
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
-		Timeout = TimeSpan.FromSeconds(15);
+		Timeout = TimeSpan.FromSeconds(30);
 	}
 
 	protected override string NodesSelector => Serialization.S_Yandex_Images;

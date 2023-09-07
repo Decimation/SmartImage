@@ -217,10 +217,14 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		// var thumbnail      = resultImg2.TryGetAttribute("src");
 		// var thumbnailTitle = resultImg2.TryGetAttribute("title");
 		
-		var thumbnail = ri.GetAttribute("src");
+		var thumbnail      = ri.GetAttribute("src");
 		var thumbnailTitle = ri.GetAttribute("title");
+		var pixelated      = ri.GetAttribute("class");
+		var isPixelated    = pixelated == "pixelated";
 
-		var ds = ri.Attributes.Where(x => x.Name.Contains("data-src")).ToArray();
+		var ds             = ri.Attributes.Where(x => x.Name.Contains("data-src")).ToArray();
+
+		thumbnail = isPixelated? ds.LastOrDefault()?.Value : thumbnail;
 
 		var resulttablecontent = result.FirstChild
 			.FirstChild

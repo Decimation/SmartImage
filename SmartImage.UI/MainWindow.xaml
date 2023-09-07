@@ -63,7 +63,7 @@
         </ContextMenu>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <controls:InvertableBooleanToVisibilityConverter x:Key="BooleanVisConverter"/>
+        <controls:InvertableBooleanToVisibilityConverter x:Key="BooleanVisConverter" />
 
         <Style x:Key="BoldGridViewCellStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="FontWeight" Value="Bold" />
@@ -298,7 +298,7 @@
                              DragOver="Lb_Queue_DragOver" PreviewDragOver="Lb_Queue_PreviewDragOver" AllowDrop="True"
                              Background="{DynamicResource Black2}" Foreground="White"
                              SelectionChanged="Lb_Queue_SelectionChanged"
-                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
+                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                              IsSynchronizedWithCurrentItem="True"
                              KeyDown="Lb_Queue_KeyDown" Margin="0,2,174,0" HorizontalAlignment="Right"
                              VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2" />
@@ -356,9 +356,11 @@
                     <Border x:Name="Br_Preview2" Height="150" Margin="0,2,11,0" Width="150"
                             Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
-                            Grid.Column="1"  Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
+                            Grid.Column="1"
+                            Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
                         <MediaElement x:Name="Me_Preview" HorizontalAlignment="Right" VerticalAlignment="Top"
-                                      Width="150" MouseDown="Me_Preview_MouseDown" Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
+                                      Width="150" MouseDown="Me_Preview_MouseDown"
+                                      Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
                             <MediaElement.RenderTransformOrigin>
                                 <Point X="1" Y="0"></Point>
                             </MediaElement.RenderTransformOrigin>
@@ -517,8 +519,15 @@
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
 
-                                <GridViewColumn Header="URL"
-                                                DisplayMemberBinding="{Binding Url, Mode=OneTime}" Width="400" />
+                                <GridViewColumn Header="URL" Width="400">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Url, Mode=OneTime}"
+                                                       ToolTip="Double-click to open" />
+
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                </GridViewColumn>
 
                                 <GridViewColumn Header="Similarity"
                                                 DisplayMemberBinding="{Binding Result.Similarity, Mode=OneTime}"
@@ -582,7 +591,9 @@
                              TextChanged="Tb_Search_TextChanged" Grid.ColumnSpan="2" />
                     <ComboBox x:Name="Cb_SearchFields" HorizontalAlignment="Right" Margin="0,17,499,0" Grid.Row="1"
                               VerticalAlignment="Top" Width="148" Grid.ColumnSpan="2" />
-                    <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0" Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White" Width="150"/>
+                    <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0"
+                               Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"
+                               Width="150" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
