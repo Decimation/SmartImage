@@ -151,7 +151,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
-		
+
 	}
 
 	#region
@@ -671,8 +671,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void Restart(bool full = false)
 	{
 		Cancel();
-		ClearResults(full);
 		Dispose(full);
+		ClearResults(full);
 
 		CurrentQueueItem = String.Empty;
 		ReloadToken();
@@ -691,6 +691,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Tb_Upload.Text            = String.Empty;
 		Pb_Status.IsIndeterminate = false;
+		Tb_Preview.Text           = string.Empty;
 	}
 
 	private void ClearResults(bool full = false)

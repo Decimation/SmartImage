@@ -118,8 +118,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public void Dispose()
 	{
-
 		Uni?.Dispose();
+		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 	}
 
 	[CanBeNull]
@@ -150,7 +150,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Uni, Upload, Size);
+		// return HashCode.Combine(Uni, Upload, Size);
+		return HashCode.Combine(Uni);
+		// return Uni.GetHashCode();
 	}
 
 	public static bool operator ==(SearchQuery left, SearchQuery right)
