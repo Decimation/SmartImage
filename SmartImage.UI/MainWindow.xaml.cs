@@ -151,7 +151,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
-
+		
 	}
 
 	#region
@@ -231,6 +231,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			if (Equals(value, m_currentQueueItem) /*|| Query?.ValueString == value*/ /* || (String.IsNullOrWhiteSpace(value))*/) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
+			
 		}
 	}
 

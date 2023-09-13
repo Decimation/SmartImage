@@ -250,6 +250,7 @@ public partial class MainWindow
 		else
 			n = Queue[i2];
 		CurrentQueueItem       = n;
+		
 		// Lb_Queue.ItemsSource.  = n;
 		// AdvanceQueue(i-1);
 

@@ -79,4 +79,16 @@ public partial class MainWindow
 			OnPropertyChanged();
 		}
 	}
+
+	private bool m_isChecked;
+
+	public bool IsChecked
+	{
+		get { return m_isChecked; }
+		set
+		{
+			m_isChecked = value;
+			OnPropertyChanged();
+		}
+	}
 }

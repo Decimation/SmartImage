@@ -5,6 +5,8 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.Intrinsics.X86;
 using Flurl.Http;
 using Flurl.Http.Configuration;
+using Flurl.Http.Content;
+using Kantan.Net.Utilities;
 using Novus.OS;
 using Novus.Utilities;
 using SmartImage.Lib.Utilities;
@@ -91,11 +93,17 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 					               rx.ExceptionHandled = true;
 				               };
 			               })
+			               .WithHeaders(new
+			               {
+				               User_Agent = HttpUtilities.UserAgent
+			               })
 			               .PostMultipartAsync(mp =>
 				                                   mp.AddFile("fileToUpload", file)
 					                                   .AddString("reqtype", "fileupload")
 					                                   .AddString("time", "1h")
-			                                   , cancellationToken: ct);
+					                                   .AddString("userhash", string.Empty)
+			                                   , cancellationToken: ct,
+			                                   completionOption: HttpCompletionOption.ResponseHeadersRead);
 
 		return await VerifyResultAsync(response, ct).ConfigureAwait(false);
 	}

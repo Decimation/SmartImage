@@ -70,8 +70,20 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
         <Style x:Key="CustomListViewItemStyle" TargetType="{x:Type ListViewItem}">
-            <Setter Property="Background" Value="LightGray" />
-            <Setter Property="Foreground" Value="Black" />
+           
+            <!-- <Setter Property="Background" Value="LightGray" /> -->
+            <!-- <Setter Property="Foreground" Value="Black" /> -->
+            <!--<Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ListViewItem">
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="FontStyle" Value="Italic"></Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>-->
             <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
 
             <Style.Resources>
@@ -440,10 +452,11 @@
                     <ListView x:Name="Lv_Results" Margin="0,85,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
+                              IsSelected="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
                               IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
                               SelectedItem="{Binding CurrentResultItem, Mode=TwoWay}"
-                              ItemContainerStyle="{StaticResource CustomListViewItemStyle}"
+                              ItemContainerStyle="{DynamicResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown"
                               ScrollViewer.CanContentScroll="True" Grid.Row="1" Grid.ColumnSpan="2">
@@ -465,43 +478,6 @@
                                                    Width="20"
                                                    Height="20" Stretch="None" ToolTip="{Binding Status}">
 
-                                                <!--<Image.RenderTransformOrigin>
-                                                    <Point X="0" Y="1"></Point>
-                                                </Image.RenderTransformOrigin>
-
-                                                <Image.RenderTransform>
-                                                    <TransformGroup>
-                                                        <ScaleTransform ScaleX="1" ScaleY="1" CenterX="0" CenterY="1" />
-                                                        <TranslateTransform X="0" Y="0" />
-                                                    </TransformGroup>
-                                                </Image.RenderTransform>
-
-                                                <Image.Triggers>
-                                                    <EventTrigger RoutedEvent="Image.MouseEnter">
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
-                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
-                                                                    To="2.5" Duration="0:0:0.2" />
-                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
-                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
-                                                                    To="2.5" Duration="0:0:0.2" />
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </EventTrigger>
-                                                    <EventTrigger RoutedEvent="Image.MouseLeave">
-                                                        <BeginStoryboard>
-                                                            <Storyboard>
-                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
-                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleX)"
-                                                                    To="1" Duration="0:0:0.2" />
-                                                                <DoubleAnimation Storyboard.TargetName="Img_Status"
-                                                                    Storyboard.TargetProperty="(Image.RenderTransform).(TransformGroup.Children)[0].(ScaleTransform.ScaleY)"
-                                                                    To="1" Duration="0:0:0.2" />
-                                                            </Storyboard>
-                                                        </BeginStoryboard>
-                                                    </EventTrigger>
-                                                </Image.Triggers>-->
                                             </Image>
 
                                         </DataTemplate>

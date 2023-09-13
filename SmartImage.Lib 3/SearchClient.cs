@@ -94,10 +94,8 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="reload"></param>
-	/// <param name="p"><see cref="IProgress{T}"/></param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
-	                                                 [CBN] IProgress<int> p = null,
 	                                                 CancellationToken token = default)
 	{
 		IsRunning = true;
@@ -116,7 +114,7 @@ public sealed class SearchClient : IDisposable
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
 
-		while (tasks.Any()) {
+		while (tasks.Count > 0) {
 			if (token.IsCancellationRequested) {
 
 				Logger.LogWarning("Cancellation requested");
@@ -126,21 +124,15 @@ public sealed class SearchClient : IDisposable
 			}
 
 			var task = await Task.WhenAny(tasks);
+			tasks.Remove(task);
 
 			var result = await task;
 
-			OnResult?.Invoke(this, result);
-			p?.Report(i);
-
-			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
-
-				OpenResult(result);
-			}
+			ProcessResult(result);
 
 			results[i] = result;
 			i++;
 			// results.Add(result);
-			tasks.Remove(task);
 		}
 
 		OnComplete?.Invoke(this, results);
@@ -160,8 +152,8 @@ public sealed class SearchClient : IDisposable
 					OpenResult(results.MaxBy(x => x.AllResults.Sum(xy => xy.Score)));
 				}
 				else {
-					OpenResult(rr.OrderByDescending(x=>x.Similarity)
-						           .FirstOrDefault(x=>Url.IsValid(x.Url))?.Url);
+					OpenResult(rr.OrderByDescending(x => x.Similarity)
+						           .FirstOrDefault(x => Url.IsValid(x.Url))?.Url);
 				}
 			}
 			catch (Exception e) {
@@ -177,6 +169,16 @@ public sealed class SearchClient : IDisposable
 		return results;
 	}
 
+	private void ProcessResult(SearchResult result)
+	{
+		OnResult?.Invoke(this, result);
+
+		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+
+			OpenResult(result);
+		}
+	}
+
 	private void OpenResult(Url url1)
 	{
 #if DEBUG && !TEST
@@ -187,7 +189,6 @@ public sealed class SearchClient : IDisposable
 
 #pragma warning restore CA1822
 #else
-
 		Logger.LogInformation("Opening {Url}", url1);
 		FileSystem.Open(url1);
 		// HttpUtilities.TryOpenUrl(url1);
