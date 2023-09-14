@@ -34,6 +34,7 @@ using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Model;
+using Unosquare.FFME.Common;
 using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Application;
 using FileSystem = Novus.OS.FileSystem;
@@ -222,7 +223,8 @@ public partial class MainWindow
 		Lb_Queue.IsEnabled   = true;
 		Btn_Run.IsEnabled    = true;
 		Btn_Remove.IsEnabled = true;
-		e.Handled            = true;
+		// m_us.Release();
+		e.Handled = true;
 	}
 
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
@@ -302,7 +304,7 @@ public partial class MainWindow
 		// m_resultMap.TryRemove(Query, out var x);
 		// Query.Dispose();
 		Queue.Remove(old);
-		Img_Preview.Source = m_image = null;
+		Img_Preview.Source = Image = null;
 		// Query              = SearchQuery.Null;
 		bool ok;
 
@@ -360,12 +362,23 @@ public partial class MainWindow
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
 					Dispatcher.InvokeAsync(async () =>
 					{
-						Me_Preview.ScrubbingEnabled = true;
+						/*Me_Preview.ScrubbingEnabled = true;
+						Me_Preview.UnloadedBehavior = MediaState.Close;
+						Me_Preview.LoadedBehavior   = MediaState.Manual;*/
+						// Me_Preview.UnloadedBehavior   = MediaState.Stop;
+						// Me_Preview.LoadedBehavior   = MediaState.Manual;
+						// Me_Preview                  = new MediaElement();
+						// Me_Preview.LoadedBehavior   = MediaState.Play;
+						// Me_Preview.UnloadedBehavior = MediaState.Manual;
 						Me_Preview.UnloadedBehavior = MediaState.Close;
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
+						// Me_Preview.LoadedBehavior   = MediaState.Manual;
 						var uri = await CacheAsync(doc.video);
-						Me_Preview.Source = new Uri(uri, UriKind.Absolute);
+
+						Me_Preview.Source = new Uri(uri);
+
 						Me_Preview.Play();
+
 						ShowMedia       = true;
 						Tb_Preview.Text = $"Preview: {ri.Name}";
 					});
@@ -414,7 +427,7 @@ public partial class MainWindow
 				// Results.Remove(CurrentResultItem);
 
 				CurrentQueueItem.Results.Remove(CurrentResultItem);
-				Img_Preview.Source = m_image;
+				Img_Preview.Source = Image;
 				break;
 			case Key.C when ctrl:
 				Dispatcher.InvokeAsync(() =>
@@ -673,6 +686,7 @@ public partial class MainWindow
 	{
 
 		e.Handled = true;
+
 	}
 
 	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
@@ -754,27 +768,14 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void Lb_Queue_OnTargetUpdated(object? sender, DataTransferEventArgs e)
+	private void Tb_Input_OnTextChanged(object sender, TextChangedEventArgs e)
 	{
-		Debug.WriteLine($"{sender} {e}");
-
 		e.Handled = true;
-	}
 
-	private void Tb_Input_OnTargetUpdated(object? sender, DataTransferEventArgs e)
-	{
-		// BindingExpression be = Tb_Input.GetBindingExpression(TextBox.TextProperty);
-		// be?.UpdateSource();
-		Debug.WriteLine($"target: {sender} {e}");
-
-		e.Handled = true;
-	}
-
-	private void Tb_Input_OnSourceUpdated(object? sender, DataTransferEventArgs e)
-	{
-		Debug.WriteLine($"src: {sender} {e}");
-
-		e.Handled = true;
+		/*if (SearchQuery.IsValidSourceType(CurrentQueueItem?.Value))
+		{
+			OnCurrentQueueItemChanged(sender, null);
+		}*/
 	}
 }
 

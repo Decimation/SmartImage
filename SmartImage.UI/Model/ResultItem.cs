@@ -26,9 +26,9 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 
-public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider
+public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider,INamed
 {
-	public string Name { get; protected set; }
+	public string Name { get; set; }
 
 	public SearchResultItem Result { get; }
 

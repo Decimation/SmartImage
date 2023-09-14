@@ -166,10 +166,8 @@
                              Width="437" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver" IsReadOnly="False"
-                             TargetUpdated="Tb_Input_OnTargetUpdated"
-                             SourceUpdated="Tb_Input_OnSourceUpdated"
-                             Text="{Binding SelectedItem.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True, 
-                        NotifyOnSourceUpdated=True, ElementName=Lb_Queue}" />
+                             TextChanged="Tb_Input_OnTextChanged"
+                             Text="{Binding CurrentQueueItem.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" />
 
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
@@ -245,7 +243,7 @@
                     <Button x:Name="Btn_Remove" Content="Remove"
                             HorizontalAlignment="Left" Margin="583,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Remove_Click" Height="20" Width="46"
-                            IsEnabled="{Binding Path=CurrentQueueItem.IsNonPrimitive, ElementName=Wnd_Main}">
+                            IsEnabled="{Binding Path=CurrentQueueItem.HasQuery, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -317,13 +315,36 @@
                              DragOver="Lb_Queue_DragOver" PreviewDragOver="Lb_Queue_PreviewDragOver" AllowDrop="True"
                              Background="{DynamicResource Black2}" Foreground="White"
                              SelectionChanged="Lb_Queue_SelectionChanged"
-                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}"
+                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, IsAsync=True, ElementName=Wnd_Main}"
 
-                             TargetUpdated="Lb_Queue_OnTargetUpdated"
                              KeyDown="Lb_Queue_KeyDown" Margin="0,2,174,0" HorizontalAlignment="Right"
                              VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2"
-                             ItemsSource="{Binding Queue}" DisplayMemberPath="Value">
+                             ItemsSource="{Binding Queue}">
                         <!-- IsSynchronizedWithCurrentItem="True" -->
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsPrimitive}" Value="True">
+                                                    <Setter Property="Foreground" Value="LightGray" />
+                                                </DataTrigger>
+
+                                                <DataTrigger Binding="{Binding HasQuery}" Value="True">
+                                                    <Setter Property="Foreground" Value="Cyan" />
+                                                </DataTrigger>
+
+                                                <DataTrigger Binding="{Binding IsComplete}" Value="True">
+                                                    <Setter Property="Foreground" Value="GreenYellow" />
+                                                </DataTrigger>
+
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
                     </ListBox>
 
                     <Border x:Name="Br_Preview" Height="150" Margin="0,3,11,0" Width="150"
@@ -456,9 +477,8 @@
 
                     <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
-                             DataContext="{Binding CurrentQueueItem}"
                              Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick"
-                             Text="{Binding Info, UpdateSourceTrigger=PropertyChanged}" />
+                             Text="{Binding CurrentQueueItem.Info, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main, IsAsync=True}" />
 
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
                            Margin="10,5,0,0"
@@ -575,14 +595,13 @@
                     <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="48,5,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" />
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="4,33,0,0"
-                               DataContext="{Binding CurrentQueueItem}"
+
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1"
-                               Text="{Binding Status, UpdateSourceTrigger=PropertyChanged}" />
+                               Text="{Binding CurrentQueueItem.Status, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="115,49,0,0"
-                               DataContext="{Binding CurrentQueueItem}"
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline"
-                               Text="{Binding Status2, UpdateSourceTrigger=PropertyChanged}" />
+                               Text="{Binding CurrentQueueItem.Status2, UpdateSourceTrigger=PropertyChanged}" />
                     <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="501,65,0,0"
                             VerticalAlignment="Top" Click="Btn_Filter_Click" />
                     <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,499,0" Grid.Row="1"

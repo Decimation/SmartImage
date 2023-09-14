@@ -9,6 +9,9 @@ using SmartImage.UI.Model;
 using Kantan.Monad;
 using System.Linq;
 using System;
+using System.Windows.Controls;
+using System.Windows.Media;
+using SmartImage.Lib;
 
 namespace SmartImage.UI;
 
@@ -46,7 +49,7 @@ public partial class MainWindow
 			sw.Img_Preview.Source = ri.Image;
 		}
 		else {
-			sw.Img_Preview.Source = m_image;
+			sw.Img_Preview.Source = Image;
 		}
 
 		sw.Show();
@@ -102,8 +105,10 @@ public partial class MainWindow
 			{
 				Lb_Queue.SelectedIndex = -1;
 				Queue.Clear();
-				Queue.Insert(0, new ResultModel());
-				Lb_Queue.SelectedIndex = 0;
+				var rm = new ResultModel();
+				Queue.Add(rm);
+				// Lb_Queue.SelectedIndex = 0;
+				CurrentQueueItem = rm;
 			});
 			
 			// CurrentQueueItem       = new ResultModel();
@@ -152,12 +157,15 @@ public partial class MainWindow
 		if (ShowMedia)
 		{
 			Me_Preview.Stop();
+			// Me_Preview.Position = TimeSpan.Zero;
 			Me_Preview.Close();
 			Me_Preview.Source = null;
+			// Me_Preview.Dispose();
 			ShowMedia         = false;
 		}
 		else { }
 	}
 
 	#endregion
+
 }

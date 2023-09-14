@@ -39,7 +39,28 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		}
 	}
 
-	public SearchQuery? Query { get; set; }
+	private SearchQuery? m_query;
+
+	public SearchQuery? Query
+	{
+		get => m_query;
+		set
+		{
+			if (Equals(value, m_query)) return;
+			m_query = value;
+			OnPropertyChanged();
+			UpdateProperties();
+		}
+	}
+
+	public void UpdateProperties()
+	{
+		OnPropertyChanged(nameof(HasQuery));
+		OnPropertyChanged(nameof(IsComplete));
+		OnPropertyChanged(nameof(CanSearch));
+		OnPropertyChanged(nameof(IsPrimitive));
+
+	}
 
 	public BitmapImage? Image { get; set; }
 
@@ -55,12 +76,11 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	public ResultModel() : this(string.Empty) { }
 
-	public bool IsPrimitive    => !Results.Any() && !HasQuery;
+	public bool IsPrimitive => !Results.Any() && !HasQuery;
 
-	public bool IsNonPrimitive => !IsPrimitive;
-	
 	public bool IsComplete => Results.Any() && HasQuery && Query.IsUploaded;
-	public bool CanSearch => !Results.Any() && HasQuery && Query.IsUploaded;
+	public bool CanSearch  => !Results.Any() && HasQuery && Query.IsUploaded;
+
 	public ResultModel(string value)
 	{
 		Value   = value;
@@ -68,7 +88,7 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		Query   = SearchQuery.Null;
 	}
 
-	#region 
+	#region
 
 	private string m_status2;
 
@@ -262,25 +282,33 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		return HashCode.Combine(Value);
 	}
 
+	public void ClearResults()
+	{
+		foreach (var r in Results) {
+			r.Dispose();
+		}
+
+		Results.Clear();
+		UpdateProperties();
+	}
+
 	public void Dispose()
 	{
 		PropertyChanged = null;
 
-		foreach (var item in Results) {
-			item.Dispose();
-		}
+		ClearResults();
 
-		Results.Clear();
 		if (HasQuery) {
 			Query.Upload = null;
 			Query.Dispose();
 
 		}
-		Query        = SearchQuery.Null;
-		Image        = null;
-		Status       = null;
-		Status2      = null;
-		Info         = null;
+
+		Query   = SearchQuery.Null;
+		Image   = null;
+		Status  = null;
+		Status2 = null;
+		Info    = null;
 
 	}
 }
