@@ -930,7 +930,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	static async Task<string> DownloadAsync(Url v)
+	private static async Task<string> CacheAsync(Url v)
 	{
 		if (FileCache.TryGetValue(v, out string? async)) {
 			return async;
@@ -943,6 +943,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		await File.WriteAllBytesAsync(s, rg);
 
 		FileCache[v] = s;
+		Debug.WriteLine($"Cached {v} to {s}");
 		return s;
 	}
 

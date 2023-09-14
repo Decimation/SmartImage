@@ -360,10 +360,10 @@ public partial class MainWindow
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
 					Dispatcher.InvokeAsync(async () =>
 					{
-						Me_Preview.ScrubbingEnabled = false;
+						Me_Preview.ScrubbingEnabled = true;
 						Me_Preview.UnloadedBehavior = MediaState.Close;
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
-						var uri = await DownloadAsync(doc.video);
+						var uri = await CacheAsync(doc.video);
 						Me_Preview.Source = new Uri(uri, UriKind.Absolute);
 						Me_Preview.Play();
 						ShowMedia       = true;
@@ -560,7 +560,7 @@ public partial class MainWindow
 		}
 
 		// todo: not used for now
-		m_trDispatch.Start();
+		// m_trDispatch.Start();
 		e.Handled = true;
 		Debug.WriteLine("Main loaded");
 
