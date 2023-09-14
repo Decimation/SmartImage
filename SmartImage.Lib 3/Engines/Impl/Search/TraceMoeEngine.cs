@@ -91,7 +91,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 			else if (tm.error != null) {
 				Debug.WriteLine($"{Name} :: API error: {tm.error}", nameof(GetResultAsync));
 				r.ErrorMessage = tm.error;
-
+				r.Status       = SearchResultStatus.IllegalInput;
 				if (r.ErrorMessage.Contains("Search queue is full")) {
 					r.Status = SearchResultStatus.Unavailable;
 				}

@@ -239,6 +239,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	// public SharedInfo Shared { get; set; }
 
+	private static readonly ConcurrentDictionary<string, string> FileCache = new();
+
 	private readonly ConcurrentDictionary<UniResultItem, string> m_uni;
 
 	// private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
@@ -289,6 +291,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
+		ClearSearch();
+
 		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
 
@@ -298,9 +302,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				// Debug.WriteLine($"Updating query: {CurrentQueueItem} | {Query?.ValueString}");
 				// await UpdateQueryAsync(CurrentQueueItem);
 				//todo
-				await UpdateItem();
-				
-				UpdateItem2();
+				await UpdateQueryAsync();
+
+				HandleQueryAsync();
 
 			}
 
@@ -310,7 +314,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	private async Task UpdateItem()
+	private async Task UpdateQueryAsync()
 	{
 		if (!CurrentQueueItem.HasQuery) {
 			await CurrentQueueItem.LoadQueryAsync(m_cts.Token);
@@ -524,6 +528,25 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 	*/
 
+	private void HandleQueryAsync()
+	{
+		if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any() && CurrentQueueItem.CanSearch) {
+			Dispatcher.InvokeAsync(RunAsync);
+		}
+
+		else if (Results.Any()) {
+			Tb_Status.Text = $"Displaying {Results.Count} results";
+		}
+		else {
+			Tb_Status.Text = $"Search ready";
+
+		}
+
+		Tb_Info.Text    = CurrentQueueItem.Info;
+		Tb_Status2.Text = CurrentQueueItem.Status2;
+
+	}
+
 	private void AddToQueue(IReadOnlyList<string> files)
 	{
 		if (!files.Any()) {
@@ -584,21 +607,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// await UpdateItem();
 
-	}
-
-	private void UpdateItem2()
-	{
-		if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any() && CurrentQueueItem.CanSearch) {
-			Dispatcher.InvokeAsync(RunAsync);
-		}
-
-		else if (Results.Any()) {
-			Tb_Status.Text = $"Displaying {Results.Count} results";
-		}
-		else {
-			Tb_Status.Text = $"Search ready";
-
-		}
 	}
 
 	#endregion
@@ -922,6 +930,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
+	static async Task<string> DownloadAsync(Url v)
+	{
+		if (FileCache.TryGetValue(v, out string? async)) {
+			return async;
+		}
+
+		var rg = await v.GetBytesAsync();
+		var fn = v.GetFileName();
+
+		var s = Path.Combine(Path.GetTempPath(), fn);
+		await File.WriteAllBytesAsync(s, rg);
+
+		FileCache[v] = s;
+		return s;
+	}
+
 	private async Task DownloadResultAsync(UniResultItem uri)
 	{
 		await uri.DownloadAsync();
@@ -1084,7 +1108,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		var eng = ri.Result.Root.Engine;
 		Tb_Status.Text = $"Retrying {eng.Name}";
-		var idx = FindIndex(r => r.Result.Root.Engine == eng);
+		var idx = FindResultIndex(r => r.Result.Root.Engine == eng);
 		var fi  = idx;
 
 		for (int i = Results.Count - 1; i >= 0; i--) {
@@ -1116,20 +1140,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	#region
 
 	public static readonly string[] Args = Environment.GetCommandLineArgs();
-
-	public static readonly Dictionary<string, Func<ResultItem, string?>> SearchFields = new()
-	{
-
-		{
-			nameof(ResultItem.Name), (x) => x.Name
-		},
-		{
-			nameof(ResultItem.Url), (x) => x.Url?.ToString()
-		},
-		{
-			nameof(ResultItem.Result.Description), (x) => x.Result.Description
-		},
-	};
 
 	private void ParseArgs(string[] args)
 	{
@@ -1174,6 +1184,33 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 
+	}
+
+	#endregion
+
+	#region
+
+	public bool IsSearching { get; private set; }
+
+	public static readonly Dictionary<string, Func<ResultItem, string?>> SearchFields = new()
+	{
+
+		{
+			nameof(ResultItem.Name), (x) => x.Name
+		},
+		{
+			nameof(ResultItem.Url), (x) => x.Url?.ToString()
+		},
+		{
+			nameof(ResultItem.Result.Description), (x) => x.Result.Description
+		},
+	};
+
+	private void ClearSearch()
+	{
+		Tb_Search.Text         = null;
+		Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
+		IsSearching            = false;
 	}
 
 	#endregion
@@ -1299,28 +1336,5 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		});
 
-	}
-
-	private void Lb_Queue_OnTargetUpdated(object? sender, DataTransferEventArgs e)
-	{
-		Debug.WriteLine($"{sender} {e}");
-
-		e.Handled = true;
-	}
-
-	private void Tb_Input_OnTargetUpdated(object? sender, DataTransferEventArgs e)
-	{
-		// BindingExpression be = Tb_Input.GetBindingExpression(TextBox.TextProperty);
-		// be?.UpdateSource();
-		Debug.WriteLine($"target: {sender} {e}");
-
-		e.Handled = true;
-	}
-
-	private void Tb_Input_OnSourceUpdated(object? sender, DataTransferEventArgs e)
-	{
-		Debug.WriteLine($"src: {sender} {e}");
-
-		e.Handled = true;
 	}
 }

@@ -470,7 +470,7 @@
                     <ListView x:Name="Lv_Results" Margin="0,85,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
-                              IsSelected="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
+                              IsSelected="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
                               IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
                               ItemsSource="{Binding CurrentQueueItem.Results}"

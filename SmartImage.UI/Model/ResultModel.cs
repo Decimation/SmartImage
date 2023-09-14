@@ -257,6 +257,11 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		return true;
 	}
 
+	public override int GetHashCode()
+	{
+		return HashCode.Combine(Value);
+	}
+
 	public void Dispose()
 	{
 		PropertyChanged = null;
@@ -266,12 +271,16 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		}
 
 		Results.Clear();
-		Query?.Dispose();
-		Query   = SearchQuery.Null;
-		Image   = null;
-		Status  = null;
-		Status2 = null;
-		Info    = null;
+		if (HasQuery) {
+			Query.Upload = null;
+			Query.Dispose();
+
+		}
+		Query        = SearchQuery.Null;
+		Image        = null;
+		Status       = null;
+		Status2      = null;
+		Info         = null;
 
 	}
 }

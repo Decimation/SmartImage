@@ -3,12 +3,15 @@
 
 global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -19,6 +22,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Flurl;
+using Flurl.Http;
+using Kantan.Net.Utilities;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.VisualBasic.FileIO;
@@ -139,6 +144,7 @@ public partial class MainWindow
 	private void Lb_Queue_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		Debug.WriteLine($"lqs: {sender} {e}");
+
 		if (e.OriginalSource != sender) {
 			return;
 		}
@@ -182,11 +188,20 @@ public partial class MainWindow
 
 	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
 	{
-		var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
-		Restart(ctrl);
+		Cancel();
+		ClearResults(false);
+		// Query.Dispose();
+		var cpy = CurrentQueueItem;
+		var i   = Queue.IndexOf(cpy);
+		Queue.Remove(cpy);
+		cpy.Dispose();
+		ResultModel rm = new ResultModel(cpy.Value);
+		Queue.Insert(i, rm);
+		CurrentQueueItem = rm;
+
 		// ClearQueue();
 		// ClearResults(true);
-
+		ReloadToken();
 		e.Handled = true;
 	}
 
@@ -204,10 +219,10 @@ public partial class MainWindow
 	{
 		Cancel();
 		ReloadToken();
-		Lb_Queue.IsEnabled = true;
-		Btn_Run.IsEnabled  = true;
+		Lb_Queue.IsEnabled   = true;
+		Btn_Run.IsEnabled    = true;
 		Btn_Remove.IsEnabled = true;
-		e.Handled          = true;
+		e.Handled            = true;
 	}
 
 	private void Btn_Run_Loaded(object sender, RoutedEventArgs e)
@@ -219,12 +234,13 @@ public partial class MainWindow
 	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
 	{
 		// var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
-		
+
 		var old = CurrentQueueItem;
 
 		if (old == null || old.IsPrimitive) {
 			goto ret;
 		}
+
 		var i = Queue.IndexOf(old);
 		Queue.Remove(old);
 		old?.Dispose();
@@ -233,7 +249,7 @@ public partial class MainWindow
 
 		/*if (m_queries.TryRemove(old, out var sq)) {
 			m_resultMap.TryRemove(sq, out var result);
-			
+
 			foreach (var r in result) {
 				r.Dispose();
 			}
@@ -303,7 +319,8 @@ public partial class MainWindow
 		m_cbDispatch.Start();
 		Btn_Delete.IsEnabled = ok;
 		Btn_Remove.IsEnabled = ok;
-		AdvanceQueue();
+		ReloadToken();
+		// AdvanceQueue();
 		// FileSystem.SendFileToRecycleBin(InputText);
 		e.Handled = true;
 	}
@@ -341,14 +358,18 @@ public partial class MainWindow
 				UpdatePreview();
 
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
+					Dispatcher.InvokeAsync(async () =>
+					{
+						Me_Preview.ScrubbingEnabled = false;
+						Me_Preview.UnloadedBehavior = MediaState.Close;
+						Me_Preview.LoadedBehavior   = MediaState.Manual;
+						var uri = await DownloadAsync(doc.video);
+						Me_Preview.Source = new Uri(uri, UriKind.Absolute);
+						Me_Preview.Play();
+						ShowMedia       = true;
+						Tb_Preview.Text = $"Preview: {ri.Name}";
+					});
 
-					Me_Preview.ScrubbingEnabled = false;
-					Me_Preview.UnloadedBehavior = MediaState.Close;
-					Me_Preview.LoadedBehavior   = MediaState.Manual;
-					Me_Preview.Source           = new Uri(doc.video, UriKind.Absolute);
-					Me_Preview.Play();
-					ShowMedia       = true;
-					Tb_Preview.Text = $"Preview: {ri.Name}";
 				}
 				else {
 					CheckMedia();
@@ -363,17 +384,6 @@ public partial class MainWindow
 		e.Handled = true;
 		return;
 
-	}
-
-	private void CheckMedia()
-	{
-		if (ShowMedia) {
-			Me_Preview.Stop();
-			Me_Preview.Close();
-			Me_Preview.Source = null;
-			ShowMedia         = false;
-		}
-		else { }
 	}
 
 	private void Lv_Results_KeyDown(object sender, KeyEventArgs e)
@@ -573,6 +583,10 @@ public partial class MainWindow
 	{
 		Debug.WriteLine("Main closing");
 
+		foreach ((string? key, string? value) in FileCache) {
+			Debug.WriteLine($"Deleting {key}={value}");
+			File.Delete(value);
+		}
 	}
 
 	private void Wnd_Main_KeyDown(object sender, KeyEventArgs e)
@@ -716,7 +730,7 @@ public partial class MainWindow
 	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)
 	{
 		if (string.IsNullOrWhiteSpace(Tb_Search.Text)) /*&& m_resultMap.TryGetValue(Query, out var value))*/ {
-			Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
+			ClearSearch();
 		}
 		else {
 			var selected = (string) Cb_SearchFields.SelectionBoxItem;
@@ -733,12 +747,37 @@ public partial class MainWindow
 				return s.Contains(Tb_Search.Text, StringComparison.InvariantCultureIgnoreCase);
 			});
 			Lv_Results.ItemsSource = searchResults;
+			IsSearching            = true;
 
 		}
 
 		e.Handled = true;
 	}
+
+	private void Lb_Queue_OnTargetUpdated(object? sender, DataTransferEventArgs e)
+	{
+		Debug.WriteLine($"{sender} {e}");
+
+		e.Handled = true;
+	}
+
+	private void Tb_Input_OnTargetUpdated(object? sender, DataTransferEventArgs e)
+	{
+		// BindingExpression be = Tb_Input.GetBindingExpression(TextBox.TextProperty);
+		// be?.UpdateSource();
+		Debug.WriteLine($"target: {sender} {e}");
+
+		e.Handled = true;
+	}
+
+	private void Tb_Input_OnSourceUpdated(object? sender, DataTransferEventArgs e)
+	{
+		Debug.WriteLine($"src: {sender} {e}");
+
+		e.Handled = true;
+	}
 }
+
 [ValueConversion(typeof(Url), typeof(String))]
 public class UrlConverter : IValueConverter
 {
@@ -747,7 +786,8 @@ public class UrlConverter : IValueConverter
 		if (value == null) {
 			return null;
 		}
-		var date = (Url)value;
+
+		var date = (Url) value;
 		return date.ToString();
 	}
 
@@ -756,8 +796,9 @@ public class UrlConverter : IValueConverter
 		if (value == null) {
 			return null;
 		}
-		string   strValue = value as string;
-		Url resultDateTime;
+
+		string strValue = value as string;
+		Url    resultDateTime;
 
 		return (Url) strValue;
 	}

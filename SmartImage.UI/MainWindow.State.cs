@@ -32,6 +32,8 @@ public partial class MainWindow
 
 	#endregion
 
+	#region 
+
 	private void OpenResultWindow(ResultItem ri)
 	{
 		var sw = new ResultWindow(ri)
@@ -50,15 +52,15 @@ public partial class MainWindow
 		sw.Show();
 	}
 
-	private ResultItem? Find(Predicate<ResultItem> f)
+	private ResultItem? FindResult(Predicate<ResultItem> f)
 	{
 		return Results.FirstOrDefault(t => f(t));
 
 	}
 
-	private int FindIndex(Predicate<ResultItem> f)
+	private int FindResultIndex(Predicate<ResultItem> f)
 	{
-		var r = Find(f);
+		var r = FindResult(f);
 
 		if (r == null) {
 			return -1;
@@ -67,32 +69,23 @@ public partial class MainWindow
 		return Results.IndexOf(r);
 	}
 
-	private bool m_showMedia;
+	#endregion
 
-	public bool ShowMedia
+	private bool m_isSelected;
+
+	public bool IsSelected
 	{
-		get => m_showMedia;
+		get { return m_isSelected; }
 		set
 		{
-			if (value == m_showMedia) return;
-			m_showMedia = value;
+			m_isSelected = value;
 			OnPropertyChanged();
 		}
 	}
 
-	private bool m_isChecked;
+	#region 
 
-	public bool IsChecked
-	{
-		get { return m_isChecked; }
-		set
-		{
-			m_isChecked = value;
-			OnPropertyChanged();
-		}
-	}
-
-	public ResultModel? Find(string s)
+	public ResultModel? FindQueue(string s)
 	{
 		var x = Queue.FirstOrDefault(x => x.Value == s);
 
@@ -123,7 +116,7 @@ public partial class MainWindow
 
 	public bool SetQueue(string s)
 	{
-		var x = Find(s);
+		var x = FindQueue(s);
 
 		var b = x == null;
 
@@ -136,4 +129,35 @@ public partial class MainWindow
 
 		return b;
 	}
+
+	#endregion
+
+	#region 
+
+	private bool m_showMedia;
+
+	public bool ShowMedia
+	{
+		get => m_showMedia;
+		set
+		{
+			if (value == m_showMedia) return;
+			m_showMedia = value;
+			OnPropertyChanged();
+		}
+	}
+
+	private void CheckMedia()
+	{
+		if (ShowMedia)
+		{
+			Me_Preview.Stop();
+			Me_Preview.Close();
+			Me_Preview.Source = null;
+			ShowMedia         = false;
+		}
+		else { }
+	}
+
+	#endregion
 }
