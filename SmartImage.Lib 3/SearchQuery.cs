@@ -23,7 +23,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public UniSource Uni { get; }
 
 	[MN]
-	public Url Upload { get; private set; }
+	public Url Upload { get; internal set; }
 
 	public long Size { get; private set; }
 

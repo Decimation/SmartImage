@@ -91,4 +91,49 @@ public partial class MainWindow
 			OnPropertyChanged();
 		}
 	}
+
+	public ResultModel? Find(string s)
+	{
+		var x = Queue.FirstOrDefault(x => x.Value == s);
+
+		return x;
+	}
+
+	public void ClearQueue()
+	{
+		lock (Queue) {
+			foreach (var kv in Queue) {
+				kv.Dispose();
+			}
+			Lb_Queue.Dispatcher.Invoke(() =>
+			{
+				Lb_Queue.SelectedIndex = -1;
+				Queue.Clear();
+				Queue.Insert(0, new ResultModel());
+				Lb_Queue.SelectedIndex = 0;
+			});
+			
+			// CurrentQueueItem       = new ResultModel();
+
+			/*var item = new ResultModel();
+			Queue.Add(item);
+			CurrentQueueItem = item;*/
+		}
+	}
+
+	public bool SetQueue(string s)
+	{
+		var x = Find(s);
+
+		var b = x == null;
+
+		if (b) {
+			x = new ResultModel(s);
+			Queue.Add(x);
+		}
+
+		CurrentQueueItem = x;
+
+		return b;
+	}
 }

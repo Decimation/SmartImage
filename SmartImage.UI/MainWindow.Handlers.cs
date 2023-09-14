@@ -6,6 +6,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -13,9 +14,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Flurl;
 using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.VisualBasic.FileIO;
@@ -79,7 +82,7 @@ public partial class MainWindow
 		var f1 = files1.FirstOrDefault();
 
 		if (!string.IsNullOrWhiteSpace(f1)) {
-			CurrentQueueItem = f1;
+			SetQueue(f1);
 
 		}
 
@@ -181,7 +184,9 @@ public partial class MainWindow
 	{
 		var ctrl = Keyboard.Modifiers.HasFlag(ModifierKeys.Control);
 		Restart(ctrl);
-		Queue.Clear();
+		// ClearQueue();
+		// ClearResults(true);
+
 		e.Handled = true;
 	}
 
@@ -200,6 +205,8 @@ public partial class MainWindow
 		Cancel();
 		ReloadToken();
 		Lb_Queue.IsEnabled = true;
+		Btn_Run.IsEnabled  = true;
+		Btn_Remove.IsEnabled = true;
 		e.Handled          = true;
 	}
 
@@ -215,16 +222,16 @@ public partial class MainWindow
 		
 		var old = CurrentQueueItem;
 
-		if (old == null) {
+		if (old == null || old.IsPrimitive) {
 			goto ret;
 		}
 		var i = Queue.IndexOf(old);
 		Queue.Remove(old);
-
+		old?.Dispose();
 		// TrySeekQueue(q);
 		// AdvanceQueue(-1);
 
-		if (m_queries.TryRemove(old, out var sq)) {
+		/*if (m_queries.TryRemove(old, out var sq)) {
 			m_resultMap.TryRemove(sq, out var result);
 			
 			foreach (var r in result) {
@@ -233,28 +240,31 @@ public partial class MainWindow
 			result.Clear();
 			/*foreach (var r in m_resultMap[sq]) {
 				r.Dispose();
-			}*/
+			}#1#
 
 			m_images.TryRemove(sq, out var img);
 			img = null;
-		}
+		}*/
+
 		// ClearQueryControls();
 
-		var i2 = i - 1;
+		/*var i2 = i - 1;
 
 		i2 = Math.Clamp(i2, 0, Queue.Count);
-		string n;
+		ResultModel n;
 
 		if (Queue.Count == 0)
-			n = String.Empty;
+			n = null;
 		else
 			n = Queue[i2];
-		CurrentQueueItem       = n;
-		
+		// SetQueue(n);
+
+		CurrentQueueItem = n;*/
 		// Lb_Queue.ItemsSource.  = n;
 		// AdvanceQueue(i-1);
 
-		sq?.Dispose();
+		// n?.Dispose();
+
 		GC.Collect();
 		GC.WaitForPendingFinalizers();
 		GC.Collect();
@@ -269,18 +279,19 @@ public partial class MainWindow
 		ClearResults();
 		m_cbDispatch.Stop();
 		var old = CurrentQueueItem;
-		m_clipboardHistory.Remove(old);
-		CurrentQueueItem = String.Empty;
-		m_queries.TryRemove(old, out var q);
-		m_resultMap.TryRemove(Query, out var x);
-		Query.Dispose();
+		m_clipboardHistory.Remove(old.Value);
+		old.Dispose();
+		// CurrentQueueItem = null;
+		// m_queries.TryRemove(old, out var q);
+		// m_resultMap.TryRemove(Query, out var x);
+		// Query.Dispose();
 		Queue.Remove(old);
 		Img_Preview.Source = m_image = null;
-		Query              = SearchQuery.Null;
+		// Query              = SearchQuery.Null;
 		bool ok;
 
 		try {
-			VBFS.DeleteFile(old, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+			VBFS.DeleteFile(old.Value, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
 			// FileSystem.SendFileToRecycleBin(old);
 			ok = true;
 		}
@@ -290,8 +301,8 @@ public partial class MainWindow
 		}
 
 		m_cbDispatch.Start();
-		Btn_Delete.IsEnabled = !ok;
-		Btn_Remove.IsEnabled = !ok;
+		Btn_Delete.IsEnabled = ok;
+		Btn_Remove.IsEnabled = ok;
 		AdvanceQueue();
 		// FileSystem.SendFileToRecycleBin(InputText);
 		e.Handled = true;
@@ -390,8 +401,9 @@ public partial class MainWindow
 
 				CurrentResultItem.Dispose();
 
-				Results.Remove(CurrentResultItem);
+				// Results.Remove(CurrentResultItem);
 
+				CurrentQueueItem.Results.Remove(CurrentResultItem);
 				Img_Preview.Source = m_image;
 				break;
 			case Key.C when ctrl:
@@ -538,7 +550,7 @@ public partial class MainWindow
 		}
 
 		// todo: not used for now
-		// m_trDispatch.Start();
+		m_trDispatch.Start();
 		e.Handled = true;
 		Debug.WriteLine("Main loaded");
 
@@ -703,8 +715,8 @@ public partial class MainWindow
 
 	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		if (string.IsNullOrWhiteSpace(Tb_Search.Text) && m_resultMap.TryGetValue(Query, out var value)) {
-			Lv_Results.ItemsSource = value;
+		if (string.IsNullOrWhiteSpace(Tb_Search.Text)) /*&& m_resultMap.TryGetValue(Query, out var value))*/ {
+			Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
 		}
 		else {
 			var selected = (string) Cb_SearchFields.SelectionBoxItem;
@@ -725,5 +737,28 @@ public partial class MainWindow
 		}
 
 		e.Handled = true;
+	}
+}
+[ValueConversion(typeof(Url), typeof(String))]
+public class UrlConverter : IValueConverter
+{
+	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		if (value == null) {
+			return null;
+		}
+		var date = (Url)value;
+		return date.ToString();
+	}
+
+	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		if (value == null) {
+			return null;
+		}
+		string   strValue = value as string;
+		Url resultDateTime;
+
+		return (Url) strValue;
 	}
 }

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Json;
 using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
@@ -46,8 +47,10 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 				.AllowAnyHttpStatus()
 				.SetQueryParam("url", query.Upload, true);
 
-			var json = await request.GetStringAsync(cancellationToken: token);
+			var response = await request.GetAsync(cancellationToken: token);
 
+			var json = await response.GetStringAsync();
+			
 			var settings = new JsonSerializerSettings
 			{
 				Error = (sender, args) =>

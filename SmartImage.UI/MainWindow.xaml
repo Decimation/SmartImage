@@ -8,6 +8,8 @@
         xmlns:ui="clr-namespace:SmartImage.UI"
         xmlns:converters="clr-namespace:SmartImage.UI"
         xmlns:controls="clr-namespace:SmartImage.UI.Controls"
+        xmlns:model="clr-namespace:SmartImage.UI.Model"
+        xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="600" Width="1300" MinWidth="1300" MinHeight="300" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
@@ -16,6 +18,7 @@
     <Window.Resources>
         <!-- <ui:SharedViewModel x:Key="SharedViewModel" /> -->
         <!-- <ui:SharedImageControl x:Key="SharedImage" /> -->
+        <ui:UrlConverter x:Key="urlConverter" />
 
         <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
             <converters:BooleanToBrushConverter.TrueBrush>
@@ -25,6 +28,7 @@
                 <SolidColorBrush Color="Red" />
             </converters:BooleanToBrushConverter.FalseBrush>
         </converters:BooleanToBrushConverter>
+
         <Style x:Key="CustomContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="Background" Value="{DynamicResource Black3}" />
             <Setter Property="Foreground" Value="White" />
@@ -70,7 +74,7 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
         </Style>
         <Style x:Key="CustomListViewItemStyle" TargetType="{x:Type ListViewItem}">
-           
+
             <!-- <Setter Property="Background" Value="LightGray" /> -->
             <!-- <Setter Property="Foreground" Value="Black" /> -->
             <!--<Setter Property="Template">
@@ -162,11 +166,13 @@
                              Width="437" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver" IsReadOnly="False"
-                             Text="{Binding CurrentQueueItem, Mode=TwoWay}" />
+                             TargetUpdated="Tb_Input_OnTargetUpdated"
+                             SourceUpdated="Tb_Input_OnSourceUpdated"
+                             Text="{Binding SelectedItem.Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True, 
+                        NotifyOnSourceUpdated=True, ElementName=Lb_Queue}" />
 
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
-                            IsEnabled="{Binding IsQueueInputValid}"
                             Loaded="Btn_Run_Loaded" Width="35">
 
                         <Button.Style>
@@ -238,7 +244,8 @@
                     </Button>
                     <Button x:Name="Btn_Remove" Content="Remove"
                             HorizontalAlignment="Left" Margin="583,8,0,0" VerticalAlignment="Top"
-                            Click="Btn_Remove_Click" Height="20" Width="46">
+                            Click="Btn_Remove_Click" Height="20" Width="46"
+                            IsEnabled="{Binding Path=CurrentQueueItem.IsNonPrimitive, ElementName=Wnd_Main}">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -310,10 +317,14 @@
                              DragOver="Lb_Queue_DragOver" PreviewDragOver="Lb_Queue_PreviewDragOver" AllowDrop="True"
                              Background="{DynamicResource Black2}" Foreground="White"
                              SelectionChanged="Lb_Queue_SelectionChanged"
-                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             IsSynchronizedWithCurrentItem="True"
+                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, NotifyOnTargetUpdated=True}"
+
+                             TargetUpdated="Lb_Queue_OnTargetUpdated"
                              KeyDown="Lb_Queue_KeyDown" Margin="0,2,174,0" HorizontalAlignment="Right"
-                             VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2" />
+                             VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2"
+                             ItemsSource="{Binding Queue}" DisplayMemberPath="Value">
+                        <!-- IsSynchronizedWithCurrentItem="True" -->
+                    </ListBox>
 
                     <Border x:Name="Br_Preview" Height="150" Margin="0,3,11,0" Width="150"
                             Background="{DynamicResource Black2}"
@@ -365,11 +376,13 @@
                         </Image>
 
                     </Border>
+
                     <Border x:Name="Br_Preview2" Height="150" Margin="0,2,11,0" Width="150"
                             Background="{DynamicResource Black2}"
                             VerticalAlignment="Top" HorizontalAlignment="Right" Grid.RowSpan="2" Panel.ZIndex="1"
                             Grid.Column="1"
                             Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
+
                         <MediaElement x:Name="Me_Preview" HorizontalAlignment="Right" VerticalAlignment="Top"
                                       Width="150" MouseDown="Me_Preview_MouseDown"
                                       Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
@@ -419,7 +432,10 @@
 
                     <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,37,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20"
-                             MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black" />
+                             MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black"
+                             Text="{Binding CurrentQueueItem.Query.Upload, Mode=OneWay, Converter={StaticResource urlConverter}, ElementName=Wnd_Main}">
+
+                    </TextBox>
 
                     <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,0,0,0"
                             VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click" />
@@ -440,7 +456,9 @@
 
                     <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
-                             Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick" />
+                             DataContext="{Binding CurrentQueueItem}"
+                             Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick"
+                             Text="{Binding Info, UpdateSourceTrigger=PropertyChanged}" />
 
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
                            Margin="10,5,0,0"
@@ -455,6 +473,7 @@
                               IsSelected="{Binding IsChecked, UpdateSourceTrigger=PropertyChanged}"
                               IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
+                              ItemsSource="{Binding CurrentQueueItem.Results}"
                               SelectedItem="{Binding CurrentResultItem, Mode=TwoWay}"
                               ItemContainerStyle="{DynamicResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
@@ -476,7 +495,7 @@
                                             <Image x:Name="Img_Status"
                                                    Source="{Binding StatusImage, UpdateSourceTrigger=PropertyChanged}"
                                                    Width="20"
-                                                   Height="20" Stretch="None" ToolTip="{Binding Status}">
+                                                   Height="20" Stretch="None" ToolTip="{Binding StatusMessage}">
 
                                             </Image>
 
@@ -556,10 +575,14 @@
                     <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="48,5,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" />
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="4,33,0,0"
-                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1" />
+                               DataContext="{Binding CurrentQueueItem}"
+                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1"
+                               Text="{Binding Status, UpdateSourceTrigger=PropertyChanged}" />
 
                     <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="115,49,0,0"
-                               VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline" />
+                               DataContext="{Binding CurrentQueueItem}"
+                               VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline"
+                               Text="{Binding Status2, UpdateSourceTrigger=PropertyChanged}" />
                     <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="501,65,0,0"
                             VerticalAlignment="Top" Click="Btn_Filter_Click" />
                     <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,499,0" Grid.Row="1"

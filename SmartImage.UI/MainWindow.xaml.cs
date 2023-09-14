@@ -9,7 +9,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
 using System.Linq;
-using System.Net.Cache;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
@@ -58,6 +57,7 @@ using System.Reactive.Linq;
 using System.Runtime;
 using System.Runtime.Caching;
 using ReactiveUI;
+using Windows.Media.Protection.PlayReady;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -72,19 +72,24 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public MainWindow()
 	{
-		Client    = new SearchClient(new SearchConfig());
-		Shared    = new SharedInfo();
-		m_queries = new ConcurrentDictionary<string, SearchQuery>();
+		Client = new SearchClient(new SearchConfig());
+		// Shared = new SharedInfo();
+		// m_queries = new ConcurrentDictionary<string, SearchQuery>();
 
 		InitializeComponent();
 
-		m_us        = new SemaphoreSlim(1);
+		m_us        = new SemaphoreSlim(1, 1);
 		DataContext = this;
 		SearchStart = default;
-		Results     = new();
+		// Results     = new();
+		CurrentQueueItem = new ResultModel();
+		// Query            = SearchQuery.Null;
 
-		Query = SearchQuery.Null;
-		Queue = new() { };
+		Queue = new()
+		{
+			// ResultModel.Nil
+			CurrentQueueItem
+		};
 
 		// QueueSelectedIndex = 0;
 		_clipboardSequence = 0;
@@ -122,8 +127,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_uni                    = new();
 		m_clipboardHistory       = new();
 		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
-		m_resultMap              = new();
-		m_image                  = null;
+		// m_resultMap                         = new();
+		m_image = null;
 
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
 		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
@@ -144,14 +149,45 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
-		m_images                      = new();
-
-		PropertyChangedEventManager.AddHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
+		// m_images                      = new();
+		Queue.CollectionChanged += OnCollectionChangedEventHandler;
+		AddQueueListener();
+		// CurrentQueueItem.PropertyChanged += OnCurrentQueueItemChanged;
 		// PropertyChangedEventManager.AddListener(this, this, nameof(CurrentQueueItem) );
 
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
+	}
 
+	private void OnCollectionChangedEventHandler(object? sender, NotifyCollectionChangedEventArgs args)
+	{
+		var val = (ObservableCollection<ResultModel>) sender;
+
+		switch (args.Action) {
+
+			case NotifyCollectionChangedAction.Add:
+				break;
+			case NotifyCollectionChangedAction.Remove:
+				break;
+			case NotifyCollectionChangedAction.Replace:
+				break;
+			case NotifyCollectionChangedAction.Move:
+				break;
+			case NotifyCollectionChangedAction.Reset:
+				break;
+			default:
+				throw new ArgumentOutOfRangeException();
+		}
+	}
+
+	private void AddQueueListener()
+	{
+		PropertyChangedEventManager.AddHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
+	}
+
+	private void RemoveQueueListener()
+	{
+		PropertyChangedEventManager.RemoveHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
 	}
 
 	#region
@@ -177,9 +213,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public SearchConfig Config => Client.Config;
 
-	public SearchQuery Query { get; internal set; }
+	public SearchQuery Query
+	{
+		get { return CurrentQueueItem.Query; }
+		set { CurrentQueueItem.Query = value; }
+	}
 
-	public ObservableCollection<ResultItem> Results { get; private set; }
+	public ObservableCollection<ResultItem> Results => CurrentQueueItem.Results;
 
 	public bool UseContextMenu
 	{
@@ -197,11 +237,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	public SharedInfo Shared { get; set; }
+	// public SharedInfo Shared { get; set; }
 
 	private readonly ConcurrentDictionary<UniResultItem, string> m_uni;
 
-	private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
+	// private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
 	private BitmapImage? m_image;
 
@@ -210,54 +250,103 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private int m_cntResults;
 
-	private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
+	// private readonly ConcurrentDictionary<SearchQuery, ObservableCollection<ResultItem>> m_resultMap;
 
-	private readonly ConcurrentDictionary<SearchQuery, BitmapImage?> m_images;
+	// private readonly ConcurrentDictionary<SearchQuery, BitmapImage?> m_images;
 
 	#endregion
 
 	#region Queue/Query
 
 	[MN]
-	private string m_currentQueueItem;
+	private ResultModel m_currentQueueItem;
 
 	[MN]
-	public string CurrentQueueItem
+	public ResultModel CurrentQueueItem
 	{
 		get { return m_currentQueueItem; }
 		set
 		{
 
-			if (Equals(value, m_currentQueueItem) /*|| Query?.ValueString == value*/ /* || (String.IsNullOrWhiteSpace(value))*/) return;
+			if (Equals(value, m_currentQueueItem) /*|| Query?.ValueString == value*/
+			    /* || (String.IsNullOrWhiteSpace(value))*/) return;
 			m_currentQueueItem = value;
 			OnPropertyChanged();
-			
+
 		}
 	}
 
-	public ObservableCollection<string> Queue { get; }
+	public ObservableCollection<ResultModel> Queue { get; }
 
-	public bool IsQueueInputValid => !String.IsNullOrWhiteSpace(CurrentQueueItem);
+	// public bool IsQueueInputValid => CurrentQueueItem.IsValid;
 
 	private void OnCurrentQueueItemChanged(object? sender, PropertyChangedEventArgs args)
 	{
-		if (string.IsNullOrWhiteSpace(CurrentQueueItem)/* || Query?.ValueString == CurrentQueueItem*/) {
+		if (CurrentQueueItem == null /*|| CurrentQueueItem is { HasValue: false }*/ /*|| CurrentQueueItem is not {}*/
+		    /* || Query?.ValueString == CurrentQueueItem*/) {
+			// SetQueue(String.Empty);
+
 			return;
 		}
 
-		Dispatcher.InvokeAsync(async () =>
+		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
-			var ok = SearchQuery.IsValidSourceType(CurrentQueueItem);
+
+			var ok = SearchQuery.IsValidSourceType(CurrentQueueItem.Value);
 
 			if (ok /*&& !IsInputReady()*/) {
 				// Debug.WriteLine($"Updating query: {CurrentQueueItem} | {Query?.ValueString}");
-				await UpdateQueryAsync(CurrentQueueItem);
+				// await UpdateQueryAsync(CurrentQueueItem);
+				//todo
+				await UpdateItem();
+				
+				UpdateItem2();
+
 			}
+
 			// Btn_Run.IsEnabled = ok;
+
 		});
 
 	}
 
+	private async Task UpdateItem()
+	{
+		if (!CurrentQueueItem.HasQuery) {
+			await CurrentQueueItem.LoadQueryAsync(m_cts.Token);
+		}
+
+		if (CurrentQueueItem.HasQuery && !CurrentQueueItem.Query.IsUploaded) {
+			await CurrentQueueItem.UploadAsync(m_ctsu.Token);
+
+		}
+
+		if (!Equals(Lv_Results.ItemsSource, CurrentQueueItem.Results)) {
+			Lv_Results.ItemsSource = CurrentQueueItem.Results;
+
+		}
+
+		// CurrentQueueItem.PropertyChanged += OnResultModelPropertyChanged;
+		// m_image        = CurrentQueueItem.Image;
+		// UpdatePreview(CurrentQueueItem.Image);
+		if (!Equals(m_image, CurrentQueueItem.Image)) {
+			m_image = CurrentQueueItem.Image;
+
+		}
+
+		UpdatePreview();
+		Tb_Upload.Text = CurrentQueueItem.Query.Upload;
+
+	}
+
+	/*private void OnResultModelPropertyChanged(object? o, PropertyChangedEventArgs eventArgs)
+	{
+		if (((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) && CurrentQueueItem.IsPrimitive) {
+			Dispatcher.InvokeAsync(RunAsync);
+		}
+	}*/
+
+	/*
 	private async Task UpdateQueryAsync(string query)
 	{
 		if (query == Query?.ValueString) {
@@ -267,7 +356,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		/*if (await m_us.WaitAsync(TimeSpan.Zero)) {
 			Debug.WriteLine($"blocking");
 			return;
-		}*/
+		}#1#
 
 		Lb_Queue.IsEnabled = false;
 		Btn_Run.IsEnabled  = false;
@@ -345,7 +434,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (m_image != null) {
 				Tb_Info.Text += $"({m_image.PixelWidth}x{m_image.PixelHeight})";
-			}*/
+			}#1#
 
 			m_queries.TryAdd(query, Query);
 
@@ -433,6 +522,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			UpdatePreview();
 		}
 	}
+	*/
 
 	private void AddToQueue(IReadOnlyList<string> files)
 	{
@@ -440,9 +530,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
-		if (!IsQueueInputValid) {
+		if (!CurrentQueueItem.HasValue) {
 			var ff = files[0];
-			CurrentQueueItem = ff;
+			// CurrentQueueItem = new ResultModel(ff); //todo
+			SetQueue(ff);
 			// Debug.WriteLine($"cqi {ff}");
 			// Lv_Queue.SelectedItems.Add(ff);
 		}
@@ -451,8 +542,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		foreach (var s in files) {
 
-			if (!Queue.Contains(s)) {
-				Queue.Add(s);
+			if (!Queue.Any(x => x.Value == s)) {
+				Queue.Add(new ResultModel(s));
 				Debug.WriteLine($"Added {s}");
 
 				c++;
@@ -464,10 +555,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void AdvanceQueue(int i = 1)
 	{
-		string next;
+		ResultModel next;
 
 		if (Queue.Count == 0) {
-			next = String.Empty;
+			next = new ResultModel();
 		}
 		else next = Queue[(Queue.IndexOf(CurrentQueueItem) + i) % Queue.Count];
 
@@ -480,7 +571,35 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_trDispatch;
 
-	private async void IdleDispatchAsync(object? sender, EventArgs e) { }
+	private async void IdleDispatchAsync(object? sender, EventArgs e)
+	{
+		// Dispatcher.InvokeAsync(UpdateItem2);
+		/*if (Client.IsRunning) {
+			return;
+		}
+		if (CurrentQueueItem.IsPrimitive) {
+			OnCurrentQueueItemChanged(sender, null);
+
+		}*/
+
+		// await UpdateItem();
+
+	}
+
+	private void UpdateItem2()
+	{
+		if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any() && CurrentQueueItem.CanSearch) {
+			Dispatcher.InvokeAsync(RunAsync);
+		}
+
+		else if (Results.Any()) {
+			Tb_Status.Text = $"Displaying {Results.Count} results";
+		}
+		else {
+			Tb_Status.Text = $"Search ready";
+
+		}
+	}
 
 	#endregion
 
@@ -526,7 +645,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var fn = FileSystem.GetTempFileName(ext: "png");
 
 			var ms = File.Open(fn, FileMode.OpenOrCreate);
-			CurrentQueueItem = fn;
+			// CurrentQueueItem = fn;
+			SetQueue(fn);
 			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(ms);
@@ -546,7 +666,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (SearchQuery.IsValidSourceType(txt)) {
 
-				if ( /*!IsInputReady() && */ !Queue.Contains(txt) && !m_clipboardHistory.Contains(txt) &&
+				if ( /*!IsInputReady() && */ !Queue.Any(x => x.Value == txt) && !m_clipboardHistory.Contains(txt) &&
 				                             SearchQuery.IsValidSourceType(txt)) {
 					m_clipboardHistory.Add(txt);
 					// Queue.Add(txt);
@@ -585,14 +705,24 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task RunAsync()
 	{
+
 		Lb_Queue.IsEnabled   = false;
 		Btn_Remove.IsEnabled = false;
 		// ClearResults();
+
 		SearchStart  = DateTime.Now;
 		m_cntResults = 0;
 
 		Btn_Run.IsEnabled = false;
 		Tb_Status.Text    = "Initiating search...";
+
+		// if (Query is not { IsUploaded: true }) { }
+
+		/*
+		await UpdateItem();
+		UpdateItem2();
+		*/
+
 		var r = await Client.RunSearchAsync(Query, reload: false, token: m_cts.Token);
 
 	}
@@ -609,7 +739,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Btn_Remove.IsEnabled = true;
-		Btn_Run.IsEnabled = IsQueueInputValid;
+		Btn_Run.IsEnabled    = CurrentQueueItem.HasValue;
 		// m_resultMap[Query] = Results;
 	}
 
@@ -674,18 +804,18 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Dispose(full);
 		ClearResults(full);
 
-		CurrentQueueItem = String.Empty;
+		CurrentQueueItem = new ResultModel();
 		ReloadToken();
 	}
 
 	private void ClearQueryControls()
 	{
 		m_image = null;
-		m_images.TryRemove(Query, out var img);
+		// m_images.TryRemove(Query, out var img);
 		Img_Preview.Source = null;
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text   = String.Empty;
-		CurrentQueueItem = String.Empty;
+		CurrentQueueItem = new ResultModel();
 		Tb_Info.Text     = String.Empty;
 		Tb_Status2.Text  = String.Empty;
 
@@ -699,9 +829,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_cntResults = 0;
 
 		if (full) {
-			/*foreach (var r in Results) {
+			foreach (var r in Results) {
 				r.Dispose();
-			}*/
+			}
 
 			Results.Clear();
 			// ClearQueryControls();
@@ -735,17 +865,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		if (full) {
 			// Client.Dispose();
-			Query.Dispose();
-			Query = SearchQuery.Null;
+			// Query.Dispose();
+			// Query = SearchQuery.Null;
+			CurrentQueueItem?.Dispose();
 
-			Queue.Clear();
+			// Queue.Clear();
 			// QueueSelectedIndex = 0;
 
-			foreach (var kv in m_queries) {
-				kv.Value.Dispose();
-			}
-
-			m_queries.Clear();
+			ClearQueue();
 
 			foreach (var kv in m_uni) {
 				kv.Key.Dispose();
@@ -754,25 +881,31 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			m_uni.Clear();
 			m_clipboardHistory.Clear();
 
-			foreach (var r in Results) {
+			/*foreach (var r in Results) {
 				r.Dispose();
 			}
 
-			Results.Clear();
+			Results.Clear();*/
 
-			foreach ((SearchQuery key, ObservableCollection<ResultItem> value) in m_resultMap) {
+			/*foreach ((SearchQuery key, ObservableCollection<ResultItem> value) in m_resultMap) {
 				key.Dispose();
 				value.Clear();
 			}
 
-			m_resultMap.Clear();
+			m_resultMap.Clear();*/
 
 			m_image            = null;
 			Img_Preview.Source = m_image;
 			Img_Preview.UpdateLayout();
 
-			m_images.Clear();
-			m_us.Release();
+			// m_images.Clear();
+
+			try {
+				m_us.Release();
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+			}
 		}
 
 		m_cts.Dispose();
@@ -1021,7 +1154,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 			if (c == R2.Arg_Switch && inp != null) {
-				CurrentQueueItem = inp;
+				SetQueue(inp);
 
 			}
 
@@ -1118,6 +1251,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Img_Preview.Source = ri.Image;
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
+
 				Tb_Preview.Text = $"Preview: {ri.Name}";
 
 			}
@@ -1166,15 +1300,27 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		});
 
 	}
-}
 
-public class ResultModel
-{
-	//todo
-	public string                           Value   { get; set; }
-	public SearchQuery                      Query   { get; set; }
-	public BitmapImage                      Image   { get; set; }
-	public ObservableCollection<ResultItem> Results { get; set; }
+	private void Lb_Queue_OnTargetUpdated(object? sender, DataTransferEventArgs e)
+	{
+		Debug.WriteLine($"{sender} {e}");
 
-	public async Task Init(string query) { }
+		e.Handled = true;
+	}
+
+	private void Tb_Input_OnTargetUpdated(object? sender, DataTransferEventArgs e)
+	{
+		// BindingExpression be = Tb_Input.GetBindingExpression(TextBox.TextProperty);
+		// be?.UpdateSource();
+		Debug.WriteLine($"target: {sender} {e}");
+
+		e.Handled = true;
+	}
+
+	private void Tb_Input_OnSourceUpdated(object? sender, DataTransferEventArgs e)
+	{
+		Debug.WriteLine($"src: {sender} {e}");
+
+		e.Handled = true;
+	}
 }

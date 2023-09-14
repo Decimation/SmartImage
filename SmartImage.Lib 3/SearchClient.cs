@@ -136,7 +136,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		OnComplete?.Invoke(this, results);
-
+		IsRunning  = false;
 		IsComplete = true;
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {

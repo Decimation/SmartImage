@@ -26,7 +26,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 
-public class ResultItem : IDisposable, INotifyPropertyChanged
+public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider
 {
 	public string Name { get; protected set; }
 
@@ -61,8 +61,9 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 	public int? Width  { get; internal set; }
 	public int? Height { get; internal set; }
 
-	public BitmapImage? Image { get; protected set; }
+	public BitmapImage? Image { get; /*protected*/ set; }
 
+	public string StatusMessage { get; internal set; }
 	public ResultItem(SearchResultItem result, string name)
 	{
 		Result          = result;
@@ -86,9 +87,12 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 			StatusImage = AppComponents.asterisk_yellow;
 		}
 
-	}
+		StatusMessage = $"[{Status}]";
 
-	public bool HasImage => Image != null;
+		if (!string.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
+			StatusMessage += $" :: {result.Root.ErrorMessage}";
+		}
+	}
 
 	public virtual bool LoadImage()
 	{
@@ -97,7 +101,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 			/*
 			 * NOTE:
 			 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
-			 * 
+			 *
 			 */
 
 			Image = new BitmapImage()
@@ -130,6 +134,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged
 		return FileSystem.Open(Url);
 
 	}
+
+	public bool HasImage => Image!=null;
 
 	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
 
@@ -234,6 +240,7 @@ public class UniResultItem : ResultItem
 			Height = Image.PixelHeight;
 
 		}
+
 		return HasImage;
 	}
 

@@ -75,11 +75,12 @@ public partial class App : Application
 
 	public event PipeMessageCallback OnPipeMessage;
 
+	[DebuggerHidden]
 	private void StartServer()
 	{
 		PipeServer = new NamedPipeServerStream(IPC_PIPE_NAME, PipeDirection.In);
 
-		PipeThread = new Thread(() =>
+		PipeThread = new Thread([DebuggerHidden]() =>
 		{
 			while (true) {
 				PipeServer.WaitForConnection();
