@@ -9,6 +9,7 @@ using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Novus.OS;
 using Novus.Utilities;
+using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Upload;
@@ -32,83 +33,13 @@ public abstract class BaseUploadEngine : IEndpoint
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
-	public abstract Task<BaseUploadResponse> UploadFileAsync(string file, CancellationToken ct = default);
-
-	public long Size { get; set; }
-
-	private protected bool IsFileSizeValid(string file)
-	{
-		Size = FileSystem.GetFileSize(file);
-		var b = Size > MaxSize;
-
-		return !b;
-	}
+	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
 	protected bool Paranoid { get; set; }
 
 	public TimeSpan Timeout { get; set; }
 
-	protected abstract Task<BaseUploadResponse> VerifyResultAsync(IFlurlResponse response,
-	                                                              CancellationToken ct = default);
-
-	protected void Verify(string file)
-	{
-		if (string.IsNullOrWhiteSpace(file)) {
-			throw new ArgumentNullException(nameof(file));
-		}
-
-		if (!IsFileSizeValid(file)) {
-			throw new ArgumentException($"File {file} is too large (max {MaxSize}) for {Name}");
-		}
-	}
-
-	public static readonly BaseUploadEngine[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
-
-	/*public async Task<bool> IsAlive()
-	{
-		using var res = await ((IHttpClient) this).GetEndpointResponseAsync(Timeout);
-
-		return !res.ResponseMessage.IsSuccessStatusCode;
-	}*/
-
-	public static BaseUploadEngine Default { get; set; } = CatboxEngine.Instance;
-
-	public void Dispose() { }
-}
-
-public abstract class BaseCatboxEngine : BaseUploadEngine
-{
-	public override async Task<BaseUploadResponse> UploadFileAsync(string file, CancellationToken ct = default)
-	{
-		Verify(file);
-
-		var response = await EndpointUrl
-			               .ConfigureRequest(r =>
-			               {
-				               // r.Timeout = TimeSpan.FromSeconds(10);
-
-				               r.OnError = rx =>
-				               {
-					               rx.ExceptionHandled = true;
-				               };
-			               })
-			               .WithHeaders(new
-			               {
-				               User_Agent = HttpUtilities.UserAgent
-			               })
-			               .PostMultipartAsync(mp =>
-				                                   mp.AddFile("fileToUpload", file)
-					                                   .AddString("reqtype", "fileupload")
-					                                   .AddString("time", "1h")
-					                                   .AddString("userhash", string.Empty)
-			                                   , cancellationToken: ct,
-			                                   completionOption: HttpCompletionOption.ResponseHeadersRead);
-
-		return await VerifyResultAsync(response, ct).ConfigureAwait(false);
-	}
-
-	protected override async Task<BaseUploadResponse> VerifyResultAsync(
+	protected virtual async Task<UploadResult> ProcessResultAsync(
 		IFlurlResponse response, CancellationToken ct = default)
 	{
 		string url = null;
@@ -141,7 +72,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 					                                    rx.ExceptionHandled = true;
 				                                    }).GetAsync(cancellationToken: ct);
 
-			if (r2 == null || NetHelper.GetContentLength(r2) == 0) {
+			if (r2 == null || r2.GetContentLength() == 0) {
 				ok = false;
 			}
 
@@ -152,9 +83,66 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		return new()
 		{
 			Url      = url,
-			Response = response,
+			Size = response.GetContentLength(),
 			IsValid  = ok
 		};
+	}
+
+	protected void Verify(string file)
+	{
+		if (string.IsNullOrWhiteSpace(file)) {
+			throw new ArgumentNullException(nameof(file));
+		}
+
+		if ((FileSystem.GetFileSize(file) > MaxSize)) {
+			throw new ArgumentException($"File {file} is too large (max {MaxSize}) for {Name}");
+		}
+	}
+
+	public static readonly BaseUploadEngine[] All =
+		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
+
+	/*public async Task<bool> IsAlive()
+	{
+		using var res = await ((IHttpClient) this).GetEndpointResponseAsync(Timeout);
+
+		return !res.ResponseMessage.IsSuccessStatusCode;
+	}*/
+
+	public static BaseUploadEngine Default { get; set; } = CatboxEngine.Instance;
+
+	public void Dispose() { }
+}
+
+public abstract class BaseCatboxEngine : BaseUploadEngine
+{
+	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
+	{
+		Verify(file);
+
+		var response = await EndpointUrl
+			               .ConfigureRequest(r =>
+			               {
+				               // r.Timeout = TimeSpan.FromSeconds(10);
+
+				               r.OnError = rx =>
+				               {
+					               rx.ExceptionHandled = true;
+				               };
+			               })
+			               .WithHeaders(new
+			               {
+				               User_Agent = HttpUtilities.UserAgent
+			               })
+			               .PostMultipartAsync(mp =>
+				                                   mp.AddFile("fileToUpload", file)
+					                                   .AddString("reqtype", "fileupload")
+					                                   .AddString("time", "1h")
+					                                   .AddString("userhash", string.Empty)
+			                                   , cancellationToken: ct,
+			                                   completionOption: HttpCompletionOption.ResponseHeadersRead);
+
+		return await ProcessResultAsync(response, ct).ConfigureAwait(false);
 	}
 
 	protected BaseCatboxEngine(string s) : base(s) { }

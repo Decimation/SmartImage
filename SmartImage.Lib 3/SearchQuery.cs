@@ -29,6 +29,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public ReadOnlyMemory<byte> MD5Hash { get; private init; }
 
+	[CBN]
+	public string ValueString => Uni?.Value.ToString();
+
 	internal SearchQuery([CBN] UniSource f)
 	{
 		Uni  = f;
@@ -90,10 +93,10 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 			Upload = u.Url;
 
-			if (u.Response is { }) {
+			/*if (u.Response is { }) {
 				Size = NetHelper.GetContentLength(u.Response) ?? Size;
-			}
-
+			}*/
+			Size = u.Size ?? Size;
 			u.Dispose();
 		}
 
@@ -121,9 +124,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		Uni?.Dispose();
 		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 	}
-
-	[CanBeNull]
-	public string ValueString => Uni?.Value.ToString();
 
 	public override string ToString()
 	{

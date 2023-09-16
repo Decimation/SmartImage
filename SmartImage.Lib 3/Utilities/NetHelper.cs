@@ -20,7 +20,7 @@ internal static class NetHelper
 		return nodes.Where(f => f is IElement e && e.ClassName == className).ToArray();
 	}
 
-	public static long? GetContentLength(IFlurlResponse r)
+	public static long? GetContentLength(this IFlurlResponse r)
 	{
 		return r.Headers.TryGetFirst("Content-Length", out var cls) ? long.Parse(cls) : null;
 

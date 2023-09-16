@@ -6,11 +6,11 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Shapes;
-using SmartImage.Lib;
+using SmartImage.Lib.Clients;
 
 namespace SmartImage.UI.Model
 {
-	public class SharedInfo : INotifyPropertyChanged
+    public class SharedInfo : INotifyPropertyChanged
 	{
 		public SharedInfo()
 		{

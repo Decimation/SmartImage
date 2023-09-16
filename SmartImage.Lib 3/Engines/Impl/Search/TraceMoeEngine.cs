@@ -7,6 +7,7 @@ using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
 using Newtonsoft.Json;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 

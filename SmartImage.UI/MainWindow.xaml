@@ -493,7 +493,7 @@
                               IsSelected="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
                               IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
-                              ItemsSource="{Binding CurrentQueueItem.Results}"
+                              ItemsSource="{Binding CurrentQueueItem.Results, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
                               SelectedItem="{Binding CurrentResultItem, Mode=TwoWay}"
                               ItemContainerStyle="{DynamicResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
@@ -651,12 +651,17 @@
                            Margin="228,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
                     <RadioButton x:Name="Rb_UploadEngine_Catbox" Content="Catbox" HorizontalAlignment="Left"
-                                 Margin="599,33,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
+                                 Margin="600,30,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
                                  Foreground="White" Checked="Rb_UploadEngine_Catbox_Checked" />
 
                     <RadioButton x:Name="Rb_UploadEngine_Litterbox" Content="Litterbox" HorizontalAlignment="Left"
-                                 Margin="599,53,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
+                                 Margin="600,60,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
                                  Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
+
+                    <RadioButton x:Name="Rb_UploadEngine_Pomf" Content="Pomf" HorizontalAlignment="Left"
+                                 Margin="600,90,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
+                                 Foreground="White" Checked="Rb_UploadEngine_Pomf_Checked" />
+
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
                     <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="527,208,0,0" TextWrapping="Wrap"

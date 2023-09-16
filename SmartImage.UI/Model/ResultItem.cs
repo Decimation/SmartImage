@@ -20,7 +20,7 @@ using Kantan.Utilities;
 using Novus.FileTypes;
 using Novus.OS;
 using Novus.Streams;
-using SmartImage.Lib;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 

@@ -512,6 +512,7 @@ public partial class MainWindow
 		}
 
 		BaseUploadEngine.Default = CatboxEngine.Instance;
+		e.Handled                = true;
 	}
 
 	private void Rb_UploadEngine_Litterbox_Checked(object sender, RoutedEventArgs e)
@@ -521,6 +522,18 @@ public partial class MainWindow
 		}
 
 		BaseUploadEngine.Default = LitterboxEngine.Instance;
+		e.Handled                = true;
+	}
+
+	private void Rb_UploadEngine_Pomf_Checked(object sender, RoutedEventArgs e)
+	{
+		if (!e.IsLoaded() || e.OriginalSource != sender) {
+			return;
+		}
+
+		BaseUploadEngine.Default = PomfEngine.Instance;
+		e.Handled                = true;
+
 	}
 
 	private async void Tb_EhUsername_TextChanged(object sender, TextChangedEventArgs e)
