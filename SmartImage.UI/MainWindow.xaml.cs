@@ -136,8 +136,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
 		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
 
-		BindingOperations.EnableCollectionSynchronization(Queue, m_lock);
-		BindingOperations.EnableCollectionSynchronization(CurrentQueueItem.Results, m_lock);
+		// BindingOperations.EnableCollectionSynchronization(Queue, m_lock);
+		// BindingOperations.EnableCollectionSynchronization(CurrentQueueItem.Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
 		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
@@ -152,35 +152,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
+
 		// m_images                      = new();
-		Queue.CollectionChanged += OnCollectionChangedEventHandler;
 		AddQueueListener();
 		// CurrentQueueItem.PropertyChanged += OnCurrentQueueItemChanged;
 		// PropertyChangedEventManager.AddListener(this, this, nameof(CurrentQueueItem) );
 
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
-	}
-
-	private void OnCollectionChangedEventHandler(object? sender, NotifyCollectionChangedEventArgs args)
-	{
-		var val = (ObservableCollection<ResultModel>) sender;
-
-		switch (args.Action) {
-
-			case NotifyCollectionChangedAction.Add:
-				break;
-			case NotifyCollectionChangedAction.Remove:
-				break;
-			case NotifyCollectionChangedAction.Replace:
-				break;
-			case NotifyCollectionChangedAction.Move:
-				break;
-			case NotifyCollectionChangedAction.Reset:
-				break;
-			default:
-				throw new ArgumentOutOfRangeException();
-		}
 	}
 
 	private void AddQueueListener()
@@ -217,7 +196,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public SearchConfig Config => Client.Config;
 
-	public SearchQuery Query
+	public SearchQuery? Query
 	{
 		get { return CurrentQueueItem.Query; }
 		set { CurrentQueueItem.Query = value; }
@@ -339,12 +318,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (!ok) {
 				ClearQueryControls();
-
-				Dispatcher.InvokeAsync(() =>
+				/*Dispatcher.BeginInvoke(() =>
 				{
 					CurrentQueueItem.UpdateProperties();
-				});
+				})*/;
 			}
+			
 		});
 		// m_us.Release();
 	}
@@ -1326,7 +1305,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		var eventArgs = new PropertyChangedEventArgs(propertyName);
+		PropertyChanged?.Invoke(this, eventArgs);
+		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	/*public delegate bool PreviewChangedCallback(ResultItem? ri);

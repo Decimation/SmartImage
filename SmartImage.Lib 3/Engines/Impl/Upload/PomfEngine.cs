@@ -34,8 +34,9 @@ public sealed class PomfEngine : BaseUploadEngine
 				               };
 			               })
 			               .PostMultipartAsync(mp =>
-				                                   mp.AddFile("files[]", file)
-			                                   , cancellationToken: ct);
+			               {
+				               mp.AddFile("files[]", file);
+			               }, cancellationToken: ct);
 
 		var pr = await response.GetJsonAsync<PomfResult>();
 

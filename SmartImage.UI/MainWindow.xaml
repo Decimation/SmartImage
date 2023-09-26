@@ -278,7 +278,7 @@
                     </Button>
                     <Button x:Name="Btn_Delete" Content="Delete"
                             HorizontalAlignment="Left" Margin="634,8,0,0" VerticalAlignment="Top"
-                            Click="Btn_Delete_Click" Height="20" Width="39">
+                            Click="Btn_Delete_Click" Height="20" Width="39" IsEnabled="{Binding Path=CurrentQueueItem.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -493,7 +493,7 @@
                               IsSelected="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
                               IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
-                              ItemsSource="{Binding CurrentQueueItem.Results, UpdateSourceTrigger=PropertyChanged, IsAsync=True}"
+                              ItemsSource="{Binding CurrentQueueItem.Results, UpdateSourceTrigger=PropertyChanged, IsAsync=False, Mode=TwoWay}"
                               SelectedItem="{Binding CurrentResultItem, Mode=TwoWay}"
                               ItemContainerStyle="{DynamicResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"

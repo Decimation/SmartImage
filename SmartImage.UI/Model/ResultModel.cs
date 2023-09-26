@@ -60,13 +60,29 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		OnPropertyChanged(nameof(CanSearch));
 		OnPropertyChanged(nameof(IsPrimitive));
 		OnPropertyChanged(nameof(Results));
+		OnPropertyChanged(nameof(CanDelete));
 
 	}
 
 	public BitmapImage? Image { get; set; }
 
-	public ObservableCollection<ResultItem> Results { get; set; }
+	private ObservableCollection<ResultItem> m_results;
 
+	public ObservableCollection<ResultItem> Results
+	{
+		get => m_results;
+		set
+		{
+			if (Equals(value, m_results)) return;
+			m_results = value;
+			OnPropertyChanged();
+			OnPropertyChanged(nameof(IsPrimitive));
+			OnPropertyChanged(nameof(IsComplete));
+			OnPropertyChanged(nameof(CanSearch));
+		}
+	}
+
+	[MemberNotNullWhen(true, nameof(Query))]
 	public bool HasQuery => (Query != SearchQuery.Null) && Query != null;
 
 	public bool CanLoadImage => !HasImage && HasQuery;
@@ -78,7 +94,10 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 	public bool IsPrimitive => !Results.Any() && !HasQuery;
 
 	public bool IsComplete => Results.Any() && HasQuery && Query.IsUploaded;
-	public bool CanSearch  => !Results.Any() && HasQuery && Query.IsUploaded;
+
+	public bool CanDelete => HasQuery && Query.Uni.IsFile;
+
+	public bool CanSearch => !Results.Any() && HasQuery && Query.IsUploaded;
 
 	public ResultModel() : this(string.Empty) { }
 
@@ -271,7 +290,9 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		var eventArgs = new PropertyChangedEventArgs(propertyName);
+		PropertyChanged?.Invoke(this, eventArgs);
+		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
@@ -299,7 +320,6 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	public void Dispose()
 	{
-		PropertyChanged = null;
 
 		ClearResults();
 
@@ -315,5 +335,6 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		Status2 = null;
 		Info    = null;
 
+		PropertyChanged = null;
 	}
 }

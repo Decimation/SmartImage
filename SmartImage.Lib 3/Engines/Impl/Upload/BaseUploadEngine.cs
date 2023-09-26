@@ -67,10 +67,12 @@ public abstract class BaseUploadEngine : IEndpoint
 
 		if (Paranoid) {
 			var r2 = await url.ConfigureRequest(r =>
-				                                    r.OnError = rx =>
-				                                    {
-					                                    rx.ExceptionHandled = true;
-				                                    }).GetAsync(cancellationToken: ct);
+			{
+				r.OnError = rx =>
+				{
+					rx.ExceptionHandled = true;
+				};
+			}).GetAsync(cancellationToken: ct);
 
 			if (r2 == null || r2.GetContentLength() == 0) {
 				ok = false;
@@ -82,9 +84,9 @@ public abstract class BaseUploadEngine : IEndpoint
 
 		return new()
 		{
-			Url      = url,
-			Size = response.GetContentLength(),
-			IsValid  = ok
+			Url     = url,
+			Size    = response.GetContentLength(),
+			IsValid = ok
 		};
 	}
 
@@ -135,12 +137,12 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 				               User_Agent = HttpUtilities.UserAgent
 			               })
 			               .PostMultipartAsync(mp =>
-				                                   mp.AddFile("fileToUpload", file)
-					                                   .AddString("reqtype", "fileupload")
-					                                   .AddString("time", "1h")
-					                                   .AddString("userhash", string.Empty)
-			                                   , cancellationToken: ct,
-			                                   completionOption: HttpCompletionOption.ResponseHeadersRead);
+			               {
+				               mp.AddFile("fileToUpload", file)
+					               .AddString("reqtype", "fileupload")
+					               .AddString("time", "1h")
+					               .AddString("userhash", string.Empty);
+			               }, cancellationToken: ct, completionOption: HttpCompletionOption.ResponseHeadersRead);
 
 		return await ProcessResultAsync(response, ct).ConfigureAwait(false);
 	}
