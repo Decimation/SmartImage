@@ -763,7 +763,7 @@ public partial class MainWindow
 			var selected = (string) Cb_SearchFields.SelectionBoxItem;
 			var strFunc  = SearchFields[selected];
 
-			var searchResults = Results.Where(r =>
+			var searchResults = CurrentQueueItem.Results.Where(r =>
 			{
 				var s = strFunc(r);
 

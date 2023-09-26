@@ -319,7 +319,7 @@
 
                              KeyDown="Lb_Queue_KeyDown" Margin="0,2,174,0" HorizontalAlignment="Right"
                              VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2"
-                             ItemsSource="{Binding Queue}">
+                             ItemsSource="{Binding Queue, UpdateSourceTrigger=PropertyChanged}">
                         <!-- IsSynchronizedWithCurrentItem="True" -->
                         <ListBox.ItemTemplate>
                             <DataTemplate>

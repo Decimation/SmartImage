@@ -59,6 +59,7 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		OnPropertyChanged(nameof(IsComplete));
 		OnPropertyChanged(nameof(CanSearch));
 		OnPropertyChanged(nameof(IsPrimitive));
+		OnPropertyChanged(nameof(Results));
 
 	}
 
@@ -68,24 +69,28 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	public bool HasQuery => (Query != SearchQuery.Null) && Query != null;
 
-	public bool CanLoadImage => !HasImage;
+	public bool CanLoadImage => !HasImage && HasQuery;
 
 	public bool HasImage => Image != null;
 
 	public bool HasValue => !string.IsNullOrWhiteSpace(Value);
-
-	public ResultModel() : this(string.Empty) { }
 
 	public bool IsPrimitive => !Results.Any() && !HasQuery;
 
 	public bool IsComplete => Results.Any() && HasQuery && Query.IsUploaded;
 	public bool CanSearch  => !Results.Any() && HasQuery && Query.IsUploaded;
 
+	public ResultModel() : this(string.Empty) { }
+
 	public ResultModel(string value)
 	{
 		Value   = value;
 		Results = new ObservableCollection<ResultItem>();
 		Query   = SearchQuery.Null;
+		Status  = null;
+		Status2 = null;
+		Info    = null;
+		Image   = null;
 	}
 
 	#region

@@ -57,7 +57,7 @@ public partial class MainWindow
 
 	private ResultItem? FindResult(Predicate<ResultItem> f)
 	{
-		return Results.FirstOrDefault(t => f(t));
+		return CurrentQueueItem.Results.FirstOrDefault(t => f(t));
 
 	}
 
@@ -69,7 +69,7 @@ public partial class MainWindow
 			return -1;
 		}
 
-		return Results.IndexOf(r);
+		return CurrentQueueItem.Results.IndexOf(r);
 	}
 
 	#endregion
