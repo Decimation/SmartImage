@@ -88,7 +88,7 @@ public partial class MainWindow
 
 	#region 
 
-	public ResultModel? FindQueue(string s)
+	public QueryModel? FindQueue(string s)
 	{
 		var x = Queue.FirstOrDefault(x => x.Value == s);
 
@@ -105,7 +105,7 @@ public partial class MainWindow
 			{
 				Lb_Queue.SelectedIndex = -1;
 				Queue.Clear();
-				var rm = new ResultModel();
+				var rm = new QueryModel();
 				Queue.Add(rm);
 				// Lb_Queue.SelectedIndex = 0;
 				CurrentQueueItem = rm;
@@ -126,7 +126,7 @@ public partial class MainWindow
 		var b = x == null;
 
 		if (b) {
-			x = new ResultModel(s);
+			x = new QueryModel(s);
 			Queue.Add(x);
 		}
 

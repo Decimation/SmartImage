@@ -228,6 +228,7 @@ public sealed class SearchClient : IDisposable
 
 		var tasks = Engines.Select(e =>
 		{
+			Debug.WriteLine($"Starting {e} for {query}");
 			var res = e.GetResultAsync(query, token);
 
 			return res;

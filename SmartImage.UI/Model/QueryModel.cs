@@ -21,7 +21,7 @@ using SmartImage.Lib;
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
-public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
+public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider
 {
 	//todo
 	private string m_value;
@@ -99,9 +99,9 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	public bool CanSearch => !Results.Any() && HasQuery && Query.IsUploaded;
 
-	public ResultModel() : this(string.Empty) { }
+	public QueryModel() : this(string.Empty) { }
 
-	public ResultModel(string value)
+	public QueryModel(string value)
 	{
 		Value   = value;
 		Results = new ObservableCollection<ResultItem>();
@@ -155,7 +155,7 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	#endregion
 
-	public async Task LoadQueryAsync(CancellationToken ct)
+	public async Task<bool> LoadQueryAsync(CancellationToken ct)
 	{
 		/*if (query == Query?.ValueString)
 		{
@@ -196,12 +196,19 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 			// Pb_Status.IsIndeterminate = true;
 			// queryExists = Query != SearchQuery.Null;
 		}*/
+		
 		Query = await SearchQuery.TryCreateAsync(Value, ct);
 		Url upload;
 
-		Debug.Assert(Query != null);
+		// Debug.Assert(Query != null);
+
 		var uriString = Query.ValueString;
-		Debug.Assert(uriString != null);
+
+		if (Query == null || string.IsNullOrWhiteSpace(uriString)) {
+			return false;
+		}
+
+		// Debug.Assert(uriString != null);
 
 		// Tb_Preview.Text = "Rendering preview...";
 
@@ -214,7 +221,7 @@ public class ResultModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		ret:
 
 		Debug.WriteLine($"finished {Value}");
-		return;
+		return true;
 
 	}
 

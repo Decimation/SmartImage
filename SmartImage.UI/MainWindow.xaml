@@ -524,7 +524,7 @@
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="Name"
-                                                Width="120" x:Name="Lvgvc_Name">
+                                                Width="135" x:Name="Lvgvc_Name">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Name, Mode=OneTime}"

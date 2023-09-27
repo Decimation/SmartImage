@@ -158,6 +158,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 		try {
 			response = await EndpointUrl.AllowHttpStatus()
+				           .WithTimeout(Timeout)
 				           .PostMultipartAsync(m =>
 				           {
 					           m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : string.Empty);
@@ -367,6 +368,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		var content = new FormUrlEncodedContent(values);
 
 		var res = await BASE_ENDPOINT.AllowAnyHttpStatus()
+			          .WithTimeout(Timeout)
 			          .PostAsync(content);
 		var c = await res.GetStringAsync();
 

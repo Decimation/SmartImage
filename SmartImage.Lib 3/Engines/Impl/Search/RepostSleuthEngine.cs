@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using Flurl.Http;
 using Jint.Native.Json;
 using SmartImage.Lib.Results;
@@ -62,6 +60,11 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 			};
 			obj = JsonSerializer.Deserialize<Root>(s, js);
 		}
+		catch (JsonException e) {
+			sr.ErrorMessage = e.Message;
+			sr.Status       = SearchResultStatus.Failure;
+			goto ret;
+		}
 		catch (FlurlHttpException e) {
 			sr.ErrorMessage = e.Message;
 			sr.Status       = SearchResultStatus.Unavailable;
@@ -117,7 +120,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		public int    hash_size;
 		public string searched_url;
 		public Post   post;
-		public int    title_similarity;
+		public double    title_similarity;
 	}
 
 	private class Post
@@ -160,9 +163,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		public bool   check_title;
 		public int    max_depth;
 		public bool   meme_filter;
-		public int    target_annoy_distance;
-		public int    target_meme_match_percent;
-		public int    target_match_percent;
+		public double    target_annoy_distance;
+		public double    target_meme_match_percent;
+		public double    target_match_percent;
 	}
 
 	private class SearchTimes
@@ -187,44 +190,4 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 	}
 
 	#endregion
-}
-
-public class NonPublicMembersConverter<T> : JsonConverter<T> where T : class
-{
-	public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-	{
-		T instance = (T) Activator.CreateInstance(typeToConvert, nonPublic: true);
-
-		while (reader.Read()) {
-			if (reader.TokenType == JsonTokenType.EndObject) {
-				break;
-			}
-
-			if (reader.TokenType != JsonTokenType.PropertyName) {
-				throw new JsonException();
-			}
-
-			string propertyName = reader.GetString();
-
-			PropertyInfo propertyInfo =
-				typeToConvert.GetProperty(propertyName,
-				                          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-			if (propertyInfo != null && propertyInfo.CanWrite) {
-				reader.Read(); // Move to the property value
-				object value = JsonSerializer.Deserialize(ref reader, propertyInfo.PropertyType, options);
-				propertyInfo.SetValue(instance, value);
-			}
-			else {
-				reader.Skip();
-			}
-		}
-
-		return instance;
-	}
-
-	public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
-	{
-		JsonSerializer.Serialize(writer, value, options);
-	}
 }

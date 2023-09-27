@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
@@ -90,7 +91,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			return document;
 
 		}
-		catch (FlurlHttpException e) {
+		catch (Exception e) {
 			// return await Task.FromException<IDocument>(e);
 			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
 

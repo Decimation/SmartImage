@@ -77,7 +77,7 @@ public abstract class BaseSearchEngine : IDisposable
 			ErrorMessage = null
 		};
 
-		Debug.WriteLine($"{query} - {res.Status}", nameof(GetResultAsync));
+		Debug.WriteLine($"{Name} | {query} - {res.Status}", nameof(GetResultAsync));
 
 		return res;
 	}

@@ -90,7 +90,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 			// ResultModel.Nil
 			// CurrentQueueItem
-			new ResultModel()
+			new QueryModel()
 		};
 		CurrentQueueItem = Queue[0];
 
@@ -104,10 +104,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lb_Engines.HandleEnum(Config.SearchEngines);
 		Lb_Engines2.HandleEnum(Config.PriorityEngines);
 
-		Logs                   = new ObservableCollection<LogEntry>();
-		Lv_Logs.ItemsSource    = Logs;
+		Logs                = new ObservableCollection<LogEntry>();
+		Lv_Logs.ItemsSource = Logs;
 		// Lv_Results.ItemsSource = CurrentQueueItem.Results;
-		Lb_Queue.ItemsSource   = Queue;
+		Lb_Queue.ItemsSource = Queue;
 
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
@@ -160,16 +160,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
-	}
-
-	private void AddQueueListener()
-	{
-		PropertyChangedEventManager.AddHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
-	}
-
-	private void RemoveQueueListener()
-	{
-		PropertyChangedEventManager.RemoveHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
 	}
 
 	#region
@@ -251,10 +241,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	#region Queue/Query
 
 	[MN]
-	private ResultModel m_currentQueueItem;
+	private QueryModel m_currentQueueItem;
 
 	[MN]
-	public ResultModel CurrentQueueItem
+	public QueryModel CurrentQueueItem
 	{
 		get { return m_currentQueueItem; }
 		set
@@ -268,7 +258,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	public ObservableCollection<ResultModel> Queue { get; }
+	public ObservableCollection<QueryModel> Queue { get; }
 
 	// public bool IsQueueInputValid => CurrentQueueItem.IsValid;
 
@@ -321,21 +311,30 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				/*Dispatcher.BeginInvoke(() =>
 				{
 					CurrentQueueItem.UpdateProperties();
-				})*/;
+				})*/
+				;
 			}
-			
+
 		});
 		// m_us.Release();
 	}
 
 	private async Task UpdateQueryAsync()
 	{
-		if (!await m_us.WaitAsync(TimeSpan.Zero)) {
+		if (!await m_us.WaitAsync(TimeSpan.Zero/*, m_cts.Token*/)) {
 			return;
 		}
 
+		bool isOk = true;
+
 		if (!CurrentQueueItem.HasQuery && CurrentQueueItem.HasValue) {
-			await CurrentQueueItem.LoadQueryAsync(m_cts.Token);
+			isOk = await CurrentQueueItem.LoadQueryAsync(m_cts.Token);
+		}
+
+		if (!isOk) {
+			Trace.WriteLine($"Failed to load {CurrentQueueItem}");
+			Btn_Remove.IsEnabled = true;
+			goto ret;
 		}
 
 		if (CurrentQueueItem.HasQuery && !CurrentQueueItem.Query.IsUploaded) {
@@ -371,7 +370,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		else {
 			Tb_Upload.Text = null;
 		}
-
+		ret:
 		m_us.Release();
 	}
 
@@ -578,6 +577,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Status.Text = CurrentQueueItem.Status;
 
 		}
+
 		Tb_Info.Text    = CurrentQueueItem.Info;
 		Tb_Status2.Text = CurrentQueueItem.Status2;
 		// OnPropertyChanged(nameof(Results));
@@ -602,7 +602,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		foreach (var s in files) {
 
 			if (!Queue.Any(x => x.Value == s)) {
-				Queue.Add(new ResultModel(s));
+				Queue.Add(new QueryModel(s));
 				Debug.WriteLine($"Added {s}");
 
 				c++;
@@ -614,14 +614,24 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void AdvanceQueue(int i = 1)
 	{
-		ResultModel next;
+		QueryModel next;
 
 		if (Queue.Count == 0) {
-			next = new ResultModel();
+			next = new QueryModel();
 		}
 		else next = Queue[(Queue.IndexOf(CurrentQueueItem) + i) % Queue.Count];
 
 		CurrentQueueItem = next;
+	}
+
+	private void AddQueueListener()
+	{
+		PropertyChangedEventManager.AddHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
+	}
+
+	private void RemoveQueueListener()
+	{
+		PropertyChangedEventManager.RemoveHandler(this, OnCurrentQueueItemChanged, nameof(CurrentQueueItem));
 	}
 
 	#endregion
@@ -822,6 +832,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			}
 		}
+
 	}
 
 	#endregion

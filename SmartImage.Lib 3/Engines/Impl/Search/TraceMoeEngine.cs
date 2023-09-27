@@ -44,8 +44,9 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 		var r = await base.GetResultAsync(query, token);
 
 		try {
-			IFlurlRequest request = (EndpointUrl.AppendPathSegment("/search"))
+			IFlurlRequest request =  (EndpointUrl.AppendPathSegment("/search"))
 				.AllowAnyHttpStatus()
+				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload, true);
 
 			var response = await request.GetAsync(cancellationToken: token);

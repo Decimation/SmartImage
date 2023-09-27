@@ -7,6 +7,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using AngleSharp.Css.Values;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -130,18 +131,19 @@ public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
 	{
 
 		try {
-			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure()).PostMultipartAsync(m =>
-			{
-				m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-				m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);
+			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure()).WithTimeout(Timeout)
+				               .PostMultipartAsync(m =>
+				               {
+					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
+					               m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);
 
-				if (query.Uni.IsUri) { }
-				else if (query.Uni.IsFile) {
-					m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
-				}
+					               if (query.Uni.IsUri) { }
+					               else if (query.Uni.IsFile) {
+						               m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
+					               }
 
-				return;
-			}, cancellationToken: ct);
+					               return;
+				               }, cancellationToken: ct);
 
 			var s = await response.GetStringAsync();
 

@@ -196,7 +196,7 @@ public partial class MainWindow
 		var i   = Queue.IndexOf(cpy);
 		Queue.Remove(cpy);
 		cpy.Dispose();
-		ResultModel rm = new ResultModel(cpy.Value);
+		QueryModel rm = new QueryModel(cpy.Value);
 		Queue.Insert(i, rm);
 		CurrentQueueItem = rm;
 
@@ -239,13 +239,23 @@ public partial class MainWindow
 
 		var old = CurrentQueueItem;
 
-		if (old == null || old.IsPrimitive) {
+		if (old == null || string.IsNullOrWhiteSpace(old.Value)) {
 			goto ret;
+		}
+
+		if (old.IsPrimitive) {
+			
 		}
 
 		var i = Queue.IndexOf(old);
 		Queue.Remove(old);
 		old?.Dispose();
+
+		// SetQueue(string.Empty);
+		if (Queue.Count > 0) {
+			Lb_Queue.SelectedIndex = 0;
+
+		}
 		// TrySeekQueue(q);
 		// AdvanceQueue(-1);
 
