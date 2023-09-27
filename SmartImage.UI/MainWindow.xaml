@@ -11,7 +11,7 @@
         xmlns:model="clr-namespace:SmartImage.UI.Model"
         xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d" Height="600" Width="1315" MinWidth="1315" MinHeight="300" Loaded="Wnd_Main_Loaded"
+        mc:Ignorable="d" Height="600" Width="1325" MinWidth="1325" MinHeight="300" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919"
         KeyDown="Wnd_Main_KeyDown">
@@ -204,9 +204,47 @@
                         </Button.Style>
                     </Button>
 
+                    <Button x:Name="Btn_Reload" Content="Reload" HorizontalAlignment="Left" Margin="539,8,0,0"
+                            VerticalAlignment="Top" Click="Btn_Reload_Click"
+                            MouseEnter="Btn_Reload_MouseEnter"
+                            MouseLeave="Btn_Reload_MouseLeave" Width="49" Height="20"
+                            ToolTip="Clear query &amp; results, then reload query &amp; config" IsEnabled="{Binding CanReload, UpdateSourceTrigger=PropertyChanged}" Foreground="#FF0090FF">
+
+                        <Button.Style>
+                            <Style TargetType="{x:Type Button}">
+                                <Setter Property="Foreground" Value="Yellow" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Border1}" />
+                                <Setter Property="Background" Value="{DynamicResource Black2}" />
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="{x:Type Button}">
+                                            <Border Background="{TemplateBinding Background}">
+                                                <ContentPresenter HorizontalAlignment="Center"
+                                                                  VerticalAlignment="Center" />
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter Property="Background" Value="Gray" />
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter Property="Background" Value="DarkGray" />
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="Black" />
+                                        <Setter Property="Background" Value="DimGray" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+
+                    </Button>
+
                     <Button x:Name="Btn_Cancel"
                             BorderBrush="{DynamicResource Border2}" Content="Cancel"
-                            HorizontalAlignment="Left" Margin="539,8,0,0" ToolTip="Cancel current operation(s)"
+                            HorizontalAlignment="Left" Margin="593,8,0,0" ToolTip="Cancel current operation(s)"
                             VerticalAlignment="Top" Click="Btn_Cancel_Click" Height="20" Width="39">
 
                         <Button.Style>
@@ -241,8 +279,8 @@
 
                     </Button>
                     <Button x:Name="Btn_Remove" Content="Remove"
-                            HorizontalAlignment="Left" Margin="583,8,0,0" VerticalAlignment="Top"
-                            Click="Btn_Remove_Click" Height="20" Width="46" ToolTip="Remove query from queue">
+                            HorizontalAlignment="Left" Margin="5,8,0,0" VerticalAlignment="Top"
+                            Click="Btn_Remove_Click" Height="20" Width="46" ToolTip="Remove query from queue" Grid.Column="1">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -276,9 +314,9 @@
 
                     </Button>
                     <Button x:Name="Btn_Delete" Content="Delete"
-                            HorizontalAlignment="Left" Margin="634,8,0,0" VerticalAlignment="Top"
+                            HorizontalAlignment="Left" Margin="56,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Delete_Click" Height="20" Width="39" ToolTip="Delete query file (Recycle Bin)"
-                            IsEnabled="{Binding Path=CurrentQueueItem.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}">
+                            IsEnabled="{Binding Path=CurrentQueueItem.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" Grid.Column="1">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -463,17 +501,11 @@
                             VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click"
                             ToolTip="Clear query &amp; results" IsEnabled="{Binding CurrentQueueItem.IsComplete}" />
 
-                    <Button x:Name="Btn_Reload" Content="Reload" HorizontalAlignment="Left" Margin="537,0,0,0"
-                            VerticalAlignment="Center" Click="Btn_Reload_Click"
-                            MouseEnter="Btn_Reload_MouseEnter"
-                            MouseLeave="Btn_Reload_MouseLeave" Width="49" Height="20"
-                            ToolTip="Clear query &amp; results, then reload query &amp; config" IsEnabled="{Binding CanReload, UpdateSourceTrigger=PropertyChanged}"/>
-
-                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="591,0,0,0"
+                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="539,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Reset_Click" Width="41" Height="20"
                             ToolTip="Reload &amp; reset state" />
 
-                    <Button x:Name="Btn_Browse" Content="Browse" HorizontalAlignment="Left" Margin="637,0,0,0"
+                    <Button x:Name="Btn_Browse" Content="Browse" HorizontalAlignment="Left" Margin="623,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Browse_Click" Height="20" Grid.ColumnSpan="2"
                             ToolTip="Browse for input(s)" />
 
@@ -609,8 +641,8 @@
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline"
                                Text="{Binding CurrentQueueItem.Status2, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" />
 
-                    <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="501,65,0,0"
-                            VerticalAlignment="Top" Click="Btn_Filter_Click"
+                    <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="585,0,0,0"
+                            VerticalAlignment="Center" Click="Btn_Filter_Click"
                             IsEnabled="{Binding CurrentQueueItem.IsComplete}" />
 
                     <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,499,0" Grid.Row="1"

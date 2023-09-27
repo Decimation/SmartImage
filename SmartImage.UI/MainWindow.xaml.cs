@@ -655,27 +655,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	#region
-
-	private readonly DispatcherTimer m_trDispatch;
-
-	private async void IdleDispatchAsync(object? sender, EventArgs e)
-	{
-		// Dispatcher.InvokeAsync(UpdateItem2);
-		/*if (Client.IsRunning) {
-			return;
-		}
-		if (CurrentQueueItem.IsPrimitive) {
-			OnCurrentQueueItemChanged(sender, null);
-
-		}*/
-
-		// await UpdateItem();
-		Debug.WriteLine($"{CanReload} | {CurrentQueueItem} | {CurrentResultItem}");
-	}
-
-	#endregion
-
 	#region Clipboard
 
 	public bool UseClipboard
@@ -851,6 +830,27 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 
+	}
+
+	#endregion
+
+	#region
+
+	private readonly DispatcherTimer m_trDispatch;
+
+	private async void IdleDispatchAsync(object? sender, EventArgs e)
+	{
+		// Dispatcher.InvokeAsync(UpdateItem2);
+		/*if (Client.IsRunning) {
+			return;
+		}
+		if (CurrentQueueItem.IsPrimitive) {
+			OnCurrentQueueItemChanged(sender, null);
+
+		}*/
+
+		// await UpdateItem();
+		Debug.WriteLine($"{CanReload} | {CurrentQueueItem} | {CurrentResultItem}");
 	}
 
 	#endregion

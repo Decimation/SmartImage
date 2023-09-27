@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
@@ -17,11 +16,9 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
-using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
-using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
@@ -94,6 +91,17 @@ public partial class MainWindow
 
 		e.Handled = true;
 
+	}
+
+	private void Tb_Input_OnTextChanged(object sender, TextChangedEventArgs e)
+	{
+		e.Handled = true;
+		Debug.WriteLine($" txt: {CurrentQueueItem.Value}");
+		/*if (SearchQuery.IsValidSourceType(CurrentQueueItem?.Value)) {
+			Queue.Insert(0, new QueryModel());
+			Lb_Queue.SelectedIndex = 1;
+			// OnCurrentQueueItemChanged(sender, null);
+		}*/
 	}
 
 	private void Tb_Info_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -801,41 +809,5 @@ public partial class MainWindow
 		}
 
 		e.Handled = true;
-	}
-
-	private void Tb_Input_OnTextChanged(object sender, TextChangedEventArgs e)
-	{
-		e.Handled = true;
-
-		/*if (SearchQuery.IsValidSourceType(CurrentQueueItem?.Value))
-		{
-			OnCurrentQueueItemChanged(sender, null);
-		}*/
-	}
-}
-
-[ValueConversion(typeof(Url), typeof(String))]
-public class UrlConverter : IValueConverter
-{
-	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-	{
-		if (value == null) {
-			return null;
-		}
-
-		var date = (Url) value;
-		return date.ToString();
-	}
-
-	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-	{
-		if (value == null) {
-			return null;
-		}
-
-		string strValue = value as string;
-		Url    resultDateTime;
-
-		return (Url) strValue;
 	}
 }
