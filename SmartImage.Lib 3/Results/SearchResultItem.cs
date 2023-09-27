@@ -111,6 +111,15 @@ public sealed record SearchResultItem : IDisposable,
 
 	// public bool IsUniType { get; internal set; }
 
+	public bool IsRaw { get; internal set; }
+
+	internal static SearchResultItem GetRaw(SearchResult r)
+		=> new SearchResultItem(r)
+		{
+			IsRaw = true,
+			Url = r.RawUrl
+		};
+
 	internal SearchResultItem(SearchResult r)
 	{
 		Root       = r;
@@ -118,6 +127,7 @@ public sealed record SearchResultItem : IDisposable,
 		m_isScored = false;
 		Uni        = null;
 		Parent     = null;
+		IsRaw      = false;
 		Sisters    = new List<SearchResultItem>();
 	}
 
@@ -161,7 +171,8 @@ public sealed record SearchResultItem : IDisposable,
 			Score++;
 		}
 
-		var a = new string[] { Source, Artist, Character, Description, Title, Site, (string) Thumbnail, ThumbnailTitle };
+		var a = new string[]
+			{ Source, Artist, Character, Description, Title, Site, (string) Thumbnail, ThumbnailTitle };
 		Score += a.Count(s => !string.IsNullOrWhiteSpace(s));
 
 		var b = new[] { Similarity, Width, Height, };

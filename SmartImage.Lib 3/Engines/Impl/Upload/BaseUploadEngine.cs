@@ -102,7 +102,7 @@ public abstract class BaseUploadEngine : IEndpoint
 	}
 
 	public static readonly BaseUploadEngine[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(TypeProperties.Subclass).ToArray();
+		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(InheritanceProperties.Subclass).ToArray();
 
 	/*public async Task<bool> IsAlive()
 	{

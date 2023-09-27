@@ -154,16 +154,20 @@ public partial class MainWindow
 
 	private void CheckMedia()
 	{
-		if (ShowMedia)
-		{
-			Me_Preview.Stop();
-			// Me_Preview.Position = TimeSpan.Zero;
-			Me_Preview.Close();
-			Me_Preview.Source = null;
-			// Me_Preview.Dispose();
-			ShowMedia         = false;
+		if (ShowMedia) {
+			CloseMedia();
 		}
 		else { }
+	}
+
+	private void CloseMedia()
+	{
+		Me_Preview.Stop();
+		// Me_Preview.Position = TimeSpan.Zero;
+		Me_Preview.Close();
+		Me_Preview.Source = null;
+		// Me_Preview.Dispose();
+		ShowMedia = false;
 	}
 
 	#endregion

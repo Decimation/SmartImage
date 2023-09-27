@@ -187,7 +187,7 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void Btn_Restart_Click(object sender, RoutedEventArgs e)
+	private void Btn_Reload_Click(object sender, RoutedEventArgs e)
 	{
 		Cancel();
 		ClearResults(false);
@@ -206,12 +206,12 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void Btn_Restart_MouseEnter(object sender, MouseEventArgs e)
+	private void Btn_Reload_MouseEnter(object sender, MouseEventArgs e)
 	{
 		e.Handled = true;
 	}
 
-	private void Btn_Restart_MouseLeave(object sender, MouseEventArgs e)
+	private void Btn_Reload_MouseLeave(object sender, MouseEventArgs e)
 	{
 		e.Handled = true;
 	}
@@ -383,6 +383,12 @@ public partial class MainWindow
 						Me_Preview.UnloadedBehavior = MediaState.Close;
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
 						// Me_Preview.LoadedBehavior   = MediaState.Manual;
+						/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
+							return;
+
+						}*/
+						Tb_Preview.Text = $"Preview: loading {ri.Name}";
+
 						var uri = await CacheAsync(doc.video);
 
 						Me_Preview.Source = new Uri(uri);
@@ -391,6 +397,7 @@ public partial class MainWindow
 
 						ShowMedia       = true;
 						Tb_Preview.Text = $"Preview: {ri.Name}";
+						// m_us2.Release();
 					});
 
 				}
@@ -596,9 +603,9 @@ public partial class MainWindow
 		}
 
 		// todo: not used for now
-		// m_trDispatch.Start();
-		e.Handled = true;
+		m_trDispatch.Start();
 		Debug.WriteLine("Main loaded");
+		e.Handled = true;
 
 	}
 
@@ -707,7 +714,8 @@ public partial class MainWindow
 
 	private void Me_Preview_MouseDown(object sender, MouseButtonEventArgs e)
 	{
-
+		CloseMedia();
+		UpdatePreview();
 		e.Handled = true;
 
 	}
@@ -772,7 +780,10 @@ public partial class MainWindow
 		else {
 			var selected = (string) Cb_SearchFields.SelectionBoxItem;
 			var strFunc  = SearchFields[selected];
+			if (!IsSearching) {
+				CurrentQueueItem.BackupResults();
 
+			}
 			var searchResults = CurrentQueueItem.Results.Where(r =>
 			{
 				var s = strFunc(r);
@@ -783,8 +794,9 @@ public partial class MainWindow
 
 				return s.Contains(Tb_Search.Text, StringComparison.InvariantCultureIgnoreCase);
 			});
-			Lv_Results.ItemsSource = searchResults;
-			IsSearching            = true;
+			CurrentQueueItem.Results = new ObservableCollection<ResultItem>(searchResults);
+			// Lv_Results.ItemsSource = searchResults;
+			IsSearching = true;
 
 		}
 

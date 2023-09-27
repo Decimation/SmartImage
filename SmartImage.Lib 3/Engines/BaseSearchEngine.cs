@@ -93,6 +93,6 @@ public abstract class BaseSearchEngine : IDisposable
 	public abstract void Dispose();
 
 	public static readonly BaseSearchEngine[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(TypeProperties.Subclass).ToArray();
+		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(InheritanceProperties.Subclass).ToArray();
 
 }

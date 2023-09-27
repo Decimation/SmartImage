@@ -79,6 +79,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		InitializeComponent();
 
 		m_us        = new SemaphoreSlim(1, 1);
+		m_us2       = new SemaphoreSlim(1, 1);
 		m_mut       = new Mutex();
 		DataContext = this;
 		SearchStart = default;
@@ -175,6 +176,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private readonly WindowInteropHelper m_wndInterop;
 
 	private readonly SemaphoreSlim m_us;
+	private readonly SemaphoreSlim m_us2;
 	private readonly Mutex         m_mut;
 	private readonly List<string>  m_pipeBuffer;
 
@@ -204,6 +206,19 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		get => AppUtil.IsAppFolderInPath;
 		set => AppUtil.AddToPath(value);
+	}
+
+	private bool m_canReload;
+
+	public bool CanReload
+	{
+		get => m_canReload;
+		set
+		{
+			if (value == m_canReload) return;
+			m_canReload = value;
+			OnPropertyChanged();
+		}
 	}
 
 	#endregion
@@ -315,13 +330,15 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				;
 			}
 
+			CanReload = !Client.IsRunning && CurrentQueueItem is { HasQuery: true, Query.IsUploading: false };
+
 		});
 		// m_us.Release();
 	}
 
 	private async Task UpdateQueryAsync()
 	{
-		if (!await m_us.WaitAsync(TimeSpan.Zero/*, m_cts.Token*/)) {
+		if (!await m_us.WaitAsync(TimeSpan.Zero /*, m_cts.Token*/)) {
 			return;
 		}
 
@@ -333,7 +350,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		if (!isOk) {
 			Trace.WriteLine($"Failed to load {CurrentQueueItem}");
-			Btn_Remove.IsEnabled = true;
+			// Btn_Remove.IsEnabled = true;
 			goto ret;
 		}
 
@@ -341,11 +358,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Pb_Status.IsIndeterminate = true;
 			Lb_Queue.IsEnabled        = false;
 			Btn_Run.IsEnabled         = false;
-			await CurrentQueueItem.UploadAsync(m_ctsu.Token);
+			isOk                      = await CurrentQueueItem.UploadAsync(m_ctsu.Token);
 			Pb_Status.IsIndeterminate = false;
 			Lb_Queue.IsEnabled        = true;
 			Btn_Run.IsEnabled         = CurrentQueueItem.CanSearch;
-
+			Btn_Reload.IsEnabled      = true;
 		}
 
 		/*if (!Equals(Lv_Results.ItemsSource, CurrentQueueItem.Results)) {
@@ -370,6 +387,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		else {
 			Tb_Upload.Text = null;
 		}
+
 		ret:
 		m_us.Release();
 	}
@@ -578,7 +596,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		}
 
-		Tb_Info.Text    = CurrentQueueItem.Info;
+		Tb_Info.Text = CurrentQueueItem.Info;
+		// Tb_Status.Text    = CurrentQueueItem.Status;
 		Tb_Status2.Text = CurrentQueueItem.Status2;
 		// OnPropertyChanged(nameof(Results));
 	}
@@ -652,7 +671,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}*/
 
 		// await UpdateItem();
-
+		Debug.WriteLine($"{CanReload} | {CurrentQueueItem} | {CurrentResultItem}");
 	}
 
 	#endregion
@@ -759,6 +778,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task RunAsync()
 	{
+		CanReload = false;
 
 		Lb_Queue.IsEnabled   = false;
 		Btn_Remove.IsEnabled = false;
@@ -791,10 +811,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Status.Text = "Search complete";
 		}
 
-		Btn_Remove.IsEnabled = true;
-		Btn_Run.IsEnabled    = CurrentQueueItem.HasValue;
+		// Btn_Remove.IsEnabled = true;
+		Btn_Run.IsEnabled = CurrentQueueItem.HasValue;
 		// m_resultMap[Query] = Results;
 		CurrentQueueItem.UpdateProperties();
+		CanReload = true;
 	}
 
 	private void OnResult(object o, SearchResult result)
@@ -816,12 +837,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		var allResults = result.Results;
 
-		var sri1 = new SearchResultItem(result)
-		{
-			Url = result.RawUrl,
-		};
+		var sri1 = SearchResultItem.GetRaw(result);
 
-		CurrentQueueItem.Results.Add(new ResultItem(sri1, $"{sri1.Root.Engine.Name} (Raw)"));
+		CurrentQueueItem.Results.Add(new ResultItem(sri1, sri1.Root.Engine.Name));
 
 		foreach (SearchResultItem sri in allResults) {
 			CurrentQueueItem.Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
@@ -955,6 +973,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			try {
 				m_us.Release();
+				m_us2.Release();
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
@@ -1107,6 +1126,16 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task FilterResultsAsync()
 	{
+		bool r   = Btn_Run.IsEnabled,
+		     re  = CanReload,
+		     rem = Btn_Remove.IsEnabled,
+		     q   = Lb_Queue.IsEnabled;
+
+		Btn_Run.IsEnabled    = false;
+		CanReload = false;
+		Btn_Remove.IsEnabled = false;
+		Lb_Queue.IsEnabled   = false;
+
 		Btn_Filter.IsEnabled = false;
 
 		Pb_Status.IsIndeterminate = true;
@@ -1117,7 +1146,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		await Parallel.ForEachAsync(cb, async (item, token) =>
 		{
-			if (!Url.IsValid(item.Url)) {
+			if (!Url.IsValid(item.Url) || item.Status.IsError() || item.Result.IsRaw) {
+				Dispatcher.Invoke(Callback);
+
 				return;
 			}
 
@@ -1125,14 +1156,15 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (res is { ResponseMessage.IsSuccessStatusCode: false }) {
 				Debug.WriteLine($"removing {item}");
-
-				Dispatcher.Invoke(() =>
-				{
-					++c;
-					CurrentQueueItem.Results.Remove(item);
-				});
+				Dispatcher.Invoke(Callback);
 			}
 			else { }
+
+			void Callback()
+			{
+				++c;
+				CurrentQueueItem.Results.Remove(item);
+			}
 
 		});
 
@@ -1140,6 +1172,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Status.Text            = $"Filtered {c}";
 		Pb_Status.IsIndeterminate = false;
 		Btn_Filter.IsEnabled      = true;
+		Btn_Run.IsEnabled         = r;
+		CanReload      = re;
+		Lb_Queue.IsEnabled        = q;
+		Btn_Remove.IsEnabled      = rem;
+
 	}
 
 	private async Task EnqueueResultAsync(UniResultItem uri)
@@ -1258,8 +1295,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Search.Text = null;
 		}
 
-		Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
+		CurrentQueueItem.RestoreResults();
+		// Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
 		IsSearching            = false;
+
 	}
 
 	#endregion
@@ -1333,22 +1372,30 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			UpdatePreview(ri.Image);
 		}*/
 
-		Application.Current.Dispatcher.InvokeAsync(() =>
+		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
+			/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
+				return;
+			}*/
+
+			string name = ri is INamed n ? n.Name : "-";
+
+			Tb_Preview.Text = $"Preview: loading {name}";
+
 			if (ri.LoadImage()) {
 				Img_Preview.Source = ri.Image;
 
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
-				if (ri is INamed n) {
-					Tb_Preview.Text = $"Preview: {n.Name}";
+				Tb_Preview.Text = $"Preview: {name}";
 
-				}
 			}
 			else {
 				UpdatePreview();
 				Tb_Preview.Text = $"Preview: (query)";
 			}
+
+			// m_us2.Release();
 		});
 	}
 
@@ -1357,17 +1404,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		UpdatePreview(CurrentQueueItem);
 		// UpdatePreview(m_image);
 		Tb_Preview.Text = $"Preview: (query)";
-	}
-
-	private void UpdatePreview(ImageSource x)
-	{
-		Application.Current.Dispatcher.Invoke(() =>
-		{
-			Img_Preview.Source = x;
-			// Debug.WriteLine($"updated image {x}");
-			// PreviewChanged?.Invoke(null);
-
-		});
 	}
 
 	#endregion

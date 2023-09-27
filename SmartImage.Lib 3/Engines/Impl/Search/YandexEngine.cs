@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Net.NetworkInformation;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Monad;
@@ -229,6 +230,10 @@ public sealed class YandexEngine : WebSearchEngine
 		var rg    = new List<SearchResultItem>(items.Count);
 
 		foreach (INode item in items) {
+			if (item is IHtmlElement elem) {
+				var title1 = elem.QuerySelector(".CbirSites-ItemTitle");
+				var href1 = title1.Children[0].Attributes["href"];
+			}
 			// var thumb = item.ChildNodes[0];
 			var info  = item.ChildNodes[1];
 			var title = info.ChildNodes[0].TextContent;
@@ -261,7 +266,7 @@ public sealed class YandexEngine : WebSearchEngine
 		{
 			"Please confirm that you and not a robot are sending requests",
 			"Изображение не загрузилось, попробуйте загрузить другое.",
-			"No matching images found"
+			// "No matching images found"
 		};
 
 	protected override async ValueTask<INode[]> GetNodes(IDocument doc)

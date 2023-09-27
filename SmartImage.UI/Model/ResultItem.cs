@@ -26,7 +26,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 
-public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider,INamed
+public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, INamed
 {
 	public string Name { get; set; }
 
@@ -64,14 +64,17 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider,IN
 	public BitmapImage? Image { get; /*protected*/ set; }
 
 	public string StatusMessage { get; internal set; }
+
 	public ResultItem(SearchResultItem result, string name)
 	{
-		Result          = result;
-		Name            = name;
+		Result = result;
+		Name   = !result.IsRaw ? name : $"{name} (Raw)";
+
 		Status          = result.Root.Status;
 		Url             = result.Url;
 		CanOpen         = Url.IsValid(Url);
 		CanScan         = CanOpen;
+	
 		(Width, Height) = (Result.Width, Result.Height);
 
 		if (Status.IsSuccessful()) {
@@ -135,7 +138,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider,IN
 
 	}
 
-	public bool HasImage => Image!=null;
+	public bool HasImage => Image != null;
 
 	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
 

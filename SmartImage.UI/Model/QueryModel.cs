@@ -21,7 +21,7 @@ using SmartImage.Lib;
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
-public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider
+public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, INamed
 {
 	//todo
 	private string m_value;
@@ -82,13 +82,15 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider
 		}
 	}
 
-	[MemberNotNullWhen(true, nameof(Query))]
+	[MNNW(true, nameof(Query))]
 	public bool HasQuery => (Query != SearchQuery.Null) && Query != null;
 
 	public bool CanLoadImage => !HasImage && HasQuery;
 
+	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
+	[MNNW(true, nameof(Value))]
 	public bool HasValue => !string.IsNullOrWhiteSpace(Value);
 
 	public bool IsPrimitive => !Results.Any() && !HasQuery;
@@ -99,17 +101,54 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	public bool CanSearch => !Results.Any() && HasQuery && Query.IsUploaded;
 
+	public ResultItem[]? ResultsBackup { get; internal set; }
+
+	public string Name
+	{
+		get
+		{
+			/*if (HasQuery && Query.HasUni) {
+				return Query.Uni.Name;
+			}*/
+
+			return "(query)";
+		}
+		set { throw new InvalidOperationException(); }
+	}
+
 	public QueryModel() : this(string.Empty) { }
 
 	public QueryModel(string value)
 	{
 		Value   = value;
 		Results = new ObservableCollection<ResultItem>();
+		ResultsBackup     = null;
 		Query   = SearchQuery.Null;
 		Status  = null;
 		Status2 = null;
 		Info    = null;
 		Image   = null;
+	}
+
+	[MNNW(true, nameof(ResultsBackup))]
+	public bool HasResultsBackup => ResultsBackup != null;
+
+	public bool BackupResults()
+	{
+		ResultsBackup = new ResultItem[Results.Count];
+		Results.CopyTo(ResultsBackup, 0);
+
+		return HasResultsBackup;
+	}
+
+	public bool RestoreResults()
+	{
+		if (HasResultsBackup) {
+			Results = new ObservableCollection<ResultItem>(ResultsBackup);
+			ResultsBackup     = null;
+		}
+
+		return !HasResultsBackup;
 	}
 
 	#region
@@ -196,7 +235,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider
 			// Pb_Status.IsIndeterminate = true;
 			// queryExists = Query != SearchQuery.Null;
 		}*/
-		
+
 		Query = await SearchQuery.TryCreateAsync(Value, ct);
 		Url upload;
 
@@ -225,11 +264,15 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 	}
 
-	public async Task UploadAsync(CancellationToken ct)
+	public async Task<bool> UploadAsync(CancellationToken ct)
 	{
-		Url upload;
+		Url upload = null;
 		Status = "Uploading...";
-		upload = await Query.UploadAsync(ct: ct);
+
+		try {
+			upload = await Query.UploadAsync(ct: ct);
+		}
+		catch (Exception e) { }
 
 		if (!Url.IsValid(upload)) {
 			// todo: show user specific error message
@@ -238,9 +281,12 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider
 
 			Status  = "-";
 			Status2 = "Failed to upload: server timed out or input was invalid";
-			return;
+
+			return false;
 			// return;
 		}
+
+		return true;
 	}
 
 	public void UpdateInfo()

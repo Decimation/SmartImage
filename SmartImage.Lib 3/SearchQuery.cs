@@ -1,7 +1,9 @@
 ﻿global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
+global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
@@ -20,6 +22,7 @@ namespace SmartImage.Lib;
 
 public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 {
+	[MN]
 	public UniSource Uni { get; }
 
 	[MN]
@@ -30,7 +33,15 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public ReadOnlyMemory<byte> MD5Hash { get; private init; }
 
 	[CBN]
-	public string ValueString => Uni?.Value.ToString();
+	public string ValueString => HasUni ? Uni.Value.ToString() : null;
+
+	[MNNW(true, nameof(Upload))]
+	public bool IsUploaded => Url.IsValid(Upload);
+
+	public bool IsUploading { get; private set; }
+
+	[MNNW(true, nameof(Uni))]
+	public bool HasUni => Uni != null;
 
 	internal SearchQuery([CBN] UniSource f)
 	{
@@ -57,19 +68,19 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			{
 				MD5Hash = await MD5.HashDataAsync(uf.Stream, ct)
 			};
-
+			
 			return sq;
 
 		}
 	}
-
-	public bool IsUploaded => Url.IsValid(Upload);
 
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null, CancellationToken ct = default)
 	{
 		if (IsUploaded) {
 			return Upload;
 		}
+
+		IsUploading = true;
 
 		var fu = Uni.Value.ToString();
 
@@ -99,6 +110,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			Size = u.Size ?? Size;
 			u.Dispose();
 		}
+		IsUploading = false;
 
 		return Upload;
 	}

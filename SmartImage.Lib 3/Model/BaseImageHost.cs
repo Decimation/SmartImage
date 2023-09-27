@@ -53,7 +53,7 @@ public abstract class BaseImageHost
 	public abstract bool Refine(string b);
 
 	public static readonly BaseImageHost[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(TypeProperties.Subclass).ToArray();
+		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();
 
 	public static async Task<UniSource[]> ScanAsync(Url u, Predicate<UniSource> pred = null,
 	                                                CancellationToken ct = default)
