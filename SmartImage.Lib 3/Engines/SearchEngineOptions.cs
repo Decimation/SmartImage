@@ -86,11 +86,13 @@ public enum SearchEngineOptions
 	/// </summary>
 	ArchiveMoe = 1 << 13,
 
+	Iqdb3D = 1<<14,
+
 	/// <summary>
 	///     All engines
 	/// </summary>
 	All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing |
-	      Ascii2D | RepostSleuth | EHentai | ArchiveMoe,
+	      Ascii2D | RepostSleuth | EHentai | ArchiveMoe | Iqdb3D,
 
 	Artwork = SauceNao | Iqdb | Ascii2D | EHentai,
 }

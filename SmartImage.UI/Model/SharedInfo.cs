@@ -10,7 +10,7 @@ using SmartImage.Lib.Clients;
 
 namespace SmartImage.UI.Model
 {
-    public class SharedInfo : INotifyPropertyChanged
+	public class SharedInfo : INotifyPropertyChanged
 	{
 		public SharedInfo()
 		{

@@ -102,7 +102,6 @@
                 <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="SauceNao">
                     <Setter Property="Background" Value="Green" />
                     <Setter Property="Foreground" Value="White" />
-
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="EHentai">
                     <Setter Property="Background" Value="MediumPurple" />
@@ -130,6 +129,10 @@
                 </DataTrigger>
                 <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="Yandex">
                     <Setter Property="Background" Value="Orange" />
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="Iqdb3D">
+                    <Setter Property="Background" Value="MediumSeaGreen" />
                     <Setter Property="Foreground" Value="Black" />
                 </DataTrigger>
             </Style.Triggers>
@@ -208,7 +211,8 @@
                             VerticalAlignment="Top" Click="Btn_Reload_Click"
                             MouseEnter="Btn_Reload_MouseEnter"
                             MouseLeave="Btn_Reload_MouseLeave" Width="49" Height="20"
-                            ToolTip="Clear query &amp; results, then reload query &amp; config" IsEnabled="{Binding CanReload, UpdateSourceTrigger=PropertyChanged}" Foreground="#FF0090FF">
+                            ToolTip="Clear query &amp; results, then reload query &amp; config"
+                            IsEnabled="{Binding CanReload, UpdateSourceTrigger=PropertyChanged}" Foreground="#FF0090FF">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -280,7 +284,9 @@
                     </Button>
                     <Button x:Name="Btn_Remove" Content="Remove"
                             HorizontalAlignment="Left" Margin="5,8,0,0" VerticalAlignment="Top"
-                            Click="Btn_Remove_Click" Height="20" Width="46" ToolTip="Remove query from queue" Grid.Column="1">
+                            Click="Btn_Remove_Click" Height="20" Width="46" ToolTip="Remove query from queue"
+                            IsEnabled="{Binding Path=CurrentQueueItem.CanRemove, ElementName=Wnd_Main}"
+                            Grid.Column="1">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -316,7 +322,8 @@
                     <Button x:Name="Btn_Delete" Content="Delete"
                             HorizontalAlignment="Left" Margin="56,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Delete_Click" Height="20" Width="39" ToolTip="Delete query file (Recycle Bin)"
-                            IsEnabled="{Binding Path=CurrentQueueItem.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" Grid.Column="1">
+                            IsEnabled="{Binding Path=CurrentQueueItem.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}"
+                            Grid.Column="1">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">

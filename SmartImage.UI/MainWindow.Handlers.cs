@@ -261,9 +261,10 @@ public partial class MainWindow
 
 		// SetQueue(string.Empty);
 		if (Queue.Count > 0) {
-			Lb_Queue.SelectedIndex = 0;
-
+			// Lb_Queue.SelectedIndex = 0;
+			CurrentQueueItem = Queue[0];
 		}
+
 		// TrySeekQueue(q);
 		// AdvanceQueue(-1);
 

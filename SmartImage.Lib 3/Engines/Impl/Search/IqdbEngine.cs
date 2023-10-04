@@ -26,13 +26,15 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 #nullable disable
 
-public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
+public class IqdbEngine : BaseSearchEngine, IEndpoint
 {
-	public string EndpointUrl => "https://iqdb.org/";
+	public virtual string EndpointUrl => "https://iqdb.org/";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
-	public IqdbEngine() : base("https://iqdb.org/?url=")
+	public IqdbEngine() : this("https://iqdb.org/?url=") { }
+
+	protected IqdbEngine(string s) : base(s)
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 		Timeout = TimeSpan.FromSeconds(10);
@@ -131,7 +133,8 @@ public sealed class IqdbEngine : BaseSearchEngine, IEndpoint
 	{
 
 		try {
-			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure()).WithTimeout(Timeout)
+			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure())
+				               .WithTimeout(Timeout)
 				               .PostMultipartAsync(m =>
 				               {
 					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());

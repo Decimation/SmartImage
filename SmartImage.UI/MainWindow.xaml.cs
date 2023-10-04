@@ -68,6 +68,7 @@ namespace SmartImage.UI;
 /// </summary>
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
+	public const int INVALID = -1;
 	static MainWindow() { }
 
 	public MainWindow()
@@ -238,7 +239,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		get => CurrentQueueItem?.Image;
 		set
 		{
-			if (CurrentQueueItem != null) CurrentQueueItem.Image = value;
+			if (CurrentQueueItem != null) {
+				CurrentQueueItem.Image = value;
+			}
 		}
 	}
 
@@ -272,6 +275,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		}
 	}
+
+	[MNNW(true, nameof(CurrentQueueItem))]
+	public bool QueueItemSelected => Lb_Queue.SelectedIndex != INVALID;
 
 	public ObservableCollection<QueryModel> Queue { get; }
 
@@ -308,7 +314,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			}
 
-			Btn_Run.IsEnabled = ok;
+			// Btn_Remove.IsEnabled = ok;
+			Btn_Run.IsEnabled    = ok;
 			/*if (CurrentQueueItem is { HasQuery: true  } && Url.IsValid(CurrentQueueItem.Query.Upload)) {
 				Tb_Upload.Text = CurrentQueueItem.Query.Upload;
 
@@ -790,7 +797,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Status.Text = "Search complete";
 		}
 
-		// Btn_Remove.IsEnabled = true;
+		Btn_Remove.IsEnabled = true;
 		Btn_Run.IsEnabled = CurrentQueueItem.HasValue;
 		// m_resultMap[Query] = Results;
 		CurrentQueueItem.UpdateProperties();
