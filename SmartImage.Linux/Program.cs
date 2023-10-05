@@ -20,9 +20,9 @@ public static class Program
 		//dotnet run -c 'DEBUG' --project SmartImage.Linux "$HOME/1654086015521.png"
 		//dotnet run -lp 'SmartImage.Linux' -c 'WSL' --project SmartImage.Linux "$HOME/1654086015521.png"
 
-		var fs = R2.ResourceManager.GetStream(nameof(R2.Fg_Cybermedium));
+		var fs = R2.ResourceManager.GetObject(nameof(R2.Fg_Cybermedium));
 
-		var fg = new FigletText(FigletFont.Load(fs), R1.Name)
+		var fg = new FigletText(FigletFont.Load(new MemoryStream((byte[]) fs)), R1.Name)
 			.LeftJustified()
 			.Color(new Color(0x80, 0xFF, 0x80));
 

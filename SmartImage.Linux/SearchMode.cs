@@ -11,7 +11,7 @@ using Spectre.Console.Rendering;
 
 namespace SmartImage.Linux;
 
-public sealed class AppMode : IDisposable
+public sealed class SearchMode : IDisposable
 {
 	public SearchClient Client { get; }
 
@@ -19,23 +19,21 @@ public sealed class AppMode : IDisposable
 
 	public SearchConfig Config => Client.Config;
 
-	private readonly CancellationTokenSource     m_cts;
+	private readonly CancellationTokenSource m_cts;
+
 	private readonly ConcurrentBag<SearchResult> m_results;
 
 	private readonly Table m_resTable;
 
 	private const int COMPLETE = 100;
 
-	internal static readonly AppMode Value = new()
-		{ };
-
-	private AppMode()
+	private SearchMode(SearchQuery sq)
 	{
-		Client            =  new SearchClient(new SearchConfig());
-		m_results         =  new();
-		m_cts             =  new();
-		Query             =  SearchQuery.Null;
-
+		Client    = new SearchClient(new SearchConfig());
+		m_results = new();
+		m_cts     = new();
+		Query     = sq;
+		
 		Client.OnComplete += OnComplete;
 		Client.OnResult   += OnResult;
 
@@ -56,7 +54,7 @@ public sealed class AppMode : IDisposable
 		);
 	}
 
-	void OnResult(object sender, SearchResult sr)
+	private void OnResult(object sender, SearchResult sr)
 	{
 		m_results.Add(sr);
 		// ptMap[sr.Engine].Item1.Increment(COMPLETE);
@@ -80,6 +78,20 @@ public sealed class AppMode : IDisposable
 		}
 
 		// AnsiConsole.Write(t);
+	}
+
+	public static async Task<SearchMode?> TryCreateAsync(string s)
+	{
+
+		var q = await SearchQuery.TryCreateAsync(s);
+
+		if (q == null) {
+			return null;
+		}
+
+		var m = new SearchMode(q);
+
+		return m;
 	}
 
 	private async Task RunSearchAsync()
@@ -119,15 +131,6 @@ public sealed class AppMode : IDisposable
 	{
 		var cstr = (string?) c;
 		Debug.WriteLine($"Input: {cstr}");
-
-		await AConsole.Progress().AutoRefresh(true).StartAsync(async ctx =>
-		{
-			var p = ctx.AddTask("Creating query");
-			p.IsIndeterminate = true;
-			Query             = await SearchQuery.TryCreateAsync(cstr);
-			p.Increment(COMPLETE);
-			ctx.Refresh();
-		});
 
 		AConsole.WriteLine($"Input: {Query}");
 
