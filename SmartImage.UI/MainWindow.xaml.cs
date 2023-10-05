@@ -114,8 +114,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
 
+#if !DEBUG
 		AppDomain.CurrentDomain.UnhandledException       += Domain_UHException;
 		Application.Current.DispatcherUnhandledException += Dispatcher_UHException;
+#endif
 
 		m_cbDispatch = new DispatcherTimer(DispatcherPriority.Background)
 		{
@@ -191,8 +193,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public SearchQuery? Query
 	{
-		get { return CurrentQueueItem.Query; }
-		set { CurrentQueueItem.Query = value; }
+		get { return CurrentQueueItem?.Query; }
+		set
+		{
+			if (QueueItemSelected) {
+				CurrentQueueItem.Query = value;
+			}
+		}
 	}
 
 	// public ObservableCollection<ResultItem> Results => CurrentQueueItem.Results;
@@ -258,6 +265,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region Queue/Query
 
+	private string? m_input;
+
+	public string? Input
+	{
+		get => m_input;
+		set
+		{
+			value = value?.CleanString();
+			if (value == m_input) return;
+			m_input = value;
+			OnPropertyChanged();
+		}
+	}
+
 	[MN]
 	private QueryModel m_currentQueueItem;
 
@@ -282,15 +303,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public ObservableCollection<QueryModel> Queue { get; }
 
 	// public bool IsQueueInputValid => CurrentQueueItem.IsValid;
+	private bool m_isq;
 
 	private void OnCurrentQueueItemChanged(object? sender, PropertyChangedEventArgs args)
 	{
+		Input = CurrentQueueItem?.Value;
+
 		if (CurrentQueueItem == null /*|| CurrentQueueItem is { HasValue: false }*/ /*|| CurrentQueueItem is not {}*/
 		    /* || Query?.ValueString == CurrentQueueItem*/) {
 			// SetQueue(String.Empty);
 
 			return;
 		}
+
+		m_isq = true;
 
 		if (Tb_Search.Dispatcher.CheckAccess()) {
 			ClearSearch();
@@ -340,6 +366,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			CanReload = !Client.IsRunning && CurrentQueueItem is { HasQuery: true, Query.IsUploading: false };
 
 		});
+		m_isq = false;
 		// m_us.Release();
 	}
 
@@ -764,26 +791,33 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task RunAsync()
 	{
+
 		CanReload = false;
 
 		Lb_Queue.IsEnabled   = false;
+
 		Btn_Remove.IsEnabled = false;
 		// ClearResults();
 
 		SearchStart  = DateTime.Now;
+
 		m_cntResults = 0;
-
 		Btn_Run.IsEnabled = false;
-		Tb_Status.Text    = "Initiating search...";
 
-		// if (Query is not { IsUploaded: true }) { }
+		Tb_Status.Text    = "Initiating search...";
 		await UpdateQueryAsync();
 
 		if (!CurrentQueueItem.HasQuery) { }
 
 		// HandleQueryAsync();
-		var r = await Client.RunSearchAsync(Query, reload: false, token: m_cts.Token);
+		try {
+			var r = await Client.RunSearchAsync(Query, reload: false, token: m_cts.Token);
 
+		}
+		catch (Exception e) {
+			// Debugger.Break();
+			Debug.WriteLine($"{e.Message}");
+		}
 	}
 
 	private void OnComplete(object sender, SearchResult[] e)
@@ -857,7 +891,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}*/
 
 		// await UpdateItem();
-		Debug.WriteLine($"{CanReload} | {CurrentQueueItem} | {CurrentResultItem}");
+
+		/*var ok = SearchQuery.IsValidSourceType(CurrentQueueItem?.Value);
+
+		Btn_Run.IsEnabled = ok;
+
+		if (ok) { }*/
+
+		Debug.WriteLine($"{CanReload} | {CurrentQueueItem?.Value} | {CurrentResultItem}");
 	}
 
 	#endregion

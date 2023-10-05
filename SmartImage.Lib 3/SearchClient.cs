@@ -98,6 +98,10 @@ public sealed class SearchClient : IDisposable
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
 	                                                 CancellationToken token = default)
 	{
+		if (query.Upload is not { }) {
+			throw new ArgumentException($"Query was not uploaded", nameof(query));
+		}
+
 		IsRunning = true;
 
 		if (reload) {
@@ -222,9 +226,6 @@ public sealed class SearchClient : IDisposable
 
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
 	{
-		if (query.Upload is not { }) {
-			throw new ArgumentException($"Query was not uploaded", nameof(query));
-		}
 
 		var tasks = Engines.Select(e =>
 		{

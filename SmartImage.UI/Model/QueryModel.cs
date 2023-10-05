@@ -100,8 +100,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	public bool CanDelete => HasQuery && Query.Uni.IsFile;
 
 	public bool CanSearch => !Results.Any() && HasQuery && Query.IsUploaded;
-	
-	public bool CanRemove => !string.IsNullOrWhiteSpace(Value);
 
 	public ResultItem[]? ResultsBackup { get; internal set; }
 

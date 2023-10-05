@@ -95,13 +95,29 @@ public partial class MainWindow
 
 	private void Tb_Input_OnTextChanged(object sender, TextChangedEventArgs e)
 	{
-		e.Handled = true;
-		Debug.WriteLine($" txt: {CurrentQueueItem.Value}");
-		/*if (SearchQuery.IsValidSourceType(CurrentQueueItem?.Value)) {
-			Queue.Insert(0, new QueryModel());
-			Lb_Queue.SelectedIndex = 1;
-			// OnCurrentQueueItemChanged(sender, null);
+		Debug.WriteLine($" txt: {CurrentQueueItem?.Value}");
+		/*if (!m_isq) {
+			OnCurrentQueueItemChanged(sender, null);
 		}*/
+
+		if (SearchQuery.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
+			var q = new QueryModel(Input);
+			Queue.Add(q);
+			CurrentQueueItem = q;
+		}
+
+		/*if (QueueItemSelected) {
+			CurrentQueueItem.Value = Input;
+
+		}*/
+
+		/*if (SearchQuery.IsValidSourceType(CurrentQueueItem?.Value)) {
+			// Queue.Insert(0, new QueryModel());
+			// Lb_Queue.SelectedIndex = 1;
+			// OnCurrentQueueItemChanged(sender, null);
+
+		}*/
+		e.Handled = true;
 	}
 
 	private void Tb_Info_MouseDoubleClick(object sender, MouseButtonEventArgs e)
@@ -173,11 +189,18 @@ public partial class MainWindow
 
 	private void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
+		/*
+		if (Query is not { IsUploaded: true }) {
+			return;
+		}
+		*/
+
 		// await SetQueryAsync(InputText);
-		Btn_Run.IsEnabled = false;
+		// Btn_Run.IsEnabled = false;
 		// Clear(true);
 		// ReloadToken();
 		ClearResults(true);
+
 		Dispatcher.InvokeAsync(RunAsync);
 		e.Handled = true;
 	}
@@ -251,19 +274,24 @@ public partial class MainWindow
 			goto ret;
 		}
 
-		if (old.IsPrimitive) {
-			
-		}
+		if (old.IsPrimitive) { }
 
 		var i = Queue.IndexOf(old);
 		Queue.Remove(old);
 		old?.Dispose();
 
-		// SetQueue(string.Empty);
+		if (Queue.Count == 0) {
+			Queue.Add(new QueryModel());
+
+		}
+
 		if (Queue.Count > 0) {
 			// Lb_Queue.SelectedIndex = 0;
 			CurrentQueueItem = Queue[0];
 		}
+		else { }
+
+		// SetQueue(string.Empty);
 
 		// TrySeekQueue(q);
 		// AdvanceQueue(-1);
@@ -729,6 +757,7 @@ public partial class MainWindow
 
 	}
 
+#if !DEBUG
 	private void Domain_UHException(object sender, UnhandledExceptionEventArgs e)
 	{
 		Log(new LogEntry($"AppDomain: {((Exception) e.ExceptionObject).Message}"));
@@ -739,7 +768,7 @@ public partial class MainWindow
 		Log(new LogEntry($"Dispatcher: {e.Exception.Message}"));
 		e.Handled = true;
 	}
-
+#endif
 	private void Btn_OpenFolder_Click(object sender, RoutedEventArgs e)
 	{
 		FileSystem.Open(AppUtil.CurrentAppFolder);
@@ -789,10 +818,12 @@ public partial class MainWindow
 		else {
 			var selected = (string) Cb_SearchFields.SelectionBoxItem;
 			var strFunc  = SearchFields[selected];
+
 			if (!IsSearching) {
 				CurrentQueueItem.BackupResults();
 
 			}
+
 			var searchResults = CurrentQueueItem.Results.Where(r =>
 			{
 				var s = strFunc(r);
