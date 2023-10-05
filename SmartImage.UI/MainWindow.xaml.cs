@@ -298,7 +298,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 
 	[MNNW(true, nameof(CurrentQueueItem))]
-	public bool QueueItemSelected => Lb_Queue.SelectedIndex != INVALID;
+	public bool QueueItemSelected => CurrentQueueItem != null;
 
 	public ObservableCollection<QueryModel> Queue { get; }
 
@@ -309,7 +309,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Input = CurrentQueueItem?.Value;
 
-		if (CurrentQueueItem == null /*|| CurrentQueueItem is { HasValue: false }*/ /*|| CurrentQueueItem is not {}*/
+		if (!QueueItemSelected /*|| CurrentQueueItem is { HasValue: false }*/ /*|| CurrentQueueItem is not {}*/
 		    /* || Query?.ValueString == CurrentQueueItem*/) {
 			// SetQueue(String.Empty);
 

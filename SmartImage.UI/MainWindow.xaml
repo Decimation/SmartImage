@@ -174,7 +174,7 @@
 
                     <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
-                            Loaded="Btn_Run_Loaded" Width="35" ToolTip="Run search">
+                            Loaded="Btn_Run_Loaded" Width="35" ToolTip="Run search" IsEnabled="False">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">

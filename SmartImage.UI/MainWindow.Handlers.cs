@@ -95,17 +95,19 @@ public partial class MainWindow
 
 	private void Tb_Input_OnTextChanged(object sender, TextChangedEventArgs e)
 	{
-		Debug.WriteLine($" txt: {CurrentQueueItem?.Value}");
 		/*if (!m_isq) {
 			OnCurrentQueueItemChanged(sender, null);
 		}*/
-
 		if (SearchQuery.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
 			var q = new QueryModel(Input);
 			Queue.Add(q);
 			CurrentQueueItem = q;
 		}
 
+		/*if (QueueItemSelected) {
+			CurrentQueueItem.Value = Input;
+
+		}*/
 		/*if (QueueItemSelected) {
 			CurrentQueueItem.Value = Input;
 
@@ -251,9 +253,9 @@ public partial class MainWindow
 	{
 		Cancel();
 		ReloadToken();
-		Lb_Queue.IsEnabled   = true;
-		Btn_Run.IsEnabled    = true;
-		Btn_Remove.IsEnabled = true;
+		// Lb_Queue.IsEnabled   = true;
+		// Btn_Run.IsEnabled    = true;
+		// Btn_Remove.IsEnabled = true;
 		// m_us.Release();
 		e.Handled = true;
 	}
@@ -270,11 +272,9 @@ public partial class MainWindow
 
 		var old = CurrentQueueItem;
 
-		if (old == null || string.IsNullOrWhiteSpace(old.Value)) {
+		if (!QueueItemSelected || old.IsPrimitive) {
 			goto ret;
 		}
-
-		if (old.IsPrimitive) { }
 
 		var i = Queue.IndexOf(old);
 		Queue.Remove(old);
@@ -287,7 +287,7 @@ public partial class MainWindow
 
 		if (Queue.Count > 0) {
 			// Lb_Queue.SelectedIndex = 0;
-			CurrentQueueItem = Queue[0];
+			CurrentQueueItem = Queue[(i)%Queue.Count];
 		}
 		else { }
 
