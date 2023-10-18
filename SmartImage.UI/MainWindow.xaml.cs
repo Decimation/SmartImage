@@ -52,6 +52,7 @@ using Novus.Win32.Structures.Kernel32;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
 using Clipboard = System.Windows.Clipboard;
 using System.Data.Common;
+using System.Drawing;
 using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime;
@@ -59,6 +60,7 @@ using System.Runtime.Caching;
 using ReactiveUI;
 using Windows.Media.Protection.PlayReady;
 using Brush = System.Drawing.Brush;
+using Brushes = System.Windows.Media.Brushes;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -230,6 +232,19 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
+	private bool m_smartSearch;
+
+	public bool SmartSearch
+	{
+		get => m_smartSearch;
+		set
+		{
+			if (value == m_smartSearch) return;
+			m_smartSearch = value;
+			OnPropertyChanged();
+		}
+	}
+
 	#endregion
 
 	#region
@@ -397,7 +412,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			// Img_Upload.Source         = isOk ? AppComponents.accept : AppComponents.exclamation;
 
 			if (!isOk) {
-				Debugger.Break();
+				// Debugger.Break();
 			}
 
 			Pb_Status.IsIndeterminate = false;
@@ -845,6 +860,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// m_resultMap[Query] = Results;
 		CurrentQueueItem.UpdateProperties();
 		CanReload = true;
+
+		if (SmartSearch) {
+			Dispatcher.InvokeAsync(SS_Run);
+		}
 	}
 
 	private void OnResult(object o, SearchResult result)
@@ -1182,6 +1201,44 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
+	private async Task SS_Run()
+	{
+		var cb = CurrentQueueItem.Results.ToArray();
+		int c  = 0;
+
+		var t1 = Parallel.ForEachAsync(cb, async (item, token) =>
+		{
+
+			var f = await FilterResultAsync(item, token);
+
+			if (!f) {
+				Dispatcher.Invoke(() => Callback(item));
+
+			}
+		});
+
+		await t1;
+
+		bool Callback(ResultItem resultItem)
+		{
+			c++;
+			Tb_Status2.Text = $"SS: {c}";
+			return CurrentQueueItem.Results.Remove(resultItem);
+		}
+
+		cb = CurrentQueueItem.Results.ToArray();
+
+		var t2 = Parallel.ForEach(cb, (item, token) =>
+		{
+			if (item.Result.Score < 3) {
+				Dispatcher.Invoke(() => Callback(item));
+				return;
+			}
+
+		});
+
+	}
+
 	private async Task FilterResultsAsync()
 	{
 		bool r   = Btn_Run.IsEnabled,
@@ -1204,26 +1261,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		await Parallel.ForEachAsync(cb, async (item, token) =>
 		{
-			if (!Url.IsValid(item.Url) || item.Status.IsError() || item.Result.IsRaw) {
-				Dispatcher.Invoke(Callback);
+			var f = await FilterResultAsync(item, token);
 
-				return;
+			if (!f) {
+				Dispatcher.Invoke(() => CurrentQueueItem.Results.Remove(item));
+				c++;
 			}
 
-			var res = await item.GetResponseAsync(token);
-
-			if (res is { ResponseMessage.IsSuccessStatusCode: false }) {
-				Debug.WriteLine($"removing {item}");
-				Dispatcher.Invoke(Callback);
-			}
-			else { }
-
-			void Callback()
-			{
-				++c;
-				CurrentQueueItem.Results.Remove(item);
-			}
-
+			return;
 		});
 
 		Debug.WriteLine("continuing");
@@ -1234,6 +1279,25 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		CanReload                 = re;
 		Lb_Queue.IsEnabled        = q;
 		Btn_Remove.IsEnabled      = rem;
+
+	}
+
+	private async Task<bool> FilterResultAsync(ResultItem item, CancellationToken token)
+	{
+		if (item.IsLowQuality) {
+
+			return false;
+		}
+
+		var res = await item.GetResponseAsync(token);
+
+		if (res is { ResponseMessage.IsSuccessStatusCode: false }) {
+			Debug.WriteLine($"removing {item}");
+			return false;
+		}
+		else { }
+
+		return true;
 
 	}
 
@@ -1432,20 +1496,39 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
+			if (Img_Preview.Source != null) {
+				if (Img_Preview.Source.Dispatcher != null) {
+					if (!Img_Preview.Source.Dispatcher.CheckAccess()) {
+						return;
+					}
+
+				}
+			}
 			/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
-				return;
-			}*/
-
+			return;
+		}*/
+			
 			string name = ri is INamed n ? n.Name : "-";
+			Tb_Preview.Dispatcher.Invoke(() =>
+			{
 
-			Tb_Preview.Text = $"Preview: loading {name}";
+			});
 
 			if (ri.LoadImage()) {
 				Img_Preview.Source = ri.Image;
 
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
-				Tb_Preview.Text = $"Preview: {name}";
+				double mse = -1;
+
+				/*if (ri.Image != null) {
+					using var bmp1 = CurrentQueueItem.Image.BitmapImage2Bitmap();
+					using var bmp2 = ri.Image.BitmapImage2Bitmap();
+					mse = AppUtil.CompareImages(bmp1, bmp2,1);
+
+				}*/
+
+				Tb_Preview.Text = $"Preview: {name} | {mse}";
 
 			}
 			else {
@@ -1455,6 +1538,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			// m_us2.Release();
 		});
+
 	}
 
 	private void UpdatePreview()

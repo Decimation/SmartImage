@@ -13,6 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
@@ -32,7 +33,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 
 	public SearchResultItem Result { get; }
 
-	public SearchResultStatus Status { get; }
+	public SearchResultStatus Status => Result.Root.Status;
 
 	private BitmapImage m_statusImage;
 
@@ -65,16 +66,17 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 
 	public string StatusMessage { get; internal set; }
 
+	public bool IsLowQuality => !Url.IsValid(Url) || Status.IsError() || Result.IsRaw;
+
 	public ResultItem(SearchResultItem result, string name)
 	{
 		Result = result;
 		Name   = !result.IsRaw ? name : $"{name} (Raw)";
 
-		Status          = result.Root.Status;
-		Url             = result.Url;
-		CanOpen         = Url.IsValid(Url);
-		CanScan         = CanOpen;
-	
+		Url     = result.Url;
+		CanOpen = Url.IsValid(Url);
+		CanScan = CanOpen;
+
 		(Width, Height) = (Result.Width, Result.Height);
 
 		if (Status.IsSuccessful()) {
@@ -97,39 +99,77 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 		}
 	}
 
+	private string m_label;
+
+	public string Label
+	{
+		get => m_label;
+		set
+		{
+			if (value == m_label) return;
+			m_label = value;
+			OnPropertyChanged();
+		}
+	}
+
+	private static readonly object locc = new();
+
 	public virtual bool LoadImage()
 	{
-		if (CanLoadImage) {
+		lock (locc) {
+			if (CanLoadImage) {
+				Label = $"Loading {Name}";
 
-			/*
-			 * NOTE:
-			 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
-			 *
-			 */
+				/*
+				 * NOTE:
+				 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
+				 *
+				 */
 
-			Image = new BitmapImage()
-				{ };
-			Image.BeginInit();
-			Image.UriSource = new Uri(Result.Thumbnail);
-			// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
-			Image.CacheOption = BitmapCacheOption.OnDemand;
-			// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
-			// Image.CreateOptions = BitmapCreateOptions.None;
+				Image = new BitmapImage()
+					{ };
+				Image.BeginInit();
+				Image.UriSource = new Uri(Result.Thumbnail);
+				// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
+				Image.CacheOption = BitmapCacheOption.OnDemand;
+				// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
+				// Image.CreateOptions = BitmapCreateOptions.None;
 
-			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-			Image.EndInit();
+				Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 
-			Image.DownloadCompleted += (sender, args) =>
-			{
-				Debug.WriteLine("download complete");
+				Image.EndInit();
 
-				if (Image.CanFreeze) {
-					Image.Freeze();
-				}
-			};
+				Image.DownloadFailed    += OnImageDownloadFailed;
+				Image.DownloadProgress  += OnImageDownloadProgress;
+				Image.DownloadCompleted += OnImageDownloadCompleted;
+			}
+			else {
+				Label = null;
+			}
+
+			return HasImage;
+
 		}
+	}
 
-		return HasImage;
+	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
+	{
+		Label = $"Cache complete";
+
+		if (Image.CanFreeze) {
+			Image.Freeze();
+		}
+	}
+
+	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
+	{
+		Label = $"{args.Progress}";
+	}
+
+	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
+	{
+		Label = $"{args.ErrorException.Message}";
+
 	}
 
 	public bool Open()
@@ -221,6 +261,11 @@ public class UniResultItem : ResultItem
 
 	public override bool CanLoadImage => !HasImage && Uni != null;
 
+	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
+	{
+		Label = $"Download completed";
+	}
+
 	public override bool LoadImage()
 	{
 		if (CanLoadImage) {
@@ -234,10 +279,9 @@ public class UniResultItem : ResultItem
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
 
-			if (Image.CanFreeze) {
-				Image.Freeze();
-
-			}
+			Image.DownloadFailed    += OnImageDownloadFailed;
+			Image.DownloadProgress  += OnImageDownloadProgress;
+			Image.DownloadCompleted += OnImageDownloadCompleted;
 
 			Width  = Image.PixelWidth;
 			Height = Image.PixelHeight;

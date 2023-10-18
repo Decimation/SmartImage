@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -49,6 +50,21 @@ public sealed class SearchClient : IDisposable
 
 	static SearchClient()
 	{
+		var handler = new LoggingHttpMessageHandler(Logger)
+		{
+			InnerHandler = new HttpLoggingHandler(Logger)
+			{
+				InnerHandler = new HttpClientHandler()
+			}
+		};
+
+		Client = new FlurlClient(new HttpClient(handler))
+			{ };
+	}
+
+	[ModuleInitializer]
+	public static void Init()
+	{
 		FlurlHttp.Configure(settings =>
 		{
 			settings.Redirects.Enabled                    = true; // default true
@@ -63,17 +79,6 @@ public sealed class SearchClient : IDisposable
 
 			};
 		});
-
-		var handler = new LoggingHttpMessageHandler(Logger)
-		{
-			InnerHandler = new HttpLoggingHandler(Logger)
-			{
-				InnerHandler = new HttpClientHandler()
-			}
-		};
-
-		Client = new FlurlClient(new HttpClient(handler))
-			{ };
 
 		Logger.LogInformation("Init");
 
