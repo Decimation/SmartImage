@@ -58,6 +58,7 @@ using System.Runtime;
 using System.Runtime.Caching;
 using ReactiveUI;
 using Windows.Media.Protection.PlayReady;
+using Brush = System.Drawing.Brush;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -115,7 +116,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Client.OnComplete += OnComplete;
 
 #if !DEBUG
-		AppDomain.CurrentDomain.UnhandledException       += Domain_UHException;
+		AppDomain.CurrentDomain.UnhandledException += Domain_UHException;
 		Application.Current.DispatcherUnhandledException += Dispatcher_UHException;
 #endif
 
@@ -334,14 +335,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				// Debug.WriteLine($"Updating query: {CurrentQueueItem} | {Query?.ValueString}");
 				// await UpdateQueryAsync(CurrentQueueItem);
 				//todo
-				await UpdateQueryAsync();
-
+				var ok2 = await UpdateQueryAsync();
 				HandleQueryAsync();
-
 			}
 
 			// Btn_Remove.IsEnabled = ok;
-			Btn_Run.IsEnabled    = ok;
+			Btn_Run.IsEnabled = ok;
 			/*if (CurrentQueueItem is { HasQuery: true  } && Url.IsValid(CurrentQueueItem.Query.Upload)) {
 				Tb_Upload.Text = CurrentQueueItem.Query.Upload;
 
@@ -370,10 +369,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// m_us.Release();
 	}
 
-	private async Task UpdateQueryAsync()
+	private async Task<bool?> UpdateQueryAsync()
 	{
 		if (!await m_us.WaitAsync(TimeSpan.Zero /*, m_cts.Token*/)) {
-			return;
+			return null;
 		}
 
 		bool isOk = true;
@@ -393,6 +392,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Lb_Queue.IsEnabled        = false;
 			Btn_Run.IsEnabled         = false;
 			isOk                      = await CurrentQueueItem.UploadAsync(m_ctsu.Token);
+
+			Lb_Upload.Foreground = isOk ? Brushes.Green : Brushes.Red;
+			// Img_Upload.Source         = isOk ? AppComponents.accept : AppComponents.exclamation;
+
+			if (!isOk) {
+				Debugger.Break();
+			}
+
 			Pb_Status.IsIndeterminate = false;
 			Lb_Queue.IsEnabled        = true;
 			Btn_Run.IsEnabled         = CurrentQueueItem.CanSearch;
@@ -424,6 +431,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		ret:
 		m_us.Release();
+
+		return isOk;
 	}
 
 	/*private void OnResultModelPropertyChanged(object? o, PropertyChangedEventArgs eventArgs)
@@ -794,17 +803,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		CanReload = false;
 
-		Lb_Queue.IsEnabled   = false;
+		Lb_Queue.IsEnabled = false;
 
 		Btn_Remove.IsEnabled = false;
 		// ClearResults();
 
-		SearchStart  = DateTime.Now;
+		SearchStart = DateTime.Now;
 
-		m_cntResults = 0;
+		m_cntResults      = 0;
 		Btn_Run.IsEnabled = false;
 
-		Tb_Status.Text    = "Initiating search...";
+		Tb_Status.Text = "Initiating search...";
 		await UpdateQueryAsync();
 
 		if (!CurrentQueueItem.HasQuery) { }
@@ -832,7 +841,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Btn_Remove.IsEnabled = true;
-		Btn_Run.IsEnabled = CurrentQueueItem.HasValue;
+		Btn_Run.IsEnabled    = CurrentQueueItem.HasValue;
 		// m_resultMap[Query] = Results;
 		CurrentQueueItem.UpdateProperties();
 		CanReload = true;
@@ -972,6 +981,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Restart(true);
 		ClearQueryControls();
+		Lb_Upload.Foreground = Brushes.White;
 		// SetQueue(null);
 		// CurrentQueueItem = String.Empty;
 		GC.Collect();
@@ -1180,7 +1190,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		     q   = Lb_Queue.IsEnabled;
 
 		Btn_Run.IsEnabled    = false;
-		CanReload = false;
+		CanReload            = false;
 		Btn_Remove.IsEnabled = false;
 		Lb_Queue.IsEnabled   = false;
 
@@ -1221,7 +1231,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Pb_Status.IsIndeterminate = false;
 		Btn_Filter.IsEnabled      = true;
 		Btn_Run.IsEnabled         = r;
-		CanReload      = re;
+		CanReload                 = re;
 		Lb_Queue.IsEnabled        = q;
 		Btn_Remove.IsEnabled      = rem;
 
@@ -1345,7 +1355,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		CurrentQueueItem.RestoreResults();
 		// Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
-		IsSearching            = false;
+		IsSearching = false;
 
 	}
 

@@ -94,7 +94,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 			engine ??= BaseUploadEngine.Default;
 
-			var u = await engine.UploadFileAsync(fu, ct);
+			var u   = await engine.UploadFileAsync(fu, ct);
+			var url = u.Url;
+			if (!u.IsValid) {
+				url = null;
+				Debug.WriteLine($"{u} is invalid!");
+			}
 
 			/*if (!u.IsValid) {
 				engine = BaseUploadEngine.All[Array.IndexOf(BaseUploadEngine.All, engine) + 1];
@@ -102,7 +107,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 				u = await engine.UploadFileAsync(Uni.Value.ToString(), ct);
 			}*/
 
-			Upload = u.Url;
+			Upload = url;
 
 			/*if (u.Response is { }) {
 				Size = NetHelper.GetContentLength(u.Response) ?? Size;

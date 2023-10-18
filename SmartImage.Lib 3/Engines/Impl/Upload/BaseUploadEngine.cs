@@ -52,7 +52,6 @@ public abstract class BaseUploadEngine : IEndpoint
 		}
 
 		var responseMessage = response.ResponseMessage;
-
 		switch (responseMessage.StatusCode) {
 			case HttpStatusCode.BadGateway:
 			case HttpStatusCode.GatewayTimeout:
@@ -70,6 +69,7 @@ public abstract class BaseUploadEngine : IEndpoint
 			{
 				r.OnError = rx =>
 				{
+					// Debugger.Break();
 					rx.ExceptionHandled = true;
 				};
 			}).GetAsync(cancellationToken: ct);

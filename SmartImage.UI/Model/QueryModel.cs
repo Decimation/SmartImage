@@ -85,6 +85,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	[MNNW(true, nameof(Query))]
 	public bool HasQuery => (Query != SearchQuery.Null) && Query != null;
 
+	[MNNW(true, nameof(Query))]
+	public bool HasInitQuery => HasQuery && Query.IsUploaded;
+
 	public bool CanLoadImage => !HasImage && HasQuery;
 
 	[MNNW(true, nameof(Image))]
