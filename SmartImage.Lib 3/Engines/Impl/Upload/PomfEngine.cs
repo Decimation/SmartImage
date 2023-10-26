@@ -45,7 +45,8 @@ public sealed class PomfEngine : BaseUploadEngine
 			Value    = pr,
 			Size = pr.Files[0].Size,
 			Url      = pr.Files[0].Url,
-			IsValid = pr.Success
+			IsValid = pr.Success,
+			Response = response
 		};
 
 		return bur;

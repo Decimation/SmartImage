@@ -1,5 +1,5 @@
 ﻿// Read S SmartImage.UI ResultItem.cs
-// 2023-07-17 @ 5:54 PM
+// 2023-08-11 @ 12:26 PM
 
 using System;
 using System.Collections.Generic;
@@ -16,6 +16,7 @@ using System.Windows.Media.Imaging;
 using System.Xml.Linq;
 using Flurl;
 using Flurl.Http;
+using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Kantan.Utilities;
 using Novus.FileTypes;
@@ -27,15 +28,18 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 
-public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, INamed
+public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, INamed, IDownloadable
 {
+
+	private string m_label;
+
+	private BitmapImage m_statusImage;
+
 	public string Name { get; set; }
 
 	public SearchResultItem Result { get; }
 
 	public SearchResultStatus Status => Result.Root.Status;
-
-	private BitmapImage m_statusImage;
 
 	public BitmapImage StatusImage
 	{
@@ -51,15 +55,20 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
 
 	/// <summary>
-	/// <see cref="SearchResultItem.Url"/> of <see cref="Result"/>
+	///     <see cref="SearchResultItem.Url" /> of <see cref="Result" />
 	/// </summary>
 	public Url? Url { get; protected set; }
 
-	public bool CanScan     { get; internal set; }
-	public bool CanOpen     { get; internal set; }
-	public bool CanDownload { get; internal set; }
+	public bool CanScan { get; internal set; }
 
-	public int? Width  { get; internal set; }
+	public bool CanOpen { get; internal set; }
+
+	public bool CanDownload { get; set; }
+
+	public bool? IsThumbnail { get; protected set; }
+
+	public int? Width { get; internal set; }
+
 	public int? Height { get; internal set; }
 
 	public BitmapImage? Image { get; /*protected*/ set; }
@@ -67,6 +76,25 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 	public string StatusMessage { get; internal set; }
 
 	public bool IsLowQuality => !Url.IsValid(Url) || Status.IsError() || Result.IsRaw;
+
+	public string Label
+	{
+		get => m_label;
+		set
+		{
+			if (value == m_label) return;
+			m_label = value;
+			OnPropertyChanged();
+		}
+	}
+
+	public bool HasImage => Image != null;
+
+	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
+
+	public string? Download { get; set; }
+
+	private static readonly object _lock = new();
 
 	public ResultItem(SearchResultItem result, string name)
 	{
@@ -97,26 +125,132 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 		if (!string.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
 		}
+
 	}
 
-	private string m_label;
-
-	public string Label
+	public bool Open()
 	{
-		get => m_label;
-		set
-		{
-			if (value == m_label) return;
-			m_label = value;
-			OnPropertyChanged();
-		}
+		return FileSystem.Open(Url);
+
 	}
 
-	private static readonly object locc = new();
+	public Task<IFlurlResponse> GetResponseAsync(CancellationToken token = default)
+	{
+		return Url.AllowAnyHttpStatus()
+			.WithAutoRedirect(true)
+			.WithTimeout(TimeSpan.FromSeconds(3))
+			.OnError(x =>
+			{
+				if (x.Exception is FlurlHttpException fx) {
+					Debug.WriteLine($"{fx}");
+				}
+
+				x.ExceptionHandled = true;
+			})
+			.GetAsync(cancellationToken: token);
+	}
+
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
+	public virtual void Dispose()
+	{
+		Debug.WriteLine($"Disposing {Name}");
+		Result.Dispose();
+		Image = null;
+	}
+
+	#region
+
+	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
+	{
+		Label = $"Cache complete";
+
+		if (Image.CanFreeze) {
+			Image.Freeze();
+		}
+
+		CanDownload = HasImage;
+		Width       = Image.PixelWidth;
+		Height      = Image.PixelHeight;
+		OnPropertyChanged(nameof(Width));
+		OnPropertyChanged(nameof(Height));
+		IsThumbnail = HasImage;
+		UpdateProperties();
+	}
+
+	public void UpdateProperties()
+	{
+		OnPropertyChanged(nameof(CanOpen));
+		OnPropertyChanged(nameof(IsDownloaded));
+		OnPropertyChanged(nameof(IsSister));
+	}
+
+	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
+	{
+		Label = $"{args.Progress}";
+	}
+
+	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
+	{
+		Label = $"{args.ErrorException.Message}";
+
+	}
+
+	public virtual async Task<string> DownloadAsync(string? dir = null, bool exp = true)
+	{
+		if (!Url.IsValid(Url) || !HasImage) {
+			return null;
+		}
+
+		string path;
+
+		path = Url.GetFileName();
+
+		dir ??= AppUtil.MyPicturesFolder;
+		var path2 = Path.Combine(dir, path);
+
+		var encoder = new PngBitmapEncoder();
+		encoder.Frames.Add(BitmapFrame.Create(Image));
+
+		await using (var fs = new FileStream(path2, FileMode.Create)) {
+			encoder.Save(fs);
+		}
+
+		StatusImage = AppComponents.picture_save;
+
+		if (exp) {
+			FileSystem.ExploreFile(path2);
+		}
+
+		CanDownload = false;
+		Download    = path2;
+
+		// u.Dispose();
+		UpdateProperties();
+		
+		return path2;
+	}
+
+	public bool IsDownloaded
+	{
+		get => Download != null;
+		set {}
+	}
 
 	public virtual bool LoadImage()
 	{
-		lock (locc) {
+		lock (_lock) {
 			if (CanLoadImage) {
 				Label = $"Loading {Name}";
 
@@ -142,87 +276,51 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 				Image.DownloadFailed    += OnImageDownloadFailed;
 				Image.DownloadProgress  += OnImageDownloadProgress;
 				Image.DownloadCompleted += OnImageDownloadCompleted;
+
 			}
 			else {
 				Label = null;
 			}
 
+			UpdateProperties();
 			return HasImage;
-
 		}
 	}
 
-	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
-	{
-		Label = $"Cache complete";
-
-		if (Image.CanFreeze) {
-			Image.Freeze();
-		}
-	}
-
-	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
-	{
-		Label = $"{args.Progress}";
-	}
-
-	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
-	{
-		Label = $"{args.ErrorException.Message}";
-
-	}
-
-	public bool Open()
-	{
-		return FileSystem.Open(Url);
-
-	}
-
-	public bool HasImage => Image != null;
-
-	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
-
-	public virtual void Dispose()
-	{
-		Debug.WriteLine($"Disposing {Name}");
-		Result.Dispose();
-		Image = null;
-	}
-
-	public Task<IFlurlResponse> GetResponseAsync(CancellationToken token = default)
-	{
-		return Url.AllowAnyHttpStatus()
-			.WithAutoRedirect(true)
-			.WithTimeout(TimeSpan.FromSeconds(3))
-			.OnError(x =>
-			{
-				if (x.Exception is FlurlHttpException fx) {
-					Debug.WriteLine($"{fx}");
-				}
-
-				x.ExceptionHandled = true;
-			})
-			.GetAsync(cancellationToken: token);
-	}
+	#endregion
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
+	public bool IsSister { get; internal init; }
 
-	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
-	}
 }
 
 public class UniResultItem : ResultItem
 {
+
+	public override bool CanLoadImage => !HasImage && Uni != null;
+
+	public string SizeFormat { get; }
+
+	public string Description { get; }
+
+	public UniSource? Uni
+	{
+		get
+		{
+			if (UniIndex.HasValue && Result.Uni != null) {
+				return Result.Uni[UniIndex.Value];
+
+			}
+
+			return null;
+		}
+	}
+
+	public string Hash { get; }
+	
+	public int? UniIndex { get; }
+
 	public UniResultItem(ResultItem ri, int? idx)
 		: base(ri.Result, $"{ri.Name} ({idx})")
 	{
@@ -257,13 +355,15 @@ public class UniResultItem : ResultItem
 		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
+		
 	}
 
-	public override bool CanLoadImage => !HasImage && Uni != null;
+	#region
 
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
-		Label = $"Download completed";
+		base.OnImageDownloadCompleted(sender, args);
+		IsThumbnail = false;
 	}
 
 	public override bool LoadImage()
@@ -283,21 +383,12 @@ public class UniResultItem : ResultItem
 			Image.DownloadProgress  += OnImageDownloadProgress;
 			Image.DownloadCompleted += OnImageDownloadCompleted;
 
-			Width  = Image.PixelWidth;
-			Height = Image.PixelHeight;
-
 		}
-
+		UpdateProperties();
 		return HasImage;
 	}
 
-	public string Download { get; private set; }
-
-	public Dictionary<string, FileRelationship>? Relationships { get; internal set; }
-
-	public string? HyDescription { get; internal set; }
-
-	public async Task<string> DownloadAsync(string? dir = null, bool exp = true)
+	public override async Task<string> DownloadAsync(string? dir = null, bool exp = true)
 	{
 		string path;
 
@@ -328,30 +419,12 @@ public class UniResultItem : ResultItem
 		Download    = path2;
 
 		// u.Dispose();
+		UpdateProperties();
 
 		return path2;
 	}
 
-	public string SizeFormat { get; }
-
-	public string Description { get; }
-
-	public UniSource? Uni
-	{
-		get
-		{
-			if (UniIndex.HasValue && Result.Uni != null) {
-				return Result.Uni[UniIndex.Value];
-
-			}
-
-			return null;
-		}
-	}
-
-	public string Hash { get; }
-
-	public int? UniIndex { get; }
+	#endregion
 
 	public override void Dispose()
 	{
@@ -359,4 +432,5 @@ public class UniResultItem : ResultItem
 
 		Uni?.Dispose();
 	}
+
 }

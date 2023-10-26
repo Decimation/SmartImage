@@ -11,7 +11,7 @@
         xmlns:model="clr-namespace:SmartImage.UI.Model"
         xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d" Height="650" Width="1325" MinWidth="1325" MinHeight="300" Loaded="Wnd_Main_Loaded"
+        mc:Ignorable="d" Height="675" Width="1325" MinWidth="1325" MinHeight="325" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919"
         KeyDown="Wnd_Main_KeyDown">
@@ -531,7 +531,7 @@
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
 
-                    <ListView x:Name="Lv_Results" Margin="0,111,0,0"
+                    <ListView x:Name="Lv_Results" Margin="0,120,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
                               IsSelected="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
@@ -645,7 +645,8 @@
 
                     <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="115,49,0,0"
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline"
-                               Text="{Binding CurrentQueueItem.Status2, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" />
+                               Text="{Binding CurrentQueueItem.Status2, UpdateSourceTrigger=PropertyChanged,ElementName=Wnd_Main}"
+                               MaxWidth="400" />
 
                     <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="585,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Filter_Click"
@@ -661,13 +662,23 @@
                     <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0"
                                Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"
                                Width="150" ToolTip="Click preview to stop/close&#x0a;Double click preview to open" />
-                    <CheckBox x:Name="Cb_SmartSearch" Content="Smart search" HorizontalAlignment="Left"
-                              Margin="501,66,0,0"
-                              VerticalAlignment="Top" IsChecked="{Binding SmartSearch, Mode=TwoWay}" Foreground="White" />
-                    <TextBlock x:Name="Tb_Preview2" Grid.Column="1" HorizontalAlignment="Left" Margin="526,86,0,0"
-                               TextWrapping="Wrap" Text="{Binding CurrentResultItem.Label, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+
+                    <TextBlock x:Name="Tb_Preview2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,86,11,0"
+                               TextWrapping="Wrap"
+                               Text="{Binding CurrentResultItem.Label, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                                VerticalAlignment="Top"
-                               Foreground="White" Grid.Row="1" Width="149.7" />
+                               Foreground="White" Grid.Row="1" Width="150" />
+                    <CheckBox x:Name="Cb_Result" Grid.Column="1" Content="Result" HorizontalAlignment="Left"
+                              Margin="193,69,0,0" Grid.Row="1" VerticalAlignment="Top" IsEnabled="False"
+                              Foreground="{DynamicResource Grey1}" FontStyle="Italic"/>
+
+                    <CheckBox x:Name="Cb_Sister" Grid.Column="1" Content="Sister" HorizontalAlignment="Left"
+                              Margin="193,87,0,0" Grid.Row="1" VerticalAlignment="Top" IsEnabled="False"
+                              Foreground="{DynamicResource Grey1}" FontStyle="Italic"/>
+
+                    <CheckBox x:Name="Cb_Downloaded" Grid.Column="1" Content="Downloaded" HorizontalAlignment="Left"
+                              Margin="256,69,0,0" Grid.Row="1" VerticalAlignment="Top" IsEnabled="False"
+                              Foreground="{DynamicResource Grey1}" FontStyle="Italic"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
@@ -700,6 +711,7 @@
                     <CheckBox x:Name="Cb_Path" Content="Add to PATH" HorizontalAlignment="Left"
                               IsChecked="{Binding InPath, Mode=TwoWay}"
                               Margin="426,154,0,0" VerticalAlignment="Top" Foreground="White" />
+
                     <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left"
                            Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
@@ -720,16 +732,21 @@
 
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+
                     <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="527,208,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhUsername, Mode=TwoWay}" TextChanged="Tb_EhUsername_TextChanged" />
+
                     <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="527,237,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"
                              Text="{Binding Config.EhPassword, Mode=TwoWay}" TextChanged="Tb_EhPassword_TextChanged" />
+
                     <Label x:Name="Lb_EhUsername" Content="Eh Username" HorizontalAlignment="Left" Margin="424,204,0,0"
                            VerticalAlignment="Top" Foreground="White" />
+
                     <Label x:Name="Lb_EhPassword" Content="Eh Password" HorizontalAlignment="Left" Margin="424,233,0,0"
                            VerticalAlignment="Top" Foreground="White" />
+
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 

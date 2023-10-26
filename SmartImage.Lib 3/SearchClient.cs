@@ -103,7 +103,7 @@ public sealed class SearchClient : IDisposable
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
 	                                                 CancellationToken token = default)
 	{
-		if (query.Upload is not { }) {
+		if (!query.IsUploaded) {
 			throw new ArgumentException($"Query was not uploaded", nameof(query));
 		}
 

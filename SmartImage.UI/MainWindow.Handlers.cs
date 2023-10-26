@@ -462,7 +462,7 @@ public partial class MainWindow
 		switch (key) {
 			case Key.D when ctrl:
 				Dispatcher.InvokeAsync(
-					() => DownloadResultAsync((UniResultItem) CurrentResultItem));
+					() => DownloadResultAsync((IDownloadable) CurrentResultItem));
 
 				break;
 			case Key.S when ctrl:
@@ -474,7 +474,7 @@ public partial class MainWindow
 					return;
 				}
 
-				if (CurrentResultItem is UniResultItem uri && m_uni.TryRemove(uri, out var x)) { }
+				if (CurrentResultItem is IDownloadable uri && m_uni.TryRemove(uri, out var x)) { }
 
 				CurrentResultItem.Dispose();
 
@@ -508,7 +508,7 @@ public partial class MainWindow
 				AdvanceQueue(i);
 				break;
 			case Key.E when ctrl:
-				Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
+				Dispatcher.InvokeAsync(() => EnqueueResultAsync((IDownloadable) CurrentResultItem));
 
 				break;
 			case Key.R when ctrl && alt:
@@ -690,7 +690,7 @@ public partial class MainWindow
 
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
-		if (CurrentResultItem is UniResultItem uri) {
+		if (CurrentResultItem is IDownloadable {} uri && uri.CanDownload) {
 			Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}

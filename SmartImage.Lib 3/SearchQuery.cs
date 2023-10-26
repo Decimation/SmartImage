@@ -99,6 +99,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			if (!u.IsValid) {
 				url = null;
 				Debug.WriteLine($"{u} is invalid!");
+				// Debugger.Break();
 			}
 
 			/*if (!u.IsValid) {

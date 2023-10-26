@@ -71,7 +71,9 @@ namespace SmartImage.UI;
 /// </summary>
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
+
 	public const int INVALID = -1;
+
 	static MainWindow() { }
 
 	public MainWindow()
@@ -232,19 +234,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private bool m_smartSearch;
-
-	public bool SmartSearch
-	{
-		get => m_smartSearch;
-		set
-		{
-			if (value == m_smartSearch) return;
-			m_smartSearch = value;
-			OnPropertyChanged();
-		}
-	}
-
 	#endregion
 
 	#region
@@ -253,7 +242,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static readonly ConcurrentDictionary<string, string> FileCache = new();
 
-	private readonly ConcurrentDictionary<UniResultItem, string> m_uni;
+	private readonly ConcurrentDictionary<IDownloadable, string> m_uni;
 
 	// private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
@@ -645,7 +634,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		else if (CurrentQueueItem.Results.Any()) {
 			Tb_Status.Text = $"Displaying {CurrentQueueItem.Results.Count} results";
 		}
-		else if (CurrentQueueItem.HasQuery && !CurrentQueueItem.Results.Any()) {
+		else if (CurrentQueueItem.HasInitQuery && !CurrentQueueItem.Results.Any()) {
 			Tb_Status.Text = $"Search ready";
 
 		}
@@ -654,7 +643,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		}
 
-		Tb_Info.Text = CurrentQueueItem.Info;
+		Btn_Run.IsEnabled = CurrentQueueItem.CanSearch;
+		Tb_Info.Text      = CurrentQueueItem.Info;
 		// Tb_Status.Text    = CurrentQueueItem.Status;
 		Tb_Status2.Text = CurrentQueueItem.Status2;
 		// OnPropertyChanged(nameof(Results));
@@ -829,9 +819,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Btn_Run.IsEnabled = false;
 
 		Tb_Status.Text = "Initiating search...";
-		await UpdateQueryAsync();
+		bool? isOk = CurrentQueueItem?.HasInitQuery;
 
-		if (!CurrentQueueItem.HasQuery) { }
+		if (isOk.HasValue && !isOk.Value) {
+			isOk = await UpdateQueryAsync();
+
+		}
+
+		if (isOk.HasValue && !isOk.Value) {
+			Tb_Status.Text = Placeholder;
+			return;
+		}
 
 		// HandleQueryAsync();
 		try {
@@ -860,10 +858,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// m_resultMap[Query] = Results;
 		CurrentQueueItem.UpdateProperties();
 		CanReload = true;
-
-		if (SmartSearch) {
-			Dispatcher.InvokeAsync(SS_Run);
-		}
 	}
 
 	private void OnResult(object o, SearchResult result)
@@ -894,7 +888,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			int j = 0;
 
 			foreach (var ssri in sri.Sisters) {
-				CurrentQueueItem.Results.Add(new ResultItem(ssri, $"{ssri.Root.Engine.Name} #{i}.{++j}"));
+				var srir = new ResultItem(ssri, $"{ssri.Root.Engine.Name} #{i}.{++j}")
+				{
+					IsSister = true
+				};
+				CurrentQueueItem.Results.Add(srir);
 
 			}
 		}
@@ -983,7 +981,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			// ClearQueryControls();
 		}
 
-		// Btn_Run.IsEnabled = true;
+		// Btn_Run.IsEnabled = CurrentQueueItem.CanSearch;
 		// Query.Dispose();
 		Pb_Status.Value = 0;
 		Tb_Search.Text  = String.Empty;
@@ -1088,7 +1086,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		return s;
 	}
 
-	private async Task DownloadResultAsync(UniResultItem uri)
+	private async Task DownloadResultAsync(IDownloadable uri)
 	{
 		await uri.DownloadAsync();
 		m_uni.TryAdd(uri, uri.Download);
@@ -1201,44 +1199,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private async Task SS_Run()
-	{
-		var cb = CurrentQueueItem.Results.ToArray();
-		int c  = 0;
-
-		var t1 = Parallel.ForEachAsync(cb, async (item, token) =>
-		{
-
-			var f = await FilterResultAsync(item, token);
-
-			if (!f) {
-				Dispatcher.Invoke(() => Callback(item));
-
-			}
-		});
-
-		await t1;
-
-		bool Callback(ResultItem resultItem)
-		{
-			c++;
-			Tb_Status2.Text = $"SS: {c}";
-			return CurrentQueueItem.Results.Remove(resultItem);
-		}
-
-		cb = CurrentQueueItem.Results.ToArray();
-
-		var t2 = Parallel.ForEach(cb, (item, token) =>
-		{
-			if (item.Result.Score < 3) {
-				Dispatcher.Invoke(() => Callback(item));
-				return;
-			}
-
-		});
-
-	}
-
 	private async Task FilterResultsAsync()
 	{
 		bool r   = Btn_Run.IsEnabled,
@@ -1301,7 +1261,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	private async Task EnqueueResultAsync(UniResultItem uri)
+	private async Task EnqueueResultAsync(IDownloadable uri)
 	{
 		// var d = await uri.Uni.TryDownloadAsync();
 		var d = await uri.DownloadAsync(Path.GetTempPath(), false);
@@ -1411,6 +1371,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		},
 	};
 
+	internal static readonly string Placeholder = "-";
+
 	private void ClearSearch()
 	{
 		if (Tb_Search.Text != null) {
@@ -1493,7 +1455,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		/*if (ri.Load()) {
 			UpdatePreview(ri.Image);
 		}*/
+		if (ri is ResultItem rri) {
+			Cb_Downloaded.IsChecked = rri.IsDownloaded;
+			Cb_Sister.IsChecked     = rri.IsSister;
+			Cb_Result.IsChecked     = rri.CanOpen;
 
+			if (rri.IsSister) {
+				var grp=CurrentQueueItem.Results.GroupBy(x => x.Result.Root);
+
+				foreach (IGrouping<SearchResult, ResultItem> items in grp) {
+					// var zz=items.GroupBy(y => y.Result.Root.AllResults.Where(yy => yy.Sisters.Contains(y.Result)));
+					
+				}
+			}
+		}
 		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
 			if (Img_Preview.Source != null) {
@@ -1507,19 +1482,18 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
 			return;
 		}*/
-			
-			string name = ri is INamed n ? n.Name : "-";
-			Tb_Preview.Dispatcher.Invoke(() =>
+
+			string name = ri is INamed n ? n.Name : Placeholder;
+			/*Tb_Preview.Dispatcher.Invoke(() =>
 			{
 
-			});
+			});*/
 
 			if (ri.LoadImage()) {
 				Img_Preview.Source = ri.Image;
 
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
-				double mse = -1;
 
 				/*if (ri.Image != null) {
 					using var bmp1 = CurrentQueueItem.Image.BitmapImage2Bitmap();
@@ -1528,7 +1502,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				}*/
 
-				Tb_Preview.Text = $"Preview: {name} | {mse}";
+				Tb_Preview.Text = $"Preview: {name}";
 
 			}
 			else {
@@ -1569,4 +1543,5 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		});
 
 	}
+
 }

@@ -12,11 +12,12 @@ using System.Net.Cache;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
+using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Flurl;
 using Kantan.Text;
 using SmartImage.Lib;
+using Application = System.Windows.Application;
 
 namespace SmartImage.UI.Model;
 
@@ -102,7 +103,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 
 	public bool CanDelete => HasQuery && Query.Uni.IsFile;
 
-	public bool CanSearch => !Results.Any() && HasQuery && Query.IsUploaded;
+	public bool CanSearch => !Results.Any() && HasInitQuery;
 
 	public ResultItem[]? ResultsBackup { get; internal set; }
 
@@ -123,14 +124,14 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 
 	public QueryModel(string value)
 	{
-		Value   = value;
-		Results = new ObservableCollection<ResultItem>();
-		ResultsBackup     = null;
-		Query   = SearchQuery.Null;
-		Status  = null;
-		Status2 = null;
-		Info    = null;
-		Image   = null;
+		Value         = value;
+		Results       = new ObservableCollection<ResultItem>();
+		ResultsBackup = null;
+		Query         = SearchQuery.Null;
+		Status        = null;
+		Status2       = null;
+		Info          = null;
+		Image         = null;
 	}
 
 	[MNNW(true, nameof(ResultsBackup))]
@@ -147,8 +148,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	public bool RestoreResults()
 	{
 		if (HasResultsBackup) {
-			Results = new ObservableCollection<ResultItem>(ResultsBackup);
-			ResultsBackup     = null;
+			Results       = new ObservableCollection<ResultItem>(ResultsBackup);
+			ResultsBackup = null;
 		}
 
 		return !HasResultsBackup;
@@ -271,11 +272,14 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	{
 		Url upload = null;
 		Status = "Uploading...";
-
+		var msg  = "Server timed out or input was invalid";
+		string emsg = null;
 		try {
 			upload = await Query.UploadAsync(ct: ct);
 		}
-		catch (Exception e) { }
+		catch (Exception e) {
+			emsg = e.Message;
+		}
 
 		if (!Url.IsValid(upload)) {
 			// todo: show user specific error message
@@ -283,8 +287,10 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 			// Btn_Delete.IsEnabled      = true;
 
 			Status  = "-";
-			Status2 = "Failed to upload: server timed out or input was invalid";
+			Status2 = msg;
 
+			var res = MessageBox.Show($"{emsg}\nChoose a different server then click [Reload].", "Failed to upload",
+			                          MessageBoxButtons.OK, MessageBoxIcon.Error);
 			return false;
 			// return;
 		}

@@ -52,6 +52,7 @@ public abstract class BaseUploadEngine : IEndpoint
 		}
 
 		var responseMessage = response.ResponseMessage;
+
 		switch (responseMessage.StatusCode) {
 			case HttpStatusCode.BadGateway:
 			case HttpStatusCode.GatewayTimeout:
@@ -86,7 +87,8 @@ public abstract class BaseUploadEngine : IEndpoint
 		{
 			Url     = url,
 			Size    = response.GetContentLength(),
-			IsValid = ok
+			IsValid = ok,
+			Response = response
 		};
 	}
 

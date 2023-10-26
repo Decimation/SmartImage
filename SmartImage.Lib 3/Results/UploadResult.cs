@@ -9,7 +9,7 @@ public sealed class UploadResult : IDisposable
 {
 	public Url Url { get; init; }
 
-	// public IFlurlResponse Response { get; init; }
+	public IFlurlResponse Response { get; init; }
 
 	public long? Size { get; init; }
 
@@ -27,5 +27,8 @@ public sealed class UploadResult : IDisposable
 		return result.Url;
 	}*/
 
-	public void Dispose() { }
+	public void Dispose()
+	{
+		Response?.Dispose();
+	}
 }
