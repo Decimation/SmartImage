@@ -1,10 +1,14 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using Flurl.Http;
 using Jint.Native.Json;
 using SmartImage.Lib.Results;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable CS0649
+#pragma warning disable IL2026
 
 // ReSharper disable ClassNeverInstantiated.Local
 // ReSharper disable InconsistentNaming
@@ -15,6 +19,12 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 {
+
+	private static readonly JsonSerializerOptions JsOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+	{
+		IncludeFields = true,
+	};
+
 	public RepostSleuthEngine() : base("https://repostsleuth.com/search?url=")
 	{
 		Timeout = TimeSpan.FromSeconds(4.5);
@@ -54,11 +64,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 				target_days_old      = 0
 			}).GetStringAsync(cancellationToken: token);
 
-			var js = new JsonSerializerOptions(JsonSerializerDefaults.Web)
-			{
-				IncludeFields = true
-			};
-			obj = JsonSerializer.Deserialize<Root>(s, js);
+			obj = JsonSerializer.Deserialize<Root>(s, JsOptions);
 		}
 		catch (JsonException e) {
 			sr.ErrorMessage = e.Message;
@@ -103,6 +109,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 
 	private class ClosestMatch
 	{
+
 		public int    hamming_distance;
 		public double annoy_distance;
 		public double hamming_match_percent;
@@ -110,21 +117,25 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		public string searched_url;
 		public Post   post;
 		public int    title_similarity;
+
 	}
 
 	private class Match
 	{
+
 		public int    hamming_distance;
 		public double annoy_distance;
 		public double hamming_match_percent;
 		public int    hash_size;
 		public string searched_url;
 		public Post   post;
-		public double    title_similarity;
+		public double title_similarity;
+
 	}
 
 	private class Post
 	{
+
 		public string post_id;
 		public string url;
 		public object shortlink;
@@ -135,10 +146,12 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		public double created_at;
 		public string author;
 		public string subreddit;
-	}
 
+	}
+	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
 	private class Root
 	{
+
 		public object         meme_template;
 		public ClosestMatch   closest_match;
 		public string         checked_url;
@@ -146,10 +159,12 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		public SearchSettings search_settings;
 		public SearchTimes    search_times;
 		public List<Match>    matches;
+
 	}
 
 	private class SearchSettings
 	{
+
 		public bool   filter_crossposts;
 		public bool   filter_same_author;
 		public bool   only_older_matches;
@@ -163,13 +178,15 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		public bool   check_title;
 		public int    max_depth;
 		public bool   meme_filter;
-		public double    target_annoy_distance;
-		public double    target_meme_match_percent;
-		public double    target_match_percent;
+		public double target_annoy_distance;
+		public double target_meme_match_percent;
+		public double target_match_percent;
+
 	}
 
 	private class SearchTimes
 	{
+
 		public double pre_annoy_filter_time;
 		public double index_search_time;
 		public double meme_filter_time;
@@ -187,7 +204,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		public double total_search_time;
 		public double total_filter_time;
 		public double set_title_similarity_time;
+
 	}
 
 	#endregion
+
 }

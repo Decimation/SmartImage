@@ -14,7 +14,7 @@ using Kantan.Text;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using static Kantan.Diagnostics.LogCategories;
-using static SmartImage.Lib.Engines.Impl.Search.SauceNaoEngine.Strings;
+using static SmartImage.Lib.Engines.Impl.Search.SauceNaoEngine.Constants;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
@@ -33,7 +33,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 {
-	internal static class Strings
+	internal static class Constants
 	{
 		public const string Twitter = "Twitter:";
 		public const string TweetID = "Tweet ID:";
@@ -42,6 +42,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		public const string Source   = "Source:";
 
 		public static readonly string[] Syn_Artists    = { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
+
 		public static readonly string[] Syn_Characters = { "Characters:" };
 	}
 
@@ -120,14 +121,15 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 			// TODO: HACK
 
-			var allSisters = imageResults.SelectMany(ir => ir.Sisters)
+			var allSisters = imageResults
+				.SelectMany(ir => ir.Children)
 				.DistinctBy(s => s.Url)
 				.ToList(); // note: need ToList()
 
 			for (int i = 0; i < imageResults.Count; i++) {
 				var ir = imageResults[i];
-				ir.Sisters.Clear();
-				ir.Sisters.AddRange(allSisters.Where(irs => irs.Parent == ir));
+				ir.Children.Clear();
+				ir.Children.AddRange(allSisters.Where(irs => irs.Parent == ir));
 			}
 
 		}
@@ -527,7 +529,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 			};
 
-			imageResult.AddSisters(meta);
+			imageResult.AddChildren(meta);
 
 			return imageResult;
 

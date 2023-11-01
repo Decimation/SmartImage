@@ -74,7 +74,14 @@ public partial class MainWindow
 
 	private void Tb_Input_PreviewDragOver(object sender, DragEventArgs e)
 	{
+		var files = e.GetFilesFromDrop();
+
+		if (files.All(x => !SearchQuery.IsValidSourceType(x)))
+		{
+			e.Effects = DragDropEffects.None;
+		}
 		e.Handled = true;
+
 	}
 
 	private void Tb_Input_Drop(object sender, DragEventArgs e)
@@ -124,6 +131,10 @@ public partial class MainWindow
 
 	private void Tb_Info_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
+		if (Query is not {}) {
+			return;
+		}
+
 		var s = Query.ValueString;
 
 		if (string.IsNullOrWhiteSpace(s)) {
@@ -143,6 +154,10 @@ public partial class MainWindow
 
 	private void Tb_Upload_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
+		if (Query is not { })
+		{
+			return;
+		}
 		FileSystem.Open(Query.Upload);
 	}
 
@@ -152,7 +167,7 @@ public partial class MainWindow
 
 	private void Lb_Queue_Drop(object sender, DragEventArgs e)
 	{
-		var files = e.GetFilesFromDrop().Where(SearchQuery.IsValidSourceType).ToArray();
+		var files = e.GetFilesFromDrop();
 
 		AddToQueue(files);
 		e.Handled = true;
@@ -165,6 +180,7 @@ public partial class MainWindow
 
 	private void Lb_Queue_PreviewDragOver(object sender, DragEventArgs e)
 	{
+		
 		e.Handled = true;
 	}
 
@@ -272,7 +288,7 @@ public partial class MainWindow
 
 		var old = CurrentQueueItem;
 
-		if (!QueueItemSelected || old.IsPrimitive) {
+		if (!QueueItemSelected || (old.IsPrimitive && !old.HasValue)) {
 			goto ret;
 		}
 

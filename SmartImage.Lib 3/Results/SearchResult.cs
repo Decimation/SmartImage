@@ -66,10 +66,10 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	public Url RawUrl { get; internal set; }
 
 	public List<SearchResultItem> Results { get; internal set; }
-
+	
 	public IEnumerable<SearchResultItem> AllResults
 	{
-		get { return Results.Union(Results.SelectMany(r => r.Sisters)); }
+		get { return Results.Union(Results.SelectMany(r => r.Children)); }
 	}
 
 	[CBN]

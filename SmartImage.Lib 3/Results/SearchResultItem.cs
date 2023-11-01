@@ -107,7 +107,7 @@ public sealed record SearchResultItem : IDisposable,
 	[CanBeNull]
 	public SearchResultItem Parent { get; internal set; }
 
-	public List<SearchResultItem> Sisters { get; internal set; }
+	public List<SearchResultItem> Children { get; internal set; }
 
 	// public bool IsUniType { get; internal set; }
 
@@ -128,7 +128,7 @@ public sealed record SearchResultItem : IDisposable,
 		Uni        = null;
 		Parent     = null;
 		IsRaw      = false;
-		Sisters    = new List<SearchResultItem>();
+		Children    = new List<SearchResultItem>();
 	}
 
 	/*
@@ -196,18 +196,18 @@ public sealed record SearchResultItem : IDisposable,
 		m_isScored = true;
 	}
 
-	public void AddSisters(string[] rg)
+	public void AddChildren(string[] rg)
 	{
 		for (int i = 0; i < rg.Length; i++) {
 
 			var sri = new SearchResultItem(this)
 			{
 				Url     = rg[i],
-				Sisters = new List<SearchResultItem>(),
+				Children = new List<SearchResultItem>(),
 				Parent  = this
 			};
 
-			Sisters.Add(sri);
+			Children.Add(sri);
 		}
 
 	}

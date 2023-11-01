@@ -144,7 +144,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
 		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
-		Rb_UploadEngine_Pomf.IsChecked = BaseUploadEngine.Default is PomfEngine;
+		Rb_UploadEngine_Pomf.IsChecked      = BaseUploadEngine.Default is PomfEngine;
 
 		// BindingOperations.EnableCollectionSynchronization(Queue, m_lock);
 		// BindingOperations.EnableCollectionSynchronization(CurrentQueueItem.Results, m_lock);
@@ -657,25 +657,30 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
-		if (!CurrentQueueItem.HasValue) {
-			var ff = files[0];
-			// CurrentQueueItem = new ResultModel(ff); //todo
-			SetQueue(ff);
-			// Debug.WriteLine($"cqi {ff}");
-			// Lv_Queue.SelectedItems.Add(ff);
-		}
-
 		int c = 0;
 
 		foreach (var s in files) {
 
-			if (!Queue.Any(x => x.Value == s)) {
+			if (SearchQuery.IsValidSourceType(s) && !Queue.Any(x => x.Value == s)) {
 				Queue.Add(new QueryModel(s));
 				Debug.WriteLine($"Added {s}");
 
 				c++;
 			}
+
+			if (!CurrentQueueItem.HasValue) {
+				SetQueue(s);
+
+			}
 		}
+
+		/*if (!CurrentQueueItem.HasValue && files.Any()) {
+			var ff = files[0];
+			// CurrentQueueItem = new ResultModel(ff); //todo
+			SetQueue(ff);
+			// Debug.WriteLine($"cqi {ff}");
+			// Lv_Queue.SelectedItems.Add(ff);
+		}*/
 
 		Tb_Status2.Text = $"Added {c} items to queue";
 	}
@@ -767,8 +772,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (SearchQuery.IsValidSourceType(txt)) {
 
-				if ( /*!IsInputReady() && */ !Queue.Any(x => x.Value == txt) && !m_clipboardHistory.Contains(txt) &&
-				                             SearchQuery.IsValidSourceType(txt)) {
+				if ( /*!IsInputReady() && */ /*!Queue.Any(x => x.Value == txt) &&*/ !m_clipboardHistory.Contains(txt)
+				    /*&& SearchQuery.IsValidSourceType(txt)*/) {
 					m_clipboardHistory.Add(txt);
 					// Queue.Add(txt);
 					// InputText = txt;
@@ -785,7 +790,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var files = Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];
 			files.CopyTo(rg, 0);
-			rg = rg.Where(x => !m_clipboardHistory.Contains(x) && SearchQuery.IsValidSourceType(x)).ToArray();
+			rg = rg.Where(x => !m_clipboardHistory.Contains(x)).ToArray();
 			AddToQueue(rg);
 
 			m_clipboardHistory.AddRange(rg);
@@ -888,7 +893,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			CurrentQueueItem.Results.Add(new ResultItem(sri, $"{sri.Root.Engine.Name} #{++i}"));
 			int j = 0;
 
-			foreach (var ssri in sri.Sisters) {
+			foreach (var ssri in sri.Children) {
 				var srir = new ResultItem(ssri, $"{ssri.Root.Engine.Name} #{i}.{++j}")
 				{
 					IsSister = true
@@ -909,7 +914,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private IEnumerable<ResultItem> FindSisters(ResultItem r)
 	{
 		foreach (ResultItem resultItem in CurrentQueueItem.Results) {
-			foreach (var item in resultItem.Result.Sisters) {
+			foreach (var item in resultItem.Result.Children) {
 				if (resultItem.Result == item) {
 					yield return resultItem;
 				}
@@ -920,7 +925,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private ResultItem FindParent(ResultItem r)
 	{
 		foreach (ResultItem item in CurrentQueueItem.Results) {
-			if (item.Result.Sisters.Contains(r.Result)) {
+			if (item.Result.Children.Contains(r.Result)) {
 				return item;
 			}
 		}
@@ -1478,7 +1483,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		/*if (ri.Load()) {
 			UpdatePreview(ri.Image);
 		}*/
-		
+
 		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
 			if (Img_Preview.Source != null) {
@@ -1497,11 +1502,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var    n2    = ri is ResultItem { IsThumbnail: true };
 			string name2 = null;
 
-			if (ri is ResultItem rri)
-			{
+			if (ri is ResultItem rri) {
 
-				if (rri.IsSister)
-				{
+				if (rri.IsSister) {
 					/*var grp=CurrentQueueItem.Results.GroupBy(x => x.Result.Root);
 
 					foreach (IGrouping<SearchResult, ResultItem> items in grp) {
@@ -1512,7 +1515,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					Debug.WriteLine($"{p}");
 					name  = p.Name;
 					name2 = $"(parent)";
-
 				}
 			}
 
@@ -1523,7 +1525,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (ri.LoadImage()) {
 				Img_Preview.Source = ri.Image;
-				
+
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
 
@@ -1534,8 +1536,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				}*/
 
-				Tb_Preview.Text  = $"Preview: {name}";
-				
+				Tb_Preview.Text = $"Preview: {name}";
+
 			}
 			else {
 				UpdatePreview();
@@ -1552,8 +1554,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		UpdatePreview(CurrentQueueItem);
 		// UpdatePreview(m_image);
-		Tb_Preview.Text = $"Preview: (query)";
-				Tb_Preview2.Text = $"";
+		Tb_Preview.Text  = $"Preview: (query)";
+		Tb_Preview2.Text = $"";
 	}
 
 	#endregion
