@@ -113,7 +113,7 @@ public abstract class BaseUploadEngine : IEndpoint
 		return !res.ResponseMessage.IsSuccessStatusCode;
 	}*/
 
-	public static BaseUploadEngine Default { get; set; } = CatboxEngine.Instance;
+	public static BaseUploadEngine Default { get; set; } = PomfEngine.Instance;
 
 	public void Dispose() { }
 }

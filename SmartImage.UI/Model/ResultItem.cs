@@ -252,7 +252,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 	{
 		lock (_lock) {
 			if (CanLoadImage) {
-				Label = $"Loading {Name}";
+				// Label = $"Loading {Name}";
 
 				/*
 				 * NOTE:
@@ -276,7 +276,6 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 				Image.DownloadFailed    += OnImageDownloadFailed;
 				Image.DownloadProgress  += OnImageDownloadProgress;
 				Image.DownloadCompleted += OnImageDownloadCompleted;
-
 			}
 			else {
 				Label = null;

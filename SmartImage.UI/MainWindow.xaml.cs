@@ -144,6 +144,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
 		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
+		Rb_UploadEngine_Pomf.IsChecked = BaseUploadEngine.Default is PomfEngine;
 
 		// BindingOperations.EnableCollectionSynchronization(Queue, m_lock);
 		// BindingOperations.EnableCollectionSynchronization(CurrentQueueItem.Results, m_lock);
@@ -905,6 +906,28 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_trDispatch;
 
+	private IEnumerable<ResultItem> FindSisters(ResultItem r)
+	{
+		foreach (ResultItem resultItem in CurrentQueueItem.Results) {
+			foreach (var item in resultItem.Result.Sisters) {
+				if (resultItem.Result == item) {
+					yield return resultItem;
+				}
+			}
+		}
+	}
+
+	private ResultItem FindParent(ResultItem r)
+	{
+		foreach (ResultItem item in CurrentQueueItem.Results) {
+			if (item.Result.Sisters.Contains(r.Result)) {
+				return item;
+			}
+		}
+
+		return null;
+	}
+
 	private async void IdleDispatchAsync(object? sender, EventArgs e)
 	{
 		// Dispatcher.InvokeAsync(UpdateItem2);
@@ -1455,20 +1478,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		/*if (ri.Load()) {
 			UpdatePreview(ri.Image);
 		}*/
-		if (ri is ResultItem rri) {
-			Cb_Downloaded.IsChecked = rri.IsDownloaded;
-			Cb_Sister.IsChecked     = rri.IsSister;
-			Cb_Result.IsChecked     = rri.CanOpen;
-
-			if (rri.IsSister) {
-				var grp=CurrentQueueItem.Results.GroupBy(x => x.Result.Root);
-
-				foreach (IGrouping<SearchResult, ResultItem> items in grp) {
-					// var zz=items.GroupBy(y => y.Result.Root.AllResults.Where(yy => yy.Sisters.Contains(y.Result)));
-					
-				}
-			}
-		}
+		
 		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
 			if (Img_Preview.Source != null) {
@@ -1483,7 +1493,29 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}*/
 
-			string name = ri is INamed n ? n.Name : Placeholder;
+			string name  = ri is INamed n ? n.Name : Placeholder;
+			var    n2    = ri is ResultItem { IsThumbnail: true };
+			string name2 = null;
+
+			if (ri is ResultItem rri)
+			{
+
+				if (rri.IsSister)
+				{
+					/*var grp=CurrentQueueItem.Results.GroupBy(x => x.Result.Root);
+
+					foreach (IGrouping<SearchResult, ResultItem> items in grp) {
+						// var zz=items.GroupBy(y => y.Result.Root.AllResults.Where(yy => yy.Sisters.Contains(y.Result)));
+
+					}*/
+					var p = FindParent(rri);
+					Debug.WriteLine($"{p}");
+					name  = p.Name;
+					name2 = $"(parent)";
+
+				}
+			}
+
 			/*Tb_Preview.Dispatcher.Invoke(() =>
 			{
 
@@ -1491,7 +1523,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (ri.LoadImage()) {
 				Img_Preview.Source = ri.Image;
-
+				
 				// Debug.WriteLine($"updated image {ri.Image}");
 				// PreviewChanged?.Invoke(ri);
 
@@ -1502,14 +1534,15 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				}*/
 
-				Tb_Preview.Text = $"Preview: {name}";
-
+				Tb_Preview.Text  = $"Preview: {name}";
+				
 			}
 			else {
 				UpdatePreview();
 				Tb_Preview.Text = $"Preview: (query)";
 			}
 
+			Tb_Preview2.Text = $"{name2}";
 			// m_us2.Release();
 		});
 
@@ -1520,6 +1553,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		UpdatePreview(CurrentQueueItem);
 		// UpdatePreview(m_image);
 		Tb_Preview.Text = $"Preview: (query)";
+				Tb_Preview2.Text = $"";
 	}
 
 	#endregion

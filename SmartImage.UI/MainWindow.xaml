@@ -668,17 +668,6 @@
                                Text="{Binding CurrentResultItem.Label, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                                VerticalAlignment="Top"
                                Foreground="White" Grid.Row="1" Width="150" />
-                    <CheckBox x:Name="Cb_Result" Grid.Column="1" Content="Result" HorizontalAlignment="Left"
-                              Margin="193,69,0,0" Grid.Row="1" VerticalAlignment="Top" IsEnabled="False"
-                              Foreground="{DynamicResource Grey1}" FontStyle="Italic"/>
-
-                    <CheckBox x:Name="Cb_Sister" Grid.Column="1" Content="Sister" HorizontalAlignment="Left"
-                              Margin="193,87,0,0" Grid.Row="1" VerticalAlignment="Top" IsEnabled="False"
-                              Foreground="{DynamicResource Grey1}" FontStyle="Italic"/>
-
-                    <CheckBox x:Name="Cb_Downloaded" Grid.Column="1" Content="Downloaded" HorizontalAlignment="Left"
-                              Margin="256,69,0,0" Grid.Row="1" VerticalAlignment="Top" IsEnabled="False"
-                              Foreground="{DynamicResource Grey1}" FontStyle="Italic"/>
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"
