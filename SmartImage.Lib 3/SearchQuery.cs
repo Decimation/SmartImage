@@ -30,8 +30,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public long Size { get; private set; }
 
-	public ReadOnlyMemory<byte> MD5Hash { get; private init; }
-
 	[CBN]
 	public string ValueString => HasUni ? Uni.Value.ToString() : null;
 
@@ -66,7 +64,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		else {
 			var sq = new SearchQuery(uf)
 			{
-				MD5Hash = await MD5.HashDataAsync(uf.Stream, ct)
 			};
 			
 			return sq;

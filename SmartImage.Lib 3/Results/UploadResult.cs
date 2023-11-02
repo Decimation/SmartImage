@@ -9,6 +9,7 @@ public sealed class UploadResult : IDisposable
 {
 	public Url Url { get; init; }
 
+	[MN]
 	public IFlurlResponse Response { get; init; }
 
 	public long? Size { get; init; }
