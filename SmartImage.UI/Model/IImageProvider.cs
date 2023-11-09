@@ -10,5 +10,12 @@ public interface IImageProvider
 	BitmapImage? Image        { get; set; }
 	bool         HasImage     => Image != null;
 	bool         CanLoadImage { get; }
+
+	bool? IsThumbnail { get; }
+
+	int? Width { get; }
+
+	int? Height { get; }
+
 	bool         LoadImage();
 }

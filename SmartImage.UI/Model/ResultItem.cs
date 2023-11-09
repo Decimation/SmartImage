@@ -181,10 +181,10 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 		}
 
 		CanDownload = HasImage;
-		Width       = Image.PixelWidth;
-		Height      = Image.PixelHeight;
-		OnPropertyChanged(nameof(Width));
-		OnPropertyChanged(nameof(Height));
+		// Width       = Image.PixelWidth;
+		// Height      = Image.PixelHeight;
+		// OnPropertyChanged(nameof(Width));
+		// OnPropertyChanged(nameof(Height));
 		IsThumbnail = HasImage;
 		UpdateProperties();
 	}

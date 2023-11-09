@@ -269,9 +269,9 @@ public partial class MainWindow
 	{
 		Cancel();
 		ReloadToken();
-		// Lb_Queue.IsEnabled   = true;
-		// Btn_Run.IsEnabled    = true;
-		// Btn_Remove.IsEnabled = true;
+		Lb_Queue.IsEnabled   = true;
+		Btn_Run.IsEnabled    = true;
+		Btn_Remove.IsEnabled = true;
 		// m_us.Release();
 		e.Handled = true;
 	}
@@ -285,27 +285,10 @@ public partial class MainWindow
 	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
 	{
 		// var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
-
 		var old = CurrentQueueItem;
 
-		if (!QueueItemSelected || (old.IsPrimitive && !old.HasValue)) {
+		if (RemoveFromQueue(old))
 			goto ret;
-		}
-
-		var i = Queue.IndexOf(old);
-		Queue.Remove(old);
-		old?.Dispose();
-
-		if (Queue.Count == 0) {
-			Queue.Add(new QueryModel());
-
-		}
-
-		if (Queue.Count > 0) {
-			// Lb_Queue.SelectedIndex = 0;
-			CurrentQueueItem = Queue[(i)%Queue.Count];
-		}
-		else { }
 
 		// SetQueue(string.Empty);
 

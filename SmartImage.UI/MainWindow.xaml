@@ -373,14 +373,21 @@
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsPrimitive}" Value="True">
                                                     <Setter Property="Foreground" Value="LightGray" />
+                                                    <Setter Property="ToolTip" Value="Query standby" />
                                                 </DataTrigger>
 
                                                 <DataTrigger Binding="{Binding HasQuery}" Value="True">
                                                     <Setter Property="Foreground" Value="Cyan" />
+                                                    <Setter Property="ToolTip" Value="Query loaded" />
                                                 </DataTrigger>
 
                                                 <DataTrigger Binding="{Binding IsComplete}" Value="True">
                                                     <Setter Property="Foreground" Value="GreenYellow" />
+                                                    <Setter Property="ToolTip" Value="Search complete" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Invalid}" Value="True">
+                                                    <Setter Property="Foreground" Value="PaleVioletRed" />
+                                                    <Setter Property="ToolTip" Value="Query invalid" />
                                                 </DataTrigger>
 
                                             </Style.Triggers>

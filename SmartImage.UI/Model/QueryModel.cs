@@ -24,6 +24,7 @@ namespace SmartImage.UI.Model;
 #pragma warning disable CS8618
 public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, INamed
 {
+
 	//todo
 	private string m_value;
 
@@ -90,6 +91,12 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	public bool HasInitQuery => HasQuery && Query.IsUploaded;
 
 	public bool CanLoadImage => !HasImage && HasQuery;
+
+	public bool? IsThumbnail => false;
+
+	public int? Width => HasImage ? Image.PixelWidth : null;
+
+	public int? Height => HasImage ? Image.PixelHeight : null;
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
@@ -197,6 +204,20 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	}
 
 	#endregion
+	public int  LoadAttempts { get; private set; }
+
+	private bool m_invalid;
+
+	public bool Invalid
+	{
+		get => m_invalid;
+		internal set
+		{
+			if (value == m_invalid) return;
+			m_invalid = value;
+			OnPropertyChanged();
+		}
+	}
 
 	public async Task<bool> LoadQueryAsync(CancellationToken ct)
 	{
@@ -216,6 +237,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 		if (HasQuery) {
 			goto ret;
 		}
+
+		LoadAttempts++;
 
 		bool b2;
 
@@ -248,6 +271,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 		var uriString = Query.ValueString;
 
 		if (Query == null || string.IsNullOrWhiteSpace(uriString)) {
+			Invalid = true;
 			return false;
 		}
 
@@ -272,14 +296,21 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	{
 		Url upload = null;
 		Status = "Uploading...";
-		var msg  = "Server timed out or input was invalid";
+		var    msg  = "Server timed out or input was invalid";
 		string emsg = null;
+
+		if (!HasQuery) {
+			goto ret;
+		}
+
 		try {
 			upload = await Query.UploadAsync(ct: ct);
 		}
 		catch (Exception e) {
 			emsg = e.Message;
 		}
+
+		ret:
 
 		if (!Url.IsValid(upload)) {
 			// todo: show user specific error message
@@ -399,4 +430,5 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 
 		PropertyChanged = null;
 	}
+
 }

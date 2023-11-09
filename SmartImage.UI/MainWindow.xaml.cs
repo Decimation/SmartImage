@@ -341,12 +341,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				// await UpdateQueryAsync(CurrentQueueItem);
 				//todo
 				var ok2 = await UpdateQueryAsync();
+
 				HandleQueryAsync();
+
+				if (ok2.HasValue && !ok2.Value) {
+					// var ok3 = RemoveFromQueue(CurrentQueueItem);
+					// Tb_Status.Text = $"Removed";
+					// Thread.Sleep(TimeSpan.FromSeconds(1));
+				}
+				else { }
 			}
 
 			// Btn_Remove.IsEnabled = ok;
 			Btn_Run.IsEnabled = ok;
-			/*if (CurrentQueueItem is { HasQuery: true  } && Url.IsValid(CurrentQueueItem.Query.Upload)) {
+			if (CurrentQueueItem is { HasQuery: true  } && Url.IsValid(CurrentQueueItem.Query.Upload)) {
 				Tb_Upload.Text = CurrentQueueItem.Query.Upload;
 
 			}
@@ -354,9 +362,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Tb_Upload.Text = null;
 			}
 
-			Tb_Info.Text = CurrentQueueItem.Info;
-			Tb_Status.Text = CurrentQueueItem.Status;
-			Tb_Status2.Text = CurrentQueueItem.Status2;*/
+			// Tb_Info.Text = CurrentQueueItem.Info;
+			// Tb_Status.Text = CurrentQueueItem.Status;
+			// Tb_Status2.Text = CurrentQueueItem.Status2;
 
 			if (!ok) {
 				ClearQueryControls();
@@ -438,6 +446,31 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_us.Release();
 
 		return isOk;
+	}
+
+	private bool RemoveFromQueue(QueryModel? old)
+	{
+
+		if (!QueueItemSelected || (old.IsPrimitive && !old.HasValue)) {
+			return true;
+		}
+
+		var i = Queue.IndexOf(old);
+		Queue.Remove(old);
+		old?.Dispose();
+
+		if (Queue.Count == 0) {
+			Queue.Add(new QueryModel());
+
+		}
+
+		if (Queue.Count > 0) {
+			// Lb_Queue.SelectedIndex = 0;
+			CurrentQueueItem = Queue[(i) % Queue.Count];
+		}
+		else { }
+
+		return false;
 	}
 
 	/*private void OnResultModelPropertyChanged(object? o, PropertyChangedEventArgs eventArgs)
@@ -648,6 +681,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Info.Text      = CurrentQueueItem.Info;
 		// Tb_Status.Text    = CurrentQueueItem.Status;
 		Tb_Status2.Text = CurrentQueueItem.Status2;
+		
 		// OnPropertyChanged(nameof(Results));
 	}
 
@@ -833,7 +867,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		if (isOk.HasValue && !isOk.Value) {
-			Tb_Status.Text = Placeholder;
+			Tb_Status.Text     = $"Could not load query";
+			Lb_Queue.IsEnabled = true;
+			Btn_Run.IsEnabled  = true;
+			Btn_Remove.IsEnabled = true;
 			return;
 		}
 
@@ -1499,7 +1536,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}*/
 
 			string name  = ri is INamed n ? n.Name : Placeholder;
-			var    n2    = ri is ResultItem { IsThumbnail: true };
+			var    n2    = ri is ResultItem { IsThumbnail: true } ? "thumbnail" : "full res";
 			string name2 = null;
 
 			if (ri is ResultItem rri) {
@@ -1536,7 +1573,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				}*/
 
-				Tb_Preview.Text = $"Preview: {name}";
+				Tb_Preview.Text = $"Preview: {name} ({n2})";
 
 			}
 			else {
