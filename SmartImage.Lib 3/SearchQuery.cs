@@ -81,6 +81,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		else {
 			var sq = new SearchQuery(uf)
 				{ };
+			
+			// sq.LoadImage();
 
 			return sq;
 

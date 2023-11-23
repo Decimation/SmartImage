@@ -20,6 +20,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class Ascii2DEngine : WebSearchEngine
 {
+
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
 		Timeout = TimeSpan.FromSeconds(10);
@@ -29,6 +30,23 @@ public sealed class Ascii2DEngine : WebSearchEngine
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
+
+	public const int MAX_WIDTH = 1000;
+
+	protected override bool VerifyQuery(SearchQuery q)
+	{
+		var  b = base.VerifyQuery(q);
+		bool b2;
+
+		if (q.HasImage) {
+			b2 = q.Image.Width < MAX_WIDTH;
+		}
+		else {
+			b2 = true;
+		}
+
+		return b && b2;
+	}
 
 	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
 	{
@@ -100,17 +118,18 @@ public sealed class Ascii2DEngine : WebSearchEngine
 					          {
 						          Debug.WriteLine($"{s.Response}");
 						          s.ExceptionHandled = true;
-								  
+
 					          })*/
 			          .GetAsync(cancellationToken: token);
 		return res;
 	}
 
-	protected override string[] ErrorBodyMessages => new[]
-	{
-		"検索できるのは 縦 10000px での画像です。",
-		"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
-	};
+	protected override string[] ErrorBodyMessages
+		=> new[]
+		{
+			"検索できるのは 縦 10000px での画像です。",
+			"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
+		};
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode nx, SearchResult r)
 	{
@@ -120,7 +139,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		var n      = nxe.Children[1];
 		var imgBox = nxe.Children[0];
 		var thumb  = imgBox.Children[0].Attributes["src"];
-		sri.Thumbnail= Url.Combine(BaseUrl.Root, thumb?.Value);
+		sri.Thumbnail = Url.Combine(BaseUrl.Root, thumb?.Value);
 
 		var info = n.ChildNodes.Where(n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
 			.ToArray();
@@ -169,4 +188,5 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		return ValueTask.FromResult(sri);
 	}
+
 }

@@ -12,6 +12,7 @@ namespace SmartImage.Lib.Engines;
 
 public abstract class BaseSearchEngine : IDisposable
 {
+
 	public const int NA_SIZE = -1;
 
 	/// <summary>
@@ -44,19 +45,28 @@ public abstract class BaseSearchEngine : IDisposable
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
 
-	protected virtual SearchResultStatus Verify(SearchQuery q)
+	protected virtual bool VerifyQuery(SearchQuery q)
 	{
 		if (q.Upload is not { }) {
-			return SearchResultStatus.IllegalInput;
+			return false;
 		}
 
-		bool b;
+		bool b, b2;
 
 		if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {
 			b = true;
 		}
 
-		else b = q.Size <= MaxSize;
+		else {
+			b = q.Size <= MaxSize;
+		}
+
+		return b;
+	}
+
+	protected virtual SearchResultStatus Verify(SearchQuery q)
+	{
+		var b = VerifyQuery(q);
 
 		return !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None;
 	}
