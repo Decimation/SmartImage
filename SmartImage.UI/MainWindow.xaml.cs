@@ -354,7 +354,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			// Btn_Remove.IsEnabled = ok;
 			Btn_Run.IsEnabled = ok;
-			if (CurrentQueueItem is { HasQuery: true  } && Url.IsValid(CurrentQueueItem.Query.Upload)) {
+
+			if (CurrentQueueItem is { HasQuery: true } && Url.IsValid(CurrentQueueItem.Query.Upload)) {
 				Tb_Upload.Text = CurrentQueueItem.Query.Upload;
 
 			}
@@ -681,7 +682,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Info.Text      = CurrentQueueItem.Info;
 		// Tb_Status.Text    = CurrentQueueItem.Status;
 		Tb_Status2.Text = CurrentQueueItem.Status2;
-		
+
 		// OnPropertyChanged(nameof(Results));
 	}
 
@@ -867,9 +868,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		if (isOk.HasValue && !isOk.Value) {
-			Tb_Status.Text     = $"Could not load query";
-			Lb_Queue.IsEnabled = true;
-			Btn_Run.IsEnabled  = true;
+			Tb_Status.Text       = $"Could not load query";
+			Lb_Queue.IsEnabled   = true;
+			Btn_Run.IsEnabled    = true;
 			Btn_Remove.IsEnabled = true;
 			return;
 		}

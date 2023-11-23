@@ -2,5 +2,5 @@
 
 internal static class ImageHelper
 {
-	internal static readonly string[] Ext = new[] { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif" };
+	internal static readonly string[] Ext = { "*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif" };
 }

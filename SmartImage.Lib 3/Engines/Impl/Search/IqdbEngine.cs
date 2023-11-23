@@ -133,7 +133,7 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 	{
 
 		try {
-			var response = await EndpointUrl.ConfigureRequest(NetHelper.Configure())
+			var response = await EndpointUrl.WithSettings(NetHelper.Configure())
 				               .WithTimeout(Timeout)
 				               .PostMultipartAsync(m =>
 				               {

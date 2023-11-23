@@ -24,7 +24,7 @@ public sealed class PomfEngine : BaseUploadEngine
 		Verify(file);
 
 		var response = await EndpointUrl
-			               .ConfigureRequest(r =>
+			               .WithSettings(r =>
 			               {
 				               // r.Timeout = TimeSpan.FromSeconds(10);
 

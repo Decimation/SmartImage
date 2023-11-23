@@ -22,6 +22,7 @@ namespace SmartImage.Lib;
 
 public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 {
+
 	[MN]
 	public UniSource Uni { get; }
 
@@ -53,6 +54,22 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	static SearchQuery() { }
 
+	[MN]
+	public Image Image { get; private set; }
+
+	[MNNW(true, nameof(Image))]
+	public bool HasImage => Image != null;
+
+	public bool LoadImage()
+	{
+		if (HasUni && Image == null) {
+			Image = Image.FromStream(Uni.Stream);
+			return true;
+		}
+
+		return false;
+	}
+
 	public static async Task<SearchQuery> TryCreateAsync(string value, CancellationToken ct = default)
 	{
 		var uf = await UniSource.TryGetAsync(value, ct: ct, whitelist: FileType.Image);
@@ -63,9 +80,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		}
 		else {
 			var sq = new SearchQuery(uf)
-			{
-			};
-			
+				{ };
+
 			return sq;
 
 		}
@@ -93,6 +109,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 			var u   = await engine.UploadFileAsync(fu, ct);
 			var url = u.Url;
+
 			if (!u.IsValid) {
 				url = null;
 				Debug.WriteLine($"{u} is invalid!");
@@ -113,6 +130,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			Size = u.Size ?? Size;
 			u.Dispose();
 		}
+
 		IsUploading = false;
 
 		return Upload;
@@ -137,6 +155,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public void Dispose()
 	{
 		Uni?.Dispose();
+		Image?.Dispose();
 		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 	}
 
@@ -212,4 +231,5 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		return (t, b);
 	}
+
 }

@@ -28,6 +28,7 @@ namespace SmartImage.Lib;
 
 public sealed class SearchClient : IDisposable
 {
+
 	public SearchConfig Config { get; init; }
 
 	public bool IsComplete { get; private set; }
@@ -58,14 +59,34 @@ public sealed class SearchClient : IDisposable
 			}
 		};
 
-		Client = new FlurlClient(new HttpClient(handler))
-			{ };
+		Client = new FlurlClient(new HttpClient(handler), settings: Settings)
+		{
+
+		};
 	}
+
+	public static FlurlClient Client { get; }
+
+	public static readonly FlurlHttpSettings Settings = new FlurlHttpSettings()
+	{
+		Redirects =
+		{
+			Enabled                    = true,
+			AllowSecureToInsecure      = true,
+			ForwardAuthorizationHeader = true,
+			MaxAutoRedirects           = 20
+		},
+		OnError = r =>
+		{
+			Debug.WriteLine($"exception: {r.Exception}");
+			r.ExceptionHandled = false;
+		}
+	};
 
 	[ModuleInitializer]
 	public static void Init()
 	{
-		FlurlHttp.Configure(settings =>
+		/*IFlurlClientCache.Configure(settings =>
 		{
 			settings.Redirects.Enabled                    = true; // default true
 			settings.Redirects.AllowSecureToInsecure      = true; // default false
@@ -78,7 +99,7 @@ public sealed class SearchClient : IDisposable
 				r.ExceptionHandled = false;
 
 			};
-		});
+		});*/
 
 		Logger.LogInformation("Init");
 
@@ -91,8 +112,6 @@ public sealed class SearchClient : IDisposable
 	public event ResultCompleteCallback OnResult;
 
 	public event SearchCompleteCallback OnComplete;
-
-	public static FlurlClient Client { get; }
 
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
@@ -337,4 +356,5 @@ public sealed class SearchClient : IDisposable
 		IsComplete    = false;
 		IsRunning     = false;
 	}
+
 }

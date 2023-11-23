@@ -66,7 +66,7 @@ public abstract class BaseUploadEngine : IEndpoint
 		ok = true;
 
 		if (Paranoid) {
-			var r2 = await url.ConfigureRequest(r =>
+			var r2 = await url.WithSettings(r =>
 			{
 				r.OnError = rx =>
 				{
@@ -125,7 +125,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		Verify(file);
 
 		var response = await EndpointUrl
-			               .ConfigureRequest(r =>
+			               .WithSettings(r =>
 			               {
 				               // r.Timeout = TimeSpan.FromSeconds(10);
 
