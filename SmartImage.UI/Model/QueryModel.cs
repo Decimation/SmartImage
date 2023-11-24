@@ -7,6 +7,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 using System.Linq;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
@@ -17,12 +18,13 @@ using System.Windows.Media.Imaging;
 using Flurl;
 using Kantan.Text;
 using SmartImage.Lib;
+using SmartImage.Lib.Model;
 using Application = System.Windows.Application;
 
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
-public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, INamed
+public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, INamed
 {
 
 	//todo
@@ -138,7 +140,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 		Status        = null;
 		Status2       = null;
 		Info          = null;
-		Image         = null;
+		Image        = null;
 	}
 
 	[MNNW(true, nameof(ResultsBackup))]
@@ -164,9 +166,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 
 	#region
 
-	private string m_status2;
+	private string? m_status2;
 
-	public string Status2
+	public string? Status2
 	{
 		get => m_status2;
 		set
@@ -177,9 +179,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 		}
 	}
 
-	private string m_status;
+	private string? m_status;
 
-	public string Status
+	public string? Status
 	{
 		get => m_status;
 		set
@@ -190,9 +192,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 		}
 	}
 
-	private string m_info;
+	private string? m_info;
 
-	public string Info
+	public string? Info
 	{
 		get => m_info;
 		set
@@ -204,7 +206,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 	}
 
 	#endregion
-	public int  LoadAttempts { get; private set; }
+
+	public int LoadAttempts { get; private set; }
 
 	private bool m_invalid;
 
@@ -281,7 +284,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 
 		// Dispatcher.InvokeAsync(UpdateImage);
 		// UpdateImage();
-		Application.Current.Dispatcher.InvokeAsync(LoadImage);
+		Application.Current.Dispatcher.InvokeAsync(() => LoadImage());
 
 		// await UploadAsync(ct);
 
@@ -339,7 +342,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 			ControlsHelper.FormatDescription("Query", Query.Uni, Image?.PixelWidth, Image?.PixelHeight);
 	}
 
-	public bool LoadImage()
+	public bool LoadImage(IImageLoader l = null)
 	{
 		if (!CanLoadImage) {
 			goto ret;
@@ -423,7 +426,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IImageProvider, I
 		}
 
 		Query   = SearchQuery.Null;
-		Image   = null;
+		Image  = null;
 		Status  = null;
 		Status2 = null;
 		Info    = null;

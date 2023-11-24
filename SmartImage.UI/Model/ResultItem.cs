@@ -1,10 +1,11 @@
-﻿// Read S SmartImage.UI ResultItem.cs
-// 2023-08-11 @ 12:26 PM
+﻿// $User.Name $File.ProjectName $File.FileName
+// $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
@@ -23,13 +24,16 @@ using Novus.FileTypes;
 using Novus.OS;
 using Novus.Streams;
 using SmartImage.Lib.Clients;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 
-public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, INamed, IDownloadable
+public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable
 {
+
+	#region
 
 	private string m_label;
 
@@ -94,7 +98,17 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 
 	public string? Download { get; set; }
 
+	public bool IsDownloaded
+	{
+		get => Download != null;
+		set { }
+	}
+
+	public bool IsSister { get; internal init; }
+
 	private static readonly object _lock = new();
+
+	#endregion
 
 	public ResultItem(SearchResultItem result, string name)
 	{
@@ -163,15 +177,6 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 		return true;
 	}
 
-	public virtual void Dispose()
-	{
-		Debug.WriteLine($"Disposing {Name}");
-		Result.Dispose();
-		Image = null;
-	}
-
-	#region
-
 	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
 		Label = $"Cache complete";
@@ -207,48 +212,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 
 	}
 
-	public virtual async Task<string> DownloadAsync(string? dir = null, bool exp = true)
-	{
-		if (!Url.IsValid(Url) || !HasImage) {
-			return null;
-		}
-
-		string path;
-
-		path = Url.GetFileName();
-
-		dir ??= AppUtil.MyPicturesFolder;
-		var path2 = Path.Combine(dir, path);
-
-		var encoder = new PngBitmapEncoder();
-		encoder.Frames.Add(BitmapFrame.Create(Image));
-
-		await using (var fs = new FileStream(path2, FileMode.Create)) {
-			encoder.Save(fs);
-		}
-
-		StatusImage = AppComponents.picture_save;
-
-		if (exp) {
-			FileSystem.ExploreFile(path2);
-		}
-
-		CanDownload = false;
-		Download    = path2;
-
-		// u.Dispose();
-		UpdateProperties();
-		
-		return path2;
-	}
-
-	public bool IsDownloaded
-	{
-		get => Download != null;
-		set {}
-	}
-
-	public virtual bool LoadImage()
+	public virtual bool LoadImage(IImageLoader l = null)
 	{
 		lock (_lock) {
 			if (CanLoadImage) {
@@ -286,16 +250,60 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IImageProvider, I
 		}
 	}
 
-	#endregion
+	#region
+
+	public virtual void Dispose()
+	{
+		Debug.WriteLine($"Disposing {Name}");
+		Result.Dispose();
+		Image = null;
+	}
+
+	public virtual async Task<string> DownloadAsync(string? dir = null, bool exp = true)
+	{
+		if (!Url.IsValid(Url) || !HasImage) {
+			return null;
+		}
+
+		string path;
+
+		path = Url.GetFileName();
+
+		dir ??= AppUtil.MyPicturesFolder;
+		var path2 = Path.Combine(dir, path);
+
+		var encoder = new PngBitmapEncoder();
+		encoder.Frames.Add(BitmapFrame.Create(Image));
+
+		await using (var fs = new FileStream(path2, FileMode.Create)) {
+			encoder.Save(fs);
+		}
+
+		StatusImage = AppComponents.picture_save;
+
+		if (exp) {
+			FileSystem.ExploreFile(path2);
+		}
+
+		CanDownload = false;
+		Download    = path2;
+
+		// u.Dispose();
+		UpdateProperties();
+
+		return path2;
+	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
-	public bool IsSister { get; internal init; }
+	#endregion
 
 }
 
 public class UniResultItem : ResultItem
 {
+
+	#region
 
 	public override bool CanLoadImage => !HasImage && Uni != null;
 
@@ -317,8 +325,10 @@ public class UniResultItem : ResultItem
 	}
 
 	public string Hash { get; }
-	
+
 	public int? UniIndex { get; }
+
+	#endregion
 
 	public UniResultItem(ResultItem ri, int? idx)
 		: base(ri.Result, $"{ri.Name} ({idx})")
@@ -354,10 +364,8 @@ public class UniResultItem : ResultItem
 		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
-		
-	}
 
-	#region
+	}
 
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
@@ -365,7 +373,7 @@ public class UniResultItem : ResultItem
 		IsThumbnail = false;
 	}
 
-	public override bool LoadImage()
+	public override bool LoadImage(IImageLoader l = null)
 	{
 		if (CanLoadImage) {
 			Image = new BitmapImage()
@@ -383,6 +391,7 @@ public class UniResultItem : ResultItem
 			Image.DownloadCompleted += OnImageDownloadCompleted;
 
 		}
+
 		UpdateProperties();
 		return HasImage;
 	}
@@ -422,8 +431,6 @@ public class UniResultItem : ResultItem
 
 		return path2;
 	}
-
-	#endregion
 
 	public override void Dispose()
 	{

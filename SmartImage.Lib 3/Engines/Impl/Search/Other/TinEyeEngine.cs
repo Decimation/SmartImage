@@ -2,11 +2,16 @@
 
 public sealed class TinEyeEngine : BaseSearchEngine
 {
-    public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
 
-    public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
+	public TinEyeEngine() : base("https://www.tineye.com/search?url=")
+	{
+		IsAdvanced = false;
 
-    public override void Dispose()
-    {
-    }
+	}
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
+
+	public override void Dispose()
+	{
+	}
 }

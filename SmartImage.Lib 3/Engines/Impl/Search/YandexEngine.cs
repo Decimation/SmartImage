@@ -212,6 +212,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 			results.Add(new SearchResultItem(r)
 			{
+				
 				Thumbnail = imgUrl,
 				Url       = imgUrl
 			});

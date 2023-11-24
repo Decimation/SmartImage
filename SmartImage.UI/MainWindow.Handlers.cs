@@ -17,6 +17,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
 using Flurl.Http;
@@ -38,9 +39,10 @@ using FileSystem = Novus.OS.FileSystem;
 using KeyEventArgs = System.Windows.Input.KeyEventArgs;
 
 namespace SmartImage.UI;
-
+#nullable disable
 public partial class MainWindow
 {
+
 	#region
 
 	#region
@@ -76,10 +78,10 @@ public partial class MainWindow
 	{
 		var files = e.GetFilesFromDrop();
 
-		if (files.All(x => !SearchQuery.IsValidSourceType(x)))
-		{
+		if (files.All(x => !SearchQuery.IsValidSourceType(x))) {
 			e.Effects = DragDropEffects.None;
 		}
+
 		e.Handled = true;
 
 	}
@@ -108,7 +110,7 @@ public partial class MainWindow
 		if (SearchQuery.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
 			var q = new QueryModel(Input);
 			Queue.Add(q);
-			CurrentQueueItem = q;
+			CurrentQuery = q;
 		}
 
 		/*if (QueueItemSelected) {
@@ -131,7 +133,7 @@ public partial class MainWindow
 
 	private void Tb_Info_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		if (Query is not {}) {
+		if (Query is not { }) {
 			return;
 		}
 
@@ -154,10 +156,10 @@ public partial class MainWindow
 
 	private void Tb_Upload_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		if (Query is not { })
-		{
+		if (Query is not { }) {
 			return;
 		}
+
 		FileSystem.Open(Query.Upload);
 	}
 
@@ -180,7 +182,7 @@ public partial class MainWindow
 
 	private void Lb_Queue_PreviewDragOver(object sender, DragEventArgs e)
 	{
-		
+
 		e.Handled = true;
 	}
 
@@ -241,13 +243,13 @@ public partial class MainWindow
 		Cancel();
 		ClearResults(false);
 		// Query.Dispose();
-		var cpy = CurrentQueueItem;
+		var cpy = CurrentQuery;
 		var i   = Queue.IndexOf(cpy);
 		Queue.Remove(cpy);
 		cpy.Dispose();
 		QueryModel rm = new QueryModel(cpy.Value);
 		Queue.Insert(i, rm);
-		CurrentQueueItem = rm;
+		CurrentQuery = rm;
 
 		// ClearQueue();
 		// ClearResults(true);
@@ -285,7 +287,7 @@ public partial class MainWindow
 	private void Btn_Remove_Click(object sender, RoutedEventArgs e)
 	{
 		// var q   = MathHelper.Wrap(QueueSelectedIndex + 1, Queue.Count);
-		var old = CurrentQueueItem;
+		var old = CurrentQuery;
 
 		if (RemoveFromQueue(old))
 			goto ret;
@@ -342,7 +344,7 @@ public partial class MainWindow
 		Cancel();
 		ClearResults();
 		m_cbDispatch.Stop();
-		var old = CurrentQueueItem;
+		var old = CurrentQuery;
 		m_clipboardHistory.Remove(old.Value);
 		old.Dispose();
 		// CurrentQueueItem = null;
@@ -377,7 +379,7 @@ public partial class MainWindow
 
 	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		CurrentResultItem?.Open();
+		CurrentResult?.Open();
 		e.Handled = true;
 	}
 
@@ -395,17 +397,34 @@ public partial class MainWindow
 			var ri = ai as ResultItem;
 
 			if (ri is UniResultItem uri) {
-				UpdatePreview(uri);
+				SetPreview(uri);
 				CheckMedia();
 			}
 			else if (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe) {
-				UpdatePreview(ri);
+				SetPreview(ri);
 				CheckMedia();
 			}
 			else {
-				UpdatePreview();
+				SetPreviewToCurrentQuery();
 
 				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
+					/*Me_Preview.ScrubbingEnabled = true;
+Me_Preview.UnloadedBehavior = MediaState.Close;
+Me_Preview.LoadedBehavior   = MediaState.Manual;*/
+					// Me_Preview.UnloadedBehavior   = MediaState.Stop;
+					// Me_Preview.LoadedBehavior   = MediaState.Manual;
+					// Me_Preview                  = new MediaElement();
+					// Me_Preview.LoadedBehavior   = MediaState.Play;
+					// Me_Preview.UnloadedBehavior = MediaState.Manual;
+					Me_Preview.UnloadedBehavior = MediaState.Close;
+					Me_Preview.LoadedBehavior   = MediaState.Manual;
+					// Me_Preview.LoadedBehavior   = MediaState.Manual;
+					/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
+						return;
+
+					}*/
+					Tb_Preview.Text = $"Preview: loading {ri.Name}";
+
 					Dispatcher.InvokeAsync(async () =>
 					{
 						/*Me_Preview.ScrubbingEnabled = true;
@@ -426,9 +445,14 @@ public partial class MainWindow
 						Tb_Preview.Text = $"Preview: loading {ri.Name}";
 
 						var uri = await CacheAsync(doc.video);
-
-						Me_Preview.Source = new Uri(uri);
-
+						
+						Me_Preview.Source = new Uri(uri, UriKind.Absolute);
+						// Me_Preview.Source = new Uri(doc.video);
+						/*
+						while (Me_Preview.BufferingProgress < 1f) {
+							Debug.WriteLine($"{Me_Preview.BufferingProgress}");
+						}
+						*/
 						Me_Preview.Play();
 
 						ShowMedia       = true;
@@ -461,37 +485,37 @@ public partial class MainWindow
 		switch (key) {
 			case Key.D when ctrl:
 				Dispatcher.InvokeAsync(
-					() => DownloadResultAsync((IDownloadable) CurrentResultItem));
+					() => DownloadResultAsync((IDownloadable) CurrentResult));
 
 				break;
 			case Key.S when ctrl:
 
-				Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
+				Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResult));
 				break;
 			case Key.Delete:
-				if (CurrentResultItem == null) {
+				if (CurrentResult == null) {
 					return;
 				}
 
-				if (CurrentResultItem is IDownloadable uri && m_uni.TryRemove(uri, out var x)) { }
+				if (CurrentResult is IDownloadable uri && m_uni.TryRemove(uri, out var x)) { }
 
-				CurrentResultItem.Dispose();
+				CurrentResult.Dispose();
 
 				// Results.Remove(CurrentResultItem);
 
-				CurrentQueueItem.Results.Remove(CurrentResultItem);
+				CurrentQuery.Results.Remove(CurrentResult);
 				Img_Preview.Source = Image;
 				break;
 			case Key.C when ctrl:
 				Dispatcher.InvokeAsync(() =>
 				{
-					var text = CurrentResultItem.Url;
+					var text = CurrentResult.Url;
 					m_clipboardHistory.Add(text);
 					Clipboard.SetText(text);
 				});
 				break;
 			case Key.G when ctrl:
-				Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResultItem));
+				Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResult));
 
 				break;
 			case Key.F when ctrl:
@@ -500,18 +524,18 @@ public partial class MainWindow
 
 				break;
 			case Key.I when ctrl:
-				OpenResultWindow(CurrentResultItem);
+				OpenResultWindow(CurrentResult);
 				break;
 			case Key.Tab when ctrl:
 				int i = shift ? -1 : 1;
 				AdvanceQueue(i);
 				break;
 			case Key.E when ctrl:
-				Dispatcher.InvokeAsync(() => EnqueueResultAsync((IDownloadable) CurrentResultItem));
+				Dispatcher.InvokeAsync(() => EnqueueResultAsync((IDownloadable) CurrentResult));
 
 				break;
 			case Key.R when ctrl && alt:
-				Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
+				Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResult));
 				break;
 			/*
 			case Key.H when ctrl:
@@ -634,6 +658,17 @@ public partial class MainWindow
 
 	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
 	{
+		try
+		{
+			var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
+			var hwndTarget = hwndSource.CompositionTarget;
+			hwndTarget.RenderMode = RenderMode.SoftwareOnly;
+		}
+		catch (Exception ex)
+		{
+			Debugger.Break();
+			Console.WriteLine(ex);
+		}
 		if (UseClipboard) {
 			m_cbDispatch.Start();
 		}
@@ -683,13 +718,13 @@ public partial class MainWindow
 
 	private void OpenItem_Click(object sender, RoutedEventArgs e)
 	{
-		CurrentResultItem.Open();
+		CurrentResult.Open();
 		e.Handled = true;
 	}
 
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
-		if (CurrentResultItem is IDownloadable {} uri && uri.CanDownload) {
+		if (CurrentResult is IDownloadable { } uri && uri.CanDownload) {
 			Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}
@@ -699,33 +734,51 @@ public partial class MainWindow
 
 	private void ScanItem_Click(object sender, RoutedEventArgs e)
 	{
-		Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResultItem));
+		Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResult));
 		e.Handled = true;
 	}
 
 	private void InfoItem_Click(object sender, RoutedEventArgs e)
 	{
-		OpenResultWindow(CurrentResultItem);
+		OpenResultWindow(CurrentResult);
 		e.Handled = true;
 
 	}
 
 	private void RetryItem_Click(object sender, RoutedEventArgs e)
 	{
-		Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResultItem));
+		Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResult));
 		e.Handled = true;
 	}
 
 	private void EnqueueItem_Click(object sender, RoutedEventArgs e)
 	{
-		Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResultItem));
+		Dispatcher.InvokeAsync(() => EnqueueResultAsync((UniResultItem) CurrentResult));
 		e.Handled = true;
 	}
 
 	#endregion
 
-	private void Img_Preview_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+	private void Img_Preview_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 	{
+		SetPreviewToCurrentQuery();
+		e.Handled = true;
+
+	}
+
+	private void Img_Preview_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+	{
+		if (CurrentResult == null) {
+			return;
+		}
+
+		SetPreview(CurrentResult);
+		e.Handled = true;
+	}
+
+	private void Img_Preview_MouseDown(object sender, MouseButtonEventArgs e)
+	{
+
 		if (e.IsDoubleClick()) {
 			// Img_Preview.Width  = Img_Preview.Source.Width;
 			// Img_Preview.Height = Img_Preview.Source.Height;
@@ -750,8 +803,8 @@ public partial class MainWindow
 
 	private void Me_Preview_MouseDown(object sender, MouseButtonEventArgs e)
 	{
-		CloseMedia();
-		UpdatePreview();
+		// CloseMedia();
+		SetPreviewToCurrentQuery();
 		e.Handled = true;
 
 	}
@@ -819,11 +872,11 @@ public partial class MainWindow
 			var strFunc  = SearchFields[selected];
 
 			if (!IsSearching) {
-				CurrentQueueItem.BackupResults();
+				CurrentQuery.BackupResults();
 
 			}
 
-			var searchResults = CurrentQueueItem.Results.Where(r =>
+			var searchResults = CurrentQuery.Results.Where(r =>
 			{
 				var s = strFunc(r);
 
@@ -833,7 +886,7 @@ public partial class MainWindow
 
 				return s.Contains(Tb_Search.Text, StringComparison.InvariantCultureIgnoreCase);
 			});
-			CurrentQueueItem.Results = new ObservableCollection<ResultItem>(searchResults);
+			CurrentQuery.Results = new ObservableCollection<ResultItem>(searchResults);
 			// Lv_Results.ItemsSource = searchResults;
 			IsSearching = true;
 
@@ -841,4 +894,5 @@ public partial class MainWindow
 
 		e.Handled = true;
 	}
+
 }

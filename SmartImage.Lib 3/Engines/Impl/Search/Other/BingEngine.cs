@@ -11,72 +11,75 @@ namespace SmartImage.Lib.Engines.Impl.Search.Other;
 
 public sealed class BingEngine : BaseSearchEngine
 {
-    public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 
-    public override SearchEngineOptions EngineOption => SearchEngineOptions.Bing;
+	public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=")
+	{
+		IsAdvanced = false;
+	}
 
-    public override void Dispose() { }
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Bing;
 
-    // Parsing does not seem feasible ATM
+	public override void Dispose() { }
 
-    #region Overrides of BaseSearchEngine
+	// Parsing does not seem feasible ATM
 
-    public async Task<SearchResult> SearchAltQueryAsync(string query)
-    {
-        var sr = new SearchResult(this)
-        {
-            RawUrl = GetAltQueryUrl(query),
-        };
+	#region Overrides of BaseSearchEngine
 
-        var req = await sr.RawUrl.WithHeaders(new
-        {
-            User_Agent = HttpUtilities.UserAgent
-        }).GetAsync();
+	public async Task<SearchResult> SearchAltQueryAsync(string query)
+	{
+		var sr = new SearchResult(this)
+		{
+			RawUrl = GetAltQueryUrl(query),
+		};
 
-        var parser = new HtmlParser();
-        var s = await req.GetStringAsync();
-        var doc = await parser.ParseDocumentAsync(s);
+		var req = await sr.RawUrl.WithHeaders(new
+		{
+			User_Agent = HttpUtilities.UserAgent
+		}).GetAsync();
 
-        var elem = doc.QuerySelectorAll(".iuscp");
+		var parser = new HtmlParser();
+		var s      = await req.GetStringAsync();
+		var doc    = await parser.ParseDocumentAsync(s);
 
-        foreach (IElement e in elem)
-        {
-            var imgpt = e.FirstChild;
+		var elem = doc.QuerySelectorAll(".iuscp");
 
-            if (imgpt is IElement { ClassName: "tit" })
-            {
-                continue;
-            }
+		foreach (IElement e in elem) {
+			var imgpt = e.FirstChild;
 
-            var iusc = imgpt.FirstChild;
-            var attr = iusc.TryGetAttribute("m");
-            var j = JsonValue.Parse(attr);
+			if (imgpt is IElement { ClassName: "tit" }) {
+				continue;
+			}
 
-            var infopt = e.ChildNodes[1];
+			var iusc = imgpt.FirstChild;
+			var attr = iusc.TryGetAttribute("m");
+			var j    = JsonValue.Parse(attr);
 
-            sr.Results.Add(new SearchResultItem(sr)
-            {
-                Url = j["murl"].ToString().CleanString(),
-                Description = infopt.TextContent
-            });
-        }
+			var infopt = e.ChildNodes[1];
 
-        return sr;
-    }
+			sr.Results.Add(new SearchResultItem(sr)
+			{
+				Url         = j["murl"].ToString().CleanString(),
+				Description = infopt.TextContent
+			});
+		}
 
-    private const string ALT_QUERY_URL = "https://www.bing.com/images/async";
+		return sr;
+	}
 
-    private static Url GetAltQueryUrl(string query, int cnt = 35)
-    {
-        var url = ALT_QUERY_URL.SetQueryParams(new
-        {
-            q = query,
-            first = 0,
-            count = cnt,
-            // qft   = @""""
-        });
-        return url;
-    }
+	private const string ALT_QUERY_URL = "https://www.bing.com/images/async";
 
-    #endregion
+	private static Url GetAltQueryUrl(string query, int cnt = 35)
+	{
+		var url = ALT_QUERY_URL.SetQueryParams(new
+		{
+			q     = query,
+			first = 0,
+			count = cnt,
+			// qft   = @""""
+		});
+		return url;
+	}
+
+	#endregion
+
 }

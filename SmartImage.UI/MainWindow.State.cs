@@ -17,25 +17,26 @@ namespace SmartImage.UI;
 
 public partial class MainWindow
 {
+
 	#region
 
-	private ResultItem m_currentResultItem;
+	private ResultItem m_currentResult;
 
 	// [MN]
-	public ResultItem CurrentResultItem
+	public ResultItem CurrentResult
 	{
-		get => m_currentResultItem;
+		get => m_currentResult;
 		set
 		{
-			if (Equals(value, m_currentResultItem)) return;
-			m_currentResultItem = value;
+			if (Equals(value, m_currentResult)) return;
+			m_currentResult = value;
 			OnPropertyChanged();
 		}
 	}
 
 	#endregion
 
-	#region 
+	#region
 
 	private void OpenResultWindow(ResultItem ri)
 	{
@@ -57,7 +58,11 @@ public partial class MainWindow
 
 	private ResultItem? FindResult(Predicate<ResultItem> f)
 	{
-		return CurrentQueueItem.Results.FirstOrDefault(t => f(t));
+		if (!HasQuerySelected) {
+			return null;
+		}
+
+		return CurrentQuery.Results.FirstOrDefault(t => f(t));
 
 	}
 
@@ -65,28 +70,29 @@ public partial class MainWindow
 	{
 		var r = FindResult(f);
 
-		if (r == null) {
+		if (r == null || !HasQuerySelected) {
 			return -1;
 		}
 
-		return CurrentQueueItem.Results.IndexOf(r);
+		return CurrentQuery.Results.IndexOf(r);
 	}
 
 	#endregion
 
-	private bool m_isSelected;
+	private bool m_hasResultSelected;
 
-	public bool IsSelected
+	[MNNW(true, nameof(CurrentResult))]
+	public bool HasResultSelected
 	{
-		get { return m_isSelected; }
+		get { return m_hasResultSelected; }
 		set
 		{
-			m_isSelected = value;
+			m_hasResultSelected = value;
 			OnPropertyChanged();
 		}
 	}
 
-	#region 
+	#region
 
 	public QueryModel? FindQueue(string s)
 	{
@@ -101,6 +107,7 @@ public partial class MainWindow
 			foreach (var kv in Queue) {
 				kv.Dispose();
 			}
+
 			Lb_Queue.Dispatcher.Invoke(() =>
 			{
 				Lb_Queue.SelectedIndex = -1;
@@ -108,9 +115,9 @@ public partial class MainWindow
 				var rm = new QueryModel();
 				Queue.Add(rm);
 				// Lb_Queue.SelectedIndex = 0;
-				CurrentQueueItem = rm;
+				CurrentQuery = rm;
 			});
-			
+
 			// CurrentQueueItem       = new ResultModel();
 
 			/*var item = new ResultModel();
@@ -130,14 +137,14 @@ public partial class MainWindow
 			Queue.Add(x);
 		}
 
-		CurrentQueueItem = x;
+		CurrentQuery = x;
 
 		return b;
 	}
 
 	#endregion
 
-	#region 
+	#region
 
 	private bool m_showMedia;
 
@@ -156,6 +163,8 @@ public partial class MainWindow
 	{
 		if (ShowMedia) {
 			CloseMedia();
+			// Me_Preview.Pause();
+			// ShowMedia = false;
 		}
 		else { }
 	}
@@ -165,6 +174,8 @@ public partial class MainWindow
 		Me_Preview.Stop();
 		// Me_Preview.Position = TimeSpan.Zero;
 		Me_Preview.Close();
+		
+		Me_Preview.ClearValue(MediaElement.SourceProperty);
 		Me_Preview.Source = null;
 		// Me_Preview.Dispose();
 		ShowMedia = false;

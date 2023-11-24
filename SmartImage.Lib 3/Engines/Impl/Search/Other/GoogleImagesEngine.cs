@@ -2,9 +2,14 @@
 
 public sealed class GoogleImagesEngine : BaseSearchEngine
 {
-    public GoogleImagesEngine() : base("https://lens.google.com/uploadbyurl?url=") { }
 
-    public override string Name => "Google Images";
+	public GoogleImagesEngine() : base("https://lens.google.com/uploadbyurl?url=")
+	{
+		IsAdvanced = false;
+
+	}
+
+	public override string Name => "Google Images";
 
     public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleImages;
 

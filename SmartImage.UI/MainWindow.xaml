@@ -88,6 +88,7 @@
                     </ControlTemplate>
                 </Setter.Value>
             </Setter>-->
+            
             <Setter Property="ContextMenu" Value="{StaticResource ItemContextMenu}" />
 
             <Style.Resources>
@@ -135,6 +136,13 @@
                     <Setter Property="Background" Value="MediumSeaGreen" />
                     <Setter Property="Foreground" Value="Black" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.IsAdvanced}" Value="False">
+                    <!-- <Setter Property="FontStyle" Value="Italic" /> -->
+                    <!-- <Setter Property="Opacity" Value="0.6" /> -->
+                    <Setter Property="Foreground" Value="White" />
+                    <Setter Property="Background" Value="#303030" />
+                </DataTrigger>
+
             </Style.Triggers>
         </Style>
 
@@ -285,7 +293,7 @@
                     <Button x:Name="Btn_Remove" Content="Remove"
                             HorizontalAlignment="Left" Margin="5,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Remove_Click" Height="20" Width="46" ToolTip="Remove query from queue"
-                            IsEnabled="{Binding Path=CurrentQueueItem.HasValue, ElementName=Wnd_Main}"
+                            IsEnabled="{Binding Path=CurrentQuery.HasValue, ElementName=Wnd_Main}"
                             Grid.Column="1">
 
                         <Button.Style>
@@ -322,7 +330,7 @@
                     <Button x:Name="Btn_Delete" Content="Delete"
                             HorizontalAlignment="Left" Margin="56,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Delete_Click" Height="20" Width="39" ToolTip="Delete query file (Recycle Bin)"
-                            IsEnabled="{Binding Path=CurrentQueueItem.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}"
+                            IsEnabled="{Binding Path=CurrentQuery.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}"
                             Grid.Column="1">
 
                         <Button.Style>
@@ -360,13 +368,14 @@
                              DragOver="Lb_Queue_DragOver" PreviewDragOver="Lb_Queue_PreviewDragOver" AllowDrop="True"
                              Background="{DynamicResource Black2}" Foreground="White"
                              SelectionChanged="Lb_Queue_SelectionChanged"
-                             SelectedItem="{Binding CurrentQueueItem, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, IsAsync=True, ElementName=Wnd_Main}"
+                             SelectedItem="{Binding CurrentQuery, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged, IsAsync=True, ElementName=Wnd_Main}"
                              KeyDown="Lb_Queue_KeyDown" Margin="0,2,174,0" HorizontalAlignment="Right"
                              VerticalAlignment="Top" Width="320" Height="150" Grid.Column="1" Grid.RowSpan="2"
                              ItemsSource="{Binding Queue, UpdateSourceTrigger=PropertyChanged}">
                         <!-- IsSynchronizedWithCurrentItem="True" -->
                         <ListBox.ItemTemplate>
                             <DataTemplate>
+
                                 <TextBlock Text="{Binding Value, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
@@ -404,9 +413,10 @@
                             Grid.Column="1"
                             Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Inverted}">
 
-                        <Image x:Name="Img_Preview" MouseLeftButtonDown="Img_Preview_MouseLeftButtonDown"
+                        <Image x:Name="Img_Preview"
                                Width="150" HorizontalAlignment="Right" VerticalAlignment="Top" Panel.ZIndex="0"
-                               Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Inverted}">
+                               Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Inverted}" 
+                               MouseDown="Img_Preview_MouseDown" MouseRightButtonDown="Img_Preview_MouseRightButtonDown" MouseRightButtonUp="Img_Preview_MouseRightButtonUp">
 
                             <Image.RenderTransformOrigin>
                                 <Point X="1" Y="0"></Point>
@@ -505,14 +515,14 @@
                     <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,37,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black"
-                             Text="{Binding CurrentQueueItem.Query.Upload, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, 
+                             Text="{Binding CurrentQuery.Query.Upload, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, 
                         Converter={StaticResource urlConverter}, ElementName=Wnd_Main}">
 
                     </TextBox>
 
                     <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,0,0,0"
                             VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click"
-                            ToolTip="Clear query &amp; results" IsEnabled="{Binding CurrentQueueItem.IsComplete}" />
+                            ToolTip="Clear query &amp; results" IsEnabled="{Binding CurrentQuery.IsComplete}" />
 
                     <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="539,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Reset_Click" Width="41" Height="20"
@@ -529,7 +539,7 @@
                     <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick"
-                             Text="{Binding CurrentQueueItem.Info, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main, IsAsync=True}" />
+                             Text="{Binding CurrentQuery.Info, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main, IsAsync=True}" />
 
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
                            Margin="10,5,0,0"
@@ -541,11 +551,11 @@
                     <ListView x:Name="Lv_Results" Margin="0,120,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
-                              IsSelected="{Binding IsSelected, UpdateSourceTrigger=PropertyChanged}"
+                              IsSelected="{Binding HasResultSelected, UpdateSourceTrigger=PropertyChanged}"
                               IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
-                              ItemsSource="{Binding CurrentQueueItem.Results, UpdateSourceTrigger=PropertyChanged, IsAsync=False, Mode=TwoWay}"
-                              SelectedItem="{Binding CurrentResultItem, Mode=TwoWay}"
+                              ItemsSource="{Binding CurrentQuery.Results, UpdateSourceTrigger=PropertyChanged, IsAsync=False, Mode=TwoWay}"
+                              SelectedItem="{Binding CurrentResult, Mode=TwoWay}"
                               ItemContainerStyle="{DynamicResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
                               SelectionChanged="Lv_Results_SelectionChanged" KeyDown="Lv_Results_KeyDown"
@@ -558,6 +568,7 @@
                         </ListView.View>-->
 
                         <ListView.View>
+                            
                             <GridView>
 
                                 <GridViewColumn Header="Status">
@@ -648,16 +659,16 @@
 
                     <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="4,33,0,0"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1"
-                               Text="{Binding CurrentQueueItem.Status, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" />
+                               Text="{Binding CurrentQuery.Status, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" />
 
                     <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="115,49,0,0"
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline"
-                               Text="{Binding CurrentQueueItem.Status2, UpdateSourceTrigger=PropertyChanged,ElementName=Wnd_Main}"
+                               Text="{Binding CurrentQuery.Status2, UpdateSourceTrigger=PropertyChanged,ElementName=Wnd_Main}"
                                MaxWidth="400" />
 
                     <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="585,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Filter_Click"
-                            IsEnabled="{Binding CurrentQueueItem.IsComplete}" />
+                            IsEnabled="{Binding CurrentQuery.IsComplete}" />
 
                     <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,499,0" Grid.Row="1"
                              TextWrapping="Wrap" VerticalAlignment="Top" Width="158"
@@ -667,14 +678,9 @@
                               VerticalAlignment="Top" Width="148" Grid.ColumnSpan="2" />
 
                     <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0"
-                               Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"
+                               Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White" TextWrapping="Wrap"
                                Width="150" ToolTip="Click preview to stop/close&#x0a;Double click preview to open" />
 
-                    <TextBlock x:Name="Tb_Preview2" Grid.Column="1" HorizontalAlignment="Right" Margin="0,86,11,0"
-                               TextWrapping="Wrap"
-                               Text="{Binding CurrentResultItem.Label, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
-                               VerticalAlignment="Top"
-                               Foreground="White" Grid.Row="1" Width="150" />
                 </Grid>
             </TabItem>
             <TabItem x:Name="Ti_Config" HorizontalAlignment="Center" Height="20" Header="Config"

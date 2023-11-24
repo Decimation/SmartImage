@@ -25,9 +25,11 @@ public abstract class BaseSearchEngine : IDisposable
 	/// </summary>
 	public virtual string Name => EngineOption.ToString();
 
-	public virtual Url BaseUrl { get; }
+	public virtual Url      BaseUrl    { get; }
+	
+	public         bool     IsAdvanced { get; protected set; }
 
-	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
+	public         TimeSpan Timeout    { get; set; } = TimeSpan.FromSeconds(3);
 
 	protected long MaxSize { get; set; } = NA_SIZE;
 
@@ -35,7 +37,8 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected BaseSearchEngine(string baseUrl)
 	{
-		BaseUrl = baseUrl;
+		BaseUrl    = baseUrl;
+		IsAdvanced = true;
 	}
 
 	static BaseSearchEngine() { }

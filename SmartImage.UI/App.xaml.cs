@@ -4,6 +4,8 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Windows;
+using Microsoft.VisualBasic.Logging;
+using System.Windows.Interop;
 using Novus.Utilities;
 using Novus.Win32;
 
@@ -31,6 +33,7 @@ public partial class App : Application
 
 	private void Application_Startup(object sender, StartupEventArgs e)
 	{
+
 		SingleMutex = new Mutex(true, SingleGuid);
 		var isOnlyInstance = SingleMutex.WaitOne(TimeSpan.Zero, true);
 
