@@ -75,7 +75,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public const int INVALID = -1;
 
 	static MainWindow() { }
-	
+
 	public MainWindow()
 	{
 
@@ -106,6 +106,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		_clipboardSequence = 0;
 		m_cts              = new CancellationTokenSource();
 		m_ctsu             = new CancellationTokenSource();
+		m_ctsm             = new CancellationTokenSource();
 
 		Lb_Engines.ItemsSource  = Engines;
 		Lb_Engines2.ItemsSource = Engines;
@@ -261,6 +262,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private CancellationTokenSource m_cts;
 	private CancellationTokenSource m_ctsu;
+	private CancellationTokenSource m_ctsm;
 
 	private int m_cntResults;
 
@@ -985,12 +987,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		m_cts  = new();
 		m_ctsu = new();
+		m_ctsm = new();
 	}
 
 	private void Cancel()
 	{
 		m_cts.Cancel();
 		m_ctsu.Cancel();
+		m_ctsm.Cancel();
 		// Pb_Status.Foreground = new SolidColorBrush(Colors.Red);
 		Pb_Status.IsIndeterminate = false;
 	}
@@ -1107,6 +1111,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		m_cts.Dispose();
 		m_ctsu.Dispose();
+		m_ctsm.Dispose();
 	}
 
 	#endregion
@@ -1119,21 +1124,28 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	private static async Task<string> CacheAsync(Url v)
+	private static async Task<string?> CacheOrGetAsync(Url v, CancellationToken c = default)
 	{
-		if (FileCache.TryGetValue(v, out string? async)) {
-			return async;
+
+		try {
+			if (FileCache.TryGetValue(v, out string? async)) {
+				return async;
+			}
+
+			var rg = await v.GetBytesAsync(cancellationToken: c);
+			var fn = v.GetFileName();
+
+			var s = Path.Combine(Path.GetTempPath(), fn);
+
+			await File.WriteAllBytesAsync(s, rg, c);
+
+			FileCache[v] = s;
+			Debug.WriteLine($"Cached {v} to {s}");
+			return s;
 		}
-
-		var rg = await v.GetBytesAsync();
-		var fn = v.GetFileName();
-
-		var s = Path.Combine(Path.GetTempPath(), fn);
-		await File.WriteAllBytesAsync(s, rg);
-
-		FileCache[v] = s;
-		Debug.WriteLine($"Cached {v} to {s}");
-		return s;
+		catch (Exception e) {
+			return null;
+		}
 	}
 
 	private async Task DownloadResultAsync(IDownloadable uri)
@@ -1536,73 +1548,72 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				}
 			}
+		});
+		/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
+		return;
+	}*/
+		var load = igs.LoadImage();
 
-			/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
+		if (!load) {
+			SetPreviewToCurrentQuery();
 			return;
-		}*/
-			var load = igs.LoadImage();
+		}
 
-			if (!load) {
-				SetPreviewToCurrentQuery();
-				return;
-			}
+		string name = igs is INamed n ? n.Name : Placeholder;
+		string n2;
 
-			string name = igs is INamed n ? n.Name : Placeholder;
-			string n2;
-
-			if (igs.IsThumbnail.HasValue) {
-				if (igs.IsThumbnail.Value) {
-					n2 = "thumbnail";
-
-				}
-				else {
-					n2 = "full res";
-				}
+		if (igs.IsThumbnail.HasValue) {
+			if (igs.IsThumbnail.Value) {
+				n2 = "thumbnail";
 
 			}
 			else {
-				n2 = Placeholder;
+				n2 = "full res";
 			}
 
-			string name2 = null;
+		}
+		else {
+			n2 = Placeholder;
+		}
 
-			if (igs is ResultItem rri) {
+		string name2 = null;
 
-				if (rri.IsSister) {
-					/*var grp=CurrentQueueItem.Results.GroupBy(x => x.Result.Root);
+		if (igs is ResultItem rri) {
 
-					foreach (IGrouping<SearchResult, ResultItem> items in grp) {
-						// var zz=items.GroupBy(y => y.Result.Root.AllResults.Where(yy => yy.Sisters.Contains(y.Result)));
+			if (rri.IsSister) {
+				/*var grp=CurrentQueueItem.Results.GroupBy(x => x.Result.Root);
 
-					}*/
-					var p = FindParent(rri);
-					Debug.WriteLine($"{p}");
-					name  = p.Name;
-					name2 = $"(parent)";
-				}
-			}
-
-			/*Tb_Preview.Dispatcher.Invoke(() =>
-			{
-
-			});*/
-
-			Img_Preview.Source = igs.Image;
-
-			// Debug.WriteLine($"updated image {ri.Image}");
-			// PreviewChanged?.Invoke(ri);
-
-			/*if (ri.Image != null) {
-					using var bmp1 = CurrentQueueItem.Image.BitmapImage2Bitmap();
-					using var bmp2 = ri.Image.BitmapImage2Bitmap();
-					mse = AppUtil.CompareImages(bmp1, bmp2,1);
+				foreach (IGrouping<SearchResult, ResultItem> items in grp) {
+					// var zz=items.GroupBy(y => y.Result.Root.AllResults.Where(yy => yy.Sisters.Contains(y.Result)));
 
 				}*/
+				var p = FindParent(rri);
+				Debug.WriteLine($"{p}");
+				name  = p.Name;
+				name2 = $"(parent)";
+			}
+		}
 
-			Tb_Preview.Text = $"Preview: {name} ({n2}) {name2}";
+		/*Tb_Preview.Dispatcher.Invoke(() =>
+		{
 
-			// m_us2.Release();
-		});
+		});*/
+
+		Img_Preview.Source = igs.Image;
+
+		// Debug.WriteLine($"updated image {ri.Image}");
+		// PreviewChanged?.Invoke(ri);
+
+		/*if (ri.Image != null) {
+				using var bmp1 = CurrentQueueItem.Image.BitmapImage2Bitmap();
+				using var bmp2 = ri.Image.BitmapImage2Bitmap();
+				mse = AppUtil.CompareImages(bmp1, bmp2,1);
+
+			}*/
+
+		Tb_Preview.Text = $"Preview: {name} ({n2}) {name2}";
+
+		// m_us2.Release();
 
 	}
 
@@ -1635,6 +1646,21 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		return null;
+	}
+
+	private void SetRenderMode()
+	{
+		// todo
+		//https://stackoverflow.com/questions/23075609/wpf-mediaelement-video-freezes
+		try {
+			var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
+			var hwndTarget = hwndSource.CompositionTarget;
+			hwndTarget.RenderMode = RenderMode.SoftwareOnly;
+		}
+		catch (Exception ex) {
+			Debugger.Break();
+			Console.WriteLine(ex);
+		}
 	}
 
 }

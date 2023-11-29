@@ -9,6 +9,7 @@ using SmartImage.UI.Model;
 using Kantan.Monad;
 using System.Linq;
 using System;
+using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
 using SmartImage.Lib;
@@ -171,6 +172,8 @@ public partial class MainWindow
 
 	private void CloseMedia()
 	{
+		m_ctsm.Cancel();
+
 		Me_Preview.Stop();
 		// Me_Preview.Position = TimeSpan.Zero;
 		Me_Preview.Close();
@@ -179,6 +182,7 @@ public partial class MainWindow
 		Me_Preview.Source = null;
 		// Me_Preview.Dispose();
 		ShowMedia = false;
+		m_ctsm    = new CancellationTokenSource();
 	}
 
 	#endregion

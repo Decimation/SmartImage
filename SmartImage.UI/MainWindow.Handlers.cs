@@ -396,11 +396,9 @@ public partial class MainWindow
 			var ai = e.AddedItems[0];
 			var ri = ai as ResultItem;
 
-			if (ri is UniResultItem uri) {
-				SetPreview(uri);
-				CheckMedia();
-			}
-			else if (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe) {
+			var b = ri is UniResultItem uri;
+
+			if (b || (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe)) {
 				SetPreview(ri);
 				CheckMedia();
 			}
@@ -443,21 +441,24 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 						}*/
 						Tb_Preview.Text = $"Preview: loading {ri.Name}";
+						var uri = await CacheOrGetAsync(doc.video, m_ctsm.Token);
+						Debug.WriteLine($"{m_ctsm.IsCancellationRequested}");
 
-						var uri = await CacheAsync(doc.video);
-						
-						Me_Preview.Source = new Uri(uri, UriKind.Absolute);
-						// Me_Preview.Source = new Uri(doc.video);
-						/*
+						if (uri != null) {
+							Me_Preview.Source = new Uri(uri, UriKind.Absolute);
+							// Me_Preview.Source = new Uri(doc.video);
+							/*
 						while (Me_Preview.BufferingProgress < 1f) {
 							Debug.WriteLine($"{Me_Preview.BufferingProgress}");
 						}
 						*/
-						Me_Preview.Play();
+							Me_Preview.Play();
+							
+							ShowMedia       = true;
+							Tb_Preview.Text = $"Preview: {ri.Name}";
+							// m_us2.Release();
 
-						ShowMedia       = true;
-						Tb_Preview.Text = $"Preview: {ri.Name}";
-						// m_us2.Release();
+						}
 					});
 
 				}
@@ -658,17 +659,8 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
 	{
-		try
-		{
-			var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
-			var hwndTarget = hwndSource.CompositionTarget;
-			hwndTarget.RenderMode = RenderMode.SoftwareOnly;
-		}
-		catch (Exception ex)
-		{
-			Debugger.Break();
-			Console.WriteLine(ex);
-		}
+		SetRenderMode();
+
 		if (UseClipboard) {
 			m_cbDispatch.Start();
 		}
@@ -761,7 +753,9 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	private void Img_Preview_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 	{
-		SetPreviewToCurrentQuery();
+		if (!ShowMedia) {
+			SetPreviewToCurrentQuery();
+		}
 		e.Handled = true;
 
 	}
@@ -803,7 +797,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	private void Me_Preview_MouseDown(object sender, MouseButtonEventArgs e)
 	{
-		// CloseMedia();
+		CloseMedia();
 		SetPreviewToCurrentQuery();
 		e.Handled = true;
 

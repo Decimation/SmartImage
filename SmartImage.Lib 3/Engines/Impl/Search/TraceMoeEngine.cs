@@ -21,7 +21,11 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
 public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 {
-	public TraceMoeEngine() : base("https://trace.moe/?url=") { }
+
+	public TraceMoeEngine() : base("https://trace.moe/?url=")
+	{
+		Timeout = TimeSpan.FromSeconds(10);
+	}
 
 	public string EndpointUrl => "https://api.trace.moe";
 
@@ -44,7 +48,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 		var r = await base.GetResultAsync(query, token);
 
 		try {
-			IFlurlRequest request =  (EndpointUrl.AppendPathSegment("/search"))
+			IFlurlRequest request = (EndpointUrl.AppendPathSegment("/search"))
 				.AllowAnyHttpStatus()
 				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload, true);
@@ -52,7 +56,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 			var response = await request.GetAsync(cancellationToken: token);
 
 			var json = await response.GetStringAsync();
-			
+
 			var settings = new JsonSerializerSettings
 			{
 				Error = (sender, args) =>
@@ -70,7 +74,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
-
+			r.ErrorMessage = e.Message;
+			r.Status       = SearchResultStatus.Failure;
 			goto ret;
 		}
 
@@ -94,6 +99,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 				Debug.WriteLine($"{Name} :: API error: {tm.error}", nameof(GetResultAsync));
 				r.ErrorMessage = tm.error;
 				r.Status       = SearchResultStatus.IllegalInput;
+
 				if (r.ErrorMessage.Contains("Search queue is full")) {
 					r.Status = SearchResultStatus.Unavailable;
 				}
@@ -153,6 +159,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class TraceMoeDoc : IResultConvertable
 	{
+
 		public double from { get; set; }
 
 		public double to { get; set; }
@@ -185,6 +192,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 							if (s1.Contains('|')) {
 								s1 = s1.Split('|')[0];
 							}
+
 							return long.Parse(s1 ?? string.Empty);
 						});
 
@@ -225,17 +233,42 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 
 			return result;
 		}
+
 	}
 
 	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 	public class TraceMoeRootObject
 	{
+
 		public long frameCount { get; set; }
 
 		public string error { get; set; }
 
 		public List<TraceMoeDoc> result { get; set; }
+
+	}
+
+	public async Task<TraceMoeQuotaObject> GetQuotaAsync()
+	{
+		return await EndpointUrl.AppendPathSegment("me")
+			       .GetJsonAsync<TraceMoeQuotaObject>();
+	}
+
+	public class TraceMoeQuotaObject
+	{
+
+		public string Id { get; set; }
+
+		public long Priority { get; set; }
+
+		public long Concurrency { get; set; }
+
+		public long Quota { get; set; }
+
+		public long QuotaUsed { get; set; }
+
 	}
 
 	#endregion
+
 }

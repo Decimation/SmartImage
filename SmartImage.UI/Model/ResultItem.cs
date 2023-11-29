@@ -106,6 +106,19 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	public bool IsSister { get; internal init; }
 
+	private double m_previewProgress;
+
+	public double PreviewProgress
+	{
+		get => m_previewProgress;
+		set
+		{
+			if (value.Equals(m_previewProgress)) return;
+			m_previewProgress = value;
+			OnPropertyChanged();
+		}
+	}
+
 	private static readonly object _lock = new();
 
 	#endregion
@@ -179,7 +192,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
-		Label = $"Cache complete";
+		Label = $"Preview cache complete";
 
 		if (Image.CanFreeze) {
 			Image.Freeze();
@@ -199,20 +212,24 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		OnPropertyChanged(nameof(CanOpen));
 		OnPropertyChanged(nameof(IsDownloaded));
 		OnPropertyChanged(nameof(IsSister));
+		OnPropertyChanged(nameof(Label));
+		OnPropertyChanged(nameof(Image));
 	}
 
 	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
-		Label = $"{args.Progress}";
+		PreviewProgress = ((float) args.Progress * 100.0f);
+		Label           = $"Preview cache...";
 	}
 
 	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
-		Label = $"{args.ErrorException.Message}";
+		PreviewProgress = 0;
+		Label           = $"Preview fetch failed: {args.ErrorException.Message}";
 
 	}
 
-	public virtual bool LoadImage(IImageLoader l = null)
+	public virtual bool LoadImage(IImageLoader? l = null)
 	{
 		lock (_lock) {
 			if (CanLoadImage) {
@@ -242,7 +259,10 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 				Image.DownloadCompleted += OnImageDownloadCompleted;
 			}
 			else {
-				Label = null;
+				/*if (HasImage) {
+					Label= $"{Result.Thumbnail}";
+
+				}*/
 			}
 
 			UpdateProperties();
@@ -367,9 +387,21 @@ public class UniResultItem : ResultItem
 
 	}
 
+	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
+	{
+		PreviewProgress = ((float) args.Progress * 100.0f);
+		Label           = $"Download progress...";
+	}
+
+	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
+	{
+		PreviewProgress = 0;
+		Label           = $"Download failed: {args.ErrorException.Message}";
+	}
+
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
-		base.OnImageDownloadCompleted(sender, args);
+		Label       = $"Download complete";
 		IsThumbnail = false;
 	}
 
