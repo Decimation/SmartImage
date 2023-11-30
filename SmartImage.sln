@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib Unit Test", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{C3235D7A-ACEC-4910-8EFE-6ACB670352BC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Linux", "SmartImage.Linux\SmartImage.Linux.csproj", "{AAE1CED0-FF74-4E38-99C1-2ECAE85566F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Rdx", "SmartImage.Rdx\SmartImage.Rdx.csproj", "{AAE1CED0-FF74-4E38-99C1-2ECAE85566F1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.UI", "SmartImage.UI\SmartImage.UI.csproj", "{E1FA3231-DC61-4E0D-A73F-C9D368644B6E}"
 EndProject

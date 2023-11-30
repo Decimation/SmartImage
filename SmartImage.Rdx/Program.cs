@@ -1,12 +1,9 @@
-﻿using System.Runtime.InteropServices;
-using JetBrains.Annotations;
-using Kantan.Text;
+﻿using Kantan.Text;
+using SmartImage.Rdx.Cli;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using SmartImage.Linux.Cli;
-using Spectre.Console.Cli.Internal.Configuration;
 
-namespace SmartImage.Linux;
+namespace SmartImage.Rdx;
 
 public static class Program
 {
@@ -16,11 +13,11 @@ public static class Program
 
 	public static async Task<int> Main(string[] args)
 	{
-		//dotnet run --project SmartImage.Linux/ "$HOME/1654086015521.png"
-		//dotnet run -c 'DEBUG' --project SmartImage.Linux "$HOME/1654086015521.png"
-		//dotnet run -lp 'SmartImage.Linux' -c 'WSL' --project SmartImage.Linux "$HOME/1654086015521.png"
+		//dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
+		//dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
+		//dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
 
-		var fs = R2.ResourceManager.GetObject(nameof(R2.Fg_Cybermedium));
+		var fs = R2.ResourceManager.GetObject(nameof(R2.Fg_larry3d));
 
 		var fg = new FigletText(FigletFont.Load(new MemoryStream((byte[]) fs)), R1.Name)
 			.LeftJustified()

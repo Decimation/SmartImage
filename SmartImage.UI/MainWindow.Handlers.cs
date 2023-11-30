@@ -751,6 +751,8 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	#endregion
 
+	#region 
+
 	private void Img_Preview_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 	{
 		if (!ShowMedia) {
@@ -795,10 +797,18 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 		e.Handled = true;
 	}
 
+	#endregion
+
+	private void Me_Preview_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+	{
+		e.Handled = true;
+	}
+
 	private void Me_Preview_MouseDown(object sender, MouseButtonEventArgs e)
 	{
-		CloseMedia();
-		SetPreviewToCurrentQuery();
+		PlayPauseMedia();
+		// CloseMedia();
+		// SetPreviewToCurrentQuery();
 		e.Handled = true;
 
 	}

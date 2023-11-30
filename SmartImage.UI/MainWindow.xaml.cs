@@ -1637,7 +1637,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private ResultItem FindParent(ResultItem r)
+	private ResultItem? FindParent(ResultItem r)
 	{
 		foreach (ResultItem item in CurrentQuery.Results) {
 			if (item.Result.Children.Contains(r.Result)) {

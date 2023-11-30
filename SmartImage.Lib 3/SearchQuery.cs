@@ -16,7 +16,7 @@ using SmartImage.Lib.Utilities;
 
 [assembly: InternalsVisibleTo("SmartImage")]
 [assembly: InternalsVisibleTo("SmartImage.UI")]
-[assembly: InternalsVisibleTo("SmartImage.Linux")]
+[assembly: InternalsVisibleTo("SmartImage.Rdx")]
 
 namespace SmartImage.Lib;
 

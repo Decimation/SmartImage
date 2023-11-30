@@ -469,7 +469,8 @@
 
                         <MediaElement x:Name="Me_Preview" HorizontalAlignment="Right" VerticalAlignment="Top"
                                       Width="150" MouseDown="Me_Preview_MouseDown"
-                                      Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}">
+                                      Visibility="{Binding ShowMedia, Converter={StaticResource BooleanVisConverter}, ConverterParameter=Normal}"
+                                      MouseRightButtonDown="Me_Preview_MouseRightButtonDown">
                             <MediaElement.RenderTransformOrigin>
                                 <Point X="1" Y="0"></Point>
                             </MediaElement.RenderTransformOrigin>
@@ -691,8 +692,10 @@
                                Width="320"
                                Text="{Binding CurrentResult.Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Height="35" />
+
                     <ProgressBar x:Name="Pb_Preview" Grid.Column="1" HorizontalAlignment="Right" Height="10"
-                                 Margin="0,105,174,0" Grid.Row="1" VerticalAlignment="Top" Width="320" Value="{Binding CurrentResult.PreviewProgress}"  />
+                                 Margin="0,105,174,0" Grid.Row="1" VerticalAlignment="Top" Width="320"
+                                 Value="{Binding CurrentResult.PreviewProgress}" />
 
                 </Grid>
             </TabItem>

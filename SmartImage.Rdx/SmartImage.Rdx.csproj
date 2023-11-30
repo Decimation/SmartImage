@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <EnableSourceControlManagerQueries>True</EnableSourceControlManagerQueries>
 
   </PropertyGroup>
 
@@ -26,6 +27,7 @@
     </PackageReference>
     <PackageReference Include="Spectre.Console.Cli" Version="0.48.1-preview.0.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
+    <PackageReference Include="System.Reactive" Version="6.0.1-preview.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,9 +38,14 @@
     <Reference Include="Kantan">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
     </Reference>
+    <Reference Include="Kantan.Net">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
+    </Reference>
+    <!--
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net8.0\Novus.dll</HintPath>
     </Reference>
+  -->
   </ItemGroup>
 
   <ItemGroup>

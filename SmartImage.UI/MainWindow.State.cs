@@ -177,12 +177,32 @@ public partial class MainWindow
 		Me_Preview.Stop();
 		// Me_Preview.Position = TimeSpan.Zero;
 		Me_Preview.Close();
-		
+
 		Me_Preview.ClearValue(MediaElement.SourceProperty);
 		Me_Preview.Source = null;
 		// Me_Preview.Dispose();
-		ShowMedia = false;
-		m_ctsm    = new CancellationTokenSource();
+		ShowMedia  = false;
+		m_isPaused = false;
+		m_ctsm     = new CancellationTokenSource();
+	}
+
+	private bool m_isPaused;
+
+	private void PlayPauseMedia()
+	{
+		if (ShowMedia) {
+
+			if (m_isPaused) {
+				Me_Preview.Play();
+				m_isPaused = false;
+			}
+			else {
+
+				Me_Preview.Pause();
+				m_isPaused = true;
+			}
+		}
+
 	}
 
 	#endregion

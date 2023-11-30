@@ -1,18 +1,17 @@
-﻿// Read S SmartImage.Linux SearchCommand.cs
+﻿// Read S SmartImage.Rdx SearchCommand.cs
 // 2023-07-05 @ 2:07 AM
 
-global using R2 = SmartImage.Linux.Resources;
+global using R2 = SmartImage.Rdx.Resources;
 global using R1 = SmartImage.Lib.Resources;
 global using AC = Spectre.Console.AnsiConsole;
 global using AConsole = Spectre.Console.AnsiConsole;
 using System.ComponentModel;
-using System.Data;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace SmartImage.Linux.Cli;
+namespace SmartImage.Rdx.Cli;
 
 internal sealed class SearchCommand : AsyncCommand<SearchCommand.Settings>
 {
@@ -33,6 +32,11 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommand.Settings>
 		[CommandOption("-a|--autosearch")]
 		[DefaultValue(SearchConfig.AUTOSEARCH_DEFAULT)]
 		public bool AutoSearch { get; init; }
+
+		[CommandOption("-x|--interactive")]
+		[DefaultValue(false)]
+		public bool Interactive { get; init; }
+
 	}
 
 	public override ValidationResult Validate(CommandContext context, Settings settings)
@@ -43,22 +47,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommand.Settings>
 		return b ? ValidationResult.Success() : ValidationResult.Error();
 		// var v= base.Validate(context, settings);
 		// return v;
-	}
-
-	public static Table FromDataTable(DataTable dt)
-	{
-		var t = new Table();
-
-		foreach (DataColumn row in dt.Columns) {
-			t.AddColumn(new TableColumn(row.ColumnName));
-		}
-
-		foreach (DataRow row in dt.Rows) {
-			t.AddRow((string[]) row.ItemArray.Select(x => x.ToString()).ToArray());
-
-		}
-
-		return t;
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, Settings settings)
@@ -89,11 +77,16 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommand.Settings>
 
 		var dt = sm.Config.ToTable();
 
-		var t = FromDataTable(dt);
+		var t = Util.FromDataTable(dt);
 
 		AC.Write(t);
 
 		var r = await sm.RunAsync(settings.Query);
+
+		if (settings.Interactive) {
+			await sm.Interactive();
+		}
+		
 		return 0;
 	}
 }
