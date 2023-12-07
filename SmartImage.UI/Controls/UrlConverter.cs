@@ -6,7 +6,7 @@ using System.Globalization;
 using System.Windows.Data;
 using Flurl;
 
-namespace SmartImage.UI;
+namespace SmartImage.UI.Controls;
 
 [ValueConversion(typeof(Url), typeof(String))]
 public class UrlConverter : IValueConverter

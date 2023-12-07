@@ -156,7 +156,7 @@ public sealed class SearchMode : IDisposable
 				continue;
 			}
 
-			var rr = m_results.FirstOrDefault(x => x.Id == i + 1);
+			var rr = m_results.FirstOrDefault(x => x.Id == i);
 
 			if (rr == null) {
 				continue;
@@ -166,7 +166,12 @@ public sealed class SearchMode : IDisposable
 			{
 				AC.Write(rr.Table);
 				// Console.ReadKey();
-				var n   = AC.Ask<int>("?");
+				var n = AC.Ask<int>("?");
+
+				if (n == 0 || (n < 0 || n > rr.Result.Results.Count)) {
+					return;
+				}
+
 				var res = rr.Result.Results[n];
 				HttpUtilities.TryOpenUrl(res.Url);
 			});

@@ -65,6 +65,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		OnPropertyChanged(nameof(IsPrimitive));
 		OnPropertyChanged(nameof(Results));
 		OnPropertyChanged(nameof(CanDelete));
+		OnPropertyChanged(nameof(Query));
 
 	}
 
@@ -139,8 +140,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		Query         = SearchQuery.Null;
 		Status        = null;
 		Status2       = null;
-		Info          = null;
-		Image        = null;
+		// Dim          = null;
+		Image = null;
 	}
 
 	[MNNW(true, nameof(ResultsBackup))]
@@ -192,17 +193,22 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		}
 	}
 
-	private string? m_info;
-
-	public string? Info
+	public string? Dim
 	{
-		get => m_info;
-		set
+		get
 		{
-			if (value == m_info) return;
-			m_info = value;
-			OnPropertyChanged();
+			if (Width.HasValue && Height.HasValue) {
+				return $"{Width}x{Height}";
+			}
+
+			return null;
 		}
+		/*set
+		{
+			if (value == m_dim) return;
+			m_dim = value;
+			OnPropertyChanged();
+		}*/
 	}
 
 	#endregion
@@ -332,15 +338,15 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		return true;
 	}
 
-	public void UpdateInfo()
+	/*public void UpdateInfo()
 	{
 		if (!HasQuery) {
 			return;
 		}
 
-		Info =
-			ControlsHelper.FormatDescription("Query", Query.Uni, Image?.PixelWidth, Image?.PixelHeight);
-	}
+		// Dim =
+		// 	ControlsHelper.FormatDescription("Query", Query.Uni, Image?.PixelWidth, Image?.PixelHeight);
+	}*/
 
 	public bool LoadImage(IImageLoader l = null)
 	{
@@ -361,12 +367,14 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		if (Query.Uni.IsUri) {
 			Image.DownloadCompleted += (sender, args) =>
 			{
-				UpdateInfo();
+				UpdateProperties();
+				// UpdateInfo();
 			};
 
 		}
 		else {
-			UpdateInfo();
+			UpdateProperties();
+			// UpdateInfo();
 		}
 
 		if (Image.CanFreeze) {
@@ -426,10 +434,10 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		}
 
 		Query   = SearchQuery.Null;
-		Image  = null;
+		Image   = null;
 		Status  = null;
 		Status2 = null;
-		Info    = null;
+		// Dim    = null;
 
 		PropertyChanged = null;
 	}

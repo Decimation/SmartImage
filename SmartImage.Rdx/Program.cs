@@ -7,15 +7,17 @@ namespace SmartImage.Rdx;
 
 public static class Program
 {
+
 	internal static readonly bool IsLinux   = OperatingSystem.IsLinux();
 	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
 	internal static readonly bool IsMacOs   = OperatingSystem.IsMacOS();
 
 	public static async Task<int> Main(string[] args)
 	{
-		//dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
-		//dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
-		//dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
+		// dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
+		// dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
+		// dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
+		// dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
 
 		var fs = R2.ResourceManager.GetObject(nameof(R2.Fg_larry3d));
 
@@ -24,11 +26,25 @@ public static class Program
 			.Color(new Color(0x80, 0xFF, 0x80));
 
 		AC.Write(fg);
+
 #if DEBUG
 		AC.WriteLine(args.QuickJoin());
 
 #endif
-		AC.WriteLine($"{IsLinux}|{IsWindows}|{IsMacOs}");
+		string os = null;
+
+		if (IsLinux) {
+			os = "Linux";
+
+		}
+		else if (IsWindows) {
+			os = "Windows";
+		}
+		else if (IsMacOs) {
+			os = "Mac";
+		}
+
+		AC.WriteLine($"OS: {os} {Environment.OSVersion} | {Environment.Version}");
 
 		var app = new CommandApp<SearchCommand>();
 		app.Configure(c => { });
@@ -37,4 +53,5 @@ public static class Program
 
 		return x;
 	}
+
 }

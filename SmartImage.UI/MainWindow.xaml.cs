@@ -172,9 +172,15 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
+		AddHandler(System.Windows.Controls.Validation.ErrorEvent, new RoutedEventHandler(OnValidationRaised));
 	}
 
 	#region
+
+	private void OnValidationRaised(object sender, RoutedEventArgs e)
+	{
+
+	}
 
 	private static readonly ILogger Logger = LoggerFactory
 		.Create(builder => builder.AddDebug().AddProvider(new DebugLoggerProvider()))
@@ -687,10 +693,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Btn_Run.IsEnabled = CurrentQuery.CanSearch;
-		Tb_Info.Text      = CurrentQuery.Info;
+		// Tb_Info.Text      = CurrentQuery.Info;
 		// Tb_Status.Text    = CurrentQueueItem.Status;
 		Tb_Status2.Text = CurrentQuery.Status2;
-
+		CurrentQuery.UpdateProperties();
 		// OnPropertyChanged(nameof(Results));
 	}
 
@@ -1017,7 +1023,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Img_Preview.UpdateLayout();
 		Tb_Status.Text = String.Empty;
 		// CurrentQueueItem = new ResultModel();
-		Tb_Info.Text    = String.Empty;
+		// Tb_Info.Text    = String.Empty;
 		Tb_Status2.Text = String.Empty;
 
 		Tb_Upload.Text            = String.Empty;

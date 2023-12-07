@@ -18,7 +18,8 @@
     <Window.Resources>
         <!-- <ui:SharedViewModel x:Key="SharedViewModel" /> -->
         <!-- <ui:SharedImageControl x:Key="SharedImage" /> -->
-        <ui:UrlConverter x:Key="urlConverter" />
+        <controls:UrlConverter x:Key="urlConverter" />
+        <controls:UnitStringConverter x:Key="unitConverter" />
 
         <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
             <converters:BooleanToBrushConverter.TrueBrush>
@@ -174,7 +175,7 @@
 
                     <!--TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput"-->
                     <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="57,8,0,0" VerticalAlignment="Top"
-                             Width="437" Height="20"
+                             Width="435" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver" IsReadOnly="False"
                              TextChanged="Tb_Input_OnTextChanged"
@@ -516,7 +517,7 @@
                            Background="{DynamicResource Black3}" Width="50" HorizontalContentAlignment="Center" />
 
                     <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,37,0,0" TextWrapping="Wrap"
-                             VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20"
+                             VerticalAlignment="Top" Width="435" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black"
                              Text="{Binding CurrentQuery.Query.Upload, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, 
                         Converter={StaticResource urlConverter}, ElementName=Wnd_Main}">
@@ -539,10 +540,23 @@
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White"
                            Background="{DynamicResource Black3}" HorizontalContentAlignment="Center" Width="50" />
 
-                    <TextBox x:Name="Tb_Info" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
-                             VerticalAlignment="Top" Width="437" IsReadOnly="True" Height="20" Background="Black"
-                             Foreground="White" MouseDoubleClick="Tb_Info_MouseDoubleClick"
-                             Text="{Binding CurrentQuery.Info, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main, IsAsync=True}" />
+                    <TextBox x:Name="Tb_Info_Type" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" TextAlignment="Center"
+                             Text="{Binding CurrentQuery.Query.Uni.FileType, Mode=OneWay,
+                        UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, ElementName=Wnd_Main, IsAsync=True}" />
+
+                    <TextBox x:Name="Tb_Info_Size" HorizontalAlignment="Left" Margin="210,65,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" TextAlignment="Center"
+                             Text="{Binding CurrentQuery.Query.Uni.Stream.Length, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
+                        UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, Converter={StaticResource unitConverter}}" />
+
+                    <TextBox x:Name="Tb_Info_Dim" HorizontalAlignment="Left" Margin="362,65,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" TextAlignment="Center"
+                             Text="{Binding CurrentQuery.Dim, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
+                        UpdateSourceTrigger=PropertyChanged}" />
 
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
                            Margin="10,5,0,0"
@@ -550,14 +564,13 @@
 
                     <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
                                  VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
-
                     <ListView x:Name="Lv_Results" Margin="0,120,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
-                              IsSelected="{Binding HasResultSelected, UpdateSourceTrigger=PropertyChanged}"
+                              Selector.IsSelected="{Binding HasResultSelected, UpdateSourceTrigger=PropertyChanged}"
                               IsSynchronizedWithCurrentItem="True"
                               Background="{DynamicResource Black2}"
-                              ItemsSource="{Binding CurrentQuery.Results, UpdateSourceTrigger=PropertyChanged, IsAsync=False, Mode=TwoWay}"
+                              ItemsSource="{Binding CurrentQuery.Results, IsAsync=False, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                               SelectedItem="{Binding CurrentResult, Mode=TwoWay}"
                               ItemContainerStyle="{DynamicResource CustomListViewItemStyle}"
                               MouseRightButtonDown="Lv_Results_MouseRightButtonDown"
@@ -580,9 +593,7 @@
                                             <Image x:Name="Img_Status"
                                                    Source="{Binding StatusImage, UpdateSourceTrigger=PropertyChanged}"
                                                    Width="20"
-                                                   Height="20" Stretch="None" ToolTip="{Binding StatusMessage}">
-
-                                            </Image>
+                                                   Height="20" Stretch="None" ToolTip="{Binding StatusMessage}" />
 
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
@@ -611,9 +622,7 @@
 
                                 <GridViewColumn Header="Similarity"
                                                 DisplayMemberBinding="{Binding Result.Similarity, Mode=OneTime}"
-                                                Width="75">
-
-                                </GridViewColumn>
+                                                Width="75" />
 
                                 <GridViewColumn Header="Description"
                                                 Width="200" x:Name="Lvgvc_Desc">
