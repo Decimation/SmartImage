@@ -49,10 +49,7 @@ public sealed class SearchClient : IDisposable
 		LoadEngines();
 	}
 
-	static SearchClient()
-	{
-		
-	}
+	static SearchClient() { }
 
 	[ModuleInitializer]
 	public static void Init()
@@ -127,7 +124,7 @@ public sealed class SearchClient : IDisposable
 
 			var result = await task;
 
-			ProcessResult(result);
+			// ProcessResult(result);
 
 			results[i] = result;
 			i++;
@@ -225,7 +222,13 @@ public sealed class SearchClient : IDisposable
 		var tasks = Engines.Select(e =>
 		{
 			Debug.WriteLine($"Starting {e} for {query}");
-			var res = e.GetResultAsync(query, token);
+			
+			var res = e.GetResultAsync(query, token)
+				.ContinueWith( (r) =>
+				{
+					ProcessResult(r.Result);
+					return r.Result;
+				}, token);
 
 			return res;
 		}).ToList();

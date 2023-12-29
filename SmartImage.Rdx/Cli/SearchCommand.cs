@@ -25,16 +25,6 @@ namespace SmartImage.Rdx.Cli;
 internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisposable
 {
 
-	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
-	{
-
-		var b = SearchQuery.IsValidSourceType(settings.Query);
-
-		return b ? ValidationResult.Success() : ValidationResult.Error();
-		// var v= base.Validate(context, settings);
-		// return v;
-	}
-
 	public SearchClient Client { get; }
 
 	public SearchQuery Query { get; private set; }
@@ -45,7 +35,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	private readonly ConcurrentBag<ResultModel> m_results;
 
-	private readonly STable m_resTable;
+	// private readonly STable m_resTable;
 
 	private const int COMPLETE = 100;
 
@@ -54,11 +44,11 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Config            =  new SearchConfig();
 		Client            =  new SearchClient(Config);
 		Client.OnComplete += OnComplete;
-		Client.OnResult   += OnResult;
-		m_cts             =  new CancellationTokenSource();
-		m_results         =  new ConcurrentBag<ResultModel>();
+		// Client.OnResult   += OnResult;
+		m_cts     = new CancellationTokenSource();
+		m_results = new ConcurrentBag<ResultModel>();
 
-		m_resTable = new Table()
+		/*m_resTable = new Table()
 		{
 			Border      = TableBorder.Heavy,
 			Title       = new($"Results"),
@@ -69,24 +59,9 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		m_resTable.AddColumns(new TableColumn("#"),
 		                      new TableColumn("Name"),
 		                      new TableColumn("Count")
-		);
+		);*/
+
 		Query = SearchQuery.Null;
-	}
-
-	private void OnResult(object sender, SearchResult sr)
-	{
-		// Interlocked.Increment(ref ResultModel.cnt);
-		var rm = new ResultModel(sr) { };
-		m_results.Add(rm);
-
-		m_resTable.Rows.Add(new IRenderable[]
-		{
-			new Text($"{rm.Id}"),
-			Markup.FromInterpolated($"[bold]{sr.Engine.Name}[/]"),
-			new Text($"{sr.Results.Count}")
-		});
-
-		// AnsiConsole.Write(t);
 	}
 
 	private void OnComplete(object sender, SearchResult[] searchResults)
@@ -98,81 +73,62 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	{
 		ConsoleKeyInfo cki;
 
-		do {
+		// var i = AC.Ask<int>("?");
 
-			// var i = AC.Ask<int>("?");
+		/*
+		if (!char.IsNumber(cki.KeyChar)) {
+			continue;
+		}
+		*/
 
-			/*
-			if (!char.IsNumber(cki.KeyChar)) {
-				continue;
+		AC.Clear();
+
+		//todo
+
+		var select = m_results
+			.ToDictionary((x) =>
+			{
+				return x.Result.Engine.Name;
+			});
+
+		var choices = new SelectionPrompt<string>()
+			.Title("Engine")
+			.AddChoices(select.Keys);
+
+		string prompt = null;
+		// AC.Write(m_resTable);
+
+		while (prompt != "") {
+			prompt = AC.Prompt(choices);
+
+			if (select.TryGetValue(prompt, out var v)) {
+
+				AC.Clear();
+				AC.Write(v.Table);
+
 			}
-			*/
+		}
 
-			AC.Clear();
+		/*var fn = rows.GetType()
+			.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+			.FirstOrDefault(x => x.Name.Contains("get_Item"));
 
-			//todo
-			var prompt = AC.Prompt(new SelectionPrompt<string>()
-				                       .Title("Engine"));
+		var res = (TableRow) fn.Invoke(rows, new Object[] { i-1 });
+		var en  = res.GetEnumerator();
 
-			AC.Write(m_resTable);
-
-			var i = AC.Ask<int>("?", 0);
-
-			if (i == 0) {
-				break;
-			}
-
-			// var i = (int) char.GetNumericValue(cki.KeyChar);
-
-			var rows = m_resTable.Rows;
-
-			if (rows.Count == 0 || (i < 0 || i > m_results.Count)) {
-				continue;
-			}
-
-			var rr = m_results.FirstOrDefault(x => x.Id == i);
-
-			if (rr == null) {
-				continue;
-			}
+		while (en.MoveNext()) {
+			var it = en.Current;
 
 			AConsole.AlternateScreen(() =>
 			{
-				AC.Write(rr.Table);
-				// Console.ReadKey();
-				var n = AC.Ask<int>("?");
-
-				if (n == 0 || (n < 0 || n > rr.Result.Results.Count)) {
-					return;
-				}
-
-				var res = rr.Result.Results[n];
-				HttpUtilities.TryOpenUrl(res.Url);
+				AC.Clear();
+				AC.Write(t);
+				AC.Confirm("");
 			});
 
-			/*var fn = rows.GetType()
-				.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-				.FirstOrDefault(x => x.Name.Contains("get_Item"));
+			if (it is Table t) { }
+		}*/
 
-			var res = (TableRow) fn.Invoke(rows, new Object[] { i-1 });
-			var en  = res.GetEnumerator();
-
-			while (en.MoveNext()) {
-				var it = en.Current;
-
-				AConsole.AlternateScreen(() =>
-				{
-					AC.Clear();
-					AC.Write(t);
-					AC.Confirm("");
-				});
-
-				if (it is Table t) { }
-			}*/
-
-			switch (i) { }
-
-		} while (true);
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
@@ -227,13 +183,82 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		// pt1.MaxValue = m_client.Engines.Length;
 
-		var run = await Client.RunSearchAsync(Query, token: m_cts.Token);
-		
+		var grid = new Grid();
+
+		grid.AddColumns(
+			new GridColumn() { Alignment = Justify.Left },
+			new GridColumn() { Alignment = Justify.Center },
+			new GridColumn() { Alignment = Justify.Right }
+		);
+
+		grid.AddRow([
+			new Text("Engine", new Style(Color.Red, decoration: Decoration.Bold | Decoration.Underline)),
+			new Text("Count", new Style(Color.Green, decoration: Decoration.Bold | Decoration.Underline)),
+			new Text("Status", new Style(Color.Blue, decoration: Decoration.Bold | Decoration.Underline))
+		]);
+
+		var live = AC.Live(grid)
+			.StartAsync(async (l) =>
+			{
+
+				Client.OnResult += OnResultComplete;
+
+				var run = Client.RunSearchAsync(Query, token: m_cts.Token);
+
+				await run;
+
+				Client.OnResult -= OnResultComplete;
+				return;
+
+				void OnResultComplete(object sender, SearchResult sr)
+				{
+					var rm = new ResultModel(sr) { };
+					m_results.Add(rm);
+					var i=(int) sr.Engine.EngineOption;
+
+					grid.AddRow([
+						new Text(sr.Engine.Name,
+						         new Style(Color.FromInt32(Math.Clamp(i%(int)byte.MaxValue,byte.MinValue,byte.MaxValue)),
+						                   decoration: Decoration.Italic)),
+
+						new Text($"{sr.Results.Count}",
+						         new Style(Color.Wheat1,
+						                   decoration: Decoration.None)),
+
+						new Text($"{sr.Status}",
+						         new Style(Color.Cyan1,
+						                   decoration: Decoration.None))
+					]);
+
+					/*m_resTable.Rows.Add(new IRenderable[]
+					{
+						new Text($"{rm.Id}"),
+						Markup.FromInterpolated($"[bold]{sr.Engine.Name}[/]"),
+						new Text($"{sr.Results.Count}")
+					});*/
+
+					l.Refresh();
+
+				}
+			});
+
+		await live;
+
 		if (settings.Interactive) {
 			await Interactive();
 		}
 
 		return 0;
+	}
+
+	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
+	{
+
+		var b = SearchQuery.IsValidSourceType(settings.Query);
+
+		return b ? ValidationResult.Success() : ValidationResult.Error();
+		// var v= base.Validate(context, settings);
+		// return v;
 	}
 
 	public void Dispose()

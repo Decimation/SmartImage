@@ -29,13 +29,15 @@ public abstract class BaseSearchEngine : IDisposable
 	/// </summary>
 	public virtual string Name => EngineOption.ToString();
 
-	public virtual Url      BaseUrl    { get; }
-	
-	public         bool     IsAdvanced { get; protected set; }
+	public virtual Url BaseUrl { get; }
 
-	public         TimeSpan Timeout    { get; set; } = TimeSpan.FromSeconds(3);
+	public bool IsAdvanced { get; protected set; }
 
-	protected long MaxSize { get; set; } = NA_SIZE;
+	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
+
+	public    TimeSpan Duration { get; protected set; }
+
+	protected long     MaxSize  { get; set; } = NA_SIZE;
 
 	protected virtual string[] ErrorBodyMessages { get; } = Array.Empty<string>();
 
@@ -104,7 +106,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 		return !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None;
 	}
-
+	
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 
