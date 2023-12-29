@@ -51,37 +51,8 @@ public sealed class SearchClient : IDisposable
 
 	static SearchClient()
 	{
-		var handler = new LoggingHttpMessageHandler(Logger)
-		{
-			InnerHandler = new HttpLoggingHandler(Logger)
-			{
-				InnerHandler = new HttpClientHandler()
-			}
-		};
-
-		Client = new FlurlClient(new HttpClient(handler), settings: Settings)
-		{
-
-		};
+		
 	}
-
-	public static FlurlClient Client { get; }
-
-	public static readonly FlurlHttpSettings Settings = new FlurlHttpSettings()
-	{
-		Redirects =
-		{
-			Enabled                    = true,
-			AllowSecureToInsecure      = true,
-			ForwardAuthorizationHeader = true,
-			MaxAutoRedirects           = 20
-		},
-		OnError = r =>
-		{
-			Debug.WriteLine($"exception: {r.Exception}");
-			r.ExceptionHandled = false;
-		}
-	};
 
 	[ModuleInitializer]
 	public static void Init()

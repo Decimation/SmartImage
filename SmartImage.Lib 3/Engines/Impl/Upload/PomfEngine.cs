@@ -11,6 +11,7 @@ namespace SmartImage.Lib.Engines.Impl.Upload;
 
 public sealed class PomfEngine : BaseUploadEngine
 {
+
 	public PomfEngine() : base("https://pomf.lain.la/upload.php") { }
 
 	public override long MaxSize => 1_000_000_000;
@@ -23,15 +24,13 @@ public sealed class PomfEngine : BaseUploadEngine
 	{
 		Verify(file);
 
-		var response = await EndpointUrl
+		var response = await Client.Request(EndpointUrl)
 			               .WithSettings(r =>
 			               {
-				               // r.Timeout = TimeSpan.FromSeconds(10);
-
-				               r.OnError = rx =>
-				               {
-					               rx.ExceptionHandled = true;
-				               };
+				               r.Timeout = TimeSpan.FromSeconds(10);
+			               }).OnError(r =>
+			               {
+				               r.ExceptionHandled = true;
 			               })
 			               .PostMultipartAsync(mp =>
 			               {
@@ -43,25 +42,29 @@ public sealed class PomfEngine : BaseUploadEngine
 		var bur = new UploadResult()
 		{
 			Value    = pr,
-			Size = pr.Files[0].Size,
+			Size     = pr.Files[0].Size,
 			Url      = pr.Files[0].Url,
-			IsValid = pr.Success,
+			IsValid  = pr.Success,
 			Response = response
 		};
 
 		return bur;
 	}
+
 }
 
 public sealed class PomfResult
 {
+
 	public bool Success { get; set; }
 
 	public PomfFileResult[] Files { get; set; }
+
 }
 
 public sealed class PomfFileResult
 {
+
 	public string Hash { get; set; }
 
 	public string Name { get; set; }
@@ -69,4 +72,5 @@ public sealed class PomfFileResult
 	public string Url { get; set; }
 
 	public long Size { get; set; }
+
 }

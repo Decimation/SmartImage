@@ -37,8 +37,13 @@ public sealed class Ascii2DEngine : WebSearchEngine
 	{
 		var  b = base.VerifyQuery(q);
 		bool b2;
+		bool ok = q.HasImage;
 
-		if (q.HasImage) {
+		if (!ok) {
+			ok = q.LoadImage();
+
+		}
+		if (ok) {
 			b2 = q.Image.Width < MAX_WIDTH;
 		}
 		else {
@@ -106,7 +111,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			{ new StringContent(origin), "uri" }
 		};
 
-		var res = await SearchClient.Client.Request(origin).AllowAnyHttpStatus()
+		var res = await Client.Request(origin).AllowAnyHttpStatus()
 			          .WithCookies(out var cj)
 			          .WithTimeout(Timeout)
 			          .WithHeaders(new

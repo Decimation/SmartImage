@@ -32,11 +32,4 @@ internal static class NetHelper
 			.Select(e => e.GetAttribute(attr));
 	}
 
-	public static Action<FlurlHttpSettings> Configure()
-	{
-		return r =>
-		{
-			r.OnError = SearchClient.Client.Settings.OnError;
-		};
-	}
 }

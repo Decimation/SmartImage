@@ -28,6 +28,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public class IqdbEngine : BaseSearchEngine, IEndpoint
 {
+
 	public virtual string EndpointUrl => "https://iqdb.org/";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
@@ -133,7 +134,13 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 	{
 
 		try {
-			var response = await EndpointUrl.WithSettings(NetHelper.Configure())
+			var response = await Client.Request(EndpointUrl)
+				               .OnError(r =>
+					               {
+						               Debug.WriteLine($"{r.Exception}");
+						               r.ExceptionHandled = true;
+					               }
+				               )
 				               .WithTimeout(Timeout)
 				               .PostMultipartAsync(m =>
 				               {
@@ -245,4 +252,5 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 	public override void Dispose() { }
 
 	#endregion
+
 }

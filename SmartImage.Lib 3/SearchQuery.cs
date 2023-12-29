@@ -60,14 +60,25 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
+	[MN]
+	public string FilePath { get; private set; }
+
+	[MNNW(true, nameof(FilePath))]
+	public bool HasFile => FilePath != null;
+
 	public bool LoadImage()
 	{
 		if (HasUni && Image == null) {
-			Image = Image.FromStream(Uni.Stream);
-			return true;
+			if (HasFile) {
+				Image = Image.FromFile(FilePath);
+			}
+			else if (OperatingSystem.IsWindows()) {
+				Image = Image.FromStream(Uni.Stream);
+			}
+
 		}
 
-		return false;
+		return HasImage;
 	}
 
 	public static async Task<SearchQuery> TryCreateAsync(string value, CancellationToken ct = default)
@@ -203,35 +214,57 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	#endregion
 
-	[MustUseReturnValue]
-	public async Task<(string, bool)> GetFilePathOrTempAsync(string fn = null)
+	public bool LoadFile(string fn = null)
 	{
+		if (!HasFile && HasUni) {
+			FilePath = GetFilePathOrTemp(fn);
+
+		}
+
+		return HasFile;
+	}
+
+	public bool DeleteFile()
+	{
+		if (File.Exists(FilePath)) {
+			File.Delete(FilePath);
+			FilePath = null;
+		}
+		return !HasFile;
+	}
+
+	[MustUseReturnValue]
+	[ItemCanBeNull]
+	public string GetFilePathOrTemp(string fn = null)
+	{
+		if (!HasUni) {
+			throw new InvalidOperationException($"{nameof(HasUni)} is {false}");
+		}
+
 		string t;
 		fn ??= Path.GetTempFileName();
-		bool b;
 
 		if (!Uni.IsFile) {
 			t = Path.Combine(Path.GetTempPath(), fn);
 
-			await using (var fs = File.Create(t)) {
-				var s = Uni.Stream.CanSeek;
+			using var fs = File.Create(t);
 
-				if (s) {
-					Uni.Stream.Position = 0;
-				}
+			var s = Uni.Stream.CanSeek;
 
-				await Uni.Stream.CopyToAsync(fs);
-				fs.Flush();
+			if (s) {
+				Uni.Stream.Position = 0;
 			}
 
-			b = true;
+			Uni.Stream.CopyTo(fs);
+			fs.Flush();
+
 		}
 		else {
 			t = Uni.Value.ToString();
-			b = false;
+			
 		}
 
-		return (t, b);
+		return t;
 	}
 
 }

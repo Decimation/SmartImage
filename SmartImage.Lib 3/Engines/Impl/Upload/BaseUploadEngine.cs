@@ -7,6 +7,8 @@ using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
+using Microsoft.Extensions.Http.Logging;
+using Microsoft.Extensions.Logging;
 using Novus.OS;
 using Novus.Utilities;
 using SmartImage.Lib.Results;
@@ -16,6 +18,7 @@ namespace SmartImage.Lib.Engines.Impl.Upload;
 
 public abstract class BaseUploadEngine : IEndpoint
 {
+
 	/// <summary>
 	/// Max file size, in bytes
 	/// </summary>
@@ -38,6 +41,35 @@ public abstract class BaseUploadEngine : IEndpoint
 	protected bool Paranoid { get; set; }
 
 	public TimeSpan Timeout { get; set; }
+
+	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseUploadEngine));
+
+	protected static FlurlClient Client { get; }
+
+	static BaseUploadEngine()
+	{
+		var handler = new LoggingHttpMessageHandler(Logger)
+		{
+			InnerHandler = new HttpLoggingHandler(Logger)
+			{
+				InnerHandler = new HttpClientHandler()
+			}
+		};
+
+		Client = new FlurlClient(new HttpClient(handler))
+		{
+			Settings =
+			{
+				Redirects =
+				{
+					Enabled                    = true,
+					AllowSecureToInsecure      = true,
+					ForwardAuthorizationHeader = true,
+					MaxAutoRedirects           = 20,
+				},
+			}
+		};
+	}
 
 	protected virtual async Task<UploadResult> ProcessResultAsync(
 		IFlurlResponse response, CancellationToken ct = default)
@@ -66,14 +98,15 @@ public abstract class BaseUploadEngine : IEndpoint
 		ok = true;
 
 		if (Paranoid) {
-			var r2 = await url.WithSettings(r =>
-			{
-				r.OnError = rx =>
-				{
-					// Debugger.Break();
-					rx.ExceptionHandled = true;
-				};
-			}).GetAsync(cancellationToken: ct);
+			var r2 = await Client.Request(url)
+				         .WithSettings(r =>
+				         {
+					         r.Timeout = Timeout;
+				         }).OnError(rx =>
+				         {
+					         // Debugger.Break();
+					         rx.ExceptionHandled = true;
+				         }).GetAsync(cancellationToken: ct);
 
 			if (r2 == null || r2.GetContentLength() == 0) {
 				ok = false;
@@ -85,9 +118,9 @@ public abstract class BaseUploadEngine : IEndpoint
 
 		return new()
 		{
-			Url     = url,
-			Size    = response.GetContentLength(),
-			IsValid = ok,
+			Url      = url,
+			Size     = response.GetContentLength(),
+			IsValid  = ok,
 			Response = response
 		};
 	}
@@ -106,33 +139,29 @@ public abstract class BaseUploadEngine : IEndpoint
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(InheritanceProperties.Subclass).ToArray();
 
-	/*public async Task<bool> IsAlive()
-	{
-		using var res = await ((IHttpClient) this).GetEndpointResponseAsync(Timeout);
+/*public async Task<bool> IsAlive()
+{
+	using var res = await ((IHttpClient) this).GetEndpointResponseAsync(Timeout);
 
-		return !res.ResponseMessage.IsSuccessStatusCode;
-	}*/
-
+	return !res.ResponseMessage.IsSuccessStatusCode;
+}*/
 	public static BaseUploadEngine Default { get; set; } = PomfEngine.Instance;
 
 	public void Dispose() { }
+
 }
 
 public abstract class BaseCatboxEngine : BaseUploadEngine
 {
+
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		Verify(file);
 
-		var response = await EndpointUrl
+		var response = await Client.Request(EndpointUrl)
 			               .WithSettings(r =>
 			               {
-				               // r.Timeout = TimeSpan.FromSeconds(10);
-
-				               r.OnError = rx =>
-				               {
-					               rx.ExceptionHandled = true;
-				               };
+				               r.Timeout = Timeout;
 			               })
 			               .WithHeaders(new
 			               {
@@ -150,4 +179,5 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 	}
 
 	protected BaseCatboxEngine(string s) : base(s) { }
+
 }

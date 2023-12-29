@@ -6,6 +6,10 @@ using System.Resources;
 using Novus.Utilities;
 using SmartImage.Lib.Results;
 using AngleSharp.Dom;
+using Flurl.Http;
+using Microsoft.Extensions.Http.Logging;
+using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines;
 #nullable enable
@@ -41,7 +45,34 @@ public abstract class BaseSearchEngine : IDisposable
 		IsAdvanced = true;
 	}
 
-	static BaseSearchEngine() { }
+	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
+
+	protected static FlurlClient Client { get; }
+
+	static BaseSearchEngine()
+	{
+		var handler = new LoggingHttpMessageHandler(Logger)
+		{
+			InnerHandler = new HttpLoggingHandler(Logger)
+			{
+				InnerHandler = new HttpClientHandler()
+			}
+		};
+
+		BaseSearchEngine.Client = new FlurlClient(new HttpClient(handler))
+		{
+			Settings =
+			{
+				Redirects =
+				{
+					Enabled                    = true,
+					AllowSecureToInsecure      = true,
+					ForwardAuthorizationHeader = true,
+					MaxAutoRedirects           = 20,
+				},
+			}
+		};
+	}
 
 	public override string ToString()
 	{

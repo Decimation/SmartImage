@@ -49,7 +49,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
 		Root obj = null;
 
 		try {
-			var s = await SearchClient.Client.Request(EndpointUrl).SetQueryParams(new
+			var s = await Client.Request(EndpointUrl).SetQueryParams(new
 			{
 
 				filter               = true,

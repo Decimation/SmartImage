@@ -1,9 +1,16 @@
 ﻿using Kantan.Text;
+using Microsoft.Extensions.DependencyInjection;
 using SmartImage.Rdx.Cli;
 using Spectre.Console;
 using Spectre.Console.Cli;
+using Microsoft.Extensions.Hosting;
 
 namespace SmartImage.Rdx;
+
+// dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
+// dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
+// dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
+// dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
 
 public static class Program
 {
@@ -14,16 +21,14 @@ public static class Program
 
 	public static async Task<int> Main(string[] args)
 	{
-		// dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
-		// dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
-		// dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
-		// dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
 
-		var fs = R2.ResourceManager.GetObject(nameof(R2.Fg_larry3d));
+		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
-		var fg = new FigletText(FigletFont.Load(new MemoryStream((byte[]) fs)), R1.Name)
+		// ms?.Dispose();
+
+		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
-			.Color(new Color(0x80, 0xFF, 0x80));
+			.Color(CliFormat.Color1);
 
 		AC.Write(fg);
 
@@ -47,7 +52,12 @@ public static class Program
 		AC.WriteLine($"OS: {os} {Environment.OSVersion} | {Environment.Version}");
 
 		var app = new CommandApp<SearchCommand>();
-		app.Configure(c => { });
+
+		app.Configure(c =>
+		{
+		
+			//...
+		});
 
 		var x = await app.RunAsync(args);
 
@@ -55,3 +65,7 @@ public static class Program
 	}
 
 }
+
+class SearchConfigCli : ISearchConfig { }
+
+interface ISearchConfig { }

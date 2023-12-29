@@ -69,7 +69,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 		try {
 
-			var res = await SearchClient.Client.Request(sr.RawUrl)
+			var res = await Client.Request(sr.RawUrl)
 				          .AllowAnyHttpStatus()
 				          .WithCookies(out var cj)
 				          .WithTimeout(Timeout)

@@ -197,10 +197,25 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	                                                          CancellationToken token = default)
 	{
 		const string name = "a.jpg";
+		string       t    = null;
+		if (query.HasFile) {
+			t = query.FilePath;
 
-		(string t, bool b) = await query.GetFilePathOrTempAsync(name);
+			if (Path.GetFileName(t) != name) {
+				Debugger.Break();
+			}
+		}
+		else {
+			var ok = query.LoadFile(name);
+			if (ok) {
+				t = query.FilePath;
+			}
+			else {
+				Debugger.Break();
+			}
+		}
 
-		if (b) {
+		if (t != null) {
 			Trace.WriteLine($"allocated {t}", nameof(GetDocumentAsync));
 		}
 
