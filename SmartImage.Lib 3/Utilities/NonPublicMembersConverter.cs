@@ -10,45 +10,42 @@ namespace SmartImage.Lib.Utilities;
 #pragma warning disable CS0649
 public class NonPublicMembersConverter<T> : JsonConverter<T> where T : class
 {
-    public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        T instance = (T)Activator.CreateInstance(typeToConvert, nonPublic: true);
 
-        while (reader.Read())
-        {
-            if (reader.TokenType == JsonTokenType.EndObject)
-            {
-                break;
-            }
+	public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+	{
+		T instance = (T) Activator.CreateInstance(typeToConvert, nonPublic: true);
 
-            if (reader.TokenType != JsonTokenType.PropertyName)
-            {
-                throw new JsonException();
-            }
+		while (reader.Read()) {
+			if (reader.TokenType == JsonTokenType.EndObject) {
+				break;
+			}
 
-            string propertyName = reader.GetString();
+			if (reader.TokenType != JsonTokenType.PropertyName) {
+				throw new JsonException();
+			}
 
-            PropertyInfo propertyInfo =
-                typeToConvert.GetProperty(propertyName,
-                                          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+			string propertyName = reader.GetString();
 
-            if (propertyInfo != null && propertyInfo.CanWrite)
-            {
-                reader.Read(); // Move to the property value
-                object value = JsonSerializer.Deserialize(ref reader, propertyInfo.PropertyType, options);
-                propertyInfo.SetValue(instance, value);
-            }
-            else
-            {
-                reader.Skip();
-            }
-        }
+			PropertyInfo propertyInfo =
+				typeToConvert.GetProperty(propertyName,
+				                          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
-        return instance;
-    }
+			if (propertyInfo != null && propertyInfo.CanWrite) {
+				reader.Read(); // Move to the property value
+				object value = JsonSerializer.Deserialize(ref reader, propertyInfo.PropertyType, options);
+				propertyInfo.SetValue(instance, value);
+			}
+			else {
+				reader.Skip();
+			}
+		}
 
-    public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
-    {
-        JsonSerializer.Serialize(writer, value, options);
-    }
+		return instance;
+	}
+
+	public override void Write(Utf8JsonWriter writer, T value, JsonSerializerOptions options)
+	{
+		JsonSerializer.Serialize(writer, value, options);
+	}
+
 }

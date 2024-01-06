@@ -44,7 +44,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		}
 		if (ok) {
-			b2 = q.Image.Width < MAX_WIDTH;
+			b2 = q.ImageInfo.Width < MAX_WIDTH;
 		}
 		else {
 			b2 = true;

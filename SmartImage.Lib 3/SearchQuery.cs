@@ -2,6 +2,7 @@
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
+global using ISImage=SixLabors.ImageSharp.Image;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -10,6 +11,8 @@ using System.Security.Cryptography;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.FileTypes;
+using Novus.Streams;
+using SixLabors.ImageSharp;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Utilities;
@@ -55,10 +58,10 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	static SearchQuery() { }
 
 	[MN]
-	public Image Image { get; private set; }
+	public ImageInfo ImageInfo { get; private set; }
 
-	[MNNW(true, nameof(Image))]
-	public bool HasImage => Image != null;
+	[MNNW(true, nameof(ImageInfo))]
+	public bool HasImage => ImageInfo != null;
 
 	[MN]
 	public string FilePath { get; private set; }
@@ -68,16 +71,17 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public bool LoadImage()
 	{
-		if (HasUni && Image == null) {
+		if (HasUni && ImageInfo == null) {
 			if (HasFile) {
-				Image = Image.FromFile(FilePath);
+				ImageInfo = ISImage.Identify(FilePath);
 			}
 			else if (OperatingSystem.IsWindows()) {
-				Image = Image.FromStream(Uni.Stream);
+				Uni.Stream.TrySeek();
+				ImageInfo = ISImage.Identify(Uni.Stream);
 			}
 
 		}
-
+		
 		return HasImage;
 	}
 
@@ -168,7 +172,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public void Dispose()
 	{
 		Uni?.Dispose();
-		Image?.Dispose();
+		// ImageInfo?.Dispose();
 		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 	}
 

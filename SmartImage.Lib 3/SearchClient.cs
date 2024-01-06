@@ -88,8 +88,9 @@ public sealed class SearchClient : IDisposable
 	/// <param name="reload"></param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
-	                                                 CancellationToken token = default)
+	                                                 CancellationToken token = default, TaskScheduler scheduler = default)
 	{
+		scheduler??= TaskScheduler.Default;
 		if (!query.IsUploaded) {
 			throw new ArgumentException($"Query was not uploaded", nameof(query));
 		}
@@ -105,7 +106,7 @@ public sealed class SearchClient : IDisposable
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
-		var tasks = GetSearchTasks(query, token);
+		var tasks = GetSearchTasks(query, token, scheduler);
 
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
@@ -216,7 +217,7 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
+	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token, TaskScheduler scheduler)
 	{
 
 		var tasks = Engines.Select(e =>
@@ -226,9 +227,10 @@ public sealed class SearchClient : IDisposable
 			var res = e.GetResultAsync(query, token)
 				.ContinueWith( (r) =>
 				{
+					Debug.Assert(r.IsCompleted);
 					ProcessResult(r.Result);
 					return r.Result;
-				}, token);
+				}, token, continuationOptions: TaskContinuationOptions.None, scheduler);
 
 			return res;
 		}).ToList();

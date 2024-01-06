@@ -71,8 +71,8 @@ public abstract class BaseUploadEngine : IEndpoint
 		};
 	}
 
-	protected virtual async Task<UploadResult> ProcessResultAsync(
-		IFlurlResponse response, CancellationToken ct = default)
+	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
+	                                                              CancellationToken ct = default)
 	{
 		string url = null;
 		bool   ok;

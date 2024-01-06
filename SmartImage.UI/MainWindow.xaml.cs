@@ -177,10 +177,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	private void OnValidationRaised(object sender, RoutedEventArgs e)
-	{
-
-	}
+	private void OnValidationRaised(object sender, RoutedEventArgs e) { }
 
 	private static readonly ILogger Logger = LoggerFactory
 		.Create(builder => builder.AddDebug().AddProvider(new DebugLoggerProvider()))
@@ -891,7 +888,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// HandleQueryAsync();
 		try {
-			var r = await Client.RunSearchAsync(Query, reload: false, token: m_cts.Token);
+			var r = await Client.RunSearchAsync(Query, reload: false, token: m_cts.Token,
+			                                    scheduler: TaskScheduler.FromCurrentSynchronizationContext());
 
 		}
 		catch (Exception e) {
