@@ -19,6 +19,8 @@ using SmartImage.Lib.Utilities;
 using Spectre.Console.Rendering;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Novus.Streams;
+using SixLabors.ImageSharp.Processing;
 
 namespace SmartImage.Rdx.Cli;
 
@@ -94,6 +96,9 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var choices = new SelectionPrompt<string>()
 			.Title("Engine")
 			.AddChoices(select.Keys);
+		
+		choices.AddChoice("Quit");
+		choices.AddChoice("...");
 
 		string prompt = null;
 		// AC.Write(m_resTable);
@@ -105,6 +110,26 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 				AC.Clear();
 				AC.Write(v.Table);
+
+			}
+			else {
+				var stream = Query.Uni.Stream;
+				stream.TrySeek(0);
+				// Create the layout
+				var layout = new Layout("Root")
+					.SplitColumns(
+						new Layout("Left"),
+						new Layout("Right")
+							.SplitRows(
+								new Layout("Top"),
+								new Layout("Bottom")));
+
+				// Update the left column
+				layout["Left"].Update(
+					new Panel(new CanvasImage(stream))
+						.Expand());
+				AC.Clear();
+				AC.Write(layout);
 
 			}
 		}
@@ -140,6 +165,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				var p = ctx.AddTask("Creating query");
 				p.IsIndeterminate = true;
 				Query             = await SearchQuery.TryCreateAsync(settings.Query);
+				
 				p.Increment(50);
 				ctx.Refresh();
 
@@ -214,12 +240,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				{
 					var rm = new ResultModel(sr) { };
 					m_results.Add(rm);
-					var i=(int) sr.Engine.EngineOption;
+					var i = (int) sr.Engine.EngineOption;
 
 					grid.AddRow([
 						new Text(sr.Engine.Name,
-						         new Style(Color.FromInt32(Math.Clamp(i%(int)byte.MaxValue,byte.MinValue,byte.MaxValue)),
-						                   decoration: Decoration.Italic)),
+						         new Style(
+							         Color.FromInt32(Math.Clamp(i % (int) byte.MaxValue, byte.MinValue, byte.MaxValue)),
+							         decoration: Decoration.Italic)),
 
 						new Text($"{sr.Results.Count}",
 						         new Style(Color.Wheat1,

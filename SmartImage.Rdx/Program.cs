@@ -1,4 +1,5 @@
-﻿using Kantan.Text;
+﻿using System.Diagnostics;
+using Kantan.Text;
 using Microsoft.Extensions.DependencyInjection;
 using SmartImage.Rdx.Cli;
 using Spectre.Console;
@@ -21,7 +22,8 @@ public static class Program
 
 	public static async Task<int> Main(string[] args)
 	{
-
+		Debug.WriteLine(AC.Profile.Height);
+		Debug.WriteLine(Console.BufferHeight);
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		// ms?.Dispose();

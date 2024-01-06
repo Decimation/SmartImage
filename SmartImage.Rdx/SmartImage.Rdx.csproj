@@ -25,12 +25,13 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="8.0.0-preview.7.23375.6" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.1" />
-    <PackageReference Include="Spectre.Console" Version="0.48.1-preview.0.1" />
-    <PackageReference Include="Spectre.Console.Analyzer" Version="0.48.1-preview.0.1">
+    <PackageReference Include="Spectre.Console" Version="0.48.1-preview.0.9" />
+    <PackageReference Include="Spectre.Console.Analyzer" Version="0.48.1-preview.0.9">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Spectre.Console.Cli" Version="0.48.1-preview.0.1" />
+    <PackageReference Include="Spectre.Console.Cli" Version="0.48.1-preview.0.9" />
+    <PackageReference Include="Spectre.Console.ImageSharp" Version="0.48.1-preview.0.9" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1-preview.1" />
   </ItemGroup>
@@ -45,6 +46,9 @@
     </Reference>
     <Reference Include="Kantan.Net">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Novus">
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net8.0\Novus.dll</HintPath>
     </Reference>
     <!--
     <Reference Include="Novus">
