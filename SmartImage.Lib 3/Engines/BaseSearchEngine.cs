@@ -87,7 +87,7 @@ public abstract class BaseSearchEngine : IDisposable
 			return false;
 		}
 
-		bool b, b2;
+		bool b;
 
 		if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {
 			b = true;

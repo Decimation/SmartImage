@@ -171,17 +171,17 @@
                     </Grid.ColumnDefinitions>
                     <Label x:Name="Lb_Input" Content="Input" HorizontalAlignment="Left" Margin="4,5,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White" Padding="5,5,5,5"
-                           Background="{DynamicResource Black3}" Width="50" HorizontalContentAlignment="Center" />
+                           Background="{DynamicResource Black3}" Width="55" HorizontalContentAlignment="Center" />
 
                     <!--TextChanged="Tb_Input_TextChanged" TextInput="Tb_Input_TextInput"-->
-                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="57,8,0,0" VerticalAlignment="Top"
+                    <TextBox x:Name="Tb_Input" HorizontalAlignment="Left" Margin="64,8,0,0" VerticalAlignment="Top"
                              Width="435" Height="20"
                              Drop="Tb_Input_Drop" DragOver="Tb_Input_DragOver"
                              PreviewDragOver="Tb_Input_PreviewDragOver" IsReadOnly="False"
                              TextChanged="Tb_Input_OnTextChanged"
                              Text="{Binding Input, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="499,8,0,0"
+                    <Button x:Name="Btn_Run" Content="Run" HorizontalAlignment="Left" Margin="505,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Run_Click" Height="20" FontWeight="Bold"
                             Loaded="Btn_Run_Loaded" Width="35" ToolTip="Run search" IsEnabled="False">
 
@@ -216,7 +216,7 @@
                         </Button.Style>
                     </Button>
 
-                    <Button x:Name="Btn_Reload" Content="Reload" HorizontalAlignment="Left" Margin="539,8,0,0"
+                    <Button x:Name="Btn_Reload" Content="Reload" HorizontalAlignment="Left" Margin="545,8,0,0"
                             VerticalAlignment="Top" Click="Btn_Reload_Click"
                             MouseEnter="Btn_Reload_MouseEnter"
                             MouseLeave="Btn_Reload_MouseLeave" Width="49" Height="20"
@@ -257,8 +257,8 @@
 
                     <Button x:Name="Btn_Cancel"
                             BorderBrush="{DynamicResource Border2}" Content="Cancel"
-                            HorizontalAlignment="Left" Margin="593,8,0,0" ToolTip="Cancel current operation(s)"
-                            VerticalAlignment="Top" Click="Btn_Cancel_Click" Height="20" Width="39">
+                            HorizontalAlignment="Left" Margin="599,8,0,0" ToolTip="Cancel current operation(s)"
+                            VerticalAlignment="Top" Click="Btn_Cancel_Click" Height="20" Width="39" Grid.ColumnSpan="2">
 
                         <Button.Style>
                             <Style TargetType="{x:Type Button}">
@@ -292,7 +292,7 @@
 
                     </Button>
                     <Button x:Name="Btn_Remove" Content="Remove"
-                            HorizontalAlignment="Left" Margin="5,8,0,0" VerticalAlignment="Top"
+                            HorizontalAlignment="Left" Margin="48,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Remove_Click" Height="20" Width="46" ToolTip="Remove query from queue"
                             IsEnabled="{Binding Path=CurrentQuery.HasValue, ElementName=Wnd_Main}"
                             Grid.Column="1">
@@ -329,7 +329,7 @@
 
                     </Button>
                     <Button x:Name="Btn_Delete" Content="Delete"
-                            HorizontalAlignment="Left" Margin="56,8,0,0" VerticalAlignment="Top"
+                            HorizontalAlignment="Left" Margin="98,8,0,0" VerticalAlignment="Top"
                             Click="Btn_Delete_Click" Height="20" Width="39" ToolTip="Delete query file (Recycle Bin)"
                             IsEnabled="{Binding Path=CurrentQuery.CanDelete, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}"
                             Grid.Column="1">
@@ -514,9 +514,9 @@
 
                     <Label x:Name="Lb_Upload" Content="Upload" HorizontalAlignment="Left" Margin="4,34,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White"
-                           Background="{DynamicResource Black3}" Width="50" HorizontalContentAlignment="Center" />
+                           Background="{DynamicResource Black3}" Width="55" HorizontalContentAlignment="Center" />
 
-                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="57,37,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="64,37,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="435" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black"
                              Text="{Binding CurrentQuery.Query.Upload, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, 
@@ -524,35 +524,35 @@
 
                     </TextBox>
 
-                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="501,0,0,0"
+                    <Button x:Name="Btn_Clear" Content="Clear" HorizontalAlignment="Left" Margin="505,0,0,0"
                             VerticalAlignment="Center" Height="20" Click="Btn_Clear_Click"
                             ToolTip="Clear query &amp; results" IsEnabled="{Binding CurrentQuery.IsComplete}" />
 
-                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="539,0,0,0"
+                    <Button x:Name="Btn_Reset" Content="Reset" HorizontalAlignment="Left" Margin="543,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Reset_Click" Width="41" Height="20"
                             ToolTip="Reload &amp; reset state" />
 
-                    <Button x:Name="Btn_Browse" Content="Browse" HorizontalAlignment="Left" Margin="623,0,0,0"
-                            VerticalAlignment="Center" Click="Btn_Browse_Click" Height="20" Grid.ColumnSpan="2"
-                            ToolTip="Browse for input(s)" />
+                    <Button x:Name="Btn_Browse" Content="Browse" HorizontalAlignment="Left" Margin="28,0,0,0"
+                            VerticalAlignment="Center" Click="Btn_Browse_Click" Height="20"
+                            ToolTip="Browse for input(s)" Grid.Column="1" />
 
                     <Label x:Name="Lb_Info" Content="Info" HorizontalAlignment="Left" Margin="4,62,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White"
-                           Background="{DynamicResource Black3}" HorizontalContentAlignment="Center" Width="50" />
+                           Background="{DynamicResource Black3}" HorizontalContentAlignment="Center" Width="55" />
 
-                    <TextBox x:Name="Tb_Info_Type" HorizontalAlignment="Left" Margin="57,65,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_Info_Type" HorizontalAlignment="Left" Margin="64,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
                              Text="{Binding CurrentQuery.Query.Uni.FileType, Mode=OneWay,
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, ElementName=Wnd_Main, IsAsync=True}" />
 
-                    <TextBox x:Name="Tb_Info_Size" HorizontalAlignment="Left" Margin="210,65,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_Info_Size" HorizontalAlignment="Left" Margin="217,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
                              Text="{Binding CurrentQuery.Query.Uni.Stream.Length, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, Converter={StaticResource unitConverter}}" />
 
-                    <TextBox x:Name="Tb_Info_Dim" HorizontalAlignment="Left" Margin="362,65,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_Info_Dim" HorizontalAlignment="Left" Margin="369,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
                              Text="{Binding CurrentQuery.DimensionString, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
@@ -662,9 +662,9 @@
 
                     </ListView>
 
-                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="10,28,0,0"
-                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1"
-                               Text="{Binding CurrentQuery.Status, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" />
+                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="30,96,0,0"
+                               VerticalAlignment="Top" Foreground="White" FontStyle="Italic"
+                               Text="{Binding CurrentQuery.Status, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" Grid.Column="1" Grid.Row="1" />
 
                     <!--
                     <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="95,28,0,0"
@@ -676,9 +676,9 @@
                     <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="48,5,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" />
 
-                    <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="585,0,0,0"
+                    <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="589,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Filter_Click"
-                            IsEnabled="{Binding CurrentQuery.IsComplete}" />
+                            IsEnabled="{Binding CurrentQuery.IsComplete}" Grid.ColumnSpan="2" />
 
                     <TextBox x:Name="Tb_Search" HorizontalAlignment="Right" Margin="0,46,499,0" Grid.Row="1"
                              TextWrapping="Wrap" VerticalAlignment="Top" Width="158"
@@ -703,40 +703,50 @@
                     <ProgressBar x:Name="Pb_Preview" Grid.Column="1" HorizontalAlignment="Right" Height="10"
                                  Margin="0,105,174,0" Grid.Row="1" VerticalAlignment="Top" Width="320"
                                  Value="{Binding CurrentResult.PreviewProgress}" />
-                
-                    <Label x:Name="Lb_SelUrl" Content="Item" HorizontalAlignment="Left" Margin="4,59,0,0"
+
+                    <Label x:Name="Lb_SelMainUrl" Content="Item" HorizontalAlignment="Left" Margin="4,59,0,0"
                            VerticalAlignment="Top" Height="26" Foreground="White"
-                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="50" HorizontalContentAlignment="Center"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="55" HorizontalContentAlignment="Center"
                            Grid.Row="1" FontWeight="Bold" />
 
-                    <TextBox x:Name="Tb_SelUrl" HorizontalAlignment="Left" Margin="57,61,0,0"
+                    <TextBox x:Name="Tb_SelMainUrl" HorizontalAlignment="Left" Margin="64,61,0,0"
                              VerticalAlignment="Top" Width="435" IsReadOnly="True" Height="20" Foreground="White" Background="Black"
                              Text="{Binding CurrentResult.Result.Url, Converter={StaticResource urlConverter}, ElementName=Wnd_Main, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                              Grid.Row="1" MouseDoubleClick="Tb_SelUrl_MouseDoubleClick" />
 
                     <Label x:Name="Lb_SelInfo" Content="Info" HorizontalAlignment="Left" Margin="4,87,0,0"
                            VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White"
-                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" HorizontalContentAlignment="Center" Width="50"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" HorizontalContentAlignment="Center" Width="55"
                            Grid.Row="1" />
 
-                    <TextBox x:Name="Tb_SelInfo_Type" HorizontalAlignment="Left" Margin="57,89,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_SelInfo_Type" HorizontalAlignment="Left" Margin="64,89,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
                              Text="{Binding CurrentResult.Status, ElementName=Wnd_Main, FallbackValue={x:Null}, IsAsync=True, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                              Grid.Row="1" />
 
-                    <TextBox x:Name="Tb_SelInfo_Size" HorizontalAlignment="Left" Margin="210,89,0,0"
+                    <TextBox x:Name="Tb_SelInfo_Size" HorizontalAlignment="Left" Margin="217,89,0,0"
                              TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
                              Text="..."
                              Grid.Row="1" />
 
-                    <TextBox x:Name="Tb_SelInfo_Dim" HorizontalAlignment="Left" Margin="362,89,0,0" TextWrapping="Wrap"
+                    <TextBox x:Name="Tb_SelInfo_Dim" HorizontalAlignment="Left" Margin="369,89,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
                              Text="{Binding CurrentResult.DimensionString, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
                              Grid.Row="1" />
+
+                    <Label x:Name="Lb_SelPrevUrl" Content="Preview" HorizontalAlignment="Left" Margin="4,31,0,0"
+                        VerticalAlignment="Top" Height="26" Foreground="White"
+                        Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="55" HorizontalContentAlignment="Center"
+                        Grid.Row="1" FontWeight="Bold" />
+
+                    <TextBox x:Name="Tb_SelPrevUrl" HorizontalAlignment="Left" Margin="64,34,0,0"
+                        VerticalAlignment="Top" Width="434" IsReadOnly="True" Height="20" Foreground="White" Background="Black"
+                        Text="{Binding CurrentResult.Result.Thumbnail, Converter={StaticResource urlConverter}, ElementName=Wnd_Main, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                        Grid.Row="1" MouseDoubleClick="Tb_SelPrevUrl_MouseDoubleClick" />
 
                 </Grid>
             </TabItem>

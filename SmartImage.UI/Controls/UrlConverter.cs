@@ -11,7 +11,7 @@ namespace SmartImage.UI.Controls;
 [ValueConversion(typeof(Url), typeof(String))]
 public class UrlConverter : IValueConverter
 {
-	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value == null) {
 			return null;
@@ -21,7 +21,7 @@ public class UrlConverter : IValueConverter
 		return date.ToString();
 	}
 
-	public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		if (value == null) {
 			return null;

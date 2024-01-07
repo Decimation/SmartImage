@@ -13,7 +13,7 @@ namespace SmartImage.UI.Controls;
 internal class UnitStringConverter : IValueConverter
 {
 
-	public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		var val   = (long) value;
 		var bytes = FormatHelper.FormatBytes(val);
@@ -21,7 +21,7 @@ internal class UnitStringConverter : IValueConverter
 		return bytes;
 	}
 
-	public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		return null;
 	}

@@ -129,16 +129,15 @@ public partial class MainWindow
 
 	public bool SetQueue(string s)
 	{
-		var x = FindQueue(s);
+		var qm = FindQueue(s);
 
-		var b = x == null;
+		var b = qm == null;
 
 		if (b) {
-			x = new QueryModel(s);
-			Queue.Add(x);
+			qm = new QueryModel(s);
+			Queue.Add(qm);
+			CurrentQuery = qm;
 		}
-
-		CurrentQuery = x;
 
 		return b;
 	}

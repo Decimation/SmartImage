@@ -6,6 +6,10 @@
     "Profile 1": {
       "commandName": "Project",
       "commandLineArgs": "-i \"C:\\Users\\Deci\\Pictures\\Epic anime\\01a(1).jpg\" -as"
+    },
+    "Profile 2": {
+      "commandName": "Project",
+      "commandLineArgs": "-i \"C:\\Users\\Deci\\Pictures\\Epic anime\\01a(1).jpg\" -as"
     }
   }
 }

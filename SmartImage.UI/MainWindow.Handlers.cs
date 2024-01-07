@@ -393,15 +393,16 @@ public partial class MainWindow
 	{
 		if (e.AddedItems.Count > 0) {
 
-			var           ai = e.AddedItems[0];
-			var           ri = ai as ResultItem;
-			
-			var           b = ri is UniResultItem uri;
+			var ai = e.AddedItems[0];
+			var ri = ai as ResultItem;
+
+			var b = ri is UniResultItem uri;
 
 			if (b || (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe)) {
 				if (b) {
-					ri = (UniResultItem)ri;
+					ri = (UniResultItem) ri;
 				}
+
 				SetPreview(ri);
 				CheckMedia();
 			}
@@ -456,7 +457,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 						}
 						*/
 							Me_Preview.Play();
-							
+
 							ShowMedia       = true;
 							Tb_Preview.Text = $"Preview: {ri.Name}";
 							// m_us2.Release();
@@ -692,7 +693,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 	{
 		Debug.WriteLine("Main closing");
 
-		foreach ((string? key, string? value) in FileCache) {
+		foreach ((string key, string value) in FileCache) {
 			Debug.WriteLine($"Deleting {key}={value}");
 			File.Delete(value);
 		}
@@ -754,13 +755,14 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	#endregion
 
-	#region 
+	#region
 
 	private void Img_Preview_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 	{
 		if (!ShowMedia) {
 			SetPreviewToCurrentQuery();
 		}
+
 		e.Handled = true;
 
 	}
@@ -868,6 +870,15 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 		Dispatcher.InvokeAsync(FilterResultsAsync);
 		e.Handled = true;
 	}
+
+	private void Tb_SelPrevUrl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+		if (CurrentResult.IsThumbnail.HasValue && CurrentResult.IsThumbnail.Value) {
+			FileSystem.Open(CurrentResult.Result.Thumbnail);
+
+		}
+	}
+
 	private void Tb_SelUrl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
 

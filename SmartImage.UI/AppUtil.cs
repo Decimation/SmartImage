@@ -285,6 +285,23 @@ internal static class AppUtil
 		mse /= (width * height);
 		return mse;
 	}
+
+	[AM]
+	[CA("null => halt")]
+	private static void Assert1(object o)
+	{
+		var b = o != null;
+
+		Trace.Assert(b, $"{nameof(o)} was {null}!");
+	}
+
+	[AM]
+	[CA("false => halt")]
+	public static void Assert2(bool b)
+	{
+		Trace.Assert(b, $"{b} was {false}!");
+	}
+
 }
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]

@@ -201,7 +201,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	{
 		Label = $"Preview cache complete";
 
-		if (Image.CanFreeze) {
+		if (Image is { CanFreeze: true }) {
 			Image.Freeze();
 		}
 
@@ -281,6 +281,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	public virtual void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		Debug.WriteLine($"Disposing {Name}");
 		Result.Dispose();
 		Image = null;
@@ -396,8 +397,8 @@ public class UniResultItem : ResultItem
 
 	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
-		PreviewProgress = ((float) args.Progress * 100.0f);
-		Label           = $"Download progress...";
+		PreviewProgress = (args.Progress * 100.0f);
+		Label           = "Download progress...";
 	}
 
 	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
@@ -411,7 +412,7 @@ public class UniResultItem : ResultItem
 		Label       = $"Download complete";
 		IsThumbnail = false;
 
-		if (Image.CanFreeze) {
+		if (Image is { CanFreeze: true }) {
 			Image.Freeze();
 		}
 	}
@@ -422,11 +423,13 @@ public class UniResultItem : ResultItem
 			Image = new BitmapImage()
 				{ };
 			Image.BeginInit();
+			Trace.Assert(Uni != null);
+
 			Image.StreamSource = Uni.Stream;
 			// Image.StreamSource = Uni.Stream;
 			// m_image.StreamSource   = Query.Uni.Stream;
 			// Image.CacheOption    = BitmapCacheOption.OnLoad;
-			Image.CacheOption    = BitmapCacheOption.OnDemand;
+			Image.CacheOption = BitmapCacheOption.OnDemand;
 			// Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
@@ -444,6 +447,7 @@ public class UniResultItem : ResultItem
 	public override async Task<string> DownloadAsync(string? dir = null, bool exp = true)
 	{
 		string path;
+		Trace.Assert(Uni != null);
 
 		if (Uni.IsStream) {
 			path = Url;
@@ -467,7 +471,7 @@ public class UniResultItem : ResultItem
 			FileSystem.ExploreFile(path2);
 		}
 
-		fs.Dispose();
+		await fs.DisposeAsync();
 		CanDownload = false;
 		Download    = path2;
 
@@ -479,6 +483,7 @@ public class UniResultItem : ResultItem
 
 	public override void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		base.Dispose();
 
 		Uni?.Dispose();

@@ -29,14 +29,14 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 {
 
 	//todo
-	private string m_value;
+	private string? m_value;
 
 	public string DimensionString
 	{
 		get => ControlsHelper.FormatDimensions(Width, Height);
 	}
 
-	public string Value
+	public string? Value
 	{
 		get => m_value;
 		set
@@ -117,7 +117,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public bool IsComplete => Results.Any() && HasQuery && Query.IsUploaded;
 
-	public bool CanDelete => HasQuery && Query.Uni.IsFile;
+	public bool CanDelete => HasQuery && Query?.Uni is { IsFile: true };
 
 	public bool CanSearch => !Results.Any() && HasInitQuery;
 
@@ -141,7 +141,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	public QueryModel(string value)
 	{
 		Value         = value;
-		Results       = new ObservableCollection<ResultItem>();
+		Results       = [];
 		ResultsBackup = null;
 		Query         = SearchQuery.Null;
 		Status        = null;
@@ -237,8 +237,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		LoadAttempts++;
 
-		bool b2;
-
 		// bool queryExists = b2 = m_queries.TryGetValue(query, out var existingQuery);
 
 		Status2 = null;
@@ -293,8 +291,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	{
 		Url upload = null;
 		Status = "Uploading...";
-		var    msg  = "Server timed out or input was invalid";
-		string emsg = null;
+		const string TIMEOUT_MSG = "Server timed out or input was invalid";
+		string?      emsg        = null;
 
 		if (!HasQuery) {
 			goto ret;
@@ -315,9 +313,10 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			// Btn_Delete.IsEnabled      = true;
 
 			Status  = "-";
-			Status2 = msg;
+			Status2 = TIMEOUT_MSG;
 
-			var res = MessageBox.Show($"{emsg}\nChoose a different server then click [Reload].", "Failed to upload",
+			var res = MessageBox.Show($"{emsg}\nChoose a different server then click [Reload].", 
+			                          "Failed to upload",
 			                          MessageBoxButtons.OK, MessageBoxIcon.Error);
 			return false;
 			// return;
@@ -342,6 +341,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			goto ret;
 		}
 
+		Trace.Assert(HasQuery);
+
 		Image = new BitmapImage()
 			{ };
 		Image.BeginInit();
@@ -351,6 +352,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 
 		Image.EndInit();
+
+		Trace.Assert(Query.Uni != null);
 
 		if (Query.Uni.IsUri) {
 			Image.DownloadCompleted += (sender, args) =>
@@ -412,6 +415,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public void Dispose()
 	{
+		GC.SuppressFinalize(this);
 
 		ClearResults();
 

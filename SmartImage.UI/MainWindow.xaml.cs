@@ -1,4 +1,8 @@
-﻿global using Clipboard2 = Novus.Win32.Clipboard;
+﻿global using ACT = JetBrains.Annotations.AssertionConditionType;
+global using AC = JetBrains.Annotations.AssertionConditionAttribute;
+global using AM = JetBrains.Annotations.AssertionMethodAttribute;
+global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
+global using Clipboard2 = Novus.Win32.Clipboard;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -94,12 +98,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// CurrentQueueItem = new ResultModel();
 		// Query            = SearchQuery.Null;
 
-		Queue = new()
-		{
-			// ResultModel.Nil
-			// CurrentQueueItem
-			new QueryModel()
-		};
+		Queue        = [new QueryModel()];
 		CurrentQuery = Queue[0];
 
 		// QueueSelectedIndex = 0;
@@ -113,7 +112,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lb_Engines.HandleEnum(Config.SearchEngines);
 		Lb_Engines2.HandleEnum(Config.PriorityEngines);
 
-		Logs                = new ObservableCollection<LogEntry>();
+		Logs                = [];
 		Lv_Logs.ItemsSource = Logs;
 		// Lv_Results.ItemsSource = CurrentQueueItem.Results;
 		Lb_Queue.ItemsSource = Queue;
@@ -139,7 +138,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_trDispatch.Tick += IdleDispatchAsync;
 
 		m_uni                    = new();
-		m_clipboardHistory       = new();
+		m_clipboardHistory       = [];
 		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
 		// m_resultMap                         = new();
 		Image = null;
@@ -156,7 +155,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// ResizeMode         = ResizeMode.NoResize; //todo
 
-		m_pipeBuffer = new List<string>();
+		m_pipeBuffer = [];
 
 		((App) Application.Current).OnPipeMessage += OnPipeReceived;
 
@@ -295,6 +294,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private QueryModel m_currentQuery;
 
 	[MN]
+	[MNNW(true, nameof(CurrentQuery))]
+	private bool HasCurrentQuery => CurrentQuery != null;
+
 	public QueryModel CurrentQuery
 	{
 		get { return m_currentQuery; }
@@ -315,7 +317,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public ObservableCollection<QueryModel> Queue { get; }
 
 	// public bool IsQueueInputValid => CurrentQueueItem.IsValid;
-	private bool m_isq;
 
 	private void OnCurrentQueryChanged(object? sender, PropertyChangedEventArgs args)
 	{
@@ -327,8 +328,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			return;
 		}
-
-		m_isq = true;
 
 		if (Tb_Search.Dispatcher.CheckAccess()) {
 			ClearSearch();
@@ -375,17 +374,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (!ok) {
 				ClearQueryControls();
-				/*Dispatcher.BeginInvoke(() =>
-				{
-					CurrentQueueItem.UpdateProperties();
-				})*/
-				;
 			}
 
 			CanReload = !Client.IsRunning && CurrentQuery is { HasQuery: true, Query.IsUploading: false };
 
 		});
-		m_isq = false;
 		// m_us.Release();
 	}
 
@@ -414,9 +407,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		if (CurrentQuery.HasQuery && !CurrentQuery.Query.IsUploaded) {
 			Pb_Preview.IsIndeterminate = true;
-			Lb_Queue.IsEnabled        = false;
-			Btn_Run.IsEnabled         = false;
-			isOk                      = await CurrentQuery.UploadAsync(m_ctsu.Token);
+			Lb_Queue.IsEnabled         = false;
+			Btn_Run.IsEnabled          = false;
+			isOk                       = await CurrentQuery.UploadAsync(m_ctsu.Token);
 
 			Lb_Upload.Foreground = isOk ? Brushes.Green : Brushes.Red;
 			// Img_Upload.Source         = isOk ? AppComponents.accept : AppComponents.exclamation;
@@ -425,10 +418,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				// Debugger.Break();
 			}
 
-			Pb_Preview.IsIndeterminate = false;
-			Lb_Queue.IsEnabled        = true;
-			Btn_Run.IsEnabled         = CurrentQuery.CanSearch;
-			Btn_Reload.IsEnabled      = true;
+			// Pb_Preview.IsIndeterminate = false;
+			Lb_Queue.IsEnabled         = true;
+			Btn_Run.IsEnabled          = CurrentQuery.CanSearch;
+			Btn_Reload.IsEnabled       = true;
 		}
 
 		/*if (!Equals(Lv_Results.ItemsSource, CurrentQueueItem.Results)) {
@@ -463,7 +456,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private bool RemoveFromQueue(QueryModel old)
 	{
 
-		if (!HasQuerySelected || (old.IsPrimitive && !old.HasValue)) {
+		if (!HasQuerySelected || old is { IsPrimitive: true, HasValue: false }) {
 			return true;
 		}
 
@@ -484,191 +477,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		return false;
 	}
-
-	/*private void OnResultModelPropertyChanged(object? o, PropertyChangedEventArgs eventArgs)
-	{
-		if (((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) && CurrentQueueItem.IsPrimitive) {
-			Dispatcher.InvokeAsync(RunAsync);
-		}
-	}*/
-
-	/*
-	private async Task UpdateQueryAsync(string query)
-	{
-		if (query == Query?.ValueString) {
-			return;
-		}
-
-		/*if (await m_us.WaitAsync(TimeSpan.Zero)) {
-			Debug.WriteLine($"blocking");
-			return;
-		}#1#
-
-		Lb_Queue.IsEnabled = false;
-		Btn_Run.IsEnabled  = false;
-		bool b2;
-
-		bool queryExists = b2 = m_queries.TryGetValue(query, out var existingQuery);
-		Tb_Status2.Text = null;
-
-		if (queryExists) {
-			// Require.NotNull(existingQuery);
-			// assert(existingQuery!= null);
-			Debug.Assert(existingQuery != null);
-			Query = existingQuery;
-		}
-
-		else {
-
-			Query = await SearchQuery.TryCreateAsync(query, m_ctsu.Token);
-			// Pb_Status.Foreground      = new SolidColorBrush(Colors.Green);
-			Pb_Status.IsIndeterminate = true;
-			queryExists               = Query != SearchQuery.Null;
-		}
-
-		if (queryExists) {
-			Url upload;
-
-			Debug.Assert(Query != null);
-			var uriString = Query.ValueString;
-			Debug.Assert(uriString != null);
-
-			Tb_Preview.Text = "Rendering preview...";
-
-			Dispatcher.InvokeAsync(UpdateImage);
-
-			if (b2) {
-				upload         = Query.Upload;
-				Tb_Status.Text = $"{Strings.Constants.HEAVY_CHECK_MARK}";
-			}
-			else {
-				Tb_Status.Text = "Uploading...";
-				upload         = await Query.UploadAsync(ct: m_ctsu.Token);
-
-				if (!Url.IsValid(upload)) {
-					// todo: show user specific error message
-					Pb_Status.IsIndeterminate = false;
-					Tb_Status.Text            = "-";
-					Tb_Status2.Text           = "Failed to upload: server timed out or input was invalid";
-					Btn_Run.IsEnabled         = true;
-					// Btn_Delete.IsEnabled      = true;
-					goto ret;
-					// return;
-				}
-				else {
-					Tb_Status.Text = "Uploaded";
-
-				}
-
-			}
-
-			Tb_Upload.Text            = upload;
-			Pb_Status.IsIndeterminate = false;
-
-			Btn_Delete.IsEnabled = true && Query.Uni.IsFile;
-			// Btn_Remove.IsEnabled = Btn_Delete.IsEnabled;
-
-			if (Query.Uni.IsFile) {
-				Img_Type.Source = AppComponents.image;
-			}
-			else if (Query.Uni.IsUri) {
-				Img_Type.Source = AppComponents.image_link;
-			}
-
-			/*Tb_Info.Text = $"[{Query.Uni.SourceType}] {Query.Uni.FileTypes[0]} " +
-			               $"{FormatHelper.FormatBytes(Query.Uni.Stream.Length)} ";
-
-			if (m_image != null) {
-				Tb_Info.Text += $"({m_image.PixelWidth}x{m_image.PixelHeight})";
-			}#1#
-
-			m_queries.TryAdd(query, Query);
-
-			var resultsFound = m_resultMap.TryGetValue(Query, out var res);
-
-			if (!resultsFound) {
-				m_resultMap[Query] = new ObservableCollection<ResultItem>();
-
-			}
-
-			Results                = m_resultMap[Query];
-			Lv_Results.ItemsSource = Results;
-
-			if ((Config.AutoSearch && !Client.IsRunning) && !Results.Any()) {
-				Dispatcher.InvokeAsync(RunAsync);
-			}
-
-			else if (queryExists && Results.Any()) {
-				Tb_Status.Text = $"Displaying {Results.Count} results";
-			}
-			else {
-				Tb_Status.Text = $"Search ready";
-
-			}
-		}
-		else { }
-
-		ret:
-
-		if (!queryExists) {
-			Pb_Status.IsIndeterminate = false;
-			// Pb_Status.Foreground      = new SolidColorBrush(Colors.Red);
-		}
-
-		Btn_Run.IsEnabled  = queryExists;
-		Lb_Queue.IsEnabled = true;
-		m_us.Release();
-		Debug.WriteLine($"finished {query}");
-		return;
-
-		void UpdateInfo()
-		{
-			Tb_Info.Text =
-				ControlsHelper.FormatDescription("Query", Query.Uni, m_image?.PixelWidth, m_image?.PixelHeight);
-		}
-
-		void UpdateImage()
-		{
-
-			if (m_images.TryGetValue(Query, out m_image)) {
-				Debug.WriteLine($"Found cached {Query}");
-			}
-			else {
-				m_image = new BitmapImage()
-					{ };
-				m_image.BeginInit();
-				m_image.UriSource = new Uri(Query.ValueString);
-				// m_image.StreamSource   = Query.Uni.Stream;
-				m_image.CacheOption    = BitmapCacheOption.OnLoad;
-				m_image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-
-				m_image.EndInit();
-
-				m_images[Query] = m_image;
-			}
-
-			if (Query.Uni.IsUri) {
-				m_image.DownloadCompleted += (sender, args) =>
-				{
-					UpdateInfo();
-				};
-
-			}
-			else {
-				UpdateInfo();
-			}
-
-			if (m_image.CanFreeze) {
-				m_image.Freeze();
-
-			}
-
-			// Img_Preview.Source = m_image;
-
-			UpdatePreview();
-		}
-	}
-	*/
 
 	private void HandleQueryAsync()
 	{
@@ -921,7 +729,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		++m_cntResults;
 		var cle = Client.Engines.Length;
 
-		Tb_Status.Text  = $"{m_cntResults}/{cle} | {(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
+		Tb_Status.Text   = $"{m_cntResults}/{cle} | {(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 		Pb_Preview.Value = (m_cntResults / (double) cle) * 100;
 
 		lock (m_lock) {
@@ -1024,10 +832,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// Tb_Info.Text    = String.Empty;
 		// Tb_Status2.Text = String.Empty;
 
-		Tb_Upload.Text            = String.Empty;
+		Tb_Upload.Text             = String.Empty;
 		Pb_Preview.IsIndeterminate = false;
-		Tb_Preview.Text           = string.Empty;
-		Lb_Queue.IsEnabled        = true;
+		Tb_Preview.Text            = string.Empty;
+		Lb_Queue.IsEnabled         = true;
 	}
 
 	private void ClearResults(bool full = false)
@@ -1042,13 +850,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// Btn_Run.IsEnabled = CurrentQueueItem.CanSearch;
 		// Query.Dispose();
 		Pb_Preview.Value = 0;
-		Tb_Search.Text  = String.Empty;
+		Tb_Search.Text   = String.Empty;
 
 		// Tb_Status.Text  = string.Empty;
 	}
 
 	public void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		Dispose(true);
 	}
 
@@ -1148,13 +957,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return s;
 		}
 		catch (Exception e) {
+			Debug.WriteLine(e.Message);
 			return null;
 		}
 	}
 
 	private async Task DownloadResultAsync(IDownloadable uri)
 	{
-		await uri.DownloadAsync();
+		var s = await uri.DownloadAsync();
+
+		Trace.Assert(s == uri.Download);
+
 		m_uni.TryAdd(uri, uri.Download);
 		Tb_Status.Text = $"Downloaded to {uri.Download}";
 	}
@@ -1165,9 +978,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
-		Tb_Status.Text            = "Scanning...";
+		Tb_Status.Text             = "Scanning...";
 		Pb_Preview.IsIndeterminate = true;
-		ri.StatusImage            = AppComponents.arrow_refresh;
+		ri.StatusImage             = AppComponents.arrow_refresh;
 
 		bool d = false;
 
@@ -1186,9 +999,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 						CanDownload = true,
 						CanScan     = false,
 						CanOpen     = true,
-						
+
 					};
-					
+
 					// rii.LoadImage();
 					// resultItems[i] = rii;
 					CurrentQuery.Results.Insert(CurrentQuery.Results.IndexOf(ri) + 1 + i, rii);
@@ -1237,7 +1050,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
-		Tb_Status.Text            = "Scanning with gallery-dl";
+		Tb_Status.Text             = "Scanning with gallery-dl";
 		Pb_Preview.IsIndeterminate = true;
 
 		try {
@@ -1283,7 +1096,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Btn_Filter.IsEnabled = false;
 
 		Pb_Preview.IsIndeterminate = true;
-		Tb_Status.Text            = "Filtering";
+		Tb_Status.Text             = "Filtering";
 
 		var cb = new ConcurrentBag<ResultItem>(CurrentQuery.Results);
 		int c  = 0;
@@ -1301,13 +1114,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		});
 
 		Debug.WriteLine("continuing");
-		Tb_Status.Text            = $"Filtered {c}";
+		Tb_Status.Text             = $"Filtered {c}";
 		Pb_Preview.IsIndeterminate = false;
-		Btn_Filter.IsEnabled      = true;
-		Btn_Run.IsEnabled         = r;
-		CanReload                 = re;
-		Lb_Queue.IsEnabled        = q;
-		Btn_Remove.IsEnabled      = rem;
+		Btn_Filter.IsEnabled       = true;
+		Btn_Run.IsEnabled          = r;
+		CanReload                  = re;
+		Lb_Queue.IsEnabled         = q;
+		Btn_Remove.IsEnabled       = rem;
 
 	}
 
@@ -1338,12 +1151,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// CurrentQueueItem = d;
 	}
 
-	private async void RetryEngineAsync(ResultItem ri)
+	private async Task RetryEngineAsync(ResultItem ri)
 	{
 		var eng = ri.Result.Root.Engine;
 		Tb_Status.Text = $"Retrying {eng.Name}";
 		var idx = FindResultIndex(r => r.Result.Root.Engine == eng);
 		var fi  = idx;
+
+		Trace.Assert(HasCurrentQuery);
 
 		for (int i = CurrentQuery.Results.Count - 1; i >= 0; i--) {
 			if (CurrentQuery.Results[i].Result.Root.Engine == eng) {
@@ -1354,7 +1169,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Pb_Preview.IsIndeterminate = true;
 		var result = await eng.GetResultAsync(Query, m_cts.Token);
 		AddResult(result);
-		Tb_Status.Text            = $"{eng.Name} → {result.Results.Count}";
+		Tb_Status.Text             = $"{eng.Name} → {result.Results.Count}";
 		Pb_Preview.IsIndeterminate = false;
 
 		for (int i = 0; i < CurrentQuery.Results.Count; i++) {
@@ -1379,43 +1194,40 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		// Logs.Add(new(args.QuickJoin()));
 
-		var e = args.GetEnumerator();
+		var       enumerator = args.GetEnumerator();
+		using var unknown    = enumerator as IDisposable;
 
-		string inp = null;
+		try {
+			string? inp = null;
 
-		while (e.MoveNext()) {
-			if (e.Current is not string c) {
-				break;
-			}
-
-			if (c == R2.Arg_Input) {
-				inp = (string) e.MoveAndGet();
-
-				// CurrentQueueItem = inp;
-				AddToQueue(new[] { inp });
-
-				continue;
-			}
-
-			if (c == R2.Arg_Switch && inp != null) {
-				SetQueue(inp);
-
-			}
-
-			if (c == R2.Arg_AutoSearch) {
-
-				Config.AutoSearch = true;
-			}
-
-			if (c == R2.Arg_Hide) {
-
-				if (IsVisible) {
-					Visibility = Visibility.Hidden;
+			while (enumerator.MoveNext()) {
+				if (enumerator.Current is not string c) {
+					break;
 				}
-				else {
-					Visibility = Visibility.Visible;
+
+				if (c == R2.Arg_Input) {
+					inp = (string) enumerator.MoveAndGet();
+
+					// CurrentQueueItem = inp;
+					AddToQueue(new[] { inp });
+
+					continue;
+				}
+
+				if (c == R2.Arg_Switch && inp != null) {
+					SetQueue(inp);
+				}
+
+				if (c == R2.Arg_AutoSearch) {
+					Config.AutoSearch = true;
+				}
+
+				if (c == R2.Arg_Hide) {
+					Visibility = IsVisible ? Visibility.Hidden : Visibility.Visible;
 				}
 			}
+		}
+		finally {
 		}
 
 	}
@@ -1514,7 +1326,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				Tb_Version2.Text += $"(click to download)";
 				var url = lv.assets[0].browser_download_url;
 
-				Tb_Version2.MouseDown += async (o, args) =>
+				Tb_Version2.MouseDown += (o, args) =>
 				{
 					FileSystem.Open(url);
 					// await url.GetStreamAsync();
@@ -1545,7 +1357,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			UpdatePreview(ri.Image);
 		}*/
 
-		Application.Current.Dispatcher.InvokeAsync(async () =>
+		Application.Current.Dispatcher.Invoke(() =>
 		{
 			if (Img_Preview.Source != null) {
 				if (Img_Preview.Source.Dispatcher != null) {
@@ -1606,7 +1418,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 
 		});*/
-		
+
 		Img_Preview.Dispatcher.Invoke(() =>
 		{
 			Img_Preview.Source = igs.Image;
