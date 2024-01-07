@@ -1,16 +1,7 @@
 ﻿// $User.Name $File.ProjectName $File.FileName
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
-using System.Drawing;
-
 namespace SmartImage.Lib.Model;
-
-public interface ISysImageSource : IBaseImageSource
-{
-	[MN]
-	public Image Image { get; set; }
-
-}
 
 public interface IBaseImageSource
 {
@@ -25,6 +16,12 @@ public interface IBaseImageSource
 
 	public int? Height { get; }
 
-	public bool LoadImage([CBN] IImageLoader l = null);
+	[CBN]
+	public string DimensionString
+	{
+		get;
+	}
+
+	public bool LoadImage();
 
 }

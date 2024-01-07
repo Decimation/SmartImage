@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,6 +9,7 @@ namespace SmartImage.Lib.Model
 {
 	public interface IImageLoader
 	{
+
 		bool LoadImage(IBaseImageSource p);
 
 	}

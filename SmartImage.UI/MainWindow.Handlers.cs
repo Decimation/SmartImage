@@ -393,12 +393,15 @@ public partial class MainWindow
 	{
 		if (e.AddedItems.Count > 0) {
 
-			var ai = e.AddedItems[0];
-			var ri = ai as ResultItem;
-
-			var b = ri is UniResultItem uri;
+			var           ai = e.AddedItems[0];
+			var           ri = ai as ResultItem;
+			
+			var           b = ri is UniResultItem uri;
 
 			if (b || (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe)) {
+				if (b) {
+					ri = (UniResultItem)ri;
+				}
 				SetPreview(ri);
 				CheckMedia();
 			}
@@ -864,6 +867,11 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 	{
 		Dispatcher.InvokeAsync(FilterResultsAsync);
 		e.Handled = true;
+	}
+	private void Tb_SelUrl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+
+		FileSystem.Open(CurrentResult.Url);
 	}
 
 	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)

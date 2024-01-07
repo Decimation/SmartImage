@@ -555,15 +555,11 @@
                     <TextBox x:Name="Tb_Info_Dim" HorizontalAlignment="Left" Margin="362,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentQuery.Dim, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
+                             Text="{Binding CurrentQuery.DimensionString, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
                         UpdateSourceTrigger=PropertyChanged}" />
-
                     <Image x:Name="Img_Status" HorizontalAlignment="Left" Height="20px" Width="20px"
                            Margin="10,5,0,0"
                            VerticalAlignment="Top" Stretch="None" Grid.Row="1" />
-
-                    <ProgressBar x:Name="Pb_Status" HorizontalAlignment="Left" Height="10" Margin="4,54,0,0"
-                                 VerticalAlignment="Top" Width="100" Minimum="0" Maximum="100" Grid.Row="1" />
                     <ListView x:Name="Lv_Results" Margin="0,120,0,0"
                               MouseDoubleClick="Lv_Results_MouseDoubleClick"
                               Foreground="White"
@@ -666,17 +662,19 @@
 
                     </ListView>
 
-                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="48,5,0,0"
-                           HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" />
-
-                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="4,33,0,0"
+                    <TextBlock x:Name="Tb_Status" HorizontalAlignment="Left" Margin="10,28,0,0"
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic" Grid.Row="1"
                                Text="{Binding CurrentQuery.Status, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}" />
 
-                    <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="115,49,0,0"
+                    <!--
+                    <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="95,28,0,0"
                                VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline"
                                Text="{Binding CurrentQuery.Status2, UpdateSourceTrigger=PropertyChanged,ElementName=Wnd_Main}"
                                MaxWidth="400" />
+                               -->
+
+                    <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="48,5,0,0"
+                           HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" />
 
                     <Button x:Name="Btn_Filter" Content="Filter" HorizontalAlignment="Left" Margin="585,0,0,0"
                             VerticalAlignment="Center" Click="Btn_Filter_Click"
@@ -705,6 +703,40 @@
                     <ProgressBar x:Name="Pb_Preview" Grid.Column="1" HorizontalAlignment="Right" Height="10"
                                  Margin="0,105,174,0" Grid.Row="1" VerticalAlignment="Top" Width="320"
                                  Value="{Binding CurrentResult.PreviewProgress}" />
+                
+                    <Label x:Name="Lb_SelUrl" Content="Item" HorizontalAlignment="Left" Margin="4,59,0,0"
+                           VerticalAlignment="Top" Height="26" Foreground="White"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="50" HorizontalContentAlignment="Center"
+                           Grid.Row="1" FontWeight="Bold" />
+
+                    <TextBox x:Name="Tb_SelUrl" HorizontalAlignment="Left" Margin="57,61,0,0"
+                             VerticalAlignment="Top" Width="435" IsReadOnly="True" Height="20" Foreground="White" Background="Black"
+                             Text="{Binding CurrentResult.Result.Url, Converter={StaticResource urlConverter}, ElementName=Wnd_Main, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                             Grid.Row="1" MouseDoubleClick="Tb_SelUrl_MouseDoubleClick" />
+
+                    <Label x:Name="Lb_SelInfo" Content="Info" HorizontalAlignment="Left" Margin="4,87,0,0"
+                           VerticalAlignment="Top" Height="26" FontWeight="Bold" Foreground="White"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" HorizontalContentAlignment="Center" Width="50"
+                           Grid.Row="1" />
+
+                    <TextBox x:Name="Tb_SelInfo_Type" HorizontalAlignment="Left" Margin="57,89,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" TextAlignment="Center"
+                             Text="{Binding CurrentResult.Status, ElementName=Wnd_Main, FallbackValue={x:Null}, IsAsync=True, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                             Grid.Row="1" />
+
+                    <TextBox x:Name="Tb_SelInfo_Size" HorizontalAlignment="Left" Margin="210,89,0,0"
+                             TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" TextAlignment="Center"
+                             Text="..."
+                             Grid.Row="1" />
+
+                    <TextBox x:Name="Tb_SelInfo_Dim" HorizontalAlignment="Left" Margin="362,89,0,0" TextWrapping="Wrap"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
+                             Foreground="White" TextAlignment="Center"
+                             Text="{Binding CurrentResult.DimensionString, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                             Grid.Row="1" />
 
                 </Grid>
             </TabItem>

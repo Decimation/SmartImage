@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using Kantan.Utilities;
 using Novus.FileTypes;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.UI;
 
@@ -127,12 +128,7 @@ public static class ControlsHelper
 
 		string i;
 
-		if (w.HasValue && h.HasValue) {
-			i = $"({w}×{h})";
-		}
-		else {
-			i = string.Empty;
-		}
+		i = FormatDimensions(w, h);
 
 		return $"{name} ⇉ [{uni.FileType}] [{bytes}] • {i}";
 	}
@@ -156,4 +152,15 @@ public static class ControlsHelper
 		var shift = Keyboard.Modifiers.HasFlag(ModifierKeys.Shift);
 		return (ctrl, alt, shift);
 	}
+
+	public static string FormatDimensions(int? w, int? h)
+	{
+		if (w.HasValue && h.HasValue)
+		{
+			return $"{w}\u00d7{h}";
+		}
+
+		return string.Empty;
+	}
+
 }

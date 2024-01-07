@@ -413,7 +413,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		if (CurrentQuery.HasQuery && !CurrentQuery.Query.IsUploaded) {
-			Pb_Status.IsIndeterminate = true;
+			Pb_Preview.IsIndeterminate = true;
 			Lb_Queue.IsEnabled        = false;
 			Btn_Run.IsEnabled         = false;
 			isOk                      = await CurrentQuery.UploadAsync(m_ctsu.Token);
@@ -425,7 +425,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				// Debugger.Break();
 			}
 
-			Pb_Status.IsIndeterminate = false;
+			Pb_Preview.IsIndeterminate = false;
 			Lb_Queue.IsEnabled        = true;
 			Btn_Run.IsEnabled         = CurrentQuery.CanSearch;
 			Btn_Reload.IsEnabled      = true;
@@ -692,7 +692,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Btn_Run.IsEnabled = CurrentQuery.CanSearch;
 		// Tb_Info.Text      = CurrentQuery.Info;
 		// Tb_Status.Text    = CurrentQueueItem.Status;
-		Tb_Status2.Text = CurrentQuery.Status2;
+		// Tb_Status2.Text = CurrentQuery.Status2;
 		CurrentQuery.UpdateProperties();
 		// OnPropertyChanged(nameof(Results));
 	}
@@ -728,7 +728,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			// Lv_Queue.SelectedItems.Add(ff);
 		}*/
 
-		Tb_Status2.Text = $"Added {c} items to queue";
+		Tb_Preview.Text = $"Added {c} items to queue";
 	}
 
 	private void AdvanceQueue(int i = 1)
@@ -922,7 +922,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		var cle = Client.Engines.Length;
 
 		Tb_Status.Text  = $"{m_cntResults}/{cle} | {(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
-		Pb_Status.Value = (m_cntResults / (double) cle) * 100;
+		Pb_Preview.Value = (m_cntResults / (double) cle) * 100;
 
 		lock (m_lock) {
 			AddResult(result);
@@ -999,8 +999,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		m_cts.Cancel();
 		m_ctsu.Cancel();
 		m_ctsm.Cancel();
-		// Pb_Status.Foreground = new SolidColorBrush(Colors.Red);
-		Pb_Status.IsIndeterminate = false;
+		// Pb_Preview.Foreground = new SolidColorBrush(Colors.Red);
+		Pb_Preview.IsIndeterminate = false;
 	}
 
 	private void Restart(bool full = false)
@@ -1022,10 +1022,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Tb_Status.Text = String.Empty;
 		// CurrentQueueItem = new ResultModel();
 		// Tb_Info.Text    = String.Empty;
-		Tb_Status2.Text = String.Empty;
+		// Tb_Status2.Text = String.Empty;
 
 		Tb_Upload.Text            = String.Empty;
-		Pb_Status.IsIndeterminate = false;
+		Pb_Preview.IsIndeterminate = false;
 		Tb_Preview.Text           = string.Empty;
 		Lb_Queue.IsEnabled        = true;
 	}
@@ -1041,7 +1041,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// Btn_Run.IsEnabled = CurrentQueueItem.CanSearch;
 		// Query.Dispose();
-		Pb_Status.Value = 0;
+		Pb_Preview.Value = 0;
 		Tb_Search.Text  = String.Empty;
 
 		// Tb_Status.Text  = string.Empty;
@@ -1166,7 +1166,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Tb_Status.Text            = "Scanning...";
-		Pb_Status.IsIndeterminate = true;
+		Pb_Preview.IsIndeterminate = true;
 		ri.StatusImage            = AppComponents.arrow_refresh;
 
 		bool d = false;
@@ -1185,8 +1185,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 						StatusImage = AppComponents.picture_link,
 						CanDownload = true,
 						CanScan     = false,
-						CanOpen     = true
+						CanOpen     = true,
+						
 					};
+					
+					// rii.LoadImage();
 					// resultItems[i] = rii;
 					CurrentQuery.Results.Insert(CurrentQuery.Results.IndexOf(ri) + 1 + i, rii);
 				}
@@ -1221,7 +1224,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				ri.StatusImage = AppComponents.picture_empty;
 			}
 
-			Pb_Status.IsIndeterminate = false;
+			Pb_Preview.IsIndeterminate = false;
 
 		}
 	}
@@ -1235,7 +1238,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 
 		Tb_Status.Text            = "Scanning with gallery-dl";
-		Pb_Status.IsIndeterminate = true;
+		Pb_Preview.IsIndeterminate = true;
 
 		try {
 			var rg = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
@@ -1261,7 +1264,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		}
 		finally {
-			Pb_Status.IsIndeterminate = false;
+			Pb_Preview.IsIndeterminate = false;
 		}
 	}
 
@@ -1279,7 +1282,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Btn_Filter.IsEnabled = false;
 
-		Pb_Status.IsIndeterminate = true;
+		Pb_Preview.IsIndeterminate = true;
 		Tb_Status.Text            = "Filtering";
 
 		var cb = new ConcurrentBag<ResultItem>(CurrentQuery.Results);
@@ -1299,7 +1302,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Debug.WriteLine("continuing");
 		Tb_Status.Text            = $"Filtered {c}";
-		Pb_Status.IsIndeterminate = false;
+		Pb_Preview.IsIndeterminate = false;
 		Btn_Filter.IsEnabled      = true;
 		Btn_Run.IsEnabled         = r;
 		CanReload                 = re;
@@ -1348,11 +1351,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 
-		Pb_Status.IsIndeterminate = true;
+		Pb_Preview.IsIndeterminate = true;
 		var result = await eng.GetResultAsync(Query, m_cts.Token);
 		AddResult(result);
 		Tb_Status.Text            = $"{eng.Name} → {result.Results.Count}";
-		Pb_Status.IsIndeterminate = false;
+		Pb_Preview.IsIndeterminate = false;
 
 		for (int i = 0; i < CurrentQuery.Results.Count; i++) {
 			var cr = CurrentQuery.Results[i];
@@ -1475,13 +1478,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void ChangeStatus2(ResultItem ri)
 	{
-		if (ri is UniResultItem { Uni: { } } uri) {
+		/*if (ri is UniResultItem { Uni: { } } uri) {
 			Tb_Status2.Text = uri.Description;
 		}
 		else {
 			Tb_Status2.Text = $"{ri.Name}";
 
-		}
+		}*/
 	}
 
 	#region
@@ -1553,6 +1556,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				}
 			}
 		});
+
 		/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
 		return;
 	}*/
@@ -1602,9 +1606,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 
 		});*/
-
-		Img_Preview.Source = igs.Image;
-
+		
+		Img_Preview.Dispatcher.Invoke(() =>
+		{
+			Img_Preview.Source = igs.Image;
+		});
 		// Debug.WriteLine($"updated image {ri.Image}");
 		// PreviewChanged?.Invoke(ri);
 

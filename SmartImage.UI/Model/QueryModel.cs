@@ -1,6 +1,7 @@
 ﻿// Read S SmartImage.UI ResultModel.cs
 // 2023-09-13 @ 5:28 PM
 
+global using ISImage = SixLabors.ImageSharp.Image;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -29,6 +30,11 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	//todo
 	private string m_value;
+
+	public string DimensionString
+	{
+		get => ControlsHelper.FormatDimensions(Width, Height);
+	}
 
 	public string Value
 	{
@@ -193,24 +199,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		}
 	}
 
-	public string? Dim
-	{
-		get
-		{
-			if (Width.HasValue && Height.HasValue) {
-				return $"{Width}x{Height}";
-			}
-
-			return null;
-		}
-		/*set
-		{
-			if (value == m_dim) return;
-			m_dim = value;
-			OnPropertyChanged();
-		}*/
-	}
-
 	#endregion
 
 	public int LoadAttempts { get; private set; }
@@ -348,7 +336,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		// 	ControlsHelper.FormatDescription("Query", Query.Uni, Image?.PixelWidth, Image?.PixelHeight);
 	}*/
 
-	public bool LoadImage(IImageLoader l = null)
+	public bool LoadImage()
 	{
 		if (!CanLoadImage) {
 			goto ret;

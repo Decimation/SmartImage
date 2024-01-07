@@ -1,6 +1,7 @@
 ﻿// $User.Name $File.ProjectName $File.FileName
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
+global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -9,6 +10,7 @@ using System.Drawing;
 using System.IO;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
@@ -34,6 +36,11 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 {
 
 	#region
+
+	public string DimensionString
+	{
+		get => ControlsHelper.FormatDimensions(Width, Height);
+	}
 
 	private string m_label;
 
@@ -229,7 +236,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	}
 
-	public virtual bool LoadImage(IImageLoader? l = null)
+	public virtual bool LoadImage()
 	{
 		lock (_lock) {
 			if (CanLoadImage) {
@@ -403,18 +410,24 @@ public class UniResultItem : ResultItem
 	{
 		Label       = $"Download complete";
 		IsThumbnail = false;
+
+		if (Image.CanFreeze) {
+			Image.Freeze();
+		}
 	}
 
-	public override bool LoadImage(IImageLoader l = null)
+	public override bool LoadImage()
 	{
 		if (CanLoadImage) {
 			Image = new BitmapImage()
 				{ };
 			Image.BeginInit();
 			Image.StreamSource = Uni.Stream;
+			// Image.StreamSource = Uni.Stream;
 			// m_image.StreamSource   = Query.Uni.Stream;
-			Image.CacheOption    = BitmapCacheOption.OnLoad;
-			Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
+			// Image.CacheOption    = BitmapCacheOption.OnLoad;
+			Image.CacheOption    = BitmapCacheOption.OnDemand;
+			// Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
 
