@@ -167,7 +167,7 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 		}
 	}
 
-	protected override string[] ErrorBodyMessages => new[] { "Can't read query result!", "too large" };
+	protected override string[] ErrorBodyMessages => ["Can't read query result!", "too large"];
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
@@ -198,7 +198,7 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 
 		var err = doc.Body.GetElementsByClassName("err");
 
-		if (err.Any()) {
+		if (err.Length!=0) {
 			var fe = err[0];
 			sr.Status       = SearchResultStatus.Failure;
 			sr.ErrorMessage = $"{fe.TextContent}";
@@ -249,7 +249,11 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 
 	#region
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+		// base.Dispose();
+		GC.SuppressFinalize(this);
+	}
 
 	#endregion
 

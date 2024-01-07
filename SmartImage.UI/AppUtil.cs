@@ -1,4 +1,6 @@
-﻿global using R2 = SmartImage.UI.Resources;
+﻿global using R4 = SmartImage.Lib.Serialization;
+global using R3 = SmartImage.Lib.Values;
+global using R2 = SmartImage.UI.Resources;
 global using R1 = SmartImage.Lib.Resources;
 using System;
 using System.Collections.Generic;
@@ -21,6 +23,8 @@ using System.Text.Json.Serialization;
 using System.Windows.Media.Imaging;
 using Novus.Win32.Structures.User32;
 
+#pragma warning disable IDE1006
+
 // ReSharper disable InconsistentNaming
 
 #nullable disable
@@ -28,6 +32,7 @@ namespace SmartImage.UI;
 
 internal static class AppUtil
 {
+
 	#region
 
 	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
@@ -56,7 +61,7 @@ internal static class AppUtil
 
 	#endregion
 
-	internal static void FlashTaskbar(IntPtr hndw)
+	internal static void FlashTaskbar(nint hndw)
 	{
 		var pwfi = new FLASHWINFO()
 		{
@@ -220,7 +225,7 @@ internal static class AppUtil
 
 	public static double CompareImages(Bitmap InputImage1, Bitmap InputImage2, int Tollerance)
 	{
-		Bitmap Image1     = new Bitmap(InputImage1, new Size(512,512));
+		Bitmap Image1     = new Bitmap(InputImage1, new Size(512, 512));
 		Bitmap Image2     = new Bitmap(InputImage2, new Size(512, 512));
 		int    Image1Size = Image1.Width * Image1.Height;
 		int    Image2Size = Image2.Width * Image2.Height;
@@ -307,49 +312,84 @@ internal static class AppUtil
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 internal class GHReleaseAsset
 {
-	public string     url                  { get; set; }
-	public int        id                   { get; set; }
-	public string     node_id              { get; set; }
-	public string     name                 { get; set; }
-	public object     label                { get; set; }
-	public GHUploader uploader             { get; set; }
-	public string     content_type         { get; set; }
-	public string     state                { get; set; }
-	public int        size                 { get; set; }
-	public int        download_count       { get; set; }
-	public DateTime   created_at           { get; set; }
-	public DateTime   updated_at           { get; set; }
-	public string     browser_download_url { get; set; }
+
+	public string url { get; set; }
+
+	public int id { get; set; }
+
+	public string node_id { get; set; }
+
+	public string name { get; set; }
+
+	public object label { get; set; }
+
+	public GHUploader uploader { get; set; }
+
+	public string content_type { get; set; }
+
+	public string state { get; set; }
+
+	public int size { get; set; }
+
+	public int download_count { get; set; }
+
+	public DateTime created_at { get; set; }
+
+	public DateTime updated_at { get; set; }
+
+	public string browser_download_url { get; set; }
+
 }
 
-[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+[USI(ImplicitUseTargetFlags.WithMembers)]
 internal class GHAuthor
 {
-	public string login               { get; set; }
-	public int    id                  { get; set; }
-	public string node_id             { get; set; }
-	public string avatar_url          { get; set; }
-	public string gravatar_id         { get; set; }
-	public string url                 { get; set; }
-	public string html_url            { get; set; }
-	public string followers_url       { get; set; }
-	public string following_url       { get; set; }
-	public string gists_url           { get; set; }
-	public string starred_url         { get; set; }
-	public string subscriptions_url   { get; set; }
-	public string organizations_url   { get; set; }
-	public string repos_url           { get; set; }
-	public string events_url          { get; set; }
+
+	public string login { get; set; }
+
+	public int id { get; set; }
+
+	public string node_id { get; set; }
+
+	public string avatar_url { get; set; }
+
+	public string gravatar_id { get; set; }
+
+	public string url { get; set; }
+
+	public string html_url { get; set; }
+
+	public string followers_url { get; set; }
+
+	public string following_url { get; set; }
+
+	public string gists_url { get; set; }
+
+	public string starred_url { get; set; }
+
+	public string subscriptions_url { get; set; }
+
+	public string organizations_url { get; set; }
+
+	public string repos_url { get; set; }
+
+	public string events_url { get; set; }
+
 	public string received_events_url { get; set; }
-	public string type                { get; set; }
-	public bool   site_admin          { get; set; }
+
+	public string type { get; set; }
+
+	public bool site_admin { get; set; }
+
 }
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 internal class GHReactions
 {
-	public string url         { get; set; }
-	public int    total_count { get; set; }
+
+	public string url { get; set; }
+
+	public int total_count { get; set; }
 
 	[JsonPropertyName("+1")]
 	public int Plus1 { get; set; }
@@ -357,62 +397,108 @@ internal class GHReactions
 	[JsonPropertyName("-1")]
 	public int Minus1 { get; set; }
 
-	public int laugh    { get; set; }
-	public int hooray   { get; set; }
+	public int laugh { get; set; }
+
+	public int hooray { get; set; }
+
 	public int confused { get; set; }
-	public int heart    { get; set; }
-	public int rocket   { get; set; }
-	public int eyes     { get; set; }
+
+	public int heart { get; set; }
+
+	public int rocket { get; set; }
+
+	public int eyes { get; set; }
+
 }
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
 internal class GHUploader
 {
-	public string login               { get; set; }
-	public int    id                  { get; set; }
-	public string node_id             { get; set; }
-	public string avatar_url          { get; set; }
-	public string gravatar_id         { get; set; }
-	public string url                 { get; set; }
-	public string html_url            { get; set; }
-	public string followers_url       { get; set; }
-	public string following_url       { get; set; }
-	public string gists_url           { get; set; }
-	public string starred_url         { get; set; }
-	public string subscriptions_url   { get; set; }
-	public string organizations_url   { get; set; }
-	public string repos_url           { get; set; }
-	public string events_url          { get; set; }
+
+	public string login { get; set; }
+
+	public int id { get; set; }
+
+	public string node_id { get; set; }
+
+	public string avatar_url { get; set; }
+
+	public string gravatar_id { get; set; }
+
+	public string url { get; set; }
+
+	public string html_url { get; set; }
+
+	public string followers_url { get; set; }
+
+	public string following_url { get; set; }
+
+	public string gists_url { get; set; }
+
+	public string starred_url { get; set; }
+
+	public string subscriptions_url { get; set; }
+
+	public string organizations_url { get; set; }
+
+	public string repos_url { get; set; }
+
+	public string events_url { get; set; }
+
 	public string received_events_url { get; set; }
-	public string type                { get; set; }
-	public bool   site_admin          { get; set; }
+
+	public string type { get; set; }
+
+	public bool site_admin { get; set; }
+
 }
 
-[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+[USI(ImplicitUseTargetFlags.WithMembers)]
 internal class GHRelease
 {
-	public string               url              { get; set; }
-	public string               assets_url       { get; set; }
-	public string               upload_url       { get; set; }
-	public string               html_url         { get; set; }
-	public int                  id               { get; set; }
-	public GHAuthor             author           { get; set; }
-	public string               node_id          { get; set; }
-	public string               tag_name         { get; set; }
-	public string               target_commitish { get; set; }
-	public string               name             { get; set; }
-	public bool                 draft            { get; set; }
-	public bool                 prerelease       { get; set; }
-	public DateTime             created_at       { get; set; }
-	public DateTime             published_at     { get; set; }
-	public List<GHReleaseAsset> assets           { get; set; }
-	public string               tarball_url      { get; set; }
-	public string               zipball_url      { get; set; }
-	public string               body             { get; set; }
-	public string               discussion_url   { get; set; }
-	public GHReactions          reactions        { get; set; }
+
+	public string url { get; set; }
+
+	public string assets_url { get; set; }
+
+	public string upload_url { get; set; }
+
+	public string html_url { get; set; }
+
+	public int id { get; set; }
+
+	public GHAuthor author { get; set; }
+
+	public string node_id { get; set; }
+
+	public string tag_name { get; set; }
+
+	public string target_commitish { get; set; }
+
+	public string name { get; set; }
+
+	public bool draft { get; set; }
+
+	public bool prerelease { get; set; }
+
+	public DateTime created_at { get; set; }
+
+	public DateTime published_at { get; set; }
+
+	public List<GHReleaseAsset> assets { get; set; }
+
+	public string tarball_url { get; set; }
+
+	public string zipball_url { get; set; }
+
+	public string body { get; set; }
+
+	public string discussion_url { get; set; }
+
+	public GHReactions reactions { get; set; }
 
 	[JsonIgnore]
 	[NonSerialized]
 	public Version Version;
+
 }

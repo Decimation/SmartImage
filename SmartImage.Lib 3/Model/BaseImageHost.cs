@@ -21,10 +21,10 @@ public class GenericImageHost : BaseImageHost
 	public static readonly BaseImageHost Instance = new GenericImageHost();
 
 	public override string[] Illegal
-		=> new[]
-		{
+		=>
+		[
 			"thumbnail", "avatar", "error", "logo"
-		};
+		];
 
 	public override bool Refine(string b)
 	{

@@ -88,9 +88,11 @@ public sealed class SearchClient : IDisposable
 	/// <param name="reload"></param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
-	                                                 CancellationToken token = default, TaskScheduler scheduler = default)
+	                                                 CancellationToken token = default,
+	                                                 TaskScheduler scheduler = default)
 	{
-		scheduler??= TaskScheduler.Default;
+		scheduler ??= TaskScheduler.Default;
+
 		if (!query.IsUploaded) {
 			throw new ArgumentException($"Query was not uploaded", nameof(query));
 		}
@@ -176,7 +178,7 @@ public sealed class SearchClient : IDisposable
 		}
 	}
 
-	private void OpenResult(Url url1)
+	private static void OpenResult(Url url1)
 	{
 #if DEBUG && !TEST
 #pragma warning disable CA1822
@@ -223,13 +225,19 @@ public sealed class SearchClient : IDisposable
 		var tasks = Engines.Select(e =>
 		{
 			Debug.WriteLine($"Starting {e} for {query}");
-			
+
 			var res = e.GetResultAsync(query, token)
-				.ContinueWith( (r) =>
+				.ContinueWith((r) =>
 				{
+					// ReSharper disable AsyncApostle.AsyncWait
+					
 					Debug.Assert(r.IsCompleted);
+					
 					ProcessResult(r.Result);
 					return r.Result;
+
+					// ReSharper restore AsyncApostle.AsyncWait
+
 				}, token, continuationOptions: TaskContinuationOptions.None, scheduler);
 
 			return res;

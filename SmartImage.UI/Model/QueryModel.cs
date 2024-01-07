@@ -3,6 +3,7 @@
 
 global using ISImage = SixLabors.ImageSharp.Image;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -30,11 +31,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	//todo
 	private string? m_value;
-
-	public string DimensionString
-	{
-		get => ControlsHelper.FormatDimensions(Width, Height);
-	}
 
 	public string? Value
 	{
@@ -86,6 +82,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		{
 			if (Equals(value, m_results)) return;
 			m_results = value;
+
 			OnPropertyChanged();
 			OnPropertyChanged(nameof(IsPrimitive));
 			OnPropertyChanged(nameof(IsComplete));
@@ -111,7 +108,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	public bool HasImage => Image != null;
 
 	[MNNW(true, nameof(Value))]
-	public bool HasValue => !string.IsNullOrWhiteSpace(Value);
+	public bool HasValue => !String.IsNullOrWhiteSpace(Value);
 
 	public bool IsPrimitive => !Results.Any() && !HasQuery;
 
@@ -121,7 +118,41 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public bool CanSearch => !Results.Any() && HasInitQuery;
 
-	public ResultItem[]? ResultsBackup { get; internal set; }
+	#region New region
+
+	public ResultItem[]? ResultsBackup { get; private set; }
+
+	[MNNW(true, nameof(ResultsBackup))]
+	public bool HasResultsBackup => ResultsBackup != null;
+
+	internal static readonly ArrayPool<ResultItem> BufferPool = ArrayPool<ResultItem>.Shared;
+
+	public bool BackupResults()
+	{
+		ResultsBackup = BufferPool.Rent(Results.Count);
+
+		Results.CopyTo(ResultsBackup, 0);
+
+		return HasResultsBackup;
+	}
+
+	public bool RestoreResults()
+	{
+		if (HasResultsBackup) {
+			Results = new ObservableCollection<ResultItem>(ResultsBackup);
+			BufferPool.Return(ResultsBackup, true);
+			ResultsBackup = null;
+		}
+
+		return !HasResultsBackup;
+	}
+
+	#endregion
+
+	public string DimensionString
+	{
+		get => ControlsHelper.FormatDimensions(Width, Height);
+	}
 
 	public string Name
 	{
@@ -136,7 +167,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		set { throw new InvalidOperationException(); }
 	}
 
-	public QueryModel() : this(string.Empty) { }
+	public QueryModel() : this(String.Empty) { }
 
 	public QueryModel(string value)
 	{
@@ -148,27 +179,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		Status2       = null;
 		// Dim          = null;
 		Image = null;
-	}
-
-	[MNNW(true, nameof(ResultsBackup))]
-	public bool HasResultsBackup => ResultsBackup != null;
-
-	public bool BackupResults()
-	{
-		ResultsBackup = new ResultItem[Results.Count];
-		Results.CopyTo(ResultsBackup, 0);
-
-		return HasResultsBackup;
-	}
-
-	public bool RestoreResults()
-	{
-		if (HasResultsBackup) {
-			Results       = new ObservableCollection<ResultItem>(ResultsBackup);
-			ResultsBackup = null;
-		}
-
-		return !HasResultsBackup;
 	}
 
 	#region
@@ -200,8 +210,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	}
 
 	#endregion
-
-	public int LoadAttempts { get; private set; }
 
 	private bool m_invalid;
 
@@ -235,7 +243,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			goto ret;
 		}
 
-		LoadAttempts++;
+		// LoadAttempts++;
 
 		// bool queryExists = b2 = m_queries.TryGetValue(query, out var existingQuery);
 
@@ -265,7 +273,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		var uriString = Query.ValueString;
 
-		if (Query == null || string.IsNullOrWhiteSpace(uriString)) {
+		if (Query == null || String.IsNullOrWhiteSpace(uriString)) {
 			Invalid = true;
 			return false;
 		}
@@ -276,11 +284,11 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		// Dispatcher.InvokeAsync(UpdateImage);
 		// UpdateImage();
-		Application.Current.Dispatcher.InvokeAsync(() => LoadImage());
+		Application.Current.Dispatcher.Invoke(LoadImage);
 
 		// await UploadAsync(ct);
 
-		ret:
+	ret:
 
 		Debug.WriteLine($"finished {Value}");
 		return true;
@@ -289,10 +297,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public async Task<bool> UploadAsync(CancellationToken ct)
 	{
-		Url upload = null;
+		Url? upload = null;
 		Status = "Uploading...";
-		const string TIMEOUT_MSG = "Server timed out or input was invalid";
-		string?      emsg        = null;
+		string? emsg = null;
 
 		if (!HasQuery) {
 			goto ret;
@@ -305,17 +312,17 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			emsg = e.Message;
 		}
 
-		ret:
+	ret:
 
 		if (!Url.IsValid(upload)) {
 			// todo: show user specific error message
 
 			// Btn_Delete.IsEnabled      = true;
 
-			Status  = "-";
-			Status2 = TIMEOUT_MSG;
+			Status  = ControlsHelper.STR_NA;
+			Status2 = R3.Msg_Timeout1;
 
-			var res = MessageBox.Show($"{emsg}\nChoose a different server then click [Reload].", 
+			var res = MessageBox.Show($"{emsg}\nChoose a different server then click [Reload].",
 			                          "Failed to upload",
 			                          MessageBoxButtons.OK, MessageBoxIcon.Error);
 			return false;
@@ -377,7 +384,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		// UpdatePreview();
 
-		ret:
+	ret:
 		return HasImage;
 	}
 

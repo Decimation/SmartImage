@@ -129,7 +129,7 @@ public sealed record SearchResultItem : IDisposable,
 		Uni        = null;
 		Parent     = null;
 		IsRaw      = false;
-		Children    = new List<SearchResultItem>();
+		Children   = [];
 	}
 
 	/*
@@ -203,9 +203,9 @@ public sealed record SearchResultItem : IDisposable,
 
 			var sri = new SearchResultItem(this)
 			{
-				Url     = rg[i],
-				Children = new List<SearchResultItem>(),
-				Parent  = this
+				Url      = rg[i],
+				Children = [],
+				Parent   = this
 			};
 
 			Children.Add(sri);

@@ -209,11 +209,10 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 	{
 		var table = new DataTable("Configuration");
 
-		table.Columns.AddRange(new DataColumn[]
-		{
+		table.Columns.AddRange([
 			new("Setting", typeof(string)),
-			new("Value", typeof(object)),
-		});
+			new("Value", typeof(object))
+		]);
 
 		table.Rows.Add(Resources.S_SearchEngines, SearchEngines);
 		table.Rows.Add(Resources.S_PriorityEngines, PriorityEngines);

@@ -100,7 +100,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	internal SearchResult(BaseSearchEngine bse)
 	{
 		Engine  = bse;
-		Results = new List<SearchResultItem>();
+		Results = [];
 	}
 
 	public override string ToString()

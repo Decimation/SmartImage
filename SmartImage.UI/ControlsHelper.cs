@@ -160,7 +160,9 @@ public static class ControlsHelper
 			return $"{w}\u00d7{h}";
 		}
 
-		return string.Empty;
+		return String.Empty;
 	}
+
+	internal const string STR_NA = "-";
 
 }

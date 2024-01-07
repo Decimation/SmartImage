@@ -419,9 +419,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 			// Pb_Preview.IsIndeterminate = false;
-			Lb_Queue.IsEnabled         = true;
-			Btn_Run.IsEnabled          = CurrentQuery.CanSearch;
-			Btn_Reload.IsEnabled       = true;
+			Lb_Queue.IsEnabled   = true;
+			Btn_Run.IsEnabled    = CurrentQuery.CanSearch;
+			Btn_Reload.IsEnabled = true;
 		}
 
 		/*if (!Equals(Lv_Results.ItemsSource, CurrentQueueItem.Results)) {
@@ -447,7 +447,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Upload.Text = null;
 		}
 
-		ret:
+	ret:
 		m_us.Release();
 
 		return isOk;
@@ -480,22 +480,26 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void HandleQueryAsync()
 	{
+		string? tbs = null;
 
 		if ((Config.AutoSearch && !Client.IsRunning) && !CurrentQuery.Results.Any() && CurrentQuery.CanSearch) {
 			Dispatcher.InvokeAsync(RunAsync);
 		}
-
 		else if (CurrentQuery.Results.Any()) {
-			Tb_Status.Text = $"Displaying {CurrentQuery.Results.Count} results";
+			tbs = $"Displaying {CurrentQuery.Results.Count} results";
 		}
 		else if (CurrentQuery.HasInitQuery && !CurrentQuery.Results.Any()) {
-			Tb_Status.Text = $"Search ready";
-
+			tbs = $"Search ready";
 		}
 		else {
-			Tb_Status.Text = CurrentQuery.Status;
+			tbs = CurrentQuery.Status;
 
 		}
+
+		Tb_Status.Dispatcher.Invoke(() =>
+		{
+			Tb_Status.Text = tbs;
+		});
 
 		Btn_Run.IsEnabled = CurrentQuery.CanSearch;
 		// Tb_Info.Text      = CurrentQuery.Info;
@@ -515,7 +519,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		foreach (var s in files) {
 
-			if (SearchQuery.IsValidSourceType(s) && !Queue.Any(x => x.Value == s)) {
+			if (SearchQuery.IsValidSourceType(s) && Queue.All(x => x.Value != s)) {
 				Queue.Add(new QueryModel(s));
 				Debug.WriteLine($"Added {s}");
 
@@ -600,28 +604,26 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		if (cImg) {
 
 			var bmp = Clipboard.GetImage();
+			Trace.Assert(bmp != null);
 			// var df=DataFormats.GetDataFormat((int) ClipboardFormat.PNG);
 			// var fn = Path.GetTempFileName().Split('.')[0] + ".png";
 			var fn = FileSystem.GetTempFileName(ext: "png");
 
-			var ms = File.Open(fn, FileMode.OpenOrCreate);
+			using FileStream fs = File.Open(fn, FileMode.OpenOrCreate);
+
 			// CurrentQueueItem = fn;
 			SetQueue(fn);
 			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
-			enc.Save(ms);
-			ms.Dispose();
+			enc.Save(fs);
+			// fs.Dispose();
 
-			AddToQueue(new[] { fn });
-			/*Dispatcher.InvokeAsync(() =>
-			{
-				return SetQueryAsync(fn);
+			AddToQueue([fn]);
 
-			});*/
 		}
 
 		else if (cText) {
-			var txt = (string) Clipboard.GetData(DataFormats.UnicodeText);
+			string? txt = (string) Clipboard.GetData(DataFormats.UnicodeText);
 			txt = txt.CleanString();
 
 			if (SearchQuery.IsValidSourceType(txt)) {
@@ -632,7 +634,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					// Queue.Add(txt);
 					// InputText = txt;
 
-					AddToQueue(new[] { txt });
+					AddToQueue([txt]);
 
 					// await SetQueryAsync(txt);
 				}
@@ -834,7 +836,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Tb_Upload.Text             = String.Empty;
 		Pb_Preview.IsIndeterminate = false;
-		Tb_Preview.Text            = string.Empty;
+		Tb_Preview.Text            = String.Empty;
 		Lb_Queue.IsEnabled         = true;
 	}
 
@@ -1227,8 +1229,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				}
 			}
 		}
-		finally {
-		}
+		finally { }
 
 	}
 
@@ -1237,7 +1238,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Dispatcher.Invoke(() =>
 		{
 			if (s[0] == App.ARGS_DELIM) {
-				var parentId = int.Parse(s[1..]);
+				var parentId = Int32.Parse(s[1..]);
 				Tb_Status.Text = $"Received data (IPC) {parentId}";
 
 				ParseArgs(m_pipeBuffer.ToArray());
@@ -1272,7 +1273,36 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		},
 	};
 
-	internal static readonly string Placeholder = "-";
+	private void RunSearch(string value)
+	{
+		if (String.IsNullOrWhiteSpace(value)) /*&& m_resultMap.TryGetValue(Query, out var value))*/ {
+			ClearSearch();
+		}
+		else {
+			var selected = (string) Cb_SearchFields.SelectionBoxItem;
+			var strFunc  = SearchFields[selected];
+
+			if (!IsSearching) {
+				CurrentQuery.BackupResults();
+			}
+
+			var searchResults = CurrentQuery.Results.Where(r =>
+			{
+				var s = strFunc(r);
+
+				if (String.IsNullOrWhiteSpace(s)) {
+					return false;
+				}
+
+				return s.Contains(value, StringComparison.InvariantCultureIgnoreCase);
+			});
+
+			CurrentQuery.Results = new ObservableCollection<ResultItem>(searchResults);
+			// Lv_Results.ItemsSource = searchResults;
+			IsSearching = true;
+
+		}
+	}
 
 	private void ClearSearch()
 	{
@@ -1379,7 +1409,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			return;
 		}
 
-		string name = igs is INamed n ? n.Name : Placeholder;
+		string name = igs is INamed n ? n.Name : ControlsHelper.STR_NA;
 		string n2;
 
 		if (igs.IsThumbnail.HasValue) {
@@ -1393,10 +1423,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		}
 		else {
-			n2 = Placeholder;
+			n2 = ControlsHelper.STR_NA;
 		}
 
-		string name2 = null;
+		string? name2 = null;
 
 		if (igs is ResultItem rri) {
 

@@ -41,9 +41,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		public const string Material = "Material:";
 		public const string Source   = "Source:";
 
-		public static readonly string[] Syn_Artists    = { "Creator(s):", "Creator:", "Member:", "Artist:", "Author:" };
+		public static readonly string[] Syn_Artists    = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
 
-		public static readonly string[] Syn_Characters = { "Characters:" };
+		public static readonly string[] Syn_Characters = ["Characters:"];
 	}
 
 	private const string BASE_URL = "https://saucenao.com/";
@@ -108,7 +108,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 			// .OrderByDescending(e => e.Similarity)
 			.ToList();
 
-		if (!imageResults.Any()) {
+		if (imageResults.Count == 0) {
 			// No good results
 			//return sresult;
 			result.Status = SearchResultStatus.NoResults;
@@ -504,9 +504,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 			string[] urls = (Urls != null)
 				                ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
-				                : Array.Empty<string>();
+				                : [];
 
-			string[] meta = Array.Empty<string>();
+			string[] meta = [];
 
 			if ((urls.Length >= 2)) {
 				meta = urls[1..].Where(u => !((Url) u).QueryParams.Contains("lookup_type")).ToArray();

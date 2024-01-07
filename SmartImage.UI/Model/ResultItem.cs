@@ -2,6 +2,7 @@
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -31,7 +32,7 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
-
+#pragma warning disable CS8618
 public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable
 {
 
@@ -156,7 +157,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 		StatusMessage = $"[{Status}]";
 
-		if (!string.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
+		if (!String.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
 		}
 
@@ -372,7 +373,7 @@ public class UniResultItem : ResultItem
 				// todo: update GetFileName
 				Url = ri.Url.GetFileName().Split(':')[0];
 
-				if (string.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
+				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
 					Url = Path.ChangeExtension(Url, Uni.FileType.Subtype);
 				}
 			}

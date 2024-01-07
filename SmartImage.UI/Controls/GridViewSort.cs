@@ -177,7 +177,7 @@ public class GridViewSort
 		if (e.OriginalSource is GridViewColumnHeader headerClicked && headerClicked.Column != null) {
 			string propertyName = GetPropertyName(headerClicked.Column);
 
-			if (!string.IsNullOrEmpty(propertyName)) {
+			if (!String.IsNullOrEmpty(propertyName)) {
 				var listView = GetAncestor<ListView>(headerClicked);
 
 				if (listView != null) {
@@ -235,7 +235,7 @@ public class GridViewSort
 			}
 		}
 
-		if (!string.IsNullOrEmpty(propertyName)) {
+		if (!String.IsNullOrEmpty(propertyName)) {
 			view.SortDescriptions.Add(new SortDescription(propertyName, direction));
 
 			if (GetShowSortGlyph(listView))

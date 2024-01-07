@@ -9,7 +9,7 @@
     <PublishTrimmed>True</PublishTrimmed>
     <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <PublishSingleFile Condition="'$(Configuration)' == 'Release|AnyCPU'">true</PublishSingleFile>
-    <NoWarn>AD0001</NoWarn>
+    <NoWarn>AD0001;IDE0290</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
@@ -92,6 +92,11 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Values.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Values.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
@@ -102,6 +107,10 @@
     <EmbeddedResource Update="Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Values.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Values.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

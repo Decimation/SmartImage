@@ -39,7 +39,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected long     MaxSize  { get; set; } = NA_SIZE;
 
-	protected virtual string[] ErrorBodyMessages { get; } = Array.Empty<string>();
+	protected virtual string[] ErrorBodyMessages { get; } = [];
 
 	protected BaseSearchEngine(string baseUrl)
 	{

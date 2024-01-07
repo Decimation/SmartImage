@@ -419,7 +419,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 								eh.Tags[tag].Add(val);
 							}
 							else {
-								eh.Tags.TryAdd(tag, new() { val });
+								eh.Tags.TryAdd(tag, [val]);
 
 							}
 						}

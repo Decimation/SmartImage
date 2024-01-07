@@ -114,7 +114,7 @@ public abstract class BaseUploadEngine : IEndpoint
 
 		}
 
-		ret:
+	ret:
 
 		return new()
 		{
@@ -147,7 +147,9 @@ public abstract class BaseUploadEngine : IEndpoint
 }*/
 	public static BaseUploadEngine Default { get; set; } = PomfEngine.Instance;
 
-	public void Dispose() { }
+	public void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
 
 }
-

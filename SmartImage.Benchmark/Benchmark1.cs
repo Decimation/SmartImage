@@ -7,7 +7,7 @@ using SixLabors.ImageSharp;
 using SmartImage.Lib;
 
 namespace SmartImage.Benchmark;
-
+#pragma warning disable CS8618
 public class Benchmark1
 {
 

@@ -1,16 +1,17 @@
 ﻿// Read S SmartImage.Lib NonPublicMembersConverter.cs
 // 2023-09-26 @ 10:51 PM
 
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace SmartImage.Lib.Utilities;
 
+#pragma warning disable IL2026, IL2070, IL2067
 #pragma warning disable CS0649
 public class NonPublicMembersConverter<T> : JsonConverter<T> where T : class
 {
-
 	public override T Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
 	{
 		T instance = (T) Activator.CreateInstance(typeToConvert, nonPublic: true);

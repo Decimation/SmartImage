@@ -6,20 +6,24 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media.Imaging;
+using JetBrains.Annotations;
+// ReSharper disable NullableWarningSuppressionIsUsed
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.UI;
-
+#nullable enable
 public static class AppComponents
 {
+
 	public const int WIDTH  = 20;
 	public const int HEIGHT = 20;
 
 	static AppComponents() { }
 
-	public static BitmapImage LoadInline([CallerMemberName] string? name = null, int w = WIDTH, int h = HEIGHT, string? ext = "png")
-		=> Load(Path.ChangeExtension(name, ext), w, h);
+	public static BitmapImage LoadInline([CallerMemberName] string? name = null, int w = WIDTH, int h = HEIGHT,
+	                                     string? ext = "png")
+		=> Load(Path.ChangeExtension(name, ext)!, w, h);
 
 	public static BitmapImage Load(string name, int w = WIDTH, int h = HEIGHT)
 	{
@@ -53,13 +57,13 @@ public static class AppComponents
 
 	public static readonly BitmapImage information = LoadInline();
 
-	public static readonly BitmapImage picture = LoadInline();
+	public static readonly BitmapImage picture  = LoadInline();
 	public static readonly BitmapImage pictures = LoadInline();
 
 	public static readonly BitmapImage picture_save  = LoadInline();
 	public static readonly BitmapImage picture_error = LoadInline();
 	public static readonly BitmapImage picture_empty = LoadInline();
-	public static readonly BitmapImage picture_link = LoadInline();
+	public static readonly BitmapImage picture_link  = LoadInline();
 
 	public static readonly BitmapImage artwork = LoadInline();
 
@@ -76,4 +80,5 @@ public static class AppComponents
 	public static readonly BitmapImage asterisk_yellow = LoadInline();
 
 	#endregion
+
 }

@@ -130,11 +130,11 @@ public sealed class Ascii2DEngine : WebSearchEngine
 	}
 
 	protected override string[] ErrorBodyMessages
-		=> new[]
-		{
+		=>
+		[
 			"検索できるのは 縦 10000px での画像です。",
 			"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
-		};
+		];
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode nx, SearchResult r)
 	{

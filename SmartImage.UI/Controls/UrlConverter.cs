@@ -8,7 +8,7 @@ using Flurl;
 
 namespace SmartImage.UI.Controls;
 
-[ValueConversion(typeof(Url), typeof(String))]
+[ValueConversion(typeof(Url), typeof(string))]
 public class UrlConverter : IValueConverter
 {
 	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

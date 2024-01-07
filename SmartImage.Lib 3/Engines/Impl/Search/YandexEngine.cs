@@ -42,7 +42,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 		nodes.AddRange(nodes2);
 
-		if (!nodes.Any()) {
+		if (nodes.Count==0) {
 			return null;
 		}
 
@@ -199,7 +199,7 @@ public sealed class YandexEngine : WebSearchEngine
 	/// <summary>
 	/// Parses <em>Similar images</em>
 	/// </summary>
-	private IEnumerable<SearchResultItem> ParseSimilarImages(IDocument doc, SearchResult r)
+	private List<SearchResultItem> ParseSimilarImages(IParentNode doc, SearchResult r)
 	{
 		var nodes   = doc.QuerySelectorAll(Serialization.S_Yandex_SimilarImages);
 		var results = new List<SearchResultItem>(nodes.Length);
@@ -225,7 +225,7 @@ public sealed class YandexEngine : WebSearchEngine
 	/// <summary>
 	/// Parses <em>Sites containing information about the image</em>
 	/// </summary>
-	private static IEnumerable<SearchResultItem> ParseExternalInfo(IDocument doc, SearchResult r)
+	private static List<SearchResultItem> ParseExternalInfo(IDocument doc, SearchResult r)
 	{
 		var items = doc.Body.SelectNodes(Serialization.S_Yandex_ExtInfo);
 		var rg    = new List<SearchResultItem>(items.Count);
@@ -233,7 +233,7 @@ public sealed class YandexEngine : WebSearchEngine
 		foreach (INode item in items) {
 			if (item is IHtmlElement elem) {
 				var title1 = elem.QuerySelector(".CbirSites-ItemTitle");
-				var href1 = title1.Children[0].Attributes["href"];
+				// var href1 = title1.Children[0].Attributes["href"];
 			}
 			// var thumb = item.ChildNodes[0];
 			var info  = item.ChildNodes[1];
@@ -263,18 +263,18 @@ public sealed class YandexEngine : WebSearchEngine
 	public override void Dispose() { }
 
 	protected override string[] ErrorBodyMessages
-		=> new[]
-		{
+		=>
+		[
 			"Please confirm that you and not a robot are sending requests",
-			"Изображение не загрузилось, попробуйте загрузить другое.",
+			"Изображение не загрузилось, попробуйте загрузить другое."
 			// "No matching images found"
-		};
+		];
 
 	protected override async ValueTask<INode[]> GetNodes(IDocument doc)
 	{
 		var tagsItem = doc.Body.SelectNodes(NodesSelector);
 
-		if (!tagsItem.Any()) {
+		if (tagsItem.Count==0) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
 			return await Task.FromResult(tagsItem.ToArray()).ConfigureAwait(false);
 			// return tagsItem;

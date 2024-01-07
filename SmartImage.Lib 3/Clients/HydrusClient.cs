@@ -12,6 +12,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Flurl.Http;
 using Novus.Streams;
@@ -164,6 +165,7 @@ public class HydrusClient : IEndpoint, INotifyPropertyChanged
 
     public void Dispose()
     {
+        GC.SuppressFinalize(this);
         Client.Dispose();
     }
 
@@ -182,6 +184,7 @@ public class HydrusClient : IEndpoint, INotifyPropertyChanged
         return true;
     }
 }
+#pragma warning disable IL2026
 
 public partial class FileRelationship
 {
@@ -212,7 +215,7 @@ public partial class FileRelationship
     public static Dictionary<string, FileRelationship> Deserialize(JsonValue v)
     {
         var vs = ((JsonObject)v)["file_relationships"];
-
+        
         var re = JsonSerializer.Deserialize<Dictionary<string, FileRelationship>>(vs.ToString());
 
         return re;

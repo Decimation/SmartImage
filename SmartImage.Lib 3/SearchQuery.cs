@@ -15,6 +15,7 @@ using Novus.Streams;
 using SixLabors.ImageSharp;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
+using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
 [assembly: InternalsVisibleTo("SmartImage")]
@@ -87,7 +88,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static async Task<SearchQuery> TryCreateAsync(string value, CancellationToken ct = default)
 	{
-		var uf = await UniSource.TryGetAsync(value, ct: ct, whitelist: FileType.Image);
+		UniSource uf = await UniSource.TryGetAsync(value, ct: ct, whitelist: FileType.Image);
 
 		if (uf == null) {
 			return Null;
@@ -112,7 +113,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 		IsUploading = true;
 
-		var fu = Uni.Value.ToString();
+		string fu = Uni.Value.ToString();
 
 		if (Uni.IsUri) {
 			Upload = fu;
@@ -124,8 +125,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 			engine ??= BaseUploadEngine.Default;
 
-			var u   = await engine.UploadFileAsync(fu, ct);
-			var url = u.Url;
+			UploadResult u   = await engine.UploadFileAsync(fu, ct);
+			Url url = u.Url;
 
 			if (!u.IsValid) {
 				url = null;
@@ -155,14 +156,14 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static bool IsValidSourceType(object str)
 	{
-		var v        = UniHandler.GetUniType(str, out var o2);
-		var isFile   = v == UniSourceType.File;
-		var isUri    = v == UniSourceType.Uri;
-		var isStream = v == UniSourceType.Stream;
-		var ok       = isFile || isUri || isStream;
+		UniSourceType v        = UniHandler.GetUniType(str, out object o2);
+		bool isFile   = v == UniSourceType.File;
+		bool isUri    = v == UniSourceType.Uri;
+		bool isStream = v == UniSourceType.Stream;
+		bool ok       = isFile || isUri || isStream;
 
 		if (isFile) {
-			var ext = Path.GetExtension(str.ToString())?[1..];
+			string ext = Path.GetExtension(str.ToString())?[1..];
 			return FileType.Image.Any(x => x.Subtype == ext);
 		}
 
@@ -178,7 +179,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public override string ToString()
 	{
-		var s = $"{Uni}";
+		string s = $"{Uni}";
 
 		return s;
 	}
@@ -251,9 +252,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		if (!Uni.IsFile) {
 			t = Path.Combine(Path.GetTempPath(), fn);
 
-			using var fs = File.Create(t);
+			using FileStream fs = File.Create(t);
 
-			var s = Uni.Stream.CanSeek;
+			bool s = Uni.Stream.CanSeek;
 
 			if (s) {
 				Uni.Stream.Position = 0;

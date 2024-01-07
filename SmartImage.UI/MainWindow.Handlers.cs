@@ -3,6 +3,7 @@
 
 global using VBFS = Microsoft.VisualBasic.FileIO.FileSystem;
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -93,7 +94,7 @@ public partial class MainWindow
 		AddToQueue(files1);
 		var f1 = files1.FirstOrDefault();
 
-		if (!string.IsNullOrWhiteSpace(f1)) {
+		if (!String.IsNullOrWhiteSpace(f1)) {
 			SetQueue(f1);
 
 		}
@@ -139,7 +140,7 @@ public partial class MainWindow
 
 		var s = Query.ValueString;
 
-		if (string.IsNullOrWhiteSpace(s)) {
+		if (String.IsNullOrWhiteSpace(s)) {
 			return;
 		}
 
@@ -247,7 +248,7 @@ public partial class MainWindow
 		var i   = Queue.IndexOf(cpy);
 		Queue.Remove(cpy);
 		cpy.Dispose();
-		QueryModel rm = new QueryModel(cpy.Value);
+		var rm = new QueryModel(cpy.Value);
 		Queue.Insert(i, rm);
 		CurrentQuery = rm;
 
@@ -887,33 +888,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	private void Tb_Search_TextChanged(object sender, TextChangedEventArgs e)
 	{
-		if (string.IsNullOrWhiteSpace(Tb_Search.Text)) /*&& m_resultMap.TryGetValue(Query, out var value))*/ {
-			ClearSearch();
-		}
-		else {
-			var selected = (string) Cb_SearchFields.SelectionBoxItem;
-			var strFunc  = SearchFields[selected];
-
-			if (!IsSearching) {
-				CurrentQuery.BackupResults();
-
-			}
-
-			var searchResults = CurrentQuery.Results.Where(r =>
-			{
-				var s = strFunc(r);
-
-				if (string.IsNullOrWhiteSpace(s)) {
-					return false;
-				}
-
-				return s.Contains(Tb_Search.Text, StringComparison.InvariantCultureIgnoreCase);
-			});
-			CurrentQuery.Results = new ObservableCollection<ResultItem>(searchResults);
-			// Lv_Results.ItemsSource = searchResults;
-			IsSearching = true;
-
-		}
+		RunSearch(Tb_Search.Text);
 
 		e.Handled = true;
 	}
