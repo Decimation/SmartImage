@@ -15,6 +15,7 @@ using Novus.Streams;
 using SixLabors.ImageSharp;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
@@ -24,7 +25,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
+public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSize
 {
 
 	[MN]
@@ -33,7 +34,17 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[MN]
 	public Url Upload { get; internal set; }
 
-	public long Size { get; private set; }
+	public long Size
+	{
+		get
+		{
+			if (HasUni) {
+				return Uni.Stream.Length;
+			}
+
+			return -1;
+		}
+	}
 
 	[CBN]
 	public string ValueString => HasUni ? Uni.Value.ToString() : null;
@@ -49,7 +60,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	internal SearchQuery([CBN] UniSource f)
 	{
 		Uni  = f;
-		Size = Uni == null ? default : Uni.Stream.Length;
+		// Size = Uni == null ? default : Uni.Stream.Length;
 	}
 
 	private SearchQuery() : this(null) { }
@@ -145,7 +156,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			/*if (u.Response is { }) {
 				Size = NetHelper.GetContentLength(u.Response) ?? Size;
 			}*/
-			Size = u.Size ?? Size;
+			// Size = u.Size ?? Size;
 			u.Dispose();
 		}
 

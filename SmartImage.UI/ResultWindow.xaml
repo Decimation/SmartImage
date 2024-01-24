@@ -5,11 +5,14 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartImage.UI"
+        xmlns:controls="clr-namespace:SmartImage.UI.Controls"
         mc:Ignorable="d"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Title="{Binding Result.Name}" Height="450" Width="800" ResizeMode="NoResize">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <controls:UrlConverter x:Key="urlConverter" />
+        <controls:UnitStringConverter x:Key="unitConverter" />
     </Window.Resources>
     <Grid Background="{DynamicResource Black1}">
         <Grid.RowDefinitions>
@@ -86,7 +89,7 @@
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
         <TextBox x:Name="Tb_UniSize" HorizontalAlignment="Left" Margin="186,311,0,0"
-                 Text="{Binding UniResult.SizeFormat, Mode=OneTime}"
+                 Text="{Binding UniResult.Size, Mode=OneTime, Converter={StaticResource unitConverter}}"
                  VerticalAlignment="Top" Width="85" Background="Black" Foreground="White" IsReadOnly="True"
                  Visibility="{Binding IsUni, Converter={StaticResource BooleanToVisibilityConverter}}" />
 

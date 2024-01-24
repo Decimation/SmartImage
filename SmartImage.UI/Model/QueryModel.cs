@@ -19,6 +19,7 @@ using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Flurl;
 using Kantan.Text;
+using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Model;
 using Application = System.Windows.Application;
@@ -26,7 +27,7 @@ using Application = System.Windows.Application;
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
-public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, INamed
+public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, INamed, IItemSize
 {
 
 	//todo
@@ -58,6 +59,21 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			UpdateProperties();
 		}
 	}
+	public string DimensionString
+	{
+		get => ControlsHelper.FormatDimensions(Width, Height);
+	}
+	public long Size
+	{
+		get
+		{
+			if (HasQuery) {
+				return Query.Size;
+			}
+
+			return Native.INVALID;
+		}
+	}
 
 	public void UpdateProperties()
 	{
@@ -68,6 +84,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		OnPropertyChanged(nameof(Results));
 		OnPropertyChanged(nameof(CanDelete));
 		OnPropertyChanged(nameof(Query));
+		OnPropertyChanged(nameof(DimensionString));
 
 	}
 
@@ -118,42 +135,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public bool CanSearch => !Results.Any() && HasInitQuery;
 
-	#region New region
-
-	public ResultItem[]? ResultsBackup { get; private set; }
-
-	[MNNW(true, nameof(ResultsBackup))]
-	public bool HasResultsBackup => ResultsBackup != null;
-
-	internal static readonly ArrayPool<ResultItem> BufferPool = ArrayPool<ResultItem>.Shared;
-
-	public bool BackupResults()
-	{
-		ResultsBackup = BufferPool.Rent(Results.Count);
-
-		Results.CopyTo(ResultsBackup, 0);
-
-		return HasResultsBackup;
-	}
-
-	public bool RestoreResults()
-	{
-		if (HasResultsBackup) {
-			Results = new ObservableCollection<ResultItem>(ResultsBackup);
-			BufferPool.Return(ResultsBackup, true);
-			ResultsBackup = null;
-		}
-
-		return !HasResultsBackup;
-	}
-
-	#endregion
-
-	public string DimensionString
-	{
-		get => ControlsHelper.FormatDimensions(Width, Height);
-	}
-
 	public string Name
 	{
 		get
@@ -173,7 +154,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	{
 		Value         = value;
 		Results       = [];
-		ResultsBackup = null;
 		Query         = SearchQuery.Null;
 		Status        = null;
 		Status2       = null;
@@ -394,7 +374,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	{
 		var eventArgs = new PropertyChangedEventArgs(propertyName);
 		PropertyChanged?.Invoke(this, eventArgs);
-		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
+		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

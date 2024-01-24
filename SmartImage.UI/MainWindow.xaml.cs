@@ -65,6 +65,7 @@ using ReactiveUI;
 using Windows.Media.Protection.PlayReady;
 using Brush = System.Drawing.Brush;
 using Brushes = System.Windows.Media.Brushes;
+using System.Buffers;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -164,6 +165,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
 
+		Cv_Results = CollectionViewSource.GetDefaultView(Lv_Results.Items);
+
 		// m_images                      = new();
 		AddQueueListener();
 		// CurrentQueueItem.PropertyChanged += OnCurrentQueueItemChanged;
@@ -171,10 +174,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
-		AddHandler(System.Windows.Controls.Validation.ErrorEvent, new RoutedEventHandler(OnValidationRaised));
+		AddHandler(Validation.ErrorEvent, new RoutedEventHandler(OnValidationRaised));
 	}
 
 	#region
+
+	private readonly ICollectionView Cv_Results;
 
 	private void OnValidationRaised(object sender, RoutedEventArgs e) { }
 
@@ -418,10 +423,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				// Debugger.Break();
 			}
 
-			// Pb_Preview.IsIndeterminate = false;
-			Lb_Queue.IsEnabled   = true;
-			Btn_Run.IsEnabled    = CurrentQuery.CanSearch;
-			Btn_Reload.IsEnabled = true;
+			Pb_Preview.IsIndeterminate = false;
+			Lb_Queue.IsEnabled         = true;
+			Btn_Run.IsEnabled          = CurrentQuery.CanSearch;
+			Btn_Reload.IsEnabled       = true;
 		}
 
 		/*if (!Equals(Lv_Results.ItemsSource, CurrentQueueItem.Results)) {
@@ -1263,10 +1268,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 
 		{
-			nameof(ResultItem.Name), (x) => x.Name
+			nameof(ResultItem.Name), (x) => x?.Name
 		},
 		{
-			nameof(ResultItem.Url), (x) => x.Url?.ToString()
+			nameof(ResultItem.Url), (x) => x?.Url?.ToString()
 		},
 		{
 			nameof(ResultItem.Result.Description), (x) => x.Result.Description
@@ -1282,11 +1287,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			var selected = (string) Cb_SearchFields.SelectionBoxItem;
 			var strFunc  = SearchFields[selected];
 
-			if (!IsSearching) {
-				CurrentQuery.BackupResults();
-			}
+			if (!IsSearching) { }
 
-			var searchResults = CurrentQuery.Results.Where(r =>
+			/*var searchResults = CurrentQuery.Results.Where(r =>
 			{
 				var s = strFunc(r);
 
@@ -1295,9 +1298,22 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				}
 
 				return s.Contains(value, StringComparison.InvariantCultureIgnoreCase);
-			});
+			});*/
 
-			CurrentQuery.Results = new ObservableCollection<ResultItem>(searchResults);
+			Cv_Results.Filter = ro =>
+			{
+				var r = ro as ResultItem;
+				var s = strFunc(r);
+
+				if (String.IsNullOrWhiteSpace(s)) {
+					return false;
+				}
+
+				return s.Contains(value, StringComparison.InvariantCultureIgnoreCase);
+			};
+
+			Cv_Results.Refresh();
+			// CurrentQuery.Results = new ObservableCollection<ResultItem>();
 			// Lv_Results.ItemsSource = searchResults;
 			IsSearching = true;
 
@@ -1310,9 +1326,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Tb_Search.Text = null;
 		}
 
-		CurrentQuery.RestoreResults();
+		// CurrentQuery.RestoreResults();
 		// Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
-		IsSearching = false;
+		IsSearching       = false;
+		Cv_Results.Filter = null;
+		Cv_Results.Refresh();
 
 	}
 
@@ -1402,6 +1420,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
 		return;
 	}*/
+
 		var load = igs.LoadImage();
 
 		if (!load) {

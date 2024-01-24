@@ -18,6 +18,7 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Linq;
+using AngleSharp.Css;
 using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
@@ -26,6 +27,7 @@ using Kantan.Utilities;
 using Novus.FileTypes;
 using Novus.OS;
 using Novus.Streams;
+using Novus.Win32;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
@@ -33,7 +35,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 #pragma warning disable CS8618
-public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable
+public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable, IItemSize
 {
 
 	#region
@@ -187,7 +189,9 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+		var eventArgs = new PropertyChangedEventArgs(propertyName);
+		PropertyChanged?.Invoke(this, eventArgs);
+		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
@@ -207,12 +211,19 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		}
 
 		CanDownload = HasImage;
-		// Width       = Image.PixelWidth;
-		// Height      = Image.PixelHeight;
+
 		// OnPropertyChanged(nameof(Width));
 		// OnPropertyChanged(nameof(Height));
 		IsThumbnail = HasImage;
+
 		UpdateProperties();
+
+		if (Image is {}) {
+			Width  = Image.PixelWidth;
+			Height = Image.PixelHeight;
+			OnPropertyChanged(nameof(DimensionString));
+			OnPropertyChanged(nameof(Size));
+		}
 	}
 
 	public void UpdateProperties()
@@ -272,7 +283,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 				}*/
 			}
-
+			OnPropertyChanged(nameof(DimensionString));
 			UpdateProperties();
 			return HasImage;
 		}
@@ -327,6 +338,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	#endregion
 
+	public virtual long Size => Native.INVALID;
+
 }
 
 public class UniResultItem : ResultItem
@@ -336,10 +349,19 @@ public class UniResultItem : ResultItem
 
 	public override bool CanLoadImage => !HasImage && Uni != null;
 
-	public string SizeFormat { get; }
-
 	public string Description { get; }
 
+	public override long Size
+	{
+		get
+		{
+			if (Uni != null) {
+				return Uni.Stream.Length;
+			}
+
+			return Native.INVALID;
+		}
+	}
 	public UniSource? Uni
 	{
 		get
@@ -389,7 +411,7 @@ public class UniResultItem : ResultItem
 		}
 
 		StatusImage = AppComponents.picture;
-		SizeFormat  = ControlsHelper.FormatSize(Uni);
+		// SizeFormat  = ControlsHelper.FormatSize(Uni);
 		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
@@ -416,6 +438,9 @@ public class UniResultItem : ResultItem
 		if (Image is { CanFreeze: true }) {
 			Image.Freeze();
 		}
+		
+		OnPropertyChanged(nameof(DimensionString));
+
 	}
 
 	public override bool LoadImage()
