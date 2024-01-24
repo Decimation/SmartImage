@@ -532,7 +532,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 			if (!CurrentQuery.HasValue) {
-				SetQueue(s);
+				SetQueue(s, out _);
 
 			}
 		}
@@ -617,7 +617,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			using FileStream fs = File.Open(fn, FileMode.OpenOrCreate);
 
 			// CurrentQueueItem = fn;
-			SetQueue(fn);
+			SetQueue(fn, out _);
 			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(fs);
@@ -1052,7 +1052,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private async Task ScanGalleryResultAsync(ResultItem cri)
 	{
 
-		if (FileSystem.FindInPath("gallery-dl.exe") == null) {
+		if (BaseImageHost.GalleryDLPath == null) {
 			MessageBox.Show(this, "gallery-dl not in path");
 			return;
 		}
@@ -1222,7 +1222,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				}
 
 				if (c == R2.Arg_Switch && inp != null) {
-					SetQueue(inp);
+					SetQueue(inp, out var q);
+					CurrentQuery = q;
 				}
 
 				if (c == R2.Arg_AutoSearch) {

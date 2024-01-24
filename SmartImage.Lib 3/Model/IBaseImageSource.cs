@@ -25,9 +25,3 @@ public interface IBaseImageSource
 	public bool LoadImage();
 
 }
-
-public interface IItemSize
-{
-	public long Size { get; }
-
-}

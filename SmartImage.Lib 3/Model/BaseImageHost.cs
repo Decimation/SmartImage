@@ -9,6 +9,7 @@ using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
+using Novus.OS;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
@@ -183,6 +184,11 @@ public abstract class BaseImageHost
 
 		return rg.ToArray();
 	}
+
+	internal const string GALLERY_DL_EXE = "gallery-dl.exe";
+
+	internal static readonly string GalleryDLPath = FileSystem.FindInPath(GALLERY_DL_EXE);
+
 }
 
 public class DanbooruImageHost : GenericImageHost

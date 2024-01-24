@@ -13,7 +13,7 @@
     <AssemblyName>SmartImage</AssemblyName>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
     <FileVersion></FileVersion>
-    <AssemblyVersion>4.0.3.0</AssemblyVersion>
+    <AssemblyVersion>4.0.4.0</AssemblyVersion>
     <NoWarn>IDE0290</NoWarn>
     <EnableSourceControlManagerQueries>True</EnableSourceControlManagerQueries>
   </PropertyGroup>

@@ -95,7 +95,7 @@ public partial class MainWindow
 		var f1 = files1.FirstOrDefault();
 
 		if (!String.IsNullOrWhiteSpace(f1)) {
-			SetQueue(f1);
+			SetQueue(f1, out _);
 
 		}
 
@@ -891,6 +891,10 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 		RunSearch(Tb_Search.Text);
 
 		e.Handled = true;
+	}
+	private void MenuItem_OnClick(object sender, RoutedEventArgs e)
+	{
+		throw new NotImplementedException();
 	}
 
 }

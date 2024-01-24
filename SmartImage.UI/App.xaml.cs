@@ -37,7 +37,7 @@ public partial class App : Application
 
 	private void Application_Startup(object sender, StartupEventArgs startupArgs)
 	{
-		bool multipleInstances = false, pipeServer = false;
+		bool multipleInstances = false, pipeServer = true;
 
 		var       enumerator = startupArgs.Args.GetEnumerator();
 		using var unknown    = enumerator as IDisposable;
@@ -50,8 +50,8 @@ public partial class App : Application
 				case "-mi":
 					multipleInstances = true;
 					break;
-				case "-ms":
-					pipeServer = true;
+				case "-nms":
+					pipeServer = false;
 					break;
 				default:
 					break;

@@ -127,14 +127,14 @@ public partial class MainWindow
 		}
 	}
 
-	public bool SetQueue(string s)
+	public bool SetQueue(string s, out QueryModel? qm)
 	{
-		var qm = FindQueue(s);
+		qm = FindQueue(s);
 
 		var b = qm == null;
 
 		if (b) {
-			qm = new QueryModel(s);
+			qm           = new QueryModel(s);
 			Queue.Add(qm);
 			CurrentQuery = qm;
 		}
