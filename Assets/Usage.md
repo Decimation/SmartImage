@@ -44,4 +44,4 @@
 
 ### About
 
-**Last updated:** `2024-01-24 v4.0.4` _[commit](https://github.com/Decimation/SmartImage/commit/800c336f02a1824f8cc76e3c898e0dd1657b490c)_
+**Last updated:** `2024-01-24 v4.0.4`
