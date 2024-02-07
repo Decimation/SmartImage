@@ -12,6 +12,7 @@ using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.FileTypes;
 using Novus.Streams;
+using Novus.Win32;
 using SixLabors.ImageSharp;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
@@ -38,11 +39,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	{
 		get
 		{
-			if (HasUni) {
+			if (HasUni && Uni.Stream.CanRead) {
 				return Uni.Stream.Length;
 			}
 
-			return -1;
+			return Native.INVALID;
 		}
 	}
 

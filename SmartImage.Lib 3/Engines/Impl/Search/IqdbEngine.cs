@@ -154,12 +154,15 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 
 					               return;
 				               }, cancellationToken: ct);
+			if (response!= null) {
+				var s = await response.GetStringAsync();
 
-			var s = await response.GetStringAsync();
+				var parser = new HtmlParser();
+				return await parser.ParseDocumentAsync(s, ct).ConfigureAwait(false);
 
-			var parser = new HtmlParser();
-			return await parser.ParseDocumentAsync(s, ct).ConfigureAwait(false);
+			}
 
+			return null;
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}!");

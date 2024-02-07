@@ -2,6 +2,7 @@
 // $File.CreatedYear-$File.CreatedMonth-26 @ 0:56
 
 using System.ComponentModel;
+using System.Globalization;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using Spectre.Console;
@@ -18,10 +19,12 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	[CommandOption("-e|--search-engines")]
 	[DefaultValue(SearchConfig.SE_DEFAULT)]
+	// [TypeConverter(typeof(FlagsEnumTypeConverter<SearchEngineOptions>))]
 	public SearchEngineOptions SearchEngines { get; init; }
 
 	[CommandOption("-p|--priority-engines")]
 	[DefaultValue(SearchConfig.PE_DEFAULT)]
+	// [TypeConverter(typeof(FlagsEnumTypeConverter<SearchEngineOptions>))]
 	public SearchEngineOptions PriorityEngines { get; init; }
 
 	[CommandOption("-a|--autosearch")]
@@ -34,7 +37,13 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	public override ValidationResult Validate()
 	{
-		return base.Validate();
+		var result = base.Validate();
+
+		if (!SearchQuery.IsValidSourceType(Query)) {
+			return ValidationResult.Error($"Invalid query");
+		}
+
+		return result;
 	}
 
 }

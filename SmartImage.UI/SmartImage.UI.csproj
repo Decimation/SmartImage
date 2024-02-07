@@ -62,7 +62,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FFME.Windows" Version="4.4.350" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />

@@ -20,7 +20,6 @@
         <!-- <ui:SharedImageControl x:Key="SharedImage" /> -->
         <controls:UrlConverter x:Key="urlConverter" />
         <controls:UnitStringConverter x:Key="unitConverter" />
-        <controls:ImageDimensionConverter x:Key="imgConverter" />
 
         <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
             <converters:BooleanToBrushConverter.TrueBrush>

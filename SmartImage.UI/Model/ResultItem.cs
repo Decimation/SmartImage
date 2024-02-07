@@ -1,5 +1,5 @@
-﻿// $User.Name $File.ProjectName $File.FileName
-// $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
+﻿// Deci SmartImage.UI ResultItem.cs
+// $File.CreatedYear-$File.CreatedMonth-11 @ 12:26
 
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
@@ -12,7 +12,6 @@ using System.IO;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -23,10 +22,7 @@ using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
-using Kantan.Utilities;
-using Novus.FileTypes;
 using Novus.OS;
-using Novus.Streams;
 using Novus.Win32;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Model;
@@ -35,17 +31,14 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 #pragma warning disable CS8618
-public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable, IItemSize
+public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImageProvider, INamed, IDownloadable, IItemSize
 {
 
 	#region
 
-	public string DimensionString
-	{
-		get => ControlsHelper.FormatDimensions(Width, Height);
-	}
-
 	private string m_label;
+
+	private double m_previewProgress;
 
 	private BitmapImage m_statusImage;
 
@@ -79,14 +72,6 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	public bool CanDownload { get; set; }
 
-	public bool? IsThumbnail { get; protected set; }
-
-	public int? Width { get; internal set; }
-
-	public int? Height { get; internal set; }
-
-	public BitmapImage? Image { get; /*protected*/ set; }
-
 	public string StatusMessage { get; internal set; }
 
 	public bool IsLowQuality => !Url.IsValid(Url) || Status.IsError() || Result.IsRaw;
@@ -102,9 +87,13 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		}
 	}
 
-	public bool HasImage => Image != null;
+	public TransientImage TransientImage
+	{
+		get;
+		set;
+	}
 
-	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
+	public  bool CanLoadImage => !TransientImage.HasImage && Url.IsValid(Result.Thumbnail);
 
 	public string? Download { get; set; }
 
@@ -116,8 +105,6 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	public bool IsSister { get; internal init; }
 
-	private double m_previewProgress;
-
 	public double PreviewProgress
 	{
 		get => m_previewProgress;
@@ -128,6 +115,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 			OnPropertyChanged();
 		}
 	}
+
+	public virtual long Size => Native.INVALID;
 
 	private static readonly object _lock = new();
 
@@ -141,8 +130,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		Url     = result.Url;
 		CanOpen = Url.IsValid(Url);
 		CanScan = CanOpen;
-
-		(Width, Height) = (Result.Width, Result.Height);
+		
+		// (Width, Height) = (Result.Width, Result.Height);
 
 		if (Status.IsSuccessful()) {
 			StatusImage = AppComponents.accept;
@@ -191,7 +180,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	{
 		var eventArgs = new PropertyChangedEventArgs(propertyName);
 		PropertyChanged?.Invoke(this, eventArgs);
-		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
+		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
@@ -200,6 +189,30 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
+	}
+
+	public void UpdateProperties()
+	{
+		OnPropertyChanged(nameof(CanOpen));
+		OnPropertyChanged(nameof(IsDownloaded));
+		OnPropertyChanged(nameof(IsSister));
+		OnPropertyChanged(nameof(Label));
+		OnPropertyChanged(nameof(Image));
+	}
+
+	#region 
+
+	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
+	{
+		PreviewProgress = ((float) args.Progress * 100.0f);
+		Label           = $"Preview cache...";
+	}
+
+	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
+	{
+		PreviewProgress = 0;
+		Label           = $"Preview fetch failed: {args.ErrorException.Message}";
+
 	}
 
 	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
@@ -218,37 +231,17 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 		UpdateProperties();
 
-		if (Image is {}) {
+		if (Image is { }) {
 			Width  = Image.PixelWidth;
 			Height = Image.PixelHeight;
 			OnPropertyChanged(nameof(DimensionString));
 			OnPropertyChanged(nameof(Size));
 		}
+
+		Trace.WriteLine($"{this} :: {nameof(OnImageDownloadCompleted)} {args}");
 	}
 
-	public void UpdateProperties()
-	{
-		OnPropertyChanged(nameof(CanOpen));
-		OnPropertyChanged(nameof(IsDownloaded));
-		OnPropertyChanged(nameof(IsSister));
-		OnPropertyChanged(nameof(Label));
-		OnPropertyChanged(nameof(Image));
-	}
-
-	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
-	{
-		PreviewProgress = ((float) args.Progress * 100.0f);
-		Label           = $"Preview cache...";
-	}
-
-	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
-	{
-		PreviewProgress = 0;
-		Label           = $"Preview fetch failed: {args.ErrorException.Message}";
-
-	}
-
-	public virtual bool LoadImage()
+	public bool TryLoadImage()
 	{
 		lock (_lock) {
 			if (CanLoadImage) {
@@ -259,9 +252,12 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 				 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
 				 *
 				 */
-
-				Image = new BitmapImage()
+				var Image = new BitmapImage()
 					{ };
+
+				TransientImage= new TransientImage()
+					{ };
+
 				Image.BeginInit();
 				Image.UriSource = new Uri(Result.Thumbnail);
 				// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
@@ -283,10 +279,19 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 				}*/
 			}
+			Image = new BitmapImage()
+				{ };
 			OnPropertyChanged(nameof(DimensionString));
 			UpdateProperties();
 			return HasImage;
 		}
+	}
+
+	#endregion
+
+	public override string ToString()
+	{
+		return $"{Name} / {Result}";
 	}
 
 	#region
@@ -299,7 +304,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		Image = null;
 	}
 
-	public virtual async Task<string> DownloadAsync(string? dir = null, bool exp = true)
+	public virtual async Task<string?> DownloadAsync(string? dir = null, bool exp = true)
 	{
 		if (!Url.IsValid(Url) || !HasImage) {
 			return null;
@@ -337,182 +342,5 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	public event PropertyChangedEventHandler? PropertyChanged;
 
 	#endregion
-
-	public virtual long Size => Native.INVALID;
-
-}
-
-public class UniResultItem : ResultItem
-{
-
-	#region
-
-	public override bool CanLoadImage => !HasImage && Uni != null;
-
-	public string Description { get; }
-
-	public override long Size
-	{
-		get
-		{
-			if (Uni != null) {
-				return Uni.Stream.Length;
-			}
-
-			return Native.INVALID;
-		}
-	}
-	public UniSource? Uni
-	{
-		get
-		{
-			if (UniIndex.HasValue && Result.Uni != null) {
-				return Result.Uni[UniIndex.Value];
-
-			}
-
-			return null;
-		}
-	}
-
-	public string Hash { get; }
-
-	public int? UniIndex { get; }
-
-	#endregion
-
-	public UniResultItem(ResultItem ri, int? idx)
-		: base(ri.Result, $"{ri.Name} ({idx})")
-	{
-		UniIndex = idx;
-
-		if (Uni == null) {
-			Debugger.Break();
-		}
-
-		if (Uni != null) {
-			if (Uni.IsStream) {
-				// todo: update GetFileName
-				Url = ri.Url.GetFileName().Split(':')[0];
-
-				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
-					Url = Path.ChangeExtension(Url, Uni.FileType.Subtype);
-				}
-			}
-			else {
-				Url = Uni.Value.ToString();
-
-			}
-
-			// StatusImage = Image;
-		}
-		else {
-			Image = null;
-		}
-
-		StatusImage = AppComponents.picture;
-		// SizeFormat  = ControlsHelper.FormatSize(Uni);
-		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
-		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
-		Uni.Stream.TrySeek();
-
-	}
-
-	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
-	{
-		PreviewProgress = (args.Progress * 100.0f);
-		Label           = "Download progress...";
-	}
-
-	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
-	{
-		PreviewProgress = 0;
-		Label           = $"Download failed: {args.ErrorException.Message}";
-	}
-
-	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
-	{
-		Label       = $"Download complete";
-		IsThumbnail = false;
-
-		if (Image is { CanFreeze: true }) {
-			Image.Freeze();
-		}
-		
-		OnPropertyChanged(nameof(DimensionString));
-
-	}
-
-	public override bool LoadImage()
-	{
-		if (CanLoadImage) {
-			Image = new BitmapImage()
-				{ };
-			Image.BeginInit();
-			Trace.Assert(Uni != null);
-
-			Image.StreamSource = Uni.Stream;
-			// Image.StreamSource = Uni.Stream;
-			// m_image.StreamSource   = Query.Uni.Stream;
-			// Image.CacheOption    = BitmapCacheOption.OnLoad;
-			Image.CacheOption = BitmapCacheOption.OnDemand;
-			// Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
-			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-			Image.EndInit();
-
-			Image.DownloadFailed    += OnImageDownloadFailed;
-			Image.DownloadProgress  += OnImageDownloadProgress;
-			Image.DownloadCompleted += OnImageDownloadCompleted;
-
-		}
-
-		UpdateProperties();
-		return HasImage;
-	}
-
-	public override async Task<string> DownloadAsync(string? dir = null, bool exp = true)
-	{
-		string path;
-		Trace.Assert(Uni != null);
-
-		if (Uni.IsStream) {
-			path = Url;
-		}
-		else /*if (uni.IsUri)*/ {
-			var url = (Url) Uni.Value.ToString();
-			path = url.GetFileName();
-
-		}
-
-		dir ??= AppUtil.MyPicturesFolder;
-		var path2 = Path.Combine(dir, path);
-
-		var fs = File.OpenWrite(path2);
-		Uni.Stream.TrySeek();
-
-		StatusImage = AppComponents.picture_save;
-		await Uni.Stream.CopyToAsync(fs);
-
-		if (exp) {
-			FileSystem.ExploreFile(path2);
-		}
-
-		await fs.DisposeAsync();
-		CanDownload = false;
-		Download    = path2;
-
-		// u.Dispose();
-		UpdateProperties();
-
-		return path2;
-	}
-
-	public override void Dispose()
-	{
-		GC.SuppressFinalize(this);
-		base.Dispose();
-
-		Uni?.Dispose();
-	}
 
 }

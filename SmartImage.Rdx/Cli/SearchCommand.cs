@@ -3,7 +3,8 @@
 
 global using R2 = SmartImage.Rdx.Resources;
 global using R1 = SmartImage.Lib.Resources;
-global using AC = Spectre.Console.AnsiConsole;
+
+// global using AC = Spectre.Console.AnsiConsole;
 global using AConsole = Spectre.Console.AnsiConsole;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
@@ -46,6 +47,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Config            =  new SearchConfig();
 		Client            =  new SearchClient(Config);
 		Client.OnComplete += OnComplete;
+
 		// Client.OnResult   += OnResult;
 		m_cts     = new CancellationTokenSource();
 		m_results = new ConcurrentBag<ResultModel>();
@@ -83,7 +85,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		}
 		*/
 
-		AC.Clear();
+		AConsole.Clear();
 
 		//todo
 
@@ -96,25 +98,27 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var choices = new SelectionPrompt<string>()
 			.Title("Engine")
 			.AddChoices(select.Keys);
-		
+
 		choices.AddChoice("Quit");
 		choices.AddChoice("...");
 
 		string prompt = null;
-		// AC.Write(m_resTable);
+
+		// AConsole.Write(m_resTable);
 
 		while (prompt != "") {
-			prompt = AC.Prompt(choices);
+			prompt = AConsole.Prompt(choices);
 
 			if (select.TryGetValue(prompt, out var v)) {
 
-				AC.Clear();
-				AC.Write(v.Table);
+				AConsole.Clear();
+				AConsole.Write(v.Table);
 
 			}
 			else {
 				var stream = Query.Uni.Stream;
 				stream.TrySeek(0);
+
 				// Create the layout
 				var layout = new Layout("Root")
 					.SplitColumns(
@@ -128,8 +132,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				layout["Left"].Update(
 					new Panel(new CanvasImage(stream))
 						.Expand());
-				AC.Clear();
-				AC.Write(layout);
+				AConsole.Clear();
+				AConsole.Write(layout);
 
 			}
 		}
@@ -146,9 +150,9 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 			AConsole.AlternateScreen(() =>
 			{
-				AC.Clear();
-				AC.Write(t);
-				AC.Confirm("");
+				AConsole.Clear();
+				AConsole.Write(t);
+				AConsole.Confirm("");
 			});
 
 			if (it is Table t) { }
@@ -158,14 +162,14 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
-		var prog = AConsole.Progress()
+		var task = AConsole.Progress()
 			.AutoRefresh(true)
 			.StartAsync(async ctx =>
 			{
 				var p = ctx.AddTask("Creating query");
 				p.IsIndeterminate = true;
 				Query             = await SearchQuery.TryCreateAsync(settings.Query);
-				
+
 				p.Increment(50);
 				ctx.Refresh();
 
@@ -180,19 +184,18 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				ctx.Refresh();
 			});
 
-		await Client.ApplyConfigAsync();
-
-		await prog;
-
 		Config.SearchEngines   = settings.SearchEngines;
 		Config.PriorityEngines = settings.PriorityEngines;
 		Config.AutoSearch      = settings.AutoSearch;
+		await Client.ApplyConfigAsync();
+
+		await task;
 
 		var dt = Config.ToTable();
 
 		var t = CliFormat.DTableToSTable(dt);
 
-		AC.Write(t);
+		AConsole.Write(t);
 
 		AConsole.WriteLine($"Input: {Query}");
 
@@ -214,16 +217,16 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		grid.AddColumns(
 			new GridColumn() { Alignment = Justify.Left },
 			new GridColumn() { Alignment = Justify.Center },
-			new GridColumn() { Alignment = Justify.Right }
+			new GridColumn() { Alignment = Justify.Right, NoWrap = true }
 		);
 
 		grid.AddRow([
 			new Text("Engine", new Style(Color.Red, decoration: Decoration.Bold | Decoration.Underline)),
-			new Text("Count", new Style(Color.Green, decoration: Decoration.Bold | Decoration.Underline)),
-			new Text("Status", new Style(Color.Blue, decoration: Decoration.Bold | Decoration.Underline))
+			new Text("Similarity", new Style(Color.Green, decoration: Decoration.Bold | Decoration.Underline)),
+			new Text("URL", new Style(Color.Blue, decoration: Decoration.Bold | Decoration.Underline))
 		]);
 
-		var live = AC.Live(grid)
+		var live = AConsole.Live(grid)
 			.StartAsync(async (l) =>
 			{
 
@@ -240,22 +243,32 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				{
 					var rm = new ResultModel(sr) { };
 					m_results.Add(rm);
-					var i = (int) sr.Engine.EngineOption;
+					var engineOption = sr.Engine.EngineOption;
+					int i            = 0;
 
-					grid.AddRow([
-						new Text(sr.Engine.Name,
-						         new Style(
-							         Color.FromInt32(Math.Clamp(i % (int) byte.MaxValue, byte.MinValue, byte.MaxValue)),
-							         decoration: Decoration.Italic)),
+					Color c;
 
-						new Text($"{sr.Results.Count}",
-						         new Style(Color.Wheat1,
-						                   decoration: Decoration.None)),
+					if (!CliFormat.EngineColors.TryGetValue(engineOption, out c)) {
+						c = Color.NavajoWhite1;
+					}
 
-						new Text($"{sr.Status}",
-						         new Style(Color.Cyan1,
-						                   decoration: Decoration.None))
-					]);
+					foreach (var item in sr.AllResults) {
+						var foo  = item.Url.Host;
+						var foo2 = foo[..(foo.Length / 4)];
+
+						grid.AddRow([
+							new Text($"{sr.Engine.Name} #{i + 1}",
+							         new Style(c, decoration: Decoration.Italic)),
+
+							new Text($"{item.Similarity / 100f:P}",
+							         new Style(Color.Wheat1,
+							                   decoration: Decoration.None)),
+
+							new Text(foo, new Style(Color.Cyan1,
+							                        decoration: Decoration.None, link: item.Url))
+						]);
+						i++;
+					}
 
 					/*m_resTable.Rows.Add(new IRenderable[]
 					{
@@ -280,10 +293,9 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
 	{
+		var r=base.Validate(context, settings);
+		return r;
 
-		var b = SearchQuery.IsValidSourceType(settings.Query);
-
-		return b ? ValidationResult.Success() : ValidationResult.Error();
 		// var v= base.Validate(context, settings);
 		// return v;
 	}

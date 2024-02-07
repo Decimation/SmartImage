@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Reflection;
 using Kantan.Text;
 using Microsoft.Extensions.DependencyInjection;
 using SmartImage.Rdx.Cli;
@@ -22,7 +23,7 @@ public static class Program
 
 	public static async Task<int> Main(string[] args)
 	{
-		Debug.WriteLine(AC.Profile.Height);
+		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
@@ -32,10 +33,10 @@ public static class Program
 			.LeftJustified()
 			.Color(CliFormat.Color1);
 
-		AC.Write(fg);
+		AConsole.Write(fg);
 
 #if DEBUG
-		AC.WriteLine(args.QuickJoin());
+		AConsole.WriteLine(args.QuickJoin());
 
 #endif
 		string os = null;
@@ -51,23 +52,27 @@ public static class Program
 			os = "Mac";
 		}
 
-		AC.WriteLine($"OS: {os} {Environment.OSVersion} | {Environment.Version}");
+		AConsole.WriteLine($"OS: {os} {Environment.OSVersion} | {Environment.Version}");
+		AConsole.WriteLine($"{AConsole.Profile.Capabilities.Ansi} | {AConsole.Profile.Capabilities.ColorSystem}");
 
 		var app = new CommandApp<SearchCommand>();
 
 		app.Configure(c =>
 		{
-		
+			c.PropagateExceptions();
+
 			//...
 		});
 
-		var x = await app.RunAsync(args);
+		try {
+			var x = await app.RunAsync(args);
 
-		return x;
+			return x;
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+			return -1;
+		}
 	}
 
 }
-
-class SearchConfigCli : ISearchConfig { }
-
-interface ISearchConfig { }

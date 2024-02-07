@@ -15,6 +15,7 @@ using System.Net.Cache;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Media.Imaging;
 using Flurl;
@@ -59,10 +60,12 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			UpdateProperties();
 		}
 	}
+
 	public string DimensionString
 	{
 		get => ControlsHelper.FormatDimensions(Width, Height);
 	}
+
 	public long Size
 	{
 		get
@@ -152,11 +155,11 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public QueryModel(string value)
 	{
-		Value         = value;
-		Results       = [];
-		Query         = SearchQuery.Null;
-		Status        = null;
-		Status2       = null;
+		Value   = value;
+		Results = [];
+		Query   = SearchQuery.Null;
+		Status  = null;
+		Status2 = null;
 		// Dim          = null;
 		Image = null;
 	}
@@ -304,7 +307,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 			var res = MessageBox.Show($"{emsg}\nChoose a different server then click [Reload].",
 			                          "Failed to upload",
-			                          MessageBoxButtons.OK, MessageBoxIcon.Error);
+			                          MessageBoxButton.OK, MessageBoxImage.Error);
 			return false;
 			// return;
 		}
@@ -374,7 +377,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	{
 		var eventArgs = new PropertyChangedEventArgs(propertyName);
 		PropertyChanged?.Invoke(this, eventArgs);
-		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
+		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)

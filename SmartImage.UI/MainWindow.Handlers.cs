@@ -33,7 +33,6 @@ using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Model;
-using Unosquare.FFME.Common;
 using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Application;
 using FileSystem = Novus.OS.FileSystem;

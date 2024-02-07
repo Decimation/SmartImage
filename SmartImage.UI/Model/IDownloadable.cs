@@ -12,5 +12,5 @@ public interface IDownloadable : IDisposable
 
 	public bool CanDownload  { get; internal set; }
 	public bool IsDownloaded { get; internal set; }
-	public Task<string> DownloadAsync(string? dir = null, bool exp = true);
+	public Task<string?> DownloadAsync(string? dir = null, bool exp = true);
 }

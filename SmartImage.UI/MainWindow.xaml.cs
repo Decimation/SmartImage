@@ -175,6 +175,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
 		AddHandler(Validation.ErrorEvent, new RoutedEventHandler(OnValidationRaised));
+
 	}
 
 	#region
@@ -1402,11 +1403,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void SetPreview(IGuiImageSource igs)
 	{
-		/*if (ri.Load()) {
-			UpdatePreview(ri.Image);
-		}*/
-
-		Application.Current.Dispatcher.Invoke(() =>
+		/*Application.Current.Dispatcher.Invoke(() =>
 		{
 			if (Img_Preview.Source != null) {
 				if (Img_Preview.Source.Dispatcher != null) {
@@ -1416,11 +1413,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				}
 			}
-		});
-
-		/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
-		return;
-	}*/
+		});*/
 
 		var load = igs.LoadImage();
 

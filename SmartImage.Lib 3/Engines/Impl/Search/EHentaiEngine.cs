@@ -202,7 +202,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 			t = query.FilePath;
 
 			if (Path.GetFileName(t) != name) {
-				Debugger.Break();
+				// Debugger.Break();
 			}
 		}
 		else {

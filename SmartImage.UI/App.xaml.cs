@@ -6,7 +6,6 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Windows;
-using Microsoft.VisualBasic.Logging;
 using System.Windows.Interop;
 using JetBrains.Annotations;
 using Novus.Utilities;
