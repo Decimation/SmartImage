@@ -61,7 +61,7 @@ public abstract class BaseSearchEngine : IDisposable
 			}
 		};
 
-		BaseSearchEngine.Client = new FlurlClient(new HttpClient(handler))
+		Client = new FlurlClient(new HttpClient(handler))
 		{
 			Settings =
 			{

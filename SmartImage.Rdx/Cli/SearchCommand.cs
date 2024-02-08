@@ -73,6 +73,11 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	private void OnComplete(object sender, SearchResult[] searchResults)
 	{
 		// pt1.Increment(COMPLETE);
+		if (!String.IsNullOrWhiteSpace(m_cc)) {
+			var proc = new Process() { StartInfo = { FileName = "cmd.exe", Arguments = $"/C {m_cc}"} };
+			proc.Start();
+			Debug.WriteLine($"starting {proc.Id}");
+		}
 	}
 
 	public async Task Interactive()
@@ -162,6 +167,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	}
 
+	private string m_cc;
+
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
 		var task = AConsole.Progress()
@@ -189,7 +196,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Config.SearchEngines   = settings.SearchEngines;
 		Config.PriorityEngines = settings.PriorityEngines;
 		Config.AutoSearch      = settings.AutoSearch;
-
+		m_cc                   = settings.CompletionCommand;
 		await Client.ApplyConfigAsync();
 
 		await task;
@@ -288,6 +295,3 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	}
 
 }
-
-public class ResultGridBuilder
-{ }

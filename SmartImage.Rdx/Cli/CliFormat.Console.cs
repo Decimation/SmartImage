@@ -20,6 +20,7 @@ internal enum ResultGridFormat
 	Similarity = 1 << 1,
 	Url        = 1 << 2,
 
+	Default = Name | Similarity | Url
 }
 
 internal static partial class CliFormat

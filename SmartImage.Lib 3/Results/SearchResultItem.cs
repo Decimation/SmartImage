@@ -97,15 +97,15 @@ public sealed record SearchResultItem : IDisposable,
 
 	public int Score { get; private set; }
 
-	[CanBeNull]
+	[CBN]
 	public Url Thumbnail { get; internal set; }
 
-	[CanBeNull]
+	[CBN]
 	public string ThumbnailTitle { get; internal set; }
 
 	public UniSource[] Uni { get; internal set; }
 
-	[CanBeNull]
+	[CBN]
 	public SearchResultItem Parent { get; internal set; }
 
 	public List<SearchResultItem> Children { get; internal set; }
@@ -113,13 +113,6 @@ public sealed record SearchResultItem : IDisposable,
 	// public bool IsUniType { get; internal set; }
 
 	public bool IsRaw { get; internal set; }
-
-	internal static SearchResultItem GetRaw(SearchResult r)
-		=> new SearchResultItem(r)
-		{
-			IsRaw = true,
-			Url = r.RawUrl
-		};
 
 	internal SearchResultItem(SearchResult r)
 	{
@@ -228,20 +221,6 @@ public sealed record SearchResultItem : IDisposable,
 		Uni = await BaseImageHost.ScanAsync(Url, BaseImageHost.UniSourcePredicate, ct);
 		return HasUni;
 	}
-
-	/*[NotNull]
-	public Task<IFlurlResponse> GetUrlResponseAsync(CancellationToken ct = default)
-	{
-		return SearchClient.Client.Request(Url)
-			.WithAutoRedirect(true)
-			.WithHeaders(new
-			{
-				User_Agent = HttpUtilities.UserAgent
-			}).OnError(x =>
-			{
-				x.ExceptionHandled = true;
-			}).GetAsync(cancellationToken: ct);
-	}*/
 
 	public bool HasUni => Uni != null && Uni.Any();
 

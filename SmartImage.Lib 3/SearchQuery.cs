@@ -191,7 +191,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 	public override string ToString()
 	{
-		string s = $"{Uni}";
+		string s = $"{Uni} | {ValueString}";
 
 		return s;
 	}

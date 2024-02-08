@@ -13,20 +13,16 @@ namespace SmartImage.Rdx.Cli;
 internal sealed class SearchCommandSettings : CommandSettings
 {
 
-	[Description("Query")]
 	[CommandArgument(0, "[query]")]
+	[Description("Query")]
 	public string? Query { get; init; }
 
 	[CommandOption("-e|--search-engines")]
 	[DefaultValue(SearchConfig.SE_DEFAULT)]
-
-	// [TypeConverter(typeof(FlagsEnumTypeConverter<SearchEngineOptions>))]
 	public SearchEngineOptions SearchEngines { get; init; }
 
 	[CommandOption("-p|--priority-engines")]
 	[DefaultValue(SearchConfig.PE_DEFAULT)]
-
-	// [TypeConverter(typeof(FlagsEnumTypeConverter<SearchEngineOptions>))]
 	public SearchEngineOptions PriorityEngines { get; init; }
 
 	[CommandOption("-a|--autosearch")]
@@ -38,10 +34,11 @@ internal sealed class SearchCommandSettings : CommandSettings
 	public bool Interactive { get; init; }
 
 	[CommandOption("-f|--result-format")]
-	[DefaultValue(ResultGridFormat.Name
-	              | ResultGridFormat.Similarity
-	              | ResultGridFormat.Url)]
+	[DefaultValue(ResultGridFormat.Default)]
 	public ResultGridFormat Format { get; init; }
+
+	[CommandOption("-c|--complete-cmd")]
+	public string CompletionCommand { get; init; }
 
 	public override ValidationResult Validate()
 	{

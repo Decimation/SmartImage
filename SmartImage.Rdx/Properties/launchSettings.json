@@ -1,6 +1,14 @@
 {
   "profiles": {
+    "SmartImage.Rdx": {
+      "commandName": "Project"
+    },
     "WSL": {
+      "commandName": "WSL",
+      "commandLineArgs": "\"{OutDir}/SmartImage.Rdx.dll\"",
+      "distributionName": ""
+    },
+    "WSL 2": {
       "commandName": "WSL",
       "commandLineArgs": "\"{OutDir}/SmartImage.Rdx.dll\" /home/neorenegade/1654086015521.png",
       "distributionName": ""
@@ -9,12 +17,9 @@
       "commandName": "Project",
       "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\""
     },
-    "SmartImage.Rdx": {
-      "commandName": "Project"
-    },
     "Profile 2": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -x"
+      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -c \"echo g\""
     },
     "Profile 3": {
       "commandName": "Project",

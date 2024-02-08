@@ -6,6 +6,7 @@ using SmartImage.Rdx.Cli;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Microsoft.Extensions.Hosting;
+using Spectre.Console.Cli.Help;
 
 namespace SmartImage.Rdx;
 
@@ -33,7 +34,7 @@ public static class Program
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		// ms?.Dispose();
-
+		
 		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
 			.Color(CliFormat.Color1);
@@ -76,7 +77,7 @@ public static class Program
 		app.Configure(c =>
 		{
 			c.PropagateExceptions();
-
+			c.SetHelpProvider(new HelpProvider(c.Settings));
 			//...
 		});
 
@@ -87,6 +88,7 @@ public static class Program
 		}
 		catch (Exception e) {
 			AConsole.WriteException(e);
+			
 			return -1;
 		}
 	}

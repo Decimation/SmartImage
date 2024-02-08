@@ -87,29 +87,26 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="reload"></param>
+	/// <param name="scheduler"></param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
-	                                                 CancellationToken token = default,
-	                                                 TaskScheduler scheduler = default)
+	                                                 TaskScheduler scheduler = default,
+	                                                 CancellationToken token = default)
 	{
 		scheduler ??= TaskScheduler.Default;
 
-		if (!query.IsUploaded) {
-			throw new ArgumentException($"Query was not uploaded", nameof(query));
-		}
+		if (!query.IsUploaded) throw new ArgumentException($"Query was not uploaded", nameof(query));
 
 		IsRunning = true;
 
-		if (reload) {
+		if (reload)
 			await ApplyConfigAsync();
-		}
-		else {
+		else
 			LoadEngines();
-		}
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
-		var tasks = GetSearchTasks(query, token, scheduler);
+		List<Task<SearchResult>> tasks = GetSearchTasks(query, scheduler, token);
 
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
@@ -123,10 +120,10 @@ public sealed class SearchClient : IDisposable
 				return results;
 			}
 
-			var task = await Task.WhenAny(tasks);
+			Task<SearchResult> task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 
-			var result = await task;
+			SearchResult result = await task;
 
 			// ProcessResult(result);
 
@@ -140,30 +137,27 @@ public sealed class SearchClient : IDisposable
 		IsRunning  = false;
 		IsComplete = true;
 
-		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+		if (Config.PriorityEngines == SearchEngineOptions.Auto)
 
 			// var sri    = results.SelectMany(r => r.Results).ToArray();
 			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 			//todo
 			try {
-				var rr = results.SelectMany(rr => rr.GetAllResults())
+				IOrderedEnumerable<SearchResultItem> rr = results.SelectMany(rr => rr.GetAllResults())
 					.OrderByDescending(rr => rr.Score);
 
-				if (Config.OpenRaw) {
+				if (Config.OpenRaw)
 					OpenResult(results.MaxBy(x => x.GetAllResults().Sum(xy => xy.Score)));
-				}
-				else {
+				else
 					OpenResult(rr.OrderByDescending(x => x.Similarity)
 						           .FirstOrDefault(x => Url.IsValid(x.Url))?.Url);
-				}
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
 
-				var result = results.FirstOrDefault(f => f.IsStatusSuccessful) ?? results.First();
+				SearchResult result = results.FirstOrDefault(f => f.IsStatusSuccessful) ?? results.First();
 				OpenResult(result);
 			}
-		}
 
 		IsRunning = false;
 
@@ -174,16 +168,14 @@ public sealed class SearchClient : IDisposable
 	{
 		OnResult?.Invoke(this, result);
 
-		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
-
-			OpenResult(result);
-		}
+		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) OpenResult(result);
 	}
 
 	private static void OpenResult(Url url1)
 	{
 #if DEBUG && !TEST
 #pragma warning disable CA1822
+
 		// ReSharper disable once MemberCanBeMadeStatic.Local        
 		Logger.LogDebug("Not opening {url}", url1);
 		return;
@@ -192,7 +184,8 @@ public sealed class SearchClient : IDisposable
 #else
 		Logger.LogInformation("Opening {Url}", url1);
 
-		var b=FileSystem.Open(url1, out var proc);
+		var b = FileSystem.Open(url1, out var proc);
+
 		// var b = Open(url1, out var proc);
 
 		if (b && proc is { }) {
@@ -214,6 +207,7 @@ public sealed class SearchClient : IDisposable
 	{
 #if DEBUG && !TEST
 #pragma warning disable CA1822
+
 		// ReSharper disable once MemberCanBeMadeStatic.Local        
 		Logger.LogDebug("Not opening result {result}", result);
 		return;
@@ -234,14 +228,14 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token, TaskScheduler scheduler)
+	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler, CancellationToken token)
 	{
 
-		var tasks = Engines.Select(e =>
+		List<Task<SearchResult>> tasks = Engines.Select(e =>
 		{
 			Debug.WriteLine($"Starting {e} for {query}");
 
-			var res = e.GetResultAsync(query, token)
+			Task<SearchResult> res = e.GetResultAsync(query, token)
 				.ContinueWith((r) =>
 				{
 					// ReSharper disable AsyncApostle.AsyncWait
@@ -253,7 +247,7 @@ public sealed class SearchClient : IDisposable
 
 					// ReSharper restore AsyncApostle.AsyncWait
 
-				}, token, continuationOptions: TaskContinuationOptions.None, scheduler);
+				}, token, TaskContinuationOptions.None, scheduler);
 
 			return res;
 		}).ToList();
@@ -265,11 +259,9 @@ public sealed class SearchClient : IDisposable
 	{
 		LoadEngines();
 
-		foreach (BaseSearchEngine bse in Engines) {
-			if (bse is IConfig cfg) {
+		foreach (BaseSearchEngine bse in Engines)
+			if (bse is IConfig cfg)
 				await cfg.ApplyAsync(Config);
-			}
-		}
 
 		Logger.LogDebug("Loaded engines");
 		ConfigApplied = true;
@@ -286,7 +278,9 @@ public sealed class SearchClient : IDisposable
 
 	[CBN]
 	public BaseSearchEngine TryGetEngine(SearchEngineOptions o)
-		=> Engines.FirstOrDefault(e => e.EngineOption == o);
+	{
+		return Engines.FirstOrDefault(e => e.EngineOption == o);
+	}
 
 	/*public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
 	{
@@ -347,9 +341,7 @@ public sealed class SearchClient : IDisposable
 
 	public void Dispose()
 	{
-		foreach (var engine in Engines) {
-			engine.Dispose();
-		}
+		foreach (BaseSearchEngine engine in Engines) engine.Dispose();
 
 		ConfigApplied = false;
 		IsComplete    = false;
