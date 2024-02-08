@@ -132,6 +132,7 @@ public sealed class SearchClient : IDisposable
 
 			results[i] = result;
 			i++;
+
 			// results.Add(result);
 		}
 
@@ -145,11 +146,11 @@ public sealed class SearchClient : IDisposable
 			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 			//todo
 			try {
-				var rr = results.SelectMany(rr => rr.AllResults)
+				var rr = results.SelectMany(rr => rr.GetAllResults())
 					.OrderByDescending(rr => rr.Score);
 
 				if (Config.OpenRaw) {
-					OpenResult(results.MaxBy(x => x.AllResults.Sum(xy => xy.Score)));
+					OpenResult(results.MaxBy(x => x.GetAllResults().Sum(xy => xy.Score)));
 				}
 				else {
 					OpenResult(rr.OrderByDescending(x => x.Similarity)
@@ -190,8 +191,19 @@ public sealed class SearchClient : IDisposable
 #pragma warning restore CA1822
 #else
 		Logger.LogInformation("Opening {Url}", url1);
-		FileSystem.Open(url1);
-		
+
+		var b=FileSystem.Open(url1, out var proc);
+		// var b = Open(url1, out var proc);
+
+		if (b && proc is { }) {
+			/*var o = proc.WaitForExit(TimeSpan.FromSeconds(3));
+
+			if (o) {
+				Debug.WriteLine($"{proc}");
+			}*/
+			proc.Dispose();
+		}
+
 		// Process.Start(url1);
 		// HttpUtilities.TryOpenUrl(url1);
 #endif
@@ -214,7 +226,7 @@ public sealed class SearchClient : IDisposable
 			url1 = result.RawUrl;
 		}
 		else {
-			url1 = result.Best?.Url ?? result.RawUrl;
+			url1 = result.GetBestResult()?.Url ?? result.RawUrl;
 		}
 
 		OpenResult(url1);
@@ -233,9 +245,9 @@ public sealed class SearchClient : IDisposable
 				.ContinueWith((r) =>
 				{
 					// ReSharper disable AsyncApostle.AsyncWait
-					
+
 					Debug.Assert(r.IsCompleted);
-					
+
 					ProcessResult(r.Result);
 					return r.Result;
 

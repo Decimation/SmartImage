@@ -13,7 +13,7 @@ namespace SmartImage.Lib.Engines;
 
 public abstract class WebSearchEngine : BaseSearchEngine
 {
-	protected WebSearchEngine([NotNull] string baseUrl) : base(baseUrl) { }
+	protected WebSearchEngine([NN] string baseUrl) : base(baseUrl) { }
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
@@ -60,7 +60,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		return res;
 	}
 
-	[ItemCanBeNull]
+	[ICBN]
 	protected virtual async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                         CancellationToken token = default)
 	{

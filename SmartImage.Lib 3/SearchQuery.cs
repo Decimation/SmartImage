@@ -251,7 +251,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	}
 
 	[MustUseReturnValue]
-	[ItemCanBeNull]
+	[ICBN]
 	public string GetFilePathOrTemp(string fn = null)
 	{
 		if (!HasUni) {

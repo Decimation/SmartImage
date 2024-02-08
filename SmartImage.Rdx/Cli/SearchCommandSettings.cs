@@ -19,11 +19,13 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	[CommandOption("-e|--search-engines")]
 	[DefaultValue(SearchConfig.SE_DEFAULT)]
+
 	// [TypeConverter(typeof(FlagsEnumTypeConverter<SearchEngineOptions>))]
 	public SearchEngineOptions SearchEngines { get; init; }
 
 	[CommandOption("-p|--priority-engines")]
 	[DefaultValue(SearchConfig.PE_DEFAULT)]
+
 	// [TypeConverter(typeof(FlagsEnumTypeConverter<SearchEngineOptions>))]
 	public SearchEngineOptions PriorityEngines { get; init; }
 
@@ -34,6 +36,12 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[CommandOption("-x|--interactive")]
 	[DefaultValue(false)]
 	public bool Interactive { get; init; }
+
+	[CommandOption("-f|--result-format")]
+	[DefaultValue(ResultGridFormat.Name
+	              | ResultGridFormat.Similarity
+	              | ResultGridFormat.Url)]
+	public ResultGridFormat Format { get; init; }
 
 	public override ValidationResult Validate()
 	{

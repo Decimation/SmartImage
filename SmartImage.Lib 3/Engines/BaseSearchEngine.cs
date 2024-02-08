@@ -35,9 +35,9 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
 
-	public    TimeSpan Duration { get; protected set; }
+	public TimeSpan Duration { get; protected set; }
 
-	protected long     MaxSize  { get; set; } = NA_SIZE;
+	protected long MaxSize { get; set; } = NA_SIZE;
 
 	protected virtual string[] ErrorBodyMessages { get; } = [];
 
@@ -106,7 +106,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 		return !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None;
 	}
-	
+
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 

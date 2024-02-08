@@ -31,4 +31,6 @@ internal static partial class CliFormat
 
 		};
 
+	internal static readonly Capabilities ProfileCapabilities = AConsole.Profile.Capabilities;
+
 }

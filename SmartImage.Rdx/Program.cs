@@ -9,10 +9,14 @@ using Microsoft.Extensions.Hosting;
 
 namespace SmartImage.Rdx;
 
-// dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
-// dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
-// dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
-// dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
+/*
+ * dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
+ * dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
+ * dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
+ * dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
+ * dotnet run -c Test --project SmartImage.Rdx --  "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg" -e All -p Auto
+ * ./SmartImage.Rdx/bin/Release/net8.0/publish/linux-x64/SmartImage "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg"
+ */
 
 public static class Program
 {
@@ -25,6 +29,7 @@ public static class Program
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
+
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		// ms?.Dispose();
@@ -39,7 +44,7 @@ public static class Program
 		AConsole.WriteLine(args.QuickJoin());
 
 #endif
-		string os = null;
+		string? os = null;
 
 		if (IsLinux) {
 			os = "Linux";
@@ -52,8 +57,19 @@ public static class Program
 			os = "Mac";
 		}
 
-		AConsole.WriteLine($"OS: {os} {Environment.OSVersion} | {Environment.Version}");
-		AConsole.WriteLine($"{AConsole.Profile.Capabilities.Ansi} | {AConsole.Profile.Capabilities.ColorSystem}");
+		var grd = new Grid();
+		grd.AddColumns(2);
+
+		grd.AddRow("OS", $"{os} / {Environment.OSVersion}");
+		grd.AddRow("Runtime", $"{Environment.Version}");
+
+		grd.AddRow("Terminal ANSI", $"{CliFormat.ProfileCapabilities.Ansi}");
+		grd.AddRow("Terminal colors", $"{CliFormat.ProfileCapabilities.ColorSystem}");
+		grd.AddRow("Terminal links", $"{CliFormat.ProfileCapabilities.Links}");
+		grd.AddRow("Terminal Unicode", $"{CliFormat.ProfileCapabilities.Unicode}");
+		var env=Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
+
+		AConsole.Write(grd);
 
 		var app = new CommandApp<SearchCommand>();
 

@@ -8,7 +8,10 @@
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <EnableSourceControlManagerQueries>True</EnableSourceControlManagerQueries>
-
+    <Authors>Read Stanton</Authors>
+    <PackageProjectUrl>https://github.com/Decimation/SmartImage</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
+    <AssemblyName>SmartImage</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

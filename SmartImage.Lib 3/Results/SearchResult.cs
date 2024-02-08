@@ -11,6 +11,7 @@ namespace SmartImage.Lib.Results;
 // [Flags]
 public enum SearchResultStatus
 {
+
 	/// <summary>
 	/// N/A
 	/// </summary>
@@ -55,6 +56,7 @@ public enum SearchResultStatus
 /// </summary>
 public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 {
+
 	/// <summary>
 	/// Engine which returned this result
 	/// </summary>
@@ -66,10 +68,10 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	public Url RawUrl { get; internal set; }
 
 	public List<SearchResultItem> Results { get; internal set; }
-	
-	public IEnumerable<SearchResultItem> AllResults
+
+	public IEnumerable<SearchResultItem> GetAllResults()
 	{
-		get { return Results.Union(Results.SelectMany(r => r.Children)); }
+		return Results.Union(Results.SelectMany(r => r.Children));
 	}
 
 	[CBN]
@@ -80,22 +82,18 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string Overview { get; internal set; }
 
-	[MN]
-	public SearchResultItem Best
+	[CBN]
+	public SearchResultItem GetBestResult()
 	{
-		get
-		{
-			if (!Results.Any()) {
-				return null;
-			}
-
-			return Results.OrderByDescending(r => r.Similarity)
-				.FirstOrDefault(r => Url.IsValid(r.Url));
+		if (Results.Count == 0) {
+			return null;
 		}
+
+		return Results.OrderByDescending(r => r.Similarity)
+			.FirstOrDefault(r => Url.IsValid(r.Url));
 	}
 
-	public bool IsStatusSuccessful
-		=> Status.IsSuccessful();
+	public bool IsStatusSuccessful => Status.IsSuccessful();
 
 	internal SearchResult(BaseSearchEngine bse)
 	{
@@ -121,7 +119,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 			return;
 		}
 
-		bool any = Results.Any();
+		bool any = Results.Count != 0;
 
 		if (!any) {
 			Status = SearchResultStatus.NoResults;
@@ -152,8 +150,10 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
 	}
+
 }

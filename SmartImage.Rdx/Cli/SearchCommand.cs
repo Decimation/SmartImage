@@ -20,6 +20,8 @@ using SmartImage.Lib.Utilities;
 using Spectre.Console.Rendering;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using Flurl;
+using Kantan.Utilities;
 using Novus.Streams;
 using SixLabors.ImageSharp.Processing;
 
@@ -187,6 +189,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Config.SearchEngines   = settings.SearchEngines;
 		Config.PriorityEngines = settings.PriorityEngines;
 		Config.AutoSearch      = settings.AutoSearch;
+
 		await Client.ApplyConfigAsync();
 
 		await task;
@@ -212,19 +215,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		// pt1.MaxValue = m_client.Engines.Length;
 
-		var grid = new Grid();
-
-		grid.AddColumns(
-			new GridColumn() { Alignment = Justify.Left },
-			new GridColumn() { Alignment = Justify.Center },
-			new GridColumn() { Alignment = Justify.Right, NoWrap = true }
-		);
-
-		grid.AddRow([
-			new Text("Engine", new Style(Color.Red, decoration: Decoration.Bold | Decoration.Underline)),
-			new Text("Similarity", new Style(Color.Green, decoration: Decoration.Bold | Decoration.Underline)),
-			new Text("URL", new Style(Color.Blue, decoration: Decoration.Bold | Decoration.Underline))
-		]);
+		var format = settings.Format;
+		var grid   = CliFormat.Console.GetGrid(format);
 
 		var live = AConsole.Live(grid)
 			.StartAsync(async (l) =>
@@ -243,30 +235,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				{
 					var rm = new ResultModel(sr) { };
 					m_results.Add(rm);
-					var engineOption = sr.Engine.EngineOption;
-					int i            = 0;
+					int i = 0;
 
-					Color c;
+					var allResults = sr.GetAllResults();
 
-					if (!CliFormat.EngineColors.TryGetValue(engineOption, out c)) {
-						c = Color.NavajoWhite1;
-					}
-
-					foreach (var item in sr.AllResults) {
-						var foo  = item.Url.Host;
-						var foo2 = foo[..(foo.Length / 4)];
-
-						grid.AddRow([
-							new Text($"{sr.Engine.Name} #{i + 1}",
-							         new Style(c, decoration: Decoration.Italic)),
-
-							new Text($"{item.Similarity / 100f:P}",
-							         new Style(Color.Wheat1,
-							                   decoration: Decoration.None)),
-
-							new Text(foo, new Style(Color.Cyan1,
-							                        decoration: Decoration.None, link: item.Url))
-						]);
+					foreach (var item in allResults) {
+						var rows = CliFormat.Console.GetRows(item, i, format);
+						grid.AddRow(rows);
 						i++;
 					}
 
@@ -293,7 +268,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
 	{
-		var r=base.Validate(context, settings);
+		var r = base.Validate(context, settings);
 		return r;
 
 		// var v= base.Validate(context, settings);
@@ -313,3 +288,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	}
 
 }
+
+public class ResultGridBuilder
+{ }
