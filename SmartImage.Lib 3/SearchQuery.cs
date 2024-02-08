@@ -2,7 +2,7 @@
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
-global using ISImage=SixLabors.ImageSharp.Image;
+global using ISImage = SixLabors.ImageSharp.Image;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -60,7 +60,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 	internal SearchQuery([CBN] UniSource f)
 	{
-		Uni  = f;
+		Uni = f;
+
 		// Size = Uni == null ? default : Uni.Stream.Length;
 	}
 
@@ -94,7 +95,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			}
 
 		}
-		
+
 		return HasImage;
 	}
 
@@ -106,10 +107,20 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			return Null;
 
 		}
+
 		else {
+			if (uf.IsUri) {
+				var r    = await (uf.Value as Url).GetAsync();
+				var uri2 = r.ResponseMessage.RequestMessage.RequestUri.ToString();
+
+				if (uri2 == "https://i.imgur.com/removed.png") {
+					return Null;
+				}
+			}
+
 			var sq = new SearchQuery(uf)
 				{ };
-			
+
 			// sq.LoadImage();
 
 			return sq;
@@ -129,6 +140,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 		if (Uni.IsUri) {
 			Upload = fu;
+
 			// Size   = BaseSearchEngine.NA_SIZE;
 			Debug.WriteLine($"Skipping upload for {Uni.Value}", nameof(UploadAsync));
 		}
@@ -138,11 +150,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			engine ??= BaseUploadEngine.Default;
 
 			UploadResult u   = await engine.UploadFileAsync(fu, ct);
-			Url url = u.Url;
+			Url          url = u.Url;
 
 			if (!u.IsValid) {
 				url = null;
 				Debug.WriteLine($"{u} is invalid!");
+
 				// Debugger.Break();
 			}
 
@@ -169,10 +182,10 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	public static bool IsValidSourceType(object str)
 	{
 		UniSourceType v        = UniHandler.GetUniType(str, out object o2);
-		bool isFile   = v == UniSourceType.File;
-		bool isUri    = v == UniSourceType.Uri;
-		bool isStream = v == UniSourceType.Stream;
-		bool ok       = isFile || isUri || isStream;
+		bool          isFile   = v == UniSourceType.File;
+		bool          isUri    = v == UniSourceType.Uri;
+		bool          isStream = v == UniSourceType.Stream;
+		bool          ok       = isFile || isUri || isStream;
 
 		if (isFile) {
 			string ext = Path.GetExtension(str.ToString())?[1..];
@@ -185,6 +198,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	public void Dispose()
 	{
 		Uni?.Dispose();
+
 		// ImageInfo?.Dispose();
 		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 	}
@@ -216,6 +230,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	{
 		// return HashCode.Combine(Uni, Upload, Size);
 		return HashCode.Combine(Uni);
+
 		// return Uni.GetHashCode();
 	}
 
@@ -247,6 +262,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			File.Delete(FilePath);
 			FilePath = null;
 		}
+
 		return !HasFile;
 	}
 
@@ -278,7 +294,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		}
 		else {
 			t = Uni.Value.ToString();
-			
+
 		}
 
 		return t;

@@ -61,6 +61,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		internal set
 		{
 			if (Equals(value, m_statusImage)) return;
+
 			m_statusImage = value;
 			OnPropertyChanged();
 		}
@@ -97,6 +98,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		set
 		{
 			if (value == m_label) return;
+
 			m_label = value;
 			OnPropertyChanged();
 		}
@@ -124,6 +126,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		set
 		{
 			if (value.Equals(m_previewProgress)) return;
+
 			m_previewProgress = value;
 			OnPropertyChanged();
 		}
@@ -136,35 +139,30 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	public ResultItem(SearchResultItem result, string name)
 	{
 		Result = result;
-		Name = !result.IsRaw ? name : $"{name} (Raw)";
+		Name   = !result.IsRaw ? name : $"{name} (Raw)";
 
-		Url = result.Url;
+		Url     = result.Url;
 		CanOpen = Url.IsValid(Url);
 		CanScan = CanOpen;
 
 		(Width, Height) = (Result.Width, Result.Height);
 
-		if (Status.IsSuccessful())
-		{
+		if (Status.IsSuccessful()) {
 			StatusImage = AppComponents.accept;
 		}
-		else if (Status.IsUnknown())
-		{
+		else if (Status.IsUnknown()) {
 			StatusImage = AppComponents.help;
 		}
-		else if (Status.IsError())
-		{
+		else if (Status.IsError()) {
 			StatusImage = AppComponents.exclamation;
 		}
-		else
-		{
+		else {
 			StatusImage = AppComponents.asterisk_yellow;
 		}
 
 		StatusMessage = $"[{Status}]";
 
-		if (!String.IsNullOrWhiteSpace(result.Root.ErrorMessage))
-		{
+		if (!String.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
 		}
 
@@ -183,8 +181,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 			.WithTimeout(TimeSpan.FromSeconds(3))
 			.OnError(x =>
 			{
-				if (x.Exception is FlurlHttpException fx)
-				{
+				if (x.Exception is FlurlHttpException fx) {
 					Debug.WriteLine($"{fx}");
 				}
 
@@ -203,6 +200,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
@@ -212,8 +210,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	{
 		Label = $"Preview cache complete";
 
-		if (Image is { CanFreeze: true })
-		{
+		if (Image is { CanFreeze: true }) {
 			Image.Freeze();
 		}
 
@@ -225,9 +222,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 		UpdateProperties();
 
-		if (Image is { })
-		{
-			Width = Image.PixelWidth;
+		if (Image is { }) {
+			Width  = Image.PixelWidth;
 			Height = Image.PixelHeight;
 			OnPropertyChanged(nameof(DimensionString));
 			OnPropertyChanged(nameof(Size));
@@ -245,23 +241,21 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
-		PreviewProgress = ((float)args.Progress * 100.0f);
-		Label = $"Preview cache...";
+		PreviewProgress = ((float) args.Progress * 100.0f);
+		Label           = $"Preview cache...";
 	}
 
 	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
 		PreviewProgress = 0;
-		Label = $"Preview fetch failed: {args.ErrorException.Message}";
+		Label           = $"Preview fetch failed: {args.ErrorException.Message}";
 
 	}
 
 	public virtual bool LoadImage()
 	{
-		lock (_lock)
-		{
-			if (CanLoadImage)
-			{
+		lock (_lock) {
+			if (CanLoadImage) {
 				// Label = $"Loading {Name}";
 
 				/*
@@ -271,11 +265,13 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 				 */
 
 				Image = new BitmapImage()
-				{ };
+					{ };
 				Image.BeginInit();
 				Image.UriSource = new Uri(Result.Thumbnail);
+
 				// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
 				Image.CacheOption = BitmapCacheOption.OnDemand;
+
 				// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
 				// Image.CreateOptions = BitmapCreateOptions.None;
 
@@ -283,17 +279,17 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 				Image.EndInit();
 
-				Image.DownloadFailed += OnImageDownloadFailed;
-				Image.DownloadProgress += OnImageDownloadProgress;
+				Image.DownloadFailed    += OnImageDownloadFailed;
+				Image.DownloadProgress  += OnImageDownloadProgress;
 				Image.DownloadCompleted += OnImageDownloadCompleted;
 			}
-			else
-			{
+			else {
 				/*if (HasImage) {
 					Label= $"{Result.Thumbnail}";
 
 				}*/
 			}
+
 			OnPropertyChanged(nameof(DimensionString));
 			UpdateProperties();
 			return HasImage;
@@ -312,8 +308,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	public virtual async Task<string> DownloadAsync(string? dir = null, bool exp = true)
 	{
-		if (!Url.IsValid(Url) || !HasImage)
-		{
+		if (!Url.IsValid(Url) || !HasImage) {
 			return null;
 		}
 
@@ -327,20 +322,18 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		var encoder = new PngBitmapEncoder();
 		encoder.Frames.Add(BitmapFrame.Create(Image));
 
-		await using (var fs = new FileStream(path2, FileMode.Create))
-		{
+		await using (var fs = new FileStream(path2, FileMode.Create)) {
 			encoder.Save(fs);
 		}
 
 		StatusImage = AppComponents.picture_save;
 
-		if (exp)
-		{
+		if (exp) {
 			FileSystem.ExploreFile(path2);
 		}
 
 		CanDownload = false;
-		Download = path2;
+		Download    = path2;
 
 		// u.Dispose();
 		UpdateProperties();
@@ -355,4 +348,3 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	public virtual long Size => Native.INVALID;
 
 }
-
