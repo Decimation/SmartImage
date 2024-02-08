@@ -32,15 +32,14 @@ public class ResultModel : IDisposable
 		int i = 0;
 
 		foreach (SearchResultItem sri in Result.Results) {
-			table.Rows.Add(new IRenderable[]
-			{
-				new Text($"{i + 1}"),
+			table.Rows.Add([
+				new Text($"{i + 1}"), 
 				Markup.FromInterpolated($"[link={sri.Url}]{sri.Root.Engine.Name} #{i + 1}[/]"),
-				Markup.FromInterpolated($"{sri.Similarity}"),
+				Markup.FromInterpolated($"{sri.Similarity}"), 
 				Markup.FromInterpolated($"{sri.Artist}"),
-				Markup.FromInterpolated($"{sri.Description}"),
-				Markup.FromInterpolated($"{sri.Character}"),
-			});
+				Markup.FromInterpolated($"{sri.Description}"), 
+				Markup.FromInterpolated($"{sri.Character}")
+			]);
 
 			i++;
 		}

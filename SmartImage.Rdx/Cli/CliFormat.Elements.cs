@@ -10,9 +10,9 @@ namespace SmartImage.Rdx.Cli;
 internal static partial class CliFormat
 {
 
-	public static readonly Color Color1 = new Color(0x80, 0xFF, 0x80);
+	public static readonly Color Color1 = new(0x80, 0xFF, 0x80);
 
-	internal static readonly Text EmptyText = new Text(string.Empty);
+	internal static readonly Text EmptyText = new(string.Empty);
 
 	static CliFormat() { }
 

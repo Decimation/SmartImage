@@ -19,7 +19,7 @@
     },
     "Profile 2": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -c \"echo g\""
+      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -x \"cmd\" -c \"echo g\""
     },
     "Profile 3": {
       "commandName": "Project",

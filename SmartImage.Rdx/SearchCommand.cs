@@ -24,8 +24,9 @@ using Flurl;
 using Kantan.Utilities;
 using Novus.Streams;
 using SixLabors.ImageSharp.Processing;
+using SmartImage.Rdx.Cli;
 
-namespace SmartImage.Rdx.Cli;
+namespace SmartImage.Rdx;
 
 internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisposable
 {
@@ -63,8 +64,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		};
 
 		m_resTable.AddColumns(new TableColumn("#"),
-		                      new TableColumn("Name"),
-		                      new TableColumn("Count")
+							  new TableColumn("Name"),
+							  new TableColumn("Count")
 		);*/
 
 		Query = SearchQuery.Null;
@@ -74,13 +75,27 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	{
 		// pt1.Increment(COMPLETE);
 		if (!String.IsNullOrWhiteSpace(m_cc)) {
-			var proc = new Process() { StartInfo = { FileName = "cmd.exe", Arguments = $"/C {m_cc}"} };
+			var proc = new Process()
+			{
+				StartInfo =
+				{
+					FileName  = m_ce,
+					Arguments = m_cc,
+					UseShellExecute = false,
+					CreateNoWindow = true,
+					RedirectStandardError = true,
+					RedirectStandardOutput = true
+				}
+			};
 			proc.Start();
+
 			Debug.WriteLine($"starting {proc.Id}");
+			// proc.WaitForExit(TimeSpan.FromSeconds(3));
+			// proc.Dispose();
 		}
 	}
 
-	public async Task Interactive()
+	public async Task RunInteractiveAsync()
 	{
 		ConsoleKeyInfo cki;
 
@@ -167,7 +182,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	}
 
-	private string m_cc;
+	private string m_cc, m_ce;
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
@@ -197,6 +212,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Config.PriorityEngines = settings.PriorityEngines;
 		Config.AutoSearch      = settings.AutoSearch;
 		m_cc                   = settings.CompletionCommand;
+		m_ce                   = settings.CompletionExecutable;
 		await Client.ApplyConfigAsync();
 
 		await task;
@@ -223,7 +239,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		// pt1.MaxValue = m_client.Engines.Length;
 
 		var format = settings.Format;
-		var grid   = CliFormat.Console.GetGrid(format);
+		var grid   = CliFormat.GetGridForFormat(format);
 
 		var live = AConsole.Live(grid)
 			.StartAsync(async (l) =>
@@ -247,7 +263,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					var allResults = sr.GetAllResults();
 
 					foreach (var item in allResults) {
-						var rows = CliFormat.Console.GetRows(item, i, format);
+						var rows = CliFormat.GetRowsForFormat(item, i, format);
 						grid.AddRow(rows);
 						i++;
 					}
@@ -267,7 +283,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		await live;
 
 		if (settings.Interactive) {
-			await Interactive();
+			await RunInteractiveAsync();
 		}
 
 		return 0;

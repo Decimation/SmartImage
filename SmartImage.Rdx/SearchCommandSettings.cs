@@ -5,10 +5,11 @@ using System.ComponentModel;
 using System.Globalization;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Rdx.Cli;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace SmartImage.Rdx.Cli;
+namespace SmartImage.Rdx;
 
 internal sealed class SearchCommandSettings : CommandSettings
 {
@@ -29,13 +30,16 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[DefaultValue(SearchConfig.AUTOSEARCH_DEFAULT)]
 	public bool AutoSearch { get; init; }
 
-	[CommandOption("-x|--interactive")]
+	[CommandOption("-v|--interactive")]
 	[DefaultValue(false)]
 	public bool Interactive { get; init; }
 
 	[CommandOption("-f|--result-format")]
 	[DefaultValue(ResultGridFormat.Default)]
 	public ResultGridFormat Format { get; init; }
+
+	[CommandOption("-x|--complete-exe")]
+	public string CompletionExecutable { get; init; }
 
 	[CommandOption("-c|--complete-cmd")]
 	public string CompletionCommand { get; init; }
