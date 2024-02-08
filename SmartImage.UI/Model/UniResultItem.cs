@@ -33,19 +33,20 @@ public class UniResultItem : ResultItem
 	{
 		get
 		{
-			if (Uni != null) {
+			if (Uni != null)
+			{
 				return Uni.Stream.Length;
 			}
 
 			return Native.INVALID;
 		}
 	}
-
 	public UniSource? Uni
 	{
 		get
 		{
-			if (UniIndex.HasValue && Result.Uni != null) {
+			if (UniIndex.HasValue && Result.Uni != null)
+			{
 				return Result.Uni[UniIndex.Value];
 
 			}
@@ -65,70 +66,76 @@ public class UniResultItem : ResultItem
 	{
 		UniIndex = idx;
 
-		if (Uni == null) {
+		if (Uni == null)
+		{
 			Debugger.Break();
 		}
 
-		if (Uni != null) {
-			if (Uni.IsStream) {
+		if (Uni != null)
+		{
+			if (Uni.IsStream)
+			{
 				// todo: update GetFileName
 				Url = ri.Url.GetFileName().Split(':')[0];
 
-				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
+				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url)))
+				{
 					Url = Path.ChangeExtension(Url, Uni.FileType.Subtype);
 				}
 			}
-			else {
+			else
+			{
 				Url = Uni.Value.ToString();
 
 			}
 
 			// StatusImage = Image;
 		}
-		else {
+		else
+		{
 			Image = null;
 		}
 
 		StatusImage = AppComponents.picture;
 		// SizeFormat  = ControlsHelper.FormatSize(Uni);
 		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
-		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
+		Hash = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
 
 	}
 
-	#region 
-
 	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
 		PreviewProgress = (args.Progress * 100.0f);
-		Label           = "Download progress...";
+		Label = "Download progress...";
 	}
 
 	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
 		PreviewProgress = 0;
-		Label           = $"Download failed: {args.ErrorException.Message}";
+		Label = $"Download failed: {args.ErrorException.Message}";
 	}
 
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
-		Label       = $"Download complete";
+		Label = $"Download complete";
 		IsThumbnail = false;
 
-		if (Image is { CanFreeze: true }) {
+		if (Image is { CanFreeze: true })
+		{
 			Image.Freeze();
 		}
 
 		OnPropertyChanged(nameof(DimensionString));
-		Trace.WriteLine($"{this} :: {nameof(OnImageDownloadCompleted)} {args}");
+
 	}
 
 	public override bool LoadImage()
 	{
-		if (CanLoadImage) {
+		if (CanLoadImage)
+		{
 			Image = new BitmapImage()
-				{ };
+			{ };
 			Image.BeginInit();
 			Trace.Assert(Uni != null);
 
@@ -141,8 +148,8 @@ public class UniResultItem : ResultItem
 			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 			Image.EndInit();
 
-			Image.DownloadFailed    += OnImageDownloadFailed;
-			Image.DownloadProgress  += OnImageDownloadProgress;
+			Image.DownloadFailed += OnImageDownloadFailed;
+			Image.DownloadProgress += OnImageDownloadProgress;
 			Image.DownloadCompleted += OnImageDownloadCompleted;
 
 		}
@@ -151,18 +158,18 @@ public class UniResultItem : ResultItem
 		return HasImage;
 	}
 
-	#endregion
-
-	public override async Task<string?> DownloadAsync(string? dir = null, bool exp = true)
+	public override async Task<string> DownloadAsync(string? dir = null, bool exp = true)
 	{
 		string path;
 		Trace.Assert(Uni != null);
 
-		if (Uni.IsStream) {
+		if (Uni.IsStream)
+		{
 			path = Url;
 		}
-		else /*if (uni.IsUri)*/ {
-			var url = (Url) Uni.Value.ToString();
+		else /*if (uni.IsUri)*/
+		{
+			var url = (Url)Uni.Value.ToString();
 			path = url.GetFileName();
 
 		}
@@ -176,13 +183,14 @@ public class UniResultItem : ResultItem
 		StatusImage = AppComponents.picture_save;
 		await Uni.Stream.CopyToAsync(fs);
 
-		if (exp) {
+		if (exp)
+		{
 			FileSystem.ExploreFile(path2);
 		}
 
 		await fs.DisposeAsync();
 		CanDownload = false;
-		Download    = path2;
+		Download = path2;
 
 		// u.Dispose();
 		UpdateProperties();

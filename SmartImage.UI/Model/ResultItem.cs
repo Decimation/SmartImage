@@ -1,5 +1,5 @@
-﻿// Deci SmartImage.UI ResultItem.cs
-// $File.CreatedYear-$File.CreatedMonth-11 @ 12:26
+﻿// $User.Name $File.ProjectName $File.FileName
+// $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
@@ -12,6 +12,7 @@ using System.IO;
 using System.Net.Cache;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Media;
@@ -22,7 +23,10 @@ using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
+using Kantan.Utilities;
+using Novus.FileTypes;
 using Novus.OS;
+using Novus.Streams;
 using Novus.Win32;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Model;
@@ -31,14 +35,17 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
 #pragma warning disable CS8618
-public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImageProvider, INamed, IDownloadable, IItemSize
+public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable, IItemSize
 {
 
 	#region
 
-	private string m_label;
+	public string DimensionString
+	{
+		get => ControlsHelper.FormatDimensions(Width, Height);
+	}
 
-	private double m_previewProgress;
+	private string m_label;
 
 	private BitmapImage m_statusImage;
 
@@ -72,6 +79,14 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 
 	public bool CanDownload { get; set; }
 
+	public bool? IsThumbnail { get; protected set; }
+
+	public int? Width { get; internal set; }
+
+	public int? Height { get; internal set; }
+
+	public BitmapImage? Image { get; /*protected*/ set; }
+
 	public string StatusMessage { get; internal set; }
 
 	public bool IsLowQuality => !Url.IsValid(Url) || Status.IsError() || Result.IsRaw;
@@ -87,13 +102,9 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 		}
 	}
 
-	public TransientImage TransientImage
-	{
-		get;
-		set;
-	}
+	public bool HasImage => Image != null;
 
-	public  bool CanLoadImage => !TransientImage.HasImage && Url.IsValid(Result.Thumbnail);
+	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
 
 	public string? Download { get; set; }
 
@@ -104,6 +115,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 	}
 
 	public bool IsSister { get; internal init; }
+
+	private double m_previewProgress;
 
 	public double PreviewProgress
 	{
@@ -116,8 +129,6 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 		}
 	}
 
-	public virtual long Size => Native.INVALID;
-
 	private static readonly object _lock = new();
 
 	#endregion
@@ -125,30 +136,35 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 	public ResultItem(SearchResultItem result, string name)
 	{
 		Result = result;
-		Name   = !result.IsRaw ? name : $"{name} (Raw)";
+		Name = !result.IsRaw ? name : $"{name} (Raw)";
 
-		Url     = result.Url;
+		Url = result.Url;
 		CanOpen = Url.IsValid(Url);
 		CanScan = CanOpen;
-		
-		// (Width, Height) = (Result.Width, Result.Height);
 
-		if (Status.IsSuccessful()) {
+		(Width, Height) = (Result.Width, Result.Height);
+
+		if (Status.IsSuccessful())
+		{
 			StatusImage = AppComponents.accept;
 		}
-		else if (Status.IsUnknown()) {
+		else if (Status.IsUnknown())
+		{
 			StatusImage = AppComponents.help;
 		}
-		else if (Status.IsError()) {
+		else if (Status.IsError())
+		{
 			StatusImage = AppComponents.exclamation;
 		}
-		else {
+		else
+		{
 			StatusImage = AppComponents.asterisk_yellow;
 		}
 
 		StatusMessage = $"[{Status}]";
 
-		if (!String.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
+		if (!String.IsNullOrWhiteSpace(result.Root.ErrorMessage))
+		{
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
 		}
 
@@ -167,7 +183,8 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 			.WithTimeout(TimeSpan.FromSeconds(3))
 			.OnError(x =>
 			{
-				if (x.Exception is FlurlHttpException fx) {
+				if (x.Exception is FlurlHttpException fx)
+				{
 					Debug.WriteLine($"{fx}");
 				}
 
@@ -180,7 +197,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 	{
 		var eventArgs = new PropertyChangedEventArgs(propertyName);
 		PropertyChanged?.Invoke(this, eventArgs);
-		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
+		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
@@ -191,35 +208,12 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 		return true;
 	}
 
-	public void UpdateProperties()
-	{
-		OnPropertyChanged(nameof(CanOpen));
-		OnPropertyChanged(nameof(IsDownloaded));
-		OnPropertyChanged(nameof(IsSister));
-		OnPropertyChanged(nameof(Label));
-		OnPropertyChanged(nameof(Image));
-	}
-
-	#region 
-
-	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
-	{
-		PreviewProgress = ((float) args.Progress * 100.0f);
-		Label           = $"Preview cache...";
-	}
-
-	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
-	{
-		PreviewProgress = 0;
-		Label           = $"Preview fetch failed: {args.ErrorException.Message}";
-
-	}
-
 	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
 		Label = $"Preview cache complete";
 
-		if (Image is { CanFreeze: true }) {
+		if (Image is { CanFreeze: true })
+		{
 			Image.Freeze();
 		}
 
@@ -231,20 +225,43 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 
 		UpdateProperties();
 
-		if (Image is { }) {
-			Width  = Image.PixelWidth;
+		if (Image is { })
+		{
+			Width = Image.PixelWidth;
 			Height = Image.PixelHeight;
 			OnPropertyChanged(nameof(DimensionString));
 			OnPropertyChanged(nameof(Size));
 		}
-
-		Trace.WriteLine($"{this} :: {nameof(OnImageDownloadCompleted)} {args}");
 	}
 
-	public bool TryLoadImage()
+	public void UpdateProperties()
 	{
-		lock (_lock) {
-			if (CanLoadImage) {
+		OnPropertyChanged(nameof(CanOpen));
+		OnPropertyChanged(nameof(IsDownloaded));
+		OnPropertyChanged(nameof(IsSister));
+		OnPropertyChanged(nameof(Label));
+		OnPropertyChanged(nameof(Image));
+	}
+
+	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
+	{
+		PreviewProgress = ((float)args.Progress * 100.0f);
+		Label = $"Preview cache...";
+	}
+
+	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
+	{
+		PreviewProgress = 0;
+		Label = $"Preview fetch failed: {args.ErrorException.Message}";
+
+	}
+
+	public virtual bool LoadImage()
+	{
+		lock (_lock)
+		{
+			if (CanLoadImage)
+			{
 				// Label = $"Loading {Name}";
 
 				/*
@@ -252,12 +269,9 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 				 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
 				 *
 				 */
-				var Image = new BitmapImage()
-					{ };
 
-				TransientImage= new TransientImage()
-					{ };
-
+				Image = new BitmapImage()
+				{ };
 				Image.BeginInit();
 				Image.UriSource = new Uri(Result.Thumbnail);
 				// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
@@ -269,29 +283,21 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 
 				Image.EndInit();
 
-				Image.DownloadFailed    += OnImageDownloadFailed;
-				Image.DownloadProgress  += OnImageDownloadProgress;
+				Image.DownloadFailed += OnImageDownloadFailed;
+				Image.DownloadProgress += OnImageDownloadProgress;
 				Image.DownloadCompleted += OnImageDownloadCompleted;
 			}
-			else {
+			else
+			{
 				/*if (HasImage) {
 					Label= $"{Result.Thumbnail}";
 
 				}*/
 			}
-			Image = new BitmapImage()
-				{ };
 			OnPropertyChanged(nameof(DimensionString));
 			UpdateProperties();
 			return HasImage;
 		}
-	}
-
-	#endregion
-
-	public override string ToString()
-	{
-		return $"{Name} / {Result}";
 	}
 
 	#region
@@ -304,9 +310,10 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 		Image = null;
 	}
 
-	public virtual async Task<string?> DownloadAsync(string? dir = null, bool exp = true)
+	public virtual async Task<string> DownloadAsync(string? dir = null, bool exp = true)
 	{
-		if (!Url.IsValid(Url) || !HasImage) {
+		if (!Url.IsValid(Url) || !HasImage)
+		{
 			return null;
 		}
 
@@ -320,18 +327,20 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 		var encoder = new PngBitmapEncoder();
 		encoder.Frames.Add(BitmapFrame.Create(Image));
 
-		await using (var fs = new FileStream(path2, FileMode.Create)) {
+		await using (var fs = new FileStream(path2, FileMode.Create))
+		{
 			encoder.Save(fs);
 		}
 
 		StatusImage = AppComponents.picture_save;
 
-		if (exp) {
+		if (exp)
+		{
 			FileSystem.ExploreFile(path2);
 		}
 
 		CanDownload = false;
-		Download    = path2;
+		Download = path2;
 
 		// u.Dispose();
 		UpdateProperties();
@@ -343,4 +352,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, ITransientImagePr
 
 	#endregion
 
+	public virtual long Size => Native.INVALID;
+
 }
+

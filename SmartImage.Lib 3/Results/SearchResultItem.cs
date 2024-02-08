@@ -145,6 +145,12 @@ public sealed record SearchResultItem : IDisposable,
 		return u;
 	}
 	*/
+	internal static SearchResultItem GetRaw(SearchResult r)
+		=> new SearchResultItem(r)
+		{
+			IsRaw = true,
+			Url   = r.RawUrl
+		};
 
 	public static bool IsValid([CBN] SearchResultItem r)
 	{

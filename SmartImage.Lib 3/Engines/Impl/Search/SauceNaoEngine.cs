@@ -33,17 +33,20 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 {
+
 	internal static class Constants
 	{
+
 		public const string Twitter = "Twitter:";
 		public const string TweetID = "Tweet ID:";
 
 		public const string Material = "Material:";
 		public const string Source   = "Source:";
 
-		public static readonly string[] Syn_Artists    = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
+		public static readonly string[] Syn_Artists = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
 
 		public static readonly string[] Syn_Characters = ["Characters:"];
+
 	}
 
 	private const string BASE_URL = "https://saucenao.com/";
@@ -97,14 +100,17 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		if (!dataResults.Any()) {
 			result.ErrorMessage = "Daily search limit (50) exceeded";
 			result.Status       = SearchResultStatus.Cooldown;
+
 			//return sresult;
 			goto ret;
 		}
 
 		var imageResults = dataResults.Where(o => o != null)
+
 			// .AsParallel()
 			.Select(x => x.Convert(result))
 			.Where(o => o != null)
+
 			// .OrderByDescending(e => e.Similarity)
 			.ToList();
 
@@ -140,7 +146,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 		// result.Url ??= imageResults.FirstOrDefault(x => x.Url != null)?.Url;
 
-		ret:
+	ret:
 
 		result.Update();
 
@@ -158,35 +164,46 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		string         html     = null;
 		IFlurlResponse response = null;
 
-		try {
-			response = await EndpointUrl.AllowHttpStatus()
-				           .WithTimeout(Timeout)
-				           .PostMultipartAsync(m =>
-				           {
-					           m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : string.Empty);
+		response = await EndpointUrl.AllowHttpStatus()
+			           .OnError( x =>
+			           {
 
-					           if (query.Uni.IsUri) { }
-					           else if (query.Uni.IsFile) {
-						           m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.png");
-					           }
+				           x.ExceptionHandled = true;
 
-				           });
-			html = await response.GetStringAsync();
+				           /*if (x.Exception is FlurlHttpException ex) {
+						           if (ex.StatusCode == (int)HttpStatusCode.TooManyRequests) { }
+					           }*/
+
+				           // html = await ((FlurlHttpException) x.Exception).GetResponseStringAsync();
+			           })
+			           .WithTimeout(Timeout)
+			           .PostMultipartAsync(m =>
+			           {
+				           m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : string.Empty);
+
+				           if (query.Uni.IsUri) { }
+				           else if (query.Uni.IsFile) {
+					           m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.png");
+				           }
+
+			           });
+
+		html = await response.GetStringAsync();
+
+		/*
+		 * Daily Search Limit Exceeded.
+		 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
+		 */
+
+		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
+			Trace.WriteLine("On cooldown!", Name);
+			return await Task.FromResult(Enumerable.Empty<SauceNaoDataResult>());
 		}
-		catch (FlurlHttpException e) {
 
-			/*
-			 * Daily Search Limit Exceeded.
-			 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
-			 */
+		// html = await e.GetResponseStringAsync();
 
-			if (e.StatusCode == (int) HttpStatusCode.TooManyRequests) {
-				Trace.WriteLine("On cooldown!", Name);
-				return await Task.FromResult(Enumerable.Empty<SauceNaoDataResult>());
-			}
-
-			html = await e.GetResponseStringAsync();
-		}
+		/*try { }
+		catch (FlurlHttpException e) { }*/
 
 		/*var raw=await GetRawUrlAsync(query);
 		var html2=await raw.GetStringAsync();*/
@@ -211,23 +228,23 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
 			return null;
 		}
-		
-		var resultElem     = result as IHtmlElement;
-		var ri             = resultElem.QuerySelector("img");
+
+		var resultElem = result as IHtmlElement;
+		var ri         = resultElem.QuerySelector("img");
 
 		// var resultImg      = resultElem.QuerySelector(".resultimage");
 		// var resultImg2     = resultImg.FirstChild.FirstChild;
 		// var thumbnail      = resultImg2.TryGetAttribute("src");
 		// var thumbnailTitle = resultImg2.TryGetAttribute("title");
-		
+
 		var thumbnail      = ri.GetAttribute("src");
 		var thumbnailTitle = ri.GetAttribute("title");
 		var pixelated      = ri.GetAttribute("class");
 		var isPixelated    = pixelated == "pixelated";
 
-		var ds             = ri.Attributes.Where(x => x.Name.Contains("data-src")).ToArray();
+		var ds = ri.Attributes.Where(x => x.Name.Contains("data-src")).ToArray();
 
-		thumbnail = isPixelated? ds.LastOrDefault()?.Value : thumbnail;
+		thumbnail = isPixelated ? ds.LastOrDefault()?.Value : thumbnail;
 
 		var resulttablecontent = result.FirstChild
 			.FirstChild
@@ -239,6 +256,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 		// Contains links
 		var resultmiscinfo = resultmatchinfo.ChildNodes[1];
+
 		// var resultcontent  = resulttablecontent.ChildNodes[1];
 		// var resultcontentcolumn = resultcontent.ChildNodes[1];
 		var resultcontent = ((IElement) result).GetElementsByClassName("resultcontent")[0];
@@ -249,6 +267,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 			resultcontentcolumn_rg = elem.QuerySelectorAll(Serialization.S_SauceNao_ResultContentColumn);
 
 		}
+
 		// var resulttitle = resultcontent.ChildNodes[0];
 
 		var links = new List<string>();
@@ -287,9 +306,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		string material1 = rcci.SubstringAfter(Material);
 
 		// string creator1 = rcci;
-		string creator1     = rcci;
+		string creator1 = rcci;
+
 		// string characters1  = null;
-		bool   rtiHasArtist = false;
+		bool rtiHasArtist = false;
 
 		foreach (var s in Syn_Artists) {
 			if (rti.StartsWith(s)) {
@@ -307,10 +327,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 		var sndr = new SauceNaoDataResult
 		{
-			Urls       = links.Distinct().ToArray(),
-			Similarity = similarity,
-			Material   = material1,
-			Thumbnail = thumbnail,
+			Urls           = links.Distinct().ToArray(),
+			Similarity     = similarity,
+			Material       = material1,
+			Thumbnail      = thumbnail,
 			ThumbnailTitle = thumbnailTitle
 
 		};
@@ -340,6 +360,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 			if (Syn_Artists.Any(s.StartsWith) || s.StartsWith(Twitter)) {
 				sndr.Creator = nodes[++i].TextContent.Trim(' ');
+
 				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
 				continue;
 			}
@@ -356,6 +377,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		// var client = new HttpClient();
 
 		const string dbIndex = "999";
+
 		// const string numRes  = "6";
 
 		var values = new Dictionary<string, string>
@@ -364,6 +386,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 			{ "output_type", "2" },
 			{ "api_key", Authentication },
 			{ "url", url.Upload },
+
 			// { "numres", numRes }
 		};
 
@@ -446,6 +469,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 	/// </summary>
 	private sealed class SauceNaoDataResult : IResultConvertable
 	{
+
 		/// <summary>
 		///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
 		/// </summary>
@@ -470,7 +494,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		public string Material { get; internal set; }
 
 		public string Creator { get; internal set; }
-		public string Source  { get; internal set; }
+
+		public string Source { get; internal set; }
 
 		public Url Thumbnail { get; internal set; }
 
@@ -514,17 +539,18 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 			var imageResult = new SearchResultItem(r)
 			{
-				Url         = urls.FirstOrDefault(),
-				Similarity  = Math.Round(Similarity, 2),
+				Url        = urls.FirstOrDefault(),
+				Similarity = Math.Round(Similarity, 2),
+
 				// Similarity = Similarity,
-				Description = siteName,
-				Artist      = Kantan.Text.Strings.NormalizeNull(Creator),
-				Source      = Kantan.Text.Strings.NormalizeNull(Material),
-				Character   = Kantan.Text.Strings.NormalizeNull(Character),
-				Site        = site,
-				Title       = Kantan.Text.Strings.NormalizeNull(Title),
-				Metadata    = meta,
-				Thumbnail = Thumbnail,
+				Description    = siteName,
+				Artist         = Kantan.Text.Strings.NormalizeNull(Creator),
+				Source         = Kantan.Text.Strings.NormalizeNull(Material),
+				Character      = Kantan.Text.Strings.NormalizeNull(Character),
+				Site           = site,
+				Title          = Kantan.Text.Strings.NormalizeNull(Title),
+				Metadata       = meta,
+				Thumbnail      = Thumbnail,
 				ThumbnailTitle = ThumbnailTitle
 
 			};
@@ -534,6 +560,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 			return imageResult;
 
 		}
+
 	}
 
 	public ValueTask ApplyAsync(SearchConfig cfg)
@@ -541,10 +568,12 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		Authentication = cfg.SauceNaoKey;
 		return ValueTask.CompletedTask;
 	}
+
 }
 
 public enum SauceNaoSiteIndex
 {
+
 	DoujinshiMangaLexicon = 3,
 	Pixiv                 = 5,
 	PixivArchive          = 6,
@@ -578,4 +607,5 @@ public enum SauceNaoSiteIndex
 
 	FurAffinity = 40,
 	Twitter     = 41
+
 }
