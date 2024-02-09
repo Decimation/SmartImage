@@ -6,6 +6,7 @@ using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
+using Novus.FileTypes.Uni;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 

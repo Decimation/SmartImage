@@ -13,6 +13,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Kantan.Utilities;
 using Novus.FileTypes;
+using Novus.FileTypes.Uni;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Model;
 

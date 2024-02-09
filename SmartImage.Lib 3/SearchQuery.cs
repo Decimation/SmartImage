@@ -11,6 +11,7 @@ using System.Security.Cryptography;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.FileTypes;
+using Novus.FileTypes.Uni;
 using Novus.Streams;
 using Novus.Win32;
 using SixLabors.ImageSharp;
@@ -101,22 +102,23 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 	public static async Task<SearchQuery> TryCreateAsync(string value, CancellationToken ct = default)
 	{
-		UniSource uf = await UniSource.TryGetAsync(value, ct: ct, whitelist: FileType.Image);
+		UniSource uf = await UniSource.TryGetAsync(value, ct: ct);
 
-		if (uf == null) {
+		if (uf == null || !FileType.Image.Contains(uf.FileType)) {
+			uf?.Dispose();
 			return Null;
 
 		}
 
 		else {
-			if (uf.IsUri) {
+			/*if (uf.IsUri) {
 				var r    = await (uf.Value as Url).GetAsync();
 				var uri2 = r.ResponseMessage.RequestMessage.RequestUri.ToString();
 
 				if (uri2 == "https://i.imgur.com/removed.png") {
 					return Null;
 				}
-			}
+			}*/
 
 			var sq = new SearchQuery(uf)
 				{ };
@@ -181,11 +183,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 	public static bool IsValidSourceType(object str)
 	{
-		UniSourceType v        = UniHandler.GetUniType(str, out object o2);
-		bool          isFile   = v == UniSourceType.File;
-		bool          isUri    = v == UniSourceType.Uri;
-		bool          isStream = v == UniSourceType.Stream;
-		bool          ok       = isFile || isUri || isStream;
+		// UniSourceType v        = UniHandler.GetUniType(str, out object o2);
+		bool isFile   = UniSourceFile.IsType(str, out var f);
+		bool isUri    = UniSourceUrl.IsType(str, out var f2);
+		bool isStream = UniSourceStream.IsType(str, out var f3);
+		bool ok       = isFile || isUri || isStream;
 
 		if (isFile) {
 			string ext = Path.GetExtension(str.ToString())?[1..];

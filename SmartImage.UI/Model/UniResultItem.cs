@@ -13,6 +13,7 @@ using Flurl;
 using Kantan.Net.Utilities;
 using Kantan.Utilities;
 using Novus.FileTypes;
+using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Streams;
 using Novus.Win32;

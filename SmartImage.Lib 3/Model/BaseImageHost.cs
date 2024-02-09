@@ -3,12 +3,15 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
+using Jint.Native;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
+using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Utilities;
 using SmartImage.Lib.Engines;
@@ -18,7 +21,9 @@ namespace SmartImage.Lib.Model;
 
 public class GenericImageHost : BaseImageHost
 {
-	public override        Url           Host => default;
+
+	public override Url Host => default;
+
 	public static readonly BaseImageHost Instance = new GenericImageHost();
 
 	public override string[] Illegal
@@ -41,12 +46,15 @@ public class GenericImageHost : BaseImageHost
 		}
 
 		return true;
+
 		;
 	}
+
 }
 
 public abstract class BaseImageHost
 {
+
 	public abstract Url Host { get; }
 
 	public abstract string[] Illegal { get; }
@@ -55,6 +63,18 @@ public abstract class BaseImageHost
 
 	public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();
+
+	public static async Task<UniSource> TryGet(object o, CancellationToken c = default)
+	{
+		var x = await UniSource.TryGetAsync(o, ct: c);
+
+		if (!FileType.Image.Contains(x.FileType)) {
+			x?.Dispose();
+			return null;
+		}
+
+		return x;
+	}
 
 	public static async Task<UniSource[]> ScanAsync(Url u, Predicate<UniSource> pred = null,
 	                                                CancellationToken ct = default)
@@ -85,11 +105,18 @@ public abstract class BaseImageHost
 
 		var ul = new ConcurrentBag<UniSource>();
 		stream = await res.GetStreamAsync();
-		var us = await UniSource.TryGetAsync(stream, whitelist: FileType.Image, ct: ct);
+		var uf = await UniSource.TryGetAsync(stream, resolver: IFileTypeResolver.Default, ct: ct);
 
-		if (us != null) {
-			ul.Add(us);
-			goto ret;
+		if (uf != null) {
+			/*if (!FileType.Image.Contains(uf.FileType)) {
+				uf?.Dispose();
+				goto ret;
+			}*/
+			if (FileType.Image.Contains(uf.FileType)) {
+				ul.Add(uf);
+				goto ret;
+
+			}
 		}
 		else if (stream.CanSeek) {
 			stream.Position = 0;
@@ -117,9 +144,13 @@ public abstract class BaseImageHost
 
 		await Parallel.ForEachAsync(c, po, async (s, token) =>
 		{
-			var ux = await UniSource.TryGetAsync(s, whitelist: FileType.Image, ct: token);
+			var ux = await UniSource.TryGetAsync(s, ct: token);
 
 			if (ux != null) {
+				/*if (!FileType.Image.Contains(ux.FileType)) {
+					ux?.Dispose();
+					return;
+				}*/
 				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanAsync));
 				if (pred(ux)) {
 					ul.Add(ux);
@@ -136,7 +167,7 @@ public abstract class BaseImageHost
 
 		// context.Dispose();
 		dd.Dispose();
-		ret:
+	ret:
 		return ul.ToArray();
 
 	}
@@ -144,7 +175,7 @@ public abstract class BaseImageHost
 	public static bool UniSourcePredicate(UniSource us)
 	{
 		try {
-			if (us.Stream.Length <= 25_000) {
+			if (us.Stream.Length <= 25_000 || !FileType.Image.Contains(us.FileType)) {
 				return false;
 			}
 
@@ -193,10 +224,12 @@ public abstract class BaseImageHost
 
 public class DanbooruImageHost : GenericImageHost
 {
+
 	public override Url Host => "danbooru.donmai.us";
 
 	public override bool Refine(string b)
 	{
 		return base.Refine(b);
 	}
+
 }
