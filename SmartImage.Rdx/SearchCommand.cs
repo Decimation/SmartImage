@@ -258,26 +258,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		return Act.None;
 	}
 
-	private static volatile bool stopListening = false;
-
-	static void KeyListener()
-	{
-		while (!stopListening) {
-			if (Console.KeyAvailable) {
-				ConsoleKeyInfo key = Console.ReadKey(true); // Read the key without displaying it
-
-				// Process the key press (for demonstration, quit if 'q' is pressed)
-				if (key.Key == ConsoleKey.Q) {
-					stopListening = true;
-				}
-
-				// Add other key handling logic here
-			}
-
-			Thread.Sleep(50); // Prevents the loop from consuming too much CPU
-		}
-	}
-
 	public async Task<Act> RunInteractiveAsync()
 	{
 
@@ -285,8 +265,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		//todo
 
-		int i      = 0;
-		var gr1    = new Grid();
+		int i   = 0;
+		var gr1 = new Grid();
 		gr1.AddColumns(2);
 
 		foreach (ResultModel result in m_results) {
@@ -327,19 +307,20 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			// prompt = AConsole.Prompt(choices);
 
 			AConsole.Clear();
-			layout["Left"].Update(gr1);
+			layout["Left"].Update(new Panel(gr1));
 			AConsole.Write(layout);
 
 			prompt = Console.ReadKey(true);
 
 			var keyChar = prompt.KeyChar;
-			var idx     =(int) Char.GetNumericValue(keyChar);
+			var idx     = (int) Char.GetNumericValue(keyChar);
 
-			var b       = idx >= 0 && idx < res.Length;
+			var b = idx >= 0 && idx < res.Length;
 
 			if (b) {
 				var rm = res[idx];
 				Debug.WriteLine($"{prompt} {idx} {rm}");
+
 				if (Query.Uni == null) {
 					throw new SmartImageException();
 				}
@@ -347,33 +328,42 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				var stream = Query.Uni.Stream;
 				stream.TrySeek();
 
-				rm.UpdateGrid(clear: true);
+				var gr2 = rm.UpdateGrid(clear: true);
+
 				// Update the left column
-				layout["Left"].Update(rm.Grid);
+				layout["Left"].Update(new Panel(rm.Grid));
+				// layout["Top"].Update(new Panel(gr2));
 
 				AConsole.Clear();
 				AConsole.Write(layout);
+
 				do {
 					prompt = Console.ReadKey(true);
+
+					if (prompt.Key == ConsoleKey.Backspace) {
+						break;
+					}
 
 					/*
 					if (prompt.Key == ConsoleKey.Backspace) {
 						continue;
 					}*/
 					var keyChar2 = prompt.KeyChar;
-					var idx2     = (int)Char.GetNumericValue(keyChar2);
+					var idx2     = (int) Char.GetNumericValue(keyChar2);
 
 					// var val      = rm.Grid.Rows[choice2i][0];
 					// var val2     = new Text(val.ToString(), style: new Style(Color.Yellow));
 					// Debug.WriteLine($"{val} {val2}");
 
-					rm.UpdateGrid(idx2, true);
-					layout["Left"].Update(rm.Grid);
+					gr2 = rm.UpdateGrid(idx2, true);
+
+					layout["Left"].Update(new Panel(rm.Grid));
+					layout["Top"].Update(new Panel(gr2));
 
 					AConsole.Clear();
 					AConsole.Write(layout);
 
-				} while (prompt.Key != ConsoleKey.Backspace);
+				} while (true);
 
 			}
 			else { }

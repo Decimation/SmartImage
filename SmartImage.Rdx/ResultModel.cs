@@ -91,7 +91,7 @@ public class ResultModel : IDisposable
 		return table;
 	}*/
 
-	internal bool UpdateGrid(int ix = -1, bool clear = false)
+	internal Grid UpdateGrid(int ix = -1, bool clear = false)
 	{
 		if (clear) {
 			Grid = Create();
@@ -100,17 +100,21 @@ public class ResultModel : IDisposable
 		var allRes = Result.GetAllResults();
 		int i      = 0;
 
+		var gr2 = new Grid();
+
 		foreach (var item in allRes) {
 			Style? style = null;
-
 			if (ix == i++) {
 				style = new Style(Color.Yellow);
+				gr2.AddColumns(new[] { new GridColumn(), new GridColumn() });
+				gr2.AddRow(nameof(SearchResultItem.Url), $"{item.Url}");
 
 			}
+
 			Grid.AddRow(new Text($"{Result.Engine.Name} #{i}", style), new Text($"{item.Score}"));
 		}
 
-		return true;
+		return gr2;
 	}
 
 	internal IRenderable[][] GetRowsForFormat2(ResultTableFormat format)
