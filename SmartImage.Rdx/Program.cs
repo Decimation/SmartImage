@@ -70,7 +70,7 @@ public static class Program
 		grd.AddRow("Terminal colors", $"{CliFormat.ProfileCapabilities.ColorSystem}");
 		grd.AddRow("Terminal links", $"{CliFormat.ProfileCapabilities.Links}");
 		grd.AddRow("Terminal Unicode", $"{CliFormat.ProfileCapabilities.Unicode}");
-		
+
 		var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
 
 		AConsole.Write(grd);
@@ -86,14 +86,22 @@ public static class Program
 		});
 
 		try {
+		res:
 			var x = await app.RunAsync(args);
+
+			switch ((Act) x) {
+				case Act.Restart:
+					goto res;
+
+					break;
+			}
 
 			return x;
 		}
 		catch (Exception e) {
 			AConsole.WriteException(e);
 
-			return -1;
+			return SearchCommand.EC_ERROR;
 		}
 	}
 

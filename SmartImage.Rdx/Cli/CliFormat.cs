@@ -35,8 +35,16 @@ internal enum ResultFileFormat
 
 }
 
+public abstract class Formatter
+{
+
+	public abstract IRenderable Format(SearchResult s);
+
+}
+
 internal static partial class CliFormat
 {
+
 	[MURV]
 	public static FigletFont LoadFigletFontFromResource(string name, out MemoryStream fs)
 	{
@@ -69,73 +77,13 @@ internal static partial class CliFormat
 		return table;
 	}
 
-	public static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, ResultTableFormat format)
+	internal static Color GetEngineColor(SearchEngineOptions s)
 	{
-		var ls = new List<IRenderable>();
-
-		Url?   url  = s.Url;
-		string host = url?.Host ?? STR_DEFAULT;
-
-		Color c = GetEngineColor(s.Root.Engine.EngineOption);
-
-		if (format.HasFlag(ResultTableFormat.Name)) {
-			ls.Add(new Text($"{s.Root.Engine.Name} #{i + 1}", s_styleName.Foreground(c)));
-		}
-
-		if (format.HasFlag(ResultTableFormat.Similarity)) {
-			ls.Add(new Text($"{s.Similarity / 100f:P}", s_styleSim));
-		}
-
-		if (format.HasFlag(ResultTableFormat.Url)) {
-			ls.Add(new Text(host, s_styleUrl.Link(url)));
-		}
-
-		return ls.ToArray();
-	}
-
-	public static IRenderable[] GetRowsForFormat(SearchResult s, ResultTableFormat format)
-	{
-		var ls = new List<IRenderable>();
-
-		Url?   url  = s.RawUrl;
-		string host = url?.Host ?? STR_DEFAULT;
-
-		Color c = GetEngineColor(s.Engine.EngineOption);
-
-		if (format.HasFlag(ResultTableFormat.Name)) {
-			ls.Add(new Text($"{s.Engine.Name}", s_styleName.Foreground(c)));
-		}
-
-		if (format.HasFlag(ResultTableFormat.Similarity)) {
-			ls.Add(new Text(STR_DEFAULT, s_styleSim));
-		}
-
-		if (format.HasFlag(ResultTableFormat.Url)) {
-			ls.Add(new Text(host, s_styleUrl.Link(url)));
-		}
-
-		return ls.ToArray();
-	}
-
-	private static Color GetEngineColor(SearchEngineOptions s)
-	{
-		if (!CliFormat.EngineColors.TryGetValue(s, out var c)) {
+		if (!EngineColors.TryGetValue(s, out var c)) {
 			c = Color.NavajoWhite1;
 		}
 
 		return c;
-	}
-
-	public static IEnumerable<TableRow> GetRows(Table t, Func<TableRow> f)
-	{
-		var trw = new TableRow[t.Columns.Count];
-
-		for (int j = 0; j < trw.Length; j++) {
-			var r = f();
-			trw[j] = r;
-		}
-
-		return trw;
 	}
 
 	public static STable DTableToSTable(DTable dt)

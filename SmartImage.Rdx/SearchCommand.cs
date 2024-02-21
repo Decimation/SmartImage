@@ -45,12 +45,12 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	// private readonly STable m_resTable;
 
-	private const int COMPLETE  = 100;
-	
-	public const  int EC_CANCEL = -1;
-
 	private SearchCommandSettings m_scs;
-	private Table                 m_table;
+
+	private const double COMPLETE = 100.0d;
+
+	public const int EC_ERROR = -1;
+	public const int EC_OK    = 0;
 
 	public SearchCommand()
 	{
@@ -151,7 +151,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				p.IsIndeterminate = true;
 				Query             = await SearchQuery.TryCreateAsync(settings.Query);
 
-				p.Increment(50);
+				p.Increment(COMPLETE / 2);
 				ctx.Refresh();
 
 				p.Description = "Uploading query";
@@ -161,7 +161,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					throw new SmartImageException(); //todo
 				}
 
-				p.Increment(50);
+				p.Increment(COMPLETE / 2);
 				ctx.Refresh();
 			});
 
@@ -188,26 +188,27 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			m_cts.Cancel();
 			args.Cancel = false;
 
-			Environment.Exit(EC_CANCEL);
+			Environment.Exit(EC_ERROR);
 		};
 
 		// await Prg_1.StartAsync(RunSearchAsync);
 
 		// pt1.MaxValue = m_client.Engines.Length;
-
-		await RunTableAsync();
+		Act act;
+		act = await RunTableAsync();
 
 		if (settings.Interactive) {
-			await RunInteractiveAsync();
+			act = await RunInteractiveAsync();
+
 		}
 
-		return 0;
+		return (int) act;
 	}
 
-	private async Task RunTableAsync()
+	private async Task<Act> RunTableAsync()
 	{
-		var format  = m_scs.ResultFormat;
-		var table = CliFormat.GetTableForFormat(format);
+		var format = m_scs.ResultFormat;
+		var table  = CliFormat.GetTableForFormat(format);
 
 		var live = AConsole.Live(table)
 			.StartAsync(async (l) =>
@@ -224,25 +225,28 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 				void OnResultComplete(object sender, SearchResult sr)
 				{
-					var rm = new ResultModel(sr) { };
-					m_results.Add(rm);
 					int i = 0;
+
+					var rm = new ResultModel(sr)
+						{ };
+
+					m_results.Add(rm);
 
 					if (!sr.IsStatusSuccessful) {
 						// Debugger.Break();
-						var rows = CliFormat.GetRowsForFormat(sr, format);
+						var rows = rm.GetRowsForFormat(format);
 						table.AddRow(rows);
 					}
 					else {
-						var allResults = sr.GetAllResults();
+						var results = rm.GetRowsForFormat2(format);
 
-						foreach (var item in allResults) {
-							var rows = CliFormat.GetRowsForFormat(item, i, format);
-							table.AddRow(rows);
-							i++;
+						foreach (IRenderable[] allResult in results) {
+							table.AddRow(allResult);
+
 						}
-
 					}
+
+					rm.UpdateGrid();
 
 					l.Refresh();
 
@@ -250,31 +254,48 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			});
 
 		await live;
+
+		return Act.None;
 	}
 
-	public async Task RunInteractiveAsync()
+	private static volatile bool stopListening = false;
+
+	static void KeyListener()
 	{
-		ConsoleKeyInfo cki;
+		while (!stopListening) {
+			if (Console.KeyAvailable) {
+				ConsoleKeyInfo key = Console.ReadKey(true); // Read the key without displaying it
 
-		// var i = AC.Ask<int>("?");
+				// Process the key press (for demonstration, quit if 'q' is pressed)
+				if (key.Key == ConsoleKey.Q) {
+					stopListening = true;
+				}
 
-		/*
-		if (!char.IsNumber(cki.KeyChar)) {
-			continue;
+				// Add other key handling logic here
+			}
+
+			Thread.Sleep(50); // Prevents the loop from consuming too much CPU
 		}
-		*/
+	}
+
+	public async Task<Act> RunInteractiveAsync()
+	{
 
 		AConsole.Clear();
 
 		//todo
 
-		var select = m_results
-			.ToDictionary((x) =>
-			{
-				return x.Result.Engine.Name;
-			});
+		int i      = 0;
+		var gr1    = new Grid();
+		gr1.AddColumns(2);
 
-		var choices = new SelectionPrompt<string>()
+		foreach (ResultModel result in m_results) {
+			gr1.AddRow($"{result.Result.Engine.Name}", $"{i++}");
+		}
+
+		var res = m_results.ToArray();
+
+		/*var choices = new SelectionPrompt<string>()
 			.Title("Engine")
 			.AddChoices(select.Keys);
 
@@ -282,27 +303,43 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		const string item = "...";
 
 		choices.AddChoice(quit);
-		choices.AddChoice(item);
+		choices.AddChoice(item);*/
 
-		string prompt = null;
+		// string prompt = null;
+
+		ConsoleKeyInfo prompt = default;
 
 		// AConsole.Write(m_resTable);
 
-		var mw = select.Values.Max(x => x.Grid.Width);
+		// var mw = select.Values.Max(x => x.Grid.Width);
 
 		// Create the layout
 		var layout = new Layout("Root")
 			.SplitColumns(
-				new Layout("Left") { Size = mw },
-				new Layout("Right")
+				new Layout("Left", gr1) { },
+				new Layout("Right") { }
 					.SplitRows(
-						new Layout("Top"),
-						new Layout("Bottom")));
+						new Layout("Top") { },
+						new Layout("Bottom") { }));
+		bool break1;
 
-		while (prompt != "") {
-			prompt = AConsole.Prompt(choices);
+		do {
+			// prompt = AConsole.Prompt(choices);
 
-			if (select.TryGetValue(prompt, out var v)) {
+			AConsole.Clear();
+			layout["Left"].Update(gr1);
+			AConsole.Write(layout);
+
+			prompt = Console.ReadKey(true);
+
+			var keyChar = prompt.KeyChar;
+			var idx     =(int) Char.GetNumericValue(keyChar);
+
+			var b       = idx >= 0 && idx < res.Length;
+
+			if (b) {
+				var rm = res[idx];
+				Debug.WriteLine($"{prompt} {idx} {rm}");
 				if (Query.Uni == null) {
 					throw new SmartImageException();
 				}
@@ -310,26 +347,40 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				var stream = Query.Uni.Stream;
 				stream.TrySeek();
 
+				rm.UpdateGrid(clear: true);
 				// Update the left column
-				layout["Left"].Update(v.Grid);
+				layout["Left"].Update(rm.Grid);
 
 				AConsole.Clear();
 				AConsole.Write(layout);
+				do {
+					prompt = Console.ReadKey(true);
 
-				// AConsole.Clear();
-				// AConsole.Write(v.Table);
+					/*
+					if (prompt.Key == ConsoleKey.Backspace) {
+						continue;
+					}*/
+					var keyChar2 = prompt.KeyChar;
+					var idx2     = (int)Char.GetNumericValue(keyChar2);
 
-			}
-			else if (prompt == quit) {
-				return;
-			}
-			else if (prompt == item) {
-				// ...
+					// var val      = rm.Grid.Rows[choice2i][0];
+					// var val2     = new Text(val.ToString(), style: new Style(Color.Yellow));
+					// Debug.WriteLine($"{val} {val2}");
+
+					rm.UpdateGrid(idx2, true);
+					layout["Left"].Update(rm.Grid);
+
+					AConsole.Clear();
+					AConsole.Write(layout);
+
+				} while (prompt.Key != ConsoleKey.Backspace);
+
 			}
 			else { }
 
-		}
+		} while (prompt.Key != ConsoleKey.OemMinus);
 
+		return Act.None;
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
@@ -353,5 +404,15 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Client.Dispose();
 		Query.Dispose();
 	}
+
+}
+
+public enum Act
+{
+
+	None = 0,
+	Exit,
+	Back,
+	Restart
 
 }

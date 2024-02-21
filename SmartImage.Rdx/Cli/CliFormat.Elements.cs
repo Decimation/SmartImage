@@ -12,11 +12,11 @@ internal static partial class CliFormat
 
 	// Ideally a dictionary would be used here...
 
-	private static readonly Style s_styleName = new(decoration: Decoration.Italic);
+	internal static readonly Style s_styleName = new(decoration: Decoration.Italic);
 
-	private static readonly Style s_styleSim = new(Color.Wheat1, decoration: Decoration.None);
+	internal static readonly Style s_styleSim = new(Color.Wheat1, decoration: Decoration.None);
 
-	private static readonly Style s_styleUrl = new(Color.Cyan1, decoration: Decoration.None);
+	internal static readonly Style s_styleUrl = new(Color.Cyan1, decoration: Decoration.None);
 
 	public static readonly Color Color1 = new(0x80, 0xFF, 0x80);
 
