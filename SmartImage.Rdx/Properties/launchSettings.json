@@ -36,6 +36,10 @@
     "Profile 5": {
       "commandName": "Project",
       "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -v"
+    },
+    "Profile 6": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -r \"None\" -f \"Csv\" -o \"output.csv\""
     }
   }
 }

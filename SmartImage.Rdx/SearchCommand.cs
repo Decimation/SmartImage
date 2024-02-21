@@ -152,7 +152,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				Query             = await SearchQuery.TryCreateAsync(settings.Query);
 
 				p.Increment(COMPLETE / 2);
-				ctx.Refresh();
+				// ctx.Refresh();
 
 				p.Description = "Uploading query";
 				var url = await Query.UploadAsync();
@@ -162,7 +162,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				}
 
 				p.Increment(COMPLETE / 2);
-				ctx.Refresh();
+				// ctx.Refresh();
 			});
 
 		Config.SearchEngines   = settings.SearchEngines;
@@ -194,15 +194,63 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		// await Prg_1.StartAsync(RunSearchAsync);
 
 		// pt1.MaxValue = m_client.Engines.Length;
-		Act act;
-		act = await RunTableAsync();
 
+		Act act;
+
+		if (m_scs.ResultFormat == ResultTableFormat.None) {
+			act = await RunSimpleAsync();
+		}
+		else {
+			act = await RunTableAsync();
+
+		}
+		
 		if (settings.Interactive) {
 			act = await RunInteractiveAsync();
 
 		}
 
 		return (int) act;
+	}
+
+	private async Task<Act> RunSimpleAsync()
+	{
+		var prog = AConsole.Progress()
+			.AutoRefresh(false)
+			.StartAsync(async c =>
+		{
+			var p = c.AddTask("Running search");
+			p.IsIndeterminate = true;
+			var cnt = (double) Client.Engines.Length;
+			var p2  = c.AddTask("Engines", maxValue: cnt);
+
+			Client.OnResult += OnResultComplete;
+
+			var run = Client.RunSearchAsync(Query, token: m_cts.Token);
+
+			await run;
+
+			Client.OnResult -= OnResultComplete;
+
+			return;
+
+			void OnResultComplete(object sender, SearchResult sr)
+			{
+				int i = 0;
+
+				var rm = new ResultModel(sr)
+					{ };
+
+				m_results.Add(rm);
+				p2.Description = $"{rm.Result.Engine.Name} {m_results.Count} / {cnt}";
+				p2.Increment(1);
+				c.Refresh();
+			}
+		});
+
+		await prog;
+
+		return Act.None;
 	}
 
 	private async Task<Act> RunTableAsync()
@@ -275,23 +323,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		var res = m_results.ToArray();
 
-		/*var choices = new SelectionPrompt<string>()
-			.Title("Engine")
-			.AddChoices(select.Keys);
-
-		const string quit = "Quit";
-		const string item = "...";
-
-		choices.AddChoice(quit);
-		choices.AddChoice(item);*/
-
-		// string prompt = null;
-
 		ConsoleKeyInfo prompt = default;
-
-		// AConsole.Write(m_resTable);
-
-		// var mw = select.Values.Max(x => x.Grid.Width);
 
 		// Create the layout
 		var layout = new Layout("Root")
@@ -301,7 +333,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					.SplitRows(
 						new Layout("Top") { },
 						new Layout("Bottom") { }));
-		bool break1;
 
 		do {
 			// prompt = AConsole.Prompt(choices);
@@ -332,6 +363,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 				// Update the left column
 				layout["Left"].Update(new Panel(rm.Grid));
+
 				// layout["Top"].Update(new Panel(gr2));
 
 				AConsole.Clear();
