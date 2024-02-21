@@ -34,15 +34,22 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[DefaultValue(false)]
 	public bool Interactive { get; init; }
 
-	[CommandOption("-f|--result-format")]
-	[DefaultValue(ResultGridFormat.Default)]
-	public ResultGridFormat Format { get; init; }
+	[CommandOption("-r|--result-format")]
+	[DefaultValue(ResultTableFormat.Default)]
+	public ResultTableFormat ResultFormat { get; init; }
+
+	[CommandOption("-f|--output-format")]
+	[DefaultValue(ResultFileFormat.None)]
+	public ResultFileFormat OutputFormat { get; init; }
+
+	[CommandOption("-o|--output")]
+	public string? OutputFile { get; init; }
 
 	[CommandOption("-x|--complete-exe")]
-	public string CompletionExecutable { get; init; }
+	public string? CompletionExecutable { get; init; }
 
 	[CommandOption("-c|--complete-cmd")]
-	public string CompletionCommand { get; init; }
+	public string? CompletionCommand { get; init; }
 
 	public override ValidationResult Validate()
 	{
@@ -52,7 +59,13 @@ internal sealed class SearchCommandSettings : CommandSettings
 			return ValidationResult.Error($"Invalid query");
 		}
 
+		if (String.IsNullOrWhiteSpace(OutputFile) && OutputFormat != ResultFileFormat.None) {
+			return ValidationResult.Error(
+				$"{nameof(OutputFile)} must be set if {nameof(OutputFormat)} != {nameof(ResultFileFormat.None)}");
+		}
+
 		return result;
 	}
 
 }
+

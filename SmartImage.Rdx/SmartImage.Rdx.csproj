@@ -13,7 +13,21 @@
     <RepositoryUrl>https://github.com/Decimation/SmartImage</RepositoryUrl>
     <AssemblyName>SmartImage</AssemblyName>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <!-- <NoWarn>1701;1702;NU1608</NoWarn> -->
+  </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DefineConstants>TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
+    <!-- <NoWarn>1701;1702;NU1608</NoWarn> -->
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Test|AnyCPU'">
+    <!-- <NoWarn>1701;1702;NU1608</NoWarn> -->
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST</DefineConstants>
+
+  </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
@@ -75,6 +89,10 @@
     </EmbeddedResource>
   </ItemGroup>
 
-  <ProjectExtensions><VisualStudio><UserProperties properties_4launchsettings_1json__JsonSchema="https://json.schemastore.org/lefthook.json" /></VisualStudio></ProjectExtensions>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties properties_4launchsettings_1json__JsonSchema="https://json.schemastore.org/lefthook.json" />
+    </VisualStudio>
+  </ProjectExtensions>
 
 </Project>

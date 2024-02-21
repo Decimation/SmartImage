@@ -13,7 +13,7 @@ using Spectre.Console.Rendering;
 namespace SmartImage.Rdx.Cli;
 
 [Flags]
-internal enum ResultGridFormat
+internal enum ResultTableFormat
 {
 
 	None = 0,
@@ -23,6 +23,14 @@ internal enum ResultGridFormat
 	Url        = 1 << 2,
 
 	Default = Name | Similarity | Url
+
+}
+
+internal enum ResultFileFormat
+{
+
+	None = 0,
+	Csv,
 
 }
 
@@ -44,30 +52,24 @@ internal static partial class CliFormat
 		return ff;
 	}
 
-	public static Grid GetGridForFormat(ResultGridFormat format)
+	public static Table GetTableForFormat(ResultTableFormat format)
 	{
-		var fmt = format.GetSetFlags(true, true);
 
-		var grid = new Grid();
-		var col  = new GridColumn[fmt.Count];
+		var fmt  = format.GetSetFlags(true, true);
+		var table = new Table();
+		var col  = new TableColumn[fmt.Count];
 
 		for (int i = 0; i < col.Length; i++) {
-			col[i] = new GridColumn();
+			col[i] = new TableColumn(new Text($"{fmt[i]}",
+			                                  new Style(decoration: Decoration.Bold | Decoration.Underline)));
 		}
 
-		grid.AddColumns(col);
+		table.AddColumns(col);
 
-		var row1 = fmt.Select(x =>
-		{
-			return new Text($"{x}", new Style(decoration: Decoration.Bold | Decoration.Underline));
-		});
-
-		grid.AddRow(row1.Cast<IRenderable>().ToArray());
-
-		return grid;
+		return table;
 	}
 
-	public static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, ResultGridFormat format)
+	public static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, ResultTableFormat format)
 	{
 		var ls = new List<IRenderable>();
 
@@ -78,18 +80,18 @@ internal static partial class CliFormat
 			c = Color.NavajoWhite1;
 		}
 
-		if (format.HasFlag(ResultGridFormat.Name)) {
+		if (format.HasFlag(ResultTableFormat.Name)) {
 			ls.Add(new Text($"{s.Root.Engine.Name} #{i + 1}",
 			                new Style(c, decoration: Decoration.Italic)));
 		}
 
-		if (format.HasFlag(ResultGridFormat.Similarity)) {
+		if (format.HasFlag(ResultTableFormat.Similarity)) {
 			ls.Add(new Text($"{s.Similarity / 100f:P}",
 			                new Style(Color.Wheat1,
 			                          decoration: Decoration.None)));
 		}
 
-		if (format.HasFlag(ResultGridFormat.Url)) {
+		if (format.HasFlag(ResultTableFormat.Url)) {
 			ls.Add(new Text(host, new Style(Color.Cyan1,
 			                                decoration: Decoration.None, link: url))
 			);

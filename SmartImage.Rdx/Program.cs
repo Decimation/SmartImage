@@ -34,7 +34,7 @@ public static class Program
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		// ms?.Dispose();
-		
+
 		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
 			.Color(CliFormat.Color1);
@@ -68,7 +68,8 @@ public static class Program
 		grd.AddRow("Terminal colors", $"{CliFormat.ProfileCapabilities.ColorSystem}");
 		grd.AddRow("Terminal links", $"{CliFormat.ProfileCapabilities.Links}");
 		grd.AddRow("Terminal Unicode", $"{CliFormat.ProfileCapabilities.Unicode}");
-		var env=Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
+		
+		var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
 
 		AConsole.Write(grd);
 
@@ -78,6 +79,7 @@ public static class Program
 		{
 			c.PropagateExceptions();
 			c.SetHelpProvider(new HelpProvider(c.Settings));
+
 			//...
 		});
 
@@ -88,7 +90,7 @@ public static class Program
 		}
 		catch (Exception e) {
 			AConsole.WriteException(e);
-			
+
 			return -1;
 		}
 	}

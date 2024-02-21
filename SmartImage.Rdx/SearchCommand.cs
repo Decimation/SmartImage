@@ -21,6 +21,8 @@ using Spectre.Console.Rendering;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Flurl;
+using JetBrains.Annotations;
+using Kantan.Diagnostics;
 using Kantan.Utilities;
 using Novus.Streams;
 using SixLabors.ImageSharp.Processing;
@@ -44,6 +46,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	// private readonly STable m_resTable;
 
 	private const int COMPLETE = 100;
+
+	private SearchCommandSettings m_scs;
 
 	public SearchCommand()
 	{
@@ -74,25 +78,62 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	private void OnComplete(object sender, SearchResult[] searchResults)
 	{
 		// pt1.Increment(COMPLETE);
-		if (!String.IsNullOrWhiteSpace(m_cc)) {
+		if (!String.IsNullOrWhiteSpace(m_scs.CompletionCommand)) {
 			var proc = new Process()
 			{
 				StartInfo =
 				{
-					FileName  = m_ce,
-					Arguments = m_cc,
-					UseShellExecute = false,
-					CreateNoWindow = true,
-					RedirectStandardError = true,
+					FileName               = m_scs.CompletionExecutable,
+					Arguments              = m_scs.CompletionCommand,
+					UseShellExecute        = false,
+					CreateNoWindow         = true,
+					RedirectStandardError  = true,
 					RedirectStandardOutput = true
 				}
 			};
 			proc.Start();
 
 			Debug.WriteLine($"starting {proc.Id}");
+
 			// proc.WaitForExit(TimeSpan.FromSeconds(3));
 			// proc.Dispose();
 		}
+
+		switch (m_scs.OutputFormat) {
+
+			case ResultFileFormat.None:
+				break;
+
+			case ResultFileFormat.Csv:
+				var fw = File.OpenWrite(m_scs.OutputFile);
+
+				var sw = new StreamWriter(fw)
+				{
+					AutoFlush = true
+				};
+				var res = m_results.ToArray();
+
+				for (int i = 0; i < res.Length; i++) {
+					var sr = res[i].Result;
+
+					for (int j = 0; j < sr.Results.Count; j++) {
+						var sri = sr.Results[j];
+
+						string[] items = [$"{sr.Engine.Name} {i}", sri.Url?.ToString()];
+						sw.WriteLine(String.Join(',', items));
+					}
+
+				}
+
+				sw.Dispose();
+				fw.Dispose();
+				AConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException();
+		}
+
 	}
 
 	public async Task RunInteractiveAsync()
@@ -138,8 +179,12 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 			}
 			else {
+				if (Query.Uni == null) {
+					throw new SmartImageException();
+				}
+
 				var stream = Query.Uni.Stream;
-				stream.TrySeek(0);
+				stream.TrySeek();
 
 				// Create the layout
 				var layout = new Layout("Root")
@@ -160,32 +205,12 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			}
 		}
 
-		/*var fn = rows.GetType()
-			.GetMethods(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
-			.FirstOrDefault(x => x.Name.Contains("get_Item"));
-
-		var res = (TableRow) fn.Invoke(rows, new Object[] { i-1 });
-		var en  = res.GetEnumerator();
-
-		while (en.MoveNext()) {
-			var it = en.Current;
-
-			AConsole.AlternateScreen(() =>
-			{
-				AConsole.Clear();
-				AConsole.Write(t);
-				AConsole.Confirm("");
-			});
-
-			if (it is Table t) { }
-		}*/
-
 	}
-
-	private string m_cc, m_ce;
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
+		m_scs = settings;
+
 		var task = AConsole.Progress()
 			.AutoRefresh(true)
 			.StartAsync(async ctx =>
@@ -211,8 +236,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Config.SearchEngines   = settings.SearchEngines;
 		Config.PriorityEngines = settings.PriorityEngines;
 		Config.AutoSearch      = settings.AutoSearch;
-		m_cc                   = settings.CompletionCommand;
-		m_ce                   = settings.CompletionExecutable;
+
 		await Client.ApplyConfigAsync();
 
 		await task;
@@ -238,8 +262,19 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		// pt1.MaxValue = m_client.Engines.Length;
 
-		var format = settings.Format;
-		var grid   = CliFormat.GetGridForFormat(format);
+		await RunTableAsync();
+
+		if (settings.Interactive) {
+			await RunInteractiveAsync();
+		}
+
+		return 0;
+	}
+
+	private async Task RunTableAsync()
+	{
+		var format = m_scs.ResultFormat;
+		var grid   = CliFormat.GetTableForFormat(format);
 
 		var live = AConsole.Live(grid)
 			.StartAsync(async (l) =>
@@ -268,25 +303,12 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 						i++;
 					}
 
-					/*m_resTable.Rows.Add(new IRenderable[]
-					{
-						new Text($"{rm.Id}"),
-						Markup.FromInterpolated($"[bold]{sr.Engine.Name}[/]"),
-						new Text($"{sr.Results.Count}")
-					});*/
-
 					l.Refresh();
 
 				}
 			});
 
 		await live;
-
-		if (settings.Interactive) {
-			await RunInteractiveAsync();
-		}
-
-		return 0;
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
@@ -306,6 +328,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		m_results.Clear();
 		m_cts.Dispose();
+		m_scs = null;
 		Client.Dispose();
 		Query.Dispose();
 	}
