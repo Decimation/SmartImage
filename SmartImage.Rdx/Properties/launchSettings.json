@@ -23,7 +23,7 @@
     },
     "Profile 3": {
       "commandName": "Project",
-      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -f Name,Url"
+      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -r Name,Url"
     },
     "Profile 4": {
       "commandName": "Project",
@@ -32,6 +32,10 @@
     "Profile 4b": {
       "commandName": "Project",
       "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -f \"Csv\" -o \"output.csv\" -r \"None\""
+    },
+    "Profile 5": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Users\\Deci\\Pictures\\Epic anime\\__re_l_mayer_ergo_proxy_drawn_by_comin__e152c5c48b0058a3374542def4f59c3a.jpg\" -v"
     }
   }
 }

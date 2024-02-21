@@ -9,6 +9,7 @@ namespace SmartImage.Rdx.Cli;
 
 internal static partial class CliFormat
 {
+
 	// Ideally a dictionary would be used here...
 
 	private static readonly Style s_styleName = new(decoration: Decoration.Italic);
@@ -17,9 +18,11 @@ internal static partial class CliFormat
 
 	private static readonly Style s_styleUrl = new(Color.Cyan1, decoration: Decoration.None);
 
-	public static readonly  Color Color1     = new(0x80, 0xFF, 0x80);
+	public static readonly Color Color1 = new(0x80, 0xFF, 0x80);
 
 	internal static readonly Text EmptyText = new(string.Empty);
+
+	internal const string STR_DEFAULT = "-";
 
 	static CliFormat() { }
 

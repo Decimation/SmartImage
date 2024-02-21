@@ -100,7 +100,7 @@ public abstract class BaseImageHost
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}");
-			return Array.Empty<UniSource>();
+			return [];
 		}
 
 		var ul = new ConcurrentBag<UniSource>();

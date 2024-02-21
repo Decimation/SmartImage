@@ -37,7 +37,6 @@ internal enum ResultFileFormat
 
 internal static partial class CliFormat
 {
-
 	[MURV]
 	public static FigletFont LoadFigletFontFromResource(string name, out MemoryStream fs)
 	{
@@ -75,7 +74,7 @@ internal static partial class CliFormat
 		var ls = new List<IRenderable>();
 
 		Url?   url  = s.Url;
-		string host = url?.Host ?? "-";
+		string host = url?.Host ?? STR_DEFAULT;
 
 		Color c = GetEngineColor(s.Root.Engine.EngineOption);
 
@@ -99,7 +98,7 @@ internal static partial class CliFormat
 		var ls = new List<IRenderable>();
 
 		Url?   url  = s.RawUrl;
-		string host = url?.Host ?? "-";
+		string host = url?.Host ?? STR_DEFAULT;
 
 		Color c = GetEngineColor(s.Engine.EngineOption);
 
@@ -108,7 +107,7 @@ internal static partial class CliFormat
 		}
 
 		if (format.HasFlag(ResultTableFormat.Similarity)) {
-			ls.Add(new Text($"-", s_styleSim));
+			ls.Add(new Text(STR_DEFAULT, s_styleSim));
 		}
 
 		if (format.HasFlag(ResultTableFormat.Url)) {

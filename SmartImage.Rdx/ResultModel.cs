@@ -12,20 +12,40 @@ public class ResultModel : IDisposable
 
 	public SearchResult Result { get; }
 
-	public STable Table { get; }
+	// public STable Table { get; }
 
-	public int Id { get; }
+	public int  Id   { get; }
 
-	public ResultModel(SearchResult result) : this(result, Interlocked.Increment(ref cnt)) { }
+	public Grid Grid { get; }
+
+	public ResultModel(SearchResult result)
+		: this(result, Interlocked.Increment(ref Count)) { }
 
 	public ResultModel(SearchResult result, int id)
 	{
 		Result = result;
 		Id     = id;
-		Table  = Create();
+		Grid = Create();
+
+		// Table  = Create();
 	}
 
-	public STable Create()
+	private protected static int Count = 0;
+
+	public void Dispose()
+	{
+		Result.Dispose();
+	}
+
+	private static Grid Create()
+	{
+		var gr = new Grid();
+		gr.AddColumns(2);
+		gr.AddRow("Name", "Details");
+		return gr;
+	}
+
+	/*public STable Create()
 	{
 		var table = CreateTable();
 
@@ -33,11 +53,11 @@ public class ResultModel : IDisposable
 
 		foreach (SearchResultItem sri in Result.Results) {
 			table.Rows.Add([
-				new Text($"{i + 1}"), 
+				new Text($"{i                                                        + 1}"),
 				Markup.FromInterpolated($"[link={sri.Url}]{sri.Root.Engine.Name} #{i + 1}[/]"),
-				Markup.FromInterpolated($"{sri.Similarity}"), 
+				Markup.FromInterpolated($"{sri.Similarity}"),
 				Markup.FromInterpolated($"{sri.Artist}"),
-				Markup.FromInterpolated($"{sri.Description}"), 
+				Markup.FromInterpolated($"{sri.Description}"),
 				Markup.FromInterpolated($"{sri.Character}")
 			]);
 
@@ -45,13 +65,6 @@ public class ResultModel : IDisposable
 		}
 
 		return table;
-	}
-
-	public static int cnt = 0;
-
-	public void Dispose()
-	{
-		Result.Dispose();
 	}
 
 	private static STable CreateTable()
@@ -74,6 +87,6 @@ public class ResultModel : IDisposable
 		);
 
 		return table;
-	}
+	}*/
 
 }

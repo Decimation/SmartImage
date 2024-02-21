@@ -45,9 +45,12 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	// private readonly STable m_resTable;
 
-	private const int COMPLETE = 100;
+	private const int COMPLETE  = 100;
+	
+	public const  int EC_CANCEL = -1;
 
 	private SearchCommandSettings m_scs;
+	private Table                 m_table;
 
 	public SearchCommand()
 	{
@@ -136,77 +139,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	}
 
-	public async Task RunInteractiveAsync()
-	{
-		ConsoleKeyInfo cki;
-
-		// var i = AC.Ask<int>("?");
-
-		/*
-		if (!char.IsNumber(cki.KeyChar)) {
-			continue;
-		}
-		*/
-
-		AConsole.Clear();
-
-		//todo
-
-		var select = m_results
-			.ToDictionary((x) =>
-			{
-				return x.Result.Engine.Name;
-			});
-
-		var choices = new SelectionPrompt<string>()
-			.Title("Engine")
-			.AddChoices(select.Keys);
-
-		choices.AddChoice("Quit");
-		choices.AddChoice("...");
-
-		string prompt = null;
-
-		// AConsole.Write(m_resTable);
-
-		while (prompt != "") {
-			prompt = AConsole.Prompt(choices);
-
-			if (select.TryGetValue(prompt, out var v)) {
-
-				AConsole.Clear();
-				AConsole.Write(v.Table);
-
-			}
-			else {
-				if (Query.Uni == null) {
-					throw new SmartImageException();
-				}
-
-				var stream = Query.Uni.Stream;
-				stream.TrySeek();
-
-				// Create the layout
-				var layout = new Layout("Root")
-					.SplitColumns(
-						new Layout("Left"),
-						new Layout("Right")
-							.SplitRows(
-								new Layout("Top"),
-								new Layout("Bottom")));
-
-				// Update the left column
-				layout["Left"].Update(
-					new Panel(new CanvasImage(stream))
-						.Expand());
-				AConsole.Clear();
-				AConsole.Write(layout);
-
-			}
-		}
-
-	}
-
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
 		m_scs = settings;
@@ -252,10 +184,11 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Console.CancelKeyPress += (sender, args) =>
 		{
 			AConsole.MarkupLine($"[red]Cancellation requested[/]");
+			AConsole.Clear();
 			m_cts.Cancel();
 			args.Cancel = false;
 
-			Environment.Exit(-1);
+			Environment.Exit(EC_CANCEL);
 		};
 
 		// await Prg_1.StartAsync(RunSearchAsync);
@@ -273,8 +206,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	private async Task RunTableAsync()
 	{
-		var format = m_scs.ResultFormat;
-		var table  = CliFormat.GetTableForFormat(format);
+		var format  = m_scs.ResultFormat;
+		var table = CliFormat.GetTableForFormat(format);
 
 		var live = AConsole.Live(table)
 			.StartAsync(async (l) =>
@@ -317,6 +250,86 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			});
 
 		await live;
+	}
+
+	public async Task RunInteractiveAsync()
+	{
+		ConsoleKeyInfo cki;
+
+		// var i = AC.Ask<int>("?");
+
+		/*
+		if (!char.IsNumber(cki.KeyChar)) {
+			continue;
+		}
+		*/
+
+		AConsole.Clear();
+
+		//todo
+
+		var select = m_results
+			.ToDictionary((x) =>
+			{
+				return x.Result.Engine.Name;
+			});
+
+		var choices = new SelectionPrompt<string>()
+			.Title("Engine")
+			.AddChoices(select.Keys);
+
+		const string quit = "Quit";
+		const string item = "...";
+
+		choices.AddChoice(quit);
+		choices.AddChoice(item);
+
+		string prompt = null;
+
+		// AConsole.Write(m_resTable);
+
+		var mw = select.Values.Max(x => x.Grid.Width);
+
+		// Create the layout
+		var layout = new Layout("Root")
+			.SplitColumns(
+				new Layout("Left") { Size = mw },
+				new Layout("Right")
+					.SplitRows(
+						new Layout("Top"),
+						new Layout("Bottom")));
+
+		while (prompt != "") {
+			prompt = AConsole.Prompt(choices);
+
+			if (select.TryGetValue(prompt, out var v)) {
+				if (Query.Uni == null) {
+					throw new SmartImageException();
+				}
+
+				var stream = Query.Uni.Stream;
+				stream.TrySeek();
+
+				// Update the left column
+				layout["Left"].Update(v.Grid);
+
+				AConsole.Clear();
+				AConsole.Write(layout);
+
+				// AConsole.Clear();
+				// AConsole.Write(v.Table);
+
+			}
+			else if (prompt == quit) {
+				return;
+			}
+			else if (prompt == item) {
+				// ...
+			}
+			else { }
+
+		}
+
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
