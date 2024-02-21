@@ -37,6 +37,13 @@ public sealed class PomfEngine : BaseUploadEngine
 				               mp.AddFile("files[]", file);
 			               }, cancellationToken: ct);
 
+		if (response == null) {
+			return new UploadResult()
+			{
+				IsValid = false
+			};
+		}
+
 		var pr = await response.GetJsonAsync<PomfResult>();
 
 		var bur = new UploadResult()

@@ -119,7 +119,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					for (int j = 0; j < sr.Results.Count; j++) {
 						var sri = sr.Results[j];
 
-						string[] items = [$"{sr.Engine.Name} {i}", sri.Url?.ToString()];
+						string[] items = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
 						sw.WriteLine(String.Join(',', items));
 					}
 
@@ -274,9 +274,9 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	private async Task RunTableAsync()
 	{
 		var format = m_scs.ResultFormat;
-		var grid   = CliFormat.GetTableForFormat(format);
+		var table  = CliFormat.GetTableForFormat(format);
 
-		var live = AConsole.Live(grid)
+		var live = AConsole.Live(table)
 			.StartAsync(async (l) =>
 			{
 
@@ -295,12 +295,20 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					m_results.Add(rm);
 					int i = 0;
 
-					var allResults = sr.GetAllResults();
+					if (!sr.IsStatusSuccessful) {
+						// Debugger.Break();
+						var rows = CliFormat.GetRowsForFormat(sr, format);
+						table.AddRow(rows);
+					}
+					else {
+						var allResults = sr.GetAllResults();
 
-					foreach (var item in allResults) {
-						var rows = CliFormat.GetRowsForFormat(item, i, format);
-						grid.AddRow(rows);
-						i++;
+						foreach (var item in allResults) {
+							var rows = CliFormat.GetRowsForFormat(item, i, format);
+							table.AddRow(rows);
+							i++;
+						}
+
 					}
 
 					l.Refresh();

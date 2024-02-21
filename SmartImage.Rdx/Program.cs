@@ -11,12 +11,14 @@ using Spectre.Console.Cli.Help;
 namespace SmartImage.Rdx;
 
 /*
+ * cd /mnt/c/Users/Deci/RiderProjects/SmartImage/
  * dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
  * dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
  * dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
  * dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
  * dotnet run -c Test --project SmartImage.Rdx --  "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg" -e All -p Auto
  * ./SmartImage.Rdx/bin/Release/net8.0/publish/linux-x64/SmartImage "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg"
+ *
  */
 
 public static class Program

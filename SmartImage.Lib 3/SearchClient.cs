@@ -95,14 +95,18 @@ public sealed class SearchClient : IDisposable
 	{
 		scheduler ??= TaskScheduler.Default;
 
-		if (!query.IsUploaded) throw new ArgumentException($"Query was not uploaded", nameof(query));
+		if (!query.IsUploaded) {
+			throw new ArgumentException($"Query was not uploaded", nameof(query));
+		}
 
 		IsRunning = true;
 
-		if (reload)
+		if (reload) {
 			await ApplyConfigAsync();
-		else
+		}
+		else {
 			LoadEngines();
+		}
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
@@ -137,7 +141,7 @@ public sealed class SearchClient : IDisposable
 		IsRunning  = false;
 		IsComplete = true;
 
-		if (Config.PriorityEngines == SearchEngineOptions.Auto)
+		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 
 			// var sri    = results.SelectMany(r => r.Results).ToArray();
 			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
@@ -146,11 +150,13 @@ public sealed class SearchClient : IDisposable
 				IOrderedEnumerable<SearchResultItem> rr = results.SelectMany(rr => rr.GetAllResults())
 					.OrderByDescending(rr => rr.Score);
 
-				if (Config.OpenRaw)
+				if (Config.OpenRaw) {
 					OpenResult(results.MaxBy(x => x.GetAllResults().Sum(xy => xy.Score)));
-				else
+				}
+				else {
 					OpenResult(rr.OrderByDescending(x => x.Similarity)
 						           .FirstOrDefault(x => Url.IsValid(x.Url))?.Url);
+				}
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
@@ -158,6 +164,7 @@ public sealed class SearchClient : IDisposable
 				SearchResult result = results.FirstOrDefault(f => f.IsStatusSuccessful) ?? results.First();
 				OpenResult(result);
 			}
+		}
 
 		IsRunning = false;
 
@@ -168,7 +175,9 @@ public sealed class SearchClient : IDisposable
 	{
 		OnResult?.Invoke(this, result);
 
-		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) OpenResult(result);
+		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+			OpenResult(result);
+		}
 	}
 
 	private static void OpenResult(Url url1)
@@ -240,7 +249,7 @@ public sealed class SearchClient : IDisposable
 				{
 					// ReSharper disable AsyncApostle.AsyncWait
 
-					Debug.Assert(r.IsCompleted);
+					// Debug.Assert(r.IsCompleted);
 
 					ProcessResult(r.Result);
 					return r.Result;
@@ -259,9 +268,11 @@ public sealed class SearchClient : IDisposable
 	{
 		LoadEngines();
 
-		foreach (BaseSearchEngine bse in Engines)
-			if (bse is IConfig cfg)
+		foreach (BaseSearchEngine bse in Engines) {
+			if (bse is IConfig cfg) {
 				await cfg.ApplyAsync(Config);
+			}
+		}
 
 		Logger.LogDebug("Loaded engines");
 		ConfigApplied = true;
@@ -341,7 +352,9 @@ public sealed class SearchClient : IDisposable
 
 	public void Dispose()
 	{
-		foreach (BaseSearchEngine engine in Engines) engine.Dispose();
+		foreach (BaseSearchEngine engine in Engines) {
+			engine.Dispose();
+		}
 
 		ConfigApplied = false;
 		IsComplete    = false;

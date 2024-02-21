@@ -151,8 +151,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 			engine ??= BaseUploadEngine.Default;
 
-			UploadResult u   = await engine.UploadFileAsync(fu, ct);
-			Url          url = u.Url;
+			UploadResult u = await engine.UploadFileAsync(fu, ct);
+			Url          url;
 
 			if (!u.IsValid) {
 				url = null;
@@ -160,6 +160,16 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 				// Debugger.Break();
 			}
+			else {
+				url = u.Url;
+
+			}
+
+			// TODO: AUTO-RETRY
+			/*
+			UploadResult u = await UploadAutoAsync(engine, fu, ct);
+			Url          url = u?.Url;
+			*/
 
 			/*if (!u.IsValid) {
 				engine = BaseUploadEngine.All[Array.IndexOf(BaseUploadEngine.All, engine) + 1];

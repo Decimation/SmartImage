@@ -71,6 +71,43 @@ public abstract class BaseUploadEngine : IEndpoint
 		};
 	}
 
+	public static async Task<UploadResult> UploadAutoAsync(BaseUploadEngine engine, string fu,
+	                                                       CancellationToken ct = default)
+	{
+		// TODO
+
+		// engine ??= BaseUploadEngine.Default;
+		UploadResult u;
+		int          i = 0;
+
+		bool ok;
+
+		do {
+			u  = await engine.UploadFileAsync(fu, ct);
+			ok = u.IsValid;
+
+			if (!ok) {
+				Debug.WriteLine($"{u} is invalid!");
+
+				// Debugger.Break();
+				if (i++ < BaseUploadEngine.All.Length) {
+					engine = BaseUploadEngine.All[i];
+					Debug.WriteLine($"Trying {engine.Name}");
+					ok = true;
+				}
+				else {
+					ok = false;
+				}
+			}
+			else {
+				return u;
+			}
+
+		} while (!ok);
+
+		return u;
+	}
+
 	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
 	                                                              CancellationToken ct = default)
 	{
