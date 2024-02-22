@@ -130,12 +130,12 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 			goto ret;
 
 		}
-		else {
-			result.Status = SearchResultStatus.Success;
 
-			// TODO: HACK
+		result.Status = SearchResultStatus.Success;
 
-			/*var allSisters = imageResults
+		// TODO: HACK
+
+		/*var allSisters = imageResults
 				.SelectMany(ir => ir.Children)
 				.DistinctBy(s => s.Url)
 				.ToList(); // note: need ToList()
@@ -145,8 +145,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 				ir.Children.Clear();
 				ir.Children.AddRange(allSisters.Where(irs => irs.Parent == ir));
 			}*/
-
-		}
 
 		result.Results.AddRange(imageResults);
 
@@ -370,7 +368,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 				sndr.Creator = nodes[++i].TextContent.Trim(' ');
 
 				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
-				continue;
 			}
 
 		}
@@ -514,8 +511,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 			var    idxStr   = Index.ToString();
 			string siteName = Index != 0 ? idxStr : null;
 
-			var site  = Kantan.Text.Strings.NormalizeNull(siteName);
-			var title = Kantan.Text.Strings.NormalizeNull(WebsiteTitle);
+			var site  = Strings.NormalizeNull(siteName);
+			var title = Strings.NormalizeNull(WebsiteTitle);
 
 			var sb = new StringBuilder();
 
@@ -552,11 +549,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 				// Similarity = Similarity,
 				Description    = siteName,
-				Artist         = Kantan.Text.Strings.NormalizeNull(Creator),
-				Source         = Kantan.Text.Strings.NormalizeNull(Material),
-				Character      = Kantan.Text.Strings.NormalizeNull(Character),
+				Artist         = Strings.NormalizeNull(Creator),
+				Source         = Strings.NormalizeNull(Material),
+				Character      = Strings.NormalizeNull(Character),
 				Site           = site,
-				Title          = Kantan.Text.Strings.NormalizeNull(Title),
+				Title          = Strings.NormalizeNull(Title),
 				Metadata       = meta,
 				Thumbnail      = Thumbnail,
 				ThumbnailTitle = ThumbnailTitle

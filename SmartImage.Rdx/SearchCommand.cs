@@ -91,6 +91,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				Query             = await SearchQuery.TryCreateAsync(settings.Query);
 
 				p.Increment(COMPLETE / 2);
+
 				// ctx.Refresh();
 
 				p.Description = "Uploading query";
@@ -101,6 +102,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				}
 
 				p.Increment(COMPLETE / 2);
+
 				// ctx.Refresh();
 			});
 
@@ -112,11 +114,14 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		await task;
 
-		var dt = Config.ToTable();
+		var dt = new Grid();
+		dt.AddColumns(2);
+		
+		object[] val = [Config.SearchEngines, Config.PriorityEngines, Config.EhUsername, Config.EhPassword];
+		
+		// var t = CliFormat.DTableToSTable(dt);
 
-		var t = CliFormat.DTableToSTable(dt);
-
-		AConsole.Write(t);
+		// AConsole.Write(t);
 
 		AConsole.WriteLine($"Input: {Query}");
 
@@ -134,16 +139,16 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		// pt1.MaxValue = m_client.Engines.Length;
 
-		Act act;
+		int act;
 
-		if (m_scs.ResultFormat == ResultTableFormat.None) {
+		if (m_scs.ResultFormat == ResultShellFormat.None) {
 			act = await RunSimpleAsync();
 		}
 		else {
 			act = await RunTableAsync();
 
 		}
-		
+
 		if (settings.Interactive) {
 			act = await RunInteractiveAsync();
 
@@ -152,47 +157,47 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		return (int) act;
 	}
 
-	private async Task<Act> RunSimpleAsync()
+	private async Task<int> RunSimpleAsync()
 	{
 		var prog = AConsole.Progress()
 			.AutoRefresh(false)
 			.StartAsync(async c =>
-		{
-			var p = c.AddTask("Running search");
-			p.IsIndeterminate = true;
-			var cnt = (double) Client.Engines.Length;
-			var p2  = c.AddTask("Engines", maxValue: cnt);
-
-			Client.OnResult += OnResultComplete;
-
-			var run = Client.RunSearchAsync(Query, token: m_cts.Token);
-
-			await run;
-
-			Client.OnResult -= OnResultComplete;
-
-			return;
-
-			void OnResultComplete(object sender, SearchResult sr)
 			{
-				int i = 0;
+				var p = c.AddTask("Running search");
+				p.IsIndeterminate = true;
+				var cnt = (double) Client.Engines.Length;
+				var p2  = c.AddTask("Engines", maxValue: cnt);
 
-				var rm = new ResultModel(sr)
-					{ };
+				Client.OnResult += OnResultComplete;
 
-				m_results.Add(rm);
-				p2.Description = $"{rm.Result.Engine.Name} {m_results.Count} / {cnt}";
-				p2.Increment(1);
-				c.Refresh();
-			}
-		});
+				var run = Client.RunSearchAsync(Query, token: m_cts.Token);
+
+				await run;
+
+				Client.OnResult -= OnResultComplete;
+
+				return;
+
+				void OnResultComplete(object sender, SearchResult sr)
+				{
+					int i = 0;
+
+					var rm = new ResultModel(sr)
+						{ };
+
+					m_results.Add(rm);
+					p2.Description = $"{rm.Result.Engine.Name} {m_results.Count} / {cnt}";
+					p2.Increment(1);
+					c.Refresh();
+				}
+			});
 
 		await prog;
 
-		return Act.None;
+		return EC_OK;
 	}
 
-	private async Task<Act> RunTableAsync()
+	private async Task<int> RunTableAsync()
 	{
 		var format = m_scs.ResultFormat;
 		var table  = CliFormat.GetTableForFormat(format);
@@ -242,10 +247,10 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		await live;
 
-		return Act.None;
+		return EC_OK;
 	}
 
-	public async Task<Act> RunInteractiveAsync()
+	public async Task<int> RunInteractiveAsync()
 	{
 
 		AConsole.Clear();
@@ -264,20 +269,26 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		ConsoleKeyInfo prompt = default;
 
-		// Create the layout
-		var layout = new Layout("Root")
+		const string L_ROOT = "Root";
+		const string L_LEFT = "Left";
+
+		const string L_RIGHT  = "Right";
+		const string L_TOP    = "Top";
+		const string L_BOTTOM = "Bottom";
+
+		var layout = new Layout(L_ROOT)
 			.SplitColumns(
-				new Layout("Left", gr1) { },
-				new Layout("Right") { }
+				new Layout(L_LEFT, gr1) { },
+				new Layout(L_RIGHT) { }
 					.SplitRows(
-						new Layout("Top") { },
-						new Layout("Bottom") { }));
+						new Layout(L_TOP) { },
+						new Layout(L_BOTTOM) { }));
 
 		do {
 			// prompt = AConsole.Prompt(choices);
 
 			AConsole.Clear();
-			layout["Left"].Update(new Panel(gr1));
+			layout[L_LEFT].Update(new Panel(gr1));
 			AConsole.Write(layout);
 
 			prompt = Console.ReadKey(true);
@@ -301,7 +312,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				var gr2 = rm.UpdateGrid(clear: true);
 
 				// Update the left column
-				layout["Left"].Update(new Panel(rm.Grid));
+				layout[L_LEFT].Update(new Panel(rm.Grid));
 
 				// layout["Top"].Update(new Panel(gr2));
 
@@ -328,8 +339,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 					gr2 = rm.UpdateGrid(idx2, true);
 
-					layout["Left"].Update(new Panel(rm.Grid));
-					layout["Top"].Update(new Panel(gr2));
+					layout[L_LEFT].Update(new Panel(rm.Grid));
+					layout[L_TOP].Update(new Panel(gr2));
 
 					AConsole.Clear();
 					AConsole.Write(layout);
@@ -341,7 +352,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		} while (prompt.Key != ConsoleKey.OemMinus);
 
-		return Act.None;
+		return EC_OK;
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
@@ -382,7 +393,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			case ResultFileFormat.None:
 				break;
 
-			case ResultFileFormat.Csv:
+			case ResultFileFormat.Delimited:
 				var fw = File.OpenWrite(m_scs.OutputFile);
 
 				var sw = new StreamWriter(fw)
@@ -398,13 +409,14 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 						var sri = sr.Results[j];
 
 						string[] items = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
-						sw.WriteLine(String.Join(',', items));
+						sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, items));
 					}
 
 				}
 
 				sw.Dispose();
 				fw.Dispose();
+
 				AConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
 				break;
 
@@ -426,15 +438,5 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Client.Dispose();
 		Query.Dispose();
 	}
-
-}
-
-public enum Act
-{
-
-	None = 0,
-	Exit,
-	Back,
-	Restart
 
 }

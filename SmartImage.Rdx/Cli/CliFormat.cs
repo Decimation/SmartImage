@@ -4,8 +4,8 @@ using System.Data;
 using Flurl;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Results;
 using Spectre.Console;
+using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 
 // $User.Name $File.ProjectName $File.FileName
@@ -14,7 +14,7 @@ using Spectre.Console.Rendering;
 namespace SmartImage.Rdx.Cli;
 
 [Flags]
-internal enum ResultTableFormat
+internal enum ResultShellFormat
 {
 
 	None = 0,
@@ -31,14 +31,7 @@ internal enum ResultFileFormat
 {
 
 	None = 0,
-	Csv,
-
-}
-
-public abstract class Formatter
-{
-
-	public abstract IRenderable Format(SearchResult s);
+	Delimited,
 
 }
 
@@ -60,7 +53,28 @@ internal static partial class CliFormat
 		return ff;
 	}
 
-	public static Table GetTableForFormat(ResultTableFormat format)
+	public static void Dump(CommandSettings settings)
+	{
+		var table = new Table().RoundedBorder();
+		table.AddColumn("[grey]Name[/]");
+		table.AddColumn("[grey]Value[/]");
+
+		var properties = settings.GetType().GetProperties();
+
+		foreach (var property in properties) {
+			var value = property.GetValue(settings)
+				?.ToString()
+				?.Replace("[", "[[");
+
+			table.AddRow(
+				property.Name,
+				value ?? "[grey]null[/]");
+		}
+
+		AnsiConsole.Write(table);
+	}
+
+	public static Table GetTableForFormat(ResultShellFormat format)
 	{
 
 		var fmt   = format.GetSetFlags(true, true);
@@ -103,7 +117,7 @@ internal static partial class CliFormat
 					}
 
 					if (x == null) {
-						return EmptyText;
+						return Txt_Empty;
 					}
 
 					return new Text(x.ToString());
@@ -113,6 +127,24 @@ internal static partial class CliFormat
 		}
 
 		return t;
+	}
+
+	internal static string? GetOS()
+	{
+		string? os = null;
+
+		if (IsLinux) {
+			os = "Linux";
+
+		}
+		else if (IsWindows) {
+			os = "Windows";
+		}
+		else if (IsMacOs) {
+			os = "Mac";
+		}
+
+		return os;
 	}
 
 }

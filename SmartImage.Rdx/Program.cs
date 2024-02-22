@@ -24,10 +24,6 @@ namespace SmartImage.Rdx;
 public static class Program
 {
 
-	internal static readonly bool IsLinux   = OperatingSystem.IsLinux();
-	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
-	internal static readonly bool IsMacOs   = OperatingSystem.IsMacOS();
-
 	public static async Task<int> Main(string[] args)
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
@@ -39,7 +35,7 @@ public static class Program
 
 		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
-			.Color(CliFormat.Color1);
+			.Color(CliFormat.Clr_Misc1);
 
 		AConsole.Write(fg);
 
@@ -47,33 +43,12 @@ public static class Program
 		AConsole.WriteLine(args.QuickJoin());
 
 #endif
-		string? os = null;
 
-		if (IsLinux) {
-			os = "Linux";
-
-		}
-		else if (IsWindows) {
-			os = "Windows";
-		}
-		else if (IsMacOs) {
-			os = "Mac";
-		}
-
-		var grd = new Grid();
-		grd.AddColumns(2);
-
-		grd.AddRow("OS", $"{os} / {Environment.OSVersion}");
-		grd.AddRow("Runtime", $"{Environment.Version}");
-
-		grd.AddRow("Terminal ANSI", $"{CliFormat.ProfileCapabilities.Ansi}");
-		grd.AddRow("Terminal colors", $"{CliFormat.ProfileCapabilities.ColorSystem}");
-		grd.AddRow("Terminal links", $"{CliFormat.ProfileCapabilities.Links}");
-		grd.AddRow("Terminal Unicode", $"{CliFormat.ProfileCapabilities.Unicode}");
-
-		var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
+		Grid grd = CliFormat.CreateInfoGrid();
 
 		AConsole.Write(grd);
+
+		// var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
 
 		var app = new CommandApp<SearchCommand>();
 
@@ -81,20 +56,12 @@ public static class Program
 		{
 			c.PropagateExceptions();
 			c.SetHelpProvider(new HelpProvider(c.Settings));
-
+			
 			//...
 		});
 
 		try {
-		res:
 			var x = await app.RunAsync(args);
-
-			switch ((Act) x) {
-				case Act.Restart:
-					goto res;
-
-					break;
-			}
 
 			return x;
 		}

@@ -117,7 +117,7 @@ public class ResultModel : IDisposable
 		return gr2;
 	}
 
-	internal IRenderable[][] GetRowsForFormat2(ResultTableFormat format)
+	internal IRenderable[][] GetRowsForFormat2(ResultShellFormat format)
 	{
 		var allRes = Result.GetAllResults();
 		var ls     = new List<IRenderable[]>();
@@ -131,7 +131,7 @@ public class ResultModel : IDisposable
 		return ls.ToArray();
 	}
 
-	internal static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, ResultTableFormat format)
+	internal static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, ResultShellFormat format)
 	{
 		var ls = new List<IRenderable>();
 
@@ -140,22 +140,22 @@ public class ResultModel : IDisposable
 
 		Color c = CliFormat.GetEngineColor(s.Root.Engine.EngineOption);
 
-		if (format.HasFlag(ResultTableFormat.Name)) {
-			ls.Add(new Text($"{s.Root.Engine.Name} #{i + 1}", CliFormat.s_styleName.Foreground(c)));
+		if (format.HasFlag(ResultShellFormat.Name)) {
+			ls.Add(new Text($"{s.Root.Engine.Name} #{i + 1}", CliFormat.Sty_Name.Foreground(c)));
 		}
 
-		if (format.HasFlag(ResultTableFormat.Similarity)) {
-			ls.Add(new Text($"{s.Similarity / 100f:P}", CliFormat.s_styleSim));
+		if (format.HasFlag(ResultShellFormat.Similarity)) {
+			ls.Add(new Text($"{s.Similarity / 100f:P}", CliFormat.Sty_Sim));
 		}
 
-		if (format.HasFlag(ResultTableFormat.Url)) {
-			ls.Add(new Text(host, CliFormat.s_styleUrl.Link(url)));
+		if (format.HasFlag(ResultShellFormat.Url)) {
+			ls.Add(new Text(host, CliFormat.Sty_Url.Link(url)));
 		}
 
 		return ls.ToArray();
 	}
 
-	internal IRenderable[] GetRowsForFormat(ResultTableFormat format)
+	internal IRenderable[] GetRowsForFormat(ResultShellFormat format)
 	{
 		var ls = new List<IRenderable>();
 
@@ -164,16 +164,16 @@ public class ResultModel : IDisposable
 
 		Color c = CliFormat.GetEngineColor(Result.Engine.EngineOption);
 
-		if (format.HasFlag(ResultTableFormat.Name)) {
-			ls.Add(new Text($"{Result.Engine.Name}", CliFormat.s_styleName.Foreground(c)));
+		if (format.HasFlag(ResultShellFormat.Name)) {
+			ls.Add(new Text($"{Result.Engine.Name}", CliFormat.Sty_Name.Foreground(c)));
 		}
 
-		if (format.HasFlag(ResultTableFormat.Similarity)) {
-			ls.Add(new Text(CliFormat.STR_DEFAULT, CliFormat.s_styleSim));
+		if (format.HasFlag(ResultShellFormat.Similarity)) {
+			ls.Add(new Text(CliFormat.STR_DEFAULT, CliFormat.Sty_Sim));
 		}
 
-		if (format.HasFlag(ResultTableFormat.Url)) {
-			ls.Add(new Text(host, CliFormat.s_styleUrl.Link(url)));
+		if (format.HasFlag(ResultShellFormat.Url)) {
+			ls.Add(new Text(host, CliFormat.Sty_Url.Link(url)));
 		}
 
 		return ls.ToArray();

@@ -59,7 +59,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	[MNNW(true, nameof(Uni))]
 	public bool HasUni => Uni != null;
 
-	internal SearchQuery([CBN] UniSource f)
+	internal SearchQuery([MN] UniSource f)
 	{
 		Uni = f;
 

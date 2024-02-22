@@ -11,7 +11,7 @@ using Configuration = System.Configuration.Configuration;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
+public sealed class SearchConfig : INotifyPropertyChanged
 {
 	#region Defaults
 
@@ -205,7 +205,7 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		Debug.WriteLine($"Saved to {Configuration.FilePath}", nameof(Save));
 	}
 
-	public DataTable ToTable()
+	/*public DataTable ToTable()
 	{
 		var table = new DataTable("Configuration");
 
@@ -225,12 +225,12 @@ public sealed class SearchConfig : IDataTable, INotifyPropertyChanged
 		table.Rows.Add(Resources.S_AutoSearch, AutoSearch);
 		table.Rows.Add(Resources.S_SauceNaoKey, SauceNaoKey);
 		/*table.Rows.Add(Resources.S_HydrusEndpoint, HydrusEndpoint);
-		table.Rows.Add(Resources.S_HydrusKey, HydrusKey);*/
+		table.Rows.Add(Resources.S_HydrusKey, HydrusKey);#1#
 
 		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
 
 		return table;
-	}
+	}*/
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
