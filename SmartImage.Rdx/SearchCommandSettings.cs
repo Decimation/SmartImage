@@ -35,7 +35,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 	public bool Interactive { get; init; }
 
 	[CommandOption("-r|--result-format")]
-	[DefaultValue(ResultTableFormat.Default)]
+	[DefaultValue(ResultTableFormat.None)]
 	public ResultTableFormat ResultFormat { get; init; }
 
 	[CommandOption("-f|--output-format")]

@@ -7,6 +7,6 @@ namespace SmartImage.Lib.Model;
 
 public interface IResultConvertable
 {
-	public SearchResultItem Convert(SearchResult sr);
+	public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children);
 
 }

@@ -29,7 +29,7 @@ using SixLabors.ImageSharp.Processing;
 using SmartImage.Rdx.Cli;
 
 namespace SmartImage.Rdx;
-
+#nullable disable
 internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisposable
 {
 
@@ -61,7 +61,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		// Client.OnResult   += OnResult;
 		m_cts     = new CancellationTokenSource();
 		m_results = new ConcurrentBag<ResultModel>();
-
+		m_scs     = null;
 		/*m_resTable = new Table()
 		{
 			Border      = TableBorder.Heavy,
@@ -76,67 +76,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		);*/
 
 		Query = SearchQuery.Null;
-	}
-
-	private void OnComplete(object sender, SearchResult[] searchResults)
-	{
-		// pt1.Increment(COMPLETE);
-		if (!String.IsNullOrWhiteSpace(m_scs.CompletionCommand)) {
-			var proc = new Process()
-			{
-				StartInfo =
-				{
-					FileName               = m_scs.CompletionExecutable,
-					Arguments              = m_scs.CompletionCommand,
-					UseShellExecute        = false,
-					CreateNoWindow         = true,
-					RedirectStandardError  = true,
-					RedirectStandardOutput = true
-				}
-			};
-			proc.Start();
-
-			Debug.WriteLine($"starting {proc.Id}");
-
-			// proc.WaitForExit(TimeSpan.FromSeconds(3));
-			// proc.Dispose();
-		}
-
-		switch (m_scs.OutputFormat) {
-
-			case ResultFileFormat.None:
-				break;
-
-			case ResultFileFormat.Csv:
-				var fw = File.OpenWrite(m_scs.OutputFile);
-
-				var sw = new StreamWriter(fw)
-				{
-					AutoFlush = true
-				};
-				var res = m_results.ToArray();
-
-				for (int i = 0; i < res.Length; i++) {
-					var sr = res[i].Result;
-
-					for (int j = 0; j < sr.Results.Count; j++) {
-						var sri = sr.Results[j];
-
-						string[] items = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
-						sw.WriteLine(String.Join(',', items));
-					}
-
-				}
-
-				sw.Dispose();
-				fw.Dispose();
-				AConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
-				break;
-
-			default:
-				throw new ArgumentOutOfRangeException();
-		}
-
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
@@ -412,6 +351,67 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		// var v= base.Validate(context, settings);
 		// return v;
+	}
+
+	private void OnComplete(object sender, SearchResult[] searchResults)
+	{
+		// pt1.Increment(COMPLETE);
+		if (!String.IsNullOrWhiteSpace(m_scs.CompletionCommand)) {
+			var proc = new Process()
+			{
+				StartInfo =
+				{
+					FileName               = m_scs.CompletionExecutable,
+					Arguments              = m_scs.CompletionCommand,
+					UseShellExecute        = false,
+					CreateNoWindow         = true,
+					RedirectStandardError  = true,
+					RedirectStandardOutput = true
+				}
+			};
+			proc.Start();
+
+			Debug.WriteLine($"starting {proc.Id}");
+
+			// proc.WaitForExit(TimeSpan.FromSeconds(3));
+			// proc.Dispose();
+		}
+
+		switch (m_scs.OutputFormat) {
+
+			case ResultFileFormat.None:
+				break;
+
+			case ResultFileFormat.Csv:
+				var fw = File.OpenWrite(m_scs.OutputFile);
+
+				var sw = new StreamWriter(fw)
+				{
+					AutoFlush = true
+				};
+				var res = m_results.ToArray();
+
+				for (int i = 0; i < res.Length; i++) {
+					var sr = res[i].Result;
+
+					for (int j = 0; j < sr.Results.Count; j++) {
+						var sri = sr.Results[j];
+
+						string[] items = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
+						sw.WriteLine(String.Join(',', items));
+					}
+
+				}
+
+				sw.Dispose();
+				fw.Dispose();
+				AConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException();
+		}
+
 	}
 
 	public void Dispose()

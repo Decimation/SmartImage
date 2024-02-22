@@ -27,7 +27,7 @@ public class ResultModel : IDisposable
 	{
 		Result = result;
 		Id     = id;
-		Grid   = Create();
+		Grid   = CreateGrid();
 
 		// Table  = Create();
 	}
@@ -39,7 +39,7 @@ public class ResultModel : IDisposable
 		Result.Dispose();
 	}
 
-	private static Grid Create()
+	private static Grid CreateGrid()
 	{
 		var gr = new Grid();
 		gr.AddColumns(2);
@@ -94,7 +94,7 @@ public class ResultModel : IDisposable
 	internal Grid UpdateGrid(int ix = -1, bool clear = false)
 	{
 		if (clear) {
-			Grid = Create();
+			Grid = CreateGrid();
 		}
 
 		var allRes = Result.GetAllResults();

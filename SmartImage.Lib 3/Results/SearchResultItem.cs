@@ -13,9 +13,10 @@ using SmartImage.Lib.Utilities;
 namespace SmartImage.Lib.Results;
 
 public sealed record SearchResultItem : IDisposable,
-	IComparable<SearchResultItem>, IComparable,
-	IValidity<SearchResultItem>
+										IComparable<SearchResultItem>, IComparable,
+										IValidity<SearchResultItem>
 {
+
 	private bool m_isScored;
 
 	public const int MAX_SCORE = 13;
@@ -109,11 +110,24 @@ public sealed record SearchResultItem : IDisposable,
 	[CBN]
 	public SearchResultItem Parent { get; internal set; }
 
-	public List<SearchResultItem> Children { get; internal set; }
+	// public List<SearchResultItem> Children { get; internal set; }
 
 	// public bool IsUniType { get; internal set; }
 
 	public bool IsRaw { get; internal set; }
+
+	public bool Equals(SearchResultItem other)
+	{
+		if (ReferenceEquals(null, other)) return false;
+		if (ReferenceEquals(this, other)) return true;
+
+		return Root.Equals(other.Root) && Uni == other.Uni;
+	}
+
+	public override int GetHashCode()
+	{
+		return HashCode.Combine(Root, Uni);
+	}
 
 	internal SearchResultItem(SearchResult r)
 	{
@@ -123,7 +137,7 @@ public sealed record SearchResultItem : IDisposable,
 		Uni        = null;
 		Parent     = null;
 		IsRaw      = false;
-		Children   = [];
+		// Children   = [];
 	}
 
 	/*
@@ -146,12 +160,6 @@ public sealed record SearchResultItem : IDisposable,
 		return u;
 	}
 	*/
-	internal static SearchResultItem GetRaw(SearchResult r)
-		=> new SearchResultItem(r)
-		{
-			IsRaw = true,
-			Url   = r.RawUrl
-		};
 
 	public static bool IsValid([CBN] SearchResultItem r)
 	{
@@ -197,6 +205,7 @@ public sealed record SearchResultItem : IDisposable,
 		m_isScored = true;
 	}
 
+	/*
 	public void AddChildren(string[] rg)
 	{
 		for (int i = 0; i < rg.Length; i++) {
@@ -211,6 +220,25 @@ public sealed record SearchResultItem : IDisposable,
 			Children.Add(sri);
 		}
 
+	}
+	*/
+	public SearchResultItem[] AddChildren(string[] rg)
+	{
+		var rg2 = new SearchResultItem[rg.Length];
+
+		for (int i = 0; i < rg.Length; i++) {
+
+			rg2[i] = new SearchResultItem(this)
+			{
+				Url      = rg[i],
+				// Children = [],
+				Parent   = this,
+			};
+
+			// Children.Add(sri);
+		}
+
+		return rg2;
 	}
 
 	// [MustUseReturnValue]
@@ -271,8 +299,8 @@ public sealed record SearchResultItem : IDisposable,
 		if (ReferenceEquals(this, obj)) return 0;
 
 		return obj is SearchResultItem other
-			       ? CompareTo(other)
-			       : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
+				   ? CompareTo(other)
+				   : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
 	}
 
 	public static bool operator <(SearchResultItem left, SearchResultItem right)
@@ -296,4 +324,5 @@ public sealed record SearchResultItem : IDisposable,
 	}
 
 	#endregion
+
 }

@@ -71,7 +71,8 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public IEnumerable<SearchResultItem> GetAllResults()
 	{
-		return Results.Union(Results.SelectMany(r => r.Children));
+		return Results;
+		// return Results.Union(Results.SelectMany(r => r.Children));
 	}
 
 	[CBN]
@@ -82,6 +83,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string Overview { get; internal set; }
 
+	/*
 	[CBN]
 	public SearchResultItem GetBestResult()
 	{
@@ -92,6 +94,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		return Results.OrderByDescending(r => r.Similarity)
 			.FirstOrDefault(r => Url.IsValid(r.Url));
 	}
+	*/
 
 	public bool IsStatusSuccessful => Status.IsSuccessful();
 
@@ -155,5 +158,12 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		OnPropertyChanged(propertyName);
 		return true;
 	}
+
+	public SearchResultItem GetRaw()
+		=> new SearchResultItem(this)
+		{
+			IsRaw = true,
+			Url   = RawUrl
+		};
 
 }

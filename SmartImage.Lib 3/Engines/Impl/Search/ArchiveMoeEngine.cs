@@ -16,6 +16,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public class ArchiveMoeEngine : WebSearchEngine
 {
+
 	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
 
 	protected ArchiveMoeEngine(string baseUrl) : base(baseUrl) { }
@@ -33,7 +34,7 @@ public class ArchiveMoeEngine : WebSearchEngine
 	{
 		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
 		var data = MD5.HashData(q.Uni.Stream);
-		var    b64      = Convert.ToBase64String(data).Replace("==", "");
+		var b64  = Convert.ToBase64String(data).Replace("==", "");
 		b64 = Regex.Replace(b64, @"\//", "_");
 		b64 = Regex.Replace(b64, @"\+", "-");
 
@@ -83,17 +84,19 @@ public class ArchiveMoeEngine : WebSearchEngine
 			Text     = text
 		};
 
-		return ValueTask.FromResult(p.Convert(r));
+		return ValueTask.FromResult(p.Convert(r, out _));
 
 		// ReSharper restore PossibleNullReferenceException
 
 	}
 
 	protected override string NodesSelector => "//article[contains(@class,'post')]";
+
 }
 
 internal record ChanPost : IResultConvertable
 {
+
 	public long     Id;
 	public string   Board;
 	public string   Filename;
@@ -108,8 +111,10 @@ internal record ChanPost : IResultConvertable
 	public DateTime Time2;
 	public string   Text;
 
-	public SearchResultItem Convert(SearchResult sr)
+	public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] ch)
 	{
+		ch = [];
+
 		var sri = new SearchResultItem(sr)
 		{
 			Url         = File,
@@ -118,10 +123,11 @@ internal record ChanPost : IResultConvertable
 			Artist      = Author,
 			Description = Title,
 			Time        = Time2,
-			Site = File.Host,
+			Site        = File.Host,
 			Metadata    = this
 		};
 
 		return sri;
 	}
+
 }

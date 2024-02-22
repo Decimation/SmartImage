@@ -23,7 +23,7 @@ internal enum ResultTableFormat
 	Similarity = 1 << 1,
 	Url        = 1 << 2,
 
-	Default = Name | Similarity | Url
+	Full = Name | Similarity | Url
 
 }
 

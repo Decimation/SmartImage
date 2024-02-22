@@ -6,9 +6,10 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace SmartImage.UI;
+namespace SmartImage.UI.Controls;
 
 #pragma warning disable CS8618
+[ValueConversion(typeof(bool), typeof(Brush))]
 public class BooleanToBrushConverter : IValueConverter
 {
 	public Brush TrueBrush  { get; set; }

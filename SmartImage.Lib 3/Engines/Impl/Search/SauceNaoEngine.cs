@@ -108,7 +108,15 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		var imageResults = dataResults.Where(o => o != null)
 
 			// .AsParallel()
-			.Select(x => x.Convert(result))
+			.SelectMany(x =>
+			{
+				var i = x.Convert(result, out var rg);
+
+				Array.Resize(ref rg, rg.Length + 1);
+				rg[^1] = i;
+
+				return rg;
+			})
 			.Where(o => o != null)
 
 			// .OrderByDescending(e => e.Similarity)
@@ -127,7 +135,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 			// TODO: HACK
 
-			var allSisters = imageResults
+			/*var allSisters = imageResults
 				.SelectMany(ir => ir.Children)
 				.DistinctBy(s => s.Url)
 				.ToList(); // note: need ToList()
@@ -136,7 +144,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 				var ir = imageResults[i];
 				ir.Children.Clear();
 				ir.Children.AddRange(allSisters.Where(irs => irs.Parent == ir));
-			}
+			}*/
 
 		}
 
@@ -165,7 +173,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 		IFlurlResponse response = null;
 
 		response = await EndpointUrl.AllowHttpStatus()
-			           .OnError( x =>
+			           .OnError(x =>
 			           {
 
 				           x.ExceptionHandled = true;
@@ -501,7 +509,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 		public string ThumbnailTitle { get; internal set; }
 
-		public SearchResultItem Convert(SearchResult r)
+		public SearchResultItem Convert(SearchResult r, out SearchResultItem[] children)
 		{
 			var    idxStr   = Index.ToString();
 			string siteName = Index != 0 ? idxStr : null;
@@ -555,7 +563,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 			};
 
-			imageResult.AddChildren(meta);
+			children = imageResult.AddChildren(meta);
 
 			return imageResult;
 

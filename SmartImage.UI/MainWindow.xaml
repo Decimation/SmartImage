@@ -20,15 +20,16 @@
         <!-- <ui:SharedImageControl x:Key="SharedImage" /> -->
         <controls:UrlConverter x:Key="urlConverter" />
         <controls:UnitStringConverter x:Key="unitConverter" />
-
-        <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
-            <converters:BooleanToBrushConverter.TrueBrush>
+        <controls:BoolToStringConverter x:Key="CYesNo" FalseValue="No" TrueValue="Yes" />
+        <controls:BoolToStringConverter x:Key="CYesNo2" FalseValue="P" TrueValue="C" />
+        <controls:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
+            <controls:BooleanToBrushConverter.TrueBrush>
                 <SolidColorBrush Color="Green" />
-            </converters:BooleanToBrushConverter.TrueBrush>
-            <converters:BooleanToBrushConverter.FalseBrush>
+            </controls:BooleanToBrushConverter.TrueBrush>
+            <controls:BooleanToBrushConverter.FalseBrush>
                 <SolidColorBrush Color="Red" />
-            </converters:BooleanToBrushConverter.FalseBrush>
-        </converters:BooleanToBrushConverter>
+            </controls:BooleanToBrushConverter.FalseBrush>
+        </controls:BooleanToBrushConverter>
 
         <Style x:Key="CustomContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="Background" Value="{DynamicResource Black3}" />
@@ -623,7 +624,7 @@
                                                 Width="75" />
 
                                 <GridViewColumn Header="Description"
-                                                Width="200" x:Name="Lvgvc_Desc">
+                                                Width="150" x:Name="Lvgvc_Desc">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Result.Description, Mode=OneTime}"
@@ -659,6 +660,11 @@
 
                                 <GridViewColumn Header="Height"
                                                 DisplayMemberBinding="{Binding Height}" Width="50" />
+
+                                <!--<GridViewColumn Header="*"
+                                                DisplayMemberBinding="{Binding IsSister, Converter={StaticResource CYesNo2}}"
+                                                Width="20" />-->
+
                             </GridView>
                         </ListView.View>
 

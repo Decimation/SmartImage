@@ -119,7 +119,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 
 		for (int i = 0; i < items.Length; i++) {
 			var doc    = results[i];
-			var result = doc.Convert(sr);
+			var result = doc.Convert(sr, out var ch);
 
 			try {
 				string anilistUrl = ANILIST_URL.AppendPathSegment(doc.anilist);
@@ -203,8 +203,9 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 			}
 		}
 
-		public SearchResultItem Convert(SearchResult sr)
+		public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children)
 		{
+			children = [];
 			var sim = Math.Round(similarity * 100.0f, 2);
 
 			string epStr = EpisodeString;
