@@ -23,6 +23,7 @@ using System.Diagnostics;
 using Flurl;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
+using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
 using Novus.Streams;
 using SixLabors.ImageSharp.Processing;
@@ -116,12 +117,23 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		var dt = new Grid();
 		dt.AddColumns(2);
-		
-		object[] val = [Config.SearchEngines, Config.PriorityEngines, Config.EhUsername, Config.EhPassword];
-		
-		// var t = CliFormat.DTableToSTable(dt);
 
-		// AConsole.Write(t);
+		var kv = new Dictionary<string, object>()
+		{
+			[R1.S_SearchEngines]   = Config.SearchEngines,
+			[R1.S_PriorityEngines] = Config.PriorityEngines,
+			[R1.S_EhUsername]      = Config.EhUsername,
+			[R1.S_EhPassword]      = Config.EhPassword,
+			[R1.S_AutoSearch]      = Config.AutoSearch,
+
+		};
+
+		foreach (var o in kv) {
+			dt.AddRow(new Text(o.Key, CliFormat.Sty_Grid1),
+			          new Text(o.Value.ToString()));
+		}
+
+		AConsole.Write(dt);
 
 		AConsole.WriteLine($"Input: {Query}");
 

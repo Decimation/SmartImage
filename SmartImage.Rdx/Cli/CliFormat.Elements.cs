@@ -17,6 +17,8 @@ internal static partial class CliFormat
 
 	internal static readonly Style Sty_Url = new(Color.Cyan1, decoration: Decoration.None);
 
+	public static readonly Style Sty_Grid1 = new Style(foreground: Color.DodgerBlue1, decoration: Decoration.Bold);
+
 	public static readonly Color Clr_Misc1 = new(0x80, 0xFF, 0x80);
 
 	internal static readonly Text Txt_Empty = new(string.Empty);
@@ -44,20 +46,26 @@ internal static partial class CliFormat
 
 	internal static readonly bool IsLinux   = OperatingSystem.IsLinux();
 	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
-	internal static readonly bool IsMacOs = OperatingSystem.IsMacOS();
+	internal static readonly bool IsMacOs   = OperatingSystem.IsMacOS();
 
 	public static Grid CreateInfoGrid()
 	{
 		var grd = new Grid();
 		grd.AddColumns(2);
 
-		grd.AddRow("OS", $"{GetOS()} / {Environment.OSVersion}");
-		grd.AddRow("Runtime", $"{Environment.Version}");
+		var dict = new Dictionary<string, object>()
+		{
+			["OS"]               = $"{GetOS()} / {Environment.OSVersion}",
+			["Runtime"]          = Environment.Version,
+			["Terminal ANSI"]    = ProfileCapabilities.Ansi,
+			["Terminal colors"]  = ProfileCapabilities.ColorSystem,
+			["Terminal links"]   = ProfileCapabilities.Links,
+			["Terminal Unicode"] = ProfileCapabilities.Unicode
+		};
 
-		grd.AddRow("Terminal ANSI", $"{ProfileCapabilities.Ansi}");
-		grd.AddRow("Terminal colors", $"{ProfileCapabilities.ColorSystem}");
-		grd.AddRow("Terminal links", $"{ProfileCapabilities.Links}");
-		grd.AddRow("Terminal Unicode", $"{ProfileCapabilities.Unicode}");
+		foreach ((string? key, var value) in dict) {
+			grd.AddRow(new Text(key, Sty_Grid1), new Text(value.ToString()));
+		}
 
 		return grd;
 	}

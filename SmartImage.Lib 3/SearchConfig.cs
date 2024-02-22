@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Kantan.Model;
+using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
@@ -13,6 +14,7 @@ namespace SmartImage.Lib;
 
 public sealed class SearchConfig : INotifyPropertyChanged
 {
+
 	#region Defaults
 
 	/// <summary>
@@ -242,6 +244,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
@@ -251,4 +254,5 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	{
 		return $"{SearchEngines}\n{PriorityEngines}";
 	}
+
 }
