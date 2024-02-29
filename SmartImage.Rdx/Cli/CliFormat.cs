@@ -14,20 +14,19 @@ using Spectre.Console.Rendering;
 namespace SmartImage.Rdx.Cli;
 
 [Flags]
-internal enum ResultShellFormat
+public enum OutputFields
 {
-
-	None = 0,
+	None       = 0,
 
 	Name       = 1 << 0,
-	Similarity = 1 << 1,
-	Url        = 1 << 2,
+	Url        = 1 << 1,
+	Similarity = 1 << 2,
 
-	Full = Name | Similarity | Url
+	Default = Name | Url | Similarity
 
 }
 
-internal enum ResultFileFormat
+public enum ResultFileFormat
 {
 
 	None = 0,
@@ -74,7 +73,7 @@ internal static partial class CliFormat
 		AnsiConsole.Write(table);
 	}
 
-	public static Table GetTableForFormat(ResultShellFormat format)
+	public static Table GetTableForFormat(OutputFields format)
 	{
 
 		var fmt   = format.GetSetFlags(true, true);

@@ -155,7 +155,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		int act;
 
-		if (m_scs.ResultFormat == ResultShellFormat.None) {
+		if (m_scs.ResultFormat == OutputFields.None) {
 			act = await RunSimpleAsync();
 		}
 		else {
@@ -163,7 +163,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		}
 
-		if (settings.Interactive) {
+		if (settings.Interactive.HasValue && settings.Interactive.Value) {
 			act = await RunInteractiveAsync();
 
 		}

@@ -2,43 +2,49 @@
 // $File.CreatedYear-$File.CreatedMonth-26 @ 0:56
 
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Rdx.Cli;
-using Spectre.Console;
 using Spectre.Console.Cli;
+using ValidationResult = Spectre.Console.ValidationResult;
 
 namespace SmartImage.Rdx;
 
 internal sealed class SearchCommandSettings : CommandSettings
 {
 
-	[CommandArgument(0, "[query]")]
-	[Description("Query")]
+	[CommandArgument(0, "<query>")]
+	[Description("Query: file or URL")]
 	public string? Query { get; internal set; }
 
 	[CommandOption("-e|--search-engines")]
 	[DefaultValue(SearchConfig.SE_DEFAULT)]
+	[Description("Search engines")]
 	public SearchEngineOptions SearchEngines { get; internal set; }
 
 	[CommandOption("-p|--priority-engines")]
 	[DefaultValue(SearchConfig.PE_DEFAULT)]
+	[Description("Engines whose results to open")]
 	public SearchEngineOptions PriorityEngines { get; internal set; }
 
 	[CommandOption("-a|--autosearch")]
 	[DefaultValue(SearchConfig.AUTOSEARCH_DEFAULT)]
+	[Description("N/A")]
 	public bool AutoSearch { get; internal set; }
 
 	#region
 
 	[CommandOption("-v|--interactive")]
 	[DefaultValue(false)]
-	public bool Interactive { get; internal set; }
+	[Description("Show interactive UI after search")]
+	public bool? Interactive { get; internal set; }
 
 	[CommandOption("-r|--shell-format")]
-	[DefaultValue(ResultShellFormat.Full)]
-	public ResultShellFormat ResultFormat { get; internal set; }
+	[DefaultValue(OutputFields.Default)]
+	[Description("Fields to display")]
+	public OutputFields ResultFormat { get; internal set; }
 
 	#endregion
 
@@ -46,17 +52,21 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	[CommandOption("-f|--output-format")]
 	[DefaultValue(ResultFileFormat.None)]
+	[Description("Output file format")]
 	public ResultFileFormat OutputFormat { get; internal set; }
 
-	[CommandOption("-o|--output")]
+	[CommandOption("-o|--output-file")]
+	[Description("Output file")]
 	public string? OutputFile { get; internal set; }
 
-	[CommandOption("-d|--delim")]
+	[CommandOption("-d|--output-delim")]
 	[DefaultValue(",")]
+	[Description("Output delimiter")]
 	public string? OutputFileDelimiter { get; internal set; }
 
 	[CommandOption("--output-fields")]
 	[DefaultValue(OutputFields.Default)]
+	[Description("Output fields")]
 	public OutputFields OutputFields { get; internal set; }
 
 	#endregion
@@ -105,15 +115,3 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 }
 
-[Flags]
-public enum OutputFields
-{
-
-	None       = 0,
-	Name       = 1 << 0,
-	Url        = 1 << 1,
-	Similarity = 1 << 2,
-
-	Default = Name | Url | Similarity
-
-}

@@ -117,7 +117,7 @@ public class ResultModel : IDisposable
 		return gr2;
 	}
 
-	internal IRenderable[][] GetRowsForFormat2(ResultShellFormat format)
+	internal IRenderable[][] GetRowsForFormat2(OutputFields format)
 	{
 		var allRes = Result.GetAllResults();
 		var ls     = new List<IRenderable[]>();
@@ -131,7 +131,7 @@ public class ResultModel : IDisposable
 		return ls.ToArray();
 	}
 
-	internal static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, ResultShellFormat format)
+	internal static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, OutputFields format)
 	{
 		var ls = new List<IRenderable>();
 
@@ -140,22 +140,22 @@ public class ResultModel : IDisposable
 
 		Color c = CliFormat.GetEngineColor(s.Root.Engine.EngineOption);
 
-		if (format.HasFlag(ResultShellFormat.Name)) {
+		if (format.HasFlag(OutputFields.Name)) {
 			ls.Add(new Text($"{s.Root.Engine.Name} #{i + 1}", CliFormat.Sty_Name.Foreground(c)));
 		}
 
-		if (format.HasFlag(ResultShellFormat.Similarity)) {
+		if (format.HasFlag(OutputFields.Similarity)) {
 			ls.Add(new Text($"{s.Similarity / 100f:P}", CliFormat.Sty_Sim));
 		}
 
-		if (format.HasFlag(ResultShellFormat.Url)) {
+		if (format.HasFlag(OutputFields.Url)) {
 			ls.Add(new Text(host, CliFormat.Sty_Url.Link(url)));
 		}
 
 		return ls.ToArray();
 	}
 
-	internal IRenderable[] GetRowsForFormat(ResultShellFormat format)
+	internal IRenderable[] GetRowsForFormat(OutputFields format)
 	{
 		var ls = new List<IRenderable>();
 
@@ -164,15 +164,15 @@ public class ResultModel : IDisposable
 
 		Color c = CliFormat.GetEngineColor(Result.Engine.EngineOption);
 
-		if (format.HasFlag(ResultShellFormat.Name)) {
+		if (format.HasFlag(OutputFields.Name)) {
 			ls.Add(new Text($"{Result.Engine.Name}", CliFormat.Sty_Name.Foreground(c)));
 		}
 
-		if (format.HasFlag(ResultShellFormat.Similarity)) {
+		if (format.HasFlag(OutputFields.Similarity)) {
 			ls.Add(new Text(CliFormat.STR_DEFAULT, CliFormat.Sty_Sim));
 		}
 
-		if (format.HasFlag(ResultShellFormat.Url)) {
+		if (format.HasFlag(OutputFields.Url)) {
 			ls.Add(new Text(host, CliFormat.Sty_Url.Link(url)));
 		}
 
