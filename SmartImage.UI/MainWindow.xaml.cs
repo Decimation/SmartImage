@@ -121,7 +121,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// Lv_Results.ItemsSource = CurrentQueueItem.Results;
 		Lb_Queue.ItemsSource = Queue;
 
-		Client.OnResult   += OnResult;
+		// Client.OnResult   += OnResult;
 		Client.OnComplete += OnComplete;
 
 #if !DEBUG
@@ -169,7 +169,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Cb_SearchFields.ItemsSource   = SearchFields.Keys;
 		Cb_SearchFields.SelectedIndex = 0;
 
-		Cv_Results = CollectionViewSource.GetDefaultView(Lv_Results.Items);
+		m_cvResults = CollectionViewSource.GetDefaultView(Lv_Results.Items);
 
 		// m_images                      = new();
 		AddQueueListener();
@@ -185,9 +185,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	private readonly ICollectionView Cv_Results;
-
-	private void OnValidationRaised(object sender, RoutedEventArgs e) { }
+	private readonly ICollectionView m_cvResults;
 
 	private static readonly ILogger Logger = LoggerFactory
 		.Create(builder => builder.AddDebug().AddProvider(new DebugLoggerProvider()))
@@ -722,9 +720,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// HandleQueryAsync();
 		try {
-			var r = await Client.RunSearchAsync(Query, reload: false, token: m_cts.Token,
-			                                    scheduler: TaskScheduler.FromCurrentSynchronizationContext());
+			Client.OpenChannel();
 
+			var r = Client.RunSearchAsync(Query, reload: false, token: m_cts.Token,
+			                              scheduler: TaskScheduler.FromCurrentSynchronizationContext());
+
+			while (await Client.ResultChannel.Reader.WaitToReadAsync(m_cts.Token)) {
+				var res = await Client.ResultChannel.Reader.ReadAsync(m_cts.Token);
+				OnResult(null, res);
+			}
+
+			await r;
 		}
 		catch (Exception e) {
 			// Debugger.Break();
@@ -1336,7 +1342,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				return s.Contains(value, StringComparison.InvariantCultureIgnoreCase);
 			});*/
 
-			Cv_Results.Filter = ro =>
+			m_cvResults.Filter = ro =>
 			{
 				var r = ro as ResultItem;
 				var s = strFunc(r);
@@ -1348,7 +1354,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				return s.Contains(value, StringComparison.InvariantCultureIgnoreCase);
 			};
 
-			Cv_Results.Refresh();
+			m_cvResults.Refresh();
 
 			// CurrentQuery.Results = new ObservableCollection<ResultItem>();
 			// Lv_Results.ItemsSource = searchResults;
@@ -1365,9 +1371,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// CurrentQuery.RestoreResults();
 		// Lv_Results.ItemsSource = CurrentQueueItem.Results; //todo
-		IsSearching       = false;
-		Cv_Results.Filter = null;
-		Cv_Results.Refresh();
+		IsSearching        = false;
+		m_cvResults.Filter = null;
+		m_cvResults.Refresh();
 
 	}
 

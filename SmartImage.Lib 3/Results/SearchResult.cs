@@ -83,7 +83,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string Overview { get; internal set; }
 
-	/*
 	[CBN]
 	public SearchResultItem GetBestResult()
 	{
@@ -94,7 +93,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		return Results.OrderByDescending(r => r.Similarity)
 			.FirstOrDefault(r => Url.IsValid(r.Url));
 	}
-	*/
 
 	public bool IsStatusSuccessful => Status.IsSuccessful();
 

@@ -6,12 +6,14 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Threading.Channels;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Testing;
 using Kantan.Net;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
@@ -82,6 +84,18 @@ public sealed class SearchClient : IDisposable
 
 	public event SearchCompleteCallback OnComplete;
 
+	public Channel<SearchResult> ResultChannel { get; private set; }
+
+	public void OpenChannel()
+	{
+		ResultChannel?.Writer.TryComplete(new ChannelClosedException("Reopened channel"));
+
+		ResultChannel = Channel.CreateUnbounded<SearchResult>(new UnboundedChannelOptions()
+		{
+			SingleWriter = true,
+		});
+	}
+
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
@@ -94,6 +108,11 @@ public sealed class SearchClient : IDisposable
 	                                                 CancellationToken token = default)
 	{
 		scheduler ??= TaskScheduler.Default;
+
+		// Requires.NotNull(ResultChannel);
+		if (ResultChannel == null) {
+			OpenChannel();
+		}
 
 		if (!query.IsUploaded) {
 			throw new ArgumentException($"Query was not uploaded", nameof(query));
@@ -119,6 +138,7 @@ public sealed class SearchClient : IDisposable
 			if (token.IsCancellationRequested) {
 
 				Logger.LogWarning("Cancellation requested");
+				ResultChannel.Writer.Complete();
 				IsComplete = true;
 				IsRunning  = false;
 				return results;
@@ -137,6 +157,7 @@ public sealed class SearchClient : IDisposable
 			// results.Add(result);
 		}
 
+		ResultChannel.Writer.Complete();
 		OnComplete?.Invoke(this, results);
 		IsRunning  = false;
 		IsComplete = true;
@@ -174,6 +195,7 @@ public sealed class SearchClient : IDisposable
 	private void ProcessResult(SearchResult result)
 	{
 		OnResult?.Invoke(this, result);
+		ResultChannel.Writer.TryWrite(result);
 
 		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 			OpenResult(result);
@@ -359,6 +381,7 @@ public sealed class SearchClient : IDisposable
 		ConfigApplied = false;
 		IsComplete    = false;
 		IsRunning     = false;
+		ResultChannel.Writer.Complete();
 	}
 
 }

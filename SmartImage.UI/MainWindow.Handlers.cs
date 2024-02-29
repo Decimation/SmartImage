@@ -893,7 +893,11 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 	}
 	private void MenuItem_OnClick(object sender, RoutedEventArgs e)
 	{
-		throw new NotImplementedException();
+	}
+
+	private void OnValidationRaised(object sender, RoutedEventArgs e)
+	{
+
 	}
 
 }

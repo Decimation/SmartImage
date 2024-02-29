@@ -53,6 +53,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.2" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.1" />

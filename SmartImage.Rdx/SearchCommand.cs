@@ -19,6 +19,7 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Spectre.Console.Rendering;
 using System.Collections.Concurrent;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using Flurl;
 using JetBrains.Annotations;
@@ -26,6 +27,7 @@ using Kantan.Diagnostics;
 using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
 using Novus.Streams;
+using Novus.Utilities;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Rdx.Cli;
 
@@ -175,22 +177,35 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			.AutoRefresh(false)
 			.StartAsync(async c =>
 			{
-				var p = c.AddTask("Running search");
-				p.IsIndeterminate = true;
 				var cnt = (double) Client.Engines.Length;
-				var p2  = c.AddTask("Engines", maxValue: cnt);
+				var p   = c.AddTask("Running search", maxValue: cnt);
+				p.IsIndeterminate = true;
+				// var p2  = c.AddTask("Engines", maxValue: cnt);
 
-				Client.OnResult += OnResultComplete;
+				// Client.OnResult += OnResultComplete;
 
 				var run = Client.RunSearchAsync(Query, token: m_cts.Token);
 
+				while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
+					var x = await Client.ResultChannel.Reader.ReadAsync();
+					int i = 0;
+
+					var rm = new ResultModel(x)
+						{ };
+
+					m_results.Add(rm);
+					p.Description = $"{rm.Result.Engine.Name} {m_results.Count} / {cnt}";
+					p.Increment(1);
+					c.Refresh();
+				}
+
 				await run;
 
-				Client.OnResult -= OnResultComplete;
+				// Client.OnResult -= OnResultComplete;
 
 				return;
 
-				void OnResultComplete(object sender, SearchResult sr)
+				/*void OnResultComplete(object sender, SearchResult sr)
 				{
 					int i = 0;
 
@@ -201,7 +216,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					p2.Description = $"{rm.Result.Engine.Name} {m_results.Count} / {cnt}";
 					p2.Increment(1);
 					c.Refresh();
-				}
+				}*/
 			});
 
 		await prog;
@@ -218,15 +233,44 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			.StartAsync(async (l) =>
 			{
 
-				Client.OnResult += OnResultComplete;
+				// Client.OnResult += OnResultComplete;
 
 				var run = Client.RunSearchAsync(Query, token: m_cts.Token);
 
+				while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
+					var sr = await Client.ResultChannel.Reader.ReadAsync();
+					int i  = 0;
+
+					var rm = new ResultModel(sr)
+						{ };
+
+					m_results.Add(rm);
+
+					if (!sr.IsStatusSuccessful) {
+						// Debugger.Break();
+						var rows = rm.GetRowsForFormat(format);
+						table.AddRow(rows);
+					}
+					else {
+						var results = rm.GetRowsForFormat2(format);
+
+						foreach (IRenderable[] allResult in results) {
+							table.AddRow(allResult);
+
+						}
+					}
+
+					rm.UpdateGrid();
+
+					l.Refresh();
+				}
+
 				await run;
 
-				Client.OnResult -= OnResultComplete;
+				// Client.OnResult -= OnResultComplete;
 				return;
 
+				/*
 				void OnResultComplete(object sender, SearchResult sr)
 				{
 					int i = 0;
@@ -255,11 +299,98 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					l.Refresh();
 
 				}
+			*/
 			});
 
 		await live;
 
 		return EC_OK;
+	}
+
+	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
+	{
+		var r = base.Validate(context, settings);
+		return r;
+
+		// var v= base.Validate(context, settings);
+		// return v;
+	}
+
+	private void OnComplete(object sender, SearchResult[] searchResults)
+	{
+		// pt1.Increment(COMPLETE);
+		if (!String.IsNullOrWhiteSpace(m_scs.CompletionCommand)) {
+			var proc = new Process()
+			{
+				StartInfo =
+				{
+					FileName               = m_scs.CompletionExecutable,
+					Arguments              = m_scs.CompletionCommand,
+					UseShellExecute        = false,
+					CreateNoWindow         = true,
+					RedirectStandardError  = true,
+					RedirectStandardOutput = true
+				}
+			};
+			proc.Start();
+
+			Debug.WriteLine($"starting {proc.Id}");
+
+			// proc.WaitForExit(TimeSpan.FromSeconds(3));
+			// proc.Dispose();
+		}
+
+		switch (m_scs.OutputFormat) {
+
+			case ResultFileFormat.None:
+				break;
+
+			case ResultFileFormat.Delimited:
+				var fw = File.OpenWrite(m_scs.OutputFile);
+
+				var sw = new StreamWriter(fw)
+				{
+					AutoFlush = true
+				};
+				var res    = m_results.ToArray();
+				var fields = m_scs.OutputFields;
+
+				for (int i = 0; i < res.Length; i++) {
+					var sr = res[i].Result;
+
+					for (int j = 0; j < sr.Results.Count; j++) {
+						var sri = sr.Results[j];
+
+						var rg = new List<string>();
+
+						if (fields.HasFlag(OutputFields.Name)) {
+							rg.Add($"{sr.Engine.Name} #{j + 1}");
+						}
+
+						if (fields.HasFlag(OutputFields.Url)) {
+							rg.Add(sri.Url);
+						}
+
+						if (fields.HasFlag(OutputFields.Similarity)) {
+							rg.Add($"{sri.Similarity}");
+						}
+
+						// string[] items  = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
+						sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, rg));
+					}
+
+				}
+
+				sw.Dispose();
+				fw.Dispose();
+
+				AConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
+				break;
+
+			default:
+				throw new ArgumentOutOfRangeException();
+		}
+
 	}
 
 	public async Task<int> RunInteractiveAsync()
@@ -365,77 +496,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		} while (prompt.Key != ConsoleKey.OemMinus);
 
 		return EC_OK;
-	}
-
-	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
-	{
-		var r = base.Validate(context, settings);
-		return r;
-
-		// var v= base.Validate(context, settings);
-		// return v;
-	}
-
-	private void OnComplete(object sender, SearchResult[] searchResults)
-	{
-		// pt1.Increment(COMPLETE);
-		if (!String.IsNullOrWhiteSpace(m_scs.CompletionCommand)) {
-			var proc = new Process()
-			{
-				StartInfo =
-				{
-					FileName               = m_scs.CompletionExecutable,
-					Arguments              = m_scs.CompletionCommand,
-					UseShellExecute        = false,
-					CreateNoWindow         = true,
-					RedirectStandardError  = true,
-					RedirectStandardOutput = true
-				}
-			};
-			proc.Start();
-
-			Debug.WriteLine($"starting {proc.Id}");
-
-			// proc.WaitForExit(TimeSpan.FromSeconds(3));
-			// proc.Dispose();
-		}
-
-		switch (m_scs.OutputFormat) {
-
-			case ResultFileFormat.None:
-				break;
-
-			case ResultFileFormat.Delimited:
-				var fw = File.OpenWrite(m_scs.OutputFile);
-
-				var sw = new StreamWriter(fw)
-				{
-					AutoFlush = true
-				};
-				var res = m_results.ToArray();
-
-				for (int i = 0; i < res.Length; i++) {
-					var sr = res[i].Result;
-
-					for (int j = 0; j < sr.Results.Count; j++) {
-						var sri = sr.Results[j];
-
-						string[] items = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
-						sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, items));
-					}
-
-				}
-
-				sw.Dispose();
-				fw.Dispose();
-
-				AConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
-				break;
-
-			default:
-				throw new ArgumentOutOfRangeException();
-		}
-
 	}
 
 	public void Dispose()

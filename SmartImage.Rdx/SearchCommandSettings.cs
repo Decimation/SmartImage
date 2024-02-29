@@ -30,7 +30,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[DefaultValue(SearchConfig.AUTOSEARCH_DEFAULT)]
 	public bool AutoSearch { get; internal set; }
 
-	#region 
+	#region
 
 	[CommandOption("-v|--interactive")]
 	[DefaultValue(false)]
@@ -42,7 +42,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	#endregion
 
-	#region 
+	#region
 
 	[CommandOption("-f|--output-format")]
 	[DefaultValue(ResultFileFormat.None)]
@@ -55,9 +55,13 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[DefaultValue(",")]
 	public string? OutputFileDelimiter { get; internal set; }
 
+	[CommandOption("--output-fields")]
+	[DefaultValue(OutputFields.Default)]
+	public OutputFields OutputFields { get; internal set; }
+
 	#endregion
 
-	#region 
+	#region
 
 	[CommandOption("-x|--complete-exe")]
 	public string? CompletionExecutable { get; internal set; }
@@ -75,11 +79,11 @@ internal sealed class SearchCommandSettings : CommandSettings
 			return ValidationResult.Error($"Invalid query");
 		}
 
-		bool isOutputFormatDelim = OutputFormat == ResultFileFormat.Delimited;
 		var  hasOutputFile       = !String.IsNullOrWhiteSpace(OutputFile);
 		var  hasOutputFileDelim  = !String.IsNullOrEmpty(OutputFileDelimiter);
+		bool isOutputFormatDelim = OutputFormat == ResultFileFormat.Delimited;
 
-		if (!isOutputFormatDelim && (hasOutputFile || hasOutputFileDelim)) {
+		if (!isOutputFormatDelim && hasOutputFile) {
 			OutputFormat        = ResultFileFormat.Delimited;
 			isOutputFormatDelim = true;
 		}
@@ -89,6 +93,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 				return ValidationResult.Error(
 					$"{nameof(OutputFile)} must be set if {nameof(OutputFormat)} == {nameof(ResultFileFormat.Delimited)}");
 			}
+
 			if (!hasOutputFileDelim) {
 				return ValidationResult.Error(
 					$"{nameof(OutputFileDelimiter)} must be set if {nameof(OutputFormat)} == {nameof(ResultFileFormat.Delimited)}");
@@ -97,5 +102,18 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 		return result;
 	}
+
+}
+
+[Flags]
+public enum OutputFields
+{
+
+	None       = 0,
+	Name       = 1 << 0,
+	Url        = 1 << 1,
+	Similarity = 1 << 2,
+
+	Default = Name | Url | Similarity
 
 }
