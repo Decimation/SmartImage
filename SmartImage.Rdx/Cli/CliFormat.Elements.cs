@@ -1,6 +1,4 @@
-﻿// Deci SmartImage.Rdx CliFormat.Elements.cs
-// $File.CreatedYear-$File.CreatedMonth-26 @ 1:25
-
+﻿
 using SmartImage.Lib.Engines;
 using Spectre.Console;
 

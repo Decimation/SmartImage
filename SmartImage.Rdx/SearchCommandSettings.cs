@@ -74,10 +74,10 @@ internal sealed class SearchCommandSettings : CommandSettings
 	#region
 
 	[CommandOption("-x|--complete-exe")]
-	public string? CompletionExecutable { get; internal set; }
+	public string? Command { get; internal set; }
 
 	[CommandOption("-c|--complete-cmd")]
-	public string? CompletionCommand { get; internal set; }
+	public string? CommandArguments { get; internal set; }
 
 	#endregion
 

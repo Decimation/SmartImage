@@ -18,11 +18,14 @@ namespace SmartImage.Rdx;
  * dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
  * dotnet run -c Test --project SmartImage.Rdx --  "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg" -e All -p Auto
  * ./SmartImage.Rdx/bin/Release/net8.0/publish/linux-x64/SmartImage "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg"
- *
+ * dotnet run --project SmartImage.Rdx -- --help
  */
 
 public static class Program
 {
+
+	private static readonly Assembly s_assembly = Assembly.GetExecutingAssembly();
+	private static readonly string   s_version  = s_assembly.GetName().Version.ToString();
 
 	public static async Task<int> Main(string[] args)
 	{
@@ -55,8 +58,8 @@ public static class Program
 		app.Configure(c =>
 		{
 			c.PropagateExceptions();
-			c.SetHelpProvider(new HelpProvider(c.Settings));
-			
+			var helpProvider = new HelpProvider(c.Settings);
+			c.SetHelpProvider(helpProvider);
 			//...
 		});
 

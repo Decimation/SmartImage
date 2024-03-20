@@ -26,6 +26,7 @@ using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
+using Microsoft;
 using Novus.Streams;
 using Novus.Utilities;
 using SixLabors.ImageSharp.Processing;
@@ -205,18 +206,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 				return;
 
-				/*void OnResultComplete(object sender, SearchResult sr)
-				{
-					int i = 0;
-
-					var rm = new ResultModel(sr)
-						{ };
-
-					m_results.Add(rm);
-					p2.Description = $"{rm.Result.Engine.Name} {m_results.Count} / {cnt}";
-					p2.Increment(1);
-					c.Refresh();
-				}*/
 			});
 
 		await prog;
@@ -270,36 +259,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				// Client.OnResult -= OnResultComplete;
 				return;
 
-				/*
-				void OnResultComplete(object sender, SearchResult sr)
-				{
-					int i = 0;
-
-					var rm = new ResultModel(sr)
-						{ };
-
-					m_results.Add(rm);
-
-					if (!sr.IsStatusSuccessful) {
-						// Debugger.Break();
-						var rows = rm.GetRowsForFormat(format);
-						table.AddRow(rows);
-					}
-					else {
-						var results = rm.GetRowsForFormat2(format);
-
-						foreach (IRenderable[] allResult in results) {
-							table.AddRow(allResult);
-
-						}
-					}
-
-					rm.UpdateGrid();
-
-					l.Refresh();
-
-				}
-			*/
 			});
 
 		await live;
@@ -319,25 +278,34 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	private void OnComplete(object sender, SearchResult[] searchResults)
 	{
 		// pt1.Increment(COMPLETE);
-		if (!String.IsNullOrWhiteSpace(m_scs.CompletionCommand)) {
+
+		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
+			var startInfo = new ProcessStartInfo()
+			{
+				FileName               = m_scs.Command,
+				UseShellExecute        = false,
+				CreateNoWindow         = true,
+				RedirectStandardError  = true,
+				RedirectStandardOutput = true
+			};
+
+			if (!String.IsNullOrWhiteSpace(m_scs.CommandArguments)) {
+				startInfo.Arguments = m_scs.CommandArguments;
+			}
+
 			var proc = new Process()
 			{
-				StartInfo =
-				{
-					FileName               = m_scs.CompletionExecutable,
-					Arguments              = m_scs.CompletionCommand,
-					UseShellExecute        = false,
-					CreateNoWindow         = true,
-					RedirectStandardError  = true,
-					RedirectStandardOutput = true
-				}
+				StartInfo = startInfo
 			};
+
 			proc.Start();
 
 			Debug.WriteLine($"starting {proc.Id}");
 
 			// proc.WaitForExit(TimeSpan.FromSeconds(3));
 			// proc.Dispose();
+
+			AConsole.WriteLine($"Process: {proc.Id}");
 		}
 
 		switch (m_scs.OutputFormat) {
@@ -345,7 +313,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			case ResultFileFormat.None:
 				break;
 
-			case ResultFileFormat.Delimited:
+			case ResultFileFormat.Delimited when !String.IsNullOrWhiteSpace(m_scs.OutputFile):
 				var fw = File.OpenWrite(m_scs.OutputFile);
 
 				var sw = new StreamWriter(fw)
