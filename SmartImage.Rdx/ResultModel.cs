@@ -3,7 +3,7 @@
 
 using Flurl;
 using SmartImage.Lib.Results;
-using SmartImage.Rdx.Cli;
+using SmartImage.Rdx.Shell;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 

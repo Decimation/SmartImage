@@ -2,10 +2,10 @@
 using System.Reflection;
 using Kantan.Text;
 using Microsoft.Extensions.DependencyInjection;
-using SmartImage.Rdx.Cli;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Microsoft.Extensions.Hosting;
+using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli.Help;
 
 namespace SmartImage.Rdx;

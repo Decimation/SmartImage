@@ -1,8 +1,7 @@
-﻿
-using SmartImage.Lib.Engines;
+﻿using SmartImage.Lib.Engines;
 using Spectre.Console;
 
-namespace SmartImage.Rdx.Cli;
+namespace SmartImage.Rdx.Shell;
 
 internal static partial class CliFormat
 {

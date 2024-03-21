@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.Rdx.Cli;
+using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli;
 using ValidationResult = Spectre.Console.ValidationResult;
 
@@ -36,24 +36,24 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	#region
 
-	[CommandOption("-v|--interactive")]
+	[CommandOption("--interactive")]
 	[DefaultValue(false)]
 	[Description("Show interactive UI after search")]
 	public bool? Interactive { get; internal set; }
 
-	[CommandOption("-r|--shell-format")]
-	[DefaultValue(OutputFields.Default)]
-	[Description("Fields to display")]
-	public OutputFields ResultFormat { get; internal set; }
+	[CommandOption("--table-format")]
+	[DefaultValue(OutputFields.None)]
+	[Description("[Table] Fields to display")]
+	public OutputFields TableFormat { get; internal set; }
 
 	#endregion
 
 	#region
 
 	[CommandOption("-f|--output-format")]
-	[DefaultValue(ResultFileFormat.None)]
+	[DefaultValue(OutputFileFormat.None)]
 	[Description("Output file format")]
-	public ResultFileFormat OutputFormat { get; internal set; }
+	public OutputFileFormat OutputFileFormat { get; internal set; }
 
 	[CommandOption("-o|--output-file")]
 	[Description("Output file")]
@@ -61,7 +61,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	[CommandOption("-d|--output-delim")]
 	[DefaultValue(",")]
-	[Description("Output delimiter")]
+	[Description("Output file delimiter")]
 	public string? OutputFileDelimiter { get; internal set; }
 
 	[CommandOption("--output-fields")]
@@ -73,13 +73,15 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	#region
 
-	[CommandOption("-x|--complete-exe")]
+	[CommandOption("-x|--command-exe")]
 	public string? Command { get; internal set; }
 
-	[CommandOption("-c|--complete-cmd")]
+	[CommandOption("-c|--command-args")]
 	public string? CommandArguments { get; internal set; }
 
 	#endregion
+
+	// public const string PROP_ARG_RESULTS = "$all_results";
 
 	public override ValidationResult Validate()
 	{
@@ -91,22 +93,22 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 		var  hasOutputFile       = !String.IsNullOrWhiteSpace(OutputFile);
 		var  hasOutputFileDelim  = !String.IsNullOrEmpty(OutputFileDelimiter);
-		bool isOutputFormatDelim = OutputFormat == ResultFileFormat.Delimited;
+		bool isOutputFormatDelim = OutputFileFormat == OutputFileFormat.Delimited;
 
 		if (!isOutputFormatDelim && hasOutputFile) {
-			OutputFormat        = ResultFileFormat.Delimited;
+			OutputFileFormat        = OutputFileFormat.Delimited;
 			isOutputFormatDelim = true;
 		}
 
 		if (isOutputFormatDelim) {
 			if (!hasOutputFile) {
 				return ValidationResult.Error(
-					$"{nameof(OutputFile)} must be set if {nameof(OutputFormat)} == {nameof(ResultFileFormat.Delimited)}");
+					$"{nameof(OutputFile)} must be set if {nameof(OutputFileFormat)} == {nameof(OutputFileFormat.Delimited)}");
 			}
 
 			if (!hasOutputFileDelim) {
 				return ValidationResult.Error(
-					$"{nameof(OutputFileDelimiter)} must be set if {nameof(OutputFormat)} == {nameof(ResultFileFormat.Delimited)}");
+					$"{nameof(OutputFileDelimiter)} must be set if {nameof(OutputFileFormat)} == {nameof(OutputFileFormat.Delimited)}");
 			}
 		}
 

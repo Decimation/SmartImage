@@ -1,7 +1,6 @@
 ﻿global using STable = Spectre.Console.Table;
 global using DTable = System.Data.DataTable;
 using System.Data;
-using Flurl;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using Spectre.Console;
@@ -11,7 +10,7 @@ using Spectre.Console.Rendering;
 // $User.Name $File.ProjectName $File.FileName
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
-namespace SmartImage.Rdx.Cli;
+namespace SmartImage.Rdx.Shell;
 
 [Flags]
 public enum OutputFields
@@ -26,7 +25,7 @@ public enum OutputFields
 
 }
 
-public enum ResultFileFormat
+public enum OutputFileFormat
 {
 
 	None = 0,
