@@ -41,8 +41,10 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		{
 			value = value?.CleanString();
 			if (value == m_value) return;
+
 			m_value = value;
 			OnPropertyChanged();
+
 			// OnPropertyChanged(nameof(HasValue));
 		}
 	}
@@ -55,6 +57,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		set
 		{
 			if (Equals(value, m_query)) return;
+
 			m_query = value;
 			OnPropertyChanged();
 			UpdateProperties();
@@ -101,6 +104,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		set
 		{
 			if (Equals(value, m_results)) return;
+
 			m_results = value;
 
 			OnPropertyChanged();
@@ -118,11 +122,17 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public bool CanLoadImage => !HasImage && HasQuery;
 
-	public bool? IsThumbnail => false;
+	public bool IsThumbnail => false;
 
 	public int? Width => HasImage ? Image.PixelWidth : null;
 
 	public int? Height => HasImage ? Image.PixelHeight : null;
+
+	public ResultItemProperties Properties
+	{
+		get => throw new NotImplementedException();
+		set => throw new NotImplementedException();
+	}
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
@@ -160,6 +170,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		Query   = SearchQuery.Null;
 		Status  = null;
 		Status2 = null;
+
 		// Dim          = null;
 		Image = null;
 	}
@@ -174,6 +185,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		set
 		{
 			if (value == m_status2) return;
+
 			m_status2 = value;
 			OnPropertyChanged();
 		}
@@ -187,6 +199,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		set
 		{
 			if (value == m_status) return;
+
 			m_status = value;
 			OnPropertyChanged();
 		}
@@ -202,6 +215,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		internal set
 		{
 			if (value == m_invalid) return;
+
 			m_invalid = value;
 			OnPropertyChanged();
 		}
@@ -309,6 +323,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			                          "Failed to upload",
 			                          MessageBoxButton.OK, MessageBoxImage.Error);
 			return false;
+
 			// return;
 		}
 
@@ -337,6 +352,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			{ };
 		Image.BeginInit();
 		Image.UriSource = new Uri(Query.ValueString);
+
 		// Image.StreamSource   = Query.Uni.Stream;
 		Image.CacheOption    = BitmapCacheOption.OnLoad;
 		Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
@@ -349,12 +365,14 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			Image.DownloadCompleted += (sender, args) =>
 			{
 				UpdateProperties();
+
 				// UpdateInfo();
 			};
 
 		}
 		else {
 			UpdateProperties();
+
 			// UpdateInfo();
 		}
 
@@ -377,12 +395,14 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 	{
 		var eventArgs = new PropertyChangedEventArgs(propertyName);
 		PropertyChanged?.Invoke(this, eventArgs);
+
 		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
 	}
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
@@ -419,6 +439,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		Image   = null;
 		Status  = null;
 		Status2 = null;
+
 		// Dim    = null;
 
 		PropertyChanged = null;

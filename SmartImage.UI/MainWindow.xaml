@@ -1,4 +1,5 @@
 ﻿<!-- ReSharper disable InconsistentNaming -->
+<!-- ReSharper disable XamlBindingWithoutMode -->
 
 <Window x:Name="Wnd_Main" x:Class="SmartImage.UI.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
@@ -10,6 +11,7 @@
         xmlns:controls="clr-namespace:SmartImage.UI.Controls"
         xmlns:model="clr-namespace:SmartImage.UI.Model"
         xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
+        xmlns:model1="clr-namespace:SmartImage.Lib.Model;assembly=SmartImage.Lib"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="675" Width="1325" MinWidth="1325" MinHeight="325" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
@@ -30,6 +32,11 @@
                 <SolidColorBrush Color="Red" />
             </controls:BooleanToBrushConverter.FalseBrush>
         </controls:BooleanToBrushConverter>
+        <controls:EnumToStringConverter x:Key="DefaultEnumToStringConverter" />
+        <controls:ResultItemPropertiesToBoolConverter x:Key="ResultItemPropertiesToBoolConverter" />
+        <controls:EnumFlagsToStringConverter x:Key="DefaultEnumFlagsToStringConverter">
+
+        </controls:EnumFlagsToStringConverter>
 
         <Style x:Key="CustomContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="Background" Value="{DynamicResource Black3}" />
@@ -58,14 +65,21 @@
             </Setter>
         </Style>
 
-        <!-- Define the ContextMenu -->
+        <!-- Define the ContextMenu --> 
         <ContextMenu x:Key="ItemContextMenu">
             <MenuItem Header="Open" Click="OpenItem_Click" IsEnabled="{Binding CanOpen}" />
             <MenuItem Header="Scan" Click="ScanItem_Click" IsEnabled="{Binding CanScan}" />
-            <MenuItem Header="Download" Click="DownloadItem_Click" IsEnabled="{Binding CanDownload}" />
+
+            <MenuItem Header="Download" Click="DownloadItem_Click"
+                      IsEnabled="{Binding Properties, Converter={StaticResource ResultItemPropertiesToBoolConverter}, 
+                ConverterParameter={x:Static model1:ResultItemProperties.CanDownload}}"
+                       />
+
             <MenuItem Header="Info" Click="InfoItem_Click" />
             <MenuItem Header="Retry" Click="RetryItem_Click" />
-            <MenuItem Header="Enqueue" Click="EnqueueItem_Click" IsEnabled="{Binding CanDownload}" />
+            <MenuItem Header="Enqueue" Click="EnqueueItem_Click" IsEnabled="{Binding Properties, Converter={StaticResource ResultItemPropertiesToBoolConverter}, 
+                ConverterParameter={x:Static model1:ResultItemProperties.CanDownload}}"
+            />
         </ContextMenu>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -652,6 +666,7 @@
                                 <GridViewColumn Header="Character"
                                                 DisplayMemberBinding="{Binding Result.Character, Mode=OneTime}"
                                                 Width="75" />
+
                                 <GridViewColumn Header="Site"
                                                 DisplayMemberBinding="{Binding Result.Site, Mode=OneTime}" Width="75" />
 
@@ -660,6 +675,23 @@
 
                                 <GridViewColumn Header="Height"
                                                 DisplayMemberBinding="{Binding Height}" Width="50" />
+
+                                <GridViewColumn Header="Cache"
+                                                DisplayMemberBinding="{Binding Properties, Converter={StaticResource DefaultEnumFlagsToStringConverter}, 
+                                    Mode=Default, UpdateSourceTrigger=PropertyChanged}"
+                                                Width="50">
+
+                                    <!--
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Properties}"
+                                                       ToolTip="{Binding Label}" />
+
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                    -->
+
+                                </GridViewColumn>
 
                                 <!--<GridViewColumn Header="*"
                                                 DisplayMemberBinding="{Binding IsSister, Converter={StaticResource CYesNo2}}"
@@ -889,3 +921,4 @@
 
     </Grid>
 </Window>
+<!-- ReSharper restore XamlBindingWithoutMode -->

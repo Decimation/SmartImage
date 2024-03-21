@@ -31,6 +31,7 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Model;
 using static System.Net.Mime.MediaTypeNames;
@@ -242,6 +243,7 @@ public partial class MainWindow
 	{
 		Cancel();
 		ClearResults(false);
+
 		// Query.Dispose();
 		var cpy = CurrentQuery;
 		var i   = Queue.IndexOf(cpy);
@@ -274,6 +276,7 @@ public partial class MainWindow
 		Lb_Queue.IsEnabled   = true;
 		Btn_Run.IsEnabled    = true;
 		Btn_Remove.IsEnabled = true;
+
 		// m_us.Release();
 		e.Handled = true;
 	}
@@ -334,8 +337,9 @@ public partial class MainWindow
 		GC.Collect();
 		GC.WaitForPendingFinalizers();
 		GC.Collect();
+
 		// AdvanceQueue();
-		ret:
+	ret:
 		e.Handled = true;
 	}
 
@@ -347,17 +351,20 @@ public partial class MainWindow
 		var old = CurrentQuery;
 		m_clipboardHistory.Remove(old.Value);
 		old.Dispose();
+
 		// CurrentQueueItem = null;
 		// m_queries.TryRemove(old, out var q);
 		// m_resultMap.TryRemove(Query, out var x);
 		// Query.Dispose();
 		Queue.Remove(old);
 		Img_Preview.Source = Image = null;
+
 		// Query              = SearchQuery.Null;
 		bool ok;
 
 		try {
 			VBFS.DeleteFile(old.Value, UIOption.OnlyErrorDialogs, RecycleOption.SendToRecycleBin);
+
 			// FileSystem.SendFileToRecycleBin(old);
 			ok = true;
 		}
@@ -370,6 +377,7 @@ public partial class MainWindow
 		Btn_Delete.IsEnabled = ok;
 		Btn_Remove.IsEnabled = ok;
 		ReloadToken();
+
 		// AdvanceQueue();
 		// FileSystem.SendFileToRecycleBin(InputText);
 		e.Handled = true;
@@ -420,6 +428,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 					// Me_Preview.UnloadedBehavior = MediaState.Manual;
 					Me_Preview.UnloadedBehavior = MediaState.Close;
 					Me_Preview.LoadedBehavior   = MediaState.Manual;
+
 					// Me_Preview.LoadedBehavior   = MediaState.Manual;
 					/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
 						return;
@@ -439,6 +448,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 						// Me_Preview.UnloadedBehavior = MediaState.Manual;
 						Me_Preview.UnloadedBehavior = MediaState.Close;
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
+
 						// Me_Preview.LoadedBehavior   = MediaState.Manual;
 						/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
 							return;
@@ -450,6 +460,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 						if (uri != null) {
 							Me_Preview.Source = new Uri(uri, UriKind.Absolute);
+
 							// Me_Preview.Source = new Uri(doc.video);
 							/*
 						while (Me_Preview.BufferingProgress < 1f) {
@@ -460,6 +471,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 							ShowMedia       = true;
 							Tb_Preview.Text = $"Preview: {ri.Name}";
+
 							// m_us2.Release();
 
 						}
@@ -490,13 +502,15 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 		switch (key) {
 			case Key.D when ctrl:
 				Dispatcher.InvokeAsync(
-					() => DownloadResultAsync((IDownloadable) CurrentResult));
+					() => DownloadResultAsync(CurrentResult));
 
 				break;
+
 			case Key.S when ctrl:
 
 				Dispatcher.InvokeAsync(() => ScanResultAsync(CurrentResult));
 				break;
+
 			case Key.Delete:
 				if (CurrentResult == null) {
 					return;
@@ -511,6 +525,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 				CurrentQuery.Results.Remove(CurrentResult);
 				Img_Preview.Source = Image;
 				break;
+
 			case Key.C when ctrl:
 				Dispatcher.InvokeAsync(() =>
 				{
@@ -519,26 +534,32 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 					Clipboard.SetText(text);
 				});
 				break;
+
 			case Key.G when ctrl:
 				Dispatcher.InvokeAsync(() => ScanGalleryResultAsync(CurrentResult));
 
 				break;
+
 			case Key.F when ctrl:
 				// TODO: WIP
 				Dispatcher.InvokeAsync(FilterResultsAsync);
 
 				break;
+
 			case Key.I when ctrl:
 				OpenResultWindow(CurrentResult);
 				break;
+
 			case Key.Tab when ctrl:
 				int i = shift ? -1 : 1;
 				AdvanceQueue(i);
 				break;
+
 			case Key.E when ctrl:
-				Dispatcher.InvokeAsync(() => EnqueueResultAsync((IDownloadable) CurrentResult));
+				Dispatcher.InvokeAsync(() => EnqueueResultAsync( CurrentResult));
 
 				break;
+
 			case Key.R when ctrl && alt:
 				Dispatcher.InvokeAsync(() => RetryEngineAsync(CurrentResult));
 				break;
@@ -720,7 +741,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
-		if (CurrentResult is IDownloadable { } uri && uri.CanDownload) {
+		if (CurrentResult is ResultItem { } uri && uri.Properties.HasFlag(ResultItemProperties.CanDownload)) {
 			Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}
@@ -812,6 +833,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 	private void Me_Preview_MouseDown(object sender, MouseButtonEventArgs e)
 	{
 		PlayPauseMedia();
+
 		// CloseMedia();
 		// SetPreviewToCurrentQuery();
 		e.Handled = true;
@@ -873,7 +895,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	private void Tb_SelPrevUrl_MouseDoubleClick(object sender, MouseButtonEventArgs e)
 	{
-		if (CurrentResult.IsThumbnail.HasValue && CurrentResult.IsThumbnail.Value) {
+		if (CurrentResult.IsThumbnail) {
 			FileSystem.Open(CurrentResult.Result.Thumbnail);
 
 		}
@@ -891,13 +913,9 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 		e.Handled = true;
 	}
-	private void MenuItem_OnClick(object sender, RoutedEventArgs e)
-	{
-	}
 
-	private void OnValidationRaised(object sender, RoutedEventArgs e)
-	{
+	private void MenuItem_OnClick(object sender, RoutedEventArgs e) { }
 
-	}
+	private void OnValidationRaised(object sender, RoutedEventArgs e) { }
 
 }

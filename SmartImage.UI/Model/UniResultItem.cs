@@ -17,6 +17,7 @@ using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Streams;
 using Novus.Win32;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.UI.Model;
 
@@ -120,7 +121,9 @@ public class UniResultItem : ResultItem
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
 		Label = $"Download complete";
+		
 		IsThumbnail = false;
+		// Properties &= ResultItemProperties.Thumbnail;
 
 		if (Image is { CanFreeze: true })
 		{
@@ -190,8 +193,9 @@ public class UniResultItem : ResultItem
 		}
 
 		await fs.DisposeAsync();
-		CanDownload = false;
-		Download = path2;
+		// CanDownload = false;
+		Properties = Properties &= ~ResultItemProperties.CanDownload;
+		Download   = path2;
 
 		// u.Dispose();
 		UpdateProperties();

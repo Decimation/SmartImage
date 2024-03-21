@@ -537,17 +537,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		foreach (var s in files) {
 
-			if (SearchQuery.IsValidSourceType(s) && Queue.All(x => x.Value != s)) {
-				Queue.Add(new QueryModel(s));
-				Debug.WriteLine($"Added {s}");
-
-				c++;
-			}
-
-			if (!CurrentQuery.HasValue) {
-				SetQueue(s, out _);
-
-			}
+			AddToQueue(s);
+			c++;
 		}
 
 		/*if (!CurrentQueueItem.HasValue && files.Any()) {
@@ -559,6 +550,20 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}*/
 
 		Tb_Preview.Text = $"Added {c} items to queue";
+	}
+
+	private void AddToQueue(string s)
+	{
+		if (SearchQuery.IsValidSourceType(s) && Queue.All(x => x.Value != s)) {
+			Queue.Add(new QueryModel(s));
+			Debug.WriteLine($"Added {s}");
+
+		}
+
+		if (!CurrentQuery.HasValue) {
+			SetQueue(s, out _);
+
+		}
 	}
 
 	private void AdvanceQueue(int i = 1)
@@ -638,7 +643,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			// fs.Dispose();
 
-			AddToQueue([fn]);
+			AddToQueue(fn);
 
 		}
 
@@ -655,7 +660,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					// Queue.Add(txt);
 					// InputText = txt;
 
-					AddToQueue([txt]);
+					AddToQueue(txt);
 
 					// await SetQueryAsync(txt);
 				}
@@ -1009,7 +1014,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private async Task DownloadResultAsync(IDownloadable uri)
+	private async Task DownloadResultAsync(ResultItem uri)
 	{
 		var s = await uri.DownloadAsync();
 
@@ -1043,11 +1048,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					var rii = new UniResultItem(ri, i)
 					{
 						StatusImage = AppComponents.picture_link,
-						CanDownload = true,
+						// Properties = ri.Properties,
 						CanScan     = false,
 						CanOpen     = true,
 
 					};
+					rii.Properties |= ResultItemProperties.CanDownload;
 
 					// rii.LoadImage();
 					// resultItems[i] = rii;
@@ -1108,10 +1114,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				var rii = new UniResultItem(cri, i)
 				{
 					StatusImage = AppComponents.picture,
-					CanDownload = true,
+					// CanDownload = true,
 					CanScan     = false,
 					CanOpen     = true
 				};
+				rii.Properties |= ResultItemProperties.CanDownload;
 				CurrentQuery.Results.Insert(CurrentQuery.Results.IndexOf(cri) + 1 + i, rii);
 			}
 
@@ -1190,12 +1197,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	}
 
-	private async Task EnqueueResultAsync(IDownloadable uri)
+	private async Task EnqueueResultAsync(ResultItem uri)
 	{
 		// var d = await uri.Uni.TryDownloadAsync();
 		var d = await uri.DownloadAsync(Path.GetTempPath(), false);
-		AddToQueue(new[] { d });
+		if (!String.IsNullOrWhiteSpace(d)) {
+			AddToQueue(d);
 
+		}
 		// CurrentQueueItem = d;
 	}
 
@@ -1257,7 +1266,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					inp = (string) enumerator.MoveAndGet();
 
 					// CurrentQueueItem = inp;
-					AddToQueue(new[] { inp });
+					AddToQueue(inp);
 
 					continue;
 				}
@@ -1469,15 +1478,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		string name = igs is INamed n ? n.Name : ControlsHelper.STR_NA;
 		string n2;
 
-		if (igs.IsThumbnail.HasValue) {
-			if (igs.IsThumbnail.Value) {
+		if (igs.IsThumbnail) {
+			/*
+			if (igs.IsThumbnail) {
 				n2 = "thumbnail";
 
 			}
 			else {
 				n2 = "full res";
 			}
-
+			*/
+			n2 = "thumbnail";
 		}
 		else {
 			n2 = ControlsHelper.STR_NA;

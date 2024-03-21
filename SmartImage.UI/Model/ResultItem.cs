@@ -34,8 +34,10 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.UI.Model;
+
 #pragma warning disable CS8618
-public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable, IItemSize
+
+public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable, IItemSize
 {
 
 	#region
@@ -43,6 +45,20 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 	public string DimensionString
 	{
 		get => ControlsHelper.FormatDimensions(Width, Height);
+	}
+
+	private ResultItemProperties m_properties;
+
+	public ResultItemProperties Properties
+	{
+		get => m_properties;
+		set
+		{
+			if (value == m_properties) return;
+
+			m_properties = value;
+			OnPropertyChanged();
+		}
 	}
 
 	private string m_label;
@@ -78,9 +94,7 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	public bool CanOpen { get; internal set; }
 
-	public bool CanDownload { get; set; }
-
-	public bool? IsThumbnail { get; protected set; }
+	public bool IsThumbnail { get; protected set; }
 
 	public int? Width { get; internal set; }
 
@@ -108,9 +122,9 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 
 	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
 
-	public string? Download { get; set; }
+	public virtual string? Download { get; set; }
 
-	public bool IsDownloaded
+	public virtual bool IsDownloaded
 	{
 		get => Download != null;
 		set { }
@@ -206,6 +220,15 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 		return true;
 	}
 
+	public void UpdateProperties()
+	{
+		OnPropertyChanged(nameof(CanOpen));
+		OnPropertyChanged(nameof(IsDownloaded));
+		OnPropertyChanged(nameof(IsSister));
+		OnPropertyChanged(nameof(Label));
+		OnPropertyChanged(nameof(Image));
+	}
+
 	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
 		Label = $"Preview cache complete";
@@ -214,11 +237,18 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 			Image.Freeze();
 		}
 
-		CanDownload = HasImage;
+		if (HasImage) {
+			Properties |= ResultItemProperties.CanDownload;
+		}
+
+		// CanDownload = HasImage;
 
 		// OnPropertyChanged(nameof(Width));
 		// OnPropertyChanged(nameof(Height));
+
 		IsThumbnail = HasImage;
+
+		// Properties &= ResultItemProperties.Thumbnail;
 
 		UpdateProperties();
 
@@ -228,15 +258,6 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 			OnPropertyChanged(nameof(DimensionString));
 			OnPropertyChanged(nameof(Size));
 		}
-	}
-
-	public void UpdateProperties()
-	{
-		OnPropertyChanged(nameof(CanOpen));
-		OnPropertyChanged(nameof(IsDownloaded));
-		OnPropertyChanged(nameof(IsSister));
-		OnPropertyChanged(nameof(Label));
-		OnPropertyChanged(nameof(Image));
 	}
 
 	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
@@ -332,8 +353,9 @@ public class ResultItem : IDisposable, INotifyPropertyChanged, IGuiImageSource, 
 			FileSystem.ExploreFile(path2);
 		}
 
-		CanDownload = false;
-		Download    = path2;
+		// CanDownload = false;
+		Properties &= ~ResultItemProperties.CanDownload;
+		Download   =  path2;
 
 		// u.Dispose();
 		UpdateProperties();

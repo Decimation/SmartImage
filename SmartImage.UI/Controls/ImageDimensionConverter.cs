@@ -30,7 +30,7 @@ public class ImageDimensionConverter : IValueConverter
 		int? w = null, h = null;
 
 		if (val is ResultItem ri) {
-			if (ri is { IsThumbnail: true } and { HasImage: true }) {
+			if (ri is { IsThumbnail: true, HasImage: true }) {
 				w = ri.Image.PixelWidth;
 				h = ri.Image.PixelHeight;
 			}
