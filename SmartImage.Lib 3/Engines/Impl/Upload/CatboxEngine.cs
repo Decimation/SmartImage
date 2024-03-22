@@ -47,7 +47,7 @@ public sealed class CatboxEngine : BaseCatboxEngine
 
 	public CatboxEngine() : base("https://catbox.moe/user/api.php")
 	{
-		Paranoid = true;
+		EnsureResponse = true;
 	}
 
 }

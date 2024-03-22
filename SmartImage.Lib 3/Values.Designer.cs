@@ -61,6 +61,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to removed.
+        /// </summary>
+        internal static string Msg_Removed1 {
+            get {
+                return ResourceManager.GetString("Msg_Removed1", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Server timed out or input was invalid.
         /// </summary>
         internal static string Msg_Timeout1 {

@@ -3,7 +3,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Flurl.Http;
-using Jint.Native.Json;
 using SmartImage.Lib.Results;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -17,22 +16,23 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint
+public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 {
+
+	private const string URL_API   = "https://api.repostsleuth.com/image";
+	private const string URL_QUERY = "https://repostsleuth.com/search?url=";
 
 	private static readonly JsonSerializerOptions JsOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
 	{
 		IncludeFields = true,
 	};
 
-	public RepostSleuthEngine() : base("https://repostsleuth.com/search?url=")
+	public RepostSleuthEngine() : base(URL_QUERY, URL_API)
 	{
 		Timeout = TimeSpan.FromSeconds(4.5);
 	}
 
 	#region
-
-	public string EndpointUrl => "https://api.repostsleuth.com/image";
 
 	#endregion
 

@@ -1,8 +1,6 @@
 ﻿// Read S SmartImage.Lib EHentaiEngine.cs
 // 2023-01-13 @ 11:21 PM
 
-#region
-
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -14,13 +12,13 @@ using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
 using Flurl.Http.Content;
+using Kantan.Net;
 using Kantan.Net.Utilities;
+using Kantan.Net.Web;
 using Kantan.Text;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
-
-#endregion
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
@@ -28,10 +26,15 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 ///     Handles both ExHentai and E-Hentai
 /// </summary>
-public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
-	INotifyPropertyChanged
+public sealed class EHentaiEngine : WebSearchEngine, IConfig,
+									INotifyPropertyChanged
 {
+
+	private const string HOST_EH = ".e-hentai.org";
+	private const string HOST_EX = ".exhentai.org";
+
 	private readonly HttpClient m_client;
+
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
 
 	private readonly HttpClientHandler m_clientHandler = new()
@@ -51,7 +54,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
 
-	public CookieJar Cookies { get; }
+	public CookieCollection Cookies { get; }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
@@ -63,6 +66,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		set
 		{
 			if (value == m_username) return;
+
 			m_username = value;
 			OnPropertyChanged();
 		}
@@ -74,6 +78,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		set
 		{
 			if (value == m_password) return;
+
 			m_password = value;
 			OnPropertyChanged();
 		}
@@ -81,33 +86,40 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	public bool IsLoggedIn { get; private set; }
 
-	private static readonly Url EHentaiIndex = "https://forums.e-hentai.org/index.php";
+	private static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
+	public static readonly  Url EHentaiBase   = "https://e-hentai.org/";
+	private static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
 
-	public static readonly Url ExHentaiBase = "https://exhentai.org/";
-	public static readonly Url EHentaiBase  = "https://e-hentai.org/";
-
+	public static readonly  Url ExHentaiBase   = "https://exhentai.org/";
 	private static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
-	private static readonly Url EHentaiLookup  = "https://upld.e-hentai.org/image_lookup.php";
 
 	static EHentaiEngine() { }
+
+	public static async Task<IEnumerable<FirefoxCookie>> ReadCookiesAsync(bool useEx = false)
+	{
+		using var ff = new FirefoxCookieReader();
+		await ff.OpenAsync();
+
+		var cookies = await ff.ReadCookiesAsync();
+
+		var eh = cookies.OfType<FirefoxCookie>().Where(x =>
+		{
+			if (!useEx) {
+				return x.Host.Contains(HOST_EH);
+			}
+
+			return x.Host.Contains(HOST_EX);
+		});
+
+		return eh;
+	}
 
 	public EHentaiEngine() : base(EHentaiBase)
 	{
 		m_client   = new HttpClient(m_clientHandler);
-		Cookies    = new CookieJar();
+		Cookies    = new();
 		IsLoggedIn = false;
-
-		PropertyChanged += (sender, args) =>
-		{
-			if (IsLoggedIn) {
-				IsLoggedIn = false;
-			}
-
-			Trace.WriteLine($"{IsLoggedIn} - {args.PropertyName}", nameof(PropertyChanged));
-		};
 	}
-
-	#region
 
 	/*
 	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer/client
@@ -149,7 +161,6 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	/*
 	 * Default result layout is [Compact]
 	 */
-
 	public async Task<bool> LoginAsync()
 	{
 		/*
@@ -157,8 +168,10 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 			return false;
 		}
 		*/
+		
+		var fcc = await ReadCookiesAsync();
 
-		var content = new MultipartFormDataContent()
+		/*var content = new MultipartFormDataContent()
 		{
 			{ new StringContent("1"), "CookieDate" },
 			{ new StringContent("d"), "b" },
@@ -169,19 +182,19 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		};
 
 		var response = await EHentaiIndex
-			               .SetQueryParams(new
-			               {
-				               act  = "Login",
-				               CODE = 01
-			               }).WithHeaders(new
-			               {
-				               User_Agent = HttpUtilities.UserAgent
-			               })
-			               .WithCookies(out var cj)
-			               .PostAsync(content);
+						   .SetQueryParams(new
+						   {
+							   act  = "Login",
+							   CODE = 01
+						   }).WithHeaders(new
+						   {
+							   User_Agent = HttpUtilities.UserAgent
+						   })
+						   .WithCookies(out var cj)
+						   .PostAsync(content);*/
 
-		foreach (FlurlCookie fc in cj) {
-			Cookies.AddOrReplace(fc);
+		foreach (var fc in fcc) {
+			Cookies.Add(fc.AsCookie());
 		}
 
 		var res2 = await GetSessionAsync();
@@ -191,13 +204,12 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
-	#endregion
-
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
-	                                                          CancellationToken token = default)
+															  CancellationToken token = default)
 	{
 		const string name = "a.jpg";
 		string       t    = null;
+
 		if (query.HasFile) {
 			t = query.FilePath;
 
@@ -207,6 +219,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		}
 		else {
 			var ok = query.LoadFile(name);
+
 			if (ok) {
 				t = query.FilePath;
 			}
@@ -222,6 +235,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 		var data = new MultipartFormDataContent()
 		{
 			{ new FileContent(t), "sfile", name },
+
 			// { new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
 			{ new StringContent("fs_similar") },
 			{ new StringContent("fs_covers") },
@@ -231,34 +245,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 
 		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
 
-		/*var q = uri
-				.WithHeaders(new
-				{
-					User_Agent = HttpUtilities.UserAgent
-				}).WithAutoRedirect(true);
-
-		FlurlHttp.Configure(settings =>
-		{
-			settings.Redirects.Enabled                    = true; // default true
-			settings.Redirects.AllowSecureToInsecure      = true; // default false
-			settings.Redirects.ForwardAuthorizationHeader = true; // default false
-			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
-		});
-
-		q = cj.Aggregate(q, (current, kv) => current.WithCookie(kv.Key, kv.Value));
-
-		// TODO: Flurl throws an exception because it detects "circular redirects"
-		// https://github.com/tmenier/Flurl/issues/714
-
-		var res   = await q.SendAsync(HttpMethod.Post, data);*/
-
-		// var flurl = FlurlHttp.GlobalSettings.HttpClientFactory;
-		// var mh   = flurl.CreateMessageHandler();
-		// var cl    = flurl.CreateHttpClient(mh);
-
-		foreach (var c in Cookies) {
-			m_clientHandler.CookieContainer.Add(new Cookie(c.Name, c.Value, c.Path, c.Domain));
-		}
+		//todo
+		m_clientHandler.CookieContainer.Add(Cookies);
 
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 
@@ -352,25 +340,28 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
 		field = value;
 		OnPropertyChanged(propertyName);
 		return true;
 	}
 
-	#region
-
 	private sealed record EhResult : IParseable<EhResult, INode>
 	{
-		internal string Type      { get; set; }
-		internal string Pages     { get; set; }
-		internal string Title     { get; set; }
-		internal string Author    { get; set; }
+
+		internal string Type { get; set; }
+
+		internal string Pages { get; set; }
+
+		internal string Title { get; set; }
+
+		internal string Author { get; set; }
+
 		internal string AuthorUrl { get; set; }
-		internal Url    Url       { get; set; }
+
+		internal Url Url { get; set; }
 
 		internal ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get; } = new();
-
-		#region
 
 		public static EhResult Parse(INode n)
 		{
@@ -445,8 +436,6 @@ public sealed class EHentaiEngine : WebSearchEngine, ILoginEngine, IConfig,
 			// ReSharper restore InconsistentNaming
 		}
 
-		#endregion
 	}
 
-	#endregion
 }

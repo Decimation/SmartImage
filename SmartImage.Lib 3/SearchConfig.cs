@@ -80,6 +80,9 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
+	/// <remarks>
+	/// <em>OBSOLETE</em>
+	/// </remarks>
 	/// <summary>
 	/// <see cref="EHentaiEngine.Username"/>
 	/// </summary>
@@ -93,6 +96,9 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
+	/// <remarks>
+	/// <em>OBSOLETE</em>
+	/// </remarks>
 	/// <summary>
 	/// <see cref="EHentaiEngine.Password"/>
 	/// </summary>
@@ -102,6 +108,22 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(EhPassword), value);
+			OnPropertyChanged();
+		}
+	}
+
+	/// <summary>
+	/// Parse browser cookies automatically whenever necessary
+	/// </summary>
+	/// <remarks>
+	/// <see cref="EHentaiEngine"/>
+	/// </remarks>
+	public bool ReadCookies
+	{
+		get { return Configuration.ReadSetting(nameof(ReadCookies), false); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(ReadCookies), value.ToString());
 			OnPropertyChanged();
 		}
 	}

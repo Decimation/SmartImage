@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
-using System.Reflection.PortableExecutable;
-using System.Runtime.Intrinsics.X86;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Content;
@@ -16,7 +14,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Upload;
 
-public abstract class BaseUploadEngine : IEndpoint
+public abstract class BaseUploadEngine : IDisposable
 {
 
 	/// <summary>
@@ -38,7 +36,7 @@ public abstract class BaseUploadEngine : IEndpoint
 
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-	protected bool Paranoid { get; set; }
+	protected bool EnsureResponse { get; set; }
 
 	public TimeSpan Timeout { get; set; }
 
@@ -71,6 +69,7 @@ public abstract class BaseUploadEngine : IEndpoint
 		};
 	}
 
+	/*
 	public static async Task<UploadResult> UploadAutoAsync(BaseUploadEngine engine, string fu,
 	                                                       CancellationToken ct = default)
 	{
@@ -107,9 +106,9 @@ public abstract class BaseUploadEngine : IEndpoint
 
 		return u;
 	}
+	*/
 
-	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
-	                                                              CancellationToken ct = default)
+	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		string url = null;
 		bool   ok;
@@ -134,7 +133,7 @@ public abstract class BaseUploadEngine : IEndpoint
 
 		ok = true;
 
-		if (Paranoid) {
+		if (EnsureResponse) {
 			var r2 = await Client.Request(url)
 				         .WithSettings(r =>
 				         {

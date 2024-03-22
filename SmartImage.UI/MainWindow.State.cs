@@ -30,6 +30,7 @@ public partial class MainWindow
 		set
 		{
 			if (Equals(value, m_currentResult)) return;
+
 			m_currentResult = value;
 			OnPropertyChanged();
 		}
@@ -45,10 +46,10 @@ public partial class MainWindow
 			{ };
 
 		if (ri is UniResultItem uri) {
-			sw.Img_Preview.Source = uri.Image;
+			sw.Img_Preview.Source = uri.Image.Value;
 		}
-		else if (ri.Image != null) {
-			sw.Img_Preview.Source = ri.Image;
+		else if (ri.Image is { IsValueCreated: true, Value: not null }) {
+			sw.Img_Preview.Source = ri.Image.Value;
 		}
 		else {
 			sw.Img_Preview.Source = Image;
@@ -115,6 +116,7 @@ public partial class MainWindow
 				Queue.Clear();
 				var rm = new QueryModel();
 				Queue.Add(rm);
+
 				// Lb_Queue.SelectedIndex = 0;
 				CurrentQuery = rm;
 			});
@@ -134,7 +136,7 @@ public partial class MainWindow
 		var b = qm == null;
 
 		if (b) {
-			qm           = new QueryModel(s);
+			qm = new QueryModel(s);
 			Queue.Add(qm);
 			CurrentQuery = qm;
 		}
@@ -154,6 +156,7 @@ public partial class MainWindow
 		set
 		{
 			if (value == m_showMedia) return;
+
 			m_showMedia = value;
 			OnPropertyChanged();
 		}
@@ -163,6 +166,7 @@ public partial class MainWindow
 	{
 		if (ShowMedia) {
 			CloseMedia();
+
 			// Me_Preview.Pause();
 			// ShowMedia = false;
 		}
@@ -174,11 +178,13 @@ public partial class MainWindow
 		m_ctsm.Cancel();
 
 		Me_Preview.Stop();
+
 		// Me_Preview.Position = TimeSpan.Zero;
 		Me_Preview.Close();
 
 		Me_Preview.ClearValue(MediaElement.SourceProperty);
 		Me_Preview.Source = null;
+
 		// Me_Preview.Dispose();
 		ShowMedia  = false;
 		m_isPaused = false;

@@ -8,7 +8,7 @@ using Flurl.Http.Configuration;
 
 namespace SmartImage.Lib.Utilities;
 
-internal static class NetHelper
+internal static class NodeUtil
 {
 	internal static INode TryFindSingleElementByClassName(this INodeList nodes, string className)
 	{

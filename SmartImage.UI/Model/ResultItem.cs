@@ -37,19 +37,14 @@ namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
 
-public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDownloadable, IItemSize
+public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItemSize, IDisposable
 {
 
 	#region
 
-	public string DimensionString
-	{
-		get => ControlsHelper.FormatDimensions(Width, Height);
-	}
+	private ImageSourceProperties m_properties;
 
-	private ResultItemProperties m_properties;
-
-	public ResultItemProperties Properties
+	public ImageSourceProperties Properties
 	{
 		get => m_properties;
 		set
@@ -100,7 +95,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 
 	public int? Height { get; internal set; }
 
-	public BitmapImage? Image { get; /*protected*/ set; }
+	public Lazy<BitmapImage?> Image { get; /*protected*/ set; }
 
 	public string StatusMessage { get; internal set; }
 
@@ -118,7 +113,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 		}
 	}
 
-	public bool HasImage => Image != null;
+	public bool HasImage => Image is { IsValueCreated: true, Value: not null };
 
 	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
 
@@ -180,6 +175,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
 		}
 
+		Image = new Lazy<BitmapImage>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public bool Open()
@@ -233,12 +229,12 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 	{
 		Label = $"Preview cache complete";
 
-		if (Image is { CanFreeze: true }) {
-			Image.Freeze();
+		if (Image is { IsValueCreated: true, Value.CanFreeze: true }) {
+			Image.Value.Freeze();
 		}
 
 		if (HasImage) {
-			Properties |= ResultItemProperties.CanDownload;
+			Properties |= ImageSourceProperties.CanDownload;
 		}
 
 		// CanDownload = HasImage;
@@ -252,10 +248,9 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 
 		UpdateProperties();
 
-		if (Image is { }) {
-			Width  = Image.PixelWidth;
-			Height = Image.PixelHeight;
-			OnPropertyChanged(nameof(DimensionString));
+		if (Image is { IsValueCreated:true}) {
+			Width  = Image.Value.PixelWidth;
+			Height = Image.Value.PixelHeight;
 			OnPropertyChanged(nameof(Size));
 		}
 	}
@@ -273,48 +268,41 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 
 	}
 
-	public virtual bool LoadImage()
+	public virtual BitmapImage? LoadImage()
 	{
-		lock (_lock) {
-			if (CanLoadImage) {
-				// Label = $"Loading {Name}";
-
-				/*
-				 * NOTE:
-				 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
-				 *
-				 */
-
-				Image = new BitmapImage()
-					{ };
-				Image.BeginInit();
-				Image.UriSource = new Uri(Result.Thumbnail);
-
-				// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
-				Image.CacheOption = BitmapCacheOption.OnDemand;
-
-				// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
-				// Image.CreateOptions = BitmapCreateOptions.None;
-
-				Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-
-				Image.EndInit();
-
-				Image.DownloadFailed    += OnImageDownloadFailed;
-				Image.DownloadProgress  += OnImageDownloadProgress;
-				Image.DownloadCompleted += OnImageDownloadCompleted;
-			}
-			else {
-				/*if (HasImage) {
-					Label= $"{Result.Thumbnail}";
-
-				}*/
-			}
-
-			OnPropertyChanged(nameof(DimensionString));
-			UpdateProperties();
-			return HasImage;
+		if (!CanLoadImage) {
+			return null;
 		}
+		var img = new BitmapImage()
+			{ };
+
+		// Label = $"Loading {Name}";
+
+		/*
+		 * NOTE:
+		 * BitmapCreateOptions.DelayCreation does not seem to work properly so this is a workaround.
+		 *
+		 */
+
+		img.BeginInit();
+		img.UriSource = new Uri(Result.Thumbnail);
+
+		// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
+		img.CacheOption = BitmapCacheOption.OnDemand;
+
+		// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
+		// Image.CreateOptions = BitmapCreateOptions.None;
+
+		img.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+
+		img.EndInit();
+
+		img.DownloadFailed    += OnImageDownloadFailed;
+		img.DownloadProgress  += OnImageDownloadProgress;
+		img.DownloadCompleted += OnImageDownloadCompleted;
+
+		UpdateProperties();
+		return img;
 	}
 
 	#region
@@ -341,7 +329,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 		var path2 = Path.Combine(dir, path);
 
 		var encoder = new PngBitmapEncoder();
-		encoder.Frames.Add(BitmapFrame.Create(Image));
+		encoder.Frames.Add(BitmapFrame.Create(Image.Value));
 
 		await using (var fs = new FileStream(path2, FileMode.Create)) {
 			encoder.Save(fs);
@@ -354,7 +342,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IDown
 		}
 
 		// CanDownload = false;
-		Properties &= ~ResultItemProperties.CanDownload;
+		Properties &= ~ImageSourceProperties.CanDownload;
 		Download   =  path2;
 
 		// u.Dispose();

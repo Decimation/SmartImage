@@ -257,17 +257,17 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static readonly ConcurrentDictionary<string, string> FileCache = new();
 
-	private readonly ConcurrentDictionary<IDownloadable, string> m_uni;
+	private readonly ConcurrentDictionary<IDisposable, string> m_uni;
 
 	// private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
 	private BitmapImage? Image
 	{
-		get => CurrentQuery?.Image;
+		get => CurrentQuery?.Image.Value;
 		set
 		{
 			if (CurrentQuery != null) {
-				CurrentQuery.Image = value;
+				CurrentQuery.Image = new Lazy<BitmapImage>(value);
 			}
 		}
 	}
@@ -1053,7 +1053,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 						CanOpen     = true,
 
 					};
-					rii.Properties |= ResultItemProperties.CanDownload;
+					rii.Properties |= ImageSourceProperties.CanDownload;
 
 					// rii.LoadImage();
 					// resultItems[i] = rii;
@@ -1118,7 +1118,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					CanScan     = false,
 					CanOpen     = true
 				};
-				rii.Properties |= ResultItemProperties.CanDownload;
+				rii.Properties |= ImageSourceProperties.CanDownload;
 				CurrentQuery.Results.Insert(CurrentQuery.Results.IndexOf(cri) + 1 + i, rii);
 			}
 
@@ -1468,9 +1468,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		});*/
 
-		var load = igs.LoadImage();
+		var load = igs.Image;
 
-		if (!load) {
+		if (load.IsValueCreated && load.Value== null) {
 			SetPreviewToCurrentQuery();
 			return;
 		}
@@ -1528,7 +1528,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Img_Preview.Dispatcher.Invoke(() =>
 		{
-			Img_Preview.Source = igs.Image;
+			Img_Preview.Source = igs.Image.Value;
 		});
 
 		// Debug.WriteLine($"updated image {ri.Image}");

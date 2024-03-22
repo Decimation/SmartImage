@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.ComponentModel.DataAnnotations;
 using System.Drawing;
 using System.Dynamic;
 using Flurl.Http;
@@ -14,7 +13,7 @@ namespace SmartImage.Lib.Results;
 
 public sealed record SearchResultItem : IDisposable,
 										IComparable<SearchResultItem>, IComparable,
-										IValidity<SearchResultItem>
+										IValidator<SearchResultItem>
 {
 
 	private bool m_isScored;

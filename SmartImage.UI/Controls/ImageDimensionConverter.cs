@@ -13,13 +13,13 @@ using SmartImage.UI.Model;
 
 namespace SmartImage.UI.Controls;
 
-[ValueConversion(typeof(IBaseImageSource), typeof(string))]
+[ValueConversion(typeof(IGuiImageSource), typeof(string))]
 public class ImageDimensionConverter : IValueConverter
 {
 
 	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		var val = (IBaseImageSource) value;
+		var val = (IGuiImageSource) value;
 
 		if (val == null) {
 			return null;
@@ -29,10 +29,10 @@ public class ImageDimensionConverter : IValueConverter
 
 		int? w = null, h = null;
 
-		if (val is ResultItem ri) {
-			if (ri is { IsThumbnail: true, HasImage: true }) {
-				w = ri.Image.PixelWidth;
-				h = ri.Image.PixelHeight;
+		if (val is { } ri) {
+			if (ri is { IsThumbnail: true, HasImage: true, Image: { IsValueCreated: true } i }) {
+				w = i.Value.PixelWidth;
+				h = i.Value.PixelHeight;
 			}
 
 		}
@@ -41,6 +41,9 @@ public class ImageDimensionConverter : IValueConverter
 			h = val.Height;
 
 		}
+
+		// w   ??= val.Width;
+		// h   ??= val.Height;
 
 		dim = ControlsHelper.FormatDimensions(w, h);
 

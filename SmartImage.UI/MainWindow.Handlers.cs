@@ -516,7 +516,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 					return;
 				}
 
-				if (CurrentResult is IDownloadable uri && m_uni.TryRemove(uri, out var x)) { }
+				if (CurrentResult is IDisposable uri && m_uni.TryRemove(uri, out var x)) { }
 
 				CurrentResult.Dispose();
 
@@ -741,7 +741,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
-		if (CurrentResult is ResultItem { } uri && uri.Properties.HasFlag(ResultItemProperties.CanDownload)) {
+		if (CurrentResult is ResultItem { } uri && uri.Properties.HasFlag(ImageSourceProperties.CanDownload)) {
 			Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}

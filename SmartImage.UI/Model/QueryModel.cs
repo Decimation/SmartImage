@@ -64,11 +64,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		}
 	}
 
-	public string DimensionString
-	{
-		get => ControlsHelper.FormatDimensions(Width, Height);
-	}
-
 	public long Size
 	{
 		get
@@ -90,11 +85,10 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		OnPropertyChanged(nameof(Results));
 		OnPropertyChanged(nameof(CanDelete));
 		OnPropertyChanged(nameof(Query));
-		OnPropertyChanged(nameof(DimensionString));
 
 	}
 
-	public BitmapImage? Image { get; set; }
+	public Lazy<BitmapImage?> Image { get; set; }
 
 	private ObservableCollection<ResultItem> m_results;
 
@@ -124,11 +118,11 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public bool IsThumbnail => false;
 
-	public int? Width => HasImage ? Image.PixelWidth : null;
+	public int? Width => HasImage ? Image.Value.PixelWidth : null;
 
-	public int? Height => HasImage ? Image.PixelHeight : null;
+	public int? Height => HasImage ? Image.Value.PixelHeight : null;
 
-	public ResultItemProperties Properties
+	public ImageSourceProperties Properties
 	{
 		get => throw new NotImplementedException();
 		set => throw new NotImplementedException();
@@ -172,7 +166,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		Status2 = null;
 
 		// Dim          = null;
-		Image = null;
+		Image = new Lazy<BitmapImage?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	#region
@@ -281,7 +275,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		// Dispatcher.InvokeAsync(UpdateImage);
 		// UpdateImage();
-		Application.Current.Dispatcher.Invoke(LoadImage);
+		// Application.Current.Dispatcher.Invoke(LoadImage);
 
 		// await UploadAsync(ct);
 
@@ -340,29 +334,25 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		// 	ControlsHelper.FormatDescription("Query", Query.Uni, Image?.PixelWidth, Image?.PixelHeight);
 	}*/
 
-	public bool LoadImage()
+	public BitmapImage? LoadImage()
 	{
-		if (!CanLoadImage) {
-			goto ret;
-		}
-
 		Trace.Assert(HasQuery);
 
-		Image = new BitmapImage()
+		var image = new BitmapImage()
 			{ };
-		Image.BeginInit();
-		Image.UriSource = new Uri(Query.ValueString);
+		image.BeginInit();
+		image.UriSource = new Uri(Query.ValueString);
 
 		// Image.StreamSource   = Query.Uni.Stream;
-		Image.CacheOption    = BitmapCacheOption.OnLoad;
-		Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+		image.CacheOption    = BitmapCacheOption.OnLoad;
+		image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
 
-		Image.EndInit();
+		image.EndInit();
 
 		Trace.Assert(Query.Uni != null);
 
 		if (Query.Uni.IsUri) {
-			Image.DownloadCompleted += (sender, args) =>
+			image.DownloadCompleted += (sender, args) =>
 			{
 				UpdateProperties();
 
@@ -376,17 +366,15 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 			// UpdateInfo();
 		}
 
-		if (Image.CanFreeze) {
-			Image.Freeze();
+		if (image.CanFreeze) {
+			image.Freeze();
 
 		}
 
 		// Img_Preview.Source = m_image;
 
-		// UpdatePreview();
-
-	ret:
-		return HasImage;
+		// UpdatePreview();	
+		return image;
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;

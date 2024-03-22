@@ -7,7 +7,6 @@
 
 using System.Diagnostics;
 using System.Net;
-using AngleSharp.Css.Values;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -28,9 +27,11 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class Iqdb3DEngine : IqdbEngine
 {
-	public override string EndpointUrl => "https://3d.iqdb.org/";
+
+	private const string URL_BASE  = "https://3d.iqdb.org/";
+	private const string URL_QUERY = "https://3d.iqdb.org/?url=";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb3D;
 
-	public Iqdb3DEngine() : base("https://3d.iqdb.org/?url=") { }
+	public Iqdb3DEngine() : base(URL_QUERY, URL_BASE) { }
 }

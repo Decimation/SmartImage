@@ -7,6 +7,7 @@ namespace SmartImage.Lib.Results;
 
 public sealed class UploadResult : IDisposable
 {
+	
 	public Url Url { get; init; }
 
 	[MN]
@@ -32,4 +33,5 @@ public sealed class UploadResult : IDisposable
 	{
 		Response?.Dispose();
 	}
+
 }

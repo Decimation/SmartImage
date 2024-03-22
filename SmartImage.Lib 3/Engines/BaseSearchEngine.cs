@@ -41,10 +41,11 @@ public abstract class BaseSearchEngine : IDisposable
 
 	protected virtual string[] ErrorBodyMessages { get; } = [];
 
-	protected BaseSearchEngine(string baseUrl)
+	protected BaseSearchEngine(string baseUrl, string? endpoint = null)
 	{
-		BaseUrl    = baseUrl;
-		IsAdvanced = true;
+		BaseUrl     = baseUrl;
+		IsAdvanced  = true;
+		EndpointUrl = endpoint;
 	}
 
 	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -140,5 +141,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(InheritanceProperties.Subclass).ToArray();
+
+	public string? EndpointUrl { get; }
 
 }

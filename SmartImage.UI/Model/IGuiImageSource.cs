@@ -1,17 +1,52 @@
 ﻿// Read S SmartImage.UI IImageProvider.cs
 // 2023-09-13 @ 5:27 PM
 
+using System;
 using System.Windows.Media.Imaging;
-using Flurl;
-using Kantan.Monad;
-using SmartImage.Lib.Model;
 
 namespace SmartImage.UI.Model;
 
-public interface IGuiImageSource : IBaseImageSource
+[Flags]
+public enum ImageSourceProperties
 {
 
-	public BitmapImage? Image { get; set; }
+	None        = 0,
+	CanDownload = 1 << 0,
 
 }
 
+public static class Ext
+{
+
+	public static bool HasFlagFast(this ImageSourceProperties r, ImageSourceProperties x)
+	{
+		return (r & x) != 0;
+	}
+
+}
+
+public interface IGuiImageSource
+{
+
+	public Lazy<BitmapImage?> Image { get; set; }
+
+	ImageSourceProperties Properties { get; set; }
+
+	bool HasImage { get; }
+
+	bool CanLoadImage { get; }
+
+	bool IsThumbnail { get; }
+
+	int? Width { get; }
+
+	int? Height { get; }
+
+	bool HasPropert(ImageSourceProperties p)
+	{
+		return Ext.HasFlagFast(Properties, p);
+	}
+
+	BitmapImage? LoadImage();
+
+}

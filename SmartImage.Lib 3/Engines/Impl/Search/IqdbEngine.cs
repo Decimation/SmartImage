@@ -7,7 +7,6 @@
 
 using System.Diagnostics;
 using System.Net;
-using AngleSharp.Css.Values;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -26,16 +25,16 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 #nullable disable
 
-public class IqdbEngine : BaseSearchEngine, IEndpoint
+public class IqdbEngine : BaseSearchEngine, IDisposable
 {
-
-	public virtual string EndpointUrl => "https://iqdb.org/";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
-	public IqdbEngine() : this("https://iqdb.org/?url=") { }
+	public IqdbEngine() : this(URL_QUERY) { }
 
-	protected IqdbEngine(string s) : base(s)
+	private IqdbEngine(string s) : this(s, URL_ENDPOINT) { }
+
+	protected IqdbEngine(string b, string e) : base(b, e)
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 		Timeout = TimeSpan.FromSeconds(10);
@@ -128,7 +127,9 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 		return result;
 	}
 
-	private const int MAX_FILE_SIZE = 0x800000;
+	private const int    MAX_FILE_SIZE = 0x800000;
+	private const string URL_ENDPOINT  = "https://iqdb.org/";
+	private const string URL_QUERY     = "https://iqdb.org/?url=";
 
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
 	{
@@ -154,7 +155,8 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 
 					               return;
 				               }, cancellationToken: ct);
-			if (response!= null) {
+
+			if (response != null) {
 				var s = await response.GetStringAsync();
 
 				var parser = new HtmlParser();
@@ -201,7 +203,7 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 
 		var err = doc.Body.GetElementsByClassName("err");
 
-		if (err.Length!=0) {
+		if (err.Length != 0) {
 			var fe = err[0];
 			sr.Status       = SearchResultStatus.Failure;
 			sr.ErrorMessage = $"{fe.TextContent}";
@@ -245,7 +247,7 @@ public class IqdbEngine : BaseSearchEngine, IEndpoint
 			_ or null => ResultQuality.NA,
 		};*/
 
-		ret:
+	ret:
 		sr.Update();
 		return sr;
 	}

@@ -1,12 +1,11 @@
 using System.Collections;
 using System.Diagnostics;
-using System.Json;
+using System.Text.Json;
 using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
-using Newtonsoft.Json;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
@@ -19,15 +18,13 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 /// 
 /// </summary>
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
-public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
+public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 {
 
-	public TraceMoeEngine() : base("https://trace.moe/?url=")
+	public TraceMoeEngine() : base(URL_QUERY, URL_API)
 	{
 		Timeout = TimeSpan.FromSeconds(10);
 	}
-
-	public string EndpointUrl => "https://api.trace.moe";
 
 	/// <summary>
 	/// Used to retrieve more information about results
@@ -57,20 +54,22 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 
 			var json = await response.GetStringAsync();
 
-			var settings = new JsonSerializerSettings
+			/*
+			var settings = new JsonSerializerOptions()
 			{
 				Error = (sender, args) =>
 				{
 					if (Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) /*&&
-						args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)*/) {
+						args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)#1#) {
 						args.ErrorContext.Handled = true;
 					}
 
 					Debug.WriteLine($"{Name} :: {args.ErrorContext}", nameof(GetResultAsync));
 				}
 			};
+			*/
 
-			tm = JsonConvert.DeserializeObject<TraceMoeRootObject>(json, settings);
+			tm = JsonSerializer.Deserialize<TraceMoeRootObject>(json);
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
@@ -148,6 +147,9 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint
 	/// Threshold at which results become inaccurate
 	/// </summary>
 	public const double FILTER_THRESHOLD = 87.00;
+
+	private const string URL_API   = "https://api.trace.moe";
+	private const string URL_QUERY = "https://trace.moe/?url=";
 
 	public override void Dispose()
 	{

@@ -73,14 +73,14 @@ public class EnumFlagsToStringConverter : IValueConverter
 
 }
 
-[ValueConversion(typeof(ResultItemProperties), typeof(bool))]
+[ValueConversion(typeof(ImageSourceProperties), typeof(bool))]
 public class ResultItemPropertiesToBoolConverter : IValueConverter
 {
 
 	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
 		try {
-			return ((ResultItemProperties) (value)).HasFlag((ResultItemProperties) parameter);
+			return ((ImageSourceProperties) (value)).HasFlag((ImageSourceProperties) parameter);
 		}
 		catch {
 			return string.Empty;

@@ -1,7 +1,4 @@
-﻿using System.Json;
-using Flurl.Http;
-using Kantan.Net;
-using Newtonsoft.Json.Linq;
+﻿using Kantan.Net;
 
 // ReSharper disable PossibleNullReferenceException
 

@@ -35,20 +35,19 @@ public class UniResultItem : ResultItem
 	{
 		get
 		{
-			if (Uni != null)
-			{
+			if (Uni != null) {
 				return Uni.Stream.Length;
 			}
 
 			return Native.INVALID;
 		}
 	}
+
 	public UniSource? Uni
 	{
 		get
 		{
-			if (UniIndex.HasValue && Result.Uni != null)
-			{
+			if (UniIndex.HasValue && Result.Uni != null) {
 				return Result.Uni[UniIndex.Value];
 
 			}
@@ -68,40 +67,35 @@ public class UniResultItem : ResultItem
 	{
 		UniIndex = idx;
 
-		if (Uni == null)
-		{
+		if (Uni == null) {
 			Debugger.Break();
 		}
 
-		if (Uni != null)
-		{
-			if (Uni.IsStream)
-			{
+		if (Uni != null) {
+			if (Uni.IsStream) {
 				// todo: update GetFileName
 				Url = ri.Url.GetFileName().Split(':')[0];
 
-				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url)))
-				{
+				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
 					Url = Path.ChangeExtension(Url, Uni.FileType.Subtype);
 				}
 			}
-			else
-			{
+			else {
 				Url = Uni.Value.ToString();
 
 			}
 
 			// StatusImage = Image;
 		}
-		else
-		{
-			Image = null;
+		else {
+			Image = new Lazy<BitmapImage?>(default(BitmapImage?));
 		}
 
 		StatusImage = AppComponents.picture;
+
 		// SizeFormat  = ControlsHelper.FormatSize(Uni);
 		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
-		Hash = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
+		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
 
 	}
@@ -109,57 +103,54 @@ public class UniResultItem : ResultItem
 	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
 		PreviewProgress = (args.Progress * 100.0f);
-		Label = "Download progress...";
+		Label           = "Download progress...";
 	}
 
 	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
 		PreviewProgress = 0;
-		Label = $"Download failed: {args.ErrorException.Message}";
+		Label           = $"Download failed: {args.ErrorException.Message}";
 	}
 
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
 		Label = $"Download complete";
-		
+
 		IsThumbnail = false;
+
 		// Properties &= ResultItemProperties.Thumbnail;
 
-		if (Image is { CanFreeze: true })
-		{
-			Image.Freeze();
+		if (Image is { IsValueCreated: true, Value.CanFreeze: true }) {
+			Image.Value.Freeze();
 		}
-
-		OnPropertyChanged(nameof(DimensionString));
 
 	}
 
-	public override bool LoadImage()
+	public override BitmapImage? LoadImage()
 	{
-		if (CanLoadImage)
-		{
-			Image = new BitmapImage()
+
+		var image = new BitmapImage()
 			{ };
-			Image.BeginInit();
-			Trace.Assert(Uni != null);
+		image.BeginInit();
+		Trace.Assert(Uni != null);
 
-			Image.StreamSource = Uni.Stream;
-			// Image.StreamSource = Uni.Stream;
-			// m_image.StreamSource   = Query.Uni.Stream;
-			// Image.CacheOption    = BitmapCacheOption.OnLoad;
-			Image.CacheOption = BitmapCacheOption.OnDemand;
-			// Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
-			Image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-			Image.EndInit();
+		image.StreamSource = Uni.Stream;
 
-			Image.DownloadFailed += OnImageDownloadFailed;
-			Image.DownloadProgress += OnImageDownloadProgress;
-			Image.DownloadCompleted += OnImageDownloadCompleted;
+		// Image.StreamSource = Uni.Stream;
+		// m_image.StreamSource   = Query.Uni.Stream;
+		// Image.CacheOption    = BitmapCacheOption.OnLoad;
+		image.CacheOption = BitmapCacheOption.OnDemand;
 
-		}
+		// Image.CreateOptions  = BitmapCreateOptions.DelayCreation;
+		image.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
+		image.EndInit();
+
+		image.DownloadFailed    += OnImageDownloadFailed;
+		image.DownloadProgress  += OnImageDownloadProgress;
+		image.DownloadCompleted += OnImageDownloadCompleted;
 
 		UpdateProperties();
-		return HasImage;
+		return image;
 	}
 
 	public override async Task<string> DownloadAsync(string? dir = null, bool exp = true)
@@ -167,13 +158,11 @@ public class UniResultItem : ResultItem
 		string path;
 		Trace.Assert(Uni != null);
 
-		if (Uni.IsStream)
-		{
+		if (Uni.IsStream) {
 			path = Url;
 		}
-		else /*if (uni.IsUri)*/
-		{
-			var url = (Url)Uni.Value.ToString();
+		else /*if (uni.IsUri)*/ {
+			var url = (Url) Uni.Value.ToString();
 			path = url.GetFileName();
 
 		}
@@ -187,14 +176,14 @@ public class UniResultItem : ResultItem
 		StatusImage = AppComponents.picture_save;
 		await Uni.Stream.CopyToAsync(fs);
 
-		if (exp)
-		{
+		if (exp) {
 			FileSystem.ExploreFile(path2);
 		}
 
 		await fs.DisposeAsync();
+
 		// CanDownload = false;
-		Properties = Properties &= ~ResultItemProperties.CanDownload;
+		Properties = Properties &= ~ImageSourceProperties.CanDownload;
 		Download   = path2;
 
 		// u.Dispose();

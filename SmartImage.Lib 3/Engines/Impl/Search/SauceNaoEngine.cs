@@ -31,7 +31,7 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
+public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 {
 
 	internal static class Constants
@@ -49,20 +49,18 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 	}
 
-	private const string BASE_URL = "https://saucenao.com/";
+	private const string URL_BASE = "https://saucenao.com/";
 
-	private const string BASE_ENDPOINT = BASE_URL + "search.php";
+	private const string URL_API = URL_BASE + "search.php";
 
-	private const string BASIC_RESULT = $"{BASE_ENDPOINT}?url=";
+	private const string URL_QUERY = $"{URL_API}?url=";
 
 	/*
 	 * Excerpts adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs#L53
 	 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
 	 */
 
-	public string EndpointUrl => BASE_ENDPOINT;
-
-	public SauceNaoEngine(string authentication) : base(BASIC_RESULT)
+	public SauceNaoEngine(string authentication) : base(URL_QUERY, URL_API)
 	{
 		Authentication = authentication;
 
@@ -397,7 +395,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpoint, IConfig
 
 		var content = new FormUrlEncodedContent(values);
 
-		var res = await BASE_ENDPOINT.AllowAnyHttpStatus()
+		var res = await URL_API.AllowAnyHttpStatus()
 			          .WithTimeout(Timeout)
 			          .PostAsync(content);
 		var c = await res.GetStringAsync();
