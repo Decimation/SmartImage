@@ -266,7 +266,7 @@ public sealed class SearchClient : IDisposable
 		{
 			Debug.WriteLine($"Starting {e} for {query}");
 
-			Task<SearchResult> res = e.GetResultAsync(query, token)
+			Task<SearchResult> res = e.GetResultAsync(query, token: token)
 				.ContinueWith((r) =>
 				{
 					// ReSharper disable AsyncApostle.AsyncWait

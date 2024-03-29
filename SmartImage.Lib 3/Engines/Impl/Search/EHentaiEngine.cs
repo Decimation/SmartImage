@@ -26,8 +26,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 ///     Handles both ExHentai and E-Hentai
 /// </summary>
-public sealed class EHentaiEngine : WebSearchEngine, IConfig,
-									INotifyPropertyChanged
+public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyChanged
 {
 
 	private const string HOST_EH = ".e-hentai.org";
@@ -47,9 +46,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig,
 
 	};
 
-	private string m_password;
-	private string m_username;
-
 	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
 
 	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
@@ -59,30 +55,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig,
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
 	protected override string NodesSelector => Serialization.S_EHentai;
-
-	public string Username
-	{
-		get => m_username;
-		set
-		{
-			if (value == m_username) return;
-
-			m_username = value;
-			OnPropertyChanged();
-		}
-	}
-
-	public string Password
-	{
-		get => m_password;
-		set
-		{
-			if (value == m_password) return;
-
-			m_password = value;
-			OnPropertyChanged();
-		}
-	}
 
 	public bool IsLoggedIn { get; private set; }
 
@@ -94,25 +66,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig,
 	private static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
 
 	static EHentaiEngine() { }
-
-	public static async Task<IEnumerable<FirefoxCookie>> ReadCookiesAsync(bool useEx = false)
-	{
-		using var ff = new FirefoxCookieReader();
-		await ff.OpenAsync();
-
-		var cookies = await ff.ReadCookiesAsync();
-
-		var eh = cookies.OfType<FirefoxCookie>().Where(x =>
-		{
-			if (!useEx) {
-				return x.Host.Contains(HOST_EH);
-			}
-
-			return x.Host.Contains(HOST_EX);
-		});
-
-		return eh;
-	}
 
 	public EHentaiEngine() : base(EHentaiBase)
 	{
@@ -133,43 +86,51 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig,
 
 	public async ValueTask ApplyAsync(SearchConfig cfg)
 	{
-		string u, p;
-
 		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyAsync));
 
 			return;
 		}*/
 
-		u = cfg.EhUsername;
-		p = cfg.EhPassword;
-
-		if (string.IsNullOrWhiteSpace(u) || string.IsNullOrWhiteSpace(p) || IsLoggedIn) {
+		if (IsLoggedIn) {
 
 			// throw new ArgumentException($"{Name} : username/password is null");
 			return;
 
 		}
 
-		Username = u;
-		Password = p;
+		if (cfg.ReadCookies) {
+			var ok = await LoginAsync();
+			Debug.WriteLine($"{Name} logged in - {ok}", nameof(ApplyAsync));
 
-		var ok = await LoginAsync();
-		Debug.WriteLine($"{Name} logged in - {ok}", nameof(ApplyAsync));
+		}
 	}
 
 	/*
 	 * Default result layout is [Compact]
 	 */
-	public async Task<bool> LoginAsync()
+	public async Task<bool> LoginAsync(bool useEx = false)
 	{
 		/*
 		if (IsLoggedIn) {
 			return false;
 		}
 		*/
-		
-		var fcc = await ReadCookiesAsync();
+
+		var b = await SearchHelper.LoadCookiesAsync();
+
+		if (!b) {
+			return false;
+		}
+
+		var fcc = SearchHelper.Cookies.OfType<FirefoxCookie>().Where(x =>
+		{
+			if (!useEx) {
+				return x.Host.Contains(HOST_EH);
+			}
+
+			return x.Host.Contains(HOST_EX);
+		});
 
 		/*var content = new MultipartFormDataContent()
 		{
@@ -205,7 +166,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig,
 	public event PropertyChangedEventHandler PropertyChanged;
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
-															  CancellationToken token = default)
+	                                                          CancellationToken token = default)
 	{
 		const string name = "a.jpg";
 		string       t    = null;

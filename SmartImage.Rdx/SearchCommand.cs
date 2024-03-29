@@ -76,96 +76,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Query = SearchQuery.Null;
 	}
 
-	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
-	{
-		m_scs = settings;
-
-		var task = AConsole.Progress()
-			.AutoRefresh(true)
-			.StartAsync(async ctx =>
-			{
-				var p = ctx.AddTask("Creating query");
-				p.IsIndeterminate = true;
-				Query             = await SearchQuery.TryCreateAsync(settings.Query);
-
-				p.Increment(COMPLETE / 2);
-
-				// ctx.Refresh();
-
-				p.Description = "Uploading query";
-				var url = await Query.UploadAsync();
-
-				if (url == null) {
-					throw new SmartImageException(); //todo
-				}
-
-				p.Increment(COMPLETE / 2);
-
-				// ctx.Refresh();
-			});
-
-		Config.SearchEngines   = settings.SearchEngines;
-		Config.PriorityEngines = settings.PriorityEngines;
-		Config.AutoSearch      = settings.AutoSearch;
-
-		await Client.ApplyConfigAsync();
-
-		await task;
-
-		var dt = new Grid();
-		dt.AddColumns(2);
-
-		var kv = new Dictionary<string, object>()
-		{
-			[R1.S_SearchEngines]   = Config.SearchEngines,
-			[R1.S_PriorityEngines] = Config.PriorityEngines,
-			[R1.S_EhUsername]      = Config.EhUsername,
-			[R1.S_EhPassword]      = Config.EhPassword,
-			[R1.S_AutoSearch]      = Config.AutoSearch,
-
-		};
-
-		foreach (var o in kv) {
-			dt.AddRow(new Text(o.Key, CliFormat.Sty_Grid1),
-			          new Text(o.Value.ToString()));
-		}
-
-		AConsole.Write(dt);
-
-		AConsole.WriteLine($"Input: {Query}");
-
-		Console.CancelKeyPress += (sender, args) =>
-		{
-			AConsole.MarkupLine($"[red]Cancellation requested[/]");
-			AConsole.Clear();
-			m_cts.Cancel();
-			args.Cancel = false;
-
-			Environment.Exit(EC_ERROR);
-		};
-
-		// await Prg_1.StartAsync(RunSearchAsync);
-
-		// pt1.MaxValue = m_client.Engines.Length;
-
-		int act;
-
-		if (m_scs.TableFormat == OutputFields.None) {
-			act = await RunSimpleAsync();
-		}
-		else {
-			act = await RunTableAsync();
-
-		}
-
-		if (settings.Interactive.HasValue && settings.Interactive.Value) {
-			act = await RunInteractiveAsync();
-
-		}
-
-		return (int) act;
-	}
-
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
 	{
 		var r = base.Validate(context, settings);
@@ -266,6 +176,103 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	}
 
+	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
+	{
+		m_scs = settings;
+
+		var task = AConsole.Progress()
+			.AutoRefresh(true)
+			.StartAsync(async ctx =>
+			{
+				var p = ctx.AddTask("Creating query");
+				p.IsIndeterminate = true;
+				Query             = await SearchQuery.TryCreateAsync(settings.Query);
+
+				p.Increment(COMPLETE / 2);
+
+				// ctx.Refresh();
+
+				p.Description = "Uploading query";
+				var url = await Query.UploadAsync();
+
+				if (url == null) {
+					throw new SmartImageException(); //todo
+				}
+
+				p.Increment(COMPLETE / 2);
+
+				// ctx.Refresh();
+			});
+
+		Config.SearchEngines   = settings.SearchEngines;
+		Config.PriorityEngines = settings.PriorityEngines;
+
+		if (settings.AutoSearch.HasValue) {
+			Config.AutoSearch = settings.AutoSearch.Value;
+		}
+
+		if (settings.ReadCookies.HasValue) {
+			Config.ReadCookies = settings.ReadCookies.Value;
+		}
+
+		await Client.ApplyConfigAsync();
+
+		await task;
+
+		var dt = new Grid();
+		dt.AddColumns(2);
+
+		var kv = new Dictionary<string, object>()
+		{
+			[R1.S_SearchEngines]   = Config.SearchEngines,
+			[R1.S_PriorityEngines] = Config.PriorityEngines,
+			[R1.S_AutoSearch]      = Config.AutoSearch,
+			[R1.S_ReadCookies]     = Config.ReadCookies,
+
+			["Input"] = Query
+		};
+
+		foreach (var o in kv) {
+			dt.AddRow(new Text(o.Key, CliFormat.Sty_Grid1),
+			          new Text(o.Value.ToString()));
+		}
+
+		AConsole.Write(dt);
+
+		// AConsole.WriteLine($"Input: {Query}");
+
+		Console.CancelKeyPress += (sender, args) =>
+		{
+			AConsole.MarkupLine($"[red]Cancellation requested[/]");
+			AConsole.Clear();
+			m_cts.Cancel();
+			args.Cancel = false;
+
+			Environment.Exit(EC_ERROR);
+		};
+
+		// await Prg_1.StartAsync(RunSearchAsync);
+
+		// pt1.MaxValue = m_client.Engines.Length;
+
+		int act;
+
+		if (m_scs.TableFormat == OutputFields.None) {
+			act = await RunSimpleAsync();
+		}
+		else {
+			act = await RunTableAsync();
+
+		}
+
+		if (settings.Interactive.HasValue && settings.Interactive.Value) {
+			act = await RunInteractiveAsync();
+
+		}
+
+		return (int) act;
+	}
+
 	private async Task<int> RunSimpleAsync()
 	{
 		var prog = AConsole.Progress()
@@ -275,7 +282,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				var cnt = (double) Client.Engines.Length;
 				var pt  = c.AddTask("Running search", maxValue: cnt);
 				pt.IsIndeterminate = true;
-
+				
 				// var p2  = c.AddTask("Engines", maxValue: cnt);
 
 				// Client.OnResult += OnResultComplete;

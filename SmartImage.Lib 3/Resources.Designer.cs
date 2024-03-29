@@ -196,6 +196,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Read cookies.
+        /// </summary>
+        internal static string S_ReadCookies {
+            get {
+                return ResourceManager.GetString("S_ReadCookies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SauceNao Key.
         /// </summary>
         internal static string S_SauceNaoKey {

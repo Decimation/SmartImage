@@ -32,7 +32,12 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[CommandOption("-a|--autosearch")]
 	[DefaultValue(SearchConfig.AUTOSEARCH_DEFAULT)]
 	[Description("N/A")]
-	public bool AutoSearch { get; internal set; }
+	public bool? AutoSearch { get; internal set; }
+
+	[CommandOption("--read-cookies")]
+	[DefaultValue(SearchConfig.READCOOKIES_DEFAULT)]
+	[Description("Read cookies")]
+	public bool? ReadCookies { get; internal set; }
 
 	#region
 

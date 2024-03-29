@@ -2,6 +2,9 @@
 
 public sealed class SmartImageException : Exception
 {
-    public SmartImageException() { }
-    public SmartImageException([CBN] string message) : base(message) { }
+
+	public SmartImageException() { }
+
+	public SmartImageException([CBN] string message) : base(message) { }
+
 }

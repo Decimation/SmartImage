@@ -869,7 +869,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 		var ofn = new OpenFileDialog
 		{
 			Multiselect = true,
-			Filter      = $"Image files|{ImageHelper.Ext.QuickJoin(";")}"
+			Filter      = $"Image files|{SearchHelper.Ext.QuickJoin(";")}"
 		};
 
 		var d = ofn.ShowDialog(this);

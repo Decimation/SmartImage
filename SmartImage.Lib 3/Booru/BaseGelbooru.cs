@@ -2,7 +2,7 @@
 using Flurl.Http;
 
 namespace SmartImage.Lib.Booru;
-
+// TODO
 public abstract class BaseGelbooru : IDisposable
 {
 	public FlurlClient Client { get; }

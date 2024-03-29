@@ -135,11 +135,10 @@
   <data name="Reg_Shell_Cmd" xml:space="preserve">
     <value>SOFTWARE\Classes\*\shell\SmartImage\command</value>
   </data>
-  <data name="S_EhPassword" xml:space="preserve">
-    <value>Eh Password</value>
-  </data>
   <data name="S_EhUsername" xml:space="preserve">
     <value>Eh Username</value>
+    <comment>DEPRECATED
+</comment>
   </data>
   <data name="S_OpenRaw" xml:space="preserve">
     <value>Open raw</value>
@@ -176,5 +175,12 @@
   </data>
   <data name="S_HydrusKey" xml:space="preserve">
     <value>Hydrus Key</value>
+  </data>
+  <data name="S_EhPassword" xml:space="preserve">
+    <value>Eh Password</value>
+    <comment>DEPRECATED</comment>
+  </data>
+  <data name="S_ReadCookies" xml:space="preserve">
+    <value>Read cookies</value>
   </data>
 </root>

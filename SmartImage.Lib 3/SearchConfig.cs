@@ -37,6 +37,11 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public const bool AUTOSEARCH_DEFAULT = true;
 
+	/// <summary>
+	/// Default value for <see cref="ReadCookies"/>
+	/// </summary>
+	public const bool READCOOKIES_DEFAULT = false;
+
 	private static readonly string STR_DEFAULT = String.Empty;
 
 	#endregion
@@ -80,38 +85,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
-	/// <remarks>
-	/// <em>OBSOLETE</em>
-	/// </remarks>
-	/// <summary>
-	/// <see cref="EHentaiEngine.Username"/>
-	/// </summary>
-	public string EhUsername
-	{
-		get { return Configuration.ReadSetting(nameof(EhUsername), STR_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(EhUsername), value);
-			OnPropertyChanged();
-		}
-	}
-
-	/// <remarks>
-	/// <em>OBSOLETE</em>
-	/// </remarks>
-	/// <summary>
-	/// <see cref="EHentaiEngine.Password"/>
-	/// </summary>
-	public string EhPassword
-	{
-		get { return Configuration.ReadSetting(nameof(EhPassword), STR_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(EhPassword), value);
-			OnPropertyChanged();
-		}
-	}
-
 	/// <summary>
 	/// Parse browser cookies automatically whenever necessary
 	/// </summary>
@@ -120,7 +93,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </remarks>
 	public bool ReadCookies
 	{
-		get { return Configuration.ReadSetting(nameof(ReadCookies), false); }
+		get { return Configuration.ReadSetting(nameof(ReadCookies), READCOOKIES_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(ReadCookies), value.ToString());
