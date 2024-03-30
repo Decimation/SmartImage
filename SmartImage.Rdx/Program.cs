@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Configuration;
+using System.Diagnostics;
 using System.Reflection;
 using Kantan.Text;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,9 @@ public static class Program
 #if DEBUG
 		AConsole.WriteLine(args.QuickJoin());
 
+		foreach (string? s in ConfigurationManager.AppSettings) {
+			AConsole.WriteLine(s);
+		}
 #endif
 
 		Grid grd = CliFormat.CreateInfoGrid();

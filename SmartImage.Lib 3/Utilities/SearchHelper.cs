@@ -24,34 +24,6 @@ public static class SearchHelper
 			       or SearchResultStatus.Unavailable or SearchResultStatus.Cooldown;
 	}
 
-	#region 
-
-	public static async Task<List<IBrowserCookie>> ReadCookiesAsync()
-	{
-		using var ff = new FirefoxCookieReader();
-		await ff.OpenAsync();
-
-		var cookies = await ff.ReadCookiesAsync();
-
-		return cookies;
-	}
-
-	public static List<IBrowserCookie> Cookies { get; internal set; }
-
-	public static async Task<bool> LoadCookiesAsync(bool force = false)
-	{
-		var b = Cookies == null || force;
-
-		if (b) {
-			Cookies = await ReadCookiesAsync();
-
-		}
-
-		return Cookies != null;
-	}
-
-	#endregion
-
 	internal static readonly string[] Ext = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"];
 
 }

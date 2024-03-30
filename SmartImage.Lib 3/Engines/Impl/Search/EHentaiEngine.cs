@@ -58,12 +58,16 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 	public bool IsLoggedIn { get; private set; }
 
+	#region 
+
 	private static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
 	public static readonly  Url EHentaiBase   = "https://e-hentai.org/";
 	private static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
 
 	public static readonly  Url ExHentaiBase   = "https://exhentai.org/";
 	private static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
+
+	#endregion
 
 	static EHentaiEngine() { }
 
@@ -117,13 +121,13 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		}
 		*/
 
-		var b = await SearchHelper.LoadCookiesAsync();
+		var b = await CookiesManager.LoadCookiesAsync();
 
 		if (!b) {
 			return false;
 		}
 
-		var fcc = SearchHelper.Cookies.OfType<FirefoxCookie>().Where(x =>
+		var fcc = CookiesManager.Cookies.OfType<FirefoxCookie>().Where(x =>
 		{
 			if (!useEx) {
 				return x.Host.Contains(HOST_EH);
@@ -252,7 +256,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		// Index 0 is table header
 		var array = d.Body.SelectNodes(NodesSelector).ToArray();
 
-		if (array.Any()) {
+		if (array.Length != 0) {
 			array = array[1..];
 
 		}

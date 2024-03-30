@@ -85,22 +85,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
-	/// <summary>
-	/// Parse browser cookies automatically whenever necessary
-	/// </summary>
-	/// <remarks>
-	/// <see cref="EHentaiEngine"/>
-	/// </remarks>
-	public bool ReadCookies
-	{
-		get { return Configuration.ReadSetting(nameof(ReadCookies), READCOOKIES_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(ReadCookies), value.ToString());
-			OnPropertyChanged();
-		}
-	}
-
 	/*
 	/// <summary>
 	/// <see cref="HydrusClient.EndpointUrl"/>
@@ -182,6 +166,35 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
+	/// <summary>
+	/// Parse browser cookies automatically whenever necessary
+	/// </summary>
+	/// <remarks>
+	/// <see cref="EHentaiEngine"/>
+	/// </remarks>
+	public bool ReadCookies
+	{
+		get { return Configuration.ReadSetting(nameof(ReadCookies), READCOOKIES_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(ReadCookies), value.ToString());
+			OnPropertyChanged();
+		}
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	public string CookiesFile
+	{
+		get { return Configuration.ReadSetting(nameof(CookiesFile), STR_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(CookiesFile), value);
+			OnPropertyChanged();
+		}
+	}
+
 	public static readonly SearchConfig Default = new();
 
 	public SearchConfig()
@@ -234,15 +247,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
-
-	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
 	}
 
 	public override string ToString()
