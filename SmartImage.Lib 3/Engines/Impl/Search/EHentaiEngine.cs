@@ -45,12 +45,10 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		CookieContainer                = new() { },
 
 	};
-
+	
 	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
 
 	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
-
-	public CookieCollection Cookies { get; }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
@@ -58,7 +56,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 	public bool IsLoggedIn { get; private set; }
 
-	#region 
+	#region
 
 	private static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
 	public static readonly  Url EHentaiBase   = "https://e-hentai.org/";
@@ -74,7 +72,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	public EHentaiEngine() : base(EHentaiBase)
 	{
 		m_client   = new HttpClient(m_clientHandler);
-		Cookies    = new();
 		IsLoggedIn = false;
 	}
 
@@ -136,6 +133,15 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			return x.Host.Contains(HOST_EX);
 		});
 
+		/*var fcc = CookiesManager.Cookies.Where(x =>
+		{
+			if (!useEx) {
+				return x.Domain.Contains(HOST_EH);
+			}
+
+			return x.Domain.Contains(HOST_EX);
+		});*/
+
 		/*var content = new MultipartFormDataContent()
 		{
 			{ new StringContent("1"), "CookieDate" },
@@ -158,9 +164,11 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 						   .WithCookies(out var cj)
 						   .PostAsync(content);*/
 
-		foreach (var fc in fcc) {
-			Cookies.Add(fc.AsCookie());
+		foreach (var cookie in fcc) {
+			m_clientHandler.CookieContainer.Add(cookie.AsCookie());
 		}
+
+		// foreach (var fc in fcc) { }
 
 		var res2 = await GetSessionAsync();
 
@@ -211,8 +219,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
 
 		//todo
-		m_clientHandler.CookieContainer.Add(Cookies);
-
+		/*m_clientHandler.CookieContainer.Add(Cookies);
+		
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 
 		var req = new HttpRequestMessage(HttpMethod.Post, LookupUrl)
@@ -228,7 +236,23 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 		var content = await res.Content.ReadAsStringAsync(token);
 
-		sr.RawUrl = res.RequestMessage.RequestUri;
+		sr.RawUrl = res.RequestMessage.RequestUri;*/
+
+		var req = new FlurlRequest(LookupUrl)
+		{
+			Content = data, 
+			Headers =
+			{
+				{ "User-Agent", HttpUtilities.UserAgent }
+			},
+			Verb = HttpMethod.Post,
+			
+		};
+
+		var res     = await Client.SendAsync(req, cancellationToken: token);
+		var content = await res.GetStringAsync();
+		
+		sr.RawUrl = res.ResponseMessage.RequestMessage.RequestUri;
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			Debug.WriteLine($"cooldown", Name);
@@ -242,7 +266,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return ExHentaiBase.WithCookies(Cookies)
+		return ExHentaiBase.WithCookies(m_clientHandler.CookieContainer)
 			.WithHeaders(new
 			{
 				User_Agent = HttpUtilities.UserAgent
@@ -293,7 +317,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	{
 		m_client.Dispose();
 		m_clientHandler.Dispose();
-		Cookies.Clear();
+		
 		IsLoggedIn = false;
 	}
 

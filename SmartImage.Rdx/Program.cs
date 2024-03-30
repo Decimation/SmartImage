@@ -1,6 +1,7 @@
 ﻿using System.Configuration;
 using System.Diagnostics;
 using System.Reflection;
+using Flurl.Http;
 using Kantan.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
@@ -45,10 +46,6 @@ public static class Program
 
 #if DEBUG
 		AConsole.WriteLine(args.QuickJoin());
-
-		foreach (string? s in ConfigurationManager.AppSettings) {
-			AConsole.WriteLine(s);
-		}
 #endif
 
 		Grid grd = CliFormat.CreateInfoGrid();
@@ -69,7 +66,7 @@ public static class Program
 
 		try {
 			var x = await app.RunAsync(args);
-
+			
 			return x;
 		}
 		catch (Exception e) {

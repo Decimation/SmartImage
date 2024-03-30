@@ -1,12 +1,15 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: CookiesManager.cs
 
+using System.Diagnostics;
+using System.Net;
+using Flurl.Http;
 using Kantan.Net.Web;
 
 namespace SmartImage.Lib.Utilities;
 
 public static class CookiesManager
 {
-
+	[DebuggerHidden]
 	public static async Task<List<IBrowserCookie>> ReadCookiesAsync()
 	{
 		using var ff = new FirefoxCookieReader();
@@ -25,7 +28,7 @@ public static class CookiesManager
 
 		if (b) {
 			Cookies = await ReadCookiesAsync();
-
+			
 		}
 
 		return Cookies != null;

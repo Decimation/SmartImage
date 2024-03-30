@@ -2,5 +2,7 @@
 
 public interface IParseable<out TResult, in TSource>
 {
-    public static abstract TResult Parse(TSource t);
+
+	public static abstract TResult Parse(TSource t);
+
 }
