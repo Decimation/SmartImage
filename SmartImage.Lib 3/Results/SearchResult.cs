@@ -69,12 +69,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public List<SearchResultItem> Results { get; internal set; }
 
-	public IEnumerable<SearchResultItem> GetAllResults()
-	{
-		return Results;
-		// return Results.Union(Results.SelectMany(r => r.Children));
-	}
-
 	[CBN]
 	public string ErrorMessage { get; internal set; }
 
@@ -93,8 +87,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		return Results.OrderByDescending(r => r.Similarity)
 			.FirstOrDefault(r => Url.IsValid(r.Url));
 	}
-
-	public bool IsStatusSuccessful => Status.IsSuccessful();
 
 	internal SearchResult(BaseSearchEngine bse)
 	{
@@ -157,11 +149,13 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		return true;
 	}
 
-	public SearchResultItem GetRaw()
-		=> new SearchResultItem(this)
+	public SearchResultItem AsRawResultItem()
+	{
+		return new SearchResultItem(this)
 		{
 			IsRaw = true,
 			Url   = RawUrl
 		};
+	}
 
 }

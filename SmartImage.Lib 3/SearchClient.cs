@@ -168,11 +168,11 @@ public sealed class SearchClient : IDisposable
 			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 			//todo
 			try {
-				IOrderedEnumerable<SearchResultItem> rr = results.SelectMany(rr => rr.GetAllResults())
+				IOrderedEnumerable<SearchResultItem> rr = results.SelectMany(rr => rr.Results)
 					.OrderByDescending(rr => rr.Score);
 
 				if (Config.OpenRaw) {
-					OpenResult(results.MaxBy(x => x.GetAllResults().Sum(xy => xy.Score)));
+					OpenResult(results.MaxBy(x => x.Results.Sum(xy => xy.Score)));
 				}
 				else {
 					OpenResult(rr.OrderByDescending(x => x.Similarity)
@@ -182,7 +182,7 @@ public sealed class SearchClient : IDisposable
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
 
-				SearchResult result = results.FirstOrDefault(f => f.IsStatusSuccessful) ?? results.First();
+				SearchResult result = results.FirstOrDefault(f => f.Status.IsSuccessful()) ?? results.First();
 				OpenResult(result);
 			}
 		}

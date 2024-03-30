@@ -76,13 +76,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Query = SearchQuery.Null;
 	}
 
-	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
-	{
-		var r = base.Validate(context, settings);
-		return r;
-
-	}
-
 	private async void OnComplete(object sender, SearchResult[] searchResults)
 	{
 		// pt1.Increment(COMPLETE);
@@ -219,25 +212,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		await task;
 
-		var dt = new Grid();
-		dt.AddColumns(2);
-
-		var kv = new Dictionary<string, object>()
-		{
-			[R1.S_SearchEngines]   = Config.SearchEngines,
-			[R1.S_PriorityEngines] = Config.PriorityEngines,
-			[R1.S_AutoSearch]      = Config.AutoSearch,
-			[R1.S_ReadCookies]     = Config.ReadCookies,
-
-			["Input"] = Query
-		};
-
-		foreach (var o in kv) {
-			dt.AddRow(new Text(o.Key, CliFormat.Sty_Grid1),
-			          new Text(o.Value.ToString()));
-		}
-
-		AConsole.Write(dt);
+		var gr = CreateInfoGrid();
+		AConsole.Write(gr);
 
 		// AConsole.WriteLine($"Input: {Query}");
 
@@ -260,6 +236,30 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		act = await RunSimpleAsync();
 
 		return (int) act;
+
+	}
+
+	private Grid CreateInfoGrid()
+	{
+		var dt = new Grid();
+		dt.AddColumns(2);
+
+		var kv = new Dictionary<string, object>()
+		{
+			[R1.S_SearchEngines]   = Config.SearchEngines,
+			[R1.S_PriorityEngines] = Config.PriorityEngines,
+			[R1.S_AutoSearch]      = Config.AutoSearch,
+			[R1.S_ReadCookies]     = Config.ReadCookies,
+
+			["Input"] = Query
+		};
+
+		foreach (var o in kv) {
+			dt.AddRow(new Text(o.Key, CliFormat.Sty_Grid1),
+			          new Text(o.Value.ToString()));
+		}
+
+		return dt;
 	}
 
 	private async Task<int> RunSimpleAsync()
@@ -271,7 +271,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 				var cnt = (double) Client.Engines.Length;
 				var pt  = c.AddTask("Running search", maxValue: cnt);
 				pt.IsIndeterminate = true;
-				
+
 				// var p2  = c.AddTask("Engines", maxValue: cnt);
 
 				// Client.OnResult += OnResultComplete;
@@ -299,6 +299,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		await prog;
 
 		return EC_OK;
+	}
+
+	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
+	{
+		var r = base.Validate(context, settings);
+		return r;
+
 	}
 
 	public void Dispose()

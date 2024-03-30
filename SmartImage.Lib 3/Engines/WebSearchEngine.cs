@@ -13,6 +13,7 @@ namespace SmartImage.Lib.Engines;
 
 public abstract class WebSearchEngine : BaseSearchEngine
 {
+
 	protected WebSearchEngine([NN] string baseUrl) : base(baseUrl) { }
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
@@ -47,7 +48,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 			var sri = await ParseResultItem(node, res);
 
-			if (SearchResultItem.IsValid(sri)) {
+			if (sri is { }) {
 				res.Results.Add(sri);
 			}
 		}
@@ -55,7 +56,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Length}",
 		                nameof(GetResultAsync));
 
-		ret:
+	ret:
 		res.Update();
 		return res;
 	}
@@ -124,4 +125,5 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		return true;
 
 	}
+
 }

@@ -781,7 +781,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		var allResults = result.Results;
 
-		var sri1 = result.GetRaw();
+		var sri1 = result.AsRawResultItem();
 
 		CurrentQuery.Results.Add(new ResultItem(sri1, sri1.Root.Engine.Name));
 

@@ -220,15 +220,3 @@ public abstract class BaseImageHost
 	internal static readonly string GalleryDLPath = FileSystem.FindInPath(GALLERY_DL_EXE);
 
 }
-
-public class DanbooruImageHost : GenericImageHost
-{
-
-	public override Url Host => "danbooru.donmai.us";
-
-	public override bool Refine(string b)
-	{
-		return base.Refine(b);
-	}
-
-}

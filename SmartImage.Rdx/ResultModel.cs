@@ -97,7 +97,7 @@ public class ResultModel : IDisposable
 			Grid = CreateGrid();
 		}
 
-		var allRes = Result.GetAllResults();
+		var allRes = Result.Results;
 		int i      = 0;
 
 		var gr2 = new Grid();
@@ -115,20 +115,6 @@ public class ResultModel : IDisposable
 		}
 
 		return gr2;
-	}
-
-	internal IRenderable[][] GetRowsForFormat2(OutputFields format)
-	{
-		var allRes = Result.GetAllResults();
-		var ls     = new List<IRenderable[]>();
-		int j      = 0;
-
-		foreach (SearchResultItem item in allRes) {
-			var rg = GetRowsForFormat(item, j++, format);
-			ls.Add(rg);
-		}
-
-		return ls.ToArray();
 	}
 
 	internal static IRenderable[] GetRowsForFormat(SearchResultItem s, int i, OutputFields format)

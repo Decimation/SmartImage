@@ -11,9 +11,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Results;
 
-public sealed record SearchResultItem : IDisposable,
-										IComparable<SearchResultItem>, IComparable,
-										IValidator<SearchResultItem>
+public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
 {
 
 	private bool m_isScored;
@@ -136,6 +134,7 @@ public sealed record SearchResultItem : IDisposable,
 		Uni        = null;
 		Parent     = null;
 		IsRaw      = false;
+
 		// Children   = [];
 	}
 
@@ -159,15 +158,6 @@ public sealed record SearchResultItem : IDisposable,
 		return u;
 	}
 	*/
-
-	public static bool IsValid([CBN] SearchResultItem r)
-	{
-		return r switch
-		{
-			not { } => false,
-			_       => true
-		};
-	}
 
 	public void UpdateScore()
 	{
@@ -229,9 +219,10 @@ public sealed record SearchResultItem : IDisposable,
 
 			rg2[i] = new SearchResultItem(this)
 			{
-				Url      = rg[i],
+				Url = rg[i],
+
 				// Children = [],
-				Parent   = this,
+				Parent = this,
 			};
 
 			// Children.Add(sri);
@@ -298,8 +289,8 @@ public sealed record SearchResultItem : IDisposable,
 		if (ReferenceEquals(this, obj)) return 0;
 
 		return obj is SearchResultItem other
-				   ? CompareTo(other)
-				   : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
+			       ? CompareTo(other)
+			       : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
 	}
 
 	public static bool operator <(SearchResultItem left, SearchResultItem right)
