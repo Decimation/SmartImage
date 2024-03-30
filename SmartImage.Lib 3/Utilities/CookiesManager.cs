@@ -9,7 +9,7 @@ namespace SmartImage.Lib.Utilities;
 
 public static class CookiesManager
 {
-	[DebuggerHidden]
+	// [DebuggerHidden]
 	public static async Task<List<IBrowserCookie>> ReadCookiesAsync()
 	{
 		using var ff = new FirefoxCookieReader();

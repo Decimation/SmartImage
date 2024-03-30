@@ -24,8 +24,8 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 /// <summary>
 ///     <see cref="SearchEngineOptions.EHentai" />
-///     Handles both ExHentai and E-Hentai
 /// </summary>
+/// <remarks>Handles both ExHentai and E-Hentai</remarks>
 public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyChanged
 {
 
@@ -45,7 +45,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		CookieContainer                = new() { },
 
 	};
-	
+
 	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
 
 	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
@@ -69,10 +69,13 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 	static EHentaiEngine() { }
 
+	private readonly CookieCollection m_cookies;
+
 	public EHentaiEngine() : base(EHentaiBase)
 	{
 		m_client   = new HttpClient(m_clientHandler);
 		IsLoggedIn = false;
+		m_cookies  = new ();
 	}
 
 	/*
@@ -165,13 +168,20 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 						   .PostAsync(content);*/
 
 		foreach (var cookie in fcc) {
-			m_clientHandler.CookieContainer.Add(cookie.AsCookie());
+			m_cookies.Add(cookie.AsCookie());
 		}
 
 		// foreach (var fc in fcc) { }
 
-		var res2 = await GetSessionAsync();
+		var res2 = await GetSessionAsync(useEx);
 
+		/*var res2 = await EHentaiBase.WithCookies(m_clientHandler.CookieContainer)
+			.WithHeaders(new
+			{
+				User_Agent = HttpUtilities.UserAgent
+			})
+			.WithAutoRedirect(true)
+			.GetAsync();*/
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
@@ -219,8 +229,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
 
 		//todo
-		/*m_clientHandler.CookieContainer.Add(Cookies);
-		
+		m_clientHandler.CookieContainer.Add(m_cookies);
+
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 
 		var req = new HttpRequestMessage(HttpMethod.Post, LookupUrl)
@@ -236,23 +246,25 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 		var content = await res.Content.ReadAsStringAsync(token);
 
-		sr.RawUrl = res.RequestMessage.RequestUri;*/
+		sr.RawUrl = res.RequestMessage.RequestUri;
+		
+		// m_clientHandler.CookieContainer.Add(m_cookies);
 
-		var req = new FlurlRequest(LookupUrl)
+		/*var req = new FlurlRequest(LookupUrl)
 		{
-			Content = data, 
+			Content = data,
 			Headers =
 			{
 				{ "User-Agent", HttpUtilities.UserAgent }
 			},
 			Verb = HttpMethod.Post,
-			
+
 		};
 
 		var res     = await Client.SendAsync(req, cancellationToken: token);
 		var content = await res.GetStringAsync();
-		
-		sr.RawUrl = res.ResponseMessage.RequestMessage.RequestUri;
+
+		sr.RawUrl = res.ResponseMessage.RequestMessage.RequestUri;*/
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			Debug.WriteLine($"cooldown", Name);
@@ -264,9 +276,9 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		return await parser.ParseDocumentAsync(content, token);
 	}
 
-	private Task<IFlurlResponse> GetSessionAsync()
+	private Task<IFlurlResponse> GetSessionAsync(bool useEx = false)
 	{
-		return ExHentaiBase.WithCookies(m_clientHandler.CookieContainer)
+		return (useEx ? ExHentaiBase : EHentaiBase).WithCookies(m_cookies)
 			.WithHeaders(new
 			{
 				User_Agent = HttpUtilities.UserAgent
@@ -317,7 +329,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	{
 		m_client.Dispose();
 		m_clientHandler.Dispose();
-		
+
 		IsLoggedIn = false;
 	}
 
