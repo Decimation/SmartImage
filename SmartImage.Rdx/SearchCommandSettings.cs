@@ -41,20 +41,6 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	#region
 
-	[CommandOption("--interactive")]
-	[DefaultValue(false)]
-	[Description("Show interactive UI after search")]
-	public bool? Interactive { get; internal set; }
-
-	[CommandOption("--table-format")]
-	[DefaultValue(OutputFields.None)]
-	[Description("[Table] Fields to display")]
-	public OutputFields TableFormat { get; internal set; }
-
-	#endregion
-
-	#region
-
 	[CommandOption("-f|--output-format")]
 	[DefaultValue(OutputFileFormat.None)]
 	[Description("Output file format")]
