@@ -49,9 +49,14 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			               })
 			               .WithTimeout(Timeout)
 			               .AllowAnyHttpStatus()
+			               .OnError(e =>
+			               {
+				               e.ExceptionHandled = true;
+			               })
 			               .PostMultipartAsync(c =>
 			               {
 				               // var tmp = query.WriteToFile();
+				               query.Uni.Stream.TrySeek();
 
 				               c.AddFile("file", query.Uni.Stream, "file");
 				               query.Uni.Stream.TrySeek();
@@ -63,7 +68,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 				               // c.AddString("createLink", false)
 			               }, cancellationToken: token);
 
-		if (!response.ResponseMessage.IsSuccessStatusCode) {
+		if (response is { ResponseMessage: { IsSuccessStatusCode: false } }) {
 			var er = await response.GetJsonAsync<FluffleErrorCode>();
 			sr.ErrorMessage = $"{er.Message}: {er.Code}";
 			return sr;

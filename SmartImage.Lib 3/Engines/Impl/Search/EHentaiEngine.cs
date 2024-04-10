@@ -286,6 +286,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	{
 		return (useEx ? ExHentaiBase : EHentaiBase)
 			.WithCookies(m_cookies)
+			.WithTimeout(Timeout)
 			.WithHeaders(new
 			{
 				User_Agent = HttpUtilities.UserAgent
