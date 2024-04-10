@@ -23,17 +23,17 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
-		Timeout = TimeSpan.FromSeconds(10);
-		MaxSize = 5 * 1000 * 1000;
+		// Timeout = TimeSpan.FromSeconds(10);
+		MaxSize = 10000000;
 	}
 
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
-	public const int MAX_WIDTH = 1000;
+	// public const int MAX_WIDTH = 1000;
 
-	protected override bool VerifyQuery(SearchQuery q)
+	/*protected override bool VerifyQuery(SearchQuery q)
 	{
 		var  b = base.VerifyQuery(q);
 		bool b2;
@@ -44,14 +44,14 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 		}
 		if (ok) {
-			b2 = q.ImageInfo.Width < MAX_WIDTH;
+			// b2 = q.ImageInfo.Width < MAX_WIDTH;
 		}
 		else {
 			b2 = true;
 		}
 
 		return b && b2;
-	}
+	}*/
 
 	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
 	{

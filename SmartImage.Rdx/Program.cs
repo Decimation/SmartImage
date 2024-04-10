@@ -1,12 +1,8 @@
-﻿using System.Configuration;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Reflection;
-using Flurl.Http;
 using Kantan.Text;
-using Microsoft.Extensions.DependencyInjection;
 using Spectre.Console;
 using Spectre.Console.Cli;
-using Microsoft.Extensions.Hosting;
 using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli.Help;
 
@@ -34,7 +30,7 @@ public static class Program
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
 
-		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
+		var ff  = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		// ms?.Dispose();
 
@@ -55,12 +51,13 @@ public static class Program
 		// var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
 
 		var app = new CommandApp<SearchCommand>();
-
+		
 		app.Configure(c =>
 		{
 			c.PropagateExceptions();
 			var helpProvider = new HelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
+			
 			//...
 		});
 

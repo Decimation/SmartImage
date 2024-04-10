@@ -20,7 +20,7 @@ public abstract class BaseUploadEngine : IDisposable
 	/// <summary>
 	/// Max file size, in bytes
 	/// </summary>
-	public abstract long MaxSize { get; }
+	public abstract long? MaxSize { get; }
 
 	public abstract string Name { get; }
 
@@ -29,7 +29,7 @@ public abstract class BaseUploadEngine : IDisposable
 	protected BaseUploadEngine(string s)
 	{
 		EndpointUrl = s;
-		Timeout     = TimeSpan.FromSeconds(10);
+		Timeout     = TimeSpan.FromSeconds(15);
 	}
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();

@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using JetBrains.Annotations;
+using Novus.Streams;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 
@@ -37,6 +38,8 @@ public class ArchiveMoeEngine : WebSearchEngine
 		var b64  = Convert.ToBase64String(data).Replace("==", "");
 		b64 = Regex.Replace(b64, @"\//", "_");
 		b64 = Regex.Replace(b64, @"\+", "-");
+		
+		q.Uni.Stream.TrySeek();
 
 		return b64;
 	}

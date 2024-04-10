@@ -10,11 +10,14 @@ using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using Flurl.Http;
 using JetBrains.Annotations;
+using Microsoft;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.Streams;
 using Novus.Win32;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Model;
@@ -276,6 +279,32 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		}
 
 		return !HasFile;
+	}
+
+	[MustUseReturnValue]
+	public string WriteToFile(Action<IImageProcessingContext> operation = null, [CanBeNull] string fn = null)
+	{
+		if (!HasUni) {
+			throw new InvalidOperationException();
+		}
+
+		string t;
+		fn ??= Path.GetTempFileName();
+
+		var encoder = new PngEncoder();
+
+		using Image image = ISImage.Load(Uni.Stream);
+
+		if (operation != null) {
+			image.Mutate(operation);
+
+		}
+
+		image.Save(fn, encoder);
+		
+		Uni.Stream.TrySeek();
+
+		return fn;
 	}
 
 	[MustUseReturnValue]

@@ -14,7 +14,7 @@ using Kantan.Text;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using static Kantan.Diagnostics.LogCategories;
-using static SmartImage.Lib.Engines.Impl.Search.SauceNaoEngine.Constants;
+using static SmartImage.Lib.Engines.Impl.Search.SauceNaoEngine.SauceNaoConstants;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
@@ -33,21 +33,6 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 {
-
-	internal static class Constants
-	{
-
-		public const string Twitter = "Twitter:";
-		public const string TweetID = "Tweet ID:";
-
-		public const string Material = "Material:";
-		public const string Source   = "Source:";
-
-		public static readonly string[] Syn_Artists = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
-
-		public static readonly string[] Syn_Characters = ["Characters:"];
-
-	}
 
 	private const string URL_BASE = "https://saucenao.com/";
 
@@ -467,10 +452,25 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		return null;
 	}
 
+	internal static class SauceNaoConstants
+	{
+
+		public const string Twitter = "Twitter:";
+		public const string TweetID = "Tweet ID:";
+
+		public const string Material = "Material:";
+		public const string Source   = "Source:";
+
+		public static readonly string[] Syn_Artists = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
+
+		public static readonly string[] Syn_Characters = ["Characters:"];
+
+	}
+
 	/// <summary>
 	/// Origin result
 	/// </summary>
-	private sealed class SauceNaoDataResult : IResultConvertable
+	public sealed class SauceNaoDataResult : IResultConvertable
 	{
 
 		/// <summary>

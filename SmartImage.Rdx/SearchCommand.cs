@@ -65,6 +65,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	public SearchCommand()
 	{
 		Config = new SearchConfig();
+		// Config = (SearchConfig) cfg;
 		Client = new SearchClient(Config);
 
 		// Client.OnComplete += OnComplete;
@@ -95,6 +96,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		if (url == null) {
 			throw new SmartImageException(); //todo
 		}
+		
+		AConsole.WriteLine($"{url}");
 
 		p.Increment(COMPLETE / 2);
 	}
@@ -132,12 +135,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			var result = await Client.ResultChannel.Reader.ReadAsync();
 
 			m_results.Add(result);
-			pt.Description = $"{result.Engine.Name} {m_results.Count} / {cnt} []";
+			pt.Description = $"{result.Engine.Name} {m_results.Count} / {cnt}";
 			pt.Increment(1);
 			c.Refresh();
 		}
 
 		await search;
+		Debug.WriteLine($"{nameof(RunSearchAsync)} complete");
 
 		return;
 
@@ -189,13 +193,20 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		}
 
-		await run;
+		try {
+			await run;
+		}
+		catch (TaskCanceledException e) {
+			Debugger.Break();
+		}
 
 		return EC_OK;
 	}
 
 	private async Task WriteOutputFileAsync([CBN] object o)
 	{
+		Debug.WriteLine($"{nameof(WriteOutputFileAsync)}");
+
 		var fw = File.OpenWrite(m_scs.OutputFile);
 
 		var sw = new StreamWriter(fw)
@@ -239,6 +250,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	private async Task RunCompletionCommandAsync([CBN] object o)
 	{
+		Debug.WriteLine($"{nameof(RunCompletionCommandAsync)}");
 		var command = Cli.Wrap(m_scs.Command);
 
 		var cmdArgs      = m_scs.CommandArguments;

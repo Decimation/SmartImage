@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,7 +15,7 @@ public sealed class PomfEngine : BaseUploadEngine
 
 	public PomfEngine() : base("https://pomf.lain.la/upload.php") { }
 
-	public override long MaxSize => 1_000_000_000;
+	public override long? MaxSize => 1_000_000_000;
 
 	public override string Name => "Pomf";
 
@@ -27,10 +28,11 @@ public sealed class PomfEngine : BaseUploadEngine
 		var response = await Client.Request(EndpointUrl)
 			               .WithSettings(r =>
 			               {
-				               r.Timeout = TimeSpan.FromSeconds(10);
+				               r.Timeout = Timeout;
 			               }).OnError(r =>
 			               {
 				               r.ExceptionHandled = true;
+				               Trace.WriteLine($"{r.Exception.Message}: {file} {Name}");
 			               })
 			               .PostMultipartAsync(mp =>
 			               {
@@ -38,6 +40,7 @@ public sealed class PomfEngine : BaseUploadEngine
 			               }, cancellationToken: ct);
 
 		if (response == null) {
+			Debugger.Break();
 			return new UploadResult()
 			{
 				IsValid = false

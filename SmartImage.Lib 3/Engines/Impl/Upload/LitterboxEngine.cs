@@ -10,7 +10,7 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 {
 	public override string Name => "Litterbox";
 
-	public override long MaxSize => 1 * 1000 * 1000 * 1000;
+	public override long? MaxSize => 1_000_000_000L;
 
 	public static readonly BaseCatboxEngine Instance = new LitterboxEngine();
 

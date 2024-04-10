@@ -3,8 +3,6 @@
 
 // ReSharper disable UnusedMember.Global
 
-#region
-
 using System.Diagnostics;
 using System.Net;
 using AngleSharp.Dom;
@@ -17,8 +15,6 @@ using Kantan.Text;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
-#endregion
-
 // ReSharper disable StringLiteralTypo
 
 namespace SmartImage.Lib.Engines.Impl.Search;
@@ -30,14 +26,17 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
-	public IqdbEngine() : this(URL_QUERY) { }
+	public IqdbEngine() : this(URL_QUERY)
+	{
+	}
 
 	private IqdbEngine(string s) : this(s, URL_ENDPOINT) { }
 
 	protected IqdbEngine(string b, string e) : base(b, e)
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
-		Timeout = TimeSpan.FromSeconds(10);
+
+		// Timeout = TimeSpan.FromSeconds(10);
 	}
 
 	private SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
@@ -127,9 +126,10 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		return result;
 	}
 
-	private const int    MAX_FILE_SIZE = 0x800000;
-	private const string URL_ENDPOINT  = "https://iqdb.org/";
-	private const string URL_QUERY     = "https://iqdb.org/?url=";
+	private const int MAX_FILE_SIZE = 8_388_608;
+
+	private const string URL_ENDPOINT = "https://iqdb.org/";
+	private const string URL_QUERY    = "https://iqdb.org/?url=";
 
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
 	{
@@ -138,7 +138,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 			var response = await Client.Request(EndpointUrl)
 				               .OnError(r =>
 					               {
-						               Debug.WriteLine($"{r.Exception}");
+						               Debug.WriteLine($"{r.Exception}", Name);
 						               r.ExceptionHandled = true;
 					               }
 				               )

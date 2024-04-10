@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Flurl.Http;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -29,12 +30,8 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	public RepostSleuthEngine() : base(URL_QUERY, URL_API)
 	{
-		Timeout = TimeSpan.FromSeconds(4.5);
+		// Timeout = TimeSpan.FromSeconds(4.5);
 	}
-
-	#region
-
-	#endregion
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.RepostSleuth;
 
@@ -46,7 +43,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 	{
 		var sr = await base.GetResultAsync(query, token);
 
-		Root obj = null;
+		RepostSleuthResult obj = null;
 
 		try {
 			var s = await Client.Request(EndpointUrl).SetQueryParams(new
@@ -64,7 +61,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 				target_days_old      = 0
 			}).GetStringAsync(cancellationToken: token);
 
-			obj = JsonSerializer.Deserialize<Root>(s, JsOptions);
+			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
 		}
 		catch (JsonException e) {
 			sr.ErrorMessage = e.Message;
@@ -83,57 +80,62 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 			goto ret;
 		}
 
-		SearchResultItem Func(Match m)
-			=> new(sr)
-			{
-				Similarity = m.hamming_match_percent,
-				Artist     = m.post.author,
-				Site       = m.post.subreddit,
-				Url        = m.post.url,
-				Title      = m.post.title,
-				Time       = DateTimeOffset.FromUnixTimeSeconds((long) m.post.created_at).LocalDateTime
-			};
-
-		foreach (SearchResultItem sri in obj.matches.Select(Func)) {
-			sr.Results.Add(sri);
+		foreach (var rpm in obj.matches) {
+			sr.Results.Add(rpm.Convert(sr, out _));
 		}
 
-		ret:
+	ret:
 		sr.Update();
 		return sr;
+
 	}
 
 	#endregion
 
-	#region Objects
+	#region API Objects
 
-	private class ClosestMatch
+	private class RepostSleuthClosestMatch
 	{
 
-		public int    hamming_distance;
-		public double annoy_distance;
-		public double hamming_match_percent;
-		public int    hash_size;
-		public string searched_url;
-		public Post   post;
-		public int    title_similarity;
+		public int              hamming_distance;
+		public double           annoy_distance;
+		public double           hamming_match_percent;
+		public int              hash_size;
+		public string           searched_url;
+		public RepostSleuthPost post;
+		public int              title_similarity;
 
 	}
 
-	private class Match
+	private class RepostSleuthMatch : IResultConvertable
 	{
 
-		public int    hamming_distance;
-		public double annoy_distance;
-		public double hamming_match_percent;
-		public int    hash_size;
-		public string searched_url;
-		public Post   post;
-		public double title_similarity;
+		public int              hamming_distance;
+		public double           annoy_distance;
+		public double           hamming_match_percent;
+		public int              hash_size;
+		public string           searched_url;
+		public RepostSleuthPost post;
+		public double           title_similarity;
+
+		public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children)
+		{
+			children = [];
+
+			return new SearchResultItem(sr)
+			{
+				Similarity = hamming_match_percent,
+				Artist     = post.author,
+				Site       = post.subreddit,
+				Url        = post.url,
+				Title      = post.title,
+				Time       = DateTimeOffset.FromUnixTimeSeconds((long) post.created_at).LocalDateTime
+			};
+		}
 
 	}
 
-	private class Post
+	private class RepostSleuthPost
 	{
 
 		public string post_id;
@@ -148,21 +150,22 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		public string subreddit;
 
 	}
+
 	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-	private class Root
+	private class RepostSleuthResult
 	{
 
-		public object         meme_template;
-		public ClosestMatch   closest_match;
-		public string         checked_url;
-		public object         checked_post;
-		public SearchSettings search_settings;
-		public SearchTimes    search_times;
-		public List<Match>    matches;
+		public object                     meme_template;
+		public RepostSleuthClosestMatch   closest_match;
+		public string                     checked_url;
+		public object                     checked_post;
+		public RepostSleuthSearchSettings search_settings;
+		public RepostSleuthSearchTimes    search_times;
+		public List<RepostSleuthMatch>    matches;
 
 	}
 
-	private class SearchSettings
+	private class RepostSleuthSearchSettings
 	{
 
 		public bool   filter_crossposts;
@@ -184,7 +187,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	}
 
-	private class SearchTimes
+	private class RepostSleuthSearchTimes
 	{
 
 		public double pre_annoy_filter_time;

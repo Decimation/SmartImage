@@ -6,9 +6,12 @@ using System.Runtime.CompilerServices;
 using Kantan.Model;
 using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
+using Microsoft.Extensions.Configuration;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using Configuration = System.Configuration.Configuration;
+using ConfigurationManager = System.Configuration.ConfigurationManager;
+using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
 

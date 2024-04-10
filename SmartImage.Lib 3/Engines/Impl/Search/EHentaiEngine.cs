@@ -43,7 +43,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		CheckCertificateRevocationList = false,
 		UseCookies                     = true,
 		CookieContainer                = new() { },
-
+		
 	};
 
 	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
@@ -55,6 +55,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	protected override string NodesSelector => Serialization.S_EHentai;
 
 	public bool IsLoggedIn { get; private set; }
+
+	private readonly CookieCollection m_cookies;
 
 	#region
 
@@ -68,8 +70,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	#endregion
 
 	static EHentaiEngine() { }
-
-	private readonly CookieCollection m_cookies;
 
 	public EHentaiEngine() : base(EHentaiBase)
 	{
@@ -230,6 +230,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 		//todo
 		m_clientHandler.CookieContainer.Add(m_cookies);
+		
+		m_client.Timeout = Timeout;
 
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 
@@ -240,6 +242,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			{
 				{ "User-Agent", HttpUtilities.UserAgent }
 			},
+			
 		};
 
 		var res = await m_client.SendAsync(req, token);
@@ -278,7 +281,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 	private Task<IFlurlResponse> GetSessionAsync(bool useEx = false)
 	{
-		return (useEx ? ExHentaiBase : EHentaiBase).WithCookies(m_cookies)
+		return (useEx ? ExHentaiBase : EHentaiBase)
+			.WithCookies(m_cookies)
 			.WithHeaders(new
 			{
 				User_Agent = HttpUtilities.UserAgent

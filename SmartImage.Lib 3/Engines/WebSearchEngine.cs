@@ -5,6 +5,7 @@ using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
 using JetBrains.Annotations;
+using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
@@ -18,6 +19,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
+
 		var res = await base.GetResultAsync(query, token);
 
 		if (res.Status == SearchResultStatus.IllegalInput) {
@@ -94,7 +96,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		}
 		catch (Exception e) {
 			// return await Task.FromException<IDocument>(e);
-			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
+			Debug.WriteLine($"{this} :: {e.Message}", LogCategories.C_ERROR);
 
 			return null;
 		}

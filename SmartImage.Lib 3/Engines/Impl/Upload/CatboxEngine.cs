@@ -41,7 +41,7 @@ public sealed class CatboxEngine : BaseCatboxEngine
 
 	public override string Name => "Catbox";
 
-	public override long MaxSize => 1 * 1000 * 1000 * 200;
+	public override long? MaxSize => 200_000_000L;
 
 	public static readonly BaseCatboxEngine Instance = new CatboxEngine();
 

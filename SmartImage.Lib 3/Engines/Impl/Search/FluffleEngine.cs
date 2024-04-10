@@ -1,12 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Flurl.Http;
 using JetBrains.Annotations;
+using Novus.Streams;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 
@@ -21,48 +27,56 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 	public FluffleEngine() : base(URL_BASE, URL_ENDPOINT)
 	{
 		MaxSize = 4_194_304; // MiB
-	}
 
-	protected override bool VerifyQuery(SearchQuery q)
-	{
-		return base.VerifyQuery(q);
-	}
-
-	protected override SearchResultStatus Verify(SearchQuery q)
-	{
-		return base.Verify(q);
+		// Timeout = TimeSpan.FromSeconds(10);
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		var br = await base.GetResultAsync(query, token);
 
-		var s  = $"{R1.Name}/{SearchClient.Asm.GetName().Version} (by {R1.Author} on GitHub)";
+		var sr = await base.GetResultAsync(query, token);
 
-		var sr = await Client.Request(EndpointUrl, "search")
-			         .WithHeaders(new
-			         {
-				         User_Agent = s
-			         })
-			         .WithTimeout(Timeout)
-			         .PostMultipartAsync(c =>
-			         {
-				         c.AddFile("file", query.Uni.Stream, "file");
-				         c.AddString("includeNsfw", true.ToString());
-				         c.AddString("limit", 32.ToString());
-
-				         // c.AddString("platforms", null)
-				         // c.AddString("createLink", false)
-			         }, cancellationToken: token);
-		
-		var obj = await sr.GetJsonAsync<FluffleResponse>();
-
-		foreach (FluffleResult result in obj.Results) {
-			var item = result.Convert(br, out var c);
-			br.Results.Add(item);
+		if (sr.Status == SearchResultStatus.IllegalInput) {
+			return sr;
 		}
 
-		return br;
+		var hdr = $"{R1.Name}/{SearchClient.Asm.GetName().Version} (by {R1.Author} on GitHub)";
+
+		var response = await Client.Request(EndpointUrl, "search")
+			               .WithHeaders(new
+			               {
+				               User_Agent = hdr
+			               })
+			               .WithTimeout(Timeout)
+			               .AllowAnyHttpStatus()
+			               .PostMultipartAsync(c =>
+			               {
+				               // var tmp = query.WriteToFile();
+
+				               c.AddFile("file", query.Uni.Stream, "file");
+				               query.Uni.Stream.TrySeek();
+
+				               c.AddString("includeNsfw", true.ToString());
+				               c.AddString("limit", 32.ToString());
+
+				               // c.AddString("platforms", null)
+				               // c.AddString("createLink", false)
+			               }, cancellationToken: token);
+
+		if (!response.ResponseMessage.IsSuccessStatusCode) {
+			var er = await response.GetJsonAsync<FluffleErrorCode>();
+			sr.ErrorMessage = $"{er.Message}: {er.Code}";
+			return sr;
+		}
+
+		var fr = await response.GetJsonAsync<FluffleResponse>();
+
+		foreach (FluffleResult result in fr.Results) {
+			var item = result.Convert(sr, out var c);
+			sr.Results.Add(item);
+		}
+
+		return sr;
 	}
 
 	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
@@ -72,23 +86,40 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
 
-	public override void Dispose()
-	{
-	}
+	public override void Dispose() { }
+
+}
+
+#region API Objects
+
+public class FluffleErrorCode
+{
+
+	[JsonPropertyName("code")]
+	public string Code { get; set; }
+
+	[JsonPropertyName("message")]
+	public string Message { get; set; }
+
+	[JsonPropertyName("traceId")]
+	public string TraceId { get; set; }
 
 }
 
 public class FluffleResultCredit
 {
+
 	[JsonPropertyName("id")]
 	public int Id { get; set; }
 
 	[JsonPropertyName("name")]
 	public string Name { get; set; }
+
 }
 
 public class FluffleResult : IResultConvertable
 {
+
 	[JsonPropertyName("id")]
 	public int Id { get; set; }
 
@@ -122,9 +153,9 @@ public class FluffleResult : IResultConvertable
 			Artist     = Credits.FirstOrDefault()?.Name,
 			Url        = Location,
 			Similarity = Score * 100.0d,
-			Metadata = this,
-			Thumbnail = Thumbnail?.Location,
-			Site = Platform
+			Metadata   = this,
+			Thumbnail  = Thumbnail?.Location,
+			Site       = Platform
 		};
 		return sri;
 	}
@@ -133,6 +164,7 @@ public class FluffleResult : IResultConvertable
 
 public class FluffleResponse
 {
+
 	[JsonPropertyName("id")]
 	public string Id { get; set; }
 
@@ -141,19 +173,23 @@ public class FluffleResponse
 
 	[JsonPropertyName("results")]
 	public List<FluffleResult> Results { get; set; }
+
 }
 
 public class FluffleResultStats
 {
+
 	[JsonPropertyName("count")]
 	public int Count { get; set; }
 
 	[JsonPropertyName("elapsedMilliseconds")]
 	public int ElapsedMilliseconds { get; set; }
+
 }
 
 public class FluffleResultThumbnail
 {
+
 	[JsonPropertyName("width")]
 	public int Width { get; set; }
 
@@ -168,5 +204,7 @@ public class FluffleResultThumbnail
 
 	[JsonPropertyName("location")]
 	public string Location { get; set; }
+
 }
 
+#endregion

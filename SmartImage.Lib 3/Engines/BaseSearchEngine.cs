@@ -8,6 +8,7 @@ using Novus.Utilities;
 using SmartImage.Lib.Results;
 using AngleSharp.Dom;
 using Flurl.Http;
+using Kantan.Diagnostics;
 using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Utilities;
@@ -34,11 +35,13 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public bool IsAdvanced { get; protected set; }
 
-	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(3);
+	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(20);
+
+	public string? EndpointUrl { get; }
 
 	public TimeSpan Duration { get; protected set; }
 
-	protected long MaxSize { get; set; } = NA_SIZE;
+	protected long? MaxSize { get; set; }
 
 	protected virtual string[] ErrorBodyMessages { get; } = [];
 
@@ -47,6 +50,7 @@ public abstract class BaseSearchEngine : IDisposable
 		BaseUrl     = baseUrl;
 		IsAdvanced  = true;
 		EndpointUrl = endpoint;
+		MaxSize     = null;
 	}
 
 	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -83,49 +87,50 @@ public abstract class BaseSearchEngine : IDisposable
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
 
-	protected virtual bool VerifyQuery(SearchQuery q)
+	public virtual bool VerifyQuery(SearchQuery q)
 	{
 		if (q.Upload is not { }) {
 			return false;
 		}
 
-		bool b;
+		bool b = true;
 
-		if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {
+		if (MaxSize.HasValue) {
+			b = q.Size <= MaxSize;
+		}
+
+		/*if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {
 			b = true;
 		}
 
 		else {
 			b = q.Size <= MaxSize;
-		}
+		}*/
 
 		return b;
 	}
 
-	protected virtual SearchResultStatus Verify(SearchQuery q)
-	{
-		var b = VerifyQuery(q);
-
-		return !b ? SearchResultStatus.IllegalInput : SearchResultStatus.None;
-	}
-
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
+		var b = VerifyQuery(query);
 
-		var b = Verify(query);
+		/*
+		if (!b) {
+			// throw new SmartImageException($"{query}");
+			Debug.WriteLine($"{query} : Verification error", LogCategories.C_ERROR);
+		}
+		*/
 
-		/*if (!b) {
-			throw new SmartImageException($"{query}");
-		}*/
+		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
 		var res = new SearchResult(this)
 		{
 			RawUrl       = await GetRawUrlAsync(query),
-			Status       = b,
-			ErrorMessage = null
+			ErrorMessage = null,
+			Status = srs
 		};
 
-		Debug.WriteLine($"{Name} | {query} - {res.Status}", nameof(GetResultAsync));
+		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
 
 		return res;
 	}
@@ -142,7 +147,5 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public static readonly BaseSearchEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(InheritanceProperties.Subclass).ToArray();
-
-	public string? EndpointUrl { get; }
 
 }

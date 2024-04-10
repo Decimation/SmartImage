@@ -57,7 +57,7 @@ public sealed class SearchClient : IDisposable
 
 	static SearchClient()
 	{
-		Asm = Assembly.GetCallingAssembly();
+		Asm = Assembly.GetExecutingAssembly();
 
 	}
 
@@ -143,6 +143,7 @@ public sealed class SearchClient : IDisposable
 		while (tasks.Count > 0) {
 			if (token.IsCancellationRequested) {
 
+				Debugger.Break();
 				Logger.LogWarning("Cancellation requested");
 				ResultChannel.Writer.Complete();
 				IsComplete = true;
@@ -152,7 +153,7 @@ public sealed class SearchClient : IDisposable
 
 			Task<SearchResult> task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
-
+			// Debug.WriteLine($"{task.Id} {task.Status}");
 			SearchResult result = await task;
 
 			// ProcessResult(result);
@@ -267,26 +268,32 @@ public sealed class SearchClient : IDisposable
 
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler, CancellationToken token)
 	{
-
+		
 		List<Task<SearchResult>> tasks = Engines.Select(e =>
 		{
-			Debug.WriteLine($"Starting {e} for {query}");
+			try {
+				Debug.WriteLine($"Starting {e} for {query}");
 
-			Task<SearchResult> res = e.GetResultAsync(query, token: token)
-				.ContinueWith((r) =>
-				{
-					// ReSharper disable AsyncApostle.AsyncWait
+				Task<SearchResult> res = e.GetResultAsync(query, token: token)
+					.ContinueWith((r) =>
+					{
 
-					// Debug.Assert(r.IsCompleted);
+						// Debug.Assert(r.IsCompleted);
+						Debug.WriteLine($"{r.Id} :: {r.Status}");
+						ProcessResult(r.Result);
+						return r.Result;
 
-					ProcessResult(r.Result);
-					return r.Result;
+					}, token, TaskContinuationOptions.None, scheduler);
 
-					// ReSharper restore AsyncApostle.AsyncWait
+				return res;
+			}
+			catch (Exception exception) {
+				Debugger.Break();
+				Trace.WriteLine($"{exception}");
+				// return  Task.FromException(exception);
+			}
 
-				}, token, TaskContinuationOptions.None, scheduler);
-
-			return res;
+			return default;
 		}).ToList();
 
 		return tasks;
