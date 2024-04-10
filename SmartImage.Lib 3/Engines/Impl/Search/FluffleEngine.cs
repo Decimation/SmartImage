@@ -152,7 +152,7 @@ public class FluffleResult : IResultConvertable
 		{
 			Artist     = Credits.FirstOrDefault()?.Name,
 			Url        = Location,
-			Similarity = Score * 100.0d,
+			Similarity = Math.Round(Score * 100.0d, 2),
 			Metadata   = this,
 			Thumbnail  = Thumbnail?.Location,
 			Site       = Platform

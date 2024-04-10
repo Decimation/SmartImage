@@ -35,7 +35,7 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public bool IsAdvanced { get; protected set; }
 
-	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(20);
+	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
 	public string? EndpointUrl { get; }
 

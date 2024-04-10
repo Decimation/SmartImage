@@ -65,6 +65,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	public SearchCommand()
 	{
 		Config = new SearchConfig();
+
 		// Config = (SearchConfig) cfg;
 		Client = new SearchClient(Config);
 
@@ -78,7 +79,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Query = SearchQuery.Null;
 	}
 
-	#region 
+	#region
 
 	private async Task SetupSearchAsync(ProgressContext ctx)
 	{
@@ -96,8 +97,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		if (url == null) {
 			throw new SmartImageException(); //todo
 		}
-		
-		AConsole.WriteLine($"{url}");
 
 		p.Increment(COMPLETE / 2);
 	}
@@ -141,7 +140,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		}
 
 		await search;
-		Debug.WriteLine($"{nameof(RunSearchAsync)} complete");
+
+		// Debug.WriteLine($"{nameof(RunSearchAsync)} complete");
 
 		return;
 
@@ -183,7 +183,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 					break;
 
 				case OutputFileFormat.Delimited:
-					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token, TaskContinuationOptions.OnlyOnRanToCompletion,
+					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
+					                       TaskContinuationOptions.OnlyOnRanToCompletion,
 					                       TaskScheduler.Default);
 					break;
 
@@ -193,12 +194,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		}
 
-		try {
-			await run;
-		}
-		catch (TaskCanceledException e) {
-			Debugger.Break();
-		}
+		await run;
 
 		return EC_OK;
 	}
@@ -216,6 +212,18 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var res    = m_results.ToArray();
 		var fields = m_scs.OutputFields;
 
+		bool fName   = fields.HasFlag(OutputFields.Name);
+		var  fUrl    = fields.HasFlag(OutputFields.Url);
+		var  fSim    = fields.HasFlag(OutputFields.Similarity);
+		var  fArtist = fields.HasFlag(OutputFields.Artist);
+		var  fSite   = fields.HasFlag(OutputFields.Site);
+
+		var names = Enum.GetValues<OutputFields>()
+			.Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
+			.Select(f => Enum.GetName(f));
+
+		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
+
 		for (int i = 0; i < res.Length; i++) {
 			var sr = res[i];
 
@@ -224,16 +232,24 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 				var rg = new List<string>();
 
-				if (fields.HasFlag(OutputFields.Name)) {
+				if (fName) {
 					rg.Add($"{sr.Engine.Name} #{j + 1}");
 				}
 
-				if (fields.HasFlag(OutputFields.Url)) {
+				if (fUrl) {
 					rg.Add(sri.Url);
 				}
 
-				if (fields.HasFlag(OutputFields.Similarity)) {
+				if (fSim) {
 					rg.Add($"{sri.Similarity}");
+				}
+
+				if (fArtist) {
+					rg.Add($"{sri.Artist}");
+				}
+
+				if (fSite) {
+					rg.Add($"{sri.Site}");
 				}
 
 				// string[] items  = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
@@ -317,7 +333,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			[R1.S_AutoSearch]      = Config.AutoSearch,
 			[R1.S_ReadCookies]     = Config.ReadCookies,
 
-			["Input"] = Query
+			["Input"]  = Query,
+			["Upload"] = Query.Upload
 		};
 
 		foreach (var o in kv) {

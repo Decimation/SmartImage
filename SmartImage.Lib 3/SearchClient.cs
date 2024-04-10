@@ -279,7 +279,7 @@ public sealed class SearchClient : IDisposable
 					{
 
 						// Debug.Assert(r.IsCompleted);
-						Debug.WriteLine($"{r.Id} :: {r.Status}");
+						// Debug.WriteLine($"{r.Id} :: {r.Status}");
 						ProcessResult(r.Result);
 						return r.Result;
 

@@ -2,8 +2,6 @@
 // $File.CreatedYear-$File.CreatedMonth-26 @ 0:56
 
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Rdx.Shell;
@@ -56,9 +54,12 @@ internal sealed class SearchCommandSettings : CommandSettings
 	public string? OutputFileDelimiter { get; internal set; }
 
 	[CommandOption("--output-fields")]
-	[DefaultValue(OutputFields.Default)]
+	[DefaultValue(OUTPUT_FIELDS_DEFAULT)]
 	[Description("Output fields")]
 	public OutputFields OutputFields { get; internal set; }
+
+	public const OutputFields OUTPUT_FIELDS_DEFAULT =
+		OutputFields.Name | OutputFields.Similarity | OutputFields.Url;
 
 	#endregion
 
@@ -79,7 +80,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 		var result = base.Validate();
 
 		if (!SearchQuery.IsValidSourceType(Query)) {
-			return ValidationResult.Error($"Invalid query");
+			return ValidationResult.Error("Invalid query");
 		}
 
 		var  hasOutputFile       = !String.IsNullOrWhiteSpace(OutputFile);
@@ -87,7 +88,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 		bool isOutputFormatDelim = OutputFileFormat == OutputFileFormat.Delimited;
 
 		if (!isOutputFormatDelim && hasOutputFile) {
-			OutputFileFormat        = OutputFileFormat.Delimited;
+			OutputFileFormat    = OutputFileFormat.Delimited;
 			isOutputFormatDelim = true;
 		}
 
@@ -107,4 +108,3 @@ internal sealed class SearchCommandSettings : CommandSettings
 	}
 
 }
-

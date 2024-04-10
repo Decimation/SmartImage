@@ -15,13 +15,16 @@ namespace SmartImage.Rdx.Shell;
 [Flags]
 public enum OutputFields
 {
-	None       = 0,
+
+	None = 0,
 
 	Name       = 1 << 0,
 	Url        = 1 << 1,
 	Similarity = 1 << 2,
+	Artist     = 1 << 3,
+	Site       = 1 << 4,
 
-	Default = Name | Url | Similarity
+	// Default = Name | Url | Similarity
 
 }
 
