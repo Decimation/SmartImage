@@ -70,6 +70,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Decimation.
+        /// </summary>
+        internal static string Author2 {
+            get {
+                return ResourceManager.GetString("Author2", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SmartImage.
         /// </summary>
         internal static string Name {

@@ -222,8 +222,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 				              $"[{TimeSpan.FromSeconds(from):g} - {TimeSpan.FromSeconds(to):g}]",
 			};
 
-			result.Metadata.video = video;
-			result.Metadata.image = image;
+			// result.Metadata.video = video;
+			// result.Metadata.image = image;
 
 			if (result.Similarity < FILTER_THRESHOLD) {
 				/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
@@ -231,7 +231,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 												 $"< {FILTER_THRESHOLD / 100:P})");*/
 				//todo
 
-				result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
+				// result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
 			}
 
 			return result;

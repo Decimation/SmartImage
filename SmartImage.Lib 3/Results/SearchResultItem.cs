@@ -92,7 +92,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	/// <summary>
 	///     Additional metadata.
 	/// </summary>
-	public dynamic Metadata { get; internal set; }
+	public object Metadata { get; internal set; }
 
 	public int Score { get; private set; }
 
@@ -129,7 +129,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	internal SearchResultItem(SearchResult r)
 	{
 		Root       = r;
-		Metadata   = new ExpandoObject();
+		Metadata   = null;
 		m_isScored = false;
 		Uni        = null;
 		Parent     = null;

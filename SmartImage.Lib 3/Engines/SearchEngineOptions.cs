@@ -11,6 +11,7 @@ namespace SmartImage.Lib.Engines;
 [Flags]
 public enum SearchEngineOptions
 {
+
 	/// <summary>
 	///     No engines
 	/// </summary>
@@ -86,13 +87,22 @@ public enum SearchEngineOptions
 	/// </summary>
 	ArchiveMoe = 1 << 13,
 
-	Iqdb3D = 1<<14,
+	/// <summary>
+	/// <see cref="Iqdb3DEngine"/>
+	/// </summary>
+	Iqdb3D = 1 << 14,
+
+	/// <summary>
+	/// <see cref="FluffleEngine"/>
+	/// </summary>
+	Fluffle = 1 << 15,
 
 	/// <summary>
 	///     All engines
 	/// </summary>
-	All = SauceNao | ImgOps | GoogleImages | TinEye | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing |
-	      Ascii2D | RepostSleuth | EHentai | ArchiveMoe | Iqdb3D,
+	All = SauceNao | ImgOps       | GoogleImages | TinEye     | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing |
+	      Ascii2D  | RepostSleuth | EHentai      | ArchiveMoe | Iqdb3D | Fluffle,
 
 	Artwork = SauceNao | Iqdb | Ascii2D | EHentai,
+
 }

@@ -4,6 +4,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Threading.Channels;
@@ -44,6 +45,8 @@ public sealed class SearchClient : IDisposable
 
 	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
 
+	internal static readonly Assembly Asm;
+
 	public SearchClient(SearchConfig cfg)
 	{
 		Config        = cfg;
@@ -52,7 +55,11 @@ public sealed class SearchClient : IDisposable
 		LoadEngines();
 	}
 
-	static SearchClient() { }
+	static SearchClient()
+	{
+		Asm = Assembly.GetCallingAssembly();
+
+	}
 
 	[ModuleInitializer]
 	public static void Init()
@@ -73,7 +80,6 @@ public sealed class SearchClient : IDisposable
 		});*/
 
 		Logger.LogInformation("Init");
-
 	}
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);

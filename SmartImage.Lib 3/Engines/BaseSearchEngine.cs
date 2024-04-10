@@ -1,4 +1,5 @@
-﻿global using Url = Flurl.Url;
+﻿global using R1 = SmartImage.Lib.Resources;
+global using Url = Flurl.Url;
 using System.Diagnostics;
 using System.Drawing;
 using System.Json;

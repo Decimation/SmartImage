@@ -183,4 +183,7 @@
   <data name="S_ReadCookies" xml:space="preserve">
     <value>Read cookies</value>
   </data>
+  <data name="Author2" xml:space="preserve">
+    <value>Decimation</value>
+  </data>
 </root>
