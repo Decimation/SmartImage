@@ -34,7 +34,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	[CommandOption("--read-cookies")]
 	[DefaultValue(SearchConfig.READCOOKIES_DEFAULT)]
-	[Description("Read cookies")]
+	[Description("Read cookies from browser")]
 	public bool? ReadCookies { get; internal set; }
 
 	#region
@@ -45,7 +45,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 	public OutputFileFormat OutputFileFormat { get; internal set; }
 
 	[CommandOption("-o|--output-file")]
-	[Description("Output file")]
+	[Description("Output file name")]
 	public string? OutputFile { get; internal set; }
 
 	[CommandOption("-d|--output-delim")]
@@ -66,9 +66,11 @@ internal sealed class SearchCommandSettings : CommandSettings
 	#region
 
 	[CommandOption("-x|--command-exe")]
+	[Description($"Command/executable to invoke upon completion")]
 	public string? Command { get; internal set; }
 
 	[CommandOption("-c|--command-args")]
+	[Description($"Arguments to pass to command")]
 	public string? CommandArguments { get; internal set; }
 
 	#endregion

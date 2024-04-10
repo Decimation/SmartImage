@@ -108,6 +108,9 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			Debug.WriteLine($"{Name} logged in - {ok}", nameof(ApplyAsync));
 
 		}
+		else {
+			Debug.WriteLine("Not logging in");
+		}
 	}
 
 	/*

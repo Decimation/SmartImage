@@ -4,7 +4,6 @@ using Kantan.Text;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
-using Spectre.Console.Cli.Help;
 
 namespace SmartImage.Rdx;
 
@@ -23,15 +22,12 @@ namespace SmartImage.Rdx;
 public static class Program
 {
 
-	private static readonly Assembly s_assembly = Assembly.GetExecutingAssembly();
-	private static readonly string   s_version  = s_assembly.GetName().Version.ToString();
-
 	public static async Task<int> Main(string[] args)
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
 
-		var ff  = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
+		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		// ms?.Dispose();
 
@@ -52,24 +48,38 @@ public static class Program
 		// var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
 
 		var app = new CommandApp<SearchCommand>();
-		
+
 		app.Configure(c =>
 		{
 			c.PropagateExceptions();
-			var helpProvider = new HelpProvider(c.Settings);
+			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
-			
+
+			/*
+			c.SetExceptionHandler((x, i) =>
+			{
+				AConsole.WriteLine($"{x}");
+				Console.ReadKey();
+
+			});
+			*/
+
 			//...
 		});
 
 		try {
 			var x = await app.RunAsync(args);
-			
+
+			if (x != SearchCommand.EC_OK) {
+				AConsole.Confirm("Press any key to continue");
+			}
+
+			// Console.ReadLine();
+
 			return x;
 		}
 		catch (Exception e) {
 			AConsole.WriteException(e);
-
 			return SearchCommand.EC_ERROR;
 		}
 	}

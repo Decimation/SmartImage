@@ -1,4 +1,5 @@
-﻿using SmartImage.Lib.Engines;
+﻿using System.Reflection;
+using SmartImage.Lib.Engines;
 using Spectre.Console;
 
 namespace SmartImage.Rdx.Shell;
@@ -41,9 +42,11 @@ internal static partial class CliFormat
 
 	internal static readonly Capabilities ProfileCapabilities = AConsole.Profile.Capabilities;
 
-	internal static readonly bool IsLinux   = OperatingSystem.IsLinux();
-	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
-	internal static readonly bool IsMacOs   = OperatingSystem.IsMacOS();
+	internal static readonly bool     IsLinux    = OperatingSystem.IsLinux();
+	internal static readonly bool     IsWindows  = OperatingSystem.IsWindows();
+	internal static readonly bool     IsMacOs    = OperatingSystem.IsMacOS();
+	private static readonly  Assembly s_assembly = Assembly.GetExecutingAssembly();
+	private static readonly  string   s_version  = s_assembly.GetName().Version.ToString();
 
 	public static Grid CreateInfoGrid()
 	{
@@ -57,7 +60,8 @@ internal static partial class CliFormat
 			["Terminal ANSI"]    = ProfileCapabilities.Ansi,
 			["Terminal colors"]  = ProfileCapabilities.ColorSystem,
 			["Terminal links"]   = ProfileCapabilities.Links,
-			["Terminal Unicode"] = ProfileCapabilities.Unicode
+			["Terminal Unicode"] = ProfileCapabilities.Unicode,
+			["Version"]          = $"{s_version}"
 		};
 
 		foreach ((string? key, var value) in dict) {
