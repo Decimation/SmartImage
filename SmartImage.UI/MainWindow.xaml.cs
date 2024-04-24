@@ -66,6 +66,7 @@ using Windows.Media.Protection.PlayReady;
 using Brush = System.Drawing.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using System.Buffers;
+using DynamicData;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -769,23 +770,24 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Pb_Preview.Value = (m_cntResults / (double) cle) * 100;
 
 		lock (m_lock) {
-			AddResult(result);
+			ConvertAddResultItems(result);
 		}
 	}
 
-	private void AddResult(SearchResult result)
+	private static IEnumerable<ResultItem> Convert(SearchResult result, bool addRaw = true)
 	{
-		int i = 0;
-
+		int i          = 0;
+		var rg         = new List<ResultItem>();
 		var allResults = result.Results;
 
-		var sri1 = result.AsRawResultItem();
+		if (addRaw) {
+			var sriRaw = result.AsRawResultItem();
+			var riRaw  = new ResultItem(sriRaw, sriRaw.Root.Engine.Name);
+			rg.Add(riRaw);
 
-		CurrentQuery.Results.Add(new ResultItem(sri1, sri1.Root.Engine.Name));
+		}
 
-		for (int l = 0; l < allResults.Count; l++) {
-			SearchResultItem sri = allResults[l];
-
+		foreach (SearchResultItem sri in allResults) {
 			// todo
 			var isSister = sri.Parent != null;
 
@@ -794,18 +796,16 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				IsSister = isSister
 			};
 
-			CurrentQuery.Results.Add(resultItem);
-
-			/*foreach (var ssri in sri.Children) {
-				var srir = new ResultItem(ssri, $"{ssri.Root.Engine.Name} #{i}.{++j}")
-				{
-					IsSister = true
-				};
-				CurrentQuery.Results.Add(srir);
-
-			}*/
+			rg.Add(resultItem);
 		}
 
+		return rg;
+
+	}
+
+	private void ConvertAddResultItems(SearchResult result)
+	{
+		CurrentQuery.Results.AddRange(Convert(result));
 	}
 
 	#endregion
@@ -1212,13 +1212,16 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task RetryEngineAsync(ResultItem ri)
 	{
+		Lv_Results.IsEnabled = false;
+
 		var eng = ri.Result.Root.Engine;
+
 		Tb_Status.Text = $"Retrying {eng.Name}";
 		var idx = FindResultIndex(r => r.Result.Root.Engine == eng);
 		var fi  = idx;
 
 		Trace.Assert(HasCurrentQuery);
-
+		
 		for (int i = CurrentQuery.Results.Count - 1; i >= 0; i--) {
 			if (CurrentQuery.Results[i].Result.Root.Engine == eng) {
 				CurrentQuery.Results.RemoveAt(i);
@@ -1227,7 +1230,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Pb_Preview.IsIndeterminate = true;
 		var result = await eng.GetResultAsync(Query, m_cts.Token);
-		AddResult(result);
+		ConvertAddResultItems(result);
 		Tb_Status.Text             = $"{eng.Name} → {result.Results.Count}";
 		Pb_Preview.IsIndeterminate = false;
 
@@ -1240,7 +1243,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 		}
 
-		Lv_Results.ScrollIntoView(CurrentQuery.Results[fi]);
+		// Lv_Results.ScrollIntoView(CurrentQuery.Results[fi]);
+		Lv_Results.IsEnabled = true;
 	}
 
 	#endregion
@@ -1571,23 +1575,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 	*/
-
-	private ResultItem? FindParent(ResultItem r)
-	{
-		foreach (ResultItem item in CurrentQuery.Results) {
-			/*
-			if (item.Result.Children.Contains(r.Result)) {
-				return item;
-			}
-		*/
-
-			if (item.Result.Parent == r.Result) {
-				return item;
-			}
-		}
-
-		return null;
-	}
 
 	private void SetRenderMode()
 	{

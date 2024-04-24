@@ -108,7 +108,8 @@ public abstract class BaseUploadEngine : IDisposable
 
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response, CancellationToken ct = default)
+	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
+	                                                              CancellationToken ct = default)
 	{
 		string url = null;
 		bool   ok;
@@ -172,8 +173,18 @@ public abstract class BaseUploadEngine : IDisposable
 		}
 	}
 
+	/*
 	public static readonly BaseUploadEngine[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(InheritanceProperties.Subclass).ToArray();
+		*/
+
+	public static readonly BaseUploadEngine[] All =
+	[
+		CatboxEngine.Instance,
+		LitterboxEngine.Instance,
+		PomfEngine.Instance,
+
+	];
 
 /*public async Task<bool> IsAlive()
 {

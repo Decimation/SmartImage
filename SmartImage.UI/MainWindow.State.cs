@@ -67,6 +67,22 @@ public partial class MainWindow
 		return CurrentQuery.Results.FirstOrDefault(t => f(t));
 
 	}
+	private ResultItem? FindParent(ResultItem r)
+	{
+		foreach (ResultItem item in CurrentQuery.Results) {
+			/*
+			if (item.Result.Children.Contains(r.Result)) {
+				return item;
+			}
+		*/
+
+			if (item.Result.Parent == r.Result) {
+				return item;
+			}
+		}
+
+		return null;
+	}
 
 	private int FindResultIndex(Predicate<ResultItem> f)
 	{

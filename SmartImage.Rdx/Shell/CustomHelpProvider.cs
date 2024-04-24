@@ -5,14 +5,13 @@ using Spectre.Console.Cli;
 using Spectre.Console.Cli.Help;
 using Spectre.Console.Rendering;
 
-namespace SmartImage.Rdx;
+namespace SmartImage.Rdx.Shell;
 
 internal class CustomHelpProvider : HelpProvider
 {
+
 	public CustomHelpProvider(ICommandAppSettings settings)
-		: base(settings)
-	{
-	}
+		: base(settings) { }
 
 	public override IEnumerable<IRenderable> GetUsage(ICommandModel model, ICommandInfo? command)
 	{
@@ -51,4 +50,5 @@ internal class CustomHelpProvider : HelpProvider
 
 		return [Text.Empty];
 	}*/
+
 }
