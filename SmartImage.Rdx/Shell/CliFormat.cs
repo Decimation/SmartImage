@@ -2,7 +2,6 @@
 global using DTable = System.Data.DataTable;
 using System.Data;
 using Kantan.Utilities;
-using SmartImage.Lib.Engines;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
@@ -90,15 +89,6 @@ internal static partial class CliFormat
 		table.AddColumns(col);
 
 		return table;
-	}
-
-	internal static Color GetEngineColor(SearchEngineOptions s)
-	{
-		if (!EngineColors.TryGetValue(s, out var c)) {
-			c = Color.NavajoWhite1;
-		}
-
-		return c;
 	}
 
 	public static STable DTableToSTable(DTable dt)

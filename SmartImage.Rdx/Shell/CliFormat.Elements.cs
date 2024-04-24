@@ -25,21 +25,21 @@ internal static partial class CliFormat
 
 	static CliFormat() { }
 
-	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Color> EngineColors =
-		new Dictionary<SearchEngineOptions, Color>
+	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Style> EngineStyles =
+		new Dictionary<SearchEngineOptions, Style>
 		{
-			{ SearchEngineOptions.SauceNao, Color.Green },
-			{ SearchEngineOptions.EHentai, Color.Purple },
-			{ SearchEngineOptions.Iqdb, Color.LightGreen },
-			{ SearchEngineOptions.Ascii2D, Color.Cyan1 },
-			{ SearchEngineOptions.TraceMoe, Color.DodgerBlue1 },
-			{ SearchEngineOptions.RepostSleuth, Color.RosyBrown },
-			{ SearchEngineOptions.ArchiveMoe, Color.Wheat1 },
-			{ SearchEngineOptions.Yandex, Color.Orange1 },
-			{ SearchEngineOptions.Iqdb3D, Color.SeaGreen1 },
+			{ SearchEngineOptions.SauceNao, new Style(Color.Green) },
+			{ SearchEngineOptions.EHentai, new Style(Color.Purple) },
+			{ SearchEngineOptions.Iqdb, new Style(Color.LightGreen) },
+			{ SearchEngineOptions.Ascii2D, new Style(Color.Cyan1) },
+			{ SearchEngineOptions.TraceMoe, new Style(Color.DodgerBlue1) },
+			{ SearchEngineOptions.RepostSleuth, new Style(Color.RosyBrown) },
+			{ SearchEngineOptions.ArchiveMoe, new Style(Color.Wheat1) },
+			{ SearchEngineOptions.Yandex, new Style(Color.Orange1) },
+			{ SearchEngineOptions.Iqdb3D, new Style(Color.SeaGreen1) },
+			{ SearchEngineOptions.Fluffle, new Style(Color.LightYellow3) },
 
 		};
-
 	internal static readonly Capabilities ProfileCapabilities = AConsole.Profile.Capabilities;
 
 	internal static readonly bool     IsLinux    = OperatingSystem.IsLinux();

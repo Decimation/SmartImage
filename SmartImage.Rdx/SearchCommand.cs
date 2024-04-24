@@ -137,6 +137,12 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			pt.Description = $"{result.Engine.Name} {m_results.Count} / {cnt}";
 			pt.Increment(1);
 			c.Refresh();
+
+			if (m_scs.HideResultTable.HasValue && !m_scs.HideResultTable.Value) {
+				Table tb = CreateResultTable(result);
+				AConsole.Write(tb);
+
+			}
 		}
 
 		await search;
@@ -314,11 +320,33 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	#endregion
 
-	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
+	private Table CreateResultTable(SearchResult result)
 	{
-		var r = base.Validate(context, settings);
-		return r;
+		var col = new TableColumn[]
+		{
+			new("Result"),
+			new("URL"),
+			new("Similarity")
+		};
 
+		var tb = new Table()
+		{
+			Caption = new TableTitle(result.Engine.Name),
+			Border  = TableBorder.Simple,
+			ShowHeaders = true,
+		};
+
+		tb.AddColumns(col);
+
+		for (int i = 0; i < result.Results.Count; i++) {
+			var res  = result.Results[i];
+			var name = new Text($"{result.Engine.Name} #{i}", CliFormat.EngineStyles[result.Engine.EngineOption]);
+			var url  = new Text($"{res.Url}");
+			var sim  = new Text($"{res.Similarity}");
+			tb.AddRow(name, url, sim);
+		}
+
+		return tb;
 	}
 
 	private Grid CreateInfoGrid()
@@ -343,6 +371,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		}
 
 		return dt;
+	}
+
+	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
+	{
+		var r = base.Validate(context, settings);
+		return r;
+
 	}
 
 	public void Dispose()

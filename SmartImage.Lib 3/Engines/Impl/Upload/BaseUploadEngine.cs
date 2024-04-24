@@ -34,8 +34,6 @@ public abstract class BaseUploadEngine : IDisposable
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
-	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
-
 	protected bool EnsureResponse { get; set; }
 
 	public TimeSpan Timeout { get; set; }
@@ -107,6 +105,8 @@ public abstract class BaseUploadEngine : IDisposable
 		return u;
 	}
 	*/
+
+	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
 	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
