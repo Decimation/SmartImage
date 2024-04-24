@@ -144,12 +144,12 @@ public partial class MainWindow
 			return;
 		}
 
-		if (Query.Uni.IsFile) {
+		if (Query.IsFile) {
 			FileSystem.ExploreFile(s);
 
 			// FileSystem.Open(s);
 		}
-		else if (Query.Uni.IsUri) {
+		else if (Query.IsUri) {
 			FileSystem.Open(s);
 
 		}

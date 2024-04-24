@@ -96,7 +96,15 @@ public class Benchmark2
 public class Benchmark3
 {
 	public string     s;
-
+/*
+ *
+ *
+ *| Method | Mean     | Error    | StdDev   | Gen0   | Gen1   | Allocated |
+   |------- |---------:|---------:|---------:|-------:|-------:|----------:|
+   | Test1  | 67.85 us | 1.357 us | 2.304 us | 0.3662 | 0.2441 |   6.43 KB |
+   | Test2  | 53.27 us | 0.996 us | 1.066 us | 0.3052 | 0.2441 |   4.91 KB |
+ *
+ */
 	[GlobalSetup]
 	public void GlobalSetup()
 	{
@@ -111,10 +119,10 @@ public class Benchmark3
 		return await SearchQuery.TryCreateAsync(s);
 	}
 
-	[Benchmark]
+	/*[Benchmark]
 	public async Task<SearchQuery2> Test2()
 	{
 		return await SearchQuery2.Decode(s);
-	}
+	}*/
 
 }

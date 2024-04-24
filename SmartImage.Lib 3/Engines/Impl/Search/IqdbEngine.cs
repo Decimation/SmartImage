@@ -146,11 +146,11 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 				               .PostMultipartAsync(m =>
 				               {
 					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-					               m.AddString("url", query.Uni.IsUri ? query.Uni.Value.ToString() : String.Empty);
+					               m.AddString("url", query.IsUri ? query.Value.ToString() : String.Empty);
 
-					               if (query.Uni.IsUri) { }
-					               else if (query.Uni.IsFile) {
-						               m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.jpg");
+					               if (query.IsUri) { }
+					               else if (query.IsFile) {
+						               m.AddFile("file", query.Value.ToString(), fileName: "image.jpg");
 					               }
 
 					               return;

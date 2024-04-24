@@ -138,7 +138,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public bool IsComplete => Results.Any() && HasQuery && Query.IsUploaded;
 
-	public bool CanDelete => HasQuery && Query?.Uni is { IsFile: true };
+	public bool CanDelete => HasQuery && Query is { IsFile: true };
 
 	public bool CanSearch => !Results.Any() && HasInitQuery;
 
@@ -349,9 +349,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		image.EndInit();
 
-		Trace.Assert(Query.Uni != null);
+		Trace.Assert(Query != null);
 
-		if (Query.Uni.IsUri) {
+		if (Query.IsUri) {
 			image.DownloadCompleted += (sender, args) =>
 			{
 				UpdateProperties();
