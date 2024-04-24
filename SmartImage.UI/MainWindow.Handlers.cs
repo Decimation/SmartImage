@@ -556,7 +556,7 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 				break;
 
 			case Key.E when ctrl:
-				Dispatcher.InvokeAsync(() => EnqueueResultAsync( CurrentResult));
+				Dispatcher.InvokeAsync(() => EnqueueResultAsync(CurrentResult));
 
 				break;
 
@@ -608,35 +608,20 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	}
 
-	private void Rb_UploadEngine_Catbox_Checked(object sender, RoutedEventArgs e)
+	private void Cm_UploadEngine_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
-		if (!e.IsLoaded() || e.OriginalSource != sender) {
-			return;
+		var text = (sender as ComboBox).SelectedItem as string;
+
+		foreach (BaseUploadEngine engine in BaseUploadEngine.All) {
+			if (engine.Name == text) {
+				BaseUploadEngine.Default = engine;
+				Debug.WriteLine($"Upload engine set to {engine}");
+				break;
+
+			}
 		}
 
-		BaseUploadEngine.Default = CatboxEngine.Instance;
-		e.Handled                = true;
-	}
-
-	private void Rb_UploadEngine_Litterbox_Checked(object sender, RoutedEventArgs e)
-	{
-		if (!e.IsLoaded() || e.OriginalSource != sender) {
-			return;
-		}
-
-		BaseUploadEngine.Default = LitterboxEngine.Instance;
-		e.Handled                = true;
-	}
-
-	private void Rb_UploadEngine_Pomf_Checked(object sender, RoutedEventArgs e)
-	{
-		if (!e.IsLoaded() || e.OriginalSource != sender) {
-			return;
-		}
-
-		BaseUploadEngine.Default = PomfEngine.Instance;
-		e.Handled                = true;
-
+		e.Handled = true;
 	}
 
 	private void Tb_HyEndpoint_OnTextChanged(object sender, TextChangedEventArgs e)

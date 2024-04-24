@@ -150,6 +150,11 @@
                     <Setter Property="Background" Value="MediumSeaGreen" />
                     <Setter Property="Foreground" Value="Black" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="Fluffle">
+                    <Setter Property="Background" Value="SandyBrown" />
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
+
                 <DataTrigger Binding="{Binding Result.Root.Engine.IsAdvanced}" Value="False">
                     <!-- <Setter Property="FontStyle" Value="Italic" /> -->
                     <!-- <Setter Property="Opacity" Value="0.6" /> -->
@@ -817,27 +822,27 @@
 
                     <CheckBox x:Name="Cb_Clipboard" Content="Clipboard"
                               IsChecked="{Binding Path=UseClipboard, Mode=TwoWay}" HorizontalAlignment="Left"
-                              Margin="426,36,0,0" VerticalAlignment="Top" Foreground="White" />
+                              Margin="425,35,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <CheckBox x:Name="Cb_AutoSearch" Content="Auto-search"
                               IsChecked="{Binding Path=Config.AutoSearch, Mode=TwoWay}" HorizontalAlignment="Left"
-                              Margin="426,65,0,0" VerticalAlignment="Top" Foreground="White" />
+                              Margin="425,65,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <CheckBox x:Name="Cb_OpenRaw" Content="Open raw"
                               IsChecked="{Binding Path=Config.OpenRaw, Mode=TwoWay}" HorizontalAlignment="Left"
-                              Margin="426,96,0,0" VerticalAlignment="Top" Foreground="White" />
+                              Margin="425,95,0,0" VerticalAlignment="Top" Foreground="White" />
+
+                    <CheckBox x:Name="Cb_Cookies" Content="Read cookies" HorizontalAlignment="Left"
+                              IsChecked="{Binding Config.ReadCookies, Mode=TwoWay}"
+                              Margin="425,125,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <CheckBox x:Name="Cb_ContextMenu" Content="Context menu" HorizontalAlignment="Left"
                               IsChecked="{Binding Path=UseContextMenu, Mode=TwoWay}"
-                              Margin="426,127,0,0" VerticalAlignment="Top" Foreground="White" />
+                              Margin="425,155,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <CheckBox x:Name="Cb_Path" Content="Add to PATH" HorizontalAlignment="Left"
                               IsChecked="{Binding InPath, Mode=TwoWay}"
-                              Margin="426,154,0,0" VerticalAlignment="Top" Foreground="White" />
-
-                    <CheckBox x:Name="Cb_Cookies" Content="Read cookies" HorizontalAlignment="Left"
-                        IsChecked="{Binding Config.ReadCookies, Mode=TwoWay}"
-                        Margin="426,183,0,0" VerticalAlignment="Top" Foreground="White" />
+                              Margin="425,185,0,0" VerticalAlignment="Top" Foreground="White" />
 
                     <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left"
                            Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
@@ -845,17 +850,10 @@
                     <Label x:Name="Lbl_PriorityEngines" Content="Priority Engines" HorizontalAlignment="Left"
                            Margin="228,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
-                    <RadioButton x:Name="Rb_UploadEngine_Catbox" Content="Catbox" HorizontalAlignment="Left"
-                                 Margin="600,30,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
-                                 Foreground="White" Checked="Rb_UploadEngine_Catbox_Checked" />
-
-                    <RadioButton x:Name="Rb_UploadEngine_Litterbox" Content="Litterbox" HorizontalAlignment="Left"
-                                 Margin="600,60,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
-                                 Foreground="White" Checked="Rb_UploadEngine_Litterbox_Checked" />
-
-                    <RadioButton x:Name="Rb_UploadEngine_Pomf" Content="Pomf" HorizontalAlignment="Left"
-                                 Margin="600,90,0,0" VerticalAlignment="Top" GroupName="Rb_UploadEngines"
-                                 Foreground="White" Checked="Rb_UploadEngine_Pomf_Checked" />
+                    <ComboBox x:Name="Cm_UploadEngine" HorizontalAlignment="Center" Margin="0,34,0,0"
+                              VerticalAlignment="Top" Width="120"
+                              ItemsSource="{Binding Path=UploadEngineNames}"
+                              SelectionChanged="Cm_UploadEngine_SelectionChanged" />
 
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />

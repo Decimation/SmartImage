@@ -148,9 +148,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// m_resultMap                         = new();
 		Image = null;
 
-		Rb_UploadEngine_Catbox.IsChecked    = BaseUploadEngine.Default is CatboxEngine;
-		Rb_UploadEngine_Litterbox.IsChecked = BaseUploadEngine.Default is LitterboxEngine;
-		Rb_UploadEngine_Pomf.IsChecked      = BaseUploadEngine.Default is PomfEngine;
+		Cm_UploadEngine.SelectedItem = UploadEngineNames[^1];
 
 		// BindingOperations.EnableCollectionSynchronization(Queue, m_lock);
 		// BindingOperations.EnableCollectionSynchronization(CurrentQueueItem.Results, m_lock);
@@ -1048,9 +1046,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					var rii = new UniResultItem(ri, i)
 					{
 						StatusImage = AppComponents.picture_link,
+
 						// Properties = ri.Properties,
-						CanScan     = false,
-						CanOpen     = true,
+						CanScan = false,
+						CanOpen = true,
 
 					};
 					rii.Properties |= ImageSourceProperties.CanDownload;
@@ -1114,9 +1113,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				var rii = new UniResultItem(cri, i)
 				{
 					StatusImage = AppComponents.picture,
+
 					// CanDownload = true,
-					CanScan     = false,
-					CanOpen     = true
+					CanScan = false,
+					CanOpen = true
 				};
 				rii.Properties |= ImageSourceProperties.CanDownload;
 				CurrentQuery.Results.Insert(CurrentQuery.Results.IndexOf(cri) + 1 + i, rii);
@@ -1201,10 +1201,12 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		// var d = await uri.Uni.TryDownloadAsync();
 		var d = await uri.DownloadAsync(Path.GetTempPath(), false);
+
 		if (!String.IsNullOrWhiteSpace(d)) {
 			AddToQueue(d);
 
 		}
+
 		// CurrentQueueItem = d;
 	}
 
@@ -1470,7 +1472,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		var load = igs.Image;
 
-		if (load.IsValueCreated && load.Value== null) {
+		if (load.IsValueCreated && load.Value == null) {
 			SetPreviewToCurrentQuery();
 			return;
 		}
@@ -1601,5 +1603,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Console.WriteLine(ex);
 		}
 	}
+
+	public static string[] UploadEngineNames { get; } = BaseUploadEngine.All.Select(x => x.Name).ToArray();
 
 }
