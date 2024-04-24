@@ -1514,16 +1514,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				var p = FindParent(rri);
 
 				if (p != null) {
-					Debug.WriteLine($"{p}");
+					Debug.WriteLine($"couldn't find parent for {rri}/{p}");
 					name  = p.Name;
 					name2 = $"(child)";
 
 				}
-
 			}
 			else {
 				name2 = "(parent)";
-				Debug.WriteLine($"couldn't find parent for {rri}");
 			}
 		}
 

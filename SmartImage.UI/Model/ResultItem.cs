@@ -258,7 +258,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItem
 	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
 		PreviewProgress = ((float) args.Progress * 100.0f);
-		Label           = $"Preview cache...";
+		Label           = $"Preview cache...{PreviewProgress}";
 	}
 
 	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)

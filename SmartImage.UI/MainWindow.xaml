@@ -13,7 +13,7 @@
         xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
         xmlns:model1="clr-namespace:SmartImage.Lib.Model;assembly=SmartImage.Lib"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
-        mc:Ignorable="d" Height="675" Width="1325" MinWidth="1325" MinHeight="325" Loaded="Wnd_Main_Loaded"
+        mc:Ignorable="d" Height="675" Width="1400" MinWidth="1400" MinHeight="325" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
         Closing="Wnd_Main_Closing" Title="SmartImage" Unloaded="Wnd_Main_Unloaded" Background="#FF191919"
         KeyDown="Wnd_Main_KeyDown">
@@ -561,7 +561,7 @@
                     <TextBox x:Name="Tb_Info_Type" HorizontalAlignment="Left" Margin="64,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentQuery.Query.Uni.FileType, Mode=OneWay,
+                             Text="{Binding CurrentQuery.Query.ImageInfo.DefaultMimeType, Mode=OneWay,
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, ElementName=Wnd_Main, IsAsync=True}" />
 
                     <TextBox x:Name="Tb_Info_Size" HorizontalAlignment="Left" Margin="217,65,0,0" TextWrapping="Wrap"
