@@ -835,6 +835,10 @@
                               IsChecked="{Binding InPath, Mode=TwoWay}"
                               Margin="426,154,0,0" VerticalAlignment="Top" Foreground="White" />
 
+                    <CheckBox x:Name="Cb_Cookies" Content="Read cookies" HorizontalAlignment="Left"
+                        IsChecked="{Binding Config.ReadCookies, Mode=TwoWay}"
+                        Margin="426,183,0,0" VerticalAlignment="Top" Foreground="White" />
+
                     <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left"
                            Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
@@ -855,20 +859,6 @@
 
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
                            Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-
-                    <TextBox x:Name="Tb_EhUsername" HorizontalAlignment="Left" Margin="527,208,0,0" TextWrapping="Wrap"
-                             VerticalAlignment="Top" Width="120"
-                             Text="{Binding Config.EhUsername, Mode=TwoWay}" TextChanged="Tb_EhUsername_TextChanged" />
-
-                    <TextBox x:Name="Tb_EhPassword" HorizontalAlignment="Left" Margin="527,237,0,0" TextWrapping="Wrap"
-                             VerticalAlignment="Top" Width="120"
-                             Text="{Binding Config.EhPassword, Mode=TwoWay}" TextChanged="Tb_EhPassword_TextChanged" />
-
-                    <Label x:Name="Lb_EhUsername" Content="Eh Username" HorizontalAlignment="Left" Margin="424,204,0,0"
-                           VerticalAlignment="Top" Foreground="White" />
-
-                    <Label x:Name="Lb_EhPassword" Content="Eh Password" HorizontalAlignment="Left" Margin="424,233,0,0"
-                           VerticalAlignment="Top" Foreground="White" />
 
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />

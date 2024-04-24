@@ -639,27 +639,6 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 
 	}
 
-	private async void Tb_EhUsername_TextChanged(object sender, TextChangedEventArgs e)
-	{
-		if (!e.IsLoaded()) {
-			return;
-		}
-
-		await Client.ApplyConfigAsync();
-		e.Handled = true;
-	}
-
-	private async void Tb_EhPassword_TextChanged(object sender, TextChangedEventArgs e)
-	{
-		if (!e.IsLoaded()) {
-			return;
-		}
-
-		await Client.ApplyConfigAsync();
-		e.Handled = true;
-
-	}
-
 	private void Tb_HyEndpoint_OnTextChanged(object sender, TextChangedEventArgs e)
 	{
 		if (!e.IsLoaded()) {
