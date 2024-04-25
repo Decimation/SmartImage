@@ -55,7 +55,7 @@ internal static partial class CliFormat
 
 	public static void Dump(CommandSettings settings)
 	{
-		var table = new Table().RoundedBorder();
+		var table = new STable().RoundedBorder();
 		table.AddColumn("[grey]Name[/]");
 		table.AddColumn("[grey]Value[/]");
 
@@ -74,11 +74,11 @@ internal static partial class CliFormat
 		AnsiConsole.Write(table);
 	}
 
-	public static Table GetTableForFormat(OutputFields format)
+	public static STable GetTableForFormat(OutputFields format)
 	{
 
 		var fmt   = format.GetSetFlags(true, true);
-		var table = new Table();
+		var table = new STable();
 		var col   = new TableColumn[fmt.Count];
 
 		for (int i = 0; i < col.Length; i++) {

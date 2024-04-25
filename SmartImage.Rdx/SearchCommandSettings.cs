@@ -37,10 +37,10 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[Description("Read cookies from browser")]
 	public bool? ReadCookies { get; internal set; }
 
-	[CommandOption("--hide-table")]
+	[CommandOption("--live")]
 	[DefaultValue(false)]
-	[Description("Hide result table")]
-	public bool? HideResultTable { get; internal set; }
+	[Description("Live result display")]
+	public bool? LiveDisplay { get; internal set; }
 
 	#region
 

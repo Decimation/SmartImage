@@ -204,7 +204,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			}
 		}
 		else {
-			var ok = query.LoadFile(name);
+			var ok = query.TryGetFile(name);
 
 			if (ok) {
 				t = query.FilePath;

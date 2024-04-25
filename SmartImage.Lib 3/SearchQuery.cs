@@ -35,6 +35,7 @@ namespace SmartImage.Lib;
 public enum QueryType
 {
 
+	Unknown = 0,
 	File,
 	Uri,
 	Stream
@@ -71,8 +72,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Url.IsValid(Upload);
 
-	public bool IsUploading { get; private set; }
-
 	[MNNW(true, nameof(Value))]
 	public bool HasValue => Value != null;
 
@@ -80,14 +79,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	public string FilePath { get; private set; }
 
 	[MNNW(true, nameof(FilePath))]
-	public bool HasFile => FilePath != null;
-
-	internal SearchQuery([MN] object f)
-	{
-		Value = f;
-
-		// Size = Uni == null ? default : Uni.Stream.Length;
-	}
+	public bool HasFile => FilePath != null && File.Exists(FilePath);
 
 	internal SearchQuery([MN] object f, Stream s, QueryType type)
 	{
@@ -97,6 +89,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 		// Size = Uni == null ? default : Uni.Stream.Length;
 	}
+
+	internal SearchQuery([MN] object f) : this(f, Stream.Null, QueryType.Unknown) { }
 
 	private SearchQuery() : this(null) { }
 
@@ -126,7 +120,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			str = File.OpenRead(s);
 			qt  = QueryType.File;
 		}
-
 		else if (IsUriType(o, out var url2)) {
 			var url = (Url) url2;
 			var res = await HandleUriAsync(url, t);
@@ -144,12 +137,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		fmt = await ISImage.DetectFormatAsync(str, t);
 		str.TrySeek();
 
-		var sq2 = new SearchQuery(o, str, qt)
+		var query = new SearchQuery(o, str, qt)
 		{
 			ImageInfo = fmt
 		};
 
-		return sq2;
+		return query;
 	}
 
 	public static async Task<IFlurlResponse> HandleUriAsync(Url value, CancellationToken ct)
@@ -176,8 +169,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		if (IsUploaded) {
 			return Upload;
 		}
-
-		IsUploading = true;
 
 		string fu = Value.ToString();
 
@@ -227,12 +218,10 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			u.Dispose();
 		}
 
-		IsUploading = false;
-
 		return Upload;
 	}
 
-	#region 
+	#region
 
 	public static bool IsStreamType(object o, out Stream t2)
 	{
@@ -267,8 +256,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		return f != null;
 	}
 
-	#endregion
-
 	public static bool IsValidSourceType(object str)
 	{
 		// UniSourceType v        = UniHandler.GetUniType(str, out object o2);
@@ -285,6 +272,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		return ok;
 	}
 
+	#endregion
+
 	public void Dispose()
 	{
 		Stream?.Dispose();
@@ -295,7 +284,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 	public override string ToString()
 	{
-		string s = $"{Stream} | {ValueString}";
+		string s = $"{ValueString} ({Type}) [{ImageInfo.DefaultMimeType}]";
 
 		return s;
 	}
@@ -336,19 +325,19 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 	#endregion
 
-	public bool LoadFile(string fn = null)
+	public bool TryGetFile(string fn = null)
 	{
 		if (!HasFile && HasValue) {
-			FilePath = GetFilePathOrTemp(fn);
+			FilePath = WriteToFile(fn);
 
 		}
 
 		return HasFile;
 	}
 
-	public bool DeleteFile()
+	public bool TryDeleteFile()
 	{
-		if (File.Exists(FilePath)) {
+		if (HasFile) {
 			File.Delete(FilePath);
 			FilePath = null;
 		}
@@ -357,7 +346,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	}
 
 	[MustUseReturnValue]
-	public string WriteToFile(Action<IImageProcessingContext> operation = null, [CanBeNull] string fn = null)
+	public string WriteToFile(Action<IImageProcessingContext> operation = null, [CBN] string fn = null)
 	{
 		if (!HasValue) {
 			throw new InvalidOperationException();
@@ -368,7 +357,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 		var encoder = new PngEncoder();
 
-		using Image image = ISImage.Load(Stream);
+		using ISImage image = ISImage.Load(Stream);
 
 		if (operation != null) {
 			image.Mutate(operation);
@@ -384,7 +373,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 	[MustUseReturnValue]
 	[ICBN]
-	public string GetFilePathOrTemp(string fn = null)
+	public string WriteToFile(string fn = null)
 	{
 		if (!HasValue) {
 			throw new InvalidOperationException($"{nameof(HasValue)} is {false}");

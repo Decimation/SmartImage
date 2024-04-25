@@ -35,6 +35,7 @@ using CliWrap;
 using Kantan.Text;
 using SmartImage.Rdx.Shell;
 using System.Linq;
+using Kantan.Monad;
 
 namespace SmartImage.Rdx;
 
@@ -57,7 +58,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	private SearchCommandSettings m_scs;
 
-	private const double COMPLETE = 100.0d;
+	private readonly STable m_table;
+	private const    double COMPLETE = 100.0d;
 
 	public const int EC_ERROR = -1;
 	public const int EC_OK    = 0;
@@ -75,8 +77,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		m_cts     = new CancellationTokenSource();
 		m_results = new ConcurrentBag<SearchResult>();
 		m_scs     = null;
-
-		Query = SearchQuery.Null;
+		m_table   = CreateResultTable();
+		Query     = SearchQuery.Null;
 	}
 
 	#region
@@ -118,15 +120,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	}
 
-	private async Task RunSearchAsync(ProgressContext c)
+	private async Task RunSearchLiveAsync(LiveDisplayContext c)
 	{
-		var cnt = (double) Client.Engines.Length;
-		var pt  = c.AddTask("Running search", maxValue: cnt);
-		pt.IsIndeterminate = true;
-
-		// var p2  = c.AddTask("Engines", maxValue: cnt);
-
-		// Client.OnResult += OnResultComplete;
 
 		var search = Client.RunSearchAsync(Query, token: m_cts.Token, reload: false);
 
@@ -134,23 +129,40 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			var result = await Client.ResultChannel.Reader.ReadAsync();
 
 			m_results.Add(result);
-			pt.Description = $"{result.Engine.Name} {m_results.Count} / {cnt}";
-			pt.Increment(1);
-			c.Refresh();
 
-			if (m_scs.HideResultTable.HasValue && !m_scs.HideResultTable.Value) {
-				Table tb = CreateResultTable(result);
-				AConsole.Write(tb);
-
+			if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
+				UpdateResultTable(result);
 			}
+
+			c.Refresh();
 		}
 
 		await search;
 
-		// Debug.WriteLine($"{nameof(RunSearchAsync)} complete");
+	}
 
-		return;
+	// TODO: Rewrite RunSearch counterparts
 
+	private async Task RunSearchWithProgressAsync(ProgressContext c)
+	{
+		var cnt = (double) Client.Engines.Length;
+		var pt  = c.AddTask("Running search", maxValue: cnt);
+		pt.IsIndeterminate = true;
+
+		var search = Client.RunSearchAsync(Query, token: m_cts.Token, reload: false);
+
+		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
+			var result = await Client.ResultChannel.Reader.ReadAsync();
+
+			m_results.Add(result);
+
+			pt.Description = $"{result.Engine.Name} {m_results.Count} / {cnt}";
+			pt.Increment(1);
+			c.Refresh();
+
+		}
+
+		await search;
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
@@ -171,11 +183,20 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		/*
 		 *
+		 * todo
 		 */
 
-		var run = AConsole.Progress()
-			.AutoRefresh(false)
-			.StartAsync(RunSearchAsync);
+		Task run;
+
+		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
+			run = AConsole.Live(m_table)
+				.StartAsync(RunSearchLiveAsync);
+
+		}
+		else {
+			run = AConsole.Progress()
+				.StartAsync(RunSearchWithProgressAsync);
+		}
 
 		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
 			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
@@ -320,33 +341,55 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	#endregion
 
-	private Table CreateResultTable(SearchResult result)
+	#region
+
+	private static STable CreateResultTable()
 	{
 		var col = new TableColumn[]
 		{
 			new("Result"),
 			new("URL"),
-			new("Similarity")
+			new("Similarity"),
+			new("Artist"),
+			new("Site"),
+
 		};
 
-		var tb = new Table()
+		var tb = new STable()
 		{
-			Caption = new TableTitle(result.Engine.Name),
-			Border  = TableBorder.Simple,
+			Caption     = new TableTitle("Results", new Style(decoration: Decoration.Bold)),
+			Border      = TableBorder.Simple,
 			ShowHeaders = true,
 		};
 
 		tb.AddColumns(col);
 
-		for (int i = 0; i < result.Results.Count; i++) {
-			var res  = result.Results[i];
-			var name = new Text($"{result.Engine.Name} #{i}", CliFormat.EngineStyles[result.Engine.EngineOption]);
-			var url  = new Text($"{res.Url}");
-			var sim  = new Text($"{res.Similarity}");
-			tb.AddRow(name, url, sim);
+		return tb;
+	}
+
+	private void UpdateResultTable(SearchResult result)
+	{
+
+		if (!CliFormat.EngineStyles.TryGetValue(result.Engine.EngineOption, out var style)) {
+			style = Style.Plain;
 		}
 
-		return tb;
+		var lr   = style.Foreground.GetLuminance();
+		var lrr  = style.Foreground.GetContrastRatio(Color.White);
+		var lrr2 = style.Foreground.GetContrastRatio(Color.Black);
+
+		Debug.WriteLine($"{lr} {lrr} {lrr2}");
+
+		for (int i = 0; i < result.Results.Count; i++) {
+			var res    = result.Results[i];
+			var name   = new Text($"{result.Engine.Name} #{i}", style);
+			var url    = new Markup($"[link]{res.Url}[/]");
+			var sim    = new Text($"{res.Similarity}");
+			var artist = new Text($"{res.Artist}");
+			var site   = new Text($"{res.Site}");
+			m_table.AddRow(name, url, sim, artist, site);
+		}
+
 	}
 
 	private Grid CreateInfoGrid()
@@ -372,6 +415,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		return dt;
 	}
+
+	#endregion
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
 	{
