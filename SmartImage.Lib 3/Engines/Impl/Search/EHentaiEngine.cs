@@ -43,7 +43,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		CheckCertificateRevocationList = false,
 		UseCookies                     = true,
 		CookieContainer                = new() { },
-		
+
 	};
 
 	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
@@ -75,7 +75,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	{
 		m_client   = new HttpClient(m_clientHandler);
 		IsLoggedIn = false;
-		m_cookies  = new ();
+		m_cookies  = new();
 	}
 
 	/*
@@ -116,7 +116,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	/*
 	 * Default result layout is [Compact]
 	 */
-	public async Task<bool> LoginAsync(bool useEx = false)
+	public async Task<bool> LoginAsync(bool useEx = true)
 	{
 		/*
 		if (IsLoggedIn) {
@@ -190,20 +190,74 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
+	/*protected async Task<IDocument> GetDocumentAsync2(SearchResult sr, SearchQuery query,
+	                                                  CancellationToken token = default)
+	{
+
+		const string name_default = "a.jpg";
+
+		string name;
+
+		string t = null;
+
+		if (query.HasFile) {
+			t    = query.FilePath;
+			name = Path.GetFileName(t);
+
+			/*if (Path.GetFileName(t) != name) {
+				// Debugger.Break();
+			}#1#
+		}
+		else {
+			name = name_default;
+			var ok = query.TryGetFile(name);
+
+			if (ok) {
+				t = query.FilePath;
+			}
+			else {
+				Debugger.Break();
+			}
+		}
+
+		var req = new HttpRequestMessage(HttpMethod.Post, LookupUrl)
+		{
+			Headers =
+			{
+				{ "User-Agent", R1.UserAgent1 }
+			},
+			Content = new MultipartFormDataContent()
+			{
+				{ new FileContent(t), "sfile", name }
+			}
+		};
+		m_clientHandler.CookieContainer.Add(m_cookies);
+
+		var res = await m_client.SendAsync(req);
+
+		var content  = await res.Content.ReadAsStringAsync();
+		var parser  = new HtmlParser();
+		return await parser.ParseDocumentAsync(content, token);
+	}*/
+
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
-		const string name = "a.jpg";
-		string       t    = null;
+
+		const string name_default = "a.jpg";
+		string       name;
+		string       t = null;
 
 		if (query.HasFile) {
-			t = query.FilePath;
+			t    = query.FilePath;
+			name = Path.GetFileName(t);
 
-			if (Path.GetFileName(t) != name) {
+			/*if (Path.GetFileName(t) != name) {
 				// Debugger.Break();
-			}
+			}*/
 		}
 		else {
+			name = name_default;
 			var ok = query.TryGetFile(name);
 
 			if (ok) {
@@ -233,7 +287,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 		//todo
 		m_clientHandler.CookieContainer.Add(m_cookies);
-		
+
 		m_client.Timeout = Timeout;
 
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
@@ -245,32 +299,16 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			{
 				{ "User-Agent", HttpUtilities.UserAgent }
 			},
-			
+
 		};
 
 		var res = await m_client.SendAsync(req, token);
-
-		var content = await res.Content.ReadAsStringAsync(token);
+		// Debug.WriteLine($"{res.StatusCode}");
 
 		sr.RawUrl = res.RequestMessage.RequestUri;
-		
-		// m_clientHandler.CookieContainer.Add(m_cookies);
 
-		/*var req = new FlurlRequest(LookupUrl)
-		{
-			Content = data,
-			Headers =
-			{
-				{ "User-Agent", HttpUtilities.UserAgent }
-			},
-			Verb = HttpMethod.Post,
-
-		};
-
-		var res     = await Client.SendAsync(req, cancellationToken: token);
-		var content = await res.GetStringAsync();
-
-		sr.RawUrl = res.ResponseMessage.RequestMessage.RequestUri;*/
+		// Debug.WriteLine($"{sr.RawUrl}");
+		var content = await res.Content.ReadAsStringAsync(token);
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			Debug.WriteLine($"cooldown", Name);

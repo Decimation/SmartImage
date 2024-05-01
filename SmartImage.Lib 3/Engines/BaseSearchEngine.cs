@@ -89,9 +89,9 @@ public abstract class BaseSearchEngine : IDisposable
 
 	public virtual bool VerifyQuery(SearchQuery q)
 	{
-		if (q.Upload is not { }) {
+		/*if (q.Upload is not { }) {
 			return false;
-		}
+		}*/
 
 		bool b = true;
 

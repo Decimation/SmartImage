@@ -23,200 +23,209 @@ namespace SmartImage.Lib.Clients;
 
 public class HydrusClient : INotifyPropertyChanged, IDisposable
 {
-    private const string HDR_HYDRUS_KEY = "Hydrus-Client-API-Access-Key";
-    private const string GET_FILES_THUMBNAIL = "/get_files/thumbnail";
-    private const string GET_FILES_FILE = "/get_files/file";
 
-    public FlurlClient Client { get; }
+	private const string HDR_HYDRUS_KEY      = "Hydrus-Client-API-Access-Key";
+	private const string GET_FILES_THUMBNAIL = "/get_files/thumbnail";
+	private const string GET_FILES_FILE      = "/get_files/file";
 
-    public HydrusClient(string endpoint, string key)
-    {
-        EndpointUrl = endpoint;
-        Key = key;
+	public FlurlClient Client { get; }
 
-        Client = new FlurlClient(EndpointUrl)
-        {
-            Headers =
-            {
-                { HDR_HYDRUS_KEY, key }
-            }
-        };
+	public HydrusClient(string endpoint, string key)
+	{
+		EndpointUrl = endpoint;
+		Key         = key;
 
-        PropertyChanged += (sender, args) =>
-        {
-            switch (args.PropertyName)
-            {
-                case nameof(Key):
-                    Client.Headers.AddOrReplace(HDR_HYDRUS_KEY, Key);
-                    break;
-                case nameof(EndpointUrl):
-                    Client.BaseUrl = EndpointUrl;
-                    break;
-            }
+		Client = new FlurlClient(EndpointUrl)
+		{
+			Headers =
+			{
+				{ HDR_HYDRUS_KEY, key }
+			}
+		};
 
-        };
-    }
+		PropertyChanged += (sender, args) =>
+		{
+			switch (args.PropertyName) {
+				case nameof(Key):
+					Client.Headers.AddOrReplace(HDR_HYDRUS_KEY, Key);
+					break;
 
-    public HydrusClient() : this(null, null) { }
+				case nameof(EndpointUrl):
+					Client.BaseUrl = EndpointUrl;
+					break;
+			}
 
-    public bool IsValid => EndpointUrl != null && Key != null;
+		};
+	}
 
-    public async Task<JsonValue> GetFileHashesAsync(string hash, string hashType = "sha256")
-    {
+	public HydrusClient() : this(null, null) { }
 
-        using var res = await Client.Request("/get_files/file_hashes")
-                            .SetQueryParam("hash", hash)
-                            .SetQueryParam("source_hash_type", hashType)
-                            .SetQueryParam("desired_hash_type", hashType)
-                            .GetAsync();
+	public bool IsValid => EndpointUrl != null && Key != null;
 
-        var b = await res.GetStreamAsync();
-        var j = JsonValue.Load(b);
-        return j;
+	public async Task<JsonValue> GetFileHashesAsync(string hash, string hashType = "sha256")
+	{
 
-    }
+		using var res = await Client.Request("/get_files/file_hashes")
+			                .SetQueryParam("hash", hash)
+			                .SetQueryParam("source_hash_type", hashType)
+			                .SetQueryParam("desired_hash_type", hashType)
+			                .GetAsync();
 
-    public async Task<JsonValue> GetFileMetadataAsync(string hash)
-    {
+		var b = await res.GetStreamAsync();
+		var j = JsonValue.Load(b);
+		return j;
 
-        using var res = await Client.Request("/get_files/file_metadata")
-                            .SetQueryParam("hash", hash)
-                            .GetAsync();
+	}
 
-        var b = await res.GetStreamAsync();
-        var j = JsonValue.Load(b);
-        return j;
-    }
+	public async Task<JsonValue> GetFileMetadataAsync(string hash)
+	{
 
-    public async Task<JsonValue> GetFileRelationshipsAsync(string hash)
-    {
-        using var res = await Client.Request("/manage_file_relationships/get_file_relationships")
-                            .SetQueryParam("hash", hash)
-                            .GetAsync();
+		using var res = await Client.Request("/get_files/file_metadata")
+			                .SetQueryParam("hash", hash)
+			                .GetAsync();
 
-        var b = await res.GetStreamAsync();
-        var j = JsonValue.Load(b);
+		var b = await res.GetStreamAsync();
+		var j = JsonValue.Load(b);
+		return j;
+	}
 
-        return j;
-    }
+	public async Task<JsonValue> GetFileRelationshipsAsync(string hash)
+	{
+		using var res = await Client.Request("/manage_file_relationships/get_file_relationships")
+			                .SetQueryParam("hash", hash)
+			                .GetAsync();
 
-    public async Task<IFlurlResponse> GetFileAsync(string hash)
-    {
-        var res = await Client.Request(GET_FILES_FILE)
-                      .SetQueryParam("hash", hash)
-                      .GetAsync();
+		var b = await res.GetStreamAsync();
+		var j = JsonValue.Load(b);
 
-        return res;
-    }
-    public async Task<IFlurlResponse> GetFileAsync(int id)
-    {
-        var res = await Client.Request(GET_FILES_FILE)
-                      .SetQueryParam("file_id", id)
-                      .GetAsync();
+		return j;
+	}
 
-        return res;
-    }
-    public async Task<IFlurlResponse> GetFileThumbnailAsync(string hash)
-    {
-        var res = await Client.Request(GET_FILES_THUMBNAIL)
-                      .SetQueryParam("hash", hash)
-                      .GetAsync();
+	public async Task<IFlurlResponse> GetFileAsync(string hash)
+	{
+		var res = await Client.Request(GET_FILES_FILE)
+			          .SetQueryParam("hash", hash)
+			          .GetAsync();
 
-        return res;
-    }
+		return res;
+	}
 
-    public async Task<IFlurlResponse> GetFileThumbnailAsync(int id)
-    {
-        var res = await Client.Request(GET_FILES_THUMBNAIL)
-                      .SetQueryParam("file_id", id)
-                      .GetAsync();
+	public async Task<IFlurlResponse> GetFileAsync(int id)
+	{
+		var res = await Client.Request(GET_FILES_FILE)
+			          .SetQueryParam("file_id", id)
+			          .GetAsync();
 
-        return res;
-    }
+		return res;
+	}
 
-    private string m_key;
+	public async Task<IFlurlResponse> GetFileThumbnailAsync(string hash)
+	{
+		var res = await Client.Request(GET_FILES_THUMBNAIL)
+			          .SetQueryParam("hash", hash)
+			          .GetAsync();
 
-    public string Key
-    {
-        get => m_key;
-        set
-        {
-            if (value == m_key) return;
-            m_key = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsValid));
-        }
-    }
+		return res;
+	}
 
-    private string m_endpointUrl;
+	public async Task<IFlurlResponse> GetFileThumbnailAsync(int id)
+	{
+		var res = await Client.Request(GET_FILES_THUMBNAIL)
+			          .SetQueryParam("file_id", id)
+			          .GetAsync();
 
-    public string EndpointUrl
-    {
-        get => m_endpointUrl;
-        set
-        {
-            if (value == m_endpointUrl) return;
-            m_endpointUrl = value;
-            OnPropertyChanged();
-            OnPropertyChanged(nameof(IsValid));
-        }
-    }
+		return res;
+	}
 
-    public void Dispose()
-    {
-        GC.SuppressFinalize(this);
-        Client.Dispose();
-    }
+	private string m_key;
 
-    public event PropertyChangedEventHandler PropertyChanged;
+	public string Key
+	{
+		get => m_key;
+		set
+		{
+			if (value == m_key) return;
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+			m_key = value;
+			OnPropertyChanged();
+			OnPropertyChanged(nameof(IsValid));
+		}
+	}
 
-    protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-        field = value;
-        OnPropertyChanged(propertyName);
-        return true;
-    }
+	private string m_endpointUrl;
+
+	public string EndpointUrl
+	{
+		get => m_endpointUrl;
+		set
+		{
+			if (value == m_endpointUrl) return;
+
+			m_endpointUrl = value;
+			OnPropertyChanged();
+			OnPropertyChanged(nameof(IsValid));
+		}
+	}
+
+	public void Dispose()
+	{
+		GC.SuppressFinalize(this);
+		Client.Dispose();
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
 }
 #pragma warning disable IL2026
 
 public partial class FileRelationship
 {
-    [JsonPropertyName("0")]
-    public string[] PotentialDuplicates { get; set; }
 
-    [JsonPropertyName("1")]
-    public string[] FalsePositives { get; set; }
+	[JsonPropertyName("0")]
+	public string[] PotentialDuplicates { get; set; }
 
-    [JsonPropertyName("3")]
-    public string[] Alternates { get; set; }
+	[JsonPropertyName("1")]
+	public string[] FalsePositives { get; set; }
 
-    [JsonPropertyName("8")]
-    public string[] Duplicates { get; set; }
+	[JsonPropertyName("3")]
+	public string[] Alternates { get; set; }
 
-    [JsonPropertyName("is_king")]
-    public bool IsKing { get; set; }
+	[JsonPropertyName("8")]
+	public string[] Duplicates { get; set; }
 
-    [JsonPropertyName("king")]
-    public string King { get; set; }
+	[JsonPropertyName("is_king")]
+	public bool IsKing { get; set; }
 
-    [JsonPropertyName("king_is_local")]
-    public bool KingIsLocal { get; set; }
+	[JsonPropertyName("king")]
+	public string King { get; set; }
 
-    [JsonPropertyName("king_is_on_file_domain")]
-    public bool KingIsOnFileDomain { get; set; }
+	[JsonPropertyName("king_is_local")]
+	public bool KingIsLocal { get; set; }
 
-    public static Dictionary<string, FileRelationship> Deserialize(JsonValue v)
-    {
-        var vs = ((JsonObject)v)["file_relationships"];
-        
-        var re = JsonSerializer.Deserialize<Dictionary<string, FileRelationship>>(vs.ToString());
+	[JsonPropertyName("king_is_on_file_domain")]
+	public bool KingIsOnFileDomain { get; set; }
 
-        return re;
-    }
+	public static Dictionary<string, FileRelationship> Deserialize(JsonValue v)
+	{
+		var vs = ((JsonObject) v)["file_relationships"];
+
+		var re = JsonSerializer.Deserialize<Dictionary<string, FileRelationship>>(vs.ToString());
+
+		return re;
+	}
+
 }

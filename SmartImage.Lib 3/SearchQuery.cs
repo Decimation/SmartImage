@@ -113,10 +113,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		Stream       str;
 		IImageFormat fmt;
 		QueryType    qt;
+		string       s = null;
 
 		if (IsFileType(o, out var fi)) {
 			// var s = ((FileInfo) fi).FullName;
-			var s = (string) o;
+			s = (string) o;
 			str = File.OpenRead(s);
 			qt  = QueryType.File;
 		}
@@ -139,7 +140,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 
 		var query = new SearchQuery(o, str, qt)
 		{
-			ImageInfo = fmt
+			ImageInfo = fmt,
+			FilePath = s
 		};
 
 		return query;
