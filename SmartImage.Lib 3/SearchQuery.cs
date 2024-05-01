@@ -178,6 +178,8 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			Upload = fu;
 
 			// Size   = BaseSearchEngine.NA_SIZE;
+			// var fmt = await ISImage.DetectFormatAsync(Stream);
+
 			Debug.WriteLine($"Skipping upload for {Value}", nameof(UploadAsync));
 		}
 		else {
@@ -261,9 +263,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	public static bool IsValidSourceType(object str)
 	{
 		// UniSourceType v        = UniHandler.GetUniType(str, out object o2);
-		bool isFile   = UniSourceFile.IsType(str, out var f);
+		/*bool isFile   = UniSourceFile.IsType(str, out var f);
 		bool isUri    = UniSourceUrl.IsType(str, out var f2);
-		bool isStream = UniSourceStream.IsType(str, out var f3);
+		bool isStream = UniSourceStream.IsType(str, out var f3);*/
+		bool isFile   = IsFileType(str, out var f);
+		bool isUri    = IsUriType(str, out var f2);
+		bool isStream = IsStreamType(str, out var f3);
 		bool ok       = isFile || isUri || isStream;
 
 		if (isFile) {

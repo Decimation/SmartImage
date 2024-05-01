@@ -118,11 +118,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 	 */
 	public async Task<bool> LoginAsync(bool useEx = true)
 	{
-		/*
-		if (IsLoggedIn) {
-			return false;
-		}
-		*/
 
 		var b = await CookiesManager.LoadCookiesAsync();
 
@@ -139,42 +134,9 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			return x.Host.Contains(HOST_EX);
 		});
 
-		/*var fcc = CookiesManager.Cookies.Where(x =>
-		{
-			if (!useEx) {
-				return x.Domain.Contains(HOST_EH);
-			}
-
-			return x.Domain.Contains(HOST_EX);
-		});*/
-
-		/*var content = new MultipartFormDataContent()
-		{
-			{ new StringContent("1"), "CookieDate" },
-			{ new StringContent("d"), "b" },
-			{ new StringContent("1-6"), "bt" },
-			{ new StringContent(Username), "UserName" },
-			{ new StringContent(Password), "PassWord" },
-			{ new StringContent("Login!"), "ipb_login_submit" }
-		};
-
-		var response = await EHentaiIndex
-						   .SetQueryParams(new
-						   {
-							   act  = "Login",
-							   CODE = 01
-						   }).WithHeaders(new
-						   {
-							   User_Agent = HttpUtilities.UserAgent
-						   })
-						   .WithCookies(out var cj)
-						   .PostAsync(content);*/
-
 		foreach (var cookie in fcc) {
 			m_cookies.Add(cookie.AsCookie());
 		}
-
-		// foreach (var fc in fcc) { }
 
 		var res2 = await GetSessionAsync(useEx);
 
@@ -185,96 +147,47 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			})
 			.WithAutoRedirect(true)
 			.GetAsync();*/
+
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
-	/*protected async Task<IDocument> GetDocumentAsync2(SearchResult sr, SearchQuery query,
-	                                                  CancellationToken token = default)
-	{
-
-		const string name_default = "a.jpg";
-
-		string name;
-
-		string t = null;
-
-		if (query.HasFile) {
-			t    = query.FilePath;
-			name = Path.GetFileName(t);
-
-			/*if (Path.GetFileName(t) != name) {
-				// Debugger.Break();
-			}#1#
-		}
-		else {
-			name = name_default;
-			var ok = query.TryGetFile(name);
-
-			if (ok) {
-				t = query.FilePath;
-			}
-			else {
-				Debugger.Break();
-			}
-		}
-
-		var req = new HttpRequestMessage(HttpMethod.Post, LookupUrl)
-		{
-			Headers =
-			{
-				{ "User-Agent", R1.UserAgent1 }
-			},
-			Content = new MultipartFormDataContent()
-			{
-				{ new FileContent(t), "sfile", name }
-			}
-		};
-		m_clientHandler.CookieContainer.Add(m_cookies);
-
-		var res = await m_client.SendAsync(req);
-
-		var content  = await res.Content.ReadAsStringAsync();
-		var parser  = new HtmlParser();
-		return await parser.ParseDocumentAsync(content, token);
-	}*/
-
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
 
-		const string name_default = "a.jpg";
-		string       name;
-		string       t = null;
+		const string SFILE_NAME_DEFAULT = "a.jpg";
+		string       fileName;
+		string       filePath = null;
 
 		if (query.HasFile) {
-			t    = query.FilePath;
-			name = Path.GetFileName(t);
+			filePath = query.FilePath;
+			fileName = Path.GetFileName(filePath);
 
 			/*if (Path.GetFileName(t) != name) {
 				// Debugger.Break();
 			}*/
 		}
 		else {
-			name = name_default;
-			var ok = query.TryGetFile(name);
+			fileName = SFILE_NAME_DEFAULT;
+			var ok = query.TryGetFile(fileName);
 
 			if (ok) {
-				t = query.FilePath;
+				filePath = query.FilePath;
 			}
 			else {
 				Debugger.Break();
 			}
 		}
 
-		if (t != null) {
-			Trace.WriteLine($"allocated {t}", nameof(GetDocumentAsync));
+		if (filePath != null) {
+			Trace.WriteLine($"allocated {filePath}", nameof(GetDocumentAsync));
 		}
 
 		var data = new MultipartFormDataContent()
 		{
-			{ new FileContent(t), "sfile", name },
+			{ new FileContent(filePath), "sfile", fileName },
 
 			// { new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
 			{ new StringContent("fs_similar") },
@@ -303,6 +216,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		};
 
 		var res = await m_client.SendAsync(req, token);
+
 		// Debug.WriteLine($"{res.StatusCode}");
 
 		sr.RawUrl = res.RequestMessage.RequestUri;
@@ -393,96 +307,96 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		return true;
 	}
 
-	private sealed record EhResult : IParseable<EhResult, INode>
+}
+
+public sealed record EhResult : IParseable<EhResult, INode>
+{
+
+	public string Type { get; internal set; }
+
+	public string Pages { get; internal set; }
+
+	public string Title { get; internal set; }
+
+	public string Author { get; internal set; }
+
+	public string AuthorUrl { get; internal set; }
+
+	public Url Url { get; internal set; }
+
+	public ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get; } = new();
+
+	public static EhResult Parse(INode n)
 	{
+		// ReSharper disable InconsistentNaming
+		var eh = new EhResult();
 
-		internal string Type { get; set; }
+		var gl1c = n.ChildNodes.TryFindSingleElementByClassName("gl1c");
 
-		internal string Pages { get; set; }
-
-		internal string Title { get; set; }
-
-		internal string Author { get; set; }
-
-		internal string AuthorUrl { get; set; }
-
-		internal Url Url { get; set; }
-
-		internal ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get; } = new();
-
-		public static EhResult Parse(INode n)
-		{
-			// ReSharper disable InconsistentNaming
-			var eh = new EhResult();
-
-			var gl1c = n.ChildNodes.TryFindSingleElementByClassName("gl1c");
-
-			if (gl1c is { }) {
-				if (gl1c.FirstChild is { } t) {
-					eh.Type = t.TextContent;
-				}
+		if (gl1c is { }) {
+			if (gl1c.FirstChild is { } t) {
+				eh.Type = t.TextContent;
 			}
+		}
 
-			var gl2c = n.ChildNodes.TryFindSingleElementByClassName("gl2c");
+		var gl2c = n.ChildNodes.TryFindSingleElementByClassName("gl2c");
 
-			if (gl2c is { }) {
-				if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
-					eh.Pages = div.TextContent;
-				}
+		if (gl2c is { }) {
+			if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
+				eh.Pages = div.TextContent;
 			}
+		}
 
-			var gl3c = n.ChildNodes.TryFindSingleElementByClassName("gl3c glname");
+		var gl3c = n.ChildNodes.TryFindSingleElementByClassName("gl3c glname");
 
-			if (gl3c is { }) {
-				if (gl3c.FirstChild is { } f) {
-					eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
+		if (gl3c is { }) {
+			if (gl3c.FirstChild is { } f) {
+				eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
 
-					if (f.FirstChild is { } ff) {
-						eh.Title = ff.TextContent;
-					}
+				if (f.FirstChild is { } ff) {
+					eh.Title = ff.TextContent;
+				}
 
-					if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
-						var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
+				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
+					var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
 
-						foreach (string s in tagValuesRaw) {
-							if (s is not { }) {
-								continue;
-							}
+					foreach (string s in tagValuesRaw) {
+						if (s is not { }) {
+							continue;
+						}
 
-							var split = s.Split(':');
-							var tag   = split[0];
-							var val   = split[1];
+						var split = s.Split(':');
+						var tag   = split[0];
+						var val   = split[1];
 
-							if (eh.Tags.ContainsKey(tag)) {
-								eh.Tags[tag].Add(val);
-							}
-							else {
-								eh.Tags.TryAdd(tag, [val]);
+						if (eh.Tags.ContainsKey(tag)) {
+							eh.Tags[tag].Add(val);
+						}
+						else {
+							eh.Tags.TryAdd(tag, [val]);
 
-							}
 						}
 					}
 				}
 			}
-
-			var gl4c = n.ChildNodes.TryFindSingleElementByClassName("gl4c glhide");
-
-			if (gl4c is { }) {
-				if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
-					eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
-					eh.Author    = div1Outer.TextContent ?? div1.TextContent;
-				}
-
-				if (gl4c.ChildNodes[1] is { } div2) {
-					eh.Pages ??= div2.TextContent;
-				}
-			}
-
-			return eh;
-
-			// ReSharper restore InconsistentNaming
 		}
 
+		var gl4c = n.ChildNodes.TryFindSingleElementByClassName("gl4c glhide");
+
+		if (gl4c is { }) {
+			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
+				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
+				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
+			}
+
+			if (gl4c.ChildNodes[1] is { } div2) {
+				eh.Pages ??= div2.TextContent;
+			}
+		}
+
+		return eh;
+
+		// ReSharper restore InconsistentNaming
 	}
 
 }

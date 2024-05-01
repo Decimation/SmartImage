@@ -156,122 +156,122 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 		m_anilistClient.Dispose();
 	}
 
-	#region API Objects
-
-	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public class TraceMoeDoc : IResultConvertable
-	{
-
-		public double from { get; set; }
-
-		public double to { get; set; }
-
-		public long anilist { get; set; }
-
-		public string filename { get; set; }
-
-		/// <remarks>Episode may be a JSON array (edge case) or a normal integer</remarks>
-		public object episode { get; set; }
-
-		public double similarity { get; set; }
-
-		public string video { get; set; }
-
-		public string image { get; set; }
-
-		public string EpisodeString
-		{
-			get
-			{
-				string epStr = episode is { } ? episode is string s ? s : episode.ToString() : string.Empty;
-
-				if (episode is IEnumerable e && e is not string) {
-					var epList = e.CastToList()
-						.Select(x =>
-						{
-							var s1 = x.ToString();
-
-							if (s1.Contains('|')) {
-								s1 = s1.Split('|')[0];
-							}
-
-							return long.Parse(s1 ?? string.Empty);
-						});
-
-					epStr = epList.QuickJoin();
-				}
-
-				return epStr;
-			}
-		}
-
-		public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children)
-		{
-			children = [];
-			var sim = Math.Round(similarity * 100.0f, 2);
-
-			string epStr = EpisodeString;
-
-			var result = new SearchResultItem(sr)
-			{
-				Similarity = sim,
-				// Metadata   = new[] { doc.video, doc.image },
-				Title = filename,
-
-				Description = $"Episode #{epStr} @ " +
-				              $"[{TimeSpan.FromSeconds(from):g} - {TimeSpan.FromSeconds(to):g}]",
-			};
-
-			// result.Metadata.video = video;
-			// result.Metadata.image = image;
-
-			if (result.Similarity < FILTER_THRESHOLD) {
-				/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
-												 $"({result.Similarity.Value / 100:P} " +
-												 $"< {FILTER_THRESHOLD / 100:P})");*/
-				//todo
-
-				// result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
-			}
-
-			return result;
-		}
-
-	}
-
-	[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-	public class TraceMoeRootObject
-	{
-
-		public long frameCount { get; set; }
-
-		public string error { get; set; }
-
-		public List<TraceMoeDoc> result { get; set; }
-
-	}
-
 	public async Task<TraceMoeQuotaObject> GetQuotaAsync()
 	{
 		return await EndpointUrl.AppendPathSegment("me")
 			       .GetJsonAsync<TraceMoeQuotaObject>();
 	}
 
-	public class TraceMoeQuotaObject
-	{
+}
 
-		public string Id { get; set; }
+#region API Objects
 
-		public long Priority { get; set; }
+[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+public class TraceMoeRootObject
+{
 
-		public long Concurrency { get; set; }
+	public long frameCount { get; set; }
 
-		public long Quota { get; set; }
+	public string error { get; set; }
 
-		public long QuotaUsed { get; set; }
-
-	}
-
-	#endregion
+	public List<TraceMoeDoc> result { get; set; }
 
 }
+
+public class TraceMoeQuotaObject
+{
+
+	public string Id { get; set; }
+
+	public long Priority { get; set; }
+
+	public long Concurrency { get; set; }
+
+	public long Quota { get; set; }
+
+	public long QuotaUsed { get; set; }
+
+}
+
+[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
+public class TraceMoeDoc : IResultConvertable
+{
+
+	public double from { get; set; }
+
+	public double to { get; set; }
+
+	public long anilist { get; set; }
+
+	public string filename { get; set; }
+
+	/// <remarks>Episode may be a JSON array (edge case) or a normal integer</remarks>
+	public object episode { get; set; }
+
+	public double similarity { get; set; }
+
+	public string video { get; set; }
+
+	public string image { get; set; }
+
+	public string EpisodeString
+	{
+		get
+		{
+			string epStr = episode is { } ? episode is string s ? s : episode.ToString() : string.Empty;
+
+			if (episode is IEnumerable e && e is not string) {
+				var epList = e.CastToList()
+					.Select(x =>
+					{
+						var s1 = x.ToString();
+
+						if (s1.Contains('|')) {
+							s1 = s1.Split('|')[0];
+						}
+
+						return long.Parse(s1 ?? string.Empty);
+					});
+
+				epStr = epList.QuickJoin();
+			}
+
+			return epStr;
+		}
+	}
+
+	public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children)
+	{
+		children = [];
+		var sim = Math.Round(similarity * 100.0f, 2);
+
+		string epStr = EpisodeString;
+
+		var result = new SearchResultItem(sr)
+		{
+			Similarity = sim,
+			// Metadata   = new[] { doc.video, doc.image },
+			Title = filename,
+
+			Description = $"Episode #{epStr} @ " +
+			              $"[{TimeSpan.FromSeconds(from):g} - {TimeSpan.FromSeconds(to):g}]",
+		};
+
+		// result.Metadata.video = video;
+		// result.Metadata.image = image;
+
+		if (result.Similarity < TraceMoeEngine.FILTER_THRESHOLD) {
+			/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
+												 $"({result.Similarity.Value / 100:P} " +
+												 $"< {FILTER_THRESHOLD / 100:P})");*/
+			//todo
+
+			// result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
+		}
+
+		return result;
+	}
+
+}
+
+#endregion

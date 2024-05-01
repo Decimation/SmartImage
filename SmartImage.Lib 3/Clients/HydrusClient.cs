@@ -192,7 +192,7 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 }
 #pragma warning disable IL2026
 
-public partial class FileRelationship
+public partial class HydrusFileRelationship
 {
 
 	[JsonPropertyName("0")]
@@ -219,11 +219,11 @@ public partial class FileRelationship
 	[JsonPropertyName("king_is_on_file_domain")]
 	public bool KingIsOnFileDomain { get; set; }
 
-	public static Dictionary<string, FileRelationship> Deserialize(JsonValue v)
+	public static Dictionary<string, HydrusFileRelationship> Deserialize(JsonValue v)
 	{
 		var vs = ((JsonObject) v)["file_relationships"];
 
-		var re = JsonSerializer.Deserialize<Dictionary<string, FileRelationship>>(vs.ToString());
+		var re = JsonSerializer.Deserialize<Dictionary<string, HydrusFileRelationship>>(vs.ToString());
 
 		return re;
 	}

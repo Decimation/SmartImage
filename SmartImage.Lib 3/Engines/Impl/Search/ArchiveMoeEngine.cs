@@ -97,7 +97,7 @@ public class ArchiveMoeEngine : WebSearchEngine
 
 }
 
-internal record ChanPost : IResultConvertable
+public record ChanPost : IResultConvertable
 {
 
 	public long     Id;

@@ -34,8 +34,6 @@ public abstract class BaseUploadEngine : IDisposable
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
-	protected bool EnsureResponse { get; set; }
-
 	public TimeSpan Timeout { get; set; }
 
 	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseUploadEngine));
@@ -134,8 +132,10 @@ public abstract class BaseUploadEngine : IDisposable
 
 		ok = true;
 
-		if (EnsureResponse) {
-			var r2 = await Client.Request(url)
+		/*if (ensureResponse) {
+			var fmt = await ISImage.DetectFormatAsync(await response.GetStreamAsync(), ct);
+
+			/*var r2 = await Client.Request(url)
 				         .WithSettings(r =>
 				         {
 					         r.Timeout = Timeout;
@@ -147,11 +147,12 @@ public abstract class BaseUploadEngine : IDisposable
 
 			if (r2 == null || r2.GetContentLength() == 0) {
 				ok = false;
-			}
+			}#1#
 
-		}
+		}*/
 
 	ret:
+		var fmt = await ISImage.DetectFormatAsync(await response.GetStreamAsync(), ct);
 
 		return new()
 		{

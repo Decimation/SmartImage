@@ -467,109 +467,109 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 
 	}
 
-	/// <summary>
-	/// Origin result
-	/// </summary>
-	public sealed class SauceNaoDataResult : IResultConvertable
+	public ValueTask ApplyAsync(SearchConfig cfg)
 	{
+		Authentication = cfg.SauceNaoKey;
+		return ValueTask.CompletedTask;
+	}
 
-		/// <summary>
-		///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
-		/// </summary>
-		public string[] Urls { get; internal set; }
+}
 
-		/// <summary>
-		///     The search index of the image
-		/// </summary>
-		public SauceNaoSiteIndex Index { get; internal set; }
+/// <summary>
+/// Origin result
+/// </summary>
+public sealed class SauceNaoDataResult : IResultConvertable
+{
 
-		/// <summary>
-		///     How similar is the image to the one provided (Percentage)?
-		/// </summary>
-		public double Similarity { get; internal set; }
+	/// <summary>
+	///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
+	/// </summary>
+	public string[] Urls { get; internal set; }
 
-		public string WebsiteTitle { get; internal set; }
+	/// <summary>
+	///     The search index of the image
+	/// </summary>
+	public SauceNaoSiteIndex Index { get; internal set; }
 
-		public string Title { get; internal set; }
+	/// <summary>
+	///     How similar is the image to the one provided (Percentage)?
+	/// </summary>
+	public double Similarity { get; internal set; }
 
-		public string Character { get; internal set; }
+	public string WebsiteTitle { get; internal set; }
 
-		public string Material { get; internal set; }
+	public string Title { get; internal set; }
 
-		public string Creator { get; internal set; }
+	public string Character { get; internal set; }
 
-		public string Source { get; internal set; }
+	public string Material { get; internal set; }
 
-		public Url Thumbnail { get; internal set; }
+	public string Creator { get; internal set; }
 
-		public string ThumbnailTitle { get; internal set; }
+	public string Source { get; internal set; }
 
-		public SearchResultItem Convert(SearchResult r, out SearchResultItem[] children)
-		{
-			var    idxStr   = Index.ToString();
-			string siteName = Index != 0 ? idxStr : null;
+	public Url Thumbnail { get; internal set; }
 
-			var site  = Strings.NormalizeNull(siteName);
-			var title = Strings.NormalizeNull(WebsiteTitle);
+	public string ThumbnailTitle { get; internal set; }
 
-			var sb = new StringBuilder();
+	public SearchResultItem Convert(SearchResult r, out SearchResultItem[] children)
+	{
+		var    idxStr   = Index.ToString();
+		string siteName = Index != 0 ? idxStr : null;
 
-			if (site is { }) {
-				sb.Append(site);
-			}
+		var site  = Strings.NormalizeNull(siteName);
+		var title = Strings.NormalizeNull(WebsiteTitle);
 
-			if (title is { }) {
-				sb.Append($" [{title}]");
-			}
+		var sb = new StringBuilder();
 
-			site = sb.ToString().Trim(' ');
+		if (site is { }) {
+			sb.Append(site);
+		}
 
-			/*var urls = sn.Urls.OrderByDescending(s =>
+		if (title is { }) {
+			sb.Append($" [{title}]");
+		}
+
+		site = sb.ToString().Trim(' ');
+
+		/*var urls = sn.Urls.OrderByDescending(s =>
 			{
 				Url u = s;
 				return u.Host == "gelbooru" || u.Host == "danbooru";
 			}).ToArray();*/
 
-			string[] urls = (Urls != null)
-				                ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
-				                : [];
+		string[] urls = (Urls != null)
+			                ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
+			                : [];
 
-			string[] meta = [];
+		string[] meta = [];
 
-			if ((urls.Length >= 2)) {
-				meta = urls[1..].Where(u => !((Url) u).QueryParams.Contains("lookup_type")).ToArray();
-			}
-
-			var imageResult = new SearchResultItem(r)
-			{
-				Url        = urls.FirstOrDefault(),
-				Similarity = Math.Round(Similarity, 2),
-
-				// Similarity = Similarity,
-				Description    = siteName,
-				Artist         = Strings.NormalizeNull(Creator),
-				Source         = Strings.NormalizeNull(Material),
-				Character      = Strings.NormalizeNull(Character),
-				Site           = site,
-				Title          = Strings.NormalizeNull(Title),
-				Metadata       = meta,
-				Thumbnail      = Thumbnail,
-				ThumbnailTitle = ThumbnailTitle
-
-			};
-
-			children = imageResult.AddChildren(meta);
-
-			return imageResult;
-
+		if ((urls.Length >= 2)) {
+			meta = urls[1..].Where(u => !((Url) u).QueryParams.Contains("lookup_type")).ToArray();
 		}
 
-	}
+		var imageResult = new SearchResultItem(r)
+		{
+			Url        = urls.FirstOrDefault(),
+			Similarity = Math.Round(Similarity, 2),
 
-	public ValueTask ApplyAsync(SearchConfig cfg)
-	{
-		Authentication = cfg.SauceNaoKey;
-		return ValueTask.CompletedTask;
+			// Similarity = Similarity,
+			Description    = siteName,
+			Artist         = Strings.NormalizeNull(Creator),
+			Source         = Strings.NormalizeNull(Material),
+			Character      = Strings.NormalizeNull(Character),
+			Site           = site,
+			Title          = Strings.NormalizeNull(Title),
+			Metadata       = meta,
+			Thumbnail      = Thumbnail,
+			ThumbnailTitle = ThumbnailTitle
+
+		};
+
+		children = imageResult.AddChildren(meta);
+
+		return imageResult;
+
 	}
 
 }

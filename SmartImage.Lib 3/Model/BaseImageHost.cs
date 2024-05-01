@@ -3,9 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.IO;
-using AngleSharp;
-using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Net.Utilities;
@@ -13,25 +10,46 @@ using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Utilities;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Model;
 
-public class GenericImageHost : BaseImageHost
+public interface IImageFilter
 {
 
-	public override Url Host => default;
+	public string[] Blacklist { get; }
 
-	public static readonly BaseImageHost Instance = new GenericImageHost();
+	public bool Refine(string b);
 
-	public override string[] Illegal
+	public bool Predicate(UniSource us);
+
+}
+
+public class GenericImageFilter : IImageFilter
+{
+
+	public string[] Blacklist
 		=>
 		[
 			"thumbnail", "avatar", "error", "logo"
 		];
 
-	public override bool Refine(string b)
+	public bool Predicate(UniSource us)
+	{
+		try {
+			if (us.Stream.Length <= 25_000 || !FileType.Image.Contains(us.FileType)) {
+				return false;
+			}
+
+			return true;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(Predicate));
+			return true;
+		}
+	}
+
+	public bool Refine(string b)
 	{
 		if (!Url.IsValid(b)) {
 			return false;
@@ -41,46 +59,27 @@ public class GenericImageHost : BaseImageHost
 		var ps = u.PathSegments;
 
 		if (ps.Any()) {
-			return !Illegal.Any(i => ps.Any(p => p.Contains(i, StringComparison.InvariantCultureIgnoreCase)));
+			return !Blacklist.Any(i => ps.Any(p => p.Contains(i, StringComparison.InvariantCultureIgnoreCase)));
 		}
 
 		return true;
-
-		;
 	}
 
 }
 
-public abstract class BaseImageHost
+public static class BaseImageHost
 {
 
-	public abstract Url Host { get; }
+	/*public static readonly BaseImageHost[] All =
+		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
 
-	public abstract string[] Illegal { get; }
-
-	public abstract bool Refine(string b);
-
-	public static readonly BaseImageHost[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();
-
-	public static async Task<UniSource> TryGet(object o, CancellationToken c = default)
-	{
-		var x = await UniSource.TryGetAsync(o, ct: c);
-
-		if (!FileType.Image.Contains(x.FileType)) {
-			x?.Dispose();
-			return null;
-		}
-
-		return x;
-	}
-
-	public static async Task<UniSource[]> ScanAsync(Url u, Predicate<UniSource> pred = null,
+	public static async Task<UniSource[]> ScanAsync(Url u, IImageFilter filter = null,
 	                                                CancellationToken ct = default)
 	{
 		IFlurlResponse res;
 		Stream         stream;
-		pred ??= _ => true;
+		// pred   ??= _ => true;
+		filter ??= new GenericImageFilter();
 
 		try {
 			res = await u.AllowAnyHttpStatus()
@@ -133,7 +132,7 @@ public abstract class BaseImageHost
 		var a = dd.QueryAllAttribute("a", "href");
 		var b = dd.QueryAllAttribute("img", "src");
 
-		var c = a.Union(b).Where(GenericImageHost.Instance.Refine).Distinct();
+		var c = a.Union(b).Where(filter.Refine).Distinct();
 
 		var po = new ParallelOptions()
 		{
@@ -151,7 +150,7 @@ public abstract class BaseImageHost
 					return;
 				}*/
 				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanAsync));
-				if (pred(ux)) {
+				if (filter.Predicate(ux)) {
 					ul.Add(ux);
 
 				}

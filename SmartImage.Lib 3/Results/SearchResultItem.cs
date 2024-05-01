@@ -7,7 +7,6 @@ using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using SmartImage.Lib.Model;
-using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Results;
 
@@ -243,7 +242,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		}
 
 		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
-		Uni = await BaseImageHost.ScanAsync(Url, BaseImageHost.UniSourcePredicate, ct);
+		Uni = await BaseImageHost.ScanAsync(Url, ct: ct);
 		return HasUni;
 	}
 

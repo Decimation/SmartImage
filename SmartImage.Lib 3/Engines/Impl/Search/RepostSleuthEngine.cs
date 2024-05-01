@@ -37,8 +37,6 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	public override void Dispose() { }
 
-	#region Overrides of BaseSearchEngine
-
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var sr = await base.GetResultAsync(query, token);
@@ -89,8 +87,6 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		return sr;
 
 	}
-
-	#endregion
 
 	#region API Objects
 
