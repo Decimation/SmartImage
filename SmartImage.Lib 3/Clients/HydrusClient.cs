@@ -24,9 +24,7 @@ namespace SmartImage.Lib.Clients;
 public class HydrusClient : INotifyPropertyChanged, IDisposable
 {
 
-	private const string HDR_HYDRUS_KEY      = "Hydrus-Client-API-Access-Key";
-	private const string GET_FILES_THUMBNAIL = "/get_files/thumbnail";
-	private const string GET_FILES_FILE      = "/get_files/file";
+	private const string HDR_HYDRUS_KEY = "Hydrus-Client-API-Access-Key";
 
 	public FlurlClient Client { get; }
 
@@ -77,11 +75,12 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 
 	}
 
-	public async Task<JsonValue> GetFileMetadataAsync(string hash)
+	public async Task<JsonValue> GetFileMetadataAsync(HydrusQuery q)
 	{
+		var (name, value) = q.GetValue();
 
 		using var res = await Client.Request("/get_files/file_metadata")
-			                .SetQueryParam("hash", hash)
+			                .SetQueryParam(name, value)
 			                .GetAsync();
 
 		var b = await res.GetStreamAsync();
@@ -89,10 +88,12 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 		return j;
 	}
 
-	public async Task<JsonValue> GetFileRelationshipsAsync(string hash)
+	public async Task<JsonValue> GetFileRelationshipsAsync(HydrusQuery q)
 	{
+		var (name, value) = q.GetValue();
+
 		using var res = await Client.Request("/manage_file_relationships/get_file_relationships")
-			                .SetQueryParam("hash", hash)
+			                .SetQueryParam(name, value)
 			                .GetAsync();
 
 		var b = await res.GetStreamAsync();
@@ -101,37 +102,41 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 		return j;
 	}
 
-	public async Task<IFlurlResponse> GetFileAsync(string hash)
+	public async Task<IFlurlResponse> GetFileAsync(HydrusQuery q)
 	{
-		var res = await Client.Request(GET_FILES_FILE)
-			          .SetQueryParam("hash", hash)
+		var (name, value) = q.GetValue();
+
+		var res = await Client.Request("/get_files/file")
+			          .SetQueryParam(name, value)
 			          .GetAsync();
 
 		return res;
 	}
 
-	public async Task<IFlurlResponse> GetFileAsync(int id)
+	public async Task<IFlurlResponse> GetFileThumbnailAsync(HydrusQuery q)
 	{
-		var res = await Client.Request(GET_FILES_FILE)
-			          .SetQueryParam("file_id", id)
+		var (name, value) = q.GetValue();
+
+		var res = await Client.Request("/get_files/thumbnail")
+			          .SetQueryParam(name, value)
 			          .GetAsync();
 
 		return res;
 	}
 
-	public async Task<IFlurlResponse> GetFileThumbnailAsync(string hash)
+	public async Task<IFlurlResponse> GetUrlInfoAsync(string url)
 	{
-		var res = await Client.Request(GET_FILES_THUMBNAIL)
-			          .SetQueryParam("hash", hash)
+		var res = await Client.Request("/add_urls/get_url_info")
+			          .SetQueryParam("url", url)
 			          .GetAsync();
 
 		return res;
 	}
 
-	public async Task<IFlurlResponse> GetFileThumbnailAsync(int id)
+	public async Task<IFlurlResponse> GetUrlFilesAsync(string url)
 	{
-		var res = await Client.Request(GET_FILES_THUMBNAIL)
-			          .SetQueryParam("file_id", id)
+		var res = await Client.Request("/add_urls/get_url_files")
+			          .SetQueryParam("url", url)
 			          .GetAsync();
 
 		return res;
@@ -189,7 +194,90 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 		return true;
 	}
 
+	public static string HyEncode(object o)
+	{
+		return Url.Encode(JsonSerializer.Serialize(o));
+	}
+
 }
+
+public sealed class HydrusQuery
+{
+
+/*
+
+   file_id: (selective, a numerical file id)
+   file_ids: (selective, a list of numerical file ids)
+   hash: (selective, a hexadecimal SHA256 hash)
+   hashes: (selective, a list of hexadecimal SHA256 hashes)
+ *
+ */
+
+	public long? FileId { get; init; }
+
+	public IEnumerable<long> FileIds { get; init; }
+
+	public string Hash { get; init; }
+
+	public IEnumerable<string> Hashes { get; init; }
+
+	public HydrusQuery(long? fileId)
+	{
+		FileId = fileId;
+	}
+
+	public HydrusQuery(string h)
+	{
+		Hash = h;
+	}
+
+	public HydrusQuery(IEnumerable<string> hashes)
+	{
+		Hashes = hashes;
+	}
+
+	public HydrusQuery(IEnumerable<long> fileIds)
+	{
+		FileIds = fileIds;
+	}
+
+	public static implicit operator HydrusQuery(long l)
+		=> new(l);
+
+	public static implicit operator HydrusQuery(long[] l)
+		=> new(l);
+
+	public static implicit operator HydrusQuery(string s)
+		=> new(s);
+
+	public static implicit operator HydrusQuery(string[] s)
+		=> new(s);
+
+	public (string Name, string Value) GetValue()
+	{
+		if (FileId.HasValue) {
+			return ("file_id", FileId.Value.ToString());
+		}
+
+		if (FileIds != null && FileIds.Any()) {
+			return ("file_ids", HydrusClient.HyEncode(FileIds));
+		}
+
+		if (!String.IsNullOrWhiteSpace(Hash)) {
+			return ("hash", Hash);
+		}
+
+		if (Hashes != null && Hashes.Any()) {
+			return ("hashes", HydrusClient.HyEncode(Hashes));
+
+			// return ("hashes", $"[{Url.Encode(String.Join(", ", Hashes), true)}]");
+		}
+
+		return (null, null);
+	}
+
+}
+
 #pragma warning disable IL2026
 
 public partial class HydrusFileRelationship
