@@ -87,7 +87,12 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	{
 		var p = ctx.AddTask("Creating query");
 		p.IsIndeterminate = true;
-		Query             = await SearchQuery.TryCreateAsync(m_scs.Query);
+
+		if (m_scs.Raw) {
+			
+		}
+
+		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
 
 		p.Increment(COMPLETE / 2);
 

@@ -2,6 +2,9 @@
 // $File.CreatedYear-$File.CreatedMonth-26 @ 0:56
 
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Text;
+using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Rdx.Shell;
@@ -80,13 +83,20 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	#endregion
 
+	public bool Raw { get; internal set; }
+	public byte[] Raw2 { get; internal set; }
+
 	// public const string PROP_ARG_RESULTS = "$all_results";
 
 	public override ValidationResult Validate()
 	{
 		var result = base.Validate();
 
-		if (!UniImage.IsValidSourceType(Query)) {
+		if (String.IsNullOrWhiteSpace(Query)) {
+			
+		}
+
+		else if (!UniImage.IsValidSourceType(Query)) {
 			return ValidationResult.Error("Invalid query");
 		}
 

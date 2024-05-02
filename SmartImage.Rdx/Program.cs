@@ -1,6 +1,11 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Reflection;
+using System.Text;
 using Kantan.Text;
+using Novus.Streams;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
@@ -26,6 +31,54 @@ public static class Program
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
+
+		if (Console.IsInputRedirected) {
+			// using var str = Console.OpenStandardInput(500);
+			Stream stdin = Console.OpenStandardInput(1000);
+			/*byte[] inBuffer = new byte[1_000_000];
+
+			int    outLen   = stdin.Read(inBuffer, 0, inBuffer.Length);
+			char[] chars    = Encoding.ASCII.GetChars(inBuffer, 0, outLen);
+			var cmd = new string(chars);
+			if ((cmd[cmd.Length - 2] == '\r') && (cmd[cmd.Length - 1] == '\n'))
+			{
+				cmd = cmd.Substring(0, cmd.Length - 2);
+			}*/
+			var          sr = new StreamReader(stdin);
+			int          n1 = 0, n2 = 0;
+			var sb = new char[8_000_000];
+
+			while (!sr.EndOfStream) {
+				/*if (sb[^2] == '\r' && sb[^1] == '\n') {
+					break;
+				}*/
+				n1 += (n2 = sr.Read(sb, n1, sb.Length - n1));
+
+				if (n2 == 0) {
+					break;
+				}
+
+			}
+
+			sb = sb[..n1];
+
+			if (sb[^2] == '\r' && sb[^1] == '\n') {
+				sb = sb[0..^2];
+			}
+
+			IImageFormat fmt;
+			AConsole.WriteLine($"{sb.Length}");
+
+			/*try {
+				fmt = await Image.DetectFormatAsync();
+			}
+			catch (Exception e) {
+				AConsole.WriteLine($"{e.Message}");
+			}
+			finally {
+				str.TrySeek();
+			}*/
+		}
 
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
