@@ -47,7 +47,6 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Windows.ApplicationModel;
 using Flurl.Http;
-using SmartImage.Lib.Model;
 using SmartImage.UI.Model;
 using Color = System.Drawing.Color;
 using Jint.Parser.Ast;
@@ -67,6 +66,7 @@ using Brush = System.Drawing.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using System.Buffers;
 using DynamicData;
+using SmartImage.UI.Controls;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -348,7 +348,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
 
-			var ok = SearchQuery.IsValidSourceType(CurrentQuery?.Value);
+			var ok = UniImage.IsValidSourceType(CurrentQuery?.Value);
 
 			// var ok = true;
 			// var ok = true;
@@ -388,7 +388,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				ClearQueryControls();
 			}
 
-			CanReload = !Client.IsRunning && CurrentQuery is { HasQuery: true, Query.IsUploading: false };
+			CanReload = !Client.IsRunning && CurrentQuery is { HasQuery: true };
 
 		});
 
@@ -553,7 +553,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void AddToQueue(string s)
 	{
-		if (SearchQuery.IsValidSourceType(s) && Queue.All(x => x.Value != s)) {
+		if (UniImage.IsValidSourceType(s) && Queue.All(x => x.Value != s)) {
 			Queue.Add(new QueryModel(s));
 			Debug.WriteLine($"Added {s}");
 
@@ -650,7 +650,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			string? txt = (string) Clipboard.GetData(DataFormats.UnicodeText);
 			txt = txt.CleanString();
 
-			if (SearchQuery.IsValidSourceType(txt)) {
+			if (UniImage.IsValidSourceType(txt)) {
 
 				if ( /*!IsInputReady() && */ /*!Queue.Any(x => x.Value == txt) &&*/ !m_clipboardHistory.Contains(txt)
 				    /*&& SearchQuery.IsValidSourceType(txt)*/) {
@@ -1035,7 +1035,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		bool d = false;
 
 		try {
-			d = await ri.Result.LoadUniAsync(m_cts.Token);
+			d = await ri.Result.ScanAsync(m_cts.Token);
 
 			if (d) {
 				Debug.WriteLine($"{ri}");
@@ -1097,7 +1097,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private async Task ScanGalleryResultAsync(ResultItem cri)
 	{
 
-		if (BaseImageHost.GalleryDLPath == null) {
+		if (ImageScanner.GalleryDLPath == null) {
 			MessageBox.Show(this, "gallery-dl not in path");
 			return;
 		}
@@ -1106,7 +1106,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Pb_Preview.IsIndeterminate = true;
 
 		try {
-			var rg = await BaseImageHost.RunGalleryAsync(cri.Url, m_cts.Token);
+			var rg = await ImageScanner.RunGalleryAsync(cri.Url, m_cts.Token);
 			cri.Result.Uni = rg;
 
 			for (int i = 0; i < rg.Length; i++) {
@@ -1460,7 +1460,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#region
 
-	private void SetPreview(IGuiImageSource igs)
+	private void SetPreview(IBitmapImageSource igs)
 	{
 		/*Application.Current.Dispatcher.Invoke(() =>
 		{

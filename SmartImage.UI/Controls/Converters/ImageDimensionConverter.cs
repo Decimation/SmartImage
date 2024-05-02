@@ -11,15 +11,15 @@ using System.Windows.Data;
 using SmartImage.Lib.Model;
 using SmartImage.UI.Model;
 
-namespace SmartImage.UI.Controls;
+namespace SmartImage.UI.Controls.Converters;
 
-[ValueConversion(typeof(IGuiImageSource), typeof(string))]
+[ValueConversion(typeof(IBitmapImageSource), typeof(string))]
 public class ImageDimensionConverter : IValueConverter
 {
 
 	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		var val = (IGuiImageSource) value;
+		var val = (IBitmapImageSource) value;
 
 		if (val == null) {
 			return null;
@@ -37,7 +37,7 @@ public class ImageDimensionConverter : IValueConverter
 
 		}
 		else {
-			w = (val.Width);
+			w = val.Width;
 			h = val.Height;
 
 		}

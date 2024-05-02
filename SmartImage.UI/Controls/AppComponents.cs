@@ -7,11 +7,12 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using JetBrains.Annotations;
+
 // ReSharper disable NullableWarningSuppressionIsUsed
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.UI;
+namespace SmartImage.UI.Controls;
 #nullable enable
 public static class AppComponents
 {

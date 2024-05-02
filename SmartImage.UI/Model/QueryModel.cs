@@ -28,7 +28,7 @@ using Application = System.Windows.Application;
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
-public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, INamed, IItemSize
+public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSource, INamed, IItemSize
 {
 
 	//todo
@@ -69,7 +69,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		get
 		{
 			if (HasQuery) {
-				return Query.Size;
+				return Query.Image.Size;
 			}
 
 			return Native.INVALID;
@@ -138,7 +138,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 	public bool IsComplete => Results.Any() && HasQuery && Query.IsUploaded;
 
-	public bool CanDelete => HasQuery && Query is { IsFile: true };
+	public bool CanDelete => HasQuery && Query is { Image.IsFile: true };
 
 	public bool CanSearch => !Results.Any() && HasInitQuery;
 
@@ -262,7 +262,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		// Debug.Assert(Query != null);
 
-		var uriString = Query.ValueString;
+		var uriString = Query.Image.ValueString;
 
 		if (Query == null || String.IsNullOrWhiteSpace(uriString)) {
 			Invalid = true;
@@ -341,7 +341,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 		var image = new BitmapImage()
 			{ };
 		image.BeginInit();
-		image.UriSource = new Uri(Query.ValueString);
+		image.UriSource = new Uri(Query.Image.ValueString);
 
 		// Image.StreamSource   = Query.Uni.Stream;
 		image.CacheOption    = BitmapCacheOption.OnLoad;
@@ -351,7 +351,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IGuiImageSource, 
 
 		Trace.Assert(Query != null);
 
-		if (Query.IsUri) {
+		if (Query.Image.IsUri) {
 			image.DownloadCompleted += (sender, args) =>
 			{
 				UpdateProperties();

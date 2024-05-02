@@ -6,7 +6,7 @@ using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Results;
 
@@ -101,7 +101,9 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	[CBN]
 	public string ThumbnailTitle { get; internal set; }
 
-	public UniSource[] Uni { get; internal set; }
+	public UniImage[] Uni { get; internal set; }
+
+	public bool HasUni => Uni != null && Uni.Any();
 
 	[CBN]
 	public SearchResultItem Parent { get; internal set; }
@@ -231,7 +233,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	}
 
 	// [MustUseReturnValue]
-	public async Task<bool> LoadUniAsync(CancellationToken ct = default)
+	public async Task<bool> ScanAsync(CancellationToken ct = default)
 	{
 		if (HasUni) {
 			return true;
@@ -242,11 +244,9 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		}
 
 		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
-		Uni = await BaseImageHost.ScanAsync(Url, ct: ct);
+		Uni = await ImageScanner.ScanAsync(Url, ct: ct);
 		return HasUni;
 	}
-
-	public bool HasUni => Uni != null && Uni.Any();
 
 	// public IFlurlResponse Response { get; private set; }
 

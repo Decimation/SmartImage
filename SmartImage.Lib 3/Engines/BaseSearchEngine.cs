@@ -96,7 +96,7 @@ public abstract class BaseSearchEngine : IDisposable
 		bool b = true;
 
 		if (MaxSize.HasValue) {
-			b = q.Size <= MaxSize;
+			b = q.Image.Size <= MaxSize;
 		}
 
 		/*if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {

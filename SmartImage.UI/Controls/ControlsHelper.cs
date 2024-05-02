@@ -14,6 +14,7 @@ using System.Windows.Media.Imaging;
 using Kantan.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Model;
 
@@ -123,7 +124,7 @@ public static class ControlsHelper
 		return Array.Empty<string>();
 	}
 
-	public static string FormatDescription(string name, UniSource uni, int? w, int? h)
+	public static string FormatDescription(string name, UniImage uni, int? w, int? h)
 	{
 		string bytes = FormatSize(uni);
 
@@ -131,10 +132,10 @@ public static class ControlsHelper
 
 		i = FormatDimensions(w, h);
 
-		return $"{name} ⇉ [{uni.FileType}] [{bytes}] • {i}";
+		return $"{name} ⇉ [{uni.Info.DefaultMimeType}] [{bytes}] • {i}";
 	}
 
-	public static string FormatSize(UniSource uni)
+	public static string FormatSize(UniImage uni)
 	{
 		string bytes;
 

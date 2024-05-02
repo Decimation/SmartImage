@@ -15,17 +15,7 @@ public enum ImageSourceProperties
 
 }
 
-public static class Ext
-{
-
-	public static bool HasFlagFast(this ImageSourceProperties r, ImageSourceProperties x)
-	{
-		return (r & x) != 0;
-	}
-
-}
-
-public interface IGuiImageSource
+public interface IBitmapImageSource
 {
 
 	public Lazy<BitmapImage?> Image { get; set; }
@@ -41,11 +31,6 @@ public interface IGuiImageSource
 	int? Width { get; }
 
 	int? Height { get; }
-
-	bool HasPropert(ImageSourceProperties p)
-	{
-		return Ext.HasFlagFast(Properties, p);
-	}
 
 	BitmapImage? LoadImage();
 

@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Cache;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -17,7 +18,9 @@ using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Streams;
 using Novus.Win32;
+using SmartImage.Lib;
 using SmartImage.Lib.Model;
+using SmartImage.UI.Controls;
 
 namespace SmartImage.UI.Model;
 
@@ -43,7 +46,7 @@ public class UniResultItem : ResultItem
 		}
 	}
 
-	public UniSource? Uni
+	public UniImage? Uni
 	{
 		get
 		{
@@ -77,7 +80,7 @@ public class UniResultItem : ResultItem
 				Url = ri.Url.GetFileName().Split(':')[0];
 
 				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
-					Url = Path.ChangeExtension(Url, Uni.FileType.Subtype);
+					Url = Path.ChangeExtension(Url, Uni.Info.FileExtensions.First());
 				}
 			}
 			else {

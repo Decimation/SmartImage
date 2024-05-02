@@ -79,7 +79,7 @@ public partial class MainWindow
 	{
 		var files = e.GetFilesFromDrop();
 
-		if (files.All(x => !SearchQuery.IsValidSourceType(x))) {
+		if (files.All(x => !UniImage.IsValidSourceType(x))) {
 			e.Effects = DragDropEffects.None;
 		}
 
@@ -108,7 +108,7 @@ public partial class MainWindow
 		/*if (!m_isq) {
 			OnCurrentQueueItemChanged(sender, null);
 		}*/
-		if (SearchQuery.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
+		if (UniImage.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
 			var q = new QueryModel(Input);
 			Queue.Add(q);
 			CurrentQuery = q;
@@ -138,18 +138,18 @@ public partial class MainWindow
 			return;
 		}
 
-		var s = Query.ValueString;
+		var s = Query.Image.ValueString;
 
 		if (String.IsNullOrWhiteSpace(s)) {
 			return;
 		}
 
-		if (Query.IsFile) {
+		if (Query.Image.IsFile) {
 			FileSystem.ExploreFile(s);
 
 			// FileSystem.Open(s);
 		}
-		else if (Query.IsUri) {
+		else if (Query.Image.IsUri) {
 			FileSystem.Open(s);
 
 		}
@@ -404,7 +404,7 @@ public partial class MainWindow
 			var ai = e.AddedItems[0];
 			var ri = ai as ResultItem;
 
-			var b = ri is UniResultItem uri;
+			var b = ri is UniResultItem;
 
 			if (b || (ri.Result.Root.Engine.EngineOption != SearchEngineOptions.TraceMoe)) {
 				if (b) {
@@ -416,44 +416,19 @@ public partial class MainWindow
 			}
 			else {
 				SetPreviewToCurrentQuery();
+				// TODO
+				if (ri.Result.Metadata is TraceMoeDoc doc) {
 
-				if (ri.Result.Metadata is TraceMoeEngine.TraceMoeDoc doc) {
-					/*Me_Preview.ScrubbingEnabled = true;
-Me_Preview.UnloadedBehavior = MediaState.Close;
-Me_Preview.LoadedBehavior   = MediaState.Manual;*/
-					// Me_Preview.UnloadedBehavior   = MediaState.Stop;
-					// Me_Preview.LoadedBehavior   = MediaState.Manual;
-					// Me_Preview                  = new MediaElement();
-					// Me_Preview.LoadedBehavior   = MediaState.Play;
-					// Me_Preview.UnloadedBehavior = MediaState.Manual;
 					Me_Preview.UnloadedBehavior = MediaState.Close;
 					Me_Preview.LoadedBehavior   = MediaState.Manual;
 
-					// Me_Preview.LoadedBehavior   = MediaState.Manual;
-					/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
-						return;
-
-					}*/
 					Tb_Preview.Text = $"Preview: loading {ri.Name}";
 
 					Dispatcher.InvokeAsync(async () =>
 					{
-						/*Me_Preview.ScrubbingEnabled = true;
-						Me_Preview.UnloadedBehavior = MediaState.Close;
-						Me_Preview.LoadedBehavior   = MediaState.Manual;*/
-						// Me_Preview.UnloadedBehavior   = MediaState.Stop;
-						// Me_Preview.LoadedBehavior   = MediaState.Manual;
-						// Me_Preview                  = new MediaElement();
-						// Me_Preview.LoadedBehavior   = MediaState.Play;
-						// Me_Preview.UnloadedBehavior = MediaState.Manual;
 						Me_Preview.UnloadedBehavior = MediaState.Close;
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
 
-						// Me_Preview.LoadedBehavior   = MediaState.Manual;
-						/*if (!await m_us2.WaitAsync(TimeSpan.Zero)) {
-							return;
-
-						}*/
 						Tb_Preview.Text = $"Preview: loading {ri.Name}";
 						var uri = await CacheOrGetAsync(doc.video, m_ctsm.Token);
 						Debug.WriteLine($"{m_ctsm.IsCancellationRequested}");
@@ -461,18 +436,10 @@ Me_Preview.LoadedBehavior   = MediaState.Manual;*/
 						if (uri != null) {
 							Me_Preview.Source = new Uri(uri, UriKind.Absolute);
 
-							// Me_Preview.Source = new Uri(doc.video);
-							/*
-						while (Me_Preview.BufferingProgress < 1f) {
-							Debug.WriteLine($"{Me_Preview.BufferingProgress}");
-						}
-						*/
 							Me_Preview.Play();
 
 							ShowMedia       = true;
 							Tb_Preview.Text = $"Preview: {ri.Name}";
-
-							// m_us2.Release();
 
 						}
 					});

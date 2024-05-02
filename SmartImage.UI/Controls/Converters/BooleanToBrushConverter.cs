@@ -6,21 +6,23 @@ using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
 
-namespace SmartImage.UI.Controls;
+namespace SmartImage.UI.Controls.Converters;
 
 #pragma warning disable CS8618
 [ValueConversion(typeof(bool), typeof(Brush))]
 public class BooleanToBrushConverter : IValueConverter
 {
-	public Brush TrueBrush  { get; set; }
+
+	public Brush TrueBrush { get; set; }
+
 	public Brush FalseBrush { get; set; }
 
 	public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
 	{
-		if (value is bool boolValue)
-		{
+		if (value is bool boolValue) {
 			return boolValue ? TrueBrush : FalseBrush;
 		}
+
 		return FalseBrush;
 	}
 
@@ -28,4 +30,5 @@ public class BooleanToBrushConverter : IValueConverter
 	{
 		throw new NotImplementedException();
 	}
+
 }

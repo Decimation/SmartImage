@@ -1,10 +1,12 @@
 ﻿using System.Reflection;
 using Flurl.Http;
 
-namespace SmartImage.Lib.Booru;
+namespace SmartImage.Lib.Clients.Booru;
+
 // TODO
-public abstract class BaseGelbooru : IDisposable
+public abstract class BaseGelbooruClient : IDisposable
 {
+
 	public FlurlClient Client { get; }
 
 	public Url Base { get; }
@@ -15,7 +17,7 @@ public abstract class BaseGelbooru : IDisposable
 	[CBN]
 	public string Id { get; set; }
 
-	protected BaseGelbooru(Url @base)
+	protected BaseGelbooruClient(Url @base)
 	{
 		Base = @base;
 
@@ -31,15 +33,21 @@ public abstract class BaseGelbooru : IDisposable
 
 	public class PostsRequest
 	{
-		public int    Limit { get; set; }
-		public int    Pid   { get; set; }
-		public string Tags  { get; set; }
-		public long   Cid   { get; set; }
-		public int    Id    { get; set; }
+
+		public int Limit { get; set; }
+
+		public int Pid { get; set; }
+
+		public string Tags { get; set; }
+
+		public long Cid { get; set; }
+
+		public int Id { get; set; }
 
 		public int Json { get; set; } = 1;
 
 		public PostsRequest() { }
+
 	}
 
 	protected int PostMax { get; set; } = 100;
@@ -62,7 +70,7 @@ public abstract class BaseGelbooru : IDisposable
 		foreach (PropertyInfo p in r.GetType().GetProperties()) {
 			var o = p.GetValue(r);
 
-			if (o == null || (o is string s && string.IsNullOrWhiteSpace(s)) || o.Equals(0)) {
+			if (o == null || o is string s && string.IsNullOrWhiteSpace(s) || o.Equals(0)) {
 				continue;
 			}
 
@@ -81,12 +89,15 @@ public abstract class BaseGelbooru : IDisposable
 	{
 		Client?.Dispose();
 	}
+
 }
 
-public class Rule34Booru : BaseGelbooru
+public class Rule34Booru : BaseGelbooruClient
 {
+
 	public Rule34Booru() : base("https://rule34.xxx")
 	{
 		PostMax = 1000;
 	}
+
 }

@@ -8,10 +8,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
-using Flurl.Http;
 using JetBrains.Annotations;
 using Microsoft;
-using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.Streams;
 using Novus.Win32;
@@ -24,7 +22,6 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using SixLabors.ImageSharp.Formats;
-using System.Net;
 
 [assembly: InternalsVisibleTo("SmartImage")]
 [assembly: InternalsVisibleTo("SmartImage.UI")]
@@ -32,138 +29,38 @@ using System.Net;
 
 namespace SmartImage.Lib;
 
-public enum QueryType
+public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 {
-
-	Unknown = 0,
-	File,
-	Uri,
-	Stream
-
-}
-
-public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSize
-{
-
-	public Stream Stream { get; internal set; }
-
-	public object Value { get; internal set; }
 
 	[MN]
 	public Url Upload { get; internal set; }
 
-	public QueryType Type { get; internal set; }
-
-	public long Size
-	{
-		get
-		{
-			if (HasValue && Stream.CanRead) {
-				return Stream.Length;
-			}
-
-			return Native.INVALID;
-		}
-	}
-
-	[CBN]
-	public string ValueString => HasValue ? Value.ToString() : null;
-
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Url.IsValid(Upload);
 
-	[MNNW(true, nameof(Value))]
-	public bool HasValue => Value != null;
+	public UniImage Image { get; private set; }
 
-	[MN]
-	public string FilePath { get; private set; }
-
-	[MNNW(true, nameof(FilePath))]
-	public bool HasFile => FilePath != null && File.Exists(FilePath);
-
-	internal SearchQuery([MN] object f, Stream s, QueryType type)
+	internal SearchQuery(UniImage img)
 	{
-		Value  = f;
-		Stream = s;
-		Type   = type;
+		Image = img;
 
 		// Size = Uni == null ? default : Uni.Stream.Length;
 	}
 
-	internal SearchQuery([MN] object f) : this(f, Stream.Null, QueryType.Unknown) { }
-
-	private SearchQuery() : this(null) { }
-
 	static SearchQuery() { }
 
-	public static readonly SearchQuery Null = new();
-
-	[MN]
-	public IImageFormat ImageInfo { get; private set; }
-
-	[MNNW(true, nameof(ImageInfo))]
-	public bool HasImage => ImageInfo != null;
-
-	public bool IsUri => Type == QueryType.Uri;
-
-	public bool IsFile => Type == QueryType.File;
+	public static readonly SearchQuery Null = new(UniImage.Null);
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		Stream       str;
-		IImageFormat fmt;
-		QueryType    qt;
-		string       s = null;
+		var task = await UniImage.TryCreateAsync(o, t);
+		if (task != UniImage.Null) {
+			return new SearchQuery(task);
 
-		if (IsFileType(o, out var fi)) {
-			// var s = ((FileInfo) fi).FullName;
-			s = (string) o;
-			str = File.OpenRead(s);
-			qt  = QueryType.File;
-		}
-		else if (IsUriType(o, out var url2)) {
-			var url = (Url) url2;
-			var res = await HandleUriAsync(url, t);
-			str = await res.GetStreamAsync();
-			qt  = QueryType.Uri;
-		}
-		else if (o is Stream) {
-			str = (Stream) o;
-			qt  = QueryType.Stream;
 		}
 		else {
 			return Null;
 		}
-
-		fmt = await ISImage.DetectFormatAsync(str, t);
-		str.TrySeek();
-
-		var query = new SearchQuery(o, str, qt)
-		{
-			ImageInfo = fmt,
-			FilePath = s
-		};
-
-		return query;
-	}
-
-	public static async Task<IFlurlResponse> HandleUriAsync(Url value, CancellationToken ct)
-	{
-		// value = value.CleanString();
-
-		var res = await value.AllowAnyHttpStatus()
-			          .WithHeaders(new
-			          {
-				          // todo
-				          User_Agent = Resources.UserAgent1,
-			          })
-			          .GetAsync(cancellationToken: ct);
-
-		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
-			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
-		}
-
-		return res;
 	}
 
 	public async Task<Url> UploadAsync(BaseUploadEngine engine = null, CancellationToken ct = default)
@@ -172,15 +69,15 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			return Upload;
 		}
 
-		string fu = Value.ToString();
+		string fu = Image.ValueString;
 
-		if (Type == QueryType.Uri) {
+		if (Image.Type == UniImageType.Uri) {
 			Upload = fu;
 
 			// Size   = BaseSearchEngine.NA_SIZE;
 			// var fmt = await ISImage.DetectFormatAsync(Stream);
 
-			Debug.WriteLine($"Skipping upload for {Value}", nameof(UploadAsync));
+			Debug.WriteLine($"Skipping upload for {Image.ValueString}", nameof(UploadAsync));
 		}
 		else {
 			// fu = await test(fu);
@@ -225,75 +122,14 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		return Upload;
 	}
 
-	#region
-
-	public static bool IsStreamType(object o, out Stream t2)
-	{
-		t2 = Stream.Null;
-
-		if (o is Stream sz) {
-			t2 = sz;
-		}
-
-		return t2 != Stream.Null;
-	}
-
-	public static bool IsUriType(object o, out Url u)
-	{
-		u = o switch
-		{
-			Url u2   => u2,
-			string s => s,
-			_        => null
-		};
-		return Url.IsValid(u);
-	}
-
-	public static bool IsFileType(object o, out FileInfo f)
-	{
-		f = null;
-
-		if (o is string { } s && File.Exists(s)) {
-			f = new FileInfo(s);
-		}
-
-		return f != null;
-	}
-
-	public static bool IsValidSourceType(object str)
-	{
-		// UniSourceType v        = UniHandler.GetUniType(str, out object o2);
-		/*bool isFile   = UniSourceFile.IsType(str, out var f);
-		bool isUri    = UniSourceUrl.IsType(str, out var f2);
-		bool isStream = UniSourceStream.IsType(str, out var f3);*/
-		bool isFile   = IsFileType(str, out var f);
-		bool isUri    = IsUriType(str, out var f2);
-		bool isStream = IsStreamType(str, out var f3);
-		bool ok       = isFile || isUri || isStream;
-
-		if (isFile) {
-			string ext = Path.GetExtension(str.ToString())?[1..];
-			return FileType.Image.Any(x => x.Subtype == ext);
-		}
-
-		return ok;
-	}
-
-	#endregion
-
 	public void Dispose()
 	{
-		Stream?.Dispose();
-
-		// ImageInfo?.Dispose();
-		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
+		Image?.Dispose();
 	}
 
 	public override string ToString()
 	{
-		string s = $"{ValueString} ({Type}) [{ImageInfo.DefaultMimeType}]";
-
-		return s;
+		return $"{Image}: {IsUploaded}";
 	}
 
 	#region Equality members
@@ -303,8 +139,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
 
-		return Equals(Stream, other.Stream) && Equals(Upload, other.Upload) && Size == other.Size &&
-		       (!OperatingSystem.IsWindows());
+		return Equals(Image, other.Image) && Equals(Upload, other.Upload);
 	}
 
 	public override bool Equals(object obj)
@@ -315,7 +150,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	public override int GetHashCode()
 	{
 		// return HashCode.Combine(Uni, Upload, Size);
-		return HashCode.Combine(Stream);
+		return HashCode.Combine(Image);
 
 		// return Uni.GetHashCode();
 	}
@@ -331,87 +166,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	}
 
 	#endregion
-
-	public bool TryGetFile(string fn = null)
-	{
-		if (!HasFile && HasValue) {
-			FilePath = WriteToFile(fn);
-
-		}
-
-		return HasFile;
-	}
-
-	public bool TryDeleteFile()
-	{
-		if (HasFile) {
-			File.Delete(FilePath);
-			FilePath = null;
-		}
-
-		return !HasFile;
-	}
-
-	[MustUseReturnValue]
-	public string WriteToFile(Action<IImageProcessingContext> operation = null, [CBN] string fn = null)
-	{
-		if (!HasValue) {
-			throw new InvalidOperationException();
-		}
-
-		string t;
-		fn ??= Path.GetTempFileName();
-
-		var encoder = new PngEncoder();
-
-		using ISImage image = ISImage.Load(Stream);
-
-		if (operation != null) {
-			image.Mutate(operation);
-
-		}
-
-		image.Save(fn, encoder);
-
-		Stream.TrySeek();
-
-		return fn;
-	}
-
-	[MustUseReturnValue]
-	[ICBN]
-	public string WriteToFile(string fn = null)
-	{
-		if (!HasValue) {
-			throw new InvalidOperationException($"{nameof(HasValue)} is {false}");
-		}
-
-		string t;
-		fn ??= Path.GetTempFileName();
-
-		if (Type != QueryType.File) {
-			t = Path.Combine(Path.GetTempPath(), fn);
-
-			using FileStream fs = File.Create(t);
-
-			bool s = Stream.CanSeek;
-
-			if (s) {
-				Stream.Position = 0;
-			}
-
-			Stream.CopyTo(fs);
-			fs.Flush();
-			Stream.TrySeek();
-
-		}
-		else {
-			t = Value.ToString();
-
-		}
-
-		return t;
-	}
 
 }
 

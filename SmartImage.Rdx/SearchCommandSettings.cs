@@ -86,7 +86,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 	{
 		var result = base.Validate();
 
-		if (!SearchQuery.IsValidSourceType(Query)) {
+		if (!UniImage.IsValidSourceType(Query)) {
 			return ValidationResult.Error("Invalid query");
 		}
 

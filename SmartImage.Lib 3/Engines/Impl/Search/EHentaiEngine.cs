@@ -161,8 +161,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		string       fileName;
 		string       filePath = null;
 
-		if (query.HasFile) {
-			filePath = query.FilePath;
+		if (query.Image.HasFile) {
+			filePath = query.Image.FilePath;
 			fileName = Path.GetFileName(filePath);
 
 			/*if (Path.GetFileName(t) != name) {
@@ -171,10 +171,10 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		}
 		else {
 			fileName = SFILE_NAME_DEFAULT;
-			var ok = query.TryGetFile(fileName);
+			var ok = query.Image.TryGetFile(fileName);
 
 			if (ok) {
-				filePath = query.FilePath;
+				filePath = query.Image.FilePath;
 			}
 			else {
 				Debugger.Break();

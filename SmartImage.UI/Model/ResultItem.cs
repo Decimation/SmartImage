@@ -32,12 +32,13 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
+using SmartImage.UI.Controls;
 
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
 
-public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItemSize, IDisposable
+public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, IItemSize, IDisposable
 {
 
 	#region
@@ -63,8 +64,6 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItem
 	public string Name { get; set; }
 
 	public SearchResultItem Result { get; }
-
-	public SearchResultStatus Status => Result.Root.Status;
 
 	public BitmapImage StatusImage
 	{
@@ -99,7 +98,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItem
 
 	public string StatusMessage { get; internal set; }
 
-	public bool IsLowQuality => !Url.IsValid(Url) || Status.IsError() || Result.IsRaw;
+	public bool IsLowQuality => !Url.IsValid(Url) || Result.Root.Status.IsError() || Result.IsRaw;
 
 	public string Label
 	{
@@ -126,6 +125,8 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItem
 	}
 
 	public bool IsSister { get; internal init; }
+
+	public virtual long Size => Native.INVALID;
 
 	private double m_previewProgress;
 
@@ -156,20 +157,20 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItem
 
 		(Width, Height) = (Result.Width, Result.Height);
 
-		if (Status.IsSuccessful()) {
+		if (Result.Root.Status.IsSuccessful()) {
 			StatusImage = AppComponents.accept;
 		}
-		else if (Status.IsUnknown()) {
+		else if (Result.Root.Status.IsUnknown()) {
 			StatusImage = AppComponents.help;
 		}
-		else if (Status.IsError()) {
+		else if (Result.Root.Status.IsError()) {
 			StatusImage = AppComponents.exclamation;
 		}
 		else {
 			StatusImage = AppComponents.asterisk_yellow;
 		}
 
-		StatusMessage = $"[{Status}]";
+		StatusMessage = $"[{Result.Root.Status}]";
 
 		if (!String.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
@@ -273,6 +274,7 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItem
 		if (!CanLoadImage) {
 			return null;
 		}
+
 		var img = new BitmapImage()
 			{ };
 
@@ -354,7 +356,5 @@ public class ResultItem : INotifyPropertyChanged, IGuiImageSource, INamed, IItem
 	public event PropertyChangedEventHandler? PropertyChanged;
 
 	#endregion
-
-	public virtual long Size => Native.INVALID;
 
 }

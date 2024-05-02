@@ -10,74 +10,22 @@ using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Utilities;
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Model;
 
-namespace SmartImage.Lib.Model;
+namespace SmartImage.Lib.Utilities;
 
-public interface IImageFilter
-{
-
-	public string[] Blacklist { get; }
-
-	public bool Refine(string b);
-
-	public bool Predicate(UniSource us);
-
-}
-
-public class GenericImageFilter : IImageFilter
-{
-
-	public string[] Blacklist
-		=>
-		[
-			"thumbnail", "avatar", "error", "logo"
-		];
-
-	public bool Predicate(UniSource us)
-	{
-		try {
-			if (us.Stream.Length <= 25_000 || !FileType.Image.Contains(us.FileType)) {
-				return false;
-			}
-
-			return true;
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(Predicate));
-			return true;
-		}
-	}
-
-	public bool Refine(string b)
-	{
-		if (!Url.IsValid(b)) {
-			return false;
-		}
-
-		var u  = Url.Parse(b);
-		var ps = u.PathSegments;
-
-		if (ps.Any()) {
-			return !Blacklist.Any(i => ps.Any(p => p.Contains(i, StringComparison.InvariantCultureIgnoreCase)));
-		}
-
-		return true;
-	}
-
-}
-
-public static class BaseImageHost
+public static class ImageScanner
 {
 
 	/*public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
 
-	public static async Task<UniSource[]> ScanAsync(Url u, IImageFilter filter = null,
-	                                                CancellationToken ct = default)
+	public static async Task<UniImage[]> ScanAsync(Url u, IImageFilter filter = null,
+	                                               CancellationToken ct = default)
 	{
 		IFlurlResponse res;
 		Stream         stream;
+
 		// pred   ??= _ => true;
 		filter ??= new GenericImageFilter();
 
@@ -101,16 +49,16 @@ public static class BaseImageHost
 			return [];
 		}
 
-		var ul = new ConcurrentBag<UniSource>();
+		var ul = new ConcurrentBag<UniImage>();
 		stream = await res.GetStreamAsync();
-		var uf = await UniSource.TryGetAsync(stream, resolver: IFileTypeResolver.Default, ct: ct);
+		var uf = await UniImage.TryCreateAsync(stream, t: ct);
 
 		if (uf != null) {
 			/*if (!FileType.Image.Contains(uf.FileType)) {
 				uf?.Dispose();
 				goto ret;
 			}*/
-			if (FileType.Image.Contains(uf.FileType)) {
+			if (uf.Info.DefaultMimeType != null) {
 				ul.Add(uf);
 				goto ret;
 
@@ -142,7 +90,7 @@ public static class BaseImageHost
 
 		await Parallel.ForEachAsync(c, po, async (s, token) =>
 		{
-			var ux = await UniSource.TryGetAsync(s, ct: token);
+			var ux = await UniImage.TryCreateAsync(s, t: token);
 
 			if (ux != null) {
 				/*if (!FileType.Image.Contains(ux.FileType)) {
@@ -185,7 +133,7 @@ public static class BaseImageHost
 		}
 	}
 
-	public static async Task<UniSource[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
+	public static async Task<UniImage[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
 	{
 		using var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri}")
 		{
@@ -196,11 +144,11 @@ public static class BaseImageHost
 		await p.WaitForExitAsync(ct);
 		var s  = await p.StandardOutput.ReadToEndAsync(ct);
 		var s2 = s.Split(Environment.NewLine);
-		var rg = new ConcurrentBag<UniSource>();
+		var rg = new ConcurrentBag<UniImage>();
 
 		await Parallel.ForEachAsync(s2, ct, async (s1, token) =>
 		{
-			var uni = await UniSource.TryGetAsync(s1, ct: token);
+			var uni = await UniImage.TryCreateAsync(s1, t: token);
 
 			if (uni != null) {
 				rg.Add(uni);

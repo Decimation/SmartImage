@@ -537,7 +537,7 @@
                     <TextBox x:Name="Tb_Upload" HorizontalAlignment="Left" Margin="64,37,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="435" IsReadOnly="True" Height="20"
                              MouseDoubleClick="Tb_Upload_MouseDoubleClick" Foreground="White" Background="Black"
-                             Text="{Binding CurrentQuery.Query.Upload, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, 
+                             Text="{Binding CurrentQuery.Query.Upload, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue={}, 
                         Converter={StaticResource urlConverter}, ElementName=Wnd_Main}">
 
                     </TextBox>
@@ -561,13 +561,13 @@
                     <TextBox x:Name="Tb_Info_Type" HorizontalAlignment="Left" Margin="64,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentQuery.Query.ImageInfo.DefaultMimeType, Mode=OneWay,
+                             Text="{Binding CurrentQuery.Query.Image.Info.DefaultMimeType, Mode=OneWay,
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, ElementName=Wnd_Main, IsAsync=True}" />
 
                     <TextBox x:Name="Tb_Info_Size" HorizontalAlignment="Left" Margin="217,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentQuery.Query.Size, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
+                             Text="{Binding CurrentQuery.Query.Image.Size, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, Converter={StaticResource unitConverter}}" />
 
                     <TextBox x:Name="Tb_Info_Dim" HorizontalAlignment="Left" Margin="369,65,0,0" TextWrapping="Wrap"
@@ -603,7 +603,7 @@
 
                             <GridView>
 
-                                <GridViewColumn Header="Status">
+                                <!--<GridViewColumn Header="Status">
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <Image x:Name="Img_Status"
@@ -627,6 +627,7 @@
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="URL" Width="400">
+
                                     <GridViewColumn.CellTemplate>
                                         <DataTemplate>
                                             <TextBlock Text="{Binding Url, Mode=OneTime}"
@@ -661,7 +662,52 @@
                                             <TextBlock Text="{Binding Result.Title, Mode=OneTime}" />
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
+                                </GridViewColumn>-->
+
+                                <GridViewColumn Header="Status">
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <Image x:Name="Img_Status"
+                                                   Source="{Binding StatusImage, UpdateSourceTrigger=PropertyChanged}"
+                                                   Width="20"
+                                                   Height="20" Stretch="None" ToolTip="{Binding StatusMessage}" />
+
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
+
+                                <GridViewColumn Header="Name"
+                                                Width="135" x:Name="Lvgvc_Name"
+                                                DisplayMemberBinding="{Binding Name, Mode=OneTime}">
+                                    <!--
+                                    <GridViewColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name, Mode=OneTime}"
+                                                       Style="{StaticResource BoldGridViewCellStyle}" />
+
+                                        </DataTemplate>
+                                    </GridViewColumn.CellTemplate>
+                                -->
+                                </GridViewColumn>
+
+                                <GridViewColumn Header="URL" Width="400"
+                                                DisplayMemberBinding="{Binding Url, Mode=OneTime}" />
+
+                                <GridViewColumn Header="Similarity"
+                                                DisplayMemberBinding="{Binding Result.Similarity, Mode=OneTime}"
+                                                Width="75" />
+
+                                <GridViewColumn Header="Description"
+                                                Width="150" x:Name="Lvgvc_Desc"
+                                                DisplayMemberBinding="{Binding Result.Description, Mode=OneTime}" />
+
+                                <GridViewColumn Header="Artist"
+                                                DisplayMemberBinding="{Binding Result.Artist, Mode=OneTime}"
+                                                Width="75" />
+
+                                <GridViewColumn Header="Title"
+                                                Width="75" x:Name="Lvgvc_Title"
+                                                DisplayMemberBinding="{Binding Result.Title, Mode=OneTime}" />
 
                                 <GridViewColumn Header="Source"
                                                 DisplayMemberBinding="{Binding Result.Source, Mode=OneTime}" Width="75" />
@@ -771,7 +817,7 @@
                     <TextBox x:Name="Tb_SelInfo_Info" HorizontalAlignment="Left" Margin="64,89,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentResult.Status, ElementName=Wnd_Main, FallbackValue={x:Null}, IsAsync=True, Mode=OneWay, 
+                             Text="{Binding CurrentResult.Result.Root.Status, ElementName=Wnd_Main, FallbackValue={x:Null}, IsAsync=True, Mode=OneWay, 
                         UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="Preview image info"
                              Grid.Row="1" />
