@@ -26,7 +26,7 @@ public enum UniImageType
 
 }
 
-public class UniImage : IItemSize, IDisposable, IAsyncDisposable
+public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>
 {
 
 	public Stream Stream { get; internal init; }
@@ -105,17 +105,12 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable
 			qt  = UniImageType.Stream;
 		}
 		else {
-			return null;
+			return Null;
 		}
 
-		fmt = await ISImage.DetectFormatAsync(options: new DecoderOptions()
-		{
-			Configuration =
-			{
-				ReadOrigin = ReadOrigin.Begin
-			}
+		str.TrySeek();
 
-		}, str, t);
+		fmt = await ISImage.DetectFormatAsync(str, t);
 
 		str.TrySeek();
 
@@ -293,6 +288,12 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable
 		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 	}
 
+	public async ValueTask DisposeAsync()
+	{
+		if (Stream != null)
+			await Stream.DisposeAsync();
+	}
+
 	public override string ToString()
 	{
 		string s = $"{ValueString} ({Type}) [{Info.DefaultMimeType}]";
@@ -300,9 +301,39 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable
 		return s;
 	}
 
-	public async ValueTask DisposeAsync()
+	#region Equality members
+
+	public bool Equals(UniImage other)
 	{
-		if (Stream != null) await Stream.DisposeAsync();
+		if (ReferenceEquals(null, other)) return false;
+		if (ReferenceEquals(this, other)) return true;
+
+		return Equals(Value, other.Value);
 	}
+
+	public override bool Equals(object obj)
+	{
+		return ReferenceEquals(this, obj) || (obj is UniImage other && Equals(other));
+	}
+
+	public override int GetHashCode()
+	{
+		// return HashCode.Combine(Uni, Upload, Size);
+		return HashCode.Combine(Value);
+
+		// return Uni.GetHashCode();
+	}
+
+	public static bool operator ==(UniImage left, UniImage right)
+	{
+		return Equals(left, right);
+	}
+
+	public static bool operator !=(UniImage left, UniImage right)
+	{
+		return !Equals(left, right);
+	}
+
+	#endregion
 
 }

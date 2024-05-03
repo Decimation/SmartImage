@@ -25,6 +25,8 @@ namespace SmartImage.Rdx;
  * ./SmartImage.Rdx/bin/Release/net8.0/publish/linux-x64/SmartImage "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg"
  * dotnet run --project SmartImage.Rdx -- --help
  * dotnet run --project SmartImage.Rdx/ "C:\Users\Deci\Pictures\Epic anime\Kallen_FINAL_1-3.png" --search-engines All --output-format "Delimited" --output-file "output.csv" --read-cookies
+ * echo -nE $cx1 | dotnet run -c WSL --project SmartImage.Rdx --
+ * "C:\Users\Deci\Pictures\Art\Makima 1-3.png" | dotnet run -c Debug --project SmartImage.Rdx --
  */
 
 public static class Program
@@ -35,18 +37,11 @@ public static class Program
 		(byte) 0xEF, (byte) 0xBB, (byte) 0xBF
 	};
 
-	public static string ReadInputStream(out bool isFile)
+	public static bool CopyStreams(Stream stdin, Stream fs, int bufSize)
 	{
-
-		var path = Path.GetTempFileName();
-
-		using var fs = File.Open(path, FileMode.Truncate, FileAccess.Write);
-
-		using Stream stdin = Console.OpenStandardInput();
-
-		byte[] buffer = new byte[4096]; // Buffer to hold byte input
-		int    bytesRead;
-		int    iter = 0;
+		var buffer = new byte[bufSize];
+		int bytesRead;
+		int iter = 0;
 
 		while ((bytesRead = stdin.Read(buffer, 0, buffer.Length)) > 0) {
 			if (iter == 0) {
@@ -65,9 +60,63 @@ public static class Program
 			iter++;
 		}
 
-		isFile = File.Exists(path);
 		fs.Flush();
-		fs.Dispose();
+
+		return true;
+	}
+
+	public static string CopyInputStream(int bufSize = 4096)
+	{
+		string path = null;
+
+		using Stream stdin = Console.OpenStandardInput();
+
+		var buffer  = new byte[bufSize];
+		var buffer2 = new byte[10_000_000];
+		int bytesRead;
+		int iter  = 0;
+		int b2pos = 0;
+
+		while ((bytesRead = stdin.Read(buffer, 0, buffer.Length)) > 0) {
+			if (iter == 0) {
+
+				if (buffer[0]    == Utf8_Bom_Sig[0]
+				    && buffer[1] == Utf8_Bom_Sig[1]
+				    && buffer[2] == Utf8_Bom_Sig[2]) {
+
+					buffer    =  buffer[3..];
+					bytesRead -= Utf8_Bom_Sig.Length;
+				}
+			}
+
+			// fs.Write(buffer, 0, bytesRead);
+
+			Array.Copy(buffer, 0, buffer2, b2pos, bytesRead);
+			b2pos += bytesRead;
+
+			iter++;
+		}
+
+		// fs.Flush();
+		if (buffer2[(b2pos - 1)] == '\n' && buffer2[(b2pos - 2)] == '\r') {
+			b2pos -= 2;
+		}
+
+		Array.Resize(ref buffer2, b2pos);
+
+		var s = Console.InputEncoding.GetString(buffer2);
+
+		if (File.Exists(s)) {
+			// Console.WriteLine("Exists!");
+			path = s;
+		}
+		else {
+			// using var fs = File.Open(path, FileMode.Truncate, FileAccess.Write);
+			path = Path.GetTempFileName();
+			File.WriteAllBytes(path, buffer2);
+		}
+
+		// Console.WriteLine($"{s} {buffer2.Length} {b2pos} {bytesRead}");
 
 		return path;
 	}
@@ -76,17 +125,16 @@ public static class Program
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
+		Debugger.Launch();
 
 		if (Console.IsInputRedirected) {
-			var pipeInput = ReadInputStream(out var isf);
+			var pipeInput = CopyInputStream();
 
-			// AConsole.WriteLine($"[{pipeInput}] {isf}");
+			var newArgs = new string[args.Length + 1];
+			newArgs[0] = pipeInput;
+			args.CopyTo(newArgs, 1);
 
-			var newargs = new string[args.Length + 1];
-			newargs[0] = pipeInput;
-			args.CopyTo(newargs, 1);
-
-			args = newargs;
+			args = newArgs;
 		}
 
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
