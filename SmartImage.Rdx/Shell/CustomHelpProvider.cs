@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: CustomHelpProvider.cs
 // Date: 2024/04/10 @ 18:04:50
 
+using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Cli.Help;
 using Spectre.Console.Rendering;
@@ -15,7 +16,8 @@ internal class CustomHelpProvider : HelpProvider
 
 	public override IEnumerable<IRenderable> GetUsage(ICommandModel model, ICommandInfo? command)
 	{
-		return base.GetUsage(model, command);
+		var usage = base.GetUsage(model, command);
+		return usage;
 	}
 
 	/*public override IEnumerable<IRenderable> GetExamples(ICommandModel model, ICommandInfo? command)
@@ -31,7 +33,15 @@ internal class CustomHelpProvider : HelpProvider
 
 	public override IEnumerable<IRenderable> GetDescription(ICommandModel model, ICommandInfo? command)
 	{
-		return base.GetDescription(model, command);
+		return new[]
+		{
+			Text.NewLine,
+			new Text("DESCRIPTION:", new Style(Color.Yellow, decoration: Decoration.Bold)), Text.NewLine,
+			new Text($"    Homepage: {R1.Repo_Url}", new Style(link: R1.Repo_Url)), Text.NewLine, 
+			new Text($"    Wiki: {R1.Wiki_Url}", new Style(link: R1.Wiki_Url)), Text.NewLine, 
+			Text.NewLine,
+			Text.NewLine,
+		};
 	}
 
 	public override IEnumerable<IRenderable> GetFooter(ICommandModel model, ICommandInfo? command)

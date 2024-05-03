@@ -17,7 +17,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 {
 
 	[CommandArgument(0, "<query>")]
-	[Description("Query: file or URL")]
+	[Description("Query: file or URL; see wiki")]
 	public string? Query { get; internal set; }
 
 	[CommandOption("-e|--search-engines")]
@@ -82,6 +82,8 @@ internal sealed class SearchCommandSettings : CommandSettings
 	public string? CommandArguments { get; internal set; }
 
 	#endregion
+
+	// public bool? Silent { get; internal set; } //todo
 
 	// public const string PROP_ARG_RESULTS = "$all_results";
 

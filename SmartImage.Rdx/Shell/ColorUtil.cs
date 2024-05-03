@@ -5,7 +5,7 @@ using Spectre.Console;
 
 namespace SmartImage.Rdx.Shell;
 
-public static class ColorUtil
+internal static class ColorUtil
 {
 
 	public const double BYTE_D = 255.0;

@@ -54,11 +54,10 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	private readonly ConcurrentBag<SearchResult> m_results;
 
-	// private readonly STable m_resTable;
-
 	private SearchCommandSettings m_scs;
 
 	private readonly STable m_table;
+
 	private const    double COMPLETE = 100.0d;
 
 	public const int EC_ERROR = -1;
@@ -106,6 +105,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	private async Task InitConfigAsync([CBN] object c)
 	{
+		//todo
+
 		Config.SearchEngines   = m_scs.SearchEngines;
 		Config.PriorityEngines = m_scs.PriorityEngines;
 
@@ -371,7 +372,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	private void UpdateResultTable(SearchResult result)
 	{
 
-		if (!CliFormat.EngineStyles.TryGetValue(result.Engine.EngineOption, out var style)) {
+		if (!ConsoleFormat.EngineStyles.TryGetValue(result.Engine.EngineOption, out var style)) {
 			style = Style.Plain;
 		}
 
@@ -410,7 +411,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		};
 
 		foreach (var o in kv) {
-			dt.AddRow(new Text(o.Key, CliFormat.Sty_Grid1),
+			dt.AddRow(new Text(o.Key, ConsoleFormat.Sty_Grid1),
 			          new Text(o.Value.ToString()));
 		}
 
