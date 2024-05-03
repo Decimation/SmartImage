@@ -83,20 +83,13 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	#endregion
 
-	public bool Raw { get; internal set; }
-	public byte[] Raw2 { get; internal set; }
-
 	// public const string PROP_ARG_RESULTS = "$all_results";
 
 	public override ValidationResult Validate()
 	{
 		var result = base.Validate();
 
-		if (String.IsNullOrWhiteSpace(Query)) {
-			
-		}
-
-		else if (!UniImage.IsValidSourceType(Query)) {
+		if (!UniImage.IsValidSourceType(Query, false)) {
 			return ValidationResult.Error("Invalid query");
 		}
 

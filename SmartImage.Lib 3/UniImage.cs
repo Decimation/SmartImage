@@ -116,6 +116,7 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable
 			}
 
 		}, str, t);
+
 		str.TrySeek();
 
 		var query = new UniImage(o, str, qt)
@@ -181,7 +182,7 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable
 		return f != null;
 	}
 
-	public static bool IsValidSourceType(object str)
+	public static bool IsValidSourceType(object str, bool checkExt = true)
 	{
 		// UniSourceType v        = UniHandler.GetUniType(str, out object o2);
 		/*bool isFile   = UniSourceFile.IsType(str, out var f);
@@ -192,7 +193,8 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable
 		bool isStream = IsStreamType(str, out var f3);
 		bool ok       = isFile || isUri || isStream;
 
-		if (isFile) {
+		if (isFile && checkExt) {
+			//todo
 			string ext = Path.GetExtension(str.ToString())?[1..];
 			return FileType.Image.Any(x => x.Subtype == ext);
 		}

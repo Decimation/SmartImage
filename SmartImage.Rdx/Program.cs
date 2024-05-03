@@ -1,11 +1,14 @@
-﻿using System.Collections.Concurrent;
+﻿using System.Buffers;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using Kantan.Text;
 using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SmartImage.Lib;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
@@ -27,57 +30,63 @@ namespace SmartImage.Rdx;
 public static class Program
 {
 
+	private static readonly byte[] Utf8_Bom_Sig = new[]
+	{
+		(byte) 0xEF, (byte) 0xBB, (byte) 0xBF
+	};
+
+	public static string ReadInputStream(out bool isFile)
+	{
+
+		var path = Path.GetTempFileName();
+
+		using var fs = File.Open(path, FileMode.Truncate, FileAccess.Write);
+
+		using Stream stdin = Console.OpenStandardInput();
+
+		byte[] buffer = new byte[4096]; // Buffer to hold byte input
+		int    bytesRead;
+		int    iter = 0;
+
+		while ((bytesRead = stdin.Read(buffer, 0, buffer.Length)) > 0) {
+			if (iter == 0) {
+
+				if (buffer[0]    == Utf8_Bom_Sig[0]
+				    && buffer[1] == Utf8_Bom_Sig[1]
+				    && buffer[2] == Utf8_Bom_Sig[2]) {
+
+					buffer    =  buffer[3..];
+					bytesRead -= Utf8_Bom_Sig.Length;
+				}
+			}
+
+			fs.Write(buffer, 0, bytesRead);
+
+			iter++;
+		}
+
+		isFile = File.Exists(path);
+		fs.Flush();
+		fs.Dispose();
+
+		return path;
+	}
+
 	public static async Task<int> Main(string[] args)
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
 
 		if (Console.IsInputRedirected) {
-			// using var str = Console.OpenStandardInput(500);
-			Stream stdin = Console.OpenStandardInput(1000);
-			/*byte[] inBuffer = new byte[1_000_000];
+			var pipeInput = ReadInputStream(out var isf);
 
-			int    outLen   = stdin.Read(inBuffer, 0, inBuffer.Length);
-			char[] chars    = Encoding.ASCII.GetChars(inBuffer, 0, outLen);
-			var cmd = new string(chars);
-			if ((cmd[cmd.Length - 2] == '\r') && (cmd[cmd.Length - 1] == '\n'))
-			{
-				cmd = cmd.Substring(0, cmd.Length - 2);
-			}*/
-			var          sr = new StreamReader(stdin);
-			int          n1 = 0, n2 = 0;
-			var sb = new char[8_000_000];
+			// AConsole.WriteLine($"[{pipeInput}] {isf}");
 
-			while (!sr.EndOfStream) {
-				/*if (sb[^2] == '\r' && sb[^1] == '\n') {
-					break;
-				}*/
-				n1 += (n2 = sr.Read(sb, n1, sb.Length - n1));
+			var newargs = new string[args.Length + 1];
+			newargs[0] = pipeInput;
+			args.CopyTo(newargs, 1);
 
-				if (n2 == 0) {
-					break;
-				}
-
-			}
-
-			sb = sb[..n1];
-
-			if (sb[^2] == '\r' && sb[^1] == '\n') {
-				sb = sb[0..^2];
-			}
-
-			IImageFormat fmt;
-			AConsole.WriteLine($"{sb.Length}");
-
-			/*try {
-				fmt = await Image.DetectFormatAsync();
-			}
-			catch (Exception e) {
-				AConsole.WriteLine($"{e.Message}");
-			}
-			finally {
-				str.TrySeek();
-			}*/
+			args = newargs;
 		}
 
 		var ff = CliFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
