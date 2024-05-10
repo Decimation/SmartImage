@@ -6,13 +6,14 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartImage.UI"
         xmlns:controls="clr-namespace:SmartImage.UI.Controls"
+        xmlns:converters="clr-namespace:SmartImage.UI.Controls.Converters"
         mc:Ignorable="d"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         Title="{Binding Result.Name}" Height="450" Width="800" ResizeMode="NoResize">
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <controls:UrlConverter x:Key="urlConverter" />
-        <controls:UnitStringConverter x:Key="unitConverter" />
+        <converters:UrlConverter x:Key="urlConverter" />
+        <converters:UnitStringConverter x:Key="unitConverter" />
     </Window.Resources>
     <Grid Background="{DynamicResource Black1}">
         <Grid.RowDefinitions>

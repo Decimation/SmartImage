@@ -635,7 +635,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			using FileStream fs = File.Open(fn, FileMode.OpenOrCreate);
 
 			// CurrentQueueItem = fn;
-			SetQueue(fn, out _);
+			// SetQueue(fn, out _);
 			BitmapEncoder enc = new PngBitmapEncoder();
 			enc.Frames.Add(BitmapFrame.Create(bmp));
 			enc.Save(fs);
@@ -1476,7 +1476,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		var load = igs.Image;
 
-		if (load.IsValueCreated && load.Value == null) {
+		if (load is { IsValueCreated: true, Value: null }) {
 			SetPreviewToCurrentQuery();
 			return;
 		}

@@ -80,7 +80,8 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			var item = result.Convert(sr, out var c);
 			sr.Results.Add(item);
 		}
-
+	
+		sr.Update();
 		return sr;
 	}
 
@@ -91,7 +92,9 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+	}
 
 }
 
