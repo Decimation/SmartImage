@@ -83,6 +83,11 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	#endregion
 
+	[CommandOption("--keep-open")]
+	[DefaultValue(false)]
+	[Description("Waits for input before terminating")]
+	public bool? KeepOpen { get; internal set; }
+
 	// public bool? Silent { get; internal set; } //todo
 
 	// public const string PROP_ARG_RESULTS = "$all_results";

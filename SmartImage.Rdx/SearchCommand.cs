@@ -35,6 +35,7 @@ using CliWrap;
 using Kantan.Text;
 using SmartImage.Rdx.Shell;
 using System.Linq;
+using System.Reflection;
 using Kantan.Monad;
 
 namespace SmartImage.Rdx;
@@ -58,10 +59,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	private readonly STable m_table;
 
-	private const    double COMPLETE = 100.0d;
+	private const double COMPLETE = 100.0d;
 
 	public const int EC_ERROR = -1;
 	public const int EC_OK    = 0;
+
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+	public static readonly Version Version = Assembly.GetName().Version;
 
 	public SearchCommand()
 	{
@@ -73,17 +77,17 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		// Client.OnComplete += OnComplete;
 
 		// Client.OnResult   += OnResult;
-		m_cts         =  new CancellationTokenSource();
-		m_results     =  new ConcurrentBag<SearchResult>();
-		m_scs         =  null;
-		m_table       =  CreateResultTable();
-		
+		m_cts     = new CancellationTokenSource();
+		m_results = new ConcurrentBag<SearchResult>();
+		m_scs     = null;
+		m_table   = CreateResultTable();
+
 		Client.OnOpen += (sender, item) =>
 		{
 			Debug.WriteLine($"Opening {item}");
 		};
 
-		Query         =  SearchQuery.Null;
+		Query = SearchQuery.Null;
 	}
 
 	#region
@@ -99,6 +103,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			throw new SmartImageException($"Could not create query"); //todo
 
 		}
+
 		p.Increment(COMPLETE / 2);
 
 		// ctx.Refresh();
@@ -168,80 +173,14 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 			m_results.Add(result);
 
-			pt.Description = $"{Strings.Constants.CHECK_MARK} {result.Engine.Name} - {result.Results.Count} ({m_results.Count} / {cnt})";
+			pt.Description =
+				$"{Strings.Constants.CHECK_MARK} {result.Engine.Name} - {result.Results.Count} ({m_results.Count} / {cnt})";
 			pt.Increment(1);
 			c.Refresh();
 
 		}
 
 		await search;
-	}
-
-	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
-	{
-		m_scs = settings;
-
-		var task = AConsole.Progress()
-			.AutoRefresh(true)
-			.StartAsync(SetupSearchAsync)
-			.ContinueWith(InitConfigAsync);
-
-		try {
-			await task;
-		}
-		catch (Exception e) {
-			AConsole.WriteException(e);
-			return EC_ERROR;
-		}
-
-		var gr = CreateInfoGrid();
-		AConsole.Write(gr);
-
-		Console.CancelKeyPress += OnCancelKeyPress;
-
-		/*
-		 *
-		 * todo
-		 */
-
-		Task run;
-
-		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
-			run = AConsole.Live(m_table)
-				.StartAsync(RunSearchLiveAsync);
-
-		}
-		else {
-			run = AConsole.Progress()
-				.StartAsync(RunSearchWithProgressAsync);
-		}
-
-		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
-			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
-			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-		}
-
-		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
-			switch (m_scs.OutputFileFormat) {
-
-				case OutputFileFormat.None:
-					break;
-
-				case OutputFileFormat.Delimited:
-					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
-					                       TaskContinuationOptions.OnlyOnRanToCompletion,
-					                       TaskScheduler.Default);
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-		}
-
-		await run;
-
-		return EC_OK;
 	}
 
 	private async Task WriteOutputFileAsync([CBN] object o)
@@ -347,6 +286,80 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		args.Cancel = false;
 
 		Environment.Exit(EC_ERROR);
+	}
+
+	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
+	{
+		m_scs = settings;
+
+		var task = AConsole.Progress()
+			.AutoRefresh(true)
+			.StartAsync(SetupSearchAsync)
+			.ContinueWith(InitConfigAsync);
+
+		try {
+			await task;
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+			return EC_ERROR;
+		}
+
+		var gr = CreateInfoGrid();
+		AConsole.Write(gr);
+
+		Console.CancelKeyPress += OnCancelKeyPress;
+
+		/*
+		 *
+		 * todo
+		 */
+
+		Task run;
+
+		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
+			run = AConsole.Live(m_table)
+				.StartAsync(RunSearchLiveAsync);
+
+		}
+		else {
+			run = AConsole.Progress()
+				.StartAsync(RunSearchWithProgressAsync);
+		}
+
+		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
+			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
+			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+		}
+
+		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
+			switch (m_scs.OutputFileFormat) {
+
+				case OutputFileFormat.None:
+					break;
+
+				case OutputFileFormat.Delimited:
+					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
+					                       TaskContinuationOptions.OnlyOnRanToCompletion,
+					                       TaskScheduler.Default);
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+		}
+
+		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
+			run = run.ContinueWith((c) =>
+			{
+				AConsole.Confirm("Exit");
+			});
+		}
+
+		await run;
+
+		return EC_OK;
 	}
 
 	#endregion

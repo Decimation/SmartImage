@@ -65,7 +65,7 @@ internal static class ConsoleFormat
 			["Terminal colors"]  = ProfileCapabilities.ColorSystem,
 			["Terminal links"]   = ProfileCapabilities.Links,
 			["Terminal Unicode"] = ProfileCapabilities.Unicode,
-			["Version"]          = $"{AppUtil.Version}",
+			["Version"]          = $"{SearchCommand.Version}",
 			["Location"]         = AppUtil.ExeLocation
 		};
 

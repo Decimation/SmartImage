@@ -2,7 +2,7 @@
 // Date: 2024/05/22 @ 15:05:58
 
 #nullable disable
-global using USI=JetBrains.Annotations.UsedImplicitlyAttribute;
+global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
 using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.Reflection;
@@ -33,10 +33,6 @@ public static class AppUtil
 
 	[SupportedOSPlatformGuard(OS_WIN)]
 	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
-
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-
-	public static readonly Version Version = Assembly.GetName().Version;
 
 	[CBN]
 	internal static string GetOSName()
@@ -122,21 +118,28 @@ public static class AppUtil
 	}
 
 	/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
-	public static bool HandleContextMenu(bool option)
+	public static bool? HandleContextMenu(bool option, [CanBeNull] string args = null)
 	{
 		if (IsWindows) {
-			HandleContextMenuWindows(option);
+			return HandleContextMenuWindows(option, args);
 		}
 		else if (IsLinux) {
-			HandleContextMenuLinux(option);
+			return HandleContextMenuLinux(option, args);
 		}
 
-		throw new InvalidOperationException();
+		return null;
 	}
 
 	[SupportedOSPlatform(OS_LINUX)]
-	public static bool HandleContextMenuLinux(bool option)
+	internal static bool HandleContextMenuLinux(bool option, [CanBeNull] string args = null)
 	{
+		if (!FileSystem.IsRoot) {
+			throw new SmartImageException("Root permissions required");
+
+		}
+
+		args ??= R1.Linux_Launch_Args;
+
 		if (option) {
 			string dsk = $"""
 			              [Desktop Entry]
@@ -145,14 +148,15 @@ public static class AppUtil
 			              Version=1.0
 			              Name=SmartImage
 			              Terminal=true
-			              Exec={ExeLocation} %u
+			              Exec={ExeLocation} {args}
 			              """;
 			File.WriteAllText(LinuxDesktopFile, dsk);
 
 		}
 		else {
-			
-			File.Delete(LinuxDesktopFile);
+			if (File.Exists(LinuxDesktopFile)) {
+				File.Delete(LinuxDesktopFile);
+			}
 		}
 
 		// Console.WriteLine(Path.GetFullPath(s));
@@ -164,13 +168,16 @@ public static class AppUtil
 	}
 
 	[SupportedOSPlatform(OS_WIN)]
-	public static bool HandleContextMenuWindows(bool option)
+	internal static bool HandleContextMenuWindows(bool option,[CanBeNull] string args = null)
 	{
 		/*
 		 * New context menu
 		 */
+		bool ok = false;
 		switch (option) {
 			case true:
+				
+				args ??= R1.Reg_Launch_Args;
 
 				RegistryKey regMenu = null;
 				RegistryKey regCmd  = null;
@@ -184,12 +191,15 @@ public static class AppUtil
 
 					regCmd = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell_Cmd);
 
-					regCmd?.SetValue(String.Empty,
-					                 $"\"{fullPath}\" -i \"%1\" -auto -s");
+					regCmd?.SetValue(String.Empty, $"\"{fullPath}\" {args}");
+					// regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
+					// regCmd?.SetValue(String.Empty, $"\"{fullPath}\" -i \"%1\" -auto -s");
+					ok = true;
 				}
 				catch (Exception ex) {
 					Trace.WriteLine($"{ex.Message}");
-					return false;
+					// return false;
+					ok = false;
 				}
 				finally {
 					regMenu?.Close();
@@ -214,18 +224,23 @@ public static class AppUtil
 						reg.Close();
 						Registry.CurrentUser.DeleteSubKey(R1.Reg_Shell);
 					}
+
+					// return true;
+					ok = true;
+					break;
 				}
 				catch (Exception ex) {
 					Trace.WriteLine($"{ex.Message}");
-
-					return false;
+					ok = false;
+					// return false;
+					break;
 				}
 
 				break;
 
 		}
 
-		return false;
+		return ok;
 
 	}
 
@@ -274,6 +289,7 @@ public static class AppUtil
 
 		return r.OrderByDescending(x => x.published_at).First();
 	}
+
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]

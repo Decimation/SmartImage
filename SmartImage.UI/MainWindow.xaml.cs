@@ -65,6 +65,7 @@ using Windows.Media.Protection.PlayReady;
 using Brush = System.Drawing.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using System.Buffers;
+using System.Reflection;
 using DynamicData;
 using SmartImage.UI.Controls;
 
@@ -77,8 +78,10 @@ namespace SmartImage.UI;
 /// </summary>
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+	public static readonly Version  Version  = Assembly.GetName().Version;
 
-	public const int INVALID = -1;
+	public const           int      INVALID  = -1;
 
 	static MainWindow() { }
 
@@ -231,7 +234,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public bool UseContextMenu
 	{
 		get => AppUtil.IsContextMenuAdded;
-		set => AppUtil.HandleContextMenu(value);
+		set => AppUtil.HandleContextMenu(value, R2.Reg_Launch_Args);
 	}
 
 	public bool InPath
@@ -1419,7 +1422,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async void CheckForUpdate()
 	{
-		var cv = AppUtil.Version;
+		var cv = Version;
 		var lv = await AppUtil.GetLatestReleaseAsync();
 
 		Tb_Version.Text = $"{cv}";

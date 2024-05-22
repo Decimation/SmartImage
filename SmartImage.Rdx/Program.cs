@@ -9,7 +9,6 @@ using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
-using SmartImage.Lib.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
@@ -84,7 +83,8 @@ public static class Program
 			c.PropagateExceptions();
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
-			c.AddCommand<IntegrationCommand>("integrate");
+			c.AddCommand<IntegrationCommand>("integrate")
+				.WithDescription("Configure system integration such as context menu");
 		});
 
 		try {
@@ -100,40 +100,6 @@ public static class Program
 			AConsole.WriteException(e);
 			return SearchCommand.EC_ERROR;
 		}
-	}
-
-}
-
-public class IntegrationCommandSettings : CommandSettings
-{
-
-	[CommandOption("--ctx-menu")]
-	public bool? ContextMenu { get; internal set; }
-
-}
-
-public class IntegrationCommand : Command<IntegrationCommandSettings>
-{
-
-	public void HandleContextMenu(bool option)
-	{
-
-	}
-	public override int Execute(CommandContext context, IntegrationCommandSettings settings)
-	{
-		try {
-			AConsole.WriteLine($"{AppUtil.IsContextMenuAdded}");
-
-			if (settings.ContextMenu.HasValue) {
-				AppUtil.HandleContextMenu(settings.ContextMenu.Value);
-
-			}
-		}
-		catch (Exception e) {
-			AConsole.WriteException(e);
-		}
-
-		return SearchCommand.EC_OK;
 	}
 
 }

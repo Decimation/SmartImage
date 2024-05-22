@@ -165,5 +165,14 @@ namespace SmartImage.UI {
                 return ((System.Drawing.Bitmap)(obj));
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to -i &quot;%1&quot; -auto.
+        /// </summary>
+        internal static string Reg_Launch_Args {
+            get {
+                return ResourceManager.GetString("Reg_Launch_Args", resourceCulture);
+            }
+        }
     }
 }

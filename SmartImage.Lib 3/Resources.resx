@@ -193,6 +193,12 @@
     <value>/usr/share/applications</value>
   </data>
   <data name="Linux_Desktop_File" xml:space="preserve">
-    <value>SmartImage.desktop</value>
+    <value>smartimage.desktop</value>
+  </data>
+  <data name="Linux_Launch_Args" xml:space="preserve">
+    <value>%u</value>
+  </data>
+  <data name="Reg_Launch_Args" xml:space="preserve">
+    <value>"%1"</value>
   </data>
 </root>

@@ -88,11 +88,20 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to SmartImage.desktop.
+        ///   Looks up a localized string similar to smartimage.desktop.
         /// </summary>
         internal static string Linux_Desktop_File {
             get {
                 return ResourceManager.GetString("Linux_Desktop_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to %u.
+        /// </summary>
+        internal static string Linux_Launch_Args {
+            get {
+                return ResourceManager.GetString("Linux_Launch_Args", resourceCulture);
             }
         }
         
@@ -102,6 +111,15 @@ namespace SmartImage.Lib {
         internal static string Name {
             get {
                 return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;%1&quot;.
+        /// </summary>
+        internal static string Reg_Launch_Args {
+            get {
+                return ResourceManager.GetString("Reg_Launch_Args", resourceCulture);
             }
         }
         

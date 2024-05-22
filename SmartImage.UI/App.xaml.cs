@@ -84,7 +84,6 @@ public partial class App : Application
 
 	private static void SendMessage(StartupEventArgs e)
 	{
-
 		using var pipe = new NamedPipeClientStream(".", IPC_PIPE_NAME, PipeDirection.Out);
 
 		using var stream = new StreamWriter(pipe);
