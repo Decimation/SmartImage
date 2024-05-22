@@ -189,4 +189,10 @@
   <data name="UserAgent1" xml:space="preserve">
     <value>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36</value>
   </data>
+  <data name="Linux_Applications_Dir" xml:space="preserve">
+    <value>/usr/share/applications</value>
+  </data>
+  <data name="Linux_Desktop_File" xml:space="preserve">
+    <value>SmartImage.desktop</value>
+  </data>
 </root>

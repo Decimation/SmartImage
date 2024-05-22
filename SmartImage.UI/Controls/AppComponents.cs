@@ -1,12 +1,17 @@
 ﻿// Read S SmartImage.UI AppControls.cs
 // 2023-07-23 @ 4:16 PM
-
+global using R4 = SmartImage.Lib.Serialization;
+global using R3 = SmartImage.Lib.Values;
+global using R2 = SmartImage.UI.Resources;
+global using R1 = SmartImage.Lib.Resources;
 using System;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using JetBrains.Annotations;
+using SmartImage.Lib.Utilities;
 
 // ReSharper disable NullableWarningSuppressionIsUsed
 
@@ -45,7 +50,7 @@ public static class AppComponents
 
 	public static Uri GetComponentUri(string n, string resources = "Resources")
 	{
-		return new Uri($"pack://application:,,,/{AppUtil.Assembly.GetName().Name};component/{resources}/{n}");
+		return new Uri($"pack://application:,,,/{Assembly.GetExecutingAssembly().GetName().Name};component/{resources}/{n}");
 	}
 
 	#region

@@ -9,6 +9,7 @@ using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
+using SmartImage.Lib.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
@@ -28,7 +29,8 @@ namespace SmartImage.Rdx;
  * echo -nE $cx1 | dotnet run -c WSL --project SmartImage.Rdx --
  * "C:\Users\Deci\Pictures\Art\Makima 1-3.png" | dotnet run -c Debug --project SmartImage.Rdx --
  * $cx2=[System.IO.File]::ReadAllBytes($(Resolve-Path "..\..\Pictures\Art\fucking_epic.jpg"))
- *
+ * cd /mnt/c/Users/Deci/RiderProjects/SmartImage/
+ * ./SmartImage.Rdx/bin/Debug/net8.0/SmartImage
  */
 
 public static class Program
@@ -51,7 +53,7 @@ public static class Program
 			args.CopyTo(newArgs, 1);
 
 			args = newArgs;
-			
+
 			AConsole.WriteLine($"Received input from stdin");
 		}
 
@@ -82,6 +84,7 @@ public static class Program
 			c.PropagateExceptions();
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
+			c.AddCommand<IntegrationCommand>("integrate");
 		});
 
 		try {
@@ -97,6 +100,40 @@ public static class Program
 			AConsole.WriteException(e);
 			return SearchCommand.EC_ERROR;
 		}
+	}
+
+}
+
+public class IntegrationCommandSettings : CommandSettings
+{
+
+	[CommandOption("--ctx-menu")]
+	public bool? ContextMenu { get; internal set; }
+
+}
+
+public class IntegrationCommand : Command<IntegrationCommandSettings>
+{
+
+	public void HandleContextMenu(bool option)
+	{
+
+	}
+	public override int Execute(CommandContext context, IntegrationCommandSettings settings)
+	{
+		try {
+			AConsole.WriteLine($"{AppUtil.IsContextMenuAdded}");
+
+			if (settings.ContextMenu.HasValue) {
+				AppUtil.HandleContextMenu(settings.ContextMenu.Value);
+
+			}
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+		}
+
+		return SearchCommand.EC_OK;
 	}
 
 }

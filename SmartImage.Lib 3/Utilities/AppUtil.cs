@@ -1,41 +1,58 @@
-﻿global using R4 = SmartImage.Lib.Serialization;
-global using R3 = SmartImage.Lib.Values;
-global using R2 = SmartImage.UI.Resources;
-global using R1 = SmartImage.Lib.Resources;
-using System;
-using System.Collections.Generic;
+﻿// Author: Deci | Project: SmartImage.Rdx | Name: AppUtil.cs
+// Date: 2024/05/22 @ 15:05:58
+
+#nullable disable
+global using USI=JetBrains.Annotations.UsedImplicitlyAttribute;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Win32;
-using Novus.OS;
+using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
+using System.Security.Principal;
+using System.Text.Json.Serialization;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
+using Microsoft.Win32;
+using Novus.OS;
 using Novus.Win32;
-using System.ComponentModel;
-using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Text.Json.Serialization;
-using System.Windows.Media.Imaging;
 using Novus.Win32.Structures.User32;
-
-#pragma warning disable IDE1006
 
 // ReSharper disable InconsistentNaming
 
-#nullable disable
-namespace SmartImage.UI;
+namespace SmartImage.Lib.Utilities;
 
-internal static class AppUtil
+public static class AppUtil
 {
 
-	#region
+	internal const string OS_WIN   = "windows";
+	internal const string OS_LINUX = "linux";
+
+	[SupportedOSPlatformGuard(OS_LINUX)]
+	internal static readonly bool IsLinux = OperatingSystem.IsLinux();
+
+	[SupportedOSPlatformGuard(OS_WIN)]
+	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
 
 	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+
+	public static readonly Version Version = Assembly.GetName().Version;
+
+	[CBN]
+	internal static string GetOSName()
+	{
+		string os = null;
+
+		if (IsLinux) {
+			os = "Linux";
+
+		}
+		else if (IsWindows) {
+			os = "Windows";
+		}
+
+		return os;
+	}
 
 	public static string ExeLocation
 	{
@@ -49,18 +66,17 @@ internal static class AppUtil
 		}
 	}
 
-	static AppUtil() { }
-
-	public static readonly Version Version = Assembly.GetName().Version;
-
+	[MN]
 	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
 
-	public static bool IsAppFolderInPath => FileSystem.IsFolderInPath(CurrentAppFolder);
+	public static bool IsAppFolderInPath
+	{
+		get { return FileSystem.IsFolderInPath(CurrentAppFolder); }
+	}
 
 	public static bool IsOnTop { get; private set; }
 
-	#endregion
-
+	[SupportedOSPlatform(OS_WIN)]
 	internal static void FlashTaskbar(nint hndw)
 	{
 		var pwfi = new FLASHWINFO()
@@ -93,19 +109,62 @@ internal static class AppUtil
 	{
 		get
 		{
-			var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
-			return reg != null;
+			if (IsWindows) {
+				var reg = Registry.CurrentUser.OpenSubKey(R1.Reg_Shell_Cmd);
+				return reg != null;
+			}
+			else if (IsLinux) {
+				return File.Exists(LinuxDesktopFile);
+			}
+
+			throw new InvalidOperationException();
 		}
 	}
 
-	/*
-	 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
-	 *		HKEY_CURRENT_USER\Software\Classes
-	 *		HKEY_LOCAL_MACHINE\Software\Classes
-	 */
-
 	/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
 	public static bool HandleContextMenu(bool option)
+	{
+		if (IsWindows) {
+			HandleContextMenuWindows(option);
+		}
+		else if (IsLinux) {
+			HandleContextMenuLinux(option);
+		}
+
+		throw new InvalidOperationException();
+	}
+
+	[SupportedOSPlatform(OS_LINUX)]
+	public static bool HandleContextMenuLinux(bool option)
+	{
+		if (option) {
+			string dsk = $"""
+			              [Desktop Entry]
+
+			              Type=Application
+			              Version=1.0
+			              Name=SmartImage
+			              Terminal=true
+			              Exec={ExeLocation} %u
+			              """;
+			File.WriteAllText(LinuxDesktopFile, dsk);
+
+		}
+		else {
+			
+			File.Delete(LinuxDesktopFile);
+		}
+
+		// Console.WriteLine(Path.GetFullPath(s));
+		// Console.ReadLine();
+
+		// File.WriteAllText("~/.local/share/nautilus/scripts/smartimage.desktop", dsk);
+
+		return true;
+	}
+
+	[SupportedOSPlatform(OS_WIN)]
+	public static bool HandleContextMenuWindows(bool option)
 	{
 		/*
 		 * New context menu
@@ -138,6 +197,7 @@ internal static class AppUtil
 				}
 
 				break;
+
 			case false:
 
 				try {
@@ -169,7 +229,17 @@ internal static class AppUtil
 
 	}
 
-	internal static async Task<GHRelease[]> GetRepoReleasesAsync()
+	internal static readonly string MyPicturesFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
+	private static readonly string LinuxDesktopFile = Path.Combine(R1.Linux_Applications_Dir, R1.Linux_Desktop_File);
+
+	/*
+	 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
+	 *		HKEY_CURRENT_USER\Software\Classes
+	 *		HKEY_LOCAL_MACHINE\Software\Classes
+	 */
+
+	public static async Task<GHRelease[]> GetRepoReleasesAsync()
 	{
 		var res = await "https://api.github.com/repos/Decimation/SmartImage/releases"
 			          .WithAutoRedirect(true)
@@ -204,113 +274,10 @@ internal static class AppUtil
 
 		return r.OrderByDescending(x => x.published_at).First();
 	}
-
-	// Root myDeserializedClass = JsonConvert.DeserializeObject<List<Root>>(myJsonResponse);
-	internal static readonly string MyPicturesFolder = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
-
-	// internal static uint m_registerWindowMessage = Native.RegisterWindowMessage("WM_SHOWME");
-	public static Bitmap BitmapImage2Bitmap(this BitmapImage bitmapImage)
-	{
-		// BitmapImage bitmapImage = new BitmapImage(new Uri("../Images/test.png", UriKind.Relative));
-
-		using (MemoryStream outStream = new MemoryStream()) {
-			BitmapEncoder enc = new BmpBitmapEncoder();
-			enc.Frames.Add(BitmapFrame.Create(bitmapImage));
-			enc.Save(outStream);
-			Bitmap bitmap = new Bitmap(outStream);
-
-			return new Bitmap(bitmap);
-		}
-	}
-
-	public static double CompareImages(Bitmap InputImage1, Bitmap InputImage2, int Tollerance)
-	{
-		Bitmap Image1     = new Bitmap(InputImage1, new Size(512, 512));
-		Bitmap Image2     = new Bitmap(InputImage2, new Size(512, 512));
-		int    Image1Size = Image1.Width * Image1.Height;
-		int    Image2Size = Image2.Width * Image2.Height;
-		Bitmap Image3;
-
-		if (Image1Size > Image2Size) {
-			Image1 = new Bitmap(Image1, Image2.Size);
-			Image3 = new Bitmap(Image2.Width, Image2.Height);
-		}
-		else {
-			Image1 = new Bitmap(Image1, Image2.Size);
-			Image3 = new Bitmap(Image2.Width, Image2.Height);
-		}
-
-		for (int x = 0; x < Image1.Width; x++) {
-			for (int y = 0; y < Image1.Height; y++) {
-				Color Color1 = Image1.GetPixel(x, y);
-				Color Color2 = Image2.GetPixel(x, y);
-				int   r      = Color1.R > Color2.R ? Color1.R - Color2.R : Color2.R - Color1.R;
-				int   g      = Color1.G > Color2.G ? Color1.G - Color2.G : Color2.G - Color1.G;
-				int   b      = Color1.B > Color2.B ? Color1.B - Color2.B : Color2.B - Color1.B;
-				Image3.SetPixel(x, y, Color.FromArgb(r, g, b));
-			}
-		}
-
-		int Difference = 0;
-
-		for (int x = 0; x < Image1.Width; x++) {
-			for (int y = 0; y < Image1.Height; y++) {
-				Color Color1 = Image3.GetPixel(x, y);
-				int   Media  = (Color1.R + Color1.G + Color1.B) / 3;
-
-				if (Media > Tollerance)
-					Difference++;
-			}
-		}
-
-		double UsedSize = Image1Size > Image2Size ? Image2Size : Image1Size;
-		double result   = Difference * 100 / UsedSize;
-		return Difference * 100 / UsedSize;
-	}
-
-	public static double CalculateMSE(Bitmap image1, Bitmap image2)
-	{
-		int    width  = Math.Min(image1.Width, image2.Width);
-		int    height = Math.Min(image1.Height, image2.Height);
-		double mse    = 0;
-
-		for (int y = 0; y < height; y++) {
-			for (int x = 0; x < width; x++) {
-				Color pixel1 = image1.GetPixel(x, y);
-				Color pixel2 = image2.GetPixel(x, y);
-
-				double diffR = pixel1.R - pixel2.R;
-				double diffG = pixel1.G - pixel2.G;
-				double diffB = pixel1.B - pixel2.B;
-
-				mse += (diffR * diffR + diffG * diffG + diffB * diffB) / 3.0;
-			}
-		}
-
-		mse /= (width * height);
-		return mse;
-	}
-
-	[AM]
-	[CA("null => halt")]
-	private static void Assert1(object o)
-	{
-		var b = o != null;
-
-		Trace.Assert(b, $"{nameof(o)} was {null}!");
-	}
-
-	[AM]
-	[CA("false => halt")]
-	public static void Assert2(bool b)
-	{
-		Trace.Assert(b, $"{b} was {false}!");
-	}
-
 }
 
-[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-internal class GHReleaseAsset
+[USI(ImplicitUseTargetFlags.WithMembers)]
+public class GHReleaseAsset
 {
 
 	public string url { get; set; }
@@ -342,77 +309,7 @@ internal class GHReleaseAsset
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
-internal class GHAuthor
-{
-
-	public string login { get; set; }
-
-	public int id { get; set; }
-
-	public string node_id { get; set; }
-
-	public string avatar_url { get; set; }
-
-	public string gravatar_id { get; set; }
-
-	public string url { get; set; }
-
-	public string html_url { get; set; }
-
-	public string followers_url { get; set; }
-
-	public string following_url { get; set; }
-
-	public string gists_url { get; set; }
-
-	public string starred_url { get; set; }
-
-	public string subscriptions_url { get; set; }
-
-	public string organizations_url { get; set; }
-
-	public string repos_url { get; set; }
-
-	public string events_url { get; set; }
-
-	public string received_events_url { get; set; }
-
-	public string type { get; set; }
-
-	public bool site_admin { get; set; }
-
-}
-
-[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-internal class GHReactions
-{
-
-	public string url { get; set; }
-
-	public int total_count { get; set; }
-
-	[JsonPropertyName("+1")]
-	public int Plus1 { get; set; }
-
-	[JsonPropertyName("-1")]
-	public int Minus1 { get; set; }
-
-	public int laugh { get; set; }
-
-	public int hooray { get; set; }
-
-	public int confused { get; set; }
-
-	public int heart { get; set; }
-
-	public int rocket { get; set; }
-
-	public int eyes { get; set; }
-
-}
-
-[UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-internal class GHUploader
+public class GHAuthor
 {
 
 	public string login { get; set; }
@@ -454,7 +351,77 @@ internal class GHUploader
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
-internal class GHRelease
+public class GHReactions
+{
+
+	public string url { get; set; }
+
+	public int total_count { get; set; }
+
+	[JsonPropertyName("+1")]
+	public int Plus1 { get; set; }
+
+	[JsonPropertyName("-1")]
+	public int Minus1 { get; set; }
+
+	public int laugh { get; set; }
+
+	public int hooray { get; set; }
+
+	public int confused { get; set; }
+
+	public int heart { get; set; }
+
+	public int rocket { get; set; }
+
+	public int eyes { get; set; }
+
+}
+
+[USI(ImplicitUseTargetFlags.WithMembers)]
+public class GHUploader
+{
+
+	public string login { get; set; }
+
+	public int id { get; set; }
+
+	public string node_id { get; set; }
+
+	public string avatar_url { get; set; }
+
+	public string gravatar_id { get; set; }
+
+	public string url { get; set; }
+
+	public string html_url { get; set; }
+
+	public string followers_url { get; set; }
+
+	public string following_url { get; set; }
+
+	public string gists_url { get; set; }
+
+	public string starred_url { get; set; }
+
+	public string subscriptions_url { get; set; }
+
+	public string organizations_url { get; set; }
+
+	public string repos_url { get; set; }
+
+	public string events_url { get; set; }
+
+	public string received_events_url { get; set; }
+
+	public string type { get; set; }
+
+	public bool site_admin { get; set; }
+
+}
+
+[USI(ImplicitUseTargetFlags.WithMembers)]
+public class GHRelease
 {
 
 	public string url { get; set; }

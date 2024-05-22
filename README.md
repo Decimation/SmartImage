@@ -46,7 +46,7 @@
   <p align="center"><b>SmartImage</b> features context menu integration, which allows you to right click on an image to immediately run a search!</p>
   </p>
   
-  <p align="center"><b>SmartImage</b> has two forms: GUI (Windows) and Rdx (cross-platform).</p>
+  <p align="center"><b>SmartImage</b> has two forms: <b>GUI (Windows)</b> and <b>Rdx (cross-platform).</b></p>
 
 </p>
 

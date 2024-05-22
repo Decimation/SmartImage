@@ -22,12 +22,12 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	[CommandOption("-e|--search-engines")]
 	[DefaultValue(SearchConfig.SE_DEFAULT)]
-	[Description("Search engines")]
+	[Description("Search engines (comma-delimited)")]
 	public SearchEngineOptions SearchEngines { get; internal set; }
 
 	[CommandOption("-p|--priority-engines")]
 	[DefaultValue(SearchConfig.PE_DEFAULT)]
-	[Description("Engines whose results to open")]
+	[Description("Engines whose results to open (comma-delimited)")]
 	public SearchEngineOptions PriorityEngines { get; internal set; }
 
 	[CommandOption("-a|--autosearch")]
@@ -63,7 +63,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 
 	[CommandOption("--output-fields")]
 	[DefaultValue(OUTPUT_FIELDS_DEFAULT)]
-	[Description("Output fields")]
+	[Description("Output fields (comma-delimited)")]
 	public OutputFields OutputFields { get; internal set; }
 
 	public const OutputFields OUTPUT_FIELDS_DEFAULT =

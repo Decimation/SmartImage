@@ -20,6 +20,7 @@ using Novus.Streams;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 using SmartImage.UI.Controls;
 
 namespace SmartImage.UI.Model;

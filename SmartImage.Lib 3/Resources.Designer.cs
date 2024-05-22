@@ -79,6 +79,24 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to /usr/share/applications.
+        /// </summary>
+        internal static string Linux_Applications_Dir {
+            get {
+                return ResourceManager.GetString("Linux_Applications_Dir", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SmartImage.desktop.
+        /// </summary>
+        internal static string Linux_Desktop_File {
+            get {
+                return ResourceManager.GetString("Linux_Desktop_File", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to SmartImage.
         /// </summary>
         internal static string Name {

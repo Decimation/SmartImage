@@ -1,7 +1,9 @@
 ﻿using System.Data;
 using System.Reflection;
 using Kantan.Utilities;
+using Novus.OS;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
@@ -49,31 +51,6 @@ internal static class ConsoleFormat
 
 	internal static readonly Capabilities ProfileCapabilities = AConsole.Profile.Capabilities;
 
-	internal static readonly bool IsLinux   = OperatingSystem.IsLinux();
-	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
-	internal static readonly bool IsMacOs   = OperatingSystem.IsMacOS();
-
-	private static readonly Assembly s_assembly = Assembly.GetExecutingAssembly();
-	private static readonly string   s_version  = s_assembly.GetName().Version.ToString();
-
-	internal static string? GetOS()
-	{
-		string? os = null;
-
-		if (IsLinux) {
-			os = "Linux";
-
-		}
-		else if (IsWindows) {
-			os = "Windows";
-		}
-		else if (IsMacOs) {
-			os = "Mac";
-		}
-
-		return os;
-	}
-
 	internal static Grid CreateInfoGrid()
 	{
 		var grd = new Grid();
@@ -81,13 +58,15 @@ internal static class ConsoleFormat
 
 		var dict = new Dictionary<string, object>()
 		{
-			["OS"]               = $"{GetOS()} / {Environment.OSVersion}",
+			["OS"]               = $"{AppUtil.GetOSName()} / {Environment.OSVersion}",
+			["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
 			["Runtime"]          = Environment.Version,
 			["Terminal ANSI"]    = ProfileCapabilities.Ansi,
 			["Terminal colors"]  = ProfileCapabilities.ColorSystem,
 			["Terminal links"]   = ProfileCapabilities.Links,
 			["Terminal Unicode"] = ProfileCapabilities.Unicode,
-			["Version"]          = $"{s_version}"
+			["Version"]          = $"{AppUtil.Version}",
+			["Location"]         = AppUtil.ExeLocation
 		};
 
 		foreach ((string? key, var value) in dict) {
