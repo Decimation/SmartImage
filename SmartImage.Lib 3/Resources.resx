@@ -196,9 +196,9 @@
     <value>smartimage.desktop</value>
   </data>
   <data name="Linux_Launch_Args" xml:space="preserve">
-    <value>%u</value>
+    <value>%u --keep-open</value>
   </data>
   <data name="Reg_Launch_Args" xml:space="preserve">
-    <value>"%1"</value>
+    <value>"%1" --keep-open</value>
   </data>
 </root>
