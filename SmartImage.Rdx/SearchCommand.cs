@@ -73,11 +73,17 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		// Client.OnComplete += OnComplete;
 
 		// Client.OnResult   += OnResult;
-		m_cts     = new CancellationTokenSource();
-		m_results = new ConcurrentBag<SearchResult>();
-		m_scs     = null;
-		m_table   = CreateResultTable();
-		Query     = SearchQuery.Null;
+		m_cts         =  new CancellationTokenSource();
+		m_results     =  new ConcurrentBag<SearchResult>();
+		m_scs         =  null;
+		m_table       =  CreateResultTable();
+		
+		Client.OnOpen += (sender, item) =>
+		{
+			Debug.WriteLine($"Opening {item}");
+		};
+
+		Query         =  SearchQuery.Null;
 	}
 
 	#region
@@ -89,6 +95,10 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
 
+		if (Query == SearchQuery.Null) {
+			throw new SmartImageException($"Could not create query"); //todo
+
+		}
 		p.Increment(COMPLETE / 2);
 
 		// ctx.Refresh();
@@ -97,7 +107,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var url = await Query.UploadAsync();
 
 		if (url == null) {
-			throw new SmartImageException(); //todo
+			throw new SmartImageException("Could not upload query"); //todo
 		}
 
 		p.Increment(COMPLETE / 2);
@@ -158,7 +168,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 			m_results.Add(result);
 
-			pt.Description = $"{result.Engine.Name} {m_results.Count} / {cnt}";
+			pt.Description = $"{Strings.Constants.CHECK_MARK} {result.Engine.Name} - {result.Results.Count} ({m_results.Count} / {cnt})";
 			pt.Increment(1);
 			c.Refresh();
 
@@ -176,7 +186,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			.StartAsync(SetupSearchAsync)
 			.ContinueWith(InitConfigAsync);
 
-		await task;
+		try {
+			await task;
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+			return EC_ERROR;
+		}
 
 		var gr = CreateInfoGrid();
 		AConsole.Write(gr);
@@ -302,14 +318,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var stdOutBuffer = new StringBuilder();
 		var stdErrBuffer = new StringBuilder();
 
-		/*var buf1         = new StringBuilder();
-
-			foreach (ResultModel model in m_results) {
-				foreach (SearchResultItem item in model.Result.Results) {
-					buf1.AppendLine(item.Url);
-				}
-			}*/
-
 		if (!String.IsNullOrWhiteSpace(cmdArgs)) {
 
 			// cmdArgs = cmdArgs.Replace(SearchCommandSettings.PROP_ARG_RESULTS, buf1.ToString());
@@ -323,11 +331,11 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		var commandTask = command.ExecuteAsync(m_cts.Token);
 
-		AConsole.WriteLine($"Process: {commandTask.ProcessId}");
+		AConsole.WriteLine($"Process id: {commandTask.ProcessId}");
 
 		var result = await commandTask;
 
-		AConsole.WriteLine($"Process: {result.IsSuccess}");
+		AConsole.WriteLine($"Process successful: {result.IsSuccess}");
 	}
 
 	[ContractAnnotation("=> halt")]

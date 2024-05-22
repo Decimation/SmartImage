@@ -46,6 +46,8 @@
   <p align="center"><b>SmartImage</b> features context menu integration, which allows you to right click on an image to immediately run a search!</p>
   </p>
   
+  <p align="center"><b>SmartImage</b> has two forms: GUI (Windows) and Rdx (cross-platform).</p>
+
 </p>
 
 <!-- ... -->
@@ -71,11 +73,11 @@ Supported search engines:
 
 <!-- ... -->
 
-## Getting Started 1️⃣
+## Getting Started (GUI) 1️⃣
 
 **SmartImage** is designed to be intuitive and agile. There are multiple ways of running the program, and you can use 2 different forms of input: direct image links or files.
 
-See [Usage »](https://github.com/Decimation/SmartImage/wiki#usage)
+See [Usage »](https://github.com/Decimation/SmartImage/wiki/(GUI)-Usage)
 
 ### 1. Input Field
 
@@ -112,8 +114,3 @@ applications.
 ## Wiki 📕
 
 **See the _[Wiki »](https://github.com/Decimation/SmartImage/wiki)_ for documentation.**
-
-Wiki pages useful for getting started:
-
-- Usage: _[Usage »](https://github.com/Decimation/SmartImage/wiki/Usage)_
-- Search engines and config: _[Engines »](https://github.com/Decimation/SmartImage/wiki/Engines)_

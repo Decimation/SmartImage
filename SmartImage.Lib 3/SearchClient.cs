@@ -86,9 +86,13 @@ public sealed class SearchClient : IDisposable
 
 	public delegate void SearchCompleteCallback(object sender, SearchResult[] e);
 
+	public delegate void ResultOpenCallback(object sender, SearchResultItem e);
+
 	public event ResultCompleteCallback OnResult;
 
 	public event SearchCompleteCallback OnComplete;
+
+	public event ResultOpenCallback OnOpen;
 
 	public Channel<SearchResult> ResultChannel { get; private set; }
 
@@ -145,7 +149,7 @@ public sealed class SearchClient : IDisposable
 
 				Debugger.Break();
 				Logger.LogWarning("Cancellation requested");
-				ResultChannel.Writer.Complete();
+				ResultChannel?.Writer.Complete();
 				IsComplete = true;
 				IsRunning  = false;
 				return results;
@@ -153,6 +157,7 @@ public sealed class SearchClient : IDisposable
 
 			Task<SearchResult> task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
+
 			// Debug.WriteLine($"{task.Id} {task.Status}");
 			SearchResult result = await task;
 
@@ -164,7 +169,7 @@ public sealed class SearchClient : IDisposable
 			// results.Add(result);
 		}
 
-		ResultChannel.Writer.Complete();
+		ResultChannel?.Writer.Complete();
 		OnComplete?.Invoke(this, results);
 		IsRunning  = false;
 		IsComplete = true;
@@ -174,7 +179,31 @@ public sealed class SearchClient : IDisposable
 			// var sri    = results.SelectMany(r => r.Results).ToArray();
 			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
 			//todo
+
 			try {
+				
+				var ordered = results.Select(x => x.GetBestResult())
+					.Where(x => x != null)
+					.OrderByDescending(x => x.Similarity);
+
+				var item = ordered.First();
+
+				if (Config.OpenRaw) {
+					OpenResult(item.Root.AsRawResultItem());
+				}
+
+				OpenResult(item);
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+
+				SearchResult result = results.FirstOrDefault(f => f.Status.IsSuccessful()) ?? results.First();
+				var          item   = result.GetBestResult();
+
+				OpenResult(item);
+			}
+
+			/*try {
 				IOrderedEnumerable<SearchResultItem> rr = results.SelectMany(rr => rr.Results)
 					.OrderByDescending(rr => rr.Score);
 
@@ -191,7 +220,7 @@ public sealed class SearchClient : IDisposable
 
 				SearchResult result = results.FirstOrDefault(f => f.Status.IsSuccessful()) ?? results.First();
 				OpenResult(result);
-			}
+			}*/
 		}
 
 		IsRunning = false;
@@ -202,16 +231,20 @@ public sealed class SearchClient : IDisposable
 	private void ProcessResult(SearchResult result)
 	{
 		OnResult?.Invoke(this, result);
-		ResultChannel.Writer.TryWrite(result);
+
+		if (!ResultChannel.Writer.TryWrite(result)) {
+			Debug.WriteLine($"Could not write {result}");
+		}
 
 		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
-			OpenResult(result);
+			OpenResult(result.GetBestResult());
 		}
 	}
 
 	private static void OpenResult(Url url1)
 	{
-#if DEBUG && !TEST
+// #if DEBUG && !TEST
+/*
 #pragma warning disable CA1822
 
 		// ReSharper disable once MemberCanBeMadeStatic.Local        
@@ -219,7 +252,8 @@ public sealed class SearchClient : IDisposable
 		return;
 
 #pragma warning restore CA1822
-#else
+*/
+// #else
 		Logger.LogInformation("Opening {Url}", url1);
 
 		var b = FileSystem.Open(url1, out var proc);
@@ -237,38 +271,32 @@ public sealed class SearchClient : IDisposable
 
 		// Process.Start(url1);
 		// HttpUtilities.TryOpenUrl(url1);
-#endif
+// #endif
 
 	}
 
-	private void OpenResult(SearchResult result)
+	private void OpenResult(SearchResultItem result)
 	{
-#if DEBUG && !TEST
-#pragma warning disable CA1822
+// #if DEBUG && !TEST
+/*#pragma warning disable CA1822
 
 		// ReSharper disable once MemberCanBeMadeStatic.Local        
 		Logger.LogDebug("Not opening result {result}", result);
 		return;
 
-#pragma warning restore CA1822
-#else
-		Url url1;
+#pragma warning restore CA1822*/
+// #else
+		
+		OnOpen?.Invoke(this, result);
 
-		if (Config.OpenRaw) {
-			url1 = result.RawUrl;
-		}
-		else {
-			url1 = result.GetBestResult()?.Url ?? result.RawUrl;
-		}
-
-		OpenResult(url1);
-#endif
+		OpenResult(result.Url);
+// #endif
 
 	}
 
 	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler, CancellationToken token)
 	{
-		
+
 		List<Task<SearchResult>> tasks = Engines.Select(e =>
 		{
 			try {
@@ -290,6 +318,7 @@ public sealed class SearchClient : IDisposable
 			catch (Exception exception) {
 				Debugger.Break();
 				Trace.WriteLine($"{exception}");
+
 				// return  Task.FromException(exception);
 			}
 

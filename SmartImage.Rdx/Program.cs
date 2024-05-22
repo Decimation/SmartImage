@@ -40,7 +40,6 @@ public static class Program
 		Debug.WriteLine(Console.BufferHeight);
 
 #if DEBUG
-
 		Debugger.Launch();
 #endif
 

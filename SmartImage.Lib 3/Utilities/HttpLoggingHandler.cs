@@ -8,22 +8,22 @@ namespace SmartImage.Lib.Utilities;
 
 internal class HttpLoggingHandler : DelegatingHandler
 {
+
 	public HttpLoggingHandler(ILogger l)
 	{
 		m_logger = l;
 	}
 
-	public HttpLoggingHandler([NotNull] HttpMessageHandler innerHandler) : base(innerHandler)
-	{
-	}
+	public HttpLoggingHandler([NotNull] HttpMessageHandler innerHandler) : base(innerHandler) { }
 
 	private readonly ILogger m_logger;
 
 	protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-														   CancellationToken cancellationToken)
+	                                                       CancellationToken cancellationToken)
 	{
 		m_logger.LogDebug("Request {Request}", request.RequestUri);
 
 		return base.SendAsync(request, cancellationToken);
 	}
+
 }
