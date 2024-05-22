@@ -83,23 +83,29 @@ public static class Program
 			c.PropagateExceptions();
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
+
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
 		});
 
+		int x = SearchCommand.EC_OK;
+
 		try {
-			var x = await app.RunAsync(args);
+			x = await app.RunAsync(args);
+
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+			x = SearchCommand.EC_ERROR;
+		}
+		finally {
 
 			if (x != SearchCommand.EC_OK) {
 				AConsole.Confirm("Press any key to continue");
 			}
+		}
 
-			return x;
-		}
-		catch (Exception e) {
-			AConsole.WriteException(e);
-			return SearchCommand.EC_ERROR;
-		}
+		return x;
 	}
 
 }

@@ -65,7 +65,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	public const int EC_OK    = 0;
 
 	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-	public static readonly Version Version = Assembly.GetName().Version;
+	public static readonly Version  Version  = Assembly.GetName().Version;
 
 	public SearchCommand()
 	{
@@ -92,16 +92,19 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	#region
 
-	private async Task SetupSearchAsync(ProgressContext ctx)
+	private async Task<bool> SetupSearchAsync(ProgressContext ctx)
 	{
 		var p = ctx.AddTask("Creating query");
 		p.IsIndeterminate = true;
+		bool ok = true;
 
 		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
 
 		if (Query == SearchQuery.Null) {
-			throw new SmartImageException($"Could not create query"); //todo
+			// throw new SmartImageException($"Could not create query"); //todo
 
+			ok = false;
+			goto ret;
 		}
 
 		p.Increment(COMPLETE / 2);
@@ -112,10 +115,15 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var url = await Query.UploadAsync();
 
 		if (url == null) {
-			throw new SmartImageException("Could not upload query"); //todo
+			// throw new SmartImageException("Could not upload query"); //todo
+			ok = false;
+			goto ret;
 		}
 
 		p.Increment(COMPLETE / 2);
+
+	ret:
+		return ok;
 	}
 
 	private async Task InitConfigAsync([CBN] object c)
@@ -294,11 +302,17 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		var task = AConsole.Progress()
 			.AutoRefresh(true)
-			.StartAsync(SetupSearchAsync)
-			.ContinueWith(InitConfigAsync);
+			.StartAsync(SetupSearchAsync);
 
 		try {
-			await task;
+			var ok = await task;
+
+			if (ok) {
+				await InitConfigAsync(ok);
+			}
+			else {
+				throw new SmartImageException("Could not upload query");
+			}
 		}
 		catch (Exception e) {
 			AConsole.WriteException(e);
