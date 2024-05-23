@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using SmartImage.Lib.Utilities;
+using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx;

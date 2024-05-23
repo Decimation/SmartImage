@@ -158,15 +158,10 @@ public sealed class SearchClient : IDisposable
 			Task<SearchResult> task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 
-			// Debug.WriteLine($"{task.Id} {task.Status}");
 			SearchResult result = await task;
-
-			// ProcessResult(result);
 
 			results[i] = result;
 			i++;
-
-			// results.Add(result);
 		}
 
 		ResultChannel?.Writer.Complete();
@@ -175,10 +170,6 @@ public sealed class SearchClient : IDisposable
 		IsComplete = true;
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
-
-			// var sri    = results.SelectMany(r => r.Results).ToArray();
-			// var result = Optimize(sri).FirstOrDefault() ?? sri.FirstOrDefault();
-			//todo
 
 			try {
 
@@ -236,17 +227,6 @@ public sealed class SearchClient : IDisposable
 
 	private static void OpenResult([MN] Url url1)
 	{
-// #if DEBUG && !TEST
-/*
-#pragma warning disable CA1822
-
-		// ReSharper disable once MemberCanBeMadeStatic.Local
-		Logger.LogDebug("Not opening {url}", url1);
-		return;
-
-#pragma warning restore CA1822
-*/
-// #else
 
 		if (url1 == null) {
 			return;
@@ -259,46 +239,29 @@ public sealed class SearchClient : IDisposable
 		// var b = Open(url1, out var proc);
 
 		if (b && proc is { }) {
-			/*var o = proc.WaitForExit(TimeSpan.FromSeconds(3));
-
-			if (o) {
-				Debug.WriteLine($"{proc}");
-			}*/
 			proc.Dispose();
 		}
-
-		// Process.Start(url1);
-		// HttpUtilities.TryOpenUrl(url1);
-// #endif
 
 	}
 
 	private void OpenResult([MN] SearchResultItem result)
 	{
-// #if DEBUG && !TEST
-/*#pragma warning disable CA1822
+#if DEBUG && !TEST
+#pragma warning disable CA1822
 
 		// ReSharper disable once MemberCanBeMadeStatic.Local
 		Logger.LogDebug("Not opening result {result}", result);
 		return;
 
-#pragma warning restore CA1822*/
-// #else
-
+#pragma warning restore CA1822
+#endif
 		OnOpen?.Invoke(this, result);
 
 		if (result != null) {
 
-			if (Config.OpenRaw) {
-				OpenResult(result.Root.GetRawResultItem().Url);
-			}
-			else {
-				OpenResult(result.Url);
-				// OpenResult(result);
-
-			}
+			var url = Config.OpenRaw ? result.Root.GetRawResultItem().Url : result.Url;
+			OpenResult(url);
 		}
-// #endif
 
 	}
 
@@ -313,9 +276,6 @@ public sealed class SearchClient : IDisposable
 				Task<SearchResult> res = e.GetResultAsync(query, token: token)
 					.ContinueWith((r) =>
 					{
-
-						// Debug.Assert(r.IsCompleted);
-						// Debug.WriteLine($"{r.Id} :: {r.Status}");
 						ProcessResult(r.Result);
 						return r.Result;
 
@@ -364,63 +324,6 @@ public sealed class SearchClient : IDisposable
 	{
 		return Engines.FirstOrDefault(e => e.EngineOption == o);
 	}
-
-	/*public static ValueTask<IReadOnlyList<SearchResultItem>> Filter(IEnumerable<SearchResultItem> sri)
-	{
-		var sri2 = sri.AsParallel().DistinctBy(e => e.Url).ToList();
-
-		return ValueTask.FromResult<IReadOnlyList<SearchResultItem>>(sri2);
-	}
-
-	public static IReadOnlyList<SearchResultItem> Optimize(IEnumerable<SearchResultItem> sri)
-	{
-		var items = sri.Where(r => SearchQuery.IsValidSourceType(r.Url))
-			.OrderByDescending(r => r.Score)
-			.ThenByDescending(r => r.Similarity)
-			.ToArray();
-
-		try {
-			/*var c = items.Where(r => r.Root.Engine.EngineOption == SearchEngineOptions.TraceMoe
-				/*&& r.Similarity <= TraceMoeEngine.FILTER_THRESHOLD#2#);
-			items = items.Except(c).ToArray();#1#
-
-		}
-		catch (Exception e) {
-			Logger.LogError("{Error}", e.Message);
-		}
-		finally { }
-
-		return items.AsReadOnly();
-	}
-
-	public static async Task<IReadOnlyList<UniSource>> GetDirectImagesAsync(IEnumerable<SearchResultItem> sri)
-	{
-		//
-		var filter = Optimize(sri)
-			.DistinctBy(r => r.Url)
-			// .Where(r => r.Score >= SearchResultItem.SCORE_THRESHOLD) // probably can be removed/reduced
-			.Select(async r =>
-			{
-				bool b = await r.LoadUniAsync();
-				return r.Uni;
-			})
-			.ToList();
-
-		var di = new List<UniSource>();
-
-		while (filter.Any()) {
-			var t1 = await Task.WhenAny(filter);
-			filter.Remove(t1);
-			var uf = await t1;
-
-			if (uf != null) {
-				di.AddRange(uf);
-			}
-
-		}
-
-		return di.AsReadOnly();
-	}*/
 
 	public void Dispose()
 	{

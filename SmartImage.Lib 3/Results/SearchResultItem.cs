@@ -1,4 +1,6 @@
-﻿using System.Collections;
+﻿using System.Runtime.CompilerServices;
+
+using System.Collections;
 using System.Drawing;
 using System.Dynamic;
 using Flurl.Http;
@@ -8,6 +10,7 @@ using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using SmartImage.Lib.Utilities;
 
+[assembly: InternalsVisibleTo("SmartImage.Lib Unit Test")]
 namespace SmartImage.Lib.Results;
 
 public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
