@@ -38,17 +38,17 @@ public class ArchiveMoeEngine : WebSearchEngine
 		var b64  = Convert.ToBase64String(data).Replace("==", "");
 		b64 = Regex.Replace(b64, @"\//", "_");
 		b64 = Regex.Replace(b64, @"\+", "-");
-		
+
 		q.Image.Stream.TrySeek();
 
 		return b64;
 	}
 
-	protected override ValueTask<Url> GetRawUrlAsync(SearchQuery query)
+	protected override Url GetRawUrl(SearchQuery query)
 	{
 		Base64Hash = GetHash(query);
 
-		return ValueTask.FromResult(BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
+		return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)

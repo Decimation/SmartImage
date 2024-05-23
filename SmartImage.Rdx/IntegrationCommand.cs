@@ -6,7 +6,7 @@ using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx;
 
-public class IntegrationCommand : Command<IntegrationCommandSettings>
+internal class IntegrationCommand : Command<IntegrationCommandSettings>
 {
 
 	public override int Execute(CommandContext context, IntegrationCommandSettings settings)

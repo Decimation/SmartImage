@@ -181,26 +181,19 @@ public sealed class SearchClient : IDisposable
 			//todo
 
 			try {
-				
+
 				var ordered = results.Select(x => x.GetBestResult())
 					.Where(x => x != null)
 					.OrderByDescending(x => x.Similarity);
 
-				var item = ordered.First();
-
-				if (Config.OpenRaw) {
-					OpenResult(item.Root.AsRawResultItem());
-				}
+				var item = ordered.FirstOrDefault();
 
 				OpenResult(item);
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
 
-				SearchResult result = results.FirstOrDefault(f => f.Status.IsSuccessful()) ?? results.First();
-				var          item   = result.GetBestResult();
-
-				OpenResult(item);
+				Debugger.Break();
 			}
 
 			/*try {
@@ -241,19 +234,24 @@ public sealed class SearchClient : IDisposable
 		}
 	}
 
-	private static void OpenResult(Url url1)
+	private static void OpenResult([MN] Url url1)
 	{
 // #if DEBUG && !TEST
 /*
 #pragma warning disable CA1822
 
-		// ReSharper disable once MemberCanBeMadeStatic.Local        
+		// ReSharper disable once MemberCanBeMadeStatic.Local
 		Logger.LogDebug("Not opening {url}", url1);
 		return;
 
 #pragma warning restore CA1822
 */
 // #else
+
+		if (url1 == null) {
+			return;
+		}
+
 		Logger.LogInformation("Opening {Url}", url1);
 
 		var b = FileSystem.Open(url1, out var proc);
@@ -275,21 +273,31 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	private void OpenResult(SearchResultItem result)
+	private void OpenResult([MN] SearchResultItem result)
 	{
 // #if DEBUG && !TEST
 /*#pragma warning disable CA1822
 
-		// ReSharper disable once MemberCanBeMadeStatic.Local        
+		// ReSharper disable once MemberCanBeMadeStatic.Local
 		Logger.LogDebug("Not opening result {result}", result);
 		return;
 
 #pragma warning restore CA1822*/
 // #else
-		
+
 		OnOpen?.Invoke(this, result);
 
-		OpenResult(result.Url);
+		if (result != null) {
+
+			if (Config.OpenRaw) {
+				OpenResult(result.Root.GetRawResultItem().Url);
+			}
+			else {
+				OpenResult(result.Url);
+				// OpenResult(result);
+
+			}
+		}
 // #endif
 
 	}

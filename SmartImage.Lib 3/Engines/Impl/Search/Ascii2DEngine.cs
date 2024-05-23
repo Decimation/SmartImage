@@ -53,9 +53,9 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		return b && b2;
 	}*/
 
-	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
+	protected override Url GetRawUrl(SearchQuery query)
 	{
-		var url = await base.GetRawUrlAsync(query);
+		var url =  base.GetRawUrl(query);
 
 		/*url = url.SetQueryParams(new
 		{

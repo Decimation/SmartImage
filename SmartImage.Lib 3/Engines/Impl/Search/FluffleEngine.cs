@@ -85,9 +85,9 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 		return sr;
 	}
 
-	protected override async ValueTask<Url> GetRawUrlAsync(SearchQuery query)
+	protected override Url GetRawUrl(SearchQuery query)
 	{
-		return await base.GetRawUrlAsync(query);
+		return  base.GetRawUrl(query);
 	}
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;

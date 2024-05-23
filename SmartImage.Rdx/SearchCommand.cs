@@ -145,9 +145,8 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	}
 
-	private async Task RunSearchLiveAsync(LiveDisplayContext c)
+	private async Task RunSearchWithLiveAsync(LiveDisplayContext c)
 	{
-
 		var search = Client.RunSearchAsync(Query, token: m_cts.Token, reload: false);
 
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
@@ -155,9 +154,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 			m_results.Add(result);
 
-			if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
-				UpdateResultTable(result);
-			}
+			UpdateResultTable(result);
 
 			c.Refresh();
 		}
@@ -189,6 +186,86 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		}
 
 		await search;
+	}
+
+	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
+	{
+		m_scs = settings;
+
+		var task = AConsole.Progress()
+			.AutoRefresh(true)
+			.StartAsync(SetupSearchAsync);
+
+		try {
+			var ok = await task;
+
+			if (ok) {
+				await InitConfigAsync(ok);
+			}
+			else {
+				throw new SmartImageException("Could not upload query");
+			}
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+			return EC_ERROR;
+		}
+
+		var gr = CreateInfoGrid();
+		AConsole.Write(gr);
+
+		Console.CancelKeyPress += OnCancelKeyPress;
+
+		/*
+		 *
+		 * todo
+		 */
+
+		Task run;
+
+		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
+			run = AConsole.Live(m_table)
+				.StartAsync(RunSearchWithLiveAsync);
+
+		}
+		else {
+			run = AConsole.Progress()
+				.StartAsync(RunSearchWithProgressAsync);
+		}
+
+		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
+			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
+			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+		}
+
+		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
+			switch (m_scs.OutputFileFormat) {
+
+				case OutputFileFormat.None:
+					break;
+
+				case OutputFileFormat.Delimited:
+					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
+					                       TaskContinuationOptions.OnlyOnRanToCompletion,
+					                       TaskScheduler.Default);
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+		}
+
+		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
+			run = run.ContinueWith((c) =>
+			{
+				AConsole.Confirm("Exit");
+			});
+		}
+
+		await run;
+
+		return EC_OK;
 	}
 
 	private async Task WriteOutputFileAsync([CBN] object o)
@@ -296,86 +373,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		Environment.Exit(EC_ERROR);
 	}
 
-	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
-	{
-		m_scs = settings;
-
-		var task = AConsole.Progress()
-			.AutoRefresh(true)
-			.StartAsync(SetupSearchAsync);
-
-		try {
-			var ok = await task;
-
-			if (ok) {
-				await InitConfigAsync(ok);
-			}
-			else {
-				throw new SmartImageException("Could not upload query");
-			}
-		}
-		catch (Exception e) {
-			AConsole.WriteException(e);
-			return EC_ERROR;
-		}
-
-		var gr = CreateInfoGrid();
-		AConsole.Write(gr);
-
-		Console.CancelKeyPress += OnCancelKeyPress;
-
-		/*
-		 *
-		 * todo
-		 */
-
-		Task run;
-
-		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
-			run = AConsole.Live(m_table)
-				.StartAsync(RunSearchLiveAsync);
-
-		}
-		else {
-			run = AConsole.Progress()
-				.StartAsync(RunSearchWithProgressAsync);
-		}
-
-		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
-			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
-			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-		}
-
-		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
-			switch (m_scs.OutputFileFormat) {
-
-				case OutputFileFormat.None:
-					break;
-
-				case OutputFileFormat.Delimited:
-					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
-					                       TaskContinuationOptions.OnlyOnRanToCompletion,
-					                       TaskScheduler.Default);
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-		}
-
-		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
-			run = run.ContinueWith((c) =>
-			{
-				AConsole.Confirm("Exit");
-			});
-		}
-
-		await run;
-
-		return EC_OK;
-	}
-
 	#endregion
 
 	#region
@@ -415,7 +412,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var lrr  = style.Foreground.GetContrastRatio(Color.White);
 		var lrr2 = style.Foreground.GetContrastRatio(Color.Black);
 
-		Debug.WriteLine($"{lr} {lrr} {lrr2}");
+		// Debug.WriteLine($"{lr} {lrr} {lrr2}");
 
 		for (int i = 0; i < result.Results.Count; i++) {
 			var res    = result.Results[i];

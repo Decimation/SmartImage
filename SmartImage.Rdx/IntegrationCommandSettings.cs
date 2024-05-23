@@ -5,7 +5,7 @@ using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx;
 
-public class IntegrationCommandSettings : CommandSettings
+internal class IntegrationCommandSettings : CommandSettings
 {
 
 	[CommandOption("--ctx-menu")]

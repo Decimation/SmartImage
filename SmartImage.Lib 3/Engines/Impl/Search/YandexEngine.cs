@@ -121,7 +121,7 @@ public sealed class YandexEngine : WebSearchEngine
 	{
 		// var sr = await base.GetResultAsync(query, token);
 
-		var url = await GetRawUrlAsync(query);
+		var url =  GetRawUrl(query);
 
 		var sr = new SearchResult(this)
 		{

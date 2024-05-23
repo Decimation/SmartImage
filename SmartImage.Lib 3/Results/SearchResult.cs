@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
 using Flurl.Http;
@@ -67,7 +68,10 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	/// </summary>
 	public Url RawUrl { get; internal set; }
 
-	public List<SearchResultItem> Results { get; internal set; }
+	/// <summary>
+	/// Results; first element should be <see cref="GetRawResultItem"/>
+	/// </summary>
+	public List<SearchResultItem> Results { get;  }
 
 	[CBN]
 	public string ErrorMessage { get; internal set; }
@@ -81,6 +85,8 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	public SearchResultItem GetBestResult()
 	{
 		if (Results.Count == 0) {
+			// This should never happen so long as results contains the raw item
+			Debugger.Break();
 			return null;
 		}
 
@@ -91,7 +97,9 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	internal SearchResult(BaseSearchEngine bse)
 	{
 		Engine  = bse;
-		Results = [];
+		Results=[];
+
+		// Results = [GetRawResultItem()];
 	}
 
 	public override string ToString()
@@ -149,7 +157,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		return true;
 	}
 
-	public SearchResultItem AsRawResultItem()
+	public SearchResultItem GetRawResultItem()
 	{
 		return new SearchResultItem(this)
 		{

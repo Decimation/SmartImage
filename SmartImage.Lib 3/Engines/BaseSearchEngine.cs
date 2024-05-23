@@ -125,22 +125,26 @@ public abstract class BaseSearchEngine : IDisposable
 
 		var res = new SearchResult(this)
 		{
-			RawUrl       = await GetRawUrlAsync(query),
+			RawUrl       = GetRawUrl(query),
 			ErrorMessage = null,
-			Status = srs
+			Status       = srs
 		};
+
+		lock (res.Results) {
+			res.Results.Add(res.GetRawResultItem());
+		}
 
 		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
 
 		return res;
 	}
 
-	protected virtual ValueTask<Url> GetRawUrlAsync(SearchQuery query)
+	protected virtual Url GetRawUrl(SearchQuery query)
 	{
 		//
 		Url u = ((BaseUrl + query.Upload));
 
-		return ValueTask.FromResult(u);
+		return u;
 	}
 
 	public abstract void Dispose();
