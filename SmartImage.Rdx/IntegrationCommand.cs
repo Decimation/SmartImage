@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: IntegrationCommand.cs
 // Date: 2024/05/22 @ 16:05:51
 
+using System.Diagnostics;
 using SmartImage.Lib.Utilities;
 using Spectre.Console.Cli;
 
@@ -15,7 +16,7 @@ internal class IntegrationCommand : Command<IntegrationCommandSettings>
 			// AConsole.WriteLine($"{AppUtil.IsContextMenuAdded}");
 
 			if (settings.ContextMenu.HasValue) {
-				var rv = AppUtil.HandleContextMenu(settings.ContextMenu.Value);
+				var rv = AppUtil.HandleContextMenu(settings.ContextMenu.Value, settings.ContextMenuArguments);
 				AConsole.WriteLine($"Context menu change: {rv}");
 			}
 
