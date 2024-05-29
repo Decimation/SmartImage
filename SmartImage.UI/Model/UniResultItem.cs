@@ -18,7 +18,7 @@ using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Streams;
 using Novus.Win32;
-using SmartImage.Lib;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Controls;
@@ -47,7 +47,7 @@ public class UniResultItem : ResultItem
 		}
 	}
 
-	public UniImage? Uni
+	public BinaryImageFile? Uni
 	{
 		get
 		{

@@ -3,6 +3,7 @@
 
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Net.Utilities;
@@ -10,9 +11,12 @@ using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Utilities;
-using SmartImage.Lib.Model;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SmartImage.Lib.Results;
+using SmartImage.Lib.Utilities;
 
-namespace SmartImage.Lib.Utilities;
+namespace SmartImage.Lib.Images;
 
 public static class ImageScanner
 {
@@ -20,8 +24,12 @@ public static class ImageScanner
 	/*public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
 
-	public static async Task<UniImage[]> ScanAsync(Url u, IImageFilter filter = null,
-	                                               CancellationToken ct = default)
+	/// <summary>
+	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
+	/// points to binary image data, it is returned.
+	/// </summary>
+	public static async Task<BinaryImageFile[]> ScanImagesAsync(Url u, IImageFilter filter = null,
+	                                                       CancellationToken ct = default)
 	{
 		IFlurlResponse res;
 		Stream         stream;
@@ -49,9 +57,9 @@ public static class ImageScanner
 			return [];
 		}
 
-		var ul = new ConcurrentBag<UniImage>();
+		var ul = new ConcurrentBag<BinaryImageFile>();
 		stream = await res.GetStreamAsync();
-		var uf = await UniImage.TryCreateAsync(stream, t: ct);
+		var uf = await BinaryImageFile.TryCreateAsync(stream, t: ct);
 
 		if (uf != null) {
 			/*if (!FileType.Image.Contains(uf.FileType)) {
@@ -90,14 +98,14 @@ public static class ImageScanner
 
 		await Parallel.ForEachAsync(c, po, async (s, token) =>
 		{
-			var ux = await UniImage.TryCreateAsync(s, t: token);
+			var ux = await BinaryImageFile.TryCreateAsync(s, t: token);
 
 			if (ux != null) {
 				/*if (!FileType.Image.Contains(ux.FileType)) {
 					ux?.Dispose();
 					return;
 				}*/
-				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanAsync));
+				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanForEmbeddedImagesAsync));
 				if (filter.Predicate(ux)) {
 					ul.Add(ux);
 
@@ -133,7 +141,8 @@ public static class ImageScanner
 		}
 	}
 
-	public static async Task<UniImage[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
+	// todo
+	public static async Task<BinaryImageFile[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
 	{
 		using var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri}")
 		{
@@ -144,11 +153,11 @@ public static class ImageScanner
 		await p.WaitForExitAsync(ct);
 		var s  = await p.StandardOutput.ReadToEndAsync(ct);
 		var s2 = s.Split(Environment.NewLine);
-		var rg = new ConcurrentBag<UniImage>();
+		var rg = new ConcurrentBag<BinaryImageFile>();
 
 		await Parallel.ForEachAsync(s2, ct, async (s1, token) =>
 		{
-			var uni = await UniImage.TryCreateAsync(s1, t: token);
+			var uni = await BinaryImageFile.TryCreateAsync(s1, t: token);
 
 			if (uni != null) {
 				rg.Add(uni);

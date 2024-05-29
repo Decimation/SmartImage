@@ -5,6 +5,7 @@ global using R3 = SmartImage.Lib.Values;
 global using R2 = SmartImage.UI.Resources;
 global using R1 = SmartImage.Lib.Resources;
 using System;
+using System.Drawing;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -86,5 +87,19 @@ public static class AppComponents
 	public static readonly BitmapImage asterisk_yellow = LoadInline();
 
 	#endregion
+
+	public static Bitmap BitmapImage2Bitmap(this BitmapImage bitmapImage)
+	{
+		// BitmapImage bitmapImage = new BitmapImage(new Uri("../Images/test.png", UriKind.Relative));
+
+		using (MemoryStream outStream = new MemoryStream()) {
+			BitmapEncoder enc = new BmpBitmapEncoder();
+			enc.Frames.Add(BitmapFrame.Create(bitmapImage));
+			enc.Save(outStream);
+			Bitmap bitmap = new Bitmap(outStream);
+
+			return new Bitmap(bitmap);
+		}
+	}
 
 }

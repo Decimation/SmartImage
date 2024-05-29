@@ -7,6 +7,7 @@ using System.Text;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Images;
 using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli;
 using ValidationResult = Spectre.Console.ValidationResult;
@@ -96,7 +97,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 	{
 		var result = base.Validate();
 
-		if (!UniImage.IsValidSourceType(Query, false)) {
+		if (!BinaryImageFile.IsValidSourceType(Query, false)) {
 			return ValidationResult.Error("Invalid query");
 		}
 

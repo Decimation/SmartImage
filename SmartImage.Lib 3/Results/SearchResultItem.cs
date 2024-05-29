@@ -8,7 +8,7 @@ using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Images;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib Unit Test")]
 namespace SmartImage.Lib.Results;
@@ -104,7 +104,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	[CBN]
 	public string ThumbnailTitle { get; internal set; }
 
-	public UniImage[] Uni { get; internal set; }
+	public BinaryImageFile[] Uni { get; internal set; }
 
 	public bool HasUni => Uni != null && Uni.Any();
 
@@ -238,6 +238,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	// [MustUseReturnValue]
 	public async Task<bool> ScanAsync(CancellationToken ct = default)
 	{
+
 		if (HasUni) {
 			return true;
 		}
@@ -247,7 +248,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		}
 
 		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
-		Uni = await ImageScanner.ScanAsync(Url, ct: ct);
+		Uni = await ImageScanner.ScanImagesAsync(Url, ct: ct);
 		return HasUni;
 	}
 

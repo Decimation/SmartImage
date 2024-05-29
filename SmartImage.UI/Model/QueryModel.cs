@@ -23,6 +23,7 @@ using Kantan.Text;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Model;
+using SmartImage.UI.Controls;
 using Application = System.Windows.Application;
 
 namespace SmartImage.UI.Model;

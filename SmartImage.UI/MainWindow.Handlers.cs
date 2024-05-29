@@ -27,12 +27,13 @@ using Kantan.Text;
 using Kantan.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
-using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+using SmartImage.UI.Controls;
 using SmartImage.UI.Model;
 using static System.Net.Mime.MediaTypeNames;
 using Application = System.Windows.Application;
@@ -79,7 +80,7 @@ public partial class MainWindow
 	{
 		var files = e.GetFilesFromDrop();
 
-		if (files.All(x => !UniImage.IsValidSourceType(x))) {
+		if (files.All(x => !BinaryImageFile.IsValidSourceType(x))) {
 			e.Effects = DragDropEffects.None;
 		}
 
@@ -108,7 +109,7 @@ public partial class MainWindow
 		/*if (!m_isq) {
 			OnCurrentQueueItemChanged(sender, null);
 		}*/
-		if (UniImage.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
+		if (BinaryImageFile.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
 			var q = new QueryModel(Input);
 			Queue.Add(q);
 			CurrentQuery = q;

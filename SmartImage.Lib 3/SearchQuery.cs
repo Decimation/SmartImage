@@ -22,6 +22,7 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using SixLabors.ImageSharp.Formats;
+using SmartImage.Lib.Images;
 
 [assembly: InternalsVisibleTo("SmartImage")]
 [assembly: InternalsVisibleTo("SmartImage.UI")]
@@ -38,9 +39,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Url.IsValid(Upload);
 
-	public UniImage Image { get; }
+	public BinaryImageFile Image { get; }
 
-	internal SearchQuery(UniImage img, Url upload)
+	internal SearchQuery(BinaryImageFile img, Url upload)
 	{
 		Image  = img;
 		Upload = upload;
@@ -48,17 +49,17 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		// Size = Uni == null ? default : Uni.Stream.Length;
 	}
 
-	internal SearchQuery(UniImage img) : this(img, null) { }
+	internal SearchQuery(BinaryImageFile img) : this(img, null) { }
 
 	static SearchQuery() { }
 
-	public static readonly SearchQuery Null = new(UniImage.Null);
+	public static readonly SearchQuery Null = new(BinaryImageFile.Null);
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var task = await UniImage.TryCreateAsync(o, t);
+		var task = await BinaryImageFile.TryCreateAsync(o, t);
 
-		if (task != UniImage.Null) {
+		if (task != BinaryImageFile.Null) {
 			return new SearchQuery(task);
 
 		}

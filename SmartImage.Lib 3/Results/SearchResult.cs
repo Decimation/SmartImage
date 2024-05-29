@@ -71,7 +71,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	/// <summary>
 	/// Results; first element should be <see cref="GetRawResultItem"/>
 	/// </summary>
-	public List<SearchResultItem> Results { get;  }
+	public List<SearchResultItem> Results { get; }
 
 	[CBN]
 	public string ErrorMessage { get; internal set; }
@@ -97,7 +97,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	internal SearchResult(BaseSearchEngine bse)
 	{
 		Engine  = bse;
-		Results=[];
+		Results = [];
 
 		// Results = [GetRawResultItem()];
 	}

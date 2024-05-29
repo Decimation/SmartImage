@@ -68,6 +68,7 @@ using System.Buffers;
 using System.Reflection;
 using DynamicData;
 using SmartImage.UI.Controls;
+using SmartImage.Lib.Images;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -351,7 +352,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Application.Current.Dispatcher.InvokeAsync(async () =>
 		{
 
-			var ok = UniImage.IsValidSourceType(CurrentQuery?.Value);
+			var ok = BinaryImageFile.IsValidSourceType(CurrentQuery?.Value);
 
 			// var ok = true;
 			// var ok = true;
@@ -556,7 +557,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void AddToQueue(string s)
 	{
-		if (UniImage.IsValidSourceType(s) && Queue.All(x => x.Value != s)) {
+		if (BinaryImageFile.IsValidSourceType(s) && Queue.All(x => x.Value != s)) {
 			Queue.Add(new QueryModel(s));
 			Debug.WriteLine($"Added {s}");
 
@@ -653,7 +654,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			string? txt = (string) Clipboard.GetData(DataFormats.UnicodeText);
 			txt = txt.CleanString();
 
-			if (UniImage.IsValidSourceType(txt)) {
+			if (BinaryImageFile.IsValidSourceType(txt)) {
 
 				if ( /*!IsInputReady() && */ /*!Queue.Any(x => x.Value == txt) &&*/ !m_clipboardHistory.Contains(txt)
 				    /*&& SearchQuery.IsValidSourceType(txt)*/) {
@@ -784,7 +785,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		var allResults = result.Results;
 
 		if (addRaw) {
-			var sriRaw = result.AsRawResultItem();
+			var sriRaw = result.GetRawResultItem();
 			var riRaw  = new ResultItem(sriRaw, sriRaw.Root.Engine.Name);
 			rg.Add(riRaw);
 

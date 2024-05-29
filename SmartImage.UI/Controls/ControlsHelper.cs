@@ -1,24 +1,15 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Kantan.Utilities;
-using Novus.FileTypes;
-using Novus.FileTypes.Uni;
-using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Images;
 
-namespace SmartImage.UI;
+namespace SmartImage.UI.Controls;
 
 public static class ControlsHelper
 {
@@ -124,7 +115,7 @@ public static class ControlsHelper
 		return Array.Empty<string>();
 	}
 
-	public static string FormatDescription(string name, UniImage uni, int? w, int? h)
+	public static string FormatDescription(string name, BinaryImageFile uni, int? w, int? h)
 	{
 		string bytes = FormatSize(uni);
 
@@ -135,7 +126,7 @@ public static class ControlsHelper
 		return $"{name} ⇉ [{uni.Info.DefaultMimeType}] [{bytes}] • {i}";
 	}
 
-	public static string FormatSize(UniImage uni)
+	public static string FormatSize(BinaryImageFile uni)
 	{
 		string bytes;
 

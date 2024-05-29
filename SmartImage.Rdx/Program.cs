@@ -30,6 +30,7 @@ namespace SmartImage.Rdx;
  * $cx2=[System.IO.File]::ReadAllBytes($(Resolve-Path "..\..\Pictures\Art\fucking_epic.jpg"))
  * cd /mnt/c/Users/Deci/RiderProjects/SmartImage/
  * ./SmartImage.Rdx/bin/Debug/net8.0/SmartImage
+ * dotnet run -c Test --project SmartImage.Rdx/ "C:\Users\Deci\Pictures\Epic anime\Kallen_FINAL_1-3.png" --search-engines All
  */
 
 public static class Program
