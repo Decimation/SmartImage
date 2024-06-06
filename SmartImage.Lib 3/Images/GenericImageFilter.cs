@@ -7,48 +7,44 @@ namespace SmartImage.Lib.Images;
 
 public class GenericImageFilter : IImageFilter
 {
-    // TODO
 
-    public string[] Blacklist
-        =>
-        [
-            "thumbnail", "avatar", "error", "logo"
-        ];
+	// TODO
 
-    public bool Predicate(BinaryImageFile us)
-    {
-        try
-        {
-            if (us.Stream.Length <= 25_000 || us.Info.DefaultMimeType == null)
-            {
-                return false;
-            }
+	public string[] Blacklist
+		=>
+		[
+			"thumbnail", "avatar", "error", "logo"
+		];
 
-            return true;
-        }
-        catch (Exception e)
-        {
-            Debug.WriteLine($"{e.Message}", nameof(Predicate));
-            return true;
-        }
-    }
+	public bool Predicate(BinaryImageFile us)
+	{
+		try {
+			if (us.Stream.Length <= 25_000 || us.Info.DefaultMimeType == null) {
+				return false;
+			}
 
-    public bool Refine(string b)
-    {
-        if (!Url.IsValid(b))
-        {
-            return false;
-        }
+			return true;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}", nameof(Predicate));
+			return true;
+		}
+	}
 
-        var u = Url.Parse(b);
-        var ps = u.PathSegments;
+	public bool Refine(string b)
+	{
+		if (!Url.IsValid(b)) {
+			return false;
+		}
 
-        if (ps.Any())
-        {
-            return !Blacklist.Any(i => ps.Any(p => p.Contains(i, StringComparison.InvariantCultureIgnoreCase)));
-        }
+		var u  = Url.Parse(b);
+		var ps = u.PathSegments;
 
-        return true;
-    }
+		if (ps.Any()) {
+			return !Blacklist.Any(i => ps.Any(p => p.Contains(i, StringComparison.InvariantCultureIgnoreCase)));
+		}
+
+		return true;
+	}
 
 }

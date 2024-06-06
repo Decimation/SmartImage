@@ -2,6 +2,7 @@
 // 2023-09-13 @ 5:27 PM
 
 using System;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 namespace SmartImage.UI.Model;
@@ -18,7 +19,7 @@ public enum ImageSourceProperties
 public interface IBitmapImageSource
 {
 
-	public Lazy<BitmapImage?> Image { get; set; }
+	public Lazy<BitmapSource?> Image { get; set; }
 
 	ImageSourceProperties Properties { get; set; }
 
@@ -32,6 +33,6 @@ public interface IBitmapImageSource
 
 	int? Height { get; }
 
-	BitmapImage? LoadImage();
+	BitmapSource? LoadImage();
 
 }

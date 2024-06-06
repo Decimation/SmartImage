@@ -36,7 +36,10 @@ using Kantan.Text;
 using SmartImage.Rdx.Shell;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Kantan.Monad;
+
+[assembly: InternalsVisibleTo("SmartImage.Lib Unit Test")]
 
 namespace SmartImage.Rdx;
 
@@ -188,86 +191,6 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		await search;
 	}
 
-	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
-	{
-		m_scs = settings;
-
-		var task = AConsole.Progress()
-			.AutoRefresh(true)
-			.StartAsync(SetupSearchAsync);
-
-		try {
-			var ok = await task;
-
-			if (ok) {
-				await InitConfigAsync(ok);
-			}
-			else {
-				throw new SmartImageException("Could not upload query");
-			}
-		}
-		catch (Exception e) {
-			AConsole.WriteException(e);
-			return EC_ERROR;
-		}
-
-		var gr = CreateInfoGrid();
-		AConsole.Write(gr);
-
-		Console.CancelKeyPress += OnCancelKeyPress;
-
-		/*
-		 *
-		 * todo
-		 */
-
-		Task run;
-
-		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
-			run = AConsole.Live(m_table)
-				.StartAsync(RunSearchWithLiveAsync);
-
-		}
-		else {
-			run = AConsole.Progress()
-				.StartAsync(RunSearchWithProgressAsync);
-		}
-
-		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
-			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
-			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-		}
-
-		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
-			switch (m_scs.OutputFileFormat) {
-
-				case OutputFileFormat.None:
-					break;
-
-				case OutputFileFormat.Delimited:
-					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
-					                       TaskContinuationOptions.OnlyOnRanToCompletion,
-					                       TaskScheduler.Default);
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-		}
-
-		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
-			run = run.ContinueWith((c) =>
-			{
-				AConsole.Confirm("Exit");
-			});
-		}
-
-		await run;
-
-		return EC_OK;
-	}
-
 	private async Task WriteOutputFileAsync([CBN] object o)
 	{
 		Debug.WriteLine($"{nameof(WriteOutputFileAsync)}");
@@ -371,6 +294,86 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		args.Cancel = false;
 
 		Environment.Exit(EC_ERROR);
+	}
+
+	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
+	{
+		m_scs = settings;
+
+		var task = AConsole.Progress()
+			.AutoRefresh(true)
+			.StartAsync(SetupSearchAsync);
+
+		try {
+			var ok = await task;
+
+			if (ok) {
+				await InitConfigAsync(ok);
+			}
+			else {
+				throw new SmartImageException("Could not upload query");
+			}
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+			return EC_ERROR;
+		}
+
+		var gr = CreateInfoGrid();
+		AConsole.Write(gr);
+
+		Console.CancelKeyPress += OnCancelKeyPress;
+
+		/*
+		 *
+		 * todo
+		 */
+
+		Task run;
+
+		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
+			run = AConsole.Live(m_table)
+				.StartAsync(RunSearchWithLiveAsync);
+
+		}
+		else {
+			run = AConsole.Progress()
+				.StartAsync(RunSearchWithProgressAsync);
+		}
+
+		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
+			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
+			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+		}
+
+		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
+			switch (m_scs.OutputFileFormat) {
+
+				case OutputFileFormat.None:
+					break;
+
+				case OutputFileFormat.Delimited:
+					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
+					                       TaskContinuationOptions.OnlyOnRanToCompletion,
+					                       TaskScheduler.Default);
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+		}
+
+		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
+			run = run.ContinueWith((c) =>
+			{
+				AConsole.Confirm("Exit");
+			});
+		}
+
+		await run;
+
+		return EC_OK;
 	}
 
 	#endregion

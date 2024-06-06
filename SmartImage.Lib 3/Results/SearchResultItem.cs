@@ -191,7 +191,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 			_             => 0
 		};
 
-		if (Uni is { }) {
+		if (HasUni) {
 			Score++;
 		}
 
@@ -215,6 +215,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	}
 	*/
+
 	public SearchResultItem[] AddChildren(string[] rg)
 	{
 		var rg2 = new SearchResultItem[rg.Length];

@@ -7,10 +7,10 @@ namespace SmartImage.Lib.Images;
 public interface IImageFilter
 {
 
-    public string[] Blacklist { get; }
+	public string[] Blacklist { get; }
 
-    public bool Refine(string b);
+	public bool Refine(string b);
 
-    public bool Predicate(BinaryImageFile us);
+	public bool Predicate(BinaryImageFile us);
 
 }

@@ -386,18 +386,6 @@ public partial class MainWindow
 
 	#region
 
-	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
-	{
-		CurrentResult?.Open();
-		e.Handled = true;
-	}
-
-	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-	{
-		e.Handled = true;
-
-	}
-
 	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		if (e.AddedItems.Count > 0) {
@@ -458,6 +446,18 @@ public partial class MainWindow
 
 		e.Handled = true;
 		return;
+
+	}
+
+	private void Lv_Results_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+		CurrentResult?.Open();
+		e.Handled = true;
+	}
+
+	private void Lv_Results_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+	{
+		e.Handled = true;
 
 	}
 

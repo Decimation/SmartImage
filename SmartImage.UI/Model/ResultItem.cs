@@ -94,7 +94,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 	public int? Height { get; internal set; }
 
-	public Lazy<BitmapImage?> Image { get; /*protected*/ set; }
+	public Lazy<BitmapSource?> Image { get; /*protected*/ set; }
 
 	public string StatusMessage { get; internal set; }
 
@@ -176,7 +176,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
 		}
 
-		Image = new Lazy<BitmapImage>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
+		Image = new Lazy<BitmapSource?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public bool Open()
@@ -249,16 +249,16 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 		UpdateProperties();
 
-		if (Image is { IsValueCreated:true}) {
-			Width  = Image.Value.PixelWidth;
-			Height = Image.Value.PixelHeight;
+		if (Image is { IsValueCreated:true} && Image.Value is BitmapImage bmp) {
+			Width  = bmp.PixelWidth;
+			Height = bmp.PixelHeight;
 			OnPropertyChanged(nameof(Size));
 		}
 	}
 
 	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
-		PreviewProgress = ((float) args.Progress * 100.0f);
+		PreviewProgress = ((float) args.Progress);
 		Label           = $"Preview cache...{PreviewProgress}";
 	}
 
@@ -269,7 +269,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 	}
 
-	public virtual BitmapImage? LoadImage()
+	public virtual BitmapSource? LoadImage()
 	{
 		if (!CanLoadImage) {
 			return null;

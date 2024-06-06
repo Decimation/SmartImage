@@ -12,6 +12,7 @@ using Novus.Win32;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Model;
 
@@ -78,6 +79,12 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 
 	public bool IsStream => Type == BinaryImageFileSource.Stream;
 
+	[MN]
+	public Image Image { get; private set; }
+
+	[MNNW(true, nameof(Image))]
+	public bool HasImage => Image != null;
+
 	public static readonly BinaryImageFile Null = new();
 
 	internal BinaryImageFile(object value, Stream stream, BinaryImageFileSource type, IImageFormat format)
@@ -92,48 +99,54 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 		: this(value, stream, type, null) { }
 
 	private BinaryImageFile() : this(null, Stream.Null, BinaryImageFileSource.Unknown) { }
-
+	
 	public static async Task<BinaryImageFile> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		Stream                str;
-		IImageFormat          fmt;
-		BinaryImageFileSource qt;
-		string                s = null;
 
-		if (IsFileType(o, out var fi)) {
-			// var s = ((FileInfo) fi).FullName;
-			s   = (string) o;
-			str = File.OpenRead(s);
-			qt  = BinaryImageFileSource.File;
+		try {
+			Stream                str;
+			IImageFormat          fmt;
+			BinaryImageFileSource qt;
+			string                s = null;
+
+			if (IsFileType(o, out var fi)) {
+				// var s = ((FileInfo) fi).FullName;
+				s   = (string) o;
+				str = File.OpenRead(s);
+				qt  = BinaryImageFileSource.File;
+			}
+			else if (IsUriType(o, out var url2)) {
+				var res = await HandleUriAsync(url2, t);
+				str = await res.GetStreamAsync();
+				qt  = BinaryImageFileSource.Uri;
+			}
+			else if (o is Stream) {
+				str = (Stream) o;
+				qt  = BinaryImageFileSource.Stream;
+			}
+			else {
+				return Null;
+			}
+
+			str.TrySeek();
+
+			fmt = await ISImage.DetectFormatAsync(str, t);
+
+			str.TrySeek();
+
+			var query = new BinaryImageFile(o, str, qt, fmt)
+			{
+				FilePath = s
+			};
+			return query;
 		}
-		else if (IsUriType(o, out var url2)) {
-			var res = await HandleUriAsync(url2, t);
-			str = await res.GetStreamAsync();
-			qt  = BinaryImageFileSource.Uri;
-		}
-		else if (o is Stream) {
-			str = (Stream) o;
-			qt  = BinaryImageFileSource.Stream;
-		}
-		else {
+		catch (Exception e) {
+			// str?.Dispose();
 			return Null;
 		}
-
-		str.TrySeek();
-
-		fmt = await ISImage.DetectFormatAsync(str, t);
-
-		str.TrySeek();
-
-		var query = new BinaryImageFile(o, str, qt, fmt)
-		{
-			FilePath = s
-		};
-
-		return query;
 	}
 
-	public static async Task<IFlurlResponse> HandleUriAsync(Url value, CancellationToken ct)
+	public static async ValueTask<IFlurlResponse> HandleUriAsync(Url value, CancellationToken ct)
 	{
 		// value = value.CleanString();
 
@@ -208,6 +221,16 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 	}
 
 	#endregion
+
+	public async Task<bool> LoadImage(CancellationToken ct = default)
+	{
+		if (!HasImage) {
+			Image = await ISImage.LoadAsync(Stream, ct);
+
+		}
+
+		return HasImage;
+	}
 
 	public bool TryGetFile(string fn = null)
 	{
@@ -293,6 +316,7 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 	public void Dispose()
 	{
 		Stream?.Dispose();
+		Image?.Dispose();
 
 		// ImageInfo?.Dispose();
 		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");

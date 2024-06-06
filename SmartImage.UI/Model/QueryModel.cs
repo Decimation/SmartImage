@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Forms;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Flurl;
 using Kantan.Text;
@@ -89,7 +90,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 
 	}
 
-	public Lazy<BitmapImage?> Image { get; set; }
+	public Lazy<BitmapSource?> Image { get; set; }
 
 	private ObservableCollection<ResultItem> m_results;
 
@@ -167,7 +168,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		Status2 = null;
 
 		// Dim          = null;
-		Image = new Lazy<BitmapImage?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
+		Image = new Lazy<BitmapSource?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	#region
@@ -335,7 +336,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		// 	ControlsHelper.FormatDescription("Query", Query.Uni, Image?.PixelWidth, Image?.PixelHeight);
 	}*/
 
-	public BitmapImage? LoadImage()
+	public BitmapSource? LoadImage()
 	{
 		Trace.Assert(HasQuery);
 

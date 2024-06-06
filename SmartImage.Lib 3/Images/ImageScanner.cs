@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using AngleSharp.Html.Parser;
+using CoenM.ImageHash;
+using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
@@ -29,7 +31,7 @@ public static class ImageScanner
 	/// points to binary image data, it is returned.
 	/// </summary>
 	public static async Task<BinaryImageFile[]> ScanImagesAsync(Url u, IImageFilter filter = null,
-	                                                       CancellationToken ct = default)
+	                                                            CancellationToken ct = default)
 	{
 		IFlurlResponse res;
 		Stream         stream;
@@ -47,10 +49,13 @@ public static class ImageScanner
 				      })
 				      .OnError(f =>
 				      {
-					      // f.ExceptionHandled = true;
+					      f.ExceptionHandled = true;
 					      return;
 				      }).GetAsync(cancellationToken: ct);
 
+			if (res == null) {
+				return [];
+			}
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}");
@@ -61,7 +66,7 @@ public static class ImageScanner
 		stream = await res.GetStreamAsync();
 		var uf = await BinaryImageFile.TryCreateAsync(stream, t: ct);
 
-		if (uf != null) {
+		if (uf != BinaryImageFile.Null) {
 			/*if (!FileType.Image.Contains(uf.FileType)) {
 				uf?.Dispose();
 				goto ret;
@@ -100,7 +105,7 @@ public static class ImageScanner
 		{
 			var ux = await BinaryImageFile.TryCreateAsync(s, t: token);
 
-			if (ux != null) {
+			if (ux != BinaryImageFile.Null) {
 				/*if (!FileType.Image.Contains(ux.FileType)) {
 					ux?.Dispose();
 					return;

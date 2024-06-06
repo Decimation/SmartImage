@@ -264,13 +264,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	// private readonly ConcurrentDictionary<string, SearchQuery> m_queries;
 
-	private BitmapImage? Image
+	private BitmapSource? Image
 	{
 		get => CurrentQuery?.Image.Value;
 		set
 		{
 			if (CurrentQuery != null) {
-				CurrentQuery.Image = new Lazy<BitmapImage>(value);
+				CurrentQuery.Image = new Lazy<BitmapSource>(value);
 			}
 		}
 	}
@@ -778,18 +778,18 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 	}
 
-	private static IEnumerable<ResultItem> Convert(SearchResult result, bool addRaw = true)
+	private static IEnumerable<ResultItem> Convert(SearchResult result)
 	{
 		int i          = 0;
 		var rg         = new List<ResultItem>();
 		var allResults = result.Results;
 
-		if (addRaw) {
+		/*if (addRaw) {
 			var sriRaw = result.GetRawResultItem();
 			var riRaw  = new ResultItem(sriRaw, sriRaw.Root.Engine.Name);
 			rg.Add(riRaw);
 
-		}
+		}*/
 
 		foreach (SearchResultItem sri in allResults) {
 			// todo

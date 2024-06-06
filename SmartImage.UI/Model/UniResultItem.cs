@@ -92,7 +92,7 @@ public class UniResultItem : ResultItem
 			// StatusImage = Image;
 		}
 		else {
-			Image = new Lazy<BitmapImage?>(default(BitmapImage?));
+			Image = new Lazy<BitmapSource?>(default(BitmapSource?));
 		}
 
 		StatusImage = AppComponents.picture;
@@ -106,8 +106,8 @@ public class UniResultItem : ResultItem
 
 	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
-		PreviewProgress = (args.Progress * 100.0f);
-		Label           = "Download progress...";
+		PreviewProgress = (args.Progress);
+		Label           = $"Download progress...{PreviewProgress}";
 	}
 
 	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)

@@ -15,14 +15,14 @@ namespace SmartImage.Benchmark
 			var cfg = DefaultConfig.Instance
 				.AddExporter(new HtmlExporter())
 				.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()))
-				.AddJob(Job.InProcess);
+				.AddJob(Job.InProcess.WithRuntime(CoreRuntime.Core80));
 
 			/*var cfg = DefaultConfig.Instance
 				// .AddExporter(new HtmlExporter())
 				.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()) {})
 				.AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));*/
 
-			BenchmarkRunner.Run<Benchmark3>(cfg);
+			BenchmarkRunner.Run<Benchmark4>(cfg);
 		}
 
 	}
