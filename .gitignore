@@ -447,3 +447,4 @@ fabric.properties
 /SmartImage.Rdx/Properties/launchSettings.json
 /output.csv
 output.txt
+/SmartImage.Lib.UnitTest
