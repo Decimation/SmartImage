@@ -10,7 +10,7 @@ using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using SmartImage.Lib.Images;
 
-[assembly: InternalsVisibleTo("SmartImage.Lib Unit Test")]
+[assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 namespace SmartImage.Lib.Results;
 
 public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable

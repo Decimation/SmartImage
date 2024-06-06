@@ -39,7 +39,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using Kantan.Monad;
 
-[assembly: InternalsVisibleTo("SmartImage.Lib Unit Test")]
+[assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 
 namespace SmartImage.Rdx;
 

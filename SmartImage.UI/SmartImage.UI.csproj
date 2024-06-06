@@ -75,7 +75,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SmartImage.Lib 3\SmartImage.Lib.csproj" />
+    <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
   </ItemGroup>
 
   <ItemGroup>

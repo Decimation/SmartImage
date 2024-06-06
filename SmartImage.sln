@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage", "SmartImage 3\SmartImage.csproj", "{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib", "SmartImage.Lib\SmartImage.Lib.csproj", "{2A615CCF-1493-4AA4-A514-83537D809740}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib", "SmartImage.Lib 3\SmartImage.Lib.csproj", "{2A615CCF-1493-4AA4-A514-83537D809740}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib Unit Test", "SmartImage.Lib 3 Unit Test\SmartImage.Lib Unit Test.csproj", "{DF64BB87-01E6-4C15-B2DA-A004FD1387D0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib.UnitTest", "SmartImage.Lib.UnitTest\SmartImage.Lib.UnitTest.csproj", "{DF64BB87-01E6-4C15-B2DA-A004FD1387D0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "Test\Test.csproj", "{C3235D7A-ACEC-4910-8EFE-6ACB670352BC}"
 EndProject
@@ -33,30 +31,6 @@ Global
 		Test|x86 = Test|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|arm64.ActiveCfg = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|arm64.Build.0 = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x64.Build.0 = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Debug|x86.Build.0 = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|Any CPU.Build.0 = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|arm64.ActiveCfg = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|arm64.Build.0 = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x64.ActiveCfg = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x64.Build.0 = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x86.ActiveCfg = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Release|x86.Build.0 = Release|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|Any CPU.ActiveCfg = Test|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|Any CPU.Build.0 = Test|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|arm64.ActiveCfg = Test|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|arm64.Build.0 = Test|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x64.ActiveCfg = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x64.Build.0 = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x86.ActiveCfg = Debug|Any CPU
-		{774F6AB7-BAFC-4F8A-BF14-BEA84475C4C5}.Test|x86.Build.0 = Debug|Any CPU
 		{2A615CCF-1493-4AA4-A514-83537D809740}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2A615CCF-1493-4AA4-A514-83537D809740}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A615CCF-1493-4AA4-A514-83537D809740}.Debug|arm64.ActiveCfg = Debug|Any CPU
