@@ -730,7 +730,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		try {
 			Client.OpenChannel();
 
-			var r = Client.RunSearchAsync(Query, reload: false, token: m_cts.Token,
+			var r = Client.RunSearchAsync(Query, token: m_cts.Token,
 			                              scheduler: TaskScheduler.FromCurrentSynchronizationContext());
 
 			while (await Client.ResultChannel.Reader.WaitToReadAsync(m_cts.Token)) {

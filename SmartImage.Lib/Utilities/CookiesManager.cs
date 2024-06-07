@@ -7,10 +7,13 @@ using Kantan.Net.Web;
 
 namespace SmartImage.Lib.Utilities;
 
-public static class CookiesManager
+public class CookiesManager : IDisposable
 {
+
+	// TODO
+
 	// [DebuggerHidden]
-	public static async Task<List<IBrowserCookie>> ReadCookiesAsync()
+	private static async Task<List<IBrowserCookie>> ReadCookiesAsync()
 	{
 		using var ff = new FirefoxCookieReader();
 		await ff.OpenAsync();
@@ -20,18 +23,34 @@ public static class CookiesManager
 		return cookies;
 	}
 
-	public static List<IBrowserCookie> Cookies { get; internal set; }
+	public List<IBrowserCookie> Cookies { get; private set; }
 
-	public static async Task<bool> LoadCookiesAsync(bool force = false)
+	[MNNW(true, nameof(Cookies))]
+	public bool Loaded => Cookies != null;
+
+	private CookiesManager()
 	{
-		var b = Cookies == null || force;
+		Cookies = null;
+	}
+
+	public async Task<bool> LoadCookiesAsync(bool force = false)
+	{
+		var b = !Loaded || force;
 
 		if (b) {
 			Cookies = await ReadCookiesAsync();
-			
+
 		}
 
-		return Cookies != null;
+		return Loaded;
+	}
+
+	public static readonly CookiesManager Instance = new();
+
+	public void Dispose()
+	{
+		Cookies.Clear();
+		Cookies = null;
 	}
 
 }

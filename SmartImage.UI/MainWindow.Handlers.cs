@@ -555,7 +555,7 @@ public partial class MainWindow
 
 		Lb_Engines.HandleEnum(n);
 		Config.SearchEngines = n;
-		await Client.ApplyConfigAsync();
+		// await Client.LoadEnginesAsync();
 
 		e.Handled                   =  true;
 		Lb_Engines.SelectionChanged += Lb_Engines_SelectionChanged;
@@ -569,7 +569,7 @@ public partial class MainWindow
 
 		Lb_Engines2.HandleEnum(n);
 		Config.PriorityEngines = n;
-		await Client.ApplyConfigAsync();
+		// await Client.LoadEnginesAsync();
 
 		e.Handled                    =  true;
 		Lb_Engines2.SelectionChanged += Lb_Engines2_SelectionChanged;

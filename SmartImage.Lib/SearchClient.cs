@@ -13,6 +13,7 @@ using Flurl.Http.Configuration;
 using Flurl.Http.Testing;
 using Kantan.Net;
 using Kantan.Net.Utilities;
+using Kantan.Net.Web;
 using Kantan.Text;
 using Microsoft;
 using Microsoft.Extensions.Http;
@@ -52,7 +53,8 @@ public sealed class SearchClient : IDisposable
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
-		LoadEngines();
+
+		// GetSelectedEngines();
 	}
 
 	static SearchClient()
@@ -110,10 +112,9 @@ public sealed class SearchClient : IDisposable
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
 	/// <param name="query">Search query</param>
-	/// <param name="reload"></param>
 	/// <param name="scheduler"></param>
 	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query, bool reload = true,
+	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query,
 	                                                 TaskScheduler scheduler = default,
 	                                                 CancellationToken token = default)
 	{
@@ -130,16 +131,17 @@ public sealed class SearchClient : IDisposable
 
 		IsRunning = true;
 
-		if (reload) {
-			await ApplyConfigAsync();
+		if (!ConfigApplied) {
+			await LoadEnginesAsync(); // todo
+
 		}
 		else {
-			LoadEngines();
+			Debug.WriteLine("Not reloading engines");
 		}
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
-		List<Task<SearchResult>> tasks = GetSearchTasks(query, scheduler, token);
+		List<Task<SearchResult>> tasks = GetSearchTasks(query, scheduler, token).ToList();
 
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
@@ -265,10 +267,10 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	public List<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler, CancellationToken token)
+	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler,
+	                                                      CancellationToken token)
 	{
-
-		List<Task<SearchResult>> tasks = Engines.Select(e =>
+		var tasks = Engines.Select(e =>
 		{
 			try {
 				Debug.WriteLine($"Starting {e} for {query}");
@@ -291,18 +293,26 @@ public sealed class SearchClient : IDisposable
 			}
 
 			return default;
-		}).ToList();
+		});
 
 		return tasks;
 	}
 
-	public async ValueTask ApplyConfigAsync()
+	public async ValueTask LoadEnginesAsync()
 	{
-		LoadEngines();
+		Trace.WriteLine("Loading engines");
+
+		Engines = GetSelectedEngines();
 
 		foreach (BaseSearchEngine bse in Engines) {
 			if (bse is IConfig cfg) {
 				await cfg.ApplyAsync(Config);
+			}
+
+			if (Config.ReadCookies && bse is ICookieEngine ce) {
+				await ce.ApplyCookiesAsync();
+
+				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 			}
 		}
 
@@ -310,13 +320,13 @@ public sealed class SearchClient : IDisposable
 		ConfigApplied = true;
 	}
 
-	public BaseSearchEngine[] LoadEngines()
+	private BaseSearchEngine[] GetSelectedEngines()
 	{
-		return Engines = BaseSearchEngine.All.Where(e =>
-			       {
-				       return Config.SearchEngines.HasFlag(e.EngineOption) && e.EngineOption != default;
-			       })
-			       .ToArray();
+		return BaseSearchEngine.All.Where(e =>
+			{
+				return e.EngineOption != default && Config.SearchEngines.HasFlag(e.EngineOption);
+			})
+			.ToArray();
 	}
 
 	[CBN]

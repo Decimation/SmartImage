@@ -188,6 +188,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// 
 	/// </summary>
+	// todo
 	public string CookiesFile
 	{
 		get { return Configuration.ReadSetting(nameof(CookiesFile), STR_DEFAULT); }

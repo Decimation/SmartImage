@@ -26,7 +26,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyChanged
+public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INotifyPropertyChanged
 {
 
 	private const string HOST_EH = ".e-hentai.org";
@@ -60,12 +60,12 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 	#region
 
-	private static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
-	public static readonly  Url EHentaiBase   = "https://e-hentai.org/";
-	private static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
+	public static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
+	public static readonly Url EHentaiBase   = "https://e-hentai.org/";
+	public static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
 
-	public static readonly  Url ExHentaiBase   = "https://exhentai.org/";
-	private static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
+	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
+	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
 
 	#endregion
 
@@ -95,37 +95,23 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 			return;
 		}*/
-
-		if (IsLoggedIn) {
-
-			// throw new ArgumentException($"{Name} : username/password is null");
-			return;
-
-		}
-
-		if (cfg.ReadCookies) {
-			var ok = await LoginAsync();
-			Debug.WriteLine($"{Name} logged in - {ok}", nameof(ApplyAsync));
-
-		}
-		else {
-			Debug.WriteLine("Not logging in");
-		}
+		//
+		return;
 	}
 
 	/*
 	 * Default result layout is [Compact]
 	 */
-	public async Task<bool> LoginAsync(bool useEx = true)
+
+	public async ValueTask<bool> ApplyCookies(IEnumerable<IBrowserCookie> cookies, bool useEx)
 	{
+		Trace.WriteLine($"Applying cookies to {Name}");
 
-		var b = await CookiesManager.LoadCookiesAsync();
-
-		if (!b) {
-			return false;
+		if (await CookiesManager.Instance.LoadCookiesAsync()) {
+			cookies ??= CookiesManager.Instance.Cookies;
 		}
 
-		var fcc = CookiesManager.Cookies.OfType<FirefoxCookie>().Where(x =>
+		var fcc = cookies.OfType<FirefoxCookie>().Where(x =>
 		{
 			if (!useEx) {
 				return x.Host.Contains(HOST_EH);
@@ -149,6 +135,22 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			.GetAsync();*/
 
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
+	}
+
+	public ValueTask<bool> ApplyCookiesAsync(IEnumerable<IBrowserCookie> cookies = null)
+		=> ApplyCookies(cookies, true);
+
+	private Task<IFlurlResponse> GetSessionAsync(bool useEx = false)
+	{
+		return (useEx ? ExHentaiBase : EHentaiBase)
+			.WithCookies(m_cookies)
+			.WithTimeout(Timeout)
+			.WithHeaders(new
+			{
+				User_Agent = HttpUtilities.UserAgent
+			})
+			.WithAutoRedirect(true)
+			.GetAsync();
 	}
 
 	public event PropertyChangedEventHandler PropertyChanged;
@@ -193,7 +195,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 			{ new StringContent("fs_similar") },
 			{ new StringContent("fs_covers") },
 			{ new StringContent("fs_exp") },
-			{ new StringContent("fs_sfile") }
+			{ new StringContent("fs_sfile") },
+			{ new StringContent("dm_l"), "inline_set" }
 		};
 
 		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
@@ -224,6 +227,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 		// Debug.WriteLine($"{sr.RawUrl}");
 		var content = await res.Content.ReadAsStringAsync(token);
 
+		// var content2 = await sr.RawUrl.GetStringAsync(cancellationToken: token);
+
 		if (content.Contains("Please wait a bit longer between each file search.")) {
 			Debug.WriteLine($"cooldown", Name);
 			sr.Status = SearchResultStatus.Cooldown;
@@ -232,19 +237,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, INotifyPropertyCha
 
 		var parser = new HtmlParser();
 		return await parser.ParseDocumentAsync(content, token);
-	}
-
-	private Task<IFlurlResponse> GetSessionAsync(bool useEx = false)
-	{
-		return (useEx ? ExHentaiBase : EHentaiBase)
-			.WithCookies(m_cookies)
-			.WithTimeout(Timeout)
-			.WithHeaders(new
-			{
-				User_Agent = HttpUtilities.UserAgent
-			})
-			.WithAutoRedirect(true)
-			.GetAsync();
 	}
 
 	protected override ValueTask<INode[]> GetNodes(IDocument d)

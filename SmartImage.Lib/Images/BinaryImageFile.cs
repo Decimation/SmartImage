@@ -99,7 +99,7 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 		: this(value, stream, type, null) { }
 
 	private BinaryImageFile() : this(null, Stream.Null, BinaryImageFileSource.Unknown) { }
-	
+
 	public static async Task<BinaryImageFile> TryCreateAsync(object o, CancellationToken t = default)
 	{
 
@@ -186,7 +186,7 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 			string s => s,
 			_        => null
 		};
-		return Url.IsValid(u);
+		return Url.IsValid(u) && u.Scheme != "file";
 	}
 
 	public static bool IsFileType(object o, out FileInfo f)

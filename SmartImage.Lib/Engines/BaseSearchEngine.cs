@@ -9,6 +9,7 @@ using SmartImage.Lib.Results;
 using AngleSharp.Dom;
 using Flurl.Http;
 using Kantan.Diagnostics;
+using Kantan.Net.Web;
 using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Utilities;
@@ -18,8 +19,6 @@ namespace SmartImage.Lib.Engines;
 
 public abstract class BaseSearchEngine : IDisposable
 {
-
-	public const int NA_SIZE = -1;
 
 	/// <summary>
 	/// The corresponding <see cref="SearchEngineOptions"/> of this engine
@@ -38,8 +37,6 @@ public abstract class BaseSearchEngine : IDisposable
 	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
 	public string? EndpointUrl { get; }
-
-	public TimeSpan Duration { get; protected set; }
 
 	protected long? MaxSize { get; set; }
 
