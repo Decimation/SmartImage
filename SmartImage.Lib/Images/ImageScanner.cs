@@ -30,7 +30,7 @@ public static class ImageScanner
 	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
 	/// points to binary image data, it is returned.
 	/// </summary>
-	public static async Task<BinaryImageFile[]> ScanImagesAsync(Url u, IImageFilter filter = null,
+	public static async Task<UniImage[]> ScanImagesAsync(Url u, IImageFilter filter = null,
 	                                                            CancellationToken ct = default)
 	{
 		IFlurlResponse res;
@@ -62,11 +62,11 @@ public static class ImageScanner
 			return [];
 		}
 
-		var ul = new ConcurrentBag<BinaryImageFile>();
+		var ul = new ConcurrentBag<UniImage>();
 		stream = await res.GetStreamAsync();
-		var uf = await BinaryImageFile.TryCreateAsync(stream, t: ct);
+		var uf = await UniImage.TryCreateAsync(stream, t: ct);
 
-		if (uf != BinaryImageFile.Null) {
+		if (uf != UniImage.Null) {
 			/*if (!FileType.Image.Contains(uf.FileType)) {
 				uf?.Dispose();
 				goto ret;
@@ -103,9 +103,9 @@ public static class ImageScanner
 
 		await Parallel.ForEachAsync(c, po, async (s, token) =>
 		{
-			var ux = await BinaryImageFile.TryCreateAsync(s, t: token);
+			var ux = await UniImage.TryCreateAsync(s, t: token);
 
-			if (ux != BinaryImageFile.Null) {
+			if (ux != UniImage.Null) {
 				/*if (!FileType.Image.Contains(ux.FileType)) {
 					ux?.Dispose();
 					return;
@@ -147,7 +147,7 @@ public static class ImageScanner
 	}
 
 	// todo
-	public static async Task<BinaryImageFile[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
+	public static async Task<UniImage[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
 	{
 		using var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri}")
 		{
@@ -158,11 +158,11 @@ public static class ImageScanner
 		await p.WaitForExitAsync(ct);
 		var s  = await p.StandardOutput.ReadToEndAsync(ct);
 		var s2 = s.Split(Environment.NewLine);
-		var rg = new ConcurrentBag<BinaryImageFile>();
+		var rg = new ConcurrentBag<UniImage>();
 
 		await Parallel.ForEachAsync(s2, ct, async (s1, token) =>
 		{
-			var uni = await BinaryImageFile.TryCreateAsync(s1, t: token);
+			var uni = await UniImage.TryCreateAsync(s1, t: token);
 
 			if (uni != null) {
 				rg.Add(uni);

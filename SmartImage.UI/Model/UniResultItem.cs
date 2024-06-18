@@ -33,8 +33,6 @@ public class UniResultItem : ResultItem
 
 	public override bool CanLoadImage => !HasImage && Uni != null;
 
-	public string Description { get; }
-
 	public override long Size
 	{
 		get
@@ -47,7 +45,7 @@ public class UniResultItem : ResultItem
 		}
 	}
 
-	public BinaryImageFile? Uni
+	public UniImage? Uni
 	{
 		get
 		{
@@ -92,13 +90,12 @@ public class UniResultItem : ResultItem
 			// StatusImage = Image;
 		}
 		else {
-			Image = new Lazy<BitmapSource?>(default(BitmapSource?));
+			Image = null;
 		}
 
 		StatusImage = AppComponents.picture;
 
 		// SizeFormat  = ControlsHelper.FormatSize(Uni);
-		Description = ControlsHelper.FormatDescription(Name, Uni, Width, Height);
 		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
 
@@ -107,31 +104,36 @@ public class UniResultItem : ResultItem
 	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
 		PreviewProgress = (args.Progress);
-		Label           = $"Download progress...{PreviewProgress}";
+		PreviewText           = $"Download progress...{PreviewProgress}";
 	}
 
 	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
 		PreviewProgress = 0;
-		Label           = $"Download failed: {args.ErrorException.Message}";
+		PreviewText           = $"Download failed: {args.ErrorException.Message}";
 	}
 
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
-		Label = $"Download complete";
+		PreviewText = $"Download complete";
 
 		IsThumbnail = false;
 
 		// Properties &= ResultItemProperties.Thumbnail;
 
-		if (Image is { IsValueCreated: true, Value.CanFreeze: true }) {
-			Image.Value.Freeze();
+		if (Image is { CanFreeze: true }) {
+			Image.Freeze();
 		}
 
 	}
 
-	public override BitmapImage? LoadImage()
+	public override bool LoadImage()
 	{
+		if (HasImage) {
+			return true;
+		} else if (!CanLoadImage) {
+			return false;
+		}
 
 		var image = new BitmapImage()
 			{ };
@@ -153,8 +155,9 @@ public class UniResultItem : ResultItem
 		image.DownloadProgress  += OnImageDownloadProgress;
 		image.DownloadCompleted += OnImageDownloadCompleted;
 
+		Image = image;
 		UpdateProperties();
-		return image;
+		return HasImage;
 	}
 
 	public override async Task<string> DownloadAsync(string? dir = null, bool exp = true)
@@ -186,8 +189,7 @@ public class UniResultItem : ResultItem
 
 		await fs.DisposeAsync();
 
-		// CanDownload = false;
-		Properties = Properties &= ~ImageSourceProperties.CanDownload;
+		CanDownload = false;
 		Download   = path2;
 
 		// u.Dispose();

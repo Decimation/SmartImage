@@ -7,12 +7,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="clr-namespace:SmartImage.UI"
-        xmlns:converters="clr-namespace:SmartImage.UI"
-        xmlns:controls1="clr-namespace:SmartImage.UI.Controls"
+        xmlns:controls="clr-namespace:SmartImage.UI.Controls"
         xmlns:model="clr-namespace:SmartImage.UI.Model"
         xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
-        xmlns:model1="clr-namespace:SmartImage.Lib.Model;assembly=SmartImage.Lib"
-        xmlns:converters1="clr-namespace:SmartImage.UI.Controls.Converters"
+        xmlns:lib_model="clr-namespace:SmartImage.Lib.Model;assembly=SmartImage.Lib"
+        xmlns:converters="clr-namespace:SmartImage.UI.Controls.Converters"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="675" Width="1400" MinWidth="1400" MinHeight="325" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
@@ -21,22 +20,21 @@
     <Window.Resources>
         <!-- <ui:SharedViewModel x:Key="SharedViewModel" /> -->
         <!-- <ui:SharedImageControl x:Key="SharedImage" /> -->
-        <converters1:UrlConverter x:Key="urlConverter" />
-        <converters1:UnitStringConverter x:Key="unitConverter" />
-        <converters1:BoolToStringConverter x:Key="CYesNo" FalseValue="No" TrueValue="Yes" />
-        <converters1:BoolToStringConverter x:Key="CYesNo2" FalseValue="P" TrueValue="C" />
-        <converters1:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
-            <converters1:BooleanToBrushConverter.TrueBrush>
+        <converters:UrlConverter x:Key="urlConverter" />
+        <converters:UnitStringConverter x:Key="unitConverter" />
+        <converters:BoolToStringConverter x:Key="CYesNo" FalseValue="No" TrueValue="Yes" />
+        <converters:BoolToStringConverter x:Key="CYesNo2" FalseValue="P" TrueValue="C" />
+        <converters:BooleanToBrushConverter x:Key="BooleanToBrushConverter">
+            <converters:BooleanToBrushConverter.TrueBrush>
                 <SolidColorBrush Color="Green" />
-            </converters1:BooleanToBrushConverter.TrueBrush>
-            <converters1:BooleanToBrushConverter.FalseBrush>
+            </converters:BooleanToBrushConverter.TrueBrush>
+            <converters:BooleanToBrushConverter.FalseBrush>
                 <SolidColorBrush Color="Red" />
-            </converters1:BooleanToBrushConverter.FalseBrush>
-        </converters1:BooleanToBrushConverter>
-        <converters1:EnumToStringConverter x:Key="DefaultEnumToStringConverter" />
-        <converters1:ResultItemPropertiesToBoolConverter x:Key="ResultItemPropertiesToBoolConverter" />
-        <converters1:EnumFlagsToStringConverter x:Key="DefaultEnumFlagsToStringConverter" />
-        <converters1:ImageDimensionConverter x:Key="ImageDimensionConverter" />
+            </converters:BooleanToBrushConverter.FalseBrush>
+        </converters:BooleanToBrushConverter>
+        <converters:EnumToStringConverter x:Key="DefaultEnumToStringConverter" />
+        <converters:EnumFlagsToStringConverter x:Key="DefaultEnumFlagsToStringConverter" />
+        <converters:ImageDimensionConverter x:Key="ImageDimensionConverter" />
 
         <Style x:Key="CustomContextMenuStyle" TargetType="{x:Type ContextMenu}">
             <Setter Property="Background" Value="{DynamicResource Black3}" />
@@ -71,18 +69,16 @@
             <MenuItem Header="Scan" Click="ScanItem_Click" IsEnabled="{Binding CanScan}" />
 
             <MenuItem Header="Download" Click="DownloadItem_Click"
-                      IsEnabled="{Binding Properties, Converter={StaticResource ResultItemPropertiesToBoolConverter}, 
-                ConverterParameter={x:Static model:ImageSourceProperties.CanDownload}}" />
+                      IsEnabled="{Binding CanDownload}" />
 
             <MenuItem Header="Info" Click="InfoItem_Click" />
             <MenuItem Header="Retry" Click="RetryItem_Click" />
             <MenuItem Header="Enqueue" Click="EnqueueItem_Click"
-                      IsEnabled="{Binding Properties, Converter={StaticResource ResultItemPropertiesToBoolConverter}, 
-                ConverterParameter={x:Static model:ImageSourceProperties.CanDownload}}" />
+                      IsEnabled="{Binding CanDownload}" />
         </ContextMenu>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <converters1:InvertableBooleanToVisibilityConverter x:Key="BooleanVisConverter" />
+        <converters:InvertableBooleanToVisibilityConverter x:Key="BooleanVisConverter" />
 
         <Style x:Key="BoldGridViewCellStyle" TargetType="{x:Type TextBlock}">
             <Setter Property="FontWeight" Value="Bold" />
@@ -400,6 +396,10 @@
                                     <TextBlock.Style>
                                         <Style TargetType="TextBlock">
                                             <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Invalid}" Value="True">
+                                                    <Setter Property="Foreground" Value="PaleVioletRed" />
+                                                    <Setter Property="ToolTip" Value="Query invalid" />
+                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding IsPrimitive}" Value="True">
                                                     <Setter Property="Foreground" Value="LightGray" />
                                                     <Setter Property="ToolTip" Value="Query standby" />
@@ -413,10 +413,6 @@
                                                 <DataTrigger Binding="{Binding IsComplete}" Value="True">
                                                     <Setter Property="Foreground" Value="GreenYellow" />
                                                     <Setter Property="ToolTip" Value="Search complete" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Invalid}" Value="True">
-                                                    <Setter Property="Foreground" Value="PaleVioletRed" />
-                                                    <Setter Property="ToolTip" Value="Query invalid" />
                                                 </DataTrigger>
 
                                             </Style.Triggers>
@@ -680,15 +676,6 @@
                                 <GridViewColumn Header="Name"
                                                 Width="135" x:Name="Lvgvc_Name"
                                                 DisplayMemberBinding="{Binding Name, Mode=OneTime}">
-                                    <!--
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Name, Mode=OneTime}"
-                                                       Style="{StaticResource BoldGridViewCellStyle}" />
-
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                -->
                                 </GridViewColumn>
 
                                 <GridViewColumn Header="URL" Width="400"
@@ -727,25 +714,10 @@
                                                 DisplayMemberBinding="{Binding Height}" Width="50" />
 
                                 <GridViewColumn Header="Cache"
-                                                DisplayMemberBinding="{Binding Properties, Converter={StaticResource DefaultEnumFlagsToStringConverter}, 
-                                    Mode=Default, UpdateSourceTrigger=PropertyChanged}"
+                                                DisplayMemberBinding="{Binding IsThumbnail, Mode=OneTime, UpdateSourceTrigger=Default}"
                                                 Width="50">
 
-                                    <!--
-                                    <GridViewColumn.CellTemplate>
-                                        <DataTemplate>
-                                            <TextBlock Text="{Binding Properties}"
-                                                       ToolTip="{Binding Label}" />
-
-                                        </DataTemplate>
-                                    </GridViewColumn.CellTemplate>
-                                    -->
-
                                 </GridViewColumn>
-
-                                <!--<GridViewColumn Header="*"
-                                                DisplayMemberBinding="{Binding IsSister, Converter={StaticResource CYesNo2}}"
-                                                Width="20" />-->
 
                             </GridView>
                         </ListView.View>
@@ -756,13 +728,6 @@
                                VerticalAlignment="Top" Foreground="White" FontStyle="Italic"
                                Text="{Binding CurrentQuery.Status, UpdateSourceTrigger=PropertyChanged, ElementName=Wnd_Main}"
                                Grid.Column="1" Grid.Row="1" />
-
-                    <!--
-                    <TextBlock x:Name="Tb_Status2" HorizontalAlignment="Left" Margin="95,28,0,0"
-                               VerticalAlignment="Top" Foreground="White" Grid.Row="1" TextDecorations="Underline"
-                               Text="{Binding CurrentQuery.Status2, UpdateSourceTrigger=PropertyChanged,ElementName=Wnd_Main}"
-                               MaxWidth="400" />
-                               -->
 
                     <Image x:Name="Img_Type" Width="20px" Height="20px" Stretch="None" Margin="48,5,0,0"
                            HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="1" />
@@ -779,8 +744,8 @@
                               VerticalAlignment="Top" Width="148" Grid.ColumnSpan="2" />
 
                     <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0"
-                               Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"
-                               TextWrapping="Wrap"
+                               Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White" 
+                               TextWrapping="Wrap" Text="{Binding CurrentResult.PreviewText, Mode=OneWayToSource, IsAsync=True, UpdateSourceTrigger=PropertyChanged}"
                                Width="150" ToolTip="Click preview to stop/close&#x0a;Double click preview to open"
                                Height="34.5" />
 
@@ -899,7 +864,7 @@
 
                     <ComboBox x:Name="Cm_UploadEngine" HorizontalAlignment="Center" Margin="0,34,0,0"
                               VerticalAlignment="Top" Width="120"
-                              ItemsSource="{Binding Path=UploadEngineNames}"
+                              ItemsSource="{x:Static controls:ControlsHelper.UploadEngineNames}"
                               SelectionChanged="Cm_UploadEngine_SelectionChanged" />
 
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"

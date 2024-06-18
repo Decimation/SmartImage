@@ -1,4 +1,4 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: BinaryImageFile.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImage.cs
 // Date: 2024/05/02 @ 10:05:55
 
 using System.Diagnostics;
@@ -21,7 +21,7 @@ namespace SmartImage.Lib.Images;
 /// <summary>
 /// <seealso cref="Novus.FileTypes.Uni.UniSourceType"/>
 /// </summary>
-public enum BinaryImageFileSource
+public enum UniImageType
 {
 
 	Unknown = 0,
@@ -34,14 +34,14 @@ public enum BinaryImageFileSource
 /// <summary>
 /// <seealso cref="Novus.FileTypes.Uni.UniSource"/>
 /// </summary>
-public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquatable<BinaryImageFile>
+public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>
 {
 
 	public Stream Stream { get; internal init; }
 
 	public object Value { get; internal init; }
 
-	public BinaryImageFileSource Type { get; internal init; }
+	public UniImageType Type { get; internal init; }
 
 	public long Size
 	{
@@ -73,11 +73,11 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 	[MNNW(true, nameof(Info))]
 	public bool HasInfo => Info != null;
 
-	public bool IsUri => Type == BinaryImageFileSource.Uri;
+	public bool IsUri => Type == UniImageType.Uri;
 
-	public bool IsFile => Type == BinaryImageFileSource.File;
+	public bool IsFile => Type == UniImageType.File;
 
-	public bool IsStream => Type == BinaryImageFileSource.Stream;
+	public bool IsStream => Type == UniImageType.Stream;
 
 	[MN]
 	public Image Image { get; private set; }
@@ -85,9 +85,9 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
-	public static readonly BinaryImageFile Null = new();
+	public static readonly UniImage Null = new();
 
-	internal BinaryImageFile(object value, Stream stream, BinaryImageFileSource type, IImageFormat format)
+	internal UniImage(object value, Stream stream, UniImageType type, IImageFormat format)
 	{
 		Stream = stream;
 		Value  = value;
@@ -95,34 +95,34 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 		Info   = format;
 	}
 
-	internal BinaryImageFile(object value, Stream stream, BinaryImageFileSource type)
+	internal UniImage(object value, Stream stream, UniImageType type)
 		: this(value, stream, type, null) { }
 
-	private BinaryImageFile() : this(null, Stream.Null, BinaryImageFileSource.Unknown) { }
+	private UniImage() : this(null, Stream.Null, UniImageType.Unknown) { }
 
-	public static async Task<BinaryImageFile> TryCreateAsync(object o, CancellationToken t = default)
+	public static async Task<UniImage> TryCreateAsync(object o, CancellationToken t = default)
 	{
 
 		try {
 			Stream                str;
 			IImageFormat          fmt;
-			BinaryImageFileSource qt;
+			UniImageType qt;
 			string                s = null;
 
 			if (IsFileType(o, out var fi)) {
 				// var s = ((FileInfo) fi).FullName;
 				s   = (string) o;
 				str = File.OpenRead(s);
-				qt  = BinaryImageFileSource.File;
+				qt  = UniImageType.File;
 			}
 			else if (IsUriType(o, out var url2)) {
 				var res = await HandleUriAsync(url2, t);
 				str = await res.GetStreamAsync();
-				qt  = BinaryImageFileSource.Uri;
+				qt  = UniImageType.Uri;
 			}
 			else if (o is Stream) {
 				str = (Stream) o;
-				qt  = BinaryImageFileSource.Stream;
+				qt  = UniImageType.Stream;
 			}
 			else {
 				return Null;
@@ -134,7 +134,7 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 
 			str.TrySeek();
 
-			var query = new BinaryImageFile(o, str, qt, fmt)
+			var query = new UniImage(o, str, qt, fmt)
 			{
 				FilePath = s
 			};
@@ -149,6 +149,9 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 	public static async ValueTask<IFlurlResponse> HandleUriAsync(Url value, CancellationToken ct)
 	{
 		// value = value.CleanString();
+		if (value.Scheme == "javascript") {
+			throw new ArgumentException($"{value}");
+		}
 
 		var res = await value.AllowAnyHttpStatus()
 			          .WithHeaders(new
@@ -289,7 +292,7 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 		string t;
 		fn ??= Path.GetTempFileName();
 
-		if (Type != BinaryImageFileSource.File) {
+		if (Type != UniImageType.File) {
 			t = Path.Combine(Path.GetTempPath(), fn);
 
 			using FileStream fs = File.Create(t);
@@ -337,7 +340,7 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 
 	#region Equality members
 
-	public bool Equals(BinaryImageFile other)
+	public bool Equals(UniImage other)
 	{
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
@@ -347,7 +350,7 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 
 	public override bool Equals(object obj)
 	{
-		return ReferenceEquals(this, obj) || obj is BinaryImageFile other && Equals(other);
+		return ReferenceEquals(this, obj) || obj is UniImage other && Equals(other);
 	}
 
 	public override int GetHashCode()
@@ -358,12 +361,12 @@ public class BinaryImageFile : IItemSize, IDisposable, IAsyncDisposable, IEquata
 		// return Uni.GetHashCode();
 	}
 
-	public static bool operator ==(BinaryImageFile left, BinaryImageFile right)
+	public static bool operator ==(UniImage left, UniImage right)
 	{
 		return Equals(left, right);
 	}
 
-	public static bool operator !=(BinaryImageFile left, BinaryImageFile right)
+	public static bool operator !=(UniImage left, UniImage right)
 	{
 		return !Equals(left, right);
 	}

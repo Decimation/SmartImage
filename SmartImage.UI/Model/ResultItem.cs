@@ -37,27 +37,60 @@ using SmartImage.UI.Controls;
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
-
-public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, IItemSize, IDisposable
+public abstract class ResultModel : INotifyPropertyChanged
 {
+	private string m_previewText;
+	private string m_label;
 
-	#region
-
-	private ImageSourceProperties m_properties;
-
-	public ImageSourceProperties Properties
+	public string PreviewText
 	{
-		get => m_properties;
+		get => m_previewText;
 		set
 		{
-			if (value == m_properties) return;
+			if (value == m_previewText) return;
 
-			m_properties = value;
+			m_previewText = value;
 			OnPropertyChanged();
 		}
 	}
 
-	private string m_label;
+	public string Label
+	{
+		get => m_label;
+		set
+		{
+			if (value == m_label) return;
+
+			m_label = value;
+			OnPropertyChanged();
+		}
+	}
+
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		var eventArgs = new PropertyChangedEventArgs(propertyName);
+		PropertyChanged?.Invoke(this, eventArgs);
+		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
+	}
+
+	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
+}
+public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, IDisposable
+{
+
+	#region
+
+	public bool CanDownload { get; internal set; }
 
 	private BitmapImage m_statusImage;
 
@@ -94,25 +127,13 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 	public int? Height { get; internal set; }
 
-	public Lazy<BitmapSource?> Image { get; /*protected*/ set; }
-
 	public string StatusMessage { get; internal set; }
 
 	public bool IsLowQuality => !Url.IsValid(Url) || Result.Root.Status.IsError() || Result.IsRaw;
 
-	public string Label
-	{
-		get => m_label;
-		set
-		{
-			if (value == m_label) return;
+	public BitmapSource? Image { get; /*protected*/ set; }
 
-			m_label = value;
-			OnPropertyChanged();
-		}
-	}
-
-	public bool HasImage => Image is { IsValueCreated: true, Value: not null };
+	public bool HasImage => Image is not null;
 
 	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);
 
@@ -141,8 +162,6 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 			OnPropertyChanged();
 		}
 	}
-
-	private static readonly object _lock = new();
 
 	#endregion
 
@@ -176,7 +195,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 			StatusMessage += $" :: {result.Root.ErrorMessage}";
 		}
 
-		Image = new Lazy<BitmapSource?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
+		Image = null;
+		// Image = new Lazy<BitmapSource?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public bool Open()
@@ -201,22 +221,6 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 			.GetAsync(cancellationToken: token);
 	}
 
-	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-	{
-		var eventArgs = new PropertyChangedEventArgs(propertyName);
-		PropertyChanged?.Invoke(this, eventArgs);
-		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
-	}
-
-	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
-	}
-
 	public void UpdateProperties()
 	{
 		OnPropertyChanged(nameof(CanOpen));
@@ -228,14 +232,14 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
-		Label = $"Preview cache complete";
+		PreviewText = $"Preview cache complete";
 
-		if (Image is { IsValueCreated: true, Value.CanFreeze: true }) {
-			Image.Value.Freeze();
+		if (Image is { CanFreeze: true }) {
+			Image.Freeze();
 		}
 
 		if (HasImage) {
-			Properties |= ImageSourceProperties.CanDownload;
+			CanDownload = true;
 		}
 
 		// CanDownload = HasImage;
@@ -249,7 +253,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 		UpdateProperties();
 
-		if (Image is { IsValueCreated:true} && Image.Value is BitmapImage bmp) {
+		if (Image is BitmapImage bmp) {
 			Width  = bmp.PixelWidth;
 			Height = bmp.PixelHeight;
 			OnPropertyChanged(nameof(Size));
@@ -259,20 +263,23 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
 		PreviewProgress = ((float) args.Progress);
-		Label           = $"Preview cache...{PreviewProgress}";
+		PreviewText           = $"Preview cache...{PreviewProgress}";
+
 	}
 
 	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
 		PreviewProgress = 0;
-		Label           = $"Preview fetch failed: {args.ErrorException.Message}";
+		PreviewText           = $"Preview fetch failed: {args.ErrorException.Message}";
 
 	}
 
-	public virtual BitmapSource? LoadImage()
+	public virtual bool LoadImage()
 	{
-		if (!CanLoadImage) {
-			return null;
+		if (HasImage) {
+			return true;
+		} else if (!CanLoadImage) {
+			return false;
 		}
 
 		var img = new BitmapImage()
@@ -302,9 +309,9 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		img.DownloadFailed    += OnImageDownloadFailed;
 		img.DownloadProgress  += OnImageDownloadProgress;
 		img.DownloadCompleted += OnImageDownloadCompleted;
-
+		Image = img;
 		UpdateProperties();
-		return img;
+		return HasImage;
 	}
 
 	#region
@@ -331,7 +338,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		var path2 = Path.Combine(dir, path);
 
 		var encoder = new PngBitmapEncoder();
-		encoder.Frames.Add(BitmapFrame.Create(Image.Value));
+		encoder.Frames.Add(BitmapFrame.Create(Image));
 
 		await using (var fs = new FileStream(path2, FileMode.Create)) {
 			encoder.Save(fs);
@@ -343,9 +350,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 			FileSystem.ExploreFile(path2);
 		}
 
-		// CanDownload = false;
-		Properties &= ~ImageSourceProperties.CanDownload;
-		Download   =  path2;
+		CanDownload = false;
+		Download    = path2;
 
 		// u.Dispose();
 		UpdateProperties();
@@ -353,7 +359,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		return path2;
 	}
 
-	public event PropertyChangedEventHandler? PropertyChanged;
+	// public event PropertyChangedEventHandler? PropertyChanged;
 
 	#endregion
 

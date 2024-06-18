@@ -11,6 +11,6 @@ public interface IImageFilter
 
 	public bool Refine(string b);
 
-	public bool Predicate(BinaryImageFile us);
+	public bool Predicate(UniImage us);
 
 }

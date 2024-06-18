@@ -80,7 +80,7 @@ public partial class MainWindow
 	{
 		var files = e.GetFilesFromDrop();
 
-		if (files.All(x => !BinaryImageFile.IsValidSourceType(x))) {
+		if (files.All(x => !UniImage.IsValidSourceType(x))) {
 			e.Effects = DragDropEffects.None;
 		}
 
@@ -109,7 +109,7 @@ public partial class MainWindow
 		/*if (!m_isq) {
 			OnCurrentQueueItemChanged(sender, null);
 		}*/
-		if (BinaryImageFile.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
+		if (UniImage.IsValidSourceType(Input) && Queue.All(x => x.Value != Input)) {
 			var q = new QueryModel(Input);
 			Queue.Add(q);
 			CurrentQuery = q;
@@ -411,16 +411,16 @@ public partial class MainWindow
 					Me_Preview.UnloadedBehavior = MediaState.Close;
 					Me_Preview.LoadedBehavior   = MediaState.Manual;
 
-					Tb_Preview.Text = $"Preview: loading {ri.Name}";
+					// Tb_Preview.Text = $"Preview: loading {ri.Name}";
 
 					Dispatcher.InvokeAsync(async () =>
 					{
 						Me_Preview.UnloadedBehavior = MediaState.Close;
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
 
-						Tb_Preview.Text = $"Preview: loading {ri.Name}";
-						var uri = await CacheOrGetAsync(doc.video, m_ctsm.Token);
-						Debug.WriteLine($"{m_ctsm.IsCancellationRequested}");
+						// Tb_Preview.Text = $"Preview: loading {ri.Name}";
+						var uri = await CacheOrGetAsync(doc.video, m_ctsMedia.Token);
+						Debug.WriteLine($"{m_ctsMedia.IsCancellationRequested}");
 
 						if (uri != null) {
 							Me_Preview.Source = new Uri(uri, UriKind.Absolute);
@@ -428,7 +428,7 @@ public partial class MainWindow
 							Me_Preview.Play();
 
 							ShowMedia       = true;
-							Tb_Preview.Text = $"Preview: {ri.Name}";
+							// Tb_Preview.Text = $"Preview: {ri.Name}";
 
 						}
 					});
@@ -646,7 +646,7 @@ public partial class MainWindow
 	{
 		Debug.WriteLine("Main closing");
 
-		foreach ((string key, string value) in FileCache) {
+		foreach ((string key, string value) in _fileCache) {
 			Debug.WriteLine($"Deleting {key}={value}");
 			File.Delete(value);
 		}
@@ -673,7 +673,7 @@ public partial class MainWindow
 
 	private void DownloadItem_Click(object sender, RoutedEventArgs e)
 	{
-		if (CurrentResult is ResultItem { } uri && uri.Properties.HasFlag(ImageSourceProperties.CanDownload)) {
+		if (CurrentResult is ResultItem { CanDownload: true } uri) {
 			Dispatcher.InvokeAsync(() => DownloadResultAsync(uri));
 
 		}
@@ -848,6 +848,10 @@ public partial class MainWindow
 
 	private void MenuItem_OnClick(object sender, RoutedEventArgs e) { }
 
-	private void OnValidationRaised(object sender, RoutedEventArgs e) { }
+	private void OnValidationRaised(object sender, RoutedEventArgs e)
+	{
+		Debug.WriteLine($"{nameof(OnValidationRaised)}:: {e.Source} {sender}");
+		e.Handled = true;
+	}
 
 }

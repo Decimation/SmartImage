@@ -45,11 +45,11 @@ public partial class MainWindow
 		var sw = new ResultWindow(ri)
 			{ };
 
-		if (ri is UniResultItem uri) {
-			sw.Img_Preview.Source = uri.Image.Value;
+		if (ri is UniResultItem { HasImage: true } uri) {
+			sw.Img_Preview.Source = uri.Image;
 		}
-		else if (ri.Image is { IsValueCreated: true, Value: not null }) {
-			sw.Img_Preview.Source = ri.Image.Value;
+		else if (ri.HasImage) {
+			sw.Img_Preview.Source = ri.Image;
 		}
 		else {
 			sw.Img_Preview.Source = Image;
@@ -67,6 +67,7 @@ public partial class MainWindow
 		return CurrentQuery.Results.FirstOrDefault(t => f(t));
 
 	}
+
 	private ResultItem? FindParent(ResultItem r)
 	{
 		foreach (ResultItem item in CurrentQuery.Results) {
@@ -191,7 +192,7 @@ public partial class MainWindow
 
 	private void CloseMedia()
 	{
-		m_ctsm.Cancel();
+		m_ctsMedia.Cancel();
 
 		Me_Preview.Stop();
 
@@ -204,7 +205,7 @@ public partial class MainWindow
 		// Me_Preview.Dispose();
 		ShowMedia  = false;
 		m_isPaused = false;
-		m_ctsm     = new CancellationTokenSource();
+		m_ctsMedia = new CancellationTokenSource();
 	}
 
 	private bool m_isPaused;

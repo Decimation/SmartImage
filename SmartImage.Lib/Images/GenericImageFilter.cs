@@ -16,7 +16,7 @@ public class GenericImageFilter : IImageFilter
 			"thumbnail", "avatar", "error", "logo"
 		];
 
-	public bool Predicate(BinaryImageFile us)
+	public bool Predicate(UniImage us)
 	{
 		try {
 			if (us.Stream.Length <= 25_000 || us.Info.DefaultMimeType == null) {

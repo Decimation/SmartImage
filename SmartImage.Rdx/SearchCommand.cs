@@ -144,13 +144,13 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			Config.ReadCookies = m_scs.ReadCookies.Value;
 		}
 
-		await Client.ApplyConfigAsync();
+		await Client.LoadEnginesAsync();
 
 	}
 
 	private async Task RunSearchWithLiveAsync(LiveDisplayContext c)
 	{
-		var search = Client.RunSearchAsync(Query, token: m_cts.Token, reload: false);
+		var search = Client.RunSearchAsync(Query, token: m_cts.Token);
 
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
 			var result = await Client.ResultChannel.Reader.ReadAsync();
@@ -174,7 +174,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		var pt  = c.AddTask("Running search", maxValue: cnt);
 		pt.IsIndeterminate = true;
 
-		var search = Client.RunSearchAsync(Query, token: m_cts.Token, reload: false);
+		var search = Client.RunSearchAsync(Query, token: m_cts.Token);
 
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
 			var result = await Client.ResultChannel.Reader.ReadAsync();

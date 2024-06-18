@@ -30,9 +30,9 @@ public class ImageDimensionConverter : IValueConverter
 		int? w = null, h = null;
 
 		if (val is { } ri) {
-			if (ri is { IsThumbnail: true, HasImage: true, Image: { IsValueCreated: true } i }) {
-				w = i.Value.PixelWidth;
-				h = i.Value.PixelHeight;
+			if (ri is { IsThumbnail: true, HasImage: true, Image: {  } i }) {
+				w = i.PixelWidth;
+				h = i.PixelHeight;
 			}
 
 		}

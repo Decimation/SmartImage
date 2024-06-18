@@ -566,7 +566,7 @@ public sealed class SauceNaoDataResult : IResultConvertable
 
 		};
 
-		children = imageResult.AddChildren(meta);
+		children = imageResult.CreateChildren(meta);
 
 		return imageResult;
 

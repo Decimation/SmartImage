@@ -39,9 +39,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Url.IsValid(Upload);
 
-	public BinaryImageFile Image { get; }
+	public UniImage Image { get; }
 
-	internal SearchQuery(BinaryImageFile img, Url upload)
+	internal SearchQuery(UniImage img, Url upload)
 	{
 		Image  = img;
 		Upload = upload;
@@ -49,17 +49,17 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		// Size = Uni == null ? default : Uni.Stream.Length;
 	}
 
-	internal SearchQuery(BinaryImageFile img) : this(img, null) { }
+	internal SearchQuery(UniImage img) : this(img, null) { }
 
 	static SearchQuery() { }
 
-	public static readonly SearchQuery Null = new(BinaryImageFile.Null);
+	public static readonly SearchQuery Null = new(UniImage.Null);
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var task = await BinaryImageFile.TryCreateAsync(o, t);
+		var task = await UniImage.TryCreateAsync(o, t);
 
-		if (task != BinaryImageFile.Null) {
+		if (task != UniImage.Null) {
 			return new SearchQuery(task);
 
 		}

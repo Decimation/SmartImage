@@ -7,6 +7,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Images;
 
 namespace SmartImage.UI.Controls;
@@ -115,7 +116,7 @@ public static class ControlsHelper
 		return Array.Empty<string>();
 	}
 
-	public static string FormatDescription(string name, BinaryImageFile uni, int? w, int? h)
+	public static string FormatDescription(string name, UniImage uni, int? w, int? h)
 	{
 		string bytes = FormatSize(uni);
 
@@ -126,7 +127,7 @@ public static class ControlsHelper
 		return $"{name} ⇉ [{uni.Info.DefaultMimeType}] [{bytes}] • {i}";
 	}
 
-	public static string FormatSize(BinaryImageFile uni)
+	public static string FormatSize(UniImage uni)
 	{
 		string bytes;
 
@@ -157,5 +158,7 @@ public static class ControlsHelper
 	}
 
 	internal const string STR_NA = "-";
+
+	public static readonly string[] UploadEngineNames = BaseUploadEngine.All.Select(x => x.Name).ToArray();
 
 }

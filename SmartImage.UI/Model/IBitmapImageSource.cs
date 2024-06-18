@@ -19,9 +19,7 @@ public enum ImageSourceProperties
 public interface IBitmapImageSource
 {
 
-	public Lazy<BitmapSource?> Image { get; set; }
-
-	ImageSourceProperties Properties { get; set; }
+	public BitmapSource? Image { get; internal set; }
 
 	bool HasImage { get; }
 
@@ -33,6 +31,6 @@ public interface IBitmapImageSource
 
 	int? Height { get; }
 
-	BitmapSource? LoadImage();
+	bool LoadImage();
 
 }

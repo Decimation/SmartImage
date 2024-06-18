@@ -78,19 +78,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		}
 	}
 
-	public void UpdateProperties()
-	{
-		OnPropertyChanged(nameof(HasQuery));
-		OnPropertyChanged(nameof(IsComplete));
-		OnPropertyChanged(nameof(CanSearch));
-		OnPropertyChanged(nameof(IsPrimitive));
-		OnPropertyChanged(nameof(Results));
-		OnPropertyChanged(nameof(CanDelete));
-		OnPropertyChanged(nameof(Query));
-
-	}
-
-	public Lazy<BitmapSource?> Image { get; set; }
+	public BitmapSource? Image { get; set; }
 
 	private ObservableCollection<ResultItem> m_results;
 
@@ -120,15 +108,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 
 	public bool IsThumbnail => false;
 
-	public int? Width => HasImage ? Image.Value.PixelWidth : null;
+	public int? Width => HasImage ? Image.PixelWidth : null;
 
-	public int? Height => HasImage ? Image.Value.PixelHeight : null;
-
-	public ImageSourceProperties Properties
-	{
-		get => throw new NotImplementedException();
-		set => throw new NotImplementedException();
-	}
+	public int? Height => HasImage ? Image.PixelHeight : null;
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
@@ -165,27 +147,13 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		Results = [];
 		Query   = SearchQuery.Null;
 		Status  = null;
-		Status2 = null;
 
 		// Dim          = null;
-		Image = new Lazy<BitmapSource?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
+		// Image = new Lazy<BitmapSource?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
+		Image = null;
 	}
 
 	#region
-
-	private string? m_status2;
-
-	public string? Status2
-	{
-		get => m_status2;
-		set
-		{
-			if (value == m_status2) return;
-
-			m_status2 = value;
-			OnPropertyChanged();
-		}
-	}
 
 	private string? m_status;
 
@@ -217,6 +185,18 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		}
 	}
 
+	public void UpdateProperties()
+	{
+		OnPropertyChanged(nameof(HasQuery));
+		OnPropertyChanged(nameof(IsComplete));
+		OnPropertyChanged(nameof(CanSearch));
+		OnPropertyChanged(nameof(IsPrimitive));
+		OnPropertyChanged(nameof(Results));
+		OnPropertyChanged(nameof(CanDelete));
+		OnPropertyChanged(nameof(Query));
+
+	}
+
 	public async Task<bool> LoadQueryAsync(CancellationToken ct)
 	{
 		/*if (query == Query?.ValueString)
@@ -239,8 +219,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		// LoadAttempts++;
 
 		// bool queryExists = b2 = m_queries.TryGetValue(query, out var existingQuery);
-
-		Status2 = null;
 
 		/*if (queryExists)
 		{
@@ -313,7 +291,6 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 			// Btn_Delete.IsEnabled      = true;
 
 			Status  = ControlsHelper.STR_NA;
-			Status2 = R3.Msg_Timeout1;
 
 			var res = MessageBox.Show($"{emsg}\nChoose a different server then click [Reload].",
 			                          "Failed to upload",
@@ -336,8 +313,14 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		// 	ControlsHelper.FormatDescription("Query", Query.Uni, Image?.PixelWidth, Image?.PixelHeight);
 	}*/
 
-	public BitmapSource? LoadImage()
+	public bool LoadImage()
 	{
+		if (HasImage) {
+			return true;
+		} else if (!CanLoadImage) {
+			return false;
+		}
+
 		Trace.Assert(HasQuery);
 
 		var image = new BitmapImage()
@@ -376,7 +359,8 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		// Img_Preview.Source = m_image;
 
 		// UpdatePreview();	
-		return image;
+		Image = image;
+		return HasImage;
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;
@@ -428,11 +412,10 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		Query   = SearchQuery.Null;
 		Image   = null;
 		Status  = null;
-		Status2 = null;
 
 		// Dim    = null;
 
-		PropertyChanged = null;
+		// PropertyChanged = null;
 	}
 
 }

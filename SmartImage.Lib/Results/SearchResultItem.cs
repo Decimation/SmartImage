@@ -1,5 +1,4 @@
 ﻿using System.Runtime.CompilerServices;
-
 using System.Collections;
 using System.Drawing;
 using System.Dynamic;
@@ -11,6 +10,7 @@ using Novus.FileTypes.Uni;
 using SmartImage.Lib.Images;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
+
 namespace SmartImage.Lib.Results;
 
 public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
@@ -104,7 +104,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	[CBN]
 	public string ThumbnailTitle { get; internal set; }
 
-	public BinaryImageFile[] Uni { get; internal set; }
+	public UniImage[] Uni { get; internal set; }
 
 	public bool HasUni => Uni != null && Uni.Any();
 
@@ -174,7 +174,9 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		}
 
 		var a = new string[]
-			{ Source, Artist, Character, Description, Title, Site, (string) Thumbnail, ThumbnailTitle };
+		{
+			Source, Artist, Character, Description, Title, Site, Thumbnail, ThumbnailTitle
+		};
 		Score += a.Count(s => !string.IsNullOrWhiteSpace(s));
 
 		var b = new[] { Similarity, Width, Height, };
@@ -199,7 +201,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	}
 
 	/*
-	public void AddChildren(string[] rg)
+	public void CreateChildren(string[] rg)
 	{
 		for (int i = 0; i < rg.Length; i++) {
 
@@ -216,7 +218,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	}
 	*/
 
-	public SearchResultItem[] AddChildren(string[] rg)
+	public SearchResultItem[] CreateChildren(string[] rg)
 	{
 		var rg2 = new SearchResultItem[rg.Length];
 

@@ -97,7 +97,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 	{
 		var result = base.Validate();
 
-		if (!BinaryImageFile.IsValidSourceType(Query, false)) {
+		if (!UniImage.IsValidSourceType(Query, false)) {
 			return ValidationResult.Error("Invalid query");
 		}
 
