@@ -744,16 +744,17 @@
                               VerticalAlignment="Top" Width="148" Grid.ColumnSpan="2" />
 
                     <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0"
-                               Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White" 
-                               TextWrapping="Wrap" Text="{Binding CurrentResult.PreviewText, Mode=OneWayToSource, IsAsync=True, UpdateSourceTrigger=PropertyChanged}"
+                               Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"
+                               TextWrapping="Wrap" Text="{Binding CurrentResult.PreviewText, IsAsync=True, UpdateSourceTrigger=PropertyChanged}"
+                               
                                Width="150" ToolTip="Click preview to stop/close&#x0a;Double click preview to open"
                                Height="34.5" />
 
                     <TextBlock x:Name="Tb_Label" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,174,0"
                                FontStyle="Italic"
                                Grid.Row="1" VerticalAlignment="Top" Foreground="White" TextWrapping="WrapWithOverflow"
-                               Width="320"
-                               Text="{Binding CurrentResult.Label, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                               Width="320" 
+                               Text="{Binding CurrentResult.Label, IsAsync=True, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Height="35" />
 
                     <ProgressBar x:Name="Pb_Preview" Grid.Column="1" HorizontalAlignment="Right" Height="10"

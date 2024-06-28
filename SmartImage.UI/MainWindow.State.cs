@@ -13,6 +13,8 @@ using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Media;
 using SmartImage.Lib;
+using SmartImage.UI.Controls;
+using System.Diagnostics;
 
 namespace SmartImage.UI;
 
@@ -225,6 +227,112 @@ public partial class MainWindow
 			}
 		}
 
+	}
+
+	#endregion
+		#region
+
+	private void SetPreview(IBitmapImageSource igs)
+	{
+		// m_ctsMedia.Cancel();
+
+		Application.Current.Dispatcher.Invoke(() =>
+		{
+			if (Img_Preview.Source != null) {
+				if (Img_Preview.Source.Dispatcher != null) {
+					if (!Img_Preview.Source.Dispatcher.CheckAccess()) {
+						return;
+					}
+
+				}
+			}
+		});
+
+		var load = igs.LoadImage();
+		
+		if (!load) {
+			SetPreviewToCurrentQuery();
+			return;
+		}
+
+		string name = igs is INamed n ? n.Name : ControlsHelper.STR_NA;
+		string n2;
+
+		if (igs.IsThumbnail) {
+			/*
+			if (igs.IsThumbnail) {
+				n2 = "thumbnail";
+
+			}
+			else {
+				n2 = "full res";
+			}
+			*/
+			n2 = "thumbnail";
+		}
+		else {
+			n2 = ControlsHelper.STR_NA;
+		}
+
+		string? name2 = null;
+
+		if (igs is ResultItem rri) {
+
+			if (rri.IsSister) {
+				/*var grp=CurrentQueueItem.Results.GroupBy(x => x.Result.Root);
+
+				foreach (IGrouping<SearchResult, ResultItem> items in grp) {
+					// var zz=items.GroupBy(y => y.Result.Root.AllResults.Where(yy => yy.Sisters.Contains(y.Result)));
+
+				}*/
+				var p = FindParent(rri);
+
+				if (p != null) {
+					Debug.WriteLine($"couldn't find parent for {rri}/{p}");
+					name  = p.Name;
+					name2 = $"(child)";
+
+				}
+			}
+			else {
+				name2 = "(parent)";
+			}
+		}
+
+		/*Tb_Preview.Dispatcher.Invoke(() =>
+		{
+
+		});*/
+
+		Img_Preview.Dispatcher.Invoke(() =>
+		{
+			// igs.LoadImage();
+			OnPropertyChanged(nameof(igs));
+			Img_Preview.Source = igs.Image;
+		});
+
+		// Debug.WriteLine($"updated image {ri.Image}");
+		// PreviewChanged?.Invoke(ri);
+
+		/*if (ri.Image != null) {
+				using var bmp1 = CurrentQueueItem.Image.BitmapImage2Bitmap();
+				using var bmp2 = ri.Image.BitmapImage2Bitmap();
+				mse = AppUtil.CompareImages(bmp1, bmp2,1);
+
+			}*/
+
+		// Tb_Preview.Text = $"Preview: {name} ({n2}) {name2}";
+
+		// m_us2.Release();
+
+	}
+
+	private void SetPreviewToCurrentQuery()
+	{
+		SetPreview(CurrentQuery);
+
+		// UpdatePreview(m_image);
+		// Tb_Preview.Text = $"Preview: (query)";
 	}
 
 	#endregion

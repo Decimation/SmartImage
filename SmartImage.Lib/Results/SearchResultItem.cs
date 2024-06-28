@@ -1,5 +1,5 @@
-﻿using System.Runtime.CompilerServices;
-using System.Collections;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Drawing;
 using System.Dynamic;
 using Flurl.Http;
@@ -15,12 +15,6 @@ namespace SmartImage.Lib.Results;
 
 public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
 {
-
-	private bool m_isScored;
-
-	public const int MAX_SCORE = 13;
-
-	public const int SCORE_THRESHOLD = MAX_SCORE / 2;
 
 	/// <summary>
 	///     Result containing this result item
@@ -96,8 +90,6 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	/// </summary>
 	public object Metadata { get; internal set; }
 
-	public int Score { get; private set; }
-
 	[CBN]
 	public Url Thumbnail { get; internal set; }
 
@@ -108,6 +100,8 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public bool HasUni => Uni != null && Uni.Any();
 
+	public Url[] EmbeddedUrls { get; internal set; }
+
 	[CBN]
 	public SearchResultItem Parent { get; internal set; }
 
@@ -117,27 +111,14 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public bool IsRaw { get; internal set; }
 
-	public bool Equals(SearchResultItem other)
-	{
-		if (ReferenceEquals(null, other)) return false;
-		if (ReferenceEquals(this, other)) return true;
-
-		return Root.Equals(other.Root) && Uni == other.Uni;
-	}
-
-	public override int GetHashCode()
-	{
-		return HashCode.Combine(Root, Uni);
-	}
-
 	internal SearchResultItem(SearchResult r)
 	{
-		Root       = r;
-		Metadata   = null;
-		m_isScored = false;
-		Uni        = null;
-		Parent     = null;
-		IsRaw      = false;
+		Root         = r;
+		Metadata     = null;
+		Uni          = null;
+		Parent       = null;
+		IsRaw        = false;
+		EmbeddedUrls = null;
 
 		// Children   = [];
 	}
@@ -162,43 +143,6 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		return u;
 	}
 	*/
-
-	public void UpdateScore()
-	{
-		if (m_isScored) {
-			return;
-		}
-
-		if (Url.IsValid(Url)) {
-			Score++;
-		}
-
-		var a = new string[]
-		{
-			Source, Artist, Character, Description, Title, Site, Thumbnail, ThumbnailTitle
-		};
-		Score += a.Count(s => !string.IsNullOrWhiteSpace(s));
-
-		var b = new[] { Similarity, Width, Height, };
-		Score += b.Count(d => d.HasValue);
-
-		if (Time.HasValue) {
-			Score++;
-		}
-
-		Score += Metadata switch
-		{
-			ICollection c => c.Count,
-			string s      => string.IsNullOrWhiteSpace(s) ? 0 : 1,
-			_             => 0
-		};
-
-		if (HasUni) {
-			Score++;
-		}
-
-		m_isScored = true;
-	}
 
 	/*
 	public void CreateChildren(string[] rg)
@@ -239,6 +183,17 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	}
 
 	// [MustUseReturnValue]
+	public async Task<bool> ScanUrlsAsync(CancellationToken ct = default)
+	{
+		
+		var urls = await ImageScanner.GetImageUrls(Url, ct).ConfigureAwait(false);
+
+		EmbeddedUrls = urls.Select(x => new Url(x)).ToArray();
+
+		Debug.WriteLine($"{Url} -> {EmbeddedUrls.Length}");
+		return EmbeddedUrls != null;
+	}
+
 	public async Task<bool> ScanAsync(CancellationToken ct = default)
 	{
 
@@ -261,6 +216,19 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	{
 		return
 			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
+	}
+
+	public bool Equals(SearchResultItem other)
+	{
+		if (ReferenceEquals(null, other)) return false;
+		if (ReferenceEquals(this, other)) return true;
+
+		return Root.Equals(other.Root) && Uni == other.Uni;
+	}
+
+	public override int GetHashCode()
+	{
+		return HashCode.Combine(Root, Uni);
 	}
 
 	public void Dispose()

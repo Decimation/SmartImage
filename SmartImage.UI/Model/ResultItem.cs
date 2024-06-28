@@ -37,8 +37,32 @@ using SmartImage.UI.Controls;
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
+
 public abstract class ResultModel : INotifyPropertyChanged
 {
+
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		var eventArgs = new PropertyChangedEventArgs(propertyName);
+		PropertyChanged?.Invoke(this, eventArgs);
+		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
+	}
+
+	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+}
+
+public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, IDisposable
+{
+
 	private string m_previewText;
 	private string m_label;
 
@@ -65,28 +89,6 @@ public abstract class ResultModel : INotifyPropertyChanged
 			OnPropertyChanged();
 		}
 	}
-
-	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-	{
-		var eventArgs = new PropertyChangedEventArgs(propertyName);
-		PropertyChanged?.Invoke(this, eventArgs);
-		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
-	}
-
-	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
-	}
-
-	public event PropertyChangedEventHandler? PropertyChanged;
-
-}
-public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, IDisposable
-{
 
 	#region
 
@@ -196,6 +198,7 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 		}
 
 		Image = null;
+
 		// Image = new Lazy<BitmapSource?>(LoadImage, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
@@ -263,14 +266,14 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 	protected virtual void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
 		PreviewProgress = ((float) args.Progress);
-		PreviewText           = $"Preview cache...{PreviewProgress}";
+		PreviewText     = $"Preview cache...{PreviewProgress}";
 
 	}
 
 	protected virtual void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
 		PreviewProgress = 0;
-		PreviewText           = $"Preview fetch failed: {args.ErrorException.Message}";
+		PreviewText     = $"Preview fetch failed: {args.ErrorException.Message}";
 
 	}
 
@@ -278,7 +281,8 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 	{
 		if (HasImage) {
 			return true;
-		} else if (!CanLoadImage) {
+		}
+		else if (!CanLoadImage) {
 			return false;
 		}
 
@@ -309,8 +313,9 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 		img.DownloadFailed    += OnImageDownloadFailed;
 		img.DownloadProgress  += OnImageDownloadProgress;
 		img.DownloadCompleted += OnImageDownloadCompleted;
+
 		Image = img;
-		UpdateProperties();
+		// UpdateProperties();
 		return HasImage;
 	}
 

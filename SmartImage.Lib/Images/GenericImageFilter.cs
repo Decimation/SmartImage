@@ -31,6 +31,8 @@ public class GenericImageFilter : IImageFilter
 		}
 	}
 
+	public static readonly IImageFilter Instance = new GenericImageFilter();
+
 	public bool Refine(string b)
 	{
 		if (!Url.IsValid(b)) {

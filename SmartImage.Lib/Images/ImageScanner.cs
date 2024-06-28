@@ -4,6 +4,9 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
@@ -31,13 +34,13 @@ public static class ImageScanner
 	/// points to binary image data, it is returned.
 	/// </summary>
 	public static async Task<UniImage[]> ScanImagesAsync(Url u, IImageFilter filter = null,
-	                                                            CancellationToken ct = default)
+	                                                     CancellationToken ct = default)
 	{
 		IFlurlResponse res;
 		Stream         stream;
 
 		// pred   ??= _ => true;
-		filter ??= new GenericImageFilter();
+		filter ??= GenericImageFilter.Instance;
 
 		try {
 			res = await u.AllowAnyHttpStatus()
@@ -62,8 +65,8 @@ public static class ImageScanner
 			return [];
 		}
 
-		var ul = new ConcurrentBag<UniImage>();
 		stream = await res.GetStreamAsync();
+		var ul = new ConcurrentBag<UniImage>();
 		var uf = await UniImage.TryCreateAsync(stream, t: ct);
 
 		if (uf != UniImage.Null) {
@@ -86,14 +89,11 @@ public static class ImageScanner
 		// var dd = await p.ParseDocumentAsync(stream, ct);
 
 		var parser = new HtmlParser();
-		var dd     = await parser.ParseDocumentAsync(stream);
+		var doc    = await parser.ParseDocumentAsync(stream);
 
 		// IDocument dd = await GetDocument2(u, ct);
 
-		var a = dd.QueryAllAttribute("a", "href");
-		var b = dd.QueryAllAttribute("img", "src");
-
-		var c = a.Union(b).Where(filter.Refine).Distinct();
+		var c = GetImageUrls(doc, filter);
 
 		var po = new ParallelOptions()
 		{
@@ -125,29 +125,66 @@ public static class ImageScanner
 		});
 
 		// context.Dispose();
-		dd.Dispose();
+		doc.Dispose();
 	ret:
 		return ul.ToArray();
 
 	}
 
-	public static bool UniSourcePredicate(UniSource us)
+	public static async Task<IEnumerable<string>> GetImageUrls(Url u, CancellationToken token = default)
+	{
+		using var res = await u.AllowAnyHttpStatus()
+			                .WithCookies(out var cj)
+			                .WithAutoRedirect(true)
+			                .WithHeaders(new
+			                {
+				                User_Agent = HttpUtilities.UserAgent
+			                })
+			                .OnError(f =>
+			                {
+				                f.ExceptionHandled = true;
+				                return;
+			                }).GetAsync(cancellationToken: token);
+
+		var       parser = new HtmlParser();
+		var stream = await res.GetStreamAsync();
+		using var doc    = await parser.ParseDocumentAsync(stream);
+		var       links  = ImageScanner.GetImageUrls(doc, GenericImageFilter.Instance);
+		return links;
+
+		// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
+	}
+
+	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc, IImageFilter filter)
+	{
+		// var a = doc.QueryAllAttribute("a", "href");
+		// var b = doc.QueryAllAttribute("img", "src");
+
+		var a = doc.Links.Select(x => x.GetAttribute("href"));
+		var b = doc.Images.Select(x => x.Source);
+
+		var c = a.Union(b).Where(filter.Refine).Distinct();
+
+		return c;
+	}
+
+	/*public static bool UniImagePredicate(UniImage us)
 	{
 		try {
-			if (us.Stream.Length <= 25_000 || !FileType.Image.Contains(us.FileType)) {
+			if (us.Stream.Length <= 25_000 || us.Info?.DefaultMimeType == null) {
 				return false;
 			}
 
 			return true;
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(UniSourcePredicate));
+			Debug.WriteLine($"{e.Message}", nameof(UniImagePredicate));
 			return true;
 		}
-	}
+	}*/
 
 	// todo
-	public static async Task<UniImage[]> RunGalleryAsync(Url cri, CancellationToken ct = default)
+	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
 	{
 		using var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri}")
 		{

@@ -4,12 +4,10 @@ using Flurl.Http;
 namespace SmartImage.Lib.Clients.Booru;
 
 // TODO
-public abstract class BaseGelbooruClient : IDisposable
+public abstract class BaseGelbooruClient : BaseBooruClient
 {
 
 	public FlurlClient Client { get; }
-
-	public Url Base { get; }
 
 	[CBN]
 	public string Key { get; set; }
@@ -17,13 +15,12 @@ public abstract class BaseGelbooruClient : IDisposable
 	[CBN]
 	public string Id { get; set; }
 
-	protected BaseGelbooruClient(Url @base)
+	protected BaseGelbooruClient(Url baseUrl) : base(baseUrl)
 	{
-		Base = @base;
 
 		Client = new FlurlClient()
 		{
-			BaseUrl = @base,
+			BaseUrl = baseUrl,
 			Settings =
 			{
 				JsonSerializer = { }
@@ -85,19 +82,9 @@ public abstract class BaseGelbooruClient : IDisposable
 			       .GetAsync();
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		Client?.Dispose();
-	}
-
-}
-
-public class Rule34Booru : BaseGelbooruClient
-{
-
-	public Rule34Booru() : base("https://rule34.xxx")
-	{
-		PostMax = 1000;
 	}
 
 }

@@ -44,7 +44,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsRunning { get; private set; }
 
-	private static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
+	private static readonly ILogger s_logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
 
 	internal static readonly Assembly Asm;
 
@@ -81,7 +81,7 @@ public sealed class SearchClient : IDisposable
 			};
 		});*/
 
-		Logger.LogInformation("Init");
+		s_logger.LogInformation("Init");
 	}
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);
@@ -90,11 +90,11 @@ public sealed class SearchClient : IDisposable
 
 	public delegate void ResultOpenCallback(object sender, SearchResultItem e);
 
-	public event ResultCompleteCallback OnResult;
+	public event ResultCompleteCallback OnResultComplete;
 
-	public event SearchCompleteCallback OnComplete;
+	public event SearchCompleteCallback OnSearchComplete;
 
-	public event ResultOpenCallback OnOpen;
+	public event ResultOpenCallback OnResultOpen;
 
 	public Channel<SearchResult> ResultChannel { get; private set; }
 
@@ -150,7 +150,7 @@ public sealed class SearchClient : IDisposable
 			if (token.IsCancellationRequested) {
 
 				Debugger.Break();
-				Logger.LogWarning("Cancellation requested");
+				s_logger.LogWarning("Cancellation requested");
 				ResultChannel?.Writer.Complete();
 				IsComplete = true;
 				IsRunning  = false;
@@ -167,7 +167,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		ResultChannel?.Writer.Complete();
-		OnComplete?.Invoke(this, results);
+		OnSearchComplete?.Invoke(this, results);
 		IsRunning  = false;
 		IsComplete = true;
 
@@ -216,7 +216,7 @@ public sealed class SearchClient : IDisposable
 
 	private void ProcessResult(SearchResult result)
 	{
-		OnResult?.Invoke(this, result);
+		OnResultComplete?.Invoke(this, result);
 
 		if (!ResultChannel.Writer.TryWrite(result)) {
 			Debug.WriteLine($"Could not write {result}");
@@ -225,6 +225,7 @@ public sealed class SearchClient : IDisposable
 		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 			OpenResult(result.GetBestResult());
 		}
+
 	}
 
 	private static void OpenResult([MN] Url url1)
@@ -234,7 +235,7 @@ public sealed class SearchClient : IDisposable
 			return;
 		}
 
-		Logger.LogInformation("Opening {Url}", url1);
+		s_logger.LogInformation("Opening {Url}", url1);
 
 		var b = FileSystem.Open(url1, out var proc);
 
@@ -252,12 +253,12 @@ public sealed class SearchClient : IDisposable
 #pragma warning disable CA1822
 
 		// ReSharper disable once MemberCanBeMadeStatic.Local
-		Logger.LogDebug("Not opening result {result}", result);
+		s_logger.LogDebug("Not opening result {result}", result);
 		return;
 
 #pragma warning restore CA1822
 #endif
-		OnOpen?.Invoke(this, result);
+		OnResultOpen?.Invoke(this, result);
 
 		if (result != null) {
 
@@ -302,7 +303,7 @@ public sealed class SearchClient : IDisposable
 	{
 		Trace.WriteLine("Loading engines");
 
-		Engines = GetSelectedEngines();
+		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
 		foreach (BaseSearchEngine bse in Engines) {
 			if (bse is IConfig cfg) {
@@ -316,23 +317,8 @@ public sealed class SearchClient : IDisposable
 			}
 		}
 
-		Logger.LogDebug("Loaded engines");
+		s_logger.LogDebug("Loaded engines");
 		ConfigApplied = true;
-	}
-
-	private BaseSearchEngine[] GetSelectedEngines()
-	{
-		return BaseSearchEngine.All.Where(e =>
-			{
-				return e.EngineOption != default && Config.SearchEngines.HasFlag(e.EngineOption);
-			})
-			.ToArray();
-	}
-
-	[CBN]
-	public BaseSearchEngine TryGetEngine(SearchEngineOptions o)
-	{
-		return Engines.FirstOrDefault(e => e.EngineOption == o);
 	}
 
 	public void Dispose()

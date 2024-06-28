@@ -77,15 +77,15 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		// Config = (SearchConfig) cfg;
 		Client = new SearchClient(Config);
 
-		// Client.OnComplete += OnComplete;
+		// Client.OnSearchComplete += OnSearchComplete;
 
-		// Client.OnResult   += OnResult;
+		// Client.OnResultComplete   += OnResultComplete;
 		m_cts     = new CancellationTokenSource();
 		m_results = new ConcurrentBag<SearchResult>();
 		m_scs     = null;
 		m_table   = CreateResultTable();
 
-		Client.OnOpen += (sender, item) =>
+		Client.OnResultOpen += (sender, item) =>
 		{
 			Debug.WriteLine($"Opening {item}");
 		};

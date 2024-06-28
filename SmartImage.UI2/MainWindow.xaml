@@ -5,8 +5,17 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:SmartImage.UI2"
         mc:Ignorable="d"
+        x:Name="Wnd_Main"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        <ListView x:Name="ItemsListView" Margin="0,205,0,0"/>
+        <Grid.DataContext>
+            <local:ViewModel />
+        </Grid.DataContext>
+
+        <ListView x:Name="Lv_Results" Margin="0,205,0,0" ItemsSource="{Binding Path=Items}">
+            <!-- ListView content here -->
+        </ListView>
+
+        <Image HorizontalAlignment="Left" Height="100" Margin="681,10,0,0" VerticalAlignment="Top" Width="100"/>
     </Grid>
 </Window>

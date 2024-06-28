@@ -1,6 +1,8 @@
 ﻿using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Runtime.CompilerServices;
 using ReactiveUI;
 using System.Text;
 using System.Windows;
@@ -18,53 +20,61 @@ namespace SmartImage.UI2;
 /// <summary>
 /// Interaction logic for MainWindow.xaml
 /// </summary>
-public partial class MainWindow : Window, IViewFor<ViewModel>
+public partial class MainWindow : Window
 {
-
-	public static readonly DependencyProperty ViewModelProperty = DependencyProperty
-		.Register(nameof(ViewModel), typeof(ViewModel), typeof(MainWindow));
 
 	public MainWindow()
 	{
 		InitializeComponent();
-		ViewModel = new ViewModel();
+		DataContext = new ViewModel();
 
 		// Setup the bindings
 		// Note: We have to use WhenActivated here, since we need to dispose the
 		// bindings on XAML-based platforms, or else the bindings leak memory.
-		this.WhenActivated(disposable => { });
-	}
-
-	public ViewModel ViewModel
-	{
-		get => (ViewModel) GetValue(ViewModelProperty);
-		set => SetValue(ViewModelProperty, value);
-	}
-
-	object IViewFor.ViewModel
-	{
-		get => ViewModel;
-		set => ViewModel = (ViewModel) value;
+		// this.WhenActivated(disposable => { });
 	}
 
 }
 
-public class ViewModel : ReactiveObject
+public abstract class ModelBase : INotifyPropertyChanged
 {
 
-	public ObservableCollection<string> Items { get; set; }
+	public event PropertyChangedEventHandler? PropertyChanged;
 
-	public ReactiveCommand<string, Unit> ItemClickedCommand { get; }
-
-	public ViewModel()
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
 	{
-		ItemClickedCommand = ReactiveCommand.Create<string>(ExecuteItemClicked);
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	private void ExecuteItemClicked(string item)
+	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
 	{
-		// Handle the item click logic here
-		MessageBox.Show($"Item clicked: {item}");
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
 	}
+
+}
+
+public class QueryModel : ModelBase
+{
+
+	private BitmapImage m_image;
+
+	public BitmapImage Image
+	{
+		get => m_image;
+		set => SetField(ref m_image, value);
+	}
+
+}
+
+public class ViewModel : ModelBase
+{
+
+	public ObservableCollection<QueryModel> Items { get; set; }
+
+	public ViewModel() { }
 
 }

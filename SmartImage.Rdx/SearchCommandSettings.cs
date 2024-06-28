@@ -42,7 +42,7 @@ internal sealed class SearchCommandSettings : CommandSettings
 	public bool? ReadCookies { get; internal set; }
 
 	[CommandOption("--live")]
-	[DefaultValue(false)]
+	[DefaultValue(true)]
 	[Description("Live result display")]
 	public bool? LiveDisplay { get; internal set; }
 
