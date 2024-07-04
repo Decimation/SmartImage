@@ -90,21 +90,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
 
-	public class SearchResultPartial
-	{
-
-		public SearchResultItem Item { get; }
-
-		public IEnumerable<string> Links { get; }
-
-		public SearchResultPartial(SearchResultItem item, IEnumerable<string> links)
-		{
-			Item  = item;
-			Links = links;
-		}
-
-	}
-
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var b = VerifyQuery(query);

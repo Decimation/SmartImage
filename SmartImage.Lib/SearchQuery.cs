@@ -27,6 +27,7 @@ using SmartImage.Lib.Images;
 [assembly: InternalsVisibleTo("SmartImage")]
 [assembly: InternalsVisibleTo("SmartImage.UI")]
 [assembly: InternalsVisibleTo("SmartImage.Rdx")]
+[assembly: InternalsVisibleTo("Test")]
 
 namespace SmartImage.Lib;
 

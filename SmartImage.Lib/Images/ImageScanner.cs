@@ -149,7 +149,7 @@ public static class ImageScanner
 		var       parser = new HtmlParser();
 		var stream = await res.GetStreamAsync();
 		using var doc    = await parser.ParseDocumentAsync(stream);
-		var       links  = ImageScanner.GetImageUrls(doc, GenericImageFilter.Instance);
+		var       links  = GetImageUrls(doc, GenericImageFilter.Instance);
 		return links;
 
 		// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
