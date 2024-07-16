@@ -167,41 +167,4 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		};
 	}
 
-	public async Task Process(SearchQuery query,
-	                          CancellationToken ct = default)
-	{
-
-		var po = new ParallelOptions() { CancellationToken = ct, MaxDegreeOfParallelism = -1 };
-		var resultsCopy = Results.Where(x=>Url.IsValid(x.Url));
-
-		await Parallel.ForEachAsync(resultsCopy, po, async (item, token) =>
-		{
-			await item.ScanUrlsAsync(token).ConfigureAwait(false);
-			/*using var res = await item.Url.AllowAnyHttpStatus()
-				                .WithCookies(out var cj)
-				                .WithAutoRedirect(true)
-				                .WithHeaders(new
-				                {
-					                User_Agent = HttpUtilities.UserAgent
-				                })
-				                .OnError(f =>
-				                {
-					                f.ExceptionHandled = true;
-					                return;
-				                }).GetAsync(cancellationToken: token);
-
-			var       parser = new HtmlParser();
-			using var stream = await res.GetStreamAsync();
-			using var doc    = await parser.ParseDocumentAsync(stream);
-			var       links  = ImageScanner.GetImageUrls(doc, GenericImageFilter.Instance);
-
-			lock (item) {
-				item.EmbeddedUrls = links.Select(x => new Url(x)).ToArray();
-			}*/
-
-			// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
-
-		}).ConfigureAwait(false);
-	}
-
 }

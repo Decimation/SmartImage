@@ -55,7 +55,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
-		var url =  base.GetRawUrl(query);
+		var url = base.GetRawUrl(query);
 
 		/*url = url.SetQueryParams(new
 		{

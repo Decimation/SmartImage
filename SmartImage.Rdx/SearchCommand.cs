@@ -333,7 +333,27 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
 			run = AConsole.Live(m_table)
-				.StartAsync(RunSearchWithLiveAsync);
+				.StartAsync(RunSearchWithLiveAsync)
+				.ContinueWith(async (c, x) =>
+				{
+
+					SelectionPrompt<SearchResultItem> prompt = GetPrompt();
+
+					// var ac = AConsole.Prompt(prompt);
+					// Debug.WriteLine($"{ac}");
+
+					SearchResultItem res;
+
+					do {
+						AConsole.Clear();
+
+						// res = await prompt.ShowAsync(AConsole.Console, (CancellationToken) x);
+						res = AConsole.Prompt(prompt);
+						Debug.WriteLine($">> {res}");
+					} while (res != null);
+
+					return res;
+				}, m_cts.Token);
 
 		}
 		else {
@@ -374,6 +394,36 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		await run;
 
 		return EC_OK;
+	}
+
+	private SelectionPrompt<SearchResultItem> GetPrompt()
+	{
+		var prompt = new SelectionPrompt<SearchResultItem>()
+		{
+			SearchEnabled = true,
+			Title         = "Results",
+			Converter = str =>
+			{
+				var i = str.Root.Results.IndexOf(str);
+				var name = str.Root.Engine.Name;
+
+				return $"{name} {i}";
+			},
+			PageSize = AConsole.Console.Profile.Height - 5,
+
+			// DisabledStyle        = Style.Plain,
+			// HighlightStyle       = new Style(Color.Yellow),
+			// SearchHighlightStyle = new Style(background: Color.Yellow),
+		};
+
+		foreach (SearchResult searchResult in m_results) {
+
+			var item = searchResult.Results[0];
+
+			prompt.AddChoiceGroup(item, searchResult.Results);
+		}
+
+		return prompt;
 	}
 
 	#endregion

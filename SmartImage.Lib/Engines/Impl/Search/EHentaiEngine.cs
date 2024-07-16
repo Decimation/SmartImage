@@ -103,17 +103,19 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 	 * Default result layout is [Compact]
 	 */
 
-	public async ValueTask<bool> ApplyCookies(IEnumerable<IBrowserCookie> cookies, bool useEx)
+	public async ValueTask<bool> ApplyCookiesAsync(IEnumerable<IBrowserCookie> cookies = null)
 	{
+		IEnumerable<IBrowserCookie> cookies1 = cookies;
+
 		Trace.WriteLine($"Applying cookies to {Name}");
 
 		if (await CookiesManager.Instance.LoadCookiesAsync()) {
-			cookies ??= CookiesManager.Instance.Cookies;
+			cookies1 ??= CookiesManager.Instance.Cookies;
 		}
 
-		var fcc = cookies.OfType<FirefoxCookie>().Where(x =>
+		var fcc = cookies1.OfType<FirefoxCookie>().Where(x =>
 		{
-			if (!useEx) {
+			if (!true) {
 				return x.Host.Contains(HOST_EH);
 			}
 
@@ -124,7 +126,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 			m_cookies.Add(cookie.AsCookie());
 		}
 
-		var res2 = await GetSessionAsync(useEx);
+		var res2 = await GetSessionAsync(true);
 
 		/*var res2 = await EHentaiBase.WithCookies(m_clientHandler.CookieContainer)
 			.WithHeaders(new
@@ -136,9 +138,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
-
-	public ValueTask<bool> ApplyCookiesAsync(IEnumerable<IBrowserCookie> cookies = null)
-		=> ApplyCookies(cookies, true);
 
 	private Task<IFlurlResponse> GetSessionAsync(bool useEx = false)
 	{
@@ -152,8 +151,6 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 			.WithAutoRedirect(true)
 			.GetAsync();
 	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
@@ -284,6 +281,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 
 		IsLoggedIn = false;
 	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
 
 	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
 	{

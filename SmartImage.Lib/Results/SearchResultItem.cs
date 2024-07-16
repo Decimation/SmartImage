@@ -100,7 +100,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public bool HasUni => Uni != null && Uni.Any();
 
-	public Url[] EmbeddedUrls { get; internal set; }
+	// public Url[] EmbeddedUrls { get; internal set; }
 
 	[CBN]
 	public SearchResultItem Parent { get; internal set; }
@@ -113,12 +113,13 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	internal SearchResultItem(SearchResult r)
 	{
-		Root         = r;
-		Metadata     = null;
-		Uni          = null;
-		Parent       = null;
-		IsRaw        = false;
-		EmbeddedUrls = null;
+		Root     = r;
+		Metadata = null;
+		Uni      = null;
+		Parent   = null;
+		IsRaw    = false;
+
+		// EmbeddedUrls = null;
 
 		// Children   = [];
 	}
@@ -183,16 +184,16 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	}
 
 	// [MustUseReturnValue]
-	public async Task<bool> ScanUrlsAsync(CancellationToken ct = default)
+	/*public async Task<bool> ScanUrlsAsync(CancellationToken ct = default)
 	{
-		
+
 		var urls = await ImageScanner.GetImageUrls(Url, ct).ConfigureAwait(false);
 
 		EmbeddedUrls = urls.Select(x => new Url(x)).ToArray();
 
 		Debug.WriteLine($"{Url} -> {EmbeddedUrls.Length}");
 		return EmbeddedUrls != null;
-	}
+	}*/
 
 	public async Task<bool> ScanAsync(CancellationToken ct = default)
 	{
@@ -206,7 +207,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		}
 
 		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
-		
+
 		Uni = await ImageScanner.ScanImagesAsync(Url, ct: ct);
 		return HasUni;
 	}
@@ -224,12 +225,12 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
 
-		return Root.Equals(other.Root) && Uni == other.Uni;
+		return Root.Equals(other.Root) && Url  == other.Url  && Uni == other.Uni;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Root, Uni);
+		return HashCode.Combine(Root, Url, Uni);
 	}
 
 	public void Dispose()

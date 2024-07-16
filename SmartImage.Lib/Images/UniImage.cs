@@ -51,7 +51,7 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 				return Stream.Length;
 			}
 
-			return Native.INVALID;
+			return Native.ERROR_SV;
 		}
 	}
 

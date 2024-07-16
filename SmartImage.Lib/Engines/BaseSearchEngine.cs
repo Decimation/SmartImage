@@ -26,6 +26,8 @@ namespace SmartImage.Lib.Engines;
 public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>
 {
 
+	protected static FlurlClient Client { get; }
+
 	/// <summary>
 	/// The corresponding <see cref="SearchEngineOptions"/> of this engine
 	/// </summary>
@@ -57,8 +59,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	}
 
 	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
-
-	protected static FlurlClient Client { get; }
 
 	static BaseSearchEngine()
 	{

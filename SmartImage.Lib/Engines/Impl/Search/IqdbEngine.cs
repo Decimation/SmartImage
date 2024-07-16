@@ -26,9 +26,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
-	public IqdbEngine() : this(URL_QUERY)
-	{
-	}
+	public IqdbEngine() : this(URL_QUERY) { }
 
 	private IqdbEngine(string s) : this(s, URL_ENDPOINT) { }
 
@@ -37,6 +35,54 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 
 		// Timeout = TimeSpan.FromSeconds(10);
+	}
+
+	private const int MAX_FILE_SIZE = 8_388_608;
+
+	private const string URL_ENDPOINT = "https://iqdb.org/";
+	private const string URL_QUERY    = "https://iqdb.org/?url=";
+
+	protected override string[] ErrorBodyMessages => ["Can't read query result!", "too large"];
+
+	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
+	{
+
+		try {
+			var response = await Client.Request(EndpointUrl)
+				               .OnError(r =>
+					               {
+						               Debug.WriteLine($"{r.Exception}", Name);
+						               r.ExceptionHandled = true;
+					               }
+				               )
+				               .WithTimeout(Timeout)
+				               .PostMultipartAsync(m =>
+				               {
+					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
+					               m.AddString("url", query.Image.IsUri ? query.Image.ValueString : String.Empty);
+
+					               if (query.Image.IsUri) { }
+					               else if (query.Image.IsFile) {
+						               m.AddFile("file", query.Image.Value.ToString(), fileName: "image.jpg");
+					               }
+
+					               return;
+				               }, cancellationToken: ct);
+
+			if (response != null) {
+				var s = await response.GetStringAsync();
+
+				var parser = new HtmlParser();
+				return await parser.ParseDocumentAsync(s, ct).ConfigureAwait(false);
+
+			}
+
+			return null;
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}!");
+			return null;
+		}
 	}
 
 	private SearchResultItem ParseResult(IHtmlCollection<IElement> tr, SearchResult r)
@@ -126,54 +172,6 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		return result;
 	}
 
-	private const int MAX_FILE_SIZE = 8_388_608;
-
-	private const string URL_ENDPOINT = "https://iqdb.org/";
-	private const string URL_QUERY    = "https://iqdb.org/?url=";
-
-	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
-	{
-
-		try {
-			var response = await Client.Request(EndpointUrl)
-				               .OnError(r =>
-					               {
-						               Debug.WriteLine($"{r.Exception}", Name);
-						               r.ExceptionHandled = true;
-					               }
-				               )
-				               .WithTimeout(Timeout)
-				               .PostMultipartAsync(m =>
-				               {
-					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-					               m.AddString("url", query.Image.IsUri ? query.Image.ValueString : String.Empty);
-
-					               if (query.Image.IsUri) { }
-					               else if (query.Image.IsFile) {
-						               m.AddFile("file", query.Image.Value.ToString(), fileName: "image.jpg");
-					               }
-
-					               return;
-				               }, cancellationToken: ct);
-
-			if (response != null) {
-				var s = await response.GetStringAsync();
-
-				var parser = new HtmlParser();
-				return await parser.ParseDocumentAsync(s, ct).ConfigureAwait(false);
-
-			}
-
-			return null;
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}!");
-			return null;
-		}
-	}
-
-	protected override string[] ErrorBodyMessages => ["Can't read query result!", "too large"];
-
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// Don't select other results
@@ -211,7 +209,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		}
 
 		var pages  = doc.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
-		var tables = ((IHtmlElement) pages).SelectNodes("div/table");
+		var tables = ((IHtmlElement) pages).SelectNodes(Serialization.S_Iqdb_DivTable);
 
 		// No relevant results?
 

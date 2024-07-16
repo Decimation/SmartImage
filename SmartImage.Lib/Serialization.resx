@@ -165,4 +165,7 @@
   <data name="S_Yandex_SimilarImages" xml:space="preserve">
     <value>.CbirSimilar-Thumb</value>
   </data>
+  <data name="S_Iqdb_DivTable" xml:space="preserve">
+    <value>div/table</value>
+  </data>
 </root>

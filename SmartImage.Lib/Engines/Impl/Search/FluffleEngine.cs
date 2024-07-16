@@ -80,21 +80,19 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			var item = result.Convert(sr, out var c);
 			sr.Results.Add(item);
 		}
-	
+
 		sr.Update();
 		return sr;
 	}
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
-		return  base.GetRawUrl(query);
+		return base.GetRawUrl(query);
 	}
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
 
-	public override void Dispose()
-	{
-	}
+	public override void Dispose() { }
 
 }
 

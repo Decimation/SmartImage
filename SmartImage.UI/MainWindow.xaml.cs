@@ -127,7 +127,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lb_Queue.ItemsSource = Queue;
 
 		// Client.OnResult   += OnResult;
-		Client.OnComplete += OnComplete;
+		Client.OnSearchComplete += OnComplete;
 
 #if !DEBUG
 		AppDomain.CurrentDomain.UnhandledException += Domain_UHException;
@@ -1111,7 +1111,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Pb_Preview.IsIndeterminate = true;
 
 		try {
-			var rg = await ImageScanner.RunGalleryAsync(cri.Url, m_ctsRun.Token);
+			var rg = await ImageScanner.RunGalleryDLAsync(cri.Url, m_ctsRun.Token);
 			cri.Result.Uni = rg;
 
 			for (int i = 0; i < rg.Length; i++) {

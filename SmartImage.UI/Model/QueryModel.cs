@@ -62,7 +62,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 
 			m_query = value;
 			OnPropertyChanged();
-			UpdateProperties();
+			// UpdateProperties();
 		}
 	}
 
@@ -92,9 +92,9 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 			m_results = value;
 
 			OnPropertyChanged();
-			OnPropertyChanged(nameof(IsPrimitive));
-			OnPropertyChanged(nameof(IsComplete));
-			OnPropertyChanged(nameof(CanSearch));
+			// OnPropertyChanged(nameof(IsPrimitive));
+			// OnPropertyChanged(nameof(IsComplete));
+			// OnPropertyChanged(nameof(CanSearch));
 		}
 	}
 

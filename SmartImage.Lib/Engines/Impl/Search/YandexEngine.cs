@@ -21,6 +21,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class YandexEngine : WebSearchEngine
 {
+
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
 		Timeout = TimeSpan.FromSeconds(30);
@@ -42,7 +43,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 		nodes.AddRange(nodes2);
 
-		if (nodes.Count==0) {
+		if (nodes.Count == 0) {
 			return null;
 		}
 
@@ -121,7 +122,7 @@ public sealed class YandexEngine : WebSearchEngine
 	{
 		// var sr = await base.GetResultAsync(query, token);
 
-		var url =  GetRawUrl(query);
+		var url = GetRawUrl(query);
 
 		var sr = new SearchResult(this)
 		{
@@ -191,7 +192,7 @@ public sealed class YandexEngine : WebSearchEngine
 		}
 		*/
 
-		ret:
+	ret:
 		sr.Update();
 		return sr;
 	}
@@ -212,7 +213,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 			results.Add(new SearchResultItem(r)
 			{
-				
+
 				Thumbnail = imgUrl,
 				Url       = imgUrl
 			});
@@ -233,8 +234,10 @@ public sealed class YandexEngine : WebSearchEngine
 		foreach (INode item in items) {
 			if (item is IHtmlElement elem) {
 				var title1 = elem.QuerySelector(".CbirSites-ItemTitle");
+
 				// var href1 = title1.Children[0].Attributes["href"];
 			}
+
 			// var thumb = item.ChildNodes[0];
 			var info  = item.ChildNodes[1];
 			var title = info.ChildNodes[0].TextContent;
@@ -267,6 +270,7 @@ public sealed class YandexEngine : WebSearchEngine
 		[
 			"Please confirm that you and not a robot are sending requests",
 			"Изображение не загрузилось, попробуйте загрузить другое."
+
 			// "No matching images found"
 		];
 
@@ -274,9 +278,10 @@ public sealed class YandexEngine : WebSearchEngine
 	{
 		var tagsItem = doc.Body.SelectNodes(NodesSelector);
 
-		if (tagsItem.Count==0) {
+		if (tagsItem.Count == 0) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
 			return await Task.FromResult(tagsItem.ToArray()).ConfigureAwait(false);
+
 			// return tagsItem;
 		}
 
@@ -299,6 +304,7 @@ public sealed class YandexEngine : WebSearchEngine
 		if (!w.HasValue || !h.HasValue) {
 			w = null;
 			h = null;
+
 			//link = null;
 		}
 
@@ -315,4 +321,5 @@ public sealed class YandexEngine : WebSearchEngine
 
 		return ValueTask.FromResult<SearchResultItem>(null);
 	}
+
 }

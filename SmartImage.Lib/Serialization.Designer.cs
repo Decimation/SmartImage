@@ -106,6 +106,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to div/table.
+        /// </summary>
+        internal static string S_Iqdb_DivTable {
+            get {
+                return ResourceManager.GetString("S_Iqdb_DivTable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to #pages &gt; div.nomatch.
         /// </summary>
         internal static string S_Iqdb_NoMatches {

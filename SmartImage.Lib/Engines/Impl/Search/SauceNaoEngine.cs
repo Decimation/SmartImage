@@ -9,12 +9,12 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
+using Kantan.Monad;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using static Kantan.Diagnostics.LogCategories;
-using static SmartImage.Lib.Engines.Impl.Search.SauceNaoEngine.SauceNaoConstants;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
 
@@ -63,15 +63,15 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 	{
 		var result = await base.GetResultAsync(query, token);
 
-		IEnumerable<SauceNaoDataResult> dataResults;
+		// IEnumerable<SearchResultItem> dataResults;
 
 		try {
 			if (UsingAPI) {
-				dataResults = await GetAPIResultsAsync(query);
+				await GetAPIResultsAsync(query, result);
 				Debug.WriteLine($"{Name} API key: {Authentication}");
 			}
 			else {
-				dataResults = await GetWebResultsAsync(query);
+				await GetWebResultsAsync(query, result);
 			}
 		}
 		catch (Exception e) {
@@ -80,7 +80,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 			return result;
 		}
 
-		if (!dataResults.Any()) {
+		if (!result.Results.Any()) {
 			result.ErrorMessage = "Daily search limit (50) exceeded";
 			result.Status       = SearchResultStatus.Cooldown;
 
@@ -88,7 +88,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 			goto ret;
 		}
 
-		var imageResults = dataResults.Where(o => o != null)
+		/*var imageResults = dataResults.Where(o => o != null)
 
 			// .AsParallel()
 			.SelectMany(x =>
@@ -112,7 +112,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 
 			goto ret;
 
-		}
+		}*/
 
 		result.Status = SearchResultStatus.Success;
 
@@ -129,7 +129,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 				ir.Children.AddRange(allSisters.Where(irs => irs.Parent == ir));
 			}*/
 
-		result.Results.AddRange(imageResults);
+		// result.Results.AddRange(imageResults);
 
 		// result.Results[0] = (imageResults.First());
 
@@ -142,80 +142,18 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		return result;
 	}
 
-	public override void Dispose() { }
-
-	private async Task<IEnumerable<SauceNaoDataResult>> GetWebResultsAsync(SearchQuery query)
-	{
-		Trace.WriteLine($"{Name}: | Parsing HTML", C_INFO);
-
-		var docp = new HtmlParser();
-
-		string         html     = null;
-		IFlurlResponse response = null;
-
-		response = await EndpointUrl.AllowHttpStatus()
-			           .OnError(x =>
-			           {
-
-				           x.ExceptionHandled = true;
-
-				           /*if (x.Exception is FlurlHttpException ex) {
-						           if (ex.StatusCode == (int)HttpStatusCode.TooManyRequests) { }
-					           }*/
-
-				           // html = await ((FlurlHttpException) x.Exception).GetResponseStringAsync();
-			           })
-			           .WithTimeout(Timeout)
-			           .PostMultipartAsync(m =>
-			           {
-				           m.AddString("url", query.Image.IsUri ? query.Image.ValueString : string.Empty);
-
-				           if (query.Image.IsUri) { }
-				           else if (query.Image.IsFile) {
-					           m.AddFile("file", query.Image.Value.ToString(), fileName: "image.png");
-				           }
-
-			           });
-
-		html = await response.GetStringAsync();
-
-		/*
-		 * Daily Search Limit Exceeded.
-		 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
-		 */
-
-		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
-			Trace.WriteLine("On cooldown!", Name);
-			return await Task.FromResult(Enumerable.Empty<SauceNaoDataResult>());
-		}
-
-		// html = await e.GetResponseStringAsync();
-
-		/*try { }
-		catch (FlurlHttpException e) { }*/
-
-		/*var raw=await GetRawUrlAsync(query);
-		var html2=await raw.GetStringAsync();*/
-
-		var doc = await docp.ParseDocumentAsync(html);
-
-		var results = doc.Body.SelectNodes("//div[@class='result']");
-
-		return results.Select(Parse).ToList();
-	}
-
-	private static SauceNaoDataResult Parse(INode result)
+	private static IEnumerable<SearchResultItem> Parse(INode result, SearchResult sr)
 	{
 		// TODO: OPTIMIZE
 
 		if (result == null) {
-			return null;
+			return [];
 		}
 
 		const string HIDDEN_ID_VAL = "result-hidden-notification";
 
 		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
-			return null;
+			return [];
 		}
 
 		var resultElem = result as IHtmlElement;
@@ -292,7 +230,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
 
 		// string material1 = rcci.SubstringAfter(material);
-		string material1 = rcci.SubstringAfter(Material);
+		string material1 = rcci.SubstringAfter(SauceNaoDataResult.KEY_MATERIAL);
 
 		// string creator1 = rcci;
 		string creator1 = rcci;
@@ -300,7 +238,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		// string characters1  = null;
 		bool rtiHasArtist = false;
 
-		foreach (var s in Syn_Artists) {
+		foreach (var s in SauceNaoDataResult.Keys_Artist) {
 			if (rti.StartsWith(s)) {
 				rti          = rti.SubstringAfter(s).Trim(' ');
 				rtiHasArtist = true;
@@ -314,51 +252,130 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 
 		float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
 
-		var sndr = new SauceNaoDataResult
+		var results = new List<SearchResultItem>();
+
+		var urls = links.Distinct().ToArray();
+
+		var sndr = new SearchResultItem(sr)
 		{
-			Urls           = links.Distinct().ToArray(),
+			Url            = urls.FirstOrDefault(),
 			Similarity     = similarity,
-			Material       = material1,
+			Source         = material1,
 			Thumbnail      = thumbnail,
 			ThumbnailTitle = thumbnailTitle
 
 		};
 
-		if (rtiHasArtist) {
-			sndr.Creator = rti;
+		if (rtiHasArtist &&  String.IsNullOrWhiteSpace(sndr.Artist)) {
+			// sndr.Creator = rti;
+			// Debugger.Break();
+			sndr.Artist = rti;
 		}
 
 		for (int i = 0; i < nodes.Length; i++) {
-			var node = nodes[i];
-			var s    = node.TextContent;
+			var node     = nodes[i];
+			var nodeText = node.TextContent;
 
-			if (s.StartsWith(Source)) {
+			if (nodeText.StartsWith(SauceNaoDataResult.KEY_SOURCE)) {
 				sndr.Source = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
-			if (s.StartsWith(Material)) {
-				sndr.Material = nodes[++i].TextContent.Trim(' ');
+			if (nodeText.StartsWith(SauceNaoDataResult.KEY_MATERIAL)) {
+				sndr.Source = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
-			if (Syn_Characters.Any(s.StartsWith)) {
+			if (SauceNaoDataResult.Keys_Characters.Any(nodeText.StartsWith)) {
 				sndr.Character = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
-			if (Syn_Artists.Any(s.StartsWith) || s.StartsWith(Twitter)) {
-				sndr.Creator = nodes[++i].TextContent.Trim(' ');
+			if (SauceNaoDataResult.Keys_Artist.Any(nodeText.StartsWith)
+			    || nodeText.StartsWith(SauceNaoDataResult.KEY_TWITTER)) {
+				sndr.Artist = nodes[++i].TextContent.Trim(' ');
 
 				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
 			}
 
 		}
 
-		return sndr;
+		results.Add(sndr);
+
+		if (urls.Length >= 1) {
+			var children = sndr.CreateChildren(urls[1..]);
+			results.AddRange(children);
+
+		}
+
+		return results;
 	}
 
-	private async Task<IEnumerable<SauceNaoDataResult>> GetAPIResultsAsync(SearchQuery url)
+	private async ValueTask GetWebResultsAsync(SearchQuery query, SearchResult sr)
+	{
+		Trace.WriteLine($"{Name}: | Parsing HTML", C_INFO);
+
+		var docp = new HtmlParser();
+
+		string         html     = null;
+		IFlurlResponse response = null;
+
+		response = await EndpointUrl.AllowHttpStatus()
+			           .OnError(x =>
+			           {
+
+				           x.ExceptionHandled = true;
+
+				           /*if (x.Exception is FlurlHttpException ex) {
+						           if (ex.StatusCode == (int)HttpStatusCode.TooManyRequests) { }
+					           }*/
+
+				           // html = await ((FlurlHttpException) x.Exception).GetResponseStringAsync();
+			           })
+			           .WithTimeout(Timeout)
+			           .PostMultipartAsync(m =>
+			           {
+				           m.AddString("url", query.Image.IsUri ? query.Image.ValueString : string.Empty);
+
+				           if (query.Image.IsUri) { }
+				           else if (query.Image.IsFile) {
+					           m.AddFile("file", query.Image.Value.ToString(), fileName: "image.png");
+				           }
+
+			           });
+
+		html = await response.GetStringAsync();
+
+		/*
+		 * Daily Search Limit Exceeded.
+		 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
+		 */
+
+		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
+			Trace.WriteLine("On cooldown!", Name);
+			return;
+		}
+
+		// html = await e.GetResponseStringAsync();
+
+		/*try { }
+		catch (FlurlHttpException e) { }*/
+
+		/*var raw=await GetRawUrlAsync(query);
+		var html2=await raw.GetStringAsync();*/
+
+		var doc = await docp.ParseDocumentAsync(html);
+
+		var results = doc.Body.SelectNodes("//div[@class='result']");
+
+		foreach (INode result in results) {
+			var buf = Parse(result, sr);
+			sr.Results.AddRange(buf);
+		}
+
+	}
+
+	private async ValueTask GetAPIResultsAsync(SearchQuery url, SearchResult sr)
 	{
 		Trace.WriteLine($"{Name} | API");
 
@@ -386,7 +403,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		var c = await res.GetStringAsync();
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden) {
-			return null;
+			return;
 		}
 
 		// Excerpts of code adapted from https://github.com/Lazrius/SharpNao/blob/master/SharpNao.cs
@@ -418,7 +435,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 
 			string json = jsonArray.ToString();
 
-			var buffer      = new List<SauceNaoDataResult>();
+			// var buffer      = new List<SearchResultItem>();
 			var resultArray = JsonValue.Parse(json);
 
 			for (int i = 0; i < resultArray.Count; i++) {
@@ -433,38 +450,25 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 
 				var index = (SauceNaoSiteIndex) int.Parse(result[KeyIndex].ToString());
 
-				var item = new SauceNaoDataResult
-				{
-					Urls       = strings,
-					Similarity = similarity,
-					Index      = index,
-					Creator    = result.TryGetKeyValue(KeyCreator)?.ToString().CleanString(),
-					Character  = result.TryGetKeyValue(KeyCharacters)?.ToString().CleanString(),
-					Material   = result.TryGetKeyValue(KeyMaterial)?.ToString().CleanString()
-				};
+				for (int j = 0; j < strings.Length; j++) {
+					var item = new SearchResultItem(sr)
+					{
+						Url        = strings[j],
+						Similarity = similarity,
+						Site       = index.ToString(),
+						Artist     = result.TryGetKeyValue(KeyCreator)?.ToString().CleanString(),
+						Character  = result.TryGetKeyValue(KeyCharacters)?.ToString().CleanString(),
+						Source     = result.TryGetKeyValue(KeyMaterial)?.ToString().CleanString()
+					};
+					sr.Results.Add(item);
 
-				buffer.Add(item);
+				}
 			}
 
-			return await Task.FromResult(buffer.ToArray()).ConfigureAwait(false);
+			return;
 		}
 
-		return null;
-	}
-
-	internal static class SauceNaoConstants
-	{
-
-		public const string Twitter = "Twitter:";
-		public const string TweetID = "Tweet ID:";
-
-		public const string Material = "Material:";
-		public const string Source   = "Source:";
-
-		public static readonly string[] Syn_Artists = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
-
-		public static readonly string[] Syn_Characters = ["Characters:"];
-
+		return;
 	}
 
 	public ValueTask ApplyAsync(SearchConfig cfg)
@@ -472,6 +476,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		Authentication = cfg.SauceNaoKey;
 		return ValueTask.CompletedTask;
 	}
+
+	public override void Dispose() { }
 
 }
 
@@ -571,6 +577,18 @@ public sealed class SauceNaoDataResult : IResultConvertable
 		return imageResult;
 
 	}
+
+	internal const string KEY_TWITTER = "Twitter:";
+
+	internal const string KEY_TWEET_ID = "Tweet ID:";
+
+	internal const string KEY_MATERIAL = "Material:";
+
+	internal const string KEY_SOURCE = "Source:";
+
+	internal static readonly string[] Keys_Artist = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
+
+	internal static readonly string[] Keys_Characters = ["Characters:"];
 
 }
 
