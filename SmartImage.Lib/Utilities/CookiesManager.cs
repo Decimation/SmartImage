@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using System.Runtime.Caching;
 using Flurl.Http;
 using Kantan.Net.Web;
 
@@ -9,7 +10,6 @@ namespace SmartImage.Lib.Utilities;
 
 public class CookiesManager : IDisposable
 {
-
 	// TODO
 
 	// [DebuggerHidden]

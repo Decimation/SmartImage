@@ -230,7 +230,6 @@ public sealed class SearchClient : IDisposable
 
 	private static void OpenResult([MN] Url url1)
 	{
-
 		if (url1 == null) {
 			return;
 		}
@@ -305,17 +304,25 @@ public sealed class SearchClient : IDisposable
 
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
+		if (Config.ReadCookies) {
+			if (await CookiesManager.Instance.LoadCookiesAsync()) {
+				
+			}
+		}
+
 		foreach (BaseSearchEngine bse in Engines) {
 			if (bse is IConfig cfg) {
 				await cfg.ApplyAsync(Config);
 			}
 
 			if (Config.ReadCookies && bse is ICookieEngine ce) {
-				await ce.ApplyCookiesAsync();
+				await ce.ApplyCookiesAsync(CookiesManager.Instance.Cookies);
 
 				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 			}
 		}
+
+		// CookiesManager.Instance.Dispose();
 
 		s_logger.LogDebug("Loaded engines");
 		ConfigApplied = true;

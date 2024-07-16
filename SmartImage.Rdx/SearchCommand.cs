@@ -334,26 +334,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
 			run = AConsole.Live(m_table)
 				.StartAsync(RunSearchWithLiveAsync)
-				.ContinueWith(async (c, x) =>
-				{
-
-					SelectionPrompt<SearchResultItem> prompt = GetPrompt();
-
-					// var ac = AConsole.Prompt(prompt);
-					// Debug.WriteLine($"{ac}");
-
-					SearchResultItem res;
-
-					do {
-						AConsole.Clear();
-
-						// res = await prompt.ShowAsync(AConsole.Console, (CancellationToken) x);
-						res = AConsole.Prompt(prompt);
-						Debug.WriteLine($">> {res}");
-					} while (res != null);
-
-					return res;
-				}, m_cts.Token);
+				.ContinueWith(ShowPromptAsync, m_cts.Token);
 
 		}
 		else {
@@ -396,7 +377,41 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		return EC_OK;
 	}
 
-	private SelectionPrompt<SearchResultItem> GetPrompt()
+	private async Task<SearchResult> ShowPromptAsync(Task c, object x)
+	{
+
+		SelectionPrompt<SearchResult> prompt = CreatePrompt();
+
+		// var ac = AConsole.Prompt(prompt);
+		// Debug.WriteLine($"{ac}");
+
+		SearchResult res;
+
+		do {
+			AConsole.Clear();
+
+			// res = await prompt.ShowAsync(AConsole.Console, (CancellationToken) x);
+			res = AConsole.Prompt(prompt);
+			Debug.WriteLine($">> {res}");
+
+			SearchResultItem res2;
+
+			do {
+				SelectionPrompt<SearchResultItem> prompt2 = CreatePrompt2(res);
+
+				res2 = AConsole.Prompt(prompt2);
+			} while (res2 != null);
+
+		} while (res != null);
+
+		return res;
+	}
+
+	#endregion
+
+	#region
+
+	/*private SelectionPrompt<SearchResultItem> CreatePrompt()
 	{
 		var prompt = new SelectionPrompt<SearchResultItem>()
 		{
@@ -404,7 +419,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 			Title         = "Results",
 			Converter = str =>
 			{
-				var i = str.Root.Results.IndexOf(str);
+				var i    = str.Root.Results.IndexOf(str);
 				var name = str.Root.Engine.Name;
 
 				return $"{name} {i}";
@@ -424,11 +439,47 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		}
 
 		return prompt;
+	}*/
+
+	private static SelectionPrompt<SearchResultItem> CreatePrompt2(SearchResult res)
+	{
+		var prompt2 = new SelectionPrompt<SearchResultItem>()
+		{
+			Converter = r =>
+			{
+				return $"{r.Url}";
+			},
+			SearchEnabled = true
+		};
+
+		prompt2.AddChoices(res.Results);
+		return prompt2;
 	}
 
-	#endregion
+	private SelectionPrompt<SearchResult> CreatePrompt()
+	{
+		var prompt = new SelectionPrompt<SearchResult>()
+		{
+			SearchEnabled = true,
+			Title         = "Results",
+			Converter = str =>
+			{
+				var name = str.Engine.Name;
 
-	#region
+				return $"{name}";
+			},
+
+			// PageSize = AConsole.Console.Profile.Height - 5,
+
+			// DisabledStyle        = Style.Plain,
+			// HighlightStyle       = new Style(Color.Yellow),
+			// SearchHighlightStyle = new Style(background: Color.Yellow),
+		};
+
+		prompt.AddChoices(m_results);
+
+		return prompt;
+	}
 
 	private static STable CreateResultTable()
 	{
