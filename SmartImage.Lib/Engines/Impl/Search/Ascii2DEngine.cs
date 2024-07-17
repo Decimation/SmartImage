@@ -40,7 +40,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		bool ok = q.HasImage;
 
 		if (!ok) {
-			ok = q.LoadImage();
+			ok = q.AllocImage();
 
 		}
 		if (ok) {

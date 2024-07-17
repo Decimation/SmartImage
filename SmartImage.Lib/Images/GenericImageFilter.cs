@@ -2,6 +2,7 @@
 // Date: 2024/05/02 @ 11:05:10
 
 using System.Diagnostics;
+using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.Lib.Images;
 
@@ -19,7 +20,7 @@ public class GenericImageFilter : IImageFilter
 	public bool Predicate(UniImage us)
 	{
 		try {
-			if (us.Stream.Length <= 25_000 || us.Info.DefaultMimeType == null) {
+			if (us.Stream.Length <= 25_000 || us.ImageFormat.DefaultMimeType == null) {
 				return false;
 			}
 

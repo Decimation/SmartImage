@@ -1,6 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: IImageFilter.cs
 // Date: 2024/05/02 @ 11:05:28
 
+using SmartImage.Lib.Images.Uni;
+
 namespace SmartImage.Lib.Images;
 // todo
 

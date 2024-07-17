@@ -8,6 +8,7 @@ using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 

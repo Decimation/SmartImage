@@ -1,9 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImage.cs
 // Date: 2024/05/02 @ 10:05:55
 
+global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 using System.Diagnostics;
-using System.Net;
-using Flurl.Http;
 using JetBrains.Annotations;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
@@ -16,10 +15,10 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Model;
 
-namespace SmartImage.Lib.Images;
+namespace SmartImage.Lib.Images.Uni;
 
 /// <summary>
-/// <seealso cref="Novus.FileTypes.Uni.UniSourceType"/>
+/// <seealso cref="UniSourceType"/>
 /// </summary>
 public enum UniImageType
 {
@@ -31,23 +30,34 @@ public enum UniImageType
 
 }
 
-/// <summary>
-/// <seealso cref="Novus.FileTypes.Uni.UniSource"/>
-/// </summary>
-public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>
+public interface IUniImage
 {
 
-	public Stream Stream { get; internal init; }
+	public static abstract IUniImage TryCreate(object o, CancellationToken ct = default);
 
-	public object Value { get; internal init; }
+}
 
-	public UniImageType Type { get; internal init; }
+/// <summary>
+/// <seealso cref="UniSource"/>
+/// </summary>
+public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>, IUniImage
+{
+
+	[MN]
+	public Stream Stream { get; protected set; }
+
+	[MNNW(true, nameof(Stream))]
+	public bool HasStream => Stream != Stream.Null;
+
+	public object Value { get; protected init; }
+
+	public UniImageType Type { get; }
 
 	public long Size
 	{
 		get
 		{
-			if (HasValue && Stream.CanRead) {
+			if (HasStream && Stream.CanRead) {
 				return Stream.Length;
 			}
 
@@ -55,11 +65,8 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 		}
 	}
 
-	[CBN]
-	public string ValueString => HasValue ? Value.ToString() : null;
-
-	[MNNW(true, nameof(Value))]
-	public bool HasValue => Value != null;
+	[MN]
+	public string ValueString => Value?.ToString();
 
 	[MN]
 	public string FilePath { get; private set; }
@@ -68,10 +75,10 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 	public bool HasFile => FilePath != null && File.Exists(FilePath);
 
 	[MN]
-	public IImageFormat Info { get; private init; }
+	public IImageFormat ImageFormat { get; private set; }
 
-	[MNNW(true, nameof(Info))]
-	public bool HasInfo => Info != null;
+	[MNNW(true, nameof(ImageFormat))]
+	public bool HasImageFormat => ImageFormat != null;
 
 	public bool IsUri => Type == UniImageType.Uri;
 
@@ -79,128 +86,83 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 
 	public bool IsStream => Type == UniImageType.Stream;
 
+	public bool IsUnknown => Type == UniImageType.Unknown;
+
 	[MN]
-	public Image Image { get; private set; }
+	public ISImage Image { get; protected set; }
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
-	public static readonly UniImage Null = new();
+	public static readonly UniImage Null = new UniImageUnknown();
 
-	internal UniImage(object value, Stream stream, UniImageType type, IImageFormat format)
+	private protected UniImage(object value, UniImageType type, IImageFormat format = null)
+		: this(value, Stream.Null, type, format) { }
+
+	private protected UniImage(object value, Stream stream, UniImageType type, IImageFormat format)
 	{
-		Stream = stream;
-		Value  = value;
-		Type   = type;
-		Info   = format;
+		Stream      = stream;
+		Value       = value;
+		Type        = type;
+		ImageFormat = format;
 	}
 
-	internal UniImage(object value, Stream stream, UniImageType type)
-		: this(value, stream, type, null) { }
-
-	private UniImage() : this(null, Stream.Null, UniImageType.Unknown) { }
-
-	public static async Task<UniImage> TryCreateAsync(object o, CancellationToken t = default)
+	/// <summary>
+	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
+	/// </summary>
+	/// <param name="o">Binary data</param>
+	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
+	                                                  CancellationToken t = default)
 	{
+		UniImage ui = Null;
 
 		try {
-			Stream                str;
-			IImageFormat          fmt;
-			UniImageType qt;
-			string                s = null;
 
-			if (IsFileType(o, out var fi)) {
-				// var s = ((FileInfo) fi).FullName;
-				s   = (string) o;
-				str = File.OpenRead(s);
-				qt  = UniImageType.File;
+			if (UniImageFile.IsFileType(o, out var fi)) {
+				ui = new UniImageFile((string) o, fi);
 			}
-			else if (IsUriType(o, out var url2)) {
-				var res = await HandleUriAsync(url2, t);
-				str = await res.GetStreamAsync();
-				qt  = UniImageType.Uri;
+			else if (UniImageUri.IsUriType(o, out var url2)) {
+
+				ui = new UniImageUri(o, url2);
 			}
 			else if (o is Stream) {
-				str = (Stream) o;
-				qt  = UniImageType.Stream;
+				ui = new UniImageStream(o);
 			}
 			else {
-				return Null;
+
+				goto ret;
 			}
 
-			str.TrySeek();
+			if (autoInit) {
+				var allocOk = await ui.Alloc(t);
+				var hasInfo = await ui.DetectFormat(t);
+			}
 
-			fmt = await ISImage.DetectFormatAsync(str, t);
-
-			str.TrySeek();
-
-			var query = new UniImage(o, str, qt, fmt)
-			{
-				FilePath = s
-			};
-			return query;
 		}
 		catch (Exception e) {
 			// str?.Dispose();
-			return Null;
-		}
-	}
-
-	public static async ValueTask<IFlurlResponse> HandleUriAsync(Url value, CancellationToken ct)
-	{
-		// value = value.CleanString();
-		if (value.Scheme == "javascript") {
-			throw new ArgumentException($"{value}");
 		}
 
-		var res = await value.AllowAnyHttpStatus()
-			          .WithHeaders(new
-			          {
-				          // todo
-				          User_Agent = R1.UserAgent1,
-			          })
-			          .GetAsync(cancellationToken: ct);
-
-		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
-			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
-		}
-
-		return res;
+	ret:
+		return ui;
 	}
 
 	#region
 
-	public static bool IsStreamType(object o, out Stream t2)
+	public virtual async ValueTask<bool> DetectFormat(CancellationToken ct = default)
 	{
-		t2 = Stream.Null;
-
-		if (o is Stream sz) {
-			t2 = sz;
+		if (!HasStream) {
+			throw new InvalidOperationException($"{nameof(Stream)} must be allocated");
 		}
 
-		return t2 != Stream.Null;
-	}
+		Stream.TrySeek();
 
-	public static bool IsUriType(object o, out Url u)
-	{
-		u = o switch
-		{
-			Url u2   => u2,
-			string s => s,
-			_        => null
-		};
-		return Url.IsValid(u) && u.Scheme != "file";
-	}
+		ImageFormat = await ISImage.DetectFormatAsync(Stream, ct);
 
-	public static bool IsFileType(object o, out FileInfo f)
-	{
-		f = null;
+		Stream.TrySeek();
 
-		if (o is string { } s && File.Exists(s)) {
-			f = new FileInfo(s);
-		}
+		return HasImageFormat;
 
-		return f != null;
 	}
 
 	public static bool IsValidSourceType(object str, bool checkExt = true)
@@ -209,9 +171,9 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 		/*bool isFile   = UniSourceFile.IsType(str, out var f);
 		bool isUri    = UniSourceUrl.IsType(str, out var f2);
 		bool isStream = UniSourceStream.IsType(str, out var f3);*/
-		bool isFile   = IsFileType(str, out var f);
-		bool isUri    = IsUriType(str, out var f2);
-		bool isStream = IsStreamType(str, out var f3);
+		bool isFile   = UniImageFile.IsFileType(str, out var f);
+		bool isUri    = UniImageUri.IsUriType(str, out var f2);
+		bool isStream = UniImageStream.IsStreamType(str, out var f3);
 		bool ok       = isFile || isUri || isStream;
 
 		if (isFile && checkExt) {
@@ -225,7 +187,14 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 
 	#endregion
 
-	public async Task<bool> LoadImage(CancellationToken ct = default)
+	#region
+
+	public abstract ValueTask<bool> Alloc(CancellationToken ct = default);
+
+	/// <summary>
+	/// Allocates <see cref="Image"/>
+	/// </summary>
+	public async Task<bool> AllocImage(CancellationToken ct = default)
 	{
 		if (!HasImage) {
 			Image = await ISImage.LoadAsync(Stream, ct);
@@ -235,9 +204,11 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 		return HasImage;
 	}
 
+	#endregion
+
 	public bool TryGetFile(string fn = null)
 	{
-		if (!HasFile && HasValue) {
+		if (!HasFile) {
 			FilePath = WriteToFile(fn);
 
 		}
@@ -255,12 +226,9 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 		return !HasFile;
 	}
 
-	[MustUseReturnValue]
+	[MURV]
 	public string WriteToFile(Action<IImageProcessingContext> operation = null, [CBN] string fn = null)
 	{
-		if (!HasValue) {
-			throw new InvalidOperationException();
-		}
 
 		string t;
 		fn ??= Path.GetTempFileName();
@@ -281,13 +249,10 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 		return fn;
 	}
 
-	[MustUseReturnValue]
+	[MURV]
 	[ICBN]
 	public string WriteToFile(string fn = null)
 	{
-		if (!HasValue) {
-			throw new InvalidOperationException($"{nameof(HasValue)} is {false}");
-		}
 
 		string t;
 		fn ??= Path.GetTempFileName();
@@ -316,7 +281,7 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 		return t;
 	}
 
-	public void Dispose()
+	public virtual void Dispose()
 	{
 		Stream?.Dispose();
 		Image?.Dispose();
@@ -325,7 +290,7 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 	}
 
-	public async ValueTask DisposeAsync()
+	public virtual async ValueTask DisposeAsync()
 	{
 		if (Stream != null)
 			await Stream.DisposeAsync();
@@ -333,9 +298,14 @@ public class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<Uni
 
 	public override string ToString()
 	{
-		string s = $"{ValueString} ({Type}) [{Info.DefaultMimeType}]";
+		string s = $"{ValueString} ({Type}) [{ImageFormat.DefaultMimeType}]";
 
 		return s;
+	}
+
+	public static IUniImage TryCreate(object o, CancellationToken ct = default)
+	{
+		throw new NotImplementedException();
 	}
 
 	#region Equality members

@@ -44,6 +44,18 @@ public static class Program
 #if DEBUG
 		Debugger.Launch();
 #endif
+		if (!args.Any()) {
+			var prompt = new TextPrompt<string>("Input")
+			{
+				Converter = s =>
+				{
+					var task = SearchQuery.TryCreateAsync(s);
+					var aw   = task.GetAwaiter();
+					aw.OnCompleted(() => { });
+				}
+			};
+			args = AConsole.Prompt(prompt);
+		}
 
 		if (Console.IsInputRedirected) {
 			var pipeInput = ConsoleUtil.ParseInputStream();

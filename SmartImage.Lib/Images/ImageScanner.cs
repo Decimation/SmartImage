@@ -18,6 +18,7 @@ using Novus.OS;
 using Novus.Utilities;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
@@ -74,7 +75,7 @@ public static class ImageScanner
 				uf?.Dispose();
 				goto ret;
 			}*/
-			if (uf.Info.DefaultMimeType != null) {
+			if (uf.ImageFormat.DefaultMimeType != null) {
 				ul.Add(uf);
 				goto ret;
 
@@ -171,7 +172,7 @@ public static class ImageScanner
 	/*public static bool UniImagePredicate(UniImage us)
 	{
 		try {
-			if (us.Stream.Length <= 25_000 || us.Info?.DefaultMimeType == null) {
+			if (us.Stream.Length <= 25_000 || us.ImageFormat?.DefaultMimeType == null) {
 				return false;
 			}
 

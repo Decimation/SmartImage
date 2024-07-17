@@ -22,7 +22,7 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using SixLabors.ImageSharp.Formats;
-using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 
 [assembly: InternalsVisibleTo("SmartImage")]
 [assembly: InternalsVisibleTo("SmartImage.UI")]
@@ -58,7 +58,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var task = await UniImage.TryCreateAsync(o, t);
+		var task = await UniImage.TryCreateAsync(o);
 
 		if (task != UniImage.Null) {
 			return new SearchQuery(task);
@@ -233,7 +233,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 	[MNNW(true, nameof(FilePath))]
 	public bool HasFile => FilePath != null;
 
-	public bool LoadImage()
+	public bool AllocImage()
 	{
 		if (HasUni && ImageInfo == null) {
 			if (HasFile) {
@@ -272,7 +272,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, IItemSiz
 			var sq = new SearchQuery(uf)
 				{ };
 
-			// sq.LoadImage();
+			// sq.AllocImage();
 
 			return sq;
 

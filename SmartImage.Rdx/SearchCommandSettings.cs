@@ -7,7 +7,7 @@ using System.Text;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli;
 using ValidationResult = Spectre.Console.ValidationResult;
