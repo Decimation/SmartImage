@@ -107,6 +107,11 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		ImageFormat = format;
 	}
 
+	public static IUniImage TryCreate(object o, CancellationToken ct = default)
+	{
+		throw new NotImplementedException();
+	}
+
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
@@ -125,8 +130,8 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 				ui = new UniImageUri(o, url2);
 			}
-			else if (o is Stream) {
-				ui = new UniImageStream(o);
+			else if (o is Stream stream) {
+				ui = new UniImageStream(o, stream);
 			}
 			else {
 
@@ -301,11 +306,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		string s = $"{ValueString} ({Type}) [{ImageFormat.DefaultMimeType}]";
 
 		return s;
-	}
-
-	public static IUniImage TryCreate(object o, CancellationToken ct = default)
-	{
-		throw new NotImplementedException();
 	}
 
 	#region Equality members

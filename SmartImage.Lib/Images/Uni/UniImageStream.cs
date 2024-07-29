@@ -20,7 +20,7 @@ public class UniImageStream : UniImage, IUniImage
 		return null;
 	}
 
-	private static bool IsStreamType(object o, out Stream t2)
+	public static bool IsStreamType(object o, out Stream t2)
 	{
 		t2 = Stream.Null;
 

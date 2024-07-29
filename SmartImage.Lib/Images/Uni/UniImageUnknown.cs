@@ -6,7 +6,7 @@ namespace SmartImage.Lib.Images.Uni;
 public class UniImageUnknown : UniImage, IUniImage
 {
 
-	internal UniImageUnknown() : base(null, Stream.Null, UniImageType.Unknown) { }
+	internal UniImageUnknown() : base(null, UniImageType.Unknown) { }
 
 	static IUniImage IUniImage.TryCreate(object o, CancellationToken ct = default)
 	{
