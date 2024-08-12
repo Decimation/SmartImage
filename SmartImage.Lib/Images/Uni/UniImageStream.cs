@@ -5,20 +5,12 @@ using SixLabors.ImageSharp.Formats;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public class UniImageStream : UniImage, IUniImage
+public class UniImageStream : UniImage
 {
 
 	internal UniImageStream(object value, Stream str, IImageFormat format = null)
 		: base(value, str, UniImageType.Stream, format) { }
 
-	static IUniImage IUniImage.TryCreate(object o, CancellationToken ct = default)
-	{
-		if (IsStreamType(o, out var str)) {
-			return new UniImageStream(o, str);
-		}
-
-		return null;
-	}
 
 	public static bool IsStreamType(object o, out Stream t2)
 	{

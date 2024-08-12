@@ -5,8 +5,8 @@ using SixLabors.ImageSharp.Formats;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public class UniImageFile : UniImage, IUniImage
-{
+public class UniImageFile : UniImage
+{	
 
 	internal UniImageFile(object value, FileInfo fi, IImageFormat format = null)
 		: base(value, UniImageType.File, format)
@@ -16,14 +16,7 @@ public class UniImageFile : UniImage, IUniImage
 
 	public FileInfo FileInfo { get; }
 
-	static IUniImage IUniImage.TryCreate(object o, CancellationToken ct = default)
-	{
-		if (IsFileType(o, out var fi)) {
-			return new UniImageFile(o, fi);
-		}
-
-		return Null;
-	}
+	
 
 	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
 	{

@@ -74,7 +74,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 				return Query.Image.Size;
 			}
 
-			return Native.INVALID;
+			return Native.ERROR_SV;
 		}
 	}
 

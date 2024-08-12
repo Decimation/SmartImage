@@ -9,6 +9,7 @@ using Kantan.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.UI.Controls;
 
@@ -124,7 +125,7 @@ public static class ControlsHelper
 
 		i = FormatDimensions(w, h);
 
-		return $"{name} ⇉ [{uni.Info.DefaultMimeType}] [{bytes}] • {i}";
+		return $"{name} ⇉ [{uni.ImageFormat.DefaultMimeType}] [{bytes}] • {i}";
 	}
 
 	public static string FormatSize(UniImage uni)

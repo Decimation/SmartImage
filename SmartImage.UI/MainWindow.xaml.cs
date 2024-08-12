@@ -69,6 +69,7 @@ using System.Reflection;
 using DynamicData;
 using SmartImage.UI.Controls;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 

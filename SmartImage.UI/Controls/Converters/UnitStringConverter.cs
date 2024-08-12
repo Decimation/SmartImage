@@ -14,24 +14,23 @@ namespace SmartImage.UI.Controls.Converters;
 internal class UnitStringConverter : IValueConverter
 {
 
-    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        var val = (long)value;
+	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		var val = (long) value;
 
-        string bytes;
+		string bytes;
 
-        if (val == Native.INVALID)
-        {
-            bytes = "N/A";
-        }
-        else bytes = FormatHelper.FormatBytes(val);
+		if (val == Native.ERROR_SV) {
+			bytes = "N/A";
+		}
+		else bytes = FormatHelper.FormatBytes(val);
 
-        return bytes;
-    }
+		return bytes;
+	}
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        return null;
-    }
+	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		return null;
+	}
 
 }

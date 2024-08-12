@@ -7,7 +7,7 @@ using SixLabors.ImageSharp.Formats;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public class UniImageUri : UniImage, IUniImage
+public class UniImageUri : UniImage
 {
 
 	public IFlurlResponse Response { get; private set; }
@@ -53,15 +53,6 @@ public class UniImageUri : UniImage, IUniImage
 		Response = await GetResponseAsync(Url, ct);
 
 		return HasResponse;
-	}
-
-	static IUniImage IUniImage.TryCreate(object o, CancellationToken ct = default)
-	{
-		if (IsUriType(o, out var u)) {
-			return new UniImageUri(o, u);
-		}
-
-		return Null;
 	}
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)

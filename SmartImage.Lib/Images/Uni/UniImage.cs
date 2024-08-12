@@ -3,6 +3,8 @@
 
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 using System.Diagnostics;
+using System.Text;
+using System.Threading.Channels;
 using JetBrains.Annotations;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
@@ -30,17 +32,10 @@ public enum UniImageType
 
 }
 
-public interface IUniImage
-{
-
-	public static abstract IUniImage TryCreate(object o, CancellationToken ct = default);
-
-}
-
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>
-public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>, IUniImage
+public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>
 {
 
 	[MN]
@@ -107,10 +102,9 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		ImageFormat = format;
 	}
 
-	public static IUniImage TryCreate(object o, CancellationToken ct = default)
-	{
-		throw new NotImplementedException();
-	}
+	#region
+
+	
 
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
@@ -151,8 +145,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	ret:
 		return ui;
 	}
-
-	#region
 
 	public virtual async ValueTask<bool> DetectFormat(CancellationToken ct = default)
 	{

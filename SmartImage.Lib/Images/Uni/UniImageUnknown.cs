@@ -3,15 +3,12 @@
 
 namespace SmartImage.Lib.Images.Uni;
 
-public class UniImageUnknown : UniImage, IUniImage
+public class UniImageUnknown : UniImage
 {
 
 	internal UniImageUnknown() : base(null, UniImageType.Unknown) { }
 
-	static IUniImage IUniImage.TryCreate(object o, CancellationToken ct = default)
-	{
-		return new UniImageUnknown();
-	}
+	
 
 	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
 	{

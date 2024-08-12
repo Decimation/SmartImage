@@ -149,7 +149,7 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 
 	public bool IsSister { get; internal init; }
 
-	public virtual long Size => Native.INVALID;
+	public virtual long Size => Native.ERROR_SV;
 
 	private double m_previewProgress;
 

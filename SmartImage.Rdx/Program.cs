@@ -4,11 +4,13 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Channels;
 using Kantan.Text;
 using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
+using SmartImage.Lib.Images.Uni;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
@@ -44,18 +46,32 @@ public static class Program
 #if DEBUG
 		Debugger.Launch();
 #endif
-		if (args.Length == 0) {
-			/*var prompt = new TextPrompt<string>("Input")
+		/*if (args.Length == 0) {
+			var prompt = new TextPrompt<string>("Input")
 			{
 				Converter = s =>
 				{
+					/*
 					var task = SearchQuery.TryCreateAsync(s);
 					task.Wait();
-					
+					var res = task.Result;
+					#1#
+
+					if (UniImage.IsValidSourceType(s)) {
+						// var sq = SearchQuery.TryCreateAsync(s).Result;
+
+						return s;
+					}
+
+					else {
+						return null;
+					}
 				}
 			};
-			args = AConsole.Prompt(prompt);*/
-		}
+			var sz = AConsole.Prompt(prompt);
+
+			args = [sz];
+		}*/
 
 		if (Console.IsInputRedirected) {
 			var pipeInput = ConsoleUtil.ParseInputStream();

@@ -19,6 +19,7 @@ using Novus.OS;
 using Novus.Streams;
 using Novus.Win32;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Controls;
@@ -41,7 +42,7 @@ public class UniResultItem : ResultItem
 				return Uni.Stream.Length;
 			}
 
-			return Native.INVALID;
+			return Native.ERROR_SV;
 		}
 	}
 
@@ -79,7 +80,7 @@ public class UniResultItem : ResultItem
 				Url = ri.Url.GetFileName().Split(':')[0];
 
 				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
-					Url = Path.ChangeExtension(Url, Uni.Info.FileExtensions.First());
+					Url = Path.ChangeExtension(Url, Uni.ImageFormat.FileExtensions.First());
 				}
 			}
 			else {
