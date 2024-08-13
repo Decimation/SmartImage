@@ -88,13 +88,11 @@ public sealed class SearchClient : IDisposable
 
 	public delegate void SearchCompleteCallback(object sender, SearchResult[] e);
 
-	public delegate void ResultOpenCallback(object sender, SearchResultItem e);
 
 	public event ResultCompleteCallback OnResultComplete;
 
 	public event SearchCompleteCallback OnSearchComplete;
 
-	public event ResultOpenCallback OnResultOpen;
 
 	public Channel<SearchResult> ResultChannel { get; private set; }
 
@@ -257,7 +255,6 @@ public sealed class SearchClient : IDisposable
 
 #pragma warning restore CA1822
 #endif
-		OnResultOpen?.Invoke(this, result);
 
 		if (result != null) {
 

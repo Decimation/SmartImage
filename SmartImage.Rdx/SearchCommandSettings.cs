@@ -14,7 +14,7 @@ using ValidationResult = Spectre.Console.ValidationResult;
 
 namespace SmartImage.Rdx;
 
-internal sealed class SearchCommandSettings : CommandSettings
+public sealed class SearchCommandSettings : CommandSettings
 {
 
 	[CommandArgument(0, "<query>")]

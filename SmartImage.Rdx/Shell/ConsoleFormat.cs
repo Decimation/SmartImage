@@ -1,6 +1,5 @@
 ﻿using System.Data;
 using System.Reflection;
-using Kantan.Utilities;
 using Novus.OS;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
@@ -91,7 +90,7 @@ internal static class ConsoleFormat
 		return ff;
 	}
 
-	public static void Dump(CommandSettings settings)
+	internal static void Dump(CommandSettings settings)
 	{
 		var table = new STable().RoundedBorder();
 		table.AddColumn("[grey]Name[/]");
@@ -110,23 +109,6 @@ internal static class ConsoleFormat
 		}
 
 		AnsiConsole.Write(table);
-	}
-
-	public static STable GetTableForFormat(OutputFields format)
-	{
-
-		var fmt   = format.GetSetFlags(true, true);
-		var table = new STable();
-		var col   = new TableColumn[fmt.Count];
-
-		for (int i = 0; i < col.Length; i++) {
-			col[i] = new TableColumn(new Text($"{fmt[i]}",
-			                                  new Style(decoration: Decoration.Bold | Decoration.Underline)));
-		}
-
-		table.AddColumns(col);
-
-		return table;
 	}
 
 	public static STable DTableToSTable(DTable dt)
@@ -156,6 +138,15 @@ internal static class ConsoleFormat
 		}
 
 		return t;
+	}
+
+	internal static Style GetEngineStyle(SearchEngineOptions opt)
+	{
+		if (!ConsoleFormat.EngineStyles.TryGetValue(opt, out var style)) {
+			style = Style.Plain;
+		}
+
+		return style;
 	}
 
 }
