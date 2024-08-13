@@ -10,5 +10,5 @@ namespace SmartImage.Lib.Utilities;
 internal static class LogUtil
 {
 	internal static readonly ILoggerFactory Factory =
-		LoggerFactory.Create(builder => builder.AddDebug());
+		LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Debug));
 }

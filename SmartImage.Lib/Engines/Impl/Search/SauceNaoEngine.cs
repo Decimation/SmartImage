@@ -259,7 +259,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		var sndr = new SearchResultItem(sr)
 		{
 			Url            = urls.FirstOrDefault(),
-			Similarity     = similarity,
+			Similarity     = Math.Round(similarity, 2),
 			Source         = material1,
 			Thumbnail      = thumbnail,
 			ThumbnailTitle = thumbnailTitle

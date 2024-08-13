@@ -41,10 +41,10 @@ internal sealed class SearchCommandSettings : CommandSettings
 	[Description("Read cookies from browser")]
 	public bool? ReadCookies { get; internal set; }
 
-	[CommandOption("--live")]
-	[DefaultValue(true)]
-	[Description("Live result display")]
-	public bool? LiveDisplay { get; internal set; }
+	[CommandOption("--interactive")]
+	[DefaultValue(false)]
+	[Description("Interactive results")]
+	public bool? Interactive { get; internal set; }
 
 	#region
 

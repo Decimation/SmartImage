@@ -228,7 +228,7 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	private static void OpenResult([MN] Url url1)
+	public static void OpenResult([MN] Url url1)
 	{
 		if (url1 == null) {
 			return;
@@ -246,7 +246,7 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	private void OpenResult([MN] SearchResultItem result)
+	public void OpenResult([MN] SearchResultItem result)
 	{
 #if DEBUG && !TEST
 #pragma warning disable CA1822

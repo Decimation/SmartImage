@@ -38,6 +38,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Kantan.Monad;
+using SmartImage.Lib.Engines;
+using SmartImage.Lib.Engines.Impl.Search;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 
@@ -95,6 +97,25 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	#region
 
+	private async Task InitConfigAsync([CBN] object c)
+	{
+		//todo
+
+		Config.SearchEngines   = m_scs.SearchEngines;
+		Config.PriorityEngines = m_scs.PriorityEngines;
+
+		if (m_scs.AutoSearch.HasValue) {
+			Config.AutoSearch = m_scs.AutoSearch.Value;
+		}
+
+		if (m_scs.ReadCookies.HasValue) {
+			Config.ReadCookies = m_scs.ReadCookies.Value;
+		}
+
+		await Client.LoadEnginesAsync();
+
+	}
+
 	private async Task<bool> SetupSearchAsync(ProgressContext ctx)
 	{
 		var p = ctx.AddTask("Creating query");
@@ -129,23 +150,81 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		return ok;
 	}
 
-	private async Task InitConfigAsync([CBN] object c)
+	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
-		//todo
+		m_scs = settings;
 
-		Config.SearchEngines   = m_scs.SearchEngines;
-		Config.PriorityEngines = m_scs.PriorityEngines;
+		var task = AConsole.Progress()
+			.AutoRefresh(true)
+			.StartAsync(SetupSearchAsync);
 
-		if (m_scs.AutoSearch.HasValue) {
-			Config.AutoSearch = m_scs.AutoSearch.Value;
+		try {
+			var ok = await task;
+
+			if (ok) {
+				await InitConfigAsync(ok);
+			}
+			else {
+				throw new SmartImageException("Could not upload query");
+			}
+		}
+		catch (Exception e) {
+			AConsole.WriteException(e);
+			return EC_ERROR;
 		}
 
-		if (m_scs.ReadCookies.HasValue) {
-			Config.ReadCookies = m_scs.ReadCookies.Value;
+		var gr = CreateInfoGrid();
+		AConsole.Write(gr);
+
+		Console.CancelKeyPress += OnCancelKeyPress;
+
+		/*
+		 *
+		 * todo
+		 */
+
+		Task run;
+
+		run = AConsole.Live(m_table)
+			.StartAsync(RunSearchWithLiveAsync);
+
+		if (m_scs.Interactive.HasValue && m_scs.Interactive.Value) {
+			run = run.ContinueWith(ShowPrompt2Async, m_cts.Token);
 		}
 
-		await Client.LoadEnginesAsync();
+		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
+			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
+			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
+		}
 
+		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
+			switch (m_scs.OutputFileFormat) {
+
+				case OutputFileFormat.None:
+					break;
+
+				case OutputFileFormat.Delimited:
+					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
+					                       TaskContinuationOptions.OnlyOnRanToCompletion,
+					                       TaskScheduler.Default);
+					break;
+
+				default:
+					throw new ArgumentOutOfRangeException();
+			}
+
+		}
+
+		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
+			run = run.ContinueWith((c) =>
+			{
+				AConsole.Confirm("Exit");
+			});
+		}
+
+		await run;
+
+		return EC_OK;
 	}
 
 	private async Task RunSearchWithLiveAsync(LiveDisplayContext c)
@@ -157,7 +236,16 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 			m_results.Add(result);
 
-			UpdateResultTable(result);
+			/*var txt  = new Text(result.Engine.Name, GetEngineStyle(result.Engine.EngineOption));
+			var txt2 = new Text($"{result.Results.Count}");
+
+			m_mainTable.AddRow(txt, txt2);*/
+
+			var rows = CreateResultRows(result);
+
+			foreach (IRenderable[] row in rows) {
+				m_table.AddRow(row);
+			}
 
 			c.Refresh();
 		}
@@ -168,7 +256,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 
 	// TODO: Rewrite RunSearch counterparts
 
-	private async Task RunSearchWithProgressAsync(ProgressContext c)
+	/*private async Task RunSearchWithProgressAsync(ProgressContext c)
 	{
 		var cnt = (double) Client.Engines.Length;
 		var pt  = c.AddTask("Running search", maxValue: cnt);
@@ -189,7 +277,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		}
 
 		await search;
-	}
+	}*/
 
 	private async Task WriteOutputFileAsync([CBN] object o)
 	{
@@ -285,129 +373,48 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		AConsole.WriteLine($"Process successful: {result.IsSuccess}");
 	}
 
-	[ContractAnnotation("=> halt")]
-	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
+	#endregion
+
+	private async Task ShowPrompt2Async(Task c, object x)
 	{
-		AConsole.MarkupLine($"[red]Cancellation requested[/]");
-		AConsole.Clear();
-		m_cts.Cancel();
-		args.Cancel = false;
-
-		Environment.Exit(EC_ERROR);
-	}
-
-	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
-	{
-		m_scs = settings;
-
-		var task = AConsole.Progress()
-			.AutoRefresh(true)
-			.StartAsync(SetupSearchAsync);
-
-		try {
-			var ok = await task;
-
-			if (ok) {
-				await InitConfigAsync(ok);
-			}
-			else {
-				throw new SmartImageException("Could not upload query");
-			}
-		}
-		catch (Exception e) {
-			AConsole.WriteException(e);
-			return EC_ERROR;
-		}
-
-		var gr = CreateInfoGrid();
-		AConsole.Write(gr);
-
-		Console.CancelKeyPress += OnCancelKeyPress;
+		// AConsole.Write(m_table);
 
 		/*
-		 *
-		 * todo
-		 */
+		ThreadPool.QueueUserWorkItem(x=>
+		{
 
-		Task run;
+		});
+	*/
 
-		if (m_scs.LiveDisplay.HasValue && m_scs.LiveDisplay.Value) {
-			run = AConsole.Live(m_table)
-				.StartAsync(RunSearchWithLiveAsync)
-				.ContinueWith(ShowPromptAsync, m_cts.Token);
 
-		}
-		else {
-			run = AConsole.Progress()
-				.StartAsync(RunSearchWithProgressAsync);
-		}
+		var prompt = new TextPrompt<string>("<name> <#>");
 
-		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
-			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
-			                       TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-		}
-
-		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
-			switch (m_scs.OutputFileFormat) {
-
-				case OutputFileFormat.None:
-					break;
-
-				case OutputFileFormat.Delimited:
-					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
-					                       TaskContinuationOptions.OnlyOnRanToCompletion,
-					                       TaskScheduler.Default);
-					break;
-
-				default:
-					throw new ArgumentOutOfRangeException();
-			}
-
-		}
-
-		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
-			run = run.ContinueWith((c) =>
-			{
-				AConsole.Confirm("Exit");
-			});
-		}
-
-		await run;
-
-		return EC_OK;
-	}
-
-	private async Task<SearchResult> ShowPromptAsync(Task c, object x)
-	{
-
-		SelectionPrompt<SearchResult> prompt = CreatePrompt();
-
-		// var ac = AConsole.Prompt(prompt);
-		// Debug.WriteLine($"{ac}");
-
-		SearchResult res;
+		string input;
 
 		do {
 			AConsole.Clear();
+			AConsole.Write(m_table);
+			input = AConsole.Prompt(prompt);
 
-			// res = await prompt.ShowAsync(AConsole.Console, (CancellationToken) x);
-			res = AConsole.Prompt(prompt);
-			Debug.WriteLine($">> {res}");
+			if (!String.IsNullOrWhiteSpace(input)) {
+				var sp   = input.Split(' ', StringSplitOptions.TrimEntries);
+				var name = sp[0];
 
-			SearchResultItem res2;
+				var res = m_results.FirstOrDefault(
+					sr => sr.Engine.Name.Contains(name, StringComparison.InvariantCultureIgnoreCase));
 
-			do {
-				SelectionPrompt<SearchResultItem> prompt2 = CreatePrompt2(res);
+				if (res != default && sp.Length > 1 && Int32.TryParse(sp[1], out var idx)) {
+					var sri = res.Results[idx];
+					Client.OpenResult(sri);
+				}
+			}
 
-				res2 = AConsole.Prompt(prompt2);
-			} while (res2 != null);
 
-		} while (res != null);
+		} while (input != "q");
 
-		return res;
+
+		return;
 	}
-
-	#endregion
 
 	#region
 
@@ -441,7 +448,7 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		return prompt;
 	}*/
 
-	private static SelectionPrompt<SearchResultItem> CreatePrompt2(SearchResult res)
+	private SelectionPrompt<SearchResultItem> CreatePrompt2(SearchResult res)
 	{
 		var prompt2 = new SelectionPrompt<SearchResultItem>()
 		{
@@ -481,6 +488,29 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		return prompt;
 	}
 
+	/*
+	private static STable CreateMainTable()
+	{
+		var col = new TableColumn[]
+		{
+			new("Engine"),
+			new("Results"),
+
+		};
+
+		var tb = new STable()
+		{
+			Caption     = new TableTitle("Results", new Style(decoration: Decoration.Bold)),
+			Border      = TableBorder.Simple,
+			ShowHeaders = true,
+		};
+
+		tb.AddColumns(col);
+
+		return tb;
+	}
+	*/
+
 	private static STable CreateResultTable()
 	{
 		var col = new TableColumn[]
@@ -505,12 +535,18 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		return tb;
 	}
 
-	private void UpdateResultTable(SearchResult result)
+	private static Style GetEngineStyle(SearchEngineOptions opt)
 	{
-
-		if (!ConsoleFormat.EngineStyles.TryGetValue(result.Engine.EngineOption, out var style)) {
+		if (!ConsoleFormat.EngineStyles.TryGetValue(opt, out var style)) {
 			style = Style.Plain;
 		}
+
+		return style;
+	}
+
+	private static IEnumerable<IRenderable[]> CreateResultRows(SearchResult result)
+	{
+		Style style = GetEngineStyle(result.Engine.EngineOption);
 
 		var lr   = style.Foreground.GetLuminance();
 		var lrr  = style.Foreground.GetContrastRatio(Color.White);
@@ -519,13 +555,23 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 		// Debug.WriteLine($"{lr} {lrr} {lrr2}");
 
 		for (int i = 0; i < result.Results.Count; i++) {
-			var res    = result.Results[i];
-			var name   = new Text($"{result.Engine.Name} #{i}", style);
-			var url    = new Markup($"[link]{res.Url}[/]");
+			var res  = result.Results[i];
+			var name = new Text($"{result.Engine.Name} #{i}", style);
+
+			IRenderable url;
+			var link = res.Url;
+
+			if (link != null) {
+				url = new Markup(link.ToString(), new Style(link: link));
+			}
+			else {
+				url = new Text("-");
+			}
+
 			var sim    = new Text($"{res.Similarity}");
 			var artist = new Text($"{res.Artist}");
 			var site   = new Text($"{res.Site}");
-			m_table.AddRow(name, url, sim, artist, site);
+			yield return [name, url, sim, artist, site];
 		}
 
 	}
@@ -555,6 +601,17 @@ internal sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisp
 	}
 
 	#endregion
+
+	[ContractAnnotation("=> halt")]
+	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
+	{
+		AConsole.MarkupLine($"[red]Cancellation requested[/]");
+		AConsole.Clear();
+		m_cts.Cancel();
+		args.Cancel = false;
+
+		Environment.Exit(EC_ERROR);
+	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
 	{

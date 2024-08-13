@@ -74,6 +74,7 @@ public static class Program
 		}*/
 
 		if (Console.IsInputRedirected) {
+			Trace.WriteLine("Input redirected");
 			var pipeInput = ConsoleUtil.ParseInputStream();
 
 			var newArgs = new string[args.Length + 1];
