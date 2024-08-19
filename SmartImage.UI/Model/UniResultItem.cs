@@ -119,6 +119,7 @@ public class UniResultItem : ResultItem
 		PreviewText = $"Download complete";
 
 		IsThumbnail = false;
+		OnPropertyChanged(nameof(IsThumbnail));
 
 		// Properties &= ResultItemProperties.Thumbnail;
 

@@ -145,7 +145,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 			Interval = TimeSpan.FromSeconds(3)
 		};
-		m_trDispatch.Tick += IdleDispatchAsync;
+		// m_trDispatch.Tick += IdleDispatchAsync; // TODO: disabled
 
 		m_uni                    = new();
 		m_clipboardHistory       = [];

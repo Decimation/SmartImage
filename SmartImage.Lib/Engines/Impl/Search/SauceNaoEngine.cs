@@ -254,7 +254,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 
 		var results = new List<SearchResultItem>();
 
-		var urls = links.Distinct().ToArray();
+		var urls = links.Where(x => !String.IsNullOrWhiteSpace(x)).Distinct().ToArray();
 
 		var sndr = new SearchResultItem(sr)
 		{
@@ -266,7 +266,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 
 		};
 
-		if (rtiHasArtist &&  String.IsNullOrWhiteSpace(sndr.Artist)) {
+		if (rtiHasArtist && String.IsNullOrWhiteSpace(sndr.Artist)) {
 			// sndr.Creator = rti;
 			// Debugger.Break();
 			sndr.Artist = rti;

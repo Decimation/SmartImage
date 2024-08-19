@@ -38,29 +38,7 @@ namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
 
-public abstract class ResultModel : INotifyPropertyChanged
-{
-
-	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-	{
-		var eventArgs = new PropertyChangedEventArgs(propertyName);
-		PropertyChanged?.Invoke(this, eventArgs);
-		Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
-	}
-
-	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
-
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
-	}
-
-	public event PropertyChangedEventHandler? PropertyChanged;
-}
-
-public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, IDisposable
+public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, IItemSize, IDisposable
 {
 
 	private string m_previewText;
@@ -204,8 +182,14 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 
 	public bool Open()
 	{
-		return FileSystem.Open(Url);
+		bool b = CanOpen;
 
+		if (CanOpen) {
+			b = FileSystem.Open(Url);
+
+		}
+
+		return b;
 	}
 
 	public Task<IFlurlResponse> GetResponseAsync(CancellationToken token = default)
@@ -251,6 +235,7 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 		// OnPropertyChanged(nameof(Height));
 
 		IsThumbnail = HasImage;
+		OnPropertyChanged(nameof(IsThumbnail));
 
 		// Properties &= ResultItemProperties.Thumbnail;
 
@@ -277,6 +262,25 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 
 	}
 
+	protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+	{
+		var eventArgs = new PropertyChangedEventArgs(propertyName);
+		PropertyChanged?.Invoke(this, eventArgs);
+
+		// Debug.WriteLine($"{this} :: {eventArgs.PropertyName}");
+	}
+
+	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
+	public event PropertyChangedEventHandler? PropertyChanged;
+
 	public virtual bool LoadImage()
 	{
 		if (HasImage) {
@@ -285,6 +289,8 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 		else if (!CanLoadImage) {
 			return false;
 		}
+
+		Debug.WriteLine($"{nameof(LoadImage)} :: {Name} / {Result}");
 
 		var img = new BitmapImage()
 			{ };
@@ -315,6 +321,7 @@ public class ResultItem : ResultModel, IBitmapImageSource, INamed, IItemSize, ID
 		img.DownloadCompleted += OnImageDownloadCompleted;
 
 		Image = img;
+
 		// UpdateProperties();
 		return HasImage;
 	}

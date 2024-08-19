@@ -58,7 +58,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var task = await UniImage.TryCreateAsync(o);
+		var task = await UniImage.TryCreateAsync(o, t: t);
 
 		if (task != UniImage.Null) {
 			return new SearchQuery(task);

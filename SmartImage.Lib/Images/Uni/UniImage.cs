@@ -104,8 +104,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	#region
 
-	
-
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
@@ -152,11 +150,15 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 			throw new InvalidOperationException($"{nameof(Stream)} must be allocated");
 		}
 
-		Stream.TrySeek();
+		try {
+			Stream.TrySeek();
 
-		ImageFormat = await ISImage.DetectFormatAsync(Stream, ct);
+			ImageFormat = await ISImage.DetectFormatAsync(Stream, ct);
 
-		Stream.TrySeek();
+			Stream.TrySeek();
+
+		}
+		finally { }
 
 		return HasImageFormat;
 

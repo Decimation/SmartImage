@@ -105,15 +105,14 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 
 	public async ValueTask<bool> ApplyCookiesAsync(IEnumerable<IBrowserCookie> cookies = null)
 	{
-		IEnumerable<IBrowserCookie> cookies1 = cookies;
 
 		Trace.WriteLine($"Applying cookies to {Name}");
 
 		if (await CookiesManager.Instance.LoadCookiesAsync()) {
-			cookies1 ??= CookiesManager.Instance.Cookies;
+			cookies ??= CookiesManager.Instance.Cookies;
 		}
 
-		var fcc = cookies1.OfType<FirefoxCookie>().Where(x =>
+		var fcc = cookies.OfType<FirefoxCookie>().Where(x =>
 		{
 			if (!true) {
 				return x.Host.Contains(HOST_EH);
@@ -135,6 +134,9 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 			})
 			.WithAutoRedirect(true)
 			.GetAsync();*/
+		
+		m_clientHandler.CookieContainer.Add(m_cookies);
+		m_client.Timeout = Timeout;
 
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
@@ -199,9 +201,9 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
 
 		//todo
-		m_clientHandler.CookieContainer.Add(m_cookies);
+		/*m_clientHandler.CookieContainer.Add(m_cookies);
 
-		m_client.Timeout = Timeout;
+		m_client.Timeout = Timeout;*/
 
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 

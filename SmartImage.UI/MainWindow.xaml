@@ -714,7 +714,7 @@
                                                 DisplayMemberBinding="{Binding Height}" Width="50" />
 
                                 <GridViewColumn Header="Cache"
-                                                DisplayMemberBinding="{Binding IsThumbnail, Mode=OneTime, UpdateSourceTrigger=Default}"
+                                                DisplayMemberBinding="{Binding IsThumbnail, Mode=OneWay, UpdateSourceTrigger=Default}"
                                                 Width="50">
 
                                 </GridViewColumn>

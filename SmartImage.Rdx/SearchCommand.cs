@@ -284,8 +284,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		string input;
 
 		do {
-			AConsole.Clear();
-			AConsole.Write(m_table);
+			// AConsole.Clear();
+			// AConsole.Write(m_table);
 			input = AConsole.Prompt(prompt);
 
 			if (!String.IsNullOrWhiteSpace(input)) {
