@@ -84,7 +84,7 @@ public sealed class SearchClient : IDisposable
 		s_logger.LogInformation("Init");
 
 
-		FlurlHttp.Clients.WithDefaults(b=>
+		FlurlHttp.Clients.WithDefaults(b =>
 		{
 			b.WithSettings(s =>
 			{
@@ -93,6 +93,8 @@ public sealed class SearchClient : IDisposable
 				s.Redirects.ForwardAuthorizationHeader = true;
 				s.Redirects.MaxAutoRedirects           = 20;
 			});
+			b.AddMiddleware(() => new HttpLoggingHandler(s_logger));
+
 		});
 	}
 

@@ -62,14 +62,19 @@ public static class Program
 		var u  = await q.UploadAsync();
 		Console.WriteLine(u);
 
-		var sc = new SearchClient(new SearchConfig());
-		var r  = await sc.RunSearchAsync(q);
-		var rr = r.SelectMany(x => x.Results);
+		var sc      = new SearchClient(new SearchConfig());
+		var results = await sc.RunSearchAsync(q);
 
-		var items = await SearchOperations.Highest(q,rr);
+		// var rr = r.SelectMany(x => x.Results);
 
-		foreach (var v in items) {
-			Console.WriteLine($"{v.Image} {v.Item} {v.Url}");
+		foreach (var sr in results) {
+			Console.WriteLine($"{sr}");
+			var items = await ImageScanner.Highest(q, sr.Results);
+
+			foreach (ImageScanner.Item2 item2 in items) {
+				Console.WriteLine($"{item2.Image} {item2.Item} {item2.Url}");
+
+			}
 		}
 		/*foreach (var result in r) {
 			var g = result.Results.GroupBy(x => x.Root);

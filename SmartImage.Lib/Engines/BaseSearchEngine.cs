@@ -94,7 +94,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		{
 			
 			builder.Settings.AllowedHttpStatusRange = "*";
-			builder.AddMiddleware(() => new HttpLoggingHandler(BaseSearchEngine.Logger));
 
 		});;
 	}

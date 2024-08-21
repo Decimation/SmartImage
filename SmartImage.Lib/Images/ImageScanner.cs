@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
+using System.Web;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -15,8 +16,10 @@ using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.OS;
+using Novus.Streams;
 using Novus.Utilities;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
@@ -38,12 +41,13 @@ public static class ImageScanner
 			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 			builder.AllowAnyHttpStatus();
+
 			builder.OnError(f =>
 			{
 				f.ExceptionHandled = true;
 				return;
 			});
-			
+
 		});
 
 	}
@@ -231,5 +235,222 @@ public static class ImageScanner
 	internal const string GALLERY_DL_EXE = "gallery-dl.exe";
 
 	internal static readonly string GalleryDLPath = FileSystem.FindInPath(GALLERY_DL_EXE);
+
+	public static async Task<IEnumerable<SearchResultItem>> Aggregate(IEnumerable<SearchResultItem> results)
+	{
+		var groups = results.GroupBy(g => new { g.Artist });
+
+		foreach (var v in groups) {
+			Console.WriteLine($"{v.Key}");
+		}
+
+		return ( []);
+	}
+
+	public class Item2
+	{
+
+		public SearchResultItem Item { get; init; }
+
+		public IImageFormat Image { get; init; }
+
+		public string Url { get; init; }
+
+	}
+
+	/*static string[] patterns =
+	[
+		@"(?i)",
+		@"<(?:img|video|source)\s[^>]*", // <img>, <video> or <source>
+		@"src(?:set)?=[\"']?",                // src or srcset attributes
+		@"(?P<URL>[^""'\s>]+)", // url
+	];
+
+	static string[] patterns2 =
+	[
+		@"(?i)",
+		@"(?:[^?&, //""'>\s]+)",                                 // anything until dot+extension
+		@"\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)", // dot + image/video extensions
+		@"(?:[^""'<>\s]*)?"                                      //optional query and fragment
+	];*/
+
+	private static readonly Regex ge = new(
+		@"(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\""]?(?<URL>[^\""\s>]+)",
+		RegexOptions.Compiled
+	);
+
+	private static readonly Regex ge2 = new(
+		@"(?i)(?:[^?&#""'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^""'<>\s]*)?",
+		RegexOptions.Compiled
+	);
+
+	public static IEnumerable<string> FindUrls(string doc, Url url)
+	{
+		// var ge = new Regex(String.Concat(patterns));
+		// var ge2 = new Regex(String.Concat(patterns2));
+
+
+		// var basematch = Regex.Match(@"(?i)(?:<base\s.*?href=[""']?)(?P<url>[^""' >]+)", doc);
+
+		var imageurlsSrc = ge.Matches(doc).Select(m => m.Groups["URL"].Value);
+		var imageurlsExt = ge2.Matches(doc).Select(m => m.Value);
+		var matches      = imageurlsSrc.Concat(imageurlsExt);
+
+		var    basematch = Regex.Match(doc, @"(?i)(?:<base\s.*?href=[\""]?)(?<url>[^\""' >]+)");
+		string baseUrl;
+
+		if (basematch.Success) {
+			baseUrl = basematch.Groups["url"].Value.TrimEnd('/');
+
+		}
+		else {
+			if (url.ToString().EndsWith('/')) {
+				baseUrl = url.ToString().TrimEnd('/');
+			}
+			else {
+				baseUrl = Url.Parse(url); //todo
+
+				// or Path.GetDirectoryName?
+
+			}
+		}
+
+		var abs = matches.Select(u =>
+		{
+			if (u.StartsWith("http"))
+				return u;
+
+			if (u.StartsWith("//"))
+				return url.Scheme + u.TrimStart('/');
+
+			if (u.StartsWith("/"))
+				return url.Root + u;
+
+			return baseUrl + "/" + u;
+		}).Where(u => Url.IsValid(u)).Distinct();
+
+		return abs;
+	}
+
+	public static async Task<IEnumerable<Item2>> Highest(SearchQuery query,
+	                                                     IEnumerable<SearchResultItem> results,
+	                                                     CancellationToken ct = default)
+	{
+		var plr = new ParallelOptions()
+		{
+			CancellationToken      = ct,
+			MaxDegreeOfParallelism = -1,
+		};
+
+		/*await Parallel.ForEachAsync(results, plr, async (item, token) =>
+		{
+			var r = await ImageScanner.GetImageUrlsAsync(item.Url, token: token);
+			Debug.WriteLine($"{item.Url} -> {r}");
+
+		});*/
+
+		results = results.Where(r => !r.IsRaw && r.Url != null);
+
+		var cb = new ConcurrentBag<Item2>();
+
+		foreach (var result in results) {
+
+			// IDocument dd = await GetDocument2(u, ct);
+
+			// var urls = await ImageScanner.GetImageUrlsAsync(result.Url, token: ct);
+
+			IFlurlResponse response;
+
+			try {
+				response = await Client.Request(result.Url)
+					           .OnError(call =>
+					           {
+						           call.ExceptionHandled = true;
+					           })
+					           .WithHeaders(new
+					           {
+						           // todo
+						           User_Agent = R1.UserAgent1,
+					           })
+					           .WithTimeout(TimeSpan.FromSeconds(7.5))
+					           .GetAsync(cancellationToken: ct);
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+				response = null;
+			}
+
+			if (response == null) {
+				continue;
+			}
+
+			var stream = await response.GetStringAsync();
+
+			// var parser = new HtmlParser();
+			// var doc    = await parser.ParseDocumentAsync(stream);
+
+			// var urls = ImageScanner.GetImageUrls(doc);
+			var urls = FindUrls(stream, result.Url).ToArray();
+
+			// doc.Dispose();
+			// response.Dispose();
+
+			Debug.WriteLine($"{result.Url} -> {urls.Length}");
+
+			await Parallel.ForEachAsync(urls, plr, async (s, token) =>
+			{
+				IFlurlResponse resp;
+
+				try {
+					resp = await Client.Request(s)
+						       .OnError(call =>
+						       {
+							       call.ExceptionHandled = true;
+						       })
+						       .WithHeaders(new
+						       {
+							       // todo
+							       User_Agent = R1.UserAgent1,
+						       })
+						       .WithTimeout(TimeSpan.FromSeconds(7.5))
+						       .GetAsync(cancellationToken: ct);
+				}
+				catch (Exception e) {
+					Debug.WriteLine($"{e.Message}");
+					resp = null;
+				}
+
+				if (resp == null) {
+					return;
+				}
+
+				var bin = await resp.GetStreamAsync();
+
+				if (bin is { CanRead: true }) {
+					bin.TrySeek();
+
+					try {
+						var img = await ISImage.DetectFormatAsync(bin, token);
+						cb.Add(new Item2() { Image = img, Item = result });
+						bin.TrySeek();
+
+						// Debug.WriteLine($"{img}");
+					}
+					catch (Exception e) {
+						Debug.WriteLine(e);
+					}
+				}
+
+				resp.Dispose();
+
+				// bin.Dispose();
+
+			});
+
+
+		}
+
+		return cb;
+	}
 
 }

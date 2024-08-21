@@ -73,7 +73,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 			goto ret;
 		}
 
-		if (!obj.matches.Any()) {
+		if (obj.matches != null && (obj.matches.Any())) {
 			sr.Status = SearchResultStatus.NoResults;
 			goto ret;
 		}
