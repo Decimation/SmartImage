@@ -6,6 +6,6 @@ namespace SmartImage.Lib.Model;
 public interface IConfig
 {
 
-	public ValueTask ApplyAsync(SearchConfig cfg);
+	public ValueTask ApplyConfigAsync(SearchConfig cfg);
 
 }

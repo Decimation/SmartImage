@@ -5,15 +5,21 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Channels;
+using Flurl.Http;
+using Flurl.Http.Configuration;
 using Kantan.Text;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
+using SmartImage.Rdx.Utilities;
 
 namespace SmartImage.Rdx;
 
@@ -116,8 +122,8 @@ public static class Program
 
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
-		});
 
+		});
 		int x = SearchCommand.EC_OK;
 
 		try {

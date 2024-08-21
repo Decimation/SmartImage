@@ -22,10 +22,31 @@ using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
+// ReSharper disable InconsistentNaming
+
 namespace SmartImage.Lib.Images;
 
 public static class ImageScanner
 {
+
+	public static FlurlClient Client { get; }
+
+	static ImageScanner()
+	{
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(ImageScanner), null, builder =>
+		{
+			builder.Settings.AllowedHttpStatusRange = "*";
+			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+			builder.AllowAnyHttpStatus();
+			builder.OnError(f =>
+			{
+				f.ExceptionHandled = true;
+				return;
+			});
+			
+		});
+
+	}
 
 	/*public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
@@ -44,18 +65,9 @@ public static class ImageScanner
 		filter ??= GenericImageFilter.Instance;
 
 		try {
-			res = await u.AllowAnyHttpStatus()
+			res = await Client.Request(u)
 				      .WithCookies(out var cj)
-				      .WithAutoRedirect(true)
-				      .WithHeaders(new
-				      {
-					      User_Agent = HttpUtilities.UserAgent
-				      })
-				      .OnError(f =>
-				      {
-					      f.ExceptionHandled = true;
-					      return;
-				      }).GetAsync(cancellationToken: ct);
+				      .GetAsync(cancellationToken: ct);
 
 			if (res == null) {
 				return [];
@@ -112,7 +124,8 @@ public static class ImageScanner
 					return;
 				}*/
 				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanForEmbeddedImagesAsync));
-				if (filter.Predicate(ux)) {
+
+				if ((filter != null && filter.Predicate(ux)) || filter == null) {
 					ul.Add(ux);
 
 				}
@@ -132,31 +145,26 @@ public static class ImageScanner
 
 	}
 
-	public static async Task<IEnumerable<string>> GetImageUrls(Url u, CancellationToken token = default)
+	public static async Task<IEnumerable<string>> GetImageUrlsAsync(Url u, IImageFilter filter = null,
+	                                                                CancellationToken token = default)
 	{
-		using var res = await u.AllowAnyHttpStatus()
+		using var res = await Client.Request(u)
 			                .WithCookies(out var cj)
-			                .WithAutoRedirect(true)
-			                .WithHeaders(new
-			                {
-				                User_Agent = HttpUtilities.UserAgent
-			                })
-			                .OnError(f =>
-			                {
-				                f.ExceptionHandled = true;
-				                return;
-			                }).GetAsync(cancellationToken: token);
+			                .GetAsync(cancellationToken: token);
+
+
+		// filter ??= GenericImageFilter.Instance;
 
 		var       parser = new HtmlParser();
-		var stream = await res.GetStreamAsync();
+		var       stream = await res.GetStreamAsync();
 		using var doc    = await parser.ParseDocumentAsync(stream);
-		var       links  = GetImageUrls(doc, GenericImageFilter.Instance);
+		var       links  = GetImageUrls(doc, filter);
 		return links;
 
 		// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
 	}
 
-	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc, IImageFilter filter)
+	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc, IImageFilter filter = null)
 	{
 		// var a = doc.QueryAllAttribute("a", "href");
 		// var b = doc.QueryAllAttribute("img", "src");
@@ -164,7 +172,13 @@ public static class ImageScanner
 		var a = doc.Links.Select(x => x.GetAttribute("href"));
 		var b = doc.Images.Select(x => x.Source);
 
-		var c = a.Union(b).Where(filter.Refine).Distinct();
+		var c = a.Union(b);
+
+		if (filter != null) {
+			c = c.Where(filter.Refine);
+		}
+
+		c = c.Distinct();
 
 		return c;
 	}

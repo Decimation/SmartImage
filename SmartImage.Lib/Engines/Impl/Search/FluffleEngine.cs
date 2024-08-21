@@ -48,7 +48,6 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 				               User_Agent = hdr
 			               })
 			               .WithTimeout(Timeout)
-			               .AllowAnyHttpStatus()
 			               .OnError(e =>
 			               {
 				               e.ExceptionHandled = true;

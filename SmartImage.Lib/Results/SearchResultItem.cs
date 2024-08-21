@@ -11,7 +11,7 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
-
+#nullable disable
 namespace SmartImage.Lib.Results;
 
 public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable

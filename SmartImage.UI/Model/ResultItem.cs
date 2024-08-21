@@ -244,6 +244,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		if (Image is BitmapImage bmp) {
 			Width  = bmp.PixelWidth;
 			Height = bmp.PixelHeight;
+			OnPropertyChanged(nameof(Height));
+			OnPropertyChanged(nameof(Width));
 			OnPropertyChanged(nameof(Size));
 		}
 	}

@@ -14,6 +14,8 @@ using static SmartImage.Lib.Engines.BaseSearchEngine;
 
 namespace SmartImage.Lib.Results;
 
+#nullable disable
+
 // [Flags]
 public enum SearchResultStatus
 {

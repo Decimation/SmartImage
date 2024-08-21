@@ -396,10 +396,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		};
 
 		var content = new FormUrlEncodedContent(values);
-
-		var res = await URL_API.AllowAnyHttpStatus()
+		
+		var res = await Client.Request(URL_API)
 			          .WithTimeout(Timeout)
 			          .PostAsync(content);
+
 		var c = await res.GetStringAsync();
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden) {
@@ -471,7 +472,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		return;
 	}
 
-	public ValueTask ApplyAsync(SearchConfig cfg)
+	public ValueTask ApplyConfigAsync(SearchConfig cfg)
 	{
 		Authentication = cfg.SauceNaoKey;
 		return ValueTask.CompletedTask;

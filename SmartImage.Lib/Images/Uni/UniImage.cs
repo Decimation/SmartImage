@@ -18,7 +18,7 @@ using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Uni;
-
+#nullable disable
 /// <summary>
 /// <seealso cref="UniSourceType"/>
 /// </summary>
@@ -107,7 +107,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
-	/// <param name="o">Binary data</param>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
 	                                                  CancellationToken t = default)
 	{

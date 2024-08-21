@@ -111,14 +111,9 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			{ new StringContent(origin), "uri" }
 		};
 
-		var res = await Client.Request(origin).AllowAnyHttpStatus()
+		var res = await Client.Request(origin)
 			          .WithCookies(out var cj)
 			          .WithTimeout(Timeout)
-			          .WithHeaders(new
-			          {
-				          User_Agent = HttpUtilities.UserAgent
-			          })
-			          .WithAutoRedirect(true)
 			          /*.OnError(s =>
 					          {
 						          Debug.WriteLine($"{s.Response}");

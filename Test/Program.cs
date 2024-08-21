@@ -56,6 +56,32 @@ public static class Program
 		Debugger.Break();*/
 
 		// await test9();
+
+		var u1 = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		var q  = await SearchQuery.TryCreateAsync(u1);
+		var u  = await q.UploadAsync();
+		Console.WriteLine(u);
+
+		var sc = new SearchClient(new SearchConfig());
+		var r  = await sc.RunSearchAsync(q);
+		var rr = r.SelectMany(x => x.Results);
+
+		var items = await SearchOperations.Highest(q,rr);
+
+		foreach (var v in items) {
+			Console.WriteLine($"{v.Image} {v.Item} {v.Url}");
+		}
+		/*foreach (var result in r) {
+			var g = result.Results.GroupBy(x => x.Root);
+
+			foreach (var gr in g) {
+				foreach (SearchResultItem item in gr) {
+					Console.WriteLine($"{gr.Key} = {item}");
+				}
+			}
+
+			Console.ReadKey();
+		}*/
 	}
 
 	#region
@@ -521,7 +547,7 @@ public static class Program
 		{
 			ReadCookies = true
 		};
-		await e.ApplyAsync(sc);
+		await e.ApplyConfigAsync(sc);
 
 		Console.WriteLine(await e.ApplyCookiesAsync());
 		Console.WriteLine($"{e.BaseUrl} {e.IsLoggedIn}");

@@ -24,6 +24,7 @@ using Novus.OS;
 using Novus.Win32;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
@@ -80,8 +81,19 @@ public sealed class SearchClient : IDisposable
 
 			};
 		});*/
-
 		s_logger.LogInformation("Init");
+
+
+		FlurlHttp.Clients.WithDefaults(b=>
+		{
+			b.WithSettings(s =>
+			{
+				s.Redirects.Enabled                    = true;
+				s.Redirects.AllowSecureToInsecure      = true;
+				s.Redirects.ForwardAuthorizationHeader = true;
+				s.Redirects.MaxAutoRedirects           = 20;
+			});
+		});
 	}
 
 	public delegate void ResultCompleteCallback(object sender, SearchResult e);
@@ -302,14 +314,12 @@ public sealed class SearchClient : IDisposable
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
 		if (Config.ReadCookies) {
-			if (await CookiesManager.Instance.LoadCookiesAsync()) {
-				
-			}
+			if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 		}
 
 		foreach (BaseSearchEngine bse in Engines) {
 			if (bse is IConfig cfg) {
-				await cfg.ApplyAsync(Config);
+				await cfg.ApplyConfigAsync(Config);
 			}
 
 			if (Config.ReadCookies && bse is ICookieEngine ce) {

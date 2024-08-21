@@ -708,10 +708,10 @@
                                                 DisplayMemberBinding="{Binding Result.Site, Mode=OneTime}" Width="75" />
 
                                 <GridViewColumn Header="Width"
-                                                DisplayMemberBinding="{Binding Width}" Width="50" />
+                                                DisplayMemberBinding="{Binding Width, Mode=OneWay, UpdateSourceTrigger=Default}" Width="50" />
 
                                 <GridViewColumn Header="Height"
-                                                DisplayMemberBinding="{Binding Height}" Width="50" />
+                                                DisplayMemberBinding="{Binding Height, Mode=OneWay, UpdateSourceTrigger=Default}" Width="50" />
 
                                 <GridViewColumn Header="Cache"
                                                 DisplayMemberBinding="{Binding IsThumbnail, Mode=OneWay, UpdateSourceTrigger=Default}"

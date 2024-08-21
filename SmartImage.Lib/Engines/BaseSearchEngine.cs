@@ -40,7 +40,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	public virtual Url BaseUrl { get; }
 
-	public bool IsAdvanced { get; protected set; }
+	public bool IsAdvanced { get; protected init; }
 
 	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
@@ -59,10 +59,15 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	}
 
 	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
+	
+	/*protected IFlurlRequest Build(IFlurlRequest request)
+	{
+		return request.WithTimeout(Timeout);
+	}*/
 
 	static BaseSearchEngine()
 	{
-		var handler = new LoggingHttpMessageHandler(Logger)
+		/*var handler = new LoggingHttpMessageHandler(Logger)
 		{
 			InnerHandler = new HttpLoggingHandler(Logger)
 			{
@@ -82,7 +87,16 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 					MaxAutoRedirects           = 20,
 				},
 			}
-		};
+		};*/
+		
+
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, builder =>
+		{
+			
+			builder.Settings.AllowedHttpStatusRange = "*";
+			builder.AddMiddleware(() => new HttpLoggingHandler(BaseSearchEngine.Logger));
+
+		});;
 	}
 
 	public override string ToString()

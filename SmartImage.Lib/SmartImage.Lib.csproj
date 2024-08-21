@@ -5,6 +5,7 @@
     <RootNamespace>SmartImage.Lib</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Configurations>Debug;Release;Test</Configurations>
+    <Nullable>disable</Nullable>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <PublishTrimmed>True</PublishTrimmed>

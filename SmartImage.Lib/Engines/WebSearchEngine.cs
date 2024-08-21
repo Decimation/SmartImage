@@ -73,14 +73,12 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		try {
 
 			var res = await Client.Request(sr.RawUrl)
-				          .AllowAnyHttpStatus()
 				          .WithCookies(out var cj)
 				          .WithTimeout(Timeout)
 				          .WithHeaders(new
 				          {
 					          User_Agent = HttpUtilities.UserAgent
 				          })
-				          .WithAutoRedirect(true)
 				          /*.OnError(s =>
 				          {
 					          s.ExceptionHandled = true;
