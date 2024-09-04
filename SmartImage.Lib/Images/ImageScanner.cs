@@ -12,6 +12,7 @@ using AngleSharp.Html.Parser;
 using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
+using Jint.Parser;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
@@ -91,7 +92,7 @@ public static class ImageScanner
 				uf?.Dispose();
 				goto ret;
 			}*/
-			if (uf.ImageFormat.DefaultMimeType != null) {
+			if (uf.ImageFormat?.DefaultMimeType != null) {
 				ul.Add(uf);
 				goto ret;
 
@@ -105,12 +106,18 @@ public static class ImageScanner
 		// var p  = new HtmlParser();
 		// var dd = await p.ParseDocumentAsync(stream, ct);
 
-		var parser = new HtmlParser();
-		var doc    = await parser.ParseDocumentAsync(stream);
+		// var parser = new HtmlParser();
+		// var doc    = await parser.ParseDocumentAsync(stream);
 
 		// IDocument dd = await GetDocument2(u, ct);
 
-		var c = GetImageUrls(doc, filter);
+		// var c = GetImageUrls(doc, filter);
+		string html = await res.GetStringAsync();
+
+		// var    sr = new StreamReader(stream);
+		// string html         = await sr.ReadToEndAsync(ct);
+		// var html = doc.ToString();
+		var c = GetImageUrls(html, u);
 
 		var po = new ParallelOptions()
 		{
@@ -143,12 +150,122 @@ public static class ImageScanner
 		});
 
 		// context.Dispose();
-		doc.Dispose();
+		// doc.Dispose();
+		// sr.Dispose();
+		res.Dispose();
 	ret:
 		return ul.ToArray();
 
 	}
 
+	public static async Task<List<Task<UniImage>>> ScanImagesAsync2(Url u, IImageFilter filter = null,
+	                                                               CancellationToken ct = default)
+	{
+		IFlurlResponse              res;
+		Stream                      stream;
+		IEnumerable<Task<UniImage>> rg = [];
+
+		// pred   ??= _ => true;
+		filter ??= GenericImageFilter.Instance;
+
+		try {
+			res = await Client.Request(u)
+				      .WithCookies(out var cj)
+				      .GetAsync(cancellationToken: ct);
+
+			if (res == null) {
+				// return [];
+				goto ret;
+			}
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+			// return [];
+			goto ret;
+		}
+
+		stream = await res.GetStreamAsync();
+		var uf = await UniImage.TryCreateAsync(stream, t: ct);
+
+		if (uf != UniImage.Null) {
+			/*if (!FileType.Image.Contains(uf.FileType)) {
+				uf?.Dispose();
+				goto ret;
+			}*/
+			if (uf.ImageFormat?.DefaultMimeType != null) {
+				// ul.Add(uf);
+				rg = [Task.FromResult(uf)];
+				goto ret;
+
+			}
+		}
+		else if (stream.CanSeek) {
+			stream.Position = 0;
+
+		}
+
+		// var p  = new HtmlParser();
+		// var dd = await p.ParseDocumentAsync(stream, ct);
+
+		// var parser = new HtmlParser();
+		// var doc    = await parser.ParseDocumentAsync(stream);
+
+		// IDocument dd = await GetDocument2(u, ct);
+
+		// var c = GetImageUrls(doc, filter);
+		// string html = await res.GetStringAsync();
+
+		var    sr = new StreamReader(stream);
+		string html         = await sr.ReadToEndAsync(ct);
+		// var html = doc.ToString();
+		var c = GetImageUrls(html, u);
+
+		var po = new ParallelOptions()
+		{
+			MaxDegreeOfParallelism = -1,
+			CancellationToken      = ct,
+		};
+
+
+
+		rg = c.Select(async s =>
+		{
+			var ux = await UniImage.TryCreateAsync(s, t: ct);
+
+			if (ux != UniImage.Null) {
+				/*if (!FileType.Image.Contains(ux.FileType)) {
+					ux?.Dispose();
+					return;
+				}*/
+				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanForEmbeddedImagesAsync));
+
+				if ((filter != null && filter.Predicate(ux)) || filter == null) {
+					// ul.Add(ux);
+
+					goto retx;
+				}
+				else {
+					ux.Dispose();
+					ux = null;
+				}
+			}
+			else { }
+
+		retx:
+			return ux;
+		});
+
+		// context.Dispose();
+		// doc.Dispose();
+		sr.Dispose();
+		res.Dispose();
+
+	ret:
+		return rg.ToList();
+
+	}
+
+	/*
 	public static async Task<IEnumerable<string>> GetImageUrlsAsync(Url u, IImageFilter filter = null,
 	                                                                CancellationToken token = default)
 	{
@@ -167,45 +284,12 @@ public static class ImageScanner
 
 		// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
 	}
+	*/
 
-	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc, IImageFilter filter = null)
-	{
-		// var a = doc.QueryAllAttribute("a", "href");
-		// var b = doc.QueryAllAttribute("img", "src");
 
-		var a = doc.Links.Select(x => x.GetAttribute("href"));
-		var b = doc.Images.Select(x => x.Source);
-
-		var c = a.Union(b);
-
-		if (filter != null) {
-			c = c.Where(filter.Refine);
-		}
-
-		c = c.Distinct();
-
-		return c;
-	}
-
-	/*public static bool UniImagePredicate(UniImage us)
-	{
-		try {
-			if (us.Stream.Length <= 25_000 || us.ImageFormat?.DefaultMimeType == null) {
-				return false;
-			}
-
-			return true;
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(UniImagePredicate));
-			return true;
-		}
-	}*/
-
-	// todo
 	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
 	{
-		using var p = Process.Start(new ProcessStartInfo("gallery-dl", $"-G {cri}")
+		using var p = Process.Start(new ProcessStartInfo(GALLERY_DL, $"-G {cri}")
 		{
 			CreateNoWindow         = true,
 			RedirectStandardOutput = true,
@@ -232,20 +316,21 @@ public static class ImageScanner
 		return rg.ToArray();
 	}
 
-	internal const string GALLERY_DL_EXE = "gallery-dl.exe";
+	internal const string GALLERY_DL     = "gallery-dl";
+	internal const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
+
+	private const char URL_DELIM = '/';
 
 	internal static readonly string GalleryDLPath = FileSystem.FindInPath(GALLERY_DL_EXE);
 
-	public static async Task<IEnumerable<SearchResultItem>> Aggregate(IEnumerable<SearchResultItem> results)
-	{
-		var groups = results.GroupBy(g => new { g.Artist });
-
-		foreach (var v in groups) {
-			Console.WriteLine($"{v.Key}");
-		}
-
-		return ( []);
-	}
+	/*
+	 * TODO:
+	 *
+	 * Aggregate
+	 * Highest
+	 *
+	 * Gallery-DL
+	 */
 
 	public class Item2
 	{
@@ -258,54 +343,32 @@ public static class ImageScanner
 
 	}
 
-	/*static string[] patterns =
-	[
-		@"(?i)",
-		@"<(?:img|video|source)\s[^>]*", // <img>, <video> or <source>
-		@"src(?:set)?=[\"']?",                // src or srcset attributes
-		@"(?P<URL>[^""'\s>]+)", // url
-	];
-
-	static string[] patterns2 =
-	[
-		@"(?i)",
-		@"(?:[^?&, //""'>\s]+)",                                 // anything until dot+extension
-		@"\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)", // dot + image/video extensions
-		@"(?:[^""'<>\s]*)?"                                      //optional query and fragment
-	];*/
-
-	private static readonly Regex ge = new(
-		@"(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\""]?(?<URL>[^\""\s>]+)",
+	private static readonly Regex r_imgSource = new(
+		"""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""",
 		RegexOptions.Compiled
 	);
 
-	private static readonly Regex ge2 = new(
+	private static readonly Regex r_imgExt = new(
 		@"(?i)(?:[^?&#""'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^""'<>\s]*)?",
 		RegexOptions.Compiled
 	);
 
-	public static IEnumerable<string> FindUrls(string doc, Url url)
+	public static IEnumerable<string> GetImageUrls(string html, Url url)
 	{
-		// var ge = new Regex(String.Concat(patterns));
-		// var ge2 = new Regex(String.Concat(patterns2));
+		var imgUrlsSrc = r_imgSource.Matches(html).Select(m => m.Groups["URL"].Value);
+		var imgUrlsExt = r_imgExt.Matches(html).Select(m => m.Value);
+		var imgUrls    = imgUrlsSrc.Concat(imgUrlsExt);
 
-
-		// var basematch = Regex.Match(@"(?i)(?:<base\s.*?href=[""']?)(?P<url>[^""' >]+)", doc);
-
-		var imageurlsSrc = ge.Matches(doc).Select(m => m.Groups["URL"].Value);
-		var imageurlsExt = ge2.Matches(doc).Select(m => m.Value);
-		var matches      = imageurlsSrc.Concat(imageurlsExt);
-
-		var    basematch = Regex.Match(doc, @"(?i)(?:<base\s.*?href=[\""]?)(?<url>[^\""' >]+)");
+		var    baseMatch = Regex.Match(html, """(?i)(?:<base\s.*?href=[\"]?)(?<url>[^\"' >]+)""");
 		string baseUrl;
 
-		if (basematch.Success) {
-			baseUrl = basematch.Groups["url"].Value.TrimEnd('/');
+		if (baseMatch.Success) {
+			baseUrl = baseMatch.Groups["url"].Value.TrimEnd(URL_DELIM);
 
 		}
 		else {
-			if (url.ToString().EndsWith('/')) {
-				baseUrl = url.ToString().TrimEnd('/');
+			if (url.ToString().EndsWith(URL_DELIM)) {
+				baseUrl = url.ToString().TrimEnd(URL_DELIM);
 			}
 			else {
 				baseUrl = Url.Parse(url); //todo
@@ -315,21 +378,40 @@ public static class ImageScanner
 			}
 		}
 
-		var abs = matches.Select(u =>
+		var abs = imgUrls.Select(u =>
 		{
 			if (u.StartsWith("http"))
 				return u;
 
 			if (u.StartsWith("//"))
-				return url.Scheme + u.TrimStart('/');
+				return url.Scheme + u.TrimStart(URL_DELIM);
 
-			if (u.StartsWith("/"))
+			if (u.StartsWith(URL_DELIM))
 				return url.Root + u;
 
-			return baseUrl + "/" + u;
-		}).Where(u => Url.IsValid(u)).Distinct();
+			return baseUrl + URL_DELIM + u;
+		}).Where(Url.IsValid).Distinct();
 
 		return abs;
+	}
+
+	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc, IImageFilter filter = null)
+	{
+		// var a = doc.QueryAllAttribute("a", "href");
+		// var b = doc.QueryAllAttribute("img", "src");
+
+		var a = doc.Links.Select(x => x.GetAttribute("href"));
+		var b = doc.Images.Select(x => x.Source);
+
+		var c = a.Union(b);
+
+		if (filter != null) {
+			c = c.Where(filter.Refine);
+		}
+
+		c = c.Distinct();
+
+		return c;
 	}
 
 	public static async Task<IEnumerable<Item2>> Highest(SearchQuery query,
@@ -389,8 +471,8 @@ public static class ImageScanner
 			// var parser = new HtmlParser();
 			// var doc    = await parser.ParseDocumentAsync(stream);
 
-			// var urls = ImageScanner.GetImageUrls(doc);
-			var urls = FindUrls(stream, result.Url).ToArray();
+			// var urls1 = ImageScanner.GetImageUrls(doc);
+			var urls = GetImageUrls(stream, result.Url).ToArray();
 
 			// doc.Dispose();
 			// response.Dispose();
@@ -451,6 +533,17 @@ public static class ImageScanner
 		}
 
 		return cb;
+	}
+
+	public static async Task<IEnumerable<SearchResultItem>> Aggregate(IEnumerable<SearchResultItem> results)
+	{
+		var groups = results.GroupBy(g => new { g.Artist });
+
+		foreach (var v in groups) {
+			Console.WriteLine($"{v.Key}");
+		}
+
+		return ( []);
 	}
 
 }

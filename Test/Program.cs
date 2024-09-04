@@ -31,6 +31,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Configuration = AngleSharp.Configuration;
@@ -57,7 +58,8 @@ public static class Program
 
 		// await test9();
 
-		var u1 = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		// var u1 = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+		var u1 = @"C:\Users\Deci\Pictures\Epic anime\en-jia-2077.jpg";
 		var q  = await SearchQuery.TryCreateAsync(u1);
 		var u  = await q.UploadAsync();
 		Console.WriteLine(u);
@@ -65,15 +67,32 @@ public static class Program
 		var sc      = new SearchClient(new SearchConfig());
 		var results = await sc.RunSearchAsync(q);
 
+		var results2 = results.SelectMany(x => x.Results)
+			.Where(r => !r.IsRaw && r.Url != null);
+
+
 		// var rr = r.SelectMany(x => x.Results);
 
-		foreach (var sr in results) {
+		foreach (var sr in results2) {
 			Console.WriteLine($"{sr}");
-			var items = await ImageScanner.Highest(q, sr.Results);
+			/*var items = await ImageScanner.Highest(q, sr.Results);
 
 			foreach (ImageScanner.Item2 item2 in items) {
 				Console.WriteLine($"{item2.Image} {item2.Item} {item2.Url}");
 
+			}*/
+
+			var imgs2 = await ImageScanner.ScanImagesAsync2(sr.Url);
+
+			while (imgs2.Count > 0) {
+				var imgs3 = await Task.WhenAny(imgs2);
+				imgs2.Remove(imgs3);
+
+				var imgs4 = await imgs3;
+
+				if ( imgs4 != null) {
+					Console.WriteLine(imgs4);
+				}
 			}
 		}
 		/*foreach (var result in r) {

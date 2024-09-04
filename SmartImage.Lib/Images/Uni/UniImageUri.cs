@@ -62,7 +62,8 @@ public class UniImageUri : UniImage
 			throw new ArgumentException($"{value}");
 		}
 
-		var res = await value.AllowAnyHttpStatus()
+		var res = await ImageScanner.Client.Request(value)
+			          .AllowAnyHttpStatus()
 			          .WithHeaders(new
 			          {
 				          // todo

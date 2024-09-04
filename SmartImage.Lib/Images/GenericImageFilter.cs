@@ -20,7 +20,7 @@ public class GenericImageFilter : IImageFilter
 	public bool Predicate(UniImage us)
 	{
 		try {
-			if (us.Stream.Length <= 25_000 || us.ImageFormat.DefaultMimeType == null) {
+			if (us.Stream.Length <= 25_000 || us.ImageFormat?.DefaultMimeType == null) {
 				return false;
 			}
 
