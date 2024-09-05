@@ -335,11 +335,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 			           .WithTimeout(Timeout)
 			           .PostMultipartAsync(m =>
 			           {
-				           m.AddString("url", query.Image.IsUri ? query.Image.ValueString : string.Empty);
+				           m.AddString("url", query.Uni.IsUri ? query.Uni.ValueString : string.Empty);
 
-				           if (query.Image.IsUri) { }
-				           else if (query.Image.IsFile) {
-					           m.AddFile("file", query.Image.Value.ToString(), fileName: "image.png");
+				           if (query.Uni.IsUri) { }
+				           else if (query.Uni.IsFile) {
+					           m.AddFile("file", query.Uni.Value.ToString(), fileName: "image.png");
 				           }
 
 			           });

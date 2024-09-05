@@ -34,12 +34,12 @@ public class ArchiveMoeEngine : WebSearchEngine
 	protected static string GetHash(SearchQuery q)
 	{
 		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
-		var data = MD5.HashData(q.Image.Stream);
+		var data = MD5.HashData(q.Uni.Stream);
 		var b64  = Convert.ToBase64String(data).Replace("==", "");
 		b64 = Regex.Replace(b64, @"\//", "_");
 		b64 = Regex.Replace(b64, @"\+", "-");
 
-		q.Image.Stream.TrySeek();
+		q.Uni.Stream.TrySeek();
 
 		return b64;
 	}

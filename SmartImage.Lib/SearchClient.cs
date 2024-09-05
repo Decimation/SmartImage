@@ -262,11 +262,13 @@ public sealed class SearchClient : IDisposable
 	{
 #if DEBUG && !TEST
 #pragma warning disable CA1822
+#pragma warning disable CS0162
 
 		// ReSharper disable once MemberCanBeMadeStatic.Local
 		s_logger.LogDebug("Not opening result {result}", result);
 		return;
 
+#pragma warning restore CS0162
 #pragma warning restore CA1822
 #endif
 

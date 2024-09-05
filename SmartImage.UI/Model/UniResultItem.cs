@@ -79,8 +79,9 @@ public class UniResultItem : ResultItem
 				// todo: update GetFileName
 				Url = ri.Url.GetFileName().Split(':')[0];
 
-				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url))) {
-					Url = Path.ChangeExtension(Url, Uni.ImageFormat.FileExtensions.First());
+				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url)) && Uni.HasImageFormat) {
+
+					Url = Path.ChangeExtension(Url, Uni.Image.Metadata.DecodedImageFormat?.FileExtensions.First());
 				}
 			}
 			else {
@@ -97,7 +98,7 @@ public class UniResultItem : ResultItem
 		StatusImage = AppComponents.picture;
 
 		// SizeFormat  = ControlsHelper.FormatSize(Uni);
-		Hash        = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
+		Hash = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
 		Uni.Stream.TrySeek();
 
 	}
@@ -105,13 +106,13 @@ public class UniResultItem : ResultItem
 	protected override void OnImageDownloadProgress(object? sender, DownloadProgressEventArgs args)
 	{
 		PreviewProgress = (args.Progress);
-		PreviewText           = $"Download progress...{PreviewProgress}";
+		PreviewText     = $"Download progress...{PreviewProgress}";
 	}
 
 	protected override void OnImageDownloadFailed(object? sender, ExceptionEventArgs args)
 	{
 		PreviewProgress = 0;
-		PreviewText           = $"Download failed: {args.ErrorException.Message}";
+		PreviewText     = $"Download failed: {args.ErrorException.Message}";
 	}
 
 	protected override void OnImageDownloadCompleted(object? sender, EventArgs args)
@@ -133,7 +134,8 @@ public class UniResultItem : ResultItem
 	{
 		if (HasImage) {
 			return true;
-		} else if (!CanLoadImage) {
+		}
+		else if (!CanLoadImage) {
 			return false;
 		}
 
@@ -192,7 +194,7 @@ public class UniResultItem : ResultItem
 		await fs.DisposeAsync();
 
 		CanDownload = false;
-		Download   = path2;
+		Download    = path2;
 
 		// u.Dispose();
 		UpdateProperties();

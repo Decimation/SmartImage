@@ -66,21 +66,32 @@ public static class Program
 
 		var sc      = new SearchClient(new SearchConfig());
 		var results = await sc.RunSearchAsync(q);
+		var result      = results.FirstOrDefault(x => x.Engine is YandexEngine);
 
+		/*
 		var results2 = results.SelectMany(x => x.Results)
 			.Where(r => !r.IsRaw && r.Url != null);
-
+			*/
+		Console.WriteLine(result);
+		var results2 = result.Results.Where(r => !r.IsRaw && r.Url != null);
 
 		// var rr = r.SelectMany(x => x.Results);
 
+		foreach (SearchResultItem item in results2) {
+			Console.WriteLine(item);
+			var items = await ImageScanner.ScanImagesAsync(item.Url);
+
+			foreach (UniImage image in items) {
+				Console.WriteLine($"\t{image}");
+			}
+		}
+
+		/*
 		foreach (var sr in results2) {
 			Console.WriteLine($"{sr}");
-			/*var items = await ImageScanner.Highest(q, sr.Results);
 
-			foreach (ImageScanner.Item2 item2 in items) {
-				Console.WriteLine($"{item2.Image} {item2.Item} {item2.Url}");
 
-			}*/
+
 
 			var imgs2 = await ImageScanner.ScanImagesAsync2(sr.Url);
 
@@ -90,11 +101,14 @@ public static class Program
 
 				var imgs4 = await imgs3;
 
-				if ( imgs4 != null) {
+				if (imgs4 != null) {
 					Console.WriteLine(imgs4);
 				}
 			}
 		}
+
+		 */
+
 		/*foreach (var result in r) {
 			var g = result.Results.GroupBy(x => x.Root);
 
@@ -223,8 +237,8 @@ public static class Program
 	{
 		var sq = await SearchQuery.TryCreateAsync(file);
 
-		var hashrg = await SHA256.HashDataAsync(sq.Image.Stream);
-		sq.Image.Stream.TrySeek();
+		var hashrg = await SHA256.HashDataAsync(sq.Uni.Stream);
+		sq.Uni.Stream.TrySeek();
 		var hash = HashHelper.Sha256.ToString(hashrg);
 		Console.WriteLine(sq);
 
@@ -332,7 +346,7 @@ public static class Program
 		var    str  = await "https://i.imgur.com/QtCausw.png".GetStreamAsync();
 		var    strs = ToString(await SHA256.HashDataAsync(str));
 
-		var s = ToString(await SHA256.HashDataAsync(sq?.Image.Stream));
+		var s = ToString(await SHA256.HashDataAsync(sq?.Uni.Stream));
 		Debug.Assert(s == hash);
 
 		var h = new HydrusClient(api, key);

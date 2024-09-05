@@ -125,7 +125,7 @@ public static class ControlsHelper
 
 		i = FormatDimensions(w, h);
 
-		return $"{name} ⇉ [{uni.ImageFormat.DefaultMimeType}] [{bytes}] • {i}";
+		return $"{name} ⇉ [{(uni.HasImageFormat? uni.Image.Metadata.DecodedImageFormat.DefaultMimeType : "?")}] [{bytes}] • {i}";
 	}
 
 	public static string FormatSize(UniImage uni)

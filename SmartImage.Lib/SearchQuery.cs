@@ -40,11 +40,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Url.IsValid(Upload);
 
-	public UniImage Image { get; }
+	public UniImage Uni { get; }
 
 	internal SearchQuery(UniImage img, Url upload)
 	{
-		Image  = img;
+		Uni  = img;
 		Upload = upload;
 
 		// Size = Uni == null ? default : Uni.Stream.Length;
@@ -58,7 +58,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var task = await UniImage.TryCreateAsync(o, t: t);
+		var task = await UniImage.TryCreateAsync(o, ct: t);
 
 		if (task != UniImage.Null) {
 			return new SearchQuery(task);
@@ -75,15 +75,15 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			return Upload;
 		}
 
-		string fu = Image.ValueString;
+		string fu = Uni.ValueString;
 
-		if (Image.IsUri) {
+		if (Uni.IsUri) {
 			Upload = fu;
 
 			// Size   = BaseSearchEngine.NA_SIZE;
 			// var fmt = await ISImage.DetectFormatAsync(Stream);
 
-			Debug.WriteLine($"Skipping upload for {Image.ValueString}", nameof(UploadAsync));
+			Debug.WriteLine($"Skipping upload for {Uni.ValueString}", nameof(UploadAsync));
 		}
 		else {
 			// fu = await test(fu);
@@ -130,12 +130,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public void Dispose()
 	{
-		Image?.Dispose();
+		Uni?.Dispose();
 	}
 
 	public override string ToString()
 	{
-		return $"{Image}: {IsUploaded}";
+		return $"{Uni}: {IsUploaded}";
 	}
 
 	#region Equality members
@@ -145,7 +145,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
 
-		return Equals(Image, other.Image) && Equals(Upload, other.Upload);
+		return Equals(Uni, other.Uni) && Equals(Upload, other.Upload);
 	}
 
 	public override bool Equals(object obj)
@@ -156,7 +156,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public override int GetHashCode()
 	{
 		// return HashCode.Combine(Uni, Upload, Size);
-		return HashCode.Combine(Image);
+		return HashCode.Combine(Uni);
 
 		// return Uni.GetHashCode();
 	}

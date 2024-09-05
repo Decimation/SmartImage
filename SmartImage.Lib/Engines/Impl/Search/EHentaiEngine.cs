@@ -56,6 +56,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 
 	public bool IsLoggedIn { get; private set; }
 
+	public bool UseExHentai { get; set; }
+
 	private readonly CookieCollection m_cookies;
 
 	#region
@@ -71,11 +73,12 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 
 	static EHentaiEngine() { }
 
-	public EHentaiEngine() : base(EHentaiBase)
+	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
 	{
-		m_client   = new HttpClient(m_clientHandler);
-		IsLoggedIn = false;
-		m_cookies  = new();
+		m_client    = new HttpClient(m_clientHandler);
+		IsLoggedIn  = false;
+		m_cookies   = new();
+		UseExHentai = useExHentai;
 	}
 
 	/*
@@ -96,6 +99,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 			return;
 		}*/
 		//
+
 		return;
 	}
 
@@ -103,29 +107,40 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 	 * Default result layout is [Compact]
 	 */
 
+
 	public async ValueTask<bool> ApplyCookiesAsync(IEnumerable<IBrowserCookie> cookies = null)
 	{
-
 		Trace.WriteLine($"Applying cookies to {Name}");
 
 		if (await CookiesManager.Instance.LoadCookiesAsync()) {
 			cookies ??= CookiesManager.Instance.Cookies;
 		}
+		else {
+			return false;
+		}
 
 		var fcc = cookies.OfType<FirefoxCookie>().Where(x =>
 		{
-			if (!true) {
-				return x.Host.Contains(HOST_EH);
+			bool a = false;
+
+			if (UseExHentai) {
+				var b = x.Host.Contains(HOST_EH);
+
+				// return b;
+				a |= b;
 			}
 
-			return x.Host.Contains(HOST_EX);
+			bool c = x.Host.Contains(HOST_EX);
+			a |= c;
+
+			return a;
 		});
 
 		foreach (var cookie in fcc) {
 			m_cookies.Add(cookie.AsCookie());
 		}
 
-		var res2 = await GetSessionAsync(true);
+		var res2 = await GetSessionAsync();
 
 		/*var res2 = await EHentaiBase.WithCookies(m_clientHandler.CookieContainer)
 			.WithHeaders(new
@@ -134,16 +149,17 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 			})
 			.WithAutoRedirect(true)
 			.GetAsync();*/
-		
+
 		m_clientHandler.CookieContainer.Add(m_cookies);
 		m_client.Timeout = Timeout;
 
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
+
 	}
 
-	private Task<IFlurlResponse> GetSessionAsync(bool useEx = false)
+	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return (useEx ? ExHentaiBase : EHentaiBase)
+		return (UseExHentai ? ExHentaiBase : EHentaiBase)
 			.WithCookies(m_cookies)
 			.WithTimeout(Timeout)
 			.WithHeaders(new
@@ -162,8 +178,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 		string       fileName;
 		string       filePath = null;
 
-		if (query.Image.HasFile) {
-			filePath = query.Image.FilePath;
+		if (query.Uni.HasFile) {
+			filePath = query.Uni.FilePath;
 			fileName = Path.GetFileName(filePath);
 
 			/*if (Path.GetFileName(t) != name) {
@@ -172,10 +188,10 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 		}
 		else {
 			fileName = SFILE_NAME_DEFAULT;
-			var ok = query.Image.TryGetFile(fileName);
+			var ok = query.Uni.TryGetFile(fileName);
 
 			if (ok) {
-				filePath = query.Image.FilePath;
+				filePath = query.Uni.FilePath;
 			}
 			else {
 				Debugger.Break();

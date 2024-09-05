@@ -55,10 +55,10 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			               .PostMultipartAsync(c =>
 			               {
 				               // var tmp = query.WriteToFile();
-				               query.Image.Stream.TrySeek();
+				               query.Uni.Stream.TrySeek();
 
-				               c.AddFile("file", query.Image.Stream, "file");
-				               query.Image.Stream.TrySeek();
+				               c.AddFile("file", query.Uni.Stream, "file");
+				               query.Uni.Stream.TrySeek();
 
 				               c.AddString("includeNsfw", true.ToString());
 				               c.AddString("limit", 32.ToString());

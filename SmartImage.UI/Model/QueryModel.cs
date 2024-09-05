@@ -71,7 +71,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		get
 		{
 			if (HasQuery) {
-				return Query.Image.Size;
+				return Query.Uni.Size;
 			}
 
 			return Native.ERROR_SV;
@@ -122,7 +122,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 
 	public bool IsComplete => Results.Any() && HasQuery && Query.IsUploaded;
 
-	public bool CanDelete => HasQuery && Query is { Image.IsFile: true };
+	public bool CanDelete => HasQuery && Query is { Uni.IsFile: true };
 
 	public bool CanSearch => !Results.Any() && HasInitQuery;
 
@@ -242,7 +242,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 
 		// Debug.Assert(Query != null);
 
-		var uriString = Query.Image.ValueString;
+		var uriString = Query.Uni.ValueString;
 
 		if (Query == null || String.IsNullOrWhiteSpace(uriString)) {
 			Invalid = true;
@@ -326,7 +326,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 		var image = new BitmapImage()
 			{ };
 		image.BeginInit();
-		image.UriSource = new Uri(Query.Image.ValueString);
+		image.UriSource = new Uri(Query.Uni.ValueString);
 
 		// Image.StreamSource   = Query.Uni.Stream;
 		image.CacheOption    = BitmapCacheOption.OnLoad;
@@ -336,7 +336,7 @@ public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSourc
 
 		Trace.Assert(Query != null);
 
-		if (Query.Image.IsUri) {
+		if (Query.Uni.IsUri) {
 			image.DownloadCompleted += (sender, args) =>
 			{
 				UpdateProperties();

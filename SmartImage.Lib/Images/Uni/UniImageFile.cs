@@ -1,15 +1,13 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageFile.cs
 // Date: 2024/07/17 @ 02:07:16
 
-using SixLabors.ImageSharp.Formats;
-
 namespace SmartImage.Lib.Images.Uni;
 
 public class UniImageFile : UniImage
 {	
 
-	internal UniImageFile(object value, FileInfo fi, IImageFormat format = null)
-		: base(value, UniImageType.File, format)
+	internal UniImageFile(object value, FileInfo fi)
+		: base(value, UniImageType.File)
 	{
 		FileInfo = fi;
 	}

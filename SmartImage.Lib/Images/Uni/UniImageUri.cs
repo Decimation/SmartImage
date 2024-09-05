@@ -3,7 +3,6 @@
 
 using System.Net;
 using Flurl.Http;
-using SixLabors.ImageSharp.Formats;
 
 namespace SmartImage.Lib.Images.Uni;
 
@@ -17,8 +16,8 @@ public class UniImageUri : UniImage
 
 	public Url Url { get; }
 
-	internal UniImageUri(object value, Url url, IFlurlResponse response = null, IImageFormat format = null)
-		: base(value, Stream.Null, UniImageType.Uri, format)
+	internal UniImageUri(object value, Url url, IFlurlResponse response = null)
+		: base(value, Stream.Null, UniImageType.Uri)
 	{
 		Url      = url;
 		Response = response;
@@ -73,6 +72,7 @@ public class UniImageUri : UniImage
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
 			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
+
 		}
 
 		return res;

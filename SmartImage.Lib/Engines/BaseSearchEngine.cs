@@ -149,7 +149,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		bool b = true;
 
 		if (MaxSize.HasValue) {
-			b = q.Image.Size <= MaxSize;
+			b = q.Uni.Size <= MaxSize;
 		}
 
 		/*if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {

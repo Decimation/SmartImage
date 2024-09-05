@@ -140,18 +140,18 @@ public partial class MainWindow
 			return;
 		}
 
-		var s = Query.Image.ValueString;
+		var s = Query.Uni.ValueString;
 
 		if (String.IsNullOrWhiteSpace(s)) {
 			return;
 		}
 
-		if (Query.Image.IsFile) {
+		if (Query.Uni.IsFile) {
 			FileSystem.ExploreFile(s);
 
 			// FileSystem.Open(s);
 		}
-		else if (Query.Image.IsUri) {
+		else if (Query.Uni.IsUri) {
 			FileSystem.Open(s);
 
 		}

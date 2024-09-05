@@ -508,7 +508,7 @@ public class UnitTest4
 		cl.OnSearchComplete += (sender, results) => { };
 
 		var s = new CancellationTokenSource();
-		TestContext.WriteLine($"{sq.Image.ImageFormat}");
+		TestContext.WriteLine($"{sq.Uni.Image?.Metadata.DecodedImageFormat}");
 		var r = await cl.RunSearchAsync(sq, token: s.Token);
 
 		Assert.IsNotEmpty(r);
@@ -613,9 +613,9 @@ public class UnitTest6
 		var sq = await SearchQuery.TryCreateAsync(f);
 
 		var h    = new HydrusClient(api, key);
-		var hash = HashHelper.Sha256.ToString(await SHA256.HashDataAsync(sq.Image.Stream));
+		var hash = HashHelper.Sha256.ToString(await SHA256.HashDataAsync(sq.Uni.Stream));
 
-		sq.Image.Stream.TrySeek();
+		sq.Uni.Stream.TrySeek();
 
 		var jsonValue = await h.GetFileHashesAsync(hash);
 		Assert.NotNull(jsonValue);

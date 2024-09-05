@@ -61,110 +61,13 @@ public static class ImageScanner
 	/// points to binary image data, it is returned.
 	/// </summary>
 	public static async Task<UniImage[]> ScanImagesAsync(Url u, IImageFilter filter = null,
-	                                                     CancellationToken ct = default)
+	                                                         CancellationToken ct = default)
 	{
-		IFlurlResponse res;
-		Stream         stream;
 
-		// pred   ??= _ => true;
-		filter ??= GenericImageFilter.Instance;
-
-		try {
-			res = await Client.Request(u)
-				      .WithCookies(out var cj)
-				      .GetAsync(cancellationToken: ct);
-
-			if (res == null) {
-				return [];
-			}
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}");
-			return [];
-		}
-
-		stream = await res.GetStreamAsync();
-		var ul = new ConcurrentBag<UniImage>();
-		var uf = await UniImage.TryCreateAsync(stream, t: ct);
-
-		if (uf != UniImage.Null) {
-			/*if (!FileType.Image.Contains(uf.FileType)) {
-				uf?.Dispose();
-				goto ret;
-			}*/
-			if (uf.ImageFormat?.DefaultMimeType != null) {
-				ul.Add(uf);
-				goto ret;
-
-			}
-		}
-		else if (stream.CanSeek) {
-			stream.Position = 0;
-
-		}
-
-		// var p  = new HtmlParser();
-		// var dd = await p.ParseDocumentAsync(stream, ct);
-
-		// var parser = new HtmlParser();
-		// var doc    = await parser.ParseDocumentAsync(stream);
-
-		// IDocument dd = await GetDocument2(u, ct);
-
-		// var c = GetImageUrls(doc, filter);
-		string html = await res.GetStringAsync();
-
-		// var    sr = new StreamReader(stream);
-		// string html         = await sr.ReadToEndAsync(ct);
-		// var html = doc.ToString();
-		var c = GetImageUrls(html, u);
-
-		var po = new ParallelOptions()
-		{
-			MaxDegreeOfParallelism = -1,
-			CancellationToken      = ct,
-		};
-
-		await Parallel.ForEachAsync(c, po, async (s, token) =>
-		{
-			var ux = await UniImage.TryCreateAsync(s, t: token);
-
-			if (ux != UniImage.Null) {
-				/*if (!FileType.Image.Contains(ux.FileType)) {
-					ux?.Dispose();
-					return;
-				}*/
-				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanForEmbeddedImagesAsync));
-
-				if ((filter != null && filter.Predicate(ux)) || filter == null) {
-					ul.Add(ux);
-
-				}
-				else {
-					ux.Dispose();
-				}
-			}
-			else { }
-
-			return;
-		});
-
-		// context.Dispose();
-		// doc.Dispose();
-		// sr.Dispose();
-		res.Dispose();
-	ret:
-		return ul.ToArray();
-
-	}
-
-	public static async Task<List<Task<UniImage>>> ScanImagesAsync2(Url u, IImageFilter filter = null,
-	                                                               CancellationToken ct = default)
-	{
-		IFlurlResponse              res;
-		Stream                      stream;
-		IEnumerable<Task<UniImage>> rg = [];
-
+		IFlurlResponse          res;
+		Stream                  stream;
+		ConcurrentBag<UniImage> rg = [];
+		
 		// pred   ??= _ => true;
 		filter ??= GenericImageFilter.Instance;
 
@@ -180,21 +83,23 @@ public static class ImageScanner
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}");
+
 			// return [];
 			goto ret;
 		}
 
 		stream = await res.GetStreamAsync();
-		var uf = await UniImage.TryCreateAsync(stream, t: ct);
+		var uf = await UniImage.TryCreateAsync(stream, ct: ct);
 
 		if (uf != UniImage.Null) {
 			/*if (!FileType.Image.Contains(uf.FileType)) {
 				uf?.Dispose();
 				goto ret;
 			}*/
-			if (uf.ImageFormat?.DefaultMimeType != null) {
+			if (uf.HasImageFormat) {
 				// ul.Add(uf);
-				rg = [Task.FromResult(uf)];
+				// rg = [uf];
+				rg.Add(uf);
 				goto ret;
 
 			}
@@ -214,11 +119,16 @@ public static class ImageScanner
 
 		// var c = GetImageUrls(doc, filter);
 		// string html = await res.GetStringAsync();
-
-		var    sr = new StreamReader(stream);
-		string html         = await sr.ReadToEndAsync(ct);
+		if (!stream.CanRead) {
+			stream?.Dispose();
+			goto ret;
+		}
+		
+		var    sr   = new StreamReader(stream, leaveOpen: true);
+		string html = await sr.ReadToEndAsync(ct).ConfigureAwait(false);
+		
 		// var html = doc.ToString();
-		var c = GetImageUrls(html, u);
+		var urls = GetImageUrls(html, u);
 
 		var po = new ParallelOptions()
 		{
@@ -226,11 +136,8 @@ public static class ImageScanner
 			CancellationToken      = ct,
 		};
 
-
-
-		rg = c.Select(async s =>
-		{
-			var ux = await UniImage.TryCreateAsync(s, t: ct);
+		foreach (string s in urls) {
+			var ux = await UniImage.TryCreateAsync(s, ct: ct);
 
 			if (ux != UniImage.Null) {
 				/*if (!FileType.Image.Contains(ux.FileType)) {
@@ -241,8 +148,7 @@ public static class ImageScanner
 
 				if ((filter != null && filter.Predicate(ux)) || filter == null) {
 					// ul.Add(ux);
-
-					goto retx;
+					rg.Add(ux);
 				}
 				else {
 					ux.Dispose();
@@ -251,9 +157,9 @@ public static class ImageScanner
 			}
 			else { }
 
-		retx:
-			return ux;
-		});
+		}
+
+	ret1:
 
 		// context.Dispose();
 		// doc.Dispose();
@@ -261,9 +167,10 @@ public static class ImageScanner
 		res.Dispose();
 
 	ret:
-		return rg.ToList();
+		return rg.ToArray();
 
 	}
+
 
 	/*
 	public static async Task<IEnumerable<string>> GetImageUrlsAsync(Url u, IImageFilter filter = null,
@@ -302,7 +209,7 @@ public static class ImageScanner
 
 		await Parallel.ForEachAsync(s2, ct, async (s1, token) =>
 		{
-			var uni = await UniImage.TryCreateAsync(s1, t: token);
+			var uni = await UniImage.TryCreateAsync(s1, ct: token);
 
 			if (uni != null) {
 				rg.Add(uni);
@@ -331,17 +238,6 @@ public static class ImageScanner
 	 *
 	 * Gallery-DL
 	 */
-
-	public class Item2
-	{
-
-		public SearchResultItem Item { get; init; }
-
-		public IImageFormat Image { get; init; }
-
-		public string Url { get; init; }
-
-	}
 
 	private static readonly Regex r_imgSource = new(
 		"""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""",
@@ -414,7 +310,7 @@ public static class ImageScanner
 		return c;
 	}
 
-	public static async Task<IEnumerable<Item2>> Highest(SearchQuery query,
+	/*public static async Task<IEnumerable<Item2>> Highest(SearchQuery query,
 	                                                     IEnumerable<SearchResultItem> results,
 	                                                     CancellationToken ct = default)
 	{
@@ -429,9 +325,9 @@ public static class ImageScanner
 			var r = await ImageScanner.GetImageUrlsAsync(item.Url, token: token);
 			Debug.WriteLine($"{item.Url} -> {r}");
 
-		});*/
+		});#1#
 
-		results = results.Where(r => !r.IsRaw && r.Url != null);
+		// results = results.Where(r => !r.IsRaw && r.Url != null);
 
 		var cb = new ConcurrentBag<Item2>();
 
@@ -454,7 +350,7 @@ public static class ImageScanner
 						           // todo
 						           User_Agent = R1.UserAgent1,
 					           })
-					           .WithTimeout(TimeSpan.FromSeconds(7.5))
+					           .WithTimeout(TimeSpan.FromSeconds(3.5))
 					           .GetAsync(cancellationToken: ct);
 			}
 			catch (Exception e) {
@@ -479,7 +375,7 @@ public static class ImageScanner
 
 			Debug.WriteLine($"{result.Url} -> {urls.Length}");
 
-			await Parallel.ForEachAsync(urls, plr, async (s, token) =>
+			async ValueTask Body(string s, CancellationToken token)
 			{
 				IFlurlResponse resp;
 
@@ -487,7 +383,7 @@ public static class ImageScanner
 					resp = await Client.Request(s)
 						       .OnError(call =>
 						       {
-							       call.ExceptionHandled = true;
+							       // call.ExceptionHandled = false;
 						       })
 						       .WithHeaders(new
 						       {
@@ -527,7 +423,9 @@ public static class ImageScanner
 
 				// bin.Dispose();
 
-			});
+			}
+
+			await Parallel.ForEachAsync(urls, plr, Body);
 
 
 		}
@@ -544,6 +442,6 @@ public static class ImageScanner
 		}
 
 		return ( []);
-	}
+	}*/
 
 }

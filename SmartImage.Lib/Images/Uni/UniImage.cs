@@ -3,6 +3,7 @@
 
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Text;
 using System.Threading.Channels;
 using JetBrains.Annotations;
@@ -19,6 +20,8 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Uni;
 #nullable disable
+
+// #nullable enable
 /// <summary>
 /// <seealso cref="UniSourceType"/>
 /// </summary>
@@ -69,11 +72,14 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	[MNNW(true, nameof(FilePath))]
 	public bool HasFile => FilePath != null && File.Exists(FilePath);
 
-	[MN]
-	public IImageFormat ImageFormat { get; private set; }
+	/*[MN]
+	public IImageFormat ImageFormat => HasImage ? Image.Metadata?.DecodedImageFormat : null;
 
 	[MNNW(true, nameof(ImageFormat))]
-	public bool HasImageFormat => ImageFormat != null;
+	public bool HasImageFormat => ImageFormat != null;*/
+
+	[MNNW(true, nameof(Image),nameof(Image.Metadata))]
+	public bool HasImageFormat => HasImage && Image.Metadata.DecodedImageFormat != null;
 
 	public bool IsUri => Type == UniImageType.Uri;
 
@@ -89,17 +95,16 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
-	public static readonly UniImage Null = new UniImageUnknown();
+	public static readonly UniImage Null = new UniImageUnknown(); // todo
 
-	private protected UniImage(object value, UniImageType type, IImageFormat format = null)
-		: this(value, Stream.Null, type, format) { }
+	private protected UniImage(object value, UniImageType type)
+		: this(value, Stream.Null, type) { }
 
-	private protected UniImage(object value, Stream stream, UniImageType type, IImageFormat format)
+	private protected UniImage(object value, Stream stream, UniImageType type)
 	{
-		Stream      = stream;
-		Value       = value;
-		Type        = type;
-		ImageFormat = format;
+		Stream = stream;
+		Value  = value;
+		Type   = type;
 	}
 
 	#region
@@ -108,7 +113,8 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
-	                                                  CancellationToken t = default)
+	                                                  bool autoInitNull = true,
+	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = Null;
 
@@ -130,8 +136,15 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 			}
 
 			if (autoInit) {
-				var allocOk = await ui.Alloc(t);
-				var hasInfo = await ui.DetectFormat(t);
+				var allocOk    = await ui.Alloc(ct);
+				var allocImgOk = await ui.AllocImage(ct);
+
+				// var hasInfo = await ui.DetectFormat(ct);
+				if (!allocOk || !allocImgOk) {
+					ui?.Dispose();
+					ui = Null;
+					
+				}
 			}
 
 		}
@@ -143,7 +156,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		return ui;
 	}
 
-	public virtual async ValueTask<bool> DetectFormat(CancellationToken ct = default)
+	/*public virtual async ValueTask<bool> DetectFormat(CancellationToken ct = default)
 	{
 		if (!HasStream) {
 			throw new InvalidOperationException($"{nameof(Stream)} must be allocated");
@@ -161,7 +174,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 		return HasImageFormat;
 
-	}
+	}*/
 
 	public static bool IsValidSourceType(object str, bool checkExt = true)
 	{
@@ -183,8 +196,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		return ok;
 	}
 
-	#endregion
-
 	#region
 
 	public abstract ValueTask<bool> Alloc(CancellationToken ct = default);
@@ -195,12 +206,22 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	public async Task<bool> AllocImage(CancellationToken ct = default)
 	{
 		if (!HasImage) {
-			Image = await ISImage.LoadAsync(Stream, ct);
 
+			try {
+				Stream.TrySeek(); //todo
+				Image = await ISImage.LoadAsync(Stream, ct);
+				Stream.TrySeek(); //todo
+			}
+			catch (Exception e) {
+				Debug.WriteLine($"{e.Message}");
+			}
+			finally { }
 		}
 
 		return HasImage;
 	}
+
+	#endregion
 
 	#endregion
 
@@ -232,13 +253,17 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		fn ??= Path.GetTempFileName();
 
 		var encoder = new PngEncoder();
+		operation ??= _ => { };
 
-		using ISImage image = ISImage.Load(Stream);
+		// using ISImage image = ISImage.Load(Stream);
+		using var image = Image.Clone(operation);
 
+		/*
 		if (operation != null) {
 			image.Mutate(operation);
 
 		}
+		*/
 
 		image.Save(fn, encoder);
 
@@ -296,7 +321,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	public override string ToString()
 	{
-		string s = $"{ValueString} ({Type}) [{ImageFormat.DefaultMimeType}]";
+		string s = $"{ValueString} ({Type}) [{(HasImageFormat ? Image.Metadata.DecodedImageFormat : "?")}]";
 
 		return s;
 	}
