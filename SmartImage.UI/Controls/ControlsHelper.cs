@@ -15,6 +15,7 @@ namespace SmartImage.UI.Controls;
 
 public static class ControlsHelper
 {
+
 	public static bool IsDoubleClick(this MouseButtonEventArgs e)
 	{
 		return e.ClickCount == 2;
@@ -23,7 +24,7 @@ public static class ControlsHelper
 	public static BitmapImage ResizeBitmap(this BitmapImage originalBitmap, int newWidth, int newHeight)
 	{
 		// Calculate the scale factors for width and height
-		double scaleX = (double) newWidth / originalBitmap.PixelWidth;
+		double scaleX = (double) newWidth  / originalBitmap.PixelWidth;
 		double scaleY = (double) newHeight / originalBitmap.PixelHeight;
 
 		// Create a new Transform to apply the scale factors
@@ -125,7 +126,7 @@ public static class ControlsHelper
 
 		i = FormatDimensions(w, h);
 
-		return $"{name} ⇉ [{(uni.HasImageFormat? uni.Image.Metadata.DecodedImageFormat.DefaultMimeType : "?")}] [{bytes}] • {i}";
+		return $"{name} ⇉ [{(uni.HasImageFormat ? uni.ImageFormat : "?")}] [{bytes}] • {i}";
 	}
 
 	public static string FormatSize(UniImage uni)
@@ -150,8 +151,7 @@ public static class ControlsHelper
 
 	public static string FormatDimensions(int? w, int? h)
 	{
-		if (w.HasValue && h.HasValue)
-		{
+		if (w.HasValue && h.HasValue) {
 			return $"{w}\u00d7{h}";
 		}
 

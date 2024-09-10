@@ -508,7 +508,7 @@ public class UnitTest4
 		cl.OnSearchComplete += (sender, results) => { };
 
 		var s = new CancellationTokenSource();
-		TestContext.WriteLine($"{sq.Uni.Image?.Metadata.DecodedImageFormat}");
+		TestContext.WriteLine($"{sq.Uni.ImageFormat}");
 		var r = await cl.RunSearchAsync(sq, token: s.Token);
 
 		Assert.IsNotEmpty(r);
@@ -594,6 +594,17 @@ public class UnitTest5
 
 		foreach (var source in img) {
 			TestContext.WriteLine($"{source}");
+		}
+	}
+
+	[Test]
+	[TestCase("https://gelbooru.com/index.php?page=post&s=view&id=7729008")]
+	public async Task Get3(string u)
+	{
+		var r = await ImageScanner.ScanImagesAsync(u);
+
+		foreach (UniImage image in r) {
+			TestContext.WriteLine(image);
 		}
 	}
 

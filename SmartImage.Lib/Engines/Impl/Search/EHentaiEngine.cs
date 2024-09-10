@@ -124,14 +124,14 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 			bool a = false;
 
 			if (UseExHentai) {
-				var b = x.Host.Contains(HOST_EH);
-
-				// return b;
-				a |= b;
+				bool c = x.Host.Contains(HOST_EX);
+				a |= c;
 			}
 
-			bool c = x.Host.Contains(HOST_EX);
-			a |= c;
+			var b = x.Host.Contains(HOST_EH);
+
+			// return b;
+			a |= b;
 
 			return a;
 		});
@@ -238,6 +238,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 		// Debug.WriteLine($"{res.StatusCode}");
 
 		sr.RawUrl = res.RequestMessage.RequestUri;
+		var old = sr.Results.Find(r => r.IsRaw);
+		old.Url = sr.RawUrl;
 
 		// Debug.WriteLine($"{sr.RawUrl}");
 		var content = await res.Content.ReadAsStringAsync(token);
@@ -296,6 +298,7 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 	{
 		m_client.Dispose();
 		m_clientHandler.Dispose();
+		m_cookies.Clear();
 
 		IsLoggedIn = false;
 	}

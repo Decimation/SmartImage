@@ -99,6 +99,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public UniImage[] Uni { get; internal set; }
 
+	[MNNW(true, nameof(Uni))]
 	public bool HasUni => Uni != null && Uni.Any();
 
 	// public Url[] EmbeddedUrls { get; internal set; }

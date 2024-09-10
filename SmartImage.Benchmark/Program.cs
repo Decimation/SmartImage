@@ -22,7 +22,7 @@ namespace SmartImage.Benchmark
 				.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()) {})
 				.AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));*/
 
-			BenchmarkRunner.Run<Benchmark4>(cfg);
+			BenchmarkRunner.Run<Benchmark2>(cfg);
 		}
 
 	}

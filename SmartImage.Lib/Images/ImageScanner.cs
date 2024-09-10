@@ -61,13 +61,13 @@ public static class ImageScanner
 	/// points to binary image data, it is returned.
 	/// </summary>
 	public static async Task<UniImage[]> ScanImagesAsync(Url u, IImageFilter filter = null,
-	                                                         CancellationToken ct = default)
+	                                                     CancellationToken ct = default)
 	{
 
 		IFlurlResponse          res;
 		Stream                  stream;
 		ConcurrentBag<UniImage> rg = [];
-		
+
 		// pred   ??= _ => true;
 		filter ??= GenericImageFilter.Instance;
 
@@ -100,8 +100,10 @@ public static class ImageScanner
 				// ul.Add(uf);
 				// rg = [uf];
 				rg.Add(uf);
+
 				goto ret;
 
+				// return rg.ToArray();
 			}
 		}
 		else if (stream.CanSeek) {
@@ -120,13 +122,13 @@ public static class ImageScanner
 		// var c = GetImageUrls(doc, filter);
 		// string html = await res.GetStringAsync();
 		if (!stream.CanRead) {
-			stream?.Dispose();
+			stream.Dispose();
 			goto ret;
 		}
-		
+
 		var    sr   = new StreamReader(stream, leaveOpen: true);
 		string html = await sr.ReadToEndAsync(ct).ConfigureAwait(false);
-		
+
 		// var html = doc.ToString();
 		var urls = GetImageUrls(html, u);
 
@@ -136,8 +138,9 @@ public static class ImageScanner
 			CancellationToken      = ct,
 		};
 
-		foreach (string s in urls) {
-			var ux = await UniImage.TryCreateAsync(s, ct: ct);
+		await Parallel.ForEachAsync(urls, po, async (s, token) =>
+		{
+			var ux = await UniImage.TryCreateAsync(s, ct: token).ConfigureAwait(false);
 
 			if (ux != UniImage.Null) {
 				/*if (!FileType.Image.Contains(ux.FileType)) {
@@ -156,8 +159,7 @@ public static class ImageScanner
 				}
 			}
 			else { }
-
-		}
+		});
 
 	ret1:
 

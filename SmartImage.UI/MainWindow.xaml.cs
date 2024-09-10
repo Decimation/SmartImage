@@ -918,6 +918,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Restart(true);
 		ClearQueryControls();
+		
+		
 		Lb_Upload.Foreground = Brushes.White;
 
 		// SetQueue(null);

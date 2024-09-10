@@ -8,6 +8,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.Benchmark;
 #pragma warning disable CS8618
@@ -73,13 +74,31 @@ public class Benchmark2
 	{
 		s =
 			@"C:\Users\Deci\Pictures\MPV Screenshots\mpv_[SubsPlease] Jujutsu Kaisen - 30 (1080p) [3DAACE2D]_00_04_56.630_00h04m56s630ms_ns].png";
+	}
+
+	/*[IterationSetup]
+	public void IterationSetup()
+	{
+		;
 		fs = File.OpenRead(s);
 	}
 
-	[Benchmark]
-	public async Task<IImageFormat> Test1()
+	[IterationCleanup]
+	public void IterationCleanup()
 	{
-		return await Image.DetectFormatAsync(fs);
+		fs.Dispose();
+	}*/
+
+	[Benchmark]
+	public async Task<IImageFormat> Test1a()
+	{
+		return await Image.DetectFormatAsync(s);
+	}
+
+	[Benchmark]
+	public async Task<ImageInfo> Test1b()
+	{
+		return await Image.IdentifyAsync(s);
 	}
 
 	[Benchmark]
@@ -192,9 +211,9 @@ public class Benchmark3
 	}
 
 	[Benchmark]
-	public async Task<BinaryImageFile> Test2()
+	public async Task<UniImage> Test2()
 	{
-		return await BinaryImageFile.TryCreateAsync(s);
+		return await UniImage.TryCreateAsync(s);
 	}
 
 	[Benchmark]

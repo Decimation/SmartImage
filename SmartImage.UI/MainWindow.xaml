@@ -558,7 +558,7 @@
                     <TextBox x:Name="Tb_Info_Type" HorizontalAlignment="Left" Margin="64,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentQuery.Query.Uni.Image.Metadata.DecodedImageFormat.DefaultMimeType, Mode=OneWay,
+                             Text="{Binding CurrentQuery.Query.Uni.ImageFormat.DefaultMimeType, Mode=OneWay,
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, ElementName=Wnd_Main, IsAsync=True}" />
 
                     <TextBox x:Name="Tb_Info_Size" HorizontalAlignment="Left" Margin="217,65,0,0" TextWrapping="Wrap"

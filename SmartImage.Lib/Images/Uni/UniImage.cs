@@ -72,14 +72,14 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	[MNNW(true, nameof(FilePath))]
 	public bool HasFile => FilePath != null && File.Exists(FilePath);
 
-	/*[MN]
-	public IImageFormat ImageFormat => HasImage ? Image.Metadata?.DecodedImageFormat : null;
+	[MN]
+	public IImageFormat ImageFormat {get; private set;}
 
 	[MNNW(true, nameof(ImageFormat))]
-	public bool HasImageFormat => ImageFormat != null;*/
+	public bool HasImageFormat => ImageFormat != null;
 
-	[MNNW(true, nameof(Image),nameof(Image.Metadata))]
-	public bool HasImageFormat => HasImage && Image.Metadata.DecodedImageFormat != null;
+	/*[MNNW(true, nameof(Image), nameof(Image.Metadata))]
+	public bool HasImageFormat => HasImage && Image.Metadata.DecodedImageFormat != null;*/
 
 	public bool IsUri => Type == UniImageType.Uri;
 
@@ -113,7 +113,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
-	                                                  bool autoInitNull = true,
+	                                                  bool autoInitNull = false,
 	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = Null;
@@ -137,13 +137,16 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 			if (autoInit) {
 				var allocOk    = await ui.Alloc(ct);
-				var allocImgOk = await ui.AllocImage(ct);
+				// var allocImgOk = await ui.AllocImage(ct);
 
-				// var hasInfo = await ui.DetectFormat(ct);
-				if (!allocOk || !allocImgOk) {
-					ui?.Dispose();
-					ui = Null;
-					
+				var hasInfo = await ui.DetectFormat(ct);
+				if (autoInitNull) {
+					if (!allocOk || !hasInfo) {
+						ui.Dispose();
+						ui = Null;
+
+					}
+
 				}
 			}
 
@@ -156,7 +159,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		return ui;
 	}
 
-	/*public virtual async ValueTask<bool> DetectFormat(CancellationToken ct = default)
+	public virtual async ValueTask<bool> DetectFormat(CancellationToken ct = default)
 	{
 		if (!HasStream) {
 			throw new InvalidOperationException($"{nameof(Stream)} must be allocated");
@@ -164,7 +167,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 		try {
 			Stream.TrySeek();
-
 			ImageFormat = await ISImage.DetectFormatAsync(Stream, ct);
 
 			Stream.TrySeek();
@@ -174,7 +176,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 		return HasImageFormat;
 
-	}*/
+	}
 
 	public static bool IsValidSourceType(object str, bool checkExt = true)
 	{
@@ -258,12 +260,8 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		// using ISImage image = ISImage.Load(Stream);
 		using var image = Image.Clone(operation);
 
-		/*
-		if (operation != null) {
-			image.Mutate(operation);
+		image.Mutate(operation);
 
-		}
-		*/
 
 		image.Save(fn, encoder);
 
@@ -321,7 +319,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	public override string ToString()
 	{
-		string s = $"{ValueString} ({Type}) [{(HasImageFormat ? Image.Metadata.DecodedImageFormat : "?")}]";
+		string s = $"{ValueString} ({Type}) [{(HasImageFormat ? ImageFormat : "?")}]";
 
 		return s;
 	}

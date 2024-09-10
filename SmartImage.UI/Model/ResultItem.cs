@@ -113,6 +113,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 	public BitmapSource? Image { get; /*protected*/ set; }
 
+	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image is not null;
 
 	public virtual bool CanLoadImage => !HasImage && Url.IsValid(Result.Thumbnail);

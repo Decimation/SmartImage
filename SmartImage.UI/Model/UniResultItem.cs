@@ -81,7 +81,7 @@ public class UniResultItem : ResultItem
 
 				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url)) && Uni.HasImageFormat) {
 
-					Url = Path.ChangeExtension(Url, Uni.Image.Metadata.DecodedImageFormat?.FileExtensions.First());
+					Url = Path.ChangeExtension(Url, Uni.ImageFormat?.FileExtensions.First());
 				}
 			}
 			else {
@@ -143,7 +143,7 @@ public class UniResultItem : ResultItem
 			{ };
 		image.BeginInit();
 		Trace.Assert(Uni != null);
-
+		
 		image.StreamSource = Uni.Stream;
 
 		// Image.StreamSource = Uni.Stream;
