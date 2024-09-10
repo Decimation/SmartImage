@@ -192,8 +192,9 @@ public sealed class SearchClient : IDisposable
 					.OrderByDescending(x => x.Similarity);
 
 				var item = ordered.FirstOrDefault();
-
-				OpenResult(item);
+				if (item != null) {
+					OpenResult(item.Url);
+				}
 			}
 			catch (Exception e) {
 				Debug.WriteLine($"{e.Message}");
@@ -235,13 +236,27 @@ public sealed class SearchClient : IDisposable
 		}
 
 		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
-			OpenResult(result.GetBestResult());
+			var url = Config.OpenRaw ? result.RawUrl : result.GetBestResult()?.Url;
+
+			OpenResult(url);
 		}
 
 	}
 
 	public static void OpenResult([MN] Url url1)
 	{
+#if DEBUG && !TEST
+#pragma warning disable CA1822
+#pragma warning disable CS0162
+
+		// ReSharper disable once MemberCanBeMadeStatic.Local
+		s_logger.LogDebug("Not opening result {result}", url1);
+		return;
+
+#pragma warning restore CS0162
+#pragma warning restore CA1822
+#endif
+
 		if (url1 == null) {
 			return;
 		}
@@ -258,27 +273,6 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	public void OpenResult([MN] SearchResultItem result)
-	{
-#if DEBUG && !TEST
-#pragma warning disable CA1822
-#pragma warning disable CS0162
-
-		// ReSharper disable once MemberCanBeMadeStatic.Local
-		s_logger.LogDebug("Not opening result {result}", result);
-		return;
-
-#pragma warning restore CS0162
-#pragma warning restore CA1822
-#endif
-
-		if (result != null) {
-
-			var url = Config.OpenRaw ? result.Root.GetRawResultItem().Url : result.Url;
-			OpenResult(url);
-		}
-
-	}
 
 	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler,
 	                                                      CancellationToken token)

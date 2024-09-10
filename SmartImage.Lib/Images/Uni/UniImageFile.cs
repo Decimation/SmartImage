@@ -18,7 +18,10 @@ public class UniImageFile : UniImage
 
 	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
 	{
-		Stream = File.OpenRead(FileInfo.FullName);
+		if (!HasStream) {
+			Stream = File.OpenRead(FileInfo.FullName);
+
+		}
 		return HasStream;
 	}
 

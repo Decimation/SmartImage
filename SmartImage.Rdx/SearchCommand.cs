@@ -40,6 +40,8 @@ using System.Runtime.CompilerServices;
 using Kantan.Monad;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
+using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 
@@ -183,9 +185,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		run = AConsole.Live(m_table)
 			.StartAsync(RunSearchLiveAsync);
 
-		if (m_scs.Interactive.HasValue && m_scs.Interactive.Value) {
-			run = run.ContinueWith(ShowInteractivePromptAsync, m_cts.Token);
-		}
 
 		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
 			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
@@ -210,14 +209,49 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		}
 
-		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
-			run = run.ContinueWith((c) =>
+		await run;
+
+		Task run2;
+
+		if (m_scs.Interactive.HasValue && m_scs.Interactive.Value) {
+
+			var r = ShowInteractivePromptAsync();
+			AConsole.Clear();
+
+			var gr2 = new Grid();
+			gr2.AddColumns(5);
+			gr2.AddRow(CreateResultItemRows(r, 0, Style.Plain));
+
+			// AConsole.Write(gr2);
+
+			var tr = new Tree(gr2);
+			var ld = AConsole.Live(tr);
+
+			run2 = ld.StartAsync(async f =>
 			{
-				AConsole.Confirm("Exit");
+				// var ok = await r.ScanAsync();
+
+				var resOk = ImageScanner.ScanImagesAsync2(r.Url);
+
+				await foreach (UniImage image in resOk) {
+					if (image == null) {
+						continue;
+					}
+					tr.AddNode($"{image.ImageFormat}");
+					f.Refresh();
+				}
+
 			});
+
+
+			await run2;
 		}
 
-		await run;
+		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
+			while (!AConsole.Confirm("Exit")) {
+				// ...
+			}
+		}
 
 		return EC_OK;
 	}
@@ -277,7 +311,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		AConsole.WriteLine($"Process successful: {result.IsSuccess}");
 	}
 
-	private async Task ShowInteractivePromptAsync(Task c, object x)
+	private SearchResultItem ShowInteractivePromptAsync()
 	{
 		var prompt = new TextPrompt<string>("<name> <#>");
 
@@ -289,15 +323,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			input = AConsole.Prompt(prompt);
 
 			if (!String.IsNullOrWhiteSpace(input)) {
-				var inputSplit = input.Split(' ', StringSplitOptions.TrimEntries);
-				var name       = inputSplit[0];
 
-				var res = m_results.FirstOrDefault(
-					sr => sr.Engine.Name.Contains(name, StringComparison.InvariantCultureIgnoreCase));
+				var sri = GetResultFromName(input);
 
-				if (res != default && inputSplit.Length > 1 && Int32.TryParse(inputSplit[1], out var idx)) {
-					var sri = res.Results[idx];
-					Client.OpenResult(sri);
+				if (sri != null) {
+					// SearchClient.OpenResult(sri.Url);
+
+					return sri;
 				}
 			}
 
@@ -305,7 +337,24 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		} while (input != "q");
 
 
-		return;
+		return null;
+	}
+
+
+	private SearchResultItem GetResultFromName(string input)
+	{
+		var inputSplit = input.Split(' ', StringSplitOptions.TrimEntries);
+		var name       = inputSplit[0];
+
+		var res = m_results.FirstOrDefault(
+			sr => sr.Engine.Name.Contains(name, StringComparison.InvariantCultureIgnoreCase));
+
+		if (res != default && inputSplit.Length > 1 && Int32.TryParse(inputSplit[1], out var idx)) {
+			var sri = res.Results[idx];
+			return sri;
+		}
+
+		return null;
 	}
 
 	private async Task WriteOutputFileAsync([CBN] object o)
@@ -329,7 +378,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		var names = Enum.GetValues<OutputFields>()
 			.Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
-			.Select(f => Enum.GetName(f));
+			.Select(Enum.GetName);
 
 		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
 
@@ -407,25 +456,31 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		// Debug.WriteLine($"{lr} {lrr} {lrr2}");
 
 		for (int i = 0; i < result.Results.Count; i++) {
-			var res  = result.Results[i];
-			var name = new Text($"{result.Engine.Name} #{i}", style);
+			var res = result.Results[i];
 
-			IRenderable url;
-			var         link = res.Url;
-
-			if (link != null) {
-				url = new Markup(link.ToString(), new Style(link: link));
-			}
-			else {
-				url = new Text("-");
-			}
-
-			var sim    = new Text($"{res.Similarity}");
-			var artist = new Text($"{res.Artist}");
-			var site   = new Text($"{res.Site}");
-			yield return [name, url, sim, artist, site];
+			yield return CreateResultItemRows(res, i, style);
 		}
 
+	}
+
+	private static IRenderable[] CreateResultItemRows(SearchResultItem res, int i, Style style)
+	{
+		var name = new Text($"{res.Root.Engine.Name} #{i}", style);
+
+		IRenderable url;
+		var         link = res.Url;
+
+		if (link != null) {
+			url = new Markup(link.ToString(), new Style(link: link));
+		}
+		else {
+			url = new Text("-");
+		}
+
+		var sim    = new Text($"{res.Similarity}");
+		var artist = new Text($"{res.Artist}");
+		var site   = new Text($"{res.Site}");
+		return [name, url, sim, artist, site];
 	}
 
 	private Grid CreateConfigGrid()

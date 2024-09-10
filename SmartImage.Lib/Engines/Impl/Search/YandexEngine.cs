@@ -129,6 +129,8 @@ public sealed class YandexEngine : WebSearchEngine
 			RawUrl = url
 		};
 
+		sr.Results.Add(sr.GetRawResultItem());
+
 		IDocument doc = null;
 
 		try {

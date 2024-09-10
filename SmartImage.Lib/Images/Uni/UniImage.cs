@@ -73,7 +73,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	public bool HasFile => FilePath != null && File.Exists(FilePath);
 
 	[MN]
-	public IImageFormat ImageFormat {get; private set;}
+	public IImageFormat ImageFormat { get; private set; }
 
 	[MNNW(true, nameof(ImageFormat))]
 	public bool HasImageFormat => ImageFormat != null;
@@ -136,10 +136,12 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 			}
 
 			if (autoInit) {
-				var allocOk    = await ui.Alloc(ct);
+				var allocOk = await ui.Alloc(ct);
+
 				// var allocImgOk = await ui.AllocImage(ct);
 
 				var hasInfo = await ui.DetectFormat(ct);
+
 				if (autoInitNull) {
 					if (!allocOk || !hasInfo) {
 						ui.Dispose();
@@ -315,6 +317,9 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	{
 		if (Stream != null)
 			await Stream.DisposeAsync();
+
+		Image?.Dispose();
+
 	}
 
 	public override string ToString()

@@ -292,13 +292,13 @@ public static class Program
 		var sc = new SearchClient(new SearchConfig());
 		var r  = await sc.RunSearchAsync(q);
 
-		foreach (var result in r) {
-			var g = result.Results.GroupBy(x => x.Root);
+		var r2 = r.GroupBy(x=>x.Engine);
 
-			foreach (var gr in g) {
-				foreach (SearchResultItem item in gr) {
-					Console.WriteLine($"{gr.Key} = {item}");
-				}
+		foreach (var result in r2) {
+
+			foreach (var item in result) {
+				Console.WriteLine($"{result.Key} = {item}");
+
 			}
 
 			Console.ReadKey();

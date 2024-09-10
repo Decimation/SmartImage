@@ -88,19 +88,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string Overview { get; internal set; }
 
-	[CBN]
-	public SearchResultItem GetBestResult()
-	{
-		if (Results.Count == 0) {
-			// This should never happen so long as results contains the raw item
-			Debugger.Break();
-			return null;
-		}
-
-		return Results.OrderByDescending(r => r.Similarity)
-			.FirstOrDefault(r => Url.IsValid(r.Url));
-	}
-
 	internal SearchResult(BaseSearchEngine bse)
 	{
 		Engine  = bse;
@@ -160,8 +147,24 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		return true;
 	}
 
+	[CBN]
+	public SearchResultItem GetBestResult()
+	{
+		if (Results.Count == 0) {
+			// This should never happen so long as results contains the raw item
+			Debugger.Break();
+			return null;
+		}
+
+		return Results.OrderByDescending(r => r.Similarity)
+			.FirstOrDefault(r => Url.IsValid(r.Url));
+	}
+
+
+
 	public SearchResultItem GetRawResultItem()
 	{
+		// todo
 		return new SearchResultItem(this)
 		{
 			IsRaw = true,

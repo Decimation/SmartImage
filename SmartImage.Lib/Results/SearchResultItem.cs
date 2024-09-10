@@ -23,6 +23,9 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	[NN]
 	public SearchResult Root { get; }
 
+	[CBN]
+	public SearchResultItem Parent { get; internal set; }
+
 	[MN]
 	public Url Url { get; internal set; }
 
@@ -97,15 +100,13 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	[CBN]
 	public string ThumbnailTitle { get; internal set; }
 
+	[MN]
 	public UniImage[] Uni { get; internal set; }
 
 	[MNNW(true, nameof(Uni))]
 	public bool HasUni => Uni != null && Uni.Any();
 
 	// public Url[] EmbeddedUrls { get; internal set; }
-
-	[CBN]
-	public SearchResultItem Parent { get; internal set; }
 
 	// public List<SearchResultItem> Children { get; internal set; }
 

@@ -60,7 +60,6 @@
     <PackageReference Include="Spectre.Console.ImageSharp" Version="0.49.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
-    <PackageReference Include="Terminal.Gui" Version="1.17.1" />
   </ItemGroup>
 
   <ItemGroup>

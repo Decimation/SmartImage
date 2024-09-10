@@ -20,6 +20,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.UI2", "SmartImage.UI2\SmartImage.UI2.csproj", "{1CB22F6D-A52A-414C-BE40-8C74F37F5412}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -180,6 +182,30 @@ Global
 		{78148A51-715D-460A-8E70-71A8C91D4463}.Test|x64.Build.0 = Debug|Any CPU
 		{78148A51-715D-460A-8E70-71A8C91D4463}.Test|x86.ActiveCfg = Debug|Any CPU
 		{78148A51-715D-460A-8E70-71A8C91D4463}.Test|x86.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|arm64.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|x64.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Debug|x86.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|arm64.ActiveCfg = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|arm64.Build.0 = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|x64.ActiveCfg = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|x64.Build.0 = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|x86.ActiveCfg = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Release|x86.Build.0 = Release|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|Any CPU.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|arm64.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|arm64.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|x64.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|x64.Build.0 = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|x86.ActiveCfg = Debug|Any CPU
+		{1CB22F6D-A52A-414C-BE40-8C74F37F5412}.Test|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

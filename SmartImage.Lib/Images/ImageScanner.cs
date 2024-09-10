@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Web;
 using AngleSharp.Dom;
@@ -55,6 +56,127 @@ public static class ImageScanner
 
 	/*public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
+	public static async IAsyncEnumerable<UniImage> ScanImagesAsync2(Url u, IImageFilter filter = null,
+	                                                                [EnumeratorCancellation] CancellationToken ct = default)
+	{
+
+		IFlurlResponse          res;
+		Stream                  stream;
+		ConcurrentBag<UniImage> rg = [];
+		
+		// pred   ??= _ => true;
+		filter ??= GenericImageFilter.Instance;
+
+		try {
+			res = await Client.Request(u)
+				      .WithCookies(out var cj)
+				      .GetAsync(cancellationToken: ct);
+
+			if (res == null) {
+				// return [];
+				goto ret;
+			}
+		}
+		catch (Exception e) {
+			Debug.WriteLine($"{e.Message}");
+
+			// return [];
+			goto ret;
+		}
+
+		stream = await res.GetStreamAsync();
+		var uf = await UniImage.TryCreateAsync(stream, ct: ct);
+
+		if (uf != UniImage.Null) {
+			/*if (!FileType.Image.Contains(uf.FileType)) {
+				uf?.Dispose();
+				goto ret;
+			}*/
+			if (uf.HasImageFormat) {
+				// ul.Add(uf);
+				// rg = [uf];
+				// rg.Add(uf);
+
+				yield return uf;
+
+				goto ret;
+
+				// return rg.ToArray();
+			}
+		}
+		else if (stream.CanSeek) {
+			stream.Position = 0;
+
+		}
+
+		// var p  = new HtmlParser();
+		// var dd = await p.ParseDocumentAsync(stream, ct);
+
+		// var parser = new HtmlParser();
+		// var doc    = await parser.ParseDocumentAsync(stream);
+
+		// IDocument dd = await GetDocument2(u, ct);
+
+		// var c = GetImageUrls(doc, filter);
+		// string html = await res.GetStringAsync();
+		if (!stream.CanRead) {
+			stream.Dispose();
+			goto ret;
+		}
+
+		var    sr   = new StreamReader(stream, leaveOpen: true);
+		string html = await sr.ReadToEndAsync(ct).ConfigureAwait(false);
+
+		// var html = doc.ToString();
+		var urls = GetImageUrls(html, u);
+
+		var po = new ParallelOptions()
+		{
+			MaxDegreeOfParallelism = -1,
+			CancellationToken      = ct,
+		};
+
+		var tasks = urls.Select(async s =>
+		{
+			var ux = await UniImage.TryCreateAsync(s, ct: ct).ConfigureAwait(false);
+
+			return ux;
+
+		}).ToList();
+
+		while (tasks.Count != 0) {
+			var task = await Task.WhenAny(tasks);
+			tasks.Remove(task);
+			var ux = await task;
+
+			if (ux != UniImage.Null) {
+				if ((filter != null && filter.Predicate(ux)) || filter == null) {
+
+					yield return ux;
+				}
+				else {
+					ux.Dispose();
+					ux = null;
+				}
+			}
+			else { }
+		}
+
+	ret1:
+
+		// context.Dispose();
+		// doc.Dispose();
+		sr.Dispose();
+		res.Dispose();
+
+	ret:
+
+		// return rg.ToArray();
+
+		yield return default;
+
+		// yield return rg;
+	}
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
