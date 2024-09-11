@@ -1,6 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageStream.cs
 // Date: 2024/07/17 @ 02:07:31
 
+using Novus.Streams;
+
 namespace SmartImage.Lib.Images.Uni;
 
 public class UniImageStream : UniImage
@@ -25,5 +27,8 @@ public class UniImageStream : UniImage
 	{
 		return HasStream;
 	}
+
+	public override string WriteToFile(string fn = null)
+		=> WriteStreamToFile(fn);
 
 }

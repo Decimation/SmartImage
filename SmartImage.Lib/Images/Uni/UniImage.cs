@@ -113,7 +113,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
-	                                                  bool autoInitNull = false,
+	                                                  bool autoDisposeOnError = false,
 	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = Null;
@@ -142,7 +142,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 				var hasInfo = await ui.DetectFormat(ct);
 
-				if (autoInitNull) {
+				if (autoDisposeOnError) {
 					if (!allocOk || !hasInfo) {
 						ui.Dispose();
 						ui = Null;
@@ -250,10 +250,12 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	}
 
 	[MURV]
-	public string WriteToFile(Action<IImageProcessingContext> operation = null, [CBN] string fn = null)
+	public string WriteImageToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
 	{
+		if (!HasImage) {
+			throw new InvalidOperationException();
+		}
 
-		string t;
 		fn ??= Path.GetTempFileName();
 
 		var encoder = new PngEncoder();
@@ -263,8 +265,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		using var image = Image.Clone(operation);
 
 		image.Mutate(operation);
-
-
 		image.Save(fn, encoder);
 
 		Stream.TrySeek();
@@ -272,37 +272,30 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		return fn;
 	}
 
+	public abstract string WriteToFile(string fn = null);
+
 	[MURV]
 	[ICBN]
-	public string WriteToFile(string fn = null)
+	protected string WriteStreamToFile(string fn = null)
 	{
-
-		string t;
 		fn ??= Path.GetTempFileName();
 
-		if (Type != UniImageType.File) {
-			t = Path.Combine(Path.GetTempPath(), fn);
+		string t = Path.Combine(Path.GetTempPath(), fn);
 
-			using FileStream fs = File.Create(t);
+		using FileStream fs = File.Create(t);
 
-			bool s = Stream.CanSeek;
-
-			if (s) {
-				Stream.Position = 0;
-			}
-
-			Stream.CopyTo(fs);
-			fs.Flush();
-			Stream.TrySeek();
-
+		
+		if (HasStream && Stream.CanSeek) {
+			Stream.Position = 0;
 		}
-		else {
-			t = Value.ToString();
 
-		}
+		Stream.CopyTo(fs);
+		fs.Flush();
+		Stream.TrySeek();
 
 		return t;
 	}
+
 
 	public virtual void Dispose()
 	{

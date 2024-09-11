@@ -15,4 +15,9 @@ public class UniImageUnknown : UniImage
 		return false;
 	}
 
+	public override string WriteToFile(string fn = null)
+	{
+		throw new InvalidOperationException();
+	}
+
 }

@@ -12,6 +12,14 @@ using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.Benchmark;
 #pragma warning disable CS8618
+public class Benchmark5
+{
+
+	[Benchmark]
+	public async Task Test1() { }
+	
+
+}
 public class Benchmark1
 {
 

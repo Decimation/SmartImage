@@ -48,6 +48,57 @@ public static class Program
 
 	public static async Task Main(string[] args)
 	{
+		/*foreach (string s in ImageScanner.GetImageUrls("https://files.catbox.moe/fcpe1e.jpg",
+		                                               "https://files.catbox.moe/fcpe1e.jpg")) {
+			Console.WriteLine(s);
+		}*/
+
+		var u = "https://danbooru.donmai.us/posts/3950144";
+
+		var req = new FlurlRequest(u)
+		{
+			Headers =
+			{
+				{ "User-Agent", Resources.Name },
+				{ "Priority", "u=0, i" },
+				{ "Connection", "keep-alive" },
+				{ "Alt-Used", "danbooru.donmai.us" }
+			},
+			Settings =
+			{
+				Redirects =
+				{
+					AllowSecureToInsecure = true, MaxAutoRedirects = 100, Enabled = true, ForwardHeaders = true
+				},
+				AllowedHttpStatusRange = "*"
+			},
+			
+		};
+		
+		foreach (var header in req.Headers) {
+			Console.WriteLine($"{header.Name} = {header.Value}");
+
+		}
+
+		var res = await req.GetAsync();
+
+		foreach (var c in res.Cookies) {
+			Console.WriteLine($"{c}");
+
+		}
+
+
+		foreach (var header in res.Headers) {
+			Console.WriteLine($"{header.Name} = {header.Value}");
+
+		}
+
+		await foreach (var v in (ImageScanner.ScanImagesAsync2(u))) {
+			Console.WriteLine(v);
+		}
+
+		var ui = await UniImage.TryCreateAsync("https://cdn.donmai.us/original/c7/c0/__akagi_and_akagi_azur_lane_drawn_by_sciamano240__c7c077986787625112bb19a912d1b7a8.jpg?download=1");
+		Console.WriteLine(ui);
 		/*var r   = new Rule34Booru();
 		var res = await r.GetPostsAsync(new BaseGelbooruClient.PostsRequest() { Tags = "anal" });
 		var s   = await res.GetStringAsync();
@@ -59,7 +110,7 @@ public static class Program
 		// await test9();
 
 		// var u1 = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
-		var u1 = @"C:\Users\Deci\Pictures\Epic anime\en-jia-2077.jpg";
+		/*var u1 = @"C:\Users\Deci\Pictures\Epic anime\en-jia-2077.jpg";
 		var q  = await SearchQuery.TryCreateAsync(u1);
 		var u  = await q.UploadAsync();
 		Console.WriteLine(u);
@@ -71,7 +122,7 @@ public static class Program
 		/*
 		var results2 = results.SelectMany(x => x.Results)
 			.Where(r => !r.IsRaw && r.Url != null);
-			*/
+			#1#
 		Console.WriteLine(result);
 		var results2 = result.Results.Where(r => !r.IsRaw && r.Url != null);
 
@@ -84,7 +135,7 @@ public static class Program
 			foreach (UniImage image in items) {
 				Console.WriteLine($"\t{image}");
 			}
-		}
+		}*/
 
 		/*
 		foreach (var sr in results2) {
@@ -292,7 +343,7 @@ public static class Program
 		var sc = new SearchClient(new SearchConfig());
 		var r  = await sc.RunSearchAsync(q);
 
-		var r2 = r.GroupBy(x=>x.Engine);
+		var r2 = r.GroupBy(x => x.Engine);
 
 		foreach (var result in r2) {
 

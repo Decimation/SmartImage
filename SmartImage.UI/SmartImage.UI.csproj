@@ -74,6 +74,7 @@
     <PackageReference Include="ReactiveUI.WPF" Version="20.1.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
     <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+    <PackageReference Include="Verify.Flurl" Version="0.1.0" />
   </ItemGroup>
 
   <ItemGroup>

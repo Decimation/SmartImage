@@ -1,6 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageFile.cs
 // Date: 2024/07/17 @ 02:07:16
 
+using Microsoft;
+
 namespace SmartImage.Lib.Images.Uni;
 
 public class UniImageFile : UniImage
@@ -14,7 +16,15 @@ public class UniImageFile : UniImage
 
 	public FileInfo FileInfo { get; }
 
-	
+	public override string WriteToFile(string fn = null)
+	{
+		if (!HasFile) {
+			throw new FileNotFoundException(ValueString);
+		}
+
+		return ValueString;
+	}
+
 
 	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
 	{

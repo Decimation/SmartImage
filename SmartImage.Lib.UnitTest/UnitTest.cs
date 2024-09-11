@@ -86,7 +86,6 @@ public class UnitTest
 		@"https://i.imgur.com/QtCausw.png",
 		@"https://files.catbox.moe/fcpe1e.jpg",
 
-		// @"https://data19.kemono.party/data/cd/ef/cdef8267d679a9ee1869d5e657f81f7e971f0f401925594fb76c8ff8393db7bd.png?f=Yelan2.png",
 		"https://i.imgur.com/zoBIh8t.jpg",
 
 		// @"https://litter.catbox.moe/ieafze.png",
@@ -590,7 +589,7 @@ public class UnitTest5
 		}).GetStringAsync();
 		var parser = new HtmlParser();
 		var docc   = await parser.ParseDocumentAsync(str);
-		var img    = ImageScanner.GetImageUrls(docc, new GenericImageFilter());
+		var img    = ImageScanner.GetImageUrls(docc);
 
 		foreach (var source in img) {
 			TestContext.WriteLine($"{source}");

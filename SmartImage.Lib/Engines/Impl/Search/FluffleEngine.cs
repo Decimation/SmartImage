@@ -54,7 +54,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			               })
 			               .PostMultipartAsync(c =>
 			               {
-				               // var tmp = query.WriteToFile();
+				               // var tmp = query.WriteImageToFile();
 				               query.Uni.Stream.TrySeek();
 
 				               c.AddFile("file", query.Uni.Stream, "file");

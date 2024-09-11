@@ -43,6 +43,7 @@ public static class ImageScanner
 			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 			builder.AllowAnyHttpStatus();
+			builder.WithAutoRedirect(true);
 
 			builder.OnError(f =>
 			{
@@ -56,20 +57,36 @@ public static class ImageScanner
 
 	/*public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
+
 	public static async IAsyncEnumerable<UniImage> ScanImagesAsync2(Url u, IImageFilter filter = null,
-	                                                                [EnumeratorCancellation] CancellationToken ct = default)
+	                                                                [EnumeratorCancellation] CancellationToken ct =
+		                                                                default)
 	{
 
 		IFlurlResponse          res;
 		Stream                  stream;
 		ConcurrentBag<UniImage> rg = [];
-		
+
 		// pred   ??= _ => true;
 		filter ??= GenericImageFilter.Instance;
 
 		try {
-			res = await Client.Request(u)
-				      .WithCookies(out var cj)
+			var req = Client.Request(u)
+				.WithCookies(out var cj);
+
+			switch (u.Host) {
+				case "danbooru.donmai.us":
+					req.Headers.AddOrReplace("User-Agent", Resources.Name);
+					var res2 = await req.GetAsync(cancellationToken: ct);
+					
+					foreach (FlurlCookie flurlCookie in res2.Cookies) {
+						req.CookieJar.AddOrReplace(flurlCookie);
+					}
+
+					break;
+			}
+
+			res = await req
 				      .GetAsync(cancellationToken: ct);
 
 			if (res == null) {
@@ -318,6 +335,8 @@ public static class ImageScanner
 	*/
 
 
+	#region
+
 	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
 	{
 		using var p = Process.Start(new ProcessStartInfo(GALLERY_DL, $"-G {cri}")
@@ -350,9 +369,11 @@ public static class ImageScanner
 	internal const string GALLERY_DL     = "gallery-dl";
 	internal const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
 
-	private const char URL_DELIM = '/';
-
 	internal static readonly string GalleryDLPath = FileSystem.FindInPath(GALLERY_DL_EXE);
+
+	#endregion
+
+	private const char URL_DELIM = '/';
 
 	/*
 	 * TODO:
@@ -369,9 +390,15 @@ public static class ImageScanner
 	);
 
 	private static readonly Regex r_imgExt = new(
-		@"(?i)(?:[^?&#""'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^""'<>\s]*)?",
+		"""(?i)(?:[^?&#"'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^"'<>\s]*)?""",
 		RegexOptions.Compiled
 	);
+
+	private static readonly Regex r_imgHtml = new(
+		"""(?i)(?:<base\s.*?href=[\"]?)(?<url>[^\"' >]+)""",
+		RegexOptions.Compiled
+	);
+
 
 	public static IEnumerable<string> GetImageUrls(string html, Url url)
 	{
@@ -379,7 +406,7 @@ public static class ImageScanner
 		var imgUrlsExt = r_imgExt.Matches(html).Select(m => m.Value);
 		var imgUrls    = imgUrlsSrc.Concat(imgUrlsExt);
 
-		var    baseMatch = Regex.Match(html, """(?i)(?:<base\s.*?href=[\"]?)(?<url>[^\"' >]+)""");
+		Match  baseMatch = r_imgHtml.Match(html);
 		string baseUrl;
 
 		if (baseMatch.Success) {
@@ -415,7 +442,7 @@ public static class ImageScanner
 		return abs;
 	}
 
-	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc, IImageFilter filter = null)
+	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc)
 	{
 		// var a = doc.QueryAllAttribute("a", "href");
 		// var b = doc.QueryAllAttribute("img", "src");
@@ -425,9 +452,6 @@ public static class ImageScanner
 
 		var c = a.Union(b);
 
-		if (filter != null) {
-			c = c.Where(filter.Refine);
-		}
 
 		c = c.Distinct();
 

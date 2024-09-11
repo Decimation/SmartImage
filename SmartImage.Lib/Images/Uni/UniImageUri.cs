@@ -23,6 +23,9 @@ public class UniImageUri : UniImage
 		Response = response;
 	}
 
+	public override string WriteToFile(string fn = null)
+		=> WriteStreamToFile(fn);
+
 	public static bool IsUriType(object o, out Url u)
 	{
 		u = o switch
@@ -62,12 +65,12 @@ public class UniImageUri : UniImage
 		}
 
 		var res = await ImageScanner.Client.Request(value)
-			          .AllowAnyHttpStatus()
+			          /*.AllowAnyHttpStatus()
 			          .WithHeaders(new
 			          {
 				          // todo
 				          User_Agent = R1.UserAgent1,
-			          })
+			          })*/
 			          .GetAsync(cancellationToken: ct);
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
