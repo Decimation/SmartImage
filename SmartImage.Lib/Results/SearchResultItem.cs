@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 using System.Dynamic;
@@ -210,8 +211,24 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		}
 
 		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
+		var buf   = new ConcurrentBag<UniImage>();
+		var tasks = await ImageScanner.ScanImagesAsync(Url, ct: ct);
 
-		Uni = await ImageScanner.ScanImagesAsync(Url, ct: ct);
+		while (tasks.Count != 0) {
+			var i   = await Task.WhenAny(tasks);
+			tasks.Remove(i);
+			var res = await i;
+
+			if (res != UniImage.Null && res.HasImageFormat) {
+				buf.Add(res);
+			}
+			else {
+				res.Dispose();
+			}
+		}
+
+		Uni = buf.ToArray();
+
 		return HasUni;
 	}
 
@@ -228,7 +245,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
 
-		return Root.Equals(other.Root) && Url  == other.Url  && Uni == other.Uni;
+		return Root.Equals(other.Root) && Url == other.Url && Uni == other.Uni;
 	}
 
 	public override int GetHashCode()

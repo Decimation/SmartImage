@@ -2,6 +2,8 @@
 // $File.CreatedYear-$File.CreatedMonth-6 @ 13:53
 
 using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Engines;
+using BenchmarkDotNet.Loggers;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using SixLabors.ImageSharp;
@@ -15,11 +17,36 @@ namespace SmartImage.Benchmark;
 public class Benchmark5
 {
 
+	string u = "https://danbooru.donmai.us/posts/3950144";
+
 	[Benchmark]
-	public async Task Test1() { }
-	
+	public async Task Test1()
+	{
+		var vs  = (ImageScanner.ScanImagesAsync2(u));
+		var con = new Consumer();
+
+		await foreach (var v in vs) {
+			con.Consume(v);
+		}
+
+
+	}
+
+	[Benchmark]
+	public async Task Test2()
+	{
+		var vs  = await (ImageScanner.ScanImagesAsync(u));
+		var con = new Consumer();
+
+		foreach (var v in vs) {
+			con.Consume(v);
+		}
+
+
+	}
 
 }
+
 public class Benchmark1
 {
 

@@ -64,13 +64,15 @@ public class UniImageUri : UniImage
 			throw new ArgumentException($"{value}");
 		}
 
-		var res = await ImageScanner.Client.Request(value)
-			          /*.AllowAnyHttpStatus()
-			          .WithHeaders(new
-			          {
-				          // todo
-				          User_Agent = R1.UserAgent1,
-			          })*/
+		var req = ImageScanner.BuildRequest(value);
+			/*.AllowAnyHttpStatus()
+			.WithHeaders(new
+			{
+				// todo
+				User_Agent = R1.UserAgent1,
+			});*/
+
+		var res = await req
 			          .GetAsync(cancellationToken: ct);
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {

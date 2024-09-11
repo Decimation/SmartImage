@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using AngleSharp;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -20,9 +21,11 @@ using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Kantan.Utilities;
+using Novus.FileTypes;
 using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Metadata;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib;
 using SmartImage.Lib.Clients;
@@ -55,7 +58,7 @@ public static class Program
 
 		var u = "https://danbooru.donmai.us/posts/3950144";
 
-		var req = new FlurlRequest(u)
+		/*var req = new FlurlRequest(u)
 		{
 			Headers =
 			{
@@ -72,9 +75,9 @@ public static class Program
 				},
 				AllowedHttpStatusRange = "*"
 			},
-			
+
 		};
-		
+
 		foreach (var header in req.Headers) {
 			Console.WriteLine($"{header.Name} = {header.Value}");
 
@@ -98,7 +101,55 @@ public static class Program
 		}
 
 		var ui = await UniImage.TryCreateAsync("https://cdn.donmai.us/original/c7/c0/__akagi_and_akagi_azur_lane_drawn_by_sciamano240__c7c077986787625112bb19a912d1b7a8.jpg?download=1");
-		Console.WriteLine(ui);
+		Console.WriteLine(ui);*/
+
+		var           ss           = "https://cdn.donmai.us/original/c7/c0/c7c077986787625112bb19a912d1b7a8.jpg";
+		var req = ImageScanner.BuildRequest(ss);
+		await ImageScanner.GetCookies(req);
+
+		var           sss          = await req.GetStreamAsync();
+		var           f            = await Image.DetectFormatAsync(sss);
+		Console.WriteLine(f);
+		/*try {
+			var b = await ImageScanner
+				        .BuildRequest(ss)
+				        .GetAsync();
+
+			var          a = await b.GetStreamAsync();
+			IImageFormat c;
+			Console.WriteLine($"{a.CanRead} {a.CanSeek} {a.CanTimeout}");
+
+
+			try {
+				c = await Image.DetectFormatAsync(a);
+			}
+			finally {
+				a.TrySeek();
+				var ft = await FileType.ResolveAsync(a);
+				Console.WriteLine(ft);
+			}
+
+			Console.WriteLine(c);
+			var tasks = await ImageScanner.ScanImagesAsync(u);
+
+			while (tasks.Count != 0) {
+				var i = await Task.WhenAny(tasks);
+				tasks.Remove(i);
+				var res2 = await i;
+
+				if (res2 != UniImage.Null && res2.HasImageFormat) {
+					Console.WriteLine(res2);
+				}
+				else {
+					res2.Dispose();
+				}
+			}
+
+		}
+		finally {
+			Console.WriteLine();
+		}*/
+
 		/*var r   = new Rule34Booru();
 		var res = await r.GetPostsAsync(new BaseGelbooruClient.PostsRequest() { Tags = "anal" });
 		var s   = await res.GetStringAsync();

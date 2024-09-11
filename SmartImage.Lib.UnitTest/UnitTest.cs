@@ -34,6 +34,7 @@ using SmartImage.Lib.Images;
 using Spectre.Console.Cli;
 using Spectre.Console.Testing;
 using SmartImage.Lib.Images.Uni;
+using System.Threading.Tasks;
 
 // ReSharper disable AccessToStaticMemberViaDerivedType
 
@@ -574,8 +575,16 @@ public class UnitTest5
 	{
 		var img = await ImageScanner.ScanImagesAsync(u);
 
-		foreach (UniImage source in img) {
-			TestContext.WriteLine($"{source}");
+		while (img.Count != 0) {
+			var i   = await Task.WhenAny(img);
+			var res = await i;
+
+			if (res != UniImage.Null && res.HasImageFormat) {
+				TestContext.WriteLine(res);
+			}
+			else {
+				res.Dispose();
+			}
 		}
 	}
 
@@ -600,10 +609,18 @@ public class UnitTest5
 	[TestCase("https://gelbooru.com/index.php?page=post&s=view&id=7729008")]
 	public async Task Get3(string u)
 	{
-		var r = await ImageScanner.ScanImagesAsync(u);
+		var img = await ImageScanner.ScanImagesAsync(u);
 
-		foreach (UniImage image in r) {
-			TestContext.WriteLine(image);
+		while (img.Count != 0) {
+			var i   = await Task.WhenAny(img);
+			var res = await i;
+
+			if (res != UniImage.Null && res.HasImageFormat) {
+				TestContext.WriteLine(res);
+			}
+			else {
+				res.Dispose();
+			}
 		}
 	}
 

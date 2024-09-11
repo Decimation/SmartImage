@@ -26,6 +26,7 @@ using SmartImage.Lib;
 using SmartImage.Lib.Model;
 using SmartImage.UI.Controls;
 using Application = System.Windows.Application;
+using MessageBox = System.Windows.MessageBox;
 
 namespace SmartImage.UI.Model;
 

@@ -13,7 +13,7 @@ namespace SmartImage.Benchmark
 		public static void Main(string[] args)
 		{
 			var cfg = DefaultConfig.Instance
-				.AddExporter(new HtmlExporter())
+				// .AddExporter(new HtmlExporter())
 				.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()))
 				.AddJob(Job.InProcess.WithRuntime(CoreRuntime.Core80));
 
@@ -22,7 +22,7 @@ namespace SmartImage.Benchmark
 				.AddDiagnoser(new MemoryDiagnoser(new MemoryDiagnoserConfig()) {})
 				.AddJob(Job.Default.WithRuntime(CoreRuntime.Core80));*/
 
-			BenchmarkRunner.Run<Benchmark2>(cfg);
+			BenchmarkRunner.Run<Benchmark5>(cfg);
 		}
 
 	}

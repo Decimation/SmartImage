@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using System.Web;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
@@ -34,8 +35,6 @@ namespace SmartImage.Lib.Images;
 public static class ImageScanner
 {
 
-	public static FlurlClient Client { get; }
-
 	static ImageScanner()
 	{
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(ImageScanner), null, builder =>
@@ -50,13 +49,144 @@ public static class ImageScanner
 				f.ExceptionHandled = true;
 				return;
 			});
-
 		});
+		Cookies = new CookieJar();
+	}
 
+	public static FlurlClient Client { get; }
+
+	public static CookieJar Cookies { get; }
+
+	public static IFlurlRequest BuildRequest(params object[] urlSeg)
+	{
+		var request = Client.Request(urlSeg);
+
+		return request
+			.WithCookies(Cookies);
+	}
+	public static async Task<IFlurlRequest> LoadCookies(IFlurlRequest req, CancellationToken ct = default)
+	{
+		var e = Cookies.GetEnumerator();
+
+		while (e) {
+			new FlurlCookie("_danbooru2_session", )
+		}
+	}
+	public static async Task<IReadOnlyList<FlurlCookie>> GetCookies(IFlurlRequest req, CancellationToken ct = default)
+	{
+		IReadOnlyList<FlurlCookie> ret = [];
+
+		switch (req.Url.Host) {
+			case "danbooru.donmai.us":
+			{
+				
+				req.Headers.AddOrReplace("User-Agent", Resources.Name);
+
+				using (var res2 = await req.GetAsync(cancellationToken: ct)) {
+					ret = res2.Cookies;
+					break;
+				}
+			}
+		}
+
+		return ret;
 	}
 
 	/*public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
+
+
+	/// <summary>
+	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
+	/// points to binary image data, it is returned.
+	/// </summary>
+	public static async Task<List<Task<UniImage>>> ScanImagesAsync(Url u, CancellationToken ct = default)
+	{
+
+		List<Task<UniImage>> tasks = null;
+		IFlurlRequest        req;
+		IFlurlResponse res;
+		Stream               stream;
+
+		req = BuildRequest(u);
+		var ck = await GetCookies(req, ct);
+
+		foreach (var c in ck) {
+			Cookies.AddOrReplace(c);
+		}
+
+		res = await req.GetAsync(cancellationToken: ct);
+
+
+		stream = await res.GetStreamAsync();
+		var uf = await UniImage.TryCreateAsync(stream, ct: ct);
+
+		if (uf != UniImage.Null) {
+			if (uf.HasImageFormat) {
+				tasks = [Task.FromResult(uf)];
+
+				goto ret;
+			}
+		}
+		else if (stream.CanSeek) {
+			stream.Position = 0;
+
+		}
+
+		// var parser = new HtmlParser();
+		// var doc    = await parser.ParseDocumentAsync(stream);
+
+		if (!stream.CanRead) {
+			stream.Dispose();
+			goto ret;
+		}
+
+		var    sr   = new StreamReader(stream, leaveOpen: true);
+		string html = await sr.ReadToEndAsync(ct).ConfigureAwait(false);
+
+		// var html = doc.ToString();
+		var urls = GetImageUrls(html, u);
+
+		/*await Parallel.ForEachAsync(urls, po, async (s, token) =>
+		{
+			var ux = await UniImage.TryCreateAsync(s, ct: token).ConfigureAwait(false);
+
+			if (ux != UniImage.Null) {
+				/*if (!FileType.Image.Contains(ux.FileType)) {
+					ux?.Dispose();
+					return;
+				}#1#
+				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanForEmbeddedImagesAsync));
+
+				if ((filter != null && filter.Predicate(ux)) || filter == null) {
+					// ul.Add(ux);
+					rg.Add(ux);
+				}
+				else {
+					ux.Dispose();
+					ux = null;
+				}
+			}
+			else { }
+		});*/
+		tasks = urls.Select(async s =>
+		{
+			var ux = await UniImage.TryCreateAsync(s, ct: ct);
+			
+			return ux;
+
+		}).ToList();
+
+	ret1:
+
+		// doc.Dispose();
+		sr.Dispose();
+		res.Dispose();
+
+	ret:
+		return tasks;
+
+	}
 
 	public static async IAsyncEnumerable<UniImage> ScanImagesAsync2(Url u, IImageFilter filter = null,
 	                                                                [EnumeratorCancellation] CancellationToken ct =
@@ -71,23 +201,14 @@ public static class ImageScanner
 		filter ??= GenericImageFilter.Instance;
 
 		try {
-			var req = Client.Request(u)
-				.WithCookies(out var cj);
+			var req = BuildRequest(u);
+			var ck  = await GetCookies(req, ct);
 
-			switch (u.Host) {
-				case "danbooru.donmai.us":
-					req.Headers.AddOrReplace("User-Agent", Resources.Name);
-					var res2 = await req.GetAsync(cancellationToken: ct);
-					
-					foreach (FlurlCookie flurlCookie in res2.Cookies) {
-						req.CookieJar.AddOrReplace(flurlCookie);
-					}
-
-					break;
+			foreach (var c in ck) {
+				Cookies.AddOrReplace(c);
 			}
 
-			res = await req
-				      .GetAsync(cancellationToken: ct);
+			res = await req.GetAsync(cancellationToken: ct);
 
 			if (res == null) {
 				// return [];
@@ -193,123 +314,6 @@ public static class ImageScanner
 		yield return default;
 
 		// yield return rg;
-	}
-
-	/// <summary>
-	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
-	/// points to binary image data, it is returned.
-	/// </summary>
-	public static async Task<UniImage[]> ScanImagesAsync(Url u, IImageFilter filter = null,
-	                                                     CancellationToken ct = default)
-	{
-
-		IFlurlResponse          res;
-		Stream                  stream;
-		ConcurrentBag<UniImage> rg = [];
-
-		// pred   ??= _ => true;
-		filter ??= GenericImageFilter.Instance;
-
-		try {
-			res = await Client.Request(u)
-				      .WithCookies(out var cj)
-				      .GetAsync(cancellationToken: ct);
-
-			if (res == null) {
-				// return [];
-				goto ret;
-			}
-		}
-		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}");
-
-			// return [];
-			goto ret;
-		}
-
-		stream = await res.GetStreamAsync();
-		var uf = await UniImage.TryCreateAsync(stream, ct: ct);
-
-		if (uf != UniImage.Null) {
-			/*if (!FileType.Image.Contains(uf.FileType)) {
-				uf?.Dispose();
-				goto ret;
-			}*/
-			if (uf.HasImageFormat) {
-				// ul.Add(uf);
-				// rg = [uf];
-				rg.Add(uf);
-
-				goto ret;
-
-				// return rg.ToArray();
-			}
-		}
-		else if (stream.CanSeek) {
-			stream.Position = 0;
-
-		}
-
-		// var p  = new HtmlParser();
-		// var dd = await p.ParseDocumentAsync(stream, ct);
-
-		// var parser = new HtmlParser();
-		// var doc    = await parser.ParseDocumentAsync(stream);
-
-		// IDocument dd = await GetDocument2(u, ct);
-
-		// var c = GetImageUrls(doc, filter);
-		// string html = await res.GetStringAsync();
-		if (!stream.CanRead) {
-			stream.Dispose();
-			goto ret;
-		}
-
-		var    sr   = new StreamReader(stream, leaveOpen: true);
-		string html = await sr.ReadToEndAsync(ct).ConfigureAwait(false);
-
-		// var html = doc.ToString();
-		var urls = GetImageUrls(html, u);
-
-		var po = new ParallelOptions()
-		{
-			MaxDegreeOfParallelism = -1,
-			CancellationToken      = ct,
-		};
-
-		await Parallel.ForEachAsync(urls, po, async (s, token) =>
-		{
-			var ux = await UniImage.TryCreateAsync(s, ct: token).ConfigureAwait(false);
-
-			if (ux != UniImage.Null) {
-				/*if (!FileType.Image.Contains(ux.FileType)) {
-					ux?.Dispose();
-					return;
-				}*/
-				// Debug.WriteLine($"Found {ux.Value} for {u}", nameof(ScanForEmbeddedImagesAsync));
-
-				if ((filter != null && filter.Predicate(ux)) || filter == null) {
-					// ul.Add(ux);
-					rg.Add(ux);
-				}
-				else {
-					ux.Dispose();
-					ux = null;
-				}
-			}
-			else { }
-		});
-
-	ret1:
-
-		// context.Dispose();
-		// doc.Dispose();
-		sr.Dispose();
-		res.Dispose();
-
-	ret:
-		return rg.ToArray();
-
 	}
 
 
