@@ -12,6 +12,7 @@ public class UniImageFile : UniImage
 		: base(value, UniImageType.File)
 	{
 		FileInfo = fi;
+		FilePath = ValueString;
 	}
 
 	public FileInfo FileInfo { get; }

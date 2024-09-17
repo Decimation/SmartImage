@@ -67,7 +67,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	public string ValueString => Value?.ToString();
 
 	[MN]
-	public string FilePath { get; private set; }
+	public string FilePath { get; protected set; }
 
 	[MNNW(true, nameof(FilePath))]
 	public bool HasFile => FilePath != null && File.Exists(FilePath);

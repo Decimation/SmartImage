@@ -115,13 +115,15 @@ public static class Program
 		img2.TrySeek();
 		Console.WriteLine(await Image.DetectFormatAsync(img2));*/
 
-		var ss  = "https://danbooru.donmai.us/posts/3950144";
+		var                  ss    = "http://danbooru.donmai.us/posts/3950144";
+		/*var async = await ImageScanner.BuildRequest(ss).GetAsync();
+		Console.WriteLine(async.ResponseMessage.RequestMessage.RequestUri);
 		var req = ImageScanner.BuildRequest(ss);
 		var ck  = await ImageScanner.GetCookies(req);
 
 		foreach (var flurlCookie in ck) {
 			Console.WriteLine(flurlCookie);
-		}
+		}*/
 
 		var tasks = await ImageScanner.ScanImagesAsync(ss);
 

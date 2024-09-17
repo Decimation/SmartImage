@@ -42,7 +42,11 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 	private const string URL_ENDPOINT = "https://iqdb.org/";
 	private const string URL_QUERY    = "https://iqdb.org/?url=";
 
-	protected override string[] ErrorBodyMessages => ["Can't read query result!", "too large"];
+	protected override string[] ErrorBodyMessages =>
+		[
+			"Can't read query result!",
+			"too large"
+		];
 
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
 	{
@@ -143,8 +147,12 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		Url uri;
 
 		if (url != null) {
+			// Url u = url;
+			
 			if (url.StartsWith("//")) {
-				url = "http:" + url;
+				url = "https:" + url;
+
+				// url = url[2..];
 			}
 
 			uri = url;

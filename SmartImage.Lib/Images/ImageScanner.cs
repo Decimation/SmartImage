@@ -41,14 +41,23 @@ public static class ImageScanner
 	{
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(ImageScanner), null, builder =>
 		{
-			builder.Settings.AllowedHttpStatusRange = "*";
+			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
+			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
+
+			builder.Settings.AllowedHttpStatusRange               = "*";
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 			builder.AllowAnyHttpStatus();
 			builder.WithAutoRedirect(true);
-
+			
 			builder.OnError(f =>
 			{
 				f.ExceptionHandled = true;
+				return;
+			});
+
+			builder.OnRedirect(f =>
+			{
+				// Debug.WriteLine($"redirect:: {f.Redirect.Url}");
 				return;
 			});
 		});
@@ -66,7 +75,6 @@ public static class ImageScanner
 		if (r_donmai.IsMatch(request.Url.Host)) {
 			request.Headers.AddOrReplace("User-Agent", R1.Name);
 		}
-
 		return request
 			.WithCookies(Cookies);
 	}
@@ -80,7 +88,6 @@ public static class ImageScanner
 
 			using (var res2 = await req.GetAsync(cancellationToken: ct)) {
 				ret = res2.Cookies;
-
 			}
 		}
 
@@ -176,6 +183,8 @@ public static class ImageScanner
 
 		// doc.Dispose();
 		sr.Dispose();
+
+		// stream.Dispose(); // todo?
 		res.Dispose();
 
 	ret:
@@ -372,11 +381,10 @@ public static class ImageScanner
 
 	#endregion
 
-	private const char   URL_DELIM = '/';
-	private const string DONMAI_US = "\\.donmai\\.us";
+	private const char URL_DELIM = '/';
 
-	private static readonly Regex r_donmai = new(
-		"""\.donmai\.us""", 
+	internal static readonly Regex r_donmai = new(
+		"""\.donmai\.us""",
 		RegexOptions.Compiled
 	);
 
