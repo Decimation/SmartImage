@@ -103,13 +103,79 @@ public static class Program
 		var ui = await UniImage.TryCreateAsync("https://cdn.donmai.us/original/c7/c0/__akagi_and_akagi_azur_lane_drawn_by_sciamano240__c7c077986787625112bb19a912d1b7a8.jpg?download=1");
 		Console.WriteLine(ui);*/
 
-		var           ss           = "https://cdn.donmai.us/original/c7/c0/c7c077986787625112bb19a912d1b7a8.jpg";
-		var req = ImageScanner.BuildRequest(ss);
-		await ImageScanner.GetCookies(req);
+		/*var ss1  = "https://cdn.donmai.us/original/c7/c0/c7c077986787625112bb19a912d1b7a8.jpg";
+		var img1 = await ImageScanner.BuildRequest(ss1).GetAsync();
+		var img2 = await img1.GetStreamAsync();
+		var buf  = new byte[256];
+		var blen = await img2.ReadAsync(buf);
 
+		for (int i = 0; i < blen; i++) {
+			Console.Write($"{buf[i]:X} ");
+		}
+		img2.TrySeek();
+		Console.WriteLine(await Image.DetectFormatAsync(img2));*/
+
+		var ss  = "https://danbooru.donmai.us/posts/3950144";
+		var req = ImageScanner.BuildRequest(ss);
+		var ck  = await ImageScanner.GetCookies(req);
+
+		foreach (var flurlCookie in ck) {
+			Console.WriteLine(flurlCookie);
+		}
+
+		var tasks = await ImageScanner.ScanImagesAsync(ss);
+
+		while (tasks.Count != 0) {
+			var task = await Task.WhenAny(tasks);
+			tasks.Remove(task);
+			var ui = await task;
+			Console.WriteLine($"\n{ui} - {ui.Stream.Position} / {ui.Stream.Length}");
+
+			try {
+				/*if (ui is UniImageUri uiu) {
+					var res    = await ImageScanner.BuildRequest(uiu.Url).GetAsync();
+					var resStr = await res.GetStreamAsync();
+					Console.WriteLine($"{res.StatusCode} {resStr.Length} {resStr == uiu.Stream}");
+					
+				}*/
+				/*ui.Stream.TrySeek();
+				// var fmt = await Image.DetectFormatAsync(ui.Stream);
+				// Console.WriteLine(fmt);
+				var buf = new byte[256];
+				var blen = await ui.Stream.ReadAsync(buf);
+
+				for (int i = 0; i < blen; i++) {
+					Console.Write($"{buf[i]:X} ");
+				}
+
+				Console.WriteLine();
+				// var fmt2  = await FileType.ResolveAsync(ui.Stream);
+				// Console.WriteLine(fmt2);
+				ui.Stream.TrySeek();*/
+			}
+			catch (Exception e) {
+				// Console.WriteLine(e);
+				// throw;
+			}
+
+			// var ft = await FileType.ResolveAsync(ui.Stream);
+			// Console.WriteLine(ft);
+			/*
+			if (ui!= UniImage.Null && ui.HasImageFormat) {
+				Console.WriteLine(ui);
+
+			}
+			else { }
+		*/
+		}
+
+		/*
 		var           sss          = await req.GetStreamAsync();
 		var           f            = await Image.DetectFormatAsync(sss);
 		Console.WriteLine(f);
+		*/
+
+
 		/*try {
 			var b = await ImageScanner
 				        .BuildRequest(ss)

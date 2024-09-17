@@ -174,6 +174,9 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 			Stream.TrySeek();
 
 		}
+		catch (UnknownImageFormatException ex) {
+			Debug.WriteLine($"{this} :: {ex.Message}");
+		}
 		finally { }
 
 		return HasImageFormat;
@@ -284,7 +287,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 		using FileStream fs = File.Create(t);
 
-		
+
 		if (HasStream && Stream.CanSeek) {
 			Stream.Position = 0;
 		}
@@ -312,6 +315,8 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 			await Stream.DisposeAsync();
 
 		Image?.Dispose();
+
+		Debug.WriteLine($"Disposing {ValueString} w/ {Size}");
 
 	}
 

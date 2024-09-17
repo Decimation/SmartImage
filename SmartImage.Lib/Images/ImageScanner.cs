@@ -11,6 +11,7 @@ using System.Web;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using AngleSharp.Io;
 using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
@@ -21,6 +22,7 @@ using Novus.FileTypes.Uni;
 using Novus.OS;
 using Novus.Streams;
 using Novus.Utilities;
+using Novus.Win32.Structures.Other;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
@@ -61,31 +63,24 @@ public static class ImageScanner
 	{
 		var request = Client.Request(urlSeg);
 
+		if (r_donmai.IsMatch(request.Url.Host)) {
+			request.Headers.AddOrReplace("User-Agent", R1.Name);
+		}
+
 		return request
 			.WithCookies(Cookies);
 	}
-	public static async Task<IFlurlRequest> LoadCookies(IFlurlRequest req, CancellationToken ct = default)
-	{
-		var e = Cookies.GetEnumerator();
 
-		while (e) {
-			new FlurlCookie("_danbooru2_session", )
-		}
-	}
 	public static async Task<IReadOnlyList<FlurlCookie>> GetCookies(IFlurlRequest req, CancellationToken ct = default)
 	{
 		IReadOnlyList<FlurlCookie> ret = [];
 
-		switch (req.Url.Host) {
-			case "danbooru.donmai.us":
-			{
-				
-				req.Headers.AddOrReplace("User-Agent", Resources.Name);
+		if (r_donmai.IsMatch(req.Url.Host)) {
+			req.Headers.AddOrReplace("User-Agent", R1.Name);
 
-				using (var res2 = await req.GetAsync(cancellationToken: ct)) {
-					ret = res2.Cookies;
-					break;
-				}
+			using (var res2 = await req.GetAsync(cancellationToken: ct)) {
+				ret = res2.Cookies;
+
 			}
 		}
 
@@ -105,7 +100,7 @@ public static class ImageScanner
 
 		List<Task<UniImage>> tasks = null;
 		IFlurlRequest        req;
-		IFlurlResponse res;
+		IFlurlResponse       res;
 		Stream               stream;
 
 		req = BuildRequest(u);
@@ -172,7 +167,7 @@ public static class ImageScanner
 		tasks = urls.Select(async s =>
 		{
 			var ux = await UniImage.TryCreateAsync(s, ct: ct);
-			
+
 			return ux;
 
 		}).ToList();
@@ -377,7 +372,13 @@ public static class ImageScanner
 
 	#endregion
 
-	private const char URL_DELIM = '/';
+	private const char   URL_DELIM = '/';
+	private const string DONMAI_US = "\\.donmai\\.us";
+
+	private static readonly Regex r_donmai = new(
+		"""\.donmai\.us""", 
+		RegexOptions.Compiled
+	);
 
 	/*
 	 * TODO:
