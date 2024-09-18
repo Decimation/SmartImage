@@ -42,7 +42,7 @@ public abstract class BaseUploadEngine : IDisposable
 
 	static BaseUploadEngine()
 	{
-		var handler = new LoggingHttpMessageHandler(Logger)
+		/*var handler = new LoggingHttpMessageHandler(Logger)
 		{
 			InnerHandler = new HttpLoggingHandler(Logger)
 			{
@@ -61,8 +61,14 @@ public abstract class BaseUploadEngine : IDisposable
 					ForwardAuthorizationHeader = true,
 					MaxAutoRedirects           = 20,
 				},
-			}
-		};
+			},
+		};*/
+
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseUploadEngine), null, builder =>
+		{
+			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
+
+		});
 	}
 
 	/*
@@ -112,7 +118,19 @@ public abstract class BaseUploadEngine : IDisposable
 		string url = null;
 		bool   ok;
 
-		if (response == null) {
+
+		switch (response) {
+
+			case { ResponseMessage.StatusCode: HttpStatusCode.BadGateway or HttpStatusCode.GatewayTimeout }:
+			case null:
+				ok  = false;
+				url = null;
+
+				goto ret;
+
+		}
+
+		/*if (response == null) {
 			ok = false;
 
 			goto ret;
@@ -126,10 +144,9 @@ public abstract class BaseUploadEngine : IDisposable
 				url = null;
 				ok  = false;
 				goto ret;
-		}
+		}*/
 
-		url = await responseMessage.Content.ReadAsStringAsync(ct);
-
+		url = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
 		ok = true;
 
 		/*if (ensureResponse) {
@@ -152,9 +169,10 @@ public abstract class BaseUploadEngine : IDisposable
 		}*/
 
 	ret:
-		var fmt = await ISImage.DetectFormatAsync(await response.GetStreamAsync(), ct);
 
-		return new()
+		// var fmt = await ISImage.DetectFormatAsync(await response.GetStreamAsync(), ct);
+
+		return new UploadResult
 		{
 			Url      = url,
 			Size     = response.GetContentLength(),

@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Dynamic;
 using Flurl.Http;
 using JetBrains.Annotations;
+using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
@@ -255,6 +256,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {Url} of {Root.Engine.Name}", LogCategories.C_VERBOSE);
 		if (Uni != null && Uni.Any()) {
 			foreach (var us in Uni) {
 

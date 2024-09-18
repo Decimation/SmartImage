@@ -65,6 +65,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return request.WithTimeout(Timeout);
 	}*/
 
+
 	static BaseSearchEngine()
 	{
 		/*var handler = new LoggingHttpMessageHandler(Logger)
@@ -95,6 +96,13 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 
 			builder.Settings.AllowedHttpStatusRange = "*";
+			builder.OnError(f=>
+			{
+				Logger.LogError(f.Exception, $"from {f.Request}");
+				return;
+			});
+
+			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
 
 		});;
 	}

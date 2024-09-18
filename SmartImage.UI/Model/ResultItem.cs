@@ -308,15 +308,17 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 		img.BeginInit();
 		img.UriSource = new Uri(Result.Thumbnail);
-
-		// Image.StreamSource  = await Result.Thumbnail.GetStreamAsync();
+		/*var task = Result.Thumbnail.GetAsync();
+		task.Wait();
+		var async = task.Result.GetStreamAsync();
+		async.Wait();
+		img.StreamSource  =  async.Result;*/
 		img.CacheOption = BitmapCacheOption.OnDemand;
 
 		// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
 		// Image.CreateOptions = BitmapCreateOptions.None;
-
-		img.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Default);
-
+		
+		img.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Reload) { };
 		img.EndInit();
 
 		img.DownloadFailed    += OnImageDownloadFailed;
@@ -333,8 +335,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 	public virtual void Dispose()
 	{
-		GC.SuppressFinalize(this);
 		Debug.WriteLine($"Disposing {Name}");
+		GC.SuppressFinalize(this);
 		Result.Dispose();
 		Image = null;
 	}

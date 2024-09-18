@@ -26,6 +26,7 @@ using Novus.Win32.Structures.Other;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
@@ -44,11 +45,11 @@ public static class ImageScanner
 			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
 			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
 
-			builder.Settings.AllowedHttpStatusRange               = "*";
+			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 			builder.AllowAnyHttpStatus();
 			builder.WithAutoRedirect(true);
-			
+
 			builder.OnError(f =>
 			{
 				f.ExceptionHandled = true;
@@ -75,6 +76,7 @@ public static class ImageScanner
 		if (r_donmai.IsMatch(request.Url.Host)) {
 			request.Headers.AddOrReplace("User-Agent", R1.Name);
 		}
+
 		return request
 			.WithCookies(Cookies);
 	}
@@ -84,6 +86,7 @@ public static class ImageScanner
 		IReadOnlyList<FlurlCookie> ret = [];
 
 		if (r_donmai.IsMatch(req.Url.Host)) {
+			
 			req.Headers.AddOrReplace("User-Agent", R1.Name);
 
 			using (var res2 = await req.GetAsync(cancellationToken: ct)) {
@@ -143,7 +146,7 @@ public static class ImageScanner
 			goto ret;
 		}
 
-		var    sr   = new StreamReader(stream, leaveOpen: true);
+		var    sr   = new StreamReader(stream, leaveOpen: /*true*/ false);
 		string html = await sr.ReadToEndAsync(ct).ConfigureAwait(false);
 
 		// var html = doc.ToString();
@@ -171,9 +174,10 @@ public static class ImageScanner
 			}
 			else { }
 		});*/
-		tasks = urls.Select(async s =>
+
+		tasks = urls.Select(s =>
 		{
-			var ux = await UniImage.TryCreateAsync(s, ct: ct);
+			var ux = UniImage.TryCreateAsync(s, ct: ct);
 
 			return ux;
 

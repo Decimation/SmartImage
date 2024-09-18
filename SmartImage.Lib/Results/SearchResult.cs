@@ -103,6 +103,7 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}");
 		foreach (SearchResultItem item in Results) {
 			item.Dispose();
 		}

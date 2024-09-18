@@ -23,7 +23,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 	public TraceMoeEngine() : base(URL_QUERY, URL_API)
 	{
-		// Timeout = TimeSpan.FromSeconds(10);
+		Timeout = TimeSpan.FromSeconds(25);
 	}
 
 	/// <summary>

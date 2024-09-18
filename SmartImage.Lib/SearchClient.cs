@@ -93,7 +93,7 @@ public sealed class SearchClient : IDisposable
 				s.Redirects.ForwardAuthorizationHeader = true;
 				s.Redirects.MaxAutoRedirects           = 20;
 			});
-			b.AddMiddleware(() => new HttpLoggingHandler(s_logger));
+			
 
 		});
 	}

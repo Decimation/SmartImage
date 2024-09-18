@@ -607,7 +607,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private static int _clipboardSequence;
 
-	[DebuggerHidden]
+	// [DebuggerHidden]
 	private void ClipboardListenAsync(object? s, EventArgs e)
 	{
 		/*if (IsInputReady() /*|| Query != SearchQuery.Null#1#) {
@@ -1187,6 +1187,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private async Task<bool> FilterResultAsync(ResultItem item, CancellationToken token)
 	{
+		// TODO: REMOVE
 		if (item.IsLowQuality) {
 
 			return false;
