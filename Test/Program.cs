@@ -51,245 +51,61 @@ public static class Program
 
 	public static async Task Main(string[] args)
 	{
-		/*foreach (string s in ImageScanner.GetImageUrls("https://files.catbox.moe/fcpe1e.jpg",
-		                                               "https://files.catbox.moe/fcpe1e.jpg")) {
-			Console.WriteLine(s);
-		}*/
-
 		var u = "https://danbooru.donmai.us/posts/3950144";
 
-		/*var req = new FlurlRequest(u)
-		{
-			Headers =
-			{
-				{ "User-Agent", Resources.Name },
-				{ "Priority", "u=0, i" },
-				{ "Connection", "keep-alive" },
-				{ "Alt-Used", "danbooru.donmai.us" }
-			},
-			Settings =
-			{
-				Redirects =
-				{
-					AllowSecureToInsecure = true, MaxAutoRedirects = 100, Enabled = true, ForwardHeaders = true
-				},
-				AllowedHttpStatusRange = "*"
-			},
 
-		};
+		await Test11(u);
+		/*var u = "https://danbooru.donmai.us/post/show/4042187";
 
-		foreach (var header in req.Headers) {
-			Console.WriteLine($"{header.Name} = {header.Value}");
-
-		}
+		var req = ImageScanner.BuildRequest(u);
 
 		var res = await req.GetAsync();
+		Console.WriteLine(res);*/
+	}
 
-		foreach (var c in res.Cookies) {
-			Console.WriteLine($"{c}");
+	private static async Task Test10(Url u)
+	{
+		var ss = @"C:\Users\Deci\Pictures\Epic anime\2020_08_2B_Nier_Automata_1_02b.jpg";
+		var sq = await SearchQuery.TryCreateAsync(ss);
+		await sq.UploadAsync();
 
+
+		var tasks = await ImageScanner.ScanImagesAsync(u);
+
+
+		foreach (var v in await ImageScanner.Analyze(tasks, sq)) {
+			Console.WriteLine($"{v.Image} {v.Similarity:P}");
 		}
+	}
 
+	private static async Task Test11(Url u)
+	{
+		var tasks = await ImageScanner.ScanImagesAsync(u);
 
-		foreach (var header in res.Headers) {
-			Console.WriteLine($"{header.Name} = {header.Value}");
-
-		}
-
-		await foreach (var v in (ImageScanner.ScanImagesAsync2(u))) {
-			Console.WriteLine(v);
-		}
-
-		var ui = await UniImage.TryCreateAsync("https://cdn.donmai.us/original/c7/c0/__akagi_and_akagi_azur_lane_drawn_by_sciamano240__c7c077986787625112bb19a912d1b7a8.jpg?download=1");
-		Console.WriteLine(ui);*/
-
-		/*var ss1  = "https://cdn.donmai.us/original/c7/c0/c7c077986787625112bb19a912d1b7a8.jpg";
-		var img1 = await ImageScanner.BuildRequest(ss1).GetAsync();
-		var img2 = await img1.GetStreamAsync();
-		var buf  = new byte[256];
-		var blen = await img2.ReadAsync(buf);
-
-		for (int i = 0; i < blen; i++) {
-			Console.Write($"{buf[i]:X} ");
-		}
-		img2.TrySeek();
-		Console.WriteLine(await Image.DetectFormatAsync(img2));*/
-
-		var                  ss    = "http://danbooru.donmai.us/posts/3950144";
-		/*var async = await ImageScanner.BuildRequest(ss).GetAsync();
-		Console.WriteLine(async.ResponseMessage.RequestMessage.RequestUri);
-		var req = ImageScanner.BuildRequest(ss);
-		var ck  = await ImageScanner.GetCookies(req);
-
-		foreach (var flurlCookie in ck) {
-			Console.WriteLine(flurlCookie);
-		}*/
-
-		var tasks = await ImageScanner.ScanImagesAsync(ss);
-
-		while (tasks.Count != 0) {
+		while (tasks.Count > 0) {
 			var task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 			var ui = await task;
-			Console.WriteLine($"\n{ui} - {ui.Stream.Position} / {ui.Stream.Length}");
-
-			try {
-				/*if (ui is UniImageUri uiu) {
-					var res    = await ImageScanner.BuildRequest(uiu.Url).GetAsync();
-					var resStr = await res.GetStreamAsync();
-					Console.WriteLine($"{res.StatusCode} {resStr.Length} {resStr == uiu.Stream}");
-					
-				}*/
-				/*ui.Stream.TrySeek();
-				// var fmt = await Image.DetectFormatAsync(ui.Stream);
-				// Console.WriteLine(fmt);
-				var buf = new byte[256];
-				var blen = await ui.Stream.ReadAsync(buf);
-
-				for (int i = 0; i < blen; i++) {
-					Console.Write($"{buf[i]:X} ");
-				}
-
-				Console.WriteLine();
-				// var fmt2  = await FileType.ResolveAsync(ui.Stream);
-				// Console.WriteLine(fmt2);
-				ui.Stream.TrySeek();*/
-			}
-			catch (Exception e) {
-				// Console.WriteLine(e);
-				// throw;
-			}
-
-			// var ft = await FileType.ResolveAsync(ui.Stream);
-			// Console.WriteLine(ft);
-			/*
-			if (ui!= UniImage.Null && ui.HasImageFormat) {
-				Console.WriteLine(ui);
-
-			}
-			else { }
-		*/
+			Console.WriteLine(ui);
 		}
+	}
 
-		/*
-		var           sss          = await req.GetStreamAsync();
-		var           f            = await Image.DetectFormatAsync(sss);
-		Console.WriteLine(f);
-		*/
+	private static async Task Test9()
+	{
+		var ss = @"C:\Users\Deci\Pictures\Epic anime\2020_08_2B_Nier_Automata_1_02b.jpg";
+		var sq = await SearchQuery.TryCreateAsync(ss);
+		await sq.UploadAsync();
+		var sc   = new SearchClient(SearchConfig.Default);
+		var res  = await sc.RunSearchAsync(sq);
+		var res1 = res.SelectMany(r => r.Results).First(f => f.Url.ToString().Contains("danbooru"));
+		Console.WriteLine(res1);
 
-
-		/*try {
-			var b = await ImageScanner
-				        .BuildRequest(ss)
-				        .GetAsync();
-
-			var          a = await b.GetStreamAsync();
-			IImageFormat c;
-			Console.WriteLine($"{a.CanRead} {a.CanSeek} {a.CanTimeout}");
+		var tasks = await ImageScanner.ScanImagesAsync(res1.Url);
 
 
-			try {
-				c = await Image.DetectFormatAsync(a);
-			}
-			finally {
-				a.TrySeek();
-				var ft = await FileType.ResolveAsync(a);
-				Console.WriteLine(ft);
-			}
-
-			Console.WriteLine(c);
-			var tasks = await ImageScanner.ScanImagesAsync(u);
-
-			while (tasks.Count != 0) {
-				var i = await Task.WhenAny(tasks);
-				tasks.Remove(i);
-				var res2 = await i;
-
-				if (res2 != UniImage.Null && res2.HasImageFormat) {
-					Console.WriteLine(res2);
-				}
-				else {
-					res2.Dispose();
-				}
-			}
-
+		foreach (var v in await ImageScanner.Analyze(tasks, sq)) {
+			Console.WriteLine($"{v.Image} {v.Similarity:P}");
 		}
-		finally {
-			Console.WriteLine();
-		}*/
-
-		/*var r   = new Rule34Booru();
-		var res = await r.GetPostsAsync(new BaseGelbooruClient.PostsRequest() { Tags = "anal" });
-		var s   = await res.GetStringAsync();
-		Console.WriteLine(s);
-
-		// await TestEh3();
-		Debugger.Break();*/
-
-		// await test9();
-
-		// var u1 = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
-		/*var u1 = @"C:\Users\Deci\Pictures\Epic anime\en-jia-2077.jpg";
-		var q  = await SearchQuery.TryCreateAsync(u1);
-		var u  = await q.UploadAsync();
-		Console.WriteLine(u);
-
-		var sc      = new SearchClient(new SearchConfig());
-		var results = await sc.RunSearchAsync(q);
-		var result      = results.FirstOrDefault(x => x.Engine is YandexEngine);
-
-		/*
-		var results2 = results.SelectMany(x => x.Results)
-			.Where(r => !r.IsRaw && r.Url != null);
-			#1#
-		Console.WriteLine(result);
-		var results2 = result.Results.Where(r => !r.IsRaw && r.Url != null);
-
-		// var rr = r.SelectMany(x => x.Results);
-
-		foreach (SearchResultItem item in results2) {
-			Console.WriteLine(item);
-			var items = await ImageScanner.ScanImagesAsync(item.Url);
-
-			foreach (UniImage image in items) {
-				Console.WriteLine($"\t{image}");
-			}
-		}*/
-
-		/*
-		foreach (var sr in results2) {
-			Console.WriteLine($"{sr}");
-
-
-
-
-			var imgs2 = await ImageScanner.ScanImagesAsync2(sr.Url);
-
-			while (imgs2.Count > 0) {
-				var imgs3 = await Task.WhenAny(imgs2);
-				imgs2.Remove(imgs3);
-
-				var imgs4 = await imgs3;
-
-				if (imgs4 != null) {
-					Console.WriteLine(imgs4);
-				}
-			}
-		}
-
-		 */
-
-		/*foreach (var result in r) {
-			var g = result.Results.GroupBy(x => x.Root);
-
-			foreach (var gr in g) {
-				foreach (SearchResultItem item in gr) {
-					Console.WriteLine($"{gr.Key} = {item}");
-				}
-			}
-
-			Console.ReadKey();
-		}*/
 	}
 
 	#region
@@ -922,6 +738,186 @@ public static class Program
 		var result2 = await task2;
 		Console.WriteLine(">> {0}", result2);
 	}
+
+	#endregion
+
+	#region Misc
+
+	/*var req = new FlurlRequest(u)
+	{
+		Headers =
+		{
+			{ "User-Agent", Resources.Name },
+			{ "Priority", "u=0, i" },
+			{ "Connection", "keep-alive" },
+			{ "Alt-Used", "danbooru.donmai.us" }
+		},
+		Settings =
+		{
+			Redirects =
+			{
+				AllowSecureToInsecure = true, MaxAutoRedirects = 100, Enabled = true, ForwardHeaders = true
+			},
+			AllowedHttpStatusRange = "*"
+		},
+
+	};
+
+	foreach (var header in req.Headers) {
+		Console.WriteLine($"{header.Name} = {header.Value}");
+
+	}
+
+	var res = await req.GetAsync();
+
+	foreach (var c in res.Cookies) {
+		Console.WriteLine($"{c}");
+
+	}
+
+
+	foreach (var header in res.Headers) {
+		Console.WriteLine($"{header.Name} = {header.Value}");
+
+	}
+
+	await foreach (var v in (ImageScanner.ScanImagesAsync2(u))) {
+		Console.WriteLine(v);
+	}
+
+	var ui = await UniImage.TryCreateAsync("https://cdn.donmai.us/original/c7/c0/__akagi_and_akagi_azur_lane_drawn_by_sciamano240__c7c077986787625112bb19a912d1b7a8.jpg?download=1");
+	Console.WriteLine(ui);*/
+
+	/*var ss1  = "https://cdn.donmai.us/original/c7/c0/c7c077986787625112bb19a912d1b7a8.jpg";
+	var img1 = await ImageScanner.BuildRequest(ss1).GetAsync();
+	var img2 = await img1.GetStreamAsync();
+	var buf  = new byte[256];
+	var blen = await img2.ReadAsync(buf);
+
+	for (int i = 0; i < blen; i++) {
+		Console.Write($"{buf[i]:X} ");
+	}
+	img2.TrySeek();
+	Console.WriteLine(await Image.DetectFormatAsync(img2));*/
+	/*
+	var           sss          = await req.GetStreamAsync();
+	var           f            = await Image.DetectFormatAsync(sss);
+	Console.WriteLine(f);
+	*/
+
+
+	/*try {
+		var b = await ImageScanner
+			        .BuildRequest(ss)
+			        .GetAsync();
+
+		var          a = await b.GetStreamAsync();
+		IImageFormat c;
+		Console.WriteLine($"{a.CanRead} {a.CanSeek} {a.CanTimeout}");
+
+
+		try {
+			c = await Image.DetectFormatAsync(a);
+		}
+		finally {
+			a.TrySeek();
+			var ft = await FileType.ResolveAsync(a);
+			Console.WriteLine(ft);
+		}
+
+		Console.WriteLine(c);
+		var tasks = await ImageScanner.ScanImagesAsync(u);
+
+		while (tasks.Count != 0) {
+			var i = await Task.WhenAny(tasks);
+			tasks.Remove(i);
+			var res2 = await i;
+
+			if (res2 != UniImage.Null && res2.HasImageFormat) {
+				Console.WriteLine(res2);
+			}
+			else {
+				res2.Dispose();
+			}
+		}
+
+	}
+	finally {
+		Console.WriteLine();
+	}*/
+
+	/*var r   = new Rule34Booru();
+	var res = await r.GetPostsAsync(new BaseGelbooruClient.PostsRequest() { Tags = "anal" });
+	var s   = await res.GetStringAsync();
+	Console.WriteLine(s);
+
+	// await TestEh3();
+	Debugger.Break();*/
+
+	// await test9();
+
+	// var u1 = @"C:\Users\Deci\Pictures\Test Images\Test6.jpg";
+	/*var u1 = @"C:\Users\Deci\Pictures\Epic anime\en-jia-2077.jpg";
+	var q  = await SearchQuery.TryCreateAsync(u1);
+	var u  = await q.UploadAsync();
+	Console.WriteLine(u);
+
+	var sc      = new SearchClient(new SearchConfig());
+	var results = await sc.RunSearchAsync(q);
+	var result      = results.FirstOrDefault(x => x.Engine is YandexEngine);
+
+	/*
+	var results2 = results.SelectMany(x => x.Results)
+		.Where(r => !r.IsRaw && r.Url != null);
+		#1#
+	Console.WriteLine(result);
+	var results2 = result.Results.Where(r => !r.IsRaw && r.Url != null);
+
+	// var rr = r.SelectMany(x => x.Results);
+
+	foreach (SearchResultItem item in results2) {
+		Console.WriteLine(item);
+		var items = await ImageScanner.ScanImagesAsync(item.Url);
+
+		foreach (UniImage image in items) {
+			Console.WriteLine($"\t{image}");
+		}
+	}*/
+
+	/*
+	foreach (var sr in results2) {
+		Console.WriteLine($"{sr}");
+
+
+
+
+		var imgs2 = await ImageScanner.ScanImagesAsync2(sr.Url);
+
+		while (imgs2.Count > 0) {
+			var imgs3 = await Task.WhenAny(imgs2);
+			imgs2.Remove(imgs3);
+
+			var imgs4 = await imgs3;
+
+			if (imgs4 != null) {
+				Console.WriteLine(imgs4);
+			}
+		}
+	}
+
+	 */
+
+	/*foreach (var result in r) {
+		var g = result.Results.GroupBy(x => x.Root);
+
+		foreach (var gr in g) {
+			foreach (SearchResultItem item in gr) {
+				Console.WriteLine($"{gr.Key} = {item}");
+			}
+		}
+
+		Console.ReadKey();
+	}*/
 
 	#endregion
 

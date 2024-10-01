@@ -34,7 +34,10 @@ public class UniImageUri : UniImage
 			string s => s,
 			_        => null
 		};
-		return Url.IsValid(u) && u.Scheme != "file";
+
+		var scheme = u.Scheme;
+
+		return Url.IsValid(u) && Schemes.All(s => scheme != s);
 	}
 
 	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
@@ -57,20 +60,22 @@ public class UniImageUri : UniImage
 		return HasResponse;
 	}
 
+	public static readonly string[] Schemes = ["file", "javascript"];
+
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
 	{
 		// value = value.CleanString();
-		if (value.Scheme == "javascript") {
+		/*if (value.Scheme == "javascript") {
 			throw new ArgumentException($"{value}");
-		}
+		}*/
 
-		var req = ImageScanner.BuildRequest(value);
-			/*.AllowAnyHttpStatus()
-			.WithHeaders(new
-			{
-				// todo
-				User_Agent = R1.UserAgent1,
-			});*/
+		var req = await ImageScanner.BuildRequest(value);
+		/*.AllowAnyHttpStatus()
+		.WithHeaders(new
+		{
+			// todo
+			User_Agent = R1.UserAgent1,
+		});*/
 
 		var res = await req
 			          .GetAsync(cancellationToken: ct);

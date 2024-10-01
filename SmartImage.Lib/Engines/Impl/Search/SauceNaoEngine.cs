@@ -320,7 +320,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		string         html     = null;
 		IFlurlResponse response = null;
 
-		response = await EndpointUrl.AllowHttpStatus()
+		response = await Client.Request(EndpointUrl).AllowHttpStatus()
 			           .OnError(x =>
 			           {
 
