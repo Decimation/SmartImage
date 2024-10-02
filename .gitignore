@@ -455,3 +455,5 @@ $RECYCLE.BIN/
 
 Test/
 Test/*
+/Test/Test.csproj
+/Test/Program.cs
