@@ -453,4 +453,5 @@ $RECYCLE.BIN/
 !.vscode/launch.json
 !.vscode/extensions.json
 
-/Test/
+Test/
+Test/*
