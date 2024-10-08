@@ -215,12 +215,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		if (m_scs.Interactive.HasValue && m_scs.Interactive.Value) {
 
-			var r = ShowInteractivePromptAsync();
+			var item = ShowInteractivePromptAsync();
 			AConsole.Clear();
 
 			var gr2 = new Grid();
 			gr2.AddColumns(5);
-			gr2.AddRow(CreateResultItemRows(r, 0, Style.Plain));
+			gr2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
 
 			// AConsole.Write(gr2);
 
@@ -231,14 +231,19 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			{
 				// var ok = await r.ScanAsync();
 
-				var resOk = ImageScanner.ScanImagesAsync2(r.Url);
+				var resOk = await ImageScanner.ScanImagesAsync(item.Url);
 
-				await foreach (UniImage image in resOk) {
-					if (image == null) {
+				while (resOk.Count != 0) {
+					var t = await Task.WhenAny(resOk);
+
+					var r = await t;
+
+					if (r == null) {
 						continue;
 					}
-					tr.AddNode($"{image.ImageFormat}");
+					tr.AddNode($"{r.ImageFormat}");
 					f.Refresh();
+
 				}
 
 			});

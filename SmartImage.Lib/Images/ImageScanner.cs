@@ -151,7 +151,7 @@ public static class ImageScanner
 
 
 		// stream = await res.GetStreamAsync();
-		var isUri = UniImageUri.IsUriType(u, out u);
+		/*var isUri = UniImageUri.IsUriType(u, out u);
 
 		if (isUri) {
 			var uf      = new UniImageUri(u, u);
@@ -184,7 +184,7 @@ public static class ImageScanner
 
 					case FileType.MT_TEXT_PLAIN:
 					{
-						var sr = new StreamReader(stream, leaveOpen: true /*false*/);
+						var sr = new StreamReader(stream, leaveOpen: true /*false#1#);
 
 						string html = await sr.ReadToEndAsync(ct);
 						var    urls = GetImageUrls(html, u);
@@ -206,13 +206,13 @@ public static class ImageScanner
 
 				// throw new Exception();
 			}
-		}
+		}*/
 
-		/*var uf = await UniImage.TryCreateAsync(u, autoInit: true,
-		                                       autoDisposeOnError: false, ct: ct);*/
+		var uf = await UniImage.TryCreateAsync(u, autoInit: true,
+		                                       autoDisposeOnError: false, ct: ct);
 
 
-		/*if (uf != UniImage.Null) {
+		if (uf != UniImage.Null) {
 			if (uf.HasImageFormat) {
 				tasks = [Task.FromResult(uf)];
 
@@ -223,24 +223,44 @@ public static class ImageScanner
 			stream          = uf.Stream;
 			stream.Position = 0;
 
-		}*/
+		}
 
-		/*if (!stream.CanRead) {
+		if (!stream.CanRead) {
 			stream.Dispose();
 			goto ret;
-		}*/
+		}
+
+		var sr = new StreamReader(stream, leaveOpen: true /*false*/);
+
+		string html = await sr.ReadToEndAsync(ct);
+		var    urls = GetImageUrls(html, u);
+
+		tasks = urls.Select(s =>
+		{
+			var ux = UniImage.TryCreateAsync(s, ct: ct);
+
+			return ux;
+
+		}).ToList();
 
 		// var rr = await u.WithHeader("User-Agent", "SI").GetStreamAsync(HttpCompletionOption.ResponseContentRead);
 
+
 		// var parser = new HtmlParser();
+
 		// var doc    = await parser.ParseDocumentAsync(stream);
+
 		// var html = await Client.Request(res.ResponseMessage.RequestMessage.RequestUri).GetStringAsync();
 
+
 		// var html = await res.GetStringAsync();
+
 		// var html = doc.ToString();
 
 
-		/*await Parallel.ForEachAsync(urls, po, async (s, token) =>
+		/*var po = new ParallelOptions();
+
+		await Parallel.ForEachAsync(urls, po, async (s, token) =>
 		{
 			var ux = await UniImage.TryCreateAsync(s, ct: token).ConfigureAwait(false);
 

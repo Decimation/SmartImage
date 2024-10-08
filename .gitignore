@@ -457,3 +457,7 @@ Test/
 Test/*
 /Test/Test.csproj
 /Test/Program.cs
+SmartImage.Lib.UnitTest/
+SmartImage.Lib.UnitTest/*
+SmartImage.Benchmark/
+SmartImage.Benchmark/*

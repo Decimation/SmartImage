@@ -48,6 +48,8 @@ public static class Program
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
+		
+		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 #if DEBUG
 		Debugger.Launch();

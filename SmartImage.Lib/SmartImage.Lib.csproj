@@ -43,28 +43,29 @@
     <PackageReference Include="AngleSharp.XPath" Version="2.0.4" />
     <PackageReference Include="CliWrap" Version="3.6.6" />
     <PackageReference Include="CoenM.ImageSharp.ImageHash" Version="1.3.6" />
-    <PackageReference Include="CommunityToolkit.Common" Version="8.3.0" />
+    <PackageReference Include="CommunityToolkit.Common" Version="8.3.2" />
+    <PackageReference Include="FlareSolverrSharp" Version="3.0.7" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="JetBrains.Annotations" Version="2024.2.0" />
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.7" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
-    <PackageReference Include="System.Drawing.Common" Version="8.0.7" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="8.0.10" />
     <PackageReference Include="System.Json" Version="4.7.1" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
-    <PackageReference Include="System.Runtime.Caching" Version="8.0.0" />
+    <PackageReference Include="System.Runtime.Caching" Version="8.0.1" />
     <PackageReference Include="Verify.Flurl" Version="0.1.0" />
   </ItemGroup>
 
