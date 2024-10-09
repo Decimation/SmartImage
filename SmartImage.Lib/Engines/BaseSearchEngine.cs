@@ -10,6 +10,7 @@ using SmartImage.Lib.Results;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Kantan.Net.Web;
@@ -94,6 +95,8 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, builder =>
 		{
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+			
+			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
 
 			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.OnError(f=>

@@ -88,7 +88,8 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 			var origin = sr.RawUrl;
 
-			var res = await FlareSolverrClient.Instance.Get(origin, "request.get", Timeout.Milliseconds);
+			var res = await FlareSolverrClient.Instance.SendAsync(origin, 
+			                                                     FlareSolverrClient.CMD_REQUEST_GET, Timeout.Milliseconds);
 
 			string str;
 

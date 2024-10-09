@@ -201,6 +201,8 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 
 }
 
+#region API Objects
+
 public sealed class HydrusQuery
 {
 
@@ -317,3 +319,5 @@ public partial class HydrusFileRelationship
 	}
 
 }
+
+#endregion

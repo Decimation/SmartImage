@@ -45,8 +45,10 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// Default value for <see cref="ReadCookies"/>
 	/// </summary>
 	public const bool READCOOKIES_DEFAULT = false;
-
-	private static readonly string STR_DEFAULT = String.Empty;
+	/// <summary>
+	/// Default value for <see cref="FlareSolverr"/>
+	/// </summary>
+	public const bool FLARESOLVERR_DEFAULT = true;
 
 	#endregion
 
@@ -162,7 +164,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public string SauceNaoKey
 	{
-		get { return Configuration.ReadSetting(nameof(SauceNaoKey), STR_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(SauceNaoKey), String.Empty); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(SauceNaoKey), value);
@@ -189,16 +191,32 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// 
 	/// </summary>
+
 	// todo
 	public string CookiesFile
 	{
-		get { return Configuration.ReadSetting(nameof(CookiesFile), STR_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(CookiesFile), String.Empty); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(CookiesFile), value);
 			OnPropertyChanged();
 		}
 	}
+
+	/// <remarks>
+	/// <see cref="Clients.FlareSolverrClient"/>
+	/// </remarks>
+	public bool FlareSolverr
+	{
+		get { return Configuration.ReadSetting(nameof(FlareSolverr), READCOOKIES_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(FlareSolverr), value.ToString());
+			OnPropertyChanged();
+		}
+	}
+
+	
 
 	public static readonly SearchConfig Default = new();
 

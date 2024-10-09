@@ -1,9 +1,123 @@
 // Root myDeserializedClass = JsonSerializer.Deserialize<Root>(myJsonResponse);
 
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 
 namespace SmartImage.Lib.Clients;
+
+public class FlareSolverrClient : IDisposable
+{
+
+	public const string CMD_REQUEST_GET  = "request.get";
+	public const string CMD_REQUEST_POST = "request.post";
+
+	public const int DEFAULT_MAX_TIMEOUT = 60000;
+
+	private static readonly JsonSerializerOptions s_jsonSerializerOptions = new(JsonSerializerOptions.Default)
+	{
+		DefaultIgnoreCondition =
+			JsonIgnoreCondition.WhenWritingDefault
+	};
+
+	private static readonly DefaultJsonSerializer s_settingsJsonSerializer = new(s_jsonSerializerOptions)
+		{ };
+
+	// TODO: FlareSolverrSharp doesn't work 10/8/24
+
+	public FlurlClient Client { get; }
+
+	public string BaseUrl { get; }
+
+	public FlareSolverrClient(string baseUrl)
+	{
+		BaseUrl = baseUrl;
+
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(FlareSolverrClient), BaseUrl, builder =>
+		{
+			builder.AllowAnyHttpStatus();
+
+			builder.Settings.JsonSerializer = s_settingsJsonSerializer;
+		});
+
+	}
+
+	public async ValueTask<bool> IsConnectedAsync(int maxTimeout = DEFAULT_MAX_TIMEOUT)
+	{
+		try {
+			using var res = await SendAsync("https://nowsecure.nl/", CMD_REQUEST_GET, maxTimeout);
+
+			if (res == null) {
+				return false;
+			}
+
+			var obj = await res.GetJsonAsync<FlareSolverrRoot>();
+			return obj.Status == "ok";
+		}
+		catch {
+			return false;
+		}
+		finally { }
+
+
+	}
+
+	public static readonly FlareSolverrClient Instance = new("http://localhost:8191/v1");
+
+	public Task<IFlurlResponse> SendAsync(FlareSolverrRequest request)
+	{
+		var resp = Client.Request()
+			.PostJsonAsync(request);
+
+		return resp;
+	}
+
+	public Task<IFlurlResponse> SendAsync(string url, string cmd, int maxTimeout = DEFAULT_MAX_TIMEOUT)
+	{
+
+		return SendAsync(new FlareSolverrRequest() { Url = url, Command = cmd, MaxTimeout = maxTimeout });
+
+	}
+
+	public void Dispose()
+	{
+		Client?.Dispose();
+	}
+
+}
+
+#region API Objects
+
+public record FlareSolverrRequest
+{
+
+	// todo
+
+	[JsonPropertyName("cmd")]
+	public string Command { get; set; }
+
+	public List<FlareSolverrCookie> Cookies { get; set; }
+
+	public int MaxTimeout { get; set; }
+
+	public Dictionary<string, object> Proxy { get; set; } //todo
+
+	public string Session { get; set; }
+
+	[JsonPropertyName("session_ttl_minutes")]
+	public int SessionTtl { get; set; }
+
+	public string Url { get; set; }
+
+	public string PostData { get; set; }
+
+	public bool ReturnOnlyCookies { get; set; }
+
+
+	public FlareSolverrRequest() { }
+
+}
 
 public class FlareSolverrCookie
 {
@@ -130,43 +244,4 @@ public class FlareSolverrSolution
 
 }
 
-public class FlareSolverrClient : IDisposable
-{
-
-	// TODO: FlareSolverrSharp doesn't work 10/8/24
-
-	public FlurlClient Client { get; }
-
-	public string BaseUrl { get; }
-
-	public FlareSolverrClient(string baseUrl)
-	{
-		BaseUrl    = baseUrl;
-		Client = new FlurlClient(BaseUrl);
-	}
-
-	public static readonly FlareSolverrClient Instance = new("http://localhost:8191/v1");
-
-	public Task<IFlurlResponse> Get(string url, string cmd, int maxTimeout = 60000)
-	{
-		var body = new
-		{
-			cmd        = cmd,
-			url        = url,
-			maxTimeout = maxTimeout
-		};
-
-		var resp = Client.Request()
-			.WithHeader("Accept","text/html; charset=utf-8")
-			.PostJsonAsync(body);
-
-		return resp;
-
-	}
-
-	public void Dispose()
-	{
-		Client?.Dispose();
-	}
-
-}
+#endregion
