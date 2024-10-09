@@ -35,14 +35,33 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		foreach (TinEyeMatch match in teye.Matches) {
 			var resultItem = new SearchResultItem(sr)
 			{
-				Metadata = match,
-				Site     = match.Domain
-
+				Metadata    = match,
+				Site        = match.Domain,
+				Url         = match.Backlinks[0].Backlink,
+				Description = match.Backlinks[0].ImageName,
+				// Thumbnail   = match.Backlinks[0].Url,
+				Thumbnail = match.ImageUrl,
+				Width       = match.Width,
+				Height      = match.Height,
+				Time = DateTime.Parse(match.Backlinks[0].CrawlDate)
 			};
 
-			for (int m = 0; m < match.Backlinks.Count; m++) {
-				var bl = match.Backlinks[m];
-				
+			if (match.Backlinks.Count > 1) {
+				for (int m = 1; m < match.Backlinks.Count; m++) {
+					var bl  = match.Backlinks[m];
+					var resultItemSister = resultItem with
+					{
+						Url = bl.Backlink,
+						// Thumbnail = bl.Url, 
+						Description = bl.ImageName,
+						Time = DateTime.Parse(match.Backlinks[0].CrawlDate),
+						Parent = resultItem,
+					};
+					
+					sr.Results.Add(resultItemSister);
+
+				}
+
 			}
 
 			sr.Results.Add(resultItem);

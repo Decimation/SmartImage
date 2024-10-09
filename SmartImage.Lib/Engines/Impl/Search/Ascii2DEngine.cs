@@ -2,12 +2,14 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Text;
+using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Results;
 
 // ReSharper disable CognitiveComplexity
@@ -83,11 +85,22 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		var parser = new HtmlParser();
 
 		try {
-			IFlurlResponse res;
 
-			res = await GetResponseByUrlAsync(sr.RawUrl, token);
+			var origin = sr.RawUrl;
 
-			var str = await res.GetStringAsync();
+			var res = await FlareSolverrClient.Instance.Get(origin, "request.get", Timeout.Milliseconds);
+
+			string str;
+
+			if (res != null) {
+				var fsr = await res.GetJsonAsync<FlareSolverrRoot>();
+				str = fsr.Solution.Response;
+			}
+			else {
+				res = await GetResponseByUrlAsync(origin, token);
+				str = await res.GetStringAsync();
+
+			}
 
 			var document = await parser.ParseDocumentAsync(str, token);
 
@@ -108,6 +121,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		}
 	}
 
+
 	private async Task<IFlurlResponse> GetResponseByUrlAsync(Url origin, CancellationToken token)
 	{
 		var data = new MultipartFormDataContent()
@@ -115,7 +129,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			{ new StringContent(origin), "uri" }
 		};
 
-		var res = await Client.Request(origin)
+		var res = await Client.Request(origin).AllowAnyHttpStatus()
 			          .WithCookies(out var cj)
 			          .WithTimeout(Timeout)
 			          /*.OnError(s =>

@@ -7,11 +7,11 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="clr-namespace:SmartImage.UI"
-        xmlns:controls="clr-namespace:SmartImage.UI.Controls"
         xmlns:model="clr-namespace:SmartImage.UI.Model"
         xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
         xmlns:lib_model="clr-namespace:SmartImage.Lib.Model;assembly=SmartImage.Lib"
         xmlns:converters="clr-namespace:SmartImage.UI.Controls.Converters"
+        xmlns:controls="clr-namespace:SmartImage.UI.Controls"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"
         mc:Ignorable="d" Height="675" Width="1400" MinWidth="1400" MinHeight="325" Loaded="Wnd_Main_Loaded"
         Closed="Wnd_Main_Closed"
@@ -672,7 +672,7 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-
+                                
                                 <GridViewColumn Header="Name"
                                                 Width="135" x:Name="Lvgvc_Name"
                                                 DisplayMemberBinding="{Binding Name, Mode=OneTime}">

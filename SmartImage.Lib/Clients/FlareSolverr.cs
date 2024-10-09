@@ -132,17 +132,20 @@ public class FlareSolverrSolution
 
 public class FlareSolverrClient : IDisposable
 {
+
 	// TODO: FlareSolverrSharp doesn't work 10/8/24
 
 	public FlurlClient Client { get; }
 
-	public string Url { get; }
+	public string BaseUrl { get; }
 
-	public FlareSolverrClient(string url)
+	public FlareSolverrClient(string baseUrl)
 	{
-		Url    = url;
-		Client = new FlurlClient(Url);
+		BaseUrl    = baseUrl;
+		Client = new FlurlClient(BaseUrl);
 	}
+
+	public static readonly FlareSolverrClient Instance = new("http://localhost:8191/v1");
 
 	public Task<IFlurlResponse> Get(string url, string cmd, int maxTimeout = 60000)
 	{
@@ -150,10 +153,11 @@ public class FlareSolverrClient : IDisposable
 		{
 			cmd        = cmd,
 			url        = url,
-			maxTimeout = 60000
+			maxTimeout = maxTimeout
 		};
 
 		var resp = Client.Request()
+			.WithHeader("Accept","text/html; charset=utf-8")
 			.PostJsonAsync(body);
 
 		return resp;
