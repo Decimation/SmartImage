@@ -226,7 +226,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 			var tr = new Tree(gr2);
 			var ld = AConsole.Live(tr);
-
+			
 			run2 = ld.StartAsync(async f =>
 			{
 				// var ok = await r.ScanAsync();
@@ -235,13 +235,18 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 				while (resOk.Count != 0) {
 					var t = await Task.WhenAny(resOk);
+					resOk.Remove(t);
 
 					var r = await t;
 
 					if (r == null) {
 						continue;
 					}
-					tr.AddNode($"{r.ImageFormat}");
+
+					if (r is UniImageUri ru) {
+						tr.AddNode(new Text(ru.ValueString, new Style(link: ru.Url)));
+
+					}
 					f.Refresh();
 
 				}

@@ -66,6 +66,10 @@ public abstract class BaseUploadEngine : IDisposable
 
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseUploadEngine), null, builder =>
 		{
+			builder.OnError(f =>
+			{
+				Logger.LogError(f.Exception, $"from {nameof(BaseUploadEngine)}");
+			});
 			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
 
 		});
@@ -147,7 +151,7 @@ public abstract class BaseUploadEngine : IDisposable
 		}*/
 
 		url = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
-		ok = true;
+		ok  = true;
 
 		/*if (ensureResponse) {
 			var fmt = await ISImage.DetectFormatAsync(await response.GetStreamAsync(), ct);

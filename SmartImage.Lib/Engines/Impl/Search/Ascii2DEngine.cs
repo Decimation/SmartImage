@@ -1,6 +1,7 @@
 ﻿#nullable disable
 using System.Diagnostics;
 using System.Drawing;
+using System.Text;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -91,6 +92,9 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			var document = await parser.ParseDocumentAsync(str, token);
 
 			return document;
+		}
+		catch (ArgumentException) {
+			return null;
 		}
 		catch (TaskCanceledException) {
 			return null;
