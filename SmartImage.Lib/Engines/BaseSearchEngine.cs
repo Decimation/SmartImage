@@ -20,7 +20,7 @@ using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Engines;
 #nullable enable

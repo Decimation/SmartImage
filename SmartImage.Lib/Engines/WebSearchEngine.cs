@@ -7,7 +7,7 @@ using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines;

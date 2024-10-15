@@ -32,7 +32,7 @@ using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 using SmartImage.UI.Controls;
 using SmartImage.UI.Model;

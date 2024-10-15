@@ -23,7 +23,7 @@ using Flurl;
 using Kantan.Text;
 using Novus.Win32;
 using SmartImage.Lib;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Results.Data;
 using SmartImage.UI.Controls;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;

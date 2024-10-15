@@ -9,7 +9,7 @@
         xmlns:ui="clr-namespace:SmartImage.UI"
         xmlns:model="clr-namespace:SmartImage.UI.Model"
         xmlns:diag="clr-namespace:System.Diagnostics;assembly=WindowsBase"
-        xmlns:lib_model="clr-namespace:SmartImage.Lib.Model;assembly=SmartImage.Lib"
+        xmlns:lib_model="clr-namespace:SmartImage.Lib.Results.Data;assembly=SmartImage.Lib"
         xmlns:converters="clr-namespace:SmartImage.UI.Controls.Converters"
         xmlns:controls="clr-namespace:SmartImage.UI.Controls"
         DataContext="{Binding RelativeSource={RelativeSource Self}}"

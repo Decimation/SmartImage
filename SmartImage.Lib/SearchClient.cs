@@ -312,7 +312,7 @@ public sealed class SearchClient : IDisposable
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
 		if (Config.ReadCookies) {
-			if (await CookiesManager.Instance.LoadCookiesAsync()) { }
+			if (await FirefoxCookiesProvider.Instance.LoadCookiesAsync()) { }
 		}
 
 		foreach (BaseSearchEngine bse in Engines) {
@@ -321,7 +321,7 @@ public sealed class SearchClient : IDisposable
 			}
 
 			if (Config.ReadCookies && bse is ICookieReceiver ce) {
-				await ce.ApplyCookiesAsync(CookiesManager.Instance.Cookies);
+				await ce.ApplyCookiesAsync(FirefoxCookiesProvider.Instance);
 
 				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 			}

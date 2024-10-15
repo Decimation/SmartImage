@@ -119,7 +119,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 			return false;
 		}*/
 
-		var cookies = await provider.LoadCookiesAsync(ct);
+		var ok      = await provider.LoadCookiesAsync(ct);
+		var cookies = provider.Cookies;
 
 		var fcc = cookies.OfType<FirefoxCookie>().Where(x =>
 		{

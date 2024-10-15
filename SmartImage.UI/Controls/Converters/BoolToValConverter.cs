@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Text;
 using System.Windows;
 using System.Windows.Data;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.UI.Controls.Converters;
 
