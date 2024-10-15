@@ -1,4 +1,4 @@
-﻿namespace SmartImage.Lib.Model;
+﻿namespace SmartImage.Lib.Results.Data;
 
 public interface IParseable<out TResult, in TSource>
 {

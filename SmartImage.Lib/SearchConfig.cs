@@ -9,7 +9,7 @@ using Kantan.Utilities;
 using Microsoft.Extensions.Configuration;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Results.Data;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using ConfigurationSection = System.Configuration.ConfigurationSection;
@@ -176,7 +176,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// Parse browser cookies automatically whenever necessary
 	/// </summary>
 	/// <remarks>
-	/// <see cref="ICookieEngine"/>
+	/// <see cref="ICookieReceiver"/>
 	/// </remarks>
 	public bool ReadCookies
 	{

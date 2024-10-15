@@ -16,8 +16,8 @@ using Kantan.Net;
 using Kantan.Net.Utilities;
 using Kantan.Net.Web;
 using Kantan.Text;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
@@ -26,7 +26,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INotifyPropertyChanged
+public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieReceiver, INotifyPropertyChanged
 {
 
 	private const string HOST_EH = ".e-hentai.org";
@@ -91,10 +91,10 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	public async ValueTask ApplyConfigAsync(SearchConfig cfg)
+	public async ValueTask ApplyAsync(SearchConfig cfg)
 	{
 		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
-			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
+			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyAsync));
 
 			return;
 		}*/
@@ -108,16 +108,18 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfig, ICookieEngine, INo
 	 */
 
 
-	public async ValueTask<bool> ApplyCookiesAsync(IEnumerable<IBrowserCookie> cookies = null)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookieProvider provider, CancellationToken ct = default)
 	{
 		Trace.WriteLine($"Applying cookies to {Name}");
 
-		if (await CookiesManager.Instance.LoadCookiesAsync()) {
+		/*if (await CookiesManager.Instance.LoadCookiesAsync()) {
 			cookies ??= CookiesManager.Instance.Cookies;
 		}
 		else {
 			return false;
-		}
+		}*/
+
+		var cookies = await provider.LoadCookiesAsync(ct);
 
 		var fcc = cookies.OfType<FirefoxCookie>().Where(x =>
 		{

@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SmartImage.Lib.Model;
+using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Images.Uni;
 #nullable disable

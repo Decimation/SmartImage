@@ -12,8 +12,8 @@ using Flurl.Http;
 using Kantan.Monad;
 using Kantan.Net.Utilities;
 using Kantan.Text;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 using static Kantan.Diagnostics.LogCategories;
 using JsonArray = System.Json.JsonArray;
 using JsonObject = System.Json.JsonObject;
@@ -31,7 +31,7 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
+public sealed class SauceNaoEngine : BaseSearchEngine, IConfigurable, IDisposable
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -472,7 +472,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfig, IDisposable
 		return;
 	}
 
-	public ValueTask ApplyConfigAsync(SearchConfig cfg)
+	public ValueTask ApplyAsync(SearchConfig cfg)
 	{
 		Authentication = cfg.SauceNaoKey;
 		return ValueTask.CompletedTask;

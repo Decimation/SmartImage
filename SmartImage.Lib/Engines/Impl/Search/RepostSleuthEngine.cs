@@ -3,8 +3,8 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using Flurl.Http;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable CS0649

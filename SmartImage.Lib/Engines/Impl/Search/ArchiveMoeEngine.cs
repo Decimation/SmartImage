@@ -10,8 +10,8 @@ using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using JetBrains.Annotations;
 using Novus.Streams;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 

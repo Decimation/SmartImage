@@ -7,8 +7,8 @@ using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
 using SmartImage.Lib.Clients;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051

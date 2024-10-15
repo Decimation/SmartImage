@@ -25,8 +25,8 @@ using Novus.Win32;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -316,11 +316,11 @@ public sealed class SearchClient : IDisposable
 		}
 
 		foreach (BaseSearchEngine bse in Engines) {
-			if (bse is IConfig cfg) {
-				await cfg.ApplyConfigAsync(Config);
+			if (bse is IConfigurable cfg) {
+				await cfg.ApplyAsync(Config);
 			}
 
-			if (Config.ReadCookies && bse is ICookieEngine ce) {
+			if (Config.ReadCookies && bse is ICookieReceiver ce) {
 				await ce.ApplyCookiesAsync(CookiesManager.Instance.Cookies);
 
 				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
