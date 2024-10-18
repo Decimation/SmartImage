@@ -16,6 +16,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 {
 
 	protected WebSearchEngine([NN] string baseUrl) : base(baseUrl) { }
+	
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{

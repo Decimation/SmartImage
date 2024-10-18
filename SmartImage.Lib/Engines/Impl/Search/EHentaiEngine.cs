@@ -119,19 +119,19 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 			return false;
 		}*/
 
-		var ok      = await provider.LoadCookiesAsync(ct);
-		var cookies = provider.Cookies;
+		var ok      = await provider.LoadCookiesAsync(Browser.Firefox, ct);
+		var cookies = provider.Jar;
 
-		var fcc = cookies.OfType<FirefoxCookie>().Where(x =>
+		var fcc = cookies.Where(x =>
 		{
 			bool a = false;
 
 			if (UseExHentai) {
-				bool c = x.Host.Contains(HOST_EX);
+				bool c = x.Domain.Contains(HOST_EX);
 				a |= c;
 			}
 
-			var b = x.Host.Contains(HOST_EH);
+			var b = x.Domain.Contains(HOST_EH);
 
 			// return b;
 			a |= b;
@@ -140,7 +140,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 		});
 
 		foreach (var cookie in fcc) {
-			m_cookies.Add(cookie.AsCookie());
+			m_cookies.Add(
+				new Cookie(cookie.Name, cookie.Value, cookie.Path, cookie.Domain) { });
 		}
 
 		var res2 = await GetSessionAsync();

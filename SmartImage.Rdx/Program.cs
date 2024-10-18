@@ -11,6 +11,7 @@ using Kantan.Text;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Novus.Streams;
+using Novus.Win32;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
@@ -23,24 +24,6 @@ using SmartImage.Rdx.Utilities;
 
 namespace SmartImage.Rdx;
 
-/*
- * cd /mnt/c/Users/Deci/RiderProjects/SmartImage/
- * dotnet run --project SmartImage.Rdx/ "$HOME/1654086015521.png"
- * dotnet run -c 'DEBUG' --project SmartImage.Rdx "$HOME/1654086015521.png"
- * dotnet run -lp 'SmartImage.Rdx' -c 'WSL' --project SmartImage.Rdx "$HOME/1654086015521.png"
- * dotnet SmartImage.Rdx/bin/Debug/net8.0/SmartImage.Rdx.dll "/home/neorenegade/1654086015521.png"
- * dotnet run -c Test --project SmartImage.Rdx --  "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg" -e All -p Auto
- * ./SmartImage.Rdx/bin/Release/net8.0/publish/linux-x64/SmartImage "/home/neorenegade/0c4c80957134d4304538c27499d84dbe.jpeg"
- * dotnet run --project SmartImage.Rdx -- --help
- * dotnet run --project SmartImage.Rdx/ "C:\Users\Deci\Pictures\Epic anime\Kallen_FINAL_1-3.png" --search-engines All --output-format "Delimited" --output-file "output.csv" --read-cookies
- * echo -nE $cx1 | dotnet run -c WSL --project SmartImage.Rdx --
- * "C:\Users\Deci\Pictures\Art\Makima 1-3.png" | dotnet run -c Debug --project SmartImage.Rdx --
- * $cx2=[System.IO.File]::ReadAllBytes($(Resolve-Path "..\..\Pictures\Art\fucking_epic.jpg"))
- * cd /mnt/c/Users/Deci/RiderProjects/SmartImage/
- * ./SmartImage.Rdx/bin/Debug/net8.0/SmartImage
- * dotnet run -c Test --project SmartImage.Rdx/ "C:\Users\Deci\Pictures\Epic anime\Kallen_FINAL_1-3.png" --search-engines All
- */
-
 public static class Program
 {
 
@@ -48,12 +31,25 @@ public static class Program
 	{
 		Debug.WriteLine(AConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
-		
+
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 #if DEBUG
 		Debugger.Launch();
 #endif
+		if (args.Length == 0) {
+
+
+			if (Clipboard.Open()) {
+				var hasBmp = Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_BITMAP);
+
+				if (hasBmp) {
+					
+				}
+				var hasFileName = Clipboard.IsFormatAvailable((uint) ClipboardFormat.FileNameW);
+
+			}
+		}
 		/*if (args.Length == 0) {
 			var prompt = new TextPrompt<string>("Input")
 			{

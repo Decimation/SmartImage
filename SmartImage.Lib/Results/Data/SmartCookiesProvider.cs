@@ -35,44 +35,57 @@ public class AsyncLazy<T> : Lazy<Task<T>>
 
 }
 
-public class FirefoxCookiesProvider : ICookieProvider
+public class SmartCookiesProvider : ICookieProvider
 {
 
-	private readonly FirefoxCookieReader m_reader;
+
+	public CookieJar Jar { get; private set; }
 
 
-	public IList<IBrowserCookie> Cookies { get; private set; }
-
-	public FirefoxCookiesProvider()
+	public SmartCookiesProvider()
 	{
-		m_reader = new FirefoxCookieReader();
-		Cookies  = null;
+		Jar = new CookieJar();
 	}
 
-	public async ValueTask<bool> LoadCookiesAsync(CancellationToken ct = default)
+	public static BaseCookieReader GetReaderForBrowser(Browser b)
 	{
-		if (!((ICookieProvider) this).Loaded) {
-			if (m_reader.Connection.State != ConnectionState.Open) {
-				await m_reader.OpenAsync();
+		switch (b) {
 
-			}
+			case Browser.Chromium:
+			case Browser.Safari:
+			case Browser.Unknown:
+				goto case default;
 
-			Cookies = await m_reader.ReadCookiesAsync();
+			case Browser.Firefox:
+				return new FirefoxCookieReader();
 
+				break;
+
+
+			default:
+				throw new NotImplementedException(nameof(b));
+		}
+	}
+
+	public async ValueTask<bool> LoadCookiesAsync(Browser b, CancellationToken ct = default)
+	{
+		using var reader = GetReaderForBrowser(b);
+		var       ck     = await reader.ReadCookiesAsync();
+
+		foreach (IBrowserCookie cookie in ck) {
+			Jar.AddOrReplace(cookie.AsFlurlCookie());
 		}
 
-
-		return ((ICookieProvider) this).Loaded;
-
+		return true;
 	}
+
 
 	public void Dispose()
 	{
-		Cookies.Clear();
-		Cookies = null;
-		m_reader.Dispose();
+		Jar.Clear();
+		Jar = null;
 	}
 
-	public static readonly ICookieProvider Instance = new FirefoxCookiesProvider();
+	public static readonly ICookieProvider Instance = new SmartCookiesProvider();
 
 }

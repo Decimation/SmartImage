@@ -304,7 +304,7 @@ public sealed class SearchClient : IDisposable
 
 		return tasks;
 	}
-
+	
 	public async ValueTask LoadEnginesAsync()
 	{
 		Trace.WriteLine("Loading engines");
@@ -312,7 +312,7 @@ public sealed class SearchClient : IDisposable
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
 		if (Config.ReadCookies) {
-			if (await FirefoxCookiesProvider.Instance.LoadCookiesAsync()) { }
+			if (await SmartCookiesProvider.Instance.LoadCookiesAsync(Config.CookiesSource)) { }
 		}
 
 		foreach (BaseSearchEngine bse in Engines) {
@@ -321,7 +321,7 @@ public sealed class SearchClient : IDisposable
 			}
 
 			if (Config.ReadCookies && bse is ICookieReceiver ce) {
-				await ce.ApplyCookiesAsync(FirefoxCookiesProvider.Instance);
+				await ce.ApplyCookiesAsync(SmartCookiesProvider.Instance);
 
 				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 			}

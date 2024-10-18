@@ -10,7 +10,9 @@ using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Clients;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 
 // ReSharper disable CognitiveComplexity
 
@@ -21,7 +23,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : WebSearchEngine
+public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 {
 
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
@@ -88,10 +90,10 @@ public sealed class Ascii2DEngine : WebSearchEngine
 
 			var origin = sr.RawUrl;
 
-			var res = await FlareSolverrClient.Instance.SendAsync(origin, 
-			                                                     FlareSolverrClient.CMD_REQUEST_GET, Timeout.Milliseconds);
+			string str = null;
 
-			string str;
+			/*var res = await new HttpClient(new FlareSolverrHandler()).SendAsync(
+				          new HttpRequestMessage(HttpMethod.Get, origin));
 
 			if (res != null) {
 				var fsr = await res.GetJsonAsync<FlareSolverrRoot>();
@@ -101,7 +103,7 @@ public sealed class Ascii2DEngine : WebSearchEngine
 				res = await GetResponseByUrlAsync(origin, token);
 				str = await res.GetStringAsync();
 
-			}
+			}*/
 
 			var document = await parser.ParseDocumentAsync(str, token);
 
@@ -130,7 +132,9 @@ public sealed class Ascii2DEngine : WebSearchEngine
 			{ new StringContent(origin), "uri" }
 		};
 
-		var res = await Client.Request(origin).AllowAnyHttpStatus()
+		var res = await Client.Request(origin)
+			          .AllowAnyHttpStatus()
+			          .AddChromeImpersonation()
 			          .WithCookies(out var cj)
 			          .WithTimeout(Timeout)
 			          /*.OnError(s =>
@@ -206,6 +210,12 @@ public sealed class Ascii2DEngine : WebSearchEngine
 		}
 
 		return ValueTask.FromResult(sri);
+	}
+
+	public async ValueTask<bool> ApplyCookiesAsync(ICookieProvider provider, CancellationToken ct = default)
+	{
+		var ck = provider.Jar.Where(x => x.Domain.Contains("ascii2d"));
+		return default;
 	}
 
 }

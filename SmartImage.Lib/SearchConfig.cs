@@ -16,6 +16,16 @@ using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
 
+public enum Browser
+{
+
+	Unknown = 0,
+	Firefox,
+	Chromium,
+	Safari,
+
+}
+
 public sealed class SearchConfig : INotifyPropertyChanged
 {
 
@@ -45,6 +55,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// Default value for <see cref="ReadCookies"/>
 	/// </summary>
 	public const bool READCOOKIES_DEFAULT = false;
+
 	/// <summary>
 	/// Default value for <see cref="FlareSolverr"/>
 	/// </summary>
@@ -177,6 +188,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	/// <remarks>
 	/// <see cref="ICookieReceiver"/>
+	/// <see cref="ICookieProvider"/>
 	/// </remarks>
 	public bool ReadCookies
 	{
@@ -189,26 +201,30 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	}
 
 	/// <summary>
-	/// 
+	/// Source from which cookies are parsed
 	/// </summary>
-
-	// todo
-	public string CookiesFile
+	/// <remarks>
+	/// <see cref="ICookieReceiver"/>
+	/// <see cref="ICookieProvider"/>
+	/// </remarks>
+	public Browser CookiesSource
 	{
-		get { return Configuration.ReadSetting(nameof(CookiesFile), String.Empty); }
+		get { return Configuration.ReadSetting(nameof(CookiesSource), Browser.Unknown); }
 		set
 		{
-			Configuration.AddUpdateSetting(nameof(CookiesFile), value);
+			Configuration.AddUpdateSetting(nameof(CookiesSource), value.ToString());
 			OnPropertyChanged();
 		}
 	}
+
+	// TODO: cookies.txt support
 
 	/// <remarks>
 	/// <see cref="Clients.FlareSolverrClient"/>
 	/// </remarks>
 	public bool FlareSolverr
 	{
-		get { return Configuration.ReadSetting(nameof(FlareSolverr), READCOOKIES_DEFAULT); }
+		get { return Configuration.ReadSetting(nameof(FlareSolverr), false); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(FlareSolverr), value.ToString());
@@ -216,7 +232,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
-	
 
 	public static readonly SearchConfig Default = new();
 
