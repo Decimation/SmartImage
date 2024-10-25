@@ -30,26 +30,13 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICookiesReceiver, INotifyPropertyChanged
 {
 
-	private const string HOST_EH = ".e-hentai.org";
-	private const string HOST_EX = ".exhentai.org";
-
-	private readonly HttpClient m_client;
-
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
-
-	private readonly HttpClientHandler m_clientHandler = new()
-	{
-		AllowAutoRedirect              = true,
-		MaxAutomaticRedirections       = 15,
-		CheckCertificateRevocationList = false,
-		UseCookies                     = true,
-		CookieContainer                = new() { },
-
-	};
 
 	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
 
 	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
+
+	private Url OriginUrl => UseExHentai ? ExHentaiBase : EHentaiBase;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
@@ -59,7 +46,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 	public bool UseExHentai { get; set; }
 
-	private readonly CookieCollection m_cookies;
+
+	public CookieJar Jar { get; }
 
 	#region
 
@@ -70,16 +58,21 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
 	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
 
+	#region
+
+	private const string HOST_EH = ".e-hentai.org";
+	private const string HOST_EX = ".exhentai.org";
+
+	#endregion
+
 	#endregion
 
 	static EHentaiEngine() { }
 
 	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
 	{
-		m_client   = new HttpClient(m_clientHandler);
 		IsLoggedIn = false;
 
-		m_cookies   = new();
 		UseExHentai = useExHentai;
 		Jar         = new CookieJar() { };
 	}
@@ -111,67 +104,38 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 	 */
 
 
-	public CookieJar Jar { get; }
-
-
 	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
 	{
 		Trace.WriteLine($"Applying cookies to {Name}");
 
-		/*if (await CookiesManager.Instance.LoadCookiesAsync()) {
-			cookies ??= CookiesManager.Instance.Cookies;
-		}
-		else {
-			return false;
-		}*/
-
 		var cookies = await provider.LoadCookiesAsync(ct);
 
-		foreach (var cookie in cookies) {
-			var  x = cookie.AsCookie();
-			bool a = false;
+		foreach (var bck in cookies) {
+			var  cookie = bck.AsCookie();
+			bool c      = false;
 
 			if (UseExHentai) {
-				bool c = x.Domain.Contains(HOST_EX);
-				a |= c;
+				c |= cookie.Domain.Contains(HOST_EX);
 			}
 
-			var b = x.Domain.Contains(HOST_EH);
+			var dmnEh = cookie.Domain.Contains(HOST_EH);
 
-			// return b;
-			a |= b;
+			c |= dmnEh;
 
-			if (a) {
-				// m_cookies.Add(new Cookie(x.Name, x.Value, x.Path, x.Domain) { });
-				Jar.AddOrReplace(new FlurlCookie(x.Name,x.Value, UseExHentai ? ExHentaiBase : EHentaiBase));
+			if (c) {
+				Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, OriginUrl));
 			}
 		}
 
+		var response = await GetSessionAsync();
 
-		var res2 = await GetSessionAsync();
-
-		/*var res2 = await EHentaiBase.WithCookies(m_clientHandler.CookieContainer)
-			.WithHeaders(new
-			{
-				User_Agent = HttpUtilities.UserAgent
-			})
-			.WithAutoRedirect(true)
-			.GetAsync();*/
-
-		/*
-		m_clientHandler.CookieContainer.Add(m_cookies);
-		m_client.Timeout = Timeout;
-		*/
-
-
-		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
+		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
 
 	}
 
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
 		return (UseExHentai ? ExHentaiBase : EHentaiBase)
-			// .WithCookies(m_cookies)
 			.WithCookies(Jar)
 			.WithTimeout(Timeout)
 			.WithHeaders(new
@@ -226,37 +190,31 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 			{ new StringContent("dm_l"), "inline_set" }
 		};
 
-		// data.Add(new FileContent(f.FullName), "sfile", "a.jpg");
-
-		//todo
-		/*m_clientHandler.CookieContainer.Add(m_cookies);
-
-		m_client.Timeout = Timeout;*/
 
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 
-		var req2 = new FlurlRequest(LookupUrl)
+		var req = new FlurlRequest(LookupUrl)
 		{
 			CookieJar = Jar,
-			Verb    = HttpMethod.Post,
-			Content = data,
+			Verb      = HttpMethod.Post,
+			Content   = data,
 			Headers =
 			{
 				{ "User-Agent", HttpUtilities.UserAgent }
 			}
 		};
 
-		var res1 = await Client.SendAsync(req2, cancellationToken: token);
-		var res  = res1.ResponseMessage;
+		var flurlRes = await Client.SendAsync(req, cancellationToken: token);
+		var httpRes  = flurlRes.ResponseMessage;
 
 		// Debug.WriteLine($"{res.StatusCode}");
 
-		sr.RawUrl = res.RequestMessage.RequestUri;
+		sr.RawUrl = httpRes.RequestMessage.RequestUri;
 		var old = sr.Results.Find(r => r.IsRaw);
 		old.Url = sr.RawUrl;
 
 		// Debug.WriteLine($"{sr.RawUrl}");
-		var content = await res.Content.ReadAsStringAsync(token);
+		var content = await httpRes.Content.ReadAsStringAsync(token);
 
 		// var content2 = await sr.RawUrl.GetStringAsync(cancellationToken: token);
 

@@ -73,7 +73,8 @@ public class AutoCookiesProvider : ICookiesProvider
 		return chi;
 	}
 
-	public bool IsOpen => Reader.Connection.State is < ConnectionState.Broken and >= ConnectionState.Open;
+	public bool IsOpen => Reader.Connection.State is ConnectionState.Open;
+	public bool IsOpenOrInUse => Reader.Connection.State is < ConnectionState.Broken and >= ConnectionState.Open;
 
 	public bool IsClosedOrBroken => Reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;
 

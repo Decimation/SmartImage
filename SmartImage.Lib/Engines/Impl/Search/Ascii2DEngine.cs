@@ -262,13 +262,22 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		return ValueTask.FromResult(sri);
 	}
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
 	{
-		var ck = Jar.Where(static x => x.Domain.Contains("ascii2d"));
-		
-		foreach (var c in ck) {
-			Jar.AddOrReplace(c);
+		if (FlareSolverrClient.Value.IsInitialized) {
+			return false;
 		}
+
+		var cookies = await provider.LoadCookiesAsync(ct);
+
+		foreach (var bck in cookies) {
+			var ck = bck.AsCookie();
+
+			if (ck.Domain.Contains("ascii2d")) {
+				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, BaseUrl));
+			}
+		}
+
 
 		return true;
 	}

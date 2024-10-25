@@ -1,6 +1,8 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl.Http;
+using Kantan.Monad;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
@@ -8,7 +10,10 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 public sealed class TinEyeEngine : BaseSearchEngine
 {
 
-	public TinEyeEngine() : base("https://www.tineye.com/search?url=") { }
+	public TinEyeEngine() : base("https://www.tineye.com/search?url=")
+	{
+		MaxSize = 10_000_000;
+	}
 
 	private const string API_URL = "https://tineye.com/api/v1/result_json/?sort=score&order=desc";
 
@@ -16,35 +21,71 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 	public override void Dispose() { }
 
+	public override bool VerifyQuery(SearchQuery q)
+	{
+		q.Uni.AllocImage().Wait();
+
+		if (q.Uni.Image.Width >= 10000) {
+			return false;
+		}
+
+		return base.VerifyQuery(q);
+	}
+
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var sr = await base.GetResultAsync(query, token);
+
+		if (sr.Status == SearchResultStatus.IllegalInput) {
+			goto ret;
+		}
 
 		var req = await Client.Request(API_URL).PostMultipartAsync(b =>
 		{
 			b.AddString("url", query.Upload);
 		}, cancellationToken: token);
 
-		var tinEyeRoot = await req.GetJsonAsync<TinEyeRoot>();
+		TinEyeRoot tinEyeRoot = null;
+
+		try {
+			var str = await req.GetStringAsync();
+
+			tinEyeRoot = JsonSerializer.Deserialize<TinEyeRoot>(str);
+
+			// tinEyeRoot = await req.GetJsonAsync<TinEyeRoot>();
+		}
+		catch (Exception e) {
+			// Debugger.Break();
+			Trace.WriteLine(e.Message);
+			goto ret;
+		}
 
 		foreach (TinEyeMatch match in tinEyeRoot.Matches) {
+			var backlinks = match.Backlinks;
+			var backlink  = backlinks?[0];
+
+
 			var resultItem = new SearchResultItem(sr)
 			{
-				Metadata    = match,
-				Site        = match.Domain,
-				Url         = match.Backlinks[0].Backlink,
-				Description = match.Backlinks[0].ImageName,
+				Metadata = match,
+				Site     = match.Domain,
 
 				// Thumbnail   = match.Backlinks[0].Url,
 				Thumbnail = match.ImageUrl,
 				Width     = match.Width,
 				Height    = match.Height,
-				Time      = DateTime.Parse(match.Backlinks[0].CrawlDate)
 			};
 
-			if (match.Backlinks.Count > 1) {
-				for (int m = 1; m < match.Backlinks.Count; m++) {
-					var bl = match.Backlinks[m];
+			if (backlink != null) {
+				resultItem.Url         = backlink.Backlink;
+				resultItem.Description = backlink.ImageName;
+				resultItem.Time        = DateTime.Parse(backlink?.CrawlDate);
+
+			}
+
+			if (backlinks is { Count: > 1 }) {
+				for (int m = 1; m < backlinks.Count; m++) {
+					var bl = backlinks[m];
 
 					var resultItemSister = resultItem with
 					{
@@ -52,7 +93,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 						// Thumbnail = bl.Url, 
 						Description = bl.ImageName,
-						Time = DateTime.Parse(match.Backlinks[0].CrawlDate),
+						Time = DateTime.Parse(bl.CrawlDate),
 						Parent = resultItem,
 					};
 
@@ -65,6 +106,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			sr.Results.Add(resultItem);
 		}
 
+	ret:
 		return sr;
 	}
 
@@ -291,7 +333,7 @@ public class TinEyeBacklink
 	public string CrawlDate { get; set; }
 
 	[JsonPropertyName("source_id")]
-	public int SourceId { get; set; }
+	public long SourceId { get; set; }
 
 	[JsonPropertyName("image_name")]
 	public string ImageName { get; set; }
