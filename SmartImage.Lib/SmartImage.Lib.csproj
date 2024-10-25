@@ -78,7 +78,11 @@
     <Reference Include="Novus">
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net8.0\Novus.dll</HintPath>
     </Reference>
+    <Reference Include="FlareSolverrSharp">
+      <HintPath>..\..\..\VSProjects\FlareSolverrSharp\src\FlareSolverrSharp\bin\Release\net8.0\FlareSolverrSharp.dll</HintPath>
+    </Reference>
   </ItemGroup>
+
   <ItemGroup>
     <TrimmerRootAssembly Include="System.Net" />
     <TrimmerRootAssembly Include="System.IO.FileSystem" />

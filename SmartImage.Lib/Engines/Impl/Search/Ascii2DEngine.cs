@@ -1,11 +1,15 @@
 ﻿#nullable disable
 using System.Diagnostics;
 using System.Drawing;
+using System.Net;
 using System.Text;
 using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using FlareSolverrSharp;
+using FlareSolverrSharp.Solvers;
+using FlareSolverrSharp.Types;
 using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
@@ -28,8 +32,9 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
-		Timeout = TimeSpan.FromSeconds(30);
-		MaxSize = 10000000;
+		Timeout   = TimeSpan.FromSeconds(30);
+		MaxSize   = 10000000;
+		CookieJar = new CookieJar();
 	}
 
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
@@ -80,6 +85,8 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 
 	public override void Dispose() { }
 
+	public CookieJar CookieJar { get; }
+
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
@@ -104,6 +111,46 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 				str = await res.GetStringAsync();
 
 			}*/
+
+			if (FlareSolverrClient.Value.IsInitialized) {
+
+				var msg = new HttpRequestMessage(HttpMethod.Get, origin);
+
+				var fsr     = await FlareSolverrClient.Value.Clearance.Solverr.SolveAsync(msg, null, null);
+				var cookies = fsr.Solution.Cookies;
+				var newUrl  = fsr.Solution.Url;
+
+
+				foreach (FlareSolverrCookie cookie in cookies) {
+					CookieJar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url) { });
+				}
+
+				var res = await Client.Request(newUrl)
+					          .WithSettings(x =>
+					          {
+						          x.HttpVersion = "2.0";
+					          })
+					          .AllowAnyHttpStatus()
+					          .WithCookies(CookieJar)
+					          .WithTimeout(Timeout)
+					          /*.OnError(s =>
+							          {
+								          Debug.WriteLine($"{s.Response}");
+								          s.ExceptionHandled = true;
+
+							          })*/
+					          .GetAsync(cancellationToken: token);
+
+
+				// var res1 = await FlareSolverrClient.Client.SendAsync(msg, token);
+				// str = await res1.Content.ReadAsStringAsync(token);
+				str = await res.GetStringAsync();
+
+			}
+			else {
+				var res = await GetResponseByUrlAsync(origin, token);
+				str = await res.GetStringAsync();
+			}
 
 			var document = await parser.ParseDocumentAsync(str, token);
 
@@ -134,7 +181,8 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 
 		var res = await Client.Request(origin)
 			          .AllowAnyHttpStatus()
-			          .AddChromeImpersonation()
+
+			          // .AddChromeImpersonation()
 			          .WithCookies(out var cj)
 			          .WithTimeout(Timeout)
 			          /*.OnError(s =>
@@ -215,7 +263,12 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 	public async ValueTask<bool> ApplyCookiesAsync(ICookieProvider provider, CancellationToken ct = default)
 	{
 		var ck = provider.Jar.Where(x => x.Domain.Contains("ascii2d"));
-		return default;
+
+		foreach (var c in ck) {
+			CookieJar.AddOrReplace(c);
+		}
+
+		return true;
 	}
 
 }

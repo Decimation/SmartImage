@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
 using Novus.OS;
 using Novus.Win32;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
@@ -56,13 +57,48 @@ public sealed class SearchClient : IDisposable
 		IsRunning     = false;
 
 		// GetSelectedEngines();
+
 	}
 
 	static SearchClient()
 	{
 		Asm = Assembly.GetExecutingAssembly();
 
+
 	}
+
+	/*public static FlurlClient Configure(string api)
+	{
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd("FlareSolverr", null, builder =>
+		{
+			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
+			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
+
+			builder.Settings.AllowedHttpStatusRange = "*";
+
+			builder.AddMiddleware(() =>
+			{
+				return new ClearanceHandler(api);
+			});
+
+			/*builder.ConfigureInnerHandler((h) =>
+			{
+				var clearance = new ClearanceHandler(api);
+
+			});#1#
+
+			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+			builder.AllowAnyHttpStatus();
+			builder.WithAutoRedirect(true);
+
+			builder.OnError(f =>
+			{
+				f.ExceptionHandled = true;
+				return;
+			});
+
+		});
+	}*/
 
 	[ModuleInitializer]
 	public static void Init()
@@ -93,7 +129,7 @@ public sealed class SearchClient : IDisposable
 				s.Redirects.ForwardAuthorizationHeader = true;
 				s.Redirects.MaxAutoRedirects           = 20;
 			});
-			
+
 
 		});
 	}
@@ -192,6 +228,7 @@ public sealed class SearchClient : IDisposable
 					.OrderByDescending(x => x.Similarity);
 
 				var item = ordered.FirstOrDefault();
+
 				if (item != null) {
 					OpenResult(item.Url);
 				}
@@ -304,7 +341,7 @@ public sealed class SearchClient : IDisposable
 
 		return tasks;
 	}
-	
+
 	public async ValueTask LoadEnginesAsync()
 	{
 		Trace.WriteLine("Loading engines");
@@ -313,6 +350,14 @@ public sealed class SearchClient : IDisposable
 
 		if (Config.ReadCookies) {
 			if (await SmartCookiesProvider.Instance.LoadCookiesAsync(Config.CookiesSource)) { }
+		}
+
+		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
+			var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
+
+			if (!ok) {
+				Debugger.Break();
+			}
 		}
 
 		foreach (BaseSearchEngine bse in Engines) {

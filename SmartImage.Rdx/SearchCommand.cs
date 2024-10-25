@@ -128,6 +128,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			goto ret;
 		}
 
+
 		p.Increment(COMPLETE / 2);
 
 		// ctx.Refresh();
@@ -155,11 +156,15 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			.AutoRefresh(true)
 			.StartAsync(SetupSearchAsync);
 
+
 		try {
 			var ok = await task;
 
 			if (ok) {
+				var ci = GetQueryCanvasImage();
+				AConsole.Write(new Panel(ci) { Header = new PanelHeader($"{Query.Uni.ValueString}") });
 				await InitConfigAsync(ok);
+
 			}
 			else {
 				throw new SmartImageException("Could not upload query");
@@ -226,7 +231,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 			var tr = new Tree(gr2);
 			var ld = AConsole.Live(tr);
-			
+
 			run2 = ld.StartAsync(async f =>
 			{
 				// var ok = await r.ScanAsync();
@@ -247,6 +252,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 						tr.AddNode(new Text(ru.ValueString, new Style(link: ru.Url)));
 
 					}
+
 					f.Refresh();
 
 				}
@@ -493,8 +499,37 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return [name, url, sim, artist, site];
 	}
 
+	private Layout CreateConfigLayout()
+	{
+		// Create the layout
+		var layout = new Layout("Root")
+			.SplitColumns(
+				new Layout("Left"),
+				new Layout("Right"));
+
+		// Update the left column
+		layout["Right"].Update(
+			new Panel(Align.Center(new Text("---"))).Expand());
+
+
+		return layout;
+	}
+
+	private CanvasImage GetQueryCanvasImage()
+	{
+		var ci = new CanvasImage(Query.Uni.Stream)
+		{
+			MaxWidth = AConsole.Profile.Width / 2,
+			// PixelWidth = 2
+		};
+		Query.Uni.Stream.TrySeek();
+		return ci;
+	}
+
 	private Grid CreateConfigGrid()
 	{
+
+
 		var dt = new Grid();
 		dt.AddColumns(2);
 
@@ -513,6 +548,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			dt.AddRow(new Text(o.Key, ConsoleFormat.Sty_Grid1),
 			          new Text(o.Value.ToString()));
 		}
+
+		// Render the layout
+		// AnsiConsole.Write(layout);
+
 
 		return dt;
 	}

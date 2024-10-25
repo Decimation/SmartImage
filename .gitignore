@@ -461,3 +461,7 @@ SmartImage.Lib.UnitTest/
 SmartImage.Lib.UnitTest/*
 SmartImage.Benchmark/
 SmartImage.Benchmark/*
+SmartImage.Rdx/Properties/
+SmartImage.Rdx/Properties/*
+SmartImage.UI/Properties/
+SmartImage.UI/Properties/*

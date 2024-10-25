@@ -40,15 +40,24 @@ public static class Program
 		if (args.Length == 0) {
 
 
-			if (Clipboard.Open()) {
-				var hasBmp = Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_BITMAP);
+			/*if (Clipboard.Open()) {
+				/*var hasBmp = Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_BITMAP);
 
 				if (hasBmp) {
-					
-				}
+					var data = (nint) Clipboard.GetData((uint) ClipboardFormat.CF_BITMAP);
+					var sz   = Native.GlobalSize(data);
+					var buf  = new byte[sz];
+					Marshal.Copy(data, buf, 0, (int) sz);
+					var mg = await Image.LoadAsync(new MemoryStream(buf));
+
+				}#1#
+
 				var hasFileName = Clipboard.IsFormatAvailable((uint) ClipboardFormat.FileNameW);
 
-			}
+			}*/
+
+			// var s = AConsole.Ask<string>("...");
+
 		}
 		/*if (args.Length == 0) {
 			var prompt = new TextPrompt<string>("Input")

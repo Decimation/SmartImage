@@ -15,8 +15,8 @@ using AngleSharp.Io;
 using CliWrap;
 using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
+using FlareSolverrSharp;
 using Flurl.Http;
-using Jint.Parser;
 using Kantan.Net.Utilities;
 using Microsoft.Win32;
 using Novus.FileTypes;
@@ -32,7 +32,6 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
-using VerifyTests.Http;
 
 // ReSharper disable InconsistentNaming
 
@@ -60,12 +59,22 @@ public static class ImageScanner
 			});
 
 		});
+
 		Cookies = new CookieJar();
+
+		
+
 	}
+
 
 	public static FlurlClient Client { get; }
 
 	public static CookieJar Cookies { get; }
+
+
+	/*
+	 * TODO: ImageScanner, SmartCookiesProvider, and FlareSolverrr
+	 */
 
 	/*public static IFlurlRequest BuildRequest(params object[] urlSeg)
 	{
@@ -312,12 +321,14 @@ public static class ImageScanner
 		}
 
 	}
+
 	public static HttpMessageHandler GetMostInnerHandler(this HttpMessageHandler self)
 	{
 		return self is DelegatingHandler handler
 			       ? handler.InnerHandler.GetMostInnerHandler()
 			       : self;
 	}
+
 	public static IFlurlRequest AddChromeImpersonation(this IFlurlRequest req)
 	{
 		return req.WithHeaders(new

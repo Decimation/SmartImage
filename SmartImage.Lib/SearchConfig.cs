@@ -61,6 +61,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public const bool FLARESOLVERR_DEFAULT = true;
 
+	public const string FLARE_SOLVERR_API_URL_DEFAULT = "http://localhost:8191";
+
 	#endregion
 
 	/// <summary>
@@ -220,7 +222,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	// TODO: cookies.txt support
 
 	/// <remarks>
-	/// <see cref="Clients.FlareSolverrClient"/>
+	/// 
 	/// </remarks>
 	public bool FlareSolverr
 	{
@@ -232,6 +234,19 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
+
+	/// <remarks>
+	/// 
+	/// </remarks>
+	public string FlareSolverrApiUrl
+	{
+		get { return Configuration.ReadSetting(nameof(FlareSolverrApiUrl), FLARE_SOLVERR_API_URL_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(FlareSolverrApiUrl), value.ToString());
+			OnPropertyChanged();
+		}
+	}
 
 	public static readonly SearchConfig Default = new();
 
