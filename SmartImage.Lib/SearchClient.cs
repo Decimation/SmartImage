@@ -342,14 +342,15 @@ public sealed class SearchClient : IDisposable
 		return tasks;
 	}
 
-	public async ValueTask LoadEnginesAsync()
+	public async ValueTask LoadEnginesAsync(CancellationToken token = default)
 	{
 		Trace.WriteLine("Loading engines");
 
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
 		if (Config.ReadCookies) {
-			if (await SmartCookiesProvider.Instance.LoadCookiesAsync(Config.CookiesSource)) { }
+
+			await ((AutoCookiesProvider) AutoCookiesProvider.Instance).OpenAsync();
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
@@ -361,12 +362,14 @@ public sealed class SearchClient : IDisposable
 		}
 
 		foreach (BaseSearchEngine bse in Engines) {
-			if (bse is IConfigurable cfg) {
-				await cfg.ApplyAsync(Config);
+			if (bse is ISearchConfigReceiver cfg) {
+				await cfg.ApplyConfigAsync(Config);
 			}
 
-			if (Config.ReadCookies && bse is ICookieReceiver ce) {
-				await ce.ApplyCookiesAsync(SmartCookiesProvider.Instance);
+
+			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
+
+				var ok = await ce.ApplyCookiesAsync(AutoCookiesProvider.Instance, token);
 
 				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 			}

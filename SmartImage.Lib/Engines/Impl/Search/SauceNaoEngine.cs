@@ -31,7 +31,7 @@ using JsonObject = System.Json.JsonObject;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IConfigurable, IDisposable
+public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, IDisposable
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -472,7 +472,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IConfigurable, IDisposabl
 		return;
 	}
 
-	public ValueTask ApplyAsync(SearchConfig cfg)
+	public ValueTask ApplyConfigAsync(SearchConfig cfg)
 	{
 		Authentication = cfg.SauceNaoKey;
 		return ValueTask.CompletedTask;

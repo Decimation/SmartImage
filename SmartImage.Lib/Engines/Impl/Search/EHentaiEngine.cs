@@ -10,6 +10,7 @@ using System.Text;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
+using CliWrap;
 using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net;
@@ -26,7 +27,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieReceiver, INotifyPropertyChanged
+public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICookiesReceiver, INotifyPropertyChanged
 {
 
 	private const string HOST_EH = ".e-hentai.org";
@@ -75,10 +76,12 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 
 	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
 	{
-		m_client    = new HttpClient(m_clientHandler);
-		IsLoggedIn  = false;
+		m_client   = new HttpClient(m_clientHandler);
+		IsLoggedIn = false;
+
 		m_cookies   = new();
 		UseExHentai = useExHentai;
+		Jar         = new CookieJar() { };
 	}
 
 	/*
@@ -91,10 +94,10 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	public async ValueTask ApplyAsync(SearchConfig cfg)
+	public async ValueTask ApplyConfigAsync(SearchConfig cfg)
 	{
 		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
-			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyAsync));
+			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
 
 			return;
 		}*/
@@ -108,7 +111,10 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 	 */
 
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookieProvider provider, CancellationToken ct = default)
+	public CookieJar Jar { get; }
+
+
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
 	{
 		Trace.WriteLine($"Applying cookies to {Name}");
 
@@ -119,11 +125,10 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 			return false;
 		}*/
 
-		var ok      = await provider.LoadCookiesAsync(Browser.Firefox, ct);
-		var cookies = provider.Jar;
+		var cookies = await provider.LoadCookiesAsync(ct);
 
-		var fcc = cookies.Where(x =>
-		{
+		foreach (var cookie in cookies) {
+			var  x = cookie.AsCookie();
 			bool a = false;
 
 			if (UseExHentai) {
@@ -136,13 +141,12 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 			// return b;
 			a |= b;
 
-			return a;
-		});
-
-		foreach (var cookie in fcc) {
-			m_cookies.Add(
-				new Cookie(cookie.Name, cookie.Value, cookie.Path, cookie.Domain) { });
+			if (a) {
+				// m_cookies.Add(new Cookie(x.Name, x.Value, x.Path, x.Domain) { });
+				Jar.AddOrReplace(new FlurlCookie(x.Name,x.Value, UseExHentai ? ExHentaiBase : EHentaiBase));
+			}
 		}
+
 
 		var res2 = await GetSessionAsync();
 
@@ -154,8 +158,11 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 			.WithAutoRedirect(true)
 			.GetAsync();*/
 
+		/*
 		m_clientHandler.CookieContainer.Add(m_cookies);
 		m_client.Timeout = Timeout;
+		*/
+
 
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 
@@ -164,7 +171,8 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
 		return (UseExHentai ? ExHentaiBase : EHentaiBase)
-			.WithCookies(m_cookies)
+			// .WithCookies(m_cookies)
+			.WithCookies(Jar)
 			.WithTimeout(Timeout)
 			.WithHeaders(new
 			{
@@ -227,17 +235,19 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 
 		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 
-		var req = new HttpRequestMessage(HttpMethod.Post, LookupUrl)
+		var req2 = new FlurlRequest(LookupUrl)
 		{
+			CookieJar = Jar,
+			Verb    = HttpMethod.Post,
 			Content = data,
 			Headers =
 			{
 				{ "User-Agent", HttpUtilities.UserAgent }
-			},
-
+			}
 		};
 
-		var res = await m_client.SendAsync(req, token);
+		var res1 = await Client.SendAsync(req2, cancellationToken: token);
+		var res  = res1.ResponseMessage;
 
 		// Debug.WriteLine($"{res.StatusCode}");
 
@@ -300,9 +310,9 @@ public sealed class EHentaiEngine : WebSearchEngine, IConfigurable, ICookieRecei
 
 	public override void Dispose()
 	{
-		m_client.Dispose();
-		m_clientHandler.Dispose();
-		m_cookies.Clear();
+		// m_client.Dispose();
+		// m_clientHandler.Dispose();
+		Jar.Clear();
 
 		IsLoggedIn = false;
 	}

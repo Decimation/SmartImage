@@ -16,15 +16,6 @@ using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
 
-public enum Browser
-{
-
-	Unknown = 0,
-	Firefox,
-	Chromium,
-	Safari,
-
-}
 
 public sealed class SearchConfig : INotifyPropertyChanged
 {
@@ -189,8 +180,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// Parse browser cookies automatically whenever necessary
 	/// </summary>
 	/// <remarks>
-	/// <see cref="ICookieReceiver"/>
-	/// <see cref="ICookieProvider"/>
+	/// <see cref="ICookiesReceiver"/>
+	/// <see cref="ICookiesProvider"/>
 	/// </remarks>
 	public bool ReadCookies
 	{
@@ -202,22 +193,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
-	/// <summary>
-	/// Source from which cookies are parsed
-	/// </summary>
-	/// <remarks>
-	/// <see cref="ICookieReceiver"/>
-	/// <see cref="ICookieProvider"/>
-	/// </remarks>
-	public Browser CookiesSource
-	{
-		get { return Configuration.ReadSetting(nameof(CookiesSource), Browser.Unknown); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(CookiesSource), value.ToString());
-			OnPropertyChanged();
-		}
-	}
+	
 
 	// TODO: cookies.txt support
 

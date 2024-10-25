@@ -290,6 +290,10 @@ public static class AppUtil
 		return r.OrderByDescending(x => x.published_at).First();
 	}
 
+	public static readonly string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+
+	public static readonly string AppDataPath      = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]

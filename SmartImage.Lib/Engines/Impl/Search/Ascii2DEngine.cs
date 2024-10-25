@@ -13,6 +13,7 @@ using FlareSolverrSharp.Types;
 using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
+using Kantan.Net.Web;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Results;
@@ -27,14 +28,14 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
+public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 {
 
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
-		Timeout   = TimeSpan.FromSeconds(30);
-		MaxSize   = 10000000;
-		CookieJar = new CookieJar();
+		Timeout = TimeSpan.FromSeconds(30);
+		MaxSize = 10000000;
+		Jar     = new CookieJar();
 	}
 
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
@@ -85,7 +86,8 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 
 	public override void Dispose() { }
 
-	public CookieJar CookieJar { get; }
+	public CookieJar Jar { get; }
+
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
@@ -122,7 +124,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 
 
 				foreach (FlareSolverrCookie cookie in cookies) {
-					CookieJar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url) { });
+					Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url) { });
 				}
 
 				var res = await Client.Request(newUrl)
@@ -131,7 +133,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 						          x.HttpVersion = "2.0";
 					          })
 					          .AllowAnyHttpStatus()
-					          .WithCookies(CookieJar)
+					          .WithCookies(Jar)
 					          .WithTimeout(Timeout)
 					          /*.OnError(s =>
 							          {
@@ -260,12 +262,12 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookieReceiver
 		return ValueTask.FromResult(sri);
 	}
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookieProvider provider, CancellationToken ct = default)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
 	{
-		var ck = provider.Jar.Where(x => x.Domain.Contains("ascii2d"));
-
+		var ck = Jar.Where(static x => x.Domain.Contains("ascii2d"));
+		
 		foreach (var c in ck) {
-			CookieJar.AddOrReplace(c);
+			Jar.AddOrReplace(c);
 		}
 
 		return true;
