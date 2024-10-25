@@ -23,9 +23,9 @@ public class UniImageStream : UniImage
 		return t2 != Stream.Null;
 	}
 
-	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
+	public override ValueTask<bool> Alloc(CancellationToken ct = default)
 	{
-		return HasStream;
+		return ValueTask.FromResult(HasStream);
 	}
 
 	public override string WriteToFile(string fn = null)

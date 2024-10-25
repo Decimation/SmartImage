@@ -9,8 +9,6 @@ namespace SmartImage.Lib.Clients;
 public sealed class FlareSolverrClient : IDisposable
 {
 
-	public ClearanceHandler Clearance { get; private set; }
-
 	[MNNW(true, nameof(Client))]
 	public bool HasClient => Client != null;
 
@@ -20,26 +18,27 @@ public sealed class FlareSolverrClient : IDisposable
 	[MNNW(true, nameof(Clearance), nameof(Client))]
 	public bool IsInitialized => HasClearance && HasClient;
 
+	public ClearanceHandler Clearance { get; private set; }
+
 	public HttpClient Client { get; private set; }
 
 	public bool Configure(string api)
 	{
-		Clearance?.Dispose();
-		Client?.Dispose();
+		Dispose();
 
 		Clearance = new ClearanceHandler(api)
 		{
 			EnsureResponseIntegrity = false
 		};
+		
 		Client = new HttpClient(Clearance);
+
 		return HasClient;
 	}
 
 	private FlareSolverrClient() { }
 
-	public static FlareSolverrClient Value { get; private set; } = new FlareSolverrClient();
-
-	#region IDisposable
+	public static FlareSolverrClient Value { get; private set; } = new();
 
 	public void Dispose()
 	{
@@ -48,7 +47,5 @@ public sealed class FlareSolverrClient : IDisposable
 		Clearance = null;
 		Client    = null;
 	}
-
-	#endregion
 
 }

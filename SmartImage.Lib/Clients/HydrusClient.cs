@@ -16,6 +16,7 @@ using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Flurl.Http;
 using Novus.Streams;
+using SmartImage.Lib.Utilities;
 using JsonObject = System.Json.JsonObject;
 using JsonValue = System.Json.JsonValue;
 
@@ -23,8 +24,7 @@ namespace SmartImage.Lib.Clients;
 
 public class HydrusClient : INotifyPropertyChanged, IDisposable
 {
-
-	private const string HDR_HYDRUS_KEY = "Hydrus-Client-API-Access-Key";
+	private const string HDR_HYDRUS_KEY  = "Hydrus-Client-API-Access-Key";
 
 	public FlurlClient Client { get; }
 

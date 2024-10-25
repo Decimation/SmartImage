@@ -282,7 +282,7 @@ public sealed class SearchClient : IDisposable
 
 	public static void OpenResult([MN] Url url1)
 	{
-#if DEBUG && !TEST
+#if (DEBUG && !TEST) || UNITTEST
 #pragma warning disable CA1822
 #pragma warning disable CS0162
 

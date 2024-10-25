@@ -70,6 +70,7 @@ public class UniImageUri : UniImage
 		}*/
 
 		var req = await ImageScanner.BuildRequest(value);
+
 		/*.AllowAnyHttpStatus()
 		.WithHeaders(new
 		{
@@ -77,8 +78,7 @@ public class UniImageUri : UniImage
 			User_Agent = R1.UserAgent1,
 		});*/
 
-		var res = await req
-			          .GetAsync(cancellationToken: ct);
+		var res = await req.GetAsync(cancellationToken: ct);
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
 			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");

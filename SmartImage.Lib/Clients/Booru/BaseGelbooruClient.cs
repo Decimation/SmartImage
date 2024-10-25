@@ -1,9 +1,12 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
 using Flurl.Http;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Clients.Booru;
 
 // TODO
+
 public abstract class BaseGelbooruClient : BaseBooruClient
 {
 

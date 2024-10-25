@@ -133,6 +133,117 @@ public static class ImageScanner
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
 
 
+	/*
+	public static async IAsyncEnumerable<UniImage> ScanImagesAsync2(Url u, IImageFilter filter = null,
+	                                                                [EnumeratorCancellation]
+	                                                                CancellationToken ct = default)
+	{
+
+		var tasks = await ScanImagesAsync(u, ct);
+
+		while (tasks.Count != 0) {
+			var task = await Task.WhenAny(tasks);
+			tasks.Remove(task);
+			var ux = await task;
+
+			if (ux != UniImage.Null) {
+				if ((filter != null && filter.Predicate(ux)) || filter == null) {
+
+					yield return ux;
+				}
+				else {
+					ux.Dispose();
+					ux = null;
+				}
+			}
+			else { }
+		}
+
+	}
+	*/
+
+
+	/*
+	public static async Task<IEnumerable<string>> GetImageUrlsAsync(Url u, IImageFilter filter = null,
+	                                                                CancellationToken token = default)
+	{
+		using var res = await Client.Request(u)
+			                .WithCookies(out var cj)
+			                .GetAsync(cancellationToken: token);
+
+
+		// filter ??= GenericImageFilter.Instance;
+
+		var       parser = new HtmlParser();
+		var       stream = await res.GetStreamAsync();
+		using var doc    = await parser.ParseDocumentAsync(stream);
+		var       links  = GetImageUrls(doc, filter);
+		return links;
+
+		// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
+	}
+	*/
+
+
+	private const char URL_DELIM = '/';
+
+	internal static readonly Regex r_donmai = new(
+		"""\.donmai\.us""",
+		RegexOptions.Compiled
+	);
+
+	/*
+	 * TODO:
+	 *
+	 * Aggregate
+	 * Highest
+	 *
+	 * Gallery-DL
+	 */
+
+	private static readonly Regex r_imgSource = new(
+		"""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""",
+		RegexOptions.Compiled
+	);
+
+	private static readonly Regex r_imgExt = new(
+		"""(?i)(?:[^?&#"'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^"'<>\s]*)?""",
+		RegexOptions.Compiled
+	);
+
+	private static readonly Regex r_imgHtml = new(
+		"""(?i)(?:<base\s.*?href=[\"]?)(?<url>[^\"' >]+)""",
+		RegexOptions.Compiled
+	);
+
+	public static async Task<List<UniSimilarity>> Analyze(List<Task<UniImage>> tasks, SearchQuery query,
+	                                                      CancellationToken ct = default)
+	{
+		var ph   = new PerceptualHash();
+		var orig = ph.Hash(query.Uni.Stream);
+		query.Uni.Stream.TrySeek();
+		var rg = new List<UniSimilarity>();
+
+		while (tasks.Count != 0) {
+			var task = await Task.WhenAny(tasks);
+			tasks.Remove(task);
+			var ux = await task;
+
+			if (ux != UniImage.Null && ux.HasImageFormat) {
+				var cmp = ph.Hash(ux.Stream);
+				var sim = CompareHash.Similarity(orig, cmp);
+				rg.Add(new UniSimilarity(ux, sim));
+				ux.Stream.TrySeek();
+			}
+			else {
+				ux.Dispose();
+				ux = null;
+			}
+		}
+
+		return rg;
+	}
+
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
 	/// points to binary image data, it is returned.
@@ -306,132 +417,6 @@ public static class ImageScanner
 
 	}
 
-	public class UniSimilarity
-	{
-
-		public UniImage Image { get; }
-
-		public double Similarity { get; }
-
-		public UniSimilarity(UniImage image, double similarity)
-		{
-			Image      = image;
-			Similarity = similarity;
-		}
-
-	}
-
-
-	public static async Task<List<UniSimilarity>> Analyze(List<Task<UniImage>> tasks, SearchQuery query,
-	                                                      CancellationToken ct = default)
-	{
-		var ph   = new PerceptualHash();
-		var orig = ph.Hash(query.Uni.Stream);
-		query.Uni.Stream.TrySeek();
-		var rg = new List<UniSimilarity>();
-
-		while (tasks.Count != 0) {
-			var task = await Task.WhenAny(tasks);
-			tasks.Remove(task);
-			var ux = await task;
-
-			if (ux != UniImage.Null && ux.HasImageFormat) {
-				var cmp = ph.Hash(ux.Stream);
-				var sim = CompareHash.Similarity(orig, cmp);
-				rg.Add(new UniSimilarity(ux, sim));
-				ux.Stream.TrySeek();
-			}
-			else {
-				ux.Dispose();
-				ux = null;
-			}
-		}
-
-		return rg;
-	}
-	/*
-	public static async IAsyncEnumerable<UniImage> ScanImagesAsync2(Url u, IImageFilter filter = null,
-	                                                                [EnumeratorCancellation]
-	                                                                CancellationToken ct = default)
-	{
-
-		var tasks = await ScanImagesAsync(u, ct);
-
-		while (tasks.Count != 0) {
-			var task = await Task.WhenAny(tasks);
-			tasks.Remove(task);
-			var ux = await task;
-
-			if (ux != UniImage.Null) {
-				if ((filter != null && filter.Predicate(ux)) || filter == null) {
-
-					yield return ux;
-				}
-				else {
-					ux.Dispose();
-					ux = null;
-				}
-			}
-			else { }
-		}
-
-	}
-	*/
-
-
-	/*
-	public static async Task<IEnumerable<string>> GetImageUrlsAsync(Url u, IImageFilter filter = null,
-	                                                                CancellationToken token = default)
-	{
-		using var res = await Client.Request(u)
-			                .WithCookies(out var cj)
-			                .GetAsync(cancellationToken: token);
-
-
-		// filter ??= GenericImageFilter.Instance;
-
-		var       parser = new HtmlParser();
-		var       stream = await res.GetStreamAsync();
-		using var doc    = await parser.ParseDocumentAsync(stream);
-		var       links  = GetImageUrls(doc, filter);
-		return links;
-
-		// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
-	}
-	*/
-
-
-	private const char URL_DELIM = '/';
-
-	internal static readonly Regex r_donmai = new(
-		"""\.donmai\.us""",
-		RegexOptions.Compiled
-	);
-
-	/*
-	 * TODO:
-	 *
-	 * Aggregate
-	 * Highest
-	 *
-	 * Gallery-DL
-	 */
-
-	private static readonly Regex r_imgSource = new(
-		"""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""",
-		RegexOptions.Compiled
-	);
-
-	private static readonly Regex r_imgExt = new(
-		"""(?i)(?:[^?&#"'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^"'<>\s]*)?""",
-		RegexOptions.Compiled
-	);
-
-	private static readonly Regex r_imgHtml = new(
-		"""(?i)(?:<base\s.*?href=[\"]?)(?<url>[^\"' >]+)""",
-		RegexOptions.Compiled
-	);
-
 
 	public static IEnumerable<string> GetImageUrls(string html, Url url)
 	{
@@ -528,6 +513,21 @@ public static class ImageScanner
 	internal static readonly string GalleryDLPath = FileSystem.FindInPath(GALLERY_DL_EXE);
 
 	#endregion
+
+	public class UniSimilarity
+	{
+
+		public UniImage Image { get; }
+
+		public double Similarity { get; }
+
+		public UniSimilarity(UniImage image, double similarity)
+		{
+			Image      = image;
+			Similarity = similarity;
+		}
+
+	}
 
 	/*public static async Task<IEnumerable<Item2>> Highest(SearchQuery query,
 	                                                     IEnumerable<SearchResultItem> results,

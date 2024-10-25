@@ -104,17 +104,19 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 	 */
 
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
 	{
 		Trace.WriteLine($"Applying cookies to {Name}");
 
 		var cookies = await provider.LoadCookiesAsync(ct);
 
-		foreach (var bck in cookies) {
+		foreach (var bck in cookies)
+		{
 			var  cookie = bck.AsCookie();
 			bool c      = false;
 
-			if (UseExHentai) {
+			if (UseExHentai)
+			{
 				c |= cookie.Domain.Contains(HOST_EX);
 			}
 
@@ -122,7 +124,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 			c |= dmnEh;
 
-			if (c) {
+			if (c)
+			{
 				Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, OriginUrl));
 			}
 		}
@@ -135,15 +138,10 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return (UseExHentai ? ExHentaiBase : EHentaiBase)
-			.WithCookies(Jar)
-			.WithTimeout(Timeout)
-			.WithHeaders(new
-			{
-				User_Agent = HttpUtilities.UserAgent
-			})
-			.WithAutoRedirect(true)
-			.GetAsync();
+		return (UseExHentai ? ExHentaiBase : EHentaiBase).WithCookies(Jar).WithTimeout(Timeout).WithHeaders(new
+		{
+			User_Agent = HttpUtilities.UserAgent
+		}).WithAutoRedirect(true).GetAsync();
 	}
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
@@ -154,7 +152,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		string       fileName;
 		string       filePath = null;
 
-		if (query.Uni.HasFile) {
+		if (query.Uni.HasFile)
+		{
 			filePath = query.Uni.FilePath;
 			fileName = Path.GetFileName(filePath);
 
@@ -162,19 +161,23 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 				// Debugger.Break();
 			}*/
 		}
-		else {
+		else
+		{
 			fileName = SFILE_NAME_DEFAULT;
 			var ok = query.Uni.TryGetFile(fileName);
 
-			if (ok) {
+			if (ok)
+			{
 				filePath = query.Uni.FilePath;
 			}
-			else {
+			else
+			{
 				Debugger.Break();
 			}
 		}
 
-		if (filePath != null) {
+		if (filePath != null)
+		{
 			Trace.WriteLine($"allocated {filePath}", nameof(GetDocumentAsync));
 		}
 
@@ -218,7 +221,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 		// var content2 = await sr.RawUrl.GetStringAsync(cancellationToken: token);
 
-		if (content.Contains("Please wait a bit longer between each file search.")) {
+		if (content.Contains("Please wait a bit longer between each file search."))
+		{
 			Debug.WriteLine($"cooldown", Name);
 			sr.Status = SearchResultStatus.Cooldown;
 			return null;
@@ -233,7 +237,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		// Index 0 is table header
 		var array = d.Body.SelectNodes(NodesSelector).ToArray();
 
-		if (array.Length != 0) {
+		if (array.Length != 0)
+		{
 			array = array[1..];
 
 		}
@@ -243,12 +248,93 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
-		var item = new SearchResultItem(r)
-			{ };
+		var item = new SearchResultItem(r) { };
 
-		var eh = EhResult.Parse(n);
+		// ReSharper disable InconsistentNaming
+		var eh = new EhResult();
 
-		if (eh.Tags.TryGetValue("artist", out var v)) {
+		var gl1c = n.ChildNodes.FirstOrDefaultElementByClassName("gl1c");
+
+		if (gl1c is { FirstChild: { } t1 })
+		{
+			eh.Type = t1.TextContent;
+		}
+
+		var gl2c = n.ChildNodes.FirstOrDefaultElementByClassName("gl2c");
+
+		if (gl2c is { })
+		{
+			var cn = gl2c.RecurseChildren(1, 4);
+			// var cn = gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1];
+
+
+			if (cn is { } div)
+			{
+				eh.Pages = div.TextContent;
+			}
+		}
+
+		var gl3c = n.ChildNodes.FirstOrDefaultElementByClassName("gl3c glname");
+
+		if (gl3c is { })
+		{
+			if (gl3c.FirstChild is { } f)
+			{
+				eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
+
+				if (f.FirstChild is { } ff)
+				{
+					eh.Title = ff.TextContent;
+				}
+
+				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2)
+				{
+					var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
+
+					foreach (string s in tagValuesRaw)
+					{
+						if (s is not { })
+						{
+							continue;
+						}
+
+						var split = s.Split(':');
+						var tag   = split[0];
+						var val   = split[1];
+
+						if (eh.Tags.ContainsKey(tag))
+						{
+							eh.Tags[tag].Add(val);
+						}
+						else
+						{
+							eh.Tags.TryAdd(tag, [val]);
+
+						}
+					}
+				}
+			}
+		}
+
+		var gl4c = n.ChildNodes.FirstOrDefaultElementByClassName("gl4c glhide");
+
+		if (gl4c is { })
+		{
+			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer)
+			{
+				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
+				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
+			}
+
+			if (gl4c.ChildNodes[1] is { } div2)
+			{
+				eh.Pages ??= div2.TextContent;
+			}
+		}
+
+
+		if (eh.Tags.TryGetValue("artist", out var v))
+		{
 			item.Artist = v.FirstOrDefault();
 		}
 
@@ -264,6 +350,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		var gl4c        = n.ChildNodes[4];*/
 
 		return ValueTask.FromResult(item);
+
 	}
 
 	public override void Dispose()
@@ -284,7 +371,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
 	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
 
 		field = value;
 		OnPropertyChanged(propertyName);
@@ -293,7 +381,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 }
 
-public sealed record EhResult : IParseable<EhResult, INode>
+public sealed record EhResult
 {
 
 	public string Type { get; internal set; }
@@ -309,78 +397,5 @@ public sealed record EhResult : IParseable<EhResult, INode>
 	public Url Url { get; internal set; }
 
 	public ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get; } = new();
-
-	public static EhResult Parse(INode n)
-	{
-		// ReSharper disable InconsistentNaming
-		var eh = new EhResult();
-
-		var gl1c = n.ChildNodes.TryFindSingleElementByClassName("gl1c");
-
-		if (gl1c is { }) {
-			if (gl1c.FirstChild is { } t) {
-				eh.Type = t.TextContent;
-			}
-		}
-
-		var gl2c = n.ChildNodes.TryFindSingleElementByClassName("gl2c");
-
-		if (gl2c is { }) {
-			if (gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1] is { } div) {
-				eh.Pages = div.TextContent;
-			}
-		}
-
-		var gl3c = n.ChildNodes.TryFindSingleElementByClassName("gl3c glname");
-
-		if (gl3c is { }) {
-			if (gl3c.FirstChild is { } f) {
-				eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
-
-				if (f.FirstChild is { } ff) {
-					eh.Title = ff.TextContent;
-				}
-
-				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
-					var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
-
-					foreach (string s in tagValuesRaw) {
-						if (s is not { }) {
-							continue;
-						}
-
-						var split = s.Split(':');
-						var tag   = split[0];
-						var val   = split[1];
-
-						if (eh.Tags.ContainsKey(tag)) {
-							eh.Tags[tag].Add(val);
-						}
-						else {
-							eh.Tags.TryAdd(tag, [val]);
-
-						}
-					}
-				}
-			}
-		}
-
-		var gl4c = n.ChildNodes.TryFindSingleElementByClassName("gl4c glhide");
-
-		if (gl4c is { }) {
-			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
-				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
-				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
-			}
-
-			if (gl4c.ChildNodes[1] is { } div2) {
-				eh.Pages ??= div2.TextContent;
-			}
-		}
-
-		return eh;
-
-		// ReSharper restore InconsistentNaming
-	}
 
 }

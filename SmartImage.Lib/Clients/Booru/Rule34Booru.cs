@@ -1,7 +1,11 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: Rule34Booru.cs
 // Date: 2024/06/18 @ 14:06:04
 
+using System.Diagnostics.CodeAnalysis;
+using SmartImage.Lib.Utilities;
+
 namespace SmartImage.Lib.Clients.Booru;
+// TODO
 
 public class Rule34Booru : BaseGelbooruClient
 {

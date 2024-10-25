@@ -3,7 +3,7 @@
 
 namespace SmartImage.Lib.Utilities;
 
-public static class WebUtil
+internal static class WebUtil
 {
 
 	public static readonly string ChromePath =

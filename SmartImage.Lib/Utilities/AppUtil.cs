@@ -168,15 +168,16 @@ public static class AppUtil
 	}
 
 	[SupportedOSPlatform(OS_WIN)]
-	internal static bool HandleContextMenuWindows(bool option,[CanBeNull] string args = null)
+	internal static bool HandleContextMenuWindows(bool option, [CanBeNull] string args = null)
 	{
 		/*
 		 * New context menu
 		 */
 		bool ok = false;
+
 		switch (option) {
 			case true:
-				
+
 				args ??= R1.Reg_Launch_Args;
 
 				RegistryKey regMenu = null;
@@ -192,12 +193,14 @@ public static class AppUtil
 					regCmd = Registry.CurrentUser.CreateSubKey(R1.Reg_Shell_Cmd);
 
 					regCmd?.SetValue(String.Empty, $"\"{fullPath}\" {args}");
+
 					// regCmd?.SetValue(String.Empty, $"\"{fullPath}\" \"%1\"");
 					// regCmd?.SetValue(String.Empty, $"\"{fullPath}\" -i \"%1\" -auto -s");
 					ok = true;
 				}
 				catch (Exception ex) {
 					Trace.WriteLine($"{ex.Message}");
+
 					// return false;
 					ok = false;
 				}
@@ -232,6 +235,7 @@ public static class AppUtil
 				catch (Exception ex) {
 					Trace.WriteLine($"{ex.Message}");
 					ok = false;
+
 					// return false;
 					break;
 				}
@@ -254,7 +258,7 @@ public static class AppUtil
 	 *		HKEY_LOCAL_MACHINE\Software\Classes
 	 */
 
-	public static async Task<GHRelease[]> GetRepoReleasesAsync()
+	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()
 	{
 		var res = await "https://api.github.com/repos/Decimation/SmartImage/releases"
 			          .WithAutoRedirect(true)
@@ -267,12 +271,12 @@ public static class AppUtil
 			          {
 				          e.ExceptionHandled = true;
 			          })
-			          .GetJsonAsync<GHRelease[]>();
+			          .GetJsonAsync<GitHubRelease[]>();
 
 		return res;
 	}
 
-	public static async Task<GHRelease> GetLatestReleaseAsync()
+	public static async Task<GitHubRelease> GetLatestReleaseAsync()
 	{
 		var r = await GetRepoReleasesAsync();
 
@@ -292,12 +296,17 @@ public static class AppUtil
 
 	public static readonly string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
 
-	public static readonly string AppDataPath      = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+	public static readonly string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+
+
+	internal const string SI_DIAG_ID_0001 = "SI0001";
 
 }
 
+#region GitHub types
+
 [USI(ImplicitUseTargetFlags.WithMembers)]
-public class GHReleaseAsset
+public class GitHubReleaseAsset
 {
 
 	public string url { get; set; }
@@ -310,7 +319,7 @@ public class GHReleaseAsset
 
 	public object label { get; set; }
 
-	public GHUploader uploader { get; set; }
+	public GitHubUploader uploader { get; set; }
 
 	public string content_type { get; set; }
 
@@ -329,7 +338,7 @@ public class GHReleaseAsset
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
-public class GHAuthor
+public class GitHubAuthor
 {
 
 	public string login { get; set; }
@@ -371,7 +380,7 @@ public class GHAuthor
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
-public class GHReactions
+public class GitHubReactions
 {
 
 	public string url { get; set; }
@@ -399,7 +408,7 @@ public class GHReactions
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
-public class GHUploader
+public class GitHubUploader
 {
 
 	public string login { get; set; }
@@ -441,7 +450,7 @@ public class GHUploader
 }
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
-public class GHRelease
+public class GitHubRelease
 {
 
 	public string url { get; set; }
@@ -454,7 +463,7 @@ public class GHRelease
 
 	public int id { get; set; }
 
-	public GHAuthor author { get; set; }
+	public GitHubAuthor author { get; set; }
 
 	public string node_id { get; set; }
 
@@ -472,7 +481,7 @@ public class GHRelease
 
 	public DateTime published_at { get; set; }
 
-	public List<GHReleaseAsset> assets { get; set; }
+	public List<GitHubReleaseAsset> assets { get; set; }
 
 	public string tarball_url { get; set; }
 
@@ -482,10 +491,12 @@ public class GHRelease
 
 	public string discussion_url { get; set; }
 
-	public GHReactions reactions { get; set; }
+	public GitHubReactions reactions { get; set; }
 
 	[JsonIgnore]
 	[NonSerialized]
 	public Version Version;
 
 }
+
+#endregion

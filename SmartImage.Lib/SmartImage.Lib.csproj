@@ -4,17 +4,14 @@
     <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>SmartImage.Lib</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Configurations>Debug;Release;Test</Configurations>
+    <Configurations>Debug;Release;Test;UnitTest</Configurations>
     <Nullable>disable</Nullable>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <PublishTrimmed>True</PublishTrimmed>
     <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <PublishSingleFile Condition="'$(Configuration)' == 'Release|AnyCPU'">true</PublishSingleFile>
-    <NoWarn>AD0001;IDE0290</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='TestDebug|AnyCPU'">
-    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST_DEBUG</DefineConstants>
+    <NoWarn>AD0001;IDE0290;CS0168</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
@@ -34,6 +31,11 @@
     <NoWarn>1701;1702;NU1608</NoWarn>
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST</DefineConstants>
 
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='UnitTest|AnyCPU'">
+    <NoWarn>1701;1702;NU1608</NoWarn>
+    <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.1.2" />

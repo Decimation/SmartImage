@@ -262,7 +262,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		return ValueTask.FromResult(sri);
 	}
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
 	{
 		if (FlareSolverrClient.Value.IsInitialized) {
 			return false;

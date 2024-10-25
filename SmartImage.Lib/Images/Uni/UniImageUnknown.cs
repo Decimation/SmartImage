@@ -10,9 +10,9 @@ public class UniImageUnknown : UniImage
 
 	
 
-	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
+	public override ValueTask<bool> Alloc(CancellationToken ct = default)
 	{
-		return false;
+		return ValueTask.FromResult(false);
 	}
 
 	public override string WriteToFile(string fn = null)

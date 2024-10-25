@@ -179,7 +179,7 @@ public abstract class BaseUploadEngine : IDisposable
 		return new UploadResult
 		{
 			Url      = url,
-			Size     = response.GetContentLength(),
+			Size     = response.Headers.TryGetFirst("Content-Length", out var cls) ? long.Parse(cls) : null,
 			IsValid  = ok,
 			Response = response
 		};

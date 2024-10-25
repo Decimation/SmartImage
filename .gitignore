@@ -457,6 +457,10 @@ Test/
 Test/*
 /Test/Test.csproj
 /Test/Program.cs
+SmartImage.Test/
+SmartImage.Test/*
+/SmartImage.Test/Test.csproj
+/SmartImage.Test/Program.cs
 SmartImage.Lib.UnitTest/
 SmartImage.Lib.UnitTest/*
 SmartImage.Benchmark/

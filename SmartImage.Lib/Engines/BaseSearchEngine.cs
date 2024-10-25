@@ -115,7 +115,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
 
-	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var b = VerifyQuery(query);
 
@@ -141,7 +141,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
 
-		return res;
+		return Task.FromResult(res);
 	}
 
 	protected virtual Url GetRawUrl(SearchQuery query)
