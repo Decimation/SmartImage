@@ -61,8 +61,6 @@ public static class ImageScanner
 		});
 
 		Cookies = new CookieJar();
-
-
 	}
 
 
@@ -72,62 +70,9 @@ public static class ImageScanner
 
 
 	/*
-	 * TODO: ImageScanner, AutoCookiesProvider, and FlareSolverrr
+	 * TODO: AutoCookiesProvider, and FlareSolverr
 	 */
 
-	/*public static IFlurlRequest BuildRequest(params object[] urlSeg)
-	{
-		var request = Client.Request(urlSeg);
-
-		if (r_donmai.IsMatch(request.Url.Host)) {
-			request.Headers.AddOrReplace("User-Agent", R1.Name);
-		}
-
-		return request
-			.WithCookies(Cookies);
-	}*/
-
-	private static bool r_donmaiInit;
-
-	public static async ValueTask<IFlurlRequest> BuildRequest(Url u, CancellationToken ct = default)
-	{
-		var req = Client.Request(u);
-
-		if (r_donmai.IsMatch(req.Url.Host)) {
-			if (!r_donmaiInit) {
-				var req2 = Client.Request(req.Url);
-
-				req2.Headers.AddOrReplace("User-Agent", R1.Name);
-
-				using (var res2 = await req2.WithCookies(Cookies).GetAsync(cancellationToken: ct)) {
-					Debugger.Break();
-				}
-
-				r_donmaiInit = true;
-
-			}
-			else { }
-		}
-
-		return req
-			.WithCookies(Cookies);
-	}
-
-	public static async Task<IReadOnlyList<FlurlCookie>> GetCookies(IFlurlRequest req, CancellationToken ct = default)
-	{
-		IReadOnlyList<FlurlCookie> ret = [];
-
-		if (r_donmai.IsMatch(req.Url.Host)) {
-
-			req.Headers.AddOrReplace("User-Agent", R1.Name);
-
-			using (var res2 = await req.GetAsync(cancellationToken: ct)) {
-				ret = res2.Cookies;
-			}
-		}
-
-		return ret;
-	}
 
 	/*public static readonly BaseImageHost[] All =
 		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
@@ -184,13 +129,7 @@ public static class ImageScanner
 	}
 	*/
 
-
 	private const char URL_DELIM = '/';
-
-	internal static readonly Regex r_donmai = new(
-		"""\.donmai\.us""",
-		RegexOptions.Compiled
-	);
 
 	/*
 	 * TODO:
@@ -216,6 +155,13 @@ public static class ImageScanner
 		RegexOptions.Compiled
 	);
 
+	public static async ValueTask<IFlurlRequest> BuildRequest(Url u, CancellationToken ct = default)
+	{
+		var req = Client.Request(u);
+
+		return req.WithCookies(Cookies);
+	}
+
 	public static async Task<List<UniSimilarity>> Analyze(List<Task<UniImage>> tasks, SearchQuery query,
 	                                                      CancellationToken ct = default)
 	{
@@ -224,18 +170,21 @@ public static class ImageScanner
 		query.Uni.Stream.TrySeek();
 		var rg = new List<UniSimilarity>();
 
-		while (tasks.Count != 0) {
+		while (tasks.Count != 0)
+		{
 			var task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 			var ux = await task;
 
-			if (ux != UniImage.Null && ux.HasImageFormat) {
+			if (ux != UniImage.Null && ux.HasImageFormat)
+			{
 				var cmp = ph.Hash(ux.Stream);
 				var sim = CompareHash.Similarity(orig, cmp);
 				rg.Add(new UniSimilarity(ux, sim));
 				ux.Stream.TrySeek();
 			}
-			else {
+			else
+			{
 				ux.Dispose();
 				ux = null;
 			}
@@ -250,7 +199,6 @@ public static class ImageScanner
 	/// </summary>
 	public static async Task<List<Task<UniImage>>> ScanImagesAsync(Url u, CancellationToken ct = default)
 	{
-
 		List<Task<UniImage>> tasks = null;
 		IFlurlRequest        req;
 		IFlurlResponse       res;
@@ -332,20 +280,23 @@ public static class ImageScanner
 		                                       autoDisposeOnError: false, ct: ct);
 
 
-		if (uf != UniImage.Null) {
-			if (uf.HasImageFormat) {
+		if (uf != UniImage.Null)
+		{
+			if (uf.HasImageFormat)
+			{
 				tasks = [Task.FromResult(uf)];
 
 				goto ret;
 			}
 		}
-		else {
+		else
+		{
 			stream          = uf.Stream;
 			stream.Position = 0;
-
 		}
 
-		if (!stream.CanRead) {
+		if (!stream.CanRead)
+		{
 			stream.Dispose();
 			goto ret;
 		}
@@ -364,8 +315,6 @@ public static class ImageScanner
 		}).ToList();
 
 		// var rr = await u.WithHeader("User-Agent", "SI").GetStreamAsync(HttpCompletionOption.ResponseContentRead);
-
-
 		// var parser = new HtmlParser();
 
 		// var doc    = await parser.ParseDocumentAsync(stream);
@@ -420,26 +369,28 @@ public static class ImageScanner
 
 	public static IEnumerable<string> GetImageUrls(string html, Url url)
 	{
-		var imgUrlsSrc = r_imgSource.Matches(html).Select(m => m.Groups["URL"].Value);
-		var imgUrlsExt = r_imgExt.Matches(html).Select(m => m.Value);
+		var imgUrlsSrc = r_imgSource.Matches(html).Select(static m => m.Groups["URL"].Value);
+		var imgUrlsExt = r_imgExt.Matches(html).Select(static m => m.Value);
 		var imgUrls    = imgUrlsSrc.Concat(imgUrlsExt);
 
 		Match  baseMatch = r_imgHtml.Match(html);
 		string baseUrl;
 
-		if (baseMatch.Success) {
+		if (baseMatch.Success)
+		{
 			baseUrl = baseMatch.Groups["url"].Value.TrimEnd(URL_DELIM);
-
 		}
-		else {
-			if (url.ToString().EndsWith(URL_DELIM)) {
+		else
+		{
+			if (url.ToString().EndsWith(URL_DELIM))
+			{
 				baseUrl = url.ToString().TrimEnd(URL_DELIM);
 			}
-			else {
+			else
+			{
 				baseUrl = Url.Parse(url); //todo
 
 				// or Path.GetDirectoryName?
-
 			}
 		}
 
@@ -465,11 +416,9 @@ public static class ImageScanner
 		// var a = doc.QueryAllAttribute("a", "href");
 		// var b = doc.QueryAllAttribute("img", "src");
 
-		var a = doc.Links.Select(x => x.GetAttribute("href"));
-		var b = doc.Images.Select(x => x.Source);
-
+		var a = doc.Links.Select(static x => x.GetAttribute("href"));
+		var b = doc.Images.Select(static x => x.Source);
 		var c = a.Union(b);
-
 
 		c = c.Distinct();
 
@@ -487,6 +436,7 @@ public static class ImageScanner
 			RedirectStandardError  = true,
 		});
 		await p.WaitForExitAsync(ct);
+
 		var s  = await p.StandardOutput.ReadToEndAsync(ct);
 		var s2 = s.Split(Environment.NewLine);
 		var rg = new ConcurrentBag<UniImage>();
@@ -495,7 +445,8 @@ public static class ImageScanner
 		{
 			var uni = await UniImage.TryCreateAsync(s1, ct: token);
 
-			if (uni != null) {
+			if (uni != null)
+			{
 				rg.Add(uni);
 			}
 

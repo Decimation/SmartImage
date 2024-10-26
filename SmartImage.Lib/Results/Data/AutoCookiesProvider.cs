@@ -36,7 +36,13 @@ public class AutoCookiesProvider : ICookiesProvider
 
 	public async ValueTask OpenAsync()
 	{
-		await Reader.OpenAsync();
+		// Opening is idempotent
+		await Reader.Connection.OpenAsync();
+	}
+
+	public async ValueTask CloseAsync()
+	{
+		await Reader.Connection.CloseAsync();
 	}
 
 	public async ValueTask<IList<IBrowserCookie>> LoadCookiesAsync(CancellationToken ct = default)
@@ -45,9 +51,11 @@ public class AutoCookiesProvider : ICookiesProvider
 			await OpenAsync();
 		}
 
-		if (IsClosedOrBroken) {
+		/*if (IsClosedOrBroken) {
 			throw new InvalidOperationException();
-		}
+		}*/
+
+
 
 		var itemPolicy = new CacheItemPolicy()
 		{
@@ -58,6 +66,7 @@ public class AutoCookiesProvider : ICookiesProvider
 		var chi = (IList<IBrowserCookie>) Cache.Get(CH_NAME);
 
 		if (chi == null) {
+
 			var cookies = await Reader.ReadCookiesAsync();
 			var addOk   = Cache.Add(CH_NAME, cookies, itemPolicy);
 
@@ -74,6 +83,7 @@ public class AutoCookiesProvider : ICookiesProvider
 	}
 
 	public bool IsOpen => Reader.Connection.State is ConnectionState.Open;
+
 	public bool IsOpenOrInUse => Reader.Connection.State is < ConnectionState.Broken and >= ConnectionState.Open;
 
 	public bool IsClosedOrBroken => Reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;

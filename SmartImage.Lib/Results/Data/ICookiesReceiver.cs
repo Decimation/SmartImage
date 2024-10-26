@@ -15,7 +15,7 @@ public interface ICookiesReceiver
 	[MNNW(true, nameof(Jar))]
 	public bool Loaded => Jar != null && Jar.Count != 0;
 
-	public ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken token);
+	public ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken token = default);
 
 
 }
