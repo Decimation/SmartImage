@@ -151,6 +151,10 @@
                     <Setter Property="Background" Value="SandyBrown" />
                     <Setter Property="Foreground" Value="Black" />
                 </DataTrigger>
+                <DataTrigger Binding="{Binding Result.Root.Engine.Name}" Value="TinEye">
+                    <Setter Property="Background" Value="PaleTurquoise" />
+                    <Setter Property="Foreground" Value="Black" />
+                </DataTrigger>
 
                 <DataTrigger Binding="{Binding Result.Root.Engine.IsAdvanced}" Value="False">
                     <!-- <Setter Property="FontStyle" Value="Italic" /> -->

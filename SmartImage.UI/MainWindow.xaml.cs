@@ -202,7 +202,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly ICollectionView m_cvResults;
 
-	private static readonly ILogger Logger = LoggerFactory
+	private static readonly ILogger s_logger = LoggerFactory
 		.Create(builder => builder.AddDebug().AddProvider(new DebugLoggerProvider()))
 		.CreateLogger(nameof(MainWindow));
 
@@ -1507,6 +1507,5 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Console.WriteLine(ex);
 		}
 	}
-
 
 }

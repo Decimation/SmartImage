@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: FlareSolverrClient.cs
 // Date: 2024/10/25 @ 12:10:45
 
+using System.Diagnostics;
 using System.Reflection;
 using CliWrap;
 using FlareSolverrSharp;
@@ -34,6 +35,7 @@ public sealed class FlareSolverrClient : IDisposable
 		
 		Client = new HttpClient(Clearance);
 
+		Trace.WriteLine($"{nameof(FlareSolverrClient)}: init {api}");
 		return HasClient;
 	}
 
