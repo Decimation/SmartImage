@@ -131,7 +131,7 @@ public static class Program
 				.WithDescription("Configure system integration such as context menu");
 
 		});
-		int x = SearchCommand.EC_OK;
+		int x = ConsoleItems.EC_OK;
 
 		try {
 			x = await app.RunAsync(args);
@@ -139,11 +139,11 @@ public static class Program
 		}
 		catch (Exception e) {
 			AConsole.WriteException(e);
-			x = SearchCommand.EC_ERROR;
+			x = ConsoleItems.EC_ERROR;
 		}
 		finally {
 
-			if (x != SearchCommand.EC_OK) {
+			if (x != ConsoleItems.EC_OK) {
 				AConsole.Confirm("Press any key to continue");
 			}
 		}

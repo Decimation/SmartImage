@@ -89,6 +89,15 @@ public sealed class SearchCommandSettings : CommandSettings
 	[Description("Waits for input before terminating")]
 	public bool? KeepOpen { get; internal set; }
 
+	[CommandOption("--flaresolverr")]
+	[DefaultValue(SearchConfig.FLARESOLVERR_DEFAULT)]
+	[Description("Use FlareSolverr")]
+	public bool FlareSolverr { get; internal set; }
+
+	[CommandOption("--flaresolverr-api")]
+	[DefaultValue(SearchConfig.FLARE_SOLVERR_API_URL_DEFAULT)]
+	public string FlareSolverrApiUrl { get; internal set; }
+
 	// public bool? Silent { get; internal set; } //todo
 
 	// public const string PROP_ARG_RESULTS = "$all_results";

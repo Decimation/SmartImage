@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using SmartImage.Lib.Utilities;
+using SmartImage.Rdx.Shell;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -27,7 +28,7 @@ internal class IntegrationCommand : Command<IntegrationCommandSettings>
 			AConsole.WriteException(e);
 		}
 
-		return SearchCommand.EC_OK;
+		return ConsoleItems.EC_OK;
 	}
 
 }

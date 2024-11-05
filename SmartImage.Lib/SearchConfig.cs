@@ -202,7 +202,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </remarks>
 	public bool FlareSolverr
 	{
-		get { return Configuration.ReadSetting(nameof(FlareSolverr), false); }
+		get { return Configuration.ReadSetting(nameof(FlareSolverr), FLARESOLVERR_DEFAULT); }
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(FlareSolverr), value.ToString());

@@ -17,7 +17,8 @@
   </PropertyGroup>
   <PropertyGroup>
     <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
-    <Version>1.0.6</Version>
+    <Version>1.0.7</Version>
+    <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS</DefineConstants>
@@ -37,6 +38,10 @@
     <DefineConstants>DEBUG;TRACE;JETBRAINS_ANNOTATIONS;TEST</DefineConstants>
 
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Icon.ico" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CliWrap" Version="3.6.7" />
     <PackageReference Include="CoenM.ImageSharp.ImageHash" Version="1.3.6" />
