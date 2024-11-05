@@ -30,14 +30,19 @@ public class UniImageUri : UniImage
 	{
 		u = o switch
 		{
-			Url u2   => u2,
-			string s => s,
-			_        => null
+			Url u2                             => u2,
+			string s when Flurl.Url.IsValid(s) => s,
+			_                                  => null
 		};
+
+		if (u == null) {
+			return false;
+		}
 
 		var scheme = u.Scheme;
 
-		return Url.IsValid(u) && Schemes.All(s => scheme != s);
+
+		return Schemes.All(s => scheme != s);
 	}
 
 	public override async ValueTask<bool> Alloc(CancellationToken ct = default)

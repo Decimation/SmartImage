@@ -67,6 +67,7 @@ using Brushes = System.Windows.Media.Brushes;
 using System.Buffers;
 using System.Reflection;
 using DynamicData;
+using SmartImage.Lib.Clients;
 using SmartImage.UI.Controls;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
@@ -98,8 +99,16 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		InitializeComponent();
 
-		m_us        = new SemaphoreSlim(1, 1);
-		m_us2       = new SemaphoreSlim(1, 1);
+		/*Config.PropertyChanged += (sender, args) =>
+		{
+			if (args.PropertyName == nameof(Config.FlareSolverr)) {
+				Tb_FlareSolverrApi.IsEnabled = Config.FlareSolverr;
+			}
+		};*/
+
+		m_us  = new SemaphoreSlim(1, 1);
+		m_us2 = new SemaphoreSlim(1, 1);
+
 		// DataContext = this;
 		SearchStart = default;
 
@@ -145,6 +154,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 			Interval = TimeSpan.FromSeconds(3)
 		};
+
 		// m_trDispatch.Tick += IdleDispatchAsync; // TODO: disabled
 
 		m_uni                    = new();
@@ -184,6 +194,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
 		AddHandler(Validation.ErrorEvent, new RoutedEventHandler(OnValidationRaised));
+
 
 	}
 
@@ -251,7 +262,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		get => m_canReload;
 		set
 		{
-			if (value == m_canReload) return;
+			if (value == m_canReload)
+				return;
 
 			m_canReload = value;
 			OnPropertyChanged();
@@ -297,7 +309,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		set
 		{
 			value = value?.CleanString();
-			if (value == m_input) return;
+
+			if (value == m_input)
+				return;
 
 			m_input = value;
 			OnPropertyChanged();
@@ -318,7 +332,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		{
 
 			if (Equals(value, m_currentQuery) /*|| Query?.ValueString == value*/
-			    /* || (String.IsNullOrWhiteSpace(value))*/) return;
+			    /* || (String.IsNullOrWhiteSpace(value))*/)
+				return;
 
 			m_currentQuery = value;
 			OnPropertyChanged();
@@ -515,10 +530,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		}
 
-		Tb_Status.Dispatcher.Invoke(() =>
-		{
-			Tb_Status.Text = tbs;
-		});
+		Tb_Status.Dispatcher.Invoke(() => { Tb_Status.Text = tbs; });
 
 		Btn_Run.IsEnabled = CurrentQuery.CanSearch;
 
@@ -576,7 +588,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		if (Queue.Count == 0) {
 			next = new QueryModel();
 		}
-		else next = Queue[(Queue.IndexOf(CurrentQuery) + i) % Queue.Count];
+		else
+			next = Queue[(Queue.IndexOf(CurrentQuery) + i) % Queue.Count];
 
 		CurrentQuery = next;
 	}
@@ -886,8 +899,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Tb_Upload.Text             = String.Empty;
 		Pb_Preview.IsIndeterminate = false;
+
 		// Tb_Preview.Text            = String.Empty;
-		Lb_Queue.IsEnabled         = true;
+		Lb_Queue.IsEnabled = true;
 	}
 
 	private void ClearResults(bool full = false)
@@ -918,8 +932,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		Restart(true);
 		ClearQueryControls();
-		
-		
+
+
 		Lb_Upload.Foreground = Brushes.White;
 
 		// SetQueue(null);
@@ -1493,5 +1507,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			Console.WriteLine(ex);
 		}
 	}
+
 
 }

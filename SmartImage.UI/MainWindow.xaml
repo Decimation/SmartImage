@@ -161,6 +161,7 @@
 
             </Style.Triggers>
         </Style>
+        <SolidColorBrush x:Key="White1" Color="#FFE1E1E1"/>
 
     </Window.Resources>
 
@@ -672,7 +673,7 @@
                                         </DataTemplate>
                                     </GridViewColumn.CellTemplate>
                                 </GridViewColumn>
-                                
+
                                 <GridViewColumn Header="Name"
                                                 Width="135" x:Name="Lvgvc_Name"
                                                 DisplayMemberBinding="{Binding Name, Mode=OneTime}">
@@ -827,11 +828,11 @@
                 <Grid Background="{DynamicResource Black1}">
                     <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="27,33,0,0"
                              SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Width="175"
-                             VerticalAlignment="Top" HorizontalAlignment="Left" Height="400" />
+                             VerticalAlignment="Top" HorizontalAlignment="Left" Height="400" Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}" />
 
                     <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,0,0"
                              SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Width="175"
-                             HorizontalAlignment="Left" VerticalAlignment="Top" Height="400" />
+                             HorizontalAlignment="Left" VerticalAlignment="Top" Height="400" Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}" />
 
                     <CheckBox x:Name="Cb_Clipboard" Content="Clipboard"
                               IsChecked="{Binding Path=UseClipboard, Mode=TwoWay}" HorizontalAlignment="Left"
@@ -867,19 +868,23 @@
                     <Label x:Name="Lbl_PriorityEngines" Content="Priority Engines" HorizontalAlignment="Left"
                            Margin="228,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
-                    <ComboBox x:Name="Cm_UploadEngine" HorizontalAlignment="Center" Margin="0,34,0,0"
-                              VerticalAlignment="Top" Width="120"
+                    <ComboBox x:Name="Cm_UploadEngine" HorizontalAlignment="Left" Margin="600,34,0,0"
+                              VerticalAlignment="Top" Width="180"
                               ItemsSource="{x:Static controls:ControlsHelper.UploadEngineNames}"
                               SelectionChanged="Cm_UploadEngine_SelectionChanged" />
 
                     <Label x:Name="Lbl_Options" Content="Options" HorizontalAlignment="Left"
-                           Margin="426,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+                           Margin="425,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
-                    <TextBox x:Name="Tb_FlareSolverrApi" HorizontalAlignment="Left" Margin="607,92,0,0" TextWrapping="Wrap" 
-                             Text="{Binding Config.FlareSolverrApiUrl, Mode=TwoWay}" VerticalAlignment="Top" Width="120"/>
+                    <TextBox x:Name="Tb_FlareSolverrApi" HorizontalAlignment="Left" Margin="600,92,0,0" TextWrapping="Wrap" 
+                             Text="{Binding Config.FlareSolverrApiUrl, Mode=TwoWay}" VerticalAlignment="Top" Width="180" 
+                             Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}"/>
+
+                    <Label x:Name="Lbl_FlareSolverrApi" Content="Flare Solverr API" HorizontalAlignment="Left" 
+                        Margin="600,60,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
 
 

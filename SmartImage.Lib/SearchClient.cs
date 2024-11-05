@@ -180,7 +180,7 @@ public sealed class SearchClient : IDisposable
 		IsRunning = true;
 
 		if (!ConfigApplied) {
-			await LoadEnginesAsync(); // todo
+			await LoadEnginesAsync(token); // todo
 
 		}
 		else {
@@ -358,6 +358,18 @@ public sealed class SearchClient : IDisposable
 
 			if (!ok) {
 				Debugger.Break();
+			}
+			else {
+				// Ensure FlareSolverr
+
+				try {
+					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
+				}
+				catch (Exception e) {
+					Trace.WriteLine($"{nameof(FlareSolverrClient)}: {e.Message}");
+					Config.FlareSolverr = false;
+					FlareSolverrClient.Value.Dispose();
+				}
 			}
 		}
 

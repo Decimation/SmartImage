@@ -31,6 +31,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable InconsistentNaming
@@ -162,6 +163,7 @@ public static class ImageScanner
 		return req.WithCookies(Cookies);
 	}
 
+
 	public static async Task<List<UniSimilarity>> Analyze(List<Task<UniImage>> tasks, SearchQuery query,
 	                                                      CancellationToken ct = default)
 	{
@@ -170,21 +172,18 @@ public static class ImageScanner
 		query.Uni.Stream.TrySeek();
 		var rg = new List<UniSimilarity>();
 
-		while (tasks.Count != 0)
-		{
+		while (tasks.Count != 0) {
 			var task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 			var ux = await task;
 
-			if (ux != UniImage.Null && ux.HasImageFormat)
-			{
+			if (ux != UniImage.Null && ux.HasImageFormat) {
 				var cmp = ph.Hash(ux.Stream);
 				var sim = CompareHash.Similarity(orig, cmp);
 				rg.Add(new UniSimilarity(ux, sim));
 				ux.Stream.TrySeek();
 			}
-			else
-			{
+			else {
 				ux.Dispose();
 				ux = null;
 			}
@@ -280,31 +279,32 @@ public static class ImageScanner
 		                                       autoDisposeOnError: false, ct: ct);
 
 
-		if (uf != UniImage.Null)
-		{
-			if (uf.HasImageFormat)
-			{
-				tasks = [Task.FromResult(uf)];
+		if (uf != UniImage.Null && uf.HasImageFormat) {
+			tasks = [Task.FromResult(uf)];
 
-				goto ret;
-			}
+			goto ret;
+
 		}
-		else
-		{
-			stream          = uf.Stream;
-			stream.Position = 0;
+		else {
+			// stream          = uf.Stream;
+			// stream.Position = 0;
+			uf.Stream.TrySeek();
+
+			res = await Client.Request(u)
+				      .GetAsync(cancellationToken: ct);
+			stream = await res.GetStreamAsync();
 		}
 
-		if (!stream.CanRead)
-		{
+		if (!stream.CanRead) {
 			stream.Dispose();
 			goto ret;
 		}
 
-		var sr = new StreamReader(stream, leaveOpen: true /*false*/);
+		var sr = new StreamReader(stream, leaveOpen: /*true*/ false);
 
 		string html = await sr.ReadToEndAsync(ct);
-		var    urls = GetImageUrls(html, u);
+
+		var urls = GetImageUrls(html, u);
 
 		tasks = urls.Select(s =>
 		{
@@ -361,6 +361,7 @@ public static class ImageScanner
 		// stream.Dispose(); // todo?
 		// res.Dispose();
 
+		sr.Dispose();
 	ret:
 		return tasks;
 
@@ -376,18 +377,14 @@ public static class ImageScanner
 		Match  baseMatch = r_imgHtml.Match(html);
 		string baseUrl;
 
-		if (baseMatch.Success)
-		{
+		if (baseMatch.Success) {
 			baseUrl = baseMatch.Groups["url"].Value.TrimEnd(URL_DELIM);
 		}
-		else
-		{
-			if (url.ToString().EndsWith(URL_DELIM))
-			{
+		else {
+			if (url.ToString().EndsWith(URL_DELIM)) {
 				baseUrl = url.ToString().TrimEnd(URL_DELIM);
 			}
-			else
-			{
+			else {
 				baseUrl = Url.Parse(url); //todo
 
 				// or Path.GetDirectoryName?
@@ -445,8 +442,7 @@ public static class ImageScanner
 		{
 			var uni = await UniImage.TryCreateAsync(s1, ct: token);
 
-			if (uni != null)
-			{
+			if (uni != null) {
 				rg.Add(uni);
 			}
 

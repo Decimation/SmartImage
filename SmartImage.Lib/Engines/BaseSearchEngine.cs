@@ -152,7 +152,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return u;
 	}
 
-	public virtual async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
+	public virtual ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
 		/*if (q.Upload is not { }) {
 			return false;
@@ -172,7 +172,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			b = q.Size <= MaxSize;
 		}*/
 
-		return b;
+		return ValueTask.FromResult(b);
 	}
 
 

@@ -38,10 +38,12 @@ public sealed class FlareSolverrClient : IDisposable
 	}
 
 	private FlareSolverrClient() { }
+
 	static FlareSolverrClient()
 	{
 		
 	}
+
 	public static FlareSolverrClient Value { get; private set; } = new();
 
 	public void Dispose()
