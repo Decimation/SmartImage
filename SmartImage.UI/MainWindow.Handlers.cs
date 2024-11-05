@@ -241,7 +241,7 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void Btn_Reload_Click(object sender, RoutedEventArgs e)
+	private async void Btn_Reload_Click(object sender, RoutedEventArgs e)
 	{
 		Cancel();
 		ClearResults(false);
@@ -258,6 +258,7 @@ public partial class MainWindow
 		// ClearQueue();
 		// ClearResults(true);
 		ReloadToken();
+		await Client.LoadEnginesAsync();
 		e.Handled = true;
 	}
 
@@ -406,6 +407,7 @@ public partial class MainWindow
 			}
 			else {
 				SetPreviewToCurrentQuery();
+
 				// TODO
 				if (ri.Result.Metadata is TraceMoeDoc doc) {
 
@@ -428,7 +430,8 @@ public partial class MainWindow
 
 							Me_Preview.Play();
 
-							ShowMedia       = true;
+							ShowMedia = true;
+
 							// Tb_Preview.Text = $"Preview: {ri.Name}";
 
 						}
@@ -556,6 +559,7 @@ public partial class MainWindow
 
 		Lb_Engines.HandleEnum(n);
 		Config.SearchEngines = n;
+
 		// await Client.LoadEnginesAsync();
 
 		e.Handled                   =  true;
@@ -570,6 +574,7 @@ public partial class MainWindow
 
 		Lb_Engines2.HandleEnum(n);
 		Config.PriorityEngines = n;
+
 		// await Client.LoadEnginesAsync();
 
 		e.Handled                    =  true;

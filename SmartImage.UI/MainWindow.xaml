@@ -857,6 +857,10 @@
                               IsChecked="{Binding InPath, Mode=TwoWay}"
                               Margin="425,185,0,0" VerticalAlignment="Top" Foreground="White" />
 
+                    <CheckBox x:Name="Cb_FlareSolverr" Content="FlareSolverr" HorizontalAlignment="Left"
+                              IsChecked="{Binding Config.FlareSolverr, Mode=TwoWay}"
+                              Margin="426,215,0,0" VerticalAlignment="Top" Foreground="White" />
+
                     <Label x:Name="Lbl_SearchEngines" Content="Search Engines" HorizontalAlignment="Left"
                            Margin="27,2,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
@@ -873,6 +877,11 @@
 
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
+
+                    <TextBox x:Name="Tb_FlareSolverrApi" HorizontalAlignment="Left" Margin="607,92,0,0" TextWrapping="Wrap" 
+                             Text="{Binding Config.FlareSolverrApiUrl, Mode=TwoWay}" VerticalAlignment="Top" Width="120"/>
+
+
 
                     <!--<TextBox x:Name="Tb_HyEndpoint" HorizontalAlignment="Left" Margin="527,297,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="120"

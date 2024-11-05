@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
-using System.Json;
+using System.Text.Json;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Authentication;
@@ -17,8 +17,6 @@ using System.Threading.Tasks;
 using Flurl.Http;
 using Novus.Streams;
 using SmartImage.Lib.Utilities;
-using JsonObject = System.Json.JsonObject;
-using JsonValue = System.Json.JsonValue;
 
 namespace SmartImage.Lib.Clients;
 
@@ -60,7 +58,7 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 
 	public bool IsValid => EndpointUrl != null && Key != null;
 
-	public async Task<JsonValue> GetFileHashesAsync(string hash, string hashType = "sha256")
+	public async Task<JsonNode> GetFileHashesAsync(string hash, string hashType = "sha256")
 	{
 
 		using var res = await Client.Request("/get_files/file_hashes")
@@ -70,12 +68,12 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 			                .GetAsync();
 
 		var b = await res.GetStreamAsync();
-		var j = JsonValue.Load(b);
+		var j = JsonValue.Parse(b);
 		return j;
 
 	}
 
-	public async Task<JsonValue> GetFileMetadataAsync(HydrusQuery q)
+	public async Task<JsonNode> GetFileMetadataAsync(HydrusQuery q)
 	{
 		var (name, value) = q.GetValue();
 
@@ -84,11 +82,11 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 			                .GetAsync();
 
 		var b = await res.GetStreamAsync();
-		var j = JsonValue.Load(b);
+		var j = JsonValue.Parse(b);
 		return j;
 	}
 
-	public async Task<JsonValue> GetFileRelationshipsAsync(HydrusQuery q)
+	public async Task<JsonNode> GetFileRelationshipsAsync(HydrusQuery q)
 	{
 		var (name, value) = q.GetValue();
 
@@ -97,7 +95,7 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 			                .GetAsync();
 
 		var b = await res.GetStreamAsync();
-		var j = JsonValue.Load(b);
+		var j = JsonValue.Parse(b);
 
 		return j;
 	}
@@ -309,9 +307,9 @@ public partial class HydrusFileRelationship
 	[JsonPropertyName("king_is_on_file_domain")]
 	public bool KingIsOnFileDomain { get; set; }
 
-	public static Dictionary<string, HydrusFileRelationship> Deserialize(JsonValue v)
+	public static Dictionary<string, HydrusFileRelationship> Deserialize(JsonNode v)
 	{
-		var vs = ((JsonObject) v)["file_relationships"];
+		var vs = ((JsonNode) v)["file_relationships"];
 
 		var re = JsonSerializer.Deserialize<Dictionary<string, HydrusFileRelationship>>(vs.ToString());
 

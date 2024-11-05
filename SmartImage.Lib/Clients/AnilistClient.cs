@@ -1,4 +1,5 @@
-﻿using System.Json;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
 using Kantan.Net;
 
 // ReSharper disable PossibleNullReferenceException
@@ -41,8 +42,9 @@ public sealed class AnilistClient : IDisposable
 			id = anilistId
 		});
 
-		var value = response["data"];
-		return value?["Media"]?["title"]?["english"];
+		var      value    = response["data"];
+		var title = value?["Media"]?["title"];
+		return title?["english"]?.ToString() ?? title?["romaji"]?.ToString();
 	}
 
 	#region IDisposable

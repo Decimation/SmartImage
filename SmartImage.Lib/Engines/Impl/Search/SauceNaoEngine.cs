@@ -1,9 +1,10 @@
 ﻿// ReSharper disable UnusedMember.Global
 
 using System.Diagnostics;
-using System.Json;
+using System.Text.Json;
 using System.Net;
 using System.Text;
+using System.Text.Json.Nodes;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -14,9 +15,8 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
-using JsonArray = System.Json.JsonArray;
-using JsonObject = System.Json.JsonObject;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -422,7 +422,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, ID
 		var jsonString = JsonValue.Parse(c);
 
 		if (jsonString is JsonObject jsonObject) {
-			var jsonArray = jsonObject[KeyResults];
+			var jsonArray = jsonObject[KeyResults].AsArray();
 
 			for (int i = 0; i < jsonArray.Count; i++) {
 				var    header = jsonArray[i][KeyHeader];
@@ -437,11 +437,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, ID
 			string json = jsonArray.ToString();
 
 			// var buffer      = new List<SearchResultItem>();
-			var resultArray = JsonValue.Parse(json);
+			var resultArray = JsonValue.Parse(json).AsArray();
 
 			for (int i = 0; i < resultArray.Count; i++) {
-				var   result     = resultArray[i];
-				float similarity = float.Parse(result[KeySimilarity]);
+				var   result     = resultArray[i].AsObject();
+				float similarity = float.Parse(result[KeySimilarity].AsValue().ToString());
 
 				string[] strings = result.ContainsKey(KeyUrls)
 					                   ? (result[KeyUrls] as JsonArray)!

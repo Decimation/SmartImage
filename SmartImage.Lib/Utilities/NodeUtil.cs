@@ -2,6 +2,7 @@
 // 2023-01-13 @ 11:37 PM
 
 using System.Diagnostics;
+using System.Text.Json.Nodes;
 using AngleSharp.Dom;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -13,6 +14,11 @@ namespace SmartImage.Lib.Utilities;
 
 internal static class NodeUtil
 {
+
+	public static JsonNode TryGetKeyValue(this JsonObject v, string k)
+	{
+		return v.ContainsKey(k) ? v[k] : null;
+	}
 
 	[CBN]
 	[LinqTunnel]
@@ -59,8 +65,7 @@ internal static class NodeUtil
 
 	public static INode RecurseChildren(this INode n, int idx, int c)
 	{
-		if (c <= 0)
-		{
+		if (c <= 0) {
 			return n;
 		}
 

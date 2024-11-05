@@ -3,7 +3,7 @@ global using Url = Flurl.Url;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Drawing;
-using System.Json;
+using System.Text.Json;
 using System.Resources;
 using Novus.Utilities;
 using SmartImage.Lib.Results;
@@ -115,9 +115,9 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
 
-	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		var b = VerifyQuery(query);
+		var b = await VerifyQueryAsync(query);
 
 		/*
 		if (!b) {
@@ -141,7 +141,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
 
-		return Task.FromResult(res);
+		return res;
 	}
 
 	protected virtual Url GetRawUrl(SearchQuery query)
@@ -152,7 +152,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return u;
 	}
 
-	public virtual bool VerifyQuery(SearchQuery q)
+	public virtual async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
 		/*if (q.Upload is not { }) {
 			return false;
@@ -174,6 +174,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 		return b;
 	}
+
 
 	// TODO: move config application to ctors?
 

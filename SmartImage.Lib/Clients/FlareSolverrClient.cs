@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: FlareSolverrClient.cs
 // Date: 2024/10/25 @ 12:10:45
 
+using System.Reflection;
 using CliWrap;
 using FlareSolverrSharp;
 
@@ -37,7 +38,10 @@ public sealed class FlareSolverrClient : IDisposable
 	}
 
 	private FlareSolverrClient() { }
-
+	static FlareSolverrClient()
+	{
+		
+	}
 	public static FlareSolverrClient Value { get; private set; } = new();
 
 	public void Dispose()

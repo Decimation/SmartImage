@@ -73,13 +73,17 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			return sr;
 		}
 
+		if (response == null) {
+			goto ret;
+		}
+
 		var fr = await response.GetJsonAsync<FluffleResponse>();
 
 		foreach (FluffleResult result in fr.Results) {
 			var item = result.Convert(sr, out var c);
 			sr.Results.Add(item);
 		}
-
+		ret:
 		sr.Update();
 		return sr;
 	}

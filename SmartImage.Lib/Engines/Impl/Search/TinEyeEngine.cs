@@ -21,15 +21,18 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 	public override void Dispose() { }
 
-	public override bool VerifyQuery(SearchQuery q)
+	public override async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
-		q.Uni.AllocImage().Wait();
+		var ok = await q.Uni.AllocImage();
 
-		if (q.Uni.Image.Width >= 10000) {
-			return false;
+		if (ok) {
+			if (q.Uni.Image.Width >= 10000) {
+				return false;
+			}
+
 		}
 
-		return base.VerifyQuery(q);
+		return await base.VerifyQueryAsync(q);
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
@@ -40,10 +43,8 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			goto ret;
 		}
 
-		var req = await Client.Request(API_URL).PostMultipartAsync(b =>
-		{
-			b.AddString("url", query.Upload);
-		}, cancellationToken: token);
+		var req = await Client.Request(API_URL)
+			          .PostMultipartAsync(b => { b.AddString("url", query.Upload); }, cancellationToken: token);
 
 		TinEyeRoot tinEyeRoot = null;
 
