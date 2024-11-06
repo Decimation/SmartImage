@@ -163,7 +163,6 @@ public static class ImageScanner
 		return req.WithCookies(Cookies);
 	}
 
-	
 
 	public static async Task<List<UniSimilarity>> Analyze(List<Task<UniImage>> tasks, SearchQuery query,
 	                                                      CancellationToken ct = default)
@@ -199,7 +198,7 @@ public static class ImageScanner
 	/// points to binary image data, it is returned.
 	/// </summary>
 	public static async Task<List<Task<UniImage>>> ScanImagesAsync(Url u, CancellationToken ct = default)
-	
+
 	{
 		List<Task<UniImage>> tasks = null;
 		IFlurlRequest        req;
@@ -371,7 +370,7 @@ public static class ImageScanner
 	}
 
 
-	public static IEnumerable<string> GetImageUrls(string html, Url url)
+	public static IEnumerable<string> GetImageUrls(string html, Url url, bool heuristicFilter = true)
 	{
 		var imgUrlsSrc = r_imgSource.Matches(html).Select(static m => m.Groups["URL"].Value);
 		var imgUrlsExt = r_imgExt.Matches(html).Select(static m => m.Value);
@@ -407,6 +406,10 @@ public static class ImageScanner
 
 			return baseUrl + URL_DELIM + u;
 		}).Where(Url.IsValid).Distinct();
+
+		if (heuristicFilter) {
+			abs = abs.Where(u => !u.Contains("thumbs"));
+		}
 
 		return abs;
 	}

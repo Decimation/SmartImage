@@ -34,20 +34,20 @@ internal static class ConsoleFormat
 
 	private static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
 
-	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Style> EngineStyles =
-		new Dictionary<SearchEngineOptions, Style>
+	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Color> EngineColors =
+		new Dictionary<SearchEngineOptions, Color>
 		{
-			{ SearchEngineOptions.SauceNao, new Style(Color.Green) },
-			{ SearchEngineOptions.EHentai, new Style(Color.Purple) },
-			{ SearchEngineOptions.Iqdb, new Style(Color.LightGreen) },
-			{ SearchEngineOptions.Ascii2D, new Style(Color.Cyan1) },
-			{ SearchEngineOptions.TraceMoe, new Style(Color.DodgerBlue1) },
-			{ SearchEngineOptions.RepostSleuth, new Style(Color.RosyBrown) },
-			{ SearchEngineOptions.ArchiveMoe, new Style(Color.Wheat1) },
-			{ SearchEngineOptions.Yandex, new Style(Color.Orange1) },
-			{ SearchEngineOptions.Iqdb3D, new Style(Color.SeaGreen1) },
-			{ SearchEngineOptions.Fluffle, new Style(Color.LightYellow3) },
-			{ SearchEngineOptions.TinEye, new Style(Color.SkyBlue1) },
+			{ SearchEngineOptions.SauceNao, (Color.Green) },
+			{ SearchEngineOptions.EHentai, (Color.Purple) },
+			{ SearchEngineOptions.Iqdb, (Color.LightGreen) },
+			{ SearchEngineOptions.Ascii2D, (Color.Cyan1) },
+			{ SearchEngineOptions.TraceMoe, (Color.DodgerBlue1) },
+			{ SearchEngineOptions.RepostSleuth, (Color.RosyBrown) },
+			{ SearchEngineOptions.ArchiveMoe, (Color.Wheat1) },
+			{ SearchEngineOptions.Yandex, (Color.Orange1) },
+			{ SearchEngineOptions.Iqdb3D, (Color.SeaGreen1) },
+			{ SearchEngineOptions.Fluffle, (Color.LightYellow3) },
+			{ SearchEngineOptions.TinEye, (Color.SkyBlue1) },
 
 		}.AsReadOnly();
 
@@ -158,18 +158,14 @@ internal static class ConsoleFormat
 		return t;
 	}
 
-	internal static Style GetEngineStyle(SearchEngineOptions opt)
+	internal static Color GetEngineColor(SearchEngineOptions opt)
 	{
-		if (!EngineStyles.TryGetValue(opt, out var style)) {
-			style = Style.Plain;
+		if (!EngineColors.TryGetValue(opt, out var color)) {
+			color = Color.White;
 		}
 
-		return style;
+		return color;
 	}
-
-	#region Prompts
-
-	#endregion
 
 	internal const int    EC_ERROR = -1;
 	internal const int    EC_OK    = 0;
