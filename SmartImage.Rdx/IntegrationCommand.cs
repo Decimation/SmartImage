@@ -15,20 +15,20 @@ internal class IntegrationCommand : Command<IntegrationCommandSettings>
 	public override int Execute(CommandContext context, IntegrationCommandSettings settings)
 	{
 		try {
-			// AConsole.WriteLine($"{AppUtil.IsContextMenuAdded}");
+			// AnsiConsole.WriteLine($"{AppUtil.IsContextMenuAdded}");
 
 			if (settings.ContextMenu.HasValue) {
 				var rv = AppUtil.HandleContextMenu(settings.ContextMenu.Value, settings.ContextMenuArguments);
-				AConsole.WriteLine($"Context menu change: {rv}");
+				AnsiConsole.WriteLine($"Context menu change: {rv}");
 			}
 
-			AConsole.WriteLine($"Context menu enabled: {AppUtil.IsContextMenuAdded}");
+			AnsiConsole.WriteLine($"Context menu enabled: {AppUtil.IsContextMenuAdded}");
 		}
 		catch (Exception e) {
-			AConsole.WriteException(e);
+			AnsiConsole.WriteException(e);
 		}
 
-		return ConsoleItems.EC_OK;
+		return ConsoleFormat.EC_OK;
 	}
 
 }

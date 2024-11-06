@@ -228,7 +228,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public SearchConfig()
 	{
-		PropertyChanged += (sender, args) =>
+		PropertyChanged += static (sender, args) =>
 		{
 			Trace.WriteLine($"Changed {args.PropertyName}", nameof(SearchConfig));
 		};

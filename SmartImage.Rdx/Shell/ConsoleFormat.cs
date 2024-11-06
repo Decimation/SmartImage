@@ -1,7 +1,7 @@
 ﻿using System.Data;
-using System.Reflection;
 using Novus.OS;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -16,6 +16,14 @@ internal static class ConsoleFormat
 
 	// Ideally a dictionary would be used here...
 
+	#region Colors
+
+	public static readonly Color Clr_Misc1 = new(0x80, 0xFF, 0x80);
+
+	#endregion
+
+	#region Styles
+
 	internal static readonly Style Sty_Name = new(decoration: Decoration.Italic);
 
 	internal static readonly Style Sty_Sim = new(Color.Wheat1, decoration: Decoration.None);
@@ -24,13 +32,7 @@ internal static class ConsoleFormat
 
 	public static readonly Style Sty_Grid1 = new(foreground: Color.DodgerBlue1, decoration: Decoration.Bold);
 
-	public static readonly Color Clr_Misc1 = new(0x80, 0xFF, 0x80);
-
-	internal static readonly Text Txt_Empty = new(string.Empty);
-
-	internal const string STR_DEFAULT = "-";
-
-	static ConsoleFormat() { }
+	private static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
 
 	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Style> EngineStyles =
 		new Dictionary<SearchEngineOptions, Style>
@@ -45,17 +47,33 @@ internal static class ConsoleFormat
 			{ SearchEngineOptions.Yandex, new Style(Color.Orange1) },
 			{ SearchEngineOptions.Iqdb3D, new Style(Color.SeaGreen1) },
 			{ SearchEngineOptions.Fluffle, new Style(Color.LightYellow3) },
+			{ SearchEngineOptions.TinEye, new Style(Color.SkyBlue1) },
 
-		};
+		}.AsReadOnly();
 
-	internal static readonly Capabilities ProfileCapabilities = AConsole.Profile.Capabilities;
+	#endregion
+
+	#region Text
+
+	internal static readonly Text Txt_Empty = new(string.Empty);
+
+	internal static readonly Text Txt_Default = new(STR_DEFAULT);
+
+	internal const string STR_DEFAULT = "-";
+
+	#endregion
+
+
+	static ConsoleFormat() { }
+
+	internal static readonly Capabilities ProfileCapabilities = AnsiConsole.Profile.Capabilities;
 
 	internal static Grid CreateInfoGrid()
 	{
 		var grd = new Grid();
 		grd.AddColumns(2);
 
-		var dict = new Dictionary<string, object>()
+		var dict = new Dictionary<string, object>
 		{
 			["OS"]               = $"{AppUtil.GetOSName()} / {Environment.OSVersion}",
 			["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
@@ -142,11 +160,19 @@ internal static class ConsoleFormat
 
 	internal static Style GetEngineStyle(SearchEngineOptions opt)
 	{
-		if (!ConsoleFormat.EngineStyles.TryGetValue(opt, out var style)) {
+		if (!EngineStyles.TryGetValue(opt, out var style)) {
 			style = Style.Plain;
 		}
 
 		return style;
 	}
+
+	#region Prompts
+
+	#endregion
+
+	internal const int    EC_ERROR = -1;
+	internal const int    EC_OK    = 0;
+	internal const double COMPLETE = 100.0d;
 
 }

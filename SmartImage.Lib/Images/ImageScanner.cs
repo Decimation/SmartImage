@@ -163,6 +163,7 @@ public static class ImageScanner
 		return req.WithCookies(Cookies);
 	}
 
+	
 
 	public static async Task<List<UniSimilarity>> Analyze(List<Task<UniImage>> tasks, SearchQuery query,
 	                                                      CancellationToken ct = default)
@@ -192,11 +193,13 @@ public static class ImageScanner
 		return rg;
 	}
 
+
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
 	/// points to binary image data, it is returned.
 	/// </summary>
 	public static async Task<List<Task<UniImage>>> ScanImagesAsync(Url u, CancellationToken ct = default)
+	
 	{
 		List<Task<UniImage>> tasks = null;
 		IFlurlRequest        req;

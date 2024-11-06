@@ -96,11 +96,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		// Results = [GetRawResultItem()];
 	}
 
-	public override string ToString()
-	{
-		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
-	}
-
 	public void Dispose()
 	{
 		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}");
@@ -157,8 +152,8 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 			return null;
 		}
 
-		return Results.OrderByDescending(r => r.Similarity)
-			.FirstOrDefault(r => Url.IsValid(r.Url));
+		return Results.OrderByDescending(static r => r.Similarity)
+			.FirstOrDefault(static r => Url.IsValid(r.Url));
 	}
 
 
@@ -171,6 +166,11 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 			IsRaw = true,
 			Url   = RawUrl
 		};
+	}
+
+	public override string ToString()
+	{
+		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
 	}
 
 }

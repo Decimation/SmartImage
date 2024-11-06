@@ -29,8 +29,13 @@ public static class Program
 
 	public static async Task<int> Main(string[] args)
 	{
-		Debug.WriteLine(AConsole.Profile.Height);
+		Debug.WriteLine(AnsiConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
+
+		AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+		{
+			Trace.WriteLine($"{sender} -> {eventArgs}");
+		};
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -56,7 +61,7 @@ public static class Program
 
 			}*/
 
-			// var s = AConsole.Ask<string>("...");
+			// var s = AnsiConsole.Ask<string>("...");
 
 		}
 		/*if (args.Length == 0) {
@@ -81,7 +86,7 @@ public static class Program
 					}
 				}
 			};
-			var sz = AConsole.Prompt(prompt);
+			var sz = AnsiConsole.Prompt(prompt);
 
 			args = [sz];
 		}*/
@@ -96,7 +101,7 @@ public static class Program
 
 			args = newArgs;
 
-			AConsole.WriteLine($"Received input from stdin");
+			AnsiConsole.WriteLine($"Received input from stdin");
 		}
 
 		var ff = ConsoleFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
@@ -107,7 +112,7 @@ public static class Program
 			.LeftJustified()
 			.Color(ConsoleFormat.Clr_Misc1);
 
-		AConsole.Write(fg);
+		AnsiConsole.Write(fg);
 
 #if DEBUG
 		Trace.WriteLine(args.QuickJoin());
@@ -115,7 +120,7 @@ public static class Program
 
 		Grid grd = ConsoleFormat.CreateInfoGrid();
 
-		AConsole.Write(grd);
+		AnsiConsole.Write(grd);
 
 		// var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
 
@@ -131,20 +136,20 @@ public static class Program
 				.WithDescription("Configure system integration such as context menu");
 
 		});
-		int x = ConsoleItems.EC_OK;
+		int x = ConsoleFormat.EC_OK;
 
 		try {
 			x = await app.RunAsync(args);
 
 		}
 		catch (Exception e) {
-			AConsole.WriteException(e);
-			x = ConsoleItems.EC_ERROR;
+			AnsiConsole.WriteException(e);
+			x = ConsoleFormat.EC_ERROR;
 		}
 		finally {
 
-			if (x != ConsoleItems.EC_OK) {
-				AConsole.Confirm("Press any key to continue");
+			if (x != ConsoleFormat.EC_OK) {
+				AnsiConsole.Confirm("Press any key to continue");
 			}
 		}
 

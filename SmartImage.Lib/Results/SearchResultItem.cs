@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 using System.Dynamic;
+using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Diagnostics;
@@ -11,6 +12,8 @@ using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
+using CoenM.ImageHash;
+using Novus.Streams;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 #nullable disable
@@ -200,8 +203,41 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		return EmbeddedUrls != null;
 	}*/
 
+	public async ValueTask<bool> HashAsync(SearchQuery query, CancellationToken ct = default)
+	{
+		var ph = new PerceptualHash();
+
+		var ui = Uni[0];
+
+		try {
+			lock (ui.Stream) {
+				var hash = ph.Hash(ui.Stream);
+
+				ui.Stream.TrySeek();
+
+				double sim;
+
+				lock (query.Uni.Stream) {
+					query.Uni.Alloc(ct);
+
+					query.Uni.Stream.TrySeek();
+					var hash2 = ph.Hash(query.Uni.Stream);
+					sim = CompareHash.Similarity(hash, hash2);
+
+				}
+
+				Similarity = sim;
+			}
+		}
+		catch (Exception e) {
+			Trace.WriteLine($"{e}");
+		}
+		return true;
+	}
+
 	public async Task<bool> ScanAsync(CancellationToken ct = default)
 	{
+		// TODO: REFACTOR TO USE THIS FUNCTION
 
 		if (HasUni) {
 			return true;
@@ -216,7 +252,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		var tasks = await ImageScanner.ScanImagesAsync(Url, ct: ct);
 
 		while (tasks.Count != 0) {
-			var i   = await Task.WhenAny(tasks);
+			var i = await Task.WhenAny(tasks);
 			tasks.Remove(i);
 			var res = await i;
 
@@ -243,8 +279,11 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public bool Equals(SearchResultItem other)
 	{
-		if (ReferenceEquals(null, other)) return false;
-		if (ReferenceEquals(this, other)) return true;
+		if (ReferenceEquals(null, other))
+			return false;
+
+		if (ReferenceEquals(this, other))
+			return true;
 
 		return Root.Equals(other.Root) && Url == other.Url && Uni == other.Uni;
 	}
@@ -257,6 +296,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	public void Dispose()
 	{
 		Debug.WriteLine($"Disposing {Url} of {Root.Engine.Name}", LogCategories.C_VERBOSE);
+
 		if (Uni != null && Uni.Any()) {
 			foreach (var us in Uni) {
 
@@ -275,16 +315,22 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public int CompareTo(SearchResultItem other)
 	{
-		if (ReferenceEquals(this, other)) return 0;
-		if (ReferenceEquals(null, other)) return 1;
+		if (ReferenceEquals(this, other))
+			return 0;
+
+		if (ReferenceEquals(null, other))
+			return 1;
 
 		return Nullable.Compare(Similarity, other.Similarity);
 	}
 
 	public int CompareTo(object obj)
 	{
-		if (ReferenceEquals(null, obj)) return 1;
-		if (ReferenceEquals(this, obj)) return 0;
+		if (ReferenceEquals(null, obj))
+			return 1;
+
+		if (ReferenceEquals(this, obj))
+			return 0;
 
 		return obj is SearchResultItem other
 			       ? CompareTo(other)

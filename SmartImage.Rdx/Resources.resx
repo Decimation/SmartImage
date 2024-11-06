@@ -127,4 +127,13 @@
   <data name="Fg_SantaClara" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>Resources\Santa Clara.flf;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="Chc_Exit" xml:space="preserve">
+    <value>exit</value>
+  </data>
+  <data name="Chc_Scan" xml:space="preserve">
+    <value>scan</value>
+  </data>
+  <data name="Chc_Open" xml:space="preserve">
+    <value>open</value>
+  </data>
 </root>

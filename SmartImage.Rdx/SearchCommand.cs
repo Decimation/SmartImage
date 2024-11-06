@@ -5,7 +5,7 @@ global using R2 = SmartImage.Rdx.Resources;
 global using R1 = SmartImage.Lib.Resources;
 
 // global using AC = Spectre.Console.AnsiConsole;
-global using AConsole = Spectre.Console.AnsiConsole;
+// global using AnsiConsole = Spectre.Console.AnsiConsole;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
@@ -60,10 +60,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private readonly CancellationTokenSource m_cts;
 
-	private readonly ConcurrentBag<SearchResult>                             m_results;
-	private readonly ConcurrentDictionary<SearchResultItem, IList<UniImage>> m_results2;
-
-	private SearchCommandSettings m_scs;
+	private readonly ConcurrentBag<SearchResult>             m_results;
+	private readonly ConcurrentDictionary<object, int> m_results2;
+	private          SearchCommandSettings                   m_scs;
 
 	private readonly STable m_table;
 
@@ -82,9 +81,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		// Client.OnResultComplete   += OnResultComplete;
 		m_cts      = new CancellationTokenSource();
 		m_results  = new ConcurrentBag<SearchResult>();
-		m_results2 = new ConcurrentDictionary<SearchResultItem, IList<UniImage>>();
 		m_scs      = null;
 		m_table    = CreateResultTable();
+		m_results2 = new ();
 
 		Query = SearchQuery.Null;
 	}
@@ -106,7 +105,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			Config.ReadCookies = m_scs.ReadCookies.Value;
 		}
 
-		Config.FlareSolverr = m_scs.FlareSolverr;
+		Config.FlareSolverr       = m_scs.FlareSolverr;
 		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
 
 		await Client.LoadEnginesAsync();
@@ -129,7 +128,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		}
 
 
-		p.Increment(ConsoleItems.COMPLETE / 2);
+		p.Increment(ConsoleFormat.COMPLETE / 2);
 
 		// ctx.Refresh();
 
@@ -142,7 +141,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			goto ret;
 		}
 
-		p.Increment(ConsoleItems.COMPLETE / 2);
+		p.Increment(ConsoleFormat.COMPLETE / 2);
 
 	ret:
 		return ok;
@@ -152,10 +151,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	{
 		m_scs = settings;
 
-		var task = AConsole.Progress()
+		var task = AnsiConsole.Progress()
 			.AutoRefresh(true)
 			.StartAsync(SetupSearchAsync);
-
 
 		try {
 			var ok = await task;
@@ -167,7 +165,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 				{
 					Header = new PanelHeader($"{Query.Uni.ValueString}")
 				};
-				AConsole.Write(panel);
+				AnsiConsole.Write(panel);
 				await InitConfigAsync(ok);
 
 			}
@@ -176,12 +174,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			}
 		}
 		catch (Exception e) {
-			AConsole.WriteException(e);
-			return ConsoleItems.EC_ERROR;
+			AnsiConsole.WriteException(e);
+			return ConsoleFormat.EC_ERROR;
 		}
 
 		var gr = CreateConfigGrid();
-		AConsole.Write(gr);
+		AnsiConsole.Write(gr);
 
 		Console.CancelKeyPress += OnCancelKeyPress;
 
@@ -193,12 +191,18 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Task run;
 
 #if !UNITTEST
-		run = AConsole.Live(m_table)
+		run = AnsiConsole.Live(m_table)
 			.StartAsync(RunSearchLiveAsync);
 #else
 		run = RunSearchLiveAsync(null);
 
 #endif
+
+		run = run.ContinueWith((c) =>
+		{
+			//
+			Prm_Engine.Choices.AddRange(m_results);
+		});
 
 		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
 			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
@@ -212,7 +216,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					break;
 
 				case OutputFileFormat.Delimited:
-					run = run.ContinueWith(WriteOutputFileAsync, m_cts.Token,
+					run = run.ContinueWith(WriteOutputFile, m_cts.Token,
 					                       TaskContinuationOptions.OnlyOnRanToCompletion,
 					                       TaskScheduler.Default);
 					break;
@@ -233,34 +237,50 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			do {
 				cmd = GetCommandPrompt();
 
-				if (cmd != ConsoleItems.s_commandChoices[^1]) {
+				if (cmd != R2.Chc_Exit) {
 					var sr  = GetResultPrompt();
 					var num = GetNumberPrompt(sr);
 					var res = sr.Results[num];
 
-					if (cmd == ConsoleItems.s_commandChoices[0]) {
+					if (cmd == R2.Chc_Open) {
 						SearchClient.OpenResult(res.Url);
 					}
-					else if (cmd == ConsoleItems.s_commandChoices[1]) {
-						run2 = ShowImageScanResultsAsync(res);
-						await run2;
+					else if (cmd == R2.Chc_Scan) {
+						var run3 = ShowImageScanResultsAsync(res);
+						await run3;
+
+						var cmd2 = GetCommand2Prompt();
+
+						if (cmd2 == "back") {
+							goto cont;
+
+						}
+						else if (cmd2 == "calculate") {
+							var hashOk = res.HashAsync(Query);
+
+							// var row    = dict[item];
+							// table2.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
+						}
+
 					}
 				}
 				else { }
 
-			} while (cmd != ConsoleItems.s_commandChoices[^1]);
+			cont:
+				continue;
+			} while (cmd != R2.Chc_Exit);
 
 			// run2 = ShowImageScanResultsAsync(item);
 			// await run2;
 		}
 
 		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
-			while (!AConsole.Confirm("Exit")) {
+			while (!AnsiConsole.Confirm("Exit")) {
 				// ...
 			}
 		}
 
-		return ConsoleItems.EC_OK;
+		return ConsoleFormat.EC_OK;
 	}
 
 	// TODO: Rewrite RunSearch counterparts
@@ -277,7 +297,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
 			var result = await Client.ResultChannel.Reader.ReadAsync();
 
-			m_results.Add(result);
+			m_results2.TryAdd(result, -1);
 
 			/*var txt  = new Text(result.Engine.Name, GetEngineStyle(result.Engine.EngineOption));
 			var txt2 = new Text($"{result.Results.Count}");
@@ -288,6 +308,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 			foreach (IRenderable[] row in rows) {
 				m_table.AddRow(row);
+				m_results2[result] = m_table.Rows.Count-1;
+
 			}
 
 			c.Refresh();
@@ -297,70 +319,109 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	}
 
-	private int GetNumberPrompt(SearchResult result)
+	private int GetRow(object o)
 	{
-		int input = default;
+		if (o is SearchResultItem sri) {
+			var sr = sri.Root;
+			return m_results2[sr] + sr.Results.IndexOf(sri);
 
-		var prompt = new TextPrompt<int>("<#>")
-		{
-			ShowChoices      = false,
-			ShowDefaultValue = false,
-			AllowEmpty       = false,
-			Validator = i =>
-			{
-				if (i < result.Results.Count && i >= 0) {
-					return ValidationResult.Success();
+
+		}
+	}
+
+
+	private async ValueTask ShowImageScanResultsAsync(SearchResultItem item)
+	{
+		/*var  gr2 = new Grid();
+		gr2.AddColumns(5);
+		gr2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
+
+		// AnsiConsole.Write(gr2);
+
+		var tr = new Tree(gr2);
+		var ld = AnsiConsole.Live(tr);*/
+
+		// var table2 = CreateResultTable();
+		// table2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
+		// var ld   = AnsiConsole.Live(table2);
+
+		if (item.HasUni) {
+			Trace.WriteLine($"{item} cached");
+
+			int i   = 0;
+			var row = GetRow(item);
+
+			foreach (var ui in item.Uni) {
+
+				m_table.InsertRow(row++, CreateUniImageRow(ui, item, i));
+				i++;
+			}
+		}
+		else {
+
+			// var ok = await r.ScanAsync();
+			Trace.WriteLine($"Scanning {item}");
+			var resOk = await item.ScanAsync();
+
+			if (resOk) {
+				var row = GetRow(item);
+
+				for (int i = 0; i < item.Uni.Length; i++) {
+
+					m_table.InsertRow(row++, CreateUniImageRow(item.Uni[i], item, i));
+					
 				}
+			}
 
-				return ValidationResult.Error("Out of range");
+		}
+
+
+	}
+
+	private static string GetCommand2Prompt()
+	{
+		var textPrompt = new TextPrompt<string>(Markup.Escape("[Command 2]"))
+		{
+			ShowChoices = true,
+			Choices =
+			{
+				"calculate", "back"
 			}
 		};
-		input = AConsole.Prompt(prompt);
 
+		var prompt = AnsiConsole.Prompt(textPrompt);
 
-		return input;
+		return prompt;
 	}
 
-	private SearchResult GetResultPrompt()
+	private async Task RunCompletionCommandAsync([CBN] object o)
 	{
-		var prompt = new TextPrompt<SearchResult>("<result>")
-		{
-			ShowChoices      = false,
-			ShowDefaultValue = false,
-			AllowEmpty       = false,
-			Converter        = s => { return s.Engine.Name; }
-		};
+		Debug.WriteLine($"{nameof(RunCompletionCommandAsync)}");
+		var command = Cli.Wrap(m_scs.Command);
 
-		prompt = prompt.AddChoices(m_results);
+		var cmdArgs      = m_scs.CommandArguments;
+		var stdOutBuffer = new StringBuilder();
+		var stdErrBuffer = new StringBuilder();
 
-		SearchResult input = default;
+		if (!String.IsNullOrWhiteSpace(cmdArgs)) {
+			command = command.WithArguments(cmdArgs);
+		}
 
-		input = AConsole.Prompt(prompt);
+		command = command.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
+			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer));
 
-		return input;
+		var commandTask = command.ExecuteAsync(m_cts.Token);
+
+		AnsiConsole.WriteLine($"Process id: {commandTask.ProcessId}");
+
+		var result = await commandTask;
+
+		AnsiConsole.WriteLine($"Process successful: {result.IsSuccess}");
 	}
 
-	private string GetCommandPrompt()
+	private void WriteOutputFile([CBN] object o)
 	{
-		var prompt = new TextPrompt<string>("<cmd>")
-		{
-			ShowChoices      = true,
-			ShowDefaultValue = true,
-			AllowEmpty       = false,
-		};
-
-		prompt = prompt.AddChoices(ConsoleItems.s_commandChoices);
-
-		string input = null;
-
-		input = AConsole.Prompt(prompt);
-
-		return input;
-	}
-
-	private Task WriteOutputFileAsync([CBN] object o)
-	{
-		Debug.WriteLine($"{nameof(WriteOutputFileAsync)}");
+		Debug.WriteLine($"{nameof(WriteOutputFile)}");
 
 		var fw = File.OpenWrite(m_scs.OutputFile);
 
@@ -368,7 +429,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		{
 			AutoFlush = true
 		};
-		var res    = m_results.ToArray();
+
 		var fields = m_scs.OutputFields;
 
 		bool fName   = fields.HasFlag(OutputFields.Name);
@@ -383,9 +444,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
 
-		for (int i = 0; i < res.Length; i++) {
-			var sr = res[i];
-
+		foreach (SearchResult sr in m_results) {
 			for (int j = 0; j < sr.Results.Count; j++) {
 				var sri = sr.Results[j];
 
@@ -409,119 +468,59 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 				// string[] items  = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
 				sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, rg));
 			}
-
 		}
 
 		sw.Dispose();
 		fw.Dispose();
 
-		AConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
-		return Task.CompletedTask;
-	}
-
-	private Task ShowImageScanResultsAsync(SearchResultItem item)
-	{
-		Task run2;
-		/*var  gr2 = new Grid();
-		gr2.AddColumns(5);
-		gr2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
-
-		// AConsole.Write(gr2);
-
-		var tr = new Tree(gr2);
-		var ld = AConsole.Live(tr);*/
-
-		var table2 = CreateResultTable();
-		table2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
-		var ld = AConsole.Live(table2);
-
-		run2 = ld.StartAsync(async f =>
-		{
-			if (m_results2.TryGetValue(item, out IList<UniImage> list)) {
-				Trace.WriteLine($"{item} cached");
-
-				var list2 = list.OfType<UniImageUri>();
-				int i     = 0;
-
-				foreach (var ui in list2) {
-					table2.AddRow(CreateUniImageRow(ui, item, i++));
-				}
-			}
-			else {
-				// var ok = await r.ScanAsync();
-				Trace.WriteLine($"Scanning {item}");
-				var resOk = await ImageScanner.ScanImagesAsync(item.Url);
-
-				var buf = new List<UniImage>();
-
-				while (resOk.Count != 0) {
-					var t = await Task.WhenAny(resOk);
-					resOk.Remove(t);
-
-					var r = await t;
-
-					if (r == null) {
-						continue;
-					}
-
-					if (r is UniImageUri ru) {
-						buf.Add(ru);
-
-						// tr.AddNode(new Text(ru.ValueString, new Style(link: ru.Url)));
-
-						table2.AddRow(CreateUniImageRow(ru, item, buf.Count));
-					}
-
-					f.Refresh();
-
-				}
-
-				m_results2.TryAdd(item, buf);
-
-			}
-		});
-
-		return run2;
-	}
-
-	private async Task RunCompletionCommandAsync([CBN] object o)
-	{
-		Debug.WriteLine($"{nameof(RunCompletionCommandAsync)}");
-		var command = Cli.Wrap(m_scs.Command);
-
-		var cmdArgs      = m_scs.CommandArguments;
-		var stdOutBuffer = new StringBuilder();
-		var stdErrBuffer = new StringBuilder();
-
-		if (!String.IsNullOrWhiteSpace(cmdArgs)) {
-			command = command.WithArguments(cmdArgs);
-		}
-
-		command = command.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer));
-
-		var commandTask = command.ExecuteAsync(m_cts.Token);
-
-		AConsole.WriteLine($"Process id: {commandTask.ProcessId}");
-
-		var result = await commandTask;
-
-		AConsole.WriteLine($"Process successful: {result.IsSuccess}");
+		AnsiConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
 	}
 
 	#endregion
 
 	#region
 
-	private static IRenderable[] CreateUniImageRow(UniImageUri ui, SearchResultItem sri, int idx)
+	private int GetNumberPrompt(SearchResult result)
 	{
+		var prompt = Prm_Num.Validate(i =>
+		{
+			if (i < result.Results.Count && i >= 0) {
+				return ValidationResult.Success();
+			}
+
+			return ValidationResult.Error("Out of range");
+		});
+
+
+		return AnsiConsole.Prompt(prompt);
+	}
+
+	private string GetCommandPrompt()
+	{
+		return AnsiConsole.Prompt(Prm_Command);
+	}
+
+	private SearchResult GetResultPrompt()
+	{
+
+		return AnsiConsole.Prompt(Prm_Engine);
+	}
+
+	private static IRenderable[] CreateUniImageRow(UniImage ui, SearchResultItem sri, int idx)
+	{
+		// var url = ui is UniImageUri uiu ? uiu.Url.ToString() : String.Empty;
+
+		if (ui is UniImageUri uiu) {
+			Debug.Assert(uiu.Url == ui.ValueString);
+		}
+
 		return
 		[
-			new Text($"{sri.Root.Engine.Name} {idx}", new Style(link: ui.Url)),
-			new Text(ui.Url),
-			new Text($"{0f}"),
-			new Text("-"),
-			new Text("-")
+			new Text($"{sri.Root.Engine.Name} {idx}", new Style(link: ui.ValueString)),
+			new Text(ui.ValueString),
+			ConsoleFormat.Txt_Empty,
+			ConsoleFormat.Txt_Empty,
+			ConsoleFormat.Txt_Empty
 		];
 	}
 
@@ -591,10 +590,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		var         link = res.Url;
 
 		if (link != null) {
-			url = new Markup(link.ToString(), new Style(link: link));
+			url = new Markup(Markup.Escape(link.ToString()), new Style(link: link));
 		}
 		else {
-			url = new Text("-");
+			url = ConsoleFormat.Txt_Default;
 		}
 
 		var sim    = new Text($"{res.Similarity}");
@@ -623,7 +622,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	{
 		var ci = new CanvasImage(Query.Uni.Stream)
 		{
-			MaxWidth = AConsole.Profile.Width / 6,
+			MaxWidth = AnsiConsole.Profile.Width / 6,
 
 			// PixelWidth = 2
 		};
@@ -664,12 +663,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	[ContractAnnotation("=> halt")]
 	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
 	{
-		AConsole.MarkupLine($"[red]Cancellation requested[/]");
-		AConsole.Clear();
+		AnsiConsole.MarkupLine($"[red]Cancellation requested[/]");
+		AnsiConsole.Clear();
 		m_cts.Cancel();
 		args.Cancel = false;
 
-		Environment.Exit(ConsoleItems.EC_ERROR);
+		Environment.Exit(ConsoleFormat.EC_ERROR);
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
@@ -685,11 +684,44 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			sr.Dispose();
 		}
 
+		Prm_Num.Validator = null;
+		Prm_Engine.Choices.Clear();
 		m_results.Clear();
+		m_results2.Clear();
 		m_cts.Dispose();
 		m_scs = null;
 		Client.Dispose();
 		Query.Dispose();
 	}
+
+	private static readonly TextPrompt<string> Prm_Command = new(Markup.Escape("[Command]"))
+	{
+		ShowChoices      = true,
+		ShowDefaultValue = true,
+		AllowEmpty       = false,
+		Choices =
+		{
+			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Exit
+		}
+	};
+
+	private static readonly TextPrompt<SearchResult> Prm_Engine = new(Markup.Escape("[Engine]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+		Converter = s =>
+		{
+			//
+			return s.Engine.Name;
+		}
+	};
+
+	private static readonly TextPrompt<int> Prm_Num = new(Markup.Escape("[#]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+	};
 
 }

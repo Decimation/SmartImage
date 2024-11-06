@@ -61,6 +61,33 @@ namespace SmartImage.Rdx {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to exit.
+        /// </summary>
+        internal static string Chc_Exit {
+            get {
+                return ResourceManager.GetString("Chc_Exit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to open.
+        /// </summary>
+        internal static string Chc_Open {
+            get {
+                return ResourceManager.GetString("Chc_Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to scan.
+        /// </summary>
+        internal static string Chc_Scan {
+            get {
+                return ResourceManager.GetString("Chc_Scan", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         internal static byte[] Fg_Cybermedium {
