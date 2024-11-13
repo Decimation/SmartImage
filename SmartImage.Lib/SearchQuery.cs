@@ -35,16 +35,16 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 {
 
 	[MN]
-	public Url Upload { get; internal set; }
+	public Url Upload { get; private set; }
 
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Url.IsValid(Upload);
 
-	public UniImage Uni { get; }
+	public UniImage Source { get; }
 
 	internal SearchQuery(UniImage img, Url upload)
 	{
-		Uni  = img;
+		Source  = img;
 		Upload = upload;
 
 		// Size = Uni == null ? default : Uni.Stream.Length;
@@ -75,15 +75,15 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			return Upload;
 		}
 
-		string fu = Uni.ValueString;
+		string fu = Source.ValueString;
 
-		if (Uni.IsUri) {
+		if (Source.IsUri) {
 			Upload = fu;
 
 			// Size   = BaseSearchEngine.NA_SIZE;
 			// var fmt = await ISImage.DetectFormatAsync(Stream);
 
-			Debug.WriteLine($"Skipping upload for {Uni.ValueString}", nameof(UploadAsync));
+			Debug.WriteLine($"Skipping upload for {Source.ValueString}", nameof(UploadAsync));
 		}
 		else {
 			// fu = await test(fu);
@@ -130,12 +130,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public void Dispose()
 	{
-		Uni?.Dispose();
+		Source?.Dispose();
 	}
 
 	public override string ToString()
 	{
-		return $"{Uni}: {IsUploaded}";
+		return $"{Source}: {IsUploaded}";
 	}
 
 	#region Equality members
@@ -145,7 +145,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		if (ReferenceEquals(null, other)) return false;
 		if (ReferenceEquals(this, other)) return true;
 
-		return Equals(Uni, other.Uni) && Equals(Upload, other.Upload);
+		return Equals(Source, other.Source) && Equals(Upload, other.Upload);
 	}
 
 	public override bool Equals(object obj)
@@ -156,7 +156,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	public override int GetHashCode()
 	{
 		// return HashCode.Combine(Uni, Upload, Size);
-		return HashCode.Combine(Uni);
+		return HashCode.Combine(Source);
 
 		// return Uni.GetHashCode();
 	}

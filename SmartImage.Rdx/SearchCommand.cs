@@ -64,7 +64,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private readonly ConcurrentBag<SearchResult>             m_results;
 	private readonly ConcurrentDictionary<SearchResult, int> m_results2;
-	private          SearchCommandSettings                   m_scs;
+
+	private SearchCommandSettings m_scs;
 
 	private readonly STable m_table;
 
@@ -165,7 +166,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 				var panel = new Panel(ci)
 				{
-					Header = new PanelHeader($"{Query.Uni.ValueString}")
+					Header = new PanelHeader($"{Query.Source.ValueString}")
 				};
 				AnsiConsole.Write(panel);
 				await InitConfigAsync(ok);
@@ -269,7 +270,18 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 					}
 					else if (cmd2 == "calculate") {
-						var hashOk = res.HashAsync(Query);
+						await AnsiConsole.Live(m_table).StartAsync(async (f) =>
+						{
+
+							var ui = res.Uni[0];
+							var      hashOk   = ui.TryCalculateSimilarity(Query.Source);
+							if (hashOk) {
+								var row    = GetRow(ui);
+								m_table.Rows.Update(row, 2, new Text(res.Similarity.ToString()));
+								f.Refresh();
+
+							}
+						});
 
 						// var row    = dict[item];
 						// table2.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
@@ -357,11 +369,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			var row     = GetRow(item);
 			var rowOrig = row;
 			var delta   = item.Uni.Length;
-
+			var idx = item.Root.Results.IndexOf(item);
+			
 			foreach (var ui in item.Uni) {
-				m_table.InsertRow(++row, CreateUniImageRow(ui, item, i));
-				i++;
-
+				m_table.InsertRow(++row, CreateUniImageRow(ui, item, idx, i++));
 			}
 
 			foreach (var kv in m_results2) {
@@ -563,7 +574,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	#region
 
-	private static IRenderable[] CreateUniImageRow(UniImage ui, SearchResultItem sri, int idx)
+	private static IRenderable[] CreateUniImageRow(UniImage ui, SearchResultItem sri, int idx, int subIdx)
 	{
 		// var url = ui is UniImageUri uiu ? uiu.Url.ToString() : String.Empty;
 
@@ -578,8 +589,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		return
 		[
-			new Text($"{result.Engine.Name} {idx}", style),
-			new Text(ui.ValueString),
+			new Text($"{result.Engine.Name} #{idx}.{subIdx}", style),
+			new Text(Markup.Escape(ui.ValueString)),
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty
@@ -682,13 +693,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private CanvasImage GetQueryCanvasImage()
 	{
-		var ci = new CanvasImage(Query.Uni.Stream)
+		var ci = new CanvasImage(Query.Source.Stream)
 		{
 			MaxWidth = AnsiConsole.Profile.Width / 6,
 
 			// PixelWidth = 2
 		};
-		Query.Uni.Stream.TrySeek();
+		Query.Source.Stream.TrySeek();
 		return ci;
 	}
 
@@ -710,7 +721,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		foreach (var o in kv) {
 			dt.AddRow(new Text(o.Key, ConsoleFormat.Sty_Grid1),
-			          new Text(o.Value.ToString()));
+			          new Text(Markup.Escape(o.Value.ToString())));
 		}
 
 		// Render the layout

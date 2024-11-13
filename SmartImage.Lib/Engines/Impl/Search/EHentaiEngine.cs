@@ -152,9 +152,9 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		string       fileName;
 		string       filePath = null;
 
-		if (query.Uni.HasFile)
+		if (query.Source.HasFile)
 		{
-			filePath = query.Uni.FilePath;
+			filePath = query.Source.FilePath;
 			fileName = Path.GetFileName(filePath);
 
 			/*if (Path.GetFileName(t) != name) {
@@ -164,11 +164,11 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		else
 		{
 			fileName = SFILE_NAME_DEFAULT;
-			var ok = query.Uni.TryGetFile(fileName);
+			var ok = query.Source.TryWriteToFile(fileName);
 
 			if (ok)
 			{
-				filePath = query.Uni.FilePath;
+				filePath = query.Source.FilePath;
 			}
 			else
 			{

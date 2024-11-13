@@ -10,7 +10,7 @@ public class UniImageUnknown : UniImage
 
 	
 
-	public override ValueTask<bool> Alloc(CancellationToken ct = default)
+	public override ValueTask<bool> AllocAsync(CancellationToken ct = default)
 	{
 		return ValueTask.FromResult(false);
 	}

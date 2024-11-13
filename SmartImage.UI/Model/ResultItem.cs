@@ -49,7 +49,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		get => m_previewText;
 		set
 		{
-			if (value == m_previewText) return;
+			if (value == m_previewText)
+				return;
 
 			m_previewText = value;
 			OnPropertyChanged();
@@ -61,7 +62,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		get => m_label;
 		set
 		{
-			if (value == m_label) return;
+			if (value == m_label)
+				return;
 
 			m_label = value;
 			OnPropertyChanged();
@@ -83,7 +85,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		get => m_statusImage;
 		internal set
 		{
-			if (Equals(value, m_statusImage)) return;
+			if (Equals(value, m_statusImage))
+				return;
 
 			m_statusImage = value;
 			OnPropertyChanged();
@@ -137,7 +140,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		get => m_previewProgress;
 		set
 		{
-			if (value.Equals(m_previewProgress)) return;
+			if (value.Equals(m_previewProgress))
+				return;
 
 			m_previewProgress = value;
 			OnPropertyChanged();
@@ -218,6 +222,13 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 		OnPropertyChanged(nameof(Image));
 	}
 
+	public void UpdateProperties2()
+	{
+		//todo
+		OnPropertyChanged(nameof(Result));
+		OnPropertyChanged(nameof(Result.Similarity));
+	}
+
 	protected virtual void OnImageDownloadCompleted(object? sender, EventArgs args)
 	{
 		PreviewText = $"Preview cache complete";
@@ -275,7 +286,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 	protected bool SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
 	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
 
 		field = value;
 		OnPropertyChanged(propertyName);
@@ -317,7 +329,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 		// Image.CreateOptions = BitmapCreateOptions.DelayCreation;
 		// Image.CreateOptions = BitmapCreateOptions.None;
-		
+
 		img.UriCachePolicy = new RequestCachePolicy(RequestCacheLevel.Reload) { };
 		img.EndInit();
 

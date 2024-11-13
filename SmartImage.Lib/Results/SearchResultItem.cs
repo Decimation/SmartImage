@@ -14,12 +14,13 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using CoenM.ImageHash;
 using Novus.Streams;
+using SmartImage.Lib.Results.Data;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 #nullable disable
 namespace SmartImage.Lib.Results;
 
-public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable
+public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable, ISimilarity
 {
 
 	/// <summary>
@@ -203,37 +204,29 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		return EmbeddedUrls != null;
 	}*/
 
-	public async ValueTask<bool> HashAsync(SearchQuery query, CancellationToken ct = default)
+	/*public async ValueTask<bool> HashAsync(SearchQuery query, int idx = 0, CancellationToken ct = default)
 	{
-		var ph = new PerceptualHash();
+		if (!HasUni) {
+			return false;
+		}
 
-		var ui = Uni[0];
+		if ((idx < 0 || idx > Uni.Length)) {
+			return false;
+		}
+
+		var ui = Uni[idx];
 
 		try {
-			lock (ui.Stream) {
-				var hash = ph.Hash(ui.Stream);
-
-				ui.Stream.TrySeek();
-
-				double sim;
-
-				lock (query.Uni.Stream) {
-					query.Uni.Alloc(ct);
-
-					query.Uni.Stream.TrySeek();
-					var hash2 = ph.Hash(query.Uni.Stream);
-					sim = CompareHash.Similarity(hash, hash2);
-
-				}
-
-				Similarity = sim;
-			}
+			query.Uni.TryCalculateHash();
+			ui.TryCalculateHash();
+			Similarity = CompareHash.Similarity(query.Uni.Hash.Value, ui.Hash.Value);
 		}
 		catch (Exception e) {
 			Trace.WriteLine($"{e}");
 		}
 		return true;
-	}
+	}*/
+
 
 	public async Task<bool> ScanAsync(CancellationToken ct = default)
 	{
@@ -267,6 +260,20 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		Uni = buf.ToArray();
 
 		return HasUni;
+	}
+
+	public async Task<bool> CalculateAsync(IHashable h, CancellationToken ct = default)
+	{
+		if (!HasUni) {
+			throw new InvalidOperationException();
+		}
+
+		Parallel.ForEach(Uni, (u) =>
+		{
+			u.TryCalculateSimilarity(h);
+		});
+
+		return true;
 	}
 
 	// public IFlurlResponse Response { get; private set; }

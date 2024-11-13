@@ -161,7 +161,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		bool b = true;
 
 		if (MaxSize.HasValue) {
-			b = q.Uni.Size <= MaxSize;
+			b = q.Source.Size <= MaxSize;
 		}
 
 		/*if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {

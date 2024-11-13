@@ -9,9 +9,10 @@ using AngleSharp.Css.Dom;
 using Flurl.Http;
 using Kantan.Net.Web;
 
-namespace SmartImage.Lib.Results.Data;
+namespace SmartImage.Lib.Utilities;
 
 using System.Runtime.Caching;
+using SmartImage.Lib.Results.Data;
 
 public class AutoCookiesProvider : ICookiesProvider
 {
@@ -54,7 +55,6 @@ public class AutoCookiesProvider : ICookiesProvider
 		/*if (IsClosedOrBroken) {
 			throw new InvalidOperationException();
 		}*/
-
 
 
 		var itemPolicy = new CacheItemPolicy()

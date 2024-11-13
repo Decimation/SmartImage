@@ -23,10 +23,10 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 	public override async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
-		var ok = await q.Uni.AllocImage();
+		var ok = await q.Source.AllocImageAsync();
 
 		if (ok) {
-			if (q.Uni.Image.Width >= 10000) {
+			if (q.Source.Image.Width >= 10000) {
 				return false;
 			}
 

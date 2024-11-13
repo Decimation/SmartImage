@@ -96,14 +96,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 		// Results = [GetRawResultItem()];
 	}
 
-	public void Dispose()
-	{
-		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}");
-		foreach (SearchResultItem item in Results) {
-			item.Dispose();
-		}
-	}
-
 	public void Update()
 	{
 		if (Status.IsError()) {
@@ -136,7 +128,8 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
 	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
 
 		field = value;
 		OnPropertyChanged(propertyName);
@@ -156,8 +149,6 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 			.FirstOrDefault(static r => Url.IsValid(r.Url));
 	}
 
-
-
 	public SearchResultItem GetRawResultItem()
 	{
 		// todo
@@ -171,6 +162,15 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	public override string ToString()
 	{
 		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
+	}
+
+	public void Dispose()
+	{
+		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}");
+
+		foreach (SearchResultItem item in Results) {
+			item.Dispose();
+		}
 	}
 
 }

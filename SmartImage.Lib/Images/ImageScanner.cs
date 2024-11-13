@@ -168,8 +168,8 @@ public static class ImageScanner
 	                                                      CancellationToken ct = default)
 	{
 		var ph   = new PerceptualHash();
-		var orig = ph.Hash(query.Uni.Stream);
-		query.Uni.Stream.TrySeek();
+		var orig = ph.Hash(query.Source.Stream);
+		query.Source.Stream.TrySeek();
 		var rg = new List<UniSimilarity>();
 
 		while (tasks.Count != 0) {
@@ -224,7 +224,7 @@ public static class ImageScanner
 
 		if (isUri) {
 			var uf      = new UniImageUri(u, u);
-			var allocOk = await uf.Alloc(ct);
+			var allocOk = await uf.AllocAsync(ct);
 
 			if (allocOk) {
 
@@ -239,7 +239,7 @@ public static class ImageScanner
 				switch (binRsrc) {
 					case FileType.MT_APPLICATION_OCTET_STREAM:
 					{
-						var dfOk = await uf.DetectFormat(ct);
+						var dfOk = await uf.DetectFormatAsync(ct);
 
 						if (dfOk) {
 							tasks = [Task.FromResult((UniImage) uf)];
@@ -615,5 +615,7 @@ public static class ImageScanner
 
 		return ( []);
 	}*/
+
+	public static IImageHash ImageHasher { get; } = new PerceptualHash();
 
 }

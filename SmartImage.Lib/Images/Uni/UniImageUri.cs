@@ -45,7 +45,7 @@ public class UniImageUri : UniImage
 		return Schemes.All(s => scheme != s);
 	}
 
-	public override async ValueTask<bool> Alloc(CancellationToken ct = default)
+	public override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
 	{
 		if (!HasResponse) {
 			Response = await GetResponseAsync(Url, ct);

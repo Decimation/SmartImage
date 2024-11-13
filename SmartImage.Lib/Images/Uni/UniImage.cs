@@ -6,17 +6,21 @@ using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Text;
 using System.Threading.Channels;
+using CoenM.ImageHash.HashAlgorithms;
 using JetBrains.Annotations;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.Streams;
 using Novus.Win32;
+using CoenM.ImageHash.HashAlgorithms;
+using CoenM.ImageHash;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Results.Data;
+
 #pragma warning disable CS0168 // Variable is declared but never used
 
 namespace SmartImage.Lib.Images.Uni;
@@ -39,7 +43,7 @@ public enum UniImageType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>
-public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>
+public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable
 {
 
 	[MN]
@@ -96,6 +100,11 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
+	public ulong? Hash { get; private set; }
+
+	public double? Similarity { get; internal set; }
+
+
 	public static readonly UniImage Null = new UniImageUnknown(); // todo
 
 	private protected UniImage(object value, UniImageType type)
@@ -106,6 +115,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		Stream = stream;
 		Value  = value;
 		Type   = type;
+		Hash   = null;
 	}
 
 	#region
@@ -137,11 +147,17 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 			}
 
 			if (autoInit) {
-				var allocOk = await ui.Alloc(ct);
+				var allocOk = await ui.AllocAsync(ct);
 
 				// var allocImgOk = await ui.AllocImage(ct);
 
-				var hasInfo = await ui.DetectFormat(ct);
+				// var hashOk = ui.TryCalculateHash();
+
+				var hasInfo = await ui.DetectFormatAsync(ct);
+
+				if (hasInfo) {
+					ui.TryCalculateHash();
+				}
 
 				if (autoDisposeOnError) {
 					if (!allocOk || !hasInfo) {
@@ -162,7 +178,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		return ui;
 	}
 
-	public virtual async ValueTask<bool> DetectFormat(CancellationToken ct = default)
+	public virtual async ValueTask<bool> DetectFormatAsync(CancellationToken ct = default)
 	{
 		if (!HasStream) {
 			throw new InvalidOperationException($"{nameof(Stream)} must be allocated");
@@ -171,9 +187,8 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		try {
 			Stream.TrySeek();
 			ImageFormat = await ISImage.DetectFormatAsync(Stream, ct);
-
 			Stream.TrySeek();
-
+			
 		}
 		catch (UnknownImageFormatException ex) {
 			Debug.WriteLine($"{this} :: {ex.Message}");
@@ -206,12 +221,12 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	#region
 
-	public abstract ValueTask<bool> Alloc(CancellationToken ct = default);
+	public abstract ValueTask<bool> AllocAsync(CancellationToken ct = default);
 
 	/// <summary>
 	/// Allocates <see cref="Image"/>
 	/// </summary>
-	public async Task<bool> AllocImage(CancellationToken ct = default)
+	public async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
 
@@ -233,11 +248,41 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	#endregion
 
-	public bool TryGetFile(string fn = null)
+	public bool TryCalculateHash()
+	{
+		if (!HasStream) {
+			throw new InvalidOperationException();
+		}
+
+		if (!Hash.HasValue) {
+			lock (Stream) {
+				Stream.TrySeek();
+				Hash = ImageScanner.ImageHasher.Hash(Stream);
+				Stream.TrySeek();
+			}
+
+		}
+
+		return Hash.HasValue;
+	}
+
+	public bool TryCalculateSimilarity(IHashable comparand)
+	{
+		if (!Hash.HasValue || !comparand.Hash.HasValue) {
+			throw new InvalidOperationException();
+		}
+
+		if (!Similarity.HasValue) {
+			Similarity = CompareHash.Similarity(comparand.Hash.Value, Hash.Value);
+		}
+
+		return Similarity.HasValue;
+	}
+
+	public bool TryWriteToFile(string fn = null)
 	{
 		if (!HasFile) {
 			FilePath = WriteToFile(fn);
-
 		}
 
 		return HasFile;
@@ -333,8 +378,11 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	public bool Equals(UniImage other)
 	{
-		if (ReferenceEquals(null, other)) return false;
-		if (ReferenceEquals(this, other)) return true;
+		if (ReferenceEquals(null, other))
+			return false;
+
+		if (ReferenceEquals(this, other))
+			return true;
 
 		return Equals(Value, other.Value);
 	}

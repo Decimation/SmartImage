@@ -23,7 +23,7 @@ public class UniImageStream : UniImage
 		return t2 != Stream.Null;
 	}
 
-	public override ValueTask<bool> Alloc(CancellationToken ct = default)
+	public override ValueTask<bool> AllocAsync(CancellationToken ct = default)
 	{
 		return ValueTask.FromResult(HasStream);
 	}

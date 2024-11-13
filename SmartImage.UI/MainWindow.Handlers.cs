@@ -140,18 +140,18 @@ public partial class MainWindow
 			return;
 		}
 
-		var s = Query.Uni.ValueString;
+		var s = Query.Source.ValueString;
 
 		if (String.IsNullOrWhiteSpace(s)) {
 			return;
 		}
 
-		if (Query.Uni.IsFile) {
+		if (Query.Source.IsFile) {
 			FileSystem.ExploreFile(s);
 
 			// FileSystem.Open(s);
 		}
-		else if (Query.Uni.IsUri) {
+		else if (Query.Source.IsUri) {
 			FileSystem.Open(s);
 
 		}
@@ -852,11 +852,41 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	private void MenuItem_OnClick(object sender, RoutedEventArgs e) { }
 
 	private void OnValidationRaised(object sender, RoutedEventArgs e)
 	{
 		Debug.WriteLine($"{nameof(OnValidationRaised)}:: {e.Source} {sender}");
+		e.Handled = true;
+	}
+
+	private void HashItem_OnClick(object sender, RoutedEventArgs e)
+	{
+		/*if (CurrentResult is UniResultItem uri) {
+
+			Application.Current.Dispatcher.InvokeAsync(async () =>
+			{
+				uri.Uni.TryCalculateSimilarity(Query.Source);
+				uri.UpdateProperties2();
+				
+				// CurrentResult.UpdateProperties2();
+			});
+
+		}*/
+		if (CurrentResult is UniResultItem uri) {
+
+			uri.Uni.TryCalculateSimilarity(CurrentQuery.Query.Source);
+			uri.UpdateProperties2();
+			CurrentResult.UpdateProperties2();
+			
+			/*Application.Current.Dispatcher.InvokeAsync(async () =>
+			{
+				uri.Uni.TryCalculateSimilarity(Query.Source);
+				uri.UpdateProperties2();
+				
+				// CurrentResult.UpdateProperties2();
+			});*/
+
+		}
 		e.Handled = true;
 	}
 

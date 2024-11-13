@@ -5,10 +5,11 @@ using System.Diagnostics;
 using System.Reflection;
 using CliWrap;
 using FlareSolverrSharp;
+using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Clients;
 
-public sealed class FlareSolverrClient : IDisposable
+public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 {
 
 	[MNNW(true, nameof(Client))]
@@ -32,7 +33,7 @@ public sealed class FlareSolverrClient : IDisposable
 		{
 			EnsureResponseIntegrity = false
 		};
-		
+
 		Client = new HttpClient(Clearance);
 
 		Trace.WriteLine($"{nameof(FlareSolverrClient)}: init {api}");
@@ -41,10 +42,7 @@ public sealed class FlareSolverrClient : IDisposable
 
 	private FlareSolverrClient() { }
 
-	static FlareSolverrClient()
-	{
-		
-	}
+	static FlareSolverrClient() { }
 
 	public static FlareSolverrClient Value { get; private set; } = new();
 
@@ -55,5 +53,17 @@ public sealed class FlareSolverrClient : IDisposable
 		Clearance = null;
 		Client    = null;
 	}
+
+	#region Implementation of ISearchConfigReceiver
+
+	public ValueTask ApplyConfigAsync(SearchConfig cfg)
+	{
+		if (cfg.FlareSolverr) {
+			Configure(cfg.FlareSolverrApiUrl);
+		}
+		return ValueTask.CompletedTask;
+	}
+
+	#endregion
 
 }

@@ -73,8 +73,10 @@
 
             <MenuItem Header="Info" Click="InfoItem_Click" />
             <MenuItem Header="Retry" Click="RetryItem_Click" />
+            <MenuItem Header="Hash" Click="HashItem_OnClick" />
             <MenuItem Header="Enqueue" Click="EnqueueItem_Click"
                       IsEnabled="{Binding CanDownload}" />
+
         </ContextMenu>
 
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
@@ -165,7 +167,7 @@
 
             </Style.Triggers>
         </Style>
-        <SolidColorBrush x:Key="White1" Color="#FFE1E1E1"/>
+        <SolidColorBrush x:Key="White1" Color="#FFE1E1E1" />
 
     </Window.Resources>
 
@@ -563,13 +565,13 @@
                     <TextBox x:Name="Tb_Info_Type" HorizontalAlignment="Left" Margin="64,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentQuery.Query.Uni.ImageFormat.DefaultMimeType, Mode=OneWay,
+                             Text="{Binding CurrentQuery.Query.Source.ImageFormat.DefaultMimeType, Mode=OneWay,
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, ElementName=Wnd_Main, IsAsync=True}" />
 
                     <TextBox x:Name="Tb_Info_Size" HorizontalAlignment="Left" Margin="217,65,0,0" TextWrapping="Wrap"
                              VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Background="Black"
                              Foreground="White" TextAlignment="Center"
-                             Text="{Binding CurrentQuery.Query.Uni.Size, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
+                             Text="{Binding CurrentQuery.Query.Source.Size, ElementName=Wnd_Main, IsAsync=True, Mode=OneWay, 
                         UpdateSourceTrigger=PropertyChanged, FallbackValue={x:Null}, Converter={StaticResource unitConverter}}" />
 
                     <TextBox x:Name="Tb_Info_Dim" HorizontalAlignment="Left" Margin="369,65,0,0" TextWrapping="Wrap"
@@ -687,7 +689,8 @@
                                                 DisplayMemberBinding="{Binding Url, Mode=OneTime}" />
 
                                 <GridViewColumn Header="Similarity"
-                                                DisplayMemberBinding="{Binding Result.Similarity, Mode=OneTime}"
+                                                DisplayMemberBinding="{Binding Result.Similarity, Mode=OneWay, 
+                                    UpdateSourceTrigger=PropertyChanged}"
                                                 Width="75" />
 
                                 <GridViewColumn Header="Description"
@@ -713,10 +716,12 @@
                                                 DisplayMemberBinding="{Binding Result.Site, Mode=OneTime}" Width="75" />
 
                                 <GridViewColumn Header="Width"
-                                                DisplayMemberBinding="{Binding Width, Mode=OneWay, UpdateSourceTrigger=Default}" Width="50" />
+                                                DisplayMemberBinding="{Binding Width, Mode=OneWay, UpdateSourceTrigger=Default}"
+                                                Width="50" />
 
                                 <GridViewColumn Header="Height"
-                                                DisplayMemberBinding="{Binding Height, Mode=OneWay, UpdateSourceTrigger=Default}" Width="50" />
+                                                DisplayMemberBinding="{Binding Height, Mode=OneWay, UpdateSourceTrigger=Default}"
+                                                Width="50" />
 
                                 <GridViewColumn Header="Cache"
                                                 DisplayMemberBinding="{Binding IsThumbnail, Mode=OneWay, UpdateSourceTrigger=Default}"
@@ -750,15 +755,16 @@
 
                     <TextBlock x:Name="Tb_Preview" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,11,0"
                                Grid.Row="1" VerticalAlignment="Top" TextDecorations="Underline" Foreground="White"
-                               TextWrapping="Wrap" Text="{Binding CurrentResult.PreviewText, IsAsync=True, UpdateSourceTrigger=PropertyChanged}"
-                               
+                               TextWrapping="Wrap"
+                               Text="{Binding CurrentResult.PreviewText, IsAsync=True, UpdateSourceTrigger=PropertyChanged}"
+
                                Width="150" ToolTip="Click preview to stop/close&#x0a;Double click preview to open"
                                Height="34.5" />
 
                     <TextBlock x:Name="Tb_Label" Grid.Column="1" HorizontalAlignment="Right" Margin="0,65,174,0"
                                FontStyle="Italic"
                                Grid.Row="1" VerticalAlignment="Top" Foreground="White" TextWrapping="WrapWithOverflow"
-                               Width="320" 
+                               Width="320"
                                Text="{Binding CurrentResult.Label, IsAsync=True, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
                                Height="35" />
 
@@ -832,11 +838,13 @@
                 <Grid Background="{DynamicResource Black1}">
                     <ListBox x:Name="Lb_Engines" d:ItemsSource="{Binding Engines}" Margin="27,33,0,0"
                              SelectionMode="Multiple" SelectionChanged="Lb_Engines_SelectionChanged" Width="175"
-                             VerticalAlignment="Top" HorizontalAlignment="Left" Height="400" Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}" />
+                             VerticalAlignment="Top" HorizontalAlignment="Left" Height="400"
+                             Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}" />
 
                     <ListBox x:Name="Lb_Engines2" d:ItemsSource="{Binding Engines}" Margin="228,33,0,0"
                              SelectionMode="Multiple" SelectionChanged="Lb_Engines2_SelectionChanged" Width="175"
-                             HorizontalAlignment="Left" VerticalAlignment="Top" Height="400" Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}" />
+                             HorizontalAlignment="Left" VerticalAlignment="Top" Height="400"
+                             Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}" />
 
                     <CheckBox x:Name="Cb_Clipboard" Content="Clipboard"
                               IsChecked="{Binding Path=UseClipboard, Mode=TwoWay}" HorizontalAlignment="Left"
@@ -883,13 +891,14 @@
                     <Label x:Name="Lbl_UploadEngines" Content="Upload Engine" HorizontalAlignment="Left"
                            Margin="600,3,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
-                    <TextBox x:Name="Tb_FlareSolverrApi" HorizontalAlignment="Left" Margin="600,92,0,0" TextWrapping="Wrap" 
-                             Text="{Binding Config.FlareSolverrApiUrl, Mode=TwoWay}" VerticalAlignment="Top" Width="180" 
-                             Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}"/>
+                    <TextBox x:Name="Tb_FlareSolverrApi" HorizontalAlignment="Left" Margin="600,92,0,0"
+                             TextWrapping="Wrap"
+                             Text="{Binding Config.FlareSolverrApiUrl, Mode=TwoWay}" VerticalAlignment="Top"
+                             Width="180"
+                             Background="{DynamicResource Black2}" Foreground="{DynamicResource White1}" />
 
-                    <Label x:Name="Lbl_FlareSolverrApi" Content="Flare Solverr API" HorizontalAlignment="Left" 
-                        Margin="600,60,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
-
+                    <Label x:Name="Lbl_FlareSolverrApi" Content="Flare Solverr API" HorizontalAlignment="Left"
+                           Margin="600,60,0,0" VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
 
 
                     <!--<TextBox x:Name="Tb_HyEndpoint" HorizontalAlignment="Left" Margin="527,297,0,0" TextWrapping="Wrap"
