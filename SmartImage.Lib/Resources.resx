@@ -201,4 +201,7 @@
   <data name="Reg_Launch_Args" xml:space="preserve">
     <value>"%1" --keep-open</value>
   </data>
+  <data name="Err_Query" xml:space="preserve">
+    <value>Invalid query: query must be a file path or direct URI</value>
+  </data>
 </root>

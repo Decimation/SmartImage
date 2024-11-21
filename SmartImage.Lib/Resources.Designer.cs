@@ -79,6 +79,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid query: query must be a file path or direct URI.
+        /// </summary>
+        internal static string Err_Query {
+            get {
+                return ResourceManager.GetString("Err_Query", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to /usr/share/applications.
         /// </summary>
         internal static string Linux_Applications_Dir {

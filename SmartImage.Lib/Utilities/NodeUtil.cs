@@ -2,6 +2,8 @@
 // 2023-01-13 @ 11:37 PM
 
 using System.Diagnostics;
+using System.Net;
+using System.Net.Mime;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -9,6 +11,7 @@ using AngleSharp.Dom;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using JetBrains.Annotations;
+using Novus.Win32;
 using SmartImage.Lib.Results;
 
 // ReSharper disable AnnotateNotNullParameter
@@ -18,15 +21,7 @@ namespace SmartImage.Lib.Utilities;
 public static class NodeUtil
 {
 
-	public static readonly JsonSerializerOptions Options = new(JsonSerializerOptions.Default)
-	{
-		IncludeFields          = true,
-		DefaultIgnoreCondition = JsonIgnoreCondition.Never,
-		Converters =
-		{
-			new UrlTypeConverter()
-		}
-	};
+	
 
 	public static JsonNode TryGetKeyValue(this JsonObject v, string k)
 		=> v.ContainsKey(k) ? v[k] : null;

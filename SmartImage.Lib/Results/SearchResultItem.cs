@@ -3,7 +3,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 using System.Dynamic;
-using System.Text.Json.Serialization;
 using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
 using JetBrains.Annotations;
@@ -275,10 +274,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 			throw new InvalidOperationException();
 		}
 
-		Parallel.ForEach(Uni, (u) =>
-		{
-			u.TryCalculateSimilarity(h);
-		});
+		Parallel.ForEach(Uni, (u) => { u.TryCalculateSimilarity(h); });
 
 		return true;
 	}
