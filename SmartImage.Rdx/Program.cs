@@ -8,6 +8,7 @@ using System.Threading.Channels;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Kantan.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Novus.Streams;
@@ -32,6 +33,16 @@ public static class Program
 		Debug.WriteLine(AnsiConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
 
+		/*var bldr2 = new ConfigurationBuilder();
+		var host  = Host.CreateDefaultBuilder();
+		var bldr  = host.ConfigureServices((ctx, svc) => { svc.AddSingleton<SearchConfig>(); });
+
+		bldr2.SetBasePath(Directory.GetCurrentDirectory())
+			.AddJsonFile("smartimage.json", optional: false, reloadOnChange: true);
+			*/
+
+		var svc = new ServiceCollection();
+
 		AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
 		{
 			Trace.WriteLine($"{sender} -> {eventArgs}");
@@ -40,7 +51,7 @@ public static class Program
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 #if DEBUG
-		Debugger.Launch();
+		// Debugger.Launch();
 #endif
 		if (args.Length == 0) {
 
@@ -124,7 +135,9 @@ public static class Program
 
 		// var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
 
-		var app = new CommandApp<SearchCommand>();
+		var tr = new TypeRegistrar(svc);
+
+		var app = new CommandApp<SearchCommand>(tr);
 
 		app.Configure(c =>
 		{
@@ -135,7 +148,9 @@ public static class Program
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
 
+
 		});
+
 		int x = ConsoleFormat.EC_OK;
 
 		try {

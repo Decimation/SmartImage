@@ -12,7 +12,7 @@ using Kantan.Net.Web;
 namespace SmartImage.Lib.Utilities;
 
 using System.Runtime.Caching;
-using SmartImage.Lib.Results.Data;
+using Results.Data;
 
 public class AutoCookiesProvider : ICookiesProvider
 {
@@ -97,56 +97,3 @@ public class AutoCookiesProvider : ICookiesProvider
 	public static readonly ICookiesProvider Instance = new AutoCookiesProvider();
 
 }
-
-/*public class AutoCookiesProvider : ICookiesProvider
-{
-
-	public BaseCookieReader Reader { get; }
-
-	public AutoCookiesProvider()
-		: this(new FirefoxCookieReader())
-	{
-		//todo
-	}
-
-	public AutoCookiesProvider(BaseCookieReader reader)
-	{
-		Reader = reader;
-	}
-
-	public async ValueTask Open()
-	{
-		await Reader.OpenAsync();
-	}
-
-
-	public async ValueTask<bool> LoadCookiesAsync(ICookiesReceiver rcv, CancellationToken ct = default)
-	{
-		if (IsClosedOrBroken) {
-			throw new InvalidOperationException();
-		}
-
-		var cookies = await Reader.ReadCookiesAsync();
-
-		foreach (IBrowserCookie bck in cookies) {
-			rcv.Jar.AddOrReplace(bck.AsFlurlCookie());
-
-		}
-
-		return true;
-	}
-
-	public bool IsOpen => Reader.Connection.State is < ConnectionState.Broken and >= ConnectionState.Open;
-
-	public bool IsClosedOrBroken => Reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;
-
-	public void Dispose()
-	{
-		Reader.Dispose();
-
-		// Reader = null;
-	}
-
-	public static readonly ICookiesProvider Instance = new AutoCookiesProvider();
-
-}*/

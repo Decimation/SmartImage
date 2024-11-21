@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -37,6 +38,12 @@ using SmartImage.Lib.Utilities;
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Images;
+
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 public static class ImageScanner
 {

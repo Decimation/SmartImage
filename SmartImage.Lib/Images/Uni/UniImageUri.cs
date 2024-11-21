@@ -31,7 +31,7 @@ public class UniImageUri : UniImage
 		u = o switch
 		{
 			Url u2                             => u2,
-			string s when Flurl.Url.IsValid(s) => s,
+			string s when Url.IsValid(s) => s,
 			_                                  => null
 		};
 
@@ -74,7 +74,7 @@ public class UniImageUri : UniImage
 			throw new ArgumentException($"{value}");
 		}*/
 
-		var req = await ImageScanner.BuildRequest(value);
+		var req = await ImageScanner.BuildRequest(value, ct);
 
 		/*.AllowAnyHttpStatus()
 		.WithHeaders(new

@@ -4,6 +4,7 @@
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 using System.Diagnostics;
 using System.Drawing.Imaging;
+using System.IO.MemoryMappedFiles;
 using System.Text;
 using System.Threading.Channels;
 using CoenM.ImageHash.HashAlgorithms;
@@ -112,10 +113,11 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	private protected UniImage(object value, Stream stream, UniImageType type)
 	{
-		Stream = stream;
+		Stream = Stream.Synchronized(stream);
 		Value  = value;
 		Type   = type;
 		Hash   = null;
+
 	}
 
 	#region
@@ -188,7 +190,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 			Stream.TrySeek();
 			ImageFormat = await ISImage.DetectFormatAsync(Stream, ct);
 			Stream.TrySeek();
-			
+
 		}
 		catch (UnknownImageFormatException ex) {
 			Debug.WriteLine($"{this} :: {ex.Message}");

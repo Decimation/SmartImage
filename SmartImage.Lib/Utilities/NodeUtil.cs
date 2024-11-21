@@ -16,17 +16,13 @@ internal static class NodeUtil
 {
 
 	public static JsonNode TryGetKeyValue(this JsonObject v, string k)
-	{
-		return v.ContainsKey(k) ? v[k] : null;
-	}
+		=> v.ContainsKey(k) ? v[k] : null;
 
 	[CBN]
 	[LinqTunnel]
 	internal static T2 ApplyFunctorInnerPredicate<T, T2>(Func<Func<T2, bool>, T2> functor,
 	                                                     Func<T, bool> predicate)
-	{
-		return functor(f => f is T e && predicate(e));
-	}
+		=> functor(f => f is T e && predicate(e));
 
 	[CBN]
 	internal static INode FirstOrDefaultElement(this INodeList nodes, Func<IElement, bool> predicate)
@@ -58,18 +54,25 @@ internal static class NodeUtil
 
 
 	public static IEnumerable<string> QueryAllAttribute(this IParentNode doc, string sel, string attr)
-	{
-		return doc.QuerySelectorAll(sel)
+		=> doc.QuerySelectorAll(sel)
 			.Select(e => e.GetAttribute(attr));
-	}
 
-	public static INode RecurseChildren(this INode n, int idx, int c)
+	public static INode RecurseChildren(this INode node, int childNodeIndex, int level)
 	{
-		if (c <= 0) {
+		/*if (level <= 0) {
 			return n;
 		}
 
-		return RecurseChildren(n.ChildNodes[idx], idx, --c);
+		return RecurseChildren(n.ChildNodes[childNodeIndex], childNodeIndex, --level);*/
+		// return level <= 0 ? n : RecurseChildren(n.ChildNodes[childNodeIndex], childNodeIndex, --level);
+
+		while (true) {
+			if (level <= 0)
+				return node;
+
+			node = node.ChildNodes[childNodeIndex];
+			level = --level;
+		}
 	}
 
 }

@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageFile.cs
 // Date: 2024/07/17 @ 02:07:16
 
+using System.IO.MemoryMappedFiles;
 using Microsoft;
 
 namespace SmartImage.Lib.Images.Uni;
@@ -30,8 +31,9 @@ public class UniImageFile : UniImage
 	public override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
 	{
 		if (!HasStream) {
-			Stream = File.OpenRead(FileInfo.FullName);
+			var fullName = FileInfo.FullName;
 
+			Stream     = File.OpenRead(fullName);
 		}
 		return HasStream;
 	}
