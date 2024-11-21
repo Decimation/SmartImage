@@ -301,6 +301,15 @@ public static class AppUtil
 
 	internal const string SI_DIAG_ID_0001 = "SI0001";
 
+	public static readonly string ChromePath =
+		Path.Combine(AppUtil.ProgramFilesPath, @"Google\Chrome\Application\chrome.exe");
+
+	public static readonly string FirefoxPath = Path.Combine(AppUtil.AppDataPath, @"Mozilla");
+
+	public static bool IsChromeInstalled => Path.Exists(ChromePath);
+
+	public static bool IsFirefoxInstalled => Path.Exists(FirefoxPath);
+
 }
 
 #region GitHub types

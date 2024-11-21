@@ -2,18 +2,31 @@
 // 2023-01-13 @ 11:37 PM
 
 using System.Diagnostics;
+using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using AngleSharp.Dom;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using JetBrains.Annotations;
+using SmartImage.Lib.Results;
 
 // ReSharper disable AnnotateNotNullParameter
 
 namespace SmartImage.Lib.Utilities;
 
-internal static class NodeUtil
+public static class NodeUtil
 {
+
+	public static readonly JsonSerializerOptions Options = new(JsonSerializerOptions.Default)
+	{
+		IncludeFields          = true,
+		DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+		Converters =
+		{
+			new UrlTypeConverter()
+		}
+	};
 
 	public static JsonNode TryGetKeyValue(this JsonObject v, string k)
 		=> v.ContainsKey(k) ? v[k] : null;
@@ -70,7 +83,7 @@ internal static class NodeUtil
 			if (level <= 0)
 				return node;
 
-			node = node.ChildNodes[childNodeIndex];
+			node  = node.ChildNodes[childNodeIndex];
 			level = --level;
 		}
 	}

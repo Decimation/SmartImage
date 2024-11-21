@@ -1,4 +1,5 @@
-﻿global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+﻿global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
+global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 using System.Dynamic;
+using System.Text.Json.Serialization;
 using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
 using JetBrains.Annotations;
@@ -15,6 +16,7 @@ using SmartImage.Lib.Images.Uni;
 using CoenM.ImageHash;
 using Novus.Streams;
 using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Utilities;
 
 [assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 #nullable disable
@@ -27,9 +29,11 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	///     Result containing this result item
 	/// </summary>
 	[NN]
+	[JI]
 	public SearchResult Root { get; }
 
 	[CBN]
+	[JI]
 	public SearchResultItem Parent { get; internal set; }
 
 	[MN]
@@ -98,6 +102,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	/// <summary>
 	///     Additional metadata.
 	/// </summary>
+	[JI]
 	public object Metadata { get; internal set; }
 
 	[CBN]
@@ -107,9 +112,11 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	public string ThumbnailTitle { get; internal set; }
 
 	[MN]
+	[JI]
 	public UniImage[] Uni { get; internal set; }
 
 	[MNNW(true, nameof(Uni))]
+	[JI]
 	public bool HasUni => Uni != null && Uni.Any();
 
 	// public Url[] EmbeddedUrls { get; internal set; }
