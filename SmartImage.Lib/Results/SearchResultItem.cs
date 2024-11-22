@@ -270,6 +270,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public async Task<bool> CalculateAsync(IHashable h, CancellationToken ct = default)
 	{
+		// TODO
 		if (!HasUni) {
 			throw new InvalidOperationException();
 		}

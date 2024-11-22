@@ -36,7 +36,7 @@ public abstract class BaseUploadEngine : IDisposable
 
 	public TimeSpan Timeout { get; set; }
 
-	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseUploadEngine));
+	protected static readonly ILogger Logger = AppUtil.Factory.CreateLogger(nameof(BaseUploadEngine));
 
 	protected static FlurlClient Client { get; }
 

@@ -59,7 +59,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		MaxSize     = null;
 	}
 
-	protected static readonly ILogger Logger = LogUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
+	protected static readonly ILogger Logger = AppUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
 	
 	/*protected IFlurlRequest Build(IFlurlRequest request)
 	{
@@ -280,5 +280,15 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	}
 
 	#endregion
+
+	public static bool IsSuccessful(this SearchResultStatus s)
+		=> !s.IsError() && !s.IsUnknown() || s is SearchResultStatus.Success;
+
+	public static bool IsUnknown(this SearchResultStatus s)
+		=> s is SearchResultStatus.NoResults or SearchResultStatus.None;
+
+	public static bool IsError(this SearchResultStatus s)
+		=> s is SearchResultStatus.Failure or SearchResultStatus.IllegalInput
+			   or SearchResultStatus.Unavailable or SearchResultStatus.Cooldown;
 
 }

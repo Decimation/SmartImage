@@ -15,8 +15,8 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
-using SmartImage.Lib.Utilities;
 using static Kantan.Diagnostics.LogCategories;
+using SmartImage.Lib.Utilities;
 
 // ReSharper disable PossibleNullReferenceException
 

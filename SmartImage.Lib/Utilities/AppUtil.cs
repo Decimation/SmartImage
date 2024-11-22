@@ -13,6 +13,7 @@ using System.Text.Json.Serialization;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Novus.OS;
 using Novus.Win32;
@@ -34,22 +35,6 @@ public static class AppUtil
 	[SupportedOSPlatformGuard(OS_WIN)]
 	internal static readonly bool IsWindows = OperatingSystem.IsWindows();
 
-	[CBN]
-	internal static string GetOSName()
-	{
-		string os = null;
-
-		if (IsLinux) {
-			os = "Linux";
-
-		}
-		else if (IsWindows) {
-			os = "Windows";
-		}
-
-		return os;
-	}
-
 	public static string ExeLocation
 	{
 		get
@@ -63,12 +48,15 @@ public static class AppUtil
 	}
 
 	[MN]
-	public static string CurrentAppFolder => Path.GetDirectoryName(ExeLocation);
+	public static string CurrentAppFolder
+		=> Path.GetDirectoryName(ExeLocation);
 
 	public static bool IsAppFolderInPath
-	{
-		get { return FileSystem.IsFolderInPath(CurrentAppFolder); }
-	}
+		=> FileSystem.IsFolderInPath(CurrentAppFolder);
+
+	public static readonly string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
+
+	public static readonly string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
 	public static bool IsOnTop { get; private set; }
 
@@ -89,11 +77,9 @@ public static class AppUtil
 
 	public static void AddToPath(bool b)
 	{
-
 		if (b) {
 			var p = FileSystem.GetEnvironmentPath();
 			FileSystem.SetEnvironmentPath(p + $";{CurrentAppFolder}");
-
 		}
 		else {
 			FileSystem.RemoveFromPath(CurrentAppFolder);
@@ -258,6 +244,8 @@ public static class AppUtil
 	 *		HKEY_LOCAL_MACHINE\Software\Classes
 	 */
 
+	#region 
+
 	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()
 	{
 		var res = await "https://api.github.com/repos/Decimation/SmartImage/releases"
@@ -267,10 +255,7 @@ public static class AppUtil
 			          {
 				          User_Agent = HttpUtilities.UserAgent
 			          })
-			          .OnError(e =>
-			          {
-				          e.ExceptionHandled = true;
-			          })
+			          .OnError(e => { e.ExceptionHandled = true; })
 			          .GetJsonAsync<GitHubRelease[]>();
 
 		return res;
@@ -294,12 +279,12 @@ public static class AppUtil
 		return r.OrderByDescending(x => x.published_at).First();
 	}
 
-	public static readonly string ProgramFilesPath = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
-
-	public static readonly string AppDataPath = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+	#endregion
 
 
 	internal const string SI_DIAG_ID_0001 = "SI0001";
+
+	#region 
 
 	public static readonly string ChromePath =
 		Path.Combine(AppUtil.ProgramFilesPath, @"Google\Chrome\Application\chrome.exe");
@@ -309,6 +294,11 @@ public static class AppUtil
 	public static bool IsChromeInstalled => Path.Exists(ChromePath);
 
 	public static bool IsFirefoxInstalled => Path.Exists(FirefoxPath);
+
+	#endregion
+
+	internal static readonly ILoggerFactory Factory =
+		LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Debug));
 
 }
 

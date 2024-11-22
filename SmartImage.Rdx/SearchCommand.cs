@@ -52,7 +52,7 @@ namespace SmartImage.Rdx;
 #nullable disable
 
 public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisposable
-{
+{	
 
 	public SearchClient Client { get; }
 

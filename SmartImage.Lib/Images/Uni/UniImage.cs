@@ -44,7 +44,7 @@ public enum UniImageType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>
-public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable
+public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable
 {
 
 	[MN]
@@ -106,7 +106,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	public double? Similarity { get; internal set; }
 
 
-	public static readonly UniImage Null = new UniImageUnknown(); // todo
+	public static readonly UniImage Null = null;
 
 	private protected UniImage(object value, UniImageType type)
 		: this(value, Stream.Null, type) { }
@@ -117,7 +117,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		Value  = value;
 		Type   = type;
 		Hash   = null;
-
 	}
 
 	#region
@@ -137,14 +136,12 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 				ui = new UniImageFile((string) o, fi);
 			}
 			else if (UniImageUri.IsUriType(o, out var url2)) {
-
 				ui = new UniImageUri(o, url2);
 			}
 			else if (o is Stream stream) {
 				ui = new UniImageStream(o, stream);
 			}
 			else {
-
 				goto ret;
 			}
 
@@ -203,10 +200,6 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	public static bool IsValidSourceType(object str, bool checkExt = true)
 	{
-		// UniSourceType v        = UniHandler.GetUniType(str, out object o2);
-		/*bool isFile   = UniSourceFile.IsType(str, out var f);
-		bool isUri    = UniSourceUrl.IsType(str, out var f2);
-		bool isStream = UniSourceStream.IsType(str, out var f3);*/
 		bool isFile   = UniImageFile.IsFileType(str, out var f);
 		bool isUri    = UniImageUri.IsUriType(str, out var f2);
 		bool isStream = UniImageStream.IsStreamType(str, out var f3);
@@ -257,11 +250,9 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 		}
 
 		if (!Hash.HasValue) {
-			lock (Stream) {
-				Stream.TrySeek();
-				Hash = ImageScanner.ImageHasher.Hash(Stream);
-				Stream.TrySeek();
-			}
+			Stream.TrySeek();
+			Hash = ImageScanner.ImageHasher.Hash(Stream);
+			Stream.TrySeek();
 
 		}
 

@@ -47,7 +47,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsRunning { get; private set; }
 
-	private static readonly ILogger s_logger = LogUtil.Factory.CreateLogger(nameof(SearchClient));
+	private static readonly ILogger s_logger = AppUtil.Factory.CreateLogger(nameof(SearchClient));
 
 	internal static readonly Assembly Asm;
 
@@ -289,7 +289,7 @@ public sealed class SearchClient : IDisposable
 
 		if (Config.ReadCookies) {
 
-			await ((AutoCookiesProvider) AutoCookiesProvider.Instance).OpenAsync();
+			await ((DefaultCookiesProvider) DefaultCookiesProvider.Instance).OpenAsync();
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
@@ -320,7 +320,7 @@ public sealed class SearchClient : IDisposable
 
 			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
 
-				var ok = await ce.ApplyCookiesAsync(AutoCookiesProvider.Instance, token);
+				var ok = await ce.ApplyCookiesAsync(DefaultCookiesProvider.Instance, token);
 
 				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 			}

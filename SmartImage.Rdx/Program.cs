@@ -148,7 +148,8 @@ public static class Program
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
 
-
+			c.AddCommand("server")
+				.WithDescription("Start listen server");
 		});
 
 		int x = ConsoleFormat.EC_OK;

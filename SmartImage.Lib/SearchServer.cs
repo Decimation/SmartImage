@@ -15,7 +15,7 @@ namespace SmartImage.Lib;
 
 using RouteCallbackMap = Dictionary<string, SmartHttpListener.HandleRequestCallback>;
 
-public class SearchServer
+public class SearchServer : IDisposable
 {
 
 	public static readonly JsonSerializerOptions Options2 = new(HttpUtilities.Options)
@@ -43,12 +43,12 @@ public class SearchServer
 		Listener = new SmartHttpListener(Handlers, port);
 	}
 
-	private async Task<object> HandleRequestAsync(HttpListenerRequest b, HttpListenerResponse response)
+	private async Task<object> HandleRequestAsync(HttpListenerRequest request, HttpListenerResponse response)
 	{
 		object ok;
 
 		try {
-			var sz = await b.ReadRequestStringAsync();
+			var sz = await request.ReadRequestStringAsync();
 
 			if (String.IsNullOrWhiteSpace(sz)) {
 				return R1.Err_Query;
@@ -88,5 +88,16 @@ public class SearchServer
 	{
 		return Listener.StartAsync(ct);
 	}
+
+	#region IDisposable
+
+	public void Dispose()
+	{
+		Client?.Dispose();
+		Listener?.Dispose();
+		Handlers.Clear();
+	}
+
+	#endregion
 
 }

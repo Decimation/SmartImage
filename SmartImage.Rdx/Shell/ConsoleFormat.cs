@@ -75,7 +75,7 @@ internal static class ConsoleFormat
 
 		var dict = new Dictionary<string, object>
 		{
-			["OS"]               = $"{AppUtil.GetOSName()} / {Environment.OSVersion}",
+			["OS"]               = $"{Environment.OSVersion}",
 			["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
 			["Runtime"]          = Environment.Version,
 			["Terminal ANSI"]    = ProfileCapabilities.Ansi,

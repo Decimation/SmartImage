@@ -12,25 +12,16 @@ using Flurl.Http;
 using Flurl.Http.Configuration;
 using JetBrains.Annotations;
 using Novus.Win32;
-using SmartImage.Lib.Results;
 
 // ReSharper disable AnnotateNotNullParameter
 
 namespace SmartImage.Lib.Utilities;
 
-public static class NodeUtil
+public static class NodeHelper
 {
-
-	
 
 	public static JsonNode TryGetKeyValue(this JsonObject v, string k)
 		=> v.ContainsKey(k) ? v[k] : null;
-
-	[CBN]
-	[LinqTunnel]
-	internal static T2 ApplyFunctorInnerPredicate<T, T2>(Func<Func<T2, bool>, T2> functor,
-	                                                     Func<T, bool> predicate)
-		=> functor(f => f is T e && predicate(e));
 
 	[CBN]
 	internal static INode FirstOrDefaultElement(this INodeList nodes, Func<IElement, bool> predicate)
@@ -44,6 +35,12 @@ public static class NodeUtil
 	[CBN]
 	internal static INode FirstOrDefaultElementByClassName(this INodeList nodes, string className)
 		=> ApplyFunctorInnerPredicate<IElement, INode>(nodes.FirstOrDefault, e => e.ClassName == className);
+
+	[CBN]
+	[LinqTunnel]
+	internal static T2 ApplyFunctorInnerPredicate<T, T2>(Func<Func<T2, bool>, T2> functor,
+	                                                     Func<T, bool> predicate)
+		=> functor(f => f is T e && predicate(e));
 
 
 	/*
