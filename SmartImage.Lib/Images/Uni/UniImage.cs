@@ -51,7 +51,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 	public Stream Stream { get; protected set; }
 
 	[MNNW(true, nameof(Stream))]
-	public bool HasStream => Stream != Stream.Null;
+	public bool HasStream => Stream != null && Stream != Stream.Null;
 
 	public object Value { get; protected init; }
 
@@ -113,7 +113,7 @@ public abstract class UniImage : IItemSize, IDisposable, IAsyncDisposable, IEqua
 
 	private protected UniImage(object value, Stream stream, UniImageType type)
 	{
-		Stream = Stream.Synchronized(stream);
+		Stream = stream;
 		Value  = value;
 		Type   = type;
 		Hash   = null;

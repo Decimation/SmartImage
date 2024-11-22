@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Kantan.Net;
@@ -17,29 +18,29 @@ using RouteCallbackMap = Dictionary<string, SmartHttpListener.HandleRequestCallb
 public class SearchServer
 {
 
-	public static readonly JsonSerializerOptions Options2 = new (HttpUtilities.Options)
+	public static readonly JsonSerializerOptions Options2 = new(HttpUtilities.Options)
 	{
 		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
-	
+
 	};
 
 	public SearchClient Client { get; }
 
-	private readonly SmartHttpListener m_server;
+	public SmartHttpListener Listener { get; }
 
-	private readonly RouteCallbackMap m_handlers;
+	public RouteCallbackMap Handlers { get; }
 
 
 	public SearchServer(SearchClient client, int port)
 	{
 		Client = client;
 
-		m_handlers = new RouteCallbackMap()
+		Handlers = new RouteCallbackMap()
 		{
 			["search"] = HandleRequestAsync
 		};
 
-		m_server = new SmartHttpListener(m_handlers, port);
+		Listener = new SmartHttpListener(Handlers, port);
 	}
 
 	private async Task<object> HandleRequestAsync(HttpListenerRequest b, HttpListenerResponse response)
@@ -66,11 +67,13 @@ public class SearchServer
 			var results = await Client.RunSearchAsync(sq);
 
 			var allResults = results.SelectMany(x => x.Results).ToArray();
-			// var ok1        = await response.WriteResponseJsonAsync(allResults);
+			var ok1        = await response.WriteResponseJsonAsync(allResults);
 
+			ok = ok1;
+			/*
 			var json = JsonSerializer.Serialize(allResults, Options2);
-
 			ok = await response.WriteResponseStringAsync(json);
+		*/
 		}
 		catch (IOException io) {
 			Trace.WriteLine($"{io}");
@@ -83,7 +86,7 @@ public class SearchServer
 
 	public Task StartAsync(CancellationToken ct = default)
 	{
-		return m_server.StartAsync(ct);
+		return Listener.StartAsync(ct);
 	}
 
 }

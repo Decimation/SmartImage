@@ -68,56 +68,9 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	/*public static FlurlClient Configure(string api)
-	{
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd("FlareSolverr", null, builder =>
-		{
-			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
-			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
-
-			builder.Settings.AllowedHttpStatusRange = "*";
-
-			builder.AddMiddleware(() =>
-			{
-				return new ClearanceHandler(api);
-			});
-
-			/*builder.ConfigureInnerHandler((h) =>
-			{
-				var clearance = new ClearanceHandler(api);
-
-			});#1#
-
-			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
-			builder.AllowAnyHttpStatus();
-			builder.WithAutoRedirect(true);
-
-			builder.OnError(f =>
-			{
-				f.ExceptionHandled = true;
-				return;
-			});
-
-		});
-	}*/
-
 	[ModuleInitializer]
 	public static void Init()
 	{
-		/*IFlurlClientCache.Configure(settings =>
-		{
-			settings.Redirects.Enabled                    = true; // default true
-			settings.Redirects.AllowSecureToInsecure      = true; // default false
-			settings.Redirects.ForwardAuthorizationHeader = true; // default false
-			settings.Redirects.MaxAutoRedirects           = 20;   // default 10 (consecutive)
-
-			settings.OnError = r =>
-			{
-				Debug.WriteLine($"exception: {r.Exception}");
-				r.ExceptionHandled = false;
-
-			};
-		});*/
 		s_logger.LogInformation("Init");
 
 
@@ -130,8 +83,6 @@ public sealed class SearchClient : IDisposable
 				s.Redirects.ForwardAuthorizationHeader = true;
 				s.Redirects.MaxAutoRedirects           = 20;
 			});
-
-
 		});
 	}
 
@@ -149,7 +100,9 @@ public sealed class SearchClient : IDisposable
 
 	public void OpenChannel()
 	{
-		ResultChannel?.Writer.TryComplete(new ChannelClosedException("Reopened channel"));
+		var ok = ResultChannel?.Writer.TryComplete(new ChannelClosedException("Reopened channel"));
+
+		if (ok.HasValue && ok.Value) { }
 
 		ResultChannel = Channel.CreateUnbounded<SearchResult>(new UnboundedChannelOptions()
 		{
@@ -170,7 +123,7 @@ public sealed class SearchClient : IDisposable
 		scheduler ??= TaskScheduler.Default;
 
 		// Requires.NotNull(ResultChannel);
-		if (ResultChannel == null) {
+		if (ResultChannel == null || (IsComplete && !IsRunning)) {
 			OpenChannel();
 		}
 
@@ -200,9 +153,7 @@ public sealed class SearchClient : IDisposable
 
 				Debugger.Break();
 				s_logger.LogWarning("Cancellation requested");
-				ResultChannel?.Writer.Complete();
-				IsComplete = true;
-				IsRunning  = false;
+				CompleteSearchAsync();
 				return results;
 			}
 
@@ -215,10 +166,8 @@ public sealed class SearchClient : IDisposable
 			i++;
 		}
 
-		ResultChannel?.Writer.Complete();
+		CompleteSearchAsync();
 		OnSearchComplete?.Invoke(this, results);
-		IsRunning  = false;
-		IsComplete = true;
 
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 
@@ -240,29 +189,18 @@ public sealed class SearchClient : IDisposable
 				Debugger.Break();
 			}
 
-			/*try {
-				IOrderedEnumerable<SearchResultItem> rr = results.SelectMany(rr => rr.Results)
-					.OrderByDescending(rr => rr.Score);
-
-				if (Config.OpenRaw) {
-					OpenResult(results.MaxBy(x => x.Results.Sum(xy => xy.Score)));
-				}
-				else {
-					OpenResult(rr.OrderByDescending(x => x.Similarity)
-						           .FirstOrDefault(x => Url.IsValid(x.Url))?.Url);
-				}
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-
-				SearchResult result = results.FirstOrDefault(f => f.Status.IsSuccessful()) ?? results.First();
-				OpenResult(result);
-			}*/
 		}
 
 		IsRunning = false;
 
 		return results;
+	}
+
+	private void CompleteSearchAsync()
+	{
+		ResultChannel?.Writer.Complete();
+		IsRunning  = false;
+		IsComplete = true;
 	}
 
 	private void ProcessResult(SearchResult result)
@@ -284,15 +222,13 @@ public sealed class SearchClient : IDisposable
 	public static void OpenResult([MN] Url url1)
 	{
 #if (DEBUG && !TEST) || UNITTEST
-#pragma warning disable CA1822
-#pragma warning disable CS0162
+#pragma warning disable CA1822, CS0162
 
 		// ReSharper disable once MemberCanBeMadeStatic.Local
 		s_logger.LogDebug("Not opening result {result}", url1);
 		return;
 
-#pragma warning restore CS0162
-#pragma warning restore CA1822
+#pragma warning restore CS0162, CA1822
 #endif
 
 		if (url1 == null) {
@@ -345,6 +281,8 @@ public sealed class SearchClient : IDisposable
 
 	public async ValueTask LoadEnginesAsync(CancellationToken token = default)
 	{
+		// todo
+
 		Trace.WriteLine("Loading engines");
 
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
@@ -403,7 +341,7 @@ public sealed class SearchClient : IDisposable
 		ConfigApplied = false;
 		IsComplete    = false;
 		IsRunning     = false;
-		ResultChannel.Writer.Complete();
+		ResultChannel?.Writer.Complete();
 	}
 
 }
