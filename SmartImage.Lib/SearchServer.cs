@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -40,7 +41,28 @@ public class SearchServer : IDisposable
 			["search"] = HandleRequestAsync
 		};
 
-		Listener = new SmartHttpListener(Handlers, port);
+		var uriPrefix = $"http://*:{port}/";
+		Trace.WriteLine($"{uriPrefix}");
+		Listener = new SmartHttpListener(Handlers, uriPrefix);
+	}
+
+	public IPAddress GetLocalIPv4(NetworkInterfaceType _type = NetworkInterfaceType.Ethernet)
+	{
+		IPAddress output = default;
+		foreach (NetworkInterface item in NetworkInterface.GetAllNetworkInterfaces())
+		{
+			if (item.NetworkInterfaceType == _type && item.OperationalStatus == OperationalStatus.Up)
+			{
+				foreach (UnicastIPAddressInformation ip in item.GetIPProperties().UnicastAddresses)
+				{
+					if (ip.Address.AddressFamily == AddressFamily.InterNetwork)
+					{
+						output = ip.Address;
+					}
+				}
+			}
+		}
+		return output;
 	}
 
 	private async Task<object> HandleRequestAsync(HttpListenerRequest request, HttpListenerResponse response)

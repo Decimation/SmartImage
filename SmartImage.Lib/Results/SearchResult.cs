@@ -9,6 +9,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Utilities;
 using static SmartImage.Lib.Engines.BaseSearchEngine;
 
 namespace SmartImage.Lib.Results;

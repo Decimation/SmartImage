@@ -3,6 +3,7 @@ using Novus.OS;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
+using SmartImage.Rdx.Commands;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;

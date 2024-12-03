@@ -1,0 +1,6 @@
+@SmartImage.Server_HostAddress = http://localhost:5206
+
+GET {{SmartImage.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

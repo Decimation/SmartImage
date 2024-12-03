@@ -281,14 +281,4 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	#endregion
 
-	public static bool IsSuccessful(this SearchResultStatus s)
-		=> !s.IsError() && !s.IsUnknown() || s is SearchResultStatus.Success;
-
-	public static bool IsUnknown(this SearchResultStatus s)
-		=> s is SearchResultStatus.NoResults or SearchResultStatus.None;
-
-	public static bool IsError(this SearchResultStatus s)
-		=> s is SearchResultStatus.Failure or SearchResultStatus.IllegalInput
-			   or SearchResultStatus.Unavailable or SearchResultStatus.Cooldown;
-
 }

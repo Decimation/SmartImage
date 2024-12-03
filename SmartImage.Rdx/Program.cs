@@ -22,6 +22,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
 using SmartImage.Rdx.Utilities;
+using SmartImage.Rdx.Commands;
 
 namespace SmartImage.Rdx;
 
@@ -141,14 +142,17 @@ public static class Program
 
 		app.Configure(c =>
 		{
+#if DEBUG
 			c.PropagateExceptions();
+			c.ValidateExamples();
+#endif
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
 
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
 
-			c.AddCommand("server")
+			c.AddCommand<ServerCommand>("server")
 				.WithDescription("Start listen server");
 		});
 

@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Flurl.Http" Version="4.0.2" />
+    <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="8.0.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.1" />
+    <PackageReference Include="Verify.Flurl" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SmartImage.Lib\SmartImage.Lib.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="FlareSolverrSharp">
+      <HintPath>..\..\..\VSProjects\FlareSolverrSharp\src\FlareSolverrSharp\bin\Release\net8.0\FlareSolverrSharp.dll</HintPath>
+    </Reference>
+    <Reference Include="Kantan">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net8.0\Kantan.dll</HintPath>
+    </Reference>
+    <Reference Include="Kantan.Net">
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net8.0\Kantan.Net.dll</HintPath>
+    </Reference>
+    <Reference Include="Novus">
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net8.0\Novus.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>

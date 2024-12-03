@@ -7,7 +7,7 @@ using SmartImage.Rdx.Shell;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace SmartImage.Rdx;
+namespace SmartImage.Rdx.Commands;
 
 internal class IntegrationCommand : Command<IntegrationCommandSettings>
 {

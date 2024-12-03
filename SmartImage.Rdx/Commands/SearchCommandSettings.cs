@@ -12,7 +12,7 @@ using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli;
 using ValidationResult = Spectre.Console.ValidationResult;
 
-namespace SmartImage.Rdx;
+namespace SmartImage.Rdx.Commands;
 
 public sealed class SearchCommandSettings : CommandSettings
 {
@@ -20,6 +20,8 @@ public sealed class SearchCommandSettings : CommandSettings
 	[CommandArgument(0, "<query>")]
 	[Description("Query: file or URL; see wiki")]
 	public string? Query { get; internal set; }
+
+	#region 
 
 	[CommandOption("-e|--search-engines")]
 	[DefaultValue(SearchConfig.SE_DEFAULT)]
@@ -41,10 +43,21 @@ public sealed class SearchCommandSettings : CommandSettings
 	[Description("Read cookies from browser")]
 	public bool? ReadCookies { get; internal set; }
 
-	[CommandOption("--interactive")]
+	[CommandOption("--keep-open")]
 	[DefaultValue(false)]
-	[Description("Interactive results")]
-	public bool? Interactive { get; internal set; }
+	[Description("Waits for input before terminating")]
+	public bool? KeepOpen { get; internal set; }
+
+	[CommandOption("--flaresolverr")]
+	[DefaultValue(SearchConfig.FLARESOLVERR_DEFAULT)]
+	[Description("Use FlareSolverr")]
+	public bool FlareSolverr { get; internal set; }
+
+	[CommandOption("--flaresolverr-api")]
+	[DefaultValue(SearchConfig.FLARE_SOLVERR_API_URL_DEFAULT)]
+	public string FlareSolverrApiUrl { get; internal set; }
+
+	#endregion
 
 	#region
 
@@ -84,23 +97,14 @@ public sealed class SearchCommandSettings : CommandSettings
 
 	#endregion
 
-	[CommandOption("--keep-open")]
-	[DefaultValue(false)]
-	[Description("Waits for input before terminating")]
-	public bool? KeepOpen { get; internal set; }
-
-	[CommandOption("--flaresolverr")]
-	[DefaultValue(SearchConfig.FLARESOLVERR_DEFAULT)]
-	[Description("Use FlareSolverr")]
-	public bool FlareSolverr { get; internal set; }
-
-	[CommandOption("--flaresolverr-api")]
-	[DefaultValue(SearchConfig.FLARE_SOLVERR_API_URL_DEFAULT)]
-	public string FlareSolverrApiUrl { get; internal set; }
-
 	// public bool? Silent { get; internal set; } //todo
 
 	// public const string PROP_ARG_RESULTS = "$all_results";
+
+	[CommandOption("--interactive")]
+	[DefaultValue(false)]
+	[Description("Interactive results")]
+	public bool? Interactive { get; internal set; }
 
 	public override ValidationResult Validate()
 	{
@@ -110,8 +114,8 @@ public sealed class SearchCommandSettings : CommandSettings
 			return ValidationResult.Error("Invalid query");
 		}
 
-		var  hasOutputFile       = !String.IsNullOrWhiteSpace(OutputFile);
-		var  hasOutputFileDelim  = !String.IsNullOrEmpty(OutputFileDelimiter);
+		var  hasOutputFile       = !string.IsNullOrWhiteSpace(OutputFile);
+		var  hasOutputFileDelim  = !string.IsNullOrEmpty(OutputFileDelimiter);
 		bool isOutputFormatDelim = OutputFileFormat == OutputFileFormat.Delimited;
 
 		if (!isOutputFormatDelim && hasOutputFile) {
