@@ -1,5 +1,6 @@
 ﻿global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
 global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -29,8 +30,8 @@ using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
-using SmartImage.Lib.Utilities;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib;
 
@@ -47,7 +48,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsRunning { get; private set; }
 
-	private static readonly ILogger s_logger = AppUtil.Factory.CreateLogger(nameof(SearchClient));
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchClient));
 
 	internal static readonly Assembly Asm;
 

@@ -1,15 +1,17 @@
 ﻿using System.Data;
+using System.Diagnostics;
+using JetBrains.Annotations;
 using Novus.OS;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 
 // ReSharper disable InconsistentNaming
-
+#nullable disable
 namespace SmartImage.Rdx.Shell;
 
 internal static class ConsoleFormat
@@ -58,41 +60,59 @@ internal static class ConsoleFormat
 
 	internal static readonly Text Txt_Empty = new(string.Empty);
 
-	internal static readonly Text Txt_Default = new(STR_DEFAULT);
-
-	internal const string STR_DEFAULT = "-";
+	internal static readonly Text Txt_NA = new(STR_NA);
 
 	#endregion
 
 
 	static ConsoleFormat() { }
 
-	internal static readonly Capabilities ProfileCapabilities = AnsiConsole.Profile.Capabilities;
+	private static readonly Capabilities ProfileCapabilities = AnsiConsole.Profile.Capabilities;
 
-	internal static Grid CreateInfoGrid()
+	internal static readonly Dictionary<string, object> InfoMap = new()
+	{
+		["OS"]               = $"{Environment.OSVersion}",
+		["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
+		["Runtime"]          = Environment.Version,
+		["Terminal ANSI"]    = ProfileCapabilities.Ansi,
+		["Terminal colors"]  = ProfileCapabilities.ColorSystem,
+		["Terminal links"]   = ProfileCapabilities.Links,
+		["Terminal Unicode"] = ProfileCapabilities.Unicode,
+		["Version"]          = $"{SearchCommand.Version}",
+		["Location"]         = BaseOSIntegration.ExeLocation
+	};
+
+
+	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
+	                                                     [CBN] Func<TKey, Text> keyFunc = null,
+	                                                     [CBN] Func<TValue, Text> valFunc = null)
 	{
 		var grd = new Grid();
 		grd.AddColumns(2);
 
-		var dict = new Dictionary<string, object>
+		keyFunc ??= static (k) =>
 		{
-			["OS"]               = $"{Environment.OSVersion}",
-			["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
-			["Runtime"]          = Environment.Version,
-			["Terminal ANSI"]    = ProfileCapabilities.Ansi,
-			["Terminal colors"]  = ProfileCapabilities.ColorSystem,
-			["Terminal links"]   = ProfileCapabilities.Links,
-			["Terminal Unicode"] = ProfileCapabilities.Unicode,
-			["Version"]          = $"{SearchCommand.Version}",
-			["Location"]         = AppUtil.ExeLocation
+			//
+			var s = k.ToString();
+			ArgumentNullException.ThrowIfNull(s);
+			return new Text(s, Sty_Grid1);
 		};
 
-		foreach ((string? key, var value) in dict) {
-			grd.AddRow(new Text(key, Sty_Grid1), new Text(value.ToString()));
+		valFunc ??= static (v) =>
+		{
+			//
+			var s = v.ToString();
+			ArgumentNullException.ThrowIfNull(s);
+			return new Text(s);
+		};
+
+		foreach (var (k, v) in dictionary) {
+			grd.AddRow(keyFunc(k), valFunc(v));
 		}
 
 		return grd;
 	}
+
 
 	[MURV]
 	public static FigletFont LoadFigletFontFromResource(string name, out MemoryStream fs)
@@ -138,25 +158,27 @@ internal static class ConsoleFormat
 			t.AddColumn(new TableColumn(row.ColumnName));
 		}
 
+		Func<object, IRenderable> selector = AsRenderableOrText;
+
 		foreach (DataRow row in dt.Rows) {
 			var obj = row.ItemArray
-				.Select(x =>
-				{
-					if (x is IRenderable r) {
-						return r;
-					}
-
-					if (x == null) {
-						return Txt_Empty;
-					}
-
-					return new Text(x.ToString());
-				});
+				.Select(selector);
 
 			t.AddRow(obj);
 		}
 
 		return t;
+	}
+
+	public static IRenderable AsRenderableOrText<T>(T val)
+	{
+		if (val is IRenderable r) {
+			return r;
+		}
+
+		var s    = val?.ToString();
+		var text = s == null ? Txt_Empty : new Text(s);
+		return text;
 	}
 
 	internal static Color GetEngineColor(SearchEngineOptions opt)
@@ -168,8 +190,7 @@ internal static class ConsoleFormat
 		return color;
 	}
 
-	internal const int    EC_ERROR = -1;
-	internal const int    EC_OK    = 0;
+	internal const string STR_NA   = "-";
 	internal const double COMPLETE = 100.0d;
 
 }

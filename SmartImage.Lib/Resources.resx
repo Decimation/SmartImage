@@ -164,10 +164,10 @@
   <data name="Author" xml:space="preserve">
     <value>Read Stanton</value>
   </data>
-  <data name="Repo_Url" xml:space="preserve">
+  <data name="Url_Repo" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage</value>
   </data>
-  <data name="Wiki_Url" xml:space="preserve">
+  <data name="Url_Wiki" xml:space="preserve">
     <value>https://github.com/Decimation/SmartImage/wiki</value>
   </data>
   <data name="S_HydrusEndpoint" xml:space="preserve">
@@ -203,5 +203,8 @@
   </data>
   <data name="Err_Query" xml:space="preserve">
     <value>Invalid query: query must be a file path or direct URI</value>
+  </data>
+  <data name="Url_GitHubApi" xml:space="preserve">
+    <value>https://api.github.com/repos/Decimation/SmartImage/releases</value>
   </data>
 </root>

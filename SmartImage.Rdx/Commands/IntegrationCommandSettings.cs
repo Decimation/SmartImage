@@ -1,7 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: IntegrationCommandSettings.cs
 // Date: 2024/05/22 @ 16:05:47
 
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -18,12 +18,7 @@ internal class IntegrationCommandSettings : CommandSettings
 
 	public override ValidationResult Validate()
 	{
-		if (AppUtil.IsWindows) {
-			ContextMenuArguments ??= R1.Reg_Launch_Args;
-		}
-		else if (AppUtil.IsLinux) {
-			ContextMenuArguments ??= R1.Linux_Launch_Args;
-		}
+		ContextMenuArguments ??= BaseOSIntegration.Integration.LaunchArgs;
 
 		return base.Validate();
 	}

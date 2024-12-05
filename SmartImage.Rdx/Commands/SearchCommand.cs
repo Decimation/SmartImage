@@ -8,6 +8,7 @@ global using R1 = SmartImage.Lib.Resources;
 // global using AnsiConsole = Spectre.Console.AnsiConsole;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
@@ -42,6 +43,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Utilities.Integration;
 
 // ReSharper disable InconsistentNaming
 
@@ -176,7 +178,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		}
 		catch (Exception e) {
 			AnsiConsole.WriteException(e);
-			return ConsoleFormat.EC_ERROR;
+			return BaseOSIntegration.EC_ERROR;
 		}
 
 		var gr = CreateConfigGrid();
@@ -239,7 +241,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			}
 		}
 
-		return ConsoleFormat.EC_OK;
+		return BaseOSIntegration.EC_OK;
 	}
 
 	private async Task RunInteractiveAsync()
@@ -309,7 +311,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
 			var result = await Client.ResultChannel.Reader.ReadAsync();
 
-			m_results.TryAdd(result, ConsoleFormat.EC_ERROR);
+			m_results.TryAdd(result, BaseOSIntegration.EC_ERROR);
 
 			// m_results.Add(result);
 
@@ -486,7 +488,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			}
 		}
 
-		uniIndex = ConsoleFormat.EC_ERROR;
+		uniIndex = BaseOSIntegration.EC_ERROR;
 
 		return null;
 	}
@@ -509,7 +511,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 			default:
 				Debugger.Break();
-				return ConsoleFormat.EC_ERROR;
+				return BaseOSIntegration.EC_ERROR;
 
 			// throw new SmartImageException($"{o} is invalid");
 			// return null;
@@ -665,7 +667,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			url = new Markup(Markup.Escape(link.ToString()), new Style(link: link));
 		}
 		else {
-			url = ConsoleFormat.Txt_Default;
+			url = ConsoleFormat.Txt_NA;
 		}
 
 		var sim    = new Text($"{res.Similarity}");
@@ -740,7 +742,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		m_cts.Cancel();
 		args.Cancel = false;
 
-		Environment.Exit(ConsoleFormat.EC_ERROR);
+		Environment.Exit(BaseOSIntegration.EC_ERROR);
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)

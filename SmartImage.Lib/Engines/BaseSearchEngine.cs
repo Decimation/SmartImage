@@ -21,6 +21,8 @@ using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Diagnostics;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines;
 #nullable enable
@@ -59,7 +61,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		MaxSize     = null;
 	}
 
-	protected static readonly ILogger Logger = AppUtil.Factory.CreateLogger(nameof(BaseSearchEngine));
+	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
 	
 	/*protected IFlurlRequest Build(IFlurlRequest request)
 	{

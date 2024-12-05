@@ -1,4 +1,4 @@
-﻿namespace SmartImage.Lib.Utilities;
+﻿namespace SmartImage.Lib.Utilities.Diagnostics;
 
 public sealed class SmartImageException : Exception
 {

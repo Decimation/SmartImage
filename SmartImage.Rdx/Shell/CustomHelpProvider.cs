@@ -38,7 +38,7 @@ internal class CustomHelpProvider : HelpProvider
 			Text.NewLine,
 			new Text("DESCRIPTION:", new Style(Color.Yellow, decoration: Decoration.Bold)), Text.NewLine,
 			new Text($"    Homepage: {R1.Repo_Url}", new Style(link: R1.Repo_Url)), Text.NewLine, 
-			new Text($"    Wiki: {R1.Wiki_Url}", new Style(link: R1.Wiki_Url)), Text.NewLine, 
+			new Text($"    Wiki: {R1.Url_Wiki}", new Style(link: R1.Url_Wiki)), Text.NewLine, 
 			Text.NewLine,
 			Text.NewLine,
 		};

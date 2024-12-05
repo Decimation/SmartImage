@@ -151,15 +151,6 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage.
-        /// </summary>
-        internal static string Repo_Url {
-            get {
-                return ResourceManager.GetString("Repo_Url", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Auto-search.
         /// </summary>
         internal static string S_AutoSearch {
@@ -295,20 +286,38 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36.
+        ///   Looks up a localized string similar to https://api.github.com/repos/Decimation/SmartImage/releases.
         /// </summary>
-        internal static string UserAgent1 {
+        internal static string Url_GitHubApi {
             get {
-                return ResourceManager.GetString("UserAgent1", resourceCulture);
+                return ResourceManager.GetString("Url_GitHubApi", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage.
+        /// </summary>
+        internal static string Url_Repo {
+            get {
+                return ResourceManager.GetString("Url_Repo", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to https://github.com/Decimation/SmartImage/wiki.
         /// </summary>
-        internal static string Wiki_Url {
+        internal static string Url_Wiki {
             get {
-                return ResourceManager.GetString("Wiki_Url", resourceCulture);
+                return ResourceManager.GetString("Url_Wiki", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.45 Safari/537.36.
+        /// </summary>
+        internal static string UserAgent1 {
+            get {
+                return ResourceManager.GetString("UserAgent1", resourceCulture);
             }
         }
     }

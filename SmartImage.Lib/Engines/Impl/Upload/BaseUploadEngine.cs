@@ -9,8 +9,10 @@ using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
 using Novus.OS;
 using Novus.Utilities;
+using SmartImage.Lib.Diagnostics;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Impl.Upload;
 
@@ -36,7 +38,7 @@ public abstract class BaseUploadEngine : IDisposable
 
 	public TimeSpan Timeout { get; set; }
 
-	protected static readonly ILogger Logger = AppUtil.Factory.CreateLogger(nameof(BaseUploadEngine));
+	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseUploadEngine));
 
 	protected static FlurlClient Client { get; }
 

@@ -2,6 +2,7 @@
 // Date: 2024/11/22 @ 03:11:26
 
 using SmartImage.Lib;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Shell;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -32,7 +33,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 		await Server.StartAsync();
 
-		return ConsoleFormat.EC_OK;
+		return BaseOSIntegration.EC_OK;
 	}
 
 	public void Dispose()

@@ -19,12 +19,12 @@ using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
 using SmartImage.Rdx.Utilities;
 using SmartImage.Rdx.Commands;
+using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Rdx;
 
@@ -33,16 +33,10 @@ public static class Program
 
 	public static async Task<int> Main(string[] args)
 	{
-		Debug.WriteLine(AnsiConsole.Profile.Height);
-		Debug.WriteLine(Console.BufferHeight);
-
-
-		var svc = new ServiceCollection();
-
-		AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
+		/*AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
 		{
 			Trace.WriteLine($"{sender} -> {eventArgs}");
-		};
+		};*/
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
@@ -50,44 +44,13 @@ public static class Program
 
 		// Debugger.Launch();
 #endif
-		HandleArgs(args);
+		HandleArgs(ref args);
 
-		if (Console.IsInputRedirected) {
-			Trace.WriteLine("Input redirected");
-			var pipeInput = ConsoleUtil.ParseInputStream();
+		await DisplayHeaderAsync();
 
-			var newArgs = new string[args.Length + 1];
-			newArgs[0] = pipeInput;
-			args.CopyTo(newArgs, 1);
+		DisplayInfoGrid();
 
-			args = newArgs;
-
-			AnsiConsole.WriteLine($"Received input from stdin");
-		}
-
-		var ff = ConsoleFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
-
-		// ms?.Dispose();
-
-		var fg = new FigletText(ff, R1.Name)
-			.LeftJustified()
-			.Color(ConsoleFormat.Clr_Misc1);
-
-		AnsiConsole.Write(fg);
-
-#if DEBUG
-		Trace.WriteLine(args.QuickJoin());
-#endif
-
-		Grid grd = ConsoleFormat.CreateInfoGrid();
-
-		AnsiConsole.Write(grd);
-
-		// var env = Environment.GetEnvironmentVariables(EnvironmentVariableTarget.Process);
-
-		var tr = new TypeRegistrar(svc);
-
-		var app = new CommandApp<SearchCommand>(tr);
+		var app = new CommandApp<SearchCommand>();
 
 		app.Configure(c =>
 		{
@@ -95,6 +58,7 @@ public static class Program
 			c.PropagateExceptions();
 			c.ValidateExamples();
 #endif
+
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
 
@@ -105,7 +69,7 @@ public static class Program
 				.WithDescription("Start listen server");
 		});
 
-		int x = ConsoleFormat.EC_OK;
+		int x = BaseOSIntegration.EC_OK;
 
 		try {
 			x = await app.RunAsync(args);
@@ -113,11 +77,11 @@ public static class Program
 		}
 		catch (Exception e) {
 			AnsiConsole.WriteException(e);
-			x = ConsoleFormat.EC_ERROR;
+			x = BaseOSIntegration.EC_ERROR;
 		}
 		finally {
 
-			if (x != ConsoleFormat.EC_OK) {
+			if (x != BaseOSIntegration.EC_OK) {
 				AnsiConsole.Confirm("Press any key to continue");
 			}
 		}
@@ -125,10 +89,29 @@ public static class Program
 		return x;
 	}
 
-	private static void HandleArgs(string[] args)
+	private static void DisplayInfoGrid()
+	{
+		Grid grd = ConsoleFormat.MapToGrid(ConsoleFormat.InfoMap);
+		AnsiConsole.Write(grd);
+	}
+
+	private static async Task DisplayHeaderAsync()
+	{
+		var ff = ConsoleFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
+
+		var fg = new FigletText(ff, R1.Name)
+			.LeftJustified()
+			.Color(ConsoleFormat.Clr_Misc1);
+		await ms.DisposeAsync();
+
+		AnsiConsole.Write(fg);
+	}
+
+	private static void HandleArgs(ref string[] args)
 	{
 		if (args.Length == 0) {
 
+			// todo
 
 			/*if (Clipboard.Open()) {
 				/*var hasBmp = Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_BITMAP);
@@ -149,6 +132,7 @@ public static class Program
 			// var s = AnsiConsole.Ask<string>("...");
 
 		}
+
 		/*if (args.Length == 0) {
 			var prompt = new TextPrompt<string>("Input")
 			{
@@ -175,7 +159,20 @@ public static class Program
 
 			args = [sz];
 		}*/
+		if (Console.IsInputRedirected) {
+			Trace.WriteLine("Input redirected");
+			var pipeInput = ConsoleUtil.ParseInputStream();
+
+			var newArgs = new string[args.Length + 1];
+			newArgs[0] = pipeInput;
+			args.CopyTo(newArgs, 1);
+
+			args = newArgs;
+
+			AnsiConsole.WriteLine($"Received input from stdin");
+		}
 	}
+
 
 	private static IConfigurationRoot GetConfig()
 	{

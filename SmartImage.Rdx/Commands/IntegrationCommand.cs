@@ -2,7 +2,7 @@
 // Date: 2024/05/22 @ 16:05:51
 
 using System.Diagnostics;
-using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Shell;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -15,20 +15,20 @@ internal class IntegrationCommand : Command<IntegrationCommandSettings>
 	public override int Execute(CommandContext context, IntegrationCommandSettings settings)
 	{
 		try {
-			// AnsiConsole.WriteLine($"{AppUtil.IsContextMenuAdded}");
+			// AnsiConsole.WriteLine($"{AppSupport.IsContextMenuAdded}");
 
 			if (settings.ContextMenu.HasValue) {
-				var rv = AppUtil.HandleContextMenu(settings.ContextMenu.Value, settings.ContextMenuArguments);
+				var rv = BaseOSIntegration.Integration.HandleContextMenu(settings.ContextMenu.Value, settings.ContextMenuArguments);
 				AnsiConsole.WriteLine($"Context menu change: {rv}");
 			}
 
-			AnsiConsole.WriteLine($"Context menu enabled: {AppUtil.IsContextMenuAdded}");
+			AnsiConsole.WriteLine($"Context menu enabled: {BaseOSIntegration.Integration.IsContextMenuAdded}");
 		}
 		catch (Exception e) {
 			AnsiConsole.WriteException(e);
 		}
 
-		return ConsoleFormat.EC_OK;
+		return BaseOSIntegration.EC_OK;
 	}
 
 }

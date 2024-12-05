@@ -4,7 +4,7 @@
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
-namespace SmartImage.Lib.Utilities;
+namespace SmartImage.Lib.Utilities.Diagnostics;
 
 internal class HttpLoggingHandler : DelegatingHandler
 {
