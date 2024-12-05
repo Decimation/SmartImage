@@ -76,7 +76,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, ID
 		}
 		catch (Exception e) {
 			result.ErrorMessage = e.Message;
-			result.Status       = SearchResultStatus.Failure;
+			result.Status       = SearchResultStatus.UnknownError;
 			return result;
 		}
 
@@ -87,32 +87,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, ID
 			//return sresult;
 			goto ret;
 		}
-
-		/*var imageResults = dataResults.Where(o => o != null)
-
-			// .AsParallel()
-			.SelectMany(x =>
-			{
-				var i = x.Convert(result, out var rg);
-
-				Array.Resize(ref rg, rg.Length + 1);
-				rg[^1] = i;
-
-				return rg;
-			})
-			.Where(o => o != null)
-
-			// .OrderByDescending(e => e.Similarity)
-			.ToList();
-
-		if (imageResults.Count == 0) {
-			// No good results
-			//return sresult;
-			result.Status = SearchResultStatus.NoResults;
-
-			goto ret;
-
-		}*/
 
 		result.Status = SearchResultStatus.Success;
 

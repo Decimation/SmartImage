@@ -11,13 +11,19 @@ public static class SearchUtil
 {
 
 	public static bool IsSuccessful(this SearchResultStatus s)
-		=> (!s.IsError() && !s.IsUnknown()) || s is SearchResultStatus.Success;
+		=> s is SearchResultStatus.Success || (!s.IsError() && !s.IsUnknown());
 
 	public static bool IsUnknown(this SearchResultStatus s)
-		=> s is SearchResultStatus.NoResults or SearchResultStatus.None;
+		=> s is SearchResultStatus.None;
 
 	public static bool IsError(this SearchResultStatus s)
-		=> s is SearchResultStatus.Failure or SearchResultStatus.IllegalInput
+		=> s is SearchResultStatus.UnknownError or SearchResultStatus.IllegalInput
 			   or SearchResultStatus.Unavailable or SearchResultStatus.Cooldown;
+
+	public const SearchResultFlags ALT_STATUS =
+		SearchResultFlags.NoResults | SearchResultFlags.Extraneous;
+
+	public static bool HasFlagFast(this SearchResultFlags value, SearchResultFlags status)
+		=> (value & status) != 0;
 
 }

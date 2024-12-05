@@ -194,7 +194,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 
 		if (doc == null || doc.Body == null) {
 			sr.ErrorMessage = $"Could not retrieve data";
-			sr.Status       = SearchResultStatus.Failure;
+			sr.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
@@ -211,7 +211,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 
 		if (err.Length != 0) {
 			var fe = err[0];
-			sr.Status       = SearchResultStatus.Failure;
+			sr.Status       = SearchResultStatus.UnknownError;
 			sr.ErrorMessage = $"{fe.TextContent}";
 			goto ret;
 		}
@@ -225,7 +225,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 
 		if (ns != null) {
 
-			sr.Status = SearchResultStatus.NoResults;
+			sr.Flags |= SearchResultFlags.NoResults;
 			goto ret;
 		}
 

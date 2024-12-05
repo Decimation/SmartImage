@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Channels;
 using Flurl.Http;
 using Flurl.Http.Configuration;
@@ -18,6 +19,7 @@ using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using SmartImage.Rdx.Shell;
@@ -34,13 +36,6 @@ public static class Program
 		Debug.WriteLine(AnsiConsole.Profile.Height);
 		Debug.WriteLine(Console.BufferHeight);
 
-		/*var bldr2 = new ConfigurationBuilder();
-		var host  = Host.CreateDefaultBuilder();
-		var bldr  = host.ConfigureServices((ctx, svc) => { svc.AddSingleton<SearchConfig>(); });
-
-		bldr2.SetBasePath(Directory.GetCurrentDirectory())
-			.AddJsonFile("smartimage.json", optional: false, reloadOnChange: true);
-			*/
 
 		var svc = new ServiceCollection();
 
@@ -52,56 +47,10 @@ public static class Program
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 #if DEBUG
+
 		// Debugger.Launch();
 #endif
-		if (args.Length == 0) {
-
-
-			/*if (Clipboard.Open()) {
-				/*var hasBmp = Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_BITMAP);
-
-				if (hasBmp) {
-					var data = (nint) Clipboard.GetData((uint) ClipboardFormat.CF_BITMAP);
-					var sz   = Native.GlobalSize(data);
-					var buf  = new byte[sz];
-					Marshal.Copy(data, buf, 0, (int) sz);
-					var mg = await Image.LoadAsync(new MemoryStream(buf));
-
-				}#1#
-
-				var hasFileName = Clipboard.IsFormatAvailable((uint) ClipboardFormat.FileNameW);
-
-			}*/
-
-			// var s = AnsiConsole.Ask<string>("...");
-
-		}
-		/*if (args.Length == 0) {
-			var prompt = new TextPrompt<string>("Input")
-			{
-				Converter = s =>
-				{
-					/*
-					var task = SearchQuery.TryCreateAsync(s);
-					task.Wait();
-					var res = task.Result;
-					#1#
-
-					if (UniImage.IsValidSourceType(s)) {
-						// var sq = SearchQuery.TryCreateAsync(s).Result;
-
-						return s;
-					}
-
-					else {
-						return null;
-					}
-				}
-			};
-			var sz = AnsiConsole.Prompt(prompt);
-
-			args = [sz];
-		}*/
+		HandleArgs(args);
 
 		if (Console.IsInputRedirected) {
 			Trace.WriteLine("Input redirected");
@@ -174,6 +123,81 @@ public static class Program
 		}
 
 		return x;
+	}
+
+	private static void HandleArgs(string[] args)
+	{
+		if (args.Length == 0) {
+
+
+			/*if (Clipboard.Open()) {
+				/*var hasBmp = Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_BITMAP);
+
+				if (hasBmp) {
+					var data = (nint) Clipboard.GetData((uint) ClipboardFormat.CF_BITMAP);
+					var sz   = Native.GlobalSize(data);
+					var buf  = new byte[sz];
+					Marshal.Copy(data, buf, 0, (int) sz);
+					var mg = await Image.LoadAsync(new MemoryStream(buf));
+
+				}#1#
+
+				var hasFileName = Clipboard.IsFormatAvailable((uint) ClipboardFormat.FileNameW);
+
+			}*/
+
+			// var s = AnsiConsole.Ask<string>("...");
+
+		}
+		/*if (args.Length == 0) {
+			var prompt = new TextPrompt<string>("Input")
+			{
+				Converter = s =>
+				{
+					/*
+					var task = SearchQuery.TryCreateAsync(s);
+					task.Wait();
+					var res = task.Result;
+					#1#
+
+					if (UniImage.IsValidSourceType(s)) {
+						// var sq = SearchQuery.TryCreateAsync(s).Result;
+
+						return s;
+					}
+
+					else {
+						return null;
+					}
+				}
+			};
+			var sz = AnsiConsole.Prompt(prompt);
+
+			args = [sz];
+		}*/
+	}
+
+	private static IConfigurationRoot GetConfig()
+	{
+		/*var bldr2 = new ConfigurationBuilder();
+		var host  = Host.CreateDefaultBuilder();
+		var bldr  = host.ConfigureServices((ctx, svc) => { svc.AddSingleton<SearchConfig>(); });
+
+		bldr2.SetBasePath(Directory.GetCurrentDirectory())
+			.AddJsonFile("smartimage.json", optional: false, reloadOnChange: true);
+			*/
+
+		// TODO
+
+		var currentDirectory = Directory.GetCurrentDirectory();
+		var configFileName   = $"{R1.Name}.json";
+		var configFilePath   = Path.Combine(currentDirectory, configFileName);
+
+		var cfg = new ConfigurationBuilder()
+			.AddJsonFile(configFileName)
+			.Build();
+
+		return cfg;
 	}
 
 }

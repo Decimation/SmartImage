@@ -185,15 +185,6 @@ public sealed class YandexEngine : WebSearchEngine
 			sr.Overview = looksLike;
 		}
 
-		/*const string NO_MATCHING = "No matching images found";
-
-		if (doc.Body.TextContent.Contains(NO_MATCHING)) {
-
-			sr.ErrorMessage = NO_MATCHING;
-			sr.Status       = SearchResultStatus.Extraneous;
-		}
-		*/
-
 	ret:
 		sr.Update();
 		return sr;

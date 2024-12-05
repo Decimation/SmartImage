@@ -111,13 +111,11 @@ public abstract class WebSearchEngine : BaseSearchEngine
 	protected bool Validate([CBN] IDocument doc, SearchResult sr)
 	{
 		if (doc is null or { Body: null }) {
-			// sr.Status = SearchResultStatus.Failure;
 			return false;
 		}
 
 		foreach (string s in ErrorBodyMessages) {
 			if (doc.Body.TextContent.Contains(s)) {
-				// sr.Status = SearchResultStatus.IllegalInput;
 				return false;
 			}
 

@@ -63,7 +63,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		}
 		catch (JsonException e) {
 			sr.ErrorMessage = e.Message;
-			sr.Status       = SearchResultStatus.Failure;
+			sr.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 		catch (FlurlHttpException e) {
@@ -74,7 +74,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		}
 
 		if (obj?.matches == null || (obj is { matches: not null } && (obj.matches.Any()))) {
-			sr.Status = SearchResultStatus.NoResults;
+			sr.Flags |= SearchResultFlags.NoResults;
 			goto ret;
 		}
 		

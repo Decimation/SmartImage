@@ -16,14 +16,13 @@ namespace SmartImage.Lib.Results;
 
 #nullable disable
 
-// [Flags]
 public enum SearchResultStatus
 {
 
 	/// <summary>
 	/// N/A
 	/// </summary>
-	None,
+	None = 0,
 
 	/// <summary>
 	/// Result obtained successfully
@@ -36,26 +35,34 @@ public enum SearchResultStatus
 	Cooldown,
 
 	/// <summary>
-	/// Engine returned no results
-	/// </summary>
-	NoResults,
-
-	/// <summary>
 	/// Obtaining results failed due to an engine error
 	/// </summary>
-	Failure,
+	UnknownError,
 
 	IllegalInput,
 
 	/// <summary>
 	/// Engine is unavailable
 	/// </summary>
-	Unavailable,
+	Unavailable
+
+}
+
+[Flags]
+public enum SearchResultFlags
+{
+
+	None = 0,
+
+	/// <summary>
+	/// Engine returned no results
+	/// </summary>
+	NoResults = 1 << 0,
 
 	/// <summary>
 	/// Result is extraneous
 	/// </summary>
-	Extraneous,
+	Extraneous = 1 << 1,
 
 }
 
@@ -75,15 +82,29 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	/// </summary>
 	public Url RawUrl { get; internal set; }
 
+	public bool HasResults
+	{
+		get
+		{
+			// return (Results != null && Results.Count != 0);
+			return !Flags.HasFlagFast(SearchResultFlags.NoResults);
+		}
+	}
+
+	public bool IsSuccessful => Status.IsSuccessful();
+
 	/// <summary>
 	/// Results; first element should be <see cref="GetRawResultItem"/>
 	/// </summary>
+	[NN]
 	public List<SearchResultItem> Results { get; }
 
 	[CBN]
 	public string ErrorMessage { get; internal set; }
 
 	public SearchResultStatus Status { get; internal set; }
+
+	public SearchResultFlags Flags { get; internal set; }
 
 	[CBN]
 	public string Overview { get; internal set; }
@@ -98,18 +119,17 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Update()
 	{
+		/*
+		if (Status.IsError()) {
+			return;
+		}
+		*/
+
 		if (Status.IsError()) {
 			return;
 		}
 
-		bool any = Results.Count != 0;
 
-		if (!any) {
-			Status = SearchResultStatus.NoResults;
-		}
-		else {
-			Status = SearchResultStatus.Success;
-		}
 		/*if (!any && Status != SearchResultStatus.None) {
 			Status = SearchResultStatus.NoResults;
 		}

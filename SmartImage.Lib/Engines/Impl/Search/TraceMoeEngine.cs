@@ -73,7 +73,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 		catch (Exception e) {
 			Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
 			r.ErrorMessage = e.Message;
-			r.Status       = SearchResultStatus.Failure;
+			r.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
@@ -89,7 +89,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 				}
 				catch (Exception e) {
 					r.ErrorMessage = e.Message;
-					r.Status       = SearchResultStatus.Failure;
+					r.Status       = SearchResultStatus.UnknownError;
 				}
 
 			}
@@ -104,7 +104,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 			}
 		}
 
-		ret:
+	ret:
 		r.Update();
 
 		return r;
@@ -249,6 +249,7 @@ public class TraceMoeDoc : IResultConvertable
 		var result = new SearchResultItem(sr)
 		{
 			Similarity = sim,
+
 			// Metadata   = new[] { doc.video, doc.image },
 			Title = filename,
 

@@ -30,7 +30,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		
 		AnsiConsole.WriteLine("Starting server");
 
-		await Server.StartAsync().ConfigureAwait(false);
+		await Server.StartAsync();
 
 		return ConsoleFormat.EC_OK;
 	}
