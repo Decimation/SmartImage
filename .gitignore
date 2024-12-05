@@ -472,3 +472,4 @@ SmartImage.UI/Properties/*
 /SmartImage.Server/Properties
 /SmartImage.Server/appsettings.json
 /SmartImage.Server/hostsettings.json
+/Profiling
