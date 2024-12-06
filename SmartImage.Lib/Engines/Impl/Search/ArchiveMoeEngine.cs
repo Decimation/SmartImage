@@ -1,14 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+﻿// Author: Deci | Project: SmartImage.Lib | Name: ArchiveMoeEngine.cs
+// Date: 2024/06/06 @ 14:06:00
+
 using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using JetBrains.Annotations;
 using Novus.Streams;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
@@ -18,31 +14,15 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 public class ArchiveMoeEngine : WebSearchEngine
 {
 
-	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
-
-	protected ArchiveMoeEngine(string baseUrl) : base(baseUrl) { }
-
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
-
-	public override void Dispose()
-	{
-		GC.SuppressFinalize(this);
-	}
 
 	protected string Base64Hash { get; set; }
 
-	protected static string GetHash(SearchQuery q)
-	{
-		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
-		var data = MD5.HashData(q.Source.Stream);
-		var b64  = Convert.ToBase64String(data).Replace("==", "");
-		b64 = Regex.Replace(b64, @"\//", "_");
-		b64 = Regex.Replace(b64, @"\+", "-");
+	protected override string NodesSelector => "//article[contains(@class,'post')]";
 
-		q.Source.Stream.TrySeek();
+	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
 
-		return b64;
-	}
+	protected ArchiveMoeEngine(string baseUrl) : base(baseUrl) { }
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
@@ -70,14 +50,14 @@ public class ArchiveMoeEngine : WebSearchEngine
 
 		var wh = pfm[1].Split('x');
 
-		var p = new ChanPost()
+		var p = new ChanPost
 		{
-			Id       = long.Parse(e.GetAttribute("id")),
+			Id       = Int64.Parse(e.GetAttribute("id")),
 			Board    = e.GetAttribute("data-board"),
 			Filename = pff.TextContent,
 			File     = pff.GetAttribute("href"),
-			Width    = int.Parse(wh[0]),
-			Height   = int.Parse(wh[1]),
+			Width    = Int32.Parse(wh[0]),
+			Height   = Int32.Parse(wh[1]),
 			Size     = pfm[0],
 			Title    = pt,
 			Author   = pa,
@@ -93,26 +73,43 @@ public class ArchiveMoeEngine : WebSearchEngine
 
 	}
 
-	protected override string NodesSelector => "//article[contains(@class,'post')]";
+	protected static string GetHash(SearchQuery q)
+	{
+		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
+		var data = MD5.HashData(q.Source.Stream);
+		var b64  = Convert.ToBase64String(data).Replace("==", "");
+		b64 = Regex.Replace(b64, @"\//", "_");
+		b64 = Regex.Replace(b64, @"\+", "-");
+
+		q.Source.Stream.TrySeek();
+
+		return b64;
+	}
+
+	public override void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
 
 }
 
 public record ChanPost : IResultConvertable
 {
 
+	public string Author;
+	public string Board;
+	public Url    File;
+	public string Filename;
+	public int    Height;
+
 	public long     Id;
-	public string   Board;
-	public string   Filename;
-	public Url      File;
-	public int      Width;
-	public int      Height;
 	public string   Size;
-	public string   Title;
-	public string   Author;
-	public string   Tripcode;
+	public string   Text;
 	public string   Time1;
 	public DateTime Time2;
-	public string   Text;
+	public string   Title;
+	public string   Tripcode;
+	public int      Width;
 
 	public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] ch)
 	{

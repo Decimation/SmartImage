@@ -14,9 +14,7 @@ public sealed class BingEngine : BaseSearchEngine
 {
 
 	public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=")
-	{
-		IsAdvanced = false;
-	}
+	{ }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Bing;
 

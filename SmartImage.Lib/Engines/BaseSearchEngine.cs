@@ -1,27 +1,16 @@
-﻿global using R1 = SmartImage.Lib.Resources;
+﻿// Author: Deci | Project: SmartImage.Lib | Name: BaseSearchEngine.cs
+// Date: 2024/06/06 @ 14:06:00
+
+global using R1 = SmartImage.Lib.Resources;
 global using Url = Flurl.Url;
-using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Drawing;
-using System.Text.Json;
-using System.Resources;
-using Novus.Utilities;
-using SmartImage.Lib.Results;
-using AngleSharp.Dom;
-using AngleSharp.Html.Parser;
 using Flurl.Http;
-using Flurl.Http.Configuration;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
-using Kantan.Net.Web;
-using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
-using SmartImage.Lib.Images;
-using SmartImage.Lib.Utilities;
-using SmartImage.Lib.Results.Data;
-using SmartImage.Lib.Diagnostics;
+using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines;
@@ -29,21 +18,48 @@ namespace SmartImage.Lib.Engines;
 public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>
 {
 
-	protected static FlurlClient Client { get; }
+	static BaseSearchEngine()
+	{
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, builder =>
+		{
+			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+
+			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
+
+			builder.Settings.AllowedHttpStatusRange = "*";
+
+			builder.OnError(f =>
+			{
+				Debugger.Break();
+				Logger.LogError(f.Exception, $"from {f.Request}");
+			});
+
+			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
+
+		});
+		;
+	}
+
+	protected BaseSearchEngine(string baseUrl, string? endpoint = null)
+	{
+		BaseUrl     = baseUrl;
+		EndpointUrl = endpoint;
+		MaxSize     = null;
+	}
+
+	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
 
 	/// <summary>
-	/// The corresponding <see cref="SearchEngineOptions"/> of this engine
+	///     The corresponding <see cref="SearchEngineOptions" /> of this engine
 	/// </summary>
 	public abstract SearchEngineOptions EngineOption { get; }
 
 	/// <summary>
-	/// Name of this engine
+	///     Name of this engine
 	/// </summary>
 	public virtual string Name => EngineOption.ToString();
 
 	public virtual Url BaseUrl { get; }
-
-	public bool IsAdvanced { get; protected init; }
 
 	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
@@ -53,139 +69,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	protected virtual string[] ErrorBodyMessages { get; } = [];
 
-	protected BaseSearchEngine(string baseUrl, string? endpoint = null)
-	{
-		BaseUrl     = baseUrl;
-		IsAdvanced  = true;
-		EndpointUrl = endpoint;
-		MaxSize     = null;
-	}
-
-	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
-	
-	/*protected IFlurlRequest Build(IFlurlRequest request)
-	{
-		return request.WithTimeout(Timeout);
-	}*/
-
-
-	static BaseSearchEngine()
-	{
-		/*var handler = new LoggingHttpMessageHandler(Logger)
-		{
-			InnerHandler = new HttpLoggingHandler(Logger)
-			{
-				InnerHandler = new HttpClientHandler()
-			}
-		};
-
-		Client = new FlurlClient(new HttpClient(handler))
-		{
-			Settings =
-			{
-				Redirects =
-				{
-					Enabled                    = true,
-					AllowSecureToInsecure      = true,
-					ForwardAuthorizationHeader = true,
-					MaxAutoRedirects           = 20,
-				},
-			}
-		};*/
-		
-
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, builder =>
-		{
-			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
-			
-			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
-
-			builder.Settings.AllowedHttpStatusRange = "*";
-			builder.OnError(f=>
-			{
-				Logger.LogError(f.Exception, $"from {f.Request}");
-				return;
-			});
-
-			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
-
-		});;
-	}
-
-	public override string ToString()
-	{
-		return $"{Name}: {BaseUrl} {Timeout}";
-	}
-
-	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
-	{
-		var b = await VerifyQueryAsync(query);
-
-		/*
-		if (!b) {
-			// throw new SmartImageException($"{query}");
-			Debug.WriteLine($"{query} : Verification error", LogCategories.C_ERROR);
-		}
-		*/
-
-		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
-
-		var res = new SearchResult(this)
-		{
-			RawUrl       = GetRawUrl(query),
-			ErrorMessage = null,
-			Status       = srs
-		};
-
-		lock (res.Results) {
-			res.Results.Add(res.GetRawResultItem());
-		}
-
-		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
-
-		return res;
-	}
-
-	protected virtual Url GetRawUrl(SearchQuery query)
-	{
-		//
-		Url u = ((BaseUrl + query.Upload));
-
-		return u;
-	}
-
-	public virtual ValueTask<bool> VerifyQueryAsync(SearchQuery q)
-	{
-		/*if (q.Upload is not { }) {
-			return false;
-		}*/
-
-		bool b = true;
-
-		if (MaxSize.HasValue) {
-			b = q.Source.Size <= MaxSize;
-		}
-
-		/*if (MaxSize == NA_SIZE || q.Size == NA_SIZE) {
-			b = true;
-		}
-
-		else {
-			b = q.Size <= MaxSize;
-		}*/
-
-		return ValueTask.FromResult(b);
-	}
-
-
-	// TODO: move config application to ctors?
-
-	public abstract void Dispose();
-
-	/*
-	public static readonly BaseSearchEngine[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(InheritanceProperties.Subclass).ToArray();
-		*/
+	protected static FlurlClient Client { get; }
 
 	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
 	{
@@ -242,30 +126,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	}
 
-	#region
-
-	public bool Equals(BaseSearchEngine? other)
-	{
-		if (ReferenceEquals(null, other)) return false;
-		if (ReferenceEquals(this, other)) return true;
-
-		return EngineOption == other.EngineOption;
-	}
-
-	public override bool Equals(object? obj)
-	{
-		if (ReferenceEquals(null, obj)) return false;
-		if (ReferenceEquals(this, obj)) return true;
-		if (obj.GetType() != this.GetType()) return false;
-
-		return Equals((BaseSearchEngine) obj);
-	}
-
-	public override int GetHashCode()
-	{
-		return (int) EngineOption;
-	}
-
 	public static bool operator ==(BaseSearchEngine? left, BaseSearchEngine? right)
 	{
 		return Equals(left, right);
@@ -276,11 +136,112 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return !Equals(left, right);
 	}
 
+	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	{
+		var b = await VerifyQueryAsync(query);
+
+		/*
+		if (!b) {
+			// throw new SmartImageException($"{query}");
+			Debug.WriteLine($"{query} : Verification error", LogCategories.C_ERROR);
+		}
+		*/
+
+		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
+
+		var res = new SearchResult(this)
+		{
+			RawUrl       = GetRawUrl(query),
+			ErrorMessage = null,
+			Status       = srs
+		};
+
+		lock (res.Results) {
+			res.Results.Add(res.GetRawResultItem());
+		}
+
+		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
+
+		return res;
+	}
+
+	protected virtual Url GetRawUrl(SearchQuery query)
+	{
+		//
+		Url u = ((BaseUrl + query.Upload));
+
+		return u;
+	}
+
+	public virtual ValueTask<bool> VerifyQueryAsync(SearchQuery q)
+	{
+		bool b = true;
+
+		if (MaxSize.HasValue) {
+			b = q.Source.Size <= MaxSize;
+		}
+
+		return ValueTask.FromResult(b);
+	}
+
 	public int GetHashCode(BaseSearchEngine obj)
 	{
 		return (int) obj.EngineOption;
 	}
 
-	#endregion
+	public override string ToString()
+	{
+		return $"{Name}: {BaseUrl} {Timeout}";
+	}
+
+	public override bool Equals(object? obj)
+	{
+		if (obj is null) {
+			return false;
+		}
+
+		if (ReferenceEquals(this, obj)) {
+			return true;
+		}
+
+		if (obj.GetType() != GetType()) {
+			return false;
+		}
+
+		return Equals((BaseSearchEngine) obj);
+	}
+
+	public override int GetHashCode()
+	{
+		return (int) EngineOption;
+	}
+
+	public abstract void Dispose();
+
+	public bool Equals(BaseSearchEngine? other)
+	{
+		if (other is null) {
+			return false;
+		}
+
+		if (ReferenceEquals(this, other)) {
+			return true;
+		}
+
+		return EngineOption == other.EngineOption;
+	}
+
+	/*protected IFlurlRequest Build(IFlurlRequest request)
+	{
+		return request.WithTimeout(Timeout);
+	}*/
+
+
+	// TODO: move config application to ctors?
+
+	/*
+	public static readonly BaseSearchEngine[] All =
+		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(InheritanceProperties.Subclass).ToArray();
+		*/
 
 }

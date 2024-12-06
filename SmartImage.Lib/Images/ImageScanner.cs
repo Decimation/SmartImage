@@ -160,6 +160,8 @@ public static class ImageScanner
 		RegexOptions.Compiled
 	);
 
+	public static readonly string[] Extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"];
+
 	public static ValueTask<IFlurlRequest> BuildRequest(Url u, CancellationToken ct = default)
 	{
 		var req = Client.Request(u);
@@ -496,6 +498,5 @@ public static class ImageScanner
 	}*/
 
 	public static IImageHash ImageHasher { get; } = new PerceptualHash();
-
 
 }

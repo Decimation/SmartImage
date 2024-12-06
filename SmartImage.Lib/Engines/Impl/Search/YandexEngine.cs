@@ -1,35 +1,41 @@
+// Author: Deci | Project: SmartImage.Lib | Name: YandexEngine.cs
+// Date: 2024/06/06 @ 14:06:00
+
 using System.Diagnostics;
-using System.Dynamic;
-using System.Net.NetworkInformation;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Flurl.Http;
-using Kantan.Monad;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using SmartImage.Lib.Results;
-using SmartImage.Lib.Utilities;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
 #pragma warning disable 8602
-
-#nullable disable
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
 public sealed class YandexEngine : WebSearchEngine
 {
 
+	protected override string NodesSelector => Serialization.S_Yandex_Images;
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
+
+	protected override string[] ErrorBodyMessages
+		=>
+		[
+			"Please confirm that you and not a robot are sending requests",
+			"Изображение не загрузилось, попробуйте загрузить другое."
+
+			// "No matching images found"
+		];
+
 	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
 		Timeout = TimeSpan.FromSeconds(30);
 	}
-
-	protected override string NodesSelector => Serialization.S_Yandex_Images;
-
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
 	private static string GetAnalysis(IDocument doc)
 	{
@@ -87,7 +93,7 @@ public sealed class YandexEngine : WebSearchEngine
 				Height      = h,
 			};
 
-			if (string.IsNullOrWhiteSpace(sri.Site)) {
+			if (String.IsNullOrWhiteSpace(sri.Site)) {
 				sri.Site = url?.Host;
 			}
 
@@ -111,8 +117,8 @@ public sealed class YandexEngine : WebSearchEngine
 		}
 
 		if (resFull.Length == 2) {
-			w = int.Parse(resFull[0]);
-			h = int.Parse(resFull[1]);
+			w = Int32.Parse(resFull[0]);
+			h = Int32.Parse(resFull[1]);
 		}
 
 		return (w, h);
@@ -129,8 +135,6 @@ public sealed class YandexEngine : WebSearchEngine
 			RawUrl = url
 		};
 
-		sr.Results.Add(sr.GetRawResultItem());
-
 		IDocument doc = null;
 
 		try {
@@ -143,7 +147,7 @@ public sealed class YandexEngine : WebSearchEngine
 			Debug.WriteLine($"{Name}: {e.Message}", nameof(GetResultAsync));
 
 			if (e is FlurlHttpTimeoutException t) {
-				Debug.WriteLine($"Timeout", nameof(GetResultAsync));
+				Debug.WriteLine("Timeout", nameof(GetResultAsync));
 
 			}
 		}
@@ -191,7 +195,7 @@ public sealed class YandexEngine : WebSearchEngine
 	}
 
 	/// <summary>
-	/// Parses <em>Similar images</em>
+	///     Parses <em>Similar images</em>
 	/// </summary>
 	private List<SearchResultItem> ParseSimilarImages(IParentNode doc, SearchResult r)
 	{
@@ -217,7 +221,7 @@ public sealed class YandexEngine : WebSearchEngine
 	}
 
 	/// <summary>
-	/// Parses <em>Sites containing information about the image</em>
+	///     Parses <em>Sites containing information about the image</em>
 	/// </summary>
 	private static List<SearchResultItem> ParseExternalInfo(IDocument doc, SearchResult r)
 	{
@@ -248,8 +252,6 @@ public sealed class YandexEngine : WebSearchEngine
 
 			(sri.Width, sri.Height) = ParseResolution(res);
 
-			// sri.Metadata.thumb = thumb;
-
 			rg.Add(sri);
 		}
 
@@ -257,15 +259,6 @@ public sealed class YandexEngine : WebSearchEngine
 	}
 
 	public override void Dispose() { }
-
-	protected override string[] ErrorBodyMessages
-		=>
-		[
-			"Please confirm that you and not a robot are sending requests",
-			"Изображение не загрузилось, попробуйте загрузить другое."
-
-			// "No matching images found"
-		];
 
 	protected override async ValueTask<INode[]> GetNodes(IDocument doc)
 	{

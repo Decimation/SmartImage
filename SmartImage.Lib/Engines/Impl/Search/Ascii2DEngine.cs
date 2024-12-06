@@ -1,21 +1,14 @@
-﻿#nullable disable
+﻿// Author: Deci | Project: SmartImage.Lib | Name: Ascii2DEngine.cs
+// Date: 2024/06/06 @ 14:06:00
+
 using System.Diagnostics;
-using System.Drawing;
-using System.Net;
-using System.Text;
-using AngleSharp;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
-using FlareSolverrSharp;
-using FlareSolverrSharp.Solvers;
 using FlareSolverrSharp.Types;
 using Flurl.Http;
-using Flurl.Http.Content;
 using Kantan.Net.Utilities;
-using Kantan.Net.Web;
 using SmartImage.Lib.Clients;
-using SmartImage.Lib.Images;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 
@@ -31,6 +24,19 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 {
 
+	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
+
+	public CookieJar Jar { get; }
+
+	protected override string[] ErrorBodyMessages
+		=>
+		[
+			"検索できるのは 縦 10000px での画像です。",
+			"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
+		];
+
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
 		Timeout = TimeSpan.FromSeconds(30);
@@ -38,9 +44,27 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		Jar     = new CookieJar();
 	}
 
-	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
+	{
+		if (FlareSolverrClient.Value.IsInitialized) {
+			return false;
+		}
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
+		var cookies = await provider.LoadCookiesAsync(ct);
+
+		foreach (var bck in cookies) {
+			var ck = bck.AsCookie();
+
+			if (ck.Domain.Contains("ascii2d")) {
+				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, BaseUrl));
+			}
+		}
+
+
+		return true;
+	}
+
+	public override void Dispose() { }
 
 	// public const int MAX_WIDTH = 1000;
 
@@ -84,10 +108,6 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		return url;
 	}
 
-	public override void Dispose() { }
-
-	public CookieJar Jar { get; }
-
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
@@ -118,20 +138,17 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 
 				var msg = new HttpRequestMessage(HttpMethod.Get, origin);
 
-				var fsr     = await FlareSolverrClient.Value.Clearance.Solverr.SolveAsync(msg, null, null);
+				var fsr     = await FlareSolverrClient.Value.Clearance.Solverr.SolveAsync(msg);
 				var cookies = fsr.Solution.Cookies;
 				var newUrl  = fsr.Solution.Url;
 
 
 				foreach (FlareSolverrCookie cookie in cookies) {
-					Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url) { });
+					Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url));
 				}
 
 				var res = await Client.Request(newUrl)
-					          .WithSettings(x =>
-					          {
-						          x.HttpVersion = "2.0";
-					          })
+					          .WithSettings(x => { x.HttpVersion = "2.0"; })
 					          .AllowAnyHttpStatus()
 					          .WithCookies(Jar)
 					          .WithTimeout(Timeout)
@@ -176,7 +193,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 
 	private async Task<IFlurlResponse> GetResponseByUrlAsync(Url origin, CancellationToken token)
 	{
-		var data = new MultipartFormDataContent()
+		var data = new MultipartFormDataContent
 		{
 			{ new StringContent(origin), "uri" }
 		};
@@ -197,13 +214,6 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		return res;
 	}
 
-	protected override string[] ErrorBodyMessages
-		=>
-		[
-			"検索できるのは 縦 10000px での画像です。",
-			"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
-		];
-
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode nx, SearchResult r)
 	{
 		var sri = new SearchResultItem(r);
@@ -214,7 +224,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		var thumb  = imgBox.Children[0].Attributes["src"];
 		sri.Thumbnail = Url.Combine(BaseUrl.Root, thumb?.Value);
 
-		var info = n.ChildNodes.Where(n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
+		var info = n.ChildNodes.Where(n1 => !String.IsNullOrWhiteSpace(n1.TextContent))
 			.ToArray();
 
 		string hash = info.First().TextContent;
@@ -224,8 +234,8 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		string[] data = info[1].TextContent.Split(' ');
 
 		string[] res = data[0].Split('x');
-		sri.Width  = int.Parse(res[0]);
-		sri.Height = int.Parse(res[1]);
+		sri.Width  = Int32.Parse(res[0]);
+		sri.Height = Int32.Parse(res[1]);
 
 		string fmt = data[1];
 
@@ -260,26 +270,6 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		}
 
 		return ValueTask.FromResult(sri);
-	}
-
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
-	{
-		if (FlareSolverrClient.Value.IsInitialized) {
-			return false;
-		}
-
-		var cookies = await provider.LoadCookiesAsync(ct);
-
-		foreach (var bck in cookies) {
-			var ck = bck.AsCookie();
-
-			if (ck.Domain.Contains("ascii2d")) {
-				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, BaseUrl));
-			}
-		}
-
-
-		return true;
 	}
 
 }

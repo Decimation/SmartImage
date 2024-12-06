@@ -1,5 +1,5 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: BaseOSIntegration.cs
-// Date: 2024/12/04 @ 21:12:39
+// Date: 2024/12/05 @ 21:12:49
 
 using System.Diagnostics;
 using System.Runtime.Versioning;
@@ -12,6 +12,8 @@ namespace SmartImage.Lib.Utilities.Integration;
 public abstract class BaseOSIntegration
 {
 
+	#region
+
 	public virtual bool IsRoot => FileSystem.IsRoot;
 
 	public abstract bool IsContextMenuAdded { get; }
@@ -20,13 +22,43 @@ public abstract class BaseOSIntegration
 
 	public abstract string AppDataPath { get; }
 
-	public static BaseOSIntegration Integration { get; }
+	public virtual string PersonalPath { get; } = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
 
-	public static string CurrentAppFolder
-		=> Path.GetDirectoryName(ExeLocation);
+	public abstract string LaunchArgs { get; }
 
-	public static bool IsAppFolderInPath
-		=> FileSystem.IsFolderInPath(CurrentAppFolder);
+	[CBN]
+	public abstract string ChromePath { get; }
+
+	[CBN]
+	public abstract string FirefoxPath { get; }
+
+
+	[MNNW(true, nameof(ChromePath))]
+	public bool IsChromeInstalled => Path.Exists(ChromePath);
+
+	[MNNW(true, nameof(FirefoxPath))]
+	public bool IsFirefoxInstalled => Path.Exists(FirefoxPath);
+
+	#endregion
+
+	static BaseOSIntegration()
+	{
+		Executable          = GetProcessMainModuleFileName();
+		ExecutableDirectory = Path.GetDirectoryName(Executable);
+
+		if (IsWindows) {
+			Integration = new WindowsOSIntegration();
+		}
+		else if (IsLinux) {
+			Integration = new LinuxOSIntegration();
+		}
+		else {
+			Integration = null;
+			throw new NotSupportedException("OS not supported");
+		}
+	}
+
+	#region
 
 	internal const string OS_WIN = "windows";
 
@@ -42,25 +74,17 @@ public abstract class BaseOSIntegration
 	[SupportedOSPlatformGuard(OS_WIN)]
 	public static readonly bool IsWindows = OperatingSystem.IsWindows();
 
-	public static readonly string ExeLocation;
 
-	public abstract string LaunchArgs { get; }
+	public static BaseOSIntegration Integration { get; }
 
-	static BaseOSIntegration()
-	{
-		ExeLocation = GetProcessMainModuleFileName();
+	public static string ExecutableDirectory { get; }
 
-		if (IsWindows) {
-			Integration = new WindowsOSIntegration();
-		}
-		else if (IsLinux) {
-			Integration = new LinuxOSIntegration();
-		}
-		else {
-			Integration = null;
-			throw new NotSupportedException($"OS not supported");
-		}
-	}
+	public static bool IsExecutableInPath
+		=> FileSystem.IsFolderInPath(ExecutableDirectory);
+
+	public static string Executable { get; }
+
+	#endregion
 
 	/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
 	public abstract bool? AddToPath(bool option);
@@ -74,24 +98,11 @@ public abstract class BaseOSIntegration
 	{
 		// TODO: vs Directory.GetCurrentDirectory
 
-		var module = Process.GetCurrentProcess().MainModule;
+		ProcessModule module = Process.GetCurrentProcess().MainModule;
 
 		// Require.NotNull(module);
 		Trace.Assert(module != null);
 		return module.FileName;
 	}
-
-	[CBN]
-	public abstract string ChromePath { get; }
-
-	[CBN]
-	public abstract string FirefoxPath { get; }
-
-
-	[MNNW(true, nameof(ChromePath))]
-	public bool IsChromeInstalled => Path.Exists(ChromePath);
-
-	[MNNW(true, nameof(FirefoxPath))]
-	public bool IsFirefoxInstalled => Path.Exists(FirefoxPath);
 
 }

@@ -97,12 +97,18 @@ public enum SearchEngineOptions
 	/// </summary>
 	Fluffle = 1 << 15,
 
+	#region
+
 	/// <summary>
 	///     All engines
 	/// </summary>
-	All = SauceNao | ImgOps       | GoogleImages | TinEye     | Iqdb | TraceMoe | KarmaDecay | Yandex | Bing |
+	All = SauceNao | ImgOps       | GoogleImages | TinEye     | Iqdb   | TraceMoe | KarmaDecay | Yandex | Bing |
 	      Ascii2D  | RepostSleuth | EHentai      | ArchiveMoe | Iqdb3D | Fluffle,
 
 	Artwork = SauceNao | Iqdb | Ascii2D | EHentai,
+
+	Advanced = All & ~ (Bing | GoogleImages | ImgOps | KarmaDecay)
+
+	#endregion
 
 }

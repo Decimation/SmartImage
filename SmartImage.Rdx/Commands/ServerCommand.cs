@@ -21,7 +21,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	public ServerCommand()
 	{
 		Client = new SearchClient(SearchConfig.Default);
-		Server = new SearchServer(Client, 60900);
+		Server = new SearchServer(Client, 25565);
 		m_scs = null;
 	}
 

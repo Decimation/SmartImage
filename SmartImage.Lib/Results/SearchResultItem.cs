@@ -116,7 +116,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	[MNNW(true, nameof(Uni))]
 	[JI]
-	public bool HasUni => Uni != null && Uni.Any();
+	public bool HasUni => Uni is { Length: > 0 };
 
 	// public Url[] EmbeddedUrls { get; internal set; }
 
@@ -290,7 +290,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public bool Equals(SearchResultItem other)
 	{
-		if (ReferenceEquals(null, other))
+		if (other is null)
 			return false;
 
 		if (ReferenceEquals(this, other))
@@ -329,7 +329,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 		if (ReferenceEquals(this, other))
 			return 0;
 
-		if (ReferenceEquals(null, other))
+		if (other is null)
 			return 1;
 
 		return Nullable.Compare(Similarity, other.Similarity);
@@ -337,7 +337,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 
 	public int CompareTo(object obj)
 	{
-		if (ReferenceEquals(null, obj))
+		if (obj is null)
 			return 1;
 
 		if (ReferenceEquals(this, obj))

@@ -10,10 +10,8 @@ public interface IHashable
 
 	public Lazy<ulong> Hash { get; }
 
-	public ulong TryCalculateHash();
+	public const ulong HASH_ERROR = UInt64.MaxValue;
 
-	public const ulong INVALID_HASH = UInt64.MinValue;
-
-	public bool HasHash => Hash.IsValueCreated && Hash.Value != INVALID_HASH;
+	public bool HasHash => Hash is { IsValueCreated: true, Value: not HASH_ERROR };
 
 }

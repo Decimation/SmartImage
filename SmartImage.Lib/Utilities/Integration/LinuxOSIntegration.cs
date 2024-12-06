@@ -1,5 +1,5 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: LinuxOSIntegration.cs
-// Date: 2024/12/04 @ 22:12:26
+// Date: 2024/12/04 @ 22:12:30
 
 using System.Runtime.Versioning;
 using Novus.OS;
@@ -15,14 +15,23 @@ public sealed class LinuxOSIntegration : BaseOSIntegration
 
 	public override string LaunchArgs { get; } = R1.Linux_Launch_Args;
 
+	public override string ProgramFilesPath => null;
+
+	public override string AppDataPath => null;
+
+
+	public override bool IsContextMenuAdded => File.Exists(DesktopFile);
+
+	public override string ChromePath => null;
+
+	public override string FirefoxPath => null;
+
+	public static readonly string DesktopFile = Path.Combine(R1.Linux_Applications_Dir, R1.Linux_Desktop_File);
+
 	public override bool? AddToPath(bool option)
 	{
 		return null;
 	}
-
-	public override string ProgramFilesPath => null;
-
-	public override string AppDataPath => null;
 
 	public override bool? HandleContextMenu(bool option, string args)
 	{
@@ -41,7 +50,7 @@ public sealed class LinuxOSIntegration : BaseOSIntegration
 			              Version=1.0
 			              Name=SmartImage
 			              Terminal=true
-			              Exec={ExeLocation} {args}
+			              Exec={Executable} {args}
 			              """;
 			File.WriteAllText(DesktopFile, dsk);
 
@@ -60,18 +69,6 @@ public sealed class LinuxOSIntegration : BaseOSIntegration
 		return true;
 	}
 
-
-	public override bool IsContextMenuAdded => File.Exists(DesktopFile);
-
-	public override void FlashNotify(nint fd)
-	{
-		return;
-	}
-
-	public override string ChromePath => null;
-
-	public override string FirefoxPath => null;
-
-	public static readonly string DesktopFile = Path.Combine(R1.Linux_Applications_Dir, R1.Linux_Desktop_File);
+	public override void FlashNotify(nint fd) { }
 
 }

@@ -77,6 +77,8 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	/// </summary>
 	public BaseSearchEngine Engine { get; }
 
+	// todo: make the engine reference weak
+
 	/// <summary>
 	/// Undifferentiated result URL
 	/// </summary>
@@ -169,14 +171,16 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 			.FirstOrDefault(static r => Url.IsValid(r.Url));
 	}
 
+
 	public SearchResultItem GetRawResultItem()
 	{
 		// todo
-		return new SearchResultItem(this)
+		var rawCache = new SearchResultItem(this)
 		{
 			IsRaw = true,
 			Url   = RawUrl
 		};
+		return rawCache;
 	}
 
 	public override string ToString()

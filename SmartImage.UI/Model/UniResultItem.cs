@@ -22,6 +22,7 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.UI.Controls;
 
 namespace SmartImage.UI.Model;
@@ -178,7 +179,7 @@ public class UniResultItem : ResultItem
 
 		}
 
-		dir ??= AppUtil.MyPicturesFolder;
+		dir ??= BaseOSIntegration.Integration.PersonalPath;
 		var path2 = Path.Combine(dir, path);
 
 		var fs = File.OpenWrite(path2);

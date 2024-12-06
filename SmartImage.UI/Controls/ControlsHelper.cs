@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -54,11 +55,7 @@ public static class ControlsHelper
 	}
 
 	public static bool IsLoaded(this RoutedEventArgs e)
-	{
-		var b = e is { Source: FrameworkElement { IsLoaded: true } fx };
-
-		return b;
-	}
+		=> e is { Source: FrameworkElement { IsLoaded: true } fx };
 
 	public static void HandleEnum<T>(this ListBox lb, T src) where T : struct, Enum
 	{
@@ -72,26 +69,20 @@ public static class ControlsHelper
 		}
 	}
 
-	/*static T parse<T>(IList x) where T : struct, Enum
-	{
-		return x.OfType<T>().Aggregate(default(T), (n, l) => (T) (object) (Convert.ToInt32(n) | Convert.ToInt32(l)));
-
-	}*/
-
 	public static SearchEngineOptions HandleEnum(this ListBox lb, SelectionChangedEventArgs e,
 	                                             SearchEngineOptions orig)
 	{
 		// var rg = lb.ItemsSource.OfType<SearchEngineOptions>().ToArray();
 
 		var ai = e.AddedItems.OfType<SearchEngineOptions>()
-			.Aggregate(default(SearchEngineOptions), Func);
+			.Aggregate(default(SearchEngineOptions), Or);
 
 		var ri = e.RemovedItems.OfType<SearchEngineOptions>()
-			.Aggregate(default(SearchEngineOptions), Func);
+			.Aggregate(default(SearchEngineOptions), Or);
 
 		var si = lb.SelectedItems.OfType<SearchEngineOptions>().ToArray();
 
-		var siv = si.Aggregate(default(SearchEngineOptions), Func);
+		var siv = si.Aggregate(default(SearchEngineOptions), Or);
 
 		orig &= siv;
 		orig &= (~ri);
@@ -99,9 +90,9 @@ public static class ControlsHelper
 
 		return orig;
 
-		static SearchEngineOptions Func(SearchEngineOptions n, SearchEngineOptions l)
-			=> n | l;
+		static SearchEngineOptions Or(SearchEngineOptions n, SearchEngineOptions l) => n | l;
 	}
+
 
 	public static string[] GetFilesFromDrop(this DragEventArgs e)
 	{
@@ -115,7 +106,7 @@ public static class ControlsHelper
 			}
 		}
 
-		return Array.Empty<string>();
+		return [];
 	}
 
 	public static string FormatDescription(string name, UniImage uni, int? w, int? h)
@@ -136,7 +127,8 @@ public static class ControlsHelper
 		if (!uni.Stream.CanRead) {
 			bytes = "???";
 		}
-		else bytes = FormatHelper.FormatBytes(uni.Stream.Length);
+		else
+			bytes = FormatHelper.FormatBytes(uni.Stream.Length);
 
 		return bytes;
 	}

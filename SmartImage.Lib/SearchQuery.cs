@@ -142,7 +142,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public bool Equals(SearchQuery other)
 	{
-		if (ReferenceEquals(null, other)) return false;
+		if (other is null) return false;
 		if (ReferenceEquals(this, other)) return true;
 
 		return Equals(Source, other.Source) && Equals(Upload, other.Upload);

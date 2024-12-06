@@ -34,6 +34,8 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.UI.Controls;
 using SmartImage.UI.Model;
 using static System.Net.Mime.MediaTypeNames;
@@ -390,6 +392,8 @@ public partial class MainWindow
 
 	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
+		// TODO: what the fuck is this
+
 		if (e.AddedItems.Count > 0) {
 
 			var ai = e.AddedItems[0];
@@ -467,6 +471,8 @@ public partial class MainWindow
 
 	private void Lv_Results_KeyDown(object sender, KeyEventArgs e)
 	{
+		// TODO: what the fuck
+
 		(bool ctrl, bool alt, bool shift) = ControlsHelper.GetModifiers();
 
 		var key = e.Key;
@@ -792,13 +798,13 @@ public partial class MainWindow
 #endif
 	private void Btn_OpenFolder_Click(object sender, RoutedEventArgs e)
 	{
-		FileSystem.Open(AppUtil.CurrentAppFolder);
+		FileSystem.Open(BaseOSIntegration.ExecutableDirectory);
 		e.Handled = true;
 	}
 
 	private void Btn_OpenWiki_Click(object sender, RoutedEventArgs e)
 	{
-		FileSystem.Open(R1.Wiki_Url);
+		FileSystem.Open(R1.Url_Wiki);
 		e.Handled = true;
 	}
 
@@ -807,7 +813,7 @@ public partial class MainWindow
 		var ofn = new OpenFileDialog
 		{
 			Multiselect = true,
-			Filter      = $"Image files|{SearchHelper.Ext.QuickJoin(";")}"
+			Filter      = $"Image files|{ImageScanner.Extensions.QuickJoin(";")}"
 		};
 
 		var d = ofn.ShowDialog(this);

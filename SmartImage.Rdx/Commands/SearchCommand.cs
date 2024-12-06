@@ -43,6 +43,7 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
 
 // ReSharper disable InconsistentNaming

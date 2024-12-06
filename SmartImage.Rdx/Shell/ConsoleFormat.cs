@@ -79,7 +79,7 @@ internal static class ConsoleFormat
 		["Terminal links"]   = ProfileCapabilities.Links,
 		["Terminal Unicode"] = ProfileCapabilities.Unicode,
 		["Version"]          = $"{SearchCommand.Version}",
-		["Location"]         = BaseOSIntegration.ExeLocation
+		["Location"]         = BaseOSIntegration.Executable
 	};
 
 

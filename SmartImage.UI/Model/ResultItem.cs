@@ -32,6 +32,7 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Integration;
 using SmartImage.UI.Controls;
 
 namespace SmartImage.UI.Model;
@@ -363,7 +364,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 		path = Url.GetFileName();
 
-		dir ??= AppUtil.MyPicturesFolder;
+		dir ??= BaseOSIntegration.Integration.PersonalPath;
 		var path2 = Path.Combine(dir, path);
 
 		var encoder = new PngBitmapEncoder();

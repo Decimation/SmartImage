@@ -1,7 +1,6 @@
 ﻿// Read S SmartImage.UI AppControls.cs
 // 2023-07-23 @ 4:16 PM
 global using R4 = SmartImage.Lib.Serialization;
-global using R3 = SmartImage.Lib.Values;
 global using R2 = SmartImage.UI.Resources;
 global using R1 = SmartImage.Lib.Resources;
 using System;

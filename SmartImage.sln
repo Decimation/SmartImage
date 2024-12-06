@@ -18,6 +18,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{60F5A162-5C5E-4585-81BC-C703105B7388}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
+		.gitignore = .gitignore
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.UI2", "SmartImage.UI2\SmartImage.UI2.csproj", "{1CB22F6D-A52A-414C-BE40-8C74F37F5412}"

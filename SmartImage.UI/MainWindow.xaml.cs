@@ -71,6 +71,8 @@ using SmartImage.Lib.Clients;
 using SmartImage.UI.Controls;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Utilities.Integration;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
 
@@ -159,7 +161,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		m_uni                    = new();
 		m_clipboardHistory       = [];
-		Cb_ContextMenu.IsChecked = AppUtil.IsContextMenuAdded;
+		Cb_ContextMenu.IsChecked = BaseOSIntegration.Integration.IsContextMenuAdded;
 
 		// m_resultMap                         = new();
 		Image = null;
@@ -245,14 +247,14 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public bool UseContextMenu
 	{
-		get => AppUtil.IsContextMenuAdded;
-		set => AppUtil.HandleContextMenu(value, R2.Reg_Launch_Args);
+		get => BaseOSIntegration.Integration.IsContextMenuAdded;
+		set => BaseOSIntegration.Integration.HandleContextMenu(value, R2.Reg_Launch_Args);
 	}
 
 	public bool InPath
 	{
-		get => AppUtil.IsAppFolderInPath;
-		set => AppUtil.AddToPath(value);
+		get => BaseOSIntegration.IsExecutableInPath;
+		set => BaseOSIntegration.Integration.AddToPath(value);
 	}
 
 	private bool m_canReload;
@@ -1327,7 +1329,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 				ParseArgs(m_pipeBuffer.ToArray());
 				m_pipeBuffer.Clear();
-				AppUtil.FlashTaskbar(m_wndInterop.Handle);
+				BaseOSIntegration.Integration.FlashNotify(m_wndInterop.Handle);
 			}
 			else {
 				m_pipeBuffer.Add(s);
@@ -1442,7 +1444,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private async void CheckForUpdate()
 	{
 		var cv = Version;
-		var lv = await AppUtil.GetLatestReleaseAsync();
+		var lv = await AppSupport.GetLatestReleaseAsync();
 
 		Tb_Version.Text = $"{cv}";
 

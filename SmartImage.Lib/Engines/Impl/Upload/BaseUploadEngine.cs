@@ -9,7 +9,6 @@ using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
 using Novus.OS;
 using Novus.Utilities;
-using SmartImage.Lib.Diagnostics;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;

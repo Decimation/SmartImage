@@ -101,7 +101,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
-	public Lazy<ulong> Hash { get; private set; }
+	public Lazy<ulong> Hash { get; }
 
 	public double? Similarity { get; internal set; }
 
@@ -243,15 +243,23 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 
 	#endregion
 
-	public ulong TryCalculateHash()
+	private ulong TryCalculateHash()
 	{
 		if (!HasStream) {
 			throw new InvalidOperationException();
 		}
 
-		Stream.TrySeek();
-		var hash = ImageScanner.ImageHasher.Hash(Stream);
-		Stream.TrySeek();
+		ulong hash;
+
+		try {
+			Stream.TrySeek();
+			hash = ImageScanner.ImageHasher.Hash(Stream);
+			Stream.TrySeek();
+		}
+		catch (Exception e) {
+			hash = IHashable.HASH_ERROR;
+		}
+		finally { }
 
 		return hash;
 	}
@@ -368,7 +376,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 
 	public bool Equals(UniImage other)
 	{
-		if (ReferenceEquals(null, other))
+		if (other is null)
 			return false;
 
 		if (ReferenceEquals(this, other))

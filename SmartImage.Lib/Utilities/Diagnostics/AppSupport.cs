@@ -1,24 +1,13 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: AppSupport.cs
-// Date: 2024/06/06 @ 14:06:00
+// Date: 2024/12/04 @ 22:12:34
 
-#nullable disable
-
+#pragma warning disable IDE1006
 global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
 using System.Text.Json.Serialization;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
-using Novus.OS;
-using Novus.Win32;
-using Novus.Win32.Structures.User32;
-using SmartImage.Lib.Utilities.Integration;
 
 // ReSharper disable InconsistentNaming
 
@@ -72,8 +61,6 @@ internal static class AppSupport
 	 */
 
 }
-
-#region GitHub types
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
 public class GitHubReleaseAsset
@@ -268,5 +255,3 @@ public class GitHubRelease
 	public GitHubReactions reactions { get; set; }
 
 }
-
-#endregion

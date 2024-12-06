@@ -1,13 +1,13 @@
-﻿using System.Diagnostics;
-using System.Text.Json;
+﻿// Author: Deci | Project: SmartImage.Lib | Name: WebSearchEngine.cs
+// Date: 2024/06/06 @ 14:06:00
+
+using System.Diagnostics;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
-using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
-using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines;
@@ -15,14 +15,16 @@ namespace SmartImage.Lib.Engines;
 public abstract class WebSearchEngine : BaseSearchEngine
 {
 
+	protected abstract string NodesSelector { get; }
+
 	protected WebSearchEngine([NN] string baseUrl) : base(baseUrl) { }
-	
+
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 
 		var res = await base.GetResultAsync(query, token);
-
+		
 		if (res.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
@@ -101,12 +103,12 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		}
 	}
 
-	protected abstract ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r);
+	protected abstract ValueTask<SearchResultItem>  ParseResultItem(INode n, SearchResult r);
 
 	protected virtual ValueTask<INode[]> GetNodes(IDocument d)
-		=> ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
-
-	protected abstract string NodesSelector { get; }
+	{
+		return ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
+	}
 
 	protected bool Validate([CBN] IDocument doc, SearchResult sr)
 	{
