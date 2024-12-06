@@ -22,8 +22,6 @@ public sealed class BingEngine : BaseSearchEngine
 
 	// Parsing does not seem feasible ATM
 
-	#region Overrides of BaseSearchEngine
-
 	public async Task<SearchResult> SearchAltQueryAsync(string query)
 	{
 		var sr = new SearchResult(this)
@@ -78,7 +76,5 @@ public sealed class BingEngine : BaseSearchEngine
 		});
 		return url;
 	}
-
-	#endregion
 
 }

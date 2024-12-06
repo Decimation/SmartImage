@@ -158,12 +158,12 @@
                     <Setter Property="Foreground" Value="Black" />
                 </DataTrigger>
 
-                <DataTrigger Binding="{Binding Result.Root.Engine.IsAdvanced}" Value="False">
-                    <!-- <Setter Property="FontStyle" Value="Italic" /> -->
-                    <!-- <Setter Property="Opacity" Value="0.6" /> -->
+                <!--<DataTrigger Binding="{Binding Result.Root.Engine.IsAdvanced}" Value="False">
+                    ~1~ <Setter Property="FontStyle" Value="Italic" /> @1@
+                    ~1~ <Setter Property="Opacity" Value="0.6" /> @1@
                     <Setter Property="Foreground" Value="White" />
                     <Setter Property="Background" Value="#303030" />
-                </DataTrigger>
+                </DataTrigger>-->
 
             </Style.Triggers>
         </Style>

@@ -62,7 +62,9 @@ public static class ImageScanner
 
 			builder.OnError(f =>
 			{
-				f.ExceptionHandled = true;
+				Trace.WriteLine($"{f.Exception}");
+				Debugger.Break();
+				// f.ExceptionHandled = true;
 				return;
 			});
 
@@ -162,13 +164,6 @@ public static class ImageScanner
 
 	public static readonly string[] Extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"];
 
-	public static ValueTask<IFlurlRequest> BuildRequest(Url u, CancellationToken ct = default)
-	{
-		var req = Client.Request(u);
-
-		return ValueTask.FromResult(req);
-	}
-
 
 	public static async Task<List<UniSimilarity>> AnalyzeAsync(List<Task<UniImage>> tasks, SearchQuery query,
 	                                                           CancellationToken ct = default)
@@ -220,7 +215,8 @@ public static class ImageScanner
 		}
 		else {
 			uf.Stream.TrySeek();
-			req = await BuildRequest(u, ct);
+			var req1 = Client.Request(u);
+			req = await ValueTask.FromResult(req1);
 
 			res    = await req.GetAsync(cancellationToken: ct);
 			stream = await res.GetStreamAsync();
@@ -313,12 +309,13 @@ public static class ImageScanner
 
 	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
 	{
-		using var p = Process.Start(new ProcessStartInfo(GALLERY_DL, $"-G {cri}")
+		var psi = new ProcessStartInfo(GALLERY_DL, $"-G {cri}")
 		{
 			CreateNoWindow         = true,
 			RedirectStandardOutput = true,
 			RedirectStandardError  = true,
-		});
+		};
+		using var p = Process.Start(psi);
 		await p.WaitForExitAsync(ct);
 
 		var s  = await p.StandardOutput.ReadToEndAsync(ct);

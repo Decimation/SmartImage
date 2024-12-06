@@ -13,13 +13,12 @@ namespace SmartImage.Lib.Engines.Impl.Upload;
 public sealed class PomfEngine : BaseUploadEngine
 {
 
+	public override UploadEngineOptions UploadOption => UploadEngineOptions.Pomf;
+
 	public PomfEngine() : base("https://pomf.lain.la/upload.php") { }
 
 	public override long? MaxSize => 1_000_000_000;
 
-	public override string Name => "Pomf";
-
-	public static readonly BaseUploadEngine Instance = new PomfEngine();
 
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{

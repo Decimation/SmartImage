@@ -50,8 +50,6 @@ public sealed class SearchClient : IDisposable
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchClient));
 
-	internal static readonly Assembly Asm;
-
 	public SearchClient(SearchConfig cfg)
 	{
 		Config        = cfg;
@@ -63,11 +61,7 @@ public sealed class SearchClient : IDisposable
 	}
 
 	static SearchClient()
-	{
-		Asm = Assembly.GetExecutingAssembly();
-
-
-	}
+	{ }
 
 	[ModuleInitializer]
 	public static void Init()
@@ -290,7 +284,14 @@ public sealed class SearchClient : IDisposable
 
 		if (Config.ReadCookies) {
 
-			await ((DefaultCookiesProvider) DefaultCookiesProvider.Instance).OpenAsync();
+			try {
+				await ((DefaultCookiesProvider) DefaultCookiesProvider.Instance).OpenAsync();
+			}
+			catch (Exception e) {
+				Trace.WriteLine($"{e}");
+				Config.ReadCookies = false;
+				DefaultCookiesProvider.Instance.Dispose();
+			}
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
@@ -317,7 +318,6 @@ public sealed class SearchClient : IDisposable
 			if (bse is ISearchConfigReceiver cfg) {
 				await cfg.ApplyConfigAsync(Config);
 			}
-
 
 			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
 

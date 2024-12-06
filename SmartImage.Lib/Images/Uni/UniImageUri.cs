@@ -30,9 +30,9 @@ public class UniImageUri : UniImage
 	{
 		u = o switch
 		{
-			Url u2                             => u2,
+			Url u2                       => u2,
 			string s when Url.IsValid(s) => s,
-			_                                  => null
+			_                            => null
 		};
 
 		if (u == null) {
@@ -40,7 +40,6 @@ public class UniImageUri : UniImage
 		}
 
 		var scheme = u.Scheme;
-
 
 		return Schemes.All(s => scheme != s);
 	}
@@ -74,7 +73,8 @@ public class UniImageUri : UniImage
 			throw new ArgumentException($"{value}");
 		}*/
 
-		var req = await ImageScanner.BuildRequest(value, ct);
+		var req1 = ImageScanner.Client.Request(value);
+		var req  = await ValueTask.FromResult(req1);
 
 		/*.AllowAnyHttpStatus()
 		.WithHeaders(new

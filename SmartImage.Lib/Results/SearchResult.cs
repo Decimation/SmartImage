@@ -172,15 +172,16 @@ public sealed class SearchResult : IDisposable, INotifyPropertyChanged
 	}
 
 
-	public SearchResultItem GetRawResultItem()
+	public SearchResultItem RawResultItem
 	{
-		// todo
-		var rawCache = new SearchResultItem(this)
+		get
 		{
-			IsRaw = true,
-			Url   = RawUrl
-		};
-		return rawCache;
+			var rawCache = new SearchResultItem(this, true)
+			{
+				Url = RawUrl
+			};
+			return rawCache;
+		}
 	}
 
 	public override string ToString()

@@ -9,13 +9,13 @@ using Kantan.Utilities;
 using Microsoft.Extensions.Configuration;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
+using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Results.Data;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
-
 
 public sealed class SearchConfig : INotifyPropertyChanged
 {
@@ -53,6 +53,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public const bool FLARESOLVERR_DEFAULT = true;
 
 	public const string FLARE_SOLVERR_API_URL_DEFAULT = "http://localhost:8191";
+
+	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.Pomf;
 
 	#endregion
 
@@ -193,7 +195,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 
-	
 
 	// TODO: cookies.txt support
 
@@ -220,6 +221,19 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set
 		{
 			Configuration.AddUpdateSetting(nameof(FlareSolverrApiUrl), value.ToString());
+			OnPropertyChanged();
+		}
+	}
+
+	/// <summary>
+	/// <see cref="BaseUploadEngine"/>
+	/// </summary>
+	public UploadEngineOptions UploadEngine
+	{
+		get { return Configuration.ReadSetting(nameof(UploadEngine), UPLOAD_ENGINE_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(UploadEngine), value.ToString());
 			OnPropertyChanged();
 		}
 	}

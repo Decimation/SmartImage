@@ -1,21 +1,16 @@
-﻿// Read S SmartImage.Lib EHentaiEngine.cs
-// 2023-01-13 @ 11:21 PM
+﻿// Author: Deci | Project: SmartImage.Lib | Name: EHentaiEngine.cs
+// Date: 2024/06/06 @ 14:06:00
 
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
-using CliWrap;
 using Flurl.Http;
 using Flurl.Http.Content;
-using Kantan.Net;
 using Kantan.Net.Utilities;
-using Kantan.Net.Web;
 using Kantan.Text;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
@@ -29,6 +24,16 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
 public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICookiesReceiver, INotifyPropertyChanged
 {
+
+	static EHentaiEngine() { }
+
+	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
+	{
+		IsLoggedIn = false;
+
+		UseExHentai = useExHentai;
+		Jar         = new CookieJar();
+	}
 
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
 
@@ -46,102 +51,19 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 	public bool UseExHentai { get; set; }
 
-
 	public CookieJar Jar { get; }
-
-	#region
-
-	public static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
-	public static readonly Url EHentaiBase   = "https://e-hentai.org/";
-	public static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
-
-	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
-	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
-
-	#region
-
-	private const string HOST_EH = ".e-hentai.org";
-	private const string HOST_EX = ".exhentai.org";
-
-	#endregion
-
-	#endregion
-
-	static EHentaiEngine() { }
-
-	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
-	{
-		IsLoggedIn = false;
-
-		UseExHentai = useExHentai;
-		Jar         = new CookieJar() { };
-	}
-
-	/*
-	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer/client
-	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer
-	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhUrl.java
-	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhEngine.java
-	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/EhApplication.java
-	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/data/ListUrlBuilder.java
-	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
-	 */
-
-	public async ValueTask ApplyConfigAsync(SearchConfig cfg)
-	{
-		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
-			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
-
-			return;
-		}*/
-		//
-
-		return;
-	}
-
-	/*
-	 * Default result layout is [Compact]
-	 */
-
-
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
-	{
-		Trace.WriteLine($"Applying cookies to {Name}");
-
-		var cookies = await provider.LoadCookiesAsync(ct);
-
-		foreach (var bck in cookies)
-		{
-			var  cookie = bck.AsCookie();
-			bool c      = false;
-
-			if (UseExHentai)
-			{
-				c |= cookie.Domain.Contains(HOST_EX);
-			}
-
-			var dmnEh = cookie.Domain.Contains(HOST_EH);
-
-			c |= dmnEh;
-
-			if (c)
-			{
-				Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, OriginUrl));
-			}
-		}
-
-		var response = await GetSessionAsync();
-
-		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
-
-	}
 
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return (UseExHentai ? ExHentaiBase : EHentaiBase).WithCookies(Jar).WithTimeout(Timeout).WithHeaders(new
-		{
-			User_Agent = HttpUtilities.UserAgent
-		}).WithAutoRedirect(true).GetAsync();
+		return (UseExHentai ? ExHentaiBase : EHentaiBase)
+			.WithCookies(Jar)
+			.WithTimeout(Timeout)
+			.WithHeaders(new
+			{
+				User_Agent = HttpUtilities.UserAgent
+			})
+			.WithAutoRedirect(true)
+			.GetAsync();
 	}
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
@@ -152,8 +74,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		string       fileName;
 		string       filePath = null;
 
-		if (query.Source.HasFile)
-		{
+		if (query.Source.HasFile) {
 			filePath = query.Source.FilePath;
 			fileName = Path.GetFileName(filePath);
 
@@ -161,35 +82,31 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 				// Debugger.Break();
 			}*/
 		}
-		else
-		{
+		else {
 			fileName = SFILE_NAME_DEFAULT;
 			var ok = query.Source.TryWriteToFile(fileName);
 
-			if (ok)
-			{
+			if (ok) {
 				filePath = query.Source.FilePath;
 			}
-			else
-			{
+			else {
 				Debugger.Break();
 			}
 		}
 
-		if (filePath != null)
-		{
+		if (filePath != null) {
 			Trace.WriteLine($"allocated {filePath}", nameof(GetDocumentAsync));
 		}
 
-		var data = new MultipartFormDataContent()
+		var data = new MultipartFormDataContent
 		{
 			{ new FileContent(filePath), "sfile", fileName },
 
 			// { new StreamContent((Stream) query.Uni.Stream), "sfile", "a.jpg" },
-			{ new StringContent("fs_similar") },
-			{ new StringContent("fs_covers") },
-			{ new StringContent("fs_exp") },
-			{ new StringContent("fs_sfile") },
+			new StringContent("fs_similar"),
+			new StringContent("fs_covers"),
+			new StringContent("fs_exp"),
+			new StringContent("fs_sfile"),
 			{ new StringContent("dm_l"), "inline_set" }
 		};
 
@@ -221,10 +138,10 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 		// var content2 = await sr.RawUrl.GetStringAsync(cancellationToken: token);
 
-		if (content.Contains("Please wait a bit longer between each file search."))
-		{
-			Debug.WriteLine($"cooldown", Name);
+		if (content.Contains("Please wait a bit longer between each file search.")) {
+			Debug.WriteLine("cooldown", Name);
 			sr.Status = SearchResultStatus.Cooldown;
+
 			return null;
 		}
 
@@ -237,8 +154,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		// Index 0 is table header
 		var array = d.Body.SelectNodes(NodesSelector).ToArray();
 
-		if (array.Length != 0)
-		{
+		if (array.Length != 0) {
 			array = array[1..];
 
 		}
@@ -246,55 +162,120 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		return ValueTask.FromResult(array);
 	}
 
+	/*
+	 * Default result layout is [Compact]
+	 */
+
+
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
+	{
+		Trace.WriteLine($"Applying cookies to {Name}");
+
+		var cookies = await provider.LoadCookiesAsync(ct);
+
+		foreach (var bck in cookies) {
+			var  cookie = bck.AsCookie();
+			bool c      = false;
+
+			if (UseExHentai) {
+				c |= cookie.Domain.Contains(HOST_EX);
+			}
+
+			var dmnEh = cookie.Domain.Contains(HOST_EH);
+
+			c |= dmnEh;
+
+			if (c) {
+				Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, OriginUrl));
+			}
+		}
+
+		var response = await GetSessionAsync();
+
+		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
+
+	}
+
+	/*
+	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer/client
+	 * https://gitlab.com/NekoInverter/EhViewer/-/tree/master/app/src/main/java/com/hippo/ehviewer
+	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhUrl.java
+	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhEngine.java
+	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/EhApplication.java
+	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/data/ListUrlBuilder.java
+	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
+	 */
+
+	public async ValueTask ApplyConfigAsync(SearchConfig cfg)
+	{
+		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
+			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
+
+			return;
+		}*/
+		//
+
+	}
+
+	#region
+
+	public static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
+	public static readonly Url EHentaiBase   = "https://e-hentai.org/";
+	public static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
+
+	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
+	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
+
+	#region
+
+	private const string HOST_EH = ".e-hentai.org";
+	private const string HOST_EX = ".exhentai.org";
+
+	#endregion
+
+	#endregion
+
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
-		var item = new SearchResultItem(r) { };
+		var item = new SearchResultItem(r);
 
 		// ReSharper disable InconsistentNaming
 		var eh = new EhResult();
 
 		var gl1c = n.ChildNodes.FirstOrDefaultElementByClassName("gl1c");
 
-		if (gl1c is { FirstChild: { } t1 })
-		{
+		if (gl1c is { FirstChild: { } t1 }) {
 			eh.Type = t1.TextContent;
 		}
 
 		var gl2c = n.ChildNodes.FirstOrDefaultElementByClassName("gl2c");
 
-		if (gl2c is { })
-		{
+		if (gl2c is { }) {
 			var cn = gl2c.RecurseChildren(1, 4);
+
 			// var cn = gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1];
 
 
-			if (cn is { } div)
-			{
+			if (cn is { } div) {
 				eh.Pages = div.TextContent;
 			}
 		}
 
 		var gl3c = n.ChildNodes.FirstOrDefaultElementByClassName("gl3c glname");
 
-		if (gl3c is { })
-		{
-			if (gl3c.FirstChild is { } f)
-			{
-				eh.Url = (Url) f.TryGetAttribute(Serialization.Atr_href);
+		if (gl3c is { }) {
+			if (gl3c.FirstChild is { } f) {
+				eh.Url = f.TryGetAttribute(Serialization.Atr_href);
 
-				if (f.FirstChild is { } ff)
-				{
+				if (f.FirstChild is { } ff) {
 					eh.Title = ff.TextContent;
 				}
 
-				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2)
-				{
+				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
 					var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
 
-					foreach (string s in tagValuesRaw)
-					{
-						if (s is not { })
-						{
+					foreach (string s in tagValuesRaw) {
+						if (s is not { }) {
 							continue;
 						}
 
@@ -302,12 +283,10 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 						var tag   = split[0];
 						var val   = split[1];
 
-						if (eh.Tags.ContainsKey(tag))
-						{
+						if (eh.Tags.ContainsKey(tag)) {
 							eh.Tags[tag].Add(val);
 						}
-						else
-						{
+						else {
 							eh.Tags.TryAdd(tag, [val]);
 
 						}
@@ -318,23 +297,19 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 		var gl4c = n.ChildNodes.FirstOrDefaultElementByClassName("gl4c glhide");
 
-		if (gl4c is { })
-		{
-			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer)
-			{
+		if (gl4c is { }) {
+			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
 				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
 				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
 			}
 
-			if (gl4c.ChildNodes[1] is { } div2)
-			{
+			if (gl4c.ChildNodes[1] is { } div2) {
 				eh.Pages ??= div2.TextContent;
 			}
 		}
 
 
-		if (eh.Tags.TryGetValue("artist", out var v))
-		{
+		if (eh.Tags.TryGetValue("artist", out var v)) {
 			item.Artist = v.FirstOrDefault();
 		}
 

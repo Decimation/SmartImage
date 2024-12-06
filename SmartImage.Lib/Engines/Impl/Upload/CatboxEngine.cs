@@ -8,6 +8,8 @@ namespace SmartImage.Lib.Engines.Impl.Upload;
 public abstract class BaseCatboxEngine : BaseUploadEngine
 {
 
+	public override UploadEngineOptions UploadOption => UploadEngineOptions.Catbox;
+
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		Verify(file);
@@ -39,11 +41,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 public sealed class CatboxEngine : BaseCatboxEngine
 {
 
-	public override string Name => "Catbox";
-
 	public override long? MaxSize => 200_000_000L;
-
-	public static readonly BaseCatboxEngine Instance = new CatboxEngine();
 
 	public CatboxEngine() : base("https://catbox.moe/user/api.php")
 	{

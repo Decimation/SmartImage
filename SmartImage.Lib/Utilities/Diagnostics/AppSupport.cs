@@ -3,6 +3,7 @@
 
 #pragma warning disable IDE1006
 global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using Flurl.Http;
 using JetBrains.Annotations;
@@ -13,8 +14,12 @@ using Microsoft.Extensions.Logging;
 
 namespace SmartImage.Lib.Utilities.Diagnostics;
 
-internal static class AppSupport
+public static class AppSupport
 {
+
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+
+	public static readonly Version Version = Assembly.GetName().Version;
 
 	internal const string SI_DIAG_ID_0001 = "SI0001";
 

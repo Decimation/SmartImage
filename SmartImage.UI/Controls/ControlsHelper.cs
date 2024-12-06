@@ -152,6 +152,6 @@ public static class ControlsHelper
 
 	internal const string STR_NA = "-";
 
-	public static readonly string[] UploadEngineNames = BaseUploadEngine.All.Select(x => x.Name).ToArray();
+	public static readonly string[] UploadEngineNames = Enum.GetNames<UploadEngineOptions>();
 
 }

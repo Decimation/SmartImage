@@ -114,25 +114,19 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 	[JI]
 	public UniImage[] Uni { get; internal set; }
 
-	[MNNW(true, nameof(Uni))]
 	[JI]
+	[MNNW(true, nameof(Uni))]
 	public bool HasUni => Uni is { Length: > 0 };
 
-	// public Url[] EmbeddedUrls { get; internal set; }
+	public bool IsRaw { get; }
 
-	// public List<SearchResultItem> Children { get; internal set; }
-
-	// public bool IsUniType { get; internal set; }
-
-	public bool IsRaw { get; internal set; }
-
-	internal SearchResultItem(SearchResult r)
+	internal SearchResultItem(SearchResult r, bool isRaw = false)
 	{
 		Root     = r;
 		Metadata = null;
 		Uni      = null;
 		Parent   = null;
-		IsRaw    = false;
+		IsRaw    = isRaw;
 
 		// EmbeddedUrls = null;
 

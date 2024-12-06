@@ -157,7 +157,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		};
 
 		lock (res.Results) {
-			res.Results.Add(res.GetRawResultItem());
+			res.Results.Add(res.RawResultItem);
 		}
 
 		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
@@ -231,17 +231,5 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return EngineOption == other.EngineOption;
 	}
 
-	/*protected IFlurlRequest Build(IFlurlRequest request)
-	{
-		return request.WithTimeout(Timeout);
-	}*/
-
-
-	// TODO: move config application to ctors?
-
-	/*
-	public static readonly BaseSearchEngine[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseSearchEngine>(InheritanceProperties.Subclass).ToArray();
-		*/
 
 }

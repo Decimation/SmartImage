@@ -125,7 +125,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
-	                                                  bool autoDisposeOnError = false,
+	                                                  bool autoDisposeOnError = true,
 	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = Null;
@@ -171,6 +171,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 		}
 		catch (Exception e) {
 			// str?.Dispose();
+			Trace.WriteLine($"{nameof(TryCreateAsync)} :: failed with exception {e.Message}");
 		}
 
 	ret:

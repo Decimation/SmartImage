@@ -84,8 +84,6 @@ namespace SmartImage.UI;
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
 
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-	public static readonly Version  Version  = Assembly.GetName().Version;
 
 	public const int INVALID = -1;
 
@@ -172,7 +170,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// BindingOperations.EnableCollectionSynchronization(CurrentQueueItem.Results, m_lock);
 		RenderOptions.SetBitmapScalingMode(Img_Preview, BitmapScalingMode.HighQuality);
 
-		Application.Current.Dispatcher.InvokeAsync(CheckForUpdate);
+		Application.Current.Dispatcher.InvokeAsync(CheckForUpdateAsync);
 
 		// ResizeMode         = ResizeMode.NoResize; //todo
 
@@ -1441,9 +1439,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
-	private async void CheckForUpdate()
+	private async Task CheckForUpdateAsync()
 	{
-		var cv = Version;
+		var cv = AppSupport.Version;
 		var lv = await AppSupport.GetLatestReleaseAsync();
 
 		Tb_Version.Text = $"{cv}";
@@ -1466,6 +1464,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				};
 			}
 		}
+
+
 	}
 
 	public event PropertyChangedEventHandler? PropertyChanged;

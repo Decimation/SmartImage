@@ -592,13 +592,9 @@ public partial class MainWindow
 	{
 		var text = (sender as ComboBox).SelectedItem as string;
 
-		foreach (BaseUploadEngine engine in BaseUploadEngine.All) {
-			if (engine.Name == text) {
-				BaseUploadEngine.Default = engine;
-				Debug.WriteLine($"Upload engine set to {engine}");
-				break;
+		if (Enum.TryParse<UploadEngineOptions>(text, out var options)) {
+			BaseUploadEngine.Default = BaseUploadEngine.GetUploadEngine(options);
 
-			}
 		}
 
 		e.Handled = true;
@@ -873,7 +869,7 @@ public partial class MainWindow
 			{
 				uri.Uni.TryCalculateSimilarity(Query.Source);
 				uri.UpdateProperties2();
-				
+
 				// CurrentResult.UpdateProperties2();
 			});
 
@@ -883,16 +879,17 @@ public partial class MainWindow
 			uri.Uni.TryCalculateSimilarity(CurrentQuery.Query.Source);
 			uri.UpdateProperties2();
 			CurrentResult.UpdateProperties2();
-			
+
 			/*Application.Current.Dispatcher.InvokeAsync(async () =>
 			{
 				uri.Uni.TryCalculateSimilarity(Query.Source);
 				uri.UpdateProperties2();
-				
+
 				// CurrentResult.UpdateProperties2();
 			});*/
 
 		}
+
 		e.Handled = true;
 	}
 

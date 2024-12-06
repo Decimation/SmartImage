@@ -15,6 +15,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
@@ -40,7 +41,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			return sr;
 		}
 
-		var hdr = $"{R1.Name}/{SearchClient.Asm.GetName().Version} (by {R1.Author} on GitHub)";
+		var hdr = $"{R1.Name}/{AppSupport.Version} (by {R1.Author} on GitHub)";
 
 		var response = await Client.Request(EndpointUrl, "search")
 			               .WithHeaders(new

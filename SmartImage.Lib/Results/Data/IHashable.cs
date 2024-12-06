@@ -7,7 +7,6 @@ namespace SmartImage.Lib.Results.Data;
 
 public interface IHashable
 {
-
 	public Lazy<ulong> Hash { get; }
 
 	public const ulong HASH_ERROR = UInt64.MaxValue;

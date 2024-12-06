@@ -23,9 +23,11 @@ public abstract class BaseUploadEngine : IDisposable
 	/// </summary>
 	public abstract long? MaxSize { get; }
 
-	public abstract string Name { get; }
+	public virtual string Name => UploadOption.ToString();
 
 	public string EndpointUrl { get; }
+
+	public abstract UploadEngineOptions UploadOption { get; }
 
 	protected BaseUploadEngine(string s)
 	{
@@ -35,7 +37,7 @@ public abstract class BaseUploadEngine : IDisposable
 
 	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
-	public TimeSpan Timeout { get; set; }
+	public TimeSpan Timeout { get; protected set; }
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseUploadEngine));
 
@@ -69,11 +71,36 @@ public abstract class BaseUploadEngine : IDisposable
 		{
 			builder.OnError(f =>
 			{
+				//
 				Logger.LogError(f.Exception, $"from {nameof(BaseUploadEngine)}");
 			});
 			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
 
 		});
+	}
+
+	public static BaseUploadEngine GetUploadEngine(UploadEngineOptions options)
+	{
+		return options switch
+		{
+			UploadEngineOptions.Catbox    => new CatboxEngine(),
+			UploadEngineOptions.Litterbox => new LitterboxEngine(),
+			UploadEngineOptions.Pomf      => new PomfEngine(),
+			UploadEngineOptions.None or _ => throw new ArgumentOutOfRangeException(nameof(options), options, null)
+		};
+	}
+
+	//todo
+	private static BaseUploadEngine _default = GetUploadEngine(SearchConfig.UPLOAD_ENGINE_DEFAULT);
+
+	public static BaseUploadEngine Default
+	{
+		get { return _default; }
+		set
+		{
+			_default?.Dispose();
+			_default = value;
+		}
 	}
 
 	/*
@@ -202,21 +229,6 @@ public abstract class BaseUploadEngine : IDisposable
 		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(InheritanceProperties.Subclass).ToArray();
 		*/
 
-	public static readonly BaseUploadEngine[] All =
-	[
-		CatboxEngine.Instance,
-		LitterboxEngine.Instance,
-		PomfEngine.Instance,
-
-	];
-
-/*public async Task<bool> IsAlive()
-{
-	using var res = await ((IHttpClient) this).GetEndpointResponseAsync(Timeout);
-
-	return !res.ResponseMessage.IsSuccessStatusCode;
-}*/
-	public static BaseUploadEngine Default { get; set; } = PomfEngine.Instance;
 
 	public void Dispose()
 	{
