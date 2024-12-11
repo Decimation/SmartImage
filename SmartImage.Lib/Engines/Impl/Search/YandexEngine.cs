@@ -63,7 +63,7 @@ public sealed class YandexEngine : WebSearchEngine
 		var tagsItem = doc.Body.SelectNodes(Serialization.S_Yandex_OtherImages);
 
 		if (tagsItem == null) {
-			return Enumerable.Empty<SearchResultItem>();
+			return [];
 		}
 
 		return tagsItem.AsParallel().Select(Parse);
@@ -134,6 +134,10 @@ public sealed class YandexEngine : WebSearchEngine
 		{
 			RawUrl = url
 		};
+
+		lock (sr.Results) {
+			sr.Results.Add(sr.RawResultItem);
+		}
 
 		IDocument doc = null;
 

@@ -232,6 +232,7 @@ public abstract class BaseUploadEngine : IDisposable
 
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {nameof(BaseUploadEngine)} ({Name})");
 		GC.SuppressFinalize(this);
 	}
 

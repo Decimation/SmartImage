@@ -755,6 +755,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
+
 		foreach (var sr in m_results.Keys) {
 			sr.Dispose();
 		}

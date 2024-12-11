@@ -295,6 +295,8 @@ public sealed class SearchClient : IDisposable
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
+			
+
 			var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
 
 			if (!ok) {
@@ -335,6 +337,8 @@ public sealed class SearchClient : IDisposable
 
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {nameof(SearchClient)}");
+
 		foreach (BaseSearchEngine engine in Engines) {
 			engine.Dispose();
 		}

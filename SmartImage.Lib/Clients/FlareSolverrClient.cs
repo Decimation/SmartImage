@@ -48,6 +48,7 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {nameof(FlareSolverrClient)}");
 		Clearance?.Dispose();
 		Client?.Dispose();
 		Clearance = null;

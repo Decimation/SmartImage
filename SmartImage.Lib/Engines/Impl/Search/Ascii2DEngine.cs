@@ -40,7 +40,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
 	{
 		Timeout = TimeSpan.FromSeconds(30);
-		MaxSize = 10000000;
+		MaxSize = 10_000_000;
 		Jar     = new CookieJar();
 	}
 
@@ -189,7 +189,6 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 			return null;
 		}
 	}
-
 
 	private async Task<IFlurlResponse> GetResponseByUrlAsync(Url origin, CancellationToken token)
 	{

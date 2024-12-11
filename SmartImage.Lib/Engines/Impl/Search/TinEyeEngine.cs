@@ -44,7 +44,11 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		}
 
 		var req = await Client.Request(API_URL)
-			          .PostMultipartAsync(b => { b.AddString("url", query.Upload); }, cancellationToken: token);
+			          .PostMultipartAsync(b =>
+			          {
+				          //
+				          b.AddString("url", query.Upload);
+			          }, cancellationToken: token);
 
 		TinEyeRoot tinEyeRoot = null;
 
@@ -58,6 +62,11 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		catch (Exception e) {
 			// Debugger.Break();
 			Trace.WriteLine(e.Message);
+			goto ret;
+		}
+
+		if (tinEyeRoot is not {}) {
+			sr.Flags |= SearchResultFlags.NoResults;
 			goto ret;
 		}
 

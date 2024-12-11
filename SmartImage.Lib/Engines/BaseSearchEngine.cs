@@ -30,14 +30,13 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 			builder.OnError(f =>
 			{
-				Debugger.Break();
+				// Debugger.Break();
 				Logger.LogError(f.Exception, $"from {f.Request}");
 			});
 
 			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
 
 		});
-		;
 	}
 
 	protected BaseSearchEngine(string baseUrl, string? endpoint = null)
@@ -127,14 +126,10 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	}
 
 	public static bool operator ==(BaseSearchEngine? left, BaseSearchEngine? right)
-	{
-		return Equals(left, right);
-	}
+		=> Equals(left, right);
 
 	public static bool operator !=(BaseSearchEngine? left, BaseSearchEngine? right)
-	{
-		return !Equals(left, right);
-	}
+		=> !Equals(left, right);
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{

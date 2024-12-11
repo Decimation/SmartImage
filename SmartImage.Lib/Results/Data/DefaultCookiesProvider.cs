@@ -88,12 +88,13 @@ public class DefaultCookiesProvider : ICookiesProvider
 
 	public bool IsClosedOrBroken => Reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;
 
+	public static readonly ICookiesProvider Instance = new DefaultCookiesProvider();
+
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {nameof(DefaultCookiesProvider)}");
 		Reader.Dispose();
 		Cache.Dispose();
 	}
-
-	public static readonly ICookiesProvider Instance = new DefaultCookiesProvider();
 
 }

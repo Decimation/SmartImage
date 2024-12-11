@@ -46,7 +46,6 @@ public class SearchServer : IDisposable
 		Listener = new SmartHttpListener(Handlers, uriPrefix);
 	}
 
-	
 
 	private async Task<object> HandleRequestAsync(HttpListenerRequest request, HttpListenerResponse response)
 	{
@@ -98,6 +97,7 @@ public class SearchServer : IDisposable
 
 	public void Dispose()
 	{
+		Debug.WriteLine($"Disposing {nameof(SearchServer)}");
 		Client?.Dispose();
 		Listener?.Dispose();
 		Handlers.Clear();
