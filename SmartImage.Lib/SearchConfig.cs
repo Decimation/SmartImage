@@ -63,12 +63,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public SearchEngineOptions SearchEngines
 	{
-		get { return Configuration.ReadSetting(nameof(SearchEngines), SE_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(SearchEngines), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(SE_DEFAULT);
+		set => Set(value);
 	}
 
 	/// <summary>
@@ -76,12 +72,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public SearchEngineOptions PriorityEngines
 	{
-		get { return Configuration.ReadSetting(nameof(PriorityEngines), PE_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(PriorityEngines), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(PE_DEFAULT);
+		set { Set(value); }
 	}
 
 	/// <summary>
@@ -89,12 +81,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public bool OnTop
 	{
-		get { return Configuration.ReadSetting(nameof(OnTop), ON_TOP_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(OnTop), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(ON_TOP_DEFAULT);
+		set { Set(value); }
 	}
 
 	/*
@@ -127,42 +115,26 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public bool OpenRaw
 	{
-		get { return Configuration.ReadSetting(nameof(OpenRaw), false); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(OpenRaw), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(false);
+		set { Set(value); }
 	}
 
 	public bool Silent
 	{
-		get { return Configuration.ReadSetting(nameof(Silent), false); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(Silent), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(false);
+		set { Set(value); }
 	}
 
 	public bool Clipboard
 	{
-		get { return Configuration.ReadSetting(nameof(Clipboard), true); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(Clipboard), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(true);
+		set { Set(value); }
 	}
 
 	public bool AutoSearch
 	{
-		get { return Configuration.ReadSetting(nameof(AutoSearch), false); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(AutoSearch), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(false);
+		set { Set(value); }
 	}
 
 	/// <summary>
@@ -170,12 +142,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public string SauceNaoKey
 	{
-		get { return Configuration.ReadSetting(nameof(SauceNaoKey), String.Empty); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(SauceNaoKey), value);
-			OnPropertyChanged();
-		}
+		get => Get(String.Empty);
+		set { Set(value); }
 	}
 
 	/// <summary>
@@ -187,12 +155,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </remarks>
 	public bool ReadCookies
 	{
-		get { return Configuration.ReadSetting(nameof(ReadCookies), READCOOKIES_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(ReadCookies), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(READCOOKIES_DEFAULT);
+		set { Set(value); }
 	}
 
 
@@ -203,12 +167,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </remarks>
 	public bool FlareSolverr
 	{
-		get { return Configuration.ReadSetting(nameof(FlareSolverr), FLARESOLVERR_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(FlareSolverr), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(FLARESOLVERR_DEFAULT);
+		set { Set(value); }
 	}
 
 
@@ -217,12 +177,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </remarks>
 	public string FlareSolverrApiUrl
 	{
-		get { return Configuration.ReadSetting(nameof(FlareSolverrApiUrl), FLARE_SOLVERR_API_URL_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(FlareSolverrApiUrl), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(FLARE_SOLVERR_API_URL_DEFAULT);
+		set { Set(value); }
 	}
 
 	/// <summary>
@@ -230,12 +186,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </summary>
 	public UploadEngineOptions UploadEngine
 	{
-		get { return Configuration.ReadSetting(nameof(UploadEngine), UPLOAD_ENGINE_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(UploadEngine), value.ToString());
-			OnPropertyChanged();
-		}
+		get => Get(UPLOAD_ENGINE_DEFAULT);
+		set => Set(value);
 	}
 
 	public static readonly SearchConfig Default = new();
@@ -250,6 +202,19 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+	private bool Set<T>(T s = default, [CallerMemberName] string name = default)
+	{
+		bool b = Configuration.AddUpdateSetting(name, s.ToString());
+		OnPropertyChanged(name);
+		return b;
+	}
+
+	private T Get<T>(T t = default, [CallerMemberName] string name = default)
+	{
+		T v = Configuration.ReadSetting(name, t);
+		return v;
+	}
 
 	public void Save()
 	{

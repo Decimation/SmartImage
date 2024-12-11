@@ -37,42 +37,45 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 
 		var sr = await base.GetResultAsync(query, token);
 
+		IFlurlResponse response = null;
+
 		if (sr.Status == SearchResultStatus.IllegalInput) {
-			return sr;
+			// return sr;
+			goto ret;
 		}
 
 		var hdr = $"{R1.Name}/{AppSupport.Version} (by {R1.Author} on GitHub)";
 
-		var response = await Client.Request(EndpointUrl, "search")
-			               .WithHeaders(new
-			               {
-				               User_Agent = hdr
-			               })
-			               .WithTimeout(Timeout)
-			               .OnError(e =>
-			               {
-				               e.ExceptionHandled = true;
-			               })
-			               .PostMultipartAsync(c =>
-			               {
-				               // var tmp = query.WriteImageToFile();
-				               query.Source.Stream.TrySeek();
 
-				               c.AddFile("file", query.Source.Stream, "file");
-				               query.Source.Stream.TrySeek();
+		response = await Client.Request(EndpointUrl, "search")
+			           .WithHeaders(new
+			           {
+				           User_Agent = hdr
+			           })
+			           .WithTimeout(Timeout)
+			           .OnError(e => { e.ExceptionHandled = true; })
+			           .PostMultipartAsync(c =>
+			           {
+				           // var tmp = query.WriteImageToFile();
+				           query.Source.Stream.TrySeek();
 
-				               c.AddString("includeNsfw", true.ToString());
-				               c.AddString("limit", 32.ToString());
+				           c.AddFile("file", query.Source.Stream, "file");
+				           query.Source.Stream.TrySeek();
 
-				               // c.AddString("platforms", null)
-				               // c.AddString("createLink", false)
-			               }, cancellationToken: token);
+				           c.AddString("includeNsfw", true.ToString());
+				           c.AddString("limit", 32.ToString());
+
+				           // c.AddString("platforms", null)
+				           // c.AddString("createLink", false)
+			           }, cancellationToken: token);
 
 		if (response is { ResponseMessage: { IsSuccessStatusCode: false } }) {
 			var er = await response.GetJsonAsync<FluffleErrorCode>();
-			
+
 			sr.ErrorMessage = $"{er.Message}: {er.Code}";
-			return sr;
+
+			// return sr;
+			goto ret;
 		}
 
 		if (response == null) {
@@ -82,11 +85,13 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 		var fr = await response.GetJsonAsync<FluffleResponse>();
 
 		foreach (FluffleResult result in fr.Results) {
-			var item = result.Convert(sr, out var c);
+			var item = result.Convert(sr);
 			sr.Results.Add(item);
 		}
-		ret:
+
+	ret:
 		sr.Update();
+		response?.Dispose();
 		return sr;
 	}
 
@@ -155,9 +160,8 @@ public class FluffleResult : IResultConvertable
 	[JsonPropertyName("credits")]
 	public List<FluffleResultCredit> Credits { get; set; }
 
-	public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children)
+	public SearchResultItem Convert(SearchResult sr)
 	{
-		children = [];
 
 		var sri = new SearchResultItem(sr)
 		{

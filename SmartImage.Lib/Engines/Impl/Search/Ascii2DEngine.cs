@@ -147,7 +147,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 					Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url));
 				}
 
-				var res = await Client.Request(newUrl)
+				using var res = await Client.Request(newUrl)
 					          .WithSettings(x => { x.HttpVersion = "2.0"; })
 					          .AllowAnyHttpStatus()
 					          .WithCookies(Jar)
@@ -167,7 +167,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 
 			}
 			else {
-				var res = await GetResponseByUrlAsync(origin, token);
+				using var res = await GetResponseByUrlAsync(origin, token);
 				str = await res.GetStringAsync();
 			}
 

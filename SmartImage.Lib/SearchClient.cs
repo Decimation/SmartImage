@@ -13,6 +13,7 @@ using System.Threading.Channels;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Testing;
+using Kantan.Diagnostics;
 using Kantan.Net;
 using Kantan.Net.Utilities;
 using Kantan.Net.Web;
@@ -155,6 +156,9 @@ public sealed class SearchClient : IDisposable
 			Task<SearchResult> task = await Task.WhenAny(tasks);
 			tasks.Remove(task);
 
+			if (task.IsFaulted) {
+				Trace.WriteLine($"{task} faulted!",LogCategories.C_ERROR);
+			}
 			SearchResult result = await task;
 
 			results[i] = result;

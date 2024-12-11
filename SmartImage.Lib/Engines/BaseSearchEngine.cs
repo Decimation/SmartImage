@@ -15,6 +15,8 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines;
 #nullable enable
+
+
 public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>
 {
 
@@ -39,7 +41,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		});
 	}
 
-	protected BaseSearchEngine(string baseUrl, string? endpoint = null)
+	protected BaseSearchEngine(Url baseUrl, Url? endpoint = null)
 	{
 		BaseUrl     = baseUrl;
 		EndpointUrl = endpoint;
@@ -62,7 +64,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
-	public string? EndpointUrl { get; }
+	public Url? EndpointUrl { get; }
 
 	protected long? MaxSize { get; set; }
 
@@ -125,12 +127,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	}
 
-	public static bool operator ==(BaseSearchEngine? left, BaseSearchEngine? right)
-		=> Equals(left, right);
-
-	public static bool operator !=(BaseSearchEngine? left, BaseSearchEngine? right)
-		=> !Equals(left, right);
-
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var b = await VerifyQueryAsync(query);
@@ -159,6 +155,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 		return res;
 	}
+
 
 	protected virtual Url GetRawUrl(SearchQuery query)
 	{
@@ -226,5 +223,14 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return EngineOption == other.EngineOption;
 	}
 
+	public static bool operator ==(BaseSearchEngine? left, BaseSearchEngine? right)
+	{
+		return Equals(left, right);
+	}
+
+	public static bool operator !=(BaseSearchEngine? left, BaseSearchEngine? right)
+	{
+		return !Equals(left, right);
+	}
 
 }

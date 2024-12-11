@@ -426,7 +426,7 @@ public partial class MainWindow
 						Me_Preview.LoadedBehavior   = MediaState.Manual;
 
 						// Tb_Preview.Text = $"Preview: loading {ri.Name}";
-						var uri = await CacheOrGetAsync(doc.video, m_ctsMedia.Token);
+						var uri = await CacheOrGetAsync(doc.Video, m_ctsMedia.Token);
 						Debug.WriteLine($"{m_ctsMedia.IsCancellationRequested}");
 
 						if (uri != null) {

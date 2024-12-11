@@ -82,7 +82,6 @@ namespace SmartImage.UI;
 public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 {
 
-
 	public const int INVALID = -1;
 
 	static MainWindow() { }
@@ -1437,10 +1436,15 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	#endregion
 
+	internal static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+	internal static readonly Version  Version  = Assembly.GetName().Version;
+
 	private async Task CheckForUpdateAsync()
 	{
-		var cv = AppSupport.Version;
-		var lv = await AppSupport.GetLatestReleaseAsync();
+		var cv = Version;
+		var lv = (await AppSupport.GetRepoReleasesAsync())
+			.OrderByDescending(x => x.published_at)
+			.First(x => !x.IsRdx);
 
 		Tb_Version.Text = $"{cv}";
 
@@ -1498,7 +1502,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// todo
 		//https://stackoverflow.com/questions/23075609/wpf-mediaelement-video-freezes
 		try {
-			var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
+			// var hwndSource = PresentationSource.FromVisual(this) as HwndSource;
+			var hwndSource = PresentationSource.FromVisual(Me_Preview) as HwndSource;
 			var hwndTarget = hwndSource.CompositionTarget;
 			hwndTarget.RenderMode = RenderMode.SoftwareOnly;
 		}

@@ -17,46 +17,41 @@ namespace SmartImage.Lib.Utilities.Diagnostics;
 public static class AppSupport
 {
 
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+	internal static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
 
-	public static readonly Version Version = Assembly.GetName().Version;
+	internal static readonly Version Version = Assembly.GetName().Version;
 
 	internal const string SI_DIAG_ID_0001 = "SI0001";
 
 	internal static readonly ILoggerFactory Factory =
 		LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Debug));
 
-	[ICBN]
-	public static Task<GitHubRelease[]> GetRepoReleasesAsync()
+	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()
 	{
-		return R1.Url_GitHubApi
-			.WithAutoRedirect(true)
-			.AllowAnyHttpStatus()
-			.WithHeaders(new
-			{
-				User_Agent = HttpUtilities.UserAgent
-			})
-			.OnError(e => { e.ExceptionHandled = true; })
-			.GetJsonAsync<GitHubRelease[]>();
-	}
-
-	[ICBN]
-	public static async Task<GitHubRelease> GetLatestReleaseAsync()
-	{
-		var r = await GetRepoReleasesAsync();
+		var r = await R1.Url_GitHubApi
+			        .WithAutoRedirect(true)
+			        .AllowAnyHttpStatus()
+			        .WithHeaders(new
+			        {
+				        User_Agent = HttpUtilities.UserAgent
+			        })
+			        .OnError(e => { e.ExceptionHandled = true; })
+			        .GetJsonAsync<GitHubRelease[]>();
 
 		if (r == null) {
-			return null;
+			return [];
 		}
 
 		foreach (var x in r) {
-			if (Version.TryParse(x.tag_name[1..], out var xv)) {
+			var s = x.tag_name[1..].Split('-')[0];
+			x.IsRdx = x.name.Contains("Rdx", StringComparison.CurrentCultureIgnoreCase);
+
+			if (Version.TryParse(s, out var xv)) {
 				x.Version = xv;
 			}
-
 		}
 
-		return r.OrderByDescending(x => x.published_at).First();
+		return r;
 	}
 
 	/*
@@ -216,8 +211,13 @@ public class GitHubRelease
 {
 
 	[JI]
-	[NonSerialized]
-	public Version Version;
+	[field: NonSerialized]
+	public Version Version { get; set; }
+
+	[JI]
+	[field: NonSerialized]
+	public bool IsRdx { get; set; }
+
 
 	public string url { get; set; }
 

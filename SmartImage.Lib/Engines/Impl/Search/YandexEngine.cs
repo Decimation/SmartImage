@@ -82,7 +82,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 			var (w, h) = ParseResolution(resText);
 
-			var url = new Uri(link);
+			var url = new Url(link);
 
 			var sri = new SearchResultItem(r)
 			{
@@ -195,6 +195,7 @@ public sealed class YandexEngine : WebSearchEngine
 
 	ret:
 		sr.Update();
+		doc?.Dispose();
 		return sr;
 	}
 

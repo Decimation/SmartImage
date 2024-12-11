@@ -19,7 +19,10 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+		Debug.WriteLine($"Disposing {Name}");
+	}
 
 	public override async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
@@ -39,21 +42,23 @@ public sealed class TinEyeEngine : BaseSearchEngine
 	{
 		var sr = await base.GetResultAsync(query, token);
 
+		IFlurlResponse response = null;
+
 		if (sr.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
 
-		var req = await Client.Request(API_URL)
-			          .PostMultipartAsync(b =>
-			          {
-				          //
-				          b.AddString("url", query.Upload);
-			          }, cancellationToken: token);
+		response = await Client.Request(API_URL)
+			           .PostMultipartAsync(b =>
+			           {
+				           //
+				           b.AddString("url", query.Upload);
+			           }, cancellationToken: token);
 
 		TinEyeRoot tinEyeRoot = null;
 
 		try {
-			var str = await req.GetStringAsync();
+			var str = await response.GetStringAsync();
 
 			tinEyeRoot = JsonSerializer.Deserialize<TinEyeRoot>(str);
 
@@ -65,7 +70,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			goto ret;
 		}
 
-		if (tinEyeRoot is not {}) {
+		if (tinEyeRoot?.Matches == null) {
 			sr.Flags |= SearchResultFlags.NoResults;
 			goto ret;
 		}
@@ -117,6 +122,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		}
 
 	ret:
+		response?.Dispose();
 		return sr;
 	}
 

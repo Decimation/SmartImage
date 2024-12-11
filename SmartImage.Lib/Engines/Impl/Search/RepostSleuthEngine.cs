@@ -23,7 +23,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 	private const string URL_API   = "https://api.repostsleuth.com/image";
 	private const string URL_QUERY = "https://repostsleuth.com/search?url=";
 
-	private static readonly JsonSerializerOptions JsOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+	private static readonly JsonSerializerOptions JsOptions = new(JsonSerializerDefaults.Web)
 	{
 		IncludeFields = true,
 	};
@@ -44,20 +44,21 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		RepostSleuthResult obj = null;
 
 		try {
-			var s = await Client.Request(EndpointUrl).SetQueryParams(new
-			{
+			var s = await Client.Request(EndpointUrl)
+				        .SetQueryParams(new
+				        {
 
-				filter               = true,
-				url                  = query.Upload,
-				same_sub             = false,
-				filter_author        = true,
-				only_older           = false,
-				include_crossposts   = false,
-				meme_filter          = false,
-				target_match_percent = 90,
-				filter_dead_matches  = false,
-				target_days_old      = 0
-			}).GetStringAsync(cancellationToken: token);
+					        filter               = true,
+					        url                  = query.Upload,
+					        same_sub             = false,
+					        filter_author        = true,
+					        only_older           = false,
+					        include_crossposts   = false,
+					        meme_filter          = false,
+					        target_match_percent = 90,
+					        filter_dead_matches  = false,
+					        target_days_old      = 0
+				        }).GetStringAsync(cancellationToken: token);
 
 			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
 		}
@@ -73,13 +74,13 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 			goto ret;
 		}
 
-		if (obj?.matches == null || (obj is { matches: not null } && (obj.matches.Any()))) {
+		if (obj?.matches == null || !obj.matches.Any()) {
 			sr.Flags |= SearchResultFlags.NoResults;
 			goto ret;
 		}
-		
+
 		foreach (var rpm in obj.matches) {
-			sr.Results.Add(rpm.Convert(sr, out _));
+			sr.Results.Add(rpm.Convert(sr));
 		}
 
 	ret:
@@ -114,9 +115,8 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		public RepostSleuthPost post;
 		public double           title_similarity;
 
-		public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children)
+		public SearchResultItem Convert(SearchResult sr)
 		{
-			children = [];
 
 			return new SearchResultItem(sr)
 			{

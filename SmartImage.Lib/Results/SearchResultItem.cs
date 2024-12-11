@@ -17,11 +17,10 @@ using Novus.Streams;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 
-[assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
 #nullable disable
 namespace SmartImage.Lib.Results;
 
-public sealed record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable, ISimilarity
+public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>
 {
 
 	/// <summary>
@@ -253,7 +252,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 				buf.Add(res);
 			}
 			else {
-				res.Dispose();
+				res?.Dispose();
 			}
 		}
 
@@ -282,7 +281,7 @@ public sealed record SearchResultItem : IDisposable, IComparable<SearchResultIte
 			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
 	}
 
-	public bool Equals(SearchResultItem other)
+	public virtual bool Equals(SearchResultItem other)
 	{
 		if (other is null)
 			return false;

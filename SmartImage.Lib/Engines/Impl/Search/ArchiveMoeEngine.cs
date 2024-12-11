@@ -28,7 +28,9 @@ public class ArchiveMoeEngine : WebSearchEngine
 	{
 		Base64Hash = GetHash(query);
 
-		return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
+		var r=Url.Combine(BaseUrl, "image", Base64Hash);
+		return r;
+		// return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
@@ -67,7 +69,7 @@ public class ArchiveMoeEngine : WebSearchEngine
 			Text     = text
 		};
 
-		return ValueTask.FromResult(p.Convert(r, out _));
+		return ValueTask.FromResult(p.Convert(r));
 
 		// ReSharper restore PossibleNullReferenceException
 
@@ -111,9 +113,8 @@ public record ChanPost : IResultConvertable
 	public string   Tripcode;
 	public int      Width;
 
-	public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] ch)
+	public SearchResultItem Convert(SearchResult sr)
 	{
-		ch = [];
 
 		var sri = new SearchResultItem(sr)
 		{

@@ -51,6 +51,7 @@ public sealed class AnilistClient : IDisposable
 
 	public void Dispose()
 	{
+
 		m_client.Dispose();
 	}
 

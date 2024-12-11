@@ -55,7 +55,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return (UseExHentai ? ExHentaiBase : EHentaiBase)
+		return Client.Request(UseExHentai ? ExHentaiBase : EHentaiBase)
 			.WithCookies(Jar)
 			.WithTimeout(Timeout)
 			.WithHeaders(new

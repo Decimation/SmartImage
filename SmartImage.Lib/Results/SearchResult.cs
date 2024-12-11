@@ -69,7 +69,7 @@ public enum SearchResultFlags
 /// <summary>
 /// Root search result returned by a <see cref="BaseSearchEngine"/>
 /// </summary>
-public sealed class SearchResult : IDisposable, INotifyPropertyChanged
+public class SearchResult : IDisposable, INotifyPropertyChanged
 {
 
 	/// <summary>

@@ -45,13 +45,13 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 		var r = await base.GetResultAsync(query, token);
 
 		try {
-			IFlurlRequest request = Client.Request((EndpointUrl.AppendPathSegment("/search")))
+			IFlurlRequest request = Client.Request(Url.Combine(EndpointUrl, ("/search")))
 				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload, true);
 
-			var response = await request.GetAsync(cancellationToken: token);
+			using var response = await request.GetAsync(cancellationToken: token);
 
-			var json = await response.GetStringAsync();
+			// var json = await response.GetStringAsync();
 
 			/*
 			var settings = new JsonSerializerOptions()
@@ -67,8 +67,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 				}
 			};
 			*/
-
-			tm = JsonSerializer.Deserialize<TraceMoeRootObject>(json);
+			tm = await response.GetJsonAsync<TraceMoeRootObject>();
+			// tm = JsonSerializer.Deserialize<TraceMoeRootObject>(json);
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
@@ -78,7 +78,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 		}
 
 		if (tm != null) {
-			if (tm.result != null) {
+			if (tm.Result != null) {
 				// Most similar to least similar
 
 				try {
@@ -93,9 +93,9 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 				}
 
 			}
-			else if (tm.error != null) {
-				Debug.WriteLine($"{Name} :: API error: {tm.error}", nameof(GetResultAsync));
-				r.ErrorMessage = tm.error;
+			else if (tm.Error != null) {
+				Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
+				r.ErrorMessage = tm.Error;
 				r.Status       = SearchResultStatus.IllegalInput;
 
 				if (r.ErrorMessage.Contains("Search queue is full")) {
@@ -112,16 +112,16 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 	private async Task<IEnumerable<SearchResultItem>> ConvertResultsAsync(TraceMoeRootObject obj, SearchResult sr)
 	{
-		var results = obj.result;
+		var results = obj.Result;
 		var items   = new SearchResultItem[results.Count];
 
 		for (int i = 0; i < items.Length; i++) {
 			var doc    = results[i];
-			var result = doc.Convert(sr, out var ch);
+			var result = doc.Convert(sr);
 
 			try {
-				string anilistUrl = ANILIST_URL.AppendPathSegment(doc.anilist);
-				string name       = await m_anilistClient.GetTitleAsync((int) doc.anilist);
+				string anilistUrl = Url.Combine(ANILIST_URL, doc.Anilist.ToString());
+				string name       = await m_anilistClient.GetTitleAsync((int) doc.Anilist);
 				result.Source   = name;
 				result.Url      = new Url(anilistUrl);
 				result.Metadata = doc;
@@ -155,10 +155,10 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 		m_anilistClient.Dispose();
 	}
 
-	public async Task<TraceMoeQuotaObject> GetQuotaAsync()
+	public Task<TraceMoeQuotaObject> GetQuotaAsync()
 	{
-		return await EndpointUrl.AppendPathSegment("me")
-			       .GetJsonAsync<TraceMoeQuotaObject>();
+		return Client.Request(EndpointUrl,"me")
+			.GetJsonAsync<TraceMoeQuotaObject>();
 	}
 
 }
@@ -169,11 +169,11 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 public class TraceMoeRootObject
 {
 
-	public long frameCount { get; set; }
+	public long FrameCount { get; set; }
 
-	public string error { get; set; }
+	public string Error { get; set; }
 
-	public List<TraceMoeDoc> result { get; set; }
+	public List<TraceMoeDoc> Result { get; set; }
 
 }
 
@@ -196,30 +196,30 @@ public class TraceMoeQuotaObject
 public class TraceMoeDoc : IResultConvertable
 {
 
-	public double from { get; set; }
+	public double From { get; set; }
 
-	public double to { get; set; }
+	public double To { get; set; }
 
-	public long anilist { get; set; }
+	public long Anilist { get; set; }
 
-	public string filename { get; set; }
+	public string Filename { get; set; }
 
 	/// <remarks>Episode may be a JSON array (edge case) or a normal integer</remarks>
-	public object episode { get; set; }
+	public object Episode { get; set; }
 
-	public double similarity { get; set; }
+	public double Similarity { get; set; }
 
-	public string video { get; set; }
+	public string Video { get; set; }
 
-	public string image { get; set; }
+	public string Image { get; set; }
 
 	public string EpisodeString
 	{
 		get
 		{
-			string epStr = episode is { } ? episode is string s ? s : episode.ToString() : string.Empty;
+			string epStr = Episode is { } ? Episode is string s ? s : Episode.ToString() : string.Empty;
 
-			if (episode is IEnumerable e && e is not string) {
+			if (Episode is IEnumerable e && e is not string) {
 				var epList = e.CastToList()
 					.Select(x =>
 					{
@@ -239,10 +239,9 @@ public class TraceMoeDoc : IResultConvertable
 		}
 	}
 
-	public SearchResultItem Convert(SearchResult sr, out SearchResultItem[] children)
+	public SearchResultItem Convert(SearchResult sr)
 	{
-		children = [];
-		var sim = Math.Round(similarity * 100.0f, 2);
+		var sim = Math.Round(Similarity * 100.0f, 2);
 
 		string epStr = EpisodeString;
 
@@ -251,10 +250,10 @@ public class TraceMoeDoc : IResultConvertable
 			Similarity = sim,
 
 			// Metadata   = new[] { doc.video, doc.image },
-			Title = filename,
+			Title = Filename,
 
 			Description = $"Episode #{epStr} @ " +
-			              $"[{TimeSpan.FromSeconds(from):g} - {TimeSpan.FromSeconds(to):g}]",
+			              $"[{TimeSpan.FromSeconds(From):g} - {TimeSpan.FromSeconds(To):g}]",
 		};
 
 		// result.Metadata.video = video;
