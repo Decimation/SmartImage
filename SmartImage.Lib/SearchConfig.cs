@@ -73,7 +73,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public SearchEngineOptions PriorityEngines
 	{
 		get => Get(PE_DEFAULT);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	/// <summary>
@@ -82,7 +82,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public bool OnTop
 	{
 		get => Get(ON_TOP_DEFAULT);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	/*
@@ -116,25 +116,25 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public bool OpenRaw
 	{
 		get => Get(false);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	public bool Silent
 	{
 		get => Get(false);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	public bool Clipboard
 	{
 		get => Get(true);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	public bool AutoSearch
 	{
 		get => Get(false);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	/// <summary>
@@ -143,7 +143,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public string SauceNaoKey
 	{
 		get => Get(String.Empty);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	/// <summary>
@@ -156,7 +156,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public bool ReadCookies
 	{
 		get => Get(READCOOKIES_DEFAULT);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 
@@ -168,7 +168,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public bool FlareSolverr
 	{
 		get => Get(FLARESOLVERR_DEFAULT);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 
@@ -178,7 +178,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public string FlareSolverrApiUrl
 	{
 		get => Get(FLARE_SOLVERR_API_URL_DEFAULT);
-		set { Set(value); }
+		set => Set(value);
 	}
 
 	/// <summary>
@@ -203,14 +203,14 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
-	private bool Set<T>(T s = default, [CallerMemberName] string name = default)
+	private bool Set<T>(T s = default, [CMN] string name = default)
 	{
 		bool b = Configuration.AddUpdateSetting(name, s.ToString());
 		OnPropertyChanged(name);
 		return b;
 	}
 
-	private T Get<T>(T t = default, [CallerMemberName] string name = default)
+	private T Get<T>(T t = default, [CMN] string name = default)
 	{
 		T v = Configuration.ReadSetting(name, t);
 		return v;
@@ -252,7 +252,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	private void OnPropertyChanged([CMN] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}

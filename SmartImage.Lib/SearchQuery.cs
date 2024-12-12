@@ -131,6 +131,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public void Dispose()
 	{
+		Trace.WriteLine($"Disposing {Source}");
 		Source?.Dispose();
 	}
 

@@ -19,9 +19,19 @@ public sealed class SearchResultTypeConverter : JsonConverter<SearchResult>
 
 	public override void Write(Utf8JsonWriter writer, SearchResult value, JsonSerializerOptions options)
 	{
+		writer.WriteStartObject();
 		writer.WriteString(nameof(SearchResult.Engine.Name), value.Engine.EngineOption.ToString());
-		writer.WriteString(nameof(SearchResult.Results), $"{value.Results.Count}");
 		writer.WriteString(nameof(SearchResult.Status), $"{value.Status}");
+		writer.WriteStartArray(nameof(SearchResult.Results));
+
+		foreach (SearchResultItem result in value.Results) {
+			writer.WriteStartObject();
+			writer.WriteRawValue(JsonSerializer.Serialize(result, options));
+			writer.WriteEndObject();
+		}
+
+		writer.WriteEndArray();
+		writer.WriteEndObject();
 	}
 
 	#endregion

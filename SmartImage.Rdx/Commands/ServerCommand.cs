@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: ServerCommand.cs
 // Date: 2024/11/22 @ 03:11:26
 
+using System.Diagnostics;
 using SmartImage.Lib;
 using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Shell;
@@ -21,6 +22,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	public ServerCommand()
 	{
 		Client = new SearchClient(SearchConfig.Default);
+		
 		Server = new SearchServer(Client, 25565);
 		m_scs = null;
 	}
@@ -38,6 +40,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	public void Dispose()
 	{
+		Trace.WriteLine($"Disposing {Server}");
 		Server.Dispose();
 	}
 

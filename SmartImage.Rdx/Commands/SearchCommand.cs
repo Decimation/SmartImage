@@ -71,9 +71,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private readonly STable m_table;
 
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-	public static readonly Version  Version  = Assembly.GetName().Version;
-
 	public SearchCommand()
 	{
 		Config = new SearchConfig();

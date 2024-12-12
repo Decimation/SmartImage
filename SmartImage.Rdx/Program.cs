@@ -197,4 +197,8 @@ public static class Program
 		return cfg;
 	}
 
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+
+	public static readonly Version  Version  = Assembly.GetName().Version;
+
 }

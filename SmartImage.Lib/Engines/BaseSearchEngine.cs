@@ -16,7 +16,6 @@ using SmartImage.Lib.Utilities.Diagnostics;
 namespace SmartImage.Lib.Engines;
 #nullable enable
 
-
 public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>
 {
 
@@ -53,6 +52,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	/// <summary>
 	///     The corresponding <see cref="SearchEngineOptions" /> of this engine
 	/// </summary>
+	[JI]
 	public abstract SearchEngineOptions EngineOption { get; }
 
 	/// <summary>
@@ -62,12 +62,15 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	public virtual Url BaseUrl { get; }
 
+	[JI]
 	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
 	public Url? EndpointUrl { get; }
 
+	[JI]
 	protected long? MaxSize { get; set; }
 
+	[JI]
 	protected virtual string[] ErrorBodyMessages { get; } = [];
 
 	protected static FlurlClient Client { get; }

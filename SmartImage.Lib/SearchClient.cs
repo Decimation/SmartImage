@@ -1,4 +1,5 @@
-﻿global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
+﻿global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
+global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
 global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 using System.Collections;
@@ -111,7 +112,7 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="scheduler"></param>
-	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
+	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine{T}.GetResultAsync(SmartImage.Lib.SearchQuery,System.Threading.CancellationToken)"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query,
 	                                                 TaskScheduler scheduler = default,
 	                                                 CancellationToken token = default)
@@ -172,11 +173,7 @@ public sealed class SearchClient : IDisposable
 
 			try {
 
-				var ordered = results.Select(x => x.GetBestResult())
-					.Where(x => x != null)
-					.OrderByDescending(x => x.Similarity);
-
-				var item = ordered.FirstOrDefault();
+				SearchResultItem item = GetBest(results);
 
 				if (item != null) {
 					OpenResult(item.Url);
@@ -193,6 +190,16 @@ public sealed class SearchClient : IDisposable
 		IsRunning = false;
 
 		return results;
+	}
+
+	public static SearchResultItem GetBest(SearchResult[] results)
+	{
+		var ordered = results.Select(x => x.GetBestResult())
+			.Where(x => x != null)
+			.OrderByDescending(x => x.Similarity);
+
+		var item = ordered.FirstOrDefault();
+		return item;
 	}
 
 	private void CompleteSearchAsync()

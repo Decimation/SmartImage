@@ -75,6 +75,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	/// <summary>
 	/// Engine which returned this result
 	/// </summary>
+	[JI]
 	public BaseSearchEngine Engine { get; }
 
 	// todo: make the engine reference weak
@@ -84,6 +85,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	/// </summary>
 	public Url RawUrl { get; internal set; }
 
+	[JI]
 	public bool HasResults
 	{
 		get
@@ -96,7 +98,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	public bool IsSuccessful => Status.IsSuccessful();
 
 	/// <summary>
-	/// Results; first element should be <see cref="GetRawResultItem"/>
+	/// Results; first element should be <see cref="RawResultItem"/>
 	/// </summary>
 	[NN]
 	public List<SearchResultItem> Results { get; }
@@ -143,12 +145,12 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	private void OnPropertyChanged([CMN] string propertyName = null)
 	{
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	private bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
 	{
 		if (EqualityComparer<T>.Default.Equals(field, value))
 			return false;
@@ -171,7 +173,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 			.FirstOrDefault(static r => Url.IsValid(r.Url));
 	}
 
-
+	[JI]
 	public SearchResultItem RawResultItem
 	{
 		get

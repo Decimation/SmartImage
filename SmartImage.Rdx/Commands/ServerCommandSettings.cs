@@ -16,6 +16,7 @@ public sealed class ServerCommandSettings : CommandSettings
 		/*if (!BaseOSIntegration.Integration.IsRoot) {
 			throw new SmartImageException("Must be admin");
 		}*/
+		
 		return base.Validate();
 	}
 

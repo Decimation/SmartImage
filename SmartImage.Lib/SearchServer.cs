@@ -10,6 +10,7 @@ using System.Text.Json.Serialization;
 using Kantan.Net;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib;
@@ -21,7 +22,14 @@ public class SearchServer : IDisposable
 
 	public static readonly JsonSerializerOptions Options2 = new(HttpUtilities.Options)
 	{
+		WriteIndented = true,
 		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+		Converters =
+		{
+			new UrlTypeConverter(),
+			new BaseSearchEngineTypeConverter(),
+			// new SearchResultTypeConverter(),
+		}
 
 	};
 
@@ -38,7 +46,8 @@ public class SearchServer : IDisposable
 
 		Handlers = new RouteCallbackMap()
 		{
-			["search"] = HandleRequestAsync
+			["search"] = HandleRequestAsync,
+
 		};
 
 		var uriPrefix = $"http://*:{port}/";
@@ -51,7 +60,11 @@ public class SearchServer : IDisposable
 	{
 		object ok;
 
+		var redirHdr = request.Headers["redirect"];
+
+
 		try {
+
 			var sz = await request.ReadRequestStringAsync();
 
 			if (String.IsNullOrWhiteSpace(sz)) {
@@ -70,14 +83,30 @@ public class SearchServer : IDisposable
 
 			var results = await Client.RunSearchAsync(sq);
 
-			var allResults = results.SelectMany(x => x.Results).ToArray();
-			var ok1        = await response.WriteResponseJsonAsync(allResults);
+			var best = SearchClient.GetBest(results);
+
+			var allResults = new SearchResults(results, best)
+				{ };
+
+			var bytes = JsonSerializer.Serialize(allResults, Options2);
+			var rg    = Listener.Encoding.GetBytes(bytes);
+
+			var ok1 = await response.WriteResponseDataAsync(rg);
 
 			ok = ok1;
+
 			/*
 			var json = JsonSerializer.Serialize(allResults, Options2);
 			ok = await response.WriteResponseStringAsync(json);
-		*/
+			*/
+
+			if (!String.IsNullOrWhiteSpace(redirHdr)) {
+				response.Redirect(allResults.Best.Url);
+			}
+
+			response.OutputStream.Close();
+			response.Close();
+
 		}
 		catch (IOException io) {
 			Trace.WriteLine($"{io}");
@@ -86,6 +115,24 @@ public class SearchServer : IDisposable
 		}
 
 		return ok;
+	}
+
+	public class SearchResults
+	{
+
+		[JsonPropertyOrder(0)]
+		[MN]
+		public SearchResultItem Best { get; internal set; }
+
+		[JsonPropertyOrder(1)]
+		public SearchResult[] Results { get; }
+
+		public SearchResults(SearchResult[] results, SearchResultItem best)
+		{
+			Best    = best;
+			Results = results;
+		}
+
 	}
 
 	public Task StartAsync(CancellationToken ct = default)
