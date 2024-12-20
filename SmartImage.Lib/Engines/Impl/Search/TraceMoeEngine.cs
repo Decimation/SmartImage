@@ -220,7 +220,7 @@ public class TraceMoeDoc : IResultConvertable
 			string epStr = Episode is { } ? Episode is string s ? s : Episode.ToString() : string.Empty;
 
 			if (Episode is IEnumerable e && e is not string) {
-				var epList = e.CastToList()
+				var epList = e.Cast<object>()
 					.Select(x =>
 					{
 						var s1 = x.ToString();

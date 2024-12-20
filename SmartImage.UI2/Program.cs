@@ -44,8 +44,7 @@ namespace SmartImage.UI2
 					var composite = new CompositeDisposable(2);
 
 					object timeout = Application.MainLoop.AddTimeout(
-						dueTime,
-						() =>
+						dueTime, (cb) =>
 						{
 							composite.Add(action(this, state));
 
@@ -64,12 +63,8 @@ namespace SmartImage.UI2
 
 		}
 
-		public class Item1
-		{
+		public class Item1 { }
 
-			
-
-		}
 		public static void Main(string[] args)
 		{
 			Application.Init();

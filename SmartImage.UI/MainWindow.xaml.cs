@@ -59,12 +59,12 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime;
 using System.Runtime.Caching;
-using ReactiveUI;
+// using ReactiveUI;
 using Brush = System.Drawing.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using System.Buffers;
 using System.Reflection;
-using DynamicData;
+// using DynamicData;
 using SmartImage.Lib.Clients;
 using SmartImage.UI.Controls;
 using SmartImage.Lib.Images;
@@ -819,7 +819,11 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private void ConvertAddResultItems(SearchResult result)
 	{
-		CurrentQuery.Results.AddRange(Convert(result));
+		var r = Convert(result);
+		foreach (ResultItem resultItem in r) {
+			CurrentQuery.Results.Add(resultItem);
+
+		}
 	}
 
 	#endregion
