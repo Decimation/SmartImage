@@ -15,6 +15,7 @@ using Novus.Streams;
 using Novus.Win32;
 using CoenM.ImageHash.HashAlgorithms;
 using CoenM.ImageHash;
+using Kantan.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
@@ -347,7 +348,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 
 	public virtual void Dispose()
 	{
-		Trace.WriteLine($"Disposing {ValueString} w/ {Size}");
+		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
 		Stream?.Dispose();
 		Image?.Dispose();
 
@@ -357,7 +358,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 
 	public virtual async ValueTask DisposeAsync()
 	{
-		Trace.WriteLine($"Disposing {ValueString} w/ {Size}");
+		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
 
 		if (Stream != null)
 			await Stream.DisposeAsync();

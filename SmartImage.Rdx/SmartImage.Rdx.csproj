@@ -62,6 +62,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.0" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="8.0.0-preview.7.23375.6" />
     <PackageReference Include="Microsoft.VisualStudio.Validation" Version="17.8.8" />
+    <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.6" />
     <PackageReference Include="Spectre.Console" Version="0.49.1" />
     <PackageReference Include="Spectre.Console.Analyzer" Version="1.0.0">
@@ -71,6 +72,7 @@
     <PackageReference Include="Spectre.Console.Cli" Version="0.49.1" />
     <PackageReference Include="Spectre.Console.ImageSharp" Version="0.49.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
+    <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
     <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="System.Text.Json" Version="9.0.0" />
     <PackageReference Include="Verify.Flurl" Version="1.0.0" />

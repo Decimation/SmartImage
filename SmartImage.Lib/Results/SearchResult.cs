@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
+using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images;
@@ -193,7 +194,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Dispose()
 	{
-		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}");
+		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}", LogCategories.C_VERBOSE);
 
 		foreach (SearchResultItem item in Results) {
 			item.Dispose();

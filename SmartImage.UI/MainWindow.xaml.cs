@@ -48,7 +48,7 @@ using SmartImage.Lib.Utilities;
 using Flurl.Http;
 using SmartImage.UI.Model;
 using Color = System.Drawing.Color;
-using Jint.Parser.Ast;
+// using Jint.Parser.Ast;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
 using CancellationTokenSource = System.Threading.CancellationTokenSource;
@@ -205,7 +205,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public static SearchEngineOptions[] Engines { get; } = Enum.GetValues<SearchEngineOptions>();
 
-	private readonly object m_lock = new();
+	private readonly Lock m_lock = new();
 
 	private readonly WindowInteropHelper m_wndInterop;
 
@@ -659,7 +659,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			AddToQueue(fn);
 
 		}
-
 		else if (cText) {
 			string? txt = (string) Clipboard.GetData(DataFormats.UnicodeText);
 			txt = txt.CleanString();
@@ -680,7 +679,6 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 		}
-
 		else if (cFile) {
 			var files = Clipboard.GetFileDropList();
 			var rg    = new string[files.Count];

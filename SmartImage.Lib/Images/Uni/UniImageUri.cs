@@ -41,7 +41,7 @@ public class UniImageUri : UniImage
 
 		var scheme = u.Scheme;
 
-		return Schemes.All(s => scheme != s);
+		return LegalSchemes.Contains(scheme);
 	}
 
 	public override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
@@ -64,7 +64,8 @@ public class UniImageUri : UniImage
 		return HasResponse;
 	}
 
-	public static readonly string[] Schemes = ["file", "javascript"];
+	public static readonly List<string>       RestrictedSchemes = ["file", "javascript", "cpu"];
+	public static readonly List<string> LegalSchemes      = ["http", "https"];
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
 	{
