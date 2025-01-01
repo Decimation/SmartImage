@@ -71,7 +71,7 @@ namespace SmartImage.UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to -auto.
+        ///   Looks up a localized string similar to -a.
         /// </summary>
         internal static string Arg_AutoSearch {
             get {
@@ -167,7 +167,7 @@ namespace SmartImage.UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to -i &quot;%1&quot; -auto.
+        ///   Looks up a localized string similar to -i &quot;%1&quot; -a.
         /// </summary>
         internal static string Reg_Launch_Args {
             get {

@@ -26,4 +26,5 @@ public static class SearchUtil
 
 	public static bool HasFlagFast(this SearchResultFlags value, SearchResultFlags status)
 		=> (value & status) != 0;
+
 }

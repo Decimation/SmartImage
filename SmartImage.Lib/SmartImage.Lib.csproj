@@ -11,7 +11,7 @@
     <PublishTrimmed>True</PublishTrimmed>
     <!-- <PublishSingleFile>true</PublishSingleFile> -->
     <PublishSingleFile Condition="'$(Configuration)' == 'Release|AnyCPU'">true</PublishSingleFile>
-    <NoWarn>AD0001;IDE0290;CS0168</NoWarn>
+    <NoWarn>AD0001;IDE0290</NoWarn>
   </PropertyGroup>
   <PropertyGroup>
     <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>

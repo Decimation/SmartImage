@@ -2,7 +2,6 @@
 // Date: 2024/12/05 @ 21:12:49
 
 using System.Diagnostics;
-using System.Runtime.Versioning;
 using Novus.OS;
 
 // ReSharper disable InconsistentNaming
@@ -46,10 +45,10 @@ public abstract class BaseOSIntegration
 		Executable          = GetProcessMainModuleFileName();
 		ExecutableDirectory = Path.GetDirectoryName(Executable);
 
-		if (IsWindows) {
+		if (FileSystem.IsWindows) {
 			Integration = new WindowsOSIntegration();
 		}
-		else if (IsLinux) {
+		else if (FileSystem.IsLinux) {
 			Integration = new LinuxOSIntegration();
 		}
 		else {
@@ -60,29 +59,19 @@ public abstract class BaseOSIntegration
 
 	#region
 
-	internal const string OS_WIN = "windows";
-
-	internal const string OS_LINUX = "linux";
-
 	public const int EC_ERROR = -1;
 
 	public const int EC_OK = 0;
 
-	[SupportedOSPlatformGuard(OS_LINUX)]
-	public static readonly bool IsLinux = OperatingSystem.IsLinux();
-
-	[SupportedOSPlatformGuard(OS_WIN)]
-	public static readonly bool IsWindows = OperatingSystem.IsWindows();
-
 
 	public static BaseOSIntegration Integration { get; }
 
-	public static string ExecutableDirectory { get; }
+	public static string ExecutableDirectory {get;}
 
 	public static bool IsExecutableInPath
 		=> FileSystem.IsFolderInPath(ExecutableDirectory);
 
-	public static string Executable { get; }
+	public static string Executable {get;}
 
 	#endregion
 

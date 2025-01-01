@@ -3,7 +3,7 @@
 
 namespace SmartImage.Lib.Results.Data;
 
-#pragma warning disable CS0168
+// #pragma warning disable CS0168
 public interface ISimilarity
 {
 

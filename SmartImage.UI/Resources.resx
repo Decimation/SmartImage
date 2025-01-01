@@ -122,7 +122,7 @@
     <value>Resources\accept.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Arg_AutoSearch" xml:space="preserve">
-    <value>-auto</value>
+    <value>-a</value>
   </data>
   <data name="Arg_Hide" xml:space="preserve">
     <value>-h</value>
@@ -152,6 +152,6 @@
     <value>Resources\picture_save.png;System.Drawing.Bitmap, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
   </data>
   <data name="Reg_Launch_Args" xml:space="preserve">
-    <value>-i "%1" -auto</value>
+    <value>-i "%1" -a</value>
   </data>
 </root>

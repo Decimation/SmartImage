@@ -23,7 +23,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Results.Data;
 
-#pragma warning disable CS0168 // Variable is declared but never used
+// #pragma warning disable CS0168 // Variable is declared but never used
 
 namespace SmartImage.Lib.Images.Uni;
 #nullable disable

@@ -771,6 +771,17 @@
                     <ProgressBar x:Name="Pb_Preview" Grid.Column="1" HorizontalAlignment="Right" Height="10"
                                  Margin="0,105,174,0" Grid.Row="1" VerticalAlignment="Top" Width="320"
                                  Value="{Binding CurrentResult.PreviewProgress}" />
+                    <Label x:Name="Lb_SelPrevUrl" Content="Preview" HorizontalAlignment="Left" Margin="4,31,0,0"
+                           VerticalAlignment="Top" Height="26" Foreground="White"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="55"
+                           HorizontalContentAlignment="Center"
+                           Grid.Row="1" FontWeight="Bold" />
+                    <TextBox x:Name="Tb_SelPrevUrl" HorizontalAlignment="Left" Margin="64,34,0,0"
+                             VerticalAlignment="Top" Width="434" IsReadOnly="True" Height="20" Foreground="White"
+                             Background="Black"
+                             Text="{Binding CurrentResult.Result.Thumbnail, Converter={StaticResource urlConverter}, ElementName=Wnd_Main, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Preview image URL"
+                             Grid.Row="1" MouseDoubleClick="Tb_SelPrevUrl_MouseDoubleClick" />
 
                     <Label x:Name="Lb_SelMainUrl" Content="Item" HorizontalAlignment="Left" Margin="4,59,0,0"
                            VerticalAlignment="Top" Height="26" Foreground="White"
@@ -816,20 +827,6 @@
                         UpdateSourceTrigger=PropertyChanged}"
                              ToolTip="Preview image dimensions"
                              Grid.Row="1" />
-
-                    <Label x:Name="Lb_SelPrevUrl" Content="Preview" HorizontalAlignment="Left" Margin="4,31,0,0"
-                           VerticalAlignment="Top" Height="26" Foreground="White"
-                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="55"
-                           HorizontalContentAlignment="Center"
-                           Grid.Row="1" FontWeight="Bold" />
-
-                    <TextBox x:Name="Tb_SelPrevUrl" HorizontalAlignment="Left" Margin="64,34,0,0"
-                             VerticalAlignment="Top" Width="434" IsReadOnly="True" Height="20" Foreground="White"
-                             Background="Black"
-                             Text="{Binding CurrentResult.Result.Thumbnail, Converter={StaticResource urlConverter}, ElementName=Wnd_Main, Mode=OneWay, 
-                        UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Preview image URL"
-                             Grid.Row="1" MouseDoubleClick="Tb_SelPrevUrl_MouseDoubleClick" />
 
                 </Grid>
             </TabItem>
@@ -918,12 +915,34 @@
             <TabItem x:Name="Ti_Info" HorizontalAlignment="Center" Height="20" Header="Info" VerticalAlignment="Center"
                      Width="54">
                 <Grid Background="{DynamicResource Black1}">
-                    <Label x:Name="Lb_Version" Content="Current version" HorizontalAlignment="Left" Margin="10,21,0,0"
+                    <Label x:Name="Lb_Version" Content="Current version" HorizontalAlignment="Left" Margin="8,11,0,0"
+                           VerticalAlignment="Top" Height="26" Foreground="White"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="100"
+                           HorizontalContentAlignment="Center" FontWeight="Bold" />
+                    <TextBox x:Name="Tb_Version" HorizontalAlignment="Left" Margin="113,14,0,0"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Foreground="White"
+                             Background="Black" />
+
+                    <Label x:Name="Lb_Version2" Content="Latest version" HorizontalAlignment="Left" Margin="8,42,0,0"
+                           VerticalAlignment="Top" Height="26" Foreground="White"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="100"
+                           HorizontalContentAlignment="Center" FontWeight="Bold" />
+
+                    <TextBox x:Name="Tb_Version2" HorizontalAlignment="Left" Margin="113,45,0,0"
+                             VerticalAlignment="Top" Width="130" IsReadOnly="True" Height="20" Foreground="White"
+                             Background="Black" />
+                    <Label x:Name="Lb_ProgFolder" Content="Program folder" HorizontalAlignment="Left" Margin="8,78,0,0"
+                           VerticalAlignment="Top" Height="26" Foreground="White"
+                           Background="{DynamicResource {x:Static SystemColors.ControlDarkDarkBrushKey}}" Width="100"
+                           HorizontalContentAlignment="Center" FontWeight="Bold" />
+                    <TextBox x:Name="Tb_ProgFolder" HorizontalAlignment="Left" Margin="113,81,0,0"
+                             VerticalAlignment="Top" Width="500" IsReadOnly="True" Height="20" Foreground="White"
+                             Background="Black" MouseDoubleClick="Tb_ProgFolder_OnMouseDoubleClick" TextWrapping="WrapWithOverflow"/>
+
+                    <!--<Label x:Name="Lb_Version" Content="Current version" HorizontalAlignment="Left" Margin="10,21,0,0"
                            VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
                     <TextBlock x:Name="Tb_Version" HorizontalAlignment="Left" Margin="112,26,0,0" TextWrapping="Wrap"
-                               VerticalAlignment="Top" Foreground="White" Width="115" />
-                    <Button x:Name="Btn_OpenFolder" Content="Open program folder" HorizontalAlignment="Left"
-                            Margin="10,162,0,0" VerticalAlignment="Top" Click="Btn_OpenFolder_Click" />
+                               VerticalAlignment="Top" Foreground="White" Width="115" />-->
                     <ListView x:Name="Lv_Logs" ItemsSource="{Binding Logs}"
                               Foreground="White"
                               Background="{DynamicResource Black2}"
@@ -935,12 +954,17 @@
                             </GridView>
                         </ListView.View>
                     </ListView>
-                    <Label x:Name="Lb_Version2" Content="Latest version" HorizontalAlignment="Left" Margin="10,52,0,0"
+
+                    <!--<Label x:Name="Lb_Version2" Content="Latest version" HorizontalAlignment="Left" Margin="10,52,0,0"
                            VerticalAlignment="Top" Foreground="White" FontWeight="Bold" />
                     <TextBlock x:Name="Tb_Version2" HorizontalAlignment="Left" Margin="103,57,0,0" TextWrapping="Wrap"
-                               VerticalAlignment="Top" Foreground="White" Width="124" />
+                               VerticalAlignment="Top" Foreground="White" Width="124" />-->
+
                     <Button x:Name="Btn_OpenWiki" Content="Open wiki" HorizontalAlignment="Left" Margin="10,132,0,0"
                             VerticalAlignment="Top" Width="70" Click="Btn_OpenWiki_Click" />
+                    <Button x:Name="Btn_StackTrace" Content="Generate stack trace" HorizontalAlignment="Left"
+                            Margin="95,132,0,0"
+                            VerticalAlignment="Top" Width="120" Click="Btn_OpenWiki_Click" />
                 </Grid>
             </TabItem>
         </TabControl>

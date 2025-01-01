@@ -13,7 +13,7 @@ using Novus.Win32.Structures.User32;
 
 namespace SmartImage.Lib.Utilities.Integration;
 
-[SupportedOSPlatform(OS_WIN)]
+[SupportedOSPlatform(FileSystem.OS_WIN)]
 public sealed class WindowsOSIntegration : BaseOSIntegration
 {
 

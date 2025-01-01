@@ -74,14 +74,19 @@ public class SearchServer : IDisposable
 			Debug.WriteLine($"{sz}");
 
 			var sq = await SearchQuery.TryCreateAsync(sz);
-
+			Client.Query = sq;
 			if (sq == SearchQuery.Null) {
 				return R1.Err_Query;
 			}
 
 			var url = await sq.UploadAsync();
 
-			var results = await Client.RunSearchAsync(sq);
+			// todo
+			var results1 =  Client.RunSearchAsync();
+			var results = new List<SearchResult>();
+			await foreach (var v in results1) {
+				results.Add(v);
+			}
 
 			var best = SearchClient.GetBest(results);
 
@@ -125,9 +130,9 @@ public class SearchServer : IDisposable
 		public SearchResultItem Best { get; internal set; }
 
 		[JsonPropertyOrder(1)]
-		public SearchResult[] Results { get; }
+		public IList<SearchResult> Results { get; }
 
-		public SearchResults(SearchResult[] results, SearchResultItem best)
+		public SearchResults(IList<SearchResult> results, SearchResultItem best)
 		{
 			Best    = best;
 			Results = results;

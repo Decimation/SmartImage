@@ -59,7 +59,11 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	public SearchClient Client { get; }
 
-	public SearchQuery Query { get; private set; }
+	public SearchQuery Query
+	{
+		get => Client.Query;
+		set => Client.Query = value;
+	}
 
 	public SearchConfig Config { get; }
 
@@ -76,7 +80,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Config = new SearchConfig();
 
 		// Config = (SearchConfig) cfg;
-		Client = new SearchClient(Config);
+		Client = new SearchClient(Config, Query);
 
 		// Client.OnSearchComplete += OnSearchComplete;
 
@@ -298,6 +302,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	// TODO: Rewrite RunSearch counterparts
 
 
+#if OLD
 	private async Task RunSearchLiveAsync(LiveDisplayContext c)
 	{
 
@@ -332,6 +337,38 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		}
 
 		await search;
+
+	}
+#endif
+	private async Task RunSearchLiveAsync(LiveDisplayContext c)
+	{
+
+#if UNITTEST
+		return;
+#endif
+		await foreach (var result in Client.RunSearchAsync(token: m_cts.Token)) {
+			m_results.TryAdd(result, BaseOSIntegration.EC_ERROR);
+
+			// m_results.Add(result);
+
+
+			/*var txt  = new Text(result.Engine.Name, GetEngineColor(result.Engine.EngineOption));
+			var txt2 = new Text($"{result.Results.Count}");
+
+			m_mainTable.AddRow(txt, txt2);*/
+
+
+			var rows = CreateResultRows(result);
+
+			m_results[result] = m_table.Rows.Count;
+
+			foreach (IRenderable[] row in rows) {
+				m_table.AddRow(row);
+			}
+
+			c.Refresh();
+
+		}
 
 	}
 
