@@ -9,7 +9,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Utilities.Integration;
 
-[SupportedOSPlatform(OS_LINUX)]
+[SupportedOSPlatform(FileSystem.OS_LINUX)]
 public sealed class LinuxOSIntegration : BaseOSIntegration
 {
 
