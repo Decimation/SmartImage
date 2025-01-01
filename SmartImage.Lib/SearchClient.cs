@@ -42,6 +42,8 @@ namespace SmartImage.Lib;
 public sealed class SearchClient : IDisposable
 {
 
+	public SearchQuery Query { get; set; }
+
 	public SearchConfig Config { get; init; }
 
 	public bool IsComplete { get; private set; }
@@ -54,15 +56,30 @@ public sealed class SearchClient : IDisposable
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchClient));
 
-	public SearchClient(SearchConfig cfg)
+	private static readonly Lock m_lock = new Lock();
+
+	public SearchClient(SearchConfig cfg, SearchQuery query)
 	{
+		Query         = query;
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
 
+		Config.PropertyChanged += (sender, args) =>
+		{
+			if (args.PropertyName == nameof(SearchConfig.SearchEngines)) {
+				lock (m_lock) {
+					Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
+
+				}
+			}
+		};
+
 		// GetSelectedEngines();
 
 	}
+
+	public SearchClient(SearchConfig cfg) : this(cfg, SearchQuery.Null) { }
 
 	static SearchClient() { }
 
@@ -106,141 +123,43 @@ public sealed class SearchClient : IDisposable
 			// ...
 		}
 
-		ResultChannel = Channel.CreateUnbounded<SearchResult>(new UnboundedChannelOptions()
+		ResultChannel = Channel.CreateBounded<SearchResult>(new BoundedChannelOptions(Engines.Length)
 		{
 			SingleWriter = true,
-
 		});
 	}
 
-#if OLD
-	/// <summary>
-	/// Runs a search of <paramref name="query"/>.
-	/// </summary>
-	/// <param name="query">Search query</param>
-	/// <param name="scheduler"></param>
-	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine{T}.GetResultAsync(SmartImage.Lib.SearchQuery,System.Threading.CancellationToken)"/></param>
-	public async Task<SearchResult[]> RunSearchAsync1(SearchQuery query,
-	                                                  TaskScheduler scheduler = default,
-	                                                  CancellationToken token = default)
-	{
-		scheduler ??= TaskScheduler.Default;
-
-		// Requires.NotNull(ResultChannel);
-		if (ResultChannel == null || (IsComplete && !IsRunning)) {
-			OpenChannel();
-		}
-
-		if (!query.IsUploaded) {
-			throw new ArgumentException($"Query was not uploaded", nameof(query));
-		}
-
-		IsRunning = true;
-
-		if (!ConfigApplied) {
-			await LoadEnginesAsync(token); // todo
-
-		}
-		else {
-			Debug.WriteLine("Not reloading engines");
-		}
-
-		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
-
-		var tasks = GetSearchTasks(query, scheduler, token);
-
-		// var results = new SearchResult[tasks.Count];
-		int i = 0;
-
-		/*while (tasks.Count > 0) {
-			if (token.IsCancellationRequested) {
-
-				Debugger.Break();
-				s_logger.LogWarning("Cancellation requested");
-				CompleteSearchAsync();
-				return results;
-			}
-
-			Task<SearchResult> task = await Task.WhenAny(tasks);
-			tasks.Remove(task);
-
-			if (task.IsFaulted) {
-				Trace.WriteLine($"{task} faulted!",LogCategories.C_ERROR);
-			}
-			SearchResult result = await task;
-
-			results[i] = result;
-			i++;
-		}*/
-
-
-		await foreach (var task in Task.WhenEach(tasks).WithCancellation(token)) {
-			if (token.IsCancellationRequested) {
-
-				Debugger.Break();
-				s_logger.LogWarning("Cancellation requested");
-				CompleteSearchAsync();
-			}
-
-			var result = await task;
-			ProcessResult(result);
-		}
-
-		CompleteSearchAsync();
-		OnSearchComplete?.Invoke(this, results);
-
-		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
-
-			try {
-
-				SearchResultItem item = GetBest(results);
-
-				if (item != null) {
-					OpenResult(item.Url);
-				}
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-
-				Debugger.Break();
-			}
-
-		}
-
-		IsRunning = false;
-
-		return results;
-	}
-#endif
-
-	public async IAsyncEnumerable<SearchResult> RunSearchAsync(SearchQuery query,
-	                                                           TaskScheduler scheduler = default,
+	public async IAsyncEnumerable<SearchResult> RunSearchAsync(TaskScheduler scheduler = default,
 	                                                           [EC] CancellationToken token = default)
 	{
-		await RunSearchAsync2(query, ResultChannel.Writer, token);
+		await RunSearchAsync2(token);
 
-		await foreach (var result in ResultChannel.Reader.ReadAllAsync(token)) {
-			yield return result;
+		while (await ResultChannel.Reader.WaitToReadAsync(token)) {
+			while (ResultChannel.Reader.TryRead(out var result)) {
+				yield return result;
+			}
 		}
 	}
 
+	public ValueTask<bool> RunSearchAsync2(CancellationToken token = default)
+		=> RunSearchAsync2(ResultChannel.Writer, token);
 
-	/// <summary>
-	/// Runs a search of <paramref name="query"/>.
-	/// </summary>
-	public async ValueTask<bool> RunSearchAsync2(SearchQuery query,
-	                                             ChannelWriter<SearchResult> cw,
+	public async ValueTask<bool> RunSearchAsync2(ChannelWriter<SearchResult> cw,
 	                                             CancellationToken token = default)
 	{
-		if (!query.IsUploaded) {
-			throw new SmartImageException($"{query} was not uploaded");
+		if (!Query.IsUploaded) {
+			throw new SmartImageException($"{Query} was not uploaded");
 		}
 
-		var tasks = Engines.Select(e =>
-		{
-			var task = e.GetResultAsync(query, token);
-			return task;
-		});
+		IEnumerable<Task<SearchResult>> tasks;
+
+		lock (m_lock) {
+			tasks = Engines.Select(e =>
+			{
+				var task = e.GetResultAsync(Query, token);
+				return task;
+			});
+		}
 
 		await foreach (var task in Task.WhenEach(tasks).WithCancellation(token)) {
 
@@ -369,40 +288,16 @@ public sealed class SearchClient : IDisposable
 
 		Trace.WriteLine("Loading engines");
 
-		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
 		if (Config.ReadCookies) {
 
-			try {
-				await ((DefaultCookiesProvider) DefaultCookiesProvider.Instance).OpenAsync();
-			}
-			catch (Exception e) {
-				Trace.WriteLine($"{e}");
-				Config.ReadCookies = false;
-				DefaultCookiesProvider.Instance.Dispose();
-			}
+			await InitCookiesProvider();
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
 
 
-			var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
-
-			if (!ok) {
-				Debugger.Break();
-			}
-			else {
-				// Ensure FlareSolverr
-
-				try {
-					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
-				}
-				catch (Exception e) {
-					Trace.WriteLine($"{nameof(FlareSolverrClient)}: {e.Message}");
-					Config.FlareSolverr = false;
-					FlareSolverrClient.Value.Dispose();
-				}
-			}
+			await InitFlareSolverr();
 		}
 
 		foreach (BaseSearchEngine bse in Engines) {
@@ -422,6 +317,39 @@ public sealed class SearchClient : IDisposable
 
 		s_logger.LogDebug("Loaded engines");
 		ConfigApplied = true;
+	}
+
+	private async Task InitFlareSolverr()
+	{
+		var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
+
+		if (!ok) {
+			Debugger.Break();
+		}
+		else {
+			// Ensure FlareSolverr
+
+			try {
+				var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
+			}
+			catch (Exception e) {
+				Trace.WriteLine($"{nameof(FlareSolverrClient)}: {e.Message}");
+				Config.FlareSolverr = false;
+				FlareSolverrClient.Value.Dispose();
+			}
+		}
+	}
+
+	private async Task InitCookiesProvider()
+	{
+		try {
+			await ((DefaultCookiesProvider) DefaultCookiesProvider.Instance).OpenAsync();
+		}
+		catch (Exception e) {
+			Trace.WriteLine($"{e}");
+			Config.ReadCookies = false;
+			DefaultCookiesProvider.Instance.Dispose();
+		}
 	}
 
 	public void Dispose()

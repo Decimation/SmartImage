@@ -92,7 +92,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public MainWindow()
 	{
 
-		Client = new SearchClient(new SearchConfig());
+		Client = new SearchClient(new SearchConfig(), Query);
 
 		// Shared = new SharedInfo();
 		// m_queries = new ConcurrentDictionary<string, SearchQuery>();
@@ -138,6 +138,13 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// Client.OnResult   += OnResult;
 		Client.OnSearchComplete += OnComplete;
+		
+		CurrentQuery.PropertyChanged += (sender, args) =>
+		{
+			if (args.PropertyName == nameof(CurrentQuery.Query)) {
+				
+			}
+		};
 
 #if !DEBUG
 		AppDomain.CurrentDomain.UnhandledException += Domain_UHException;
@@ -226,7 +233,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	public SearchQuery? Query
 	{
-		get { return CurrentQuery?.Query; }
+		get => CurrentQuery?.Query;
 		set
 		{
 			if (HasQuerySelected) {
@@ -739,9 +746,16 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// HandleQueryAsync();
 		try {
-			Client.OpenChannel();
+			Client.OpenChannel(); // todo
+			
 
-			var r = Client.RunSearchAsync(Query, token: m_ctsRun.Token,
+			await foreach (var res in Client.RunSearchAsync(token: m_ctsRun.Token,
+			                                                scheduler: TaskScheduler.FromCurrentSynchronizationContext())) {
+				OnResult(null, res);
+			}
+
+
+			/*var r = Client.RunSearchAsync(Query, token: m_ctsRun.Token,
 			                              scheduler: TaskScheduler.FromCurrentSynchronizationContext());
 
 			while (await Client.ResultChannel.Reader.WaitToReadAsync(m_ctsRun.Token)) {
@@ -749,7 +763,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				OnResult(null, res);
 			}
 
-			await r;
+			await r;*/
 		}
 		catch (Exception e) {
 			// Debugger.Break();
