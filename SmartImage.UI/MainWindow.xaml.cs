@@ -48,6 +48,7 @@ using SmartImage.Lib.Utilities;
 using Flurl.Http;
 using SmartImage.UI.Model;
 using Color = System.Drawing.Color;
+
 // using Jint.Parser.Ast;
 using Novus.Win32;
 using Novus.Win32.Structures.Kernel32;
@@ -59,11 +60,13 @@ using System.Reactive;
 using System.Reactive.Linq;
 using System.Runtime;
 using System.Runtime.Caching;
+
 // using ReactiveUI;
 using Brush = System.Drawing.Brush;
 using Brushes = System.Windows.Media.Brushes;
 using System.Buffers;
 using System.Reflection;
+
 // using DynamicData;
 using SmartImage.Lib.Clients;
 using SmartImage.UI.Controls;
@@ -191,7 +194,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		// m_hydrus = new HydrusClient()
 		ParseArgs(Args);
 		AddHandler(Validation.ErrorEvent, new RoutedEventHandler(OnValidationRaised));
-
+		Tb_ProgFolder.Text = BaseOSIntegration.ExecutableDirectory;
 
 	}
 
@@ -818,6 +821,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void ConvertAddResultItems(SearchResult result)
 	{
 		var r = Convert(result);
+
 		foreach (ResultItem resultItem in r) {
 			CurrentQuery.Results.Add(resultItem);
 
@@ -1444,6 +1448,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private async Task CheckForUpdateAsync()
 	{
 		var cv = Version;
+
 		var lv = (await AppSupport.GetRepoReleasesAsync())
 			.OrderByDescending(x => x.published_at)
 			.First(x => !x.IsRdx);

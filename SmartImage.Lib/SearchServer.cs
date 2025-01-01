@@ -81,7 +81,11 @@ public class SearchServer : IDisposable
 
 			var url = await sq.UploadAsync();
 
-			var results = await Client.RunSearchAsync(sq);
+			var results1 =  Client.RunSearchAsync(sq);
+
+			await foreach (var v in results1) {
+				
+			}
 
 			var best = SearchClient.GetBest(results);
 

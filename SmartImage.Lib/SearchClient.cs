@@ -1,4 +1,5 @@
-﻿global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
+﻿global using EC = System.Runtime.CompilerServices.EnumeratorCancellationAttribute;
+global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
 global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
 global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
@@ -34,6 +35,7 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using SmartImage.Lib.Utilities.Diagnostics;
+using Kantan.Monad;
 
 namespace SmartImage.Lib;
 
@@ -62,12 +64,13 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	static SearchClient()
-	{ }
+	static SearchClient() { }
 
 	[ModuleInitializer]
 	public static void Init()
 	{
+		Trace.AutoFlush = true;
+		Debug.AutoFlush = true;
 		s_logger.LogInformation("Init");
 
 
@@ -99,23 +102,27 @@ public sealed class SearchClient : IDisposable
 	{
 		var ok = ResultChannel?.Writer.TryComplete(new ChannelClosedException("Reopened channel"));
 
-		if (ok.HasValue && ok.Value) { }
+		if (ok.HasValue && ok.Value) {
+			// ...
+		}
 
 		ResultChannel = Channel.CreateUnbounded<SearchResult>(new UnboundedChannelOptions()
 		{
 			SingleWriter = true,
+
 		});
 	}
 
+#if OLD
 	/// <summary>
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="scheduler"></param>
 	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine{T}.GetResultAsync(SmartImage.Lib.SearchQuery,System.Threading.CancellationToken)"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query,
-	                                                 TaskScheduler scheduler = default,
-	                                                 CancellationToken token = default)
+	public async Task<SearchResult[]> RunSearchAsync1(SearchQuery query,
+	                                                  TaskScheduler scheduler = default,
+	                                                  CancellationToken token = default)
 	{
 		scheduler ??= TaskScheduler.Default;
 
@@ -140,12 +147,12 @@ public sealed class SearchClient : IDisposable
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
-		List<Task<SearchResult>> tasks = GetSearchTasks(query, scheduler, token).ToList();
+		var tasks = GetSearchTasks(query, scheduler, token);
 
-		var results = new SearchResult[tasks.Count];
-		int i       = 0;
+		// var results = new SearchResult[tasks.Count];
+		int i = 0;
 
-		while (tasks.Count > 0) {
+		/*while (tasks.Count > 0) {
 			if (token.IsCancellationRequested) {
 
 				Debugger.Break();
@@ -164,6 +171,19 @@ public sealed class SearchClient : IDisposable
 
 			results[i] = result;
 			i++;
+		}*/
+
+
+		await foreach (var task in Task.WhenEach(tasks).WithCancellation(token)) {
+			if (token.IsCancellationRequested) {
+
+				Debugger.Break();
+				s_logger.LogWarning("Cancellation requested");
+				CompleteSearchAsync();
+			}
+
+			var result = await task;
+			ProcessResult(result);
 		}
 
 		CompleteSearchAsync();
@@ -191,8 +211,60 @@ public sealed class SearchClient : IDisposable
 
 		return results;
 	}
+#endif
 
-	public static SearchResultItem GetBest(SearchResult[] results)
+	public async IAsyncEnumerable<SearchResult> RunSearchAsync(SearchQuery query,
+	                                                           TaskScheduler scheduler = default,
+	                                                           [EC] CancellationToken token = default)
+	{
+		await RunSearchAsync2(query, ResultChannel.Writer, token);
+
+		await foreach (var result in ResultChannel.Reader.ReadAllAsync(token)) {
+			yield return result;
+		}
+	}
+
+
+	/// <summary>
+	/// Runs a search of <paramref name="query"/>.
+	/// </summary>
+	public async ValueTask<bool> RunSearchAsync2(SearchQuery query,
+	                                             ChannelWriter<SearchResult> cw,
+	                                             CancellationToken token = default)
+	{
+		if (!query.IsUploaded) {
+			throw new SmartImageException($"{query} was not uploaded");
+		}
+
+		var tasks = Engines.Select(e =>
+		{
+			var task = e.GetResultAsync(query, token);
+			return task;
+		});
+
+		await foreach (var task in Task.WhenEach(tasks).WithCancellation(token)) {
+
+			var result = await task;
+
+			if (task.IsFaulted || task.IsCanceled) {
+				Trace.WriteLine($"{task} faulted or was canceled");
+			}
+
+			if (cw.TryWrite(result)) {
+				//
+			}
+
+			if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+				var url = Config.OpenRaw ? result.RawUrl : result.GetBestResult()?.Url;
+
+				OpenResult(url);
+			}
+		}
+
+		return default;
+	}
+
+	public static SearchResultItem GetBest(IEnumerable<SearchResult> results)
 	{
 		var ordered = results.Select(x => x.GetBestResult())
 			.Where(x => x != null)
@@ -259,16 +331,10 @@ public sealed class SearchClient : IDisposable
 	{
 		var tasks = Engines.Select(e =>
 		{
-			try {
+			/*try {
 				Debug.WriteLine($"Starting {e} for {query}");
 
-				Task<SearchResult> res = e.GetResultAsync(query, token: token)
-					.ContinueWith((r) =>
-					{
-						ProcessResult(r.Result);
-						return r.Result;
 
-					}, token, TaskContinuationOptions.None, scheduler);
 
 				return res;
 			}
@@ -279,7 +345,19 @@ public sealed class SearchClient : IDisposable
 				// return  Task.FromException(exception);
 			}
 
-			return default;
+			return default;*/
+
+			/*Task<SearchResult> res = e.GetResultAsync(query, token: token)
+				.ContinueWith((r) =>
+				{
+					ProcessResult(r.Result);
+					return r.Result;
+
+				}, token, TaskContinuationOptions.None, scheduler)*/
+			;
+
+			Task<SearchResult> res = e.GetResultAsync(query, token: token);
+			return res;
 		});
 
 		return tasks;
@@ -306,7 +384,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
-			
+
 
 			var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
 

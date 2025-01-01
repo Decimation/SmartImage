@@ -893,4 +893,10 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
+	private void Tb_ProgFolder_OnMouseDoubleClick(object sender, MouseButtonEventArgs e)
+	{
+		FileSystem.Open(BaseOSIntegration.ExecutableDirectory);
+		e.Handled=true;
+	}
+
 }
