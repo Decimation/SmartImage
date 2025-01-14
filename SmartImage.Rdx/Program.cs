@@ -30,6 +30,14 @@ namespace SmartImage.Rdx;
 
 public static class Program
 {
+	/*
+	 *$x = iwr 'http://.../search' -Body "..." `
+	   if ($$) { `
+	   $y = $x.Content | ConvertFrom-Json `
+	   Start-Process $y.Best.Url `
+	   } `
+	   $y
+	 */
 
 	public static async Task<int> Main(string[] args)
 	{

@@ -398,17 +398,24 @@ public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, ID
 		{
 			var b = !String.IsNullOrWhiteSpace(x);
 			var c = true;
+
 			if (b) {
 				c = !IsLookupUrl(Url.Parse(x));
 			}
+
 			return b && c;
 		}).Distinct().ToArray();
 
-		Url url = urls.FirstOrDefault();
+		Url    url = urls.FirstOrDefault();
+		string site;
 
-		var site = url.Host.Replace("www", "");
-		site = site.Split('.', StringSplitOptions.RemoveEmptyEntries)[0];
-
+		if (Url.IsValid(url)) {
+			site = url.Host.Replace("www", "");
+			site = site.Split('.', StringSplitOptions.RemoveEmptyEntries)[0];
+		}
+		else {
+			site = null;
+		}
 
 		var sndr = new SearchResultItem(sr)
 		{
