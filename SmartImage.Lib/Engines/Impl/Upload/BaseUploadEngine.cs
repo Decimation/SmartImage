@@ -144,6 +144,8 @@ public abstract class BaseUploadEngine : IDisposable
 
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
+	// public abstract Task<UploadResult> UploadFileAsync(Stream file, CancellationToken ct = default);
+
 	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
 	                                                              CancellationToken ct = default)
 	{

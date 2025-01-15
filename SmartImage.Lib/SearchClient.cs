@@ -35,6 +35,7 @@ using SmartImage.Lib.Results.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using SmartImage.Lib.Utilities.Diagnostics;
 
+#pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;
 
 public sealed class SearchClient : IDisposable
@@ -62,8 +63,7 @@ public sealed class SearchClient : IDisposable
 
 	}
 
-	static SearchClient()
-	{ }
+	static SearchClient() { }
 
 	[ModuleInitializer]
 	public static void Init()
@@ -112,7 +112,7 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="scheduler"></param>
-	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine{T}.GetResultAsync(SmartImage.Lib.SearchQuery,System.Threading.CancellationToken)"/></param>
+	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine.GetResultAsync(SearchQuery,CancellationToken)"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query,
 	                                                 TaskScheduler scheduler = default,
 	                                                 CancellationToken token = default)
@@ -158,8 +158,9 @@ public sealed class SearchClient : IDisposable
 			tasks.Remove(task);
 
 			if (task.IsFaulted) {
-				Trace.WriteLine($"{task} faulted!",LogCategories.C_ERROR);
+				Trace.WriteLine($"{task} faulted!", LogCategories.C_ERROR);
 			}
+
 			SearchResult result = await task;
 
 			results[i] = result;
@@ -228,13 +229,13 @@ public sealed class SearchClient : IDisposable
 	public static void OpenResult([MN] Url url1)
 	{
 #if (DEBUG && !TEST) || UNITTEST
-#pragma warning disable CA1822, CS0162
+#pragma warning disable CA1822
 
 		// ReSharper disable once MemberCanBeMadeStatic.Local
 		s_logger.LogDebug("Not opening result {result}", url1);
 		return;
 
-#pragma warning restore CS0162, CA1822
+#pragma warning restore CA1822
 #endif
 
 		if (url1 == null) {
@@ -306,7 +307,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
-			
+
 
 			var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
 

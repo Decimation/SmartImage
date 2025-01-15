@@ -830,7 +830,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 	private readonly DispatcherTimer m_trDispatch;
 
-	private async void IdleDispatchAsync(object? sender, EventArgs e)
+	/*private async void IdleDispatchAsync(object? sender, EventArgs e)
 	{
 		// Dispatcher.InvokeAsync(UpdateItem2);
 		/*if (Client.IsRunning) {
@@ -839,7 +839,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		if (CurrentQueueItem.IsPrimitive) {
 			OnCurrentQueueItemChanged(sender, null);
 
-		}*/
+		}#1#
 
 		// await UpdateItem();
 
@@ -847,10 +847,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		Btn_Run.IsEnabled = ok;
 
-		if (ok) { }*/
+		if (ok) { }#1#
 
 		Debug.WriteLine($"{CanReload} | {CurrentQuery?.Value} | {CurrentResult}");
-	}
+	}*/
 
 	#endregion
 

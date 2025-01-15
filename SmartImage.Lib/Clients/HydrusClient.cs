@@ -1,28 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics.CodeAnalysis;
-using System.Text.Json;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Security.Authentication;
-using System.Security.Cryptography;
-using System.Security.Policy;
-using System.Text;
+﻿using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using System.Threading.Tasks;
 using Flurl.Http;
-using Novus.Streams;
-using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Clients;
 
 public class HydrusClient : INotifyPropertyChanged, IDisposable
 {
-	private const string HDR_HYDRUS_KEY  = "Hydrus-Client-API-Access-Key";
+
+	private const string HDR_HYDRUS_KEY = "Hydrus-Client-API-Access-Key";
 
 	public FlurlClient Client { get; }
 
@@ -147,7 +134,8 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 		get => m_key;
 		set
 		{
-			if (value == m_key) return;
+			if (value == m_key)
+				return;
 
 			m_key = value;
 			OnPropertyChanged();
@@ -162,7 +150,8 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 		get => m_endpointUrl;
 		set
 		{
-			if (value == m_endpointUrl) return;
+			if (value == m_endpointUrl)
+				return;
 
 			m_endpointUrl = value;
 			OnPropertyChanged();
@@ -185,7 +174,8 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 
 	protected bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
 	{
-		if (EqualityComparer<T>.Default.Equals(field, value)) return false;
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
 
 		field = value;
 		OnPropertyChanged(propertyName);
@@ -194,7 +184,9 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 
 	public static string HyEncode(object o)
 	{
+#pragma warning disable IL2026
 		return Url.Encode(JsonSerializer.Serialize(o));
+#pragma warning restore IL2026
 	}
 
 }
@@ -278,7 +270,7 @@ public sealed class HydrusQuery
 
 }
 
-#pragma warning disable IL2026
+// #pragma warning disable IL2026
 
 public partial class HydrusFileRelationship
 {
@@ -311,7 +303,9 @@ public partial class HydrusFileRelationship
 	{
 		var vs = ((JsonNode) v)["file_relationships"];
 
+#pragma warning disable IL2026
 		var re = JsonSerializer.Deserialize<Dictionary<string, HydrusFileRelationship>>(vs.ToString());
+#pragma warning restore IL2026
 
 		return re;
 	}

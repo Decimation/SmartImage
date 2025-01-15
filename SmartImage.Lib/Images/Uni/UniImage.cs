@@ -3,23 +3,15 @@
 
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 using System.Diagnostics;
-using System.Drawing.Imaging;
-using System.IO.MemoryMappedFiles;
-using System.Text;
-using System.Threading.Channels;
-using CoenM.ImageHash.HashAlgorithms;
-using JetBrains.Annotations;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.Streams;
 using Novus.Win32;
-using CoenM.ImageHash.HashAlgorithms;
 using CoenM.ImageHash;
 using Kantan.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Results.Data;
 
@@ -71,7 +63,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 	}
 
 	[MN]
-	public string ValueString => Value?.ToString();
+	public virtual string ValueString => Value?.ToString();
 
 	[MN]
 	public string FilePath { get; protected set; }

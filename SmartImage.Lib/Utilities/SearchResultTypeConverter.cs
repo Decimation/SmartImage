@@ -3,9 +3,11 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Utilities;
+
 
 public sealed class SearchResultTypeConverter : JsonConverter<SearchResult>
 {

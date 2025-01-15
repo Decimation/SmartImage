@@ -557,7 +557,7 @@ public partial class MainWindow
 
 	#region
 
-	private async void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		Lb_Engines.SelectionChanged -= Lb_Engines_SelectionChanged;
 
@@ -572,7 +572,7 @@ public partial class MainWindow
 		Lb_Engines.SelectionChanged += Lb_Engines_SelectionChanged;
 	}
 
-	private async void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
+	private void Lb_Engines2_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
 		Lb_Engines2.SelectionChanged -= Lb_Engines2_SelectionChanged;
 

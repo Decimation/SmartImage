@@ -76,10 +76,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			return Upload;
 		}
 
-		string fu = Source.ValueString;
 
 		if (Source.IsUri) {
-			Upload = fu;
+			Upload = Source.ValueString;
 
 			// Size   = BaseSearchEngine.NA_SIZE;
 			// var fmt = await ISImage.DetectFormatAsync(Stream);
@@ -88,6 +87,13 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		}
 		else {
 			// fu = await test(fu);
+
+			string fu;
+
+			if (Source.IsFile)
+				fu = Source.ValueString;
+			else
+				fu = Source.WriteToFile();
 
 			engine ??= BaseUploadEngine.Default;
 

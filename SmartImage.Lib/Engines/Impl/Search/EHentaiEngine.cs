@@ -206,7 +206,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	public async ValueTask ApplyConfigAsync(SearchConfig cfg)
+	public ValueTask ApplyConfigAsync(SearchConfig cfg)
 	{
 		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
@@ -215,6 +215,8 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		}*/
 		//
 
+
+		return ValueTask.CompletedTask;
 	}
 
 	#region

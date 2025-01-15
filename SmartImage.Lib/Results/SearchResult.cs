@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using AngleSharp.Html.Parser;
 using Flurl.Http;

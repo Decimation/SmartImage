@@ -8,6 +8,7 @@ namespace SmartImage.Lib.Images.Uni;
 public class UniImageStream : UniImage
 {
 
+
 	internal UniImageStream(object value, Stream str)
 		: base(value, str, UniImageType.Stream) { }
 
