@@ -12,6 +12,7 @@ using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
@@ -34,7 +35,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 
-		// Timeout = TimeSpan.FromSeconds(10);
+		Timeout = TimeSpan.FromSeconds(30);
 	}
 
 	private const int MAX_FILE_SIZE = 8_388_608;
@@ -54,7 +55,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		IDocument document = null;
 
 		try {
-			var response = await Client.Request(EndpointUrl)
+			/*var response = await Client.Request(EndpointUrl)
 				               .OnError(r =>
 					               {
 						               Debug.WriteLine($"{r.Exception}", Name);
@@ -73,8 +74,22 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 					               }
 
 					               return;
-				               }, cancellationToken: ct);
-
+				               }, cancellationToken: ct);*/
+			var response = await Client.Request(URL_QUERY)
+				               .OnError(r =>
+					               {
+						               // Debug.WriteLine($"{r.Exception}", Name);
+						               // r.ExceptionHandled = true;
+						               Logger.LogError(r.Exception, $"{Name}");
+						               Debugger.Break();
+#if !DEBUG
+						               r.ExceptionHandled = true;
+#endif
+					               }
+				               )
+				               .SetQueryParam("url", query.Upload)
+				               .WithTimeout(Timeout)
+				               .GetAsync(cancellationToken: ct);
 			if (response != null) {
 				var s = await response.GetStringAsync();
 

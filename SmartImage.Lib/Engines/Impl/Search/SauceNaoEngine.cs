@@ -406,9 +406,13 @@ public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, ID
 
 		Url url = urls.FirstOrDefault();
 
-		var site = url.Host.Replace("www", "");
-		site = site.Split('.', StringSplitOptions.RemoveEmptyEntries)[0];
+		string site = null;
 
+		if (Url.IsValid(url)) {
+			site = url.Host.Replace("www", "");
+			site = site.Split('.', StringSplitOptions.RemoveEmptyEntries)[0];
+
+		}
 
 		var sndr = new SearchResultItem(sr)
 		{
