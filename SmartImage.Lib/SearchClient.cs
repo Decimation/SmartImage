@@ -297,13 +297,29 @@ public sealed class SearchClient : IDisposable
 		if (Config.ReadCookies) {
 
 			try {
-				await ((DefaultCookiesProvider) DefaultCookiesProvider.Instance).OpenAsync();
+				await ((BrowserCookiesProvider) ICookiesProvider.Default).OpenAsync();
 			}
 			catch (Exception e) {
 				Trace.WriteLine($"{e}");
 				Config.ReadCookies = false;
-				DefaultCookiesProvider.Instance.Dispose();
+				ICookiesProvider.Default.Dispose();
 			}
+		}
+
+		foreach (BaseSearchEngine bse in Engines) {
+
+			if (bse is ISearchConfigReceiver cfg) {
+				await cfg.ApplyConfigAsync(Config, token);
+			}
+
+			/*
+			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
+
+				var ok = await ce.ApplyCookiesAsync(DefaultCookiesProvider.Instance, token);
+
+				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
+			}
+		*/
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
@@ -325,19 +341,6 @@ public sealed class SearchClient : IDisposable
 					Config.FlareSolverr = false;
 					FlareSolverrClient.Value.Dispose();
 				}
-			}
-		}
-
-		foreach (BaseSearchEngine bse in Engines) {
-			if (bse is ISearchConfigReceiver cfg) {
-				await cfg.ApplyConfigAsync(Config);
-			}
-
-			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
-
-				var ok = await ce.ApplyCookiesAsync(DefaultCookiesProvider.Instance, token);
-
-				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
 			}
 		}
 

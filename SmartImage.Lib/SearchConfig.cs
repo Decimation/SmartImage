@@ -150,7 +150,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// Parse browser cookies automatically whenever necessary
 	/// </summary>
 	/// <remarks>
-	/// <see cref="ICookiesReceiver"/>
+	/// <see cref="ICookiesEngine"/>
 	/// <see cref="ICookiesProvider"/>
 	/// </remarks>
 	public bool ReadCookies
@@ -199,6 +199,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 			Trace.WriteLine($"Changed {args.PropertyName}", nameof(SearchConfig));
 		};
 	}
+
+	public ICookiesProvider CookiesProvider { get; set; } = ICookiesProvider.Default;
 
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

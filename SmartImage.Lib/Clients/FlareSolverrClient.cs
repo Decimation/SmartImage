@@ -37,6 +37,7 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 		Client = new HttpClient(Clearance);
 
 		Trace.WriteLine($"{nameof(FlareSolverrClient)}: init {api}");
+
 		return HasClient;
 	}
 
@@ -57,12 +58,15 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 
 	#region Implementation of ISearchConfigReceiver
 
-	public ValueTask ApplyConfigAsync(SearchConfig cfg)
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
+		var ok = false;
+
 		if (cfg.FlareSolverr) {
-			Configure(cfg.FlareSolverrApiUrl);
+			ok = Configure(cfg.FlareSolverrApiUrl);
 		}
-		return ValueTask.CompletedTask;
+
+		return ValueTask.FromResult(ok);
 	}
 
 	#endregion

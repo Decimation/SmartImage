@@ -11,6 +11,7 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines;
@@ -188,6 +189,8 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	{
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
+
+	// public abstract ValueTask ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
 
 	public override bool Equals(object? obj)
 	{

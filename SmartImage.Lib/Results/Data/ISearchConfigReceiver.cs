@@ -5,6 +5,6 @@ namespace SmartImage.Lib.Results.Data;
 
 public interface ISearchConfigReceiver
 {
-	public ValueTask ApplyConfigAsync(SearchConfig cfg);
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
 
 }

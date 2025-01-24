@@ -10,6 +10,8 @@ namespace SmartImage.Lib.Results.Data;
 public interface ICookiesProvider : IDisposable
 {
 
-	public ValueTask<IList<IBrowserCookie>> LoadCookiesAsync(CancellationToken ct = default);
+	public ValueTask<IList<IBrowserCookie>> GetOrLoadCookiesAsync(CancellationToken ct = default);
+
+	public static ICookiesProvider Default { get; set; }
 
 }

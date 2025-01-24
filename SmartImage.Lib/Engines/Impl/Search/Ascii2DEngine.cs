@@ -21,7 +21,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
+public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConfigReceiver
 {
 
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
@@ -29,6 +29,8 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
 	public CookieJar Jar { get; }
+
+	public ICookiesProvider Provider { get; set; }
 
 	protected override string[] ErrorBodyMessages
 		=>
@@ -44,13 +46,13 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		Jar     = new CookieJar();
 	}
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
+	public async ValueTask<bool> ApplyCookiesAsync(CancellationToken ct)
 	{
-		if (FlareSolverrClient.Value.IsInitialized) {
+		if ( /*FlareSolverrClient.Value.IsInitialized*/ Provider == null) {
 			return false;
 		}
 
-		var cookies = await provider.LoadCookiesAsync(ct);
+		var cookies = await Provider.GetOrLoadCookiesAsync(ct);
 
 		foreach (var bck in cookies) {
 			var ck = bck.AsCookie();
@@ -62,6 +64,11 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 
 
 		return true;
+	}
+
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ApplyCookiesAsync(ct);
 	}
 
 	public override void Dispose() { }
@@ -148,17 +155,17 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 				}
 
 				using var res = await Client.Request(newUrl)
-					          .WithSettings(x => { x.HttpVersion = "2.0"; })
-					          .AllowAnyHttpStatus()
-					          .WithCookies(Jar)
-					          .WithTimeout(Timeout)
-					          /*.OnError(s =>
-							          {
-								          Debug.WriteLine($"{s.Response}");
-								          s.ExceptionHandled = true;
+					                .WithSettings(x => { x.HttpVersion = "2.0"; })
+					                .AllowAnyHttpStatus()
+					                .WithCookies(Jar)
+					                .WithTimeout(Timeout)
+					                /*.OnError(s =>
+							                {
+								                Debug.WriteLine($"{s.Response}");
+								                s.ExceptionHandled = true;
 
-							          })*/
-					          .GetAsync(cancellationToken: token);
+							                })*/
+					                .GetAsync(cancellationToken: token);
 
 
 				// var res1 = await FlareSolverrClient.Client.SendAsync(msg, token);

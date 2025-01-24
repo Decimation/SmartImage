@@ -14,6 +14,7 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 
 // ReSharper disable StringLiteralTypo
@@ -35,7 +36,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 
-		Timeout = TimeSpan.FromSeconds(30);
+		Timeout = TimeSpan.FromSeconds(15);
 	}
 
 	private const int MAX_FILE_SIZE = 8_388_608;
@@ -55,27 +56,39 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		IDocument document = null;
 
 		try {
-			/*var response = await Client.Request(EndpointUrl)
+			var response = await Client.Request(EndpointUrl)
 				               .OnError(r =>
 					               {
-						               Debug.WriteLine($"{r.Exception}", Name);
+						               Logger.LogError(r.Exception, Name);
+
+
+						               // Debugger.Break();
 						               r.ExceptionHandled = true;
+
+						               // var sz = await r.Response.GetStringAsync();
 					               }
 				               )
 				               .WithTimeout(Timeout)
 				               .PostMultipartAsync(m =>
 				               {
 					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
-					               m.AddString("url", query.Source.IsUri ? query.Source.ValueString : String.Empty);
 
-					               if (query.Source.IsUri) { }
+					               /*if (query.Source.IsUri) {
+						               m.AddString("url", query.Source.ValueString);
+					               }
 					               else if (query.Source.IsFile) {
 						               m.AddFile("file", query.Source.Value.ToString(), fileName: "image.jpg");
 					               }
+					               else {
+
+					               }*/
+
+					               m.AddString("url", query.Upload);
 
 					               return;
-				               }, cancellationToken: ct);*/
+				               }, cancellationToken: ct);
 
+			/*
 			var response = await Client.Request(URL_QUERY)
 				               .OnError(r =>
 					               {
@@ -91,6 +104,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 				               .SetQueryParam("url", query.Upload)
 				               .WithTimeout(Timeout)
 				               .GetAsync(cancellationToken: ct);
+				               */
 
 			if (response != null) {
 				var s = await response.GetStringAsync();

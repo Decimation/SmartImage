@@ -88,14 +88,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	public Url RawUrl { get; internal set; }
 
 	[JI]
-	public bool HasResults
-	{
-		get
-		{
-			// return (Results != null && Results.Count != 0);
-			return !Flags.HasFlagFast(SearchResultFlags.NoResults);
-		}
-	}
+	public bool HasResults => !Flags.HasFlagFast(SearchResultFlags.NoResults);
 
 	public bool IsSuccessful => Status.IsSuccessful();
 
@@ -125,23 +118,10 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Update()
 	{
-		/*
-		if (Status.IsError()) {
-			return;
-		}
-		*/
 
 		if (Status.IsError()) {
 			return;
 		}
-
-
-		/*if (!any && Status != SearchResultStatus.None) {
-			Status = SearchResultStatus.NoResults;
-		}
-		else {
-			Status = SearchResultStatus.Success;
-		}*/
 
 	}
 

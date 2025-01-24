@@ -7,15 +7,11 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Results.Data;
 
-public interface ICookiesReceiver
+public interface ICookiesEngine
 {
-
 	public CookieJar Jar { get; }
 
-	[MNNW(true, nameof(Jar))]
-	public bool Loaded => Jar != null && Jar.Count != 0;
+	public ICookiesProvider Provider { get; set; }
 
-	public ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken token = default);
-
-
+	public ValueTask<bool> ApplyCookiesAsync(CancellationToken token = default);
 }

@@ -14,7 +14,7 @@ namespace SmartImage.Lib.Results.Data;
 using System.Runtime.Caching;
 using Results.Data;
 
-public class DefaultCookiesProvider : ICookiesProvider
+public class BrowserCookiesProvider : ICookiesProvider
 {
 
 	private const string CH_NAME = "cookies";
@@ -23,16 +23,10 @@ public class DefaultCookiesProvider : ICookiesProvider
 
 	public MemoryCache Cache { get; }
 
-	public DefaultCookiesProvider()
-		: this(new FirefoxCookieReader())
-	{
-		// todo
-	}
-
-	public DefaultCookiesProvider(BaseCookieReader reader)
+	public BrowserCookiesProvider(BaseCookieReader reader)
 	{
 		Reader = reader;
-		Cache  = new MemoryCache($"{nameof(DefaultCookiesProvider)}_Cache");
+		Cache  = new MemoryCache($"{nameof(BrowserCookiesProvider)}_Cache");
 	}
 
 	public async ValueTask OpenAsync()
@@ -46,7 +40,7 @@ public class DefaultCookiesProvider : ICookiesProvider
 		await Reader.Connection.CloseAsync();
 	}
 
-	public async ValueTask<IList<IBrowserCookie>> LoadCookiesAsync(CancellationToken ct = default)
+	public async ValueTask<IList<IBrowserCookie>> GetOrLoadCookiesAsync(CancellationToken ct = default)
 	{
 		if (!IsOpen) {
 			await OpenAsync();
@@ -88,11 +82,9 @@ public class DefaultCookiesProvider : ICookiesProvider
 
 	public bool IsClosedOrBroken => Reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;
 
-	public static ICookiesProvider Instance {get;} = new DefaultCookiesProvider();
-
 	public void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(DefaultCookiesProvider)}");
+		Debug.WriteLine($"Disposing {nameof(BrowserCookiesProvider)}");
 		Reader.Dispose();
 		Cache.Dispose();
 	}

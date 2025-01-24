@@ -874,6 +874,8 @@ public partial class MainWindow
 			});
 
 		}*/
+
+
 		if (CurrentResult is UniResultItem uri) {
 
 			uri.Uni.TryCalculateSimilarity(CurrentQuery.Query.Source);

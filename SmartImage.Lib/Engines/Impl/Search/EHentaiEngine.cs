@@ -22,7 +22,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICookiesReceiver, INotifyPropertyChanged
+public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICookiesEngine, ISearchConfigReceiver
 {
 
 	static EHentaiEngine() { }
@@ -167,11 +167,23 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 	 */
 
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
+	public async ValueTask<bool> ApplyCookiesAsync(CancellationToken ct = default)
 	{
-		Trace.WriteLine($"Applying cookies to {Name}");
+		if (Provider == null) {
+			return false;
+		}
 
-		var cookies = await provider.LoadCookiesAsync(ct);
+		if (IsLoggedIn) {
+			Trace.WriteLine($"Not applying cookies to {Name}; already logged in");
+			return IsLoggedIn;
+
+		}
+		else {
+			Trace.WriteLine($"Applying cookies to {Name}");
+		}
+
+
+		var cookies = await Provider.GetOrLoadCookiesAsync(ct);
 
 		foreach (var bck in cookies) {
 			var  cookie = bck.AsCookie();
@@ -193,7 +205,6 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		var response = await GetSessionAsync();
 
 		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
-
 	}
 
 	/*
@@ -206,7 +217,7 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
 	 */
 
-	public ValueTask ApplyConfigAsync(SearchConfig cfg)
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
@@ -215,9 +226,12 @@ public sealed class EHentaiEngine : WebSearchEngine, ISearchConfigReceiver, ICoo
 		}*/
 		//
 
+		Provider = cfg.CookiesProvider;
 
-		return ValueTask.CompletedTask;
+		return ValueTask.FromResult(true);
 	}
+
+	public ICookiesProvider Provider { get; set; }
 
 	#region
 

@@ -31,7 +31,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, IDisposable
+public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfigReceiver
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -286,10 +286,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, ISearchConfigReceiver, ID
 		return;
 	}
 
-	public ValueTask ApplyConfigAsync(SearchConfig cfg)
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		Authentication = cfg.SauceNaoKey;
-		return ValueTask.CompletedTask;
+		return ValueTask.FromResult(UsingAPI);
 	}
 
 	private static void Parse(INode result, SearchResult sr)
