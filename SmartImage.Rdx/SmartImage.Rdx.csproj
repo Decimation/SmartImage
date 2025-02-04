@@ -18,7 +18,7 @@
 
   <PropertyGroup>
     <SatelliteResourceLanguages>en-US;en</SatelliteResourceLanguages>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
     <ApplicationIcon>Icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

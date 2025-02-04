@@ -297,12 +297,14 @@ public sealed class SearchClient : IDisposable
 		if (Config.ReadCookies) {
 
 			try {
-				await ((BrowserCookiesProvider) ICookiesProvider.Default).OpenAsync();
+				Config.CookiesProvider = ICookiesProvider.GetProvider();
+
+				await ((BrowserCookiesProvider) Config.CookiesProvider).OpenAsync();
 			}
 			catch (Exception e) {
 				Trace.WriteLine($"{e}");
 				Config.ReadCookies = false;
-				ICookiesProvider.Default.Dispose();
+				Config.CookiesProvider.Dispose();
 			}
 		}
 
@@ -323,7 +325,6 @@ public sealed class SearchClient : IDisposable
 		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
-
 
 			var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
 

@@ -65,6 +65,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private readonly CancellationTokenSource m_cts;
 
+	/// <summary>
+	/// Key: <see cref="SearchResult"/>
+	/// Value: <see cref="m_table"/> index
+	/// </summary>
 	private readonly ConcurrentDictionary<SearchResult, int> m_results;
 
 	private SearchCommandSettings m_scs;
@@ -160,7 +164,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			var ok = await task;
 
 			if (ok) {
-				var ci = GetQueryCanvasImage();
+				var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
 
 				var panel = new Panel(ci)
 				{
@@ -179,7 +183,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			return BaseOSIntegration.EC_ERROR;
 		}
 
-		var gr = CreateConfigGrid();
+		var gr = ConsoleFormat.CreateConfigGrid(Config, Query);
 		AnsiConsole.Write(gr);
 
 		Console.CancelKeyPress += OnCancelKeyPress;
@@ -688,46 +692,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 
 		return layout;
-	}
-
-	private CanvasImage GetQueryCanvasImage()
-	{
-		var ci = new CanvasImage(Query.Source.Stream)
-		{
-			MaxWidth = AnsiConsole.Profile.Width / 6,
-
-			// PixelWidth = 2
-		};
-		Query.Source.Stream.TrySeek();
-		return ci;
-	}
-
-	private Grid CreateConfigGrid()
-	{
-		var dt = new Grid();
-		dt.AddColumns(2);
-
-		var kv = new Dictionary<string, object>()
-		{
-			[R1.S_SearchEngines]   = Config.SearchEngines,
-			[R1.S_PriorityEngines] = Config.PriorityEngines,
-			[R1.S_AutoSearch]      = Config.AutoSearch,
-			[R1.S_ReadCookies]     = Config.ReadCookies,
-
-			["Input"]  = Query,
-			["Upload"] = Query.Upload
-		};
-
-		foreach (var o in kv) {
-			dt.AddRow(new Text(o.Key, ConsoleFormat.Sty_Grid1),
-			          new Text(Markup.Escape(o.Value.ToString())));
-		}
-
-		// Render the layout
-		// AnsiConsole.Write(layout);
-
-
-		return dt;
 	}
 
 	#endregion

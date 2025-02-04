@@ -79,6 +79,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Invalid content: missing data.
+        /// </summary>
+        internal static string Err_Content {
+            get {
+                return ResourceManager.GetString("Err_Content", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid query: query must be a file path or direct URI.
         /// </summary>
         internal static string Err_Query {

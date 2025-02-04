@@ -2,7 +2,10 @@
 using System.Diagnostics;
 using JetBrains.Annotations;
 using Novus.OS;
+using Novus.Streams;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands;
@@ -40,17 +43,17 @@ internal static class ConsoleFormat
 	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Color> EngineColors =
 		new Dictionary<SearchEngineOptions, Color>
 		{
-			{ SearchEngineOptions.SauceNao, (Color.Green) },
-			{ SearchEngineOptions.EHentai, (Color.Purple) },
-			{ SearchEngineOptions.Iqdb, (Color.LightGreen) },
-			{ SearchEngineOptions.Ascii2D, (Color.Cyan1) },
-			{ SearchEngineOptions.TraceMoe, (Color.DodgerBlue1) },
-			{ SearchEngineOptions.RepostSleuth, (Color.RosyBrown) },
-			{ SearchEngineOptions.ArchiveMoe, (Color.Wheat1) },
-			{ SearchEngineOptions.Yandex, (Color.Orange1) },
-			{ SearchEngineOptions.Iqdb3D, (Color.SeaGreen1) },
-			{ SearchEngineOptions.Fluffle, (Color.LightYellow3) },
-			{ SearchEngineOptions.TinEye, (Color.SkyBlue1) },
+			{ SearchEngineOptions.SauceNao, Color.Green },
+			{ SearchEngineOptions.EHentai, Color.Purple },
+			{ SearchEngineOptions.Iqdb, Color.LightGreen },
+			{ SearchEngineOptions.Ascii2D, Color.Cyan1 },
+			{ SearchEngineOptions.TraceMoe, Color.DodgerBlue1 },
+			{ SearchEngineOptions.RepostSleuth, Color.RosyBrown },
+			{ SearchEngineOptions.ArchiveMoe, Color.Wheat1 },
+			{ SearchEngineOptions.Yandex, Color.Orange1 },
+			{ SearchEngineOptions.Iqdb3D, Color.SeaGreen1 },
+			{ SearchEngineOptions.Fluffle, Color.LightYellow3 },
+			{ SearchEngineOptions.TinEye, Color.SkyBlue1 },
 
 		}.AsReadOnly();
 
@@ -192,5 +195,45 @@ internal static class ConsoleFormat
 
 	internal const string STR_NA   = "-";
 	internal const double COMPLETE = 100.0d;
+
+	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
+	{
+		var dt = new Grid();
+		dt.AddColumns(2);
+
+		var kv = new Dictionary<string, object>()
+		{
+			[R1.S_SearchEngines]   = cfg.SearchEngines,
+			[R1.S_PriorityEngines] = cfg.PriorityEngines,
+			[R1.S_AutoSearch]      = cfg.AutoSearch,
+			[R1.S_ReadCookies]     = cfg.ReadCookies,
+
+			["Input"]  = query,
+			["Upload"] = query.Upload
+		};
+
+		foreach (var o in kv) {
+			dt.AddRow(new Text(o.Key, ConsoleFormat.Sty_Grid1),
+			          new Text(Markup.Escape(o.Value.ToString())));
+		}
+
+		// Render the layout
+		// AnsiConsole.Write(layout);
+
+
+		return dt;
+	}
+
+	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
+	{
+		var ci = new CanvasImage(querySource.Stream)
+		{
+			MaxWidth = AnsiConsole.Profile.Width / 6,
+
+			// PixelWidth = 2
+		};
+		querySource.Stream.TrySeek();
+		return ci;
+	}
 
 }

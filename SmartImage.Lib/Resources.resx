@@ -207,4 +207,7 @@
   <data name="Url_GitHubApi" xml:space="preserve">
     <value>https://api.github.com/repos/Decimation/SmartImage/releases</value>
   </data>
+  <data name="Err_Content" xml:space="preserve">
+    <value>Invalid content: missing data</value>
+  </data>
 </root>

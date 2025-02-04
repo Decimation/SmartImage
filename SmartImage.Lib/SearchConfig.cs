@@ -163,8 +163,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	// TODO: cookies.txt support
 	// TODO: specify cookies source
 
-	[CBN]
-	public ICookiesProvider CookiesProvider { get; set; } = ICookiesProvider.Default;
+	public ICookiesProvider CookiesProvider { get; set; }
 
 	/// <remarks>
 	/// 

@@ -13,7 +13,6 @@ public interface ICookiesProvider : IDisposable
 
 	public ValueTask<IList<IBrowserCookie>> GetOrLoadCookiesAsync(CancellationToken ct = default);
 
-	public static ICookiesProvider Default { get; set; }
 
 	public static ICookiesProvider GetProvider()
 	{
@@ -21,7 +20,7 @@ public interface ICookiesProvider : IDisposable
 			return new BrowserCookiesProvider(new FirefoxCookieReader());
 		}
 
-		return null;
+		return new DefaultCookiesProvider();
 	}
 
 }

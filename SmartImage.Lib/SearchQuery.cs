@@ -90,10 +90,13 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 			string fu;
 
-			if (Source.IsFile)
+			if (Source.IsFile) {
 				fu = Source.ValueString;
-			else
+			}
+			else {
 				fu = Source.WriteToFile();
+				Trace.WriteLine($"Wrote to file {fu}");
+			}
 
 			engine ??= BaseUploadEngine.Default;
 
