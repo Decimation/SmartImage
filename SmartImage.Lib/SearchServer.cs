@@ -7,13 +7,16 @@ using System.Net.Http.Headers;
 using System.Net.Mime;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EmptyFiles;
+using HttpMultipartParser;
 using Kantan.Net;
 using Kantan.Net.Utilities;
 using Novus.Streams;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 
@@ -64,6 +67,7 @@ public class SearchServer : IDisposable
 
 
 	private async Task<object> HandleRequestAsync(HttpListenerRequest request, HttpListenerResponse response)
+
 	{
 		object ok;
 
@@ -74,23 +78,60 @@ public class SearchServer : IDisposable
 			var ct = request.Headers.Get("Content-Type");
 			Debug.WriteLine($"{ct}");
 
-			switch (ct) {
+			/*byte[] buf;
+
+			using var memoryStream = new MemoryStream();
+			await request.InputStream.CopyToAsync(memoryStream);
+			buf = memoryStream.ToArray();
+
+			memoryStream.TrySeek();
+			Debug.WriteLine($"read {memoryStream.Length}");*/
+
+			SearchQuery sq;
+			object      sqInput = null;
+
+			var mthv = MediaTypeHeaderValue.Parse(ct);
+			using var sc   = new StreamContent(request.InputStream);
+
+			var mpfd   = await MultipartFormDataParser.ParseAsync(request.InputStream);
+			
+			// var        parser = new StreamingMultipartFormDataParser(request.InputStream);
+			// byte[]     buf1   = null;
+			// FileStream fs     = new FileStream(Path.GetTempFileName(), FileMode.CreateNew);
+
+			/*parser.FileHandler += (name, fileName, type, disposition, buffer, bytes, number, properties) =>
+			{
+				// buf1 = buffer;
+				// buffer.CopyTo(buf1,0);
+				fs.Write(buffer, 0, bytes);
+			};*/
+
+			switch (mthv.MediaType) {
 				case MediaTypeNames.Text.Plain:
-					break;
+					goto default;
 
 				case MediaTypeNames.Image.Bmp:
 					break;
 
+				case MediaTypeNames.Multipart.FormData:
+					// sqInput = mpfd.Files[0].Data;
+
+					// await parser.RunAsync();
+
+					// sqInput = buf1;
+					// sqInput = fs;
+
+					var    file     = mpfd.Files.First();
+					string filename = file.FileName;
+					Stream data     = file.Data;
+					sqInput = data;
+
+					break;
+
 				default:
+					sqInput = await sc.ReadAsStringAsync();
 					break;
 			}
-
-			using var memoryStream = new MemoryStream();
-			await request.InputStream.CopyToAsync(memoryStream);
-			var buf = memoryStream.ToArray();
-
-			memoryStream.TrySeek();
-			Debug.WriteLine($"read {memoryStream.Length}");
 
 			/*var sz = await request.ReadRequestStringAsync();
 
@@ -100,7 +141,7 @@ public class SearchServer : IDisposable
 
 			Debug.WriteLine($"{sz}");*/
 
-			var sq = await SearchQuery.TryCreateAsync(memoryStream);
+			sq = await SearchQuery.TryCreateAsync(sqInput);
 
 			if (sq == SearchQuery.Null) {
 				srvResponse.Message = R1.Err_Query;

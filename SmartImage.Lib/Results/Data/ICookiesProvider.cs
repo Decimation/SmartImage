@@ -4,6 +4,7 @@
 using System.Net;
 using Flurl.Http;
 using Kantan.Net.Web;
+using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Lib.Results.Data;
 
@@ -13,5 +14,14 @@ public interface ICookiesProvider : IDisposable
 	public ValueTask<IList<IBrowserCookie>> GetOrLoadCookiesAsync(CancellationToken ct = default);
 
 	public static ICookiesProvider Default { get; set; }
+
+	public static ICookiesProvider GetProvider()
+	{
+		if (BaseOSIntegration.Integration.IsFirefoxInstalled) {
+			return new BrowserCookiesProvider(new FirefoxCookieReader());
+		}
+
+		return null;
+	}
 
 }

@@ -36,7 +36,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 
-		Timeout = TimeSpan.FromSeconds(15);
+		Timeout = TimeSpan.FromSeconds(25);
 	}
 
 	private const int MAX_FILE_SIZE = 8_388_608;

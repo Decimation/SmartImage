@@ -161,6 +161,10 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 
 	// TODO: cookies.txt support
+	// TODO: specify cookies source
+
+	[CBN]
+	public ICookiesProvider CookiesProvider { get; set; } = ICookiesProvider.Default;
 
 	/// <remarks>
 	/// 
@@ -199,8 +203,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 			Trace.WriteLine($"Changed {args.PropertyName}", nameof(SearchConfig));
 		};
 	}
-
-	public ICookiesProvider CookiesProvider { get; set; } = ICookiesProvider.Default;
 
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
