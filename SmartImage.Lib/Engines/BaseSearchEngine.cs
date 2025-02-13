@@ -173,7 +173,7 @@ public abstract class BaseSearchEngine : IBaseSearchEngine, IEquatable<BaseSearc
 		var res = new SearchResult(this)
 		{
 			RawUrl       = GetRawUrl(query),
-			ErrorMessage = null,
+			Message = null,
 			Status       = srs
 		};
 

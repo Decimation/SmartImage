@@ -177,8 +177,8 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, II
 
 		StatusMessage = $"[{Result.Root.Status}]";
 
-		if (!String.IsNullOrWhiteSpace(result.Root.ErrorMessage)) {
-			StatusMessage += $" :: {result.Root.ErrorMessage}";
+		if (!String.IsNullOrWhiteSpace(result.Root.Message)) {
+			StatusMessage += $" :: {result.Root.Message}";
 		}
 
 		Image = null;

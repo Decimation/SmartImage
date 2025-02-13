@@ -63,12 +63,12 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
 		}
 		catch (JsonException e) {
-			sr.ErrorMessage = e.Message;
+			sr.Message = e.Message;
 			sr.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 		catch (FlurlHttpException e) {
-			sr.ErrorMessage = e.Message;
+			sr.Message = e.Message;
 			sr.Status       = SearchResultStatus.Unavailable;
 
 			goto ret;

@@ -89,12 +89,15 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		// AnsiConsole.Clear();
 
 		object ok;
+		var remEndpoint = request.RemoteEndPoint;
+
+		Trace.WriteLine($"Request endpoint: {remEndpoint}");
 
 		var redirHdr    = request.Headers["Redirect"];
 		var srvResponse = new SearchServerResponse();
-
+		
 		try {
-			var contentType = request.Headers["Content-Type"];
+			var contentType = request.Headers["Content-Type"] ?? MediaTypeNames.Text.Plain;
 			Debug.WriteLine($"{contentType}");
 
 			SearchQuery query;
@@ -102,9 +105,9 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 			
 			// contentType??= MediaTypeNames.Multipart.FormData;
 
-			var       mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
-			using var sc                   = new StreamContent(request.InputStream);
-			var       parser               = await MultipartFormDataParser.ParseAsync(request.InputStream);
+			var mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
+
+			using var sc = new StreamContent(request.InputStream);
 
 			switch (mediaTypeHeaderValue.MediaType) {
 				case MediaTypeNames.Text.Plain:
@@ -114,6 +117,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 					break;
 
 				case MediaTypeNames.Multipart.FormData:
+					var parser = await MultipartFormDataParser.ParseAsync(request.InputStream);
 
 					var file = parser.Files.FirstOrDefault();
 
@@ -143,19 +147,22 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 				var url = await query.UploadAsync();
 
 				var layout = new Layout("Root")
-					.SplitColumns(new Layout("Left"), 
+					.SplitColumns(new Layout("Left"),
 					              new Layout("Right"));
 
-				var grid = ConsoleFormat.CreateConfigGrid(Client.Config, query);
-				var gridPanel = new Panel(grid) { Padding = null};
+
+				var grid      = ConsoleFormat.CreateConfigGrid(Client.Config, query);
+				var gridPanel = new Panel(grid) { Padding = null, Expand = false };
 				layout["Left"].Update(gridPanel);
 
-				var canvasImage = ConsoleFormat.GetQueryCanvasImage(query.Source);
-				var canvasImagePanel = new Panel(canvasImage) { Padding = null};
+				var canvasImage      = ConsoleFormat.GetQueryCanvasImage(query.Source);
+				var canvasImagePanel = new Panel(canvasImage) { Padding = null };
 				layout["Right"].Update(canvasImagePanel);
 
 				var results = new ConcurrentBag<SearchResult>();
 				AnsiConsole.Write(layout);
+
+				// Console.WriteLine(layout);
 				await Client.LoadEnginesAsync();
 
 				await AnsiConsole.Progress().StartAsync(async ctx =>
@@ -186,7 +193,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 					await search;
 					srvResponse.Results = results.ToArray();
-					srvResponse.Best = SearchClient.GetBest(srvResponse.Results);
+					srvResponse.Best    = SearchClient.GetBest(srvResponse.Results);
+					
 
 				});
 			}

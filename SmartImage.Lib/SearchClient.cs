@@ -218,7 +218,11 @@ public sealed class SearchClient : IDisposable
 			Debug.WriteLine($"Could not write {result}");
 		}
 
-		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+		var priority = Config.PriorityEngines.HasFlag(result.Engine.EngineOption);
+		
+		result.Flags |= SearchResultFlags.Priority;
+
+		if (priority) {
 			var url = Config.OpenRaw ? result.RawUrl : result.GetBestResult()?.Url;
 
 			OpenResult(url);
@@ -297,7 +301,7 @@ public sealed class SearchClient : IDisposable
 		if (Config.ReadCookies) {
 
 			try {
-				Config.CookiesProvider = ICookiesProvider.GetProvider();
+				Config.CookiesProvider = ICookiesService.GetProvider();
 
 				await ((BrowserCookiesProvider) Config.CookiesProvider).OpenAsync();
 			}

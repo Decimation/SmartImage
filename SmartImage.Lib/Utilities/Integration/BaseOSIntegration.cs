@@ -3,14 +3,21 @@
 
 using System.Diagnostics;
 using System.Runtime.Versioning;
+using Kantan.Net.Web;
 using Novus.OS;
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Utilities.Integration;
 
-public abstract class BaseOSIntegration
+public abstract class BaseOSIntegration : IBrowserIntegration
 {
+
+	#region Implementation of IBaseOSIntegration
+
+	public abstract BaseCookieReader GetReader();
+
+	#endregion
 
 	#region
 

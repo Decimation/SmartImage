@@ -76,13 +76,13 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 			}
 		}
 		catch (Exception e) {
-			result.ErrorMessage = e.Message;
+			result.Message = e.Message;
 			result.Status       = SearchResultStatus.UnknownError;
 			return result;
 		}
 
 		if (!result.Results.Any()) {
-			result.ErrorMessage = "Daily search limit (50) exceeded";
+			result.Message = "Daily search limit (50) exceeded";
 			result.Status       = SearchResultStatus.Cooldown;
 
 			//return sresult;

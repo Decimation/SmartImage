@@ -72,7 +72,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 		if (response is { ResponseMessage: { IsSuccessStatusCode: false } }) {
 			var er = await response.GetJsonAsync<FluffleErrorCode>();
 
-			sr.ErrorMessage = $"{er.Message}: {er.Code}";
+			sr.Message = $"{er.Message}: {er.Code}";
 
 			// return sr;
 			goto ret;

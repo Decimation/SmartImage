@@ -190,7 +190,7 @@ public sealed class YandexEngine : WebSearchEngine
 		string looksLike = GetAnalysis(doc);
 
 		if (looksLike != null) {
-			sr.Overview = looksLike;
+			sr.Message = looksLike;
 		}
 
 	ret:

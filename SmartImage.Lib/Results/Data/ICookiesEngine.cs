@@ -11,7 +11,7 @@ public interface ICookiesEngine
 {
 	public CookieJar Jar { get; }
 
-	public ICookiesProvider Provider { get; set; }
+	public ICookiesService Provider { get; set; }
 
 	public ValueTask<bool> ApplyCookiesAsync(CancellationToken token = default);
 }

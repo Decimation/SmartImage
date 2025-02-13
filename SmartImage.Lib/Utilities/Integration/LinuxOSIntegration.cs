@@ -2,6 +2,7 @@
 // Date: 2024/12/04 @ 22:12:30
 
 using System.Runtime.Versioning;
+using Kantan.Net.Web;
 using Novus.OS;
 using SmartImage.Lib.Utilities.Diagnostics;
 
@@ -12,6 +13,15 @@ namespace SmartImage.Lib.Utilities.Integration;
 [SupportedOSPlatform(OS_LINUX)]
 public sealed class LinuxOSIntegration : BaseOSIntegration
 {
+
+	#region Overrides of BaseOSIntegration
+
+	public override BaseCookieReader GetReader()
+	{
+		return new EmptyCookieReader();
+	}
+
+	#endregion
 
 	public override string LaunchArgs { get; } = R1.Linux_Launch_Args;
 

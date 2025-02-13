@@ -66,6 +66,9 @@ public enum SearchResultFlags
 	/// </summary>
 	Extraneous = 1 << 1,
 
+
+	Priority = 1 << 2
+
 }
 
 /// <summary>
@@ -99,14 +102,13 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	public List<SearchResultItem> Results { get; }
 
 	[CBN]
-	public string ErrorMessage { get; internal set; }
+	public string Message { get; internal set; }
 
 	public SearchResultStatus Status { get; internal set; }
 
 	public SearchResultFlags Flags { get; internal set; }
 
-	[CBN]
-	public string Overview { get; internal set; }
+	public bool IsPriority => Flags.HasFlagFast(SearchResultFlags.Priority);
 
 	internal SearchResult(BaseSearchEngine bse)
 	{
@@ -170,7 +172,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public override string ToString()
 	{
-		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
+		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {Message}";
 	}
 
 	public void Dispose()

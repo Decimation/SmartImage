@@ -87,8 +87,8 @@ internal static class ConsoleFormat
 
 
 	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
-	                                                     [CBN] Func<TKey, Text> keyFunc = null,
-	                                                     [CBN] Func<TValue, Text> valFunc = null)
+	                                             [CBN] Func<TKey, Text> keyFunc = null,
+	                                             [CBN] Func<TValue, Text> valFunc = null)
 	{
 		var grd = new Grid();
 		grd.AddColumns(2);
@@ -213,15 +213,27 @@ internal static class ConsoleFormat
 		};
 
 		foreach (var o in kv) {
-			dt.AddRow(new Text(o.Key, ConsoleFormat.Sty_Grid1),
-			          new Text(Markup.Escape(o.Value.ToString())));
+			dt.AddRow(GetRowsForKeyValue(o));
 		}
+
 
 		// Render the layout
 		// AnsiConsole.Write(layout);
 
 
 		return dt;
+	}
+
+	public static IRenderable[] GetRowsForKeyValue(KeyValuePair<string, object> o)
+	{
+		return
+		[
+			new Text(o.Key, ConsoleFormat.Sty_Grid1),
+			new Text(Markup.Escape(o.Value?.ToString()))
+			{
+				Overflow = Overflow.Crop,
+			}
+		];
 	}
 
 	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)

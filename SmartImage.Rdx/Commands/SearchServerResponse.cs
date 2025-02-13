@@ -13,6 +13,7 @@ public class SearchServerResponse
 	[JsonPropertyOrder(0)]
 	public SearchResultItem Best { get; internal set; }
 
+
 	[JsonPropertyOrder(1)]
 	public SearchResult[] Results { get; internal set; }
 
@@ -24,8 +25,8 @@ public class SearchServerResponse
 
 	public SearchServerResponse(SearchResult[] results, SearchResultItem best)
 	{
-		Best = best;
-		Results = results;
+		Best     = best;
+		Results  = results;
 	}
 
 }

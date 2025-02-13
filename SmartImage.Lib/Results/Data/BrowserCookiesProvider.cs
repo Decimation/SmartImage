@@ -1,5 +1,6 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: CookiesManager.cs
 
+global using MemoryCache = Microsoft.Extensions.Caching.Memory.MemoryCache;
 using System.Data;
 using System.Diagnostics;
 using System.Net;
@@ -8,85 +9,84 @@ using System.Runtime.CompilerServices;
 using AngleSharp.Css.Dom;
 using Flurl.Http;
 using Kantan.Net.Web;
+using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Primitives;
+using Novus.Utilities;
 
 namespace SmartImage.Lib.Results.Data;
 
-using System.Runtime.Caching;
+using System.Reflection.PortableExecutable;
+
+// using System.Runtime.Caching;
 using Results.Data;
 
-public class BrowserCookiesProvider : ICookiesProvider
+public class CookieReaderService : ICookiesService
 {
-
-	private const string CH_NAME = "cookies";
 
 	public BaseCookieReader Reader { get; }
 
 	public MemoryCache Cache { get; }
 
-	public BrowserCookiesProvider(BaseCookieReader reader)
+	public CookieReaderService(BaseCookieReader reader)
 	{
 		Reader = reader;
-		Cache  = new MemoryCache($"{nameof(BrowserCookiesProvider)}_Cache");
+
+		Cache = new MemoryCache(new MemoryCacheOptions()
+			                        { });
 	}
 
-	public async ValueTask OpenAsync()
-	{
-		// Opening is idempotent
-		await Reader.Connection.OpenAsync();
-	}
+	
 
-	public async ValueTask CloseAsync()
-	{
-		await Reader.Connection.CloseAsync();
-	}
-
-	public async ValueTask<IList<IBrowserCookie>> GetOrLoadCookiesAsync(CancellationToken ct = default)
-	{
-		if (!IsOpen) {
-			await OpenAsync();
-		}
-
-		/*if (IsClosedOrBroken) {
-			throw new InvalidOperationException();
-		}*/
-
-
-		var itemPolicy = new CacheItemPolicy()
-		{
-
-			// AbsoluteExpiration = 
-		};
-
-		var chi = (IList<IBrowserCookie>) Cache.Get(CH_NAME);
-
-		if (chi == null) {
-
-			var cookies = await Reader.ReadCookiesAsync();
-			var addOk   = Cache.Add(CH_NAME, cookies, itemPolicy);
-
-			if (addOk) {
-				chi = (IList<IBrowserCookie>) Cache.Get(CH_NAME);
-			}
-
-		}
-		else {
-			Trace.WriteLine($"Found {CH_NAME} in cache");
-		}
-
-		return chi;
-	}
-
-	public bool IsOpen => Reader.Connection.State is ConnectionState.Open;
-
-	public bool IsOpenOrInUse => Reader.Connection.State is < ConnectionState.Broken and >= ConnectionState.Open;
-
-	public bool IsClosedOrBroken => Reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;
+	#region Implementation of IDisposable
 
 	public void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(BrowserCookiesProvider)}");
 		Reader.Dispose();
 		Cache.Dispose();
 	}
 
+	#endregion
+
+	#region Implementation of ICookiesService
+
+	public async ValueTask<bool> GetOrLoadCookiesAsync(CancellationToken ct = default)
+	{
+		await Reader.Connection.OpenAsync(ct);
+
+		var cookies = await Reader.ReadCookiesAsync();
+
+		foreach (var cookie in cookies) {
+			var entry = CreateEntry(cookie);
+		}
+
+		await Reader.Connection.CloseAsync();
+
+		return true;
+	}
+
+	#endregion
+
+	#region Implementation of IMemoryCache
+
+	public bool TryGetValue(object key, out object value)
+	{
+		return Cache.TryGetValue(key, out value);
+
+	}
+
+	public ICacheEntry CreateEntry(object key)
+	{
+		return Cache.CreateEntry(key);
+	}
+
+	public void Remove(object key)
+	{
+
+		Cache.Remove(key);
+	}
+
+	#endregion
+
 }
+
