@@ -148,7 +148,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 	}
 
 	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-	private class RepostSleuthResult
+	private sealed class RepostSleuthResult
 	{
 
 		public object                     meme_template;

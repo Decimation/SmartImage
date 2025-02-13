@@ -25,11 +25,28 @@ using SmartImage.Rdx.Shell;
 using SmartImage.Rdx.Utilities;
 using SmartImage.Rdx.Commands;
 using SmartImage.Lib.Utilities.Integration;
+using Spectre.Console.Cli.Extensions.DependencyInjection;
 
 namespace SmartImage.Rdx;
 
 public static class Program
 {
+
+	private static IHostBuilder CreateHostBuilder()
+	{
+		return Host.CreateDefaultBuilder()
+			.ConfigureLogging(logging =>
+			{
+				// Configure logging
+			})
+			.ConfigureServices(services =>
+			{
+				// Register services here
+
+				// Add command line with default command
+
+			});
+	}
 
 	public static async Task<int> Main(string[] args)
 	{
@@ -39,6 +56,11 @@ public static class Program
 		};*/
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
+		var services = new ServiceCollection();
+		
+		// add extra services to the container here
+		using var registrar = new DependencyInjectionRegistrar(services);
 
 #if DEBUG
 
@@ -50,14 +72,15 @@ public static class Program
 
 		DisplayInfoGrid();
 
-		var app = new CommandApp<SearchCommand>();
+		var app = new CommandApp<SearchCommand>(registrar);
 
 		app.Configure(c =>
 		{
-#if DEBUG
+// #if DEBUG
 			c.PropagateExceptions();
 			c.ValidateExamples();
-#endif
+
+// #endif
 
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
@@ -199,6 +222,6 @@ public static class Program
 
 	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
 
-	public static readonly Version  Version  = Assembly.GetName().Version;
+	public static readonly Version Version = Assembly.GetName().Version;
 
 }

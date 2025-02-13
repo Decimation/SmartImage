@@ -273,7 +273,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 			goto ret;
 		}
 
-		var select = tables.Select(table => ((IHtmlElement) table)
+		var select = tables.Select(static table => ((IHtmlElement) table)
 			                           .QuerySelectorAll(Serialization.S_Iqdb_Table))
 			.ToArray();
 

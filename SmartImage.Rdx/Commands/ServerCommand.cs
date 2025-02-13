@@ -99,6 +99,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 			SearchQuery query;
 			object      sqInput = null;
+			
+			// contentType??= MediaTypeNames.Multipart.FormData;
 
 			var       mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
 			using var sc                   = new StreamContent(request.InputStream);

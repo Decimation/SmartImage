@@ -7,6 +7,7 @@ using System.Diagnostics;
 using Flurl.Http;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
@@ -17,7 +18,32 @@ using SmartImage.Lib.Utilities.Diagnostics;
 namespace SmartImage.Lib.Engines;
 #nullable enable
 
-public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>
+public interface IBaseSearchEngine : IDisposable
+{
+
+	public Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default);
+
+	/// <summary>
+	///     The corresponding <see cref="SearchEngineOptions" /> of this engine
+	/// </summary>
+	SearchEngineOptions EngineOption { get; }
+
+	/// <summary>
+	///     Name of this engine
+	/// </summary>
+	string Name { get; }
+
+	Url BaseUrl { get; }
+
+	TimeSpan Timeout { get; set; }
+
+	Url? EndpointUrl { get; }
+
+	long? MaxSize { get; }
+
+}
+
+public abstract class BaseSearchEngine : IBaseSearchEngine, IEquatable<BaseSearchEngine>
 {
 
 	static BaseSearchEngine()
@@ -69,7 +95,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	public Url? EndpointUrl { get; }
 
 	[JI]
-	protected long? MaxSize { get; set; }
+	public long? MaxSize { get; }
 
 	[JI]
 	protected virtual string[] ErrorBodyMessages { get; } = [];
