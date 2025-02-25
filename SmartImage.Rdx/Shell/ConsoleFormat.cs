@@ -1,6 +1,5 @@
-﻿using System.Data;
-using System.Diagnostics;
-using JetBrains.Annotations;
+﻿using System.Collections.Concurrent;
+using System.Data;
 using Novus.OS;
 using Novus.Streams;
 using SmartImage.Lib;
@@ -8,7 +7,6 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities.Integration;
-using SmartImage.Rdx.Commands;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
@@ -38,6 +36,8 @@ internal static class ConsoleFormat
 
 	public static readonly Style Sty_Grid1 = new(foreground: Color.DodgerBlue1, decoration: Decoration.Bold);
 
+	public static readonly Style Sty_Table1 = new(foreground: Color.SpringGreen1, decoration: Decoration.Bold);
+
 	private static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
 
 	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Color> EngineColors =
@@ -63,7 +63,9 @@ internal static class ConsoleFormat
 
 	internal static readonly Text Txt_Empty = new(string.Empty);
 
-	internal static readonly Text Txt_NA = new(STR_NA);
+	internal static readonly Text   Txt_NA   = new(STR_NA);
+	internal const           string STR_NA   = "-";
+	internal const           double COMPLETE = 100.0d;
 
 	#endregion
 
@@ -87,13 +89,13 @@ internal static class ConsoleFormat
 
 
 	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
-	                                                     [CBN] Func<TKey, Text> keyFunc = null,
-	                                                     [CBN] Func<TValue, Text> valFunc = null)
+	                                             [CBN] Func<TKey, Text> keyFunc = null,
+	                                             [CBN] Func<TValue, Text> valFunc = null)
 	{
 		var grd = new Grid();
 		grd.AddColumns(2);
 
-		keyFunc ??= static (k) =>
+		keyFunc ??= static k =>
 		{
 			//
 			var s = k.ToString();
@@ -101,7 +103,7 @@ internal static class ConsoleFormat
 			return new Text(s, Sty_Grid1);
 		};
 
-		valFunc ??= static (v) =>
+		valFunc ??= static v =>
 		{
 			//
 			var s = v.ToString();
@@ -173,6 +175,15 @@ internal static class ConsoleFormat
 		return t;
 	}
 
+	internal static Color GetEngineColor(SearchEngineOptions opt)
+	{
+		if (!EngineColors.TryGetValue(opt, out var color)) {
+			color = Color.White;
+		}
+
+		return color;
+	}
+
 	public static IRenderable AsRenderableOrText<T>(T val)
 	{
 		if (val is IRenderable r) {
@@ -184,24 +195,12 @@ internal static class ConsoleFormat
 		return text;
 	}
 
-	internal static Color GetEngineColor(SearchEngineOptions opt)
-	{
-		if (!EngineColors.TryGetValue(opt, out var color)) {
-			color = Color.White;
-		}
-
-		return color;
-	}
-
-	internal const string STR_NA   = "-";
-	internal const double COMPLETE = 100.0d;
-
 	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
 	{
 		var dt = new Grid();
 		dt.AddColumns(2);
 
-		var kv = new Dictionary<string, object>()
+		var kv = new Dictionary<string, object>
 		{
 			[R1.S_SearchEngines]   = cfg.SearchEngines,
 			[R1.S_PriorityEngines] = cfg.PriorityEngines,
@@ -213,7 +212,7 @@ internal static class ConsoleFormat
 		};
 
 		foreach (var o in kv) {
-			dt.AddRow(new Text(o.Key, ConsoleFormat.Sty_Grid1),
+			dt.AddRow(new Text(o.Key, Sty_Grid1),
 			          new Text(Markup.Escape(o.Value.ToString())));
 		}
 
@@ -235,5 +234,51 @@ internal static class ConsoleFormat
 		querySource.Stream.TrySeek();
 		return ci;
 	}
+
+	#region Engine map table
+
+	public const int ROW_EMT_NAME    = 0;
+	public const int ROW_EMT_RESULTS = 1;
+	public const int ROW_EMT_STATUS  = 2;
+	public const int ROW_EMT_TIMEOUT = 3;
+
+	/// <summary>
+	/// <see cref="ROW_EMT_NAME"/> <br />
+	/// <see cref="ROW_EMT_RESULTS"/> <br />
+	/// <see cref="ROW_EMT_STATUS"/> <br />
+	/// <see cref="ROW_EMT_TIMEOUT"/>
+	/// </summary>
+	public static (ConcurrentDictionary<BaseSearchEngine, int>, STable) GetEngineMapTable(BaseSearchEngine[] engines)
+	{
+		var engineMap = new ConcurrentDictionary<BaseSearchEngine, int>();
+		var table     = new STable();
+
+		var columns = GetColumns(nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
+		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
+
+		table.AddColumns(columns.ToArray());
+
+		int i = 0;
+
+		foreach (BaseSearchEngine engine in engines) {
+			table.AddRow(new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
+
+			engineMap.TryAdd(engine, i++);
+		}
+
+		return (engineMap, table);
+	}
+
+	private static TableColumn GetColumn(string name)
+	{
+		return new TableColumn(new Text(name, Sty_Grid1)) {  };
+	}
+
+	public static IEnumerable<TableColumn> GetColumns(params string[] names)
+	{
+		return names.Select(GetColumn);
+	}
+
+	#endregion
 
 }

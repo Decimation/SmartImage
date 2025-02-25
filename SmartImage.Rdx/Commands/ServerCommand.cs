@@ -17,8 +17,11 @@ using Spectre.Console.Cli;
 using Kantan.Net;
 using SmartImage.Lib.Utilities;
 using System.Text.Json.Serialization;
+using SmartImage.Lib.Engines;
 using SmartImage.Lib.Results;
 using Spectre.Console.Rendering;
+using System.Threading.Tasks;
+using Kantan.Text;
 
 #nullable disable
 namespace SmartImage.Rdx.Commands;
@@ -65,7 +68,6 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 		};
 
-
 		m_scs = null;
 	}
 
@@ -92,19 +94,25 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		var uriPrefix = $"http://*:{m_scs.Port}/";
 		Trace.WriteLine($"{uriPrefix}");
 
-		AnsiConsole.WriteLine("Loading...");
-		await InitConfigAsync(null);
+		await AnsiConsole.Progress().StartAsync(async ctx =>
+		{
+			var task = ctx.AddTask("Starting server");
+			task.IsIndeterminate = true;
+			// task.Description     = "Initializing config";
+			await InitConfigAsync(null);
+			task.Increment(ConsoleFormat.COMPLETE);
+		});
 
 		Listener = new SmartHttpListener(Handlers, uriPrefix);
 
-		AnsiConsole.WriteLine("Starting server");
+
+		AnsiConsole.WriteLine($"Listening on {Listener.Listener.Prefixes.QuickJoin()}");
 
 		await Listener.StartAsync();
 
 		return BaseOSIntegration.EC_OK;
 	}
 
-	
 
 	private async Task<object> HandleRequestAsync(HttpListenerRequest request, HttpListenerResponse response)
 	{
@@ -113,54 +121,15 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		object ok;
 		var    remEndpoint = request.RemoteEndPoint;
 
-		Trace.WriteLine($"Request endpoint: {remEndpoint}");
+		AnsiConsole.WriteLine($"Received request {remEndpoint}");
+		
+		// Trace.WriteLine($"Request endpoint: {remEndpoint}");
 
 		var redirHdr    = request.Headers["Redirect"];
 		var srvResponse = new SearchServerResponse();
 
 		try {
-			var contentType = request.Headers["Content-Type"] ?? MediaTypeNames.Text.Plain;
-			Debug.WriteLine($"{contentType}");
-
-			SearchQuery query;
-			object      sqInput = null;
-
-			// contentType??= MediaTypeNames.Multipart.FormData;
-
-			var mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
-
-			using var sc = new StreamContent(request.InputStream);
-
-			switch (mediaTypeHeaderValue.MediaType) {
-				case MediaTypeNames.Text.Plain:
-					goto default;
-
-				case MediaTypeNames.Image.Bmp:
-					break;
-
-				case MediaTypeNames.Multipart.FormData:
-					var parser = await MultipartFormDataParser.ParseAsync(request.InputStream);
-
-					var file = parser.Files.FirstOrDefault();
-
-					if (file == null) {
-						srvResponse.Message = R1.Err_Content;
-					}
-					else {
-						string filename = file.FileName;
-						Stream data     = file.Data;
-						sqInput = data;
-
-					}
-
-					break;
-
-				default:
-					sqInput = await sc.ReadAsStringAsync();
-					break;
-			}
-
-			query = await SearchQuery.TryCreateAsync(sqInput);
+			SearchQuery query = await GetQuery(request);
 
 			if (query == SearchQuery.Null) {
 				srvResponse.Message = R1.Err_Query;
@@ -168,72 +137,82 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 			else {
 				var url = await query.UploadAsync();
 
+				await Client.LoadEnginesAsync();
+
 				var layout = new Layout("Root")
-					.SplitColumns(new Layout("Left"),
+					.SplitColumns(new Layout("Left")
+						              .SplitRows(new Layout("LT"), new Layout("LB")),
 					              new Layout("Right"));
 
+				// LT
 
-				var grid      = ConsoleFormat.CreateConfigGrid(Client.Config, query);
-				var gridPanel = new Panel(grid) { Padding = null, Expand = false };
-				layout["Left"].Update(gridPanel);
+				var grid    = ConsoleFormat.CreateConfigGrid(Client.Config, query);
+				var padding = new Padding(vertical: 1, horizontal: 0);
 
-				var canvasImage      = ConsoleFormat.GetQueryCanvasImage(query.Source);
-				var canvasImagePanel = new Panel(canvasImage) { Padding = null };
+				var gridPanel = new Panel(grid)
+				{
+					Padding = padding,
+					Expand  = false
+				};
+
+				layout["LT"].Update(gridPanel);
+
+				// LB
+
+				var (engineMap, table) = ConsoleFormat.GetEngineMapTable(Client.Engines);
+				table.Expand           = true;
+
+				layout["LB"].Update(table);
+
+				// Right
+
+				var canvasImage = ConsoleFormat.GetQueryCanvasImage(query.Source);
+
+				var canvasImagePanel = new Panel(canvasImage)
+				{
+					Padding = null
+				};
 				layout["Right"].Update(canvasImagePanel);
 
 				var results = new ConcurrentBag<SearchResult>();
+
 				AnsiConsole.Write(layout);
 
-				// Console.WriteLine(layout);
-				await Client.LoadEnginesAsync();
-
-				await AnsiConsole.Progress().StartAsync(async ctx =>
+				await AnsiConsole.Live(layout).StartAsync(async ctx =>
 				{
-					var task = ctx.AddTask("Searching", maxValue: Client.Engines.Length);
-
-					// srvResponse.Results = await Client.RunSearchAsync(sq);
-					
 					var search = Client.RunSearchAsync(query);
 
 					while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
 						var result = await Client.ResultChannel.Reader.ReadAsync();
 
 						results.Add(result);
+						var b = engineMap.TryGetValue(result.Engine, out int r);
 
-						// m_results.Add(result);
+						if (b) {
+							table.Rows.Update(r, 1, new Text(result.Results.Count.ToString()));
+							table.Rows.Update(r, 2, new Text(result.Status.ToString()));
 
-
-						/*var txt  = new Text(result.Engine.Name, GetEngineColor(result.Engine.EngineOption));
-						var txt2 = new Text($"{result.Results.Count}");
-
-						m_mainTable.AddRow(txt, txt2);*/
-
-
-						task.Increment(1);
-						task.Description = $"{result.Engine.Name}";
-						ctx.Refresh();
+							// table.Rows.RemoveAt(r);
+							ctx.Refresh();
+						}
 					}
 
 					await search;
 					srvResponse.Results = results.ToArray();
 					srvResponse.Best    = SearchClient.GetBest(srvResponse.Results);
-
-
 				});
+
+				engineMap.Clear();
+
 			}
 
-
-			/*
-			var json = JsonSerializer.Serialize(allResults, Options2);
-			ok = await response.WriteResponseStringAsync(json);
-			*/
 
 		}
 		catch (IOException io) {
 			Trace.WriteLine($"{io}");
 		}
 		finally {
-			
+
 			var responseStr   = JsonSerializer.Serialize(srvResponse, Options2);
 			var responseBytes = Listener.Encoding.GetBytes(responseStr);
 			var writeOk       = await response.WriteResponseDataAsync(responseBytes);
@@ -252,6 +231,56 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		return ok;
 	}
 
+	private static async Task<SearchQuery> GetQuery(HttpListenerRequest request)
+	{
+		var contentType = request.Headers["Content-Type"] ?? MediaTypeNames.Text.Plain;
+
+		Debug.WriteLine($"{contentType}");
+
+		SearchQuery query;
+		object      sqInput = null;
+
+		// contentType??= MediaTypeNames.Multipart.FormData;
+
+		var mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
+
+		using var sc = new StreamContent(request.InputStream);
+
+		switch (mediaTypeHeaderValue.MediaType) {
+			case MediaTypeNames.Text.Plain:
+				goto default;
+
+			case MediaTypeNames.Image.Bmp:
+				break;
+
+			case MediaTypeNames.Multipart.FormData:
+				var parser = await MultipartFormDataParser.ParseAsync(request.InputStream);
+
+				var file = parser.Files.FirstOrDefault();
+
+				if (file == null) {
+					// srvResponse.Message = R1.Err_Content;
+
+					return null;
+				}
+				else {
+					string filename = file.FileName;
+					Stream data     = file.Data;
+					sqInput = data;
+
+				}
+
+				break;
+
+			default:
+				sqInput = await sc.ReadAsStringAsync();
+				break;
+		}
+
+		query = await SearchQuery.TryCreateAsync(sqInput);
+		return query;
+	}
+
 	public Task StartAsync(CancellationToken ct = default)
 	{
 		return Listener.StartAsync(ct);
@@ -266,4 +295,5 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	}
 
 }
+
 #pragma warning restore IL2026

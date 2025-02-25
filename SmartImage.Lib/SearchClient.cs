@@ -145,7 +145,27 @@ public sealed class SearchClient : IDisposable
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
 
-		while (tasks.Count > 0) {
+		await foreach (var task in Task.WhenEach(tasks).WithCancellation(token)) {
+			if (token.IsCancellationRequested) {
+
+				Debugger.Break();
+				s_logger.LogWarning("Cancellation requested");
+				goto ret;
+			}
+
+			tasks.Remove(task);
+
+			if (task.IsFaulted) {
+				Trace.WriteLine($"{task} faulted!", LogCategories.C_ERROR);
+			}
+
+			SearchResult result = await task;
+
+			results[i] = result;
+			i++;
+		}
+
+		/*while (tasks.Count > 0) {
 			if (token.IsCancellationRequested) {
 
 				Debugger.Break();
@@ -165,8 +185,8 @@ public sealed class SearchClient : IDisposable
 
 			results[i] = result;
 			i++;
-		}
-
+		}*/
+	ret:
 		CompleteSearchAsync();
 		OnSearchComplete?.Invoke(this, results);
 
@@ -313,7 +333,7 @@ public sealed class SearchClient : IDisposable
 			if (bse is ISearchConfigReceiver cfg) {
 				await cfg.ApplyConfigAsync(Config, token);
 			}
-			
+
 			/*
 			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
 
