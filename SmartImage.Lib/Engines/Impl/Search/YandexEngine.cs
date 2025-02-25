@@ -154,6 +154,7 @@ public sealed class YandexEngine : WebSearchEngine
 				Debug.WriteLine("Timeout", nameof(GetResultAsync));
 
 			}
+			sr.Status = SearchResultStatus.UnknownError;
 		}
 
 		if (!Validate(doc, sr)) {
@@ -192,7 +193,7 @@ public sealed class YandexEngine : WebSearchEngine
 		if (looksLike != null) {
 			sr.Overview = looksLike;
 		}
-
+		sr.Status = SearchResultStatus.Success;
 	ret:
 		sr.Update();
 		doc?.Dispose();

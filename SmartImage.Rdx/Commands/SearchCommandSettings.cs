@@ -5,8 +5,6 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using Novus.Win32;
-using SmartImage.Lib;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli;
@@ -14,48 +12,19 @@ using ValidationResult = Spectre.Console.ValidationResult;
 
 namespace SmartImage.Rdx.Commands;
 
-public sealed class SearchCommandSettings : CommandSettings
+public sealed class SearchCommandSettings : CommonCommandSettings
 {
 
 	[CommandArgument(0, "<query>")]
 	[Description("Query: file or URL; see wiki")]
 	public string? Query { get; internal set; }
 
-	#region 
-
-	[CommandOption("-e|--search-engines")]
-	[DefaultValue(SearchConfig.SE_DEFAULT)]
-	[Description("Search engines (comma-delimited)")]
-	public SearchEngineOptions SearchEngines { get; internal set; }
-
-	[CommandOption("-p|--priority-engines")]
-	[DefaultValue(SearchConfig.PE_DEFAULT)]
-	[Description("Engines whose results to open (comma-delimited)")]
-	public SearchEngineOptions PriorityEngines { get; internal set; }
-
-	[CommandOption("-a|--autosearch")]
-	[DefaultValue(SearchConfig.AUTOSEARCH_DEFAULT)]
-	[Description("N/A")]
-	public bool? AutoSearch { get; internal set; }
-
-	[CommandOption("--read-cookies")]
-	[DefaultValue(SearchConfig.READCOOKIES_DEFAULT)]
-	[Description("Read cookies from browser")]
-	public bool? ReadCookies { get; internal set; }
+	#region
 
 	[CommandOption("--keep-open")]
 	[DefaultValue(false)]
 	[Description("Waits for input before terminating")]
-	public bool? KeepOpen { get; internal set; }
-
-	[CommandOption("--flaresolverr")]
-	[DefaultValue(SearchConfig.FLARESOLVERR_DEFAULT)]
-	[Description("Use FlareSolverr")]
-	public bool FlareSolverr { get; internal set; }
-
-	[CommandOption("--flaresolverr-api")]
-	[DefaultValue(SearchConfig.FLARE_SOLVERR_API_URL_DEFAULT)]
-	public string FlareSolverrApiUrl { get; internal set; }
+	public bool KeepOpen { get; internal set; }
 
 	#endregion
 
@@ -104,7 +73,7 @@ public sealed class SearchCommandSettings : CommandSettings
 	[CommandOption("--interactive")]
 	[DefaultValue(false)]
 	[Description("Interactive results")]
-	public bool? Interactive { get; internal set; }
+	public bool Interactive { get; internal set; }
 
 	public override ValidationResult Validate()
 	{

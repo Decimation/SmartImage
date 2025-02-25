@@ -94,7 +94,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 				fu = Source.ValueString;
 			}
 			else {
-				fu = Source.WriteToFile();
+				// fu = Source.WriteToFile();
+				fu = null;
+				if (Source.TryWriteToFile()) {
+					fu = Source.FilePath;
+				}
 				Trace.WriteLine($"Wrote to file {fu}");
 			}
 

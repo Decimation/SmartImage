@@ -102,13 +102,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Config.SearchEngines   = m_scs.SearchEngines;
 		Config.PriorityEngines = m_scs.PriorityEngines;
 
-		if (m_scs.AutoSearch.HasValue) {
-			Config.AutoSearch = m_scs.AutoSearch.Value;
-		}
-
-		if (m_scs.ReadCookies.HasValue) {
-			Config.ReadCookies = m_scs.ReadCookies.Value;
-		}
+		Config.ReadCookies = m_scs.ReadCookies;
 
 		Config.FlareSolverr       = m_scs.FlareSolverr;
 		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
@@ -230,14 +224,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		Task run2;
 
-		if (m_scs.Interactive.HasValue && m_scs.Interactive.Value) {
+		if (m_scs.Interactive) {
 			run2 = RunInteractiveAsync();
 
 			// run2 = ShowImageScanResultsAsync(item);
 			await run2;
 		}
 
-		if (m_scs.KeepOpen.HasValue && m_scs.KeepOpen.Value) {
+		if (m_scs.KeepOpen) {
 			while (!AnsiConsole.Confirm("Exit")) {
 				// ...
 			}

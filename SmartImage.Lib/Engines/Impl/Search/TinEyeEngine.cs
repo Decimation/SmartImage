@@ -67,11 +67,13 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		catch (Exception e) {
 			// Debugger.Break();
 			Trace.WriteLine(e.Message);
+			sr.Status = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
 		if (tinEyeRoot?.Matches == null) {
 			sr.Flags |= SearchResultFlags.NoResults;
+
 			goto ret;
 		}
 
@@ -120,6 +122,8 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 			sr.Results.Add(resultItem);
 		}
+
+		sr.Status = SearchResultStatus.Success;
 
 	ret:
 		response?.Dispose();
@@ -244,12 +248,7 @@ public class TinEyeRoot
 }
 
 [JsonSerializable(typeof(TinEyeRoot))]
-public partial class TinEyeContext : JsonSerializerContext
-{
-
-	
-
-}
+public partial class TinEyeContext : JsonSerializerContext { }
 
 public class TinEyeMatch
 {

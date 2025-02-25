@@ -69,12 +69,32 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		m_scs = null;
 	}
 
+	private async Task InitConfigAsync([CBN] object c)
+	{
+		//todo
+
+		Client.Config.SearchEngines   = m_scs.SearchEngines;
+		Client.Config.PriorityEngines = m_scs.PriorityEngines;
+
+		Client.Config.ReadCookies = m_scs.ReadCookies;
+
+		Client.Config.FlareSolverr       = m_scs.FlareSolverr;
+		Client.Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
+
+		await Client.LoadEnginesAsync();
+
+	}
+
 	public override async Task<int> ExecuteAsync(CommandContext context, ServerCommandSettings settings)
 	{
 		m_scs = settings;
 
 		var uriPrefix = $"http://*:{m_scs.Port}/";
 		Trace.WriteLine($"{uriPrefix}");
+
+		AnsiConsole.WriteLine("Loading...");
+		await InitConfigAsync(null);
+
 		Listener = new SmartHttpListener(Handlers, uriPrefix);
 
 		AnsiConsole.WriteLine("Starting server");
@@ -84,25 +104,32 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		return BaseOSIntegration.EC_OK;
 	}
 
+	
+
 	private async Task<object> HandleRequestAsync(HttpListenerRequest request, HttpListenerResponse response)
 	{
 		// AnsiConsole.Clear();
 
 		object ok;
+		var    remEndpoint = request.RemoteEndPoint;
+
+		Trace.WriteLine($"Request endpoint: {remEndpoint}");
 
 		var redirHdr    = request.Headers["Redirect"];
 		var srvResponse = new SearchServerResponse();
 
 		try {
-			var contentType = request.Headers["Content-Type"];
+			var contentType = request.Headers["Content-Type"] ?? MediaTypeNames.Text.Plain;
 			Debug.WriteLine($"{contentType}");
 
 			SearchQuery query;
 			object      sqInput = null;
 
-			var       mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
-			using var sc                   = new StreamContent(request.InputStream);
-			var       parser               = await MultipartFormDataParser.ParseAsync(request.InputStream);
+			// contentType??= MediaTypeNames.Multipart.FormData;
+
+			var mediaTypeHeaderValue = MediaTypeHeaderValue.Parse(contentType);
+
+			using var sc = new StreamContent(request.InputStream);
 
 			switch (mediaTypeHeaderValue.MediaType) {
 				case MediaTypeNames.Text.Plain:
@@ -112,6 +139,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 					break;
 
 				case MediaTypeNames.Multipart.FormData:
+					var parser = await MultipartFormDataParser.ParseAsync(request.InputStream);
 
 					var file = parser.Files.FirstOrDefault();
 
@@ -141,19 +169,22 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 				var url = await query.UploadAsync();
 
 				var layout = new Layout("Root")
-					.SplitColumns(new Layout("Left"), 
+					.SplitColumns(new Layout("Left"),
 					              new Layout("Right"));
 
-				var grid = ConsoleFormat.CreateConfigGrid(Client.Config, query);
-				var gridPanel = new Panel(grid) { Padding = null};
+
+				var grid      = ConsoleFormat.CreateConfigGrid(Client.Config, query);
+				var gridPanel = new Panel(grid) { Padding = null, Expand = false };
 				layout["Left"].Update(gridPanel);
 
-				var canvasImage = ConsoleFormat.GetQueryCanvasImage(query.Source);
-				var canvasImagePanel = new Panel(canvasImage) { Padding = null};
+				var canvasImage      = ConsoleFormat.GetQueryCanvasImage(query.Source);
+				var canvasImagePanel = new Panel(canvasImage) { Padding = null };
 				layout["Right"].Update(canvasImagePanel);
 
 				var results = new ConcurrentBag<SearchResult>();
 				AnsiConsole.Write(layout);
+
+				// Console.WriteLine(layout);
 				await Client.LoadEnginesAsync();
 
 				await AnsiConsole.Progress().StartAsync(async ctx =>
@@ -161,7 +192,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 					var task = ctx.AddTask("Searching", maxValue: Client.Engines.Length);
 
 					// srvResponse.Results = await Client.RunSearchAsync(sq);
-
+					
 					var search = Client.RunSearchAsync(query);
 
 					while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
@@ -179,12 +210,14 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 
 						task.Increment(1);
+						task.Description = $"{result.Engine.Name}";
 						ctx.Refresh();
 					}
 
 					await search;
 					srvResponse.Results = results.ToArray();
-					srvResponse.Best = SearchClient.GetBest(srvResponse.Results);
+					srvResponse.Best    = SearchClient.GetBest(srvResponse.Results);
+
 
 				});
 			}
@@ -200,7 +233,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 			Trace.WriteLine($"{io}");
 		}
 		finally {
-
+			
 			var responseStr   = JsonSerializer.Serialize(srvResponse, Options2);
 			var responseBytes = Listener.Encoding.GetBytes(responseStr);
 			var writeOk       = await response.WriteResponseDataAsync(responseBytes);

@@ -73,12 +73,13 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			var er = await response.GetJsonAsync<FluffleErrorCode>();
 
 			sr.ErrorMessage = $"{er.Message}: {er.Code}";
-
+			sr.Status = SearchResultStatus.UnknownError;
 			// return sr;
 			goto ret;
 		}
 
 		if (response == null) {
+			sr.Status = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
@@ -88,7 +89,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			var item = result.Convert(sr);
 			sr.Results.Add(item);
 		}
-
+		sr.Status = SearchResultStatus.Success;
 	ret:
 		sr.Update();
 		response?.Dispose();

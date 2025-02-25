@@ -61,6 +61,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Length}",
 		                nameof(GetResultAsync));
 
+		res.Status = SearchResultStatus.Success;
 	ret:
 		res.Update();
 		return res;

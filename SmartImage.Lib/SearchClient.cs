@@ -313,7 +313,7 @@ public sealed class SearchClient : IDisposable
 			if (bse is ISearchConfigReceiver cfg) {
 				await cfg.ApplyConfigAsync(Config, token);
 			}
-
+			
 			/*
 			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
 

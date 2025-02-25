@@ -17,7 +17,11 @@ public interface ICookiesProvider : IDisposable
 	public static ICookiesProvider GetProvider()
 	{
 		if (BaseOSIntegration.Integration.IsFirefoxInstalled) {
-			return new BrowserCookiesProvider(new FirefoxCookieReader());
+			var cookieFile = FirefoxCookieReader.FindCookieFile();
+			if (cookieFile != null) {
+				return new BrowserCookiesProvider(new FirefoxCookieReader(cookieFile.FullName));
+
+			}
 		}
 
 		return new DefaultCookiesProvider();

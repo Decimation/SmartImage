@@ -83,7 +83,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 				try {
 					var results = await ConvertResultsAsync(tm, r);
-
+					r.Status = SearchResultStatus.Success;
 					r.RawUrl = new Url(BaseUrl + query.Upload);
 					r.Results.AddRange(results);
 				}

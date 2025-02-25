@@ -9,7 +9,7 @@ using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx.Commands;
 
-public sealed class ServerCommandSettings : CommandSettings
+public sealed class ServerCommandSettings : CommonCommandSettings
 {
 
 	[CommandOption("--port")]

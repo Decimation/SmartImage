@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Flurl.Http;
+using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Results;
 
@@ -15,10 +16,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		Verify(file);
 
 		var response = await Client.Request(EndpointUrl)
-			               .WithSettings(r =>
-			               {
-				               r.Timeout = Timeout;
-			               })
+			               .WithSettings(r => { r.Timeout = Timeout; })
 			               .WithHeaders(new
 			               {
 				               User_Agent = HttpUtilities.UserAgent
@@ -34,6 +32,26 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		return await ProcessResultAsync(response, ct).ConfigureAwait(false);
 	}
 
+	/*public async Task<UploadResult> UploadFileAsync(Stream file, CancellationToken ct = default)
+	{
+
+		var response = await Client.Request(EndpointUrl)
+			               .WithSettings(r => { r.Timeout = Timeout; })
+			               .WithHeaders(new
+			               {
+				               User_Agent = HttpUtilities.UserAgent
+			               })
+			               .PostMultipartAsync(mp =>
+			               {
+				               mp.AddFile("fileToUpload", file, Path.GetTempFileName())
+					               .AddString("reqtype", "fileupload")
+					               .AddString("time", "1h")
+					               .AddString("userhash", string.Empty);
+			               }, cancellationToken: ct, completionOption: HttpCompletionOption.ResponseHeadersRead);
+
+		return await ProcessResultAsync(response, ct).ConfigureAwait(false);
+	}*/
+
 	protected BaseCatboxEngine(string s) : base(s) { }
 
 }
@@ -43,8 +61,6 @@ public sealed class CatboxEngine : BaseCatboxEngine
 
 	public override long? MaxSize => 200_000_000L;
 
-	public CatboxEngine() : base("https://catbox.moe/user/api.php")
-	{
-	}
+	public CatboxEngine() : base("https://catbox.moe/user/api.php") { }
 
 }

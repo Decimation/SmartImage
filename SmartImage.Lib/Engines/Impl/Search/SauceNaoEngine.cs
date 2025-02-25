@@ -17,6 +17,7 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using static Kantan.Diagnostics.LogCategories;
 using SmartImage.Lib.Utilities;
+using Novus.Streams;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -129,8 +130,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 		response = await Client.Request(EndpointUrl).AllowHttpStatus()
 			           .OnError(x =>
 			           {
-
 				           x.ExceptionHandled = true;
+				           Trace.WriteLine($"{x.Exception.Message}");
 
 				           /*if (x.Exception is FlurlHttpException ex) {
 						           if (ex.StatusCode == (int)HttpStatusCode.TooManyRequests) { }
@@ -146,8 +147,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 				           if (query.Source.IsUri) { }
 				           else if (query.Source.IsFile) {
 					           m.AddFile("file", query.Source.Value.ToString(), fileName: "image.png");
-				           }
+				           }else {
+					           m.AddFile("file", query.Source.FilePath, fileName: "image.png");
 
+				           }
 			           });
 
 		html = await response.GetStringAsync();
@@ -398,9 +401,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 		{
 			var b = !String.IsNullOrWhiteSpace(x);
 			var c = true;
+
 			if (b) {
 				c = !IsLookupUrl(Url.Parse(x));
 			}
+
 			return b && c;
 		}).Distinct().ToArray();
 

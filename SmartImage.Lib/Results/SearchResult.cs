@@ -118,7 +118,9 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Update()
 	{
-
+		if (Status.IsUnknown()) {
+			
+		}
 		if (Status.IsError()) {
 			return;
 		}
