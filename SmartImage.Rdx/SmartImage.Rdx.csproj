@@ -14,6 +14,7 @@
     <AssemblyName>SmartImage</AssemblyName>
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <Configurations>Debug;Release;Test;UnitTest</Configurations>
+    <!-- <PublishAot>true</PublishAot> -->
   </PropertyGroup>
 
   <PropertyGroup>

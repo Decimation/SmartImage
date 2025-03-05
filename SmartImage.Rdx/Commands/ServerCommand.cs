@@ -22,11 +22,14 @@ using SmartImage.Lib.Results;
 using Spectre.Console.Rendering;
 using System.Threading.Tasks;
 using Kantan.Text;
+using Flurl.Http;
+using System.Text;
+using Microsoft.Extensions.Hosting.Internal;
 
 #nullable disable
 namespace SmartImage.Rdx.Commands;
 
-using RouteCallbackMap = Dictionary<string, SmartHttpListener.HandleRequestCallback>;
+using RouteCallbackMap = Dictionary<string, ServerCommand.HandleRequestCallback2>;
 
 #pragma warning disable IL2026
 
@@ -36,6 +39,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	public SearchClient Client { get; }
 
 	private ServerCommandSettings m_scs;
+
+	public delegate Task<object> HandleRequestCallback2(HttpListenerContext ctx);
 
 	public static readonly JsonSerializerOptions Options2 = new(HttpUtilities.Options)
 	{
@@ -52,9 +57,18 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	};
 
 
-	public SmartHttpListener Listener { get; private set; }
+	public HttpListener Listener { get; }
+
+	private const int ChunkSize = 1024;
+
 
 	public RouteCallbackMap Handlers { get; }
+
+	public Encoding Encoding { get; internal set; }
+
+	// public delegate Task<string> RequestDataCallback(byte[] buf);
+
+	// public delegate Task<string> HandleRequestCallback(HttpListenerRequest buf);
 
 	public ServerCommand()
 	{
@@ -69,69 +83,94 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		};
 
 		m_scs = null;
-	}
 
-	private async Task InitConfigAsync([CBN] object c)
-	{
-		//todo
 
-		Client.Config.SearchEngines   = m_scs.SearchEngines;
-		Client.Config.PriorityEngines = m_scs.PriorityEngines;
-
-		Client.Config.ReadCookies = m_scs.ReadCookies;
-
-		Client.Config.FlareSolverr       = m_scs.FlareSolverr;
-		Client.Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
-
-		await Client.LoadEnginesAsync();
-
-	}
-
-	public override async Task<int> ExecuteAsync(CommandContext context, ServerCommandSettings settings)
-	{
-		m_scs = settings;
-
-		var uriPrefix = $"http://*:{m_scs.Port}/";
-		Trace.WriteLine($"{uriPrefix}");
-
-		await AnsiConsole.Progress().StartAsync(async ctx =>
+		Listener = new HttpListener()
 		{
-			var task = ctx.AddTask("Starting server");
-			task.IsIndeterminate = true;
-			// task.Description     = "Initializing config";
-			await InitConfigAsync(null);
-			task.Increment(ConsoleFormat.COMPLETE);
-		});
-
-		Listener = new SmartHttpListener(Handlers, uriPrefix);
+			TimeoutManager =
+			{
+				// IdleConnection = Timeout.InfiniteTimeSpan,
+			},
+		};
 
 
-		AnsiConsole.WriteLine($"Listening on {Listener.Listener.Prefixes.QuickJoin()}");
+		// Start();
 
-		await Listener.StartAsync();
-
-		return BaseOSIntegration.EC_OK;
+		// Debug.WriteLine("ProtoPad HTTP Server started");
 	}
 
 
-	private async Task<object> HandleRequestAsync(HttpListenerRequest request, HttpListenerResponse response)
+	public async Task StartAsync(CancellationToken ct = default)
+	{
+		if (!Listener.IsListening) {
+			Listener.Start();
+
+			// Listener.BeginGetContext(HandleRequest, Listener);
+
+			while (Listener.IsListening) {
+				var ctx = await Listener.GetContextAsync().ConfigureAwait(false);
+
+				Trace.WriteLine($"{ctx}");
+
+				// var res = await HandleRequestAsync(ctx, ct);
+
+				// var request  = ctx.Request;
+				// var response = ctx.Response;
+
+				foreach (var requestHandler in Handlers) {
+
+					var requestUrl = ctx.Request.Url;
+
+					if (requestUrl != null && !requestUrl.PathAndQuery.Contains(requestHandler.Key)) {
+						continue;
+					}
+
+					var task = Task.Run(() => requestHandler.Value(ctx), ct);
+					
+					Trace.WriteLine($"queued {task.Id}");
+
+					/*if (handlerObject is byte[] responseBytes) {
+						//...
+					}
+					else if (handlerObject is string sz) {
+						responseBytes = Encoding.GetBytes(sz);
+					}
+					else {
+						responseBytes = await request.ReadRequestDataAsync(ct: ct);
+					}*/
+
+
+				}
+
+				if (ct.IsCancellationRequested) {
+					break;
+				}
+			}
+		}
+	}
+
+
+	private async Task<object> HandleRequestAsync(HttpListenerContext ctx)
 	{
 		// AnsiConsole.Clear();
+
+		var request  = ctx.Request;
+		var response = ctx.Response;
 
 		object ok;
 		var    remEndpoint = request.RemoteEndPoint;
 
 		AnsiConsole.WriteLine($"Received request {remEndpoint}");
-		
+
 		// Trace.WriteLine($"Request endpoint: {remEndpoint}");
 
 		var redirHdr    = request.Headers["Redirect"];
 		var srvResponse = new SearchServerResponse();
 
 		try {
-			SearchQuery query = await GetQuery(request);
+			SearchQuery query = await GetQueryFromRequestAsync(request);
 
-			if (query == SearchQuery.Null) {
+			if (query == null || query == SearchQuery.Null) {
 				srvResponse.Message = R1.Err_Query;
 			}
 			else {
@@ -214,7 +253,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		finally {
 
 			var responseStr   = JsonSerializer.Serialize(srvResponse, Options2);
-			var responseBytes = Listener.Encoding.GetBytes(responseStr);
+			var responseBytes = Encoding.GetBytes(responseStr);
 			var writeOk       = await response.WriteResponseDataAsync(responseBytes);
 
 			ok = writeOk;
@@ -231,7 +270,53 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		return ok;
 	}
 
-	private static async Task<SearchQuery> GetQuery(HttpListenerRequest request)
+
+	private async Task InitConfigAsync([CBN] object c)
+	{
+		//todo
+
+		Client.Config.SearchEngines   = m_scs.SearchEngines;
+		Client.Config.PriorityEngines = m_scs.PriorityEngines;
+
+		Client.Config.ReadCookies = m_scs.ReadCookies;
+
+		Client.Config.FlareSolverr       = m_scs.FlareSolverr;
+		Client.Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
+
+
+		await Client.LoadEnginesAsync();
+
+	}
+
+	public override async Task<int> ExecuteAsync(CommandContext context, ServerCommandSettings settings)
+	{
+		m_scs = settings;
+
+		var uriPrefix = $"http://*:{m_scs.Port}/";
+		Trace.WriteLine($"{uriPrefix}");
+		Listener.Prefixes.Add(uriPrefix);
+		Encoding = HttpUtilities.DefaultEncoding;
+
+		await AnsiConsole.Progress().StartAsync(async ctx =>
+		{
+			var task = ctx.AddTask("Starting server");
+			task.IsIndeterminate = true;
+
+			// task.Description     = "Initializing config";
+			await InitConfigAsync(null);
+			task.Increment(ConsoleFormat.COMPLETE);
+		});
+
+
+		AnsiConsole.WriteLine($"Listening on {Listener.Prefixes.QuickJoin()}");
+
+		await StartAsync();
+
+		return BaseOSIntegration.EC_OK;
+	}
+
+
+	private static async Task<SearchQuery> GetQueryFromRequestAsync(HttpListenerRequest request)
 	{
 		var contentType = request.Headers["Content-Type"] ?? MediaTypeNames.Text.Plain;
 
@@ -260,8 +345,9 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 				if (file == null) {
 					// srvResponse.Message = R1.Err_Content;
-
 					return null;
+
+					// sqInput = null;
 				}
 				else {
 					string filename = file.FileName;
@@ -281,16 +367,11 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		return query;
 	}
 
-	public Task StartAsync(CancellationToken ct = default)
-	{
-		return Listener.StartAsync(ct);
-	}
-
 	public void Dispose()
 	{
 		Debug.WriteLine($"Disposing {nameof(ServerCommand)}");
 		Client?.Dispose();
-		Listener?.Dispose();
+		Listener?.Close();
 		Handlers.Clear();
 	}
 
