@@ -149,12 +149,12 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		return await parser.ParseDocumentAsync(content, token);
 	}
 
-	protected override ValueTask<INode[]> GetNodes(IDocument d)
+	protected override ValueTask<List<INode>> GetNodes(IDocument d)
 	{
 		// Index 0 is table header
-		var array = d.Body.SelectNodes(NodesSelector).ToArray();
+		var array = d.Body.SelectNodes(NodesSelector);
 
-		if (array.Length != 0) {
+		if (array.Count != 0) {
 			array = array[1..];
 
 		}
@@ -186,7 +186,12 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		var cookies = await Provider.GetOrLoadCookiesAsync(ct);
 
 		foreach (var bck in cookies) {
+
 			var  cookie = bck.AsCookie();
+
+			if (cookie == null) {
+				continue;
+			}
 			bool c      = false;
 
 			if (UseExHentai) {

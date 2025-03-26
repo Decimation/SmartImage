@@ -58,7 +58,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			}
 		}
 
-		Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Length}",
+		Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Count}",
 		                nameof(GetResultAsync));
 
 		res.Status = SearchResultStatus.Success;
@@ -106,9 +106,9 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 	protected abstract ValueTask<SearchResultItem>  ParseResultItem(INode n, SearchResult r);
 
-	protected virtual ValueTask<INode[]> GetNodes(IDocument d)
+	protected virtual ValueTask<List<INode>> GetNodes(IDocument d)
 	{
-		return ValueTask.FromResult(d.Body.SelectNodes(NodesSelector).ToArray());
+		return ValueTask.FromResult(d.Body.SelectNodes(NodesSelector));
 	}
 
 	protected bool Validate([CBN] IDocument doc, SearchResult sr)

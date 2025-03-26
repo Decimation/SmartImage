@@ -264,9 +264,7 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 			throw new InvalidOperationException();
 		}
 
-		if (!Similarity.HasValue) {
-			Similarity = CompareHash.Similarity(comparand.Hash.Value, Hash.Value);
-		}
+		Similarity ??= CompareHash.Similarity(comparand.Hash.Value, Hash.Value);
 
 		return Similarity.HasValue;
 	}

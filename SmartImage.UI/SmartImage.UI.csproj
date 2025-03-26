@@ -86,7 +86,7 @@
 
   <ItemGroup>
     <Reference Include="FlareSolverrSharp">
-      <HintPath>..\..\..\VSProjects\FlareSolverrSharp\src\FlareSolverrSharp\bin\Release\net8.0\FlareSolverrSharp.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\FlareSolverrSharp\src\FlareSolverrSharp\bin\Release\net9.0\FlareSolverrSharp.dll</HintPath>
     </Reference>
     <Reference Include="Kantan">
       <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net9.0\Kantan.dll</HintPath>

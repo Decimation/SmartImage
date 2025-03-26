@@ -61,7 +61,6 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	private const int ChunkSize = 1024;
 
-
 	public RouteCallbackMap Handlers { get; }
 
 	public Encoding Encoding { get; internal set; }
@@ -70,20 +69,23 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	// public delegate Task<string> HandleRequestCallback(HttpListenerRequest buf);
 
+	public STable Shared { get; internal set; }
+
 	public ServerCommand()
 	{
 		Client = new SearchClient(SearchConfig.Default);
 
 		// Server = new SearchServer(Client, 25565);
 
+
 		Handlers = new RouteCallbackMap()
 		{
-			["search"] = HandleRequestAsync,
-
+			["search"] = HandleRequestAsync2
 		};
 
 		m_scs = null;
 
+		Shared = ConsoleFormat.GetEngineMapTableBase();
 
 		Listener = new HttpListener()
 		{
@@ -126,8 +128,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 					}
 
 					var task = Task.Run(() => requestHandler.Value(ctx), ct);
-					
-					Trace.WriteLine($"queued {task.Id}");
+
+					AnsiConsole.WriteLine($"queued {task.Id}");
 
 					/*if (handlerObject is byte[] responseBytes) {
 						//...
@@ -142,6 +144,18 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 				}
 
+
+				/*if (handlerObject is byte[] responseBytes) {
+						//...
+					}
+					else if (handlerObject is string sz) {
+						responseBytes = Encoding.GetBytes(sz);
+					}
+					else {
+						responseBytes = await request.ReadRequestDataAsync(ct: ct);
+					}*/
+
+
 				if (ct.IsCancellationRequested) {
 					break;
 				}
@@ -149,18 +163,15 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		}
 	}
 
-
-	private async Task<object> HandleRequestAsync(HttpListenerContext ctx)
+	private async Task<object> HandleRequestAsync2(HttpListenerContext ctx)
 	{
-		// AnsiConsole.Clear();
 
+		// AnsiConsole.Clear();
 		var request  = ctx.Request;
 		var response = ctx.Response;
 
 		object ok;
 		var    remEndpoint = request.RemoteEndPoint;
-
-		AnsiConsole.WriteLine($"Received request {remEndpoint}");
 
 		// Trace.WriteLine($"Request endpoint: {remEndpoint}");
 
@@ -178,70 +189,23 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 				await Client.LoadEnginesAsync();
 
-				var layout = new Layout("Root")
-					.SplitColumns(new Layout("Left")
-						              .SplitRows(new Layout("LT"), new Layout("LB")),
-					              new Layout("Right"));
-
-				// LT
-
-				var grid    = ConsoleFormat.CreateConfigGrid(Client.Config, query);
-				var padding = new Padding(vertical: 1, horizontal: 0);
-
-				var gridPanel = new Panel(grid)
-				{
-					Padding = padding,
-					Expand  = false
-				};
-
-				layout["LT"].Update(gridPanel);
-
-				// LB
-
-				var (engineMap, table) = ConsoleFormat.GetEngineMapTable(Client.Engines);
-				table.Expand           = true;
-
-				layout["LB"].Update(table);
-
-				// Right
-
-				var canvasImage = ConsoleFormat.GetQueryCanvasImage(query.Source);
-
-				var canvasImagePanel = new Panel(canvasImage)
-				{
-					Padding = null
-				};
-				layout["Right"].Update(canvasImagePanel);
 
 				var results = new ConcurrentBag<SearchResult>();
 
-				AnsiConsole.Write(layout);
 
-				await AnsiConsole.Live(layout).StartAsync(async ctx =>
-				{
-					var search = Client.RunSearchAsync(query);
+				var search = Client.RunSearchAsync(query);
 
-					while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
-						var result = await Client.ResultChannel.Reader.ReadAsync();
+				while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
+					var result = await Client.ResultChannel.Reader.ReadAsync();
 
-						results.Add(result);
-						var b = engineMap.TryGetValue(result.Engine, out int r);
+					results.Add(result);
 
-						if (b) {
-							table.Rows.Update(r, 1, new Text(result.Results.Count.ToString()));
-							table.Rows.Update(r, 2, new Text(result.Status.ToString()));
+				}
 
-							// table.Rows.RemoveAt(r);
-							ctx.Refresh();
-						}
-					}
+				await search;
+				srvResponse.Results = results.ToArray();
+				srvResponse.Best    = SearchClient.GetBest(srvResponse.Results);
 
-					await search;
-					srvResponse.Results = results.ToArray();
-					srvResponse.Best    = SearchClient.GetBest(srvResponse.Results);
-				});
-
-				engineMap.Clear();
 
 			}
 
@@ -371,8 +335,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	{
 		Debug.WriteLine($"Disposing {nameof(ServerCommand)}");
 		Client?.Dispose();
-		Listener?.Close();
 		Handlers.Clear();
+		Listener?.Close();
 	}
 
 }

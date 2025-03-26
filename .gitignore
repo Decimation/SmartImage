@@ -473,3 +473,8 @@ SmartImage.UI/Properties/*
 /SmartImage.Server/appsettings.json
 /SmartImage.Server/hostsettings.json
 /Profiling
+
+*.jpg
+*.jpeg
+*.png
+*.gif

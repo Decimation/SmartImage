@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageUri.cs
 // Date: 2024/07/17 @ 02:07:26
 
+using System.Collections.Immutable;
 using System.Net;
 using Flurl.Http;
 
@@ -64,8 +65,9 @@ public class UniImageUri : UniImage
 		return HasResponse;
 	}
 
-	public static readonly List<string>       RestrictedSchemes = ["file", "javascript", "cpu"];
-	public static readonly List<string> LegalSchemes      = ["http", "https"];
+	public static readonly ImmutableArray<string> RestrictedSchemes = ["file", "javascript", "cpu"];
+
+	public static readonly ImmutableArray<string> LegalSchemes = ["http", "https"];
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
 	{

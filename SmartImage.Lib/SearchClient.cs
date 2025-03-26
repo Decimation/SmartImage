@@ -4,6 +4,7 @@ global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -45,7 +46,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsComplete { get; private set; }
 
-	public BaseSearchEngine[] Engines { get; private set; }
+	public IEnumerable<BaseSearchEngine> Engines { get; private set; }
 
 	public bool ConfigApplied { get; private set; }
 
@@ -99,12 +100,14 @@ public sealed class SearchClient : IDisposable
 	{
 		var ok = ResultChannel?.Writer.TryComplete(new ChannelClosedException("Reopened channel"));
 
-		if (ok.HasValue && ok.Value) { }
-
 		ResultChannel = Channel.CreateUnbounded<SearchResult>(new UnboundedChannelOptions()
 		{
 			SingleWriter = true,
 		});
+
+		if (ok.HasValue && ok.Value) { }
+
+		// throw new InvalidOperationException();
 	}
 
 	/// <summary>
@@ -114,7 +117,7 @@ public sealed class SearchClient : IDisposable
 	/// <param name="scheduler"></param>
 	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine.GetResultAsync(SearchQuery,CancellationToken)"/></param>
 	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query,
-	                                                 TaskScheduler scheduler = default,
+	                                                 TaskScheduler scheduler = null,
 	                                                 CancellationToken token = default)
 	{
 		scheduler ??= TaskScheduler.Default;
@@ -140,7 +143,7 @@ public sealed class SearchClient : IDisposable
 
 		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
 
-		List<Task<SearchResult>> tasks = GetSearchTasks(query, scheduler, token).ToList();
+		var tasks = GetSearchTasks(query, scheduler, token).ToHashSet();
 
 		var results = new SearchResult[tasks.Count];
 		int i       = 0;
@@ -186,6 +189,8 @@ public sealed class SearchClient : IDisposable
 			results[i] = result;
 			i++;
 		}*/
+
+
 	ret:
 		CompleteSearchAsync();
 		OnSearchComplete?.Invoke(this, results);
@@ -213,6 +218,7 @@ public sealed class SearchClient : IDisposable
 		return results;
 	}
 
+	[return: MN]
 	public static SearchResultItem GetBest(SearchResult[] results)
 	{
 		var ordered = results.Select(x => x.GetBestResult())
@@ -278,7 +284,8 @@ public sealed class SearchClient : IDisposable
 	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler,
 	                                                      CancellationToken token)
 	{
-		var tasks = Engines.Select(e =>
+
+		return Engines.Select(e =>
 		{
 			try {
 				Debug.WriteLine($"Starting {e} for {query}");
@@ -300,10 +307,8 @@ public sealed class SearchClient : IDisposable
 				// return  Task.FromException(exception);
 			}
 
-			return default;
+			return null;
 		});
-
-		return tasks;
 	}
 
 	public async ValueTask LoadEnginesAsync(CancellationToken token = default)
@@ -312,7 +317,7 @@ public sealed class SearchClient : IDisposable
 
 		Trace.WriteLine("Loading engines");
 
-		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
+		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines);
 
 		if (Config.ReadCookies) {
 
@@ -346,7 +351,7 @@ public sealed class SearchClient : IDisposable
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
 
-			var ok = FlareSolverrClient.Value.Configure(Config.FlareSolverrApiUrl);
+			var ok = await FlareSolverrClient.Value.ApplyConfigAsync(Config,token);
 
 			if (!ok) {
 				Debugger.Break();

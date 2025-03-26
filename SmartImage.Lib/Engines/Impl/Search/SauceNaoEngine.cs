@@ -143,14 +143,19 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 			           .PostMultipartAsync(m =>
 			           {
 				           m.AddString("url", query.Source.IsUri ? query.Source.ValueString : string.Empty);
+				           string s;
 
 				           if (query.Source.IsUri) { }
 				           else if (query.Source.IsFile) {
-					           m.AddFile("file", query.Source.Value.ToString(), fileName: "image.png");
-				           }else {
-					           m.AddFile("file", query.Source.FilePath, fileName: "image.png");
+					            s = query.Source.ValueString;
+					           m.AddFile("file", s, fileName: "image.png");
+				           }
+				           else {
+					            s = query.Source.FilePath;
+					           m.AddFile("file", s, fileName: "image.png");
 
 				           }
+
 			           });
 
 		html = await response.GetStringAsync();
@@ -335,7 +340,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 
 		// var resultcontent  = resulttablecontent.ChildNodes[1];
 		// var resultcontentcolumn = resultcontent.ChildNodes[1];
-		var                       resultcontent = ((IElement) result).GetElementsByClassName("resultcontent")[0];
+		var                       resultcontent          = ((IElement) result).GetElementsByClassName("resultcontent")[0];
 		IHtmlCollection<IElement> resultcontentcolumn_rg = null;
 
 		if (result is IElement { } elem) {

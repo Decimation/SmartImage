@@ -266,20 +266,20 @@ public sealed class YandexEngine : WebSearchEngine
 
 	public override void Dispose() { }
 
-	protected override async ValueTask<INode[]> GetNodes(IDocument doc)
+	protected override async ValueTask<List<INode>> GetNodes(IDocument doc)
 	{
 		var tagsItem = doc.Body.SelectNodes(NodesSelector);
 
 		if (tagsItem.Count == 0) {
 			// return await Task.FromResult(Enumerable.Empty<INode>());
-			return await Task.FromResult(tagsItem.ToArray()).ConfigureAwait(false);
+			return await Task.FromResult(tagsItem).ConfigureAwait(false);
 
 			// return tagsItem;
 		}
 
 		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class").Contains("CbirItem")).ToList();
 
-		return await Task.FromResult(sizeTags.ToArray()).ConfigureAwait(false);
+		return await Task.FromResult(sizeTags).ConfigureAwait(false);
 
 		// return sizeTags;
 	}

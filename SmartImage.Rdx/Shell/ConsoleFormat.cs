@@ -237,31 +237,15 @@ internal static class ConsoleFormat
 
 	#region Engine map table
 
-	public const int ROW_EMT_NAME    = 0;
-	public const int ROW_EMT_RESULTS = 1;
-	public const int ROW_EMT_STATUS  = 2;
-	public const int ROW_EMT_TIMEOUT = 3;
-
-	/// <summary>
-	/// <see cref="ROW_EMT_NAME"/> <br />
-	/// <see cref="ROW_EMT_RESULTS"/> <br />
-	/// <see cref="ROW_EMT_STATUS"/> <br />
-	/// <see cref="ROW_EMT_TIMEOUT"/>
-	/// </summary>
 	public static (ConcurrentDictionary<BaseSearchEngine, int>, STable) GetEngineMapTable(BaseSearchEngine[] engines)
 	{
 		var engineMap = new ConcurrentDictionary<BaseSearchEngine, int>();
-		var table     = new STable();
-
-		var columns = GetColumns(nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
-		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
-
-		table.AddColumns(columns.ToArray());
+		var table     = GetEngineMapTableBase();
 
 		int i = 0;
 
 		foreach (BaseSearchEngine engine in engines) {
-			table.AddRow(new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
+			table.AddRow(Txt_NA,new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
 
 			engineMap.TryAdd(engine, i++);
 		}
@@ -269,9 +253,27 @@ internal static class ConsoleFormat
 		return (engineMap, table);
 	}
 
+	public const int ROW_EMT2_THR     = 0;
+	public const int ROW_EMT2_NAME    = 1;
+	public const int ROW_EMT2_RESULTS = 2;
+	public const int ROW_EMT2_STATUS  = 3;
+	public const int ROW_EMT2_TIMEOUT = 4;
+
+
+	public static STable GetEngineMapTableBase()
+	{
+		var table     = new STable();
+		var columns = GetColumns("Thread",nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
+		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
+
+
+		table.AddColumns(columns.ToArray());
+		return table;
+	}
+
 	private static TableColumn GetColumn(string name)
 	{
-		return new TableColumn(new Text(name, Sty_Grid1)) {  };
+		return new TableColumn(new Text(name, Sty_Grid1)) { };
 	}
 
 	public static IEnumerable<TableColumn> GetColumns(params string[] names)

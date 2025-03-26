@@ -2,6 +2,8 @@
 // Date: 2024/06/06 @ 14:06:00
 
 using System.Diagnostics;
+using System.Net;
+using System.Xml.Linq;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -39,7 +41,11 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 			"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
 		];
 
-	public Ascii2DEngine() : base("https://ascii2d.net/search/url/")
+	public const string ALT_URL = "https://ascii2d.obfs.dev/search/url/";
+
+	public const string MAIN_URL = "https://ascii2d.net/search/url/";
+
+	public Ascii2DEngine() : base(ALT_URL)
 	{
 		Timeout = TimeSpan.FromSeconds(30);
 		MaxSize = 10_000_000;
@@ -175,6 +181,11 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 			}
 			else {
 				using var res = await GetResponseByUrlAsync(origin, token);
+
+				if (res.StatusCode == (int) HttpStatusCode.BadGateway) {
+					return null;
+				}
+
 				str = await res.GetStringAsync();
 			}
 
@@ -219,6 +230,26 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 			          .GetAsync(cancellationToken: token);
 		return res;
 	}
+
+#region Overrides of WebSearchEngine
+
+	protected override async ValueTask<List<INode>> GetNodes(IDocument d)
+	{
+		var nodes = await base.GetNodes(d);
+
+		var cnt = nodes.RemoveAll(x =>
+		{
+			var e = x as IHtmlElement;
+
+			var b = e.Children is { Length: 1 } && e.Children[0].ClassName.Contains("hidden-md");
+
+			return b;
+		});
+
+		return nodes;
+	}
+
+#endregion
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode nx, SearchResult r)
 	{

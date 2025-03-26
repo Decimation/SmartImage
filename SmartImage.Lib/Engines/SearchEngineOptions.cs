@@ -97,7 +97,8 @@ public enum SearchEngineOptions
 	/// </summary>
 	Fluffle = 1 << 15,
 
-	#region
+
+#region
 
 	/// <summary>
 	///     All engines
@@ -109,6 +110,6 @@ public enum SearchEngineOptions
 
 	Advanced = All & ~ (Bing | GoogleImages | ImgOps | KarmaDecay)
 
-	#endregion
+#endregion
 
 }
