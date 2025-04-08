@@ -31,7 +31,7 @@ using MessageBox = System.Windows.MessageBox;
 namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
-public class QueryModel : INotifyPropertyChanged, IDisposable, IBitmapImageSource, INamed, IItemSize
+public class QueryModel : INotifyPropertyChanged, IBitmapImageSource, INamed, IDisposable
 {
 
 	//todo

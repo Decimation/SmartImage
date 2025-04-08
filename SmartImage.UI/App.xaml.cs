@@ -10,6 +10,7 @@ using System.Windows.Interop;
 using JetBrains.Annotations;
 using Novus.Utilities;
 using Novus.Win32;
+
 #nullable disable
 namespace SmartImage.UI;
 
@@ -49,9 +50,11 @@ public partial class App : Application
 				case "-mi":
 					multipleInstances = true;
 					break;
+
 				case "-nms":
 					pipeServer = false;
 					break;
+
 				default:
 					break;
 			}
@@ -66,6 +69,7 @@ public partial class App : Application
 
 			// Release SingleInstance Mutex
 			_singleMutex.ReleaseMutex();
+
 			if (pipeServer) {
 				StartServer();
 
@@ -107,24 +111,27 @@ public partial class App : Application
 	{
 		PipeServer = new NamedPipeServerStream(IPC_PIPE_NAME, PipeDirection.In);
 
-		PipeThread = new Thread([DebuggerHidden]() =>
-		{
-			while (true) {
-				PipeServer.WaitForConnection();
-				var sr = new StreamReader(PipeServer);
-
-				while (!sr.EndOfStream) {
-					var v = sr.ReadLine();
-					OnPipeMessage?.Invoke(v);
-				}
-
-				PipeServer.Disconnect();
-			}
-		})
+		PipeThread = new Thread(Start)
 		{
 			IsBackground = true
 		};
 		PipeThread.Start();
+	}
+
+	[DebuggerHidden]
+	private void Start()
+	{
+		while (true) {
+			PipeServer.WaitForConnection();
+			var sr = new StreamReader(PipeServer);
+
+			while (!sr.EndOfStream) {
+				var v = sr.ReadLine();
+				OnPipeMessage?.Invoke(v);
+			}
+
+			PipeServer.Disconnect();
+		}
 	}
 
 }

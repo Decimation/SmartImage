@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using JetBrains.Annotations;
 using Microsoft.Win32;
 using Novus.OS;
 using Novus.Win32;
@@ -16,9 +17,10 @@ namespace SmartImage.Lib.Utilities.Integration;
 [SupportedOSPlatform(OS_WIN)]
 public sealed class WindowsOSIntegration : BaseOSIntegration
 {
-
+	[NN]
 	public override string ChromePath => Path.Combine(ProgramFilesPath, @"Google\Chrome\Application\chrome.exe");
 
+	[NN]
 	public override string FirefoxPath => Path.Combine(AppDataPath, @"Mozilla");
 
 	public override string LaunchArgs { get; } = R1.Reg_Launch_Args;

@@ -13,6 +13,7 @@ using Flurl.Http;
 using Kantan.Monad;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using static Kantan.Diagnostics.LogCategories;
@@ -86,7 +87,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 			return result;
 		}
 
-		if (!result.Results.Any()) {
+		if (!result.HasResults) {
 			result.ErrorMessage = "Daily search limit (50) exceeded";
 			result.Status       = SearchResultStatus.Cooldown;
 
@@ -170,7 +171,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		 */
 
 		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
-			Trace.WriteLine("On cooldown!", Name);
+			Logger.LogTrace("{Name} on cooldown", Name);
+			sr.Status = SearchResultStatus.Cooldown;
+			sr.ErrorMessage = "On cooldown!";
+			sr.Flags = SearchResultFlags.NoResults;
 			goto ret;
 		}
 

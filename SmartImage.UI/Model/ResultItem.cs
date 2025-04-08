@@ -39,7 +39,7 @@ namespace SmartImage.UI.Model;
 
 #pragma warning disable CS8618
 
-public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, IItemSize, IDisposable
+public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, IDisposable
 {
 
 	private string m_previewText;

@@ -87,6 +87,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 			sr.Results.Add(rpm.Convert(sr));
 		}
 
+		if (sr.HasResults) {
+			sr.Status = SearchResultStatus.Success;
+		}
 	ret:
 		sr.Update();
 		return sr;

@@ -243,7 +243,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	public bool UseContextMenu
 	{
 		get => BaseOSIntegration.Integration.IsContextMenuAdded;
-		set => BaseOSIntegration.Integration.HandleContextMenu(value, R2.Reg_Launch_Args);
+		set => BaseOSIntegration.Integration.HandleContextMenu(value, R2.Reg_Launch_Args2);
 	}
 
 	public bool InPath
@@ -776,7 +776,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void OnResult(object o, SearchResult result)
 	{
 		++m_cntResults;
-		var cle = Client.Engines.Length;
+		var cle = Client.Engines.Count;
 
 		Tb_Status.Text   = $"{m_cntResults}/{cle} | {(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 		Pb_Preview.Value = (m_cntResults / (double) cle) * 100;

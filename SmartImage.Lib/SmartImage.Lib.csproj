@@ -71,7 +71,7 @@
     <PackageReference Include="System.Reactive" Version="6.0.1" />
     <PackageReference Include="System.Runtime.Caching" Version="9.0.3" />
     <PackageReference Include="System.Text.Json" Version="9.0.3" />
-    <PackageReference Include="Verify.Flurl" Version="1.0.0" />
+    <PackageReference Include="Verify.Flurl" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>

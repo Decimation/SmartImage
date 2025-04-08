@@ -167,11 +167,11 @@ namespace SmartImage.UI {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to -i &quot;%1&quot; -auto.
+        ///   Looks up a localized string similar to -i &quot;%1&quot; -auto -s.
         /// </summary>
-        internal static string Reg_Launch_Args {
+        internal static string Reg_Launch_Args2 {
             get {
-                return ResourceManager.GetString("Reg_Launch_Args", resourceCulture);
+                return ResourceManager.GetString("Reg_Launch_Args2", resourceCulture);
             }
         }
     }
