@@ -1,12 +1,10 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: ICookieProvider.cs
 // Date: 2024/10/15 @ 12:10:00
 
-using System.Net;
-using Flurl.Http;
 using Kantan.Net.Web;
 using SmartImage.Lib.Utilities.Integration;
 
-namespace SmartImage.Lib.Results.Data;
+namespace SmartImage.Lib.Cookies;
 
 public interface ICookiesProvider : IDisposable
 {

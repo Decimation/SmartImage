@@ -12,6 +12,7 @@ using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;

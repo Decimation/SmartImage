@@ -3,10 +3,12 @@
 
 using System.Diagnostics.CodeAnalysis;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Clients.Booru;
 // TODO
 
+[Experimental(AppSupport.DIAG_SMRTIMG_EXP001)]
 public class Rule34Booru : BaseGelbooruClient
 {
 

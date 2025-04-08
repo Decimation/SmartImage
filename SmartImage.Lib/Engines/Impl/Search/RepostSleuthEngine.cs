@@ -17,18 +17,22 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
+public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 {
 
 	private const string URL_API   = "https://api.repostsleuth.com/image";
 	private const string URL_QUERY = "https://repostsleuth.com/search?url=";
+
+	public Url EndpointUrl => URL_API;
+
+	protected override string[] ErrorBodyMessages => [];
 
 	private static readonly JsonSerializerOptions JsOptions = new(JsonSerializerDefaults.Web)
 	{
 		IncludeFields = true,
 	};
 
-	public RepostSleuthEngine() : base(URL_QUERY, URL_API)
+	public RepostSleuthEngine() : base(URL_QUERY)
 	{
 		// Timeout = TimeSpan.FromSeconds(4.5);
 	}
@@ -89,7 +93,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	}
 
-	#region API Objects
+#region API Objects
 
 	private class RepostSleuthClosestMatch
 	{
@@ -206,6 +210,6 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	}
 
-	#endregion
+#endregion
 
 }

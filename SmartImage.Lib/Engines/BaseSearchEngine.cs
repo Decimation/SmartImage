@@ -4,10 +4,12 @@
 global using R1 = SmartImage.Lib.Resources;
 global using Url = Flurl.Url;
 using System.Diagnostics;
+using System.Net.Http.Headers;
 using Flurl.Http;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Results;
@@ -17,6 +19,14 @@ using SmartImage.Lib.Utilities.Diagnostics;
 namespace SmartImage.Lib.Engines;
 #nullable enable
 
+
+public interface ISearchQueryVerifiable
+{
+
+	public ValueTask<bool> VerifyQueryAsync(SearchQuery query);
+
+}
+
 public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>
 {
 
@@ -24,7 +34,8 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	{
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, builder =>
 		{
-			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+
+			builder.Headers.AddOrReplace(HeaderNames.UserAgent, HttpUtilities.UserAgent);
 
 			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
 
@@ -41,11 +52,9 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		});
 	}
 
-	protected BaseSearchEngine(Url baseUrl, Url? endpoint = null)
+	protected BaseSearchEngine([NN] Url baseUrl)
 	{
-		BaseUrl     = baseUrl;
-		EndpointUrl = endpoint;
-		MaxSize     = null;
+		BaseUrl = baseUrl;
 	}
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -61,12 +70,13 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	/// </summary>
 	public virtual string Name => EngineOption.ToString();
 
+	/// <summary>
+	/// Base URI
+	/// </summary>
 	public virtual Url BaseUrl { get; }
 
 	[JI]
-	public TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
-
-	public Url? EndpointUrl { get; }
+	public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
 
 	[JI]
 	protected long? MaxSize { get; set; }
@@ -131,32 +141,36 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	}
 
+	/*public Task<SearchResult> GetTaskAsync(SearchQuery query, CancellationToken token = default)
+	{
+		// TODO
+
+		Task ops;
+		if (this is ISearchQueryVerifiable sq) {
+			ops = sq.VerifyQueryAsync(query);
+		}
+
+		var task = GetResultAsync(query, token);
+
+	}*/
+
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		var b = await VerifyQueryAsync(query);
-
-		/*
-		if (!b) {
-			// throw new SmartImageException($"{query}");
-			Debug.WriteLine($"{query} : Verification error", LogCategories.C_ERROR);
-		}
-		*/
+		var b = await TryVerifyQueryAsync(query);
 
 		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
 		var res = new SearchResult(this)
 		{
-			RawUrl       = GetRawUrl(query),
-			ErrorMessage = null,
-			Status       = srs
+			RawUrl = GetRawUrl(query),
+			Status = srs
 		};
 
 		lock (res.Results) {
 			res.Results.Add(res.RawResultItem);
 		}
 
-		Debug.WriteLine($"{Name} | {query} - {res.Status}", LogCategories.C_INFO);
-
+		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.Status);
 		return res;
 	}
 
@@ -164,12 +178,12 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	protected virtual Url GetRawUrl(SearchQuery query)
 	{
 		//
-		Url u = ((BaseUrl + query.Upload));
+		Url u = (BaseUrl + query.Upload);
 
 		return u;
 	}
 
-	public virtual ValueTask<bool> VerifyQueryAsync(SearchQuery q)
+	public virtual ValueTask<bool> TryVerifyQueryAsync(SearchQuery q)
 	{
 		bool b = true;
 
@@ -230,13 +244,9 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	}
 
 	public static bool operator ==(BaseSearchEngine? left, BaseSearchEngine? right)
-	{
-		return Equals(left, right);
-	}
+		=> Equals(left, right);
 
 	public static bool operator !=(BaseSearchEngine? left, BaseSearchEngine? right)
-	{
-		return !Equals(left, right);
-	}
+		=> !Equals(left, right);
 
 }

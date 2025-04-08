@@ -19,18 +19,22 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public class FluffleEngine : BaseSearchEngine, IDisposable
+public class FluffleEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 {
 
 	public const string URL_ENDPOINT = "https://api.fluffle.xyz/v1/";
 	public const string URL_BASE     = "https://fluffle.xyz/";
 
-	public FluffleEngine() : base(URL_BASE, URL_ENDPOINT)
+	public FluffleEngine() : base(URL_BASE)
 	{
 		MaxSize = 4_194_304; // MiB
 
 		// Timeout = TimeSpan.FromSeconds(10);
 	}
+
+
+	public Url EndpointUrl => URL_ENDPOINT;
+
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
@@ -73,7 +77,8 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			var er = await response.GetJsonAsync<FluffleErrorCode>();
 
 			sr.ErrorMessage = $"{er.Message}: {er.Code}";
-			sr.Status = SearchResultStatus.UnknownError;
+			sr.Status       = SearchResultStatus.UnknownError;
+
 			// return sr;
 			goto ret;
 		}
@@ -89,6 +94,7 @@ public class FluffleEngine : BaseSearchEngine, IDisposable
 			var item = result.Convert(sr);
 			sr.Results.Add(item);
 		}
+
 		sr.Status = SearchResultStatus.Success;
 	ret:
 		sr.Update();

@@ -2,10 +2,8 @@
 // Date: 2024/06/06 @ 17:06:56
 
 using Flurl.Http;
-using Kantan.Net.Web;
-using SmartImage.Lib.Utilities;
 
-namespace SmartImage.Lib.Results.Data;
+namespace SmartImage.Lib.Cookies;
 
 public interface ICookiesEngine
 {

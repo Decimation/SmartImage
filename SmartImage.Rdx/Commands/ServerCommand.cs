@@ -127,9 +127,16 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 						continue;
 					}
 
-					var task = Task.Run(() => requestHandler.Value(ctx), ct);
+					var task = Task.Run(() =>
+					{
+						var req = requestHandler.Value(ctx);
 
-					AnsiConsole.WriteLine($"queued {task.Id}");
+						return req;
+					}, ct);
+
+					AnsiConsole.WriteLine($"Queued {task.Id}");
+					var res = await task;
+
 
 					/*if (handlerObject is byte[] responseBytes) {
 						//...
@@ -163,6 +170,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		}
 	}
 
+	// 5737aabe216331623bea509108a768d4796cae77
+
 	private async Task<object> HandleRequestAsync2(HttpListenerContext ctx)
 	{
 
@@ -189,9 +198,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 				await Client.LoadEnginesAsync();
 
-
 				var results = new ConcurrentBag<SearchResult>();
-
 
 				var search = Client.RunSearchAsync(query);
 
@@ -205,8 +212,6 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 				await search;
 				srvResponse.Results = results.ToArray();
 				srvResponse.Best    = SearchClient.GetBest(srvResponse.Results);
-
-
 			}
 
 

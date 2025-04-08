@@ -7,6 +7,7 @@ using Kantan.Model;
 using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
 using Microsoft.Extensions.Configuration;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;

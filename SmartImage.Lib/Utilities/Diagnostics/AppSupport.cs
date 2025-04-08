@@ -21,8 +21,6 @@ public static class AppSupport
 
 	internal static readonly Version Version = Assembly.GetName().Version;
 
-	internal const string SI_DIAG_ID_0001 = "SI0001";
-
 	internal static readonly ILoggerFactory Factory =
 		LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Debug));
 
@@ -59,6 +57,8 @@ public static class AppSupport
 	 *		HKEY_CURRENT_USER\Software\Classes
 	 *		HKEY_LOCAL_MACHINE\Software\Classes
 	 */
+
+	public const string DIAG_SMRTIMG_EXP001 = "SMRTIMG_EXP001";
 
 }
 

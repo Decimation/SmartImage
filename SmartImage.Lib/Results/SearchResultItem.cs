@@ -268,7 +268,15 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 			throw new InvalidOperationException();
 		}
 
-		Parallel.ForEach(Uni, (u) => { u.TryCalculateSimilarity(h); });
+		var po = new ParallelOptions() { CancellationToken = ct };
+
+		var plr = Parallel.ForEach(Uni, po, (u, pls) =>
+		{
+			//
+			u.TryCalculateSimilarity(h);
+		});
+
+		Similarity = Uni.FirstOrDefault(f => f.Similarity.HasValue)?.Similarity;
 
 		return true;
 	}
@@ -315,7 +323,7 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		}*/
 	}
 
-	#region Relational members
+#region Relational members
 
 	public int CompareTo(SearchResultItem other)
 	{
@@ -361,6 +369,6 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		return Comparer<SearchResultItem>.Default.Compare(left, right) >= 0;
 	}
 
-	#endregion
+#endregion
 
 }

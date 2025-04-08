@@ -8,6 +8,7 @@ using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines;
@@ -17,14 +18,13 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 	protected abstract string NodesSelector { get; }
 
-	protected WebSearchEngine([NN] string baseUrl) : base(baseUrl) { }
+	protected WebSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
 
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-
 		var res = await base.GetResultAsync(query, token);
-		
+
 		if (res.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
@@ -35,9 +35,8 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			doc = await GetDocumentAsync(res, query: query, token: token);
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{e.Message}", nameof(GetResultAsync));
+			Logger.LogError(e, "{Name} error", e);
 			doc = null;
-
 		}
 
 		if (!Validate(doc, res)) {
@@ -58,8 +57,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			}
 		}
 
-		Debug.WriteLine($"{Name} :: {res.RawUrl} {doc.TextContent?.Length} {nodes.Count}",
-		                nameof(GetResultAsync));
+		Logger.LogInformation("{Name} :: {RawUrl} document {DocLength} w/ {Nodes}", Name, res.RawUrl, doc?.TextContent?.Length, nodes.Count);
 
 		res.Status = SearchResultStatus.Success;
 	ret:
@@ -98,13 +96,12 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		}
 		catch (Exception e) {
 			// return await Task.FromException<IDocument>(e);
-			Debug.WriteLine($"{this} :: {e.Message}", LogCategories.C_ERROR);
-
+			Logger.LogError(e, "{Name} failed to get doc", Name);
 			return null;
 		}
 	}
 
-	protected abstract ValueTask<SearchResultItem>  ParseResultItem(INode n, SearchResult r);
+	protected abstract ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r);
 
 	protected virtual ValueTask<List<INode>> GetNodes(IDocument d)
 	{
@@ -121,13 +118,10 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			if (doc.Body.TextContent.Contains(s)) {
 				return false;
 			}
-
 		}
 
 		return true;
 
 	}
-
-
 
 }

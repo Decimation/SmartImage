@@ -37,7 +37,7 @@ public enum UniImageType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>
-public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable
+public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable
 {
 
 	[MN]
@@ -260,9 +260,9 @@ public abstract class UniImage : IDisposable, IItemSize, IAsyncDisposable, IEqua
 
 	public bool TryCalculateSimilarity(IHashable comparand)
 	{
-		if (!((IHashable) this).HasHash || !comparand.HasHash) {
+		/*if (!((IHashable) this).HasHash || !comparand.HasHash) {
 			throw new InvalidOperationException();
-		}
+		}*/
 
 		Similarity ??= CompareHash.Similarity(comparand.Hash.Value, Hash.Value);
 

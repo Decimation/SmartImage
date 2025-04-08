@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: IHashable.cs
 // Date: 2024/11/13 @ 16:11:29
 
+using System.Security.Cryptography;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Results.Data;

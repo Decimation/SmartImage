@@ -18,13 +18,28 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 /// 
 /// </summary>
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
-public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
+public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 {
 
-	public TraceMoeEngine() : base(URL_QUERY, URL_API)
+	public TraceMoeEngine() : base(URL_QUERY)
 	{
 		Timeout = TimeSpan.FromSeconds(25);
 	}
+
+	public Url EndpointUrl => URL_API;
+
+	/// <summary>
+	/// https://anilist.co/anime/{id}/
+	/// </summary>
+	private const string ANILIST_URL = "https://anilist.co/anime/";
+
+	/// <summary>
+	/// Threshold at which results become inaccurate
+	/// </summary>
+	public const double FILTER_THRESHOLD = 87.00;
+
+	private const string URL_API   = "https://api.trace.moe";
+	private const string URL_QUERY = "https://trace.moe/?url=";
 
 	/// <summary>
 	/// Used to retrieve more information about results
@@ -136,19 +151,6 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 		return items;
 
 	}
-
-	/// <summary>
-	/// https://anilist.co/anime/{id}/
-	/// </summary>
-	private const string ANILIST_URL = "https://anilist.co/anime/";
-
-	/// <summary>
-	/// Threshold at which results become inaccurate
-	/// </summary>
-	public const double FILTER_THRESHOLD = 87.00;
-
-	private const string URL_API   = "https://api.trace.moe";
-	private const string URL_QUERY = "https://trace.moe/?url=";
 
 	public override void Dispose()
 	{

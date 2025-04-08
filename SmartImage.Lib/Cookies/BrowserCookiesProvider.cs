@@ -2,17 +2,10 @@
 
 using System.Data;
 using System.Diagnostics;
-using System.Net;
 using System.Runtime.Caching;
-using System.Runtime.CompilerServices;
-using AngleSharp.Css.Dom;
-using Flurl.Http;
 using Kantan.Net.Web;
 
-namespace SmartImage.Lib.Results.Data;
-
-using System.Runtime.Caching;
-using Results.Data;
+namespace SmartImage.Lib.Cookies;
 
 public class BrowserCookiesProvider : ICookiesProvider
 {

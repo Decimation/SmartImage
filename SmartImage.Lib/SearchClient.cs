@@ -4,6 +4,7 @@ global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 using System.Collections;
 using System.Collections.Concurrent;
+using System.Collections.Frozen;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Net;
@@ -28,6 +29,7 @@ using Novus.FileTypes;
 using Novus.OS;
 using Novus.Win32;
 using SmartImage.Lib.Clients;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
@@ -46,7 +48,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsComplete { get; private set; }
 
-	public IEnumerable<BaseSearchEngine> Engines { get; private set; }
+	public FrozenSet<BaseSearchEngine> Engines { get; private set; }
 
 	public bool ConfigApplied { get; private set; }
 
@@ -124,6 +126,7 @@ public sealed class SearchClient : IDisposable
 
 		// Requires.NotNull(ResultChannel);
 		if (ResultChannel == null || (IsComplete && !IsRunning)) {
+			// todo: throw
 			OpenChannel();
 		}
 
@@ -135,13 +138,12 @@ public sealed class SearchClient : IDisposable
 
 		if (!ConfigApplied) {
 			await LoadEnginesAsync(token); // todo
-
 		}
 		else {
-			Debug.WriteLine("Not reloading engines");
+			s_logger.LogDebug("Not reloading config");
 		}
 
-		Debug.WriteLine($"Config: {Config} | {Engines.QuickJoin()}");
+		s_logger.LogTrace("{Config} with {Engines}", Config, Engines.QuickJoin());
 
 		var tasks = GetSearchTasks(query, scheduler, token).ToHashSet();
 
@@ -159,7 +161,7 @@ public sealed class SearchClient : IDisposable
 			tasks.Remove(task);
 
 			if (task.IsFaulted) {
-				Trace.WriteLine($"{task} faulted!", LogCategories.C_ERROR);
+				s_logger.LogError("{Task} faulted", task);
 			}
 
 			SearchResult result = await task;
@@ -206,8 +208,8 @@ public sealed class SearchClient : IDisposable
 				}
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-
+				s_logger.LogError(e, "Run search error");
+				
 				Debugger.Break();
 			}
 
@@ -281,43 +283,26 @@ public sealed class SearchClient : IDisposable
 	}
 
 
-	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler,
-	                                                      CancellationToken token)
+	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler, CancellationToken token)
 	{
-
 		return Engines.Select(e =>
 		{
-			try {
-				Debug.WriteLine($"Starting {e} for {query}");
+			return e.GetResultAsync(query, token: token)
+				.ContinueWith((r) =>
+				{
+					ProcessResult(r.Result);
+					return r.Result;
 
-				Task<SearchResult> res = e.GetResultAsync(query, token: token)
-					.ContinueWith((r) =>
-					{
-						ProcessResult(r.Result);
-						return r.Result;
-
-					}, token, TaskContinuationOptions.None, scheduler);
-
-				return res;
-			}
-			catch (Exception exception) {
-				Debugger.Break();
-				Trace.WriteLine($"{exception}");
-
-				// return  Task.FromException(exception);
-			}
-
-			return null;
+				}, token, TaskContinuationOptions.None, scheduler);
 		});
 	}
 
 	public async ValueTask LoadEnginesAsync(CancellationToken token = default)
 	{
 		// todo
+		s_logger.LogTrace("Loading engines");
 
-		Trace.WriteLine("Loading engines");
-
-		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines);
+		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToFrozenSet();
 
 		if (Config.ReadCookies) {
 
@@ -327,31 +312,23 @@ public sealed class SearchClient : IDisposable
 				await ((BrowserCookiesProvider) Config.CookiesProvider).OpenAsync();
 			}
 			catch (Exception e) {
-				Trace.WriteLine($"{e}");
+				s_logger.LogError(e, "Error reading cookies");
 				Config.ReadCookies = false;
 				Config.CookiesProvider.Dispose();
 			}
 		}
 
-		foreach (BaseSearchEngine bse in Engines) {
-
+		await Parallel.ForEachAsync(Engines, token, async (bse, cancellationToken) =>
+		{
 			if (bse is ISearchConfigReceiver cfg) {
-				await cfg.ApplyConfigAsync(Config, token);
+				await cfg.ApplyConfigAsync(Config, cancellationToken);
 			}
+		});
 
-			/*
-			if (Config.ReadCookies && bse is ICookiesReceiver ce) {
-
-				var ok = await ce.ApplyCookiesAsync(DefaultCookiesProvider.Instance, token);
-
-				// if (await CookiesManager.Instance.LoadCookiesAsync()) { }
-			}
-		*/
-		}
 
 		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
 
-			var ok = await FlareSolverrClient.Value.ApplyConfigAsync(Config,token);
+			var ok = await FlareSolverrClient.Value.ApplyConfigAsync(Config, token);
 
 			if (!ok) {
 				Debugger.Break();
@@ -363,7 +340,7 @@ public sealed class SearchClient : IDisposable
 					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
 				}
 				catch (Exception e) {
-					Trace.WriteLine($"{nameof(FlareSolverrClient)}: {e.Message}");
+					s_logger.LogError(e, "FlareSolverr error");
 					Config.FlareSolverr = false;
 					FlareSolverrClient.Value.Dispose();
 				}
@@ -378,7 +355,7 @@ public sealed class SearchClient : IDisposable
 
 	public void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(SearchClient)}");
+		s_logger.LogDebug("Disposing {Client}", Config);
 
 		foreach (BaseSearchEngine engine in Engines) {
 			engine.Dispose();

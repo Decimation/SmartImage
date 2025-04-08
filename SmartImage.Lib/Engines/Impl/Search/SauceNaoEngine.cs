@@ -32,7 +32,7 @@ using Novus.Streams;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfigReceiver
+public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchConfigReceiver, IDisposable
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -46,17 +46,21 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 	 * https://github.com/luk1337/SauceNAO/blob/master/app/src/main/java/com/luk/saucenao/MainActivity.java
 	 */
 
-	public SauceNaoEngine(string authentication) : base(URL_QUERY, URL_API)
+	protected override string[] ErrorBodyMessages { get; } = [];
+
+	public Url EndpointUrl => URL_API;
+
+	public bool UsingAPI => !string.IsNullOrWhiteSpace(Authentication);
+
+	public string Authentication { get; set; }
+
+	public SauceNaoEngine(string authentication) : base(URL_QUERY)
 	{
 		Authentication = authentication;
 
 	}
 
 	public SauceNaoEngine() : this(null) { }
-
-	public string Authentication { get; set; }
-
-	public bool UsingAPI => !string.IsNullOrWhiteSpace(Authentication);
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
@@ -147,11 +151,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IDisposable, ISearchConfi
 
 				           if (query.Source.IsUri) { }
 				           else if (query.Source.IsFile) {
-					            s = query.Source.ValueString;
+					           s = query.Source.ValueString;
 					           m.AddFile("file", s, fileName: "image.png");
 				           }
 				           else {
-					            s = query.Source.FilePath;
+					           s = query.Source.FilePath;
 					           m.AddFile("file", s, fileName: "image.png");
 
 				           }

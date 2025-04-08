@@ -268,8 +268,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					else if (cmd2 == "calculate") {
 						await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 						{
+							var hashOk = await res.CalculateAsync(Query.Source);
 
-							var ui     = res.Uni[0];
+							if (hashOk) {
+								var row = GetRow(res.Uni[0]);
+								m_table.Rows.Update(row, 2, new Text(res.Similarity.ToString()));
+								f.Refresh();
+							}
+							/*var ui     = res.Uni[0];
 							var hashOk = ui.TryCalculateSimilarity(Query.Source);
 
 							if (hashOk) {
@@ -277,7 +283,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 								m_table.Rows.Update(row, 2, new Text(res.Similarity.ToString()));
 								f.Refresh();
 
-							}
+							}*/
 						});
 
 						// var row    = dict[item];
@@ -361,7 +367,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					Debugger.Break();
 				}
 			}
-
+			else {
+				return;
+			}
 			int i       = 0;
 			var row     = GetRow(item);
 			var rowOrig = row;

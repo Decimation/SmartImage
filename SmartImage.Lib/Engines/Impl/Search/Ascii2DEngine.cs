@@ -11,6 +11,7 @@ using FlareSolverrSharp.Types;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using SmartImage.Lib.Clients;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 

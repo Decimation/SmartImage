@@ -23,16 +23,18 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 #nullable disable
 
-public class IqdbEngine : BaseSearchEngine, IDisposable
+public class IqdbEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
 
+	public virtual Url EndpointUrl => URL_BASE;
+
 	public IqdbEngine() : this(URL_QUERY) { }
 
-	private IqdbEngine(string s) : this(s, URL_ENDPOINT) { }
+	// private IqdbEngine(string s) : this(s) { }
 
-	protected IqdbEngine(string b, string e) : base(b, e)
+	protected IqdbEngine(string b) : base(b)
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 
@@ -41,14 +43,16 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 
 	private const int MAX_FILE_SIZE = 8_388_608;
 
-	private const string URL_ENDPOINT = "https://iqdb.org/";
+	private const string URL_BASE = "https://iqdb.org/";
 	private const string URL_QUERY    = "https://iqdb.org/?url=";
 
 	protected override string[] ErrorBodyMessages =>
 	[
 		"Can't read query result!",
-		"too large"
+		"too large",
+		$"Could not retrieve data"
 	];
+
 
 	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
 	{
@@ -237,8 +241,8 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		var doc = await GetDocumentAsync(query, token);
 
 		if (doc == null || doc.Body == null) {
-			sr.ErrorMessage = $"Could not retrieve data";
-			sr.Status       = SearchResultStatus.UnknownError;
+			sr.ErrorMessage = "Could not retrieve data";
+			sr.Status = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
@@ -302,7 +306,7 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		return sr;
 	}
 
-	#region
+#region
 
 	public override void Dispose()
 	{
@@ -310,6 +314,6 @@ public class IqdbEngine : BaseSearchEngine, IDisposable
 		GC.SuppressFinalize(this);
 	}
 
-	#endregion
+#endregion
 
 }

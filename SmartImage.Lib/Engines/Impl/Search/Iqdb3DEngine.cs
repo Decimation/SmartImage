@@ -33,5 +33,12 @@ public sealed class Iqdb3DEngine : IqdbEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb3D;
 
-	public Iqdb3DEngine() : base(URL_QUERY, URL_BASE) { }
+	public Iqdb3DEngine() : base(URL_QUERY) { }
+
+#region Overrides of IqdbEngine
+
+	public override Url EndpointUrl => URL_BASE;
+
+#endregion
+
 }

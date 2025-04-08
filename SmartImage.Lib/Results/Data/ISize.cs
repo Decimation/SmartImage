@@ -5,7 +5,7 @@ namespace SmartImage.Lib.Results.Data;
 
 // TODO: delete
 
-public interface IItemSize
+public interface ISize
 {
 	public long Size { get; }
 

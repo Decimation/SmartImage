@@ -3,7 +3,7 @@
 
 using Kantan.Net.Web;
 
-namespace SmartImage.Lib.Results.Data;
+namespace SmartImage.Lib.Cookies;
 
 public class DefaultCookiesProvider : ICookiesProvider
 {
