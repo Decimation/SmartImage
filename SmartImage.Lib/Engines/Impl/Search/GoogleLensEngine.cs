@@ -4,15 +4,22 @@
 using AngleSharp;
 using AngleSharp.Css.Values;
 using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
+using AngleSharp.XPath;
 using Flurl.Http;
 using Kantan.Net.Utilities;
+using Kantan.Net.Web;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public class GoogleLensEngine : WebSearchEngine, IEndpointEngine
+public class GoogleLensItem { }
+
+public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEngine*/
 {
 
 	// TODO: WIP
@@ -31,9 +38,9 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine
 
 	public GoogleLensEngine() : base(URL_BASE) { }
 
-	public static readonly string[] SearchTypes = ["all", "products", "visual_matches", "exact_matches"];
-
 	public FlurlCookie Nid { get; set; }
+
+	public static readonly string[] SearchTypes = ["all", "products", "visual_matches", "exact_matches"];
 
 	public string HlParam { get; set; } = "en-US";
 
@@ -49,12 +56,25 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine
 
 	protected override async ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
-		throw new NotImplementedException();
+
+		if (n is IHtmlElement e) {
+			var title=e.QuerySelector(".Yt787")?.TextContent;
+			//e.QuerySelector("//*[class*='gdOPf q07dbf uhHOwf ez24Df']");
+			var siteName = e.SelectNodes("//*[contains(@class,'gdOPf')]");
+
+		}
+		var sri = new SearchResultItem(r)
+		{
+
+		};
+
+		return sri;
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		return await base.GetResultAsync(query, token);
+		var br = await base.GetResultAsync(query, token);
+		return br;
 	}
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
@@ -63,15 +83,11 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine
 		Task<IFlurlResponse> req;
 		IFlurlResponse       res;
 
-		/*if (query.Source.IsFile) {
-			req = SearchFile(query, token);
-		}
-		else if (query.Source.IsUri) {
-			req = SearchUrl(query, token);
-		}
+		if (query.Source.IsFile) { }
+		else if (query.Source.IsUri) { }
 		else {
 			return null;
-		}*/
+		}
 
 		req = SearchUrlAsync(query, token);
 
@@ -82,21 +98,22 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine
 
 		var res2 = await Client.Request(url)
 			           .WithTimeout(Timeout)
-			           // .WithHeaders(Headers)
 			           .WithCookie(Nid.Name, Nid.Value)
+
+			           // .WithHeaders(Headers)
 			           .GetAsync(cancellationToken: token);
 
 		var resData = await res2.GetStringAsync();
 
 		var parser = new HtmlParser(new HtmlParserOptions()
 		{
-			IsScripting = true, 
-			IsStrictMode = false, 
-			IsAcceptingCustomElementsEverywhere = true, 
-			IsEmbedded = true
+			IsScripting                         = true,
+			IsStrictMode                        = false,
+			IsAcceptingCustomElementsEverywhere = true,
+			IsEmbedded                          = true
 		});
 
-		var doc    = await parser.ParseDocumentAsync(resData);
+		var doc = await parser.ParseDocumentAsync(resData);
 
 		// BrowsingContext.New(Configuration.Default.WithCookies().WithCss());
 
@@ -147,12 +164,16 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine
 			.WithHeaders(Headers)
 			.WithTimeout(Timeout)
 			.GetAsync(cancellationToken: token);
+
+		// var sz = await (await req).GetStringAsync();
+
 		return req;
 	}
 
-	protected override async ValueTask<List<INode>> GetNodes(IDocument d)
+	protected override ValueTask<List<INode>> GetNodes(IDocument d)
 	{
-		return await base.GetNodes(d);
+		var all = d.QuerySelectorAll(".LBcIee");
+		return ValueTask.FromResult(all.OfType<INode>().ToList());
 	}
 
 	protected override Url GetRawUrl(SearchQuery query)
