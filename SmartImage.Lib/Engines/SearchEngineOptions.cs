@@ -97,6 +97,11 @@ public enum SearchEngineOptions
 	/// </summary>
 	Fluffle = 1 << 15,
 
+	/// <summary>
+	/// <see cref="GoogleLensEngine"/>
+	/// </summary>
+	GoogleLens = 1 << 16,
+
 
 #region
 
@@ -104,7 +109,7 @@ public enum SearchEngineOptions
 	///     All engines
 	/// </summary>
 	All = SauceNao | ImgOps       | GoogleImages | TinEye     | Iqdb   | TraceMoe | KarmaDecay | Yandex | Bing |
-	      Ascii2D  | RepostSleuth | EHentai      | ArchiveMoe | Iqdb3D | Fluffle,
+	      Ascii2D  | RepostSleuth | EHentai      | ArchiveMoe | Iqdb3D | Fluffle | GoogleLens,
 
 	Artwork = SauceNao | Iqdb | Ascii2D | EHentai,
 

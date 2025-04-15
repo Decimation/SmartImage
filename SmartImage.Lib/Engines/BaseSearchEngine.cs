@@ -139,6 +139,8 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		if (options.HasFlag(SearchEngineOptions.Fluffle))
 			yield return new FluffleEngine();
 
+		if (options.HasFlag(SearchEngineOptions.GoogleLens))
+			yield return new GoogleLensEngine();
 	}
 
 	/*public Task<SearchResult> GetTaskAsync(SearchQuery query, CancellationToken token = default)

@@ -240,7 +240,7 @@ public class IqdbEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 
 		var doc = await GetDocumentAsync(query, token);
 
-		if (doc == null || doc.Body == null) {
+		if (doc?.Body == null) {
 			sr.ErrorMessage = "Could not retrieve data";
 			sr.Status = SearchResultStatus.UnknownError;
 			goto ret;

@@ -188,12 +188,13 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 		foreach (var bck in cookies) {
 
-			var  cookie = bck.AsCookie();
+			var cookie = bck.AsCookie();
 
 			if (cookie == null) {
 				continue;
 			}
-			bool c      = false;
+
+			bool c = false;
 
 			if (UseExHentai) {
 				c |= cookie.Domain.Contains(HOST_EX);
@@ -211,6 +212,51 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		var response = await GetSessionAsync();
 
 		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
+	}
+
+	public async Task<bool> LoginAsync(string username, string password)
+	{
+		/*
+		if (IsLoggedIn) {
+			return false;
+		}
+		*/
+
+		// var fcc = await ReadCookiesAsync();
+
+		var content = new MultipartFormDataContent()
+		{
+			{ new StringContent("1"), "CookieDate" },
+			{ new StringContent("d"), "b" },
+			{ new StringContent("1-6"), "bt" },
+			{ new StringContent(username), "UserName" },
+			{ new StringContent(password), "PassWord" },
+			{ new StringContent("Login!"), "ipb_login_submit" }
+		};
+
+		var response = await EHentaiIndex
+			               .SetQueryParams(new
+			               {
+				               act  = "Login",
+				               CODE = 01
+			               }).WithHeaders(new
+			               {
+				               User_Agent = HttpUtilities.UserAgent
+			               })
+			               .WithCookies(out var cj)
+			               .PostAsync(content);
+
+		/*foreach (var fc in fcc) {
+			Cookies.Add(fc.AsCookie());
+		}*/
+
+		foreach (var fc in response.Cookies) {
+			Jar.AddOrReplace(fc);
+		}
+
+		var res2 = await GetSessionAsync();
+
+		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
 
 	/*
@@ -239,7 +285,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 	public ICookiesProvider Provider { get; set; }
 
-	#region
+#region
 
 	public static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
 	public static readonly Url EHentaiBase   = "https://e-hentai.org/";
@@ -248,14 +294,14 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
 	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
 
-	#region
+#region
 
 	private const string HOST_EH = ".e-hentai.org";
 	private const string HOST_EX = ".exhentai.org";
 
-	#endregion
+#endregion
 
-	#endregion
+#endregion
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{

@@ -72,7 +72,6 @@ public class ArchiveMoeEngine : WebSearchEngine
 		return ValueTask.FromResult(p.Convert(r));
 
 		// ReSharper restore PossibleNullReferenceException
-
 	}
 
 	protected static string GetHash(SearchQuery q)
