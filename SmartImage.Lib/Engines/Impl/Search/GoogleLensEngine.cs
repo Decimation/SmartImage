@@ -17,7 +17,44 @@ using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public class GoogleLensItem { }
+public class GoogleLensItem : IResultConverter2<GoogleLensItem>
+{
+
+	public string Title { get; private set; }
+
+	public string SiteName { get; private set; }
+
+#region Implementation of IResultConverter2<out GoogleLensItem>
+
+	public IEnumerable<SearchResultItem> ToResultItem(SearchResult sr)
+	{
+		var sri = new SearchResultItem(sr)
+		{
+
+		};
+
+		return [sri];
+	}
+
+	public static GoogleLensItem Parse(INode n)
+	{
+		var gli = new GoogleLensItem();
+
+		if (n is IHtmlElement e) {
+			var title = e.QuerySelector(".Yt787")?.TextContent;
+
+			//e.QuerySelector("//*[class*='gdOPf q07dbf uhHOwf ez24Df']");
+			var siteName = e.SelectNodes("//*[contains(@class,'gdOPf')]");
+			gli.Title    = title;
+			gli.SiteName = siteName[0].TextContent;
+		}
+
+		return gli;
+	}
+
+#endregion
+
+}
 
 public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEngine*/
 {
@@ -57,16 +94,9 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEng
 	protected override async ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
 
-		if (n is IHtmlElement e) {
-			var title=e.QuerySelector(".Yt787")?.TextContent;
-			//e.QuerySelector("//*[class*='gdOPf q07dbf uhHOwf ez24Df']");
-			var siteName = e.SelectNodes("//*[contains(@class,'gdOPf')]");
 
-		}
 		var sri = new SearchResultItem(r)
-		{
-
-		};
+			{ };
 
 		return sri;
 	}

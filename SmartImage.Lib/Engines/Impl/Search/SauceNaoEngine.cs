@@ -55,13 +55,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 
 	public string Authentication { get; set; }
 
-	public SauceNaoEngine(string authentication) : base(URL_QUERY)
+	public SauceNaoEngine(string authentication = null) : base(URL_QUERY)
 	{
 		Authentication = authentication;
 
 	}
-
-	public SauceNaoEngine() : this(null) { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
 
@@ -74,7 +72,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 
 		try {
 			if (UsingAPI) {
-				Debug.WriteLine($"{Name} API key: {Authentication}");
+				Logger.LogInformation("[{Name}] API key: {Auth}", Name, Authentication);
+
 				await GetAPIResultsAsync(query, result);
 			}
 			else {
@@ -125,14 +124,15 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 
 	private async ValueTask GetWebResultsAsync(SearchQuery query, SearchResult sr)
 	{
-		Trace.WriteLine($"{Name}: | Parsing HTML", C_INFO);
+		Logger.LogTrace("[{Name}] Parsing HTML", Name);
 
 		var docp = new HtmlParser();
 
 		string         html     = null;
 		IFlurlResponse response = null;
 
-		response = await Client.Request(EndpointUrl).AllowHttpStatus()
+		response = await Client.Request(EndpointUrl)
+			           .AllowHttpStatus()
 			           .OnError(x =>
 			           {
 				           x.ExceptionHandled = true;
@@ -171,10 +171,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		 */
 
 		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
-			Logger.LogTrace("{Name} on cooldown", Name);
-			sr.Status = SearchResultStatus.Cooldown;
+			Logger.LogWarning("[{Name}] Parsing HTML", Name);
+
+			sr.Status       = SearchResultStatus.Cooldown;
 			sr.ErrorMessage = "On cooldown!";
-			sr.Flags = SearchResultFlags.NoResults;
+			sr.Flags        = SearchResultFlags.NoResults;
 			goto ret;
 		}
 
@@ -189,9 +190,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		var doc = await docp.ParseDocumentAsync(html);
 
 		var results = doc.Body.SelectNodes("//div[@class='result']");
-
+		
 		foreach (INode result in results) {
-			Parse(result, sr);
+			var sndr = SauceNaoDataResult.Parse(result);
+			var sris = sndr.ToResultItem(sr);
+			sr.Results.AddRange(sris);
 		}
 
 		doc.Dispose();
@@ -202,7 +205,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 
 	private async ValueTask GetAPIResultsAsync(SearchQuery url, SearchResult sr)
 	{
-		Trace.WriteLine($"{Name} | API");
+		Logger.LogTrace("[{Name}] Using API", Name);
 
 		// var client = new HttpClient();
 
@@ -265,8 +268,8 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 			// var buffer      = new List<SearchResultItem>();
 			var resultArray = JsonNode.Parse(json).AsArray();
 
-			for (int i = 0; i < resultArray.Count; i++) {
-				var   result     = resultArray[i].AsObject();
+			foreach (JsonNode t in resultArray) {
+				var   result     = t.AsObject();
 				float similarity = float.Parse(result[KeySimilarity].AsValue().ToString());
 
 				string[] strings = result.ContainsKey(KeyUrls)
@@ -277,10 +280,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 
 				var index = (SauceNaoSiteIndex) int.Parse(result[KeyIndex].ToString());
 
-				for (int j = 0; j < strings.Length; j++) {
+				foreach (string t1 in strings) {
 					var item = new SearchResultItem(sr)
 					{
-						Url        = strings[j],
+						Url        = t1,
 						Similarity = similarity,
 						Site       = index.ToString(),
 						Artist     = result.TryGetKeyValue(KeyCreator)?.ToString().CleanString(),
@@ -288,7 +291,6 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 						Source     = result.TryGetKeyValue(KeyMaterial)?.ToString().CleanString()
 					};
 					sr.Results.Add(item);
-
 				}
 			}
 
@@ -308,18 +310,163 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		return ValueTask.FromResult(UsingAPI);
 	}
 
-	private static void Parse(INode result, SearchResult sr)
+	public override void Dispose() { }
+
+	public static bool IsLookupUrl(Url url)
+	{
+		return (url).QueryParams.Contains("lookup_type");
+	}
+
+}
+
+/// <summary>
+/// Origin result
+/// </summary>
+public sealed class SauceNaoDataResult : IResultConverter2<SauceNaoDataResult>
+{
+
+	/// <summary>
+	///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
+	/// </summary>
+	public string[] Urls { get; internal set; }
+
+	/// <summary>
+	///     The search index of the image
+	/// </summary>
+	public SauceNaoSiteIndex Index { get; internal set; }
+
+	/// <summary>
+	///     How similar is the image to the one provided (Percentage)?
+	/// </summary>
+	public double Similarity { get; internal set; }
+
+	public string WebsiteTitle { get; internal set; }
+
+	public string Title { get; internal set; }
+
+	public string Character { get; internal set; }
+
+	public string Material { get; internal set; }
+
+	public string Creator { get; internal set; }
+
+	public string Source { get; internal set; }
+
+	public Url Thumbnail { get; internal set; }
+
+	public string Site { get; internal set; }
+
+	public string ThumbnailTitle { get; internal set; }
+
+	internal const string KEY_TWITTER = "Twitter:";
+
+	internal const string KEY_TWEET_ID = "Tweet ID:";
+
+	internal const string KEY_MATERIAL = "Material:";
+
+	internal const string KEY_SOURCE = "Source:";
+
+	internal static readonly string[] Keys_Artist = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
+
+	internal static readonly string[] Keys_Characters = ["Characters:"];
+
+	private SauceNaoDataResult() { }
+
+	/*public SearchResultItem Convert(SearchResult r)
+	{
+		var    idxStr   = Index.ToString();
+		string siteName = Index != 0 ? idxStr : null;
+
+		var site  = Strings.NormalizeNull(siteName);
+		var title = Strings.NormalizeNull(WebsiteTitle);
+
+		var sb = new StringBuilder();
+
+		if (site is { }) {
+			sb.Append(site);
+		}
+
+		if (title is { }) {
+			sb.Append($" [{title}]");
+		}
+
+		site = sb.ToString().Trim(' ');
+
+		/*var urls = sn.Urls.OrderByDescending(s =>
+			{
+				Url u = s;
+				return u.Host == "gelbooru" || u.Host == "danbooru";
+			}).ToArray();#1#
+
+		string[] urls = (Urls != null)
+			                ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
+			                : [];
+
+		string[] meta = [];
+
+		if ((urls.Length >= 2)) {
+			meta = urls[1..].Where(u => !SauceNaoEngine.IsLookupUrl((Url) u)).ToArray();
+		}
+
+		var imageResult = new SearchResultItem(r)
+		{
+			Url        = urls.FirstOrDefault(),
+			Similarity = Math.Round(Similarity, 2),
+
+			// Similarity = Similarity,
+			Description    = siteName,
+			Artist         = Strings.NormalizeNull(Creator),
+			Source         = Strings.NormalizeNull(Material),
+			Character      = Strings.NormalizeNull(Character),
+			Site           = site,
+			Title          = Strings.NormalizeNull(Title),
+			Metadata       = meta,
+			Thumbnail      = Thumbnail,
+			ThumbnailTitle = ThumbnailTitle
+
+		};
+
+		var children = imageResult.CreateChildren(meta);
+
+		r.Results.AddRange(children);
+
+		return imageResult;
+
+	}*/
+
+#region Implementation of IResultConverter2<out SauceNaoDataResult>
+
+	public IEnumerable<SearchResultItem> ToResultItem(SearchResult sr)
+	{
+		var sri = new SearchResultItem(sr)
+		{
+			Artist         = Creator,
+			Source         = Source,
+			Site           = Site,
+			Similarity     = Similarity,
+			Character      = Character,
+			Thumbnail      = Thumbnail,
+			ThumbnailTitle = ThumbnailTitle,
+			Title          = Title,
+			Url            = Urls[0],
+		};
+
+		var children = sri.CreateChildren(Urls[1..]);
+		return [sri, .. children];
+	}
+
+	public static SauceNaoDataResult Parse(INode result)
 	{
 		// TODO: OPTIMIZE
 
 		if (result == null) {
-			return;
+			return null;
 		}
 
 		const string HIDDEN_ID_VAL = "result-hidden-notification";
 
 		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
-			return;
+			return null;
 		}
 
 		var resultElem = result as IHtmlElement;
@@ -416,7 +563,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 			var c = true;
 
 			if (b) {
-				c = !IsLookupUrl(Url.Parse(x));
+				c = !SauceNaoEngine.IsLookupUrl(Url.Parse(x));
 			}
 
 			return b && c;
@@ -432,9 +579,11 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 
 		}
 
-		var sndr = new SearchResultItem(sr)
+		var sndr = new SauceNaoDataResult()
 		{
-			Url            = url,
+			Urls = [url],
+
+			// Url            = url,
 			Similarity     = Math.Round(similarity, 2),
 			Source         = material1,
 			Thumbnail      = thumbnail,
@@ -445,10 +594,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 			Site  = site
 		};
 
-		if (rtiHasArtist && String.IsNullOrWhiteSpace(sndr.Artist)) {
+		if (rtiHasArtist && String.IsNullOrWhiteSpace(sndr.Creator)) {
 			// sndr.Creator = rti;
 			// Debugger.Break();
-			sndr.Artist = rti;
+			sndr.Creator = rti;
 		}
 
 		for (int i = 0; i < nodes.Length; i++) {
@@ -472,141 +621,23 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 
 			if (SauceNaoDataResult.Keys_Artist.Any(nodeText.StartsWith)
 			    || nodeText.StartsWith(SauceNaoDataResult.KEY_TWITTER)) {
-				sndr.Artist = nodes[++i].TextContent.Trim(' ');
+				sndr.Creator = nodes[++i].TextContent.Trim(' ');
 
 				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
 			}
 		}
 
-		sr.Results.Add(sndr);
+		/*sr.Results.Add(sndr);
 
 		if (urls.Length >= 1) {
 			var children = sndr.CreateChildren(urls[1..]);
 			sr.Results.AddRange(children);
-		}
+		}*/
+
+		return sndr;
 	}
 
-	public override void Dispose() { }
-
-	public static bool IsLookupUrl(Url url)
-	{
-		return (url).QueryParams.Contains("lookup_type");
-	}
-
-}
-
-/// <summary>
-/// Origin result
-/// </summary>
-public sealed class SauceNaoDataResult : SearchResult, IResultConvertable
-{
-
-	internal SauceNaoDataResult(BaseSearchEngine bse) : base(bse) { }
-
-	/// <summary>
-	///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
-	/// </summary>
-	public string[] Urls { get; internal set; }
-
-	/// <summary>
-	///     The search index of the image
-	/// </summary>
-	public SauceNaoSiteIndex Index { get; internal set; }
-
-	/// <summary>
-	///     How similar is the image to the one provided (Percentage)?
-	/// </summary>
-	public double Similarity { get; internal set; }
-
-	public string WebsiteTitle { get; internal set; }
-
-	public string Title { get; internal set; }
-
-	public string Character { get; internal set; }
-
-	public string Material { get; internal set; }
-
-	public string Creator { get; internal set; }
-
-	public string Source { get; internal set; }
-
-	public Url Thumbnail { get; internal set; }
-
-	public string ThumbnailTitle { get; internal set; }
-
-	public SearchResultItem Convert(SearchResult r)
-	{
-		var    idxStr   = Index.ToString();
-		string siteName = Index != 0 ? idxStr : null;
-
-		var site  = Strings.NormalizeNull(siteName);
-		var title = Strings.NormalizeNull(WebsiteTitle);
-
-		var sb = new StringBuilder();
-
-		if (site is { }) {
-			sb.Append(site);
-		}
-
-		if (title is { }) {
-			sb.Append($" [{title}]");
-		}
-
-		site = sb.ToString().Trim(' ');
-
-		/*var urls = sn.Urls.OrderByDescending(s =>
-			{
-				Url u = s;
-				return u.Host == "gelbooru" || u.Host == "danbooru";
-			}).ToArray();*/
-
-		string[] urls = (Urls != null)
-			                ? Urls.Distinct().Where(s => !string.IsNullOrWhiteSpace(s)).ToArray()
-			                : [];
-
-		string[] meta = [];
-
-		if ((urls.Length >= 2)) {
-			meta = urls[1..].Where(u => !SauceNaoEngine.IsLookupUrl((Url) u)).ToArray();
-		}
-
-		var imageResult = new SearchResultItem(r)
-		{
-			Url        = urls.FirstOrDefault(),
-			Similarity = Math.Round(Similarity, 2),
-
-			// Similarity = Similarity,
-			Description    = siteName,
-			Artist         = Strings.NormalizeNull(Creator),
-			Source         = Strings.NormalizeNull(Material),
-			Character      = Strings.NormalizeNull(Character),
-			Site           = site,
-			Title          = Strings.NormalizeNull(Title),
-			Metadata       = meta,
-			Thumbnail      = Thumbnail,
-			ThumbnailTitle = ThumbnailTitle
-
-		};
-
-		var children = imageResult.CreateChildren(meta);
-
-		r.Results.AddRange(children);
-
-		return imageResult;
-
-	}
-
-	internal const string KEY_TWITTER = "Twitter:";
-
-	internal const string KEY_TWEET_ID = "Tweet ID:";
-
-	internal const string KEY_MATERIAL = "Material:";
-
-	internal const string KEY_SOURCE = "Source:";
-
-	internal static readonly string[] Keys_Artist = ["Creator(s):", "Creator:", "Member:", "Artist:", "Author:"];
-
-	internal static readonly string[] Keys_Characters = ["Characters:"];
+#endregion
 
 }
 
