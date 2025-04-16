@@ -91,7 +91,7 @@ public class FluffleEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 		var fr = await response.GetJsonAsync<FluffleResponse>();
 
 		foreach (FluffleResult result in fr.Results) {
-			var item = result.Convert(sr);
+			var item = result.ToItem(sr);
 			sr.Results.Add(item);
 		}
 
@@ -140,7 +140,7 @@ public class FluffleResultCredit
 
 }
 
-public class FluffleResult : IResultConvertable
+public class FluffleResult : ISearchResultItemConvertable
 {
 
 	[JsonPropertyName("id")]
@@ -167,7 +167,7 @@ public class FluffleResult : IResultConvertable
 	[JsonPropertyName("credits")]
 	public List<FluffleResultCredit> Credits { get; set; }
 
-	public SearchResultItem Convert(SearchResult sr)
+	public SearchResultItem ToItem(SearchResult sr)
 	{
 
 		var sri = new SearchResultItem(sr)

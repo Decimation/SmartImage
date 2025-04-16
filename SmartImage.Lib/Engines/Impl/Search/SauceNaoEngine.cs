@@ -193,7 +193,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		
 		foreach (INode result in results) {
 			var sndr = SauceNaoDataResult.Parse(result);
-			var sris = sndr.ToResultItem(sr);
+			var sris = sndr.ToItem(sr);
 			sr.Results.AddRange(sris);
 		}
 
@@ -322,7 +322,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 /// <summary>
 /// Origin result
 /// </summary>
-public sealed class SauceNaoDataResult : IResultConverter2<SauceNaoDataResult>
+public sealed class SauceNaoDataResult : IItemConverter<SauceNaoDataResult, IEnumerable<SearchResultItem>>
 {
 
 	/// <summary>
@@ -436,7 +436,7 @@ public sealed class SauceNaoDataResult : IResultConverter2<SauceNaoDataResult>
 
 #region Implementation of IResultConverter2<out SauceNaoDataResult>
 
-	public IEnumerable<SearchResultItem> ToResultItem(SearchResult sr)
+	public IEnumerable<SearchResultItem> ToItem(SearchResult sr)
 	{
 		var sri = new SearchResultItem(sr)
 		{

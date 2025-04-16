@@ -14,26 +14,32 @@ using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
-
+// ReSharper disable UnusedMember.Local
+#pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public class GoogleLensItem : IResultConverter2<GoogleLensItem>
+public class GoogleLensItem : ISearchResultItemConverter<GoogleLensItem>
 {
 
 	public string Title { get; private set; }
 
 	public string SiteName { get; private set; }
 
-#region Implementation of IResultConverter2<out GoogleLensItem>
+	public Url Link { get; private set; }
 
-	public IEnumerable<SearchResultItem> ToResultItem(SearchResult sr)
+	public string Ping { get; private set; }
+
+	public SearchResultItem ToItem(SearchResult sr)
 	{
 		var sri = new SearchResultItem(sr)
 		{
-
+			Title = Title,
+			Site  = SiteName,
+			Url   = Link
 		};
 
-		return [sri];
+
+		return sri;
 	}
 
 	public static GoogleLensItem Parse(INode n)
@@ -41,18 +47,22 @@ public class GoogleLensItem : IResultConverter2<GoogleLensItem>
 		var gli = new GoogleLensItem();
 
 		if (n is IHtmlElement e) {
-			var title = e.QuerySelector(".Yt787")?.TextContent;
+			var attrHref = e.Attributes["href"];
+			var attrPing = e.Attributes["ping"];
+			var title    = e.QuerySelector(".Yt787")?.TextContent;
 
 			//e.QuerySelector("//*[class*='gdOPf q07dbf uhHOwf ez24Df']");
-			var siteName = e.SelectNodes("//*[contains(@class,'gdOPf')]");
+			// var siteName = e.SelectNodes("//*[contains(@class,'gdOPf')]");
+			//R8BTeb q8U8x LJEGod du278d i0Rdmd
+			var siteName = e.QuerySelector(".R8BTeb");
+			gli.Link     = attrHref?.Value;
 			gli.Title    = title;
-			gli.SiteName = siteName[0].TextContent;
+			gli.Ping     = attrPing?.Value;
+			gli.SiteName = siteName.TextContent;
 		}
 
 		return gli;
 	}
-
-#endregion
 
 }
 
@@ -69,7 +79,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEng
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleLens;
 
-	protected override string NodesSelector => throw new NotImplementedException();
+	protected override string NodesSelector => null;
 
 	public Url EndpointUrl => URL_BASE;
 
@@ -91,14 +101,11 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEng
 		Accept          = "*/*"
 	};
 
-	protected override async ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
+	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
-
-
-		var sri = new SearchResultItem(r)
-			{ };
-
-		return sri;
+		var gli = GoogleLensItem.Parse(n);
+		var sri = gli.ToItem(r);
+		return ValueTask.FromResult(sri);
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
@@ -119,6 +126,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEng
 			return null;
 		}
 
+		//todo
 		req = SearchUrlAsync(query, token);
 
 		res = await req;
@@ -126,14 +134,14 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEng
 		// var stream = await res.GetStringAsync();
 		var url = res.ResponseMessage.RequestMessage.RequestUri;
 
-		var res2 = await Client.Request(url)
-			           .WithTimeout(Timeout)
-			           .WithCookie(Nid.Name, Nid.Value)
+		using var res2 = await Client.Request(url)
+			                 .WithTimeout(Timeout)
+			                 .WithCookie(Nid.Name, Nid.Value)
 
-			           // .WithHeaders(Headers)
-			           .GetAsync(cancellationToken: token);
+			                 // .WithHeaders(Headers)
+			                 .GetAsync(cancellationToken: token);
 
-		var resData = await res2.GetStringAsync();
+		var resData = await res2.GetStreamAsync();
 
 		var parser = new HtmlParser(new HtmlParserOptions()
 		{

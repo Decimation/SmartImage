@@ -305,7 +305,78 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
-		var item = new SearchResultItem(r);
+		var eh = EhResult.Parse(n);
+		var sri = eh.ToItem(r);
+		return ValueTask.FromResult(sri);
+	}
+
+	public override void Dispose()
+	{
+		// m_client.Dispose();
+		// m_clientHandler.Dispose();
+		Jar.Clear();
+
+		IsLoggedIn = false;
+	}
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
+
+}
+
+public sealed record EhResult : ISearchResultItemConverter<EhResult>
+{
+
+	public string Type { get; internal set; }
+
+	public string Pages { get; internal set; }
+
+	public string Title { get; internal set; }
+
+	public string Author { get; internal set; }
+
+	public string AuthorUrl { get; internal set; }
+
+	public Url Url { get; internal set; }
+
+	public ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get; } = new();
+
+
+#region Implementation of IResultConverter2<out EhResult,out SearchResultItem>
+
+	public SearchResultItem ToItem(SearchResult sr)
+	{
+		var sb = Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
+
+
+		var sri = new SearchResultItem(sr)
+		{
+			Title       = Title,
+			Url         = Url,
+			Artist      = Author,
+			Description = $"{Pages} ({sb})"
+		};
+
+		return sri;
+	}
+
+	public static EhResult Parse(INode n)
+	{
+		var item = new EhResult();
 
 		// ReSharper disable InconsistentNaming
 		var eh = new EhResult();
@@ -378,11 +449,10 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 
 		if (eh.Tags.TryGetValue("artist", out var v)) {
-			item.Artist = v.FirstOrDefault();
+			item.Author = v.FirstOrDefault();
 		}
 
-		var sb = eh.Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
-		item.Description = $"{eh.Pages} ({sb})";
+		
 		item.Title       = eh.Title;
 		item.Url         = eh.Url;
 
@@ -392,53 +462,10 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		var gl3c        = n.ChildNodes[3];
 		var gl4c        = n.ChildNodes[4];*/
 
-		return ValueTask.FromResult(item);
+		return item;
 
 	}
 
-	public override void Dispose()
-	{
-		// m_client.Dispose();
-		// m_clientHandler.Dispose();
-		Jar.Clear();
-
-		IsLoggedIn = false;
-	}
-
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	private void OnPropertyChanged([CallerMemberName] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
-
-	private bool SetField<T>(ref T field, T value, [CallerMemberName] string propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value))
-			return false;
-
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
-	}
-
-}
-
-public sealed record EhResult
-{
-
-	public string Type { get; internal set; }
-
-	public string Pages { get; internal set; }
-
-	public string Title { get; internal set; }
-
-	public string Author { get; internal set; }
-
-	public string AuthorUrl { get; internal set; }
-
-	public Url Url { get; internal set; }
-
-	public ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get; } = new();
+#endregion
 
 }

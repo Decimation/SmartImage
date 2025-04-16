@@ -37,6 +37,52 @@ public class ArchiveMoeEngine : WebSearchEngine
 	{
 		// ReSharper disable PossibleNullReferenceException
 
+		var p = ChanPost.Parse(n);
+		return ValueTask.FromResult(p.ToItem(r));
+
+		// ReSharper restore PossibleNullReferenceException
+	}
+
+	protected static string GetHash(SearchQuery q)
+	{
+		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
+		var data = MD5.HashData(q.Source.Stream);
+		var b64  = Convert.ToBase64String(data).Replace("==", "");
+		b64 = Regex.Replace(b64, @"\//", "_");
+		b64 = Regex.Replace(b64, @"\+", "-");
+
+		q.Source.Stream.TrySeek();
+
+		return b64;
+	}
+
+	public override void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
+
+}
+
+public record ChanPost : ISearchResultItemConverter<ChanPost>
+{
+
+	public string Author;
+	public string Board;
+	public Url    File;
+	public string Filename;
+	public int    Height;
+
+	public long     Id;
+	public string   Size;
+	public string   Text;
+	public string   Time1;
+	public DateTime Time2;
+	public string   Title;
+	public string   Tripcode;
+	public int      Width;
+
+	public static ChanPost Parse(INode n)
+	{
 		var e = n as HtmlElement;
 
 		var pff     = e.QuerySelector(".post_file_filename");
@@ -69,50 +115,10 @@ public class ArchiveMoeEngine : WebSearchEngine
 			Text     = text
 		};
 
-		return ValueTask.FromResult(p.Convert(r));
-
-		// ReSharper restore PossibleNullReferenceException
+		return p;
 	}
 
-	protected static string GetHash(SearchQuery q)
-	{
-		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
-		var data = MD5.HashData(q.Source.Stream);
-		var b64  = Convert.ToBase64String(data).Replace("==", "");
-		b64 = Regex.Replace(b64, @"\//", "_");
-		b64 = Regex.Replace(b64, @"\+", "-");
-
-		q.Source.Stream.TrySeek();
-
-		return b64;
-	}
-
-	public override void Dispose()
-	{
-		GC.SuppressFinalize(this);
-	}
-
-}
-
-public record ChanPost : IResultConvertable
-{
-
-	public string Author;
-	public string Board;
-	public Url    File;
-	public string Filename;
-	public int    Height;
-
-	public long     Id;
-	public string   Size;
-	public string   Text;
-	public string   Time1;
-	public DateTime Time2;
-	public string   Title;
-	public string   Tripcode;
-	public int      Width;
-
-	public SearchResultItem Convert(SearchResult sr)
+	public SearchResultItem ToItem(SearchResult sr)
 	{
 
 		var sri = new SearchResultItem(sr)

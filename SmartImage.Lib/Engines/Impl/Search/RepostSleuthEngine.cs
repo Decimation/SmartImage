@@ -84,7 +84,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 		}
 
 		foreach (var rpm in obj.matches) {
-			sr.Results.Add(rpm.Convert(sr));
+			sr.Results.Add(rpm.ToItem(sr));
 		}
 
 		if (sr.HasResults) {
@@ -111,7 +111,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 
 	}
 
-	private class RepostSleuthMatch : IResultConvertable
+	private class RepostSleuthMatch : ISearchResultItemConvertable
 	{
 
 		public int              hamming_distance;
@@ -122,7 +122,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 		public RepostSleuthPost post;
 		public double           title_similarity;
 
-		public SearchResultItem Convert(SearchResult sr)
+		public SearchResultItem ToItem(SearchResult sr)
 		{
 
 			return new SearchResultItem(sr)

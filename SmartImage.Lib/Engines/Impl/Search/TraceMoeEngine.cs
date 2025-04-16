@@ -132,7 +132,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 
 		for (int i = 0; i < items.Length; i++) {
 			var doc    = results[i];
-			var result = doc.Convert(sr);
+			var result = doc.ToItem(sr);
 
 			try {
 				string anilistUrl = Url.Combine(ANILIST_URL, doc.Anilist.ToString());
@@ -152,15 +152,15 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 
 	}
 
-	public override void Dispose()
-	{
-		m_anilistClient.Dispose();
-	}
-
 	public Task<TraceMoeQuotaObject> GetQuotaAsync()
 	{
 		return Client.Request(EndpointUrl,"me")
 			.GetJsonAsync<TraceMoeQuotaObject>();
+	}
+
+	public override void Dispose()
+	{
+		m_anilistClient.Dispose();
 	}
 
 }
@@ -195,7 +195,7 @@ public class TraceMoeQuotaObject
 }
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-public class TraceMoeDoc : IResultConvertable
+public class TraceMoeDoc : ISearchResultItemConvertable
 {
 
 	public double From { get; set; }
@@ -241,7 +241,7 @@ public class TraceMoeDoc : IResultConvertable
 		}
 	}
 
-	public SearchResultItem Convert(SearchResult sr)
+	public SearchResultItem ToItem(SearchResult sr)
 	{
 		var sim = Math.Round(Similarity * 100.0f, 2);
 
