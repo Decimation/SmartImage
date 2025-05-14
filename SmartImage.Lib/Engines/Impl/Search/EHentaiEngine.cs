@@ -125,8 +125,8 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 			}
 		};
 
-		var flurlRes = await Client.SendAsync(req, cancellationToken: token);
-		var httpRes  = flurlRes.ResponseMessage;
+		using var flurlRes = await Client.SendAsync(req, cancellationToken: token);
+		using var httpRes  = flurlRes.ResponseMessage;
 
 		// Debug.WriteLine($"{res.StatusCode}");
 
@@ -150,7 +150,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		return await parser.ParseDocumentAsync(content, token);
 	}
 
-	protected override ValueTask<List<INode>> GetNodes(IDocument d)
+	protected override ValueTask<IEnumerable<INode>> GetNodes(IDocument d)
 	{
 		// Index 0 is table header
 		var array = d.Body.SelectNodes(NodesSelector);
@@ -160,7 +160,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 		}
 
-		return ValueTask.FromResult(array);
+		return  ValueTask.FromResult((IEnumerable<INode>) array);
 	}
 
 	/*
@@ -305,7 +305,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
-		var eh = EhResult.Parse(n);
+		var eh  = EhResult.Parse(n);
 		var sri = eh.ToItem(r);
 		return ValueTask.FromResult(sri);
 	}
@@ -452,9 +452,9 @@ public sealed record EhResult : ISearchResultItemConverter<EhResult>
 			item.Author = v.FirstOrDefault();
 		}
 
-		
-		item.Title       = eh.Title;
-		item.Url         = eh.Url;
+
+		item.Title = eh.Title;
+		item.Url   = eh.Url;
 
 		/*var gl1c        = n.ChildNodes[0];
 		var gl2c        = n.ChildNodes[1];

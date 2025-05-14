@@ -2,12 +2,19 @@
 // Date: 2024/06/06 @ 14:06:00
 
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
+using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
@@ -16,10 +23,10 @@ using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class YandexEngine : WebSearchEngine
+public sealed class YandexEngine : BaseSearchEngine
 {
 
-	protected override string NodesSelector => Serialization.S_Yandex_Images;
+	public const string URL_YANDEX = "https://yandex.com/";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
@@ -37,73 +44,8 @@ public sealed class YandexEngine : WebSearchEngine
 		Timeout = TimeSpan.FromSeconds(30);
 	}
 
-	private static string GetAnalysis(IDocument doc)
-	{
-		if (doc.Body is not { }) {
-			return null;
-		}
-
-		var nodes = doc.Body.SelectNodes(Serialization.S_Yandex_Analysis);
-
-		var nodes2 = doc.Body.QuerySelectorAll(Serialization.S_Yandex_Analysis2);
-
-		nodes.AddRange(nodes2);
-
-		if (nodes.Count == 0) {
-			return null;
-		}
-
-		string appearsToContain = nodes.Select(n => n.TextContent).QuickJoin();
-
-		return appearsToContain;
-	}
-
-	private static IEnumerable<SearchResultItem> GetOtherImages(IDocument doc, SearchResult r)
-	{
-		var tagsItem = doc.Body.SelectNodes(Serialization.S_Yandex_OtherImages);
-
-		if (tagsItem == null) {
-			return [];
-		}
-
-		return tagsItem.AsParallel().Select(Parse);
-
-		SearchResultItem Parse(INode siz)
-		{
-			string link    = siz.FirstChild.TryGetAttribute(Serialization.Atr_href);
-			string resText = siz.FirstChild.ChildNodes[1].FirstChild.TextContent;
-
-			//other-sites__snippet
-
-			var snippet = siz.ChildNodes[1];
-			var title   = snippet.FirstChild;
-			var site    = snippet.ChildNodes[1];
-			var desc    = snippet.ChildNodes[2];
-
-			var (w, h) = ParseResolution(resText);
-
-			var url = new Url(link);
-
-			var sri = new SearchResultItem(r)
-			{
-				Url         = url,
-				Site        = site.TextContent,
-				Description = title?.TextContent,
-				Width       = w,
-				Height      = h,
-			};
-
-			if (String.IsNullOrWhiteSpace(sri.Site)) {
-				sri.Site = url?.Host;
-			}
-
-			return sri;
-		}
-	}
-
 	private static (int? w, int? h) ParseResolution(string resText)
 	{
-
 		string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
 
 		int? w = null, h = null;
@@ -124,6 +66,30 @@ public sealed class YandexEngine : WebSearchEngine
 		return (w, h);
 	}
 
+#region Overrides of BaseSearchEngine
+
+	protected override Url GetRawUrl(SearchQuery query)
+	{
+		var url = BaseUrl.Clone();
+		url.QueryParams.AddOrReplace("url", query.Upload);
+		url.QueryParams.AddOrReplace("cbir_page", "sites");
+		return url;
+	}
+
+#endregion
+
+	private static SearchResultItem Convert(SearchResult sr, YandexSite obj)
+	{
+		return new SearchResultItem(sr)
+		{
+			Title       = obj.Title,
+			Description = obj.Description,
+			Url         = obj.OriginalImage.Url,
+			Site        = obj.Domain,
+			Thumbnail   = obj.Thumb.Url.StartsWith("//") ? "https:" + obj.Thumb.Url : obj.Thumb.Url
+		};
+	}
+
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// var sr = await base.GetResultAsync(query, token);
@@ -141,177 +107,89 @@ public sealed class YandexEngine : WebSearchEngine
 
 		IDocument doc = null;
 
+		IFlurlResponse res = null;
+
+		Stream str = null;
+
 		try {
-			doc = await GetDocumentAsync(sr, query: query, token: token);
+			res = await Client.Request(sr.RawUrl)
+				      .GetAsync(cancellationToken: token);
+
+			str = await res.GetStreamAsync();
+
+			var parser = new HtmlParser();
+			doc = await parser.ParseDocumentAsync(str);
+
+			var imagesAppNode = doc.Body.SelectSingleNode(Serialization.S_Yandex_Json);
+			var json          = imagesAppNode.TryGetAttribute("data-state");
+
+			var jsonNode = JsonNode.Parse(json);
+			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
+			var sitesObj = sites.Deserialize<YandexSite[]>();
+
+			foreach (var ys in sitesObj) {
+				sr.Results.Add(Convert(sr, ys));
+			}
+
 		}
 		catch (Exception e) {
 			// Console.WriteLine(e);
 			// throw;
 			doc = null;
-			Debug.WriteLine($"{Name}: {e.Message}", nameof(GetResultAsync));
+			Logger.LogError(e, "{Name} error", Name);
 
-			if (e is FlurlHttpTimeoutException t) {
-				Debug.WriteLine("Timeout", nameof(GetResultAsync));
-
-			}
 			sr.Status = SearchResultStatus.UnknownError;
 		}
+		finally { }
 
-		if (!Validate(doc, sr)) {
-			goto ret;
-		}
 
-		/*
-		 * Find and sort through high resolution image matches
-		 */
-
-		foreach (var node in await GetNodes(doc)) {
-			var sri = await ParseResultItem(node, sr);
-
-			if (sri != null) {
-				sr.Results.Add(sri);
-			}
-		}
-
-		var otherImages = GetOtherImages(doc, sr);
-		sr.Results.AddRange(otherImages);
-
-		var ext = ParseExternalInfo(doc, sr);
-		sr.Results.AddRange(ext);
-
-		var similar = ParseSimilarImages(doc, sr);
-		sr.Results.AddRange(similar);
-
-		//
-
-		/*
-		 * Parse what the image looks like
-		 */
-
-		string looksLike = GetAnalysis(doc);
-
-		if (looksLike != null) {
-			sr.Overview = looksLike;
-		}
 		sr.Status = SearchResultStatus.Success;
 	ret:
 		sr.Update();
+		res?.Dispose();
+		str?.Dispose();
 		doc?.Dispose();
 		return sr;
 	}
 
-	/// <summary>
-	///     Parses <em>Similar images</em>
-	/// </summary>
-	private List<SearchResultItem> ParseSimilarImages(IParentNode doc, SearchResult r)
-	{
-		var nodes   = doc.QuerySelectorAll(Serialization.S_Yandex_SimilarImages);
-		var results = new List<SearchResultItem>(nodes.Length);
-
-		foreach (var node in nodes) {
-			var thumb  = node.Children[0].Attributes["href"];
-			var thumb2 = thumb != null ? (Url) Url.Combine(BaseUrl.Root, thumb.Value) : null;
-			var url    = (string) thumb2?.QueryParams.FirstOrDefault("url");
-			var imgUrl = (string) thumb2?.QueryParams.FirstOrDefault("img_url");
-
-			results.Add(new SearchResultItem(r)
-			{
-
-				Thumbnail = imgUrl,
-				Url       = imgUrl
-			});
-		}
-
-		return results;
-
-	}
-
-	/// <summary>
-	///     Parses <em>Sites containing information about the image</em>
-	/// </summary>
-	private static List<SearchResultItem> ParseExternalInfo(IDocument doc, SearchResult r)
-	{
-		var items = doc.Body.SelectNodes(Serialization.S_Yandex_ExtInfo);
-		var rg    = new List<SearchResultItem>(items.Count);
-
-		foreach (INode item in items) {
-			if (item is IHtmlElement elem) {
-				var title1 = elem.QuerySelector(".CbirSites-ItemTitle");
-
-				// var href1 = title1.Children[0].Attributes["href"];
-			}
-
-			// var thumb = item.ChildNodes[0];
-			var info  = item.ChildNodes[1];
-			var title = info.ChildNodes[0].TextContent;
-			var href  = info.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
-			var n     = item.ChildNodes[0].ChildNodes[0];
-			var thumb = n.TryGetAttribute(Serialization.Atr_href);
-			var res   = n.ChildNodes[1].TextContent;
-
-			var sri = new SearchResultItem(r)
-			{
-				Title     = title,
-				Url       = href,
-				Thumbnail = thumb
-			};
-
-			(sri.Width, sri.Height) = ParseResolution(res);
-
-			rg.Add(sri);
-		}
-
-		return rg;
-	}
 
 	public override void Dispose() { }
 
-	protected override async ValueTask<List<INode>> GetNodes(IDocument doc)
-	{
-		var tagsItem = doc.Body.SelectNodes(NodesSelector);
+}
 
-		if (tagsItem.Count == 0) {
-			// return await Task.FromResult(Enumerable.Empty<INode>());
-			return await Task.FromResult(tagsItem).ConfigureAwait(false);
+public class YandexImage
+{
 
-			// return tagsItem;
-		}
+	[JsonPropertyName("url")]
+	public string Url { get; set; }
 
-		var sizeTags = tagsItem.Where(sx => !sx.Parent.Parent.TryGetAttribute("class").Contains("CbirItem")).ToList();
+	[JsonPropertyName("height")]
+	public int Height { get; set; }
 
-		return await Task.FromResult(sizeTags).ConfigureAwait(false);
+	[JsonPropertyName("width")]
+	public int Width { get; set; }
 
-		// return sizeTags;
-	}
+}
 
-	[ICBN]
-	protected override ValueTask<SearchResultItem> ParseResultItem(INode siz, SearchResult r)
-	{
-		string link = siz.TryGetAttribute(Serialization.Atr_href);
+public class YandexSite
+{
 
-		string resText = siz.FirstChild.GetExclusiveText();
+	[JsonPropertyName("title")]
+	public string Title { get; set; }
 
-		(int? w, int? h) = ParseResolution(resText);
+	[JsonPropertyName("description")]
+	public string Description { get; set; }
 
-		if (!w.HasValue || !h.HasValue) {
-			w = null;
-			h = null;
+	[JsonPropertyName("url")]
+	public string Url { get; set; }
 
-			//link = null;
-		}
+	[JsonPropertyName("domain")]
+	public string Domain { get; set; }
 
-		if (UriUtilities.IsUri(link, out var link2)) {
-			var sri = new SearchResultItem(r)
-			{
-				Url    = link2,
-				Width  = w,
-				Height = h,
-				Site   = link2?.Host
-			};
-			return ValueTask.FromResult(sri);
-		}
+	[JsonPropertyName("thumb")]
+	public YandexImage Thumb { get; set; }
 
-		return ValueTask.FromResult<SearchResultItem>(null);
-	}
+	[JsonPropertyName("originalImage")]
+	public YandexImage OriginalImage { get; set; }
 
 }

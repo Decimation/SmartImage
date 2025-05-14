@@ -168,4 +168,7 @@
   <data name="S_Iqdb_DivTable" xml:space="preserve">
     <value>div/table</value>
   </data>
+  <data name="S_Yandex_Json" xml:space="preserve">
+    <value>//div[contains(@id,'ImagesApp')]</value>
+  </data>
 </root>

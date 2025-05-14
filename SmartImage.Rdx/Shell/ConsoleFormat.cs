@@ -231,6 +231,7 @@ internal static class ConsoleFormat
 
 			// PixelWidth = 2
 		};
+		
 		querySource.Stream.TrySeek();
 		return ci;
 	}

@@ -738,6 +738,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		try {
 			Client.OpenChannel();
 
+			await Client.LoadEnginesAsync(m_ctsRun.Token);
+
 			var r = Client.RunSearchAsync(Query, token: m_ctsRun.Token,
 			                              scheduler: TaskScheduler.FromCurrentSynchronizationContext());
 

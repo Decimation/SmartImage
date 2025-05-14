@@ -22,7 +22,7 @@ public static class AppSupport
 	internal static readonly Version Version = Assembly.GetName().Version;
 
 	internal static readonly ILoggerFactory Factory =
-		LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Debug));
+		LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Trace));
 
 	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()
 	{

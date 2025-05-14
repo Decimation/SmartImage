@@ -43,8 +43,8 @@ public class IqdbEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 
 	private const int MAX_FILE_SIZE = 8_388_608;
 
-	private const string URL_BASE = "https://iqdb.org/";
-	private const string URL_QUERY    = "https://iqdb.org/?url=";
+	private const string URL_BASE  = "https://iqdb.org/";
+	private const string URL_QUERY = "https://iqdb.org/?url=";
 
 	protected override string[] ErrorBodyMessages =>
 	[
@@ -234,15 +234,17 @@ public class IqdbEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 
 		var sr = await base.GetResultAsync(query, token);
 
+		IDocument doc = null;
+
 		if (sr.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
 
-		var doc = await GetDocumentAsync(query, token);
+		doc = await GetDocumentAsync(query, token);
 
 		if (doc?.Body == null) {
 			sr.ErrorMessage = "Could not retrieve data";
-			sr.Status = SearchResultStatus.UnknownError;
+			sr.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
@@ -302,7 +304,9 @@ public class IqdbEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 		};*/
 
 	ret:
+		doc?.Dispose();
 		sr.Update();
+		Logger.LogDebug("Disposing {Name} doc", Name);
 		return sr;
 	}
 

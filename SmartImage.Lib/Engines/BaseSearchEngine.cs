@@ -5,6 +5,7 @@ global using R1 = SmartImage.Lib.Resources;
 global using Url = Flurl.Url;
 using System.Diagnostics;
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using Flurl.Http;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
@@ -16,7 +17,9 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities.Diagnostics;
 
+[assembly: InternalsVisibleTo("SmartImage.Test")]
 namespace SmartImage.Lib.Engines;
+
 #nullable enable
 
 

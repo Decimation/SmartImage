@@ -13,6 +13,64 @@ using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines;
 
+/// <summary>
+/// <list type="number">
+/// <item>Request</item>
+/// <item>Response</item>
+/// <item> → Document</item>
+/// <item> → → Nodes</item>
+/// 
+/// </list>
+/// </summary>
+public abstract class ResultParser<TResult, TItem>
+{
+
+	public IFlurlRequest Request { get; }
+
+	public IFlurlResponse Response { get; }
+
+
+	protected ResultParser(IFlurlRequest request, IFlurlResponse response)
+	{
+		Request  = request;
+		Response = response;
+	}
+
+	public abstract Task<TResult> ParseAsync(TItem item, SearchResult sr);
+
+}
+
+public abstract class ResultWebData : ResultParser<SearchResultItem, INode>
+{
+
+	public IDocument Document { get; }
+
+	// public IEnumerable<INode> Nodes { get; }
+
+	// public string NodeSelector {get;}
+
+	public virtual Task<IEnumerable<INode>> GetItems(string nodeS)
+	{
+		var nodes = Document.Body.SelectNodes(nodeS);
+
+		return Task.FromResult<IEnumerable<INode>>(nodes);
+	}
+
+	/*public virtual Task<IEnumerable<INode>> NodeToItem(INode node, TItem item)
+	{
+		var nodes = Document.Body.SelectNodes(nodeS);
+
+		return Task.FromResult<IEnumerable<INode>>(nodes);
+	}*/
+
+	public ResultWebData(IFlurlRequest request, IFlurlResponse response)
+		: base(request, response) { }
+
+
+	public abstract override Task<SearchResultItem> ParseAsync(INode item, SearchResult sr);
+
+}
+
 public abstract class WebSearchEngine : BaseSearchEngine
 {
 
@@ -25,25 +83,25 @@ public abstract class WebSearchEngine : BaseSearchEngine
 	{
 		var res = await base.GetResultAsync(query, token);
 
+		IDocument doc = null;
+
 		if (res.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
-
-		IDocument doc;
 
 		try {
 			doc = await GetDocumentAsync(res, query: query, token: token);
 		}
 		catch (Exception e) {
 			Logger.LogError(e, "{Name} error", e);
-			doc = null;
+
 		}
 
 		if (!Validate(doc, res)) {
 			goto ret;
 		}
 
-		var nodes = await GetNodes(doc);
+		var nodes = (await GetNodes(doc));
 
 		foreach (INode node in nodes) {
 			if (token.IsCancellationRequested) {
@@ -57,15 +115,19 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			}
 		}
 
-		Logger.LogInformation("{Name} :: {RawUrl} document {DocLength} w/ {Nodes}", Name, res.RawUrl, doc?.TextContent?.Length, nodes.Count);
+		Logger.LogInformation("{Name} :: {RawUrl} document {DocLength}", Name, res.RawUrl, doc?.TextContent?.Length);
 
 		res.Status = SearchResultStatus.Success;
+
 	ret:
 		res.Update();
+		doc?.Dispose();
+		Logger.LogDebug("Disposing {Name} doc", Name);
 		return res;
 	}
 
 	[ICBN]
+	[MURV]
 	protected virtual async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                         CancellationToken token = default)
 	{
@@ -87,7 +149,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 				          })*/
 				          .GetAsync(cancellationToken: token);
 
-			var str = await res.GetStringAsync();
+			var str = await res.GetStreamAsync();
 
 			var document = await parser.ParseDocumentAsync(str, token);
 
@@ -103,9 +165,9 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 	protected abstract ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r);
 
-	protected virtual ValueTask<List<INode>> GetNodes(IDocument d)
+	protected virtual ValueTask<IEnumerable<INode>> GetNodes(IDocument d)
 	{
-		return ValueTask.FromResult(d.Body.SelectNodes(NodesSelector));
+		return ValueTask.FromResult<IEnumerable<INode>>(d.Body.SelectNodes(NodesSelector));
 	}
 
 	protected bool Validate([CBN] IDocument doc, SearchResult sr)

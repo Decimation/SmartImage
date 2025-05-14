@@ -48,7 +48,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 		RepostSleuthResult obj = null;
 
 		try {
-			var s = await Client.Request(EndpointUrl)
+			using var response = await Client.Request(EndpointUrl)
 				        .SetQueryParams(new
 				        {
 
@@ -62,8 +62,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 					        target_match_percent = 90,
 					        filter_dead_matches  = false,
 					        target_days_old      = 0
-				        }).GetStringAsync(cancellationToken: token);
+				        }).GetAsync(cancellationToken: token);
 
+			var s = await response.GetStreamAsync();
 			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
 		}
 		catch (JsonException e) {

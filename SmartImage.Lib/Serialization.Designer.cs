@@ -187,6 +187,15 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to //div[contains(@id,&apos;ImagesApp&apos;)].
+        /// </summary>
+        internal static string S_Yandex_Json {
+            get {
+                return ResourceManager.GetString("S_Yandex_Json", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to //li[@class=&apos;other-sites__item&apos;].
         /// </summary>
         internal static string S_Yandex_OtherImages {

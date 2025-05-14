@@ -14,6 +14,7 @@ using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
+
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Impl.Search;
@@ -66,7 +67,7 @@ public class GoogleLensItem : ISearchResultItemConverter<GoogleLensItem>
 
 }
 
-public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEngine*/
+public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine, ISearchConfigReceiver
 {
 
 	// TODO: WIP
@@ -208,10 +209,10 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEng
 		return req;
 	}
 
-	protected override ValueTask<List<INode>> GetNodes(IDocument d)
+	protected override ValueTask<IEnumerable<INode>> GetNodes(IDocument d)
 	{
 		var all = d.QuerySelectorAll(".LBcIee");
-		return ValueTask.FromResult(all.OfType<INode>().ToList());
+		return ValueTask.FromResult(all.OfType<INode>());
 	}
 
 	protected override Url GetRawUrl(SearchQuery query)
@@ -220,5 +221,34 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine /*, ICookiesEng
 	}
 
 	public override void Dispose() { }
+
+	public CookieJar Jar { get; private set; }
+
+	public ICookiesProvider Provider { get; set; }
+
+	public async ValueTask<bool> ApplyCookiesAsync(CancellationToken token = default)
+	{
+		var ck = await Provider.GetOrLoadCookiesAsync(token);
+
+		foreach (var cookie in ck) {
+			if (cookie.Name == "NID") {
+				Nid = cookie.AsFlurlCookie();
+				break;
+			}
+		}
+
+		return true;
+	}
+
+#region Implementation of ISearchConfigReceiver
+
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		Provider = cfg.CookiesProvider;
+		
+		return ApplyCookiesAsync(ct);
+	}
+
+#endregion
 
 }

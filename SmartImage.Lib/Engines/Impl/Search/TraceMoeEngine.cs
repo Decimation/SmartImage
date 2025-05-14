@@ -60,7 +60,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 		var r = await base.GetResultAsync(query, token);
 
 		try {
-			IFlurlRequest request = Client.Request(Url.Combine(EndpointUrl, ("/search")))
+			IFlurlRequest request = Client.Request(EndpointUrl, ("/search"))
 				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload, true);
 

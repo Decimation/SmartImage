@@ -193,10 +193,14 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		
 		foreach (INode result in results) {
 			var sndr = SauceNaoDataResult.Parse(result);
-			var sris = sndr.ToItem(sr);
-			sr.Results.AddRange(sris);
+			if (sndr != null) {
+				var sris = sndr.ToItem(sr);
+				sr.Results.AddRange(sris);
+
+			}
 		}
 
+		Logger.LogDebug("Disposing {Name} doc", Name);
 		doc.Dispose();
 	ret:
 		response.Dispose();

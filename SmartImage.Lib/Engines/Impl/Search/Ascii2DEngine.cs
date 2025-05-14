@@ -234,9 +234,9 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 
 #region Overrides of WebSearchEngine
 
-	protected override async ValueTask<List<INode>> GetNodes(IDocument d)
+	protected override async ValueTask<IEnumerable<INode>> GetNodes(IDocument d)
 	{
-		var nodes = await base.GetNodes(d);
+		var nodes = (await base.GetNodes(d)).ToList();
 
 		var cnt = nodes.RemoveAll(x =>
 		{

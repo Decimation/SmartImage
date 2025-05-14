@@ -321,6 +321,7 @@ public sealed class SearchClient : IDisposable
 		await Parallel.ForEachAsync(Engines, token, async (bse, cancellationToken) =>
 		{
 			if (bse is ISearchConfigReceiver cfg) {
+				s_logger.LogTrace("Applying config to {Engine}", bse.Name);
 				await cfg.ApplyConfigAsync(Config, cancellationToken);
 			}
 		});
