@@ -28,8 +28,9 @@ public class ArchiveMoeEngine : WebSearchEngine
 	{
 		Base64Hash = GetHash(query);
 
-		var r=Url.Combine(BaseUrl, "image", Base64Hash);
+		var r = Url.Combine(BaseUrl, "image", Base64Hash);
 		return r;
+
 		// return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 

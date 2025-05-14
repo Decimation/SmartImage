@@ -6,6 +6,7 @@ using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
@@ -86,7 +87,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 			// tm = JsonSerializer.Deserialize<TraceMoeRootObject>(json);
 		}
 		catch (Exception e) {
-			Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
+			// Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
+			Logger.LogError(e, "{Name} in {Fn}", Name, nameof(GetResultAsync));
 			r.ErrorMessage = e.Message;
 			r.Status       = SearchResultStatus.UnknownError;
 			goto ret;
@@ -109,7 +111,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 
 			}
 			else if (tm.Error != null) {
-				Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
+				// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
+				Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
 				r.ErrorMessage = tm.Error;
 				r.Status       = SearchResultStatus.IllegalInput;
 
@@ -142,7 +145,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 				result.Metadata = doc;
 			}
 			catch (Exception e) {
-				Debug.WriteLine($"{this} :: {e.Message}", nameof(ConvertResultsAsync));
+				// Debug.WriteLine($"{this} :: {e.Message}", nameof(ConvertResultsAsync));
+				Logger.LogError(e, "{Name} error in {Fn}", Name, nameof(ConvertResultsAsync));
 			}
 
 			items[i] = result;

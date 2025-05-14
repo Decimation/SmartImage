@@ -10,64 +10,15 @@ using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Results;
+using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Engines;
 
-/// <summary>
-/// <list type="number">
-/// <item>Request</item>
-/// <item>Response</item>
-/// <item> → Document</item>
-/// <item> → → Nodes</item>
-/// 
-/// </list>
-/// </summary>
-public abstract class ResultParser<TResult, TItem>
+abstract class ParsedSearchEngine<T> : BaseSearchEngine
 {
+	protected ParsedSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
 
-	public IFlurlRequest Request { get; }
-
-	public IFlurlResponse Response { get; }
-
-
-	protected ResultParser(IFlurlRequest request, IFlurlResponse response)
-	{
-		Request  = request;
-		Response = response;
-	}
-
-	public abstract Task<TResult> ParseAsync(TItem item, SearchResult sr);
-
-}
-
-public abstract class ResultWebData : ResultParser<SearchResultItem, INode>
-{
-
-	public IDocument Document { get; }
-
-	// public IEnumerable<INode> Nodes { get; }
-
-	// public string NodeSelector {get;}
-
-	public virtual Task<IEnumerable<INode>> GetItems(string nodeS)
-	{
-		var nodes = Document.Body.SelectNodes(nodeS);
-
-		return Task.FromResult<IEnumerable<INode>>(nodes);
-	}
-
-	/*public virtual Task<IEnumerable<INode>> NodeToItem(INode node, TItem item)
-	{
-		var nodes = Document.Body.SelectNodes(nodeS);
-
-		return Task.FromResult<IEnumerable<INode>>(nodes);
-	}*/
-
-	public ResultWebData(IFlurlRequest request, IFlurlResponse response)
-		: base(request, response) { }
-
-
-	public abstract override Task<SearchResultItem> ParseAsync(INode item, SearchResult sr);
+	protected abstract ValueTask<IEnumerable<T>> GetRawItems();
 
 }
 
@@ -169,6 +120,15 @@ public abstract class WebSearchEngine : BaseSearchEngine
 	{
 		return ValueTask.FromResult<IEnumerable<INode>>(d.Body.SelectNodes(NodesSelector));
 	}
+
+#region Overrides of BaseSearchEngine
+
+	protected override Url GetRawUrl(SearchQuery query)
+	{
+		return base.GetRawUrl(query);
+	}
+
+#endregion
 
 	protected bool Validate([CBN] IDocument doc, SearchResult sr)
 	{

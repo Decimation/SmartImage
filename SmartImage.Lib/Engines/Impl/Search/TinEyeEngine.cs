@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Flurl.Http;
 using Kantan.Monad;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
@@ -21,7 +22,8 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 	public override void Dispose()
 	{
-		Debug.WriteLine($"Disposing {Name}");
+		// Debug.WriteLine($"Disposing {Name}");
+		Logger.LogTrace("Disposing {Name}", Name);
 	}
 
 	public override async ValueTask<bool> TryVerifyQueryAsync(SearchQuery q)
@@ -66,7 +68,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		}
 		catch (Exception e) {
 			// Debugger.Break();
-			Trace.WriteLine(e.Message);
+			Logger.LogError(e, "{Name}", Name);
 			sr.Status = SearchResultStatus.UnknownError;
 			goto ret;
 		}

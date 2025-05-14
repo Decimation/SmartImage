@@ -12,6 +12,7 @@ using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Kantan.Text;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
@@ -96,7 +97,8 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		}
 
 		if (filePath != null) {
-			Trace.WriteLine($"allocated {filePath}", nameof(GetDocumentAsync));
+			// Trace.WriteLine($"allocated {filePath}", nameof(GetDocumentAsync));
+			Logger.LogTrace("Allocated {Path}", filePath);
 		}
 
 		var data = new MultipartFormDataContent
@@ -112,7 +114,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		};
 
 
-		Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
+		// Debug.WriteLine($"{LookupUrl}", nameof(GetDocumentAsync));
 
 		var req = new FlurlRequest(LookupUrl)
 		{
@@ -140,7 +142,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		// var content2 = await sr.RawUrl.GetStringAsync(cancellationToken: token);
 
 		if (content.Contains("Please wait a bit longer between each file search.")) {
-			Debug.WriteLine("cooldown", Name);
+			// Debug.WriteLine("cooldown", Name);
 			sr.Status = SearchResultStatus.Cooldown;
 
 			return null;
@@ -338,7 +340,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 }
 
-public sealed record EhResult : ISearchResultItemConverter<EhResult>
+public sealed record EhResult : ISearchResultItemConvertable
 {
 
 	public string Type { get; internal set; }

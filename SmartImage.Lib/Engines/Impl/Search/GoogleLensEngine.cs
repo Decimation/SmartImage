@@ -8,8 +8,10 @@ using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
+using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Kantan.Net.Web;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
@@ -72,15 +74,16 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 
 	// TODO: WIP
 
-	public const string URL_BASE = "https://lens.google.com";
+	public const string URL_BASE  = "https://lens.google.com/";
+	public const string URL_BASE2 = "https://www.google.com/";
 
 	public override string Name => "Google Lens";
-
-	public override Url BaseUrl => URL_BASE;
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleLens;
 
 	protected override string NodesSelector => null;
+
+	public override Url BaseUrl => URL_BASE;
 
 	public Url EndpointUrl => URL_BASE;
 
@@ -112,28 +115,63 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var br = await base.GetResultAsync(query, token);
+
 		return br;
+	}
+
+	private Task<IFlurlResponse> SearchFileAsync(SearchQuery query, CancellationToken token)
+	{
+		string               endpoint;
+		UniImageFile         uif      = query.Source as UniImageFile;
+		string               filename = uif.FileInfo.Name;
+		Task<IFlurlResponse> req;
+		endpoint = "v3/upload";
+
+		// filename = "image.jpg";
+		// filename = (query.Source is UniImageFile uif) ? uif.FileInfo.Name : "image.jpg";
+		filename = uif.FileInfo.Name;
+
+		req = Client.Request(EndpointUrl, endpoint)
+			.SetQueryParam("hl", HlParam)
+			.WithTimeout(Timeout)
+			.WithCookie(Nid.Name, Nid.Value)
+			.WithHeaders(Headers)
+			.PostMultipartAsync(bc =>
+			{
+				//
+				bc.AddFile(filename, uif.FilePath, contentType:"image/jpeg");
+			}, cancellationToken: token);
+
+		return req;
 	}
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 		string               endpoint, filename;
-		Task<IFlurlResponse> req;
-		IFlurlResponse       res;
+		Task<IFlurlResponse> req = null;
 
-		if (query.Source.IsFile) { }
-		else if (query.Source.IsUri) { }
+		IFlurlResponse res = null;
+
+		//todo
+
+
+		if (query.Source.IsUri) {
+
+			req = SearchUrlAsync(query, token);
+			res = await req;
+		}
+		else if (query.Source.IsFile) {
+			req = SearchFileAsync(query, token);
+			res = await req;
+		}
 		else {
 			return null;
 		}
 
-		//todo
-		req = SearchUrlAsync(query, token);
-
-		res = await req;
+		Logger.LogTrace("{Uri} {Code}", res.ResponseMessage.RequestMessage.RequestUri, res.StatusCode);
 
 		// var stream = await res.GetStringAsync();
-		var url = res.ResponseMessage.RequestMessage.RequestUri;
+		/*var url = res.ResponseMessage.RequestMessage.RequestUri;
 
 		using var res2 = await Client.Request(url)
 			                 .WithTimeout(Timeout)
@@ -142,7 +180,10 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 			                 // .WithHeaders(Headers)
 			                 .GetAsync(cancellationToken: token);
 
-		var resData = await res2.GetStreamAsync();
+		var resData = await res2.GetStreamAsync();*/
+		var str = await res.GetStringAsync();
+
+		var resData = await res.GetStreamAsync();
 
 		var parser = new HtmlParser(new HtmlParserOptions()
 		{
@@ -159,32 +200,6 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		return doc;
 	}
 
-	private Task<IFlurlResponse> SearchFileAsync(SearchQuery query, CancellationToken token)
-	{
-		string               endpoint;
-		string               filename;
-		UniImageFile         uif = query.Source as UniImageFile;
-		Task<IFlurlResponse> req;
-		endpoint = "v3/upload";
-
-		// filename = "image.jpg";
-		// filename = (query.Source is UniImageFile uif) ? uif.FileInfo.Name : "image.jpg";
-		filename = uif.FileInfo.Name;
-
-		req = Client.Request(EndpointUrl, endpoint)
-			.SetQueryParam("hl", HlParam)
-			.WithTimeout(Timeout)
-			.WithCookie(Nid.Name, Nid.Value)
-			.WithHeaders(Headers)
-			.PostMultipartAsync(bc =>
-			{
-				//
-				bc.AddFile(filename, uif.FilePath);
-			}, cancellationToken: token);
-
-		return req;
-	}
-
 	private Task<IFlurlResponse> SearchUrlAsync(SearchQuery query, CancellationToken token)
 	{
 		return SearchUrlAsync(query.Upload, token);
@@ -196,13 +211,14 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		Task<IFlurlResponse> req;
 		endpoint = "uploadbyurl";
 
-		req = Client.Request(EndpointUrl, endpoint)
+		var req1 = Client.Request(EndpointUrl, endpoint)
 			.SetQueryParam("hl", HlParam)
 			.SetQueryParam("url", url)
 			.WithCookie(Nid.Name, Nid.Value)
 			.WithHeaders(Headers)
-			.WithTimeout(Timeout)
-			.GetAsync(cancellationToken: token);
+			.WithTimeout(Timeout);
+
+		req = req1.GetAsync(cancellationToken: token);
 
 		// var sz = await (await req).GetStringAsync();
 
@@ -245,7 +261,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		Provider = cfg.CookiesProvider;
-		
+
 		return ApplyCookiesAsync(ct);
 	}
 

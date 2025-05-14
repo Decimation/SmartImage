@@ -10,6 +10,7 @@ using AngleSharp.Html.Parser;
 using FlareSolverrSharp.Types;
 using Flurl.Http;
 using Kantan.Net.Utilities;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Results;
@@ -203,8 +204,8 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 		}
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
-			Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
-
+			// Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
+Logger.LogError(e, "{Name} error in {Fn}",Name, nameof(GetDocumentAsync));
 			return null;
 		}
 	}
