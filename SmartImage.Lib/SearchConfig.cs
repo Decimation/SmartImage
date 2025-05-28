@@ -7,11 +7,14 @@ using Kantan.Model;
 using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Utilities.Diagnostics;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using ConfigurationSection = System.Configuration.ConfigurationSection;
@@ -21,7 +24,7 @@ namespace SmartImage.Lib;
 public sealed class SearchConfig : INotifyPropertyChanged
 {
 
-	#region Defaults
+#region Defaults
 
 	/// <summary>
 	/// Default value for <see cref="SearchEngines"/>
@@ -57,7 +60,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.Pomf;
 
-	#endregion
+#endregion
 
 	/// <summary>
 	/// Engines used to search.
@@ -196,16 +199,69 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public static readonly SearchConfig Default = new();
 
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchClient));
+
+	public static readonly Configuration Configuration =
+		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
 	public SearchConfig()
 	{
 		PropertyChanged += static (sender, args) =>
 		{
-			Trace.WriteLine($"Changed {args.PropertyName}", nameof(SearchConfig));
+			//
+			s_logger.LogTrace("Changed {PropName}", args.PropertyName);
 		};
 	}
 
-	public static readonly Configuration Configuration =
-		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+	internal async ValueTask<bool> TryReadCookiesAsync()
+	{
+		var ok = false;
+
+		if (ReadCookies) {
+			try {
+				CookiesProvider = ICookiesProvider.GetProvider();
+
+				await ((BrowserCookiesProvider) CookiesProvider).OpenAsync();
+				ok = true;
+			}
+			catch (Exception e) {
+				s_logger.LogError(e, "Error reading cookies");
+				ReadCookies = ok;
+				CookiesProvider.Dispose();
+			}
+		}
+
+		return ok;
+	}
+
+	internal async ValueTask<bool> TryLoadFlareSolverrAsync(CancellationToken token)
+	{
+		bool ok = false;
+
+		if (this.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
+
+			ok = await FlareSolverrClient.Value.ApplyConfigAsync(this, token);
+
+			if (!ok) {
+				Debugger.Break();
+			}
+			else {
+				// Ensure FlareSolverr
+
+				try {
+					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
+				}
+				catch (Exception e) {
+					s_logger.LogError(e, "FlareSolverr error");
+					this.FlareSolverr = ok;
+					FlareSolverrClient.Value.Dispose();
+				}
+			}
+		}
+
+		return ok;
+	}
 
 	private bool Set<T>(T s = default, [CMN] string name = default)
 	{

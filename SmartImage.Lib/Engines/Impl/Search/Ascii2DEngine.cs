@@ -47,7 +47,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 
 	public const string MAIN_URL = "https://ascii2d.net/search/url/";
 
-	public Ascii2DEngine() : base(ALT_URL)
+	public Ascii2DEngine() : base(MAIN_URL)
 	{
 		Timeout = TimeSpan.FromSeconds(30);
 		MaxSize = 10_000_000;

@@ -209,7 +209,7 @@ public sealed class SearchClient : IDisposable
 			}
 			catch (Exception e) {
 				s_logger.LogError(e, "Run search error");
-				
+
 				Debugger.Break();
 			}
 
@@ -304,21 +304,13 @@ public sealed class SearchClient : IDisposable
 
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToFrozenSet();
 
-		if (Config.ReadCookies) {
+		ValueTask<bool> readCookies;
+		ValueTask<bool> loadFlareSolverr;
+		Task            applyConfig;
 
-			try {
-				Config.CookiesProvider = ICookiesProvider.GetProvider();
+		readCookies = Config.TryReadCookiesAsync();
 
-				await ((BrowserCookiesProvider) Config.CookiesProvider).OpenAsync();
-			}
-			catch (Exception e) {
-				s_logger.LogError(e, "Error reading cookies");
-				Config.ReadCookies = false;
-				Config.CookiesProvider.Dispose();
-			}
-		}
-
-		await Parallel.ForEachAsync(Engines, token, async (bse, cancellationToken) =>
+		applyConfig = Parallel.ForEachAsync(Engines, token, async (bse, cancellationToken) =>
 		{
 			if (bse is ISearchConfigReceiver cfg) {
 				s_logger.LogTrace("Applying config to {Engine}", bse.Name);
@@ -327,26 +319,11 @@ public sealed class SearchClient : IDisposable
 		});
 
 
-		if (Config.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
+		loadFlareSolverr = Config.TryLoadFlareSolverrAsync(token);
 
-			var ok = await FlareSolverrClient.Value.ApplyConfigAsync(Config, token);
-
-			if (!ok) {
-				Debugger.Break();
-			}
-			else {
-				// Ensure FlareSolverr
-
-				try {
-					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
-				}
-				catch (Exception e) {
-					s_logger.LogError(e, "FlareSolverr error");
-					Config.FlareSolverr = false;
-					FlareSolverrClient.Value.Dispose();
-				}
-			}
-		}
+		await readCookies;
+		await applyConfig;
+		await loadFlareSolverr;
 
 		// CookiesManager.Instance.Dispose();
 
