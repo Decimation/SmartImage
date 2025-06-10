@@ -166,6 +166,8 @@ public sealed class SearchClient : IDisposable
 
 			SearchResult result = await task;
 
+			s_logger.LogInformation("{Task} complete", result);
+
 			results[i] = result;
 			i++;
 		}

@@ -79,7 +79,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	public virtual Url BaseUrl { get; }
 
 	[JI]
-	public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(15);
+	public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
 
 	[JI]
 	protected long? MaxSize { get; set; }

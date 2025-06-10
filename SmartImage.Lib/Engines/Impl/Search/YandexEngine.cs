@@ -95,11 +95,12 @@ public sealed class YandexEngine : BaseSearchEngine
 			sr.Results.Add(sr.RawResultItem);
 		}
 
-		IDocument doc = null;
+		IDocument doc  = null;
 
-		IFlurlResponse res = null;
+		IFlurlResponse res  = null;
 
-		Stream str = null;
+		Stream str  = null;
+
 
 		try {
 			res = await Client.Request(sr.RawUrl)
@@ -117,9 +118,10 @@ public sealed class YandexEngine : BaseSearchEngine
 			var jsonNode = JsonNode.Parse(json);
 			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
 			var sitesObj = sites.Deserialize<YandexSite[]>();
-			var sri      = sitesObj.AsParallel().Select(e => e.ToItem(sr));
-			sr.Results.AddRange(sri);
 
+			foreach (var ys in sitesObj) {
+				sr.Results.Add(ys.ToItem(sr));
+			}
 
 		}
 		catch (Exception e) {
@@ -137,7 +139,7 @@ public sealed class YandexEngine : BaseSearchEngine
 	ret:
 		sr.Update();
 		res?.Dispose();
-		str?.Dispose();
+		// str?.Dispose();
 		doc?.Dispose();
 		return sr;
 	}

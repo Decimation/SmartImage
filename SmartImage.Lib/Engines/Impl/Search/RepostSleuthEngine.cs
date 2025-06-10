@@ -2,6 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
+using AngleSharp.Css.Values;
 using Flurl.Http;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
@@ -49,20 +50,20 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 
 		try {
 			using var response = await Client.Request(EndpointUrl)
-				        .SetQueryParams(new
-				        {
-
-					        filter               = true,
-					        url                  = query.Upload,
-					        same_sub             = false,
-					        filter_author        = true,
-					        only_older           = false,
-					        include_crossposts   = false,
-					        meme_filter          = false,
-					        target_match_percent = 90,
-					        filter_dead_matches  = false,
-					        target_days_old      = 0
-				        }).GetAsync(cancellationToken: token);
+				                     .WithTimeout(Timeout)
+				                     .SetQueryParams(new
+				                     {
+					                     filter               = true,
+					                     url                  = query.Upload,
+					                     same_sub             = false,
+					                     filter_author        = true,
+					                     only_older           = false,
+					                     include_crossposts   = false,
+					                     meme_filter          = false,
+					                     target_match_percent = 90,
+					                     filter_dead_matches  = false,
+					                     target_days_old      = 0
+				                     }).GetAsync(cancellationToken: token);
 
 			var s = await response.GetStreamAsync();
 			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
@@ -91,6 +92,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 		if (sr.HasResults) {
 			sr.Status = SearchResultStatus.Success;
 		}
+
 	ret:
 		sr.Update();
 		return sr;
@@ -98,19 +100,6 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 	}
 
 #region API Objects
-
-	private class RepostSleuthClosestMatch
-	{
-
-		public int              hamming_distance;
-		public double           annoy_distance;
-		public double           hamming_match_percent;
-		public int              hash_size;
-		public string           searched_url;
-		public RepostSleuthPost post;
-		public int              title_similarity;
-
-	}
 
 	private class RepostSleuthMatch : ISearchResultItemConvertable
 	{
@@ -160,7 +149,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 	{
 
 		public object                     meme_template;
-		public RepostSleuthClosestMatch   closest_match;
+		public RepostSleuthMatch          closest_match;
 		public string                     checked_url;
 		public object                     checked_post;
 		public RepostSleuthSearchSettings search_settings;

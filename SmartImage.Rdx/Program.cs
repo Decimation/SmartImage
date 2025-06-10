@@ -82,7 +82,7 @@ public static class Program
 		finally {
 
 			if (x != BaseOSIntegration.EC_OK) {
-				AnsiConsole.Confirm("Press any key to continue");
+				await AnsiConsole.ConfirmAsync("Press any key to continue");
 			}
 		}
 
