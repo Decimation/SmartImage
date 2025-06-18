@@ -37,6 +37,8 @@ using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using SmartImage.Lib.Utilities.Diagnostics;
+using System.Runtime.Intrinsics.X86;
+using System.Threading;
 
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;
@@ -86,14 +88,14 @@ public sealed class SearchClient : IDisposable
 		});
 	}
 
-	public delegate void ResultCompleteCallback(object sender, SearchResult e);
+	/*public delegate void ResultCompleteCallback(object sender, SearchResult e);
 
 	public delegate void SearchCompleteCallback(object sender, SearchResult[] e);
 
 
 	public event ResultCompleteCallback OnResultComplete;
 
-	public event SearchCompleteCallback OnSearchComplete;
+	public event SearchCompleteCallback OnSearchComplete;*/
 
 
 	public Channel<SearchResult> ResultChannel { get; private set; }
@@ -145,32 +147,36 @@ public sealed class SearchClient : IDisposable
 
 		s_logger.LogTrace("{Config} with {Engines}", Config, Engines.QuickJoin());
 
-		var tasks = GetSearchTasks(query, scheduler, token).ToHashSet();
+		var tasks = GetSearchTasks(query, token);
 
-		var results = new SearchResult[tasks.Count];
-		int i       = 0;
+		/*var results = new SearchResult[tasks.Count];
+		int i       = 0;*/
 
-		await foreach (var task in Task.WhenEach(tasks).WithCancellation(token)) {
-			if (token.IsCancellationRequested) {
+		/*var tf=new TaskFactory(token, TaskCreationOptions.LongRunning, TaskContinuationOptions.None, scheduler);
+		tf.StartNew(() =>
+		{
+			while (ResultChannel.Reader.TryRead()) {
 
 				Debugger.Break();
 				s_logger.LogWarning("Cancellation requested");
 				goto ret;
 			}
+		})*/
 
-			tasks.Remove(task);
+		/*var results = new List<SearchResult>();
+		var consumerTask = Task.Run(async () =>
+		{
+			await foreach (var item in ResultChannel.Reader.ReadAllAsync(token).ConfigureAwait(false))
+				results.Add(item);
+		}, token);
 
-			if (task.IsFaulted) {
-				s_logger.LogError("{Task} faulted", task);
-			}
+		await Task.WhenAll(tasks).ConfigureAwait(false);
+		await consumerTask.ConfigureAwait(false);*/
 
-			SearchResult result = await task;
 
-			s_logger.LogInformation("{Task} complete", result);
+		var results = await Task.WhenAll(tasks);
+		CompleteSearchAsync();
 
-			results[i] = result;
-			i++;
-		}
 
 		/*while (tasks.Count > 0) {
 			if (token.IsCancellationRequested) {
@@ -196,11 +202,12 @@ public sealed class SearchClient : IDisposable
 
 
 	ret:
-		CompleteSearchAsync();
-		OnSearchComplete?.Invoke(this, results);
 
-		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+		// OnSearchComplete?.Invoke(this, results);
 
+		/*if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+
+		// todo
 			try {
 
 				SearchResultItem item = GetBest(results);
@@ -215,15 +222,16 @@ public sealed class SearchClient : IDisposable
 				Debugger.Break();
 			}
 
-		}
+		}*/
 
 		IsRunning = false;
 
 		return results;
+		
 	}
 
 	[return: MN]
-	public static SearchResultItem GetBest(SearchResult[] results)
+	public static SearchResultItem GetBest(IEnumerable<SearchResult> results)
 	{
 		var ordered = results.Select(x => x.GetBestResult())
 			.Where(x => x != null)
@@ -238,22 +246,6 @@ public sealed class SearchClient : IDisposable
 		ResultChannel?.Writer.Complete();
 		IsRunning  = false;
 		IsComplete = true;
-	}
-
-	private void ProcessResult(SearchResult result)
-	{
-		OnResultComplete?.Invoke(this, result);
-
-		if (!ResultChannel.Writer.TryWrite(result)) {
-			Debug.WriteLine($"Could not write {result}");
-		}
-
-		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
-			var url = Config.OpenRaw ? result.RawUrl : result.GetBestResult()?.Url;
-
-			OpenResult(url);
-		}
-
 	}
 
 	public static void OpenResult([MN] Url url1)
@@ -285,9 +277,25 @@ public sealed class SearchClient : IDisposable
 	}
 
 
-	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, TaskScheduler scheduler, CancellationToken token)
+	private void ProcessResult(SearchResult result)
 	{
-		return Engines.Select(e =>
+		// OnResultComplete?.Invoke(this, result);
+
+		if (!ResultChannel.Writer.TryWrite(result)) {
+			s_logger.LogWarning("Could not write {Result}", result);
+		}
+
+		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+			var url = Config.OpenRaw ? result.RawUrl : result.GetBestResult()?.Url;
+
+			OpenResult(url);
+		}
+
+	}
+
+	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
+	{
+		/*return Engines.Select(e =>
 		{
 			return e.GetResultAsync(query, token: token)
 				.ContinueWith((r) =>
@@ -296,6 +304,13 @@ public sealed class SearchClient : IDisposable
 					return r.Result;
 
 				}, token, TaskContinuationOptions.None, scheduler);
+		});*/
+
+		return Engines.Select(async e =>
+		{
+			var res = await e.GetResultAsync(query, token: token).ConfigureAwait(false);
+			ProcessResult(res);
+			return res;
 		});
 	}
 
@@ -308,24 +323,24 @@ public sealed class SearchClient : IDisposable
 
 		ValueTask<bool> readCookies;
 		ValueTask<bool> loadFlareSolverr;
-		Task            applyConfig;
 
 		readCookies = Config.TryReadCookiesAsync();
-
-		applyConfig = Parallel.ForEachAsync(Engines, token, async (bse, cancellationToken) =>
-		{
-			if (bse is ISearchConfigReceiver cfg) {
-				s_logger.LogTrace("Applying config to {Engine}", bse.Name);
-				await cfg.ApplyConfigAsync(Config, cancellationToken);
-			}
-		});
-
+		await readCookies;
 
 		loadFlareSolverr = Config.TryLoadFlareSolverrAsync(token);
-
-		await readCookies;
-		await applyConfig;
 		await loadFlareSolverr;
+
+		foreach (var engine in Engines) {
+			if (engine is ISearchConfigReceiver cfg) {
+				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
+				await cfg.ApplyConfigAsync(Config, token);
+			}
+
+			if (engine is ICookiesEngine ck) {
+				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
+				await ck.ApplyCookiesAsync(token);
+			}
+		}
 
 		// CookiesManager.Instance.Dispose();
 

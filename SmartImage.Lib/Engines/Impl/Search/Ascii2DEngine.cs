@@ -76,7 +76,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 
 	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
-		return ApplyCookiesAsync(ct);
+		return ValueTask.FromResult(true);
 	}
 
 	public override void Dispose() { }

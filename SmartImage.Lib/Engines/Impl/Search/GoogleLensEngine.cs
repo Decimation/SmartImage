@@ -87,9 +87,10 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 
 	public Url EndpointUrl => URL_BASE;
 
-	public GoogleLensEngine() : base(URL_BASE) { }
-
-	public FlurlCookie Nid { get; set; }
+	public GoogleLensEngine() : base(URL_BASE)
+	{
+		Jar = new CookieJar();
+	}
 
 	public static readonly string[] SearchTypes = ["all", "products", "visual_matches", "exact_matches"];
 
@@ -104,6 +105,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		Accept_Encoding = "gzip, deflate, br",
 		Accept          = "*/*"
 	};
+
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
@@ -134,12 +136,12 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		req = Client.Request(EndpointUrl, endpoint)
 			.SetQueryParam("hl", HlParam)
 			.WithTimeout(Timeout)
-			.WithCookie(Nid.Name, Nid.Value)
+			.WithCookies(Jar)
 			.WithHeaders(Headers)
 			.PostMultipartAsync(bc =>
 			{
 				//
-				bc.AddFile(filename, uif.FilePath, contentType:"image/jpeg");
+				bc.AddFile(filename, uif.FilePath, contentType: "image/jpeg");
 			}, cancellationToken: token);
 
 		return req;
@@ -214,7 +216,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		var req1 = Client.Request(EndpointUrl, endpoint)
 			.SetQueryParam("hl", HlParam)
 			.SetQueryParam("url", url)
-			.WithCookie(Nid.Name, Nid.Value)
+			.WithCookies(Jar)
 			.WithHeaders(Headers)
 			.WithTimeout(Timeout);
 
@@ -244,14 +246,16 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 
 	public async ValueTask<bool> ApplyCookiesAsync(CancellationToken token = default)
 	{
-		var ck = await Provider.GetOrLoadCookiesAsync(token);
-
-		foreach (var cookie in ck) {
-			if (cookie.Name == "NID") {
-				Nid = cookie.AsFlurlCookie();
-				break;
-			}
+		if (Provider == null) {
+			return false;
 		}
+
+		var ck  = await Provider.GetOrLoadCookiesAsync(token);
+		var nids = ck.OfType<FirefoxCookie>().Where(x => x.Name == "NID" && x.Host.Contains("google.com"));
+		var nid = nids.First();
+
+		Jar.AddOrReplace(nid.AsFlurlCookie(URL_BASE2));
+
 
 		return true;
 	}
@@ -262,7 +266,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 	{
 		Provider = cfg.CookiesProvider;
 
-		return ApplyCookiesAsync(ct);
+		return ValueTask.FromResult(true);
 	}
 
 #endregion

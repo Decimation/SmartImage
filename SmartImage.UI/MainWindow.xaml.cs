@@ -134,7 +134,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		Lb_Queue.ItemsSource = Queue;
 
 		// Client.OnResult   += OnResult;
-		Client.OnSearchComplete += OnComplete;
+		// Client.OnSearchComplete += OnComplete;
 
 #if !DEBUG
 		AppDomain.CurrentDomain.UnhandledException += Domain_UHException;
@@ -749,6 +749,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			}
 
 			await r;
+			OnComplete(null, null);
 		}
 		catch (Exception e) {
 			// Debugger.Break();

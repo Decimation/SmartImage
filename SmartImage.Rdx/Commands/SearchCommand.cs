@@ -309,10 +309,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return;
 #endif
 		var search = Client.RunSearchAsync(Query, token: m_cts.Token);
-
+		
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
-			var result = await Client.ResultChannel.Reader.ReadAsync();
-
+			var task = Client.ResultChannel.Reader.ReadAsync();
+			
+			var         result    = await task;
+			
 			m_results.TryAdd(result, BaseOSIntegration.EC_ERROR);
 
 			// m_results.Add(result);

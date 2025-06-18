@@ -208,7 +208,9 @@ internal static class ConsoleFormat
 			[R1.S_ReadCookies]     = cfg.ReadCookies,
 
 			["Input"]  = query,
-			["Upload"] = query.Upload
+			["Upload"] = query.Upload,
+
+			["FlareSolverr"] = cfg.FlareSolverr
 		};
 
 		foreach (var o in kv) {
