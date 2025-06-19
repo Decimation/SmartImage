@@ -89,9 +89,9 @@ public class FluffleEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 		}
 
 		var fr = await response.GetJsonAsync<FluffleResponse>();
-
+		sr.Results.EnsureCapacity(sr.Results.Count + fr.Results.Count);
 		foreach (FluffleResult result in fr.Results) {
-			var item = result.ToItem(sr);
+			var item = await result.ToItem(sr);
 			sr.Results.Add(item);
 		}
 
@@ -167,7 +167,7 @@ public class FluffleResult : ISearchResultItemConvertable
 	[JsonPropertyName("credits")]
 	public List<FluffleResultCredit> Credits { get; set; }
 
-	public SearchResultItem ToItem(SearchResult sr)
+	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
 	{
 
 		var sri = new SearchResultItem(sr)
@@ -179,7 +179,7 @@ public class FluffleResult : ISearchResultItemConvertable
 			Thumbnail  = Thumbnail?.Location,
 			Site       = Platform
 		};
-		return sri;
+		return ValueTask.FromResult(sri);
 	}
 
 }

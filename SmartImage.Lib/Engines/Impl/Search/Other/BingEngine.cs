@@ -24,9 +24,10 @@ public sealed class BingEngine : BaseSearchEngine
 
 	public async Task<SearchResult> SearchAltQueryAsync(string query)
 	{
-		var sr = new SearchResult(this)
+		var rawUrl = GetAltQueryUrl(query);
+
+		var sr = new SearchResult(this, rawUrl)
 		{
-			RawUrl = GetAltQueryUrl(query),
 		};
 
 		var req = await sr.RawUrl.WithHeaders(new

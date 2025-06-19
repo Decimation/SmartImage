@@ -9,10 +9,10 @@ using SmartImage.Lib.Results;
 
 namespace SmartImage.Lib.Results.Data;
 
-public interface IItemConvertable<out TItem>
+public interface IItemConvertable<TItem>
 {
 
-	public TItem ToItem(SearchResult sr);
+	public ValueTask<TItem> ToItem(SearchResult sr);
 
 }
 

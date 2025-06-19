@@ -137,6 +137,8 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		var old = sr.Results.Find(r => r.IsRaw);
 		old.Url = sr.RawUrl;
 
+		Debug.Assert(old == sr.Results[0]);
+
 		// Debug.WriteLine($"{sr.RawUrl}");
 		var content = await httpRes.Content.ReadAsStringAsync(token);
 
@@ -163,13 +165,26 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 		}
 
-		return  ValueTask.FromResult((IEnumerable<INode>) array);
+		return ValueTask.FromResult((IEnumerable<INode>) array);
 	}
 
 	/*
 	 * Default result layout is [Compact]
 	 */
 
+#region Overrides of WebSearchEngine
+
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	{
+		return await base.GetResultAsync(query, token);
+	}
+
+	protected override Url GetRawUrl(SearchQuery query)
+	{
+		return base.GetRawUrl(query);
+	}
+
+#endregion
 
 	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
 	{
@@ -305,7 +320,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 	{
 		var eh  = EhResult.Parse(n);
 		var sri = eh.ToItem(r);
-		return ValueTask.FromResult(sri);
+		return sri;
 	}
 
 	public override void Dispose()
@@ -356,10 +371,9 @@ public sealed record EhResult : ISearchResultItemConvertable
 
 #region Implementation of IResultConverter2<out EhResult,out SearchResultItem>
 
-	public SearchResultItem ToItem(SearchResult sr)
+	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
 	{
 		var sb = Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
-
 
 		var sri = new SearchResultItem(sr)
 		{
@@ -369,7 +383,7 @@ public sealed record EhResult : ISearchResultItemConvertable
 			Description = $"{Pages} ({sb})"
 		};
 
-		return sri;
+		return ValueTask.FromResult(sri);
 	}
 
 	public static EhResult Parse(INode n)

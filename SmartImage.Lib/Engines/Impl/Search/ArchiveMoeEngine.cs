@@ -39,7 +39,7 @@ public class ArchiveMoeEngine : WebSearchEngine
 		// ReSharper disable PossibleNullReferenceException
 
 		var p = ChanPost.Parse(n);
-		return ValueTask.FromResult(p.ToItem(r));
+		return p.ToItem(r);
 
 		// ReSharper restore PossibleNullReferenceException
 	}
@@ -119,7 +119,7 @@ public record ChanPost : ISearchResultItemConverter<ChanPost>
 		return p;
 	}
 
-	public SearchResultItem ToItem(SearchResult sr)
+	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
 	{
 
 		var sri = new SearchResultItem(sr)
@@ -134,7 +134,7 @@ public record ChanPost : ISearchResultItemConverter<ChanPost>
 			Metadata    = this
 		};
 
-		return sri;
+		return ValueTask.FromResult(sri);
 	}
 
 }

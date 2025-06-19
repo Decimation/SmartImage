@@ -11,6 +11,7 @@ using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Results;
@@ -18,10 +19,10 @@ using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 [assembly: InternalsVisibleTo("SmartImage.Test")]
+
 namespace SmartImage.Lib.Engines;
 
 #nullable enable
-
 
 public interface ISearchQueryVerifiable
 {
@@ -161,19 +162,18 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		var b = await TryVerifyQueryAsync(query);
+		var b = await VerifyQueryAsync(query).ConfigureAwait(false);
+
+		SmartImageException.Assert(b, nameof(query));
 
 		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
-		var res = new SearchResult(this)
-		{
-			RawUrl = GetRawUrl(query),
-			Status = srs
-		};
+		var rawUrl = GetRawUrl(query);
 
-		lock (res.Results) {
-			res.Results.Add(res.RawResultItem);
-		}
+		var res = new SearchResult(this, rawUrl)
+		{
+			Status = srs,
+		};
 
 		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.Status);
 		return res;
@@ -188,7 +188,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return u;
 	}
 
-	public virtual ValueTask<bool> TryVerifyQueryAsync(SearchQuery q)
+	public virtual ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
 		bool b = true;
 

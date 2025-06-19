@@ -32,7 +32,7 @@ public class GoogleLensItem : ISearchResultItemConverter<GoogleLensItem>
 
 	public string Ping { get; private set; }
 
-	public SearchResultItem ToItem(SearchResult sr)
+	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
 	{
 		var sri = new SearchResultItem(sr)
 		{
@@ -42,7 +42,7 @@ public class GoogleLensItem : ISearchResultItemConverter<GoogleLensItem>
 		};
 
 
-		return sri;
+		return ValueTask.FromResult(sri);
 	}
 
 	public static GoogleLensItem Parse(INode n)
@@ -112,7 +112,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesReceiv
 	{
 		var gli = GoogleLensItem.Parse(n);
 		var sri = gli.ToItem(r);
-		return ValueTask.FromResult(sri);
+		return sri;
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)

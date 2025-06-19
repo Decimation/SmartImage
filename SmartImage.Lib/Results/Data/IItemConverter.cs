@@ -5,7 +5,7 @@ using AngleSharp.Dom;
 
 namespace SmartImage.Lib.Results.Data;
 
-public interface IItemConverter<out TResult, out TResult2>
+public interface IItemConverter<out TResult, TResult2>
 	: IItemConvertable<TResult2>
 /*where TResult : IResultConvertable*/
 {

@@ -194,7 +194,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		foreach (INode result in results) {
 			var sndr = SauceNaoDataResult.Parse(result);
 			if (sndr != null) {
-				var sris = sndr.ToItem(sr);
+				var sris = await sndr.ToItem(sr);
 				sr.Results.AddRange(sris);
 
 			}
@@ -440,7 +440,7 @@ public sealed class SauceNaoDataResult : IItemConverter<SauceNaoDataResult, IEnu
 
 #region Implementation of IResultConverter2<out SauceNaoDataResult>
 
-	public IEnumerable<SearchResultItem> ToItem(SearchResult sr)
+	public ValueTask<IEnumerable<SearchResultItem>> ToItem(SearchResult sr)
 	{
 		var sri = new SearchResultItem(sr)
 		{
@@ -456,7 +456,7 @@ public sealed class SauceNaoDataResult : IItemConverter<SauceNaoDataResult, IEnu
 		};
 
 		var children = sri.CreateChildren(Urls[1..]);
-		return [sri, .. children];
+		return ValueTask.FromResult<IEnumerable<SearchResultItem>>([sri, .. children]);
 	}
 
 	public static SauceNaoDataResult Parse(INode result)

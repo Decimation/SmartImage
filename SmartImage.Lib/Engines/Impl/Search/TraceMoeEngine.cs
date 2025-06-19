@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Diagnostics;
 using System.Text.Json;
+using Argon;
 using Flurl;
 using Flurl.Http;
 using JetBrains.Annotations;
@@ -30,22 +31,12 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 	public Url EndpointUrl => URL_API;
 
 	/// <summary>
-	/// https://anilist.co/anime/{id}/
-	/// </summary>
-	private const string ANILIST_URL = "https://anilist.co/anime/";
-
-	/// <summary>
 	/// Threshold at which results become inaccurate
 	/// </summary>
 	public const double FILTER_THRESHOLD = 87.00;
 
 	private const string URL_API   = "https://api.trace.moe";
 	private const string URL_QUERY = "https://trace.moe/?url=";
-
-	/// <summary>
-	/// Used to retrieve more information about results
-	/// </summary>
-	private readonly AnilistClient m_anilistClient = new();
 
 	public override string Name => "trace.moe";
 
@@ -58,114 +49,70 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 
 		TraceMoeRootObject tm = null;
 
-		var r = await base.GetResultAsync(query, token);
+		var sr = await base.GetResultAsync(query, token);
 
 		try {
-			IFlurlRequest request = Client.Request(EndpointUrl, ("/search"))
+			IFlurlRequest request = Client.Request(EndpointUrl, "/search")
 				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload, true);
 
 			using var response = await request.GetAsync(cancellationToken: token);
 
-			// var json = await response.GetStringAsync();
-
-			/*
-			var settings = new JsonSerializerOptions()
-			{
-				Error = (sender, args) =>
-				{
-					if (Equals(args.ErrorContext.Member, nameof(TraceMoeDoc.episode)) /*&&
-						args.ErrorContext.OriginalObject.GetType() == typeof(TraceMoeRootObject)#1#) {
-						args.ErrorContext.Handled = true;
-					}
-
-					Debug.WriteLine($"{Name} :: {args.ErrorContext}", nameof(GetResultAsync));
-				}
-			};
-			*/
 			tm = await response.GetJsonAsync<TraceMoeRootObject>();
-			// tm = JsonSerializer.Deserialize<TraceMoeRootObject>(json);
 		}
 		catch (Exception e) {
-			// Debug.WriteLine($"{Name} :: {nameof(Process)}: {e.Message}", nameof(GetResultAsync));
 			Logger.LogError(e, "{Name} in {Fn}", Name, nameof(GetResultAsync));
-			r.ErrorMessage = e.Message;
-			r.Status       = SearchResultStatus.UnknownError;
+			sr.ErrorMessage = e.Message;
+			sr.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
 		if (tm != null) {
 			if (tm.Result != null) {
-				// Most similar to least similar
+				// Most similar to the least similar
 
 				try {
-					var results = await ConvertResultsAsync(tm, r);
-					r.Status = SearchResultStatus.Success;
-					r.RawUrl = new Url(BaseUrl + query.Upload);
-					r.Results.AddRange(results);
+					sr.Results.EnsureCapacity(sr.Results.Count + tm.Result.Count);
+
+					foreach (var doc in tm.Result) {
+						var tr = await doc.ToItem(sr);
+						sr.Results.Add(tr);
+					}
+
+					sr.Status = SearchResultStatus.Success;
+					sr.RawUrl = new Url(BaseUrl + query.Upload);
 				}
 				catch (Exception e) {
-					r.ErrorMessage = e.Message;
-					r.Status       = SearchResultStatus.UnknownError;
+					sr.ErrorMessage = e.Message;
+					sr.Status       = SearchResultStatus.UnknownError;
 				}
 
 			}
 			else if (tm.Error != null) {
 				// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
 				Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
-				r.ErrorMessage = tm.Error;
-				r.Status       = SearchResultStatus.IllegalInput;
+				sr.ErrorMessage = tm.Error;
+				sr.Status       = SearchResultStatus.IllegalInput;
 
-				if (r.ErrorMessage.Contains("Search queue is full")) {
-					r.Status = SearchResultStatus.Unavailable;
+				if (sr.ErrorMessage.Contains("Search queue is full")) {
+					sr.Status = SearchResultStatus.Unavailable;
 				}
 			}
 		}
 
 	ret:
-		r.Update();
+		sr.Update();
 
-		return r;
-	}
-
-	private async Task<IEnumerable<SearchResultItem>> ConvertResultsAsync(TraceMoeRootObject obj, SearchResult sr)
-	{
-		var results = obj.Result;
-		var items   = new SearchResultItem[results.Count];
-
-		for (int i = 0; i < items.Length; i++) {
-			var doc    = results[i];
-			var result = doc.ToItem(sr);
-
-			try {
-				string anilistUrl = Url.Combine(ANILIST_URL, doc.Anilist.ToString());
-				string name       = await m_anilistClient.GetTitleAsync((int) doc.Anilist);
-				result.Source   = name;
-				result.Url      = new Url(anilistUrl);
-				result.Metadata = doc;
-			}
-			catch (Exception e) {
-				// Debug.WriteLine($"{this} :: {e.Message}", nameof(ConvertResultsAsync));
-				Logger.LogError(e, "{Name} error in {Fn}", Name, nameof(ConvertResultsAsync));
-			}
-
-			items[i] = result;
-		}
-
-		return items;
-
+		return sr;
 	}
 
 	public Task<TraceMoeQuotaObject> GetQuotaAsync()
 	{
-		return Client.Request(EndpointUrl,"me")
+		return Client.Request(EndpointUrl, "me")
 			.GetJsonAsync<TraceMoeQuotaObject>();
 	}
 
-	public override void Dispose()
-	{
-		m_anilistClient.Dispose();
-	}
+	public override void Dispose() { }
 
 }
 
@@ -219,51 +166,51 @@ public class TraceMoeDoc : ISearchResultItemConvertable
 
 	public string Image { get; set; }
 
-	public string EpisodeString
+	public string EpisodeString { get; set; }
+
+	public Url AnilistUrl { get; }
+
+	[JsonConstructor]
+	public TraceMoeDoc()
 	{
-		get
+		AnilistUrl = Url.Combine(AnilistClient.ANILIST_URL, Anilist.ToString());
+
+		EpisodeString = Episode switch
 		{
-			string epStr = Episode is { } ? Episode is string s ? s : Episode.ToString() : string.Empty;
+			not null and string => Episode.ToString(),
 
-			if (Episode is IEnumerable e && e is not string) {
-				var epList = e.Cast<object>()
-					.Select(x =>
-					{
-						var s1 = x.ToString();
+			IEnumerable e => e.Cast<object>()
+				.Select(x =>
+				{
+					var s1 = x.ToString();
 
-						if (s1.Contains('|')) {
-							s1 = s1.Split('|')[0];
-						}
+					if (s1.Contains('|')) {
+						s1 = s1.Split('|')[0];
+					}
 
-						return long.Parse(s1 ?? string.Empty);
-					});
+					return long.Parse(s1 ?? string.Empty);
+				}).QuickJoin(),
 
-				epStr = epList.QuickJoin();
-			}
+			_ => String.Empty
+		};
 
-			return epStr;
-		}
 	}
 
-	public SearchResultItem ToItem(SearchResult sr)
+	public async ValueTask<SearchResultItem> ToItem(SearchResult sr)
 	{
 		var sim = Math.Round(Similarity * 100.0f, 2);
 
-		string epStr = EpisodeString;
+		string name = await AnilistClient.Instance.GetTitleAsync((int) Anilist);
 
 		var result = new SearchResultItem(sr)
 		{
-			Similarity = sim,
-
-			// Metadata   = new[] { doc.video, doc.image },
-			Title = Filename,
-
-			Description = $"Episode #{epStr} @ " +
-			              $"[{TimeSpan.FromSeconds(From):g} - {TimeSpan.FromSeconds(To):g}]",
+			Similarity  = sim,
+			Title       = Filename,
+			Source      = name,
+			Url         = AnilistUrl,
+			Description = $"Episode #{EpisodeString} @ [{TimeSpan.FromSeconds(From):g} - {TimeSpan.FromSeconds(To):g}]",
+			Metadata    = this
 		};
-
-		// result.Metadata.video = video;
-		// result.Metadata.image = image;
 
 		if (result.Similarity < TraceMoeEngine.FILTER_THRESHOLD) {
 			/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
@@ -273,6 +220,7 @@ public class TraceMoeDoc : ISearchResultItemConvertable
 
 			// result.Metadata.Warning = $"Similarity below threshold {FILTER_THRESHOLD:P}";
 		}
+
 
 		return result;
 	}

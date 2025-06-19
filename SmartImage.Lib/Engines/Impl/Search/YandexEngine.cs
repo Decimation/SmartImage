@@ -86,9 +86,8 @@ public sealed class YandexEngine : BaseSearchEngine
 
 		var url = GetRawUrl(query);
 
-		var sr = new SearchResult(this)
+		var sr = new SearchResult(this, url)
 		{
-			RawUrl = url
 		};
 
 		lock (sr.Results) {
@@ -120,7 +119,7 @@ public sealed class YandexEngine : BaseSearchEngine
 			var sitesObj = sites.Deserialize<YandexSite[]>();
 
 			foreach (var ys in sitesObj) {
-				sr.Results.Add(ys.ToItem(sr));
+				sr.Results.Add(await ys.ToItem(sr));
 			}
 
 		}
@@ -184,16 +183,16 @@ public record YandexSite : ISearchResultItemConvertable
 	[JsonPropertyName("originalImage")]
 	public YandexImage OriginalImage { get; set; }
 
-	public SearchResultItem ToItem(SearchResult sr)
+	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
 	{
-		return new SearchResultItem(sr)
+		return ValueTask.FromResult(new SearchResultItem(sr)
 		{
 			Title       = Title,
 			Description = Description,
 			Url         = OriginalImage.Url,
 			Site        = Domain,
 			Thumbnail   = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url
-		};
+		});
 	}
 
 }

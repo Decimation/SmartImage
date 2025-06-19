@@ -123,6 +123,9 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set => Set(value);
 	}
 
+	/// <summary>
+	/// Obsolete
+	/// </summary>
 	public bool Silent
 	{
 		get => Get(false);
@@ -149,6 +152,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		get => Get(String.Empty);
 		set => Set(value);
 	}
+
+	#region Cookies 
 
 	/// <summary>
 	/// Parse browser cookies automatically whenever necessary
@@ -182,6 +187,10 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set { m_cookiesProvider = value; }
 	}
 
+	#endregion
+
+	#region FlareSolverr 
+
 	/// <remarks>
 	/// 
 	/// </remarks>
@@ -200,32 +209,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		get => Get(FLARE_SOLVERR_API_URL_DEFAULT);
 		set => Set(value);
 	}
-
-	/// <summary>
-	/// <see cref="BaseUploadEngine"/>
-	/// </summary>
-	public UploadEngineOptions UploadEngine
-	{
-		get => Get(UPLOAD_ENGINE_DEFAULT);
-		set => Set(value);
-	}
-
-	public static readonly SearchConfig Default = new();
-
-	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchClient));
-
-	public static readonly Configuration Configuration =
-		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
-	public SearchConfig()
-	{
-		PropertyChanged += static (sender, args) =>
-		{
-			//
-			s_logger.LogTrace("Changed {PropName}", args.PropertyName);
-		};
-	}
-
 
 	internal async ValueTask<bool> TryLoadFlareSolverrAsync(CancellationToken token)
 	{
@@ -254,6 +237,34 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 		return ok;
 	}
+
+	#endregion
+
+	/// <summary>
+	/// <see cref="BaseUploadEngine"/>
+	/// </summary>
+	public UploadEngineOptions UploadEngine
+	{
+		get => Get(UPLOAD_ENGINE_DEFAULT);
+		set => Set(value);
+	}
+
+	public static readonly SearchConfig Default = new();
+
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchClient));
+
+	public static readonly Configuration Configuration =
+		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+	public SearchConfig()
+	{
+		PropertyChanged += static (sender, args) =>
+		{
+			//
+			s_logger.LogTrace("Changed {PropName}", args.PropertyName);
+		};
+	}
+
 
 	private bool Set<T>(T s = default, [CMN] string name = default)
 	{

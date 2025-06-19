@@ -86,7 +86,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 		}
 
 		foreach (var rpm in obj.matches) {
-			sr.Results.Add(rpm.ToItem(sr));
+			sr.Results.Add(await rpm.ToItem(sr).ConfigureAwait(false));
 		}
 
 		if (sr.HasResults) {
@@ -112,10 +112,10 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 		public RepostSleuthPost post;
 		public double           title_similarity;
 
-		public SearchResultItem ToItem(SearchResult sr)
+		public ValueTask<SearchResultItem> ToItem(SearchResult sr)
 		{
 
-			return new SearchResultItem(sr)
+			return ValueTask.FromResult(new SearchResultItem(sr)
 			{
 				Similarity = hamming_match_percent,
 				Artist     = post.author,
@@ -123,7 +123,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 				Url        = post.url,
 				Title      = post.title,
 				Time       = DateTimeOffset.FromUnixTimeSeconds((long) post.created_at).LocalDateTime
-			};
+			});
 		}
 
 	}

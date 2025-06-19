@@ -85,7 +85,11 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	/// <summary>
 	/// Undifferentiated result URL
 	/// </summary>
-	public Url RawUrl { get; internal set; }
+	public Url RawUrl
+	{
+		get => RawResultItem.Url;
+		set => RawResultItem.Url = value;
+	}
 
 	[JI]
 	public bool HasResults => !Flags.HasFlagFast(SearchResultFlags.NoResults);
@@ -108,24 +112,49 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string Overview { get; internal set; }
 
-	internal SearchResult(BaseSearchEngine bse)
+	// private Lazy<SearchResultItem> m_rawResultItem;
+
+	[JI]
+	public SearchResultItem RawResultItem { get;  }
+
+	internal SearchResult(BaseSearchEngine bse, Url rawUrl)
 	{
-		Engine  = bse;
-		Results = [];
+		Engine        = bse;
+		RawResultItem = GetRawResultItem(rawUrl);
+		Results       = [RawResultItem];
+
+		/*m_rawResultItem = new Lazy<SearchResultItem>(() =>
+		{
+		var rawCache = new SearchResultItem(this, true)
+		{
+			Url = RawUrl
+		};
+		return rawCache;
+		})*/
+		;
 
 		// Results = [GetRawResultItem()];
 	}
 
+
+	private SearchResultItem GetRawResultItem(Url rawUrl)
+	{
+		return new SearchResultItem(this, true)
+		{
+			Url = rawUrl
+		};
+	}
+
 	public void Update()
 	{
-		if (Status.IsUnknown()) {
-			
-		}
+		if (Status.IsUnknown()) { }
+
 		if (Status.IsError()) {
 			return;
 		}
 
 	}
+
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
@@ -155,19 +184,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 		return Results.OrderByDescending(static r => r.Similarity)
 			.FirstOrDefault(static r => Url.IsValid(r.Url));
-	}
-
-	[JI]
-	public SearchResultItem RawResultItem
-	{
-		get
-		{
-			var rawCache = new SearchResultItem(this, true)
-			{
-				Url = RawUrl
-			};
-			return rawCache;
-		}
 	}
 
 	public override string ToString()

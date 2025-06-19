@@ -26,7 +26,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		Logger.LogTrace("Disposing {Name}", Name);
 	}
 
-	public override async ValueTask<bool> TryVerifyQueryAsync(SearchQuery q)
+	public override async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
 		var ok = await q.Source.AllocImageAsync();
 
@@ -37,7 +37,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 		}
 
-		return await base.TryVerifyQueryAsync(q);
+		return await base.VerifyQueryAsync(q);
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)

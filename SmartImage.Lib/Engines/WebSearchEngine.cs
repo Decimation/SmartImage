@@ -16,6 +16,8 @@ namespace SmartImage.Lib.Engines;
 
 abstract class ParsedSearchEngine<T> : BaseSearchEngine
 {
+	//todo
+
 	protected ParsedSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
 
 	protected abstract ValueTask<IEnumerable<T>> GetRawItems();
