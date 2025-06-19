@@ -111,12 +111,15 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 
 	[MN]
 	[JI]
-	public UniImage[] Uni { get; internal set; }
+	public List<UniImage> Uni { get; internal set; }
 
 	[JI]
 	[MNNW(true, nameof(Uni))]
-	public bool HasUni => Uni is { Length: > 0 };
+	public bool HasUni => Uni is { Count: > 0 };
 
+	/// <summary>
+	/// <see cref="SearchResult.RawResultItem"/>
+	/// </summary>
 	public bool IsRaw { get; }
 
 	internal SearchResultItem(SearchResult r, bool isRaw = false)
@@ -126,50 +129,11 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		Uni      = null;
 		Parent   = null;
 		IsRaw    = isRaw;
-
+		Uni  = new List<UniImage>();
 		// EmbeddedUrls = null;
 
 		// Children   = [];
 	}
-
-	/*
-	internal SearchResultItem[] FromUni()
-	{
-		if (!HasUni) {
-			return null;
-		}
-
-		var u = new SearchResultItem[Uni.Length];
-
-		for (int i = 0; i < u.Length; i++) {
-			u[i] = new SearchResultItem(this)
-			{
-				Uni = null,
-				IsUniType = true
-			};
-		}
-
-		return u;
-	}
-	*/
-
-	/*
-	public void CreateChildren(string[] rg)
-	{
-		for (int i = 0; i < rg.Length; i++) {
-
-			var sri = new SearchResultItem(this)
-			{
-				Url      = rg[i],
-				Children = [],
-				Parent   = this
-			};
-
-			Children.Add(sri);
-		}
-
-	}
-	*/
 
 	public SearchResultItem[] CreateChildren(string[] rg)
 	{
@@ -191,17 +155,6 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		return rg2;
 	}
 
-	// [MustUseReturnValue]
-	/*public async Task<bool> ScanUrlsAsync(CancellationToken ct = default)
-	{
-
-		var urls = await ImageScanner.GetImageUrls(Url, ct).ConfigureAwait(false);
-
-		EmbeddedUrls = urls.Select(x => new Url(x)).ToArray();
-
-		Debug.WriteLine($"{Url} -> {EmbeddedUrls.Length}");
-		return EmbeddedUrls != null;
-	}*/
 
 	/*public async ValueTask<bool> HashAsync(SearchQuery query, int idx = 0, CancellationToken ct = default)
 	{
@@ -226,9 +179,25 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		return true;
 	}*/
 
+	public async ValueTask<bool> LoadThumbnail(CancellationToken ct = default)
+	{
+		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u.ValueString == Thumbnail))) {
+
+			var uni = await UniImage.TryCreateAsync(Thumbnail, ct: ct);
+
+			if (uni == null) {
+				return false;
+			}
+
+			Uni.Add(uni);
+		}
+
+		return true;
+	}
 
 	public async Task<bool> ScanAsync(CancellationToken ct = default)
 	{
+		// TODO: USE CHANNELS
 		// TODO: REFACTOR TO USE THIS FUNCTION
 
 		if (HasUni) {
@@ -256,10 +225,12 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 			}
 		}
 
-		Uni = buf.ToArray();
+		Uni.AddRange(buf);
+		buf.Clear();
 
 		return HasUni;
 	}
+
 
 	public async Task<bool> CalculateAsync(IHashable h, CancellationToken ct = default)
 	{

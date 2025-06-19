@@ -239,7 +239,7 @@ internal static class ConsoleFormat
 
 	public static string ToCheck(bool b)
 	{
-		return (b ? Strings.Constants.HEAVY_CHECK_MARK : Strings.Constants.HEAVY_BALLOT_X).ToString();
+		return (b ? Strings.Constants.CHECK_MARK : Strings.Constants.BALLOT_X).ToString();
 	}
 
 	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)

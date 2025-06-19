@@ -205,13 +205,17 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 		foreach (var bck in cookies) {
 
+			// var cookie = bck.AsFlurlCookie(OriginUrl);
+
 			var cookie = bck.AsCookie();
+
 
 			if (cookie == null) {
 				continue;
 			}
 
 			bool c = false;
+
 
 			if (UseExHentai) {
 				c |= cookie.Domain.Contains(HOST_EX);
@@ -221,8 +225,9 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 			c |= dmnEh;
 
+
 			if (c) {
-				Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, OriginUrl));
+				Jar.AddOrReplace(cookie.Name, cookie.Value, UseExHentai ? ExHentaiBase : EHentaiBase);
 			}
 		}
 

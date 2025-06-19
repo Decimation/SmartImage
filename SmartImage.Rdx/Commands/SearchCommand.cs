@@ -37,7 +37,9 @@ using Kantan.Text;
 using SmartImage.Rdx.Shell;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
+using Flurl.Http;
 using Kantan.Monad;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
@@ -71,7 +73,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	/// </summary>
 	private readonly ConcurrentDictionary<SearchResult, int> m_results;
 
-	private SearchCommandSettings m_scs;
+	private readonly ObjectCache           m_cache;
+	private          SearchCommandSettings m_scs;
 
 	private readonly STable m_table;
 
@@ -89,11 +92,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		m_scs     = null;
 		m_table   = CreateResultTable();
 		m_results = new();
+		m_cache   = new MemoryCache("Buf");
+
 
 		Query = SearchQuery.Null;
 	}
 
-	#region
+#region
 
 	private async Task InitConfigAsync([CBN] object c)
 	{
@@ -240,6 +245,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return BaseOSIntegration.EC_OK;
 	}
 
+
 	private async Task RunInteractiveAsync()
 	{
 		string cmd = null;
@@ -256,16 +262,18 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					SearchClient.OpenResult(res.Url);
 				}
 				else if (cmd == R2.Chc_Scan) {
-					var run3 = ShowImageScanResultsAsync(res);
-					await run3;
+					var run3 = await ShowImageScanResultsAsync(res);
+
+					if (!run3) {
+						goto cont;
+					}
 
 					var cmd2 = GetCommand2Prompt();
 
-					if (cmd2 == "back") {
+					if (cmd2 == Command2Prompts[0]) {
 						goto cont;
-
 					}
-					else if (cmd2 == "calculate") {
+					else if (cmd2 == Command2Prompts[1]) {
 						await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 						{
 							var hashOk = await res.CalculateAsync(Query.Source);
@@ -289,6 +297,78 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 						// var row    = dict[item];
 						// table2.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
 					}
+					else if (cmd2 == Command2Prompts[2]) {
+
+						Stream str;
+
+						if (res.HasUni) {
+							var uniIndex = GetUniPrompt(res);
+							var uni      = res.Uni[uniIndex];
+							str = uni.Stream;
+						}
+						else if (res.Thumbnail != null) {
+							using var thumbRes = await res.Thumbnail.GetAsync();
+							str = await thumbRes.GetStreamAsync();
+
+							// var exist = res.Uni.Any(u => u.ValueString == res.Thumbnail);
+
+						}
+						else {
+							continue;
+						}
+
+
+						var cip = new CacheItemPolicy()
+						{
+							AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
+							RemovedCallback = arguments =>
+							{
+								switch (arguments.RemovedReason) {
+
+									case CacheEntryRemovedReason.Removed:
+										break;
+
+									case CacheEntryRemovedReason.Expired:
+										break;
+
+									case CacheEntryRemovedReason.Evicted:
+										break;
+
+									case CacheEntryRemovedReason.ChangeMonitorChanged:
+										break;
+
+									case CacheEntryRemovedReason.CacheSpecificEviction:
+										break;
+
+									default:
+										throw new ArgumentOutOfRangeException();
+								}
+
+								Debug.WriteLine($"{arguments.CacheItem} :: {arguments.RemovedReason}");
+								return;
+							}
+						};
+
+						string key = res.Url.ToString();
+
+						var o = m_cache.Get(key);
+
+						if (o is not CanvasImage ci) {
+							ci = new CanvasImage(str);
+							m_cache.Set(key, ci, cip);
+						}
+
+						AnsiConsole.AlternateScreen(() =>
+						{
+							//
+							AnsiConsole.Clear();
+
+							// AnsiConsole.Write($"{ci.Width}x{ci.Height}");
+							AnsiConsole.Write(ci);
+							Console.ReadKey();
+						});
+					}
+					else if (cmd2 == "") { }
 
 				}
 			}
@@ -309,12 +389,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return;
 #endif
 		var search = Client.RunSearchAsync(Query, token: m_cts.Token);
-		
+
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
 			var task = Client.ResultChannel.Reader.ReadAsync();
-			
-			var         result    = await task;
-			
+
+			var result = await task;
+
 			m_results.TryAdd(result, BaseOSIntegration.EC_ERROR);
 
 			// m_results.Add(result);
@@ -342,7 +422,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	}
 
 
-	private async ValueTask ShowImageScanResultsAsync(SearchResultItem item)
+	private async ValueTask<bool> ShowImageScanResultsAsync(SearchResultItem item)
 	{
 		/*var  gr2 = new Grid();
 		gr2.AddColumns(5);
@@ -356,6 +436,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		// var table2 = CreateResultTable();
 		// table2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
 		// var ld   = AnsiConsole.Live(table2);
+		bool ok = true;
 
 		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 		{
@@ -366,16 +447,20 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 				var resOk = await item.ScanAsync();
 
 				if (!resOk) {
-					Debugger.Break();
+					// Debugger.Break();
+					ok = false;
+					return;
+
 				}
 			}
 			else {
 				return;
 			}
+
 			int i       = 0;
 			var row     = GetRow(item);
 			var rowOrig = row;
-			var delta   = item.Uni.Length;
+			var delta   = item.Uni.Count;
 			var idx     = item.Root.Results.IndexOf(item);
 
 			foreach (var ui in item.Uni) {
@@ -390,6 +475,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			}
 
 		});
+
+		return ok;
 
 	}
 
@@ -475,14 +562,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		AnsiConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
 	}
 
-	#endregion
+#endregion
 
 	private SearchResultItem GetItemForUni(UniImage ui, out int uniIndex)
 	{
 		foreach (SearchResult sr in m_results.Keys) {
 			foreach (var sri in sr.Results) {
 				if (sri.HasUni) {
-					for (int k = 0; k < sri.Uni.Length; k++) {
+					for (int k = 0; k < sri.Uni.Count; k++) {
 						UniImage ui2 = sri.Uni[k];
 
 						if (ui == ui2) {
@@ -498,7 +585,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		return null;
 	}
-
 
 	private int GetRow(object o)
 	{
@@ -530,22 +616,37 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	}
 
-	#region Prompts
+#region Prompts
+
+	private static readonly List<string> Command2Prompts = ["back", "calculate", "prev"];
 
 	private static string GetCommand2Prompt()
 	{
 		var textPrompt = new TextPrompt<string>(Markup.Escape("[Command 2]"))
 		{
 			ShowChoices = true,
-			Choices =
-			{
-				"calculate", "back"
-			}
 		};
+
+		textPrompt.Choices.AddRange(Command2Prompts);
 
 		var prompt = AnsiConsole.Prompt(textPrompt);
 
 		return prompt;
+	}
+
+	private int GetUniPrompt(SearchResultItem res)
+	{
+		Prm_Num.Validator = i =>
+		{
+			if (res.HasUni && i < res.Uni.Count && i >= 0) {
+				return ValidationResult.Success();
+			}
+
+			return ValidationResult.Error("Out of range");
+		};
+
+
+		return AnsiConsole.Prompt(Prm_Num);
 	}
 
 	private int GetNumberPrompt(SearchResult result)
@@ -577,9 +678,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return AnsiConsole.Prompt(Prm_Engine);
 	}
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	private static IRenderable[] CreateUniImageRow(UniImage ui, SearchResultItem sri, int idx, int subIdx)
 	{
@@ -609,8 +710,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		var inputSplit = input.Split(' ', StringSplitOptions.TrimEntries);
 		var name       = inputSplit[0];
 
-		var res = m_results.Keys.FirstOrDefault(
-			sr => sr.Engine.Name.Contains(name, StringComparison.InvariantCultureIgnoreCase));
+		var res = m_results.Keys.FirstOrDefault(sr => sr.Engine.Name.Contains(name, StringComparison.InvariantCultureIgnoreCase));
 
 		if (res != default && inputSplit.Length > 1 && int.TryParse(inputSplit[1], out var idx)) {
 			var sri = res.Results[idx];
@@ -698,7 +798,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return layout;
 	}
 
-	#endregion
+#endregion
 
 	[ContractAnnotation("=> halt")]
 	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
@@ -735,7 +835,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Query.Dispose();
 	}
 
-	#region Prompts
+#region Prompts
 
 	private static readonly TextPrompt<string> Prm_Command = new(Markup.Escape("[Command]"))
 	{
@@ -767,6 +867,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		AllowEmpty       = false,
 	};
 
-	#endregion
+	private static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+	};
+
+#endregion
 
 }
