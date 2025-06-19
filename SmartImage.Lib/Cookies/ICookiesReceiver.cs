@@ -1,15 +1,14 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: ICookiesReceiver.cs
 // Date: 2024/06/06 @ 17:06:56
 
+using System.Net;
 using Flurl.Http;
 
 namespace SmartImage.Lib.Cookies;
 
-public interface ICookiesEngine
+public interface ICookiesReceiver
 {
 	public CookieJar Jar { get; }
 
-	public ICookiesProvider Provider { get; set; }
-
-	public ValueTask<bool> ApplyCookiesAsync(CancellationToken token = default);
+	public ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken token = default);
 }

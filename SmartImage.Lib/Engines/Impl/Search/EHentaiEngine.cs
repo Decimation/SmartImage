@@ -4,6 +4,7 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Net;
 using System.Runtime.CompilerServices;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
@@ -24,7 +25,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICookiesEngine, ISearchConfigReceiver
+public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICookiesReceiver, ISearchConfigReceiver
 {
 
 	static EHentaiEngine() { }
@@ -170,9 +171,9 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 	 */
 
 
-	public async ValueTask<bool> ApplyCookiesAsync(CancellationToken ct = default)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
 	{
-		if (Provider == null) {
+		if (provider == null) {
 			return false;
 		}
 
@@ -185,8 +186,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 			Trace.WriteLine($"Applying cookies to {Name}");
 		}
 
-
-		var cookies = await Provider.GetOrLoadCookiesAsync(ct);
+		var cookies = await provider.GetOrLoadCookiesAsync(ct);
 
 		foreach (var bck in cookies) {
 
@@ -280,12 +280,8 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		}*/
 		//
 
-		Provider = cfg.CookiesProvider;
-
 		return ValueTask.FromResult(true);
 	}
-
-	public ICookiesProvider Provider { get; set; }
 
 #region
 

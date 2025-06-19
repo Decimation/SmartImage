@@ -154,7 +154,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// Parse browser cookies automatically whenever necessary
 	/// </summary>
 	/// <remarks>
-	/// <see cref="ICookiesEngine"/>
+	/// <see cref="ICookiesReceiver"/>
 	/// <see cref="ICookiesProvider"/>
 	/// </remarks>
 	public bool ReadCookies
@@ -167,7 +167,20 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	// TODO: cookies.txt support
 	// TODO: specify cookies source
 
-	public ICookiesProvider CookiesProvider { get; set; }
+	private ICookiesProvider m_cookiesProvider;
+
+	public ICookiesProvider CookiesProvider
+	{
+		get
+		{
+			if (ReadCookies && m_cookiesProvider == null) {
+				m_cookiesProvider = ICookiesProvider.GetProvider();
+			}
+
+			return m_cookiesProvider;
+		}
+		set { m_cookiesProvider = value; }
+	}
 
 	/// <remarks>
 	/// 
@@ -213,27 +226,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		};
 	}
 
-
-	internal async ValueTask<bool> TryReadCookiesAsync()
-	{
-		var ok = false;
-
-		if (ReadCookies) {
-			try {
-				CookiesProvider = ICookiesProvider.GetProvider();
-
-				await ((BrowserCookiesProvider) CookiesProvider).OpenAsync();
-				ok = true;
-			}
-			catch (Exception e) {
-				s_logger.LogError(e, "Error reading cookies");
-				ReadCookies = ok;
-				CookiesProvider.Dispose();
-			}
-		}
-
-		return ok;
-	}
 
 	internal async ValueTask<bool> TryLoadFlareSolverrAsync(CancellationToken token)
 	{

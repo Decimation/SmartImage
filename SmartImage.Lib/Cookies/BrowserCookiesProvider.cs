@@ -1,9 +1,13 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: CookiesManager.cs
 
+using System.Collections.Frozen;
 using System.Data;
 using System.Diagnostics;
 using System.Runtime.Caching;
 using Kantan.Net.Web;
+using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
+using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Lib.Cookies;
 
@@ -12,28 +16,43 @@ public class BrowserCookiesProvider : ICookiesProvider
 
 	private const string CH_NAME = "cookies";
 
-	public BaseCookieReader Reader { get; }
+	private readonly BaseCookiesDatabaseReader m_reader;
 
-	public MemoryCache Cache { get; }
+	private IList<ICookie> m_cookies;
 
-	public BrowserCookiesProvider(BaseCookieReader reader)
+	[ICBN]
+	public static readonly Lazy<ICookiesProvider> Default = new(() =>
 	{
-		Reader = reader;
-		Cache  = new MemoryCache($"{nameof(BrowserCookiesProvider)}_Cache");
+		if (BaseOSIntegration.Integration.IsFirefoxInstalled) {
+			var cookieFile = FirefoxCookiesDatabaseReader.FindCookieFile();
+
+			if (cookieFile != null) {
+				return new BrowserCookiesProvider(new FirefoxCookiesDatabaseReader(cookieFile.FullName));
+			}
+
+		}
+
+		return null;
+	});
+
+	internal BrowserCookiesProvider(BaseCookiesDatabaseReader reader)
+	{
+		m_reader  = reader;
+		m_cookies = null;
 	}
 
 	public async ValueTask OpenAsync()
 	{
 		// Opening is idempotent
-		await Reader.Connection.OpenAsync();
+		await m_reader.Connection.OpenAsync();
 	}
 
 	public async ValueTask CloseAsync()
 	{
-		await Reader.Connection.CloseAsync();
+		await m_reader.Connection.CloseAsync();
 	}
 
-	public async ValueTask<IList<IBrowserCookie>> GetOrLoadCookiesAsync(CancellationToken ct = default)
+	public async ValueTask<IList<ICookie>> GetOrLoadCookiesAsync(CancellationToken ct = default)
 	{
 		if (!IsOpen) {
 			await OpenAsync();
@@ -44,42 +63,28 @@ public class BrowserCookiesProvider : ICookiesProvider
 		}*/
 
 
-		var itemPolicy = new CacheItemPolicy()
-		{
+		if (m_cookies == null) {
 
-			// AbsoluteExpiration = 
-		};
-
-		var chi = (IList<IBrowserCookie>) Cache.Get(CH_NAME);
-
-		if (chi == null) {
-
-			var cookies = await Reader.ReadCookiesAsync();
-			var addOk   = Cache.Add(CH_NAME, cookies, itemPolicy);
-
-			if (addOk) {
-				chi = (IList<IBrowserCookie>) Cache.Get(CH_NAME);
-			}
-
+			var cookies = await m_reader.ReadCookiesAsync();
+			m_cookies = cookies.AsReadOnly();
+			await CloseAsync();
 		}
-		else {
-			Trace.WriteLine($"Found {CH_NAME} in cache");
-		}
+		else { }
 
-		return chi;
+		return m_cookies;
 	}
 
-	public bool IsOpen => Reader.Connection.State is ConnectionState.Open;
+	public bool IsOpen => m_reader.Connection.State is ConnectionState.Open;
 
-	public bool IsOpenOrInUse => Reader.Connection.State is < ConnectionState.Broken and >= ConnectionState.Open;
+	public bool IsOpenOrInUse => m_reader.Connection.State is < ConnectionState.Broken and >= ConnectionState.Open;
 
-	public bool IsClosedOrBroken => Reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;
+	public bool IsClosedOrBroken => m_reader.Connection.State is ConnectionState.Broken or ConnectionState.Closed;
 
 	public void Dispose()
 	{
 		Debug.WriteLine($"Disposing {nameof(BrowserCookiesProvider)}");
-		Reader.Dispose();
-		Cache.Dispose();
+		m_reader.Dispose();
+		m_cookies.Clear();
 	}
 
 }

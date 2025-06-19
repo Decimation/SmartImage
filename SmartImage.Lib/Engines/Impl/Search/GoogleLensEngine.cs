@@ -69,7 +69,7 @@ public class GoogleLensItem : ISearchResultItemConverter<GoogleLensItem>
 
 }
 
-public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine, ISearchConfigReceiver
+public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesReceiver, ISearchConfigReceiver
 {
 
 	// TODO: WIP
@@ -106,6 +106,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		Accept          = "*/*"
 	};
 
+	// public FlurlCookie Nid { get; set; }
 
 	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
 	{
@@ -136,12 +137,14 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		req = Client.Request(EndpointUrl, endpoint)
 			.SetQueryParam("hl", HlParam)
 			.WithTimeout(Timeout)
+
 			.WithCookies(Jar)
+			// .WithCookie(Nid.Name, Nid.Value)
 			.WithHeaders(Headers)
 			.PostMultipartAsync(bc =>
 			{
 				//
-				bc.AddFile(filename, uif.FilePath, contentType: "image/jpeg");
+				bc.AddFile("encoded_image", uif.FilePath, contentType: "image/jpeg", fileName: filename);
 			}, cancellationToken: token);
 
 		return req;
@@ -216,7 +219,9 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 		var req1 = Client.Request(EndpointUrl, endpoint)
 			.SetQueryParam("hl", HlParam)
 			.SetQueryParam("url", url)
+
 			.WithCookies(Jar)
+			// .WithCookie(Nid.Name, Nid.Value)
 			.WithHeaders(Headers)
 			.WithTimeout(Timeout);
 
@@ -242,19 +247,19 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 
 	public CookieJar Jar { get; private set; }
 
-	public ICookiesProvider Provider { get; set; }
-
-	public async ValueTask<bool> ApplyCookiesAsync(CancellationToken token = default)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken token = default)
 	{
-		if (Provider == null) {
+		if (provider == null) {
 			return false;
 		}
 
-		var ck  = await Provider.GetOrLoadCookiesAsync(token);
+		var ck   = await provider.GetOrLoadCookiesAsync(token);
 		var nids = ck.OfType<FirefoxCookie>().Where(x => x.Name == "NID" && x.Host.Contains("google.com"));
-		var nid = nids.First();
+		var nid  = nids.First();
 
-		Jar.AddOrReplace(nid.AsFlurlCookie(URL_BASE2));
+		var nidFc = nid.AsFlurlCookie(URL_BASE);
+		// Nid ??= nidFc;
+		Jar.AddOrReplace(nidFc);
 
 
 		return true;
@@ -264,8 +269,6 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesEngine
 
 	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
-		Provider = cfg.CookiesProvider;
-
 		return ValueTask.FromResult(true);
 	}
 

@@ -25,7 +25,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConfigReceiver
+public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver, ISearchConfigReceiver
 {
 
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
@@ -33,8 +33,6 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
 
 	public CookieJar Jar { get; }
-
-	public ICookiesProvider Provider { get; set; }
 
 	protected override string[] ErrorBodyMessages
 		=>
@@ -54,13 +52,13 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 		Jar     = new CookieJar();
 	}
 
-	public async ValueTask<bool> ApplyCookiesAsync(CancellationToken ct)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
 	{
-		if ( /*FlareSolverrClient.Value.IsInitialized*/ Provider == null) {
+		if ( /*FlareSolverrClient.Value.IsInitialized*/ provider == null) {
 			return false;
 		}
 
-		var cookies = await Provider.GetOrLoadCookiesAsync(ct);
+		var cookies = await provider.GetOrLoadCookiesAsync(ct);
 
 		foreach (var bck in cookies) {
 			var ck = bck.AsCookie();
@@ -204,7 +202,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesEngine, ISearchConf
 		catch (FlurlHttpException e) {
 			// return await Task.FromException<IDocument>(e);
 			// Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
-Logger.LogError(e, "{Name} error in {Fn}",Name, nameof(GetDocumentAsync));
+			Logger.LogError(e, "{Name} error in {Fn}", Name, nameof(GetDocumentAsync));
 			return null;
 		}
 	}

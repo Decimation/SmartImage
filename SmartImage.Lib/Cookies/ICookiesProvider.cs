@@ -9,20 +9,14 @@ namespace SmartImage.Lib.Cookies;
 public interface ICookiesProvider : IDisposable
 {
 
-	public ValueTask<IList<IBrowserCookie>> GetOrLoadCookiesAsync(CancellationToken ct = default);
-
+	public ValueTask<IList<ICookie>> GetOrLoadCookiesAsync(CancellationToken ct = default);
 
 	public static ICookiesProvider GetProvider()
 	{
-		if (BaseOSIntegration.Integration.IsFirefoxInstalled) {
-			var cookieFile = FirefoxCookieReader.FindCookieFile();
-			if (cookieFile != null) {
-				return new BrowserCookiesProvider(new FirefoxCookieReader(cookieFile.FullName));
+		ICookiesProvider cp = BrowserCookiesProvider.Default.Value 
+		                      ?? new ListCookiesProvider();
 
-			}
-		}
-
-		return new DefaultCookiesProvider();
+		return cp;
 	}
 
 }

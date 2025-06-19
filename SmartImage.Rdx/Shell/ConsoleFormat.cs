@@ -1,5 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System.Data;
+using Kantan.Text;
 using Novus.OS;
 using Novus.Streams;
 using SmartImage.Lib;
@@ -20,13 +21,13 @@ internal static class ConsoleFormat
 
 	// Ideally a dictionary would be used here...
 
-	#region Colors
+#region Colors
 
 	public static readonly Color Clr_Misc1 = new(0x80, 0xFF, 0x80);
 
-	#endregion
+#endregion
 
-	#region Styles
+#region Styles
 
 	internal static readonly Style Sty_Name = new(decoration: Decoration.Italic);
 
@@ -57,9 +58,9 @@ internal static class ConsoleFormat
 
 		}.AsReadOnly();
 
-	#endregion
+#endregion
 
-	#region Text
+#region Text
 
 	internal static readonly Text Txt_Empty = new(string.Empty);
 
@@ -67,7 +68,7 @@ internal static class ConsoleFormat
 	internal const           string STR_NA   = "-";
 	internal const           double COMPLETE = 100.0d;
 
-	#endregion
+#endregion
 
 
 	static ConsoleFormat() { }
@@ -213,9 +214,9 @@ internal static class ConsoleFormat
 			["FlareSolverr"] = cfg.FlareSolverr
 		};
 
-		foreach (var o in kv) {
-			dt.AddRow(new Text(o.Key, Sty_Grid1),
-			          new Text(Markup.Escape(o.Value.ToString())));
+		foreach (var (s, o) in kv) {
+			dt.AddRow(new Text(s, Sty_Grid1),
+			          new Text(Markup.Escape(FormatObject(o))));
 		}
 
 		// Render the layout
@@ -223,6 +224,22 @@ internal static class ConsoleFormat
 
 
 		return dt;
+	}
+
+	private static string FormatObject(object o)
+	{
+		return o switch
+
+		{
+			null   => STR_NA,
+			bool b => ToCheck(b),
+			_      => o.ToString(),
+		};
+	}
+
+	public static string ToCheck(bool b)
+	{
+		return (b ? Strings.Constants.HEAVY_CHECK_MARK : Strings.Constants.HEAVY_BALLOT_X).ToString();
 	}
 
 	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
@@ -233,12 +250,12 @@ internal static class ConsoleFormat
 
 			// PixelWidth = 2
 		};
-		
+
 		querySource.Stream.TrySeek();
 		return ci;
 	}
 
-	#region Engine map table
+#region Engine map table
 
 	public static (ConcurrentDictionary<BaseSearchEngine, int>, STable) GetEngineMapTable(BaseSearchEngine[] engines)
 	{
@@ -248,7 +265,7 @@ internal static class ConsoleFormat
 		int i = 0;
 
 		foreach (BaseSearchEngine engine in engines) {
-			table.AddRow(Txt_NA,new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
+			table.AddRow(Txt_NA, new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
 
 			engineMap.TryAdd(engine, i++);
 		}
@@ -265,8 +282,9 @@ internal static class ConsoleFormat
 
 	public static STable GetEngineMapTableBase()
 	{
-		var table     = new STable();
-		var columns = GetColumns("Thread",nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
+		var table = new STable();
+
+		var columns = GetColumns("Thread", nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
 		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
 
 
@@ -284,6 +302,6 @@ internal static class ConsoleFormat
 		return names.Select(GetColumn);
 	}
 
-	#endregion
+#endregion
 
 }

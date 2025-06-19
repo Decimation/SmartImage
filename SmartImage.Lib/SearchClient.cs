@@ -321,13 +321,8 @@ public sealed class SearchClient : IDisposable
 
 		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToFrozenSet();
 
-		ValueTask<bool> readCookies;
-		ValueTask<bool> loadFlareSolverr;
 
-		readCookies = Config.TryReadCookiesAsync();
-		await readCookies;
-
-		loadFlareSolverr = Config.TryLoadFlareSolverrAsync(token);
+		var loadFlareSolverr = Config.TryLoadFlareSolverrAsync(token);
 		await loadFlareSolverr;
 
 		foreach (var engine in Engines) {
@@ -336,9 +331,9 @@ public sealed class SearchClient : IDisposable
 				await cfg.ApplyConfigAsync(Config, token);
 			}
 
-			if (engine is ICookiesEngine ck) {
+			if (engine is ICookiesReceiver ck) {
 				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
-				await ck.ApplyCookiesAsync(token);
+				await ck.ApplyCookiesAsync(Config.CookiesProvider, token);
 			}
 		}
 
