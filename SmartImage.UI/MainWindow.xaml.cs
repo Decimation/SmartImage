@@ -196,7 +196,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	}
 
 	#region
-
+	
 	private readonly ICollectionView m_cvResults;
 
 	private static readonly ILogger s_logger = LoggerFactory
@@ -1121,7 +1121,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private async Task ScanGalleryResultAsync(ResultItem cri)
 	{
 
-		if (ImageScanner.GalleryDLPath == null) {
+		if (BaseOSIntegration.GalleryDLPath == null) {
 			MessageBox.Show(this, "gallery-dl not in path");
 			return;
 		}

@@ -9,6 +9,7 @@ using Flurl.Http;
 using JetBrains.Annotations;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Debug;
 
 // ReSharper disable InconsistentNaming
 
@@ -22,7 +23,7 @@ public static class AppSupport
 	internal static readonly Version Version = Assembly.GetName().Version;
 
 	internal static readonly ILoggerFactory Factory =
-		LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Trace));
+		LoggerFactory.Create(builder => builder.AddDebug().AddProvider(new DebugLoggerProvider()).SetMinimumLevel(LogLevel.Trace));
 
 	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()
 	{

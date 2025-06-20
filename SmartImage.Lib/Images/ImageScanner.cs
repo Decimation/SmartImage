@@ -6,7 +6,9 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Runtime.CompilerServices;
+using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Web;
 using AngleSharp.Dom;
@@ -19,6 +21,7 @@ using CoenM.ImageHash.HashAlgorithms;
 using FlareSolverrSharp;
 using Flurl.Http;
 using Kantan.Net.Utilities;
+using Microsoft.Extensions.Logging;
 using Microsoft.Win32;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
@@ -34,6 +37,8 @@ using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Utilities.Integration;
 
 // ReSharper disable InconsistentNaming
 
@@ -50,24 +55,30 @@ public static class ImageScanner
 
 	static ImageScanner()
 	{
+		s_logger = AppSupport.Factory.CreateLogger(nameof(ImageScanner));
+
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(ImageScanner), null, builder =>
 		{
 			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
 			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
 
-			builder.Settings.AllowedHttpStatusRange = "*";
+			/*builder.Settings.AllowedHttpStatusRange = "*";
+
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 			builder.AllowAnyHttpStatus();
-			builder.WithAutoRedirect(true);
+
+			builder.WithAutoRedirect(true);*/
 
 			builder.OnError(f =>
 			{
-				Trace.WriteLine($"{f.Exception}");
-				Debugger.Break();
+				s_logger.LogError(f.Exception, "{Call}", f);
+				f.ExceptionHandled = true;
+
+				// Debugger.Break();
+
 				// f.ExceptionHandled = true;
 				return;
 			});
-
 		});
 
 	}
@@ -75,66 +86,12 @@ public static class ImageScanner
 
 	public static FlurlClient Client { get; }
 
+	private static readonly ILogger s_logger;
 
 	/*
 	 * TODO: DefaultCookiesProvider, and FlareSolverr
 	 */
 
-
-	/*public static readonly BaseImageHost[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseImageHost>(InheritanceProperties.Subclass).ToArray();*/
-
-
-	/*
-	public static async IAsyncEnumerable<UniImage> ScanImagesAsync2(Url u, IImageFilter filter = null,
-	                                                                [EnumeratorCancellation]
-	                                                                CancellationToken ct = default)
-	{
-
-		var tasks = await ScanImagesAsync(u, ct);
-
-		while (tasks.Count != 0) {
-			var task = await Task.WhenAny(tasks);
-			tasks.Remove(task);
-			var ux = await task;
-
-			if (ux != UniImage.Null) {
-				if ((filter != null && filter.Predicate(ux)) || filter == null) {
-
-					yield return ux;
-				}
-				else {
-					ux.Dispose();
-					ux = null;
-				}
-			}
-			else { }
-		}
-
-	}
-	*/
-
-
-	/*
-	public static async Task<IEnumerable<string>> GetImageUrlsAsync(Url u, IImageFilter filter = null,
-	                                                                CancellationToken token = default)
-	{
-		using var res = await Client.Request(u)
-			                .WithCookies(out var cj)
-			                .GetAsync(cancellationToken: token);
-
-
-		// filter ??= GenericImageFilter.Instance;
-
-		var       parser = new HtmlParser();
-		var       stream = await res.GetStreamAsync();
-		using var doc    = await parser.ParseDocumentAsync(stream);
-		var       links  = GetImageUrls(doc, filter);
-		return links;
-
-		// await cw.WriteAsync(new SearchResultPartial(item, links), token).ConfigureAwait(false);
-	}
-	*/
 
 	private const char URL_DELIM = '/';
 
@@ -192,6 +149,77 @@ public static class ImageScanner
 		return rg;
 	}
 
+	/// <summary>
+	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
+	/// points to binary image data, it is returned.
+	/// </summary>
+	public static async Task<bool> ScanImagesAsync2(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
+	{
+		Stream stream;
+		string sz = null;
+
+		IHtmlDocument doc = null;
+
+		/* Immediate search  */
+		var uf = await UniImage.TryCreateAsync(url, autoInit: true, autoDisposeOnError: false, ct: ct);
+
+		IFlurlResponse res;
+
+		IFlurlRequest req;
+
+		if (uf != UniImage.Null && uf.HasImageFormat) {
+			await cw.WriteAsync(uf, ct);
+
+			goto ret;
+		}
+		else {
+			uf.Stream.TrySeek();
+			uf?.Dispose();
+
+			req = Client.Request(url);
+			res = await req.GetAsync(cancellationToken: ct);
+
+			// stream = await res.GetStreamAsync();
+			sz = await res.GetStringAsync();
+		}
+
+
+		/*if (!stream.CanRead) {
+			stream.Dispose();
+			goto ret;
+		}*/
+
+		var dp = new HtmlParser();
+
+		doc = await dp.ParseDocumentAsync(sz);
+
+		var urls = GetImageUrls(sz, url);
+
+		var po = new ParallelOptions()
+		{
+			CancellationToken = ct
+		};
+
+
+		await Parallel.ForEachAsync(urls, po, async (s, token) =>
+		{
+			var uni = await UniImage.TryCreateAsync(s, autoDisposeOnError: true, ct: token);
+
+			if (uni == null || uni == UniImage.Null) {
+				// uni?.Dispose();
+			}
+			else {
+
+				s_logger.LogDebug("{Name} {Uni}", nameof(ScanImagesAsync2), uni);
+				await cw.WriteAsync(uni, token);
+			}
+		});
+
+	ret:
+		doc?.Dispose();
+		cw.TryComplete();
+		return true;
+	}
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
@@ -276,20 +304,29 @@ public static class ImageScanner
 				return u;
 
 			if (u.StartsWith("//"))
-				return url.Scheme + u.TrimStart(URL_DELIM);
+
+				// return url.Scheme + u.TrimStart(URL_DELIM);
+				return Url.Combine(url.Scheme, u.TrimStart(URL_DELIM));
 
 			if (u.StartsWith(URL_DELIM))
-				return url.Root + u;
 
-			return baseUrl + URL_DELIM + u;
-		}).Where(Url.IsValid).Distinct();
+				// return url.Root + u;
+
+				return Url.Combine(url.Root, u);
+
+
+			// return baseUrl + URL_DELIM + u;
+			return Url.Combine(baseUrl, URL_DELIM.ToString(), u);
+		}).Select(u => Url.Decode(u, true)).Where(Url.IsValid).Distinct();
 
 		if (heuristicFilter) {
-			abs = abs.Where(u => !u.Contains("thumbs"));
+			abs = abs.Where(u => !UrlPartBlacklists.Any(u.Contains));
 		}
 
 		return abs;
 	}
+
+	public static readonly string[] UrlPartBlacklists = ["thumbs", "twitter.svg", "pinterest.svg"];
 
 	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc)
 	{
@@ -305,21 +342,33 @@ public static class ImageScanner
 		return c;
 	}
 
-	#region
+#region
 
 	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
 	{
-		var psi = new ProcessStartInfo(GALLERY_DL, $"-G {cri}")
-		{
-			CreateNoWindow         = true,
-			RedirectStandardOutput = true,
-			RedirectStandardError  = true,
-		};
-		using var p = Process.Start(psi);
-		await p.WaitForExitAsync(ct);
+		// TODO: TEST
+		// TODO: USE CHANNELS
 
-		var s  = await p.StandardOutput.ReadToEndAsync(ct);
-		var s2 = s.Split(Environment.NewLine);
+		if (!BaseOSIntegration.Integration.IsGalleryDLInstalled) {
+			return null;
+		}
+
+		var sbOut = new StringBuilder();
+		var sbErr = new StringBuilder();
+
+		var cmd = CliWrap.Cli.Wrap(BaseOSIntegration.GALLERY_DL);
+
+		cmd.WithArguments($"-G {cri}")
+			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbOut))
+			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbErr));
+
+		var cr = await cmd.ExecuteAsync();
+
+		if (!cr.IsSuccess) {
+			return null;
+		}
+
+		var s2 = sbErr.ToString().Split(Environment.NewLine);
 		var rg = new ConcurrentBag<UniImage>();
 
 		await Parallel.ForEachAsync(s2, ct, async (s1, token) =>
@@ -338,12 +387,7 @@ public static class ImageScanner
 		return rg.ToArray();
 	}
 
-	internal const string GALLERY_DL     = "gallery-dl";
-	internal const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
-
-	internal static readonly string GalleryDLPath = FileSystem.FindInPath(GALLERY_DL_EXE);
-
-	#endregion
+#endregion
 
 	public class UniSimilarity
 	{

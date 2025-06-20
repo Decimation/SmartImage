@@ -12,7 +12,13 @@ namespace SmartImage.Lib.Utilities.Integration;
 public abstract class BaseOSIntegration
 {
 
-	#region
+#region
+
+	protected BaseOSIntegration()
+	{
+		PersonalPath  = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+		GalleryDLPath = FileSystem.FindInPath(GALLERY_DL);
+	}
 
 	public virtual bool IsRoot => FileSystem.IsRoot;
 
@@ -22,7 +28,7 @@ public abstract class BaseOSIntegration
 
 	public abstract string AppDataPath { get; }
 
-	public virtual string PersonalPath { get; } = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+	public virtual string PersonalPath { get; }
 
 	public abstract string LaunchArgs { get; }
 
@@ -39,7 +45,13 @@ public abstract class BaseOSIntegration
 	[MNNW(true, nameof(FirefoxPath))]
 	public bool IsFirefoxInstalled => Path.Exists(FirefoxPath);
 
-	#endregion
+	[CBN]
+	public virtual string GalleryDLPath { get; }
+
+	[MNNW(true, nameof(GalleryDLPath))]
+	public bool IsGalleryDLInstalled => Path.Exists(GalleryDLPath);
+
+#endregion
 
 	static BaseOSIntegration()
 	{
@@ -58,7 +70,7 @@ public abstract class BaseOSIntegration
 		}
 	}
 
-	#region
+#region
 
 	internal const string OS_WIN = "windows";
 
@@ -84,7 +96,7 @@ public abstract class BaseOSIntegration
 
 	public static string Executable { get; }
 
-	#endregion
+#endregion
 
 	/// <returns><c>true</c> if operation succeeded; <c>false</c> otherwise</returns>
 	public abstract bool? AddToPath(bool option);
@@ -104,5 +116,9 @@ public abstract class BaseOSIntegration
 		Trace.Assert(module != null);
 		return module.FileName;
 	}
+
+	internal const string GALLERY_DL = "gallery-dl";
+
+	// internal const string GALLERY_DL_EXE = $"{GALLERY_DL}.exe";
 
 }

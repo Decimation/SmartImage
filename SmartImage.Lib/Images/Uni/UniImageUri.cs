@@ -51,7 +51,7 @@ public class UniImageUri : UniImage
 			Response = await GetResponseAsync(Url, ct);
 		}
 
-		if (!HasStream) {
+		if (!HasStream && HasResponse) {
 			Stream = await Response.GetStreamAsync();
 		}
 
@@ -88,10 +88,12 @@ public class UniImageUri : UniImage
 
 		var res = await req.GetAsync(cancellationToken: ct);
 
+		/*
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
 			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
 
 		}
+		*/
 
 		return res;
 	}
