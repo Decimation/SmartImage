@@ -30,6 +30,7 @@ using Novus.Streams;
 using Novus.Utilities;
 using Novus.Win32.Structures.Other;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines;
@@ -121,39 +122,22 @@ public static class ImageScanner
 
 	public static readonly string[] Extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"];
 
-
-	public static async Task<List<UniSimilarity>> AnalyzeAsync(List<Task<UniImage>> tasks, SearchQuery query,
-	                                                           CancellationToken ct = default)
+	[MURV]
+	public static Stream ToStream(this Image image, IImageFormat format = null)
 	{
-		var orig = ImageHasher.Hash(query.Source.Stream);
-		query.Source.Stream.TrySeek();
-		var rg = new List<UniSimilarity>();
-
-		while (tasks.Count != 0) {
-			var task = await Task.WhenAny(tasks);
-			tasks.Remove(task);
-			var ux = await task;
-
-			if (ux != UniImage.Null && ux.HasImageFormat) {
-				var cmp = ImageHasher.Hash(ux.Stream);
-				var sim = CompareHash.Similarity(orig, cmp);
-				rg.Add(new UniSimilarity(ux, sim));
-				ux.Stream.TrySeek();
-			}
-			else {
-				ux.Dispose();
-				ux = null;
-			}
-		}
-
-		return rg;
+		var ms = new MemoryStream();
+		// If format is not specified, use the image's decoded format if available
+		format ??= image.Metadata.DecodedImageFormat;
+		image.Save(ms, format);
+		ms.Position = 0; // Reset position for reading
+		return ms;
 	}
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
 	/// points to binary image data, it is returned.
 	/// </summary>
-	public static async Task<bool> ScanImagesAsync2(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
+	public static async Task<bool> ScanImagesAsync(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
 	{
 		Stream stream;
 		string sz = null;
@@ -173,7 +157,7 @@ public static class ImageScanner
 			goto ret;
 		}
 		else {
-			uf.Stream.TrySeek();
+			// uf.Stream.TrySeek();
 			uf?.Dispose();
 
 			req = Client.Request(url);
@@ -203,15 +187,17 @@ public static class ImageScanner
 
 		await Parallel.ForEachAsync(urls, po, async (s, token) =>
 		{
-			var uni = await UniImage.TryCreateAsync(s, autoDisposeOnError: true, ct: token);
+			var uni = await UniImage.TryCreateAsync(s, autoInit: true, autoDisposeOnError: true, ct: token);
 
-			if (uni == null || uni == UniImage.Null) {
-				// uni?.Dispose();
+			if (uni != UniImage.Null && uni.HasImageFormat) {
+				s_logger.LogDebug("{Name} {Uni}", nameof(ScanImagesAsync), uni);
+				// await cw.WriteAsync(uni, token);
+				await cw.WaitToWriteAsync(token);
+				await cw.WriteAsync(uni, token);
+
 			}
 			else {
-
-				s_logger.LogDebug("{Name} {Uni}", nameof(ScanImagesAsync2), uni);
-				await cw.WriteAsync(uni, token);
+				uni?.Dispose();
 			}
 		});
 
@@ -219,59 +205,6 @@ public static class ImageScanner
 		doc?.Dispose();
 		cw.TryComplete();
 		return true;
-	}
-
-	/// <summary>
-	/// Scans for images within the webpage located at <paramref name="u"/>; if <paramref name="u"/> itself
-	/// points to binary image data, it is returned.
-	/// </summary>
-	public static async Task<List<Task<UniImage>>> ScanImagesAsync(Url u, CancellationToken ct = default)
-	{
-		List<Task<UniImage>> tasks = null;
-		IFlurlRequest        req;
-		IFlurlResponse       res;
-		Stream               stream;
-
-		var uf = await UniImage.TryCreateAsync(u, autoInit: true,
-		                                       autoDisposeOnError: false, ct: ct);
-
-		if (uf != UniImage.Null && uf.HasImageFormat) {
-			tasks = [Task.FromResult(uf)];
-
-			goto ret;
-
-		}
-		else {
-			uf.Stream.TrySeek();
-			var req1 = Client.Request(u);
-			req = await ValueTask.FromResult(req1);
-
-			res    = await req.GetAsync(cancellationToken: ct);
-			stream = await res.GetStreamAsync();
-		}
-
-		if (!stream.CanRead) {
-			stream.Dispose();
-			goto ret;
-		}
-
-		var sr = new StreamReader(stream, leaveOpen: false);
-
-		string html = await sr.ReadToEndAsync(ct);
-		var    urls = GetImageUrls(html, u);
-
-		tasks = urls.Select(s =>
-		{
-			var ux = UniImage.TryCreateAsync(s, ct: ct);
-
-			return ux;
-
-		}).ToList();
-
-
-		sr.Dispose();
-	ret:
-		return tasks;
 	}
 
 
@@ -326,7 +259,7 @@ public static class ImageScanner
 		return abs;
 	}
 
-	public static readonly string[] UrlPartBlacklists = ["thumbs", "twitter.svg", "pinterest.svg"];
+	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", "twitter.svg", "pinterest.svg"];
 
 	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc)
 	{
@@ -356,7 +289,7 @@ public static class ImageScanner
 		var sbOut = new StringBuilder();
 		var sbErr = new StringBuilder();
 
-		var cmd = CliWrap.Cli.Wrap(BaseOSIntegration.GALLERY_DL);
+		 var cmd = CliWrap.Cli.Wrap(BaseOSIntegration.GALLERY_DL);
 
 		cmd.WithArguments($"-G {cri}")
 			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbOut))
@@ -378,6 +311,7 @@ public static class ImageScanner
 			if (uni != null) {
 				rg.Add(uni);
 			}
+			
 
 			token.ThrowIfCancellationRequested();
 		});

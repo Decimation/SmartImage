@@ -3,14 +3,19 @@ using System.Data;
 using Kantan.Text;
 using Novus.OS;
 using Novus.Streams;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Advanced;
+using SixLabors.ImageSharp.Memory;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
+using Color = Spectre.Console.Color;
 
 // ReSharper disable InconsistentNaming
 #nullable disable
@@ -244,14 +249,20 @@ internal static class ConsoleFormat
 
 	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
 	{
-		var ci = new CanvasImage(querySource.Stream)
+		using var ms          =querySource.Image.ToStream();//todo
+		
+		// var       sp = new Span<byte>();
+		// querySource.Image.CopyPixelDataTo(sp);
+
+		
+		var ci = new CanvasImage(ms)
 		{
 			MaxWidth = AnsiConsole.Profile.Width / 6,
 
 			// PixelWidth = 2
 		};
 
-		querySource.Stream.TrySeek();
+		// querySource.Stream.TrySeek();
 		return ci;
 	}
 

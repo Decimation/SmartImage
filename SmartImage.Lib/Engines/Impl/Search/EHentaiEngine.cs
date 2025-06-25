@@ -131,6 +131,17 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		using var flurlRes = await Client.SendAsync(req, cancellationToken: token);
 		using var httpRes  = flurlRes.ResponseMessage;
 
+		/*using var flurlRes = await LookupUrl.
+			                     WithCookies(Jar)
+			                     .WithHeader("User-Agent", HttpUtilities.UserAgent)
+			                     .PostMultipartAsync(bc =>
+			                     {
+									 //
+				                     bc.AddFile(path: filePath, fileName: fileName, name: "sfile");
+			                     }, cancellationToken: token);*/
+		
+		// using var httpRes  = flurlRes.ResponseMessage;
+
 		// Debug.WriteLine($"{res.StatusCode}");
 
 		sr.RawUrl = httpRes.RequestMessage.RequestUri;
@@ -209,7 +220,6 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 			var cookie = bck.AsCookie();
 
-
 			if (cookie == null) {
 				continue;
 			}
@@ -217,23 +227,24 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 			bool c = false;
 
 
+			var isEx = cookie.Domain.Contains(HOST_EX);
+			var isEh = cookie.Domain.Contains(HOST_EH);
+
 			if (UseExHentai) {
-				c |= cookie.Domain.Contains(HOST_EX);
+				c |= isEx;
 			}
 
-			var dmnEh = cookie.Domain.Contains(HOST_EH);
-
-			c |= dmnEh;
-
+			c |= isEh;
 
 			if (c) {
-				Jar.AddOrReplace(cookie.Name, cookie.Value, UseExHentai ? ExHentaiBase : EHentaiBase);
+				Jar.AddOrReplace(cookie.Name, cookie.Value, isEx ? ExHentaiBase : EHentaiBase);
 			}
 		}
 
 		var response = await GetSessionAsync();
-
 		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
+
+		return true;
 	}
 
 	public async Task<bool> LoginAsync(string username, string password)
@@ -289,6 +300,9 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/EhApplication.java
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/data/ListUrlBuilder.java
 	 * https://gitlab.com/NekoInverter/EhViewer/-/blob/master/app/src/main/java/com/hippo/ehviewer/client/EhCookieStore.java
+	 *
+	 * https://github.com/jiangtian616/JHenTai/blob/master/lib/src/network/eh_cookie_manager.dart
+	 * https://github.com/Ehviewer-Overhauled/Ehviewer/issues/873
 	 */
 
 	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)

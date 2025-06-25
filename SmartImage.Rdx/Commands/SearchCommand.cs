@@ -276,11 +276,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					else if (cmd2 == Command2Prompts[1]) {
 						await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 						{
-							var hashOk = await res.CalculateAsync(Query.Source);
+							var ui2 = res.Uni[0];
+							var      hashOk   =  ui2.TryCalculateSimilarity(Query.Source);
 
 							if (hashOk) {
-								var row = GetRow(res.Uni[0]);
-								m_table.Rows.Update(row, 2, new Text(res.Similarity.ToString()));
+								var row = GetRow(ui2);
+								m_table.Rows.Update(row, 2, new Text(ui2.Similarity.ToString()));
 								f.Refresh();
 							}
 							/*var ui     = res.Uni[0];
@@ -299,12 +300,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					}
 					else if (cmd2 == Command2Prompts[2]) {
 
+						//todo
 						Stream str;
 
 						if (res.HasUni) {
 							var uniIndex = GetUniPrompt(res);
 							var uni      = res.Uni[uniIndex];
-							str = uni.Stream;
+							str = uni.Image.ToStream();
 						}
 						else if (res.Thumbnail != null) {
 							using var thumbRes = await res.Thumbnail.GetAsync();

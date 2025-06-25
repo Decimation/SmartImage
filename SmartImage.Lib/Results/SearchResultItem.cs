@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 using System.Dynamic;
+using System.Threading.Channels;
 using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
 using JetBrains.Annotations;
@@ -109,9 +110,9 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	[CBN]
 	public string ThumbnailTitle { get; internal set; }
 
-	[MN]
+	// [MN]
 	[JI]
-	public List<UniImage> Uni { get; internal set; }
+	public List<UniImage> Uni { get; }
 
 	[JI]
 	[MNNW(true, nameof(Uni))]
@@ -126,10 +127,10 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	{
 		Root     = r;
 		Metadata = null;
-		Uni      = null;
 		Parent   = null;
 		IsRaw    = isRaw;
-		Uni  = new List<UniImage>();
+		Uni      = new List<UniImage>();
+
 		// EmbeddedUrls = null;
 
 		// Children   = [];
@@ -209,21 +210,21 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		}
 
 		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
-		var buf   = new ConcurrentBag<UniImage>();
-		var tasks = await ImageScanner.ScanImagesAsync(Url, ct: ct);
+		var buf = new ConcurrentBag<UniImage>();
 
-		while (tasks.Count != 0) {
-			var i = await Task.WhenAny(tasks);
-			tasks.Remove(i);
-			var res = await i;
+		var ch = Channel.CreateUnbounded<UniImage>(new UnboundedChannelOptions() { SingleReader = true });
 
-			if (res != UniImage.Null && res.HasImageFormat) {
-				buf.Add(res);
-			}
-			else {
-				res?.Dispose();
+		var tasks =  ImageScanner.ScanImagesAsync(Url, ch.Writer, ct: ct);
+
+		while (await ch.Reader.WaitToReadAsync(ct)) {
+			var v = await ch.Reader.ReadAsync(ct);
+
+			if (v != UniImage.Null && v.HasImageFormat) {
+				buf.Add(v);
 			}
 		}
+
+		await tasks;
 
 		Uni.AddRange(buf);
 		buf.Clear();
@@ -232,25 +233,7 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	}
 
 
-	public async Task<bool> CalculateAsync(IHashable h, CancellationToken ct = default)
-	{
-		// TODO
-		if (!HasUni) {
-			throw new InvalidOperationException();
-		}
-
-		var po = new ParallelOptions() { CancellationToken = ct };
-
-		var plr = Parallel.ForEach(Uni, po, (u, pls) =>
-		{
-			//
-			u.TryCalculateSimilarity(h);
-		});
-
-		Similarity = Uni.FirstOrDefault(f => f.Similarity.HasValue)?.Similarity;
-
-		return true;
-	}
+	
 
 	// public IFlurlResponse Response { get; private set; }
 

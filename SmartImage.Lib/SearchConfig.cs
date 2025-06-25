@@ -251,7 +251,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public static readonly SearchConfig Default = new();
 
-	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchClient));
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchConfig));
 
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);

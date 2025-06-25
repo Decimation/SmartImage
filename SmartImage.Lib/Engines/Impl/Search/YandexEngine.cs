@@ -72,6 +72,7 @@ public sealed class YandexEngine : BaseSearchEngine
 	protected override Url GetRawUrl(SearchQuery query)
 	{
 		var url = BaseUrl.Clone();
+		
 		url.QueryParams.AddOrReplace("url", query.Upload);
 		url.QueryParams.AddOrReplace("cbir_page", "sites");
 		return url;
@@ -90,23 +91,21 @@ public sealed class YandexEngine : BaseSearchEngine
 		{
 		};
 
-		lock (sr.Results) {
-			sr.Results.Add(sr.RawResultItem);
-		}
-
 		IDocument doc  = null;
 
 		IFlurlResponse res  = null;
 
-		Stream str  = null;
+		string str  = null;
 
 
 		try {
 			res = await Client.Request(sr.RawUrl)
+				      .WithAutoRedirect(true)
+				      .AllowAnyHttpStatus()
 				      .WithTimeout(Timeout)
 				      .GetAsync(cancellationToken: token);
 
-			str = await res.GetStreamAsync();
+			str = await res.GetStringAsync();
 
 			var parser = new HtmlParser();
 			doc = await parser.ParseDocumentAsync(str);

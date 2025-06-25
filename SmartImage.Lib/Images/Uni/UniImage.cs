@@ -12,6 +12,7 @@ using Kantan.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Results.Data;
 
@@ -40,27 +41,17 @@ public enum UniImageType
 public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable
 {
 
-	[MN]
+	/*[MN]
 	public Stream Stream { get; protected set; }
 
 	[MNNW(true, nameof(Stream))]
-	public bool HasStream => Stream != null && Stream != Stream.Null;
+	public bool HasStream => Stream != null && Stream != Stream.Null;*/
 
 	public object Value { get; protected init; }
 
 	public UniImageType Type { get; }
 
-	public long Size
-	{
-		get
-		{
-			if (HasStream && Stream.CanRead) {
-				return Stream.Length;
-			}
-
-			return Native.ERROR_SV;
-		}
-	}
+	public long Size { get; protected set; }
 
 	[MN]
 	public virtual string ValueString => Value?.ToString();
@@ -72,7 +63,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public bool HasFile => FilePath != null && File.Exists(FilePath);
 
 	[MN]
-	public IImageFormat ImageFormat { get; private set; }
+	public IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
 
 	[MNNW(true, nameof(ImageFormat))]
 	public bool HasImageFormat => ImageFormat != null;
@@ -89,30 +80,26 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public bool IsUnknown => Type == UniImageType.Unknown;
 
 	[MN]
-	public ISImage Image { get; protected set; }
+	public Image<Rgba32> Image { get; protected set; }
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
 	public Lazy<ulong> Hash { get; }
 
-	public double? Similarity { get; internal set; }
+	public double? Similarity { get; private set; }
 
 
 	public static readonly UniImage Null = null;
 
 	private protected UniImage(object value, UniImageType type)
-		: this(value, Stream.Null, type) { }
-
-	private protected UniImage(object value, Stream stream, UniImageType type)
 	{
-		Stream = stream;
-		Value  = value;
-		Type   = type;
-		Hash   = new Lazy<ulong>(TryCalculateHash, LazyThreadSafetyMode.ExecutionAndPublication);
+		Value = value;
+		Type  = type;
+		Hash  = new Lazy<ulong>(TryCalculateHash, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
-	#region
+#region
 
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
@@ -121,7 +108,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	                                                  bool autoDisposeOnError = true,
 	                                                  CancellationToken ct = default)
 	{
-		UniImage ui = Null;
+		UniImage ui  = Null;
+		Stream   str = Stream.Null;
 
 		try {
 
@@ -139,20 +127,13 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 			}
 
 			if (autoInit) {
-				var allocOk = await ui.AllocAsync(ct);
+				// var allocOk = await ui.AllocAsync(ct);
 
-				// var allocImgOk = await ui.AllocImage(ct);
+				bool allocImgOk = await ui.AllocImageAsync(ct);
 
-				// var hashOk = ui.TryCalculateHash();
-
-				var hasInfo = await ui.DetectFormatAsync(ct);
-
-				if (hasInfo) {
-					ui.TryCalculateHash();
-				}
 
 				if (autoDisposeOnError) {
-					if (!allocOk || !hasInfo) {
+					if (!allocImgOk) {
 						ui.Dispose();
 						ui = Null;
 
@@ -171,7 +152,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return ui;
 	}
 
-	public virtual async ValueTask<bool> DetectFormatAsync(CancellationToken ct = default)
+	/*public virtual async ValueTask<bool> DetectFormatAsync(CancellationToken ct = default)
 	{
 		if (!HasStream) {
 			throw new InvalidOperationException($"{nameof(Stream)} must be allocated");
@@ -190,7 +171,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 		return HasImageFormat;
 
-	}
+	}*/
 
 	public static bool IsValidSourceType(object str, bool checkExt = true)
 	{
@@ -208,47 +189,31 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return ok;
 	}
 
-	#region
-
-	public abstract ValueTask<bool> AllocAsync(CancellationToken ct = default);
+#region
 
 	/// <summary>
 	/// Allocates <see cref="Image"/>
 	/// </summary>
-	public async Task<bool> AllocImageAsync(CancellationToken ct = default)
-	{
-		if (!HasImage) {
+	public abstract Task<bool> AllocImageAsync(CancellationToken ct = default);
 
-			try {
-				Stream.TrySeek(); //todo
-				Image = await ISImage.LoadAsync(Stream, ct);
-				Stream.TrySeek(); //todo
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-			}
-			finally { }
-		}
+#endregion
 
-		return HasImage;
-	}
-
-	#endregion
-
-	#endregion
+#endregion
 
 	private ulong TryCalculateHash()
 	{
-		if (!HasStream) {
+		if (!HasImage) {
 			throw new InvalidOperationException();
 		}
 
 		ulong hash;
 
 		try {
-			Stream.TrySeek();
-			hash = ImageScanner.ImageHasher.Hash(Stream);
-			Stream.TrySeek();
+			// Stream.TrySeek();
+			hash = ImageScanner.ImageHasher.Hash(Image);
+
+			// Stream.TrySeek();
+
 		}
 		catch (Exception e) {
 			hash = IHashable.HASH_ERROR;
@@ -289,7 +254,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	}
 
 	[MURV]
-	public string WriteImageToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
+	public virtual string WriteToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
 	{
 		if (!HasImage) {
 			throw new InvalidOperationException();
@@ -297,49 +262,28 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 		fn ??= Path.GetTempFileName();
 
-		var encoder = new PngEncoder();
+		/*var encoder = new PngEncoder();
 		operation ??= _ => { };
 
 		// using ISImage image = ISImage.Load(Stream);
 		using var image = Image.Clone(operation);
 
+		// Image.Save(fn);
 		image.Mutate(operation);
 		image.Save(fn, encoder);
 
-		Stream.TrySeek();
+		// Stream.TrySeek();*/
+		Image.Save(fn);
 
 		return fn;
-	}
-
-	public abstract string WriteToFile(string fn = null);
-
-	[MURV]
-	[ICBN]
-	protected string WriteStreamToFile(string fn = null)
-	{
-		fn ??= Path.GetTempFileName();
-
-		string t = Path.Combine(Path.GetTempPath(), fn);
-
-		using FileStream fs = File.Create(t);
-
-
-		if (HasStream && Stream.CanSeek) {
-			Stream.Position = 0;
-		}
-
-		Stream.CopyTo(fs);
-		fs.Flush();
-		Stream.TrySeek();
-
-		return t;
 	}
 
 
 	public virtual void Dispose()
 	{
 		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
-		Stream?.Dispose();
+
+		// Stream?.Dispose();
 		Image?.Dispose();
 
 
@@ -350,8 +294,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	{
 		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
 
-		if (Stream != null)
-			await Stream.DisposeAsync();
+		/*if (Stream != null)
+			await Stream.DisposeAsync();*/
 		Image?.Dispose();
 
 
@@ -364,7 +308,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return s;
 	}
 
-	#region Equality members
+#region Equality members
 
 	public bool Equals(UniImage other)
 	{
@@ -400,6 +344,6 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return !Equals(left, right);
 	}
 
-	#endregion
+#endregion
 
 }

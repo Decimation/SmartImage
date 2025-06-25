@@ -2,15 +2,20 @@
 // Date: 2024/07/17 @ 02:07:31
 
 using Novus.Streams;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace SmartImage.Lib.Images.Uni;
 
 public class UniImageStream : UniImage
 {
 
+	public Stream Stream { get; }
 
 	internal UniImageStream(object value, Stream str)
-		: base(value, str, UniImageType.Stream) { }
+		: base(value, UniImageType.Stream)
+	{
+		Stream = str;
+	}
 
 
 	public static bool IsStreamType(object o, out Stream t2)
@@ -24,12 +29,29 @@ public class UniImageStream : UniImage
 		return t2 != Stream.Null;
 	}
 
-	public override ValueTask<bool> AllocAsync(CancellationToken ct = default)
+
+#region Overrides of UniImage
+
+	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
-		return ValueTask.FromResult(HasStream);
+		if (!HasImage) {
+			try {
+
+				// Stream     = File.OpenRead(fullName);
+				Size  = Stream.Length;
+				Image = await ISImage.LoadAsync<Rgba32>(Stream, ct);
+
+			}
+			catch (Exception exception) {
+				return false;
+			}
+
+		}
+
+		return HasImage;
+
 	}
 
-	public override string WriteToFile(string fn = null)
-		=> WriteStreamToFile(fn);
+#endregion
 
 }

@@ -1,13 +1,15 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageFile.cs
 // Date: 2024/07/17 @ 02:07:16
 
-using System.IO.MemoryMappedFiles;
 using Microsoft;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
+using System.IO.MemoryMappedFiles;
 
 namespace SmartImage.Lib.Images.Uni;
 
 public class UniImageFile : UniImage
-{	
+{
 
 	internal UniImageFile(object value, FileInfo fi)
 		: base(value, UniImageType.File)
@@ -18,7 +20,7 @@ public class UniImageFile : UniImage
 
 	public FileInfo FileInfo { get; }
 
-	public override string WriteToFile(string fn = null)
+	public override string WriteToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
 	{
 		if (!HasFile) {
 			throw new FileNotFoundException(ValueString);
@@ -27,16 +29,31 @@ public class UniImageFile : UniImage
 		return ValueString;
 	}
 
+#region Overrides of UniImage
 
-	public override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
+	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
-		if (!HasStream) {
-			var fullName = FileInfo.FullName;
+		if (!HasImage) {
+			try {
+				var fullName = FileInfo.FullName;
 
-			Stream     = File.OpenRead(fullName);
+				using var stream     = File.OpenRead(fullName);
+				Size = stream.Length;
+
+				Image = await ISImage.LoadAsync<Rgba32>(stream, ct);
+				
+			}
+			catch (Exception exception) {
+				return false;
+			}
+
 		}
-		return HasStream;
+
+		return HasImage;
 	}
+
+#endregion
+
 
 	public static bool IsFileType(object o, out FileInfo f)
 	{

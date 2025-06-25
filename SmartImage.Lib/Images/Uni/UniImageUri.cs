@@ -4,28 +4,21 @@
 using System.Collections.Immutable;
 using System.Net;
 using Flurl.Http;
+using SixLabors.ImageSharp.PixelFormats;
 
 namespace SmartImage.Lib.Images.Uni;
 
 public class UniImageUri : UniImage
 {
 
-	public IFlurlResponse Response { get; private set; }
-
-	[MNNW(true, nameof(Response))]
-	public bool HasResponse => Response != null;
-
 	public Url Url { get; }
 
-	internal UniImageUri(object value, Url url, IFlurlResponse response = null)
-		: base(value, Stream.Null, UniImageType.Uri)
+	internal UniImageUri(object value, Url url)
+		: base(value, UniImageType.Uri)
 	{
-		Url      = url;
-		Response = response;
+		Url = url;
 	}
 
-	public override string WriteToFile(string fn = null)
-		=> WriteStreamToFile(fn);
 
 	public static bool IsUriType(object o, out Url u)
 	{
@@ -45,29 +38,40 @@ public class UniImageUri : UniImage
 		return LegalSchemes.Contains(scheme);
 	}
 
-	public override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
-	{
-		if (!HasResponse) {
-			Response = await GetResponseAsync(Url, ct);
-		}
-
-		if (!HasStream && HasResponse) {
-			Stream = await Response.GetStreamAsync();
-		}
-
-		return HasResponse && HasStream;
-	}
-
-	public async ValueTask<bool> AllocResponseAsync(CancellationToken ct = default)
-	{
-		Response = await GetResponseAsync(Url, ct);
-
-		return HasResponse;
-	}
 
 	public static readonly ImmutableArray<string> RestrictedSchemes = ["file", "javascript", "cpu"];
 
 	public static readonly ImmutableArray<string> LegalSchemes = ["http", "https"];
+
+#region Overrides of UniImage
+
+	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
+	{
+		if (!HasImage) {
+			try {
+				// Stream     = File.OpenRead(fullName);
+				using var fres = await GetResponseAsync(Url, ct);
+
+				if (fres == null) {
+					return false;
+				}
+
+				var res = await fres.GetStreamAsync();
+				Size = res.Length;
+				Image = await ISImage.LoadAsync<Rgba32>(res, ct);
+
+			}
+			catch (Exception exception) {
+				return false;
+			}
+
+		}
+
+		return HasImage;
+
+	}
+
+#endregion
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
 	{
