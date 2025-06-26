@@ -1,5 +1,6 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: CookiesManager.cs
 
+using System.Collections;
 using System.Collections.Frozen;
 using System.Data;
 using System.Diagnostics;
@@ -11,7 +12,7 @@ using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Lib.Cookies;
 
-public class BrowserCookiesProvider : ICookiesProvider
+public class BrowserCookiesSource : ICookiesSource
 {
 
 	private const string CH_NAME = "cookies";
@@ -21,13 +22,13 @@ public class BrowserCookiesProvider : ICookiesProvider
 	private IList<ICookie> m_cookies;
 
 	[ICBN]
-	public static readonly Lazy<ICookiesProvider> Default = new(() =>
+	public static readonly Lazy<ICookiesSource> Default = new(() =>
 	{
 		if (BaseOSIntegration.Integration.IsFirefoxInstalled) {
 			var cookieFile = FirefoxCookiesDatabaseReader.FindCookieFile();
 
 			if (cookieFile != null) {
-				return new BrowserCookiesProvider(new FirefoxCookiesDatabaseReader(cookieFile.FullName));
+				return new BrowserCookiesSource(new FirefoxCookiesDatabaseReader(cookieFile.FullName));
 			}
 
 		}
@@ -35,7 +36,7 @@ public class BrowserCookiesProvider : ICookiesProvider
 		return null;
 	});
 
-	internal BrowserCookiesProvider(BaseCookiesDatabaseReader reader)
+	internal BrowserCookiesSource(BaseCookiesDatabaseReader reader)
 	{
 		m_reader  = reader;
 		m_cookies = null;
@@ -54,9 +55,7 @@ public class BrowserCookiesProvider : ICookiesProvider
 
 	public async ValueTask<IList<ICookie>> GetOrLoadCookiesAsync(CancellationToken ct = default)
 	{
-		if (!IsOpen) {
-			await OpenAsync();
-		}
+
 
 		/*if (IsClosedOrBroken) {
 			throw new InvalidOperationException();
@@ -64,6 +63,9 @@ public class BrowserCookiesProvider : ICookiesProvider
 
 
 		if (m_cookies == null) {
+			if (!IsOpen) {
+				await OpenAsync();
+			}
 
 			var cookies = await m_reader.ReadCookiesAsync();
 			m_cookies = cookies.AsReadOnly();
@@ -82,7 +84,7 @@ public class BrowserCookiesProvider : ICookiesProvider
 
 	public void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(BrowserCookiesProvider)}");
+		Debug.WriteLine($"Disposing {nameof(BrowserCookiesSource)}");
 		m_reader.Dispose();
 		m_cookies.Clear();
 	}

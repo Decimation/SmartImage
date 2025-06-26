@@ -59,6 +59,12 @@ public class ArchiveMoeEngine : WebSearchEngine
 		return b64;
 	}
 
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
+
+	}
+
 	public override void Dispose()
 	{
 		GC.SuppressFinalize(this);

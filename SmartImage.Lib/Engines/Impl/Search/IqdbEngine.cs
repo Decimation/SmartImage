@@ -227,7 +227,11 @@ public class IqdbEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 
 		return result;
 	}
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
 
+	}
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// Don't select other results

@@ -6,15 +6,17 @@ using Kantan.Net.Web;
 
 namespace SmartImage.Lib.Cookies;
 
-public class ListCookiesProvider : ICookiesProvider, IEnumerable<ICookie>
+public class ListCookiesSource : ICookiesSource, IEnumerable<ICookie>
 {
 
-	private IList<ICookie> m_cookies;
+	private readonly IList<ICookie> m_cookies;
 
-	public ListCookiesProvider()
+	public ListCookiesSource()
 	{
 		m_cookies = new List<ICookie>();
 	}
+
+	public static ICookiesSource Default { get; } = new ListCookiesSource();
 
 	public ValueTask<IList<ICookie>> GetOrLoadCookiesAsync(CancellationToken ct = default)
 	{

@@ -97,6 +97,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		Value = value;
 		Type  = type;
 		Hash  = new Lazy<ulong>(TryCalculateHash, LazyThreadSafetyMode.ExecutionAndPublication);
+		Size = Native.ERROR_SV;
 	}
 
 #region

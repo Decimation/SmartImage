@@ -33,7 +33,7 @@ using Novus.Streams;
 
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchConfigReceiver, IDisposable
+public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, IDisposable
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -308,7 +308,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, ISearchC
 		return;
 	}
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		Authentication = cfg.SauceNaoKey;
 		return ValueTask.FromResult(UsingAPI);

@@ -63,12 +63,12 @@ public static class ImageScanner
 			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
 			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
 
-			/*builder.Settings.AllowedHttpStatusRange = "*";
+			builder.Settings.AllowedHttpStatusRange = "*";
 
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 			builder.AllowAnyHttpStatus();
 
-			builder.WithAutoRedirect(true);*/
+			builder.WithAutoRedirect(true);
 
 			builder.OnError(f =>
 			{
@@ -126,6 +126,7 @@ public static class ImageScanner
 	public static Stream ToStream(this Image image, IImageFormat format = null)
 	{
 		var ms = new MemoryStream();
+
 		// If format is not specified, use the image's decoded format if available
 		format ??= image.Metadata.DecodedImageFormat;
 		image.Save(ms, format);
@@ -181,16 +182,22 @@ public static class ImageScanner
 
 		var po = new ParallelOptions()
 		{
-			CancellationToken = ct
+			CancellationToken = ct,
+
 		};
 
 
-		await Parallel.ForEachAsync(urls, po, async (s, token) =>
+		async ValueTask Body(string s, CancellationToken token)
 		{
 			var uni = await UniImage.TryCreateAsync(s, autoInit: true, autoDisposeOnError: true, ct: token);
 
+			if (token.IsCancellationRequested) {
+				return;
+			}
+
 			if (uni != UniImage.Null && uni.HasImageFormat) {
-				s_logger.LogDebug("{Name} {Uni}", nameof(ScanImagesAsync), uni);
+				s_logger.LogTrace("{Name} {Uni}", nameof(ScanImagesAsync), uni);
+
 				// await cw.WriteAsync(uni, token);
 				await cw.WaitToWriteAsync(token);
 				await cw.WriteAsync(uni, token);
@@ -199,7 +206,11 @@ public static class ImageScanner
 			else {
 				uni?.Dispose();
 			}
-		});
+		}
+
+		await Task.WhenAll(urls.Select(async u => await Body(u, ct)));
+
+		// await Parallel.ForEachAsync(urls, po, Body);
 
 	ret:
 		doc?.Dispose();
@@ -259,7 +270,7 @@ public static class ImageScanner
 		return abs;
 	}
 
-	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", "twitter.svg", "pinterest.svg"];
+	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
 
 	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc)
 	{
@@ -289,7 +300,7 @@ public static class ImageScanner
 		var sbOut = new StringBuilder();
 		var sbErr = new StringBuilder();
 
-		 var cmd = CliWrap.Cli.Wrap(BaseOSIntegration.GALLERY_DL);
+		var cmd = CliWrap.Cli.Wrap(BaseOSIntegration.GALLERY_DL);
 
 		cmd.WithArguments($"-G {cri}")
 			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbOut))
@@ -311,7 +322,7 @@ public static class ImageScanner
 			if (uni != null) {
 				rg.Add(uni);
 			}
-			
+
 
 			token.ThrowIfCancellationRequested();
 		});

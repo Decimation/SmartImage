@@ -6,17 +6,9 @@ using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Lib.Cookies;
 
-public interface ICookiesProvider : IDisposable
+public interface ICookiesSource : IDisposable
 {
 
 	public ValueTask<IList<ICookie>> GetOrLoadCookiesAsync(CancellationToken ct = default);
-
-	public static ICookiesProvider GetProvider()
-	{
-		ICookiesProvider cp = BrowserCookiesProvider.Default.Value 
-		                      ?? new ListCookiesProvider();
-
-		return cp;
-	}
 
 }

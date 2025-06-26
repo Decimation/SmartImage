@@ -41,7 +41,11 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.RepostSleuth;
 
 	public override void Dispose() { }
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
 
+	}
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var sr = await base.GetResultAsync(query, token);

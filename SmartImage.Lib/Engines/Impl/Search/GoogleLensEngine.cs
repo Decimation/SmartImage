@@ -69,7 +69,7 @@ public class GoogleLensItem : ISearchResultItemConverter<GoogleLensItem>
 
 }
 
-public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesReceiver, ISearchConfigReceiver
+public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesReceiver
 {
 
 	// TODO: WIP
@@ -247,13 +247,13 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesReceiv
 
 	public CookieJar Jar { get; private set; }
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken token = default)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken token = default)
 	{
-		if (provider == null) {
+		if (source == null) {
 			return false;
 		}
 
-		var ck   = await provider.GetOrLoadCookiesAsync(token);
+		var ck   = await source.GetOrLoadCookiesAsync(token);
 		var nids = ck.OfType<FirefoxCookie>().Where(x => x.Name == "NID" && x.Host.Contains("google.com"));
 		var nid  = nids.First();
 
@@ -267,7 +267,7 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointEngine, ICookiesReceiv
 
 #region Implementation of ISearchConfigReceiver
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		return ValueTask.FromResult(true);
 	}

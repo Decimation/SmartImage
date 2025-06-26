@@ -50,7 +50,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsComplete { get; private set; }
 
-	public FrozenSet<BaseSearchEngine> Engines { get; private set; }
+	public BaseSearchEngine[] Engines { get; private set; }
 
 	public bool ConfigApplied { get; private set; }
 
@@ -63,6 +63,7 @@ public sealed class SearchClient : IDisposable
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
+		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
 
 		// GetSelectedEngines();
 
@@ -139,10 +140,8 @@ public sealed class SearchClient : IDisposable
 		IsRunning = true;
 
 		if (!ConfigApplied) {
-			await LoadEnginesAsync(token); // todo
-		}
-		else {
-			s_logger.LogDebug("Not reloading config");
+			await Config.LoadEnginesAsync(Engines, token);
+			ConfigApplied = true;
 		}
 
 		s_logger.LogTrace("{Config} with {Engines}", Config, Engines.QuickJoin());
@@ -227,7 +226,7 @@ public sealed class SearchClient : IDisposable
 		IsRunning = false;
 
 		return results;
-		
+
 	}
 
 	[return: MN]
@@ -312,35 +311,6 @@ public sealed class SearchClient : IDisposable
 			ProcessResult(res);
 			return res;
 		});
-	}
-
-	public async ValueTask LoadEnginesAsync(CancellationToken token = default)
-	{
-		// todo
-		s_logger.LogTrace("Loading engines");
-
-		Engines = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToFrozenSet();
-
-
-		var loadFlareSolverr = Config.TryLoadFlareSolverrAsync(token);
-		await loadFlareSolverr;
-
-		foreach (var engine in Engines) {
-			if (engine is ISearchConfigReceiver cfg) {
-				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
-				await cfg.ApplyConfigAsync(Config, token);
-			}
-
-			if (engine is ICookiesReceiver ck) {
-				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
-				await ck.ApplyCookiesAsync(Config.CookiesProvider, token);
-			}
-		}
-
-		// CookiesManager.Instance.Dispose();
-
-		s_logger.LogDebug("Loaded engines");
-		ConfigApplied = true;
 	}
 
 	public void Dispose()

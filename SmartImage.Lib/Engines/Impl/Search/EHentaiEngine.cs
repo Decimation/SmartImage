@@ -25,7 +25,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICookiesReceiver, ISearchConfigReceiver
+public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICookiesReceiver
 {
 
 	static EHentaiEngine() { }
@@ -197,9 +197,9 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 #endregion
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct = default)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct = default)
 	{
-		if (provider == null) {
+		if (source == null) {
 			return false;
 		}
 
@@ -212,7 +212,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 			Trace.WriteLine($"Applying cookies to {Name}");
 		}
 
-		var cookies = await provider.GetOrLoadCookiesAsync(ct);
+		var cookies = await source.GetOrLoadCookiesAsync(ct);
 
 		foreach (var bck in cookies) {
 
@@ -305,7 +305,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 	 * https://github.com/Ehviewer-Overhauled/Ehviewer/issues/873
 	 */
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));

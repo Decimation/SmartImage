@@ -39,7 +39,7 @@ public static class Program
 		};*/
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
+		
 #if DEBUG
 
 		// Debugger.Launch();
@@ -58,7 +58,6 @@ public static class Program
 			c.PropagateExceptions();
 			c.ValidateExamples();
 #endif
-
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
 

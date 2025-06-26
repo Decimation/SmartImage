@@ -25,7 +25,11 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		// Debug.WriteLine($"Disposing {Name}");
 		Logger.LogTrace("Disposing {Name}", Name);
 	}
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
 
+	}
 	public override async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
 		var ok = await q.Source.AllocImageAsync();

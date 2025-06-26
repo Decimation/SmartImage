@@ -153,7 +153,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set => Set(value);
 	}
 
-	#region Cookies 
+#region Cookies
 
 	/// <summary>
 	/// Parse browser cookies automatically whenever necessary
@@ -164,32 +164,28 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </remarks>
 	public bool ReadCookies
 	{
-		get => Get(READCOOKIES_DEFAULT);
-		set => Set(value);
-	}
-
-
-	// TODO: cookies.txt support
-	// TODO: specify cookies source
-
-	private ICookiesProvider m_cookiesProvider;
-
-	public ICookiesProvider CookiesProvider
-	{
-		get
+		get { return Get(READCOOKIES_DEFAULT); }
+		set
 		{
-			if (ReadCookies && m_cookiesProvider == null) {
-				m_cookiesProvider = ICookiesProvider.GetProvider();
-			}
+			if (value) { }
 
-			return m_cookiesProvider;
+			Set(value);
 		}
-		set { m_cookiesProvider = value; }
 	}
 
-	#endregion
 
-	#region FlareSolverr 
+	public ICookiesSource GetCookiesSource()
+	{
+		if (ReadCookies) {
+			return BrowserCookiesSource.Default.Value;
+		}
+
+		return ListCookiesSource.Default;
+	}
+
+#endregion
+
+#region FlareSolverr
 
 	/// <remarks>
 	/// 
@@ -238,7 +234,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		return ok;
 	}
 
-	#endregion
+#endregion
 
 	/// <summary>
 	/// <see cref="BaseUploadEngine"/>
@@ -323,6 +319,32 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public override string ToString()
 	{
 		return $"{SearchEngines}\n{PriorityEngines}";
+	}
+
+	public async ValueTask<bool> LoadEnginesAsync(BaseSearchEngine[] engines, CancellationToken token)
+	{
+		s_logger.LogTrace("Loading engines");
+
+		var loadFlareSolverr = TryLoadFlareSolverrAsync(token);
+		await loadFlareSolverr;
+
+		foreach (var engine in engines) {
+			s_logger.LogTrace("Applying config to {Engine}", engine.Name);
+			await engine.ApplyConfigAsync(this, token);
+
+			if (engine is ICookiesReceiver ck) {
+				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
+				await ck.ApplyCookiesAsync(GetCookiesSource(), token);
+			}
+		}
+
+		// CookiesManager.Instance.Dispose();
+
+		s_logger.LogDebug("Loaded engines");
+
+		// ConfigApplied = true;
+
+		return true;
 	}
 
 }

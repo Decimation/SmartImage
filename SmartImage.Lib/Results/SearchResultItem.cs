@@ -222,6 +222,10 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 			if (v != UniImage.Null && v.HasImageFormat) {
 				buf.Add(v);
 			}
+
+			if (ct.IsCancellationRequested) {
+				break;
+			}
 		}
 
 		await tasks;

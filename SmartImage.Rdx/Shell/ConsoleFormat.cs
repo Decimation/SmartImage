@@ -76,22 +76,29 @@ internal static class ConsoleFormat
 #endregion
 
 
-	static ConsoleFormat() { }
+	private static readonly Capabilities ProfileCapabilities;
 
-	private static readonly Capabilities ProfileCapabilities = AnsiConsole.Profile.Capabilities;
-
-	internal static readonly Dictionary<string, object> InfoMap = new()
+	static ConsoleFormat()
 	{
-		["OS"]               = $"{Environment.OSVersion}",
-		["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
-		["Runtime"]          = Environment.Version,
-		["Terminal ANSI"]    = ProfileCapabilities.Ansi,
-		["Terminal colors"]  = ProfileCapabilities.ColorSystem,
-		["Terminal links"]   = ProfileCapabilities.Links,
-		["Terminal Unicode"] = ProfileCapabilities.Unicode,
-		["Version"]          = $"{Program.Version}",
-		["Location"]         = BaseOSIntegration.Executable
-	};
+		ProfileCapabilities = AnsiConsole.Profile.Capabilities;
+
+		InfoMap = new Dictionary<string, object>
+		{
+			["OS"]               = $"{Environment.OSVersion}",
+			["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
+			["Runtime"]          = Environment.Version,
+			["Terminal ANSI"]    = ProfileCapabilities.Ansi,
+			["Terminal colors"]  = ProfileCapabilities.ColorSystem,
+			["Terminal links"]   = ProfileCapabilities.Links,
+			["Terminal Unicode"] = ProfileCapabilities.Unicode,
+			["Version"]          = $"{Program.Version}",
+			["Location"]         = BaseOSIntegration.Executable
+		};
+
+		
+	}
+
+	internal static readonly Dictionary<string, object> InfoMap;
 
 
 	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
@@ -112,7 +119,7 @@ internal static class ConsoleFormat
 		valFunc ??= static v =>
 		{
 			//
-			var s = v.ToString();
+			var s = FormatObject(v);
 			ArgumentNullException.ThrowIfNull(s);
 			return new Text(s);
 		};
@@ -244,20 +251,20 @@ internal static class ConsoleFormat
 
 	public static string ToCheck(bool b)
 	{
-		return (b ? Strings.Constants.CHECK_MARK : Strings.Constants.BALLOT_X).ToString();
+		return (b ? Strings.Constants.RAD_SIGN : Strings.Constants.MUL_SIGN).ToString();
 	}
 
 	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
 	{
-		using var ms          =querySource.Image.ToStream();//todo
-		
+		using var ms = querySource.Image.ToStream(); //todo
+
 		// var       sp = new Span<byte>();
 		// querySource.Image.CopyPixelDataTo(sp);
 
-		
+
 		var ci = new CanvasImage(ms)
 		{
-			MaxWidth = AnsiConsole.Profile.Width / 6,
+			MaxWidth = AnsiConsole.Profile.Width / 4,
 
 			// PixelWidth = 2
 		};

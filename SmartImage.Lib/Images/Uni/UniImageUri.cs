@@ -50,6 +50,7 @@ public class UniImageUri : UniImage
 		if (!HasImage) {
 			try {
 				// Stream     = File.OpenRead(fullName);
+
 				using var fres = await GetResponseAsync(Url, ct);
 
 				if (fres == null) {
@@ -57,7 +58,7 @@ public class UniImageUri : UniImage
 				}
 
 				var res = await fres.GetStreamAsync();
-				Size = res.Length;
+				Size  = res.Length;
 				Image = await ISImage.LoadAsync<Rgba32>(res, ct);
 
 			}
@@ -80,8 +81,9 @@ public class UniImageUri : UniImage
 			throw new ArgumentException($"{value}");
 		}*/
 
-		var req1 = ImageScanner.Client.Request(value);
-		var req  = await ValueTask.FromResult(req1);
+		var req1 = await ImageScanner.Client.Request(value).GetAsync(cancellationToken: ct);
+
+		// var req  = ValueTask.FromResult(req1);
 
 		/*.AllowAnyHttpStatus()
 		.WithHeaders(new
@@ -90,7 +92,7 @@ public class UniImageUri : UniImage
 			User_Agent = R1.UserAgent1,
 		});*/
 
-		var res = await req.GetAsync(cancellationToken: ct);
+		// var res = await req.GetAsync(cancellationToken: ct);
 
 		/*
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
@@ -99,7 +101,7 @@ public class UniImageUri : UniImage
 		}
 		*/
 
-		return res;
+		return req1;
 	}
 
 }

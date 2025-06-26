@@ -41,7 +41,11 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 	public override string Name => "trace.moe";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
 
+	}
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 

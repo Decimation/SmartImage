@@ -19,16 +19,16 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	[Description("Query: file or URL; see wiki")]
 	public string? Query { get; internal set; }
 
-	#region
+#region
 
 	[CommandOption("--keep-open")]
 	[DefaultValue(false)]
 	[Description("Waits for input before terminating")]
 	public bool KeepOpen { get; internal set; }
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	[CommandOption("-f|--output-format")]
 	[DefaultValue(OutputFileFormat.None)]
@@ -52,9 +52,11 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	public const OutputFields OUTPUT_FIELDS_DEFAULT =
 		OutputFields.Name | OutputFields.Similarity | OutputFields.Url;
 
-	#endregion
+	public const string QUERY_DEFAULT_CLIPBOARD = "<clipboard>";
 
-	#region
+#endregion
+
+#region
 
 	[CommandOption("-x|--command-exe")]
 	[Description($"Command/executable to invoke upon completion")]
@@ -64,7 +66,7 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	[Description($"Arguments to pass to command")]
 	public string? CommandArguments { get; internal set; }
 
-	#endregion
+#endregion
 
 	// public bool? Silent { get; internal set; } //todo
 
@@ -75,9 +77,24 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	[Description("Interactive results")]
 	public bool Interactive { get; internal set; }
 
+	[CommandOption("--clipboard")]
+	[DefaultValue(false)]
+	[Description("Clipboard")]
+	public bool UseClipboard { get; internal set; }
+
 	public override ValidationResult Validate()
 	{
 		var result = base.Validate();
+
+		if (UseClipboard && OperatingSystem.IsWindows()) {
+			Clipboard.Open();
+
+			var data = Novus.Win32.Clipboard.GetFileName();
+
+			// var data2 = Novus.Win32.Clipboard.GetData((uint) ClipboardFormat.BMP2);
+			Query = data;
+			Clipboard.Close();
+		}
 
 		if (!UniImage.IsValidSourceType(Query, false)) {
 			return ValidationResult.Error("Invalid query");

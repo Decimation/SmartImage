@@ -61,6 +61,33 @@ namespace SmartImage.Rdx {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to back.
+        /// </summary>
+        internal static string Chc_Back {
+            get {
+                return ResourceManager.GetString("Chc_Back", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to calculate.
+        /// </summary>
+        internal static string Chc_Calc {
+            get {
+                return ResourceManager.GetString("Chc_Calc", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to download.
+        /// </summary>
+        internal static string Chc_Download {
+            get {
+                return ResourceManager.GetString("Chc_Download", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to exit.
         /// </summary>
         internal static string Chc_Exit {
@@ -75,6 +102,15 @@ namespace SmartImage.Rdx {
         internal static string Chc_Open {
             get {
                 return ResourceManager.GetString("Chc_Open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to preview.
+        /// </summary>
+        internal static string Chc_Preview {
+            get {
+                return ResourceManager.GetString("Chc_Preview", resourceCulture);
             }
         }
         

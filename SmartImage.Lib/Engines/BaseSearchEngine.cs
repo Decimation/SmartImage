@@ -3,6 +3,7 @@
 
 global using R1 = SmartImage.Lib.Resources;
 global using Url = Flurl.Url;
+using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
@@ -12,6 +13,7 @@ using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Clients;
+using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
 using SmartImage.Lib.Results;
@@ -24,14 +26,7 @@ namespace SmartImage.Lib.Engines;
 
 #nullable enable
 
-public interface ISearchQueryVerifiable
-{
-
-	public ValueTask<bool> VerifyQueryAsync(SearchQuery query);
-
-}
-
-public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>
+public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>,ISearchConfigReceiver
 {
 
 	static BaseSearchEngine()
@@ -90,62 +85,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	protected static FlurlClient Client { get; }
 
-	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
-	{
-		/*return BaseSearchEngine.All.Where(e =>
-			{
-				return e.EngineOption != default && options.HasFlag(e.EngineOption);
-			})
-			.ToArray();*/
-
-		if (options.HasFlag(SearchEngineOptions.SauceNao))
-			yield return new SauceNaoEngine();
-
-		if (options.HasFlag(SearchEngineOptions.ImgOps))
-			yield return new ImgOpsEngine();
-
-		if (options.HasFlag(SearchEngineOptions.GoogleImages))
-			yield return new GoogleImagesEngine();
-
-		if (options.HasFlag(SearchEngineOptions.TinEye))
-			yield return new TinEyeEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Iqdb))
-			yield return new IqdbEngine();
-
-		if (options.HasFlag(SearchEngineOptions.TraceMoe))
-			yield return new TraceMoeEngine();
-
-		if (options.HasFlag(SearchEngineOptions.KarmaDecay))
-			yield return new KarmaDecayEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Yandex))
-			yield return new YandexEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Bing))
-			yield return new BingEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Ascii2D))
-			yield return new Ascii2DEngine();
-
-		if (options.HasFlag(SearchEngineOptions.RepostSleuth))
-			yield return new RepostSleuthEngine();
-
-		if (options.HasFlag(SearchEngineOptions.EHentai))
-			yield return new EHentaiEngine();
-
-		if (options.HasFlag(SearchEngineOptions.ArchiveMoe))
-			yield return new ArchiveMoeEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Iqdb3D))
-			yield return new Iqdb3DEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Fluffle))
-			yield return new FluffleEngine();
-
-		if (options.HasFlag(SearchEngineOptions.GoogleLens))
-			yield return new GoogleLensEngine();
-	}
 
 	/*public Task<SearchResult> GetTaskAsync(SearchQuery query, CancellationToken token = default)
 	{
@@ -209,6 +148,8 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
 
+	public abstract ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
+
 	// public abstract ValueTask ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
 
 	public override bool Equals(object? obj)
@@ -253,5 +194,63 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	public static bool operator !=(BaseSearchEngine? left, BaseSearchEngine? right)
 		=> !Equals(left, right);
+
+
+	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
+	{
+		/*return BaseSearchEngine.All.Where(e =>
+			{
+				return e.EngineOption != default && options.HasFlag(e.EngineOption);
+			})
+			.ToArray();*/
+
+		if (options.HasFlag(SearchEngineOptions.SauceNao))
+			yield return new SauceNaoEngine();
+
+		if (options.HasFlag(SearchEngineOptions.ImgOps))
+			yield return new ImgOpsEngine();
+
+		if (options.HasFlag(SearchEngineOptions.GoogleImages))
+			yield return new GoogleImagesEngine();
+
+		if (options.HasFlag(SearchEngineOptions.TinEye))
+			yield return new TinEyeEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Iqdb))
+			yield return new IqdbEngine();
+
+		if (options.HasFlag(SearchEngineOptions.TraceMoe))
+			yield return new TraceMoeEngine();
+
+		if (options.HasFlag(SearchEngineOptions.KarmaDecay))
+			yield return new KarmaDecayEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Yandex))
+			yield return new YandexEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Bing))
+			yield return new BingEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Ascii2D))
+			yield return new Ascii2DEngine();
+
+		if (options.HasFlag(SearchEngineOptions.RepostSleuth))
+			yield return new RepostSleuthEngine();
+
+		if (options.HasFlag(SearchEngineOptions.EHentai))
+			yield return new EHentaiEngine();
+
+		if (options.HasFlag(SearchEngineOptions.ArchiveMoe))
+			yield return new ArchiveMoeEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Iqdb3D))
+			yield return new Iqdb3DEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Fluffle))
+			yield return new FluffleEngine();
+
+		if (options.HasFlag(SearchEngineOptions.GoogleLens))
+			yield return new GoogleLensEngine();
+	}
 
 }

@@ -25,7 +25,7 @@ namespace SmartImage.Lib.Engines.Impl.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver, ISearchConfigReceiver
+public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 {
 
 	protected override string NodesSelector => Serialization.S_Ascii2D_Images2;
@@ -52,13 +52,13 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver, ISearchCo
 		Jar     = new CookieJar();
 	}
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesProvider provider, CancellationToken ct)
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct)
 	{
-		if ( /*FlareSolverrClient.Value.IsInitialized*/ provider == null) {
+		if ( /*FlareSolverrClient.Value.IsInitialized*/ source == null) {
 			return false;
 		}
 
-		var cookies = await provider.GetOrLoadCookiesAsync(ct);
+		var cookies = await source.GetOrLoadCookiesAsync(ct);
 
 		foreach (var bck in cookies) {
 			var ck = bck.AsCookie();
@@ -72,7 +72,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver, ISearchCo
 		return true;
 	}
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		return ValueTask.FromResult(true);
 	}
@@ -307,5 +307,6 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver, ISearchCo
 
 		return ValueTask.FromResult(sri);
 	}
+
 
 }

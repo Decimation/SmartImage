@@ -112,7 +112,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Config.FlareSolverr       = m_scs.FlareSolverr;
 		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
 
-		await Client.LoadEnginesAsync();
 
 	}
 
@@ -253,38 +252,50 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		do {
 			cmd = GetCommandPrompt();
 
-			if (cmd != R2.Chc_Exit) {
-				var sr  = GetEnginePrompt();
-				var num = GetNumberPrompt(sr);
-				var res = sr.Results[num];
+			if (cmd == R2.Chc_Exit) {
+				continue;
+			}
 
-				if (cmd == R2.Chc_Open) {
-					SearchClient.OpenResult(res.Url);
+			var sr  = GetEnginePrompt();
+			var num = GetNumberPrompt(sr);
+			var res = sr.Results[num];
+
+			if (cmd == R2.Chc_Open) {
+				SearchClient.OpenResult(res.Url);
+				continue;
+			}
+
+			if (cmd == R2.Chc_Scan) {
+				var run3 = await ShowImageScanResultsAsync(res);
+
+				if (!run3) {
+					goto cont;
 				}
-				else if (cmd == R2.Chc_Scan) {
-					var run3 = await ShowImageScanResultsAsync(res);
 
-					if (!run3) {
-						goto cont;
-					}
+				var cmd2 = GetCommandPrompt();
 
-					var cmd2 = GetCommand2Prompt();
+				if (cmd2 == R2.Chc_Exit) {
+					goto cont;
+				}
 
-					if (cmd2 == Command2Prompts[0]) {
-						goto cont;
-					}
-					else if (cmd2 == Command2Prompts[1]) {
-						await AnsiConsole.Live(m_table).StartAsync(async (f) =>
-						{
-							var ui2 = res.Uni[0];
-							var      hashOk   =  ui2.TryCalculateSimilarity(Query.Source);
+				if (cmd2 == R2.Chc_Calc) {
+
+					await AnsiConsole.Live(m_table).StartAsync(async (f) =>
+					{
+						// var ui2 = res.Uni[0];
+						for (int i = 0; i < res.Uni.Count; i++) {
+							var uii    = res.Uni[i];
+							var hashOk = uii.TryCalculateSimilarity(Query.Source);
 
 							if (hashOk) {
-								var row = GetRow(ui2);
-								m_table.Rows.Update(row, 2, new Text(ui2.Similarity.ToString()));
+								var row = GetRow(uii);
+								m_table.Rows.Update(row, 2, new Text(uii.Similarity.ToString()));
 								f.Refresh();
 							}
-							/*var ui     = res.Uni[0];
+
+
+						}
+						/*var ui     = res.Uni[0];
 							var hashOk = ui.TryCalculateSimilarity(Query.Source);
 
 							if (hashOk) {
@@ -293,88 +304,88 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 								f.Refresh();
 
 							}*/
-						});
+					});
 
-						// var row    = dict[item];
-						// table2.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
-					}
-					else if (cmd2 == Command2Prompts[2]) {
-
-						//todo
-						Stream str;
-
-						if (res.HasUni) {
-							var uniIndex = GetUniPrompt(res);
-							var uni      = res.Uni[uniIndex];
-							str = uni.Image.ToStream();
-						}
-						else if (res.Thumbnail != null) {
-							using var thumbRes = await res.Thumbnail.GetAsync();
-							str = await thumbRes.GetStreamAsync();
-
-							// var exist = res.Uni.Any(u => u.ValueString == res.Thumbnail);
-
-						}
-						else {
-							continue;
-						}
+					// var row    = dict[item];
+					// table2.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
+					continue;
+				}
 
 
-						var cip = new CacheItemPolicy()
-						{
-							AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
-							RemovedCallback = arguments =>
-							{
-								switch (arguments.RemovedReason) {
+			}
 
-									case CacheEntryRemovedReason.Removed:
-										break;
+			if (cmd == R2.Chc_Preview) {
 
-									case CacheEntryRemovedReason.Expired:
-										break;
+				//todo
+				Stream str;
 
-									case CacheEntryRemovedReason.Evicted:
-										break;
+				if (res.HasUni) {
+					var uniIndex = GetUniPrompt(res);
+					var uni      = res.Uni[uniIndex];
+					str = uni.Image.ToStream();
+				}
+				else if (res.Thumbnail != null) {
+					using var thumbRes = await res.Thumbnail.GetAsync();
+					str = await thumbRes.GetStreamAsync();
 
-									case CacheEntryRemovedReason.ChangeMonitorChanged:
-										break;
-
-									case CacheEntryRemovedReason.CacheSpecificEviction:
-										break;
-
-									default:
-										throw new ArgumentOutOfRangeException();
-								}
-
-								Debug.WriteLine($"{arguments.CacheItem} :: {arguments.RemovedReason}");
-								return;
-							}
-						};
-
-						string key = res.Url.ToString();
-
-						var o = m_cache.Get(key);
-
-						if (o is not CanvasImage ci) {
-							ci = new CanvasImage(str);
-							m_cache.Set(key, ci, cip);
-						}
-
-						AnsiConsole.AlternateScreen(() =>
-						{
-							//
-							AnsiConsole.Clear();
-
-							// AnsiConsole.Write($"{ci.Width}x{ci.Height}");
-							AnsiConsole.Write(ci);
-							Console.ReadKey();
-						});
-					}
-					else if (cmd2 == "") { }
+					// var exist = res.Uni.Any(u => u.ValueString == res.Thumbnail);
 
 				}
+				else {
+					continue;
+				}
+
+
+				var cip = new CacheItemPolicy()
+				{
+					AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
+					RemovedCallback = arguments =>
+					{
+						switch (arguments.RemovedReason) {
+
+							case CacheEntryRemovedReason.Removed:
+								break;
+
+							case CacheEntryRemovedReason.Expired:
+								break;
+
+							case CacheEntryRemovedReason.Evicted:
+								break;
+
+							case CacheEntryRemovedReason.ChangeMonitorChanged:
+								break;
+
+							case CacheEntryRemovedReason.CacheSpecificEviction:
+								break;
+
+							default:
+								throw new ArgumentOutOfRangeException();
+						}
+
+						Debug.WriteLine($"{arguments.CacheItem} :: {arguments.RemovedReason}");
+						return;
+					}
+				};
+
+				string key = res.Url.ToString();
+
+				var o = m_cache.Get(key);
+
+				if (o is not CanvasImage ci) {
+					ci = new CanvasImage(str);
+					m_cache.Set(key, ci, cip);
+				}
+
+				AnsiConsole.AlternateScreen(() =>
+				{
+					//
+					AnsiConsole.Clear();
+
+					// AnsiConsole.Write($"{ci.Width}x{ci.Height}");
+					AnsiConsole.Write(ci);
+					Console.ReadKey();
+				});
 			}
-			else { }
 
 		cont:
 			continue;
@@ -390,6 +401,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 #if UNITTEST
 		return;
 #endif
+
 		var search = Client.RunSearchAsync(Query, token: m_cts.Token);
 
 		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
@@ -416,7 +428,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 				m_table.AddRow(row);
 			}
 
+
 			c.Refresh();
+
 		}
 
 		await search;
@@ -846,7 +860,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		AllowEmpty       = false,
 		Choices =
 		{
-			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Exit
+			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Preview, R2.Chc_Exit
 		}
 	};
 

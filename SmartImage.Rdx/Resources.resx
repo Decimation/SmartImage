@@ -136,4 +136,16 @@
   <data name="Chc_Open" xml:space="preserve">
     <value>open</value>
   </data>
+  <data name="Chc_Preview" xml:space="preserve">
+    <value>preview</value>
+  </data>
+  <data name="Chc_Calc" xml:space="preserve">
+    <value>calculate</value>
+  </data>
+  <data name="Chc_Back" xml:space="preserve">
+    <value>back</value>
+  </data>
+  <data name="Chc_Download" xml:space="preserve">
+    <value>download</value>
+  </data>
 </root>

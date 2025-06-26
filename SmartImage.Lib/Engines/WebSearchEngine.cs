@@ -89,7 +89,7 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 		try {
 
-			var res = await Client.Request(sr.RawUrl)
+			using var res = await Client.Request(sr.RawUrl)
 				          .WithCookies(out var cj)
 				          .WithTimeout(Timeout)
 				          .WithHeaders(new

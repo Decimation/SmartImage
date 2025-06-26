@@ -10,6 +10,12 @@ public sealed class KarmaDecayEngine : BaseSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.KarmaDecay;
 
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
+
+	}
+
 	public override void Dispose() { }
 
 	/*protected override async Task<List<INode>> GetNodesAsync(IDocument doc)

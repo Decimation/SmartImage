@@ -196,7 +196,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 			else {
 				var url = await query.UploadAsync();
 
-				await Client.LoadEnginesAsync();
+				
 
 				var results = new ConcurrentBag<SearchResult>();
 
@@ -253,7 +253,6 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		Client.Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
 
 
-		await Client.LoadEnginesAsync();
 
 	}
 
