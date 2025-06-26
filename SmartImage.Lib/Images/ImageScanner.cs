@@ -65,8 +65,8 @@ public static class ImageScanner
 
 			builder.Settings.AllowedHttpStatusRange = "*";
 
-			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
-			builder.AllowAnyHttpStatus();
+			// builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+			// builder.AllowAnyHttpStatus();
 
 			builder.WithAutoRedirect(true);
 

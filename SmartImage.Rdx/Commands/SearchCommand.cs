@@ -247,144 +247,195 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private async Task RunInteractiveAsync()
 	{
+
 		string cmd = null;
 
 		do {
-			cmd = GetCommandPrompt();
 
-			if (cmd == R2.Chc_Exit) {
-				continue;
-			}
+			var res = GetEnginePrompt();
 
-			var sr  = GetEnginePrompt();
-			var num = GetNumberPrompt(sr);
-			var res = sr.Results[num];
+			var (sri, ui) = GetUniPrompt(res);
 
-			if (cmd == R2.Chc_Open) {
-				SearchClient.OpenResult(res.Url);
-				continue;
-			}
+			if (sri is not null) {
+				cmd = GetCommandPrompt();
 
-			if (cmd == R2.Chc_Scan) {
-				var run3 = await ShowImageScanResultsAsync(res);
+				if (cmd == R2.Chc_Open) {
+					SearchClient.OpenResult(sri.Url);
+					continue;
+				}
+				else if (cmd == R2.Chc_Scan) {
 
-				if (!run3) {
-					goto cont;
+					var run3 = await ShowImageScanResultsAsync(sri);
+
+					if (run3) {
+						continue;
+					}
 				}
 
-				var cmd2 = GetCommandPrompt();
-
-				if (cmd2 == R2.Chc_Exit) {
-					goto cont;
-				}
-
-				if (cmd2 == R2.Chc_Calc) {
+				if (cmd == R2.Chc_Calc) {
 
 					await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 					{
 						// var ui2 = res.Uni[0];
-						for (int i = 0; i < res.Uni.Count; i++) {
-							var uii    = res.Uni[i];
-							var hashOk = uii.TryCalculateSimilarity(Query.Source);
-
-							if (hashOk) {
-								var row = GetRow(uii);
-								m_table.Rows.Update(row, 2, new Text(uii.Similarity.ToString()));
-								f.Refresh();
+						if (ui is null) {
+							for (int i = 0; i < sri.Uni.Count; i++) {
+								var uii = sri.Uni[i];
+								NewFunction(uii, f);
 							}
 
-
 						}
-						/*var ui     = res.Uni[0];
-							var hashOk = ui.TryCalculateSimilarity(Query.Source);
+						else {
+							NewFunction(ui, f);
+						}
 
-							if (hashOk) {
-								var row = GetRow(ui);
-								m_table.Rows.Update(row, 2, new Text(res.Similarity.ToString()));
-								f.Refresh();
-
-							}*/
 					});
 
-					// var row    = dict[item];
-					// table2.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
 					continue;
-				}
 
-
-			}
-
-			if (cmd == R2.Chc_Preview) {
-
-				//todo
-				Stream str;
-
-				if (res.HasUni) {
-					var uniIndex = GetUniPrompt(res);
-					var uni      = res.Uni[uniIndex];
-					str = uni.Image.ToStream();
-				}
-				else if (res.Thumbnail != null) {
-					using var thumbRes = await res.Thumbnail.GetAsync();
-					str = await thumbRes.GetStreamAsync();
-
-					// var exist = res.Uni.Any(u => u.ValueString == res.Thumbnail);
-
-				}
-				else {
-					continue;
-				}
-
-
-				var cip = new CacheItemPolicy()
-				{
-					AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
-					RemovedCallback = arguments =>
+					void NewFunction(UniImage uii, LiveDisplayContext f)
 					{
-						switch (arguments.RemovedReason) {
+						var hashOk = uii.TryCalculateSimilarity(Query.Source);
 
-							case CacheEntryRemovedReason.Removed:
-								break;
+						if (hashOk) {
+							var row = GetRow(uii);
+							m_table.Rows.Update(row, 2, new Text(uii.Similarity.ToString()));
+							f.Refresh();
+						}
+					}
 
-							case CacheEntryRemovedReason.Expired:
-								break;
+					continue;
+				}
 
-							case CacheEntryRemovedReason.Evicted:
-								break;
+				if (cmd == R2.Chc_Preview) {
 
-							case CacheEntryRemovedReason.ChangeMonitorChanged:
-								break;
+					//todo
+					Stream str;
 
-							case CacheEntryRemovedReason.CacheSpecificEviction:
-								break;
+					if (ui is not null) {
+						str = ui.Image.ToStream();
+					}
+					else if (sri.Thumbnail != null) {
+						// using var thumbRes = await sri.Thumbnail.GetAsync();
+						// str = await thumbRes.GetStreamAsync();
+						var th = await sri.LoadThumbnail();
 
-							default:
-								throw new ArgumentOutOfRangeException();
+						if (th) {
+							ui = sri.Uni.Find(f => f.ValueString == sri.Thumbnail);
+							str=ui.Image.ToStream();
+						}
+						else {
+							continue;
+						}
+						// var exist = res.Uni.Any(u => u.ValueString == res.Thumbnail);
+
+					}
+					else {
+						continue;
+					}
+
+
+					var cip = new CacheItemPolicy()
+					{
+						AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
+						RemovedCallback = arguments =>
+						{
+							switch (arguments.RemovedReason) {
+
+								case CacheEntryRemovedReason.Removed:
+									break;
+
+								case CacheEntryRemovedReason.Expired:
+									break;
+
+								case CacheEntryRemovedReason.Evicted:
+									break;
+
+								case CacheEntryRemovedReason.ChangeMonitorChanged:
+									break;
+
+								case CacheEntryRemovedReason.CacheSpecificEviction:
+									break;
+
+								default:
+									throw new ArgumentOutOfRangeException();
+							}
+
+							Debug.WriteLine($"{arguments.CacheItem} :: {arguments.RemovedReason}");
+							return;
+						}
+					};
+
+					// string key = sri.Url.ToString();
+
+					var o = m_cache.Get(ui.ValueString);
+
+					if (o is not Stream) {
+						// Get the current console width (in characters)
+						int consoleWidth  = AnsiConsole.Console.Profile.Width;
+						int consoleHeight = AnsiConsole.Console.Profile.Height;
+
+						int maxImageWidth = Math.Max(1, consoleWidth - 2);
+
+
+						m_cache.Set(ui.ValueString, str, cip);
+					}
+
+					AnsiConsole.AlternateScreen(() =>
+					{
+						var ci = new CanvasImage(str);
+
+						//
+
+						// AnsiConsole.Write($"{ci.Width}x{ci.Height}");
+
+						while (true) {
+							AnsiConsole.Clear();
+							AnsiConsole.Write(ci);
+
+							var k = AnsiConsole.Console.Input.ReadKey(true);
+
+							if (k.HasValue) {
+								int mw = 0, pw = 0;
+
+								switch (k.Value.Key) {
+									case ConsoleKey.DownArrow:
+										pw = -1;
+										break;
+
+									case ConsoleKey.LeftArrow:
+										mw = -1;
+										break;
+
+									case ConsoleKey.UpArrow:
+										pw = 1;
+										break;
+
+									case ConsoleKey.RightArrow:
+										mw = 1;
+										break;
+
+									case ConsoleKey.Escape:
+										return;
+								}
+
+
+								ci.PixelWidth = Math.Clamp(ci.PixelWidth + pw, 0, ci.Width);
+
+								ci.MaxWidth ??= ci.Width;
+
+								// if (ci.MaxWidth.HasValue) { }
+								ci.MaxWidth = Math.Clamp(ci.MaxWidth.Value + mw, 0, AnsiConsole.Profile.Width);
+							}
+							AnsiConsole.WriteLine($"{ci.MaxWidth} / {ci.PixelWidth}");
+							
+
 						}
 
-						Debug.WriteLine($"{arguments.CacheItem} :: {arguments.RemovedReason}");
 						return;
-					}
-				};
-
-				string key = res.Url.ToString();
-
-				var o = m_cache.Get(key);
-
-				if (o is not CanvasImage ci) {
-					ci = new CanvasImage(str);
-					m_cache.Set(key, ci, cip);
+					});
 				}
 
-				AnsiConsole.AlternateScreen(() =>
-				{
-					//
-					AnsiConsole.Clear();
-
-					// AnsiConsole.Write($"{ci.Width}x{ci.Height}");
-					AnsiConsole.Write(ci);
-					Console.ReadKey();
-				});
+				if (cmd == R2.Chc_Download) { }
 			}
 
 		cont:
@@ -665,6 +716,54 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return AnsiConsole.Prompt(Prm_Num);
 	}
 
+
+	private (SearchResultItem, UniImage) GetUniPrompt(SearchResult res)
+	{
+		(SearchResultItem, UniImage) Converter(string str)
+		{
+			var spl = str.Split('.');
+			int i;
+
+			SearchResultItem sri = null;
+			UniImage         ui  = UniImage.Null;
+
+			if (Int32.TryParse(spl[0], out i) && (i < res.Results.Count && i >= 0)) {
+
+				sri = res.Results[i];
+
+				if (spl.Length == 2) {
+
+					if (Int32.TryParse(spl[1], out var j) && (j < sri.Uni.Count && j >= 0)) {
+						ui = sri.Uni[j];
+
+					}
+				}
+				else { }
+
+			}
+			else { }
+
+			return (sri, ui);
+		}
+
+		(SearchResultItem, UniImage) ret;
+
+		Prm_Num2.Validator = str =>
+		{
+			ret = Converter(str);
+
+			if (ret is (null, null)) {
+				return ValidationResult.Error();
+			}
+
+			return ValidationResult.Success();
+		};
+
+
+		var val = AnsiConsole.Prompt(Prm_Num2);
+		return Converter(val);
+	}
+
 	private int GetNumberPrompt(SearchResult result)
 	{
 		Prm_Num.Validator = i =>
@@ -883,7 +982,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		AllowEmpty       = false,
 	};
 
-	private static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#]"))
+	private static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#.#]"))
 	{
 		ShowChoices      = false,
 		ShowDefaultValue = false,
