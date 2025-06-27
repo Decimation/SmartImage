@@ -209,7 +209,7 @@ public abstract class BaseUploadEngine : IDisposable
 		return new UploadResult
 		{
 			Url      = url,
-			Size     = response.Headers.TryGetFirst("Content-Length", out var cls) ? long.Parse(cls) : null,
+			Size     = response.Headers.TryGetFirst("Content-Length", out var cls) ? Int64.Parse(cls) : null,
 			IsValid  = ok,
 			Response = response
 		};
@@ -217,7 +217,7 @@ public abstract class BaseUploadEngine : IDisposable
 
 	protected void Verify(string file)
 	{
-		if (string.IsNullOrWhiteSpace(file)) {
+		if (String.IsNullOrWhiteSpace(file)) {
 			throw new ArgumentNullException(nameof(file));
 		}
 

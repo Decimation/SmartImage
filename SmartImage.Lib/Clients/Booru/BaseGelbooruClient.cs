@@ -72,7 +72,7 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 		foreach (PropertyInfo p in r.GetType().GetProperties()) {
 			var o = p.GetValue(r);
 
-			if (o == null || o is string s && string.IsNullOrWhiteSpace(s) || o.Equals(0)) {
+			if (o == null || o is string s && String.IsNullOrWhiteSpace(s) || o.Equals(0)) {
 				continue;
 			}
 
@@ -81,7 +81,7 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 			properties.Add(h);
 		}
 
-		var ss = string.Join('&', properties);
+		var ss = String.Join('&', properties);
 
 		return await Client.Request("/index.php?page=post&s=list", ss)
 			       .GetAsync();

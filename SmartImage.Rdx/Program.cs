@@ -25,6 +25,7 @@ using SmartImage.Rdx.Shell;
 using SmartImage.Rdx.Utilities;
 using SmartImage.Rdx.Commands;
 using SmartImage.Lib.Utilities.Integration;
+using Color = Spectre.Console.Color;
 
 namespace SmartImage.Rdx;
 
@@ -94,16 +95,20 @@ public static class Program
 		AnsiConsole.Write(grd);
 	}
 
-	private static async Task DisplayHeaderAsync()
+		private static async Task DisplayHeaderAsync()
 	{
 		var ff = ConsoleFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
-		var fg = new FigletText(ff, R1.Name)
+		/*var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
 			.Color(ConsoleFormat.Clr_Misc1);
 		await ms.DisposeAsync();
 
-		AnsiConsole.Write(fg);
+		AnsiConsole.Write(fg);*/
+
+		await ms.DisposeAsync();
+		await ConsoleFormat.WriteFigletGradientAsync(ff, R1.Name, Color.Red, Color.Blue, TimeSpan.FromSeconds(1));
+
 	}
 
 	private static void HandleArgs(ref string[] args)

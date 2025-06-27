@@ -15,10 +15,12 @@ using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
-using Color = Spectre.Console.Color;
+using AnsiConsoleExtensions = Spectre.Console.Advanced.AnsiConsoleExtensions;
 
 // ReSharper disable InconsistentNaming
+
 #nullable disable
+
 namespace SmartImage.Rdx.Shell;
 
 internal static class ConsoleFormat
@@ -28,7 +30,7 @@ internal static class ConsoleFormat
 
 #region Colors
 
-	public static readonly Color Clr_Misc1 = new(0x80, 0xFF, 0x80);
+	public static readonly SpcColor Clr_Misc1 = new(0x80, 0xFF, 0x80);
 
 #endregion
 
@@ -36,30 +38,30 @@ internal static class ConsoleFormat
 
 	internal static readonly Style Sty_Name = new(decoration: Decoration.Italic);
 
-	internal static readonly Style Sty_Sim = new(Color.Wheat1, decoration: Decoration.None);
+	internal static readonly Style Sty_Sim = new(SpcColor.Wheat1, decoration: Decoration.None);
 
-	internal static readonly Style Sty_Url = new(Color.Cyan1, decoration: Decoration.None);
+	internal static readonly Style Sty_Url = new(SpcColor.Cyan1, decoration: Decoration.None);
 
-	public static readonly Style Sty_Grid1 = new(foreground: Color.DodgerBlue1, decoration: Decoration.Bold);
+	public static readonly Style Sty_Grid1 = new(foreground: SpcColor.DodgerBlue1, decoration: Decoration.Bold);
 
-	public static readonly Style Sty_Table1 = new(foreground: Color.SpringGreen1, decoration: Decoration.Bold);
+	public static readonly Style Sty_Table1 = new(foreground: SpcColor.SpringGreen1, decoration: Decoration.Bold);
 
 	private static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
 
-	internal static readonly IReadOnlyDictionary<SearchEngineOptions, Color> EngineColors =
-		new Dictionary<SearchEngineOptions, Color>
+	internal static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors =
+		new Dictionary<SearchEngineOptions, SpcColor>
 		{
-			{ SearchEngineOptions.SauceNao, Color.Green },
-			{ SearchEngineOptions.EHentai, Color.Purple },
-			{ SearchEngineOptions.Iqdb, Color.LightGreen },
-			{ SearchEngineOptions.Ascii2D, Color.Cyan1 },
-			{ SearchEngineOptions.TraceMoe, Color.DodgerBlue1 },
-			{ SearchEngineOptions.RepostSleuth, Color.RosyBrown },
-			{ SearchEngineOptions.ArchiveMoe, Color.Wheat1 },
-			{ SearchEngineOptions.Yandex, Color.Orange1 },
-			{ SearchEngineOptions.Iqdb3D, Color.SeaGreen1 },
-			{ SearchEngineOptions.Fluffle, Color.LightYellow3 },
-			{ SearchEngineOptions.TinEye, Color.SkyBlue1 },
+			{ SearchEngineOptions.SauceNao, SpcColor.Green },
+			{ SearchEngineOptions.EHentai, SpcColor.Purple },
+			{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
+			{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
+			{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
+			{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
+			{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
+			{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
+			{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
+			{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
+			{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
 
 		}.AsReadOnly();
 
@@ -67,7 +69,7 @@ internal static class ConsoleFormat
 
 #region Text
 
-	internal static readonly Text Txt_Empty = new(string.Empty);
+	internal static readonly Text Txt_Empty = new(String.Empty);
 
 	internal static readonly Text   Txt_NA   = new(STR_NA);
 	internal const           string STR_NA   = "-";
@@ -95,7 +97,7 @@ internal static class ConsoleFormat
 			["Location"]         = BaseOSIntegration.Executable
 		};
 
-		
+
 	}
 
 	internal static readonly Dictionary<string, object> InfoMap;
@@ -124,7 +126,8 @@ internal static class ConsoleFormat
 			return new Text(s);
 		};
 
-		foreach (var (k, v) in dictionary) {
+		foreach (var (k, v) in dictionary)
+		{
 			grd.AddRow(keyFunc(k), valFunc(v));
 		}
 
@@ -137,7 +140,8 @@ internal static class ConsoleFormat
 	{
 		var o = R2.ResourceManager.GetObject(name);
 
-		if (o == null) {
+		if (o == null)
+		{
 			throw new InvalidOperationException(nameof(name));
 		}
 
@@ -155,7 +159,8 @@ internal static class ConsoleFormat
 
 		var properties = settings.GetType().GetProperties();
 
-		foreach (var property in properties) {
+		foreach (var property in properties)
+		{
 			var value = property.GetValue(settings)
 				?.ToString()
 				?.Replace("[", "[[");
@@ -172,13 +177,15 @@ internal static class ConsoleFormat
 	{
 		var t = new STable();
 
-		foreach (DataColumn row in dt.Columns) {
+		foreach (DataColumn row in dt.Columns)
+		{
 			t.AddColumn(new TableColumn(row.ColumnName));
 		}
 
 		Func<object, IRenderable> selector = AsRenderableOrText;
 
-		foreach (DataRow row in dt.Rows) {
+		foreach (DataRow row in dt.Rows)
+		{
 			var obj = row.ItemArray
 				.Select(selector);
 
@@ -188,18 +195,22 @@ internal static class ConsoleFormat
 		return t;
 	}
 
-	internal static Color GetEngineColor(SearchEngineOptions opt)
+	internal static SpcColor GetEngineColor(SearchEngineOptions opt)
 	{
-		if (!EngineColors.TryGetValue(opt, out var color)) {
-			color = Color.White;
+		if (!EngineColors.TryGetValue(opt, out var color))
+		{
+			color = SpcColor.White;
 		}
 
 		return color;
 	}
 
+#region
+
 	public static IRenderable AsRenderableOrText<T>(T val)
 	{
-		if (val is IRenderable r) {
+		if (val is IRenderable r)
+		{
 			return r;
 		}
 
@@ -207,6 +218,24 @@ internal static class ConsoleFormat
 		var text = s == null ? Txt_Empty : new Text(s);
 		return text;
 	}
+
+	private static string FormatObject(object o)
+	{
+		return o switch
+
+		{
+			null   => STR_NA,
+			bool b => ToCheck(b),
+			_      => o.ToString(),
+		};
+	}
+
+	public static string ToCheck(bool b)
+	{
+		return (b ? Strings.Constants.RAD_SIGN : Strings.Constants.MUL_SIGN).ToString();
+	}
+
+#endregion
 
 	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
 	{
@@ -226,7 +255,8 @@ internal static class ConsoleFormat
 			["FlareSolverr"] = cfg.FlareSolverr
 		};
 
-		foreach (var (s, o) in kv) {
+		foreach (var (s, o) in kv)
+		{
 			dt.AddRow(new Text(s, Sty_Grid1),
 			          new Text(Markup.Escape(FormatObject(o))));
 		}
@@ -236,22 +266,6 @@ internal static class ConsoleFormat
 
 
 		return dt;
-	}
-
-	private static string FormatObject(object o)
-	{
-		return o switch
-
-		{
-			null   => STR_NA,
-			bool b => ToCheck(b),
-			_      => o.ToString(),
-		};
-	}
-
-	public static string ToCheck(bool b)
-	{
-		return (b ? Strings.Constants.RAD_SIGN : Strings.Constants.MUL_SIGN).ToString();
 	}
 
 	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
@@ -282,7 +296,8 @@ internal static class ConsoleFormat
 
 		int i = 0;
 
-		foreach (BaseSearchEngine engine in engines) {
+		foreach (BaseSearchEngine engine in engines)
+		{
 			table.AddRow(Txt_NA, new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
 
 			engineMap.TryAdd(engine, i++);
@@ -321,5 +336,35 @@ internal static class ConsoleFormat
 	}
 
 #endregion
+
+	public static async Task WriteFigletGradientAsync(FigletFont ff, string text, SpcColor a, SpcColor b, TimeSpan delta)
+	{
+		var col = new Queue<SpcColor>(a.Interpolate(b, (byte) text.Length));
+		(int left, int top) = Console.GetCursorPosition();
+
+		//todo
+		for (int i = 0; i < text.Length; i++)
+		{
+			char c = text[i];
+
+			var color = col.Dequeue();
+
+			var ft = new FigletText(ff, $"{c}")
+			{
+				Color         = color,
+			};
+			
+			var fts=ft.GetSegments(AnsiConsole.Console);
+			// AnsiConsole.Cursor.SetPosition(left +(ff.Height *i),top +(ff.MaxWidth *i));
+			AnsiConsole.Write(ft);
+			// AnsiConsole.Console.Clear(false);
+
+			AnsiConsole.Console.Cursor.Move(CursorDirection.Up, ff.Height+1);
+			AnsiConsole.Console.Cursor.Move(CursorDirection.Right, ff.MaxWidth * (i + 1));
+
+			await Task.Delay(delta);
+		}
+
+	}
 
 }

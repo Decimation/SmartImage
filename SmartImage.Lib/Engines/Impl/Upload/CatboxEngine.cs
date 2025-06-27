@@ -26,7 +26,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 				               mp.AddFile("fileToUpload", file)
 					               .AddString("reqtype", "fileupload")
 					               .AddString("time", "1h")
-					               .AddString("userhash", string.Empty);
+					               .AddString("userhash", String.Empty);
 			               }, cancellationToken: ct, completionOption: HttpCompletionOption.ResponseHeadersRead);
 
 		return await ProcessResultAsync(response, ct).ConfigureAwait(false);

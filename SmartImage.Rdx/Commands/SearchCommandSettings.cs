@@ -100,8 +100,8 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 			return ValidationResult.Error("Invalid query");
 		}
 
-		var  hasOutputFile       = !string.IsNullOrWhiteSpace(OutputFile);
-		var  hasOutputFileDelim  = !string.IsNullOrEmpty(OutputFileDelimiter);
+		var  hasOutputFile       = !String.IsNullOrWhiteSpace(OutputFile);
+		var  hasOutputFileDelim  = !String.IsNullOrEmpty(OutputFileDelimiter);
 		bool isOutputFormatDelim = OutputFileFormat == OutputFileFormat.Delimited;
 
 		if (!isOutputFormatDelim && hasOutputFile) {

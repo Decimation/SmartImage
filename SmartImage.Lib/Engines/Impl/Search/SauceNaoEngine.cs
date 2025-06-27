@@ -51,7 +51,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 
 	public Url EndpointUrl => URL_API;
 
-	public bool UsingAPI => !string.IsNullOrWhiteSpace(Authentication);
+	public bool UsingAPI => !String.IsNullOrWhiteSpace(Authentication);
 
 	public string Authentication { get; set; }
 
@@ -147,7 +147,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 			           .WithTimeout(Timeout)
 			           .PostMultipartAsync(m =>
 			           {
-				           m.AddString("url", query.Source.IsUri ? query.Source.ValueString : string.Empty);
+				           m.AddString("url", query.Source.IsUri ? query.Source.ValueString : String.Empty);
 				           string s;
 
 				           if (query.Source.IsUri) { }
@@ -274,7 +274,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 
 			foreach (JsonNode t in resultArray) {
 				var   result     = t.AsObject();
-				float similarity = float.Parse(result[KeySimilarity].AsValue().ToString());
+				float similarity = Single.Parse(result[KeySimilarity].AsValue().ToString());
 
 				string[] strings = result.ContainsKey(KeyUrls)
 					                   ? (result[KeyUrls] as JsonArray)!
@@ -282,7 +282,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 					                   .ToArray()
 					                   : null;
 
-				var index = (SauceNaoSiteIndex) int.Parse(result[KeyIndex].ToString());
+				var index = (SauceNaoSiteIndex) Int32.Parse(result[KeyIndex].ToString());
 
 				foreach (string t1 in strings) {
 					var item = new SearchResultItem(sr)
@@ -558,7 +558,7 @@ public sealed class SauceNaoDataResult : IItemConverter<SauceNaoDataResult, IEnu
 			.Where(c => c is not (IElement { TagName: "BR" }
 				            or IElement { NodeName: "SPAN" }))
 			.ToArray();
-		float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
+		float similarity = Single.Parse(resultsimilarityinfo.TextContent.Replace("%", String.Empty));
 
 		// var results = new List<SearchResultItem>();
 		var urls = links.Where(x =>

@@ -36,7 +36,7 @@ internal class CustomHelpProvider : HelpProvider
 		return new[]
 		{
 			Text.NewLine,
-			new Text("DESCRIPTION:", new Style(Color.Yellow, decoration: Decoration.Bold)), Text.NewLine,
+			new Text("DESCRIPTION:", new Style(SpcColor.Yellow, decoration: Decoration.Bold)), Text.NewLine,
 			new Text($"    Homepage: {R1.Url_Repo}", new Style(link: R1.Url_Repo)), Text.NewLine, 
 			new Text($"    Wiki: {R1.Url_Wiki}", new Style(link: R1.Url_Wiki)), Text.NewLine, 
 			Text.NewLine,
