@@ -335,12 +335,14 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 #endregion
 
-	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
+#region Overrides of WebSearchEngine
+
+	protected override async ValueTask<IEnumerable<SearchResultItem>> GetItems(IEnumerable<INode> n, SearchResult r)
 	{
-		var eh  = EhResult.Parse(n);
-		var sri = eh.ToItem(r);
-		return sri;
+		
 	}
+
+#endregion
 
 	public override void Dispose()
 	{
@@ -370,47 +372,33 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 }
 
-public sealed record EhResult : ISearchResultItemConvertable
+public sealed record EhResult : SearchResultItem, INodeResultParse<EhResult>
 {
 
-	public string Type { get; internal set; }
+	public string Type { get; private set; }
 
-	public string Pages { get; internal set; }
+	public string Pages { get; private set; }
 
-	public string Title { get; internal set; }
 
-	public string Author { get; internal set; }
+	public string Author { get; private set; }
 
-	public string AuthorUrl { get; internal set; }
+	public string AuthorUrl { get; private set; }
 
-	public Url Url { get; internal set; }
 
-	public ConcurrentDictionary<string, ConcurrentBag<string>> Tags { get; } = new();
+	public Dictionary<string, string[]> Tags { get; }
 
+	private EhResult(SearchResult r) : base(r)
+	{
+		Tags = [];
+	}
 
 #region Implementation of IResultConverter2<out EhResult,out SearchResultItem>
 
-	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
+	
+	public static ValueTask<EhResult>  ParseResultItem(INode n, SearchResult sr)
 	{
-		var sb = Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
-
-		var sri = new SearchResultItem(sr)
-		{
-			Title       = Title,
-			Url         = Url,
-			Artist      = Author,
-			Description = $"{Pages} ({sb})"
-		};
-
-		return ValueTask.FromResult(sri);
-	}
-
-	public static EhResult Parse(INode n)
-	{
-		var item = new EhResult();
-
 		// ReSharper disable InconsistentNaming
-		var eh = new EhResult();
+		var eh = new EhResult(sr);
 
 		var gl1c = n.ChildNodes.FirstOrDefaultElementByClassName("gl1c");
 
@@ -480,12 +468,12 @@ public sealed record EhResult : ISearchResultItemConvertable
 
 
 		if (eh.Tags.TryGetValue("artist", out var v)) {
-			item.Author = v.FirstOrDefault();
+			eh.Author = v.FirstOrDefault();
 		}
 
+		var sb = eh.Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
 
-		item.Title = eh.Title;
-		item.Url   = eh.Url;
+		eh.Description=sb;
 
 		/*var gl1c        = n.ChildNodes[0];
 		var gl2c        = n.ChildNodes[1];
@@ -493,7 +481,7 @@ public sealed record EhResult : ISearchResultItemConvertable
 		var gl3c        = n.ChildNodes[3];
 		var gl4c        = n.ChildNodes[4];*/
 
-		return item;
+		return ValueTask.FromResult(eh);
 
 	}
 

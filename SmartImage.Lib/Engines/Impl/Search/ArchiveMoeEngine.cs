@@ -35,22 +35,14 @@ public class ArchiveMoeEngine : WebSearchEngine
 		// return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 
-	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
-	{
-		// ReSharper disable PossibleNullReferenceException
-
-		var p = ChanPost.Parse(n);
-		return p.ToItem(r);
-
-		// ReSharper restore PossibleNullReferenceException
-	}
+	
 
 	protected static string GetHash(SearchQuery q)
 	{
 		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
 		using Stream stream = q.Source.Image.ToStream();
-		var data   = MD5.HashData(stream);
-		var b64    = Convert.ToBase64String(data).Replace("==", "");
+		var          data   = MD5.HashData(stream);
+		var          b64    = Convert.ToBase64String(data).Replace("==", "");
 		b64 = Regex.Replace(b64, @"\//", "_");
 		b64 = Regex.Replace(b64, @"\+", "-");
 
@@ -72,25 +64,35 @@ public class ArchiveMoeEngine : WebSearchEngine
 
 }
 
-public record ChanPost : ISearchResultItemConverter<ChanPost>
+public record ChanPost : SearchResultItem, INodeResultParse<ChanPost>
 {
 
-	public string Author;
-	public string Board;
-	public Url    File;
-	public string Filename;
-	public int    Height;
+	public string Board { get; private set; }
 
-	public long     Id;
-	public string   Size;
-	public string   Text;
-	public string   Time1;
-	public DateTime Time2;
-	public string   Title;
-	public string   Tripcode;
-	public int      Width;
+	public Url File { get; private set; }
 
-	public static ChanPost Parse(INode n)
+	public string Filename { get; private set; }
+
+	public long Id { get; private set; }
+
+	public string Size { get; private set; }
+
+	public string Text { get; private set; }
+
+	// public string Time1 { get; private set; }
+
+	// public DateTime Time2 { get; private set; }
+
+	public string Tripcode { get; private set; }
+
+
+	
+
+	private ChanPost(SearchResult r) : base(r) { }
+
+#region Implementation of IResultParse<in INode,ChanPost>
+
+	public static ValueTask<ChanPost> ParseResultItem(INode n, SearchResult r)
 	{
 		var e = n as HtmlElement;
 
@@ -107,42 +109,28 @@ public record ChanPost : ISearchResultItemConverter<ChanPost>
 
 		var wh = pfm[1].Split('x');
 
-		var p = new ChanPost
+		var file = Flurl.Url.Parse(pff.GetAttribute("href"));
+
+		var p = new ChanPost(r)
 		{
 			Id       = Int64.Parse(e.GetAttribute("id")),
 			Board    = e.GetAttribute("data-board"),
 			Filename = pff.TextContent,
-			File     = pff.GetAttribute("href"),
+			File     = file,
 			Width    = Int32.Parse(wh[0]),
 			Height   = Int32.Parse(wh[1]),
 			Size     = pfm[0],
 			Title    = pt,
-			Author   = pa,
+			Artist   = pa,
+			Site     = file.Host,
 			Tripcode = ptc,
-			Time1    = time,
-			Time2    = time2,
+			Time     = time2,
 			Text     = text
 		};
 
-		return p;
+		return ValueTask.FromResult(p);
 	}
 
-	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
-	{
-
-		var sri = new SearchResultItem(sr)
-		{
-			Url         = File,
-			Width       = Width,
-			Height      = Height,
-			Artist      = Author,
-			Description = Title,
-			Time        = Time2,
-			Site        = File.Host,
-			Metadata    = this
-		};
-
-		return ValueTask.FromResult(sri);
-	}
+#endregion
 
 }

@@ -25,6 +25,8 @@ using Kantan.Text;
 using Flurl.Http;
 using System.Text;
 using Microsoft.Extensions.Hosting.Internal;
+using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Utilities.Diagnostics;
 
 #nullable disable
 namespace SmartImage.Rdx.Commands;
@@ -38,7 +40,11 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	public SearchClient Client { get; }
 
+	public SearchConfig Config { get; }
+
 	private ServerCommandSettings m_scs;
+
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(ServerCommand));
 
 	public delegate Task<object> HandleRequestCallback2(HttpListenerContext ctx);
 
@@ -59,7 +65,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	public HttpListener Listener { get; }
 
-	private const int ChunkSize = 1024;
+	private const int CHUNK_SIZE = 1024;
 
 	public RouteCallbackMap Handlers { get; }
 
@@ -73,7 +79,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	public ServerCommand()
 	{
-		Client = new SearchClient(SearchConfig.Default);
+		Config = new SearchConfig();
+		Client = new SearchClient(Config);
 
 		// Server = new SearchServer(Client, 25565);
 
@@ -104,39 +111,46 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	public async Task StartAsync(CancellationToken ct = default)
 	{
-		if (!Listener.IsListening) {
+		if (!Listener.IsListening)
+		{
 			Listener.Start();
 
 			// Listener.BeginGetContext(HandleRequest, Listener);
 
-			while (Listener.IsListening) {
+			while (Listener.IsListening)
+			{
 				var ctx = await Listener.GetContextAsync().ConfigureAwait(false);
 
-				Trace.WriteLine($"{ctx}");
+				s_logger.LogTrace("{Context}", ctx);
 
 				// var res = await HandleRequestAsync(ctx, ct);
 
 				// var request  = ctx.Request;
 				// var response = ctx.Response;
 
-				foreach (var requestHandler in Handlers) {
+				foreach (var requestHandler in Handlers)
+				{
 
 					var requestUrl = ctx.Request.Url;
 
-					if (requestUrl != null && !requestUrl.PathAndQuery.Contains(requestHandler.Key)) {
+					if (requestUrl != null && !requestUrl.PathAndQuery.Contains(requestHandler.Key))
+					{
 						continue;
 					}
 
-					var task = Task.Run(() =>
+					/*var task = Task.Run(() =>
 					{
 						var req = requestHandler.Value(ctx);
 
 						return req;
-					}, ct);
+					}, ct);*/
+
+					var task = requestHandler.Value(ctx);
 
 					AnsiConsole.WriteLine($"Queued {task.Id}");
 					var res = await task;
 
+					AnsiConsole.WriteLine($"{task.Id} -> {res}");
 
 					/*if (handlerObject is byte[] responseBytes) {
 						//...
@@ -163,7 +177,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 					}*/
 
 
-				if (ct.IsCancellationRequested) {
+				if (ct.IsCancellationRequested)
+				{
 					break;
 				}
 			}
@@ -187,22 +202,24 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		var redirHdr    = request.Headers["Redirect"];
 		var srvResponse = new SearchServerResponse();
 
-		try {
+		try
+		{
 			SearchQuery query = await GetQueryFromRequestAsync(request);
 
-			if (query == null || query == SearchQuery.Null) {
+			if (query == null || query == SearchQuery.Null)
+			{
 				srvResponse.Message = R1.Err_Query;
 			}
-			else {
+			else
+			{
 				var url = await query.UploadAsync();
-
-				
 
 				var results = new ConcurrentBag<SearchResult>();
 
 				var search = Client.RunSearchAsync(query);
 
-				while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
+				while (await Client.ResultChannel.Reader.WaitToReadAsync())
+				{
 					var result = await Client.ResultChannel.Reader.ReadAsync();
 
 					results.Add(result);
@@ -210,16 +227,19 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 				}
 
 				await search;
+
 				srvResponse.Results = results.ToArray();
 				srvResponse.Best    = SearchClient.GetBest(srvResponse.Results);
 			}
 
 
 		}
-		catch (IOException io) {
+		catch (IOException io)
+		{
 			Trace.WriteLine($"{io}");
 		}
-		finally {
+		finally
+		{
 
 			var responseStr   = JsonSerializer.Serialize(srvResponse, Options2);
 			var responseBytes = Encoding.GetBytes(responseStr);
@@ -227,7 +247,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 			ok = writeOk;
 
-			if (!String.IsNullOrWhiteSpace(redirHdr)) {
+			if (!String.IsNullOrWhiteSpace(redirHdr))
+			{
 				response.Redirect(srvResponse.Best.Url);
 			}
 
@@ -244,14 +265,13 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	{
 		//todo
 
-		Client.Config.SearchEngines   = m_scs.SearchEngines;
-		Client.Config.PriorityEngines = m_scs.PriorityEngines;
+		Config.SearchEngines   = m_scs.SearchEngines;
+		Config.PriorityEngines = m_scs.PriorityEngines;
 
-		Client.Config.ReadCookies = m_scs.ReadCookies;
+		Config.ReadCookies = m_scs.ReadCookies;
 
-		Client.Config.FlareSolverr       = m_scs.FlareSolverr;
-		Client.Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
-
+		Config.FlareSolverr       = m_scs.FlareSolverr;
+		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
 
 
 	}
@@ -261,7 +281,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		m_scs = settings;
 
 		var uriPrefix = $"http://*:{m_scs.Port}/";
-		Trace.WriteLine($"{uriPrefix}");
+		s_logger.LogTrace("Listening on {URI}", uriPrefix);
+
 		Listener.Prefixes.Add(uriPrefix);
 		Encoding = HttpUtilities.DefaultEncoding;
 
@@ -288,8 +309,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	{
 		var contentType = request.Headers["Content-Type"] ?? MediaTypeNames.Text.Plain;
 
-		Debug.WriteLine($"{contentType}");
-
+		s_logger.LogDebug("{ContentType}", contentType);
 		SearchQuery query;
 		object      sqInput = null;
 
@@ -299,7 +319,8 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 		using var sc = new StreamContent(request.InputStream);
 
-		switch (mediaTypeHeaderValue.MediaType) {
+		switch (mediaTypeHeaderValue.MediaType)
+		{
 			case MediaTypeNames.Text.Plain:
 				goto default;
 
@@ -311,13 +332,15 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 				var file = parser.Files.FirstOrDefault();
 
-				if (file == null) {
+				if (file == null)
+				{
 					// srvResponse.Message = R1.Err_Content;
 					return null;
 
 					// sqInput = null;
 				}
-				else {
+				else
+				{
 					string filename = file.FileName;
 					Stream data     = file.Data;
 					sqInput = data;
@@ -337,7 +360,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	public void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(ServerCommand)}");
+		s_logger.LogDebug("Disposing server");
 		Client?.Dispose();
 		Handlers.Clear();
 		Listener?.Close();

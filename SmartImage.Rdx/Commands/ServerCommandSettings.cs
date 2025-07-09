@@ -13,7 +13,7 @@ public sealed class ServerCommandSettings : CommonCommandSettings
 {
 
 	[CommandOption("--port")]
-	[DefaultValue(25565)]
+	[DefaultValue(8080)]
 	public int Port { get; set; }
 
 	public override ValidationResult Validate()

@@ -16,6 +16,7 @@ namespace SmartImage.Lib.Engines;
 
 abstract class ParsedSearchEngine<T> : BaseSearchEngine
 {
+
 	//todo
 
 	protected ParsedSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
@@ -38,35 +39,31 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 		IDocument doc = null;
 
-		if (res.Status == SearchResultStatus.IllegalInput) {
+		if (res.Status == SearchResultStatus.IllegalInput)
+		{
 			goto ret;
 		}
 
-		try {
+		try
+		{
 			doc = await GetDocumentAsync(res, query: query, token: token);
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			Logger.LogError(e, "{Name} error", e);
 
 		}
 
-		if (!Validate(doc, res)) {
+		if (!Validate(doc, res))
+		{
 			goto ret;
 		}
 
 		var nodes = (await GetNodes(doc));
 
-		foreach (INode node in nodes) {
-			if (token.IsCancellationRequested) {
-				break;
-			}
+		var sri = await GetItems(nodes, res);
+		res.Results.AddRange(sri);
 
-			var sri = await ParseResultItem(node, res);
-
-			if (sri is { }) {
-				res.Results.Add(sri);
-			}
-		}
 
 		Logger.LogInformation("{Name} :: {RawUrl} document {DocLength}", Name, res.RawUrl, doc?.TextContent?.Length);
 
@@ -87,20 +84,21 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 		var parser = new HtmlParser();
 
-		try {
+		try
+		{
 
 			using var res = await Client.Request(sr.RawUrl)
-				          .WithCookies(out var cj)
-				          .WithTimeout(Timeout)
-				          .WithHeaders(new
-				          {
-					          User_Agent = HttpUtilities.UserAgent
-				          })
-				          /*.OnError(s =>
-				          {
-					          s.ExceptionHandled = true;
-				          })*/
-				          .GetAsync(cancellationToken: token);
+				                .WithCookies(out var cj)
+				                .WithTimeout(Timeout)
+				                .WithHeaders(new
+				                {
+					                User_Agent = HttpUtilities.UserAgent
+				                })
+				                /*.OnError(s =>
+				                {
+					                s.ExceptionHandled = true;
+				                })*/
+				                .GetAsync(cancellationToken: token);
 
 			var str = await res.GetStreamAsync();
 
@@ -109,14 +107,16 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			return document;
 
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			// return await Task.FromException<IDocument>(e);
 			Logger.LogError(e, "{Name} failed to get doc", Name);
 			return null;
 		}
 	}
 
-	protected abstract ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r);
+	protected abstract ValueTask<IEnumerable<SearchResultItem>> GetItems(IEnumerable<INode> n, SearchResult r);
+
 
 	protected virtual ValueTask<IEnumerable<INode>> GetNodes(IDocument d)
 	{
@@ -134,12 +134,15 @@ public abstract class WebSearchEngine : BaseSearchEngine
 
 	protected bool Validate([CBN] IDocument doc, SearchResult sr)
 	{
-		if (doc is null or { Body: null }) {
+		if (doc is null or { Body: null })
+		{
 			return false;
 		}
 
-		foreach (string s in ErrorBodyMessages) {
-			if (doc.Body.TextContent.Contains(s)) {
+		foreach (string s in ErrorBodyMessages)
+		{
+			if (doc.Body.TextContent.Contains(s))
+			{
 				return false;
 			}
 		}

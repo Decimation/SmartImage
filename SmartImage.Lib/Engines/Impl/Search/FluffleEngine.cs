@@ -147,7 +147,7 @@ public class FluffleResultCredit
 
 }
 
-public class FluffleResult : ISearchResultItemConvertable
+public class FluffleResult : IToSearchResultItem
 {
 
 	[JsonPropertyName("id")]

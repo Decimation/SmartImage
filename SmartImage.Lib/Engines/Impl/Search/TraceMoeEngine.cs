@@ -150,7 +150,7 @@ public class TraceMoeQuotaObject
 }
 
 [UsedImplicitly(ImplicitUseTargetFlags.WithMembers)]
-public class TraceMoeDoc : ISearchResultItemConvertable
+public class TraceMoeDoc : IToSearchResultItem
 {
 
 	public double From { get; set; }

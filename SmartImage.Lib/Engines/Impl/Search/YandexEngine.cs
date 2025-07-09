@@ -51,15 +51,18 @@ public sealed class YandexEngine : BaseSearchEngine
 
 		int? w = null, h = null;
 
-		if (resFull.Length == 1 && resFull[0] == resText) {
+		if (resFull.Length == 1 && resFull[0] == resText)
+		{
 			const string TIMES_DELIM = "&times;";
 
-			if (resText.Contains(TIMES_DELIM)) {
+			if (resText.Contains(TIMES_DELIM))
+			{
 				resFull = resText.Split(TIMES_DELIM);
 			}
 		}
 
-		if (resFull.Length == 2) {
+		if (resFull.Length == 2)
+		{
 			w = Int32.Parse(resFull[0]);
 			h = Int32.Parse(resFull[1]);
 		}
@@ -72,7 +75,7 @@ public sealed class YandexEngine : BaseSearchEngine
 	protected override Url GetRawUrl(SearchQuery query)
 	{
 		var url = BaseUrl.Clone();
-		
+
 		url.QueryParams.AddOrReplace("url", query.Upload);
 		url.QueryParams.AddOrReplace("cbir_page", "sites");
 		return url;
@@ -88,17 +91,17 @@ public sealed class YandexEngine : BaseSearchEngine
 		var url = GetRawUrl(query);
 
 		var sr = new SearchResult(this, url)
+			{ };
+
+		IDocument doc = null;
+
+		IFlurlResponse res = null;
+
+		string str = null;
+
+
+		try
 		{
-		};
-
-		IDocument doc  = null;
-
-		IFlurlResponse res  = null;
-
-		string str  = null;
-
-
-		try {
 			res = await Client.Request(sr.RawUrl)
 				      .WithAutoRedirect(true)
 				      .AllowAnyHttpStatus()
@@ -116,13 +119,12 @@ public sealed class YandexEngine : BaseSearchEngine
 			var jsonNode = JsonNode.Parse(json);
 			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
 			var sitesObj = sites.Deserialize<YandexSite[]>();
+			sr.Results.AddRange(sitesObj);
 
-			foreach (var ys in sitesObj) {
-				sr.Results.Add(await ys.ToItem(sr));
-			}
 
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			// Console.WriteLine(e);
 			// throw;
 			doc = null;
@@ -137,6 +139,7 @@ public sealed class YandexEngine : BaseSearchEngine
 	ret:
 		sr.Update();
 		res?.Dispose();
+
 		// str?.Dispose();
 		doc?.Dispose();
 		return sr;
@@ -166,17 +169,8 @@ public record YandexImage
 
 }
 
-public record YandexSite : ISearchResultItemConvertable
+public record YandexSite : SearchResultItem
 {
-
-	[JsonPropertyName("title")]
-	public string Title { get; set; }
-
-	[JsonPropertyName("description")]
-	public string Description { get; set; }
-
-	[JsonPropertyName("url")]
-	public string Url { get; set; }
 
 	[JsonPropertyName("domain")]
 	public string Domain { get; set; }
@@ -187,16 +181,27 @@ public record YandexSite : ISearchResultItemConvertable
 	[JsonPropertyName("originalImage")]
 	public YandexImage OriginalImage { get; set; }
 
-	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
+	[JsonConstructor]
+	public YandexSite(
+		string url,
+		string title,
+		string description,
+		string domain,
+		YandexImage thumb,
+		YandexImage originalImage) : base(null)
 	{
-		return ValueTask.FromResult(new SearchResultItem(sr)
-		{
-			Title       = Title,
-			Description = Description,
-			Url         = OriginalImage.Url,
-			Site        = Domain,
-			Thumbnail   = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url
-		});
+		OriginalImage = originalImage;
+		Url           = originalImage.Url;
+		Domain        = domain;
+		Site          = Domain;
+		Thumb         = thumb;
+		Thumbnail     = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url;
+
+		/*Url       = OriginalImage.Url,
+		Site      = Domain,
+		Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url*/
 	}
+
+	private YandexSite(SearchResult r) : base(r) { }
 
 }

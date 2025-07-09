@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Drawing;
 using System.Dynamic;
+using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using CoenM.ImageHash.HashAlgorithms;
 using Flurl.Http;
@@ -36,12 +37,14 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	public SearchResultItem Parent { get; internal set; }
 
 	[MN]
+	[JsonPropertyName("url")]
 	public Url Url { get; internal set; }
 
 	/// <summary>
 	///     Title/caption of this result
 	/// </summary>
 	[CBN]
+	[JsonPropertyName("title")]
 	public string Title { get; internal set; }
 
 	/// <summary>
@@ -70,6 +73,7 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	///     Image description
 	/// </summary>
 	[CBN]
+	[JsonPropertyName("description")]
 	public string Description { get; internal set; }
 
 	/// <summary>

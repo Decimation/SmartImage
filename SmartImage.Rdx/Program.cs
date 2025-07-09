@@ -32,6 +32,10 @@ namespace SmartImage.Rdx;
 public static class Program
 {
 
+	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
+
+	public static readonly Version Version = Assembly.GetName().Version;
+
 	public static async Task<int> Main(string[] args)
 	{
 		/*AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
@@ -40,7 +44,7 @@ public static class Program
 		};*/
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-		
+
 #if DEBUG
 
 		// Debugger.Launch();
@@ -71,17 +75,21 @@ public static class Program
 
 		int x = BaseOSIntegration.EC_OK;
 
-		try {
+		try
+		{
 			x = await app.RunAsync(args);
 
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			AnsiConsole.WriteException(e);
 			x = BaseOSIntegration.EC_ERROR;
 		}
-		finally {
+		finally
+		{
 
-			if (x != BaseOSIntegration.EC_OK) {
+			if (x != BaseOSIntegration.EC_OK)
+			{
 				await AnsiConsole.ConfirmAsync("Press any key to continue");
 			}
 		}
@@ -95,25 +103,27 @@ public static class Program
 		AnsiConsole.Write(grd);
 	}
 
-		private static async Task DisplayHeaderAsync()
+	private static async Task DisplayHeaderAsync()
 	{
 		var ff = ConsoleFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
-		/*var fg = new FigletText(ff, R1.Name)
+		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
 			.Color(ConsoleFormat.Clr_Misc1);
 		await ms.DisposeAsync();
 
-		AnsiConsole.Write(fg);*/
+		AnsiConsole.Write(fg);
 
 		await ms.DisposeAsync();
-		await ConsoleFormat.WriteFigletGradientAsync(ff, R1.Name, Color.Red, Color.Blue, TimeSpan.FromSeconds(1));
+
+		// await ConsoleFormat.WriteFigletGradientAsync(ff, R1.Name, Color.Red, Color.Blue, TimeSpan.FromSeconds(1));
 
 	}
 
 	private static void HandleArgs(ref string[] args)
 	{
-		if (args.Length == 0) {
+		if (args.Length == 0)
+		{
 
 			// todo
 
@@ -163,7 +173,9 @@ public static class Program
 
 			args = [sz];
 		}*/
-		if (Console.IsInputRedirected) {
+
+		if (Console.IsInputRedirected)
+		{
 			Trace.WriteLine("Input redirected");
 			var pipeInput = ConsoleUtil.ParseInputStream();
 
@@ -200,9 +212,5 @@ public static class Program
 
 		return cfg;
 	}
-
-	public static readonly Assembly Assembly = Assembly.GetExecutingAssembly();
-
-	public static readonly Version  Version  = Assembly.GetName().Version;
 
 }

@@ -326,7 +326,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointEngine, IDisposa
 /// <summary>
 /// Origin result
 /// </summary>
-public sealed class SauceNaoDataResult : IItemConverter<SauceNaoDataResult, IEnumerable<SearchResultItem>>
+public sealed class SauceNaoDataResult : INodeParseable<SauceNaoDataResult>
 {
 
 	/// <summary>

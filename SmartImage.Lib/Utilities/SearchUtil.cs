@@ -30,7 +30,6 @@ public static class SearchUtil
 	public static bool HasFlagFast(this SearchResultFlags value, SearchResultFlags status)
 		=> (value & status) != 0;
 
-	[return: MN]
 	internal static bool TryParseIndex<T>(this IList<T> col, string s, out T val)
 	{
 		val = default;

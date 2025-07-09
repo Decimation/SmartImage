@@ -105,7 +105,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointEngine, IDis
 
 #region API Objects
 
-	private class RepostSleuthMatch : ISearchResultItemConvertable
+	private class RepostSleuthMatch : IToSearchResultItem
 	{
 
 		public int              hamming_distance;

@@ -21,7 +21,7 @@ using SmartImage.Lib.Results.Data;
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Impl.Search;
 
-public class GoogleLensItem : ISearchResultItemConverter<GoogleLensItem>
+public class GoogleLensItem : INodeToSearchResultItemParseable<GoogleLensItem>
 {
 
 	public string Title { get; private set; }

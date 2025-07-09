@@ -337,12 +337,13 @@ internal static class ConsoleFormat
 
 #endregion
 
-	public static async Task WriteFigletGradientAsync(FigletFont ff, string text, SpcColor a, SpcColor b, TimeSpan delta)
+	/*public static async Task WriteFigletGradientAsync(FigletFont ff, string text, SpcColor a, SpcColor b, TimeSpan delta = default)
 	{
+		// TODO
+
 		var col = new Queue<SpcColor>(a.Interpolate(b, (byte) text.Length));
 		(int left, int top) = Console.GetCursorPosition();
 
-		//todo
 		for (int i = 0; i < text.Length; i++)
 		{
 			char c = text[i];
@@ -353,18 +354,84 @@ internal static class ConsoleFormat
 			{
 				Color         = color,
 			};
-			
+
 			var fts=ft.GetSegments(AnsiConsole.Console);
 			// AnsiConsole.Cursor.SetPosition(left +(ff.Height *i),top +(ff.MaxWidth *i));
 			AnsiConsole.Write(ft);
 			// AnsiConsole.Console.Clear(false);
 
-			AnsiConsole.Console.Cursor.Move(CursorDirection.Up, ff.Height+1);
-			AnsiConsole.Console.Cursor.Move(CursorDirection.Right, ff.MaxWidth * (i + 1));
+			// AnsiConsole.Console.Cursor.Move(CursorDirection.Up, ff.Height+1);
+			// AnsiConsole.Console.Cursor.Move(CursorDirection.Right, ff.MaxWidth * (i + 1));
+
+			await Task.Delay(delta);
+		}
+
+	}*/
+
+	public static async Task WriteTextGradientAsync(string text, SpcColor a, SpcColor b, TimeSpan delta = default)
+	{
+		// TODO
+
+		var col = new Queue<SpcColor>(a.Interpolate(b, (byte) text.Length));
+
+		for (int i = 0; i < text.Length; i++)
+		{
+			char c = text[i];
+
+			var color = col.Dequeue();
+
+			var txt = new Text(c.ToString(), new Style(foreground: color))
+				{ };
+
+			// AnsiConsole.Cursor.SetPosition(left +(ff.Height *i),top +(ff.MaxWidth *i));
+			AnsiConsole.Write(txt);
+
+			// AnsiConsole.Console.Clear(false);
 
 			await Task.Delay(delta);
 		}
 
 	}
+
+#region Prompts
+
+	public static readonly TextPrompt<string> Prm_Command = new(Markup.Escape("[Command]"))
+	{
+		ShowChoices      = true,
+		ShowDefaultValue = true,
+		AllowEmpty       = false,
+		Choices =
+		{
+			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Preview, R2.Chc_Calc, R2.Chc_Exit
+		}
+	};
+
+	public static readonly TextPrompt<SearchResult> Prm_Engine = new(Markup.Escape("[Engine]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+		Converter = s =>
+		{
+			//
+			return s.Engine.Name;
+		}
+	};
+
+	public static readonly TextPrompt<int> Prm_Num = new(Markup.Escape("[#]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+	};
+
+	public static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#.#]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+	};
+
+	#endregion
 
 }

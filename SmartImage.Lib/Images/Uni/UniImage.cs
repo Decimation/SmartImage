@@ -304,7 +304,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public override string ToString()
 	{
-		string s = $"{ValueString} ({Type}) [{(HasImageFormat ? ImageFormat : "?")}]";
+		string s = $"{ValueString} ({Type}) [{(HasImageFormat ? ImageFormat.Name : "?")}]";
 
 		return s;
 	}
