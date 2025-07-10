@@ -31,7 +31,6 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
@@ -49,6 +48,7 @@ using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Engines.Results;
 
 // ReSharper disable InconsistentNaming
 
@@ -510,6 +510,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		await search;
 
 	}
+
 
 
 	private async ValueTask<bool> ShowImageScanResultsAsync(SearchResultItem item, CancellationToken token = default)

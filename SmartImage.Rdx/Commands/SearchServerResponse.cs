@@ -2,7 +2,7 @@
 // Date: 2025/02/04 @ 12:02:39
 
 using System.Text.Json.Serialization;
-using SmartImage.Lib.Results;
+using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Rdx.Commands;
 

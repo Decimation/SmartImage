@@ -1,0 +1,239 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using Flurl.Http;
+using JetBrains.Annotations;
+using Novus.Streams;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
+using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Utilities.Diagnostics;
+
+namespace SmartImage.Lib.Engines.Search;
+
+public class FluffleEngine : BaseSearchEngine, IEndpointUrl, IDisposable
+{
+
+	public const string URL_ENDPOINT = "https://api.fluffle.xyz/v1/";
+	public const string URL_BASE     = "https://fluffle.xyz/";
+
+	public FluffleEngine() : base(URL_BASE)
+	{
+		MaxSize = 4_194_304; // MiB
+
+		// Timeout = TimeSpan.FromSeconds(10);
+	}
+
+
+	public Url Endpoint => URL_ENDPOINT;
+
+
+	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	{
+
+		var sr = await base.GetResultAsync(query, token);
+
+		IFlurlResponse response = null;
+
+		if (sr.Status == SearchResultStatus.IllegalInput) {
+			// return sr;
+			goto ret;
+		}
+
+		var hdr = $"{R1.Name}/{AppSupport.Version} (by {R1.Author} on GitHub)";
+
+
+		response = await Client.Request(Endpoint, "search")
+			           .WithHeaders(new
+			           {
+				           User_Agent = hdr
+			           })
+			           .WithTimeout(Timeout)
+			           .OnError(e => { e.ExceptionHandled = true; })
+			           .PostMultipartAsync(c =>
+			           {
+				           // var tmp = query.WriteImageToFile();
+				           // query.Source.Stream.TrySeek();
+
+						   var file = query.Source.WriteToFile();
+				           c.AddFile("file", file, "file");
+				           // query.Source.Stream.TrySeek();
+
+				           c.AddString("includeNsfw", true.ToString());
+				           c.AddString("limit", 32.ToString());
+
+				           // c.AddString("platforms", null)
+				           // c.AddString("createLink", false)
+			           }, cancellationToken: token);
+
+		if (response is { ResponseMessage: { IsSuccessStatusCode: false } }) {
+			var er = await response.GetJsonAsync<FluffleErrorCode>();
+
+			sr.ErrorMessage = $"{er.Message}: {er.Code}";
+			sr.Status       = SearchResultStatus.UnknownError;
+
+			// return sr;
+			goto ret;
+		}
+
+		if (response == null) {
+			sr.Status = SearchResultStatus.UnknownError;
+			goto ret;
+		}
+
+		var fr = await response.GetJsonAsync<FluffleResponse>();
+		sr.Results.EnsureCapacity(sr.Results.Count + fr.Results.Count);
+		foreach (FluffleResult result in fr.Results) {
+			var item = await result.ToItem(sr);
+			sr.Results.Add(item);
+		}
+
+		sr.Status = SearchResultStatus.Success;
+	ret:
+		sr.Update();
+		response?.Dispose();
+		return sr;
+	}
+
+	protected override Url GetRawUrl(SearchQuery query)
+	{
+		return base.GetRawUrl(query);
+	}
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
+
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
+
+	}
+
+	public override void Dispose() { }
+
+}
+
+#region API Objects
+
+public class FluffleErrorCode
+{
+
+	[JsonPropertyName("code")]
+	public string Code { get; set; }
+
+	[JsonPropertyName("message")]
+	public string Message { get; set; }
+
+	[JsonPropertyName("traceId")]
+	public string TraceId { get; set; }
+
+}
+
+public class FluffleResultCredit
+{
+
+	[JsonPropertyName("id")]
+	public int Id { get; set; }
+
+	[JsonPropertyName("name")]
+	public string Name { get; set; }
+
+}
+
+public class FluffleResult
+{
+
+	[JsonPropertyName("id")]
+	public int Id { get; set; }
+
+	[JsonPropertyName("score")]
+	public double Score { get; set; }
+
+	[JsonPropertyName("match")]
+	public string Match { get; set; }
+
+	[JsonPropertyName("platform")]
+	public string Platform { get; set; }
+
+	[JsonPropertyName("location")]
+	public string Location { get; set; }
+
+	[JsonPropertyName("isSfw")]
+	public bool IsSfw { get; set; }
+
+	[JsonPropertyName("thumbnail")]
+	public FluffleResultThumbnail Thumbnail { get; set; }
+
+	[JsonPropertyName("credits")]
+	public List<FluffleResultCredit> Credits { get; set; }
+
+	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
+	{
+
+		var sri = new SearchResultItem(sr)
+		{
+			Artist     = Credits.FirstOrDefault()?.Name,
+			Url        = Location,
+			Similarity = Math.Round(Score * 100.0d, 2),
+			Metadata   = this,
+			Thumbnail  = Thumbnail?.Location,
+			Site       = Platform
+		};
+		return ValueTask.FromResult(sri);
+	}
+
+}
+
+public class FluffleResponse
+{
+
+	[JsonPropertyName("id")]
+	public string Id { get; set; }
+
+	[JsonPropertyName("stats")]
+	public FluffleResultStats Stats { get; set; }
+
+	[JsonPropertyName("results")]
+	public List<FluffleResult> Results { get; set; }
+
+}
+
+public class FluffleResultStats
+{
+
+	[JsonPropertyName("count")]
+	public int Count { get; set; }
+
+	[JsonPropertyName("elapsedMilliseconds")]
+	public int ElapsedMilliseconds { get; set; }
+
+}
+
+public class FluffleResultThumbnail
+{
+
+	[JsonPropertyName("width")]
+	public int Width { get; set; }
+
+	[JsonPropertyName("centerX")]
+	public int CenterX { get; set; }
+
+	[JsonPropertyName("height")]
+	public int Height { get; set; }
+
+	[JsonPropertyName("centerY")]
+	public int CenterY { get; set; }
+
+	[JsonPropertyName("location")]
+	public string Location { get; set; }
+
+}
+
+#endregion

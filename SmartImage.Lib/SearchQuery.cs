@@ -1,5 +1,6 @@
 ﻿global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+global using NNW = System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
 global using ISImage = SixLabors.ImageSharp.Image;
@@ -17,11 +18,10 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Impl.Upload;
 using SmartImage.Lib.Results.Data;
-using SmartImage.Lib.Results;
 using SmartImage.Lib.Utilities;
 using SixLabors.ImageSharp.Formats;
+using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 
 [assembly: InternalsVisibleTo("SmartImage")]

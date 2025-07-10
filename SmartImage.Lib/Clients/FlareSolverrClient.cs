@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Reflection;
 using CliWrap;
 using FlareSolverrSharp;
-using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Clients;
 

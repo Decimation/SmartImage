@@ -14,7 +14,7 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Engines.Results.Model;
 
 #pragma warning disable CS0168 // Variable is declared but never used
 
@@ -38,7 +38,7 @@ public enum UniImageType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>
-public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable
+public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHash
 {
 
 	/*[MN]
@@ -85,7 +85,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
-	public Lazy<ulong> Hash { get; }
+	public Lazy<ulong?> Hash { get; }
 
 	public double? Similarity { get; private set; }
 
@@ -96,8 +96,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	{
 		Value = value;
 		Type  = type;
-		Hash  = new Lazy<ulong>(TryCalculateHash, LazyThreadSafetyMode.ExecutionAndPublication);
-		Size = Native.ERROR_SV;
+		Hash  = new Lazy<ulong?>(TryCalculateHash, LazyThreadSafetyMode.ExecutionAndPublication);
+		Size  = Native.ERROR_SV;
 	}
 
 #region
@@ -112,29 +112,37 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		UniImage ui  = Null;
 		Stream   str = Stream.Null;
 
-		try {
+		try
+		{
 
-			if (UniImageFile.IsFileType(o, out var fi)) {
+			if (UniImageFile.IsFileType(o, out var fi))
+			{
 				ui = new UniImageFile((string) o, fi);
 			}
-			else if (UniImageUri.IsUriType(o, out var url2)) {
+			else if (UniImageUri.IsUriType(o, out var url2))
+			{
 				ui = new UniImageUri(o, url2);
 			}
-			else if (o is Stream stream) {
+			else if (o is Stream stream)
+			{
 				ui = new UniImageStream(o, stream);
 			}
-			else {
+			else
+			{
 				goto ret;
 			}
 
-			if (autoInit) {
+			if (autoInit)
+			{
 				// var allocOk = await ui.AllocAsync(ct);
 
 				bool allocImgOk = await ui.AllocImageAsync(ct);
 
 
-				if (autoDisposeOnError) {
-					if (!allocImgOk) {
+				if (autoDisposeOnError)
+				{
+					if (!allocImgOk)
+					{
 						ui.Dispose();
 						ui = Null;
 
@@ -144,7 +152,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 			}
 
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			// str?.Dispose();
 			Trace.WriteLine($"{nameof(TryCreateAsync)} :: failed with exception {e.Message}");
 		}
@@ -181,7 +190,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		bool isStream = UniImageStream.IsStreamType(str, out var f3);
 		bool ok       = isFile || isUri || isStream;
 
-		if (isFile && checkExt) {
+		if (isFile && checkExt)
+		{
 			//todo
 			string ext = Path.GetExtension(str.ToString())?[1..];
 			return FileType.Image.Any(x => x.Subtype == ext);
@@ -201,43 +211,50 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 #endregion
 
-	private ulong TryCalculateHash()
+	private ulong? TryCalculateHash()
 	{
-		if (!HasImage) {
+		if (!HasImage)
+		{
 			throw new InvalidOperationException();
 		}
 
-		ulong hash;
+		ulong? hash;
 
-		try {
+		try
+		{
 			// Stream.TrySeek();
 			hash = ImageScanner.ImageHasher.Hash(Image);
 
 			// Stream.TrySeek();
 
 		}
-		catch (Exception e) {
-			hash = IHashable.HASH_ERROR;
+		catch (Exception e)
+		{
+			hash = null;
 		}
 		finally { }
 
 		return hash;
 	}
 
-	public bool TryCalculateSimilarity(IHashable comparand)
+	public bool TryCalculateSimilarity(IHash comparand)
 	{
-		/*if (!((IHashable) this).HasHash || !comparand.HasHash) {
-			throw new InvalidOperationException();
-		}*/
+		if (comparand.HasHash && (this as IHash).HasHash)
+		{
+			// ReSharper disable PossibleInvalidOperationException
 
-		Similarity ??= CompareHash.Similarity(comparand.Hash.Value, Hash.Value);
+			Similarity ??= CompareHash.Similarity(comparand.Hash.Value.Value, Hash.Value.Value);
+
+			// ReSharper restore PossibleInvalidOperationException
+		}
 
 		return Similarity.HasValue;
 	}
 
 	public bool TryWriteToFile(string fn = null)
 	{
-		if (!HasFile) {
+		if (!HasFile)
+		{
 			FilePath = WriteToFile(fn);
 		}
 
@@ -246,7 +263,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public bool TryDeleteFile()
 	{
-		if (HasFile) {
+		if (HasFile)
+		{
 			File.Delete(FilePath);
 			FilePath = null;
 		}
@@ -257,7 +275,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MURV]
 	public virtual string WriteToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
 	{
-		if (!HasImage) {
+		if (!HasImage)
+		{
 			throw new InvalidOperationException();
 		}
 

@@ -33,12 +33,12 @@ using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
-using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using SmartImage.Lib.Utilities.Diagnostics;
 using System.Runtime.Intrinsics.X86;
 using System.Threading;
+using SmartImage.Lib.Engines.Results;
 
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;

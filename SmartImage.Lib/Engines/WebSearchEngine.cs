@@ -2,6 +2,7 @@
 // Date: 2024/06/06 @ 14:06:00
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
@@ -9,26 +10,13 @@ using Flurl.Http;
 using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
-using SmartImage.Lib.Results;
+using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Results.Data;
 
 namespace SmartImage.Lib.Engines;
 
-abstract class ParsedSearchEngine<T> : BaseSearchEngine
-{
-
-	//todo
-
-	protected ParsedSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
-
-	protected abstract ValueTask<IEnumerable<T>> GetRawItems();
-
-}
-
 public abstract class WebSearchEngine : BaseSearchEngine
 {
-
-	protected abstract string NodesSelector { get; }
 
 	protected WebSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
 
@@ -51,7 +39,6 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		catch (Exception e)
 		{
 			Logger.LogError(e, "{Name} error", e);
-
 		}
 
 		if (!Validate(doc, res))
@@ -59,11 +46,12 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			goto ret;
 		}
 
-		var nodes = (await GetNodes(doc));
 
-		var sri = await GetItems(nodes, res);
-		res.Results.AddRange(sri);
+		var nodes = await GetSource(doc);
 
+
+		var items = await GetItems(nodes, res);
+		res.Results.AddRange(items);
 
 		Logger.LogInformation("{Name} :: {RawUrl} document {DocLength}", Name, res.RawUrl, doc?.TextContent?.Length);
 
@@ -115,24 +103,25 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		}
 	}
 
-	protected abstract ValueTask<IEnumerable<SearchResultItem>> GetItems(IEnumerable<INode> n, SearchResult r);
-
-
-	protected virtual ValueTask<IEnumerable<INode>> GetNodes(IDocument d)
+	protected virtual async ValueTask<IEnumerable<TItem>> GetItems(IEnumerable<TSource> n, SearchResult r)
 	{
-		return ValueTask.FromResult<IEnumerable<INode>>(d.Body.SelectNodes(NodesSelector));
+		var nodes = n.ToList();
+
+		var buf = new List<TItem>(nodes.Count);
+
+		foreach (TSource node in nodes)
+		{
+			var nodeRes = await TSource.ParseResultItem(node, r);
+			buf.Add(nodeRes);
+		}
+
+		return buf.AsReadOnly();
 	}
 
-#region Overrides of BaseSearchEngine
+	protected abstract ValueTask<IEnumerable<TSource>> GetSource(IDocument d);
 
-	protected override Url GetRawUrl(SearchQuery query)
-	{
-		return base.GetRawUrl(query);
-	}
 
-#endregion
-
-	protected bool Validate([CBN] IDocument doc, SearchResult sr)
+	protected virtual bool Validate([NNW(true)] IDocument doc, SearchResult sr)
 	{
 		if (doc is null or { Body: null })
 		{

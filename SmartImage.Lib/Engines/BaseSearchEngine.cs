@@ -16,8 +16,9 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Engines.Impl.Search.Other;
-using SmartImage.Lib.Results;
-using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 [assembly: InternalsVisibleTo("SmartImage.Test")]
@@ -217,7 +218,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			yield return new TinEyeEngine();
 
 		if (options.HasFlag(SearchEngineOptions.Iqdb))
-			yield return new IqdbEngine();
+			yield return new IqdbEngine<IqdbItem>();
 
 		if (options.HasFlag(SearchEngineOptions.TraceMoe))
 			yield return new TraceMoeEngine();

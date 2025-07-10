@@ -35,7 +35,6 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Results;
 using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;

@@ -1,0 +1,26 @@
+﻿//todo
+namespace SmartImage.Lib.Engines.Search.Other;
+
+public sealed class KarmaDecayEngine : BaseSearchEngine
+{
+
+	public KarmaDecayEngine() : base("http://karmadecay.com/search/?q=")
+	{ }
+
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.KarmaDecay;
+
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
+
+	}
+
+	public override void Dispose() { }
+
+	/*protected override async Task<List<INode>> GetNodesAsync(IDocument doc)
+	{
+		var results = doc.QuerySelectorAll(NodesSelector).Cast<INode>().ToList();
+
+		return await Task.FromResult(results);
+	}*/
+}

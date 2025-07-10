@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Results;
+using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Utilities;
 

@@ -18,7 +18,6 @@ using Kantan.Net;
 using SmartImage.Lib.Utilities;
 using System.Text.Json.Serialization;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Results;
 using Spectre.Console.Rendering;
 using System.Threading.Tasks;
 using Kantan.Text;
@@ -26,6 +25,7 @@ using Flurl.Http;
 using System.Text;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 #nullable disable
