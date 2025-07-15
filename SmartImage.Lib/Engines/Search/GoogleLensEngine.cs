@@ -164,12 +164,12 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		{
 
 			req = SearchUrlAsync(query, token);
-			res = await req;
+			res = await req.ConfigureAwait(false);
 		}
 		else if (query.Source.IsFile)
 		{
 			req = SearchFileAsync(query, token);
-			res = await req;
+			res = await req.ConfigureAwait(false);
 		}
 		else
 		{
@@ -189,9 +189,9 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 			                 .GetAsync(cancellationToken: token);
 
 		var resData = await res2.GetStreamAsync();*/
-		var str = await res.GetStringAsync();
+		var str = await res.GetStringAsync().ConfigureAwait(false);
 
-		var resData = await res.GetStreamAsync();
+		var resData = await res.GetStreamAsync().ConfigureAwait(false);
 
 		var parser = new HtmlParser(new HtmlParserOptions()
 		{
@@ -201,7 +201,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 			IsEmbedded                          = true
 		});
 
-		var doc = await parser.ParseDocumentAsync(resData);
+		var doc = await parser.ParseDocumentAsync(resData).ConfigureAwait(false);
 
 		// BrowsingContext.New(Configuration.Default.WithCookies().WithCss());
 
@@ -251,7 +251,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 			return false;
 		}
 
-		var ck   = await source.GetOrLoadCookiesAsync(token);
+		var ck   = await source.GetOrLoadCookiesAsync(token).ConfigureAwait(false);
 		var nids = ck.OfType<FirefoxCookie>().Where(x => x.Name == "NID" && x.Host.Contains("google.com"));
 		var nid  = nids.FirstOrDefault();
 

@@ -72,10 +72,10 @@ public class FluffleEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 				           // c.AddString("platforms", null)
 				           // c.AddString("createLink", false)
-			           }, cancellationToken: token);
+			           }, cancellationToken: token).ConfigureAwait(false);
 
 		if (response is { ResponseMessage: { IsSuccessStatusCode: false } }) {
-			var er = await response.GetJsonAsync<FluffleErrorCode>();
+			var er = await response.GetJsonAsync<FluffleErrorCode>().ConfigureAwait(false);
 
 			sr.ErrorMessage = $"{er.Message}: {er.Code}";
 			sr.Status       = SearchResultStatus.UnknownError;
@@ -89,7 +89,7 @@ public class FluffleEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 			goto ret;
 		}
 
-		var fr = await response.GetJsonAsync<FluffleResponse>();
+		var fr = await response.GetJsonAsync<FluffleResponse>().ConfigureAwait(false);
 		sr.Results.EnsureCapacity(sr.Results.Count + fr.Results.Count);
 		foreach (FluffleResult result in fr.Results) {
 			var item = await result.ToItem(sr);

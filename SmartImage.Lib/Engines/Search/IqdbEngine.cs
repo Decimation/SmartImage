@@ -116,7 +116,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 			if (response != null)
 			{
-				var s = await response.GetStringAsync();
+				var s = await response.GetStringAsync().ConfigureAwait(false);
 
 				var parser = new HtmlParser();
 				document = await parser.ParseDocumentAsync(s, ct).ConfigureAwait(false);

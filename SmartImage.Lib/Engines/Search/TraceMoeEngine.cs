@@ -55,7 +55,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 		TraceMoeRootObject tm = null;
 
-		var sr = await base.GetResultAsync(query, token);
+		var sr = await base.GetResultAsync(query, token).ConfigureAwait(false);
 
 		try
 		{
@@ -63,9 +63,9 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload, true);
 
-			using var response = await request.GetAsync(cancellationToken: token);
+			using var response = await request.GetAsync(cancellationToken: token).ConfigureAwait(false);
 
-			tm = await response.GetJsonAsync<TraceMoeRootObject>();
+			tm = await response.GetJsonAsync<TraceMoeRootObject>().ConfigureAwait(false);
 		}
 		catch (Exception e)
 		{
@@ -87,7 +87,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 					foreach (var doc in tm.Result)
 					{
-						var tr = await doc.ToItem(sr);
+						var tr = await doc.ToItem(sr).ConfigureAwait(false);
 						sr.Results.Add(tr);
 					}
 
@@ -214,7 +214,7 @@ public class TraceMoeDoc
 	{
 		var sim = Math.Round(Similarity * 100.0f, 2);
 
-		string name = await AnilistClient.Instance.GetTitleAsync((int) Anilist);
+		string name = await AnilistClient.Instance.GetTitleAsync((int) Anilist).ConfigureAwait(false);
 
 		var result = new SearchResultItem(sr)
 		{

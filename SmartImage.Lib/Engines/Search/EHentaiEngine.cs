@@ -133,7 +133,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			}
 		};
 
-		using var flurlRes = await Client.SendAsync(req, cancellationToken: token);
+		using var flurlRes = await Client.SendAsync(req, cancellationToken: token).ConfigureAwait(false);
 		using var httpRes  = flurlRes.ResponseMessage;
 
 		/*using var flurlRes = await LookupUrl.
@@ -156,7 +156,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		Debug.Assert(old == sr.Results[0]);
 
 		// Debug.WriteLine($"{sr.RawUrl}");
-		var content = await httpRes.Content.ReadAsStringAsync(token);
+		var content = await httpRes.Content.ReadAsStringAsync(token).ConfigureAwait(false);
 
 		// var content2 = await sr.RawUrl.GetStringAsync(cancellationToken: token);
 
@@ -169,7 +169,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		}
 
 		var parser = new HtmlParser();
-		return await parser.ParseDocumentAsync(content, token);
+		return await parser.ParseDocumentAsync(content, token).ConfigureAwait(false);
 	}
 
 	protected override ValueTask<IList<INode>> GetSource(IDocument d)
@@ -186,7 +186,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return ValueTask.FromResult((IList<INode>) array);
 	}
 
-	protected override async ValueTask<IEnumerable<EhResult>> GetItems(IList<INode> n, SearchResult r)
+	protected override ValueTask<IEnumerable<EhResult>> GetItems(IList<INode> n, SearchResult r)
 	{
 		var buf = new List<EhResult>(n.Count);
 
@@ -196,7 +196,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			buf.Add(eh);
 		}
 
-		return buf;
+		return ValueTask.FromResult<IEnumerable<EhResult>>(buf);
 	}
 	/*
 	 * Default result layout is [Compact]
@@ -254,7 +254,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			}
 		}
 
-		var response = await GetSessionAsync();
+		var response = await GetSessionAsync().ConfigureAwait(false);
 		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
 
 		return true;
@@ -290,7 +290,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 				               User_Agent = HttpUtilities.UserAgent
 			               })
 			               .WithCookies(out var cj)
-			               .PostAsync(content);
+			               .PostAsync(content).ConfigureAwait(false);
 
 		/*foreach (var fc in fcc) {
 			Cookies.Add(fc.AsCookie());
@@ -301,7 +301,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			Jar.AddOrReplace(fc);
 		}
 
-		var res2 = await GetSessionAsync();
+		var res2 = await GetSessionAsync().ConfigureAwait(false);
 
 		return IsLoggedIn = res2.ResponseMessage.IsSuccessStatusCode;
 	}
@@ -492,6 +492,7 @@ public sealed record EhResult : SearchResultItem, ISourceItemParseable<INode, Eh
 		var sb = eh.Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
 
 		eh.Description = sb;
+		eh.Artist = eh.Author;
 
 		/*var gl1c        = n.ChildNodes[0];
 		var gl2c        = n.ChildNodes[1];

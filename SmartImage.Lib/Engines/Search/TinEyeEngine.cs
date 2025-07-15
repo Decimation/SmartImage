@@ -30,7 +30,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 	}
 	public override async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
 	{
-		var ok = await q.Source.AllocImageAsync();
+		var ok = await q.Source.AllocImageAsync().ConfigureAwait(false);
 
 		if (ok) {
 			if (q.Source.Image.Width >= 10000) {
@@ -39,7 +39,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 		}
 
-		return await base.VerifyQueryAsync(q);
+		return await base.VerifyQueryAsync(q).ConfigureAwait(false);
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
@@ -57,12 +57,12 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			           {
 				           //
 				           b.AddString("url", query.Upload);
-			           }, cancellationToken: token);
+			           }, cancellationToken: token).ConfigureAwait(false);
 
 		TinEyeRoot tinEyeRoot = null;
 
 		try {
-			var str = await response.GetStringAsync();
+			var str = await response.GetStringAsync().ConfigureAwait(false);
 
 			tinEyeRoot = (TinEyeRoot) JsonSerializer.Deserialize(str, typeof(TinEyeRoot), Search.TinEyeContext.Default);
 

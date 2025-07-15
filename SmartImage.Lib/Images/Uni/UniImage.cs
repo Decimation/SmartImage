@@ -231,6 +231,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public bool TryCalculateSimilarity(IHash comparand)
 	{
+		/*
 		if (comparand.HasHash && (this as IHash).HasHash)
 		{
 			// ReSharper disable PossibleInvalidOperationException
@@ -239,6 +240,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 			// ReSharper restore PossibleInvalidOperationException
 		}
+		*/
+		Similarity ??= CompareHash.Similarity(comparand.Hash.Value.Value, Hash.Value.Value);
 
 		return Similarity.HasValue;
 	}

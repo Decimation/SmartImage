@@ -74,10 +74,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 			if (UsingAPI) {
 				Logger.LogInformation("[{Name}] API key: {Auth}", Name, Authentication);
 
-				await GetAPIResultsAsync(query, result);
+				await GetAPIResultsAsync(query, result).ConfigureAwait(false);
 			}
 			else {
-				await GetWebResultsAsync(query, result);
+				await GetWebResultsAsync(query, result).ConfigureAwait(false);
 			}
 		}
 		catch (Exception e) {
@@ -161,9 +161,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 				           }
 
-			           });
+			           }).ConfigureAwait(false);
 
-		html = await response.GetStringAsync();
+		html = await response.GetStringAsync().ConfigureAwait(false);
 
 		/*
 		 * Daily Search Limit Exceeded.
@@ -187,7 +187,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 		/*var raw=await GetRawUrlAsync(query);
 		var html2=await raw.GetStringAsync();*/
 
-		var doc = await docp.ParseDocumentAsync(html);
+		var doc = await docp.ParseDocumentAsync(html).ConfigureAwait(false);
 
 		var results = doc.Body.SelectNodes("//div[@class='result']");
 		
@@ -231,9 +231,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 		var res = await Client.Request(URL_API)
 			          .WithTimeout(Timeout)
-			          .PostAsync(content);
+			          .PostAsync(content).ConfigureAwait(false);
 
-		var c = await res.GetStringAsync();
+		var c = await res.GetStringAsync().ConfigureAwait(false);
 
 		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden) {
 			// return;

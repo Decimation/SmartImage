@@ -67,9 +67,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointUrl, IDispos
 					                     target_match_percent = 90,
 					                     filter_dead_matches  = false,
 					                     target_days_old      = 0
-				                     }).GetAsync(cancellationToken: token);
+				                     }).GetAsync(cancellationToken: token).ConfigureAwait(false);
 
-			var s = await response.GetStreamAsync();
+			var s = await response.GetStreamAsync().ConfigureAwait(false);
 			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
 		}
 		catch (JsonException e) {

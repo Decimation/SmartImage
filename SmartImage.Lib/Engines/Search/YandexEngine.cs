@@ -106,12 +106,12 @@ public sealed class YandexEngine : BaseSearchEngine
 				      .WithAutoRedirect(true)
 				      .AllowAnyHttpStatus()
 				      .WithTimeout(Timeout)
-				      .GetAsync(cancellationToken: token);
+				      .GetAsync(cancellationToken: token).ConfigureAwait(false);
 
-			str = await res.GetStringAsync();
+			str = await res.GetStringAsync().ConfigureAwait(false);
 
 			var parser = new HtmlParser();
-			doc = await parser.ParseDocumentAsync(str);
+			doc = await parser.ParseDocumentAsync(str).ConfigureAwait(false);
 
 			var imagesAppNode = doc.Body.SelectSingleNode(Serialization.S_Yandex_Json);
 			var json          = imagesAppNode.TryGetAttribute("data-state");
@@ -119,11 +119,11 @@ public sealed class YandexEngine : BaseSearchEngine
 			var jsonNode = JsonNode.Parse(json);
 			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
 			var sitesObj = sites.Deserialize<YandexSite[]>();
-			
+
 			foreach (var site in sitesObj)
 			{
 				// site.Root = sr;
-				var sri=site.ToItem(sr);
+				var sri = site.ToItem(sr);
 				sr.Results.Add(sri);
 			}
 
@@ -180,6 +180,15 @@ public record YandexImage
 public record YandexSite
 {
 
+	[JsonPropertyName("title")]
+	public string Title { get; set; }
+
+	[JsonPropertyName("description")]
+	public string Description { get; set; }
+
+	[JsonPropertyName("url")]
+	public string Url { get; set; }
+
 	[JsonPropertyName("domain")]
 	public string Domain { get; set; }
 
@@ -188,12 +197,6 @@ public record YandexSite
 
 	[JsonPropertyName("originalImage")]
 	public YandexImage OriginalImage { get; set; }
-	
-	[JsonPropertyName("url")]
-	public string Url { get; set; }
-	
-	[JsonPropertyName("title")]
-	public string Title { get; set; }
 
 
 	/*[JsonConstructor]
@@ -205,7 +208,7 @@ public record YandexSite
 		YandexImage thumb,
 		YandexImage originalImage) : base(null)
 	{
-		
+
 		OriginalImage = originalImage;
 		Url           = originalImage.Url;
 		Domain        = domain;
@@ -216,7 +219,7 @@ public record YandexSite
 		Site      = Domain,
 		Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url#1#
 	}*/
-	
+
 
 	/*public YandexSite() : base(null)
 	{
@@ -230,6 +233,9 @@ public record YandexSite
 		return new SearchResultItem(sr)
 		{
 			Url       = OriginalImage.Url,
+			Height = OriginalImage.Height,
+			Width = OriginalImage.Width,
+			Description = Description,
 			Site      = Domain,
 			Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
 		};

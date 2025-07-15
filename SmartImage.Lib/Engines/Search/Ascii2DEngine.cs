@@ -59,7 +59,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 			return false;
 		}
 
-		var cookies = await source.GetOrLoadCookiesAsync(ct);
+		var cookies = await source.GetOrLoadCookiesAsync(ct).ConfigureAwait(false);
 
 		foreach (var bck in cookies)
 		{
@@ -141,7 +141,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return ValueTask.FromResult<IList<INode>>(nodes);
 	}
 
-	protected override async ValueTask<IEnumerable<Ascii2DItem>> GetItems(IList<INode> rs, SearchResult r)
+	protected override ValueTask<IEnumerable<Ascii2DItem>> GetItems(IList<INode> rs, SearchResult r)
 	{
 		var buf = new List<Ascii2DItem>(rs.Count);
 
@@ -151,7 +151,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 			buf.Add(item);
 		}
 
-		return buf;
+		return ValueTask.FromResult<IEnumerable<Ascii2DItem>>(buf);
 	}
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
@@ -184,7 +184,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 				var msg = new HttpRequestMessage(HttpMethod.Get, origin);
 
-				var fsr     = await FlareSolverrClient.Value.Clearance.Solverr.SolveAsync(msg);
+				var fsr     = await FlareSolverrClient.Value.Clearance.Solverr.SolveAsync(msg).ConfigureAwait(false);
 				var cookies = fsr.Solution.Cookies;
 				var newUrl  = fsr.Solution.Url;
 
@@ -205,27 +205,27 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 								                s.ExceptionHandled = true;
 
 							                })*/
-					                .GetAsync(cancellationToken: token);
+					                .GetAsync(cancellationToken: token).ConfigureAwait(false);
 
 
 				// var res1 = await FlareSolverrClient.Client.SendAsync(msg, token);
 				// str = await res1.Content.ReadAsStringAsync(token);
-				str = await res.GetStringAsync();
+				str = await res.GetStringAsync().ConfigureAwait(false);
 
 			}
 			else
 			{
-				using var res = await GetResponseByUrlAsync(origin, token);
+				using var res = await GetResponseByUrlAsync(origin, token).ConfigureAwait(false);
 
 				if (res.StatusCode == (int) HttpStatusCode.BadGateway)
 				{
 					return null;
 				}
 
-				str = await res.GetStringAsync();
+				str = await res.GetStringAsync().ConfigureAwait(false);
 			}
 
-			var document = await parser.ParseDocumentAsync(str, token);
+			var document = await parser.ParseDocumentAsync(str, token).ConfigureAwait(false);
 
 			return document;
 		}
@@ -266,7 +266,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 						          s.ExceptionHandled = true;
 
 					          })*/
-			          .GetAsync(cancellationToken: token);
+			          .GetAsync(cancellationToken: token).ConfigureAwait(false);
 		return res;
 	}
 
