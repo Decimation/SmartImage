@@ -21,10 +21,8 @@ using SmartImage.Lib.Images.Uni;
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Search;
 
-public class GoogleLensItem
+public record GoogleLensItem : SearchResultItem, ISourceItemParseable<INode, GoogleLensItem>
 {
-
-	public string Title { get; private set; }
 
 	public string SiteName { get; private set; }
 
@@ -32,24 +30,15 @@ public class GoogleLensItem
 
 	public string Ping { get; private set; }
 
-	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
+
+	private GoogleLensItem(SearchResult r) : base(r) { }
+
+	public static GoogleLensItem ParseResultItem(INode n, SearchResult r)
 	{
-		var sri = new SearchResultItem(sr)
+		var gli = new GoogleLensItem(r);
+
+		if (n is IHtmlElement e)
 		{
-			Title = Title,
-			Site  = SiteName,
-			Url   = Link
-		};
-
-
-		return ValueTask.FromResult(sri);
-	}
-
-	public static GoogleLensItem Parse(INode n)
-	{
-		var gli = new GoogleLensItem();
-
-		if (n is IHtmlElement e) {
 			var attrHref = e.Attributes["href"];
 			var attrPing = e.Attributes["ping"];
 			var title    = e.QuerySelector(".Yt787")?.TextContent;
@@ -69,7 +58,7 @@ public class GoogleLensItem
 
 }
 
-public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
+public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, IEndpointUrl, ICookiesReceiver
 {
 
 	// TODO: WIP
@@ -81,7 +70,6 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleLens;
 
-	protected override string NodesSelector => null;
 
 	public override Url BaseUrl => URL_BASE;
 
@@ -108,18 +96,30 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
 
 	// public FlurlCookie Nid { get; set; }
 
-	protected override ValueTask<SearchResultItem> ParseResultItem(INode n, SearchResult r)
-	{
-		var gli = GoogleLensItem.Parse(n);
-		var sri = gli.ToItem(r);
-		return sri;
-	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var br = await base.GetResultAsync(query, token);
 
 		return br;
+	}
+
+	protected override ValueTask<IList<INode>> GetSource(IDocument d)
+	{
+		var nodes = d.QuerySelectorAll(".LBcIee").OfType<INode>().ToList();
+		return ValueTask.FromResult<IList<INode>>(nodes);
+	}
+
+	protected override ValueTask<IEnumerable<GoogleLensItem>> GetItems(IList<INode> rs, SearchResult r)
+	{
+		var buf = new List<GoogleLensItem>(rs.Count);
+
+		foreach (INode node in rs)
+		{
+			buf.Add(GoogleLensItem.ParseResultItem(node, r));
+		}
+
+		return ValueTask.FromResult<IEnumerable<GoogleLensItem>>(buf);
 	}
 
 	private Task<IFlurlResponse> SearchFileAsync(SearchQuery query, CancellationToken token)
@@ -137,8 +137,8 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
 		req = Client.Request(Endpoint, endpoint)
 			.SetQueryParam("hl", HlParam)
 			.WithTimeout(Timeout)
-
 			.WithCookies(Jar)
+
 			// .WithCookie(Nid.Name, Nid.Value)
 			.WithHeaders(Headers)
 			.PostMultipartAsync(bc =>
@@ -160,16 +160,19 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
 		//todo
 
 
-		if (query.Source.IsUri) {
+		if (query.Source.IsUri)
+		{
 
 			req = SearchUrlAsync(query, token);
 			res = await req;
 		}
-		else if (query.Source.IsFile) {
+		else if (query.Source.IsFile)
+		{
 			req = SearchFileAsync(query, token);
 			res = await req;
 		}
-		else {
+		else
+		{
 			return null;
 		}
 
@@ -219,8 +222,8 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
 		var req1 = Client.Request(Endpoint, endpoint)
 			.SetQueryParam("hl", HlParam)
 			.SetQueryParam("url", url)
-
 			.WithCookies(Jar)
+
 			// .WithCookie(Nid.Name, Nid.Value)
 			.WithHeaders(Headers)
 			.WithTimeout(Timeout);
@@ -230,12 +233,6 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
 		// var sz = await (await req).GetStringAsync();
 
 		return req;
-	}
-
-	protected override ValueTask<IList<INode>> GetNodes(IDocument d)
-	{
-		var all = d.QuerySelectorAll(".LBcIee");
-		return ValueTask.FromResult(all.OfType<INode>());
 	}
 
 	protected override Url GetRawUrl(SearchQuery query)
@@ -249,15 +246,21 @@ public class GoogleLensEngine : WebSearchEngine, IEndpointUrl, ICookiesReceiver
 
 	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken token = default)
 	{
-		if (source == null) {
+		if (source == null)
+		{
 			return false;
 		}
 
 		var ck   = await source.GetOrLoadCookiesAsync(token);
 		var nids = ck.OfType<FirefoxCookie>().Where(x => x.Name == "NID" && x.Host.Contains("google.com"));
-		var nid  = nids.First();
+		var nid  = nids.FirstOrDefault();
 
+		if (nid == null)
+		{
+			return false;
+		}
 		var nidFc = nid.AsFlurlCookie(URL_BASE);
+
 		// Nid ??= nidFc;
 		Jar.AddOrReplace(nidFc);
 

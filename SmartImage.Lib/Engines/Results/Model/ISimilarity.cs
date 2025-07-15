@@ -4,10 +4,8 @@
 namespace SmartImage.Lib.Engines.Results.Model;
 
 #pragma warning disable CS0168
+
 public interface ISimilarity
 {
-
-	// todo
 	public double? Similarity { get; }
-
 }

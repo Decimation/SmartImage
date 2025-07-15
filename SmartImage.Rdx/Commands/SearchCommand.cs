@@ -28,7 +28,6 @@ using Novus.Utilities;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Impl.Search;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities;

@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
+using AngleSharp.XPath;
 using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Results.Model;
@@ -12,14 +13,13 @@ using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public class ArchiveMoeEngine : WebSearchEngine
+public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
 
 	protected string Base64Hash { get; set; }
 
-	protected override string NodesSelector => "//article[contains(@class,'post')]";
 
 	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
 
@@ -35,7 +35,6 @@ public class ArchiveMoeEngine : WebSearchEngine
 		// return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 
-	
 
 	protected static string GetHash(SearchQuery q)
 	{
@@ -62,9 +61,25 @@ public class ArchiveMoeEngine : WebSearchEngine
 		GC.SuppressFinalize(this);
 	}
 
+	protected override ValueTask<IList<INode>> GetSource(IDocument d)
+	{
+		return ValueTask.FromResult<IList<INode>>(d.Body.SelectNodes("//article[contains(@class,'post')]"));
+	}
+
+	protected override ValueTask<IEnumerable<ChanPost>> GetItems(IList<INode> rs, SearchResult r)
+	{
+		var buf = new List<ChanPost>(rs.Count);
+
+		foreach (INode node in rs)
+		{
+			buf.Add(ChanPost.ParseResultItem(node, r));
+		}
+		return ValueTask.FromResult<IEnumerable<ChanPost>>(buf);
+	}
+
 }
 
-public record ChanPost : SearchResultItem, ISourceItemParseable<,>
+public record ChanPost : SearchResultItem, ISourceItemParseable<INode, ChanPost>
 {
 
 	public string Board { get; private set; }
@@ -86,13 +101,9 @@ public record ChanPost : SearchResultItem, ISourceItemParseable<,>
 	public string Tripcode { get; private set; }
 
 
-	
-
 	private ChanPost(SearchResult r) : base(r) { }
 
-#region Implementation of IResultParse<in INode,ChanPost>
-
-	public static ValueTask<ChanPost> ParseResultItem(INode n, SearchResult r)
+	public static ChanPost ParseResultItem(INode n, SearchResult r)
 	{
 		var e = n as HtmlElement;
 
@@ -128,9 +139,7 @@ public record ChanPost : SearchResultItem, ISourceItemParseable<,>
 			Text     = text
 		};
 
-		return ValueTask.FromResult(p);
+		return p;
 	}
-
-#endregion
 
 }

@@ -11,11 +11,11 @@ using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Engines;
 
-public abstract class WebSearchEngine : BaseSearchEngine
+public abstract class WebSearchEngine<TResultItem,  TSource> : BaseSearchEngine where TResultItem : SearchResultItem
 {
 
 	protected WebSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
@@ -46,11 +46,9 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			goto ret;
 		}
 
+		var src   = await GetSource(doc);
+		var items = await GetItems(src, res);
 
-		var nodes = await GetSource(doc);
-
-
-		var items = await GetItems(nodes, res);
 		res.Results.AddRange(items);
 
 		Logger.LogInformation("{Name} :: {RawUrl} document {DocLength}", Name, res.RawUrl, doc?.TextContent?.Length);
@@ -63,6 +61,10 @@ public abstract class WebSearchEngine : BaseSearchEngine
 		Logger.LogDebug("Disposing {Name} doc", Name);
 		return res;
 	}
+
+	protected abstract ValueTask<TSource> GetSource(IDocument d);
+
+	protected abstract ValueTask<IEnumerable<TResultItem>> GetItems(TSource rs, SearchResult r);
 
 	[ICBN]
 	[MURV]
@@ -102,24 +104,6 @@ public abstract class WebSearchEngine : BaseSearchEngine
 			return null;
 		}
 	}
-
-	protected virtual async ValueTask<IEnumerable<TItem>> GetItems(IEnumerable<TSource> n, SearchResult r)
-	{
-		var nodes = n.ToList();
-
-		var buf = new List<TItem>(nodes.Count);
-
-		foreach (TSource node in nodes)
-		{
-			var nodeRes = await TSource.ParseResultItem(node, r);
-			buf.Add(nodeRes);
-		}
-
-		return buf.AsReadOnly();
-	}
-
-	protected abstract ValueTask<IEnumerable<TSource>> GetSource(IDocument d);
-
 
 	protected virtual bool Validate([NNW(true)] IDocument doc, SearchResult sr)
 	{

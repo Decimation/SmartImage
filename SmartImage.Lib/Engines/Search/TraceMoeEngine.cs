@@ -11,7 +11,6 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Results.Model;
-using SmartImage.Lib.Results.Data;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
@@ -42,11 +41,13 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 	public override string Name => "trace.moe";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
+
 	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		return ValueTask.FromResult(true);
 
 	}
+
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 
@@ -56,7 +57,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 		var sr = await base.GetResultAsync(query, token);
 
-		try {
+		try
+		{
 			IFlurlRequest request = Client.Request(Endpoint, "/search")
 				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload, true);
@@ -65,21 +67,26 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 			tm = await response.GetJsonAsync<TraceMoeRootObject>();
 		}
-		catch (Exception e) {
+		catch (Exception e)
+		{
 			Logger.LogError(e, "{Name} in {Fn}", Name, nameof(GetResultAsync));
 			sr.ErrorMessage = e.Message;
 			sr.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
-		if (tm != null) {
-			if (tm.Result != null) {
+		if (tm != null)
+		{
+			if (tm.Result != null)
+			{
 				// Most similar to the least similar
 
-				try {
+				try
+				{
 					sr.Results.EnsureCapacity(sr.Results.Count + tm.Result.Count);
 
-					foreach (var doc in tm.Result) {
+					foreach (var doc in tm.Result)
+					{
 						var tr = await doc.ToItem(sr);
 						sr.Results.Add(tr);
 					}
@@ -87,19 +94,22 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 					sr.Status = SearchResultStatus.Success;
 					sr.RawUrl = new Url(BaseUrl + query.Upload);
 				}
-				catch (Exception e) {
+				catch (Exception e)
+				{
 					sr.ErrorMessage = e.Message;
 					sr.Status       = SearchResultStatus.UnknownError;
 				}
 
 			}
-			else if (tm.Error != null) {
+			else if (tm.Error != null)
+			{
 				// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
 				Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
 				sr.ErrorMessage = tm.Error;
 				sr.Status       = SearchResultStatus.IllegalInput;
 
-				if (sr.ErrorMessage.Contains("Search queue is full")) {
+				if (sr.ErrorMessage.Contains("Search queue is full"))
+				{
 					sr.Status = SearchResultStatus.Unavailable;
 				}
 			}
@@ -124,15 +134,13 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 #region API Objects
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
-public record TraceMoeRootObject : SearchResultItem
+public class TraceMoeRootObject
 {
-
 	public long FrameCount { get; set; }
 
 	public string Error { get; set; }
 
 	public List<TraceMoeDoc> Result { get; set; }
-
 }
 
 public class TraceMoeQuotaObject
@@ -189,7 +197,8 @@ public class TraceMoeDoc
 				{
 					var s1 = x.ToString();
 
-					if (s1.Contains('|')) {
+					if (s1.Contains('|'))
+					{
 						s1 = s1.Split('|')[0];
 					}
 
@@ -217,7 +226,8 @@ public class TraceMoeDoc
 			Metadata    = this
 		};
 
-		if (result.Similarity < TraceMoeEngine.FILTER_THRESHOLD) {
+		if (result.Similarity < TraceMoeEngine.FILTER_THRESHOLD)
+		{
 			/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
 												 $"({result.Similarity.Value / 100:P} " +
 												 $"< {FILTER_THRESHOLD / 100:P})");*/

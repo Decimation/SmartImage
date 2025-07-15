@@ -7,56 +7,6 @@ namespace SmartImage.Lib.Engines.Results;
 
 #nullable disable
 
-public enum SearchResultStatus
-{
-
-	/// <summary>
-	/// N/A
-	/// </summary>
-	None = 0,
-
-	/// <summary>
-	/// Result obtained successfully
-	/// </summary>
-	Success,
-
-	/// <summary>
-	/// Engine is on cooldown due to too many requests
-	/// </summary>
-	Cooldown,
-
-	/// <summary>
-	/// Obtaining results failed due to an engine error
-	/// </summary>
-	UnknownError,
-
-	IllegalInput,
-
-	/// <summary>
-	/// Engine is unavailable
-	/// </summary>
-	Unavailable
-
-}
-
-[Flags]
-public enum SearchResultFlags
-{
-
-	None = 0,
-
-	/// <summary>
-	/// Engine returned no results
-	/// </summary>
-	NoResults = 1 << 0,
-
-	/// <summary>
-	/// Result is extraneous
-	/// </summary>
-	Extraneous = 1 << 1,
-
-}
-
 /// <summary>
 /// Root search result returned by a <see cref="BaseSearchEngine"/>
 /// </summary>
@@ -104,7 +54,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	// private Lazy<SearchResultItem> m_rawResultItem;
 
 	[JI]
-	public SearchResultItem RawResultItem { get;  }
+	public SearchResultItem RawResultItem { get; }
 
 	internal SearchResult(BaseSearchEngine bse, Url rawUrl)
 	{
@@ -134,11 +84,12 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		};
 	}
 
-	public void Update()
+	public virtual void Update()
 	{
 		if (Status.IsUnknown()) { }
 
-		if (Status.IsError()) {
+		if (Status.IsError())
+		{
 			return;
 		}
 
@@ -165,14 +116,15 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public SearchResultItem GetBestResult()
 	{
-		if (Results.Count == 0) {
-			// This should never happen so long as results contains the raw item
-			Debugger.Break();
-			return null;
-		}
+		// This should never happen so long as results contains the raw item
+		Debug.Assert(Results.Count == 0);
 
-		return Results.OrderByDescending(static r => r.Similarity)
-			.FirstOrDefault(static r => Url.IsValid(r.Url));
+		// *? IMPROVE
+
+		return Results.Where(static r => Url.IsValid(r.Url))
+			.OrderByDescending(static r => r.Similarity)
+			.ThenByDescending(static r=>r.Score)
+			.FirstOrDefault();
 	}
 
 	public override string ToString()
@@ -184,9 +136,60 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	{
 		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}", LogCategories.C_VERBOSE);
 
-		foreach (SearchResultItem item in Results) {
+		foreach (SearchResultItem item in Results)
+		{
 			item.Dispose();
 		}
 	}
+
+}
+
+[Flags]
+public enum SearchResultFlags
+{
+
+	None = 0,
+
+	/// <summary>
+	/// Engine returned no results
+	/// </summary>
+	NoResults = 1 << 0,
+
+	/// <summary>
+	/// Result is extraneous
+	/// </summary>
+	Extraneous = 1 << 1,
+
+}
+
+public enum SearchResultStatus
+{
+
+	/// <summary>
+	/// N/A
+	/// </summary>
+	None = 0,
+
+	/// <summary>
+	/// Result obtained successfully
+	/// </summary>
+	Success,
+
+	/// <summary>
+	/// Engine is on cooldown due to too many requests
+	/// </summary>
+	Cooldown,
+
+	/// <summary>
+	/// Obtaining results failed due to an engine error
+	/// </summary>
+	UnknownError,
+
+	IllegalInput,
+
+	/// <summary>
+	/// Engine is unavailable
+	/// </summary>
+	Unavailable
 
 }

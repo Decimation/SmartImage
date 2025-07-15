@@ -27,7 +27,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
+public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, ICookiesReceiver
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
@@ -80,9 +80,7 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		return ValueTask.FromResult(true);
 	}
 
-	public override void Dispose()
-	{
-	}
+	public override void Dispose() { }
 
 	// public const int MAX_WIDTH = 1000;
 
@@ -126,6 +124,35 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		return url;
 	}
 
+
+	protected override ValueTask<IList<INode>> GetSource(IDocument d)
+	{
+		var nodes = d.Body.SelectNodes(Serialization.S_Ascii2D_Images2);
+
+		var cnt = nodes.RemoveAll(x =>
+		{
+			var e = x as IHtmlElement;
+
+			var b = e.Children is { Length: 1 } && e.Children[0].ClassName.Contains("hidden-md");
+
+			return b;
+		});
+
+		return ValueTask.FromResult<IList<INode>>(nodes);
+	}
+
+	protected override async ValueTask<IEnumerable<Ascii2DItem>> GetItems(IList<INode> rs, SearchResult r)
+	{
+		var buf = new List<Ascii2DItem>(rs.Count);
+
+		foreach (var node in rs)
+		{
+			var item = Ascii2DItem.ParseResultItem(node, r);
+			buf.Add(item);
+		}
+
+		return buf;
+	}
 
 	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
@@ -243,30 +270,9 @@ public sealed class Ascii2DEngine : WebSearchEngine, ICookiesReceiver
 		return res;
 	}
 
-#region Overrides of WebSearchEngine
-
-	protected override ValueTask<IList<INode>> GetNodes(IDocument d)
-	{
-		var nodes = d.Body.SelectNodes(Serialization.S_Ascii2D_Images2);
-
-		var cnt = nodes.RemoveAll(x =>
-		{
-			var e = x as IHtmlElement;
-
-			var b = e.Children is { Length: 1 } && e.Children[0].ClassName.Contains("hidden-md");
-
-			return b;
-		});
-
-		return ValueTask.FromResult<IList<INode>>(nodes);
-	}
-
-#endregion
-
-
 }
 
-public record Ascii2DItem : SearchResultItem, ISourceItemParseable<,>
+public record Ascii2DItem : SearchResultItem, ISourceItemParseable<INode, Ascii2DItem>
 {
 
 	public string Hash { get; private set; }
@@ -275,7 +281,7 @@ public record Ascii2DItem : SearchResultItem, ISourceItemParseable<,>
 
 	private Ascii2DItem(SearchResult r) : base(r) { }
 
-	public static async ValueTask<Ascii2DItem> ParseResultItem(INode nx, SearchResult r)
+	public static Ascii2DItem ParseResultItem(INode nx, SearchResult r)
 	{
 		var sri = new Ascii2DItem(r);
 
@@ -284,7 +290,7 @@ public record Ascii2DItem : SearchResultItem, ISourceItemParseable<,>
 		var n      = nxe.Children[1];
 		var imgBox = nxe.Children[0];
 		var thumb  = imgBox.Children[0].Attributes["src"];
-			
+
 		sri.Thumbnail = Url.Combine(r.Engine.BaseUrl.Root, thumb?.Value);
 
 		var info = n.ChildNodes.Where(n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
@@ -336,6 +342,8 @@ public record Ascii2DItem : SearchResultItem, ISourceItemParseable<,>
 				}
 			}
 		}
+
+		return sri;
 	}
 
 }

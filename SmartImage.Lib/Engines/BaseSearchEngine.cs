@@ -14,8 +14,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
-using SmartImage.Lib.Engines.Impl.Search;
-using SmartImage.Lib.Engines.Impl.Search.Other;
+using SmartImage.Lib.Engines.Search;
+using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Engines.Search;
@@ -104,7 +104,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	{
 		var b = await VerifyQueryAsync(query).ConfigureAwait(false);
 
-		SmartImageException.Assert(b, nameof(query));
+		// SmartImageException.Assert(b, nameof(query));
 
 		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
@@ -218,7 +218,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			yield return new TinEyeEngine();
 
 		if (options.HasFlag(SearchEngineOptions.Iqdb))
-			yield return new IqdbEngine<IqdbItem>();
+			yield return new IqdbEngine();
 
 		if (options.HasFlag(SearchEngineOptions.TraceMoe))
 			yield return new TraceMoeEngine();

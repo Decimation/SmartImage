@@ -15,8 +15,8 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Results.Data;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
 
@@ -119,7 +119,15 @@ public sealed class YandexEngine : BaseSearchEngine
 			var jsonNode = JsonNode.Parse(json);
 			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
 			var sitesObj = sites.Deserialize<YandexSite[]>();
-			sr.Results.AddRange(sitesObj);
+			
+			foreach (var site in sitesObj)
+			{
+				// site.Root = sr;
+				var sri=site.ToItem(sr);
+				sr.Results.Add(sri);
+			}
+
+			// sr.Results.AddRange(sitesObj);
 
 
 		}
@@ -169,7 +177,7 @@ public record YandexImage
 
 }
 
-public record YandexSite : SearchResultItem
+public record YandexSite
 {
 
 	[JsonPropertyName("domain")]
@@ -180,8 +188,15 @@ public record YandexSite : SearchResultItem
 
 	[JsonPropertyName("originalImage")]
 	public YandexImage OriginalImage { get; set; }
+	
+	[JsonPropertyName("url")]
+	public string Url { get; set; }
+	
+	[JsonPropertyName("title")]
+	public string Title { get; set; }
 
-	[JsonConstructor]
+
+	/*[JsonConstructor]
 	public YandexSite(
 		string url,
 		string title,
@@ -190,18 +205,34 @@ public record YandexSite : SearchResultItem
 		YandexImage thumb,
 		YandexImage originalImage) : base(null)
 	{
+		
 		OriginalImage = originalImage;
 		Url           = originalImage.Url;
 		Domain        = domain;
 		Site          = Domain;
 		Thumb         = thumb;
 		Thumbnail     = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url;
-
 		/*Url       = OriginalImage.Url,
 		Site      = Domain,
-		Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url*/
+		Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url#1#
+	}*/
+	
+
+	/*public YandexSite() : base(null)
+	{
+
 	}
 
-	private YandexSite(SearchResult r) : base(r) { }
+	private YandexSite(SearchResult r) : base(r) { }*/
+
+	public SearchResultItem ToItem(SearchResult sr)
+	{
+		return new SearchResultItem(sr)
+		{
+			Url       = OriginalImage.Url,
+			Site      = Domain,
+			Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
+		};
+	}
 
 }

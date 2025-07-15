@@ -18,6 +18,7 @@ using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Utilities;
+using Kantan.Net.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -25,7 +26,7 @@ namespace SmartImage.Lib.Engines.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICookiesReceiver
+public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver
 {
 
 	static EHentaiEngine() { }
@@ -171,7 +172,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 		return await parser.ParseDocumentAsync(content, token);
 	}
 
-	protected override ValueTask<IList<INode>> GetNodes(IDocument d)
+	protected override ValueTask<IList<INode>> GetSource(IDocument d)
 	{
 		// Index 0 is table header
 		var array = d.Body.SelectNodes(Serialization.S_EHentai);
@@ -182,55 +183,25 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 		}
 
-		return ValueTask.FromResult((IEnumerable<INode>) array);
+		return ValueTask.FromResult((IList<INode>) array);
 	}
 
-	protected override async ValueTask<IList<SearchResultItem>> GetItems(IList<INode> n, SearchResult r)
+	protected override async ValueTask<IEnumerable<EhResult>> GetItems(IList<INode> n, SearchResult r)
 	{
-		r.Results.EnsureCapacity(n.Count());
+		var buf = new List<EhResult>(n.Count);
 
 		foreach (INode node in n)
 		{
-			var eh = await EhResult.ParseResultItem(node,r);
-			r.Results.Add(eh);
+			var eh =  EhResult.ParseResultItem(node, r);
+			buf.Add(eh);
 		}
 
+		return buf;
 	}
 	/*
 	 * Default result layout is [Compact]
 	 */
 
-#region Overrides of WebSearchEngine
-
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
-	{
-		var res = await base.GetResultAsync(query, token);
-
-		IDocument doc = await GetDocumentAsync(res, query: query, token: token);
-
-		if (!Validate(doc, res))
-		{
-			goto ret;
-		}
-
-		var nodes = await GetNodes(doc);
-		var items = await GetItems(nodes, res);
-		res.Results.AddRange(items);
-		res.Status = SearchResultStatus.Success;
-
-	ret:
-		res.Update();
-		doc?.Dispose();
-
-		return res;
-	}
-
-	protected override Url GetRawUrl(SearchQuery query)
-	{
-		return base.GetRawUrl(query);
-	}
-
-#endregion
 
 	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct = default)
 	{
@@ -407,7 +378,7 @@ public sealed class EHentaiEngine : WebSearchEngine, INotifyPropertyChanged, ICo
 
 }
 
-public sealed record EhResult : SearchResultItem, ISourceItemParseable<,>
+public sealed record EhResult : SearchResultItem, ISourceItemParseable<INode, EhResult>
 {
 
 	public string Type { get; private set; }
@@ -420,14 +391,14 @@ public sealed record EhResult : SearchResultItem, ISourceItemParseable<,>
 	public string AuthorUrl { get; private set; }
 
 
-	public Dictionary<string, string[]> Tags { get; }
+	public Dictionary<string, IList<string>> Tags { get; }
 
 	private EhResult(SearchResult r) : base(r)
 	{
 		Tags = [];
 	}
 
-	public static ValueTask<EhResult> ParseResultItem(INode n, SearchResult sr)
+	public static EhResult ParseResultItem(INode n, SearchResult sr)
 	{
 		// ReSharper disable InconsistentNaming
 		var eh = new EhResult(sr);
@@ -528,7 +499,7 @@ public sealed record EhResult : SearchResultItem, ISourceItemParseable<,>
 		var gl3c        = n.ChildNodes[3];
 		var gl4c        = n.ChildNodes[4];*/
 
-		return ValueTask.FromResult(eh);
+		return eh;
 
 	}
 

@@ -3,8 +3,17 @@
 
 namespace SmartImage.Lib.Engines.Results.Model;
 
-public interface ISourceItemParseable<in TSource, out TItem> 
+public interface ISearchResultItems<T> where T : SearchResultItem
+{
+
+	public static abstract T Parse(T[] t, SearchResult r);
+
+}
+
+public interface ISourceItemParseable<in TSource, out TItem>
 	where TItem : SearchResultItem
 {
+
 	public static abstract TItem ParseResultItem(TSource n, SearchResult r);
+
 }

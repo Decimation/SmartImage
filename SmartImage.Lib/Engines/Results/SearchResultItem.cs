@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System.Collections.Concurrent;
+using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
@@ -115,6 +116,43 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	/// </summary>
 	public bool IsRaw { get; }
 
+	public double Score
+	{
+		get
+		{
+			if (IsRaw)
+				return 0;
+
+			var s = 0d;
+
+			if (HasUni)
+				s += Uni.Count;
+
+			if (Similarity.HasValue)
+				s += Similarity.Value * 0.66d;
+
+			if (Url.IsValid(Url))
+				s++;
+
+			if (Url.IsValid(Thumbnail))
+				s++;
+
+			int?[] ir = [Width, Height];
+			s += ir.Count(static c => c.HasValue);
+
+			string[] p = [Title, Source, Artist, Description, Character, Site, ThumbnailTitle];
+			s += p.Count(static c => !String.IsNullOrWhiteSpace(c));
+
+			if (Time.HasValue)
+				s++;
+
+			if (Metadata is not null)
+				s++;
+
+			return s;
+		}
+	}
+
 	internal SearchResultItem(SearchResult r, bool isRaw = false)
 	{
 		Root     = r;
@@ -132,7 +170,8 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	{
 		var rg2 = new SearchResultItem[rg.Length];
 
-		for (int i = 0; i < rg.Length; i++) {
+		for (int i = 0; i < rg.Length; i++)
+		{
 
 			rg2[i] = new SearchResultItem(this)
 			{
@@ -174,11 +213,13 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 
 	public async ValueTask<bool> LoadThumbnail(CancellationToken ct = default)
 	{
-		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u.ValueString == Thumbnail))) {
+		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u.ValueString == Thumbnail)))
+		{
 
 			var uni = await UniImage.TryCreateAsync(Thumbnail, ct: ct);
 
-			if (uni == null) {
+			if (uni == null)
+			{
 				return false;
 			}
 
@@ -193,11 +234,13 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		// TODO: USE CHANNELS
 		// TODO: REFACTOR TO USE THIS FUNCTION
 
-		if (HasUni) {
+		if (HasUni)
+		{
 			return true;
 		}
 
-		if (Url == null) {
+		if (Url == null)
+		{
 			return false;
 		}
 
@@ -206,16 +249,19 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 
 		var ch = Channel.CreateUnbounded<UniImage>(new UnboundedChannelOptions() { SingleReader = true });
 
-		var tasks =  ImageScanner.ScanImagesAsync(Url, ch.Writer, ct: ct);
+		var tasks = ImageScanner.ScanImagesAsync(Url, ch.Writer, ct: ct);
 
-		while (await ch.Reader.WaitToReadAsync(ct)) {
+		while (await ch.Reader.WaitToReadAsync(ct))
+		{
 			var v = await ch.Reader.ReadAsync(ct);
 
-			if (v != UniImage.Null && v.HasImageFormat) {
+			if (v != UniImage.Null && v.HasImageFormat)
+			{
 				buf.Add(v);
 			}
 
-			if (ct.IsCancellationRequested) {
+			if (ct.IsCancellationRequested)
+			{
 				break;
 			}
 		}
@@ -228,8 +274,6 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		return HasUni;
 	}
 
-
-	
 
 	// public IFlurlResponse Response { get; private set; }
 
@@ -259,8 +303,10 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	{
 		Debug.WriteLine($"Disposing {Url} of {Root.Engine.Name}", LogCategories.C_VERBOSE);
 
-		if (Uni != null && Uni.Any()) {
-			foreach (var us in Uni) {
+		if (Uni != null && Uni.Any())
+		{
+			foreach (var us in Uni)
+			{
 
 				us?.Dispose();
 			}

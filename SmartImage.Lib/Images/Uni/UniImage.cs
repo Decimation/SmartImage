@@ -100,8 +100,6 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		Size  = Native.ERROR_SV;
 	}
 
-#region
-
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
@@ -200,16 +198,10 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return ok;
 	}
 
-#region
-
 	/// <summary>
 	/// Allocates <see cref="Image"/>
 	/// </summary>
 	public abstract Task<bool> AllocImageAsync(CancellationToken ct = default);
-
-#endregion
-
-#endregion
 
 	private ulong? TryCalculateHash()
 	{
@@ -282,7 +274,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 		fn ??= Path.GetTempFileName();
 
-		/*var encoder = new PngEncoder();
+		var encoder = new PngEncoder();
 		operation ??= _ => { };
 
 		// using ISImage image = ISImage.Load(Stream);
@@ -292,8 +284,9 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		image.Mutate(operation);
 		image.Save(fn, encoder);
 
-		// Stream.TrySeek();*/
-		Image.Save(fn);
+		// Stream.TrySeek();
+		// Image.Save(fn);
+		// Image.Mutate(operation);
 
 		return fn;
 	}

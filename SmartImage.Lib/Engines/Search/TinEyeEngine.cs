@@ -64,7 +64,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		try {
 			var str = await response.GetStringAsync();
 
-			tinEyeRoot = (TinEyeRoot) JsonSerializer.Deserialize(str, typeof(TinEyeRoot), Impl.Search.TinEyeContext.Default);
+			tinEyeRoot = (TinEyeRoot) JsonSerializer.Deserialize(str, typeof(TinEyeRoot), Search.TinEyeContext.Default);
 
 			// tinEyeRoot = await req.GetJsonAsync<TinEyeRoot>();
 		}
@@ -248,6 +248,7 @@ public class TinEyeRoot
 
 	[JsonPropertyName("query_source")]
 	public string QuerySource { get; set; }
+
 
 }
 

@@ -25,7 +25,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 #nullable disable
 
-public class IqdbEngine : WebSearchEngine, IEndpointUrl, IDisposable
+public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<IElement>>>, IEndpointUrl, IDisposable
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
@@ -40,6 +40,7 @@ public class IqdbEngine : WebSearchEngine, IEndpointUrl, IDisposable
 	{
 		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 
+		// ReSharper disable once VirtualMemberCallInConstructor
 		Timeout = TimeSpan.FromSeconds(90);
 	}
 
@@ -150,94 +151,61 @@ public class IqdbEngine : WebSearchEngine, IEndpointUrl, IDisposable
 
 	}
 
-	protected override async ValueTask<IEnumerable<TSource>> GetSource(IDocument d)
-	{
-		
-	}
-
-	protected override bool Validate(IDocument doc, SearchResult sr)
-	{
-		if (base.Validate(doc, sr))
-		{
-			if (doc is { Body: not null } && doc.GetElementsByClassName("err") is { Length: > 0 } err)
-			{
-				var fe = err[0];
-				sr.Status       = SearchResultStatus.UnknownError;
-				sr.ErrorMessage = $"{fe.TextContent}";
-				return false;
-			}
-
-		}
-
-	ret:
-		return true;
-	}
-
-	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
-	{
-		// Don't select other results
-
-		var sr = await base.GetResultAsync(query, token);
-
-		IDocument doc = null;
-
-		if (sr.Status == SearchResultStatus.IllegalInput)
-		{
-			goto ret;
-		}
-
-		doc = await GetDocumentAsync(query, token);
-
-		if (!Validate(doc, sr))
-		{
-			goto ret;
-		}
-
-		// No relevant results?
-		var ns = doc.Body?.QuerySelector(Serialization.S_Iqdb_NoMatches);
-
-		if (ns != null)
-		{
-
-			sr.Flags |= SearchResultFlags.NoResults;
-			goto ret;
-		}
-
-		var nodes = await GetNodes(doc);
-		var items = await GetItems(nodes, sr);
-
-		// XPATH //body/div/div/table
-
-		// First is original image
-		// images.RemoveAt(0);
-
-		// var best = images[0];
-		// sr.PrimaryResult.UpdateFrom(best);
-		// sr.Results.AddRange(images);
-
-		/*sr.Results.Quality = sr.PrimaryResult.Similarity switch
-		{
-			>= 75 => ResultQuality.High,
-			_ or null => ResultQuality.NA,
-		};*/
-
-	ret:
-		doc?.Dispose();
-		sr.Update();
-		Logger.LogDebug("Disposing {Name} doc", Name);
-		return sr;
-	}
-
-
-	protected override ValueTask<IEnumerable<INode>> GetNodes(IDocument d)
+	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> GetSource(IDocument d)
 	{
 		var pages  = d.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes(Serialization.S_Iqdb_DivTable);
 
-		var select = tables.SelectMany(table => ((IHtmlElement) table).QuerySelectorAll(Serialization.S_Iqdb_Table)).Cast<INode>();
+		var select = tables.Select(table => ((IHtmlElement) table)
+			                           .QuerySelectorAll(Serialization.S_Iqdb_Table)).Skip(1);
 
 		return ValueTask.FromResult(select);
 	}
+
+	protected override ValueTask<IEnumerable<IqdbItem>> GetItems(IEnumerable<IHtmlCollection<IElement>> ree, SearchResult r)
+	{
+		var buf = new List<IqdbItem>();
+
+		foreach (var c in ree)
+		{
+			var iq = IqdbItem.ParseResultItem(c, r);
+			buf.Add(iq);
+		}
+
+		return ValueTask.FromResult<IEnumerable<IqdbItem>>(buf);
+	}
+
+	protected override bool Validate(IDocument doc, SearchResult sr)
+	{
+		var b = base.Validate(doc, sr);
+
+		if (!b)
+			goto ret;
+
+		if (doc is { Body: not null } bod)
+		{
+
+			if (doc.GetElementsByClassName("err") is { Length: > 0 } err)
+			{
+				var fe = err[0];
+				sr.Status       = SearchResultStatus.UnknownError;
+				sr.ErrorMessage = $"{fe.TextContent}";
+				b               = false;
+				goto ret;
+			}
+
+			if (bod.QuerySelector(Serialization.S_Iqdb_NoMatches) != null)
+			{
+				sr.Flags |= SearchResultFlags.NoResults;
+				b = false;
+			}
+		}
+
+
+	ret:
+		return b;
+	}
+
 
 	public override void Dispose()
 	{
@@ -252,8 +220,11 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 
 	private IqdbItem(SearchResult r) : base(r) { }
 
-	public static ValueTask<IqdbItem> ParseResultItem(IHtmlCollection<IElement> tr, SearchResult r)
+#region Implementation of ISourceItemParseable<in INode,out IqdbItem>
+
+	public static IqdbItem ParseResultItem(IHtmlCollection<IElement> tr, SearchResult r)
 	{
+
 
 		var caption = tr[0];
 		var img     = tr[1];
@@ -333,7 +304,7 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 			uri = null;
 		}
 
-		var result = new SearchResultItem(r)
+		var result = new IqdbItem(r)
 		{
 			Url            = uri,
 			Similarity     = sim,
@@ -349,7 +320,9 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 
 		// r.Results.Add(result);
 
-		return ValueTask.FromResult<IqdbItem>(result);
+		return result;
 	}
+
+#endregion
 
 }

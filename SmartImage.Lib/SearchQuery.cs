@@ -18,7 +18,6 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Engines.Upload;
