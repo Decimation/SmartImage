@@ -110,11 +110,11 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		return ValueTask.FromResult<IList<INode>>(nodes);
 	}
 
-	protected override ValueTask<IEnumerable<GoogleLensItem>> GetItems(IList<INode> rs, SearchResult r)
+	protected override ValueTask<IEnumerable<GoogleLensItem>> GetItems(IList<INode> source, SearchResult r)
 	{
-		var buf = new List<GoogleLensItem>(rs.Count);
+		var buf = new List<GoogleLensItem>(source.Count);
 
-		foreach (INode node in rs)
+		foreach (INode node in source)
 		{
 			buf.Add(GoogleLensItem.ParseResultItem(node, r));
 		}

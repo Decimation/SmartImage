@@ -28,11 +28,10 @@ using Kantan.Utilities;
 using Microsoft.VisualBasic.FileIO;
 using Microsoft.Win32;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Impl.Search;
-using SmartImage.Lib.Engines.Impl.Upload;
+using SmartImage.Lib.Engines.Search;
+using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
@@ -260,7 +259,8 @@ public partial class MainWindow
 		// ClearQueue();
 		// ClearResults(true);
 		ReloadToken();
-		await Client.LoadEnginesAsync();
+		//todo
+		await Config.LoadEnginesAsync(Client.Engines, m_ctsRun.Token);
 		e.Handled = true;
 	}
 

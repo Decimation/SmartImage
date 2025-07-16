@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Utilities;
 
@@ -40,6 +43,20 @@ public static class SearchUtil
 		}
 
 		return false;
+	}
+
+	public static string GetHash(SearchQuery q)
+	{
+		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
+		using Stream stream = q.Source.Image.ToStream();
+		var          data   = MD5.HashData(stream);
+		var          b64    = Convert.ToBase64String(data).Replace("==", "");
+		b64 = Regex.Replace(b64, @"\//", "_");
+		b64 = Regex.Replace(b64, @"\+", "-");
+
+		// q.Source.Stream.TrySeek();
+
+		return b64;
 	}
 
 }

@@ -298,7 +298,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public virtual void Dispose()
 	{
 		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
-
+		
 		// Stream?.Dispose();
 		Image?.Dispose();
 
@@ -306,13 +306,10 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		// ImageInfo?.Dispose();
 	}
 
-	public virtual async ValueTask DisposeAsync()
+	public virtual ValueTask DisposeAsync()
 	{
-		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
-
-		/*if (Stream != null)
-			await Stream.DisposeAsync();*/
-		Image?.Dispose();
+		Dispose();
+		return ValueTask.CompletedTask;
 
 
 	}

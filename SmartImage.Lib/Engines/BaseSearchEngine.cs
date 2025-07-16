@@ -44,7 +44,8 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			builder.OnError(f =>
 			{
 				// Debugger.Break();
-				Logger.LogError(f.Exception, $"from {f.Request}");
+				Logger.LogError(f.Exception, "Request: {Req}", f.Request);
+
 			});
 
 			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));

@@ -81,7 +81,8 @@ public class UniImageUri : UniImage
 			throw new ArgumentException($"{value}");
 		}*/
 
-		var req1 = await ImageScanner.Client.Request(value).GetAsync(cancellationToken: ct);
+		var req1 = await ImageScanner.Client.Request(value)
+			           .GetAsync(cancellationToken: ct);
 
 		// var req  = ValueTask.FromResult(req1);
 

@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Data;
-using SmartImage.Lib.Results.Data;
+using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.UI.Model;
 
 namespace SmartImage.UI.Controls.Converters;

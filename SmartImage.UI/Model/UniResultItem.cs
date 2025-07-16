@@ -20,7 +20,6 @@ using Novus.Streams;
 using Novus.Win32;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Results.Data;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Integration;
 using SmartImage.UI.Controls;
@@ -31,7 +30,7 @@ namespace SmartImage.UI.Model;
 public class UniResultItem : ResultItem
 {
 
-	#region
+#region
 
 	public override bool CanLoadImage => !HasImage && Uni != null;
 
@@ -39,8 +38,9 @@ public class UniResultItem : ResultItem
 	{
 		get
 		{
-			if (Uni != null) {
-				return Uni.Stream.Length;
+			if (Uni != null)
+			{
+				return Uni.Size;
 			}
 
 			return Native.ERROR_SV;
@@ -51,7 +51,8 @@ public class UniResultItem : ResultItem
 	{
 		get
 		{
-			if (UniIndex.HasValue && Result.Uni != null) {
+			if (UniIndex.HasValue && Result.Uni != null)
+			{
 				return Result.Uni[UniIndex.Value];
 
 			}
@@ -64,43 +65,49 @@ public class UniResultItem : ResultItem
 
 	public int? UniIndex { get; }
 
-	#endregion
+#endregion
 
 	public UniResultItem(ResultItem ri, int? idx)
 		: base(ri.Result, $"{ri.Name} ({idx})")
 	{
 		UniIndex = idx;
 
-		if (Uni == null) {
+		if (Uni == null)
+		{
 			Debugger.Break();
 		}
 
-		if (Uni != null) {
-			if (Uni.IsStream) {
+		if (Uni != null)
+		{
+			if (Uni.IsStream)
+			{
 				// todo: update GetFileName
 				Url = ri.Url.GetFileName().Split(':')[0];
 
-				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url)) && Uni.HasImageFormat) {
+				if (String.IsNullOrWhiteSpace(Path.GetExtension(Url)) && Uni.HasImageFormat)
+				{
 
 					Url = Path.ChangeExtension(Url, Uni.ImageFormat?.FileExtensions.First());
 				}
 			}
-			else {
+			else
+			{
 				Url = Uni.Value.ToString();
 
 			}
 
 			// StatusImage = Image;
 		}
-		else {
+		else
+		{
 			Image = null;
 		}
 
 		StatusImage = AppComponents.picture;
 
 		// SizeFormat  = ControlsHelper.FormatSize(Uni);
-		Hash = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Stream));
-		Uni.Stream.TrySeek();
+		Hash = HashHelper.Sha256.ToString(SHA256.HashData(Uni.Image.ToStream()));
+		// Uni.Stream.TrySeek();
 
 	}
 
@@ -125,7 +132,8 @@ public class UniResultItem : ResultItem
 
 		// Properties &= ResultItemProperties.Thumbnail;
 
-		if (Image is { CanFreeze: true }) {
+		if (Image is { CanFreeze: true })
+		{
 			Image.Freeze();
 		}
 
@@ -133,10 +141,12 @@ public class UniResultItem : ResultItem
 
 	public override bool LoadImage()
 	{
-		if (HasImage) {
+		if (HasImage)
+		{
 			return true;
 		}
-		else if (!CanLoadImage) {
+		else if (!CanLoadImage)
+		{
 			return false;
 		}
 
@@ -144,8 +154,8 @@ public class UniResultItem : ResultItem
 			{ };
 		image.BeginInit();
 		Trace.Assert(Uni != null);
-		
-		image.StreamSource = Uni.Stream;
+
+		image.StreamSource = Uni.Image.ToStream();
 
 		// Image.StreamSource = Uni.Stream;
 		// m_image.StreamSource   = Query.Uni.Stream;
@@ -170,10 +180,12 @@ public class UniResultItem : ResultItem
 		string path;
 		Trace.Assert(Uni != null);
 
-		if (Uni.IsStream) {
+		if (Uni.IsStream)
+		{
 			path = Url;
 		}
-		else /*if (uni.IsUri)*/ {
+		else /*if (uni.IsUri)*/
+		{
 			var url = (Url) Uni.Value.ToString();
 			path = url.GetFileName();
 
@@ -182,17 +194,18 @@ public class UniResultItem : ResultItem
 		dir ??= BaseOSIntegration.Integration.PersonalPath;
 		var path2 = Path.Combine(dir, path);
 
-		var fs = File.OpenWrite(path2);
-		Uni.Stream.TrySeek();
+		var ok = Uni.TryWriteToFile(path2);
 
 		StatusImage = AppComponents.picture_save;
-		await Uni.Stream.CopyToAsync(fs);
 
-		if (exp) {
+		// await Uni.Stream.CopyToAsync(fs);
+
+		if (exp && ok)
+		{
 			FileSystem.ExploreFile(path2);
 		}
 
-		await fs.DisposeAsync();
+		// await fs.DisposeAsync();
 
 		CanDownload = false;
 		Download    = path2;

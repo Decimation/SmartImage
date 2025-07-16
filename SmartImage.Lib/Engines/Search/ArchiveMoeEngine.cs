@@ -10,6 +10,7 @@ using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -27,7 +28,7 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
-		Base64Hash = GetHash(query);
+		Base64Hash = SearchUtil.GetHash(query);
 
 		var r = Url.Combine(BaseUrl, "image", Base64Hash);
 		return r;
@@ -35,20 +36,6 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 		// return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 
-
-	protected static string GetHash(SearchQuery q)
-	{
-		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
-		using Stream stream = q.Source.Image.ToStream();
-		var          data   = MD5.HashData(stream);
-		var          b64    = Convert.ToBase64String(data).Replace("==", "");
-		b64 = Regex.Replace(b64, @"\//", "_");
-		b64 = Regex.Replace(b64, @"\+", "-");
-
-		// q.Source.Stream.TrySeek();
-
-		return b64;
-	}
 
 	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
@@ -66,11 +53,11 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 		return ValueTask.FromResult<IList<INode>>(d.Body.SelectNodes("//article[contains(@class,'post')]"));
 	}
 
-	protected override ValueTask<IEnumerable<ChanPost>> GetItems(IList<INode> rs, SearchResult r)
+	protected override ValueTask<IEnumerable<ChanPost>> GetItems(IList<INode> source, SearchResult r)
 	{
-		var buf = new List<ChanPost>(rs.Count);
+		var buf = new List<ChanPost>(source.Count);
 
-		foreach (INode node in rs)
+		foreach (INode node in source)
 		{
 			buf.Add(ChanPost.ParseResultItem(node, r));
 		}

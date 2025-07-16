@@ -118,7 +118,7 @@ public sealed class SearchClient : IDisposable
 	/// <param name="query">Search query</param>
 	/// <param name="scheduler"></param>
 	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine.GetResultAsync(SearchQuery,CancellationToken)"/></param>
-	public async Task<SearchResult[]> RunSearchAsync(SearchQuery query,
+	public async Task<bool> RunSearchAsync(SearchQuery query,
 	                                                 TaskScheduler scheduler = null,
 	                                                 CancellationToken token = default)
 	{
@@ -239,8 +239,9 @@ public sealed class SearchClient : IDisposable
 		IsRunning = false;
 
 		// return rg.ToArray();
-		return results;
+		// return results;
 
+		return true;
 	}
 
 	[return: MN]

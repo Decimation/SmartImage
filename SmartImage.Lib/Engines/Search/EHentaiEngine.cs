@@ -186,11 +186,11 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return ValueTask.FromResult((IList<INode>) array);
 	}
 
-	protected override ValueTask<IEnumerable<EhResult>> GetItems(IList<INode> n, SearchResult r)
+	protected override ValueTask<IEnumerable<EhResult>> GetItems(IList<INode> source, SearchResult r)
 	{
-		var buf = new List<EhResult>(n.Count);
+		var buf = new List<EhResult>(source.Count);
 
-		foreach (INode node in n)
+		foreach (INode node in source)
 		{
 			var eh =  EhResult.ParseResultItem(node, r);
 			buf.Add(eh);

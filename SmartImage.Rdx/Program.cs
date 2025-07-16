@@ -44,7 +44,6 @@ public static class Program
 		};*/
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
 #if DEBUG
 
 		// Debugger.Launch();
@@ -174,9 +173,12 @@ public static class Program
 			args = [sz];
 		}*/
 
+
+		
 		if (Console.IsInputRedirected)
 		{
 			Trace.WriteLine("Input redirected");
+
 			var pipeInput = ConsoleUtil.ParseInputStream();
 
 			var newArgs = new string[args.Length + 1];
@@ -187,6 +189,7 @@ public static class Program
 
 			AnsiConsole.WriteLine($"Received input from stdin");
 		}
+
 	}
 
 

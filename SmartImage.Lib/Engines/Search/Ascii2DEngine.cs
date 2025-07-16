@@ -141,11 +141,11 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return ValueTask.FromResult<IList<INode>>(nodes);
 	}
 
-	protected override ValueTask<IEnumerable<Ascii2DItem>> GetItems(IList<INode> rs, SearchResult r)
+	protected override ValueTask<IEnumerable<Ascii2DItem>> GetItems(IList<INode> source, SearchResult r)
 	{
-		var buf = new List<Ascii2DItem>(rs.Count);
+		var buf = new List<Ascii2DItem>(source.Count);
 
-		foreach (var node in rs)
+		foreach (var node in source)
 		{
 			var item = Ascii2DItem.ParseResultItem(node, r);
 			buf.Add(item);

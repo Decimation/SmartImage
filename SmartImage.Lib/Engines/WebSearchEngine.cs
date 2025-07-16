@@ -64,7 +64,7 @@ public abstract class WebSearchEngine<TResultItem,  TSource> : BaseSearchEngine 
 
 	protected abstract ValueTask<TSource> GetSource(IDocument d);
 
-	protected abstract ValueTask<IEnumerable<TResultItem>> GetItems(TSource rs, SearchResult r);
+	protected abstract ValueTask<IEnumerable<TResultItem>> GetItems(TSource source, SearchResult r);
 
 	[ICBN]
 	[MURV]

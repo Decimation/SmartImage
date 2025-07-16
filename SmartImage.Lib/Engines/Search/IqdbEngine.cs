@@ -57,7 +57,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 	];
 
 
-	private async Task<IDocument> GetDocumentAsync(SearchQuery query, CancellationToken ct)
+	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 
 		IDocument document = null;
@@ -94,7 +94,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 					               m.AddString("url", query.Upload);
 
 					               return;
-				               }, cancellationToken: ct);
+				               }, cancellationToken: token);
 
 			/*
 			var response = await Client.Request(URL_QUERY)
@@ -119,7 +119,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 				var s = await response.GetStringAsync().ConfigureAwait(false);
 
 				var parser = new HtmlParser();
-				document = await parser.ParseDocumentAsync(s, ct).ConfigureAwait(false);
+				document = await parser.ParseDocumentAsync(s, token).ConfigureAwait(false);
 
 				// goto ret;
 
@@ -162,11 +162,11 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		return ValueTask.FromResult(select);
 	}
 
-	protected override ValueTask<IEnumerable<IqdbItem>> GetItems(IEnumerable<IHtmlCollection<IElement>> ree, SearchResult r)
+	protected override ValueTask<IEnumerable<IqdbItem>> GetItems(IEnumerable<IHtmlCollection<IElement>> source, SearchResult r)
 	{
 		var buf = new List<IqdbItem>();
 
-		foreach (var c in ree)
+		foreach (var c in source)
 		{
 			var iq = IqdbItem.ParseResultItem(c, r);
 			buf.Add(iq);
@@ -219,8 +219,6 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }
-
-#region Implementation of ISourceItemParseable<in INode,out IqdbItem>
 
 	public static IqdbItem ParseResultItem(IHtmlCollection<IElement> tr, SearchResult r)
 	{
@@ -322,7 +320,5 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 
 		return result;
 	}
-
-#endregion
 
 }

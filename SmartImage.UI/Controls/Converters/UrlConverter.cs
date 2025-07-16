@@ -11,27 +11,29 @@ namespace SmartImage.UI.Controls.Converters;
 [ValueConversion(typeof(Url), typeof(string))]
 public class UrlConverter : IValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        if (value == null)
-        {
-            return null;
-        }
 
-        var date = (Url)value;
-        return date.ToString();
-    }
+	public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		if (value == null)
+		{
+			return null;
+		}
 
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        if (value == null)
-        {
-            return null;
-        }
+		var date = (Url) value;
+		return date.ToString();
+	}
 
-        string strValue = value as string;
-        Url resultDateTime;
+	public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+	{
+		if (value == null)
+		{
+			return null;
+		}
 
-        return (Url)strValue;
-    }
+		string strValue = value as string;
+		Url    resultDateTime;
+
+		return (Url) strValue;
+	}
+
 }

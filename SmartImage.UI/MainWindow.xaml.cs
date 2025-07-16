@@ -42,8 +42,7 @@ using Novus.OS;
 using Novus.Streams;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Impl.Upload;
-using SmartImage.Lib.Results;
+using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Utilities;
 using Flurl.Http;
 using SmartImage.UI.Model;
@@ -66,6 +65,7 @@ using System.Buffers;
 using System.Reflection;
 // using DynamicData;
 using SmartImage.Lib.Clients;
+using SmartImage.Lib.Engines.Results;
 using SmartImage.UI.Controls;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
@@ -736,9 +736,9 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		// HandleQueryAsync();
 		try {
-			Client.OpenChannel();
+			/*Client.OpenChannel();
 
-			await Client.LoadEnginesAsync(m_ctsRun.Token);
+			await Config.LoadEnginesAsync(Client.Engines,m_ctsRun.Token);*/
 
 			var r = Client.RunSearchAsync(Query, token: m_ctsRun.Token,
 			                              scheduler: TaskScheduler.FromCurrentSynchronizationContext());
@@ -779,7 +779,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private void OnResult(object o, SearchResult result)
 	{
 		++m_cntResults;
-		var cle = Client.Engines.Count;
+		var cle = Client.Engines.Length;
 
 		Tb_Status.Text   = $"{m_cntResults}/{cle} | {(DateTime.Now - SearchStart).TotalSeconds:F3} sec";
 		Pb_Preview.Value = (m_cntResults / (double) cle) * 100;

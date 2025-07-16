@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Kantan.Utilities;
 using SmartImage.Lib.Engines;
-using SmartImage.Lib.Engines.Impl.Upload;
+using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 
@@ -124,11 +124,8 @@ public static class ControlsHelper
 	{
 		string bytes;
 
-		if (!uni.Stream.CanRead) {
-			bytes = "???";
-		}
-		else
-			bytes = FormatHelper.FormatBytes(uni.Stream.Length);
+		bytes = FormatHelper.FormatBytes(uni.Size);
+
 
 		return bytes;
 	}

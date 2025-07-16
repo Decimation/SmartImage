@@ -184,14 +184,24 @@ public class TraceMoeDoc
 	public Url AnilistUrl { get; }
 
 	[JsonConstructor]
-	public TraceMoeDoc()
+	public TraceMoeDoc(double from, double to, long anilist, string filename, object episode, double similarity, string video, string image)
 	{
+		From       = from;
+		To         = to;
+		Anilist    = anilist;
+		Filename   = filename;
+		Episode    = episode;
+		Similarity = similarity;
+		Video      = video;
+		Image      = image;
+
 		AnilistUrl = Url.Combine(AnilistClient.ANILIST_URL, Anilist.ToString());
 
 		EpisodeString = Episode switch
 		{
 			not null and string => Episode.ToString(),
-
+			long l => l.ToString(),
+			JsonElement e => e.ToString(),
 			IEnumerable e => e.Cast<object>()
 				.Select(x =>
 				{
@@ -207,8 +217,8 @@ public class TraceMoeDoc
 
 			_ => string.Empty
 		};
-
 	}
+
 
 	public async ValueTask<SearchResultItem> ToItem(SearchResult sr)
 	{
