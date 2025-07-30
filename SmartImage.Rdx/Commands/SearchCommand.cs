@@ -82,10 +82,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
 
-	static SearchCommand()
-	{
-
-	}
+	static SearchCommand() { }
 
 	public SearchCommand()
 	{
@@ -132,8 +129,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
 
-		if (Query == SearchQuery.Null)
-		{
+		if (Query == SearchQuery.Null) {
 			// throw new SmartImageException($"Could not create query"); //todo
 
 			ok = false;
@@ -148,8 +144,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		p.Description = "Uploading query";
 		var url = await Query.UploadAsync();
 
-		if (url == null)
-		{
+		if (url == null) {
 			// throw new SmartImageException("Could not upload query"); //todo
 			ok = false;
 			goto ret;
@@ -169,12 +164,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			.AutoRefresh(true)
 			.StartAsync(InitQueryAsync);
 
-		try
-		{
+		try {
 			var ok = await task;
 
-			if (ok)
-			{
+			if (ok) {
 				var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
 
 				var panel = new Panel(ci)
@@ -185,13 +178,11 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 				await InitConfigAsync(ok);
 
 			}
-			else
-			{
+			else {
 				throw new SmartImageException("Could not upload query");
 			}
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			AnsiConsole.WriteException(e);
 			return BaseOSIntegration.EC_ERROR;
 		}
@@ -216,17 +207,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 #endif
 
-		if (!String.IsNullOrWhiteSpace(m_scs.Command))
-		{
+		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
 			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
 			                       TaskContinuationOptions.OnlyOnRanToCompletion,
 			                       TaskScheduler.Default);
 		}
 
-		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile))
-		{
-			switch (m_scs.OutputFileFormat)
-			{
+		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
+			switch (m_scs.OutputFileFormat) {
 
 				case OutputFileFormat.None:
 					break;
@@ -247,16 +235,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		Task run2;
 
-		if (m_scs.Interactive)
-		{
+		if (m_scs.Interactive) {
 			run2 = RunInteractiveAsync(m_cts.Token);
 
 			// run2 = ShowImageScanResultsAsync(item);
 			await run2;
 		}
 
-		if (m_scs.KeepOpen)
-		{
+		if (m_scs.KeepOpen) {
 			await AnsiConsole.ConfirmAsync("Exit", cancellationToken: m_cts.Token);
 		}
 
@@ -268,35 +254,28 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	{
 		string cmd = null;
 
-		do
-		{
+		do {
 			var res = GetEnginePrompt();
 
 			var (sri, ui) = GetResultItemPrompt(res);
 
-			if (sri is not null)
-			{
+			if (sri is not null) {
 				cmd = GetCommandPrompt();
 
-				if (cmd == R2.Chc_Open)
-				{
+				if (cmd == R2.Chc_Open) {
 					SearchClient.OpenResult(sri.Url);
 					continue;
 				}
-				else if (cmd == R2.Chc_Scan)
-				{
+				else if (cmd == R2.Chc_Scan) {
 					var imgScanOk = await ShowImageScanResultsAsync(sri, ct);
 
-					if (imgScanOk)
-					{
+					if (imgScanOk) {
 						continue;
 					}
 				}
 
-				if (cmd == R2.Chc_Calc)
-				{
-					if (ui is null || ui.Similarity.HasValue)
-					{
+				if (cmd == R2.Chc_Calc) {
+					if (ui is null || ui.Similarity.HasValue) {
 						continue;
 					}
 
@@ -304,8 +283,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					{
 						var hashOk = ui.TryCalculateSimilarity(Query.Source);
 
-						if (hashOk)
-						{
+						if (hashOk) {
 							var row = GetRowForUni(ui);
 							m_table.Rows.Update(row, 2, new Text(ui.Similarity.ToString()));
 							f.Refresh();
@@ -317,33 +295,27 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					continue;
 				}
 
-				if (cmd == R2.Chc_Preview)
-				{
+				if (cmd == R2.Chc_Preview) {
 
 					//todo
 					Stream str;
 
-					if (ui is not null)
-					{
+					if (ui is not null) {
 						str = ui.Image.ToStream();
 					}
-					else if (sri.Thumbnail != null)
-					{
+					else if (sri.Thumbnail != null) {
 						var thmbOk = await sri.LoadThumbnail(ct);
 
-						if (thmbOk)
-						{
+						if (thmbOk) {
 							ui  = sri.Uni.Find(f => f.ValueString == sri.Thumbnail);
 							str = ui.Image.ToStream();
 						}
-						else
-						{
+						else {
 							continue;
 						}
 
 					}
-					else
-					{
+					else {
 						continue;
 					}
 
@@ -354,8 +326,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 						AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
 						RemovedCallback = arguments =>
 						{
-							switch (arguments.RemovedReason)
-							{
+							switch (arguments.RemovedReason) {
 
 								case CacheEntryRemovedReason.Removed:
 									break;
@@ -384,10 +355,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					// string key = sri.Url.ToString();
 
 					var key = ui.ValueString;
-					var val   = m_cache.Get(key);
+					var val = m_cache.Get(key);
 
-					if (val is not Stream)
-					{
+					if (val is not Stream) {
 						m_cache.Set(key, str, cip);
 					}
 
@@ -401,55 +371,66 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 						var ci = new CanvasImage(str);
 						ci.MaxWidth ??= ci.Width;
 
-						/*lay.SplitRows();
-						lay["Left"].Update(ci);
-						lay["btm"].Update(new Text($""));*/
+						// var panel = new Panel(ci);
+						// panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
 
-
-						while (true)
+						AnsiConsole.Live(ci).Start((ldc) =>
 						{
-							AnsiConsole.Clear();
-							AnsiConsole.Write(ci);
 
-							var cki = AnsiConsole.Console.Input.ReadKey(true);
+							while (true) {
+								/*AnsiConsole.Clear();
+								AnsiConsole.Write(ci);*/
 
-							if (cki.HasValue)
-							{
-								int mw = 0, pw = 0;
+								var cki = AnsiConsole.Console.Input.ReadKey(true);
 
-								switch (cki.Value.Key)
-								{
-									case ConsoleKey.DownArrow:
-										pw = -1;
-										break;
+								if (cki.HasValue) {
+									int mw = 0, pw = 0;
 
-									case ConsoleKey.LeftArrow:
-										mw = -1;
-										break;
+									switch (cki.Value.Key) {
+										case ConsoleKey.DownArrow:
+											pw = -1;
+											break;
 
-									case ConsoleKey.UpArrow:
-										pw = 1;
-										break;
+										case ConsoleKey.LeftArrow:
+											mw = -1;
+											break;
 
-									case ConsoleKey.RightArrow:
-										mw = 1;
-										break;
+										case ConsoleKey.UpArrow:
+											pw = 1;
+											break;
 
-									case ConsoleKey.Escape:
-										return;
+										case ConsoleKey.RightArrow:
+											mw = 1;
+											break;
+
+										case ConsoleKey.Escape:
+											return;
+
+										case ConsoleKey.R:
+											ci.MaxWidth = ui.Image.Width;
+
+											// ci.PixelWidth =   0;
+											break;
+
+										case ConsoleKey.A:
+											ci.MaxWidth = AnsiConsole.Profile.Width;
+											break;
+									}
+
+									if (mw != 0 || pw != 0) {
+										ci.PixelWidth = Math.Clamp(ci.PixelWidth     + pw, 0, ci.Width);
+										ci.MaxWidth   = Math.Clamp(ci.MaxWidth.Value + mw, 0, AnsiConsole.Profile.Width);
+
+									}
 								}
 
-
-								ci.PixelWidth = Math.Clamp(ci.PixelWidth + pw, 0, ci.Width);
-
-
-								// if (ci.MaxWidth.HasValue) { }
-								ci.MaxWidth = Math.Clamp(ci.MaxWidth.Value + mw, 0, AnsiConsole.Profile.Width);
+								// lay["btm"].Update(new Text($"{ci.MaxWidth} / {ci.PixelWidth}"));
+								Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
+								ldc.Refresh();
 							}
 
-							// lay["btm"].Update(new Text($"{ci.MaxWidth} / {ci.PixelWidth}"));
+						});
 
-						}
 
 						return;
 					});
@@ -475,8 +456,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		var search = Client.RunSearchAsync(Query, token: m_cts.Token);
 
-		while (await Client.ResultChannel.Reader.WaitToReadAsync(token))
-		{
+		while (await Client.ResultChannel.Reader.WaitToReadAsync(token)) {
 			var task = Client.ResultChannel.Reader.ReadAsync(token);
 
 			var result = await task;
@@ -496,8 +476,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 			m_results[result] = m_table.Rows.Count;
 
-			foreach (IRenderable[] row in rows)
-			{
+			foreach (IRenderable[] row in rows) {
 				m_table.AddRow(row);
 			}
 
@@ -509,7 +488,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		await search;
 
 	}
-
 
 
 	private async ValueTask<bool> ShowImageScanResultsAsync(SearchResultItem item, CancellationToken token = default)
@@ -530,23 +508,20 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 		{
-			if (!item.HasUni)
-			{
+			if (!item.HasUni) {
 
 				// var ok = await r.ScanAsync();
 				Trace.WriteLine($"Scanning {item}");
 				var resOk = await item.ScanAsync(token);
 
-				if (!resOk)
-				{
+				if (!resOk) {
 					// Debugger.Break();
 					ok = false;
 					return;
 
 				}
 			}
-			else
-			{
+			else {
 				return;
 			}
 
@@ -556,15 +531,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			var delta   = item.Uni.Count;
 			var idx     = item.Root.Results.IndexOf(item);
 
-			foreach (var ui in item.Uni)
-			{
+			foreach (var ui in item.Uni) {
 				m_table.InsertRow(++row, CreateUniImageRow(ui, item, idx, i++));
 			}
 
-			foreach (var kv in m_results)
-			{
-				if (kv.Value >= rowOrig)
-				{
+			foreach (var kv in m_results) {
+				if (kv.Value >= rowOrig) {
 					m_results[kv.Key] = kv.Value + delta;
 
 				}
@@ -585,8 +557,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		var stdOutBuffer = new StringBuilder();
 		var stdErrBuffer = new StringBuilder();
 
-		if (!String.IsNullOrWhiteSpace(cmdArgs))
-		{
+		if (!String.IsNullOrWhiteSpace(cmdArgs)) {
 			command = command.WithArguments(cmdArgs);
 		}
 
@@ -627,10 +598,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
 
-		foreach (SearchResult sr in m_results.Keys)
-		{
-			for (int j = 0; j < sr.Results.Count; j++)
-			{
+		foreach (SearchResult sr in m_results.Keys) {
+			for (int j = 0; j < sr.Results.Count; j++) {
 				var sri = sr.Results[j];
 
 				var rg = new List<string>();
@@ -665,18 +634,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private SearchResultItem GetItemForUni(UniImage ui, out int uniIndex)
 	{
-		foreach (SearchResult sr in m_results.Keys)
-		{
-			foreach (var sri in sr.Results)
-			{
-				if (sri.HasUni)
-				{
-					for (int k = 0; k < sri.Uni.Count; k++)
-					{
+		foreach (SearchResult sr in m_results.Keys) {
+			foreach (var sri in sr.Results) {
+				if (sri.HasUni) {
+					for (int k = 0; k < sri.Uni.Count; k++) {
 						UniImage ui2 = sri.Uni[k];
 
-						if (ui == ui2)
-						{
+						if (ui == ui2) {
 							uniIndex = k;
 							return sri;
 						}
@@ -700,6 +664,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return a + b;
 
 	}
+
 	private int GetRowForUni(UniImage ui)
 	{
 		int a = 0, b = 0, c = 0;
@@ -724,8 +689,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		{
 			ret = Parse(str);
 
-			if (ret is (null, null))
-			{
+			if (ret is (null, null)) {
 				return ValidationResult.Error();
 			}
 
@@ -744,11 +708,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			SearchResultItem sri = null;
 			UniImage         ui  = UniImage.Null;
 
-			if (res.Results.TryParseIndex(spl[0], out sri))
-			{
+			if (res.Results.TryParseIndex(spl[0], out sri)) {
 
-				if (spl.Length == 2)
-				{
+				if (spl.Length == 2) {
 
 					if (sri.Uni.TryParseIndex(spl[1], out ui)) { }
 				}
@@ -765,8 +727,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	{
 		ConsoleFormat.Prm_Num.Validator = i =>
 		{
-			if (i < result.Results.Count && i >= 0)
-			{
+			if (i < result.Results.Count && i >= 0) {
 				return ValidationResult.Success();
 			}
 
@@ -784,8 +745,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private SearchResult GetEnginePrompt()
 	{
-		if (Client.IsComplete && !ConsoleFormat.Prm_Engine.Choices.Any())
-		{
+		if (Client.IsComplete && !ConsoleFormat.Prm_Engine.Choices.Any()) {
 			ConsoleFormat.Prm_Engine.Choices.AddRange(m_results.Keys);
 		}
 
@@ -849,8 +809,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		// Debug.WriteLine($"{lr} {lrr} {lrr2}");
 
-		for (int i = 0; i < result.Results.Count; i++)
-		{
+		for (int i = 0; i < result.Results.Count; i++) {
 			var res = result.Results[i];
 
 			yield return CreateResultItemRows(res, i, style);
@@ -865,12 +824,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		IRenderable url;
 		var         link = res.Url;
 
-		if (link != null)
-		{
+		if (link != null) {
 			url = new Markup(Markup.Escape(link.ToString()), new Style(link: link));
 		}
-		else
-		{
+		else {
 			url = ConsoleFormat.Txt_NA;
 		}
 
@@ -920,8 +877,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	{
 		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
 
-		foreach (var sr in m_results.Keys)
-		{
+		foreach (var sr in m_results.Keys) {
 			sr.Dispose();
 		}
 
@@ -933,6 +889,5 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Client.Dispose();
 		Query.Dispose();
 	}
-
 
 }

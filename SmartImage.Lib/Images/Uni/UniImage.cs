@@ -2,19 +2,23 @@
 // Date: 2024/05/02 @ 10:05:55
 
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
-using System.Diagnostics;
+using CoenM.ImageHash;
+using Kantan.Diagnostics;
+using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
 using Novus.FileTypes.Uni;
 using Novus.Streams;
 using Novus.Win32;
-using CoenM.ImageHash;
-using Kantan.Diagnostics;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Utilities.Diagnostics;
+using System.Diagnostics;
+// ReSharper disable InconsistentNaming
+
 
 #pragma warning disable CS0168 // Variable is declared but never used
 
@@ -47,6 +51,13 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(Stream))]
 	public bool HasStream => Stream != null && Stream != Stream.Null;*/
 
+	protected static readonly ILogger s_logger;
+
+	static UniImage()
+	{
+		s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
+	}
+
 	public object Value { get; protected init; }
 
 	public UniImageType Type { get; }
@@ -62,12 +73,6 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(FilePath))]
 	public bool HasFile => FilePath != null && File.Exists(FilePath);
 
-	[MN]
-	public IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
-
-	[MNNW(true, nameof(ImageFormat))]
-	public bool HasImageFormat => ImageFormat != null;
-
 	/*[MNNW(true, nameof(Image), nameof(Image.Metadata))]
 	public bool HasImageFormat => HasImage && Image.Metadata.DecodedImageFormat != null;*/
 
@@ -78,6 +83,12 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public bool IsStream => Type == UniImageType.Stream;
 
 	public bool IsUnknown => Type == UniImageType.Unknown;
+
+	[MN]
+	public IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
+
+	[MNNW(true, nameof(ImageFormat))]
+	public bool HasImageFormat => ImageFormat != null;
 
 	[MN]
 	public Image<Rgba32> Image { get; protected set; }
@@ -110,37 +121,29 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		UniImage ui  = Null;
 		Stream   str = Stream.Null;
 
-		try
-		{
+		try {
 
-			if (UniImageFile.IsFileType(o, out var fi))
-			{
+			if (UniImageFile.IsFileType(o, out var fi)) {
 				ui = new UniImageFile((string) o, fi);
 			}
-			else if (UniImageUri.IsUriType(o, out var url2))
-			{
+			else if (UniImageUri.IsUriType(o, out var url2)) {
 				ui = new UniImageUri(o, url2);
 			}
-			else if (o is Stream stream)
-			{
+			else if (o is Stream stream) {
 				ui = new UniImageStream(o, stream);
 			}
-			else
-			{
+			else {
 				goto ret;
 			}
 
-			if (autoInit)
-			{
+			if (autoInit) {
 				// var allocOk = await ui.AllocAsync(ct);
 
 				bool allocImgOk = await ui.AllocImageAsync(ct);
 
 
-				if (autoDisposeOnError)
-				{
-					if (!allocImgOk)
-					{
+				if (autoDisposeOnError) {
+					if (!allocImgOk) {
 						ui.Dispose();
 						ui = Null;
 
@@ -150,8 +153,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 			}
 
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			// str?.Dispose();
 			Trace.WriteLine($"{nameof(TryCreateAsync)} :: failed with exception {e.Message}");
 		}
@@ -188,8 +190,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		bool isStream = UniImageStream.IsStreamType(str, out var f3);
 		bool ok       = isFile || isUri || isStream;
 
-		if (isFile && checkExt)
-		{
+		if (isFile && checkExt) {
 			//todo
 			string ext = Path.GetExtension(str.ToString())?[1..];
 			return FileType.Image.Any(x => x.Subtype == ext);
@@ -205,23 +206,20 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	private ulong? TryCalculateHash()
 	{
-		if (!HasImage)
-		{
+		if (!HasImage) {
 			throw new InvalidOperationException();
 		}
 
 		ulong? hash;
 
-		try
-		{
+		try {
 			// Stream.TrySeek();
 			hash = ImageScanner.ImageHasher.Hash(Image);
 
 			// Stream.TrySeek();
 
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			hash = null;
 		}
 		finally { }
@@ -248,8 +246,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public bool TryWriteToFile(string fn = null)
 	{
-		if (!HasFile)
-		{
+		if (!HasFile) {
 			FilePath = WriteToFile(fn);
 		}
 
@@ -258,8 +255,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public bool TryDeleteFile()
 	{
-		if (HasFile)
-		{
+		if (HasFile) {
 			File.Delete(FilePath);
 			FilePath = null;
 		}
@@ -270,8 +266,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MURV]
 	public virtual string WriteToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
 	{
-		if (!HasImage)
-		{
+		if (!HasImage) {
 			throw new InvalidOperationException();
 		}
 
@@ -298,7 +293,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public virtual void Dispose()
 	{
 		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
-		
+
 		// Stream?.Dispose();
 		Image?.Dispose();
 

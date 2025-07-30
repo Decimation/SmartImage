@@ -128,8 +128,17 @@ public static class ImageScanner
 		// If format is not specified, use the image's decoded format if available
 		format ??= image.Metadata.DecodedImageFormat;
 		image.Save(ms, format);
-		ms.Position = 0; // Reset position for reading
+		ms.Rewind();
+
 		return ms;
+	}
+
+	[MURV]
+	public static byte[] ToBytes(this Image image, IImageFormat format = null)
+	{
+		using var ms = (MemoryStream) image.ToStream(format);
+
+		return ms.ToArray();
 	}
 
 	/// <summary>

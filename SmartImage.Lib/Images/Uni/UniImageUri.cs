@@ -4,6 +4,7 @@
 using System.Collections.Immutable;
 using System.Net;
 using Flurl.Http;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.PixelFormats;
 
 namespace SmartImage.Lib.Images.Uni;
@@ -43,8 +44,6 @@ public class UniImageUri : UniImage
 
 	public static readonly ImmutableArray<string> LegalSchemes = ["http", "https"];
 
-#region Overrides of UniImage
-
 	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
@@ -63,6 +62,7 @@ public class UniImageUri : UniImage
 
 			}
 			catch (Exception exception) {
+				s_logger.LogError(exception, "{Func}", nameof(UniImageFile));
 				return false;
 			}
 
@@ -71,8 +71,6 @@ public class UniImageUri : UniImage
 		return HasImage;
 
 	}
-
-#endregion
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
 	{

@@ -62,8 +62,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 		IDocument document = null;
 
-		try
-		{
+		try {
 			var response = await Client.Request(Endpoint)
 				               .OnError(r =>
 					               {
@@ -96,26 +95,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 					               return;
 				               }, cancellationToken: token);
 
-			/*
-			var response = await Client.Request(URL_QUERY)
-				               .OnError(r =>
-					               {
-						               // Debug.WriteLine($"{r.Exception}", Name);
-						               // r.ExceptionHandled = true;
-						               Logger.LogError(r.Exception, $"{Name}");
-						               Debugger.Break();
-#if !DEBUG
-						               r.ExceptionHandled = true;
-#endif
-					               }
-				               )
-				               .SetQueryParam("url", query.Upload)
-				               .WithTimeout(Timeout)
-				               .GetAsync(cancellationToken: ct);
-				               */
-
-			if (response != null)
-			{
+			if (response != null) {
 				var s = await response.GetStringAsync().ConfigureAwait(false);
 
 				var parser = new HtmlParser();
@@ -124,8 +104,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 				// goto ret;
 
 			}
-			else
-			{
+			else {
 				// Debugger.Break();
 			}
 
@@ -133,9 +112,9 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 			goto ret;
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}!");
+			Logger.LogError(e, "{Func}: {Name}", nameof(GetDocumentAsync), Name);
 			goto ret;
 		}
 
@@ -166,8 +145,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 	{
 		var buf = new List<IqdbItem>();
 
-		foreach (var c in source)
-		{
+		foreach (var c in source) {
 			var iq = IqdbItem.ParseResultItem(c, r);
 			buf.Add(iq);
 		}
@@ -182,11 +160,9 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		if (!b)
 			goto ret;
 
-		if (doc is { Body: not null } bod)
-		{
+		if (doc is { Body: not null } bod) {
 
-			if (doc.GetElementsByClassName("err") is { Length: > 0 } err)
-			{
+			if (doc.GetElementsByClassName("err") is { Length: > 0 } err) {
 				var fe = err[0];
 				sr.Status       = SearchResultStatus.UnknownError;
 				sr.ErrorMessage = $"{fe.TextContent}";
@@ -194,10 +170,9 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 				goto ret;
 			}
 
-			if (bod.QuerySelector(Serialization.S_Iqdb_NoMatches) != null)
-			{
+			if (bod.QuerySelector(Serialization.S_Iqdb_NoMatches) != null) {
 				sr.Flags |= SearchResultFlags.NoResults;
-				b = false;
+				b        =  false;
 			}
 		}
 
@@ -237,8 +212,7 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 
 		//img.ChildNodes[0].ChildNodes[0].TryGetAttribute("href")
 
-		try
-		{
+		try {
 			//url = src.FirstChild.ChildNodes[2].ChildNodes[0].TryGetAttribute("href");
 
 			url = img.ChildNodes[0].ChildNodes[0].TryGetAttribute(Serialization.Atr_href);
@@ -246,15 +220,13 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 			// Links must begin with http:// in order to work with "start"
 
 		}
-		catch
-		{
+		catch {
 			// ignored
 		}
 
 		int w = 0, h = 0;
 
-		if (tr.Length >= 4)
-		{
+		if (tr.Length >= 4) {
 			var res = tr[3];
 
 			string[] wh = res.TextContent.Split(Strings.Constants.MUL_SIGN);
@@ -270,26 +242,22 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 
 		double? sim;
 
-		if (tr.Length >= 5)
-		{
+		if (tr.Length >= 5) {
 			var    simNode = tr[4];
 			string simStr  = simNode.TextContent.Split('%')[0];
 			sim = double.Parse(simStr);
 			sim = Math.Round(sim.Value, 2);
 		}
-		else
-		{
+		else {
 			sim = null;
 		}
 
 		Url uri;
 
-		if (url != null)
-		{
+		if (url != null) {
 			// Url u = url;
 
-			if (url.StartsWith("//"))
-			{
+			if (url.StartsWith("//")) {
 				url = "https:" + url;
 
 				// url = url[2..];
@@ -297,8 +265,7 @@ public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<
 
 			uri = url;
 		}
-		else
-		{
+		else {
 			uri = null;
 		}
 

@@ -5,6 +5,7 @@ using Microsoft;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.IO.MemoryMappedFiles;
+using Microsoft.Extensions.Logging;
 
 namespace SmartImage.Lib.Images.Uni;
 
@@ -29,21 +30,21 @@ public class UniImageFile : UniImage
 		return ValueString;
 	}
 
-#region Overrides of UniImage
-
 	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
 			try {
 				var fullName = FileInfo.FullName;
 
-				using var stream     = File.OpenRead(fullName);
+				await using var stream = File.OpenRead(fullName);
+
 				Size = stream.Length;
 
 				Image = await ISImage.LoadAsync<Rgba32>(stream, ct);
-				
+
 			}
 			catch (Exception exception) {
+				s_logger.LogError(exception, "{Func}", nameof(UniImageFile));
 				return false;
 			}
 
@@ -51,8 +52,6 @@ public class UniImageFile : UniImage
 
 		return HasImage;
 	}
-
-#endregion
 
 
 	public static bool IsFileType(object o, out FileInfo f)

@@ -44,7 +44,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	internal SearchQuery(UniImage img, Url upload)
 	{
-		Source  = img;
+		Source = img;
 		Upload = upload;
 
 		// Size = Uni == null ? default : Uni.Stream.Length;
@@ -95,9 +95,11 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			else {
 				// fu = Source.WriteToFile();
 				fu = null;
+
 				if (Source.TryWriteToFile()) {
 					fu = Source.FilePath;
 				}
+
 				Trace.WriteLine($"Wrote to file {fu}");
 			}
 
@@ -152,12 +154,15 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		return $"{Source}: {IsUploaded}";
 	}
 
-	#region Equality members
+#region Equality members
 
 	public bool Equals(SearchQuery other)
 	{
-		if (other is null) return false;
-		if (ReferenceEquals(this, other)) return true;
+		if (other is null)
+			return false;
+
+		if (ReferenceEquals(this, other))
+			return true;
 
 		return Equals(Source, other.Source) && Equals(Upload, other.Upload);
 	}
@@ -185,6 +190,6 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		return !Equals(left, right);
 	}
 
-	#endregion
+#endregion
 
 }

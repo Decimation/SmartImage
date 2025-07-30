@@ -15,7 +15,7 @@ using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Engines;
 
-public abstract class WebSearchEngine<TResultItem,  TSource> : BaseSearchEngine where TResultItem : SearchResultItem
+public abstract class WebSearchEngine<TResultItem, TSource> : BaseSearchEngine where TResultItem : SearchResultItem
 {
 
 	protected WebSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
@@ -27,22 +27,13 @@ public abstract class WebSearchEngine<TResultItem,  TSource> : BaseSearchEngine 
 
 		IDocument doc = null;
 
-		if (res.Status == SearchResultStatus.IllegalInput)
-		{
+		if (res.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
 
-		try
-		{
-			doc = await GetDocumentAsync(res, query: query, token: token);
-		}
-		catch (Exception e)
-		{
-			Logger.LogError(e, "{Name} error", e);
-		}
+		doc = await GetDocumentAsync(res, query: query, token: token);
 
-		if (!Validate(doc, res))
-		{
+		if (!Validate(doc, res)) {
 			goto ret;
 		}
 
@@ -74,48 +65,34 @@ public abstract class WebSearchEngine<TResultItem,  TSource> : BaseSearchEngine 
 
 		var parser = new HtmlParser();
 
-		try
-		{
+		using var res = await Client.Request(sr.RawUrl)
+			                .WithCookies(out var cj)
+			                .WithTimeout(Timeout)
+			                .WithHeaders(new
+			                {
+				                User_Agent = HttpUtilities.UserAgent
+			                })
+			                /*.OnError(s =>
+			                {
+				                s.ExceptionHandled = true;
+			                })*/
+			                .GetAsync(cancellationToken: token);
 
-			using var res = await Client.Request(sr.RawUrl)
-				                .WithCookies(out var cj)
-				                .WithTimeout(Timeout)
-				                .WithHeaders(new
-				                {
-					                User_Agent = HttpUtilities.UserAgent
-				                })
-				                /*.OnError(s =>
-				                {
-					                s.ExceptionHandled = true;
-				                })*/
-				                .GetAsync(cancellationToken: token);
+		var str = await res.GetStreamAsync();
 
-			var str = await res.GetStreamAsync();
+		var document = await parser.ParseDocumentAsync(str, token);
 
-			var document = await parser.ParseDocumentAsync(str, token);
-
-			return document;
-
-		}
-		catch (Exception e)
-		{
-			// return await Task.FromException<IDocument>(e);
-			Logger.LogError(e, "{Name} failed to get doc", Name);
-			return null;
-		}
+		return document;
 	}
 
 	protected virtual bool Validate([NNW(true)] IDocument doc, SearchResult sr)
 	{
-		if (doc is null or { Body: null })
-		{
+		if (doc is null or { Body: null }) {
 			return false;
 		}
 
-		foreach (string s in ErrorBodyMessages)
-		{
-			if (doc.Body.TextContent.Contains(s))
-			{
+		foreach (string s in ErrorBodyMessages) {
+			if (doc.Body.TextContent.Contains(s)) {
 				return false;
 			}
 		}

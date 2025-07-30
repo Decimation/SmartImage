@@ -189,7 +189,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 			                 .GetAsync(cancellationToken: token);
 
 		var resData = await res2.GetStreamAsync();*/
-		var str = await res.GetStringAsync().ConfigureAwait(false);
+		// var str = await res.GetStringAsync().ConfigureAwait(false);
 
 		var resData = await res.GetStreamAsync().ConfigureAwait(false);
 

@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageStream.cs
 // Date: 2024/07/17 @ 02:07:31
 
+using Microsoft.Extensions.Logging;
 using Novus.Streams;
 using SixLabors.ImageSharp.PixelFormats;
 
@@ -30,8 +31,6 @@ public class UniImageStream : UniImage
 	}
 
 
-#region Overrides of UniImage
-
 	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
@@ -43,6 +42,7 @@ public class UniImageStream : UniImage
 
 			}
 			catch (Exception exception) {
+				s_logger.LogError(exception, "{Func}", nameof(UniImageFile));
 				return false;
 			}
 
@@ -51,7 +51,5 @@ public class UniImageStream : UniImage
 		return HasImage;
 
 	}
-
-#endregion
 
 }

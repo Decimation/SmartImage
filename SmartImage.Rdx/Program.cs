@@ -74,21 +74,17 @@ public static class Program
 
 		int x = BaseOSIntegration.EC_OK;
 
-		try
-		{
+		try {
 			x = await app.RunAsync(args);
 
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			AnsiConsole.WriteException(e);
 			x = BaseOSIntegration.EC_ERROR;
 		}
-		finally
-		{
+		finally {
 
-			if (x != BaseOSIntegration.EC_OK)
-			{
+			if (x != BaseOSIntegration.EC_OK) {
 				await AnsiConsole.ConfirmAsync("Press any key to continue");
 			}
 		}
@@ -121,8 +117,7 @@ public static class Program
 
 	private static void HandleArgs(ref string[] args)
 	{
-		if (args.Length == 0)
-		{
+		if (args.Length == 0) {
 
 			// todo
 
@@ -174,9 +169,7 @@ public static class Program
 		}*/
 
 
-		
-		if (Console.IsInputRedirected)
-		{
+		if (Console.IsInputRedirected) {
 			Trace.WriteLine("Input redirected");
 
 			var pipeInput = ConsoleUtil.ParseInputStream();

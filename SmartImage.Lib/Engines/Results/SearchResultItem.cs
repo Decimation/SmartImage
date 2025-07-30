@@ -21,8 +21,8 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	[JI]
 	public SearchResult Root { get; }
 
-	[CBN]
 	[JI]
+	[CBN]
 	public SearchResultItem Parent { get; internal set; }
 
 	[MN]
@@ -170,8 +170,7 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	{
 		var rg2 = new SearchResultItem[rg.Length];
 
-		for (int i = 0; i < rg.Length; i++)
-		{
+		for (int i = 0; i < rg.Length; i++) {
 
 			rg2[i] = new SearchResultItem(this)
 			{
@@ -213,13 +212,11 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 
 	public async ValueTask<bool> LoadThumbnail(CancellationToken ct = default)
 	{
-		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u.ValueString == Thumbnail)))
-		{
+		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u.ValueString == Thumbnail))) {
 
 			var uni = await UniImage.TryCreateAsync(Thumbnail, ct: ct);
 
-			if (uni == null)
-			{
+			if (uni == null) {
 				return false;
 			}
 
@@ -234,13 +231,11 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 		// TODO: USE CHANNELS
 		// TODO: REFACTOR TO USE THIS FUNCTION
 
-		if (HasUni)
-		{
+		if (HasUni) {
 			return true;
 		}
 
-		if (Url == null)
-		{
+		if (Url == null) {
 			return false;
 		}
 
@@ -251,17 +246,14 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 
 		var tasks = ImageScanner.ScanImagesAsync(Url, ch.Writer, ct: ct);
 
-		while (await ch.Reader.WaitToReadAsync(ct))
-		{
+		while (await ch.Reader.WaitToReadAsync(ct)) {
 			var v = await ch.Reader.ReadAsync(ct);
 
-			if (v != UniImage.Null && v.HasImageFormat)
-			{
+			if (v != UniImage.Null && v.HasImageFormat) {
 				buf.Add(v);
 			}
 
-			if (ct.IsCancellationRequested)
-			{
+			if (ct.IsCancellationRequested) {
 				break;
 			}
 		}
@@ -303,10 +295,8 @@ public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, ICo
 	{
 		Debug.WriteLine($"Disposing {Url} of {Root.Engine.Name}", LogCategories.C_VERBOSE);
 
-		if (Uni != null && Uni.Any())
-		{
-			foreach (var us in Uni)
-			{
+		if (Uni != null && Uni.Any()) {
+			foreach (var us in Uni) {
 
 				us?.Dispose();
 			}
