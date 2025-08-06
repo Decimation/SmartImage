@@ -48,30 +48,16 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, ID
 	public string PreviewText
 	{
 		get => m_previewText;
-		set
-		{
-			if (value == m_previewText)
-				return;
-
-			m_previewText = value;
-			OnPropertyChanged();
-		}
+		set => SetField(ref m_previewText, value);
 	}
 
 	public string Label
 	{
 		get => m_label;
-		set
-		{
-			if (value == m_label)
-				return;
-
-			m_label = value;
-			OnPropertyChanged();
-		}
+		set => SetField(ref m_label, value);
 	}
 
-	#region
+#region
 
 	public bool CanDownload { get; internal set; }
 
@@ -84,14 +70,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, ID
 	public BitmapImage StatusImage
 	{
 		get => m_statusImage;
-		internal set
-		{
-			if (Equals(value, m_statusImage))
-				return;
-
-			m_statusImage = value;
-			OnPropertyChanged();
-		}
+		internal set => SetField(ref m_statusImage, value);
 	}
 
 	// public Url? Url => Uni != null ? Uni.Value.ToString() : Result.Url;
@@ -139,17 +118,10 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, ID
 	public double PreviewProgress
 	{
 		get => m_previewProgress;
-		set
-		{
-			if (value.Equals(m_previewProgress))
-				return;
-
-			m_previewProgress = value;
-			OnPropertyChanged();
-		}
+		set => SetField(ref m_previewProgress, value);
 	}
 
-	#endregion
+#endregion
 
 	public ResultItem(SearchResultItem result, string name)
 	{
@@ -344,7 +316,7 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, ID
 		return HasImage;
 	}
 
-	#region
+#region
 
 	public virtual void Dispose()
 	{
@@ -391,6 +363,6 @@ public class ResultItem : INotifyPropertyChanged, IBitmapImageSource, INamed, ID
 
 	// public event PropertyChangedEventHandler? PropertyChanged;
 
-	#endregion
+#endregion
 
 }

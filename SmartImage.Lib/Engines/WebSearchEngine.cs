@@ -15,7 +15,8 @@ using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Engines;
 
-public abstract class WebSearchEngine<TResultItem, TSource> : BaseSearchEngine where TResultItem : SearchResultItem
+public abstract class WebSearchEngine<TResultItem, TSource> : 
+	BaseSearchEngine where TResultItem : SearchResultItem
 {
 
 	protected WebSearchEngine([NN] Url baseUrl) : base(baseUrl) { }

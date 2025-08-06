@@ -22,6 +22,7 @@ using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 [assembly: InternalsVisibleTo("SmartImage.Test")]
+[assembly: InternalsVisibleTo("SmartImage.UI2")]
 
 namespace SmartImage.Lib.Engines;
 
