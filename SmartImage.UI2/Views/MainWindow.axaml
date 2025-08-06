@@ -15,20 +15,58 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Button Command="{Binding SearchAsync}"></Button>
+    <Grid HorizontalAlignment="Left" VerticalAlignment="Top"
+          ColumnDefinitions="Auto,*,*,*,*" RowDefinitions="Auto,Auto,*,Auto">
 
-    <ListBox ItemsSource="{Binding Items}">
-        <ListBox.ItemTemplate>
-            <DataTemplate DataType="models:ResultItem">
-                <Grid ColumnDefinitions="Auto, *">
-                    <TextBlock Grid.Column="1"
-                               Margin="10,0"
-                               Text="{Binding Url}">
-                    </TextBlock>
-                </Grid>
-            </DataTemplate>
-        </ListBox.ItemTemplate>
-    </ListBox>
+
+        <TextBox Width="300" Name="Tb_Input" Grid.Column="0" Grid.Row="0"
+                 HorizontalAlignment="Left">
+        </TextBox>
+
+        <Button Command="{Binding SearchCommand}"
+                Content="Search" Grid.Column="1" Grid.Row="0" />
+
+        <Image Grid.Row="0" Grid.Column="2"></Image>
+
+        <!--<TreeView
+            ItemsSource="{Binding Items}"
+            Width="600" Height="300" Grid.Column="0" Grid.Row="2">
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate DataType="models:ResultItem">
+                    <Grid ColumnDefinitions="Auto, *">
+                        <TextBlock Grid.Column="1"
+                                   Margin="10,0"
+                                   Text="{Binding Url}">
+                        </TextBlock>
+
+                    </Grid>
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+
+
+        </TreeView>-->
+
+        <ListBox ItemsSource="{Binding Items}"
+                 Width="600" Height="300"
+                 Grid.Column="0" Grid.Row="2">
+
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="models:ResultItem">
+                    <Grid ColumnDefinitions="Auto, *">
+                        <TextBlock Grid.Column="1"
+                                   Margin="10,0"
+                                   Text="{Binding Url}">
+                        </TextBlock>
+                        <TextBlock
+                                   Text="{Binding Similarity}">
+                        </TextBlock>
+
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+    </Grid>
 
 
 </Window>

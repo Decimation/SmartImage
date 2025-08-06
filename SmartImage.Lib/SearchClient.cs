@@ -119,27 +119,24 @@ public sealed class SearchClient : IDisposable
 	/// <param name="scheduler"></param>
 	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine.GetResultAsync(SearchQuery,CancellationToken)"/></param>
 	public async Task<bool> RunSearchAsync(SearchQuery query,
-	                                                 TaskScheduler scheduler = null,
-	                                                 CancellationToken token = default)
+	                                       TaskScheduler scheduler = null,
+	                                       CancellationToken token = default)
 	{
 		scheduler ??= TaskScheduler.Default;
 
 		// Requires.NotNull(ResultChannel);
-		if (ResultChannel == null || (IsComplete && !IsRunning))
-		{
+		if (ResultChannel == null || (IsComplete && !IsRunning)) {
 			// todo: throw
 			OpenChannel();
 		}
 
-		if (!query.IsUploaded)
-		{
+		if (!query.IsUploaded) {
 			throw new ArgumentException($"Query was not uploaded", nameof(query));
 		}
 
 		IsRunning = true;
 
-		if (!ConfigApplied)
-		{
+		if (!ConfigApplied) {
 			await Config.LoadEnginesAsync(Engines, token).ConfigureAwait(false);
 			ConfigApplied = true;
 		}
@@ -171,7 +168,7 @@ public sealed class SearchClient : IDisposable
 
 		await Task.WhenAll(tasks).ConfigureAwait(false);
 		await consumerTask.ConfigureAwait(false);*/
-		
+
 		/*var rg = new List<SearchResult>();
 
 		await foreach (var v in Task.WhenEach(tasks).WithCancellation(token))
@@ -274,8 +271,7 @@ public sealed class SearchClient : IDisposable
 #pragma warning restore CA1822
 #endif
 
-		if (url1 == null)
-		{
+		if (url1 == null) {
 			return;
 		}
 
@@ -285,8 +281,7 @@ public sealed class SearchClient : IDisposable
 
 		// var b = Open(url1, out var proc);
 
-		if (b && proc is { })
-		{
+		if (b && proc is { }) {
 			proc.Dispose();
 		}
 
@@ -297,13 +292,11 @@ public sealed class SearchClient : IDisposable
 	{
 		// OnResultComplete?.Invoke(this, result);
 
-		if (!ResultChannel.Writer.TryWrite(result))
-		{
+		if (!ResultChannel.Writer.TryWrite(result)) {
 			s_logger.LogWarning("Could not write {Result}", result);
 		}
 
-		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption))
-		{
+		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
 			var url = Config.OpenRaw ? result.RawUrl : result.GetBestResult()?.Url;
 
 			OpenResult(url);
@@ -336,8 +329,7 @@ public sealed class SearchClient : IDisposable
 	{
 		s_logger.LogDebug("Disposing {Client}", Config);
 
-		foreach (BaseSearchEngine engine in Engines)
-		{
+		foreach (BaseSearchEngine engine in Engines) {
 			engine.Dispose();
 		}
 
