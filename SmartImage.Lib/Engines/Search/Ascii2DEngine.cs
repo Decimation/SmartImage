@@ -125,7 +125,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	}
 
 
-	protected override ValueTask<IList<INode>> GetSource(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
 	{
 		var nodes = d.Body.SelectNodes(Serialization.S_Ascii2D_Images2);
 
@@ -141,7 +141,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return ValueTask.FromResult<IList<INode>>(nodes);
 	}
 
-	protected override ValueTask<IEnumerable<Ascii2DItem>> GetItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<Ascii2DItem>> ParseResultItems(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<Ascii2DItem>(source.Count);
 
@@ -154,7 +154,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return ValueTask.FromResult<IEnumerable<Ascii2DItem>>(buf);
 	}
 
-	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
 		var parser = new HtmlParser();
@@ -242,7 +242,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		{
 			// return await Task.FromException<IDocument>(e);
 			// Debug.WriteLine($"{this} :: {e.Message}", nameof(GetDocumentAsync));
-			Logger.LogError(e, "{Name} error in {Fn}", Name, nameof(GetDocumentAsync));
+			Logger.LogError(e, "{Name} error in {Fn}", Name, nameof(GetSourceAsync));
 			return null;
 		}
 	}
@@ -272,7 +272,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 }
 
-public record Ascii2DItem : SearchResultItem, ISourceItemParseable<INode, Ascii2DItem>
+public record Ascii2DItem : SearchResultItem, ISearchResultItemParseable<INode, Ascii2DItem>
 {
 
 	public string Hash { get; private set; }

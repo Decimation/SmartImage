@@ -21,7 +21,7 @@ using SmartImage.Lib.Images.Uni;
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Search;
 
-public record GoogleLensItem : SearchResultItem, ISourceItemParseable<INode, GoogleLensItem>
+public record GoogleLensItem : SearchResultItem, ISearchResultItemParseable<INode, GoogleLensItem>
 {
 
 	public string SiteName { get; private set; }
@@ -104,13 +104,13 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		return br;
 	}
 
-	protected override ValueTask<IList<INode>> GetSource(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
 	{
 		var nodes = d.QuerySelectorAll(".LBcIee").OfType<INode>().ToList();
 		return ValueTask.FromResult<IList<INode>>(nodes);
 	}
 
-	protected override ValueTask<IEnumerable<GoogleLensItem>> GetItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<GoogleLensItem>> ParseResultItems(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<GoogleLensItem>(source.Count);
 
@@ -150,7 +150,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		return req;
 	}
 
-	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 		string               endpoint, filename;
 		Task<IFlurlResponse> req = null;

@@ -48,25 +48,25 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 		GC.SuppressFinalize(this);
 	}
 
-	protected override ValueTask<IList<INode>> GetSource(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
 	{
 		return ValueTask.FromResult<IList<INode>>(d.Body.SelectNodes("//article[contains(@class,'post')]"));
 	}
 
-	protected override ValueTask<IEnumerable<ChanPost>> GetItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<ChanPost>> ParseResultItems(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<ChanPost>(source.Count);
 
-		foreach (INode node in source)
-		{
+		foreach (INode node in source) {
 			buf.Add(ChanPost.ParseResultItem(node, r));
 		}
+
 		return ValueTask.FromResult<IEnumerable<ChanPost>>(buf);
 	}
 
 }
 
-public record ChanPost : SearchResultItem, ISourceItemParseable<INode, ChanPost>
+public record ChanPost : SearchResultItem, ISearchResultItemParseable<INode, ChanPost>
 {
 
 	public string Board { get; private set; }

@@ -1,24 +1,16 @@
 ﻿// Read S SmartImage.Lib BaseUploadResponse.cs
 // 2023-05-28 @ 7:49 PM
 
-using Flurl.Http;
-
 namespace SmartImage.Lib.Engines.Upload;
 
-public sealed class UploadResult : IDisposable
+public class UploadResult : IDisposable
 {
-	
-	public Url Url { get; init; }
 
-	[MN]
-	public IFlurlResponse Response { get; init; }
+	public Url Url { get; protected internal set; }
 
 	public long? Size { get; init; }
 
-	public bool IsValid { get; init; }
-
-	[CBN]
-	public object Value { get; init; }
+	public bool? IsValid { get; init; }
 
 	/*public static implicit operator Url(UploadResult result)
 	{
@@ -31,7 +23,7 @@ public sealed class UploadResult : IDisposable
 
 	public void Dispose()
 	{
-		Response?.Dispose();
+		// Response?.Dispose();
 	}
 
 }

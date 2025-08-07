@@ -57,7 +57,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 	];
 
 
-	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 
 		IDocument document = null;
@@ -114,7 +114,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		}
 		catch (Exception e) {
 			Debug.WriteLine($"{e.Message}!");
-			Logger.LogError(e, "{Func}: {Name}", nameof(GetDocumentAsync), Name);
+			Logger.LogError(e, "{Func}: {Name}", nameof(GetSourceAsync), Name);
 			goto ret;
 		}
 
@@ -130,7 +130,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 	}
 
-	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> GetSource(IDocument d)
+	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> ParseIntermediate(IDocument d)
 	{
 		var pages  = d.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes(Serialization.S_Iqdb_DivTable);
@@ -141,7 +141,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		return ValueTask.FromResult(select);
 	}
 
-	protected override ValueTask<IEnumerable<IqdbItem>> GetItems(IEnumerable<IHtmlCollection<IElement>> source, SearchResult r)
+	protected override ValueTask<IEnumerable<IqdbItem>> ParseResultItems(IEnumerable<IHtmlCollection<IElement>> source, SearchResult r)
 	{
 		var buf = new List<IqdbItem>();
 
@@ -190,7 +190,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 }
 
-public record IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<IElement>, IqdbItem>
+public record IqdbItem : SearchResultItem, ISearchResultItemParseable<IHtmlCollection<IElement>, IqdbItem>
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }

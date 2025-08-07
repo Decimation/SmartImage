@@ -33,7 +33,7 @@ using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
+public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<INode>>, IEndpointUrl, IDisposable
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -70,28 +70,26 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 		// IEnumerable<SearchResultItem> dataResults;
 
-		try
-		{
-			if (UsingAPI)
-			{
+		try {
+			if (UsingAPI) {
 				Logger.LogInformation("[{Name}] API key: {Auth}", Name, Authentication);
 
 				await GetAPIResultsAsync(query, result).ConfigureAwait(false);
 			}
-			else
-			{
-				await GetWebResultsAsync(query, result).ConfigureAwait(false);
+			else {
+				var src   = await GetSourceAsync(result, query, token).ConfigureAwait(false);
+				var source   = await ParseIntermediate(src);
+				var items = await ParseResultItems(source, result);
+
 			}
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			result.ErrorMessage = e.Message;
 			result.Status       = SearchResultStatus.UnknownError;
 			return result;
 		}
 
-		if (!result.HasResults)
-		{
+		if (!result.HasResults) {
 			result.ErrorMessage = "Daily search limit (50) exceeded";
 			result.Status       = SearchResultStatus.Cooldown;
 
@@ -127,7 +125,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 		return result;
 	}
 
-	private async ValueTask GetWebResultsAsync(SearchQuery query, SearchResult sr)
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 		Logger.LogTrace("[{Name}] Parsing HTML", Name);
 
@@ -156,19 +154,17 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 				           string s;
 
 				           if (query.Source.IsUri) { }
-				           else if (query.Source.IsFile)
-				           {
+				           else if (query.Source.IsFile) {
 					           s = query.Source.ValueString;
 					           m.AddFile("file", s, fileName: "image.png");
 				           }
-				           else
-				           {
+				           else {
 					           s = query.Source.FilePath;
 					           m.AddFile("file", s, fileName: "image.png");
 
 				           }
 
-			           }).ConfigureAwait(false);
+			           }, cancellationToken: token).ConfigureAwait(false);
 
 		html = await response.GetStringAsync().ConfigureAwait(false);
 
@@ -177,8 +173,9 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 		 * <IP>, your IP has exceeded the unregistered user's daily limit of 100 searches.
 		 */
 
-		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests)
-		{
+		IHtmlDocument doc = null;
+
+		if (response.StatusCode == (int) HttpStatusCode.TooManyRequests) {
 			Logger.LogWarning("[{Name}] Parsing HTML", Name);
 
 			sr.Status       = SearchResultStatus.Cooldown;
@@ -195,28 +192,35 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 		/*var raw=await GetRawUrlAsync(query);
 		var html2=await raw.GetStringAsync();*/
 
-		var doc = await docp.ParseDocumentAsync(html).ConfigureAwait(false);
+		doc = await docp.ParseDocumentAsync(html).ConfigureAwait(false);
 
-		var results = doc.Body.SelectNodes("//div[@class='result']");
+	ret:
+		response.Dispose();
 
-		foreach (INode result in results)
-		{
-			var sndr = SauceNaoDataResult.Parse(result);
+		return doc;
+	}
 
-			if (sndr != null)
-			{
-				var sris = await sndr.ToItem(sr);
-				sr.Results.AddRange(sris);
+	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
+	{
+		var results = d.Body.SelectNodes("//div[@class='result']");
 
-			}
+		return ValueTask.FromResult<IList<INode>>(results);
+	}
+
+	protected override ValueTask<IEnumerable<SauceNaoDataResult>> ParseResultItems(IList<INode> source, SearchResult r)
+	{
+		var buf = new List<SauceNaoDataResult>(source.Count);
+
+		foreach (INode node in source) {
+			var sndr = SauceNaoDataResult.Parse(node, r);
+
+			buf.Add(sndr);
 		}
 
 		Logger.LogDebug("Disposing {Name} doc", Name);
-		doc.Dispose();
-	ret:
-		response.Dispose();
-		return;
+		return ValueTask.FromResult<IEnumerable<SauceNaoDataResult>>(buf);
 	}
+
 
 	private async ValueTask GetAPIResultsAsync(SearchQuery url, SearchResult sr)
 	{
@@ -246,8 +250,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 		var c = await res.GetStringAsync().ConfigureAwait(false);
 
-		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden)
-		{
+		if (res.ResponseMessage.StatusCode == HttpStatusCode.Forbidden) {
 			// return;
 			goto ret;
 		}
@@ -266,12 +269,10 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 		var jsonString = JsonNode.Parse(c);
 
-		if (jsonString is JsonObject jsonObject)
-		{
+		if (jsonString is JsonObject jsonObject) {
 			var jsonArray = jsonObject[KeyResults].AsArray();
 
-			for (int i = 0; i < jsonArray.Count; i++)
-			{
+			for (int i = 0; i < jsonArray.Count; i++) {
 				var    header = jsonArray[i][KeyHeader];
 				var    data   = jsonArray[i][KeyData];
 				string obj    = header.ToString();
@@ -286,8 +287,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 			// var buffer      = new List<SearchResultItem>();
 			var resultArray = JsonNode.Parse(json).AsArray();
 
-			foreach (JsonNode t in resultArray)
-			{
+			foreach (JsonNode t in resultArray) {
 				var   result     = t.AsObject();
 				float similarity = float.Parse(result[KeySimilarity].AsValue().ToString());
 
@@ -299,8 +299,7 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 				var index = (SauceNaoSiteIndex) int.Parse(result[KeyIndex].ToString());
 
-				foreach (string t1 in strings)
-				{
+				foreach (string t1 in strings) {
 					var item = new SearchResultItem(sr)
 					{
 						Url        = t1,
@@ -342,8 +341,12 @@ public sealed class SauceNaoEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 /// <summary>
 /// Origin result
 /// </summary>
-public sealed class SauceNaoDataResult
+public sealed record SauceNaoDataResult : SearchResultItem
 {
+
+	private SauceNaoDataResult() : this(null, false) { }
+
+	private SauceNaoDataResult(SearchResult r, bool isRaw = false) : base(r, isRaw) { }
 
 	/// <summary>
 	///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
@@ -355,7 +358,7 @@ public sealed class SauceNaoDataResult
 	/// </summary>
 	public SauceNaoSiteIndex Index { get; internal set; }
 
-	/// <summary>
+	/*/// <summary>
 	///     How similar is the image to the one provided (Percentage)?
 	/// </summary>
 	public double Similarity { get; internal set; }
@@ -376,7 +379,7 @@ public sealed class SauceNaoDataResult
 
 	public string Site { get; internal set; }
 
-	public string ThumbnailTitle { get; internal set; }
+	public string ThumbnailTitle { get; internal set; }*/
 
 	internal const string KEY_TWITTER = "Twitter:";
 
@@ -390,7 +393,7 @@ public sealed class SauceNaoDataResult
 
 	internal static readonly string[] Keys_Characters = ["Characters:"];
 
-	private SauceNaoDataResult() { }
+	// private SauceNaoDataResult() { }
 
 	/*public SearchResultItem Convert(SearchResult r)
 	{
@@ -456,7 +459,7 @@ public sealed class SauceNaoDataResult
 
 #region Implementation of IResultConverter2<out SauceNaoDataResult>
 
-	public ValueTask<IEnumerable<SearchResultItem>> ToItem(SearchResult sr)
+	/*public ValueTask<IEnumerable<SearchResultItem>> ToItem(SearchResult sr)
 	{
 		var sri = new SearchResultItem(sr)
 		{
@@ -473,21 +476,19 @@ public sealed class SauceNaoDataResult
 
 		var children = sri.CreateChildren(Urls[1..]);
 		return ValueTask.FromResult<IEnumerable<SearchResultItem>>([sri, .. children]);
-	}
+	}*/
 
-	public static SauceNaoDataResult Parse(INode result)
+	public static SauceNaoDataResult Parse(INode result, SearchResult sr)
 	{
 		// TODO: OPTIMIZE
 
-		if (result == null)
-		{
+		if (result == null) {
 			return null;
 		}
 
 		const string HIDDEN_ID_VAL = "result-hidden-notification";
 
-		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL)
-		{
+		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
 			return null;
 		}
 
@@ -496,8 +497,7 @@ public sealed class SauceNaoDataResult
 
 		string thumbnail = null, thumbnailTitle = null;
 
-		if (ri != null)
-		{
+		if (ri != null) {
 			// var resultImg      = resultElem.QuerySelector(".resultimage");
 			// var resultImg2     = resultImg.FirstChild.FirstChild;
 			// var thumbnail      = resultImg2.TryGetAttribute("src");
@@ -526,16 +526,14 @@ public sealed class SauceNaoDataResult
 		var                       resultcontent          = ((IElement) result).GetElementsByClassName("resultcontent")[0];
 		IHtmlCollection<IElement> resultcontentcolumn_rg = null;
 
-		if (result is IElement { } elem)
-		{
+		if (result is IElement { } elem) {
 			resultcontentcolumn_rg = elem.QuerySelectorAll(Serialization.S_SauceNao_ResultContentColumn);
 		}
 
 		// var resulttitle = resultcontent.ChildNodes[0];
 		var links = new List<string>();
 
-		if (resulttablecontent is IElement { } e)
-		{
+		if (resulttablecontent is IElement { } e) {
 			var links1 = e.QuerySelectorAll(Serialization.Tag_a)
 				.Select(x => x.GetAttribute(Serialization.Atr_href));
 			links.AddRange(links1);
@@ -546,13 +544,11 @@ public sealed class SauceNaoDataResult
 				            .Select(x => x.GetAttribute(Serialization.Atr_href)))
 			.Where(ec => ec != null);
 
-		if (element.Any())
-		{
+		if (element.Any()) {
 			links.AddRange(element);
 		}
 
-		if (resultmiscinfo != null)
-		{
+		if (resultmiscinfo != null) {
 			links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Serialization.Tag_a)
 				          .FirstOrDefault(x => x.GetAttribute(Serialization.Atr_href) != null)?
 				          .GetAttribute(Serialization.Atr_href));
@@ -575,10 +571,8 @@ public sealed class SauceNaoDataResult
 		// string characters1  = null;
 		bool rtiHasArtist = false;
 
-		foreach (var s in Keys_Artist)
-		{
-			if (rti.StartsWith(s))
-			{
+		foreach (var s in Keys_Artist) {
+			if (rti.StartsWith(s)) {
 				rti          = rti.SubstringAfter(s).Trim(' ');
 				rtiHasArtist = true;
 			}
@@ -596,8 +590,7 @@ public sealed class SauceNaoDataResult
 			var b = !string.IsNullOrWhiteSpace(x);
 			var c = true;
 
-			if (b)
-			{
+			if (b) {
 				c = !SauceNaoEngine.IsLookupUrl(Url.Parse(x));
 			}
 
@@ -608,14 +601,13 @@ public sealed class SauceNaoDataResult
 
 		string site = null;
 
-		if (Url.IsValid(url))
-		{
+		if (Url.IsValid(url)) {
 			site = url.Host.Replace("www", "");
 			site = site.Split('.', StringSplitOptions.RemoveEmptyEntries)[0];
 
 		}
 
-		var sndr = new SauceNaoDataResult()
+		var sndr = new SauceNaoDataResult(sr)
 		{
 			Urls = [url],
 
@@ -630,40 +622,34 @@ public sealed class SauceNaoDataResult
 			Site  = site
 		};
 
-		if (rtiHasArtist && string.IsNullOrWhiteSpace(sndr.Creator))
-		{
+		if (rtiHasArtist && string.IsNullOrWhiteSpace(sndr.Artist)) {
 			// sndr.Creator = rti;
 			// Debugger.Break();
-			sndr.Creator = rti;
+			sndr.Artist = rti;
 		}
 
-		for (int i = 0; i < nodes.Length; i++)
-		{
+		for (int i = 0; i < nodes.Length; i++) {
 			var node     = nodes[i];
 			var nodeText = node.TextContent;
 
-			if (nodeText.StartsWith(KEY_SOURCE))
-			{
+			if (nodeText.StartsWith(KEY_SOURCE)) {
 				sndr.Source = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
-			if (nodeText.StartsWith(KEY_MATERIAL))
-			{
+			if (nodeText.StartsWith(KEY_MATERIAL)) {
 				sndr.Source = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
-			if (Keys_Characters.Any(nodeText.StartsWith))
-			{
+			if (Keys_Characters.Any(nodeText.StartsWith)) {
 				sndr.Character = nodes[++i].TextContent.Trim(' ');
 				continue;
 			}
 
 			if (Keys_Artist.Any(nodeText.StartsWith)
-			    || nodeText.StartsWith(KEY_TWITTER))
-			{
-				sndr.Creator = nodes[++i].TextContent.Trim(' ');
+			    || nodeText.StartsWith(KEY_TWITTER)) {
+				sndr.Artist = nodes[++i].TextContent.Trim(' ');
 
 				// var idx = Array.IndexOf(sndr.Urls, nodes[i].TryGetAttribute(Serialization.Atr_href));
 			}

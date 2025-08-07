@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using System;
+using Avalonia.ReactiveUI;
 
 namespace SmartImage.UI2;
 
@@ -17,5 +18,6 @@ internal class Program
 		=> AppBuilder.Configure<App>()
 			.UsePlatformDetect()
 			.WithInterFont()
+			.UseReactiveUI()
 			.LogToTrace();
 }

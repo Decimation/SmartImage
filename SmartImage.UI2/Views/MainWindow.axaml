@@ -7,7 +7,8 @@
     xmlns:vm="using:SmartImage.UI2.ViewModels"
     xmlns:models="using:SmartImage.UI2.Models"
     xmlns:vm2="using:SmartImage.Lib"
-    mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+    mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="675"
+    Height="675" Width="1000" MinWidth="1000" MinHeight="325"
     x:DataType="vm:MainWindowViewModel"
     Title="SmartImage">
 
@@ -15,18 +16,22 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid HorizontalAlignment="Left" VerticalAlignment="Top"
-          ColumnDefinitions="Auto,*,*,*,*" RowDefinitions="Auto,Auto,*,Auto">
+    <Grid VerticalAlignment="Top"
+          HorizontalAlignment="Left"
+          ColumnDefinitions="Auto,*,*,*,*"
+          RowDefinitions="Auto,Auto,*,Auto">
 
 
-        <TextBox Width="300" Name="Tb_Input" Grid.Column="0" Grid.Row="0"
-                 HorizontalAlignment="Left">
+        <TextBox Width="300" Height="50" Name="Tb_Input" Grid.Column="0" Grid.Row="0">
         </TextBox>
 
         <Button Command="{Binding SearchCommand}"
                 Content="Search" Grid.Column="1" Grid.Row="0" />
 
-        <Image Grid.Row="0" Grid.Column="2"></Image>
+        <Image Grid.Row="0" Grid.Column="2" Width="300" Height="300"
+               VerticalAlignment="Top"
+               HorizontalAlignment="Right">
+        </Image>
 
         <!--<TreeView
             ItemsSource="{Binding Items}"
@@ -47,7 +52,8 @@
         </TreeView>-->
 
         <ListBox ItemsSource="{Binding Items}"
-                 Width="600" Height="300"
+                 SelectionMode="AlwaysSelected, Single"
+                 MinWidth="1000" Height="100"
                  Grid.Column="0" Grid.Row="2">
 
             <ListBox.ItemTemplate>
@@ -58,7 +64,7 @@
                                    Text="{Binding Url}">
                         </TextBlock>
                         <TextBlock
-                                   Text="{Binding Similarity}">
+                            Text="{Binding Similarity}">
                         </TextBlock>
 
                     </Grid>

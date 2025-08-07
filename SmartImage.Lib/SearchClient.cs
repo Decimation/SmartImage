@@ -117,7 +117,7 @@ public sealed class SearchClient : IDisposable
 	/// </summary>
 	/// <param name="query">Search query</param>
 	/// <param name="scheduler"></param>
-	/// <param name="token">Cancellation token passed to <see cref="WebSearchEngine.GetResultAsync(SearchQuery,CancellationToken)"/></param>
+	/// <param name="token">Cancellation token passed to <see cref="ParsedSearchEngine{TResultItem,TSource}.GetResultAsync(SearchQuery,CancellationToken)"/></param>
 	public async Task<bool> RunSearchAsync(SearchQuery query,
 	                                       TaskScheduler scheduler = null,
 	                                       CancellationToken token = default)

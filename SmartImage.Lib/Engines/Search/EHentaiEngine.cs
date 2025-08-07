@@ -69,7 +69,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			.GetAsync();
 	}
 
-	protected override async Task<IDocument> GetDocumentAsync(SearchResult sr, SearchQuery query,
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query,
 	                                                          CancellationToken token = default)
 	{
 
@@ -172,7 +172,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return await parser.ParseDocumentAsync(content, token).ConfigureAwait(false);
 	}
 
-	protected override ValueTask<IList<INode>> GetSource(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
 	{
 		// Index 0 is table header
 		var array = d.Body.SelectNodes(Serialization.S_EHentai);
@@ -186,7 +186,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return ValueTask.FromResult((IList<INode>) array);
 	}
 
-	protected override ValueTask<IEnumerable<EhResult>> GetItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<EhResult>> ParseResultItems(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<EhResult>(source.Count);
 
@@ -378,7 +378,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 }
 
-public sealed record EhResult : SearchResultItem, ISourceItemParseable<INode, EhResult>
+public sealed record EhResult : SearchResultItem, ISearchResultItemParseable<INode, EhResult>
 {
 
 	public string Type { get; private set; }

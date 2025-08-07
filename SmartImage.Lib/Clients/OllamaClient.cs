@@ -12,18 +12,19 @@ using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 
-namespace SmartImage.Lib.Engines;
+namespace SmartImage.Lib.Clients;
+// TODO
 
-public class OllamaModel
+public class OllamaClient
 {
 
 	protected static IFlurlClient Client { get; }
 
-	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(OllamaModel));
+	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(OllamaClient));
 
-	static OllamaModel()
+	static OllamaClient()
 	{
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(OllamaModel), "http://localhost:11434", builder =>
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(OllamaClient), "http://localhost:11434", builder =>
 		{
 
 			// builder.Headers.AddOrReplace(HeaderNames.UserAgent, HttpUtilities.UserAgent);
@@ -43,7 +44,7 @@ public class OllamaModel
 		});
 	}
 
-	public OllamaModel() { }
+	public OllamaClient() { }
 
 	public class OllamaRequest
 	{

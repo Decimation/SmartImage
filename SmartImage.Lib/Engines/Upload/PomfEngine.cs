@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
+using System.Text.Json.Nodes;
 using Flurl.Http;
+using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Engines.Upload;
 
@@ -12,27 +14,26 @@ public sealed class PomfEngine : BaseUploadEngine
 
 	public override long? MaxSize => 1_000_000_000;
 
-
+	[ICBN]
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		Verify(file);
 
-		var response = await Client.Request(EndpointUrl)
-			               .WithSettings(r =>
-			               {
-				               r.Timeout = Timeout;
-			               }).OnError(r =>
-			               {
-				               r.ExceptionHandled = true;
-				               Trace.WriteLine($"{r.Exception.Message}: {file} {Name}");
-			               })
-			               .PostMultipartAsync(mp =>
-			               {
-				               mp.AddFile("files[]", file);
-			               }, cancellationToken: ct);
+		using var response = await Client.Request(EndpointUrl)
+			                     .WithSettings(r => { r.Timeout = Timeout; }).OnError(r =>
+			                     {
+				                     r.ExceptionHandled = true;
+				                     Trace.WriteLine($"{r.Exception.Message}: {file} {Name}");
+			                     })
+			                     .PostMultipartAsync(mp =>
+			                     {
+				                     //
+				                     mp.AddFile("files[]", file);
+			                     }, cancellationToken: ct);
 
 		if (response == null) {
 			Debugger.Break();
+
 			return new UploadResult()
 			{
 				IsValid = false
@@ -41,13 +42,11 @@ public sealed class PomfEngine : BaseUploadEngine
 
 		var pr = await response.GetJsonAsync<PomfResult>();
 
-		var bur = new UploadResult()
+		var bur = new PomfResult()
 		{
-			Value    = pr,
-			Size     = pr.Files[0].Size,
-			Url      = pr.Files[0].Url,
-			IsValid  = pr.Success,
-			Response = response
+			Size    = pr.Files.Sum(x => x.Size),
+			Url     = pr.Files[0].Url,
+			IsValid = pr.Success
 		};
 
 		return bur;
@@ -55,7 +54,7 @@ public sealed class PomfEngine : BaseUploadEngine
 
 }
 
-public sealed class PomfResult
+public sealed class PomfResult : UploadResult
 {
 
 	public bool Success { get; set; }
