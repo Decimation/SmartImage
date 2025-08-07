@@ -12,6 +12,7 @@ namespace SmartImage.Lib.Engines.Results;
 /// </summary>
 public class SearchResult : IDisposable, INotifyPropertyChanged
 {
+	// TODO: FLATTEN SearchResult to SearchResultItem and eliminate SearchResult ≡ SearchResultItem
 
 	/// <summary>
 	/// Engine which returned this result

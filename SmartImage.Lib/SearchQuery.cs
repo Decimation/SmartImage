@@ -108,11 +108,10 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			UploadResult u = await engine.UploadFileAsync(fu, ct);
 			Url          url;
 
-			if (!u.IsValid) {
+			if (!u.IsValid.GetValueOrDefault()) {
 				url = null;
 				Debug.WriteLine($"{u} is invalid!");
 
-				// Debugger.Break();
 			}
 			else {
 				url = u.Url;
@@ -120,23 +119,9 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			}
 
 			// TODO: AUTO-RETRY
-			/*
-			UploadResult u = await UploadAutoAsync(engine, fu, ct);
-			Url          url = u?.Url;
-			*/
-
-			/*if (!u.IsValid) {
-				engine = BaseUploadEngine.All[Array.IndexOf(BaseUploadEngine.All, engine) + 1];
-				Debug.WriteLine($"{u.Response.ResponseMessage} failed, retrying with {engine.Name}");
-				u = await engine.UploadFileAsync(Uni.Value.ToString(), ct);
-			}*/
 
 			Upload = url;
 
-			/*if (u.Response is { }) {
-				Size = NetHelper.GetContentLength(u.Response) ?? Size;
-			}*/
-			// Size = u.Size ?? Size;
 			u.Dispose();
 		}
 

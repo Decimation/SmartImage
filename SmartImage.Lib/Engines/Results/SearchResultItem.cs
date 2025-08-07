@@ -11,7 +11,7 @@ using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public record SearchResultItem : IDisposable, IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>
+public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>, IDisposable
 {
 
 	/// <summary>
