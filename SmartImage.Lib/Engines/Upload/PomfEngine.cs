@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json.Nodes;
 using Flurl.Http;
-using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Engines.Upload;
 

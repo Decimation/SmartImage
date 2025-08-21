@@ -126,8 +126,7 @@ internal static class ConsoleFormat
 			return new Text(s);
 		};
 
-		foreach (var (k, v) in dictionary)
-		{
+		foreach (var (k, v) in dictionary) {
 			grd.AddRow(keyFunc(k), valFunc(v));
 		}
 
@@ -140,8 +139,7 @@ internal static class ConsoleFormat
 	{
 		var o = R2.ResourceManager.GetObject(name);
 
-		if (o == null)
-		{
+		if (o == null) {
 			throw new InvalidOperationException(nameof(name));
 		}
 
@@ -159,8 +157,7 @@ internal static class ConsoleFormat
 
 		var properties = settings.GetType().GetProperties();
 
-		foreach (var property in properties)
-		{
+		foreach (var property in properties) {
 			var value = property.GetValue(settings)
 				?.ToString()
 				?.Replace("[", "[[");
@@ -177,15 +174,13 @@ internal static class ConsoleFormat
 	{
 		var t = new STable();
 
-		foreach (DataColumn row in dt.Columns)
-		{
+		foreach (DataColumn row in dt.Columns) {
 			t.AddColumn(new TableColumn(row.ColumnName));
 		}
 
 		Func<object, IRenderable> selector = AsRenderableOrText;
 
-		foreach (DataRow row in dt.Rows)
-		{
+		foreach (DataRow row in dt.Rows) {
 			var obj = row.ItemArray
 				.Select(selector);
 
@@ -197,8 +192,7 @@ internal static class ConsoleFormat
 
 	internal static SpcColor GetEngineColor(SearchEngineOptions opt)
 	{
-		if (!EngineColors.TryGetValue(opt, out var color))
-		{
+		if (!EngineColors.TryGetValue(opt, out var color)) {
 			color = SpcColor.White;
 		}
 
@@ -209,8 +203,7 @@ internal static class ConsoleFormat
 
 	public static IRenderable AsRenderableOrText<T>(T val)
 	{
-		if (val is IRenderable r)
-		{
+		if (val is IRenderable r) {
 			return r;
 		}
 
@@ -255,8 +248,7 @@ internal static class ConsoleFormat
 			["FlareSolverr"] = cfg.FlareSolverr
 		};
 
-		foreach (var (s, o) in kv)
-		{
+		foreach (var (s, o) in kv) {
 			dt.AddRow(new Text(s, Sty_Grid1),
 			          new Text(Markup.Escape(FormatObject(o))));
 		}
@@ -270,13 +262,7 @@ internal static class ConsoleFormat
 
 	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
 	{
-		using var ms = querySource.Image.ToStream(); //todo
-
-		// var       sp = new Span<byte>();
-		// querySource.Image.CopyPixelDataTo(sp);
-
-
-		var ci = new CanvasImage(ms)
+		var ci = new CanvasImage(querySource.GetStream())
 		{
 			MaxWidth = AnsiConsole.Profile.Width / 4,
 
@@ -296,8 +282,7 @@ internal static class ConsoleFormat
 
 		int i = 0;
 
-		foreach (BaseSearchEngine engine in engines)
-		{
+		foreach (BaseSearchEngine engine in engines) {
 			table.AddRow(Txt_NA, new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
 
 			engineMap.TryAdd(engine, i++);
@@ -374,8 +359,7 @@ internal static class ConsoleFormat
 
 		var col = new Queue<SpcColor>(a.Interpolate(b, (byte) text.Length));
 
-		for (int i = 0; i < text.Length; i++)
-		{
+		for (int i = 0; i < text.Length; i++) {
 			char c = text[i];
 
 			var color = col.Dequeue();
@@ -432,6 +416,6 @@ internal static class ConsoleFormat
 		AllowEmpty       = false,
 	};
 
-	#endregion
+#endregion
 
 }

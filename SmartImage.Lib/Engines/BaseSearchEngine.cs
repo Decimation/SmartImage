@@ -1,8 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: BaseSearchEngine.cs
 // Date: 2024/06/06 @ 14:06:00
 
-global using R1 = SmartImage.Lib.Resources;
-global using Url = Flurl.Url;
+
 using System.Collections.Frozen;
 using System.Diagnostics;
 using System.Net.Http.Headers;
@@ -17,9 +16,9 @@ using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Model;
 
 [assembly: InternalsVisibleTo("SmartImage.Test")]
 [assembly: InternalsVisibleTo("SmartImage.UI2")]
@@ -35,12 +34,12 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	{
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, builder =>
 		{
-
 			builder.Headers.AddOrReplace(HeaderNames.UserAgent, HttpUtilities.UserAgent);
-
 			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
 
+
 			builder.Settings.AllowedHttpStatusRange = "*";
+			builder.Settings.HttpVersion            = "2.0";
 
 			builder.OnError(f =>
 			{

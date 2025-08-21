@@ -18,7 +18,7 @@ using static Kantan.Diagnostics.LogCategories;
 using SmartImage.Lib.Utilities;
 using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Model;
 
 // ReSharper disable PossibleNullReferenceException
 
@@ -150,16 +150,16 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 			           .WithTimeout(Timeout)
 			           .PostMultipartAsync(m =>
 			           {
-				           m.AddString("url", query.Source.IsUri ? query.Source.ValueString : string.Empty);
+				           m.AddString("url", query.Source.IsUri ? query.Source.Value : string.Empty);
 				           string s;
 
 				           if (query.Source.IsUri) { }
 				           else if (query.Source.IsFile) {
-					           s = query.Source.ValueString;
+					           s = query.Source.Value;
 					           m.AddFile("file", s, fileName: "image.png");
 				           }
 				           else {
-					           s = query.Source.FilePath;
+					           s = query.Source.LocalFilePath;
 					           m.AddFile("file", s, fileName: "image.png");
 
 				           }

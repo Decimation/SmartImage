@@ -10,7 +10,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Model;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051

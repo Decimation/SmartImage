@@ -8,7 +8,6 @@ using AngleSharp.XPath;
 using Kantan.Diagnostics;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
 
 namespace SmartImage.Lib.Engines;
 

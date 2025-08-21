@@ -35,6 +35,7 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
@@ -63,7 +64,10 @@ public static class ImageScanner
 
 			builder.Settings.AllowedHttpStatusRange = "*";
 
+			builder.Settings.HttpVersion = "2.0";
+
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+
 			// builder.AllowAnyHttpStatus();
 
 			builder.WithAutoRedirect(true);
@@ -74,7 +78,6 @@ public static class ImageScanner
 				f.ExceptionHandled = true;
 
 				// Debugger.Break();
-
 				// f.ExceptionHandled = true;
 				return;
 			});
@@ -103,6 +106,8 @@ public static class ImageScanner
 	 * Gallery-DL
 	 */
 
+	#region Regex
+
 	private static readonly Regex r_imgSource = new(
 		"""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""",
 		RegexOptions.Compiled
@@ -118,11 +123,14 @@ public static class ImageScanner
 		RegexOptions.Compiled
 	);
 
+	#endregion
+
 	public static readonly string[] Extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"];
 
-	[MURV]
+	/*[MURV]
 	public static Stream ToStream(this Image image, IImageFormat format = null)
 	{
+		// TODO
 		var ms = new MemoryStream();
 
 		// If format is not specified, use the image's decoded format if available
@@ -131,15 +139,15 @@ public static class ImageScanner
 		ms.Rewind();
 
 		return ms;
-	}
+	}*/
 
-	[MURV]
+	/*[MURV]
 	public static byte[] ToBytes(this Image image, IImageFormat format = null)
 	{
 		using var ms = (MemoryStream) image.ToStream(format);
 
 		return ms.ToArray();
-	}
+	}*/
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
@@ -293,8 +301,6 @@ public static class ImageScanner
 		return c;
 	}
 
-#region
-
 	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
 	{
 		// TODO: TEST
@@ -338,8 +344,6 @@ public static class ImageScanner
 
 		return rg.ToArray();
 	}
-
-#endregion
 
 	public class UniSimilarity
 	{

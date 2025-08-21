@@ -14,8 +14,8 @@ using Kantan.Net.Web;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Model;
 
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051
@@ -126,13 +126,13 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 	{
 		string               endpoint;
 		UniImageFile         uif      = query.Source as UniImageFile;
-		string               filename = uif.FileInfo.Name;
+		string               filename = uif.LocalFileInfo.Name;
 		Task<IFlurlResponse> req;
 		endpoint = "v3/upload";
 
 		// filename = "image.jpg";
 		// filename = (query.Source is UniImageFile uif) ? uif.FileInfo.Name : "image.jpg";
-		filename = uif.FileInfo.Name;
+		filename = uif.LocalFileInfo.Name;
 
 		req = Client.Request(Endpoint, endpoint)
 			.SetQueryParam("hl", HlParam)
@@ -144,7 +144,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 			.PostMultipartAsync(bc =>
 			{
 				//
-				bc.AddFile("encoded_image", uif.FilePath, contentType: "image/jpeg", fileName: filename);
+				bc.AddFile("encoded_image", uif.LocalFilePath, contentType: "image/jpeg", fileName: filename);
 			}, cancellationToken: token);
 
 		return req;

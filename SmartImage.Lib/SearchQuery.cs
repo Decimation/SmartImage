@@ -1,9 +1,26 @@
-﻿global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
-global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+﻿// ReSharper disable RedundantUsingDirective.Global
+
+#region Global usings
+
+global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using NNW = System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
+global using NN2 = JetBrains.Annotations.NotNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
+global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
+global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
+global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
+global using Url = Flurl.Url;
+global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
+global using CAE = System.Runtime.CompilerServices.CallerArgumentExpressionAttribute;
 global using ISImage = SixLabors.ImageSharp.Image;
+global using CBN = JetBrains.Annotations.CanBeNullAttribute;
+global using INN = JetBrains.Annotations.ItemNotNullAttribute;
+global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
+global using R1 = SmartImage.Lib.Resources;
+
+#endregion
+
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
@@ -77,12 +94,12 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 
 		if (Source.IsUri) {
-			Upload = Source.ValueString;
+			Upload = Source.Value;
 
 			// Size   = BaseSearchEngine.NA_SIZE;
 			// var fmt = await ISImage.DetectFormatAsync(Stream);
 
-			Debug.WriteLine($"Skipping upload for {Source.ValueString}", nameof(UploadAsync));
+			Debug.WriteLine($"Skipping upload for {Source.Value}", nameof(UploadAsync));
 		}
 		else {
 			// fu = await test(fu);
@@ -90,14 +107,14 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 			string fu;
 
 			if (Source.IsFile) {
-				fu = Source.ValueString;
+				fu = Source.Value;
 			}
 			else {
 				// fu = Source.WriteToFile();
 				fu = null;
 
 				if (Source.TryWriteToFile()) {
-					fu = Source.FilePath;
+					fu = Source.LocalFilePath;
 				}
 
 				Trace.WriteLine($"Wrote to file {fu}");

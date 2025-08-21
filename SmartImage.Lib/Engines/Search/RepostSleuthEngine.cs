@@ -5,7 +5,7 @@ using System.Text.Json.Serialization.Metadata;
 using AngleSharp.Css.Values;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Model;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable CS0649

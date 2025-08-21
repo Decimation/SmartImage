@@ -15,7 +15,6 @@ using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Images.Uni;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes

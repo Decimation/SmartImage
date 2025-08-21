@@ -1,7 +1,4 @@
-﻿global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
-global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
-global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
-global using INN = JetBrains.Annotations.ItemNotNullAttribute;
+﻿
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;

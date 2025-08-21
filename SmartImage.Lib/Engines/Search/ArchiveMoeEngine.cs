@@ -8,9 +8,11 @@ using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
 using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Images;
+using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+// ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -19,7 +21,7 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
 
-	protected string Base64Hash { get; set; }
+	protected string Base64MD5Hash { get; set; }
 
 
 	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
@@ -28,9 +30,9 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
-		Base64Hash = SearchUtil.GetHash(query);
+		Base64MD5Hash = GetBase64MD5Hash(query.Source.Bytes);
 
-		var r = Url.Combine(BaseUrl, "image", Base64Hash);
+		var r = Url.Combine(BaseUrl, "image", Base64MD5Hash);
 		return r;
 
 		// return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
@@ -62,6 +64,23 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 		}
 
 		return ValueTask.FromResult<IEnumerable<ChanPost>>(buf);
+	}
+
+	/// <see cref="SearchHashType.Base64MD5"/>
+	public static string GetBase64MD5Hash(byte[] srcBytes)
+	{
+		// TODO
+
+		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
+		var data = MD5.HashData(srcBytes);
+
+		var b64 = Convert.ToBase64String(data).Replace("==", "");
+		b64 = Regex.Replace(b64, @"\//", "_");
+		b64 = Regex.Replace(b64, @"\+", "-");
+
+		// q.Source.Stream.TrySeek();
+
+		return b64;
 	}
 
 }

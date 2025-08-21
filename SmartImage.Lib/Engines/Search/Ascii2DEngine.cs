@@ -16,7 +16,7 @@ using SixLabors.ImageSharp.Formats.Bmp;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Model;
 
 // ReSharper disable CognitiveComplexity
 

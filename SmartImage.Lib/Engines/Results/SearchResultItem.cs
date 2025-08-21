@@ -5,9 +5,9 @@ using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
 using Kantan.Diagnostics;
-using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
@@ -212,7 +212,7 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 
 	public async ValueTask<bool> LoadThumbnail(CancellationToken ct = default)
 	{
-		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u.ValueString == Thumbnail))) {
+		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u is UniImageUri ui && ui.Url.Equals(Thumbnail)))) {
 
 			var uni = await UniImage.TryCreateAsync(Thumbnail, ct: ct);
 

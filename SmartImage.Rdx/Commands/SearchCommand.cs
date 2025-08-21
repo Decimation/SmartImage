@@ -1,17 +1,22 @@
 ﻿// Read S SmartImage.Rdx SearchCommand.cs
 // 2023-07-05 @ 2:07 AM
 
+#region Global usings
+
+global using ISImage = SixLabors.ImageSharp.Image;
 global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
-
-// global using AC = Spectre.Console.AnsiConsole;
-// global using AnsiConsole = Spectre.Console.AnsiConsole;
+global using AC = Spectre.Console.AnsiConsole;
+global using AnsiConsole = Spectre.Console.AnsiConsole;
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 global using R1 = SmartImage.Lib.Resources;
 global using R2 = SmartImage.Rdx.Resources;
+
+#endregion
+
 using CliWrap;
 using Flurl;
 using Flurl.Http;
@@ -48,6 +53,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 
 // ReSharper disable InconsistentNaming
 
@@ -172,7 +178,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 				var panel = new Panel(ci)
 				{
-					Header = new PanelHeader($"{Query.Source.ValueString}")
+					Header = new PanelHeader($"{Query.Source.Value}")
 				};
 				AnsiConsole.Write(panel);
 				await InitConfigAsync(ok);
@@ -281,9 +287,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 					await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 					{
-						var hashOk = ui.TryCalculateSimilarity(Query.Source);
 
-						if (hashOk) {
+						if (Query.Source.HasHash) {
 							var row = GetRowForUni(ui);
 							m_table.Rows.Update(row, 2, new Text(ui.Similarity.ToString()));
 							f.Refresh();
@@ -301,14 +306,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 					Stream str;
 
 					if (ui is not null) {
-						str = ui.Image.ToStream();
+						str = ui.GetStream();
 					}
 					else if (sri.Thumbnail != null) {
 						var thmbOk = await sri.LoadThumbnail(ct);
 
 						if (thmbOk) {
-							ui  = sri.Uni.Find(f => f.ValueString == sri.Thumbnail);
-							str = ui.Image.ToStream();
+							ui  = sri.Uni.Find(f => f.Value == sri.Thumbnail);
+							str = ui.GetStream();
 						}
 						else {
 							continue;
@@ -354,7 +359,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 					// string key = sri.Url.ToString();
 
-					var key = ui.ValueString;
+					var key = ui.Value;
 					var val = m_cache.Get(key);
 
 					if (val is not Stream) {
@@ -762,13 +767,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		var result = sri.Root;
 
-		var style = new Style(link: ui.ValueString,
+		var style = new Style(link: ui.Value, 
 		                      foreground: ConsoleFormat.GetEngineColor(result.Engine.EngineOption));
 
 		return
 		[
 			new Text($"{result.Engine.Name} #{idx}.{subIdx}", style),
-			new Text(Markup.Escape(ui.ValueString)),
+			new Text(Markup.Escape(ui.Value)),
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty

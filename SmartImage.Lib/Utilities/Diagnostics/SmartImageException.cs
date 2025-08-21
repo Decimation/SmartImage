@@ -1,4 +1,4 @@
-﻿global using CAE = System.Runtime.CompilerServices.CallerArgumentExpressionAttribute;
+﻿
 using System.Runtime.CompilerServices;
 using JetBrains.Annotations;
 using SmartImage.Lib.Engines;

@@ -14,29 +14,10 @@ public class UniImageUri : UniImage
 
 	public Url Url { get; }
 
-	internal UniImageUri(object value, Url url)
-		: base(value, UniImageType.Uri)
+	internal UniImageUri(Url url)
+		: base(url.ToString(), UniImageType.Uri)
 	{
 		Url = url;
-	}
-
-
-	public static bool IsUriType(object o, out Url u)
-	{
-		u = o switch
-		{
-			Url u2                       => u2,
-			string s when Url.IsValid(s) => s,
-			_                            => null
-		};
-
-		if (u == null) {
-			return false;
-		}
-
-		var scheme = u.Scheme;
-
-		return LegalSchemes.Contains(scheme);
 	}
 
 
@@ -44,32 +25,19 @@ public class UniImageUri : UniImage
 
 	public static readonly ImmutableArray<string> LegalSchemes = ["http", "https"];
 
-	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
+	protected override async Task<bool> AllocAsync(CancellationToken ct = default)
 	{
-		if (!HasImage) {
-			try {
-				// Stream     = File.OpenRead(fullName);
+		// Stream     = File.OpenRead(fullName);
 
-				using var fres = await GetResponseAsync(Url, ct);
+		using var fres = await GetResponseAsync(Url, ct);
 
-				if (fres == null) {
-					return false;
-				}
-
-				var res = await fres.GetStreamAsync();
-				Size  = res.Length;
-				Image = await ISImage.LoadAsync<Rgba32>(res, ct);
-
-			}
-			catch (Exception exception) {
-				s_logger.LogError(exception, "{Func}", nameof(UniImageFile));
-				return false;
-			}
-
+		if (fres == null) {
+			return false;
 		}
 
-		return HasImage;
-
+		// Stream = await fres.GetStreamAsync();
+		Bytes  = await fres.GetBytesAsync();
+		return HasBytes;
 	}
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
@@ -101,6 +69,24 @@ public class UniImageUri : UniImage
 		*/
 
 		return req1;
+	}
+
+	public static bool IsUriType(object o, out Url u)
+	{
+		u = o switch
+		{
+			Url u2                       => u2,
+			string s when Url.IsValid(s) => s,
+			_                            => null
+		};
+
+		if (u == null) {
+			return false;
+		}
+
+		var scheme = u.Scheme;
+
+		return LegalSchemes.Contains(scheme);
 	}
 
 }

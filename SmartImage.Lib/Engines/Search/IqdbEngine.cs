@@ -17,7 +17,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
+using SmartImage.Lib.Model;
 
 // ReSharper disable StringLiteralTypo
 

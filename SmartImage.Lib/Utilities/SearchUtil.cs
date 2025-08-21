@@ -45,18 +45,4 @@ public static class SearchUtil
 		return false;
 	}
 
-	public static string GetHash(SearchQuery q)
-	{
-		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
-		using Stream stream = q.Source.Image.ToStream();
-		var          data   = MD5.HashData(stream);
-		var          b64    = Convert.ToBase64String(data).Replace("==", "");
-		b64 = Regex.Replace(b64, @"\//", "_");
-		b64 = Regex.Replace(b64, @"\+", "-");
-
-		// q.Source.Stream.TrySeek();
-
-		return b64;
-	}
-
 }

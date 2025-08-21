@@ -12,45 +12,27 @@ namespace SmartImage.Lib.Images.Uni;
 public class UniImageFile : UniImage
 {
 
-	internal UniImageFile(object value, FileInfo fi)
-		: base(value, UniImageType.File)
+	internal UniImageFile(FileInfo fi) : base(fi.FullName, UniImageType.File)
 	{
-		FileInfo = fi;
-		FilePath = ValueString;
+		LocalFileInfo = fi;
+		LocalFilePath = Value;
 	}
 
-	public FileInfo FileInfo { get; }
+	public FileInfo LocalFileInfo { get; }
 
 	public override string WriteToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
 	{
-		if (!HasFile) {
-			throw new FileNotFoundException(ValueString);
+		if (!HasFilePath) {
+			throw new FileNotFoundException(Value);
 		}
 
-		return ValueString;
+		return Value;
 	}
 
-	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
+	protected override async Task<bool> AllocAsync(CancellationToken ct = default)
 	{
-		if (!HasImage) {
-			try {
-				var fullName = FileInfo.FullName;
-
-				await using var stream = File.OpenRead(fullName);
-
-				Size = stream.Length;
-
-				Image = await ISImage.LoadAsync<Rgba32>(stream, ct);
-
-			}
-			catch (Exception exception) {
-				s_logger.LogError(exception, "{Func}", nameof(UniImageFile));
-				return false;
-			}
-
-		}
-
-		return HasImage;
+		Bytes = await File.ReadAllBytesAsync(Value, ct);
+		return HasBytes;
 	}
 
 

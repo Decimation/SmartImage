@@ -16,9 +16,9 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Utilities;
 using Kantan.Net.Utilities;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -77,9 +77,9 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		string       fileName;
 		string       filePath = null;
 
-		if (query.Source.HasFile)
+		if (query.Source.HasFilePath)
 		{
-			filePath = query.Source.FilePath;
+			filePath = query.Source.LocalFilePath;
 			fileName = Path.GetFileName(filePath);
 
 			/*if (Path.GetFileName(t) != name) {
@@ -93,7 +93,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 			if (ok)
 			{
-				filePath = query.Source.FilePath;
+				filePath = query.Source.LocalFilePath;
 			}
 			else
 			{

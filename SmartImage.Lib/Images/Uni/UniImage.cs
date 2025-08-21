@@ -1,8 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImage.cs
 // Date: 2024/05/02 @ 10:05:55
 
-global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
-using CoenM.ImageHash;
+
+using System.Buffers;
 using Kantan.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
@@ -14,9 +14,13 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SmartImage.Lib.Engines.Results.Model;
 using SmartImage.Lib.Utilities.Diagnostics;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
+using CommunityToolkit.HighPerformance;
+using Microsoft.IO;
+using SmartImage.Lib.Model;
+
 // ReSharper disable InconsistentNaming
 
 
@@ -34,15 +38,26 @@ public enum UniImageType
 
 	Unknown = 0,
 	File,
-	Uri,
-	Stream
+	Uri
+
+}
+
+public enum SearchHashType
+{
+
+	None = 0,
+	PHash,
+	SHA256,
+	MD5,
+	Base64,
+	Base64MD5,
 
 }
 
 /// <summary>
 /// <seealso cref="UniSource"/>
-/// </summary>
-public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHash
+/// </summary>	
+public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHash, IImage
 {
 
 	/*[MN]
@@ -58,20 +73,17 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
 	}
 
-	public object Value { get; protected init; }
-
 	public UniImageType Type { get; }
 
-	public long Size { get; protected set; }
+	public virtual long? Size => Bytes.Length;
+
+	public string Value { get; }
 
 	[MN]
-	public virtual string ValueString => Value?.ToString();
+	public string LocalFilePath { get; protected set; }
 
-	[MN]
-	public string FilePath { get; protected set; }
-
-	[MNNW(true, nameof(FilePath))]
-	public bool HasFile => FilePath != null && File.Exists(FilePath);
+	[MNNW(true, nameof(LocalFilePath))]
+	public bool HasFilePath => LocalFilePath != null && File.Exists(LocalFilePath);
 
 	/*[MNNW(true, nameof(Image), nameof(Image.Metadata))]
 	public bool HasImageFormat => HasImage && Image.Metadata.DecodedImageFormat != null;*/
@@ -79,8 +91,6 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public bool IsUri => Type == UniImageType.Uri;
 
 	public bool IsFile => Type == UniImageType.File;
-
-	public bool IsStream => Type == UniImageType.Stream;
 
 	public bool IsUnknown => Type == UniImageType.Unknown;
 
@@ -96,19 +106,57 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
-	public Lazy<ulong?> Hash { get; }
+	public ulong? Hash { get; protected set; }
+
+	[MNNW(true, nameof(Hash))]
+	public bool HasHash => Hash.HasValue;
 
 	public double? Similarity { get; private set; }
+
+	public byte[] Bytes { get; protected set; }
+
+	[MNNW(true, nameof(Bytes))]
+	public bool HasBytes => Bytes != null;
+
+	public Stream GetStream()
+	{
+		return new MemoryStream(Bytes, writable: false);
+	}
 
 
 	public static readonly UniImage Null = null;
 
-	private protected UniImage(object value, UniImageType type)
+
+	private protected UniImage(string value, UniImageType type)
 	{
 		Value = value;
 		Type  = type;
-		Hash  = new Lazy<ulong?>(TryCalculateHash, LazyThreadSafetyMode.ExecutionAndPublication);
-		Size  = Native.ERROR_SV;
+	}
+
+
+	protected abstract Task<bool> AllocAsync(CancellationToken ct = default);
+
+	/// <summary>
+	/// Allocates <see cref="Image"/>
+	/// </summary>
+	public virtual async Task<bool> AllocImageAsync(CancellationToken ct = default)
+	{
+		if (!HasImage) {
+			try {
+
+				using var stream = GetStream();
+				Image = await ISImage.LoadAsync<Rgba32>(stream, ct);
+			}
+			catch (Exception exception) {
+				s_logger.LogError(exception, "{Value} failed to allocate image", Value);
+				return false;
+			}
+
+			Hash = ImageScanner.ImageHasher.Hash(Image);
+		}
+
+		return HasImage;
+
 	}
 
 	/// <summary>
@@ -118,77 +166,52 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	                                                  bool autoDisposeOnError = true,
 	                                                  CancellationToken ct = default)
 	{
-		UniImage ui  = Null;
-		Stream   str = Stream.Null;
+		UniImage ui = Null;
 
 		try {
 
 			if (UniImageFile.IsFileType(o, out var fi)) {
-				ui = new UniImageFile((string) o, fi);
+				ui = new UniImageFile(fi);
 			}
 			else if (UniImageUri.IsUriType(o, out var url2)) {
-				ui = new UniImageUri(o, url2);
-			}
-			else if (o is Stream stream) {
-				ui = new UniImageStream(o, stream);
+				ui = new UniImageUri(url2);
 			}
 			else {
 				goto ret;
 			}
 
 			if (autoInit) {
-				// var allocOk = await ui.AllocAsync(ct);
+				bool allocOk    = false;
+				bool allocImgOk = false;
 
-				bool allocImgOk = await ui.AllocImageAsync(ct);
+				allocOk = await ui.AllocAsync(ct);
 
+				if (allocOk) {
+					allocImgOk = await ui.AllocImageAsync(ct);
+				}
 
-				if (autoDisposeOnError) {
-					if (!allocImgOk) {
-						ui.Dispose();
-						ui = Null;
+				s_logger.LogTrace("{Value} :: {AllocOk} {AllocImgOk}", o, allocOk, allocImgOk);
 
-					}
-
+				if (autoDisposeOnError && (!allocOk || !allocImgOk)) {
+					ui?.Dispose();
 				}
 			}
 
 		}
 		catch (Exception e) {
 			// str?.Dispose();
-			Trace.WriteLine($"{nameof(TryCreateAsync)} :: failed with exception {e.Message}");
+			s_logger.LogError(e, "{Value}", o);
 		}
 
 	ret:
 		return ui;
 	}
 
-	/*public virtual async ValueTask<bool> DetectFormatAsync(CancellationToken ct = default)
-	{
-		if (!HasStream) {
-			throw new InvalidOperationException($"{nameof(Stream)} must be allocated");
-		}
-
-		try {
-			Stream.TrySeek();
-			ImageFormat = await ISImage.DetectFormatAsync(Stream, ct);
-			Stream.TrySeek();
-
-		}
-		catch (UnknownImageFormatException ex) {
-			Debug.WriteLine($"{this} :: {ex.Message}");
-		}
-		finally { }
-
-		return HasImageFormat;
-
-	}*/
-
 	public static bool IsValidSourceType(object str, bool checkExt = true)
 	{
-		bool isFile   = UniImageFile.IsFileType(str, out var f);
-		bool isUri    = UniImageUri.IsUriType(str, out var f2);
-		bool isStream = UniImageStream.IsStreamType(str, out var f3);
-		bool ok       = isFile || isUri || isStream;
+		bool isFile = UniImageFile.IsFileType(str, out var f);
+		bool isUri  = UniImageUri.IsUriType(str, out var f2);
+		bool ok     = isFile || isUri;
 
 		if (isFile && checkExt) {
 			//todo
@@ -199,68 +222,23 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return ok;
 	}
 
-	/// <summary>
-	/// Allocates <see cref="Image"/>
-	/// </summary>
-	public abstract Task<bool> AllocImageAsync(CancellationToken ct = default);
-
-	private ulong? TryCalculateHash()
-	{
-		if (!HasImage) {
-			throw new InvalidOperationException();
-		}
-
-		ulong? hash;
-
-		try {
-			// Stream.TrySeek();
-			hash = ImageScanner.ImageHasher.Hash(Image);
-
-			// Stream.TrySeek();
-
-		}
-		catch (Exception e) {
-			hash = null;
-		}
-		finally { }
-
-		return hash;
-	}
-
-	public bool TryCalculateSimilarity(IHash comparand)
-	{
-		/*
-		if (comparand.HasHash && (this as IHash).HasHash)
-		{
-			// ReSharper disable PossibleInvalidOperationException
-
-			Similarity ??= CompareHash.Similarity(comparand.Hash.Value.Value, Hash.Value.Value);
-
-			// ReSharper restore PossibleInvalidOperationException
-		}
-		*/
-		Similarity ??= CompareHash.Similarity(comparand.Hash.Value.Value, Hash.Value.Value);
-
-		return Similarity.HasValue;
-	}
-
 	public bool TryWriteToFile(string fn = null)
 	{
-		if (!HasFile) {
-			FilePath = WriteToFile(fn);
+		if (!HasFilePath) {
+			LocalFilePath = WriteToFile(fn);
 		}
 
-		return HasFile;
+		return HasFilePath;
 	}
 
 	public bool TryDeleteFile()
 	{
-		if (HasFile) {
-			File.Delete(FilePath);
-			FilePath = null;
+		if (HasFilePath) {
+			File.Delete(LocalFilePath);
+			LocalFilePath = null;
 		}
 
-		return !HasFile;
+		return !HasFilePath;
 	}
 
 	[MURV]
@@ -292,28 +270,18 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public virtual void Dispose()
 	{
-		Trace.WriteLine($"Disposing {ValueString} w/ {Size}", LogCategories.C_VERBOSE);
-
-		// Stream?.Dispose();
 		Image?.Dispose();
-
-
-		// ImageInfo?.Dispose();
 	}
 
 	public virtual ValueTask DisposeAsync()
 	{
 		Dispose();
 		return ValueTask.CompletedTask;
-
-
 	}
 
 	public override string ToString()
 	{
-		string s = $"{ValueString} ({Type}) [{(HasImageFormat ? ImageFormat.Name : "?")}]";
-
-		return s;
+		return $"[{Type}] : {Value} w/ {Size} of type {(HasImageFormat ? ImageFormat.Name : "?")}";
 	}
 
 #region Equality members

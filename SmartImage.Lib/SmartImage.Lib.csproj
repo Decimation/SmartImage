@@ -44,6 +44,7 @@
     <PackageReference Include="CliWrap" Version="3.9.0" />
     <PackageReference Include="CoenM.ImageSharp.ImageHash" Version="1.3.6" />
     <PackageReference Include="CommunityToolkit.Common" Version="8.4.0" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="HttpMultipartParser" Version="9.0.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.0" />

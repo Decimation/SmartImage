@@ -2,7 +2,6 @@
 // Date: 2024/12/04 @ 22:12:34
 
 #pragma warning disable IDE1006
-global using USI = JetBrains.Annotations.UsedImplicitlyAttribute;
 using System.Reflection;
 using System.Text.Json.Serialization;
 using Flurl.Http;
