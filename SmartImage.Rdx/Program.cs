@@ -56,7 +56,7 @@ public static class Program
 
 		var app = new CommandApp<SearchCommand>();
 
-		app.Configure(c =>
+		app.Configure(static c =>
 		{
 #if DEBUG
 			c.PropagateExceptions();

@@ -20,7 +20,7 @@ namespace SmartImage.Lib.Engines.Search;
 /// 
 /// </summary>
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
-public sealed class TraceMoeEngine : BaseSearchEngine, IEndpointUrl, IDisposable
+public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 {
 
 	public TraceMoeEngine() : base(URL_QUERY)
@@ -203,7 +203,7 @@ public class TraceMoeDoc
 			long l => l.ToString(),
 			JsonElement e => e.ToString(),
 			IEnumerable e => e.Cast<object>()
-				.Select(x =>
+				.Select(static x =>
 				{
 					var s1 = x.ToString();
 

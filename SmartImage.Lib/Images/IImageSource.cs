@@ -5,11 +5,10 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
 
-namespace SmartImage.Lib.Model;
+namespace SmartImage.Lib.Images;
 
-public interface IImage
+public interface IImageSource
 {
-
 	public Image<Rgba32> Image { get; }
 
 	[MNNW(true, nameof(Image))]

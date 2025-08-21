@@ -57,7 +57,7 @@ public enum SearchHashType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHash, IImage
+public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable, IImageSource
 {
 
 	/*[MN]
@@ -251,7 +251,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		fn ??= Path.GetTempFileName();
 
 		var encoder = new PngEncoder();
-		operation ??= _ => { };
+		operation ??= static _ => { };
 
 		// using ISImage image = ISImage.Load(Stream);
 		using var image = Image.Clone(operation);
@@ -270,6 +270,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public virtual void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		Image?.Dispose();
 	}
 

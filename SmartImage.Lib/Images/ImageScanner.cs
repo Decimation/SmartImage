@@ -32,6 +32,10 @@ using Novus.Win32.Structures.Other;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Bmp;
+using SixLabors.ImageSharp.Formats.Gif;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
@@ -50,14 +54,14 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
-public static class ImageScanner
+public static partial class ImageScanner
 {
 
 	static ImageScanner()
 	{
 		s_logger = AppSupport.Factory.CreateLogger(nameof(ImageScanner));
 
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(ImageScanner), null, builder =>
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(ImageScanner), null, static builder =>
 		{
 			// builder.Settings.Redirects.ForwardAuthorizationHeader = true;
 			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
@@ -72,7 +76,7 @@ public static class ImageScanner
 
 			builder.WithAutoRedirect(true);
 
-			builder.OnError(f =>
+			builder.OnError(static f =>
 			{
 				s_logger.LogError(f.Exception, "{Call}", f);
 				f.ExceptionHandled = true;
@@ -95,7 +99,7 @@ public static class ImageScanner
 	 */
 
 
-	private const char URL_DELIM = '/';
+	public const char URL_DELIM = '/';
 
 	/*
 	 * TODO:
@@ -106,48 +110,26 @@ public static class ImageScanner
 	 * Gallery-DL
 	 */
 
-	#region Regex
+#region Regex
 
-	private static readonly Regex r_imgSource = new(
-		"""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""",
-		RegexOptions.Compiled
-	);
+	[GeneratedRegex("""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""", RegexOptions.Compiled, "en-US")]
+	private static partial Regex r_imgSrc();
 
-	private static readonly Regex r_imgExt = new(
-		"""(?i)(?:[^?&#"'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^"'<>\s]*)?""",
-		RegexOptions.Compiled
-	);
+	[GeneratedRegex("""(?i)(?:[^?&#"'>\s]+)\.(?:jpe?g|jpe|png|gif|web[mp]|mp4|mkv|og[gmv]|opus)(?:[^"'<>\s]*)?""", RegexOptions.Compiled, "en-US")]
+	private static partial Regex r_imgExt();
 
-	private static readonly Regex r_imgHtml = new(
-		"""(?i)(?:<base\s.*?href=[\"]?)(?<url>[^\"' >]+)""",
-		RegexOptions.Compiled
-	);
+	[GeneratedRegex("""(?i)(?:<base\s.*?href=[\"]?)(?<url>[^\"' >]+)""", RegexOptions.Compiled, "en-US")]
+	private static partial Regex r_imgHtml();
+
+#endregion
+
+	#region Images
+
+	public static readonly IImageFormat[] Formats = [PngFormat.Instance, JpegFormat.Instance, BmpFormat.Instance, GifFormat.Instance];
+
+	public static readonly IEnumerable<string> Extensions = Formats.SelectMany(static fmt => fmt.FileExtensions.Select(static ext => $"*.{ext}"));
 
 	#endregion
-
-	public static readonly string[] Extensions = ["*.png", "*.jpg", "*.jpeg", "*.bmp", "*.gif"];
-
-	/*[MURV]
-	public static Stream ToStream(this Image image, IImageFormat format = null)
-	{
-		// TODO
-		var ms = new MemoryStream();
-
-		// If format is not specified, use the image's decoded format if available
-		format ??= image.Metadata.DecodedImageFormat;
-		image.Save(ms, format);
-		ms.Rewind();
-
-		return ms;
-	}*/
-
-	/*[MURV]
-	public static byte[] ToBytes(this Image image, IImageFormat format = null)
-	{
-		using var ms = (MemoryStream) image.ToStream(format);
-
-		return ms.ToArray();
-	}*/
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
@@ -155,7 +137,6 @@ public static class ImageScanner
 	/// </summary>
 	public static async Task<bool> ScanImagesAsync(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
 	{
-		Stream stream;
 		string sz = null;
 
 		IHtmlDocument doc = null;
@@ -202,6 +183,15 @@ public static class ImageScanner
 		};
 
 
+		await Task.WhenAll(urls.Select(async u => await Body(u, ct)));
+
+		// await Parallel.ForEachAsync(urls, po, Body);
+
+	ret:
+		doc?.Dispose();
+		cw.TryComplete();
+		return true;
+
 		async ValueTask Body(string s, CancellationToken token)
 		{
 			var uni = await UniImage.TryCreateAsync(s, autoInit: true, autoDisposeOnError: true, ct: token);
@@ -222,25 +212,16 @@ public static class ImageScanner
 				uni?.Dispose();
 			}
 		}
-
-		await Task.WhenAll(urls.Select(async u => await Body(u, ct)));
-
-		// await Parallel.ForEachAsync(urls, po, Body);
-
-	ret:
-		doc?.Dispose();
-		cw.TryComplete();
-		return true;
 	}
 
 
 	public static IEnumerable<string> GetImageUrls(string html, Url url, bool heuristicFilter = true)
 	{
-		var imgUrlsSrc = r_imgSource.Matches(html).Select(static m => m.Groups["URL"].Value);
-		var imgUrlsExt = r_imgExt.Matches(html).Select(static m => m.Value);
+		var imgUrlsSrc = r_imgSrc().Matches(html).Select(static m => m.Groups["URL"].Value);
+		var imgUrlsExt = r_imgExt().Matches(html).Select(static m => m.Value);
 		var imgUrls    = imgUrlsSrc.Concat(imgUrlsExt);
 
-		Match  baseMatch = r_imgHtml.Match(html);
+		Match  baseMatch = r_imgHtml().Match(html);
 		string baseUrl;
 
 		if (baseMatch.Success) {
@@ -319,7 +300,7 @@ public static class ImageScanner
 			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbOut))
 			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbErr));
 
-		var cr = await cmd.ExecuteAsync();
+		var cr = await cmd.ExecuteAsync(ct);
 
 		if (!cr.IsSuccess) {
 			return null;

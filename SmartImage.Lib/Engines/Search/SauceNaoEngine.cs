@@ -33,7 +33,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<INode>>, IEndpointUrl, IDisposable
+public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<INode>>, IEndpoint, IDisposable
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -77,9 +77,9 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 				await GetAPIResultsAsync(query, result).ConfigureAwait(false);
 			}
 			else {
-				var src   = await GetSourceAsync(result, query, token).ConfigureAwait(false);
-				var source   = await ParseIntermediate(src);
-				var items = await ParseResultItems(source, result);
+				var src    = await GetSourceAsync(result, query, token).ConfigureAwait(false);
+				var source = await ParseIntermediate(src);
+				var items  = await ParseResultItems(source, result);
 
 			}
 		}
@@ -276,8 +276,8 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 				var    header = jsonArray[i][KeyHeader];
 				var    data   = jsonArray[i][KeyData];
 				string obj    = header.ToString();
-				obj          =  obj.Remove(obj.Length - 1);
-				obj          += data.ToString().Remove(0, 1).Insert(0, ",");
+				obj          =  obj[..^1];
+				obj          += data.ToString()[1..].Insert(0, ",");
 				jsonArray[i] =  JsonNode.Parse(obj);
 
 			}
@@ -292,9 +292,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 				float similarity = float.Parse(result[KeySimilarity].AsValue().ToString());
 
 				string[] strings = result.ContainsKey(KeyUrls)
-					                   ? (result[KeyUrls] as JsonArray)!
-					                   .Select(j => j.ToString().CleanString())
-					                   .ToArray()
+					                   ? [.. (result[KeyUrls] as JsonArray).Select(static j => j.ToString().CleanString())]
 					                   : null;
 
 				var index = (SauceNaoSiteIndex) int.Parse(result[KeyIndex].ToString());
@@ -506,7 +504,7 @@ public sealed record SauceNaoDataResult : SearchResultItem
 			thumbnailTitle = ri.GetAttribute("title");
 			var pixelated   = ri.GetAttribute("class");
 			var isPixelated = pixelated == "pixelated";
-			var ds          = ri.Attributes.Where(x => x.Name.Contains("data-src")).ToArray();
+			var ds          = ri.Attributes.Where(static x => x.Name.Contains("data-src")).ToArray();
 			thumbnail = isPixelated ? ds.LastOrDefault()?.Value : thumbnail;
 		}
 
@@ -535,14 +533,14 @@ public sealed record SauceNaoDataResult : SearchResultItem
 
 		if (resulttablecontent is IElement { } e) {
 			var links1 = e.QuerySelectorAll(Serialization.Tag_a)
-				.Select(x => x.GetAttribute(Serialization.Atr_href));
+				.Select(static x => x.GetAttribute(Serialization.Atr_href));
 			links.AddRange(links1);
 		}
 
-		var element = resultcontentcolumn_rg.Select(c => c.ChildNodes)
-			.SelectMany(c => c.GetElementsByTagName(Serialization.Tag_a)
-				            .Select(x => x.GetAttribute(Serialization.Atr_href)))
-			.Where(ec => ec != null);
+		var element = resultcontentcolumn_rg.Select(static c => c.ChildNodes)
+			.SelectMany(static c => c.GetElementsByTagName(Serialization.Tag_a)
+				            .Select(static x => x.GetAttribute(Serialization.Atr_href)))
+			.Where(static ec => ec != null);
 
 		if (element.Any()) {
 			links.AddRange(element);
@@ -550,7 +548,7 @@ public sealed record SauceNaoDataResult : SearchResultItem
 
 		if (resultmiscinfo != null) {
 			links.Add(resultmiscinfo.ChildNodes.GetElementsByTagName(Serialization.Tag_a)
-				          .FirstOrDefault(x => x.GetAttribute(Serialization.Atr_href) != null)?
+				          .FirstOrDefault(static x => x.GetAttribute(Serialization.Atr_href) != null)?
 				          .GetAttribute(Serialization.Atr_href));
 		}
 
@@ -560,7 +558,7 @@ public sealed record SauceNaoDataResult : SearchResultItem
 		string rti         = resulttitle?.TextContent;
 
 		// INode  resultcontentcolumn1 = resultcontent.ChildNodes[1];
-		string rcci = resultcontentcolumn_rg.FuncJoin(e => e.TextContent, ",");
+		string rcci = resultcontentcolumn_rg.FuncJoin(static e => e.TextContent, ",");
 
 		// string material1 = rcci.SubstringAfter(material);
 		string material1 = rcci.SubstringAfter(KEY_MATERIAL);
@@ -578,14 +576,14 @@ public sealed record SauceNaoDataResult : SearchResultItem
 			}
 		}
 
-		var nodes = resultcontentcolumn_rg.SelectMany(e => e.ChildNodes)
-			.Where(c => c is not (IElement { TagName: "BR" }
-				            or IElement { NodeName: "SPAN" }))
+		var nodes = resultcontentcolumn_rg.SelectMany(static e => e.ChildNodes)
+			.Where(static c => c is not (IElement { TagName: "BR" }
+				                   or IElement { NodeName: "SPAN" }))
 			.ToArray();
 		float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
 
 		// var results = new List<SearchResultItem>();
-		var urls = links.Where(x =>
+		var urls = links.Where(static x =>
 		{
 			var b = !string.IsNullOrWhiteSpace(x);
 			var c = true;

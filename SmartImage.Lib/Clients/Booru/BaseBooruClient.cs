@@ -11,7 +11,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 namespace SmartImage.Lib.Clients.Booru;
 
 // TODO
-[Experimental(AppSupport.DIAG_SMRTIMG_EXP001)]
+[Experimental(AppSupport.DIAG_ID_EXPERIMENTAL)]
 public abstract class BaseBooruClient : IDisposable
 {
 
@@ -24,6 +24,9 @@ public abstract class BaseBooruClient : IDisposable
 		BaseUrl = baseUrl;
 	}
 
-	public virtual void Dispose() { }
+	public virtual void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
 
 }

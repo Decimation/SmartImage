@@ -320,7 +320,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		return $"{SearchEngines}\n{PriorityEngines}";
 	}
 
-	public async ValueTask<bool> LoadEnginesAsync(BaseSearchEngine[] engines, CancellationToken token)
+	public async ValueTask<bool> ApplyEnginesAsync(IEnumerable<BaseSearchEngine> engines, CancellationToken token = default)
 	{
 		s_logger.LogTrace("Loading engines");
 

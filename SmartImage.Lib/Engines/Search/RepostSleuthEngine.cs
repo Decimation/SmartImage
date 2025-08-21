@@ -18,7 +18,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointUrl, IDisposable
+public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint, IDisposable
 {
 
 	private const string URL_API   = "https://api.repostsleuth.com/image";
@@ -84,7 +84,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpointUrl, IDispos
 			goto ret;
 		}
 
-		if (obj?.matches == null || !obj.matches.Any()) {
+		if (obj?.matches == null || obj.matches.Count == 0) {
 			sr.Flags |= SearchResultFlags.NoResults;
 			goto ret;
 		}

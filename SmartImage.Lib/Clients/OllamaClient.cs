@@ -24,7 +24,7 @@ public class OllamaClient
 
 	static OllamaClient()
 	{
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(OllamaClient), "http://localhost:11434", builder =>
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(OllamaClient), "http://localhost:11434", static builder =>
 		{
 
 			// builder.Headers.AddOrReplace(HeaderNames.UserAgent, HttpUtilities.UserAgent);
@@ -33,13 +33,13 @@ public class OllamaClient
 
 			builder.Settings.AllowedHttpStatusRange = "*";
 
-			builder.OnError(f =>
+			builder.OnError(static f =>
 			{
 				// Debugger.Break();
 				Logger.LogError(f.Exception, "Request: {Req}", f.Request);
 			});
 
-			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
+			builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
 
 		});
 	}

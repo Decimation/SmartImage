@@ -2,6 +2,7 @@
 // Date: 2024/06/06 @ 14:06:00
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
@@ -44,33 +45,6 @@ public sealed class YandexEngine : BaseSearchEngine
 		Timeout = TimeSpan.FromSeconds(30);
 	}
 
-	private static (int? w, int? h) ParseResolution(string resText)
-	{
-		string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
-
-		int? w = null, h = null;
-
-		if (resFull.Length == 1 && resFull[0] == resText)
-		{
-			const string TIMES_DELIM = "&times;";
-
-			if (resText.Contains(TIMES_DELIM))
-			{
-				resFull = resText.Split(TIMES_DELIM);
-			}
-		}
-
-		if (resFull.Length == 2)
-		{
-			w = int.Parse(resFull[0]);
-			h = int.Parse(resFull[1]);
-		}
-
-		return (w, h);
-	}
-
-#region Overrides of BaseSearchEngine
-
 	protected override Url GetRawUrl(SearchQuery query)
 	{
 		var url = BaseUrl.Clone();
@@ -80,34 +54,25 @@ public sealed class YandexEngine : BaseSearchEngine
 		return url;
 	}
 
-#endregion
-
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// var sr = await base.GetResultAsync(query, token);
 
 		var url = GetRawUrl(query);
+		var sr  = new SearchResult(this, url) { };
 
-		var sr = new SearchResult(this, url)
-			{ };
-
-		IDocument doc = null;
-
+		IDocument      doc;
 		IFlurlResponse res = null;
 
-		string str = null;
-
-
-		try
-		{
+		try {
 			res = await Client.Request(sr.RawUrl)
 				      .WithAutoRedirect(true)
 				      .AllowAnyHttpStatus()
 				      .WithTimeout(Timeout)
 				      .GetAsync(cancellationToken: token).ConfigureAwait(false);
 
-			str = await res.GetStringAsync().ConfigureAwait(false);
+			string str = await res.GetStringAsync().ConfigureAwait(false);
 
 			var parser = new HtmlParser();
 			doc = await parser.ParseDocumentAsync(str).ConfigureAwait(false);
@@ -117,10 +82,9 @@ public sealed class YandexEngine : BaseSearchEngine
 
 			var jsonNode = JsonNode.Parse(json);
 			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
-			var sitesObj = sites.Deserialize<YandexSite[]>();
+			var sitesObj = sites.Deserialize<YandexSite[]>(jsonTypeInfo: YandexSiteCtx.Default.YandexSiteArray);
 
-			foreach (var site in sitesObj)
-			{
+			foreach (var site in sitesObj) {
 				// site.Root = sr;
 				var sri = site.ToItem(sr);
 				sr.Results.Add(sri);
@@ -130,8 +94,7 @@ public sealed class YandexEngine : BaseSearchEngine
 
 
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			// Console.WriteLine(e);
 			// throw;
 			doc = null;
@@ -143,7 +106,6 @@ public sealed class YandexEngine : BaseSearchEngine
 
 
 		sr.Status = SearchResultStatus.Success;
-	ret:
 		sr.Update();
 		res?.Dispose();
 
@@ -161,6 +123,11 @@ public sealed class YandexEngine : BaseSearchEngine
 	public override void Dispose() { }
 
 }
+
+[JsonSourceGenerationOptions]
+[JsonSerializable(typeof(YandexSite))]
+[JsonSerializable(typeof(YandexSite[]))]
+internal partial class YandexSiteCtx : JsonSerializerContext { }
 
 public record YandexImage
 {
@@ -231,12 +198,12 @@ public record YandexSite
 	{
 		return new SearchResultItem(sr)
 		{
-			Url       = OriginalImage.Url,
-			Height = OriginalImage.Height,
-			Width = OriginalImage.Width,
+			Url         = OriginalImage.Url,
+			Height      = OriginalImage.Height,
+			Width       = OriginalImage.Width,
 			Description = Description,
-			Site      = Domain,
-			Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
+			Site        = Domain,
+			Thumbnail   = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
 		};
 	}
 

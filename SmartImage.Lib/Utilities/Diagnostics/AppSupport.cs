@@ -22,7 +22,7 @@ public static class AppSupport
 	internal static readonly Version Version = Assembly.GetName().Version;
 
 	internal static readonly ILoggerFactory Factory =
-		LoggerFactory.Create(builder =>
+		LoggerFactory.Create(static builder =>
 		{
 			builder.AddDebug()
 				// .AddProvider(new DebugLoggerProvider())
@@ -38,7 +38,7 @@ public static class AppSupport
 			        {
 				        User_Agent = HttpUtilities.UserAgent
 			        })
-			        .OnError(e => { e.ExceptionHandled = true; })
+			        .OnError(static e => { e.ExceptionHandled = true; })
 			        .GetJsonAsync<GitHubRelease[]>();
 
 		if (r == null) {
@@ -63,7 +63,8 @@ public static class AppSupport
 	 *		HKEY_LOCAL_MACHINE\Software\Classes
 	 */
 
-	public const string DIAG_SMRTIMG_EXP001 = "SMRTIMG_EXP001";
+
+	public const string DIAG_ID_EXPERIMENTAL = "SI_EXP_001";
 
 }
 

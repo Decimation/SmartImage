@@ -24,6 +24,7 @@ public class UploadResult : IDisposable
 	public void Dispose()
 	{
 		// Response?.Dispose();
+		GC.SuppressFinalize(this);
 	}
 
 }

@@ -18,6 +18,7 @@ global using CBN = JetBrains.Annotations.CanBeNullAttribute;
 global using INN = JetBrains.Annotations.ItemNotNullAttribute;
 global using MURV = JetBrains.Annotations.MustUseReturnValueAttribute;
 global using R1 = SmartImage.Lib.Resources;
+global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
 
 #endregion
 
@@ -37,19 +38,33 @@ using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Utilities;
 using SixLabors.ImageSharp.Formats;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 
-[assembly: InternalsVisibleTo("SmartImage")]
-[assembly: InternalsVisibleTo("SmartImage.UI")]
-[assembly: InternalsVisibleTo("SmartImage.Rdx")]
-[assembly: InternalsVisibleTo("Test")]
-[assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
+[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE)]
+[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_UI)]
+[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_RDX)]
+[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
 namespace SmartImage.Lib;
 
 public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 {
+
+#region Project names
+
+	internal const string PROJ_SMARTIMAGE              = "SmartImage";
+	internal const string PROJ_SMARTIMAGE_TEST         = $"{PROJ_SMARTIMAGE}.Test";
+	internal const string PROJ_SMARTIMAGE_UI           = $"{PROJ_SMARTIMAGE}.UI";
+	internal const string PROJ_SMARTIMAGE_UI2          = $"{PROJ_SMARTIMAGE_UI}2";
+	internal const string PROJ_SMARTIMAGE_RDX          = $"{PROJ_SMARTIMAGE}.Rdx";
+	internal const string PROJ_SMARTIMAGE_LIB          = $"{PROJ_SMARTIMAGE}.Lib";
+	internal const string PROJ_SMARTIMAGE_LIB_UNITTEST = $"{PROJ_SMARTIMAGE_LIB}.UnitTest";
+	
+
+#endregion
+
 
 	[MN]
 	public Url Upload { get; private set; }

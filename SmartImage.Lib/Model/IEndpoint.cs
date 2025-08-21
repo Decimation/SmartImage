@@ -5,7 +5,7 @@ namespace SmartImage.Lib.Model;
 
 #pragma warning disable CS0649
 
-public interface IEndpointUrl
+public interface IEndpoint
 {
 
 	public Url Endpoint { get; }

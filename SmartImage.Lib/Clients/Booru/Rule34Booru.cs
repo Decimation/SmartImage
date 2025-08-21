@@ -8,7 +8,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 namespace SmartImage.Lib.Clients.Booru;
 // TODO
 
-[Experimental(AppSupport.DIAG_SMRTIMG_EXP001)]
+[Experimental(AppSupport.DIAG_ID_EXPERIMENTAL)]
 public class Rule34Booru : BaseGelbooruClient
 {
 

@@ -2,53 +2,49 @@
 // Date: 2024/06/06 @ 14:06:00
 
 
-using System.Collections.Frozen;
-using System.Diagnostics;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
 using Flurl.Http;
-using Kantan.Diagnostics;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using SmartImage.Lib.Clients;
-using SmartImage.Lib.Cookies;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Model;
 
-[assembly: InternalsVisibleTo("SmartImage.Test")]
-[assembly: InternalsVisibleTo("SmartImage.UI2")]
+[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_TEST)]
+[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_UI2)]
 
 namespace SmartImage.Lib.Engines;
 
+#pragma warning disable CA1822
 #nullable enable
 
-public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>,ISearchConfigReceiver
+public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>, ISearchConfigReceiver
 {
 
 	static BaseSearchEngine()
 	{
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, builder =>
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, static builder =>
 		{
 			builder.Headers.AddOrReplace(HeaderNames.UserAgent, HttpUtilities.UserAgent);
+
 			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
 
 
 			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.Settings.HttpVersion            = "2.0";
 
-			builder.OnError(f =>
+			builder.OnError(static f =>
 			{
 				// Debugger.Break();
 				Logger.LogError(f.Exception, "Request: {Req}", f.Request);
 
 			});
 
-			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
+			builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
 
 		});
 	}
@@ -139,7 +135,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 		return ValueTask.FromResult(b);
 	}
-
 	public int GetHashCode(BaseSearchEngine obj)
 	{
 		return (int) obj.EngineOption;

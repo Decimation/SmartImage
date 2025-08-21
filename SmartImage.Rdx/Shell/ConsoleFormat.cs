@@ -395,7 +395,7 @@ internal static class ConsoleFormat
 		ShowChoices      = false,
 		ShowDefaultValue = false,
 		AllowEmpty       = false,
-		Converter = s =>
+		Converter = static s =>
 		{
 			//
 			return s.Engine.Name;

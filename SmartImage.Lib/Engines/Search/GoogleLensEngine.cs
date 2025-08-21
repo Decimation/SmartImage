@@ -21,7 +21,7 @@ using SmartImage.Lib.Model;
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Search;
 
-public record GoogleLensItem : SearchResultItem, ISearchResultItemParseable<INode, GoogleLensItem>
+public record GoogleLensItem : SearchResultItem, IResultItemParseable<INode, GoogleLensItem>
 {
 
 	public string SiteName { get; private set; }
@@ -33,12 +33,11 @@ public record GoogleLensItem : SearchResultItem, ISearchResultItemParseable<INod
 
 	private GoogleLensItem(SearchResult r) : base(r) { }
 
-	public static GoogleLensItem ParseResultItem(INode n, SearchResult r)
+	public static GoogleLensItem ParseSource(INode n, SearchResult r)
 	{
 		var gli = new GoogleLensItem(r);
 
-		if (n is IHtmlElement e)
-		{
+		if (n is IHtmlElement e) {
 			var attrHref = e.Attributes["href"];
 			var attrPing = e.Attributes["ping"];
 			var title    = e.QuerySelector(".Yt787")?.TextContent;
@@ -58,7 +57,7 @@ public record GoogleLensItem : SearchResultItem, ISearchResultItemParseable<INod
 
 }
 
-public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, IEndpointUrl, ICookiesReceiver
+public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, IEndpoint, ICookiesReceiver
 {
 
 	// TODO: WIP
@@ -114,9 +113,8 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 	{
 		var buf = new List<GoogleLensItem>(source.Count);
 
-		foreach (INode node in source)
-		{
-			buf.Add(GoogleLensItem.ParseResultItem(node, r));
+		foreach (INode node in source) {
+			buf.Add(GoogleLensItem.ParseSource(node, r));
 		}
 
 		return ValueTask.FromResult<IEnumerable<GoogleLensItem>>(buf);
@@ -152,31 +150,25 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
-		string               endpoint, filename;
 		Task<IFlurlResponse> req = null;
-
-		IFlurlResponse res = null;
+		IFlurlResponse       res = null;
 
 		//todo
 
-
-		if (query.Source.IsUri)
-		{
-
+		if (query.Source.IsUri) {
 			req = SearchUrlAsync(query, token);
 			res = await req.ConfigureAwait(false);
 		}
-		else if (query.Source.IsFile)
-		{
+		else if (query.Source.IsFile) {
 			req = SearchFileAsync(query, token);
 			res = await req.ConfigureAwait(false);
 		}
-		else
-		{
+		else {
 			return null;
 		}
 
-		Logger.LogTrace("{Uri} {Code}", res.ResponseMessage.RequestMessage.RequestUri, res.StatusCode);
+		var requestMessage = res.ResponseMessage.RequestMessage;
+		Logger.LogTrace("{Uri} {Code}", requestMessage?.RequestUri, res.StatusCode);
 
 		// var stream = await res.GetStringAsync();
 		/*var url = res.ResponseMessage.RequestMessage.RequestUri;
@@ -246,19 +238,18 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken token = default)
 	{
-		if (source == null)
-		{
+		if (source == null) {
 			return false;
 		}
 
 		var ck   = await source.GetOrLoadCookiesAsync(token).ConfigureAwait(false);
-		var nids = ck.OfType<FirefoxCookie>().Where(x => x.Name == "NID" && x.Host.Contains("google.com"));
+		var nids = ck.OfType<FirefoxCookie>().Where(static x => x.Name == "NID" && x.Host.Contains("google.com"));
 		var nid  = nids.FirstOrDefault();
 
-		if (nid == null)
-		{
+		if (nid == null) {
 			return false;
 		}
+
 		var nidFc = nid.AsFlurlCookie(URL_BASE);
 
 		// Nid ??= nidFc;

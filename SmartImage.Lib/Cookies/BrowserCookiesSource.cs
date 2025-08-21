@@ -22,7 +22,7 @@ public class BrowserCookiesSource : ICookiesSource
 	private IList<ICookie> m_cookies;
 
 	[ICBN]
-	public static readonly Lazy<ICookiesSource> Default = new(() =>
+	public static readonly Lazy<ICookiesSource> Default = new(static () =>
 	{
 		if (BaseOSIntegration.Integration.IsFirefoxInstalled) {
 			var cookieFile = FirefoxCookiesDatabaseReader.FindCookieFile();

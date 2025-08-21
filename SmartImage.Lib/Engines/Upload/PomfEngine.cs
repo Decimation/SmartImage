@@ -18,7 +18,7 @@ public sealed class PomfEngine : BaseUploadEngine
 	{
 		Verify(file);
 
-		using var response = await Client.Request(EndpointUrl)
+		using var response = await Client.Request(Endpoint)
 			                     .WithSettings(r => { r.Timeout = Timeout; }).OnError(r =>
 			                     {
 				                     r.ExceptionHandled = true;

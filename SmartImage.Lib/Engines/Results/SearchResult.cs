@@ -12,6 +12,7 @@ namespace SmartImage.Lib.Engines.Results;
 /// </summary>
 public class SearchResult : IDisposable, INotifyPropertyChanged
 {
+
 	// TODO: FLATTEN SearchResult to SearchResultItem and eliminate SearchResult ≡ SearchResultItem
 
 	/// <summary>
@@ -89,8 +90,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	{
 		if (Status.IsUnknown()) { }
 
-		if (Status.IsError())
-		{
+		if (Status.IsError()) {
 			return;
 		}
 
@@ -124,7 +124,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 		return Results.Where(static r => Url.IsValid(r.Url))
 			.OrderByDescending(static r => r.Similarity)
-			.ThenByDescending(static r=>r.Score)
+			.ThenByDescending(static r => r.Score)
 			.FirstOrDefault();
 	}
 
@@ -135,10 +135,10 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	public void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}", LogCategories.C_VERBOSE);
 
-		foreach (SearchResultItem item in Results)
-		{
+		foreach (SearchResultItem item in Results) {
 			item.Dispose();
 		}
 	}

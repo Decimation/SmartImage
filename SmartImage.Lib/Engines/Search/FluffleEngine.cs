@@ -19,7 +19,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public class FluffleEngine : BaseSearchEngine, IEndpointUrl, IDisposable
+public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
 {
 
 	public const string URL_ENDPOINT = "https://api.fluffle.xyz/v1/";
@@ -60,21 +60,13 @@ public class FluffleEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 			           .OnError(e => { e.ExceptionHandled = true; })
 			           .PostMultipartAsync(c =>
 			           {
-				           // var tmp = query.WriteImageToFile();
-				           // query.Source.Stream.TrySeek();
-
-						   var file = query.Source.WriteToFile();
+				           var file = query.Source.WriteToFile();
 				           c.AddFile("file", file, "file");
-				           // query.Source.Stream.TrySeek();
-
 				           c.AddString("includeNsfw", true.ToString());
 				           c.AddString("limit", 32.ToString());
-
-				           // c.AddString("platforms", null)
-				           // c.AddString("createLink", false)
 			           }, cancellationToken: token).ConfigureAwait(false);
 
-		if (response is { ResponseMessage: { IsSuccessStatusCode: false } }) {
+		if (response is { ResponseMessage.IsSuccessStatusCode: false }) {
 			var er = await response.GetJsonAsync<FluffleErrorCode>().ConfigureAwait(false);
 
 			sr.ErrorMessage = $"{er.Message}: {er.Code}";
@@ -116,7 +108,10 @@ public class FluffleEngine : BaseSearchEngine, IEndpointUrl, IDisposable
 
 	}
 
-	public override void Dispose() { }
+	public override void Dispose()
+	{
+		GC.SuppressFinalize(this);
+	}
 
 }
 

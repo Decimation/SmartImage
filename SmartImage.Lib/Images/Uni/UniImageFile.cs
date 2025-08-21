@@ -5,6 +5,7 @@ using Microsoft;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.IO.MemoryMappedFiles;
+using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace SmartImage.Lib.Images.Uni;
@@ -35,6 +36,15 @@ public class UniImageFile : UniImage
 		return HasBytes;
 	}
 
+	[CA($"{nameof(f)}: null => halt")]
+	public static void Verify([CBN] string f)
+	{
+		var exists = File.Exists(f);
+
+		if (!exists) {
+			throw new FileNotFoundException(fileName: f, message: $"{f} not found");
+		}
+	}
 
 	public static bool IsFileType(object o, out FileInfo f)
 	{

@@ -57,7 +57,7 @@ using SmartImage.Lib.Model;
 
 // ReSharper disable InconsistentNaming
 
-[assembly: InternalsVisibleTo("SmartImage.Lib.UnitTest")]
+[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
 namespace SmartImage.Rdx.Commands;
 
@@ -203,10 +203,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		 * todo
 		 */
 
-		Task run;
-
 #if !UNITTEST
-		run = AnsiConsole.Live(m_table)
+		Task run = AnsiConsole.Live(m_table)
 			.StartAsync(c => RunSearchLiveAsync(c));
 #else
 		run = RunSearchLiveAsync(null);
@@ -672,13 +670,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private int GetRowForUni(UniImage ui)
 	{
-		int a = 0, b = 0, c = 0;
 
-		SearchResultItem sri = GetItemForUni(ui, out c);
+		SearchResultItem sri = GetItemForUni(ui, out int c);
 		c++; // TODO NOTE: +1 for #.0 when #
 
-		a = m_results[sri.Root];
-		b = sri.Root.Results.IndexOf(sri);
+		int a = m_results[sri.Root];
+		int b = sri.Root.Results.IndexOf(sri);
 
 		return a + b + c;
 
@@ -767,7 +764,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		var result = sri.Root;
 
-		var style = new Style(link: ui.Value, 
+		var style = new Style(link: ui.Value,
 		                      foreground: ConsoleFormat.GetEngineColor(result.Engine.EngineOption));
 
 		return
@@ -808,9 +805,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	{
 		Style style = ConsoleFormat.GetEngineColor(result.Engine.EngineOption);
 
-		var lr   = style.Foreground.GetLuminance();
+		/*var lr   = style.Foreground.GetLuminance();
 		var lrr  = style.Foreground.GetContrastRatio(SpcColor.White);
-		var lrr2 = style.Foreground.GetContrastRatio(SpcColor.Black);
+		var lrr2 = style.Foreground.GetContrastRatio(SpcColor.Black);*/
 
 		// Debug.WriteLine($"{lr} {lrr} {lrr2}");
 

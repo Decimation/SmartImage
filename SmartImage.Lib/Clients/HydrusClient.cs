@@ -4,12 +4,14 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Flurl.Http;
+using SmartImage.Lib.Utilities.Diagnostics;
+// #pragma warning disable SI_EXP_001
 
 namespace SmartImage.Lib.Clients;
 
+[Experimental(AppSupport.DIAG_ID_EXPERIMENTAL)]
 public class HydrusClient : INotifyPropertyChanged, IDisposable
 {
-
 	private const string HDR_HYDRUS_KEY = "Hydrus-Client-API-Access-Key";
 
 	public FlurlClient Client { get; }

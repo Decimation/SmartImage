@@ -159,7 +159,7 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 		Metadata = null;
 		Parent   = null;
 		IsRaw    = isRaw;
-		Uni      = new List<UniImage>();
+		Uni      = [];
 
 		// EmbeddedUrls = null;
 
@@ -293,9 +293,10 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 
 	public void Dispose()
 	{
+		GC.SuppressFinalize(this);
 		Debug.WriteLine($"Disposing {Url} of {Root.Engine.Name}", LogCategories.C_VERBOSE);
 
-		if (Uni != null && Uni.Any()) {
+		if (Uni is { Count: > 0 }) {
 			foreach (var us in Uni) {
 
 				us?.Dispose();

@@ -1,11 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: EHentaiEngine.cs
 // Date: 2024/06/06 @ 14:06:00
 
-using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Net;
-using System.Runtime.CompilerServices;
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
@@ -16,9 +13,6 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Utilities;
-using Kantan.Net.Utilities;
-using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -150,7 +144,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		// Debug.WriteLine($"{res.StatusCode}");
 
 		sr.RawUrl = httpRes.RequestMessage.RequestUri;
-		var old = sr.Results.Find(r => r.IsRaw);
+		var old = sr.Results.Find(static r => r.IsRaw);
 		old.Url = sr.RawUrl;
 
 		Debug.Assert(old == sr.Results[0]);
@@ -192,7 +186,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 		foreach (INode node in source)
 		{
-			var eh =  EhResult.ParseResultItem(node, r);
+			var eh =  EhResult.ParseSource(node, r);
 			buf.Add(eh);
 		}
 
@@ -257,7 +251,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		var response = await GetSessionAsync().ConfigureAwait(false);
 		return IsLoggedIn = response.ResponseMessage.IsSuccessStatusCode;
 
-		return true;
 	}
 
 	public async Task<bool> LoginAsync(string username, string password)
@@ -378,7 +371,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 }
 
-public sealed record EhResult : SearchResultItem, ISearchResultItemParseable<INode, EhResult>
+public sealed record EhResult : SearchResultItem, IResultItemParseable<INode, EhResult>
 {
 
 	public string Type { get; private set; }
@@ -398,7 +391,7 @@ public sealed record EhResult : SearchResultItem, ISearchResultItemParseable<INo
 		Tags = [];
 	}
 
-	public static EhResult ParseResultItem(INode n, SearchResult sr)
+	public static EhResult ParseSource(INode n, SearchResult sr)
 	{
 		// ReSharper disable InconsistentNaming
 		var eh = new EhResult(sr);
@@ -440,7 +433,7 @@ public sealed record EhResult : SearchResultItem, ISearchResultItemParseable<INo
 
 				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2)
 				{
-					var tagValuesRaw = cn.Select(c => c.TryGetAttribute("title"));
+					var tagValuesRaw = cn.Select(static c => c.TryGetAttribute("title"));
 
 					foreach (string s in tagValuesRaw)
 					{
@@ -453,9 +446,9 @@ public sealed record EhResult : SearchResultItem, ISearchResultItemParseable<INo
 						var tag   = split[0];
 						var val   = split[1];
 
-						if (eh.Tags.ContainsKey(tag))
+						if (eh.Tags.TryGetValue(tag, out IList<string> value))
 						{
-							eh.Tags[tag].Add(val);
+							value.Add(val);
 						}
 						else
 						{
@@ -489,7 +482,7 @@ public sealed record EhResult : SearchResultItem, ISearchResultItemParseable<INo
 			eh.Author = v.FirstOrDefault();
 		}
 
-		var sb = eh.Tags.Select(t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
+		var sb = eh.Tags.Select(static t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
 
 		eh.Description = sb;
 		eh.Artist = eh.Author;

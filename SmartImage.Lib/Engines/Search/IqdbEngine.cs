@@ -25,7 +25,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 #nullable disable
 
-public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<IElement>>>, IEndpointUrl, IDisposable
+public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<IElement>>>, IEndpoint, IDisposable
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
@@ -66,7 +66,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 			var response = await Client.Request(Endpoint)
 				               .OnError(r =>
 					               {
-						               Logger.LogError(r.Exception, Name);
+						               Logger.LogError(r.Exception, "{Msg}", Name);
 
 
 						               // Debugger.Break();
@@ -135,7 +135,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		var pages  = d.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes(Serialization.S_Iqdb_DivTable);
 
-		var select = tables.Select(table => ((IHtmlElement) table)
+		var select = tables.Select(static table => ((IHtmlElement) table)
 			                           .QuerySelectorAll(Serialization.S_Iqdb_Table)).Skip(1);
 
 		return ValueTask.FromResult(select);
@@ -146,7 +146,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		var buf = new List<IqdbItem>();
 
 		foreach (var c in source) {
-			var iq = IqdbItem.ParseResultItem(c, r);
+			var iq = IqdbItem.ParseSource(c, r);
 			buf.Add(iq);
 		}
 
@@ -190,12 +190,12 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 }
 
-public record IqdbItem : SearchResultItem, ISearchResultItemParseable<IHtmlCollection<IElement>, IqdbItem>
+public record IqdbItem : SearchResultItem, IResultItemParseable<IHtmlCollection<IElement>, IqdbItem>
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }
 
-	public static IqdbItem ParseResultItem(IHtmlCollection<IElement> tr, SearchResult r)
+	public static IqdbItem ParseSource(IHtmlCollection<IElement> tr, SearchResult r)
 	{
 
 

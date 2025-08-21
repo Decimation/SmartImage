@@ -8,9 +8,11 @@ namespace SmartImage.Lib.Clients.Booru;
 
 // TODO
 
-[Experimental(AppSupport.DIAG_SMRTIMG_EXP001)]
+[Experimental(AppSupport.DIAG_ID_EXPERIMENTAL)]
 public abstract class BaseGelbooruClient : BaseBooruClient
 {
+
+	public const int POST_MAX = 100;
 
 	public FlurlClient Client { get; }
 
@@ -33,40 +35,10 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 		};
 	}
 
-	public class PostsRequest
+	public static int PostMax { get; protected set; } = POST_MAX;
+
+	public virtual async Task<IFlurlResponse> GetPostsAsync(GelbooruPostsRequest r)
 	{
-
-		public int Limit { get; set; }
-
-		public int Pid { get; set; }
-
-		public string Tags { get; set; }
-
-		public long Cid { get; set; }
-
-		public int Id { get; set; }
-
-		public int Json { get; set; } = 1;
-
-		public PostsRequest() { }
-
-	}
-
-	protected int PostMax { get; set; } = 100;
-
-	protected virtual bool Verify(PostsRequest r)
-	{
-		r.Limit = Math.Clamp(r.Limit, 1, PostMax);
-
-		return true;
-	}
-
-	public virtual async Task<IFlurlResponse> GetPostsAsync(PostsRequest r)
-	{
-		if (!Verify(r)) {
-			throw new ArgumentException();
-		}
-
 		var properties = new List<string>();
 
 		foreach (PropertyInfo p in r.GetType().GetProperties()) {
@@ -90,6 +62,32 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 	public override void Dispose()
 	{
 		Client?.Dispose();
+		GC.SuppressFinalize(this);
 	}
+
+}
+
+public class GelbooruPostsRequest
+{
+
+	private int m_limit;
+
+	public int Limit
+	{
+		get => m_limit;
+		set => m_limit = Math.Clamp(value, 1, BaseGelbooruClient.PostMax);
+	}
+
+	public int Pid { get; set; }
+
+	public string Tags { get; set; }
+
+	public long Cid { get; set; }
+
+	public int Id { get; set; }
+
+	public int Json { get; set; } = 1;
+
+	public GelbooruPostsRequest() { }
 
 }

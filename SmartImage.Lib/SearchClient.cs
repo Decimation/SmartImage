@@ -1,5 +1,4 @@
-﻿
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Frozen;
 using System.Collections.Immutable;
@@ -57,7 +56,7 @@ public sealed class SearchClient : IDisposable
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
-		Engines       = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines).ToArray();
+		Engines       = [.. BaseSearchEngine.GetSelectedEngines(Config.SearchEngines)];
 
 		// GetSelectedEngines();
 
@@ -71,9 +70,9 @@ public sealed class SearchClient : IDisposable
 		s_logger.LogInformation("Init");
 
 
-		FlurlHttp.Clients.WithDefaults(b =>
+		FlurlHttp.Clients.WithDefaults(static b =>
 		{
-			b.WithSettings(s =>
+			b.WithSettings(static s =>
 			{
 				s.Redirects.Enabled                    = true;
 				s.Redirects.AllowSecureToInsecure      = true;
@@ -113,15 +112,9 @@ public sealed class SearchClient : IDisposable
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
 	/// <param name="query">Search query</param>
-	/// <param name="scheduler"></param>
-	/// <param name="token">Cancellation token passed to <see cref="ParsedSearchEngine{TResultItem,TSource}.GetResultAsync(SearchQuery,CancellationToken)"/></param>
-	public async Task<bool> RunSearchAsync(SearchQuery query,
-	                                       TaskScheduler scheduler = null,
-	                                       CancellationToken token = default)
+	/// <param name="token">Cancellation token passed to <see cref="T:ParsedSearchEngine{TResultItem,TSource}.GetResultAsync(SearchQuery,CancellationToken)"/></param>
+	public async Task<bool> RunSearchAsync(SearchQuery query, CancellationToken token = default)
 	{
-		scheduler ??= TaskScheduler.Default;
-
-		// Requires.NotNull(ResultChannel);
 		if (ResultChannel == null || (IsComplete && !IsRunning)) {
 			// todo: throw
 			OpenChannel();
@@ -134,7 +127,7 @@ public sealed class SearchClient : IDisposable
 		IsRunning = true;
 
 		if (!ConfigApplied) {
-			await Config.LoadEnginesAsync(Engines, token).ConfigureAwait(false);
+			await Config.ApplyEnginesAsync(Engines, token).ConfigureAwait(false);
 			ConfigApplied = true;
 		}
 
@@ -142,98 +135,12 @@ public sealed class SearchClient : IDisposable
 
 		var tasks = GetSearchTasks(query, token);
 
-		/*var results = new SearchResult[tasks.Count];
-		int i       = 0;*/
-
-		/*var tf=new TaskFactory(token, TaskCreationOptions.LongRunning, TaskContinuationOptions.None, scheduler);
-		tf.StartNew(() =>
-		{
-			while (ResultChannel.Reader.TryRead()) {
-
-				Debugger.Break();
-				s_logger.LogWarning("Cancellation requested");
-				goto ret;
-			}
-		})*/
-
-		/*var results = new List<SearchResult>();
-		var consumerTask = Task.Run(async () =>
-		{
-			await foreach (var item in ResultChannel.Reader.ReadAllAsync(token).ConfigureAwait(false))
-				results.Add(item);
-		}, token);
-
-		await Task.WhenAll(tasks).ConfigureAwait(false);
-		await consumerTask.ConfigureAwait(false);*/
-
-		/*var rg = new List<SearchResult>();
-
-		await foreach (var v in Task.WhenEach(tasks).WithCancellation(token))
-		{
-			if (token.IsCancellationRequested)
-			{
-				break;
-			}
-
-			var result = await v;
-			ProcessResult(result);
-			rg.Add(result);
-		}*/
-
 		var results = await Task.WhenAll(tasks);
+
+		s_logger.LogTrace("Results: {Res}", results.Length);
+
 		CompleteSearchAsync();
 
-
-		/*while (tasks.Count > 0) {
-			if (token.IsCancellationRequested) {
-
-				Debugger.Break();
-				s_logger.LogWarning("Cancellation requested");
-				CompleteSearchAsync();
-				return results;
-			}
-
-			Task<SearchResult> task = await Task.WhenAny(tasks);
-			tasks.Remove(task);
-
-			if (task.IsFaulted) {
-				Trace.WriteLine($"{task} faulted!", LogCategories.C_ERROR);
-			}
-
-			SearchResult result = await task;
-
-			results[i] = result;
-			i++;
-		}*/
-
-
-	ret:
-
-		// OnSearchComplete?.Invoke(this, results);
-
-		/*if (Config.PriorityEngines == SearchEngineOptions.Auto) {
-
-		// todo
-			try {
-
-				SearchResultItem item = GetBest(results);
-
-				if (item != null) {
-					OpenResult(item.Url);
-				}
-			}
-			catch (Exception e) {
-				s_logger.LogError(e, "Run search error");
-
-				Debugger.Break();
-			}
-
-		}*/
-
-		IsRunning = false;
-
-		// return rg.ToArray();
-		// return results;
 
 		return true;
 	}
@@ -241,9 +148,9 @@ public sealed class SearchClient : IDisposable
 	[return: MN]
 	public static SearchResultItem GetBest(IEnumerable<SearchResult> results)
 	{
-		var ordered = results.Select(x => x.GetBestResult())
-			.Where(x => x != null)
-			.OrderByDescending(x => x.Similarity);
+		var ordered = results.Select(static x => x.GetBestResult())
+			.Where(static x => x != null)
+			.OrderByDescending(static x => x.Similarity);
 
 		var item = ordered.FirstOrDefault();
 		return item;
@@ -314,10 +221,15 @@ public sealed class SearchClient : IDisposable
 				}, token, TaskContinuationOptions.None, scheduler);
 		});*/
 
-		return Engines.Select(async e =>
+		return Engines.Select(e =>
 		{
-			var res = await e.GetResultAsync(query, token: token).ConfigureAwait(false);
-			ProcessResult(res);
+			var res = e.GetResultAsync(query, token: token).ContinueWith(c =>
+			{
+				var sr = c.Result;
+				ProcessResult(sr);
+				return sr;
+			}, TaskContinuationOptions.OnlyOnRanToCompletion);
+
 			return res;
 		});
 	}

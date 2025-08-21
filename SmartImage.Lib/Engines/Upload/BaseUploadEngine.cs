@@ -3,11 +3,12 @@ using System.Net;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Novus.OS;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public abstract class BaseUploadEngine : IDisposable
+public abstract class BaseUploadEngine : IDisposable, IEndpoint
 {
 
 	/// <summary>
@@ -17,17 +18,15 @@ public abstract class BaseUploadEngine : IDisposable
 
 	public virtual string Name => UploadOption.ToString();
 
-	public string EndpointUrl { get; }
+	public Url Endpoint { get; }
 
 	public abstract UploadEngineOptions UploadOption { get; }
 
 	protected BaseUploadEngine(string s)
 	{
-		EndpointUrl = s;
-		Timeout     = TimeSpan.FromSeconds(15);
+		Endpoint = s;
+		Timeout  = TimeSpan.FromSeconds(15);
 	}
-
-	// public static BaseUploadEngine Default { get; } = new LitterboxEngine();
 
 	public TimeSpan Timeout { get; protected set; }
 
@@ -37,36 +36,15 @@ public abstract class BaseUploadEngine : IDisposable
 
 	static BaseUploadEngine()
 	{
-		/*var handler = new LoggingHttpMessageHandler(Logger)
-		{
-			InnerHandler = new HttpLoggingHandler(Logger)
-			{
-				InnerHandler = new HttpClientHandler()
-			}
-		};
 
-		Client = new FlurlClient(new HttpClient(handler))
+		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseUploadEngine), null, static builder =>
 		{
-			Settings =
-			{
-				Redirects =
-				{
-					Enabled                    = true,
-					AllowSecureToInsecure      = true,
-					ForwardAuthorizationHeader = true,
-					MaxAutoRedirects           = 20,
-				},
-			},
-		};*/
-
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseUploadEngine), null, builder =>
-		{
-			builder.OnError(f =>
+			builder.OnError(static f =>
 			{
 				//
 				Logger.LogError(f.Exception, $"from {nameof(BaseUploadEngine)}");
 			});
-			builder.AddMiddleware(() => new HttpLoggingHandler(Logger));
+			builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
 
 		});
 	}
@@ -95,82 +73,38 @@ public abstract class BaseUploadEngine : IDisposable
 		}
 	}
 
-	/*
-	public static async Task<UploadResult> UploadAutoAsync(BaseUploadEngine engine, string fu,
-	                                                       CancellationToken ct = default)
-	{
-		// TODO
-
-		// engine ??= BaseUploadEngine.Default;
-		UploadResult u;
-		int          i = 0;
-
-		bool ok;
-
-		do {
-			u  = await engine.UploadFileAsync(fu, ct);
-			ok = u.IsValid;
-
-			if (!ok) {
-				Debug.WriteLine($"{u} is invalid!");
-
-				// Debugger.Break();
-				if (i++ < BaseUploadEngine.All.Length) {
-					engine = BaseUploadEngine.All[i];
-					Debug.WriteLine($"Trying {engine.Name}");
-					ok = true;
-				}
-				else {
-					ok = false;
-				}
-			}
-			else {
-				return u;
-			}
-
-		} while (!ok);
-
-		return u;
-	}
-	*/
-
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-	protected virtual async ValueTask<bool> Verify(UploadResult res,CancellationToken ct=default)
+	protected virtual ValueTask<bool> Verify(UploadResult res, CancellationToken ct = default)
 	{
-		return res.Url != null;
+		return ValueTask.FromResult(res.Url != null);
 	}
 
-	protected virtual async Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
-	                                                              CancellationToken ct = default)
+	protected virtual Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
+	                                                        CancellationToken ct = default)
 	{
-		Url url = null;
-		bool?   ok = null;
+		bool? ok = true;
 
-		ok  = true;
-
-	ret:
 		switch (response) {
 
 			case { ResponseMessage.StatusCode: HttpStatusCode.BadGateway or HttpStatusCode.GatewayTimeout }:
 			case null:
-				ok  = false;
-				url = null;
+				ok = false;
 
 				goto ret;
 
 		}
 
+	ret:
+
 		var result = new UploadResult
 		{
-			// Url      = url,
-			Size     = response.Headers.TryGetFirst("Content-Length", out var cls) ? Int64.Parse(cls) : null,
-			IsValid  = ok
+			Size    = response.Headers.TryGetFirst("Content-Length", out var cls) ? Int64.Parse(cls) : null,
+			IsValid = ok
 		};
 
 
-
-		return result;
+		return Task.FromResult(result);
 	}
 
 	protected void Verify(string file)

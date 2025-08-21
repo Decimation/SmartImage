@@ -10,23 +10,26 @@ using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Diagnostics;
+// ReSharper disable UnusedVariable
+
+#nullable disable
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Engines.Search;
 
-public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
+public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
 
 	protected string Base64MD5Hash { get; set; }
 
-
 	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
 
-	protected ArchiveMoeEngine(string baseUrl) : base(baseUrl) { }
+	protected ArchiveMoeEngine(Url baseUrl) : base(baseUrl) { }
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
@@ -60,7 +63,7 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 		var buf = new List<ChanPost>(source.Count);
 
 		foreach (INode node in source) {
-			buf.Add(ChanPost.ParseResultItem(node, r));
+			buf.Add(ChanPost.ParseSource(node, r));
 		}
 
 		return ValueTask.FromResult<IEnumerable<ChanPost>>(buf);
@@ -69,23 +72,25 @@ public class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 	/// <see cref="SearchHashType.Base64MD5"/>
 	public static string GetBase64MD5Hash(byte[] srcBytes)
 	{
-		// TODO
-
 		//var digestBase64URL = digestBase64.replace('==', '').replace(/\//g, '_').replace(/\+/g, '-');
 		var data = MD5.HashData(srcBytes);
 
 		var b64 = Convert.ToBase64String(data).Replace("==", "");
-		b64 = Regex.Replace(b64, @"\//", "_");
-		b64 = Regex.Replace(b64, @"\+", "-");
-
-		// q.Source.Stream.TrySeek();
+		b64 = r_slashes().Replace(b64, "_");
+		b64 = r_fwLook().Replace(b64, "-");
 
 		return b64;
 	}
 
+	[GeneratedRegex(@"\//")]
+	private static partial Regex r_slashes();
+
+	[GeneratedRegex(@"\+")]
+	private static partial Regex r_fwLook();
+
 }
 
-public record ChanPost : SearchResultItem, ISearchResultItemParseable<INode, ChanPost>
+public record ChanPost : SearchResultItem, IResultItemParseable<INode, ChanPost>
 {
 
 	public string Board { get; private set; }
@@ -109,20 +114,29 @@ public record ChanPost : SearchResultItem, ISearchResultItemParseable<INode, Cha
 
 	private ChanPost(SearchResult r) : base(r) { }
 
-	public static ChanPost ParseResultItem(INode n, SearchResult r)
+	public static ChanPost ParseSource(INode n, SearchResult r)
 	{
 		var e = n as HtmlElement;
 
-		var pff     = e.QuerySelector(".post_file_filename");
-		var pfm     = e.QuerySelector(".post_file_metadata").TextContent.Split(", ");
-		var pd      = e.QuerySelector(".post_data");
-		var pt      = pd.QuerySelector(".post_title").TextContent;
-		var pa      = pd.QuerySelector(".post_author").TextContent;
-		var ptc     = pd.QuerySelector(".post_tripcode").TextContent;
-		var tw      = pd.QuerySelector(".time_wrap").Children[0];
-		var time2Ok = DateTime.TryParse(tw.GetAttribute("datetime"), out var time2);
-		var time    = tw.TextContent;
-		var text    = e.QuerySelector(".text").TextContent;
+		ArgumentNullException.ThrowIfNull(e);
+
+		var pff = e.QuerySelector(".post_file_filename");
+		var pfm = e.QuerySelector(".post_file_metadata").TextContent.Split(", ");
+
+		ParseException.ThrowIfNull(pfm);
+
+		var pd  = e.QuerySelector(".post_data");
+		var pt  = pd.QuerySelector(".post_title").TextContent;
+		var pa  = pd.QuerySelector(".post_author").TextContent;
+		var ptc = pd.QuerySelector(".post_tripcode")?.TextContent;
+		var tw  = pd.QuerySelector(".time_wrap");
+
+		ParseException.ThrowIfNull(tw);
+
+		var twC0    = tw.Children[0];
+		var time2Ok = DateTime.TryParse(twC0.GetAttribute("datetime"), out var time2);
+		var time    = twC0.TextContent;
+		var text    = e.QuerySelector(".text")?.TextContent;
 
 		var wh = pfm[1].Split('x');
 
