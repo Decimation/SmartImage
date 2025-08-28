@@ -76,7 +76,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 			await GetAPIResultsAsync(query, result).ConfigureAwait(false);
 		}
 		else {
-			if (result is { Status: SearchResultStatus.Cooldown } or { IsSuccessful: false }) {
+			if (result is null or ({ Status: SearchResultStatus.Cooldown } or { IsSuccessful: false })) {
 				goto ret1;
 			}
 

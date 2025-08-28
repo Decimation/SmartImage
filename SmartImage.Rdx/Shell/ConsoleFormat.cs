@@ -48,6 +48,8 @@ internal static class ConsoleFormat
 
 	private static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
 
+	internal static readonly Style Sty_RootResults = new Style(foreground: SpcColor.Aqua, decoration: Decoration.Underline);
+
 	internal static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors =
 		new Dictionary<SearchEngineOptions, SpcColor>
 		{
