@@ -8,6 +8,7 @@ global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 global using NN2 = JetBrains.Annotations.NotNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
 global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
+global using JPN = System.Text.Json.Serialization.JsonPropertyNameAttribute;
 global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
 global using ICBN = JetBrains.Annotations.ItemCanBeNullAttribute;
 global using Url = Flurl.Url;
@@ -61,20 +62,22 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	internal const string PROJ_SMARTIMAGE_RDX          = $"{PROJ_SMARTIMAGE}.Rdx";
 	internal const string PROJ_SMARTIMAGE_LIB          = $"{PROJ_SMARTIMAGE}.Lib";
 	internal const string PROJ_SMARTIMAGE_LIB_UNITTEST = $"{PROJ_SMARTIMAGE_LIB}.UnitTest";
-	
 
 #endregion
 
 
-	[MN]
-	public Url Upload { get; private set; }
+	// [MN]
+	// public Url Upload { get; private set; }
 
 	[MNNW(true, nameof(Upload))]
-	public bool IsUploaded => Url.IsValid(Upload);
+	public bool IsUploaded => Upload != null && Url.IsValid(Upload.Url);
+
+	[MN]
+	public UploadResult Upload { get; private set; }
 
 	public UniImage Source { get; }
 
-	internal SearchQuery(UniImage img, Url upload)
+	internal SearchQuery(UniImage img, UploadResult upload)
 	{
 		Source = img;
 		Upload = upload;
@@ -101,63 +104,16 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		}
 	}
 
-	public async Task<Url> UploadAsync(BaseUploadEngine engine = null, CancellationToken ct = default)
+	public async ValueTask<bool> UploadAsync(BaseUploadEngine bua = null, CancellationToken ct = default)
 	{
+		//todo
 		if (IsUploaded) {
-			return Upload;
+			return true;
 		}
 
-
-		if (Source.IsUri) {
-			Upload = Source.Value;
-
-			// Size   = BaseSearchEngine.NA_SIZE;
-			// var fmt = await ISImage.DetectFormatAsync(Stream);
-
-			Debug.WriteLine($"Skipping upload for {Source.Value}", nameof(UploadAsync));
-		}
-		else {
-			// fu = await test(fu);
-
-			string fu;
-
-			if (Source.IsFile) {
-				fu = Source.Value;
-			}
-			else {
-				// fu = Source.WriteToFile();
-				fu = null;
-
-				if (Source.TryWriteToFile()) {
-					fu = Source.LocalFilePath;
-				}
-
-				Trace.WriteLine($"Wrote to file {fu}");
-			}
-
-			engine ??= BaseUploadEngine.Default;
-
-			UploadResult u = await engine.UploadFileAsync(fu, ct);
-			Url          url;
-
-			if (!u.IsValid.GetValueOrDefault()) {
-				url = null;
-				Debug.WriteLine($"{u} is invalid!");
-
-			}
-			else {
-				url = u.Url;
-
-			}
-
-			// TODO: AUTO-RETRY
-
-			Upload = url;
-
-			u.Dispose();
-		}
-
-		return Upload;
+		bua    ??= BaseUploadEngine.Default;
+		Upload =   await bua.UploadAsync(Source, ct);
+		return IsUploaded;
 	}
 
 	public void Dispose()

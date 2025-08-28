@@ -4,7 +4,8 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Flurl.Http;
-using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Utilities;
+
 // #pragma warning disable SI_EXP_001
 
 namespace SmartImage.Lib.Clients;

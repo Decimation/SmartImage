@@ -56,7 +56,7 @@ public sealed class TinEyeEngine : BaseSearchEngine
 			           .PostMultipartAsync(b =>
 			           {
 				           //
-				           b.AddString("url", query.Upload);
+				           b.AddString("url", query.Upload.Url);
 			           }, cancellationToken: token).ConfigureAwait(false);
 
 		TinEyeRoot tinEyeRoot = null;

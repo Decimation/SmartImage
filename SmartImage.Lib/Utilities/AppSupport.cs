@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging.Debug;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.Lib.Utilities.Diagnostics;
+namespace SmartImage.Lib.Utilities;
 
 public static class AppSupport
 {

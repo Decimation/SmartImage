@@ -13,7 +13,7 @@ using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Upload;
-using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Utilities;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using ConfigurationSection = System.Configuration.ConfigurationSection;

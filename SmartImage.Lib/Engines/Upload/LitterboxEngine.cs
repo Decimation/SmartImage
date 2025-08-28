@@ -9,7 +9,7 @@ namespace SmartImage.Lib.Engines.Upload;
 public sealed class LitterboxEngine : BaseCatboxEngine
 {
 
-	public override UploadEngineOptions UploadOption => UploadEngineOptions.Litterbox;
+	public override UploadEngineOptions Option => UploadEngineOptions.Litterbox;
 
 
 	public override long? MaxSize => 1_000_000_000L;

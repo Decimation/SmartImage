@@ -3,7 +3,6 @@
 
 using System.Diagnostics.CodeAnalysis;
 using SmartImage.Lib.Utilities;
-using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Clients.Booru;
 // TODO

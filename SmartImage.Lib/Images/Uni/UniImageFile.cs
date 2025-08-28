@@ -32,7 +32,13 @@ public class UniImageFile : UniImage
 
 	protected override async Task<bool> AllocAsync(CancellationToken ct = default)
 	{
+		if (HasBytes) {
+			goto ret;
+		}
+
 		Bytes = await File.ReadAllBytesAsync(Value, ct);
+
+	ret:
 		return HasBytes;
 	}
 

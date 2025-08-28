@@ -6,11 +6,9 @@ namespace SmartImage.Lib.Engines.Upload;
 public class UploadResult : IDisposable
 {
 
-	public Url Url { get; protected internal set; }
+	public Url Url { get;}
 
-	public long? Size { get; init; }
-
-	public bool? IsValid { get; init; }
+	public long? Size { get; }
 
 	/*public static implicit operator Url(UploadResult result)
 	{
@@ -21,10 +19,21 @@ public class UploadResult : IDisposable
 		return result.Url;
 	}*/
 
+	public UploadResult(Url url, long? size)
+	{
+		Url  = url;
+		Size = size;
+	}
+
 	public void Dispose()
 	{
 		// Response?.Dispose();
 		GC.SuppressFinalize(this);
+	}
+
+	public override string ToString()
+	{
+		return Url;
 	}
 
 }

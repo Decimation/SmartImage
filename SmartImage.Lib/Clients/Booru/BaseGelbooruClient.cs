@@ -2,7 +2,6 @@
 using System.Reflection;
 using Flurl.Http;
 using SmartImage.Lib.Utilities;
-using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Clients.Booru;
 
@@ -37,7 +36,7 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 
 	public static int PostMax { get; protected set; } = POST_MAX;
 
-	public virtual async Task<IFlurlResponse> GetPostsAsync(GelbooruPostsRequest r)
+	public virtual Task<IFlurlResponse> GetPostsAsync(GelbooruPostsRequest r)
 	{
 		var properties = new List<string>();
 
@@ -55,8 +54,8 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 
 		var ss = String.Join('&', properties);
 
-		return await Client.Request("/index.php?page=post&s=list", ss)
-			       .GetAsync();
+		return Client.Request("/index.php?page=post&s=list", ss)
+			.GetAsync();
 	}
 
 	public override void Dispose()

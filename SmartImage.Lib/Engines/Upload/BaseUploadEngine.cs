@@ -3,7 +3,9 @@ using System.Net;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Novus.OS;
+using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
@@ -16,13 +18,13 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 	/// </summary>
 	public abstract long? MaxSize { get; }
 
-	public virtual string Name => UploadOption.ToString();
+	public virtual string Name => Option.ToString();
 
 	public Url Endpoint { get; }
 
-	public abstract UploadEngineOptions UploadOption { get; }
+	public abstract UploadEngineOptions Option { get; }
 
-	protected BaseUploadEngine(string s)
+	protected BaseUploadEngine(Url s)
 	{
 		Endpoint = s;
 		Timeout  = TimeSpan.FromSeconds(15);
@@ -73,47 +75,33 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 		}
 	}
 
+	public virtual Task<UploadResult> UploadAsync(UniImage query, CancellationToken ct = default)
+	{
+		Verify(query);
+
+		if (query is UniImageUri { } uri) {
+			Logger.LogTrace("Not uploading {Uni} {Val}", query, query.Value);
+			var ur = new UploadResult(uri.Url, uri.Size) { };
+			return Task.FromResult(ur);
+		}
+		else {
+			return UploadFileAsync(query.Value, ct);
+		}
+	}
+
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-	protected virtual ValueTask<bool> Verify(UploadResult res, CancellationToken ct = default)
+	protected abstract Task<UploadResult> ProcessResultAsync(IFlurlResponse response, CancellationToken ct = default);
+
+	protected void Verify(UniImage file)
 	{
-		return ValueTask.FromResult(res.Url != null);
-	}
-
-	protected virtual Task<UploadResult> ProcessResultAsync(IFlurlResponse response,
-	                                                        CancellationToken ct = default)
-	{
-		bool? ok = true;
-
-		switch (response) {
-
-			case { ResponseMessage.StatusCode: HttpStatusCode.BadGateway or HttpStatusCode.GatewayTimeout }:
-			case null:
-				ok = false;
-
-				goto ret;
-
-		}
-
-	ret:
-
-		var result = new UploadResult
-		{
-			Size    = response.Headers.TryGetFirst("Content-Length", out var cls) ? Int64.Parse(cls) : null,
-			IsValid = ok
-		};
-
-
-		return Task.FromResult(result);
-	}
-
-	protected void Verify(string file)
-	{
+		/*
 		if (String.IsNullOrWhiteSpace(file)) {
 			throw new ArgumentNullException(nameof(file));
 		}
+		*/
 
-		if ((FileSystem.GetFileSize(file) > MaxSize)) {
+		if ((file.Size > MaxSize)) {
 			throw new ArgumentException($"File {file} is too large (max {MaxSize}) for {Name}");
 		}
 	}

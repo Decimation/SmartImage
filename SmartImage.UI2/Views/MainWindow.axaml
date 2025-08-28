@@ -16,24 +16,22 @@
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid VerticalAlignment="Top"
-          HorizontalAlignment="Left"
-          ColumnDefinitions="Auto,*,*,*,*"
-          RowDefinitions="Auto,Auto,*,Auto">
+   <DockPanel LastChildFill="True" VerticalAlignment="Top" HorizontalAlignment="Left"
+              Background="Beige" Width="1000" Height="675">
+       <TextBox Name="Tb_Input" Grid.Column="0" Grid.Row="0" 
+                MaxHeight="50" >
 
+       </TextBox>
 
-        <TextBox Width="300" Height="50" Name="Tb_Input" Grid.Column="0" Grid.Row="0">
-        </TextBox>
+       <Button Command="{Binding SearchCommand}"
+               Content="Search" Grid.Column="1" Grid.Row="1" />
 
-        <Button Command="{Binding SearchCommand}"
-                Content="Search" Grid.Column="1" Grid.Row="0" />
+       <Image Grid.Row="0" Grid.Column="2" Width="300" Height="300"
+              VerticalAlignment="Top"
+              HorizontalAlignment="Right">
+       </Image>
 
-        <Image Grid.Row="0" Grid.Column="2" Width="300" Height="300"
-               VerticalAlignment="Top"
-               HorizontalAlignment="Right">
-        </Image>
-
-        <!--<TreeView
+       <!--<TreeView
             ItemsSource="{Binding Items}"
             Width="600" Height="300" Grid.Column="0" Grid.Row="2">
             <TreeView.ItemTemplate>
@@ -51,28 +49,27 @@
 
         </TreeView>-->
 
-        <ListBox ItemsSource="{Binding Items}"
-                 SelectionMode="AlwaysSelected, Single"
-                 MinWidth="1000" Height="100"
-                 Grid.Column="0" Grid.Row="2">
+       <ListBox ItemsSource="{Binding Items}"
+                SelectionMode="AlwaysSelected, Single"
+                MinWidth="1000" Height="100"
+                Grid.Column="0" Grid.Row="2">
 
-            <ListBox.ItemTemplate>
-                <DataTemplate DataType="models:ResultItem">
-                    <Grid ColumnDefinitions="Auto, *">
-                        <TextBlock Grid.Column="1"
-                                   Margin="10,0"
-                                   Text="{Binding Url}">
-                        </TextBlock>
-                        <TextBlock
-                            Text="{Binding Similarity}">
-                        </TextBlock>
+           <ListBox.ItemTemplate>
+               <DataTemplate DataType="models:ResultItem">
+                   <Grid ColumnDefinitions="Auto, *">
+                       <TextBlock Grid.Column="1"
+                                  Margin="10,0"
+                                  Text="{Binding Url}">
+                       </TextBlock>
+                       <TextBlock
+                           Text="{Binding Similarity}">
+                       </TextBlock>
 
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-
-    </Grid>
+                   </Grid>
+               </DataTemplate>
+           </ListBox.ItemTemplate>
+       </ListBox>
+   </DockPanel>
 
 
 </Window>

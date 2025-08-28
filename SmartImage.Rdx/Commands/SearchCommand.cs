@@ -285,9 +285,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 					await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 					{
-
-						if (Query.Source.HasHash) {
+						if (ui.HasHash) {
 							var row = GetRowForUni(ui);
+							ui.CalculateSimilarity(Query.Source);
+
 							m_table.Rows.Update(row, 2, new Text(ui.Similarity.ToString()));
 							f.Refresh();
 						}
@@ -364,6 +365,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 						m_cache.Set(key, str, cip);
 					}
 
+					var (w, h) = (AnsiConsole.Profile.Width, AnsiConsole.Profile.Height);
+
 					AnsiConsole.AlternateScreen(() =>
 					{
 						/*
@@ -374,11 +377,11 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 						var ci = new CanvasImage(str);
 						ci.MaxWidth ??= ci.Width;
 
-						// var panel = new Panel(ci);
-						// panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
+						var panel = new Panel(ci);
 
-						AnsiConsole.Live(ci).Start((ldc) =>
+						AnsiConsole.Live(panel).Start((ldc) =>
 						{
+
 
 							while (true) {
 								/*AnsiConsole.Clear();
@@ -418,6 +421,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 										case ConsoleKey.A:
 											ci.MaxWidth = AnsiConsole.Profile.Width;
 											break;
+
+										case ConsoleKey.W:
+											AnsiConsole.Console.Profile.Width  = ui.Image.Width;
+											AnsiConsole.Console.Profile.Height = ui.Image.Height;
+											ci.MaxWidth                        = ui.Image.Width;
+											break;
 									}
 
 									if (mw != 0 || pw != 0) {
@@ -428,11 +437,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 								}
 
 								// lay["btm"].Update(new Text($"{ci.MaxWidth} / {ci.PixelWidth}"));
-								Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
+								// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
+								panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
 								ldc.Refresh();
 							}
-
 						});
+
+						(AnsiConsole.Profile.Width, AnsiConsole.Profile.Height) = (w, h);
+
 
 
 						return;

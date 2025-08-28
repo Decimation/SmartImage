@@ -202,7 +202,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	private Task<IFlurlResponse> SearchUrlAsync(SearchQuery query, CancellationToken token)
 	{
-		return SearchUrlAsync(query.Upload, token);
+		return SearchUrlAsync(query.Upload.Url, token);
 	}
 
 	private Task<IFlurlResponse> SearchUrlAsync(Url url, CancellationToken token)

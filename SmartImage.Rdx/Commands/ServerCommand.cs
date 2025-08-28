@@ -26,7 +26,6 @@ using System.Text;
 using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Utilities.Diagnostics;
 
 #nullable disable
 namespace SmartImage.Rdx.Commands;
@@ -55,7 +54,6 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		Converters =
 		{
 			new UrlTypeConverter(),
-			new BaseSearchEngineTypeConverter(),
 
 			// new SearchResultTypeConverter(),
 		}

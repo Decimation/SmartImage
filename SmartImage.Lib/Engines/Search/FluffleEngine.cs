@@ -15,7 +15,7 @@ using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
-using SmartImage.Lib.Utilities.Diagnostics;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 

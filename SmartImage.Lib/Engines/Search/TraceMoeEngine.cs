@@ -61,7 +61,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 		{
 			IFlurlRequest request = Client.Request(Endpoint, "/search")
 				.WithTimeout(Timeout)
-				.SetQueryParam("url", query.Upload, true);
+				.SetQueryParam("url", query.Upload.Url, true);
 
 			using var response = await request.GetAsync(cancellationToken: token).ConfigureAwait(false);
 

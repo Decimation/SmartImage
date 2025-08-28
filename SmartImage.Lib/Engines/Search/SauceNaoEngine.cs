@@ -70,24 +70,24 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 
 		// IEnumerable<SearchResultItem> dataResults;
 
-		try {
-			if (UsingAPI) {
-				Logger.LogInformation("[{Name}] API key: {Auth}", Name, Authentication);
+		if (UsingAPI) {
+			Logger.LogInformation("[{Name}] API key: {Auth}", Name, Authentication);
 
-				await GetAPIResultsAsync(query, result).ConfigureAwait(false);
+			await GetAPIResultsAsync(query, result).ConfigureAwait(false);
+		}
+		else {
+			if (result is { Status: SearchResultStatus.Cooldown } or { IsSuccessful: false }) {
+				goto ret1;
 			}
-			else {
-				var src    = await GetSourceAsync(result, query, token).ConfigureAwait(false);
-				var source = await ParseIntermediate(src);
-				var items  = await ParseResultItems(source, result);
 
-			}
+			var src    = await GetSourceAsync(result, query, token).ConfigureAwait(false);
+			var source = await ParseIntermediate(src);
+			var items  = await ParseResultItems(source, result);
+			result.Results.AddRange(items);
 		}
-		catch (Exception e) {
-			result.ErrorMessage = e.Message;
-			result.Status       = SearchResultStatus.UnknownError;
-			return result;
-		}
+
+
+	ret1:
 
 		if (!result.HasResults) {
 			result.ErrorMessage = "Daily search limit (50) exceeded";
@@ -154,14 +154,15 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 				           string s;
 
 				           if (query.Source.IsUri) { }
-				           else if (query.Source.IsFile) {
-					           s = query.Source.Value;
-					           m.AddFile("file", s, fileName: "image.png");
-				           }
 				           else {
-					           s = query.Source.LocalFilePath;
-					           m.AddFile("file", s, fileName: "image.png");
+					           if (query.Source.IsFile) {
+						           s = query.Source.Value;
+					           }
+					           else {
+						           s = query.Source.LocalFilePath;
+					           }
 
+					           m.AddFile("file", s, fileName: "image.png");
 				           }
 
 			           }, cancellationToken: token).ConfigureAwait(false);
@@ -237,7 +238,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 			{ "db", dbIndex },
 			{ "output_type", "2" },
 			{ "api_key", Authentication },
-			{ "url", url.Upload },
+			{ "url", url.Upload.Url },
 
 			// { "numres", numRes }
 		};

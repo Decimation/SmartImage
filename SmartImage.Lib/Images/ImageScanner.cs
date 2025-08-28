@@ -2,6 +2,7 @@
 // 2023-07-08 @ 8:13 PM
 
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -41,7 +42,6 @@ using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
-using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
 
 // ReSharper disable InconsistentNaming
@@ -130,6 +130,8 @@ public static partial class ImageScanner
 	public static readonly IEnumerable<string> Extensions = Formats.SelectMany(static fmt => fmt.FileExtensions.Select(static ext => $"*.{ext}"));
 
 	#endregion
+
+	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
@@ -266,8 +268,6 @@ public static partial class ImageScanner
 		return abs;
 	}
 
-	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
-
 	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc)
 	{
 		// var a = doc.QueryAllAttribute("a", "href");
@@ -324,21 +324,6 @@ public static partial class ImageScanner
 		// p.Dispose();
 
 		return rg.ToArray();
-	}
-
-	public class UniSimilarity
-	{
-
-		public UniImage Image { get; }
-
-		public double Similarity { get; }
-
-		public UniSimilarity(UniImage image, double similarity)
-		{
-			Image      = image;
-			Similarity = similarity;
-		}
-
 	}
 
 	/*public static async Task<IEnumerable<Item2>> Highest(SearchQuery query,
@@ -476,5 +461,7 @@ public static partial class ImageScanner
 	}*/
 
 	public static IImageHash ImageHasher { get; } = new PerceptualHash();
+
+	public static readonly ImmutableArray<string> LegalSchemes = ["http", "https"];
 
 }

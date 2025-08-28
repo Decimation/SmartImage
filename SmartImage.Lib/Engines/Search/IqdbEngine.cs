@@ -80,17 +80,15 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 				               {
 					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
 
-					               /*if (query.Source.IsUri) {
-						               m.AddString("url", query.Source.ValueString);
+					               if (query.Source.IsUri) {
+						               m.AddString("url", query.Upload.Url);
 					               }
 					               else if (query.Source.IsFile) {
-						               m.AddFile("file", query.Source.Value.ToString(), fileName: "image.jpg");
+						               m.AddFile("file", query.Source.Value, fileName: "image.jpg");
 					               }
-					               else {
+					               else { }
 
-					               }*/
-
-					               m.AddString("url", query.Upload);
+					               // m.AddString("url", query.Upload.Url);
 
 					               return;
 				               }, cancellationToken: token);

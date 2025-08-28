@@ -14,29 +14,32 @@ public class UniImageUri : UniImage
 
 	public Url Url { get; }
 
-	internal UniImageUri(Url url)
-		: base(url.ToString(), UniImageType.Uri)
+	internal UniImageUri(Url url) : base(url.ToString(), UniImageType.Uri)
 	{
 		Url = url;
 	}
 
 
-	public static readonly ImmutableArray<string> RestrictedSchemes = ["file", "javascript", "cpu"];
-
-	public static readonly ImmutableArray<string> LegalSchemes = ["http", "https"];
-
 	protected override async Task<bool> AllocAsync(CancellationToken ct = default)
 	{
 		// Stream     = File.OpenRead(fullName);
+		IFlurlResponse fres = null;
 
-		using var fres = await GetResponseAsync(Url, ct);
+		if (HasBytes) {
+			goto ret;
+		}
+
+		fres = await GetResponseAsync(Url, ct);
 
 		if (fres == null) {
-			return false;
+			goto ret;
 		}
 
 		// Stream = await fres.GetStreamAsync();
-		Bytes  = await fres.GetBytesAsync();
+		Bytes = await fres.GetBytesAsync();
+
+	ret:
+		fres?.Dispose();
 		return HasBytes;
 	}
 
@@ -86,7 +89,7 @@ public class UniImageUri : UniImage
 
 		var scheme = u.Scheme;
 
-		return LegalSchemes.Contains(scheme);
+		return ImageScanner.LegalSchemes.Contains(scheme);
 	}
 
 }

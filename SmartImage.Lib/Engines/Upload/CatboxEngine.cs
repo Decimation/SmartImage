@@ -1,18 +1,22 @@
 ﻿using Flurl.Http;
 using Kantan.Net.Utilities;
 using System.Net;
+using System.Net.Http.Headers;
+using Microsoft.Net.Http.Headers;
+using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
 
 public abstract class BaseCatboxEngine : BaseUploadEngine
 {
 
-	public override UploadEngineOptions UploadOption => UploadEngineOptions.Catbox;
+	public override UploadEngineOptions Option => UploadEngineOptions.Catbox;
+
 
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
-
-		var response = await Client.Request(Endpoint)
+		using var response = await Client.Request(Endpoint)
 			               .WithSettings(r => { r.Timeout = Timeout; })
 			               .WithHeaders(new
 			               {
@@ -26,15 +30,18 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 					               .AddString("userhash", String.Empty);
 			               }, cancellationToken: ct, completionOption: HttpCompletionOption.ResponseHeadersRead);
 
-		return await ProcessResultAsync(response, ct).ConfigureAwait(false);
+		var ur = await ProcessResultAsync(response, ct);
+
+		return ur;
 	}
 
 	protected override async Task<UploadResult> ProcessResultAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
-		var ur = await base.ProcessResultAsync(response, ct);
 
-		ur.Url = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
-		return ur;
+		var url = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
+		long? size = response.TryGetContentLength();
+		
+		return new UploadResult(url,size);
 	}
 
 	/*public async Task<UploadResult> UploadFileAsync(Stream file, CancellationToken ct = default)

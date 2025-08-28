@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlTypes;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Flurl.Http;
 using Kantan.Text;
+using Microsoft.Net.Http.Headers;
 using SixLabors.ImageSharp;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Results;
@@ -68,6 +71,17 @@ public static class SearchUtil
 		}
 
 		return new(w, h);
+	}
+
+	public static T TryGetHeader<T>(this IFlurlResponse response, string name) where T : IParsable<T>
+	{
+		return response.Headers.TryGetFirst(name, out string cl) ? T.Parse(cl, CultureInfo.CurrentCulture) : default(T);
+	}
+
+	public static long? TryGetContentLength(this IFlurlResponse response)
+	{
+		var cl = response.TryGetHeader<long>(HeaderNames.ContentLength);
+		return cl == default ? null : cl;
 	}
 
 }

@@ -28,10 +28,10 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using SmartImage.Lib.Utilities.Diagnostics;
 using System.Runtime.Intrinsics.X86;
 using System.Threading;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Utilities;
 
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;

@@ -14,12 +14,12 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
-using SmartImage.Lib.Utilities.Diagnostics;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using CommunityToolkit.HighPerformance;
 using Microsoft.IO;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 
 // ReSharper disable InconsistentNaming
 
@@ -94,6 +94,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public bool IsUnknown => Type == UniImageType.Unknown;
 
+#region
+
 	[MN]
 	public IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
 
@@ -106,12 +108,20 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
 
+#endregion
+
+#region
+
 	public ulong? Hash { get; protected set; }
 
 	[MNNW(true, nameof(Hash))]
 	public bool HasHash => Hash.HasValue;
 
-	public double? Similarity { get; private set; }
+#endregion
+
+	public double? Similarity { get; internal set; }
+
+#region
 
 	public byte[] Bytes { get; protected set; }
 
@@ -122,6 +132,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	{
 		return new MemoryStream(Bytes, writable: false);
 	}
+
+#endregion
 
 
 	public static readonly UniImage Null = null;
@@ -144,7 +156,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		if (!HasImage) {
 			try {
 
-				using var stream = GetStream();
+				await using var stream = GetStream();
 				Image = await ISImage.LoadAsync<Rgba32>(stream, ct);
 			}
 			catch (Exception exception) {
@@ -153,10 +165,17 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 			}
 
 			Hash = ImageScanner.ImageHasher.Hash(Image);
+
 		}
 
 		return HasImage;
 
+	}
+
+	public virtual bool CalculateSimilarity(IHashable hashable)
+	{
+		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
+		return Similarity.HasValue;
 	}
 
 	/// <summary>
@@ -194,6 +213,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 				if (autoDisposeOnError && (!allocOk || !allocImgOk)) {
 					ui?.Dispose();
+				}
+				else {
 				}
 			}
 
