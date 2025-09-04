@@ -212,12 +212,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		 */
 
 #if !UNITTEST
-		/*
 		Task run = AnsiConsole.Live(m_table)
 			.StartAsync(c => RunSearchLiveAsync(c));
-			*/
-		Task run = AnsiConsole.Live(m_root)
-			.StartAsync(c => RunSearchLiveAsync2(c));
+		/*Task run = AnsiConsole.Live(m_root)
+			.StartAsync(c => RunSearchLiveAsync2(c));*/
 
 #else
 		run = RunSearchLiveAsync(null);
@@ -253,8 +251,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Task run2;
 
 		if (m_scs.Interactive) {
-			// run2 = RunInteractiveAsync(m_cts.Token);
-			run2 = RunInteractiveAsync2(m_cts.Token);
+			run2 = RunInteractiveAsync(m_cts.Token);
+			// run2 = RunInteractiveAsync2(m_cts.Token);
 
 			await run2;
 		}
@@ -380,87 +378,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 					var (w, h) = (AnsiConsole.Profile.Width, AnsiConsole.Profile.Height);
 
-					AnsiConsole.AlternateScreen(() =>
-					{
-						/*
-						var lay = new Layout();
-						lay.SplitRows();
-						*/
+					var ci = new CanvasImage(str);
 
-						var ci = new CanvasImage(str);
-						ci.MaxWidth ??= ci.Width;
-
-						var panel = new Panel(ci);
-
-						AnsiConsole.Live(panel).Start((ldc) =>
-						{
-
-
-							while (true) {
-								/*AnsiConsole.Clear();
-								AnsiConsole.Write(ci);*/
-
-								var cki = AnsiConsole.Console.Input.ReadKey(true);
-
-								if (cki.HasValue) {
-									int mw = 0, pw = 0;
-
-									switch (cki.Value.Key) {
-										case ConsoleKey.DownArrow:
-											pw = -1;
-											break;
-
-										case ConsoleKey.LeftArrow:
-											mw = -1;
-											break;
-
-										case ConsoleKey.UpArrow:
-											pw = 1;
-											break;
-
-										case ConsoleKey.RightArrow:
-											mw = 1;
-											break;
-
-										case ConsoleKey.Escape:
-											return;
-
-										case ConsoleKey.R:
-											ci.MaxWidth = ui.Image.Width;
-
-											// ci.PixelWidth =   0;
-											break;
-
-										case ConsoleKey.A:
-											ci.MaxWidth = AnsiConsole.Profile.Width;
-											break;
-
-										case ConsoleKey.W:
-											AnsiConsole.Console.Profile.Width  = ui.Image.Width;
-											AnsiConsole.Console.Profile.Height = ui.Image.Height;
-											ci.MaxWidth                        = ui.Image.Width;
-											break;
-									}
-
-									if (mw != 0 || pw != 0) {
-										ci.PixelWidth = Math.Clamp(ci.PixelWidth     + pw, 0, ci.Width);
-										ci.MaxWidth   = Math.Clamp(ci.MaxWidth.Value + mw, 0, AnsiConsole.Profile.Width);
-
-									}
-								}
-
-								// lay["btm"].Update(new Text($"{ci.MaxWidth} / {ci.PixelWidth}"));
-								// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
-								panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
-								ldc.Refresh();
-							}
-						});
-
-						(AnsiConsole.Profile.Width, AnsiConsole.Profile.Height) = (w, h);
-
-
-						return;
-					});
+					AnsiConsole.AlternateScreen(() => Action(ci,ui));
 				}
 
 				if (cmd == R2.Chc_Download) { }
@@ -899,23 +819,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	}
 
-	public void Dispose()
-	{
-		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
-
-		foreach (var sr in m_results.Keys) {
-			sr.Dispose();
-		}
-
-		ConsoleFormat.Prm_Num.Validator = null;
-		ConsoleFormat.Prm_Engine.Choices.Clear();
-		m_results.Clear();
-		m_cts.Dispose();
-		m_scs = null;
-		Client.Dispose();
-		Query.Dispose();
-	}
-
 	private async Task RunSearchLiveAsync2(LiveDisplayContext c, CancellationToken token = default)
 	{
 
@@ -1001,18 +904,20 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private static IEnumerable<TreeNode> CreateResultTreeNodes(SearchResultItem res, int i, Style style)
 	{
-		var name = new Text($"#{i}", style){};
 
 		IRenderable url;
 		var         link = res.Url;
 
+		var other = new Style(link: link);
+		var name  = new Text($"#{i} {res.Similarity}", style.Combine(other)) { };
+
 		if (link != null) {
-			url = new Markup(Markup.Escape(link.ToString()), new Style(link: link));
+			url = new Markup(Markup.Escape(link.ToString()), other);
 		}
 		else {
 			url = ConsoleFormat.Txt_NA;
 		}
-		
+
 		var sim    = new Text($"{res.Similarity}");
 		var artist = new Text($"{res.Artist}");
 		var site   = new Text($"{res.Site}");
@@ -1027,7 +932,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	public Layout CreateLayout()
 	{
-		var layout = new Layout("Root")
+		var layout = new Layout("Root") { Size = AnsiConsole.Console.Profile.Height - 10 }
 			.SplitColumns(
 				new Layout("Left"),
 				new Layout("Right")
@@ -1040,34 +945,68 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	}
 
+	private async Task<ConsoleKeyInfo?> ReadKey(CancellationToken ct, Func<ConsoleKeyInfo, bool> fn)
+	{
+		ConsoleKeyInfo? k;
+
+		do {
+			k = await AC.Console.Input.ReadKeyAsync(true, ct);
+
+			if (k.HasValue && fn(k.Value)) {
+				return k;
+			}
+
+		} while (AnsiConsole.Console.Input.IsKeyAvailable() && k is not { Key: ConsoleKey.Escape });
+
+		return k;
+	}
+
 	private async Task RunInteractiveAsync2(CancellationToken ct = default)
 	{
 		string cmd = null;
 
 		// do {
 
+		AnsiConsole.Clear();
+		AnsiConsole.Write(m_root);
+
 		SearchResult sell = await GetEngineSelection2(ct);
 
-		await AnsiConsole.Live(m_root).StartAsync(async c =>
-		{
-			loop:
-			var panel = CreatePanel(sell);
-			m_root["Left"].Update(panel);
+		var panel = CreatePanel(sell);
+		m_root["Left"].Update(panel);
 
-			// m_root["Right"];
+		AnsiConsole.Clear();
+		AnsiConsole.Write(m_root);
 
-			c.Refresh();
+		(SearchResultItem sri, UniImage uni) = GetResultItemPrompt(sell);
 
-			ConsoleKeyInfo? k;
+		if (sri != null) {
+			var t = new Grid();
+			t.AddColumns(2);
 
-			do {
-				k = await AC.Console.Input.ReadKeyAsync(true, ct);
-				
-			} while (AnsiConsole.Console.Input.IsKeyAvailable() && k is { Key: ConsoleKey.Escape });
-			goto loop;
-		});
+			if (!String.IsNullOrWhiteSpace(sri.Url)) {
+				t.AddRow([nameof(SearchResultItem.Url), sri.Url]);
+			}
 
-		
+			if (!String.IsNullOrWhiteSpace(sri.Artist)) {
+				t.AddRow([nameof(SearchResultItem.Artist), sri.Artist]);
+			}
+
+			m_root["Bottom"].Update(new Panel(t));
+
+		}
+
+		string inp = null;
+
+		do {
+			AnsiConsole.Clear();
+			AnsiConsole.Write(m_root);
+			inp = await AnsiConsole.AskAsync<string>(">", ct);
+			var entries = inp.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+			
+		} while (!inp.Contains("exit") && !ct.IsCancellationRequested);
+
+
 	}
 
 	private void Action(CanvasImage ci, UniImage ui)
@@ -1166,6 +1105,23 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 		var sell = AnsiConsole.PromptAsync(sel, ct);
 		return sell;
+	}
+
+	public void Dispose()
+	{
+		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
+
+		foreach (var sr in m_results.Keys) {
+			sr.Dispose();
+		}
+
+		ConsoleFormat.Prm_Num.Validator = null;
+		ConsoleFormat.Prm_Engine.Choices.Clear();
+		m_results.Clear();
+		m_cts.Dispose();
+		m_scs = null;
+		Client.Dispose();
+		Query.Dispose();
 	}
 
 }

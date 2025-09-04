@@ -66,7 +66,19 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		var result = await base.GetResultAsync(query, token);
+		// var result = await base.GetResultAsync(query, token);
+		var b = await VerifyQueryAsync(query).ConfigureAwait(false);
+
+		// SmartImageException.Assert(b, nameof(query));
+
+		var srs    = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
+
+		var rawUrl = GetRawUrl(query);
+
+		var result = new SearchResult(this, rawUrl)
+		{
+			Status = srs,
+		};
 
 		// IEnumerable<SearchResultItem> dataResults;
 
@@ -77,14 +89,14 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 		}
 		else {
 			if (result is null or ({ Status: SearchResultStatus.Cooldown } or { IsSuccessful: false })) {
-				goto ret1;
+				// goto ret1;
 			}
 
 			var src    = await GetSourceAsync(result, query, token).ConfigureAwait(false);
 			var source = await ParseIntermediate(src);
 			var items  = await ParseResultItems(source, result);
 			result.Results.AddRange(items);
-		}
+		 }
 
 
 	ret1:
@@ -215,7 +227,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 		foreach (INode node in source) {
 			var sndr = SauceNaoDataResult.Parse(node, r);
 
-			buf.Add(sndr);
+			buf.AddRange(sndr);
 		}
 
 		Logger.LogDebug("Disposing {Name} doc", Name);
@@ -477,7 +489,7 @@ public sealed record SauceNaoDataResult : SearchResultItem
 		return ValueTask.FromResult<IEnumerable<SearchResultItem>>([sri, .. children]);
 	}*/
 
-	public static SauceNaoDataResult Parse(INode result, SearchResult sr)
+	public static IEnumerable<SauceNaoDataResult> Parse(INode result, SearchResult sr)
 	{
 		// TODO: OPTIMIZE
 
@@ -578,9 +590,9 @@ public sealed record SauceNaoDataResult : SearchResultItem
 		}
 
 		var nodes = resultcontentcolumn_rg.SelectMany(static e => e.ChildNodes)
-			.Where(static c => c is not (IElement { TagName: "BR" }
-				                   or IElement { NodeName: "SPAN" }))
+			.Where(static c => { return c is not (IElement { TagName: "BR" } or IElement { NodeName: "SPAN" }); })
 			.ToArray();
+
 		float similarity = float.Parse(resultsimilarityinfo.TextContent.Replace("%", string.Empty));
 
 		// var results = new List<SearchResultItem>();
@@ -596,19 +608,13 @@ public sealed record SauceNaoDataResult : SearchResultItem
 			return b && c;
 		}).Distinct().ToArray();
 
-		Url url = urls.FirstOrDefault();
+		var results = new List<SauceNaoDataResult>();
 
-		string site = null;
-
-		if (Url.IsValid(url)) {
-			site = url.Host.Replace("www", "");
-			site = site.Split('.', StringSplitOptions.RemoveEmptyEntries)[0];
-
-		}
 
 		var sndr = new SauceNaoDataResult(sr)
 		{
-			Urls = [url],
+			// Url  = url,
+			// Urls = urls,
 
 			// Url            = url,
 			Similarity     = Math.Round(similarity, 2),
@@ -618,7 +624,8 @@ public sealed record SauceNaoDataResult : SearchResultItem
 
 			// Description = rti,
 			Title = rti,
-			Site  = site
+
+			// Site  = site
 		};
 
 		if (rtiHasArtist && string.IsNullOrWhiteSpace(sndr.Artist)) {
@@ -654,6 +661,20 @@ public sealed record SauceNaoDataResult : SearchResultItem
 			}
 		}
 
+		for (int i = 0; i < urls.Length; i++) {
+			Url    url  = urls[i];
+			string site = null;
+
+			if (Url.IsValid(url)) {
+				site = url.Host.Replace("www", "");
+				site = site.Split('.', StringSplitOptions.RemoveEmptyEntries)[0];
+
+			}
+
+			var sndri = sndr with { Url = url, Site = site };
+			results.Add(sndri);
+		}
+
 		/*sr.Results.Add(sndr);
 
 		if (urls.Length >= 1) {
@@ -661,7 +682,7 @@ public sealed record SauceNaoDataResult : SearchResultItem
 			sr.Results.AddRange(children);
 		}*/
 
-		return sndr;
+		return results;
 	}
 
 #endregion
