@@ -52,9 +52,11 @@ using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Engines.Search;
+using Size = SixLabors.ImageSharp.Size;
 
 // ReSharper disable InconsistentNaming
 
@@ -81,17 +83,21 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	/// </summary>
 	private readonly ConcurrentDictionary<SearchResult, int> m_results;
 
-	private readonly ObjectCache m_cache;
+	private readonly MemoryCache m_cache;
 
 	private SearchCommandSettings m_scs;
 
 	private readonly STable m_table;
 
-	private readonly Layout                                             m_root;
-	private readonly Tree                                               m_root2;
-	private readonly ConcurrentDictionary<SearchResult, List<TreeNode>> m_root2Nodes;
-
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
+
+	private readonly Layout m_root;
+
+	private readonly Tree m_rootTree;
+
+	private readonly ConcurrentDictionary<SearchResult, List<TreeNode>> m_rootTreeNodes;
+
+	private readonly ConcurrentDictionary<int, int> m_results;
 
 	static SearchCommand() { }
 
@@ -105,14 +111,14 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		// Client.OnSearchComplete += OnSearchComplete;
 
 		// Client.OnResultComplete   += OnResultComplete;
-		m_cts        = new CancellationTokenSource();
-		m_scs        = null;
-		m_table      = CreateResultTable();
-		m_root       = CreateLayout();
-		m_root2      = CreateRootTree();
-		m_root2Nodes = new ConcurrentDictionary<SearchResult, List<TreeNode>>();
-		m_results    = new();
-		m_cache      = new MemoryCache("Buf");
+		m_cts           = new CancellationTokenSource();
+		m_scs           = null;
+		m_table         = CreateResultTable();
+		m_root          = CreateRootLayout();
+		m_rootTree      = CreateRootTree();
+		m_rootTreeNodes = new ConcurrentDictionary<SearchResult, List<TreeNode>>();
+		m_results       = new();
+		m_cache         = new MemoryCache("Buf");
 
 
 		Query = SearchQuery.Null;
@@ -181,28 +187,40 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		try {
 			var ok = await task;
 
-			if (ok) {
-				var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
-
-				var panel = new Panel(ci)
-				{
-					Header = new PanelHeader($"{Query.Source.Value}")
-				};
-				AnsiConsole.Write(panel);
-				await InitConfigAsync(ok);
-
-			}
-			else {
+			if (!ok) {
 				throw new SmartImageException("Could not upload query");
 			}
+
+			await InitConfigAsync(ok);
+
+			var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
+
+			// var ci = new CanvasImage(Query.Source.GetStream());
+
+			var panel = new Panel(ci)
+			{
+				Header = new PanelHeader($"{Query.Source.Value}"),
+				Expand = true,
+
+			};
+
+
+			var gr = ConsoleFormat.CreateConfigGrid(Config, Query);
+
+			var grp = new Panel(gr) { Header = new PanelHeader("Config") };
+
+			var layout = new Layout("Root")
+				.SplitRows(
+					new Layout("T", panel) { },
+					new Layout("B", grp));
+
+			AnsiConsole.Write(layout);
 		}
 		catch (Exception e) {
 			AnsiConsole.WriteException(e);
 			return BaseOSIntegration.EC_ERROR;
 		}
 
-		var gr = ConsoleFormat.CreateConfigGrid(Config, Query);
-		AnsiConsole.Write(gr);
 
 		Console.CancelKeyPress += OnCancelKeyPress;
 
@@ -212,10 +230,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		 */
 
 #if !UNITTEST
-		Task run = AnsiConsole.Live(m_table)
-			.StartAsync(c => RunSearchLiveAsync(c));
-		/*Task run = AnsiConsole.Live(m_root)
-			.StartAsync(c => RunSearchLiveAsync2(c));*/
+		/*Task run = AnsiConsole.Live(m_table)
+			.StartAsync(c => RunSearchLiveAsync(c))*/
+		;
+
+		Task run = AnsiConsole.Live(m_root)
+			.StartAsync(c => RunSearchLiveAsync2(c));
 
 #else
 		run = RunSearchLiveAsync(null);
@@ -251,8 +271,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		Task run2;
 
 		if (m_scs.Interactive) {
-			run2 = RunInteractiveAsync(m_cts.Token);
-			// run2 = RunInteractiveAsync2(m_cts.Token);
+			// run2 = RunInteractiveAsync(m_cts.Token);
+			run2 = RunInteractiveAsync2(m_cts.Token);
 
 			await run2;
 		}
@@ -270,12 +290,15 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		string cmd = null;
 
 		do {
+			cmd = GetCommandPrompt();
+
 			var res = GetEnginePrompt();
 
 			var (sri, ui) = GetResultItemPrompt(res);
 
-			if (sri is not null) {
-				cmd = GetCommandPrompt();
+
+			if (sri is not null || ui is not null) {
+				s_logger.LogTrace("Interactive: {ResItem} | {UniItem}", sri, ui);
 
 				if (cmd == R2.Chc_Open) {
 					SearchClient.OpenResult(sri.Url);
@@ -294,18 +317,10 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 						continue;
 					}
 
-					await AnsiConsole.Live(m_table).StartAsync(async (f) =>
-					{
-						if (ui.HasHash) {
-							var row = GetRowForUni(ui);
-							ui.CalculateSimilarity(Query.Source);
+					if (ui.HasHash) {
+						await CalcResultAsync(ui);
+					}
 
-							m_table.Rows.Update(row, 2, new Text(ui.Similarity.ToString()));
-							f.Refresh();
-						}
-
-
-					});
 
 					continue;
 				}
@@ -362,7 +377,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 									throw new ArgumentOutOfRangeException();
 							}
 
-							Debug.WriteLine($"{arguments.CacheItem} :: {arguments.RemovedReason}");
+							s_logger.LogDebug("{CacheItem} {RemRes}", arguments.CacheItem, arguments.RemovedReason);
 							return;
 						}
 					};
@@ -380,7 +395,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 					var ci = new CanvasImage(str);
 
-					AnsiConsole.AlternateScreen(() => Action(ci,ui));
+					AnsiConsole.AlternateScreen(() => ShowPreview(ci, ui));
 				}
 
 				if (cmd == R2.Chc_Download) { }
@@ -392,7 +407,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	}
 
 	// TODO: Rewrite RunSearch counterparts
-
 
 	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken token = default)
 	{
@@ -437,67 +451,8 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	}
 
 
-	private async ValueTask<bool> ShowImageScanResultsAsync(SearchResultItem item, CancellationToken token = default)
-	{
-		/*var  gr2 = new Grid();
-		gr2.AddColumns(5);
-		gr2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
-
-		// AnsiConsole.Write(gr2);
-
-		var tr = new Tree(gr2);
-		var ld = AnsiConsole.Live(tr);*/
-
-		// var table2 = CreateResultTable();
-		// table2.AddRow(CreateResultItemRows(item, 0, Style.Plain));
-		// var ld   = AnsiConsole.Live(table2);
-		bool ok = true;
-
-		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
-		{
-			if (!item.HasUni) {
-
-				// var ok = await r.ScanAsync();
-				Trace.WriteLine($"Scanning {item}");
-				var resOk = await item.ScanAsync(token);
-
-				if (!resOk) {
-					// Debugger.Break();
-					ok = false;
-					return;
-
-				}
-			}
-			else {
-				return;
-			}
-
-			int i       = 0;
-			var row     = GetRowForItem(item);
-			var rowOrig = row;
-			var delta   = item.Uni.Count;
-			var idx     = item.Root.Results.IndexOf(item);
-
-			foreach (var ui in item.Uni) {
-				m_table.InsertRow(++row, CreateUniImageRow(ui, item, idx, i++));
-			}
-
-			foreach (var kv in m_results) {
-				if (kv.Value >= rowOrig) {
-					m_results[kv.Key] = kv.Value + delta;
-
-				}
-			}
-
-		});
-
-		return ok;
-
-	}
-
 	private async Task RunCompletionCommandAsync([CBN] object o)
 	{
-		Debug.WriteLine($"{nameof(RunCompletionCommandAsync)}");
 		var command = Cli.Wrap(m_scs.Command);
 
 		var cmdArgs      = m_scs.CommandArguments;
@@ -522,8 +477,6 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private void WriteOutputFile([CBN] object o)
 	{
-		Debug.WriteLine($"{nameof(WriteOutputFile)}");
-
 		var fw = File.OpenWrite(m_scs.OutputFile);
 
 		var sw = new StreamWriter(fw)
@@ -579,6 +532,20 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 #endregion
 
+	private Task CalcResultAsync(UniImage ui)
+	{
+		return AnsiConsole.Live(m_table).StartAsync(async f =>
+		{
+			var row = GetRowForUni(ui);
+			ui.CalculateSimilarity(Query.Source);
+
+			m_table.Rows.Update(row, 2, new Text(ui.Similarity.ToString()));
+			f.Refresh();
+		});
+
+
+	}
+
 	private SearchResultItem GetItemForUni(UniImage ui, out int uniIndex)
 	{
 		foreach (SearchResult sr in m_results.Keys) {
@@ -622,7 +589,169 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		int b = sri.Root.Results.IndexOf(sri);
 
 		return a + b + c;
+	}
 
+	private async ValueTask<bool> ShowImageScanResultsAsync(SearchResultItem item, CancellationToken token = default)
+	{
+		bool ok = true;
+
+		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
+		{
+			if (!item.HasUni) {
+
+				// var ok = await r.ScanAsync();
+				s_logger.LogTrace("Scanning {Item}", item);
+				var resOk = await item.ScanAsync(token);
+
+				if (!resOk) {
+					// Debugger.Break();
+					ok = false;
+					return;
+
+				}
+			}
+			else {
+				return;
+			}
+
+			int i       = 0;
+			var row     = GetRowForItem(item);
+			var rowOrig = row;
+			var delta   = item.Uni.Count;
+			var idx     = item.Root.Results.IndexOf(item);
+
+			foreach (var ui in item.Uni) {
+				m_table.InsertRow(++row, CreateUniImageRow(ui, item, idx, i++));
+			}
+
+			foreach (var kv in m_results) {
+				if (kv.Value >= rowOrig) {
+					m_results[kv.Key] = kv.Value + delta;
+
+				}
+			}
+
+		});
+
+		return ok;
+
+	}
+
+	public static Image ResizeToConsole(ISImage image)
+	{
+		// Get console dimensions
+		int maxWidth  = AnsiConsole.Profile.Width;
+		int maxHeight = AnsiConsole.Profile.Height;
+
+		// Original image dimensions
+		int origWidth  = image.Width;
+		int origHeight = image.Height;
+
+		// Calculate scale factor to fit within console
+		double widthRatio  = (double) maxWidth  / origWidth;
+		double heightRatio = (double) maxHeight / origHeight;
+		double scale       = Math.Min(widthRatio, heightRatio);
+
+		// If image is smaller than console, no need to resize
+		if (scale >= 1.0)
+			return image.Clone();
+
+		int newWidth  = (int) (origWidth  * scale);
+		int newHeight = (int) (origHeight * scale);
+
+		// Resize the image
+		var resized = image.Clone(ctx => ctx.Resize(new ResizeOptions()
+		{
+			Size = new Size(newWidth, newHeight),
+
+		}));
+		return resized;
+	}
+
+	private void ShowPreview(CanvasImage ci, UniImage ui)
+	{
+		// (AnsiConsole.Profile.Width, AC.Profile.Height) = (ui.Image.Width, ui.Image.Height);
+		// Console.SetWindowSize(ui.Image.Width, ui.Image.Height);
+		// ci.MaxWidth ??= ci.Width;
+		ci.MaxWidth ??= ui.Image.Width;
+
+		var panel = new Panel(ci) { Expand = true, };
+		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
+
+		AnsiConsole.Live(panel).Start((ldc) =>
+		{
+
+
+			while (true) {
+
+				ldc.Refresh();
+				var cki = AnsiConsole.Console.Input.ReadKey(true);
+
+
+				if (cki.HasValue) {
+					int mw = 0, pw = 0;
+
+					switch (cki.Value.Key) {
+						case ConsoleKey.DownArrow:
+							pw = -1;
+							break;
+
+						case ConsoleKey.LeftArrow:
+							mw = -1;
+							break;
+
+						case ConsoleKey.UpArrow:
+							pw = 1;
+							break;
+
+						case ConsoleKey.RightArrow:
+							mw = 1;
+							break;
+
+						case ConsoleKey.Escape:
+							return;
+
+						case ConsoleKey.R:
+							ci.MaxWidth = ui.Image.Width;
+
+							// ci.PixelWidth =   0;
+							break;
+
+						case ConsoleKey.A:
+							ci.MaxWidth = AnsiConsole.Profile.Width;
+							break;
+
+						case ConsoleKey.W:
+							// AnsiConsole.Console.Profile.Width  = ui.Image.Width;
+							// AnsiConsole.Console.Profile.Height = ui.Image.Height;
+							AnsiConsole.Profile.Width  = ci.Width;
+							AnsiConsole.Profile.Height = ci.Height;
+							Console.SetBufferSize(ci.Width, ci.Height);
+
+							// Console.SetWindowSize(ci.Width, ci.Height);
+
+							// ci.MaxWidth                        = ui.Image.Width;
+							break;
+					}
+
+					if (mw != 0 || pw != 0) {
+						ci.PixelWidth = Math.Clamp(ci.PixelWidth      + pw, 0, ci.Width);
+						ci.MaxWidth   = Math.Clamp((ci.MaxWidth ?? 0) + mw, 0, AnsiConsole.Profile.Width);
+
+					}
+				}
+
+				// lay["btm"].Update(new Text($"{ci.MaxWidth} / {ci.PixelWidth}"));
+
+				// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
+				panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
+			}
+		});
+
+		(AnsiConsole.Profile.Width, AnsiConsole.Profile.Height) = (w, h);
+
+
+		return;
 	}
 
 #region Prompts
@@ -765,38 +894,25 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private static IRenderable[] CreateResultItemRows(SearchResultItem res, int i, Style style)
 	{
-		var name = new Text($"{res.Root.Engine.Name} #{i}", style);
-
 		IRenderable url;
 		var         link = res.Url;
+		Style       linkStyle;
 
 		if (link != null) {
-			url = new Markup(Markup.Escape(link.ToString()), new Style(link: link));
+			linkStyle = new Style(link: link);
+			url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
 		}
 		else {
-			url = ConsoleFormat.Txt_NA;
+			url       = ConsoleFormat.Txt_NA;
+			linkStyle = style;
 		}
+
+		var name = new Text($"{res.Root.Engine.Name} #{i}", style);
 
 		var sim    = new Text($"{res.Similarity}");
 		var artist = new Text($"{res.Artist}");
 		var site   = new Text($"{res.Site}");
 		return [name, url, sim, artist, site];
-	}
-
-	private Layout CreateConfigLayout()
-	{
-		// Create the layout
-		var layout = new Layout("Root")
-			.SplitColumns(
-				new Layout("Left"),
-				new Layout("Right"));
-
-		// Update the left column
-		layout["Right"].Update(
-			new Panel(Align.Center(new Text("---"))).Expand());
-
-
-		return layout;
 	}
 
 #endregion
@@ -818,6 +934,26 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 		return r;
 
 	}
+
+	public void Dispose()
+	{
+		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
+
+		foreach (var sr in m_results.Keys) {
+			sr.Dispose();
+		}
+
+		ConsoleFormat.Prm_Num.Validator = null;
+		ConsoleFormat.Prm_Engine.Choices.Clear();
+		m_results.Clear();
+		m_cts.Dispose();
+		m_scs = null;
+		Client.Dispose();
+		Query.Dispose();
+	}
+
+
+#region
 
 	private async Task RunSearchLiveAsync2(LiveDisplayContext c, CancellationToken token = default)
 	{
@@ -849,13 +985,13 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			Style    style = new Style(color);
 
 			var nodes = CreateTreeNodes(result, style);
-			m_root2Nodes.TryAdd(result, nodes);
+			m_rootTreeNodes.TryAdd(result, nodes);
 
 			var text     = new Text($"{result.Engine.Name} ({result.Results.Count})", new Style(color));
 			var treeNode = new TreeNode(text);
 
-			m_root2.AddNode(treeNode);
-			var panel = new Panel(m_root2) { Header = new PanelHeader($"Results ({m_results.Count})"), Expand = true };
+			m_rootTree.AddNode(treeNode);
+			var panel = new Panel(m_rootTree) { Header = new PanelHeader($"Results ({m_results.Count})"), Expand = true };
 
 			m_root["Left"].Update(panel);
 
@@ -871,7 +1007,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 	private Panel CreatePanel(SearchResult result)
 	{
 		var tr    = CreateResultTree(result);
-		var nodes = m_root2Nodes[result];
+		var nodes = m_rootTreeNodes[result];
 		tr.AddNodes(nodes);
 		var panel = new Panel(tr) { Header = new PanelHeader($"Results ({nodes.Count})"), Expand = true };
 		return panel;
@@ -899,7 +1035,7 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private List<TreeNode> CreateTreeNodes(SearchResult result, Style style)
 	{
-		return m_root2Nodes.GetOrAdd(result, result.Results.SelectMany((res, i) => CreateResultTreeNodes(res, i, style)).ToList());
+		return m_rootTreeNodes.GetOrAdd(result, result.Results.SelectMany((res, i) => CreateResultTreeNodes(res, i, style)).ToList());
 	}
 
 	private static IEnumerable<TreeNode> CreateResultTreeNodes(SearchResultItem res, int i, Style style)
@@ -930,9 +1066,9 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			{ Guide = TreeGuide.Line };
 	}
 
-	public Layout CreateLayout()
+	public Layout CreateRootLayout()
 	{
-		var layout = new Layout("Root") { Size = AnsiConsole.Console.Profile.Height - 10 }
+		var layout = new Layout("Root") { }
 			.SplitColumns(
 				new Layout("Left"),
 				new Layout("Right")
@@ -963,12 +1099,34 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 
 	private async Task RunInteractiveAsync2(CancellationToken ct = default)
 	{
-		string cmd = null;
+		AnsiConsole.Live(m_root).StartAsync(async ctx =>
+		{
+			string cmd = null;
+			TreeNode n = null;
+			int ni = 0;
+			while (true) {
+				ConsoleKeyInfo? cki = null;
 
-		// do {
+				while (AC.Console.Input.IsKeyAvailable()) {
+					cki = await AC.Console.Input.ReadKeyAsync(true, ct);
+				}
 
-		AnsiConsole.Clear();
-		AnsiConsole.Write(m_root);
+
+				//
+				
+				if (cki.Value is { Key: ConsoleKey.UpArrow}) {
+					ni = (ni + 1) % m_rootTree.Nodes.Count;
+				}
+				if (cki.Value is { Key: ConsoleKey.DownArrow}) {
+					ni = (ni - 1) % m_rootTree.Nodes.Count;
+				}
+
+				
+
+
+			}
+		});
+
 
 		SearchResult sell = await GetEngineSelection2(ct);
 
@@ -1003,125 +1161,12 @@ public sealed class SearchCommand : AsyncCommand<SearchCommandSettings>, IDispos
 			AnsiConsole.Write(m_root);
 			inp = await AnsiConsole.AskAsync<string>(">", ct);
 			var entries = inp.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-			
+
 		} while (!inp.Contains("exit") && !ct.IsCancellationRequested);
 
 
 	}
 
-	private void Action(CanvasImage ci, UniImage ui)
-	{
-		ci.MaxWidth ??= ci.Width;
-
-		var panel = new Panel(ci);
-		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
-
-		AnsiConsole.Live(panel)
-			.Start((ldc) =>
-			{
-
-
-				while (true) {
-					/*AnsiConsole.Clear();
-								AnsiConsole.Write(ci);*/
-
-					var cki = AnsiConsole.Console.Input.ReadKey(true);
-
-					if (cki.HasValue) {
-						int mw = 0, pw = 0;
-
-						switch (cki.Value.Key) {
-							case ConsoleKey.DownArrow:
-								pw = -1;
-								break;
-
-							case ConsoleKey.LeftArrow:
-								mw = -1;
-								break;
-
-							case ConsoleKey.UpArrow:
-								pw = 1;
-								break;
-
-							case ConsoleKey.RightArrow:
-								mw = 1;
-								break;
-
-							case ConsoleKey.Escape:
-								return;
-
-							case ConsoleKey.R:
-								ci.MaxWidth = ui.Image.Width;
-
-								// ci.PixelWidth =   0;
-								break;
-
-							case ConsoleKey.A:
-								ci.MaxWidth = AnsiConsole.Profile.Width;
-								break;
-
-							case ConsoleKey.W:
-								AnsiConsole.Console.Profile.Width  = ui.Image.Width;
-								AnsiConsole.Console.Profile.Height = ui.Image.Height;
-								ci.MaxWidth                        = ui.Image.Width;
-								break;
-						}
-
-						if (mw != 0 || pw != 0) {
-							ci.PixelWidth = Math.Clamp(ci.PixelWidth     + pw, 0, ci.Width);
-							ci.MaxWidth   = Math.Clamp(ci.MaxWidth.Value + mw, 0, AnsiConsole.Profile.Width);
-
-						}
-					}
-
-					// lay["btm"].Update(new Text($"{ci.MaxWidth} / {ci.PixelWidth}"));
-					// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
-					panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
-					ldc.Refresh();
-				}
-			});
-
-		(AnsiConsole.Profile.Width, AnsiConsole.Profile.Height) = (w, h);
-
-
-		return;
-	}
-
-
-	private Task<SearchResult> GetEngineSelection2(CancellationToken ct)
-	{
-		// var async = new TextPrompt<string>(">");
-		// m_root["Left"].Update();
-
-		var sel = new SelectionPrompt<SearchResult>()
-		{
-			Mode          = SelectionMode.Leaf,
-			WrapAround    = true,
-			SearchEnabled = true,
-			Converter     = s => s.Engine.Name,
-
-		};
-		sel.AddChoices(m_root2Nodes.Keys);
-
-		var sell = AnsiConsole.PromptAsync(sel, ct);
-		return sell;
-	}
-
-	public void Dispose()
-	{
-		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
-
-		foreach (var sr in m_results.Keys) {
-			sr.Dispose();
-		}
-
-		ConsoleFormat.Prm_Num.Validator = null;
-		ConsoleFormat.Prm_Engine.Choices.Clear();
-		m_results.Clear();
-		m_cts.Dispose();
-		m_scs = null;
-		Client.Dispose();
-		Query.Dispose();
-	}
+#endregion
 
 }

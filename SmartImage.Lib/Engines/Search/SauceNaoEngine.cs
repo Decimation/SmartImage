@@ -69,9 +69,8 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 		// var result = await base.GetResultAsync(query, token);
 		var b = await VerifyQueryAsync(query).ConfigureAwait(false);
 
-		// SmartImageException.Assert(b, nameof(query));
 
-		var srs    = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
+		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
 		var rawUrl = GetRawUrl(query);
 
@@ -80,23 +79,23 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 			Status = srs,
 		};
 
-		// IEnumerable<SearchResultItem> dataResults;
-
 		if (UsingAPI) {
 			Logger.LogInformation("[{Name}] API key: {Auth}", Name, Authentication);
 
 			await GetAPIResultsAsync(query, result).ConfigureAwait(false);
 		}
 		else {
-			if (result is null or ({ Status: SearchResultStatus.Cooldown } or { IsSuccessful: false })) {
-				// goto ret1;
+
+			var src = await GetSourceAsync(result, query, token).ConfigureAwait(false);
+
+			if (src is null || result is {Status: SearchResultStatus.Cooldown}) {
+				goto ret1;
 			}
 
-			var src    = await GetSourceAsync(result, query, token).ConfigureAwait(false);
 			var source = await ParseIntermediate(src);
 			var items  = await ParseResultItems(source, result);
 			result.Results.AddRange(items);
-		 }
+		}
 
 
 	ret1:
@@ -468,8 +467,6 @@ public sealed record SauceNaoDataResult : SearchResultItem
 
 	}*/
 
-#region Implementation of IResultConverter2<out SauceNaoDataResult>
-
 	/*public ValueTask<IEnumerable<SearchResultItem>> ToItem(SearchResult sr)
 	{
 		var sri = new SearchResultItem(sr)
@@ -684,8 +681,6 @@ public sealed record SauceNaoDataResult : SearchResultItem
 
 		return results;
 	}
-
-#endregion
 
 }
 

@@ -16,6 +16,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using CoenM.ImageHash;
 using CommunityToolkit.HighPerformance;
 using Microsoft.IO;
 using SmartImage.Lib.Model;
@@ -103,7 +104,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public bool HasImageFormat => ImageFormat != null;
 
 	[MN]
-	public Image<Rgba32> Image { get; protected set; }
+	public Image Image { get; protected set; }
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
@@ -154,17 +155,18 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public virtual async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
+
 			try {
 
 				await using var stream = GetStream();
-				Image = await ISImage.LoadAsync<Rgba32>(stream, ct);
+				Image = await ISImage.LoadAsync(stream, ct);
+				stream.Rewind();
+				Hash  = ImageScanner.ImageHasher.Hash(stream);
 			}
 			catch (Exception exception) {
 				s_logger.LogError(exception, "{Value} failed to allocate image", Value);
 				return false;
 			}
-
-			Hash = ImageScanner.ImageHasher.Hash(Image);
 
 		}
 
@@ -303,7 +305,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public override string ToString()
 	{
-		return $"[{Type}] : {Value} w/ {Size} of type {(HasImageFormat ? ImageFormat.Name : "?")}";
+		return $"{Type} : {Value} {Size} bytes of type {(HasImageFormat ? ImageFormat.Name : "?")}";
 	}
 
 #region Equality members
