@@ -351,7 +351,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 /// <summary>
 /// Origin result
 /// </summary>
-public sealed record SauceNaoDataResult : SearchResultItem
+public sealed class SauceNaoDataResult : SearchResultItem
 {
 
 	private SauceNaoDataResult() : this(null, false) { }

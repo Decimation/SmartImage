@@ -21,7 +21,7 @@ public class UniImageFile : UniImage
 
 	public FileInfo LocalFileInfo { get; }
 
-	public override string WriteToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
+	public override string WriteToFile(string fn = null, Action<IImageProcessingContext> operation = null)
 	{
 		if (!HasFilePath) {
 			throw new FileNotFoundException(Value);

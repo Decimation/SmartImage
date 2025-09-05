@@ -132,13 +132,13 @@ internal partial class YandexSiteCtx : JsonSerializerContext { }
 public record YandexImage
 {
 
-	[JsonPropertyName("url")]
+	[JPN("url")]
 	public string Url { get; set; }
 
-	[JsonPropertyName("height")]
+	[JPN("height")]
 	public int Height { get; set; }
 
-	[JsonPropertyName("width")]
+	[JPN("width")]
 	public int Width { get; set; }
 
 }
@@ -146,22 +146,22 @@ public record YandexImage
 public record YandexSite
 {
 
-	[JsonPropertyName("title")]
+	[JPN("title")]
 	public string Title { get; set; }
 
-	[JsonPropertyName("description")]
+	[JPN("description")]
 	public string Description { get; set; }
 
-	[JsonPropertyName("url")]
+	[JPN("url")]
 	public string Url { get; set; }
 
-	[JsonPropertyName("domain")]
+	[JPN("domain")]
 	public string Domain { get; set; }
 
-	[JsonPropertyName("thumb")]
+	[JPN("thumb")]
 	public YandexImage Thumb { get; set; }
 
-	[JsonPropertyName("originalImage")]
+	[JPN("originalImage")]
 	public YandexImage OriginalImage { get; set; }
 
 

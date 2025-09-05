@@ -188,7 +188,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 }
 
-public record IqdbItem : SearchResultItem, IResultItemParseable<IHtmlCollection<IElement>, IqdbItem>
+public class IqdbItem : SearchResultItem, IResultItemParseable<IHtmlCollection<IElement>, IqdbItem>
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }

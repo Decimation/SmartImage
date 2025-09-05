@@ -4,14 +4,18 @@ using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
+using Flurl.Http;
 using Kantan.Diagnostics;
+using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>, IDisposable
+public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>, IDisposable,
+                                IHashable,
+                                IImageSource
 {
 
 	/// <summary>
@@ -25,15 +29,15 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 	[CBN]
 	public SearchResultItem Parent { get; internal set; }
 
-	[MN]
-	[JsonPropertyName("url")]
-	public Url Url { get; internal set; }
+	// [MN]
+	// [JPN("url")]
+	// public Url Url { get; protected set; }
 
 	/// <summary>
 	///     Title/caption of this result
 	/// </summary>
 	[CBN]
-	[JsonPropertyName("title")]
+	[JPN("title")]
 	public string Title { get; internal set; }
 
 	/// <summary>
@@ -62,7 +66,7 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 	///     Image description
 	/// </summary>
 	[CBN]
-	[JsonPropertyName("description")]
+	[JPN("description")]
 	public string Description { get; internal set; }
 
 	/// <summary>
@@ -77,14 +81,6 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 	[CBN]
 	public string Site { get; internal set; }
 
-	/// <summary>
-	///     Percent similarity to query (<see cref="SearchQuery" />).
-	/// </summary>
-	/// <remarks>
-	///     The algorithm used to determine the similarity
-	///     may not be consistent across results.
-	/// </remarks>
-	public double? Similarity { get; internal set; }
 
 	/// <summary>
 	///     Timestamp of the image.
@@ -97,19 +93,23 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 	[JI]
 	public object Metadata { get; internal set; }
 
+#region
+
 	[CBN]
 	public Url Thumbnail { get; internal set; }
 
 	[CBN]
+	public ISImage ThumbnailImage { get; internal set; }
+
+	[CBN]
 	public string ThumbnailTitle { get; internal set; }
 
-	// [MN]
-	[JI]
-	public List<UniImage> Uni { get; }
+	[MNNW(true, nameof(Thumbnail), nameof(ThumbnailImage))]
+	public bool HasThumbnail => Url.IsValid(Thumbnail) && ThumbnailImage != null;
 
-	[JI]
-	[MNNW(true, nameof(Uni))]
-	public bool HasUni => Uni is { Count: > 0 };
+#endregion
+
+	public override long? Size => base.Size;
 
 	/// <summary>
 	/// <see cref="SearchResult.RawResultItem"/>
@@ -125,8 +125,13 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 
 			var s = 0d;
 
-			if (HasUni)
-				s += Uni.Count;
+			if (HasImage) {
+				s++;
+			}
+
+			if (HasHash) {
+				s++;
+			}
 
 			if (Similarity.HasValue)
 				s += Similarity.Value * 0.66d;
@@ -134,8 +139,8 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 			if (Url.IsValid(Url))
 				s++;
 
-			if (Url.IsValid(Thumbnail))
-				s++;
+			if (HasThumbnail)
+				s += 2;
 
 			int?[] ir = [Width, Height];
 			s += ir.Count(static c => c.HasValue);
@@ -153,37 +158,16 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 		}
 	}
 
-	internal SearchResultItem(SearchResult r, bool isRaw = false)
+	internal SearchResultItem(SearchResult r, bool isRaw = false) : base(null)
 	{
 		Root     = r;
 		Metadata = null;
 		Parent   = null;
 		IsRaw    = isRaw;
-		Uni      = [];
 
 		// EmbeddedUrls = null;
 
 		// Children   = [];
-	}
-
-	public SearchResultItem[] CreateChildren(string[] rg)
-	{
-		var rg2 = new SearchResultItem[rg.Length];
-
-		for (int i = 0; i < rg.Length; i++) {
-
-			rg2[i] = new SearchResultItem(this)
-			{
-				Url = rg[i],
-
-				// Children = [],
-				Parent = this,
-			};
-
-			// Children.Add(sri);
-		}
-
-		return rg2;
 	}
 
 
@@ -210,62 +194,44 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 		return true;
 	}*/
 
-	public async ValueTask<bool> LoadThumbnail(CancellationToken ct = default)
+
+	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
-		if (Url.IsValid(Thumbnail) && !(HasUni && Uni.Any(u => u is UniImageUri ui && ui.Url.Equals(Thumbnail)))) {
-
-			var uni = await UniImage.TryCreateAsync(Thumbnail, ct: ct);
-
-			if (uni == null) {
-				return false;
-			}
-
-			Uni.Add(uni);
-		}
-
-		return true;
-	}
-
-	public async Task<bool> ScanAsync(CancellationToken ct = default)
-	{
-		// TODO: USE CHANNELS
-		// TODO: REFACTOR TO USE THIS FUNCTION
-
-		if (HasUni) {
-			return true;
-		}
-
 		if (Url == null) {
 			return false;
 		}
 
-		// Uni = await UniSource.TryGetAsync(Url, ct: ct, whitelist: FileType.Image);
-		var buf = new ConcurrentBag<UniImage>();
+		var ok = await base.AllocImageAsync(ct);
 
-		var ch = Channel.CreateUnbounded<UniImage>(new UnboundedChannelOptions() { SingleReader = true });
+		if (ok) {
+			Width  ??= Image.Width;
+			Height ??= Image.Height;
 
-		var tasks = ImageScanner.ScanImagesAsync(Url, ch.Writer, ct: ct);
-
-		while (await ch.Reader.WaitToReadAsync(ct)) {
-			var v = await ch.Reader.ReadAsync(ct);
-
-			if (v != UniImage.Null && v.HasImageFormat) {
-				buf.Add(v);
-			}
-
-			if (ct.IsCancellationRequested) {
-				break;
-			}
+		}
+		else {
+			
 		}
 
-		await tasks;
-
-		Uni.AddRange(buf);
-		buf.Clear();
-
-		return HasUni;
+		return ok;
 	}
 
+	public override bool CalculateSimilarity(IHashable hashable)
+	{
+		return base.CalculateSimilarity(hashable);
+	}
+
+
+	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
+	{
+		if (Url.IsValid(Thumbnail) && ThumbnailImage != null) {
+			using var response    = await ImageScanner.GetResponseAsync(Thumbnail, ct);
+			var       responseStr = await response.GetStreamAsync();
+			ThumbnailImage = await ISImage.LoadAsync(responseStr, ct);
+
+		}
+
+		return HasThumbnail;
+	}
 
 	// public IFlurlResponse Response { get; private set; }
 
@@ -283,26 +249,20 @@ public record SearchResultItem : IComparable<SearchResultItem>, IComparable, ISi
 		if (ReferenceEquals(this, other))
 			return true;
 
-		return Root.Equals(other.Root) && Url == other.Url && Uni == other.Uni;
+		return Root.Equals(other.Root) && Url == other.Url;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(Root, Url, Uni);
+		return HashCode.Combine(Root, Url);
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		GC.SuppressFinalize(this);
 		Debug.WriteLine($"Disposing {Url} of {Root.Engine.Name}", LogCategories.C_VERBOSE);
-
-		if (Uni is { Count: > 0 }) {
-			foreach (var us in Uni) {
-
-				us?.Dispose();
-			}
-
-		}
+		base.Dispose();
+		ThumbnailImage?.Dispose();
 
 		/*foreach (var sis in Sisters) {
 

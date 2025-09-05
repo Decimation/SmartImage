@@ -38,6 +38,7 @@ using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
@@ -67,8 +68,7 @@ public static partial class ImageScanner
 			// builder.Settings.Redirects.AllowSecureToInsecure      = true;
 
 			builder.Settings.AllowedHttpStatusRange = "*";
-
-			builder.Settings.HttpVersion = "2.0";
+			builder.Settings.HttpVersion            = "2.0";
 
 			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
 
@@ -123,15 +123,16 @@ public static partial class ImageScanner
 
 #endregion
 
-	#region Images
+#region Images
 
 	public static readonly IImageFormat[] Formats = [PngFormat.Instance, JpegFormat.Instance, BmpFormat.Instance, GifFormat.Instance];
 
-	public static readonly IEnumerable<string> Extensions = Formats.SelectMany(static fmt => fmt.FileExtensions.Select(static ext => $"*.{ext}"));
+	public static readonly string[] Extensions = Formats.SelectMany(static fmt => fmt.FileExtensions).ToArray();
 
-	#endregion
+#endregion
 
 	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
+
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
@@ -326,142 +327,63 @@ public static partial class ImageScanner
 		return rg.ToArray();
 	}
 
-	/*public static async Task<IEnumerable<Item2>> Highest(SearchQuery query,
-	                                                     IEnumerable<SearchResultItem> results,
-	                                                     CancellationToken ct = default)
-	{
-		var plr = new ParallelOptions()
-		{
-			CancellationToken      = ct,
-			MaxDegreeOfParallelism = -1,
-		};
-
-		/*await Parallel.ForEachAsync(results, plr, async (item, token) =>
-		{
-			var r = await ImageScanner.GetImageUrlsAsync(item.Url, token: token);
-			Debug.WriteLine($"{item.Url} -> {r}");
-
-		});#1#
-
-		// results = results.Where(r => !r.IsRaw && r.Url != null);
-
-		var cb = new ConcurrentBag<Item2>();
-
-		foreach (var result in results) {
-
-			// IDocument dd = await GetDocument2(u, ct);
-
-			// var urls = await ImageScanner.GetImageUrlsAsync(result.Url, token: ct);
-
-			IFlurlResponse response;
-
-			try {
-				response = await Client.Request(result.Url)
-					           .OnError(call =>
-					           {
-						           call.ExceptionHandled = true;
-					           })
-					           .WithHeaders(new
-					           {
-						           // todo
-						           User_Agent = R1.UserAgent1,
-					           })
-					           .WithTimeout(TimeSpan.FromSeconds(3.5))
-					           .GetAsync(cancellationToken: ct);
-			}
-			catch (Exception e) {
-				Debug.WriteLine($"{e.Message}");
-				response = null;
-			}
-
-			if (response == null) {
-				continue;
-			}
-
-			var stream = await response.GetStringAsync();
-
-			// var parser = new HtmlParser();
-			// var doc    = await parser.ParseDocumentAsync(stream);
-
-			// var urls1 = ImageScanner.GetImageUrls(doc);
-			var urls = GetImageUrls(stream, result.Url).ToArray();
-
-			// doc.Dispose();
-			// response.Dispose();
-
-			Debug.WriteLine($"{result.Url} -> {urls.Length}");
-
-			async ValueTask Body(string s, CancellationToken token)
-			{
-				IFlurlResponse resp;
-
-				try {
-					resp = await Client.Request(s)
-						       .OnError(call =>
-						       {
-							       // call.ExceptionHandled = false;
-						       })
-						       .WithHeaders(new
-						       {
-							       // todo
-							       User_Agent = R1.UserAgent1,
-						       })
-						       .WithTimeout(TimeSpan.FromSeconds(7.5))
-						       .GetAsync(cancellationToken: ct);
-				}
-				catch (Exception e) {
-					Debug.WriteLine($"{e.Message}");
-					resp = null;
-				}
-
-				if (resp == null) {
-					return;
-				}
-
-				var bin = await resp.GetStreamAsync();
-
-				if (bin is { CanRead: true }) {
-					bin.TrySeek();
-
-					try {
-						var img = await ISImage.DetectFormatAsync(bin, token);
-						cb.Add(new Item2() { Image = img, Item = result });
-						bin.TrySeek();
-
-						// Debug.WriteLine($"{img}");
-					}
-					catch (Exception e) {
-						Debug.WriteLine(e);
-					}
-				}
-
-				resp.Dispose();
-
-				// bin.Dispose();
-
-			}
-
-			await Parallel.ForEachAsync(urls, plr, Body);
-
-
-		}
-
-		return cb;
-	}
-
-	public static async Task<IEnumerable<SearchResultItem>> Aggregate(IEnumerable<SearchResultItem> results)
-	{
-		var groups = results.GroupBy(g => new { g.Artist });
-
-		foreach (var v in groups) {
-			Console.WriteLine($"{v.Key}");
-		}
-
-		return ( []);
-	}*/
-
 	public static IImageHash ImageHasher { get; } = new PerceptualHash();
 
-	public static readonly ImmutableArray<string> LegalSchemes = ["http", "https"];
+	public static readonly string[] LegalSchemes = ["http", "https"];
+
+	public static Image ResizeByFactor(this ISImage image, Size newSize)
+	{
+		int origWidth  = image.Width;
+		int origHeight = image.Height;
+
+		double widthRatio  = (double) newSize.Width  / origWidth;
+		double heightRatio = (double) newSize.Height / origHeight;
+		double scale       = Math.Min(widthRatio, heightRatio);
+
+		if (scale >= 1.0)
+			return image.Clone();
+
+		int newWidth  = (int) (origWidth  * scale);
+		int newHeight = (int) (origHeight * scale);
+
+		// Resize the image
+		var resized = image.Clone(ctx => ctx.Resize(new ResizeOptions()
+		{
+			Size = new Size(newWidth, newHeight),
+
+		}));
+		return resized;
+	}
+
+	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
+	{
+		// value = value.CleanString();
+		/*if (value.Scheme == "javascript") {
+			throw new ArgumentException($"{value}");
+		}*/
+
+		var req1 = await ImageScanner.Client.Request(value)
+			           .GetAsync(cancellationToken: ct);
+
+		// var req  = ValueTask.FromResult(req1);
+
+		/*.AllowAnyHttpStatus()
+		.WithHeaders(new
+		{
+			// todo
+			User_Agent = R1.UserAgent1,
+		});*/
+
+		// var res = await req.GetAsync(cancellationToken: ct);
+
+		/*
+		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
+			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
+
+		}
+		*/
+
+		return req1;
+	}
 
 }

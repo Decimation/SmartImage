@@ -12,7 +12,8 @@ namespace SmartImage.Lib.Images.Uni;
 public class UniImageUri : UniImage
 {
 
-	public Url Url { get; }
+	[JPN("url")]
+	public Url Url { get; protected internal set; }
 
 	internal UniImageUri(Url url) : base(url.ToString(), UniImageType.Uri)
 	{
@@ -29,7 +30,7 @@ public class UniImageUri : UniImage
 			goto ret;
 		}
 
-		fres = await GetResponseAsync(Url, ct);
+		fres = await ImageScanner.GetResponseAsync(Url, ct);
 
 		if (fres == null) {
 			goto ret;
@@ -41,37 +42,6 @@ public class UniImageUri : UniImage
 	ret:
 		fres?.Dispose();
 		return HasBytes;
-	}
-
-	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
-	{
-		// value = value.CleanString();
-		/*if (value.Scheme == "javascript") {
-			throw new ArgumentException($"{value}");
-		}*/
-
-		var req1 = await ImageScanner.Client.Request(value)
-			           .GetAsync(cancellationToken: ct);
-
-		// var req  = ValueTask.FromResult(req1);
-
-		/*.AllowAnyHttpStatus()
-		.WithHeaders(new
-		{
-			// todo
-			User_Agent = R1.UserAgent1,
-		});*/
-
-		// var res = await req.GetAsync(cancellationToken: ct);
-
-		/*
-		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
-			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
-
-		}
-		*/
-
-		return req1;
 	}
 
 	public static bool IsUriType(object o, out Url u)

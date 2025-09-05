@@ -129,6 +129,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(Bytes))]
 	public bool HasBytes => Bytes != null;
 
+	[MURV]
 	public Stream GetStream()
 	{
 		return new MemoryStream(Bytes, writable: false);
@@ -161,7 +162,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 				await using var stream = GetStream();
 				Image = await ISImage.LoadAsync(stream, ct);
 				stream.Rewind();
-				Hash  = ImageScanner.ImageHasher.Hash(stream);
+				Hash = ImageScanner.ImageHasher.Hash(stream);
 			}
 			catch (Exception exception) {
 				s_logger.LogError(exception, "{Value} failed to allocate image", Value);
@@ -216,8 +217,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 				if (autoDisposeOnError && (!allocOk || !allocImgOk)) {
 					ui?.Dispose();
 				}
-				else {
-				}
+				else { }
 			}
 
 		}
@@ -239,7 +239,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		if (isFile && checkExt) {
 			//todo
 			string ext = Path.GetExtension(str.ToString())?[1..];
-			return FileType.Image.Any(x => x.Subtype == ext);
+			return ImageScanner.Extensions.Any(s => s == ext);
 		}
 
 		return ok;

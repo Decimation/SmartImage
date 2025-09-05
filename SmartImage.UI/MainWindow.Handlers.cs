@@ -47,9 +47,9 @@ namespace SmartImage.UI;
 public partial class MainWindow
 {
 
-	#region
+#region
 
-	#region
+#region
 
 	/*private void Tb_Input_TextChanged(object sender, TextChangedEventArgs e)
 	{
@@ -167,9 +167,9 @@ public partial class MainWindow
 		FileSystem.Open(Query.Upload);
 	}
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	private void Lb_Queue_Drop(object sender, DragEventArgs e)
 	{
@@ -209,7 +209,7 @@ public partial class MainWindow
 
 	}
 
-	#endregion
+#endregion
 
 	private void Btn_Run_Click(object sender, RoutedEventArgs e)
 	{
@@ -259,6 +259,7 @@ public partial class MainWindow
 		// ClearQueue();
 		// ClearResults(true);
 		ReloadToken();
+
 		//todo
 		await Config.LoadEnginesAsync(Client.Engines, m_ctsRun.Token);
 		e.Handled = true;
@@ -388,7 +389,7 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	#region
+#region
 
 	private void Lv_Results_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
@@ -479,8 +480,7 @@ public partial class MainWindow
 
 		switch (key) {
 			case Key.D when ctrl:
-				Dispatcher.InvokeAsync(
-					() => DownloadResultAsync(CurrentResult));
+				Dispatcher.InvokeAsync(() => DownloadResultAsync(CurrentResult));
 
 				break;
 
@@ -553,9 +553,9 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	private void Lb_Engines_SelectionChanged(object sender, SelectionChangedEventArgs e)
 	{
@@ -618,9 +618,9 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	private void Wnd_Main_Loaded(object sender, RoutedEventArgs e)
 	{
@@ -667,11 +667,11 @@ public partial class MainWindow
 
 	}
 
-	#endregion
+#endregion
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	private void OpenItem_Click(object sender, RoutedEventArgs e)
 	{
@@ -714,9 +714,9 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	#endregion
+#endregion
 
-	#region
+#region
 
 	private void Img_Preview_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 	{
@@ -763,7 +763,7 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
-	#endregion
+#endregion
 
 	private void Me_Preview_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
 	{
@@ -804,12 +804,14 @@ public partial class MainWindow
 		e.Handled = true;
 	}
 
+	private static readonly string[] ExtensionWildcards = ImageScanner.Extensions.Select(static ext => $"*.{ext}").ToArray();
+
 	private void Btn_Browse_Click(object sender, RoutedEventArgs e)
 	{
 		var ofn = new OpenFileDialog
 		{
 			Multiselect = true,
-			Filter      = $"Image files|{ImageScanner.Extensions.QuickJoin(";")}"
+			Filter      = $"Image files|{ExtensionWildcards.QuickJoin(";")}"
 		};
 
 		var d = ofn.ShowDialog(this);

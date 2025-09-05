@@ -279,28 +279,28 @@ public sealed class HydrusQuery
 public partial class HydrusFileRelationship
 {
 
-	[JsonPropertyName("0")]
+	[JPN("0")]
 	public string[] PotentialDuplicates { get; set; }
 
-	[JsonPropertyName("1")]
+	[JPN("1")]
 	public string[] FalsePositives { get; set; }
 
-	[JsonPropertyName("3")]
+	[JPN("3")]
 	public string[] Alternates { get; set; }
 
-	[JsonPropertyName("8")]
+	[JPN("8")]
 	public string[] Duplicates { get; set; }
 
-	[JsonPropertyName("is_king")]
+	[JPN("is_king")]
 	public bool IsKing { get; set; }
 
-	[JsonPropertyName("king")]
+	[JPN("king")]
 	public string King { get; set; }
 
-	[JsonPropertyName("king_is_local")]
+	[JPN("king_is_local")]
 	public bool KingIsLocal { get; set; }
 
-	[JsonPropertyName("king_is_on_file_domain")]
+	[JPN("king_is_on_file_domain")]
 	public bool KingIsOnFileDomain { get; set; }
 
 	public static Dictionary<string, HydrusFileRelationship> Deserialize(JsonNode v)

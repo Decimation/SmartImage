@@ -120,13 +120,13 @@ public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
 public class FluffleErrorCode
 {
 
-	[JsonPropertyName("code")]
+	[JPN("code")]
 	public string Code { get; set; }
 
-	[JsonPropertyName("message")]
+	[JPN("message")]
 	public string Message { get; set; }
 
-	[JsonPropertyName("traceId")]
+	[JPN("traceId")]
 	public string TraceId { get; set; }
 
 }
@@ -134,10 +134,10 @@ public class FluffleErrorCode
 public class FluffleResultCredit
 {
 
-	[JsonPropertyName("id")]
+	[JPN("id")]
 	public int Id { get; set; }
 
-	[JsonPropertyName("name")]
+	[JPN("name")]
 	public string Name { get; set; }
 
 }
@@ -145,28 +145,28 @@ public class FluffleResultCredit
 public class FluffleResult
 {
 
-	[JsonPropertyName("id")]
+	[JPN("id")]
 	public int Id { get; set; }
 
-	[JsonPropertyName("score")]
+	[JPN("score")]
 	public double Score { get; set; }
 
-	[JsonPropertyName("match")]
+	[JPN("match")]
 	public string Match { get; set; }
 
-	[JsonPropertyName("platform")]
+	[JPN("platform")]
 	public string Platform { get; set; }
 
-	[JsonPropertyName("location")]
+	[JPN("location")]
 	public string Location { get; set; }
 
-	[JsonPropertyName("isSfw")]
+	[JPN("isSfw")]
 	public bool IsSfw { get; set; }
 
-	[JsonPropertyName("thumbnail")]
+	[JPN("thumbnail")]
 	public FluffleResultThumbnail Thumbnail { get; set; }
 
-	[JsonPropertyName("credits")]
+	[JPN("credits")]
 	public List<FluffleResultCredit> Credits { get; set; }
 
 	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
@@ -189,13 +189,13 @@ public class FluffleResult
 public class FluffleResponse
 {
 
-	[JsonPropertyName("id")]
+	[JPN("id")]
 	public string Id { get; set; }
 
-	[JsonPropertyName("stats")]
+	[JPN("stats")]
 	public FluffleResultStats Stats { get; set; }
 
-	[JsonPropertyName("results")]
+	[JPN("results")]
 	public List<FluffleResult> Results { get; set; }
 
 }
@@ -203,10 +203,10 @@ public class FluffleResponse
 public class FluffleResultStats
 {
 
-	[JsonPropertyName("count")]
+	[JPN("count")]
 	public int Count { get; set; }
 
-	[JsonPropertyName("elapsedMilliseconds")]
+	[JPN("elapsedMilliseconds")]
 	public int ElapsedMilliseconds { get; set; }
 
 }
@@ -214,19 +214,19 @@ public class FluffleResultStats
 public class FluffleResultThumbnail
 {
 
-	[JsonPropertyName("width")]
+	[JPN("width")]
 	public int Width { get; set; }
 
-	[JsonPropertyName("centerX")]
+	[JPN("centerX")]
 	public int CenterX { get; set; }
 
-	[JsonPropertyName("height")]
+	[JPN("height")]
 	public int Height { get; set; }
 
-	[JsonPropertyName("centerY")]
+	[JPN("centerY")]
 	public int CenterY { get; set; }
 
-	[JsonPropertyName("location")]
+	[JPN("location")]
 	public string Location { get; set; }
 
 }

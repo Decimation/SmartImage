@@ -246,10 +246,10 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 }
 
-public record Ascii2DItem : SearchResultItem, IResultItemParseable<INode, Ascii2DItem>
+public class Ascii2DItem : SearchResultItem, IResultItemParseable<INode, Ascii2DItem>
 {
 
-	public string Hash { get; private set; }
+	public string HashString { get; private set; }
 
 	public string Format { get; private set; }
 
@@ -270,7 +270,7 @@ public record Ascii2DItem : SearchResultItem, IResultItemParseable<INode, Ascii2
 		var info = n.ChildNodes.Where(static n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
 			.ToArray();
 
-		sri.Hash = info.First().TextContent;
+		sri.HashString = info.First().TextContent;
 
 		// ir.OtherMetadata.Add("Hash", hash);
 

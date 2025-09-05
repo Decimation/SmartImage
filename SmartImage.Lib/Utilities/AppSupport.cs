@@ -150,10 +150,10 @@ public class GitHubReactions
 
 	public int total_count { get; set; }
 
-	[JsonPropertyName("+1")]
+	[JPN("+1")]
 	public int Plus1 { get; set; }
 
-	[JsonPropertyName("-1")]
+	[JPN("-1")]
 	public int Minus1 { get; set; }
 
 	public int laugh { get; set; }

@@ -148,19 +148,19 @@ public sealed class TinEyeEngine : BaseSearchEngine
 public class TinEyeQuery
 {
 
-	[JsonPropertyName("key")]
+	[JPN("key")]
 	public string Key { get; set; }
 
-	[JsonPropertyName("width")]
+	[JPN("width")]
 	public int Width { get; set; }
 
-	[JsonPropertyName("height")]
+	[JPN("height")]
 	public int Height { get; set; }
 
-	[JsonPropertyName("filesize")]
+	[JPN("filesize")]
 	public int Filesize { get; set; }
 
-	[JsonPropertyName("hash")]
+	[JPN("hash")]
 	public string Hash { get; set; }
 
 }
@@ -168,85 +168,85 @@ public class TinEyeQuery
 public class TinEyeRoot
 {
 
-	[JsonPropertyName("page")]
+	[JPN("page")]
 	public int Page { get; set; }
 
-	[JsonPropertyName("sort_selector")]
+	[JPN("sort_selector")]
 	public object SortSelector { get; set; }
 
-	[JsonPropertyName("limit")]
+	[JPN("limit")]
 	public int Limit { get; set; }
 
-	[JsonPropertyName("domain_name")]
+	[JPN("domain_name")]
 	public string DomainName { get; set; }
 
-	[JsonPropertyName("no_cache")]
+	[JPN("no_cache")]
 	public bool NoCache { get; set; }
 
-	[JsonPropertyName("image_server")]
+	[JPN("image_server")]
 	public string ImageServer { get; set; }
 
-	[JsonPropertyName("load_query_summary")]
+	[JPN("load_query_summary")]
 	public bool LoadQuerySummary { get; set; }
 
-	[JsonPropertyName("show_unavailable_domains")]
+	[JPN("show_unavailable_domains")]
 	public bool ShowUnavailableDomains { get; set; }
 
-	[JsonPropertyName("sort")]
+	[JPN("sort")]
 	public string Sort { get; set; }
 
-	[JsonPropertyName("order")]
+	[JPN("order")]
 	public string Order { get; set; }
 
-	[JsonPropertyName("domain")]
+	[JPN("domain")]
 	public string Domain { get; set; }
 
-	[JsonPropertyName("tags")]
+	[JPN("tags")]
 	public string Tags { get; set; }
 
-	[JsonPropertyName("offset")]
+	[JPN("offset")]
 	public int Offset { get; set; }
 
-	[JsonPropertyName("query_hash")]
+	[JPN("query_hash")]
 	public string QueryHash { get; set; }
 
-	[JsonPropertyName("start")]
+	[JPN("start")]
 	public int Start { get; set; }
 
-	[JsonPropertyName("end")]
+	[JPN("end")]
 	public int End { get; set; }
 
-	[JsonPropertyName("total_pages")]
+	[JPN("total_pages")]
 	public int TotalPages { get; set; }
 
-	[JsonPropertyName("query")]
+	[JPN("query")]
 	public TinEyeQuery Query { get; set; }
 
-	[JsonPropertyName("matches")]
+	[JPN("matches")]
 	public List<TinEyeMatch> Matches { get; set; }
 
-	[JsonPropertyName("num_matches")]
+	[JPN("num_matches")]
 	public int NumMatches { get; set; }
 
-	[JsonPropertyName("num_filtered_matches")]
+	[JPN("num_filtered_matches")]
 	public int NumFilteredMatches { get; set; }
 
-	[JsonPropertyName("num_collection_matches")]
+	[JPN("num_collection_matches")]
 	public int NumCollectionMatches { get; set; }
 
-	[JsonPropertyName("num_stock_matches")]
+	[JPN("num_stock_matches")]
 	public int NumStockMatches { get; set; }
 
-	[JsonPropertyName("num_unavailable_matches")]
+	[JPN("num_unavailable_matches")]
 	public int NumUnavailableMatches { get; set; }
 
-	[JsonPropertyName("str_num_matches")]
+	[JPN("str_num_matches")]
 	public string StrNumMatches { get; set; }
 
-	[JsonPropertyName("str_search_time")]
+	[JPN("str_search_time")]
 	public string StrSearchTime { get; set; }
 
-	[JsonPropertyName("query_source")]
+	[JPN("query_source")]
 	public string QuerySource { get; set; }
 
 
@@ -258,55 +258,55 @@ public partial class TinEyeContext : JsonSerializerContext { }
 public class TinEyeMatch
 {
 
-	[JsonPropertyName("image_url")]
+	[JPN("image_url")]
 	public string ImageUrl { get; set; }
 
-	[JsonPropertyName("key")]
+	[JPN("key")]
 	public string Key { get; set; }
 
-	[JsonPropertyName("transform")]
+	[JPN("transform")]
 	public TinEyeTransform Transform { get; set; }
 
-	[JsonPropertyName("domain")]
+	[JPN("domain")]
 	public string Domain { get; set; }
 
-	[JsonPropertyName("domain_unavailable")]
+	[JPN("domain_unavailable")]
 	public bool DomainUnavailable { get; set; }
 
-	[JsonPropertyName("score")]
+	[JPN("score")]
 	public double Score { get; set; }
 
-	[JsonPropertyName("width")]
+	[JPN("width")]
 	public int Width { get; set; }
 
-	[JsonPropertyName("height")]
+	[JPN("height")]
 	public int Height { get; set; }
 
-	[JsonPropertyName("size")]
+	[JPN("size")]
 	public int Size { get; set; }
 
-	[JsonPropertyName("format")]
+	[JPN("format")]
 	public string Format { get; set; }
 
-	[JsonPropertyName("filesize")]
+	[JPN("filesize")]
 	public int Filesize { get; set; }
 
-	[JsonPropertyName("overlay")]
+	[JPN("overlay")]
 	public string Overlay { get; set; }
 
-	[JsonPropertyName("matching_features")]
+	[JPN("matching_features")]
 	public int MatchingFeatures { get; set; }
 
-	[JsonPropertyName("backlinks")]
+	[JPN("backlinks")]
 	public List<TinEyeBacklink> Backlinks { get; set; }
 
-	[JsonPropertyName("tags")]
+	[JPN("tags")]
 	public List<object> Tags { get; set; }
 
-	[JsonPropertyName("promoted")]
+	[JPN("promoted")]
 	public bool Promoted { get; set; }
 
-	[JsonPropertyName("domains")]
+	[JPN("domains")]
 	public List<TinEyeDomain> Domains { get; set; }
 
 }
@@ -314,13 +314,13 @@ public class TinEyeMatch
 public class TinEyeDomain
 {
 
-	[JsonPropertyName("domain_name")]
+	[JPN("domain_name")]
 	public string DomainName { get; set; }
 
-	[JsonPropertyName("image_name")]
+	[JPN("image_name")]
 	public string ImageName { get; set; }
 
-	[JsonPropertyName("backlinks")]
+	[JPN("backlinks")]
 	public List<TinEyeBacklink> Backlinks { get; set; }
 
 }
@@ -328,22 +328,22 @@ public class TinEyeDomain
 public class TinEyeTransform
 {
 
-	[JsonPropertyName("m11")]
+	[JPN("m11")]
 	public double M11 { get; set; }
 
-	[JsonPropertyName("m12")]
+	[JPN("m12")]
 	public double M12 { get; set; }
 
-	[JsonPropertyName("m13")]
+	[JPN("m13")]
 	public double M13 { get; set; }
 
-	[JsonPropertyName("m21")]
+	[JPN("m21")]
 	public double M21 { get; set; }
 
-	[JsonPropertyName("m22")]
+	[JPN("m22")]
 	public double M22 { get; set; }
 
-	[JsonPropertyName("m23")]
+	[JPN("m23")]
 	public double M23 { get; set; }
 
 }
@@ -351,19 +351,19 @@ public class TinEyeTransform
 public class TinEyeBacklink
 {
 
-	[JsonPropertyName("url")]
+	[JPN("url")]
 	public string Url { get; set; }
 
-	[JsonPropertyName("backlink")]
+	[JPN("backlink")]
 	public string Backlink { get; set; }
 
-	[JsonPropertyName("crawl_date")]
+	[JPN("crawl_date")]
 	public string CrawlDate { get; set; }
 
-	[JsonPropertyName("source_id")]
+	[JPN("source_id")]
 	public long SourceId { get; set; }
 
-	[JsonPropertyName("image_name")]
+	[JPN("image_name")]
 	public string ImageName { get; set; }
 
 }
