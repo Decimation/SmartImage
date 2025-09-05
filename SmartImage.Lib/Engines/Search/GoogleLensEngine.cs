@@ -21,7 +21,7 @@ using SmartImage.Lib.Model;
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Search;
 
-public record GoogleLensItem : SearchResultItem, IResultItemParseable<INode, GoogleLensItem>
+public class GoogleLensItem : SearchResultItem, IResultItemParseable<INode, GoogleLensItem>
 {
 
 	public string SiteName { get; private set; }

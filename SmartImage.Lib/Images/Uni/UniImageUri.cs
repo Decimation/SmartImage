@@ -11,11 +11,11 @@ namespace SmartImage.Lib.Images.Uni;
 
 public class UniImageUri : UniImage
 {
-
+	[MN]
 	[JPN("url")]
 	public Url Url { get; protected internal set; }
 
-	internal UniImageUri(Url url) : base(url.ToString(), UniImageType.Uri)
+	internal UniImageUri(Url url) : base(url?.ToString(), UniImageType.Uri)
 	{
 		Url = url;
 	}

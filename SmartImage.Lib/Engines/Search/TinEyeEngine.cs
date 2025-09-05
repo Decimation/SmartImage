@@ -108,15 +108,10 @@ public sealed class TinEyeEngine : BaseSearchEngine
 				for (int m = 1; m < backlinks.Count; m++) {
 					var bl = backlinks[m];
 
-					var resultItemSister = resultItem with
-					{
-						Url = bl.Backlink,
-
-						// Thumbnail = bl.Url, 
-						Description = bl.ImageName,
-						Time = DateTime.Parse(bl.CrawlDate),
-						Parent = resultItem,
-					};
+					var resultItemSister = resultItem.With(bl.Backlink);
+					resultItemSister.Description = bl.ImageName;
+					resultItemSister.Title       = bl.ImageName;
+					resultItemSister.Time        = DateTime.Parse(bl.CrawlDate);
 
 					sr.Results.Add(resultItemSister);
 

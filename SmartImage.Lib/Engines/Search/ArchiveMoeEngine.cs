@@ -90,7 +90,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 }
 
-public record ChanPost : SearchResultItem, IResultItemParseable<INode, ChanPost>
+public class ChanPost : SearchResultItem, IResultItemParseable<INode, ChanPost>
 {
 
 	public string Board { get; private set; }
@@ -101,7 +101,7 @@ public record ChanPost : SearchResultItem, IResultItemParseable<INode, ChanPost>
 
 	public long Id { get; private set; }
 
-	public string Size { get; private set; }
+	public string SizeString { get; private set; }
 
 	public string Text { get; private set; }
 
@@ -144,19 +144,19 @@ public record ChanPost : SearchResultItem, IResultItemParseable<INode, ChanPost>
 
 		var p = new ChanPost(r)
 		{
-			Id       = long.Parse(e.GetAttribute("id")),
-			Board    = e.GetAttribute("data-board"),
-			Filename = pff.TextContent,
-			File     = file,
-			Width    = int.Parse(wh[0]),
-			Height   = int.Parse(wh[1]),
-			Size     = pfm[0],
-			Title    = pt,
-			Artist   = pa,
-			Site     = file.Host,
-			Tripcode = ptc,
-			Time     = time2,
-			Text     = text
+			Id         = long.Parse(e.GetAttribute("id")),
+			Board      = e.GetAttribute("data-board"),
+			Filename   = pff.TextContent,
+			File       = file,
+			Width      = int.Parse(wh[0]),
+			Height     = int.Parse(wh[1]),
+			SizeString = pfm[0],
+			Title      = pt,
+			Artist     = pa,
+			Site       = file.Host,
+			Tripcode   = ptc,
+			Time       = time2,
+			Text       = text
 		};
 
 		return p;

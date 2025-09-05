@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
+using JetBrains.Annotations;
 using Kantan.Diagnostics;
 using SmartImage.Lib.Utilities;
 
@@ -77,6 +78,12 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		// Results = [GetRawResultItem()];
 	}
 
+	[LinqTunnel]
+	public IEnumerable<SearchResultItem> FindGroups(SearchResultItem sri)
+	{
+		return Results.Where(k => k.Parent == sri);
+
+	}
 
 	private SearchResultItem GetRawResultItem(Url rawUrl)
 	{

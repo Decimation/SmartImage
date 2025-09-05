@@ -88,7 +88,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 
 			var src = await GetSourceAsync(result, query, token).ConfigureAwait(false);
 
-			if (src is null || result is {Status: SearchResultStatus.Cooldown}) {
+			if (src is null || result is { Status: SearchResultStatus.Cooldown }) {
 				goto ret1;
 			}
 
@@ -368,29 +368,6 @@ public sealed class SauceNaoDataResult : SearchResultItem
 	/// </summary>
 	public SauceNaoSiteIndex Index { get; internal set; }
 
-	/*/// <summary>
-	///     How similar is the image to the one provided (Percentage)?
-	/// </summary>
-	public double Similarity { get; internal set; }
-
-	public string WebsiteTitle { get; internal set; }
-
-	public string Title { get; internal set; }
-
-	public string Character { get; internal set; }
-
-	public string Material { get; internal set; }
-
-	public string Creator { get; internal set; }
-
-	public string Source { get; internal set; }
-
-	public Url Thumbnail { get; internal set; }
-
-	public string Site { get; internal set; }
-
-	public string ThumbnailTitle { get; internal set; }*/
-
 	internal const string KEY_TWITTER = "Twitter:";
 
 	internal const string KEY_TWEET_ID = "Tweet ID:";
@@ -668,7 +645,9 @@ public sealed class SauceNaoDataResult : SearchResultItem
 
 			}
 
-			var sndri = sndr with { Url = url, Site = site };
+			// var sndri = sndr.With(url);
+			var sndri = sndr.With3(url);
+			sndri.Site = site;
 			results.Add(sndri);
 		}
 
@@ -681,6 +660,15 @@ public sealed class SauceNaoDataResult : SearchResultItem
 
 		return results;
 	}
+
+#region Overrides of SearchResultItem
+
+	public SauceNaoDataResult With3(Url u)
+	{
+		return MemberwiseClone() as SauceNaoDataResult;
+	}
+
+#endregion
 
 }
 

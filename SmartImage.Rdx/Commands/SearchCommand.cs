@@ -286,11 +286,11 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 			var res = GetEnginePrompt();
 
-			var (sri, ui) = GetResultItemPrompt(res);
+			var sri = GetResultItemPrompt(res);
 
 
-			if (sri is not null || ui is not null) {
-				s_logger.LogTrace("Interactive: {ResItem} | {UniItem}", sri, ui);
+			if (sri is not null) {
+				s_logger.LogTrace("Interactive: {ResItem}", sri);
 
 				if (cmd == R2.Chc_Open) {
 					SearchClient.OpenResult(sri.Url);
@@ -305,12 +305,12 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 				}
 
 				if (cmd == R2.Chc_Calc) {
-					if (ui is null || ui.Similarity.HasValue) {
+					if (sri is null || sri.Similarity.HasValue) {
 						continue;
 					}
 
-					if (ui.HasHash) {
-						await CalcResultAsync(ui);
+					if (sri.HasHash) {
+						await CalcResultAsync(sri);
 					}
 
 
@@ -320,29 +320,11 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 				if (cmd == R2.Chc_Preview) {
 
 					//todo
-					Stream str;
+					Stream str = null;
 
-					if (ui is not null) {
-						str = ui.GetStream();
-					}
-					else {
+					if (!sri.HasBytes) {
 						continue;
 					}
-					/*else if (!sri.HasThumbnail) {
-						var thmbOk = await sri.LoadThumbnailAsync(ct);
-
-						if (thmbOk) {
-							ui  = sri.ThumbnailImage;
-							str = ui.GetStream();
-						}
-						else {
-							continue;
-						}
-
-					}
-					else {
-						continue;
-					}*/
 
 
 					//todo
@@ -379,10 +361,11 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 					// string key = sri.Url.ToString();
 
-					var key = ui.Value;
+					var key = sri.Url;
 					var val = m_cache.Get(key);
 
 					if (val is not Stream) {
+						str = sri.GetStream();
 						m_cache.Set(key, str, cip);
 					}
 
@@ -390,7 +373,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 					var ci = new CanvasImage(str);
 
-					AnsiConsole.AlternateScreen(() => ShowPreview(ci, ui));
+					AnsiConsole.AlternateScreen(() => ShowPreview(ci, sri));
 				}
 
 				if (cmd == R2.Chc_Download) { }
@@ -529,11 +512,11 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 #region
 
-	private Task CalcResultAsync(UniImage ui)
+	private Task CalcResultAsync(SearchResultItem ui)
 	{
 		return AnsiConsole.Live(m_table).StartAsync(async f =>
 		{
-			var row = GetRowForUni(ui);
+			var row = GetRowForItem(ui);
 			ui.CalculateSimilarity(Query.Source);
 
 			m_table.Rows.Update(row, 2, new Text(ui.Similarity.ToString()));
@@ -549,31 +532,35 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 		{
+			IList<SearchResultItem> resOk = [];
+
 			if (!item.HasImage) {
 
 				// var ok = await r.ScanAsync();
 				s_logger.LogTrace("Scanning {Item}", item);
-				var resOk = await item.AllocImageAsync(token);
+				resOk = await item.ScanAsync(token);
 
-				if (!resOk) {
+				/*if (!resOk) {
 					// Debugger.Break();
 					ok = false;
 					return;
 
-				}
+				}*/
 			}
 			else {
 				return;
 			}
 
+
 			int i       = 0;
 			var row     = GetRowForItem(item);
 			var rowOrig = row;
-			var delta   = item.Uni.Count;
+			var delta   = resOk.Count;
 			var idx     = item.Root.Results.IndexOf(item);
+			item.Root.Results.InsertRange(idx, resOk);
 
-			foreach (var ui in item.Uni) {
-				m_table.InsertRow(++row, CreateUniImageRow(ui, item, idx, i++));
+			foreach (var ui in resOk) {
+				m_table.InsertRow(++row, CreateUniImageRow(ui, idx, i++));
 			}
 
 			foreach (var kv in m_results) {
@@ -589,10 +576,11 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 	}
 
-	private void ShowPreview(CanvasImage ci, UniImage ui)
+	private void ShowPreview(CanvasImage ci, SearchResultItem ui)
 	{
 		AnsiConsole.Clear();
 		(AnsiConsole.Profile.Width, AC.Profile.Height) = (ui.Image.Width, ui.Image.Height);
+
 		// Console.SetWindowSize(ui.Image.Width, ui.Image.Height);
 		// ci.MaxWidth ??= ci.Width;
 		ci.MaxWidth ??= ui.Image.Width;
@@ -603,7 +591,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 		AnsiConsole.Live(panel).Start((ldc) =>
 		{
 			while (true) {
-				
+
 				ldc.Refresh();
 				var cki = AnsiConsole.Console.Input.ReadKey(true);
 
@@ -682,11 +670,12 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 #region
 
+	/*
 	private SearchResultItem GetItemForUni(UniImage ui, out int uniIndex)
 	{
 		foreach (SearchResult sr in m_results.Keys) {
 			foreach (var sri in sr.Results) {
-				if (sri.HasUni) {
+				if (sri.HasImage) {
 					for (int k = 0; k < sri.Uni.Count; k++) {
 						UniImage ui2 = sri.Uni[k];
 
@@ -703,6 +692,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 		return null;
 	}
+	*/
 
 	private int GetRowForItem(SearchResultItem sri)
 	{
@@ -715,7 +705,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 	}
 
-	private int GetRowForUni(UniImage ui)
+	/*private int GetRowForUni(UniImage ui)
 	{
 
 		SearchResultItem sri = GetItemForUni(ui, out int c);
@@ -725,7 +715,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 		int b = sri.Root.Results.IndexOf(sri);
 
 		return a + b + c;
-	}
+	}*/
 
 #endregion
 

@@ -17,19 +17,19 @@ public sealed partial class SearchCommand
 
 #region
 
-	private static IRenderable[] CreateUniImageRow(UniImage ui, SearchResultItem sri, int idx, int subIdx)
+	private static IRenderable[] CreateUniImageRow(SearchResultItem sri, int idx, int subIdx)
 	{
 		// var url = ui is UniImageUri uiu ? uiu.Url.ToString() : String.Empty;
 
 		var result = sri.Root;
 
-		var style = new Style(link: ui.Value,
+		var style = new Style(link: sri.Url,
 		                      foreground: ConsoleFormat.GetEngineColor(result.Engine.EngineOption));
 
 		return
 		[
 			new Text($"{result.Engine.Name} #{idx}.{subIdx}", style),
-			new Text(Markup.Escape(ui.Value)),
+			new Text(Markup.Escape(sri.Value)),
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty
@@ -106,46 +106,24 @@ public sealed partial class SearchCommand
 
 #region Prompts
 
-	private (SearchResultItem, UniImage) GetResultItemPrompt(SearchResult res)
+	private SearchResultItem GetResultItemPrompt(SearchResult res)
 	{
-		(SearchResultItem, UniImage) ret;
+		SearchResultItem ret;
 
-		ConsoleFormat.Prm_Num2.Validator = str =>
+		ConsoleFormat.Prm_Num.Validator = str =>
 		{
-			ret = Parse(str);
 
-			if (ret is (null, null)) {
-				return ValidationResult.Error();
+
+			if (str < res.Results.Count && str >= 0) {
+				return ValidationResult.Success();
 			}
 
-			return ValidationResult.Success();
+			return ValidationResult.Error();
 		};
 
 
-		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num2);
-		return Parse(val);
-
-		(SearchResultItem, UniImage) Parse(string str)
-		{
-			var spl = str.Split('.');
-			int i;
-
-			SearchResultItem sri = null;
-			UniImage         ui  = UniImage.Null;
-
-			if (res.Results.TryParseIndex(spl[0], out sri)) {
-
-				if (spl.Length == 2) {
-
-					if (sri.Uni.TryParseIndex(spl[1], out ui)) { }
-				}
-				else { }
-
-			}
-			else { }
-
-			return (sri, ui);
-		}
+		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num);
+		return res.Results[val];
 	}
 
 	private int GetNumberPrompt(SearchResult result)

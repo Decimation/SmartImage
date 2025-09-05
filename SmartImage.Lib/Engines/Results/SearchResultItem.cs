@@ -4,6 +4,7 @@ using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
+using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Diagnostics;
 using SixLabors.ImageSharp.Formats;
@@ -14,8 +15,8 @@ using SmartImage.Lib.Model;
 namespace SmartImage.Lib.Engines.Results;
 
 public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>, IDisposable,
-                                IHashable,
-                                IImageSource
+								IHashable,
+								IImageSource
 {
 
 	/// <summary>
@@ -170,6 +171,8 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		// Children   = [];
 	}
 
+	// private SearchResultItem(SearchResultItem sri, Url u) : base(u) { }
+
 
 	/*public async ValueTask<bool> HashAsync(SearchQuery query, int idx = 0, CancellationToken ct = default)
 	{
@@ -201,18 +204,26 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			return false;
 		}
 
-		var ok = await base.AllocImageAsync(ct);
+		if (HasImage) {
+			return true;
+		}
 
-		if (ok) {
+		bool allocImgOk = false;
+		var allocOk = await AllocAsync(ct);
+
+		if (allocOk) {
+			allocImgOk = await base.AllocImageAsync(ct);
+		}
+
+		if (allocImgOk) {
 			Width  ??= Image.Width;
 			Height ??= Image.Height;
 
+			// Root.Results.Add(this);
 		}
-		else {
-			
-		}
+		else { }
 
-		return ok;
+		return HasImage;
 	}
 
 	public override bool CalculateSimilarity(IHashable hashable)
@@ -270,6 +281,75 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		}*/
 	}
 
+	public async ValueTask<IList<SearchResultItem>> ScanAsync(CancellationToken ct = default)
+	{
+		if (!(await AllocImageAsync(ct))) {
+			return [];
+
+		}
+		if (HasImage) {
+			return [];
+		}
+
+		var    hp      = new HtmlParser();
+		Stream stream  = GetStream();
+		var    doc     = await hp.ParseDocumentAsync(stream);
+		var    urls    = ImageScanner.GetImageUrls(doc);
+		var    sriNews = new ConcurrentBag<SearchResultItem>();
+
+		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
+		{
+			var sriNew     = With(s);
+			var allocImgOk = await sriNew.AllocImageAsync(token);
+
+			if (allocImgOk) {
+				sriNews.Add(sriNew);
+			}
+			else {
+				sriNew?.Dispose();
+			}
+		});
+
+		// Root.Results.InsertRange(Root.Results.IndexOf(this), sriNews);
+
+		return sriNews.ToList();
+	}
+
+	public virtual SearchResultItem With(Url u)
+	{
+		return new SearchResultItem(Root, IsRaw)
+		{
+			Url            = u,
+			Parent         = this,
+			Artist         = null,
+			Bytes          = null,
+			Character      = null,
+			Hash           = null,
+			Width          = null,
+			Height         = null,
+			Description    = null,
+			Image          = null,
+			Title          = null,
+			Thumbnail      = null,
+			ThumbnailImage = null,
+			ThumbnailTitle = null,
+			Site           = null,
+			Source         = null
+
+			// ImageFormat = null,
+
+		};
+	}
+
+	public virtual SearchResultItem With2(Url u)
+	{
+		var clone = (MemberwiseClone() as SearchResultItem);
+		clone.Url = u;
+		clone.Parent = this;
+		return clone;
+	}
+
+
 #region Relational members
 
 	public int CompareTo(SearchResultItem other)
@@ -292,8 +372,8 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			return 0;
 
 		return obj is SearchResultItem other
-			       ? CompareTo(other)
-			       : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
+				   ? CompareTo(other)
+				   : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
 	}
 
 	public static bool operator <(SearchResultItem left, SearchResultItem right)

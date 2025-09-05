@@ -371,10 +371,10 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 }
 
-public sealed record EhResult : SearchResultItem, IResultItemParseable<INode, EhResult>
+public sealed class EhResult : SearchResultItem, IResultItemParseable<INode, EhResult>
 {
 
-	public string Type { get; private set; }
+	public string TypeString { get; private set; }
 
 	public string Pages { get; private set; }
 
@@ -400,7 +400,7 @@ public sealed record EhResult : SearchResultItem, IResultItemParseable<INode, Eh
 
 		if (gl1c is { FirstChild: { } t1 })
 		{
-			eh.Type = t1.TextContent;
+			eh.TypeString = t1.TextContent;
 		}
 
 		var gl2c = n.ChildNodes.FirstOrDefaultElementByClassName("gl2c");
