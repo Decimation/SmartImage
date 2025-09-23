@@ -23,7 +23,6 @@ public class UniImageUri : UniImage
 
 	protected override async Task<bool> AllocAsync(CancellationToken ct = default)
 	{
-		// Stream     = File.OpenRead(fullName);
 		IFlurlResponse fres = null;
 
 		if (HasBytes) {
@@ -36,7 +35,6 @@ public class UniImageUri : UniImage
 			goto ret;
 		}
 
-		// Stream = await fres.GetStreamAsync();
 		Bytes = await fres.GetBytesAsync();
 
 	ret:

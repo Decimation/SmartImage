@@ -29,7 +29,7 @@ public sealed partial class SearchCommand
 		return
 		[
 			new Text($"{result.Engine.Name} #{idx}.{subIdx}", style),
-			new Text(Markup.Escape(sri.Value)),
+			new Text(Markup.Escape(sri.Url)),
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty,
 			ConsoleFormat.Txt_Empty
@@ -106,14 +106,53 @@ public sealed partial class SearchCommand
 
 #region Prompts
 
+	private SearchResultItem GetResultItemPrompt2(SearchResult res)
+	{
+		SearchResultItem ret;
+
+		ConsoleFormat.Prm_Num2.Validator = str =>
+		{
+			ret = Parse(str);
+
+			if (ret == null) {
+				return ValidationResult.Error();
+			}
+
+			return ValidationResult.Success();
+		};
+
+
+		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num2);
+		return Parse(val);
+		
+		SearchResultItem Parse(string str)
+		{
+			var spl = str.Split('.');
+			int i;
+
+			SearchResultItem sri  = null;
+
+			if (res.Results.TryParseIndex(spl[0], out sri)) {
+
+				if (spl.Length == 2) {
+
+					if (sri.ScannedItems.TryParseIndex(spl[1], out sri)) { }
+				}
+				else { }
+
+			}
+			else { }
+
+			return sri;
+		}
+	}
+
 	private SearchResultItem GetResultItemPrompt(SearchResult res)
 	{
 		SearchResultItem ret;
 
 		ConsoleFormat.Prm_Num.Validator = str =>
 		{
-
-
 			if (str < res.Results.Count && str >= 0) {
 				return ValidationResult.Success();
 			}

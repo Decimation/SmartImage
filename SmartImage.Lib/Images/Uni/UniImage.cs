@@ -276,16 +276,11 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		var encoder = new PngEncoder();
 		operation ??= static _ => { };
 
-		// using ISImage image = ISImage.Load(Stream);
 		using var image = Image.Clone(operation);
 
 		// Image.Save(fn);
 		image.Mutate(operation);
 		image.Save(fn, encoder);
-
-		// Stream.TrySeek();
-		// Image.Save(fn);
-		// Image.Mutate(operation);
 
 		return fn;
 	}

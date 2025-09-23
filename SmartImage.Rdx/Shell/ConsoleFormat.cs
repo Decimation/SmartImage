@@ -410,7 +410,12 @@ internal static class ConsoleFormat
 		ShowDefaultValue = false,
 		AllowEmpty       = false,
 	};
-
+	public static readonly TextPrompt<double> Prm_NumD = new(Markup.Escape("[#.#]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+	};
 	public static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#.#]"))
 	{
 		ShowChoices      = false,

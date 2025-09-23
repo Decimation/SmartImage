@@ -1,6 +1,9 @@
 ﻿// Read S SmartImage.Rdx SearchCommand.cs
 // 2023-07-05 @ 2:07 AM
 
+// ReSharper disable RedundantUsingDirective.Global
+// ReSharper disable InconsistentNaming
+
 #region Global usings
 
 global using ISImage = SixLabors.ImageSharp.Image;
@@ -58,7 +61,6 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Engines.Search;
 using Size = SixLabors.ImageSharp.Size;
 
-// ReSharper disable InconsistentNaming
 
 [assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
@@ -286,7 +288,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 			var res = GetEnginePrompt();
 
-			var sri = GetResultItemPrompt(res);
+			var sri = GetResultItemPrompt2(res);
 
 
 			if (sri is not null) {
@@ -305,7 +307,8 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 				}
 
 				if (cmd == R2.Chc_Calc) {
-					if (sri is null || sri.Similarity.HasValue) {
+
+					if (sri is null) {
 						continue;
 					}
 
@@ -437,7 +440,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 		var stdOutBuffer = new StringBuilder();
 		var stdErrBuffer = new StringBuilder();
 
-		if (!String.IsNullOrWhiteSpace(cmdArgs)) {
+		if (cmdArgs is not null) {
 			command = command.WithArguments(cmdArgs);
 		}
 
@@ -532,13 +535,12 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 		{
-			IList<SearchResultItem> resOk = [];
 
 			if (!item.HasImage) {
 
 				// var ok = await r.ScanAsync();
 				s_logger.LogTrace("Scanning {Item}", item);
-				resOk = await item.ScanAsync(token);
+				var scannedOk = await item.ScanAsync(token);
 
 				/*if (!resOk) {
 					// Debugger.Break();
@@ -555,11 +557,12 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 			int i       = 0;
 			var row     = GetRowForItem(item);
 			var rowOrig = row;
-			var delta   = resOk.Count;
+			var delta   = item.ScannedItems.Count;
 			var idx     = item.Root.Results.IndexOf(item);
-			item.Root.Results.InsertRange(idx, resOk);
 
-			foreach (var ui in resOk) {
+			// item.Root.Results.InsertRange(idx, scannedItems);
+
+			foreach (var ui in item.ScannedItems) {
 				m_table.InsertRow(++row, CreateUniImageRow(ui, idx, i++));
 			}
 
@@ -579,11 +582,13 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 	private void ShowPreview(CanvasImage ci, SearchResultItem ui)
 	{
 		AnsiConsole.Clear();
-		(AnsiConsole.Profile.Width, AC.Profile.Height) = (ui.Image.Width, ui.Image.Height);
+
+		// (AnsiConsole.Profile.Width, AC.Profile.Height) = (ui.Image.Width, ui.Image.Height);
+		ci.MaxWidth = AnsiConsole.Profile.Width;
 
 		// Console.SetWindowSize(ui.Image.Width, ui.Image.Height);
 		// ci.MaxWidth ??= ci.Width;
-		ci.MaxWidth ??= ui.Image.Width;
+		// ci.MaxWidth ??= ui.Image.Width;
 
 		var panel = new Panel(ci) { Expand = true, };
 		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
@@ -696,12 +701,16 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 	private int GetRowForItem(SearchResultItem sri)
 	{
-		int a = 0, b = 0;
+		int a = 0, b = 0, c = 0;
 
 		a = m_results[sri.Root];
-		b = sri.Root.Results.IndexOf(sri);
+		// b = sri.Root.Results.IndexOf(sri);
+		b = sri.HasParent ? (sri.Parent.Root.HasResults ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0) : sri.Root.Results.IndexOf(sri);
+		c = sri.HasParent ? (sri.Parent.HasScannedItems ? sri.Parent.ScannedItems.IndexOf(sri) : 0) : 0;
+		c++;  // TODO NOTE: +1 for #.0 when #
+		
 
-		return a + b;
+		return a + b + c;
 
 	}
 

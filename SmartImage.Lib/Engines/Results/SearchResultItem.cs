@@ -15,8 +15,7 @@ using SmartImage.Lib.Model;
 namespace SmartImage.Lib.Engines.Results;
 
 public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>, IDisposable,
-								IHashable,
-								IImageSource
+								IHashable, IImageSource
 {
 
 	/// <summary>
@@ -29,6 +28,9 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	[JI]
 	[CBN]
 	public SearchResultItem Parent { get; internal set; }
+
+	[MNNW(true, nameof(Parent))]
+	public bool HasParent => Parent != null;
 
 	// [MN]
 	// [JPN("url")]
@@ -109,6 +111,11 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	public bool HasThumbnail => Url.IsValid(Thumbnail) && ThumbnailImage != null;
 
 #endregion
+
+	public IList<SearchResultItem> ScannedItems { get; private set; }
+
+	[MNNW(true, nameof(ScannedItems))]
+	public bool HasScannedItems => ScannedItems?.Count > 0;
 
 	public override long? Size => base.Size;
 
@@ -209,7 +216,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		}
 
 		bool allocImgOk = false;
-		var allocOk = await AllocAsync(ct);
+		var  allocOk    = await AllocAsync(ct);
 
 		if (allocOk) {
 			allocImgOk = await base.AllocImageAsync(ct);
@@ -242,6 +249,93 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		}
 
 		return HasThumbnail;
+	}
+
+	public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
+	{
+		if (!(await AllocImageAsync(ct))) {
+			// return [];
+		}
+
+		if (HasImage) {
+			return false;
+		}
+
+		if (HasScannedItems) {
+			return true;
+		}
+
+		await using Stream stream = GetStream();
+		using var          sr     = new StreamReader(stream);
+		var                end    = await sr.ReadToEndAsync(ct);
+
+		var       hp      = new HtmlParser();
+		var       urls    = ImageScanner.GetImageUrls(end, Url);
+		using var doc     = await hp.ParseDocumentAsync(end);
+		var       sriNews = new ConcurrentBag<SearchResultItem>();
+
+		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
+		{
+			var sriNew = new SearchResultItem(Root, false)
+			{
+				Parent      = this,
+				Url         = s,
+				Artist      = Artist,
+				Character   = Character,
+				Description = Description,
+				Title       = Title,
+				Site        = Site,
+				Source      = Source,
+				Time        = Time,
+			};
+			var allocImgOk = await sriNew.AllocImageAsync(token);
+
+			if (allocImgOk) {
+				sriNews.Add(sriNew);
+			}
+			else {
+				sriNew?.Dispose();
+			}
+		});
+
+		// Root.Results.InsertRange(Root.Results.IndexOf(this), sriNews);
+		ScannedItems = sriNews.ToList();
+
+		return HasScannedItems;
+	}
+
+	public virtual SearchResultItem With(Url u)
+	{
+		return new SearchResultItem(Root, IsRaw)
+		{
+			Url            = u,
+			Parent         = this,
+			Artist         = null,
+			Bytes          = null,
+			Character      = null,
+			Hash           = null,
+			Width          = null,
+			Height         = null,
+			Description    = null,
+			Image          = null,
+			Title          = null,
+			Thumbnail      = null,
+			ThumbnailImage = null,
+			ThumbnailTitle = null,
+			Site           = null,
+			Source         = null
+
+			// ImageFormat = null,
+
+		};
+	}
+
+	public virtual SearchResultItem With2(Url u)
+	{
+		var clone = (MemberwiseClone() as SearchResultItem);
+		clone.Url    = u;
+		clone.Parent = this;
+		return clone;
 	}
 
 	// public IFlurlResponse Response { get; private set; }
@@ -279,74 +373,6 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 
 			sis.Dispose();
 		}*/
-	}
-
-	public async ValueTask<IList<SearchResultItem>> ScanAsync(CancellationToken ct = default)
-	{
-		if (!(await AllocImageAsync(ct))) {
-			return [];
-
-		}
-		if (HasImage) {
-			return [];
-		}
-
-		var    hp      = new HtmlParser();
-		Stream stream  = GetStream();
-		var    doc     = await hp.ParseDocumentAsync(stream);
-		var    urls    = ImageScanner.GetImageUrls(doc);
-		var    sriNews = new ConcurrentBag<SearchResultItem>();
-
-		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
-		{
-			var sriNew     = With(s);
-			var allocImgOk = await sriNew.AllocImageAsync(token);
-
-			if (allocImgOk) {
-				sriNews.Add(sriNew);
-			}
-			else {
-				sriNew?.Dispose();
-			}
-		});
-
-		// Root.Results.InsertRange(Root.Results.IndexOf(this), sriNews);
-
-		return sriNews.ToList();
-	}
-
-	public virtual SearchResultItem With(Url u)
-	{
-		return new SearchResultItem(Root, IsRaw)
-		{
-			Url            = u,
-			Parent         = this,
-			Artist         = null,
-			Bytes          = null,
-			Character      = null,
-			Hash           = null,
-			Width          = null,
-			Height         = null,
-			Description    = null,
-			Image          = null,
-			Title          = null,
-			Thumbnail      = null,
-			ThumbnailImage = null,
-			ThumbnailTitle = null,
-			Site           = null,
-			Source         = null
-
-			// ImageFormat = null,
-
-		};
-	}
-
-	public virtual SearchResultItem With2(Url u)
-	{
-		var clone = (MemberwiseClone() as SearchResultItem);
-		clone.Url = u;
-		clone.Parent = this;
-		return clone;
 	}
 
 

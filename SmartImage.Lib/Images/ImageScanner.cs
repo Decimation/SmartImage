@@ -1,6 +1,11 @@
 ﻿// Read S SmartImage.Lib BaseImageHost.cs
 // 2023-07-08 @ 8:13 PM
 
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -49,11 +54,6 @@ using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Lib.Images;
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 
 public static partial class ImageScanner
 {
@@ -182,7 +182,6 @@ public static partial class ImageScanner
 		var po = new ParallelOptions()
 		{
 			CancellationToken = ct,
-
 		};
 
 
@@ -295,7 +294,7 @@ public static partial class ImageScanner
 		var sbOut = new StringBuilder();
 		var sbErr = new StringBuilder();
 
-		var cmd = CliWrap.Cli.Wrap(BaseOSIntegration.GALLERY_DL);
+		var cmd = Cli.Wrap(BaseOSIntegration.GALLERY_DL);
 
 		cmd.WithArguments($"-G {cri}")
 			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbOut))
@@ -362,17 +361,10 @@ public static partial class ImageScanner
 			throw new ArgumentException($"{value}");
 		}*/
 
-		var req1 = await ImageScanner.Client.Request(value)
+		var req1 = await Client.Request(value)
 			           .GetAsync(cancellationToken: ct);
 
 		// var req  = ValueTask.FromResult(req1);
-
-		/*.AllowAnyHttpStatus()
-		.WithHeaders(new
-		{
-			// todo
-			User_Agent = R1.UserAgent1,
-		});*/
 
 		// var res = await req.GetAsync(cancellationToken: ct);
 

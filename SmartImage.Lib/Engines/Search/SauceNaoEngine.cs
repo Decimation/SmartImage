@@ -123,12 +123,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 				ir.Children.AddRange(allSisters.Where(irs => irs.Parent == ir));
 			}*/
 
-		// result.Results.AddRange(imageResults);
-
-		// result.Results[0] = (imageResults.First());
-
-		// result.Url ??= imageResults.FirstOrDefault(x => x.Url != null)?.Url;
-
 	ret:
 
 		result.Update();
@@ -195,14 +189,6 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 			sr.Flags        = SearchResultFlags.NoResults;
 			goto ret;
 		}
-
-		// html = await e.GetResponseStringAsync();
-
-		/*try { }
-		catch (FlurlHttpException e) { }*/
-
-		/*var raw=await GetRawUrlAsync(query);
-		var html2=await raw.GetStringAsync();*/
 
 		doc = await docp.ParseDocumentAsync(html).ConfigureAwait(false);
 
@@ -588,7 +574,7 @@ public sealed class SauceNaoDataResult : SearchResultItem
 		var sndr = new SauceNaoDataResult(sr)
 		{
 			// Url  = url,
-			// Urls = urls,
+			Urls = urls,
 
 			// Url            = url,
 			Similarity     = Math.Round(similarity, 2),
@@ -635,8 +621,8 @@ public sealed class SauceNaoDataResult : SearchResultItem
 			}
 		}
 
-		for (int i = 0; i < urls.Length; i++) {
-			Url    url  = urls[i];
+		for (int i = 0; i < sndr.Urls.Length; i++) {
+			Url    url  = sndr.Urls[i];
 			string site = null;
 
 			if (Url.IsValid(url)) {
@@ -665,7 +651,9 @@ public sealed class SauceNaoDataResult : SearchResultItem
 
 	public SauceNaoDataResult With3(Url u)
 	{
-		return MemberwiseClone() as SauceNaoDataResult;
+		var clone = (MemberwiseClone() as SauceNaoDataResult);
+		clone.Url = u;
+		return clone;
 	}
 
 #endregion

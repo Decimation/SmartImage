@@ -43,10 +43,14 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 
+#region 
+
 [assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE)]
 [assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_UI)]
 [assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_RDX)]
 [assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_LIB_UNITTEST)]
+
+#endregion
 
 namespace SmartImage.Lib;
 
