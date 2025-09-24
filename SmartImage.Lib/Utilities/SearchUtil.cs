@@ -73,11 +73,13 @@ public static class SearchUtil
 		return new(w, h);
 	}
 
+	[CBN]
 	public static T TryGetHeader<T>(this IFlurlResponse response, string name) where T : IParsable<T>
 	{
 		return response.Headers.TryGetFirst(name, out string cl) ? T.Parse(cl, CultureInfo.CurrentCulture) : default(T);
 	}
 
+	[CBN]
 	public static long? TryGetContentLength(this IFlurlResponse response)
 	{
 		var cl = response.TryGetHeader<long>(HeaderNames.ContentLength);

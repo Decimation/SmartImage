@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Data;
+﻿using System.Data;
 using Kantan.Text;
 using Novus.OS;
 using Novus.Streams;
@@ -48,24 +47,25 @@ internal static class ConsoleFormat
 
 	private static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
 
-	internal static readonly Style Sty_RootResults = new Style(foreground: SpcColor.Aqua, decoration: Decoration.Underline);
+	internal static readonly Style Sty_RootResults = new(foreground: SpcColor.Aqua, decoration: Decoration.Underline);
 
-	internal static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors =
-		new Dictionary<SearchEngineOptions, SpcColor>
-		{
-			{ SearchEngineOptions.SauceNao, SpcColor.Green },
-			{ SearchEngineOptions.EHentai, SpcColor.Purple },
-			{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
-			{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
-			{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
-			{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
-			{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
-			{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
-			{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
-			{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
-			{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
+	internal static readonly Style Sty_ResultHeader = new(decoration: Decoration.Bold, background: SpcColor.Blue, foreground: SpcColor.White);
 
-		}.AsReadOnly();
+	internal static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors = new Dictionary<SearchEngineOptions, SpcColor>
+	{
+		{ SearchEngineOptions.SauceNao, SpcColor.Green },
+		{ SearchEngineOptions.EHentai, SpcColor.Purple },
+		{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
+		{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
+		{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
+		{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
+		{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
+		{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
+		{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
+		{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
+		{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
+
+	}.AsReadOnly();
 
 #endregion
 
@@ -73,9 +73,11 @@ internal static class ConsoleFormat
 
 	internal static readonly Text Txt_Empty = new(String.Empty);
 
-	internal static readonly Text   Txt_NA   = new(STR_NA);
-	internal const           string STR_NA   = "-";
-	internal const           double COMPLETE = 100.0d;
+	internal static readonly Text Txt_NA = new(STR_NA);
+
+	internal const string STR_NA = "-";
+
+	internal const double COMPLETE = 100.0d;
 
 #endregion
 
@@ -277,22 +279,6 @@ internal static class ConsoleFormat
 
 #region Engine map table
 
-	public static (ConcurrentDictionary<BaseSearchEngine, int>, STable) GetEngineMapTable(BaseSearchEngine[] engines)
-	{
-		var engineMap = new ConcurrentDictionary<BaseSearchEngine, int>();
-		var table     = GetEngineMapTableBase();
-
-		int i = 0;
-
-		foreach (BaseSearchEngine engine in engines) {
-			table.AddRow(Txt_NA, new Text(engine.Name, GetEngineColor(engine.EngineOption)), Txt_NA, Txt_NA, new Text(engine.Timeout.ToString()));
-
-			engineMap.TryAdd(engine, i++);
-		}
-
-		return (engineMap, table);
-	}
-
 	public const int ROW_EMT2_THR     = 0;
 	public const int ROW_EMT2_NAME    = 1;
 	public const int ROW_EMT2_RESULTS = 2;
@@ -324,60 +310,6 @@ internal static class ConsoleFormat
 
 #endregion
 
-	/*public static async Task WriteFigletGradientAsync(FigletFont ff, string text, SpcColor a, SpcColor b, TimeSpan delta = default)
-	{
-		// TODO
-
-		var col = new Queue<SpcColor>(a.Interpolate(b, (byte) text.Length));
-		(int left, int top) = Console.GetCursorPosition();
-
-		for (int i = 0; i < text.Length; i++)
-		{
-			char c = text[i];
-
-			var color = col.Dequeue();
-
-			var ft = new FigletText(ff, $"{c}")
-			{
-				Color         = color,
-			};
-
-			var fts=ft.GetSegments(AnsiConsole.Console);
-			// AnsiConsole.Cursor.SetPosition(left +(ff.Height *i),top +(ff.MaxWidth *i));
-			AnsiConsole.Write(ft);
-			// AnsiConsole.Console.Clear(false);
-
-			// AnsiConsole.Console.Cursor.Move(CursorDirection.Up, ff.Height+1);
-			// AnsiConsole.Console.Cursor.Move(CursorDirection.Right, ff.MaxWidth * (i + 1));
-
-			await Task.Delay(delta);
-		}
-
-	}*/
-
-	public static async Task WriteTextGradientAsync(string text, SpcColor a, SpcColor b, TimeSpan delta = default)
-	{
-		// TODO
-
-		var col = new Queue<SpcColor>(a.Interpolate(b, (byte) text.Length));
-
-		for (int i = 0; i < text.Length; i++) {
-			char c = text[i];
-
-			var color = col.Dequeue();
-
-			var txt = new Text(c.ToString(), new Style(foreground: color))
-				{ };
-
-			// AnsiConsole.Cursor.SetPosition(left +(ff.Height *i),top +(ff.MaxWidth *i));
-			AnsiConsole.Write(txt);
-
-			// AnsiConsole.Console.Clear(false);
-
-			await Task.Delay(delta);
-		}
-
-	}
 
 #region Prompts
 
@@ -410,12 +342,7 @@ internal static class ConsoleFormat
 		ShowDefaultValue = false,
 		AllowEmpty       = false,
 	};
-	public static readonly TextPrompt<double> Prm_NumD = new(Markup.Escape("[#.#]"))
-	{
-		ShowChoices      = false,
-		ShowDefaultValue = false,
-		AllowEmpty       = false,
-	};
+
 	public static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#.#]"))
 	{
 		ShowChoices      = false,

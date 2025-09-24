@@ -68,14 +68,12 @@ namespace SmartImage.Rdx.Commands;
 
 #nullable disable
 
-public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>, IDisposable
+public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettings>
 {
 
 	public SearchClient Client { get; }
 
 	public SearchQuery Query { get; private set; }
-
-	public SearchConfig Config { get; }
 
 	private readonly CancellationTokenSource m_cts;
 
@@ -87,12 +85,9 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 	private readonly MemoryCache m_cache;
 
-	private SearchCommandSettings m_scs;
-
 	private readonly STable m_table;
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
-
 
 	static SearchCommand() { }
 
@@ -103,35 +98,16 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 		// Config = (SearchConfig) cfg;
 		Client = new SearchClient(Config);
 
-		// Client.OnSearchComplete += OnSearchComplete;
-
-		// Client.OnResultComplete   += OnResultComplete;
 		m_cts     = new CancellationTokenSource();
 		m_scs     = null;
 		m_table   = CreateResultTable();
 		m_results = new();
 		m_cache   = new MemoryCache("Buf");
 
-
 		Query = SearchQuery.Null;
 	}
 
 #region
-
-	private async Task InitConfigAsync([CBN] object c)
-	{
-		//todo
-
-		Config.SearchEngines   = m_scs.SearchEngines;
-		Config.PriorityEngines = m_scs.PriorityEngines;
-
-		Config.ReadCookies = m_scs.ReadCookies;
-
-		Config.FlareSolverr       = m_scs.FlareSolverr;
-		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
-
-
-	}
 
 	private async Task<bool> InitQueryAsync(ProgressContext ctx)
 	{
@@ -142,12 +118,9 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
 
 		if (Query == SearchQuery.Null) {
-			// throw new SmartImageException($"Could not create query"); //todo
-
 			ok = false;
 			goto ret;
 		}
-
 
 		p.Increment(ConsoleFormat.COMPLETE / 2);
 
@@ -156,8 +129,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 		p.Description = "Uploading query";
 		var url = await Query.UploadAsync();
 
-		if (url == null) {
-			// throw new SmartImageException("Could not upload query"); //todo
+		if (!url) {
 			ok = false;
 			goto ret;
 		}
@@ -183,7 +155,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 				throw new SmartImageException("Could not upload query");
 			}
 
-			await InitConfigAsync(ok);
+			InitConfig(ok);
 
 			var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
 
@@ -217,18 +189,12 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 		Console.CancelKeyPress += OnCancelKeyPress;
 
 		/*
-		 *
 		 * todo
 		 */
 
 #if !UNITTEST
 		Task run = AnsiConsole.Live(m_table)
 			.StartAsync(c => RunSearchLiveAsync(c));
-
-		/*
-		Task run = AnsiConsole.Live(m_root)
-			.StartAsync(c => RunSearchLiveAsync2(c));
-			*/
 
 #else
 		run = RunSearchLiveAsync(null);
@@ -290,104 +256,47 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 			var sri = GetResultItemPrompt2(res);
 
+			s_logger.LogTrace("Interactive: {ResItem}", sri);
 
-			if (sri is not null) {
-				s_logger.LogTrace("Interactive: {ResItem}", sri);
-
-				if (cmd == R2.Chc_Open) {
-					SearchClient.OpenResult(sri.Url);
-					continue;
-				}
-				else if (cmd == R2.Chc_Scan) {
-					var imgScanOk = await ShowImageScanResultsAsync(sri, ct);
-
-					if (imgScanOk) {
-						continue;
-					}
-				}
-
-				if (cmd == R2.Chc_Calc) {
-
-					if (sri is null) {
-						continue;
-					}
-
-					if (sri.HasHash) {
-						await CalcResultAsync(sri);
-					}
-
-
-					continue;
-				}
-
-				if (cmd == R2.Chc_Preview) {
-
-					//todo
-					Stream str = null;
-
-					if (!sri.HasBytes) {
-						continue;
-					}
-
-
-					//todo
-					var cip = new CacheItemPolicy()
-					{
-						AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
-						RemovedCallback = arguments =>
-						{
-							switch (arguments.RemovedReason) {
-
-								case CacheEntryRemovedReason.Removed:
-									break;
-
-								case CacheEntryRemovedReason.Expired:
-									break;
-
-								case CacheEntryRemovedReason.Evicted:
-									break;
-
-								case CacheEntryRemovedReason.ChangeMonitorChanged:
-									break;
-
-								case CacheEntryRemovedReason.CacheSpecificEviction:
-									break;
-
-								default:
-									throw new ArgumentOutOfRangeException();
-							}
-
-							s_logger.LogDebug("{CacheItem} {RemRes}", arguments.CacheItem, arguments.RemovedReason);
-							return;
-						}
-					};
-
-					// string key = sri.Url.ToString();
-
-					var key = sri.Url;
-					var val = m_cache.Get(key);
-
-					if (val is not Stream) {
-						str = sri.GetStream();
-						m_cache.Set(key, str, cip);
-					}
-
-					var (w, h) = (AnsiConsole.Profile.Width, AnsiConsole.Profile.Height);
-
-					var ci = new CanvasImage(str);
-
-					AnsiConsole.AlternateScreen(() => ShowPreview(ci, sri));
-				}
-
-				if (cmd == R2.Chc_Download) { }
+			if (cmd == R2.Chc_Open) {
+				SearchClient.OpenResult(sri.Url);
+				continue;
 			}
+			else if (cmd == R2.Chc_Scan) {
+				var imgScanOk = await ScanItemAsync(sri, ct);
+
+				if (imgScanOk) {
+					continue;
+				}
+			}
+
+			if (cmd == R2.Chc_Calc) {
+
+				if (sri.HasHash) {
+					CalculateItemAsync(sri);
+				}
+
+				continue;
+			}
+
+			if (cmd == R2.Chc_Preview) {
+
+				if (!sri.HasBytes) {
+					continue;
+				}
+
+				var ci = GetPreview(sri);
+
+				ShowPreview(ci, sri);
+			}
+
+			if (cmd == R2.Chc_Download) { }
 
 		cont:
 			continue;
 		} while (cmd != R2.Chc_Exit);
 	}
 
-	// TODO: Rewrite RunSearch counterparts
 
 	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken token = default)
 	{
@@ -407,12 +316,10 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 			// m_results.Add(result);
 
-
 			/*var txt  = new Text(result.Engine.Name, GetEngineColor(result.Engine.EngineOption));
 			var txt2 = new Text($"{result.Results.Count}");
 
 			m_mainTable.AddRow(txt, txt2);*/
-
 
 			var rows = CreateResultRows(result);
 
@@ -422,13 +329,11 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 				m_table.AddRow(row);
 			}
 
-
 			c.Refresh();
 
 		}
 
 		await search;
-
 	}
 
 
@@ -515,39 +420,32 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 #region
 
-	private Task CalcResultAsync(SearchResultItem ui)
+	private void CalculateItemAsync(SearchResultItem item)
 	{
-		return AnsiConsole.Live(m_table).StartAsync(async f =>
+		AnsiConsole.Live(m_table).Start(f =>
 		{
-			var row = GetRowForItem(ui);
-			ui.CalculateSimilarity(Query.Source);
+			var row = GetRowForItem(item);
+			item.CalculateSimilarity(Query.Source);
 
-			m_table.Rows.Update(row, 2, new Text(ui.Similarity.ToString()));
+			m_table.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
 			f.Refresh();
 		});
 
 
 	}
 
-	private async ValueTask<bool> ShowImageScanResultsAsync(SearchResultItem item, CancellationToken token = default)
+	private async ValueTask<bool> ScanItemAsync(SearchResultItem item, CancellationToken token = default)
 	{
 		bool ok = true;
 
 		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 		{
-
 			if (!item.HasImage) {
 
 				// var ok = await r.ScanAsync();
 				s_logger.LogTrace("Scanning {Item}", item);
 				var scannedOk = await item.ScanAsync(token);
 
-				/*if (!resOk) {
-					// Debugger.Break();
-					ok = false;
-					return;
-
-				}*/
 			}
 			else {
 				return;
@@ -563,7 +461,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 			// item.Root.Results.InsertRange(idx, scannedItems);
 
 			foreach (var ui in item.ScannedItems) {
-				m_table.InsertRow(++row, CreateUniImageRow(ui, idx, i++));
+				m_table.InsertRow(++row, CreateItemRow(ui, idx, i++));
 			}
 
 			foreach (var kv in m_results) {
@@ -577,6 +475,58 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 		return ok;
 
+	}
+
+	private CanvasImage GetPreview(SearchResultItem sri)
+	{
+		Stream str = null;
+
+		var cip = new CacheItemPolicy()
+		{
+			AbsoluteExpiration = DateTimeOffset.Now + TimeSpan.FromMinutes(1),
+			RemovedCallback = arguments =>
+			{
+				switch (arguments.RemovedReason) {
+
+					case CacheEntryRemovedReason.Removed:
+						break;
+
+					case CacheEntryRemovedReason.Expired:
+						break;
+
+					case CacheEntryRemovedReason.Evicted:
+						break;
+
+					case CacheEntryRemovedReason.ChangeMonitorChanged:
+						break;
+
+					case CacheEntryRemovedReason.CacheSpecificEviction:
+						break;
+
+					default:
+						throw new ArgumentOutOfRangeException();
+				}
+
+				s_logger.LogDebug("{CacheItem} {RemRes}", arguments.CacheItem, arguments.RemovedReason);
+				return;
+			}
+		};
+
+		// string key = sri.Url.ToString();
+
+		var key = sri.Url;
+		var val = m_cache.Get(key);
+
+		if (val is not Stream) {
+			str = sri.GetStream();
+			m_cache.Set(key, str, cip);
+		}
+
+		Trace.Assert(str != null);
+
+		var ci = new CanvasImage(str);
+
+		return ci;
 	}
 
 	private void ShowPreview(CanvasImage ci, SearchResultItem ui)
@@ -638,14 +588,6 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 							AnsiConsole.Console.Profile.Width  = ui.Image.Width;
 							AnsiConsole.Console.Profile.Height = ui.Image.Height;
 
-							// AnsiConsole.Profile.Width  = ci.Width;
-							// AnsiConsole.Profile.Height = ci.Height;
-
-							try {
-								// Console.SetBufferSize(ci.Width, ci.Height);
-								// Console.SetWindowSize(ui.Image.Width, ui.Image.Height);
-							}
-							catch (Exception e) { }
 
 							ci.MaxWidth = ui.Image.Width;
 							break;
@@ -658,73 +600,14 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 					}
 				}
 
-				// lay["btm"].Update(new Text($"{ci.MaxWidth} / {ci.PixelWidth}"));
-
 				// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
 				panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
 			}
 		});
 
-		// (AnsiConsole.Profile.Width, AnsiConsole.Profile.Height) = (w, h);
-
 
 		return;
 	}
-
-#endregion
-
-#region
-
-	/*
-	private SearchResultItem GetItemForUni(UniImage ui, out int uniIndex)
-	{
-		foreach (SearchResult sr in m_results.Keys) {
-			foreach (var sri in sr.Results) {
-				if (sri.HasImage) {
-					for (int k = 0; k < sri.Uni.Count; k++) {
-						UniImage ui2 = sri.Uni[k];
-
-						if (ui == ui2) {
-							uniIndex = k;
-							return sri;
-						}
-					}
-				}
-			}
-		}
-
-		uniIndex = BaseOSIntegration.EC_ERROR;
-
-		return null;
-	}
-	*/
-
-	private int GetRowForItem(SearchResultItem sri)
-	{
-		int a = 0, b = 0, c = 0;
-
-		a = m_results[sri.Root];
-		// b = sri.Root.Results.IndexOf(sri);
-		b = sri.HasParent ? (sri.Parent.Root.HasResults ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0) : sri.Root.Results.IndexOf(sri);
-		c = sri.HasParent ? (sri.Parent.HasScannedItems ? sri.Parent.ScannedItems.IndexOf(sri) : 0) : 0;
-		c++;  // TODO NOTE: +1 for #.0 when #
-		
-
-		return a + b + c;
-
-	}
-
-	/*private int GetRowForUni(UniImage ui)
-	{
-
-		SearchResultItem sri = GetItemForUni(ui, out int c);
-		c++; // TODO NOTE: +1 for #.0 when #
-
-		int a = m_results[sri.Root];
-		int b = sri.Root.Results.IndexOf(sri);
-
-		return a + b + c;
-	}*/
 
 #endregion
 
@@ -747,7 +630,7 @@ public sealed partial class SearchCommand : AsyncCommand<SearchCommandSettings>,
 
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
 

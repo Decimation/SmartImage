@@ -388,8 +388,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 			// Btn_Remove.IsEnabled = ok;
 			Btn_Run.IsEnabled = ok;
 
-			if (CurrentQuery is { HasQuery: true } && Url.IsValid(CurrentQuery.Query.Upload)) {
-				Tb_Upload.Text = CurrentQuery.Query.Upload;
+			if (CurrentQuery is { HasQuery: true } && Url.IsValid(CurrentQuery.Query.Upload.Url)) {
+				Tb_Upload.Text = CurrentQuery.Query.Upload.Url;
 
 			}
 			else {
@@ -740,8 +740,8 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			await Config.LoadEnginesAsync(Client.Engines,m_ctsRun.Token);*/
 
-			var r = Client.RunSearchAsync(Query, token: m_ctsRun.Token,
-			                              scheduler: TaskScheduler.FromCurrentSynchronizationContext());
+			var r = Client.RunSearchAsync(Query, token: m_ctsRun.Token);
+			// TaskScheduler.FromSyncCtx...
 
 			while (await Client.ResultChannel.Reader.WaitToReadAsync(m_ctsRun.Token)) {
 				var res = await Client.ResultChannel.Reader.ReadAsync(m_ctsRun.Token);
@@ -1061,7 +1061,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 			if (d) {
 				Debug.WriteLine($"{ri}");
-				var resultUni = ri.Result.Uni;
+				var resultUni = ri.Result.ScannedItems;
 
 				// var resultItems = new ResultItem[resultUni.Length];
 				for (int i = 0; i < resultUni.Count; i++) {
@@ -1083,7 +1083,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 					CurrentQuery.Results.Insert(CurrentQuery.Results.IndexOf(ri) + 1 + i, rii);
 				}
 
-				int length = ri.Result.Uni.Count;
+				int length = ri.Result.ScannedItems.Count;
 
 				if (length > 0) {
 					ri.StatusImage = AppComponents.pictures;
@@ -1121,7 +1121,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	private async Task ScanGalleryResultAsync(ResultItem cri)
 	{
 
-		if (BaseOSIntegration.Integration.GalleryDLPath == null) {
+		/*if (BaseOSIntegration.Integration.GalleryDLPath == null) {
 			MessageBox.Show(this, "gallery-dl not in path");
 			return;
 		}
@@ -1131,7 +1131,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 
 		try {
 			var rg = await ImageScanner.RunGalleryDLAsync(cri.Url, m_ctsRun.Token);
-			cri.Result.Uni.AddRange(rg);
+			cri.Result.ScannedItems.AddRange(rg);
 
 			for (int i = 0; i < rg.Length; i++) {
 				var rii = new UniResultItem(cri, i)
@@ -1155,7 +1155,10 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		}
 		finally {
 			Pb_Preview.IsIndeterminate = false;
-		}
+		}*/
+
+		// TODO
+		return;
 	}
 
 	private async Task FilterResultsAsync()

@@ -27,7 +27,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 
 	[JI]
 	[CBN]
-	public SearchResultItem Parent { get; internal set; }
+	public SearchResultItem Parent { get; private set; }
 
 	[MNNW(true, nameof(Parent))]
 	public bool HasParent => Parent != null;
@@ -40,7 +40,6 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	///     Title/caption of this result
 	/// </summary>
 	[CBN]
-	[JPN("title")]
 	public string Title { get; internal set; }
 
 	/// <summary>
@@ -96,28 +95,10 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	[JI]
 	public object Metadata { get; internal set; }
 
-#region
-
-	[CBN]
-	public Url Thumbnail { get; internal set; }
-
-	[CBN]
-	public ISImage ThumbnailImage { get; internal set; }
-
-	[CBN]
-	public string ThumbnailTitle { get; internal set; }
-
-	[MNNW(true, nameof(Thumbnail), nameof(ThumbnailImage))]
-	public bool HasThumbnail => Url.IsValid(Thumbnail) && ThumbnailImage != null;
-
-#endregion
-
-	public IList<SearchResultItem> ScannedItems { get; private set; }
+	public List<SearchResultItem> ScannedItems { get; }
 
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems?.Count > 0;
-
-	public override long? Size => base.Size;
 
 	/// <summary>
 	/// <see cref="SearchResult.RawResultItem"/>
@@ -162,48 +143,39 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			if (Metadata is not null)
 				s++;
 
+			s+= ScannedItems.Count;
+
 			return s;
 		}
 	}
 
+#region
+
+	[CBN]
+	public Url Thumbnail { get; internal set; }
+
+	[CBN]
+	public ISImage ThumbnailImage { get; internal set; }
+
+	[CBN]
+	public string ThumbnailTitle { get; internal set; }
+
+	[MNNW(true, nameof(Thumbnail), nameof(ThumbnailImage))]
+	public bool HasThumbnail => Url.IsValid(Thumbnail) && ThumbnailImage != null;
+
+#endregion
+
 	internal SearchResultItem(SearchResult r, bool isRaw = false) : base(null)
 	{
-		Root     = r;
-		Metadata = null;
-		Parent   = null;
-		IsRaw    = isRaw;
+		Root         = r;
+		Metadata     = null;
+		Parent       = null;
+		IsRaw        = isRaw;
+		ScannedItems = [];
 
-		// EmbeddedUrls = null;
-
-		// Children   = [];
 	}
 
-	// private SearchResultItem(SearchResultItem sri, Url u) : base(u) { }
-
-
-	/*public async ValueTask<bool> HashAsync(SearchQuery query, int idx = 0, CancellationToken ct = default)
-	{
-		if (!HasUni) {
-			return false;
-		}
-
-		if ((idx < 0 || idx > Uni.Length)) {
-			return false;
-		}
-
-		var ui = Uni[idx];
-
-		try {
-			query.Uni.TryCalculateHash();
-			ui.TryCalculateHash();
-			Similarity = CompareHash.Similarity(query.Uni.Hash.Value, ui.Hash.Value);
-		}
-		catch (Exception e) {
-			Trace.WriteLine($"{e}");
-		}
-		return true;
-	}*/
-
+	#region 
 
 	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
@@ -233,10 +205,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		return HasImage;
 	}
 
-	public override bool CalculateSimilarity(IHashable hashable)
-	{
-		return base.CalculateSimilarity(hashable);
-	}
+	
 
 
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
@@ -265,18 +234,18 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			return true;
 		}
 
-		await using Stream stream = GetStream();
-		using var          sr     = new StreamReader(stream);
-		var                end    = await sr.ReadToEndAsync(ct);
+		await using var stream = GetStream();
+		using var       sr     = new StreamReader(stream);
+		var             str    = await sr.ReadToEndAsync(ct);
 
 		var       hp      = new HtmlParser();
-		var       urls    = ImageScanner.GetImageUrls(end, Url);
-		using var doc     = await hp.ParseDocumentAsync(end);
+		var       urls    = ImageScanner.GetImageUrls(str, Url);
+		using var doc     = await hp.ParseDocumentAsync(str);
 		var       sriNews = new ConcurrentBag<SearchResultItem>();
 
 		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
 		{
-			var sriNew = new SearchResultItem(Root, false)
+			/*var sriNew = new SearchResultItem(Root, false)
 			{
 				Parent      = this,
 				Url         = s,
@@ -287,7 +256,10 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 				Site        = Site,
 				Source      = Source,
 				Time        = Time,
-			};
+			};*/
+
+			var sriNew = CloneToChildWithUrl(s);
+
 			var allocImgOk = await sriNew.AllocImageAsync(token);
 
 			if (allocImgOk) {
@@ -299,38 +271,16 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		});
 
 		// Root.Results.InsertRange(Root.Results.IndexOf(this), sriNews);
-		ScannedItems = sriNews.ToList();
+		// ScannedItems = sriNews.ToList();
+
+		ScannedItems.AddRange(sriNews);
 
 		return HasScannedItems;
 	}
 
-	public virtual SearchResultItem With(Url u)
-	{
-		return new SearchResultItem(Root, IsRaw)
-		{
-			Url            = u,
-			Parent         = this,
-			Artist         = null,
-			Bytes          = null,
-			Character      = null,
-			Hash           = null,
-			Width          = null,
-			Height         = null,
-			Description    = null,
-			Image          = null,
-			Title          = null,
-			Thumbnail      = null,
-			ThumbnailImage = null,
-			ThumbnailTitle = null,
-			Site           = null,
-			Source         = null
+	#endregion
 
-			// ImageFormat = null,
-
-		};
-	}
-
-	public virtual SearchResultItem With2(Url u)
+	public SearchResultItem CloneToChildWithUrl(Url u)
 	{
 		var clone = (MemberwiseClone() as SearchResultItem);
 		clone.Url    = u;

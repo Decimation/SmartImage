@@ -141,7 +141,7 @@ public partial class MainWindow
 			return;
 		}
 
-		var s = Query.Source.ValueString;
+		var s = Query.Source.Value;
 
 		if (String.IsNullOrWhiteSpace(s)) {
 			return;
@@ -164,7 +164,7 @@ public partial class MainWindow
 			return;
 		}
 
-		FileSystem.Open(Query.Upload);
+		FileSystem.Open(Query.Upload.Url);
 	}
 
 #endregion
@@ -261,7 +261,7 @@ public partial class MainWindow
 		ReloadToken();
 
 		//todo
-		await Config.LoadEnginesAsync(Client.Engines, m_ctsRun.Token);
+		await Config.ApplyEnginesAsync(Client.Engines, m_ctsRun.Token);
 		e.Handled = true;
 	}
 
@@ -880,7 +880,7 @@ public partial class MainWindow
 
 		if (CurrentResult is UniResultItem uri) {
 
-			uri.Uni.TryCalculateSimilarity(CurrentQuery.Query.Source);
+			uri.Uni.CalculateSimilarity(CurrentQuery.Query.Source);
 			uri.UpdateProperties2();
 			CurrentResult.UpdateProperties2();
 

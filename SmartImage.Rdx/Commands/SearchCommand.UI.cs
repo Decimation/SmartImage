@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
+#nullable disable
 namespace SmartImage.Rdx.Commands;
 
 public sealed partial class SearchCommand
@@ -17,14 +18,48 @@ public sealed partial class SearchCommand
 
 #region
 
-	private static IRenderable[] CreateUniImageRow(SearchResultItem sri, int idx, int subIdx)
+	private int GetRowForItem(SearchResultItem sri)
+	{
+		int a = 0, b = 0, c = 0;
+
+		a = m_results[sri.Root];
+
+		// b = sri.Root.Results.IndexOf(sri);
+		b = sri.HasParent ? (sri.Parent.Root.HasResults ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0) : sri.Root.Results.IndexOf(sri);
+		c = sri.HasParent ? (sri.Parent.HasScannedItems ? sri.Parent.ScannedItems.IndexOf(sri) : 0) : 0;
+
+		if (sri.HasParent && !sri.HasScannedItems) {
+			c++; // TODO NOTE: +1 for #.0 when #
+
+		}
+
+		return a + b + c;
+
+	}
+
+	/*private int GetRowForUni(UniImage ui)
+	{
+
+		SearchResultItem sri = GetItemForUni(ui, out int c);
+		c++; // TODO NOTE: +1 for #.0 when #
+
+		int a = m_results[sri.Root];
+		int b = sri.Root.Results.IndexOf(sri);
+
+		return a + b + c;
+	}*/
+
+#endregion
+
+#region
+
+	private static IRenderable[] CreateItemRow(SearchResultItem sri, int idx, int subIdx)
 	{
 		// var url = ui is UniImageUri uiu ? uiu.Url.ToString() : String.Empty;
 
 		var result = sri.Root;
 
-		var style = new Style(link: sri.Url,
-		                      foreground: ConsoleFormat.GetEngineColor(result.Engine.EngineOption));
+		var style = new Style(link: sri.Url, foreground: ConsoleFormat.GetEngineColor(result.Engine.EngineOption));
 
 		return
 		[
@@ -40,17 +75,17 @@ public sealed partial class SearchCommand
 	{
 		var col = new TableColumn[]
 		{
-			new("Result"),
-			new("URL"),
-			new("Similarity"),
-			new("Artist"),
-			new("Site"),
+			new(new Text("Result", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("URL", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("Similarity", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("Artist", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("Site", ConsoleFormat.Sty_ResultHeader)),
 
 		};
-
+		
 		var tb = new STable()
 		{
-			Caption     = new TableTitle("Results", new Style(decoration: Decoration.Bold)),
+			Caption     = new TableTitle("Results", ConsoleFormat.Sty_ResultHeader),
 			Border      = TableBorder.Simple,
 			ShowHeaders = true,
 		};
@@ -73,12 +108,12 @@ public sealed partial class SearchCommand
 		for (int i = 0; i < result.Results.Count; i++) {
 			var res = result.Results[i];
 
-			yield return CreateResultItemRows(res, i, style);
+			yield return CreateResultItemRow(res, i, style);
 		}
 
 	}
 
-	private static IRenderable[] CreateResultItemRows(SearchResultItem res, int i, Style style)
+	private static IRenderable[] CreateResultItemRow(SearchResultItem res, int i, Style style)
 	{
 		IRenderable url;
 		var         link = res.Url;
@@ -124,13 +159,13 @@ public sealed partial class SearchCommand
 
 		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num2);
 		return Parse(val);
-		
+
+		[CBN]
 		SearchResultItem Parse(string str)
 		{
 			var spl = str.Split('.');
-			int i;
 
-			SearchResultItem sri  = null;
+			SearchResultItem sri = null;
 
 			if (res.Results.TryParseIndex(spl[0], out sri)) {
 
@@ -145,24 +180,6 @@ public sealed partial class SearchCommand
 
 			return sri;
 		}
-	}
-
-	private SearchResultItem GetResultItemPrompt(SearchResult res)
-	{
-		SearchResultItem ret;
-
-		ConsoleFormat.Prm_Num.Validator = str =>
-		{
-			if (str < res.Results.Count && str >= 0) {
-				return ValidationResult.Success();
-			}
-
-			return ValidationResult.Error();
-		};
-
-
-		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num);
-		return res.Results[val];
 	}
 
 	private int GetNumberPrompt(SearchResult result)

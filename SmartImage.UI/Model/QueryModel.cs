@@ -242,7 +242,7 @@ public class QueryModel : INotifyPropertyChanged, IBitmapImageSource, INamed, ID
 
 		// Debug.Assert(Query != null);
 
-		var uriString = Query.Source.ValueString;
+		var uriString = Query.Source.Value;
 
 		if (Query == null || String.IsNullOrWhiteSpace(uriString)) {
 			Invalid = true;

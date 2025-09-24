@@ -134,6 +134,8 @@ public static partial class ImageScanner
 	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
 
 
+	public static readonly string[] LegalSchemes = ["http", "https"];
+
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
 	/// points to binary image data, it is returned.
@@ -178,11 +180,6 @@ public static partial class ImageScanner
 		doc = await dp.ParseDocumentAsync(sz);
 
 		var urls = GetImageUrls(sz, url);
-
-		var po = new ParallelOptions()
-		{
-			CancellationToken = ct,
-		};
 
 
 		await Task.WhenAll(urls.Select(async u => await Body(u, ct)));
@@ -246,14 +243,9 @@ public static partial class ImageScanner
 				return u;
 
 			if (u.StartsWith("//"))
-
-				// return url.Scheme + u.TrimStart(URL_DELIM);
 				return Url.Combine(url.Scheme, u.TrimStart(URL_DELIM));
 
 			if (u.StartsWith(URL_DELIM))
-
-				// return url.Root + u;
-
 				return Url.Combine(url.Root, u);
 
 
@@ -328,9 +320,7 @@ public static partial class ImageScanner
 
 	public static IImageHash ImageHasher { get; } = new PerceptualHash();
 
-	public static readonly string[] LegalSchemes = ["http", "https"];
-
-	public static Image ResizeByFactor(this ISImage image, Size newSize)
+	public static ISImage ResizeByFactor(this ISImage image, Size newSize)
 	{
 		int origWidth  = image.Width;
 		int origHeight = image.Height;

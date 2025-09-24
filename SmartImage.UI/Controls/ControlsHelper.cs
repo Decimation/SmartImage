@@ -124,8 +124,12 @@ public static class ControlsHelper
 	{
 		string bytes;
 
-		bytes = FormatHelper.FormatBytes(uni.Size);
-
+		if (uni.Size.HasValue) {
+			bytes = FormatHelper.FormatBytes(uni.Size.Value);
+		}
+		else {
+			bytes = STR_NA;
+		}
 
 		return bytes;
 	}

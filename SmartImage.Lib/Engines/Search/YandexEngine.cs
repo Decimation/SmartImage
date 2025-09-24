@@ -15,6 +15,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images.Uni;
 
@@ -28,6 +29,8 @@ public sealed class YandexEngine : BaseSearchEngine
 {
 
 	public const string URL_YANDEX = "https://yandex.com/";
+
+	public static readonly Url ImagesSearchUrl = Url.Combine(URL_YANDEX, "images","search");
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
@@ -113,7 +116,6 @@ public sealed class YandexEngine : BaseSearchEngine
 		doc?.Dispose();
 		return sr;
 	}
-
 
 	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{

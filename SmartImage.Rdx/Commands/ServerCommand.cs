@@ -34,14 +34,10 @@ using RouteCallbackMap = Dictionary<string, ServerCommand.HandleRequestCallback2
 
 #pragma warning disable IL2026
 
-public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDisposable
+public sealed class ServerCommand : BaseAsyncCommand<ServerCommandSettings>
 {
 
 	public SearchClient Client { get; }
-
-	public SearchConfig Config { get; }
-
-	private ServerCommandSettings m_scs;
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(ServerCommand));
 
@@ -109,14 +105,12 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 	public async Task StartAsync(CancellationToken ct = default)
 	{
-		if (!Listener.IsListening)
-		{
+		if (!Listener.IsListening) {
 			Listener.Start();
 
 			// Listener.BeginGetContext(HandleRequest, Listener);
 
-			while (Listener.IsListening)
-			{
+			while (Listener.IsListening) {
 				var ctx = await Listener.GetContextAsync().ConfigureAwait(false);
 
 				s_logger.LogTrace("{Context}", ctx);
@@ -126,13 +120,11 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 				// var request  = ctx.Request;
 				// var response = ctx.Response;
 
-				foreach (var requestHandler in Handlers)
-				{
+				foreach (var requestHandler in Handlers) {
 
 					var requestUrl = ctx.Request.Url;
 
-					if (requestUrl != null && !requestUrl.PathAndQuery.Contains(requestHandler.Key))
-					{
+					if (requestUrl != null && !requestUrl.PathAndQuery.Contains(requestHandler.Key)) {
 						continue;
 					}
 
@@ -175,8 +167,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 					}*/
 
 
-				if (ct.IsCancellationRequested)
-				{
+				if (ct.IsCancellationRequested) {
 					break;
 				}
 			}
@@ -200,24 +191,20 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		var redirHdr    = request.Headers["Redirect"];
 		var srvResponse = new SearchServerResponse();
 
-		try
-		{
+		try {
 			SearchQuery query = await GetQueryFromRequestAsync(request);
 
-			if (query == null || query == SearchQuery.Null)
-			{
+			if (query == null || query == SearchQuery.Null) {
 				srvResponse.Message = R1.Err_Query;
 			}
-			else
-			{
+			else {
 				var url = await query.UploadAsync();
 
 				var results = new ConcurrentBag<SearchResult>();
 
 				var search = Client.RunSearchAsync(query);
 
-				while (await Client.ResultChannel.Reader.WaitToReadAsync())
-				{
+				while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
 					var result = await Client.ResultChannel.Reader.ReadAsync();
 
 					results.Add(result);
@@ -232,12 +219,10 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 
 		}
-		catch (IOException io)
-		{
+		catch (IOException io) {
 			Trace.WriteLine($"{io}");
 		}
-		finally
-		{
+		finally {
 
 			var responseStr   = JsonSerializer.Serialize(srvResponse, Options2);
 			var responseBytes = Encoding.GetBytes(responseStr);
@@ -245,8 +230,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 			ok = writeOk;
 
-			if (!String.IsNullOrWhiteSpace(redirHdr))
-			{
+			if (!String.IsNullOrWhiteSpace(redirHdr)) {
 				response.Redirect(srvResponse.Best.Url);
 			}
 
@@ -259,21 +243,6 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 	}
 
 
-	private async Task InitConfigAsync([CBN] object c)
-	{
-		//todo
-
-		Config.SearchEngines   = m_scs.SearchEngines;
-		Config.PriorityEngines = m_scs.PriorityEngines;
-
-		Config.ReadCookies = m_scs.ReadCookies;
-
-		Config.FlareSolverr       = m_scs.FlareSolverr;
-		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
-
-
-	}
-
 	public override async Task<int> ExecuteAsync(CommandContext context, ServerCommandSettings settings)
 	{
 		m_scs = settings;
@@ -284,13 +253,13 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		Listener.Prefixes.Add(uriPrefix);
 		Encoding = HttpUtilities.DefaultEncoding;
 
-		await AnsiConsole.Progress().StartAsync(async ctx =>
+		AnsiConsole.Progress().Start(ctx =>
 		{
 			var task = ctx.AddTask("Starting server");
 			task.IsIndeterminate = true;
 
 			// task.Description     = "Initializing config";
-			await InitConfigAsync(null);
+			InitConfig(null);
 			task.Increment(ConsoleFormat.COMPLETE);
 		});
 
@@ -317,8 +286,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 		using var sc = new StreamContent(request.InputStream);
 
-		switch (mediaTypeHeaderValue.MediaType)
-		{
+		switch (mediaTypeHeaderValue.MediaType) {
 			case MediaTypeNames.Text.Plain:
 				goto default;
 
@@ -330,15 +298,13 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 
 				var file = parser.Files.FirstOrDefault();
 
-				if (file == null)
-				{
+				if (file == null) {
 					// srvResponse.Message = R1.Err_Content;
 					return null;
 
 					// sqInput = null;
 				}
-				else
-				{
+				else {
 					string filename = file.FileName;
 					Stream data     = file.Data;
 					sqInput = data;
@@ -356,7 +322,7 @@ public sealed class ServerCommand : AsyncCommand<ServerCommandSettings>, IDispos
 		return query;
 	}
 
-	public void Dispose()
+	public override void Dispose()
 	{
 		s_logger.LogDebug("Disposing server");
 		Client?.Dispose();

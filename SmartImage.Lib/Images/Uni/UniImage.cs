@@ -104,7 +104,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public bool HasImageFormat => ImageFormat != null;
 
 	[MN]
-	public Image Image { get; protected set; }
+	public ISImage Image { get; protected set; }
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;

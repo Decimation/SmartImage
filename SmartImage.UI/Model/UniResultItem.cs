@@ -53,7 +53,7 @@ public class UniResultItem : ResultItem
 		{
 			if (UniIndex.HasValue && Result.Uni != null)
 			{
-				return Result.Uni[UniIndex.Value];
+				return Result.ScannedItems[UniIndex.Value];
 
 			}
 

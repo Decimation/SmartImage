@@ -9,7 +9,7 @@ namespace SmartImage.Lib.Images;
 
 public interface IImageSource
 {
-	public Image Image { get; }
+	public ISImage Image { get; }
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage { get; }
