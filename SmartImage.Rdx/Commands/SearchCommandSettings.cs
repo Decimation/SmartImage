@@ -58,6 +58,9 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 
 	public const string QUERY_DEFAULT_CLIPBOARD = "<clipboard>";
 
+	[MNNW(true, nameof(OutputFile))]
+	internal bool HasOutputFile => !String.IsNullOrWhiteSpace(OutputFile);
+
 #endregion
 
 #region
@@ -69,6 +72,9 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	[CommandOption("--cmd-args <ARGS>")]
 	[Description($"Arguments to pass to command")]
 	public string[]? CommandArguments { get; private set; }
+
+	[MNNW(true, nameof(Command))]
+	internal bool HasCommand => !String.IsNullOrWhiteSpace(Command);
 
 #endregion
 

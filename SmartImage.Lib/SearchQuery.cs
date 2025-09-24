@@ -97,10 +97,10 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
-		var task = await UniImage.TryCreateAsync(o, ct: t);
+		var ui = await UniImage.TryCreateAsync(o, ct: t);
 
-		if (task != UniImage.Null) {
-			return new SearchQuery(task);
+		if (ui != UniImage.Null) {
+			return new SearchQuery(ui);
 
 		}
 		else {
@@ -108,15 +108,15 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 		}
 	}
 
-	public async ValueTask<bool> UploadAsync(BaseUploadEngine bua = null, CancellationToken ct = default)
+	public async ValueTask<bool> TryUploadAsync(BaseUploadEngine uploadEngine = null, CancellationToken ct = default)
 	{
 		//todo
 		if (IsUploaded) {
 			return true;
 		}
 
-		bua    ??= BaseUploadEngine.Default;
-		Upload =   await bua.UploadAsync(Source, ct);
+		uploadEngine    ??= BaseUploadEngine.Default;
+		Upload =   await uploadEngine.UploadAsync(Source, ct);
 		return IsUploaded;
 	}
 

@@ -7,7 +7,7 @@ using Spectre.Console.Cli;
 #nullable disable
 namespace SmartImage.Rdx.Commands;
 
-public abstract partial class BaseAsyncCommand<TCommandSettings>
+public abstract partial class CommonAsyncCommand<TCommandSettings>
 	: AsyncCommand<TCommandSettings>, IDisposable
 	where TCommandSettings : CommonCommandSettings
 {
@@ -17,15 +17,12 @@ public abstract partial class BaseAsyncCommand<TCommandSettings>
 	protected TCommandSettings m_scs;
 
 
-#region Implementation of IDisposable
-
 	/// <inheritdoc />
 	public abstract void Dispose();
 
-#endregion
-
-	protected void InitConfig([CBN] object c)
+	protected void InitConfig(TCommandSettings scs)
 	{
+		m_scs = scs;
 
 		Config.SearchEngines   = m_scs.SearchEngines;
 		Config.PriorityEngines = m_scs.PriorityEngines;
@@ -35,7 +32,5 @@ public abstract partial class BaseAsyncCommand<TCommandSettings>
 		Config.FlareSolverr       = m_scs.FlareSolverr;
 		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
 
-
 	}
-
 }

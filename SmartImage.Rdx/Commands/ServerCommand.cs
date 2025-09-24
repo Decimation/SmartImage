@@ -34,7 +34,7 @@ using RouteCallbackMap = Dictionary<string, ServerCommand.HandleRequestCallback2
 
 #pragma warning disable IL2026
 
-public sealed class ServerCommand : BaseAsyncCommand<ServerCommandSettings>
+public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 {
 
 	public SearchClient Client { get; }
@@ -198,7 +198,7 @@ public sealed class ServerCommand : BaseAsyncCommand<ServerCommandSettings>
 				srvResponse.Message = R1.Err_Query;
 			}
 			else {
-				var url = await query.UploadAsync();
+				var url = await query.TryUploadAsync();
 
 				var results = new ConcurrentBag<SearchResult>();
 
@@ -245,24 +245,13 @@ public sealed class ServerCommand : BaseAsyncCommand<ServerCommandSettings>
 
 	public override async Task<int> ExecuteAsync(CommandContext context, ServerCommandSettings settings)
 	{
-		m_scs = settings;
+		InitConfig(settings);
 
 		var uriPrefix = $"http://*:{m_scs.Port}/";
 		s_logger.LogTrace("Listening on {URI}", uriPrefix);
 
 		Listener.Prefixes.Add(uriPrefix);
 		Encoding = HttpUtilities.DefaultEncoding;
-
-		AnsiConsole.Progress().Start(ctx =>
-		{
-			var task = ctx.AddTask("Starting server");
-			task.IsIndeterminate = true;
-
-			// task.Description     = "Initializing config";
-			InitConfig(null);
-			task.Increment(ConsoleFormat.COMPLETE);
-		});
-
 
 		AnsiConsole.WriteLine($"Listening on {Listener.Prefixes.QuickJoin()}");
 

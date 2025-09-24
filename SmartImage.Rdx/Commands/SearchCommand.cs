@@ -68,7 +68,7 @@ namespace SmartImage.Rdx.Commands;
 
 #nullable disable
 
-public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettings>
+public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSettings>
 {
 
 	public SearchClient Client { get; }
@@ -105,12 +105,14 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 		m_cache   = new MemoryCache("Buf");
 
 		Query = SearchQuery.Null;
+
 	}
 
 #region
 
-	private async Task<bool> InitQueryAsync(ProgressContext ctx)
+	private async Task InitQueryAsync(ProgressContext ctx)
 	{
+
 		var p = ctx.AddTask("Creating query");
 		p.IsIndeterminate = true;
 		bool ok = true;
@@ -118,8 +120,7 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
 
 		if (Query == SearchQuery.Null) {
-			ok = false;
-			goto ret;
+			throw new SmartImageException($"Could not create query {Query}");
 		}
 
 		p.Increment(ConsoleFormat.COMPLETE / 2);
@@ -127,96 +128,78 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 		// ctx.Refresh();
 
 		p.Description = "Uploading query";
-		var url = await Query.UploadAsync();
+		var url = await Query.TryUploadAsync();
 
 		if (!url) {
-			ok = false;
-			goto ret;
+			throw new SmartImageException($"Could not upload {Query}");
 		}
 
 		p.Increment(ConsoleFormat.COMPLETE / 2);
 
-	ret:
-		return ok;
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
-		m_scs = settings;
+		Console.CancelKeyPress += OnCancelKeyPress;
+		InitConfig(settings);
 
-		var task = AnsiConsole.Progress()
+		var initTask = AnsiConsole.Progress()
 			.AutoRefresh(true)
 			.StartAsync(InitQueryAsync);
 
-		try {
-			var ok = await task;
+		await initTask;
 
-			if (!ok) {
-				throw new SmartImageException("Could not upload query");
-			}
+		var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
 
-			InitConfig(ok);
+		var ciPanel = new Panel(ci)
+		{
+			Header = new PanelHeader($"{Query.Source.Value}"),
+			Expand = true,
 
-			var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
+		};
 
-			// var ci = new CanvasImage(Query.Source.GetStream());
+		var cfgGrid = ConsoleFormat.CreateConfigGrid(Config, Query);
 
-			var panel = new Panel(ci)
-			{
-				Header = new PanelHeader($"{Query.Source.Value}"),
-				Expand = true,
+		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Config") };
 
-			};
+		var layout = new Layout("Root").SplitRows(
+			new Layout("T", ciPanel) { },
+			new Layout("B", cfgPanel));
 
+		AnsiConsole.Write(layout);
 
-			var gr = ConsoleFormat.CreateConfigGrid(Config, Query);
-
-			var grp = new Panel(gr) { Header = new PanelHeader("Config") };
-
-			var layout = new Layout("Root")
-				.SplitRows(
-					new Layout("T", panel) { },
-					new Layout("B", grp));
-
-			AnsiConsole.Write(layout);
-		}
-		catch (Exception e) {
-			AnsiConsole.WriteException(e);
-			return BaseOSIntegration.EC_ERROR;
-		}
-
-
-		Console.CancelKeyPress += OnCancelKeyPress;
 
 		/*
 		 * todo
 		 */
 
 #if !UNITTEST
-		Task run = AnsiConsole.Live(m_table)
+		Task main = AnsiConsole.Live(m_table)
 			.StartAsync(c => RunSearchLiveAsync(c));
 
 #else
 		run = RunSearchLiveAsync(null);
 
 #endif
+		await main;
 
-		if (!String.IsNullOrWhiteSpace(m_scs.Command)) {
-			run = run.ContinueWith(RunCompletionCommandAsync, m_cts.Token,
-			                       TaskContinuationOptions.OnlyOnRanToCompletion,
-			                       TaskScheduler.Default);
+		if (!main.IsCompletedSuccessfully) {
+			Debugger.Break();
+			return BaseOSIntegration.EC_ERROR;
 		}
 
-		if (!String.IsNullOrWhiteSpace(m_scs.OutputFile)) {
+		if (m_scs.HasCommand) {
+			await RunCompletionCommandAsync(m_cts.Token);
+		}
+
+		if (m_scs.HasOutputFile) {
 			switch (m_scs.OutputFileFormat) {
 
 				case OutputFileFormat.None:
 					break;
 
 				case OutputFileFormat.Delimited:
-					run = run.ContinueWith(WriteOutputFile, m_cts.Token,
-					                       TaskContinuationOptions.OnlyOnRanToCompletion,
-					                       TaskScheduler.Default);
+					WriteOutputFile();
 					break;
 
 				default:
@@ -225,16 +208,8 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 
 		}
 
-		await run;
-
-		Task run2;
-
 		if (m_scs.Interactive) {
-			run2 = RunInteractiveAsync(m_cts.Token);
-
-			// run2 = RunInteractiveAsync2(m_cts.Token);
-
-			await run2;
+			await RunInteractiveAsync(m_cts.Token);
 		}
 
 		if (m_scs.KeepOpen) {
@@ -242,59 +217,6 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 		}
 
 		return BaseOSIntegration.EC_OK;
-	}
-
-
-	private async Task RunInteractiveAsync(CancellationToken ct = default)
-	{
-		string cmd = null;
-
-		do {
-			cmd = GetCommandPrompt();
-
-			var res = GetEnginePrompt();
-
-			var sri = GetResultItemPrompt2(res);
-
-			s_logger.LogTrace("Interactive: {ResItem}", sri);
-
-			if (cmd == R2.Chc_Open) {
-				SearchClient.OpenResult(sri.Url);
-				continue;
-			}
-			else if (cmd == R2.Chc_Scan) {
-				var imgScanOk = await ScanItemAsync(sri, ct);
-
-				if (imgScanOk) {
-					continue;
-				}
-			}
-
-			if (cmd == R2.Chc_Calc) {
-
-				if (sri.HasHash) {
-					CalculateItemAsync(sri);
-				}
-
-				continue;
-			}
-
-			if (cmd == R2.Chc_Preview) {
-
-				if (!sri.HasBytes) {
-					continue;
-				}
-
-				var ci = GetPreview(sri);
-
-				ShowPreview(ci, sri);
-			}
-
-			if (cmd == R2.Chc_Download) { }
-
-		cont:
-			continue;
-		} while (cmd != R2.Chc_Exit);
 	}
 
 
@@ -336,91 +258,60 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 		await search;
 	}
 
-
-	private async Task RunCompletionCommandAsync([CBN] object o)
+	private async Task RunInteractiveAsync(CancellationToken ct = default)
 	{
-		var command = Cli.Wrap(m_scs.Command);
+		string cmd = null;
 
-		var cmdArgs      = m_scs.CommandArguments;
-		var stdOutBuffer = new StringBuilder();
-		var stdErrBuffer = new StringBuilder();
+		do {
+			cmd = GetCommandPrompt();
 
-		if (cmdArgs is not null) {
-			command = command.WithArguments(cmdArgs);
-		}
+			var res = GetEnginePrompt();
 
-		command = command.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer));
+			var sri = GetResultItemPrompt2(res);
 
-		var commandTask = command.ExecuteAsync(m_cts.Token);
+			s_logger.LogTrace("Interactive: {ResItem}", sri);
 
-		AnsiConsole.WriteLine($"Process id: {commandTask.ProcessId}");
-
-		var result = await commandTask;
-
-		AnsiConsole.WriteLine($"Process successful: {result.IsSuccess}");
-	}
-
-	private void WriteOutputFile([CBN] object o)
-	{
-		var fw = File.OpenWrite(m_scs.OutputFile);
-
-		var sw = new StreamWriter(fw)
-		{
-			AutoFlush = true
-		};
-
-		var fields = m_scs.OutputFields;
-
-		bool fName   = fields.HasFlag(OutputFields.Name);
-		var  fUrl    = fields.HasFlag(OutputFields.Url);
-		var  fSim    = fields.HasFlag(OutputFields.Similarity);
-		var  fArtist = fields.HasFlag(OutputFields.Artist);
-		var  fSite   = fields.HasFlag(OutputFields.Site);
-
-		var names = Enum.GetValues<OutputFields>()
-			.Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
-			.Select(Enum.GetName);
-
-		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
-
-		foreach (SearchResult sr in m_results.Keys) {
-			for (int j = 0; j < sr.Results.Count; j++) {
-				var sri = sr.Results[j];
-
-				var rg = new List<string>();
-
-				if (fName)
-					rg.Add($"{sr.Engine.Name} #{j + 1}");
-
-				if (fUrl)
-					rg.Add(sri.Url);
-
-				if (fSim)
-					rg.Add($"{sri.Similarity}");
-
-				if (fArtist)
-					rg.Add($"{sri.Artist}");
-
-				if (fSite)
-					rg.Add($"{sri.Site}");
-
-				// string[] items  = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
-				sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, rg));
+			if (cmd == R2.Chc_Open) {
+				SearchClient.OpenResult(sri.Url);
+				continue;
 			}
-		}
 
-		sw.Dispose();
-		fw.Dispose();
+			if (cmd == R2.Chc_Scan) {
+				await ScanItemAsync(sri, ct);
 
-		AnsiConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
+				continue;
+			}
+
+			if (cmd == R2.Chc_Calc) {
+				if (sri.HasHash) {
+					CalculateItem(sri);
+				}
+
+				continue;
+			}
+
+			if (cmd == R2.Chc_Preview) {
+				if (!sri.HasBytes) {
+					continue;
+				}
+
+				var ci = GetPreview(sri);
+
+				ShowPreview(ci, sri);
+			}
+
+			if (cmd == R2.Chc_Download) { }
+
+		cont:
+			continue;
+		} while (cmd != R2.Chc_Exit);
 	}
 
 #endregion
 
 #region
 
-	private void CalculateItemAsync(SearchResultItem item)
+	private void CalculateItem(SearchResultItem item)
 	{
 		AnsiConsole.Live(m_table).Start(f =>
 		{
@@ -434,23 +325,26 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 
 	}
 
-	private async ValueTask<bool> ScanItemAsync(SearchResultItem item, CancellationToken token = default)
+	private async ValueTask ScanItemAsync(SearchResultItem item, CancellationToken token = default)
 	{
-		bool ok = true;
-
 		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
 		{
-			if (!item.HasImage) {
+			bool scannedOk = false;
+
+			if (!(item.HasImage ^ item.HasScannedItems)) {
 
 				// var ok = await r.ScanAsync();
 				s_logger.LogTrace("Scanning {Item}", item);
-				var scannedOk = await item.ScanAsync(token);
+				scannedOk = await item.ScanAsync(token);
 
 			}
 			else {
 				return;
 			}
 
+			if (!scannedOk) {
+				return;
+			}
 
 			int i       = 0;
 			var row     = GetRowForItem(item);
@@ -464,16 +358,15 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 				m_table.InsertRow(++row, CreateItemRow(ui, idx, i++));
 			}
 
+			f.Refresh();
+
 			foreach (var kv in m_results) {
 				if (kv.Value >= rowOrig) {
 					m_results[kv.Key] = kv.Value + delta;
-
 				}
 			}
 
 		});
-
-		return ok;
 
 	}
 
@@ -612,11 +505,94 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 #endregion
 
 
+#region
+
+	private async Task RunCompletionCommandAsync(CancellationToken ct = default)
+	{
+		// ReSharper disable once AssignNullToNotNullAttribute
+		var command = Cli.Wrap(m_scs.Command);
+
+		var cmdArgs      = m_scs.CommandArguments;
+		var stdOutBuffer = new StringBuilder();
+		var stdErrBuffer = new StringBuilder();
+
+		if (cmdArgs is not null) {
+			command = command.WithArguments(cmdArgs);
+		}
+
+		command = command.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
+			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer));
+
+		var commandTask = command.ExecuteAsync(ct);
+
+		AnsiConsole.WriteLine($"Process id: {commandTask.ProcessId}");
+
+		var result = await commandTask;
+
+		AnsiConsole.WriteLine($"Process successful: {result.IsSuccess}");
+	}
+
+	private void WriteOutputFile()
+	{
+		// ReSharper disable once AssignNullToNotNullAttribute
+		var fw = File.OpenWrite(m_scs.OutputFile);
+
+		using var sw = new StreamWriter(fw);
+		sw.AutoFlush = true;
+
+		var fields = m_scs.OutputFields;
+
+		bool fName   = fields.HasFlag(OutputFields.Name);
+		var  fUrl    = fields.HasFlag(OutputFields.Url);
+		var  fSim    = fields.HasFlag(OutputFields.Similarity);
+		var  fArtist = fields.HasFlag(OutputFields.Artist);
+		var  fSite   = fields.HasFlag(OutputFields.Site);
+
+		var names = Enum.GetValues<OutputFields>()
+			.Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
+			.Select(Enum.GetName);
+
+		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
+
+		foreach (SearchResult sr in m_results.Keys) {
+			for (int j = 0; j < sr.Results.Count; j++) {
+				var sri = sr.Results[j];
+
+				var rg = new List<string>();
+
+				if (fName)
+					rg.Add($"{sr.Engine.Name} #{j + 1}");
+
+				if (fUrl)
+					rg.Add(sri.Url);
+
+				if (fSim)
+					rg.Add($"{sri.Similarity}");
+
+				if (fArtist)
+					rg.Add($"{sri.Artist}");
+
+				if (fSite)
+					rg.Add($"{sri.Site}");
+
+				// string[] items  = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
+				sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, rg));
+			}
+		}
+
+		AnsiConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
+	}
+
+#endregion
+
 	[ContractAnnotation("=> halt")]
 	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
 	{
 		AnsiConsole.MarkupLine($"[red]Cancellation requested[/]");
-		AnsiConsole.Clear();
+		AnsiConsole.MarkupLine($"[red]Sender: {sender}[/]");
+
+		// AnsiConsole.Clear();
+
 		m_cts.Cancel();
 		args.Cancel = false;
 
@@ -627,7 +603,6 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 	{
 		var r = base.Validate(context, settings);
 		return r;
-
 	}
 
 	public override void Dispose()
@@ -638,10 +613,13 @@ public sealed partial class SearchCommand : BaseAsyncCommand<SearchCommandSettin
 			sr.Dispose();
 		}
 
-		ConsoleFormat.Prm_Num.Validator = null;
+		ConsoleFormat.Prm_Num.Validator  = null;
+		ConsoleFormat.Prm_Num2.Validator = null;
 		ConsoleFormat.Prm_Engine.Choices.Clear();
+
 		m_results.Clear();
 		m_cts.Dispose();
+		m_cache.Dispose();
 		m_scs = null;
 		Client.Dispose();
 		Query.Dispose();

@@ -245,7 +245,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 
 		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
 		{
-			/*var sriNew = new SearchResultItem(Root, false)
+			var sriNew = new SearchResultItem(Root, false)
 			{
 				Parent      = this,
 				Url         = s,
@@ -256,9 +256,9 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 				Site        = Site,
 				Source      = Source,
 				Time        = Time,
-			};*/
+			};
 
-			var sriNew = CloneToChildWithUrl(s);
+			// var sriNew = CloneToChildWithUrl(s);
 
 			var allocImgOk = await sriNew.AllocImageAsync(token);
 
