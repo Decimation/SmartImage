@@ -7,31 +7,39 @@
     xmlns:vm="using:SmartImage.UI2.ViewModels"
     xmlns:models="using:SmartImage.UI2.Models"
     xmlns:vm2="using:SmartImage.Lib"
-    mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="675"
-    Height="675" Width="1000" MinWidth="1000" MinHeight="325"
+    mc:Ignorable="d" 
+    
     x:DataType="vm:MainWindowViewModel"
     Title="SmartImage">
+
+<!--
+d:DesignWidth="1000" d:DesignHeight="675"
+    Height="675" Width="1000" MinWidth="1000" MinHeight="325"
+-->
 
     <Design.DataContext>
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-   <DockPanel LastChildFill="True" VerticalAlignment="Top" HorizontalAlignment="Left"
-              Background="Beige" Width="1000" Height="675">
-       <TextBox Name="Tb_Input" Grid.Column="0" Grid.Row="0" 
-                MaxHeight="50" >
+    <Grid VerticalAlignment="Top" HorizontalAlignment="Left"
+          Background="Beige" Width="1000" Height="675"
+          RowDefinitions="Auto,Auto,*,Auto"
+          ColumnDefinitions="Auto,*,*,*,*">
 
-       </TextBox>
+        <TextBox Name="Tb_Input" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="1"
+                 MaxHeight="50" Text="{Binding Input}" MaxWidth="10">
+        
+        </TextBox>
 
-       <Button Command="{Binding SearchCommand}"
-               Content="Search" Grid.Column="1" Grid.Row="1" />
+        <Button Command="{Binding SearchCommand}"
+                Content="Search" Grid.Column="1" Grid.Row="0" />
 
-       <Image Grid.Row="0" Grid.Column="2" Width="300" Height="300"
-              VerticalAlignment="Top"
-              HorizontalAlignment="Right">
-       </Image>
+        <Image Grid.Row="0" Grid.Column="2" Width="300" Height="300"
+               VerticalAlignment="Top"
+               HorizontalAlignment="Right">
+        </Image>
 
-       <!--<TreeView
+        <!--<TreeView
             ItemsSource="{Binding Items}"
             Width="600" Height="300" Grid.Column="0" Grid.Row="2">
             <TreeView.ItemTemplate>
@@ -49,27 +57,27 @@
 
         </TreeView>-->
 
-       <ListBox ItemsSource="{Binding Items}"
-                SelectionMode="AlwaysSelected, Single"
-                MinWidth="1000" Height="100"
-                Grid.Column="0" Grid.Row="2">
+        <ListBox ItemsSource="{Binding Items}"
+                 SelectionMode="AlwaysSelected, Single"
+                 MinWidth="1000" Height="100"
+                 Grid.Column="0" Grid.Row="2">
 
-           <ListBox.ItemTemplate>
-               <DataTemplate DataType="models:ResultItem">
-                   <Grid ColumnDefinitions="Auto, *">
-                       <TextBlock Grid.Column="1"
-                                  Margin="10,0"
-                                  Text="{Binding Url}">
-                       </TextBlock>
-                       <TextBlock
-                           Text="{Binding Similarity}">
-                       </TextBlock>
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="models:ResultItem">
+                    <Grid ColumnDefinitions="Auto, *">
+                        <TextBlock Grid.Column="1"
+                                   Margin="10,0"
+                                   Text="{Binding Url}">
+                        </TextBlock>
+                        <TextBlock
+                            Text="{Binding Similarity}">
+                        </TextBlock>
 
-                   </Grid>
-               </DataTemplate>
-           </ListBox.ItemTemplate>
-       </ListBox>
-   </DockPanel>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
 
 
 </Window>

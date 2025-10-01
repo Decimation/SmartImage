@@ -21,6 +21,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
 {
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
 
 	public const string URL_ENDPOINT = "https://api.fluffle.xyz/v1/";
 	public const string URL_BASE     = "https://fluffle.xyz/";
@@ -99,8 +100,6 @@ public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
 	{
 		return base.GetRawUrl(query);
 	}
-
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
 
 	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{

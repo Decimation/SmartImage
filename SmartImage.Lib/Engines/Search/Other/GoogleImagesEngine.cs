@@ -8,6 +8,7 @@ public sealed class GoogleImagesEngine : BaseSearchEngine
 	public override string Name => "Google Images";
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleImages;
+
 	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		return ValueTask.FromResult(true);

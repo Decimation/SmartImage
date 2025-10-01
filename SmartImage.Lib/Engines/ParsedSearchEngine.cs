@@ -11,8 +11,8 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines;
 
-public abstract class ParsedSearchEngine<TResultItem, TIntermediate, TSource> : BaseSearchEngine
-	where TResultItem : SearchResultItem
+public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSearchEngine
+	where TItem : SearchResultItem
 {
 
 	protected ParsedSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
@@ -22,46 +22,46 @@ public abstract class ParsedSearchEngine<TResultItem, TIntermediate, TSource> : 
 	{
 		var res = await base.GetResultAsync(query, token);
 
-		TSource doc = default;
+		TSource src = default;
 
 		if (res.Status == SearchResultStatus.IllegalInput) {
 			goto ret;
 		}
 
-		doc = await GetSourceAsync(res, query: query, token: token);
+		src = await GetSourceAsync(res, query: query, token: token);
 
-		if (!Validate(doc, res)) {
+		if (!ValidateSource(src)) {
 			goto ret;
 		}
 
-		var src   = await ParseIntermediate(doc);
-		var items = await ParseResultItems(src, res);
+		var inter   = await ParseIntermediateAsync(src);
+		var items = await ParseItemsAsync(inter, res);
 
 		res.Results.AddRange(items);
 
-		Logger.LogInformation("{Name} :: {RawUrl} source", Name, res.RawUrl);
+		// Logger.LogInformation("{Name} :: {RawUrl} source", Name, res.RawUrl);
 
 		res.Status = SearchResultStatus.Success;
 
 	ret:
 		res.Update();
 
-		if (doc is IDisposable di) {
+		if (src is IDisposable di) {
 			di.Dispose();
 		}
 
-		Logger.LogDebug("Disposing {Name} doc", Name);
+		// Logger.LogDebug("Disposing {Name} doc", Name);
 		return res;
 	}
 
-	protected abstract ValueTask<TIntermediate> ParseIntermediate(TSource d);
+	protected abstract ValueTask<TIntermediate> ParseIntermediateAsync(TSource src);
 
-	protected abstract ValueTask<IEnumerable<TResultItem>> ParseResultItems(TIntermediate source, SearchResult r);
+	protected abstract ValueTask<IEnumerable<TItem>> ParseItemsAsync(TIntermediate source, SearchResult r);
 
 	[ICBN]
 	[MURV]
 	protected abstract Task<TSource> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default);
 
-	protected abstract bool Validate([NNW(true)] TSource doc, SearchResult sr);
+	protected abstract bool ValidateSource([NNW(true)] TSource src);
 
 }

@@ -38,13 +38,9 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 	protected IqdbEngine(string b) : base(b)
 	{
-		MaxSize = MAX_FILE_SIZE; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
-
-		// ReSharper disable once VirtualMemberCallInConstructor
+		MaxSize = 8_388_608; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 		Timeout = TimeSpan.FromSeconds(90);
 	}
-
-	private const int MAX_FILE_SIZE = 8_388_608;
 
 	private const string URL_BASE  = "https://iqdb.org/";
 	private const string URL_QUERY = "https://iqdb.org/?url=";
@@ -78,7 +74,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 				               .WithTimeout(Timeout)
 				               .PostMultipartAsync(m =>
 				               {
-					               m.AddString("MAX_FILE_SIZE", MAX_FILE_SIZE.ToString());
+					               m.AddString("MAX_FILE_SIZE", MaxSize.ToString());
 
 					               if (query.Source.IsUri) {
 						               m.AddString("url", query.Upload.Url);
@@ -128,9 +124,9 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 	}
 
-	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> ParseIntermediate(IDocument d)
+	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> ParseIntermediateAsync(IDocument src)
 	{
-		var pages  = d.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
+		var pages  = src.Body.SelectSingleNode(Serialization.S_Iqdb_Pages);
 		var tables = ((IHtmlElement) pages).SelectNodes(Serialization.S_Iqdb_DivTable);
 
 		var select = tables.Select(static table => ((IHtmlElement) table)
@@ -139,7 +135,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		return ValueTask.FromResult(select);
 	}
 
-	protected override ValueTask<IEnumerable<IqdbItem>> ParseResultItems(IEnumerable<IHtmlCollection<IElement>> source, SearchResult r)
+	protected override ValueTask<IEnumerable<IqdbItem>> ParseItemsAsync(IEnumerable<IHtmlCollection<IElement>> source, SearchResult r)
 	{
 		var buf = new List<IqdbItem>();
 
@@ -151,26 +147,23 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 		return ValueTask.FromResult<IEnumerable<IqdbItem>>(buf);
 	}
 
-	protected override bool Validate(IDocument doc, SearchResult sr)
+	protected override bool ValidateSource(IDocument doc)
 	{
-		var b = base.Validate(doc, sr);
+		var b = base.ValidateSource(doc);
 
 		if (!b)
 			goto ret;
 
-		if (doc is { Body: not null } bod) {
+		if (doc is { Body: not null }) {
 
 			if (doc.GetElementsByClassName("err") is { Length: > 0 } err) {
 				var fe = err[0];
-				sr.Status       = SearchResultStatus.UnknownError;
-				sr.ErrorMessage = $"{fe.TextContent}";
-				b               = false;
+				b = false;
 				goto ret;
 			}
 
-			if (bod.QuerySelector(Serialization.S_Iqdb_NoMatches) != null) {
-				sr.Flags |= SearchResultFlags.NoResults;
-				b        =  false;
+			if (doc.QuerySelector(Serialization.S_Iqdb_NoMatches) != null) {
+				b = false;
 			}
 		}
 
@@ -195,8 +188,6 @@ public class IqdbItem : SearchResultItem, IResultItemParseable<IHtmlCollection<I
 
 	public static IqdbItem ParseSource(IHtmlCollection<IElement> tr, SearchResult r)
 	{
-
-
 		var caption = tr[0];
 		var img     = tr[1];
 		var src     = tr[2];

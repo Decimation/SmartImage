@@ -121,9 +121,9 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	}
 
 
-	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
 	{
-		var nodes = d.Body.SelectNodes(Serialization.S_Ascii2D_Images2);
+		var nodes = src.Body.SelectNodes(Serialization.S_Ascii2D_Images2);
 
 		var cnt = nodes.RemoveAll(static x =>
 		{
@@ -137,7 +137,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return ValueTask.FromResult<IList<INode>>(nodes);
 	}
 
-	protected override ValueTask<IEnumerable<Ascii2DItem>> ParseResultItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<Ascii2DItem>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<Ascii2DItem>(source.Count);
 

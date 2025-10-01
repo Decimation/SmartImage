@@ -15,14 +15,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Native" Version="11.3.3" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.3" />
-    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.3" />
+    <PackageReference Include="Avalonia" Version="11.3.6" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.6" />
+    <PackageReference Include="Avalonia.Native" Version="11.3.6" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.3.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.6" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.6" />
     <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.3" />
+    <PackageReference Condition="'$(Configuration)' == 'Debug'" Include="Avalonia.Diagnostics" Version="11.3.6" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,19 +31,19 @@
     <PackageReference Include="CommunityToolkit.HighPerformance" Version="8.4.0" />
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
-    <PackageReference Include="JetBrains.Annotations" Version="2025.2.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.8" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.8" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.9" />
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
     <PackageReference Include="ReactiveUI" Version="20.4.1" />
     <!-- <PackageReference Include="ReactiveUI.WPF" Version="20.1.63" /> -->
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
-    <PackageReference Include="System.Drawing.Common" Version="9.0.8" />
+    <PackageReference Include="System.Drawing.Common" Version="9.0.9" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
     <PackageReference Include="System.Security.Cryptography.X509Certificates" Version="4.3.2" />
-    <PackageReference Include="System.Text.Json" Version="9.0.8" />
+    <PackageReference Include="System.Text.Json" Version="9.0.9" />
     <PackageReference Include="Verify.Flurl" Version="1.0.1" />
   </ItemGroup>
 

@@ -62,13 +62,12 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 	}
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
-
+	
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// var result = await base.GetResultAsync(query, token);
-		var b = await VerifyQueryAsync(query).ConfigureAwait(false);
-
+		var b =  VerifyQuery(query);
 
 		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
@@ -92,8 +91,8 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 				goto ret1;
 			}
 
-			var source = await ParseIntermediate(src);
-			var items  = await ParseResultItems(source, result);
+			var source = await ParseIntermediateAsync(src);
+			var items  = await ParseItemsAsync(source, result);
 			result.Results.AddRange(items);
 		}
 
@@ -198,14 +197,14 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 		return doc;
 	}
 
-	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
 	{
-		var results = d.Body.SelectNodes("//div[@class='result']");
+		var results = src.Body.SelectNodes("//div[@class='result']");
 
 		return ValueTask.FromResult<IList<INode>>(results);
 	}
 
-	protected override ValueTask<IEnumerable<SauceNaoDataResult>> ParseResultItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<SauceNaoDataResult>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<SauceNaoDataResult>(source.Count);
 

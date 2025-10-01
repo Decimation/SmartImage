@@ -22,7 +22,6 @@ namespace SmartImage.Lib.Engines.Search;
 
 public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 {
-
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
 
 	protected string Base64MD5Hash { get; set; }
@@ -53,12 +52,12 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 		GC.SuppressFinalize(this);
 	}
 
-	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
 	{
-		return ValueTask.FromResult<IList<INode>>(d.Body.SelectNodes("//article[contains(@class,'post')]"));
+		return ValueTask.FromResult<IList<INode>>(src.Body.SelectNodes("//article[contains(@class,'post')]"));
 	}
 
-	protected override ValueTask<IEnumerable<ChanPost>> ParseResultItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<ChanPost>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<ChanPost>(source.Count);
 

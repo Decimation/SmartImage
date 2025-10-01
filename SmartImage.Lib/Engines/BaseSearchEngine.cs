@@ -21,10 +21,12 @@ using SmartImage.Lib.Utilities;
 namespace SmartImage.Lib.Engines;
 
 #pragma warning disable CA1822
-#nullable enable
+#nullable disable
 
-public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>, ISearchConfigReceiver
+public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEquatable<BaseSearchEngine>, ISearchEngine
 {
+
+	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
 
 	static BaseSearchEngine()
 	{
@@ -55,29 +57,24 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		BaseUrl = baseUrl;
 	}
 
-	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
-
-	/// <summary>
-	///     The corresponding <see cref="SearchEngineOptions" /> of this engine
-	/// </summary>
-	[JI]
-	public abstract SearchEngineOptions EngineOption { get; }
-
-	/// <summary>
-	///     Name of this engine
-	/// </summary>
-	public virtual string Name => EngineOption.ToString();
-
 	/// <summary>
 	/// Base URI
 	/// </summary>
 	public virtual Url BaseUrl { get; }
 
-	[JI]
-	public virtual TimeSpan Timeout { get; set; } = TimeSpan.FromSeconds(30);
+	public virtual string Name
+	{
+		get => EngineOption.ToString();
+	}
+
+	/// <inheritdoc />
+	public abstract SearchEngineOptions EngineOption { get; }
 
 	[JI]
-	protected long? MaxSize { get; set; }
+	public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(30);
+
+	[JI]
+	protected long? MaxSize { get; init; }
 
 	[JI]
 	protected virtual string[] ErrorBodyMessages { get; } = [];
@@ -98,11 +95,9 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	}*/
 
-	public virtual async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
+	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		var b = await VerifyQueryAsync(query).ConfigureAwait(false);
-
-		// SmartImageException.Assert(b, nameof(query));
+		var b = VerifyQuery(query);
 
 		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
@@ -114,19 +109,23 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		};
 
 		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.Status);
-		return res;
+
+		return Task.FromResult(res);
 	}
 
 
 	protected virtual Url GetRawUrl(SearchQuery query)
 	{
-		//
+		if (!query.IsUploaded) {
+			throw new SmartImageException($"{query} not uploaded");
+		}
+
 		Url u = (BaseUrl + query.Upload);
 
 		return u;
 	}
 
-	public virtual ValueTask<bool> VerifyQueryAsync(SearchQuery q)
+	public virtual bool VerifyQuery(SearchQuery q)
 	{
 		bool b = true;
 
@@ -134,12 +133,13 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			b = q.Source.Size <= MaxSize;
 		}
 
-		return ValueTask.FromResult(b);
+		return b;
 	}
-	public int GetHashCode(BaseSearchEngine obj)
+
+	/*public int GetHashCode(BaseSearchEngine obj)
 	{
-		return (int) obj.EngineOption;
-	}
+		return (int) EngineOption;
+	}*/
 
 	public override string ToString()
 	{
@@ -148,7 +148,6 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	public abstract ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
 
-	// public abstract ValueTask ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
 
 	public override bool Equals(object? obj)
 	{
@@ -167,10 +166,10 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		return Equals((BaseSearchEngine) obj);
 	}
 
-	public override int GetHashCode()
+	/*public override int GetHashCode()
 	{
 		return (int) EngineOption;
-	}
+	}*/
 
 	public abstract void Dispose();
 
@@ -184,7 +183,13 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			return true;
 		}
 
-		return EngineOption == other.EngineOption;
+		return other.Equals(this);
+	}
+
+	/// <inheritdoc />
+	public override int GetHashCode()
+	{
+		return (Name != null ? Name.GetHashCode() : 0);
 	}
 
 	public static bool operator ==(BaseSearchEngine? left, BaseSearchEngine? right)

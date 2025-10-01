@@ -29,11 +29,13 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public SearchQuery Query { get; set; }
 
+	public string Input {get;set;}
+
 	[RelayCommand]
 	public async Task SearchAsync()
 	{
-		Query = await SearchQuery.TryCreateAsync(@"C:\Users\Deci\Pictures\Epic anime\1654086015521.png");
-		await Query.UploadAsync();
+		Query = await SearchQuery.TryCreateAsync(Input);
+		await Query.TryUploadAsync();
 
 		var r = Client.RunSearchAsync(Query);
 

@@ -6,7 +6,7 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class TinEyeEngine : BaseSearchEngine
+public sealed class TinEyeEngine : BaseSearchEngine, ISearchEngine
 {
 
 	public TinEyeEngine() : base("https://www.tineye.com/search?url=")
@@ -23,14 +23,16 @@ public sealed class TinEyeEngine : BaseSearchEngine
 		// Debug.WriteLine($"Disposing {Name}");
 		Logger.LogTrace("Disposing {Name}", Name);
 	}
+
 	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		return ValueTask.FromResult(true);
 
 	}
-	public override async ValueTask<bool> VerifyQueryAsync(SearchQuery q)
+
+	public override bool VerifyQuery(SearchQuery q)
 	{
-		var ok = await q.Source.AllocImageAsync().ConfigureAwait(false);
+		/*var ok = await q.Source.AllocImageAsync().ConfigureAwait(false);
 
 		if (ok) {
 			if (q.Source.Image.Width >= 10000) {
@@ -39,7 +41,21 @@ public sealed class TinEyeEngine : BaseSearchEngine
 
 		}
 
-		return await base.VerifyQueryAsync(q).ConfigureAwait(false);
+		return await base.VerifyQuery(q);*/
+
+		var ok = base.VerifyQuery(q);
+
+		if (!ok) {
+			goto ret;
+		}
+
+		if (q.Source.Image.Width >= 10000) {
+			ok = false;
+			goto ret;
+		}
+
+	ret:
+		return ok;
 	}
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
@@ -243,7 +259,6 @@ public class TinEyeRoot
 
 	[JPN("query_source")]
 	public string QuerySource { get; set; }
-
 
 }
 

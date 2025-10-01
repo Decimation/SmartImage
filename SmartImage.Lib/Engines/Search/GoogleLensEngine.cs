@@ -103,13 +103,13 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		return br;
 	}
 
-	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
 	{
-		var nodes = d.QuerySelectorAll(".LBcIee").OfType<INode>().ToList();
+		var nodes = src.QuerySelectorAll(".LBcIee").OfType<INode>().ToList();
 		return ValueTask.FromResult<IList<INode>>(nodes);
 	}
 
-	protected override ValueTask<IEnumerable<GoogleLensItem>> ParseResultItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<GoogleLensItem>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<GoogleLensItem>(source.Count);
 

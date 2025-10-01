@@ -1,9 +1,4 @@
-﻿using System.ComponentModel;
-using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Kantan.Model;
+﻿using Kantan.Model;
 using Kantan.Model.MemberIndex;
 using Kantan.Utilities;
 using Microsoft.Extensions.Configuration;
@@ -12,8 +7,14 @@ using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search;
+using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Utilities;
+using System.ComponentModel;
+using System.Configuration;
+using System.Data;
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using ConfigurationSection = System.Configuration.ConfigurationSection;
@@ -53,13 +54,15 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// Default value for <see cref="FlareSolverr"/>
 	/// </summary>
-	public const bool FLARESOLVERR_DEFAULT = true;
+	public const bool FLARESOLVERR_DEFAULT = false;
 
 	public const string FLARE_SOLVERR_API_URL_DEFAULT = "http://localhost:8191";
 
 	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.Pomf;
 
 #endregion
+
+#region
 
 	/// <summary>
 	/// Engines used to search.
@@ -152,6 +155,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set => Set(value);
 	}
 
+#endregion
+
 #region Cookies
 
 	/// <summary>
@@ -235,6 +240,8 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 #endregion
 
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchConfig));
+
 	/// <summary>
 	/// <see cref="BaseUploadEngine"/>
 	/// </summary>
@@ -246,29 +253,92 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 	public static readonly SearchConfig Default = new();
 
-	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchConfig));
-
-	public static readonly Configuration Configuration =
-		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-
 	public SearchConfig()
 	{
 		PropertyChanged += static (sender, args) =>
 		{
 			//
-			s_logger.LogTrace("Changed {PropName}", args.PropertyName);
+			s_logger.LogTrace("{Sender} Changed {PropName}", sender, args.PropertyName);
 		};
+
+		/*
+		PropertyChanged += (sender, args) =>
+		{
+			switch (args.PropertyName) {
+				case nameof(SearchEngines):
+
+					break;
+			}
+		};
+	*/
 	}
 
+	public IEnumerable<BaseSearchEngine> GetSelectedEngines() => GetSelectedEngines(SearchEngines);
 
-	private bool Set<T>(T s = default, [CMN] string name = default)
+	public IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
+	{
+		if (options.HasFlag(SearchEngineOptions.SauceNao))
+			yield return new SauceNaoEngine(SauceNaoKey);
+
+		if (options.HasFlag(SearchEngineOptions.ImgOps))
+			yield return new ImgOpsEngine();
+
+		if (options.HasFlag(SearchEngineOptions.GoogleImages))
+			yield return new GoogleImagesEngine();
+
+		if (options.HasFlag(SearchEngineOptions.TinEye))
+			yield return new TinEyeEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Iqdb))
+			yield return new IqdbEngine();
+
+		if (options.HasFlag(SearchEngineOptions.TraceMoe))
+			yield return new TraceMoeEngine();
+
+		if (options.HasFlag(SearchEngineOptions.KarmaDecay))
+			yield return new KarmaDecayEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Yandex))
+			yield return new YandexEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Bing))
+			yield return new BingEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Ascii2D))
+			yield return new Ascii2DEngine();
+
+		if (options.HasFlag(SearchEngineOptions.RepostSleuth))
+			yield return new RepostSleuthEngine();
+
+		if (options.HasFlag(SearchEngineOptions.EHentai))
+			yield return new EHentaiEngine();
+
+		if (options.HasFlag(SearchEngineOptions.ArchiveMoe))
+			yield return new ArchiveMoeEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Iqdb3D))
+			yield return new Iqdb3DEngine();
+
+		if (options.HasFlag(SearchEngineOptions.Fluffle))
+			yield return new FluffleEngine();
+
+		if (options.HasFlag(SearchEngineOptions.GoogleLens))
+			yield return new GoogleLensEngine();
+	}
+
+#region
+
+	public static readonly Configuration Configuration =
+		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+	private bool Set<T>(T s = default, [CMN] string name = null)
 	{
 		bool b = Configuration.AddUpdateSetting(name, s.ToString());
 		OnPropertyChanged(name);
 		return b;
 	}
 
-	private T Get<T>(T t = default, [CMN] string name = default)
+	private T Get<T>(T t = default, [CMN] string name = null)
 	{
 		T v = Configuration.ReadSetting(name, t);
 		return v;
@@ -278,8 +348,10 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	{
 		Configuration.Save(ConfigurationSaveMode.Full, true);
 
-		Debug.WriteLine($"Saved to {Configuration.FilePath}", nameof(Save));
+		s_logger.LogTrace("Saved to {CfgPath}", Configuration.FilePath);
 	}
+
+#endregion
 
 	/*public DataTable ToTable()
 	{
@@ -319,6 +391,21 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	{
 		return $"{SearchEngines}\n{PriorityEngines}";
 	}
+
+	/*private IEnumerable<BaseSearchEngine> m_engines;
+
+	public IEnumerable<BaseSearchEngine> Engines
+	{
+		get => m_engines;
+		private set
+		{
+			if (Equals(value, m_engines))
+				return;
+
+			m_engines = value;
+			OnPropertyChanged();
+		}
+	}*/
 
 	public async ValueTask<bool> ApplyEnginesAsync(IEnumerable<BaseSearchEngine> engines, CancellationToken token = default)
 	{

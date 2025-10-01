@@ -43,8 +43,10 @@ public abstract class WebSearchEngine<TResultItem, TIntermediate> : ParsedSearch
 		return document;
 	}
 
-	protected override bool Validate([NNW(true)] IDocument doc, SearchResult sr)
+	/// <inheritdoc />
+	protected override bool ValidateSource(IDocument doc)
 	{
+
 		if (doc is null or { Body: null }) {
 			return false;
 		}

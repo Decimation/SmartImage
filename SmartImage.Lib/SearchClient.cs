@@ -56,7 +56,7 @@ public sealed class SearchClient : IDisposable
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
-		Engines       = [.. BaseSearchEngine.GetSelectedEngines(Config.SearchEngines)];
+		Engines       = [.. Config.GetSelectedEngines()];
 
 		// GetSelectedEngines();
 

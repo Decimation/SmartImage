@@ -162,11 +162,14 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Config") };
 
-		var layout = new Layout("Root").SplitRows(
+		AC.Write(ciPanel);
+		AC.Write(cfgPanel);
+
+		/*var layout = new Layout("Root").SplitRows(
 			new Layout("T", ciPanel) { },
 			new Layout("B", cfgPanel));
 
-		AnsiConsole.Write(layout);
+		AnsiConsole.Write(layout);*/
 
 
 		/*
@@ -236,13 +239,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			m_results.TryAdd(result, BaseOSIntegration.EC_ERROR);
 
-			// m_results.Add(result);
-
-			/*var txt  = new Text(result.Engine.Name, GetEngineColor(result.Engine.EngineOption));
-			var txt2 = new Text($"{result.Results.Count}");
-
-			m_mainTable.AddRow(txt, txt2);*/
-
 			var rows = CreateResultRows(result);
 
 			m_results[result] = m_table.Rows.Count;
@@ -260,14 +256,23 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private async Task RunInteractiveAsync(CancellationToken ct = default)
 	{
-		string cmd = null;
+		string cmd      = null;
+		bool   clrWrite = true;
 
 		do {
+
+			AnsiConsole.Clear();
+			AnsiConsole.Write(m_table);
+
 			cmd = GetCommandPrompt();
 
-			var res = GetEnginePrompt();
+			if (cmd == R2.Chc_Exit) {
+				goto cont;
+			}
 
-			var sri = GetResultItemPrompt2(res);
+			var sr = GetEnginePrompt();
+
+			var sri = GetResultItemPrompt(sr);
 
 			s_logger.LogTrace("Interactive: {ResItem}", sri);
 
@@ -278,7 +283,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			if (cmd == R2.Chc_Scan) {
 				await ScanItemAsync(sri, ct);
-
 				continue;
 			}
 
@@ -291,7 +295,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			}
 
 			if (cmd == R2.Chc_Preview) {
-				if (!sri.HasBytes) {
+				if (!sri.HasBytes || !sri.HasImage) {
 					continue;
 				}
 
@@ -300,7 +304,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				ShowPreview(ci, sri);
 			}
 
-			if (cmd == R2.Chc_Download) { }
+			if (cmd == R2.Chc_Download) {
+				//todo
+			}
 
 		cont:
 			continue;
@@ -400,7 +406,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						throw new ArgumentOutOfRangeException();
 				}
 
-				s_logger.LogDebug("{CacheItem} {RemRes}", arguments.CacheItem, arguments.RemovedReason);
+				s_logger.LogDebug("Cache item {CacheItem} removed: {RemRes}", arguments.CacheItem.Key, arguments.RemovedReason);
 				return;
 			}
 		};
@@ -410,14 +416,19 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		var key = sri.Url;
 		var val = m_cache.Get(key);
 
-		if (val is not Stream) {
+		CanvasImage ci = val as CanvasImage;
+
+		if (ci is null) {
 			str = sri.GetStream();
-			m_cache.Set(key, str, cip);
+			ci = new CanvasImage(str);
+			m_cache.Set(key, ci, cip);
+		}
+		else {
 		}
 
-		Trace.Assert(str != null);
+		Trace.Assert(ci != null);
 
-		var ci = new CanvasImage(str);
+		// var ci = new CanvasImage(str);
 
 		return ci;
 	}
@@ -433,10 +444,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// ci.MaxWidth ??= ci.Width;
 		// ci.MaxWidth ??= ui.Image.Width;
 
-		var panel = new Panel(ci) { Expand = true, };
+		// var panel = new Panel(ci) { Expand = true, };
 		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 
-		AnsiConsole.Live(panel).Start((ldc) =>
+		AnsiConsole.Live(ci).Start((ldc) =>
 		{
 			while (true) {
 
@@ -482,7 +493,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							AnsiConsole.Console.Profile.Height = ui.Image.Height;
 
 
-							ci.MaxWidth = ui.Image.Width;
+							// ci.MaxWidth = ui.Image.Width;
 							break;
 					}
 
@@ -494,7 +505,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
-				panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
+				// panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
 			}
 		});
 

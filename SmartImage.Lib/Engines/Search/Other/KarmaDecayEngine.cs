@@ -1,13 +1,14 @@
 ﻿//todo
+
 namespace SmartImage.Lib.Engines.Search.Other;
 
 public sealed class KarmaDecayEngine : BaseSearchEngine
 {
 
-	public KarmaDecayEngine() : base("http://karmadecay.com/search/?q=")
-	{ }
+	public KarmaDecayEngine() : base("http://karmadecay.com/search/?q=") { }
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.KarmaDecay;
+
 
 	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
@@ -23,4 +24,5 @@ public sealed class KarmaDecayEngine : BaseSearchEngine
 
 		return await Task.FromResult(results);
 	}*/
+
 }

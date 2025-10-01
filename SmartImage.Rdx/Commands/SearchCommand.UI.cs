@@ -141,7 +141,7 @@ public sealed partial class SearchCommand
 
 #region Prompts
 
-	private SearchResultItem GetResultItemPrompt2(SearchResult res)
+	private SearchResultItem GetResultItemPrompt(SearchResult res)
 	{
 		SearchResultItem ret;
 

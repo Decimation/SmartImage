@@ -137,8 +137,7 @@
   </data>
   <data name="S_EhUsername" xml:space="preserve">
     <value>Eh Username</value>
-    <comment>DEPRECATED
-</comment>
+    <comment>DEPRECATED</comment>
   </data>
   <data name="S_OpenRaw" xml:space="preserve">
     <value>Open raw</value>
@@ -196,10 +195,10 @@
     <value>smartimage.desktop</value>
   </data>
   <data name="Linux_Launch_Args" xml:space="preserve">
-    <value>%u --keep-open</value>
+    <value>%u --interactive</value>
   </data>
   <data name="Reg_Launch_Args" xml:space="preserve">
-    <value>"%1" --keep-open</value>
+    <value>"%1" --interactive</value>
   </data>
   <data name="Err_Query" xml:space="preserve">
     <value>Invalid query: query must be a file path or direct URI</value>

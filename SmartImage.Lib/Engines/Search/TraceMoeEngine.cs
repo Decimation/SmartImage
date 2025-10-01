@@ -57,8 +57,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 
 		var sr = await base.GetResultAsync(query, token).ConfigureAwait(false);
 
-		try
-		{
+		try {
 			IFlurlRequest request = Client.Request(Endpoint, "/search")
 				.WithTimeout(Timeout)
 				.SetQueryParam("url", query.Upload.Url, true);
@@ -67,26 +66,21 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 
 			tm = await response.GetJsonAsync<TraceMoeRootObject>().ConfigureAwait(false);
 		}
-		catch (Exception e)
-		{
+		catch (Exception e) {
 			Logger.LogError(e, "{Name} in {Fn}", Name, nameof(GetResultAsync));
 			sr.ErrorMessage = e.Message;
 			sr.Status       = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
-		if (tm != null)
-		{
-			if (tm.Result != null)
-			{
+		if (tm != null) {
+			if (tm.Result != null) {
 				// Most similar to the least similar
 
-				try
-				{
+				try {
 					sr.Results.EnsureCapacity(sr.Results.Count + tm.Result.Count);
 
-					foreach (var doc in tm.Result)
-					{
+					foreach (var doc in tm.Result) {
 						var tr = await doc.ToItem(sr).ConfigureAwait(false);
 						sr.Results.Add(tr);
 					}
@@ -94,22 +88,19 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 					sr.Status = SearchResultStatus.Success;
 					sr.RawUrl = new Url(BaseUrl + query.Upload);
 				}
-				catch (Exception e)
-				{
+				catch (Exception e) {
 					sr.ErrorMessage = e.Message;
 					sr.Status       = SearchResultStatus.UnknownError;
 				}
 
 			}
-			else if (tm.Error != null)
-			{
+			else if (tm.Error != null) {
 				// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
 				Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
 				sr.ErrorMessage = tm.Error;
 				sr.Status       = SearchResultStatus.IllegalInput;
 
-				if (sr.ErrorMessage.Contains("Search queue is full"))
-				{
+				if (sr.ErrorMessage.Contains("Search queue is full")) {
 					sr.Status = SearchResultStatus.Unavailable;
 				}
 			}
@@ -136,11 +127,13 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 [USI(ImplicitUseTargetFlags.WithMembers)]
 public class TraceMoeRootObject
 {
+
 	public long FrameCount { get; set; }
 
 	public string Error { get; set; }
 
 	public List<TraceMoeDoc> Result { get; set; }
+
 }
 
 public class TraceMoeQuotaObject
@@ -200,15 +193,14 @@ public class TraceMoeDoc
 		EpisodeString = Episode switch
 		{
 			not null and string => Episode.ToString(),
-			long l => l.ToString(),
-			JsonElement e => e.ToString(),
+			long l              => l.ToString(),
+			JsonElement e       => e.ToString(),
 			IEnumerable e => e.Cast<object>()
 				.Select(static x =>
 				{
 					var s1 = x.ToString();
 
-					if (s1.Contains('|'))
-					{
+					if (s1.Contains('|')) {
 						s1 = s1.Split('|')[0];
 					}
 
@@ -236,8 +228,7 @@ public class TraceMoeDoc
 			Metadata    = this
 		};
 
-		if (result.Similarity < TraceMoeEngine.FILTER_THRESHOLD)
-		{
+		if (result.Similarity < TraceMoeEngine.FILTER_THRESHOLD) {
 			/*result.OtherMetadata.Add("Note", $"Result may be inaccurate " +
 												 $"({result.Similarity.Value / 100:P} " +
 												 $"< {FILTER_THRESHOLD / 100:P})");*/

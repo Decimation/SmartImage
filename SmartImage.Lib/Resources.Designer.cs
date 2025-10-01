@@ -115,7 +115,7 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to %u --keep-open.
+        ///   Looks up a localized string similar to %u --interactive.
         /// </summary>
         internal static string Linux_Launch_Args {
             get {
@@ -133,7 +133,7 @@ namespace SmartImage.Lib {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &quot;%1&quot; --keep-open.
+        ///   Looks up a localized string similar to &quot;%1&quot; --interactive.
         /// </summary>
         internal static string Reg_Launch_Args {
             get {

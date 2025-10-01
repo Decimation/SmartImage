@@ -30,7 +30,7 @@ public sealed class YandexEngine : BaseSearchEngine
 
 	public const string URL_YANDEX = "https://yandex.com/";
 
-	public static readonly Url ImagesSearchUrl = Url.Combine(URL_YANDEX, "images","search");
+	public static readonly Url ImagesSearchUrl = Url.Combine(URL_YANDEX, "images", "search");
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 

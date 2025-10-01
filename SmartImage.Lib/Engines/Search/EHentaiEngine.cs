@@ -22,7 +22,9 @@ namespace SmartImage.Lib.Engines.Search;
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
 public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver
 {
+	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
+	
 	static EHentaiEngine() { }
 
 	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
@@ -30,6 +32,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		IsLoggedIn = false;
 
 		UseExHentai = useExHentai;
+
 		Jar         = new CookieJar();
 	}
 
@@ -40,9 +43,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
 
 	private Url BaseUrl2 => UseExHentai ? ExHentaiBase : EHentaiBase;
-
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
-
 
 	public bool IsLoggedIn { get; private set; }
 
@@ -68,6 +68,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 	{
 
 		const string SFILE_NAME_DEFAULT = "a.jpg";
+
 		string       fileName;
 		string       filePath = null;
 
@@ -166,10 +167,10 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return await parser.ParseDocumentAsync(content, token).ConfigureAwait(false);
 	}
 
-	protected override ValueTask<IList<INode>> ParseIntermediate(IDocument d)
+	protected override ValueTask<IList<INode>> ParseIntermediateAsync(IDocument src)
 	{
 		// Index 0 is table header
-		var array = d.Body.SelectNodes(Serialization.S_EHentai);
+		var array = src.Body.SelectNodes(Serialization.S_EHentai);
 
 		if (array.Count != 0)
 		{
@@ -180,7 +181,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return ValueTask.FromResult((IList<INode>) array);
 	}
 
-	protected override ValueTask<IEnumerable<EhResult>> ParseResultItems(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<EhResult>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
 		var buf = new List<EhResult>(source.Count);
 
