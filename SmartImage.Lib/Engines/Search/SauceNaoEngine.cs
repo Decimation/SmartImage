@@ -453,13 +453,13 @@ public sealed class SauceNaoDataResult : SearchResultItem
 		// TODO: OPTIMIZE
 
 		if (result == null) {
-			return null;
+			return [];
 		}
 
 		const string HIDDEN_ID_VAL = "result-hidden-notification";
 
 		if (result.TryGetAttribute(Serialization.Atr_id) == HIDDEN_ID_VAL) {
-			return null;
+			return [];
 		}
 
 		var resultElem = result as IHtmlElement;

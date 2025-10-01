@@ -227,7 +227,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		}
 
 		if (HasImage) {
-			return false;
+			return true;
 		}
 
 		if (HasScannedItems) {

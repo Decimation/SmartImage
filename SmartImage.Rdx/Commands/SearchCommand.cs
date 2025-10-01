@@ -71,21 +71,27 @@ namespace SmartImage.Rdx.Commands;
 public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSettings>
 {
 
-	public SearchClient Client { get; }
+	public SearchClient Client { get; private set; }
 
 	public SearchQuery Query { get; private set; }
 
 	private readonly CancellationTokenSource m_cts;
+	private readonly CancellationTokenSource m_ctsRun;
 
 	/// <summary>
 	/// Key: <see cref="SearchResult"/>
 	/// Value: <see cref="m_table"/> index
 	/// </summary>
-	private readonly ConcurrentDictionary<SearchResult, int> m_results;
+
+	// private readonly ConcurrentDictionary<SearchResult, int> m_results;
+	private readonly ConcurrentDictionary<SearchResult, STable> m_resultTables;
 
 	private readonly MemoryCache m_cache;
 
 	private readonly STable m_table;
+
+	private readonly SelectionPrompt<SearchResult> m_prompt;
+	private          Layout                        m_layout;
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
 
@@ -93,19 +99,25 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	public SearchCommand()
 	{
-		Config = new SearchConfig();
 
-		// Config = (SearchConfig) cfg;
-		Client = new SearchClient(Config);
 
-		m_cts     = new CancellationTokenSource();
-		m_scs     = null;
-		m_table   = CreateResultTable();
-		m_results = new();
-		m_cache   = new MemoryCache("Buf");
+		m_cts    = new CancellationTokenSource();
+		m_ctsRun = new CancellationTokenSource();
+		m_scs    = null;
+		m_table  = CreateMainTable();
+
+		// m_results      = new();
+		m_resultTables = new ConcurrentDictionary<SearchResult, STable>();
+		m_cache        = new MemoryCache("Buf");
 
 		Query = SearchQuery.Null;
 
+		m_prompt = new SelectionPrompt<SearchResult>()
+		{
+			Mode          = SelectionMode.Leaf,
+			SearchEnabled = true,
+			Converter     = sr => { return sr.Engine.Name; }
+		};
 	}
 
 #region
@@ -141,7 +153,13 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
 		Console.CancelKeyPress += OnCancelKeyPress;
+
+		Config = new SearchConfig();
+
 		InitConfig(settings);
+
+		// Config = (SearchConfig) cfg;
+		Client = new SearchClient(Config);
 
 		var initTask = AnsiConsole.Progress()
 			.AutoRefresh(true)
@@ -162,34 +180,27 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Config") };
 
-		AC.Write(ciPanel);
-		AC.Write(cfgPanel);
+		m_layout = new Layout("Root").SplitColumns(
+			new Layout("L").SplitRows(
+				new("LC", cfgPanel),
+				new("LT", m_table)
+			),
+			new Layout("R", ciPanel) { }
+		);
 
-		/*var layout = new Layout("Root").SplitRows(
-			new Layout("T", ciPanel) { },
-			new Layout("B", cfgPanel));
-
-		AnsiConsole.Write(layout);*/
+		// AnsiConsole.Write(m_layout);
 
 
-		/*
-		 * todo
-		 */
+		try {
+			Task main = AnsiConsole.Live(m_layout)
+				.StartAsync(c => RunSearchLiveAsync(c, m_ctsRun.Token));
 
-#if !UNITTEST
-		Task main = AnsiConsole.Live(m_table)
-			.StartAsync(c => RunSearchLiveAsync(c));
-
-#else
-		run = RunSearchLiveAsync(null);
-
-#endif
-		await main;
-
-		if (!main.IsCompletedSuccessfully) {
-			Debugger.Break();
-			return BaseOSIntegration.EC_ERROR;
+			await main;
 		}
+		catch (OperationCanceledException e) {
+			s_logger.LogError(e, "Canceled");
+		}
+
 
 		if (m_scs.HasCommand) {
 			await RunCompletionCommandAsync(m_cts.Token);
@@ -223,29 +234,31 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	}
 
 
-	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken token = default)
+	private async Task RunSearchLiveAsync(LiveDisplayContext c, CancellationToken ct = default)
 	{
 
 #if UNITTEST
 		return;
 #endif
 
-		var search = Client.RunSearchAsync(Query, token: m_cts.Token);
+		var search = Client.RunSearchAsync(Query, token: ct);
 
-		while (await Client.ResultChannel.Reader.WaitToReadAsync(token)) {
-			var task = Client.ResultChannel.Reader.ReadAsync(token);
+		while (await Client.ResultChannel.Reader.WaitToReadAsync(ct)) {
+			var task = Client.ResultChannel.Reader.ReadAsync(ct);
 
 			var result = await task;
 
-			m_results.TryAdd(result, BaseOSIntegration.EC_ERROR);
-
-			var rows = CreateResultRows(result);
-
-			m_results[result] = m_table.Rows.Count;
+			var table = CreateResultTable();
+			var rows  = CreateResultRows(result);
 
 			foreach (IRenderable[] row in rows) {
-				m_table.AddRow(row);
+				table.AddRow(row);
 			}
+
+			m_resultTables.TryAdd(result, table);
+
+			m_table.AddRow(CreateMainRows(result));
+			m_prompt.AddChoice(result);
 
 			c.Refresh();
 
@@ -256,125 +269,137 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private async Task RunInteractiveAsync(CancellationToken ct = default)
 	{
-		string cmd      = null;
-		bool   clrWrite = true;
+		string       cmd      = null;
+		bool         clrWrite = true;
+		STable       srTable  = null;
+		SearchResult sr       = null;
+
+		bool srTableClr = false;
 
 		do {
 
 			AnsiConsole.Clear();
 			AnsiConsole.Write(m_table);
 
-			cmd = GetCommandPrompt();
+			sr      = AnsiConsole.Prompt(m_prompt);
+			srTable = m_resultTables[sr];
 
-			if (cmd == R2.Chc_Exit) {
-				goto cont;
-			}
+			clrWrite = true;
 
-			var sr = GetEnginePrompt();
+			do {
+				if (clrWrite) {
+					AnsiConsole.Clear();
+					AnsiConsole.Write(srTable);
 
-			var sri = GetResultItemPrompt(sr);
-
-			s_logger.LogTrace("Interactive: {ResItem}", sri);
-
-			if (cmd == R2.Chc_Open) {
-				SearchClient.OpenResult(sri.Url);
-				continue;
-			}
-
-			if (cmd == R2.Chc_Scan) {
-				await ScanItemAsync(sri, ct);
-				continue;
-			}
-
-			if (cmd == R2.Chc_Calc) {
-				if (sri.HasHash) {
-					CalculateItem(sri);
 				}
 
-				continue;
-			}
+				cmd = GetCommandPrompt();
 
-			if (cmd == R2.Chc_Preview) {
-				if (!sri.HasBytes || !sri.HasImage) {
+				if (cmd == R2.Chc_Back) {
+					break;
+				}
+
+				// var sr = GetEnginePrompt();
+
+				var sri = GetResultItemPrompt(sr);
+
+				s_logger.LogTrace("Interactive: {ResItem}", sri);
+
+				if (cmd == R2.Chc_Open) {
+					SearchClient.OpenResult(sri.Url);
+					clrWrite = false;
 					continue;
 				}
 
-				var ci = GetPreview(sri);
+				if (cmd == R2.Chc_Scan) {
+					await AnsiConsole.Live(srTable).StartAsync(async (f) =>
+					{
+						s_logger.LogTrace("Scanning {Item}", sri);
+						bool scannedOk = false;
+						scannedOk = await sri.ScanAsync(m_cts.Token);
 
-				ShowPreview(ci, sri);
-			}
+						if (!scannedOk) {
+							return;
+						}
 
-			if (cmd == R2.Chc_Download) {
-				//todo
-			}
+						var row = GetRowForItem(sri);
 
-		cont:
-			continue;
+						if (sri.HasImage) {
+							srTable.Rows.Update(row, ROW_WH, CreateResultItemResolutionRow(sri));
+
+						}
+
+						if (sri.HasHash && !sri.Similarity.HasValue) {
+							sri.CalculateSimilarity(Query.Source);
+							srTable.Rows.Update(row, ROW_SIMILARITY, CreateResultItemSimilarityCell(sri));
+						}
+
+						if (sri.HasScannedItems) {
+							int i = 0;
+
+							var idx = sri.Root.Results.IndexOf(sri);
+
+							foreach (var ui in sri.ScannedItems) {
+								srTable.InsertRow(++row, CreateItemRow(ui, idx, i++));
+							}
+
+						}
+
+						f.Refresh();
+
+						/*foreach (var kv in m_results) {
+						if (kv.Value >= rowOrig) {
+							m_results[kv.Key] = kv.Value + delta;
+						}
+					}*/
+
+					});
+					clrWrite = false;
+					continue;
+				}
+
+				if (cmd == R2.Chc_Calc) {
+					if (sri.HasHash && !sri.Similarity.HasValue) {
+						AnsiConsole.Live(srTable).Start(f =>
+						{
+							var row = GetRowForItem(sri);
+							sri.CalculateSimilarity(Query.Source);
+
+							srTable.Rows.Update(row, ROW_SIMILARITY, CreateResultItemSimilarityCell(sri));
+							f.Refresh();
+						});
+					}
+
+					clrWrite = false;
+					continue;
+				}
+
+				if (cmd == R2.Chc_Preview) {
+					if (!sri.HasBytes || !sri.HasImage) {
+						continue;
+					}
+
+					var ci = GetPreview(sri);
+
+					ShowPreview(ci, sri);
+					clrWrite = true;
+				}
+
+				if (cmd == R2.Chc_Download) {
+					//todo
+				}
+
+			cont:
+				continue;
+
+			} while (cmd != R2.Chc_Back);
+
 		} while (cmd != R2.Chc_Exit);
 	}
 
 #endregion
 
 #region
-
-	private void CalculateItem(SearchResultItem item)
-	{
-		AnsiConsole.Live(m_table).Start(f =>
-		{
-			var row = GetRowForItem(item);
-			item.CalculateSimilarity(Query.Source);
-
-			m_table.Rows.Update(row, 2, new Text(item.Similarity.ToString()));
-			f.Refresh();
-		});
-
-
-	}
-
-	private async ValueTask ScanItemAsync(SearchResultItem item, CancellationToken token = default)
-	{
-		await AnsiConsole.Live(m_table).StartAsync(async (f) =>
-		{
-			bool scannedOk = false;
-
-			if (!(item.HasImage ^ item.HasScannedItems)) {
-
-				// var ok = await r.ScanAsync();
-				s_logger.LogTrace("Scanning {Item}", item);
-				scannedOk = await item.ScanAsync(token);
-
-			}
-			else {
-				return;
-			}
-
-			if (!scannedOk) {
-				return;
-			}
-
-			int i       = 0;
-			var row     = GetRowForItem(item);
-			var rowOrig = row;
-			var delta   = item.ScannedItems.Count;
-			var idx     = item.Root.Results.IndexOf(item);
-
-			// item.Root.Results.InsertRange(idx, scannedItems);
-
-			foreach (var ui in item.ScannedItems) {
-				m_table.InsertRow(++row, CreateItemRow(ui, idx, i++));
-			}
-
-			f.Refresh();
-
-			foreach (var kv in m_results) {
-				if (kv.Value >= rowOrig) {
-					m_results[kv.Key] = kv.Value + delta;
-				}
-			}
-
-		});
-
-	}
 
 	private CanvasImage GetPreview(SearchResultItem sri)
 	{
@@ -420,11 +445,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		if (ci is null) {
 			str = sri.GetStream();
-			ci = new CanvasImage(str);
+			ci  = new CanvasImage(str);
 			m_cache.Set(key, ci, cip);
 		}
-		else {
-		}
+		else { }
 
 		Trace.Assert(ci != null);
 
@@ -565,7 +589,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
 
-		foreach (SearchResult sr in m_results.Keys) {
+		foreach (SearchResult sr in m_resultTables.Keys) {
 			for (int j = 0; j < sr.Results.Count; j++) {
 				var sri = sr.Results[j];
 
@@ -596,18 +620,22 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 #endregion
 
-	[ContractAnnotation("=> halt")]
+	// [ContractAnnotation("=> halt")]
 	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
 	{
-		AnsiConsole.MarkupLine($"[red]Cancellation requested[/]");
-		AnsiConsole.MarkupLine($"[red]Sender: {sender}[/]");
+		// AnsiConsole.MarkupLine($"[red]Cancellation requested[/]");
+		// AnsiConsole.MarkupLine($"[red]Sender: {sender}[/]");
+
+		s_logger.LogTrace("Cancellation requested {Sender} {Args}", sender, args);
 
 		// AnsiConsole.Clear();
 
-		m_cts.Cancel();
-		args.Cancel = false;
+		// m_cts.Cancel();
+		m_ctsRun.Cancel();
 
-		Environment.Exit(BaseOSIntegration.EC_ERROR);
+		args.Cancel = true;
+
+		// Environment.Exit(BaseOSIntegration.EC_ERROR);
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)
@@ -620,7 +648,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
 
-		foreach (var sr in m_results.Keys) {
+		foreach (var sr in m_resultTables.Keys) {
 			sr.Dispose();
 		}
 
@@ -628,7 +656,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		ConsoleFormat.Prm_Num2.Validator = null;
 		ConsoleFormat.Prm_Engine.Choices.Clear();
 
-		m_results.Clear();
+		m_resultTables.Clear();
 		m_cts.Dispose();
 		m_cache.Dispose();
 		m_scs = null;

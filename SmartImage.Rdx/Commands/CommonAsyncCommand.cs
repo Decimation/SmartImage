@@ -12,7 +12,7 @@ public abstract partial class CommonAsyncCommand<TCommandSettings>
 	where TCommandSettings : CommonCommandSettings
 {
 
-	public SearchConfig Config { get; protected init; }
+	public SearchConfig Config { get; protected set; }
 
 	protected TCommandSettings m_scs;
 

@@ -16,13 +16,19 @@ namespace SmartImage.Rdx.Commands;
 public sealed partial class SearchCommand
 {
 
+	internal const int ROW_NUM        = 0;
+	internal const int ROW_URL        = 1;
+	internal const int ROW_SIMILARITY = 2;
+	internal const int ROW_ARTIST     = 3;
+	internal const int ROW_WH         = 4;
+
 #region
 
 	private int GetRowForItem(SearchResultItem sri)
 	{
 		int a = 0, b = 0, c = 0;
 
-		a = m_results[sri.Root];
+		// a = m_results[sri.Root];
 
 		// b = sri.Root.Results.IndexOf(sri);
 		b = sri.HasParent ? (sri.Parent.Root.HasResults ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0) : sri.Root.Results.IndexOf(sri);
@@ -79,10 +85,10 @@ public sealed partial class SearchCommand
 			new(new Text("URL", ConsoleFormat.Sty_ResultHeader)),
 			new(new Text("Similarity", ConsoleFormat.Sty_ResultHeader)),
 			new(new Text("Artist", ConsoleFormat.Sty_ResultHeader)),
-			new(new Text("Site", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("Resolution", ConsoleFormat.Sty_ResultHeader)),
 
 		};
-		
+
 		var tb = new STable()
 		{
 			Caption     = new TableTitle("Results", ConsoleFormat.Sty_ResultHeader),
@@ -93,6 +99,34 @@ public sealed partial class SearchCommand
 		tb.AddColumns(col);
 
 		return tb;
+	}
+
+	private static STable CreateMainTable()
+	{
+		var col = new TableColumn[]
+		{
+			new(new Text("Engine", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("Results", ConsoleFormat.Sty_ResultHeader)),
+
+		};
+
+		var tb = new STable()
+		{
+			Caption     = new TableTitle("Results", ConsoleFormat.Sty_ResultHeader),
+			Border      = TableBorder.Simple,
+			ShowHeaders = true,
+		};
+
+		tb.AddColumns(col);
+
+		return tb;
+	}
+
+	private static IEnumerable<IRenderable> CreateMainRows(SearchResult result)
+	{
+		Style style = ConsoleFormat.GetEngineColor(result.Engine.EngineOption);
+
+		return [new Text($"{result.Engine.Name}", style), new Text($"{result.Results.Count}")];
 	}
 
 	private static IEnumerable<IRenderable[]> CreateResultRows(SearchResult result)
@@ -113,10 +147,16 @@ public sealed partial class SearchCommand
 
 	}
 
-	private static IRenderable[] CreateResultItemRow(SearchResultItem res, int i, Style style)
+	private static IRenderable CreateResultItemResolutionRow(SearchResultItem sri)
+		=> (sri.Width.HasValue && sri.Height.HasValue) ? new Text($"{sri.Width}x{sri.Height}") : ConsoleFormat.Txt_NA;
+
+	private static IRenderable CreateResultItemSimilarityCell(SearchResultItem sri)
+		=> sri.Similarity.HasValue ? new Text($"{sri.Similarity}") : ConsoleFormat.Txt_NA;
+
+	private static IRenderable[] CreateResultItemRow(SearchResultItem sri, int i, Style style)
 	{
 		IRenderable url;
-		var         link = res.Url;
+		var         link = sri.Url;
 		Style       linkStyle;
 
 		if (link != null) {
@@ -128,12 +168,12 @@ public sealed partial class SearchCommand
 			linkStyle = style;
 		}
 
-		var name = new Text($"{res.Root.Engine.Name} #{i}", style);
+		var name   = new Text($"#{i}", style);
+		var sim    = CreateResultItemSimilarityCell(sri);
+		var artist = new Text($"{sri.Artist}");
+		var wh     = CreateResultItemResolutionRow(sri);
 
-		var sim    = new Text($"{res.Similarity}");
-		var artist = new Text($"{res.Artist}");
-		var site   = new Text($"{res.Site}");
-		return [name, url, sim, artist, site];
+		return [name, url, sim, artist, wh];
 	}
 
 #endregion
@@ -202,14 +242,14 @@ public sealed partial class SearchCommand
 		return AnsiConsole.Prompt(ConsoleFormat.Prm_Command);
 	}
 
-	private SearchResult GetEnginePrompt()
+	/*private SearchResult GetEnginePrompt()
 	{
 		if (Client.IsComplete && !ConsoleFormat.Prm_Engine.Choices.Any()) {
 			ConsoleFormat.Prm_Engine.Choices.AddRange(m_results.Keys);
 		}
 
 		return AnsiConsole.Prompt(ConsoleFormat.Prm_Engine);
-	}
+	}*/
 
 #endregion
 
