@@ -404,7 +404,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 				ClearQueryControls();
 			}
 
-			CanReload = !Client.IsRunning && CurrentQuery is { HasQuery: true };
+			CanReload = Client.IsComplete && CurrentQuery is { HasQuery: true };
 
 		});
 
@@ -513,7 +513,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 	{
 		string? tbs = null;
 
-		if ((Config.AutoSearch && !Client.IsRunning) && !CurrentQuery.Results.Any() && CurrentQuery.CanSearch) {
+		if ((Config.AutoSearch && !Client.IsComplete) && !CurrentQuery.Results.Any() && CurrentQuery.CanSearch) {
 			Dispatcher.InvokeAsync(RunAsync);
 		}
 		else if (CurrentQuery.Results.Any()) {

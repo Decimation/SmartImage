@@ -14,15 +14,13 @@ namespace SmartImage.Lib.Engines.Results;
 public class SearchResult : IDisposable, INotifyPropertyChanged
 {
 
-	// TODO: FLATTEN SearchResult to SearchResultItem and eliminate SearchResult ≡ SearchResultItem
+	// IDEA: FLATTEN SearchResult to SearchResultItem and eliminate SearchResult ≡ SearchResultItem
 
 	/// <summary>
 	/// Engine which returned this result
 	/// </summary>
 	[JI]
 	public BaseSearchEngine Engine { get; }
-
-	// todo: make the engine reference weak
 
 	/// <summary>
 	/// Undifferentiated result URL
@@ -61,36 +59,20 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	internal SearchResult(BaseSearchEngine bse, Url rawUrl)
 	{
-		Engine        = bse;
-		RawResultItem = GetRawResultItem(rawUrl);
-		Results       = [RawResultItem];
+		Engine = bse;
 
-		/*m_rawResultItem = new Lazy<SearchResultItem>(() =>
+		RawResultItem = new SearchResultItem(this, true)
 		{
-		var rawCache = new SearchResultItem(this, true)
-		{
-			Url = RawUrl
+			Url = rawUrl
 		};
-		return rawCache;
-		})*/
-		;
 
-		// Results = [GetRawResultItem()];
+		Results = [RawResultItem];
 	}
 
 	[LinqTunnel]
 	public IEnumerable<SearchResultItem> FindGroups(SearchResultItem sri)
 	{
 		return Results.Where(k => k.Parent == sri);
-
-	}
-
-	private SearchResultItem GetRawResultItem(Url rawUrl)
-	{
-		return new SearchResultItem(this, true)
-		{
-			Url = rawUrl
-		};
 	}
 
 	public virtual void Update()
@@ -103,6 +85,8 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 	}
 
+
+	#region 
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
@@ -121,13 +105,12 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		return true;
 	}
 
+	#endregion
+
 	[CBN]
 	public SearchResultItem GetBestResult()
 	{
-		// This should never happen so long as results contains the raw item
-		Debug.Assert(Results.Count == 0);
-
-		// *? IMPROVE
+		// TODO *? IMPROVE
 
 		return Results.Where(static r => Url.IsValid(r.Url))
 			.OrderByDescending(static r => r.Similarity)
@@ -144,7 +127,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	{
 		GC.SuppressFinalize(this);
 		Debug.WriteLine($"Disposing {Engine.Name} with {Results.Count}", LogCategories.C_VERBOSE);
-
+		
 		foreach (SearchResultItem item in Results) {
 			item.Dispose();
 		}

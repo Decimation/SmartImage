@@ -61,7 +61,7 @@ public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
 			           .OnError(e => { e.ExceptionHandled = true; })
 			           .PostMultipartAsync(c =>
 			           {
-				           var file = query.Source.WriteToFile();
+				           var file = query.Source.WriteImageToFile();
 				           c.AddFile("file", file, "file");
 				           c.AddString("includeNsfw", true.ToString());
 				           c.AddString("limit", 32.ToString());

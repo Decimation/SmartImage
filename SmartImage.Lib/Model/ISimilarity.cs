@@ -14,7 +14,7 @@ public interface ISimilarity
 
 	public double? Similarity { get; }
 
-	[MemberNotNull(nameof(IHashable.Hash.Value))]
+	[MNN(nameof(IHashable.Hash.Value))]
 	public static double CalculateHashSimilarity<T>(T a, T b) where T : IHashable
 	{	
 		if (a.HasHash && b.HasHash) {

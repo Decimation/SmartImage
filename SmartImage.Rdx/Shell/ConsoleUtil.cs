@@ -1,6 +1,7 @@
-﻿global using STable = Spectre.Console.Table;
+﻿global using SpcTable = Spectre.Console.Table;
 global using DTable = System.Data.DataTable;
 using System.Data;
+using System.Resources;
 using Kantan.Utilities;
 using Spectre.Console;
 using Spectre.Console.Cli;
@@ -10,30 +11,6 @@ using Spectre.Console.Rendering;
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
 
 namespace SmartImage.Rdx.Shell;
-
-[Flags]
-public enum OutputFields
-{
-
-	None = 0,
-
-	Name       = 1 << 0,
-	Url        = 1 << 1,
-	Similarity = 1 << 2,
-	Artist     = 1 << 3,
-	Site       = 1 << 4,
-
-	// Default = Name | Url | Similarity
-
-}
-
-public enum OutputFileFormat
-{
-
-	None = 0,
-	Delimited,
-
-}
 
 internal static class ConsoleUtil
 {
@@ -92,6 +69,66 @@ internal static class ConsoleUtil
 		}
 
 		return path;
+	}
+
+	internal static void Dump(CommandSettings settings)
+	{
+		var table = new SpcTable().RoundedBorder();
+		table.AddColumn("[grey]Name[/]");
+		table.AddColumn("[grey]Value[/]");
+
+		var properties = settings.GetType().GetProperties();
+
+		foreach (var property in properties) {
+			var value = property.GetValue(settings)
+				?.ToString()
+				?.Replace("[", "[[");
+
+			table.AddRow(
+				property.Name,
+				value ?? "[grey]null[/]");
+		}
+
+		AnsiConsole.Write(table);
+	}
+
+	[MURV]
+	public static FigletFont LoadFigletFontFromResource(string name, out MemoryStream fs)
+		=> R2.ResourceManager.LoadFigletFontFromResource(name, out fs);
+
+	[MURV]
+	public static FigletFont LoadFigletFontFromResource(this ResourceManager rsrc, string name, out MemoryStream fs)
+	{
+		var o = rsrc.GetObject(name);
+
+		if (o == null) {
+			throw new InvalidOperationException(nameof(name));
+		}
+
+		fs = new MemoryStream((byte[]) o);
+		var ff = FigletFont.Load(fs);
+
+		return ff;
+	}
+
+	public static SpcTable DTableToSTable(this DTable dt)
+	{
+		var t = new SpcTable();
+
+		foreach (DataColumn row in dt.Columns) {
+			t.AddColumn(new TableColumn(row.ColumnName));
+		}
+
+		Func<object, IRenderable> selector = ConsoleFormat.AsRenderableOrText;
+
+		foreach (DataRow row in dt.Rows) {
+			var obj = row.ItemArray
+				.Select(selector);
+
+			t.AddRow(obj);
+		}
+
+		return t;
 	}
 
 }

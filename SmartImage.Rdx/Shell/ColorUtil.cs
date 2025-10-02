@@ -12,7 +12,7 @@ namespace SmartImage.Rdx.Shell;
 internal static class ColorUtil
 {
 
-	public const double BYTE_D = 255.0;
+	public const double BYTE_D = Byte.MaxValue;
 
 	private const double LUM_DELTA = 0.05;
 

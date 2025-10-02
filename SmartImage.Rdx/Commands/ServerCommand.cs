@@ -69,7 +69,7 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 
 	// public delegate Task<string> HandleRequestCallback(HttpListenerRequest buf);
 
-	public STable Shared { get; internal set; }
+	public SpcTable Shared { get; internal set; }
 
 	public ServerCommand()
 	{

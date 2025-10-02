@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 #nullable disable
 namespace SmartImage.Rdx.Commands;
 
+
 public sealed partial class SearchCommand
 {
 
@@ -69,15 +70,15 @@ public sealed partial class SearchCommand
 
 		return
 		[
-			new Text($"{result.Engine.Name} #{idx}.{subIdx}", style),
+			new Text($"#{idx}.{subIdx}", style),
 			new Text(Markup.Escape(sri.Url)),
+			CreateResultItemSimilarityCell(sri),
 			ConsoleFormat.Txt_Empty,
-			ConsoleFormat.Txt_Empty,
-			ConsoleFormat.Txt_Empty
+			CreateResultItemResolutionRow(sri)
 		];
 	}
 
-	private static STable CreateResultTable()
+	private static SpcTable CreateResultTable()
 	{
 		var col = new TableColumn[]
 		{
@@ -89,7 +90,7 @@ public sealed partial class SearchCommand
 
 		};
 
-		var tb = new STable()
+		var tb = new SpcTable()
 		{
 			Caption     = new TableTitle("Results", ConsoleFormat.Sty_ResultHeader),
 			Border      = TableBorder.Simple,
@@ -101,7 +102,7 @@ public sealed partial class SearchCommand
 		return tb;
 	}
 
-	private static STable CreateMainTable()
+	private static SpcTable CreateMainTable()
 	{
 		var col = new TableColumn[]
 		{
@@ -110,7 +111,7 @@ public sealed partial class SearchCommand
 
 		};
 
-		var tb = new STable()
+		var tb = new SpcTable()
 		{
 			Caption     = new TableTitle("Results", ConsoleFormat.Sty_ResultHeader),
 			Border      = TableBorder.Simple,
@@ -133,11 +134,6 @@ public sealed partial class SearchCommand
 	{
 		Style style = ConsoleFormat.GetEngineColor(result.Engine.EngineOption);
 
-		/*var lr   = style.Foreground.GetLuminance();
-		var lrr  = style.Foreground.GetContrastRatio(SpcColor.White);
-		var lrr2 = style.Foreground.GetContrastRatio(SpcColor.Black);*/
-
-		// Debug.WriteLine($"{lr} {lrr} {lrr2}");
 
 		for (int i = 0; i < result.Results.Count; i++) {
 			var res = result.Results[i];
@@ -146,6 +142,7 @@ public sealed partial class SearchCommand
 		}
 
 	}
+
 
 	private static IRenderable CreateResultItemResolutionRow(SearchResultItem sri)
 		=> (sri.Width.HasValue && sri.Height.HasValue) ? new Text($"{sri.Width}x{sri.Height}") : ConsoleFormat.Txt_NA;
@@ -181,7 +178,7 @@ public sealed partial class SearchCommand
 
 #region Prompts
 
-	private SearchResultItem GetResultItemPrompt(SearchResult res)
+	private static SearchResultItem GetResultItemPrompt(SearchResult res)
 	{
 		SearchResultItem ret;
 
@@ -221,35 +218,6 @@ public sealed partial class SearchCommand
 			return sri;
 		}
 	}
-
-	private int GetNumberPrompt(SearchResult result)
-	{
-		ConsoleFormat.Prm_Num.Validator = i =>
-		{
-			if (i < result.Results.Count && i >= 0) {
-				return ValidationResult.Success();
-			}
-
-			return ValidationResult.Error("Out of range");
-		};
-
-
-		return AnsiConsole.Prompt(ConsoleFormat.Prm_Num);
-	}
-
-	private string GetCommandPrompt()
-	{
-		return AnsiConsole.Prompt(ConsoleFormat.Prm_Command);
-	}
-
-	/*private SearchResult GetEnginePrompt()
-	{
-		if (Client.IsComplete && !ConsoleFormat.Prm_Engine.Choices.Any()) {
-			ConsoleFormat.Prm_Engine.Choices.AddRange(m_results.Keys);
-		}
-
-		return AnsiConsole.Prompt(ConsoleFormat.Prm_Engine);
-	}*/
 
 #endregion
 

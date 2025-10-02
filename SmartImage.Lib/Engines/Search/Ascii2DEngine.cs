@@ -33,12 +33,11 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 	public CookieJar Jar { get; }
 
-	protected override string[] ErrorBodyMessages
-		=>
-		[
-			"検索できるのは 縦 10000px での画像です。",
-			"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
-		];
+	protected override string[] ErrorBodyMessages =>
+	[
+		"検索できるのは 縦 10000px での画像です。",
+		"ごく最近、このURLからのダウンロードに失敗しています。少し時間を置いてください。"
+	];
 
 	public const string ALT_URL = "https://ascii2d.obfs.dev/search/url/";
 

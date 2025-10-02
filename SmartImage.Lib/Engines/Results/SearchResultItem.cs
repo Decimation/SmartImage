@@ -7,15 +7,16 @@ using System.Threading.Channels;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
 using Kantan.Diagnostics;
+using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.Formats;
+using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, IComparable, ISimilarity, IEquatable<SearchResultItem>, IDisposable,
-								IHashable, IImageSource
+public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
 {
 
 	/// <summary>
@@ -25,8 +26,8 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	[JI]
 	public SearchResult Root { get; }
 
-	[JI]
 	[CBN]
+	[JI]
 	public SearchResultItem Parent { get; private set; }
 
 	[MNNW(true, nameof(Parent))]
@@ -95,14 +96,16 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	[JI]
 	public object Metadata { get; internal set; }
 
+	[JI]
 	public List<SearchResultItem> ScannedItems { get; }
 
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems?.Count > 0;
 
 	/// <summary>
-	/// <see cref="SearchResult.RawResultItem"/>
+	/// Whether this is <see cref="SearchResult.RawResultItem"/>
 	/// </summary>
+	[JI]
 	public bool IsRaw { get; }
 
 	public double Score
@@ -143,7 +146,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			if (Metadata is not null)
 				s++;
 
-			s+= ScannedItems.Count;
+			s += ScannedItems.Count;
 
 			return s;
 		}
@@ -172,10 +175,9 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		Parent       = null;
 		IsRaw        = isRaw;
 		ScannedItems = [];
-
 	}
 
-	#region 
+#region
 
 	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
 	{
@@ -205,16 +207,18 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		return HasImage;
 	}
 
-	
-
 
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
 	{
-		if (Url.IsValid(Thumbnail) && ThumbnailImage != null) {
-			using var response    = await ImageScanner.GetResponseAsync(Thumbnail, ct);
-			var       responseStr = await response.GetStreamAsync();
-			ThumbnailImage = await ISImage.LoadAsync(responseStr, ct);
-
+		if (!HasThumbnail) {
+			try {
+				using var response    = await ImageScanner.GetResponseAsync(Thumbnail, ct);
+				var       responseStr = await response.GetStreamAsync();
+				ThumbnailImage = await ISImage.LoadAsync(responseStr, ct);
+			}
+			catch (Exception e) {
+				s_logger.LogError(e, "Could not load {Thumb}",Thumbnail);
+			}
 		}
 
 		return HasThumbnail;
@@ -226,18 +230,14 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			// return [];
 		}
 
-		if (HasImage) {
-			return true;
-		}
-
-		if (HasScannedItems) {
+		if (HasImage || HasScannedItems) {
 			return true;
 		}
 
 		await using var stream = GetStream();
 		using var       sr     = new StreamReader(stream);
 		var             str    = await sr.ReadToEndAsync(ct);
-
+		
 		var       hp      = new HtmlParser();
 		var       urls    = ImageScanner.GetImageUrls(str, Url);
 		using var doc     = await hp.ParseDocumentAsync(str);
@@ -278,7 +278,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		return HasScannedItems;
 	}
 
-	#endregion
+#endregion
 
 	public SearchResultItem CloneToChildWithUrl(Url u)
 	{
@@ -296,6 +296,21 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
 	}
 
+	public override void Dispose()
+	{
+		GC.SuppressFinalize(this);
+		base.Dispose();
+		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
+		ThumbnailImage?.Dispose();
+
+		foreach (var sis in ScannedItems) {
+			sis.Dispose();
+		}
+	}
+
+
+	#region Relational members
+
 	public virtual bool Equals(SearchResultItem other)
 	{
 		if (other is null)
@@ -311,22 +326,6 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	{
 		return HashCode.Combine(Root, Url);
 	}
-
-	public override void Dispose()
-	{
-		GC.SuppressFinalize(this);
-		Debug.WriteLine($"Disposing {Url} of {Root.Engine.Name}", LogCategories.C_VERBOSE);
-		base.Dispose();
-		ThumbnailImage?.Dispose();
-
-		/*foreach (var sis in Sisters) {
-
-			sis.Dispose();
-		}*/
-	}
-
-
-#region Relational members
 
 	public int CompareTo(SearchResultItem other)
 	{
@@ -348,8 +347,8 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			return 0;
 
 		return obj is SearchResultItem other
-				   ? CompareTo(other)
-				   : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
+			       ? CompareTo(other)
+			       : throw new ArgumentException($"Object must be of type {nameof(SearchResultItem)}");
 	}
 
 	public static bool operator <(SearchResultItem left, SearchResultItem right)

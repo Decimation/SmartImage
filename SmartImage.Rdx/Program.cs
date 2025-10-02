@@ -99,7 +99,7 @@ public static class Program
 
 	private static async Task DisplayHeaderAsync()
 	{
-		var ff = ConsoleFormat.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
+		var ff = ConsoleUtil.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()

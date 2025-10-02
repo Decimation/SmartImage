@@ -133,7 +133,6 @@ public static partial class ImageScanner
 
 	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
 
-
 	public static readonly string[] LegalSchemes = ["http", "https"];
 
 	/// <summary>

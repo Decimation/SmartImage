@@ -21,7 +21,7 @@ public class UniImageFile : UniImage
 
 	public FileInfo LocalFileInfo { get; }
 
-	public override string WriteToFile(string fn = null, Action<IImageProcessingContext> operation = null)
+	public override string WriteImageToFile(string fn = null, Action<IImageProcessingContext> operation = null)
 	{
 		if (!HasFilePath) {
 			throw new FileNotFoundException(Value);
@@ -42,16 +42,6 @@ public class UniImageFile : UniImage
 		return HasBytes;
 	}
 
-	[CA($"{nameof(f)}: null => halt")]
-	public static void Verify([CBN] string f)
-	{
-		var exists = File.Exists(f);
-
-		if (!exists) {
-			throw new FileNotFoundException(fileName: f, message: $"{f} not found");
-		}
-	}
-
 	public static bool IsFileType(object o, out FileInfo f)
 	{
 		f = null;
@@ -60,7 +50,7 @@ public class UniImageFile : UniImage
 			f = new FileInfo(s);
 		}
 
-		return f != null;
+		return f != null && ImageScanner.Extensions.Contains(f.Extension);
 	}
 
 }

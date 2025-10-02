@@ -30,20 +30,19 @@ public sealed class YandexEngine : BaseSearchEngine
 
 	public const string URL_YANDEX = "https://yandex.com/";
 
-	public static readonly Url ImagesSearchUrl = Url.Combine(URL_YANDEX, "images", "search");
+	//"https://yandex.com/images/search?rpt=imageview&url="
+
+	public static readonly Url BaseSearchUrl = Url.Combine(URL_YANDEX, "images", "search");
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
 
-	protected override string[] ErrorBodyMessages
-		=>
-		[
-			"Please confirm that you and not a robot are sending requests",
-			"Изображение не загрузилось, попробуйте загрузить другое."
+	protected override string[] ErrorBodyMessages =>
+	[
+		"Please confirm that you and not a robot are sending requests",
+		"Изображение не загрузилось, попробуйте загрузить другое."
+	];
 
-			// "No matching images found"
-		];
-
-	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
+	public YandexEngine() : base(BaseSearchUrl)
 	{
 		Timeout = TimeSpan.FromSeconds(30);
 	}
@@ -53,15 +52,15 @@ public sealed class YandexEngine : BaseSearchEngine
 		var url = BaseUrl.Clone();
 
 		url.QueryParams.AddOrReplace("url", query.Upload);
+		url.QueryParams.AddOrReplace("rpt", "imageview");
 		url.QueryParams.AddOrReplace("cbir_page", "sites");
+
 		return url;
 	}
 
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
-		// var sr = await base.GetResultAsync(query, token);
-
 		var url = GetRawUrl(query);
 		var sr  = new SearchResult(this, url) { };
 
@@ -85,11 +84,13 @@ public sealed class YandexEngine : BaseSearchEngine
 
 			var jsonNode = JsonNode.Parse(json);
 			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
-			var sitesObj = sites.Deserialize<YandexSite[]>(jsonTypeInfo: YandexSiteCtx.Default.YandexSiteArray);
+			var sitesObj = sites.Deserialize(YandexSiteContext.Default.YandexSiteArray);
 
 			foreach (var site in sitesObj) {
 				// site.Root = sr;
 				var sri = site.ToItem(sr);
+
+				// var sri = site;
 				sr.Results.Add(sri);
 			}
 
@@ -126,10 +127,10 @@ public sealed class YandexEngine : BaseSearchEngine
 
 }
 
-[JsonSourceGenerationOptions]
+[JsonSourceGenerationOptions()]
 [JsonSerializable(typeof(YandexSite))]
 [JsonSerializable(typeof(YandexSite[]))]
-internal partial class YandexSiteCtx : JsonSerializerContext { }
+internal partial class YandexSiteContext : JsonSerializerContext { }
 
 public record YandexImage
 {
@@ -166,45 +167,17 @@ public record YandexSite
 	[JPN("originalImage")]
 	public YandexImage OriginalImage { get; set; }
 
-
-	/*[JsonConstructor]
-	public YandexSite(
-		string url,
-		string title,
-		string description,
-		string domain,
-		YandexImage thumb,
-		YandexImage originalImage) : base(null)
-	{
-
-		OriginalImage = originalImage;
-		Url           = originalImage.Url;
-		Domain        = domain;
-		Site          = Domain;
-		Thumb         = thumb;
-		Thumbnail     = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url;
-		/*Url       = OriginalImage.Url,
-		Site      = Domain,
-		Thumbnail = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url#1#
-	}*/
-
-
-	/*public YandexSite() : base(null)
-	{
-
-	}
-
-	private YandexSite(SearchResult r) : base(r) { }*/
-
 	public SearchResultItem ToItem(SearchResult sr)
 	{
 		return new SearchResultItem(sr)
 		{
-			Url         = OriginalImage.Url,
+			Url         = Url,
 			Height      = OriginalImage.Height,
 			Width       = OriginalImage.Width,
 			Description = Description,
+			Title       = Title,
 			Site        = Domain,
+			Source      = OriginalImage.Url,
 			Thumbnail   = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
 		};
 	}

@@ -54,7 +54,11 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 
 	protected BaseSearchEngine([NN] Url baseUrl)
 	{
-		BaseUrl = baseUrl;
+		BaseUrl           = baseUrl;
+		Timeout           = TimeSpan.FromSeconds(30);
+		ErrorBodyMessages = [];
+		MaxSize           = null;
+
 	}
 
 	/// <summary>
@@ -62,38 +66,22 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 	/// </summary>
 	public virtual Url BaseUrl { get; }
 
-	public virtual string Name
-	{
-		get => EngineOption.ToString();
-	}
+	public virtual string Name => EngineOption.ToString();
 
 	/// <inheritdoc />
 	public abstract SearchEngineOptions EngineOption { get; }
 
 	[JI]
-	public TimeSpan Timeout { get; init; } = TimeSpan.FromSeconds(30);
+	public TimeSpan Timeout { get; protected init; }
 
 	[JI]
-	protected long? MaxSize { get; init; }
+	public long? MaxSize { get; protected init; }
 
 	[JI]
-	protected virtual string[] ErrorBodyMessages { get; } = [];
+	protected virtual string[] ErrorBodyMessages { get; }
 
 	protected static FlurlClient Client { get; }
 
-
-	/*public Task<SearchResult> GetTaskAsync(SearchQuery query, CancellationToken token = default)
-	{
-		// TODO
-
-		Task ops;
-		if (this is ISearchQueryVerifiable sq) {
-			ops = sq.VerifyQueryAsync(query);
-		}
-
-		var task = GetResultAsync(query, token);
-
-	}*/
 
 	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
@@ -101,18 +89,22 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 
 		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
-		var rawUrl = GetRawUrl(query);
-
-		var res = new SearchResult(this, rawUrl)
-		{
-			Status = srs,
-		};
+		var res = GetRawResult(query);
+		res.Status = srs;
 
 		Logger.LogInformation("{Engine} with {Query} returned {Status}", Name, query, res.Status);
 
 		return Task.FromResult(res);
 	}
 
+	protected virtual SearchResult GetRawResult(SearchQuery query)
+	{
+		var rawUrl = GetRawUrl(query);
+
+		var res = new SearchResult(this, rawUrl) { };
+
+		return res;
+	}
 
 	protected virtual Url GetRawUrl(SearchQuery query)
 	{

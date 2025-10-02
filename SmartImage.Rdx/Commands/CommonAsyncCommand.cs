@@ -7,8 +7,7 @@ using Spectre.Console.Cli;
 #nullable disable
 namespace SmartImage.Rdx.Commands;
 
-public abstract partial class CommonAsyncCommand<TCommandSettings>
-	: AsyncCommand<TCommandSettings>, IDisposable
+public abstract partial class CommonAsyncCommand<TCommandSettings> : AsyncCommand<TCommandSettings>, IDisposable
 	where TCommandSettings : CommonCommandSettings
 {
 
@@ -16,11 +15,10 @@ public abstract partial class CommonAsyncCommand<TCommandSettings>
 
 	protected TCommandSettings m_scs;
 
-
 	/// <inheritdoc />
 	public abstract void Dispose();
 
-	protected void InitConfig(TCommandSettings scs)
+	protected virtual void InitConfig(TCommandSettings scs)
 	{
 		m_scs = scs;
 

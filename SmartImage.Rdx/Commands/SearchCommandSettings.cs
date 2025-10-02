@@ -120,7 +120,7 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 			Clipboard.Close();
 		}
 
-		if (!UniImage.IsValidSourceType(Query, false)) {
+		if (!UniImage.IsValidSourceType(Query)) {
 			return ValidationResult.Error($"Invalid query: {Query}");
 		}
 

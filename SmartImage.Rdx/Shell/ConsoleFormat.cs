@@ -29,7 +29,7 @@ internal static class ConsoleFormat
 
 #region Colors
 
-	public static readonly SpcColor Clr_Misc1 = new(0x80, 0xFF, 0x80);
+	internal static readonly SpcColor Clr_Misc1 = new(0x80, 0xFF, 0x80);
 
 #endregion
 
@@ -41,11 +41,11 @@ internal static class ConsoleFormat
 
 	internal static readonly Style Sty_Url = new(SpcColor.Cyan1, decoration: Decoration.None);
 
-	public static readonly Style Sty_Grid1 = new(foreground: SpcColor.DodgerBlue1, decoration: Decoration.Bold);
+	internal static readonly Style Sty_Grid1 = new(foreground: SpcColor.DodgerBlue1, decoration: Decoration.Bold);
 
-	public static readonly Style Sty_Table1 = new(foreground: SpcColor.SpringGreen1, decoration: Decoration.Bold);
+	internal static readonly Style Sty_Table1 = new(foreground: SpcColor.SpringGreen1, decoration: Decoration.Bold);
 
-	private static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
+	internal static readonly Style Sty_Misc1 = new(Clr_Misc1, decoration: Decoration.Underline);
 
 	internal static readonly Style Sty_RootResults = new(foreground: SpcColor.Aqua, decoration: Decoration.Underline);
 
@@ -138,62 +138,6 @@ internal static class ConsoleFormat
 	}
 
 
-	[MURV]
-	public static FigletFont LoadFigletFontFromResource(string name, out MemoryStream fs)
-	{
-		var o = R2.ResourceManager.GetObject(name);
-
-		if (o == null) {
-			throw new InvalidOperationException(nameof(name));
-		}
-
-		fs = new MemoryStream((byte[]) o);
-		var ff = FigletFont.Load(fs);
-
-		return ff;
-	}
-
-	internal static void Dump(CommandSettings settings)
-	{
-		var table = new STable().RoundedBorder();
-		table.AddColumn("[grey]Name[/]");
-		table.AddColumn("[grey]Value[/]");
-
-		var properties = settings.GetType().GetProperties();
-
-		foreach (var property in properties) {
-			var value = property.GetValue(settings)
-				?.ToString()
-				?.Replace("[", "[[");
-
-			table.AddRow(
-				property.Name,
-				value ?? "[grey]null[/]");
-		}
-
-		AnsiConsole.Write(table);
-	}
-
-	public static STable DTableToSTable(DTable dt)
-	{
-		var t = new STable();
-
-		foreach (DataColumn row in dt.Columns) {
-			t.AddColumn(new TableColumn(row.ColumnName));
-		}
-
-		Func<object, IRenderable> selector = AsRenderableOrText;
-
-		foreach (DataRow row in dt.Rows) {
-			var obj = row.ItemArray
-				.Select(selector);
-
-			t.AddRow(obj);
-		}
-
-		return t;
-	}
-
 	internal static SpcColor GetEngineColor(SearchEngineOptions opt)
 	{
 		if (!EngineColors.TryGetValue(opt, out var color)) {
@@ -253,8 +197,7 @@ internal static class ConsoleFormat
 		};
 
 		foreach (var (s, o) in kv) {
-			dt.AddRow(new Text(s, Sty_Grid1),
-			          new Text(Markup.Escape(FormatObject(o))));
+			dt.AddRow(new Text(s, Sty_Grid1), new Text(Markup.Escape(FormatObject(o))));
 		}
 
 		// Render the layout
@@ -286,9 +229,9 @@ internal static class ConsoleFormat
 	public const int ROW_EMT2_TIMEOUT = 4;
 
 
-	public static STable GetEngineMapTableBase()
+	public static SpcTable GetEngineMapTableBase()
 	{
-		var table = new STable();
+		var table = new SpcTable();
 
 		var columns = GetColumns("Thread", nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
 		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
@@ -321,18 +264,6 @@ internal static class ConsoleFormat
 		Choices =
 		{
 			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Preview, R2.Chc_Calc, R2.Chc_Exit, R2.Chc_Back
-		}
-	};
-
-	public static readonly TextPrompt<SearchResult> Prm_Engine = new(Markup.Escape("[Engine]"))
-	{
-		ShowChoices      = false,
-		ShowDefaultValue = false,
-		AllowEmpty       = false,
-		Converter = static s =>
-		{
-			//
-			return s.Engine.Name;
 		}
 	};
 

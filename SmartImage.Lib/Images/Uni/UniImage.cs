@@ -45,6 +45,7 @@ public enum UniImageType
 
 public enum SearchHashType
 {
+	//TODO
 
 	None = 0,
 	PHash,
@@ -60,12 +61,6 @@ public enum SearchHashType
 /// </summary>	
 public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable, IImageSource
 {
-
-	/*[MN]
-	public Stream Stream { get; protected set; }
-
-	[MNNW(true, nameof(Stream))]
-	public bool HasStream => Stream != null && Stream != Stream.Null;*/
 
 	protected static readonly ILogger s_logger;
 
@@ -85,9 +80,6 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	[MNNW(true, nameof(LocalFilePath))]
 	public bool HasFilePath => LocalFilePath != null && File.Exists(LocalFilePath);
-
-	/*[MNNW(true, nameof(Image), nameof(Image.Metadata))]
-	public bool HasImageFormat => HasImage && Image.Metadata.DecodedImageFormat != null;*/
 
 	public bool IsUri => Type == UniImageType.Uri;
 
@@ -147,6 +139,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		Type  = type;
 	}
 
+
+	#region 
 
 	protected abstract Task<bool> AllocAsync(CancellationToken ct = default);
 
@@ -230,25 +224,21 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return ui;
 	}
 
-	public static bool IsValidSourceType(object str, bool checkExt = true)
+	public static bool IsValidSourceType(object str)
 	{
 		bool isFile = UniImageFile.IsFileType(str, out var f);
-		bool isUri  = UniImageUri.IsUriType(str, out var f2);
+		bool isUri  = UniImageUri.IsUriType(str, out var url);
 		bool ok     = isFile || isUri;
-
-		if (isFile && checkExt) {
-			//todo
-			string ext = Path.GetExtension(str.ToString())?[1..];
-			return ImageScanner.Extensions.Any(s => s == ext);
-		}
 
 		return ok;
 	}
 
+	#endregion
+
 	public bool TryWriteToFile(string fn = null)
 	{
 		if (!HasFilePath) {
-			LocalFilePath = WriteToFile(fn);
+			LocalFilePath = WriteImageToFile(fn);
 		}
 
 		return HasFilePath;
@@ -265,7 +255,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	}
 
 	[MURV]
-	public virtual string WriteToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
+	public virtual string WriteImageToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
 	{
 		if (!HasImage) {
 			throw new InvalidOperationException();

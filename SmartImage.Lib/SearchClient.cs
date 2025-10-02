@@ -82,15 +82,6 @@ public sealed class SearchClient : IDisposable
 		});
 	}
 
-	/*public delegate void ResultCompleteCallback(object sender, SearchResult e);
-
-	public delegate void SearchCompleteCallback(object sender, SearchResult[] e);
-
-
-	public event ResultCompleteCallback OnResultComplete;
-
-	public event SearchCompleteCallback OnSearchComplete;*/
-
 
 	public Channel<SearchResult> ResultChannel { get; private set; }
 
@@ -112,7 +103,7 @@ public sealed class SearchClient : IDisposable
 	/// Runs a search of <paramref name="query"/>.
 	/// </summary>
 	/// <param name="query">Search query</param>
-	/// <param name="token">Cancellation token passed to <see cref="T:ParsedSearchEngine{TResultItem,TSource}.GetResultAsync(SearchQuery,CancellationToken)"/></param>
+	/// <param name="token">Cancellation token passed to <see cref="BaseSearchEngine.GetResultAsync"/></param>
 	public async Task<bool> RunSearchAsync(SearchQuery query, CancellationToken token = default)
 	{
 		if (ResultChannel == null || (IsComplete && !IsRunning)) {
@@ -140,7 +131,6 @@ public sealed class SearchClient : IDisposable
 		s_logger.LogTrace("Results: {Res}", results.Length);
 
 		CompleteSearchAsync();
-
 
 		return true;
 	}
@@ -243,9 +233,7 @@ public sealed class SearchClient : IDisposable
 		}
 
 		ConfigApplied = false;
-		IsComplete    = false;
-		IsRunning     = false;
-		ResultChannel?.Writer.Complete();
+		CompleteSearchAsync();
 	}
 
 }

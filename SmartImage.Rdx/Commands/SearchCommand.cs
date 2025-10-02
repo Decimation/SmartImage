@@ -60,6 +60,7 @@ using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Engines.Search;
 using Size = SixLabors.ImageSharp.Size;
+using SmartImage.Lib.Engines.Upload;
 
 
 [assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_LIB_UNITTEST)]
@@ -76,6 +77,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	public SearchQuery Query { get; private set; }
 
 	private readonly CancellationTokenSource m_cts;
+
 	private readonly CancellationTokenSource m_ctsRun;
 
 	/// <summary>
@@ -83,15 +85,23 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	/// Value: <see cref="m_table"/> index
 	/// </summary>
 
-	// private readonly ConcurrentDictionary<SearchResult, int> m_results;
-	private readonly ConcurrentDictionary<SearchResult, STable> m_resultTables;
+	private readonly ConcurrentDictionary<SearchResult, SpcTable> m_resultTables;
 
 	private readonly MemoryCache m_cache;
 
-	private readonly STable m_table;
+	private readonly SpcTable m_table;
 
-	private readonly SelectionPrompt<SearchResult> m_prompt;
-	private          Layout                        m_layout;
+	private readonly SelectionPrompt<SearchResult> m_prompt = new()
+	{
+		Mode          = SelectionMode.Leaf,
+		SearchEnabled = true,
+		Converter     = static sr =>
+		{
+			return sr.Engine.Name;
+		}
+	};
+
+	private Layout m_layout;
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
 
@@ -99,28 +109,19 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	public SearchCommand()
 	{
-
-
 		m_cts    = new CancellationTokenSource();
 		m_ctsRun = new CancellationTokenSource();
 		m_scs    = null;
 		m_table  = CreateMainTable();
 
 		// m_results      = new();
-		m_resultTables = new ConcurrentDictionary<SearchResult, STable>();
+		m_resultTables = new ConcurrentDictionary<SearchResult, SpcTable>();
 		m_cache        = new MemoryCache("Buf");
 
 		Query = SearchQuery.Null;
-
-		m_prompt = new SelectionPrompt<SearchResult>()
-		{
-			Mode          = SelectionMode.Leaf,
-			SearchEnabled = true,
-			Converter     = sr => { return sr.Engine.Name; }
-		};
 	}
 
-#region
+	#region 
 
 	private async Task InitQueryAsync(ProgressContext ctx)
 	{
@@ -150,16 +151,21 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	}
 
+	/// <inheritdoc />
+	protected override void InitConfig(SearchCommandSettings scs)
+	{
+		Config = new SearchConfig();
+
+		base.InitConfig(scs);
+
+		Client = new SearchClient(Config);
+	}
+
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
 	{
 		Console.CancelKeyPress += OnCancelKeyPress;
 
-		Config = new SearchConfig();
-
 		InitConfig(settings);
-
-		// Config = (SearchConfig) cfg;
-		Client = new SearchClient(Config);
 
 		var initTask = AnsiConsole.Progress()
 			.AutoRefresh(true)
@@ -173,7 +179,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		{
 			Header = new PanelHeader($"{Query.Source.Value}"),
 			Expand = true,
-
 		};
 
 		var cfgGrid = ConsoleFormat.CreateConfigGrid(Config, Query);
@@ -271,7 +276,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		string       cmd      = null;
 		bool         clrWrite = true;
-		STable       srTable  = null;
+		SpcTable       srTable  = null;
 		SearchResult sr       = null;
 
 		bool srTableClr = false;
@@ -279,9 +284,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		do {
 
 			AnsiConsole.Clear();
-			AnsiConsole.Write(m_table);
+			AnsiConsole.Write(m_layout);
 
-			sr      = AnsiConsole.Prompt(m_prompt);
+			sr = AnsiConsole.Prompt(m_prompt);
+
 			srTable = m_resultTables[sr];
 
 			clrWrite = true;
@@ -293,13 +299,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				}
 
-				cmd = GetCommandPrompt();
+				cmd = AnsiConsole.Prompt(ConsoleFormat.Prm_Command);
 
 				if (cmd == R2.Chc_Back) {
 					break;
 				}
-
-				// var sr = GetEnginePrompt();
 
 				var sri = GetResultItemPrompt(sr);
 
@@ -340,6 +344,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							var idx = sri.Root.Results.IndexOf(sri);
 
 							foreach (var ui in sri.ScannedItems) {
+
 								srTable.InsertRow(++row, CreateItemRow(ui, idx, i++));
 							}
 
@@ -397,7 +402,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		} while (cmd != R2.Chc_Exit);
 	}
 
-#endregion
+	#endregion
 
 #region
 
@@ -459,10 +464,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private void ShowPreview(CanvasImage ci, SearchResultItem ui)
 	{
-		AnsiConsole.Clear();
+		// AnsiConsole.Clear();
 
 		// (AnsiConsole.Profile.Width, AC.Profile.Height) = (ui.Image.Width, ui.Image.Height);
-		ci.MaxWidth = AnsiConsole.Profile.Width;
+		// ci.MaxWidth = AnsiConsole.Profile.Width;
 
 		// Console.SetWindowSize(ui.Image.Width, ui.Image.Height);
 		// ci.MaxWidth ??= ci.Width;
@@ -510,12 +515,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 						case ConsoleKey.A:
 							ci.MaxWidth = AnsiConsole.Profile.Width;
+							pw = 0;
 							break;
 
 						case ConsoleKey.W:
-							AnsiConsole.Console.Profile.Width  = ui.Image.Width;
-							AnsiConsole.Console.Profile.Height = ui.Image.Height;
-
+							// AnsiConsole.Console.Profile.Width  = ui.Image.Width;
+							// AnsiConsole.Console.Profile.Height = ui.Image.Height;
 
 							// ci.MaxWidth = ui.Image.Width;
 							break;
@@ -540,85 +545,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 #endregion
 
 
-#region
-
-	private async Task RunCompletionCommandAsync(CancellationToken ct = default)
-	{
-		// ReSharper disable once AssignNullToNotNullAttribute
-		var command = Cli.Wrap(m_scs.Command);
-
-		var cmdArgs      = m_scs.CommandArguments;
-		var stdOutBuffer = new StringBuilder();
-		var stdErrBuffer = new StringBuilder();
-
-		if (cmdArgs is not null) {
-			command = command.WithArguments(cmdArgs);
-		}
-
-		command = command.WithStandardErrorPipe(PipeTarget.ToStringBuilder(stdErrBuffer))
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(stdOutBuffer));
-
-		var commandTask = command.ExecuteAsync(ct);
-
-		AnsiConsole.WriteLine($"Process id: {commandTask.ProcessId}");
-
-		var result = await commandTask;
-
-		AnsiConsole.WriteLine($"Process successful: {result.IsSuccess}");
-	}
-
-	private void WriteOutputFile()
-	{
-		// ReSharper disable once AssignNullToNotNullAttribute
-		var fw = File.OpenWrite(m_scs.OutputFile);
-
-		using var sw = new StreamWriter(fw);
-		sw.AutoFlush = true;
-
-		var fields = m_scs.OutputFields;
-
-		bool fName   = fields.HasFlag(OutputFields.Name);
-		var  fUrl    = fields.HasFlag(OutputFields.Url);
-		var  fSim    = fields.HasFlag(OutputFields.Similarity);
-		var  fArtist = fields.HasFlag(OutputFields.Artist);
-		var  fSite   = fields.HasFlag(OutputFields.Site);
-
-		var names = Enum.GetValues<OutputFields>()
-			.Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
-			.Select(Enum.GetName);
-
-		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
-
-		foreach (SearchResult sr in m_resultTables.Keys) {
-			for (int j = 0; j < sr.Results.Count; j++) {
-				var sri = sr.Results[j];
-
-				var rg = new List<string>();
-
-				if (fName)
-					rg.Add($"{sr.Engine.Name} #{j + 1}");
-
-				if (fUrl)
-					rg.Add(sri.Url);
-
-				if (fSim)
-					rg.Add($"{sri.Similarity}");
-
-				if (fArtist)
-					rg.Add($"{sri.Artist}");
-
-				if (fSite)
-					rg.Add($"{sri.Site}");
-
-				// string[] items  = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
-				sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, rg));
-			}
-		}
-
-		AnsiConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
-	}
-
-#endregion
 
 	// [ContractAnnotation("=> halt")]
 	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
@@ -654,7 +580,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		ConsoleFormat.Prm_Num.Validator  = null;
 		ConsoleFormat.Prm_Num2.Validator = null;
-		ConsoleFormat.Prm_Engine.Choices.Clear();
 
 		m_resultTables.Clear();
 		m_cts.Dispose();

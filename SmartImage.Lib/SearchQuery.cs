@@ -7,6 +7,7 @@ global using NNW = System.Diagnostics.CodeAnalysis.NotNullWhenAttribute;
 global using NN = System.Diagnostics.CodeAnalysis.NotNullAttribute;
 global using NN2 = JetBrains.Annotations.NotNullAttribute;
 global using MNNW = System.Diagnostics.CodeAnalysis.MemberNotNullWhenAttribute;
+global using MNN = System.Diagnostics.CodeAnalysis.MemberNotNullAttribute;
 global using CMN = System.Runtime.CompilerServices.CallerMemberNameAttribute;
 global using JPN = System.Text.Json.Serialization.JsonPropertyNameAttribute;
 global using JI = System.Text.Json.Serialization.JsonIgnoreAttribute;
