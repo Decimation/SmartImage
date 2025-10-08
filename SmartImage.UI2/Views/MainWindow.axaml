@@ -12,6 +12,7 @@
     xmlns:vm5="using:SmartImage.Lib.Engines.Results"
     mc:Ignorable="d"
     xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+    xmlns:ui2="clr-namespace:SmartImage.UI2"
 
     x:DataType="vm:MainWindowViewModel"
     Title="SmartImage">
@@ -25,39 +26,22 @@ d:DesignWidth="1000" d:DesignHeight="675"
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid Background="#202020" RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto,*,Auto">
+    <Grid Background="#202020" 
+          RowDefinitions="Auto,*,Auto" 
+          ColumnDefinitions="Auto,*,Auto">
 
         <TextBox Name="Tb_Input" Grid.Column="0" Grid.Row="0" MinWidth="100"
                  MaxHeight="50" Text="{Binding Input}">
 
         </TextBox>
 
-        <Button Command="{Binding SearchCommand}" Content="Search" Grid.Column="1" Grid.Row="0"  />
+        <Button Command="{Binding SearchCommand}" Content="Search" Grid.Column="1" Grid.Row="0" />
 
         <Panel Grid.Column="2" Grid.Row="0" Width="300" Height="300">
-            <Rectangle Fill="Aquamarine">
-            </Rectangle>
+            <Rectangle Fill="Aquamarine" />
             <Image Width="300" Height="300" Source="{Binding Image, Mode=OneWay}" />
             <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom"></ProgressBar>
         </Panel>
-
-        <!--<TreeView
-            ItemsSource="{Binding Items}"
-            Width="600" Height="300" Grid.Column="0" Grid.Row="2">
-            <TreeView.ItemTemplate>
-                <TreeDataTemplate DataType="models:ResultItem">
-                    <Grid ColumnDefinitions="Auto, *">
-                        <TextBlock Grid.Column="1"
-                                   Margin="10,0"
-                                   Text="{Binding Url}">
-                        </TextBlock>
-
-                    </Grid>
-                </TreeDataTemplate>
-            </TreeView.ItemTemplate>
-
-
-        </TreeView>-->
 
         <ListBox ItemsSource="{Binding Items}"
                  SelectionMode="Single" MinWidth="1000" MinHeight="300"
@@ -66,8 +50,8 @@ d:DesignWidth="1000" d:DesignHeight="675"
                  SelectedItem="{Binding SelectedItem}">
 
             <ListBox.KeyBindings>
-              <KeyBinding Command="{Binding LoadItemCommand}" Gesture="Ctrl+L"></KeyBinding>
-              <KeyBinding Command="{Binding HashItemCommand}" Gesture="Ctrl+H"></KeyBinding>
+                <KeyBinding Command="{Binding LoadItemCommand}" Gesture="Ctrl+L"></KeyBinding>
+                <KeyBinding Command="{Binding HashItemCommand}" Gesture="Ctrl+H"></KeyBinding>
             </ListBox.KeyBindings>
 
             <ListBox.ItemTemplate>
@@ -76,16 +60,17 @@ d:DesignWidth="1000" d:DesignHeight="675"
 
                         <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
 
-                            <asyncImageLoader:AdvancedImage Width="100" Height="100" Source="{Binding Thumbnail, Mode=OneWay}"
-                                                            Margin="0,0,8,0" IsVisible="{Binding HasThumbnail, Mode=TwoWay}"/>
+                            <asyncImageLoader:AdvancedImage Width="100" Height="100"
+                                                            Source="{Binding Thumbnail, Mode=OneWay}" Margin="0,0,8,0"
+                                                            IsVisible="{Binding Thumbnail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
                             <StackPanel Orientation="Vertical" Spacing="2">
-                                <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12" FontStyle="Italic" TextWrapping="Wrap">
-                                </TextBlock>
+                                <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12" FontWeight="Bold"
+                                           TextWrapping="Wrap" />
 
                                 <StackPanel Orientation="Horizontal" Spacing="8">
                                     <TextBlock Text="Similarity:" Foreground="#808080" />
-                                    <TextBlock Text="{Binding Similarity, StringFormat={}{0}}" IsVisible="{Binding Similarity}" Foreground="#FFD700" />
+                                    <TextBlock Text="{Binding Similarity, StringFormat={}{0}, UpdateSourceTrigger=PropertyChanged}" Foreground="#FFD700" />
                                 </StackPanel>
 
                                 <StackPanel Orientation="Horizontal" Spacing="8"
@@ -96,11 +81,15 @@ d:DesignWidth="1000" d:DesignHeight="675"
                                     <TextBlock Text="{Binding Height}" Foreground="#E0E0E0" />
                                 </StackPanel>
 
-                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding Artist, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                                     <TextBlock Text="Artist:" Foreground="#808080" />
-                                    <TextBlock Text="{Binding Artist}" Foreground="#E0E0E0" />
+                                    <TextBlock Text="{Binding Artist}" Foreground="#E0E0E0"/>
+
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                                     <TextBlock Text="Source:" Foreground="#808080" />
-                                    <TextBlock Text="{Binding Source}" Foreground="#E0E0E0" />
+                                    <TextBlock Text="{Binding Source}" Foreground="#E0E0E0"/>
+
                                 </StackPanel>
                             </StackPanel>
                         </StackPanel>
@@ -110,5 +99,8 @@ d:DesignWidth="1000" d:DesignHeight="675"
         </ListBox>
     </Grid>
 
+    <Window.Resources>
+        <ui2:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
+    </Window.Resources>
 
 </Window>

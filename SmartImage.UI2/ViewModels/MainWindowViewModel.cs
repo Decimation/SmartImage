@@ -63,8 +63,9 @@ public partial class MainWindowViewModel : ViewModelBase
 	public async Task HashItemAsync()
 	{
 		var ok = SelectedItem.CalculateSimilarity(Query.Source);
-
+		OnPropertyChanged(nameof(SelectedItem.Similarity));
 	}
+
 	[ObservableProperty]
 	public partial double Progress {get;set;}
 
