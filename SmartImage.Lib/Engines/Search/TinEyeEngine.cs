@@ -80,7 +80,7 @@ public sealed class TinEyeEngine : BaseSearchEngine, ISearchEngine
 		try {
 			var str = await response.GetStringAsync().ConfigureAwait(false);
 
-			tinEyeRoot = (TinEyeRoot) JsonSerializer.Deserialize(str, typeof(TinEyeRoot), Search.TinEyeContext.Default);
+			tinEyeRoot = (TinEyeRoot) JsonSerializer.Deserialize(str, typeof(TinEyeRoot), TinEyeContext.Default);
 
 			// tinEyeRoot = await req.GetJsonAsync<TinEyeRoot>();
 		}

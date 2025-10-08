@@ -54,6 +54,7 @@ using System.Reflection;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
 using SmartImage.Lib.Engines.Results;
@@ -82,50 +83,49 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	/// <summary>
 	/// Key: <see cref="SearchResult"/>
-	/// Value: <see cref="m_table"/> index
+	/// Value: <see cref="m_mainTable"/> index
 	/// </summary>
-
 	private readonly ConcurrentDictionary<SearchResult, SpcTable> m_resultTables;
 
-	private readonly MemoryCache m_cache;
+	private readonly MemoryCache m_prevCache;
 
-	private readonly SpcTable m_table;
+	private readonly SpcTable m_mainTable;
 
-	private readonly SelectionPrompt<SearchResult> m_prompt = new()
+	private readonly SelectionPrompt<SearchResult> m_srPrompt = new()
 	{
 		Mode          = SelectionMode.Leaf,
 		SearchEnabled = true,
-		Converter     = static sr =>
-		{
-			return sr.Engine.Name;
-		}
+		Converter     = static sr => { return sr.Engine.Name; }
 	};
 
 	private Layout m_layout;
 
-	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
+	private static readonly ILogger s_logger;
 
-	static SearchCommand() { }
+	static SearchCommand()
+	{
+		s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
+
+	}
 
 	public SearchCommand()
 	{
-		m_cts    = new CancellationTokenSource();
-		m_ctsRun = new CancellationTokenSource();
-		m_scs    = null;
-		m_table  = CreateMainTable();
+		m_cts       = new CancellationTokenSource();
+		m_ctsRun    = new CancellationTokenSource();
+		m_scs       = null;
+		m_mainTable = CreateMainTable();
 
 		// m_results      = new();
 		m_resultTables = new ConcurrentDictionary<SearchResult, SpcTable>();
-		m_cache        = new MemoryCache("Buf");
+		m_prevCache    = new MemoryCache("Buf");
 
 		Query = SearchQuery.Null;
 	}
 
-	#region 
+#region
 
 	private async Task InitQueryAsync(ProgressContext ctx)
 	{
-
 		var p = ctx.AddTask("Creating query");
 		p.IsIndeterminate = true;
 		bool ok = true;
@@ -188,7 +188,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_layout = new Layout("Root").SplitColumns(
 			new Layout("L").SplitRows(
 				new("LC", cfgPanel),
-				new("LT", m_table)
+				new("LT", m_mainTable)
 			),
 			new Layout("R", ciPanel) { }
 		);
@@ -205,7 +205,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		catch (OperationCanceledException e) {
 			s_logger.LogError(e, "Canceled");
 		}
-
 
 		if (m_scs.HasCommand) {
 			await RunCompletionCommandAsync(m_cts.Token);
@@ -262,8 +261,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			m_resultTables.TryAdd(result, table);
 
-			m_table.AddRow(CreateMainRows(result));
-			m_prompt.AddChoice(result);
+			m_mainTable.AddRow(CreateMainRows(result));
+			m_srPrompt.AddChoice(result);
 
 			c.Refresh();
 
@@ -276,7 +275,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		string       cmd      = null;
 		bool         clrWrite = true;
-		SpcTable       srTable  = null;
+		SpcTable     srTable  = null;
 		SearchResult sr       = null;
 
 		bool srTableClr = false;
@@ -286,7 +285,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			AnsiConsole.Clear();
 			AnsiConsole.Write(m_layout);
 
-			sr = AnsiConsole.Prompt(m_prompt);
+			sr = AnsiConsole.Prompt(m_srPrompt);
 
 			srTable = m_resultTables[sr];
 
@@ -320,7 +319,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
 						bool scannedOk = false;
-						scannedOk = await sri.ScanAsync(m_cts.Token);
+						scannedOk = await sri.ScanAsync(m_ctsRun.Token);
 
 						if (!scannedOk) {
 							return;
@@ -359,7 +358,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					}*/
 
 					});
-					clrWrite = false;
+					clrWrite = true;
 					continue;
 				}
 
@@ -402,7 +401,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		} while (cmd != R2.Chc_Exit);
 	}
 
-	#endregion
+#endregion
 
 #region
 
@@ -444,14 +443,14 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// string key = sri.Url.ToString();
 
 		var key = sri.Url;
-		var val = m_cache.Get(key);
+		var val = m_prevCache.Get(key);
 
 		CanvasImage ci = val as CanvasImage;
 
 		if (ci is null) {
 			str = sri.GetStream();
 			ci  = new CanvasImage(str);
-			m_cache.Set(key, ci, cip);
+			m_prevCache.Set(key, ci, cip);
 		}
 		else { }
 
@@ -474,7 +473,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// ci.MaxWidth ??= ui.Image.Width;
 
 		// var panel = new Panel(ci) { Expand = true, };
-		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
+
+		var (w, h)     = (AnsiConsole.Profile.Width, AC.Profile.Height);
+		var (mwO, pwO)   = (ci.MaxWidth, ci.PixelWidth);
+		var (mw, pw) = (mwO ?? ci.Width, pwO);
 
 		AnsiConsole.Live(ci).Start((ldc) =>
 		{
@@ -485,52 +487,43 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 
 				if (cki.HasValue) {
-					int mw = 0, pw = 0;
 
 					switch (cki.Value.Key) {
 						case ConsoleKey.DownArrow:
-							pw = -1;
+							pw--;
 							break;
 
 						case ConsoleKey.LeftArrow:
-							mw = -1;
+							mw--;
 							break;
 
 						case ConsoleKey.UpArrow:
-							pw = 1;
+							pw++;
 							break;
 
 						case ConsoleKey.RightArrow:
-							mw = 1;
+							mw++;
 							break;
 
 						case ConsoleKey.Escape:
 							return;
 
+						/*
 						case ConsoleKey.R:
-							ci.MaxWidth = ui.Image.Width;
+							mw = ui.Image.Width;
 
 							// ci.PixelWidth =   0;
 							break;
+							*/
 
 						case ConsoleKey.A:
-							ci.MaxWidth = AnsiConsole.Profile.Width;
-							pw = 0;
-							break;
-
-						case ConsoleKey.W:
-							// AnsiConsole.Console.Profile.Width  = ui.Image.Width;
-							// AnsiConsole.Console.Profile.Height = ui.Image.Height;
-
-							// ci.MaxWidth = ui.Image.Width;
+							ci.MaxWidth = mwO;
+							pw          = 0;
 							break;
 					}
 
-					if (mw != 0 || pw != 0) {
-						ci.PixelWidth = Math.Clamp(ci.PixelWidth      + pw, 0, ci.Width);
-						ci.MaxWidth   = Math.Clamp((ci.MaxWidth ?? 0) + mw, 0, AnsiConsole.Profile.Width);
-
-					}
+					ci.MaxWidth   = mw < 0 ? null : mw;
+					ci.PixelWidth = Math.Clamp(pw, 0, 10);
 				}
 
 				// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
@@ -543,7 +536,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	}
 
 #endregion
-
 
 
 	// [ContractAnnotation("=> halt")]
@@ -583,7 +575,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		m_resultTables.Clear();
 		m_cts.Dispose();
-		m_cache.Dispose();
+		m_prevCache.Dispose();
 		m_scs = null;
 		Client.Dispose();
 		Query.Dispose();

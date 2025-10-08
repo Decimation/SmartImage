@@ -42,7 +42,7 @@ public sealed class YandexEngine : BaseSearchEngine
 		"Изображение не загрузилось, попробуйте загрузить другое."
 	];
 
-	public YandexEngine() : base(BaseSearchUrl)
+	public YandexEngine() : base("https://yandex.com/images/search?rpt=imageview&url=")
 	{
 		Timeout = TimeSpan.FromSeconds(30);
 	}
@@ -52,9 +52,7 @@ public sealed class YandexEngine : BaseSearchEngine
 		var url = BaseUrl.Clone();
 
 		url.QueryParams.AddOrReplace("url", query.Upload);
-		url.QueryParams.AddOrReplace("rpt", "imageview");
 		url.QueryParams.AddOrReplace("cbir_page", "sites");
-
 		return url;
 	}
 
@@ -82,9 +80,18 @@ public sealed class YandexEngine : BaseSearchEngine
 			var imagesAppNode = doc.Body.SelectSingleNode(Serialization.S_Yandex_Json);
 			var json          = imagesAppNode.TryGetAttribute("data-state");
 
+			if (String.IsNullOrWhiteSpace(json)) {
+				goto ret;
+			}
+
+
 			var jsonNode = JsonNode.Parse(json);
 			var sites    = jsonNode["initialState"]["cbirSites"]["sites"];
 			var sitesObj = sites.Deserialize(YandexSiteContext.Default.YandexSiteArray);
+
+			var ocr     = jsonNode["initialState"]["cbirOcr"];
+			var ocrText = ocr["hasText"].GetValue<bool>() ? ocr["plainText"] : null;
+			sr.Overview = $"OCR: {ocrText}";
 
 			foreach (var site in sitesObj) {
 				// site.Root = sr;
@@ -110,6 +117,7 @@ public sealed class YandexEngine : BaseSearchEngine
 
 
 		sr.Status = SearchResultStatus.Success;
+	ret:
 		sr.Update();
 		res?.Dispose();
 
@@ -171,14 +179,15 @@ public record YandexSite
 	{
 		return new SearchResultItem(sr)
 		{
-			Url         = Url,
+			Url         = OriginalImage.Url,
 			Height      = OriginalImage.Height,
 			Width       = OriginalImage.Width,
 			Description = Description,
 			Title       = Title,
 			Site        = Domain,
-			Source      = OriginalImage.Url,
+			Source      = Url,
 			Thumbnail   = Thumb.Url.StartsWith("//") ? "https:" + Thumb.Url : Thumb.Url,
+			Metadata = this
 		};
 	}
 

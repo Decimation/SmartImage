@@ -55,13 +55,6 @@ public class BrowserCookiesSource : ICookiesSource
 
 	public async ValueTask<IList<ICookie>> GetOrLoadCookiesAsync(CancellationToken ct = default)
 	{
-
-
-		/*if (IsClosedOrBroken) {
-			throw new InvalidOperationException();
-		}*/
-
-
 		if (m_cookies == null) {
 			if (!IsOpen) {
 				await OpenAsync();

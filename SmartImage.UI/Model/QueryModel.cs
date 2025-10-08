@@ -70,8 +70,8 @@ public class QueryModel : INotifyPropertyChanged, IBitmapImageSource, INamed, ID
 	{
 		get
 		{
-			if (HasQuery) {
-				return Query.Source.Size;
+			if (HasQuery && Query.Source.Size.HasValue) {
+				return Query.Source.Size.Value;
 			}
 
 			return Native.ERROR_SV;

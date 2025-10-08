@@ -8,8 +8,6 @@ using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
 using SmartImage.Lib;
-using SmartImage.Lib.Engines.Search;
-using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Model;
@@ -27,6 +25,27 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 {
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
+
+	/// <summary>
+	/// Base URI
+	/// </summary>
+	public virtual Url BaseUrl { get; }
+
+	public virtual string Name => EngineOption.ToString();
+
+	/// <inheritdoc />
+	public abstract SearchEngineOptions EngineOption { get; }
+
+	[JI]
+	public TimeSpan Timeout { get; protected init; }
+
+	[JI]
+	public long? MaxSize { get; protected init; }
+
+	[JI]
+	protected virtual string[] ErrorBodyMessages { get; }
+
+	protected static FlurlClient Client { get; }
 
 	static BaseSearchEngine()
 	{
@@ -60,27 +79,6 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 		MaxSize           = null;
 
 	}
-
-	/// <summary>
-	/// Base URI
-	/// </summary>
-	public virtual Url BaseUrl { get; }
-
-	public virtual string Name => EngineOption.ToString();
-
-	/// <inheritdoc />
-	public abstract SearchEngineOptions EngineOption { get; }
-
-	[JI]
-	public TimeSpan Timeout { get; protected init; }
-
-	[JI]
-	public long? MaxSize { get; protected init; }
-
-	[JI]
-	protected virtual string[] ErrorBodyMessages { get; }
-
-	protected static FlurlClient Client { get; }
 
 
 	public virtual Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
@@ -133,12 +131,12 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 		return (int) EngineOption;
 	}*/
 
+	public abstract ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
+
 	public override string ToString()
 	{
 		return $"{Name}: {BaseUrl} {Timeout}";
 	}
-
-	public abstract ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
 
 
 	public override bool Equals(object? obj)
@@ -189,63 +187,5 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 
 	public static bool operator !=(BaseSearchEngine? left, BaseSearchEngine? right)
 		=> !Equals(left, right);
-
-
-	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
-	{
-		/*return BaseSearchEngine.All.Where(e =>
-			{
-				return e.EngineOption != default && options.HasFlag(e.EngineOption);
-			})
-			.ToArray();*/
-
-		if (options.HasFlag(SearchEngineOptions.SauceNao))
-			yield return new SauceNaoEngine();
-
-		if (options.HasFlag(SearchEngineOptions.ImgOps))
-			yield return new ImgOpsEngine();
-
-		if (options.HasFlag(SearchEngineOptions.GoogleImages))
-			yield return new GoogleImagesEngine();
-
-		if (options.HasFlag(SearchEngineOptions.TinEye))
-			yield return new TinEyeEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Iqdb))
-			yield return new IqdbEngine();
-
-		if (options.HasFlag(SearchEngineOptions.TraceMoe))
-			yield return new TraceMoeEngine();
-
-		if (options.HasFlag(SearchEngineOptions.KarmaDecay))
-			yield return new KarmaDecayEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Yandex))
-			yield return new YandexEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Bing))
-			yield return new BingEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Ascii2D))
-			yield return new Ascii2DEngine();
-
-		if (options.HasFlag(SearchEngineOptions.RepostSleuth))
-			yield return new RepostSleuthEngine();
-
-		if (options.HasFlag(SearchEngineOptions.EHentai))
-			yield return new EHentaiEngine();
-
-		if (options.HasFlag(SearchEngineOptions.ArchiveMoe))
-			yield return new ArchiveMoeEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Iqdb3D))
-			yield return new Iqdb3DEngine();
-
-		if (options.HasFlag(SearchEngineOptions.Fluffle))
-			yield return new FluffleEngine();
-
-		if (options.HasFlag(SearchEngineOptions.GoogleLens))
-			yield return new GoogleLensEngine();
-	}
 
 }

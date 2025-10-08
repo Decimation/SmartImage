@@ -59,6 +59,9 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	/// </summary>
 	public int? Height { get; internal set; }
 
+	[MNNW(true, nameof(Width), nameof(Height))]
+	public bool HasDimensions => Width.HasValue && Height.HasValue;
+
 	/// <summary>
 	///     Artist or author
 	/// </summary>
@@ -227,7 +230,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
 	{
 		if (!(await AllocImageAsync(ct))) {
-			// return [];
+			return false;
 		}
 
 		if (HasImage || HasScannedItems) {

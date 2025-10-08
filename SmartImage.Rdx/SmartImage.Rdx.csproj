@@ -53,7 +53,7 @@
     <PackageReference Include="Flurl.Http" Version="4.0.2" />
     <PackageReference Include="HttpMultipartParser" Version="9.1.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2025.2.2" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.2" />
     <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.9" />
@@ -79,7 +79,7 @@
     <PackageReference Include="Spectre.Console.ImageSharp" Version="0.51.1" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.9" />
     <PackageReference Include="System.Net.Primitives" Version="4.3.1" />
-    <PackageReference Include="System.Reactive" Version="6.0.2" />
+    <PackageReference Include="System.Reactive" Version="6.1.0" />
     <PackageReference Include="System.Text.Json" Version="9.0.9" />
     <PackageReference Include="Verify.Flurl" Version="1.0.1" />
   </ItemGroup>

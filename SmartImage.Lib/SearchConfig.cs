@@ -16,6 +16,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using SmartImage.Lib.Utilities.Integration;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
 using ConfigurationSection = System.Configuration.ConfigurationSection;
@@ -24,6 +25,8 @@ namespace SmartImage.Lib;
 
 public sealed class SearchConfig : INotifyPropertyChanged
 {
+
+#region
 
 #region Defaults
 
@@ -65,24 +68,182 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 #region
 
-#region
-
 	/// <summary>
 	/// Engines used to search.
 	/// </summary>
-	public SearchEngineOptions SearchEngines { get; set; } = SE_DEFAULT;
+	public SearchEngineOptions SearchEngines
+	{
+		get => Get(SE_DEFAULT);
+		set => Set(value);
+	}
 
 	/// <summary>
 	/// Engines whose results are opened in the default browser.
 	/// </summary>
-	public SearchEngineOptions PriorityEngines { get; set; } = PE_DEFAULT;
+	public SearchEngineOptions PriorityEngines
+	{
+		get => Get(PE_DEFAULT);
+		set => Set(value);
+	}
+
+	/// <summary>
+	/// Keeps console window on-top.
+	/// </summary>
+	public bool OnTop
+	{
+		get => Get(ON_TOP_DEFAULT);
+		set => Set(value);
+	}
+
+	/*
+	/// <summary>
+	/// <see cref="HydrusClient.EndpointUrl"/>
+	/// </summary>
+	public string HydrusEndpoint
+	{
+		get { return Configuration.ReadSetting(nameof(HydrusEndpoint), STR_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(HydrusEndpoint), value);
+			OnPropertyChanged();
+		}
+	}
+
+	/// <summary>
+	/// <see cref="HydrusClient.Key"/>
+	/// </summary>
+	public string HydrusKey
+	{
+		get { return Configuration.ReadSetting(nameof(HydrusKey), STR_DEFAULT); }
+		set
+		{
+			Configuration.AddUpdateSetting(nameof(HydrusKey), value);
+			OnPropertyChanged();
+		}
+	}
+	*/
+
+	public bool OpenRaw
+	{
+		get => Get(false);
+		set => Set(value);
+	}
+
+	/// <summary>
+	/// Obsolete
+	/// </summary>
+	public bool Silent
+	{
+		get => Get(false);
+		set => Set(value);
+	}
+
+	public bool Clipboard
+	{
+		get => Get(true);
+		set => Set(value);
+	}
+
+	public bool AutoSearch
+	{
+		get => Get(false);
+		set => Set(value);
+	}
+
+	/// <summary>
+	/// <see cref="SauceNaoEngine.Authentication"/>
+	/// </summary>
+	public string SauceNaoKey
+	{
+		get => Get(String.Empty);
+		set => Set(value);
+	}
+
+#endregion
+
+#region Cookies
+
+	/// <summary>
+	/// Parse browser cookies automatically whenever necessary
+	/// </summary>
+	/// <remarks>
+	/// <see cref="ICookiesReceiver"/>
+	/// <see cref="ICookiesSource"/>
+	/// </remarks>
+	public bool ReadCookies
+	{
+		get => Get(READCOOKIES_DEFAULT);
+		set => Set(value);
+	}
+
+	public ICookiesSource GetCookiesSource()
+	{
+		if (ReadCookies) {
+			return BrowserCookiesSource.Default.Value;
+		}
+
+		return ListCookiesSource.Default;
+	}
+
+#endregion
+
+#region FlareSolverr
+
+	/// <remarks>
+	/// 
+	/// </remarks>
+	public bool FlareSolverr
+	{
+		get => Get(FLARESOLVERR_DEFAULT);
+		set => Set(value);
+	}
+
+
+	/// <remarks>
+	/// 
+	/// </remarks>
+	public string FlareSolverrApiUrl
+	{
+		get => Get(FLARE_SOLVERR_API_URL_DEFAULT);
+		set => Set(value);
+	}
+
+	internal async ValueTask<bool> TryLoadFlareSolverrAsync(CancellationToken token)
+	{
+		bool ok = false;
+
+		if (FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
+
+			ok = await FlareSolverrClient.Value.ApplyConfigAsync(this, token);
+
+			if (!ok) {
+				Debugger.Break();
+			}
+			else {
+				// Ensure FlareSolverr
+
+				try {
+					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
+				}
+				catch (Exception e) {
+					s_logger.LogError(e, "FlareSolverr error");
+					FlareSolverr = ok;
+					FlareSolverrClient.Value.Dispose();
+				}
+			}
+		}
+
+		return ok;
+	}
+
+#endregion
 
 	public IEnumerable<BaseSearchEngine> GetSelectedEngines() => GetSelectedEngines(SearchEngines);
 
-	public IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
+	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
 	{
 		if (options.HasFlag(SearchEngineOptions.SauceNao))
-			yield return new SauceNaoEngine(SauceNaoKey);
+			yield return new SauceNaoEngine();
 
 		if (options.HasFlag(SearchEngineOptions.ImgOps))
 			yield return new ImgOpsEngine();
@@ -132,10 +293,32 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 #endregion
 
-	/// <summary>
-	/// Keeps console window on-top.
-	/// </summary>
-	public bool OnTop { get; set; } = ON_TOP_DEFAULT;
+#region
+
+	public static readonly Configuration Configuration =
+		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+	private bool Set<T>(T s = default, [CMN] string name = null)
+	{
+		bool b = Configuration.AddUpdateSetting(name, s.ToString());
+		OnPropertyChanged(name);
+		return b;
+	}
+
+	private T Get<T>(T t = default, [CMN] string name = null)
+	{
+		T v = Configuration.ReadSetting(name, t);
+		return v;
+	}
+
+	public void Save()
+	{
+		Configuration.Save(ConfigurationSaveMode.Full, true);
+
+		s_logger.LogTrace("Saved to {CfgPath}", Configuration.FilePath);
+	}
+
+#endregion
 
 	/*
 	/// <summary>
@@ -165,97 +348,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	}
 	*/
 
-	public bool OpenRaw { get; set; }
-
-	/// <summary>
-	/// Obsolete
-	/// </summary>
-	public bool Silent { get; set; }
-
-	public bool Clipboard { get; set; }
-
-	public bool AutoSearch { get; set; }
-
-	/// <summary>
-	/// <see cref="SauceNaoEngine.Authentication"/>
-	/// </summary>
-	public string SauceNaoKey { get; set; }
-
-#endregion
-
-#region Cookies
-
-	/// <summary>
-	/// Parse browser cookies automatically whenever necessary
-	/// </summary>
-	/// <remarks>
-	/// <see cref="ICookiesReceiver"/>
-	/// <see cref="ICookiesSource"/>
-	/// </remarks>
-	public bool ReadCookies { get; set; } = READCOOKIES_DEFAULT;
-
-	public ICookiesSource GetCookiesSource()
-	{
-		if (ReadCookies) {
-			return BrowserCookiesSource.Default.Value;
-		}
-
-		return ListCookiesSource.Default;
-	}
-
-#endregion
-
-#region FlareSolverr
-
-	/// <remarks>
-	/// 
-	/// </remarks>
-	public bool FlareSolverr { get; set; } = FLARESOLVERR_DEFAULT;
-
-	/// <remarks>
-	/// 
-	/// </remarks>
-	public string FlareSolverrApiUrl { get; set; } = FLARE_SOLVERR_API_URL_DEFAULT;
-
-	//TODO
-	internal async ValueTask<bool> TryLoadFlareSolverrAsync(CancellationToken token)
-	{
-		bool ok = false;
-
-		if (this.FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
-
-			ok = await FlareSolverrClient.Value.ApplyConfigAsync(this, token);
-
-			if (!ok) {
-				Debugger.Break();
-			}
-			else {
-				// Ensure FlareSolverr
-
-				try {
-					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
-				}
-				catch (Exception e) {
-					s_logger.LogError(e, "FlareSolverr error");
-					this.FlareSolverr = ok;
-					FlareSolverrClient.Value.Dispose();
-				}
-			}
-		}
-
-		return ok;
-	}
-
-#endregion
-
-#region
-
-	/// <summary>
-	/// <see cref="BaseUploadEngine"/>
-	/// </summary>
-	public UploadEngineOptions UploadEngine { get; set; } = UPLOAD_ENGINE_DEFAULT;
-
-#endregion
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchConfig));
 
@@ -269,7 +361,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 			//
 			s_logger.LogTrace("{Sender} Changed {PropName}", sender, args.PropertyName);
 		};
-
 	}
 
 
@@ -327,7 +418,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}*/
 
-	public async ValueTask<bool> ApplyEnginesAsync(IEnumerable<BaseSearchEngine> engines, CancellationToken token = default)
+	public async ValueTask<bool> ApplyEnginesAsync(IEnumerable<BaseSearchEngine> engines,CancellationToken token = default)
 	{
 		s_logger.LogTrace("Loading engines");
 

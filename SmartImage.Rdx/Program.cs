@@ -63,7 +63,7 @@ public static class Program
 #endif
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
-
+			
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
 
@@ -72,7 +72,7 @@ public static class Program
 		});
 
 		int x = BaseOSIntegration.EC_OK;
-
+		
 		try {
 			x = await app.RunAsync(args);
 
@@ -182,8 +182,7 @@ public static class Program
 
 	}
 
-
-	private static IConfigurationRoot GetConfig()
+	public static IConfigurationRoot GetConfig()
 	{
 		/*var bldr2 = new ConfigurationBuilder();
 		var host  = Host.CreateDefaultBuilder();
@@ -195,12 +194,14 @@ public static class Program
 
 		// TODO
 
-		var currentDirectory = Directory.GetCurrentDirectory();
+		var currentDirectory = BaseOSIntegration.ExecutableDirectory;
 		var configFileName   = $"{R1.Name}.json";
-		var configFilePath   = Path.Combine(currentDirectory, configFileName);
+
+		// var configFilePath   = Path.Combine(currentDirectory, configFileName);
 
 		var cfg = new ConfigurationBuilder()
-			.AddJsonFile(configFileName)
+			.SetBasePath(currentDirectory)
+			.AddJsonFile(configFileName, optional: false, reloadOnChange: true)
 			.Build();
 
 		return cfg;

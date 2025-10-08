@@ -62,9 +62,7 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 	{
 		var ok = false;
 
-		if (cfg.FlareSolverr) {
-			ok = Configure(cfg.FlareSolverrApiUrl);
-		}
+		ok = Configure(cfg.FlareSolverrApiUrl);
 
 		return ValueTask.FromResult(ok);
 	}

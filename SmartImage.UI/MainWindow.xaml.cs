@@ -471,7 +471,7 @@ public partial class MainWindow : Window, IDisposable, INotifyPropertyChanged
 		SetPreviewToCurrentQuery();
 
 		if (CurrentQuery.HasQuery) {
-			Tb_Upload.Text = CurrentQuery.Query.Upload;
+			Tb_Upload.Text = CurrentQuery.Query.Upload.Url;
 
 		}
 		else {

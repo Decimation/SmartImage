@@ -50,7 +50,7 @@ public class UniImageFile : UniImage
 			f = new FileInfo(s);
 		}
 
-		return f != null && ImageScanner.Extensions.Contains(f.Extension);
+		return f != null && ImageScanner.Extensions.Contains(f.Extension[1..]);
 	}
 
 }

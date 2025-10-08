@@ -222,6 +222,7 @@ public class TraceMoeDoc
 		{
 			Similarity  = sim,
 			Title       = Filename,
+			Thumbnail = Image,
 			Source      = name,
 			Url         = AnilistUrl,
 			Description = $"Episode #{EpisodeString} @ [{TimeSpan.FromSeconds(From):g} - {TimeSpan.FromSeconds(To):g}]",

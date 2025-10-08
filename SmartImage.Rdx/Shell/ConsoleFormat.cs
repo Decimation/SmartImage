@@ -211,8 +211,7 @@ internal static class ConsoleFormat
 	{
 		var ci = new CanvasImage(querySource.GetStream())
 		{
-			MaxWidth = AnsiConsole.Profile.Width / 4,
-
+			// MaxWidth = AnsiConsole.Profile.Width / 4,
 			// PixelWidth = 2
 		};
 

@@ -7,12 +7,16 @@
     xmlns:vm="using:SmartImage.UI2.ViewModels"
     xmlns:models="using:SmartImage.UI2.Models"
     xmlns:vm2="using:SmartImage.Lib"
-    mc:Ignorable="d" 
-    
+    xmlns:vm3="using:SmartImage.Lib.Model"
+    xmlns:vm4="using:SmartImage.Lib.Engines"
+    xmlns:vm5="using:SmartImage.Lib.Engines.Results"
+    mc:Ignorable="d"
+    xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+
     x:DataType="vm:MainWindowViewModel"
     Title="SmartImage">
 
-<!--
+    <!--
 d:DesignWidth="1000" d:DesignHeight="675"
     Height="675" Width="1000" MinWidth="1000" MinHeight="325"
 -->
@@ -21,23 +25,21 @@ d:DesignWidth="1000" d:DesignHeight="675"
         <vm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid VerticalAlignment="Top" HorizontalAlignment="Left"
-          Background="Beige" Width="1000" Height="675"
-          RowDefinitions="Auto,Auto,*,Auto"
-          ColumnDefinitions="Auto,*,*,*,*">
+    <Grid Background="#202020" RowDefinitions="Auto,*,Auto" ColumnDefinitions="Auto,*,Auto">
 
-        <TextBox Name="Tb_Input" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="1"
-                 MaxHeight="50" Text="{Binding Input}" MaxWidth="10">
-        
+        <TextBox Name="Tb_Input" Grid.Column="0" Grid.Row="0" MinWidth="100"
+                 MaxHeight="50" Text="{Binding Input}">
+
         </TextBox>
 
-        <Button Command="{Binding SearchCommand}"
-                Content="Search" Grid.Column="1" Grid.Row="0" />
+        <Button Command="{Binding SearchCommand}" Content="Search" Grid.Column="1" Grid.Row="0"  />
 
-        <Image Grid.Row="0" Grid.Column="2" Width="300" Height="300"
-               VerticalAlignment="Top"
-               HorizontalAlignment="Right">
-        </Image>
+        <Panel Grid.Column="2" Grid.Row="0" Width="300" Height="300">
+            <Rectangle Fill="Aquamarine">
+            </Rectangle>
+            <Image Width="300" Height="300" Source="{Binding Image, Mode=OneWay}" />
+            <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom"></ProgressBar>
+        </Panel>
 
         <!--<TreeView
             ItemsSource="{Binding Items}"
@@ -58,22 +60,51 @@ d:DesignWidth="1000" d:DesignHeight="675"
         </TreeView>-->
 
         <ListBox ItemsSource="{Binding Items}"
-                 SelectionMode="AlwaysSelected, Single"
-                 MinWidth="1000" Height="100"
-                 Grid.Column="0" Grid.Row="2">
+                 SelectionMode="Single" MinWidth="1000" MinHeight="300"
+                 Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                 DoubleTapped="Lb_Items_OnDoubleTapped" x:Name="Lb_Items"
+                 SelectedItem="{Binding SelectedItem}">
+
+            <ListBox.KeyBindings>
+              <KeyBinding Command="{Binding LoadItemCommand}" Gesture="Ctrl+L"></KeyBinding>
+              <KeyBinding Command="{Binding HashItemCommand}" Gesture="Ctrl+H"></KeyBinding>
+            </ListBox.KeyBindings>
 
             <ListBox.ItemTemplate>
-                <DataTemplate DataType="models:ResultItem">
-                    <Grid ColumnDefinitions="Auto, *">
-                        <TextBlock Grid.Column="1"
-                                   Margin="10,0"
-                                   Text="{Binding Url}">
-                        </TextBlock>
-                        <TextBlock
-                            Text="{Binding Similarity}">
-                        </TextBlock>
+                <DataTemplate DataType="{x:Type vm5:SearchResultItem}">
+                    <Border Margin="4" Padding="6" Background="#252525" CornerRadius="4">
 
-                    </Grid>
+                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+
+                            <asyncImageLoader:AdvancedImage Width="100" Height="100" Source="{Binding Thumbnail, Mode=OneWay}"
+                                                            Margin="0,0,8,0" IsVisible="{Binding HasThumbnail, Mode=TwoWay}"/>
+
+                            <StackPanel Orientation="Vertical" Spacing="2">
+                                <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12" FontStyle="Italic" TextWrapping="Wrap">
+                                </TextBlock>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Similarity:" Foreground="#808080" />
+                                    <TextBlock Text="{Binding Similarity, StringFormat={}{0}}" IsVisible="{Binding Similarity}" Foreground="#FFD700" />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8"
+                                            IsVisible="{Binding HasDimensions, Mode=OneWay}">
+                                    <TextBlock Text="Size:" Foreground="#808080" />
+                                    <TextBlock Text="{Binding Width}" Foreground="#E0E0E0" />
+                                    <TextBlock Text="x" Foreground="#E0E0E0" />
+                                    <TextBlock Text="{Binding Height}" Foreground="#E0E0E0" />
+                                </StackPanel>
+
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="Artist:" Foreground="#808080" />
+                                    <TextBlock Text="{Binding Artist}" Foreground="#E0E0E0" />
+                                    <TextBlock Text="Source:" Foreground="#808080" />
+                                    <TextBlock Text="{Binding Source}" Foreground="#E0E0E0" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

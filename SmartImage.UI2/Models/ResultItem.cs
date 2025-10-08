@@ -4,24 +4,19 @@
 using System.Collections.ObjectModel;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
+using CommunityToolkit.Mvvm.ComponentModel;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images;
 
 namespace SmartImage.UI2.Models;
 
-public class ResultItem
+public class ResultItem : ObservableObject
 {
-
-	public string Url { get; }
-
-	public IImage Image { get; }
-
-	public double? Similarity { get; }
+	public SearchResultItem Item {get;}
 
 	public ResultItem(SearchResultItem sri)
 	{
-		Url        = sri.Url;
-		Similarity = sri.Similarity;
+		Item = sri;
 
 		// var stream = sri.Uni[0].Image.ToStream();
 		// Image = WriteableBitmap.Decode(stream);

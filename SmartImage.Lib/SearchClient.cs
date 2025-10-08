@@ -43,7 +43,7 @@ public sealed class SearchClient : IDisposable
 
 	public bool IsComplete { get; private set; }
 
-	public BaseSearchEngine[] Engines { get; private set; }
+	public IEnumerable<BaseSearchEngine> Engines { get; }
 
 	public bool ConfigApplied { get; private set; }
 
@@ -56,7 +56,7 @@ public sealed class SearchClient : IDisposable
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
-		Engines       = [.. Config.GetSelectedEngines()];
+		Engines       = Config.GetSelectedEngines();
 
 		// GetSelectedEngines();
 
@@ -118,12 +118,10 @@ public sealed class SearchClient : IDisposable
 		IsRunning = true;
 
 		if (!ConfigApplied) {
-			await Config.ApplyEnginesAsync(Engines, token).ConfigureAwait(false);
+			await Config.ApplyEnginesAsync(Engines, token);
 			ConfigApplied = true;
+
 		}
-
-		s_logger.LogTrace("{Config} with {Engines}", Config, Engines.QuickJoin());
-
 		var tasks = GetSearchTasks(query, token);
 
 		var results = await Task.WhenAll(tasks);
