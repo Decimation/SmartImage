@@ -7,7 +7,7 @@ using ReactiveUI;
 
 namespace SmartImage.UI2.ViewModels;
 
-public class ViewModelBase : ObservableObject, INotifyPropertyChanged
+public class ViewModelBase : ReactiveObject, INotifyPropertyChanged
 {
 
 	

@@ -230,7 +230,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
 	{
 		if (!(await AllocImageAsync(ct))) {
-			return false;
+			// return false;
 		}
 
 		if (HasImage || HasScannedItems) {

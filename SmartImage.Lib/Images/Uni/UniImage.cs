@@ -45,6 +45,7 @@ public enum UniImageType
 
 public enum SearchHashType
 {
+
 	//TODO
 
 	None = 0,
@@ -124,7 +125,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MURV]
 	public Stream GetStream()
 	{
-		return new MemoryStream(Bytes, writable: false);
+		return HasBytes ? new MemoryStream(Bytes, writable: false) : Stream.Null;
 	}
 
 #endregion
@@ -140,7 +141,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	}
 
 
-	#region 
+#region
 
 	protected abstract Task<bool> AllocAsync(CancellationToken ct = default);
 
@@ -233,7 +234,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		return ok;
 	}
 
-	#endregion
+#endregion
 
 	public bool TryWriteToFile(string fn = null)
 	{

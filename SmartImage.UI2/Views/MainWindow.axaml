@@ -4,17 +4,15 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:vm="using:SmartImage.UI2.ViewModels"
-    xmlns:models="using:SmartImage.UI2.Models"
-    xmlns:vm2="using:SmartImage.Lib"
-    xmlns:vm3="using:SmartImage.Lib.Model"
-    xmlns:vm4="using:SmartImage.Lib.Engines"
-    xmlns:vm5="using:SmartImage.Lib.Engines.Results"
+    xmlns:ui="clr-namespace:SmartImage.UI2"
+    xmlns:uiVm="using:SmartImage.UI2.ViewModels"
+    xmlns:uiModels="using:SmartImage.UI2.Models"
+    xmlns:lib="using:SmartImage.Lib"
+    xmlns:libModels="using:SmartImage.Lib.Model"
+    xmlns:libEngineResults="using:SmartImage.Lib.Engines.Results"
     mc:Ignorable="d"
     xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
-    xmlns:ui2="clr-namespace:SmartImage.UI2"
-
-    x:DataType="vm:MainWindowViewModel"
+    x:DataType="uiVm:MainWindowViewModel"
     Title="SmartImage">
 
     <!--
@@ -22,85 +20,109 @@ d:DesignWidth="1000" d:DesignHeight="675"
     Height="675" Width="1000" MinWidth="1000" MinHeight="325"
 -->
 
+
     <Design.DataContext>
-        <vm:MainWindowViewModel />
+        <uiVm:MainWindowViewModel />
     </Design.DataContext>
 
-    <Grid Background="#202020" 
-          RowDefinitions="Auto,*,Auto" 
-          ColumnDefinitions="Auto,*,Auto">
 
-        <TextBox Name="Tb_Input" Grid.Column="0" Grid.Row="0" MinWidth="100"
-                 MaxHeight="50" Text="{Binding Input}">
+    <TabControl Background="#0C0C0C">
+        <TabItem Header="Search" Foreground="White" FontSize="20">
 
-        </TextBox>
+            <Grid Background="#202020"
+                  RowDefinitions="Auto,*,Auto"
+                  ColumnDefinitions="Auto,*,Auto">
 
-        <Button Command="{Binding SearchCommand}" Content="Search" Grid.Column="1" Grid.Row="0" />
+                <WrapPanel Grid.Row="0">
 
-        <Panel Grid.Column="2" Grid.Row="0" Width="300" Height="300">
-            <Rectangle Fill="Aquamarine" />
-            <Image Width="300" Height="300" Source="{Binding Image, Mode=OneWay}" />
-            <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom"></ProgressBar>
-        </Panel>
+                    <TextBox Name="Tb_Input" Grid.Column="0" MinWidth="100" MaxHeight="50" Text="{Binding Input}">
 
-        <ListBox ItemsSource="{Binding Items}"
-                 SelectionMode="Single" MinWidth="1000" MinHeight="300"
-                 Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" Grid.RowSpan="2"
-                 DoubleTapped="Lb_Items_OnDoubleTapped" x:Name="Lb_Items"
-                 SelectedItem="{Binding SelectedItem}">
+                    </TextBox>
+                    <Button Command="{Binding UploadCommand}" Content="Upload" Grid.Column="1" Foreground="Aqua" />
+                    <Button Command="{Binding SearchCommand}" Content="Search" Grid.Column="2" Foreground="LawnGreen" />
 
-            <ListBox.KeyBindings>
-                <KeyBinding Command="{Binding LoadItemCommand}" Gesture="Ctrl+L"></KeyBinding>
-                <KeyBinding Command="{Binding HashItemCommand}" Gesture="Ctrl+H"></KeyBinding>
-            </ListBox.KeyBindings>
+                </WrapPanel>
 
-            <ListBox.ItemTemplate>
-                <DataTemplate DataType="{x:Type vm5:SearchResultItem}">
-                    <Border Margin="4" Padding="6" Background="#252525" CornerRadius="4">
+                <WrapPanel Grid.Row="1" Grid.Column="0">
+                    <TextBlock Text="Upload" TextAlignment="Center"></TextBlock>
+                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" Text="{Binding Query.Upload.Url, FallbackValue=''}" />
 
-                        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                </WrapPanel>
 
-                            <asyncImageLoader:AdvancedImage Width="100" Height="100"
-                                                            Source="{Binding Thumbnail, Mode=OneWay}" Margin="0,0,8,0"
-                                                            IsVisible="{Binding Thumbnail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <Panel Grid.Column="2" Grid.Row="0" Grid.RowSpan="1" Width="300" Height="300">
+                  <Rectangle Fill="#303030" />
+                    <Image Width="300" Height="300" Source="{Binding Image}" />
+                    <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom"></ProgressBar>
+                </Panel>
 
-                            <StackPanel Orientation="Vertical" Spacing="2">
-                                <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12" FontWeight="Bold"
-                                           TextWrapping="Wrap" />
+                <ListBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                         ItemsSource="{Binding Items}"
+                         SelectionMode="Single" MinWidth="1000" MinHeight="300"
+                         DoubleTapped="Lb_Items_OnDoubleTapped" x:Name="Lb_Items" Background="#1C1C1C"
+                         SelectedItem="{Binding SelectedItem}">
 
-                                <StackPanel Orientation="Horizontal" Spacing="8">
-                                    <TextBlock Text="Similarity:" Foreground="#808080" />
-                                    <TextBlock Text="{Binding Similarity, StringFormat={}{0}, UpdateSourceTrigger=PropertyChanged}" Foreground="#FFD700" />
+                    <ListBox.KeyBindings>
+                        <KeyBinding Command="{Binding LoadItemCommand}" Gesture="Ctrl+L"></KeyBinding>
+                        <KeyBinding Command="{Binding HashItemCommand}" Gesture="Ctrl+H"></KeyBinding>
+                    </ListBox.KeyBindings>
+
+                    <ListBox.ItemTemplate>
+                        <DataTemplate DataType="{x:Type libEngineResults:SearchResultItem}">
+                            <Border Margin="4" Padding="6" Background="#252525" CornerRadius="4">
+
+                                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+
+                                    <asyncImageLoader:AdvancedImage Source="{Binding Thumbnail, Mode=OneWay}"
+                                                                    IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                                                    Width="100" Height="100" Margin="0,0,8,0" />
+
+                                    <StackPanel Orientation="Vertical" Spacing="2">
+
+                                        <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12"
+                                                   TextWrapping="Wrap"
+                                                   FontWeight="Bold" />
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="Similarity:" Foreground="#808080" />
+                                            <TextBlock
+                                                Text="{Binding Similarity, StringFormat={}{0}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
+                                                Foreground="#FFD700" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding HasDimensions, Mode=OneWay}">
+                                            <TextBlock Text="Size:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Width}" Foreground="#E0E0E0" />
+                                            <TextBlock Text="x" Foreground="#E0E0E0" />
+                                            <TextBlock Text="{Binding Height}" Foreground="#E0E0E0" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Artist, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Artist:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Artist}" Foreground="#E0E0E0" />
+
+                                        </StackPanel>
+                                        <StackPanel Orientation="Horizontal" Spacing="8"
+                                                    IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                                            <TextBlock Text="Source:" Foreground="#808080" />
+                                            <TextBlock Text="{Binding Source}" Foreground="#E0E0E0" />
+
+                                        </StackPanel>
+                                    </StackPanel>
                                 </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </TabItem>
 
-                                <StackPanel Orientation="Horizontal" Spacing="8"
-                                            IsVisible="{Binding HasDimensions, Mode=OneWay}">
-                                    <TextBlock Text="Size:" Foreground="#808080" />
-                                    <TextBlock Text="{Binding Width}" Foreground="#E0E0E0" />
-                                    <TextBlock Text="x" Foreground="#E0E0E0" />
-                                    <TextBlock Text="{Binding Height}" Foreground="#E0E0E0" />
-                                </StackPanel>
-
-                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding Artist, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                    <TextBlock Text="Artist:" Foreground="#808080" />
-                                    <TextBlock Text="{Binding Artist}" Foreground="#E0E0E0"/>
-
-                                </StackPanel>
-                                <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-                                    <TextBlock Text="Source:" Foreground="#808080" />
-                                    <TextBlock Text="{Binding Source}" Foreground="#E0E0E0"/>
-
-                                </StackPanel>
-                            </StackPanel>
-                        </StackPanel>
-                    </Border>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-    </Grid>
-
-    <Window.Resources>
-        <ui2:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
-    </Window.Resources>
+        <TabItem Header="Config" Foreground="White" FontSize="20">
+            <StackPanel>
+                <CheckBox IsChecked="{Binding Config.Clipboard}" Content="Clipboard"></CheckBox>
+            </StackPanel>
+        </TabItem>
+    </TabControl>
 
 </Window>
