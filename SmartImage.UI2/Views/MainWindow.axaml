@@ -29,33 +29,33 @@ d:DesignWidth="1000" d:DesignHeight="675"
     <TabControl Background="#0C0C0C">
         <TabItem Header="Search" Foreground="White" FontSize="20">
 
-            <Grid Background="#202020"
-                  RowDefinitions="Auto,*,Auto"
-                  ColumnDefinitions="Auto,*,Auto">
+            <Grid Background="#202020" RowDefinitions="Auto,*,*" ColumnDefinitions="Auto,*,Auto">
 
-                <WrapPanel Grid.Row="0">
+                <WrapPanel Grid.Row="0" Grid.Column="0">
+                    <TextBox Name="Tb_Input" MinWidth="100" MaxHeight="50" Text="{Binding Input}" />
+                    <Button Command="{Binding UploadCommand}" Content="Upload" Foreground="Aqua" />
+                    <Button Command="{Binding SearchCommand}" Content="Search" Foreground="LawnGreen" />
+                    <Button Command="{Binding ClearCommand}" Content="Clear" />
+                    <Button Command="{Binding CancelCommand}" Content="Cancel" Foreground="Red" />
 
-                    <TextBox Name="Tb_Input" Grid.Column="0" MinWidth="100" MaxHeight="50" Text="{Binding Input}">
-
-                    </TextBox>
-                    <Button Command="{Binding UploadCommand}" Content="Upload" Grid.Column="1" Foreground="Aqua" />
-                    <Button Command="{Binding SearchCommand}" Content="Search" Grid.Column="2" Foreground="LawnGreen" />
 
                 </WrapPanel>
 
-                <WrapPanel Grid.Row="1" Grid.Column="0">
-                    <TextBlock Text="Upload" TextAlignment="Center"></TextBlock>
-                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" Text="{Binding Query.Upload.Url, FallbackValue=''}" />
-
-                </WrapPanel>
-
-                <Panel Grid.Column="2" Grid.Row="0" Grid.RowSpan="1" Width="300" Height="300">
-                  <Rectangle Fill="#303030" />
+                <Panel Grid.Row="0" Grid.Column="2" Grid.RowSpan="1" Width="300" Height="300">
+                    <Rectangle Fill="#303030" />
                     <Image Width="300" Height="300" Source="{Binding Image}" />
-                    <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom"></ProgressBar>
+                    <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom" />
+                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50"
+                             Text="{Binding Query.Upload.Url, FallbackValue=''}" IsEnabled="False"
+                             VerticalAlignment="Bottom" />
                 </Panel>
 
-                <ListBox Grid.Column="0" Grid.Row="1" Grid.ColumnSpan="3" Grid.RowSpan="2"
+                <!--<WrapPanel Grid.Row="1" Grid.Column="0">
+                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50"
+                             Text="{Binding Query.Upload.Url, FallbackValue=''}" IsEnabled="False" />
+                </WrapPanel>-->
+
+                <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
                          ItemsSource="{Binding Items}"
                          SelectionMode="Single" MinWidth="1000" MinHeight="300"
                          DoubleTapped="Lb_Items_OnDoubleTapped" x:Name="Lb_Items" Background="#1C1C1C"

@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using AngleSharp.Css.Values;
+using FlareSolverrSharp.Constants;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
@@ -69,6 +70,9 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint, IDisposabl
 					                     target_days_old      = 0
 				                     }).GetAsync(cancellationToken: token).ConfigureAwait(false);
 
+			if (response.StatusCode == 530) {
+				goto ret;
+			}
 			var s = await response.GetStreamAsync().ConfigureAwait(false);
 			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
 		}

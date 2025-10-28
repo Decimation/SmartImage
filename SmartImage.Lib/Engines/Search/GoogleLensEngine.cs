@@ -21,42 +21,6 @@ using SmartImage.Lib.Model;
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Search;
 
-public class GoogleLensItem : SearchResultItem, IResultItemParseable<INode, GoogleLensItem>
-{
-
-	public string SiteName { get; private set; }
-
-	public Url Link { get; private set; }
-
-	public string Ping { get; private set; }
-
-
-	private GoogleLensItem(SearchResult r) : base(r) { }
-
-	public static GoogleLensItem ParseSource(INode n, SearchResult r)
-	{
-		var gli = new GoogleLensItem(r);
-
-		if (n is IHtmlElement e) {
-			var attrHref = e.Attributes["href"];
-			var attrPing = e.Attributes["ping"];
-			var title    = e.QuerySelector(".Yt787")?.TextContent;
-
-			//e.QuerySelector("//*[class*='gdOPf q07dbf uhHOwf ez24Df']");
-			// var siteName = e.SelectNodes("//*[contains(@class,'gdOPf')]");
-			//R8BTeb q8U8x LJEGod du278d i0Rdmd
-			var siteName = e.QuerySelector(".R8BTeb");
-			gli.Link     = attrHref?.Value;
-			gli.Title    = title;
-			gli.Ping     = attrPing?.Value;
-			gli.SiteName = siteName.TextContent;
-		}
-
-		return gli;
-	}
-
-}
-
 public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, IEndpoint, ICookiesReceiver
 {
 
@@ -267,5 +231,41 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 	}
 
 #endregion
+
+}
+
+public class GoogleLensItem : SearchResultItem, IResultItemParseable<INode, GoogleLensItem>
+{
+
+	// public string SiteName { get; private set; }
+
+	// public Url Link { get; private set; }
+
+	public string Ping { get; private set; }
+
+
+	private GoogleLensItem(SearchResult r) : base(r) { }
+
+	public static GoogleLensItem ParseSource(INode n, SearchResult r)
+	{
+		var gli = new GoogleLensItem(r);
+
+		if (n is IHtmlElement e) {
+			var attrHref = e.Attributes["href"];
+			var attrPing = e.Attributes["ping"];
+			var title    = e.QuerySelector(".Yt787")?.TextContent;
+
+			//e.QuerySelector("//*[class*='gdOPf q07dbf uhHOwf ez24Df']");
+			// var siteName = e.SelectNodes("//*[contains(@class,'gdOPf')]");
+			//R8BTeb q8U8x LJEGod du278d i0Rdmd
+			var siteName = e.QuerySelector(".R8BTeb");
+			gli.Url   = attrHref?.Value;
+			gli.Title = title;
+			gli.Ping  = attrPing?.Value;
+			gli.Site  = siteName.TextContent;
+		}
+
+		return gli;
+	}
 
 }

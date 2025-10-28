@@ -61,7 +61,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
-	public CancellationTokenSource TokenSource { get; }
+	public CancellationTokenSource TokenSource { get; private set; }
 
 	private DispatcherTimer m_dt;
 
@@ -81,13 +81,21 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		var isUp = this.WhenAnyValue(x => x.IsReady);
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, isUp);
+
 		/*var canScan = this.WhenAnyValue(x => x.SelectedItem, (SearchResultItem s) => { return s.HasScannedItems; });
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, isUp);*/
+
+		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
 	}
 
 	private bool Selector(string x)
 	{
 		return UniImage.IsValidSourceType(x?.ToString());
+	}
+
+	private bool Selector2(ObservableCollection<SearchResultItem> x)
+	{
+		return x.Count > 0;
 	}
 
 	private void OnChangedEvent(object? sender, PropertyChangedEventArgs args)
@@ -147,28 +155,52 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public ReactiveCommand<Unit, Unit> SearchCommand { get; }
 
+	public ReactiveCommand<Unit, Unit> ClearCommand { get; }
 
-	[RelayCommand]
+
+	// [RelayCommand]
 	public async Task RunSearchAsync()
 	{
+		try {
 
-		var r = Client.RunSearchAsync(Query);
+			var r = Client.RunSearchAsync(Query, TokenSource.Token);
 
-		var max = Client.Engines.Count();
-		int c   = 0;
+			var max = Client.Engines.Count();
+			int c   = 0;
 
-		while (await Client.ResultChannel.Reader.WaitToReadAsync()) {
-			var res = await Client.ResultChannel.Reader.ReadAsync();
+			while (await Client.ResultChannel.Reader.WaitToReadAsync(TokenSource.Token)) {
+				var res = await Client.ResultChannel.Reader.ReadAsync(TokenSource.Token);
 
-			foreach (var item in res.Results) {
-				Items.Add((item));
+				foreach (var item in res.Results) {
+					Items.Add((item));
+				}
+
+				Progress = (++c / (double) max) * 100d;
 			}
 
-			Progress = (++c / (double) max) * 100d;
+			await r;
+		}
+		catch (OperationCanceledException e) {
+			// ...
+		}
+		catch (Exception e) {
+			// ...
 		}
 
-		await r;
+	}
 
+	[RelayCommand]
+	public async Task CancelAsync()
+	{
+		await TokenSource.CancelAsync();
+		TokenSource.Dispose();
+		TokenSource = new CancellationTokenSource();
+	}
+
+	public async Task ClearAsync()
+	{
+		Items.Clear();
+		Query?.Dispose();
 	}
 
 	private async void Callback(object? sender, EventArgs args)
