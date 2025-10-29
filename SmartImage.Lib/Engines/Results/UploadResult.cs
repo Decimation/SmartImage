@@ -3,7 +3,7 @@
 
 using SmartImage.Lib.Model;
 
-namespace SmartImage.Lib.Engines.Upload;
+namespace SmartImage.Lib.Engines.Results;
 
 public class UploadResult : IDisposable, ISize
 {

@@ -26,6 +26,8 @@ using AngleSharp.Dom;
 using Avalonia;
 using Avalonia.Controls.Documents;
 using Avalonia.Input.Platform;
+using Avalonia.Platform;
+using Avalonia.Skia.Helpers;
 using Avalonia.Threading;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -42,7 +44,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public SearchConfig Config { get; }
 
-	[ObservableProperty]
 	public SearchQuery Query { get; set; }
 
 	[MNNW(true, nameof(Query.Upload.Url))]
@@ -172,8 +173,8 @@ public partial class MainWindowViewModel : ViewModelBase
 			Trace.Assert(Query.Upload != null);
 
 			// IsReady = Query.IsUploaded;
-			Image = new Bitmap(Query.Source.GetStream());
 			Url   = Query.Upload.Url;
+			
 		}
 	}
 
@@ -236,7 +237,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 
 		var clipFile = await clipboard.TryGetFileAsync();
-
+		
 
 	}
 

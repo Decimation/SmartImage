@@ -234,7 +234,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 }
 
-public class GoogleLensItem : SearchResultItem, IResultItemParseable<INode, GoogleLensItem>
+public class GoogleLensItem : SearchResultItem, ISourceItemParseable<INode, GoogleLensItem>
 {
 
 	// public string SiteName { get; private set; }

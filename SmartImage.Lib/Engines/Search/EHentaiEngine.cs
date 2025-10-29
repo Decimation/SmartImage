@@ -22,9 +22,9 @@ namespace SmartImage.Lib.Engines.Search;
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
 public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver
 {
+
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
 
-	
 	static EHentaiEngine() { }
 
 	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
@@ -33,16 +33,37 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 		UseExHentai = useExHentai;
 
-		Jar         = new CookieJar();
+		Jar = new CookieJar();
 	}
 
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
 
+#region
+
+	public static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
+	public static readonly Url EHentaiBase   = "https://e-hentai.org/";
+	public static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
+
+	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
+	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
+
+#region
+
 	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
 
-	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
-
 	private Url BaseUrl2 => UseExHentai ? ExHentaiBase : EHentaiBase;
+
+	private Url LookupUrl =>
+
+		// todo: handle UseExHentai
+		IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
+
+	private const string HOST_EH = ".e-hentai.org";
+	private const string HOST_EX = ".exhentai.org";
+
+#endregion
+
+#endregion
 
 	public bool IsLoggedIn { get; private set; }
 
@@ -52,7 +73,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return Client.Request(UseExHentai ? ExHentaiBase : EHentaiBase)
+		return Client.Request(BaseUrl2)
 			.WithCookies(Jar)
 			.WithTimeout(Timeout)
 			.WithHeaders(new
@@ -63,41 +84,31 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			.GetAsync();
 	}
 
-	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query,
-	                                                          CancellationToken token = default)
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
-
 		const string SFILE_NAME_DEFAULT = "a.jpg";
 
-		string       fileName;
-		string       filePath = null;
+		string fileName;
+		string filePath = null;
 
-		if (query.Source.HasFilePath)
-		{
+		if (query.Source.HasFilePath) {
 			filePath = query.Source.LocalFilePath;
 			fileName = Path.GetFileName(filePath);
 
-			/*if (Path.GetFileName(t) != name) {
-				// Debugger.Break();
-			}*/
 		}
-		else
-		{
+		else {
 			fileName = SFILE_NAME_DEFAULT;
 			var ok = query.Source.TryWriteToFile(fileName);
 
-			if (ok)
-			{
+			if (ok) {
 				filePath = query.Source.LocalFilePath;
 			}
-			else
-			{
+			else {
 				Debugger.Break();
 			}
 		}
 
-		if (filePath != null)
-		{
+		if (filePath != null) {
 			// Trace.WriteLine($"allocated {filePath}", nameof(GetDocumentAsync));
 			Logger.LogTrace("Allocated {Path}", filePath);
 		}
@@ -150,13 +161,9 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 		Debug.Assert(old == sr.Results[0]);
 
-		// Debug.WriteLine($"{sr.RawUrl}");
 		var content = await httpRes.Content.ReadAsStringAsync(token).ConfigureAwait(false);
 
-		// var content2 = await sr.RawUrl.GetStringAsync(cancellationToken: token);
-
-		if (content.Contains("Please wait a bit longer between each file search."))
-		{
+		if (content.Contains("Please wait a bit longer between each file search.")) {
 			// Debug.WriteLine("cooldown", Name);
 			sr.Status = SearchResultStatus.Cooldown;
 
@@ -172,8 +179,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		// Index 0 is table header
 		var array = src.Body.SelectNodes(Serialization.S_EHentai);
 
-		if (array.Count != 0)
-		{
+		if (array.Count != 0) {
 			array = array[1..];
 
 		}
@@ -185,14 +191,14 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 	{
 		var buf = new List<EhResult>(source.Count);
 
-		foreach (INode node in source)
-		{
-			var eh =  EhResult.ParseSource(node, r);
+		foreach (INode node in source) {
+			var eh = EhResult.ParseSource(node, r);
 			buf.Add(eh);
 		}
 
 		return ValueTask.FromResult<IEnumerable<EhResult>>(buf);
 	}
+
 	/*
 	 * Default result layout is [Compact]
 	 */
@@ -200,52 +206,42 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct = default)
 	{
-		if (source == null)
-		{
+		if (source == null) {
 			return false;
 		}
 
-		if (IsLoggedIn)
-		{
-			Trace.WriteLine($"Not applying cookies to {Name}; already logged in");
+		if (IsLoggedIn) {
 			return IsLoggedIn;
+		}
 
-		}
-		else
-		{
-			Trace.WriteLine($"Applying cookies to {Name}");
-		}
+		Logger.LogInformation("{Name} logged in: {LoggedIn}", Name, IsLoggedIn);
+
 
 		var cookies = await source.GetOrLoadCookiesAsync(ct);
 
-		foreach (var bck in cookies)
-		{
+		foreach (var bck in cookies) {
 
 			// var cookie = bck.AsFlurlCookie(OriginUrl);
 
 			var cookie = bck.AsCookie();
 
-			if (cookie == null)
-			{
+			if (cookie == null) {
 				continue;
 			}
 
 			bool c = false;
 
-
 			var isEx = cookie.Domain.Contains(HOST_EX);
 			var isEh = cookie.Domain.Contains(HOST_EH);
 
-			if (UseExHentai)
-			{
+			if (UseExHentai) {
 				c |= isEx;
 			}
 
 			c |= isEh;
 
-			if (c)
-			{
-				Jar.AddOrReplace(cookie.Name, cookie.Value, isEx ? ExHentaiBase : EHentaiBase);
+			if (c) {
+				Jar.AddOrReplace(cookie.Name, cookie.Value, BaseUrl2);
 			}
 		}
 
@@ -286,12 +282,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			               .WithCookies(out var cj)
 			               .PostAsync(content).ConfigureAwait(false);
 
-		/*foreach (var fc in fcc) {
-			Cookies.Add(fc.AsCookie());
-		}*/
-
-		foreach (var fc in response.Cookies)
-		{
+		foreach (var fc in response.Cookies) {
 			Jar.AddOrReplace(fc);
 		}
 
@@ -325,24 +316,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		return ValueTask.FromResult(true);
 	}
 
-#region
-
-	public static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
-	public static readonly Url EHentaiBase   = "https://e-hentai.org/";
-	public static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
-
-	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
-	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
-
-#region
-
-	private const string HOST_EH = ".e-hentai.org";
-	private const string HOST_EX = ".exhentai.org";
-
-#endregion
-
-#endregion
-
 
 	public override void Dispose()
 	{
@@ -372,18 +345,16 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 }
 
-public sealed class EhResult : SearchResultItem, IResultItemParseable<INode, EhResult>
+public sealed class EhResult : SearchResultItem, ISourceItemParseable<INode, EhResult>
 {
 
 	public string TypeString { get; private set; }
 
 	public string Pages { get; private set; }
 
-
 	public string Author { get; private set; }
 
 	public string AuthorUrl { get; private set; }
-
 
 	public Dictionary<string, IList<string>> Tags { get; }
 
@@ -399,47 +370,38 @@ public sealed class EhResult : SearchResultItem, IResultItemParseable<INode, EhR
 
 		var gl1c = n.ChildNodes.FirstOrDefaultElementByClassName("gl1c");
 
-		if (gl1c is { FirstChild: { } t1 })
-		{
+		if (gl1c is { FirstChild: { } t1 }) {
 			eh.TypeString = t1.TextContent;
 		}
 
 		var gl2c = n.ChildNodes.FirstOrDefaultElementByClassName("gl2c");
 
-		if (gl2c is { })
-		{
+		if (gl2c is { }) {
 			var cn = gl2c.RecurseChildren(1, 4);
 
 			// var cn = gl2c.ChildNodes[1].ChildNodes[1].ChildNodes[1].ChildNodes[1];
 
 
-			if (cn is { } div)
-			{
+			if (cn is { } div) {
 				eh.Pages = div.TextContent;
 			}
 		}
 
 		var gl3c = n.ChildNodes.FirstOrDefaultElementByClassName("gl3c glname");
 
-		if (gl3c is { })
-		{
-			if (gl3c.FirstChild is { } f)
-			{
+		if (gl3c is { }) {
+			if (gl3c.FirstChild is { } f) {
 				eh.Url = f.TryGetAttribute(Serialization.Atr_href);
 
-				if (f.FirstChild is { } ff)
-				{
+				if (f.FirstChild is { } ff) {
 					eh.Title = ff.TextContent;
 				}
 
-				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2)
-				{
+				if (f.ChildNodes[1] is { ChildNodes: { Length: > 0 } cn } f2) {
 					var tagValuesRaw = cn.Select(static c => c.TryGetAttribute("title"));
 
-					foreach (string s in tagValuesRaw)
-					{
-						if (s is not { })
-						{
+					foreach (string s in tagValuesRaw) {
+						if (s is not { }) {
 							continue;
 						}
 
@@ -447,12 +409,10 @@ public sealed class EhResult : SearchResultItem, IResultItemParseable<INode, EhR
 						var tag   = split[0];
 						var val   = split[1];
 
-						if (eh.Tags.TryGetValue(tag, out IList<string> value))
-						{
+						if (eh.Tags.TryGetValue(tag, out IList<string> value)) {
 							value.Add(val);
 						}
-						else
-						{
+						else {
 							eh.Tags.TryAdd(tag, [val]);
 
 						}
@@ -463,30 +423,26 @@ public sealed class EhResult : SearchResultItem, IResultItemParseable<INode, EhR
 
 		var gl4c = n.ChildNodes.FirstOrDefaultElementByClassName("gl4c glhide");
 
-		if (gl4c is { })
-		{
-			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer)
-			{
+		if (gl4c is { }) {
+			if (gl4c.ChildNodes[0] is { FirstChild: { } div1 } div1Outer) {
 				eh.AuthorUrl = div1.TryGetAttribute(Serialization.Atr_href);
 				eh.Author    = div1Outer.TextContent ?? div1.TextContent;
 			}
 
-			if (gl4c.ChildNodes[1] is { } div2)
-			{
+			if (gl4c.ChildNodes[1] is { } div2) {
 				eh.Pages ??= div2.TextContent;
 			}
 		}
 
 
-		if (eh.Tags.TryGetValue("artist", out var v))
-		{
+		if (eh.Tags.TryGetValue("artist", out var v)) {
 			eh.Author = v.FirstOrDefault();
 		}
 
 		var sb = eh.Tags.Select(static t => $"{t.Key}: {t.Value.QuickJoin()}").QuickJoin(" | ");
 
 		eh.Description = sb;
-		eh.Artist = eh.Author;
+		eh.Artist      = eh.Author;
 
 		/*var gl1c        = n.ChildNodes[0];
 		var gl2c        = n.ChildNodes[1];

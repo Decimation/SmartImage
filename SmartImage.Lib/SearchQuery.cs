@@ -47,6 +47,7 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;
+using SmartImage.Lib.Engines.Results;
 
 #region 
 

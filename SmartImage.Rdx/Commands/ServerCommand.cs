@@ -242,8 +242,8 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 		return ok;
 	}
 
-
-	public override async Task<int> ExecuteAsync(CommandContext context, ServerCommandSettings settings)
+	/// <inheritdoc />
+	public override async Task<int> ExecuteAsync(CommandContext context, ServerCommandSettings settings, CancellationToken cancellationToken)
 	{
 		InitConfig(settings);
 
@@ -255,7 +255,7 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 
 		AnsiConsole.WriteLine($"Listening on {Listener.Prefixes.QuickJoin()}");
 
-		await StartAsync();
+		await StartAsync(cancellationToken);
 
 		return BaseOSIntegration.EC_OK;
 	}

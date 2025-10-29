@@ -12,7 +12,7 @@ namespace SmartImage.Rdx.Commands;
 internal class IntegrationCommand : Command<IntegrationCommandSettings>
 {
 
-	public override int Execute(CommandContext context, IntegrationCommandSettings settings)
+	public override int Execute(CommandContext context, IntegrationCommandSettings settings, CancellationToken cancellationToken)
 	{
 		try {
 			// AnsiConsole.WriteLine($"{AppSupport.IsContextMenuAdded}");

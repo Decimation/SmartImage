@@ -89,7 +89,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 }
 
-public class ChanPost : SearchResultItem, IResultItemParseable<INode, ChanPost>
+public class ChanPost : SearchResultItem, ISourceItemParseable<INode, ChanPost>
 {
 
 	public string Board { get; private set; }

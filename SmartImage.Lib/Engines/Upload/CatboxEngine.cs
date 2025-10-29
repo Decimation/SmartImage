@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines.Upload;
 

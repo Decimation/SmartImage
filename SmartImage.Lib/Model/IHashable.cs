@@ -5,10 +5,8 @@ namespace SmartImage.Lib.Model;
 
 public interface IHashable
 {
-
 	public ulong? Hash { get; }
 
-	[property: MNNW(true, nameof(Hash))]
 	[MNNW(true, nameof(Hash))]
 	public bool HasHash => Hash.HasValue;
 

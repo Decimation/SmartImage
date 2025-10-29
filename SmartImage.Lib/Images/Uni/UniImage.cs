@@ -3,6 +3,7 @@
 
 
 using System.Buffers;
+using System.ComponentModel;
 using Kantan.Diagnostics;
 using Microsoft.Extensions.Logging;
 using Novus.FileTypes;
@@ -60,7 +61,8 @@ public enum SearchHashType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable, IImageSource
+public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable, IImageSource,
+                                 INotifyPropertyChanged
 {
 
 	protected static readonly ILogger s_logger;
@@ -96,8 +98,20 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(ImageFormat))]
 	public bool HasImageFormat => ImageFormat != null;
 
+	private ISImage m_image;
+
 	[MN]
-	public ISImage Image { get; protected set; }
+	public ISImage Image
+	{
+		get => m_image;
+		protected set
+		{
+			if (SetField(ref m_image, value)) {
+				OnPropertyChanged(nameof(ImageFormat));
+				OnPropertyChanged(nameof(HasImage));
+			}
+		}
+	}
 
 	[MNNW(true, nameof(Image))]
 	public bool HasImage => Image != null;
@@ -106,18 +120,47 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 #region
 
-	public ulong? Hash { get; protected set; }
+	private ulong? m_hash;
+
+	public ulong? Hash
+	{
+		get => m_hash;
+		protected set
+		{
+			if (SetField(ref m_hash, value)) {
+				OnPropertyChanged(nameof(HasHash));
+			}
+		}
+	}
 
 	[MNNW(true, nameof(Hash))]
 	public bool HasHash => Hash.HasValue;
 
 #endregion
 
-	public double? Similarity { get; internal set; }
+	private double? m_similarity;
+
+	public double? Similarity
+	{
+		get => m_similarity;
+		internal set => SetField(ref m_similarity, value);
+	}
 
 #region
 
-	public byte[] Bytes { get; protected set; }
+	private byte[] m_bytes;
+
+	public byte[] Bytes
+	{
+		get => m_bytes;
+		protected set
+		{
+			if (SetField(ref m_bytes, value)) {
+				OnPropertyChanged(nameof(Size));
+				OnPropertyChanged(nameof(HasBytes));
+			}
+		}
+	}
 
 	[MNNW(true, nameof(Bytes))]
 	public bool HasBytes => Bytes != null;
@@ -125,7 +168,9 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MURV]
 	public Stream GetStream()
 	{
-		return HasBytes ? new MemoryStream(Bytes, writable: false) : Stream.Null;
+		// return HasBytes ? new MemoryStream(Bytes, writable: false) : Stream.Null;
+		var str = ImageManager.MemMgr.GetStream(Bytes);
+		return str;
 	}
 
 #endregion
@@ -331,5 +376,22 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	}
 
 #endregion
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	protected virtual void OnPropertyChanged([CMN] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	protected virtual bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
 
 }

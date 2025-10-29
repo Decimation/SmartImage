@@ -7,6 +7,7 @@ using System.Text.Json.Serialization;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
+using Microsoft.IO;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines.Results;
 
@@ -37,7 +38,7 @@ public class UniImageUri : UniImage
 		if (fres == null) {
 			goto ret;
 		}
-
+		
 		Bytes = await fres.GetBytesAsync();
 
 	ret:

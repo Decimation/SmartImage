@@ -13,8 +13,4 @@ public interface ISearchEngine
 		get => EngineOption.ToString();
 	}
 
-	// public bool IsPriority { get; }
-
-	// public static abstract T Create<T>(SearchConfig cfg) where T : BaseSearchEngine, ISearchEngine;
-
 }

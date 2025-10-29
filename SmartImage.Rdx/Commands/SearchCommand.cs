@@ -161,10 +161,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		Client = new SearchClient(Config);
 	}
 
-	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings)
+	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
 	{
 		Console.CancelKeyPress += OnCancelKeyPress;
-
+		
 		InitConfig(settings);
 
 		var initTask = AnsiConsole.Progress()

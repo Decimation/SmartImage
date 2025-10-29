@@ -24,7 +24,7 @@ global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
 
 using Avalonia;
 using System;
-using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 
 namespace SmartImage.UI2;
 

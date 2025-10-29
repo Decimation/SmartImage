@@ -1,5 +1,6 @@
 ﻿#nullable disable
 using System.Collections.Concurrent;
+using System.ComponentModel;
 using System.Data.SqlTypes;
 using System.Diagnostics;
 using System.Text.Json.Serialization;
@@ -161,10 +162,34 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 #region
 
 	[CBN]
-	public Url Thumbnail { get; internal set; }
+	private Url m_thumbnail;
 
 	[CBN]
-	public ISImage ThumbnailImage { get; internal set; }
+	public Url Thumbnail
+	{
+		get => m_thumbnail;
+		internal set
+		{
+			if (SetField(ref m_thumbnail, value)) {
+				OnPropertyChanged(nameof(HasThumbnail));
+			}
+		}
+	}
+
+	[CBN]
+	private ISImage m_thumbnailImage;
+
+	[CBN]
+	public ISImage ThumbnailImage
+	{
+		get => m_thumbnailImage;
+		internal set
+		{
+			if (SetField(ref m_thumbnailImage, value)) {
+				OnPropertyChanged(nameof(HasThumbnail));
+			}
+		}
+	}
 
 	[CBN]
 	public string ThumbnailTitle { get; internal set; }

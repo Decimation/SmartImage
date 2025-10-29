@@ -35,6 +35,8 @@ public static class Program
 
 	public static readonly Version Version = Assembly.GetName().Version;
 
+	public static readonly CancellationTokenSource Cts = new CancellationTokenSource();
+
 	public static async Task<int> Main(string[] args)
 	{
 		/*AppDomain.CurrentDomain.UnhandledException += (sender, eventArgs) =>
@@ -74,7 +76,7 @@ public static class Program
 		int x = BaseOSIntegration.EC_OK;
 		
 		try {
-			x = await app.RunAsync(args);
+			x = await app.RunAsync(args, Cts.Token);
 
 		}
 		catch (Exception e) {
@@ -182,15 +184,16 @@ public static class Program
 
 	}
 
-	public static IConfigurationRoot GetConfig()
+	/*public static IConfigurationRoot GetConfig()
 	{
+	// TODO
 		/*var bldr2 = new ConfigurationBuilder();
 		var host  = Host.CreateDefaultBuilder();
 		var bldr  = host.ConfigureServices((ctx, svc) => { svc.AddSingleton<SearchConfig>(); });
 
 		bldr2.SetBasePath(Directory.GetCurrentDirectory())
 			.AddJsonFile("smartimage.json", optional: false, reloadOnChange: true);
-			*/
+			#1#
 
 		// TODO
 
@@ -205,6 +208,6 @@ public static class Program
 			.Build();
 
 		return cfg;
-	}
+	}*/
 
 }

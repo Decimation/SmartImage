@@ -245,7 +245,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 }
 
-public class Ascii2DItem : SearchResultItem, IResultItemParseable<INode, Ascii2DItem>
+public class Ascii2DItem : SearchResultItem, ISourceItemParseable<INode, Ascii2DItem>
 {
 
 	public string HashString { get; private set; }

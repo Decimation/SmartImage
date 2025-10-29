@@ -2,6 +2,7 @@
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Flurl.Http;
+using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.Lib.Engines.Upload;
