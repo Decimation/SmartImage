@@ -77,4 +77,10 @@
       <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net9.0\Novus.dll</HintPath>
     </Reference>
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\" />
+    <AvaloniaResource Include="Assets\**" />
+    <Folder Include="Models\" />
+  </ItemGroup>
 </Project>

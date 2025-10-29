@@ -13,15 +13,16 @@ using DynamicData;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.UI2.Models;
 using SmartImage.UI2.Views;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Reactive;
 using System.Threading;
 using System.Threading.Tasks;
+using AngleSharp.Dom;
 using Avalonia;
 using Avalonia.Controls.Documents;
 using Avalonia.Input.Platform;
@@ -35,17 +36,19 @@ namespace SmartImage.UI2.ViewModels;
 public partial class MainWindowViewModel : ViewModelBase
 {
 
-	public ObservableCollection<SearchResultItem> Items { get; } = new();
+	public ObservableCollection<SearchResultItem> Items { get; } = [];
 
 	public SearchClient Client { get; }
 
 	public SearchConfig Config { get; }
 
+	[ObservableProperty]
 	public SearchQuery Query { get; set; }
 
+	[MNNW(true, nameof(Query.Upload.Url))]
 	public bool IsReady
 	{
-		get => field;
+		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
@@ -57,17 +60,45 @@ public partial class MainWindowViewModel : ViewModelBase
 
 	public IImage Image
 	{
-		get => field;
+		get;
+		set => this.RaiseAndSetIfChanged(ref field, value);
+	}
+
+	public Url Url
+	{
+		get;
+		private set => this.RaiseAndSetIfChanged(ref field, value);
+	}
+
+	public double Progress
+	{
+		get;
+		set => this.RaiseAndSetIfChanged(ref field, value);
+	}
+
+	public SearchResultItem SelectedItem
+	{
+		get;
 		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public CancellationTokenSource TokenSource { get; private set; }
 
-	private DispatcherTimer m_dt;
+	private readonly DispatcherTimer m_dt;
+
+#region 
+
+	public ReactiveCommand<Unit, Unit> UploadCommand { get; }
+
+	public ReactiveCommand<Unit, Unit> SearchCommand { get; }
+
+	public ReactiveCommand<Unit, Unit> ClearCommand { get; }
+
+#endregion
 
 	public MainWindowViewModel()
 	{
-		m_dt = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Default, (Callback));
+		m_dt = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Default, (DispatchCallback));
 
 
 		Config      = new SearchConfig();
@@ -76,26 +107,23 @@ public partial class MainWindowViewModel : ViewModelBase
 
 		Config.PropertyChanged += OnChangedEvent;
 
-		var isVal = this.WhenAnyValue(x => x.Input, Selector);
-		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, isVal);
-
-		var isUp = this.WhenAnyValue(x => x.IsReady);
-		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, isUp);
+		var canUpload = this.WhenAnyValue(x => x.Input, Selector);
+		UploadCommand = ReactiveCommand.CreateFromTask(UploadInputAsync, canUpload);
+		
+		var canSearch = this.WhenAnyValue(x => x.IsReady);
+		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, canSearch);
 
 		/*var canScan = this.WhenAnyValue(x => x.SelectedItem, (SearchResultItem s) => { return s.HasScannedItems; });
 		SearchCommand = ReactiveCommand.CreateFromTask(RunSearchAsync, isUp);*/
 
 		ClearCommand = ReactiveCommand.CreateFromTask(ClearAsync);
+		
+		
 	}
 
 	private bool Selector(string x)
 	{
 		return UniImage.IsValidSourceType(x?.ToString());
-	}
-
-	private bool Selector2(ObservableCollection<SearchResultItem> x)
-	{
-		return x.Count > 0;
 	}
 
 	private void OnChangedEvent(object? sender, PropertyChangedEventArgs args)
@@ -112,12 +140,6 @@ public partial class MainWindowViewModel : ViewModelBase
 
 				break;
 		}
-	}
-
-	public SearchResultItem SelectedItem
-	{
-		get => field;
-		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
 	[RelayCommand]
@@ -139,7 +161,6 @@ public partial class MainWindowViewModel : ViewModelBase
 		}
 	}
 
-	public double Progress { get; set; }
 
 	// [RelayCommand]
 	public async Task UploadInputAsync()
@@ -147,15 +168,14 @@ public partial class MainWindowViewModel : ViewModelBase
 		Query   = await SearchQuery.TryCreateAsync(Input.Trim('\"'));
 		IsReady = await Query.TryUploadAsync();
 
-		// IsReady = Query.IsUploaded;
-		Image = new Bitmap(Query.Source.GetStream());
+		if (IsReady) {
+			Trace.Assert(Query.Upload != null);
+
+			// IsReady = Query.IsUploaded;
+			Image = new Bitmap(Query.Source.GetStream());
+			Url   = Query.Upload.Url;
+		}
 	}
-
-	public ReactiveCommand<Unit, Unit> UploadCommand { get; }
-
-	public ReactiveCommand<Unit, Unit> SearchCommand { get; }
-
-	public ReactiveCommand<Unit, Unit> ClearCommand { get; }
 
 
 	// [RelayCommand]
@@ -203,7 +223,7 @@ public partial class MainWindowViewModel : ViewModelBase
 		Query?.Dispose();
 	}
 
-	private async void Callback(object? sender, EventArgs args)
+	private async void DispatchCallback(object? sender, EventArgs args)
 	{
 		if (Application.Current == null) {
 			return;
@@ -215,7 +235,7 @@ public partial class MainWindowViewModel : ViewModelBase
 			return;
 
 
-		var clipn = await clipboard.TryGetFileAsync();
+		var clipFile = await clipboard.TryGetFileAsync();
 
 
 	}

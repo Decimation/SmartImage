@@ -12,6 +12,7 @@
     xmlns:libEngineResults="using:SmartImage.Lib.Engines.Results"
     mc:Ignorable="d"
     xmlns:asyncImageLoader="clr-namespace:AsyncImageLoader;assembly=AsyncImageLoader.Avalonia"
+    xmlns:uiConverters="clr-namespace:SmartImage.UI2.Converters"
     x:DataType="uiVm:MainWindowViewModel"
     Title="SmartImage">
 
@@ -31,23 +32,21 @@ d:DesignWidth="1000" d:DesignHeight="675"
 
             <Grid Background="#202020" RowDefinitions="Auto,*,*" ColumnDefinitions="Auto,*,Auto">
 
-                <WrapPanel Grid.Row="0" Grid.Column="0">
+                <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Top">
                     <TextBox Name="Tb_Input" MinWidth="100" MaxHeight="50" Text="{Binding Input}" />
                     <Button Command="{Binding UploadCommand}" Content="Upload" Foreground="Aqua" />
                     <Button Command="{Binding SearchCommand}" Content="Search" Foreground="LawnGreen" />
                     <Button Command="{Binding ClearCommand}" Content="Clear" />
                     <Button Command="{Binding CancelCommand}" Content="Cancel" Foreground="Red" />
+                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50" Text="{Binding Url, Mode=OneWay}" IsEnabled="False" />
 
-
-                </WrapPanel>
+                </StackPanel>
 
                 <Panel Grid.Row="0" Grid.Column="2" Grid.RowSpan="1" Width="300" Height="300">
                     <Rectangle Fill="#303030" />
                     <Image Width="300" Height="300" Source="{Binding Image}" />
                     <ProgressBar Value="{Binding Progress}" VerticalAlignment="Bottom" />
-                    <TextBox Name="Tb_Input2" MinWidth="100" MaxHeight="50"
-                             Text="{Binding Query.Upload.Url, FallbackValue=''}" IsEnabled="False"
-                             VerticalAlignment="Bottom" />
+
                 </Panel>
 
                 <!--<WrapPanel Grid.Row="1" Grid.Column="0">
@@ -55,11 +54,9 @@ d:DesignWidth="1000" d:DesignHeight="675"
                              Text="{Binding Query.Upload.Url, FallbackValue=''}" IsEnabled="False" />
                 </WrapPanel>-->
 
-                <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2"
-                         ItemsSource="{Binding Items}"
-                         SelectionMode="Single" MinWidth="1000" MinHeight="300"
-                         DoubleTapped="Lb_Items_OnDoubleTapped" x:Name="Lb_Items" Background="#1C1C1C"
-                         SelectedItem="{Binding SelectedItem}">
+                <ListBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Grid.RowSpan="2" MinHeight="300" MinWidth="1000" Background="#1C1C1C"
+                         x:Name="Lb_Items" ItemsSource="{Binding Items}" SelectedItem="{Binding SelectedItem}"
+                         SelectionMode="Single" DoubleTapped="Lb_Items_OnDoubleTapped">
 
                     <ListBox.KeyBindings>
                         <KeyBinding Command="{Binding LoadItemCommand}" Gesture="Ctrl+L"></KeyBinding>
@@ -68,29 +65,36 @@ d:DesignWidth="1000" d:DesignHeight="675"
 
                     <ListBox.ItemTemplate>
                         <DataTemplate DataType="{x:Type libEngineResults:SearchResultItem}">
-                            <Border Margin="4" Padding="6" Background="#252525" CornerRadius="4">
+                            <Border Margin="4" Padding="3" Background="#252525" CornerRadius="4">
 
                                 <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
 
-                                    <asyncImageLoader:AdvancedImage Source="{Binding Thumbnail, Mode=OneWay}"
-                                                                    IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                                                                    Width="100" Height="100" Margin="0,0,8,0" />
+                                    <!--<asyncImageLoader:AdvancedImage Width="100" Height="100" Margin="0,0,8,0"
+                                                                    Source="{Binding Thumbnail, Mode=OneWay}"
+                                                                    IsVisible="{Binding $parent, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />-->
+
+                                    <Image asyncImageLoader:ImageLoader.Source="{Binding Thumbnail, Mode=OneWay}" Width="100" Height="100" Margin="0,0,8,0"
+                                                                    x:Name="Img_Thumbnail" />
 
                                     <StackPanel Orientation="Vertical" Spacing="2">
 
-                                        <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12"
-                                                   TextWrapping="Wrap"
-                                                   FontWeight="Bold" />
+                                        <StackPanel Orientation="Vertical">
+                                            <TextBlock Text="{Binding Url}" Foreground="#4FC3F7" FontSize="12" TextWrapping="Wrap" FontWeight="Bold" />
+                                            <TextBlock Text="{Binding Thumbnail}" Foreground="#4FC3F7" FontSize="10" TextWrapping="Wrap" IsVisible="{Binding HasThumbnail}" />
+                                        </StackPanel>
 
-                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                        <!--<Image Height="24" Width="24"
+                                               Source="{Binding Root.Engine.EngineOption, Converter={StaticResource SearchEngineOptionsToIconConverter}}"
+                                               HorizontalAlignment="Right" />-->
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasSimilarity}">
                                             <TextBlock Text="Similarity:" Foreground="#808080" />
                                             <TextBlock
                                                 Text="{Binding Similarity, StringFormat={}{0}, UpdateSourceTrigger=PropertyChanged, Mode=OneWay}"
                                                 Foreground="#FFD700" />
                                         </StackPanel>
 
-                                        <StackPanel Orientation="Horizontal" Spacing="8"
-                                                    IsVisible="{Binding HasDimensions, Mode=OneWay}">
+                                        <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasDimensions, Mode=OneWay}">
                                             <TextBlock Text="Size:" Foreground="#808080" />
                                             <TextBlock Text="{Binding Width}" Foreground="#E0E0E0" />
                                             <TextBlock Text="x" Foreground="#E0E0E0" />
@@ -107,8 +111,8 @@ d:DesignWidth="1000" d:DesignHeight="675"
                                                     IsVisible="{Binding Source, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
                                             <TextBlock Text="Source:" Foreground="#808080" />
                                             <TextBlock Text="{Binding Source}" Foreground="#E0E0E0" />
-
                                         </StackPanel>
+
                                     </StackPanel>
                                 </StackPanel>
                             </Border>

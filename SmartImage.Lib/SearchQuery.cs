@@ -1,5 +1,7 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
+
+
 #region Global usings
 
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
@@ -29,6 +31,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
+using Flurl;
 using JetBrains.Annotations;
 using Microsoft;
 using Novus.FileTypes.Uni;
@@ -43,6 +46,7 @@ using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
+using System.ComponentModel;
 
 #region 
 
@@ -55,7 +59,7 @@ using SmartImage.Lib.Images.Uni;
 
 namespace SmartImage.Lib;
 
-public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
+public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged
 {
 
 #region Project names
@@ -77,8 +81,19 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Upload != null && Url.IsValid(Upload.Url);
 
+	private UploadResult m_upload;
+
 	[MN]
-	public UploadResult Upload { get; private set; }
+	public UploadResult Upload
+	{
+		get => m_upload;
+		private set
+		{
+			if (SetField(ref m_upload, value)) {
+				OnPropertyChanged(nameof(IsUploaded));
+			}
+		}
+	}
 
 	public UniImage Source { get; }
 
@@ -169,5 +184,22 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>
 	}
 
 #endregion
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CMN] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
 
 }

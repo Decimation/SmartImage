@@ -111,6 +111,9 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	[JI]
 	public bool IsRaw { get; }
 
+	[MNNW(true, nameof(Similarity))]
+	public bool HasSimilarity => Similarity.HasValue;
+
 	public double Score
 	{
 		get
