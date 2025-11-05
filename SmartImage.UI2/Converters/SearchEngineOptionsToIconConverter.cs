@@ -14,7 +14,7 @@ internal class SearchEngineOptionsToIconConverter : IValueConverter
 
 	public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
 	{
-		Stream assetStream = null;
+		Stream? assetStream = null;
 
 		if (value is SearchEngineOptions options) {
 			// Map each SearchEngineOptions value to an icon path

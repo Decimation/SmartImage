@@ -62,7 +62,7 @@ public enum SearchHashType
 /// <seealso cref="UniSource"/>
 /// </summary>	
 public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable, IImageSource,
-                                 INotifyPropertyChanged
+								 INotifyPropertyChanged
 {
 
 	protected static readonly ILogger s_logger;
@@ -225,8 +225,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
-	                                                  bool autoDisposeOnError = true,
-	                                                  CancellationToken ct = default)
+													  bool autoDisposeOnError = true,
+													  CancellationToken ct = default)
 	{
 		UniImage ui = Null;
 

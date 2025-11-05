@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 #nullable disable
 namespace SmartImage.Rdx.Commands;
 
-
 public sealed partial class SearchCommand
 {
 
@@ -27,34 +26,23 @@ public sealed partial class SearchCommand
 
 	private int GetRowForItem(SearchResultItem sri)
 	{
-		int a = 0, b = 0, c = 0;
+		int rootIdx = 0, scanIdxOfs = 0, c = 0;
 
-		// a = m_results[sri.Root];
+		rootIdx = sri.Root.Results.IndexOf(sri);
 
-		// b = sri.Root.Results.IndexOf(sri);
-		b = sri.HasParent ? (sri.Parent.Root.HasResults ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0) : sri.Root.Results.IndexOf(sri);
-		c = sri.HasParent ? (sri.Parent.HasScannedItems ? sri.Parent.ScannedItems.IndexOf(sri) : 0) : 0;
+		for (int i = 0; i < rootIdx; i++) {
+			var item = sri.Root.Results[i];
 
-		if (sri.HasParent && !sri.HasScannedItems) {
-			c++; // TODO NOTE: +1 for #.0 when #
+			if (item.HasScannedItems) {
+				var sc = item.ScannedItems.IndexOf(sri);
+				scanIdxOfs += sc == -1 ? item.ScannedItems.Count : 0;
+			}
 
 		}
 
-		return a + b + c;
+		return rootIdx + scanIdxOfs + c;
 
 	}
-
-	/*private int GetRowForUni(UniImage ui)
-	{
-
-		SearchResultItem sri = GetItemForUni(ui, out int c);
-		c++; // TODO NOTE: +1 for #.0 when #
-
-		int a = m_results[sri.Root];
-		int b = sri.Root.Results.IndexOf(sri);
-
-		return a + b + c;
-	}*/
 
 #endregion
 

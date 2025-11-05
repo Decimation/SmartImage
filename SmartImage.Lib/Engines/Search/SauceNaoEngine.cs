@@ -33,7 +33,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<INode>>, IEndpoint, IDisposable
+public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<INode>>, IEndpoint, IDisposable
 {
 
 	private const string URL_BASE = "https://saucenao.com/";
@@ -62,12 +62,12 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 	}
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
-	
+
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		// var result = await base.GetResultAsync(query, token);
-		var b =  VerifyQuery(query);
+		var b = VerifyQuery(query);
 
 		var srs = b ? SearchResultStatus.None : SearchResultStatus.IllegalInput;
 
@@ -204,18 +204,18 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 		return ValueTask.FromResult<IList<INode>>(results);
 	}
 
-	protected override ValueTask<IEnumerable<SauceNaoDataResult>> ParseItemsAsync(IList<INode> source, SearchResult r)
+	protected override ValueTask<IEnumerable<SauceNaoResultItem>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
-		var buf = new List<SauceNaoDataResult>(source.Count);
+		var buf = new List<SauceNaoResultItem>(source.Count);
 
 		foreach (INode node in source) {
-			var sndr = SauceNaoDataResult.Parse(node, r);
+			var sndr = SauceNaoResultItem.ParseSource(node, r);
 
 			buf.AddRange(sndr);
 		}
 
 		Logger.LogDebug("Disposing {Name} doc", Name);
-		return ValueTask.FromResult<IEnumerable<SauceNaoDataResult>>(buf);
+		return ValueTask.FromResult<IEnumerable<SauceNaoResultItem>>(buf);
 	}
 
 
@@ -336,12 +336,12 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoDataResult, IList<I
 /// <summary>
 /// Origin result
 /// </summary>
-public sealed class SauceNaoDataResult : SearchResultItem
+public sealed class SauceNaoResultItem : SearchResultItem
 {
 
-	private SauceNaoDataResult() : this(null, false) { }
+	private SauceNaoResultItem() : this(null, false) { }
 
-	private SauceNaoDataResult(SearchResult r, bool isRaw = false) : base(r, isRaw) { }
+	private SauceNaoResultItem(SearchResult r, bool isRaw = false) : base(r, isRaw) { }
 
 	/// <summary>
 	///     The url(s) where the source is from. Multiple will be returned if the exact same image is found in multiple places
@@ -365,7 +365,6 @@ public sealed class SauceNaoDataResult : SearchResultItem
 
 	internal static readonly string[] Keys_Characters = ["Characters:"];
 
-	// private SauceNaoDataResult() { }
 
 	/*public SearchResultItem Convert(SearchResult r)
 	{
@@ -448,7 +447,21 @@ public sealed class SauceNaoDataResult : SearchResultItem
 		return ValueTask.FromResult<IEnumerable<SearchResultItem>>([sri, .. children]);
 	}*/
 
-	public static IEnumerable<SauceNaoDataResult> Parse(INode result, SearchResult sr)
+	public SauceNaoResultItem With3(Url u)
+	{
+		/*
+		var clone = (MemberwiseClone() as SauceNaoResultItem);
+		clone.Url = u;
+		return clone;
+	*/
+		return new SauceNaoResultItem(Root, false)
+		{
+			Url = u,
+
+		};
+	}
+
+	public static IEnumerable<SauceNaoResultItem> ParseSource(INode result, SearchResult r)
 	{
 		// TODO: OPTIMIZE
 
@@ -567,13 +580,13 @@ public sealed class SauceNaoDataResult : SearchResultItem
 			return b && c;
 		}).Distinct().ToArray();
 
-		var results = new List<SauceNaoDataResult>();
+		var results = new List<SauceNaoResultItem>();
 
 
-		var sndr = new SauceNaoDataResult(sr)
+		var sndr = new SauceNaoResultItem(r)
 		{
 			// Url  = url,
-			Urls = urls,
+			// Urls = urls,
 
 			// Url            = url,
 			Similarity     = Math.Round(similarity, 2),
@@ -620,8 +633,8 @@ public sealed class SauceNaoDataResult : SearchResultItem
 			}
 		}
 
-		for (int i = 0; i < sndr.Urls.Length; i++) {
-			Url    url  = sndr.Urls[i];
+		for (int i = 0; i < urls.Length; i++) {
+			Url    url  = urls[i];
 			string site = null;
 
 			if (Url.IsValid(url)) {
@@ -644,18 +657,8 @@ public sealed class SauceNaoDataResult : SearchResultItem
 		}*/
 
 		return results;
+
 	}
-
-#region Overrides of SearchResultItem
-
-	public SauceNaoDataResult With3(Url u)
-	{
-		var clone = (MemberwiseClone() as SauceNaoDataResult);
-		clone.Url = u;
-		return clone;
-	}
-
-#endregion
 
 }
 

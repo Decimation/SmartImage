@@ -32,7 +32,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 	public SearchResultItem Parent { get; private set; }
 
 	[MNNW(true, nameof(Parent))]
-	public bool HasParent => Parent != null;
+	public bool IsChild => Parent != null;
 
 	// [MN]
 	// [JPN("url")]

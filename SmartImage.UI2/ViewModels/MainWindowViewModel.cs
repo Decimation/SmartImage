@@ -174,7 +174,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
 			// IsReady = Query.IsUploaded;
 			Url   = Query.Upload.Url;
-			
+			Image = new Bitmap(Query.Source.GetStream());
 		}
 	}
 
