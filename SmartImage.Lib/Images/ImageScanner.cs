@@ -8,7 +8,6 @@ using System.IO;
 using System.Linq;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -70,7 +69,7 @@ public static partial class ImageScanner
 			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.Settings.HttpVersion            = "2.0";
 
-			builder.Headers.AddOrReplace("User-Agent", HttpUtilities.UserAgent);
+			builder.Headers.AddOrReplace("User-Agent", R1.UserAgent1);
 
 			// builder.AllowAnyHttpStatus();
 

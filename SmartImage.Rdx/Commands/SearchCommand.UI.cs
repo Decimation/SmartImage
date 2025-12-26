@@ -5,7 +5,9 @@ using SmartImage.Rdx.Shell;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -24,24 +26,132 @@ public sealed partial class SearchCommand
 
 #region
 
-	private int GetRowForItem(SearchResultItem sri)
+	/*private int GetRowForItem(SearchResultItem sri)
 	{
 		int rootIdx = 0, scanIdxOfs = 0, c = 0;
 
-		rootIdx = sri.Root.Results.IndexOf(sri);
+		var iterSrc = sri.IsChild ? sri.Parent : sri;
+		rootIdx = sri.Root.Results.IndexOf(iterSrc);
+
 
 		for (int i = 0; i < rootIdx; i++) {
-			var item = sri.Root.Results[i];
+			var item = iterSrc.Root.Results[i];
 
-			if (item.HasScannedItems) {
-				var sc = item.ScannedItems.IndexOf(sri);
-				scanIdxOfs += sc == -1 ? item.ScannedItems.Count : 0;
-			}
+			// var item = iterSrc;
+			var sc = item.ScannedItems.IndexOf(sri);
+			scanIdxOfs += sc == -1 ? item.ScannedItems.Count : sc;
 
 		}
 
+		// scanIdxOfs = iterSrc.ScannedItems.IndexOf(sri);
+
+		/*for (int i = 0; i < iterSrc.Root.Results.Count; i++) {
+			var iterRR  = iterSrc.Root.Results[i];
+			var iterRRC = iterRR.ScannedItems.IndexOf(sri);
+
+		}#1#
+
+
+		/*if (sri.IsChild && !sri.HasScannedItems) {
+			c++;
+		}#1#
+
+
 		return rootIdx + scanIdxOfs + c;
 
+	}*/
+
+	private static readonly ConcurrentDictionary<SearchResultItem, int> tbl;
+
+	private static Selection GetResultItemIndexes(SearchResult res)
+	{
+		Selection ret;
+
+		ConsoleFormat.Prm_Num2.Validator = str =>
+		{
+			ret = Parse(str, res);
+
+			if (ret == null) {
+				return ValidationResult.Error();
+			}
+
+			return ValidationResult.Success();
+		};
+
+
+		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num2);
+		var sri = Parse(val, res);
+		return sri;
+
+
+	}
+
+	internal record Selection
+	{
+
+		public SearchResultItem Item { get; }
+
+		// public SearchResultItem Scanned { get; }
+
+		public int ItemIdx { get; }
+
+		public int ScanIdx { get; }
+
+		public bool IsScannedItem {get;}
+
+		public Selection(SearchResultItem item, int itemIdx, int scanIdx, bool isScanned)
+		{
+			Item    = item;
+			ItemIdx = itemIdx;
+			ScanIdx = scanIdx;
+			IsScannedItem = isScanned;
+		}
+
+		public int Index()
+		{
+			var root = Item.Root.Results.IndexOf(IsScannedItem ? Item.Parent : Item);
+			// Debug.Assert(root == ItemIdx);
+
+			var scnIdx = 0;
+
+			if (IsScannedItem) {
+				scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
+				Debug.Assert(scnIdx == ScanIdx);
+				scnIdx++;
+			}
+
+			return root + scnIdx;
+		}
+
+	}
+
+	[CBN]
+	static Selection Parse(string str, SearchResult sr)
+	{
+		var spl = str.Split('.');
+
+		SearchResultItem sri = null, sri2 = null;
+
+		var resIdx = 0;
+		var scnIdx = -1;
+		bool isScanned = false;
+
+
+		if (sr.Results.TryParseIndex(spl[0], out resIdx, out sri)) {
+			if (spl.Length == 2) {
+				if (sri.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
+					sri = sri2;
+					isScanned = true;
+				}
+				// if (sr.ScannedResults[sri].TryParseIndex(spl[1], out scnIdx, out sri2)) { }
+
+			}
+			else { }
+
+		}
+		else { }
+
+		return new Selection(sri, resIdx, scnIdx, isScanned);
 	}
 
 #endregion
@@ -133,7 +243,7 @@ public sealed partial class SearchCommand
 
 
 	private static IRenderable CreateResultItemResolutionRow(SearchResultItem sri)
-		=> (sri.Width.HasValue && sri.Height.HasValue) ? new Text($"{sri.Width}x{sri.Height}") : ConsoleFormat.Txt_NA;
+		=> (sri.HasDimensions) ? new Text($"{sri.Width}x{sri.Height}") : ConsoleFormat.Txt_NA;
 
 	private static IRenderable CreateResultItemSimilarityCell(SearchResultItem sri)
 		=> sri.Similarity.HasValue ? new Text($"{sri.Similarity}") : ConsoleFormat.Txt_NA;
@@ -159,52 +269,6 @@ public sealed partial class SearchCommand
 		var wh     = CreateResultItemResolutionRow(sri);
 
 		return [name, url, sim, artist, wh];
-	}
-
-#endregion
-
-
-#region Prompts
-
-	private static SearchResultItem GetResultItemPrompt(SearchResult res)
-	{
-		SearchResultItem ret;
-
-		ConsoleFormat.Prm_Num2.Validator = str =>
-		{
-			ret = Parse(str);
-
-			if (ret == null) {
-				return ValidationResult.Error();
-			}
-
-			return ValidationResult.Success();
-		};
-
-
-		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num2);
-		return Parse(val);
-
-		[CBN]
-		SearchResultItem Parse(string str)
-		{
-			var spl = str.Split('.');
-
-			SearchResultItem sri = null;
-
-			if (res.Results.TryParseIndex(spl[0], out sri)) {
-
-				if (spl.Length == 2) {
-
-					if (sri.ScannedItems.TryParseIndex(spl[1], out sri)) { }
-				}
-				else { }
-
-			}
-			else { }
-
-			return sri;
-		}
 	}
 
 #endregion

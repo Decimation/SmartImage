@@ -30,6 +30,8 @@ internal class ImageManager
 	// internal static readonly ArrayPool<byte>               MemPool = ArrayPool<byte>.Shared;
 
 	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options()
-		                                                                    { });
+	{
+		
+	});
 
 }

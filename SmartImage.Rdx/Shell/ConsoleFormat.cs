@@ -280,6 +280,13 @@ internal static class ConsoleFormat
 		AllowEmpty       = false,
 	};
 
+	public static readonly TextPrompt<(int, int)> Prm_Num3 = new(Markup.Escape("[#.#]"))
+	{
+		ShowChoices      = false,
+		ShowDefaultValue = false,
+		AllowEmpty       = false,
+	};
+
 #endregion
 
 }

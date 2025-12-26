@@ -51,7 +51,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	public object Headers = new
 	{
-		User_Agent      = HttpUtilities.UserAgent,
+		User_Agent      = R1.UserAgent1,
 		Connection      = "keep-alive",
 		Accept_Encoding = "gzip, deflate, br",
 		Accept          = "*/*"

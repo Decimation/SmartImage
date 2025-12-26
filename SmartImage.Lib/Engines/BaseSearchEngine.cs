@@ -51,7 +51,7 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 	{
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, static builder =>
 		{
-			builder.Headers.AddOrReplace(HeaderNames.UserAgent, HttpUtilities.UserAgent);
+			builder.Headers.AddOrReplace(HeaderNames.UserAgent, R1.UserAgent1);
 
 			// builder.Settings.JsonSerializer = new DefaultJsonSerializer();
 
@@ -139,7 +139,7 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 	}
 
 
-	public override bool Equals(object? obj)
+	public override bool Equals([CBN] object obj)
 	{
 		if (obj is null) {
 			return false;
@@ -163,7 +163,7 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 
 	public abstract void Dispose();
 
-	public bool Equals(BaseSearchEngine? other)
+	public bool Equals([CBN] BaseSearchEngine other)
 	{
 		if (other is null) {
 			return false;
@@ -182,10 +182,10 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 		return (Name != null ? Name.GetHashCode() : 0);
 	}
 
-	public static bool operator ==(BaseSearchEngine? left, BaseSearchEngine? right)
+	public static bool operator ==([CBN] BaseSearchEngine left, [CBN] BaseSearchEngine right)
 		=> Equals(left, right);
 
-	public static bool operator !=(BaseSearchEngine? left, BaseSearchEngine? right)
+	public static bool operator !=([CBN] BaseSearchEngine left, [CBN] BaseSearchEngine right)
 		=> !Equals(left, right);
 
 }

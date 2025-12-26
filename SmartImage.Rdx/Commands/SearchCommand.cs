@@ -128,7 +128,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		var p = ctx.AddTask("Creating query");
 		p.IsIndeterminate = true;
-		bool ok = true;
 
 		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
 
@@ -164,7 +163,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
 	{
 		Console.CancelKeyPress += OnCancelKeyPress;
-		
+
 		InitConfig(settings);
 
 		var initTask = AnsiConsole.Progress()
@@ -304,9 +303,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					break;
 				}
 
-				var sri = GetResultItemPrompt(sr);
+				var sel = GetResultItemIndexes(sr);
+				var sri = sel.Item;
 
-				s_logger.LogTrace("Interactive: {ResItem}", sri);
+				s_logger.LogInformation("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, sel.ItemIdx, sel.ScanIdx);
+
+				// s_logger.LogTrace("Interactive: {ResItem}", sri);
 
 				if (cmd == R2.Chc_Open) {
 					SearchClient.OpenResult(sri.Url);
@@ -319,13 +321,25 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
 						bool scannedOk = false;
-						scannedOk = await sri.ScanAsync(m_ctsRun.Token);
+						scannedOk = await sri.ScanAsync2(m_ctsRun.Token);
 
 						if (!scannedOk) {
 							return;
 						}
 
-						var row = GetRowForItem(sri);
+						int row;
+
+						row = sr.Results.IndexOf(sri);
+
+						var idx = sel.Index();
+
+						// row = GetRowForItem(sri);
+						// row = sr.Index(sel.Item, sel.Scanned);
+
+						// row = sr.Index(sri);
+
+						// var row2 = sriPak;
+						// row = row2.RootIdx + (row2.ScnIdx == -1 ? 0 : (row2.ScnIdx + 1));
 
 						if (sri.HasImage) {
 							srTable.Rows.Update(row, ROW_WH, CreateResultItemResolutionRow(sri));
@@ -337,17 +351,26 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							srTable.Rows.Update(row, ROW_SIMILARITY, CreateResultItemSimilarityCell(sri));
 						}
 
-						if (sri.HasScannedItems) {
+						var scanned = sri.ScannedItems;
+
+						int i = 0;
+
+						foreach (var ui in scanned) {
+
+							srTable.InsertRow(++row, CreateItemRow(ui, idx, i++));
+						}
+
+						/*if (sr.ScannedResults.TryGetValue(sri, out SearchResultItem[] scanned)) {
 							int i = 0;
 
 							var idx = sri.Root.Results.IndexOf(sri);
 
-							foreach (var ui in sri.ScannedItems) {
+							foreach (var ui in scanned) {
 
 								srTable.InsertRow(++row, CreateItemRow(ui, idx, i++));
 							}
 
-						}
+						}*/
 
 						f.Refresh();
 
@@ -363,10 +386,24 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				if (cmd == R2.Chc_Calc) {
-					if (sri.HasHash && !sri.Similarity.HasValue) {
+
+					if (sri.HasHash) {
+
 						AnsiConsole.Live(srTable).Start(f =>
 						{
-							var row = GetRowForItem(sri);
+							// var row  = GetRowForItem(sri);
+							// var row = SearchResultItem.FindSumIndex(sri);
+							// var row = sr.Index(sri);
+
+							// var row = sr.Index(sel.Item, sel.Scanned);
+
+							var row = sel.Index();
+
+							// var row = (sel.ScanIdx == -1 ? 0 : sel.ScanIdx) + sel.ItemIdx;
+
+							// var row2 = sriPak;
+							// var row  = row2.RootIdx + (row2.ScnIdx == -1 ? 0 : (row2.ScnIdx + 1));
+
 							sri.CalculateSimilarity(Query.Source);
 
 							srTable.Rows.Update(row, ROW_SIMILARITY, CreateResultItemSimilarityCell(sri));
@@ -475,8 +512,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// var panel = new Panel(ci) { Expand = true, };
 
 		var (w, h)     = (AnsiConsole.Profile.Width, AC.Profile.Height);
-		var (mwO, pwO)   = (ci.MaxWidth, ci.PixelWidth);
-		var (mw, pw) = (mwO ?? ci.Width, pwO);
+		var (mwO, pwO) = (ci.MaxWidth, ci.PixelWidth);
+		var (mw, pw)   = (mwO ?? ci.Width, pwO);
 
 		AnsiConsole.Live(ci).Start((ldc) =>
 		{

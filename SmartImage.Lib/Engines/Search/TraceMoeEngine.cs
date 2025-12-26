@@ -1,9 +1,12 @@
 using System.Collections;
 using System.Diagnostics;
+using System.Net;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Argon;
 using Flurl;
 using Flurl.Http;
+using Flurl.Http.Content;
 using JetBrains.Annotations;
 using Kantan.Collections;
 using Kantan.Text;
@@ -42,12 +45,6 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
-
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 
@@ -58,11 +55,8 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 		var sr = await base.GetResultAsync(query, token).ConfigureAwait(false);
 
 		try {
-			IFlurlRequest request = Client.Request(Endpoint, "/search")
-				.WithTimeout(Timeout)
-				.SetQueryParam("url", query.Upload.Url, true);
 
-			using var response = await request.GetAsync(cancellationToken: token).ConfigureAwait(false);
+			using var response = await SearchByMultipart(query, token);
 
 			tm = await response.GetJsonAsync<TraceMoeRootObject>().ConfigureAwait(false);
 		}
@@ -112,10 +106,41 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 		return sr;
 	}
 
+	private Task<IFlurlResponse> SearchByMultipart(SearchQuery query, CancellationToken ct)
+	{
+		var req = Client.Request(Endpoint, "/search")
+			.WithTimeout(Timeout);
+
+		return req.PostMultipartAsync(ac =>
+		{
+			if (query.Source.IsFile) {
+				ac.AddFile("file", query.Source.Value);
+			}
+			else {
+				ac.AddFile("image", query.Source.GetStream(), "image");
+			}
+		}, cancellationToken: ct);
+	}
+
+	private Task<IFlurlResponse> SearchByUpload(SearchQuery query, CancellationToken ct)
+	{
+		IFlurlRequest request = Client.Request(Endpoint, "/search")
+			.WithTimeout(Timeout)
+			.SetQueryParam("url", query.Upload.Url, true);
+
+		return request.GetAsync(cancellationToken: ct);
+	}
+
 	public Task<TraceMoeQuotaObject> GetQuotaAsync()
 	{
 		return Client.Request(Endpoint, "me")
 			.GetJsonAsync<TraceMoeQuotaObject>();
+	}
+
+	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		return ValueTask.FromResult(true);
+
 	}
 
 	public override void Dispose() { }
@@ -222,7 +247,7 @@ public class TraceMoeDoc
 		{
 			Similarity  = sim,
 			Title       = Filename,
-			Thumbnail = Image,
+			Thumbnail   = Image,
 			Source      = name,
 			Url         = AnilistUrl,
 			Description = $"Episode #{EpisodeString} @ [{TimeSpan.FromSeconds(From):g} - {TimeSpan.FromSeconds(To):g}]",

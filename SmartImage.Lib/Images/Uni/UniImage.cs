@@ -169,7 +169,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public Stream GetStream()
 	{
 		// return HasBytes ? new MemoryStream(Bytes, writable: false) : Stream.Null;
-		var str = ImageManager.MemMgr.GetStream(Bytes);
+		var str = ImageManager.MemMgr.GetStream(Value, Bytes);
 		return str;
 	}
 
@@ -359,10 +359,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public override int GetHashCode()
 	{
-		// return HashCode.Combine(Uni, Upload, Size);
-		return HashCode.Combine(Value);
-
-		// return Uni.GetHashCode();
+		return (Value != null ? Value.GetHashCode() : 0);
 	}
 
 	public static bool operator ==(UniImage left, UniImage right)
@@ -374,7 +371,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	{
 		return !Equals(left, right);
 	}
-
+	
 #endregion
 
 	public event PropertyChangedEventHandler PropertyChanged;

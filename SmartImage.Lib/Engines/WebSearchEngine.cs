@@ -28,7 +28,7 @@ public abstract class WebSearchEngine<TResultItem, TIntermediate> : ParsedSearch
 			                .WithTimeout(Timeout)
 			                .WithHeaders(new
 			                {
-				                User_Agent = HttpUtilities.UserAgent
+				                User_Agent = R1.UserAgent1
 			                })
 			                /*.OnError(s =>
 			                {

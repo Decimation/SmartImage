@@ -78,7 +78,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			.WithTimeout(Timeout)
 			.WithHeaders(new
 			{
-				User_Agent = HttpUtilities.UserAgent
+				User_Agent = R1.UserAgent1
 			})
 			.WithAutoRedirect(true)
 			.GetAsync();
@@ -135,7 +135,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			Content   = data,
 			Headers =
 			{
-				{ "User-Agent", HttpUtilities.UserAgent }
+				{ "User-Agent", R1.UserAgent1 }
 			}
 		};
 
@@ -277,7 +277,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 				               CODE = 01
 			               }).WithHeaders(new
 			               {
-				               User_Agent = HttpUtilities.UserAgent
+				               User_Agent = R1.UserAgent1
 			               })
 			               .WithCookies(out var cj)
 			               .PostAsync(content).ConfigureAwait(false);

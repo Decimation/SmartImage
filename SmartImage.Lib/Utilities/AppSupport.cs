@@ -36,7 +36,7 @@ public static class AppSupport
 			        .AllowAnyHttpStatus()
 			        .WithHeaders(new
 			        {
-				        User_Agent = HttpUtilities.UserAgent
+				        User_Agent = R1.UserAgent1
 			        })
 			        .OnError(static e => { e.ExceptionHandled = true; })
 			        .GetJsonAsync<GitHubRelease[]>();

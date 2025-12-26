@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net9.0-windows</TargetFramework>
+    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <DefineConstants>JETBRAINS_ANNOTATIONS;TRACE</DefineConstants>
@@ -87,16 +87,16 @@
 
   <ItemGroup>
     <Reference Include="FlareSolverrSharp">
-      <HintPath>..\..\..\VSProjects\FlareSolverrSharp\src\FlareSolverrSharp\bin\Release\net9.0\FlareSolverrSharp.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\FlareSolverrSharp\src\FlareSolverrSharp\bin\Release\net10.0\FlareSolverrSharp.dll</HintPath>
     </Reference>
     <Reference Include="Kantan">
-      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net9.0\Kantan.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan\bin\Release\net10.0\Kantan.dll</HintPath>
     </Reference>
     <Reference Include="Kantan.Net">
-      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net9.0\Kantan.Net.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\Kantan\Kantan.Net\bin\Release\net10.0\Kantan.Net.dll</HintPath>
     </Reference>
     <Reference Include="Novus">
-      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net9.0\Novus.dll</HintPath>
+      <HintPath>..\..\..\VSProjects\Novus\Novus\bin\Release\net10.0\Novus.dll</HintPath>
     </Reference>
   </ItemGroup>
 

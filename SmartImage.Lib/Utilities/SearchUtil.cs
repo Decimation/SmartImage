@@ -39,11 +39,11 @@ public static class SearchUtil
 	public static bool HasFlagFast(this SearchResultFlags value, SearchResultFlags status)
 		=> (value & status) != 0;
 
-	internal static bool TryParseIndex<T>(this IList<T> col, string s, out T val)
+	internal static bool TryParseIndex<T>(this IList<T> col, string s, out int i, out T val)
 	{
 		val = default;
 
-		if (Int32.TryParse(s, out var i) && (i < col.Count && i >= 0)) {
+		if (Int32.TryParse(s, out i) && (i < col.Count && i >= 0)) {
 			val = col[i];
 			return true;
 		}

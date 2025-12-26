@@ -37,7 +37,7 @@ public sealed class BingEngine : BaseSearchEngine
 
 		var req = await sr.RawUrl.WithHeaders(new
 		{
-			User_Agent = HttpUtilities.UserAgent
+			User_Agent = R1.UserAgent1
 		}).GetAsync();
 
 		var parser = new HtmlParser();

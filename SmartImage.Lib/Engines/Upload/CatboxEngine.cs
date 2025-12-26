@@ -21,7 +21,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 			               .WithSettings(r => { r.Timeout = Timeout; })
 			               .WithHeaders(new
 			               {
-				               User_Agent = HttpUtilities.UserAgent
+				               User_Agent = R1.UserAgent1
 			               })
 			               .PostMultipartAsync(mp =>
 			               {
