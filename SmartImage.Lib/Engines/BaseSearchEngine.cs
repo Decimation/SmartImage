@@ -21,7 +21,7 @@ namespace SmartImage.Lib.Engines;
 #pragma warning disable CA1822
 #nullable disable
 
-public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEquatable<BaseSearchEngine>, ISearchEngine
+public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>, ISearchEngine
 {
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -40,7 +40,7 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 	public TimeSpan Timeout { get; protected init; }
 
 	[JI]
-	public long? MaxSize { get; protected init; }
+	public long? MaxLength { get; protected init; }
 
 	[JI]
 	protected virtual string[] ErrorBodyMessages { get; }
@@ -76,7 +76,7 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 		BaseUrl           = baseUrl;
 		Timeout           = TimeSpan.FromSeconds(30);
 		ErrorBodyMessages = [];
-		MaxSize           = null;
+		MaxLength           = null;
 
 	}
 
@@ -119,8 +119,8 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 	{
 		bool b = true;
 
-		if (MaxSize.HasValue) {
-			b = q.Source.Size <= MaxSize;
+		if (MaxLength.HasValue) {
+			b = q.Source.Length <= MaxLength;
 		}
 
 		return b;
@@ -131,7 +131,6 @@ public abstract class BaseSearchEngine : ISearchConfigReceiver, IDisposable, IEq
 		return (int) EngineOption;
 	}*/
 
-	public abstract ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
 
 	public override string ToString()
 	{

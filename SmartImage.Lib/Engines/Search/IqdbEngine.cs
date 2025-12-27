@@ -38,7 +38,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 	protected IqdbEngine(string b) : base(b)
 	{
-		MaxSize = 8_388_608; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
+		MaxLength = 8_388_608; // NOTE: assuming IQDB uses kilobytes instead of kibibytes
 		Timeout = TimeSpan.FromSeconds(90);
 	}
 
@@ -74,7 +74,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 				               .WithTimeout(Timeout)
 				               .PostMultipartAsync(m =>
 				               {
-					               m.AddString("MAX_FILE_SIZE", MaxSize.ToString());
+					               m.AddString("MAX_FILE_SIZE", MaxLength.ToString());
 
 					               if (query.Source.IsUri) {
 						               m.AddString("url", query.Upload.Url);
@@ -118,11 +118,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 	}
 
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
+	
 
 	protected override ValueTask<IEnumerable<IHtmlCollection<IElement>>> ParseIntermediateAsync(IDocument src)
 	{
@@ -181,7 +177,7 @@ public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<
 
 }
 
-public class IqdbItem : SearchResultItem, ISourceItemParseable<IHtmlCollection<IElement>, IqdbItem>
+public class IqdbItem : SearchResultItem, IParseableSource<IHtmlCollection<IElement>, IqdbItem>
 {
 
 	private IqdbItem(SearchResult r) : base(r) { }

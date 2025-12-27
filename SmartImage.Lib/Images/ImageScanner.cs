@@ -1,25 +1,11 @@
 ﻿// Read S SmartImage.Lib BaseImageHost.cs
 // 2023-07-08 @ 8:13 PM
 
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Collections.Concurrent;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Net;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using System.Web;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.Io;
+using Argon;
 using CliWrap;
 using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
@@ -48,11 +34,25 @@ using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Integration;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Runtime.CompilerServices;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+using System.Web;
 
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Images;
-
 
 public static partial class ImageScanner
 {
@@ -91,14 +91,12 @@ public static partial class ImageScanner
 
 	public static FlurlClient Client { get; }
 
-	private static readonly ILogger s_logger;
-
 	/*
 	 * TODO: DefaultCookiesProvider, and FlareSolverr
 	 */
 
 
-	public const char URL_DELIM = '/';
+	private static readonly ILogger s_logger;
 
 	/*
 	 * TODO:
@@ -124,15 +122,19 @@ public static partial class ImageScanner
 
 #region Images
 
-	public static readonly IImageFormat[] Formats = [PngFormat.Instance, JpegFormat.Instance, BmpFormat.Instance, GifFormat.Instance];
+	public static readonly IImageFormat[] ImageFormats = [PngFormat.Instance, JpegFormat.Instance, BmpFormat.Instance, GifFormat.Instance];
 
-	public static readonly string[] Extensions = Formats.SelectMany(static fmt => fmt.FileExtensions).ToArray();
+	public static readonly string[] FormatExtensions = ImageFormats.SelectMany(static fmt => fmt.FileExtensions).ToArray();
 
 #endregion
 
-	public static readonly string[] UrlPartBlacklists = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
+#region Scanning
 
-	public static readonly string[] LegalSchemes = ["http", "https"];
+	public static readonly string[] UrlSegmentBlacklist = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
+
+	public static readonly string[] LegalSchemeWhitelist = ["http", "https"];
+
+	internal const char URL_DELIM = '/';
 
 	/// <summary>
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
@@ -177,7 +179,7 @@ public static partial class ImageScanner
 
 		doc = await dp.ParseDocumentAsync(sz);
 
-		var urls = GetImageUrls(sz, url);
+		var urls = ParseImageUrls(sz, url);
 
 
 		await Task.WhenAll(urls.Select(async u => await Body(u, ct)));
@@ -211,8 +213,7 @@ public static partial class ImageScanner
 		}
 	}
 
-
-	public static IEnumerable<string> GetImageUrls(string html, Url url, bool heuristicFilter = true)
+	public static IEnumerable<string> ParseImageUrls(string html, Url url, bool heuristicFilter = true)
 	{
 		var imgUrlsSrc = r_imgSrc().Matches(html).Select(static m => m.Groups["URL"].Value);
 		var imgUrlsExt = r_imgExt().Matches(html).Select(static m => m.Value);
@@ -252,13 +253,13 @@ public static partial class ImageScanner
 		}).Select(u => Url.Decode(u, true)).Where(Url.IsValid).Distinct();
 
 		if (heuristicFilter) {
-			abs = abs.Where(u => !UrlPartBlacklists.Any(u.Contains));
+			abs = abs.Where(u => !UrlSegmentBlacklist.Any(u.Contains));
 		}
 
 		return abs;
 	}
 
-	public static IEnumerable<string> GetImageUrls(IHtmlDocument doc)
+	public static IEnumerable<string> ParseImageUrls(IHtmlDocument doc)
 	{
 		// var a = doc.QueryAllAttribute("a", "href");
 		// var b = doc.QueryAllAttribute("img", "src");
@@ -272,6 +273,18 @@ public static partial class ImageScanner
 		return c;
 	}
 
+	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
+	{
+		var req1 = await Client.Request(value)
+			           .GetAsync(cancellationToken: ct);
+
+		return req1;
+	}
+
+#endregion
+
+
+	[Obsolete]
 	public static async Task<UniImage[]> RunGalleryDLAsync(Url cri, CancellationToken ct = default)
 	{
 		// TODO: TEST
@@ -281,89 +294,37 @@ public static partial class ImageScanner
 			return null;
 		}
 
-		var sbOut = new StringBuilder();
+		var rg = new ConcurrentBag<UniImage>();
+
 		var sbErr = new StringBuilder();
 
 		var cmd = Cli.Wrap(BaseOSIntegration.GALLERY_DL);
 
-		cmd.WithArguments($"-G {cri}")
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbOut))
-			.WithStandardOutputPipe(PipeTarget.ToStringBuilder(sbErr));
+		cmd.WithArguments([$"-G", cri])
+			.WithStandardOutputPipe(PipeTarget.Create((HandlePipeAsync)))
+			.WithStandardErrorPipe(PipeTarget.ToStringBuilder(sbErr));
 
-		var cr = await cmd.ExecuteAsync(ct);
 
-		if (!cr.IsSuccess) {
-			return null;
-		}
-
-		var s2 = sbErr.ToString().Split(Environment.NewLine);
-		var rg = new ConcurrentBag<UniImage>();
-
-		await Parallel.ForEachAsync(s2, ct, async (s1, token) =>
+		async Task HandlePipeAsync(Stream arg1, CancellationToken token)
 		{
-			var uni = await UniImage.TryCreateAsync(s1, ct: token);
+			var uni = await UniImage.TryCreateAsync(arg1, ct: token);
 
 			if (uni != null) {
 				rg.Add(uni);
 			}
 
-
 			token.ThrowIfCancellationRequested();
-		});
+		}
 
-		// p.Dispose();
+		var cr = await cmd.ExecuteAsync(ct);
+
+		var s2 = sbErr.ToString().Split(Environment.NewLine);
+
+		if (!cr.IsSuccess) {
+			return null;
+		}
 
 		return rg.ToArray();
-	}
-
-	public static IImageHash ImageHasher { get; } = new PerceptualHash();
-
-	public static ISImage ResizeByFactor(this ISImage image, Size newSize)
-	{
-		int origWidth  = image.Width;
-		int origHeight = image.Height;
-
-		double widthRatio  = (double) newSize.Width  / origWidth;
-		double heightRatio = (double) newSize.Height / origHeight;
-		double scale       = Math.Min(widthRatio, heightRatio);
-
-		if (scale >= 1.0)
-			return image.Clone();
-
-		int newWidth  = (int) (origWidth  * scale);
-		int newHeight = (int) (origHeight * scale);
-
-		// Resize the image
-		var resized = image.Clone(ctx => ctx.Resize(new ResizeOptions()
-		{
-			Size = new Size(newWidth, newHeight),
-
-		}));
-		return resized;
-	}
-
-	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
-	{
-		// value = value.CleanString();
-		/*if (value.Scheme == "javascript") {
-			throw new ArgumentException($"{value}");
-		}*/
-
-		var req1 = await Client.Request(value)
-			           .GetAsync(cancellationToken: ct);
-
-		// var req  = ValueTask.FromResult(req1);
-
-		// var res = await req.GetAsync(cancellationToken: ct);
-
-		/*
-		if (res.ResponseMessage.StatusCode == HttpStatusCode.NotFound) {
-			throw new ArgumentException($"{value} returned {HttpStatusCode.NotFound}");
-
-		}
-		*/
-
-		return req1;
 	}
 
 }

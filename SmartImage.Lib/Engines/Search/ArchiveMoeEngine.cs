@@ -41,11 +41,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 	}
 
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
+	
 
 	public override void Dispose()
 	{
@@ -89,7 +85,7 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 }
 
-public class ChanPost : SearchResultItem, ISourceItemParseable<INode, ChanPost>
+public class ChanPost : SearchResultItem, IParseableSource<INode, ChanPost>
 {
 
 	public string Board { get; private set; }

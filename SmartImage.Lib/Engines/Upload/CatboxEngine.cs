@@ -5,7 +5,6 @@ using System.Net.Http.Headers;
 using Microsoft.Net.Http.Headers;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities;
-using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines.Upload;
 
@@ -72,7 +71,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 public sealed class CatboxEngine : BaseCatboxEngine
 {
 
-	public override long? MaxSize => 200_000_000L;
+	public override long? MaxLength => 200_000_000L;
 
 	public CatboxEngine() : base("https://catbox.moe/user/api.php") { }
 

@@ -223,18 +223,9 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 		return true;
 	}
 
-#region Implementation of ISearchConfigReceiver
-
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-	}
-
-#endregion
-
 }
 
-public class GoogleLensItem : SearchResultItem, ISourceItemParseable<INode, GoogleLensItem>
+public class GoogleLensItem : SearchResultItem, IParseableSource<INode, GoogleLensItem>
 {
 
 	// public string SiteName { get; private set; }

@@ -28,7 +28,7 @@ public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
 
 	public FluffleEngine() : base(URL_BASE)
 	{
-		MaxSize = 4_194_304; // MiB
+		MaxLength = 4_194_304; // MiB
 
 		// Timeout = TimeSpan.FromSeconds(10);
 	}
@@ -101,11 +101,7 @@ public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
 		return base.GetRawUrl(query);
 	}
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
+	
 
 	public override void Dispose()
 	{

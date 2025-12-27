@@ -69,12 +69,10 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 public class GelbooruPostsRequest
 {
 
-	private int m_limit;
-
 	public int Limit
 	{
-		get => m_limit;
-		set => m_limit = Math.Clamp(value, 1, BaseGelbooruClient.PostMax);
+		get;
+		set => field = Math.Clamp(value, 1, BaseGelbooruClient.PostMax);
 	}
 
 	public int Pid { get; set; }

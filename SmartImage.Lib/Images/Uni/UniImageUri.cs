@@ -61,7 +61,7 @@ public class UniImageUri : UniImage
 
 		var scheme = u.Scheme;
 
-		return ImageScanner.LegalSchemes.Contains(scheme);
+		return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
 	}
 
 }

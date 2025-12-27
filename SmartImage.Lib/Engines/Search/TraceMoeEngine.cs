@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Argon;
+using System.Text.Json.Serialization;
 using Flurl;
 using Flurl.Http;
 using Flurl.Http.Content;
@@ -54,53 +54,48 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 
 		var sr = await base.GetResultAsync(query, token).ConfigureAwait(false);
 
-		try {
+		using var response = await SearchByMultipart(query, token);
+		tm = await response.GetJsonAsync<TraceMoeRootObject>().ConfigureAwait(false);
 
-			using var response = await SearchByMultipart(query, token);
-
-			tm = await response.GetJsonAsync<TraceMoeRootObject>().ConfigureAwait(false);
-		}
-		catch (Exception e) {
-			Logger.LogError(e, "{Name} in {Fn}", Name, nameof(GetResultAsync));
-			sr.ErrorMessage = e.Message;
-			sr.Status       = SearchResultStatus.UnknownError;
+		if (tm is null) {
+			Debugger.Break();
+			sr.Status = SearchResultStatus.UnknownError;
 			goto ret;
 		}
 
-		if (tm != null) {
-			if (tm.Result != null) {
-				// Most similar to the least similar
+		// Most similar to the least similar
 
-				try {
-					sr.Results.EnsureCapacity(sr.Results.Count + tm.Result.Count);
+		try {
+			sr.Results.EnsureCapacity(sr.Results.Count + tm.Result.Count);
 
-					foreach (var doc in tm.Result) {
-						var tr = await doc.ToItem(sr).ConfigureAwait(false);
-						sr.Results.Add(tr);
-					}
+			foreach (var doc in tm.Result) {
+				var anilistName = await AnilistClient.Instance.GetTitleAsync(doc.Anilist);
 
-					sr.Status = SearchResultStatus.Success;
-					sr.RawUrl = new Url(BaseUrl + query.Upload);
-				}
-				catch (Exception e) {
-					sr.ErrorMessage = e.Message;
-					sr.Status       = SearchResultStatus.UnknownError;
-				}
-
+				var tr = await doc.ToItem(sr).ConfigureAwait(false);
+				sr.Results.Add(tr);
 			}
-			else if (tm.Error != null) {
-				// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
-				Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
-				sr.ErrorMessage = tm.Error;
-				sr.Status       = SearchResultStatus.IllegalInput;
 
-				if (sr.ErrorMessage.Contains("Search queue is full")) {
-					sr.Status = SearchResultStatus.Unavailable;
-				}
-			}
+			sr.Status = SearchResultStatus.Success;
+			sr.RawUrl = new Url(BaseUrl + query.Upload);
+		}
+		catch (Exception e) {
+			sr.ErrorMessage = e.Message;
+			sr.Status       = SearchResultStatus.UnknownError;
 		}
 
 	ret:
+
+		if (tm is { Error: { } }) {
+			// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
+			Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
+			sr.ErrorMessage = tm.Error;
+			sr.Status       = SearchResultStatus.IllegalInput;
+
+			if (sr.ErrorMessage.Contains("Search queue is full")) {
+				sr.Status = SearchResultStatus.Unavailable;
+			}
+		}
+
 		sr.Update();
 
 		return sr;
@@ -108,8 +103,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 
 	private Task<IFlurlResponse> SearchByMultipart(SearchQuery query, CancellationToken ct)
 	{
-		var req = Client.Request(Endpoint, "/search")
-			.WithTimeout(Timeout);
+		IFlurlRequest req = BuildInitialRequest();
 
 		return req.PostMultipartAsync(ac =>
 		{
@@ -122,10 +116,16 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 		}, cancellationToken: ct);
 	}
 
+	private IFlurlRequest BuildInitialRequest()
+	{
+		var req = Client.Request(Endpoint, "/search")
+			.WithTimeout(Timeout);
+		return req;
+	}
+
 	private Task<IFlurlResponse> SearchByUpload(SearchQuery query, CancellationToken ct)
 	{
-		IFlurlRequest request = Client.Request(Endpoint, "/search")
-			.WithTimeout(Timeout)
+		IFlurlRequest request = BuildInitialRequest()
 			.SetQueryParam("url", query.Upload.Url, true);
 
 		return request.GetAsync(cancellationToken: ct);
@@ -137,15 +137,12 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 			.GetJsonAsync<TraceMoeQuotaObject>();
 	}
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
 
 	public override void Dispose() { }
 
 }
+
+// TODO: refactor serialized objects to support polymorphism
 
 #region API Objects
 
@@ -195,6 +192,7 @@ public class TraceMoeDoc
 
 	public string Video { get; set; }
 
+	// [JPN("Image")]
 	public string Image { get; set; }
 
 	public string EpisodeString { get; set; }
@@ -220,17 +218,18 @@ public class TraceMoeDoc
 			not null and string => Episode.ToString(),
 			long l              => l.ToString(),
 			JsonElement e       => e.ToString(),
-			IEnumerable e => e.Cast<object>()
-				.Select(static x =>
-				{
-					var s1 = x.ToString();
 
-					if (s1.Contains('|')) {
-						s1 = s1.Split('|')[0];
-					}
+			// TODO: wtf is this? For what purpose did I write this
+			IEnumerable e => e.Cast<object>().Select(static x =>
+			{
+				var s1 = x.ToString();
 
-					return long.Parse(s1 ?? string.Empty);
-				}).QuickJoin(),
+				if (s1.Contains('|')) {
+					s1 = s1.Split('|')[0];
+				}
+
+				return long.Parse(s1 ?? string.Empty);
+			}).QuickJoin(),
 
 			_ => string.Empty
 		};
@@ -241,7 +240,7 @@ public class TraceMoeDoc
 	{
 		var sim = Math.Round(Similarity * 100.0f, 2);
 
-		string name = await AnilistClient.Instance.GetTitleAsync((int) Anilist).ConfigureAwait(false);
+		string name = await AnilistClient.Instance.GetTitleAsync(Anilist).ConfigureAwait(false);
 
 		var result = new SearchResultItem(sr)
 		{

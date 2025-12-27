@@ -6,7 +6,7 @@ using Spectre.Console.Cli;
 using Spectre.Console.Cli.Help;
 using Spectre.Console.Rendering;
 
-namespace SmartImage.Rdx.Shell;
+namespace SmartImage.Rdx.Commands;
 
 internal class CustomHelpProvider : HelpProvider
 {

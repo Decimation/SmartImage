@@ -3,7 +3,6 @@ using System.Net;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Novus.OS;
-using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
@@ -17,7 +16,7 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 	/// <summary>
 	/// Max file size, in bytes
 	/// </summary>
-	public abstract long? MaxSize { get; }
+	public abstract long? MaxLength { get; }
 
 	public virtual string Name => Option.ToString();
 
@@ -64,17 +63,16 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 	}
 
 	//todo
-	private static BaseUploadEngine _default = GetUploadEngine(SearchConfig.UPLOAD_ENGINE_DEFAULT);
 
 	public static BaseUploadEngine Default
 	{
-		get { return _default; }
+		get { return field; }
 		set
 		{
-			_default?.Dispose();
-			_default = value;
+			field?.Dispose();
+			field = value;
 		}
-	}
+	} = GetUploadEngine(SearchConfig.UPLOAD_ENGINE_DEFAULT);
 
 	public virtual Task<UploadResult> UploadAsync(UniImage query, CancellationToken ct = default)
 	{
@@ -82,7 +80,7 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 
 		if (query is UniImageUri { } uri) {
 			Logger.LogTrace("Not uploading {Uni} {Val}", query, query.Value);
-			var ur = new UploadResult(uri.Url, uri.Size) { };
+			var ur = new UploadResult(uri.Url, uri.Length) { };
 			return Task.FromResult(ur);
 		}
 		else {
@@ -102,8 +100,8 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 		}
 		*/
 
-		if ((file.Size > MaxSize)) {
-			throw new ArgumentException($"File {file} is too large (max {MaxSize}) for {Name}");
+		if ((file.Length > MaxLength)) {
+			throw new ArgumentException($"File {file} is too large (max {MaxLength}) for {Name}");
 		}
 	}
 

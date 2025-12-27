@@ -16,6 +16,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities.Integration;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
@@ -418,7 +419,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}*/
 
-	public async ValueTask<bool> ApplyEnginesAsync(IEnumerable<BaseSearchEngine> engines,CancellationToken token = default)
+	public async ValueTask<bool> ApplyEnginesAsync(IEnumerable<BaseSearchEngine> engines, CancellationToken token = default)
 	{
 		s_logger.LogTrace("Loading engines");
 
@@ -426,8 +427,12 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		await loadFlareSolverr;
 
 		foreach (var engine in engines) {
-			s_logger.LogTrace("Applying config to {Engine}", engine.Name);
-			await engine.ApplyConfigAsync(this, token);
+
+			if (engine is ISearchConfigReceiver rcvr) {
+				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
+				await rcvr.ApplyConfigAsync(this, token);
+
+			}
 
 			if (engine is ICookiesReceiver ck) {
 				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);

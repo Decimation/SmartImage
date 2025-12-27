@@ -13,6 +13,7 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -20,7 +21,7 @@ namespace SmartImage.Lib.Engines.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver
+public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver,ISearchConfigReceiver
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
@@ -304,7 +305,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 	 * https://github.com/Ehviewer-Overhauled/Ehviewer/issues/873
 	 */
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		/*if (this is { IsLoggedIn: true }/* && !(Username != cfg.EhUsername && Password != cfg.EhPassword)#1#) {
 			Debug.WriteLine($"{Name} is already logged in", nameof(ApplyConfigAsync));
@@ -345,7 +346,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 }
 
-public sealed class EhResult : SearchResultItem, ISourceItemParseable<INode, EhResult>
+public sealed class EhResult : SearchResultItem, IParseableSource<INode, EhResult>
 {
 
 	public string TypeString { get; private set; }

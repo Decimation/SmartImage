@@ -99,6 +99,8 @@
     <TrimmerRootAssembly Include="System.IO.FileSystem" />
     <TrimmerRootAssembly Include="Novus" />
     <TrimmerRootAssembly Include="Kantan" />
+    <TrimmerRootAssembly Include="System.Text.Json" />
+
     <TrimmerRootAssembly Include="System.Runtime.Caching" />
     <TrimmerRootAssembly Include="System.Configuration.ConfigurationManager" />
 

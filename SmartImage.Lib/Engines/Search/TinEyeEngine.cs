@@ -11,7 +11,7 @@ public sealed class TinEyeEngine : BaseSearchEngine, ISearchEngine
 
 	public TinEyeEngine() : base("https://www.tineye.com/search?url=")
 	{
-		MaxSize = 10_000_000;
+		MaxLength = 10_000_000;
 	}
 
 	private const string API_URL = "https://tineye.com/api/v1/result_json/?sort=score&order=desc";
@@ -24,11 +24,7 @@ public sealed class TinEyeEngine : BaseSearchEngine, ISearchEngine
 		Logger.LogTrace("Disposing {Name}", Name);
 	}
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
+	
 
 	public override bool VerifyQuery(SearchQuery q)
 	{

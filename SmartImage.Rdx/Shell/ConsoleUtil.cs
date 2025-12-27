@@ -119,7 +119,7 @@ internal static class ConsoleUtil
 			t.AddColumn(new TableColumn(row.ColumnName));
 		}
 
-		Func<object, IRenderable> selector = ConsoleFormat.AsRenderableOrText;
+		Func<object, IRenderable> selector = ConsoleElements.AsRenderableOrText;
 
 		foreach (DataRow row in dt.Rows) {
 			var obj = row.ItemArray

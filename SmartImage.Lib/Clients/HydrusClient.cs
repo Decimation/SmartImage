@@ -131,33 +131,29 @@ public class HydrusClient : INotifyPropertyChanged, IDisposable
 		return res;
 	}
 
-	private string m_key;
-
 	public string Key
 	{
-		get => m_key;
+		get;
 		set
 		{
-			if (value == m_key)
+			if (value == field)
 				return;
 
-			m_key = value;
+			field = value;
 			OnPropertyChanged();
 			OnPropertyChanged(nameof(IsValid));
 		}
 	}
 
-	private string m_endpointUrl;
-
 	public string EndpointUrl
 	{
-		get => m_endpointUrl;
+		get;
 		set
 		{
-			if (value == m_endpointUrl)
+			if (value == field)
 				return;
 
-			m_endpointUrl = value;
+			field = value;
 			OnPropertyChanged();
 			OnPropertyChanged(nameof(IsValid));
 		}

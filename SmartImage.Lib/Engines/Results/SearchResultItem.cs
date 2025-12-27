@@ -156,33 +156,29 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 
 #region
 
-	public bool IsScanResult { get; private init; }
+	public bool IsCloned { get; private init; }
 
 	[CBN]
-	private Url m_thumbnail;
-
-	[CBN]
+	[field: CBN]
 	public Url Thumbnail
 	{
-		get => m_thumbnail;
+		get;
 		internal set
 		{
-			if (SetField(ref m_thumbnail, value)) {
+			if (SetField(ref field, value)) {
 				OnPropertyChanged(nameof(HasThumbnail));
 			}
 		}
 	}
 
 	[CBN]
-	private ISImage m_thumbnailImage;
-
-	[CBN]
+	[field: CBN]
 	public ISImage ThumbnailImage
 	{
-		get => m_thumbnailImage;
+		get;
 		internal set
 		{
-			if (SetField(ref m_thumbnailImage, value)) {
+			if (SetField(ref field, value)) {
 				OnPropertyChanged(nameof(HasThumbnail));
 			}
 		}
@@ -266,7 +262,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 			Site         = Site,
 			Source       = Source,
 			Time         = Time,
-			IsScanResult = true,
+			IsCloned = true,
 		};
 	}
 
@@ -285,7 +281,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		var             str    = await sr.ReadToEndAsync(ct);
 
 		var       hp      = new HtmlParser();
-		var       urls    = ImageScanner.GetImageUrls(str, Url);
+		var       urls    = ImageScanner.ParseImageUrls(str, Url);
 		using var doc     = await hp.ParseDocumentAsync(str);
 		var       sriNews = new ConcurrentBag<SearchResultItem>();
 
@@ -345,7 +341,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		var             str    = await sr.ReadToEndAsync(ct);
 
 		var       hp      = new HtmlParser();
-		var       urls    = ImageScanner.GetImageUrls(str, Url);
+		var       urls    = ImageScanner.ParseImageUrls(str, Url);
 		using var doc     = await hp.ParseDocumentAsync(str);
 		var       sriNews = new ConcurrentBag<SearchResultItem>();
 

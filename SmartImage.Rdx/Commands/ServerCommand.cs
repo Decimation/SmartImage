@@ -86,7 +86,7 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 
 		m_scs = null;
 
-		Shared = ConsoleFormat.GetEngineMapTableBase();
+		Shared = ConsoleElements.GetEngineMapTableBase();
 
 		Listener = new HttpListener()
 		{

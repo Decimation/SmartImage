@@ -5,8 +5,8 @@ namespace SmartImage.Lib.Model;
 
 // TODO: delete
 
-public interface ISize
+public interface ILength
 {
-	public long? Size { get; }
+	public long? Length { get; }
 
 }

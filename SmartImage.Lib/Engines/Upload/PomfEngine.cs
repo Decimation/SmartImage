@@ -1,12 +1,16 @@
 ﻿using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Flurl.Http;
-using SmartImage.Lib.Engines.Results;
+using Kantan.Net.Utilities;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
 
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public sealed class PomfEngine : BaseUploadEngine
 {
 
@@ -14,16 +18,13 @@ public sealed class PomfEngine : BaseUploadEngine
 
 	public PomfEngine() : base("https://pomf.lain.la/upload.php") { }
 
-	public override long? MaxSize => 1_000_000_000;
+	public override long? MaxLength => 1_000_000_000;
 
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
 		using var response = await Client.Request(Endpoint)
-			                     .WithSettings(r =>
-			                     {
-				                     //...
-				                     r.Timeout = Timeout;
-			                     }).OnError(r =>
+			                     .WithTimeout(Timeout)
+			                     .OnError(r =>
 			                     {
 				                     r.ExceptionHandled = true;
 				                     Trace.WriteLine($"{r.Exception.Message}: {file} {Name}");
@@ -47,47 +48,31 @@ public sealed class PomfEngine : BaseUploadEngine
 
 	protected override async Task<UploadResult> ProcessResultAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
-		var pr = await response.GetJsonAsync<PomfResult>();
+		// var pr = await response.GetJsonAsync<PomfResult>();
+		var sz = await response.GetStringAsync();
 
-		var size = pr.Files.Sum(x => x.Size);
-		var url  = pr.Files[0].Url;
-
-		var bur = new PomfResult(url, size)
-			{ };
-
-		return bur;
+		var pr   = JsonSerializer.Deserialize<PomfResult>(sz, SearchUtil.DefaultSerializerOptions);
+		var file0 = pr.Files.First();
+		
+		return new UploadResult(file0.Url, file0.Length);
 	}
 
 }
 
-public sealed class PomfResult : UploadResult
+public sealed class PomfResult
 {
 
 	public bool Success { get; set; }
 
 	public PomfFileResult[] Files { get; set; }
 
-	[JsonConstructor]
-	public PomfResult(Url url, long? size, bool success, PomfFileResult[] files) : base(url, size)
-	{
-		Success = success;
-		Files   = files;
-	}
-
-	// [JsonConstructor]
-	internal PomfResult(Url url, long? size) : base(url, size) { }
-
 }
 
-public sealed class PomfFileResult
+public sealed class PomfFileResult : UploadResult
 {
 
 	public string Hash { get; set; }
 
 	public string Name { get; set; }
-
-	public string Url { get; set; }
-
-	public long Size { get; set; }
 
 }

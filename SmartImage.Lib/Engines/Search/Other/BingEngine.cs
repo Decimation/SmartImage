@@ -15,11 +15,7 @@ public sealed class BingEngine : BaseSearchEngine
 
 	public BingEngine() : base("https://www.bing.com/images/searchbyimage?cbir=sbi&imgurl=") { }
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
+	
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Bing;
 

@@ -30,6 +30,7 @@ using SmartImage.Lib.Engines;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Runtime.Intrinsics.X86;
 using System.Threading;
+using Novus;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Utilities;
 
@@ -68,7 +69,7 @@ public sealed class SearchClient : IDisposable
 	public static void Init()
 	{
 		s_logger.LogInformation("Init");
-
+		Global.Setup();
 
 		FlurlHttp.Clients.WithDefaults(static b =>
 		{

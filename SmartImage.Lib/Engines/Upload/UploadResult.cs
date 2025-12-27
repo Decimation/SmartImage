@@ -1,16 +1,19 @@
 ﻿// Read S SmartImage.Lib BaseUploadResponse.cs
 // 2023-05-28 @ 7:49 PM
 
+using System.Text.Json.Serialization;
 using SmartImage.Lib.Model;
 
-namespace SmartImage.Lib.Engines.Results;
+namespace SmartImage.Lib.Engines.Upload;
 
-public class UploadResult : IDisposable, ISize
+[JsonDerivedType(typeof(PomfFileResult))]
+public class UploadResult : IDisposable, ILength
 {
 
-	public Url Url { get; }
+	public Url Url { get; set;}
 
-	public long? Size { get; }
+	[JPN("Size")]
+	public long? Length { get; set;}
 
 	/*public static implicit operator Url(UploadResult result)
 	{
@@ -20,11 +23,15 @@ public class UploadResult : IDisposable, ISize
 
 		return result.Url;
 	}*/
+	
+	// [JsonConstructor]
+	public UploadResult() {  }
 
+	// [JsonConstructor]
 	public UploadResult(Url url, long? size)
 	{
 		Url  = url;
-		Size = size;
+		Length = size;
 	}
 
 	public void Dispose()

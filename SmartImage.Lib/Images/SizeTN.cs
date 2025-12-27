@@ -4,11 +4,11 @@
 
 #region Aliasses
 
-global using SizeS2N = SmartImage.Lib.Model.SizeTN<short>;
-global using SizeS4N = SmartImage.Lib.Model.SizeTN<int>;
-global using SizeS8N = SmartImage.Lib.Model.SizeTN<long>;
-global using SizeF4N = SmartImage.Lib.Model.SizeTN<float>;
-global using SizeF8N = SmartImage.Lib.Model.SizeTN<double>;
+global using SizeS2N = SmartImage.Lib.Images.SizeTN<short>;
+global using SizeS4N = SmartImage.Lib.Images.SizeTN<int>;
+global using SizeS8N = SmartImage.Lib.Images.SizeTN<long>;
+global using SizeF4N = SmartImage.Lib.Images.SizeTN<float>;
+global using SizeF8N = SmartImage.Lib.Images.SizeTN<double>;
 global using SizeIS = SixLabors.ImageSharp.Size;
 
 #endregion
@@ -19,7 +19,7 @@ using SixLabors.ImageSharp;
 
 // ReSharper disable InconsistentNaming
 
-namespace SmartImage.Lib.Model;
+namespace SmartImage.Lib.Images;
 
 public struct SizeTN<T> where T : struct, INumber<T>
 {
@@ -59,6 +59,8 @@ public struct SizeTN<T> where T : struct, INumber<T>
 			iwv = Unsafe.As<T, int>(ref wv);
 			ihv = Unsafe.As<T, int>(ref hv);
 		}
+
+		//todo
 
 		return new SizeIS(iwv, ihv);
 	}

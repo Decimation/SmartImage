@@ -46,7 +46,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	public Ascii2DEngine() : base(MAIN_URL)
 	{
 		Timeout = TimeSpan.FromSeconds(30);
-		MaxSize = 10_000_000;
+		MaxLength = 10_000_000;
 		Jar     = new CookieJar();
 	}
 
@@ -70,10 +70,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return true;
 	}
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-	}
+	
 
 	public override void Dispose() { }
 
@@ -245,7 +242,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 }
 
-public class Ascii2DItem : SearchResultItem, ISourceItemParseable<INode, Ascii2DItem>
+public class Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem>
 {
 
 	public string HashString { get; private set; }

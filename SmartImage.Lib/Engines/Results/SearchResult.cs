@@ -204,6 +204,14 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		return root + scKi2;
 	}*/
 
+	/*
+	public int AggIdx(SearchResultItem sri)
+	{
+		var resIdx=Results.IndexOf(sri);
+
+	}
+	*/
+
 	public override string ToString()
 	{
 		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";

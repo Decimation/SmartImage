@@ -47,7 +47,6 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;
-using SmartImage.Lib.Engines.Results;
 
 #region 
 
@@ -82,15 +81,13 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Upload != null && Url.IsValid(Upload.Url);
 
-	private UploadResult m_upload;
-
 	[MN]
 	public UploadResult Upload
 	{
-		get => m_upload;
+		get;
 		private set
 		{
-			if (SetField(ref m_upload, value)) {
+			if (SetField(ref field, value)) {
 				OnPropertyChanged(nameof(IsUploaded));
 			}
 		}
@@ -103,7 +100,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 		Source = img;
 		Upload = upload;
 
-		// Size = Uni == null ? default : Uni.Stream.Length;
+		// Length = Uni == null ? default : Uni.Stream.Length;
 	}
 
 	internal SearchQuery(UniImage img) : this(img, null) { }
@@ -168,7 +165,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public override int GetHashCode()
 	{
-		// return HashCode.Combine(Uni, Upload, Size);
+		// return HashCode.Combine(Uni, Upload, Length);
 		return HashCode.Combine(Source);
 
 		// return Uni.GetHashCode();

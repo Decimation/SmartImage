@@ -126,10 +126,7 @@ public sealed class YandexEngine : BaseSearchEngine
 		return sr;
 	}
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-	}
+	
 
 	public override void Dispose() { }
 

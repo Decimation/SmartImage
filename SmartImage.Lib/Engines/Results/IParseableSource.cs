@@ -15,8 +15,7 @@
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface ISourceItemParseable<in TSource, out TItem>
-	where TItem : SearchResultItem
+public interface IParseableSource<in TSource, out TItem> /*where TItem : SearchResultItem*/
 {
 
 	public static abstract TItem ParseSource(TSource n, SearchResult r);

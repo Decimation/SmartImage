@@ -95,7 +95,7 @@ public static class Program
 
 	private static void DisplayInfoGrid()
 	{
-		Grid grd = ConsoleFormat.MapToGrid(ConsoleFormat.InfoMap);
+		Grid grd = ConsoleElements.MapToGrid(ConsoleElements.InfoMap);
 		AnsiConsole.Write(grd);
 	}
 
@@ -105,7 +105,7 @@ public static class Program
 
 		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
-			.Color(ConsoleFormat.Clr_Misc1);
+			.Color(ConsoleElements.Clr_Misc1);
 
 		await ms.DisposeAsync();
 

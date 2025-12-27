@@ -9,11 +9,7 @@ public sealed class GoogleImagesEngine : BaseSearchEngine
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleImages;
 
-	public override ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
-	{
-		return ValueTask.FromResult(true);
-
-	}
+	
 	#region Overrides of BaseSearchEngine
 
 	public override void Dispose() { }

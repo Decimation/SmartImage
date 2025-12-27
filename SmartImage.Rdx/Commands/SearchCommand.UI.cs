@@ -61,13 +61,13 @@ public sealed partial class SearchCommand
 
 	}*/
 
-	private static readonly ConcurrentDictionary<SearchResultItem, int> tbl;
+	private static readonly ConcurrentDictionary<SearchResultItem, int> tbl = new();
 
 	private static Selection GetResultItemIndexes(SearchResult res)
 	{
 		Selection ret;
 
-		ConsoleFormat.Prm_Num2.Validator = str =>
+		ConsoleElements.Prm_Num2.Validator = str =>
 		{
 			ret = Parse(str, res);
 
@@ -79,7 +79,7 @@ public sealed partial class SearchCommand
 		};
 
 
-		var val = AnsiConsole.Prompt(ConsoleFormat.Prm_Num2);
+		var val = AnsiConsole.Prompt(ConsoleElements.Prm_Num2);
 		var sri = Parse(val, res);
 		return sri;
 
@@ -97,30 +97,53 @@ public sealed partial class SearchCommand
 
 		public int ScanIdx { get; }
 
-		public bool IsScannedItem {get;}
+		public bool IsScannedItem { get; }
 
 		public Selection(SearchResultItem item, int itemIdx, int scanIdx, bool isScanned)
 		{
-			Item    = item;
-			ItemIdx = itemIdx;
-			ScanIdx = scanIdx;
+			Item          = item;
+			ItemIdx       = itemIdx;
+			ScanIdx       = scanIdx;
 			IsScannedItem = isScanned;
 		}
 
 		public int Index()
 		{
-			var root = Item.Root.Results.IndexOf(IsScannedItem ? Item.Parent : Item);
-			// Debug.Assert(root == ItemIdx);
-
+			int i      = 0, j = 0;
 			var scnIdx = 0;
+			int root   = 0;
+			int t      = 0;
 
-			if (IsScannedItem) {
-				scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
-				Debug.Assert(scnIdx == ScanIdx);
+			if (Item.IsChild) {
+				// scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
+				root = Item.Parent.Root.Results.IndexOf(Item.Parent);
+
 				scnIdx++;
+
+			}
+			else {
+				root = Item.Root.Results.IndexOf(Item);
+
 			}
 
-			return root + scnIdx;
+			// t = Item.Parent.Root.Results[..(root + 1)].Sum(rr => rr.ScannedItems.Count);
+
+			for (int k = 0; k < root; k++) {
+
+				var result  = Item.Parent.Root.Results[k];
+				var scnItm  = result.ScannedItems;
+				var scnIdx2 = scnItm.IndexOf(Item);
+
+				if (scnIdx2 == -1) {
+					t += scnItm.Count;
+				}
+				else {
+					t += scnIdx2;
+				}
+
+			}
+
+			return root + scnIdx + t;
 		}
 
 	}
@@ -132,17 +155,18 @@ public sealed partial class SearchCommand
 
 		SearchResultItem sri = null, sri2 = null;
 
-		var resIdx = 0;
-		var scnIdx = -1;
+		var  resIdx    = 0;
+		var  scnIdx    = -1;
 		bool isScanned = false;
 
 
 		if (sr.Results.TryParseIndex(spl[0], out resIdx, out sri)) {
 			if (spl.Length == 2) {
 				if (sri.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
-					sri = sri2;
+					sri       = sri2;
 					isScanned = true;
 				}
+
 				// if (sr.ScannedResults[sri].TryParseIndex(spl[1], out scnIdx, out sri2)) { }
 
 			}
@@ -164,14 +188,14 @@ public sealed partial class SearchCommand
 
 		var result = sri.Root;
 
-		var style = new Style(link: sri.Url, foreground: ConsoleFormat.GetEngineColor(result.Engine.EngineOption));
+		var style = new Style(link: sri.Url, foreground: ConsoleElements.GetEngineColor(result.Engine.EngineOption));
 
 		return
 		[
 			new Text($"#{idx}.{subIdx}", style),
 			new Text(Markup.Escape(sri.Url)),
 			CreateResultItemSimilarityCell(sri),
-			ConsoleFormat.Txt_Empty,
+			ConsoleElements.Txt_Empty,
 			CreateResultItemResolutionRow(sri)
 		];
 	}
@@ -180,17 +204,17 @@ public sealed partial class SearchCommand
 	{
 		var col = new TableColumn[]
 		{
-			new(new Text("Result", ConsoleFormat.Sty_ResultHeader)),
-			new(new Text("URL", ConsoleFormat.Sty_ResultHeader)),
-			new(new Text("Similarity", ConsoleFormat.Sty_ResultHeader)),
-			new(new Text("Artist", ConsoleFormat.Sty_ResultHeader)),
-			new(new Text("Resolution", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("Result", ConsoleElements.Sty_ResultHeader)),
+			new(new Text("URL", ConsoleElements.Sty_ResultHeader)),
+			new(new Text("Similarity", ConsoleElements.Sty_ResultHeader)),
+			new(new Text("Artist", ConsoleElements.Sty_ResultHeader)),
+			new(new Text("Resolution", ConsoleElements.Sty_ResultHeader)),
 
 		};
 
 		var tb = new SpcTable()
 		{
-			Caption     = new TableTitle("Results", ConsoleFormat.Sty_ResultHeader),
+			Caption     = new TableTitle("Results", ConsoleElements.Sty_ResultHeader),
 			Border      = TableBorder.Simple,
 			ShowHeaders = true,
 		};
@@ -204,14 +228,14 @@ public sealed partial class SearchCommand
 	{
 		var col = new TableColumn[]
 		{
-			new(new Text("Engine", ConsoleFormat.Sty_ResultHeader)),
-			new(new Text("Results", ConsoleFormat.Sty_ResultHeader)),
+			new(new Text("Engine", ConsoleElements.Sty_ResultHeader)),
+			new(new Text("Results", ConsoleElements.Sty_ResultHeader)),
 
 		};
 
 		var tb = new SpcTable()
 		{
-			Caption     = new TableTitle("Results", ConsoleFormat.Sty_ResultHeader),
+			Caption     = new TableTitle("Results", ConsoleElements.Sty_ResultHeader),
 			Border      = TableBorder.Simple,
 			ShowHeaders = true,
 		};
@@ -223,30 +247,40 @@ public sealed partial class SearchCommand
 
 	private static IEnumerable<IRenderable> CreateMainRows(SearchResult result)
 	{
-		Style style = ConsoleFormat.GetEngineColor(result.Engine.EngineOption);
+		Style style = ConsoleElements.GetEngineColor(result.Engine.EngineOption);
 
 		return [new Text($"{result.Engine.Name}", style), new Text($"{result.Results.Count}")];
 	}
 
 	private static IEnumerable<IRenderable[]> CreateResultRows(SearchResult result)
 	{
-		Style style = ConsoleFormat.GetEngineColor(result.Engine.EngineOption);
+		Style style = ConsoleElements.GetEngineColor(result.Engine.EngineOption);
 
 
 		for (int i = 0; i < result.Results.Count; i++) {
 			var res = result.Results[i];
-
+			
 			yield return CreateResultItemRow(res, i, style);
+
+			/*if (res.IsChild) {
+				for (int j = 0; j < res.Parent.ScannedItems.Count; j++) {
+					yield return CreateItemRow(res.Parent.ScannedItems[j], i, j);
+
+				}
+			}
+			else { }*/
+
+			tbl.TryAdd(res, i);
 		}
 
 	}
 
 
 	private static IRenderable CreateResultItemResolutionRow(SearchResultItem sri)
-		=> (sri.HasDimensions) ? new Text($"{sri.Width}x{sri.Height}") : ConsoleFormat.Txt_NA;
+		=> (sri.HasDimensions) ? new Text($"{sri.Width}x{sri.Height}") : ConsoleElements.Txt_NA;
 
 	private static IRenderable CreateResultItemSimilarityCell(SearchResultItem sri)
-		=> sri.Similarity.HasValue ? new Text($"{sri.Similarity}") : ConsoleFormat.Txt_NA;
+		=> sri.Similarity.HasValue ? new Text($"{sri.Similarity}") : ConsoleElements.Txt_NA;
 
 	private static IRenderable[] CreateResultItemRow(SearchResultItem sri, int i, Style style)
 	{
@@ -259,7 +293,7 @@ public sealed partial class SearchCommand
 			url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
 		}
 		else {
-			url       = ConsoleFormat.Txt_NA;
+			url       = ConsoleElements.Txt_NA;
 			linkStyle = style;
 		}
 

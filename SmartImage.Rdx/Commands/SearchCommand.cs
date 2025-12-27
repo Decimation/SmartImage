@@ -135,7 +135,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			throw new SmartImageException($"Could not create query {Query}");
 		}
 
-		p.Increment(ConsoleFormat.COMPLETE / 2);
+		p.Increment(ConsoleElements.COMPLETE / 2);
 
 		// ctx.Refresh();
 
@@ -146,7 +146,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			throw new SmartImageException($"Could not upload {Query}");
 		}
 
-		p.Increment(ConsoleFormat.COMPLETE / 2);
+		p.Increment(ConsoleElements.COMPLETE / 2);
 
 	}
 
@@ -172,7 +172,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		await initTask;
 
-		var ci = ConsoleFormat.GetQueryCanvasImage(Query.Source);
+		var ci = ConsoleElements.GetQueryCanvasImage(Query.Source);
 
 		var ciPanel = new Panel(ci)
 		{
@@ -180,7 +180,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			Expand = true,
 		};
 
-		var cfgGrid = ConsoleFormat.CreateConfigGrid(Config, Query);
+		var cfgGrid = ConsoleElements.CreateConfigGrid(Config, Query);
 
 		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Config") };
 
@@ -297,7 +297,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				}
 
-				cmd = AnsiConsole.Prompt(ConsoleFormat.Prm_Command);
+				cmd = AnsiConsole.Prompt(ConsoleElements.Prm_Command);
 
 				if (cmd == R2.Chc_Back) {
 					break;
@@ -322,16 +322,25 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						s_logger.LogTrace("Scanning {Item}", sri);
 						bool scannedOk = false;
 						scannedOk = await sri.ScanAsync2(m_ctsRun.Token);
+						
 
 						if (!scannedOk) {
 							return;
 						}
+						
+						/*if (!tbl.TryGetValue(sel.Item, out var idx)) {
+							for (int j = 0; j < sel.Item.ScannedItems.Count; j++) {
+								tbl[sel.Item.ScannedItems[j]] = j;
+							}
+						}*/
+
+						var idx = tbl[sel.Item.Parent];
 
 						int row;
-
+						
 						row = sr.Results.IndexOf(sri);
 
-						var idx = sel.Index();
+						// row = idx;
 
 						// row = GetRowForItem(sri);
 						// row = sr.Index(sel.Item, sel.Scanned);
@@ -358,8 +367,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						foreach (var ui in scanned) {
 
 							srTable.InsertRow(++row, CreateItemRow(ui, idx, i++));
+							tbl[ui] = row;
 						}
 
+
+						
 						/*if (sr.ScannedResults.TryGetValue(sri, out SearchResultItem[] scanned)) {
 							int i = 0;
 
@@ -374,11 +386,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 						f.Refresh();
 
-						/*foreach (var kv in m_results) {
-						if (kv.Value >= rowOrig) {
-							m_results[kv.Key] = kv.Value + delta;
-						}
-					}*/
+						/*foreach (var kv in tbl) {
+							if (kv.Value >= idx) {
+								tbl[kv.Key] = kv.Value + i;
+							}
+						}*/
 
 					});
 					clrWrite = true;
@@ -397,7 +409,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 							// var row = sr.Index(sel.Item, sel.Scanned);
 
-							var row = sel.Index();
+							// var row = sel.Index();
+
+							var row = tbl[sel.Item];
 
 							// var row = (sel.ScanIdx == -1 ? 0 : sel.ScanIdx) + sel.ItemIdx;
 
@@ -607,8 +621,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			sr.Dispose();
 		}
 
-		ConsoleFormat.Prm_Num.Validator  = null;
-		ConsoleFormat.Prm_Num2.Validator = null;
+		ConsoleElements.Prm_Num.Validator  = null;
+		ConsoleElements.Prm_Num2.Validator = null;
 
 		m_resultTables.Clear();
 		m_cts.Dispose();

@@ -32,6 +32,7 @@ namespace SmartImage.Lib.Images.Uni;
 #nullable disable
 
 // #nullable enable
+
 /// <summary>
 /// <seealso cref="UniSourceType"/>
 /// </summary>
@@ -44,25 +45,12 @@ public enum UniImageType
 
 }
 
-public enum SearchHashType
-{
-
-	//TODO
-
-	None = 0,
-	PHash,
-	SHA256,
-	MD5,
-	Base64,
-	Base64MD5,
-
-}
 
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable, IImageSource,
-								 INotifyPropertyChanged
+public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable,
+                                 INotifyPropertyChanged
 {
 
 	protected static readonly ILogger s_logger;
@@ -72,10 +60,14 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 		s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
 	}
 
+	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options()
+		                                                                    { });
+
 	public UniImageType Type { get; }
 
-	public virtual long? Size => Bytes.Length;
+	public virtual long? Length => Bytes.Length;
 
+	[JI]
 	public string Value { get; }
 
 	[MN]
@@ -98,15 +90,14 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	[MNNW(true, nameof(ImageFormat))]
 	public bool HasImageFormat => ImageFormat != null;
 
-	private ISImage m_image;
-
 	[MN]
+	[JI]
 	public ISImage Image
 	{
-		get => m_image;
+		get;
 		protected set
 		{
-			if (SetField(ref m_image, value)) {
+			if (SetField(ref field, value)) {
 				OnPropertyChanged(nameof(ImageFormat));
 				OnPropertyChanged(nameof(HasImage));
 			}
@@ -120,14 +111,12 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 #region
 
-	private ulong? m_hash;
-
 	public ulong? Hash
 	{
-		get => m_hash;
+		get;
 		protected set
 		{
-			if (SetField(ref m_hash, value)) {
+			if (SetField(ref field, value)) {
 				OnPropertyChanged(nameof(HasHash));
 			}
 		}
@@ -138,25 +127,21 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 #endregion
 
-	private double? m_similarity;
-
 	public double? Similarity
 	{
-		get => m_similarity;
-		internal set => SetField(ref m_similarity, value);
+		get;
+		internal set => SetField(ref field, value);
 	}
 
 #region
 
-	private byte[] m_bytes;
-
 	public byte[] Bytes
 	{
-		get => m_bytes;
+		get;
 		protected set
 		{
-			if (SetField(ref m_bytes, value)) {
-				OnPropertyChanged(nameof(Size));
+			if (SetField(ref field, value)) {
+				OnPropertyChanged(nameof(Length));
 				OnPropertyChanged(nameof(HasBytes));
 			}
 		}
@@ -169,7 +154,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	public Stream GetStream()
 	{
 		// return HasBytes ? new MemoryStream(Bytes, writable: false) : Stream.Null;
-		var str = ImageManager.MemMgr.GetStream(Value, Bytes);
+		var str = MemMgr.GetStream(Value, Bytes);
 		return str;
 	}
 
@@ -202,7 +187,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 				await using var stream = GetStream();
 				Image = await ISImage.LoadAsync(stream, ct);
 				stream.Rewind();
-				Hash = ImageScanner.ImageHasher.Hash(stream);
+				Hash = ImageUtilities.Hasher.Hash(stream);
 			}
 			catch (Exception exception) {
 				s_logger.LogError(exception, "{Value} failed to allocate image", Value);
@@ -225,8 +210,8 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
-													  bool autoDisposeOnError = true,
-													  CancellationToken ct = default)
+	                                                  bool autoDisposeOnError = true,
+	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = Null;
 
@@ -336,7 +321,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 
 	public override string ToString()
 	{
-		return $"{Type} : {Value} {Size} bytes of type {(HasImageFormat ? ImageFormat.Name : "?")}";
+		return $"{Type} : {Value} {Length} bytes of type {(HasImageFormat ? ImageFormat.Name : "?")}";
 	}
 
 #region Equality members
@@ -371,7 +356,7 @@ public abstract class UniImage : IDisposable, ISize, IAsyncDisposable, IEquatabl
 	{
 		return !Equals(left, right);
 	}
-	
+
 #endregion
 
 	public event PropertyChangedEventHandler PropertyChanged;

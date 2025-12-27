@@ -22,7 +22,7 @@ using AnsiConsoleExtensions = Spectre.Console.Advanced.AnsiConsoleExtensions;
 
 namespace SmartImage.Rdx.Shell;
 
-internal static class ConsoleFormat
+internal static class ConsoleElements
 {
 
 	// Ideally a dictionary would be used here...
@@ -84,7 +84,7 @@ internal static class ConsoleFormat
 
 	private static readonly Capabilities ProfileCapabilities;
 
-	static ConsoleFormat()
+	static ConsoleElements()
 	{
 		ProfileCapabilities = AnsiConsole.Profile.Capabilities;
 
