@@ -262,7 +262,7 @@ internal static class ConsoleElements
 		AllowEmpty       = false,
 		Choices =
 		{
-			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Preview, R2.Chc_Calc, R2.Chc_Exit, R2.Chc_Back
+			R2.Chc_Open, R2.Chc_Scan, R2.Chc_Preview, R2.Chc_Calc, R2.Chc_Download, R2.Chc_Back, R2.Chc_Exit
 		}
 	};
 

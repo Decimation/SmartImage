@@ -49,6 +49,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Specialized;
 using System.Diagnostics;
+using System.IO.MemoryMappedFiles;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Caching;
@@ -299,14 +300,17 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				cmd = AnsiConsole.Prompt(ConsoleElements.Prm_Command);
 
+				if (cmd == R2.Chc_Exit) {
+					return;
+				}
 				if (cmd == R2.Chc_Back) {
 					break;
 				}
 
-				var sel = GetResultItemIndexes(sr);
+				var sel = GetSelectionChoice(sr);
 				var sri = sel.Item;
 
-				s_logger.LogInformation("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, sel.ItemIdx, sel.ScanIdx);
+				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, sel.ItemIdx, sel.ScanIdx);
 
 				// s_logger.LogTrace("Interactive: {ResItem}", sri);
 
@@ -322,12 +326,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						s_logger.LogTrace("Scanning {Item}", sri);
 						bool scannedOk = false;
 						scannedOk = await sri.ScanAsync2(m_ctsRun.Token);
-						
+
 
 						if (!scannedOk) {
 							return;
 						}
-						
+
 						/*if (!tbl.TryGetValue(sel.Item, out var idx)) {
 							for (int j = 0; j < sel.Item.ScannedItems.Count; j++) {
 								tbl[sel.Item.ScannedItems[j]] = j;
@@ -337,11 +341,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						var idx = tbl[sel.Item.Parent];
 
 						int row;
-						
+
 						row = sr.Results.IndexOf(sri);
 
 						// row = idx;
-
 						// row = GetRowForItem(sri);
 						// row = sr.Index(sel.Item, sel.Scanned);
 
@@ -371,7 +374,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						}
 
 
-						
 						/*if (sr.ScannedResults.TryGetValue(sri, out SearchResultItem[] scanned)) {
 							int i = 0;
 
@@ -403,20 +405,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 						AnsiConsole.Live(srTable).Start(f =>
 						{
-							// var row  = GetRowForItem(sri);
-							// var row = SearchResultItem.FindSumIndex(sri);
-							// var row = sr.Index(sri);
-
-							// var row = sr.Index(sel.Item, sel.Scanned);
-
-							// var row = sel.Index();
-
-							var row = tbl[sel.Item];
-
-							// var row = (sel.ScanIdx == -1 ? 0 : sel.ScanIdx) + sel.ItemIdx;
-
-							// var row2 = sriPak;
-							// var row  = row2.RootIdx + (row2.ScnIdx == -1 ? 0 : (row2.ScnIdx + 1));
+							//todo
+							var row = sel.ItemIdx;
 
 							sri.CalculateSimilarity(Query.Source);
 
@@ -441,7 +431,33 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				if (cmd == R2.Chc_Download) {
-					//todo
+
+					var ok = sri.TryWriteToFile();
+
+					if (ok) {
+						AC.AlternateScreen(() =>
+						{
+							var gr = new Grid();
+							gr.AddColumns(new GridColumn[] { new(), new() });
+							gr.AddRow(new IRenderable[] { new Text("File", ConsoleElements.Sty_Name), new Text(sri.LocalFilePath) });
+							AnsiConsole.Write(gr);
+							var prompt = new ConfirmationPrompt("Open?") { };
+							var choice = AnsiConsole.Prompt(prompt);
+
+							if (choice) {
+								var proc = Process.Start(new ProcessStartInfo()
+								{
+									FileName = sri.LocalFilePath,
+									WorkingDirectory = "",
+									UseShellExecute = true
+								});
+
+								proc?.WaitForExit();
+								proc.Dispose();	
+							}
+						});
+					}
+
 				}
 
 			cont:
@@ -496,7 +512,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		var key = sri.Url;
 		var val = m_prevCache.Get(key);
 
-		CanvasImage ci = val as CanvasImage;
+		var ci = val as CanvasImage;
 
 		if (ci is null) {
 			str = sri.GetStream();
@@ -535,7 +551,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				ldc.Refresh();
 				var cki = AnsiConsole.Console.Input.ReadKey(true);
-
 
 				if (cki.HasValue) {
 

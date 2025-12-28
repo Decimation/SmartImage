@@ -3,7 +3,6 @@
 
 using Microsoft;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System.IO.MemoryMappedFiles;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
@@ -21,7 +20,7 @@ public class UniImageFile : UniImage
 
 	public FileInfo LocalFileInfo { get; }
 
-	public override string WriteImageToFile(string fn = null, Action<IImageProcessingContext> operation = null)
+	public override string WriteImageToFile(string fn = null)
 	{
 		if (!HasFilePath) {
 			throw new FileNotFoundException(Value);

@@ -14,11 +14,11 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using CoenM.ImageHash;
 using CommunityToolkit.HighPerformance;
+using Kantan.Net.Utilities;
 using Microsoft.IO;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
@@ -45,7 +45,6 @@ public enum UniImageType
 
 }
 
-
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
@@ -66,6 +65,8 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 	public UniImageType Type { get; }
 
 	public virtual long? Length => Bytes.Length;
+
+	// public virtual string Name {get; protected set;}
 
 	[JI]
 	public string Value { get; }
@@ -286,24 +287,26 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 	}
 
 	[MURV]
-	public virtual string WriteImageToFile([CBN] string fn = null, [CBN] Action<IImageProcessingContext> operation = null)
+	public virtual string WriteImageToFile([CBN] string fn = null)
 	{
 		if (!HasImage) {
 			throw new InvalidOperationException();
 		}
 
-		fn ??= Path.GetTempFileName();
+		fn ??= this switch
+		{
+			UniImageUri uri   => uri.Url.GetFileName(),
+			UniImageFile file => file.LocalFileInfo.Name,
+			_                 => Path.GetRandomFileName()
+		};
 
-		var encoder = new PngEncoder();
-		operation ??= static _ => { };
+		fn = Path.ChangeExtension(fn, ImageFormat.FileExtensions.First());
 
-		using var image = Image.Clone(operation);
+		var path = Path.Combine(Path.GetTempPath(), fn);
 
-		// Image.Save(fn);
-		image.Mutate(operation);
-		image.Save(fn, encoder);
+		Image.Save(path);
 
-		return fn;
+		return path;
 	}
 
 

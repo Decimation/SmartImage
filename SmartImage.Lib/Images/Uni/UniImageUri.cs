@@ -22,7 +22,10 @@ public class UniImageUri : UniImage
 	internal UniImageUri(Url url) : base(url?.ToString(), UniImageType.Uri)
 	{
 		Url = url;
+		
 	}
+
+	// public override string Name => Url?.GetFileName();
 
 
 	protected override async Task<bool> AllocAsync(CancellationToken ct = default)

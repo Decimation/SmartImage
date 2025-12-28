@@ -63,7 +63,7 @@ public sealed partial class SearchCommand
 
 	private static readonly ConcurrentDictionary<SearchResultItem, int> tbl = new();
 
-	private static Selection GetResultItemIndexes(SearchResult res)
+	private static Selection GetSelectionChoice(SearchResult res)
 	{
 		Selection ret;
 
