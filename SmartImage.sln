@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.0.31912.275
+# Visual Studio Version 18
+VisualStudioVersion = 18.1.11304.174 d18.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SmartImage.Lib", "SmartImage.Lib\SmartImage.Lib.csproj", "{2A615CCF-1493-4AA4-A514-83537D809740}"
 EndProject
@@ -22,6 +22,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SmartImage.UI2", "SmartImage.UI2\SmartImage.UI2.csproj", "{225027F2-47FF-4205-934A-D46F865A71D6}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "SmartImage.Shared", "..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.shproj", "{D22F0476-3863-463F-81BA-2491E0478877}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -269,5 +271,11 @@ Global
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {DE4E765E-F0E1-40F9-B11E-522639F217CA}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{2a615ccf-1493-4aa4-a514-83537d809740}*SharedItemsImports = 5
+		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{c3235d7a-acec-4910-8efe-6acb670352bc}*SharedItemsImports = 5
+		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{d22f0476-3863-463f-81ba-2491e0478877}*SharedItemsImports = 13
+		..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems*{df64bb87-01e6-4c15-b2da-a004fd1387d0}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

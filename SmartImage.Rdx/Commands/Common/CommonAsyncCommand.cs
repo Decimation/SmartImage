@@ -1,11 +1,11 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: BaseAsyncCommand.cs
 // Date: 2025/09/24 @ 02:09:59
 
+#nullable disable
 using SmartImage.Lib;
 using Spectre.Console.Cli;
 
-#nullable disable
-namespace SmartImage.Rdx.Commands;
+namespace SmartImage.Rdx.Commands.Common;
 
 public abstract partial class CommonAsyncCommand<TCommandSettings> : AsyncCommand<TCommandSettings>, IDisposable
 	where TCommandSettings : CommonCommandSettings

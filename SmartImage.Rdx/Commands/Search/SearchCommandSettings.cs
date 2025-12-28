@@ -10,11 +10,13 @@ using System.Text;
 using Novus.Win32;
 using SmartImage.Lib;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Rdx.Commands;
+using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Shell;
 using Spectre.Console.Cli;
 using ValidationResult = Spectre.Console.ValidationResult;
 
-namespace SmartImage.Rdx.Commands;
+namespace SmartImage.Rdx.Commands.Search;
 
 public sealed class SearchCommandSettings : CommonCommandSettings
 {

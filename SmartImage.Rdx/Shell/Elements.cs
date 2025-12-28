@@ -16,13 +16,15 @@ using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 using AnsiConsoleExtensions = Spectre.Console.Advanced.AnsiConsoleExtensions;
 
+// ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
+
 // ReSharper disable InconsistentNaming
 
 #nullable disable
 
 namespace SmartImage.Rdx.Shell;
 
-internal static class ConsoleElements
+internal static class Elements
 {
 
 	// Ideally a dictionary would be used here...
@@ -51,22 +53,6 @@ internal static class ConsoleElements
 
 	internal static readonly Style Sty_ResultHeader = new(decoration: Decoration.Bold, background: SpcColor.Blue, foreground: SpcColor.White);
 
-	internal static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors = new Dictionary<SearchEngineOptions, SpcColor>
-	{
-		{ SearchEngineOptions.SauceNao, SpcColor.Green },
-		{ SearchEngineOptions.EHentai, SpcColor.Purple },
-		{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
-		{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
-		{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
-		{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
-		{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
-		{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
-		{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
-		{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
-		{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
-
-	}.AsReadOnly();
-
 #endregion
 
 #region Text
@@ -82,29 +68,36 @@ internal static class ConsoleElements
 #endregion
 
 
-	private static readonly Capabilities ProfileCapabilities;
+	static Elements() { }
 
-	static ConsoleElements()
+	internal static Grid AddRowsByChunk(this Grid g, int cnt, params IEnumerable<IRenderable> items)
 	{
-		ProfileCapabilities = AnsiConsole.Profile.Capabilities;
+		var chunks = items.Chunk(cnt);
 
-		InfoMap = new Dictionary<string, object>
-		{
-			["OS"]               = $"{Environment.OSVersion}",
-			["User"]             = $"{Environment.UserName} / {FileSystem.IsRoot}",
-			["Runtime"]          = Environment.Version,
-			["Terminal ANSI"]    = ProfileCapabilities.Ansi,
-			["Terminal colors"]  = ProfileCapabilities.ColorSystem,
-			["Terminal links"]   = ProfileCapabilities.Links,
-			["Terminal Unicode"] = ProfileCapabilities.Unicode,
-			["Version"]          = $"{Program.Version}",
-			["Location"]         = BaseOSIntegration.Executable
-		};
+		foreach (IRenderable[] chunk in chunks) {
+			g.AddRow(chunk);
+		}
 
-
+		return g;
 	}
 
-	internal static readonly Dictionary<string, object> InfoMap;
+	internal static Grid GetInfoGrid()
+	{
+		var gr = new Grid();
+		gr.AddColumns(2);
+
+		var rows = new IRenderable[]
+		{
+			new Text("User"), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
+			new Text("Version"), new Text($"{Program.Version}"),
+			new Text("Runtime"), new Text($"{Environment.OSVersion} / {Environment.Version}"),
+			new Text("Location"), new Text($"{BaseOSIntegration.Executable}")
+		};
+		gr.AddRowsByChunk(2, rows);
+
+
+		return gr;
+	}
 
 
 	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
@@ -137,15 +130,6 @@ internal static class ConsoleElements
 		return grd;
 	}
 
-
-	internal static SpcColor GetEngineColor(SearchEngineOptions opt)
-	{
-		if (!EngineColors.TryGetValue(opt, out var color)) {
-			color = SpcColor.White;
-		}
-
-		return color;
-	}
 
 #region
 
@@ -221,11 +205,11 @@ internal static class ConsoleElements
 
 #region Engine map table
 
-	public const int ROW_EMT2_THR     = 0;
-	public const int ROW_EMT2_NAME    = 1;
-	public const int ROW_EMT2_RESULTS = 2;
-	public const int ROW_EMT2_STATUS  = 3;
-	public const int ROW_EMT2_TIMEOUT = 4;
+	internal const int ROW_EMT2_THR     = 0;
+	internal const int ROW_EMT2_NAME    = 1;
+	internal const int ROW_EMT2_RESULTS = 2;
+	internal const int ROW_EMT2_STATUS  = 3;
+	internal const int ROW_EMT2_TIMEOUT = 4;
 
 
 	public static SpcTable GetEngineMapTableBase()
@@ -234,7 +218,6 @@ internal static class ConsoleElements
 
 		var columns = GetColumns("Thread", nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
 		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
-
 
 		table.AddColumns(columns.ToArray());
 		return table;
@@ -266,13 +249,6 @@ internal static class ConsoleElements
 		}
 	};
 
-	public static readonly TextPrompt<int> Prm_Num = new(Markup.Escape("[#]"))
-	{
-		ShowChoices      = false,
-		ShowDefaultValue = false,
-		AllowEmpty       = false,
-	};
-
 	public static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#.#]"))
 	{
 		ShowChoices      = false,
@@ -280,13 +256,71 @@ internal static class ConsoleElements
 		AllowEmpty       = false,
 	};
 
-	public static readonly TextPrompt<(int, int)> Prm_Num3 = new(Markup.Escape("[#.#]"))
+	public static readonly SelectionPrompt<SearchResult> Prm_SearchResult = new()
 	{
-		ShowChoices      = false,
-		ShowDefaultValue = false,
-		AllowEmpty       = false,
+		Mode            = SelectionMode.Independent,
+		SearchEnabled   = true,
+		PageSize        = 1,
+		MoreChoicesText = "...",
+		Title           = "Engines",
+		WrapAround      = true,
+		Converter = static sr =>
+		{
+			//
+			return sr.Engine.Name;
+		}
 	};
 
 #endregion
+
+	#region Tables
+
+	public static SpcTable CreateMainTable()
+	{
+		var col = new TableColumn[]
+		{
+			new(new Text("Engine", Sty_ResultHeader)),
+			new(new Text("Results", Sty_ResultHeader)),
+
+		};
+
+		SpcTable tb = CreateResultTable();
+
+		tb.AddColumns(col);
+
+		return tb;
+	}
+
+	private static SpcTable CreateResultTable()
+	{
+		var tb = new SpcTable()
+		{
+			Caption     = new TableTitle("Results", Sty_ResultHeader),
+			Border      = TableBorder.Simple,
+			ShowHeaders = true,
+		};
+		return tb;
+	}
+
+	public static SpcTable CreateFullResultTable()
+	{
+		var col = new TableColumn[]
+		{
+			new(new Text("Result", Sty_ResultHeader)),
+			new(new Text("URL", Sty_ResultHeader)),
+			new(new Text("Similarity", Sty_ResultHeader)),
+			new(new Text("Artist", Sty_ResultHeader)),
+			new(new Text("Resolution", Sty_ResultHeader)),
+
+		};
+
+		var tb = CreateResultTable();
+
+		tb.AddColumns(col);
+
+		return tb;
+	}
+
+	#endregion
 
 }

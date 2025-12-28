@@ -83,4 +83,6 @@
     <Folder Include="Assets\" />
     <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
+
+  <Import Project="..\..\..\VSProjects\SmartImage.Shared\SmartImage.Shared.projitems" Label="Shared" />
 </Project>

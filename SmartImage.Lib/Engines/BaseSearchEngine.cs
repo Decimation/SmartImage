@@ -12,9 +12,10 @@ using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+using SmartImage.Shared;
 
-[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_TEST)]
-[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_UI2)]
+[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_TEST)]
+[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI2)]
 
 namespace SmartImage.Lib.Engines;
 

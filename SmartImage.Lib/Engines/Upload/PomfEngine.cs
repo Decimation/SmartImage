@@ -10,7 +10,6 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicProperties)]
 public sealed class PomfEngine : BaseUploadEngine
 {
 
@@ -51,9 +50,9 @@ public sealed class PomfEngine : BaseUploadEngine
 		// var pr = await response.GetJsonAsync<PomfResult>();
 		var sz = await response.GetStringAsync();
 
-		var pr   = JsonSerializer.Deserialize<PomfResult>(sz, SearchUtil.DefaultSerializerOptions);
+		var pr    = JsonSerializer.Deserialize<PomfResult>(sz, SearchUtil.DefaultSerializerOptions);
 		var file0 = pr.Files.First();
-		
+
 		return new UploadResult(file0.Url, file0.Length);
 	}
 
@@ -61,18 +60,14 @@ public sealed class PomfEngine : BaseUploadEngine
 
 public sealed class PomfResult
 {
-
 	public bool Success { get; set; }
 
 	public PomfFileResult[] Files { get; set; }
-
 }
 
 public sealed class PomfFileResult : UploadResult
 {
-
 	public string Hash { get; set; }
 
 	public string Name { get; set; }
-
 }

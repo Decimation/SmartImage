@@ -4,7 +4,7 @@
 using System.Text.Json.Serialization;
 using SmartImage.Lib.Engines.Results;
 
-namespace SmartImage.Rdx.Commands;
+namespace SmartImage.Rdx.Commands.Server;
 
 public class SearchServerResponse
 {

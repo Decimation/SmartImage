@@ -47,13 +47,14 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;
+using SmartImage.Shared;
 
 #region 
 
-[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE)]
-[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_UI)]
-[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_RDX)]
-[assembly: InternalsVisibleTo(SearchQuery.PROJ_SMARTIMAGE_LIB_UNITTEST)]
+[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE)]
+[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI)]
+[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_RDX)]
+[assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
 #endregion
 
@@ -61,19 +62,6 @@ namespace SmartImage.Lib;
 
 public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged
 {
-
-#region Project names
-
-	internal const string PROJ_SMARTIMAGE              = "SmartImage";
-	internal const string PROJ_SMARTIMAGE_TEST         = $"{PROJ_SMARTIMAGE}.Test";
-	internal const string PROJ_SMARTIMAGE_UI           = $"{PROJ_SMARTIMAGE}.UI";
-	internal const string PROJ_SMARTIMAGE_UI2          = $"{PROJ_SMARTIMAGE_UI}2";
-	internal const string PROJ_SMARTIMAGE_RDX          = $"{PROJ_SMARTIMAGE}.Rdx";
-	internal const string PROJ_SMARTIMAGE_LIB          = $"{PROJ_SMARTIMAGE}.Lib";
-	internal const string PROJ_SMARTIMAGE_LIB_UNITTEST = $"{PROJ_SMARTIMAGE_LIB}.UnitTest";
-
-#endregion
-
 
 	// [MN]
 	// public Url Upload { get; private set; }

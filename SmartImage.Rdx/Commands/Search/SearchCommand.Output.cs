@@ -1,13 +1,10 @@
-﻿using CliWrap;
+﻿using System.Text;
+using CliWrap;
 using SmartImage.Lib.Engines.Results;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 #pragma warning disable CS8604 // Possible null reference argument.
 
-namespace SmartImage.Rdx.Commands;
+namespace SmartImage.Rdx.Commands.Search;
 
 [Flags]
 public enum OutputFields

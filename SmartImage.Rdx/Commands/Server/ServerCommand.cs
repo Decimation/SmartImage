@@ -1,34 +1,30 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: ServerCommand.cs
 // Date: 2024/11/22 @ 03:11:26
 
+#nullable disable
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using HttpMultipartParser;
-using System.Net.Mime;
 using System.Net;
 using System.Net.Http.Headers;
-using System.Text.Json;
-using Kantan.Net.Utilities;
-using SmartImage.Lib;
-using SmartImage.Lib.Utilities.Integration;
-using SmartImage.Rdx.Shell;
-using Spectre.Console;
-using Spectre.Console.Cli;
-using Kantan.Net;
-using SmartImage.Lib.Utilities;
-using System.Text.Json.Serialization;
-using SmartImage.Lib.Engines;
-using Spectre.Console.Rendering;
-using System.Threading.Tasks;
-using Kantan.Text;
-using Flurl.Http;
+using System.Net.Mime;
 using System.Text;
-using Microsoft.Extensions.Hosting.Internal;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using HttpMultipartParser;
+using Kantan.Net.Utilities;
+using Kantan.Text;
 using Microsoft.Extensions.Logging;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Utilities;
+using SmartImage.Lib.Utilities.Integration;
+using SmartImage.Rdx.Commands.Common;
+using SmartImage.Rdx.Shell;
+using Spectre.Console.Cli;
 
-#nullable disable
-namespace SmartImage.Rdx.Commands;
+// TODO: DEPRECATE; HAVEN'T WORKED ON THIS IN AGES
+
+namespace SmartImage.Rdx.Commands.Server;
 
 using RouteCallbackMap = Dictionary<string, ServerCommand.HandleRequestCallback2>;
 
@@ -86,7 +82,7 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 
 		m_scs = null;
 
-		Shared = ConsoleElements.GetEngineMapTableBase();
+		Shared = Elements.GetEngineMapTableBase();
 
 		Listener = new HttpListener()
 		{

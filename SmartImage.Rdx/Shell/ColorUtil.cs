@@ -5,6 +5,7 @@ global using SysColor = System.Drawing.Color;
 global using SpcColor = Spectre.Console.Color;
 global using ImsColor = SixLabors.ImageSharp.Color;
 global using AngColor = AngleSharp.Css.Values.Color;
+using SmartImage.Lib.Engines;
 using Spectre.Console;
 
 namespace SmartImage.Rdx.Shell;
@@ -63,6 +64,31 @@ internal static class ColorUtil
 			}
 		}
 
+	}
+
+	private static readonly IReadOnlyDictionary<SearchEngineOptions, SpcColor> EngineColors = new Dictionary<SearchEngineOptions, SpcColor>
+	{
+		{ SearchEngineOptions.SauceNao, SpcColor.Green },
+		{ SearchEngineOptions.EHentai, SpcColor.Purple },
+		{ SearchEngineOptions.Iqdb, SpcColor.LightGreen },
+		{ SearchEngineOptions.Ascii2D, SpcColor.Cyan1 },
+		{ SearchEngineOptions.TraceMoe, SpcColor.DodgerBlue1 },
+		{ SearchEngineOptions.RepostSleuth, SpcColor.RosyBrown },
+		{ SearchEngineOptions.ArchiveMoe, SpcColor.Wheat1 },
+		{ SearchEngineOptions.Yandex, SpcColor.Orange1 },
+		{ SearchEngineOptions.Iqdb3D, SpcColor.SeaGreen1 },
+		{ SearchEngineOptions.Fluffle, SpcColor.LightYellow3 },
+		{ SearchEngineOptions.TinEye, SpcColor.SkyBlue1 },
+
+	}.AsReadOnly();
+
+	internal static SpcColor GetColor(this SearchEngineOptions opt)
+	{
+		if (!EngineColors.TryGetValue(opt, out var color)) {
+			color = SpcColor.White;
+		}
+
+		return color;
 	}
 
 }

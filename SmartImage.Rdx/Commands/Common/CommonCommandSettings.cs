@@ -6,7 +6,7 @@ using SmartImage.Lib;
 using SmartImage.Lib.Engines;
 using Spectre.Console.Cli;
 
-namespace SmartImage.Rdx.Commands;
+namespace SmartImage.Rdx.Commands.Common;
 
 public class CommonCommandSettings : CommandSettings
 {

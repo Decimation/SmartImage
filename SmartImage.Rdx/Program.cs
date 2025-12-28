@@ -25,6 +25,10 @@ using SmartImage.Rdx.Shell;
 using SmartImage.Rdx.Utilities;
 using SmartImage.Rdx.Commands;
 using SmartImage.Lib.Utilities.Integration;
+using SmartImage.Rdx.Commands.Common;
+using SmartImage.Rdx.Commands.Integration;
+using SmartImage.Rdx.Commands.Search;
+using SmartImage.Rdx.Commands.Server;
 
 namespace SmartImage.Rdx;
 
@@ -45,15 +49,18 @@ public static class Program
 		};*/
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
 #if DEBUG
 
 		// Debugger.Launch();
 #endif
+
 		HandleArgs(ref args);
 
 		await DisplayHeaderAsync();
 
-		DisplayInfoGrid();
+		var infoGrid = Elements.GetInfoGrid();
+		AnsiConsole.Write(infoGrid);
 
 		var app = new CommandApp<SearchCommand>();
 
@@ -70,7 +77,7 @@ public static class Program
 				.WithDescription("Configure system integration such as context menu");
 
 			c.AddCommand<ServerCommand>("server")
-				.WithDescription("Start listen server");
+				.WithDescription("Start listen server (experimental)");
 		});
 
 		int x = BaseOSIntegration.EC_OK;
@@ -93,19 +100,13 @@ public static class Program
 		return x;
 	}
 
-	private static void DisplayInfoGrid()
-	{
-		Grid grd = ConsoleElements.MapToGrid(ConsoleElements.InfoMap);
-		AnsiConsole.Write(grd);
-	}
-
 	private static async Task DisplayHeaderAsync()
 	{
 		var ff = ConsoleUtil.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		var fg = new FigletText(ff, R1.Name)
 			.LeftJustified()
-			.Color(ConsoleElements.Clr_Misc1);
+			.Color(Elements.Clr_Misc1);
 
 		await ms.DisposeAsync();
 

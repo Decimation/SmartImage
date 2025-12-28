@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
@@ -367,7 +368,7 @@ public class TinEyeBacklink
 	public string CrawlDate { get; set; }
 
 	[JPN("source_id")]
-	public long SourceId { get; set; }
+	public long? SourceId { get; set; }
 
 	[JPN("image_name")]
 	public string ImageName { get; set; }

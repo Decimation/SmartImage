@@ -2,12 +2,11 @@
 // Date: 2024/12/03 @ 10:12:10
 
 using System.ComponentModel;
-using SmartImage.Lib.Utilities.Diagnostics;
-using SmartImage.Lib.Utilities.Integration;
+using SmartImage.Rdx.Commands.Common;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
-namespace SmartImage.Rdx.Commands;
+namespace SmartImage.Rdx.Commands.Server;
 
 public sealed class ServerCommandSettings : CommonCommandSettings
 {

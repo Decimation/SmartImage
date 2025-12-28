@@ -76,16 +76,15 @@ public abstract class BaseOSIntegration
 
 	internal const string OS_LINUX = "linux";
 
-	public const int EC_ERROR = -1;
+	internal const int EC_ERROR = -1;
 
-	public const int EC_OK = 0;
+	internal const int EC_OK = 0;
 
 	[SupportedOSPlatformGuard(OS_LINUX)]
 	public static readonly bool IsLinux = OperatingSystem.IsLinux();
 
 	[SupportedOSPlatformGuard(OS_WIN)]
 	public static readonly bool IsWindows = OperatingSystem.IsWindows();
-
 
 	public static BaseOSIntegration Integration { get; }
 

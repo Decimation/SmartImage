@@ -267,7 +267,7 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 
 #endregion
 
-	public bool TryWriteToFile(string fn = null)
+	public bool TryWriteOrGetFile(string fn = null)
 	{
 		if (!HasFilePath) {
 			LocalFilePath = WriteImageToFile(fn);

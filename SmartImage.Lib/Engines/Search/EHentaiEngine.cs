@@ -99,7 +99,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		}
 		else {
 			fileName = SFILE_NAME_DEFAULT;
-			var ok = query.Source.TryWriteToFile(fileName);
+			var ok = query.Source.TryWriteOrGetFile(fileName);
 
 			if (ok) {
 				filePath = query.Source.LocalFilePath;
