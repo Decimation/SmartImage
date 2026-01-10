@@ -56,7 +56,6 @@ public class UniImageUrl : UniImage, IUrl
 		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
 		{
 			var item = newItem(s);
-
 			var allocImgOk = await item.AllocImageAsync(token);
 
 			if (allocImgOk) {

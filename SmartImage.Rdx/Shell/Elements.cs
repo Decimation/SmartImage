@@ -1,4 +1,10 @@
-﻿using System.Data;
+﻿#region Aliases
+
+global using SizeIS = SixLabors.ImageSharp.Size;
+
+#endregion
+
+using System.Data;
 using System.Data.SqlTypes;
 using Kantan.Text;
 using Novus.OS;

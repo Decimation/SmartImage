@@ -319,7 +319,11 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 		var cw = Channel.CreateUnbounded<SearchResultItem>();
 
-		var task = ScanAsync(cw.Writer, s => { return CloneWithUrl(s); }, ct);
+		var task = ScanAsync(cw.Writer, s =>
+		{
+			var obj= CloneWithUrl(s);
+			return obj;
+		}, ct);
 
 		while (await cw.Reader.WaitToReadAsync(ct)) {
 			var val = await cw.Reader.ReadAsync(ct);

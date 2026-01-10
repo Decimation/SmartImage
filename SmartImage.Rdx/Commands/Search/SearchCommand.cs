@@ -24,6 +24,7 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
+using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib;
@@ -283,14 +284,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					break;
 				}
 
-				var sel    = ShellSelection.GetSelectionChoice(sr);
-				var sri    = sel.Item;
-				var selIdx = sel.Index();
+				var sel     = ShellSelection.GetSelectionChoice(sr);
+				var sri     = sel.Item;
+				var selIdx  = sel.Index();
 				var selIdx2 = sel.Index2();
 
 				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
-
-				// s_logger.LogTrace("Interactive: {ResItem}", sri);
 
 				if (cmd == R2.Chc_Open) {
 					SearchClient.OpenResult(sri.Url);
@@ -305,45 +304,18 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						bool scannedOk = false;
 						scannedOk = await sri.ScanAsync(m_ctsRun.Token);
 
-
 						if (!scannedOk) {
 							return;
 						}
 
-						/*if (!tbl.TryGetValue(sel.Item, out var idx)) {
-							for (int j = 0; j < sel.Item.ScannedItems.Count; j++) {
-								tbl[sel.Item.ScannedItems[j]] = j;
-							}
-						}*/
-
-						// var idx = tbl[sel.Item.Parent];
-
-						
 						for (int i = 0; i < sri.ScannedItems.Count; i++) {
 							SearchResultItem scnItm = sri.ScannedItems[i];
-							var              scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
-							srTable.InsertRow(selIdx2 + i + 1, scnRow);
-						}
-						
+							scnItm.CalculateSimilarity(Query.Source);
 
-						// row = idx;
-						// row = GetRowForItem(sri);
-						// row = sr.Index(sel.Item, sel.Scanned);
-
-						// row = sr.Index(sri);
-
-						// var row2 = sriPak;
-						// row = row2.RootIdx + (row2.ScnIdx == -1 ? 0 : (row2.ScnIdx + 1));
-
-						if (sri.HasImage) {
-							srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_WH, sri.GetResolution());
-
+							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
+							srTable.InsertRow(selIdx + i + 1, scnRow);
 						}
 
-						if (sri.HasHash && !sri.Similarity.HasValue) {
-							sri.CalculateSimilarity(Query.Source);
-							srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
-						}
 
 						f.Refresh();
 
@@ -364,7 +336,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					});
 
 
-					clrWrite = false;
+					clrWrite = true;
 					continue;
 				}
 
@@ -375,7 +347,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 					var ci = GetPreview(sri);
 
-					ShowPreview(ci, sri);
+					AnsiConsole.AlternateScreen(() => { ShowPreview(ci, sri); });
 					clrWrite = true;
 				}
 
@@ -385,20 +357,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				}
 
-				if (cmd == "expand") {
-					var si     = sri.ScannedItems;
-					var scnTbl = new ConcurrentDictionary<SearchResultItem, SpcTable>();
+				if (cmd == "expand") { }
 
-					var table = Elements.CreateFullResultTable();
-					scnTbl[sri] = table;
-
-					for (int i = 0; i < si.Count; i++) {
-						SearchResultItem scnI = si[i];
-						var              row  = scnI.GetFullResultRow(i, new Style(link: scnI.Url));
-						scnTbl[sri].AddRow(row);
-					}
-				}
-
+				if (cmd == "retry") { }
 
 			} while (cmd != R2.Chc_Back);
 
@@ -453,7 +414,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		if (ci is null) {
 			str = sri.GetStream();
-			ci  = new CanvasImage(str);
+			ci  = new CanvasImage(str) { };
 
 
 			m_previewCanvasCache.Set(key, ci, cip);
@@ -462,32 +423,19 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		Trace.Assert(ci != null);
 
-		// var ci = new CanvasImage(str);
-
 		return ci;
 	}
 
 	private void ShowPreview(CanvasImage ci, SearchResultItem ui)
 	{
-		// AnsiConsole.Clear();
+		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 
-		// (AnsiConsole.Profile.Width, AC.Profile.Height) = (ui.Image.Width, ui.Image.Height);
-		// ci.MaxWidth = AnsiConsole.Profile.Width;
+		var pnl = new Panel(ci) { Expand = true, Border = BoxBorder.None };
 
-		// Console.SetWindowSize(ui.Image.Width, ui.Image.Height);
-		// ci.MaxWidth ??= ci.Width;
-		// ci.MaxWidth ??= ui.Image.Width;
-
-		// var panel = new Panel(ci) { Expand = true, };
-
-		var (w, h)     = (AnsiConsole.Profile.Width, AC.Profile.Height);
-		var (mwO, pwO) = (ci.MaxWidth, ci.PixelWidth);
-		var (mw, pw)   = (mwO ?? ci.Width, pwO);
-
-		AnsiConsole.Live(ci).Start(ldc =>
+		AnsiConsole.Live(pnl).Start(ldc =>
 		{
 			while (true) {
-
+				// ci.MaxWidth = mw < 0 ? null : mw;
 				ldc.Refresh();
 				var cki = AnsiConsole.Console.Input.ReadKey(true);
 
@@ -496,50 +444,32 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				switch (cki.Value.Key) {
-					case ConsoleKey.DownArrow:
-						pw--;
+
+
+					case ConsoleKey.S:
+						ci.Mutate(act => { act.Resize(ui.Image.Width, ui.Image.Height); });
 						break;
 
-					case ConsoleKey.LeftArrow:
-						mw--;
+					case ConsoleKey.M:
+						ci.MaxWidth = w;
 						break;
-
-					case ConsoleKey.UpArrow:
-						pw++;
-						break;
-
-					case ConsoleKey.RightArrow:
-						mw++;
-						break;
-
-					case ConsoleKey.Escape:
-						return;
 
 					case ConsoleKey.R:
 						ci.Mutate(act =>
 						{
 							var cs = act.GetCurrentSize();
 
-							act.Resize(cs.ResizeByFactor(new Size(w, h)));
+							var cs2 = cs.ResizeByFactor(new Size(w, h));
+							act.Resize(cs2);
 						});
-						pw = 1;
 
-						// mw = 0;
 						ci.MaxWidth = null;
 						continue;
 
-					case ConsoleKey.A:
-						ci.MaxWidth = mwO;
-						pw          = 0;
-						break;
+					case ConsoleKey.Escape:
+						return;
 
-					case ConsoleKey.C:
-						AnsiConsole.Clear();
-						break;
 				}
-
-				ci.MaxWidth   = mw < 0 ? null : mw;
-				ci.PixelWidth = Math.Clamp(pw, 0, 10);
 			}
 		});
 

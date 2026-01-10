@@ -2,6 +2,7 @@
 // Date: 2025/12/27 @ 22:12:49
 
 #nullable disable
+using Kantan.Text;
 using SmartImage;
 using SmartImage.Lib.Engines.Results;
 using Spectre.Console;
@@ -36,10 +37,12 @@ internal static class Renderables
 
 	}
 
+	public static IRenderable GetResolution(SizeIS sz) => new Text($"{sz.Width}{Strings.Constants.MUL_SIGN}{sz.Height}");
+
 	extension(SearchResultItem sri)
 	{
 
-		public IRenderable GetResolution() => (sri.HasDimensions) ? new Text($"{sri.Width}x{sri.Height}") : Elements.Txt_NA;
+		public IRenderable GetResolution() => (sri.HasDimensions) ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : Elements.Txt_NA;
 
 		public IRenderable GetSimilarity() => AsRenderable(sri.Similarity);
 

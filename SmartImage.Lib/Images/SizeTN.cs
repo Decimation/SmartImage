@@ -2,7 +2,7 @@
 // Author: Deci | Project: SmartImage.Lib | Name: SizeTN.cs
 // Date: 2025/08/21 @ 00:08:17
 
-#region Aliasses
+#region Aliases
 
 global using SizeS2N = SmartImage.Lib.Images.SizeTN<short>;
 global using SizeS4N = SmartImage.Lib.Images.SizeTN<int>;
