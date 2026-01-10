@@ -42,11 +42,11 @@ namespace SmartImage.Lib;
 public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 {
 
-	public SearchConfig Config { get; private set;}
+	public SearchConfig Config { get; private set; }
 
 	public bool IsComplete { get; private set; }
 
-	public IEnumerable<BaseSearchEngine> Engines { get; private set;}
+	public IEnumerable<BaseSearchEngine> Engines { get; private set; }
 
 	public bool ConfigApplied { get; private set; }
 
@@ -120,6 +120,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 			ConfigApplied = true;
 
 		}
+
 		var tasks = GetSearchTasks(query, token);
 
 		var results = await Task.WhenAll(tasks);
@@ -128,13 +129,21 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 		CompleteSearchAsync();
 
+		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
+			var best = GetBest(results);
+			s_logger.LogInformation("Best: {Sr}", best);
+			if (best != null) {
+				OpenResult(best.Url);
+			}
+		}
+
 		return true;
 	}
 
 	/// <inheritdoc />
 	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
-		Config = cfg;
+		Config  = cfg;
 		Engines = Config.GetSelectedEngines();
 
 		s_logger.LogTrace("Loading engines");
@@ -172,6 +181,8 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	private void CompleteSearchAsync()
 	{
 		ResultChannel?.Writer.Complete();
+
+
 		IsRunning  = false;
 		IsComplete = true;
 	}
