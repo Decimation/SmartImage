@@ -30,34 +30,31 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 	public EHentaiEngine(bool useExHentai = true) : base(EHentaiBase)
 	{
-		IsLoggedIn = false;
-
+		IsLoggedIn  = false;
 		UseExHentai = useExHentai;
-
-		Jar = new CookieJar();
+		Jar         = new CookieJar();
 	}
 
 	// NOTE: a separate HttpClient is used for EHentai because of special network requests and other unique requirements...
 
 #region
 
-	public static readonly Url EHentaiIndex  = "https://forums.e-hentai.org/index.php";
-	public static readonly Url EHentaiBase   = "https://e-hentai.org/";
-	public static readonly Url EHentaiLookup = "https://upld.e-hentai.org/image_lookup.php";
-
+	public static readonly Url EHentaiIndex   = "https://forums.e-hentai.org/index.php";
+	public static readonly Url EHentaiBase    = "https://e-hentai.org/";
 	public static readonly Url ExHentaiBase   = "https://exhentai.org/";
+	public static readonly Url EHentaiLookup  = "https://upld.e-hentai.org/image_lookup.php";
 	public static readonly Url ExHentaiLookup = "https://upld.exhentai.org/upld/image_lookup.php";
 
 #region
 
-	public override Url BaseUrl => IsLoggedIn ? ExHentaiBase : EHentaiBase;
+	public override Url Url => IsLoggedIn ? ExHentaiBase : EHentaiBase;
 
-	private Url BaseUrl2 => UseExHentai ? ExHentaiBase : EHentaiBase;
+	private Url Url2 => UseExHentai ? ExHentaiBase : EHentaiBase;
 
-	private Url LookupUrl =>
-
-		// todo: handle UseExHentai
-		IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
+	/// <summary>
+	/// todo: handle UseExHentai
+	/// </summary>
+	private Url LookupUrl => IsLoggedIn ? ExHentaiLookup : EHentaiLookup;
 
 	private const string HOST_EH = ".e-hentai.org";
 	private const string HOST_EX = ".exhentai.org";
@@ -74,7 +71,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 	private Task<IFlurlResponse> GetSessionAsync()
 	{
-		return Client.Request(BaseUrl2)
+		return Client.Request(Url2)
 			.WithCookies(Jar)
 			.WithTimeout(Timeout)
 			.WithHeaders(new
@@ -234,7 +231,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			c |= isEh;
 
 			if (c) {
-				Jar.AddOrReplace(cookie.Name, cookie.Value, BaseUrl2);
+				Jar.AddOrReplace(cookie.Name, cookie.Value, Url2);
 			}
 		}
 

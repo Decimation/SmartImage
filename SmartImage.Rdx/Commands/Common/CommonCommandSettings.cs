@@ -3,6 +3,7 @@
 
 using System.ComponentModel;
 using SmartImage.Lib;
+using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines;
 using Spectre.Console.Cli;
 
@@ -32,7 +33,7 @@ public class CommonCommandSettings : CommandSettings
 	public bool FlareSolverr { get; internal set; }
 
 	[CommandOption("--flaresolverr-api")]
-	[DefaultValue(SearchConfig.FLARE_SOLVERR_API_URL_DEFAULT)]
+	[DefaultValue(FlareSolverrClient.FLARE_SOLVERR_API_URL_DEFAULT)]
 	[Description("FlareSolverr API URL")]
 	public string? FlareSolverrApiUrl { get; internal set; }
 

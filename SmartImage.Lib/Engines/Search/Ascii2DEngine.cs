@@ -44,13 +44,14 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 	public const string MAIN_URL = "https://ascii2d.net/search/url/";
 
-	private FlareSolverrClient m_fsClient;
+	private readonly FlareSolverrClient m_fsClient;
 
 	public Ascii2DEngine() : base(MAIN_URL)
 	{
 		Timeout   = TimeSpan.FromSeconds(30);
 		MaxLength = 10_000_000;
 		Jar       = new CookieJar();
+		m_fsClient = new FlareSolverrClient();
 	}
 
 
@@ -204,7 +205,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 			var ck = bck.AsCookie();
 
 			if (ck.Domain.Contains("ascii2d")) {
-				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, BaseUrl));
+				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, Url));
 			}
 		}
 
@@ -215,10 +216,10 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		if (cfg.FlareSolverr) {
-			m_fsClient = new FlareSolverrClient(cfg.FlareSolverrApiUrl);
+			m_fsClient.Configure(cfg.FlareSolverrApiUrl);
 		}
 
-		return ValueTask.FromResult(m_fsClient is not null);
+		return ValueTask.FromResult(m_fsClient.IsInitialized);
 	}
 
 }
@@ -242,7 +243,7 @@ public class Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem
 		var imgBox = nxe.Children[0];
 		var thumb  = imgBox.Children[0].Attributes["src"];
 
-		sri.Thumbnail = Url.Combine(r.Engine.BaseUrl.Root, thumb?.Value);
+		sri.Thumbnail = Url.Combine(r.Engine.Url.Root, thumb?.Value);
 
 		var info = n.ChildNodes.Where(static n1 => !string.IsNullOrWhiteSpace(n1.TextContent))
 			.ToArray();

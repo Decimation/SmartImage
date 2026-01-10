@@ -33,7 +33,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleLens;
 
 
-	public override Url BaseUrl => URL_BASE;
+	public override Url Url => URL_BASE;
 
 	public Url Endpoint => URL_BASE;
 

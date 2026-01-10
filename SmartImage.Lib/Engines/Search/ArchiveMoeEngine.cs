@@ -28,16 +28,16 @@ public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 
 	public ArchiveMoeEngine() : this("https://archived.moe/_/search/") { }
 
-	protected ArchiveMoeEngine(Url baseUrl) : base(baseUrl) { }
+	protected ArchiveMoeEngine(Url url) : base(url) { }
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
 		Base64MD5Hash = GetBase64MD5Hash(query.Source.Bytes);
 
-		var r = Url.Combine(BaseUrl, "image", Base64MD5Hash);
+		var r = Url.Combine(Url, "image", Base64MD5Hash);
 		return r;
 
-		// return (BaseUrl.AppendPathSegments("image").AppendPathSegment(Base64Hash));
+		// return (Url.AppendPathSegments("image").AppendPathSegment(Base64Hash));
 	}
 
 

@@ -19,7 +19,7 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 	where TItem : SearchResultItem
 {
 
-	protected ParsedSearchEngine([NN] Url baseUrl) : base(baseUrl) { }
+	protected ParsedSearchEngine([NN] Url url) : base(url) { }
 
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)

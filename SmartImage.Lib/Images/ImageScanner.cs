@@ -50,6 +50,8 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Web;
 
+// ReSharper disable SuggestVarOrType_Elsewhere
+
 // ReSharper disable InconsistentNaming
 
 namespace SmartImage.Lib.Images;
@@ -201,7 +203,7 @@ public static partial class ImageScanner
 			}
 
 			if (uni != UniImage.Null && uni.HasImageFormat) {
-				s_logger.LogTrace("{Name} {Uni}", nameof(ScanForImagesAsync), uni);
+				s_logger.LogTrace("Scan: {Uni}", uni);
 
 				// await cw.WriteAsync(uni, token);
 				await cw.WaitToWriteAsync(token);
@@ -251,10 +253,10 @@ public static partial class ImageScanner
 
 			// return baseUrl + URL_DELIM + u;
 			return Url.Combine(baseUrl, URL_DELIM.ToString(), u);
-		}).Select(u => Url.Decode(u, true)).Where(Url.IsValid).Distinct();
+		}).Select(static u => Url.Decode(u, true)).Where(Url.IsValid).Distinct();
 
 		if (heuristicFilter) {
-			abs = abs.Where(u => !UrlSegmentBlacklist.Any(u.Contains));
+			abs = abs.Where(static u => !UrlSegmentBlacklist.Any(u.Contains));
 		}
 
 		return abs;

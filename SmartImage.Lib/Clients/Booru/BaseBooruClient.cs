@@ -6,21 +6,22 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Clients.Booru;
 
 // TODO
 [Experimental(AppSupport.DIAG_ID_EXPERIMENTAL)]
-public abstract class BaseBooruClient : IDisposable
+public abstract class BaseBooruClient : IDisposable, IUrl
 {
 
-	public Url BaseUrl { get; }
+	public Url Url { get; }
 
 	public abstract string Name { get; }
 
-	protected BaseBooruClient(Url baseUrl)
+	protected BaseBooruClient(Url url)
 	{
-		BaseUrl = baseUrl;
+		Url = url;
 	}
 
 	public virtual void Dispose()

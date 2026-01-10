@@ -49,7 +49,7 @@ public sealed class YandexEngine : BaseSearchEngine
 
 	protected override Url GetRawUrl(SearchQuery query)
 	{
-		var url = BaseUrl.Clone();
+		var url = Url.Clone();
 
 		url.QueryParams.AddOrReplace("url", query.Upload);
 		url.QueryParams.AddOrReplace("cbir_page", "sites");

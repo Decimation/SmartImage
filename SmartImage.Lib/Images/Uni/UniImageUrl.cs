@@ -24,7 +24,6 @@ public class UniImageUrl : UniImage, IUrl
 	internal UniImageUrl(Url url) : base(url?.ToString(), UniImageType.Uri)
 	{
 		Url = url;
-
 	}
 
 	// public override string Name => Url?.GetFileName();

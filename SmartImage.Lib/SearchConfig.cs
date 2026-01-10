@@ -27,8 +27,6 @@ namespace SmartImage.Lib;
 public sealed class SearchConfig : INotifyPropertyChanged
 {
 
-#region
-
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchConfig));
 
 	public static readonly SearchConfig Default = new();
@@ -64,8 +62,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// Default value for <see cref="FlareSolverr"/>
 	/// </summary>
 	public const bool FLARESOLVERR_DEFAULT = false;
-
-	public const string FLARE_SOLVERR_API_URL_DEFAULT = "http://localhost:8191";
 
 	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.Pomf;
 
@@ -209,7 +205,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// </remarks>
 	public string FlareSolverrApiUrl
 	{
-		get => Get(FLARE_SOLVERR_API_URL_DEFAULT);
+		get => Get(FlareSolverrClient.FLARE_SOLVERR_API_URL_DEFAULT);
 		set => Set(value);
 	}
 
@@ -268,8 +264,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		if (options.HasFlag(SearchEngineOptions.GoogleLens))
 			yield return new GoogleLensEngine();
 	}
-
-#endregion
 
 #region
 
@@ -337,33 +331,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	}
 
 
-	/*public DataTable ToTable()
-	{
-		var table = new DataTable("Configuration");
-
-		table.Columns.AddRange([
-			new("Setting", typeof(string)),
-			new("Value", typeof(object))
-		]);
-
-		table.Rows.Add(Resources.S_SearchEngines, SearchEngines);
-		table.Rows.Add(Resources.S_PriorityEngines, PriorityEngines);
-		table.Rows.Add(Resources.S_OnTop, OnTop);
-		table.Rows.Add(Resources.S_OpenRaw, OpenRaw);
-		table.Rows.Add(Resources.S_Silent, Silent);
-		table.Rows.Add(Resources.S_EhUsername, EhUsername);
-		table.Rows.Add(Resources.S_EhPassword, EhPassword);
-		table.Rows.Add(Resources.S_Clipboard, Clipboard);
-		table.Rows.Add(Resources.S_AutoSearch, AutoSearch);
-		table.Rows.Add(Resources.S_SauceNaoKey, SauceNaoKey);
-		/*table.Rows.Add(Resources.S_HydrusEndpoint, HydrusEndpoint);
-		table.Rows.Add(Resources.S_HydrusKey, HydrusKey);#1#
-
-		// table.Rows.Add("Path", new FileInfo(Configuration.FilePath).Name);
-
-		return table;
-	}*/
-
 	public event PropertyChangedEventHandler PropertyChanged;
 
 	private void OnPropertyChanged([CMN] string propertyName = null)
@@ -375,22 +342,5 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	{
 		return $"{SearchEngines}\n{PriorityEngines}";
 	}
-
-	/*private IEnumerable<BaseSearchEngine> m_engines;
-
-	public IEnumerable<BaseSearchEngine> Engines
-	{
-		get => m_engines;
-		private set
-		{
-			if (Equals(value, m_engines))
-				return;
-
-			m_engines = value;
-			OnPropertyChanged();
-		}
-	}*/
-
-	
 
 }

@@ -15,28 +15,32 @@ public static class ImageUtilities
 
 	public static IImageHash Hasher { get; set; } = new PerceptualHash();
 
+	public static SizeIS ResizeByFactor(this SizeIS cs, SizeIS newSize)
+	{
+		int origWidth  = cs.Width;
+		int origHeight = cs.Height;
+
+		double widthRatio  = (double) newSize.Width  / origWidth;
+		double heightRatio = (double) newSize.Height / origHeight;
+		double scale       = Math.Min(widthRatio, heightRatio);
+
+		int newWidth  = (int) (origWidth  * scale);
+		int newHeight = (int) (origHeight * scale);
+
+		return new SizeIS(newWidth, newHeight);
+	}
+
 	extension(ISImage image)
 	{
 
 		public ISImage ResizeByFactor(SizeIS newSize)
 		{
-			int origWidth  = image.Width;
-			int origHeight = image.Height;
-
-			double widthRatio  = (double) newSize.Width  / origWidth;
-			double heightRatio = (double) newSize.Height / origHeight;
-			double scale       = Math.Min(widthRatio, heightRatio);
-
-			if (scale >= 1.0)
-				return image.Clone();
-
-			int newWidth  = (int) (origWidth  * scale);
-			int newHeight = (int) (origHeight * scale);
+			var cs = image.Size.ResizeByFactor(newSize);
 
 			// Resize the image
 			var resized = image.Clone(ctx => ctx.Resize(new ResizeOptions()
 			{
-				Size = new SizeIS(newWidth, newHeight),
+				Size = cs,
 
 			}));
 			return resized;

@@ -73,7 +73,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 			}
 
 			sr.Status = SearchResultStatus.Success;
-			sr.RawUrl = new Url(BaseUrl + query.Upload);
+			sr.RawUrl = new Url(Url + query.Upload);
 		}
 		catch (Exception e) {
 			sr.ErrorMessage = e.Message;

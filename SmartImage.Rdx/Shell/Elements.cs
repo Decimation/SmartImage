@@ -68,71 +68,17 @@ internal static class Elements
 
 	internal const string STR_NA = "-";
 
-	internal const double COMPLETE = 100.0d;
-
 #endregion
 
 
 	static Elements() { }
 
-	internal static Grid AddRowsByChunk(this Grid g, int cnt, params IEnumerable<IRenderable> items)
-	{
-		var chunks = items.Chunk(cnt);
-
-		foreach (IRenderable[] chunk in chunks) {
-			g.AddRow(chunk);
-		}
-
-		return g;
-	}
-
-	internal static Grid GetInfoGrid()
-	{
-		var gr = new Grid();
-		gr.AddColumns(2);
-
-		var rows = new IRenderable[]
-		{
-			new Text("User"), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
-			new Text("Version"), new Text($"{Program.Version}"),
-			new Text("Runtime"), new Text($"{Environment.OSVersion} / {Environment.Version}"),
-			new Text("Location"), new Text($"{BaseOSIntegration.Executable}")
-		};
-		gr.AddRowsByChunk(2, rows);
-
-
-		return gr;
-	}
-
-
-	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
-	                                             [CBN] Func<TKey, IRenderable> keyFunc = null,
-	                                             [CBN] Func<TValue, IRenderable> valFunc = null)
-	{
-		var grd = new Grid();
-		grd.AddColumns(2);
-
-		keyFunc ??= static k =>
-		{
-			//
-			var s = k.ToString();
-			ArgumentNullException.ThrowIfNull(s);
-			return new Text(s, Sty_Grid1);
-		};
-
-		valFunc ??= AsRenderable;
-
-		foreach (var (k, v) in dictionary) {
-			grd.AddRow(keyFunc(k), valFunc(v));
-		}
-
-		return grd;
-	}
+	internal const double COMPLETE = 100.0d;
 
 
 #region
 
-	public static IRenderable Format<T>(T? val) where T : struct
+	public static IRenderable AsRenderable<T>(T? val) where T : struct
 	{
 		return val.HasValue ? AsRenderable(val.Value) : Txt_NA;
 	}
@@ -150,7 +96,8 @@ internal static class Elements
 			bool b => b.ToPrettyText(),
 
 			null => Txt_NA,
-			_    => new Text(val?.ToString())
+
+			_ => new Text(val?.ToString())
 		};
 		return renderable;
 	}
@@ -159,48 +106,9 @@ internal static class Elements
 
 #endregion
 
-	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
-	{
-		var dt = new Grid();
-		dt.AddColumns(2);
-
-		var kv = new Dictionary<string, object>
-		{
-			[R1.S_SearchEngines]   = cfg.SearchEngines,
-			[R1.S_PriorityEngines] = cfg.PriorityEngines,
-			[R1.S_AutoSearch]      = cfg.AutoSearch,
-			[R1.S_ReadCookies]     = cfg.ReadCookies,
-
-			["Input"]  = query,
-			["Upload"] = query.Upload,
-
-			["FlareSolverr"] = cfg.FlareSolverr
-		};
-
-		foreach (var (s, o) in kv) {
-			dt.AddRow(new Text(s, Sty_Grid1), AsRenderable(o));
-		}
-
-		// Render the layout
-		// AnsiConsole.Write(layout);
-
-
-		return dt;
-	}
-
-	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
-	{
-		var ci = new CanvasImage(querySource.GetStream())
-		{
-			// MaxWidth = AnsiConsole.Profile.Width / 4,
-			// PixelWidth = 2
-		};
-
-		// querySource.Stream.TrySeek();
-		return ci;
-	}
-
 #region Engine map table
+
+	//  TODO: FOR SERVER ONLY, DEPRECATE
 
 	internal const int ROW_EMT2_THR     = 0;
 	internal const int ROW_EMT2_NAME    = 1;
@@ -285,6 +193,8 @@ internal static class Elements
 
 		tb.AddColumns(col);
 
+		tb = tb.Centered();
+		
 		return tb;
 	}
 
@@ -319,5 +229,102 @@ internal static class Elements
 	}
 
 #endregion
+
+	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
+	{
+		var dt = new Grid();
+		dt.AddColumns(2);
+
+		var kv = new Dictionary<string, object>
+		{
+			[R1.S_SearchEngines]   = cfg.SearchEngines,
+			[R1.S_PriorityEngines] = cfg.PriorityEngines,
+			[R1.S_AutoSearch]      = cfg.AutoSearch,
+			[R1.S_ReadCookies]     = cfg.ReadCookies,
+
+			["Input"]  = query,
+			["Upload"] = query.Upload,
+
+			["FlareSolverr"] = cfg.FlareSolverr
+		};
+
+		foreach (var (s, o) in kv) {
+			dt.AddRow(new Text(s, Sty_Grid1), AsRenderable(o));
+		}
+
+		// Render the layout
+		// AnsiConsole.Write(layout);
+
+
+		return dt;
+	}
+
+	internal static CanvasImage GetQueryCanvasImage(UniImage querySource)
+	{
+		var ci = new CanvasImage(querySource.GetStream())
+		{
+			// MaxWidth = AnsiConsole.Profile.Width / 4,
+			// PixelWidth = 2
+		};
+
+		// querySource.Stream.TrySeek();
+		return ci;
+	}
+
+	internal static Grid AddRowsByChunk(this Grid g, int cnt, params IEnumerable<IRenderable> items)
+	{
+		var chunks = items.Chunk(cnt);
+
+		foreach (IRenderable[] chunk in chunks) {
+			g.AddRow(chunk);
+		}
+
+		return g;
+	}
+
+	internal static Grid GetInfoGrid()
+	{
+		var gr = new Grid();
+		gr.AddColumns(2);
+
+		var rows = new IRenderable[]
+		{
+			new Text("User", Sty_Grid1), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
+			new Text("Version", Sty_Grid1), new Text($"{Program.Version}"),
+			new Text("Runtime", Sty_Grid1), new Text($"{Environment.OSVersion} / {Environment.Version}"),
+			new Text("Location", Sty_Grid1), new Text($"{BaseOSIntegration.Executable}")
+		};
+
+
+		gr.AddRowsByChunk(2, rows);
+
+
+		return gr;
+	}
+
+
+	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
+	                                             [CBN] Func<TKey, IRenderable> keyFunc = null,
+	                                             [CBN] Func<TValue, IRenderable> valFunc = null)
+	{
+		var grd = new Grid();
+		grd.AddColumns(2);
+
+		keyFunc ??= static k =>
+		{
+			//
+			var s = k.ToString();
+			ArgumentNullException.ThrowIfNull(s);
+			return new Text(s, Sty_Grid1);
+		};
+
+		valFunc ??= AsRenderable;
+
+		foreach (var (k, v) in dictionary) {
+			grd.AddRow(keyFunc(k), valFunc(v));
+		}
+
+		return grd;
+	}
 
 }

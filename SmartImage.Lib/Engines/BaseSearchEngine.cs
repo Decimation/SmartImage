@@ -22,7 +22,7 @@ namespace SmartImage.Lib.Engines;
 #pragma warning disable CA1822
 #nullable disable
 
-public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>, ISearchEngine
+public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>, ISearchEngine, IUrl
 {
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -30,7 +30,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	/// <summary>
 	/// Base URI
 	/// </summary>
-	public virtual Url BaseUrl { get; }
+	public virtual Url Url { get; }
 
 	public virtual string Name => EngineOption.ToString();
 
@@ -72,9 +72,9 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 		});
 	}
 
-	protected BaseSearchEngine([NN] Url baseUrl)
+	protected BaseSearchEngine([NN] Url url)
 	{
-		BaseUrl           = baseUrl;
+		Url           = url;
 		Timeout           = TimeSpan.FromSeconds(30);
 		ErrorBodyMessages = [];
 		MaxLength           = null;
@@ -111,7 +111,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 			throw new SmartImageException($"{query} not uploaded");
 		}
 
-		Url u = (BaseUrl + query.Upload);
+		Url u = (Url + query.Upload);
 
 		return u;
 	}
@@ -135,7 +135,7 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 	public override string ToString()
 	{
-		return $"{Name}: {BaseUrl} {Timeout}";
+		return $"{Name}: {Url} {Timeout}";
 	}
 
 

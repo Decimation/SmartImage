@@ -21,12 +21,12 @@ public abstract class BaseGelbooruClient : BaseBooruClient
 	[CBN]
 	public string Id { get; set; }
 
-	protected BaseGelbooruClient(Url baseUrl) : base(baseUrl)
+	protected BaseGelbooruClient(Url url) : base(url)
 	{
 
 		Client = new FlurlClient()
 		{
-			BaseUrl = baseUrl,
+			BaseUrl = url,
 			Settings =
 			{
 				JsonSerializer = { }

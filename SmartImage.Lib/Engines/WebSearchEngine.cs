@@ -13,7 +13,7 @@ public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine
 	where TItem : SearchResultItem
 {
 
-	protected WebSearchEngine(Url baseUrl) : base(baseUrl) { }
+	protected WebSearchEngine(Url url) : base(url) { }
 
 	[ICBN]
 	[MURV]

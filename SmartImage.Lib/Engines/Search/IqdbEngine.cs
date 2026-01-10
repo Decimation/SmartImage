@@ -188,7 +188,7 @@ public class IqdbItem : SearchResultItem, IParseableSource<IHtmlCollection<IElem
 		var src     = tr[2];
 
 		var img2         = img.Children[0].Children[0].Children[0].Attributes["src"];
-		var thumbnail    = img2 != null ? Url.Combine(r.Engine.BaseUrl.Root, img2.Value) : null;
+		var thumbnail    = img2 != null ? Url.Combine(r.Engine.Url.Root, img2.Value) : null;
 		var thumbnail1   = img.Children[0].Children[0].Attributes["alt"];
 		var thumbnailAlt = thumbnail1?.Value;
 

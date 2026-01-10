@@ -64,6 +64,8 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 	static SearchClient() { }
 
+	public Channel<SearchResult> ResultChannel { get; private set; }
+
 	[ModuleInitializer]
 	public static void Init()
 	{
@@ -83,20 +85,16 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	}
 
 
-	public Channel<SearchResult> ResultChannel { get; private set; }
-
 	public void OpenChannel()
 	{
-		var ok = ResultChannel?.Writer.TryComplete(new ChannelClosedException("Reopened channel"));
+		var ok = ResultChannel?.Writer.TryComplete();
 
 		ResultChannel = Channel.CreateUnbounded<SearchResult>(new UnboundedChannelOptions()
 		{
 			SingleWriter = true,
 		});
 
-		if (ok.HasValue && ok.Value) { }
-
-		// throw new InvalidOperationException();
+		s_logger.LogInformation("Opened channel | complete: {Ok}", ok);
 	}
 
 	/// <summary>
@@ -155,11 +153,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 			}
 		}
 
-		// CookiesManager.Instance.Dispose();
-
 		s_logger.LogDebug("Loaded engines");
-
-		// ConfigApplied = true;
 
 		return true;
 	}
@@ -255,7 +249,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 	public void Dispose()
 	{
-		s_logger.LogDebug("Disposing {Client}", Config);
+		s_logger.LogDebug("Disposing {Cfg}", Config);
 
 		foreach (BaseSearchEngine engine in Engines) {
 			engine.Dispose();

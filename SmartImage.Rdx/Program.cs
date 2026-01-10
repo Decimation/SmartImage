@@ -29,6 +29,7 @@ using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Commands.Integration;
 using SmartImage.Rdx.Commands.Search;
 using SmartImage.Rdx.Commands.Server;
+
 #pragma warning disable CS8601 // Possible null reference assignment.
 
 namespace SmartImage.Rdx;
@@ -58,7 +59,7 @@ public static class Program
 
 		HandleArgs(ref args);
 
-		await DisplayHeaderAsync();
+		DisplayHeader();
 
 		var infoGrid = Elements.GetInfoGrid();
 		AnsiConsole.Write(infoGrid);
@@ -73,7 +74,7 @@ public static class Program
 #endif
 			var helpProvider = new CustomHelpProvider(c.Settings);
 			c.SetHelpProvider(helpProvider);
-			
+
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
 
@@ -82,7 +83,7 @@ public static class Program
 		});
 
 		int x = BaseOSIntegration.EC_OK;
-		
+
 		try {
 			x = await app.RunAsync(args, Cts.Token);
 
@@ -101,19 +102,17 @@ public static class Program
 		return x;
 	}
 
-	private static async Task DisplayHeaderAsync()
+	private static void DisplayHeader()
 	{
 		var ff = ConsoleUtil.LoadFigletFontFromResource(nameof(R2.Fg_larry3d), out var ms);
 
 		var fg = new FigletText(ff, R1.Name)
-			.LeftJustified()
+			.Centered()
 			.Color(Elements.Clr_Misc1);
-
-		await ms.DisposeAsync();
 
 		AnsiConsole.Write(fg);
 
-		await ms.DisposeAsync();
+		ms.Dispose();
 	}
 
 	private static void HandleArgs(ref string[] args)

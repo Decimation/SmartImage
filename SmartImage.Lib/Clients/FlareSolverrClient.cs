@@ -44,10 +44,10 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 
 		s_logger.LogTrace("Init with {Api}", api);
 
-		return HasClient;
+		return IsInitialized;
 	}
 
-	public FlareSolverrClient([CBN] string api = SearchConfig.FLARE_SOLVERR_API_URL_DEFAULT)
+	public FlareSolverrClient([CBN] string api = FLARE_SOLVERR_API_URL_DEFAULT)
 	{
 		Configure(api);
 	}
@@ -72,6 +72,7 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 		return ValueTask.FromResult(ok);
 	}
 
-	
+
+	public const string FLARE_SOLVERR_API_URL_DEFAULT = "http://localhost:8191";
 
 }

@@ -25,8 +25,10 @@ using System.Diagnostics;
 using System.Runtime.Caching;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
@@ -36,6 +38,9 @@ using SmartImage.Shared;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
+using Size = SixLabors.ImageSharp.Size;
+
+// ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
 
 // TODO: Create separate SearchCommands for interactive/non-interactive
 
@@ -128,9 +133,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
 	{
-		Console.CancelKeyPress += OnCancelKeyPress;
-
 		InitConfig(settings);
+
+		Console.CancelKeyPress += OnCancelKeyPress;
 
 		var initTask = AnsiConsole.Progress()
 			.AutoRefresh(true)
@@ -161,12 +166,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// AnsiConsole.Write(m_layout);
 
 		try {
+			IRenderable elem = CommandSettings.Interactive ? m_layout : m_mainTable;
 
-			var liveDisplay = AnsiConsole.Live(CommandSettings.Interactive
-				                                   ? m_layout
-				                                   : m_mainTable);
-
-			Task main = liveDisplay
+			Task main = AnsiConsole.Live(elem)
 				.StartAsync(c => RunSearchLiveAsync(c, m_ctsRun.Token));
 
 			await main;
@@ -269,7 +271,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				if (clrWrite) {
 					AnsiConsole.Clear();
 					AnsiConsole.Write(srTable);
-
 				}
 
 				cmd = AnsiConsole.Prompt(Elements.Prm_Command);
@@ -416,36 +417,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		} while (cmd != R2.Chc_Exit);
 	}
 
-	private static void HandleDownload(SearchResultItem sri)
-	{
-		var ok = sri.TryWriteOrGetFile();
-
-		if (ok) {
-			AC.AlternateScreen(() =>
-			{
-				var gr = new Grid();
-				gr.AddColumns(new GridColumn[] { new(), new() });
-				gr.AddRow(new IRenderable[] { new Text("File", Elements.Sty_Name), new Text(sri.LocalFilePath) });
-				AnsiConsole.Write(gr);
-
-				var prompt = new ConfirmationPrompt("Open?") { };
-				var choice = AnsiConsole.Prompt(prompt);
-
-				if (choice) {
-					var proc = Process.Start(new ProcessStartInfo()
-					{
-						FileName         = sri.LocalFilePath,
-						WorkingDirectory = String.Empty,
-						UseShellExecute  = true
-					});
-
-					proc?.WaitForExit();
-					proc?.Dispose();
-				}
-			});
-		}
-	}
-
 #endregion
 
 #region
@@ -495,6 +466,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		if (ci is null) {
 			str = sri.GetStream();
 			ci  = new CanvasImage(str);
+
+
 			m_previewCanvasCache.Set(key, ci, cip);
 		}
 		else { }
@@ -523,55 +496,62 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		var (mwO, pwO) = (ci.MaxWidth, ci.PixelWidth);
 		var (mw, pw)   = (mwO ?? ci.Width, pwO);
 
-		AnsiConsole.Live(ci).Start((ldc) =>
+		AnsiConsole.Live(ci).Start(ldc =>
 		{
 			while (true) {
 
 				ldc.Refresh();
 				var cki = AnsiConsole.Console.Input.ReadKey(true);
 
-				if (cki.HasValue) {
-
-					switch (cki.Value.Key) {
-						case ConsoleKey.DownArrow:
-							pw--;
-							break;
-
-						case ConsoleKey.LeftArrow:
-							mw--;
-							break;
-
-						case ConsoleKey.UpArrow:
-							pw++;
-							break;
-
-						case ConsoleKey.RightArrow:
-							mw++;
-							break;
-
-						case ConsoleKey.Escape:
-							return;
-
-						/*
-						case ConsoleKey.R:
-							mw = ui.Image.Width;
-
-							// ci.PixelWidth =   0;
-							break;
-							*/
-
-						case ConsoleKey.A:
-							ci.MaxWidth = mwO;
-							pw          = 0;
-							break;
-					}
-
-					ci.MaxWidth   = mw < 0 ? null : mw;
-					ci.PixelWidth = Math.Clamp(pw, 0, 10);
+				if (!cki.HasValue) {
+					continue;
 				}
 
-				// Console.Title = $"{ci.MaxWidth} / {ci.PixelWidth}";
-				// panel.Header = new PanelHeader($"{ci.MaxWidth} / {ci.PixelWidth}");
+				switch (cki.Value.Key) {
+					case ConsoleKey.DownArrow:
+						pw--;
+						break;
+
+					case ConsoleKey.LeftArrow:
+						mw--;
+						break;
+
+					case ConsoleKey.UpArrow:
+						pw++;
+						break;
+
+					case ConsoleKey.RightArrow:
+						mw++;
+						break;
+
+					case ConsoleKey.Escape:
+						return;
+
+					case ConsoleKey.R:
+						ci.Mutate(act =>
+						{
+							var cs = act.GetCurrentSize();
+
+							act.Resize(cs.ResizeByFactor(new Size(w, h)));
+						});
+						pw = 1;
+
+						// mw = 0;
+						ci.MaxWidth = null;
+						continue;
+
+					case ConsoleKey.A:
+						ci.MaxWidth = mwO;
+						pw          = 0;
+						break;
+
+					case ConsoleKey.C:
+						AnsiConsole.Clear();
+						break;
+				}
+
+				ci.MaxWidth   = mw < 0 ? null : mw;
+				ci.PixelWidth = Math.Clamp(pw, 0, 10);
 			}
 		});
 
@@ -583,6 +563,36 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 
 	// [ContractAnnotation("=> halt")]
+	private static void HandleDownload(SearchResultItem sri)
+	{
+		var ok = sri.TryWriteOrGetFile();
+
+		if (ok) {
+			AC.AlternateScreen(() =>
+			{
+				var gr = new Grid();
+				gr.AddColumns(new GridColumn[] { new(), new() });
+				gr.AddRow(new IRenderable[] { new Text("File", Elements.Sty_Name), new Text(sri.LocalFilePath) });
+				AnsiConsole.Write(gr);
+
+				var prompt = new ConfirmationPrompt("Open?") { };
+				var choice = AnsiConsole.Prompt(prompt);
+
+				if (choice) {
+					var proc = Process.Start(new ProcessStartInfo()
+					{
+						FileName         = sri.LocalFilePath,
+						WorkingDirectory = String.Empty,
+						UseShellExecute  = true
+					});
+
+					proc?.WaitForExit();
+					proc?.Dispose();
+				}
+			});
+		}
+	}
+
 	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
 	{
 		// AnsiConsole.MarkupLine($"[red]Cancellation requested[/]");
@@ -618,6 +628,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		m_resultTables.Clear();
 		m_cts.Dispose();
+		m_ctsRun.Dispose();
 		m_previewCanvasCache.Dispose();
 		Client.Dispose();
 		Query.Dispose();
