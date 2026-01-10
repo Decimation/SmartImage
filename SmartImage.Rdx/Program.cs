@@ -29,6 +29,7 @@ using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Commands.Integration;
 using SmartImage.Rdx.Commands.Search;
 using SmartImage.Rdx.Commands.Server;
+#pragma warning disable CS8601 // Possible null reference assignment.
 
 namespace SmartImage.Rdx;
 
@@ -39,7 +40,7 @@ public static class Program
 
 	public static readonly Version Version = Assembly.GetName().Version;
 
-	public static readonly CancellationTokenSource Cts = new CancellationTokenSource();
+	public static readonly CancellationTokenSource Cts = new();
 
 	public static async Task<int> Main(string[] args)
 	{

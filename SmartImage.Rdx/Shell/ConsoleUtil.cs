@@ -9,7 +9,7 @@ using Spectre.Console.Rendering;
 
 // $User.Name $File.ProjectName $File.FileName
 // $File.CreatedYear-$File.CreatedMonth-$File.CreatedDay @ $File.CreatedHour:$File.CreatedMinute
-
+#nullable disable
 namespace SmartImage.Rdx.Shell;
 
 internal static class ConsoleUtil
@@ -119,7 +119,7 @@ internal static class ConsoleUtil
 			t.AddColumn(new TableColumn(row.ColumnName));
 		}
 
-		Func<object, IRenderable> selector = Elements.AsRenderableOrText;
+		Func<object, IRenderable> selector = Elements.AsRenderable;
 
 		foreach (DataRow row in dt.Rows) {
 			var obj = row.ItemArray

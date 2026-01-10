@@ -11,6 +11,10 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines;
 
+/// <summary>
+/// Represents a search engine whose results are parsed: <para />
+/// <typeparamref name="TSource"/> &#8594; <typeparamref name="TIntermediate"/> &#8594; <typeparamref name="TItem"/>
+/// </summary>
 public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSearchEngine
 	where TItem : SearchResultItem
 {

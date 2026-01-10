@@ -48,8 +48,8 @@ public enum UniImageType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquatable<UniImage>, ISimilarity, IHashable,
-                                 INotifyPropertyChanged
+public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISimilarity, IHashable,
+                                 IImage, INotifyPropertyChanged
 {
 
 	protected static readonly ILogger s_logger;
@@ -59,7 +59,7 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 		s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
 	}
 
-	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options()
+	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options
 		                                                                    { });
 
 	public UniImageType Type { get; }
@@ -75,7 +75,7 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 	public string LocalFilePath { get; protected set; }
 
 	[MNNW(true, nameof(LocalFilePath))]
-	public bool HasFilePath => LocalFilePath != null && File.Exists(LocalFilePath);
+	public bool HasLocalFilePath => File.Exists(LocalFilePath);
 
 	public bool IsUri => Type == UniImageType.Uri;
 
@@ -88,7 +88,7 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 	[MN]
 	public IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
 
-	[MNNW(true, nameof(ImageFormat))]
+	[MNNW(true, nameof(ImageFormat), nameof(Image))]
 	public bool HasImageFormat => ImageFormat != null;
 
 	[MN]
@@ -105,7 +105,7 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 		}
 	}
 
-	[MNNW(true, nameof(Image))]
+	[MNNW(true, nameof(Image), nameof(ImageFormat))]
 	public bool HasImage => Image != null;
 
 #endregion
@@ -128,11 +128,21 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 
 #endregion
 
+	#region 
+
 	public double? Similarity
 	{
 		get;
 		internal set => SetField(ref field, value);
 	}
+
+	public virtual bool CalculateSimilarity(IHashable hashable)
+	{
+		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
+		return Similarity.HasValue;
+	}
+
+	#endregion
 
 #region
 
@@ -148,7 +158,7 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 		}
 	}
 
-	[MNNW(true, nameof(Bytes))]
+	[MNNW(true, nameof(Bytes), nameof(Length))]
 	public bool HasBytes => Bytes != null;
 
 	[MURV]
@@ -174,12 +184,12 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 
 #region
 
-	protected abstract Task<bool> AllocAsync(CancellationToken ct = default);
+	protected abstract ValueTask<bool> AllocAsync(CancellationToken ct = default);
 
 	/// <summary>
 	/// Allocates <see cref="Image"/>
 	/// </summary>
-	public virtual async Task<bool> AllocImageAsync(CancellationToken ct = default)
+	public virtual async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
 
@@ -201,17 +211,10 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 
 	}
 
-	public virtual bool CalculateSimilarity(IHashable hashable)
-	{
-		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
-		return Similarity.HasValue;
-	}
-
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
-	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true,
-	                                                  bool autoDisposeOnError = true,
+	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true, bool autoDisposeOnError = true,
 	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = Null;
@@ -221,8 +224,8 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 			if (UniImageFile.IsFileType(o, out var fi)) {
 				ui = new UniImageFile(fi);
 			}
-			else if (UniImageUri.IsUriType(o, out var url2)) {
-				ui = new UniImageUri(url2);
+			else if (UniImageUrl.IsUrlType(o, out var url2)) {
+				ui = new UniImageUrl(url2);
 			}
 			else {
 				goto ret;
@@ -256,10 +259,10 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 		return ui;
 	}
 
-	public static bool IsValidSourceType(object str)
+	public static bool IsValidSourceType(object o)
 	{
-		bool isFile = UniImageFile.IsFileType(str, out var f);
-		bool isUri  = UniImageUri.IsUriType(str, out var url);
+		bool isFile = UniImageFile.IsFileType(o, out var f);
+		bool isUri  = UniImageUrl.IsUrlType(o, out var url);
 		bool ok     = isFile || isUri;
 
 		return ok;
@@ -267,23 +270,25 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 
 #endregion
 
+	#region New region
+
 	public bool TryWriteOrGetFile(string fn = null)
 	{
-		if (!HasFilePath) {
+		if (!HasLocalFilePath) {
 			LocalFilePath = WriteImageToFile(fn);
 		}
 
-		return HasFilePath;
+		return HasLocalFilePath;
 	}
 
 	public bool TryDeleteFile()
 	{
-		if (HasFilePath) {
+		if (HasLocalFilePath) {
 			File.Delete(LocalFilePath);
 			LocalFilePath = null;
 		}
 
-		return !HasFilePath;
+		return !HasLocalFilePath;
 	}
 
 	[MURV]
@@ -295,7 +300,7 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 
 		fn ??= this switch
 		{
-			UniImageUri uri   => uri.Url.GetFileName(),
+			UniImageUrl uri   => uri.Url.GetFileName(),
 			UniImageFile file => file.LocalFileInfo.Name,
 			_                 => Path.GetRandomFileName()
 		};
@@ -309,17 +314,13 @@ public abstract class UniImage : IDisposable, ILength, IAsyncDisposable, IEquata
 		return path;
 	}
 
+	#endregion
+
 
 	public virtual void Dispose()
 	{
 		GC.SuppressFinalize(this);
 		Image?.Dispose();
-	}
-
-	public virtual ValueTask DisposeAsync()
-	{
-		Dispose();
-		return ValueTask.CompletedTask;
 	}
 
 	public override string ToString()

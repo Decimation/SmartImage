@@ -15,13 +15,12 @@ using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
 
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051
 namespace SmartImage.Lib.Engines.Search;
 
-public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, IEndpoint, ICookiesReceiver
+public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, ICookiesReceiver
 {
 
 	// TODO: WIP

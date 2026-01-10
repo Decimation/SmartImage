@@ -140,7 +140,7 @@ public static partial class ImageScanner
 	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
 	/// points to binary image data, it is returned.
 	/// </summary>
-	public static async Task<bool> ScanImagesAsync(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
+	public static async Task<bool> ScanForImagesAsync(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
 	{
 		string sz = null;
 
@@ -160,6 +160,7 @@ public static partial class ImageScanner
 		}
 		else {
 			// uf.Stream.TrySeek();
+			// ReSharper disable once MethodHasAsyncOverload
 			uf?.Dispose();
 
 			req = Client.Request(url);
@@ -179,7 +180,7 @@ public static partial class ImageScanner
 
 		doc = await dp.ParseDocumentAsync(sz);
 
-		var urls = ParseImageUrls(sz, url);
+		var urls = ParseImageUrlsByRegex(sz, url);
 
 
 		await Task.WhenAll(urls.Select(async u => await Body(u, ct)));
@@ -200,7 +201,7 @@ public static partial class ImageScanner
 			}
 
 			if (uni != UniImage.Null && uni.HasImageFormat) {
-				s_logger.LogTrace("{Name} {Uni}", nameof(ScanImagesAsync), uni);
+				s_logger.LogTrace("{Name} {Uni}", nameof(ScanForImagesAsync), uni);
 
 				// await cw.WriteAsync(uni, token);
 				await cw.WaitToWriteAsync(token);
@@ -213,7 +214,7 @@ public static partial class ImageScanner
 		}
 	}
 
-	public static IEnumerable<string> ParseImageUrls(string html, Url url, bool heuristicFilter = true)
+	public static IEnumerable<string> ParseImageUrlsByRegex(string html, Url url, bool heuristicFilter = true)
 	{
 		var imgUrlsSrc = r_imgSrc().Matches(html).Select(static m => m.Groups["URL"].Value);
 		var imgUrlsExt = r_imgExt().Matches(html).Select(static m => m.Value);
@@ -259,7 +260,7 @@ public static partial class ImageScanner
 		return abs;
 	}
 
-	public static IEnumerable<string> ParseImageUrls(IHtmlDocument doc)
+	public static IEnumerable<string> ParseImageUrlsByDoc(IHtmlDocument doc)
 	{
 		// var a = doc.QueryAllAttribute("a", "href");
 		// var b = doc.QueryAllAttribute("img", "src");

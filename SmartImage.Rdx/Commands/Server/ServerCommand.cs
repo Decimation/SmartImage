@@ -80,7 +80,6 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 			["search"] = HandleRequestAsync2
 		};
 
-		m_scs = null;
 
 		Shared = Elements.GetEngineMapTableBase();
 
@@ -243,7 +242,7 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 	{
 		InitConfig(settings);
 
-		var uriPrefix = $"http://*:{m_scs.Port}/";
+		var uriPrefix = $"http://*:{CommandSettings.Port}/";
 		s_logger.LogTrace("Listening on {URI}", uriPrefix);
 
 		Listener.Prefixes.Add(uriPrefix);

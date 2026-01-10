@@ -21,7 +21,7 @@ public sealed class PomfEngine : BaseUploadEngine
 
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
-		using var response = await Client.Request(Endpoint)
+		using var response = await Client.Request(Url)
 			                     .WithTimeout(Timeout)
 			                     .OnError(r =>
 			                     {

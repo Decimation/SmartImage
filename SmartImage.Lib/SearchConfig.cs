@@ -29,6 +29,10 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 #region
 
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchConfig));
+
+	public static readonly SearchConfig Default = new();
+
 #region Defaults
 
 	/// <summary>
@@ -209,33 +213,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set => Set(value);
 	}
 
-	internal async ValueTask<bool> TryLoadFlareSolverrAsync(CancellationToken token)
-	{
-		bool ok = false;
-
-		if (FlareSolverr && !FlareSolverrClient.Value.IsInitialized) {
-
-			ok = await FlareSolverrClient.Value.ApplyConfigAsync(this, token);
-
-			if (!ok) {
-				Debugger.Break();
-			}
-			else {
-				// Ensure FlareSolverr
-
-				try {
-					var idx = await FlareSolverrClient.Value.Clearance.Solverr.GetIndexAsync();
-				}
-				catch (Exception e) {
-					s_logger.LogError(e, "FlareSolverr error");
-					FlareSolverr = ok;
-					FlareSolverrClient.Value.Dispose();
-				}
-			}
-		}
-
-		return ok;
-	}
 
 #endregion
 
@@ -299,9 +276,9 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	public static readonly Configuration Configuration =
 		ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
 
-	private bool Set<T>(T s = default, [CMN] string name = null)
+	private bool Set<T>(T t = default, [CMN] string name = null)
 	{
-		bool b = Configuration.AddUpdateSetting(name, s.ToString());
+		bool b = Configuration.AddUpdateSetting(name, t.ToString());
 		OnPropertyChanged(name);
 		return b;
 	}
@@ -348,11 +325,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}
 	*/
-
-
-	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchConfig));
-
-	public static readonly SearchConfig Default = new();
 
 
 	public SearchConfig()
@@ -419,34 +391,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		}
 	}*/
 
-	public async ValueTask<bool> ApplyEnginesAsync(IEnumerable<BaseSearchEngine> engines, CancellationToken token = default)
-	{
-		s_logger.LogTrace("Loading engines");
-
-		var loadFlareSolverr = TryLoadFlareSolverrAsync(token);
-		await loadFlareSolverr;
-
-		foreach (var engine in engines) {
-
-			if (engine is ISearchConfigReceiver rcvr) {
-				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
-				await rcvr.ApplyConfigAsync(this, token);
-
-			}
-
-			if (engine is ICookiesReceiver ck) {
-				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
-				await ck.ApplyCookiesAsync(GetCookiesSource(), token);
-			}
-		}
-
-		// CookiesManager.Instance.Dispose();
-
-		s_logger.LogDebug("Loaded engines");
-
-		// ConfigApplied = true;
-
-		return true;
-	}
+	
 
 }

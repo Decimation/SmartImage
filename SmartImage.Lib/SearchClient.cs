@@ -1,14 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Concurrent;
-using System.Collections.Frozen;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Net;
-using System.Net.NetworkInformation;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-using System.Threading.Channels;
+﻿using Argon;
 using Flurl.Http;
 using Flurl.Http.Configuration;
 using Flurl.Http.Testing;
@@ -21,30 +11,42 @@ using Microsoft;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Http.Logging;
 using Microsoft.Extensions.Logging;
+using Novus;
 using Novus.FileTypes;
 using Novus.OS;
 using Novus.Win32;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Runtime.Intrinsics.X86;
-using System.Threading;
-using Novus;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+using System.Collections;
+using System.Collections.Concurrent;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
+using System.Diagnostics;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Intrinsics.X86;
+using System.Text.Json;
+using System.Threading;
+using System.Threading.Channels;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;
 
-public sealed class SearchClient : IDisposable
+public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 {
 
-	public SearchConfig Config { get; init; }
+	public SearchConfig Config { get; private set;}
 
 	public bool IsComplete { get; private set; }
 
-	public IEnumerable<BaseSearchEngine> Engines { get; }
+	public IEnumerable<BaseSearchEngine> Engines { get; private set;}
 
 	public bool ConfigApplied { get; private set; }
 
@@ -58,9 +60,6 @@ public sealed class SearchClient : IDisposable
 		ConfigApplied = false;
 		IsRunning     = false;
 		Engines       = Config.GetSelectedEngines();
-
-		// GetSelectedEngines();
-
 	}
 
 	static SearchClient() { }
@@ -119,7 +118,7 @@ public sealed class SearchClient : IDisposable
 		IsRunning = true;
 
 		if (!ConfigApplied) {
-			await Config.ApplyEnginesAsync(Engines, token);
+			await ApplyConfigAsync(Config, token);
 			ConfigApplied = true;
 
 		}
@@ -130,6 +129,37 @@ public sealed class SearchClient : IDisposable
 		s_logger.LogTrace("Results: {Res}", results.Length);
 
 		CompleteSearchAsync();
+
+		return true;
+	}
+
+	/// <inheritdoc />
+	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		Config = cfg;
+		Engines = Config.GetSelectedEngines();
+
+		s_logger.LogTrace("Loading engines");
+
+		foreach (var engine in Engines) {
+
+			if (engine is ISearchConfigReceiver rcvr) {
+				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
+				await rcvr.ApplyConfigAsync(Config, ct);
+
+			}
+
+			if (engine is ICookiesReceiver ck) {
+				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
+				await ck.ApplyCookiesAsync(Config.GetCookiesSource(), ct);
+			}
+		}
+
+		// CookiesManager.Instance.Dispose();
+
+		s_logger.LogDebug("Loaded engines");
+
+		// ConfigApplied = true;
 
 		return true;
 	}

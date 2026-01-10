@@ -10,7 +10,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public abstract class BaseUploadEngine : IDisposable, IEndpoint
+public abstract class BaseUploadEngine : IDisposable, IUrl
 {
 
 	/// <summary>
@@ -20,13 +20,13 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 
 	public virtual string Name => Option.ToString();
 
-	public Url Endpoint { get; }
+	public Url Url { get; }
 
 	public abstract UploadEngineOptions Option { get; }
 
 	protected BaseUploadEngine(Url s)
 	{
-		Endpoint = s;
+		Url = s;
 		Timeout  = TimeSpan.FromSeconds(15);
 	}
 
@@ -78,7 +78,7 @@ public abstract class BaseUploadEngine : IDisposable, IEndpoint
 	{
 		Verify(query);
 
-		if (query is UniImageUri { } uri) {
+		if (query is UniImageUrl { } uri) {
 			Logger.LogTrace("Not uploading {Uni} {Val}", query, query.Value);
 			var ur = new UploadResult(uri.Url, uri.Length) { };
 			return Task.FromResult(ur);

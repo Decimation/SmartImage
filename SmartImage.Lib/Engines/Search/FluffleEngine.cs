@@ -14,12 +14,11 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public class FluffleEngine : BaseSearchEngine, IEndpoint, IDisposable
+public class FluffleEngine : BaseSearchEngine, IDisposable
 {
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
 

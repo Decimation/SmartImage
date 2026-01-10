@@ -5,7 +5,11 @@ using System.Diagnostics;
 using System.Reflection;
 using CliWrap;
 using FlareSolverrSharp;
+using FlareSolverrSharp.Solvers;
+using FlareSolverrSharp.Types;
+using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Clients;
 
@@ -25,6 +29,8 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 
 	public HttpClient Client { get; private set; }
 
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger("FlareSolverr");
+
 	public bool Configure(string api)
 	{
 		Dispose();
@@ -36,27 +42,26 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 
 		Client = new HttpClient(Clearance);
 
-		Trace.WriteLine($"{nameof(FlareSolverrClient)}: init {api}");
+		s_logger.LogTrace("Init with {Api}", api);
 
 		return HasClient;
 	}
 
-	private FlareSolverrClient() { }
+	public FlareSolverrClient([CBN] string api = SearchConfig.FLARE_SOLVERR_API_URL_DEFAULT)
+	{
+		Configure(api);
+	}
 
 	static FlareSolverrClient() { }
 
-	public static FlareSolverrClient Value { get; private set; } = new();
 
 	public void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(FlareSolverrClient)}");
 		Clearance?.Dispose();
 		Client?.Dispose();
 		Clearance = null;
 		Client    = null;
 	}
-
-	#region Implementation of ISearchConfigReceiver
 
 	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
@@ -67,6 +72,6 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 		return ValueTask.FromResult(ok);
 	}
 
-	#endregion
+	
 
 }

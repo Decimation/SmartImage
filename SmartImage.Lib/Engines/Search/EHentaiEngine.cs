@@ -21,7 +21,7 @@ namespace SmartImage.Lib.Engines.Search;
 ///     <see cref="SearchEngineOptions.EHentai" />
 /// </summary>
 /// <remarks>Handles both ExHentai and E-Hentai</remarks>
-public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver,ISearchConfigReceiver
+public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver, ISearchConfigReceiver
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
@@ -92,7 +92,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		string fileName;
 		string filePath = null;
 
-		if (query.Source.HasFilePath) {
+		if (query.Source.HasLocalFilePath) {
 			filePath = query.Source.LocalFilePath;
 			fileName = Path.GetFileName(filePath);
 
@@ -182,7 +182,6 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 		if (array.Count != 0) {
 			array = array[1..];
-
 		}
 
 		return ValueTask.FromResult((IList<INode>) array);
@@ -190,14 +189,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 
 	protected override ValueTask<IEnumerable<EhResult>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
-		var buf = new List<EhResult>(source.Count);
-
-		foreach (INode node in source) {
-			var eh = EhResult.ParseSource(node, r);
-			buf.Add(eh);
-		}
-
-		return ValueTask.FromResult<IEnumerable<EhResult>>(buf);
+		return ValueTask.FromResult(source.Select(node => EhResult.ParseSource(node, r)));
 	}
 
 	/*
@@ -271,8 +263,7 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 			{ new StringContent("Login!"), "ipb_login_submit" }
 		};
 
-		var response = await EHentaiIndex
-			               .SetQueryParams(new
+		var response = await EHentaiIndex.SetQueryParams(new
 			               {
 				               act  = "Login",
 				               CODE = 01

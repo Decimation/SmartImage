@@ -17,7 +17,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Model;
 
 // ReSharper disable StringLiteralTypo
 
@@ -25,7 +24,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 #nullable disable
 
-public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<IElement>>>, IEndpoint, IDisposable
+public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<IElement>>>, IDisposable
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;

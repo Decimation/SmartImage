@@ -20,16 +20,7 @@ public class UniImageFile : UniImage
 
 	public FileInfo LocalFileInfo { get; }
 
-	public override string WriteImageToFile(string fn = null)
-	{
-		if (!HasFilePath) {
-			throw new FileNotFoundException(Value);
-		}
-
-		return Value;
-	}
-
-	protected override async Task<bool> AllocAsync(CancellationToken ct = default)
+	protected override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
 	{
 		if (HasBytes) {
 			goto ret;
@@ -39,6 +30,15 @@ public class UniImageFile : UniImage
 
 	ret:
 		return HasBytes;
+	}
+
+	public override string WriteImageToFile(string fn = null)
+	{
+		if (!HasLocalFilePath) {
+			throw new FileNotFoundException(Value);
+		}
+
+		return Value;
 	}
 
 	public static bool IsFileType(object o, out FileInfo f)

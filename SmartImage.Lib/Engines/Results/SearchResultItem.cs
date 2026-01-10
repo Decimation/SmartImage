@@ -17,7 +17,9 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
+// todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
+
+public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
 {
 
 	/// <summary>
@@ -204,7 +206,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 
 #region
 
-	public override async Task<bool> AllocImageAsync(CancellationToken ct = default)
+	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (Url == null) {
 			return false;
@@ -281,7 +283,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		var             str    = await sr.ReadToEndAsync(ct);
 
 		var       hp      = new HtmlParser();
-		var       urls    = ImageScanner.ParseImageUrls(str, Url);
+		var       urls    = ImageScanner.ParseImageUrlsByRegex(str, Url);
 		using var doc     = await hp.ParseDocumentAsync(str);
 		var       sriNews = new ConcurrentBag<SearchResultItem>();
 
@@ -341,7 +343,7 @@ public class SearchResultItem : UniImageUri, IComparable<SearchResultItem>, ICom
 		var             str    = await sr.ReadToEndAsync(ct);
 
 		var       hp      = new HtmlParser();
-		var       urls    = ImageScanner.ParseImageUrls(str, Url);
+		var       urls    = ImageScanner.ParseImageUrlsByRegex(str, Url);
 		using var doc     = await hp.ParseDocumentAsync(str);
 		var       sriNews = new ConcurrentBag<SearchResultItem>();
 

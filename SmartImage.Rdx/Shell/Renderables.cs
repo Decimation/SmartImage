@@ -22,7 +22,7 @@ internal static class Renderables
 			return [new Text($"{result.Engine.Name}", style), new Text($"{result.Results.Count}")];
 		}
 
-		public IEnumerable<IRenderable[]> CreateResultRows()
+		public IEnumerable<IRenderable[]> CreateFullResultRows()
 		{
 			Style style = result.Engine.EngineOption.GetColor();
 
@@ -61,7 +61,7 @@ internal static class Renderables
 
 			var name   = new Text($"#{i}" + (sri.IsRaw ? " (Raw)" : null), style);
 			var sim    = sri.GetSimilarity();
-			var artist = String.IsNullOrWhiteSpace(sri.Artist) ? Elements.Txt_NA : new Text($"{sri.Artist}");
+			var artist = Elements.AsRenderable(sri.Artist);
 			var wh     = sri.GetResolution();
 
 			return [name, url, sim, artist, wh];
@@ -69,7 +69,7 @@ internal static class Renderables
 
 		public IRenderable[] GetItemRow(int idx, int subIdx)
 		{
-			// var url = ui is UniImageUri uiu ? uiu.Url.ToString() : String.Empty;
+			// var url = ui is UniImageUrl uiu ? uiu.Url.ToString() : String.Empty;
 
 			var result = sri.Root;
 

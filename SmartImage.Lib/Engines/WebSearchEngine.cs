@@ -9,8 +9,8 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines;
 
-public abstract class WebSearchEngine<TResultItem, TIntermediate> : ParsedSearchEngine<TResultItem, TIntermediate, IDocument>
-	where TResultItem : SearchResultItem
+public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine<TItem, TIntermediate, IDocument>
+	where TItem : SearchResultItem
 {
 
 	protected WebSearchEngine(Url baseUrl) : base(baseUrl) { }

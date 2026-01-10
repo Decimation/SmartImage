@@ -16,7 +16,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 
 	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
 	{
-		using var response = await Client.Request(Endpoint)
+		using var response = await Client.Request(Url)
 			               .WithSettings(r => { r.Timeout = Timeout; })
 			               .WithHeaders(new
 			               {

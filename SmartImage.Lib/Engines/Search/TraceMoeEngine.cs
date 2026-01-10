@@ -13,7 +13,6 @@ using Kantan.Text;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Model;
 
 // ReSharper disable InconsistentNaming
 #pragma warning disable IDE1006, IDE0051
@@ -23,7 +22,7 @@ namespace SmartImage.Lib.Engines.Search;
 /// 
 /// </summary>
 /// <a href="https://soruly.github.io/trace.moe/#/">Documentation</a>
-public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
+public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 {
 
 	public TraceMoeEngine() : base(URL_QUERY)
@@ -69,8 +68,6 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IEndpoint, IDisposable
 			sr.Results.EnsureCapacity(sr.Results.Count + tm.Result.Count);
 
 			foreach (var doc in tm.Result) {
-				var anilistName = await AnilistClient.Instance.GetTitleAsync(doc.Anilist);
-
 				var tr = await doc.ToItem(sr).ConfigureAwait(false);
 				sr.Results.Add(tr);
 			}

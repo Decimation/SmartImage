@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Data.SqlTypes;
 using Kantan.Text;
 using Novus.OS;
 using Novus.Streams;
@@ -61,6 +62,10 @@ internal static class Elements
 
 	internal static readonly Text Txt_NA = new(STR_NA);
 
+	internal static readonly Text Txt_Rad = new(Strings.Constants.RAD_SIGN.ToString());
+
+	internal static readonly Text Txt_Mul = new(Strings.Constants.MUL_SIGN.ToString());
+
 	internal const string STR_NA = "-";
 
 	internal const double COMPLETE = 100.0d;
@@ -101,8 +106,8 @@ internal static class Elements
 
 
 	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
-	                                             [CBN] Func<TKey, Text> keyFunc = null,
-	                                             [CBN] Func<TValue, Text> valFunc = null)
+	                                             [CBN] Func<TKey, IRenderable> keyFunc = null,
+	                                             [CBN] Func<TValue, IRenderable> valFunc = null)
 	{
 		var grd = new Grid();
 		grd.AddColumns(2);
@@ -115,13 +120,7 @@ internal static class Elements
 			return new Text(s, Sty_Grid1);
 		};
 
-		valFunc ??= static v =>
-		{
-			//
-			var s = FormatObject(v);
-			ArgumentNullException.ThrowIfNull(s);
-			return new Text(s);
-		};
+		valFunc ??= AsRenderable;
 
 		foreach (var (k, v) in dictionary) {
 			grd.AddRow(keyFunc(k), valFunc(v));
@@ -133,32 +132,30 @@ internal static class Elements
 
 #region
 
-	public static IRenderable AsRenderableOrText<T>(T val)
+	public static IRenderable Format<T>(T? val) where T : struct
 	{
-		if (val is IRenderable r) {
-			return r;
-		}
-
-		var s    = val?.ToString();
-		var text = s == null ? Txt_Empty : new Text(s);
-		return text;
+		return val.HasValue ? AsRenderable(val.Value) : Txt_NA;
 	}
 
-	private static string FormatObject(object o)
+	public static IRenderable AsRenderable<T>(T val)
 	{
-		return o switch
-
+		IRenderable renderable = val switch
 		{
-			null   => STR_NA,
-			bool b => ToCheck(b),
-			_      => o.ToString(),
+			IRenderable r => r,
+
+			string sz when String.IsNullOrWhiteSpace(sz) => Txt_NA,
+
+			string sz => new Text(Markup.Escape(sz)),
+
+			bool b => b.ToPrettyText(),
+
+			null => Txt_NA,
+			_    => new Text(val?.ToString())
 		};
+		return renderable;
 	}
 
-	public static string ToCheck(bool b)
-	{
-		return (b ? Strings.Constants.RAD_SIGN : Strings.Constants.MUL_SIGN).ToString();
-	}
+	public static Text ToPrettyText(this bool b) => b ? Txt_Rad : Txt_Mul;
 
 #endregion
 
@@ -181,7 +178,7 @@ internal static class Elements
 		};
 
 		foreach (var (s, o) in kv) {
-			dt.AddRow(new Text(s, Sty_Grid1), new Text(Markup.Escape(FormatObject(o))));
+			dt.AddRow(new Text(s, Sty_Grid1), AsRenderable(o));
 		}
 
 		// Render the layout
@@ -273,7 +270,7 @@ internal static class Elements
 
 #endregion
 
-	#region Tables
+#region Tables
 
 	public static SpcTable CreateMainTable()
 	{
@@ -321,6 +318,6 @@ internal static class Elements
 		return tb;
 	}
 
-	#endregion
+#endregion
 
 }

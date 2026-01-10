@@ -16,6 +16,7 @@ using SixLabors.ImageSharp.Formats.Bmp;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 
 // ReSharper disable CognitiveComplexity
 
@@ -26,7 +27,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 // todo
 
-public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, ICookiesReceiver
+public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, ICookiesReceiver, ISearchConfigReceiver
 {
 
 	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
@@ -43,34 +44,15 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 	public const string MAIN_URL = "https://ascii2d.net/search/url/";
 
+	private FlareSolverrClient m_fsClient;
+
 	public Ascii2DEngine() : base(MAIN_URL)
 	{
-		Timeout = TimeSpan.FromSeconds(30);
+		Timeout   = TimeSpan.FromSeconds(30);
 		MaxLength = 10_000_000;
-		Jar     = new CookieJar();
+		Jar       = new CookieJar();
 	}
 
-	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct)
-	{
-		if ( /*FlareSolverrClient.Value.IsInitialized*/ source == null) {
-			return false;
-		}
-
-		var cookies = await source.GetOrLoadCookiesAsync(ct).ConfigureAwait(false);
-
-		foreach (var bck in cookies) {
-			var ck = bck.AsCookie();
-
-			if (ck.Domain.Contains("ascii2d")) {
-				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, BaseUrl));
-			}
-		}
-
-
-		return true;
-	}
-
-	
 
 	public override void Dispose() { }
 
@@ -135,18 +117,10 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 	protected override ValueTask<IEnumerable<Ascii2DItem>> ParseItemsAsync(IList<INode> source, SearchResult r)
 	{
-		var buf = new List<Ascii2DItem>(source.Count);
-
-		foreach (var node in source) {
-			var item = Ascii2DItem.ParseSource(node, r);
-			buf.Add(item);
-		}
-
-		return ValueTask.FromResult<IEnumerable<Ascii2DItem>>(buf);
+		return ValueTask.FromResult(source.Select(node => Ascii2DItem.ParseSource(node, r)));
 	}
 
-	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query,
-	                                                        CancellationToken token = default)
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 		var parser = new HtmlParser();
 
@@ -169,47 +143,28 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 			}*/
 
-			if (FlareSolverrClient.Value.IsInitialized) {
+			if (m_fsClient.IsInitialized) {
 
 				var msg = new HttpRequestMessage(HttpMethod.Get, origin);
 
-				var fsr     = await FlareSolverrClient.Value.Clearance.Solverr.SolveAsync(msg).ConfigureAwait(false);
+				var fsr     = await m_fsClient.Clearance.Solverr.SolveAsync(msg).ConfigureAwait(false);
 				var cookies = fsr.Solution.Cookies;
 				var newUrl  = fsr.Solution.Url;
 
+				Logger.LogTrace("{Name} using {Fs}: {CookieCnt} {NewUrl}", Name, fsr, cookies.Length, newUrl);
 
 				foreach (FlareSolverrCookie cookie in cookies) {
 					Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url));
 				}
-
-				using var res = await Client.Request(newUrl)
-					                .WithSettings(static x => { x.HttpVersion = "2.0"; })
-					                .AllowAnyHttpStatus()
-					                .WithCookies(Jar)
-					                .WithTimeout(Timeout)
-					                /*.OnError(s =>
-							                {
-								                Debug.WriteLine($"{s.Response}");
-								                s.ExceptionHandled = true;
-
-							                })*/
-					                .GetAsync(cancellationToken: token).ConfigureAwait(false);
-
-
-				// var res1 = await FlareSolverrClient.Client.SendAsync(msg, token);
-				// str = await res1.Content.ReadAsStringAsync(token);
-				str = await res.GetStringAsync().ConfigureAwait(false);
-
 			}
-			else {
-				using var res = await GetResponseByUrlAsync(origin, token).ConfigureAwait(false);
 
-				if (res.StatusCode == (int) HttpStatusCode.BadGateway) {
-					return null;
-				}
+			using var res = await GetResponseByUrlAsync(origin, token).ConfigureAwait(false);
 
-				str = await res.GetStringAsync().ConfigureAwait(false);
+			if (res.StatusCode == (int) HttpStatusCode.BadGateway) {
+				return null;
 			}
+
+			str = await res.GetStringAsync().ConfigureAwait(false);
 
 			var document = await parser.ParseDocumentAsync(str, token).ConfigureAwait(false);
 
@@ -234,10 +189,36 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 	{
 		var res = await Client.Request(origin)
 			          .AllowAnyHttpStatus()
-			          .WithCookies(out var cj)
+			          .WithCookies(Jar)
 			          .WithTimeout(Timeout)
-			          .GetAsync(cancellationToken: token).ConfigureAwait(false);
+			          .GetAsync(cancellationToken: token)
+			          .ConfigureAwait(false);
 		return res;
+	}
+
+	public async ValueTask<bool> ApplyCookiesAsync(ICookiesSource source, CancellationToken ct)
+	{
+		var cookies = await source.GetOrLoadCookiesAsync(ct).ConfigureAwait(false);
+
+		foreach (var bck in cookies) {
+			var ck = bck.AsCookie();
+
+			if (ck.Domain.Contains("ascii2d")) {
+				Jar.AddOrReplace(new FlurlCookie(ck.Name, ck.Value, BaseUrl));
+			}
+		}
+
+
+		return true;
+	}
+
+	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	{
+		if (cfg.FlareSolverr) {
+			m_fsClient = new FlareSolverrClient(cfg.FlareSolverrApiUrl);
+		}
+
+		return ValueTask.FromResult(m_fsClient is not null);
 	}
 
 }
@@ -279,14 +260,14 @@ public class Ascii2DItem : SearchResultItem, IParseableSource<INode, Ascii2DItem
 		sri.Format = data[1];
 
 		string size   = data[2];
-		string title1 = (n as IHtmlElement).FirstChild.TryGetAttribute("Title");
+		string title1 = (n as IHtmlElement)?.FirstChild.TryGetAttribute("Title");
 
 		if (info.Length >= 3) {
 			var node2 = info[2];
 			var desc  = info.Last().FirstChild;
 			var ns    = desc.NextSibling;
 
-			if (node2.ChildNodes.Length >= 2 && node2.ChildNodes[1].ChildNodes.Length >= 2) {
+			if (node2.ChildNodes is [_, { ChildNodes.Length: >= 2 }, ..]) {
 				var node2Sub = node2.ChildNodes[1];
 
 				if (node2Sub.ChildNodes.Length >= 8) {

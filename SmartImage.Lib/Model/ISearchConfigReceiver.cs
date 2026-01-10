@@ -5,5 +5,7 @@ namespace SmartImage.Lib.Model;
 
 public interface ISearchConfigReceiver
 {
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default);
+
+	public ValueTask<bool> ApplyConfigAsync([NN] SearchConfig cfg, CancellationToken ct = default);
+
 }

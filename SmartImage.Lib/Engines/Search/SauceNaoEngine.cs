@@ -33,7 +33,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<INode>>, IEndpoint, IDisposable, ISearchConfigReceiver
+public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<INode>>, IDisposable, ISearchConfigReceiver
 {
 
 	private const string URL_BASE = "https://saucenao.com/";

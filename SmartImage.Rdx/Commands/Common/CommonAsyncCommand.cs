@@ -13,22 +13,22 @@ public abstract partial class CommonAsyncCommand<TCommandSettings> : AsyncComman
 
 	public SearchConfig Config { get; protected set; }
 
-	protected TCommandSettings m_scs;
+	protected TCommandSettings CommandSettings { get; private set; }
 
 	/// <inheritdoc />
 	public abstract void Dispose();
 
 	protected virtual void InitConfig(TCommandSettings scs)
 	{
-		m_scs = scs;
+		CommandSettings = scs;
 
-		Config.SearchEngines   = m_scs.SearchEngines;
-		Config.PriorityEngines = m_scs.PriorityEngines;
+		Config.SearchEngines   = CommandSettings.SearchEngines;
+		Config.PriorityEngines = CommandSettings.PriorityEngines;
 
-		Config.ReadCookies = m_scs.ReadCookies;
+		Config.ReadCookies = CommandSettings.ReadCookies;
 
-		Config.FlareSolverr       = m_scs.FlareSolverr;
-		Config.FlareSolverrApiUrl = m_scs.FlareSolverrApiUrl;
+		Config.FlareSolverr       = CommandSettings.FlareSolverr;
+		Config.FlareSolverrApiUrl = CommandSettings.FlareSolverrApiUrl;
 
 	}
 }

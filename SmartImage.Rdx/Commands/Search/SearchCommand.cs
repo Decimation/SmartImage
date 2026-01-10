@@ -37,6 +37,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;
 
+// TODO: Create separate SearchCommands for interactive/non-interactive
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_LIB_UNITTEST)]
 
@@ -51,6 +52,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	public SearchQuery Query { get; private set; }
 
+
 	private readonly CancellationTokenSource m_cts;
 
 	private readonly CancellationTokenSource m_ctsRun;
@@ -63,25 +65,22 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private readonly MemoryCache m_previewCanvasCache;
 
-	private readonly SpcTable m_mainTable;
+	private SpcTable m_mainTable;
 
 	private Layout m_layout;
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
 
-	static SearchCommand()
-	{ }
+	static SearchCommand() { }
 
 	public SearchCommand()
 	{
-		m_cts       = new CancellationTokenSource();
-		m_ctsRun    = new CancellationTokenSource();
-		m_scs       = null;
-		m_mainTable = Elements.CreateMainTable();
+		m_cts    = new CancellationTokenSource();
+		m_ctsRun = new CancellationTokenSource();
 
 		// m_results      = new();
-		m_resultTables = new ConcurrentDictionary<SearchResult, SpcTable>();
-		m_previewCanvasCache    = new MemoryCache("Buf");
+		m_resultTables       = new ConcurrentDictionary<SearchResult, SpcTable>();
+		m_previewCanvasCache = new MemoryCache("Buf");
 
 		Query = SearchQuery.Null;
 	}
@@ -93,7 +92,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		var p = ctx.AddTask("Creating query");
 		p.IsIndeterminate = true;
 
-		Query = await SearchQuery.TryCreateAsync(m_scs.Query);
+		Query = await SearchQuery.TryCreateAsync(CommandSettings.Query);
 
 		if (Query == SearchQuery.Null) {
 			throw new SmartImageException($"Could not create query {Query}");
@@ -122,6 +121,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		base.InitConfig(scs);
 
 		Client = new SearchClient(Config);
+
+		m_mainTable = CommandSettings.Interactive ? Elements.CreateMainTable() : Elements.CreateFullResultTable();
+
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
@@ -158,9 +160,13 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		// AnsiConsole.Write(m_layout);
 
-
 		try {
-			Task main = AnsiConsole.Live(m_layout)
+
+			var liveDisplay = AnsiConsole.Live(CommandSettings.Interactive
+				                                   ? m_layout
+				                                   : m_mainTable);
+
+			Task main = liveDisplay
 				.StartAsync(c => RunSearchLiveAsync(c, m_ctsRun.Token));
 
 			await main;
@@ -169,12 +175,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			s_logger.LogError(e, "Canceled");
 		}
 
-		if (m_scs.HasCommand) {
+		if (CommandSettings.HasCommand) {
 			await RunCompletionCommandAsync(m_cts.Token);
 		}
 
-		if (m_scs.HasOutputFile) {
-			switch (m_scs.OutputFileFormat) {
+		if (CommandSettings.HasOutputFile) {
+			switch (CommandSettings.OutputFileFormat) {
 
 				case OutputFileFormat.None:
 					break;
@@ -189,11 +195,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		}
 
-		if (m_scs.Interactive) {
+		if (CommandSettings.Interactive) {
 			await RunInteractiveAsync(m_cts.Token);
 		}
 
-		if (m_scs.KeepOpen) {
+		if (CommandSettings.KeepOpen) {
 			await AnsiConsole.ConfirmAsync("Exit", cancellationToken: m_cts.Token);
 		}
 
@@ -215,17 +221,24 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			var result = await task;
 
-			var table = Elements.CreateFullResultTable();
-			var rows  = result.CreateResultRows();
+			var fullRows = result.CreateFullResultRows();
 
-			foreach (IRenderable[] row in rows) {
-				table.AddRow(row);
+			if (CommandSettings.Interactive) {
+				var table = Elements.CreateFullResultTable();
+
+				foreach (IRenderable[] row in fullRows) {
+					table.AddRow(row);
+				}
+
+				m_resultTables.TryAdd(result, table);
+				m_mainTable.AddRow(result.CreateMainRows());
+				Elements.Prm_SearchResult.AddChoice(result);
 			}
-
-			m_resultTables.TryAdd(result, table);
-
-			m_mainTable.AddRow(result.CreateMainRows());
-			Elements.Prm_SearchResult.AddChoice(result);
+			else {
+				foreach (IRenderable[] row in fullRows) {
+					m_mainTable.AddRow(row);
+				}
+			}
 
 			c.Refresh();
 
@@ -240,8 +253,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		bool         clrWrite = true;
 		SpcTable     srTable  = null;
 		SearchResult sr       = null;
-
-		bool srTableClr = false;
 
 		do {
 
@@ -266,6 +277,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				if (cmd == R2.Chc_Exit) {
 					return;
 				}
+
 				if (cmd == R2.Chc_Back) {
 					break;
 				}
@@ -301,11 +313,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							}
 						}*/
 
-						var idx = tbl[sel.Item.Parent];
+						// var idx = tbl[sel.Item.Parent];
 
 						int row;
 
 						row = sr.Results.IndexOf(sri);
+						var idx = row;
 
 						// row = idx;
 						// row = GetRowForItem(sri);
@@ -356,7 +369,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 								tbl[kv.Key] = kv.Value + i;
 							}
 						}*/
-						
+
 					});
 					clrWrite = true;
 					continue;
@@ -397,8 +410,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 				}
 
-			cont:
-				continue;
 
 			} while (cmd != R2.Chc_Back);
 
@@ -429,7 +440,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					});
 
 					proc?.WaitForExit();
-					proc?.Dispose();	
+					proc?.Dispose();
 				}
 			});
 		}
@@ -597,7 +608,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	public override void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(SearchCommand)}");
+		s_logger.LogDebug("Disposing search command");
 
 		foreach (var sr in m_resultTables.Keys) {
 			sr.Dispose();
@@ -608,7 +619,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_resultTables.Clear();
 		m_cts.Dispose();
 		m_previewCanvasCache.Dispose();
-		m_scs = null;
 		Client.Dispose();
 		Query.Dispose();
 	}

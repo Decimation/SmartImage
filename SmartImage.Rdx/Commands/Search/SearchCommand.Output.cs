@@ -35,9 +35,9 @@ public partial class SearchCommand
 
 	private async Task RunCompletionCommandAsync(CancellationToken ct = default)
 	{
-		var command = Cli.Wrap(m_scs.Command);
+		var command = Cli.Wrap(CommandSettings.Command);
 
-		var cmdArgs      = m_scs.CommandArguments;
+		var cmdArgs      = CommandSettings.CommandArguments;
 		var stdOutBuffer = new StringBuilder();
 		var stdErrBuffer = new StringBuilder();
 
@@ -59,12 +59,12 @@ public partial class SearchCommand
 
 	private void WriteOutputFile()
 	{
-		var fw = File.OpenWrite(m_scs.OutputFile);
+		var fw = File.OpenWrite(CommandSettings.OutputFile);
 
 		using var sw = new StreamWriter(fw);
 		sw.AutoFlush = true;
 
-		var fields = m_scs.OutputFields;
+		var fields = CommandSettings.OutputFields;
 
 		bool fName   = fields.HasFlag(OutputFields.Name);
 		var  fUrl    = fields.HasFlag(OutputFields.Url);
@@ -76,7 +76,7 @@ public partial class SearchCommand
 			.Where(f => fields.HasFlag(f) && !f.Equals(default(OutputFields)))
 			.Select(Enum.GetName);
 
-		sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, names));
+		sw.WriteLine(String.Join(CommandSettings.OutputFileDelimiter, names));
 
 		foreach (SearchResult sr in m_resultTables.Keys) {
 			for (int j = 0; j < sr.Results.Count; j++) {
@@ -100,11 +100,11 @@ public partial class SearchCommand
 					rg.Add($"{sri.Site}");
 
 				// string[] items  = [$"{sr.Engine.Name} #{j + 1}", sri.Url?.ToString()];
-				sw.WriteLine(String.Join(m_scs.OutputFileDelimiter, rg));
+				sw.WriteLine(String.Join(CommandSettings.OutputFileDelimiter, rg));
 			}
 		}
 
-		AnsiConsole.WriteLine($"Wrote to {m_scs.OutputFile}");
+		AnsiConsole.WriteLine($"Wrote to {CommandSettings.OutputFile}");
 	}
 
 #endregion

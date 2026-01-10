@@ -1,4 +1,4 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageUri.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImageUrl.cs
 // Date: 2024/07/17 @ 02:07:26
 
 using System.Collections.Immutable;
@@ -10,25 +10,27 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IO;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public class UniImageUri : UniImage
+public class UniImageUrl : UniImage, IUrl
 {
+
 	[MN]
 	[JPN("url")]
 	public Url Url { get; protected internal set; }
 
-	internal UniImageUri(Url url) : base(url?.ToString(), UniImageType.Uri)
+	internal UniImageUrl(Url url) : base(url?.ToString(), UniImageType.Uri)
 	{
 		Url = url;
-		
+
 	}
 
 	// public override string Name => Url?.GetFileName();
 
 
-	protected override async Task<bool> AllocAsync(CancellationToken ct = default)
+	protected override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
 	{
 		IFlurlResponse fres = null;
 
@@ -41,7 +43,7 @@ public class UniImageUri : UniImage
 		if (fres == null) {
 			goto ret;
 		}
-		
+
 		Bytes = await fres.GetBytesAsync();
 
 	ret:
@@ -49,7 +51,7 @@ public class UniImageUri : UniImage
 		return HasBytes;
 	}
 
-	public static bool IsUriType(object o, out Url u)
+	public static bool IsUrlType(object o, out Url u)
 	{
 		u = o switch
 		{

@@ -6,7 +6,6 @@ using AngleSharp.Css.Values;
 using FlareSolverrSharp.Constants;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Model;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 #pragma warning disable CS0649
@@ -19,7 +18,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class RepostSleuthEngine : BaseSearchEngine, IEndpoint, IDisposable
+public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 {
 	private const string URL_API   = "https://api.repostsleuth.com/image";
 	private const string URL_QUERY = "https://repostsleuth.com/search?url=";
