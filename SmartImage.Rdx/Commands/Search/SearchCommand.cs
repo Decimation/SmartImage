@@ -283,10 +283,12 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					break;
 				}
 
-				var sel = GetSelectionChoice(sr);
-				var sri = sel.Item;
+				var sel    = ShellSelection.GetSelectionChoice(sr);
+				var sri    = sel.Item;
+				var selIdx = sel.Index();
+				var selIdx2 = sel.Index2();
 
-				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, sel.ItemIdx, sel.ScanIdx);
+				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
 
 				// s_logger.LogTrace("Interactive: {ResItem}", sri);
 
@@ -316,12 +318,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 						// var idx = tbl[sel.Item.Parent];
 
-						var selIdx = sel.Index();
 						
 						for (int i = 0; i < sri.ScannedItems.Count; i++) {
 							SearchResultItem scnItm = sri.ScannedItems[i];
 							var              scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
-							srTable.InsertRow(selIdx + i + 1, scnRow);
+							srTable.InsertRow(selIdx2 + i + 1, scnRow);
 						}
 						
 
@@ -335,13 +336,13 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						// row = row2.RootIdx + (row2.ScnIdx == -1 ? 0 : (row2.ScnIdx + 1));
 
 						if (sri.HasImage) {
-							srTable.Rows.Update(selIdx, (int) ResultRowIndex.ROW_WH, sri.GetResolution());
+							srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_WH, sri.GetResolution());
 
 						}
 
 						if (sri.HasHash && !sri.Similarity.HasValue) {
 							sri.CalculateSimilarity(Query.Source);
-							srTable.Rows.Update(selIdx, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
+							srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
 						}
 
 						f.Refresh();
@@ -356,12 +357,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 					AnsiConsole.Live(srTable).Start(f =>
 					{
-						//todo
-						var row = sel.ItemIdx;
-
 						sri.CalculateSimilarity(Query.Source);
 
-						srTable.Rows.Update(row, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
+						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
 						f.Refresh();
 					});
 
@@ -614,7 +612,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			sr.Dispose();
 		}
 
-		Elements.Prm_Num2.Validator = null;
+		Elements.Prm_Selection.Validator = null;
 
 		m_resultTables.Clear();
 		m_cts.Dispose();

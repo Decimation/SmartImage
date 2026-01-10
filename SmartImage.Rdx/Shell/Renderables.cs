@@ -41,7 +41,7 @@ internal static class Renderables
 
 		public IRenderable GetResolution() => (sri.HasDimensions) ? new Text($"{sri.Width}x{sri.Height}") : Elements.Txt_NA;
 
-		public IRenderable GetSimilarity() => sri.Similarity.HasValue ? new Text($"{sri.Similarity}") : Elements.Txt_NA;
+		public IRenderable GetSimilarity() => AsRenderable(sri.Similarity);
 
 		public IRenderable[] GetFullResultRow(int i, Style style)
 		{

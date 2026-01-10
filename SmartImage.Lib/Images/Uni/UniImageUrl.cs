@@ -32,8 +32,8 @@ public class UniImageUrl : UniImage, IUrl
 	// public override string Name => Url?.GetFileName();
 
 
-	public async ValueTask<bool> ScanAsync<TUniImageUrl>(ChannelWriter<TUniImageUrl> cw, Func<string, TUniImageUrl> newItem, CancellationToken ct = default)
-		where TUniImageUrl : UniImageUrl
+	public async ValueTask<bool> ScanAsync<TUni>(ChannelWriter<TUni> cw, Func<string, TUni> newItem, CancellationToken ct = default)
+		where TUni : UniImage
 	{
 		var allocImageAsync = await AllocImageAsync(ct);
 

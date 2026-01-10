@@ -75,40 +75,6 @@ internal static class Elements
 
 	internal const double COMPLETE = 100.0d;
 
-#region Engine map table
-
-	//  TODO: FOR SERVER ONLY, DEPRECATE
-
-	internal const int ROW_EMT2_THR     = 0;
-	internal const int ROW_EMT2_NAME    = 1;
-	internal const int ROW_EMT2_RESULTS = 2;
-	internal const int ROW_EMT2_STATUS  = 3;
-	internal const int ROW_EMT2_TIMEOUT = 4;
-
-
-	public static SpcTable GetEngineMapTableBase()
-	{
-		var table = new SpcTable();
-
-		var columns = GetColumns("Thread", nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
-		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
-
-		table.AddColumns(columns.ToArray());
-		return table;
-	}
-
-	private static TableColumn GetColumn(string name)
-	{
-		return new TableColumn(new Text(name, Sty_Grid1)) { };
-	}
-
-	public static IEnumerable<TableColumn> GetColumns(params string[] names)
-	{
-		return names.Select(GetColumn);
-	}
-
-#endregion
-
 
 #region Prompts
 
@@ -123,7 +89,7 @@ internal static class Elements
 		}
 	};
 
-	public static readonly TextPrompt<string> Prm_Num2 = new(Markup.Escape("[#.#]"))
+	public static readonly TextPrompt<string> Prm_Selection = new(Markup.Escape("[#.#]"))
 	{
 		ShowChoices      = false,
 		ShowDefaultValue = false,
@@ -198,6 +164,8 @@ internal static class Elements
 	}
 
 #endregion
+
+	#region 
 
 	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
 	{
@@ -306,5 +274,41 @@ internal static class Elements
 
 		return grd;
 	}
+
+	#endregion
+
+#region Engine map table
+
+	//  TODO: FOR SERVER ONLY, DEPRECATE
+
+	internal const int ROW_EMT2_THR     = 0;
+	internal const int ROW_EMT2_NAME    = 1;
+	internal const int ROW_EMT2_RESULTS = 2;
+	internal const int ROW_EMT2_STATUS  = 3;
+	internal const int ROW_EMT2_TIMEOUT = 4;
+
+
+	public static SpcTable GetEngineMapTableBase()
+	{
+		var table = new SpcTable();
+
+		var columns = GetColumns("Thread", nameof(BaseSearchEngine.Name), nameof(SearchResult.Results),
+		                         nameof(SearchResult.Status), nameof(BaseSearchEngine.Timeout));
+
+		table.AddColumns(columns.ToArray());
+		return table;
+	}
+
+	private static TableColumn GetColumn(string name)
+	{
+		return new TableColumn(new Text(name, Sty_Grid1)) { };
+	}
+
+	public static IEnumerable<TableColumn> GetColumns(params string[] names)
+	{
+		return names.Select(GetColumn);
+	}
+
+#endregion
 
 }
