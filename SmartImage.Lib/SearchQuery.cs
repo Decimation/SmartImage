@@ -95,13 +95,13 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	static SearchQuery() { }
 
-	public static readonly SearchQuery Null = new(UniImage.Null);
+	public static readonly SearchQuery Null = new(null);
 
 	public static async Task<SearchQuery> TryCreateAsync(object o, CancellationToken t = default)
 	{
 		var ui = await UniImage.TryCreateAsync(o, ct: t);
 
-		if (ui != UniImage.Null) {
+		if (ui != null) {
 			return new SearchQuery(ui);
 
 		}

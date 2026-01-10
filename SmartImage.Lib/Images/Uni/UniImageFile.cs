@@ -20,7 +20,7 @@ public class UniImageFile : UniImage
 
 	public FileInfo LocalFileInfo { get; }
 
-	protected override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
+	protected override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
 		if (HasBytes) {
 			goto ret;

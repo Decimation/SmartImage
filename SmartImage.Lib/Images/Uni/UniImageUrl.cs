@@ -12,6 +12,7 @@ using SmartImage.Lib.Model;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Channels;
 
@@ -29,66 +30,92 @@ public class UniImageUrl : UniImage, IUrl
 		Url = url;
 	}
 
+	/*public static async ValueTask<UniImageUrl> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct=default)
+	{
+		var ui = await TryCreateAsync(u,ct:ct);
+
+	}*/
+
 	// public override string Name => Url?.GetFileName();
 
-
-	public async ValueTask<bool> ScanAsync<TUni>(ChannelWriter<TUni> cw, Func<string, TUni> newItem, CancellationToken ct = default)
-		where TUni : UniImage
+	public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct = default)
 	{
-		var allocImageAsync = await AllocImageAsync(ct);
+		bool ok = false;
+		var  ui = await TryCreateAsync(u, autoInit: true, autoDisposeOnError: false, ct: ct) as UniImageUrl;
 
-		if (allocImageAsync) {
+		if (ui == null) {
+			s_logger.LogError("{Url} is null", u);
+			return cw.TryComplete();
+		}
+
+		return await ui.ScanAsync(cw, s => { return new UniImageUrl(s); }, ct);
+	}
+
+
+	/// <summary>
+	/// Scans for images within the webpage located at <see cref="Url"/>; if <see cref="Url"/> itself (<code>this</code>)
+	/// points to binary image data, it is returned. todo: update this doc
+	/// </summary>
+	public async ValueTask<bool> ScanAsync<TUniUrl>(ChannelWriter<TUniUrl> cw, Func<string, TUniUrl> newItem, CancellationToken ct = default)
+		where TUniUrl : UniImageUrl
+	{
+		var (allocOk, allocImgOk) = await AllocAll(ct);
+
+		if (allocImgOk) {
+			await cw.WriteAsync((TUniUrl) this, ct);
 			cw.TryComplete();
 			return true;
 		}
 
 		await using var stream = GetStream();
 
-		using var sr  = new StreamReader(stream);
-		var       str = await sr.ReadToEndAsync(ct);
+		using var sr   = new StreamReader(stream);
+		var       str  = await sr.ReadToEndAsync(ct);
 
-		var       hp   = new HtmlParser();
-		var       urls = ImageScanner.ParseImageUrlsByRegex(str, Url);
-		using var doc  = await hp.ParseDocumentAsync(str);
+		var urls = ImageScanner.ParseImageUrlsByRegex(str, Url);
 
 		await cw.WaitToWriteAsync(ct);
 
 		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
 		{
 			var item = newItem(s);
-			var allocImgOk = await item.AllocImageAsync(token);
 
-			if (allocImgOk) {
+			var (allocOk2, allocImgOk2) = await item.AllocAll(token);
+
+			if (allocImgOk2) {
 				await cw.WriteAsync(item, token);
 			}
 			else {
 				item?.Dispose();
 			}
 		});
-		cw.TryComplete();
 
-		return true;
+		var ok = cw.TryComplete();
+
+		return ok;
 	}
 
-	protected override async ValueTask<bool> AllocAsync(CancellationToken ct = default)
+	protected override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
-		IFlurlResponse fres = null;
+		IFlurlResponse response = null;
 
 		if (HasBytes) {
 			goto ret;
 		}
 
-		fres = await ImageScanner.GetResponseAsync(Url, ct);
+		response = await ImageScanner.GetResponseAsync(Url, ct);
 
-		if (fres == null) {
+		if (response == null) {
 			goto ret;
 		}
 
-		Bytes = await fres.GetBytesAsync();
+		Bytes = await response.GetBytesAsync();
 
 	ret:
-		fres?.Dispose();
+
+		response?.Dispose();
 		return HasBytes;
+
 	}
 
 	public static bool IsUrlType(object o, out Url u)

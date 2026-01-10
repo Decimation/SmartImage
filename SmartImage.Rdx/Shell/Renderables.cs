@@ -3,8 +3,11 @@
 
 #nullable disable
 using Kantan.Text;
+using Novus.OS;
 using SmartImage;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Utilities.Integration;
 using Spectre.Console;
 using Spectre.Console.Rendering;
 
@@ -42,7 +45,7 @@ internal static class Renderables
 	extension(SearchResultItem sri)
 	{
 
-		public IRenderable GetResolution() => (sri.HasDimensions) ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : Elements.Txt_NA;
+		public IRenderable GetResolution() => sri.HasDimensions ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : Elements.Txt_NA;
 
 		public IRenderable GetSimilarity() => AsRenderable(sri.Similarity);
 
@@ -90,6 +93,8 @@ internal static class Renderables
 
 	}
 
+	#region 
+
 	public static IRenderable AsRenderable<T>(T? val) where T : struct
 	{
 		return val.HasValue ? AsRenderable(val.Value) : Elements.Txt_NA;
@@ -115,6 +120,154 @@ internal static class Renderables
 	}
 
 	public static Text ToPrettyText(this bool b) => b ? Elements.Txt_Rad : Elements.Txt_Mul;
+
+	#endregion
+
+#region 
+
+	public static SpcTable CreateMainTable()
+	{
+		var col = new TableColumn[]
+		{
+			new(new Text("Engine", Elements.Sty_ResultHeader)),
+			new(new Text("Results", Elements.Sty_ResultHeader)),
+
+		};
+
+		SpcTable tb = CreateResultTable();
+
+		tb.AddColumns(col);
+
+		tb = tb.Centered();
+
+		return tb;
+	}
+
+	private static SpcTable CreateResultTable()
+	{
+		var tb = new SpcTable()
+		{
+			Caption     = new TableTitle("Results", Elements.Sty_ResultHeader),
+			Border      = TableBorder.Simple,
+			ShowHeaders = true,
+		};
+		return tb;
+	}
+
+	public static SpcTable CreateFullResultTable()
+	{
+		var col = new TableColumn[]
+		{
+			new(new Text("Result", Elements.Sty_ResultHeader)),
+			new(new Text("URL", Elements.Sty_ResultHeader)),
+			new(new Text("Similarity", Elements.Sty_ResultHeader)),
+			new(new Text("Artist", Elements.Sty_ResultHeader)),
+			new(new Text("Resolution", Elements.Sty_ResultHeader)),
+
+		};
+
+		var tb = CreateResultTable();
+
+		tb.AddColumns(col);
+
+		return tb;
+	}
+
+	internal static Grid CreateConfigGrid(SearchConfig cfg, SearchQuery query)
+	{
+		var dt = new Grid();
+		dt.AddColumns(2);
+
+		dt.AddRow(new Text("Query", Elements.Sty_Grid1), new Text(query.Source.Value, new Style(link: query.Source.Value)));
+		dt.AddRow(new Text("Query Format", Elements.Sty_Grid1), new Text($"({query.Source.Type}) {query.Source.ImageFormat.Name}"));
+		dt.AddRow(new Text("Upload", Elements.Sty_Grid1), new Text($"{query.Upload}", new Style(link: query.Upload.Url)));
+
+		var kv = new Dictionary<object, object>
+		{
+			[R1.S_SearchEngines]   = cfg.SearchEngines,
+			[R1.S_PriorityEngines] = cfg.PriorityEngines,
+			[R1.S_AutoSearch]      = cfg.AutoSearch,
+			[R1.S_ReadCookies]     = cfg.ReadCookies,
+			["FlareSolverr"]       = cfg.FlareSolverr,
+		};
+
+		foreach (var (s, o) in kv) {
+			IRenderable kR;
+
+			if (s is Text txt) {
+				kR = txt;
+			}
+			else {
+				kR = new Text(s?.ToString(), Elements.Sty_Grid1);
+			}
+
+			dt.AddRow(kR, Renderables.AsRenderable(o));
+		}
+
+
+		// Render the layout
+		// AnsiConsole.Write(layout);
+
+
+		return dt;
+	}
+
+	internal static Grid GetInfoGrid()
+	{
+		var gr = new Grid();
+		gr.AddColumns(2);
+
+		var rows = new IRenderable[]
+		{
+			new Text("User", Elements.Sty_Grid1), new Text($"{Environment.UserName} / {FileSystem.IsRoot}"),
+			new Text("Version", Elements.Sty_Grid1), new Text($"{Program.Version}"),
+			new Text("Runtime", Elements.Sty_Grid1), new Text($"{Environment.OSVersion} / {Environment.Version}"),
+			new Text("Location", Elements.Sty_Grid1), new TextPath(BaseOSIntegration.Executable)
+		};
+
+
+		gr.AddRowsByChunk(2, rows);
+
+
+		return gr;
+	}
+
+#endregion
+
+	internal static Grid AddRowsByChunk(this Grid g, int cnt, params IEnumerable<IRenderable> items)
+	{
+		var chunks = items.Chunk(cnt);
+
+		foreach (IRenderable[] chunk in chunks) {
+			g.AddRow(chunk);
+		}
+
+		return g;
+	}
+
+	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
+	                                             [CBN] Func<TKey, IRenderable> keyFunc = null,
+	                                             [CBN] Func<TValue, IRenderable> valFunc = null)
+	{
+		var grd = new Grid();
+		grd.AddColumns(2);
+
+		keyFunc ??= static k =>
+		{
+			//
+			var s = k.ToString();
+			ArgumentNullException.ThrowIfNull(s);
+			return new Text(s, Elements.Sty_Grid1);
+		};
+
+		valFunc ??= Renderables.AsRenderable;
+
+		foreach (var (k, v) in dictionary) {
+			grd.AddRow(keyFunc(k), valFunc(v));
+		}
+
+		return grd;
+	}
 
 }
 

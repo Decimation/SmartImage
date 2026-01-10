@@ -128,7 +128,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		Client = new SearchClient(Config);
 
-		m_mainTable = CommandSettings.Interactive ? Elements.CreateMainTable() : Elements.CreateFullResultTable();
+		m_mainTable = CommandSettings.Interactive ? Renderables.CreateMainTable() : Renderables.CreateFullResultTable();
 
 	}
 
@@ -144,15 +144,15 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		await initTask;
 
-		var ci = Elements.GetQueryCanvasImage(Query.Source);
+		var queryCi = new CanvasImage(Query.Source.GetStream());
 
-		var ciPanel = new Panel(ci)
+		var ciPanel = new Panel(queryCi)
 		{
 			Header = new PanelHeader($"{Query.Source.Value}"),
 			Expand = true,
 		};
 
-		var cfgGrid = Elements.CreateConfigGrid(Config, Query);
+		var cfgGrid = Renderables.CreateConfigGrid(Config, Query);
 
 		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") { } };
 
@@ -227,7 +227,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			var fullRows = result.GetFullResultRows();
 
 			if (CommandSettings.Interactive) {
-				var table = Elements.CreateFullResultTable();
+				var table = Renderables.CreateFullResultTable();
 
 				foreach (IRenderable[] row in fullRows) {
 					table.AddRow(row);
@@ -354,12 +354,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				if (cmd == R2.Chc_Download) {
 
 					HandleDownload(sri);
-
 				}
 
-				if (cmd == "expand") { }
-
-				if (cmd == "retry") { }
 
 			} while (cmd != R2.Chc_Back);
 
@@ -426,7 +422,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		return ci;
 	}
 
-	private void ShowPreview(CanvasImage ci, SearchResultItem ui)
+	private void ShowPreview(CanvasImage ci, SearchResultItem sri)
 	{
 		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 
@@ -447,7 +443,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 
 					case ConsoleKey.S:
-						ci.Mutate(act => { act.Resize(ui.Image.Width, ui.Image.Height); });
+						ci.Mutate(act => { act.Resize(sri.Image.Width, sri.Image.Height); });
 						break;
 
 					case ConsoleKey.M:

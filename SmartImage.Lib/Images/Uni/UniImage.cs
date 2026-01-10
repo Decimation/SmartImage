@@ -15,11 +15,13 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using CoenM.ImageHash;
 using CommunityToolkit.HighPerformance;
 using Kantan.Net.Utilities;
 using Microsoft.IO;
+using SixLabors.ImageSharp.Memory;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 
@@ -128,7 +130,7 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 
 #endregion
 
-	#region 
+#region
 
 	public double? Similarity
 	{
@@ -142,7 +144,7 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 		return Similarity.HasValue;
 	}
 
-	#endregion
+#endregion
 
 #region
 
@@ -172,9 +174,6 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 #endregion
 
 
-	public static readonly UniImage Null = null;
-
-
 	private protected UniImage(string value, UniImageType type)
 	{
 		Value = value;
@@ -184,10 +183,13 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 
 #region
 
-	protected abstract ValueTask<bool> AllocAsync(CancellationToken ct = default);
+	/// <summary>
+	/// Allocates <see cref="Bytes"/>
+	/// </summary>
+	protected abstract ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
 
 	/// <summary>
-	/// Allocates <see cref="Image"/>
+	/// Allocates <see cref="Image"/> from <see cref="Bytes"/>
 	/// </summary>
 	public virtual async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
@@ -211,13 +213,26 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 
 	}
 
+	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
+	protected virtual async ValueTask<(bool AllocOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
+	{
+		bool allocOk    = await AllocSourceAsync(ct);
+		bool allocImgOk = false;
+
+		if (allocOk) {
+			allocImgOk = await AllocImageAsync(ct);
+		}
+
+		return (allocOk, allocImgOk);
+	}
+
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
 	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true, bool autoDisposeOnError = true,
 	                                                  CancellationToken ct = default)
 	{
-		UniImage ui = Null;
+		UniImage ui = null;
 
 		try {
 
@@ -235,11 +250,7 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 				bool allocOk    = false;
 				bool allocImgOk = false;
 
-				allocOk = await ui.AllocAsync(ct);
-
-				if (allocOk) {
-					allocImgOk = await ui.AllocImageAsync(ct);
-				}
+				(allocOk,allocImgOk) = await ui.AllocAll(ct);
 
 				s_logger.LogTrace("{Value} :: {AllocOk} {AllocImgOk}", o, allocOk, allocImgOk);
 
@@ -270,7 +281,7 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 
 #endregion
 
-	#region New region
+#region New region
 
 	public bool TryWriteOrGetFile(string fn = null)
 	{
@@ -314,13 +325,14 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 		return path;
 	}
 
-	#endregion
+#endregion
 
 
 	public virtual void Dispose()
 	{
 		GC.SuppressFinalize(this);
 		Image?.Dispose();
+		s_logger.LogTrace("Disposing {Uv} {Ut}", Value, Type);
 	}
 
 	public override string ToString()

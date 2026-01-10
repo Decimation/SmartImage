@@ -130,25 +130,22 @@ public static partial class ImageScanner
 
 #endregion
 
-#region Scanning
+#region Scanning/parsing
 
-	public static readonly string[] UrlSegmentBlacklist = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg"];
+	public static readonly string[] UrlSegmentBlacklist = ["thumbs", ".svg", ".ico", "twitter.svg", "pinterest.svg", "favicon"];
 
 	public static readonly string[] LegalSchemeWhitelist = ["http", "https"];
 
 	internal const char URL_DELIM = '/';
 
-	/// <summary>
-	/// Scans for images within the webpage located at <paramref name="url"/>; if <paramref name="url"/> itself
-	/// points to binary image data, it is returned.
-	/// </summary>
-	public static async Task<bool> ScanForImagesAsync(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
+
+	/*public static async Task<bool> ScanForImagesAsync(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
 	{
 		string sz = null;
 
 		IHtmlDocument doc = null;
 
-		/* Immediate search  */
+		/* Immediate search  #1#
 		var uf = await UniImage.TryCreateAsync(url, autoInit: true, autoDisposeOnError: false, ct: ct);
 
 		IFlurlResponse res;
@@ -176,7 +173,7 @@ public static partial class ImageScanner
 		/*if (!stream.CanRead) {
 			stream.Dispose();
 			goto ret;
-		}*/
+		}#1#
 
 		var dp = new HtmlParser();
 
@@ -214,7 +211,7 @@ public static partial class ImageScanner
 				uni?.Dispose();
 			}
 		}
-	}
+	}*/
 
 	public static IEnumerable<string> ParseImageUrlsByRegex(string html, Url url, bool heuristicFilter = true)
 	{
@@ -239,6 +236,19 @@ public static partial class ImageScanner
 			}
 		}
 
+		imgUrls = imgUrls.Distinct().Where(e =>
+		{
+			if (e.StartsWith("url(")) {
+				return false;
+			}
+
+			return Url.IsValid(e);
+		});
+
+		if (heuristicFilter) {
+			imgUrls = imgUrls.Where(static u => !UrlSegmentBlacklist.Any(u.Contains));
+		}
+
 		var abs = imgUrls.Select(u =>
 		{
 			if (u.StartsWith("http"))
@@ -253,11 +263,7 @@ public static partial class ImageScanner
 
 			// return baseUrl + URL_DELIM + u;
 			return Url.Combine(baseUrl, URL_DELIM.ToString(), u);
-		}).Select(static u => Url.Decode(u, true)).Where(Url.IsValid).Distinct();
-
-		if (heuristicFilter) {
-			abs = abs.Where(static u => !UrlSegmentBlacklist.Any(u.Contains));
-		}
+		});
 
 		return abs;
 	}
@@ -278,10 +284,19 @@ public static partial class ImageScanner
 
 	public static async ValueTask<IFlurlResponse> GetResponseAsync(Url value, CancellationToken ct)
 	{
-		var req1 = await Client.Request(value)
-			           .GetAsync(cancellationToken: ct);
+		var request = Client.Request(value);
 
-		return req1;
+		if (value.ToString().Contains("zerochan")) {
+			// request = request.WithHeader("User-Agent", R1.Name);
+
+			request = new FlurlRequest(value) { };
+		}
+
+		var response = await request
+			               .OnError(act => { act.ExceptionHandled = true; })
+			               .GetAsync(cancellationToken: ct);
+
+		return response;
 	}
 
 #endregion

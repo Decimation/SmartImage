@@ -121,7 +121,7 @@ public sealed class TinEyeEngine : BaseSearchEngine, ISearchEngine
 				for (int m = 1; m < backlinks.Count; m++) {
 					var bl = backlinks[m];
 
-					var resultItemSister = resultItem.CloneToChildWithUrl(bl.Backlink);
+					var resultItemSister = resultItem.MemberwiseCloneWithUrl(bl.Backlink);
 					resultItemSister.Description = bl.ImageName;
 					resultItemSister.Title       = bl.ImageName;
 					resultItemSister.Time        = DateTime.Parse(bl.CrawlDate);

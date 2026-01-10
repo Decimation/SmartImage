@@ -217,7 +217,7 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 		}
 
 		bool allocImgOk = false;
-		var  allocOk    = await AllocAsync(ct);
+		var  allocOk    = await AllocSourceAsync(ct);
 
 		if (allocOk) {
 			allocImgOk = await base.AllocImageAsync(ct);
@@ -286,7 +286,7 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 				IsScanResult = true,
 			};
 
-			// var sriNew = CloneToChildWithUrl(s);
+			// var sriNew = MemberwiseCloneWithUrl(s);
 
 			var allocImgOk = await sriNew.AllocImageAsync(token);
 
@@ -321,8 +321,8 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 		var task = ScanAsync(cw.Writer, s =>
 		{
-			var obj= CloneWithUrl(s);
-			return obj;
+			var clone= PartialCopyCloneWithUrl(s);
+			return clone;
 		}, ct);
 
 		while (await cw.Reader.WaitToReadAsync(ct)) {
@@ -334,13 +334,11 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 		var ok = await task;
 
 		return ok;
-
-		// return sriNews;
 	}
 
 #endregion
 
-	public SearchResultItem CloneWithUrl(Url s)
+	public SearchResultItem PartialCopyCloneWithUrl(Url s)
 	{
 		return new SearchResultItem(Root, false)
 		{
@@ -353,11 +351,12 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 			Site        = Site,
 			Source      = Source,
 			Time        = Time,
+			Metadata = Metadata,
 			IsCloned    = true,
 		};
 	}
 
-	public SearchResultItem CloneToChildWithUrl(Url u)
+	public SearchResultItem MemberwiseCloneWithUrl(Url u)
 	{
 		var clone = (MemberwiseClone() as SearchResultItem);
 		clone.Url    = u;
