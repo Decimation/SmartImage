@@ -251,23 +251,6 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 		return HasThumbnail;
 	}
 
-	public SearchResultItem CloneWithUrl(Url s)
-	{
-		return new SearchResultItem(Root, false)
-		{
-			Parent       = this,
-			Url          = s,
-			Artist       = Artist,
-			Character    = Character,
-			Description  = Description,
-			Title        = Title,
-			Site         = Site,
-			Source       = Source,
-			Time         = Time,
-			IsCloned = true,
-		};
-	}
-
 	/*public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
 	{
 		if (!(await AllocImageAsync(ct))) {
@@ -328,56 +311,47 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
-	public async ValueTask<bool> ScanAsync2(CancellationToken ct = default)
+	public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
 	{
-		if (!(await AllocImageAsync(ct))) {
-			// return false;
-		}
-
 		if (HasScannedItems) {
 			return true;
 		}
 
-		await using var stream = GetStream();
-		using var       sr     = new StreamReader(stream);
-		var             str    = await sr.ReadToEndAsync(ct);
+		var cw = Channel.CreateUnbounded<SearchResultItem>();
 
-		var       hp      = new HtmlParser();
-		var       urls    = ImageScanner.ParseImageUrlsByRegex(str, Url);
-		using var doc     = await hp.ParseDocumentAsync(str);
-		var       sriNews = new ConcurrentBag<SearchResultItem>();
+		var task = ScanAsync(cw.Writer, s => { return CloneWithUrl(s); }, ct);
 
-		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
-		{
-			var sriNew = CloneWithUrl(s);
+		while (await cw.Reader.WaitToReadAsync(ct)) {
+			var val = await cw.Reader.ReadAsync(ct);
 
-			// var sriNew = CloneToChildWithUrl(s);
+			ScannedItems.Add(val);
+		}
 
-			var allocImgOk = await sriNew.AllocImageAsync(token);
+		var ok = await task;
 
-			if (allocImgOk) {
-				sriNews.Add(sriNew);
-			}
-			else {
-				sriNew?.Dispose();
-			}
-		});
-
-
-		// Root.Results.InsertRange(Root.Results.IndexOf(this), sriNews);
-		// ScannedItems = sriNews.ToList();
-
-		// var sriIdx = Results.IndexOf(sri);
-		// Results.InsertRange(sriIdx + 1, sriNews);
-
-		// return ScannedResults.TryAdd(sri, sriNews.ToArray());
-		ScannedItems.AddRange(sriNews);
-		return true;
+		return ok;
 
 		// return sriNews;
 	}
 
 #endregion
+
+	public SearchResultItem CloneWithUrl(Url s)
+	{
+		return new SearchResultItem(Root, false)
+		{
+			Parent      = this,
+			Url         = s,
+			Artist      = Artist,
+			Character   = Character,
+			Description = Description,
+			Title       = Title,
+			Site        = Site,
+			Source      = Source,
+			Time        = Time,
+			IsCloned    = true,
+		};
+	}
 
 	public SearchResultItem CloneToChildWithUrl(Url u)
 	{
@@ -405,6 +379,7 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 		foreach (SearchResultItem item in ScannedItems) {
 			item.Dispose();
 		}
+
 		ScannedItems.Clear();
 	}
 

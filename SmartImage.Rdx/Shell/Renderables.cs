@@ -15,21 +15,21 @@ internal static class Renderables
 	extension(SearchResult result)
 	{
 
-		public IEnumerable<IRenderable> CreateMainRows()
+		public IEnumerable<IRenderable> GetMainRows()
 		{
 			Style style = result.Engine.EngineOption.GetColor();
 
 			return [new Text($"{result.Engine.Name}", style), new Text($"{result.Results.Count}")];
 		}
 
-		public IEnumerable<IRenderable[]> CreateFullResultRows()
+		public IEnumerable<IRenderable[]> GetFullResultRows()
 		{
 			Style style = result.Engine.EngineOption.GetColor();
 
 			for (int i = 0; i < result.Results.Count; i++) {
 				var res = result.Results[i];
 
-				yield return res.GetResultRow(i, style);
+				yield return res.GetFullResultRow(i, style);
 			}
 
 		}
@@ -43,7 +43,7 @@ internal static class Renderables
 
 		public IRenderable GetSimilarity() => sri.Similarity.HasValue ? new Text($"{sri.Similarity}") : Elements.Txt_NA;
 
-		public IRenderable[] GetResultRow(int i, Style style)
+		public IRenderable[] GetFullResultRow(int i, Style style)
 		{
 			IRenderable url;
 			var         link = sri.Url;
@@ -61,7 +61,7 @@ internal static class Renderables
 
 			var name   = new Text($"#{i}" + (sri.IsRaw ? " (Raw)" : null), style);
 			var sim    = sri.GetSimilarity();
-			var artist = Elements.AsRenderable(sri.Artist);
+			var artist = AsRenderable(sri.Artist);
 			var wh     = sri.GetResolution();
 
 			return [name, url, sim, artist, wh];
@@ -87,10 +87,36 @@ internal static class Renderables
 
 	}
 
+	public static IRenderable AsRenderable<T>(T? val) where T : struct
+	{
+		return val.HasValue ? AsRenderable(val.Value) : Elements.Txt_NA;
+	}
+
+	public static IRenderable AsRenderable<T>(T val)
+	{
+		IRenderable renderable = val switch
+		{
+			IRenderable r => r,
+
+			string sz when String.IsNullOrWhiteSpace(sz) => Elements.Txt_NA,
+
+			string sz => new Text(Markup.Escape(sz)),
+
+			bool b => b.ToPrettyText(),
+
+			null => Elements.Txt_NA,
+
+			_ => new Text(val?.ToString())
+		};
+		return renderable;
+	}
+
+	public static Text ToPrettyText(this bool b) => b ? Elements.Txt_Rad : Elements.Txt_Mul;
+
 }
 
 /// <summary>
-/// <see cref="Renderables.GetResultRow"/>
+/// <see cref="Renderables.GetFullResultRow"/>
 /// <see cref="Renderables.GetItemRow"/>
 /// </summary>
 internal enum ResultRowIndex

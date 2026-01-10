@@ -54,6 +54,10 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 
 	static FlareSolverrClient() { }
 
+	public async ValueTask<FlareSolverrIndexResponse> GetIndexAsync()
+	{
+		return (await Clearance.Solverr.GetIndexAsync());
+	}
 
 	public void Dispose()
 	{
@@ -63,13 +67,19 @@ public sealed class FlareSolverrClient : IDisposable, ISearchConfigReceiver
 		Client    = null;
 	}
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
 		var ok = false;
+		FlareSolverrIndexResponse idx = null;
 
-		ok = Configure(cfg.FlareSolverrApiUrl);
+		if (!cfg.FlareSolverr) {
+			return false;
+		}
 
-		return ValueTask.FromResult(ok);
+		ok  = Configure(cfg.FlareSolverrApiUrl);
+		idx = await GetIndexAsync();
+
+		return ok && idx != null;
 	}
 
 

@@ -153,7 +153,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		var cfgGrid = Elements.CreateConfigGrid(Config, Query);
 
-		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Config") };
+		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") { } };
 
 		m_layout = new Layout("Root").SplitColumns(
 			new Layout("L").SplitRows(
@@ -223,7 +223,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			var result = await task;
 
-			var fullRows = result.CreateFullResultRows();
+			var fullRows = result.GetFullResultRows();
 
 			if (CommandSettings.Interactive) {
 				var table = Elements.CreateFullResultTable();
@@ -233,7 +233,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				m_resultTables.TryAdd(result, table);
-				m_mainTable.AddRow(result.CreateMainRows());
+				m_mainTable.AddRow(result.GetMainRows());
 				Elements.Prm_SearchResult.AddChoice(result);
 			}
 			else {
@@ -301,7 +301,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
 						bool scannedOk = false;
-						scannedOk = await sri.ScanAsync2(m_ctsRun.Token);
+						scannedOk = await sri.ScanAsync(m_ctsRun.Token);
 
 
 						if (!scannedOk) {
@@ -316,10 +316,14 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 						// var idx = tbl[sel.Item.Parent];
 
-						int row;
-
-						row = sr.Results.IndexOf(sri);
-						var idx = row;
+						var selIdx = sel.Index();
+						
+						for (int i = 0; i < sri.ScannedItems.Count; i++) {
+							SearchResultItem scnItm = sri.ScannedItems[i];
+							var              scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
+							srTable.InsertRow(selIdx + i + 1, scnRow);
+						}
+						
 
 						// row = idx;
 						// row = GetRowForItem(sri);
@@ -331,45 +335,17 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						// row = row2.RootIdx + (row2.ScnIdx == -1 ? 0 : (row2.ScnIdx + 1));
 
 						if (sri.HasImage) {
-							srTable.Rows.Update(row, (int) ResultRowIndex.ROW_WH, sri.GetResolution());
+							srTable.Rows.Update(selIdx, (int) ResultRowIndex.ROW_WH, sri.GetResolution());
 
 						}
 
 						if (sri.HasHash && !sri.Similarity.HasValue) {
 							sri.CalculateSimilarity(Query.Source);
-							srTable.Rows.Update(row, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
+							srTable.Rows.Update(selIdx, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
 						}
-
-						var scanned = sri.ScannedItems;
-
-						int i = 0;
-
-						foreach (var ui in scanned) {
-
-							srTable.InsertRow(++row, ui.GetItemRow(idx, i++));
-							tbl[ui] = row;
-						}
-
-
-						/*if (sr.ScannedResults.TryGetValue(sri, out SearchResultItem[] scanned)) {
-							int i = 0;
-
-							var idx = sri.Root.Results.IndexOf(sri);
-
-							foreach (var ui in scanned) {
-
-								srTable.InsertRow(++row, GetItemRow(ui, idx, i++));
-							}
-
-						}*/
 
 						f.Refresh();
 
-						/*foreach (var kv in tbl) {
-							if (kv.Value >= idx) {
-								tbl[kv.Key] = kv.Value + i;
-							}
-						}*/
 
 					});
 					clrWrite = true;
@@ -409,6 +385,20 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 					HandleDownload(sri);
 
+				}
+
+				if (cmd == "expand") {
+					var si     = sri.ScannedItems;
+					var scnTbl = new ConcurrentDictionary<SearchResultItem, SpcTable>();
+
+					var table = Elements.CreateFullResultTable();
+					scnTbl[sri] = table;
+
+					for (int i = 0; i < si.Count; i++) {
+						SearchResultItem scnI = si[i];
+						var              row  = scnI.GetFullResultRow(i, new Style(link: scnI.Url));
+						scnTbl[sri].AddRow(row);
+					}
 				}
 
 

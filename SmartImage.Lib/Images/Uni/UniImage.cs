@@ -199,6 +199,8 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 				Image = await ISImage.LoadAsync(stream, ct);
 				stream.Rewind();
 				Hash = ImageUtilities.Hasher.Hash(stream);
+				CalculateSimilarity(this);
+
 			}
 			catch (Exception exception) {
 				s_logger.LogError(exception, "{Value} failed to allocate image", Value);

@@ -48,9 +48,9 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 	public Ascii2DEngine() : base(MAIN_URL)
 	{
-		Timeout   = TimeSpan.FromSeconds(30);
-		MaxLength = 10_000_000;
-		Jar       = new CookieJar();
+		Timeout    = TimeSpan.FromSeconds(30);
+		MaxLength  = 10_000_000;
+		Jar        = new CookieJar();
 		m_fsClient = new FlareSolverrClient();
 	}
 
@@ -146,16 +146,21 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 			if (m_fsClient.IsInitialized) {
 
-				var msg = new HttpRequestMessage(HttpMethod.Get, origin);
+				try {
+					var msg = new HttpRequestMessage(HttpMethod.Get, origin);
 
-				var fsr     = await m_fsClient.Clearance.Solverr.SolveAsync(msg).ConfigureAwait(false);
-				var cookies = fsr.Solution.Cookies;
-				var newUrl  = fsr.Solution.Url;
+					var fsr     = await m_fsClient.Clearance.Solverr.SolveAsync(msg).ConfigureAwait(false);
+					var cookies = fsr.Solution.Cookies;
+					var newUrl  = fsr.Solution.Url;
 
-				Logger.LogTrace("{Name} using {Fs}: {CookieCnt} {NewUrl}", Name, fsr, cookies.Length, newUrl);
+					Logger.LogTrace("{Name} using {Fs}: {CookieCnt} {NewUrl}", Name, fsr, cookies.Length, newUrl);
 
-				foreach (FlareSolverrCookie cookie in cookies) {
-					Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url));
+					foreach (FlareSolverrCookie cookie in cookies) {
+						Jar.AddOrReplace(new FlurlCookie(cookie.Name, cookie.Value, fsr.Solution.Url));
+					}
+				}
+				catch (Exception e) {
+					Logger.LogError(e, "{Name}", Name);
 				}
 			}
 
@@ -213,13 +218,13 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		return true;
 	}
 
-	public ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
+	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
-		if (cfg.FlareSolverr) {
-			m_fsClient.Configure(cfg.FlareSolverrApiUrl);
-		}
+		bool b = true;
 
-		return ValueTask.FromResult(m_fsClient.IsInitialized);
+		b = await m_fsClient.ApplyConfigAsync(cfg, ct);
+
+		return b;
 	}
 
 }
