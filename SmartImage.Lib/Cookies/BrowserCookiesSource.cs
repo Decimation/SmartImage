@@ -33,7 +33,7 @@ public class BrowserCookiesSource : ICookiesSource
 
 		}
 
-		return null;
+		return ListCookiesSource.Default;
 	});
 
 	internal BrowserCookiesSource(BaseCookiesDatabaseReader reader)

@@ -106,7 +106,8 @@ internal static class Elements
 		SearchEnabled   = true,
 		PageSize        = 1,
 		MoreChoicesText = "...",
-		Title           = "Engines",
+		Title           = null,
+		SearchPlaceholderText = null,
 		WrapAround      = true,
 		Converter = static sr =>
 		{
@@ -114,6 +115,29 @@ internal static class Elements
 			return sr.Engine.Name;
 		}
 	};
+
+	/*public static readonly SelectionPrompt<string> Prm_SearchResult2 = new()
+	{	
+		Mode            = SelectionMode.Independent,
+		SearchEnabled   = true,
+		PageSize        = 1,
+		MoreChoicesText = "...",
+		SearchPlaceholderText = null,
+		Title           = null,
+		WrapAround      = true,
+		Converter = static sr =>
+		{
+			//
+			return sr;
+		},
+		
+	};*/
+	
+	static Elements()
+	{
+		// Prm_SearchResult2.AddChoice("Exit");
+		
+	}
 
 #endregion
 

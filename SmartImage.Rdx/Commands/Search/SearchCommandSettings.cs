@@ -85,7 +85,7 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	// public const string PROP_ARG_RESULTS = "$all_results";
 
 	[CommandOption("--interactive")]
-	[DefaultValue(false)]
+	[DefaultValue(true)]
 	[Description("Interactive results")]
 	public bool Interactive { get; private set; }
 

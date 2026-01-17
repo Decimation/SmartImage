@@ -2,8 +2,10 @@
 // Date: 2025/12/27 @ 22:12:49
 
 #nullable disable
+using System.Reflection;
 using Kantan.Text;
 using Novus.OS;
+using Novus.Utilities;
 using SmartImage;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
@@ -73,6 +75,60 @@ internal static class Renderables
 			return [name, url, sim, artist, wh];
 		}
 
+		public Grid GetInfoGrid()
+		{
+			IRenderable url;
+			var         link = sri.Url;
+			Style       linkStyle;
+
+			if (link != null) {
+				linkStyle = new Style(link: link);
+				url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
+			}
+			else {
+				url       = Elements.Txt_NA;
+			}
+
+			var gr = new Grid();
+			gr.AddColumns(2);
+
+			var name   = new Text($"{sri.Root.Engine.Name}");
+			var sim    = sri.GetSimilarity();
+			var artist = AsRenderable(sri.Artist);
+			var wh     = sri.GetResolution();
+
+			var elems = new List<IRenderable>() { name, url, sim, artist, wh };
+
+			// var elems2 = [sri.Character, sri.Source, sri.Description, sri.Site];
+			var elemnames = new String[] { nameof(sri.Character), nameof(sri.Source), nameof(sri.Description), nameof(sri.Site),nameof(sri.Title) };
+
+			/*var fields = sri.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
+			.Where(x => x.GetValue(sri) != null);*/
+
+			foreach (string elemname in elemnames) {
+				var prop = sri.GetType().GetProperty(elemname, BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public);
+
+				if (prop is {}) {
+					var    val  = prop.GetValue(sri);
+					var s = val?.ToString();
+					if (!String.IsNullOrWhiteSpace(s)) {
+						elems.Add(new Text(s));
+
+					}
+				}
+			}
+
+			if (elems.Count % 2 != 0) {
+				elems.Add(Elements.Txt_NA);
+			}
+
+			for (int i = 0; i < elems.Count-1; i+=2) {
+				gr.AddRow(elems[i], elems[i+1]);
+			}
+			
+			return gr;
+		}
+
 		public IRenderable[] GetItemRow(int idx, int subIdx)
 		{
 			// var url = ui is UniImageUrl uiu ? uiu.Url.ToString() : String.Empty;
@@ -93,7 +149,7 @@ internal static class Renderables
 
 	}
 
-	#region 
+#region
 
 	public static IRenderable AsRenderable<T>(T? val) where T : struct
 	{
@@ -121,9 +177,9 @@ internal static class Renderables
 
 	public static Text ToPrettyText(this bool b) => b ? Elements.Txt_Rad : Elements.Txt_Mul;
 
-	#endregion
+#endregion
 
-#region 
+#region
 
 	public static SpcTable CreateMainTable()
 	{

@@ -59,7 +59,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
-		Engines       = Config.GetSelectedEngines();
+		Engines       = SearchConfig.GetSelectedEngines(Config.SearchEngines);
 	}
 
 	static SearchClient() { }
@@ -132,6 +132,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 		if (Config.PriorityEngines == SearchEngineOptions.Auto) {
 			var best = GetBest(results);
 			s_logger.LogInformation("Best: {Sr}", best);
+
 			if (best != null) {
 				OpenResult(best.Url);
 			}
@@ -143,24 +144,9 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	/// <inheritdoc />
 	public async ValueTask<bool> ApplyConfigAsync(SearchConfig cfg, CancellationToken ct = default)
 	{
-		Config  = cfg;
-		Engines = Config.GetSelectedEngines();
-
+		Config = cfg;
 		s_logger.LogTrace("Loading engines");
-
-		foreach (var engine in Engines) {
-
-			if (engine is ISearchConfigReceiver rcvr) {
-				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
-				await rcvr.ApplyConfigAsync(Config, ct);
-
-			}
-
-			if (engine is ICookiesReceiver ck) {
-				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
-				await ck.ApplyCookiesAsync(Config.GetCookiesSource(), ct);
-			}
-		}
+		await Config.LoadEngines(Engines, ct);
 
 		s_logger.LogDebug("Loaded engines");
 

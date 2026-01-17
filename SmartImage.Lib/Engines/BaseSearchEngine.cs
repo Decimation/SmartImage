@@ -4,6 +4,7 @@
 
 using System.Runtime.CompilerServices;
 using Flurl.Http;
+using Flurl.Http.Configuration;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
@@ -46,11 +47,12 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 	[JI]
 	protected virtual string[] ErrorBodyMessages { get; }
 
-	protected static FlurlClient Client { get; }
+	protected static IFlurlClient Client {get;}
+
 
 	static BaseSearchEngine()
 	{
-		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, static builder =>
+		Client = FlurlHttp.Clients.GetOrAdd(nameof(BaseSearchEngine), null, static builder =>
 		{
 			builder.Headers.AddOrReplace(HeaderNames.UserAgent, R1.UserAgent1);
 
@@ -67,18 +69,18 @@ public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngin
 
 			});
 
-			builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
+			// builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
 
 		});
 	}
 
 	protected BaseSearchEngine([NN] Url url)
 	{
-		Url           = url;
+		Url               = url;
 		Timeout           = TimeSpan.FromSeconds(30);
 		ErrorBodyMessages = [];
-		MaxLength           = null;
-
+		MaxLength         = null;
+		
 	}
 
 

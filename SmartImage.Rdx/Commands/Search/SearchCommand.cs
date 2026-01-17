@@ -73,6 +73,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private SpcTable m_mainTable;
 
+	// private readonly ConcurrentDictionary<SearchResult, SelectionPrompt<SearchResultItem>> m_prompts = new();
+
 	private Layout m_layout;
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchCommand));
@@ -167,6 +169,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// AnsiConsole.Write(m_layout);
 
 		try {
+
 			IRenderable elem = CommandSettings.Interactive ? m_layout : m_mainTable;
 
 			Task main = AnsiConsole.Live(elem)
@@ -234,6 +237,20 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				m_resultTables.TryAdd(result, table);
+
+				/*var prompt = new SelectionPrompt<SearchResultItem>()
+				{
+					Converter = static r =>
+					{
+						return r.Url;
+					},
+					Mode = SelectionMode.Independent,
+					SearchEnabled = true,
+				};
+				prompt.AddChoices(result.Results);
+
+				m_prompts.TryAdd(result, prompt);*/
+
 				m_mainTable.AddRow(result.GetMainRows());
 				Elements.Prm_SearchResult.AddChoice(result);
 			}
@@ -284,6 +301,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					break;
 				}
 
+				// var selx = AC.Prompt(m_prompts[sr]);
+
 				var sel     = ShellSelection.GetSelectionChoice(sr);
 				var sri     = sel.Item;
 				var selIdx  = sel.Index();
@@ -297,7 +316,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Scan) {
+				if (cmd == R2.Chc_Scan && !sel.IsScannedItem) {
 					await AnsiConsole.Live(srTable).StartAsync(async (f) =>
 					{
 						s_logger.LogTrace("Scanning {Item}", sri);
@@ -316,6 +335,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							srTable.InsertRow(selIdx + i + 1, scnRow);
 						}
 
+						// m_prompts[sr].AddChoiceGroup(sri, sri.ScannedItems);
 
 						f.Refresh();
 
@@ -357,9 +377,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 
-			} while (cmd != R2.Chc_Back);
+			} while (cmd != R2.Chc_Back && !ct.IsCancellationRequested);
 
-		} while (cmd != R2.Chc_Exit);
+		} while (cmd != R2.Chc_Exit && !ct.IsCancellationRequested);
 	}
 
 #endregion
@@ -426,7 +446,18 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 
-		var pnl = new Panel(ci) { Expand = true, Border = BoxBorder.None };
+		var pnl        = new Panel(ci) { Expand = true, Border = BoxBorder.None, Header = new PanelHeader($"{sri.Value}")};
+		/*var sriLayout = new Layout("Info");
+
+		sriLayout.SplitColumns(
+			new Layout("Metadata"),
+			new Layout("Image")
+		);
+
+
+		var grid = sri.GetInfoGrid();
+		sriLayout["Metadata"].Update(grid);
+		sriLayout["Image"].Update(ci);*/
 
 		AnsiConsole.Live(pnl).Start(ldc =>
 		{
@@ -516,8 +547,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		// AnsiConsole.Clear();
 
-		// m_cts.Cancel();
 		m_ctsRun.Cancel();
+		m_cts.Cancel();
+		m_cts.TryReset();
+		m_ctsRun.TryReset();
 
 		args.Cancel = true;
 

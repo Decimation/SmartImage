@@ -209,10 +209,25 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		set => Set(value);
 	}
 
-
 #endregion
 
-	public IEnumerable<BaseSearchEngine> GetSelectedEngines() => GetSelectedEngines(SearchEngines);
+	
+
+	public async ValueTask LoadEngines(IEnumerable<BaseSearchEngine> engines2, CancellationToken ct)
+	{
+		foreach (BaseSearchEngine engine in engines2) {
+			if (engine is ISearchConfigReceiver rcvr) {
+				s_logger.LogTrace("Applying config to {Engine}", engine.Name);
+				await rcvr.ApplyConfigAsync(this, ct);
+
+			}
+
+			if (engine is ICookiesReceiver ck) {
+				s_logger.LogTrace("Applying cookies to {Engine}", engine.Name);
+				await ck.ApplyCookiesAsync(GetCookiesSource(), ct);
+			}
+		}
+	}
 
 	public static IEnumerable<BaseSearchEngine> GetSelectedEngines(SearchEngineOptions options)
 	{
@@ -321,20 +336,14 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	*/
 
 
-	public SearchConfig()
-	{
-		PropertyChanged += static (sender, args) =>
-		{
-			//
-			s_logger.LogTrace("{Sender} Changed {PropName}", sender, args.PropertyName);
-		};
-	}
+	public SearchConfig() { }
 
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
 	private void OnPropertyChanged([CMN] string propertyName = null)
 	{
+		s_logger.LogTrace("Changed {PropName}", propertyName);
 		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
@@ -342,5 +351,32 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	{
 		return $"{SearchEngines}\n{PriorityEngines}";
 	}
+
+
+	/*public static IConfigurationRoot GetConfig()
+	{
+	// TODO
+		/*var bldr2 = new ConfigurationBuilder();
+		var host  = Host.CreateDefaultBuilder();
+		var bldr  = host.ConfigureServices((ctx, svc) => { svc.AddSingleton<SearchConfig>(); });
+
+		bldr2.SetBasePath(Directory.GetCurrentDirectory())
+			.AddJsonFile("smartimage.json", optional: false, reloadOnChange: true);
+			#1#
+
+		// TODO
+
+		var currentDirectory = BaseOSIntegration.ExecutableDirectory;
+		var configFileName   = $"{R1.Name}.json";
+
+		// var configFilePath   = Path.Combine(currentDirectory, configFileName);
+
+		var cfg = new ConfigurationBuilder()
+			.SetBasePath(currentDirectory)
+			.AddJsonFile(configFileName, optional: false, reloadOnChange: true)
+			.Build();
+
+		return cfg;
+	}*/
 
 }

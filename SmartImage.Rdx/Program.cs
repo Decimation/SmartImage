@@ -78,8 +78,8 @@ public static class Program
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
 
-			c.AddCommand<ServerCommand>("server")
-				.WithDescription("Start listen server (experimental)");
+			/*c.AddCommand<ServerCommand>("server")
+				.WithDescription("Start listen server (experimental)");*/
 		});
 
 		int x = BaseOSIntegration.EC_OK;
@@ -168,6 +168,8 @@ public static class Program
 			args = [sz];
 		}*/
 
+#if !DEBUG
+		
 
 		if (Console.IsInputRedirected) {
 			Trace.WriteLine("Input redirected");
@@ -182,33 +184,7 @@ public static class Program
 
 			AnsiConsole.WriteLine($"Received input from stdin");
 		}
+#endif
 
 	}
-
-	/*public static IConfigurationRoot GetConfig()
-	{
-	// TODO
-		/*var bldr2 = new ConfigurationBuilder();
-		var host  = Host.CreateDefaultBuilder();
-		var bldr  = host.ConfigureServices((ctx, svc) => { svc.AddSingleton<SearchConfig>(); });
-
-		bldr2.SetBasePath(Directory.GetCurrentDirectory())
-			.AddJsonFile("smartimage.json", optional: false, reloadOnChange: true);
-			#1#
-
-		// TODO
-
-		var currentDirectory = BaseOSIntegration.ExecutableDirectory;
-		var configFileName   = $"{R1.Name}.json";
-
-		// var configFilePath   = Path.Combine(currentDirectory, configFileName);
-
-		var cfg = new ConfigurationBuilder()
-			.SetBasePath(currentDirectory)
-			.AddJsonFile(configFileName, optional: false, reloadOnChange: true)
-			.Build();
-
-		return cfg;
-	}*/
-
 }

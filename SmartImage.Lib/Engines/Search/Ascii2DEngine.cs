@@ -52,6 +52,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		MaxLength  = 10_000_000;
 		Jar        = new CookieJar();
 		m_fsClient = new FlareSolverrClient();
+		
 	}
 
 
@@ -148,7 +149,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 				try {
 					var msg = new HttpRequestMessage(HttpMethod.Get, origin);
-
+					
 					var fsr     = await m_fsClient.Clearance.Solverr.SolveAsync(msg).ConfigureAwait(false);
 					var cookies = fsr.Solution.Cookies;
 					var newUrl  = fsr.Solution.Url;

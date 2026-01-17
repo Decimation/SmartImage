@@ -292,8 +292,7 @@ public static partial class ImageScanner
 			request = new FlurlRequest(value) { };
 		}
 
-		var response = await request
-			               .OnError(act => { act.ExceptionHandled = true; })
+		var response = await request.OnError(act => { act.ExceptionHandled = true; })
 			               .GetAsync(cancellationToken: ct);
 
 		return response;
