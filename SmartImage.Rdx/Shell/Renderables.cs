@@ -140,7 +140,7 @@ internal static class Renderables
 			return
 			[
 				new Text($"#{idx}.{subIdx}", style),
-				new Text(Markup.Escape(sri.Url)),
+				new Text(Markup.Escape(sri.Url), new Style(link: sri.Url)),
 				sri.GetSimilarity(),
 				Elements.Txt_NA,
 				sri.GetResolution()
@@ -203,7 +203,7 @@ internal static class Renderables
 	{
 		var tb = new SpcTable()
 		{
-			Caption     = new TableTitle("Results", Elements.Sty_ResultHeader),
+			// Caption     = new TableTitle("Results", Elements.Sty_ResultHeader),
 			Border      = TableBorder.Simple,
 			ShowHeaders = true,
 		};

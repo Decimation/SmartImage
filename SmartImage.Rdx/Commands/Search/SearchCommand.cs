@@ -130,7 +130,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		Client = new SearchClient(Config);
 
-		m_mainTable = CommandSettings.Interactive ? Renderables.CreateMainTable() : Renderables.CreateFullResultTable();
+		m_mainTable        = CommandSettings.Interactive ? Renderables.CreateMainTable() : Renderables.CreateFullResultTable();
 		m_mainTable.Expand = true;
 	}
 
@@ -307,6 +307,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var sri     = sel.Item;
 				var selIdx  = sel.Index();
 				var selIdx2 = sel.Index2();
+				
 
 				s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
 
@@ -326,7 +327,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						if (!scannedOk) {
 							return;
 						}
-
+						
 						for (int i = 0; i < sri.ScannedItems.Count; i++) {
 							SearchResultItem scnItm = sri.ScannedItems[i];
 							scnItm.CalculateSimilarity(Query.Source);
@@ -446,7 +447,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 
-		var pnl        = new Panel(ci) { Expand = true, Border = BoxBorder.None, Header = new PanelHeader($"{sri.Value}")};
+		var pnl = new Panel(ci) { Expand = true, Border = BoxBorder.None, Header = new PanelHeader($"{sri.Value}") };
 		/*var sriLayout = new Layout("Info");
 
 		sriLayout.SplitColumns(

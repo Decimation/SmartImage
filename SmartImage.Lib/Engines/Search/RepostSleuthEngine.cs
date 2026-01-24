@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
@@ -59,7 +60,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 				                     }, cancellationToken: token);
 
 			if (response.StatusCode == 530) {
-				goto ret;
+				goto ret;	
 			}
 
 			var s = await response.GetStringAsync().ConfigureAwait(false);
@@ -98,7 +99,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 #region API Objects
 
-	private class RepostSleuthMatch
+	public class RepostSleuthMatch
 	{
 
 		public int              hamming_distance;
@@ -119,13 +120,14 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 				Site       = post.subreddit,
 				Url        = post.url,
 				Title      = post.title,
-				Time       = DateTimeOffset.FromUnixTimeSeconds((long) post.created_at).LocalDateTime
+				Time       = DateTimeOffset.FromUnixTimeSeconds((long) post.created_at).LocalDateTime,
+				Metadata = this
 			});
 		}
 
 	}
 
-	private class RepostSleuthPost
+	public class RepostSleuthPost
 	{
 
 		public string post_id;
@@ -142,7 +144,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 	}
 
 	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-	private class RepostSleuthResult
+	public class RepostSleuthResult
 	{
 
 		public object                     meme_template;
@@ -155,7 +157,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	}
 
-	private class RepostSleuthSearchSettings
+	public class RepostSleuthSearchSettings
 	{
 
 		public bool   filter_crossposts;
@@ -177,7 +179,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	}
 
-	private class RepostSleuthSearchTimes
+	public class RepostSleuthSearchTimes
 	{
 
 		public double pre_annoy_filter_time;

@@ -36,7 +36,7 @@ internal record ShellSelection
 		var rg = ItemIdx + Item.Root.Results[..ItemIdx].Sum(x => x.ScannedItems.Count);
 
 
-		var sumIdx = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
+		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
 		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);
 
 		return sumIdx2;
@@ -132,5 +132,46 @@ internal record ShellSelection
 
 
 	}
+
+	/*public static ShellSelection GetSelectionChoice2(SearchResult sr)
+	{
+		var prompt = new SelectionPrompt<SearchResultItem>()
+		{
+			Mode = SelectionMode.Independent,
+			SearchEnabled = true,
+			Converter = item =>
+			{
+				//
+				return item.Url;
+			}
+		};
+
+		foreach (var item in sr.Results) {
+
+			if (item.HasScannedItems) {
+				prompt.AddChoiceGroup(item, item.ScannedItems);
+
+			}
+			else {
+				prompt.AddChoice(item);
+
+			}
+		}
+
+		var resp    = AnsiConsole.Prompt(prompt);
+		int itemIdx = 0, scanIdx = 0;
+
+		if (resp.IsChild) {
+			scanIdx = resp.Parent.ScannedItems.IndexOf(resp);
+			itemIdx = sr.Results.IndexOf(resp.Parent);
+		}
+		else {
+			itemIdx = sr.Results.IndexOf(resp);
+
+		}
+
+
+		return new ShellSelection(resp, itemIdx, scanIdx, resp.IsChild);
+	}*/
 
 }
