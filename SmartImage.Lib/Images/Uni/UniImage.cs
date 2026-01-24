@@ -250,7 +250,7 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 				bool allocOk    = false;
 				bool allocImgOk = false;
 
-				(allocOk,allocImgOk) = await ui.AllocAll(ct);
+				(allocOk, allocImgOk) = await ui.AllocAll(ct);
 
 				s_logger.LogTrace("{Value} :: {AllocOk} {AllocImgOk}", o, allocOk, allocImgOk);
 
@@ -302,6 +302,8 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 		return !HasLocalFilePath;
 	}
 
+	public virtual string Name { get; protected set;}
+
 	[MURV]
 	public virtual string WriteImageToFile([CBN] string fn = null)
 	{
@@ -309,12 +311,11 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 			throw new InvalidOperationException();
 		}
 
-		fn ??= this switch
-		{
-			UniImageUrl uri   => uri.Url.GetFileName(),
-			UniImageFile file => file.LocalFileInfo.Name,
-			_                 => Path.GetRandomFileName()
-		};
+		if (HasLocalFilePath) {
+			return LocalFilePath;
+		}
+
+		fn ??= String.IsNullOrWhiteSpace(Name) ? Path.GetRandomFileName() : Name;
 
 		fn = Path.ChangeExtension(fn, ImageFormat.FileExtensions.First());
 

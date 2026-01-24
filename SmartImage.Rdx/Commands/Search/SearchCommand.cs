@@ -131,7 +131,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		Client = new SearchClient(Config);
 
 		m_mainTable = CommandSettings.Interactive ? Renderables.CreateMainTable() : Renderables.CreateFullResultTable();
-
+		m_mainTable.Expand = true;
 	}
 
 	public override async Task<int> ExecuteAsync(CommandContext context, SearchCommandSettings settings, CancellationToken cancellationToken)
@@ -161,7 +161,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_layout = new Layout("Root").SplitColumns(
 			new Layout("L").SplitRows(
 				new("LC", cfgPanel),
-				new("LT", m_mainTable)
+				new("LT", m_mainTable) { }
 			),
 			new Layout("R", ciPanel) { }
 		);

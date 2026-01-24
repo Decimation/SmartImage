@@ -20,7 +20,8 @@ namespace SmartImage.Lib.Engines.Search;
 
 public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 {
-	private const string URL_API   = "https://api.repostsleuth.com/image";
+
+	private const string URL_API   = "https://api.repostsleuth.com/api/image";
 	private const string URL_QUERY = "https://repostsleuth.com/search?url=";
 
 	public Url Endpoint => URL_API;
@@ -41,7 +42,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	public override void Dispose() { }
 
-	
+
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{
 		var sr = await base.GetResultAsync(query, token);
@@ -51,24 +52,17 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		try {
 			using var response = await Client.Request(Endpoint)
 				                     .WithTimeout(Timeout)
-				                     .SetQueryParams(new
+				                     .PostMultipartAsync(buildContent: content =>
 				                     {
-					                     filter               = true,
-					                     url                  = query.Upload,
-					                     same_sub             = false,
-					                     filter_author        = true,
-					                     only_older           = false,
-					                     include_crossposts   = false,
-					                     meme_filter          = false,
-					                     target_match_percent = 90,
-					                     filter_dead_matches  = false,
-					                     target_days_old      = 0
-				                     }).GetAsync(cancellationToken: token).ConfigureAwait(false);
+					                     var stream = query.Source.GetStream();
+					                     content.AddFile("image", stream, query.Source.Name);
+				                     }, cancellationToken: token);
 
 			if (response.StatusCode == 530) {
 				goto ret;
 			}
-			var s = await response.GetStreamAsync().ConfigureAwait(false);
+
+			var s = await response.GetStringAsync().ConfigureAwait(false);
 			obj = JsonSerializer.Deserialize<RepostSleuthResult>(s, JsOptions);
 		}
 		catch (JsonException e) {

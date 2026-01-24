@@ -92,7 +92,6 @@ public sealed class YandexEngine : BaseSearchEngine
 			var ocr     = jsonNode["initialState"]["cbirOcr"];
 			var ocrText = ocr["hasText"].GetValue<bool>() ? ocr["plainText"] : null;
 			sr.Overview = $"OCR: {ocrText}";
-
 			foreach (var site in sitesObj) {
 				// site.Root = sr;
 				var sri = site.ToItem(sr);
@@ -100,6 +99,8 @@ public sealed class YandexEngine : BaseSearchEngine
 				// var sri = site;
 				sr.Results.Add(sri);
 			}
+
+			// var sitesObjDistinct=sitesObj.DistinctBy(x=>x.OriginalImage.Url);
 
 			// sr.Results.AddRange(sitesObj);
 

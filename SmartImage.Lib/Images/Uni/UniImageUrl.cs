@@ -9,6 +9,7 @@ using Microsoft.IO;
 using SixLabors.ImageSharp.PixelFormats;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Net;
@@ -29,6 +30,10 @@ public class UniImageUrl : UniImage, IUrl
 	{
 		Url = url;
 	}
+
+
+	public override string Name => Url.GetFileName();
+
 
 	/*public static async ValueTask<UniImageUrl> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct=default)
 	{
