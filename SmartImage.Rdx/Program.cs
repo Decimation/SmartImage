@@ -49,6 +49,10 @@ public static class Program
 		{
 			Trace.WriteLine($"{sender} -> {eventArgs}");
 		};*/
+		
+		if (BaseOSIntegration.IsWindows) {
+			Console.Title = R1.Name;
+		}
 
 		Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
