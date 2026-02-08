@@ -44,6 +44,21 @@ internal record ShellSelection
 		// return rg + ScanIdx + (IsScannedItem?1:0);
 	}
 
+	public static int GetIndex2(SearchResultItem sri)
+	{
+		var itemIdx       = sri.Root.Results.IndexOf(sri);
+		var isScannedItem = sri.IsChild;
+
+		var scanIdx = isScannedItem ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0;
+
+		var rg = itemIdx + sri.Root.Results[..itemIdx].Sum(x => x.ScannedItems.Count);
+
+
+		var sumIdx2 = rg + scanIdx + (isScannedItem ? ((scanIdx == 0) ? 1 : 0) : 1);
+
+		return sumIdx2;
+	}
+
 	public int Index()
 	{
 		int i      = 0, j = 0;

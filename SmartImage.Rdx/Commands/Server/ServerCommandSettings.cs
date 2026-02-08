@@ -7,6 +7,7 @@ using Spectre.Console;
 using Spectre.Console.Cli;
 
 namespace SmartImage.Rdx.Commands.Server;
+#if SERVER
 
 public sealed class ServerCommandSettings : CommonCommandSettings
 {
@@ -25,3 +26,4 @@ public sealed class ServerCommandSettings : CommonCommandSettings
 	}
 
 }
+#endif

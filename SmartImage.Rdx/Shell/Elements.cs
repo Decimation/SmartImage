@@ -116,23 +116,6 @@ internal static class Elements
 		}
 	};
 
-	/*public static readonly SelectionPrompt<string> Prm_SearchResult2 = new()
-	{	
-		Mode            = SelectionMode.Independent,
-		SearchEnabled   = true,
-		PageSize        = 1,
-		MoreChoicesText = "...",
-		SearchPlaceholderText = null,
-		Title           = null,
-		WrapAround      = true,
-		Converter = static sr =>
-		{
-			//
-			return sr;
-		},
-		
-	};*/
-	
 	static Elements()
 	{
 		// Prm_SearchResult2.AddChoice("Exit");
@@ -141,6 +124,8 @@ internal static class Elements
 
 #endregion
 
+#if SERVER
+	
 #region Engine map table
 
 	//  TODO: FOR SERVER ONLY, DEPRECATE
@@ -174,5 +159,6 @@ internal static class Elements
 	}
 
 #endregion
+#endif
 
 }

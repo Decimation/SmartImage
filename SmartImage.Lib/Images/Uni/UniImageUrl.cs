@@ -35,12 +35,6 @@ public class UniImageUrl : UniImage, IUrl
 	public override string Name => Url.GetFileName();
 
 
-	/*public static async ValueTask<UniImageUrl> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct=default)
-	{
-		var ui = await TryCreateAsync(u,ct:ct);
-
-	}*/
-
 	// public override string Name => Url?.GetFileName();
 
 	public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct = default)
@@ -100,7 +94,7 @@ public class UniImageUrl : UniImage, IUrl
 		return ok;
 	}
 
-	protected override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
+	public override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
 		IFlurlResponse response = null;
 

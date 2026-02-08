@@ -7,6 +7,7 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Rdx.Commands.Server;
 
+#if SERVER
 public class SearchServerResponse
 {
 
@@ -30,3 +31,4 @@ public class SearchServerResponse
 	}
 
 }
+#endif

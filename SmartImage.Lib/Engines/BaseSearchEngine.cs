@@ -23,7 +23,7 @@ namespace SmartImage.Lib.Engines;
 #pragma warning disable CA1822
 #nullable disable
 
-public abstract class BaseSearchEngine : IDisposable, IEquatable<BaseSearchEngine>, ISearchEngine, IUrl
+public abstract class BaseSearchEngine : ISearchEngine, IDisposable, IEquatable<BaseSearchEngine>, IUrl
 {
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));

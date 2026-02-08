@@ -50,8 +50,7 @@ public enum UniImageType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISimilarity, IHashable,
-                                 IImage, INotifyPropertyChanged
+public abstract class UniImage : IUni, IEquatable<UniImage>
 {
 
 	protected static readonly ILogger s_logger;
@@ -186,11 +185,13 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 	/// <summary>
 	/// Allocates <see cref="Bytes"/>
 	/// </summary>
-	protected abstract ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
+	[MNNW(true, nameof(Bytes))]
+	public abstract ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
 
 	/// <summary>
 	/// Allocates <see cref="Image"/> from <see cref="Bytes"/>
 	/// </summary>
+	[MNNW(true, nameof(Image))]
 	public virtual async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (!HasImage) {
@@ -214,16 +215,9 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 	}
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
-	protected virtual async ValueTask<(bool AllocOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
+	public virtual ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
 	{
-		bool allocOk    = await AllocSourceAsync(ct);
-		bool allocImgOk = false;
-
-		if (allocOk) {
-			allocImgOk = await AllocImageAsync(ct);
-		}
-
-		return (allocOk, allocImgOk);
+		return ((IUni)this).AllocAll(ct);
 	}
 
 	/// <summary>
@@ -252,7 +246,7 @@ public abstract class UniImage : IDisposable, ILength, IEquatable<UniImage>, ISi
 
 				(allocOk, allocImgOk) = await ui.AllocAll(ct);
 
-				s_logger.LogTrace("{Value} :: {AllocOk} {AllocImgOk}", o, allocOk, allocImgOk);
+				s_logger.LogTrace("{Value} :: {AllocSrcOk} {AllocImgOk}", o, allocOk, allocImgOk);
 
 				if (autoDisposeOnError && (!allocOk || !allocImgOk)) {
 					ui?.Dispose();

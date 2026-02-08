@@ -1,6 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: ServerCommand.cs
 // Date: 2024/11/22 @ 03:11:26
 
+#if SERVER
+
 #nullable disable
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -317,3 +319,4 @@ public sealed class ServerCommand : CommonAsyncCommand<ServerCommandSettings>
 }
 
 #pragma warning restore IL2026
+#endif

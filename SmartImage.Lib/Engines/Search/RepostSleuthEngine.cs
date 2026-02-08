@@ -97,111 +97,112 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 
 	}
 
-#region API Objects
-
-	public class RepostSleuthMatch
-	{
-
-		public int              hamming_distance;
-		public double           annoy_distance;
-		public double           hamming_match_percent;
-		public int              hash_size;
-		public string           searched_url;
-		public RepostSleuthPost post;
-		public double           title_similarity;
-
-		public ValueTask<SearchResultItem> ToItem(SearchResult sr)
-		{
-
-			return ValueTask.FromResult(new SearchResultItem(sr)
-			{
-				Similarity = hamming_match_percent,
-				Artist     = post.author,
-				Site       = post.subreddit,
-				Url        = post.url,
-				Title      = post.title,
-				Time       = DateTimeOffset.FromUnixTimeSeconds((long) post.created_at).LocalDateTime,
-				Metadata = this
-			});
-		}
-
-	}
-
-	public class RepostSleuthPost
-	{
-
-		public string post_id;
-		public string url;
-		public object shortlink;
-		public string perma_link;
-		public string title;
-		public string dhash_v;
-		public string dhash_h;
-		public double created_at;
-		public string author;
-		public string subreddit;
-
-	}
-
-	[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
-	public class RepostSleuthResult
-	{
-
-		public object                     meme_template;
-		public RepostSleuthMatch          closest_match;
-		public string                     checked_url;
-		public object                     checked_post;
-		public RepostSleuthSearchSettings search_settings;
-		public RepostSleuthSearchTimes    search_times;
-		public List<RepostSleuthMatch>    matches;
-
-	}
-
-	public class RepostSleuthSearchSettings
-	{
-
-		public bool   filter_crossposts;
-		public bool   filter_same_author;
-		public bool   only_older_matches;
-		public bool   filter_removed_matches;
-		public bool   filter_dead_matches;
-		public int    max_days_old;
-		public bool   same_sub;
-		public int    max_matches;
-		public object target_title_match;
-		public string search_scope;
-		public bool   check_title;
-		public int    max_depth;
-		public bool   meme_filter;
-		public double target_annoy_distance;
-		public double target_meme_match_percent;
-		public double target_match_percent;
-
-	}
-
-	public class RepostSleuthSearchTimes
-	{
-
-		public double pre_annoy_filter_time;
-		public double index_search_time;
-		public double meme_filter_time;
-		public double meme_detection_time;
-		public double set_match_post_time;
-		public double remove_duplicate_time;
-		public double set_match_hamming;
-		public double image_search_api_time;
-		public double filter_removed_posts_time;
-		public double filter_deleted_posts_time;
-		public double set_meme_hash_time;
-		public double set_closest_meme_hash_time;
-		public double distance_filter_time;
-		public double get_closest_match_time;
-		public double total_search_time;
-		public double total_filter_time;
-		public double set_title_similarity_time;
-
-	}
-
-#endregion
 
 }
+
+#region API objects
+
+public class RepostSleuthPost
+{
+
+	public string post_id;
+	public string url;
+	public object shortlink;
+	public string perma_link;
+	public string title;
+	public string dhash_v;
+	public string dhash_h;
+	public double created_at;
+	public string author;
+	public string subreddit;
+
+}
+
+[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
+public class RepostSleuthResult
+{
+
+	public object                     meme_template;
+	public RepostSleuthMatch          closest_match;
+	public string                     checked_url;
+	public object                     checked_post;
+	public RepostSleuthSearchSettings search_settings;
+	public RepostSleuthSearchTimes    search_times;
+	public List<RepostSleuthMatch>    matches;
+
+}
+
+public class RepostSleuthSearchSettings
+{
+
+	public bool   filter_crossposts;
+	public bool   filter_same_author;
+	public bool   only_older_matches;
+	public bool   filter_removed_matches;
+	public bool   filter_dead_matches;
+	public int    max_days_old;
+	public bool   same_sub;
+	public int    max_matches;
+	public object target_title_match;
+	public string search_scope;
+	public bool   check_title;
+	public int    max_depth;
+	public bool   meme_filter;
+	public double target_annoy_distance;
+	public double target_meme_match_percent;
+	public double target_match_percent;
+
+}
+
+public class RepostSleuthSearchTimes
+{
+
+	public double pre_annoy_filter_time;
+	public double index_search_time;
+	public double meme_filter_time;
+	public double meme_detection_time;
+	public double set_match_post_time;
+	public double remove_duplicate_time;
+	public double set_match_hamming;
+	public double image_search_api_time;
+	public double filter_removed_posts_time;
+	public double filter_deleted_posts_time;
+	public double set_meme_hash_time;
+	public double set_closest_meme_hash_time;
+	public double distance_filter_time;
+	public double get_closest_match_time;
+	public double total_search_time;
+	public double total_filter_time;
+	public double set_title_similarity_time;
+
+}
+
+public class RepostSleuthMatch
+{
+
+	public int                                 hamming_distance;
+	public double                              annoy_distance;
+	public double                              hamming_match_percent;
+	public int                                 hash_size;
+	public string                              searched_url;
+	public RepostSleuthPost post;
+	public double                              title_similarity;
+
+	public ValueTask<SearchResultItem> ToItem(SearchResult sr)
+	{
+
+		return ValueTask.FromResult(new SearchResultItem(sr)
+		{
+			Similarity = hamming_match_percent,
+			Artist     = post.author,
+			Site       = post.subreddit,
+			Url        = post.url,
+			Title      = post.title,
+			Time       = DateTimeOffset.FromUnixTimeSeconds((long) post.created_at).LocalDateTime,
+			Metadata   = this
+		});
+	}
+
+}
+
+#endregion

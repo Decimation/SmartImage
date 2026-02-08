@@ -17,8 +17,7 @@ public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine
 
 	[ICBN]
 	[MURV]
-	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query,
-	                                                        CancellationToken token = default)
+	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
 
 		var parser = new HtmlParser();
@@ -31,9 +30,9 @@ public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine
 				                User_Agent = R1.UserAgent1
 			                })
 			                /*.OnError(s =>
-			                {
-				                s.ExceptionHandled = true;
-			                })*/
+						                {
+							                s.ExceptionHandled = true;
+						                })*/
 			                .GetAsync(cancellationToken: token);
 
 		var str = await res.GetStreamAsync();

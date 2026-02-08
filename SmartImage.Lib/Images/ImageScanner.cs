@@ -49,6 +49,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Web;
+// ReSharper disable UnusedMember.Global
 
 // ReSharper disable SuggestVarOrType_Elsewhere
 
@@ -138,80 +139,6 @@ public static partial class ImageScanner
 
 	internal const char URL_DELIM = '/';
 
-
-	/*public static async Task<bool> ScanForImagesAsync(Url url, ChannelWriter<UniImage> cw, CancellationToken ct = default)
-	{
-		string sz = null;
-
-		IHtmlDocument doc = null;
-
-		/* Immediate search  #1#
-		var uf = await UniImage.TryCreateAsync(url, autoInit: true, autoDisposeOnError: false, ct: ct);
-
-		IFlurlResponse res;
-
-		IFlurlRequest req;
-
-		if (uf != UniImage.Null && uf.HasImageFormat) {
-			await cw.WriteAsync(uf, ct);
-
-			goto ret;
-		}
-		else {
-			// uf.Stream.TrySeek();
-			// ReSharper disable once MethodHasAsyncOverload
-			uf?.Dispose();
-
-			req = Client.Request(url);
-			res = await req.GetAsync(cancellationToken: ct);
-
-			// stream = await res.GetStreamAsync();
-			sz = await res.GetStringAsync();
-		}
-
-
-		/*if (!stream.CanRead) {
-			stream.Dispose();
-			goto ret;
-		}#1#
-
-		var dp = new HtmlParser();
-
-		doc = await dp.ParseDocumentAsync(sz);
-
-		var urls = ParseImageUrlsByRegex(sz, url);
-
-
-		await Task.WhenAll(urls.Select(async u => await Body(u, ct)));
-
-		// await Parallel.ForEachAsync(urls, po, Body);
-
-	ret:
-		doc?.Dispose();
-		cw.TryComplete();
-		return true;
-
-		async ValueTask Body(string s, CancellationToken token)
-		{
-			var uni = await UniImage.TryCreateAsync(s, autoInit: true, autoDisposeOnError: true, ct: token);
-
-			if (token.IsCancellationRequested) {
-				return;
-			}
-
-			if (uni != UniImage.Null && uni.HasImageFormat) {
-				s_logger.LogTrace("Scan: {Uni}", uni);
-
-				// await cw.WriteAsync(uni, token);
-				await cw.WaitToWriteAsync(token);
-				await cw.WriteAsync(uni, token);
-
-			}
-			else {
-				uni?.Dispose();
-			}
-		}
-	}*/
 
 	public static IEnumerable<string> ParseImageUrlsByRegex(string html, Url url, bool heuristicFilter = true)
 	{

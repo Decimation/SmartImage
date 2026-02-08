@@ -19,8 +19,10 @@ namespace SmartImage.Lib.Engines.Results;
 
 // todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
 
-public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
+public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>, IResultItem, IUrl
 {
+
+#region
 
 	/// <summary>
 	///     Result containing this result item
@@ -33,12 +35,16 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 	[JI]
 	public SearchResultItem Parent { get; private set; }
 
+	public bool IsCloned { get; private init; }
+
 	[MNNW(true, nameof(Parent))]
 	public bool IsChild => Parent != null && Parent != this;
 
-	// [MN]
-	// [JPN("url")]
-	// public Url Url { get; protected set; }
+#endregion
+
+	[MN]
+	[JPN("url")]
+	public Url Url { get; protected set; }
 
 	/// <summary>
 	///     Title/caption of this result
@@ -96,6 +102,16 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 	/// </summary>
 	public DateTime? Time { get; internal set; }
 
+	public double? Similarity { get; internal set; }
+
+	[MNNW(true, nameof(Similarity))]
+	public bool HasSimilarity => Similarity.HasValue;
+
+	public ulong? Hash { get; internal set; }
+
+	[MNNW(true, nameof(Hash))]
+	public bool HasHash => Hash.HasValue;
+
 	/// <summary>
 	///     Additional metadata.
 	/// </summary>
@@ -109,9 +125,6 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 	[JI]
 	public bool IsRaw { get; }
 
-	[MNNW(true, nameof(Similarity))]
-	public bool HasSimilarity => Similarity.HasValue;
-
 	public double Score
 	{
 		get
@@ -121,9 +134,9 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 			var s = 0d;
 
-			if (HasImage) {
+			/*if (HasImage) {
 				s++;
-			}
+			}*/
 
 			if (HasHash) {
 				s++;
@@ -157,8 +170,6 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 	}
 
 #region
-
-	public bool IsCloned { get; private init; }
 
 	[CBN]
 	[field: CBN]
@@ -206,6 +217,12 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 #region
 
+	/*public List<SearchResultItem> ScannedItems { get; }
+
+	[MNNW(true, nameof(ScannedItems))]
+	public bool HasScannedItems => ScannedItems is { Count: > 0 };
+
+	[MNNW(true, nameof(Image))]
 	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (Url == null) {
@@ -232,9 +249,9 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 		else { }
 
 		return HasImage;
-	}
+	}*/
 
-
+	[MNNW(true, nameof(Thumbnail))]
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
 	{
 		if (!HasThumbnail) {
@@ -251,66 +268,6 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 		return HasThumbnail;
 	}
 
-	/*public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
-	{
-		if (!(await AllocImageAsync(ct))) {
-			// return false;
-		}
-
-		if (HasImage || HasScannedItems) {
-			return true;
-		}
-
-		await using var stream = GetStream();
-		using var       sr     = new StreamReader(stream);
-		var             str    = await sr.ReadToEndAsync(ct);
-
-		var       hp      = new HtmlParser();
-		var       urls    = ImageScanner.ParseImageUrlsByRegex(str, Url);
-		using var doc     = await hp.ParseDocumentAsync(str);
-		var       sriNews = new ConcurrentBag<SearchResultItem>();
-
-		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
-		{
-			var sriNew = new SearchResultItem(Root, false)
-			{
-				Parent       = this,
-				Url          = s,
-				Artist       = Artist,
-				Character    = Character,
-				Description  = Description,
-				Title        = Title,
-				Site         = Site,
-				Source       = Source,
-				Time         = Time,
-				IsScanResult = true,
-			};
-
-			// var sriNew = MemberwiseCloneWithUrl(s);
-
-			var allocImgOk = await sriNew.AllocImageAsync(token);
-
-			if (allocImgOk) {
-				sriNews.Add(sriNew);
-			}
-			else {
-				sriNew?.Dispose();
-			}
-		});
-
-		// Root.Results.InsertRange(Root.Results.IndexOf(this), sriNews);
-		// ScannedItems = sriNews.ToList();
-
-		ScannedItems.AddRange(sriNews);
-
-		return HasScannedItems;
-	}*/
-
-	public List<SearchResultItem> ScannedItems { get; }
-
-	[MNNW(true, nameof(ScannedItems))]
-	public bool HasScannedItems => ScannedItems is { Count: > 0 };
-
 	public async ValueTask<bool> ScanAsync(CancellationToken ct = default)
 	{
 		if (HasScannedItems) {
@@ -321,7 +278,7 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 		var task = ScanAsync(cw.Writer, s =>
 		{
-			var clone= PartialCopyCloneWithUrl(s);
+			var clone = PartialCopyCloneWithUrl(s);
 			return clone;
 		}, ct);
 
@@ -351,7 +308,7 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 			Site        = Site,
 			Source      = Source,
 			Time        = Time,
-			Metadata = Metadata,
+			Metadata    = Metadata,
 			IsCloned    = true,
 		};
 	}
@@ -480,49 +437,20 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 #endregion
 
-	/*public int Find()
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	protected virtual void OnPropertyChanged([CMN] string propertyName = null)
 	{
-		int i = 0;
-
-		if (IsChild) {
-			i += Parent.ScannedItems.IndexOf(this);
-		}
-
-		var parent = this.Parent ?? this;
-
-		for (i = 0; i < parent.Root.Results.Count; i++) {
-			var res = parent.Root.Results[i];
-
-			if (res.IsChild) {
-				var cSc = res.ScannedItems.IndexOf(this);
-				i += cSc == -1 ? 0 : cSc;
-			}
-
-		}
-
-		return i;
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 	}
 
-	public static int FindSumIndex(SearchResultItem targetItem)
+	protected virtual bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
 	{
-		if (targetItem == null || targetItem.Root == null || targetItem.Root.Results == null)
-			throw new ArgumentNullException(nameof(targetItem), "Target item or its root results cannot be null.");
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
 
-		int sumIndex = targetItem.Root.Results.IndexOf(targetItem);
-
-		// Iterate through the Results list in the SearchResult
-		for (int i = 0; i < targetItem.Root.Results.Count; i++) {
-			var parentItem = targetItem.Root.Results[i];
-
-			// Check if the target item is in the ScannedItems of the current parent item
-			if (parentItem.ScannedItems != null && parentItem.ScannedItems.Contains(targetItem)) {
-				int scannedIndex = parentItem.ScannedItems.IndexOf(targetItem);
-				sumIndex = i + scannedIndex;
-				break;
-			}
-		}
-
-		return sumIndex;
-	}*/
-
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
 }

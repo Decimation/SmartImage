@@ -81,9 +81,11 @@ public static class Program
 
 			c.AddCommand<IntegrationCommand>("integrate")
 				.WithDescription("Configure system integration such as context menu");
-
-			/*c.AddCommand<ServerCommand>("server")
-				.WithDescription("Start listen server (experimental)");*/
+#if SERVER
+			
+			c.AddCommand<ServerCommand>("server")
+				.WithDescription("Start listen server (experimental)");
+#endif
 		});
 
 		int x = BaseOSIntegration.EC_OK;
