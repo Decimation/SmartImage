@@ -19,7 +19,7 @@ namespace SmartImage.Lib.Engines.Results;
 
 // todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
 
-public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>, IResultItem, IUrl
+public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
 {
 
 #region
@@ -42,9 +42,11 @@ public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEqu
 
 #endregion
 
+	/*
 	[MN]
 	[JPN("url")]
 	public Url Url { get; protected set; }
+	*/
 
 	/// <summary>
 	///     Title/caption of this result
@@ -102,15 +104,6 @@ public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEqu
 	/// </summary>
 	public DateTime? Time { get; internal set; }
 
-	public double? Similarity { get; internal set; }
-
-	[MNNW(true, nameof(Similarity))]
-	public bool HasSimilarity => Similarity.HasValue;
-
-	public ulong? Hash { get; internal set; }
-
-	[MNNW(true, nameof(Hash))]
-	public bool HasHash => Hash.HasValue;
 
 	/// <summary>
 	///     Additional metadata.
@@ -134,9 +127,9 @@ public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEqu
 
 			var s = 0d;
 
-			/*if (HasImage) {
+			if (HasImage) {
 				s++;
-			}*/
+			}
 
 			if (HasHash) {
 				s++;
@@ -217,7 +210,7 @@ public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEqu
 
 #region
 
-	/*public List<SearchResultItem> ScannedItems { get; }
+	public List<SearchResultItem> ScannedItems { get; }
 
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
@@ -249,7 +242,7 @@ public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEqu
 		else { }
 
 		return HasImage;
-	}*/
+	}
 
 	[MNNW(true, nameof(Thumbnail))]
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
@@ -437,20 +430,4 @@ public class SearchResultItem : IComparable<SearchResultItem>, IComparable, IEqu
 
 #endregion
 
-	public event PropertyChangedEventHandler PropertyChanged;
-
-	protected virtual void OnPropertyChanged([CMN] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
-
-	protected virtual bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
-	{
-		if (EqualityComparer<T>.Default.Equals(field, value))
-			return false;
-
-		field = value;
-		OnPropertyChanged(propertyName);
-		return true;
-	}
 }

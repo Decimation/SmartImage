@@ -46,13 +46,12 @@ internal record ShellSelection
 
 	public static int GetIndex2(SearchResultItem sri)
 	{
-		var itemIdx       = sri.Root.Results.IndexOf(sri);
 		var isScannedItem = sri.IsChild;
+		var itemIdx       = sri.Root.Results.IndexOf(sri);
 
 		var scanIdx = isScannedItem ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0;
 
 		var rg = itemIdx + sri.Root.Results[..itemIdx].Sum(x => x.ScannedItems.Count);
-
 
 		var sumIdx2 = rg + scanIdx + (isScannedItem ? ((scanIdx == 0) ? 1 : 0) : 1);
 
@@ -83,6 +82,43 @@ internal record ShellSelection
 			var result  = Item.Parent.Root.Results[k];
 			var scnItm  = result.ScannedItems;
 			var scnIdx2 = scnItm.IndexOf(Item);
+
+			if (scnIdx2 == -1) {
+				t += scnItm.Count;
+			}
+			else {
+				t += scnIdx2;
+			}
+
+		}
+
+		return root + scnIdx + t;
+	}
+
+	public static int GetIndex(SearchResultItem sri)
+	{
+		int i      = 0, j = 0;
+		var scnIdx = 0;
+		int root   = 0;
+		int t      = 0;
+
+		if (sri.IsChild) {
+			// scnIdx = Item.Parent.ScannedItems.IndexOf(Item);
+			root = sri.Parent.Root.Results.IndexOf(sri.Parent);
+
+			scnIdx++;
+
+		}
+		else {
+			root = sri.Root.Results.IndexOf(sri);
+
+		}
+
+		for (int k = 0; k < root; k++) {
+
+			var result  = sri.Parent.Root.Results[k];
+			var scnItm  = result.ScannedItems;
+			var scnIdx2 = scnItm.IndexOf(sri);
 
 			if (scnIdx2 == -1) {
 				t += scnItm.Count;

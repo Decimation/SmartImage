@@ -50,7 +50,7 @@ public enum UniImageType
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IUni, IEquatable<UniImage>
+public abstract class UniImage : IUniImage, IEquatable<UniImage>
 {
 
 	protected static readonly ILogger s_logger;
@@ -215,9 +215,16 @@ public abstract class UniImage : IUni, IEquatable<UniImage>
 	}
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
-	public virtual ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
+	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
 	{
-		return ((IUni)this).AllocAll(ct);
+		bool allocOk    = await AllocSourceAsync(ct);
+		bool allocImgOk = false;
+
+		if (allocOk) {
+			allocImgOk = await AllocImageAsync(ct);
+		}
+
+		return (allocOk, allocImgOk);
 	}
 
 	/// <summary>
@@ -296,7 +303,7 @@ public abstract class UniImage : IUni, IEquatable<UniImage>
 		return !HasLocalFilePath;
 	}
 
-	public virtual string Name { get; protected set;}
+	public virtual string Name { get; protected set; }
 
 	[MURV]
 	public virtual string WriteImageToFile([CBN] string fn = null)

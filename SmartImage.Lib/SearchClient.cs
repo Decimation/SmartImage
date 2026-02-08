@@ -122,8 +122,8 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 		}
 
 		var tasks = GetSearchTasks(query, token);
-
 		var results = await Task.WhenAll(tasks);
+
 
 		s_logger.LogTrace("Results: {Res}", results.Length);
 
@@ -233,12 +233,17 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 		return Engines.Select(e =>
 		{
-			var res = e.GetResultAsync(query, token: token).ContinueWith(c =>
+			var res = e.GetResultAsync(query, token: token).ContinueWith((c,tk) =>
 			{
 				var sr = c.Result;
+
+				if (tk is CancellationToken {IsCancellationRequested: true} ctk) {
+					return sr;
+				}
+
 				ProcessResult(sr);
 				return sr;
-			}, TaskContinuationOptions.OnlyOnRanToCompletion);
+			}, TaskContinuationOptions.OnlyOnRanToCompletion, token);
 
 			return res;
 		});

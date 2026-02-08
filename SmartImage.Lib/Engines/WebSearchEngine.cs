@@ -19,7 +19,6 @@ public abstract class WebSearchEngine<TItem, TIntermediate> : ParsedSearchEngine
 	[MURV]
 	protected override async Task<IDocument> GetSourceAsync(SearchResult sr, SearchQuery query, CancellationToken token = default)
 	{
-
 		var parser = new HtmlParser();
 
 		using var res = await Client.Request(sr.RawUrl)

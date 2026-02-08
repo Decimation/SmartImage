@@ -62,6 +62,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	private readonly CancellationTokenSource m_cts;
 
 	private readonly CancellationTokenSource m_ctsRun;
+	private readonly CancellationTokenSource m_ctsRunSearch;
 
 	/// <summary>
 	/// Key: <see cref="SearchResult"/>
@@ -85,6 +86,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 	{
 		m_cts    = new CancellationTokenSource();
 		m_ctsRun = new CancellationTokenSource();
+		m_ctsRunSearch = new CancellationTokenSource();
 
 		// m_results      = new();
 		m_resultTables       = new ConcurrentDictionary<SearchResult, SpcTable>();
@@ -169,13 +171,13 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		);
 
 		// AnsiConsole.Write(m_layout);
-
+		
 		try {
 
 			IRenderable elem = CommandSettings.Interactive ? m_layout : m_mainTable;
 
 			Task main = AnsiConsole.Live(elem)
-				.StartAsync(c => RunSearchLiveAsync(c, m_ctsRun.Token));
+				.StartAsync(c => RunSearchLiveAsync(c, m_ctsRunSearch.Token));
 
 			await main;
 		}
@@ -221,10 +223,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 #if UNITTEST
 		return;
 #endif
-
+		
 		var search = Client.RunSearchAsync(Query, token: ct);
 
-		while (await Client.ResultChannel.Reader.WaitToReadAsync(ct)) {
+		while (!ct.IsCancellationRequested && await Client.ResultChannel.Reader.WaitToReadAsync(ct)) {
 			var task = Client.ResultChannel.Reader.ReadAsync(ct);
 
 			var result = await task;
@@ -285,8 +287,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			clrWrite = true;
 
-			do 
-			{
+			do {
 				if (clrWrite) {
 					AnsiConsole.Clear();
 					AnsiConsole.Write(srTable);
@@ -555,10 +556,11 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		// AnsiConsole.Clear();
 
-		m_ctsRun.Cancel();
-		m_cts.Cancel();
-		m_cts.TryReset();
-		m_ctsRun.TryReset();
+		m_ctsRunSearch.Cancel();
+
+		// m_cts.Cancel();
+		// m_cts.TryReset();
+		// m_ctsRun.TryReset();
 
 		args.Cancel = true;
 
@@ -584,6 +586,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_resultTables.Clear();
 		m_cts.Dispose();
 		m_ctsRun.Dispose();
+		m_ctsRunSearch.Dispose();
 		m_previewCanvasCache.Dispose();
 		Client.Dispose();
 		Query.Dispose();
