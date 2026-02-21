@@ -1,19 +1,8 @@
 ﻿#nullable disable
-using System.Collections.Concurrent;
-using System.ComponentModel;
-using System.Data.SqlTypes;
-using System.Diagnostics;
-using System.Text.Json.Serialization;
 using System.Threading.Channels;
-using AngleSharp.Html.Parser;
-using Flurl.Http;
-using Kantan.Diagnostics;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp.Formats;
-using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 

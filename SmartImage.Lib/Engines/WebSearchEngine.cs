@@ -4,7 +4,6 @@
 using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
 using Flurl.Http;
-using Kantan.Net.Utilities;
 using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines;

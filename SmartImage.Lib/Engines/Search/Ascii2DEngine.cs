@@ -1,9 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: Ascii2DEngine.cs
 // Date: 2024/06/06 @ 14:06:00
 
-using System.Diagnostics;
 using System.Net;
-using System.Xml.Linq;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
@@ -12,7 +10,6 @@ using FlareSolverrSharp.Types;
 using Flurl.Http;
 using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
-using SixLabors.ImageSharp.Formats.Bmp;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines.Results;

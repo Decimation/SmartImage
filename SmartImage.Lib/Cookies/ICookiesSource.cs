@@ -2,7 +2,6 @@
 // Date: 2024/10/15 @ 12:10:00
 
 using Kantan.Net.Web;
-using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Lib.Cookies;
 

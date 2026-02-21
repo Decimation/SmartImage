@@ -1,15 +1,10 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: GoogleLens.cs
 // Date: 2025/04/15 @ 11:04:23
 
-using AngleSharp;
-using AngleSharp.Css.Values;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
-using AngleSharp.XPath;
 using Flurl.Http;
-using Flurl.Http.Content;
-using Kantan.Net.Utilities;
 using Kantan.Net.Web;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Cookies;

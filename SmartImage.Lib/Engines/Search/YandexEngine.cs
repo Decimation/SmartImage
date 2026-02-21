@@ -1,23 +1,16 @@
 // Author: Deci | Project: SmartImage.Lib | Name: YandexEngine.cs
 // Date: 2024/06/06 @ 14:06:00
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
-using Flurl;
 using Flurl.Http;
 using Kantan.Net.Utilities;
-using Kantan.Text;
 using Microsoft.Extensions.Logging;
-using SmartImage.Lib.Clients;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Images.Uni;
 
 // ReSharper disable SuggestVarOrType_SimpleTypes
 

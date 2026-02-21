@@ -1,14 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: OllamaModel.cs
 // Date: 2025/07/15 @ 23:07:47
 
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Flurl.Http;
-using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Net.Http.Headers;
-using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 

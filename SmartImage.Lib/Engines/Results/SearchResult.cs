@@ -1,10 +1,6 @@
-﻿using AngleSharp.Css.Values;
-using AngleSharp.Html.Parser;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using Kantan.Diagnostics;
-using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
-using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Diagnostics;
 

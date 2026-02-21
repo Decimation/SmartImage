@@ -1,6 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Nodes;
-using Kantan.Net;
+﻿using Kantan.Net;
 
 // ReSharper disable PossibleNullReferenceException
 

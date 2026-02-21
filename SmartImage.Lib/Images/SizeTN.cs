@@ -15,7 +15,6 @@ global using SizeIS = SixLabors.ImageSharp.Size;
 
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using SixLabors.ImageSharp;
 
 // ReSharper disable InconsistentNaming
 

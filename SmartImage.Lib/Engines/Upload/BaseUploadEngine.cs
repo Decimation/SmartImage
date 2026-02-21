@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
-using System.Net;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
-using Novus.OS;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;

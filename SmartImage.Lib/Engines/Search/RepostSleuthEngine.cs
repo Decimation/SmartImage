@@ -1,10 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Text.Json.Serialization.Metadata;
-using AngleSharp.Css.Values;
-using FlareSolverrSharp.Constants;
 using Flurl.Http;
 using SmartImage.Lib.Engines.Results;
 using JsonSerializer = System.Text.Json.JsonSerializer;

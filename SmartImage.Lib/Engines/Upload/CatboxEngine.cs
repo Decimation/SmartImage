@@ -1,9 +1,4 @@
 ﻿using Flurl.Http;
-using Kantan.Net.Utilities;
-using System.Net;
-using System.Net.Http.Headers;
-using Microsoft.Net.Http.Headers;
-using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;

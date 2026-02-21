@@ -1,9 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: ISimilarity.cs
 // Date: 2024/11/13 @ 16:11:26
 
-using System.Diagnostics.CodeAnalysis;
 using CoenM.ImageHash;
-using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Model;
 

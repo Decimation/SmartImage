@@ -1,26 +1,16 @@
-﻿using Kantan.Model;
-using Kantan.Model.MemberIndex;
-using Kantan.Utilities;
-using Microsoft.Extensions.Configuration;
+﻿using Kantan.Utilities;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Clients;
 using SmartImage.Lib.Cookies;
 using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Search;
-using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Configuration;
-using System.Data;
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Text.Json;
 using SmartImage.Lib.Model;
-using SmartImage.Lib.Utilities.Integration;
 using Configuration = System.Configuration.Configuration;
 using ConfigurationManager = System.Configuration.ConfigurationManager;
-using ConfigurationSection = System.Configuration.ConfigurationSection;
 
 namespace SmartImage.Lib;
 

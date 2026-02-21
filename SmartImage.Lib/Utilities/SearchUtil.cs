@@ -1,22 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.SqlTypes;
-using System.Globalization;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
+﻿using System.Globalization;
 using System.Text.Json;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using Flurl.Http;
 using Flurl.Http.Content;
 using Kantan.Net.Utilities;
-using Kantan.Text;
 using Microsoft.Net.Http.Headers;
-using SixLabors.ImageSharp;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Utilities;
 

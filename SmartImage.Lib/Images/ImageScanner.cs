@@ -1,54 +1,22 @@
 ﻿// Read S SmartImage.Lib BaseImageHost.cs
 // 2023-07-08 @ 8:13 PM
 
-using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
-using AngleSharp.Html.Parser;
-using AngleSharp.Io;
-using Argon;
 using CliWrap;
-using CoenM.ImageHash;
-using CoenM.ImageHash.HashAlgorithms;
-using FlareSolverrSharp;
 using Flurl.Http;
-using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Win32;
-using Novus.FileTypes;
-using Novus.FileTypes.Uni;
-using Novus.OS;
-using Novus.Streams;
-using Novus.Utilities;
-using Novus.Win32.Structures.Other;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Bmp;
 using SixLabors.ImageSharp.Formats.Gif;
 using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
-using SmartImage.Lib.Engines;
 using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Integration;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Net;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using System.Web;
+
 // ReSharper disable UnusedMember.Global
 
 // ReSharper disable SuggestVarOrType_Elsewhere

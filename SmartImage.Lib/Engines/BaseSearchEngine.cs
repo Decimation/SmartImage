@@ -4,11 +4,8 @@
 
 using System.Runtime.CompilerServices;
 using Flurl.Http;
-using Flurl.Http.Configuration;
-using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
-using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;

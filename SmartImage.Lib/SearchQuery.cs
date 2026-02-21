@@ -27,23 +27,7 @@ global using CA = JetBrains.Annotations.ContractAnnotationAttribute;
 #endregion
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
 using System.Runtime.CompilerServices;
-using System.Security.Cryptography;
-using Flurl;
-using JetBrains.Annotations;
-using Microsoft;
-using Novus.FileTypes.Uni;
-using Novus.Streams;
-using Novus.Win32;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Formats.Png;
-using SixLabors.ImageSharp.Processing;
-using SmartImage.Lib.Engines;
-using SmartImage.Lib.Utilities;
-using SixLabors.ImageSharp.Formats;
-using SmartImage.Lib;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;

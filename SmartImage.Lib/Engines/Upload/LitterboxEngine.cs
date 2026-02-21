@@ -3,9 +3,6 @@
 // ReSharper disable UnusedMember.Global
 
 using Flurl.Http;
-using Microsoft.Extensions.Logging;
-using SmartImage.Lib.Images.Uni;
-using System.Diagnostics;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;

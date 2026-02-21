@@ -11,11 +11,7 @@ using Flurl.Http;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
-using SmartImage.Lib.Utilities;
-using System.Buffers.Text;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Net;
 using SmartImage.Lib.Engines.Results;
 
 // ReSharper disable StringLiteralTypo

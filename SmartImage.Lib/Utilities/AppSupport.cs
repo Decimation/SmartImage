@@ -3,12 +3,9 @@
 
 #pragma warning disable IDE1006
 using System.Reflection;
-using System.Text.Json.Serialization;
 using Flurl.Http;
 using JetBrains.Annotations;
-using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Debug;
 
 // ReSharper disable InconsistentNaming
 

@@ -5,17 +5,6 @@
 
 #region
 
-using System.Diagnostics;
-using System.Net;
-using AngleSharp.Dom;
-using AngleSharp.Html.Dom;
-using AngleSharp.Html.Parser;
-using AngleSharp.XPath;
-using Flurl.Http;
-using Kantan.Net.Utilities;
-using Kantan.Text;
-using SmartImage.Lib.Utilities;
-
 #endregion
 
 // ReSharper disable StringLiteralTypo

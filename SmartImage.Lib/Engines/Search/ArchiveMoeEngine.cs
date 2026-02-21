@@ -6,11 +6,7 @@ using System.Text.RegularExpressions;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.XPath;
-using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Images;
-using SmartImage.Lib.Images.Uni;
-using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
 // ReSharper disable UnusedVariable
 

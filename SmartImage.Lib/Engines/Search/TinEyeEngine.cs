@@ -3,7 +3,6 @@ using System.Text.Json.Serialization;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
-using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Search;
 

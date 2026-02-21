@@ -4,9 +4,7 @@
 using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
 using Kantan.Text;
-using Novus.Utilities;
 using SixLabors.ImageSharp.Processing;
-using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Images;
 

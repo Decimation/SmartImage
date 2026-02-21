@@ -1,22 +1,16 @@
 ﻿// ReSharper disable UnusedMember.Global
 
 using System.Diagnostics;
-using System.Text.Json;
 using System.Net;
-using System.Text;
 using System.Text.Json.Nodes;
 using AngleSharp.Dom;
 using AngleSharp.Html.Dom;
 using AngleSharp.Html.Parser;
 using AngleSharp.XPath;
 using Flurl.Http;
-using Kantan.Monad;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Extensions.Logging;
-using static Kantan.Diagnostics.LogCategories;
-using SmartImage.Lib.Utilities;
-using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
 

@@ -1,13 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: CookiesManager.cs
 
-using System.Collections;
-using System.Collections.Frozen;
 using System.Data;
 using System.Diagnostics;
-using System.Runtime.Caching;
 using Kantan.Net.Web;
-using Microsoft.Data.SqlClient;
-using Microsoft.Data.Sqlite;
 using SmartImage.Lib.Utilities.Integration;
 
 namespace SmartImage.Lib.Cookies;

@@ -1,12 +1,6 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: WebSearchEngine.cs
 // Date: 2024/06/06 @ 14:06:00
 
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using AngleSharp.Dom;
-using AngleSharp.XPath;
-using Kantan.Diagnostics;
-using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines;

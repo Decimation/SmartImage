@@ -4,7 +4,6 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
-using JetBrains.Annotations;
 using Microsoft.Win32;
 using Novus.OS;
 using Novus.Win32;
