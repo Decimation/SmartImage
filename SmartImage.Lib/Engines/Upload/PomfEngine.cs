@@ -10,6 +10,7 @@ using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
 
+[Obsolete]
 public sealed class PomfEngine : BaseUploadEngine
 {
 

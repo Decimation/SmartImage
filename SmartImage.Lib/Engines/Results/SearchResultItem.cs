@@ -409,24 +409,16 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 	}
 
 	public static bool operator <(SearchResultItem left, SearchResultItem right)
-	{
-		return Comparer<SearchResultItem>.Default.Compare(left, right) < 0;
-	}
+		=> Comparer<SearchResultItem>.Default.Compare(left, right) < 0;
 
 	public static bool operator >(SearchResultItem left, SearchResultItem right)
-	{
-		return Comparer<SearchResultItem>.Default.Compare(left, right) > 0;
-	}
+		=> Comparer<SearchResultItem>.Default.Compare(left, right) > 0;
 
 	public static bool operator <=(SearchResultItem left, SearchResultItem right)
-	{
-		return Comparer<SearchResultItem>.Default.Compare(left, right) <= 0;
-	}
+		=> Comparer<SearchResultItem>.Default.Compare(left, right) <= 0;
 
 	public static bool operator >=(SearchResultItem left, SearchResultItem right)
-	{
-		return Comparer<SearchResultItem>.Default.Compare(left, right) >= 0;
-	}
+		=> Comparer<SearchResultItem>.Default.Compare(left, right) >= 0;
 
 #endregion
 

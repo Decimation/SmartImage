@@ -242,6 +242,7 @@ internal static class Renderables
 		{
 			[R1.S_SearchEngines]   = cfg.SearchEngines,
 			[R1.S_PriorityEngines] = cfg.PriorityEngines,
+			[R1.S_UploadEngine] = cfg.UploadEngine,
 			[R1.S_AutoSearch]      = cfg.AutoSearch,
 			[R1.S_ReadCookies]     = cfg.ReadCookies,
 			["FlareSolverr"]       = cfg.FlareSolverr,
@@ -257,7 +258,7 @@ internal static class Renderables
 				kR = new Text(s?.ToString(), Elements.Sty_Grid1);
 			}
 
-			dt.AddRow(kR, Renderables.AsRenderable(o));
+			dt.AddRow(kR, AsRenderable(o));
 		}
 
 
@@ -316,7 +317,7 @@ internal static class Renderables
 			return new Text(s, Elements.Sty_Grid1);
 		};
 
-		valFunc ??= Renderables.AsRenderable;
+		valFunc ??= AsRenderable;
 
 		foreach (var (k, v) in dictionary) {
 			grd.AddRow(keyFunc(k), valFunc(v));

@@ -52,11 +52,9 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		MaxLength  = 10_000_000;
 		Jar        = new CookieJar();
 		m_fsClient = new FlareSolverrClient();
-		
+
 	}
 
-
-	public override void Dispose() { }
 
 	// public const int MAX_WIDTH = 1000;
 
@@ -149,7 +147,7 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 
 				try {
 					var msg = new HttpRequestMessage(HttpMethod.Get, origin);
-					
+
 					var fsr     = await m_fsClient.Clearance.Solverr.SolveAsync(msg).ConfigureAwait(false);
 					var cookies = fsr.Solution.Cookies;
 					var newUrl  = fsr.Solution.Url;
@@ -226,6 +224,11 @@ public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, 
 		b = await m_fsClient.ApplyConfigAsync(cfg, ct);
 
 		return b;
+	}
+
+	public override void Dispose()
+	{
+		m_fsClient?.Dispose();
 	}
 
 }

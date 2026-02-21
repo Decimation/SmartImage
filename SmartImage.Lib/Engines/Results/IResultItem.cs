@@ -8,7 +8,7 @@ using SmartImage.Lib.Model;
 using System.ComponentModel;
 using System.Diagnostics;
 
-namespace SmartImage.Lib.Images.Uni;
+namespace SmartImage.Lib.Engines.Results;
 
 public interface IResultItem : IDisposable, ISimilarity, IHashable, INotifyPropertyChanged
 {

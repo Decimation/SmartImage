@@ -24,6 +24,7 @@ public abstract partial class CommonAsyncCommand<TCommandSettings> : AsyncComman
 
 		Config.SearchEngines   = CommandSettings.SearchEngines;
 		Config.PriorityEngines = CommandSettings.PriorityEngines;
+		Config.UploadEngine = CommandSettings.UploadEngine;
 
 		Config.ReadCookies = CommandSettings.ReadCookies;
 

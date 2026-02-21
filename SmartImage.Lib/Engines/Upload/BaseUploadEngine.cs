@@ -66,7 +66,7 @@ public abstract class BaseUploadEngine : IDisposable, IUrl
 
 	public static BaseUploadEngine Default
 	{
-		get { return field; }
+		get;
 		set
 		{
 			field?.Dispose();
@@ -94,24 +94,13 @@ public abstract class BaseUploadEngine : IDisposable, IUrl
 
 	protected void Verify(UniImage file)
 	{
-		/*
-		if (String.IsNullOrWhiteSpace(file)) {
-			throw new ArgumentNullException(nameof(file));
-		}
-		*/
-
 		if ((file.Length > MaxLength)) {
 			throw new ArgumentException($"File {file} is too large (max {MaxLength}) for {Name}");
 		}
 	}
 
-	/*
-	public static readonly BaseUploadEngine[] All =
-		ReflectionHelper.CreateAllInAssembly<BaseUploadEngine>(InheritanceProperties.Subclass).ToArray();
-		*/
 
-
-	public void Dispose()
+	public virtual void Dispose()
 	{
 		Debug.WriteLine($"Disposing {nameof(BaseUploadEngine)} ({Name})");
 		GC.SuppressFinalize(this);

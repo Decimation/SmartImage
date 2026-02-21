@@ -1,16 +1,4 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: IResultConverter.cs
-// Date: 2025/04/16 @ 01:04:44
-
-
-// Author: Deci | Project: SmartImage.Lib | Name: IResultConverter.cs
-// Date: 2025/04/16 @ 01:04:44
-
-
-// Author: Deci | Project: SmartImage.Lib | Name: IResultConverter.cs
-// Date: 2025/04/16 @ 01:04:44
-
-
-// Author: Deci | Project: SmartImage.Lib | Name: IResultConverter.cs
+﻿// Author: Deci | Project: SmartImage.Lib | Name: IParseableSource.cs
 // Date: 2025/04/16 @ 01:04:44
 
 namespace SmartImage.Lib.Engines.Results;

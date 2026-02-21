@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: IUniImage.cs
 // Date: 2026/02/08 @ 02:02:10
 
+using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Uni;

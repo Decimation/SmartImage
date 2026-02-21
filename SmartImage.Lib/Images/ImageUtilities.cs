@@ -63,7 +63,7 @@ public static class ImageUtilities
 		}
 
 		if (resFull.Length == 2) {
-			w = int.Parse(resFull[0]);
+			w = Int32.Parse(resFull[0]);
 			h = int.Parse(resFull[1]);
 		}
 

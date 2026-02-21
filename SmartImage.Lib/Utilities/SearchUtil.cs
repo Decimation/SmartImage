@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Flurl.Http;
+using Flurl.Http.Content;
 using Kantan.Net.Utilities;
 using Kantan.Text;
 using Microsoft.Net.Http.Headers;
@@ -75,7 +76,14 @@ internal static class SearchUtil
 		}
 
 	}
-
+	public static CapturedMultipartContent RemoveQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
+	{
+		var contentType = content.Headers.ContentType.ToString();
+		content.Headers.Remove("Content-Type");
+		var fixedContentType = new string(contentType.Where(x => x != '\"').Select(x => x).ToArray());
+		content.Headers.TryAddWithoutValidation("Content-Type", fixedContentType);
+		return content;
+	}
 	internal static readonly JsonSerializerOptions DefaultSerializerOptions = new()
 	{
 		Converters =

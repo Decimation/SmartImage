@@ -59,7 +59,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 		Config        = cfg;
 		ConfigApplied = false;
 		IsRunning     = false;
-		Engines       = SearchConfig.GetSelectedEngines(Config.SearchEngines);
+		Engines       = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines);
 	}
 
 	static SearchClient() { }
@@ -236,10 +236,6 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 			var res = e.GetResultAsync(query, token: token).ContinueWith((c,tk) =>
 			{
 				var sr = c.Result;
-
-				if (tk is CancellationToken {IsCancellationRequested: true} ctk) {
-					return sr;
-				}
 
 				ProcessResult(sr);
 				return sr;

@@ -57,7 +57,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	[CBN]
 	public string Overview { get; internal set; }
 
-	// private Lazy<SearchResultItem> m_rawResultItem;
 
 	[JI]
 	public SearchResultItem RawResultItem { get; }
@@ -123,95 +122,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 			.FirstOrDefault();
 	}
 
-	/*public int Index(SearchResultItem item, SearchResultItem scn)
-	{
-		int root;
-		int scKi  = 0;
-		int scKi2 = 0;
-
-		root = Results.IndexOf(item);
-
-		// scKi = ScannedResults.IndexOf(item);
-		if (scn != null) {
-			scKi = 1;
-		}
-
-		/*foreach ((SearchResultItem key, SearchResultItem[] value) in ScannedResults) {
-			if (key == item) {
-				scKi2 = Array.IndexOf(value, scn);
-
-				/*if (scKi2==0) {
-					scKi2++;
-				}#2#
-				if (scKi2==-1) {
-					// scKi2=0;
-				}
-
-				// break;
-			}
-			else {
-				scKi += value.Length;
-
-			}
-
-			// scKi += value.Length;
-
-		}#1#
-
-
-		/*if (ScannedResults.TryGetValue(sri, out SearchResultItem[] sci)) {
-			var i = Array.IndexOf(sci, sri);
-			root += i == -1 ? 0 : i;
-		}
-
-		for (int i = 0; i < ScannedResults.Count; i++) { }#1#
-
-		return root + scKi + scKi2;
-
-	}
-
-	public int Index(SearchResultItem sri)
-	{
-		var root = Results.IndexOf(sri.Parent);
-
-		// var scKi  = ScannedResults.IndexOf(sri);
-		var scKi2 = 0;
-
-		/*if (scKi != -1) {
-			for (int sc = 0; sc < scKi; sc++) {
-				var scannedItems = ScannedResults[sri];
-				var scI2         = Array.IndexOf(scannedItems, sri);
-
-				if (scI2 != -1) {
-					scKi2 += scI2;
-				}
-			}
-		}
-		else {
-			scKi = 0;
-		}#1#
-
-
-		/*if (ScannedResults.TryGetValue(sri, out SearchResultItem[] sci)) {
-			var i = Array.IndexOf(sci, sri);
-			root += i == -1 ? 0 : i;
-		}
-
-		for (int i = 0; i < ScannedResults.Count; i++) { }#1#
-
-		// return root + scKi + scKi2;
-
-		return root + scKi2;
-	}*/
-
-	/*
-	public int AggIdx(SearchResultItem sri)
-	{
-		var resIdx=Results.IndexOf(sri);
-
-	}
-	*/
-
 	public override string ToString()
 	{
 		return $"[{Engine.Name}] {RawUrl} | {Results.Count} | {Status} {ErrorMessage}";
@@ -231,9 +141,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 
 			item.Dispose();
 		}
-
-		// ScannedResults.Clear();
-
 	}
 
 }
