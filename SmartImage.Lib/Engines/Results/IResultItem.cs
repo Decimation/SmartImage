@@ -3,12 +3,13 @@
 
 using SmartImage.Lib.Model;
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
 
 namespace SmartImage.Lib.Engines.Results;
 
 public interface IResultItem : IDisposable, ISimilarity, IHashable, INotifyPropertyChanged, IUrl
 {
-
+	protected static readonly ILogger s_logger = 
 	
 
 }

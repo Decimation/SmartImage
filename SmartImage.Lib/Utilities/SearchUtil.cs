@@ -1,4 +1,5 @@
 ﻿using System.Globalization;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using Flurl.Http;
 using Flurl.Http.Content;
@@ -51,33 +52,53 @@ internal static class SearchUtil
 	{
 
 		[CBN]
-		public T TryGetHeader<T>(string name) where T : IParsable<T>
+		public bool TryParseHeader<T>(string name, out T t) where T : IParsable<T>
 		{
-			return response.Headers.TryGetFirst(name, out string cl) ? T.Parse(cl, CultureInfo.CurrentCulture) : default(T);
+			t = default;
+
+			if (response.Headers.TryGetFirst(name, out string cl)) {
+				t = T.Parse(cl, CultureInfo.CurrentCulture);
+				return true;
+			}
+
+			return false;
 		}
 
 		[CBN]
 		public long? TryGetContentLength()
 		{
-			var cl = response.TryGetHeader<long>(HeaderNames.ContentLength);
-			return cl == default ? null : cl;
+			var cl = response.TryParseHeader<long>(HeaderNames.ContentLength, out var l);
+			return cl ? null : l;
 		}
 
 	}
-	public static CapturedMultipartContent RemoveQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
+
+	public static CapturedMultipartContent TrimQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
 	{
-		var contentType = content.Headers.ContentType.ToString();
-		content.Headers.Remove("Content-Type");
-		var fixedContentType = new string(contentType.Where(x => x != '\"').Select(x => x).ToArray());
-		content.Headers.TryAddWithoutValidation("Content-Type", fixedContentType);
+		content.Headers.TrimQuotesFromContentTypeBoundary();
 		return content;
 	}
+
+	public static HttpContentHeaders TrimQuotesFromContentTypeBoundary(this HttpContentHeaders headers)
+	{
+		if (headers.ContentType is { } ct) {
+			headers.Remove(HeaderNames.ContentType);
+			var ctStr = ct.ToString();
+
+			// var fixedContentType = new string(ctStr.Where(static x => x != '\"').Select(static x => x).ToArray());
+			headers.TryAddWithoutValidation(HeaderNames.ContentType, ctStr.Trim('\"'));
+		}
+
+		// content.Headers.TryAddWithoutValidation("Content-Type", fixedContentType);
+		return headers;
+	}
+
 	internal static readonly JsonSerializerOptions DefaultSerializerOptions = new()
 	{
 		Converters =
 		{
 			new UrlTypeConverter()
-		}, 
+		},
 		PropertyNameCaseInsensitive = true
 	};
 

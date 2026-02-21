@@ -1,4 +1,5 @@
 ﻿#nullable disable
+using System.ComponentModel;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Images;
@@ -8,7 +9,7 @@ namespace SmartImage.Lib.Engines.Results;
 
 // todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
 
-public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
+public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
 {
 
 #region
@@ -31,11 +32,9 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 #endregion
 
-	/*
 	[MN]
 	[JPN("url")]
 	public Url Url { get; protected set; }
-	*/
 
 	/// <summary>
 	///     Title/caption of this result
@@ -99,6 +98,10 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 	/// </summary>
 	[JI]
 	public object Metadata { get; internal set; }
+
+	public double? Similarity { get; internal set; }
+
+	public ulong? Hash { get; internal set; }
 
 
 	/// <summary>
@@ -199,7 +202,7 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 #region
 
-	public List<SearchResultItem> ScannedItems { get; }
+	public List<IResultItem> ScannedItems { get; }
 
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
@@ -256,7 +259,7 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 			return true;
 		}
 
-		var cw = Channel.CreateUnbounded<SearchResultItem>();
+		var cw = Channel.CreateUnbounded<IResultItem>();
 
 		var task = ScanAsync(cw.Writer, s =>
 		{
@@ -311,10 +314,10 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 			$"{Url} {Similarity / 100:P} {Artist} {Description} {Site} {Source} {Title} {Character} {Time} {Width}x{Height}";
 	}
 
-	public override void Dispose()
+	public void Dispose()
 	{
 		GC.SuppressFinalize(this);
-		base.Dispose();
+		
 		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
 		ThumbnailImage?.Dispose();
 
@@ -408,6 +411,27 @@ public class SearchResultItem : UniImageUrl, IComparable<SearchResultItem>, ICom
 
 	public static bool operator >=(SearchResultItem left, SearchResultItem right)
 		=> Comparer<SearchResultItem>.Default.Compare(left, right) >= 0;
+
+#endregion
+
+#region
+
+	public event PropertyChangedEventHandler PropertyChanged;
+
+	private void OnPropertyChanged([CMN] string propertyName = null)
+	{
+		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+	}
+
+	private bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
+	{
+		if (EqualityComparer<T>.Default.Equals(field, value))
+			return false;
+
+		field = value;
+		OnPropertyChanged(propertyName);
+		return true;
+	}
 
 #endregion
 

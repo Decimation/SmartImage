@@ -6,7 +6,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public interface IUniImage : IImage, IResultItem
+public interface IUniImage : IImage
 {
 
 	byte[] Bytes { get; }

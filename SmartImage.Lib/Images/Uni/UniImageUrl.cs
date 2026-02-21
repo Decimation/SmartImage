@@ -6,6 +6,7 @@ using Kantan.Net.Utilities;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Model;
 using System.Threading.Channels;
+using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Images.Uni;
 
@@ -46,12 +47,12 @@ public class UniImageUrl : UniImage, IUrl
 	/// points to binary image data, it is returned. todo: update this doc
 	/// </summary>
 	public async ValueTask<bool> ScanAsync<TUniUrl>(ChannelWriter<TUniUrl> cw, Func<string, TUniUrl> newItem, CancellationToken ct = default)
-		where TUniUrl : UniImageUrl
+		where TUniUrl : IResultItem, IUniImage
 	{
 		var (allocOk, allocImgOk) = await AllocAll(ct);
 
 		if (allocImgOk) {
-			await cw.WriteAsync((TUniUrl) this, ct);
+			await cw.WriteAsync((TUniUrl) (this as IResultItem), ct);
 			cw.TryComplete();
 			return true;
 		}

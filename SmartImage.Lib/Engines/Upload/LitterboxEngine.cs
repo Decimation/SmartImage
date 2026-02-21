@@ -19,7 +19,7 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 
 	protected override CapturedMultipartContent BuildContent(CapturedMultipartContent mp, string file)
 	{
-		mp.RemoveQuotesFromContentTypeBoundary();
+		mp.TrimQuotesFromContentTypeBoundary();
 		return base.BuildContent(mp, file);
 	}
 
