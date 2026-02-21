@@ -77,7 +77,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 	ret:
 
-		if (tm is { Error: { } }) {
+		if (!String.IsNullOrWhiteSpace(tm?.Error)) {
 			// Debug.WriteLine($"{Name} :: API error: {tm.Error}", nameof(GetResultAsync));
 			Logger.LogDebug("{Name} :: API error {Err} in {Fn}", Name, tm.Error, nameof(GetResultAsync));
 			sr.ErrorMessage = tm.Error;

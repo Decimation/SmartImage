@@ -84,8 +84,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	public SearchCommand()
 	{
-		m_cts    = new CancellationTokenSource();
-		m_ctsRun = new CancellationTokenSource();
+		m_cts          = new CancellationTokenSource();
+		m_ctsRun       = new CancellationTokenSource();
 		m_ctsRunSearch = new CancellationTokenSource();
 
 		// m_results      = new();
@@ -93,7 +93,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		m_previewCanvasCache = new MemoryCache("Buf");
 
 		// m_prompts = new ConcurrentDictionary<SearchResult, SelectionPrompt<SearchResultItem>>();
-		Query     = SearchQuery.Null;
+		Query = SearchQuery.Null;
 	}
 
 #region
@@ -171,7 +171,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		);
 
 		// AnsiConsole.Write(m_layout);
-		
+
 		try {
 
 			IRenderable elem = CommandSettings.Interactive ? m_layout : m_mainTable;
@@ -223,7 +223,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 #if UNITTEST
 		return;
 #endif
-		
+
 		var search = Client.RunSearchAsync(Query, token: ct);
 
 		while (!ct.IsCancellationRequested && await Client.ResultChannel.Reader.WaitToReadAsync(ct)) {
@@ -336,8 +336,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 							SearchResultItem scnItm = sri.ScannedItems[i];
 							scnItm.CalculateSimilarity(Query.Source);
 
-							// var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
-							// srTable.InsertRow(selIdx + i + 1, scnRow);
+							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
+							srTable.InsertRow(selIdx + i + 1, scnRow);
 						}
 
 						// m_prompts[sr].AddChoiceGroup(sri, sri.ScannedItems);
@@ -451,24 +451,52 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		return ci;
 	}
 
+
+	private const ConsoleKey PREV_KEY_RESIZE_INTERNAL   = ConsoleKey.S;
+	private const ConsoleKey PREV_KEY_MAXWIDTH_BUFWIDTH = ConsoleKey.M;
+	private const ConsoleKey PREV_KEY_RESIZE_SCALE      = ConsoleKey.R;
+	private const ConsoleKey PREV_KEY_EXIT              = ConsoleKey.Escape;
+
+	private static readonly Dictionary<ConsoleKey, string> _keyDescriptions = new()
+	{
+		{ PREV_KEY_RESIZE_INTERNAL, "Resize (internal)" },
+		{ PREV_KEY_RESIZE_SCALE, "Resize (scale)" },
+		{ PREV_KEY_MAXWIDTH_BUFWIDTH, "Set max preview width to buffer width" },
+		{ PREV_KEY_EXIT, "Exit preview" },
+	};
+
+	private static readonly string _descRow =
+		_keyDescriptions.Aggregate(String.Empty, (s, kv) => { return s + Markup.Escape(($"[{kv.Key}] : {kv.Value}")) + " | "; });
+
+
 	private void ShowPreview(CanvasImage ci, SearchResultItem sri)
 	{
 		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 
-		var pnl = new Panel(ci) { Expand = true, Border = BoxBorder.None, Header = new PanelHeader($"{sri.Value}") };
-		/*var sriLayout = new Layout("Info");
+		var pnl = new Panel(ci)
+		{
+			Expand = true,
+			Border = BoxBorder.None,
+			Header = new PanelHeader($"{sri.Value}"),
+		};
 
-		sriLayout.SplitColumns(
-			new Layout("Metadata"),
-			new Layout("Image")
+		var sriLayout = new Layout("Preview");
+
+		sriLayout.SplitRows(
+			new Layout("Image") { Ratio   = 2 },
+			new Layout("Details") { Size = 2}
 		);
 
+		// var grid = sri.GetItemInfoGrid();
+		var infoGrid = new Grid() { Expand = false, };
+		infoGrid.AddColumns(2);
+		infoGrid.AddRow(["Keys", _descRow]);
+		infoGrid.AddRow(["Metadata", sri.ToString()]);
 
-		var grid = sri.GetInfoGrid();
-		sriLayout["Metadata"].Update(grid);
-		sriLayout["Image"].Update(ci);*/
+		sriLayout["Image"].Update(pnl);
+		sriLayout["Details"].Update(infoGrid);
 
-		AnsiConsole.Live(pnl).Start(ldc =>
+		AnsiConsole.Live(sriLayout).Start(ldc =>
 		{
 			while (true) {
 				// ci.MaxWidth = mw < 0 ? null : mw;
@@ -482,15 +510,15 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				switch (cki.Value.Key) {
 
 
-					case ConsoleKey.S:
+					case PREV_KEY_RESIZE_INTERNAL:
 						ci.Mutate(act => { act.Resize(sri.Image.Width, sri.Image.Height); });
 						break;
 
-					case ConsoleKey.M:
+					case PREV_KEY_MAXWIDTH_BUFWIDTH:
 						ci.MaxWidth = w;
 						break;
 
-					case ConsoleKey.R:
+					case PREV_KEY_RESIZE_SCALE:
 						ci.Mutate(act =>
 						{
 							var cs = act.GetCurrentSize();
@@ -502,7 +530,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						ci.MaxWidth = null;
 						continue;
 
-					case ConsoleKey.Escape:
+					case PREV_KEY_EXIT:
 						return;
 
 				}
@@ -510,7 +538,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		});
 
 
-		return;
 	}
 
 #endregion

@@ -22,7 +22,7 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 {
 
 	[CommandArgument(0, "<query>")]
-	[Description("Query: file or URL; see wiki")]
+	[Description($"Query: file or URL. Specify {QUERY_DEFAULT_CLIPBOARD} to read from clipboard (Windows only)")]
 	public string? Query { get; private set; }
 
 #region
@@ -58,8 +58,6 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 	public const OutputFields OUTPUT_FIELDS_DEFAULT =
 		OutputFields.Name | OutputFields.Similarity | OutputFields.Url;
 
-	public const string QUERY_DEFAULT_CLIPBOARD = "<clipboard>";
-
 	[MNNW(true, nameof(OutputFile))]
 	internal bool HasOutputFile => !String.IsNullOrWhiteSpace(OutputFile);
 
@@ -80,25 +78,22 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 
 #endregion
 
-	// public bool? Silent { get; private set; } //todo
-
-	// public const string PROP_ARG_RESULTS = "$all_results";
-
 	[CommandOption("--interactive")]
 	[DefaultValue(true)]
 	[Description("Interactive results")]
 	public bool Interactive { get; private set; }
 
-	[CommandOption("--clipboard")]
-	[DefaultValue(false)]
-	[Description("Clipboard")]
-	public bool UseClipboard { get; private set; }
+	public const string QUERY_DEFAULT_CLIPBOARD = "<clipboard>";
 
 	public override ValidationResult Validate()
 	{
 		var result = base.Validate();
 
-		if (UseClipboard && OperatingSystem.IsWindows()) {
+		if (Query == QUERY_DEFAULT_CLIPBOARD) {
+			if (!OperatingSystem.IsWindows()) {
+				return ValidationResult.Error("Clipboard input is only supported on Windows");
+			}
+
 			Clipboard.Open();
 
 			string? data = null;
@@ -112,13 +107,14 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 			else if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_HDROP)) {
 				data = Clipboard.GetDragQueryList().FirstOrDefault();
 			}
-			else { }
+			else {
+				return ValidationResult.Error($"No valid clipboard format detected");
+			}
 
 			if (data != null) {
 				Query = data;
 			}
 
-			// var data2 = Novus.Win32.Clipboard.GetData((uint) ClipboardFormat.BMP2);
 			Clipboard.Close();
 		}
 

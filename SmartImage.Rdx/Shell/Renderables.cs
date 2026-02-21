@@ -75,8 +75,10 @@ internal static class Renderables
 			return [name, url, sim, artist, wh];
 		}
 
-		public Grid GetInfoGrid()
+		public Grid GetItemInfoGrid()
 		{
+			// TODO
+
 			IRenderable url;
 			var         link = sri.Url;
 			Style       linkStyle;
@@ -100,13 +102,20 @@ internal static class Renderables
 			var elems = new List<IRenderable>() { name, url, sim, artist, wh };
 
 			// var elems2 = [sri.Character, sri.Source, sri.Description, sri.Site];
-			var elemnames = new String[] { nameof(sri.Character), nameof(sri.Source), nameof(sri.Description), nameof(sri.Site),nameof(sri.Title) };
+			var elemNames = new String[]
+			{
+				nameof(sri.Character), 
+				nameof(sri.Source), 
+				nameof(sri.Description), 
+				nameof(sri.Site),
+				nameof(sri.Title)
+			};
 
 			/*var fields = sri.GetType().GetProperties(BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public)
 			.Where(x => x.GetValue(sri) != null);*/
 
-			foreach (string elemname in elemnames) {
-				var prop = sri.GetType().GetProperty(elemname, BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public);
+			foreach (string elemName in elemNames) {
+				var prop = sri.GetType().GetProperty(elemName, BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public);
 
 				if (prop is {}) {
 					var    val  = prop.GetValue(sri);
