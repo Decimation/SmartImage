@@ -3,6 +3,7 @@ using Kantan.Diagnostics;
 using SmartImage.Lib.Utilities;
 using System.ComponentModel;
 using System.Diagnostics;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
@@ -40,7 +41,9 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	/// Results; first element should be <see cref="RawResultItem"/>
 	/// </summary>
 	[NN]
-	public List<SearchResultItem> Results { get; }
+	public List<IResultItem> Results { get; }
+
+	// TODO: IResultItem
 
 
 	[CBN]
@@ -67,12 +70,6 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 		};
 
 		Results = [RawResultItem];
-	}
-
-	[LinqTunnel]
-	public IEnumerable<SearchResultItem> FindGroups(SearchResultItem sri)
-	{
-		return Results.Where(k => k.Parent == sri);
 	}
 
 	public virtual void Update()
@@ -108,14 +105,14 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 #endregion
 
 	[CBN]
-	public SearchResultItem GetBestResult()
+	public IResultItem GetBestResult()
 	{
 		// TODO *? IMPROVE
 
 		return Results.Where(static r => Url.IsValid(r.Url))
-			.OrderByDescending(static r => r.Similarity)
-			.ThenByDescending(static r => r.Score)
-			.FirstOrDefault();
+		              .OrderByDescending(static r => r.Similarity)
+		              .ThenByDescending(static r => r is SearchResultItem sri ? sri.Score : 0)
+		              .FirstOrDefault();
 	}
 
 	public override string ToString()

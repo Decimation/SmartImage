@@ -16,7 +16,7 @@ public sealed class BingEngine : BaseSearchEngine
 
 	
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Bing;
+	public override SearchEngineOptions Option => SearchEngineOptions.Bing;
 
 	
 	public override void Dispose() { }

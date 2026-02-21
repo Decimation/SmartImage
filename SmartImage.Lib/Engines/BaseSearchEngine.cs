@@ -22,7 +22,7 @@ namespace SmartImage.Lib.Engines;
 #pragma warning disable CA1822
 #nullable disable
 
-public abstract class BaseSearchEngine : ISearchEngine, IDisposable, IEquatable<BaseSearchEngine>, IUrl
+public abstract class BaseSearchEngine : IEnumOption<SearchEngineOptions>, IDisposable, IEquatable<BaseSearchEngine>, IUrl, IMaxLength
 {
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseSearchEngine));
@@ -30,12 +30,17 @@ public abstract class BaseSearchEngine : ISearchEngine, IDisposable, IEquatable<
 	/// <summary>
 	/// Base URI
 	/// </summary>
-	public virtual Url Url { get; }
 
-	public virtual string Name => EngineOption.ToString();
+	public virtual Url Url { get; private set; }
 
-	/// <inheritdoc />
-	public abstract SearchEngineOptions EngineOption { get; }
+	Url IUrl.Url
+	{
+		get => Url;
+	}
+
+	public virtual string Name => Option.ToString();
+
+	public abstract SearchEngineOptions Option { get; }
 
 	[JI]
 	public TimeSpan Timeout { get; protected init; }
@@ -130,7 +135,7 @@ public abstract class BaseSearchEngine : ISearchEngine, IDisposable, IEquatable<
 
 	/*public int GetHashCode(BaseSearchEngine obj)
 	{
-		return (int) EngineOption;
+		return (int) Option;
 	}*/
 
 
@@ -210,7 +215,7 @@ public abstract class BaseSearchEngine : ISearchEngine, IDisposable, IEquatable<
 
 	/*public override int GetHashCode()
 	{
-		return (int) EngineOption;
+		return (int) Option;
 	}*/
 
 	public abstract void Dispose();

@@ -23,14 +23,14 @@ internal static class Renderables
 
 		public IEnumerable<IRenderable> GetMainRows()
 		{
-			Style style = result.Engine.EngineOption.GetColor();
+			Style style = result.Engine.Option.GetColor();
 
 			return [new Text($"{result.Engine.Name}", style), new Text($"{result.Results.Count}")];
 		}
 
 		public IEnumerable<IRenderable[]> GetFullResultRows()
 		{
-			Style style = result.Engine.EngineOption.GetColor();
+			Style style = result.Engine.Option.GetColor();
 
 			for (int i = 0; i < result.Results.Count; i++) {
 				var res = result.Results[i];
@@ -144,7 +144,7 @@ internal static class Renderables
 
 			var result = sri.Root;
 
-			var style = new Style(link: sri.Url, foreground: result.Engine.EngineOption.GetColor());
+			var style = new Style(link: sri.Url, foreground: result.Engine.Option.GetColor());
 
 			return
 			[

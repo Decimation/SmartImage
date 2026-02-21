@@ -37,7 +37,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 
 	public override string Name => "trace.moe";
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.TraceMoe;
+	public override SearchEngineOptions Option => SearchEngineOptions.TraceMoe;
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)
 	{

@@ -19,7 +19,7 @@ public sealed class Iqdb3DEngine : IqdbEngine
 	private const string URL_BASE  = "https://3d.iqdb.org/";
 	private const string URL_QUERY = "https://3d.iqdb.org/?url=";
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb3D;
+	public override SearchEngineOptions Option => SearchEngineOptions.Iqdb3D;
 
 	public Iqdb3DEngine() : base(URL_QUERY) { }
 

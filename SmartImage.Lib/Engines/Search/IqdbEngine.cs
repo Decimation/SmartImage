@@ -23,7 +23,7 @@ namespace SmartImage.Lib.Engines.Search;
 public class IqdbEngine : WebSearchEngine<IqdbItem, IEnumerable<IHtmlCollection<IElement>>>, IDisposable
 {
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Iqdb;
+	public override SearchEngineOptions Option => SearchEngineOptions.Iqdb;
 
 	public virtual Url Endpoint => URL_BASE;
 

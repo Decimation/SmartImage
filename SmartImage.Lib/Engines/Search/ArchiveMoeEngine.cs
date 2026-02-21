@@ -18,7 +18,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 public partial class ArchiveMoeEngine : WebSearchEngine<ChanPost, IList<INode>>
 {
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.ArchiveMoe;
+	public override SearchEngineOptions Option => SearchEngineOptions.ArchiveMoe;
 
 	protected string Base64MD5Hash { get; set; }
 

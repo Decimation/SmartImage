@@ -25,7 +25,7 @@ public class GoogleLensEngine : WebSearchEngine<GoogleLensItem, IList<INode>>, I
 
 	public override string Name => "Google Lens";
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.GoogleLens;
+	public override SearchEngineOptions Option => SearchEngineOptions.GoogleLens;
 
 
 	public override Url Url => URL_BASE;

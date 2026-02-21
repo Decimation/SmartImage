@@ -34,7 +34,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 		// Timeout = TimeSpan.FromSeconds(4.5);
 	}
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.RepostSleuth;
+	public override SearchEngineOptions Option => SearchEngineOptions.RepostSleuth;
 
 	public override void Dispose() { }
 

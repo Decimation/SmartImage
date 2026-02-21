@@ -9,3 +9,10 @@ public interface IUrl
 	Url Url { get; }
 
 }
+
+interface IInternalUrl : IUrl
+{
+
+	new Url Url { get; set; }
+
+}

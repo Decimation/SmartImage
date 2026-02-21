@@ -14,7 +14,7 @@ public class UniImageUrl : UniImage, IUrl
 
 	[MN]
 	[JPN("url")]
-	public Url Url { get; protected internal set; }
+	public override Url Url { get; set; }
 
 	internal UniImageUrl(Url url) : base(url?.ToString(), UniImageType.Uri)
 	{

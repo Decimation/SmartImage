@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: WebSearchEngine.cs
 // Date: 2024/06/06 @ 14:06:00
 
+using System.Diagnostics;
 using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines;
@@ -10,7 +11,7 @@ namespace SmartImage.Lib.Engines;
 /// <typeparamref name="TSource"/> &#8594; <typeparamref name="TIntermediate"/> &#8594; <typeparamref name="TItem"/>
 /// </summary>
 public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSearchEngine
-	where TItem : SearchResultItem
+	where TItem : IResultItem
 {
 
 	protected ParsedSearchEngine([NN] Url url) : base(url) { }
@@ -32,12 +33,16 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 			goto ret;
 		}
 
-		var inter   = await ParseIntermediateAsync(src);
+		var inter = await ParseIntermediateAsync(src);
 		var items = await ParseItemsAsync(inter, res);
 
-		res.Results.AddRange(items);
+		if (items is IEnumerable<IResultItem> { } items2) {
+			res.Results.AddRange(items2);
+		}
+		else {
+			Debugger.Break();
+		}
 
-		// Logger.LogInformation("{Name} :: {RawUrl} source", Name, res.RawUrl);
 
 		res.Status = SearchResultStatus.Success;
 

@@ -3,6 +3,7 @@
 // ReSharper disable UnusedMember.Global
 
 using Flurl.Http;
+using Flurl.Http.Content;
 using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Upload;
@@ -16,24 +17,11 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 
 	public override long? MaxLength => 1_000_000_000L;
 
-	public LitterboxEngine() : base("https://litterbox.catbox.moe/resources/internals/api.php") { }
-
-	public override async Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default)
+	protected override CapturedMultipartContent BuildContent(CapturedMultipartContent mp, string file)
 	{
-		using var response = await Client.Request(Url)
-			                     .WithSettings(r => { r.Timeout = Timeout; })
-			                     .PostMultipartAsync(mp =>
-			                     {
-				                     mp.RemoveQuotesFromContentTypeBoundary();
-
-				                     mp.AddFile("fileToUpload", file)
-					                     .AddString("time", "1h")
-					                     .AddString("reqtype", "fileupload");
-			                     }, cancellationToken: ct);
-
-		var ur = await ProcessResultAsync(response, ct);
-
-		return ur;
+		mp.RemoveQuotesFromContentTypeBoundary();
+		return base.BuildContent(mp, file);
 	}
 
+	public LitterboxEngine() : base($"{LITTERBOX_BASE_URL}/resources/internals/api.php") { }
 }

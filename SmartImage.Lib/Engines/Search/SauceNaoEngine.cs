@@ -55,7 +55,7 @@ public sealed class SauceNaoEngine : WebSearchEngine<SauceNaoResultItem, IList<I
 
 	}
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.SauceNao;
+	public override SearchEngineOptions Option => SearchEngineOptions.SauceNao;
 
 
 	public override async Task<SearchResult> GetResultAsync(SearchQuery query, CancellationToken token = default)

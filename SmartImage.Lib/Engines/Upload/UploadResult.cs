@@ -6,38 +6,20 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-[JsonDerivedType(typeof(PomfFileResult))]
-public class UploadResult : IDisposable, ILength
+public class UploadResult : ILength, IUrl
 {
 
-	public Url Url { get; set;}
+	public Url Url { get; set; }
 
 	[JPN("Size")]
-	public long? Length { get; set;}
+	public long? Length { get; set; }
 
-	/*public static implicit operator Url(UploadResult result)
-	{
-		if (!result.IsValid) {
-			throw new Exception();
-		}
+	public UploadResult() { }
 
-		return result.Url;
-	}*/
-	
-	// [JsonConstructor]
-	public UploadResult() {  }
-
-	// [JsonConstructor]
 	public UploadResult(Url url, long? size)
 	{
-		Url  = url;
+		Url    = url;
 		Length = size;
-	}
-
-	public void Dispose()
-	{
-		// Response?.Dispose();
-		GC.SuppressFinalize(this);
 	}
 
 	public override string ToString()

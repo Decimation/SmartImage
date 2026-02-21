@@ -8,7 +8,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public abstract class BaseUploadEngine : IDisposable, IUrl
+public abstract class BaseUploadEngine : IDisposable, IUrl, IEnumOption<UploadEngineOptions>, IMaxLength
 {
 
 	/// <summary>
@@ -18,14 +18,14 @@ public abstract class BaseUploadEngine : IDisposable, IUrl
 
 	public virtual string Name => Option.ToString();
 
-	public Url Url { get; }
-
 	public abstract UploadEngineOptions Option { get; }
+
+	public Url Url { get; }
 
 	protected BaseUploadEngine(Url s)
 	{
-		Url = s;
-		Timeout  = TimeSpan.FromSeconds(15);
+		Url     = s;
+		Timeout = TimeSpan.FromSeconds(15);
 	}
 
 	public TimeSpan Timeout { get; protected set; }
@@ -88,7 +88,7 @@ public abstract class BaseUploadEngine : IDisposable, IUrl
 
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-	protected abstract Task<UploadResult> ProcessResultAsync(IFlurlResponse response, CancellationToken ct = default);
+	protected abstract Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
 	protected void Verify(UniImage file)
 	{

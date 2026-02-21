@@ -13,7 +13,7 @@ namespace SmartImage.Rdx.Shell;
 internal record ShellSelection
 {
 
-	public SearchResultItem Item { get; }
+	public IResultItem Item { get; }
 
 	public int ItemIdx { get; }
 
@@ -21,7 +21,7 @@ internal record ShellSelection
 
 	public bool IsScannedItem { get; }
 
-	private ShellSelection(SearchResultItem item, int itemIdx, int scanIdx, bool isScanned)
+	private ShellSelection(IResultItem item, int itemIdx, int scanIdx, bool isScanned)
 	{
 		Item          = item;
 		ItemIdx       = itemIdx;
@@ -31,10 +31,8 @@ internal record ShellSelection
 
 	public int Index2()
 	{
-		int i1 = 0, j1 = 0;
 
 		var rg = ItemIdx + Item.Root.Results[..ItemIdx].Sum(x => x.ScannedItems.Count);
-
 
 		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
 		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);

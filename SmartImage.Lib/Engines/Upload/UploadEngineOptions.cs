@@ -9,14 +9,14 @@ public enum UploadEngineOptions
 	None = 0,
 
 	/// <summary>
-	/// <see cref="CatboxEngine"/>
-	/// </summary>
-	Catbox,
-
-	/// <summary>
 	/// <see cref="LitterboxEngine"/>
 	/// </summary>
 	Litterbox,
+
+	/// <summary>
+	/// <see cref="CatboxEngine"/>
+	/// </summary>
+	Catbox,
 
 	/// <summary>
 	/// <see cref="PomfEngine"/>

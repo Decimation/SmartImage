@@ -6,7 +6,7 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Engines.Search;
 
-public sealed class TinEyeEngine : BaseSearchEngine, ISearchEngine
+public sealed class TinEyeEngine : BaseSearchEngine
 {
 
 	public TinEyeEngine() : base("https://www.tineye.com/search?url=")
@@ -16,7 +16,7 @@ public sealed class TinEyeEngine : BaseSearchEngine, ISearchEngine
 
 	private const string API_URL = "https://tineye.com/api/v1/result_json/?sort=score&order=desc";
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.TinEye;
+	public override SearchEngineOptions Option => SearchEngineOptions.TinEye;
 
 	public override void Dispose()
 	{

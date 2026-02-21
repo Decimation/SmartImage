@@ -183,7 +183,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 			s_logger.LogWarning("Could not write {Result}", result);
 		}
 
-		if (Config.PriorityEngines.HasFlag(result.Engine.EngineOption)) {
+		if (Config.PriorityEngines.HasFlag(result.Engine.Option)) {
 			var url = Config.OpenRaw ? result.RawUrl : result.GetBestResult()?.Url;
 
 			OpenResult(url);

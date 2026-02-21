@@ -7,7 +7,7 @@ public sealed class KarmaDecayEngine : BaseSearchEngine
 
 	public KarmaDecayEngine() : base("http://karmadecay.com/search/?q=") { }
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.KarmaDecay;
+	public override SearchEngineOptions Option => SearchEngineOptions.KarmaDecay;
 
 
 	

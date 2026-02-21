@@ -6,7 +6,7 @@ namespace SmartImage.Lib.Engines.Search;
 
 public class FluffleEngine : BaseSearchEngine, IDisposable
 {
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Fluffle;
+	public override SearchEngineOptions Option => SearchEngineOptions.Fluffle;
 
 	public const string URL_ENDPOINT = "https://api.fluffle.xyz/v1/";
 	public const string URL_BASE     = "https://fluffle.xyz/";

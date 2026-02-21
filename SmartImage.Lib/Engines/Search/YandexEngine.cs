@@ -27,7 +27,7 @@ public sealed class YandexEngine : BaseSearchEngine
 
 	public static readonly Url BaseSearchUrl = Url.Combine(URL_YANDEX, "images", "search");
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Yandex;
+	public override SearchEngineOptions Option => SearchEngineOptions.Yandex;
 
 	protected override string[] ErrorBodyMessages =>
 	[

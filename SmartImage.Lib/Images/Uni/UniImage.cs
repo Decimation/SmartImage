@@ -41,6 +41,8 @@ public enum UniImageType
 public abstract class UniImage : IUniImage, IEquatable<UniImage>
 {
 
+	public abstract Url Url { get; set; }
+
 	protected static readonly ILogger s_logger;
 
 	static UniImage()

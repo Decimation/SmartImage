@@ -56,7 +56,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// Default value for <see cref="UploadEngine"/>
 	/// </summary>
-	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.Catbox;
+	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.Litterbox;
 
 #endregion
 

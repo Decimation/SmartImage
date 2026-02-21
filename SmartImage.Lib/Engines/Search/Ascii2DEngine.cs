@@ -27,7 +27,7 @@ namespace SmartImage.Lib.Engines.Search;
 public sealed class Ascii2DEngine : WebSearchEngine<Ascii2DItem, IList<INode>>, ICookiesReceiver, ISearchConfigReceiver
 {
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.Ascii2D;
+	public override SearchEngineOptions Option => SearchEngineOptions.Ascii2D;
 
 	public CookieJar Jar { get; }
 

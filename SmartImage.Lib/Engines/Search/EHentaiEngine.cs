@@ -24,7 +24,7 @@ namespace SmartImage.Lib.Engines.Search;
 public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INotifyPropertyChanged, ICookiesReceiver, ISearchConfigReceiver
 {
 
-	public override SearchEngineOptions EngineOption => SearchEngineOptions.EHentai;
+	public override SearchEngineOptions Option => SearchEngineOptions.EHentai;
 
 	static EHentaiEngine() { }
 
@@ -154,9 +154,10 @@ public sealed class EHentaiEngine : WebSearchEngine<EhResult, IList<INode>>, INo
 		// Debug.WriteLine($"{res.StatusCode}");
 
 		sr.RawUrl = httpRes.RequestMessage.RequestUri;
-		var old = sr.Results.Find(static r => r.IsRaw);
-		old.Url = sr.RawUrl;
-
+		var old = sr.Results.Find(static r => r is SearchResultItem { IsRaw: true});
+		if (old is SearchResultItem {} oldAsSri) {
+			oldAsSri.Url = sr.RawUrl;
+		}
 		Debug.Assert(old == sr.Results[0]);
 
 		var content = await httpRes.Content.ReadAsStringAsync(token).ConfigureAwait(false);
