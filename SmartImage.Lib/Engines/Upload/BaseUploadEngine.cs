@@ -8,7 +8,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public abstract class BaseUploadEngine : IDisposable, IUrl, IEnumOption<UploadEngineOptions>, IMaxLength
+public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength, IEnumOption<UploadEngineOptions>
 {
 
 	/// <summary>
@@ -62,16 +62,6 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, IEnumOption<UploadEn
 
 	//todo
 
-	public static BaseUploadEngine Default
-	{
-		get;
-		set
-		{
-			field?.Dispose();
-			field = value;
-		}
-	} = GetUploadEngine(SearchConfig.UPLOAD_ENGINE_DEFAULT);
-
 	public virtual Task<UploadResult> UploadAsync(UniImage query, CancellationToken ct = default)
 	{
 		Verify(query);
@@ -90,7 +80,7 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, IEnumOption<UploadEn
 
 	protected abstract Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
-	protected void Verify(UniImage file)
+	public void Verify(UniImage file)
 	{
 		if ((file.Length > MaxLength)) {
 			throw new ArgumentException($"File {file} is too large (max {MaxLength}) for {Name}");

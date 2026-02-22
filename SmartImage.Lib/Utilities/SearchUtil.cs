@@ -33,9 +33,6 @@ internal static class SearchUtil
 	public static bool HasFlagFast(this SearchResultFlags value, SearchResultFlags status)
 		=> (value & status) != 0;
 
-	public const SearchResultFlags ALT_STATUS =
-		SearchResultFlags.NoResults | SearchResultFlags.Extraneous;
-
 	internal static bool TryParseIndex<T>(this IList<T> col, string s, out int i, out T val)
 	{
 		val = default;

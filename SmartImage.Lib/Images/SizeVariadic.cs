@@ -1,14 +1,14 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
-// Author: Deci | Project: SmartImage.Lib | Name: SizeTN.cs
+// Author: Deci | Project: SmartImage.Lib | Name: SizeVariadic.cs
 // Date: 2025/08/21 @ 00:08:17
 
 #region Aliases
 
-global using SizeS2N = SmartImage.Lib.Images.SizeTN<short>;
-global using SizeS4N = SmartImage.Lib.Images.SizeTN<int>;
-global using SizeS8N = SmartImage.Lib.Images.SizeTN<long>;
-global using SizeF4N = SmartImage.Lib.Images.SizeTN<float>;
-global using SizeF8N = SmartImage.Lib.Images.SizeTN<double>;
+global using SizeS2N = SmartImage.Lib.Images.SizeVariadic<short>;
+global using SizeS4N = SmartImage.Lib.Images.SizeVariadic<int>;
+global using SizeS8N = SmartImage.Lib.Images.SizeVariadic<long>;
+global using SizeF4N = SmartImage.Lib.Images.SizeVariadic<float>;
+global using SizeF8N = SmartImage.Lib.Images.SizeVariadic<double>;
 global using SizeIS = SixLabors.ImageSharp.Size;
 
 #endregion
@@ -20,7 +20,7 @@ using System.Runtime.CompilerServices;
 
 namespace SmartImage.Lib.Images;
 
-public struct SizeTN<T> where T : struct, INumber<T>
+public struct SizeVariadic<T> where T : struct, INumber<T>
 {
 
 	public T? Width { get; set; }
@@ -28,7 +28,7 @@ public struct SizeTN<T> where T : struct, INumber<T>
 	public T? Height { get; set; }
 
 	[MNNW(true, nameof(Width), nameof(Height))]
-	public readonly bool IsComplete => HasWidth && HasHeight;
+	public readonly bool IsDimensional => HasWidth && HasHeight;
 
 	[MNNW(true, nameof(Height))]
 	private readonly bool HasHeight => Height.HasValue;
@@ -36,7 +36,7 @@ public struct SizeTN<T> where T : struct, INumber<T>
 	[MNNW(true, nameof(Width))]
 	private readonly bool HasWidth => Width.HasValue;
 
-	public SizeTN(T? width, T? height)
+	public SizeVariadic(T? width, T? height)
 	{
 		Width  = width;
 		Height = height;
@@ -44,8 +44,8 @@ public struct SizeTN<T> where T : struct, INumber<T>
 
 	public readonly SizeIS ToSize()
 	{
-		if (IsComplete) {
-			throw new InvalidOperationException();
+		if (!IsDimensional) {
+			throw new ArgumentException();
 		}
 
 		var wv = Width.Value;

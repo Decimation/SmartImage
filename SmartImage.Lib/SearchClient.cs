@@ -8,6 +8,7 @@ using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
+using SmartImage.Lib.Engines.Upload;
 
 #pragma warning disable CS0162, CS2255
 namespace SmartImage.Lib;
@@ -18,6 +19,8 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	public SearchConfig Config { get; private set; }
 
 	public bool IsComplete { get; private set; }
+
+	public BaseUploadEngine UploadEngine { get; private set; }
 
 	public IEnumerable<BaseSearchEngine> Engines { get; private set; }
 
@@ -33,6 +36,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 		ConfigApplied = false;
 		IsRunning     = false;
 		Engines       = BaseSearchEngine.GetSelectedEngines(Config.SearchEngines);
+		UploadEngine  = BaseUploadEngine.GetUploadEngine(Config.UploadEngine);
 	}
 
 	static SearchClient() { }
@@ -78,7 +82,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	public async Task<bool> RunSearchAsync(SearchQuery query, CancellationToken token = default)
 	{
 		if (ResultChannel == null || (IsComplete && !IsRunning)) {
-			// todo: throw
+			// todo: throw?
 			OpenChannel();
 		}
 
@@ -94,7 +98,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 		}
 
-		var tasks = GetSearchTasks(query, token);
+		var tasks   = GetSearchTasks(query, token);
 		var results = await Task.WhenAll(tasks);
 
 
@@ -127,11 +131,11 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 	}
 
 	[return: MN]
-	public static SearchResultItem GetBest(IEnumerable<SearchResult> results)
+	public static IResultItem GetBest(IEnumerable<SearchResult> results)
 	{
 		var ordered = results.Select(static x => x.GetBestResult())
-			.Where(static x => x != null)
-			.OrderByDescending(static x => x.Similarity);
+		                     .Where(static x => x != null)
+		                     .OrderByDescending(static x => x.Similarity);
 
 		var item = ordered.FirstOrDefault();
 		return item;
@@ -193,20 +197,10 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 	public IEnumerable<Task<SearchResult>> GetSearchTasks(SearchQuery query, CancellationToken token)
 	{
-		/*return Engines.Select(e =>
-		{
-			return e.GetResultAsync(query, token: token)
-				.ContinueWith((r) =>
-				{
-					ProcessResult(r.Result);
-					return r.Result;
-
-				}, token, TaskContinuationOptions.None, scheduler);
-		});*/
 
 		return Engines.Select(e =>
 		{
-			var res = e.GetResultAsync(query, token: token).ContinueWith((c,tk) =>
+			var res = e.GetResultAsync(query, token: token).ContinueWith((c, tk) =>
 			{
 				var sr = c.Result;
 
@@ -226,6 +220,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 			engine.Dispose();
 		}
 
+		UploadEngine?.Dispose();
 		ConfigApplied = false;
 		CompleteSearchAsync();
 	}

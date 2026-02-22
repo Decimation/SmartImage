@@ -40,6 +40,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="SmartImage.Lib.csproj.Backup.tmp" />
+    <None Remove="SmartImage.Lib.csproj.DotSettings" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AngleSharp" Version="1.4.0" />
     <PackageReference Include="AngleSharp.Css" Version="1.0.0-alpha-99" />
     <PackageReference Include="AngleSharp.XPath" Version="2.0.5" />

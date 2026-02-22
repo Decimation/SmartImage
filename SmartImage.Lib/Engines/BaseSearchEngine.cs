@@ -73,7 +73,7 @@ public abstract class BaseSearchEngine : IEnumOption<SearchEngineOptions>, IDisp
 
 			});
 
-			// builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
+			// builder.AddMiddleware(static () => new HttpLoggingHandler(_logger));
 
 		});
 	}

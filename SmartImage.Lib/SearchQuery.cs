@@ -1,7 +1,6 @@
 ﻿// ReSharper disable RedundantUsingDirective.Global
 
 
-
 #region Global usings
 
 global using MN = System.Diagnostics.CodeAnalysis.MaybeNullAttribute;
@@ -31,9 +30,11 @@ using System.Runtime.CompilerServices;
 using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images.Uni;
 using System.ComponentModel;
+using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Utilities;
 using SmartImage.Shared;
 
-#region 
+#region
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE)]
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI)]
@@ -47,8 +48,7 @@ namespace SmartImage.Lib;
 public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyPropertyChanged
 {
 
-	// [MN]
-	// public Url Upload { get; private set; }
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchQuery));
 
 	[MNNW(true, nameof(Upload))]
 	public bool IsUploaded => Upload != null && Url.IsValid(Upload.Url);
@@ -67,7 +67,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public UniImage Source { get; }
 
-	internal SearchQuery(UniImage img, UploadResult upload)
+	private SearchQuery(UniImage img, UploadResult upload)
 	{
 		Source = img;
 		Upload = upload;
@@ -75,7 +75,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 		// Length = Uni == null ? default : Uni.Stream.Length;
 	}
 
-	internal SearchQuery(UniImage img) : this(img, null) { }
+	private SearchQuery(UniImage img) : this(img, null) { }
 
 	static SearchQuery() { }
 
@@ -85,24 +85,26 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 	{
 		var ui = await UniImage.TryCreateAsync(o, ct: t);
 
-		if (ui != null) {
-			return new SearchQuery(ui);
+		return ui != null ? new SearchQuery(ui) : Null;
 
-		}
-		else {
-			return Null;
-		}
 	}
 
-	public async ValueTask<bool> TryUploadAsync(BaseUploadEngine uploadEngine = null, CancellationToken ct = default)
+	public async ValueTask<bool> TryUploadAsync(BaseUploadEngine ue, CancellationToken ct = default)
 	{
-		//todo
 		if (IsUploaded) {
 			return true;
 		}
 
-		uploadEngine    ??= BaseUploadEngine.Default;
-		Upload =   await uploadEngine.UploadAsync(Source, ct);
+		ue.Verify(Source);
+
+		if (Source is UniImageUrl { } uri) {
+			s_logger.LogTrace("Not uploading {Uni} {Val}", Source, Source.Value);
+			Upload = new UploadResult(uri.Url, uri.Length) { };
+		}
+		else {
+			Upload = await ue.UploadFileAsync(Source.Value, ct);
+		}
+
 		return IsUploaded;
 	}
 
@@ -137,30 +139,21 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	public override int GetHashCode()
 	{
-		// return HashCode.Combine(Uni, Upload, Length);
 		return HashCode.Combine(Source);
-
-		// return Uni.GetHashCode();
 	}
 
 	public static bool operator ==(SearchQuery left, SearchQuery right)
-	{
-		return Equals(left, right);
-	}
+		=> Equals(left, right);
 
 	public static bool operator !=(SearchQuery left, SearchQuery right)
-	{
-		return !Equals(left, right);
-	}
+		=> !Equals(left, right);
 
 #endregion
 
 	public event PropertyChangedEventHandler PropertyChanged;
 
 	private void OnPropertyChanged([CMN] string propertyName = null)
-	{
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-	}
+		=> PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
 	private bool SetField<T>(ref T field, T value, [CMN] string propertyName = null)
 	{

@@ -18,52 +18,47 @@ public static class AppSupport
 
 	internal static readonly Version Version = Assembly.GetName().Version;
 
-	internal static readonly ILoggerFactory Factory =
-		LoggerFactory.Create(static builder =>
-		{
-			builder.AddDebug()
-				// .AddProvider(new DebugLoggerProvider())
-				.SetMinimumLevel(LogLevel.Trace);
-		});
+	internal static readonly ILoggerFactory Factory = LoggerFactory.Create(static builder =>
+	{
+		builder.AddDebug()
+
+		       // .AddProvider(new DebugLoggerProvider())
+		       .SetMinimumLevel(LogLevel.Trace);
+	});
 
 	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()
 	{
-		var r = await R1.Url_GitHubApi
-			        .WithAutoRedirect(true)
-			        .AllowAnyHttpStatus()
-			        .WithHeaders(new
-			        {
-				        User_Agent = R1.UserAgent1
-			        })
-			        .OnError(static e => { e.ExceptionHandled = true; })
-			        .GetJsonAsync<GitHubRelease[]>();
+		var ghReleases = await R1.Url_GitHubApi.WithAutoRedirect(true)
+		                .AllowAnyHttpStatus()
+		                .WithHeaders(new
+		                {
+			                User_Agent = R1.UserAgent1
+		                })
+		                .OnError(static e => { e.ExceptionHandled = true; })
+		                .GetJsonAsync<GitHubRelease[]>();
 
-		if (r == null) {
+		if (ghReleases == null) {
 			return [];
 		}
 
-		foreach (var x in r) {
-			var s = x.tag_name[1..].Split('-')[0];
-			x.IsRdx = x.name.Contains("Rdx", StringComparison.CurrentCultureIgnoreCase);
+		foreach (var ghRelease in ghReleases) {
+			var s = ghRelease.tag_name[1..].Split('-')[0];
+			ghRelease.IsRdx = ghRelease.name.Contains("Rdx", StringComparison.CurrentCultureIgnoreCase);
 
 			if (Version.TryParse(s, out var xv)) {
-				x.Version = xv;
+				ghRelease.Version = xv;
 			}
 		}
 
-		return r;
+		return ghReleases;
 	}
-
-	/*
-	 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
-	 *		HKEY_CURRENT_USER\Software\Classes
-	 *		HKEY_LOCAL_MACHINE\Software\Classes
-	 */
 
 
 	public const string DIAG_ID_EXPERIMENTAL = "SI_EXP_001";
 
 }
+
+#region GitHub objects
 
 [USI(ImplicitUseTargetFlags.WithMembers)]
 public class GitHubReleaseAsset
@@ -263,3 +258,5 @@ public class GitHubRelease
 	public GitHubReactions reactions { get; set; }
 
 }
+
+#endregion

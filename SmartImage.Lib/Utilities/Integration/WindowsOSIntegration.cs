@@ -54,6 +54,13 @@ public sealed class WindowsOSIntegration : BaseOSIntegration
 		return true;
 	}
 
+	/*
+	 * HKEY_CLASSES_ROOT is an alias, a merging, of two other locations:
+	 *		HKEY_CURRENT_USER\Software\Classes
+	 *		HKEY_LOCAL_MACHINE\Software\Classes
+	 */
+
+
 	public override bool? HandleContextMenu(bool option, string args)
 	{
 		/*

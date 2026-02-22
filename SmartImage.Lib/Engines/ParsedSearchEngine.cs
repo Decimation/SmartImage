@@ -53,7 +53,7 @@ public abstract class ParsedSearchEngine<TItem, TIntermediate, TSource> : BaseSe
 			di.Dispose();
 		}
 
-		// Logger.LogDebug("Disposing {Name} doc", Name);
+		// _logger.LogDebug("Disposing {Name} doc", Name);
 		return res;
 	}
 

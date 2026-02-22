@@ -6,7 +6,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public class UploadResult : ILength, IUrl
+public class UploadResult : IUrl, ILength
 {
 
 	public Url Url { get; set; }
