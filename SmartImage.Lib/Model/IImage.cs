@@ -2,10 +2,11 @@
 // Date: 2026/01/09 @ 17:01:13
 
 using SixLabors.ImageSharp.Formats;
+using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Model;
 
-public interface IImage
+public interface IImage : ISize
 {
 
 	IImageFormat ImageFormat { get; }

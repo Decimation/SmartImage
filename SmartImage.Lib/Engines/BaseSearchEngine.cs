@@ -6,13 +6,13 @@ using System.Runtime.CompilerServices;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Net.Http.Headers;
+using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Engines.Search;
 using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
-using SmartImage.Shared;
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_TEST)]
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI2)]

@@ -35,7 +35,6 @@ using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Utilities.Integration;
 using SmartImage.Rdx.Commands.Common;
 using SmartImage.Rdx.Shell;
-using SmartImage.Shared;
 using Spectre.Console;
 using Spectre.Console.Cli;
 using Spectre.Console.Rendering;

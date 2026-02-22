@@ -47,20 +47,20 @@ public class UniImageUrl : UniImage, IUrl
 	/// points to binary image data, it is returned. todo: update this doc
 	/// </summary>
 	public async ValueTask<bool> ScanAsync<TUniUrl>(ChannelWriter<TUniUrl> cw, Func<string, TUniUrl> newItem, CancellationToken ct = default)
-		where TUniUrl : IResultItem, IUniImage
+		where TUniUrl : IUniImage
 	{
 		var (allocOk, allocImgOk) = await AllocAll(ct);
 
 		if (allocImgOk) {
-			await cw.WriteAsync((TUniUrl) (this as IResultItem), ct);
+			await cw.WriteAsync((TUniUrl) (IUniImage) this,ct);
 			cw.TryComplete();
 			return true;
 		}
 
 		await using var stream = GetStream();
 
-		using var sr   = new StreamReader(stream);
-		var       str  = await sr.ReadToEndAsync(ct);
+		using var sr  = new StreamReader(stream);
+		var       str = await sr.ReadToEndAsync(ct);
 
 		var urls = ImageScanner.ParseImageUrlsByRegex(str, Url);
 

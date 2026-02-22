@@ -2,14 +2,78 @@
 using System.ComponentModel;
 using System.Threading.Channels;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
+using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Engines.Results;
 
 // todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
 
-public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>
+public class ScannedResultItem : SearchResultItem, IUniImage, IImage
+{
+
+	public IImageFormat ImageFormat { get; }
+
+	public bool HasImageFormat { get; }
+
+	public ISImage Image { get; }
+
+	public bool HasImage { get; }
+
+	public byte[] Bytes { get; }
+
+	public bool HasBytes { get; }
+
+	public Stream GetStream()
+	{
+		throw new NotImplementedException();
+	}
+
+	public async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
+	{
+		throw new NotImplementedException();
+	}
+
+
+	[MNNW(true, nameof(Image))]
+	public async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
+	{
+		if (Url == null) {
+			return false;
+		}
+
+		if (HasImage) {
+			return true;
+		}
+
+		bool allocImgOk = false;
+		var  allocOk    = await AllocSourceAsync(ct);
+
+		if (allocOk) {
+			allocImgOk = await base.AllocImageAsync(ct);
+		}
+
+		if (allocImgOk) {
+			Width  ??= Image.Width;
+			Height ??= Image.Height;
+
+			// Root.Results.Add(this);
+		}
+		else { }
+
+		return HasImage;
+	}
+
+	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
+	{
+		throw new NotImplementedException();
+	}
+
+}
+
+public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>, ISize, IResultMetadata
 {
 
 #region
@@ -101,7 +165,13 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 	public double? Similarity { get; internal set; }
 
+	[MNNW(true, nameof(Similarity))]
+	public bool HasSimilarity => Similarity.HasValue;
+
 	public ulong? Hash { get; internal set; }
+
+	[MNNW(true, nameof(Hash))]
+	public bool HasHash => Hash.HasValue;
 
 
 	/// <summary>
@@ -110,7 +180,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	[JI]
 	public bool IsRaw { get; }
 
-	public double Score
+	public virtual double Score
 	{
 		get
 		{
@@ -119,9 +189,9 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 			var s = 0d;
 
-			if (HasImage) {
+			/*if (this is IImage {HasImage: true}) {
 				s++;
-			}
+			}*/
 
 			if (HasHash) {
 				s++;
@@ -190,7 +260,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 #endregion
 
-	internal SearchResultItem(SearchResult r, bool isRaw = false) : base(null)
+	internal SearchResultItem(SearchResult r, bool isRaw = false)
 	{
 		Root     = r;
 		Metadata = null;
@@ -207,7 +277,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	[MNNW(true, nameof(ScannedItems))]
 	public bool HasScannedItems => ScannedItems is { Count: > 0 };
 
-	[MNNW(true, nameof(Image))]
+	/*[MNNW(true, nameof(Image))]
 	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
 		if (Url == null) {
@@ -234,7 +304,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 		else { }
 
 		return HasImage;
-	}
+	}*/
 
 	[MNNW(true, nameof(Thumbnail))]
 	public async ValueTask<bool> LoadThumbnailAsync(CancellationToken ct = default)
@@ -317,7 +387,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	public void Dispose()
 	{
 		GC.SuppressFinalize(this);
-		
+
 		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
 		ThumbnailImage?.Dispose();
 
