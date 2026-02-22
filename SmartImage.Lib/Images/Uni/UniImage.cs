@@ -50,12 +50,9 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
 	}
 
-	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options
-		                                                                    { });
+	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options { });
 
 	public UniImageType Type { get; }
-
-	public virtual long? Length => Bytes.Length;
 
 	// public virtual string Name {get; protected set;}
 
@@ -77,12 +74,6 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 #region
 
 	[MN]
-	public IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
-
-	[MNNW(true, nameof(ImageFormat), nameof(Image))]
-	public bool HasImageFormat => ImageFormat != null;
-
-	[MN]
 	[JI]
 	public ISImage Image
 	{
@@ -90,14 +81,11 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		protected set
 		{
 			if (SetField(ref field, value)) {
-				OnPropertyChanged(nameof(ImageFormat));
-				OnPropertyChanged(nameof(HasImage));
+				OnPropertyChanged(nameof(IImage.ImageFormat));
+				OnPropertyChanged(nameof(IImage.HasImage));
 			}
 		}
 	}
-
-	[MNNW(true, nameof(Image), nameof(ImageFormat))]
-	public bool HasImage => Image != null;
 
 #endregion
 
@@ -109,13 +97,10 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		protected set
 		{
 			if (SetField(ref field, value)) {
-				OnPropertyChanged(nameof(HasHash));
+				OnPropertyChanged(nameof(IHashable.HasHash));
 			}
 		}
 	}
-
-	[MNNW(true, nameof(Hash))]
-	public bool HasHash => Hash.HasValue;
 
 #endregion
 
@@ -144,20 +129,9 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		{
 			if (SetField(ref field, value)) {
 				OnPropertyChanged(nameof(Length));
-				OnPropertyChanged(nameof(HasBytes));
+				OnPropertyChanged(nameof(IUniImage.HasBytes));
 			}
 		}
-	}
-
-	[MNNW(true, nameof(Bytes), nameof(Length))]
-	public bool HasBytes => Bytes != null;
-
-	[MURV]
-	public Stream GetStream()
-	{
-		// return HasBytes ? new MemoryStream(Bytes, writable: false) : Stream.Null;
-		var str = MemMgr.GetStream(Value, Bytes);
-		return str;
 	}
 
 #endregion
@@ -220,7 +194,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
-	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true, bool autoDisposeOnError = true,
+	public static async Task<UniImage> TryCreateAsync(object            o, bool autoInit = true, bool autoDisposeOnError = true,
 	                                                  CancellationToken ct = default)
 	{
 		UniImage ui = null;
@@ -298,7 +272,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 	[MURV]
 	public virtual string WriteImageToFile([CBN] string fn = null)
 	{
-		if (!HasImage) {
+		if (IImage.HasImage) {
 			throw new InvalidOperationException();
 		}
 

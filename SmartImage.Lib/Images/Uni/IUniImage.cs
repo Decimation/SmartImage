@@ -7,15 +7,33 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public interface IUniImage : IImage, IDisposable
+public interface IUniImage : IImage, IDisposable, ILength, IUrl
 {
 
 	byte[] Bytes { get; }
 
-	[MNNW(true, nameof(Bytes))]
-	bool HasBytes { get; }
+	[MNNW(true, nameof(Bytes), nameof(Length))]
+	bool HasBytes => Bytes != null;
 
-	Stream GetStream();
+	long? ILength.Length => Bytes?.Length;
+
+	int? ISize.Width
+	{
+		get => Image?.Width;
+		set { }
+	}
+
+	int? ISize.Height
+	{
+		get => Image?.Width;
+		set { }
+	}
+
+	[MURV]
+	Stream GetStream()
+	{
+		return UniImage.MemMgr.GetStream(Bytes.GetHashCode().ToString(), Bytes);
+	}
 
 	/// <summary>
 	/// Allocates <see cref="Bytes"/>
@@ -27,41 +45,38 @@ public interface IUniImage : IImage, IDisposable
 	/// Allocates <see cref="IImage.Image"/> from <see cref="Bytes"/>
 	/// </summary>
 	[MNNW(true, nameof(Image))]
-	ValueTask<bool> AllocImageAsync(CancellationToken ct = default);
-
-	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
-	ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct);
-
-
-	[MNNW(true, nameof(Image))]
-	public static async ValueTask<bool> AllocImageAsync<T>(T img, CancellationToken ct = default) where T : IUniImage, IUrl
+	async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
-		if (img.Url == null) {
+		if (this.Url == null) {
 			return false;
 		}
 
-		if (img.HasImage) {
+		if (HasImage) {
 			return true;
 		}
 
 		bool allocImgOk = false;
-		var  allocOk    = await img.AllocSourceAsync(ct);
+		var  allocOk    = await AllocSourceAsync(ct);
 
 		if (allocOk) {
 			//todo?
-			allocImgOk = await img.AllocImageAsync(ct);
+			allocImgOk = await AllocImageAsync(ct);
 		}
 
 		if (allocImgOk) {
 
-			img.Width  ??= img.Image.Width;
-			img.Height ??= img.Image.Height;
+			Width  ??= Image.Width;
+			Height ??= Image.Height;
 
 			// Root.Results.Add(this);
 		}
 		else { }
 
-		return img.HasImage;
+		return HasImage;
 	}
+
+
+	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
+	ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct);
 
 }

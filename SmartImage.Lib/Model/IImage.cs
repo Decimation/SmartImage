@@ -6,17 +6,18 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Model;
 
-public interface IImage : ISize
+public interface IImage : ISize, ISimilarity, IHashable
 {
 
-	IImageFormat ImageFormat { get; }
+	IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
 
 	[MNNW(true, nameof(ImageFormat), nameof(Image))]
-	bool HasImageFormat { get; }
+	bool HasImageFormat => ImageFormat != null;
 
+	[MN]
 	ISImage Image { get; }
 
 	[MNNW(true, nameof(Image), nameof(ImageFormat))]
-	bool HasImage { get; }
+	bool HasImage => Image != null;
 
 }

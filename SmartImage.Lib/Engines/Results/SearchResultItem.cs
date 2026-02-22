@@ -11,24 +11,27 @@ namespace SmartImage.Lib.Engines.Results;
 
 // todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
 
-public class ScannedResultItem : SearchResultItem, IUniImage, IImage
+public class ScannedResultItem : SearchResultItem, IUniImage
 {
 
-	public IImageFormat ImageFormat { get; }
+	public IImageFormat ImageFormat => Image.Metadata.DecodedImageFormat;
 
-	public bool HasImageFormat { get; }
+	[MNNW(true, nameof(ImageFormat), nameof(Image))]
+	public bool HasImageFormat => ImageFormat != null;
 
-	public ISImage Image { get; }
+	public ISImage Image { get; private set; }
 
-	public bool HasImage { get; }
+	[MNNW(true, nameof(Image), nameof(ImageFormat))]
+	public bool HasImage => Image != null;
 
-	public byte[] Bytes { get; }
+	public byte[] Bytes { get; private set; }
 
-	public bool HasBytes { get; }
+	[MNNW(true, nameof(Bytes))]
+	public bool HasBytes => Bytes != null;
 
 	public Stream GetStream()
 	{
-		throw new NotImplementedException();
+		UniImage.MemMgr.GetStream(Bytes);
 	}
 
 	public async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
@@ -52,7 +55,7 @@ public class ScannedResultItem : SearchResultItem, IUniImage, IImage
 		var  allocOk    = await AllocSourceAsync(ct);
 
 		if (allocOk) {
-			allocImgOk = await base.AllocImageAsync(ct);
+			allocImgOk = await IUniImage.AllocImageAsync(this, ct);
 		}
 
 		if (allocImgOk) {
