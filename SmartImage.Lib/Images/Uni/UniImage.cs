@@ -128,7 +128,6 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		protected set
 		{
 			if (SetField(ref field, value)) {
-				OnPropertyChanged(nameof(Length));
 				OnPropertyChanged(nameof(IUniImage.HasBytes));
 			}
 		}

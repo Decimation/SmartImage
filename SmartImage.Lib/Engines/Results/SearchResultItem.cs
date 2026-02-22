@@ -11,62 +11,10 @@ namespace SmartImage.Lib.Engines.Results;
 
 // todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
 
-public class ScannedResultItem : SearchResultItem, IUniImage
+public class ScannedResultItem : UniImageUrl, IResultItem
 {
 
-	public IImageFormat ImageFormat => Image.Metadata.DecodedImageFormat;
-
-	[MNNW(true, nameof(ImageFormat), nameof(Image))]
-	public bool HasImageFormat => ImageFormat != null;
-
-	public ISImage Image { get; private set; }
-
-	[MNNW(true, nameof(Image), nameof(ImageFormat))]
-	public bool HasImage => Image != null;
-
-	public byte[] Bytes { get; private set; }
-
-	[MNNW(true, nameof(Bytes))]
-	public bool HasBytes => Bytes != null;
-
-	public Stream GetStream()
-	{
-		UniImage.MemMgr.GetStream(Bytes);
-	}
-
-	public async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
-	{
-		throw new NotImplementedException();
-	}
-
-
-	[MNNW(true, nameof(Image))]
-	public async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
-	{
-		if (Url == null) {
-			return false;
-		}
-
-		if (HasImage) {
-			return true;
-		}
-
-		bool allocImgOk = false;
-		var  allocOk    = await AllocSourceAsync(ct);
-
-		if (allocOk) {
-			allocImgOk = await IUniImage.AllocImageAsync(this, ct);
-		}
-
-		if (allocImgOk) {
-			Width  ??= Image.Width;
-			Height ??= Image.Height;
-
-			// Root.Results.Add(this);
-		}
-		else { }
-
-		return HasImage;
+	
 	}
 
 	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct)

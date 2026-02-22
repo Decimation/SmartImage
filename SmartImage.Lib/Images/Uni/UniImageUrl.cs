@@ -52,12 +52,12 @@ public class UniImageUrl : UniImage, IUrl
 		var (allocOk, allocImgOk) = await AllocAll(ct);
 
 		if (allocImgOk) {
-			await cw.WriteAsync((TUniUrl) (IUniImage) this,ct);
+			await cw.WriteAsync((TUniUrl) (IUniImage) this, ct);
 			cw.TryComplete();
 			return true;
 		}
 
-		await using var stream = GetStream();
+		await using var stream = ((IUniImage) this).GetStream();
 
 		using var sr  = new StreamReader(stream);
 		var       str = await sr.ReadToEndAsync(ct);
@@ -89,7 +89,7 @@ public class UniImageUrl : UniImage, IUrl
 	{
 		IFlurlResponse response = null;
 
-		if (HasBytes) {
+		if (((IUniImage) this).HasBytes) {
 			goto ret;
 		}
 
@@ -104,26 +104,56 @@ public class UniImageUrl : UniImage, IUrl
 	ret:
 
 		response?.Dispose();
-		return HasBytes;
+		return ((IUniImage) this).HasBytes;
 
 	}
 
-	public static bool IsUrlType(object o, out Url u)
-	{
-		u = o switch
-		{
-			Url u2                       => u2,
-			string s when Url.IsValid(s) => s,
-			_                            => null
-		};
+	public bool HasBytes=> IUniImage.HasBytes;
 
-		if (u == null) {
+	[MNNW(true, nameof(IImage.Image))]
+	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
+	{
+		if (Url == null) {
 			return false;
 		}
 
-		var scheme = u.Scheme;
+		if (((IUniImage) this).HasBytes) {
+			return true;
+		}
 
-		return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
+		bool allocImgOk = false;
+		var  allocOk    = await AllocSourceAsync(ct);
+
+		if (allocOk) {
+			allocImgOk = await IUniImage.AllocImageAsync(this, ct);
+		}
+
+		if (allocImgOk) {
+			Width  ??= Image.Width;
+			Height ??= Image.Height;
+
+			// Root.Results.Add(this);
+		}
+		else { }
+
+		return HasImage;
+
+		public static bool IsUrlType(object o, out Url u)
+		{
+			u = o switch
+			{
+				Url u2                       => u2,
+				string s when Url.IsValid(s) => s,
+				_                            => null
+			};
+
+			if (u == null) {
+				return false;
+			}
+
+			var scheme = u.Scheme;
+
+			return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
+		}
+
 	}
-
-}
