@@ -33,6 +33,7 @@ using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib;
 using SmartImage.Lib.Utilities;
+using SmartImage.Shared;
 
 #region
 
@@ -89,11 +90,13 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	}
 
-	public async ValueTask<bool> TryUploadAsync(BaseUploadEngine ue, CancellationToken ct = default)
+	public async ValueTask<bool> TryUploadAsync(BaseUploadEngine ue = null, CancellationToken ct = default)
 	{
 		if (IsUploaded) {
 			return true;
 		}
+
+		ue ??= BaseUploadEngine.GetUploadEngine(SearchConfig.UPLOAD_ENGINE_DEFAULT); //todo
 
 		ue.Verify(Source);
 

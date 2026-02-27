@@ -13,6 +13,6 @@ public interface IUrl
 interface IInternalUrl : IUrl
 {
 
-	new Url Url { get; set; }
+	new Url Url { get; protected set; }
 
 }

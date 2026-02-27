@@ -15,7 +15,7 @@ public class UniImageUrl : UniImage, IUrl
 
 	[MN]
 	[JPN("url")]
-	public override Url Url { get; set; }
+	public Url Url { get; protected set; }
 
 	internal UniImageUrl(Url url) : base(url?.ToString(), UniImageType.Uri)
 	{
@@ -28,7 +28,70 @@ public class UniImageUrl : UniImage, IUrl
 
 	// public override string Name => Url?.GetFileName();
 
-	public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct = default)
+	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
+	{
+		if (this.Url == null) {
+			return false;
+		}
+
+		if (HasImage) {
+			return true;
+		}
+
+		bool allocImgOk = false;
+		var  allocOk    = await AllocSourceAsync(ct);
+
+		if (allocOk) {
+			//todo?
+			allocImgOk = await AllocImageAsync(ct);
+		}
+
+		return HasImage;
+	}
+
+	public override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
+	{
+		IFlurlResponse response = null;
+
+		if (HasBytes) {
+			goto ret;
+		}
+
+		response = await ImageScanner.GetResponseAsync(Url, ct);
+
+		if (response == null) {
+			goto ret;
+		}
+
+		Bytes = await response.GetBytesAsync();
+
+	ret:
+
+		response?.Dispose();
+		return HasBytes;
+
+	}
+
+
+	public static bool IsUrlType(object o, out Url u)
+	{
+		u = o switch
+		{
+			Url u2                       => u2,
+			string s when Url.IsValid(s) => s,
+			_                            => null
+		};
+
+		if (u == null) {
+			return false;
+		}
+
+		var scheme = u.Scheme;
+
+		return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
+	}
+
+	/*public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct = default)
 	{
 		bool ok = false;
 		var  ui = await TryCreateAsync(u, autoInit: true, autoDisposeOnError: false, ct: ct) as UniImageUrl;
@@ -39,7 +102,7 @@ public class UniImageUrl : UniImage, IUrl
 		}
 
 		return await ui.ScanAsync(cw, s => { return new UniImageUrl(s); }, ct);
-	}
+	}*/
 
 
 	/// <summary>
@@ -57,7 +120,7 @@ public class UniImageUrl : UniImage, IUrl
 			return true;
 		}
 
-		await using var stream = ((IUniImage) this).GetStream();
+		await using var stream = GetStream();
 
 		using var sr  = new StreamReader(stream);
 		var       str = await sr.ReadToEndAsync(ct);
@@ -85,75 +148,4 @@ public class UniImageUrl : UniImage, IUrl
 		return ok;
 	}
 
-	public override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
-	{
-		IFlurlResponse response = null;
-
-		if (((IUniImage) this).HasBytes) {
-			goto ret;
-		}
-
-		response = await ImageScanner.GetResponseAsync(Url, ct);
-
-		if (response == null) {
-			goto ret;
-		}
-
-		Bytes = await response.GetBytesAsync();
-
-	ret:
-
-		response?.Dispose();
-		return ((IUniImage) this).HasBytes;
-
-	}
-
-	public bool HasBytes=> IUniImage.HasBytes;
-
-	[MNNW(true, nameof(IImage.Image))]
-	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
-	{
-		if (Url == null) {
-			return false;
-		}
-
-		if (((IUniImage) this).HasBytes) {
-			return true;
-		}
-
-		bool allocImgOk = false;
-		var  allocOk    = await AllocSourceAsync(ct);
-
-		if (allocOk) {
-			allocImgOk = await IUniImage.AllocImageAsync(this, ct);
-		}
-
-		if (allocImgOk) {
-			Width  ??= Image.Width;
-			Height ??= Image.Height;
-
-			// Root.Results.Add(this);
-		}
-		else { }
-
-		return HasImage;
-
-		public static bool IsUrlType(object o, out Url u)
-		{
-			u = o switch
-			{
-				Url u2                       => u2,
-				string s when Url.IsValid(s) => s,
-				_                            => null
-			};
-
-			if (u == null) {
-				return false;
-			}
-
-			var scheme = u.Scheme;
-
-			return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
-		}
-
-	}
+}

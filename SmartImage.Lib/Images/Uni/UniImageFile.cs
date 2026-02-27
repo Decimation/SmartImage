@@ -18,13 +18,6 @@ public class UniImageFile : UniImage
 
 	public override string Name => LocalFileInfo.Name;
 
-
-	public override Url Url
-	{
-		get => new Url(Name);
-		set => throw new NotImplementedException();
-	}
-
 	public override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
 		if (HasBytes) {

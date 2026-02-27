@@ -6,6 +6,7 @@ using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
+using SmartImage.Lib.Utilities;
 
 namespace SmartImage.Lib.Engines.Results;
 
@@ -14,13 +15,8 @@ namespace SmartImage.Lib.Engines.Results;
 public class ScannedResultItem : UniImageUrl, IResultItem
 {
 
-	
-	}
+	internal ScannedResultItem(Url url) : base(url) { }
 
-	public async ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct)
-	{
-		throw new NotImplementedException();
-	}
 
 }
 
@@ -47,9 +43,11 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 #endregion
 
+	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchResultItem));
+
 	[MN]
 	[JPN("url")]
-	public Url Url { get; protected set; }
+	public Url Url { get; internal set; }
 
 	/// <summary>
 	///     Title/caption of this result
@@ -66,12 +64,12 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	/// <summary>
 	///     Image width
 	/// </summary>
-	public int? Width { get; internal set; }
+	public int? Width { get; set; }
 
 	/// <summary>
 	///     Image height
 	/// </summary>
-	public int? Height { get; internal set; }
+	public int? Height { get; set; }
 
 	[MNNW(true, nameof(Width), nameof(Height))]
 	public bool HasDimensions => Width.HasValue && Height.HasValue;
@@ -342,7 +340,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 		s_logger.LogDebug("Disposing {Item} of {Name}", Url, Root.Engine.Name);
 		ThumbnailImage?.Dispose();
 
-		foreach (SearchResultItem item in ScannedItems) {
+		foreach (IResultItem item in ScannedItems) {
 			item.Dispose();
 		}
 

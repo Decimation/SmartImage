@@ -7,7 +7,7 @@ using SmartImage.Lib.Model;
 
 namespace SmartImage.Lib.Images.Uni;
 
-public interface IUniImage : IImage, IDisposable, ILength, IUrl
+public interface IUniImage : IImage, IDisposable, ILength
 {
 
 	byte[] Bytes { get; }
@@ -30,10 +30,7 @@ public interface IUniImage : IImage, IDisposable, ILength, IUrl
 	}
 
 	[MURV]
-	Stream GetStream()
-	{
-		return UniImage.MemMgr.GetStream(Bytes.GetHashCode().ToString(), Bytes);
-	}
+	Stream GetStream();
 
 	/// <summary>
 	/// Allocates <see cref="Bytes"/>
@@ -45,35 +42,7 @@ public interface IUniImage : IImage, IDisposable, ILength, IUrl
 	/// Allocates <see cref="IImage.Image"/> from <see cref="Bytes"/>
 	/// </summary>
 	[MNNW(true, nameof(Image))]
-	async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
-	{
-		if (this.Url == null) {
-			return false;
-		}
-
-		if (HasImage) {
-			return true;
-		}
-
-		bool allocImgOk = false;
-		var  allocOk    = await AllocSourceAsync(ct);
-
-		if (allocOk) {
-			//todo?
-			allocImgOk = await AllocImageAsync(ct);
-		}
-
-		if (allocImgOk) {
-
-			Width  ??= Image.Width;
-			Height ??= Image.Height;
-
-			// Root.Results.Add(this);
-		}
-		else { }
-
-		return HasImage;
-	}
+	ValueTask<bool> AllocImageAsync(CancellationToken ct = default);
 
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>

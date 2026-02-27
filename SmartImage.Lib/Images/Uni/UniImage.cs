@@ -2,16 +2,19 @@
 // Date: 2024/05/02 @ 10:05:55
 
 
-using System.ComponentModel;
+using AngleSharp.Css.Values;
+using CoenM.ImageHash;
 using Microsoft.Extensions.Logging;
+using Microsoft.IO;
 using Novus.FileTypes.Uni;
 using Novus.Streams;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
-using CoenM.ImageHash;
-using Microsoft.IO;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+using System.ComponentModel;
+using System.Drawing.Imaging;
+
 
 // ReSharper disable InconsistentNaming
 
@@ -40,8 +43,6 @@ public enum UniImageType
 /// </summary>	
 public abstract class UniImage : IUniImage, IEquatable<UniImage>
 {
-
-	public abstract Url Url { get; set; }
 
 	protected static readonly ILogger s_logger;
 
@@ -86,6 +87,14 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 			}
 		}
 	}
+
+	public IImageFormat ImageFormat => Image?.Metadata.DecodedImageFormat;
+
+	[MNNW(true, nameof(ImageFormat), nameof(Image))]
+	public bool HasImageFormat => ImageFormat != null;
+
+	[MNNW(true, nameof(Image), nameof(ImageFormat))]
+	public bool HasImage => Image != null;
 
 #endregion
 
@@ -133,6 +142,11 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		}
 	}
 
+	[MNNW(true, nameof(Bytes), nameof(IUniImage.Length))]
+	public bool HasBytes => Bytes != null;
+
+	public long? Length => Bytes?.Length;
+
 #endregion
 
 
@@ -144,6 +158,12 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 
 
 #region
+
+	[MURV]
+	public Stream GetStream()
+	{
+		return UniImage.MemMgr.GetStream(Name, Bytes);
+	}
 
 	/// <summary>
 	/// Allocates <see cref="Bytes"/>
@@ -193,8 +213,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 	/// <summary>
 	/// Attempts to create the appropriate <see cref="UniImage" /> for <paramref name="o" />.
 	/// </summary>
-	public static async Task<UniImage> TryCreateAsync(object            o, bool autoInit = true, bool autoDisposeOnError = true,
-	                                                  CancellationToken ct = default)
+	public static async Task<UniImage> TryCreateAsync(object o, bool autoInit = true, bool autoDisposeOnError = true, CancellationToken ct = default)
 	{
 		UniImage ui = null;
 
@@ -271,7 +290,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 	[MURV]
 	public virtual string WriteImageToFile([CBN] string fn = null)
 	{
-		if (IImage.HasImage) {
+		if (HasImage) {
 			throw new InvalidOperationException();
 		}
 

@@ -13,6 +13,7 @@ using SmartImage.Lib.Engines.Search.Other;
 using SmartImage.Lib.Utilities.Diagnostics;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
+using SmartImage.Shared;
 
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_TEST)]
 [assembly: InternalsVisibleTo(Common.PROJ_SMARTIMAGE_UI2)]
