@@ -6,6 +6,6 @@ namespace SmartImage.Lib.Model;
 public interface IMaxLength
 {
 
-	long? MaxLength { get; }
+	public long? MaxLength { get; }
 
 }

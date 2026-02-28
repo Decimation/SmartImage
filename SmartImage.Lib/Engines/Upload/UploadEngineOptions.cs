@@ -1,6 +1,8 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UploadEngineOptions.cs
 // Date: 2024/12/06 @ 03:12:53
 
+using SmartImage.Lib.Engines.Search.Other;
+
 namespace SmartImage.Lib.Engines.Upload;
 
 public enum UploadEngineOptions
@@ -23,4 +25,14 @@ public enum UploadEngineOptions
 	/// </summary>
 	Pomf,
 
+
+	/// <summary>
+	/// <see cref="ImgOpsEngine"/>
+	/// </summary>
+	ImgOps,
+
+	/// <summary>
+	/// <see cref="TmpFilesEngine"/>
+	/// </summary>
+	TmpFiles
 }

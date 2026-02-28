@@ -5,7 +5,8 @@ namespace SmartImage.Lib.Model;
 
 public interface INamedEnumOption<out TEnum> where TEnum : Enum
 {
-	TEnum Option { get; }
 
-	string Name => Option.ToString();
+	public TEnum Option { get; }
+
+	public string Name => Option.ToString();
 }

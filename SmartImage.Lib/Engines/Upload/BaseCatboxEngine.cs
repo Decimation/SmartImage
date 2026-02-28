@@ -42,7 +42,7 @@ public abstract class BaseCatboxEngine : BaseUploadEngine
 		return ur;
 	}
 
-	protected override async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
+	public override async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		var   url  = await response.ResponseMessage.Content.ReadAsStringAsync(ct);
 		long? size = response.TryGetContentLength();

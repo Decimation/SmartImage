@@ -145,8 +145,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		Console.CancelKeyPress += OnCancelKeyPress;
 
 		var initTask = AnsiConsole.Progress()
-			.AutoRefresh(true)
-			.StartAsync(InitQueryAsync);
+		                          .AutoRefresh(true)
+		                          .StartAsync(InitQueryAsync);
 
 		await initTask;
 
@@ -162,13 +162,14 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		var cfgPanel = new Panel(cfgGrid) { Header = new PanelHeader("Search Options") { } };
 
-		m_layout = new Layout("Root").SplitColumns(
-			new Layout("L").SplitRows(
-				new("LC", cfgPanel),
-				new("LT", m_mainTable) { }
-			),
-			new Layout("R", ciPanel) { }
-		);
+		m_layout = new Layout("Root")
+			.SplitColumns(
+				new Layout("L").SplitRows(
+					new("LC", cfgPanel),
+					new("LT", m_mainTable) { }
+				),
+				new Layout("R", ciPanel) { }
+			);
 
 		// AnsiConsole.Write(m_layout);
 
@@ -176,8 +177,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 			IRenderable elem = CommandSettings.Interactive ? m_layout : m_mainTable;
 
-			Task main = AnsiConsole.Live(elem)
-				.StartAsync(c => RunSearchLiveAsync(c, m_ctsRunSearch.Token));
+			Task main = AnsiConsole.Live(elem).StartAsync(c => RunSearchLiveAsync(c, m_ctsRunSearch.Token));
 
 			await main;
 		}
@@ -305,11 +305,10 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var selIdx2 = ShellSelection.GetIndex2(sri);*/
 
 				var sel     = ShellSelection.GetSelectionChoice(sr);
-				var item     = sel.Item;
-				var sri = item as SearchResultItem;
+				var item    = sel.Item;
+				var sri     = item as SearchResultItem;
 				var selIdx  = sel.Index();
 				var selIdx2 = sel.Index2();
-
 
 				// s_logger.LogDebug("Selected {Item} {Scn} | {Idx1}, {Idx2}", sel.Item, sel.IsScannedItem, selIdx, selIdx2);
 
@@ -363,7 +362,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Preview && item is ScannedResultItem {} sriScn) {
+				if (cmd == R2.Chc_Preview && item is ScannedResultItem { } sriScn) {
 					if (!sriScn.HasBytes || !sriScn.HasImage) {
 						continue;
 					}
@@ -378,7 +377,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download && item is ScannedResultItem {} sriScnDl) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem { } sriScnDl) {
 
 					HandleDownload(sriScnDl);
 				}
@@ -475,8 +474,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		var sriLayout = new Layout("Preview");
 
 		sriLayout.SplitRows(
-			new Layout("Image") { Ratio   = 2 },
-			new Layout("Details") { Size = 2}
+			new Layout("Image") { Ratio  = 2 },
+			new Layout("Details") { Size = 2 }
 		);
 
 		// var grid = sri.GetItemInfoGrid();

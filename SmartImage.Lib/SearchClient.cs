@@ -20,7 +20,7 @@ public sealed class SearchClient : IDisposable, ISearchConfigReceiver
 
 	public bool IsComplete { get; private set; }
 
-	public BaseUploadEngine UploadEngine { get; private set; }
+	public IUploadEngine UploadEngine { get; private set; }
 
 	public IEnumerable<BaseSearchEngine> Engines { get; private set; }
 

@@ -41,7 +41,7 @@ public sealed class PomfEngine : BaseUploadEngine
 		return ur;
 	}
 
-	protected override async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
+	public override async Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default)
 	{
 		// var pr = await response.GetJsonAsync<PomfResult>();
 		var sz = await response.GetStringAsync();

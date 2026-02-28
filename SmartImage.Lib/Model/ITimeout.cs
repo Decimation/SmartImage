@@ -6,6 +6,6 @@ namespace SmartImage.Lib.Model;
 public interface ITimeout
 {
 
-	TimeSpan Timeout { get; }
+	public TimeSpan Timeout { get; }
 
 }

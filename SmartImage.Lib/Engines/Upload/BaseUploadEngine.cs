@@ -1,6 +1,8 @@
 ﻿using System.Diagnostics;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
+using SmartImage.Lib.Engines.Search.Other;
+using SmartImage.Lib.Images;
 using SmartImage.Lib.Images.Uni;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
@@ -8,12 +10,11 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength, INamedEnumOption<UploadEngineOptions>
+public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 {
-
-	public virtual string Name => Option.ToString();
-
 	public Url Url { get; }
+
+	public string Name => Option.ToString();
 
 	/// <summary>
 	/// Max file size, in bytes
@@ -22,13 +23,13 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength
 
 	public abstract UploadEngineOptions Option { get; }
 
+	public TimeSpan Timeout { get; protected set; }
+
 	protected BaseUploadEngine(Url s)
 	{
 		Url     = s;
 		Timeout = TimeSpan.FromSeconds(15);
 	}
-
-	public TimeSpan Timeout { get; protected set; }
 
 	protected static readonly ILogger Logger = AppSupport.Factory.CreateLogger(nameof(BaseUploadEngine));
 
@@ -36,7 +37,6 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength
 
 	static BaseUploadEngine()
 	{
-
 		Client = (FlurlClient) FlurlHttp.Clients.GetOrAdd(nameof(BaseUploadEngine), null, static builder =>
 		{
 			builder.OnError(static f =>
@@ -44,18 +44,20 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength
 				//
 				Logger.LogError(f.Exception, $"from {nameof(BaseUploadEngine)}");
 			});
+
 			builder.AddMiddleware(static () => new HttpLoggingHandler(Logger));
 
 		});
 	}
 
-	public static BaseUploadEngine GetUploadEngine(UploadEngineOptions options)
+	public static IUploadEngine GetUploadEngine(UploadEngineOptions options)
 	{
 		return options switch
 		{
 			UploadEngineOptions.Catbox    => new CatboxEngine(),
 			UploadEngineOptions.Litterbox => new LitterboxEngine(),
 			UploadEngineOptions.Pomf      => new PomfEngine(),
+			UploadEngineOptions.ImgOps      => new ImgOpsEngine(),
 			UploadEngineOptions.None or _ => throw new ArgumentOutOfRangeException(nameof(options), options, null)
 		};
 	}
@@ -77,7 +79,7 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength
 
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
 
-	protected abstract Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
+	public abstract Task<UploadResult> ProcessResponseAsync(IFlurlResponse response, CancellationToken ct = default);
 
 	public void Verify(UniImage file)
 	{

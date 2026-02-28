@@ -90,7 +90,7 @@ public sealed class SearchQuery : IDisposable, IEquatable<SearchQuery>, INotifyP
 
 	}
 
-	public async ValueTask<bool> TryUploadAsync(BaseUploadEngine ue = null, CancellationToken ct = default)
+	public async ValueTask<bool> TryUploadAsync(IUploadEngine ue = null, CancellationToken ct = default)
 	{
 		if (IsUploaded) {
 			return true;
