@@ -71,7 +71,7 @@ public class UniImageUrl : UniImage, IUrl
 		return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
 	}
 
-	public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<IUniImage> cw, Func<string, IUniImage> newItem, CancellationToken ct = default)
+	public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<IUniImage> cw, CancellationToken ct = default)
 	{
 		bool ok = false;
 		var  ui = await TryCreateAsync(u, autoInit: true, autoDisposeOnError: false, ct: ct) as UniImageUrl;
@@ -89,17 +89,16 @@ public class UniImageUrl : UniImage, IUrl
 			return true;
 		}*/
 
-		return await ui.ScanAsync(cw, newItem, ct);
+		return await ui.ScanAsync(cw, (Url s) => { return new UniImageUrl(s); }, ct);
 	}
 
 
-	
-	public async ValueTask<bool> ScanAsync(ChannelWriter<IUniImage> cw, Func<string, IUniImage> newItem, CancellationToken ct = default)
+	public virtual async ValueTask<bool> ScanAsync(ChannelWriter<IUniImage> cw, Func<Url, IUniImage> f, CancellationToken ct = default)
 	{
 		var (allocOk, allocImgOk) = await AllocAll(ct);
 
 		if (allocImgOk) {
-			await cw.WriteAsync(this, ct);
+			await cw.WriteAsync((IUniImage) this, ct);
 			cw.TryComplete();
 			return true;
 		}
@@ -115,7 +114,7 @@ public class UniImageUrl : UniImage, IUrl
 
 		await Parallel.ForEachAsync(urls, ct, async (s, token) =>
 		{
-			var item = newItem(s);
+			var item = f(s);
 
 			var (allocOk2, allocImgOk2) = await item.AllocAll(token);
 

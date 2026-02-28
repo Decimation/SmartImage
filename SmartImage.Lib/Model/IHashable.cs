@@ -7,7 +7,7 @@ public interface IHashable
 {
 	public ulong? Hash { get; }
 
-	[MNNW(true, nameof(Hash))]
+	[MNNW(true, nameof(Hash), nameof(Hash.Value))]
 	public bool HasHash => Hash.HasValue;
 
 }

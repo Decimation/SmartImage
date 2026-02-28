@@ -11,43 +11,24 @@ using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public class ScannedResultItem : UniImageUrl, IResultItem
+public interface IScannedItem<T> where T: IUniImage, IScannedItem<T>
+{
+
+	public static abstract Task<T> FromScanned(Url u, IResultItem item, CancellationToken ct = default);
+
+}
+
+public class ScannedResultItem : UniImageUrl, IResultItem, IScannedItem<ScannedResultItem>
 {
 
 	public SearchResult Root { get; }
 
 	public IResultItem Parent { get; }
 
+	[MNNW(true, nameof(Parent))]
 	public bool IsChild { get; }
 
 	public bool IsRaw => false;
-
-	public int? Width { get; }
-
-	public int? Height { get; }
-
-	public virtual bool CalculateSimilarity(IHashable hashable)
-	{
-		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
-		return Similarity.HasValue;
-	}
-
-	internal ScannedResultItem(Url url, IResultItem parent) : base(url)
-	{
-		Parent      = parent;
-		Root        = parent.Root;
-		IsChild     = true;
-		Title       = parent.Title;
-		Source      = parent.Source;
-		Artist      = parent.Artist;
-		Description = parent.Description;
-		Character   = parent.Character;
-		Site        = parent.Site;
-		Time        = parent.Time;
-		Width       = parent.Width;
-		Height      = parent.Height;
-	}
-
 
 	public string Title { get; }
 
@@ -63,5 +44,44 @@ public class ScannedResultItem : UniImageUrl, IResultItem
 
 	public DateTime? Time { get; }
 
-	
+	public int? Width { get; }
+
+	public int? Height { get; }
+
+	internal ScannedResultItem(Url url, IResultItem parent) : base(url)
+	{
+		Parent  = parent;
+		Root    = parent.Root;
+		IsChild = true;
+
+		// todo
+		Title       = parent.Title;
+		Source      = parent.Source;
+		Artist      = parent.Artist;
+		Description = parent.Description;
+		Character   = parent.Character;
+		Site        = parent.Site;
+		Time        = parent.Time;
+		Width       = parent.Width;
+		Height      = parent.Height;
+	}
+
+
+	public static Task<ScannedResultItem> FromScanned(IResultItem item, CancellationToken ct = default) => FromScanned(item.Url, item, ct);
+
+	public static async Task<ScannedResultItem> FromScanned(Url u, IResultItem item, CancellationToken ct = default)
+	{
+		var sri = new ScannedResultItem(u, item);
+		var (allocOk, allocImgOk) = await sri.AllocAll(ct);
+
+		if (allocImgOk) {
+			return sri;
+		}
+		else {
+			sri?.Dispose();
+		}
+
+		return null;
+	}
+
 }

@@ -34,7 +34,7 @@ public interface IUniImage : IImage, IDisposable, ILength
 	Stream GetStream();
 
 	/// <summary>
-	/// Allocates <see cref="Bytes"/>
+	/// Allocates <see cref="Bytes"/> (<see cref="GetStream"/>)
 	/// </summary>
 	[MNNW(true, nameof(Bytes))]
 	ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
@@ -48,6 +48,5 @@ public interface IUniImage : IImage, IDisposable, ILength
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
 	ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct);
-
 
 }

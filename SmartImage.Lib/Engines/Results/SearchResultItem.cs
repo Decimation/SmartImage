@@ -28,10 +28,9 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	[JI]
 	public IResultItem Parent { get; set; }
 
-	public bool IsCloned { get; private init; }
+	public bool IsCloned => false;
 
-	[MNNW(true, nameof(Parent))]
-	public bool IsChild => Parent != null && Parent != this;
+	public bool IsChild => false;
 
 #endregion
 
@@ -272,10 +271,16 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 		var cw = Channel.CreateUnbounded<IUniImage>();
 
-		var task = UniImageUrl.ScanAsync(Url, cw.Writer, (string s) =>
-		{
-			return new ScannedResultItem(s,this);
-		}, ct);
+		var scr = await ScannedResultItem.FromScanned(this, ct);
+
+		if (scr.HasImage) {
+			ScannedItems.Add(scr);
+			await cw.Writer.WriteAsync(scr, ct);
+			cw.Writer.TryComplete();
+			return true;
+		}
+
+		var task = scr.ScanAsync(cw, url => new ScannedResultItem(url, this), ct);
 
 		while (await cw.Reader.WaitToReadAsync(ct)) {
 			var val = await cw.Reader.ReadAsync(ct);
@@ -292,10 +297,8 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 	public IResultItem PartialCopyCloneWithUrl(Url s)
 	{
-		return new ScannedResultItem(s,this)
-		{
-			
-		};
+		return new ScannedResultItem(s, this)
+			{ };
 	}
 
 	public virtual bool CalculateSimilarity(IHashable hashable)

@@ -38,10 +38,20 @@ public enum UniImageType
 
 }
 
+[Flags]
+public enum AllocFlags
+{
+
+	None   = 0,
+	Stream = 1 << 0,
+	Image  = 1 << 1,
+
+}
+
 /// <summary>
 /// <seealso cref="UniSource"/>
 /// </summary>	
-public abstract class UniImage : IUniImage, IEquatable<UniImage>
+public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<UniImage>
 {
 
 	protected static readonly ILogger s_logger;
@@ -118,10 +128,14 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 	public double? Similarity
 	{
 		get;
-		internal set => SetField(ref field, value);
+		protected set => SetField(ref field, value);
 	}
 
-	
+	public virtual bool CalculateSimilarity(IHashable hashable)
+	{
+		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
+		return Similarity.HasValue;
+	}
 
 #endregion
 
@@ -161,15 +175,11 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		return UniImage.MemMgr.GetStream(Name, Bytes);
 	}
 
-	/// <summary>
-	/// Allocates <see cref="Bytes"/>
-	/// </summary>
+
 	[MNNW(true, nameof(Bytes))]
 	public abstract ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
 
-	/// <summary>
-	/// Allocates <see cref="Image"/> from <see cref="Bytes"/>
-	/// </summary>
+
 	[MNNW(true, nameof(Image))]
 	public virtual async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
 	{
@@ -195,7 +205,6 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		}
 
 		return HasImage;
-
 	}
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>

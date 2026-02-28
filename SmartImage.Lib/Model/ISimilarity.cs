@@ -14,9 +14,6 @@ public interface ISimilarity
 
 	[MNNW(true, nameof(Similarity))]
 	public bool HasSimilarity => Similarity.HasValue;
-	
-	
-	
 
 	[MNN(nameof(IHashable.Hash.Value))]
 	public static double CalculateHashSimilarity<THashable>(THashable a, THashable b) where THashable : IHashable
@@ -27,5 +24,7 @@ public interface ISimilarity
 
 		throw new InvalidOperationException();
 	}
+
+	public bool CalculateSimilarity(IHashable hashable);
 
 }

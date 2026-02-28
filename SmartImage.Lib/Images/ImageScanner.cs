@@ -28,6 +28,15 @@ namespace SmartImage.Lib.Images;
 public static partial class ImageScanner
 {
 
+	public static FlurlClient Client { get; }
+
+	/*
+	 * TODO: DefaultCookiesProvider, and FlareSolverr
+	 */
+
+
+	private static readonly ILogger s_logger;
+
 	static ImageScanner()
 	{
 		s_logger = AppSupport.Factory.CreateLogger(nameof(ImageScanner));
@@ -58,16 +67,6 @@ public static partial class ImageScanner
 		});
 
 	}
-
-
-	public static FlurlClient Client { get; }
-
-	/*
-	 * TODO: DefaultCookiesProvider, and FlareSolverr
-	 */
-
-
-	private static readonly ILogger s_logger;
 
 	/*
 	 * TODO:
@@ -146,7 +145,7 @@ public static partial class ImageScanner
 
 		var abs = imgUrls.Select(u =>
 		{
-			if (u.StartsWith("http"))
+			if (u.StartsWith(LegalSchemeWhitelist[0]))
 				return u;
 
 			if (u.StartsWith("//"))

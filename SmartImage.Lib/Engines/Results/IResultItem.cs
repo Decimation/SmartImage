@@ -13,12 +13,12 @@ public interface IResultItem : IDisposable, ISimilarity, IHashable, INotifyPrope
 
 	public bool IsRaw { get; }
 
-	public bool CalculateSimilarity(IHashable hashable);
-
 	SearchResult Root { get; }
 
-	IResultItem Parent { get;  }
+	IResultItem Parent { get; }
 
 	bool IsChild { get; }
+
+
 
 }

@@ -6,6 +6,7 @@ using System.Reflection;
 using Flurl.Http;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Debug;
 
 // ReSharper disable InconsistentNaming
 
@@ -20,22 +21,19 @@ public static class AppSupport
 
 	internal static readonly ILoggerFactory Factory = LoggerFactory.Create(static builder =>
 	{
-		builder.AddDebug()
-
-		       // .AddProvider(new DebugLoggerProvider())
-		       .SetMinimumLevel(LogLevel.Trace);
+		builder.AddDebug().AddProvider(new DebugLoggerProvider()).SetMinimumLevel(LogLevel.Trace);
 	});
 
 	public static async Task<GitHubRelease[]> GetRepoReleasesAsync()
 	{
 		var ghReleases = await R1.Url_GitHubApi.WithAutoRedirect(true)
-		                .AllowAnyHttpStatus()
-		                .WithHeaders(new
-		                {
-			                User_Agent = R1.UserAgent1
-		                })
-		                .OnError(static e => { e.ExceptionHandled = true; })
-		                .GetJsonAsync<GitHubRelease[]>();
+		                         .AllowAnyHttpStatus()
+		                         .WithHeaders(new
+		                         {
+			                         User_Agent = R1.UserAgent1
+		                         })
+		                         .OnError(static e => { e.ExceptionHandled = true; })
+		                         .GetJsonAsync<GitHubRelease[]>();
 
 		if (ghReleases == null) {
 			return [];
@@ -54,7 +52,7 @@ public static class AppSupport
 	}
 
 
-	public const string DIAG_ID_EXPERIMENTAL = "SI_EXP_001";
+	internal const string DIAG_ID_EXPERIMENTAL = "SI_EXP_001";
 
 }
 
