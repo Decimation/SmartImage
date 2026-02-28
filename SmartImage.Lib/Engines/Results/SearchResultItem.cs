@@ -273,7 +273,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 		var scr = await ScannedResultItem.FromResult(this, ct);
 
-		if (scr.HasImage) {
+		if (scr is { HasImage: true }) {
 			ScannedItems.Add(scr);
 			await cw.Writer.WriteAsync(scr, ct);
 			cw.Writer.TryComplete();

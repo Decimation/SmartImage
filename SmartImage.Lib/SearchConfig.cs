@@ -56,7 +56,7 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	/// <summary>
 	/// Default value for <see cref="UploadEngine"/>
 	/// </summary>
-	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.Litterbox;
+	public const UploadEngineOptions UPLOAD_ENGINE_DEFAULT = UploadEngineOptions.TmpFiles;
 
 #endregion
 
@@ -97,34 +97,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 		get => Get(ON_TOP_DEFAULT);
 		set => Set(value);
 	}
-
-	/*
-	/// <summary>
-	/// <see cref="HydrusClient.EndpointUrl"/>
-	/// </summary>
-	public string HydrusEndpoint
-	{
-		get { return Configuration.ReadSetting(nameof(HydrusEndpoint), STR_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(HydrusEndpoint), value);
-			OnPropertyChanged();
-		}
-	}
-
-	/// <summary>
-	/// <see cref="HydrusClient.Key"/>
-	/// </summary>
-	public string HydrusKey
-	{
-		get { return Configuration.ReadSetting(nameof(HydrusKey), STR_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(HydrusKey), value);
-			OnPropertyChanged();
-		}
-	}
-	*/
 
 	public bool OpenRaw
 	{
@@ -258,34 +230,6 @@ public sealed class SearchConfig : INotifyPropertyChanged
 
 #endregion
 
-	/*
-	/// <summary>
-	/// <see cref="HydrusClient.EndpointUrl"/>
-	/// </summary>
-	public string HydrusEndpoint
-	{
-		get { return Configuration.ReadSetting(nameof(HydrusEndpoint), STR_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(HydrusEndpoint), value);
-			OnPropertyChanged();
-		}
-	}
-
-	/// <summary>
-	/// <see cref="HydrusClient.Key"/>
-	/// </summary>
-	public string HydrusKey
-	{
-		get { return Configuration.ReadSetting(nameof(HydrusKey), STR_DEFAULT); }
-		set
-		{
-			Configuration.AddUpdateSetting(nameof(HydrusKey), value);
-			OnPropertyChanged();
-		}
-	}
-	*/
-
 
 	public SearchConfig() { }
 
@@ -302,32 +246,5 @@ public sealed class SearchConfig : INotifyPropertyChanged
 	{
 		return $"{SearchEngines}\n{PriorityEngines}";
 	}
-
-
-	/*public static IConfigurationRoot GetConfig()
-	{
-	// TODO
-		/*var bldr2 = new ConfigurationBuilder();
-		var host  = Host.CreateDefaultBuilder();
-		var bldr  = host.ConfigureServices((ctx, svc) => { svc.AddSingleton<SearchConfig>(); });
-
-		bldr2.SetBasePath(Directory.GetCurrentDirectory())
-			.AddJsonFile("smartimage.json", optional: false, reloadOnChange: true);
-			#1#
-
-		// TODO
-
-		var currentDirectory = BaseOSIntegration.ExecutableDirectory;
-		var configFileName   = $"{R1.Name}.json";
-
-		// var configFilePath   = Path.Combine(currentDirectory, configFileName);
-
-		var cfg = new ConfigurationBuilder()
-			.SetBasePath(currentDirectory)
-			.AddJsonFile(configFileName, optional: false, reloadOnChange: true)
-			.Build();
-
-		return cfg;
-	}*/
 
 }

@@ -29,6 +29,7 @@ using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp.Processing;
 using SmartImage.Lib;
 using SmartImage.Lib.Engines.Results;
+using SmartImage.Lib.Engines.Upload;
 using SmartImage.Lib.Images;
 using SmartImage.Lib.Utilities;
 using SmartImage.Lib.Utilities.Diagnostics;
@@ -114,7 +115,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// ctx.Refresh();
 
 		p.Description = "Uploading query";
-		var url = await Query.TryUploadAsync();
+		var url = await Query.TryUploadAsync(Client.UploadEngine);
 
 		if (!url) {
 			throw new SmartImageException($"Could not upload {Query}");

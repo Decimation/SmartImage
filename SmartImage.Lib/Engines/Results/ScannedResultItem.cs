@@ -74,7 +74,7 @@ public class ScannedResultItem : UniImageUrl, IResultItem, IScanResult<ScannedRe
 			sri?.Dispose();
 		}
 
-		return null;
+		return sri;
 	}
 
 }

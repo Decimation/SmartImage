@@ -57,7 +57,8 @@ public abstract class BaseUploadEngine : IUploadEngine, IDisposable
 			UploadEngineOptions.Catbox    => new CatboxEngine(),
 			UploadEngineOptions.Litterbox => new LitterboxEngine(),
 			UploadEngineOptions.Pomf      => new PomfEngine(),
-			UploadEngineOptions.ImgOps      => new ImgOpsEngine(),
+			UploadEngineOptions.ImgOps    => new ImgOpsEngine(),
+			UploadEngineOptions.TmpFiles    => new TmpFilesEngine(),
 			UploadEngineOptions.None or _ => throw new ArgumentOutOfRangeException(nameof(options), options, null)
 		};
 	}
