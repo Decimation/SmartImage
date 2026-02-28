@@ -1,5 +1,17 @@
-﻿// Author: Deci | Project: SmartImage.Lib | Name: ImageUtilities.cs
+﻿// ReSharper disable RedundantUsingDirective.Global
+// Author: Deci | Project: SmartImage.Lib | Name: ImageUtilities.cs
 // Date: 2025/12/27 @ 14:12:45
+
+#region Aliases
+
+global using SizeVdS2 = Kantan.Numeric.SizeVariadic<short>;
+global using SizeVdS4 = Kantan.Numeric.SizeVariadic<int>;
+global using SizeVdS8 = Kantan.Numeric.SizeVariadic<long>;
+global using SizeVdF4 = Kantan.Numeric.SizeVariadic<float>;
+global using SizeVdF8 = Kantan.Numeric.SizeVariadic<double>;
+global using SizeIS = SixLabors.ImageSharp.Size;
+
+#endregion
 
 using CoenM.ImageHash;
 using CoenM.ImageHash.HashAlgorithms;
@@ -39,14 +51,12 @@ public static class ImageUtilities
 			var resized = image.Clone(ctx => ctx.Resize(new ResizeOptions()
 			{
 				Size = cs,
-
 			}));
 			return resized;
 		}
-
 	}
 
-	public static SizeS4N ParseResolution(string resText)
+	public static SizeVdS4 ParseResolution(string resText)
 	{
 		string[] resFull = resText.Split(Strings.Constants.MUL_SIGN);
 

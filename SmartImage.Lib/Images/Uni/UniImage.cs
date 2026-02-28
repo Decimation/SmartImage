@@ -1,6 +1,10 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: UniImage.cs
 // Date: 2024/05/02 @ 10:05:55
 
+// ReSharper disable InconsistentNaming
+
+#nullable disable
+#pragma warning disable CS0168 // Variable is declared but never used
 
 using AngleSharp.Css.Values;
 using CoenM.ImageHash;
@@ -13,42 +17,13 @@ using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Model;
 using SmartImage.Lib.Utilities;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing.Imaging;
 
-
-// ReSharper disable InconsistentNaming
-
-
-#pragma warning disable CS0168 // Variable is declared but never used
-
 namespace SmartImage.Lib.Images.Uni;
-#nullable disable
-
-// #nullable enable
 
 /// <summary>
-/// <seealso cref="UniSourceType"/>
-/// </summary>
-public enum UniImageType
-{
-
-	Unknown = 0,
-	File,
-	Uri
-
-}
-
-[Flags]
-public enum AllocFlags
-{
-
-	None   = 0,
-	Stream = 1 << 0,
-	Image  = 1 << 1,
-
-}
-
-/// <summary>
+/// Represents an image dynamically loaded from a described source
 /// <seealso cref="UniSource"/>
 /// </summary>	
 public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<UniImage>
@@ -56,16 +31,19 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 
 	protected static readonly ILogger s_logger;
 
+	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options { });
+
 	static UniImage()
 	{
 		s_logger = AppSupport.Factory.CreateLogger(nameof(UniImage));
 	}
 
-	internal static readonly RecyclableMemoryStreamManager MemMgr = new(new RecyclableMemoryStreamManager.Options { });
+	/// <summary>
+	/// Name of <see cref="Value"/>
+	/// </summary>
+	public virtual string Name { get; protected set; }
 
 	public UniImageType Type { get; }
-
-	// public virtual string Name {get; protected set;}
 
 	[JI]
 	public string Value { get; }
@@ -170,15 +148,18 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 #region
 
 	[MURV]
-	public Stream GetStream()
+	public Stream GetSourceStream()
 	{
+		if (!HasBytes) {
+			throw new InvalidOperationException($"{nameof(Bytes)} not loaded");
+		}
+
 		return UniImage.MemMgr.GetStream(Name, Bytes);
 	}
 
 
 	[MNNW(true, nameof(Bytes))]
 	public abstract ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);
-
 
 	[MNNW(true, nameof(Image))]
 	public virtual async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
@@ -192,7 +173,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 					return false;
 				}
 
-				await using var stream = GetStream();
+				await using var stream = GetSourceStream();
 				Image = await ISImage.LoadAsync(stream, ct);
 				stream.Rewind();
 				Hash = ImageUtilities.Hasher.Hash(stream);
@@ -274,7 +255,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 
 #endregion
 
-#region New region
+#region
 
 	public bool TryWriteOrGetFile(string fn = null)
 	{
@@ -295,12 +276,11 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 		return !HasLocalFilePath;
 	}
 
-	public virtual string Name { get; protected set; }
-
 	[MURV]
+	[return: NN]
 	public virtual string WriteImageToFile([CBN] string fn = null)
 	{
-		if (HasImage) {
+		if (!HasImage) {
 			throw new InvalidOperationException();
 		}
 
@@ -326,7 +306,6 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 	{
 		GC.SuppressFinalize(this);
 		Image?.Dispose();
-		s_logger.LogTrace("Disposing {Uv} {Ut}", Value, Type);
 	}
 
 	public override string ToString()
@@ -385,5 +364,27 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>, ITryCreate<Uni
 		OnPropertyChanged(propertyName);
 		return true;
 	}
+
+}
+
+/// <summary>
+/// <seealso cref="UniSourceType"/>
+/// </summary>
+public enum UniImageType
+{
+
+	Unknown = 0,
+	File,
+	Uri
+
+}
+
+[Flags]
+public enum AllocFlags
+{
+
+	None   = 0,
+	Stream = 1 << 0,
+	Image  = 1 << 1,
 
 }

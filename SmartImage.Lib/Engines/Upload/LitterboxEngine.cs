@@ -12,6 +12,7 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 {
 
 	private const string LITTERBOX_BASE_URL = "https://litterbox.catbox.moe";
+	private const string LITTERBOX_API_URL  = $"{LITTERBOX_BASE_URL}/resources/internals/api.php";
 
 	public override UploadEngineOptions Option => UploadEngineOptions.Litterbox;
 
@@ -19,13 +20,14 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 
 	protected override CapturedMultipartContent BuildContent(CapturedMultipartContent mp, string file)
 	{
-		mp= base.BuildContent(mp, file);
+		mp = base.BuildContent(mp, file);
 		mp = mp.TrimQuotesFromContentTypeBoundary();
 		return mp;
 	}
 
-	public LitterboxEngine() : base($"{LITTERBOX_BASE_URL}/resources/internals/api.php")
+	public LitterboxEngine() : base(LITTERBOX_API_URL)
 	{
-		Timeout = TimeSpan.FromSeconds(25);
+		Timeout = TimeSpan.FromSeconds(30);
 	}
+
 }

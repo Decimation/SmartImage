@@ -15,7 +15,8 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <Configurations>Debug;Release;Test;UnitTest</Configurations>
     <!-- <PublishAot>true</PublishAot> -->
-    <NoWarn>$(NoWarn);1701;1702;NU1608;IDE0005</NoWarn>
+
+    <NoWarn>$(NoWarn);1701;1702;NU1608;IDE0005;CA1873</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup>

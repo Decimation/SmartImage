@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging.Debug;
 
 namespace SmartImage.Lib.Utilities;
 
-public static class AppSupport
+internal static class AppSupport
 {
 
 	internal static readonly Assembly Assembly = Assembly.GetExecutingAssembly();

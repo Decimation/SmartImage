@@ -9,28 +9,25 @@ using SmartImage.Lib.Engines.Results;
 
 namespace SmartImage.Lib.Utilities;
 
-internal static class SearchUtil
+public static class SearchUtil
 {
-
-	/*public static bool IsSuccessful(this SearchResultStatus s)
-		=> s is SearchResultStatus.Success || (!s.IsError() && !s.IsUnknown());*/
 
 	extension(SearchResultStatus s)
 	{
 
-		public bool IsSuccessful()
+		public bool IsSuccessful() 
 			=> s is SearchResultStatus.Success;
 
-		public bool IsUnknown()
+		public bool IsUnknown() 
 			=> s is SearchResultStatus.None;
 
-		public bool IsError()
+		public bool IsError() 
 			=> s is SearchResultStatus.UnknownError or SearchResultStatus.IllegalInput
-				   or SearchResultStatus.Unavailable or SearchResultStatus.Cooldown;
+			                         or SearchResultStatus.Unavailable or SearchResultStatus.Cooldown;
 
 	}
 
-	public static bool HasFlagFast(this SearchResultFlags value, SearchResultFlags status)
+	public static bool HasFlagFast(this SearchResultFlags value, SearchResultFlags status) 
 		=> (value & status) != 0;
 
 	internal static bool TryParseIndex<T>(this IList<T> col, string s, out int i, out T val)
@@ -47,8 +44,6 @@ internal static class SearchUtil
 
 	extension(IFlurlResponse response)
 	{
-
-		[CBN]
 		public bool TryParseHeader<T>(string name, out T t) where T : IParsable<T>
 		{
 			t = default;
@@ -91,10 +86,16 @@ internal static class SearchUtil
 
 	public static CapturedMultipartContent TrimQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
 	{
-		var contentType = content.Headers.ContentType.ToString();
+		var contentType = content.Headers.ContentType?.ToString();
+
+		if (contentType == null) {
+			return content;
+		}
+
 		content.Headers.Remove(HeaderNames.ContentType);
-		var fixedContentType = new string(contentType.Where(x => x != '\"').Select(x => x).ToArray());
+		var fixedContentType = new string(contentType.Where(static x => x != '\"').Select(static x => x).ToArray());
 		content.Headers.TryAddWithoutValidation(HeaderNames.ContentType, fixedContentType);
+
 		return content;
 	}
 

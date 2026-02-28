@@ -50,7 +50,7 @@ public sealed class RepostSleuthEngine : BaseSearchEngine, IDisposable
 				                     .WithTimeout(Timeout)
 				                     .PostMultipartAsync(buildContent: content =>
 				                     {
-					                     var stream = query.Source.GetStream();
+					                     var stream = query.Source.GetSourceStream();
 					                     content.AddFile("image", stream, query.Source.Name);
 				                     }, cancellationToken: token);
 

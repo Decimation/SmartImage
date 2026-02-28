@@ -150,7 +150,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 		await initTask;
 
-		var queryCi = new CanvasImage(Query.Source.GetStream());
+		var queryCi = new CanvasImage(Query.Source.GetSourceStream());
 
 		var ciPanel = new Panel(queryCi)
 		{
@@ -198,9 +198,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				case OutputFileFormat.Delimited:
 					WriteOutputFile();
 					break;
-
-				default:
-					throw new ArgumentOutOfRangeException();
 			}
 
 		}
@@ -310,7 +307,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var sel     = ShellSelection.GetSelectionChoice(sr);
 				var item     = sel.Item;
 				var sri = item as SearchResultItem;
-				var sriScn = item as ScannedResultItem;
 				var selIdx  = sel.Index();
 				var selIdx2 = sel.Index2();
 
@@ -367,7 +363,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					continue;
 				}
 
-				if (cmd == R2.Chc_Preview) {
+				if (cmd == R2.Chc_Preview && item is ScannedResultItem {} sriScn) {
 					if (!sriScn.HasBytes || !sriScn.HasImage) {
 						continue;
 					}
@@ -382,9 +378,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 					clrWrite = true;
 				}
 
-				if (cmd == R2.Chc_Download) {
+				if (cmd == R2.Chc_Download && item is ScannedResultItem {} sriScnDl) {
 
-					HandleDownload(sriScn);
+					HandleDownload(sriScnDl);
 				}
 
 
@@ -422,9 +418,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 					case CacheEntryRemovedReason.CacheSpecificEviction:
 						break;
-
-					default:
-						throw new ArgumentOutOfRangeException();
 				}
 
 				s_logger.LogDebug("Cache item {CacheItem} removed: {RemRes}", arguments.CacheItem.Key, arguments.RemovedReason);
@@ -437,12 +430,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		var key = sri.Url;
 		var val = m_previewCanvasCache.Get(key);
 
-		var ci = val as CanvasImage;
-
-		if (ci is null) {
-			str = sri.GetStream();
+		if (val is not CanvasImage ci) {
+			str = sri.GetSourceStream();
 			ci  = new CanvasImage(str) { };
-
 
 			m_previewCanvasCache.Set(key, ci, cip);
 		}
@@ -554,8 +544,8 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 			AC.AlternateScreen(() =>
 			{
 				var gr = new Grid();
-				gr.AddColumns(new GridColumn[] { new(), new() });
-				gr.AddRow(new IRenderable[] { new Text("File", Elements.Sty_Name), new Text(sri.LocalFilePath) });
+				gr.AddColumns(new(), new());
+				gr.AddRow(new Text("File", Elements.Sty_Name), new Text(sri.LocalFilePath));
 				AnsiConsole.Write(gr);
 
 				var prompt = new ConfirmationPrompt("Open?") { };
@@ -578,9 +568,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private void OnCancelKeyPress(object sender, ConsoleCancelEventArgs args)
 	{
-		// AnsiConsole.MarkupLine($"[red]Cancellation requested[/]");
-		// AnsiConsole.MarkupLine($"[red]Sender: {sender}[/]");
-
 		s_logger.LogTrace("Cancellation requested {Sender} {Args}", sender, args);
 
 		// AnsiConsole.Clear();
@@ -592,8 +579,6 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		// m_ctsRun.TryReset();
 
 		args.Cancel = true;
-
-		// Environment.Exit(BaseOSIntegration.EC_ERROR);
 	}
 
 	public override ValidationResult Validate(CommandContext context, SearchCommandSettings settings)

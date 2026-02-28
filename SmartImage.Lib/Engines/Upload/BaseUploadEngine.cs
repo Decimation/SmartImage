@@ -8,19 +8,19 @@ using SmartImage.Lib.Utilities.Diagnostics;
 
 namespace SmartImage.Lib.Engines.Upload;
 
-public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength, IEnumOption<UploadEngineOptions>
+public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength, INamedEnumOption<UploadEngineOptions>
 {
+
+	public virtual string Name => Option.ToString();
+
+	public Url Url { get; }
 
 	/// <summary>
 	/// Max file size, in bytes
 	/// </summary>
 	public abstract long? MaxLength { get; }
 
-	public virtual string Name => Option.ToString();
-
 	public abstract UploadEngineOptions Option { get; }
-
-	public Url Url { get; }
 
 	protected BaseUploadEngine(Url s)
 	{
@@ -71,9 +71,8 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength
 			var ur = new UploadResult(uri.Url, uri.Length) { };
 			return Task.FromResult(ur);
 		}
-		else {
-			return UploadFileAsync(query.Value, ct);
-		}
+
+		return UploadFileAsync(query.Value, ct);
 	}
 
 	public abstract Task<UploadResult> UploadFileAsync(string file, CancellationToken ct = default);
@@ -82,7 +81,7 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength
 
 	public void Verify(UniImage file)
 	{
-		if ((file.Length > MaxLength)) {
+		if (file.Length > MaxLength) {
 			throw new ArgumentException($"File {file} is too large (max {MaxLength}) for {Name}");
 		}
 	}
@@ -90,7 +89,6 @@ public abstract class BaseUploadEngine : IDisposable, IUrl, ITimeout, IMaxLength
 
 	public virtual void Dispose()
 	{
-		Debug.WriteLine($"Disposing {nameof(BaseUploadEngine)} ({Name})");
 		GC.SuppressFinalize(this);
 	}
 

@@ -36,9 +36,15 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 	private static readonly ILogger s_logger = AppSupport.Factory.CreateLogger(nameof(SearchResultItem));
 
+	/// <summary>
+	/// Whether this is <see cref="SearchResult.RawResultItem"/>
+	/// </summary>
+	[JI]
+	public bool IsRaw { get; }
+
 	[MN]
 	[JPN("url")]
-	public Url Url { get; internal set; }
+	public Url Url { get; protected internal set; }
 
 	/// <summary>
 	///     Title/caption of this result
@@ -113,12 +119,6 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	[MNNW(true, nameof(Hash))]
 	public bool HasHash => Hash.HasValue;
 
-
-	/// <summary>
-	/// Whether this is <see cref="SearchResult.RawResultItem"/>
-	/// </summary>
-	[JI]
-	public bool IsRaw { get; }
 
 	public virtual double Score
 	{
@@ -271,7 +271,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 		var cw = Channel.CreateUnbounded<IUniImage>();
 
-		var scr = await ScannedResultItem.FromScanned(this, ct);
+		var scr = await ScannedResultItem.FromResult(this, ct);
 
 		if (scr.HasImage) {
 			ScannedItems.Add(scr);
@@ -294,12 +294,6 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 	}
 
 #endregion
-
-	public IResultItem PartialCopyCloneWithUrl(Url s)
-	{
-		return new ScannedResultItem(s, this)
-			{ };
-	}
 
 	public virtual bool CalculateSimilarity(IHashable hashable)
 	{

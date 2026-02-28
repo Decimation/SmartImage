@@ -16,12 +16,15 @@ using SmartImage.Lib.Utilities.Integration;
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.RegularExpressions;
+using AngleSharp.Io;
+
+// ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
 
 // ReSharper disable UnusedMember.Global
-
 // ReSharper disable SuggestVarOrType_Elsewhere
-
 // ReSharper disable InconsistentNaming
+
+#pragma warning disable CA1041
 
 namespace SmartImage.Lib.Images;
 
@@ -29,11 +32,6 @@ public static partial class ImageScanner
 {
 
 	public static FlurlClient Client { get; }
-
-	/*
-	 * TODO: DefaultCookiesProvider, and FlareSolverr
-	 */
-
 
 	private static readonly ILogger s_logger;
 
@@ -49,7 +47,7 @@ public static partial class ImageScanner
 			builder.Settings.AllowedHttpStatusRange = "*";
 			builder.Settings.HttpVersion            = "2.0";
 
-			builder.Headers.AddOrReplace("User-Agent", R1.UserAgent1);
+			builder.Headers.AddOrReplace(HeaderNames.UserAgent, R1.UserAgent1);
 
 			// builder.AllowAnyHttpStatus();
 
@@ -68,15 +66,6 @@ public static partial class ImageScanner
 
 	}
 
-	/*
-	 * TODO:
-	 *
-	 * Aggregate
-	 * Highest
-	 *
-	 * Gallery-DL
-	 */
-
 #region Regex
 
 	[GeneratedRegex("""(?i)<(?:img|video|source)\s[^>]*src(?:set)?=[\"]?(?<URL>[^\"\s>]+)""", RegexOptions.Compiled, "en-US")]
@@ -94,7 +83,7 @@ public static partial class ImageScanner
 
 	public static readonly IImageFormat[] ImageFormats = [PngFormat.Instance, JpegFormat.Instance, BmpFormat.Instance, GifFormat.Instance];
 
-	public static readonly string[] FormatExtensions = ImageFormats.SelectMany(static fmt => fmt.FileExtensions).ToArray();
+	public static readonly string[] FormatExtensions = [.. ImageFormats.SelectMany(static fmt => fmt.FileExtensions)];
 
 #endregion
 
@@ -154,7 +143,6 @@ public static partial class ImageScanner
 			if (u.StartsWith(URL_DELIM))
 				return Url.Combine(url.Root, u);
 
-
 			// return baseUrl + URL_DELIM + u;
 			return Url.Combine(baseUrl, URL_DELIM.ToString(), u);
 		});
@@ -187,7 +175,7 @@ public static partial class ImageScanner
 		}
 
 		var response = await request.OnError(act => { act.ExceptionHandled = true; })
-			               .GetAsync(cancellationToken: ct);
+		                            .GetAsync(cancellationToken: ct);
 
 		return response;
 	}
@@ -212,8 +200,8 @@ public static partial class ImageScanner
 		var cmd = Cli.Wrap(BaseOSIntegration.GALLERY_DL);
 
 		cmd.WithArguments([$"-G", cri])
-			.WithStandardOutputPipe(PipeTarget.Create((HandlePipeAsync)))
-			.WithStandardErrorPipe(PipeTarget.ToStringBuilder(sbErr));
+		   .WithStandardOutputPipe(PipeTarget.Create((HandlePipeAsync)))
+		   .WithStandardErrorPipe(PipeTarget.ToStringBuilder(sbErr));
 
 
 		async Task HandlePipeAsync(Stream arg1, CancellationToken token)
@@ -235,7 +223,7 @@ public static partial class ImageScanner
 			return null;
 		}
 
-		return rg.ToArray();
+		return [.. rg];
 	}
 
 }

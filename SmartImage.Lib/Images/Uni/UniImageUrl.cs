@@ -3,7 +3,6 @@
 
 using Flurl.Http;
 using Kantan.Net.Utilities;
-using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Model;
 using System.Threading.Channels;
 using SmartImage.Lib.Engines.Results;
@@ -71,27 +70,6 @@ public class UniImageUrl : UniImage, IUrl
 		return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
 	}
 
-	public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<IUniImage> cw, CancellationToken ct = default)
-	{
-		bool ok = false;
-		var  ui = await TryCreateAsync(u, autoInit: true, autoDisposeOnError: false, ct: ct) as UniImageUrl;
-
-		if (ui == null) {
-			s_logger.LogError("{Url} is null", u);
-			return cw.TryComplete();
-		}
-
-		/*var (allocOk, allocImgOk) = await ui.AllocAll(ct);
-
-		if (allocImgOk) {
-			await cw.WriteAsync((T) ui, ct);
-			cw.TryComplete();
-			return true;
-		}*/
-
-		return await ui.ScanAsync(cw, (Url s) => { return new UniImageUrl(s); }, ct);
-	}
-
 
 	public virtual async ValueTask<bool> ScanAsync(ChannelWriter<IUniImage> cw, Func<Url, IUniImage> f, CancellationToken ct = default)
 	{
@@ -103,7 +81,7 @@ public class UniImageUrl : UniImage, IUrl
 			return true;
 		}
 
-		await using var stream = GetStream();
+		await using var stream = GetSourceStream();
 
 		using var sr  = new StreamReader(stream);
 		var       str = await sr.ReadToEndAsync(ct);

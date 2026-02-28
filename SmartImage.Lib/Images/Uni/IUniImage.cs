@@ -31,10 +31,10 @@ public interface IUniImage : IImage, IDisposable, ILength
 	}
 
 	[MURV]
-	Stream GetStream();
+	Stream GetSourceStream();
 
 	/// <summary>
-	/// Allocates <see cref="Bytes"/> (<see cref="GetStream"/>)
+	/// Allocates <see cref="Bytes"/> (<see cref="GetSourceStream"/>)
 	/// </summary>
 	[MNNW(true, nameof(Bytes))]
 	ValueTask<bool> AllocSourceAsync(CancellationToken ct = default);

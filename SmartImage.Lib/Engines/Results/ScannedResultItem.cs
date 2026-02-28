@@ -11,14 +11,7 @@ using SmartImage.Lib.Images;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IScannedItem<T> where T: IUniImage, IScannedItem<T>
-{
-
-	public static abstract Task<T> FromScanned(Url u, IResultItem item, CancellationToken ct = default);
-
-}
-
-public class ScannedResultItem : UniImageUrl, IResultItem, IScannedItem<ScannedResultItem>
+public class ScannedResultItem : UniImageUrl, IResultItem, IScanResult<ScannedResultItem>
 {
 
 	public SearchResult Root { get; }
@@ -67,9 +60,9 @@ public class ScannedResultItem : UniImageUrl, IResultItem, IScannedItem<ScannedR
 	}
 
 
-	public static Task<ScannedResultItem> FromScanned(IResultItem item, CancellationToken ct = default) => FromScanned(item.Url, item, ct);
+	public static Task<ScannedResultItem> FromResult(IResultItem item, CancellationToken ct = default) => FromResult(item.Url, item, ct);
 
-	public static async Task<ScannedResultItem> FromScanned(Url u, IResultItem item, CancellationToken ct = default)
+	public static async Task<ScannedResultItem> FromResult(Url u, IResultItem item, CancellationToken ct = default)
 	{
 		var sri = new ScannedResultItem(u, item);
 		var (allocOk, allocImgOk) = await sri.AllocAll(ct);

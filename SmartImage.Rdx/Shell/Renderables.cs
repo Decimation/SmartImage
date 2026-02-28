@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Rdx | Name: Renderables.cs
 // Date: 2025/12/27 @ 22:12:49
 
+global using SizeIS = SixLabors.ImageSharp.Size;
 #nullable disable
 using System.Reflection;
 using Kantan.Text;
@@ -41,8 +42,6 @@ internal static class Renderables
 		}
 
 	}
-
-	public static IRenderable GetResolution(SizeIS sz) => new Text($"{sz.Width}{Strings.Constants.MUL_SIGN}{sz.Height}");
 
 	extension(IResultItem sri)
 	{
@@ -88,7 +87,7 @@ internal static class Renderables
 				url       = new Markup(Markup.Escape(link.ToString()), linkStyle);
 			}
 			else {
-				url       = Elements.Txt_NA;
+				url = Elements.Txt_NA;
 			}
 
 			var gr = new Grid();
@@ -104,9 +103,9 @@ internal static class Renderables
 			// var elems2 = [sri.Character, sri.Source, sri.Description, sri.Site];
 			var elemNames = new String[]
 			{
-				nameof(sri.Character), 
-				nameof(sri.Source), 
-				nameof(sri.Description), 
+				nameof(sri.Character),
+				nameof(sri.Source),
+				nameof(sri.Description),
 				nameof(sri.Site),
 				nameof(sri.Title)
 			};
@@ -117,9 +116,10 @@ internal static class Renderables
 			foreach (string elemName in elemNames) {
 				var prop = sri.GetType().GetProperty(elemName, BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.Public);
 
-				if (prop is {}) {
-					var    val  = prop.GetValue(sri);
-					var s = val?.ToString();
+				if (prop is { }) {
+					var val = prop.GetValue(sri);
+					var s   = val?.ToString();
+
 					if (!String.IsNullOrWhiteSpace(s)) {
 						elems.Add(new Text(s));
 
@@ -131,10 +131,10 @@ internal static class Renderables
 				elems.Add(Elements.Txt_NA);
 			}
 
-			for (int i = 0; i < elems.Count-1; i+=2) {
-				gr.AddRow(elems[i], elems[i+1]);
+			for (int i = 0; i < elems.Count - 1; i += 2) {
+				gr.AddRow(elems[i], elems[i + 1]);
 			}
-			
+
 			return gr;
 		}
 
@@ -174,15 +174,14 @@ internal static class Renderables
 			string sz when String.IsNullOrWhiteSpace(sz) => Elements.Txt_NA,
 
 			string sz => new Text(Markup.Escape(sz)),
-
-			bool b => b.ToPrettyText(),
-
-			null => Elements.Txt_NA,
-
-			_ => new Text(val?.ToString())
+			bool b    => b.ToPrettyText(),
+			null      => Elements.Txt_NA,
+			_         => new Text(val?.ToString())
 		};
 		return renderable;
 	}
+
+	public static IRenderable GetResolution(SizeIS sz) => new Text($"{sz.Width}{Strings.Constants.MUL_SIGN}{sz.Height}");
 
 	public static Text ToPrettyText(this bool b) => b ? Elements.Txt_Rad : Elements.Txt_Mul;
 
@@ -251,7 +250,7 @@ internal static class Renderables
 		{
 			[R1.S_SearchEngines]   = cfg.SearchEngines,
 			[R1.S_PriorityEngines] = cfg.PriorityEngines,
-			[R1.S_UploadEngine] = cfg.UploadEngine,
+			[R1.S_UploadEngine]    = cfg.UploadEngine,
 			[R1.S_AutoSearch]      = cfg.AutoSearch,
 			[R1.S_ReadCookies]     = cfg.ReadCookies,
 			["FlareSolverr"]       = cfg.FlareSolverr,
@@ -311,8 +310,8 @@ internal static class Renderables
 		return g;
 	}
 
-	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue> dictionary,
-	                                             [CBN] Func<TKey, IRenderable> keyFunc = null,
+	internal static Grid MapToGrid<TKey, TValue>(IDictionary<TKey, TValue>       dictionary,
+	                                             [CBN] Func<TKey, IRenderable>   keyFunc = null,
 	                                             [CBN] Func<TValue, IRenderable> valFunc = null)
 	{
 		var grd = new Grid();

@@ -4,6 +4,8 @@
 using SixLabors.ImageSharp.Formats;
 using SmartImage.Lib.Engines.Results;
 
+// ReSharper disable UnusedMemberInSuper.Global
+
 namespace SmartImage.Lib.Model;
 
 public interface IImage : ISize, ISimilarity, IHashable
@@ -20,6 +22,4 @@ public interface IImage : ISize, ISimilarity, IHashable
 	[MNNW(true, nameof(Image), nameof(ImageFormat))]
 	bool HasImage => Image != null;
 
-
-	
 }

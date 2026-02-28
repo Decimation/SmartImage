@@ -1,6 +1,7 @@
 ﻿// Author: Deci | Project: SmartImage.Lib | Name: OllamaModel.cs
 // Date: 2025/07/15 @ 23:07:47
 
+using System.Diagnostics.CodeAnalysis;
 using Flurl.Http;
 using Microsoft.Extensions.Logging;
 using SmartImage.Lib.Utilities;
@@ -9,6 +10,7 @@ using SmartImage.Lib.Utilities.Diagnostics;
 namespace SmartImage.Lib.Clients;
 // TODO
 
+[Experimental(AppSupport.DIAG_ID_EXPERIMENTAL)]
 public class OllamaClient
 {
 

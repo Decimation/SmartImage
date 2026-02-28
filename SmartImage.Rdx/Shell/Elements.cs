@@ -1,6 +1,5 @@
 ﻿#region Aliases
 
-global using SizeIS = SixLabors.ImageSharp.Size;
 
 #endregion
 
@@ -24,7 +23,6 @@ using Spectre.Console.Rendering;
 using AnsiConsoleExtensions = Spectre.Console.Advanced.AnsiConsoleExtensions;
 
 // ReSharper disable PrivateFieldCanBeConvertedToLocalVariable
-
 // ReSharper disable InconsistentNaming
 
 #nullable disable

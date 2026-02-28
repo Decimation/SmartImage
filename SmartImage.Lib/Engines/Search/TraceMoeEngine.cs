@@ -103,7 +103,7 @@ public sealed class TraceMoeEngine : BaseSearchEngine, IDisposable
 				ac.AddFile("file", query.Source.Value);
 			}
 			else {
-				ac.AddFile("image", query.Source.GetStream(), "image");
+				ac.AddFile("image", query.Source.GetSourceStream(), "image");
 			}
 		}, cancellationToken: ct);
 	}
