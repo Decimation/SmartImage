@@ -98,7 +98,28 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 
 			string? data = null;
 
-			if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.FileNameW)) {
+			var autoEpicMap = new Dictionary<ClipboardFormat, Func<string>>()
+			{
+				{ ClipboardFormat.FileNameW, Clipboard.GetFileName },
+				{ ClipboardFormat.CF_TEXT, static () => Clipboard.GetData((uint) ClipboardFormat.CF_TEXT).ToString() },
+				{ ClipboardFormat.CF_HDROP, static () => Clipboard.GetDragQueryList().FirstOrDefault() },
+			};
+
+			foreach ((ClipboardFormat fmt, Func<string> fn) in autoEpicMap) {
+				if (Clipboard.IsFormatAvailable((uint) fmt)) {
+					var dataClip = fn();
+
+					if (!String.IsNullOrWhiteSpace(dataClip) && UniImage.IsValidSourceType(dataClip)) {
+						data = dataClip;
+						break;
+					}
+				}
+			}
+
+			Clipboard.Close();
+
+
+			/*if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.FileNameW)) {
 				data = Clipboard.GetFileName();
 			}
 			else if (Clipboard.IsFormatAvailable((uint) ClipboardFormat.CF_TEXT)) {
@@ -109,13 +130,15 @@ public sealed class SearchCommandSettings : CommonCommandSettings
 			}
 			else {
 				return ValidationResult.Error($"No valid clipboard format detected");
-			}
+			}*/
 
 			if (data != null) {
 				Query = data;
 			}
+			else {
+				return ValidationResult.Error($"No valid clipboard format detected");
+			}
 
-			Clipboard.Close();
 		}
 
 		if (!UniImage.IsValidSourceType(Query)) {
