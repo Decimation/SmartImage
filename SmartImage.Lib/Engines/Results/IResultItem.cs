@@ -4,11 +4,21 @@
 using SmartImage.Lib.Model;
 using System.ComponentModel;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp.Formats;
 
 namespace SmartImage.Lib.Engines.Results;
 
-public interface IResultItem : IDisposable, ISimilarity, IHashable, INotifyPropertyChanged, IUrl
+public interface IResultItem : IDisposable, ISimilarity, IHashable, INotifyPropertyChanged, IUrl, IResultMetadata
 {
-	
+
+	public bool IsRaw { get; }
+
+	public bool CalculateSimilarity(IHashable hashable);
+
+	SearchResult Root { get; }
+
+	IResultItem Parent { get;  }
+
+	bool IsChild { get; }
 
 }

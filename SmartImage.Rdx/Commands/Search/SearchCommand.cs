@@ -100,7 +100,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 	private async Task InitQueryAsync(ProgressContext ctx)
 	{
-		var p = ctx.AddTask("Creating query");
+		var p = ctx.AddTask($"Creating query");
 		p.IsIndeterminate = true;
 
 		Query = await SearchQuery.TryCreateAsync(CommandSettings.Query);
@@ -308,7 +308,9 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				var selIdx2 = ShellSelection.GetIndex2(sri);*/
 
 				var sel     = ShellSelection.GetSelectionChoice(sr);
-				var sri     = sel.Item;
+				var item     = sel.Item;
+				var sri = item as SearchResultItem;
+				var sriScn = item as ScannedResultItem;
 				var selIdx  = sel.Index();
 				var selIdx2 = sel.Index2();
 
@@ -333,7 +335,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 						}
 
 						for (int i = 0; i < sri.ScannedItems.Count; i++) {
-							SearchResultItem scnItm = sri.ScannedItems[i];
+							IResultItem scnItm = sri.ScannedItems[i];
 							scnItm.CalculateSimilarity(Query.Source);
 
 							var scnRow = scnItm.GetItemRow(sel.ItemIdx, i);
@@ -354,7 +356,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 					AnsiConsole.Live(srTable).Start(f =>
 					{
-						sri.CalculateSimilarity(Query.Source);
+						item.CalculateSimilarity(Query.Source);
 
 						srTable.Rows.Update(selIdx2, (int) ResultRowIndex.ROW_SIMILARITY, sri.GetSimilarity());
 						f.Refresh();
@@ -366,23 +368,23 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 				}
 
 				if (cmd == R2.Chc_Preview) {
-					if (!sri.HasBytes || !sri.HasImage) {
+					if (!sriScn.HasBytes || !sriScn.HasImage) {
 						continue;
 					}
 
-					var ci = GetPreview(sri);
+					var ci = GetPreview(sriScn);
 
 					AnsiConsole.AlternateScreen(() =>
 					{
 						//
-						ShowPreview(ci, sri);
+						ShowPreview(ci, sriScn);
 					});
 					clrWrite = true;
 				}
 
 				if (cmd == R2.Chc_Download) {
 
-					HandleDownload(sri);
+					HandleDownload(sriScn);
 				}
 
 
@@ -395,7 +397,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 #region
 
-	private CanvasImage GetPreview(SearchResultItem sri)
+	private CanvasImage GetPreview(ScannedResultItem sri)
 	{
 		Stream str = null;
 
@@ -469,7 +471,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 		_keyDescriptions.Aggregate(String.Empty, (s, kv) => { return s + Markup.Escape(($"[{kv.Key}] : {kv.Value}")) + " | "; });
 
 
-	private void ShowPreview(CanvasImage ci, SearchResultItem sri)
+	private void ShowPreview(CanvasImage ci, ScannedResultItem sri)
 	{
 		var (w, h) = (AnsiConsole.Profile.Width, AC.Profile.Height);
 
@@ -544,7 +546,7 @@ public sealed partial class SearchCommand : CommonAsyncCommand<SearchCommandSett
 
 
 	// [ContractAnnotation("=> halt")]
-	private static void HandleDownload(SearchResultItem sri)
+	private static void HandleDownload(ScannedResultItem sri)
 	{
 		var ok = sri.TryWriteOrGetFile();
 

@@ -18,8 +18,7 @@ internal class HttpLoggingHandler : DelegatingHandler
 
 	private readonly ILogger m_logger;
 
-	protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,
-	                                                       CancellationToken cancellationToken)
+	protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
 		m_logger.LogDebug("Request {Request}", request.RequestUri);
 

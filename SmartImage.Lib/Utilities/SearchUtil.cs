@@ -70,9 +70,8 @@ internal static class SearchUtil
 
 	}
 
-	public static CapturedMultipartContent TrimQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
+	/*public static CapturedMultipartContent TrimQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
 	{
-		content.Headers.TrimQuotesFromContentTypeBoundary();
 		return content;
 	}
 
@@ -88,6 +87,15 @@ internal static class SearchUtil
 
 		// content.Headers.TryAddWithoutValidation("Content-Type", fixedContentType);
 		return headers;
+	}*/
+
+	public static CapturedMultipartContent TrimQuotesFromContentTypeBoundary(this CapturedMultipartContent content)
+	{
+		var contentType = content.Headers.ContentType.ToString();
+		content.Headers.Remove(HeaderNames.ContentType);
+		var fixedContentType = new string(contentType.Where(x => x != '\"').Select(x => x).ToArray());
+		content.Headers.TryAddWithoutValidation(HeaderNames.ContentType, fixedContentType);
+		return content;
 	}
 
 	internal static readonly JsonSerializerOptions DefaultSerializerOptions = new()

@@ -29,7 +29,7 @@ public class SearchResult : IDisposable, INotifyPropertyChanged
 	public Url RawUrl
 	{
 		get => RawResultItem.Url;
-		set => RawResultItem.Url = value;
+		internal set => RawResultItem.Url = value;
 	}
 
 	[JI]

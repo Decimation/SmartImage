@@ -121,11 +121,7 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		internal set => SetField(ref field, value);
 	}
 
-	public virtual bool CalculateSimilarity(IHashable hashable)
-	{
-		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
-		return Similarity.HasValue;
-	}
+	
 
 #endregion
 
@@ -180,6 +176,11 @@ public abstract class UniImage : IUniImage, IEquatable<UniImage>
 		if (!HasImage) {
 
 			try {
+				var src = await AllocSourceAsync(ct);
+
+				if (!src) {
+					return false;
+				}
 
 				await using var stream = GetStream();
 				Image = await ISImage.LoadAsync(stream, ct);

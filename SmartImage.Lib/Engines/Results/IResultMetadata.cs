@@ -43,4 +43,5 @@ public interface IResultMetadata : ISize
 	/// </summary>
 	DateTime? Time { get; }
 
+	
 }

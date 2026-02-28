@@ -20,4 +20,6 @@ public interface IImage : ISize, ISimilarity, IHashable
 	[MNNW(true, nameof(Image), nameof(ImageFormat))]
 	bool HasImage => Image != null;
 
+
+	
 }

@@ -28,26 +28,6 @@ public class UniImageUrl : UniImage, IUrl
 
 	// public override string Name => Url?.GetFileName();
 
-	public override async ValueTask<bool> AllocImageAsync(CancellationToken ct = default)
-	{
-		if (this.Url == null) {
-			return false;
-		}
-
-		if (HasImage) {
-			return true;
-		}
-
-		bool allocImgOk = false;
-		var  allocOk    = await AllocSourceAsync(ct);
-
-		if (allocOk) {
-			//todo?
-			allocImgOk = await AllocImageAsync(ct);
-		}
-
-		return HasImage;
-	}
 
 	public override async ValueTask<bool> AllocSourceAsync(CancellationToken ct = default)
 	{
@@ -91,7 +71,7 @@ public class UniImageUrl : UniImage, IUrl
 		return ImageScanner.LegalSchemeWhitelist.Contains(scheme);
 	}
 
-	/*public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<UniImageUrl> cw, CancellationToken ct = default)
+	public static async ValueTask<bool> ScanAsync(Url u, ChannelWriter<IUniImage> cw, Func<string, IUniImage> newItem, CancellationToken ct = default)
 	{
 		bool ok = false;
 		var  ui = await TryCreateAsync(u, autoInit: true, autoDisposeOnError: false, ct: ct) as UniImageUrl;
@@ -101,21 +81,25 @@ public class UniImageUrl : UniImage, IUrl
 			return cw.TryComplete();
 		}
 
-		return await ui.ScanAsync(cw, s => { return new UniImageUrl(s); }, ct);
-	}*/
+		/*var (allocOk, allocImgOk) = await ui.AllocAll(ct);
+
+		if (allocImgOk) {
+			await cw.WriteAsync((T) ui, ct);
+			cw.TryComplete();
+			return true;
+		}*/
+
+		return await ui.ScanAsync(cw, newItem, ct);
+	}
 
 
-	/// <summary>
-	/// Scans for images within the webpage located at <see cref="Url"/>; if <see cref="Url"/> itself (<code>this</code>)
-	/// points to binary image data, it is returned. todo: update this doc
-	/// </summary>
-	public async ValueTask<bool> ScanAsync<TUniUrl>(ChannelWriter<TUniUrl> cw, Func<string, TUniUrl> newItem, CancellationToken ct = default)
-		where TUniUrl : IUniImage
+	
+	public async ValueTask<bool> ScanAsync(ChannelWriter<IUniImage> cw, Func<string, IUniImage> newItem, CancellationToken ct = default)
 	{
 		var (allocOk, allocImgOk) = await AllocAll(ct);
 
 		if (allocImgOk) {
-			await cw.WriteAsync((TUniUrl) (IUniImage) this, ct);
+			await cw.WriteAsync(this, ct);
 			cw.TryComplete();
 			return true;
 		}

@@ -12,15 +12,7 @@ namespace SmartImage.Lib.Engines.Results;
 
 // todo: refactor to not inherit from UniImageUrl and instead contain a UniImageUrl
 
-public class ScannedResultItem : UniImageUrl, IResultItem
-{
-
-	internal ScannedResultItem(Url url) : base(url) { }
-
-
-}
-
-public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>, ISize, IResultMetadata
+public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, IComparable, IEquatable<SearchResultItem>, ISize
 {
 
 #region
@@ -34,7 +26,7 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 	[CBN]
 	[JI]
-	public SearchResultItem Parent { get; private set; }
+	public IResultItem Parent { get; set; }
 
 	public bool IsCloned { get; private init; }
 
@@ -278,18 +270,17 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 			return true;
 		}
 
-		var cw = Channel.CreateUnbounded<IResultItem>();
+		var cw = Channel.CreateUnbounded<IUniImage>();
 
-		var task = ScanAsync(cw.Writer, s =>
+		var task = UniImageUrl.ScanAsync(Url, cw.Writer, (string s) =>
 		{
-			var clone = PartialCopyCloneWithUrl(s);
-			return clone;
+			return new ScannedResultItem(s,this);
 		}, ct);
 
 		while (await cw.Reader.WaitToReadAsync(ct)) {
 			var val = await cw.Reader.ReadAsync(ct);
 
-			ScannedItems.Add(val);
+			ScannedItems.Add((ScannedResultItem) val);
 		}
 
 		var ok = await task;
@@ -299,22 +290,18 @@ public class SearchResultItem : IResultItem, IComparable<SearchResultItem>, ICom
 
 #endregion
 
-	public SearchResultItem PartialCopyCloneWithUrl(Url s)
+	public IResultItem PartialCopyCloneWithUrl(Url s)
 	{
-		return new SearchResultItem(Root, false)
+		return new ScannedResultItem(s,this)
 		{
-			Parent      = this,
-			Url         = s,
-			Artist      = Artist,
-			Character   = Character,
-			Description = Description,
-			Title       = Title,
-			Site        = Site,
-			Source      = Source,
-			Time        = Time,
-			Metadata    = Metadata,
-			IsCloned    = true,
+			
 		};
+	}
+
+	public virtual bool CalculateSimilarity(IHashable hashable)
+	{
+		Similarity = ISimilarity.CalculateHashSimilarity(this, hashable);
+		return Similarity.HasValue;
 	}
 
 	public SearchResultItem MemberwiseCloneWithUrl(Url u)

@@ -19,8 +19,7 @@ public sealed class LitterboxEngine : BaseCatboxEngine
 
 	protected override CapturedMultipartContent BuildContent(CapturedMultipartContent mp, string file)
 	{
-		mp.TrimQuotesFromContentTypeBoundary();
-		return base.BuildContent(mp, file);
+		return base.BuildContent(mp, file).TrimQuotesFromContentTypeBoundary();
 	}
 
 	public LitterboxEngine() : base($"{LITTERBOX_BASE_URL}/resources/internals/api.php") { }

@@ -32,7 +32,7 @@ internal record ShellSelection
 	public int Index2()
 	{
 
-		var rg = ItemIdx + Item.Root.Results[..ItemIdx].Sum(x => x.ScannedItems.Count);
+		var rg = ItemIdx + Item.Root.Results[..ItemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
 
 		var sumIdx  = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 0);
 		var sumIdx2 = rg + ScanIdx + (IsScannedItem ? ((ScanIdx == 0) ? 1 : 0) : 1);
@@ -49,7 +49,7 @@ internal record ShellSelection
 
 		var scanIdx = isScannedItem ? sri.Parent.Root.Results.IndexOf(sri.Parent) : 0;
 
-		var rg = itemIdx + sri.Root.Results[..itemIdx].Sum(x => x.ScannedItems.Count);
+		var rg = itemIdx + sri.Root.Results[..itemIdx].OfType<SearchResultItem>().Sum(x => x.ScannedItems.Count);
 
 		var sumIdx2 = rg + scanIdx + (isScannedItem ? ((scanIdx == 0) ? 1 : 0) : 1);
 
@@ -77,7 +77,8 @@ internal record ShellSelection
 
 		for (int k = 0; k < root; k++) {
 
-			var result  = Item.Parent.Root.Results[k];
+			var result  = Item.Parent.Root.Results[k] as SearchResultItem;
+
 			var scnItm  = result.ScannedItems;
 			var scnIdx2 = scnItm.IndexOf(Item);
 
@@ -114,7 +115,7 @@ internal record ShellSelection
 
 		for (int k = 0; k < root; k++) {
 
-			var result  = sri.Parent.Root.Results[k];
+			var result  = sri.Parent.Root.Results[k] as SearchResultItem;
 			var scnItm  = result.ScannedItems;
 			var scnIdx2 = scnItm.IndexOf(sri);
 
@@ -135,7 +136,7 @@ internal record ShellSelection
 	{
 		var spl = str.Split('.');
 
-		SearchResultItem sri = null, sri2 = null;
+		IResultItem sri = null, sri2 = null;
 
 		var  resIdx    = 0;
 		var  scnIdx    = -1;
@@ -143,7 +144,7 @@ internal record ShellSelection
 
 		if (sr.Results.TryParseIndex(spl[0], out resIdx, out sri)) {
 			if (spl.Length == 2) {
-				if (sri.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
+				if (sri is SearchResultItem {} sriOrig && sriOrig.ScannedItems.TryParseIndex(spl[1], out scnIdx, out sri2)) {
 					sri       = sri2;
 					isScanned = true;
 				}

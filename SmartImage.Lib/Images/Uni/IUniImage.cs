@@ -4,6 +4,7 @@
 using Novus.Streams;
 using SmartImage.Lib.Engines.Results;
 using SmartImage.Lib.Model;
+using System.Threading.Channels;
 
 namespace SmartImage.Lib.Images.Uni;
 
@@ -47,5 +48,6 @@ public interface IUniImage : IImage, IDisposable, ILength
 
 	/// <returns><see cref="AllocSourceAsync"/>, <see cref="AllocImageAsync"/></returns>
 	ValueTask<(bool AllocSourceOk, bool AllocImageOk)> AllocAll(CancellationToken ct);
+
 
 }

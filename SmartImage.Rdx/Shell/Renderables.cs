@@ -44,7 +44,7 @@ internal static class Renderables
 
 	public static IRenderable GetResolution(SizeIS sz) => new Text($"{sz.Width}{Strings.Constants.MUL_SIGN}{sz.Height}");
 
-	extension(SearchResultItem sri)
+	extension(IResultItem sri)
 	{
 
 		public IRenderable GetResolution() => sri.HasDimensions ? GetResolution(new SizeIS(sri.Width.Value, sri.Height.Value)) : Elements.Txt_NA;
